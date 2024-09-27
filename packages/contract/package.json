@@ -43,14 +43,18 @@
   ],
   "scripts": {
     "build": "vite build && tsc -b --noCheck",
-    "type:check": "tsc -b"
+    "type:check": "tsc -b",
+    "test": "vitest run",
+    "test:watch": "vitest watch"
   },
-  "dependencies": {},
-  "peerDependencies": {},
+  "peerDependencies": {
+    "zod": "^3"
+  },
   "devDependencies": {
     "@dinwwwh/tsconfig": "latest",
     "@types/node": "latest",
     "typescript": "latest",
-    "vite": "latest"
+    "vite": "latest",
+    "vitest": "^2.1.1"
   }
 }

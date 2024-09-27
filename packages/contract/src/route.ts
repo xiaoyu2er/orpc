@@ -1,10 +1,7 @@
 import { HTTPMethod, HTTPPath, Schema, SchemaOutput } from './types'
 import { prefixHTTPPath } from './utils'
 
-export class ContractRoute<
-  TInputSchema extends Schema = Schema,
-  TOutputSchema extends Schema = Schema
-> {
+export class ContractRoute<TInputSchema extends Schema = any, TOutputSchema extends Schema = any> {
   constructor(
     public __cr: {
       path?: HTTPPath

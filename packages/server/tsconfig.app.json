@@ -1,0 +1,15 @@
+{
+  "extends": "@dinwwwh/tsconfig/base-lib.json",
+  "compilerOptions": {
+    "types": ["vite/client"]
+  },
+  "references": [{ "path": "../contract/tsconfig.app.json" }],
+  "include": ["src"],
+  "exclude": [
+    "**/*.test.*",
+    "**/*.test-d.ts",
+    "**/__tests__/**",
+    "**/__mocks__/**",
+    "**/__snapshots__/**"
+  ]
+}

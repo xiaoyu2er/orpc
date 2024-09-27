@@ -1,12 +1,9 @@
 import { ContractRouter } from '@orpc/contract'
-import { ServerRouter } from './router'
-import { ServerContext } from './types'
+import { Router } from './router'
+import { Context } from './types'
 
-export class ServerRouterBuilder<
-  TContext extends ServerContext = any,
-  TContract extends ContractRouter = any
-> {
-  router(router: ServerRouter<TContext, TContract>): typeof router {
+export class RouterBuilder<TContext extends Context = any, TContract extends ContractRouter = any> {
+  router(router: Router<TContext, TContract>): typeof router {
     return router
   }
 }

@@ -1,7 +1,7 @@
-import { ContractRoute, isContractRoute } from './route'
+import { ContractProcedure, isContractProcedure } from './procedure'
 import { HTTPPath } from './types'
 
-export type ContractRouter<T extends Record<string, ContractRoute | ContractRouter> = any> = T
+export type ContractRouter<T extends Record<string, ContractProcedure | ContractRouter> = any> = T
 
 export type ExtendedContractRouter<TRouter extends ContractRouter> = TRouter & {
   prefix<TPrefix extends HTTPPath>(prefix: TPrefix): ExtendedContractRouter<TRouter>
@@ -18,12 +18,12 @@ export function createExtendedContractRouter<TRouter extends ContractRouter>(
           {
             apply(_target, _thisArg, [prefix]) {
               const applyPrefix = (router: ContractRouter) => {
-                const clone: Record<string, ContractRoute | ContractRouter> = {}
+                const clone: Record<string, ContractProcedure | ContractRouter> = {}
 
                 for (const key in router) {
                   const item = router[key]
 
-                  if (isContractRoute(item)) {
+                  if (isContractProcedure(item)) {
                     clone[key] = item.prefix(prefix)
                   } else {
                     clone[key] = applyPrefix(item)

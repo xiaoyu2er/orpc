@@ -1,18 +1,18 @@
-import { ContractRoute, ContractRouter, ExtendedContractRouter } from '@orpc/contract'
-import { ServerRoute } from './route'
-import { ServerContext } from './types'
+import { ContractProcedure, ContractRouter, ExtendedContractRouter } from '@orpc/contract'
+import { Procedure } from './procedure'
+import { Context } from './types'
 
-export type ServerRouter<
-  TContext extends ServerContext = any,
+export type Router<
+  TContext extends Context = any,
   TContract extends ContractRouter = any
 > = TContract extends ExtendedContractRouter<infer UContract>
   ? {
-      [K in keyof UContract]: UContract[K] extends ContractRoute
-        ? ServerRoute<TContext, UContract[K]>
-        : ServerRouter<TContext, UContract[K]>
+      [K in keyof UContract]: UContract[K] extends ContractProcedure
+        ? Procedure<TContext, UContract[K]>
+        : Router<TContext, UContract[K]>
     }
   : {
-      [K in keyof TContract]: TContract[K] extends ContractRoute
-        ? ServerRoute<TContext, TContract[K]>
-        : ServerRouter<TContext, TContract[K]>
+      [K in keyof TContract]: TContract[K] extends ContractProcedure
+        ? Procedure<TContext, TContract[K]>
+        : Router<TContext, TContract[K]>
     }

@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { ContractRoute } from './route'
+import { ContractProcedure } from './procedure'
 import { createExtendedContractRouter } from './router'
 
 describe('prefix method', () => {
-  const r1 = new ContractRoute({
+  const r1 = new ContractProcedure({
     method: 'GET',
     path: '/',
   })
 
-  const r2 = new ContractRoute({
+  const r2 = new ContractProcedure({
     method: 'GET',
     path: '/abc//',
   })
@@ -22,8 +22,8 @@ describe('prefix method', () => {
   })
 
   it('works (and standardize path)', () => {
-    expect(router.prefix('/prefix').r1.__cr.path).toBe('/prefix')
-    expect(router.prefix('/prefix/a').nested.prefix.__cr.path).toBe('/prefix/a/abc')
+    expect(router.prefix('/prefix').r1.__cp.path).toBe('/prefix')
+    expect(router.prefix('/prefix/a').nested.prefix.__cp.path).toBe('/prefix/a/abc')
   })
 
   it('create new instance', () => {

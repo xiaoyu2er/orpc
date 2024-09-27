@@ -1,12 +1,13 @@
 import { IsAnyOrEqual } from '@orpc/contract'
 
-export type ServerContext = Record<string, unknown>
-export type MergeServerContext<TA extends ServerContext, TB extends ServerContext> = IsAnyOrEqual<
+export type Context = Record<string, unknown>
+
+export type MergeContext<TA extends Context, TB extends Context> = IsAnyOrEqual<
   TA,
-  ServerContext
+  Context
 > extends true
   ? TB
-  : IsAnyOrEqual<TB, ServerContext> extends true
+  : IsAnyOrEqual<TB, Context> extends true
   ? TA
   : Omit<TA, keyof TB> & TB
 

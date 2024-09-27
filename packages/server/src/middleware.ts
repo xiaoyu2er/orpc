@@ -1,9 +1,9 @@
 import { HTTPMethod } from '@orpc/contract'
-import { MergeServerContext, ServerContext } from './types'
+import { Context, MergeContext } from './types'
 
-export interface ServerMiddleware<
-  TContext extends ServerContext = any,
-  TExtraContext extends ServerContext = any,
+export interface Middleware<
+  TContext extends Context = any,
+  TExtraContext extends Context = any,
   TInput = unknown
 > {
   (
@@ -16,40 +16,28 @@ export interface ServerMiddleware<
   ): { context?: TExtraContext } | void
 }
 
-export interface ExtendedServerMiddleware<
-  TContext extends ServerContext = any,
-  TExtraContext extends ServerContext = any,
+export interface ExtendedMiddleware<
+  TContext extends Context = any,
+  TExtraContext extends Context = any,
   TInput = unknown
-> extends ServerMiddleware<TContext, TExtraContext, TInput> {
-  concat<UExtraContext extends ServerContext, UInput>(
-    middleware: ServerMiddleware<
-      MergeServerContext<TContext, TExtraContext>,
-      UExtraContext,
-      UInput & TInput
-    >
-  ): ExtendedServerMiddleware<
-    TContext,
-    MergeServerContext<TExtraContext, UExtraContext>,
-    UInput & TInput
-  >
+> extends Middleware<TContext, TExtraContext, TInput> {
+  concat<UExtraContext extends Context, UInput>(
+    middleware: Middleware<MergeContext<TContext, TExtraContext>, UExtraContext, UInput & TInput>
+  ): ExtendedMiddleware<TContext, MergeContext<TExtraContext, UExtraContext>, UInput & TInput>
 
-  concat<UExtraContext extends ServerContext, UMappedInput extends TInput>(
-    middleware: ServerMiddleware<
-      MergeServerContext<TContext, TExtraContext>,
-      UExtraContext,
-      UMappedInput
-    >,
+  concat<UExtraContext extends Context, UMappedInput extends TInput>(
+    middleware: Middleware<MergeContext<TContext, TExtraContext>, UExtraContext, UMappedInput>,
     mapInput: (input: TInput) => UMappedInput
-  ): ExtendedServerMiddleware<TContext, MergeServerContext<TExtraContext, UExtraContext>, TInput>
+  ): ExtendedMiddleware<TContext, MergeContext<TExtraContext, UExtraContext>, TInput>
 }
 
-export function createExtendedServerMiddleware<
-  TContext extends ServerContext = ServerContext,
-  TExtraContext extends ServerContext = ServerContext,
+export function createExtendedMiddleware<
+  TContext extends Context = Context,
+  TExtraContext extends Context = Context,
   TInput = unknown
 >(
-  middleware: ServerMiddleware<TContext, TExtraContext, TInput>
-): ExtendedServerMiddleware<TContext, TExtraContext, TInput> {
+  middleware: Middleware<TContext, TExtraContext, TInput>
+): ExtendedMiddleware<TContext, TExtraContext, TInput> {
   const extended = new Proxy(middleware, {
     get(target, prop) {
       if (prop === 'concat') {
@@ -65,7 +53,7 @@ export function createExtendedServerMiddleware<
                 })
               : middleware_
 
-          return createExtendedServerMiddleware((input: any, context: any, meta: any) => {
+          return createExtendedMiddleware((input: any, context: any, meta: any) => {
             const r1 = target(input, context, meta)
             const r2 = middleware(
               input,

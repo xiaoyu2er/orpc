@@ -48,4 +48,6 @@ export type IsEqual<A, B> = (<G>() => G extends A ? 1 : 2) extends <G>() => G ex
   ? true
   : false
 
-export type IsAnyOrEqual<A, B> = IsEqual<A, any> extends true ? true : IsEqual<A, B>
+export type IsAny<T> = 0 extends 1 & T ? true : false
+
+export type IsAnyOrEqual<A, B> = IsAny<A> extends true ? true : IsEqual<A, B>

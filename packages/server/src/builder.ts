@@ -1,83 +1,70 @@
-import { ContractRoute, ContractRouter, isContractRoute } from '@orpc/contract'
-import {
-  createExtendedServerMiddleware,
-  ExtendedServerMiddleware,
-  ServerMiddleware,
-} from './middleware'
-import { createServerRouteBuilder, ServerRouteBuilder } from './route-builder'
-import { ServerRouterBuilder } from './router-builder'
-import { MergeServerContext, ServerContext } from './types'
+import { ContractProcedure, ContractRouter, isContractProcedure } from '@orpc/contract'
+import { createExtendedMiddleware, ExtendedMiddleware, Middleware } from './middleware'
+import { createProcedureBuilder, ProcedureBuilder } from './procedure-builder'
+import { RouterBuilder } from './router-builder'
+import { Context, MergeContext } from './types'
 
-export interface ServerBuilder<
-  TContext extends ServerContext = any,
-  TExtraContext extends ServerContext = any
-> {
-  __sb: {
-    middlewares: ServerMiddleware[]
+export interface Builder<TContext extends Context = any, TExtraContext extends Context = any> {
+  __b: {
+    middlewares: Middleware[]
   }
 
-  context<UContext extends ServerContext>(): ServerBuilder<UContext>
+  context<UContext extends Context>(): Builder<UContext>
 
-  middleware<UExtraContext extends ServerContext, TInput = unknown>(
-    middleware: ServerMiddleware<MergeServerContext<TContext, TExtraContext>, UExtraContext, TInput>
-  ): ExtendedServerMiddleware<MergeServerContext<TContext, TExtraContext>, UExtraContext, TInput>
+  middleware<UExtraContext extends Context, TInput = unknown>(
+    middleware: Middleware<MergeContext<TContext, TExtraContext>, UExtraContext, TInput>
+  ): ExtendedMiddleware<MergeContext<TContext, TExtraContext>, UExtraContext, TInput>
 
-  use<UExtraContext extends ServerContext>(
-    middleware: ServerMiddleware<MergeServerContext<TContext, TExtraContext>, UExtraContext>
-  ): ServerBuilder<TContext, MergeServerContext<TExtraContext, UExtraContext>>
+  use<UExtraContext extends Context>(
+    middleware: Middleware<MergeContext<TContext, TExtraContext>, UExtraContext>
+  ): Builder<TContext, MergeContext<TExtraContext, UExtraContext>>
 
-  use<UExtraContext extends ServerContext, UMappedInput = unknown>(
-    middleware: ServerMiddleware<
-      MergeServerContext<TContext, TExtraContext>,
-      UExtraContext,
-      UMappedInput
-    >,
+  use<UExtraContext extends Context, UMappedInput = unknown>(
+    middleware: Middleware<MergeContext<TContext, TExtraContext>, UExtraContext, UMappedInput>,
     mapInput: (input: unknown) => UMappedInput
-  ): ServerBuilder<TContext, MergeServerContext<TExtraContext, UExtraContext>>
+  ): Builder<TContext, MergeContext<TExtraContext, UExtraContext>>
 
-  contract<UContract extends ContractRoute | ContractRouter>(
+  contract<UContract extends ContractProcedure | ContractRouter>(
     contract: UContract
-  ): UContract extends ContractRoute
-    ? ServerRouteBuilder<TContext, UContract, TExtraContext>
-    : ServerRouterBuilder<TContext, UContract>
+  ): UContract extends ContractProcedure
+    ? ProcedureBuilder<TContext, UContract, TExtraContext>
+    : RouterBuilder<TContext, UContract>
 }
 
-export function createServerBuilder<
-  TContext extends ServerContext = any
->(): ServerBuilder<TContext> {
-  const __sb = {
+export function createBuilder<TContext extends Context = any>(): Builder<TContext> {
+  const __b = {
     middlewares: [] as any[],
   }
 
-  const builder: ServerBuilder<TContext> = {
-    __sb,
+  const builder: Builder<TContext> = {
+    __b: __b,
     context() {
       return builder as any
     },
 
     contract(contract) {
-      if (isContractRoute(contract)) {
-        const routeBuilder = createServerRouteBuilder(contract)
+      if (isContractProcedure(contract)) {
+        const routeBuilder = createProcedureBuilder(contract)
 
-        for (const middleware of __sb.middlewares) {
+        for (const middleware of __b.middlewares) {
           routeBuilder.use(middleware)
         }
 
         return routeBuilder
       }
 
-      return new ServerRouterBuilder<TContext, typeof contract>() as any
+      return new RouterBuilder<TContext, typeof contract>() as any
     },
 
     middleware(middleware) {
-      return createExtendedServerMiddleware(middleware)
+      return createExtendedMiddleware(middleware)
     },
 
     use(...args: any[]) {
       const [middleware, mapInput] = args
 
       if (typeof mapInput === 'function') {
-        __sb.middlewares.push(
+        __b.middlewares.push(
           new Proxy(middleware, {
             apply(_target, _thisArg, [input, ...rest]) {
               return middleware(mapInput(input), ...(rest as [any, any]))
@@ -85,7 +72,7 @@ export function createServerBuilder<
           })
         )
       } else {
-        __sb.middlewares.push(middleware)
+        __b.middlewares.push(middleware)
       }
 
       return builder

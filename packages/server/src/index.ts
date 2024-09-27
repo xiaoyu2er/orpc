@@ -1,13 +1,13 @@
 /** dinwwwh */
 
-import { createServerBuilder } from './builder'
+import { createBuilder } from './builder'
 
 export * from './builder'
 export * from './middleware'
-export * from './route'
-export * from './route-builder'
+export * from './procedure'
+export * from './procedure-builder'
 export * from './router'
 export * from './router-builder'
 export * from './types'
 
-export const initORPCServer = createServerBuilder<Record<string, never>>()
+export const initORPC = createBuilder<Record<string, never>>()

@@ -29,25 +29,20 @@ export type PrefixHTTPPath<
   ? `/${UPrefix}${StandardizeHTTPPath<TPath>}`
   : never
 
-export type Schema = ZodType<any, any, any>
-export type SchemaInput<TSchema extends Schema, TFallback = unknown> = IsAnyOrEqual<
-  TSchema,
-  Schema
-> extends true
-  ? TFallback
-  : input<TSchema>
+export type Schema = ZodType<any, any, any> | undefined
 
-export type SchemaOutput<TSchema extends Schema, TFallback = unknown> = IsAnyOrEqual<
-  TSchema,
-  Schema
-> extends true
+export type SchemaInput<TSchema extends Schema, TFallback = unknown> = TSchema extends undefined
   ? TFallback
-  : output<TSchema>
+  : TSchema extends ZodType<any, any, any>
+  ? input<TSchema>
+  : TFallback
+
+export type SchemaOutput<TSchema extends Schema, TFallback = unknown> = TSchema extends undefined
+  ? TFallback
+  : TSchema extends ZodType<any, any, any>
+  ? output<TSchema>
+  : TFallback
 
 export type IsEqual<A, B> = (<G>() => G extends A ? 1 : 2) extends <G>() => G extends B ? 1 : 2
   ? true
   : false
-
-export type IsAny<T> = 0 extends 1 & T ? true : false
-
-export type IsAnyOrEqual<A, B> = IsAny<A> extends true ? true : IsEqual<A, B>

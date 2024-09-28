@@ -5,15 +5,15 @@ import { ProcedureImplementer } from './procedure-implementer'
 import { Context, MergeContext } from './types'
 
 export class ProcedureBuilder<
-  TContext extends Context = any,
-  TExtraContext extends Context = any,
-  TInputSchema extends Schema = any,
-  TOutputSchema extends Schema = any
+  TContext extends Context,
+  TExtraContext extends Context,
+  TInputSchema extends Schema,
+  TOutputSchema extends Schema
 > {
   constructor(
     public __cpb: {
       contract?: ContractProcedure<TInputSchema, TOutputSchema>
-      middlewares?: Middleware[]
+      middlewares?: Middleware<TContext, any, any>[]
     } = {}
   ) {}
 
@@ -87,7 +87,7 @@ export class ProcedureBuilder<
    * Convert to ProcedureBuilder
    */
 
-  use<UExtraContext extends Context>(
+  use<UExtraContext extends Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>>(
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
       UExtraContext,
@@ -99,7 +99,10 @@ export class ProcedureBuilder<
     MergeContext<TExtraContext, UExtraContext>
   >
 
-  use<UExtraContext extends Context, UMappedInput = SchemaOutput<TInputSchema>>(
+  use<
+    UExtraContext extends Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>,
+    UMappedInput = SchemaOutput<TInputSchema>
+  >(
     middleware: Middleware<MergeContext<TContext, TExtraContext>, UExtraContext, UMappedInput>,
     mapInput: MapInputMiddleware<SchemaOutput<TInputSchema>, UMappedInput>
   ): ProcedureImplementer<
@@ -108,7 +111,10 @@ export class ProcedureBuilder<
     MergeContext<TExtraContext, UExtraContext>
   >
 
-  use(middleware: Middleware, mapInput?: MapInputMiddleware): ProcedureImplementer {
+  use(
+    middleware: Middleware<any, any, any>,
+    mapInput?: MapInputMiddleware<any, any>
+  ): ProcedureImplementer<any, any, any> {
     if (!mapInput) {
       return new ProcedureImplementer({
         contract: this.contract,
@@ -128,8 +134,9 @@ export class ProcedureBuilder<
 
   handler<UHandlerOutput extends SchemaOutput<TOutputSchema>>(
     handler: ProcedureHandler<
-      MergeContext<TContext, TExtraContext>,
+      TContext,
       ContractProcedure<TInputSchema, TOutputSchema>,
+      TExtraContext,
       UHandlerOutput
     >
   ): Procedure<

@@ -1,14 +1,9 @@
-import { IsAnyOrEqual } from '@orpc/contract'
+export type Context = Record<string, unknown> | undefined
 
-export type Context = Record<string, unknown>
-
-export type MergeContext<TA extends Context, TB extends Context> = IsAnyOrEqual<
-  TA,
-  Context
-> extends true
+export type MergeContext<TA extends Context, TB extends Context> = TA extends undefined
   ? TB
-  : IsAnyOrEqual<TB, Context> extends true
+  : TB extends undefined
   ? TA
-  : Omit<TA, keyof TB> & TB
+  : TA & TB
 
 export type Promisable<T> = T | Promise<T>

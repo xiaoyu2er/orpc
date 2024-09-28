@@ -1,10 +1,7 @@
 import { HTTPMethod, HTTPPath, Schema, SchemaOutput } from './types'
 import { prefixHTTPPath } from './utils'
 
-export class ContractProcedure<
-  TInputSchema extends Schema = any,
-  TOutputSchema extends Schema = any
-> {
+export class ContractProcedure<TInputSchema extends Schema, TOutputSchema extends Schema> {
   constructor(
     public __cp: {
       path?: HTTPPath
@@ -84,7 +81,7 @@ export class ContractProcedure<
   }
 }
 
-export function isContractProcedure(item: unknown): item is ContractProcedure {
+export function isContractProcedure(item: unknown): item is ContractProcedure<any, any> {
   if (item instanceof ContractProcedure) return true
 
   try {

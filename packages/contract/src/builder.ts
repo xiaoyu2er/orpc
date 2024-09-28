@@ -3,7 +3,9 @@ import { ContractRouter, decorateContractRouter, DecoratedContractRouter } from 
 import { Schema, SchemaOutput } from './types'
 
 export class ContractBuilder {
-  route(...args: Parameters<ContractProcedure['route']>): ContractProcedure {
+  route(
+    ...args: Parameters<ContractProcedure<undefined, undefined>['route']>
+  ): ContractProcedure<undefined, undefined> {
     return new ContractProcedure(...args)
   }
 
@@ -11,7 +13,7 @@ export class ContractBuilder {
     schema: USchema,
     example?: SchemaOutput<USchema>,
     examples?: Record<string, SchemaOutput<USchema>>
-  ): ContractProcedure<USchema> {
+  ): ContractProcedure<USchema, undefined> {
     return new ContractProcedure({
       InputSchema: schema,
       inputExample: example,
@@ -23,7 +25,7 @@ export class ContractBuilder {
     schema: USchema,
     example?: SchemaOutput<USchema>,
     examples?: Record<string, SchemaOutput<USchema>>
-  ): ContractProcedure<Schema, USchema> {
+  ): ContractProcedure<undefined, USchema> {
     return new ContractProcedure({
       OutputSchema: schema,
       outputExample: example,
@@ -31,7 +33,7 @@ export class ContractBuilder {
     })
   }
 
-  router<T extends ContractRouter>(router: T): DecoratedContractRouter<ContractRouter> {
+  router<T extends ContractRouter<any>>(router: T): DecoratedContractRouter<T> {
     return decorateContractRouter(router)
   }
 }

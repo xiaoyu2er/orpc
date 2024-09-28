@@ -1,9 +1,10 @@
+import { initORPCContract } from '@orpc/contract'
 import { z } from 'zod'
 import { initORPC } from '.'
 
 const orpc = initORPC
 
-const router = orpc.router({
+orpc.router({
   ping: orpc.handler((input) => {
     return { pong: input }
   }),
@@ -20,3 +21,23 @@ const router = orpc.router({
       }),
   },
 })
+
+const pingContract = initORPCContract
+  .input(z.object({ message: z.string() }))
+  .output(z.object({ pong: z.string() }))
+
+initORPC
+  .context<{ a: string; b: string }>()
+  .contract(
+    initORPCContract.router({
+      ping: pingContract,
+    })
+  )
+  .router({
+    ping: initORPC
+      .context<{ a: string }>()
+      .contract(pingContract)
+      .handler((input) => {
+        return { pong: input.message }
+      }),
+  })

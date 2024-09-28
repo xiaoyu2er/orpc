@@ -1,11 +1,7 @@
 import { HTTPMethod } from '@orpc/contract'
 import { Context, MergeContext } from './types'
 
-export interface Middleware<
-  TContext extends Context = any,
-  TExtraContext extends Context = any,
-  TInput = any
-> {
+export interface Middleware<TContext extends Context, TExtraContext extends Context, TInput> {
   (
     input: TInput,
     context: TContext,
@@ -16,14 +12,14 @@ export interface Middleware<
   ): { context?: TExtraContext } | void
 }
 
-export interface MapInputMiddleware<TInput = any, TMappedInput = any> {
+export interface MapInputMiddleware<TInput, TMappedInput> {
   (input: TInput): TMappedInput
 }
 
 export interface DecoratedMiddleware<
-  TContext extends Context = any,
-  TExtraContext extends Context = any,
-  TInput = unknown
+  TContext extends Context,
+  TExtraContext extends Context,
+  TInput
 > extends Middleware<TContext, TExtraContext, TInput> {
   concat<UExtraContext extends Context, UInput>(
     middleware: Middleware<MergeContext<TContext, TExtraContext>, UExtraContext, UInput & TInput>
@@ -35,11 +31,7 @@ export interface DecoratedMiddleware<
   ): DecoratedMiddleware<TContext, MergeContext<TExtraContext, UExtraContext>, TInput>
 }
 
-export function decorateMiddleware<
-  TContext extends Context = Context,
-  TExtraContext extends Context = Context,
-  TInput = unknown
->(
+export function decorateMiddleware<TContext extends Context, TExtraContext extends Context, TInput>(
   middleware: Middleware<TContext, TExtraContext, TInput>
 ): DecoratedMiddleware<TContext, TExtraContext, TInput> {
   const extended = new Proxy(middleware, {

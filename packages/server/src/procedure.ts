@@ -3,18 +3,18 @@ import { Middleware } from './middleware'
 import { Context, MergeContext, Promisable } from './types'
 
 export class Procedure<
-  TContext extends Context = any,
-  TContract extends ContractProcedure = any,
-  TExtraContext extends Context = any,
+  TContext extends Context,
+  TContract extends ContractProcedure<any, any>,
+  TExtraContext extends Context,
   THandlerOutput extends TContract extends ContractProcedure<any, infer UOutputSchema>
     ? SchemaOutput<UOutputSchema>
-    : never = any
+    : never
 > {
   constructor(
     public __p: {
-      middlewares?: Middleware[]
+      middlewares?: Middleware<any, any, any>[]
       contract: TContract
-      handler: ProcedureHandler<MergeContext<TContext, TExtraContext>, TContract, THandlerOutput>
+      handler: ProcedureHandler<TContext, TContract, TExtraContext, THandlerOutput>
     }
   ) {}
 
@@ -27,17 +27,18 @@ export class Procedure<
 }
 
 export type ProcedureHandler<
-  TContext extends Context = any,
-  TContract extends ContractProcedure = any,
+  TContext extends Context,
+  TContract extends ContractProcedure<any, any>,
+  TExtraContext extends Context,
   TOutput extends TContract extends ContractProcedure<any, infer UOutputSchema>
     ? SchemaOutput<UOutputSchema>
-    : never = any
+    : never
 > = {
   (
-    input: TContract extends ContractProcedure<infer UInputSchema>
+    input: TContract extends ContractProcedure<infer UInputSchema, any>
       ? SchemaOutput<UInputSchema>
       : never,
-    context: TContext,
+    context: MergeContext<TContext, TExtraContext>,
     meta: {
       method: HTTPMethod
       path: HTTPPath
@@ -49,7 +50,7 @@ export type ProcedureHandler<
   >
 }
 
-export function isProcedure(item: unknown): item is Procedure {
+export function isProcedure(item: unknown): item is Procedure<any, any, any, any> {
   if (item instanceof Procedure) return true
 
   try {

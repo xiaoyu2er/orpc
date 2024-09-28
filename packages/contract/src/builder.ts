@@ -1,19 +1,23 @@
 import { ContractProcedure } from './procedure'
 import { ContractRouter, decorateContractRouter, DecoratedContractRouter } from './router'
-import { Schema, SchemaOutput } from './types'
+import { HTTPMethod, HTTPPath, Schema, SchemaOutput } from './types'
 
 export class ContractBuilder {
-  route(
-    ...args: Parameters<ContractProcedure<undefined, undefined>['route']>
-  ): ContractProcedure<undefined, undefined> {
-    return new ContractProcedure(...args)
+  route<UMethod extends HTTPMethod = undefined, UPath extends HTTPPath = undefined>(opts: {
+    method?: UMethod
+    path?: UPath
+    summary?: string
+    description?: string
+    deprecated?: boolean
+  }): ContractProcedure<undefined, undefined, UMethod, UPath> {
+    return new ContractProcedure(opts)
   }
 
   input<USchema extends Schema>(
     schema: USchema,
     example?: SchemaOutput<USchema>,
     examples?: Record<string, SchemaOutput<USchema>>
-  ): ContractProcedure<USchema, undefined> {
+  ): ContractProcedure<USchema, undefined, undefined, undefined> {
     return new ContractProcedure({
       InputSchema: schema,
       inputExample: example,
@@ -25,7 +29,7 @@ export class ContractBuilder {
     schema: USchema,
     example?: SchemaOutput<USchema>,
     examples?: Record<string, SchemaOutput<USchema>>
-  ): ContractProcedure<undefined, USchema> {
+  ): ContractProcedure<undefined, USchema, undefined, undefined> {
     return new ContractProcedure({
       OutputSchema: schema,
       outputExample: example,

@@ -1,6 +1,8 @@
 import {
   ContractProcedure,
   ContractRouter,
+  HTTPMethod,
+  HTTPPath,
   isContractProcedure,
   IsEqual,
   Schema,
@@ -67,11 +69,15 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
    * Convert to ContractProcedureBuilder
    */
 
-  route(
-    ...args: Parameters<ProcedureBuilder<TContext, TExtraContext, undefined, undefined>['route']>
-  ): ProcedureBuilder<TContext, TExtraContext, undefined, undefined> {
+  route<UMethod extends HTTPMethod = undefined, UPath extends HTTPPath = undefined>(opts: {
+    method?: UMethod
+    path?: UPath
+    summary?: string
+    description?: string
+    deprecated?: boolean
+  }): ProcedureBuilder<TContext, TExtraContext, undefined, undefined, UMethod, UPath> {
     return new ProcedureBuilder({
-      contract: new ContractProcedure<undefined, undefined>().route(...args),
+      contract: new ContractProcedure<undefined, undefined, undefined, undefined>().route(opts),
       middlewares: this.__b.middlewares,
     })
   }
@@ -80,7 +86,7 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
     schema: USchema,
     example?: SchemaOutput<USchema>,
     examples?: Record<string, SchemaOutput<USchema>>
-  ): ProcedureBuilder<TContext, TExtraContext, USchema, undefined> {
+  ): ProcedureBuilder<TContext, TExtraContext, USchema, undefined, undefined, undefined> {
     return new ProcedureBuilder({
       contract: new ContractProcedure({
         InputSchema: schema,
@@ -95,7 +101,7 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
     schema: USchema,
     example?: SchemaOutput<USchema>,
     examples?: Record<string, SchemaOutput<USchema>>
-  ): ProcedureBuilder<TContext, TExtraContext, undefined, USchema> {
+  ): ProcedureBuilder<TContext, TExtraContext, undefined, USchema, undefined, undefined> {
     return new ProcedureBuilder({
       contract: new ContractProcedure({
         OutputSchema: schema,
@@ -112,11 +118,16 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
   handler<UHandlerOutput extends SchemaOutput<any>>(
     handler: ProcedureHandler<
       TContext,
-      ContractProcedure<undefined, undefined>,
+      ContractProcedure<undefined, undefined, undefined, undefined>,
       TExtraContext,
       UHandlerOutput
     >
-  ): Procedure<TContext, ContractProcedure<undefined, undefined>, TExtraContext, UHandlerOutput> {
+  ): Procedure<
+    TContext,
+    ContractProcedure<undefined, undefined, undefined, undefined>,
+    TExtraContext,
+    UHandlerOutput
+  > {
     return new Procedure({
       middlewares: this.__b.middlewares,
       contract: new ContractProcedure(),
@@ -128,9 +139,9 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
    * Convert to ProcedureImplementer | RouterBuilder
    */
 
-  contract<UContract extends ContractProcedure<any, any> | ContractRouter<any>>(
+  contract<UContract extends ContractProcedure<any, any, any, any> | ContractRouter<any>>(
     contract: UContract
-  ): UContract extends ContractProcedure<any, any>
+  ): UContract extends ContractProcedure<any, any, any, any>
     ? ProcedureImplementer<TContext, UContract, TExtraContext>
     : RouterImplementer<TContext, UContract> {
     if (isContractProcedure(contract)) {

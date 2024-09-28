@@ -39,5 +39,6 @@ initORPC
       .contract(pingContract)
       .handler((input) => {
         return { pong: input.message }
-      }),
+      })
+      .prefix('/d'),
   })

@@ -5,7 +5,7 @@ import { Context, MergeContext } from './types'
 
 export class ProcedureImplementer<
   TContext extends Context,
-  TContract extends ContractProcedure<any, any>,
+  TContract extends ContractProcedure<any, any, any, any>,
   TExtraContext extends Context
 > {
   constructor(
@@ -19,7 +19,7 @@ export class ProcedureImplementer<
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
       UExtraContext,
-      TContract extends ContractProcedure<infer UInputSchema, any>
+      TContract extends ContractProcedure<infer UInputSchema, any, any, any>
         ? SchemaOutput<UInputSchema>
         : never
     >
@@ -27,13 +27,13 @@ export class ProcedureImplementer<
 
   use<
     UExtraContext extends Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>,
-    UMappedInput = TContract extends ContractProcedure<infer UInputSchema, any>
+    UMappedInput = TContract extends ContractProcedure<infer UInputSchema, any, any, any>
       ? SchemaOutput<UInputSchema>
       : never
   >(
     middleware: Middleware<MergeContext<TContext, TExtraContext>, UExtraContext, UMappedInput>,
     mapInput: MapInputMiddleware<
-      TContract extends ContractProcedure<infer UInputSchema, any>
+      TContract extends ContractProcedure<infer UInputSchema, any, any, any>
         ? SchemaOutput<UInputSchema>
         : never,
       UMappedInput
@@ -56,7 +56,7 @@ export class ProcedureImplementer<
   }
 
   handler<
-    UHandlerOutput extends TContract extends ContractProcedure<any, infer UOutputSchema>
+    UHandlerOutput extends TContract extends ContractProcedure<any, infer UOutputSchema, any, any>
       ? SchemaOutput<UOutputSchema>
       : never
   >(

@@ -1,12 +1,12 @@
 import { input, output, ZodType } from 'zod'
 
-export type HTTPPath = `/${string}`
-export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
-export type HTTPStatus = number
+export type HTTPPath = `/${string}` | undefined
+export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | undefined
+export type HTTPStatus = number | undefined
 
-export type StandardizeHTTPPath<T extends HTTPPath> = T extends ''
-  ? '/'
-  : T extends '/'
+export type StandardizeHTTPPath<T extends HTTPPath> = T extends undefined | '/'
+  ? T
+  : T extends ''
   ? '/'
   : T extends `/${infer P1}//${infer P2}`
   ? StandardizeHTTPPath<`/${P1}/${P2}`>
@@ -19,9 +19,11 @@ export type StandardizeHTTPPath<T extends HTTPPath> = T extends ''
   : T
 
 export type PrefixHTTPPath<
-  TPrefix extends HTTPPath,
+  TPrefix extends Exclude<HTTPPath, undefined>,
   TPath extends HTTPPath
-> = StandardizeHTTPPath<TPrefix> extends '/'
+> = TPath extends undefined
+  ? TPath
+  : StandardizeHTTPPath<TPrefix> extends '/'
   ? StandardizeHTTPPath<TPath>
   : StandardizeHTTPPath<TPath> extends '/'
   ? StandardizeHTTPPath<TPrefix>

@@ -1,12 +1,14 @@
 import { ContractProcedure, isContractProcedure } from './procedure'
-import { HTTPPath } from './types'
+import { HTTPPath, PrefixHTTPPath } from './types'
 
 export type ContractRouter<
-  T extends Record<string, ContractProcedure<any, any> | ContractRouter<any>>
+  T extends Record<string, ContractProcedure<any, any, any, any> | ContractRouter<any>>
 > = T
 
 export type DecoratedContractRouter<TRouter extends ContractRouter<any>> = TRouter & {
-  prefix<TPrefix extends HTTPPath>(prefix: TPrefix): DecoratedContractRouter<TRouter>
+  prefix<TPrefix extends Exclude<HTTPPath, undefined>>(
+    prefix: TPrefix
+  ): DecoratedContractRouter<PrefixContractRouter<TRouter, TPrefix>>
 }
 
 export function decorateContractRouter<TRouter extends ContractRouter<any>>(
@@ -15,9 +17,12 @@ export function decorateContractRouter<TRouter extends ContractRouter<any>>(
   const extendedRouter = new Proxy(router as {}, {
     get(rootTarget, prop) {
       if (prop === 'prefix') {
-        return Object.assign((prefix: HTTPPath) => {
+        return Object.assign((prefix: Exclude<HTTPPath, undefined>) => {
           const applyPrefix = (router: ContractRouter<any>) => {
-            const clone: Record<string, ContractProcedure<any, any> | ContractRouter<any>> = {}
+            const clone: Record<
+              string,
+              ContractProcedure<any, any, any, any> | ContractRouter<any>
+            > = {}
 
             for (const key in router) {
               const item = router[key]
@@ -43,4 +48,18 @@ export function decorateContractRouter<TRouter extends ContractRouter<any>>(
   })
 
   return extendedRouter as any
+}
+
+export type PrefixContractRouter<
+  TRouter extends ContractRouter<any>,
+  TPrefix extends Exclude<HTTPPath, undefined>
+> = {
+  [K in keyof TRouter]: TRouter[K] extends ContractProcedure<
+    infer TInputSchema,
+    infer TOutputSchema,
+    infer TMethod,
+    infer TPath
+  >
+    ? ContractProcedure<TInputSchema, TOutputSchema, TMethod, PrefixHTTPPath<TPrefix, TPath>>
+    : PrefixContractRouter<TRouter[K], TPrefix>
 }

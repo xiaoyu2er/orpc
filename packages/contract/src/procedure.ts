@@ -22,8 +22,8 @@ export class ContractProcedure<
   ) {}
 
   route(opts: {
-    method: HTTPMethod
-    path: HTTPPath
+    method?: HTTPMethod
+    path?: HTTPPath
     summary?: string
     description?: string
     deprecated?: boolean
@@ -34,9 +34,7 @@ export class ContractProcedure<
     })
   }
 
-  prefix<TPrefix extends HTTPPath>(
-    prefix: TPrefix
-  ): ContractProcedure<TInputSchema, TOutputSchema> {
+  prefix(prefix: HTTPPath): ContractProcedure<TInputSchema, TOutputSchema> {
     if (this.__cp.path) {
       return new ContractProcedure({
         ...this.__cp,

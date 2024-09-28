@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ContractProcedure } from './procedure'
-import { createExtendedContractRouter } from './router'
+import { decorateContractRouter } from './router'
 
 describe('prefix method', () => {
   const r1 = new ContractProcedure({
@@ -13,7 +13,7 @@ describe('prefix method', () => {
     path: '/abc//',
   })
 
-  const router = createExtendedContractRouter({
+  const router = decorateContractRouter({
     r1: r1,
     prefix: r2,
     nested: {

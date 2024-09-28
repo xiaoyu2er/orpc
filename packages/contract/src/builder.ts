@@ -1,16 +1,10 @@
 import { ContractProcedure } from './procedure'
-import { ContractRouter, createExtendedContractRouter, ExtendedContractRouter } from './router'
-import { HTTPMethod, HTTPPath, Schema, SchemaOutput } from './types'
+import { ContractRouter, decorateContractRouter, DecoratedContractRouter } from './router'
+import { Schema, SchemaOutput } from './types'
 
 export class ContractBuilder {
-  route(opts: {
-    method: HTTPMethod
-    path: HTTPPath
-    summary?: string
-    description?: string
-    deprecated?: boolean
-  }): ContractProcedure {
-    return new ContractProcedure(opts)
+  route(...args: Parameters<ContractProcedure['route']>): ContractProcedure {
+    return new ContractProcedure(...args)
   }
 
   input<USchema extends Schema>(
@@ -37,7 +31,7 @@ export class ContractBuilder {
     })
   }
 
-  router<T extends ContractRouter>(router: T): ExtendedContractRouter<ContractRouter> {
-    return createExtendedContractRouter(router)
+  router<T extends ContractRouter>(router: T): DecoratedContractRouter<ContractRouter> {
+    return decorateContractRouter(router)
   }
 }

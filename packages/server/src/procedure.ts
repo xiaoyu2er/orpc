@@ -1,4 +1,5 @@
 import { ContractProcedure, HTTPMethod, HTTPPath, SchemaInput, SchemaOutput } from '@orpc/contract'
+import { Middleware } from './middleware'
 import { Context, MergeContext, Promisable } from './types'
 
 export class Procedure<
@@ -11,10 +12,18 @@ export class Procedure<
 > {
   constructor(
     public __p: {
+      middlewares?: Middleware[]
       contract: TContract
       handler: ProcedureHandler<MergeContext<TContext, TExtraContext>, TContract, THandlerOutput>
     }
   ) {}
+
+  prefix(prefix: HTTPPath): Procedure<TContext, TContract, TExtraContext, THandlerOutput> {
+    return new Procedure({
+      ...this.__p,
+      contract: this.__p.contract.prefix(prefix) as any,
+    })
+  }
 }
 
 export type ProcedureHandler<

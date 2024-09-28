@@ -1,83 +1,147 @@
-import { ContractProcedure, SchemaOutput } from '@orpc/contract'
-import { Middleware } from './middleware'
+import { ContractProcedure, Schema, SchemaOutput } from '@orpc/contract'
+import { MapInputMiddleware, Middleware } from './middleware'
 import { Procedure, ProcedureHandler } from './procedure'
+import { ProcedureImplementer } from './procedure-implementer'
 import { Context, MergeContext } from './types'
 
-export interface ProcedureBuilder<
+export class ProcedureBuilder<
   TContext extends Context = any,
-  TContract extends ContractProcedure = any,
-  TExtraContext extends Context = any
+  TExtraContext extends Context = any,
+  TInputSchema extends Schema = any,
+  TOutputSchema extends Schema = any
 > {
-  __pb: {
-    middlewares: Middleware[]
+  constructor(
+    public __cpb: {
+      contract?: ContractProcedure<TInputSchema, TOutputSchema>
+      middlewares?: Middleware[]
+    } = {}
+  ) {}
+
+  private get contract() {
+    return this.__cpb.contract ?? new ContractProcedure()
   }
+
+  /**
+   * Self chainable
+   */
+
+  route(
+    ...args: Parameters<ContractProcedure<TInputSchema, TOutputSchema>['route']>
+  ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema> {
+    return new ProcedureBuilder({
+      ...this.__cpb,
+      contract: this.contract.route(...args),
+    })
+  }
+
+  summary(
+    ...args: Parameters<ContractProcedure<TInputSchema, TOutputSchema>['summary']>
+  ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema> {
+    return new ProcedureBuilder({
+      ...this.__cpb,
+      contract: this.contract.summary(...args),
+    })
+  }
+
+  description(
+    ...args: Parameters<ContractProcedure<TInputSchema, TOutputSchema>['description']>
+  ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema> {
+    return new ProcedureBuilder({
+      ...this.__cpb,
+      contract: this.contract.description(...args),
+    })
+  }
+
+  deprecated(
+    ...args: Parameters<ContractProcedure<TInputSchema, TOutputSchema>['deprecated']>
+  ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema> {
+    return new ProcedureBuilder({
+      ...this.__cpb,
+      contract: this.contract.deprecated(...args),
+    })
+  }
+
+  input<USchema extends Schema>(
+    schema: USchema,
+    example?: SchemaOutput<USchema>,
+    examples?: Record<string, SchemaOutput<USchema>>
+  ): ProcedureBuilder<TContext, TExtraContext, USchema, TOutputSchema> {
+    return new ProcedureBuilder({
+      ...this.__cpb,
+      contract: this.contract.input(schema, example, examples),
+    })
+  }
+
+  output<USchema extends Schema>(
+    schema: USchema,
+    example?: SchemaOutput<USchema>,
+    examples?: Record<string, SchemaOutput<USchema>>
+  ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, USchema> {
+    return new ProcedureBuilder({
+      ...this.__cpb,
+      contract: this.contract.output(schema, example, examples),
+    })
+  }
+
+  /**
+   * Convert to ProcedureBuilder
+   */
 
   use<UExtraContext extends Context>(
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
       UExtraContext,
-      TContract extends ContractProcedure<infer UInputSchema> ? SchemaOutput<UInputSchema> : never
+      SchemaOutput<TInputSchema>
     >
-  ): ProcedureBuilder<TContext, TContract, MergeContext<TExtraContext, UExtraContext>>
+  ): ProcedureImplementer<
+    TContext,
+    ContractProcedure<TInputSchema, TOutputSchema>,
+    MergeContext<TExtraContext, UExtraContext>
+  >
 
-  use<
-    UExtraContext extends Context,
-    UMappedInput = TContract extends ContractProcedure<infer UInputSchema>
-      ? SchemaOutput<UInputSchema>
-      : never
-  >(
+  use<UExtraContext extends Context, UMappedInput = SchemaOutput<TInputSchema>>(
     middleware: Middleware<MergeContext<TContext, TExtraContext>, UExtraContext, UMappedInput>,
-    mapInput: (
-      input: TContract extends ContractProcedure<infer UInputSchema>
-        ? SchemaOutput<UInputSchema>
-        : never
-    ) => UMappedInput
-  ): ProcedureBuilder<TContext, TContract, MergeContext<TExtraContext, UExtraContext>>
+    mapInput: MapInputMiddleware<SchemaOutput<TInputSchema>, UMappedInput>
+  ): ProcedureImplementer<
+    TContext,
+    ContractProcedure<TInputSchema, TOutputSchema>,
+    MergeContext<TExtraContext, UExtraContext>
+  >
 
-  handler<
-    UHandlerOutput extends TContract extends ContractProcedure<any, infer UOutputSchema>
-      ? SchemaOutput<UOutputSchema>
-      : never
-  >(
-    handler: ProcedureHandler<MergeContext<TContext, TExtraContext>, TContract, UHandlerOutput>
-  ): Procedure<TContext, TContract, TExtraContext, UHandlerOutput>
-}
+  use(middleware: Middleware, mapInput?: MapInputMiddleware): ProcedureImplementer {
+    if (!mapInput) {
+      return new ProcedureImplementer({
+        contract: this.contract,
+        middlewares: this.__cpb.middlewares,
+      }).use(middleware)
+    }
 
-export function createProcedureBuilder<
-  TContext extends Context = any,
-  TContract extends ContractProcedure = any,
-  TExtraContext extends Context = any
->(contract: TContract): ProcedureBuilder<TContext, TContract, TExtraContext> {
-  const __pb = {
-    middlewares: [] as any[],
+    return new ProcedureImplementer({
+      contract: this.contract,
+      middlewares: this.__cpb.middlewares,
+    }).use(middleware, mapInput)
   }
 
-  const builder: ProcedureBuilder<TContext, TContract, TExtraContext> = {
-    __pb: __pb,
-    use(...args: any[]) {
-      const [middleware, mapInput] = args
+  /**
+   * Convert to Procedure
+   */
 
-      if (typeof mapInput === 'function') {
-        __pb.middlewares.push(
-          new Proxy(middleware, {
-            apply(_target, _thisArg, [input, ...rest]) {
-              return middleware(mapInput(input), ...(rest as [any, any]))
-            },
-          })
-        )
-      } else {
-        __pb.middlewares.push(middleware)
-      }
-
-      return builder
-    },
-    handler(handler) {
-      return new Procedure({
-        contract,
-        handler,
-      })
-    },
+  handler<UHandlerOutput extends SchemaOutput<TOutputSchema>>(
+    handler: ProcedureHandler<
+      MergeContext<TContext, TExtraContext>,
+      ContractProcedure<TInputSchema, TOutputSchema>,
+      UHandlerOutput
+    >
+  ): Procedure<
+    TContext,
+    ContractProcedure<TInputSchema, TOutputSchema>,
+    TExtraContext,
+    UHandlerOutput
+  > {
+    return new Procedure({
+      middlewares: this.__cpb.middlewares,
+      contract: this.contract,
+      handler,
+    })
   }
-
-  return builder
 }

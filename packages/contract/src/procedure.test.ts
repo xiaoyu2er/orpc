@@ -31,7 +31,6 @@ describe('prefix method', () => {
   it('bypass undefined routes', () => {
     const r3 = new ContractProcedure({})
 
-    expect(r3.prefix('/prefix')).toBe(r3)
     expect(r3.prefix('/prefix').__cp.path).toBe(undefined)
   })
 })

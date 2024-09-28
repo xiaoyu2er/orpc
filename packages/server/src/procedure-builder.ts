@@ -13,14 +13,14 @@ export class ProcedureBuilder<
   TPath extends HTTPPath
 > {
   constructor(
-    public __cpb: {
+    public __pb: {
       contract?: ContractProcedure<TInputSchema, TOutputSchema, TMethod, TPath>
       middlewares?: Middleware<TContext, any, any>[]
     } = {}
   ) {}
 
   private get contract() {
-    return this.__cpb.contract ?? new ContractProcedure()
+    return this.__pb.contract ?? new ContractProcedure()
   }
 
   /**
@@ -35,7 +35,7 @@ export class ProcedureBuilder<
     deprecated?: boolean
   }): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema, UMethod, UPath> {
     return new ProcedureBuilder({
-      ...this.__cpb,
+      ...this.__pb,
       contract: this.contract.route(opts),
     })
   }
@@ -44,7 +44,7 @@ export class ProcedureBuilder<
     summary: string
   ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema, TMethod, TPath> {
     return new ProcedureBuilder({
-      ...this.__cpb,
+      ...this.__pb,
       contract: this.contract.summary(summary),
     })
   }
@@ -53,7 +53,7 @@ export class ProcedureBuilder<
     description: string
   ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema, TMethod, TPath> {
     return new ProcedureBuilder({
-      ...this.__cpb,
+      ...this.__pb,
       contract: this.contract.description(description),
     })
   }
@@ -62,7 +62,7 @@ export class ProcedureBuilder<
     deprecated?: boolean
   ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema, TMethod, TPath> {
     return new ProcedureBuilder({
-      ...this.__cpb,
+      ...this.__pb,
       contract: this.contract.deprecated(deprecated),
     })
   }
@@ -73,7 +73,7 @@ export class ProcedureBuilder<
     examples?: Record<string, SchemaOutput<USchema>>
   ): ProcedureBuilder<TContext, TExtraContext, USchema, TOutputSchema, TMethod, TPath> {
     return new ProcedureBuilder({
-      ...this.__cpb,
+      ...this.__pb,
       contract: this.contract.input(schema, example, examples),
     })
   }
@@ -84,7 +84,7 @@ export class ProcedureBuilder<
     examples?: Record<string, SchemaOutput<USchema>>
   ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, USchema, TMethod, TPath> {
     return new ProcedureBuilder({
-      ...this.__cpb,
+      ...this.__pb,
       contract: this.contract.output(schema, example, examples),
     })
   }
@@ -124,13 +124,13 @@ export class ProcedureBuilder<
     if (!mapInput) {
       return new ProcedureImplementer({
         contract: this.contract,
-        middlewares: this.__cpb.middlewares,
+        middlewares: this.__pb.middlewares,
       }).use(middleware)
     }
 
     return new ProcedureImplementer({
       contract: this.contract,
-      middlewares: this.__cpb.middlewares,
+      middlewares: this.__pb.middlewares,
     }).use(middleware, mapInput)
   }
 
@@ -152,7 +152,7 @@ export class ProcedureBuilder<
     UHandlerOutput
   > {
     return new Procedure({
-      middlewares: this.__cpb.middlewares,
+      middlewares: this.__pb.middlewares,
       contract: this.contract,
       handler,
     })

@@ -18,7 +18,7 @@ import { Procedure, ProcedureHandler } from './procedure'
 import { ProcedureBuilder } from './procedure-builder'
 import { ProcedureImplementer } from './procedure-implementer'
 import { DecoratedRouter, decorateRouter, Router } from './router'
-import { RouterImplementer } from './router-implementer'
+import { ChainedRouterImplementer, chainRouterImplementer } from './router-implementer'
 import { Context, MergeContext } from './types'
 
 export class Builder<TContext extends Context, TExtraContext extends Context> {
@@ -143,12 +143,12 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
     contract: UContract
   ): UContract extends ContractProcedure<any, any, any, any>
     ? ProcedureImplementer<TContext, UContract, TExtraContext>
-    : RouterImplementer<TContext, UContract> {
+    : ChainedRouterImplementer<TContext, UContract, TExtraContext> {
     if (isContractProcedure(contract)) {
       return new ProcedureImplementer({ contract, middlewares: this.__b.middlewares }) as any
     }
 
-    return new RouterImplementer<TContext, typeof contract>() as any
+    return chainRouterImplementer(contract, this.__b.middlewares) as any
   }
 
   /**

@@ -1,18 +1,18 @@
-import { HTTPMethod, HTTPPath, standardizeHTTPPath } from '@orpc/contract'
+import { HTTPPath, standardizeHTTPPath } from '@orpc/contract'
 import { LinearRouter } from 'hono/router/linear-router'
 import { RegExpRouter } from 'hono/router/reg-exp-router'
 import { get } from 'radash'
 import { ORPCError } from './error'
 import { isProcedure, WELL_DEFINED_PROCEDURE } from './procedure'
 import { DecoratedRouter, Router } from './router'
-import { mergeContext } from './utils'
+import { Meta } from './types'
+import { mergeContext, mergeMiddlewares } from './utils'
 
 export interface RouterHandler<TRouter extends Router<any, any>> {
   (
     input: unknown,
     context: TRouter extends Router<infer UContext, any> ? UContext : never,
-    meta: {
-      method: HTTPMethod
+    meta: Meta & {
       path: Exclude<HTTPPath, undefined>
     },
     opts?: {
@@ -56,7 +56,7 @@ export function createRouterHandler<TRouter extends Router<any, any> | Decorated
 
   addRouteRecursively(opts.router as any, '/')
 
-  return async (input_, context_, meta, opts_) => {
+  return async (input_, context, meta, opts_) => {
     let procedure: WELL_DEFINED_PROCEDURE | undefined
     let params: Record<string, string | number> | undefined
 
@@ -86,31 +86,64 @@ export function createRouterHandler<TRouter extends Router<any, any> | Decorated
           }
         : input_
 
-    let context = context_
-
     const validInput = (() => {
       const schema = procedure.__p.contract.__cp.InputSchema
       if (!schema) return input
       const result = schema.safeParse(input)
-      if (result.error) throw new ORPCError({ code: 'BAD_REQUEST', cause: result.error })
+      if (result.error)
+        throw new ORPCError({
+          message: 'Invalid input',
+          code: 'BAD_REQUEST',
+          cause: result.error,
+        })
       return result.data
     })()
 
-    for (const middleware of procedure.__p.middlewares ?? []) {
-      const result = middleware(validInput, context, meta)
+    const middleware = mergeMiddlewares(...(procedure.__p.middlewares ?? []))
 
-      context = mergeContext(context, result?.context)
+    let ranOnFinish = false
+    const midResult = await middleware(validInput, context, meta)
+
+    try {
+      const output = await procedure.__p.handler(
+        validInput,
+        mergeContext(context, midResult?.context),
+        meta
+      )
+
+      const validOutput = (() => {
+        const schema = procedure.__p.contract.__cp.OutputSchema
+        if (!schema) return output
+        const result = schema.safeParse(output)
+        if (result.error)
+          throw new ORPCError({
+            message: 'Invalid output',
+            code: 'BAD_REQUEST',
+            cause: result.error,
+          })
+        return result.data
+      })()
+
+      await midResult?.onSuccess?.(validOutput)
+      ranOnFinish = true
+      await midResult?.onFinish?.(validOutput, undefined)
+
+      return validOutput
+    } catch (e) {
+      let currentError = e
+
+      try {
+        await midResult?.onError?.(currentError)
+      } catch (e) {
+        currentError = e
+      }
+
+      if (!ranOnFinish) {
+        await midResult?.onFinish?.(undefined, currentError)
+      }
+
+      throw currentError
     }
-
-    const output = await procedure.__p.handler(validInput, context, meta)
-
-    return (() => {
-      const schema = procedure.__p.contract.__cp.OutputSchema
-      if (!schema) return output
-      const result = schema.safeParse(output)
-      if (result.error) throw new ORPCError({ code: 'BAD_REQUEST', cause: result.error })
-      return result.data
-    })()
   }
 }
 

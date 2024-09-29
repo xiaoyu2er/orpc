@@ -1,16 +1,18 @@
-import { HTTPMethod, HTTPPath } from '@orpc/contract'
-import { Context, MergeContext } from './types'
-import { mergeContext } from './utils'
+import { Context, MergeContext, Meta, Promisable } from './types'
+import { mergeMiddlewares } from './utils'
 
-export interface Middleware<TContext extends Context, TExtraContext extends Context, TInput> {
-  (
-    input: TInput,
-    context: TContext,
-    meta: {
-      method: HTTPMethod
-      path: HTTPPath
-    }
-  ): { context?: TExtraContext } | void
+export interface Middleware<
+  TContext extends Context,
+  TExtraContext extends Context,
+  TInput,
+  TOutput
+> {
+  (input: TInput, context: TContext, meta: Meta): Promisable<{
+    context?: TExtraContext
+    onError?: (error: unknown) => Promisable<void>
+    onSuccess?: (output: TOutput) => Promisable<void>
+    onFinish?: (output: TOutput | undefined, error: unknown | undefined) => Promisable<void>
+  } | void>
 }
 
 export interface MapInputMiddleware<TInput, TMappedInput> {
@@ -20,44 +22,54 @@ export interface MapInputMiddleware<TInput, TMappedInput> {
 export interface DecoratedMiddleware<
   TContext extends Context,
   TExtraContext extends Context,
-  TInput
-> extends Middleware<TContext, TExtraContext, TInput> {
+  TInput,
+  TOutput
+> extends Middleware<TContext, TExtraContext, TInput, TOutput> {
   concat<UExtraContext extends Context, UInput>(
-    middleware: Middleware<MergeContext<TContext, TExtraContext>, UExtraContext, UInput & TInput>
-  ): DecoratedMiddleware<TContext, MergeContext<TExtraContext, UExtraContext>, UInput & TInput>
+    middleware: Middleware<
+      MergeContext<TContext, TExtraContext>,
+      UExtraContext,
+      UInput & TInput,
+      TOutput
+    >
+  ): DecoratedMiddleware<
+    TContext,
+    MergeContext<TExtraContext, UExtraContext>,
+    UInput & TInput,
+    TOutput
+  >
 
   concat<UExtraContext extends Context, UMappedInput extends TInput>(
-    middleware: Middleware<MergeContext<TContext, TExtraContext>, UExtraContext, UMappedInput>,
+    middleware: Middleware<
+      MergeContext<TContext, TExtraContext>,
+      UExtraContext,
+      UMappedInput,
+      TOutput
+    >,
     mapInput: MapInputMiddleware<TInput, UMappedInput>
-  ): DecoratedMiddleware<TContext, MergeContext<TExtraContext, UExtraContext>, TInput>
+  ): DecoratedMiddleware<TContext, MergeContext<TExtraContext, UExtraContext>, TInput, TOutput>
 }
 
-export function decorateMiddleware<TContext extends Context, TExtraContext extends Context, TInput>(
-  middleware: Middleware<TContext, TExtraContext, TInput>
-): DecoratedMiddleware<TContext, TExtraContext, TInput> {
+export function decorateMiddleware<
+  TContext extends Context,
+  TExtraContext extends Context,
+  TInput,
+  TOutput
+>(
+  middleware: Middleware<TContext, TExtraContext, TInput, TOutput>
+): DecoratedMiddleware<TContext, TExtraContext, TInput, TOutput> {
   const extended = new Proxy(middleware, {
     get(target, prop) {
       if (prop === 'concat') {
         return (...args: any[]) => {
           const [middleware_, mapInput] = args
 
-          const middleware =
+          const middleware: Middleware<any, any, any, any> =
             typeof mapInput === 'function'
-              ? (input: any, ...rest: any) => middleware_(mapInput(input), ...rest)
+              ? (input, ...rest) => middleware_(mapInput(input), ...rest)
               : middleware_
 
-          return decorateMiddleware((input: any, context_: Context, meta: any) => {
-            let context = context_
-
-            const r1 = target(input, context as any, meta)
-            context = mergeContext(context, r1?.context)
-            const r2 = middleware(input, context, meta)
-            context = mergeContext(context, r2?.context)
-
-            return {
-              context,
-            }
-          })
+          return decorateMiddleware(mergeMiddlewares(target, middleware))
         }
       }
 
@@ -65,5 +77,5 @@ export function decorateMiddleware<TContext extends Context, TExtraContext exten
     },
   })
 
-  return extended as DecoratedMiddleware<TContext, TExtraContext, TInput>
+  return extended as DecoratedMiddleware<TContext, TExtraContext, TInput, TOutput>
 }

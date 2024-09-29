@@ -11,7 +11,7 @@ export class ProcedureImplementer<
   constructor(
     public __pi: {
       contract: TContract
-      middlewares?: Middleware<any, any, any>[]
+      middlewares?: Middleware<TContext, any, any, any>[]
     }
   ) {}
 
@@ -21,6 +21,9 @@ export class ProcedureImplementer<
       UExtraContext,
       TContract extends ContractProcedure<infer UInputSchema, any, any, any>
         ? SchemaOutput<UInputSchema>
+        : never,
+      TContract extends ContractProcedure<any, infer UOutputSchema, any, any>
+        ? SchemaOutput<UOutputSchema>
         : never
     >
   ): ProcedureImplementer<TContext, TContract, MergeContext<TExtraContext, UExtraContext>>
@@ -31,7 +34,14 @@ export class ProcedureImplementer<
       ? SchemaOutput<UInputSchema>
       : never
   >(
-    middleware: Middleware<MergeContext<TContext, TExtraContext>, UExtraContext, UMappedInput>,
+    middleware: Middleware<
+      MergeContext<TContext, TExtraContext>,
+      UExtraContext,
+      UMappedInput,
+      TContract extends ContractProcedure<any, infer UOutputSchema, any, any>
+        ? SchemaOutput<UOutputSchema>
+        : never
+    >,
     mapInput: MapInputMiddleware<
       TContract extends ContractProcedure<infer UInputSchema, any, any, any>
         ? SchemaOutput<UInputSchema>
@@ -41,10 +51,10 @@ export class ProcedureImplementer<
   ): ProcedureImplementer<TContext, TContract, MergeContext<TExtraContext, UExtraContext>>
 
   use(
-    middleware_: Middleware<any, any, any>,
+    middleware_: Middleware<any, any, any, any>,
     mapInput?: MapInputMiddleware<any, any>
   ): ProcedureImplementer<any, any, any> {
-    const middleware: Middleware<any, any, any> =
+    const middleware: Middleware<any, any, any, any> =
       typeof mapInput === 'function'
         ? (input, ...rest) => middleware_(mapInput(input), ...rest)
         : middleware_

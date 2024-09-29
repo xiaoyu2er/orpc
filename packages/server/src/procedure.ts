@@ -8,7 +8,7 @@ import {
   SchemaOutput,
 } from '@orpc/contract'
 import { Middleware } from './middleware'
-import { Context, MergeContext, Promisable } from './types'
+import { Context, MergeContext, Meta, Promisable } from './types'
 
 export class Procedure<
   TContext extends Context,
@@ -20,7 +20,7 @@ export class Procedure<
 > {
   constructor(
     public __p: {
-      middlewares?: Middleware<any, any, any>[]
+      middlewares?: Middleware<any, any, any, any>[] // TODO:
       contract: TContract
       handler: ProcedureHandler<TContext, TContract, TExtraContext, THandlerOutput>
     }
@@ -46,6 +46,53 @@ export class Procedure<
       contract: this.__p.contract.prefix(prefix) as any,
     })
   }
+
+  // TODO:
+  // use<UExtraContext extends Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>>(
+  //   middleware: Middleware<
+  //     MergeContext<TContext, TExtraContext>,
+  //     UExtraContext,
+  //     TContract extends ContractProcedure<infer UInputSchema, any, any, any>
+  //       ? SchemaOutput<UInputSchema>
+  //       : never,
+  //     THandlerOutput
+  //   >
+  // ): Procedure<TContext, TContract, MergeContext<TExtraContext, UExtraContext>, THandlerOutput>
+
+  // use<
+  //   UExtraContext extends Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>,
+  //   UMappedInput = TContract extends ContractProcedure<infer UInputSchema, any, any, any>
+  //     ? SchemaOutput<UInputSchema>
+  //     : never
+  // >(
+  //   middleware: Middleware<
+  //     MergeContext<TContext, TExtraContext>,
+  //     UExtraContext,
+  //     UMappedInput,
+  //     THandlerOutput
+  //   >,
+  //   mapInput: MapInputMiddleware<
+  //     TContract extends ContractProcedure<infer UInputSchema, any, any, any>
+  //       ? SchemaOutput<UInputSchema>
+  //       : never,
+  //     UMappedInput
+  //   >
+  // ): Procedure<TContext, TContract, MergeContext<TExtraContext, UExtraContext>, THandlerOutput>
+
+  // use(
+  //   middleware_: Middleware<any, any, any, any>,
+  //   mapInput?: MapInputMiddleware<any, any>
+  // ): Procedure<any, any, any, any> {
+  //   const middleware: Middleware<any, any, any, any> =
+  //     typeof mapInput === 'function'
+  //       ? (input, ...rest) => middleware_(mapInput(input), ...rest)
+  //       : middleware_
+
+  //   return new Procedure({
+  //     ...this.__p,
+  //     middlewares: [...(this.__p.middlewares ?? []), middleware],
+  //   })
+  // }
 }
 
 export type ProcedureHandler<
@@ -61,10 +108,7 @@ export type ProcedureHandler<
       ? SchemaOutput<UInputSchema>
       : never,
     context: MergeContext<TContext, TExtraContext>,
-    meta: {
-      method: HTTPMethod
-      path: HTTPPath
-    }
+    meta: Meta
   ): Promisable<
     TContract extends ContractProcedure<any, infer UOutputSchema, any, any>
       ? SchemaInput<UOutputSchema, TOutput>

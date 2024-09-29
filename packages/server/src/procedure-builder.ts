@@ -15,7 +15,7 @@ export class ProcedureBuilder<
   constructor(
     public __pb: {
       contract?: ContractProcedure<TInputSchema, TOutputSchema, TMethod, TPath>
-      middlewares?: Middleware<TContext, any, any>[]
+      middlewares?: Middleware<TContext, any, any, any>[]
     } = {}
   ) {}
 
@@ -97,7 +97,8 @@ export class ProcedureBuilder<
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
       UExtraContext,
-      SchemaOutput<TInputSchema>
+      SchemaOutput<TInputSchema>,
+      SchemaOutput<TOutputSchema>
     >
   ): ProcedureImplementer<
     TContext,
@@ -109,7 +110,12 @@ export class ProcedureBuilder<
     UExtraContext extends Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>,
     UMappedInput = SchemaOutput<TInputSchema>
   >(
-    middleware: Middleware<MergeContext<TContext, TExtraContext>, UExtraContext, UMappedInput>,
+    middleware: Middleware<
+      MergeContext<TContext, TExtraContext>,
+      UExtraContext,
+      UMappedInput,
+      SchemaOutput<TOutputSchema>
+    >,
     mapInput: MapInputMiddleware<SchemaOutput<TInputSchema>, UMappedInput>
   ): ProcedureImplementer<
     TContext,
@@ -118,7 +124,7 @@ export class ProcedureBuilder<
   >
 
   use(
-    middleware: Middleware<any, any, any>,
+    middleware: Middleware<any, any, any, any>,
     mapInput?: MapInputMiddleware<any, any>
   ): ProcedureImplementer<any, any, any> {
     if (!mapInput) {

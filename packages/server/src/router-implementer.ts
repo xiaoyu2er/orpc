@@ -26,7 +26,7 @@ export function chainRouterImplementer<
   TExtraContext extends Context
 >(
   contract: TContract,
-  middlewares?: Middleware<any, any, any>[]
+  middlewares?: Middleware<any, any, any, any>[]
 ): ChainedRouterImplementer<TContext, TContract, TExtraContext> {
   return new Proxy(new RouterImplementer(), {
     get(target, prop) {

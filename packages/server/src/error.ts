@@ -1,4 +1,7 @@
-export const ORPC_ERROR_CODES = {
+import { HTTPStatus } from '@orpc/contract'
+import { ZodError, ZodIssue } from 'zod'
+
+export const ORPC_ERROR_CODE_STATUSES = {
   CUSTOM_ERROR: 500,
 
   /**
@@ -34,31 +37,33 @@ export const ORPC_ERROR_CODES = {
   CLIENT_CLOSED_REQUEST: 499,
 } as const
 
-export type ORPCErrorOptions =
-  | {
-      code: Exclude<keyof typeof ORPC_ERROR_CODES, 'CUSTOM_ERROR'>
+export type ORPCErrorCode = keyof typeof ORPC_ERROR_CODE_STATUSES
+
+export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
+  constructor(
+    public __oe: {
+      code: TCode
+      status?: TCode extends 'CUSTOM_ERROR' ? HTTPStatus : never
       message?: string
       cause?: unknown
-    }
-  | {
-      code: 'CUSTOM_ERROR'
-      httpStatusCode: number
-      message: string
-      cause?: unknown
-    }
-
-export class ORPCError extends Error {
-  constructor(public __oe: ORPCErrorOptions) {
+    } & (undefined extends TData ? { data?: TData } : { data: TData })
+  ) {
     super(__oe.message, { cause: __oe.cause })
   }
 
-  public get httpStatusCode() {
-    return 'httpStatusCode' in this.__oe
-      ? this.__oe.httpStatusCode
-      : ORPC_ERROR_CODES[this.__oe.code]
+  get code(): TCode {
+    return this.__oe.code
   }
 
-  public get httpMessage() {
-    return this.__oe.message
+  get status(): Exclude<HTTPStatus, undefined> {
+    return this.__oe.status ?? ORPC_ERROR_CODE_STATUSES[this.code]
+  }
+
+  get data(): TCode extends 'BAD_REQUEST' ? TData | ZodIssue[] : TData {
+    if (this.code === 'BAD_REQUEST' && this.cause instanceof ZodError) {
+      return this.cause.issues as any
+    }
+
+    return this.__oe.data as TData
   }
 }

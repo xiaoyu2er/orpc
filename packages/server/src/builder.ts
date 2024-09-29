@@ -24,7 +24,7 @@ import { Context, MergeContext } from './types'
 export class Builder<TContext extends Context, TExtraContext extends Context> {
   constructor(
     public __b: {
-      middlewares?: Middleware<any, any, any>[]
+      middlewares?: Middleware<TContext, any, any, any>[]
     } = {}
   ) {}
 
@@ -39,22 +39,27 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
   }
 
   use<UExtraContext extends Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>>(
-    middleware: Middleware<MergeContext<TContext, TExtraContext>, UExtraContext, unknown>
+    middleware: Middleware<MergeContext<TContext, TExtraContext>, UExtraContext, unknown, unknown>
   ): Builder<TContext, MergeContext<TExtraContext, UExtraContext>>
 
   use<
     UExtraContext extends Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>,
     UMappedInput = unknown
   >(
-    middleware: Middleware<MergeContext<TContext, TExtraContext>, UExtraContext, UMappedInput>,
+    middleware: Middleware<
+      MergeContext<TContext, TExtraContext>,
+      UExtraContext,
+      UMappedInput,
+      unknown
+    >,
     mapInput: MapInputMiddleware<unknown, UMappedInput>
   ): Builder<TContext, MergeContext<TExtraContext, UExtraContext>>
 
   use(
-    middleware_: Middleware<any, any, any>,
+    middleware_: Middleware<any, any, any, any>,
     mapInput?: MapInputMiddleware<any, any>
   ): Builder<any, any> {
-    const middleware: Middleware<any, any, any> =
+    const middleware: Middleware<any, any, any, any> =
       typeof mapInput === 'function'
         ? (input, ...rest) => middleware(mapInput(input), ...rest)
         : middleware_
@@ -156,8 +161,8 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
    */
 
   middleware<UExtraContext extends Context, TInput = unknown>(
-    middleware: Middleware<MergeContext<TContext, TExtraContext>, UExtraContext, TInput>
-  ): DecoratedMiddleware<MergeContext<TContext, TExtraContext>, UExtraContext, TInput> {
+    middleware: Middleware<MergeContext<TContext, TExtraContext>, UExtraContext, TInput, unknown>
+  ): DecoratedMiddleware<MergeContext<TContext, TExtraContext>, UExtraContext, TInput, unknown> {
     return decorateMiddleware(middleware)
   }
 

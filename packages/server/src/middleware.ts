@@ -1,5 +1,6 @@
-import { HTTPMethod } from '@orpc/contract'
+import { HTTPMethod, HTTPPath } from '@orpc/contract'
 import { Context, MergeContext } from './types'
+import { mergeContext } from './utils'
 
 export interface Middleware<TContext extends Context, TExtraContext extends Context, TInput> {
   (
@@ -7,7 +8,7 @@ export interface Middleware<TContext extends Context, TExtraContext extends Cont
     context: TContext,
     meta: {
       method: HTTPMethod
-      path: string
+      path: HTTPPath
     }
   ): { context?: TExtraContext } | void
 }
@@ -45,22 +46,16 @@ export function decorateMiddleware<TContext extends Context, TExtraContext exten
               ? (input: any, ...rest: any) => middleware_(mapInput(input), ...rest)
               : middleware_
 
-          return decorateMiddleware((input: any, context: any, meta: any) => {
-            const r1 = target(input, context, meta)
-            const r2 = middleware(
-              input,
-              {
-                ...context,
-                ...r1?.context,
-              },
-              meta
-            )
+          return decorateMiddleware((input: any, context_: Context, meta: any) => {
+            let context = context_
+
+            const r1 = target(input, context as any, meta)
+            context = mergeContext(context, r1?.context)
+            const r2 = middleware(input, context, meta)
+            context = mergeContext(context, r2?.context)
 
             return {
-              context: {
-                ...r1?.context,
-                ...r2?.context,
-              },
+              context,
             }
           })
         }

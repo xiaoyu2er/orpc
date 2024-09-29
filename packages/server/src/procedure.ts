@@ -3,6 +3,7 @@ import {
   HTTPMethod,
   HTTPPath,
   PrefixHTTPPath,
+  Schema,
   SchemaInput,
   SchemaOutput,
 } from '@orpc/contract'
@@ -71,7 +72,14 @@ export type ProcedureHandler<
   >
 }
 
-export function isProcedure(item: unknown): item is Procedure<any, any, any, any> {
+export type WELL_DEFINED_PROCEDURE = Procedure<
+  Context,
+  ContractProcedure<Schema, Schema, HTTPMethod, HTTPPath>,
+  Context,
+  unknown
+>
+
+export function isProcedure(item: unknown): item is WELL_DEFINED_PROCEDURE {
   if (item instanceof Procedure) return true
 
   try {

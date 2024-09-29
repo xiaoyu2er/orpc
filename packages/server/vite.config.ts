@@ -1,6 +1,9 @@
 import { defineConfig } from 'vite'
 
 export default defineConfig({
+  ssr: {
+    noExternal: ['hono', 'radash'],
+  },
   build: {
     ssr: true,
     sourcemap: true,

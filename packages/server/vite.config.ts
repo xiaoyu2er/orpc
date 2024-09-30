@@ -10,6 +10,7 @@ export default defineConfig({
     lib: {
       entry: {
         index: 'src/index.ts',
+        fetch: 'src/adapters/fetch.ts',
       },
       formats: ['es'],
     },

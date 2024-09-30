@@ -5,25 +5,31 @@ import { get } from 'radash'
 import { ORPCError } from './error'
 import { isProcedure, WELL_DEFINED_PROCEDURE } from './procedure'
 import { DecoratedRouter, Router } from './router'
-import { Meta } from './types'
-import { mergeContext, mergeMiddlewares } from './utils'
+import { Meta, Promisable } from './types'
+import { hook, mergeContext } from './utils'
 
 export interface RouterHandler<TRouter extends Router<any, any>> {
   (
+    method: string | undefined,
+    path: string,
     input: unknown,
-    context: TRouter extends Router<infer UContext, any> ? UContext : never,
-    meta: Meta & {
-      path: Exclude<HTTPPath, undefined>
-    },
-    opts?: {
-      internal?: boolean
-    }
+    context: TRouter extends Router<infer UContext, any> ? UContext : never
   ): Promise<unknown>
 }
 
 export function createRouterHandler<TRouter extends Router<any, any> | DecoratedRouter<any>>(opts: {
   router: TRouter
   serverless?: boolean
+  hooks?: (
+    context: TRouter extends Router<infer UContext, any>
+      ? UContext
+      : TRouter extends DecoratedRouter<infer URouter>
+      ? URouter extends Router<infer UContext, any>
+        ? UContext
+        : never
+      : never,
+    meta: Meta<unknown>
+  ) => Promisable<void>
 }): RouterHandler<
   TRouter extends Router<any, any>
     ? TRouter
@@ -32,86 +38,94 @@ export function createRouterHandler<TRouter extends Router<any, any> | Decorated
     : never
 > {
   const routing = opts.serverless
-    ? new LinearRouter<WELL_DEFINED_PROCEDURE>()
-    : new RegExpRouter<WELL_DEFINED_PROCEDURE>()
+    ? new LinearRouter<[string[], WELL_DEFINED_PROCEDURE]>()
+    : new RegExpRouter<[string[], WELL_DEFINED_PROCEDURE]>()
 
-  const addRouteRecursively = (
-    router: Router<any, any>,
-    parentFallbackPath: Exclude<HTTPPath, undefined>
-  ) => {
+  const addRouteRecursively = (router: Router<any, any>, parentPath: string[]) => {
     for (const key in router) {
-      const fallbackPath = `${parentFallbackPath}.${key}` as const
+      const currentPath = [...parentPath, key]
       const item = router[key] as WELL_DEFINED_PROCEDURE | Router<any, any>
 
       if (isProcedure(item)) {
         const method = item.__p.contract.__cp.method ?? 'POST'
-        const path = item.__p.contract.__cp.path ?? fallbackPath
+        const path = item.__p.contract.__cp.path
+          ? openAPIPathToRouterPath(item.__p.contract.__cp.path)
+          : '/.' + currentPath.join('.')
 
-        routing.add(method, openAPIPathToRouterPath(path), item)
+        routing.add(method, path, [currentPath, item])
       } else {
-        addRouteRecursively(item, fallbackPath)
+        addRouteRecursively(item, currentPath)
       }
     }
   }
 
-  addRouteRecursively(opts.router as any, '/')
+  addRouteRecursively(opts.router as Router<any, any>, [])
 
-  return async (input_, context, meta, opts_) => {
-    let procedure: WELL_DEFINED_PROCEDURE | undefined
-    let params: Record<string, string | number> | undefined
+  return async (method, path_, input_, context_) => {
+    return await hook(async (hooks) => {
+      let path: string[] | undefined
+      let procedure: WELL_DEFINED_PROCEDURE | undefined
+      let params: Record<string, string | number> | undefined
 
-    if (opts_?.internal && meta.path) {
-      procedure = get(opts.router, meta.path.replace('/.', ''))
+      if (!method) {
+        const val = get(opts.router, path_)
 
-      if (!isProcedure(procedure)) {
-        procedure = undefined
+        if (isProcedure(val)) {
+          procedure = val
+          path = path_.split('.')
+        }
+      } else {
+        const [[match]] = routing.match(method, path_)
+        path = match?.[0][0]
+        procedure = match?.[0][1]
+        params = match?.[1]
       }
-    } else if (meta.path) {
-      const [[match]] = routing.match(meta.method ?? 'POST', meta.path)
-      procedure = match?.[0]
-      params = match?.[1]
-    }
 
-    if (!procedure) {
-      throw new ORPCError({ code: 'NOT_FOUND' })
-    }
+      if (!path || !procedure) {
+        throw new ORPCError({ code: 'NOT_FOUND' })
+      }
 
-    const input =
-      input_ === undefined && Object.keys(params ?? {}).length >= 1
-        ? params
-        : typeof input_ === 'object' && input_ !== null
-        ? {
-            ...params,
-            ...input_,
-          }
-        : input_
+      const meta: Meta<unknown> = {
+        ...hooks,
+        procedure,
+        path: path.join('.'),
+      }
 
-    const validInput = (() => {
-      const schema = procedure.__p.contract.__cp.InputSchema
-      if (!schema) return input
-      const result = schema.safeParse(input)
-      if (result.error)
-        throw new ORPCError({
-          message: 'Validation input failed',
-          code: 'BAD_REQUEST',
-          cause: result.error,
-        })
-      return result.data
-    })()
+      await opts.hooks?.(context_ as any, meta)
 
-    const middleware = mergeMiddlewares(...(procedure.__p.middlewares ?? []))
+      const input =
+        input_ === undefined && Object.keys(params ?? {}).length >= 1
+          ? params
+          : typeof input_ === 'object' && input_ !== null
+          ? {
+              ...params,
+              ...input_,
+            }
+          : input_
 
-    let ranOnFinish = false
-    const midResult = await middleware(validInput, context, meta)
+      const validInput = (() => {
+        const schema = procedure.__p.contract.__cp.InputSchema
+        if (!schema) return input
+        const result = schema.safeParse(input)
+        if (result.error)
+          throw new ORPCError({
+            message: 'Validation input failed',
+            code: 'BAD_REQUEST',
+            cause: result.error,
+          })
+        return result.data
+      })()
 
-    try {
-      const output = await procedure.__p.handler(
-        validInput,
-        mergeContext(context, midResult?.context),
-        meta
-      )
+      let context = context_
 
-      const validOutput = (() => {
+      for (const middleware of procedure.__p.middlewares ?? []) {
+        const mid = await middleware(validInput, context, meta)
+        context = mergeContext(context, mid?.context)
+      }
+
+      const output = await procedure.__p.handler(validInput, context, meta)
+
+      return (() => {
         const schema = procedure.__p.contract.__cp.OutputSchema
         if (!schema) return output
         const result = schema.safeParse(output)
@@ -123,27 +137,7 @@ export function createRouterHandler<TRouter extends Router<any, any> | Decorated
           })
         return result.data
       })()
-
-      await midResult?.onSuccess?.(validOutput)
-      ranOnFinish = true
-      await midResult?.onFinish?.(validOutput, undefined)
-
-      return validOutput
-    } catch (e) {
-      let currentError = e
-
-      try {
-        await midResult?.onError?.(currentError)
-      } catch (e) {
-        currentError = e
-      }
-
-      if (!ranOnFinish) {
-        await midResult?.onFinish?.(undefined, currentError)
-      }
-
-      throw currentError
-    }
+    })
   }
 }
 

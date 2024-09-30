@@ -1,5 +1,5 @@
 import { Middleware } from './middleware'
-import { Context, MergeContext, Promisable } from './types'
+import { Context, Hooks, MergeContext, Promisable } from './types'
 
 export function mergeContext<A extends Context, B extends Context>(a: A, b: B): MergeContext<A, B> {
   if (!a) return b as any
@@ -14,67 +14,98 @@ export function mergeContext<A extends Context, B extends Context>(a: A, b: B): 
 export function mergeMiddlewares(
   ...middlewares: Middleware<any, any, any, any>[]
 ): Middleware<any, any, any, any> {
-  return async (input, context, ...rest) => {
-    const onSuccessFns: ((...args: any) => Promisable<void>)[] = []
-    const onErrorFns: ((...args: any) => Promisable<void>)[] = []
-    const onFinishFns: ((...args: any) => Promisable<void>)[] = []
-
-    const onError = async (error: unknown) => {
-      let currentError = error
-
-      for (const onErrorFn of onErrorFns) {
-        try {
-          await onErrorFn(currentError)
-        } catch (error) {
-          currentError = error
-        }
-      }
-    }
-
-    const onSuccess = async (output: unknown) => {
-      for (const onSuccessFn of onSuccessFns) {
-        await onSuccessFn(output)
-      }
-    }
-
-    const onFinish = async (output: unknown, error: unknown) => {
-      for (const onFinishFn of onFinishFns) {
-        await onFinishFn(output, error)
-      }
-    }
-
+  return async (input, context, meta, ...rest) => {
     let extraContext: Context = undefined
 
     for (const middleware of middlewares) {
+      const mid = await middleware(input, mergeContext(context, extraContext), meta, ...rest)
+      extraContext = mergeContext(extraContext, mid?.context)
+    }
+
+    return { context: extraContext }
+  }
+}
+
+export async function hook<T>(fn: (hooks: Hooks<T>) => Promisable<T>): Promise<T> {
+  const onSuccessFns: ((output: T) => Promisable<void>)[] = []
+  const onErrorFns: ((error: unknown) => Promisable<void>)[] = []
+  const onFinishFns: ((output: T | undefined, error: unknown | undefined) => Promisable<void>)[] =
+    []
+
+  const hooks: Hooks<T> = {
+    onSuccess(fn, opts) {
+      const mode = opts?.mode ?? 'push'
+      if (mode === 'unshift') {
+        onSuccessFns.unshift(fn)
+      } else {
+        onSuccessFns.push(fn)
+      }
+
+      return () => {
+        const index = onSuccessFns.indexOf(fn)
+        if (index !== -1) onSuccessFns.splice(index, 1)
+      }
+    },
+
+    onError(fn, opts) {
+      const mode = opts?.mode ?? 'unshift'
+      if (mode === 'unshift') {
+        onErrorFns.unshift(fn)
+      } else {
+        onErrorFns.push(fn)
+      }
+
+      return () => {
+        const index = onErrorFns.indexOf(fn)
+        if (index !== -1) onErrorFns.splice(index, 1)
+      }
+    },
+
+    onFinish(fn, opts) {
+      const mode = opts?.mode ?? 'push'
+      if (mode === 'unshift') {
+        onFinishFns.unshift(fn)
+      } else {
+        onFinishFns.push(fn)
+      }
+
+      return () => {
+        const index = onFinishFns.indexOf(fn)
+        if (index !== -1) onFinishFns.splice(index, 1)
+      }
+    },
+  }
+
+  let error: unknown = undefined
+  let output: T | undefined = undefined
+
+  try {
+    output = await fn(hooks)
+
+    for (const onSuccessFn of onSuccessFns) {
+      await onSuccessFn(output)
+    }
+
+    return output
+  } catch (e) {
+    error = e
+
+    for (const onErrorFn of onErrorFns) {
       try {
-        const result = await middleware(input, mergeContext(context, extraContext), ...rest)
-
-        if (result?.context) {
-          extraContext = mergeContext(extraContext, result.context)
-        }
-
-        if (result?.onSuccess) {
-          onSuccessFns.push(result.onSuccess)
-        }
-
-        if (result?.onError) {
-          onErrorFns.push(result.onError)
-        }
-
-        if (result?.onFinish) {
-          onFinishFns.push(result.onFinish)
-        }
-      } catch (error) {
-        await onError(error)
-        throw error
+        await onErrorFn(error)
+      } catch (e) {
+        error = e
       }
     }
 
-    return {
-      context: extraContext,
-      onError,
-      onSuccess,
-      onFinish,
+    for (const onFinishFn of onFinishFns) {
+      try {
+        await onFinishFn(output, error)
+      } catch (e) {
+        error = e
+      }
     }
+
+    throw error
   }
 }

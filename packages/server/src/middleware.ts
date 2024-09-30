@@ -7,11 +7,8 @@ export interface Middleware<
   TInput,
   TOutput
 > {
-  (input: TInput, context: TContext, meta: Meta): Promisable<{
+  (input: TInput, context: TContext, meta: Meta<TOutput>): Promisable<{
     context?: TExtraContext
-    onError?: (error: unknown) => Promisable<void>
-    onSuccess?: (output: TOutput) => Promisable<void>
-    onFinish?: (output: TOutput | undefined, error: unknown | undefined) => Promisable<void>
   } | void>
 }
 

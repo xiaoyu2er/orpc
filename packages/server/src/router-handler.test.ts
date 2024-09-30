@@ -42,24 +42,14 @@ describe('createRouterHandler', () => {
 
     const handler = createRouterHandler({ router, serverless })
 
-    const r1 = await handler({ input: true }, context, { method: 'POST', path: '/.ping' })
-    const r2 = await handler(
-      { input: true },
-      context,
-      { method: 'POST', path: '/.ping' },
-      { internal: true }
-    )
+    const r1 = await handler('POST', '/.ping', { input: true }, context)
+    const r2 = await handler('POST', '/.ping', { input: true }, context)
 
     expect(r1).toBe('pong')
     expect(r2).toBe('pong')
 
-    const r3 = await handler({ input: true }, context, { method: 'POST', path: '/ping-2' })
-    const r4 = await handler(
-      { input: true },
-      context,
-      { method: 'POST', path: '/.ping2' },
-      { internal: true }
-    )
+    const r3 = await handler(undefined, 'ping2', { input: true }, context)
+    const r4 = await handler(undefined, 'ping2', { input: true }, context)
 
     expect(r3).toBe('pong2')
     expect(r4).toBe('pong2')
@@ -82,7 +72,7 @@ describe('createRouterHandler', () => {
 
     const handler = createRouterHandler({ router, serverless })
 
-    const r1 = await handler(undefined, context, { method: 'POST', path: '/ping/1' })
+    const r1 = await handler('POST', '/ping/1', undefined, context)
 
     expect(r1).toBe('pong')
   })

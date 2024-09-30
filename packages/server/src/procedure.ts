@@ -108,7 +108,7 @@ export type ProcedureHandler<
       ? SchemaOutput<UInputSchema>
       : never,
     context: MergeContext<TContext, TExtraContext>,
-    meta: Meta
+    meta: Meta<any>
   ): Promisable<
     TContract extends ContractProcedure<any, infer UOutputSchema, any, any>
       ? SchemaInput<UOutputSchema, TOutput>

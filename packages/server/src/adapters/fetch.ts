@@ -1,11 +1,11 @@
 /// <reference lib="dom" />
 
-import { HTTPMethod, HTTPPath } from '@orpc/contract'
 import { trim } from 'radash'
 import { ORPCError } from '../error'
 import { Router } from '../router'
 import { RouterHandler } from '../router-handler'
-import { Meta, Promisable } from '../types'
+import { Hooks, Promisable } from '../types'
+import { hook } from '../utils'
 
 export async function fetchHandler<THandler extends RouterHandler<any>>(opts: {
   request: Request
@@ -22,23 +22,26 @@ export async function fetchHandler<THandler extends RouterHandler<any>>(opts: {
         ? UContext
         : never
       : never,
-    meta: Meta & { method: Exclude<HTTPMethod, undefined>; path: Exclude<HTTPPath, undefined> }
-  ) => Promisable<{
-    onError?: (error: unknown) => Promisable<void>
-    onSuccess?: (output: unknown) => Promisable<void>
-    onFinish?: (output: unknown | undefined, error: unknown | undefined) => Promisable<void>
-  } | void>
+    hooks: Hooks<unknown>
+  ) => Promisable<void>
 }): Promise<Response> {
   try {
-    const url = new URL(opts.request.url)
-    const meta = {
-      method: opts.request.method as Exclude<HTTPMethod, undefined>,
-      path: `/${trim(url.pathname.replace(opts.prefix ?? '', ''), '/')}` as const,
-    }
-    const hooks = await opts.hooks?.(opts.context, meta)
-    let ranOnFinish = false
+    const response = await hook<Response>(async (hooks) => {
+      const url = new URL(opts.request.url)
 
-    try {
+      const { path, method } = (() => {
+        if (opts.request.headers.get('x-orpc-internal') === '1') {
+          return { path: trim(url.pathname.replace(opts.prefix ?? '', ''), '/') }
+        }
+
+        return {
+          method: opts.request.method,
+          path: `/${trim(url.pathname.replace(opts.prefix ?? '', ''), '/')}`,
+        }
+      })()
+
+      await opts.hooks?.(opts.context, hooks)
+
       const input = await (async () => {
         if (opts.request.method === 'GET') {
           return { ...url.searchParams }
@@ -58,35 +61,17 @@ export async function fetchHandler<THandler extends RouterHandler<any>>(opts: {
         }
       })()
 
-      const output = await opts.handler(input, opts.context, meta)
+      const output = await opts.handler(method, path, input, opts.context)
 
-      const response = new Response(JSON.stringify(output), {
+      return new Response(JSON.stringify(output), {
         status: 200,
         headers: {
           'Content-Type': 'application/json',
         },
       })
+    })
 
-      await hooks?.onSuccess?.(output)
-      ranOnFinish = true
-      await hooks?.onFinish?.(output, undefined)
-
-      return response
-    } catch (e) {
-      let currentError = e
-
-      try {
-        await hooks?.onError?.(currentError)
-      } catch (e) {
-        currentError = e
-      }
-
-      if (!ranOnFinish) {
-        await hooks?.onFinish?.(undefined, currentError)
-      }
-
-      throw currentError
-    }
+    return response
   } catch (e) {
     const error =
       e instanceof ORPCError

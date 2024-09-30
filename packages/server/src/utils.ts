@@ -98,14 +98,21 @@ export async function hook<T>(fn: (hooks: Hooks<T>) => Promisable<T>): Promise<T
       }
     }
 
+    throw error
+  } finally {
+    let hasNewError = false
+
     for (const onFinishFn of onFinishFns) {
       try {
         await onFinishFn(output, error)
       } catch (e) {
         error = e
+        hasNewError = true
       }
     }
 
-    throw error
+    if (hasNewError) {
+      throw error
+    }
   }
 }

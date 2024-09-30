@@ -92,7 +92,7 @@ export function createRouterHandler<TRouter extends Router<any, any> | Decorated
       const result = schema.safeParse(input)
       if (result.error)
         throw new ORPCError({
-          message: 'Invalid input',
+          message: 'Validation input failed',
           code: 'BAD_REQUEST',
           cause: result.error,
         })
@@ -117,8 +117,8 @@ export function createRouterHandler<TRouter extends Router<any, any> | Decorated
         const result = schema.safeParse(output)
         if (result.error)
           throw new ORPCError({
-            message: 'Invalid output',
-            code: 'BAD_REQUEST',
+            message: 'Validation output failed',
+            code: 'INTERNAL_SERVER_ERROR',
             cause: result.error,
           })
         return result.data

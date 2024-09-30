@@ -51,7 +51,7 @@ export async function fetchHandler<THandler extends RouterHandler<any>>(opts: {
           return JSON.parse(text)
         } catch (e) {
           throw new ORPCError({
-            code: 'PARSE_ERROR',
+            code: 'BAD_REQUEST',
             message: 'Invalid JSON was received by the server.',
             cause: e,
           })
@@ -103,6 +103,7 @@ export async function fetchHandler<THandler extends RouterHandler<any>>(opts: {
         status: error.status,
         message: error.message,
         data: error.data,
+        issues: error.issues,
       }),
       {
         status: error.status,

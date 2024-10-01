@@ -1,26 +1,31 @@
-import { Context, MergeContext, Meta, Promisable } from './types'
+import type { Context, MergeContext, Meta, Promisable } from './types'
 import { mergeMiddlewares } from './utils'
 
-export interface Middleware<
+export type Middleware<
   TContext extends Context,
   TExtraContext extends Context,
   TInput,
-  TOutput
-> {
-  (input: TInput, context: TContext, meta: Meta<TOutput>): Promisable<{
-    context?: TExtraContext
-  } | void>
-}
+  TOutput,
+> = (
+  input: TInput,
+  context: TContext,
+  meta: Meta<TOutput>,
+) => Promisable<
+  | {
+      context?: TExtraContext
+    }
+  | undefined
+>
 
-export interface MapInputMiddleware<TInput, TMappedInput> {
-  (input: TInput): TMappedInput
-}
+export type MapInputMiddleware<TInput, TMappedInput> = (
+  input: TInput,
+) => TMappedInput
 
 export interface DecoratedMiddleware<
   TContext extends Context,
   TExtraContext extends Context,
   TInput,
-  TOutput
+  TOutput,
 > extends Middleware<TContext, TExtraContext, TInput, TOutput> {
   concat<UExtraContext extends Context, UInput>(
     middleware: Middleware<
@@ -28,7 +33,7 @@ export interface DecoratedMiddleware<
       UExtraContext,
       UInput & TInput,
       TOutput
-    >
+    >,
   ): DecoratedMiddleware<
     TContext,
     MergeContext<TExtraContext, UExtraContext>,
@@ -43,17 +48,22 @@ export interface DecoratedMiddleware<
       UMappedInput,
       TOutput
     >,
-    mapInput: MapInputMiddleware<TInput, UMappedInput>
-  ): DecoratedMiddleware<TContext, MergeContext<TExtraContext, UExtraContext>, TInput, TOutput>
+    mapInput: MapInputMiddleware<TInput, UMappedInput>,
+  ): DecoratedMiddleware<
+    TContext,
+    MergeContext<TExtraContext, UExtraContext>,
+    TInput,
+    TOutput
+  >
 }
 
 export function decorateMiddleware<
   TContext extends Context,
   TExtraContext extends Context,
   TInput,
-  TOutput
+  TOutput,
 >(
-  middleware: Middleware<TContext, TExtraContext, TInput, TOutput>
+  middleware: Middleware<TContext, TExtraContext, TInput, TOutput>,
 ): DecoratedMiddleware<TContext, TExtraContext, TInput, TOutput> {
   const extended = new Proxy(middleware, {
     get(target, prop) {
@@ -74,5 +84,10 @@ export function decorateMiddleware<
     },
   })
 
-  return extended as DecoratedMiddleware<TContext, TExtraContext, TInput, TOutput>
+  return extended as DecoratedMiddleware<
+    TContext,
+    TExtraContext,
+    TInput,
+    TOutput
+  >
 }

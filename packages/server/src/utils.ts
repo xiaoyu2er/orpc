@@ -1,7 +1,10 @@
-import { Middleware } from './middleware'
-import { Context, Hooks, MergeContext, Promisable } from './types'
+import type { Middleware } from './middleware'
+import type { Context, Hooks, MergeContext, Promisable } from './types'
 
-export function mergeContext<A extends Context, B extends Context>(a: A, b: B): MergeContext<A, B> {
+export function mergeContext<A extends Context, B extends Context>(
+  a: A,
+  b: B,
+): MergeContext<A, B> {
   if (!a) return b as any
   if (!b) return a as any
 
@@ -18,7 +21,12 @@ export function mergeMiddlewares(
     let extraContext: Context = undefined
 
     for (const middleware of middlewares) {
-      const mid = await middleware(input, mergeContext(context, extraContext), meta, ...rest)
+      const mid = await middleware(
+        input,
+        mergeContext(context, extraContext),
+        meta,
+        ...rest,
+      )
       extraContext = mergeContext(extraContext, mid?.context)
     }
 
@@ -26,11 +34,15 @@ export function mergeMiddlewares(
   }
 }
 
-export async function hook<T>(fn: (hooks: Hooks<T>) => Promisable<T>): Promise<T> {
+export async function hook<T>(
+  fn: (hooks: Hooks<T>) => Promisable<T>,
+): Promise<T> {
   const onSuccessFns: ((output: T) => Promisable<void>)[] = []
   const onErrorFns: ((error: unknown) => Promisable<void>)[] = []
-  const onFinishFns: ((output: T | undefined, error: unknown | undefined) => Promisable<void>)[] =
-    []
+  const onFinishFns: ((
+    output: T | undefined,
+    error: unknown | undefined,
+  ) => Promisable<void>)[] = []
 
   const hooks: Hooks<T> = {
     onSuccess(fn, opts) {
@@ -112,6 +124,7 @@ export async function hook<T>(fn: (hooks: Hooks<T>) => Promisable<T>): Promise<T
     }
 
     if (hasNewError) {
+      // biome-ignore lint/correctness/noUnsafeFinally: this behavior is expected
       throw error
     }
   }

@@ -14,10 +14,7 @@
     "url": "https://github.com/dinwwwh/orpc.git",
     "directory": "packages/contract"
   },
-  "keywords": [
-    "dinwwwh",
-    "orpc"
-  ],
+  "keywords": ["dinwwwh", "orpc"],
   "publishConfig": {
     "access": "public",
     "exports": {
@@ -37,10 +34,7 @@
       "types": "./src/*.ts"
     }
   },
-  "files": [
-    "dist",
-    "src"
-  ],
+  "files": ["dist", "src"],
   "scripts": {
     "build": "vite build && tsc -b --noCheck",
     "type:check": "tsc -b",

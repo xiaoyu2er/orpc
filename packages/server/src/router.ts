@@ -1,36 +1,46 @@
-import {
+import type {
   ContractProcedure,
   ContractRouter,
   DecoratedContractRouter,
   HTTPPath,
   PrefixHTTPPath,
 } from '@orpc/contract'
-import { isProcedure, Procedure } from './procedure'
-import { Context } from './types'
+import { type Procedure, isProcedure } from './procedure'
+import type { Context } from './types'
 
 export type Router<
   TContext extends Context,
-  TContract extends ContractRouter<any>
+  TContract extends ContractRouter<any>,
 > = TContract extends DecoratedContractRouter<infer UContract>
   ? {
-      [K in keyof UContract]: UContract[K] extends ContractProcedure<any, any, any, any>
+      [K in keyof UContract]: UContract[K] extends ContractProcedure<
+        any,
+        any,
+        any,
+        any
+      >
         ? Procedure<TContext, UContract[K], any, any>
         : Router<TContext, UContract[K]>
     }
   : {
-      [K in keyof TContract]: TContract[K] extends ContractProcedure<any, any, any, any>
+      [K in keyof TContract]: TContract[K] extends ContractProcedure<
+        any,
+        any,
+        any,
+        any
+      >
         ? Procedure<TContext, TContract[K], any, any>
         : Router<TContext, TContract[K]>
     }
 
 export type DecoratedRouter<TRouter extends Router<any, any>> = TRouter & {
   prefix<UPrefix extends Exclude<HTTPPath, undefined>>(
-    prefix: UPrefix
+    prefix: UPrefix,
   ): DecoratedContractRouter<PrefixRouter<TRouter, UPrefix>>
 }
 
 export function decorateRouter<TRouter extends Router<any, any>>(
-  router: TRouter
+  router: TRouter,
 ): DecoratedRouter<TRouter> {
   return new Proxy(router, {
     get(target, prop) {
@@ -68,7 +78,7 @@ export function decorateRouter<TRouter extends Router<any, any>>(
 
 export type PrefixRouter<
   TRouter extends Router<any, any>,
-  TPrefix extends Exclude<HTTPPath, undefined>
+  TPrefix extends Exclude<HTTPPath, undefined>,
 > = {
   [K in keyof TRouter]: TRouter[K] extends Procedure<
     infer UContext,
@@ -84,12 +94,17 @@ export type PrefixRouter<
           infer UMethod,
           infer UPath
         >
-          ? ContractProcedure<UInputSchema, UOutputSchema, UMethod, PrefixHTTPPath<TPrefix, UPath>>
+          ? ContractProcedure<
+              UInputSchema,
+              UOutputSchema,
+              UMethod,
+              PrefixHTTPPath<TPrefix, UPath>
+            >
           : never,
         UExtraContext,
         UHandlerOutput
       >
     : TRouter[K] extends Router<any, any>
-    ? PrefixRouter<TRouter[K], TPrefix>
-    : never
+      ? PrefixRouter<TRouter[K], TPrefix>
+      : never
 }

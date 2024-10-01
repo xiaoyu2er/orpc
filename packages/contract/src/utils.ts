@@ -1,6 +1,8 @@
-import { HTTPPath, PrefixHTTPPath, StandardizeHTTPPath } from './types'
+import type { HTTPPath, PrefixHTTPPath, StandardizeHTTPPath } from './types'
 
-export function standardizeHTTPPath<T extends HTTPPath>(path: T): StandardizeHTTPPath<T> {
+export function standardizeHTTPPath<T extends HTTPPath>(
+  path: T,
+): StandardizeHTTPPath<T> {
   if (path === undefined) return path as any
 
   return `/${path.replace(/\/{2,}/g, '/').replace(/^\/|\/$/g, '')}` as any
@@ -8,7 +10,7 @@ export function standardizeHTTPPath<T extends HTTPPath>(path: T): StandardizeHTT
 
 export function prefixHTTPPath<
   TPrefix extends Exclude<HTTPPath, undefined>,
-  TPath extends HTTPPath
+  TPath extends HTTPPath,
 >(prefix: TPrefix, path: TPath): PrefixHTTPPath<TPrefix, TPath> {
   if (path === undefined) return path as any
 

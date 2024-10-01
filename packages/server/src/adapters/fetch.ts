@@ -2,9 +2,9 @@
 
 import { trim } from 'radash'
 import { ORPCError } from '../error'
-import { Router } from '../router'
-import { RouterHandler } from '../router-handler'
-import { Hooks, Promisable } from '../types'
+import type { Router } from '../router'
+import type { RouterHandler } from '../router-handler'
+import type { Hooks, Promisable } from '../types'
 import { hook } from '../utils'
 
 export async function fetchHandler<THandler extends RouterHandler<any>>(opts: {
@@ -22,7 +22,7 @@ export async function fetchHandler<THandler extends RouterHandler<any>>(opts: {
         ? UContext
         : never
       : never,
-    hooks: Hooks<unknown>
+    hooks: Hooks<unknown>,
   ) => Promisable<void>
 }): Promise<Response> {
   try {
@@ -31,7 +31,9 @@ export async function fetchHandler<THandler extends RouterHandler<any>>(opts: {
 
       const { path, method } = (() => {
         if (opts.request.headers.get('x-orpc-internal') === '1') {
-          return { path: trim(url.pathname.replace(opts.prefix ?? '', ''), '/') }
+          return {
+            path: trim(url.pathname.replace(opts.prefix ?? '', ''), '/'),
+          }
         }
 
         return {
@@ -92,7 +94,7 @@ export async function fetchHandler<THandler extends RouterHandler<any>>(opts: {
       }),
       {
         status: error.status,
-      }
+      },
     )
   }
 }

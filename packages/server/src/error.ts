@@ -1,5 +1,5 @@
-import { HTTPStatus } from '@orpc/contract'
-import { ZodError, ZodIssue } from 'zod'
+import type { HTTPStatus } from '@orpc/contract'
+import { ZodError, type ZodIssue } from 'zod'
 
 export const ORPC_ERROR_CODE_STATUSES = {
   BAD_REQUEST: 400,
@@ -32,7 +32,7 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
       status?: HTTPStatus
       message?: string
       cause?: unknown
-    } & (undefined extends TData ? { data?: TData } : { data: TData })
+    } & (undefined extends TData ? { data?: TData } : { data: TData }),
   ) {
     if (__oe.status && (__oe.status <= 400 || __oe.status >= 600)) {
       throw new Error('The ORPCError status code must be in the 400-599 range.')
@@ -54,7 +54,10 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
   }
 
   get issues(): ZodIssue[] | undefined {
-    if (this.code !== 'BAD_REQUEST') return undefined
-    if (this.__oe.cause instanceof ZodError) return this.__oe.cause.issues
+    if (this.code === 'BAD_REQUEST' && this.__oe.cause instanceof ZodError) {
+      return this.__oe.cause.issues
+    }
+
+    return undefined
   }
 }

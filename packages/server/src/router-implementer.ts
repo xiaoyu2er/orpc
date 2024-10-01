@@ -1,10 +1,17 @@
-import { ContractProcedure, ContractRouter, isContractProcedure } from '@orpc/contract'
-import { Middleware } from './middleware'
+import {
+  type ContractProcedure,
+  type ContractRouter,
+  isContractProcedure,
+} from '@orpc/contract'
+import type { Middleware } from './middleware'
 import { ProcedureImplementer } from './procedure-implementer'
-import { Router } from './router'
-import { Context } from './types'
+import type { Router } from './router'
+import type { Context } from './types'
 
-export class RouterImplementer<TContext extends Context, TContract extends ContractRouter<any>> {
+export class RouterImplementer<
+  TContext extends Context,
+  TContract extends ContractRouter<any>,
+> {
   router(router: Router<TContext, TContract>): Router<TContext, TContract> {
     return router
   }
@@ -13,9 +20,14 @@ export class RouterImplementer<TContext extends Context, TContract extends Contr
 export type ChainedRouterImplementer<
   TContext extends Context,
   TContract extends ContractRouter<any>,
-  TExtraContext extends Context
+  TExtraContext extends Context,
 > = {
-  [K in keyof TContract]: TContract[K] extends ContractProcedure<any, any, any, any>
+  [K in keyof TContract]: TContract[K] extends ContractProcedure<
+    any,
+    any,
+    any,
+    any
+  >
     ? ProcedureImplementer<TContext, TContract[K], TExtraContext>
     : ChainedRouterImplementer<TContext, TContract[K], TExtraContext>
 } & RouterImplementer<TContext, TContract>
@@ -23,10 +35,10 @@ export type ChainedRouterImplementer<
 export function chainRouterImplementer<
   TContext extends Context,
   TContract extends ContractRouter<any>,
-  TExtraContext extends Context
+  TExtraContext extends Context,
 >(
   contract: TContract,
-  middlewares?: Middleware<any, any, any, any>[]
+  middlewares?: Middleware<any, any, any, any>[],
 ): ChainedRouterImplementer<TContext, TContract, TExtraContext> {
   return new Proxy(new RouterImplementer(), {
     get(target, prop) {
@@ -36,7 +48,7 @@ export function chainRouterImplementer<
 
       if (typeof itemContract !== 'object') {
         throw new Error(
-          'This error should not happen, please report it to the author - expected ContractRouter | ContractProcedure'
+          'This error should not happen, please report it to the author - expected ContractRouter | ContractProcedure',
         )
       }
 
@@ -55,7 +67,7 @@ export function chainRouterImplementer<
 
       if (typeof item !== 'function') {
         throw new Error(
-          'This error should not happen, please report it to the author - RouterImplementer must only contain methods'
+          'This error should not happen, please report it to the author - RouterImplementer must only contain methods',
         )
       }
 

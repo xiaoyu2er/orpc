@@ -1,7 +1,7 @@
 import { initORPCContract } from '@orpc/contract'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { initORPC, Procedure, ProcedureImplementer, RouterImplementer } from '.'
+import { Procedure, ProcedureImplementer, RouterImplementer, initORPC } from '.'
 
 describe('chain router implementer', () => {
   const pingContract = initORPCContract.input(z.string()).output(z.string())
@@ -35,7 +35,7 @@ describe('chain router implementer', () => {
     expect(
       orpc.router.handler(() => {
         return { name: '' }
-      })
+      }),
     ).toBeInstanceOf(Procedure)
   })
 })

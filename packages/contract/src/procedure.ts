@@ -1,11 +1,17 @@
-import { HTTPMethod, HTTPPath, PrefixHTTPPath, Schema, SchemaOutput } from './types'
+import type {
+  HTTPMethod,
+  HTTPPath,
+  PrefixHTTPPath,
+  Schema,
+  SchemaOutput,
+} from './types'
 import { prefixHTTPPath } from './utils'
 
 export class ContractProcedure<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   TMethod extends HTTPMethod,
-  TPath extends HTTPPath
+  TPath extends HTTPPath,
 > {
   constructor(
     public __cp: {
@@ -20,10 +26,13 @@ export class ContractProcedure<
       OutputSchema?: TOutputSchema
       outputExample?: SchemaOutput<TOutputSchema>
       outputExamples?: Record<string, SchemaOutput<TOutputSchema>>
-    } = {}
+    } = {},
   ) {}
 
-  route<UMethod extends HTTPMethod = undefined, UPath extends HTTPPath = undefined>(opts: {
+  route<
+    UMethod extends HTTPMethod = undefined,
+    UPath extends HTTPPath = undefined,
+  >(opts: {
     method?: UMethod
     path?: UPath
     summary?: string
@@ -39,24 +48,33 @@ export class ContractProcedure<
   }
 
   prefix<TPrefix extends Exclude<HTTPPath, undefined>>(
-    prefix: TPrefix
-  ): ContractProcedure<TInputSchema, TOutputSchema, TMethod, PrefixHTTPPath<TPrefix, TPath>> {
+    prefix: TPrefix,
+  ): ContractProcedure<
+    TInputSchema,
+    TOutputSchema,
+    TMethod,
+    PrefixHTTPPath<TPrefix, TPath>
+  > {
     return new ContractProcedure({
       ...this.__cp,
       path: prefixHTTPPath(prefix, this.__cp.path),
     })
   }
 
-  summary(summary: string): ContractProcedure<TInputSchema, TOutputSchema, TMethod, TPath> {
+  summary(
+    summary: string,
+  ): ContractProcedure<TInputSchema, TOutputSchema, TMethod, TPath> {
     return new ContractProcedure({ ...this.__cp, summary })
   }
 
-  description(description: string): ContractProcedure<TInputSchema, TOutputSchema, TMethod, TPath> {
+  description(
+    description: string,
+  ): ContractProcedure<TInputSchema, TOutputSchema, TMethod, TPath> {
     return new ContractProcedure({ ...this.__cp, description })
   }
 
   deprecated(
-    deprecated: boolean = true
+    deprecated = true,
   ): ContractProcedure<TInputSchema, TOutputSchema, TMethod, TPath> {
     return new ContractProcedure({ ...this.__cp, deprecated })
   }
@@ -64,7 +82,7 @@ export class ContractProcedure<
   input<USchema extends Schema>(
     schema: USchema,
     example?: SchemaOutput<USchema>,
-    examples?: Record<string, SchemaOutput<USchema>>
+    examples?: Record<string, SchemaOutput<USchema>>,
   ): ContractProcedure<USchema, TOutputSchema, TMethod, TPath> {
     return new ContractProcedure({
       ...this.__cp,
@@ -77,7 +95,7 @@ export class ContractProcedure<
   output<USchema extends Schema>(
     schema: USchema,
     example?: SchemaOutput<USchema>,
-    examples?: Record<string, SchemaOutput<USchema>>
+    examples?: Record<string, SchemaOutput<USchema>>,
   ): ContractProcedure<TInputSchema, USchema, TMethod, TPath> {
     return new ContractProcedure({
       ...this.__cp,
@@ -88,12 +106,17 @@ export class ContractProcedure<
   }
 }
 
-export function isContractProcedure(item: unknown): item is ContractProcedure<any, any, any, any> {
+export function isContractProcedure(
+  item: unknown,
+): item is ContractProcedure<any, any, any, any> {
   if (item instanceof ContractProcedure) return true
 
   try {
     const anyItem = item as any
-    return typeof anyItem.__cp.path === 'string' && typeof anyItem.__cp.method === 'string'
+    return (
+      typeof anyItem.__cp.path === 'string' &&
+      typeof anyItem.__cp.method === 'string'
+    )
   } catch {
     return false
   }

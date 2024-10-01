@@ -1,4 +1,4 @@
-import {
+import type {
   ContractProcedure,
   HTTPMethod,
   HTTPPath,
@@ -7,27 +7,37 @@ import {
   SchemaInput,
   SchemaOutput,
 } from '@orpc/contract'
-import { Middleware } from './middleware'
-import { Context, MergeContext, Meta, Promisable } from './types'
+import type { Middleware } from './middleware'
+import type { Context, MergeContext, Meta, Promisable } from './types'
 
 export class Procedure<
   TContext extends Context,
   TContract extends ContractProcedure<any, any, any, any>,
   TExtraContext extends Context,
-  THandlerOutput extends TContract extends ContractProcedure<any, infer UOutputSchema, any, any>
+  THandlerOutput extends TContract extends ContractProcedure<
+    any,
+    infer UOutputSchema,
+    any,
+    any
+  >
     ? SchemaOutput<UOutputSchema>
-    : never
+    : never,
 > {
   constructor(
     public __p: {
       middlewares?: Middleware<any, any, any, any>[] // TODO:
       contract: TContract
-      handler: ProcedureHandler<TContext, TContract, TExtraContext, THandlerOutput>
-    }
+      handler: ProcedureHandler<
+        TContext,
+        TContract,
+        TExtraContext,
+        THandlerOutput
+      >
+    },
   ) {}
 
   prefix<UPrefix extends Exclude<HTTPPath, undefined>>(
-    prefix: UPrefix
+    prefix: UPrefix,
   ): Procedure<
     TContext,
     TContract extends ContractProcedure<
@@ -36,7 +46,12 @@ export class Procedure<
       infer UMethod,
       infer UPath
     >
-      ? ContractProcedure<UInputSchema, UOutputSchema, UMethod, PrefixHTTPPath<UPrefix, UPath>>
+      ? ContractProcedure<
+          UInputSchema,
+          UOutputSchema,
+          UMethod,
+          PrefixHTTPPath<UPrefix, UPath>
+        >
       : never,
     TExtraContext,
     THandlerOutput
@@ -99,22 +114,25 @@ export type ProcedureHandler<
   TContext extends Context,
   TContract extends ContractProcedure<any, any, any, any>,
   TExtraContext extends Context,
-  TOutput extends TContract extends ContractProcedure<any, infer UOutputSchema, any, any>
-    ? SchemaOutput<UOutputSchema>
-    : never
-> = {
-  (
-    input: TContract extends ContractProcedure<infer UInputSchema, any, any, any>
-      ? SchemaOutput<UInputSchema>
-      : never,
-    context: MergeContext<TContext, TExtraContext>,
-    meta: Meta<any>
-  ): Promisable<
-    TContract extends ContractProcedure<any, infer UOutputSchema, any, any>
-      ? SchemaInput<UOutputSchema, TOutput>
-      : never
+  TOutput extends TContract extends ContractProcedure<
+    any,
+    infer UOutputSchema,
+    any,
+    any
   >
-}
+    ? SchemaOutput<UOutputSchema>
+    : never,
+> = (
+  input: TContract extends ContractProcedure<infer UInputSchema, any, any, any>
+    ? SchemaOutput<UInputSchema>
+    : never,
+  context: MergeContext<TContext, TExtraContext>,
+  meta: Meta<any>,
+) => Promisable<
+  TContract extends ContractProcedure<any, infer UOutputSchema, any, any>
+    ? SchemaInput<UOutputSchema, TOutput>
+    : never
+>
 
 export type WELL_DEFINED_PROCEDURE = Procedure<
   Context,
@@ -128,7 +146,10 @@ export function isProcedure(item: unknown): item is WELL_DEFINED_PROCEDURE {
 
   try {
     const anyItem = item as any
-    return typeof anyItem.__p.contract === 'string' && typeof anyItem.__p.handler === 'function'
+    return (
+      typeof anyItem.__p.contract === 'string' &&
+      typeof anyItem.__p.handler === 'function'
+    )
   } catch {
     return false
   }

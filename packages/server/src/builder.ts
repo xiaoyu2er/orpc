@@ -1,31 +1,34 @@
 import {
   ContractProcedure,
-  ContractRouter,
-  HTTPMethod,
-  HTTPPath,
+  type ContractRouter,
+  type HTTPMethod,
+  type HTTPPath,
+  type IsEqual,
+  type Schema,
+  type SchemaOutput,
   isContractProcedure,
-  IsEqual,
-  Schema,
-  SchemaOutput,
 } from '@orpc/contract'
 import {
-  DecoratedMiddleware,
+  type DecoratedMiddleware,
+  type MapInputMiddleware,
+  type Middleware,
   decorateMiddleware,
-  MapInputMiddleware,
-  Middleware,
 } from './middleware'
-import { Procedure, ProcedureHandler } from './procedure'
+import { Procedure, type ProcedureHandler } from './procedure'
 import { ProcedureBuilder } from './procedure-builder'
 import { ProcedureImplementer } from './procedure-implementer'
-import { DecoratedRouter, decorateRouter, Router } from './router'
-import { ChainedRouterImplementer, chainRouterImplementer } from './router-implementer'
-import { Context, MergeContext } from './types'
+import { type DecoratedRouter, type Router, decorateRouter } from './router'
+import {
+  type ChainedRouterImplementer,
+  chainRouterImplementer,
+} from './router-implementer'
+import type { Context, MergeContext } from './types'
 
 export class Builder<TContext extends Context, TExtraContext extends Context> {
   constructor(
     public __b: {
       middlewares?: Middleware<TContext, any, any, any>[]
-    } = {}
+    } = {},
   ) {}
 
   /**
@@ -38,13 +41,24 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
     return this as any
   }
 
-  use<UExtraContext extends Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>>(
-    middleware: Middleware<MergeContext<TContext, TExtraContext>, UExtraContext, unknown, unknown>
+  use<
+    UExtraContext extends Partial<
+      MergeContext<Context, MergeContext<TContext, TExtraContext>>
+    >,
+  >(
+    middleware: Middleware<
+      MergeContext<TContext, TExtraContext>,
+      UExtraContext,
+      unknown,
+      unknown
+    >,
   ): Builder<TContext, MergeContext<TExtraContext, UExtraContext>>
 
   use<
-    UExtraContext extends Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>,
-    UMappedInput = unknown
+    UExtraContext extends Partial<
+      MergeContext<Context, MergeContext<TContext, TExtraContext>>
+    >,
+    UMappedInput = unknown,
   >(
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
@@ -52,12 +66,12 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
       UMappedInput,
       unknown
     >,
-    mapInput: MapInputMiddleware<unknown, UMappedInput>
+    mapInput: MapInputMiddleware<unknown, UMappedInput>,
   ): Builder<TContext, MergeContext<TExtraContext, UExtraContext>>
 
   use(
     middleware_: Middleware<any, any, any, any>,
-    mapInput?: MapInputMiddleware<any, any>
+    mapInput?: MapInputMiddleware<any, any>,
   ): Builder<any, any> {
     const middleware: Middleware<any, any, any, any> =
       typeof mapInput === 'function'
@@ -74,15 +88,30 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
    * Convert to ContractProcedureBuilder
    */
 
-  route<UMethod extends HTTPMethod = undefined, UPath extends HTTPPath = undefined>(opts: {
+  route<
+    UMethod extends HTTPMethod = undefined,
+    UPath extends HTTPPath = undefined,
+  >(opts: {
     method?: UMethod
     path?: UPath
     summary?: string
     description?: string
     deprecated?: boolean
-  }): ProcedureBuilder<TContext, TExtraContext, undefined, undefined, UMethod, UPath> {
+  }): ProcedureBuilder<
+    TContext,
+    TExtraContext,
+    undefined,
+    undefined,
+    UMethod,
+    UPath
+  > {
     return new ProcedureBuilder({
-      contract: new ContractProcedure<undefined, undefined, undefined, undefined>().route(opts),
+      contract: new ContractProcedure<
+        undefined,
+        undefined,
+        undefined,
+        undefined
+      >().route(opts),
       middlewares: this.__b.middlewares,
     })
   }
@@ -90,8 +119,15 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
   input<USchema extends Schema>(
     schema: USchema,
     example?: SchemaOutput<USchema>,
-    examples?: Record<string, SchemaOutput<USchema>>
-  ): ProcedureBuilder<TContext, TExtraContext, USchema, undefined, undefined, undefined> {
+    examples?: Record<string, SchemaOutput<USchema>>,
+  ): ProcedureBuilder<
+    TContext,
+    TExtraContext,
+    USchema,
+    undefined,
+    undefined,
+    undefined
+  > {
     return new ProcedureBuilder({
       contract: new ContractProcedure({
         InputSchema: schema,
@@ -105,8 +141,15 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
   output<USchema extends Schema>(
     schema: USchema,
     example?: SchemaOutput<USchema>,
-    examples?: Record<string, SchemaOutput<USchema>>
-  ): ProcedureBuilder<TContext, TExtraContext, undefined, USchema, undefined, undefined> {
+    examples?: Record<string, SchemaOutput<USchema>>,
+  ): ProcedureBuilder<
+    TContext,
+    TExtraContext,
+    undefined,
+    USchema,
+    undefined,
+    undefined
+  > {
     return new ProcedureBuilder({
       contract: new ContractProcedure({
         OutputSchema: schema,
@@ -126,7 +169,7 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
       ContractProcedure<undefined, undefined, undefined, undefined>,
       TExtraContext,
       UHandlerOutput
-    >
+    >,
   ): Procedure<
     TContext,
     ContractProcedure<undefined, undefined, undefined, undefined>,
@@ -144,13 +187,20 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
    * Convert to ProcedureImplementer | RouterBuilder
    */
 
-  contract<UContract extends ContractProcedure<any, any, any, any> | ContractRouter<any>>(
-    contract: UContract
+  contract<
+    UContract extends
+      | ContractProcedure<any, any, any, any>
+      | ContractRouter<any>,
+  >(
+    contract: UContract,
   ): UContract extends ContractProcedure<any, any, any, any>
     ? ProcedureImplementer<TContext, UContract, TExtraContext>
     : ChainedRouterImplementer<TContext, UContract, TExtraContext> {
     if (isContractProcedure(contract)) {
-      return new ProcedureImplementer({ contract, middlewares: this.__b.middlewares }) as any
+      return new ProcedureImplementer({
+        contract,
+        middlewares: this.__b.middlewares,
+      }) as any
     }
 
     return chainRouterImplementer(contract, this.__b.middlewares) as any
@@ -161,15 +211,27 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
    */
 
   middleware<UExtraContext extends Context, TInput = unknown>(
-    middleware: Middleware<MergeContext<TContext, TExtraContext>, UExtraContext, TInput, unknown>
-  ): DecoratedMiddleware<MergeContext<TContext, TExtraContext>, UExtraContext, TInput, unknown> {
+    middleware: Middleware<
+      MergeContext<TContext, TExtraContext>,
+      UExtraContext,
+      TInput,
+      unknown
+    >,
+  ): DecoratedMiddleware<
+    MergeContext<TContext, TExtraContext>,
+    UExtraContext,
+    TInput,
+    unknown
+  > {
     return decorateMiddleware(middleware)
   }
 
   /**
    * Create DecoratedRouter
    */
-  router<URouter extends Router<TContext, any>>(router: URouter): DecoratedRouter<URouter> {
+  router<URouter extends Router<TContext, any>>(
+    router: URouter,
+  ): DecoratedRouter<URouter> {
     return decorateRouter(router)
   }
 }

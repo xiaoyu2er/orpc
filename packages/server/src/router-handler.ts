@@ -1,47 +1,50 @@
-import { HTTPPath, standardizeHTTPPath } from '@orpc/contract'
+import { type HTTPPath, standardizeHTTPPath } from '@orpc/contract'
 import { LinearRouter } from 'hono/router/linear-router'
 import { RegExpRouter } from 'hono/router/reg-exp-router'
 import { get } from 'radash'
 import { ORPCError } from './error'
-import { isProcedure, WELL_DEFINED_PROCEDURE } from './procedure'
-import { DecoratedRouter, Router } from './router'
-import { Meta, Promisable } from './types'
+import { type WELL_DEFINED_PROCEDURE, isProcedure } from './procedure'
+import type { DecoratedRouter, Router } from './router'
+import type { Meta, Promisable } from './types'
 import { hook, mergeContext } from './utils'
 
-export interface RouterHandler<TRouter extends Router<any, any>> {
-  (
-    method: string | undefined,
-    path: string,
-    input: unknown,
-    context: TRouter extends Router<infer UContext, any> ? UContext : never
-  ): Promise<unknown>
-}
+export type RouterHandler<TRouter extends Router<any, any>> = (
+  method: string | undefined,
+  path: string,
+  input: unknown,
+  context: TRouter extends Router<infer UContext, any> ? UContext : never,
+) => Promise<unknown>
 
-export function createRouterHandler<TRouter extends Router<any, any> | DecoratedRouter<any>>(opts: {
+export function createRouterHandler<
+  TRouter extends Router<any, any> | DecoratedRouter<any>,
+>(opts: {
   router: TRouter
   serverless?: boolean
   hooks?: (
     context: TRouter extends Router<infer UContext, any>
       ? UContext
       : TRouter extends DecoratedRouter<infer URouter>
-      ? URouter extends Router<infer UContext, any>
-        ? UContext
-        : never
-      : never,
-    meta: Meta<unknown>
+        ? URouter extends Router<infer UContext, any>
+          ? UContext
+          : never
+        : never,
+    meta: Meta<unknown>,
   ) => Promisable<void>
 }): RouterHandler<
   TRouter extends Router<any, any>
     ? TRouter
     : TRouter extends DecoratedRouter<infer URouter>
-    ? URouter
-    : never
+      ? URouter
+      : never
 > {
   const routing = opts.serverless
     ? new LinearRouter<[string[], WELL_DEFINED_PROCEDURE]>()
     : new RegExpRouter<[string[], WELL_DEFINED_PROCEDURE]>()
 
-  const addRouteRecursively = (router: Router<any, any>, parentPath: string[]) => {
+  const addRouteRecursively = (
+    router: Router<any, any>,
+    parentPath: string[],
+  ) => {
     for (const key in router) {
       const currentPath = [...parentPath, key]
       const item = router[key] as WELL_DEFINED_PROCEDURE | Router<any, any>
@@ -50,7 +53,7 @@ export function createRouterHandler<TRouter extends Router<any, any> | Decorated
         const method = item.__p.contract.__cp.method ?? 'POST'
         const path = item.__p.contract.__cp.path
           ? openAPIPathToRouterPath(item.__p.contract.__cp.path)
-          : '/.' + currentPath.join('.')
+          : `/.${currentPath.join('.')}`
 
         routing.add(method, path, [currentPath, item])
       } else {
@@ -97,11 +100,11 @@ export function createRouterHandler<TRouter extends Router<any, any> | Decorated
         input_ === undefined && Object.keys(params ?? {}).length >= 1
           ? params
           : typeof input_ === 'object' && input_ !== null
-          ? {
-              ...params,
-              ...input_,
-            }
-          : input_
+            ? {
+                ...params,
+                ...input_,
+              }
+            : input_
 
       const validInput = (() => {
         const schema = procedure.__p.contract.__cp.InputSchema

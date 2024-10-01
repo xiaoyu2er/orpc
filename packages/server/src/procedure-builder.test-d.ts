@@ -31,7 +31,7 @@ initORPC
   .contract(
     initORPCContract.router({
       ping: pingContract,
-    })
+    }),
   )
   .router({
     ping: initORPC

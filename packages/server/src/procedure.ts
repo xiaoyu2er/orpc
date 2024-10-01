@@ -6,6 +6,7 @@ import type {
   Schema,
   SchemaInput,
   SchemaOutput,
+  WELL_DEFINED_CONTRACT_PROCEDURE,
 } from '@orpc/contract'
 import type { Middleware } from './middleware'
 import type { Context, MergeContext, Meta, Promisable } from './types'
@@ -136,7 +137,7 @@ export type ProcedureHandler<
 
 export type WELL_DEFINED_PROCEDURE = Procedure<
   Context,
-  ContractProcedure<Schema, Schema, HTTPMethod, HTTPPath>,
+  WELL_DEFINED_CONTRACT_PROCEDURE,
   Context,
   unknown
 >

@@ -106,9 +106,16 @@ export class ContractProcedure<
   }
 }
 
+export type WELL_DEFINED_CONTRACT_PROCEDURE = ContractProcedure<
+  Schema,
+  Schema,
+  HTTPMethod,
+  HTTPPath
+>
+
 export function isContractProcedure(
   item: unknown,
-): item is ContractProcedure<any, any, any, any> {
+): item is WELL_DEFINED_CONTRACT_PROCEDURE {
   if (item instanceof ContractProcedure) return true
 
   try {

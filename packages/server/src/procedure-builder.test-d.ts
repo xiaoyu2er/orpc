@@ -13,6 +13,7 @@ orpc.router({
     find: orpc
       .input(z.object({ id: z.string() }))
       .output(z.object({ id: z.string(), name: z.string() }))
+      .use(() => {})
       .handler((input) => {
         return {
           id: input.id,

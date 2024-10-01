@@ -106,10 +106,10 @@ export function createRouterHandler<
               }
             : input_
 
-      const validInput = (() => {
+      const validInput = await (async () => {
         const schema = procedure.__p.contract.__cp.InputSchema
         if (!schema) return input
-        const result = schema.safeParse(input)
+        const result = await schema.safeParseAsync(input)
         if (result.error)
           throw new ORPCError({
             message: 'Validation input failed',
@@ -128,10 +128,10 @@ export function createRouterHandler<
 
       const output = await procedure.__p.handler(validInput, context, meta)
 
-      return (() => {
+      return await (async () => {
         const schema = procedure.__p.contract.__cp.OutputSchema
         if (!schema) return output
-        const result = schema.safeParse(output)
+        const result = await schema.safeParseAsync(output)
         if (result.error)
           throw new ORPCError({
             message: 'Validation output failed',

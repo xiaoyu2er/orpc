@@ -3,6 +3,10 @@
   "compilerOptions": {
     "types": ["vite/client"]
   },
+  "references": [
+    { "path": "../contract/tsconfig.app.json" },
+    { "path": "../server/tsconfig.app.json" }
+  ],
   "include": ["src"],
   "exclude": [
     "**/*.test.*",

@@ -14,9 +14,7 @@
     "url": "https://github.com/dinwwwh/dinwwwh.git",
     "directory": "examples/typescript-vite-package"
   },
-  "keywords": [
-    "dinwwwh"
-  ],
+  "keywords": ["dinwwwh"],
   "publishConfig": {
     "access": "public",
     "exports": {
@@ -36,10 +34,7 @@
       "types": "./src/*.ts"
     }
   },
-  "files": [
-    "dist",
-    "src"
-  ],
+  "files": ["dist", "src"],
   "scripts": {
     "build": "vite build && tsc -b --noCheck",
     "type:check": "tsc -b",
@@ -48,9 +43,18 @@
   },
   "devDependencies": {
     "@dinwwwh/tsconfig": "latest",
+    "@readme/openapi-parser": "^2.6.0",
     "@types/node": "latest",
+    "radash": "^12.1.0",
     "typescript": "latest",
     "vite": "latest",
-    "vitest": "latest"
+    "vitest": "latest",
+    "zod": "^3.23.8"
+  },
+  "dependencies": {
+    "@orpc/contract": "workspace:*",
+    "@orpc/server": "workspace:*",
+    "openapi3-ts": "^4.4.0",
+    "zod-to-json-schema": "^3.23.3"
   }
 }

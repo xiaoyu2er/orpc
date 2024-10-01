@@ -1,9 +1,10 @@
-import type {
-  ContractProcedure,
-  ContractRouter,
-  DecoratedContractRouter,
-  HTTPPath,
-  PrefixHTTPPath,
+import {
+  type ContractProcedure,
+  type ContractRouter,
+  type DecoratedContractRouter,
+  type HTTPPath,
+  type PrefixHTTPPath,
+  isContractProcedure,
 } from '@orpc/contract'
 import { type Procedure, isProcedure } from './procedure'
 import type { Context } from './types'
@@ -107,4 +108,24 @@ export type PrefixRouter<
     : TRouter[K] extends Router<any, any>
       ? PrefixRouter<TRouter[K], TPrefix>
       : never
+}
+
+export function toContractRouter(
+  router: Router<any, any> | ContractRouter<any>,
+): ContractRouter<any> {
+  const contract: ContractRouter<any> = {}
+
+  for (const key in router) {
+    const item = router[key]
+
+    if (isContractProcedure(item)) {
+      contract[key] = item
+    } else if (isProcedure(item)) {
+      contract[key] = item.__p.contract
+    } else {
+      contract[key] = toContractRouter(item as any)
+    }
+  }
+
+  return contract
 }

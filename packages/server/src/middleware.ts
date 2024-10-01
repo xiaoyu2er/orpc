@@ -10,12 +10,10 @@ export type Middleware<
   input: TInput,
   context: TContext,
   meta: Meta<TOutput>,
-) => Promisable<
-  | {
-      context?: TExtraContext
-    }
-  | undefined
->
+) => Promisable<{
+  context?: TExtraContext
+  // biome-ignore lint/suspicious/noConfusingVoidType: This behavior is expected
+} | void>
 
 export type MapInputMiddleware<TInput, TMappedInput> = (
   input: TInput,

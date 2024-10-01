@@ -1,3 +1,3 @@
 /** dinwwwh */
 
-export const author = 'dinwwwh'
+export * from './generator'

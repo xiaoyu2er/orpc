@@ -1,4 +1,8 @@
-import { type ContractProcedure, isContractProcedure } from './procedure'
+import {
+  type ContractProcedure,
+  type WELL_DEFINED_CONTRACT_PROCEDURE,
+  isContractProcedure,
+} from './procedure'
 import type { HTTPPath, PrefixHTTPPath } from './types'
 
 export type ContractRouter<
@@ -71,4 +75,20 @@ export type PrefixContractRouter<
         PrefixHTTPPath<TPrefix, TPath>
       >
     : PrefixContractRouter<TRouter[K], TPrefix>
+}
+
+export function eachContractRouterLeaf(
+  router: ContractRouter<any>,
+  callback: (item: WELL_DEFINED_CONTRACT_PROCEDURE, path: string[]) => void,
+  prefix: string[] = [],
+) {
+  for (const key in router) {
+    const item = router[key]
+
+    if (isContractProcedure(item)) {
+      callback(item, [...prefix, key])
+    } else {
+      eachContractRouterLeaf(item, callback, [...prefix, key])
+    }
+  }
 }

@@ -38,8 +38,8 @@
   "scripts": {
     "build": "vite build && tsc -b --noCheck",
     "type:check": "tsc -b",
-    "test": "vitest run",
-    "test:watch": "vitest watch"
+    "test": "vitest run --globals",
+    "test:watch": "vitest watch --globals"
   },
   "peerDependencies": {
     "zod": "^3"

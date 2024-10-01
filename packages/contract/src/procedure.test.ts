@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest'
 import { ContractProcedure } from './procedure'
 
 describe('prefix method', () => {

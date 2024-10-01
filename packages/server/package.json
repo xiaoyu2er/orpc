@@ -44,8 +44,8 @@
   "scripts": {
     "build": "vite build && tsc -b --noCheck",
     "type:check": "tsc -b",
-    "test": "vitest run",
-    "test:watch": "vitest watch"
+    "test": "vitest run --globals",
+    "test:watch": "vitest watch --globals"
   },
   "dependencies": {
     "@orpc/contract": "workspace:*",

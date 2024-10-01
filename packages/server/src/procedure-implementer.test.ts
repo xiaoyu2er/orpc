@@ -1,6 +1,4 @@
-import { describe } from 'node:test'
 import { ContractProcedure } from '@orpc/contract'
-import { expectTypeOf, it } from 'vitest'
 import { z } from 'zod'
 import { initORPC } from '.'
 import { ProcedureImplementer } from './procedure-implementer'

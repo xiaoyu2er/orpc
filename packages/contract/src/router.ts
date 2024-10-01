@@ -25,30 +25,33 @@ export function decorateContractRouter<TRouter extends ContractRouter<any>>(
   const extendedRouter = new Proxy(router as object, {
     get(rootTarget, prop) {
       if (prop === 'prefix') {
-        return Object.assign((prefix: Exclude<HTTPPath, undefined>) => {
-          const applyPrefix = (router: ContractRouter<any>) => {
-            const clone: Record<
-              string,
-              ContractProcedure<any, any, any, any> | ContractRouter<any>
-            > = {}
+        return Object.assign(
+          (prefix: Exclude<HTTPPath, undefined>) => {
+            const applyPrefix = (router: ContractRouter<any>) => {
+              const clone: Record<
+                string,
+                ContractProcedure<any, any, any, any> | ContractRouter<any>
+              > = {}
 
-            for (const key in router) {
-              const item = router[key]
+              for (const key in router) {
+                const item = router[key]
 
-              if (isContractProcedure(item)) {
-                clone[key] = item.prefix(prefix)
-              } else {
-                clone[key] = applyPrefix(item)
+                if (isContractProcedure(item)) {
+                  clone[key] = item.prefix(prefix)
+                } else {
+                  clone[key] = applyPrefix(item)
+                }
               }
+
+              return clone
             }
 
-            return clone
-          }
+            const clone = applyPrefix(router)
 
-          const clone = applyPrefix(router)
-
-          return decorateContractRouter(clone)
-        }, Reflect.get(rootTarget, prop) ?? {})
+            return decorateContractRouter(clone)
+          },
+          Reflect.get(rootTarget, prop),
+        )
       }
 
       return Reflect.get(rootTarget, prop)

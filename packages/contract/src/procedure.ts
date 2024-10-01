@@ -118,13 +118,11 @@ export function isContractProcedure(
 ): item is WELL_DEFINED_CONTRACT_PROCEDURE {
   if (item instanceof ContractProcedure) return true
 
-  try {
-    const anyItem = item as any
-    return (
-      typeof anyItem.__cp.path === 'string' &&
-      typeof anyItem.__cp.method === 'string'
-    )
-  } catch {
-    return false
-  }
+  return (
+    ((typeof item === 'object' && item !== null) ||
+      typeof item === 'function') &&
+    '__cp' in item &&
+    typeof item.__cp === 'object' &&
+    item.__cp !== null
+  )
 }

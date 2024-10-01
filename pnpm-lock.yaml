@@ -34,6 +34,24 @@ importers:
         specifier: ^2.1.1
         version: 2.1.1(@types/node@22.7.4)
 
+  packages/openapi:
+    devDependencies:
+      '@dinwwwh/tsconfig':
+        specifier: latest
+        version: 0.0.11
+      '@types/node':
+        specifier: latest
+        version: 22.7.4
+      typescript:
+        specifier: latest
+        version: 5.6.2
+      vite:
+        specifier: latest
+        version: 5.4.8(@types/node@22.7.4)
+      vitest:
+        specifier: latest
+        version: 2.1.1(@types/node@22.7.4)
+
   packages/server:
     dependencies:
       '@orpc/contract':

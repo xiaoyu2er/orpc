@@ -104,7 +104,7 @@ export class ProcedureBuilder<
     })
   }
 
-  input<USchema extends Schema>(
+  input<USchema extends Schema = undefined>(
     schema: USchema,
     example?: SchemaOutput<USchema>,
     examples?: Record<string, SchemaOutput<USchema>>,
@@ -122,7 +122,7 @@ export class ProcedureBuilder<
     })
   }
 
-  output<USchema extends Schema>(
+  output<USchema extends Schema = undefined>(
     schema: USchema,
     example?: SchemaOutput<USchema>,
     examples?: Record<string, SchemaOutput<USchema>>,
@@ -145,9 +145,9 @@ export class ProcedureBuilder<
    */
 
   use<
-    UExtraContext extends Partial<
-      MergeContext<Context, MergeContext<TContext, TExtraContext>>
-    >,
+    UExtraContext extends
+      | Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>
+      | undefined = undefined,
   >(
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
@@ -162,10 +162,10 @@ export class ProcedureBuilder<
   >
 
   use<
-    UExtraContext extends Partial<
-      MergeContext<Context, MergeContext<TContext, TExtraContext>>
-    >,
-    UMappedInput = SchemaOutput<TInputSchema>,
+    UExtraContext extends
+      | Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>
+      | undefined = undefined,
+    UMappedInput = unknown,
   >(
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,

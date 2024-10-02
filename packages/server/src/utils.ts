@@ -74,7 +74,7 @@ export async function hook<T>(
     },
 
     onFinish(fn, opts) {
-      const mode = opts?.mode ?? 'push'
+      const mode = opts?.mode ?? 'unshift'
       if (mode === 'unshift') {
         onFinishFns.unshift(fn)
       } else {

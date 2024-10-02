@@ -10,10 +10,9 @@ export type Middleware<
   input: TInput,
   context: TContext,
   meta: Meta<TOutput>,
-) => Promisable<{
-  context?: TExtraContext
-  // biome-ignore lint/suspicious/noConfusingVoidType: This behavior is expected
-} | void>
+) => Promisable<
+  TExtraContext extends undefined ? void : { context: TExtraContext }
+>
 
 export type MapInputMiddleware<TInput, TMappedInput> = (
   input: TInput,
@@ -25,7 +24,7 @@ export interface DecoratedMiddleware<
   TInput,
   TOutput,
 > extends Middleware<TContext, TExtraContext, TInput, TOutput> {
-  concat<UExtraContext extends Context, UInput>(
+  concat<UExtraContext extends Context = undefined, UInput = TInput>(
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
       UExtraContext,
@@ -35,22 +34,26 @@ export interface DecoratedMiddleware<
   ): DecoratedMiddleware<
     TContext,
     MergeContext<TExtraContext, UExtraContext>,
-    UInput & TInput,
+    TInput & UInput,
     TOutput
   >
 
-  concat<UExtraContext extends Context, UMappedInput extends TInput>(
+  concat<
+    UExtraContext extends Context = undefined,
+    UInput = TInput,
+    UMappedInput = unknown,
+  >(
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
       UExtraContext,
       UMappedInput,
       TOutput
     >,
-    mapInput: MapInputMiddleware<TInput, UMappedInput>,
+    mapInput: MapInputMiddleware<UInput, UMappedInput>,
   ): DecoratedMiddleware<
     TContext,
     MergeContext<TExtraContext, UExtraContext>,
-    TInput,
+    TInput & UInput,
     TOutput
   >
 }

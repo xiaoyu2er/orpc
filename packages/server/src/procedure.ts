@@ -1,12 +1,13 @@
-import type {
-  ContractProcedure,
-  HTTPMethod,
-  HTTPPath,
-  PrefixHTTPPath,
-  Schema,
-  SchemaInput,
-  SchemaOutput,
-  WELL_DEFINED_CONTRACT_PROCEDURE,
+import {
+  type ContractProcedure,
+  type HTTPMethod,
+  type HTTPPath,
+  type PrefixHTTPPath,
+  type Schema,
+  type SchemaInput,
+  type SchemaOutput,
+  type WELL_DEFINED_CONTRACT_PROCEDURE,
+  isContractProcedure,
 } from '@orpc/contract'
 import type { Middleware } from './middleware'
 import type { Context, MergeContext, Meta, Promisable } from './types'
@@ -128,7 +129,7 @@ export type ProcedureHandler<
     ? SchemaOutput<UInputSchema>
     : never,
   context: MergeContext<TContext, TExtraContext>,
-  meta: Meta<any>,
+  meta: Meta<unknown>,
 ) => Promisable<
   TContract extends ContractProcedure<any, infer UOutputSchema, any, any>
     ? SchemaInput<UOutputSchema, TOutput>
@@ -147,8 +148,9 @@ export function isProcedure(item: unknown): item is WELL_DEFINED_PROCEDURE {
 
   try {
     const anyItem = item as any
+
     return (
-      typeof anyItem.__p.contract === 'string' &&
+      isContractProcedure(anyItem.__p.contract) &&
       typeof anyItem.__p.handler === 'function'
     )
   } catch {

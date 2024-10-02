@@ -16,9 +16,9 @@ export class ProcedureImplementer<
   ) {}
 
   use<
-    UExtraContext extends Partial<
-      MergeContext<Context, MergeContext<TContext, TExtraContext>>
-    >,
+    UExtraContext extends
+      | Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>
+      | undefined = undefined,
   >(
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
@@ -37,9 +37,9 @@ export class ProcedureImplementer<
   >
 
   use<
-    UExtraContext extends Partial<
-      MergeContext<Context, MergeContext<TContext, TExtraContext>>
-    >,
+    UExtraContext extends
+      | Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>
+      | undefined = undefined,
     UMappedInput = TContract extends ContractProcedure<
       infer UInputSchema,
       any,

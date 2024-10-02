@@ -14,13 +14,6 @@ export interface Meta<T> extends Hooks<T> {
 
 export type Promisable<T> = T | Promise<T>
 
-export type UndefinedProperties<T> = {
-  [P in keyof T]-?: undefined extends T[P] ? P : never
-}[keyof T]
-
-export type OptionalOnUndefined<T> = Partial<Pick<T, UndefinedProperties<T>>> &
-  Pick<T, Exclude<keyof T, UndefinedProperties<T>>>
-
 export type UnsubscribeFn = () => void
 
 export interface HookOptions {

@@ -46,6 +46,7 @@ export function chainRouterImplementer<
       const itemContract = Reflect.get(contract as object, prop)
       if (itemContract === undefined) return item
 
+      /* v8 ignore next 5 */
       if (typeof itemContract !== 'object') {
         throw new Error(
           'This error should not happen, please report it to the author - expected ContractRouter | ContractProcedure',
@@ -65,6 +66,7 @@ export function chainRouterImplementer<
 
       if (item === undefined) return chained
 
+      /* v8 ignore next 5 */
       if (typeof item !== 'function') {
         throw new Error(
           'This error should not happen, please report it to the author - RouterImplementer must only contain methods',

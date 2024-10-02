@@ -6,6 +6,7 @@ import {
   type PrefixHTTPPath,
   isContractProcedure,
 } from '@orpc/contract'
+import { isPrimitive } from 'radash'
 import { type Procedure, isProcedure } from './procedure'
 import type { Context } from './types'
 
@@ -45,8 +46,10 @@ export function decorateRouter<TRouter extends Router<any, any>>(
 ): DecoratedRouter<TRouter> {
   return new Proxy(router, {
     get(target, prop) {
+      const item = Reflect.get(target, prop)
+
       if (prop === 'prefix') {
-        return Object.assign((prefix: Exclude<HTTPPath, undefined>) => {
+        const prefix = (prefix: Exclude<HTTPPath, undefined>) => {
           const applyPrefix = (router: ContractRouter<any>) => {
             const clone: Record<
               string,
@@ -69,10 +72,20 @@ export function decorateRouter<TRouter extends Router<any, any>>(
           const clone = applyPrefix(router)
 
           return decorateRouter(clone)
-        }, Reflect.get(target, prop) ?? {})
+        }
+
+        if (isPrimitive(item)) {
+          return prefix
+        }
+
+        return new Proxy(prefix, {
+          get(_, prop) {
+            return Reflect.get(item, prop)
+          },
+        })
       }
 
-      return Reflect.get(target, prop)
+      return item
     },
   }) as DecoratedRouter<TRouter>
 }

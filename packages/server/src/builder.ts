@@ -42,9 +42,9 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
   }
 
   use<
-    UExtraContext extends Partial<
-      MergeContext<Context, MergeContext<TContext, TExtraContext>>
-    >,
+    UExtraContext extends
+      | Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>
+      | undefined = undefined,
   >(
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
@@ -55,9 +55,9 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
   ): Builder<TContext, MergeContext<TExtraContext, UExtraContext>>
 
   use<
-    UExtraContext extends Partial<
-      MergeContext<Context, MergeContext<TContext, TExtraContext>>
-    >,
+    UExtraContext extends
+      | Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>
+      | undefined = undefined,
     UMappedInput = unknown,
   >(
     middleware: Middleware<
@@ -116,7 +116,7 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
     })
   }
 
-  input<USchema extends Schema>(
+  input<USchema extends Schema = undefined>(
     schema: USchema,
     example?: SchemaOutput<USchema>,
     examples?: Record<string, SchemaOutput<USchema>>,
@@ -138,7 +138,7 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
     })
   }
 
-  output<USchema extends Schema>(
+  output<USchema extends Schema = undefined>(
     schema: USchema,
     example?: SchemaOutput<USchema>,
     examples?: Record<string, SchemaOutput<USchema>>,
@@ -163,7 +163,7 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
   /**
    * Convert to Procedure
    */
-  handler<UHandlerOutput extends SchemaOutput<any>>(
+  handler<UHandlerOutput = undefined>(
     handler: ProcedureHandler<
       TContext,
       ContractProcedure<undefined, undefined, undefined, undefined>,
@@ -210,7 +210,7 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
    * Create ExtendedMiddleware
    */
 
-  middleware<UExtraContext extends Context, TInput = unknown>(
+  middleware<UExtraContext extends Context = undefined, TInput = unknown>(
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
       UExtraContext,

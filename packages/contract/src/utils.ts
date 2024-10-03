@@ -22,3 +22,20 @@ export function prefixHTTPPath<
 
   return `${prefix_}${path_}` as any
 }
+
+export function createCallableObject<
+  T extends Record<string, any>,
+  F extends (...args: any[]) => any,
+>(object: T, fn: F): T & F {
+  return new Proxy(fn, {
+    get(_, prop) {
+      return Reflect.get(object, prop)
+    },
+    ownKeys() {
+      return Reflect.ownKeys(object)
+    },
+    getOwnPropertyDescriptor(_, prop) {
+      return Reflect.getOwnPropertyDescriptor(object, prop)
+    },
+  }) as any
+}

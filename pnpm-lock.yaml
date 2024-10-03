@@ -35,6 +35,10 @@ importers:
       zod:
         specifier: ^3
         version: 3.23.8
+    devDependencies:
+      radash:
+        specifier: ^12.1.0
+        version: 12.1.0
 
   packages/openapi:
     dependencies:

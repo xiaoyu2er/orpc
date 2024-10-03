@@ -1,7 +1,12 @@
+import type { DecoratedRouter } from '@orpc/server'
 import { z } from 'zod'
 import { initORPCContract } from '.'
 import { ContractProcedure } from './procedure'
-import { decorateContractRouter, eachContractRouterLeaf } from './router'
+import {
+  type DecoratedContractRouter,
+  decorateContractRouter,
+  eachContractRouterLeaf,
+} from './router'
 
 describe('prefix method', () => {
   const orpc = initORPCContract
@@ -24,22 +29,37 @@ describe('prefix method', () => {
     nested: {
       prefix: procedure2,
     },
+    nested2: decorateContractRouter({
+      ping: procedure2,
+    }),
   })
 
   it('works (and standardize path)', () => {
     const r = router.prefix('/prefix//')
+    const p_procedure1 = procedure1.prefix('/prefix')
+    const p_procedure2 = procedure2.prefix('/prefix')
 
-    expectTypeOf(r).toMatchTypeOf({
-      ping: procedure1.prefix('/prefix'),
-      prefix: procedure2.prefix('/prefix'),
-      nested: {
-        prefix: procedure2.prefix('/prefix'),
-      },
-    })
+    expectTypeOf(r).toMatchTypeOf<
+      DecoratedContractRouter<{
+        ping: typeof p_procedure1
+        prefix: typeof p_procedure2
+        nested: {
+          prefix: typeof p_procedure2
+        }
+        nested2: {
+          ping: typeof p_procedure2
+        }
+      }>
+    >()
 
     expect(r.ping.__cp.path).toBe('/prefix')
     expect(r.prefix.__cp.path).toBe('/prefix/abc')
     expect(r.nested.prefix.__cp.path).toBe('/prefix/abc')
+    expect(r.nested2.ping.__cp.path).toBe('/prefix/abc')
+
+    expect(
+      orpc.router({ ping: procedure2 }).prefix('/prefix').ping.__cp.path,
+    ).toBe('/prefix/abc')
   })
 
   it('should deep copy router', () => {

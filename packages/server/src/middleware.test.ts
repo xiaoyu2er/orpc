@@ -207,7 +207,7 @@ describe('decorateMiddleware', () => {
     expect(mid2).not.toBe(middleware)
   })
 
-  it('concat: can map input', () => {
+  it('concat: can map input', async () => {
     const middleware = decorateMiddleware<
       { auth: boolean },
       undefined,
@@ -227,12 +227,23 @@ describe('decorateMiddleware', () => {
       DecoratedMiddleware<{ auth: boolean }, { a: string }, unknown, unknown>
     >()
 
+    const fn = vi.fn()
     const mid3 = middleware.concat(
-      (input: { postId: string }) => {},
-      (input: { postId: number }) => ({
-        postId: `${input.postId}`,
-      }),
+      (input: { postId: string }) => {
+        fn()
+        expect(input).toEqual({ postId: '123' })
+      },
+      (input: { postId: number }) => {
+        fn()
+        expect(input).toEqual({ postId: 123 })
+        return {
+          postId: `${input.postId}`,
+        }
+      },
     )
+
+    await mid3({ postId: 123 }, {} as any, {} as any)
+    expect(fn).toHaveBeenCalledTimes(2)
 
     // INPUT now follow expect types from map not from middleware
     expectTypeOf(mid3).toMatchTypeOf<

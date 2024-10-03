@@ -1,6 +1,11 @@
 import { initORPCContract } from '@orpc/contract'
 import { z } from 'zod'
-import { initORPC, isProcedure, toContractRouter } from '.'
+import {
+  type DecoratedRouter,
+  initORPC,
+  isProcedure,
+  toContractRouter,
+} from '.'
 
 it('require procedure match context', () => {
   const orpc = initORPC.context<{ auth: boolean; userId: string }>()
@@ -77,6 +82,7 @@ describe('decorateRouter', () => {
       ping: p2,
     },
     prefix: orpc.router({
+      ping: p1,
       prefix: p1,
     }),
   })
@@ -98,6 +104,22 @@ describe('decorateRouter', () => {
   })
 
   it('prefix', () => {
+    const pp1 = p1.prefix('/test')
+    const pp2 = p2.prefix('/test')
+
+    expectTypeOf(router.prefix('/test')).toMatchTypeOf<
+      DecoratedRouter<{
+        ping: typeof pp1
+        nested: {
+          ping: typeof pp2
+        }
+        prefix: {
+          ping: typeof pp1
+          prefix: typeof pp1
+        }
+      }>
+    >()
+
     expect(router.prefix('/test')).toMatchObject({
       ping: p1.prefix('/test'),
       nested: {
@@ -105,6 +127,9 @@ describe('decorateRouter', () => {
       },
     })
 
+    expect(router.prefix('/test').prefix.ping.__p).toMatchObject(
+      p1.prefix('/test').__p,
+    )
     expect(router.prefix('/test').prefix.prefix.__p).toMatchObject(
       p1.prefix('/test').__p,
     )

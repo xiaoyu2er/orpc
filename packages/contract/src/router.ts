@@ -1,10 +1,11 @@
+import { isPrimitive } from 'radash'
 import {
   type ContractProcedure,
   type WELL_DEFINED_CONTRACT_PROCEDURE,
   isContractProcedure,
 } from './procedure'
 import type { HTTPPath, PrefixHTTPPath } from './types'
-
+import { createCallableObject } from './utils'
 export type ContractRouter<
   T extends Record<
     string,
@@ -24,37 +25,42 @@ export function decorateContractRouter<TRouter extends ContractRouter<any>>(
 ): DecoratedContractRouter<TRouter> {
   const extendedRouter = new Proxy(router as object, {
     get(rootTarget, prop) {
+      const item = Reflect.get(rootTarget, prop)
+
       if (prop === 'prefix') {
-        return Object.assign(
-          (prefix: Exclude<HTTPPath, undefined>) => {
-            const applyPrefix = (router: ContractRouter<any>) => {
-              const clone: Record<
-                string,
-                ContractProcedure<any, any, any, any> | ContractRouter<any>
-              > = {}
+        const prefix = (prefix: Exclude<HTTPPath, undefined>) => {
+          const applyPrefix = (router: ContractRouter<any>) => {
+            const clone: Record<
+              string,
+              ContractProcedure<any, any, any, any> | ContractRouter<any>
+            > = {}
 
-              for (const key in router) {
-                const item = router[key]
+            for (const key in router) {
+              const item = router[key]
 
-                if (isContractProcedure(item)) {
-                  clone[key] = item.prefix(prefix)
-                } else {
-                  clone[key] = applyPrefix(item)
-                }
+              if (isContractProcedure(item)) {
+                clone[key] = item.prefix(prefix)
+              } else {
+                clone[key] = applyPrefix(item)
               }
-
-              return clone
             }
 
-            const clone = applyPrefix(router)
+            return clone
+          }
 
-            return decorateContractRouter(clone)
-          },
-          Reflect.get(rootTarget, prop),
-        )
+          const clone = applyPrefix(router)
+
+          return decorateContractRouter(clone)
+        }
+
+        if (isPrimitive(item)) {
+          return prefix
+        }
+
+        return createCallableObject(item, prefix)
       }
 
-      return Reflect.get(rootTarget, prop)
+      return item
     },
   })
 
@@ -65,19 +71,23 @@ export type PrefixContractRouter<
   TRouter extends ContractRouter<any>,
   TPrefix extends Exclude<HTTPPath, undefined>,
 > = {
-  [K in keyof TRouter]: TRouter[K] extends ContractProcedure<
-    infer TInputSchema,
-    infer TOutputSchema,
-    infer TMethod,
-    infer TPath
+  [K in keyof TRouter]: TRouter[K] extends DecoratedContractRouter<
+    infer URouter
   >
-    ? ContractProcedure<
-        TInputSchema,
-        TOutputSchema,
-        TMethod,
-        PrefixHTTPPath<TPrefix, TPath>
-      >
-    : PrefixContractRouter<TRouter[K], TPrefix>
+    ? PrefixContractRouter<URouter, TPrefix>
+    : TRouter[K] extends ContractProcedure<
+          infer TInputSchema,
+          infer TOutputSchema,
+          infer TMethod,
+          infer TPath
+        >
+      ? ContractProcedure<
+          TInputSchema,
+          TOutputSchema,
+          TMethod,
+          PrefixHTTPPath<TPrefix, TPath>
+        >
+      : PrefixContractRouter<TRouter[K], TPrefix>
 }
 
 export function eachContractRouterLeaf(

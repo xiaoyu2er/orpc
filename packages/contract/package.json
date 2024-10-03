@@ -41,5 +41,8 @@
   },
   "peerDependencies": {
     "zod": "^3"
+  },
+  "devDependencies": {
+    "radash": "^12.1.0"
   }
 }

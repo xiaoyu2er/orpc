@@ -4,9 +4,11 @@ import {
   type DecoratedContractRouter,
   type HTTPPath,
   type PrefixHTTPPath,
+  createCallableObject,
   isContractProcedure,
 } from '@orpc/contract'
 import { isPrimitive } from 'radash'
+import type { Middleware } from './middleware'
 import { type Procedure, isProcedure } from './procedure'
 import type { Context } from './types'
 
@@ -38,7 +40,7 @@ export type Router<
 export type DecoratedRouter<TRouter extends Router<any, any>> = TRouter & {
   prefix<UPrefix extends Exclude<HTTPPath, undefined>>(
     prefix: UPrefix,
-  ): DecoratedContractRouter<PrefixRouter<TRouter, UPrefix>>
+  ): DecoratedRouter<PrefixRouter<TRouter, UPrefix>>
 }
 
 export function decorateRouter<TRouter extends Router<any, any>>(
@@ -78,11 +80,7 @@ export function decorateRouter<TRouter extends Router<any, any>>(
           return prefix
         }
 
-        return new Proxy(prefix, {
-          get(_, prop) {
-            return Reflect.get(item, prop)
-          },
-        })
+        return createCallableObject(item, prefix)
       }
 
       return item

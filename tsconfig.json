@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["@types/node", "vitest/globals"]
+  },
+  "references": [
+    { "path": "./packages/contract" },
+    { "path": "./packages/openapi" },
+    { "path": "./packages/server" }
+  ],
+  "include": [
+    "playground",
+    "scripts",
+    "tests",
+    "*",
+
+    "*/*/src/**/*.test.*",
+    "*/*/src/**/*.test-d.ts",
+    "*/*/src/**/__tests__",
+    "*/*/src/**/__mocks__",
+    "*/*/src/**/__snapshots__",
+    "*/*/playground",
+    "*/*/scripts",
+    "*/*/tests",
+    "*/*/*"
+  ]
+}

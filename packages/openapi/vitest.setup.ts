@@ -1,10 +1,10 @@
 import OpenAPIParser from '@readme/openapi-parser'
 import { expect, vi } from 'vitest'
-import type { generateOpenAPI } from '../src/generator'
+import type { generateOpenAPI } from './src/generator'
 
-const generator = await vi.importActual('../src/generator')
+const generator = await vi.importActual('./src/generator')
 
-vi.mock('../src/generator', () => ({
+vi.mock('./src/generator', () => ({
   generateOpenAPI: vi.fn((...args) => {
     // @ts-expect-error
     const spec = generator.generateOpenAPI(...args)

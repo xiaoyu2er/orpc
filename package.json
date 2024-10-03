@@ -9,18 +9,27 @@
   },
   "scripts": {
     "build": "pnpm run -r build",
-    "preview": "pnpm run -r preview",
-    "type:check": "pnpm run -r type:check",
-    "test": "pnpm run -r test",
+    "preview": "pnpm run --parallel preview",
+    "type:check": "pnpm run -r type:check && tsc -b",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --coverage --ui",
     "lint:check": "pnpm biome check --error-on-warnings",
     "lint:fix": "pnpm biome check --error-on-warnings --write",
     "sherif:check": "pnpm dlx sherif",
     "sherif:fix": "pnpm run sherif:check --fix",
-    "knip:check": "pnpm dlx knip",
-    "knip:fix": "pnpm run knip:check --fix --allow-remove-files"
+    "knip:check": "pnpm dlx knip --production",
+    "knip:fix": "pnpm run knip:check --production --fix --allow-remove-files"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.2"
+    "@biomejs/biome": "^1.9.2",
+    "@types/node": "^22.7.4",
+    "@vitest/coverage-v8": "^2.1.1",
+    "@vitest/ui": "^2.1.1",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.1"
   },
   "packageManager": "pnpm@9.10.0"
 }

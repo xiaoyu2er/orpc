@@ -87,7 +87,7 @@ export function generateOpenAPI(
     })()
 
     const query: ParameterObject[] | undefined = (() => {
-      if (method !== 'GET') {
+      if (method !== 'GET' || Object.keys(inputSchema).length === 0) {
         return undefined
       }
 

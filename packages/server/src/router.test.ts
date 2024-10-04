@@ -145,4 +145,21 @@ describe('decorateRouter', () => {
     expect(router2.prefix).not.toBe(router.prefix)
     expect(router2.prefix.prefix).not.toBe(router.prefix.prefix)
   })
+
+  it('prefix: cannot prefix when approach is contract-first', () => {
+    const contract = initORPCContract.router({
+      ping: initORPCContract.output(z.string()),
+    })
+
+    const router = initORPC.contract(contract).router({
+      ping: initORPC.contract(contract.ping).handler(() => {
+        return 'dinwwwh'
+      }),
+    })
+
+    // @ts-expect-error prefix does not exists
+    router.prefix
+
+    expect(typeof (router as any).prefix).toBe('undefined')
+  })
 })

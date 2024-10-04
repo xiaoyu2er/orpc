@@ -7,16 +7,13 @@ import {
 import type { HTTPMethod, HTTPPath, Schema, SchemaOutput } from './types'
 
 export class ContractBuilder {
-  route<
-    UMethod extends HTTPMethod = undefined,
-    UPath extends HTTPPath = undefined,
-  >(opts: {
-    method?: UMethod
-    path?: UPath
+  route(opts: {
+    method?: HTTPMethod
+    path?: HTTPPath
     summary?: string
     description?: string
     deprecated?: boolean
-  }): ContractProcedure<undefined, undefined, UMethod, UPath> {
+  }): ContractProcedure<undefined, undefined> {
     return new ContractProcedure(opts)
   }
 
@@ -24,7 +21,7 @@ export class ContractBuilder {
     schema: USchema,
     example?: SchemaOutput<USchema>,
     examples?: Record<string, SchemaOutput<USchema>>,
-  ): ContractProcedure<USchema, undefined, undefined, undefined> {
+  ): ContractProcedure<USchema, undefined> {
     return new ContractProcedure({
       InputSchema: schema,
       inputExample: example,
@@ -36,7 +33,7 @@ export class ContractBuilder {
     schema: USchema,
     example?: SchemaOutput<USchema>,
     examples?: Record<string, SchemaOutput<USchema>>,
-  ): ContractProcedure<undefined, USchema, undefined, undefined> {
+  ): ContractProcedure<undefined, USchema> {
     return new ContractProcedure({
       OutputSchema: schema,
       outputExample: example,

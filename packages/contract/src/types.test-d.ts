@@ -1,29 +1,5 @@
 import { Schema, z } from 'zod'
-import type {
-  PrefixHTTPPath,
-  SchemaInput,
-  SchemaOutput,
-  StandardizeHTTPPath,
-} from './types'
-
-test('StandardizeHTTPPath', () => {
-  expectTypeOf<StandardizeHTTPPath<undefined>>().toEqualTypeOf<undefined>()
-  expectTypeOf<StandardizeHTTPPath<'/'>>().toEqualTypeOf<'/'>()
-  expectTypeOf<StandardizeHTTPPath<'/abc'>>().toEqualTypeOf<'/abc'>()
-  expectTypeOf<StandardizeHTTPPath<'/abc/'>>().toEqualTypeOf<'/abc'>()
-  expectTypeOf<StandardizeHTTPPath<'/abc//'>>().toEqualTypeOf<'/abc'>()
-  expectTypeOf<StandardizeHTTPPath<'//a//bc//'>>().toEqualTypeOf<'/a/bc'>()
-})
-
-test('PrefixHTTPPath', () => {
-  expectTypeOf<PrefixHTTPPath<'/', '/'>>().toEqualTypeOf<'/'>()
-  expectTypeOf<PrefixHTTPPath<'/', '/abc'>>().toEqualTypeOf<'/abc'>()
-  expectTypeOf<PrefixHTTPPath<'/', '/abc/'>>().toEqualTypeOf<'/abc'>()
-  expectTypeOf<PrefixHTTPPath<'/', '/abc//'>>().toEqualTypeOf<'/abc'>()
-  expectTypeOf<PrefixHTTPPath<'/', '//abc//'>>().toEqualTypeOf<'/abc'>()
-  expectTypeOf<PrefixHTTPPath<'/abc', '/abc'>>().toEqualTypeOf<'/abc/abc'>()
-  expectTypeOf<PrefixHTTPPath<'/abc', '/abc/'>>().toEqualTypeOf<'/abc/abc'>()
-})
+import type { SchemaInput, SchemaOutput } from './types'
 
 test('SchemaInput', () => {
   const schema = z.string()

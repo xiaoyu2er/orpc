@@ -5,7 +5,6 @@ import {
 } from './utils'
 
 test('standardizeHTTPPath', () => {
-  expect(standardizeHTTPPath(undefined)).toBe(undefined)
   expect(standardizeHTTPPath('/abc')).toBe('/abc')
   expect(standardizeHTTPPath('/abc/')).toBe('/abc')
   expect(standardizeHTTPPath('/abc//')).toBe('/abc')
@@ -13,7 +12,6 @@ test('standardizeHTTPPath', () => {
 })
 
 test('prefixHTTPPath', () => {
-  expect(prefixHTTPPath('/abc', undefined)).toBe(undefined)
   expect(prefixHTTPPath('/', '/abc')).toBe('/abc')
   expect(prefixHTTPPath('/', '/abc/')).toBe('/abc')
   expect(prefixHTTPPath('/', '/abc//')).toBe('/abc')

@@ -146,6 +146,6 @@ export function createRouterHandler<
   }
 }
 
-function openAPIPathToRouterPath(path: Exclude<HTTPPath, undefined>): string {
+function openAPIPathToRouterPath(path: HTTPPath): string {
   return standardizeHTTPPath(path).replace(/\{([^}]+)\}/g, ':$1')
 }

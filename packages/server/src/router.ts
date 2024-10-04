@@ -3,12 +3,10 @@ import {
   type ContractRouter,
   type DecoratedContractRouter,
   type HTTPPath,
-  type PrefixHTTPPath,
   createCallableObject,
   isContractProcedure,
 } from '@orpc/contract'
 import { isPrimitive } from 'radash'
-import type { Middleware } from './middleware'
 import { type Procedure, isProcedure } from './procedure'
 import type { Context } from './types'
 
@@ -17,30 +15,18 @@ export type Router<
   TContract extends ContractRouter<any>,
 > = TContract extends DecoratedContractRouter<infer UContract>
   ? {
-      [K in keyof UContract]: UContract[K] extends ContractProcedure<
-        any,
-        any,
-        any,
-        any
-      >
+      [K in keyof UContract]: UContract[K] extends ContractProcedure<any, any>
         ? Procedure<TContext, UContract[K], any, any>
         : Router<TContext, UContract[K]>
     }
   : {
-      [K in keyof TContract]: TContract[K] extends ContractProcedure<
-        any,
-        any,
-        any,
-        any
-      >
+      [K in keyof TContract]: TContract[K] extends ContractProcedure<any, any>
         ? Procedure<TContext, TContract[K], any, any>
         : Router<TContext, TContract[K]>
     }
 
 export type DecoratedRouter<TRouter extends Router<any, any>> = TRouter & {
-  prefix<UPrefix extends Exclude<HTTPPath, undefined>>(
-    prefix: UPrefix,
-  ): DecoratedRouter<PrefixRouter<TRouter, UPrefix>>
+  prefix(prefix: HTTPPath): DecoratedRouter<TRouter>
 }
 
 export function decorateRouter<TRouter extends Router<any, any>>(
@@ -51,11 +37,11 @@ export function decorateRouter<TRouter extends Router<any, any>>(
       const item = Reflect.get(target, prop)
 
       if (prop === 'prefix') {
-        const prefix = (prefix: Exclude<HTTPPath, undefined>) => {
+        const prefix = (prefix: HTTPPath) => {
           const applyPrefix = (router: ContractRouter<any>) => {
             const clone: Record<
               string,
-              ContractProcedure<any, any, any, any> | ContractRouter<any>
+              ContractProcedure<any, any> | ContractRouter<any>
             > = {}
 
             for (const key in router) {
@@ -86,39 +72,6 @@ export function decorateRouter<TRouter extends Router<any, any>>(
       return item
     },
   }) as DecoratedRouter<TRouter>
-}
-
-export type PrefixRouter<
-  TRouter extends Router<any, any>,
-  TPrefix extends Exclude<HTTPPath, undefined>,
-> = {
-  [K in keyof TRouter]: TRouter[K] extends Procedure<
-    infer UContext,
-    infer UContract,
-    infer UExtraContext,
-    infer UHandlerOutput
-  >
-    ? Procedure<
-        UContext,
-        UContract extends ContractProcedure<
-          infer UInputSchema,
-          infer UOutputSchema,
-          infer UMethod,
-          infer UPath
-        >
-          ? ContractProcedure<
-              UInputSchema,
-              UOutputSchema,
-              UMethod,
-              PrefixHTTPPath<TPrefix, UPath>
-            >
-          : never,
-        UExtraContext,
-        UHandlerOutput
-      >
-    : TRouter[K] extends Router<any, any>
-      ? PrefixRouter<TRouter[K], TPrefix>
-      : never
 }
 
 export function toContractRouter(

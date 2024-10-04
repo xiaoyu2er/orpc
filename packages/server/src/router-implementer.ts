@@ -4,6 +4,7 @@ import {
   isContractProcedure,
 } from '@orpc/contract'
 import type { Middleware } from './middleware'
+import { isProcedure } from './procedure'
 import { ProcedureImplementer } from './procedure-implementer'
 import type { Router } from './router'
 import type { Context } from './types'
@@ -12,7 +13,15 @@ export class RouterImplementer<
   TContext extends Context,
   TContract extends ContractRouter<any>,
 > {
+  constructor(
+    public __ri: {
+      contract: TContract
+    },
+  ) {}
+
   router(router: Router<TContext, TContract>): Router<TContext, TContract> {
+    assertRouterImplementation(this.__ri.contract, router)
+
     return router
   }
 }
@@ -22,12 +31,7 @@ export type ChainedRouterImplementer<
   TContract extends ContractRouter<any>,
   TExtraContext extends Context,
 > = {
-  [K in keyof TContract]: TContract[K] extends ContractProcedure<
-    any,
-    any,
-    any,
-    any
-  >
+  [K in keyof TContract]: TContract[K] extends ContractProcedure<any, any>
     ? ProcedureImplementer<TContext, TContract[K], TExtraContext>
     : ChainedRouterImplementer<TContext, TContract[K], TExtraContext>
 } & RouterImplementer<TContext, TContract>
@@ -40,7 +44,7 @@ export function chainRouterImplementer<
   contract: TContract,
   middlewares?: Middleware<any, any, any, any>[],
 ): ChainedRouterImplementer<TContext, TContract, TExtraContext> {
-  return new Proxy(new RouterImplementer(), {
+  return new Proxy(new RouterImplementer({ contract }), {
     get(target, prop) {
       const item = Reflect.get(target, prop)
       const itemContract = Reflect.get(contract as object, prop)
@@ -80,4 +84,38 @@ export function chainRouterImplementer<
       })
     },
   }) as any
+}
+
+export function assertRouterImplementation(
+  contract: ContractRouter<any>,
+  router: Router<any, any>,
+  path: string[] = [],
+): void {
+  for (const key in contract) {
+    const currentPath = [...path, key]
+    const contractItem = contract[key]
+    const routerItem = router[key] as any
+
+    if (!routerItem) {
+      throw new Error(
+        `Missing implementation for procedure at [${currentPath.join('.')}]`,
+      )
+    }
+
+    if (isContractProcedure(contractItem)) {
+      if (isProcedure(routerItem)) {
+        if (routerItem.__p.contract !== contractItem) {
+          throw new Error(
+            `Mismatch implementation for procedure at [${currentPath.join('.')}]`,
+          )
+        }
+      } else {
+        throw new Error(
+          `Mismatch implementation for procedure at [${currentPath.join('.')}]`,
+        )
+      }
+    } else {
+      assertRouterImplementation(contractItem, routerItem, currentPath)
+    }
+  }
 }

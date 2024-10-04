@@ -154,14 +154,7 @@ describe('define procedure builder', () => {
     const builder = orpc.input(schema1, example1, { default: example1 })
 
     expectTypeOf(builder).toEqualTypeOf<
-      ProcedureBuilder<
-        { auth: boolean },
-        undefined,
-        typeof schema1,
-        undefined,
-        undefined,
-        undefined
-      >
+      ProcedureBuilder<{ auth: boolean }, undefined, typeof schema1, undefined>
     >()
 
     expect(builder).instanceOf(ProcedureBuilder)
@@ -177,14 +170,7 @@ describe('define procedure builder', () => {
     const builder = orpc.output(schema2, example2, { default: example2 })
 
     expectTypeOf(builder).toEqualTypeOf<
-      ProcedureBuilder<
-        { auth: boolean },
-        undefined,
-        undefined,
-        typeof schema2,
-        undefined,
-        undefined
-      >
+      ProcedureBuilder<{ auth: boolean }, undefined, undefined, typeof schema2>
     >()
 
     expect(builder).instanceOf(ProcedureBuilder)
@@ -206,14 +192,7 @@ describe('define procedure builder', () => {
     })
 
     expectTypeOf(builder).toEqualTypeOf<
-      ProcedureBuilder<
-        { auth: boolean },
-        undefined,
-        undefined,
-        undefined,
-        'GET',
-        '/test'
-      >
+      ProcedureBuilder<{ auth: boolean }, undefined, undefined, undefined>
     >()
 
     expect(builder).instanceOf(ProcedureBuilder)
@@ -255,8 +234,6 @@ describe('define procedure builder', () => {
         { auth: boolean },
         { userId: string } & { mid2: boolean },
         typeof schema1,
-        undefined,
-        undefined,
         undefined
       >
     >()
@@ -266,9 +243,7 @@ describe('define procedure builder', () => {
         { auth: boolean },
         { userId: string } & { mid2: boolean },
         undefined,
-        typeof schema2,
-        undefined,
-        undefined
+        typeof schema2
       >
     >()
 
@@ -277,9 +252,7 @@ describe('define procedure builder', () => {
         { auth: boolean },
         { userId: string } & { mid2: boolean },
         undefined,
-        undefined,
-        'GET',
-        '/test'
+        undefined
       >
     >()
 
@@ -302,7 +275,7 @@ describe('handler method', () => {
     expectTypeOf(procedure).toEqualTypeOf<
       Procedure<
         { auth: boolean },
-        ContractProcedure<undefined, undefined, undefined, undefined>,
+        ContractProcedure<undefined, undefined>,
         undefined,
         undefined
       >
@@ -332,7 +305,7 @@ describe('handler method', () => {
     expectTypeOf(procedure).toEqualTypeOf<
       Procedure<
         { auth: boolean },
-        ContractProcedure<undefined, undefined, undefined, undefined>,
+        ContractProcedure<undefined, undefined>,
         { userId: string },
         undefined
       >

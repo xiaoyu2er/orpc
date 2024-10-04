@@ -4,20 +4,15 @@ import {
   type WELL_DEFINED_CONTRACT_PROCEDURE,
   isContractProcedure,
 } from './procedure'
-import type { HTTPPath, PrefixHTTPPath } from './types'
+import type { HTTPPath } from './types'
 import { createCallableObject } from './utils'
 export type ContractRouter<
-  T extends Record<
-    string,
-    ContractProcedure<any, any, any, any> | ContractRouter<any>
-  >,
+  T extends Record<string, ContractProcedure<any, any> | ContractRouter<any>>,
 > = T
 
 export type DecoratedContractRouter<TRouter extends ContractRouter<any>> =
   TRouter & {
-    prefix<TPrefix extends Exclude<HTTPPath, undefined>>(
-      prefix: TPrefix,
-    ): DecoratedContractRouter<PrefixContractRouter<TRouter, TPrefix>>
+    prefix(prefix: HTTPPath): DecoratedContractRouter<TRouter>
   }
 
 export function decorateContractRouter<TRouter extends ContractRouter<any>>(
@@ -28,11 +23,11 @@ export function decorateContractRouter<TRouter extends ContractRouter<any>>(
       const item = Reflect.get(rootTarget, prop)
 
       if (prop === 'prefix') {
-        const prefix = (prefix: Exclude<HTTPPath, undefined>) => {
+        const prefix = (prefix: HTTPPath) => {
           const applyPrefix = (router: ContractRouter<any>) => {
             const clone: Record<
               string,
-              ContractProcedure<any, any, any, any> | ContractRouter<any>
+              ContractProcedure<any, any> | ContractRouter<any>
             > = {}
 
             for (const key in router) {
@@ -65,29 +60,6 @@ export function decorateContractRouter<TRouter extends ContractRouter<any>>(
   })
 
   return extendedRouter as any
-}
-
-export type PrefixContractRouter<
-  TRouter extends ContractRouter<any>,
-  TPrefix extends Exclude<HTTPPath, undefined>,
-> = {
-  [K in keyof TRouter]: TRouter[K] extends DecoratedContractRouter<
-    infer URouter
-  >
-    ? PrefixContractRouter<URouter, TPrefix>
-    : TRouter[K] extends ContractProcedure<
-          infer TInputSchema,
-          infer TOutputSchema,
-          infer TMethod,
-          infer TPath
-        >
-      ? ContractProcedure<
-          TInputSchema,
-          TOutputSchema,
-          TMethod,
-          PrefixHTTPPath<TPrefix, TPath>
-        >
-      : PrefixContractRouter<TRouter[K], TPrefix>
 }
 
 export function eachContractRouterLeaf(

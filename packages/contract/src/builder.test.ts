@@ -19,7 +19,7 @@ describe('define a procedure', () => {
     })
 
     expectTypeOf(procedure).toEqualTypeOf<
-      ContractProcedure<undefined, undefined, 'GET', '/users/{id}'>
+      ContractProcedure<undefined, undefined>
     >()
 
     expect(procedure.__cp).toMatchObject({
@@ -39,7 +39,7 @@ describe('define a procedure', () => {
     const procedure = orpc.input(schema, { id: '123' }, { user: { id: '123' } })
 
     expectTypeOf(procedure).toEqualTypeOf<
-      ContractProcedure<typeof schema, undefined, undefined, undefined>
+      ContractProcedure<typeof schema, undefined>
     >()
 
     expect(procedure.__cp).toMatchObject({
@@ -59,7 +59,7 @@ describe('define a procedure', () => {
     )
 
     expectTypeOf(procedure).toEqualTypeOf<
-      ContractProcedure<undefined, typeof schema, undefined, undefined>
+      ContractProcedure<undefined, typeof schema>
     >()
 
     expect(procedure.__cp).toMatchObject({

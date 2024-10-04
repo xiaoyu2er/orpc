@@ -45,7 +45,7 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
     return this.__oe.code
   }
 
-  get status(): Exclude<HTTPStatus, undefined> {
+  get status(): HTTPStatus {
     return this.__oe.status ?? ORPC_ERROR_CODE_STATUSES[this.code]
   }
 

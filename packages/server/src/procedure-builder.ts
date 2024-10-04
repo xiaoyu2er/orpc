@@ -15,12 +15,10 @@ export class ProcedureBuilder<
   TExtraContext extends Context,
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
-  TMethod extends HTTPMethod,
-  TPath extends HTTPPath,
 > {
   constructor(
     public __pb: {
-      contract?: ContractProcedure<TInputSchema, TOutputSchema, TMethod, TPath>
+      contract?: ContractProcedure<TInputSchema, TOutputSchema>
       middlewares?: Middleware<TContext, any, any, any>[]
     } = {},
   ) {}
@@ -33,23 +31,13 @@ export class ProcedureBuilder<
    * Self chainable
    */
 
-  route<
-    UMethod extends HTTPMethod = undefined,
-    UPath extends HTTPPath = undefined,
-  >(opts: {
-    method?: UMethod
-    path?: UPath
+  route(opts: {
+    method?: HTTPMethod
+    path?: HTTPPath
     summary?: string
     description?: string
     deprecated?: boolean
-  }): ProcedureBuilder<
-    TContext,
-    TExtraContext,
-    TInputSchema,
-    TOutputSchema,
-    UMethod,
-    UPath
-  > {
+  }): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema> {
     return new ProcedureBuilder({
       ...this.__pb,
       contract: this.contract.route(opts),
@@ -58,14 +46,7 @@ export class ProcedureBuilder<
 
   summary(
     summary: string,
-  ): ProcedureBuilder<
-    TContext,
-    TExtraContext,
-    TInputSchema,
-    TOutputSchema,
-    TMethod,
-    TPath
-  > {
+  ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema> {
     return new ProcedureBuilder({
       ...this.__pb,
       contract: this.contract.summary(summary),
@@ -74,14 +55,7 @@ export class ProcedureBuilder<
 
   description(
     description: string,
-  ): ProcedureBuilder<
-    TContext,
-    TExtraContext,
-    TInputSchema,
-    TOutputSchema,
-    TMethod,
-    TPath
-  > {
+  ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema> {
     return new ProcedureBuilder({
       ...this.__pb,
       contract: this.contract.description(description),
@@ -90,14 +64,7 @@ export class ProcedureBuilder<
 
   deprecated(
     deprecated?: boolean,
-  ): ProcedureBuilder<
-    TContext,
-    TExtraContext,
-    TInputSchema,
-    TOutputSchema,
-    TMethod,
-    TPath
-  > {
+  ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema> {
     return new ProcedureBuilder({
       ...this.__pb,
       contract: this.contract.deprecated(deprecated),
@@ -108,14 +75,7 @@ export class ProcedureBuilder<
     schema: USchema,
     example?: SchemaOutput<USchema>,
     examples?: Record<string, SchemaOutput<USchema>>,
-  ): ProcedureBuilder<
-    TContext,
-    TExtraContext,
-    USchema,
-    TOutputSchema,
-    TMethod,
-    TPath
-  > {
+  ): ProcedureBuilder<TContext, TExtraContext, USchema, TOutputSchema> {
     return new ProcedureBuilder({
       ...this.__pb,
       contract: this.contract.input(schema, example, examples),
@@ -126,14 +86,7 @@ export class ProcedureBuilder<
     schema: USchema,
     example?: SchemaOutput<USchema>,
     examples?: Record<string, SchemaOutput<USchema>>,
-  ): ProcedureBuilder<
-    TContext,
-    TExtraContext,
-    TInputSchema,
-    USchema,
-    TMethod,
-    TPath
-  > {
+  ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, USchema> {
     return new ProcedureBuilder({
       ...this.__pb,
       contract: this.contract.output(schema, example, examples),
@@ -157,7 +110,7 @@ export class ProcedureBuilder<
     >,
   ): ProcedureImplementer<
     TContext,
-    ContractProcedure<TInputSchema, TOutputSchema, TMethod, TPath>,
+    ContractProcedure<TInputSchema, TOutputSchema>,
     MergeContext<TExtraContext, UExtraContext>
   >
 
@@ -176,7 +129,7 @@ export class ProcedureBuilder<
     mapInput: MapInputMiddleware<SchemaOutput<TInputSchema>, UMappedInput>,
   ): ProcedureImplementer<
     TContext,
-    ContractProcedure<TInputSchema, TOutputSchema, TMethod, TPath>,
+    ContractProcedure<TInputSchema, TOutputSchema>,
     MergeContext<TExtraContext, UExtraContext>
   >
 
@@ -204,13 +157,13 @@ export class ProcedureBuilder<
   handler<UHandlerOutput extends SchemaOutput<TOutputSchema>>(
     handler: ProcedureHandler<
       TContext,
-      ContractProcedure<TInputSchema, TOutputSchema, TMethod, TPath>,
+      ContractProcedure<TInputSchema, TOutputSchema>,
       TExtraContext,
       UHandlerOutput
     >,
   ): Procedure<
     TContext,
-    ContractProcedure<TInputSchema, TOutputSchema, TMethod, TPath>,
+    ContractProcedure<TInputSchema, TOutputSchema>,
     TExtraContext,
     UHandlerOutput
   > {

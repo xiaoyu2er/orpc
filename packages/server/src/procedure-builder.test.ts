@@ -14,8 +14,6 @@ const builder = new ProcedureBuilder<
   { auth: boolean },
   undefined,
   undefined,
-  undefined,
-  undefined,
   undefined
 >({})
 
@@ -23,14 +21,7 @@ it('input', () => {
   const builder2 = builder.input(schema1, example1, { default: example1 })
 
   expectTypeOf(builder2).toEqualTypeOf<
-    ProcedureBuilder<
-      { auth: boolean },
-      undefined,
-      typeof schema1,
-      undefined,
-      undefined,
-      undefined
-    >
+    ProcedureBuilder<{ auth: boolean }, undefined, typeof schema1, undefined>
   >()
 
   expect(builder2.__pb.contract?.__cp).toMatchObject({
@@ -44,14 +35,7 @@ it('output', () => {
   const builder2 = builder.output(schema2, example2, { default: example2 })
 
   expectTypeOf(builder2).toEqualTypeOf<
-    ProcedureBuilder<
-      { auth: boolean },
-      undefined,
-      undefined,
-      typeof schema2,
-      undefined,
-      undefined
-    >
+    ProcedureBuilder<{ auth: boolean }, undefined, undefined, typeof schema2>
   >()
 
   expect(builder2.__pb.contract?.__cp).toMatchObject({
@@ -71,14 +55,7 @@ it('route', () => {
   })
 
   expectTypeOf(builder2).toEqualTypeOf<
-    ProcedureBuilder<
-      { auth: boolean },
-      undefined,
-      undefined,
-      undefined,
-      'GET',
-      '/test'
-    >
+    ProcedureBuilder<{ auth: boolean }, undefined, undefined, undefined>
   >()
 
   expect(builder2.__pb.contract?.__cp).toMatchObject({
@@ -145,7 +122,7 @@ describe('use middleware', () => {
     expectTypeOf(implementer).toEqualTypeOf<
       ProcedureImplementer<
         { auth: boolean },
-        ContractProcedure<undefined, undefined, undefined, undefined>,
+        ContractProcedure<undefined, undefined>,
         { userId: string }
       >
     >()
@@ -184,7 +161,7 @@ describe('use middleware', () => {
     expectTypeOf(implementer).toEqualTypeOf<
       ProcedureImplementer<
         { auth: boolean },
-        ContractProcedure<typeof schema1, undefined, undefined, undefined>,
+        ContractProcedure<typeof schema1, undefined>,
         { userId555: string }
       >
     >()
@@ -202,7 +179,7 @@ describe('handler', () => {
     expectTypeOf(handler).toEqualTypeOf<
       Procedure<
         { auth: boolean },
-        ContractProcedure<undefined, undefined, undefined, undefined>,
+        ContractProcedure<undefined, undefined>,
         undefined,
         undefined
       >
@@ -240,7 +217,7 @@ describe('handler', () => {
     expectTypeOf(handler).toEqualTypeOf<
       Procedure<
         { auth: boolean },
-        ContractProcedure<undefined, undefined, undefined, undefined>,
+        ContractProcedure<undefined, undefined>,
         { userId: string },
         { name: string }
       >

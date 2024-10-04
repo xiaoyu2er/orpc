@@ -20,18 +20,6 @@ describe('prefix method', () => {
     const p2 = procedure1.prefix('/prefix/')
     const p3 = procedure1.prefix('/prefix/a')
 
-    expectTypeOf(p1).toEqualTypeOf<
-      ContractProcedure<undefined, undefined, 'GET', '/'>
-    >()
-
-    expectTypeOf(p2).toEqualTypeOf<
-      ContractProcedure<undefined, undefined, 'GET', '/prefix'>
-    >()
-
-    expectTypeOf(p3).toEqualTypeOf<
-      ContractProcedure<undefined, undefined, 'GET', '/prefix/a'>
-    >()
-
     expect(p1.__cp.path).toBe('/')
     expect(p2.__cp.path).toBe('/prefix')
     expect(p3.__cp.path).toBe('/prefix/a')
@@ -41,18 +29,6 @@ describe('prefix method', () => {
     const p1 = procedure2.prefix('//prefix')
     const p2 = procedure2.prefix('/prefix/')
     const p3 = procedure2.prefix('/prefix//a')
-
-    expectTypeOf(p1).toEqualTypeOf<
-      ContractProcedure<undefined, undefined, 'GET', '/prefix/abc'>
-    >
-
-    expectTypeOf(p2).toEqualTypeOf<
-      ContractProcedure<undefined, undefined, 'GET', '/prefix/abc'>
-    >
-
-    expectTypeOf(p3).toEqualTypeOf<
-      ContractProcedure<undefined, undefined, 'GET', '/prefix/a/abc'>
-    >
 
     expect(p1.__cp.path).toBe('/prefix/abc')
     expect(p2.__cp.path).toBe('/prefix/abc')
@@ -65,10 +41,6 @@ describe('prefix method', () => {
 
   it('should bypass undefined routes', () => {
     const p = orpc.route({}).prefix('/prefix')
-
-    expectTypeOf(p).toEqualTypeOf<
-      ContractProcedure<undefined, undefined, undefined, undefined>
-    >()
 
     expect(p.__cp.path).toBe(undefined)
   })
@@ -87,9 +59,7 @@ test('route method', () => {
       summary: 'abc',
     })
 
-  expectTypeOf(p).toEqualTypeOf<
-    ContractProcedure<undefined, undefined, 'GET', '/abc'>
-  >()
+  expectTypeOf(p).toEqualTypeOf<ContractProcedure<undefined, undefined>>()
 
   expect(p.__cp).toMatchObject({
     method: 'GET',
@@ -128,9 +98,7 @@ test('input method', () => {
   const schema = z.string()
   const p = initORPCContract.route({}).input(schema)
 
-  expectTypeOf(p).toEqualTypeOf<
-    ContractProcedure<typeof schema, undefined, undefined, undefined>
-  >()
+  expectTypeOf(p).toEqualTypeOf<ContractProcedure<typeof schema, undefined>>()
 
   expect(p.__cp).toMatchObject({
     InputSchema: schema,
@@ -143,9 +111,7 @@ test('output method', () => {
   const schema = z.string()
   const p = initORPCContract.route({}).output(schema)
 
-  expectTypeOf(p).toEqualTypeOf<
-    ContractProcedure<undefined, typeof schema, undefined, undefined>
-  >()
+  expectTypeOf(p).toEqualTypeOf<ContractProcedure<undefined, typeof schema>>()
 
   expect(p.__cp).toMatchObject({
     OutputSchema: schema,

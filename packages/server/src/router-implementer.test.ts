@@ -1,6 +1,6 @@
 import { initORPCContract } from '@orpc/contract'
 import { z } from 'zod'
-import { RouterImplementer, initORPC } from '.'
+import { RouterImplementer, initORPC, isProcedure } from '.'
 
 const cp1 = initORPCContract.input(z.string()).output(z.string())
 const cp2 = initORPCContract.output(z.string())
@@ -30,7 +30,9 @@ const p3 = orpc.nested2.p3.handler(() => {
 })
 
 it('required all procedure match', () => {
-  const implementer = new RouterImplementer<{ auth: boolean }, typeof cr>()
+  const implementer = new RouterImplementer<{ auth: boolean }, typeof cr>({
+    contract: cr,
+  })
 
   implementer.router({
     p1: p1,
@@ -42,51 +44,73 @@ it('required all procedure match', () => {
     },
   })
 
-  implementer.router({
-    // @ts-expect-error p1 is mismatch
-    p1: initORPC.handler(() => {}),
-    nested: {
-      p2: p2,
-    },
-    nested2: {
-      p3: p3,
-    },
-  })
+  expect(() => {
+    implementer.router({
+      // @ts-expect-error p1 is mismatch
+      p1: initORPC.handler(() => {}),
+      nested: {
+        p2: p2,
+      },
+      nested2: {
+        p3: p3,
+      },
+    })
+  }).toThrowError('Mismatch implementation for procedure at [p1]')
 
-  implementer.router({
-    // Event work if p1 is manually specified
-    p1: initORPC
-      .input(z.string())
-      .output(z.string())
-      .handler(() => 'dinwwwh'),
-    nested: {
-      p2: p2,
-    },
-    nested2: {
-      p3: p3,
-    },
-  })
+  expect(() => {
+    implementer.router({
+      // @ts-expect-error p1 is mismatch
+      p1: initORPC,
+      nested: {
+        p2: p2,
+      },
+      nested2: {
+        p3: p3,
+      },
+    })
+  }).toThrowError('Mismatch implementation for procedure at [p1]')
 
-  // @ts-expect-error required all procedure match
-  implementer.router({})
+  expect(() => {
+    implementer.router({
+      // Not allow manual specification
+      p1: initORPC
+        .input(z.string())
+        .output(z.string())
+        .handler(() => 'dinwwwh'),
+      nested: {
+        p2: p2,
+      },
+      nested2: {
+        p3: p3,
+      },
+    })
+  }).toThrowError('Mismatch implementation for procedure at [p1]')
 
-  implementer.router({
-    p1: p1,
-    nested: {
-      p2: p2,
-    },
-    // @ts-expect-error missing p3
-    nested2: {},
-  })
+  expect(() => {
+    // @ts-expect-error required all procedure match
+    implementer.router({})
+  }).toThrowError('Missing implementation for procedure at [p1]')
 
-  implementer.router({
-    p1: p1,
-    nested: {
-      p2: p2,
-    },
-    nested2: {
-      // @ts-expect-error p3 is mismatch
-      p3: p3.prefix('/test'),
-    },
-  })
+  expect(() => {
+    implementer.router({
+      p1: p1,
+      nested: {
+        p2: p2,
+      },
+      // @ts-expect-error missing p3
+      nested2: {},
+    })
+  }).toThrowError('Missing implementation for procedure at [nested2.p3]')
+
+  expect(() => {
+    implementer.router({
+      p1: p1,
+      nested: {
+        p2: p2,
+      },
+      nested2: {
+        p3: p3.prefix('/test'),
+      },
+    })
+  }).toThrowError('Mismatch implementation for procedure at [nested2.p3]')
 })

@@ -1,9 +1,6 @@
 import {
   type ContractProcedure,
-  type HTTPMethod,
   type HTTPPath,
-  type PrefixHTTPPath,
-  type Schema,
   type SchemaInput,
   type SchemaOutput,
   type WELL_DEFINED_CONTRACT_PROCEDURE,
@@ -14,13 +11,11 @@ import type { Context, MergeContext, Meta, Promisable } from './types'
 
 export class Procedure<
   TContext extends Context,
-  TContract extends ContractProcedure<any, any, any, any>,
+  TContract extends ContractProcedure<any, any>,
   TExtraContext extends Context,
   THandlerOutput extends TContract extends ContractProcedure<
     any,
-    infer UOutputSchema,
-    any,
-    any
+    infer UOutputSchema
   >
     ? SchemaOutput<UOutputSchema>
     : never,
@@ -38,26 +33,9 @@ export class Procedure<
     },
   ) {}
 
-  prefix<UPrefix extends Exclude<HTTPPath, undefined>>(
-    prefix: UPrefix,
-  ): Procedure<
-    TContext,
-    TContract extends ContractProcedure<
-      infer UInputSchema,
-      infer UOutputSchema,
-      infer UMethod,
-      infer UPath
-    >
-      ? ContractProcedure<
-          UInputSchema,
-          UOutputSchema,
-          UMethod,
-          PrefixHTTPPath<UPrefix, UPath>
-        >
-      : never,
-    TExtraContext,
-    THandlerOutput
-  > {
+  prefix(
+    prefix: HTTPPath,
+  ): Procedure<TContext, TContract, TExtraContext, THandlerOutput> {
     return new Procedure({
       ...this.__p,
       contract: this.__p.contract.prefix(prefix) as any,
@@ -114,24 +92,19 @@ export class Procedure<
 
 export type ProcedureHandler<
   TContext extends Context,
-  TContract extends ContractProcedure<any, any, any, any>,
+  TContract extends ContractProcedure<any, any>,
   TExtraContext extends Context,
-  TOutput extends TContract extends ContractProcedure<
-    any,
-    infer UOutputSchema,
-    any,
-    any
-  >
+  TOutput extends TContract extends ContractProcedure<any, infer UOutputSchema>
     ? SchemaOutput<UOutputSchema>
     : never,
 > = (
-  input: TContract extends ContractProcedure<infer UInputSchema, any, any, any>
+  input: TContract extends ContractProcedure<infer UInputSchema, any>
     ? SchemaOutput<UInputSchema>
     : never,
   context: MergeContext<TContext, TExtraContext>,
   meta: Meta<unknown>,
 ) => Promisable<
-  TContract extends ContractProcedure<any, infer UOutputSchema, any, any>
+  TContract extends ContractProcedure<any, infer UOutputSchema>
     ? SchemaInput<UOutputSchema, TOutput>
     : never
 >

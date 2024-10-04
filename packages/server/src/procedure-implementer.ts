@@ -5,7 +5,7 @@ import type { Context, MergeContext } from './types'
 
 export class ProcedureImplementer<
   TContext extends Context,
-  TContract extends ContractProcedure<any, any, any, any>,
+  TContract extends ContractProcedure<any, any>,
   TExtraContext extends Context,
 > {
   constructor(
@@ -23,10 +23,10 @@ export class ProcedureImplementer<
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
       UExtraContext,
-      TContract extends ContractProcedure<infer UInputSchema, any, any, any>
+      TContract extends ContractProcedure<infer UInputSchema, any>
         ? SchemaOutput<UInputSchema>
         : never,
-      TContract extends ContractProcedure<any, infer UOutputSchema, any, any>
+      TContract extends ContractProcedure<any, infer UOutputSchema>
         ? SchemaOutput<UOutputSchema>
         : never
     >,
@@ -40,12 +40,7 @@ export class ProcedureImplementer<
     UExtraContext extends
       | Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>
       | undefined = undefined,
-    UMappedInput = TContract extends ContractProcedure<
-      infer UInputSchema,
-      any,
-      any,
-      any
-    >
+    UMappedInput = TContract extends ContractProcedure<infer UInputSchema, any>
       ? SchemaOutput<UInputSchema>
       : never,
   >(
@@ -53,12 +48,12 @@ export class ProcedureImplementer<
       MergeContext<TContext, TExtraContext>,
       UExtraContext,
       UMappedInput,
-      TContract extends ContractProcedure<any, infer UOutputSchema, any, any>
+      TContract extends ContractProcedure<any, infer UOutputSchema>
         ? SchemaOutput<UOutputSchema>
         : never
     >,
     mapInput: MapInputMiddleware<
-      TContract extends ContractProcedure<infer UInputSchema, any, any, any>
+      TContract extends ContractProcedure<infer UInputSchema, any>
         ? SchemaOutput<UInputSchema>
         : never,
       UMappedInput
@@ -87,9 +82,7 @@ export class ProcedureImplementer<
   handler<
     UHandlerOutput extends TContract extends ContractProcedure<
       any,
-      infer UOutputSchema,
-      any,
-      any
+      infer UOutputSchema
     >
       ? SchemaOutput<UOutputSchema>
       : never,

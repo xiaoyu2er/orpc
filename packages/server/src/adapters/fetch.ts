@@ -95,6 +95,9 @@ export async function fetchHandler<THandler extends RouterHandler<any>>(opts: {
       }),
       {
         status: error.status,
+        headers: {
+          'Content-Type': 'application/json',
+        },
       },
     )
   }

@@ -99,7 +99,9 @@ export function createRouterHandler<
       const input =
         input_ === undefined && Object.keys(params ?? {}).length >= 1
           ? params
-          : typeof input_ === 'object' && input_ !== null
+          : typeof input_ === 'object' &&
+              input_ !== null &&
+              !Array.isArray(input_)
             ? {
                 ...params,
                 ...input_,

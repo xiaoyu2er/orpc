@@ -96,7 +96,9 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
     deprecated?: boolean
   }): ProcedureBuilder<TContext, TExtraContext, undefined, undefined> {
     return new ProcedureBuilder({
-      contract: new ContractProcedure<undefined, undefined>().route(opts),
+      ...opts,
+      InputSchema: undefined,
+      OutputSchema: undefined,
       middlewares: this.__b.middlewares,
     })
   }
@@ -107,11 +109,10 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
     examples?: Record<string, SchemaOutput<USchema>>,
   ): ProcedureBuilder<TContext, TExtraContext, USchema, undefined> {
     return new ProcedureBuilder({
-      contract: new ContractProcedure({
-        InputSchema: schema,
-        inputExample: example,
-        inputExamples: examples,
-      }),
+      OutputSchema: undefined,
+      InputSchema: schema,
+      inputExample: example,
+      inputExamples: examples,
       middlewares: this.__b.middlewares,
     })
   }
@@ -122,11 +123,10 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
     examples?: Record<string, SchemaOutput<USchema>>,
   ): ProcedureBuilder<TContext, TExtraContext, undefined, USchema> {
     return new ProcedureBuilder({
-      contract: new ContractProcedure({
-        OutputSchema: schema,
-        outputExample: example,
-        outputExamples: examples,
-      }),
+      InputSchema: undefined,
+      OutputSchema: schema,
+      outputExample: example,
+      outputExamples: examples,
       middlewares: this.__b.middlewares,
     })
   }
@@ -149,7 +149,10 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
   > {
     return new Procedure({
       middlewares: this.__b.middlewares,
-      contract: new ContractProcedure(),
+      contract: new ContractProcedure({
+        InputSchema: undefined,
+        OutputSchema: undefined,
+      }),
       handler,
     })
   }

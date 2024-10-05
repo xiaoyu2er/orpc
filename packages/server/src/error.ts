@@ -27,35 +27,41 @@ export type ORPCErrorCode = keyof typeof ORPC_ERROR_CODE_STATUSES
 
 export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
   constructor(
-    public __oe: {
+    public zzORPCError: {
       code: TCode
       status?: HTTPStatus
       message?: string
       cause?: unknown
     } & (undefined extends TData ? { data?: TData } : { data: TData }),
   ) {
-    if (__oe.status && (__oe.status <= 400 || __oe.status >= 600)) {
+    if (
+      zzORPCError.status &&
+      (zzORPCError.status <= 400 || zzORPCError.status >= 600)
+    ) {
       throw new Error('The ORPCError status code must be in the 400-599 range.')
     }
 
-    super(__oe.message, { cause: __oe.cause })
+    super(zzORPCError.message, { cause: zzORPCError.cause })
   }
 
   get code(): TCode {
-    return this.__oe.code
+    return this.zzORPCError.code
   }
 
   get status(): HTTPStatus {
-    return this.__oe.status ?? ORPC_ERROR_CODE_STATUSES[this.code]
+    return this.zzORPCError.status ?? ORPC_ERROR_CODE_STATUSES[this.code]
   }
 
   get data(): TData {
-    return this.__oe.data as TData
+    return this.zzORPCError.data as TData
   }
 
   get issues(): ZodIssue[] | undefined {
-    if (this.code === 'BAD_REQUEST' && this.__oe.cause instanceof ZodError) {
-      return this.__oe.cause.issues
+    if (
+      this.code === 'BAD_REQUEST' &&
+      this.zzORPCError.cause instanceof ZodError
+    ) {
+      return this.zzORPCError.cause.issues
     }
 
     return undefined

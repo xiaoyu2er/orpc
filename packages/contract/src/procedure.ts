@@ -6,19 +6,19 @@ export class ContractProcedure<
   TOutputSchema extends Schema,
 > {
   constructor(
-    public __cp: {
+    public zzContractProcedure: {
       path?: HTTPPath
       method?: HTTPMethod
       summary?: string
       description?: string
       deprecated?: boolean
-      InputSchema?: TInputSchema
+      InputSchema: TInputSchema
       inputExample?: SchemaOutput<TInputSchema>
       inputExamples?: Record<string, SchemaOutput<TInputSchema>>
-      OutputSchema?: TOutputSchema
+      OutputSchema: TOutputSchema
       outputExample?: SchemaOutput<TOutputSchema>
       outputExamples?: Record<string, SchemaOutput<TOutputSchema>>
-    } = {},
+    },
   ) {}
 
   route(opts: {
@@ -29,7 +29,7 @@ export class ContractProcedure<
     deprecated?: boolean
   }): ContractProcedure<TInputSchema, TOutputSchema> {
     return new ContractProcedure({
-      ...this.__cp,
+      ...this.zzContractProcedure,
       ...opts,
       method: opts.method,
       path: opts.path,
@@ -38,27 +38,27 @@ export class ContractProcedure<
 
   prefix(prefix: HTTPPath): ContractProcedure<TInputSchema, TOutputSchema> {
     return new ContractProcedure({
-      ...this.__cp,
-      path: this.__cp.path
-        ? prefixHTTPPath(prefix, this.__cp.path)
-        : this.__cp.path,
+      ...this.zzContractProcedure,
+      path: this.zzContractProcedure.path
+        ? prefixHTTPPath(prefix, this.zzContractProcedure.path)
+        : this.zzContractProcedure.path,
     })
   }
 
   summary(summary: string): ContractProcedure<TInputSchema, TOutputSchema> {
-    return new ContractProcedure({ ...this.__cp, summary })
+    return new ContractProcedure({ ...this.zzContractProcedure, summary })
   }
 
   description(
     description: string,
   ): ContractProcedure<TInputSchema, TOutputSchema> {
-    return new ContractProcedure({ ...this.__cp, description })
+    return new ContractProcedure({ ...this.zzContractProcedure, description })
   }
 
   deprecated(
     deprecated = true,
   ): ContractProcedure<TInputSchema, TOutputSchema> {
-    return new ContractProcedure({ ...this.__cp, deprecated })
+    return new ContractProcedure({ ...this.zzContractProcedure, deprecated })
   }
 
   input<USchema extends Schema>(
@@ -67,7 +67,7 @@ export class ContractProcedure<
     examples?: Record<string, SchemaOutput<USchema>>,
   ): ContractProcedure<USchema, TOutputSchema> {
     return new ContractProcedure({
-      ...this.__cp,
+      ...this.zzContractProcedure,
       InputSchema: schema,
       inputExample: example,
       inputExamples: examples,
@@ -80,7 +80,7 @@ export class ContractProcedure<
     examples?: Record<string, SchemaOutput<USchema>>,
   ): ContractProcedure<TInputSchema, USchema> {
     return new ContractProcedure({
-      ...this.__cp,
+      ...this.zzContractProcedure,
       OutputSchema: schema,
       outputExample: example,
       outputExamples: examples,
@@ -97,7 +97,10 @@ export function isContractProcedure(
 
   try {
     const anyItem = item as any
-    return typeof anyItem.__cp === 'object' && anyItem.__cp !== null
+    return (
+      typeof anyItem.zzContractProcedure === 'object' &&
+      anyItem.zzContractProcedure !== null
+    )
   } catch {
     return false
   }

@@ -52,13 +52,14 @@ describe('prefix method', () => {
       }>
     >()
 
-    expect(r.ping.__cp.path).toBe('/prefix')
-    expect(r.prefix.__cp.path).toBe('/prefix/abc')
-    expect(r.nested.prefix.__cp.path).toBe('/prefix/abc')
-    expect(r.nested2.ping.__cp.path).toBe('/prefix/abc')
+    expect(r.ping.zzContractProcedure.path).toBe('/prefix')
+    expect(r.prefix.zzContractProcedure.path).toBe('/prefix/abc')
+    expect(r.nested.prefix.zzContractProcedure.path).toBe('/prefix/abc')
+    expect(r.nested2.ping.zzContractProcedure.path).toBe('/prefix/abc')
 
     expect(
-      orpc.router({ ping: procedure2 }).prefix('/prefix').ping.__cp.path,
+      orpc.router({ ping: procedure2 }).prefix('/prefix').ping
+        .zzContractProcedure.path,
     ).toBe('/prefix/abc')
   })
 

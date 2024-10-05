@@ -127,15 +127,17 @@ test('router method', () => {
   const orpc = initORPC.contract(contract)
 
   expect(orpc.ping).instanceOf(ProcedureImplementer)
-  expect(orpc.ping.__pi.contract).toEqual(pingContract)
+  expect(orpc.ping.zzProcedureImplementer.contract).toEqual(pingContract)
 
   expect(orpc.user).instanceOf(RouterImplementer)
 
   expect(orpc.user.find).instanceOf(ProcedureImplementer)
-  expect(orpc.user.find.__pi.contract).toEqual(userFindContract)
+  expect(orpc.user.find.zzProcedureImplementer.contract).toEqual(
+    userFindContract,
+  )
 
   // Because of the router keyword is special, we can't use instanceof
-  expect(orpc.router.__pi.contract).toEqual(userFindContract)
+  expect(orpc.router.zzProcedureImplementer.contract).toEqual(userFindContract)
   expect(
     orpc.router.handler(() => {
       return { name: '' }
@@ -158,8 +160,8 @@ describe('define procedure builder', () => {
     >()
 
     expect(builder).instanceOf(ProcedureBuilder)
-    expect(builder.__pb.middlewares).toBe(undefined)
-    expect(builder.__pb.contract?.__cp).toMatchObject({
+    expect(builder.zzProcedureBuilder.middlewares).toBe(undefined)
+    expect(builder.zzProcedureBuilder).toMatchObject({
       InputSchema: schema1,
       inputExample: example1,
       inputExamples: { default: example1 },
@@ -174,8 +176,8 @@ describe('define procedure builder', () => {
     >()
 
     expect(builder).instanceOf(ProcedureBuilder)
-    expect(builder.__pb.middlewares).toBe(undefined)
-    expect(builder.__pb.contract?.__cp).toMatchObject({
+    expect(builder.zzProcedureBuilder.middlewares).toBe(undefined)
+    expect(builder.zzProcedureBuilder).toMatchObject({
       OutputSchema: schema2,
       outputExample: example2,
       outputExamples: { default: example2 },
@@ -196,8 +198,8 @@ describe('define procedure builder', () => {
     >()
 
     expect(builder).instanceOf(ProcedureBuilder)
-    expect(builder.__pb.middlewares).toBe(undefined)
-    expect(builder.__pb.contract?.__cp).toMatchObject({
+    expect(builder.zzProcedureBuilder.middlewares).toBe(undefined)
+    expect(builder.zzProcedureBuilder).toMatchObject({
       method: 'GET',
       path: '/test',
       deprecated: true,
@@ -256,9 +258,9 @@ describe('define procedure builder', () => {
       >
     >()
 
-    expect(builder1.__pb.middlewares).toEqual([mid, mid2])
-    expect(builder2.__pb.middlewares).toEqual([mid, mid2])
-    expect(builder3.__pb.middlewares).toEqual([mid, mid2])
+    expect(builder1.zzProcedureBuilder.middlewares).toEqual([mid, mid2])
+    expect(builder2.zzProcedureBuilder.middlewares).toEqual([mid, mid2])
+    expect(builder3.zzProcedureBuilder.middlewares).toEqual([mid, mid2])
   })
 })
 
@@ -282,7 +284,7 @@ describe('handler method', () => {
     >()
 
     expect(isProcedure(procedure)).toBe(true)
-    expect(procedure.__p.middlewares).toBe(undefined)
+    expect(procedure.zzProcedure.middlewares).toBe(undefined)
   })
 
   it('with middlewares', () => {
@@ -312,6 +314,6 @@ describe('handler method', () => {
     >()
 
     expect(isProcedure(procedure)).toBe(true)
-    expect(procedure.__p.middlewares).toEqual([mid])
+    expect(procedure.zzProcedure.middlewares).toEqual([mid])
   })
 })

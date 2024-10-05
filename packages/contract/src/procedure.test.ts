@@ -20,9 +20,9 @@ describe('prefix method', () => {
     const p2 = procedure1.prefix('/prefix/')
     const p3 = procedure1.prefix('/prefix/a')
 
-    expect(p1.__cp.path).toBe('/')
-    expect(p2.__cp.path).toBe('/prefix')
-    expect(p3.__cp.path).toBe('/prefix/a')
+    expect(p1.zzContractProcedure.path).toBe('/')
+    expect(p2.zzContractProcedure.path).toBe('/prefix')
+    expect(p3.zzContractProcedure.path).toBe('/prefix/a')
   })
 
   it('should standardize path', () => {
@@ -30,9 +30,9 @@ describe('prefix method', () => {
     const p2 = procedure2.prefix('/prefix/')
     const p3 = procedure2.prefix('/prefix//a')
 
-    expect(p1.__cp.path).toBe('/prefix/abc')
-    expect(p2.__cp.path).toBe('/prefix/abc')
-    expect(p3.__cp.path).toBe('/prefix/a/abc')
+    expect(p1.zzContractProcedure.path).toBe('/prefix/abc')
+    expect(p2.zzContractProcedure.path).toBe('/prefix/abc')
+    expect(p3.zzContractProcedure.path).toBe('/prefix/a/abc')
   })
 
   it('should create new instance', () => {
@@ -42,7 +42,7 @@ describe('prefix method', () => {
   it('should bypass undefined routes', () => {
     const p = orpc.route({}).prefix('/prefix')
 
-    expect(p.__cp.path).toBe(undefined)
+    expect(p.zzContractProcedure.path).toBe(undefined)
   })
 })
 
@@ -61,7 +61,7 @@ test('route method', () => {
 
   expectTypeOf(p).toEqualTypeOf<ContractProcedure<undefined, undefined>>()
 
-  expect(p.__cp).toMatchObject({
+  expect(p.zzContractProcedure).toMatchObject({
     method: 'GET',
     path: '/abc',
     deprecated: true,
@@ -73,7 +73,7 @@ test('route method', () => {
 test('description method', () => {
   const p = initORPCContract.route({}).description('abc')
 
-  expect(p.__cp).toMatchObject({
+  expect(p.zzContractProcedure).toMatchObject({
     description: 'abc',
   })
 })
@@ -81,7 +81,7 @@ test('description method', () => {
 test('summary method', () => {
   const p = initORPCContract.route({}).summary('abc')
 
-  expect(p.__cp).toMatchObject({
+  expect(p.zzContractProcedure).toMatchObject({
     summary: 'abc',
   })
 })
@@ -89,7 +89,7 @@ test('summary method', () => {
 test('deprecated method', () => {
   const p = initORPCContract.route({}).deprecated()
 
-  expect(p.__cp).toMatchObject({
+  expect(p.zzContractProcedure).toMatchObject({
     deprecated: true,
   })
 })
@@ -100,7 +100,7 @@ test('input method', () => {
 
   expectTypeOf(p).toEqualTypeOf<ContractProcedure<typeof schema, undefined>>()
 
-  expect(p.__cp).toMatchObject({
+  expect(p.zzContractProcedure).toMatchObject({
     InputSchema: schema,
     inputExample: undefined,
     inputExamples: undefined,
@@ -113,7 +113,7 @@ test('output method', () => {
 
   expectTypeOf(p).toEqualTypeOf<ContractProcedure<undefined, typeof schema>>()
 
-  expect(p.__cp).toMatchObject({
+  expect(p.zzContractProcedure).toMatchObject({
     OutputSchema: schema,
     outputExample: undefined,
     outputExamples: undefined,

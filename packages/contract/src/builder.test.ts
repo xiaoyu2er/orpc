@@ -22,7 +22,7 @@ describe('define a procedure', () => {
       ContractProcedure<undefined, undefined>
     >()
 
-    expect(procedure.__cp).toMatchObject({
+    expect(procedure.zzContractProcedure).toMatchObject({
       method: 'GET',
       path: '/users/{id}',
       deprecated: true,
@@ -42,7 +42,7 @@ describe('define a procedure', () => {
       ContractProcedure<typeof schema, undefined>
     >()
 
-    expect(procedure.__cp).toMatchObject({
+    expect(procedure.zzContractProcedure).toMatchObject({
       InputSchema: schema,
       inputExample: { id: '123' },
       inputExamples: { user: { id: '123' } },
@@ -62,7 +62,7 @@ describe('define a procedure', () => {
       ContractProcedure<undefined, typeof schema>
     >()
 
-    expect(procedure.__cp).toMatchObject({
+    expect(procedure.zzContractProcedure).toMatchObject({
       OutputSchema: schema,
       outputExample: { id: '123' },
       outputExamples: { user: { id: '123' } },

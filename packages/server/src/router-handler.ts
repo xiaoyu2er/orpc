@@ -50,9 +50,12 @@ export function createRouterHandler<
       const item = router[key] as WELL_DEFINED_PROCEDURE | Router<any, any>
 
       if (isProcedure(item)) {
-        const method = item.__p.contract.__cp.method ?? 'POST'
-        const path = item.__p.contract.__cp.path
-          ? openAPIPathToRouterPath(item.__p.contract.__cp.path)
+        const method =
+          item.zzProcedure.contract.zzContractProcedure.method ?? 'POST'
+        const path = item.zzProcedure.contract.zzContractProcedure.path
+          ? openAPIPathToRouterPath(
+              item.zzProcedure.contract.zzContractProcedure.path,
+            )
           : `/.${currentPath.join('.')}`
 
         routing.add(method, path, [currentPath, item])
@@ -109,7 +112,8 @@ export function createRouterHandler<
             : input_
 
       const validInput = await (async () => {
-        const schema = procedure.__p.contract.__cp.InputSchema
+        const schema =
+          procedure.zzProcedure.contract.zzContractProcedure.InputSchema
         if (!schema) return input
         const result = await schema.safeParseAsync(input)
         if (result.error)
@@ -123,15 +127,20 @@ export function createRouterHandler<
 
       let context = context_
 
-      for (const middleware of procedure.__p.middlewares ?? []) {
+      for (const middleware of procedure.zzProcedure.middlewares ?? []) {
         const mid = await middleware(validInput, context, meta)
         context = mergeContext(context, mid?.context)
       }
 
-      const output = await procedure.__p.handler(validInput, context, meta)
+      const output = await procedure.zzProcedure.handler(
+        validInput,
+        context,
+        meta,
+      )
 
       return await (async () => {
-        const schema = procedure.__p.contract.__cp.OutputSchema
+        const schema =
+          procedure.zzProcedure.contract.zzContractProcedure.OutputSchema
         if (!schema) return output
         const result = await schema.safeParseAsync(output)
         if (result.error)

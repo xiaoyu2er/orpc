@@ -127,11 +127,11 @@ describe('decorateRouter', () => {
       },
     })
 
-    expect(router.prefix('/test').prefix.ping.__p).toMatchObject(
-      p1.prefix('/test').__p,
+    expect(router.prefix('/test').prefix.ping.zzProcedure).toMatchObject(
+      p1.prefix('/test').zzProcedure,
     )
-    expect(router.prefix('/test').prefix.prefix.__p).toMatchObject(
-      p1.prefix('/test').__p,
+    expect(router.prefix('/test').prefix.prefix.zzProcedure).toMatchObject(
+      p1.prefix('/test').zzProcedure,
     )
   })
 

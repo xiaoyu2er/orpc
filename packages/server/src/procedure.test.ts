@@ -6,20 +6,26 @@ import { Procedure, isProcedure } from './procedure'
 it('isProcedure', () => {
   expect(new Procedure({} as any)).toSatisfy(isProcedure)
   expect({
-    __p: {
-      contract: new ContractProcedure({}),
+    zzProcedure: {
+      contract: new ContractProcedure({
+        InputSchema: undefined,
+        OutputSchema: undefined,
+      }),
       handler: () => {},
     },
   }).toSatisfy(isProcedure)
 
   expect({
-    __p: {
-      contract: new ContractProcedure({}),
+    zzProcedure: {
+      contract: new ContractProcedure({
+        InputSchema: undefined,
+        OutputSchema: undefined,
+      }),
     },
   }).not.toSatisfy(isProcedure)
 
   expect({
-    __p: {
+    zzProcedure: {
       handler: () => {},
     },
   }).not.toSatisfy(isProcedure)
@@ -38,7 +44,7 @@ test('prefix method', () => {
 
   const p2 = p.prefix('/test')
 
-  expect(p2.__p.contract.__cp.path).toBe(undefined)
+  expect(p2.zzProcedure.contract.zzContractProcedure.path).toBe(undefined)
 
   const p3 = initORPC
     .context<{ auth: boolean }>()
@@ -48,5 +54,5 @@ test('prefix method', () => {
     })
 
   const p4 = p3.prefix('/test')
-  expect(p4.__p.contract.__cp.path).toBe('/test/test1')
+  expect(p4.zzProcedure.contract.zzContractProcedure.path).toBe('/test/test1')
 })

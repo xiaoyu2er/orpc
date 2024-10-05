@@ -14,7 +14,11 @@ export class ContractBuilder {
     description?: string
     deprecated?: boolean
   }): ContractProcedure<undefined, undefined> {
-    return new ContractProcedure(opts)
+    return new ContractProcedure({
+      InputSchema: undefined,
+      OutputSchema: undefined,
+      ...opts,
+    })
   }
 
   input<USchema extends Schema>(
@@ -26,6 +30,7 @@ export class ContractBuilder {
       InputSchema: schema,
       inputExample: example,
       inputExamples: examples,
+      OutputSchema: undefined,
     })
   }
 
@@ -35,6 +40,7 @@ export class ContractBuilder {
     examples?: Record<string, SchemaOutput<USchema>>,
   ): ContractProcedure<undefined, USchema> {
     return new ContractProcedure({
+      InputSchema: undefined,
       OutputSchema: schema,
       outputExample: example,
       outputExamples: examples,

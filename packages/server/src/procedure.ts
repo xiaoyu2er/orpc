@@ -21,7 +21,7 @@ export class Procedure<
     : never,
 > {
   constructor(
-    public __p: {
+    public zzProcedure: {
       middlewares?: Middleware<any, any, any, any>[] // TODO:
       contract: TContract
       handler: ProcedureHandler<
@@ -37,8 +37,8 @@ export class Procedure<
     prefix: HTTPPath,
   ): Procedure<TContext, TContract, TExtraContext, THandlerOutput> {
     return new Procedure({
-      ...this.__p,
-      contract: this.__p.contract.prefix(prefix) as any,
+      ...this.zzProcedure,
+      contract: this.zzProcedure.contract.prefix(prefix) as any,
     })
   }
 
@@ -123,8 +123,8 @@ export function isProcedure(item: unknown): item is WELL_DEFINED_PROCEDURE {
     const anyItem = item as any
 
     return (
-      isContractProcedure(anyItem.__p.contract) &&
-      typeof anyItem.__p.handler === 'function'
+      isContractProcedure(anyItem.zzProcedure.contract) &&
+      typeof anyItem.zzProcedure.handler === 'function'
     )
   } catch {
     return false

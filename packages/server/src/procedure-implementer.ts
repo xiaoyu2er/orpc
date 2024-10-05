@@ -9,7 +9,7 @@ export class ProcedureImplementer<
   TExtraContext extends Context,
 > {
   constructor(
-    public __pi: {
+    public zzProcedureImplementer: {
       contract: TContract
       middlewares?: Middleware<TContext, any, any, any>[]
     },
@@ -74,8 +74,11 @@ export class ProcedureImplementer<
         : middleware_
 
     return new ProcedureImplementer({
-      ...this.__pi,
-      middlewares: [...(this.__pi.middlewares ?? []), middleware],
+      ...this.zzProcedureImplementer,
+      middlewares: [
+        ...(this.zzProcedureImplementer.middlewares ?? []),
+        middleware,
+      ],
     })
   }
 
@@ -95,8 +98,8 @@ export class ProcedureImplementer<
     >,
   ): Procedure<TContext, TContract, TExtraContext, UHandlerOutput> {
     return new Procedure({
-      middlewares: this.__pi.middlewares,
-      contract: this.__pi.contract,
+      middlewares: this.zzProcedureImplementer.middlewares,
+      contract: this.zzProcedureImplementer.contract,
       handler,
     })
   }

@@ -20,7 +20,7 @@ import { schemaToJsonSchema } from './json-schema'
 
 export function generateOpenAPI(
   opts: {
-    router: ContractRouter<any> | Router<any, any>
+    router: ContractRouter | Router<any, any>
   } & Omit<OpenAPIObject, 'openapi'>,
 ): OpenAPIObject {
   const builder = new OpenApiBuilder({

@@ -161,7 +161,7 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
    * Convert to ProcedureImplementer | RouterBuilder
    */
 
-  contract<UContract extends ContractProcedure<any, any> | ContractRouter<any>>(
+  contract<UContract extends ContractProcedure<any, any> | ContractRouter>(
     contract: UContract,
   ): UContract extends ContractProcedure<any, any>
     ? ProcedureImplementer<TContext, UContract, TExtraContext>

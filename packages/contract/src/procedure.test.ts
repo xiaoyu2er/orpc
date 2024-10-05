@@ -2,48 +2,23 @@ import { z } from 'zod'
 import { initORPCContract, isContractProcedure } from '.'
 import type { ContractProcedure } from './procedure'
 
-describe('prefix method', () => {
+test('prefix method', () => {
   const orpc = initORPCContract
-
-  const procedure1 = orpc.route({
+  const p1 = orpc.route({
     method: 'GET',
-    path: '/',
+    path: '/ping',
   })
+  const p2 = orpc.input(z.object({}))
 
-  const procedure2 = orpc.route({
-    method: 'GET',
-    path: '/abc//',
-  })
+  expect(p1.prefix('/prefix').zzContractProcedure.path).toEqual('/prefix/ping')
+  expect(p2.prefix('/prefix').zzContractProcedure.path).toEqual(undefined)
 
-  it('should prefix and standardize path', () => {
-    const p1 = procedure1.prefix('/')
-    const p2 = procedure1.prefix('/prefix/')
-    const p3 = procedure1.prefix('/prefix/a')
-
-    expect(p1.zzContractProcedure.path).toBe('/')
-    expect(p2.zzContractProcedure.path).toBe('/prefix')
-    expect(p3.zzContractProcedure.path).toBe('/prefix/a')
-  })
-
-  it('should standardize path', () => {
-    const p1 = procedure2.prefix('//prefix')
-    const p2 = procedure2.prefix('/prefix/')
-    const p3 = procedure2.prefix('/prefix//a')
-
-    expect(p1.zzContractProcedure.path).toBe('/prefix/abc')
-    expect(p2.zzContractProcedure.path).toBe('/prefix/abc')
-    expect(p3.zzContractProcedure.path).toBe('/prefix/a/abc')
-  })
-
-  it('should create new instance', () => {
-    expect(procedure1.prefix('/prefix')).not.toBe(procedure1)
-  })
-
-  it('should bypass undefined routes', () => {
-    const p = orpc.route({}).prefix('/prefix')
-
-    expect(p.zzContractProcedure.path).toBe(undefined)
-  })
+  expect(p1.prefix('/1').prefix('/2').zzContractProcedure.path).toEqual(
+    '/2/1/ping',
+  )
+  expect(p2.prefix('/1').prefix('/2').zzContractProcedure.path).toEqual(
+    undefined,
+  )
 })
 
 test('route method', () => {

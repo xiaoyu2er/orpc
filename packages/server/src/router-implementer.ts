@@ -11,7 +11,7 @@ import type { Context } from './types'
 
 export class RouterImplementer<
   TContext extends Context,
-  TContract extends ContractRouter<any>,
+  TContract extends ContractRouter,
 > {
   constructor(
     public zzRouterImplementer: {
@@ -28,7 +28,7 @@ export class RouterImplementer<
 
 export type ChainedRouterImplementer<
   TContext extends Context,
-  TContract extends ContractRouter<any>,
+  TContract extends ContractRouter,
   TExtraContext extends Context,
 > = {
   [K in keyof TContract]: TContract[K] extends ContractProcedure<any, any>
@@ -38,7 +38,7 @@ export type ChainedRouterImplementer<
 
 export function chainRouterImplementer<
   TContext extends Context,
-  TContract extends ContractRouter<any>,
+  TContract extends ContractRouter,
   TExtraContext extends Context,
 >(
   contract: TContract,
@@ -87,7 +87,7 @@ export function chainRouterImplementer<
 }
 
 export function assertRouterImplementation(
-  contract: ContractRouter<any>,
+  contract: ContractRouter,
   router: Router<any, any>,
   path: string[] = [],
 ): void {

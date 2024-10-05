@@ -12,7 +12,7 @@ import type { Context } from './types'
 
 export type Router<
   TContext extends Context,
-  TContract extends ContractRouter<any>,
+  TContract extends ContractRouter,
 > = TContract extends DecoratedContractRouter<infer UContract>
   ? {
       [K in keyof UContract]: UContract[K] extends ContractProcedure<any, any>
@@ -38,10 +38,10 @@ export function decorateRouter<TRouter extends Router<any, any>>(
 
       if (prop === 'prefix') {
         const prefix = (prefix: HTTPPath) => {
-          const applyPrefix = (router: ContractRouter<any>) => {
+          const applyPrefix = (router: ContractRouter) => {
             const clone: Record<
               string,
-              ContractProcedure<any, any> | ContractRouter<any>
+              ContractProcedure<any, any> | ContractRouter
             > = {}
 
             for (const key in router) {
@@ -75,9 +75,9 @@ export function decorateRouter<TRouter extends Router<any, any>>(
 }
 
 export function toContractRouter(
-  router: Router<any, any> | ContractRouter<any>,
-): ContractRouter<any> {
-  const contract: ContractRouter<any> = {}
+  router: Router<any, any> | ContractRouter,
+): ContractRouter {
+  const contract: ContractRouter = {}
 
   for (const key in router) {
     const item = router[key]

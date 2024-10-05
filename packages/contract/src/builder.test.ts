@@ -70,42 +70,85 @@ describe('define a procedure', () => {
   })
 })
 
-test('define a router', () => {
-  const orpc = initORPCContract
+describe('define a router', () => {
+  it('simple', () => {
+    const orpc = initORPCContract
 
-  const schema1 = z.string()
-  const schema2 = z.object({ id: z.string() })
-  const schema3 = z.object({ name: z.string() })
-  const ping = orpc.output(schema1)
-  const find = orpc.input(schema2).output(schema3)
+    const schema1 = z.string()
+    const schema2 = z.object({ id: z.string() })
+    const ping = orpc.output(schema1)
+    const find = orpc.output(schema2)
 
-  const router = orpc.router({
-    ping,
-    user: {
-      find,
-    },
-    user2: orpc.router({
-      find,
-    }),
+    const router = orpc.router({
+      ping,
+      user: {
+        find,
+      },
+      user2: orpc.router({
+        find,
+      }),
+    })
+
+    expectTypeOf(router).toMatchTypeOf<{
+      ping: typeof ping
+      user: {
+        find: typeof find
+      }
+      user2: {
+        find: typeof find
+      }
+    }>()
+
+    expect(router).toMatchObject({
+      ping,
+      user: {
+        find,
+      },
+      user2: {
+        find,
+      },
+    })
   })
 
-  expectTypeOf(router).toMatchTypeOf<{
-    ping: typeof ping
-    user: {
-      find: typeof find
-    }
-    user2: {
-      find: typeof find
-    }
-  }>()
+  it('with prefix', () => {
+    const orpc = initORPCContract
 
-  expect(router).toMatchObject({
-    ping,
-    user: {
-      find,
-    },
-    user2: {
-      find,
-    },
+    const schema1 = z.string()
+    const schema2 = z.object({ id: z.string() })
+    const ping = orpc.output(schema1)
+    const find = orpc.output(schema2)
+
+    const router = orpc.router({
+      ping: ping.prefix('/ping'),
+      user: {
+        find,
+      },
+      user2: orpc
+        .prefix('/internal')
+        .prefix('/user2')
+        .router({
+          find2: find.prefix('/find2'),
+        }),
+    })
+
+    expectTypeOf(router).toMatchTypeOf<{
+      ping: typeof ping
+      user: {
+        find: typeof find
+      }
+      user2: {
+        find2: typeof find
+      }
+    }>()
+
+    expect(router).toMatchObject({
+      ping: ping.prefix('/ping'),
+      user: {
+        find,
+      },
+      user2: {
+        find2: find.prefix('/internal/user2/find2'),
+      },
+    })
   })
 })

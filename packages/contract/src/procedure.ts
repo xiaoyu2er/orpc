@@ -1,5 +1,4 @@
 import type { HTTPMethod, HTTPPath, Schema, SchemaOutput } from './types'
-import { prefixHTTPPath } from './utils'
 
 export class ContractProcedure<
   TInputSchema extends Schema,
@@ -37,11 +36,11 @@ export class ContractProcedure<
   }
 
   prefix(prefix: HTTPPath): ContractProcedure<TInputSchema, TOutputSchema> {
+    if (!this.zzContractProcedure.path) return this
+
     return new ContractProcedure({
       ...this.zzContractProcedure,
-      path: this.zzContractProcedure.path
-        ? prefixHTTPPath(prefix, this.zzContractProcedure.path)
-        : this.zzContractProcedure.path,
+      path: `${prefix}${this.zzContractProcedure.path}`,
     })
   }
 

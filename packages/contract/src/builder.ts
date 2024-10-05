@@ -1,12 +1,15 @@
 import { ContractProcedure } from './procedure'
-import {
-  type ContractRouter,
-  type DecoratedContractRouter,
-  decorateContractRouter,
-} from './router'
+import type { ContractRouter } from './router'
+import { ContractRouterBuilder } from './router-builder'
 import type { HTTPMethod, HTTPPath, Schema, SchemaOutput } from './types'
 
 export class ContractBuilder {
+  prefix(prefix: HTTPPath): ContractRouterBuilder {
+    return new ContractRouterBuilder({
+      prefix: prefix,
+    })
+  }
+
   route(opts: {
     method?: HTTPMethod
     path?: HTTPPath
@@ -47,7 +50,7 @@ export class ContractBuilder {
     })
   }
 
-  router<T extends ContractRouter<any>>(router: T): DecoratedContractRouter<T> {
-    return decorateContractRouter(router)
+  router<T extends ContractRouter>(router: T): T {
+    return router
   }
 }

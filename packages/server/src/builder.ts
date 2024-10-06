@@ -17,7 +17,8 @@ import {
 import { Procedure, type ProcedureHandler } from './procedure'
 import { ProcedureBuilder } from './procedure-builder'
 import { ProcedureImplementer } from './procedure-implementer'
-import { type DecoratedRouter, type Router, decorateRouter } from './router'
+import type { Router } from './router'
+import { RouterBuilder } from './router-builder'
 import {
   type ChainedRouterImplementer,
   chainRouterImplementer,
@@ -26,7 +27,7 @@ import type { Context, MergeContext } from './types'
 
 export class Builder<TContext extends Context, TExtraContext extends Context> {
   constructor(
-    public __b: {
+    public zzBuilder: {
       middlewares?: Middleware<TContext, any, any, any>[]
     } = {},
   ) {}
@@ -79,8 +80,8 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
         : middleware_
 
     return new Builder({
-      ...this.__b,
-      middlewares: [...(this.__b.middlewares || []), middleware],
+      ...this.zzBuilder,
+      middlewares: [...(this.zzBuilder.middlewares || []), middleware],
     })
   }
 
@@ -99,7 +100,7 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
       ...opts,
       InputSchema: undefined,
       OutputSchema: undefined,
-      middlewares: this.__b.middlewares,
+      middlewares: this.zzBuilder.middlewares,
     })
   }
 
@@ -113,7 +114,7 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
       InputSchema: schema,
       inputExample: example,
       inputExamples: examples,
-      middlewares: this.__b.middlewares,
+      middlewares: this.zzBuilder.middlewares,
     })
   }
 
@@ -127,7 +128,7 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
       OutputSchema: schema,
       outputExample: example,
       outputExamples: examples,
-      middlewares: this.__b.middlewares,
+      middlewares: this.zzBuilder.middlewares,
     })
   }
 
@@ -148,7 +149,7 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
     UHandlerOutput
   > {
     return new Procedure({
-      middlewares: this.__b.middlewares,
+      middlewares: this.zzBuilder.middlewares,
       contract: new ContractProcedure({
         InputSchema: undefined,
         OutputSchema: undefined,
@@ -165,15 +166,20 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
     contract: UContract,
   ): UContract extends ContractProcedure<any, any>
     ? ProcedureImplementer<TContext, UContract, TExtraContext>
-    : ChainedRouterImplementer<TContext, UContract, TExtraContext> {
+    : UContract extends ContractRouter
+      ? ChainedRouterImplementer<TContext, UContract, TExtraContext>
+      : never {
     if (isContractProcedure(contract)) {
       return new ProcedureImplementer({
         contract,
-        middlewares: this.__b.middlewares,
+        middlewares: this.zzBuilder.middlewares,
       }) as any
     }
 
-    return chainRouterImplementer(contract, this.__b.middlewares) as any
+    return chainRouterImplementer(
+      contract as ContractRouter,
+      this.zzBuilder.middlewares,
+    ) as any
   }
 
   /**
@@ -196,12 +202,17 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
     return decorateMiddleware(middleware)
   }
 
+  prefix(prefix: HTTPPath): RouterBuilder<TContext, TExtraContext> {
+    return new RouterBuilder({
+      ...this.zzBuilder,
+      prefix,
+    })
+  }
+
   /**
    * Create DecoratedRouter
    */
-  router<URouter extends Router<TContext, any>>(
-    router: URouter,
-  ): DecoratedRouter<URouter> {
-    return decorateRouter(router)
+  router<URouter extends Router<TContext>>(router: URouter): URouter {
+    return new RouterBuilder(this.zzBuilder).router(router)
   }
 }

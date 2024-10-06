@@ -6,7 +6,7 @@ import {
 import type { Middleware } from './middleware'
 import { isProcedure } from './procedure'
 import { ProcedureImplementer } from './procedure-implementer'
-import type { Router } from './router'
+import type { Router, RouterWithContract } from './router'
 import type { Context } from './types'
 
 export class RouterImplementer<
@@ -19,7 +19,9 @@ export class RouterImplementer<
     },
   ) {}
 
-  router(router: Router<TContext, TContract>): Router<TContext, TContract> {
+  router(
+    router: RouterWithContract<TContext, TContract>,
+  ): RouterWithContract<TContext, TContract> {
     assertRouterImplementation(this.zzRouterImplementer.contract, router)
 
     return router
@@ -33,7 +35,9 @@ export type ChainedRouterImplementer<
 > = {
   [K in keyof TContract]: TContract[K] extends ContractProcedure<any, any>
     ? ProcedureImplementer<TContext, TContract[K], TExtraContext>
-    : ChainedRouterImplementer<TContext, TContract[K], TExtraContext>
+    : TContract[K] extends ContractRouter
+      ? ChainedRouterImplementer<TContext, TContract[K], TExtraContext>
+      : never
 } & RouterImplementer<TContext, TContract>
 
 export function chainRouterImplementer<
@@ -88,7 +92,7 @@ export function chainRouterImplementer<
 
 export function assertRouterImplementation(
   contract: ContractRouter,
-  router: Router<any, any>,
+  router: RouterWithContract<any, any>,
   path: string[] = [],
 ): void {
   for (const key in contract) {
@@ -115,7 +119,11 @@ export function assertRouterImplementation(
         )
       }
     } else {
-      assertRouterImplementation(contractItem, routerItem, currentPath)
+      assertRouterImplementation(
+        contractItem as ContractRouter,
+        routerItem,
+        currentPath,
+      )
     }
   }
 }

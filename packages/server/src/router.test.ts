@@ -1,11 +1,6 @@
 import { initORPCContract } from '@orpc/contract'
 import { z } from 'zod'
-import {
-  type DecoratedRouter,
-  initORPC,
-  isProcedure,
-  toContractRouter,
-} from '.'
+import { type RouterWithContract, initORPC, toContractRouter } from '.'
 
 it('require procedure match context', () => {
   const orpc = initORPC.context<{ auth: boolean; userId: string }>()
@@ -20,10 +15,89 @@ it('require procedure match context', () => {
       return { name: 'dinwwwh' }
     }),
 
-    ping3: orpc.handler(() => {
-      return { name: 'dinwwwh' }
+    nested: {
+      ping: initORPC.context<{ auth: boolean }>().handler(() => {
+        return { pong: 'ping' }
+      }),
+
+      // @ts-expect-error userId is not match
+      ping2: initORPC.context<{ userId: number }>().handler(() => {
+        return { name: 'dinwwwh' }
+      }),
+    },
+  })
+})
+
+it('require match contract', () => {
+  const pingContract = initORPCContract.route({ method: 'GET', path: '/ping' })
+  const pongContract = initORPCContract.input(z.string()).output(z.string())
+  const ping = initORPC.contract(pingContract).handler(() => {
+    return 'ping'
+  })
+  const pong = initORPC.contract(pongContract).handler(() => {
+    return 'pong'
+  })
+
+  const contract = initORPCContract.router({
+    ping: pingContract,
+    pong: pongContract,
+
+    nested: initORPCContract.router({
+      ping: pingContract,
+      pong: pongContract,
     }),
   })
+
+  const _1: RouterWithContract<undefined, typeof contract> = {
+    ping,
+    pong,
+
+    nested: {
+      ping,
+      pong,
+    },
+  }
+
+  const _2: RouterWithContract<undefined, typeof contract> = {
+    ping,
+    pong,
+
+    nested: initORPC.contract(contract.nested).router({
+      ping,
+      pong,
+    }),
+  }
+
+  const _3: RouterWithContract<undefined, typeof contract> = {
+    ping,
+    pong,
+
+    // @ts-expect-error missing nested.ping
+    nested: {
+      pong,
+    },
+  }
+
+  const _4: RouterWithContract<undefined, typeof contract> = {
+    ping,
+    pong,
+
+    nested: {
+      ping,
+      // @ts-expect-error nested.pong is mismatch
+      pong: initORPC.handler(() => 'ping'),
+    },
+  }
+
+  // @ts-expect-error missing pong
+  const _5: RouterWithContract<undefined, typeof contract> = {
+    ping,
+
+    nested: {
+      ping,
+      pong,
+    },
+  }
 })
 
 it('toContractRouter', () => {
@@ -65,101 +139,4 @@ it('toContractRouter', () => {
 
   expect(toContractRouter(router)).toEqual(contract)
   expect(toContractRouter(contract)).toEqual(contract)
-})
-
-describe('decorateRouter', () => {
-  const orpc = initORPC.context<{ auth: boolean }>()
-  const p1 = orpc.route({ method: 'GET', path: '/test' }).handler(() => {
-    return 'dinwwwh'
-  })
-  const p2 = orpc.handler(() => {
-    return 'dinwwwh'
-  })
-
-  const router = orpc.router({
-    ping: p1,
-    nested: {
-      ping: p2,
-    },
-    prefix: orpc.router({
-      ping: p1,
-      prefix: p1,
-    }),
-  })
-
-  const router2 = orpc.router({
-    ping: p1,
-    nested: {
-      ping: p2,
-    },
-  })
-
-  it('contain valid procedure', () => {
-    expect(router.ping).toSatisfy(isProcedure)
-    expect(router.prefix.prefix).toSatisfy(isProcedure)
-    expect(router).not.toSatisfy(isProcedure)
-    expect(router.prefix).not.toSatisfy(isProcedure)
-    expect(router.prefix.prefix.prefix).not.toSatisfy(isProcedure)
-    expect(router2.prefix).not.toSatisfy(isProcedure)
-  })
-
-  it('prefix', () => {
-    const pp1 = p1.prefix('/test')
-    const pp2 = p2.prefix('/test')
-
-    expectTypeOf(router.prefix('/test')).toMatchTypeOf<
-      DecoratedRouter<{
-        ping: typeof pp1
-        nested: {
-          ping: typeof pp2
-        }
-        prefix: {
-          ping: typeof pp1
-          prefix: typeof pp1
-        }
-      }>
-    >()
-
-    expect(router.prefix('/test')).toMatchObject({
-      ping: p1.prefix('/test'),
-      nested: {
-        ping: p2.prefix('/test'),
-      },
-    })
-
-    expect(router.prefix('/test').prefix.ping.zzProcedure).toMatchObject(
-      p1.prefix('/test').zzProcedure,
-    )
-    expect(router.prefix('/test').prefix.prefix.zzProcedure).toMatchObject(
-      p1.prefix('/test').zzProcedure,
-    )
-  })
-
-  it('prefix: deep clone', () => {
-    const router2 = router.prefix('/test')
-
-    expect(router2).not.toBe(router)
-    expect(router2.ping).not.toBe(router.ping)
-    expect(router2.nested).not.toBe(router.nested)
-    expect(router2.nested.ping).not.toBe(router.nested.ping)
-    expect(router2.prefix).not.toBe(router.prefix)
-    expect(router2.prefix.prefix).not.toBe(router.prefix.prefix)
-  })
-
-  it('prefix: cannot prefix when approach is contract-first', () => {
-    const contract = initORPCContract.router({
-      ping: initORPCContract.output(z.string()),
-    })
-
-    const router = initORPC.contract(contract).router({
-      ping: initORPC.contract(contract.ping).handler(() => {
-        return 'dinwwwh'
-      }),
-    })
-
-    // @ts-expect-error prefix does not exists
-    router.prefix
-
-    expect(typeof (router as any).prefix).toBe('undefined')
-  })
 })

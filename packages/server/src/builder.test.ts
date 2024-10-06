@@ -1,5 +1,5 @@
 import { type ContractProcedure, initORPCContract } from '@orpc/contract'
-import { z } from 'zod'
+import { boolean, z } from 'zod'
 import {
   type Builder,
   type DecoratedMiddleware,
@@ -11,6 +11,7 @@ import {
   initORPC,
   isProcedure,
 } from '.'
+import type { RouterBuilder } from './router-builder'
 
 test('context method', () => {
   const orpc = initORPC
@@ -316,4 +317,19 @@ describe('handler method', () => {
     expect(isProcedure(procedure)).toBe(true)
     expect(procedure.zzProcedure.middlewares).toEqual([mid])
   })
+})
+
+test('prefix', () => {
+  const builder = initORPC
+    .context<{ auth: boolean }>()
+    .use(() => {
+      return { context: { userId: '1' } }
+    })
+    .prefix('/api')
+
+  expectTypeOf(builder).toEqualTypeOf<
+    RouterBuilder<{ auth: boolean }, { userId: string }>
+  >()
+
+  expect(builder.zzRouterBuilder.prefix).toEqual('/api')
 })

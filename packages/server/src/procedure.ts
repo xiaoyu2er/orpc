@@ -84,30 +84,32 @@ export class Procedure<
   //       : middleware_
 
   //   return new Procedure({
-  //     ...this.__p,
-  //     middlewares: [...(this.__p.middlewares ?? []), middleware],
+  //     ...this.zzBuilder,
+  //     middlewares: [...(this.zzBuilder.middlewares ?? []), middleware],
   //   })
   // }
 }
 
-export type ProcedureHandler<
+export interface ProcedureHandler<
   TContext extends Context,
   TContract extends ContractProcedure<any, any>,
   TExtraContext extends Context,
   TOutput extends TContract extends ContractProcedure<any, infer UOutputSchema>
     ? SchemaOutput<UOutputSchema>
     : never,
-> = (
-  input: TContract extends ContractProcedure<infer UInputSchema, any>
-    ? SchemaOutput<UInputSchema>
-    : never,
-  context: MergeContext<TContext, TExtraContext>,
-  meta: Meta<unknown>,
-) => Promisable<
-  TContract extends ContractProcedure<any, infer UOutputSchema>
-    ? SchemaInput<UOutputSchema, TOutput>
-    : never
->
+> {
+  (
+    input: TContract extends ContractProcedure<infer UInputSchema, any>
+      ? SchemaOutput<UInputSchema>
+      : never,
+    context: MergeContext<TContext, TExtraContext>,
+    meta: Meta<unknown>,
+  ): Promisable<
+    TContract extends ContractProcedure<any, infer UOutputSchema>
+      ? SchemaInput<UOutputSchema, TOutput>
+      : never
+  >
+}
 
 export type WELL_DEFINED_PROCEDURE = Procedure<
   Context,

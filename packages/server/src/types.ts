@@ -14,7 +14,9 @@ export interface Meta<T> extends Hooks<T> {
 
 export type Promisable<T> = T | Promise<T>
 
-export type UnsubscribeFn = () => void
+export interface UnsubscribeFn {
+  (): void
+}
 
 export interface HookOptions {
   mode: 'unshift' | 'push'

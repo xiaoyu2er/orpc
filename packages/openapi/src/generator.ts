@@ -1,5 +1,9 @@
 import { type ContractRouter, eachContractRouterLeaf } from '@orpc/contract'
-import { type Router, toContractRouter } from '@orpc/server'
+import {
+  type Router,
+  type RouterWithContract,
+  toContractRouter,
+} from '@orpc/server'
 import {
   type OpenAPIObject,
   OpenApiBuilder,
@@ -20,7 +24,7 @@ import { schemaToJsonSchema } from './json-schema'
 
 export function generateOpenAPI(
   opts: {
-    router: ContractRouter | Router<any, any>
+    router: ContractRouter | RouterWithContract<any, any> | Router<any>
   } & Omit<OpenAPIObject, 'openapi'>,
 ): OpenAPIObject {
   const builder = new OpenApiBuilder({

@@ -4,50 +4,45 @@ import { RegExpRouter } from 'hono/router/reg-exp-router'
 import { get } from 'radash'
 import { ORPCError } from './error'
 import { type WELL_DEFINED_PROCEDURE, isProcedure } from './procedure'
-import type { DecoratedRouter, Router } from './router'
-import type { Meta, Promisable } from './types'
+import type { Router, RouterWithContract } from './router'
+import type { Context, Meta, Promisable } from './types'
 import { hook, mergeContext } from './utils'
 
-export type RouterHandler<TRouter extends Router<any, any>> = (
-  method: string | undefined,
-  path: string,
-  input: unknown,
-  context: TRouter extends Router<infer UContext, any> ? UContext : never,
-) => Promise<unknown>
+export interface RouterHandler<TContext extends Context> {
+  (
+    method: string | undefined,
+    path: string,
+    input: unknown,
+    context: TContext,
+  ): Promise<unknown>
+}
 
-export function createRouterHandler<
-  TRouter extends Router<any, any> | DecoratedRouter<any>,
->(opts: {
+export function createRouterHandler<TRouter extends Router<any>>(opts: {
   router: TRouter
   serverless?: boolean
   hooks?: (
-    context: TRouter extends Router<infer UContext, any>
+    context: TRouter extends RouterWithContract<infer UContext, any>
       ? UContext
-      : TRouter extends DecoratedRouter<infer URouter>
-        ? URouter extends Router<infer UContext, any>
-          ? UContext
-          : never
+      : TRouter extends Router<infer UContext>
+        ? UContext
         : never,
     meta: Meta<unknown>,
   ) => Promisable<void>
 }): RouterHandler<
-  TRouter extends Router<any, any>
-    ? TRouter
-    : TRouter extends DecoratedRouter<infer URouter>
-      ? URouter
+  TRouter extends RouterWithContract<infer UContext, any>
+    ? UContext
+    : TRouter extends Router<infer UContext>
+      ? UContext
       : never
 > {
   const routing = opts.serverless
     ? new LinearRouter<[string[], WELL_DEFINED_PROCEDURE]>()
     : new RegExpRouter<[string[], WELL_DEFINED_PROCEDURE]>()
 
-  const addRouteRecursively = (
-    router: Router<any, any>,
-    parentPath: string[],
-  ) => {
+  const addRouteRecursively = (router: Router<any>, parentPath: string[]) => {
     for (const key in router) {
       const currentPath = [...parentPath, key]
-      const item = router[key] as WELL_DEFINED_PROCEDURE | Router<any, any>
+      const item = router[key] as WELL_DEFINED_PROCEDURE | Router<any>
 
       if (isProcedure(item)) {
         const method =
@@ -65,7 +60,7 @@ export function createRouterHandler<
     }
   }
 
-  addRouteRecursively(opts.router as Router<any, any>, [])
+  addRouteRecursively(opts.router as RouterWithContract<any, any>, [])
 
   return async (method, path_, input_, context_) => {
     return await hook(async (hooks) => {

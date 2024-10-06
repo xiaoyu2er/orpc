@@ -1,22 +1,24 @@
 import type { Context, MergeContext, Meta, Promisable } from './types'
 import { mergeMiddlewares } from './utils'
 
-export type Middleware<
+export interface Middleware<
   TContext extends Context,
   TExtraContext extends Context,
   TInput,
   TOutput,
-> = (
-  input: TInput,
-  context: TContext,
-  meta: Meta<TOutput>,
-) => Promisable<
-  TExtraContext extends undefined ? void : { context: TExtraContext }
->
+> {
+  (
+    input: TInput,
+    context: TContext,
+    meta: Meta<TOutput>,
+  ): Promisable<
+    TExtraContext extends undefined ? void : { context: TExtraContext }
+  >
+}
 
-export type MapInputMiddleware<TInput, TMappedInput> = (
-  input: TInput,
-) => TMappedInput
+export interface MapInputMiddleware<TInput, TMappedInput> {
+  (input: TInput): TMappedInput
+}
 
 export interface DecoratedMiddleware<
   TContext extends Context,

@@ -3,7 +3,6 @@
 import { trim } from 'radash'
 import { ORPC_INTERNAL_HEADER } from '../config'
 import { ORPCError } from '../error'
-import type { Router } from '../router'
 import type { RouterHandler } from '../router-handler'
 import type { Hooks, Promisable } from '../types'
 import { hook } from '../utils'
@@ -12,17 +11,9 @@ export async function fetchHandler<THandler extends RouterHandler<any>>(opts: {
   request: Request
   prefix?: string
   handler: THandler
-  context: THandler extends RouterHandler<infer URouter>
-    ? URouter extends Router<infer UContext, any>
-      ? UContext
-      : never
-    : never
+  context: THandler extends RouterHandler<infer UContext> ? UContext : never
   hooks?: (
-    context: THandler extends RouterHandler<infer URouter>
-      ? URouter extends Router<infer UContext, any>
-        ? UContext
-        : never
-      : never,
+    context: THandler extends RouterHandler<infer UContext> ? UContext : never,
     hooks: Hooks<Response>,
   ) => Promisable<void>
 }): Promise<Response> {

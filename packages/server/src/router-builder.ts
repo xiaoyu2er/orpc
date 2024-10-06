@@ -92,7 +92,7 @@ export class RouterBuilder<
         clone[key] = new DecoratedProcedure({
           ...item.zz$p,
           contract: this.zz$rb.prefix
-            ? new DecoratedContractProcedure(item.zz$p.contract.zz$cp).prefix(
+            ? DecoratedContractProcedure.decorate(item.zz$p.contract).prefix(
                 this.zz$rb.prefix,
               )
             : item.zz$p.contract,

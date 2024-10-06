@@ -99,7 +99,7 @@ export function assertRouterImplementation(
   for (const key in contract) {
     const currentPath = [...path, key]
     const contractItem = contract[key]
-    const routerItem = router[key] as any
+    const routerItem = router[key]
 
     if (!routerItem) {
       throw new Error(
@@ -122,7 +122,7 @@ export function assertRouterImplementation(
     } else {
       assertRouterImplementation(
         contractItem as ContractRouter,
-        routerItem,
+        routerItem as any,
         currentPath,
       )
     }

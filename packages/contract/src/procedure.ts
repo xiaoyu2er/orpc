@@ -25,6 +25,13 @@ export class DecoratedContractProcedure<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
 > extends ContractProcedure<TInputSchema, TOutputSchema> {
+  static decorate<TInputSchema extends Schema, TOutputSchema extends Schema>(
+    cp: ContractProcedure<TInputSchema, TOutputSchema>,
+  ): DecoratedContractProcedure<TInputSchema, TOutputSchema> {
+    if (cp instanceof DecoratedContractProcedure) return cp
+    return new DecoratedContractProcedure(cp.zz$cp)
+  }
+
   route(opts: {
     method?: HTTPMethod
     path?: HTTPPath

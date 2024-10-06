@@ -22,11 +22,11 @@ export class ContractRouterBuilder {
     for (const key in router) {
       const item = router[key]
       if (isContractProcedure(item)) {
-        clone[key] = new DecoratedContractProcedure(item.zz$cp).prefix(
+        clone[key] = DecoratedContractProcedure.decorate(item).prefix(
           this.zz$crb.prefix,
         )
       } else {
-        clone[key] = this.router(item as any)
+        clone[key] = this.router(item as ContractRouter)
       }
     }
 

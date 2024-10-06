@@ -79,7 +79,7 @@ export function createRouterHandler<TRouter extends Router<any>>(opts: {
         path: path.join('.'),
       }
 
-      await opts.hooks?.(context_ as any, meta)
+      await opts.hooks?.(context_, meta)
 
       const input =
         input_ === undefined && Object.keys(params ?? {}).length >= 1

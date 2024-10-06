@@ -50,12 +50,29 @@ export class DecoratedProcedure<
     ? SchemaOutput<UOutputSchema>
     : never,
 > extends Procedure<TContext, TContract, TExtraContext, THandlerOutput> {
+  static decorate<
+    TContext extends Context,
+    TContract extends ContractProcedure<any, any>,
+    TExtraContext extends Context,
+    THandlerOutput extends TContract extends ContractProcedure<
+      any,
+      infer UOutputSchema
+    >
+      ? SchemaOutput<UOutputSchema>
+      : never,
+  >(
+    p: Procedure<TContext, TContract, TExtraContext, THandlerOutput>,
+  ): DecoratedProcedure<TContext, TContract, TExtraContext, THandlerOutput> {
+    if (p instanceof DecoratedProcedure) return p
+    return new DecoratedProcedure(p.zz$p)
+  }
+
   prefix(
     prefix: HTTPPath,
   ): DecoratedProcedure<TContext, TContract, TExtraContext, THandlerOutput> {
     return new DecoratedProcedure({
       ...this.zz$p,
-      contract: new DecoratedContractProcedure(this.zz$p.contract.zz$cp).prefix(
+      contract: DecoratedContractProcedure.decorate(this.zz$p.contract).prefix(
         prefix,
       ) as any,
     })

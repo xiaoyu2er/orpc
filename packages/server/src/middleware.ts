@@ -121,10 +121,5 @@ export function decorateMiddleware<
     },
   })
 
-  return extended as DecoratedMiddleware<
-    TContext,
-    TExtraContext,
-    TInput,
-    TOutput
-  >
+  return extended as any
 }

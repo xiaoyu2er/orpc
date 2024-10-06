@@ -19,7 +19,7 @@ export function eachContractRouterLeaf(
     if (isContractProcedure(item)) {
       callback(item, [...prefix, key])
     } else {
-      eachContractRouterLeaf(item as any, callback, [...prefix, key])
+      eachContractRouterLeaf(item as ContractRouter, callback, [...prefix, key])
     }
   }
 }

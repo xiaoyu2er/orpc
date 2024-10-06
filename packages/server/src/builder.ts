@@ -72,17 +72,16 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
   ): Builder<TContext, MergeContext<TExtraContext, UExtraContext>>
 
   use(
-    middleware_: Middleware<any, any, any, any>,
+    middleware: Middleware<any, any, any, any>,
     mapInput?: MapInputMiddleware<any, any>,
   ): Builder<any, any> {
-    const middleware: Middleware<any, any, any, any> =
-      typeof mapInput === 'function'
-        ? (input, ...rest) => middleware(mapInput(input), ...rest)
-        : middleware_
+    const middleware_ = mapInput
+      ? decorateMiddleware(middleware).mapInput(mapInput)
+      : middleware
 
     return new Builder({
       ...this.zz$b,
-      middlewares: [...(this.zz$b.middlewares || []), middleware],
+      middlewares: [...(this.zz$b.middlewares || []), middleware_],
     })
   }
 

@@ -1,5 +1,5 @@
 import type { Context, MergeContext, Meta, Promisable } from './types'
-import { mergeMiddlewares } from './utils'
+import { mergeContext } from './utils'
 
 export interface Middleware<
   TContext extends Context,
@@ -58,7 +58,13 @@ export interface DecoratedMiddleware<
     TInput & UInput,
     TOutput
   >
+
+  mapInput<UInput = unknown>(
+    map: MapInputMiddleware<UInput, TInput>,
+  ): DecoratedMiddleware<TContext, TExtraContext, UInput, TOutput>
 }
+
+const decoratedMiddlewareSymbol = Symbol('decoratedMiddleware')
 
 export function decorateMiddleware<
   TContext extends Context,
@@ -68,18 +74,46 @@ export function decorateMiddleware<
 >(
   middleware: Middleware<TContext, TExtraContext, TInput, TOutput>,
 ): DecoratedMiddleware<TContext, TExtraContext, TInput, TOutput> {
+  if (Reflect.get(middleware, decoratedMiddlewareSymbol)) {
+    return middleware as any
+  }
+
   const extended = new Proxy(middleware, {
     get(target, prop) {
+      if (prop === decoratedMiddlewareSymbol) return true
+
       if (prop === 'concat') {
-        return (...args: any[]) => {
-          const [middleware_, mapInput] = args
+        return (
+          middleware: Middleware<any, any, any, any>,
+          mapInput?: MapInputMiddleware<any, any>,
+        ) => {
+          const middleware_ = mapInput
+            ? decorateMiddleware(middleware).mapInput(mapInput)
+            : middleware
 
-          const middleware: Middleware<any, any, any, any> =
-            typeof mapInput === 'function'
-              ? (input, ...rest) => middleware_(mapInput(input), ...rest)
-              : middleware_
+          return decorateMiddleware(async (input, context, meta, ...rest) => {
+            const input_ = input as any
+            const context_ = context as any
+            const meta_ = meta as any
 
-          return decorateMiddleware(mergeMiddlewares(target, middleware))
+            const m1 = await target(input_, context_, meta_, ...rest)
+            const m2 = await middleware_(
+              input_,
+              mergeContext(context_, m1?.context),
+              meta_,
+              ...rest,
+            )
+
+            return { context: mergeContext(m1?.context, m2?.context) }
+          })
+        }
+      }
+
+      if (prop === 'mapInput') {
+        return (mapInput: MapInputMiddleware<any, any>) => {
+          return decorateMiddleware((input, ...rest: [any, any]) =>
+            target(mapInput(input), ...rest),
+          )
         }
       }
 

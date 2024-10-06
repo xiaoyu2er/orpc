@@ -1,5 +1,5 @@
 import { initORPC } from '.'
-import { hook, mergeContext, mergeMiddlewares } from './utils'
+import { hook, mergeContext } from './utils'
 
 test('mergeContext', () => {
   expect(mergeContext(undefined, undefined)).toBe(undefined)
@@ -241,34 +241,5 @@ describe('hook', async () => {
     expect(onSuccess).not.toHaveBeenCalled()
     expect(onError).not.toHaveBeenCalled()
     expect(onFinish).not.toHaveBeenCalled()
-  })
-})
-
-test('mergeMiddlewares', async () => {
-  await hook(async (hooks) => {
-    const rootMeta = {
-      ...hooks,
-      path: 'path.path',
-      procedure: initORPC.handler(() => {}) as any,
-    }
-
-    const middleware1 = vi.fn((input, context, meta, ...rest) => {
-      expect(input).toEqual('input')
-      expect(context).toEqual({ context: true })
-      expect(meta).toBe(rootMeta)
-      return { context: { foo: 'bar' } }
-    })
-    const middleware2 = vi.fn((input, context, meta, ...rest) => {
-      expect(input).toEqual('input')
-      expect(context).toEqual({ context: true, foo: 'bar' })
-      expect(meta).toBe(rootMeta)
-      return { context: { bar: 'bar' } }
-    })
-
-    const middleware = mergeMiddlewares(middleware1, middleware2)
-
-    expect(await middleware('input', { context: true }, rootMeta)).toEqual({
-      context: { foo: 'bar', bar: 'bar' },
-    })
   })
 })

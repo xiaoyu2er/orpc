@@ -255,4 +255,25 @@ describe('decorateMiddleware', () => {
       >
     >()
   })
+
+  it('mapInput', async () => {
+    const fn = vi.fn()
+
+    const mid = decorateMiddleware<
+      undefined,
+      undefined,
+      { id: string },
+      unknown
+    >(fn).mapInput((input: { postId: string }) => {
+      return { id: input.postId }
+    })
+
+    expectTypeOf(mid).toEqualTypeOf<
+      DecoratedMiddleware<undefined, undefined, { postId: string }, unknown>
+    >()
+
+    await mid({ postId: '1' }, undefined, {} as any)
+
+    expect(fn).toHaveBeenCalledWith({ id: '1' }, undefined, {})
+  })
 })

@@ -14,26 +14,6 @@ export function mergeContext<A extends Context, B extends Context>(
   } as any
 }
 
-export function mergeMiddlewares(
-  ...middlewares: Middleware<any, any, any, any>[]
-): Middleware<any, any, any, any> {
-  return async (input, context, meta, ...rest) => {
-    let extraContext: Context = undefined
-
-    for (const middleware of middlewares) {
-      const mid = await middleware(
-        input,
-        mergeContext(context, extraContext),
-        meta,
-        ...rest,
-      )
-      extraContext = mergeContext(extraContext, mid?.context)
-    }
-
-    return { context: extraContext }
-  }
-}
-
 export async function hook<T>(
   fn: (hooks: Hooks<T>) => Promisable<T>,
 ): Promise<T> {

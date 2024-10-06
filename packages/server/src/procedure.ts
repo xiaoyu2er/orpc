@@ -7,7 +7,11 @@ import {
   type WELL_DEFINED_CONTRACT_PROCEDURE,
   isContractProcedure,
 } from '@orpc/contract'
-import type { MapInputMiddleware, Middleware } from './middleware'
+import {
+  type MapInputMiddleware,
+  type Middleware,
+  decorateMiddleware,
+} from './middleware'
 import type { Context, MergeContext, Meta, Promisable } from './types'
 
 export class Procedure<
@@ -109,17 +113,16 @@ export class DecoratedProcedure<
   >
 
   use(
-    middleware_: Middleware<any, any, any, any>,
+    middleware: Middleware<any, any, any, any>,
     mapInput?: MapInputMiddleware<any, any>,
   ): DecoratedProcedure<any, any, any, any> {
-    const middleware: Middleware<any, any, any, any> =
-      typeof mapInput === 'function'
-        ? (input, ...rest) => middleware_(mapInput(input), ...rest)
-        : middleware_
+    const middleware_ = mapInput
+      ? decorateMiddleware(middleware).mapInput(mapInput)
+      : middleware
 
     return new DecoratedProcedure({
       ...this.zz$p,
-      middlewares: [middleware, ...(this.zz$p.middlewares ?? [])],
+      middlewares: [middleware_, ...(this.zz$p.middlewares ?? [])],
     })
   }
 }

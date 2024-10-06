@@ -1,5 +1,9 @@
 import { DecoratedContractProcedure, type HTTPPath } from '@orpc/contract'
-import type { MapInputMiddleware, Middleware } from './middleware'
+import {
+  type MapInputMiddleware,
+  type Middleware,
+  decorateMiddleware,
+} from './middleware'
 import { DecoratedProcedure, isProcedure } from './procedure'
 import type { Router } from './router'
 import type { Context, MergeContext } from './types'
@@ -51,17 +55,16 @@ export class RouterBuilder<
   ): RouterBuilder<TContext, MergeContext<TExtraContext, UExtraContext>>
 
   use(
-    middleware_: Middleware<any, any, any, any>,
+    middleware: Middleware<any, any, any, any>,
     mapInput?: MapInputMiddleware<any, any>,
   ): RouterBuilder<any, any> {
-    const middleware: Middleware<any, any, any, any> =
-      typeof mapInput === 'function'
-        ? (input, ...rest) => middleware(mapInput(input), ...rest)
-        : middleware_
+    const middleware_ = mapInput
+      ? decorateMiddleware(middleware).mapInput(mapInput)
+      : middleware
 
     return new RouterBuilder({
       ...this.zz$rb,
-      middlewares: [...(this.zz$rb.middlewares || []), middleware],
+      middlewares: [...(this.zz$rb.middlewares || []), middleware_],
     })
   }
 

@@ -3,7 +3,11 @@ import type {
   DecoratedContractProcedure,
   SchemaOutput,
 } from '@orpc/contract'
-import type { MapInputMiddleware, Middleware } from './middleware'
+import {
+  type MapInputMiddleware,
+  type Middleware,
+  decorateMiddleware,
+} from './middleware'
 import { DecoratedProcedure, type ProcedureHandler } from './procedure'
 import type { Context, MergeContext } from './types'
 
@@ -69,17 +73,16 @@ export class ProcedureImplementer<
   >
 
   use(
-    middleware_: Middleware<any, any, any, any>,
+    middleware: Middleware<any, any, any, any>,
     mapInput?: MapInputMiddleware<any, any>,
   ): ProcedureImplementer<any, any, any> {
-    const middleware: Middleware<any, any, any, any> =
-      typeof mapInput === 'function'
-        ? (input, ...rest) => middleware_(mapInput(input), ...rest)
-        : middleware_
+    const middleware_ = mapInput
+      ? decorateMiddleware(middleware).mapInput(mapInput)
+      : middleware
 
     return new ProcedureImplementer({
       ...this.zz$pi,
-      middlewares: [...(this.zz$pi.middlewares ?? []), middleware],
+      middlewares: [...(this.zz$pi.middlewares ?? []), middleware_],
     })
   }
 

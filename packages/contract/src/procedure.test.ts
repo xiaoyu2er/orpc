@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { initORPCContract, isContractProcedure } from '.'
-import type { ContractProcedure } from './procedure'
+import type { DecoratedContractProcedure } from './procedure'
 
 test('prefix method', () => {
   const orpc = initORPCContract
@@ -34,7 +34,9 @@ test('route method', () => {
       summary: 'abc',
     })
 
-  expectTypeOf(p).toEqualTypeOf<ContractProcedure<undefined, undefined>>()
+  expectTypeOf(p).toEqualTypeOf<
+    DecoratedContractProcedure<undefined, undefined>
+  >()
 
   expect(p.zzContractProcedure).toMatchObject({
     method: 'GET',
@@ -73,7 +75,9 @@ test('input method', () => {
   const schema = z.string()
   const p = initORPCContract.route({}).input(schema)
 
-  expectTypeOf(p).toEqualTypeOf<ContractProcedure<typeof schema, undefined>>()
+  expectTypeOf(p).toEqualTypeOf<
+    DecoratedContractProcedure<typeof schema, undefined>
+  >()
 
   expect(p.zzContractProcedure).toMatchObject({
     InputSchema: schema,
@@ -86,7 +90,9 @@ test('output method', () => {
   const schema = z.string()
   const p = initORPCContract.route({}).output(schema)
 
-  expectTypeOf(p).toEqualTypeOf<ContractProcedure<undefined, typeof schema>>()
+  expectTypeOf(p).toEqualTypeOf<
+    DecoratedContractProcedure<undefined, typeof schema>
+  >()
 
   expect(p.zzContractProcedure).toMatchObject({
     OutputSchema: schema,

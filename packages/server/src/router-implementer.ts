@@ -1,6 +1,7 @@
 import {
   type ContractProcedure,
   type ContractRouter,
+  type DecoratedContractProcedure,
   isContractProcedure,
 } from '@orpc/contract'
 import type { Middleware } from './middleware'

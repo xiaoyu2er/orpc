@@ -1,6 +1,7 @@
 import {
-  ContractProcedure,
+  type ContractProcedure,
   type ContractRouter,
+  DecoratedContractProcedure,
   type HTTPMethod,
   type HTTPPath,
   type IsEqual,
@@ -14,7 +15,7 @@ import {
   type Middleware,
   decorateMiddleware,
 } from './middleware'
-import { Procedure, type ProcedureHandler } from './procedure'
+import { DecoratedProcedure, type ProcedureHandler } from './procedure'
 import { ProcedureBuilder } from './procedure-builder'
 import { ProcedureImplementer } from './procedure-implementer'
 import type { Router } from './router'
@@ -138,19 +139,19 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
   handler<UHandlerOutput = undefined>(
     handler: ProcedureHandler<
       TContext,
-      ContractProcedure<undefined, undefined>,
+      DecoratedContractProcedure<undefined, undefined>,
       TExtraContext,
       UHandlerOutput
     >,
-  ): Procedure<
+  ): DecoratedProcedure<
     TContext,
-    ContractProcedure<undefined, undefined>,
+    DecoratedContractProcedure<undefined, undefined>,
     TExtraContext,
     UHandlerOutput
   > {
-    return new Procedure({
+    return new DecoratedProcedure({
       middlewares: this.zzBuilder.middlewares,
-      contract: new ContractProcedure({
+      contract: new DecoratedContractProcedure({
         InputSchema: undefined,
         OutputSchema: undefined,
       }),

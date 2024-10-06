@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import {
-  type ContractProcedure,
   type ContractRouter,
+  type DecoratedContractProcedure,
   eachContractRouterLeaf,
   initORPCContract,
 } from '.'
@@ -19,7 +19,7 @@ describe('define a procedure', () => {
     })
 
     expectTypeOf(procedure).toEqualTypeOf<
-      ContractProcedure<undefined, undefined>
+      DecoratedContractProcedure<undefined, undefined>
     >()
 
     expect(procedure.zzContractProcedure).toMatchObject({
@@ -39,7 +39,7 @@ describe('define a procedure', () => {
     const procedure = orpc.input(schema, { id: '123' }, { user: { id: '123' } })
 
     expectTypeOf(procedure).toEqualTypeOf<
-      ContractProcedure<typeof schema, undefined>
+      DecoratedContractProcedure<typeof schema, undefined>
     >()
 
     expect(procedure.zzContractProcedure).toMatchObject({
@@ -59,7 +59,7 @@ describe('define a procedure', () => {
     )
 
     expectTypeOf(procedure).toEqualTypeOf<
-      ContractProcedure<undefined, typeof schema>
+      DecoratedContractProcedure<undefined, typeof schema>
     >()
 
     expect(procedure.zzContractProcedure).toMatchObject({

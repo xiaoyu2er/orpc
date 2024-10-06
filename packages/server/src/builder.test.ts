@@ -1,10 +1,13 @@
-import { type ContractProcedure, initORPCContract } from '@orpc/contract'
+import {
+  type DecoratedContractProcedure,
+  initORPCContract,
+} from '@orpc/contract'
 import { boolean, z } from 'zod'
 import {
   type Builder,
   type DecoratedMiddleware,
+  DecoratedProcedure,
   type Meta,
-  Procedure,
   ProcedureBuilder,
   ProcedureImplementer,
   RouterImplementer,
@@ -143,7 +146,7 @@ test('router method', () => {
     orpc.router.handler(() => {
       return { name: '' }
     }),
-  ).toBeInstanceOf(Procedure)
+  ).toBeInstanceOf(DecoratedProcedure)
 })
 
 describe('define procedure builder', () => {
@@ -276,11 +279,11 @@ describe('handler method', () => {
     })
 
     expectTypeOf(procedure).toEqualTypeOf<
-      Procedure<
+      DecoratedProcedure<
         { auth: boolean },
-        ContractProcedure<undefined, undefined>,
+        DecoratedContractProcedure<undefined, undefined>,
         undefined,
-        undefined
+        void
       >
     >()
 
@@ -306,11 +309,11 @@ describe('handler method', () => {
     })
 
     expectTypeOf(procedure).toEqualTypeOf<
-      Procedure<
+      DecoratedProcedure<
         { auth: boolean },
-        ContractProcedure<undefined, undefined>,
+        DecoratedContractProcedure<undefined, undefined>,
         { userId: string },
-        undefined
+        void
       >
     >()
 

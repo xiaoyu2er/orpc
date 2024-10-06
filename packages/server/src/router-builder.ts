@@ -1,6 +1,6 @@
 import type { HTTPPath } from '@orpc/contract'
 import type { MapInputMiddleware, Middleware } from './middleware'
-import { Procedure, isProcedure } from './procedure'
+import { DecoratedProcedure, isProcedure } from './procedure'
 import type { Router } from './router'
 import type { Context, MergeContext } from './types'
 
@@ -86,7 +86,7 @@ export class RouterBuilder<
           ),
         ]
 
-        clone[key] = new Procedure({
+        clone[key] = new DecoratedProcedure({
           ...item.zzProcedure,
           contract: this.zzRouterBuilder.prefix
             ? item.zzProcedure.contract.prefix(this.zzRouterBuilder.prefix)

@@ -1,6 +1,6 @@
-import type { ContractProcedure } from '@orpc/contract'
+import type { DecoratedContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
-import { type Procedure, isProcedure } from './procedure'
+import { type DecoratedProcedure, isProcedure } from './procedure'
 import { ProcedureBuilder } from './procedure-builder'
 import type { ProcedureImplementer } from './procedure-implementer'
 import type { Meta } from './types'
@@ -122,7 +122,7 @@ describe('use middleware', () => {
     expectTypeOf(implementer).toEqualTypeOf<
       ProcedureImplementer<
         { auth: boolean },
-        ContractProcedure<undefined, undefined>,
+        DecoratedContractProcedure<undefined, undefined>,
         { userId: string }
       >
     >()
@@ -161,7 +161,7 @@ describe('use middleware', () => {
     expectTypeOf(implementer).toEqualTypeOf<
       ProcedureImplementer<
         { auth: boolean },
-        ContractProcedure<typeof schema1, undefined>,
+        DecoratedContractProcedure<typeof schema1, undefined>,
         { userId555: string }
       >
     >()
@@ -177,11 +177,11 @@ describe('handler', () => {
     })
 
     expectTypeOf(handler).toEqualTypeOf<
-      Procedure<
+      DecoratedProcedure<
         { auth: boolean },
-        ContractProcedure<undefined, undefined>,
+        DecoratedContractProcedure<undefined, undefined>,
         undefined,
-        undefined
+        void
       >
     >()
 
@@ -215,9 +215,9 @@ describe('handler', () => {
       })
 
     expectTypeOf(handler).toEqualTypeOf<
-      Procedure<
+      DecoratedProcedure<
         { auth: boolean },
-        ContractProcedure<undefined, undefined>,
+        DecoratedContractProcedure<undefined, undefined>,
         { userId: string },
         { name: string }
       >

@@ -1,12 +1,13 @@
 import {
   type ContractProcedure,
+  DecoratedContractProcedure,
   type HTTPPath,
   type SchemaInput,
   type SchemaOutput,
   type WELL_DEFINED_CONTRACT_PROCEDURE,
   isContractProcedure,
 } from '@orpc/contract'
-import type { Middleware } from './middleware'
+import type { MapInputMiddleware, Middleware } from './middleware'
 import type { Context, MergeContext, Meta, Promisable } from './types'
 
 export class Procedure<
@@ -22,7 +23,7 @@ export class Procedure<
 > {
   constructor(
     public zzProcedure: {
-      middlewares?: Middleware<any, any, any, any>[] // TODO:
+      middlewares?: Middleware<TContext, any, any, any>[]
       contract: TContract
       handler: ProcedureHandler<
         TContext,
@@ -32,62 +33,95 @@ export class Procedure<
       >
     },
   ) {}
+}
 
+export class DecoratedProcedure<
+  TContext extends Context,
+  TContract extends ContractProcedure<any, any>,
+  TExtraContext extends Context,
+  THandlerOutput extends TContract extends ContractProcedure<
+    any,
+    infer UOutputSchema
+  >
+    ? SchemaOutput<UOutputSchema>
+    : never,
+> extends Procedure<TContext, TContract, TExtraContext, THandlerOutput> {
   prefix(
     prefix: HTTPPath,
-  ): Procedure<TContext, TContract, TExtraContext, THandlerOutput> {
-    return new Procedure({
+  ): DecoratedProcedure<TContext, TContract, TExtraContext, THandlerOutput> {
+    return new DecoratedProcedure({
       ...this.zzProcedure,
-      contract: this.zzProcedure.contract.prefix(prefix) as any,
+      contract: new DecoratedContractProcedure(
+        this.zzProcedure.contract.zzContractProcedure,
+      ).prefix(prefix) as any,
     })
   }
 
-  // TODO:
-  // use<UExtraContext extends Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>>(
-  //   middleware: Middleware<
-  //     MergeContext<TContext, TExtraContext>,
-  //     UExtraContext,
-  //     TContract extends ContractProcedure<infer UInputSchema, any, any, any>
-  //       ? SchemaOutput<UInputSchema>
-  //       : never,
-  //     THandlerOutput
-  //   >
-  // ): Procedure<TContext, TContract, MergeContext<TExtraContext, UExtraContext>, THandlerOutput>
+  use<
+    UExtraContext extends
+      | Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>
+      | undefined = undefined,
+  >(
+    middleware: Middleware<
+      MergeContext<TContext, TExtraContext>,
+      UExtraContext,
+      TContract extends ContractProcedure<infer UInputSchema, any>
+        ? SchemaOutput<UInputSchema>
+        : never,
+      TContract extends ContractProcedure<any, infer UOutputSchema>
+        ? SchemaOutput<UOutputSchema, THandlerOutput>
+        : never
+    >,
+  ): DecoratedProcedure<
+    TContext,
+    TContract,
+    MergeContext<TExtraContext, UExtraContext>,
+    THandlerOutput
+  >
 
-  // use<
-  //   UExtraContext extends Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>,
-  //   UMappedInput = TContract extends ContractProcedure<infer UInputSchema, any, any, any>
-  //     ? SchemaOutput<UInputSchema>
-  //     : never
-  // >(
-  //   middleware: Middleware<
-  //     MergeContext<TContext, TExtraContext>,
-  //     UExtraContext,
-  //     UMappedInput,
-  //     THandlerOutput
-  //   >,
-  //   mapInput: MapInputMiddleware<
-  //     TContract extends ContractProcedure<infer UInputSchema, any, any, any>
-  //       ? SchemaOutput<UInputSchema>
-  //       : never,
-  //     UMappedInput
-  //   >
-  // ): Procedure<TContext, TContract, MergeContext<TExtraContext, UExtraContext>, THandlerOutput>
+  use<
+    UExtraContext extends
+      | Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>
+      | undefined = undefined,
+    UMappedInput = TContract extends ContractProcedure<infer UInputSchema, any>
+      ? SchemaOutput<UInputSchema>
+      : never,
+  >(
+    middleware: Middleware<
+      MergeContext<TContext, TExtraContext>,
+      UExtraContext,
+      UMappedInput,
+      TContract extends ContractProcedure<any, infer UOutputSchema>
+        ? SchemaOutput<UOutputSchema, THandlerOutput>
+        : never
+    >,
+    mapInput: MapInputMiddleware<
+      TContract extends ContractProcedure<infer UInputSchema, any>
+        ? SchemaOutput<UInputSchema, THandlerOutput>
+        : never,
+      UMappedInput
+    >,
+  ): DecoratedProcedure<
+    TContext,
+    TContract,
+    MergeContext<TExtraContext, UExtraContext>,
+    THandlerOutput
+  >
 
-  // use(
-  //   middleware_: Middleware<any, any, any, any>,
-  //   mapInput?: MapInputMiddleware<any, any>
-  // ): Procedure<any, any, any, any> {
-  //   const middleware: Middleware<any, any, any, any> =
-  //     typeof mapInput === 'function'
-  //       ? (input, ...rest) => middleware_(mapInput(input), ...rest)
-  //       : middleware_
+  use(
+    middleware_: Middleware<any, any, any, any>,
+    mapInput?: MapInputMiddleware<any, any>,
+  ): DecoratedProcedure<any, any, any, any> {
+    const middleware: Middleware<any, any, any, any> =
+      typeof mapInput === 'function'
+        ? (input, ...rest) => middleware_(mapInput(input), ...rest)
+        : middleware_
 
-  //   return new Procedure({
-  //     ...this.zzBuilder,
-  //     middlewares: [...(this.zzBuilder.middlewares ?? []), middleware],
-  //   })
-  // }
+    return new DecoratedProcedure({
+      ...this.zzProcedure,
+      middlewares: [middleware, ...(this.zzProcedure.middlewares ?? [])],
+    })
+  }
 }
 
 export interface ProcedureHandler<
@@ -111,7 +145,7 @@ export interface ProcedureHandler<
   >
 }
 
-export type WELL_DEFINED_PROCEDURE = Procedure<
+export type WELL_DEFINED_PROCEDURE = DecoratedProcedure<
   Context,
   WELL_DEFINED_CONTRACT_PROCEDURE,
   Context,
@@ -119,7 +153,7 @@ export type WELL_DEFINED_PROCEDURE = Procedure<
 >
 
 export function isProcedure(item: unknown): item is WELL_DEFINED_PROCEDURE {
-  if (item instanceof Procedure) return true
+  if (item instanceof DecoratedProcedure) return true
 
   try {
     const anyItem = item as any

@@ -1,6 +1,10 @@
-import type { ContractProcedure, SchemaOutput } from '@orpc/contract'
+import type {
+  ContractProcedure,
+  DecoratedContractProcedure,
+  SchemaOutput,
+} from '@orpc/contract'
 import type { MapInputMiddleware, Middleware } from './middleware'
-import { Procedure, type ProcedureHandler } from './procedure'
+import { DecoratedProcedure, type ProcedureHandler } from './procedure'
 import type { Context, MergeContext } from './types'
 
 export class ProcedureImplementer<
@@ -96,8 +100,8 @@ export class ProcedureImplementer<
       TExtraContext,
       UHandlerOutput
     >,
-  ): Procedure<TContext, TContract, TExtraContext, UHandlerOutput> {
-    return new Procedure({
+  ): DecoratedProcedure<TContext, TContract, TExtraContext, UHandlerOutput> {
+    return new DecoratedProcedure({
       middlewares: this.zzProcedureImplementer.middlewares,
       contract: this.zzProcedureImplementer.contract,
       handler,

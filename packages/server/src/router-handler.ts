@@ -21,20 +21,10 @@ export function createRouterHandler<TRouter extends Router<any>>(opts: {
   router: TRouter
   serverless?: boolean
   hooks?: (
-    context: TRouter extends RouterWithContract<infer UContext, any>
-      ? UContext
-      : TRouter extends Router<infer UContext>
-        ? UContext
-        : never,
+    context: TRouter extends Router<infer UContext> ? UContext : never,
     meta: Meta<unknown>,
   ) => Promisable<void>
-}): RouterHandler<
-  TRouter extends RouterWithContract<infer UContext, any>
-    ? UContext
-    : TRouter extends Router<infer UContext>
-      ? UContext
-      : never
-> {
+}): RouterHandler<TRouter extends Router<infer UContext> ? UContext : never> {
   const routing = opts.serverless
     ? new LinearRouter<[string[], WELL_DEFINED_PROCEDURE]>()
     : new RegExpRouter<[string[], WELL_DEFINED_PROCEDURE]>()
@@ -60,7 +50,7 @@ export function createRouterHandler<TRouter extends Router<any>>(opts: {
     }
   }
 
-  addRouteRecursively(opts.router as RouterWithContract<any, any>, [])
+  addRouteRecursively(opts.router, [])
 
   return async (method, path_, input_, context_) => {
     return await hook(async (hooks) => {

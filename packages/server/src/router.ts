@@ -1,6 +1,7 @@
 import {
   type ContractProcedure,
   type ContractRouter,
+  type DecoratedContractProcedure,
   type HTTPPath,
   createCallableObject,
   isContractProcedure,
@@ -24,7 +25,7 @@ export type RouterWithContract<
 }
 
 export function toContractRouter(
-  router: ContractRouter | Router<any> | RouterWithContract<any, any>,
+  router: ContractRouter | Router<any>,
 ): ContractRouter {
   const contract: ContractRouter = {}
 

@@ -1,9 +1,9 @@
-import { ContractProcedure } from '@orpc/contract'
+import { DecoratedContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
-import { type Meta, type Procedure, initORPC, isProcedure } from '.'
+import { type DecoratedProcedure, type Meta, initORPC, isProcedure } from '.'
 import { ProcedureImplementer } from './procedure-implementer'
 
-const p1 = new ContractProcedure({
+const p1 = new DecoratedContractProcedure({
   InputSchema: undefined,
   OutputSchema: undefined,
   method: undefined,
@@ -18,7 +18,7 @@ const implementer1 = new ProcedureImplementer<
 const schema1 = z.object({ id: z.string() })
 const schema2 = z.object({ name: z.string() })
 
-const p2 = new ContractProcedure({
+const p2 = new DecoratedContractProcedure({
   InputSchema: schema1,
   OutputSchema: schema2,
   method: 'GET',
@@ -108,7 +108,7 @@ describe('output schema', () => {
 
   it('not infer output schema if output schema is specified', async () => {
     const srb1 = new ProcedureImplementer({
-      contract: new ContractProcedure({
+      contract: new DecoratedContractProcedure({
         OutputSchema: z.unknown(),
         InputSchema: undefined,
       }),
@@ -138,7 +138,12 @@ describe('handler', () => {
     })
 
     expectTypeOf(handler).toEqualTypeOf<
-      Procedure<{ auth: boolean }, typeof p1, undefined, { name: string }>
+      DecoratedProcedure<
+        { auth: boolean },
+        typeof p1,
+        undefined,
+        { name: string }
+      >
     >()
     expect(isProcedure(handler)).toBe(true)
 
@@ -183,7 +188,7 @@ describe('handler', () => {
       })
 
     expectTypeOf(handler).toEqualTypeOf<
-      Procedure<
+      DecoratedProcedure<
         { auth: boolean },
         typeof p2,
         { userId: string },

@@ -1,12 +1,12 @@
 import {
-  ContractProcedure,
+  DecoratedContractProcedure,
   type HTTPMethod,
   type HTTPPath,
   type Schema,
   type SchemaOutput,
 } from '@orpc/contract'
 import type { MapInputMiddleware, Middleware } from './middleware'
-import { Procedure, type ProcedureHandler } from './procedure'
+import { DecoratedProcedure, type ProcedureHandler } from './procedure'
 import { ProcedureImplementer } from './procedure-implementer'
 import type { Context, MergeContext } from './types'
 
@@ -33,8 +33,11 @@ export class ProcedureBuilder<
     },
   ) {}
 
-  private get contract(): ContractProcedure<TInputSchema, TOutputSchema> {
-    return new ContractProcedure(this.zzProcedureBuilder)
+  private get contract(): DecoratedContractProcedure<
+    TInputSchema,
+    TOutputSchema
+  > {
+    return new DecoratedContractProcedure(this.zzProcedureBuilder)
   }
 
   /**
@@ -126,7 +129,7 @@ export class ProcedureBuilder<
     >,
   ): ProcedureImplementer<
     TContext,
-    ContractProcedure<TInputSchema, TOutputSchema>,
+    DecoratedContractProcedure<TInputSchema, TOutputSchema>,
     MergeContext<TExtraContext, UExtraContext>
   >
 
@@ -145,7 +148,7 @@ export class ProcedureBuilder<
     mapInput: MapInputMiddleware<SchemaOutput<TInputSchema>, UMappedInput>,
   ): ProcedureImplementer<
     TContext,
-    ContractProcedure<TInputSchema, TOutputSchema>,
+    DecoratedContractProcedure<TInputSchema, TOutputSchema>,
     MergeContext<TExtraContext, UExtraContext>
   >
 
@@ -173,17 +176,17 @@ export class ProcedureBuilder<
   handler<UHandlerOutput extends SchemaOutput<TOutputSchema>>(
     handler: ProcedureHandler<
       TContext,
-      ContractProcedure<TInputSchema, TOutputSchema>,
+      DecoratedContractProcedure<TInputSchema, TOutputSchema>,
       TExtraContext,
       UHandlerOutput
     >,
-  ): Procedure<
+  ): DecoratedProcedure<
     TContext,
-    ContractProcedure<TInputSchema, TOutputSchema>,
+    DecoratedContractProcedure<TInputSchema, TOutputSchema>,
     TExtraContext,
     UHandlerOutput
   > {
-    return new Procedure({
+    return new DecoratedProcedure({
       middlewares: this.zzProcedureBuilder.middlewares,
       contract: this.contract,
       handler,

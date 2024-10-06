@@ -5,7 +5,7 @@ export class ContractProcedure<
   TOutputSchema extends Schema,
 > {
   constructor(
-    public zzContractProcedure: {
+    public zz$cp: {
       path?: HTTPPath
       method?: HTTPMethod
       summary?: string
@@ -33,7 +33,7 @@ export class DecoratedContractProcedure<
     deprecated?: boolean
   }): DecoratedContractProcedure<TInputSchema, TOutputSchema> {
     return new DecoratedContractProcedure({
-      ...this.zzContractProcedure,
+      ...this.zz$cp,
       ...opts,
       method: opts.method,
       path: opts.path,
@@ -43,11 +43,11 @@ export class DecoratedContractProcedure<
   prefix(
     prefix: HTTPPath,
   ): DecoratedContractProcedure<TInputSchema, TOutputSchema> {
-    if (!this.zzContractProcedure.path) return this
+    if (!this.zz$cp.path) return this
 
     return new DecoratedContractProcedure({
-      ...this.zzContractProcedure,
-      path: `${prefix}${this.zzContractProcedure.path}`,
+      ...this.zz$cp,
+      path: `${prefix}${this.zz$cp.path}`,
     })
   }
 
@@ -55,7 +55,7 @@ export class DecoratedContractProcedure<
     summary: string,
   ): DecoratedContractProcedure<TInputSchema, TOutputSchema> {
     return new DecoratedContractProcedure({
-      ...this.zzContractProcedure,
+      ...this.zz$cp,
       summary,
     })
   }
@@ -64,7 +64,7 @@ export class DecoratedContractProcedure<
     description: string,
   ): DecoratedContractProcedure<TInputSchema, TOutputSchema> {
     return new DecoratedContractProcedure({
-      ...this.zzContractProcedure,
+      ...this.zz$cp,
       description,
     })
   }
@@ -73,7 +73,7 @@ export class DecoratedContractProcedure<
     deprecated = true,
   ): DecoratedContractProcedure<TInputSchema, TOutputSchema> {
     return new DecoratedContractProcedure({
-      ...this.zzContractProcedure,
+      ...this.zz$cp,
       deprecated,
     })
   }
@@ -84,7 +84,7 @@ export class DecoratedContractProcedure<
     examples?: Record<string, SchemaOutput<USchema>>,
   ): DecoratedContractProcedure<USchema, TOutputSchema> {
     return new DecoratedContractProcedure({
-      ...this.zzContractProcedure,
+      ...this.zz$cp,
       InputSchema: schema,
       inputExample: example,
       inputExamples: examples,
@@ -97,7 +97,7 @@ export class DecoratedContractProcedure<
     examples?: Record<string, SchemaOutput<USchema>>,
   ): DecoratedContractProcedure<TInputSchema, USchema> {
     return new DecoratedContractProcedure({
-      ...this.zzContractProcedure,
+      ...this.zz$cp,
       OutputSchema: schema,
       outputExample: example,
       outputExamples: examples,
@@ -105,22 +105,16 @@ export class DecoratedContractProcedure<
   }
 }
 
-export type WELL_DEFINED_CONTRACT_PROCEDURE = DecoratedContractProcedure<
-  Schema,
-  Schema
->
+export type WELL_DEFINED_CONTRACT_PROCEDURE = ContractProcedure<Schema, Schema>
 
 export function isContractProcedure(
   item: unknown,
 ): item is WELL_DEFINED_CONTRACT_PROCEDURE {
-  if (item instanceof DecoratedContractProcedure) return true
+  if (item instanceof ContractProcedure) return true
 
   try {
     const anyItem = item as any
-    return (
-      typeof anyItem.zzContractProcedure === 'object' &&
-      anyItem.zzContractProcedure !== null
-    )
+    return typeof anyItem.zz$cp === 'object' && anyItem.zz$cp !== null
   } catch {
     return false
   }

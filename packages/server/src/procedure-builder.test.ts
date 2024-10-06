@@ -24,7 +24,7 @@ it('input', () => {
     ProcedureBuilder<{ auth: boolean }, undefined, typeof schema1, undefined>
   >()
 
-  expect(builder2.zzProcedureBuilder).toMatchObject({
+  expect(builder2.zz$pb).toMatchObject({
     InputSchema: schema1,
     inputExample: example1,
     inputExamples: { default: example1 },
@@ -38,7 +38,7 @@ it('output', () => {
     ProcedureBuilder<{ auth: boolean }, undefined, undefined, typeof schema2>
   >()
 
-  expect(builder2.zzProcedureBuilder).toMatchObject({
+  expect(builder2.zz$pb).toMatchObject({
     OutputSchema: schema2,
     outputExample: example2,
     outputExamples: { default: example2 },
@@ -58,7 +58,7 @@ it('route', () => {
     ProcedureBuilder<{ auth: boolean }, undefined, undefined, undefined>
   >()
 
-  expect(builder2.zzProcedureBuilder).toMatchObject({
+  expect(builder2.zz$pb).toMatchObject({
     method: 'GET',
     path: '/test',
     deprecated: true,
@@ -72,7 +72,7 @@ it('summary', () => {
 
   expectTypeOf(builder2).toEqualTypeOf(builder)
 
-  expect(builder2.zzProcedureBuilder).toMatchObject({
+  expect(builder2.zz$pb).toMatchObject({
     summary: 'sum',
   })
 })
@@ -82,7 +82,7 @@ it('description', () => {
 
   expectTypeOf(builder2).toEqualTypeOf(builder)
 
-  expect(builder2.zzProcedureBuilder).toMatchObject({
+  expect(builder2.zz$pb).toMatchObject({
     description: 'des',
   })
 })
@@ -92,7 +92,7 @@ it('deprecated', () => {
 
   expectTypeOf(builder2).toEqualTypeOf(builder)
 
-  expect(builder2.zzProcedureBuilder).toMatchObject({
+  expect(builder2.zz$pb).toMatchObject({
     deprecated: true,
   })
 })
@@ -223,6 +223,6 @@ describe('handler', () => {
       >
     >()
 
-    expect(handler.zzProcedure.middlewares).toEqual([mid1, mid2])
+    expect(handler.zz$p.middlewares).toEqual([mid1, mid2])
   })
 })

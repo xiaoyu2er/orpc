@@ -1,19 +1,19 @@
-import { isContractProcedure } from './procedure'
+import { DecoratedContractProcedure, isContractProcedure } from './procedure'
 import type { ContractRouter } from './router'
 import type { HTTPPath } from './types'
 
 export class ContractRouterBuilder {
-  constructor(public zzContractRouterBuilder: { prefix?: HTTPPath }) {}
+  constructor(public zz$crb: { prefix?: HTTPPath }) {}
 
   prefix(prefix: HTTPPath): ContractRouterBuilder {
     return new ContractRouterBuilder({
-      ...this.zzContractRouterBuilder,
-      prefix: `${this.zzContractRouterBuilder.prefix ?? ''}${prefix}`,
+      ...this.zz$crb,
+      prefix: `${this.zz$crb.prefix ?? ''}${prefix}`,
     })
   }
 
   router<T extends ContractRouter>(router: T): T {
-    if (!this.zzContractRouterBuilder.prefix) {
+    if (!this.zz$crb.prefix) {
       return router
     }
 
@@ -22,7 +22,9 @@ export class ContractRouterBuilder {
     for (const key in router) {
       const item = router[key]
       if (isContractProcedure(item)) {
-        clone[key] = item.prefix(this.zzContractRouterBuilder.prefix)
+        clone[key] = new DecoratedContractProcedure(item.zz$cp).prefix(
+          this.zz$crb.prefix,
+        )
       } else {
         clone[key] = this.router(item as any)
       }

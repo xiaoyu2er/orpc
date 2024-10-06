@@ -35,7 +35,7 @@ export function generateOpenAPI(
   const router = toContractRouter(opts.router)
 
   eachContractRouterLeaf(router, (procedure, path_) => {
-    const internal = procedure.zzContractProcedure
+    const internal = procedure.zz$cp
     const path = internal.path ?? `/.${path_.join('.')}`
     const method = internal.method ?? 'POST'
 

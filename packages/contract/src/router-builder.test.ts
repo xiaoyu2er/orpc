@@ -2,9 +2,9 @@ import { z } from 'zod'
 import { initORPCContract } from '.'
 
 test('prefix method', () => {
-  expect(
-    initORPCContract.prefix('/1').prefix('/2').zzContractRouterBuilder.prefix,
-  ).toEqual('/1/2')
+  expect(initORPCContract.prefix('/1').prefix('/2').zz$crb.prefix).toEqual(
+    '/1/2',
+  )
 })
 
 test('define a router', () => {
@@ -26,14 +26,10 @@ test('define a router', () => {
     }),
   })
 
-  expect(router.ping.zzContractProcedure.path).toEqual('/ping')
-  expect(router.pong.zzContractProcedure.path).toEqual(undefined)
+  expect(router.ping.zz$cp.path).toEqual('/ping')
+  expect(router.pong.zz$cp.path).toEqual(undefined)
 
-  expect(router.internal.ping.zzContractProcedure.path).toEqual(
-    '/internal/ping',
-  )
-  expect(router.internal.pong.zzContractProcedure.path).toEqual(undefined)
-  expect(router.internal.nested.ping.zzContractProcedure.path).toEqual(
-    '/internal/ping',
-  )
+  expect(router.internal.ping.zz$cp.path).toEqual('/internal/ping')
+  expect(router.internal.pong.zz$cp.path).toEqual(undefined)
+  expect(router.internal.nested.ping.zz$cp.path).toEqual('/internal/ping')
 })

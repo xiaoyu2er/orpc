@@ -35,7 +35,7 @@ export function toContractRouter(
     if (isContractProcedure(item)) {
       contract[key] = item
     } else if (isProcedure(item)) {
-      contract[key] = item.zzProcedure.contract
+      contract[key] = item.zz$p.contract
     } else {
       contract[key] = toContractRouter(item as any)
     }

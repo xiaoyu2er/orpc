@@ -22,7 +22,7 @@ export class Procedure<
     : never,
 > {
   constructor(
-    public zzProcedure: {
+    public zz$p: {
       middlewares?: Middleware<TContext, any, any, any>[]
       contract: TContract
       handler: ProcedureHandler<
@@ -50,10 +50,10 @@ export class DecoratedProcedure<
     prefix: HTTPPath,
   ): DecoratedProcedure<TContext, TContract, TExtraContext, THandlerOutput> {
     return new DecoratedProcedure({
-      ...this.zzProcedure,
-      contract: new DecoratedContractProcedure(
-        this.zzProcedure.contract.zzContractProcedure,
-      ).prefix(prefix) as any,
+      ...this.zz$p,
+      contract: new DecoratedContractProcedure(this.zz$p.contract.zz$cp).prefix(
+        prefix,
+      ) as any,
     })
   }
 
@@ -118,8 +118,8 @@ export class DecoratedProcedure<
         : middleware_
 
     return new DecoratedProcedure({
-      ...this.zzProcedure,
-      middlewares: [middleware, ...(this.zzProcedure.middlewares ?? [])],
+      ...this.zz$p,
+      middlewares: [middleware, ...(this.zz$p.middlewares ?? [])],
     })
   }
 }
@@ -145,7 +145,7 @@ export interface ProcedureHandler<
   >
 }
 
-export type WELL_DEFINED_PROCEDURE = DecoratedProcedure<
+export type WELL_DEFINED_PROCEDURE = Procedure<
   Context,
   WELL_DEFINED_CONTRACT_PROCEDURE,
   Context,
@@ -153,14 +153,14 @@ export type WELL_DEFINED_PROCEDURE = DecoratedProcedure<
 >
 
 export function isProcedure(item: unknown): item is WELL_DEFINED_PROCEDURE {
-  if (item instanceof DecoratedProcedure) return true
+  if (item instanceof Procedure) return true
 
   try {
     const anyItem = item as any
 
     return (
-      isContractProcedure(anyItem.zzProcedure.contract) &&
-      typeof anyItem.zzProcedure.handler === 'function'
+      isContractProcedure(anyItem.zz$p.contract) &&
+      typeof anyItem.zz$p.handler === 'function'
     )
   } catch {
     return false

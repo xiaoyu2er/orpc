@@ -17,7 +17,7 @@ export class ProcedureBuilder<
   TOutputSchema extends Schema,
 > {
   constructor(
-    public zzProcedureBuilder: {
+    public zz$pb: {
       path?: HTTPPath
       method?: HTTPMethod
       summary?: string
@@ -37,7 +37,7 @@ export class ProcedureBuilder<
     TInputSchema,
     TOutputSchema
   > {
-    return new DecoratedContractProcedure(this.zzProcedureBuilder)
+    return new DecoratedContractProcedure(this.zz$pb)
   }
 
   /**
@@ -52,7 +52,7 @@ export class ProcedureBuilder<
     deprecated?: boolean
   }): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema> {
     return new ProcedureBuilder({
-      ...this.zzProcedureBuilder,
+      ...this.zz$pb,
       ...opts,
       method: opts.method,
       path: opts.path,
@@ -63,7 +63,7 @@ export class ProcedureBuilder<
     summary: string,
   ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema> {
     return new ProcedureBuilder({
-      ...this.zzProcedureBuilder,
+      ...this.zz$pb,
       summary,
     })
   }
@@ -72,7 +72,7 @@ export class ProcedureBuilder<
     description: string,
   ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema> {
     return new ProcedureBuilder({
-      ...this.zzProcedureBuilder,
+      ...this.zz$pb,
       description,
     })
   }
@@ -81,7 +81,7 @@ export class ProcedureBuilder<
     deprecated = true,
   ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema> {
     return new ProcedureBuilder({
-      ...this.zzProcedureBuilder,
+      ...this.zz$pb,
       deprecated,
     })
   }
@@ -92,7 +92,7 @@ export class ProcedureBuilder<
     examples?: Record<string, SchemaOutput<USchema>>,
   ): ProcedureBuilder<TContext, TExtraContext, USchema, TOutputSchema> {
     return new ProcedureBuilder({
-      ...this.zzProcedureBuilder,
+      ...this.zz$pb,
       InputSchema: schema,
       inputExample: example,
       inputExamples: examples,
@@ -105,7 +105,7 @@ export class ProcedureBuilder<
     examples?: Record<string, SchemaOutput<USchema>>,
   ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, USchema> {
     return new ProcedureBuilder({
-      ...this.zzProcedureBuilder,
+      ...this.zz$pb,
       OutputSchema: schema,
       outputExample: example,
       outputExamples: examples,
@@ -159,13 +159,13 @@ export class ProcedureBuilder<
     if (!mapInput) {
       return new ProcedureImplementer({
         contract: this.contract,
-        middlewares: this.zzProcedureBuilder.middlewares,
+        middlewares: this.zz$pb.middlewares,
       }).use(middleware)
     }
 
     return new ProcedureImplementer({
       contract: this.contract,
-      middlewares: this.zzProcedureBuilder.middlewares,
+      middlewares: this.zz$pb.middlewares,
     }).use(middleware, mapInput)
   }
 
@@ -187,7 +187,7 @@ export class ProcedureBuilder<
     UHandlerOutput
   > {
     return new DecoratedProcedure({
-      middlewares: this.zzProcedureBuilder.middlewares,
+      middlewares: this.zz$pb.middlewares,
       contract: this.contract,
       handler,
     })

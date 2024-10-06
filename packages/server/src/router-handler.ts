@@ -35,12 +35,9 @@ export function createRouterHandler<TRouter extends Router<any>>(opts: {
       const item = router[key] as WELL_DEFINED_PROCEDURE | Router<any>
 
       if (isProcedure(item)) {
-        const method =
-          item.zzProcedure.contract.zzContractProcedure.method ?? 'POST'
-        const path = item.zzProcedure.contract.zzContractProcedure.path
-          ? openAPIPathToRouterPath(
-              item.zzProcedure.contract.zzContractProcedure.path,
-            )
+        const method = item.zz$p.contract.zz$cp.method ?? 'POST'
+        const path = item.zz$p.contract.zz$cp.path
+          ? openAPIPathToRouterPath(item.zz$p.contract.zz$cp.path)
           : `/.${currentPath.join('.')}`
 
         routing.add(method, path, [currentPath, item])
@@ -97,8 +94,7 @@ export function createRouterHandler<TRouter extends Router<any>>(opts: {
             : input_
 
       const validInput = await (async () => {
-        const schema =
-          procedure.zzProcedure.contract.zzContractProcedure.InputSchema
+        const schema = procedure.zz$p.contract.zz$cp.InputSchema
         if (!schema) return input
         const result = await schema.safeParseAsync(input)
         if (result.error)
@@ -112,20 +108,15 @@ export function createRouterHandler<TRouter extends Router<any>>(opts: {
 
       let context = context_
 
-      for (const middleware of procedure.zzProcedure.middlewares ?? []) {
+      for (const middleware of procedure.zz$p.middlewares ?? []) {
         const mid = await middleware(validInput, context, meta)
         context = mergeContext(context, mid?.context)
       }
 
-      const output = await procedure.zzProcedure.handler(
-        validInput,
-        context,
-        meta,
-      )
+      const output = await procedure.zz$p.handler(validInput, context, meta)
 
       return await (async () => {
-        const schema =
-          procedure.zzProcedure.contract.zzContractProcedure.OutputSchema
+        const schema = procedure.zz$p.contract.zz$cp.OutputSchema
         if (!schema) return output
         const result = await schema.safeParseAsync(output)
         if (result.error)

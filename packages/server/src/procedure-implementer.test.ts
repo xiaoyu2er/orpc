@@ -98,7 +98,7 @@ describe('output schema', () => {
   it('auto infer output schema if output schema is not specified', async () => {
     const sr = initORPC.handler(() => ({ a: 1 }))
 
-    const result = await sr.zzProcedure.handler({}, undefined, {
+    const result = await sr.zz$p.handler({}, undefined, {
       method: 'GET',
       path: '/',
     } as any)
@@ -116,7 +116,7 @@ describe('output schema', () => {
 
     const sr = srb1.handler(() => ({ b: 1 }))
 
-    const result = await sr.zzProcedure.handler({}, {}, {
+    const result = await sr.zz$p.handler({}, {}, {
       method: 'GET',
       path: '/',
     } as any)
@@ -196,6 +196,6 @@ describe('handler', () => {
       >
     >()
 
-    expect(handler.zzProcedure.middlewares).toEqual([mid1, mid2])
+    expect(handler.zz$p.middlewares).toEqual([mid1, mid2])
   })
 })

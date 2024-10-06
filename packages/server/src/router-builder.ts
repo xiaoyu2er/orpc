@@ -1,4 +1,4 @@
-import type { HTTPPath } from '@orpc/contract'
+import { DecoratedContractProcedure, type HTTPPath } from '@orpc/contract'
 import type { MapInputMiddleware, Middleware } from './middleware'
 import { DecoratedProcedure, isProcedure } from './procedure'
 import type { Router } from './router'
@@ -9,7 +9,7 @@ export class RouterBuilder<
   TExtraContext extends Context,
 > {
   constructor(
-    public zzRouterBuilder: {
+    public zz$rb: {
       prefix?: HTTPPath
       middlewares?: Middleware<TContext, any, any, any>[]
     },
@@ -17,8 +17,8 @@ export class RouterBuilder<
 
   prefix(prefix: HTTPPath) {
     return new RouterBuilder({
-      ...this.zzRouterBuilder,
-      prefix: `${this.zzRouterBuilder.prefix ?? ''}${prefix}`,
+      ...this.zz$rb,
+      prefix: `${this.zz$rb.prefix ?? ''}${prefix}`,
     })
   }
 
@@ -60,13 +60,13 @@ export class RouterBuilder<
         : middleware_
 
     return new RouterBuilder({
-      ...this.zzRouterBuilder,
-      middlewares: [...(this.zzRouterBuilder.middlewares || []), middleware],
+      ...this.zz$rb,
+      middlewares: [...(this.zz$rb.middlewares || []), middleware],
     })
   }
 
   router<URouter extends Router<TContext>>(router: URouter): URouter {
-    if (!this.zzRouterBuilder.prefix && !this.zzRouterBuilder.middlewares) {
+    if (!this.zz$rb.prefix && !this.zz$rb.middlewares) {
       return router
     }
 
@@ -76,8 +76,8 @@ export class RouterBuilder<
       const item = router[key]
 
       if (isProcedure(item)) {
-        const builderMiddlewares = this.zzRouterBuilder.middlewares ?? []
-        const itemMiddlewares = item.zzProcedure.middlewares ?? []
+        const builderMiddlewares = this.zz$rb.middlewares ?? []
+        const itemMiddlewares = item.zz$p.middlewares ?? []
 
         const middlewares = [
           ...builderMiddlewares,
@@ -87,10 +87,12 @@ export class RouterBuilder<
         ]
 
         clone[key] = new DecoratedProcedure({
-          ...item.zzProcedure,
-          contract: this.zzRouterBuilder.prefix
-            ? item.zzProcedure.contract.prefix(this.zzRouterBuilder.prefix)
-            : item.zzProcedure.contract,
+          ...item.zz$p,
+          contract: this.zz$rb.prefix
+            ? new DecoratedContractProcedure(item.zz$p.contract.zz$cp).prefix(
+                this.zz$rb.prefix,
+              )
+            : item.zz$p.contract,
           middlewares,
         })
       } else {

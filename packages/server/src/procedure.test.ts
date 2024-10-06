@@ -10,7 +10,7 @@ import { DecoratedProcedure, isProcedure } from './procedure'
 it('isProcedure', () => {
   expect(new DecoratedProcedure({} as any)).toSatisfy(isProcedure)
   expect({
-    zzProcedure: {
+    zz$p: {
       contract: new DecoratedContractProcedure({
         InputSchema: undefined,
         OutputSchema: undefined,
@@ -20,7 +20,7 @@ it('isProcedure', () => {
   }).toSatisfy(isProcedure)
 
   expect({
-    zzProcedure: {
+    zz$p: {
       contract: new DecoratedContractProcedure({
         InputSchema: undefined,
         OutputSchema: undefined,
@@ -29,7 +29,7 @@ it('isProcedure', () => {
   }).not.toSatisfy(isProcedure)
 
   expect({
-    zzProcedure: {
+    zz$p: {
       handler: () => {},
     },
   }).not.toSatisfy(isProcedure)
@@ -48,7 +48,7 @@ test('prefix method', () => {
 
   const p2 = p.prefix('/test')
 
-  expect(p2.zzProcedure.contract.zzContractProcedure.path).toBe(undefined)
+  expect(p2.zz$p.contract.zz$cp.path).toBe(undefined)
 
   const p3 = initORPC
     .context<{ auth: boolean }>()
@@ -58,7 +58,7 @@ test('prefix method', () => {
     })
 
   const p4 = p3.prefix('/test')
-  expect(p4.zzProcedure.contract.zzContractProcedure.path).toBe('/test/test1')
+  expect(p4.zz$p.contract.zz$cp.path).toBe('/test/test1')
 })
 
 describe('use middleware', () => {
@@ -134,6 +134,6 @@ describe('use middleware', () => {
     const p1 = initORPC.use(mid1).handler(() => 'dinwwwh')
     const p2 = p1.use(mid2).use(mid3)
 
-    expect(p2.zzProcedure.middlewares).toEqual([mid3, mid2, mid1])
+    expect(p2.zz$p.middlewares).toEqual([mid3, mid2, mid1])
   })
 })

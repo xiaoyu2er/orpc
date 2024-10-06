@@ -10,15 +10,11 @@ test('prefix method', () => {
   })
   const p2 = orpc.input(z.object({}))
 
-  expect(p1.prefix('/prefix').zzContractProcedure.path).toEqual('/prefix/ping')
-  expect(p2.prefix('/prefix').zzContractProcedure.path).toEqual(undefined)
+  expect(p1.prefix('/prefix').zz$cp.path).toEqual('/prefix/ping')
+  expect(p2.prefix('/prefix').zz$cp.path).toEqual(undefined)
 
-  expect(p1.prefix('/1').prefix('/2').zzContractProcedure.path).toEqual(
-    '/2/1/ping',
-  )
-  expect(p2.prefix('/1').prefix('/2').zzContractProcedure.path).toEqual(
-    undefined,
-  )
+  expect(p1.prefix('/1').prefix('/2').zz$cp.path).toEqual('/2/1/ping')
+  expect(p2.prefix('/1').prefix('/2').zz$cp.path).toEqual(undefined)
 })
 
 test('route method', () => {
@@ -38,7 +34,7 @@ test('route method', () => {
     DecoratedContractProcedure<undefined, undefined>
   >()
 
-  expect(p.zzContractProcedure).toMatchObject({
+  expect(p.zz$cp).toMatchObject({
     method: 'GET',
     path: '/abc',
     deprecated: true,
@@ -50,7 +46,7 @@ test('route method', () => {
 test('description method', () => {
   const p = initORPCContract.route({}).description('abc')
 
-  expect(p.zzContractProcedure).toMatchObject({
+  expect(p.zz$cp).toMatchObject({
     description: 'abc',
   })
 })
@@ -58,7 +54,7 @@ test('description method', () => {
 test('summary method', () => {
   const p = initORPCContract.route({}).summary('abc')
 
-  expect(p.zzContractProcedure).toMatchObject({
+  expect(p.zz$cp).toMatchObject({
     summary: 'abc',
   })
 })
@@ -66,7 +62,7 @@ test('summary method', () => {
 test('deprecated method', () => {
   const p = initORPCContract.route({}).deprecated()
 
-  expect(p.zzContractProcedure).toMatchObject({
+  expect(p.zz$cp).toMatchObject({
     deprecated: true,
   })
 })
@@ -79,7 +75,7 @@ test('input method', () => {
     DecoratedContractProcedure<typeof schema, undefined>
   >()
 
-  expect(p.zzContractProcedure).toMatchObject({
+  expect(p.zz$cp).toMatchObject({
     InputSchema: schema,
     inputExample: undefined,
     inputExamples: undefined,
@@ -94,7 +90,7 @@ test('output method', () => {
     DecoratedContractProcedure<undefined, typeof schema>
   >()
 
-  expect(p.zzContractProcedure).toMatchObject({
+  expect(p.zz$cp).toMatchObject({
     OutputSchema: schema,
     outputExample: undefined,
     outputExamples: undefined,

@@ -15,7 +15,7 @@ export class RouterImplementer<
   TContract extends ContractRouter,
 > {
   constructor(
-    public zzRouterImplementer: {
+    public zz$ri: {
       contract: TContract
     },
   ) {}
@@ -23,7 +23,7 @@ export class RouterImplementer<
   router(
     router: RouterWithContract<TContext, TContract>,
   ): RouterWithContract<TContext, TContract> {
-    assertRouterImplementation(this.zzRouterImplementer.contract, router)
+    assertRouterImplementation(this.zz$ri.contract, router)
 
     return router
   }
@@ -109,7 +109,7 @@ export function assertRouterImplementation(
 
     if (isContractProcedure(contractItem)) {
       if (isProcedure(routerItem)) {
-        if (routerItem.zzProcedure.contract !== contractItem) {
+        if (routerItem.zz$p.contract !== contractItem) {
           throw new Error(
             `Mismatch implementation for procedure at [${currentPath.join('.')}]`,
           )

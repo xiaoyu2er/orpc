@@ -1,4 +1,4 @@
-import type { DecoratedContractProcedure } from '@orpc/contract'
+import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
 import { type DecoratedProcedure, isProcedure } from './procedure'
 import { ProcedureBuilder } from './procedure-builder'
@@ -15,7 +15,12 @@ const builder = new ProcedureBuilder<
   undefined,
   undefined,
   undefined
->({ InputSchema: undefined, OutputSchema: undefined })
+>({
+  contract: new ContractProcedure({
+    InputSchema: undefined,
+    OutputSchema: undefined,
+  }),
+})
 
 it('input', () => {
   const builder2 = builder.input(schema1, example1, { default: example1 })
@@ -25,9 +30,13 @@ it('input', () => {
   >()
 
   expect(builder2.zz$pb).toMatchObject({
-    InputSchema: schema1,
-    inputExample: example1,
-    inputExamples: { default: example1 },
+    contract: {
+      zz$cp: {
+        InputSchema: schema1,
+        inputExample: example1,
+        inputExamples: { default: example1 },
+      },
+    },
   })
 })
 
@@ -39,9 +48,13 @@ it('output', () => {
   >()
 
   expect(builder2.zz$pb).toMatchObject({
-    OutputSchema: schema2,
-    outputExample: example2,
-    outputExamples: { default: example2 },
+    contract: {
+      zz$cp: {
+        OutputSchema: schema2,
+        outputExample: example2,
+        outputExamples: { default: example2 },
+      },
+    },
   })
 })
 
@@ -59,11 +72,15 @@ it('route', () => {
   >()
 
   expect(builder2.zz$pb).toMatchObject({
-    method: 'GET',
-    path: '/test',
-    deprecated: true,
-    description: 'des',
-    summary: 'sum',
+    contract: {
+      zz$cp: {
+        method: 'GET',
+        path: '/test',
+        deprecated: true,
+        description: 'des',
+        summary: 'sum',
+      },
+    },
   })
 })
 
@@ -73,7 +90,11 @@ it('summary', () => {
   expectTypeOf(builder2).toEqualTypeOf(builder)
 
   expect(builder2.zz$pb).toMatchObject({
-    summary: 'sum',
+    contract: {
+      zz$cp: {
+        summary: 'sum',
+      },
+    },
   })
 })
 
@@ -83,7 +104,11 @@ it('description', () => {
   expectTypeOf(builder2).toEqualTypeOf(builder)
 
   expect(builder2.zz$pb).toMatchObject({
-    description: 'des',
+    contract: {
+      zz$cp: {
+        description: 'des',
+      },
+    },
   })
 })
 
@@ -93,7 +118,11 @@ it('deprecated', () => {
   expectTypeOf(builder2).toEqualTypeOf(builder)
 
   expect(builder2.zz$pb).toMatchObject({
-    deprecated: true,
+    contract: {
+      zz$cp: {
+        deprecated: true,
+      },
+    },
   })
 })
 
@@ -122,8 +151,9 @@ describe('use middleware', () => {
     expectTypeOf(implementer).toEqualTypeOf<
       ProcedureImplementer<
         { auth: boolean },
-        DecoratedContractProcedure<undefined, undefined>,
-        { userId: string }
+        { userId: string },
+        undefined,
+        undefined
       >
     >()
   })
@@ -161,8 +191,9 @@ describe('use middleware', () => {
     expectTypeOf(implementer).toEqualTypeOf<
       ProcedureImplementer<
         { auth: boolean },
-        DecoratedContractProcedure<typeof schema1, undefined>,
-        { userId555: string }
+        { userId555: string },
+        typeof schema1,
+        undefined
       >
     >()
   })
@@ -179,7 +210,8 @@ describe('handler', () => {
     expectTypeOf(handler).toEqualTypeOf<
       DecoratedProcedure<
         { auth: boolean },
-        DecoratedContractProcedure<undefined, undefined>,
+        undefined,
+        undefined,
         undefined,
         void
       >
@@ -217,8 +249,9 @@ describe('handler', () => {
     expectTypeOf(handler).toEqualTypeOf<
       DecoratedProcedure<
         { auth: boolean },
-        DecoratedContractProcedure<undefined, undefined>,
         { userId: string },
+        undefined,
+        undefined,
         { name: string }
       >
     >()

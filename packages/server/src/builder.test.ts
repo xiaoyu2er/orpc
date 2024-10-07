@@ -1,7 +1,4 @@
-import {
-  type DecoratedContractProcedure,
-  initORPCContract,
-} from '@orpc/contract'
+import { initORPCContract } from '@orpc/contract'
 import { z } from 'zod'
 import {
   type Builder,
@@ -164,9 +161,13 @@ describe('define procedure builder', () => {
     expect(builder).instanceOf(ProcedureBuilder)
     expect(builder.zz$pb.middlewares).toBe(undefined)
     expect(builder.zz$pb).toMatchObject({
-      InputSchema: schema1,
-      inputExample: example1,
-      inputExamples: { default: example1 },
+      contract: {
+        zz$cp: {
+          InputSchema: schema1,
+          inputExample: example1,
+          inputExamples: { default: example1 },
+        },
+      },
     })
   })
 
@@ -180,9 +181,13 @@ describe('define procedure builder', () => {
     expect(builder).instanceOf(ProcedureBuilder)
     expect(builder.zz$pb.middlewares).toBe(undefined)
     expect(builder.zz$pb).toMatchObject({
-      OutputSchema: schema2,
-      outputExample: example2,
-      outputExamples: { default: example2 },
+      contract: {
+        zz$cp: {
+          OutputSchema: schema2,
+          outputExample: example2,
+          outputExamples: { default: example2 },
+        },
+      },
     })
   })
 
@@ -202,11 +207,15 @@ describe('define procedure builder', () => {
     expect(builder).instanceOf(ProcedureBuilder)
     expect(builder.zz$pb.middlewares).toBe(undefined)
     expect(builder.zz$pb).toMatchObject({
-      method: 'GET',
-      path: '/test',
-      deprecated: true,
-      description: 'des',
-      summary: 'sum',
+      contract: {
+        zz$cp: {
+          method: 'GET',
+          path: '/test',
+          deprecated: true,
+          description: 'des',
+          summary: 'sum',
+        },
+      },
     })
   })
 
@@ -279,7 +288,8 @@ describe('handler method', () => {
     expectTypeOf(procedure).toEqualTypeOf<
       DecoratedProcedure<
         { auth: boolean },
-        DecoratedContractProcedure<undefined, undefined>,
+        undefined,
+        undefined,
         undefined,
         void
       >
@@ -309,8 +319,9 @@ describe('handler method', () => {
     expectTypeOf(procedure).toEqualTypeOf<
       DecoratedProcedure<
         { auth: boolean },
-        DecoratedContractProcedure<undefined, undefined>,
         { userId: string },
+        undefined,
+        undefined,
         void
       >
     >()

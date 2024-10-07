@@ -3,19 +3,46 @@ import {
   type ContractRouter,
   isContractProcedure,
 } from '@orpc/contract'
-import { type Procedure, isProcedure } from './procedure'
+import {
+  type DecoratedProcedure,
+  type Procedure,
+  isProcedure,
+} from './procedure'
 import type { Context } from './types'
 
 export interface Router<TContext extends Context> {
-  [k: string]: Procedure<TContext, any, any, any> | Router<TContext>
+  [k: string]: Procedure<TContext, any, any, any, any> | Router<TContext>
+}
+
+export type HandledRouter<TRouter extends Router<any>> = {
+  [K in keyof TRouter]: TRouter[K] extends Procedure<
+    infer UContext,
+    infer UExtraContext,
+    infer UInputSchema,
+    infer UOutputSchema,
+    infer UHandlerOutput
+  >
+    ? DecoratedProcedure<
+        UContext,
+        UExtraContext,
+        UInputSchema,
+        UOutputSchema,
+        UHandlerOutput
+      >
+    : TRouter[K] extends Router<any>
+      ? HandledRouter<TRouter[K]>
+      : never
 }
 
 export type RouterWithContract<
   TContext extends Context,
   TContract extends ContractRouter,
 > = {
-  [K in keyof TContract]: TContract[K] extends ContractProcedure<any, any>
-    ? Procedure<TContext, TContract[K], any, any>
+  [K in keyof TContract]: TContract[K] extends ContractProcedure<
+    infer UInputSchema,
+    infer UOutputSchema
+  >
+    ? Procedure<TContext, any, UInputSchema, UOutputSchema, any>
     : TContract[K] extends ContractRouter
       ? RouterWithContract<TContext, TContract[K]>
       : never

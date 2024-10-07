@@ -1,4 +1,5 @@
 import type { ContractProcedure, SchemaOutput } from '@orpc/contract'
+import type { Schema } from '@orpc/contract'
 import {
   type MapInputMiddleware,
   type Middleware,
@@ -9,12 +10,13 @@ import type { Context, MergeContext } from './types'
 
 export class ProcedureImplementer<
   TContext extends Context,
-  TContract extends ContractProcedure<any, any>,
   TExtraContext extends Context,
+  TInputSchema extends Schema,
+  TOutputSchema extends Schema,
 > {
   constructor(
     public zz$pi: {
-      contract: TContract
+      contract: ContractProcedure<TInputSchema, TOutputSchema>
       middlewares?: Middleware<TContext, any, any, any>[]
     },
   ) {}
@@ -27,51 +29,40 @@ export class ProcedureImplementer<
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
       UExtraContext,
-      TContract extends ContractProcedure<infer UInputSchema, any>
-        ? SchemaOutput<UInputSchema>
-        : never,
-      TContract extends ContractProcedure<any, infer UOutputSchema>
-        ? SchemaOutput<UOutputSchema>
-        : never
+      SchemaOutput<TInputSchema>,
+      SchemaOutput<TOutputSchema>
     >,
   ): ProcedureImplementer<
     TContext,
-    TContract,
-    MergeContext<TExtraContext, UExtraContext>
+    MergeContext<TExtraContext, UExtraContext>,
+    TInputSchema,
+    TOutputSchema
   >
 
   use<
     UExtraContext extends
       | Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>
       | undefined = undefined,
-    UMappedInput = TContract extends ContractProcedure<infer UInputSchema, any>
-      ? SchemaOutput<UInputSchema>
-      : never,
+    UMappedInput = unknown,
   >(
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
       UExtraContext,
       UMappedInput,
-      TContract extends ContractProcedure<any, infer UOutputSchema>
-        ? SchemaOutput<UOutputSchema>
-        : never
+      SchemaOutput<TOutputSchema>
     >,
-    mapInput: MapInputMiddleware<
-      TContract extends ContractProcedure<infer UInputSchema, any>
-        ? SchemaOutput<UInputSchema>
-        : never,
-      UMappedInput
-    >,
+    mapInput: MapInputMiddleware<SchemaOutput<TInputSchema>, UMappedInput>,
   ): ProcedureImplementer<
     TContext,
-    TContract,
-    MergeContext<TExtraContext, UExtraContext>
+    MergeContext<TExtraContext, UExtraContext>,
+    TInputSchema,
+    TOutputSchema
   >
 
   use(
     middleware: Middleware<any, any, any, any>,
     mapInput?: MapInputMiddleware<any, any>,
-  ): ProcedureImplementer<any, any, any> {
+  ): ProcedureImplementer<any, any, any, any> {
     const middleware_ = mapInput
       ? decorateMiddleware(middleware).mapInput(mapInput)
       : middleware
@@ -82,21 +73,21 @@ export class ProcedureImplementer<
     })
   }
 
-  handler<
-    UHandlerOutput extends TContract extends ContractProcedure<
-      any,
-      infer UOutputSchema
-    >
-      ? SchemaOutput<UOutputSchema>
-      : never,
-  >(
+  handler<UHandlerOutput extends SchemaOutput<TOutputSchema>>(
     handler: ProcedureHandler<
       TContext,
-      TContract,
       TExtraContext,
+      TInputSchema,
+      TOutputSchema,
       UHandlerOutput
     >,
-  ): DecoratedProcedure<TContext, TContract, TExtraContext, UHandlerOutput> {
+  ): DecoratedProcedure<
+    TContext,
+    TExtraContext,
+    TInputSchema,
+    TOutputSchema,
+    UHandlerOutput
+  > {
     return new DecoratedProcedure({
       middlewares: this.zz$pi.middlewares,
       contract: this.zz$pi.contract,

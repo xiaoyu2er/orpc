@@ -1,5 +1,10 @@
 import { z } from 'zod'
-import { initORPCContract } from '.'
+import {
+  ContractProcedure,
+  DecoratedContractProcedure,
+  initORPCContract,
+} from '.'
+import { ContractRouterBuilder } from './router-builder'
 
 test('prefix method', () => {
   expect(initORPCContract.prefix('/1').prefix('/2').zz$crb.prefix).toEqual(
@@ -32,4 +37,30 @@ test('define a router', () => {
   expect(router.internal.ping.zz$cp.path).toEqual('/internal/ping')
   expect(router.internal.pong.zz$cp.path).toEqual(undefined)
   expect(router.internal.nested.ping.zz$cp.path).toEqual('/internal/ping')
+})
+
+it('router: decorate items', () => {
+  const builder = new ContractRouterBuilder({})
+
+  const ping = new ContractProcedure({
+    InputSchema: undefined,
+    OutputSchema: undefined,
+  })
+
+  const decorated = new DecoratedContractProcedure({
+    InputSchema: undefined,
+    OutputSchema: undefined,
+    method: 'GET',
+    path: '/ping',
+  })
+
+  const router = builder.router({ ping, nested: { ping } })
+
+  expectTypeOf(router).toEqualTypeOf<{
+    ping: typeof decorated
+    nested: { ping: typeof decorated }
+  }>()
+
+  expect(router.ping).instanceOf(DecoratedContractProcedure)
+  expect(router.nested.ping).instanceOf(DecoratedContractProcedure)
 })

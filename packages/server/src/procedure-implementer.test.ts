@@ -11,7 +11,8 @@ const p1 = new DecoratedContractProcedure({
 })
 const implementer1 = new ProcedureImplementer<
   { auth: boolean },
-  typeof p1,
+  undefined,
+  undefined,
   undefined
 >({ contract: p1 })
 
@@ -27,8 +28,9 @@ const p2 = new DecoratedContractProcedure({
 
 const implementer2 = new ProcedureImplementer<
   { auth: boolean },
-  typeof p2,
-  undefined
+  undefined,
+  typeof schema1,
+  typeof schema2
 >({ contract: p2 })
 
 describe('use middleware', () => {
@@ -54,7 +56,12 @@ describe('use middleware', () => {
       })
 
     expectTypeOf(i).toEqualTypeOf<
-      ProcedureImplementer<{ auth: boolean }, typeof p1, { userId: string }>
+      ProcedureImplementer<
+        { auth: boolean },
+        { userId: string },
+        undefined,
+        undefined
+      >
     >()
   })
 
@@ -89,7 +96,12 @@ describe('use middleware', () => {
     )
 
     expectTypeOf(i).toEqualTypeOf<
-      ProcedureImplementer<{ auth: boolean }, typeof p2, { userIdd: string }>
+      ProcedureImplementer<
+        { auth: boolean },
+        { userIdd: string },
+        typeof schema1,
+        typeof schema2
+      >
     >()
   })
 })
@@ -140,7 +152,8 @@ describe('handler', () => {
     expectTypeOf(handler).toEqualTypeOf<
       DecoratedProcedure<
         { auth: boolean },
-        typeof p1,
+        undefined,
+        undefined,
         undefined,
         { name: string }
       >
@@ -190,8 +203,9 @@ describe('handler', () => {
     expectTypeOf(handler).toEqualTypeOf<
       DecoratedProcedure<
         { auth: boolean },
-        typeof p2,
         { userId: string },
+        typeof schema1,
+        typeof schema2,
         { name: string }
       >
     >()

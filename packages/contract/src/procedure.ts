@@ -120,8 +120,13 @@ export function isContractProcedure(
   if (item instanceof ContractProcedure) return true
 
   try {
-    const anyItem = item as any
-    return typeof anyItem.zz$cp === 'object' && anyItem.zz$cp !== null
+    const anyItem = item as WELL_DEFINED_CONTRACT_PROCEDURE
+    return (
+      typeof anyItem.zz$cp === 'object' &&
+      anyItem.zz$cp !== null &&
+      'InputSchema' in anyItem.zz$cp &&
+      'OutputSchema' in anyItem.zz$cp
+    )
   } catch {
     return false
   }

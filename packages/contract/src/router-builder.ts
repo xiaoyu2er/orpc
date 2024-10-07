@@ -1,5 +1,5 @@
 import { DecoratedContractProcedure, isContractProcedure } from './procedure'
-import type { ContractRouter } from './router'
+import type { ContractRouter, HandledContractRouter } from './router'
 import type { HTTPPath } from './types'
 
 export class ContractRouterBuilder {
@@ -12,24 +12,21 @@ export class ContractRouterBuilder {
     })
   }
 
-  router<T extends ContractRouter>(router: T): T {
-    if (!this.zz$crb.prefix) {
-      return router
-    }
-
-    const clone: ContractRouter = {}
+  router<T extends ContractRouter>(router: T): HandledContractRouter<T> {
+    const handled: ContractRouter = {}
 
     for (const key in router) {
       const item = router[key]
       if (isContractProcedure(item)) {
-        clone[key] = DecoratedContractProcedure.decorate(item).prefix(
-          this.zz$crb.prefix,
-        )
+        const decorated = DecoratedContractProcedure.decorate(item)
+        handled[key] = this.zz$crb.prefix
+          ? decorated.prefix(this.zz$crb.prefix)
+          : decorated
       } else {
-        clone[key] = this.router(item as ContractRouter)
+        handled[key] = this.router(item as ContractRouter)
       }
     }
 
-    return clone as T
+    return handled as HandledContractRouter<T>
   }
 }

@@ -1,4 +1,5 @@
 import {
+  type ContractProcedure,
   DecoratedContractProcedure,
   type HTTPMethod,
   type HTTPPath,
@@ -18,27 +19,10 @@ export class ProcedureBuilder<
 > {
   constructor(
     public zz$pb: {
-      path?: HTTPPath
-      method?: HTTPMethod
-      summary?: string
-      description?: string
-      deprecated?: boolean
-      InputSchema: TInputSchema
-      inputExample?: SchemaOutput<TInputSchema>
-      inputExamples?: Record<string, SchemaOutput<TInputSchema>>
-      OutputSchema: TOutputSchema
-      outputExample?: SchemaOutput<TOutputSchema>
-      outputExamples?: Record<string, SchemaOutput<TOutputSchema>>
+      contract: ContractProcedure<TInputSchema, TOutputSchema>
       middlewares?: Middleware<TContext, any, any, any>[]
     },
   ) {}
-
-  private get contract(): DecoratedContractProcedure<
-    TInputSchema,
-    TOutputSchema
-  > {
-    return new DecoratedContractProcedure(this.zz$pb)
-  }
 
   /**
    * Self chainable
@@ -53,9 +37,9 @@ export class ProcedureBuilder<
   }): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema> {
     return new ProcedureBuilder({
       ...this.zz$pb,
-      ...opts,
-      method: opts.method,
-      path: opts.path,
+      contract: DecoratedContractProcedure.decorate(this.zz$pb.contract).route(
+        opts,
+      ),
     })
   }
 
@@ -64,7 +48,9 @@ export class ProcedureBuilder<
   ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema> {
     return new ProcedureBuilder({
       ...this.zz$pb,
-      summary,
+      contract: DecoratedContractProcedure.decorate(
+        this.zz$pb.contract,
+      ).summary(summary),
     })
   }
 
@@ -73,7 +59,9 @@ export class ProcedureBuilder<
   ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema> {
     return new ProcedureBuilder({
       ...this.zz$pb,
-      description,
+      contract: DecoratedContractProcedure.decorate(
+        this.zz$pb.contract,
+      ).description(description),
     })
   }
 
@@ -82,7 +70,9 @@ export class ProcedureBuilder<
   ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema> {
     return new ProcedureBuilder({
       ...this.zz$pb,
-      deprecated,
+      contract: DecoratedContractProcedure.decorate(
+        this.zz$pb.contract,
+      ).deprecated(deprecated),
     })
   }
 
@@ -93,9 +83,11 @@ export class ProcedureBuilder<
   ): ProcedureBuilder<TContext, TExtraContext, USchema, TOutputSchema> {
     return new ProcedureBuilder({
       ...this.zz$pb,
-      InputSchema: schema,
-      inputExample: example,
-      inputExamples: examples,
+      contract: DecoratedContractProcedure.decorate(this.zz$pb.contract).input(
+        schema,
+        example,
+        examples,
+      ),
     })
   }
 
@@ -106,9 +98,11 @@ export class ProcedureBuilder<
   ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, USchema> {
     return new ProcedureBuilder({
       ...this.zz$pb,
-      OutputSchema: schema,
-      outputExample: example,
-      outputExamples: examples,
+      contract: DecoratedContractProcedure.decorate(this.zz$pb.contract).output(
+        schema,
+        example,
+        examples,
+      ),
     })
   }
 
@@ -129,8 +123,9 @@ export class ProcedureBuilder<
     >,
   ): ProcedureImplementer<
     TContext,
-    DecoratedContractProcedure<TInputSchema, TOutputSchema>,
-    MergeContext<TExtraContext, UExtraContext>
+    MergeContext<TExtraContext, UExtraContext>,
+    TInputSchema,
+    TOutputSchema
   >
 
   use<
@@ -148,23 +143,24 @@ export class ProcedureBuilder<
     mapInput: MapInputMiddleware<SchemaOutput<TInputSchema>, UMappedInput>,
   ): ProcedureImplementer<
     TContext,
-    DecoratedContractProcedure<TInputSchema, TOutputSchema>,
-    MergeContext<TExtraContext, UExtraContext>
+    MergeContext<TExtraContext, UExtraContext>,
+    TInputSchema,
+    TOutputSchema
   >
 
   use(
     middleware: Middleware<any, any, any, any>,
     mapInput?: MapInputMiddleware<any, any>,
-  ): ProcedureImplementer<any, any, any> {
+  ): ProcedureImplementer<any, any, any, any> {
     if (!mapInput) {
       return new ProcedureImplementer({
-        contract: this.contract,
+        contract: this.zz$pb.contract,
         middlewares: this.zz$pb.middlewares,
       }).use(middleware)
     }
 
     return new ProcedureImplementer({
-      contract: this.contract,
+      contract: this.zz$pb.contract,
       middlewares: this.zz$pb.middlewares,
     }).use(middleware, mapInput)
   }
@@ -176,19 +172,21 @@ export class ProcedureBuilder<
   handler<UHandlerOutput extends SchemaOutput<TOutputSchema>>(
     handler: ProcedureHandler<
       TContext,
-      DecoratedContractProcedure<TInputSchema, TOutputSchema>,
       TExtraContext,
+      TInputSchema,
+      TOutputSchema,
       UHandlerOutput
     >,
   ): DecoratedProcedure<
     TContext,
-    DecoratedContractProcedure<TInputSchema, TOutputSchema>,
     TExtraContext,
+    TInputSchema,
+    TOutputSchema,
     UHandlerOutput
   > {
     return new DecoratedProcedure({
       middlewares: this.zz$pb.middlewares,
-      contract: this.contract,
+      contract: this.zz$pb.contract,
       handler,
     })
   }

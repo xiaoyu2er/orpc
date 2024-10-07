@@ -28,5 +28,5 @@ export function createCallableObject<
     getOwnPropertyDescriptor(_, prop) {
       return Reflect.getOwnPropertyDescriptor(object, prop)
     },
-  }) as any
+  }) as T & F
 }

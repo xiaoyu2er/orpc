@@ -33,8 +33,11 @@ export type ChainedRouterImplementer<
   TContract extends ContractRouter,
   TExtraContext extends Context,
 > = {
-  [K in keyof TContract]: TContract[K] extends ContractProcedure<any, any>
-    ? ProcedureImplementer<TContext, TContract[K], TExtraContext>
+  [K in keyof TContract]: TContract[K] extends ContractProcedure<
+    infer UInputSchema,
+    infer UOutputSchema
+  >
+    ? ProcedureImplementer<TContext, TExtraContext, UInputSchema, UOutputSchema>
     : TContract[K] extends ContractRouter
       ? ChainedRouterImplementer<TContext, TContract[K], TExtraContext>
       : never

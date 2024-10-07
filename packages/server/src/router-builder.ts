@@ -5,7 +5,7 @@ import {
   decorateMiddleware,
 } from './middleware'
 import { DecoratedProcedure, isProcedure } from './procedure'
-import type { Router } from './router'
+import type { HandledRouter, Router } from './router'
 import type { Context, MergeContext } from './types'
 
 export class RouterBuilder<
@@ -68,12 +68,10 @@ export class RouterBuilder<
     })
   }
 
-  router<URouter extends Router<TContext>>(router: URouter): URouter {
-    if (!this.zz$rb.prefix && !this.zz$rb.middlewares) {
-      return router
-    }
-
-    const clone: Router<TContext> = {}
+  router<URouter extends Router<TContext>>(
+    router: URouter,
+  ): HandledRouter<URouter> {
+    const handled: Router<TContext> = {}
 
     for (const key in router) {
       const item = router[key]
@@ -89,7 +87,7 @@ export class RouterBuilder<
           ),
         ]
 
-        clone[key] = new DecoratedProcedure({
+        handled[key] = new DecoratedProcedure({
           ...item.zz$p,
           contract: this.zz$rb.prefix
             ? DecoratedContractProcedure.decorate(item.zz$p.contract).prefix(
@@ -99,10 +97,10 @@ export class RouterBuilder<
           middlewares,
         })
       } else {
-        clone[key] = this.router(item as any)
+        handled[key] = this.router(item as any)
       }
     }
 
-    return clone as URouter
+    return handled as HandledRouter<URouter>
   }
 }

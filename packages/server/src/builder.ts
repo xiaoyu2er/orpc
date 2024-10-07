@@ -1,7 +1,6 @@
 import {
-  type ContractProcedure,
+  ContractProcedure,
   type ContractRouter,
-  DecoratedContractProcedure,
   type HTTPMethod,
   type HTTPPath,
   type IsEqual,
@@ -18,7 +17,7 @@ import {
 import { DecoratedProcedure, type ProcedureHandler } from './procedure'
 import { ProcedureBuilder } from './procedure-builder'
 import { ProcedureImplementer } from './procedure-implementer'
-import type { Router } from './router'
+import type { HandledRouter, Router } from './router'
 import { RouterBuilder } from './router-builder'
 import {
   type ChainedRouterImplementer,
@@ -97,10 +96,12 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
     deprecated?: boolean
   }): ProcedureBuilder<TContext, TExtraContext, undefined, undefined> {
     return new ProcedureBuilder({
-      ...opts,
-      InputSchema: undefined,
-      OutputSchema: undefined,
       middlewares: this.zz$b.middlewares,
+      contract: new ContractProcedure({
+        ...opts,
+        InputSchema: undefined,
+        OutputSchema: undefined,
+      }),
     })
   }
 
@@ -110,11 +111,13 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
     examples?: Record<string, SchemaOutput<USchema>>,
   ): ProcedureBuilder<TContext, TExtraContext, USchema, undefined> {
     return new ProcedureBuilder({
-      OutputSchema: undefined,
-      InputSchema: schema,
-      inputExample: example,
-      inputExamples: examples,
       middlewares: this.zz$b.middlewares,
+      contract: new ContractProcedure({
+        OutputSchema: undefined,
+        InputSchema: schema,
+        inputExample: example,
+        inputExamples: examples,
+      }),
     })
   }
 
@@ -124,11 +127,13 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
     examples?: Record<string, SchemaOutput<USchema>>,
   ): ProcedureBuilder<TContext, TExtraContext, undefined, USchema> {
     return new ProcedureBuilder({
-      InputSchema: undefined,
-      OutputSchema: schema,
-      outputExample: example,
-      outputExamples: examples,
       middlewares: this.zz$b.middlewares,
+      contract: new ContractProcedure({
+        InputSchema: undefined,
+        OutputSchema: schema,
+        outputExample: example,
+        outputExamples: examples,
+      }),
     })
   }
 
@@ -138,19 +143,21 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
   handler<UHandlerOutput = undefined>(
     handler: ProcedureHandler<
       TContext,
-      DecoratedContractProcedure<undefined, undefined>,
       TExtraContext,
+      undefined,
+      undefined,
       UHandlerOutput
     >,
   ): DecoratedProcedure<
     TContext,
-    DecoratedContractProcedure<undefined, undefined>,
     TExtraContext,
+    undefined,
+    undefined,
     UHandlerOutput
   > {
     return new DecoratedProcedure({
       middlewares: this.zz$b.middlewares,
-      contract: new DecoratedContractProcedure({
+      contract: new ContractProcedure({
         InputSchema: undefined,
         OutputSchema: undefined,
       }),
@@ -164,8 +171,11 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
 
   contract<UContract extends ContractProcedure<any, any> | ContractRouter>(
     contract: UContract,
-  ): UContract extends ContractProcedure<any, any>
-    ? ProcedureImplementer<TContext, UContract, TExtraContext>
+  ): UContract extends ContractProcedure<
+    infer UInputSchema,
+    infer UOutputSchema
+  >
+    ? ProcedureImplementer<TContext, TExtraContext, UInputSchema, UOutputSchema>
     : UContract extends ContractRouter
       ? ChainedRouterImplementer<TContext, UContract, TExtraContext>
       : never {
@@ -212,7 +222,9 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
   /**
    * Create DecoratedRouter
    */
-  router<URouter extends Router<TContext>>(router: URouter): URouter {
+  router<URouter extends Router<TContext>>(
+    router: URouter,
+  ): HandledRouter<URouter> {
     return new RouterBuilder(this.zz$b).router(router)
   }
 }

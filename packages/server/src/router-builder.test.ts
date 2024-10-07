@@ -1,5 +1,6 @@
+import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
-import { initORPC } from '.'
+import { DecoratedProcedure, Procedure, initORPC } from '.'
 import { RouterBuilder } from './router-builder'
 
 const builder = new RouterBuilder<undefined, undefined>({})
@@ -46,5 +47,33 @@ describe('middleware', () => {
 
     expect(router.ping.zz$p.middlewares).toEqual([mid1, mid2])
     expect(router.pong.zz$p.middlewares).toEqual([mid1, mid2])
+  })
+
+  it('decorate items', () => {
+    const ping = new Procedure({
+      contract: new ContractProcedure({
+        InputSchema: undefined,
+        OutputSchema: undefined,
+      }),
+      handler: () => {},
+    })
+
+    const decorated = new DecoratedProcedure({
+      contract: new ContractProcedure({
+        InputSchema: undefined,
+        OutputSchema: undefined,
+      }),
+      handler: () => {},
+    })
+
+    const router = builder.router({ ping, nested: { ping } })
+
+    expectTypeOf(router).toEqualTypeOf<{
+      ping: typeof decorated
+      nested: { ping: typeof decorated }
+    }>()
+
+    expect(router.ping).instanceOf(DecoratedProcedure)
+    expect(router.nested.ping).instanceOf(DecoratedProcedure)
   })
 })

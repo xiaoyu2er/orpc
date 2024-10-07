@@ -93,8 +93,9 @@ describe('use middleware', () => {
     expectTypeOf(p2).toEqualTypeOf<
       DecoratedProcedure<
         { auth: boolean },
-        DecoratedContractProcedure<undefined, undefined>,
         { postId: string } & { userId: string },
+        undefined,
+        undefined,
         string
       >
     >()

@@ -64,7 +64,7 @@ export interface DecoratedMiddleware<
   ): DecoratedMiddleware<TContext, TExtraContext, UInput, TOutput>
 }
 
-const decoratedMiddlewareSymbol = Symbol('decoratedMiddleware')
+const decoratedMiddlewareSymbol = Symbol('🔒decoratedMiddleware')
 
 export function decorateMiddleware<
   TContext extends Context,
@@ -78,48 +78,42 @@ export function decorateMiddleware<
     return middleware as any
   }
 
-  const extended = new Proxy(middleware, {
-    get(target, prop) {
-      if (prop === decoratedMiddlewareSymbol) return true
+  const concat = (
+    concatMiddleware: Middleware<any, any, any, any>,
+    mapInput?: MapInputMiddleware<any, any>,
+  ) => {
+    const concatMiddleware_ = mapInput
+      ? decorateMiddleware(concatMiddleware).mapInput(mapInput)
+      : concatMiddleware
 
-      if (prop === 'concat') {
-        return (
-          middleware: Middleware<any, any, any, any>,
-          mapInput?: MapInputMiddleware<any, any>,
-        ) => {
-          const middleware_ = mapInput
-            ? decorateMiddleware(middleware).mapInput(mapInput)
-            : middleware
+    return decorateMiddleware(async (input, context, meta, ...rest) => {
+      const input_ = input as any
+      const context_ = context as any
+      const meta_ = meta as any
 
-          return decorateMiddleware(async (input, context, meta, ...rest) => {
-            const input_ = input as any
-            const context_ = context as any
-            const meta_ = meta as any
+      const m1 = await middleware(input_, context_, meta_, ...rest)
+      const m2 = await concatMiddleware_(
+        input_,
+        mergeContext(context_, m1?.context),
+        meta_,
+        ...rest,
+      )
 
-            const m1 = await target(input_, context_, meta_, ...rest)
-            const m2 = await middleware_(
-              input_,
-              mergeContext(context_, m1?.context),
-              meta_,
-              ...rest,
-            )
+      return { context: mergeContext(m1?.context, m2?.context) }
+    })
+  }
 
-            return { context: mergeContext(m1?.context, m2?.context) }
-          })
-        }
-      }
+  const mapInput = <UInput = unknown>(
+    map: MapInputMiddleware<UInput, TInput>,
+  ): DecoratedMiddleware<TContext, TExtraContext, UInput, TOutput> => {
+    return decorateMiddleware((input, ...rest) =>
+      middleware(map(input), ...rest),
+    )
+  }
 
-      if (prop === 'mapInput') {
-        return (mapInput: MapInputMiddleware<any, any>) => {
-          return decorateMiddleware((input, ...rest: [any, any]) =>
-            target(mapInput(input), ...rest),
-          )
-        }
-      }
-
-      return Reflect.get(target, prop)
-    },
+  return Object.assign(middleware, {
+    [decoratedMiddlewareSymbol]: true,
+    concat: concat as any,
+    mapInput,
   })
-
-  return extended as any
 }

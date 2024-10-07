@@ -51,46 +51,24 @@ export function chainRouterImplementer<
   contract: TContract,
   middlewares?: Middleware<any, any, any, any>[],
 ): ChainedRouterImplementer<TContext, TContract, TExtraContext> {
-  return new Proxy(new RouterImplementer({ contract }), {
-    get(target, prop) {
-      const item = Reflect.get(target, prop)
-      const itemContract = Reflect.get(contract as object, prop)
-      if (itemContract === undefined) return item
+  const result: Record<string, unknown> = {}
 
-      /* v8 ignore next 5 */
-      if (typeof itemContract !== 'object') {
-        throw new Error(
-          'This error should not happen, please report it to the author - expected ContractRouter | ContractProcedure',
-        )
-      }
+  for (const key in contract) {
+    const item = contract[key]
 
-      const chained = (() => {
-        if (isContractProcedure(itemContract)) {
-          return new ProcedureImplementer({
-            contract: itemContract,
-            middlewares,
-          })
-        }
-
-        return chainRouterImplementer(itemContract, middlewares)
-      })()
-
-      if (item === undefined) return chained
-
-      /* v8 ignore next 5 */
-      if (typeof item !== 'function') {
-        throw new Error(
-          'This error should not happen, please report it to the author - RouterImplementer must only contain methods',
-        )
-      }
-
-      return new Proxy(item, {
-        get(_, prop) {
-          return Reflect.get(chained, prop)
-        },
+    if (isContractProcedure(item)) {
+      result[key] = new ProcedureImplementer({
+        contract: item,
+        middlewares,
       })
-    },
-  }) as any
+    } else {
+      result[key] = chainRouterImplementer(item as ContractRouter, middlewares)
+    }
+  }
+
+  const implementer = new RouterImplementer({ contract })
+
+  return Object.assign(implementer, result) as any
 }
 
 export function assertRouterImplementation(

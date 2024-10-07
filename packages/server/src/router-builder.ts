@@ -15,7 +15,7 @@ export class RouterBuilder<
   constructor(
     public zz$rb: {
       prefix?: HTTPPath
-      middlewares?: Middleware<TContext, any, any, any>[]
+      middlewares?: Middleware<any, any, any, any>[]
     },
   ) {}
 

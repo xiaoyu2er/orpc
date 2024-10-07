@@ -20,7 +20,7 @@ export class ProcedureBuilder<
   constructor(
     public zz$pb: {
       contract: ContractProcedure<TInputSchema, TOutputSchema>
-      middlewares?: Middleware<TContext, any, any, any>[]
+      middlewares?: Middleware<any, any, any, any>[]
     },
   ) {}
 

@@ -17,7 +17,7 @@ export class ProcedureImplementer<
   constructor(
     public zz$pi: {
       contract: ContractProcedure<TInputSchema, TOutputSchema>
-      middlewares?: Middleware<TContext, any, any, any>[]
+      middlewares?: Middleware<any, any, any, any>[]
     },
   ) {}
 

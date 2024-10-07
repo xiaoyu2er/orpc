@@ -23,7 +23,7 @@ export class Procedure<
 > {
   constructor(
     public zz$p: {
-      middlewares?: Middleware<TContext, any, any, any>[]
+      middlewares?: Middleware<any, any, any, any>[]
       contract: ContractProcedure<TInputSchema, TOutputSchema>
       handler: ProcedureHandler<
         TContext,

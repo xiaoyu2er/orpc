@@ -28,7 +28,7 @@ import type { Context, MergeContext } from './types'
 export class Builder<TContext extends Context, TExtraContext extends Context> {
   constructor(
     public zz$b: {
-      middlewares?: Middleware<TContext, any, any, any>[]
+      middlewares?: Middleware<any, any, any, any>[]
     } = {},
   ) {}
 
@@ -225,6 +225,6 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
   router<URouter extends Router<TContext>>(
     router: URouter,
   ): HandledRouter<URouter> {
-    return new RouterBuilder(this.zz$b).router(router)
+    return new RouterBuilder<TContext, TExtraContext>(this.zz$b).router(router)
   }
 }

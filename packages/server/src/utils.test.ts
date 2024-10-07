@@ -1,4 +1,3 @@
-import { initORPC } from '.'
 import { hook, mergeContext } from './utils'
 
 test('mergeContext', () => {

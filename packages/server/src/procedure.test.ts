@@ -1,8 +1,4 @@
-import {
-  type ContractProcedure,
-  DecoratedContractProcedure,
-  initORPCContract,
-} from '@orpc/contract'
+import { DecoratedContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
 import { type Meta, initORPC } from '.'
 import { DecoratedProcedure, isProcedure } from './procedure'

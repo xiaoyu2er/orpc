@@ -25,6 +25,9 @@
       },
       "style": {
         "useShorthandFunctionType": "off"
+      },
+      "correctness": {
+        "noUnusedImports": "warn"
       }
     }
   },

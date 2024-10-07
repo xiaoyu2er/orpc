@@ -1,10 +1,5 @@
 import { z } from 'zod'
-import {
-  type ContractRouter,
-  type DecoratedContractProcedure,
-  eachContractRouterLeaf,
-  initORPCContract,
-} from '.'
+import { type DecoratedContractProcedure, initORPCContract } from '.'
 
 describe('define a procedure', () => {
   const orpc = initORPCContract

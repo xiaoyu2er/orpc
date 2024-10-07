@@ -1,6 +1,6 @@
 import { initORPCContract } from '@orpc/contract'
 import { z } from 'zod'
-import { RouterImplementer, initORPC, isProcedure } from '.'
+import { RouterImplementer, initORPC } from '.'
 
 const cp1 = initORPCContract.input(z.string()).output(z.string())
 const cp2 = initORPCContract.output(z.string())

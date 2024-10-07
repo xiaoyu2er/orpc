@@ -1,13 +1,12 @@
 import {
   type ContractProcedure,
   type ContractRouter,
-  type DecoratedContractProcedure,
   isContractProcedure,
 } from '@orpc/contract'
 import type { Middleware } from './middleware'
 import { isProcedure } from './procedure'
 import { ProcedureImplementer } from './procedure-implementer'
-import type { Router, RouterWithContract } from './router'
+import type { RouterWithContract } from './router'
 import type { Context } from './types'
 
 export class RouterImplementer<

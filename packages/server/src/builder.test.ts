@@ -2,7 +2,7 @@ import {
   type DecoratedContractProcedure,
   initORPCContract,
 } from '@orpc/contract'
-import { boolean, z } from 'zod'
+import { z } from 'zod'
 import {
   type Builder,
   type DecoratedMiddleware,

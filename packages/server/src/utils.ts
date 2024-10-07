@@ -1,4 +1,3 @@
-import type { Middleware } from './middleware'
 import type { Context, Hooks, MergeContext, Promisable } from './types'
 
 export function mergeContext<A extends Context, B extends Context>(

@@ -1,9 +1,5 @@
 import { type ContractRouter, eachContractRouterLeaf } from '@orpc/contract'
-import {
-  type Router,
-  type RouterWithContract,
-  toContractRouter,
-} from '@orpc/server'
+import { type Router, toContractRouter } from '@orpc/server'
 import {
   type OpenAPIObject,
   OpenApiBuilder,

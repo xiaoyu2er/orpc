@@ -1,4 +1,4 @@
-import { Schema, z } from 'zod'
+import { z } from 'zod'
 import type { SchemaInput, SchemaOutput } from './types'
 
 test('SchemaInput', () => {

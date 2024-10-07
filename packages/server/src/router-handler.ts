@@ -4,7 +4,7 @@ import { RegExpRouter } from 'hono/router/reg-exp-router'
 import { get } from 'radash'
 import { ORPCError } from './error'
 import { type WELL_DEFINED_PROCEDURE, isProcedure } from './procedure'
-import type { Router, RouterWithContract } from './router'
+import type { Router } from './router'
 import type { Context, Meta, Promisable } from './types'
 import { hook, mergeContext } from './utils'
 

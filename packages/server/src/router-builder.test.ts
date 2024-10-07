@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { type Router, initORPC } from '.'
+import { initORPC } from '.'
 import { RouterBuilder } from './router-builder'
 
 const builder = new RouterBuilder<undefined, undefined>({})

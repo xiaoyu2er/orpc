@@ -1,8 +1,4 @@
-import type {
-  ContractProcedure,
-  DecoratedContractProcedure,
-  SchemaOutput,
-} from '@orpc/contract'
+import type { ContractProcedure, SchemaOutput } from '@orpc/contract'
 import {
   type MapInputMiddleware,
   type Middleware,

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { ORPCError, initORPC } from '.'
+import { initORPC } from '.'
 import { createRouterHandler } from './router-handler'
 
 const cases = [false, true]

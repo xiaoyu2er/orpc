@@ -4,9 +4,10 @@ import { RegExpRouter } from 'hono/router/reg-exp-router'
 import { get } from 'radash'
 import { ORPCError } from './error'
 import { type WELL_DEFINED_PROCEDURE, isProcedure } from './procedure'
+import { createProcedureCaller } from './procedure-caller'
 import type { Router } from './router'
 import type { Context, Meta, Promisable } from './types'
-import { hook, mergeContext } from './utils'
+import { hook } from './utils'
 
 export interface RouterHandler<TContext extends Context> {
   (
@@ -76,7 +77,8 @@ export function createRouterHandler<TRouter extends Router<any>>(opts: {
       const meta: Meta<unknown> = {
         ...hooks,
         procedure,
-        path: path.join('.'),
+        path: path,
+        internal: false,
       }
 
       await opts.hooks?.(context_, meta)
@@ -93,40 +95,15 @@ export function createRouterHandler<TRouter extends Router<any>>(opts: {
               }
             : input_
 
-      const validInput = await (async () => {
-        const schema = procedure.zz$p.contract.zz$cp.InputSchema
-        if (!schema) return input
-        const result = await schema.safeParseAsync(input)
-        if (result.error)
-          throw new ORPCError({
-            message: 'Validation input failed',
-            code: 'BAD_REQUEST',
-            cause: result.error,
-          })
-        return result.data
-      })()
+      const caller = createProcedureCaller({
+        procedure: procedure,
+        context: context_,
+        internal: false,
+        validate: true,
+        path: path,
+      })
 
-      let context = context_
-
-      for (const middleware of procedure.zz$p.middlewares ?? []) {
-        const mid = await middleware(validInput, context, meta)
-        context = mergeContext(context, mid?.context)
-      }
-
-      const output = await procedure.zz$p.handler(validInput, context, meta)
-
-      return await (async () => {
-        const schema = procedure.zz$p.contract.zz$cp.OutputSchema
-        if (!schema) return output
-        const result = await schema.safeParseAsync(output)
-        if (result.error)
-          throw new ORPCError({
-            message: 'Validation output failed',
-            code: 'INTERNAL_SERVER_ERROR',
-            cause: result.error,
-          })
-        return result.data
-      })()
+      return await caller(input)
     })
   }
 }

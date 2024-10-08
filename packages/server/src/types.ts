@@ -8,7 +8,8 @@ export type MergeContext<
 > = TA extends undefined ? TB : TB extends undefined ? TA : TA & TB
 
 export interface Meta<T> extends Hooks<T> {
-  path: string
+  path: string[]
+  internal: boolean
   procedure: WELL_DEFINED_PROCEDURE
 }
 

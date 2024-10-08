@@ -24,13 +24,8 @@ export async function hook<T>(
   ) => Promisable<void>)[] = []
 
   const hooks: Hooks<T> = {
-    onSuccess(fn, opts) {
-      const mode = opts?.mode ?? 'push'
-      if (mode === 'unshift') {
-        onSuccessFns.unshift(fn)
-      } else {
-        onSuccessFns.push(fn)
-      }
+    onSuccess(fn) {
+      onSuccessFns.unshift(fn)
 
       return () => {
         const index = onSuccessFns.indexOf(fn)
@@ -38,13 +33,8 @@ export async function hook<T>(
       }
     },
 
-    onError(fn, opts) {
-      const mode = opts?.mode ?? 'unshift'
-      if (mode === 'unshift') {
-        onErrorFns.unshift(fn)
-      } else {
-        onErrorFns.push(fn)
-      }
+    onError(fn) {
+      onErrorFns.unshift(fn)
 
       return () => {
         const index = onErrorFns.indexOf(fn)
@@ -52,13 +42,8 @@ export async function hook<T>(
       }
     },
 
-    onFinish(fn, opts) {
-      const mode = opts?.mode ?? 'unshift'
-      if (mode === 'unshift') {
-        onFinishFns.unshift(fn)
-      } else {
-        onFinishFns.push(fn)
-      }
+    onFinish(fn) {
+      onFinishFns.unshift(fn)
 
       return () => {
         const index = onFinishFns.indexOf(fn)

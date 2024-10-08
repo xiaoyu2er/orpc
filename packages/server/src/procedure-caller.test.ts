@@ -96,4 +96,115 @@ describe('createProcedureCaller', () => {
 
     expect(caller({ value: 123 })).resolves.toEqual({ value: true })
   })
+
+  it('middlewares', () => {
+    const ref = { value: 0 }
+
+    const mid1 = vi.fn(
+      orpc.middleware((input: { id: string }, context, meta) => {
+        expect(input).toEqual({ id: '1' })
+
+        expect(ref.value).toBe(0)
+        ref.value++
+
+        meta.onSuccess(() => {
+          expect(ref.value).toBe(7)
+          ref.value++
+        })
+
+        meta.onFinish(() => {
+          expect(ref.value).toBe(8)
+          ref.value++
+        })
+
+        return {
+          context: {
+            userId: '1',
+          },
+        }
+      }),
+    )
+
+    const mid2 = vi.fn(
+      orpc.middleware((input, context, meta) => {
+        expect(ref.value).toBe(1)
+        ref.value++
+
+        meta.onSuccess(() => {
+          expect(ref.value).toBe(5)
+          ref.value++
+        })
+
+        meta.onFinish(() => {
+          expect(ref.value).toBe(6)
+          ref.value++
+        })
+      }),
+    )
+
+    const ping = orpc
+      .input(z.object({ id: z.string() }))
+      .use(mid1)
+      .use(mid2)
+      .handler((input, context, meta) => {
+        expect(context).toEqual({ userId: '1', auth: false })
+
+        expect(ref.value).toBe(2)
+        ref.value++
+
+        meta.onSuccess(() => {
+          expect(ref.value).toBe(3)
+          ref.value++
+        })
+
+        meta.onFinish(() => {
+          expect(ref.value).toBe(4)
+          ref.value++
+        })
+
+        return 'pong'
+      })
+
+    const caller = createProcedureCaller({
+      procedure: ping,
+      context: { auth: false },
+    })
+
+    expect(caller({ id: '1' })).resolves.toEqual('pong')
+  })
+
+  it('hooks', async () => {
+    const ref = { value: 0 }
+
+    const caller = createProcedureCaller({
+      procedure: procedure,
+      context: context,
+      internal: internal,
+      path: path,
+      hooks: (context, meta) => {
+        expect(context).toEqual(context)
+        expect(meta.internal).toBe(internal)
+        expect(meta.path).toBe(path)
+        expect(meta.procedure).toBe(procedure)
+
+        expect(ref.value).toBe(0)
+        ref.value++
+
+        meta.onSuccess(() => {
+          expect(ref.value).toBe(1)
+          ref.value++
+        })
+
+        meta.onFinish(() => {
+          expect(ref.value).toBe(2)
+          ref.value++
+
+          throw new Error('foo')
+        })
+      },
+    })
+
+    await expect(caller({ value: '1243' })).rejects.toThrow('foo')
+    expect(ref.value).toBe(3)
+  })
 })

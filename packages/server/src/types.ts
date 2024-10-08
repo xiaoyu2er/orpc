@@ -19,21 +19,10 @@ export interface UnsubscribeFn {
   (): void
 }
 
-export interface HookOptions {
-  mode: 'unshift' | 'push'
-}
-
 export interface Hooks<T> {
-  onSuccess: (
-    fn: (output: T) => Promisable<void>,
-    opts?: HookOptions,
-  ) => UnsubscribeFn
-  onError: (
-    fn: (error: unknown) => Promisable<void>,
-    opts?: HookOptions,
-  ) => UnsubscribeFn
+  onSuccess: (fn: (output: T) => Promisable<void>) => UnsubscribeFn
+  onError: (fn: (error: unknown) => Promisable<void>) => UnsubscribeFn
   onFinish: (
     fn: (output: T | undefined, error: unknown | undefined) => Promisable<void>,
-    opts?: HookOptions,
   ) => UnsubscribeFn
 }

@@ -110,75 +110,74 @@ describe('hook', async () => {
     }
   })
 
-  it('can control order of hooks', async () => {
+  it('Fist In Last Out', async () => {
     const ref = { value: 0 }
+    const hooked = hook(async (hooks) => {
+      hooks.onSuccess(() => {
+        expect(ref).toEqual({ value: 2 })
+        ref.value++
+      })
+      hooks.onSuccess(() => {
+        expect(ref).toEqual({ value: 1 })
+        ref.value++
+      })
+      hooks.onSuccess(() => {
+        expect(ref).toEqual({ value: 0 })
+        ref.value++
+      })
 
-    expect(
-      hook(async (hooks) => {
-        hooks.onSuccess((val) => {
-          expect(val).toMatchObject({ value: 1 })
-          ref.value++
-        })
-        hooks.onSuccess(
-          (val) => {
-            expect(val).toMatchObject({ value: 0 })
-            ref.value++
-          },
-          { mode: 'unshift' },
-        )
-        hooks.onSuccess(
-          (val) => {
-            expect(val).toMatchObject({ value: 2 })
-            ref.value++
+      hooks.onFinish(() => {
+        expect(ref).toEqual({ value: 5 })
+        ref.value++
+      })
+      hooks.onFinish(() => {
+        expect(ref).toEqual({ value: 4 })
+        ref.value++
+      })
+      hooks.onFinish(() => {
+        expect(ref).toEqual({ value: 3 })
+        ref.value++
+      })
+    })
 
-            throw new Error('foo')
-          },
-          { mode: 'push' },
-        )
+    await expect(hooked).resolves.toEqual(undefined)
+    expect(ref).toEqual({ value: 6 })
+  })
 
-        hooks.onFinish(() => {
-          expect(ref).toMatchObject({ value: 7 })
-          ref.value++
-        })
-        hooks.onFinish(
-          () => {
-            expect(ref).toMatchObject({ value: 6 })
-            ref.value++
-          },
-          { mode: 'unshift' },
-        )
-        hooks.onFinish(
-          () => {
-            expect(ref).toMatchObject({ value: 8 })
-            ref.value++
-          },
-          { mode: 'push' },
-        )
+  it('Fist In Last Out - onError', async () => {
+    const ref = { value: 0 }
+    const hooked = hook(async (hooks) => {
+      hooks.onError(() => {
+        expect(ref).toEqual({ value: 2 })
+        ref.value++
+      })
+      hooks.onError(() => {
+        expect(ref).toEqual({ value: 1 })
+        ref.value++
+      })
+      hooks.onError(() => {
+        expect(ref).toEqual({ value: 0 })
+        ref.value++
+      })
 
-        hooks.onError((e) => {
-          expect(ref).toMatchObject({ value: 4 })
-          ref.value++
-        })
+      hooks.onFinish(() => {
+        expect(ref).toEqual({ value: 5 })
+        ref.value++
+      })
+      hooks.onFinish(() => {
+        expect(ref).toEqual({ value: 4 })
+        ref.value++
+      })
+      hooks.onFinish(() => {
+        expect(ref).toEqual({ value: 3 })
+        ref.value++
+      })
 
-        hooks.onError(
-          () => {
-            expect(ref).toMatchObject({ value: 5 })
-            ref.value++
-          },
-          { mode: 'push' },
-        )
+      throw new Error('foo')
+    })
 
-        hooks.onError(
-          (e) => {
-            expect(ref).toMatchObject({ value: 3 })
-            ref.value++
-          },
-          { mode: 'unshift' },
-        )
-
-        return ref
-      }),
-    ).rejects.toThrow('foo')
+    await expect(hooked).rejects.toThrow('foo')
+    expect(ref).toEqual({ value: 6 })
   })
 
   it('ensure run every onSuccess and onFinish even on throw many times', async () => {

@@ -1,0 +1,47 @@
+{
+  "name": "@orpc/client",
+  "type": "module",
+  "version": "0.0.0",
+  "author": {
+    "name": "dinwwwh",
+    "email": "dinwwwh@gmail.com",
+    "url": "https://dinwwwh.com"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/dinwwwh/dinwwwh",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dinwwwh/dinwwwh.git",
+    "directory": "examples/typescript-vite-package"
+  },
+  "keywords": [
+    "dinwwwh"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/src/index.d.ts",
+        "import": "./dist/index.js",
+        "default": "./dist/index.js"
+      },
+      "./🔒/*": {
+        "types": "./dist/src/*.d.ts"
+      }
+    }
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./🔒/*": {
+      "types": "./src/*.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "UNPLUGIN_ON_SUCCESS='tsc -b --noCheck' vite build",
+    "type:check": "tsc -b"
+  }
+}

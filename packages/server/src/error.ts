@@ -34,7 +34,7 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
       cause?: unknown
     } & (undefined extends TData ? { data?: TData } : { data: TData }),
   ) {
-    if (zz$oe.status && (zz$oe.status <= 400 || zz$oe.status >= 600)) {
+    if (zz$oe.status && (zz$oe.status < 400 || zz$oe.status >= 600)) {
       throw new Error('The ORPCError status code must be in the 400-599 range.')
     }
 
@@ -59,5 +59,44 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
     }
 
     return undefined
+  }
+
+  toJSON(): {
+    code: TCode
+    status: HTTPStatus
+    message: string
+    data: TData
+    issues?: ZodIssue[]
+  } {
+    return {
+      code: this.code,
+      status: this.status,
+      message: this.message,
+      data: this.data,
+      issues: this.issues,
+    }
+  }
+
+  static fromJSON(json: unknown): ORPCError<ORPCErrorCode, any> | undefined {
+    if (
+      typeof json !== 'object' ||
+      json === null ||
+      !('code' in json) ||
+      !Object.keys(ORPC_ERROR_CODE_STATUSES).find((key) => json.code === key) ||
+      !('status' in json) ||
+      typeof json.status !== 'number' ||
+      ('message' in json && typeof json.message !== 'string') ||
+      ('issues' in json && !Array.isArray(json.issues))
+    ) {
+      return undefined
+    }
+
+    return new ORPCError({
+      code: json.code as ORPCErrorCode,
+      status: json.status as HTTPStatus,
+      message: Reflect.get(json, 'message') as string,
+      data: Reflect.get(json, 'data') as any,
+      cause: 'issues' in json ? new ZodError(json.issues as any) : undefined,
+    })
   }
 }

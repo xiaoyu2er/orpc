@@ -30,9 +30,9 @@ export function createRouterHandler<TRouter extends Router<any>>(opts: {
     ? new LinearRouter<[string[], WELL_DEFINED_PROCEDURE]>()
     : new RegExpRouter<[string[], WELL_DEFINED_PROCEDURE]>()
 
-  const addRouteRecursively = (router: Router<any>, parentPath: string[]) => {
+  const addRouteRecursively = (router: Router<any>, basePath: string[]) => {
     for (const key in router) {
-      const currentPath = [...parentPath, key]
+      const currentPath = [...basePath, key]
       const item = router[key] as WELL_DEFINED_PROCEDURE | Router<any>
 
       if (isProcedure(item)) {

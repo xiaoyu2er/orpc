@@ -1,7 +1,7 @@
 /// <reference lib="dom" />
 
 import { trim } from 'radash'
-import { ORPC_INTERNAL_HEADER } from '../config'
+import { ORPC_PROTOCOL_HEADER } from '../config'
 import { ORPCError } from '../error'
 import type { RouterHandler } from '../router-handler'
 import type { Hooks, Promisable } from '../types'
@@ -22,9 +22,9 @@ export async function fetchHandler<THandler extends RouterHandler<any>>(opts: {
       const url = new URL(opts.request.url)
 
       const { path, method } = (() => {
-        if (opts.request.headers.get(ORPC_INTERNAL_HEADER) === '1') {
+        if (opts.request.headers.get(ORPC_PROTOCOL_HEADER) === '1') {
           return {
-            path: trim(url.pathname.replace(opts.prefix ?? '', ''), '/'),
+            path: trim(url.pathname.replace(opts.prefix ?? '', ''), '/.'),
           }
         }
 
@@ -76,20 +76,11 @@ export async function fetchHandler<THandler extends RouterHandler<any>>(opts: {
             cause: e,
           })
 
-    return new Response(
-      JSON.stringify({
-        code: error.code,
-        status: error.status,
-        message: error.message,
-        data: error.data,
-        issues: error.issues,
-      }),
-      {
-        status: error.status,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+    return new Response(JSON.stringify(error), {
+      status: error.status,
+      headers: {
+        'Content-Type': 'application/json',
       },
-    )
+    })
   }
 }

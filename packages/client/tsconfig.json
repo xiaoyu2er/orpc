@@ -3,7 +3,7 @@
   "compilerOptions": {
     "types": []
   },
-  "references": [],
+  "references": [{ "path": "../contract" }, { "path": "../server" }],
   "include": ["src"],
   "exclude": [
     "**/*.test.*",

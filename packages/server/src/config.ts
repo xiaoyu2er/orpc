@@ -1,1 +1,1 @@
-export const ORPC_INTERNAL_HEADER = 'x-orpc-internal'
+export const ORPC_PROTOCOL_HEADER = 'x-orpc-protocol'

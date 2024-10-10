@@ -1,0 +1,29 @@
+---
+title: Vanilla
+description: Fully typed client for Vanilla JS
+---
+
+## Installations
+
+```package-install
+npm i @orpc/client
+```
+
+## Usage
+
+Fully typed client is also provided, you can use it in any environment.
+
+```ts
+import { createORPCClient } from '@orpc/client'
+
+const client = createORPCClient<typeof router>({
+  baseURL: 'http://localhost:2026',
+})
+
+client.ping({ name: 'dinwwwh' }).then((output) => console.log(output))
+```
+
+
+## React, Vue, ... with `Tanstack Query`
+
+...(In progress)

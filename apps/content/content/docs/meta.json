@@ -1,0 +1,20 @@
+{
+  "pages": [
+    "index",
+    "contract-first",
+    "architecture",
+    "comparisons",
+    "motivation",
+    "...",
+    "---Server---",
+    "...server",
+    "---Client---",
+    "...client",
+    "---Contract---",
+    "...contract",
+    "---OpenAPI---",
+    "...openapi",
+    "---Others---",
+    "[Github](https://github.com/dinwwwh/orpc)"
+  ]
+}

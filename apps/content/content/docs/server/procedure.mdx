@@ -1,0 +1,144 @@
+---
+title: Procedure
+description: The smallest unit of ORPC for defining business logics with best of DX
+---
+
+## Installations
+
+```package-install
+npm i @orpc/server
+```
+
+## Define a procedure
+
+A procedure is a function that can be called by client. We bring many useful features to make it easier to write procedures.
+
+```ts
+import { z } from 'zod'
+import { initORPC, ORPCError } from '@orpc/server'
+
+const orpc = initORPC.context<{user?: {id: string}}>()
+
+const findUser = orpc
+    .route({ method: 'GET', 'path': '/{id}' }) // optional
+    .input(z.object({ id: z.string() })) // optional
+    .output(z.object({ id: z.string(), name: z.string() })) // optional
+    .use((input, context, meta) => { // optional
+        // A middleware run before the handler, and can change the context
+
+        meta.onSuccess(async (output) => { // onError, onFinish...
+            // invoked after the handler success
+        })
+
+        if(!context.user){
+            throw new ORPCError({
+                code: 'UNAUTHORIZED',
+                message: 'You need to login first',
+            })
+        }
+
+        return {
+            context: {
+                user: context.user, // next middleware or handler will infer user as NonNullable<typeof context.user>
+            }
+        }
+    })
+    .handler(async (input, context, meta) => {
+        // TODO: do something
+
+        return {
+            id: 'vn',
+            name: 'dinwwwh',
+        }
+    })
+```
+
+Very convenient, and fully typed.
+
+## Define a router
+
+A router is a collection of procedures.
+
+```ts
+export const appRouter = orpc.router({
+    user: {
+        find: findUser,
+    },
+
+   
+    nested: orpc.
+    .prefix('/users')  // With prefix with concat with path you define in route(...)
+    .use(() => {}) // Even you can every users api must pass a middleware
+    router({
+        find: findUser,
+    }),
+})
+```
+
+Again, very convenient, and fully typed. Everything start from `orpc`.
+
+## Middleware
+
+Middleware is so powerful, and flexible in ORPC. You can do so many things with middleware.
+
+```ts
+const authMiddleware = orpc.middleware(async (input, context, meta) => {
+    // meta.onSuccess, onError, onFinish hooks can be very useful
+
+    if(!context.user){
+        throw new ORPCError({
+            code: 'UNAUTHORIZED',
+            message: 'You need to login first',
+        })
+    }
+
+    return {
+        context: {
+            user: context.user,
+        }
+    }
+})
+
+const authedORPC = orpc.use(authMiddleware) // now every procedure or router defined in this ORPC will be protected by authMiddleware
+
+
+const canEditPostMiddleware = authMiddleware
+    .concat(async (input: {id: string}, context, meta) => { // You can event expect input here with full type 🤯🤯🤯
+
+    })
+
+// Even more
+
+const editPostProcedure = orpc
+    .input(z.object({ postId: z.string() }))
+    .use(canEditPostMiddleware, (input) => ({id: input.postId})) // 🤯🤯🤯 you can map input if you want
+    .handler(() => {})
+```
+
+## Create a server
+
+In ORPC server, we provide a fetch adapter, so you can use it in any modern environment and framework.
+
+```ts
+import { serve } from '@hono/node-server' // simple package to use fetch api in node
+import { createRouterHandler } from '@orpc/server'
+import { fetchHandler } from '@orpc/server/fetch'
+
+// For performance purpose, we should create a global router handler
+const handler = createRouterHandler({
+  router,
+  serverless: false, // Set it to true will improve cold start times
+})
+
+serve({
+  fetch(request){
+    fetchHandler({
+      request,
+      handler,
+      prefix: '/',
+      context: {},
+    })
+  },
+  port: 2026
+})
+```

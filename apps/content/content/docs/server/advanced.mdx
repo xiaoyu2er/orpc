@@ -3,4 +3,22 @@ title: Advanced
 description: Beyond the basics, oRPC offers more advanced features
 ---
 
-...(In progress)
+## Internal Caller
+
+```ts
+import { initORPC, createRouterCaller } from '@orpc/server'
+
+const orpc = initORPC
+
+const appRouter = orpc.router({
+    ping: orpc.handler(() => 'pong')
+})
+
+const caller = createRouterCaller({
+    router: appRouter,
+    context: {}
+    validate: true // set false if you want bypass the validation input and output
+})
+
+const result = await caller.ping() // result is 'pong'
+```

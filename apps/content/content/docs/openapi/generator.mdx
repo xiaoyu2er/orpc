@@ -3,4 +3,51 @@ title: OpenAPI Generator
 description: Generate OpenAPI from your oRPC router
 ---
 
-...(In progress)
+## Installation
+
+```package-install
+npm i @orpc/openapi
+```
+
+## Define the Route
+
+```ts
+import { z } from 'zod'
+import { initORPC } from '@orpc/server'
+
+const orpc = initORPC
+
+export const router = orpc.router({
+    user: {
+        find: orpc
+                .route({
+                    method: 'GET', 
+                    path: '/user/{id}', // use parameters id
+                    summary: 'summary',
+                    description: 'description',
+                    deprecated: false,
+                }) 
+                .input(z.object({ id: z.string() })) // The parameters must appear in the input schema
+                .handler(() => 'hello world'),
+    }
+})
+
+```
+
+## Generate the OpenAPI Specification
+
+To generate an OpenAPI specification, you need either the type of the [router](/docs/server/router)  you intend to use or the [contract](/docs/contract/builder).
+
+```ts
+import { generateOpenAPI } from '@orpc/openapi'
+
+const spec = generateOpenAPI({
+    router, // app router or contract router
+    info: {
+      title: 'test',
+      version: '1.0.0',
+    },
+})
+
+console.log(JSON.stringify(spec, null, 2))
+```

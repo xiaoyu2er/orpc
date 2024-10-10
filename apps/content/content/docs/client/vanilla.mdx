@@ -11,19 +11,16 @@ npm i @orpc/client
 
 ## Usage
 
-Fully typed client is also provided, you can use it in any environment.
+To create a fully typed client, you need either the type of the [router](/docs/server/router) you intend to use or the [contract](/docs/contract/builder).
 
 ```ts
 import { createORPCClient } from '@orpc/client'
 
-const client = createORPCClient<typeof router>({
+const client = createORPCClient({
   baseURL: 'http://localhost:2026',
+  // fetch: optional override for the default fetch function
+  // headers: optional override for default headers
 })
 
 client.ping({ name: 'dinwwwh' }).then((output) => console.log(output))
 ```
-
-
-## React, Vue, ... with `Tanstack Query`
-
-...(In progress)

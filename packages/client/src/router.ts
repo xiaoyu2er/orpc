@@ -5,7 +5,7 @@ import type {
   ContractRouter,
   SchemaOutput,
 } from '@orpc/contract'
-import type { Procedure, Router } from '@orpc/server'
+import type { Procedure, Promisable, Router } from '@orpc/server'
 import { type ProcedureClient, createProcedureClient } from './procedure'
 
 export type RouterClientWithContractRouter<TRouter extends ContractRouter> = {
@@ -36,6 +36,7 @@ export type RouterClientWithRouter<TRouter extends Router<any>> = {
 export interface CreateRouterClientOptions {
   baseURL: string
   fetch?: typeof fetch
+  headers?: (input: unknown) => Promisable<Headers | Record<string, string>>
 
   /**
    * This used for internal purpose only.
@@ -61,6 +62,7 @@ export function createRouterClient<
     createProcedureClient({
       baseURL: options.baseURL,
       fetch: fetch_,
+      headers: options.headers,
       path,
     }),
     {

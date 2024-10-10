@@ -23,25 +23,10 @@ import { initORPC, ORPCError } from '@orpc/server'
 const orpc = initORPC.context<{user?: {id: string}}>()
 
 const findUser = orpc
-    // Optional: Define HTTP method and path
-    .route({ 
-        method: 'GET', 
-        path: '/{id}' 
-    })
-    
-    // Optional: Define input schema
-    .input(z.object({ 
-        id: z.string() 
-    }))
-    
-    // Optional: Define output schema
-    .output(z.object({ 
-        id: z.string(), 
-        name: z.string() 
-    }))
-    
-    // Optional: Add middleware
-    .use((input, context, meta) => {
+    .route({ method: 'GET', path: '/{id}' }) // Optional: if you want custom api under OpenAPI Specifications
+    .input(z.object({ id: z.string() })) // Optional
+    .output(z.object({ id: z.string(), name: z.string() })) // Optional
+    .use((input, context, meta) => { // Optional
         // Middleware runs before the handler
         // input, context, and meta are fully typed
         

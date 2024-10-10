@@ -1,0 +1,56 @@
+---
+title: Contract Builder
+description: Build your app with contract-first approach
+---
+
+## Installation
+
+```package-install
+npm i @orpc/contract
+```
+
+## Define the Contract
+
+The API almost the same as the `server` except that contract will not define the handler.
+
+```ts
+import { initORPCContract } from '@orpc/contract'
+
+const orpc = initORPCContract
+
+export const appRouterContract = orpc.router({
+    ping: orpc
+        .route({ method: 'GET', path: '/ping' }) // optional
+        .input(z.object({ value: z.string() }))   // optional
+        .output(z.string()),                      // optional
+
+    user: orpc.prefix('/users').router({
+        find: orpc 
+            .input(z.object({ id: z.string() }))
+            .output(z.object({ id: z.string(), name: z.string() })),
+    })
+})
+```
+
+## Implement the Contract
+
+All `server` features are available, except the input, output, and route parts, which are defined in the contract.
+
+```ts
+import { initORPC } from '@orpc/server'
+import { appRouterContract } from './contract'
+
+const orpc = initORPC.contract(appRouterContract)
+
+export const appRouter = orpc.router({
+    ping: orpc.ping.handler(({ input }) => input.value),
+    user: {
+        find: orpc.user.find.handler(({ input }) => {
+            return {
+                id: input.id,
+                name: 'dinwwwh',
+            }
+        }),
+    }
+})
+```

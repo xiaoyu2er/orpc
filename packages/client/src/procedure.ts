@@ -1,7 +1,7 @@
 /// <reference lib="dom" />
 
 import type { Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
-import { ORPCError } from '@orpc/server'
+import { ORPCError, type Promisable } from '@orpc/server'
 import { trim } from 'radash'
 
 export interface ProcedureClient<
@@ -17,6 +17,7 @@ export interface ProcedureClient<
 export interface CreateProcedureClientOptions {
   baseURL: string
   fetch?: typeof fetch
+  headers?: (input: unknown) => Promisable<Headers | Record<string, string>>
   path: string[]
 }
 
@@ -30,12 +31,15 @@ export function createProcedureClient<
   const client = async (input: unknown): Promise<unknown> => {
     const fetch_ = options.fetch ?? fetch
     const url = `${trim(options.baseURL, '/')}/.${options.path.join('.')}`
+    let headers = await options.headers?.(input)
+    headers = headers instanceof Headers ? headers : new Headers(headers)
+
+    headers.set('Content-Type', 'application/json')
+    headers.set('X-ORPC-Protocol', '1')
+
     const response = await fetch_(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-ORPC-Protocol': '1',
-      },
+      headers: headers,
       body: JSON.stringify(input),
     })
 

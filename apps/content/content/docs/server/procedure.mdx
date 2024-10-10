@@ -1,144 +1,79 @@
 ---
-title: Procedure
-description: The smallest unit of ORPC for defining business logics with best of DX
+title: Procedures
+description: Understanding procedures - the building blocks of oRPC business logic
 ---
 
-## Installations
+## Introduction
 
-```package-install
-npm i @orpc/server
-```
+In oRPC, a procedure consists of two main parts:
+1. **Contract**: Defines the route, input, and output specifications
+2. **Implementation**: Contains middleware and business logic handler
 
-## Define a procedure
+The contract part can be separated using the [Contract-First](/docs/contract-first) approach, allowing for better code organization and team collaboration.
 
-A procedure is a function that can be called by client. We bring many useful features to make it easier to write procedures.
+## Anatomy of a Procedure
+
+Here's a comprehensive example of an oRPC procedure:
 
 ```ts
 import { z } from 'zod'
 import { initORPC, ORPCError } from '@orpc/server'
 
+// Define context type for full type inference
 const orpc = initORPC.context<{user?: {id: string}}>()
 
 const findUser = orpc
-    .route({ method: 'GET', 'path': '/{id}' }) // optional
-    .input(z.object({ id: z.string() })) // optional
-    .output(z.object({ id: z.string(), name: z.string() })) // optional
-    .use((input, context, meta) => { // optional
-        // A middleware run before the handler, and can change the context
-
-        meta.onSuccess(async (output) => { // onError, onFinish...
-            // invoked after the handler success
+    // Optional: Define HTTP method and path
+    .route({ 
+        method: 'GET', 
+        path: '/{id}' 
+    })
+    
+    // Optional: Define input schema
+    .input(z.object({ 
+        id: z.string() 
+    }))
+    
+    // Optional: Define output schema
+    .output(z.object({ 
+        id: z.string(), 
+        name: z.string() 
+    }))
+    
+    // Optional: Add middleware
+    .use((input, context, meta) => {
+        // Middleware runs before the handler
+        // input, context, and meta are fully typed
+        
+        // Add success callback
+        meta.onSuccess(async (output) => {
+            // Invoked after successful handler execution
+            // Other callbacks: onError, onFinish
         })
 
-        if(!context.user){
+        // Example: Authentication check
+        if (!context.user) {
             throw new ORPCError({
                 code: 'UNAUTHORIZED',
-                message: 'You need to login first',
+                message: 'Authentication required'
             })
         }
 
+        // Modify context for next middleware/handler
         return {
             context: {
-                user: context.user, // next middleware or handler will infer user as NonNullable<typeof context.user>
+                user: context.user // TypeScript will infer user as NonNullable
             }
         }
     })
+    
+    // Define handler with business logic
     .handler(async (input, context, meta) => {
-        // TODO: do something
-
+        // Implement your business logic here
+        
         return {
-            id: 'vn',
-            name: 'dinwwwh',
+            id: input.id,
+            name: 'Sample User'
         }
     })
-```
-
-Very convenient, and fully typed.
-
-## Define a router
-
-A router is a collection of procedures.
-
-```ts
-export const appRouter = orpc.router({
-    user: {
-        find: findUser,
-    },
-
-   
-    nested: orpc.
-    .prefix('/users')  // With prefix with concat with path you define in route(...)
-    .use(() => {}) // Even you can every users api must pass a middleware
-    router({
-        find: findUser,
-    }),
-})
-```
-
-Again, very convenient, and fully typed. Everything start from `orpc`.
-
-## Middleware
-
-Middleware is so powerful, and flexible in ORPC. You can do so many things with middleware.
-
-```ts
-const authMiddleware = orpc.middleware(async (input, context, meta) => {
-    // meta.onSuccess, onError, onFinish hooks can be very useful
-
-    if(!context.user){
-        throw new ORPCError({
-            code: 'UNAUTHORIZED',
-            message: 'You need to login first',
-        })
-    }
-
-    return {
-        context: {
-            user: context.user,
-        }
-    }
-})
-
-const authedORPC = orpc.use(authMiddleware) // now every procedure or router defined in this ORPC will be protected by authMiddleware
-
-
-const canEditPostMiddleware = authMiddleware
-    .concat(async (input: {id: string}, context, meta) => { // You can event expect input here with full type 🤯🤯🤯
-
-    })
-
-// Even more
-
-const editPostProcedure = orpc
-    .input(z.object({ postId: z.string() }))
-    .use(canEditPostMiddleware, (input) => ({id: input.postId})) // 🤯🤯🤯 you can map input if you want
-    .handler(() => {})
-```
-
-## Create a server
-
-In ORPC server, we provide a fetch adapter, so you can use it in any modern environment and framework.
-
-```ts
-import { serve } from '@hono/node-server' // simple package to use fetch api in node
-import { createRouterHandler } from '@orpc/server'
-import { fetchHandler } from '@orpc/server/fetch'
-
-// For performance purpose, we should create a global router handler
-const handler = createRouterHandler({
-  router,
-  serverless: false, // Set it to true will improve cold start times
-})
-
-serve({
-  fetch(request){
-    fetchHandler({
-      request,
-      handler,
-      prefix: '/',
-      context: {},
-    })
-  },
-  port: 2026
-})
 ```

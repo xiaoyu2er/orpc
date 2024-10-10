@@ -1,6 +1,118 @@
 ---
 title: Middleware
-description: The way to reuse logics for procedures. Middleware is so powerful, and flexible in ORPC.
+description: The powerful and flexible way to reuse logic across procedures in oRPC.
 ---
 
-...(In progress)
+## Introduction
+
+Middleware in oRPC is both powerful and flexible, enabling you to accomplish many tasks efficiently.
+
+```ts
+const authMiddleware = orpc.middleware(async (input, context, meta) => {
+    meta.onSuccess(async (output) => {
+        // Invoked after successful handler execution
+        // Other callbacks: onError, onFinish
+    })
+
+    if (!context.user) {
+        throw new ORPCError({
+            code: 'UNAUTHORIZED',
+            message: 'You need to log in first',
+        })
+    }
+
+    return {
+        context: {
+            user: context.user,
+        }
+    }
+})
+
+// Now every procedure or router defined in this oRPC will be protected by authMiddleware
+const authedORPC = orpc.use(authMiddleware)
+```
+
+## Typed Input
+
+Middleware can expect specific input types, opening up many possibilities:
+
+```ts
+const canEditPostMiddleware = orpc
+    .middleware(async (input: {id: string}, context, meta) => { 
+        // Now you can specify the input type for middleware
+    })
+
+orpc
+    .input(z.object({ postId: z.string() }))
+    .use(canEditPostMiddleware) // ❗ mismatched input type
+    .use(canEditPostMiddleware, (input) => ({ id: input.postId })) // ✅ map the input to match expected type
+```
+
+## Concatenation
+
+You can merge or extend middlewares using concatenation:
+
+```ts
+const authAndCan = authMiddleware.concat(canEditPostMiddleware) // Merge middlewares
+
+const authAndCan2 = authMiddleware.concat((input, context, meta) => {}) // Extend middleware
+```
+
+## Extra Context
+
+Extra context is created by middlewares and automatically merges with the global context, enhancing developer experience:
+
+```ts
+type Context = {
+    user?: {
+        id: string
+    }
+}
+
+const orpc = initORPC.context<Context>()
+
+// Any procedure using this middleware will infer context.user as NonNullable<typeof context['user']>
+const authMiddleware = orpc
+    .middleware(async (input, context, meta) => {
+        if (!context.user) {
+            throw new ORPCError({ code: 'UNAUTHORIZED' })
+        }
+
+        return {
+            context: {
+                user: context.user
+            }
+        }
+    })
+
+const procedure = orpc
+    .use(authMiddleware)
+    .use((input, context, meta) => {
+        expectTypeOf(context).toMatchTypeOf<{user: {id: string}}>()
+
+        return {
+            context: {
+                say: 'hi'
+            }
+        }
+    })
+    .handler(async (input, context, meta) => {
+        expectTypeOf(context).toMatchTypeOf<{user: {id: string}; say: string}>()
+    })
+```
+
+## Fundamentals
+
+In oRPC, middleware is simply a JavaScript function, making it easy to customize:
+
+```ts
+import type { Meta } from '@orpc/server'
+
+const mid = orpc.middleware(async (input, context, meta) => {})
+
+// This is equivalent to:
+
+const mid = async (input: unknown, context: Context, meta: Meta<unknown>): void => {
+
+}
+```

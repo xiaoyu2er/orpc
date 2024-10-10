@@ -3,11 +3,10 @@
     "procedure",
     "middleware",
     "router",
-    "internal-caller",
-    "hosting",
-    "integrations",
     "file-upload",
     "error-handling",
+    "advanced",
+    "integrations",
     "..."
   ]
 }

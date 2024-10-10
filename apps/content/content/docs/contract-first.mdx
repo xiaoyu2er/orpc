@@ -1,7 +1,86 @@
 ---
-title: Contract First
-description: The guide for applying contract first approach inside ORPC
+title: Contract-First
+description: Guide to implementing a contract-first approach with oRPC
 icon: ReceiptText
 ---
 
-...(In progress)
+## Introduction
+
+The contract-first approach is a powerful methodology for API development. It offers several key advantages:
+- Enables parallel development of client and server components
+- Facilitates clear API definition before implementation
+- Simplifies publishing TypeScript clients to npm registry
+- Reduces type conflicts between client and server
+
+## Installation
+
+```package-install
+npm i @orpc/contract @orpc/server @orpc/client
+```
+
+## Define Your Contract
+
+Start by defining your API contract:
+
+```ts
+import { z } from 'zod'
+import { initORPCContract } from '@orpc/contract'
+
+const orpc = initORPCContract
+
+export const appRouterContract = orpc.router({
+    ping: orpc
+        .route({method: 'GET', 'path': '/ping'}) // optional
+        .input(z.object({ name: z.string() })) // optional
+        .output(z.object({ message: z.string() })) // optional
+})
+```
+
+## Implement Your Server
+
+With your contract defined, implement the server logic:
+
+```ts
+import { initORPC } from '@orpc/server'
+import { appRouterContract } from './contract'
+
+const orpc = initORPC.contract(appRouterContract)
+
+export const appRouter = orpc.router({
+    ping: orpc.ping.handler(async (input, context, meta) => ({
+        message: `pong ${input.name}`
+    })),
+})
+```
+
+That's it! The contract definition and implementation are now completely separated, allowing for clean, maintainable code.
+
+## Client Usage
+
+Create a fully typed client using just the contract definition:
+
+```ts
+import { createORPCClient } from '@orpc/client'
+import { appRouterContract } from './contract'
+
+const client = createORPCClient<typeof appRouterContract>({
+    baseURL: 'http://localhost:2026',
+})
+
+// Example usage
+client.ping({ name: 'world' }).then(response => {
+    console.log(response.message) // Outputs: "pong world"
+})
+```
+
+The client is type-safe and can be used in any JavaScript environment.
+
+## Benefits of Contract-First Development
+
+1. **Type Safety**: Ensures consistency between client and server
+2. **Clear API Documentation**: The contract serves as living documentation
+3. **Parallel Development**: Teams can work independently on client and server
+4. **Easy Testing**: Mock implementations can be created from the contract
+5. **Version Control**: API changes are tracked through contract changes
+
+By following this approach, you create a robust foundation for your API development process.

@@ -1,6 +1,126 @@
 ---
 title: Integrations
-description: Integrations with your existing stacks, frameworks,...
+description: Integrating oRPC with your existing stacks, environments, and frameworks.
 ---
 
-...(In progress)
+## Introduction
+
+oRPC is design with [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) in mind, 
+so you can use it in any modern environment and framework.
+
+```ts
+import { serve } from '@hono/node-server' // Simple package to use Fetch API in Node
+import { createRouterHandler } from '@orpc/server'
+import { fetchHandler } from '@orpc/server/fetch'
+
+// For performance, create a global router handler
+const handler = createRouterHandler({
+  router,
+  serverless: false, // Set to true to improve cold start times
+})
+
+serve({
+  fetch(request) {
+    return fetchHandler({
+      request,
+      handler,
+      prefix: '/',
+      context: {},
+    })
+  },
+  port: 2026
+})
+```
+
+Under the hood, oRPC utilizes the RegExpRouter from [Hono](https://hono.dev/) (the fastest router in the JavaScript ecosystem).
+We also provide first-class support for Edge and serverless environments.
+
+## Hono
+
+While oRPC uses Hono's routing engine internally, there are additional benefits to using oRPC with Hono directly.
+
+```ts
+import { Hono } from 'hono'
+import { createRouterHandler } from '@orpc/server'
+import { fetchHandler } from '@orpc/server/fetch'
+
+// For performance, create a global router handler
+const handler = createRouterHandler({
+  router,
+  serverless: false, // Set to true to improve cold start times
+})
+
+const app = new Hono()
+
+app.get('/api/*', (c) => {
+  return fetchHandler({
+    request: c.req.raw,
+    handler,
+    prefix: '/api',
+    context: {},
+  }) 
+})
+
+export default app
+```
+
+## Next.JS
+
+As of Next.js 13, you can use the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) for route handlers.
+
+```ts title="app/api/[[...orpc]].ts"
+import { createRouterHandler } from '@orpc/server'
+import { fetchHandler } from '@orpc/server/fetch'
+
+// For performance, create a global router handler
+const handler = createRouterHandler({
+  router,
+  serverless: false, // Set to true to improve cold start times
+})
+
+const fetchRequestHandler = async (request: Request) => {
+  return fetchHandler({
+    request,
+    handler,
+    prefix: '/api',
+    context: {},
+  }) 
+}
+
+export const GET = fetchRequestHandler
+export const POST = fetchRequestHandler
+export const PUT = fetchRequestHandler
+export const DELETE = fetchRequestHandler
+export const PATCH = fetchRequestHandler
+```
+
+## Cloudflare Worker
+
+Cloudflare Workers support [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) out of the box.
+
+```ts
+import { createRouterHandler } from '@orpc/server'
+import { fetchHandler } from '@orpc/server/fetch'
+
+// For performance, create a global router handler
+const handler = createRouterHandler({
+  router,
+  serverless: true, // Set to true to improve cold start times
+})
+
+export default {
+  async fetch(request: Request) {
+    return fetchHandler({
+      request,
+      handler,
+      prefix: '/',
+      context: {},
+    })
+  },
+}
+```
+
+## Other Environments and Frameworks
+
+Since most modern environments and frameworks support the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API),
+you can use oRPC with virtually any environment or framework.

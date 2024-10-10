@@ -1,22 +1,54 @@
 ---
 title: Quick Start
-description: Get started with ORPC
+description: Get started with oRPC
 icon: Album
 ---
 
-## Introduction
-ORPC is splitting into three parts: `server`, `client`, and `contract` (optional). 
-Where server the the place you define app logics, and client communicate with server to call procedures. 
-Whe first class support contract first design by using `contract` (This is optional).
+import { CpuIcon, Unplug, Link2, ReceiptText } from 'lucide-react';
 
-## Installations
-For the first time, we only cover the `server` and `client` parts.
+## Introduction
+
+oRPC is a powerful combination of [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) and [OpenAPI](https://swagger.io/specification/),
+offering an exceptional developer experience powered by [TypeScript](https://www.typescriptlang.org/). It's designed to be simple and straightforward to use.
+
+The oRPC ecosystem primarily consists of:
+
+<h4 className="inline-flex items-center gap-2">
+  <CpuIcon className="text-purple-300 p-0.5 border rounded-lg" />
+  <span>Server</span>
+</h4>
+
+The foundation where you implement your business logic, equipped with numerous utilities for enhanced developer experience.
+
+<h4 className="inline-flex items-center gap-2">
+  <Unplug className="text-blue-300 p-0.5 border rounded-lg" />
+  <span>Client</span>
+</h4>
+
+The interface for communicating with the oRPC server, featuring a fully typed client for seamless integration.
+
+<h4 className="inline-flex items-center gap-2">
+  <ReceiptText className="text-green-300 p-0.5 border rounded-lg" />
+  <span>Contract</span>
+</h4>
+
+Enables painless contract-first development approach, ensuring consistent API design.
+
+<h4 className="inline-flex items-center gap-2">
+  <Link2 className="text-rose-300 p-0.5 border rounded-lg" />
+  <span>OpenAPI</span>
+</h4>
+
+Effortlessly publish your API under OpenAPI specification, maintaining industry standards.
+
+## Installation
+This guide covers the essential `server` and `client` components. For additional information, see the [Contract Guide](/docs/contract-first) and [OpenAPI Guide](/docs/openapi/generator).
 
 ```package-install
 npm i @orpc/server @orpc/client
 ```
 
-## Define your first router
+## Define Your First Router
 
 ```ts
 import { initORPC } from '@orpc/server'
@@ -28,30 +60,48 @@ const orpc = initORPC.context<Context>()
 
 const router = orpc.router({
   ping: orpc
-    .route({method: 'GET', 'path': '/ping'}) // optional
-    .input(z.object({ name: z.string() })) // optional
+    .route({method: 'GET', path: '/ping'}) // Optional
+    .input(z.object({ name: z.string() })) // Optional
+    .use((input, context, meta) => {
+      //  ^input, context, meta is fully typed
+
+      meta.onSuccess(async (output) => {
+        // ^output is fully typed
+      })
+
+      meta.onError(async (error) => {})
+      meta.onFinish(async (error) => {})
+
+      return {
+        context: {
+          value: 'this will be merged into context',
+        }
+      }
+    })
     .handler(async (input, context, meta) => `pong ${input.name}`),
 })
 ```
 
-## Start your server
+In oRPC middleware is very useful and fully typed you can find more info [here](/docs/server/middleware)
 
-Here I use a simple package `@hono/node-server` to start a node server with Fetch API.
+## Start Your Server
+
+This example uses [@hono/node-server](https://github.com/honojs/node-server) to create a Node server with [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
 
 ```ts
 import { serve } from '@hono/node-server'
 import { createRouterHandler } from '@orpc/server'
 import { fetchHandler } from '@orpc/server/fetch'
 
-// For performance purpose, we should create a global router handler
+// Create a global router handler for optimal performance
 const handler = createRouterHandler({
   router,
-  serverless: false, // Set it to true will improve cold start times
+  serverless: false, // Set to true to improve cold start times
 })
 
 serve({
-  fetch(request){
-    fetchHandler({
+  fetch(request) {
+    return fetchHandler({
       request,
       handler,
       prefix: '/',
@@ -62,11 +112,11 @@ serve({
 })
 ```
 
-Now start the server and visit http://localhost:2026/ping?name=dinwwwh to se the result
+Start the server and visit http://localhost:2026/ping?name=yourname to see the result.
 
-## Client usage
+## Client Usage
 
-Fully typed client is also provided, you can use it in any environment.
+Use the fully typed client in any environment:
 
 ```ts
 import { createORPCClient } from '@orpc/client'
@@ -75,7 +125,8 @@ const client = createORPCClient<typeof router>({
   baseURL: 'http://localhost:2026',
 })
 
-client.ping({ name: 'dinwwwh' }).then((output) => console.log(output))
+client.ping({ name: 'yourname' }).then((output) => console.log(output))
+//          ^input is typed             ^output is typed
 ```
 
-That's all very convenient.
+That's all you need to get started with oRPC!

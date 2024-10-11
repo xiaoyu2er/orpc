@@ -20,12 +20,13 @@ describe('createProcedureClient', () => {
   })
   const orpcFetch: typeof fetch = async (...args) => {
     const request = new Request(...args)
-    return await fetchHandler({
+    const response = await fetchHandler({
       prefix: '/orpc',
       request,
       handler,
       context: {},
     })
+    return response
   }
 
   it('types', () => {
@@ -106,5 +107,34 @@ describe('createProcedureClient', () => {
     expect(client({ value: 'hello' })).rejects.toThrowError(
       'Internal server error',
     )
+  })
+
+  it('transformer', async () => {
+    const router = orpc.router({
+      ping: orpc
+        .input(z.object({ value: z.date() }))
+        .handler((input) => input.value),
+    })
+
+    const handler = createRouterHandler({
+      router,
+    })
+
+    const client = createProcedureClient({
+      path: ['ping'],
+      baseURL: 'http://localhost:3000/orpc',
+      fetch: (...args) => {
+        const request = new Request(...args)
+        return fetchHandler({
+          prefix: '/orpc',
+          request,
+          handler,
+          context: {},
+        })
+      },
+    })
+
+    const now = new Date()
+    expect(await client({ value: now })).toEqual(now)
   })
 })

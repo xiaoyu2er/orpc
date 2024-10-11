@@ -49,5 +49,8 @@
     "@orpc/server": "workspace:*",
     "radash": "^12.1.0",
     "zod": "^3.23.8"
+  },
+  "dependencies": {
+    "superjson": "^2.2.1"
   }
 }

@@ -121,4 +121,32 @@ describe('createRouterClient', () => {
       'Validation input failed',
     )
   })
+
+  it('transformer', async () => {
+    const router = orpc.router({
+      ping: orpc
+        .input(z.object({ value: z.date() }))
+        .handler((input) => input.value),
+    })
+
+    const handler = createRouterHandler({
+      router,
+    })
+
+    const client = createRouterClient<typeof router>({
+      baseURL: 'http://localhost:3000/orpc',
+      fetch: (...args) => {
+        const request = new Request(...args)
+        return fetchHandler({
+          prefix: '/orpc',
+          request,
+          handler,
+          context: {},
+        })
+      },
+    })
+
+    const now = new Date()
+    expect(await client.ping({ value: now })).toEqual(now)
+  })
 })

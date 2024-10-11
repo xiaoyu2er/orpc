@@ -1,5 +1,3 @@
-/** dinwwwh */
-
 import { Builder } from './builder'
 
 export * from './builder'

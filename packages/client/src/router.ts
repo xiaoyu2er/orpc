@@ -4,6 +4,7 @@ import type {
   ContractProcedure,
   ContractRouter,
   SchemaOutput,
+  Transformer,
 } from '@orpc/contract'
 import type { Procedure, Promisable, Router } from '@orpc/server'
 import { type ProcedureClient, createProcedureClient } from './procedure'
@@ -34,8 +35,21 @@ export type RouterClientWithRouter<TRouter extends Router<any>> = {
 }
 
 export interface CreateRouterClientOptions {
+  /**
+   * The base url of the server.
+   */
   baseURL: string
+
+  /**
+   * The fetch function used to make the request.
+   * @default global fetch
+   */
   fetch?: typeof fetch
+
+  /**
+   * The headers used to make the request.
+   * Invoked before the request is made.
+   */
   headers?: (input: unknown) => Promisable<Headers | Record<string, string>>
 
   /**
@@ -44,6 +58,14 @@ export interface CreateRouterClientOptions {
    * @internal
    */
   path?: string[]
+
+  /**
+   * The transformer used to support more data types of the request and response.
+   * The transformer must match the transformer used on server.
+   *
+   * @default SuperJSON
+   */
+  transformer?: Transformer
 }
 
 export function createRouterClient<
@@ -56,13 +78,13 @@ export function createRouterClient<
     ? RouterClientWithContractRouter<TRouter>
     : never {
   const path = options?.path ?? []
-  const fetch_ = options.fetch ?? fetch
 
   const client = new Proxy(
     createProcedureClient({
       baseURL: options.baseURL,
-      fetch: fetch_,
+      fetch: options.fetch,
       headers: options.headers,
+      transformer: options.transformer,
       path,
     }),
     {

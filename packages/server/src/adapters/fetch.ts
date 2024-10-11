@@ -1,21 +1,66 @@
 /// <reference lib="dom" />
 
+import { ORPC_TRANSFORMER_HEADER, type Transformer } from '@orpc/contract'
 import { trim } from 'radash'
+import SuperJSON from 'superjson'
 import { ORPCError } from '../error'
 import type { RouterHandler } from '../router-handler'
 import type { Hooks, Promisable } from '../types'
 import { hook } from '../utils'
 
-export async function fetchHandler<THandler extends RouterHandler<any>>(opts: {
+export interface FetchHandlerOptions<THandler extends RouterHandler<any>> {
+  /**
+   * The request need to be handled.
+   */
   request: Request
+
+  /**
+   * Prefix pathname.
+   *
+   * @example /orpc
+   * @example /api
+   */
   prefix?: string
+
+  /**
+   * Router handler. use `createRouterHandler` to create it.
+   */
   handler: THandler
+
+  /**
+   * The context used to handle the request.
+   */
   context: THandler extends RouterHandler<infer UContext> ? UContext : never
+
+  /**
+   * Hooks help you listen to the request lifecycle.
+   * Helpful when you want to log, analyze, ...
+   */
   hooks?: (
     context: THandler extends RouterHandler<infer UContext> ? UContext : never,
     hooks: Hooks<Response>,
   ) => Promisable<void>
-}): Promise<Response> {
+
+  /**
+   * The transformer used to support more data types of the request and response.
+   * It's only used when x-orpc-transformer=1 is set in the request header.
+   *
+   * @default SuperJSON
+   */
+  transformer?: Transformer
+}
+
+export async function fetchHandler<THandler extends RouterHandler<any>>(
+  opts: FetchHandlerOptions<THandler>,
+): Promise<Response> {
+  const transformer: Transformer = (() => {
+    if (opts.request.headers.get(ORPC_TRANSFORMER_HEADER) !== '1') {
+      return JSON
+    }
+
+    return opts.transformer ?? SuperJSON
+  })()
+
   try {
     const response = await hook<Response>(async (hooks) => {
       const url = new URL(opts.request.url)
@@ -45,7 +90,7 @@ export async function fetchHandler<THandler extends RouterHandler<any>>(opts: {
         if (text === '') return undefined
 
         try {
-          return JSON.parse(text)
+          return transformer.parse(text)
         } catch (e) {
           throw new ORPCError({
             code: 'BAD_REQUEST',
@@ -57,7 +102,7 @@ export async function fetchHandler<THandler extends RouterHandler<any>>(opts: {
 
       const output = await opts.handler(method, path, input, opts.context)
 
-      return new Response(JSON.stringify(output), {
+      return new Response(transformer.stringify(output), {
         status: 200,
         headers: {
           'Content-Type': 'application/json',
@@ -76,7 +121,7 @@ export async function fetchHandler<THandler extends RouterHandler<any>>(opts: {
             cause: e,
           })
 
-    return new Response(JSON.stringify(error), {
+    return new Response(transformer.stringify(error.toJSON()), {
       status: error.status,
       headers: {
         'Content-Type': 'application/json',

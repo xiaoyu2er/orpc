@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { ORPCError, createRouterHandler, initORPC } from '..'
-import { ORPC_PROTOCOL_HEADER } from '../config'
 import { fetchHandler } from './fetch'
 
 const router = initORPC.router({
@@ -78,11 +77,7 @@ describe('simple', () => {
   it('200: internal url', async () => {
     const response = await fetchHandler({
       handler,
-      request: new Request('http://localhost/.ping', {
-        headers: {
-          [ORPC_PROTOCOL_HEADER]: '1',
-        },
-      }),
+      request: new Request('http://localhost/.ping'),
       context: { auth: true },
     })
 
@@ -92,11 +87,7 @@ describe('simple', () => {
     const response2 = await fetchHandler({
       prefix: '/orpc',
       handler,
-      request: new Request('http://localhost/orpc.ping2', {
-        headers: {
-          [ORPC_PROTOCOL_HEADER]: '1',
-        },
-      }),
+      request: new Request('http://localhost/orpc.ping2'),
       context: { auth: true },
     })
 

@@ -35,7 +35,6 @@ export function createProcedureClient<
     headers = headers instanceof Headers ? headers : new Headers(headers)
 
     headers.set('Content-Type', 'application/json')
-    headers.set('X-ORPC-Protocol', '1')
 
     const response = await fetch_(url, {
       method: 'POST',

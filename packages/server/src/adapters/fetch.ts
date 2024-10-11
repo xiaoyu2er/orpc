@@ -1,7 +1,6 @@
 /// <reference lib="dom" />
 
 import { trim } from 'radash'
-import { ORPC_PROTOCOL_HEADER } from '../config'
 import { ORPCError } from '../error'
 import type { RouterHandler } from '../router-handler'
 import type { Hooks, Promisable } from '../types'
@@ -20,17 +19,18 @@ export async function fetchHandler<THandler extends RouterHandler<any>>(opts: {
   try {
     const response = await hook<Response>(async (hooks) => {
       const url = new URL(opts.request.url)
+      const pathname = `/${trim(url.pathname.replace(opts.prefix ?? '', ''), '/')}`
 
       const { path, method } = (() => {
-        if (opts.request.headers.get(ORPC_PROTOCOL_HEADER) === '1') {
+        if (pathname.startsWith('/.')) {
           return {
-            path: trim(url.pathname.replace(opts.prefix ?? '', ''), '/.'),
+            path: trim(pathname, '/.'),
           }
         }
 
         return {
           method: opts.request.method,
-          path: `/${trim(url.pathname.replace(opts.prefix ?? '', ''), '/')}`,
+          path: pathname,
         }
       })()
 

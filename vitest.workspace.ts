@@ -14,4 +14,12 @@ export default defineWorkspace([
       include: ['./packages/openapi/**/*.test.ts'],
     },
   },
+  {
+    test: {
+      globals: true,
+      environment: 'jsdom',
+      setupFiles: ['./vitest.jsdom-react.ts'],
+      include: ['./packages/react/**/*.test.tsx'],
+    },
+  },
 ])

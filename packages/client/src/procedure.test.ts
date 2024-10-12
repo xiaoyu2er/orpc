@@ -1,4 +1,4 @@
-import { createRouterHandler, initORPC } from '@orpc/server'
+import { ORPCError, createRouterHandler, initORPC } from '@orpc/server'
 import { fetchHandler } from '@orpc/server/fetch'
 import { z } from 'zod'
 import { createProcedureClient } from './procedure'
@@ -136,5 +136,47 @@ describe('createProcedureClient', () => {
 
     const now = new Date()
     expect(await client({ value: now })).toEqual(now)
+  })
+
+  it('error include data', async () => {
+    const router = orpc.router({
+      ping: orpc.handler((input) => {
+        throw new ORPCError({
+          code: 'BAD_GATEWAY',
+          data: {
+            value: 'from error',
+          },
+        })
+      }),
+    })
+
+    const handler = createRouterHandler({
+      router,
+    })
+
+    const client = createProcedureClient({
+      path: ['ping'],
+      baseURL: 'http://localhost:3000/orpc',
+      fetch: (...args) => {
+        const request = new Request(...args)
+        return fetchHandler({
+          prefix: '/orpc',
+          request,
+          handler,
+          context: {},
+        })
+      },
+    })
+
+    let error: any
+    try {
+      await client(undefined)
+    } catch (e) {
+      error = e
+    }
+
+    expect(error).toBeInstanceOf(ORPCError)
+    expect(error.code).toEqual('BAD_GATEWAY')
+    expect(error.data).toEqual({ value: 'from error' })
   })
 })

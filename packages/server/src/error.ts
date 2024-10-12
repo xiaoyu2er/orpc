@@ -85,8 +85,12 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
       !Object.keys(ORPC_ERROR_CODE_STATUSES).find((key) => json.code === key) ||
       !('status' in json) ||
       typeof json.status !== 'number' ||
-      ('message' in json && typeof json.message !== 'string') ||
-      ('issues' in json && !Array.isArray(json.issues))
+      ('message' in json &&
+        json.message !== undefined &&
+        typeof json.message !== 'string') ||
+      ('issues' in json &&
+        json.issues !== undefined &&
+        !Array.isArray(json.issues))
     ) {
       return undefined
     }

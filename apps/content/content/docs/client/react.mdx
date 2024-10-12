@@ -1,6 +1,63 @@
 ---
 title: React
-description: Fully typed client for React JS with Tanstack Query
+description: Fully typed client for React JS with TanStack Query
 ---
 
-...(In progress)
+## Installation
+
+```package-install
+npm i @orpc/client @orpc/react @tanstack/react-query
+```
+
+## Setup
+
+```tsx
+import { createORPCReact, ORPCContextProvider } from '@orpc/react'
+import { createORPCClient } from '@orpc/client'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { useState } from 'react'
+import type { router } from './app-router-or-contract-router'
+
+export const orpc = createORPCReact<typeof router>()
+
+export function ORPCProvider({ children }: { children: React.ReactNode }) {
+    const [client] = useState(() => createORPCClient({
+        baseURL: 'http://localhost:2026',
+    }))
+    const [queryClient] = useState(() => new QueryClient())
+
+    return (
+        <ORPCContextProvider value={{ client, queryClient }}>
+            <QueryClientProvider client={queryClient}>
+                {children}
+            </QueryClientProvider>
+        </ORPCContextProvider>
+    )
+}
+```
+
+The `client` is exactly the same as the [vanilla client](/docs/client/vanilla). 
+You can create it globally or in a component based on your needs.
+
+## Usage
+
+```tsx
+import { orpc } from './provider'
+
+export function MyComponent() {
+    const { data, status } = orpc.ping.useQuery({ name: 'dinwwwh' })
+
+    return (
+        <div>
+            {status === 'loading' && 'Loading...'}
+            {status === 'success' && <div>Data: {data}</div>}
+            {status === 'error' && <div>Error: {error.message}</div>}
+        </div>
+    )
+}
+```
+
+`useMutation` and other APIs are exactly the same; we just wrap [TanStack Query](https://tanstack.com/query/latest).
+However, oRPC will manage the `query key` and `function` for you, providing the best developer experience.
+
+> **Note:** The React client is still in progress. We will add more features in the future.

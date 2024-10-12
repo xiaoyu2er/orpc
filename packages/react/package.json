@@ -43,5 +43,18 @@
   "scripts": {
     "build": "UNPLUGIN_ON_SUCCESS='tsc -b --noCheck' vite build",
     "type:check": "tsc -b"
+  },
+  "dependencies": {
+    "@orpc/client": "workspace:*",
+    "@orpc/contract": "workspace:*"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.59.9",
+    "react": "^18.3.1"
+  },
+  "devDependencies": {
+    "@tanstack/react-query": "^5.59.9",
+    "react": "^18.3.1",
+    "zod": "^3.23.8"
   }
 }

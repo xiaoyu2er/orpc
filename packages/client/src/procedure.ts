@@ -78,7 +78,6 @@ export function createProcedureClient<
 
     const text = await response.text()
     const json = text ? transformer.parse(text) : undefined
-
     if (!response.ok) {
       throw (
         ORPCError.fromJSON(json) ??

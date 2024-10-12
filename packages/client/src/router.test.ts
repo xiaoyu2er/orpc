@@ -13,7 +13,7 @@ describe('createRouterClient', () => {
   const router = orpc.router({
     ping,
     nested: {
-      ping,
+      unique: ping,
     },
   })
   const handler = createRouterHandler({
@@ -43,7 +43,7 @@ describe('createRouterClient', () => {
       pong,
       peng,
       nested: {
-        ping,
+        unique: ping,
       },
     })
 
@@ -59,7 +59,7 @@ describe('createRouterClient', () => {
       (input: unknown) => Promise<unknown>
     >()
 
-    expectTypeOf(client.nested.ping).toEqualTypeOf<
+    expectTypeOf(client.nested.unique).toEqualTypeOf<
       (input: { value: string }) => Promise<unknown>
     >()
   })
@@ -77,7 +77,7 @@ describe('createRouterClient', () => {
       pong,
       peng,
       nested: {
-        ping,
+        unique: ping,
       },
     })
 
@@ -92,7 +92,7 @@ describe('createRouterClient', () => {
     expectTypeOf(client.peng).toEqualTypeOf<
       (input: unknown) => Promise<{ age: number }>
     >()
-    expectTypeOf(client.nested.ping).toEqualTypeOf<
+    expectTypeOf(client.nested.unique).toEqualTypeOf<
       (input: { value: string }) => Promise<string>
     >()
   })
@@ -106,8 +106,8 @@ describe('createRouterClient', () => {
     const result = await client.ping({ value: 'hello' })
     expect(result).toEqual(['ping'])
 
-    const result2 = await client.nested.ping({ value: 'hello' })
-    expect(result2).toEqual(['nested', 'ping'])
+    const result2 = await client.nested.unique({ value: 'hello' })
+    expect(result2).toEqual(['nested', 'unique'])
   })
 
   it('on error', () => {

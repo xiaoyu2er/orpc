@@ -117,6 +117,22 @@ describe('createRouterReactClient: useInfiniteQuery', () => {
       ],
     })
   })
+
+  it('error on unsupported procedure', async () => {
+    ;() => {
+      // @ts-expect-error input must be an object
+      orpcReact.ping.useInfiniteQuery(undefined, {} as any)
+
+      // still work if cursor is missing in input schema
+      orpcReact.user.find.useInfiniteQuery(
+        { id: '123' },
+        {
+          initialPageParam: undefined as unknown,
+          getNextPageParam: (lastPage) => 123 as unknown,
+        },
+      )
+    }
+  })
 })
 
 describe('createRouterReactClient: useMutation', () => {

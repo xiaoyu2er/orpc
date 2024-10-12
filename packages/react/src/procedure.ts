@@ -35,7 +35,8 @@ export type ProcedureReactClient<
   ) => UseQueryResult<SchemaOutput<TOutputSchema, THandlerOutput>, unknown>
 
   useInfiniteQuery: (
-    input: Omit<SchemaInput<TInputSchema>, 'cursor'>,
+    input: Omit<SchemaInput<TInputSchema>, 'cursor'> &
+      Record<string | number | symbol, any>,
     options: OmitKeyof<
       UseInfiniteQueryOptions<
         SchemaOutput<TOutputSchema, THandlerOutput>,

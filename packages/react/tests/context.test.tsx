@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { renderHook, waitFor } from '@testing-library/react'
 import { createORPCContext, createORPCReact } from '../src'
+import { getQueryKey } from '../src/query'
 import { client, orpcReact, queryClient, type router, wrapper } from './orpc'
 
 it('support multiple context', async () => {
@@ -50,17 +51,25 @@ it('support multiple context', async () => {
     hook2.result.current.data?.timestamp,
   )
 
-  expect(queryClient.getQueryData(['withTimestamp', { id: '123' }])).toBe(
-    hook1.result.current.data,
-  )
-  expect(queryClient.getQueryData(['withTimestamp', { id: '123' }])).not.toBe(
-    hook2.result.current.data,
-  )
+  expect(
+    queryClient.getQueryData(
+      getQueryKey(orpcReact.withTimestamp, { id: '123' }),
+    ),
+  ).toBe(hook1.result.current.data)
+  expect(
+    queryClient.getQueryData(
+      getQueryKey(orpcReact2.withTimestamp, { id: '123' }),
+    ),
+  ).not.toBe(hook2.result.current.data)
 
-  expect(queryClient2.getQueryData(['withTimestamp', { id: '123' }])).toBe(
-    hook2.result.current.data,
-  )
-  expect(queryClient2.getQueryData(['withTimestamp', { id: '123' }])).not.toBe(
-    hook1.result.current.data,
-  )
+  expect(
+    queryClient2.getQueryData(
+      getQueryKey(orpcReact2.withTimestamp, { id: '123' }),
+    ),
+  ).toBe(hook2.result.current.data)
+  expect(
+    queryClient2.getQueryData(
+      getQueryKey(orpcReact2.withTimestamp, { id: '123' }),
+    ),
+  ).not.toBe(hook1.result.current.data)
 })

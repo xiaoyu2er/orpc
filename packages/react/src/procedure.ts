@@ -14,6 +14,9 @@ import {
   useQuery,
 } from '@tanstack/react-query'
 import { type ORPCContext, useORPCContext } from './context'
+import { getMutationKeyFromPath } from './mutation'
+import { pathSymbol } from './path'
+import { getQueryKeyFromPath } from './query'
 import { get } from './utils'
 
 export type ProcedureReactClient<
@@ -91,13 +94,15 @@ export function createProcedureReactClient<
   options: CreateProcedureReactClientOptions,
 ): ProcedureReactClient<TInputSchema, TOutputSchema, THandlerOutput> {
   return {
+    [pathSymbol as any]: options.path,
+
     useQuery: (input, options_) => {
       const orpc = useORPCContext(options.context)
       const query = useQuery(
         {
           ...options_,
           queryFn: () => (get(orpc.client, options.path) as any)(input),
-          queryKey: [...options.path, input],
+          queryKey: getQueryKeyFromPath(options.path, input),
         },
         orpc.queryClient,
       )
@@ -115,7 +120,7 @@ export function createProcedureReactClient<
             ...input,
             cursor: pageParam,
           }),
-        queryKey: [...options.path, input],
+        queryKey: getQueryKeyFromPath(options.path, input, 'infinite'),
       })
 
       return query
@@ -128,6 +133,7 @@ export function createProcedureReactClient<
         {
           ...options_,
           mutationFn: (input) => (get(orpc.client, options.path) as any)(input),
+          mutationKey: getMutationKeyFromPath(options.path),
         },
         orpc.queryClient,
       )

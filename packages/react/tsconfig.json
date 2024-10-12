@@ -4,7 +4,7 @@
     "types": []
   },
   "references": [{ "path": "../contract" }, { "path": "../client" }],
-  "include": ["src"],
+  "include": ["src", "tests/path.test.ts"],
   "exclude": [
     "**/*.test.*",
     "**/*.test-d.ts",

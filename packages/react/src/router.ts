@@ -11,6 +11,10 @@ import {
   createProcedureReactClient,
 } from './procedure'
 
+export interface RouterReactClient {
+  [K: string]: ProcedureReactClient<any, any, any> | RouterReactClient
+}
+
 export type RouterReactClientWithContractRouter<
   TRouter extends ContractRouter,
 > = {

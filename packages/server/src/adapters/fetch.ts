@@ -66,11 +66,9 @@ export async function fetchHandler<THandler extends RouterHandler<any>>(
       const url = new URL(opts.request.url)
       const pathname = `/${trim(url.pathname.replace(opts.prefix ?? '', ''), '/')}`
 
-      const { path, method } = (() => {
+      const way = (() => {
         if (pathname.startsWith('/.')) {
-          return {
-            path: trim(pathname, '/.'),
-          }
+          return trim(pathname.replace('.', ''), '/').split('.')
         }
 
         return {
@@ -100,7 +98,7 @@ export async function fetchHandler<THandler extends RouterHandler<any>>(
         }
       })()
 
-      const output = await opts.handler(method, path, input, opts.context)
+      const output = await opts.handler(way, input, opts.context)
 
       return new Response(transformer.stringify(output), {
         status: 200,

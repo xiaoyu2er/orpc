@@ -42,14 +42,19 @@ describe('createRouterHandler', () => {
 
     const handler = createRouterHandler({ router, serverless })
 
-    const r1 = await handler('POST', '/.ping', { input: true }, context)
-    const r2 = await handler('POST', '/.ping', { input: true }, context)
+    expect(
+      handler({ method: 'POST', path: '/.ping' }, { input: true }, context),
+    ).rejects.toThrow('Not found')
+    const r2 = await handler(['ping'], { input: true }, context)
 
-    expect(r1).toBe('pong')
     expect(r2).toBe('pong')
 
-    const r3 = await handler(undefined, 'ping2', { input: true }, context)
-    const r4 = await handler(undefined, 'ping2', { input: true }, context)
+    const r3 = await handler(
+      { method: 'POST', path: '/ping-2' },
+      { input: true },
+      context,
+    )
+    const r4 = await handler(['ping2'], { input: true }, context)
 
     expect(r3).toBe('pong2')
     expect(r4).toBe('pong2')
@@ -72,7 +77,11 @@ describe('createRouterHandler', () => {
 
     const handler = createRouterHandler({ router, serverless })
 
-    const r1 = await handler('POST', '/ping/1', undefined, context)
+    const r1 = await handler(
+      { method: 'POST', path: '/ping/1' },
+      undefined,
+      context,
+    )
 
     expect(r1).toBe('pong')
   })
@@ -94,30 +103,34 @@ describe('createRouterHandler', () => {
 
     const handler = createRouterHandler({ router })
 
-    expect(handler(undefined, 'ping', undefined, context)).rejects.toThrow(
+    expect(handler(['ping'], undefined, context)).rejects.toThrow(
       'Validation input failed',
     )
-    expect(handler('POST', '/ping/1', null, context)).rejects.toThrow(
-      'Validation input failed',
-    )
-    expect(handler('POST', '/ping/1', 123, context)).rejects.toThrow(
-      'Validation input failed',
-    )
-    expect(handler('POST', '/ping/1', '123', context)).rejects.toThrow(
-      'Validation input failed',
-    )
+    expect(
+      handler({ method: 'POST', path: '/ping/1' }, null, context),
+    ).rejects.toThrow('Validation input failed')
+    expect(
+      handler({ method: 'POST', path: '/ping/1' }, 123, context),
+    ).rejects.toThrow('Validation input failed')
+    expect(
+      handler({ method: 'POST', path: '/ping/1' }, '123', context),
+    ).rejects.toThrow('Validation input failed')
   })
 
   test('on nested router', async () => {
     const router = orpc.router({
       users: {
-        find: orpc.handler(() => 'find'),
+        find: orpc.route({ path: '/users/find' }).handler(() => 'find'),
       },
     })
 
     const handler = createRouterHandler({ router })
 
-    const output = await handler('POST', '/.users.find', undefined, context)
+    const output = await handler(
+      { method: 'POST', path: '/users/find' },
+      undefined,
+      context,
+    )
 
     expect(output).toBe('find')
   })
@@ -128,9 +141,12 @@ describe('createRouterHandler', () => {
     const onFinish = vi.fn()
 
     const router = orpc.router({
-      ping: orpc.output(z.string()).handler(() => {
-        return 'pong'
-      }),
+      ping: orpc
+        .route({ path: '/ping' })
+        .output(z.string())
+        .handler(() => {
+          return 'pong'
+        }),
     })
 
     const handler = createRouterHandler({
@@ -142,7 +158,7 @@ describe('createRouterHandler', () => {
       },
     })
 
-    await handler('POST', '/.ping', 'input', context)
+    await handler({ method: 'POST', path: '/ping' }, 'input', context)
 
     expect(onSuccess).toHaveBeenCalledTimes(1)
     expect(onError).toHaveBeenCalledTimes(0)

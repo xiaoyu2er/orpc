@@ -1,18 +1,16 @@
 import { type HTTPPath, standardizeHTTPPath } from '@orpc/contract'
 import { LinearRouter } from 'hono/router/linear-router'
 import { RegExpRouter } from 'hono/router/reg-exp-router'
-import { get } from 'radash'
 import { ORPCError } from './error'
 import { type WELL_DEFINED_PROCEDURE, isProcedure } from './procedure'
 import { createProcedureCaller } from './procedure-caller'
 import type { Router } from './router'
 import type { Context, Meta, Promisable } from './types'
-import { hook } from './utils'
+import { get, hook } from './utils'
 
 export interface RouterHandler<TContext extends Context> {
   (
-    method: string | undefined,
-    path: string,
+    way: { method: string; path: string } | string[],
     input: unknown,
     context: TContext,
   ): Promise<unknown>
@@ -36,12 +34,12 @@ export function createRouterHandler<TRouter extends Router<any>>(opts: {
       const item = router[key] as WELL_DEFINED_PROCEDURE | Router<any>
 
       if (isProcedure(item)) {
-        const method = item.zz$p.contract.zz$cp.method ?? 'POST'
-        const path = item.zz$p.contract.zz$cp.path
-          ? openAPIPathToRouterPath(item.zz$p.contract.zz$cp.path)
-          : `/.${currentPath.join('.')}`
+        if (item.zz$p.contract.zz$cp.path) {
+          const method = item.zz$p.contract.zz$cp.method ?? 'POST'
+          const path = openAPIPathToRouterPath(item.zz$p.contract.zz$cp.path)
 
-        routing.add(method, path, [currentPath, item])
+          routing.add(method, path, [currentPath, item])
+        }
       } else {
         addRouteRecursively(item, currentPath)
       }
@@ -50,28 +48,28 @@ export function createRouterHandler<TRouter extends Router<any>>(opts: {
 
   addRouteRecursively(opts.router, [])
 
-  return async (method, path_, input_, context_) => {
+  return async (way, input_, context_) => {
     return await hook(async (hooks) => {
       let path: string[] | undefined
       let procedure: WELL_DEFINED_PROCEDURE | undefined
       let params: Record<string, string | number> | undefined
 
-      if (!method) {
-        const val = get(opts.router, path_)
+      if (Array.isArray(way)) {
+        const val = get(opts.router, way)
 
         if (isProcedure(val)) {
           procedure = val
-          path = path_.split('.')
+          path = way
         }
       } else {
-        const [[match]] = routing.match(method, path_)
+        const [[match]] = routing.match(way.method, way.path)
         path = match?.[0][0]
         procedure = match?.[0][1]
         params = match?.[1]
       }
 
       if (!path || !procedure) {
-        throw new ORPCError({ code: 'NOT_FOUND' })
+        throw new ORPCError({ code: 'NOT_FOUND', message: 'Not found' })
       }
 
       const meta: Meta<unknown> = {

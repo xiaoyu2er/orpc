@@ -1,11 +1,15 @@
 import type { Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import {
+  type InfiniteData,
   type OmitKeyof,
   type QueryKey,
+  type UseInfiniteQueryOptions,
+  type UseInfiniteQueryResult,
   type UseMutationOptions,
   type UseMutationResult,
   type UseQueryOptions,
   type UseQueryResult,
+  useInfiniteQuery,
   useMutation,
   useQuery,
 } from '@tanstack/react-query'
@@ -29,6 +33,24 @@ export type ProcedureReactClient<
       'queryKey' | 'queryFn'
     >,
   ) => UseQueryResult<SchemaOutput<TOutputSchema, THandlerOutput>, unknown>
+
+  useInfiniteQuery: (
+    input: Omit<SchemaInput<TInputSchema>, 'cursor'>,
+    options: OmitKeyof<
+      UseInfiniteQueryOptions<
+        SchemaOutput<TOutputSchema, THandlerOutput>,
+        unknown,
+        InfiniteData<SchemaOutput<TOutputSchema, THandlerOutput>>,
+        SchemaOutput<TOutputSchema, THandlerOutput>,
+        QueryKey,
+        SchemaInput<TInputSchema>['cursor']
+      >,
+      'queryFn' | 'queryKey'
+    >,
+  ) => UseInfiniteQueryResult<
+    InfiniteData<SchemaOutput<TOutputSchema, THandlerOutput>>,
+    unknown
+  >
 
   useMutation: (
     options?: OmitKeyof<
@@ -78,6 +100,22 @@ export function createProcedureReactClient<
         },
         orpc.queryClient,
       )
+
+      return query
+    },
+
+    useInfiniteQuery(input, options_) {
+      const orpc = useORPCContext(options.context)
+
+      const query = useInfiniteQuery({
+        ...options_,
+        queryFn: ({ pageParam }) =>
+          (get(orpc.client, options.path) as any)({
+            ...input,
+            cursor: pageParam,
+          }),
+        queryKey: [...options.path, input],
+      })
 
       return query
     },

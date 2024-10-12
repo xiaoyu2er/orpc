@@ -1,5 +1,10 @@
 import { ORPCError } from '@orpc/server'
-import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query'
+import type {
+  InfiniteData,
+  UseInfiniteQueryResult,
+  UseMutationResult,
+  UseQueryResult,
+} from '@tanstack/react-query'
 import { renderHook, waitFor } from '@testing-library/react'
 import { orpcReact, wrapper } from './orpc'
 
@@ -38,6 +43,79 @@ describe('createRouterReactClient: useQuery', () => {
     expect(result.current.error).toBeInstanceOf(ORPCError)
     const error = result.current.error as ORPCError<any, any>
     expect(error.code).toEqual('INTERNAL_SERVER_ERROR')
+  })
+})
+describe('createRouterReactClient: useInfiniteQuery', () => {
+  it('types', () => {
+    ;() => {
+      expectTypeOf(orpcReact.user.list.useInfiniteQuery).toMatchTypeOf<
+        (
+          input: { keywords?: string },
+          options: any,
+        ) => UseInfiniteQueryResult<
+          InfiniteData<{
+            nextCursor: number
+            users: { id: number; name: string }[]
+          }>,
+          unknown
+        >
+      >()
+
+      const query = orpcReact.user.list.useInfiniteQuery(
+        {},
+        {
+          initialPageParam: undefined, // TODO: remove this when undefined is supported
+          getNextPageParam: (lastPage) => {
+            expectTypeOf(lastPage).toMatchTypeOf<{ nextCursor: number }>()
+            return lastPage.nextCursor
+          },
+        },
+      )
+
+      expectTypeOf(query.data?.pages[0]).toMatchTypeOf<
+        | undefined
+        | { nextCursor: number; users: { id: number; name: string }[] }
+      >()
+    }
+  })
+
+  it('simple', async () => {
+    const { result } = renderHook(
+      () =>
+        orpcReact.user.list.useInfiniteQuery(
+          {},
+          {
+            initialPageParam: undefined,
+            getNextPageParam: (lastPage) => lastPage.nextCursor,
+          },
+        ),
+      {
+        wrapper,
+      },
+    )
+
+    expect(result.current.status).toEqual('pending')
+
+    await waitFor(() => expect(result.current.status).toEqual('success'))
+    expect(result.current.data?.pages[0]).toEqual({
+      nextCursor: 3,
+      users: [
+        { id: 0, name: 'name' },
+        { id: 1, name: 'name' },
+        { id: 2, name: 'name' },
+      ],
+    })
+
+    result.current.fetchNextPage()
+    await waitFor(() => expect(result.current.data?.pages.length).toBe(2))
+    expect(result.current.data?.pages[1]).toEqual({
+      nextCursor: 6,
+      users: [
+        { id: 3, name: 'name' },
+        { id: 4, name: 'name' },
+        { id: 5, name: 'name' },
+      ],
+    })
   })
 })
 

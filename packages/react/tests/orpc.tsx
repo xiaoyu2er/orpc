@@ -19,6 +19,41 @@ export const findUser = orpc
     }
   })
 
+export const listUser = orpc
+  .input(
+    z.object({
+      cursor: z.number().optional(),
+      keywords: z.string().optional(),
+    }),
+  )
+  .output(
+    z.object({
+      nextCursor: z.number(),
+      users: z.array(z.object({ id: z.number(), name: z.string() })),
+    }),
+  )
+  .handler((input) => {
+    const cursor = input.cursor ?? 0
+
+    return {
+      nextCursor: cursor + 3,
+      users: [
+        {
+          id: cursor,
+          name: 'name',
+        },
+        {
+          id: cursor + 1,
+          name: 'name',
+        },
+        {
+          id: cursor + 2,
+          name: 'name',
+        },
+      ],
+    }
+  })
+
 export const willThrow = orpc.handler(() => {
   throw new ORPCError({
     code: 'INTERNAL_SERVER_ERROR',
@@ -50,6 +85,7 @@ export const router = orpc.router({
   ping,
   user: {
     find: findUser,
+    list: listUser,
     create: createUser,
   },
   willThrow,

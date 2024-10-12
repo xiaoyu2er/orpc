@@ -60,4 +60,44 @@ export function MyComponent() {
 `useMutation` and other APIs are exactly the same; we just wrap [TanStack Query](https://tanstack.com/query/latest).
 However, oRPC will manage the `query key` and `function` for you, providing the best developer experience.
 
+## Use Infinite Query
+
+To use `useInfiniteQuery`, the procedure must have a `cursor` input field (with any type).
+
+```tsx
+const router = {
+    user: {
+        list: orpc
+        .input(z.object({ cursor: z.number(), limit: z.number() }))
+        .handler((input) => {
+            return {
+                nextCursor: input.cursor + input.limit,
+                users: []
+            }
+        })
+    }
+}
+
+export function MyComponent() {
+    const query = orpc.user.list.useInfiniteQuery(
+        {
+            limit: 10
+        }, {
+            getNextPageParam: (lastPage) => lastPage.nextCursor,
+            initialPageParam: 0,
+        })
+
+    return (
+        <div>
+            {query.status === 'loading' && 'Loading...'}
+            {query.status === 'success' && <div>Data: {query.data}</div>}
+            {query.status === 'error' && <div>Error: {query.error.message}</div>}
+        </div>
+    )
+}
+```
+
+Again, oRPC `useInfiniteQuery` just wraps [TanStack Query](https://tanstack.com/query/latest). 
+However, oRPC will manage the `query key` and `function` for you, providing the best developer experience.
+
 > **Note:** The React client is still in progress. We will add more features in the future.

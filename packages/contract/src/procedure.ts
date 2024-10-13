@@ -1,5 +1,13 @@
 import type { HTTPMethod, HTTPPath, Schema, SchemaOutput } from './types'
 
+export interface RouteOptions {
+  method?: HTTPMethod
+  path?: HTTPPath
+  summary?: string
+  description?: string
+  deprecated?: boolean
+}
+
 export class ContractProcedure<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
@@ -32,13 +40,9 @@ export class DecoratedContractProcedure<
     return new DecoratedContractProcedure(cp.zz$cp)
   }
 
-  route(opts: {
-    method?: HTTPMethod
-    path?: HTTPPath
-    summary?: string
-    description?: string
-    deprecated?: boolean
-  }): DecoratedContractProcedure<TInputSchema, TOutputSchema> {
+  route(
+    opts: RouteOptions,
+  ): DecoratedContractProcedure<TInputSchema, TOutputSchema> {
     return new DecoratedContractProcedure({
       ...this.zz$cp,
       ...opts,
@@ -55,33 +59,6 @@ export class DecoratedContractProcedure<
     return new DecoratedContractProcedure({
       ...this.zz$cp,
       path: `${prefix}${this.zz$cp.path}`,
-    })
-  }
-
-  summary(
-    summary: string,
-  ): DecoratedContractProcedure<TInputSchema, TOutputSchema> {
-    return new DecoratedContractProcedure({
-      ...this.zz$cp,
-      summary,
-    })
-  }
-
-  description(
-    description: string,
-  ): DecoratedContractProcedure<TInputSchema, TOutputSchema> {
-    return new DecoratedContractProcedure({
-      ...this.zz$cp,
-      description,
-    })
-  }
-
-  deprecated(
-    deprecated = true,
-  ): DecoratedContractProcedure<TInputSchema, TOutputSchema> {
-    return new DecoratedContractProcedure({
-      ...this.zz$cp,
-      deprecated,
     })
   }
 

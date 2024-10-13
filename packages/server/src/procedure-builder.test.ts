@@ -84,48 +84,6 @@ it('route', () => {
   })
 })
 
-it('summary', () => {
-  const builder2 = builder.summary('sum')
-
-  expectTypeOf(builder2).toEqualTypeOf(builder)
-
-  expect(builder2.zz$pb).toMatchObject({
-    contract: {
-      zz$cp: {
-        summary: 'sum',
-      },
-    },
-  })
-})
-
-it('description', () => {
-  const builder2 = builder.description('des')
-
-  expectTypeOf(builder2).toEqualTypeOf(builder)
-
-  expect(builder2.zz$pb).toMatchObject({
-    contract: {
-      zz$cp: {
-        description: 'des',
-      },
-    },
-  })
-})
-
-it('deprecated', () => {
-  const builder2 = builder.deprecated(true)
-
-  expectTypeOf(builder2).toEqualTypeOf(builder)
-
-  expect(builder2.zz$pb).toMatchObject({
-    contract: {
-      zz$cp: {
-        deprecated: true,
-      },
-    },
-  })
-})
-
 describe('use middleware', () => {
   it('infer types', () => {
     const implementer = builder

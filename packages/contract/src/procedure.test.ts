@@ -43,30 +43,6 @@ test('route method', () => {
   })
 })
 
-test('description method', () => {
-  const p = initORPCContract.route({}).description('abc')
-
-  expect(p.zz$cp).toMatchObject({
-    description: 'abc',
-  })
-})
-
-test('summary method', () => {
-  const p = initORPCContract.route({}).summary('abc')
-
-  expect(p.zz$cp).toMatchObject({
-    summary: 'abc',
-  })
-})
-
-test('deprecated method', () => {
-  const p = initORPCContract.route({}).deprecated()
-
-  expect(p.zz$cp).toMatchObject({
-    deprecated: true,
-  })
-})
-
 test('input method', () => {
   const schema = z.string()
   const p = initORPCContract.route({}).input(schema)

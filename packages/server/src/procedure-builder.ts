@@ -1,8 +1,7 @@
 import {
   type ContractProcedure,
   DecoratedContractProcedure,
-  type HTTPMethod,
-  type HTTPPath,
+  type RouteOptions,
   type Schema,
   type SchemaOutput,
 } from '@orpc/contract'
@@ -28,51 +27,14 @@ export class ProcedureBuilder<
    * Self chainable
    */
 
-  route(opts: {
-    method?: HTTPMethod
-    path?: HTTPPath
-    summary?: string
-    description?: string
-    deprecated?: boolean
-  }): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema> {
+  route(
+    opts: RouteOptions,
+  ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema> {
     return new ProcedureBuilder({
       ...this.zz$pb,
       contract: DecoratedContractProcedure.decorate(this.zz$pb.contract).route(
         opts,
       ),
-    })
-  }
-
-  summary(
-    summary: string,
-  ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema> {
-    return new ProcedureBuilder({
-      ...this.zz$pb,
-      contract: DecoratedContractProcedure.decorate(
-        this.zz$pb.contract,
-      ).summary(summary),
-    })
-  }
-
-  description(
-    description: string,
-  ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema> {
-    return new ProcedureBuilder({
-      ...this.zz$pb,
-      contract: DecoratedContractProcedure.decorate(
-        this.zz$pb.contract,
-      ).description(description),
-    })
-  }
-
-  deprecated(
-    deprecated = true,
-  ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema> {
-    return new ProcedureBuilder({
-      ...this.zz$pb,
-      contract: DecoratedContractProcedure.decorate(
-        this.zz$pb.contract,
-      ).deprecated(deprecated),
     })
   }
 

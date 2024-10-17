@@ -15,14 +15,24 @@ export class RouterBuilder<
   constructor(
     public zz$rb: {
       prefix?: HTTPPath
+      tags?: string[]
       middlewares?: Middleware<any, any, any, any>[]
     },
   ) {}
 
-  prefix(prefix: HTTPPath) {
+  prefix(prefix: HTTPPath): RouterBuilder<TContext, TExtraContext> {
     return new RouterBuilder({
       ...this.zz$rb,
       prefix: `${this.zz$rb.prefix ?? ''}${prefix}`,
+    })
+  }
+
+  tags(...tags: string[]): RouterBuilder<TContext, TExtraContext> {
+    if (!tags.length) return this
+
+    return new RouterBuilder({
+      ...this.zz$rb,
+      tags: [...(this.zz$rb.tags ?? []), ...tags],
     })
   }
 
@@ -87,13 +97,15 @@ export class RouterBuilder<
           ),
         ]
 
+        const contract = DecoratedContractProcedure.decorate(
+          item.zz$p.contract,
+        ).addTags(...(this.zz$rb.tags ?? []))
+
         handled[key] = new DecoratedProcedure({
           ...item.zz$p,
           contract: this.zz$rb.prefix
-            ? DecoratedContractProcedure.decorate(item.zz$p.contract).prefix(
-                this.zz$rb.prefix,
-              )
-            : item.zz$p.contract,
+            ? contract.prefix(this.zz$rb.prefix)
+            : contract,
           middlewares,
         })
       } else {

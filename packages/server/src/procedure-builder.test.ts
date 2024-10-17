@@ -65,6 +65,7 @@ it('route', () => {
     deprecated: true,
     description: 'des',
     summary: 'sum',
+    tags: ['hi'],
   })
 
   expectTypeOf(builder2).toEqualTypeOf<
@@ -79,6 +80,7 @@ it('route', () => {
         deprecated: true,
         description: 'des',
         summary: 'sum',
+        tags: ['hi'],
       },
     },
   })

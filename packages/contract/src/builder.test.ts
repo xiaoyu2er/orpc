@@ -11,6 +11,7 @@ describe('define a procedure', () => {
       deprecated: true,
       summary: 'Get user',
       description: 'Get user by id',
+      tags: ['bbbb'],
     })
 
     expectTypeOf(procedure).toEqualTypeOf<
@@ -23,6 +24,7 @@ describe('define a procedure', () => {
       deprecated: true,
       summary: 'Get user',
       description: 'Get user by id',
+      tags: ['bbbb'],
     })
   })
 
@@ -143,6 +145,48 @@ describe('define a router', () => {
       },
       user2: {
         find2: find.prefix('/internal/user2/find2'),
+      },
+    })
+  })
+
+  it('with tags', () => {
+    const orpc = initORPCContract
+
+    const schema1 = z.string()
+    const schema2 = z.object({ id: z.string() })
+    const ping = orpc.output(schema1)
+    const find = orpc.output(schema2)
+
+    const router = orpc.router({
+      ping: ping.prefix('/ping'),
+      user: {
+        find,
+      },
+      user2: orpc
+        .tags('user')
+        .tags('internal')
+        .router({
+          find2: find.prefix('/find2'),
+        }),
+    })
+
+    expectTypeOf(router).toMatchTypeOf<{
+      ping: typeof ping
+      user: {
+        find: typeof find
+      }
+      user2: {
+        find2: typeof find
+      }
+    }>()
+
+    expect(router).toMatchObject({
+      ping: ping.prefix('/ping'),
+      user: {
+        find,
+      },
+      user2: {
+        find2: find.addTags('user', 'internal'),
       },
     })
   })

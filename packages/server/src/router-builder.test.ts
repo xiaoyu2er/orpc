@@ -5,7 +5,7 @@ import { RouterBuilder } from './router-builder'
 
 const builder = new RouterBuilder<undefined, undefined>({})
 const ping = initORPC
-  .route({ method: 'GET', path: '/ping' })
+  .route({ method: 'GET', path: '/ping', tags: ['ping'] })
   .handler(() => 'ping')
 const pong = initORPC
   .output(z.object({ id: z.string() }))
@@ -26,6 +26,31 @@ describe('prefix', () => {
 
     expect(router.ping.zz$p.contract.zz$cp.path).toEqual('/api/users/ping')
     expect(router.pong.zz$p.contract.zz$cp.path).toEqual(undefined)
+  })
+})
+
+describe('tags', () => {
+  it('chainable tags', () => {
+    expect(builder.tags('1', '2').tags('3').tags('4').zz$rb.tags).toEqual([
+      '1',
+      '2',
+      '3',
+      '4',
+    ])
+  })
+
+  it('router', () => {
+    const router = builder
+      .tags('api')
+      .tags('users')
+      .router({ ping: ping, pong })
+
+    expect(router.ping.zz$p.contract.zz$cp.tags).toEqual([
+      'ping',
+      'api',
+      'users',
+    ])
+    expect(router.pong.zz$p.contract.zz$cp.tags).toEqual(['api', 'users'])
   })
 })
 

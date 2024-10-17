@@ -12,6 +12,10 @@ test('prefix method', () => {
   )
 })
 
+test('tags method', () => {
+  expect(initORPCContract.tags('1').tags('2').zz$crb.tags).toEqual(['1', '2'])
+})
+
 test('define a router', () => {
   const orpc = initORPCContract
   const ping = orpc.route({ method: 'GET', path: '/ping' })
@@ -21,14 +25,17 @@ test('define a router', () => {
     ping,
     pong,
 
-    internal: orpc.prefix('/internal').router({
-      ping: ping,
-      pong: pong,
-
-      nested: {
+    internal: orpc
+      .prefix('/internal')
+      .tags('internal')
+      .router({
         ping: ping,
-      },
-    }),
+        pong: pong,
+
+        nested: {
+          ping: ping,
+        },
+      }),
   })
 
   expect(router.ping.zz$cp.path).toEqual('/ping')
@@ -37,6 +44,10 @@ test('define a router', () => {
   expect(router.internal.ping.zz$cp.path).toEqual('/internal/ping')
   expect(router.internal.pong.zz$cp.path).toEqual(undefined)
   expect(router.internal.nested.ping.zz$cp.path).toEqual('/internal/ping')
+
+  expect(router.internal.ping.zz$cp.tags).toEqual(['internal'])
+  expect(router.internal.pong.zz$cp.tags).toEqual(['internal'])
+  expect(router.internal.nested.ping.zz$cp.tags).toEqual(['internal'])
 })
 
 it('router: decorate items', () => {

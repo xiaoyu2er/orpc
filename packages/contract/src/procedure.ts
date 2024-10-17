@@ -6,6 +6,7 @@ export interface RouteOptions {
   summary?: string
   description?: string
   deprecated?: boolean
+  tags?: string[]
 }
 
 export class ContractProcedure<
@@ -19,6 +20,7 @@ export class ContractProcedure<
       summary?: string
       description?: string
       deprecated?: boolean
+      tags?: string[]
       InputSchema: TInputSchema
       inputExample?: SchemaOutput<TInputSchema>
       inputExamples?: Record<string, SchemaOutput<TInputSchema>>
@@ -59,6 +61,17 @@ export class DecoratedContractProcedure<
     return new DecoratedContractProcedure({
       ...this.zz$cp,
       path: `${prefix}${this.zz$cp.path}`,
+    })
+  }
+
+  addTags(
+    ...tags: string[]
+  ): DecoratedContractProcedure<TInputSchema, TOutputSchema> {
+    if (!tags.length) return this
+
+    return new DecoratedContractProcedure({
+      ...this.zz$cp,
+      tags: [...(this.zz$cp.tags ?? []), ...tags],
     })
   }
 

@@ -1,7 +1,7 @@
-import { DecoratedContractProcedure } from './procedure'
+import { DecoratedContractProcedure, type RouteOptions } from './procedure'
 import type { ContractRouter } from './router'
 import { ContractRouterBuilder } from './router-builder'
-import type { HTTPMethod, HTTPPath, Schema, SchemaOutput } from './types'
+import type { HTTPPath, Schema, SchemaOutput } from './types'
 
 export class ContractBuilder {
   prefix(prefix: HTTPPath): ContractRouterBuilder {
@@ -10,13 +10,13 @@ export class ContractBuilder {
     })
   }
 
-  route(opts: {
-    method?: HTTPMethod
-    path?: HTTPPath
-    summary?: string
-    description?: string
-    deprecated?: boolean
-  }): DecoratedContractProcedure<undefined, undefined> {
+  tags(...tags: string[]): ContractRouterBuilder {
+    return new ContractRouterBuilder({
+      tags: tags,
+    })
+  }
+
+  route(opts: RouteOptions): DecoratedContractProcedure<undefined, undefined> {
     return new DecoratedContractProcedure({
       InputSchema: undefined,
       OutputSchema: undefined,

@@ -1,9 +1,9 @@
 import {
   ContractProcedure,
   type ContractRouter,
-  type HTTPMethod,
   type HTTPPath,
   type IsEqual,
+  type RouteOptions,
   type Schema,
   type SchemaOutput,
   isContractProcedure,
@@ -88,13 +88,9 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
    * Convert to ContractProcedureBuilder
    */
 
-  route(opts: {
-    method?: HTTPMethod
-    path?: HTTPPath
-    summary?: string
-    description?: string
-    deprecated?: boolean
-  }): ProcedureBuilder<TContext, TExtraContext, undefined, undefined> {
+  route(
+    opts: RouteOptions,
+  ): ProcedureBuilder<TContext, TExtraContext, undefined, undefined> {
     return new ProcedureBuilder({
       middlewares: this.zz$b.middlewares,
       contract: new ContractProcedure({
@@ -216,6 +212,13 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
     return new RouterBuilder({
       ...this.zz$b,
       prefix,
+    })
+  }
+
+  tags(...tags: string[]): RouterBuilder<TContext, TExtraContext> {
+    return new RouterBuilder({
+      ...this.zz$b,
+      tags,
     })
   }
 

@@ -28,6 +28,7 @@ test('route method', () => {
       deprecated: true,
       description: 'abc',
       summary: 'abc',
+      tags: ['user'],
     })
 
   expectTypeOf(p).toEqualTypeOf<
@@ -40,6 +41,7 @@ test('route method', () => {
     deprecated: true,
     description: 'abc',
     summary: 'abc',
+    tags: ['user'],
   })
 })
 
@@ -71,6 +73,21 @@ test('output method', () => {
     outputExample: undefined,
     outputExamples: undefined,
   })
+})
+
+it('addTags method', () => {
+  const schema = z.string()
+  const p = initORPCContract.route({}).output(schema)
+
+  expect(p.zz$cp.tags).toBe(undefined)
+
+  const p2 = p.addTags('foo', 'bar')
+
+  expect(p2.zz$cp.tags).toEqual(['foo', 'bar'])
+
+  const p3 = p2.addTags('baz')
+
+  expect(p3.zz$cp.tags).toEqual(['foo', 'bar', 'baz'])
 })
 
 test('isContractProcedure function', () => {

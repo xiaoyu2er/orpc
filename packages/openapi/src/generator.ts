@@ -16,18 +16,34 @@ import { schemaToJsonSchema } from './json-schema'
 // TODO: support query as object
 // TODO: support params as array
 // TODO: support multipart/form-data for file upload
-// TODO: tags
+
+export interface GenerateOpenAPIOptions {
+  /**
+   * Throw error when you missing define tag definition on OpenAPI root tags
+   *
+   * Example: if procedure has tags ['foo', 'bar'], and OpenAPI root tags is ['foo'], then error will be thrown
+   * Because OpenAPI root tags is missing 'bar' tag
+   *
+   * @default false
+   */
+  throwOnMissingTagDefinition?: boolean
+}
 
 export function generateOpenAPI(
   opts: {
     router: ContractRouter | Router<any>
   } & Omit<OpenAPIObject, 'openapi'>,
+  options?: GenerateOpenAPIOptions,
 ): OpenAPIObject {
+  const throwOnMissingTagDefinition =
+    options?.throwOnMissingTagDefinition ?? false
+
   const builder = new OpenApiBuilder({
     ...omit(opts, ['router']),
     openapi: '3.1.0',
   })
 
+  const rootTags = opts.tags?.map((tag) => tag.name) ?? []
   const router = toContractRouter(opts.router)
 
   eachContractRouterLeaf(router, (procedure, path_) => {
@@ -148,10 +164,21 @@ export function generateOpenAPI(
       },
     }
 
+    if (throwOnMissingTagDefinition && internal.tags) {
+      const missingTag = internal.tags.find((tag) => !rootTags.includes(tag))
+
+      if (missingTag !== undefined) {
+        throw new Error(
+          `Tag "${missingTag}" is missing definition. Please define it in OpenAPI root tags object. [${path_.join('.')}]`,
+        )
+      }
+    }
+
     const operation: OperationObject = {
       summary: internal.summary,
       description: internal.description,
       deprecated: internal.deprecated,
+      tags: internal.tags,
       operationId: path_.join('.'),
       parameters: parameters.length ? parameters : undefined,
       requestBody,

@@ -11,7 +11,7 @@ import {
   initORPC,
   isProcedure,
 } from '.'
-import type { RouterBuilder } from './router-builder'
+import { RouterBuilder } from './router-builder'
 
 test('context method', () => {
   const orpc = initORPC
@@ -198,6 +198,7 @@ describe('define procedure builder', () => {
       deprecated: true,
       description: 'des',
       summary: 'sum',
+      tags: ['cccc'],
     })
 
     expectTypeOf(builder).toEqualTypeOf<
@@ -214,6 +215,7 @@ describe('define procedure builder', () => {
           deprecated: true,
           description: 'des',
           summary: 'sum',
+          tags: ['cccc'],
         },
       },
     })
@@ -343,5 +345,22 @@ test('prefix', () => {
     RouterBuilder<{ auth: boolean }, { userId: string }>
   >()
 
+  expect(builder).instanceOf(RouterBuilder)
   expect(builder.zz$rb.prefix).toEqual('/api')
+})
+
+test('tags', () => {
+  const builder = initORPC
+    .context<{ auth: boolean }>()
+    .use(() => {
+      return { context: { userId: '1' } }
+    })
+    .tags('user', 'user2')
+
+  expectTypeOf(builder).toEqualTypeOf<
+    RouterBuilder<{ auth: boolean }, { userId: string }>
+  >()
+
+  expect(builder).instanceOf(RouterBuilder)
+  expect(builder.zz$rb.tags).toEqual(['user', 'user2'])
 })

@@ -46,7 +46,9 @@
   },
   "dependencies": {
     "@orpc/client": "workspace:*",
-    "@orpc/contract": "workspace:*"
+    "@orpc/contract": "workspace:*",
+    "@orpc/server": "workspace:*",
+    "type-fest": "^4.26.1"
   },
   "peerDependencies": {
     "@tanstack/react-query": "^5.59.9",

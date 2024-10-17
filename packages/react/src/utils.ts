@@ -1,7 +1,11 @@
 export function get(obj: any, path: string[]): unknown {
-  let obj_ = obj
-  for (const key of path) {
-    obj_ = obj_[key]
+  try {
+    let obj_ = obj
+    for (const key of path) {
+      obj_ = obj_[key]
+    }
+    return obj_
+  } catch {
+    return undefined
   }
-  return obj_
 }

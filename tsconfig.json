@@ -9,7 +9,8 @@
     { "path": "./packages/openapi" },
     { "path": "./packages/server" },
     { "path": "./packages/client" },
-    { "path": "./packages/react" }
+    { "path": "./packages/react" },
+    { "path": "./packages/zod" }
   ],
   "include": [
     "playground",

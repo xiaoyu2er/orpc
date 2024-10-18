@@ -1,17 +1,16 @@
 import { generateMock } from '@anatine/zod-mock'
 import { copy } from 'copy-anything'
 import { isPlainObject } from 'is-what'
-import { smartParse } from '../src/parse'
-import { generateRandomZodSchema } from './generate-schema'
+import { z } from 'zod'
+import { coerceParse } from '../src/parse'
 
 it('works', { repeats: 1000 }, () => {
-  const depth = Math.floor(Math.random() * 5)
-  const schema = generateRandomZodSchema(depth)
+  const schema = generateRandomZodSchema(3)
   const data = generateMock(schema)
 
   // if failed, the error come from generator so can bypass it
   if (schema.safeParse(data).error) return
-  smartParse(schema, uglyData(data))
+  coerceParse(schema, uglyData(data))
 })
 
 function uglyData(target: any) {
@@ -63,4 +62,69 @@ function uglyData(target: any) {
     carry[key] = copy(val)
     return carry
   }, {} as any)
+}
+
+export function generateRandomZodSchema(depth = 0): z.ZodTypeAny {
+  const maxDepth = 3 // Prevent infinite recursion
+  const schemas = [
+    () => z.string(),
+    () => z.number(),
+    () => z.boolean(),
+    () => z.null(),
+    () => z.undefined(),
+    () => z.array(generateRandomZodSchema(depth + 1)),
+    () =>
+      z.object({
+        [Math.random().toString(36).substring(7)]: generateRandomZodSchema(
+          depth + 1,
+        ),
+        [Math.random().toString(36).substring(7)]: generateRandomZodSchema(
+          depth + 1,
+        ),
+      }),
+    () => z.enum(['A', 'B', 'C']),
+    () =>
+      z.union([
+        generateRandomZodSchema(depth + 1),
+        generateRandomZodSchema(depth + 1),
+      ]),
+    () => z.record(z.string(), generateRandomZodSchema(depth + 1)),
+    () =>
+      z.tuple([
+        generateRandomZodSchema(depth + 1),
+        generateRandomZodSchema(depth + 1),
+      ]),
+    () =>
+      z.intersection(
+        z.object({
+          [Math.random().toString(36).substring(7)]: generateRandomZodSchema(
+            depth + 1,
+          ),
+        }),
+        z.object({
+          [Math.random().toString(36).substring(7)]: generateRandomZodSchema(
+            depth + 1,
+          ),
+        }),
+      ),
+  ]
+
+  // Add recursive schema with a lower probability to avoid too complex structures
+  if (depth < maxDepth && Math.random() < 0.3) {
+    schemas.push(
+      () =>
+        z.lazy(() =>
+          z.object({
+            [Math.random().toString(36).substring(7)]: generateRandomZodSchema(
+              depth + 1,
+            ),
+            children: z.array(z.lazy(() => generateRandomZodSchema(depth + 1))),
+          }),
+        ) as any,
+    )
+  }
+
+  // biome-ignore lint/style/noNonNullAssertion: for sure
+  const selectedSchema = schemas[Math.floor(Math.random() * schemas.length)]!
+  return selectedSchema()
 }

@@ -1,5 +1,4 @@
 import { copy } from 'copy-anything'
-import { guard } from 'radash'
 import {
   type TypeOf,
   ZodError,
@@ -7,14 +6,16 @@ import {
   type ZodIssue,
   type ZodType,
 } from 'zod'
+import { coerceType } from './utils'
 import { get, set } from './utils'
 
 /**
- * Auto fix the type issues when possible
+ * Parse data with auto-fixing of type issues when possible
  *
- * For example: when the data is a string, but the schema is a number, it will try to convert the string to a number automatically
+ * For example: when the data is a string, but the schema expects a number,
+ * it will try to convert the string to a number automatically
  */
-export function smartParse<T extends ZodType>(
+export function coerceParse<T extends ZodType>(
   schema: T,
   data: unknown,
 ): TypeOf<T> {
@@ -24,7 +25,7 @@ export function smartParse<T extends ZodType>(
     return first.data
   }
 
-  const branches = findTypeIssuesBranches(first.error.issues)
+  const branches = findTypeIssueBranches(first.error.issues)
 
   if (!branches.length) {
     throw first.error
@@ -33,7 +34,7 @@ export function smartParse<T extends ZodType>(
   const errors: ZodError[] = []
 
   for (const typeIssues of branches) {
-    const fixedData = fixTypeIssues(data, typeIssues)
+    const fixedData = applyTypeFixesToData(data, typeIssues)
 
     const result = schema.safeParse(fixedData)
     if (result.success) {
@@ -62,9 +63,10 @@ export function smartParse<T extends ZodType>(
 }
 
 /**
- * @returns an array of branches, each branch contain all type issues
+ * Find all possible branches of type issues to fix
+ * @returns an array of branches, each branch containing all type issues for that path
  */
-export function findTypeIssuesBranches(
+export function findTypeIssueBranches(
   issues: ZodIssue[],
 ): ZodInvalidTypeIssue[][] {
   const rootTypeIssues: ZodInvalidTypeIssue[] = []
@@ -78,7 +80,7 @@ export function findTypeIssuesBranches(
   for (const issue of issues) {
     if (issue.code === 'invalid_union') {
       for (const unionError of issue.unionErrors) {
-        const unionBranches = findTypeIssuesBranches(unionError.issues)
+        const unionBranches = findTypeIssueBranches(unionError.issues)
 
         for (const unionTypeIssues of unionBranches) {
           branches.push([...rootTypeIssues, ...unionTypeIssues])
@@ -95,9 +97,9 @@ export function findTypeIssuesBranches(
 }
 
 /**
- * Clone the data and fix types issues
+ * Clone the data and apply type fixes based on the identified issues
  */
-export function fixTypeIssues(
+export function applyTypeFixesToData(
   data: unknown,
   issues: ZodInvalidTypeIssue[],
 ): unknown {
@@ -107,98 +109,12 @@ export function fixTypeIssues(
     const path = ['value', ...issue.path]
     const val = get(clone, path)
 
-    // PRIMITIVE
-    if (canSafeConvertToPrimitive(val)) {
-      switch (issue.expected) {
-        case 'string': {
-          set(clone, path, String(val))
-          break
-        }
+    const coerced = coerceType(val, issue.expected)
 
-        case 'number':
-        case 'integer':
-        case 'float': {
-          const num = Number(val)
-          if (!Number.isNaN(num)) {
-            set(clone, path, num)
-          }
-          break
-        }
-
-        case 'bigint': {
-          const num = guard(() => BigInt(val))
-          if (num !== undefined) {
-            set(clone, path, num)
-          }
-          break
-        }
-
-        case 'nan': {
-          set(clone, path, Number(val))
-          break
-        }
-
-        case 'boolean': {
-          if (
-            val === 'false' ||
-            val === 'False' ||
-            val === 'off' ||
-            val === '0'
-          ) {
-            set(clone, path, false)
-          } else {
-            set(clone, path, Boolean(val))
-          }
-
-          break
-        }
-
-        case 'date': {
-          set(clone, path, new Date(val))
-          break
-        }
-
-        case 'null': {
-          if (val === 'null') {
-            set(clone, path, null)
-          }
-          break
-        }
-
-        case 'void':
-        case 'undefined': {
-          if (val === 'undefined') {
-            set(clone, path, undefined)
-          }
-          break
-        }
-      }
-    }
-
-    // SET
-    if (issue.expected === 'set' && canSafeConvertToSet(val)) {
-      set(clone, path, new Set(val))
-    }
-
-    // MAP
-    else if (issue.expected === 'map' && canSafeConvertToMap(val)) {
-      set(clone, path, new Map(val))
+    if (coerced !== val) {
+      set(clone, path, coerced)
     }
   }
 
   return clone.value
-}
-
-export function canSafeConvertToPrimitive(data: unknown): boolean {
-  return typeof data === 'string' || typeof data === 'number'
-}
-
-export function canSafeConvertToSet(data: unknown): boolean {
-  return Array.isArray(data)
-}
-
-export function canSafeConvertToMap(data: unknown): boolean {
-  return (
-    Array.isArray(data) && data.every((i) => Array.isArray(i) && i.length === 2)
-  )
 }

@@ -1,14 +1,14 @@
 import { ZodError, z } from 'zod'
-import { smartParse } from './parse'
+import { coerceParse } from './parse'
 
 describe('primitive', () => {
   it('only convert string & number', () => {
     const schema = z.string()
 
-    expect(smartParse(schema, '123')).toEqual('123')
-    expect(smartParse(schema, 123)).toEqual('123')
+    expect(coerceParse(schema, '123')).toEqual('123')
+    expect(coerceParse(schema, 123)).toEqual('123')
 
-    expect(() => smartParse(schema, true)).toThrowError(
+    expect(() => coerceParse(schema, true)).toThrowError(
       new ZodError([
         {
           code: 'invalid_type',
@@ -20,7 +20,7 @@ describe('primitive', () => {
       ]),
     )
 
-    expect(() => smartParse(schema, null)).toThrowError(
+    expect(() => coerceParse(schema, null)).toThrowError(
       new ZodError([
         {
           code: 'invalid_type',
@@ -32,7 +32,7 @@ describe('primitive', () => {
       ]),
     )
 
-    expect(() => smartParse(schema, undefined)).toThrowError(
+    expect(() => coerceParse(schema, undefined)).toThrowError(
       new ZodError([
         {
           code: 'invalid_type',
@@ -48,17 +48,17 @@ describe('primitive', () => {
   it('with string', () => {
     const schema = z.string()
 
-    expect(smartParse(schema, '123')).toEqual('123')
-    expect(smartParse(schema, 123)).toEqual('123')
+    expect(coerceParse(schema, '123')).toEqual('123')
+    expect(coerceParse(schema, 123)).toEqual('123')
   })
 
   it('with number', () => {
     const schema = z.number()
 
-    expect(smartParse(schema, 123)).toEqual(123)
-    expect(smartParse(schema, '123')).toEqual(123)
+    expect(coerceParse(schema, 123)).toEqual(123)
+    expect(coerceParse(schema, '123')).toEqual(123)
 
-    expect(() => smartParse(schema, '123d')).toThrow(
+    expect(() => coerceParse(schema, '123d')).toThrow(
       new ZodError([
         {
           code: 'invalid_type',
@@ -74,10 +74,10 @@ describe('primitive', () => {
   it('with bigint', () => {
     const schema = z.bigint()
 
-    expect(smartParse(schema, 123)).toEqual(123n)
-    expect(smartParse(schema, '123')).toEqual(123n)
+    expect(coerceParse(schema, 123)).toEqual(123n)
+    expect(coerceParse(schema, '123')).toEqual(123n)
 
-    expect(() => smartParse(schema, '123d')).toThrow(
+    expect(() => coerceParse(schema, '123d')).toThrow(
       new ZodError([
         {
           code: 'invalid_type',
@@ -93,11 +93,11 @@ describe('primitive', () => {
   it('with nan', () => {
     const schema = z.nan()
 
-    expect(smartParse(schema, Number.NaN)).toEqual(Number.NaN)
-    expect(smartParse(schema, '123d')).toEqual(Number.NaN)
-    expect(smartParse(schema, '123n')).toEqual(Number.NaN)
+    expect(coerceParse(schema, Number.NaN)).toEqual(Number.NaN)
+    expect(coerceParse(schema, '123d')).toEqual(Number.NaN)
+    expect(coerceParse(schema, '123n')).toEqual(Number.NaN)
 
-    expect(() => smartParse(schema, '123')).toThrow(
+    expect(() => coerceParse(schema, '123')).toThrow(
       new ZodError([
         {
           code: 'invalid_type',
@@ -113,21 +113,21 @@ describe('primitive', () => {
   it('with boolean', () => {
     const schema = z.boolean()
 
-    expect(smartParse(schema, false)).toEqual(false)
-    expect(smartParse(schema, Number.NaN)).toEqual(false)
-    expect(smartParse(schema, 'false')).toEqual(false)
-    expect(smartParse(schema, 'false')).toEqual(false)
-    expect(smartParse(schema, 'off')).toEqual(false)
-    expect(smartParse(schema, '0')).toEqual(false)
-    expect(smartParse(schema, '')).toEqual(false)
-    expect(smartParse(schema, 0)).toEqual(false)
+    expect(coerceParse(schema, false)).toEqual(false)
+    expect(coerceParse(schema, Number.NaN)).toEqual(false)
+    expect(coerceParse(schema, 'false')).toEqual(false)
+    expect(coerceParse(schema, 'false')).toEqual(false)
+    expect(coerceParse(schema, 'off')).toEqual(false)
+    expect(coerceParse(schema, '0')).toEqual(false)
+    expect(coerceParse(schema, '')).toEqual(false)
+    expect(coerceParse(schema, 0)).toEqual(false)
 
-    expect(smartParse(schema, true)).toEqual(true)
-    expect(smartParse(schema, 1)).toEqual(true)
-    expect(smartParse(schema, '1')).toEqual(true)
-    expect(smartParse(schema, 'true')).toEqual(true)
-    expect(smartParse(schema, 'True')).toEqual(true)
-    expect(smartParse(schema, 'on')).toEqual(true)
+    expect(coerceParse(schema, true)).toEqual(true)
+    expect(coerceParse(schema, 1)).toEqual(true)
+    expect(coerceParse(schema, '1')).toEqual(true)
+    expect(coerceParse(schema, 'true')).toEqual(true)
+    expect(coerceParse(schema, 'True')).toEqual(true)
+    expect(coerceParse(schema, 'on')).toEqual(true)
   })
 
   it('with data', () => {
@@ -138,13 +138,13 @@ describe('primitive', () => {
     const dateString = date.toISOString()
     const invalidDateString = 'invalid'
 
-    expect(smartParse(schema, date)).toEqual(date)
-    expect(smartParse(schema, dateNumber)).toEqual(date)
-    expect(smartParse(schema, dateString)).toEqual(date)
+    expect(coerceParse(schema, date)).toEqual(date)
+    expect(coerceParse(schema, dateNumber)).toEqual(date)
+    expect(coerceParse(schema, dateString)).toEqual(date)
 
-    expect(smartParse(schema, '2023-01-01')).toEqual(new Date('2023-01-01'))
+    expect(coerceParse(schema, '2023-01-01')).toEqual(new Date('2023-01-01'))
 
-    expect(() => smartParse(schema, invalidDateString)).toThrow(
+    expect(() => coerceParse(schema, invalidDateString)).toThrow(
       new ZodError([
         {
           code: 'invalid_date',
@@ -158,10 +158,10 @@ describe('primitive', () => {
   it('with null', () => {
     const schema = z.null()
 
-    expect(smartParse(schema, null)).toEqual(null)
-    expect(smartParse(schema, 'null')).toEqual(null)
+    expect(coerceParse(schema, null)).toEqual(null)
+    expect(coerceParse(schema, 'null')).toEqual(null)
 
-    expect(() => smartParse(schema, '')).toThrow(
+    expect(() => coerceParse(schema, '')).toThrow(
       new ZodError([
         {
           code: 'invalid_type',
@@ -173,7 +173,7 @@ describe('primitive', () => {
       ]),
     )
 
-    expect(() => smartParse(schema, 1)).toThrow(
+    expect(() => coerceParse(schema, 1)).toThrow(
       new ZodError([
         {
           code: 'invalid_type',
@@ -189,10 +189,10 @@ describe('primitive', () => {
   it('with undefined', () => {
     const schema = z.undefined()
 
-    expect(smartParse(schema, undefined)).toEqual(undefined)
-    expect(smartParse(schema, 'undefined')).toEqual(undefined)
+    expect(coerceParse(schema, undefined)).toEqual(undefined)
+    expect(coerceParse(schema, 'undefined')).toEqual(undefined)
 
-    expect(() => smartParse(schema, '')).toThrow(
+    expect(() => coerceParse(schema, '')).toThrow(
       new ZodError([
         {
           code: 'invalid_type',
@@ -204,7 +204,7 @@ describe('primitive', () => {
       ]),
     )
 
-    expect(() => smartParse(schema, 1)).toThrow(
+    expect(() => coerceParse(schema, 1)).toThrow(
       new ZodError([
         {
           code: 'invalid_type',
@@ -222,13 +222,13 @@ describe('Map and Set', () => {
   it('with set', () => {
     const schema = z.set(z.string())
 
-    expect(smartParse(schema, new Set())).toEqual(new Set())
-    expect(smartParse(schema, new Set(['a']))).toEqual(new Set(['a']))
+    expect(coerceParse(schema, new Set())).toEqual(new Set())
+    expect(coerceParse(schema, new Set(['a']))).toEqual(new Set(['a']))
 
-    expect(smartParse(schema, ['a', 'b'])).toEqual(new Set(['a', 'b']))
-    expect(smartParse(schema, ['1', '1', 'b'])).toEqual(new Set(['1', 'b']))
+    expect(coerceParse(schema, ['a', 'b'])).toEqual(new Set(['a', 'b']))
+    expect(coerceParse(schema, ['1', '1', 'b'])).toEqual(new Set(['1', 'b']))
     expect(
-      smartParse(z.set(z.tuple([z.number(), z.number()])), [
+      coerceParse(z.set(z.tuple([z.number(), z.number()])), [
         [1, 2],
         [2, 3],
       ]),
@@ -239,7 +239,7 @@ describe('Map and Set', () => {
       ]),
     )
 
-    expect(() => smartParse(schema, {})).toThrow(
+    expect(() => coerceParse(schema, {})).toThrow(
       new ZodError([
         {
           code: 'invalid_type',
@@ -251,7 +251,7 @@ describe('Map and Set', () => {
       ]),
     )
 
-    expect(() => smartParse(schema, '1234')).toThrow(
+    expect(() => coerceParse(schema, '1234')).toThrow(
       new ZodError([
         {
           code: 'invalid_type',
@@ -263,7 +263,7 @@ describe('Map and Set', () => {
       ]),
     )
 
-    expect(() => smartParse(schema, 1234)).toThrow(
+    expect(() => coerceParse(schema, 1234)).toThrow(
       new ZodError([
         {
           code: 'invalid_type',
@@ -279,10 +279,12 @@ describe('Map and Set', () => {
   it('with map', () => {
     const schema = z.map(z.string(), z.number())
 
-    expect(smartParse(schema, new Map())).toEqual(new Map())
-    expect(smartParse(schema, new Map([['a', 1]]))).toEqual(new Map([['a', 1]]))
+    expect(coerceParse(schema, new Map())).toEqual(new Map())
+    expect(coerceParse(schema, new Map([['a', 1]]))).toEqual(
+      new Map([['a', 1]]),
+    )
     expect(
-      smartParse(schema, [
+      coerceParse(schema, [
         ['a', 1],
         ['b', 2],
       ]),
@@ -293,7 +295,7 @@ describe('Map and Set', () => {
       ]),
     )
 
-    expect(() => smartParse(schema, [[]])).toThrow(
+    expect(() => coerceParse(schema, [[]])).toThrow(
       new ZodError([
         {
           code: 'invalid_type',
@@ -305,7 +307,7 @@ describe('Map and Set', () => {
       ]),
     )
 
-    expect(() => smartParse(schema, {})).toThrow(
+    expect(() => coerceParse(schema, {})).toThrow(
       new ZodError([
         {
           code: 'invalid_type',
@@ -317,7 +319,7 @@ describe('Map and Set', () => {
       ]),
     )
 
-    expect(() => smartParse(schema, '1234')).toThrow(
+    expect(() => coerceParse(schema, '1234')).toThrow(
       new ZodError([
         {
           code: 'invalid_type',
@@ -329,7 +331,7 @@ describe('Map and Set', () => {
       ]),
     )
 
-    expect(() => smartParse(schema, 1234)).toThrow(
+    expect(() => coerceParse(schema, 1234)).toThrow(
       new ZodError([
         {
           code: 'invalid_type',
@@ -347,10 +349,10 @@ describe('combination', () => {
   it('with array', () => {
     const schema = z.array(z.number())
 
-    expect(smartParse(schema, [1, 2, 3])).toEqual([1, 2, 3])
-    expect(smartParse(schema, [1, 2, '3'])).toEqual([1, 2, 3])
+    expect(coerceParse(schema, [1, 2, 3])).toEqual([1, 2, 3])
+    expect(coerceParse(schema, [1, 2, '3'])).toEqual([1, 2, 3])
 
-    expect(() => smartParse(schema, [1, 2, 'd'])).toThrow(
+    expect(() => coerceParse(schema, [1, 2, 'd'])).toThrow(
       new ZodError([
         {
           code: 'invalid_type',
@@ -366,13 +368,13 @@ describe('combination', () => {
   it('with tuple', () => {
     const schema = z.tuple([z.number(), z.string(), z.date()])
 
-    expect(smartParse(schema, [1, '2', new Date(123)])).toEqual([
+    expect(coerceParse(schema, [1, '2', new Date(123)])).toEqual([
       1,
       '2',
       new Date(123),
     ])
 
-    expect(smartParse(schema, ['1.1', 2, 123])).toEqual([
+    expect(coerceParse(schema, ['1.1', 2, 123])).toEqual([
       1.1,
       '2',
       new Date(123),
@@ -382,7 +384,7 @@ describe('combination', () => {
   it('with tuple 2', () => {
     const schema = z.tuple([z.number(), z.string(), z.date()]).rest(z.null())
 
-    expect(smartParse(schema, [1, '2', new Date(123), null, null])).toEqual([
+    expect(coerceParse(schema, [1, '2', new Date(123), null, null])).toEqual([
       1,
       '2',
       new Date(123),
@@ -390,7 +392,7 @@ describe('combination', () => {
       null,
     ])
 
-    expect(smartParse(schema, ['1.1', 2, 123, null, 'null'])).toEqual([
+    expect(coerceParse(schema, ['1.1', 2, 123, null, 'null'])).toEqual([
       1.1,
       '2',
       new Date(123),
@@ -406,13 +408,13 @@ describe('combination', () => {
       c: z.date(),
     })
 
-    expect(smartParse(schema, { a: 1, b: '2', c: new Date(123) })).toEqual({
+    expect(coerceParse(schema, { a: 1, b: '2', c: new Date(123) })).toEqual({
       a: 1,
       b: '2',
       c: new Date(123),
     })
 
-    expect(smartParse(schema, { a: '1.1', b: 2, c: 123 })).toEqual({
+    expect(coerceParse(schema, { a: '1.1', b: 2, c: 123 })).toEqual({
       a: 1.1,
       b: '2',
       c: new Date(123),
@@ -422,18 +424,18 @@ describe('combination', () => {
   it('with union', () => {
     const schema = z.union([z.number(), z.date()])
 
-    expect(smartParse(schema, 1)).toEqual(1)
-    expect(smartParse(schema, '1')).toEqual(1)
-    expect(smartParse(schema, new Date(123))).toEqual(new Date(123))
-    expect(smartParse(schema, '2023-01-01')).toEqual(new Date('2023-01-01'))
-    expect(smartParse(schema, '123')).toEqual(123)
+    expect(coerceParse(schema, 1)).toEqual(1)
+    expect(coerceParse(schema, '1')).toEqual(1)
+    expect(coerceParse(schema, new Date(123))).toEqual(new Date(123))
+    expect(coerceParse(schema, '2023-01-01')).toEqual(new Date('2023-01-01'))
+    expect(coerceParse(schema, '123')).toEqual(123)
   })
 
   it('with union 2', () => {
     const s1 = z.object({ a: z.number() }).or(z.object({ a: z.date() }))
 
     expect(
-      smartParse(s1, {
+      coerceParse(s1, {
         a: '123',
       }),
     ).toEqual({
@@ -441,7 +443,7 @@ describe('combination', () => {
     })
 
     expect(
-      smartParse(s1, {
+      coerceParse(s1, {
         a: '2023-06-06',
       }),
     ).toEqual({
@@ -450,10 +452,10 @@ describe('combination', () => {
 
     const s2 = z.object({ a: z.number() }).or(z.object({ a: z.null() }))
 
-    expect(smartParse(s2, { a: '1233' })).toEqual({ a: 1233 })
-    expect(smartParse(s2, { a: 'null' })).toEqual({ a: null })
+    expect(coerceParse(s2, { a: '1233' })).toEqual({ a: 1233 })
+    expect(coerceParse(s2, { a: 'null' })).toEqual({ a: null })
 
-    expect(() => smartParse(s2, { a: 'pow' })).toThrow(
+    expect(() => coerceParse(s2, { a: 'pow' })).toThrow(
       new ZodError([
         {
           code: 'invalid_union',
@@ -550,7 +552,7 @@ describe('combination', () => {
     )
 
     expect(
-      smartParse(schema, {
+      coerceParse(schema, {
         a: 1,
         b: '2',
         c: new Date(123),
@@ -562,7 +564,7 @@ describe('combination', () => {
     })
 
     expect(
-      smartParse(schema, {
+      coerceParse(schema, {
         a: 1,
         b: '2',
         c: '2023-01-01',
@@ -576,12 +578,12 @@ describe('combination', () => {
 
   it('with record', () => {
     const schema = z.record(z.date())
-    expect(smartParse(schema, {})).toEqual({})
-    expect(smartParse(schema, { a: new Date(123) })).toEqual({
+    expect(coerceParse(schema, {})).toEqual({})
+    expect(coerceParse(schema, { a: new Date(123) })).toEqual({
       a: new Date(123),
     })
 
-    expect(smartParse(schema, { a: 123, b: '123' })).toEqual({
+    expect(coerceParse(schema, { a: 123, b: '123' })).toEqual({
       a: new Date(123),
       b: new Date('123'),
     })

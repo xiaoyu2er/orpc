@@ -45,6 +45,44 @@ export function coerceParse<T extends ZodType>(
 }
 
 /**
+ * Async version of coerceParse
+ */
+export async function coerceParseAsync<T extends ZodType>(
+  schema: T,
+  data: unknown,
+): Promise<TypeOf<T>> {
+  const first = await schema.safeParseAsync(data)
+
+  if (first.success) {
+    return first.data
+  }
+
+  const fixes = fixTypeIssues(data, first.error.issues)
+
+  const errors: ZodError[] = []
+  for (const fixed of fixes) {
+    const result = await schema.safeParseAsync(fixed)
+    if (result.success) {
+      return result.data
+    }
+
+    errors.push(result.error)
+  }
+
+  if (errors.length === 0) {
+    throw first.error
+  }
+
+  if (errors.length === 1) {
+    throw errors[0]
+  }
+
+  const countIssues = errors.map((error) => countTypeIssues(error.issues))
+
+  throw errors[countIssues.indexOf(Math.min(...countIssues))]
+}
+
+/**
  * Fix the data based on the identified type issues from the zod
  * @returns all versions of the data that can be parsed by the schema
  */

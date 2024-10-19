@@ -1,5 +1,5 @@
 import { ZodError, z } from 'zod'
-import { coerceParse } from './parse'
+import { coerceParse, coerceParseAsync } from './parse'
 
 describe('primitive', () => {
   it('only convert string & number', () => {
@@ -596,5 +596,133 @@ describe('advanced', () => {
     }
 
     expect(coerceParse(schema, data)).toEqual(validData)
+  })
+})
+
+describe('async', () => {
+  it('case 1', async () => {
+    const schema = z.object({
+      a: z.union([z.number(), z.date()]),
+      b: z.union([z.number(), z.date()]),
+      c: z
+        .object({
+          a: z.set(z.number()),
+          b: z.map(z.string(), z.number()),
+        })
+        .or(
+          z.object({
+            b: z.number(),
+          }),
+        ),
+    })
+    const validData = {
+      a: new Date('2023-01-01'),
+      b: 123,
+      c: {
+        a: new Set([1, 2, 3]),
+        b: new Map([
+          ['a', 1],
+          ['b', 2],
+        ]),
+      },
+    }
+
+    const data = {
+      a: '2023-01-01',
+      b: '123',
+      c: {
+        a: [1, 2, 3],
+        b: [
+          ['a', 1],
+          ['b', 2],
+        ],
+      },
+    }
+
+    expect(await coerceParseAsync(schema, data)).toEqual(validData)
+  })
+
+  it('case 2', async () => {
+    const schema = z.object({
+      a: z.union([z.number(), z.date()]),
+      b: z.union([z.number(), z.date()]),
+      c: z
+        .object({
+          a: z.set(z.number()),
+          b: z.map(z.string(), z.number()),
+        })
+        .or(
+          z.object({
+            b: z.number(),
+          }),
+        ),
+    })
+    const validData = {
+      a: new Date('2023-01-01'),
+      b: 123,
+      c: {
+        a: new Set([1, 2, 3]),
+        b: new Map([
+          ['a', 1],
+          ['b', 2],
+        ]),
+      },
+    }
+
+    const data = {
+      a: '2023-01-01',
+      b: '123',
+      c: {
+        a: [1, 2, 3],
+        b: [
+          ['a', 1],
+          ['b', 2],
+        ],
+      },
+    }
+
+    expect(await coerceParseAsync(schema, data)).toEqual(validData)
+  })
+
+  it('case 3', async () => {
+    const schema = z.object({
+      a: z.union([z.number(), z.date()]),
+      b: z.union([z.number(), z.date()]),
+      c: z
+        .object({
+          a: z.set(z.number()),
+          b: z.map(z.string(), z.number()),
+        })
+        .or(
+          z.object({
+            b: z.number(),
+          }),
+        ),
+    })
+    const validData = {
+      a: new Date('2023-01-01'),
+      b: 123,
+      c: {
+        a: new Set([1, 2, 3]),
+        b: new Map([
+          ['a', 1],
+          ['b', 2],
+        ]),
+      },
+    }
+
+    const data = {
+      a: '2023-01-01',
+      b: '123',
+      c: {
+        a: [1, 2, 3],
+        b: [
+          ['a', 1],
+          ['b', 2],
+        ],
+      },
+    }
+
+    expect(await coerceParseAsync(schema, data)).toEqual(validData)
   })
 })

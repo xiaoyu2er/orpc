@@ -18,6 +18,7 @@
     "tests",
     "*",
 
+    "*/*/src/**/*.bench.*",
     "*/*/src/**/*.test.*",
     "*/*/src/**/*.test-d.ts",
     "*/*/src/**/__tests__",

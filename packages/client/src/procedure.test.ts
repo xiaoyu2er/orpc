@@ -83,7 +83,7 @@ describe('createProcedureClient', () => {
       path: ['ping'],
     })
 
-    expect(client({ value: 1234 })).rejects.toThrowError(
+    expect(client({ value: {} })).rejects.toThrowError(
       'Validation input failed',
     )
   })

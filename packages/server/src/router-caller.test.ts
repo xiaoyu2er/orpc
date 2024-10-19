@@ -88,7 +88,7 @@ describe('createRouterCaller', () => {
     })
 
     // @ts-expect-error
-    expect(caller.ping({ value: 123 })).rejects.toThrowError(
+    expect(caller.ping({ value: new Date('2023-01-01') })).rejects.toThrowError(
       'Validation input failed',
     )
 

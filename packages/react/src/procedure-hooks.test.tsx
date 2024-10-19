@@ -48,7 +48,7 @@ describe('useQuery', () => {
 
   it('on error', async () => {
     // @ts-expect-error invalid input
-    const { result } = renderHook(() => hooks.useQuery({ id: 1234 }), {
+    const { result } = renderHook(() => hooks.useQuery({ id: {} }), {
       wrapper,
     })
 
@@ -132,7 +132,7 @@ describe('useInfiniteQuery', () => {
       () =>
         hooks.useInfiniteQuery(
           // @ts-expect-error invalid input
-          { keyword: 1244 },
+          { keyword: {} },
           {
             getNextPageParam(lastPage) {
               return lastPage.nextCursor
@@ -184,7 +184,7 @@ describe('useSuspenseQuery', () => {
 
   it('on error', async () => {
     // @ts-expect-error invalid input
-    const { result } = renderHook(() => hooks.useSuspenseQuery({ id: 1234 }), {
+    const { result } = renderHook(() => hooks.useSuspenseQuery({ id: {} }), {
       wrapper,
     })
 
@@ -268,7 +268,7 @@ describe('useSuspenseInfiniteQuery', () => {
       () =>
         hooks.useSuspenseInfiniteQuery(
           // @ts-expect-error invalid input
-          { keyword: 1244 },
+          { keyword: {} },
           {
             getNextPageParam(lastPage) {
               return lastPage.nextCursor
@@ -382,7 +382,7 @@ describe('useMutation', () => {
     })
 
     // @ts-expect-error invalid input
-    result.current.mutate({ name: 1244 })
+    result.current.mutate({ name: {} })
 
     await waitFor(() =>
       expect((result.current.error as any)?.message).toEqual(

@@ -30,7 +30,7 @@ describe('fetchQuery', () => {
 
   it('on error', () => {
     // @ts-expect-error invalid input
-    expect(utils.fetchQuery({ id: 12233 })).rejects.toThrowError(
+    expect(utils.fetchQuery({ id: {} })).rejects.toThrowError(
       'Validation input failed',
     )
   })
@@ -67,7 +67,7 @@ describe('fetchInfiniteQuery', () => {
   it('on error', () => {
     expect(
       // @ts-expect-error invalid input
-      utils.fetchInfiniteQuery({ keyword: 1222 }, {}),
+      utils.fetchInfiniteQuery({ keyword: {} }, {}),
     ).rejects.toThrowError('Validation input failed')
   })
 })
@@ -165,7 +165,7 @@ describe('ensureQueryData', () => {
 
   it('on error', () => {
     // @ts-expect-error invalid input
-    expect(utils.ensureQueryData({ id: 12233 })).rejects.toThrowError(
+    expect(utils.ensureQueryData({ id: {} })).rejects.toThrowError(
       'Validation input failed',
     )
   })
@@ -202,7 +202,7 @@ describe('ensureInfiniteQuery', () => {
   it('on error', () => {
     expect(
       // @ts-expect-error invalid input
-      utils.ensureInfiniteQueryData({ keyword: 1222 }, {}),
+      utils.ensureInfiniteQueryData({ keyword: {} }, {}),
     ).rejects.toThrowError('Validation input failed')
   })
 })

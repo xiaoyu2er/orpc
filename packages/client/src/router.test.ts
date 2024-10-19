@@ -117,7 +117,7 @@ describe('createRouterClient', () => {
     })
 
     // @ts-expect-error
-    expect(client.ping({ value: 1244 })).rejects.toThrowError(
+    expect(client.ping({ value: {} })).rejects.toThrowError(
       'Validation input failed',
     )
   })

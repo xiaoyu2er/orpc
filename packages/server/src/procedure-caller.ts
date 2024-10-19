@@ -1,4 +1,5 @@
 import type { SchemaInput, SchemaOutput } from '@orpc/contract'
+import { coerceParseAsync } from '@orpc/zod'
 import { ORPCError } from './error'
 import type { Middleware } from './middleware'
 import type { Procedure } from './procedure'
@@ -141,14 +142,16 @@ export function createProcedureCaller<
         const schema = procedure.zz$p.contract.zz$cp.InputSchema
         if (!schema) return input
 
-        const result = await schema.safeParseAsync(input)
-        if (result.error)
+        try {
+          const result = await coerceParseAsync(schema, input)
+          return result
+        } catch (e) {
           throw new ORPCError({
             message: 'Validation input failed',
             code: 'BAD_REQUEST',
-            cause: result.error,
+            cause: e,
           })
-        return result.data
+        }
       })()
 
       return await handler(

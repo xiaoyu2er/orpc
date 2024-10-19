@@ -48,7 +48,7 @@ describe('createProcedureCaller', () => {
     expect(await caller({ value: '123' })).toEqual({ value: '123' })
 
     // @ts-expect-error
-    expect(caller({ value: 123 })).rejects.toThrowError(
+    expect(caller({ value: {} })).rejects.toThrowError(
       'Validation input failed',
     )
   })
@@ -206,5 +206,53 @@ describe('createProcedureCaller', () => {
 
     await expect(caller({ value: '1243' })).rejects.toThrow('foo')
     expect(ref.value).toBe(3)
+  })
+
+  it('use coerce parse', async () => {
+    const procedure = orpc
+      .input(
+        z.object({
+          number: z.number(),
+          string: z.string(),
+          date: z.date(),
+          map: z.map(z.string(), z.number()),
+          set: z.set(z.string()),
+          null: z.null(),
+          undefined: z.undefined(),
+        }),
+      )
+      .handler((i) => i)
+
+    const caller = createProcedureCaller({
+      procedure,
+      context,
+    })
+
+    expect(
+      await caller({
+        // @ts-expect-error
+        number: '123',
+        // @ts-expect-error
+        string: 123,
+        // @ts-expect-error
+        date: '2023-01-01',
+        // @ts-expect-error
+        set: ['a'],
+        // @ts-expect-error
+        map: [['a', 1]],
+        // @ts-expect-error
+        null: 'null',
+        // @ts-expect-error
+        undefined: 'undefined',
+      }),
+    ).toEqual({
+      number: 123,
+      string: '123',
+      date: new Date('2023-01-01'),
+      map: new Map([['a', 1]]),
+      set: new Set(['a']),
+      null: null,
+      undefined: undefined,
+    })
   })
 })

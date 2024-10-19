@@ -190,6 +190,9 @@ importers:
       '@orpc/contract':
         specifier: workspace:*
         version: link:../contract
+      '@orpc/zod':
+        specifier: workspace:*
+        version: link:../zod
       superjson:
         specifier: ^2.2.1
         version: 2.2.1

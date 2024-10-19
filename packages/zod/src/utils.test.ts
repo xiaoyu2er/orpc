@@ -109,3 +109,23 @@ it('boolean', () => {
   expect(coerceType([], expected)).toEqual([])
   expect(coerceType({}, expected)).toEqual({})
 })
+
+it('date', () => {
+  const expected = 'date' as const
+
+  expect(coerceType('abc', expected)).toEqual('abc')
+  expect(coerceType('1', expected)).toEqual('1')
+  expect(coerceType(1, expected)).toEqual(1)
+  expect(coerceType('2023-01-01', expected)).toEqual(new Date('2023-01-01'))
+  expect(coerceType('2023-01-01T00:00:00', expected)).toEqual(
+    new Date('2023-01-01T00:00:00'),
+  )
+
+  expect(coerceType('09:06:00', expected)).toEqual(new Date('09:06:00'))
+
+  expect(coerceType(false, expected)).toEqual(false)
+  expect(coerceType(null, expected)).toEqual(null)
+  expect(coerceType(undefined, expected)).toEqual(undefined)
+  expect(coerceType([], expected)).toEqual([])
+  expect(coerceType({}, expected)).toEqual({})
+})

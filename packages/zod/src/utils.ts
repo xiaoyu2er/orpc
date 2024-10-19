@@ -74,7 +74,10 @@ export function coerceType(value: unknown, expected: ZodParsedType): unknown {
   }
 
   if (expected === 'date') {
-    if (typeof value === 'string' || typeof value === 'number') {
+    if (
+      typeof value === 'string' &&
+      (value.includes('-') || value.includes(':'))
+    ) {
       return new Date(value)
     }
 

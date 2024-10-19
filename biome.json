@@ -25,7 +25,8 @@
         "noConsole": "warn"
       },
       "style": {
-        "useShorthandFunctionType": "off"
+        "useShorthandFunctionType": "off",
+        "noNonNullAssertion": "off"
       },
       "correctness": {
         "noUnusedImports": "warn"

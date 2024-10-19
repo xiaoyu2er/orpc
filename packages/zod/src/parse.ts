@@ -1,11 +1,5 @@
 import { copy } from 'copy-anything'
-import {
-  type TypeOf,
-  ZodError,
-  type ZodInvalidTypeIssue,
-  type ZodIssue,
-  type ZodType,
-} from 'zod'
+import type { TypeOf, ZodError, ZodIssue, ZodType } from 'zod'
 import { coerceType } from './utils'
 import { get, set } from './utils'
 
@@ -25,18 +19,11 @@ export function coerceParse<T extends ZodType>(
     return first.data
   }
 
-  const branches = findTypeIssueBranches(first.error.issues)
-
-  if (!branches.length) {
-    throw first.error
-  }
+  const fixes = fixTypeIssues(data, first.error.issues)
 
   const errors: ZodError[] = []
-
-  for (const typeIssues of branches) {
-    const fixedData = applyTypeFixesToData(data, typeIssues)
-
-    const result = schema.safeParse(fixedData)
+  for (const fixed of fixes) {
+    const result = schema.safeParse(fixed)
     if (result.success) {
       return result.data
     }
@@ -52,69 +39,56 @@ export function coerceParse<T extends ZodType>(
     throw errors[0]
   }
 
-  throw new ZodError([
-    {
-      code: 'invalid_union',
-      unionErrors: errors,
-      path: [],
-      message: 'Invalid union',
-    },
-  ])
+  const countIssues = errors.map((error) => countTypeIssues(error.issues))
+
+  throw errors[countIssues.indexOf(Math.min(...countIssues))]
 }
 
 /**
- * Find all possible branches of type issues to fix
- * @returns an array of branches, each branch containing all type issues for that path
+ * Fix the data based on the identified type issues from the zod
+ * @returns all versions of the data that can be parsed by the schema
  */
-export function findTypeIssueBranches(
-  issues: ZodIssue[],
-): ZodInvalidTypeIssue[][] {
-  const rootTypeIssues: ZodInvalidTypeIssue[] = []
+export function fixTypeIssues(data: unknown, issues: ZodIssue[]): unknown[] {
+  const ref = { value: copy(data) }
+
   for (const issue of issues) {
     if (issue.code === 'invalid_type') {
-      rootTypeIssues.push(issue)
-    }
-  }
+      const path = ['value', ...issue.path]
+      const val = get(ref, path)
+      const coerced = coerceType(val, issue.expected)
 
-  const branches: ZodInvalidTypeIssue[][] = []
-  for (const issue of issues) {
-    if (issue.code === 'invalid_union') {
-      for (const unionError of issue.unionErrors) {
-        const unionBranches = findTypeIssueBranches(unionError.issues)
-
-        for (const unionTypeIssues of unionBranches) {
-          branches.push([...rootTypeIssues, ...unionTypeIssues])
-        }
+      if (coerced !== val) {
+        set(ref, path, coerced)
       }
     }
   }
 
-  return branches.length === 0
-    ? rootTypeIssues.length === 0
-      ? []
-      : [rootTypeIssues]
-    : branches
-}
-
-/**
- * Clone the data and apply type fixes based on the identified issues
- */
-export function applyTypeFixesToData(
-  data: unknown,
-  issues: ZodInvalidTypeIssue[],
-): unknown {
-  const clone = { value: copy(data) }
-
+  let fixes: unknown[] = [ref.value]
   for (const issue of issues) {
-    const path = ['value', ...issue.path]
-    const val = get(clone, path)
-
-    const coerced = coerceType(val, issue.expected)
-
-    if (coerced !== val) {
-      set(clone, path, coerced)
+    if (issue.code === 'invalid_union') {
+      fixes = issue.unionErrors.flatMap((unionError) => {
+        return fixes.flatMap((fixed) => fixTypeIssues(fixed, unionError.issues))
+      })
     }
   }
 
-  return clone.value
+  return fixes
+}
+
+export function countTypeIssues(issues: ZodIssue[]): number {
+  let count = 0
+
+  for (const issue of issues) {
+    if (issue.code === 'invalid_type') {
+      count++
+    }
+
+    if (issue.code === 'invalid_union') {
+      for (const unionError of issue.unionErrors) {
+        count += countTypeIssues(unionError.issues)
+      }
+    }
+  }
+
+  return count
 }

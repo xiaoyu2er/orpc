@@ -26,6 +26,8 @@
     "*/*/playground",
     "*/*/scripts",
     "*/*/tests",
-    "*/*/*"
+    "*/*/*",
+    "packages/zod/src/v2.bench.ts",
+    "packages/zod/src/v2.bench.ts"
   ]
 }

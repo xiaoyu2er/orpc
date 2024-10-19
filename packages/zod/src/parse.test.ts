@@ -134,12 +134,10 @@ describe('primitive', () => {
     const schema = z.date()
 
     const date = new Date()
-    const dateNumber = date.getTime()
     const dateString = date.toISOString()
-    const invalidDateString = 'invalid'
+    const invalidDateString = '2023-:cccc'
 
     expect(coerceParse(schema, date)).toEqual(date)
-    expect(coerceParse(schema, dateNumber)).toEqual(date)
     expect(coerceParse(schema, dateString)).toEqual(date)
 
     expect(coerceParse(schema, '2023-01-01')).toEqual(new Date('2023-01-01'))
@@ -368,16 +366,16 @@ describe('combination', () => {
   it('with tuple', () => {
     const schema = z.tuple([z.number(), z.string(), z.date()])
 
-    expect(coerceParse(schema, [1, '2', new Date(123)])).toEqual([
+    expect(coerceParse(schema, [1, '2', new Date('2023-01-01')])).toEqual([
       1,
       '2',
-      new Date(123),
+      new Date('2023-01-01'),
     ])
 
-    expect(coerceParse(schema, ['1.1', 2, 123])).toEqual([
+    expect(coerceParse(schema, ['1.1', 2, '2023-01-01'])).toEqual([
       1.1,
       '2',
-      new Date(123),
+      new Date('2023-01-01'),
     ])
   })
 
@@ -392,13 +390,9 @@ describe('combination', () => {
       null,
     ])
 
-    expect(coerceParse(schema, ['1.1', 2, 123, null, 'null'])).toEqual([
-      1.1,
-      '2',
-      new Date(123),
-      null,
-      null,
-    ])
+    expect(coerceParse(schema, ['1.1', 2, '2023-01-01', null, 'null'])).toEqual(
+      [1.1, '2', new Date('2023-01-01'), null, null],
+    )
   })
 
   it('with object', () => {
@@ -408,16 +402,18 @@ describe('combination', () => {
       c: z.date(),
     })
 
-    expect(coerceParse(schema, { a: 1, b: '2', c: new Date(123) })).toEqual({
+    expect(
+      coerceParse(schema, { a: 1, b: '2', c: new Date('2023-01-01') }),
+    ).toEqual({
       a: 1,
       b: '2',
-      c: new Date(123),
+      c: new Date('2023-01-01'),
     })
 
-    expect(coerceParse(schema, { a: '1.1', b: 2, c: 123 })).toEqual({
+    expect(coerceParse(schema, { a: '1.1', b: 2, c: '2023-01-01' })).toEqual({
       a: 1.1,
       b: '2',
-      c: new Date(123),
+      c: new Date('2023-01-01'),
     })
   })
 
@@ -463,35 +459,11 @@ describe('combination', () => {
             {
               issues: [
                 {
-                  code: 'invalid_union',
-                  unionErrors: [
-                    {
-                      issues: [
-                        {
-                          code: 'invalid_type',
-                          expected: 'number',
-                          received: 'string',
-                          path: ['a'],
-                          message: 'Expected number, received string',
-                        },
-                      ],
-                      name: 'ZodError',
-                    },
-                    {
-                      issues: [
-                        {
-                          code: 'invalid_type',
-                          expected: 'null',
-                          received: 'string',
-                          path: ['a'],
-                          message: 'Expected null, received string',
-                        },
-                      ],
-                      name: 'ZodError',
-                    },
-                  ],
-                  path: [],
-                  message: 'Invalid input',
+                  code: 'invalid_type',
+                  expected: 'number',
+                  received: 'string',
+                  path: ['a'],
+                  message: 'Expected number, received string',
                 },
               ],
               name: 'ZodError',
@@ -499,44 +471,20 @@ describe('combination', () => {
             {
               issues: [
                 {
-                  code: 'invalid_union',
-                  unionErrors: [
-                    {
-                      issues: [
-                        {
-                          code: 'invalid_type',
-                          expected: 'number',
-                          received: 'string',
-                          path: ['a'],
-                          message: 'Expected number, received string',
-                        },
-                      ],
-                      name: 'ZodError',
-                    },
-                    {
-                      issues: [
-                        {
-                          code: 'invalid_type',
-                          expected: 'null',
-                          received: 'string',
-                          path: ['a'],
-                          message: 'Expected null, received string',
-                        },
-                      ],
-                      name: 'ZodError',
-                    },
-                  ],
-                  path: [],
-                  message: 'Invalid input',
+                  code: 'invalid_type',
+                  expected: 'null',
+                  received: 'string',
+                  path: ['a'],
+                  message: 'Expected null, received string',
                 },
               ],
               name: 'ZodError',
             },
           ],
           path: [],
-          message: 'Invalid union',
-        } as any,
-      ]),
+          message: 'Invalid input',
+        },
+      ] as any),
     )
   })
 
@@ -579,13 +527,74 @@ describe('combination', () => {
   it('with record', () => {
     const schema = z.record(z.date())
     expect(coerceParse(schema, {})).toEqual({})
-    expect(coerceParse(schema, { a: new Date(123) })).toEqual({
-      a: new Date(123),
+    expect(coerceParse(schema, { a: new Date('2023-01-01') })).toEqual({
+      a: new Date('2023-01-01'),
+    })
+    expect(coerceParse(schema, { a: '2023-01-01' })).toEqual({
+      a: new Date('2023-01-01'),
     })
 
-    expect(coerceParse(schema, { a: 123, b: '123' })).toEqual({
-      a: new Date(123),
-      b: new Date('123'),
+    expect(() => coerceParse(schema, { a: 123, b: '123' })).toThrow(
+      new ZodError([
+        {
+          code: 'invalid_type',
+          expected: 'date',
+          received: 'number',
+          path: ['a'],
+          message: 'Expected date, received number',
+        },
+        {
+          code: 'invalid_type',
+          expected: 'date',
+          received: 'string',
+          path: ['b'],
+          message: 'Expected date, received string',
+        },
+      ]),
+    )
+  })
+})
+
+describe('advanced', () => {
+  it('case 1', () => {
+    const schema = z.object({
+      a: z.union([z.number(), z.date()]),
+      b: z.union([z.number(), z.date()]),
+      c: z
+        .object({
+          a: z.set(z.number()),
+          b: z.map(z.string(), z.number()),
+        })
+        .or(
+          z.object({
+            b: z.number(),
+          }),
+        ),
     })
+    const validData = {
+      a: new Date('2023-01-01'),
+      b: 123,
+      c: {
+        a: new Set([1, 2, 3]),
+        b: new Map([
+          ['a', 1],
+          ['b', 2],
+        ]),
+      },
+    }
+
+    const data = {
+      a: '2023-01-01',
+      b: '123',
+      c: {
+        a: [1, 2, 3],
+        b: [
+          ['a', 1],
+          ['b', 2],
+        ],
+      },
+    }
+
+    expect(coerceParse(schema, data)).toEqual(validData)
   })
 })

@@ -216,7 +216,37 @@ describe('primitive', () => {
   })
 })
 
-describe('Map and Set', () => {
+describe('non-primitive', () => {
+  it('with object', () => {
+    const schema = z.object({ [0]: z.string() })
+
+    expect(coerceParse(schema, ['1'])).toEqual({ [0]: '1' })
+
+    expect(() => coerceParse(schema, [1])).toThrow(
+      new ZodError([
+        {
+          code: 'invalid_type',
+          expected: 'string',
+          received: 'number',
+          path: ['0'],
+          message: 'Expected string, received number',
+        },
+      ]),
+    )
+
+    expect(() => coerceParse(schema, '1234')).toThrow(
+      new ZodError([
+        {
+          code: 'invalid_type',
+          expected: 'object',
+          received: 'string',
+          path: [],
+          message: 'Expected object, received string',
+        },
+      ]),
+    )
+  })
+
   it('with set', () => {
     const schema = z.set(z.string())
 

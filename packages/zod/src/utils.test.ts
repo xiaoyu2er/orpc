@@ -129,3 +129,42 @@ it('date', () => {
   expect(coerceType([], expected)).toEqual([])
   expect(coerceType({}, expected)).toEqual({})
 })
+
+it('object', () => {
+  const expected = 'object' as const
+
+  expect(coerceType('abc', expected)).toEqual('abc')
+  expect(coerceType(123, expected)).toEqual(123)
+  expect(coerceType([1, 2], expected)).toEqual({ [0]: 1, [1]: 2 })
+})
+
+it('set', () => {
+  const expected = 'set' as const
+
+  expect(coerceType('abc', expected)).toEqual('abc')
+  expect(coerceType(123, expected)).toEqual(123)
+  expect(coerceType([1, 2], expected)).toEqual(new Set([1, 2]))
+})
+
+it('map', () => {
+  const expected = 'map' as const
+
+  expect(coerceType('abc', expected)).toEqual('abc')
+  expect(coerceType(123, expected)).toEqual(123)
+  expect(coerceType([1, 2], expected)).toEqual([1, 2])
+  expect(coerceType([[1, 2], 2], expected)).toEqual([[1, 2], 2])
+  expect(
+    coerceType(
+      [
+        [1, 2],
+        [2, 3],
+      ],
+      expected,
+    ),
+  ).toEqual(
+    new Map([
+      [1, 2],
+      [2, 3],
+    ]),
+  )
+})

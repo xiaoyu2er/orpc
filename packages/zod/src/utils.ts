@@ -100,6 +100,14 @@ export function coerceType(value: unknown, expected: ZodParsedType): unknown {
     return value
   }
 
+  if (expected === 'object') {
+    if (Array.isArray(value)) {
+      return { ...value }
+    }
+
+    return value
+  }
+
   if (expected === 'set') {
     if (Array.isArray(value)) {
       return new Set(value)

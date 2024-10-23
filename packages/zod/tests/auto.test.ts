@@ -133,7 +133,6 @@ export function generateRandomZodSchema(depth = 0): z.ZodTypeAny {
     )
   }
 
-  // biome-ignore lint/style/noNonNullAssertion: for sure
   const selectedSchema = schemas[Math.floor(Math.random() * schemas.length)]!
   return selectedSchema()
 }

@@ -23,7 +23,7 @@
     "knip:fix": "pnpm run knip:check --production --fix --allow-remove-files"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.2",
+    "@biomejs/biome": "^1.9.4",
     "@dinwwwh/unplugin": "^0.0.2",
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.1",

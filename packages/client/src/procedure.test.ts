@@ -180,3 +180,70 @@ describe('createProcedureClient', () => {
     expect(error.data).toEqual({ value: 'from error' })
   })
 })
+
+describe('upload file', () => {
+  const router = initORPC.router({
+    signal: initORPC.input(z.instanceof(Blob)).handler((input) => {
+      return input
+    }),
+    multiple: initORPC
+      .input(
+        z.object({ first: z.instanceof(Blob), second: z.instanceof(Blob) }),
+      )
+      .handler((input) => {
+        return input
+      }),
+  })
+
+  const handler = createRouterHandler({ router })
+
+  const orpcFetch: typeof fetch = async (...args) => {
+    const request = new Request(...args)
+    const response = await fetchHandler({
+      prefix: '/orpc',
+      request,
+      handler,
+      context: {},
+    })
+    return response
+  }
+
+  const blob1 = new Blob(['hello'], { type: 'text/plain;charset=utf-8' })
+  const blob2 = new Blob(['"world"'], { type: 'image/png' })
+  const blob3 = new Blob(['dinwwwh'], { type: 'application/octet-stream' })
+
+  it('single file', async () => {
+    const client = createProcedureClient({
+      baseURL: 'http://localhost:3000/orpc',
+      fetch: orpcFetch,
+      path: ['signal'],
+    })
+
+    const output = await client(blob1)
+
+    expect(output).toBeInstanceOf(Blob)
+    expect(output.type).toBe('text/plain;charset=utf-8')
+    expect(await output.text()).toBe('hello')
+  })
+
+  it('multiple file', async () => {
+    const client = createProcedureClient({
+      baseURL: 'http://localhost:3000/orpc',
+      fetch: orpcFetch,
+      path: ['multiple'],
+    })
+
+    const output = await client({ first: blob3, second: blob2 })
+
+    const file0 = output.first
+    const file1 = output.second
+
+    expect(file0).toBeInstanceOf(Blob)
+    expect(file0.type).toBe('application/octet-stream')
+    expect(await file0.text()).toBe('dinwwwh')
+
+    expect(file1).toBeInstanceOf(Blob)
+    expect(file1.type).toBe('image/png')
+    expect(await file1.text()).toBe('"world"')
+  })
+})

@@ -3,7 +3,11 @@
   "compilerOptions": {
     "types": []
   },
-  "references": [{ "path": "../contract" }, { "path": "../zod" }],
+  "references": [
+    { "path": "../contract" },
+    { "path": "../transformer" },
+    { "path": "../zod" }
+  ],
   "include": ["src"],
   "exclude": [
     "**/*.test.*",

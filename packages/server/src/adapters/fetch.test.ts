@@ -17,25 +17,6 @@ const router = initORPC.router({
 
 const handler = createRouterHandler({ router })
 
-test('invalid request json', async () => {
-  const response = await fetchHandler({
-    prefix: '/orpc',
-    handler,
-    request: new Request('http://localhost/orpc.ping', {
-      method: 'POST',
-      body: 'INVALID_JSON',
-    }),
-    context: undefined,
-  })
-
-  expect(response.status).toBe(400)
-  expect(await response.json()).toEqual({
-    code: 'BAD_REQUEST',
-    status: 400,
-    message: 'Invalid JSON was received by the server.',
-  })
-})
-
 describe('simple', () => {
   const orpc = initORPC.context<{ auth?: boolean }>()
   const router = orpc.router({
@@ -59,7 +40,7 @@ describe('simple', () => {
     })
 
     expect(response.status).toBe(200)
-    expect(await response.json()).toBe('pong')
+    expect(await response.json()).toMatchObject({ data: 'pong' })
 
     const response2 = await fetchHandler({
       prefix: '/orpc',
@@ -71,7 +52,7 @@ describe('simple', () => {
     })
 
     expect(response2.status).toBe(200)
-    expect(await response2.json()).toBe('pong2')
+    expect(await response2.json()).toMatchObject({ data: 'pong2' })
   })
 
   it('200: internal url', async () => {
@@ -82,7 +63,7 @@ describe('simple', () => {
     })
 
     expect(response.status).toBe(200)
-    expect(await response.json()).toBe('pong')
+    expect(await response.json()).toMatchObject({ data: 'pong' })
 
     const response2 = await fetchHandler({
       prefix: '/orpc',
@@ -92,7 +73,7 @@ describe('simple', () => {
     })
 
     expect(response2.status).toBe(200)
-    expect(await response2.json()).toBe('pong2')
+    expect(await response2.json()).toMatchObject({ data: 'pong2' })
   })
 
   it('404', async () => {
@@ -118,10 +99,12 @@ describe('procedure throw error', () => {
     })
 
     expect(response.status).toBe(500)
-    expect(await response.json()).toEqual({
-      code: 'INTERNAL_SERVER_ERROR',
-      status: 500,
-      message: 'Internal server error',
+    expect(await response.json()).toMatchObject({
+      data: {
+        code: 'INTERNAL_SERVER_ERROR',
+        status: 500,
+        message: 'Internal server error',
+      },
     })
   })
 
@@ -141,10 +124,8 @@ describe('procedure throw error', () => {
     })
 
     expect(response.status).toBe(408)
-    expect(await response.json()).toEqual({
-      code: 'TIMEOUT',
-      status: 408,
-      message: '',
+    expect(await response.json()).toMatchObject({
+      data: { code: 'TIMEOUT', status: 408, message: '' },
     })
   })
 
@@ -168,11 +149,13 @@ describe('procedure throw error', () => {
     })
 
     expect(response.status).toBe(413)
-    expect(await response.json()).toEqual({
-      code: 'PAYLOAD_TOO_LARGE',
-      status: 413,
-      message: 'test',
-      data: { max: '10mb' },
+    expect(await response.json()).toMatchObject({
+      data: {
+        code: 'PAYLOAD_TOO_LARGE',
+        status: 413,
+        message: 'test',
+        data: { max: '10mb' },
+      },
     })
   })
 
@@ -202,10 +185,12 @@ describe('procedure throw error', () => {
     })
 
     expect(response.status).toBe(500)
-    expect(await response.json()).toEqual({
-      code: 'INTERNAL_SERVER_ERROR',
-      status: 500,
-      message: 'Internal server error',
+    expect(await response.json()).toMatchObject({
+      data: {
+        code: 'INTERNAL_SERVER_ERROR',
+        status: 500,
+        message: 'Internal server error',
+      },
     })
 
     const response2 = await fetchHandler({
@@ -215,17 +200,19 @@ describe('procedure throw error', () => {
     })
 
     expect(response2.status).toBe(488)
-    expect(await response2.json()).toEqual({
-      code: 'PAYLOAD_TOO_LARGE',
-      status: 488,
-      message: '',
+    expect(await response2.json()).toMatchObject({
+      data: {
+        code: 'PAYLOAD_TOO_LARGE',
+        status: 488,
+        message: '',
+      },
     })
   })
 
   it('input validation error', async () => {
     const router = initORPC.router({
       ping: initORPC
-        .input(z.string())
+        .input(z.object({}))
         .output(z.string())
         .handler(() => {
           return 'dinwwwh'
@@ -241,19 +228,21 @@ describe('procedure throw error', () => {
     })
 
     expect(response.status).toBe(400)
-    expect(await response.json()).toEqual({
-      code: 'BAD_REQUEST',
-      status: 400,
-      message: 'Validation input failed',
-      issues: [
-        {
-          code: 'invalid_type',
-          message: 'Required',
-          path: [],
-          expected: 'string',
-          received: 'undefined',
-        },
-      ],
+    expect(await response.json()).toMatchObject({
+      data: {
+        code: 'BAD_REQUEST',
+        status: 400,
+        message: 'Validation input failed',
+        issues: [
+          {
+            code: 'invalid_type',
+            expected: 'object',
+            message: 'Expected object, received string',
+            path: [],
+            received: 'string',
+          },
+        ],
+      },
     })
   })
 
@@ -279,10 +268,12 @@ describe('procedure throw error', () => {
     })
 
     expect(response.status).toBe(500)
-    expect(await response.json()).toEqual({
-      code: 'INTERNAL_SERVER_ERROR',
-      status: 500,
-      message: 'Validation output failed',
+    expect(await response.json()).toMatchObject({
+      data: {
+        code: 'INTERNAL_SERVER_ERROR',
+        status: 500,
+        message: 'Validation output failed',
+      },
     })
   })
 })
@@ -344,5 +335,79 @@ describe('hooks', () => {
     expect(onFinish.mock.calls[0]?.[0]).toBe(undefined)
     expect(onFinish.mock.calls[0]?.[1]).toBeInstanceOf(Error)
     expect(onFinish.mock.calls[0]?.[1]?.message).toBe('test')
+  })
+})
+
+describe('file upload', () => {
+  const router = initORPC.router({
+    signal: initORPC.input(z.instanceof(Blob)).handler((input) => {
+      return input
+    }),
+    multiple: initORPC
+      .input(
+        z.object({ first: z.instanceof(Blob), second: z.instanceof(Blob) }),
+      )
+      .handler((input) => {
+        return input
+      }),
+  })
+
+  const handler = createRouterHandler({ router })
+
+  const blob1 = new Blob(['hello'], { type: 'text/plain;charset=utf-8' })
+  const blob2 = new Blob(['"world"'], { type: 'image/png' })
+  const blob3 = new Blob(['dinwwwh'], { type: 'application/octet-stream' })
+
+  it('single file', async () => {
+    const response = await fetchHandler({
+      prefix: '/orpc',
+      handler,
+      request: new Request('http://localhost/orpc.signal', {
+        method: 'POST',
+        body: blob3,
+      }),
+      context: { auth: true },
+    })
+
+    expect(response.status).toBe(200)
+    const form = await response.formData()
+
+    const file0 = form.get('0') as File
+    expect(file0).toBeInstanceOf(File)
+    expect(file0.name).toBe('blob')
+    expect(file0.type).toBe('application/octet-stream')
+    expect(await file0.text()).toBe('dinwwwh')
+  })
+
+  it('multiple file', async () => {
+    const form = new FormData()
+    form.append('first', blob1)
+    form.append('second', blob2)
+
+    const response = await fetchHandler({
+      prefix: '/orpc',
+      handler,
+      request: new Request('http://localhost/orpc.multiple', {
+        method: 'POST',
+        body: form,
+      }),
+      context: { auth: true },
+    })
+
+    expect(response.status).toBe(200)
+
+    const form_ = await response.formData()
+    const file0 = form_.get('0') as File
+    const file1 = form_.get('1') as File
+
+    expect(file0).toBeInstanceOf(File)
+    expect(file0.name).toBe('blob')
+    expect(file0.type).toBe('text/plain;charset=utf-8')
+    expect(await file0.text()).toBe('hello')
+
+    expect(file1).toBeInstanceOf(File)
+    expect(file1.name).toBe('blob')
+    expect(file1.type).toBe('image/png')
+    expect(await file1.text()).toBe('"world"')
   })
 })

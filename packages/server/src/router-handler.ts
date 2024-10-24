@@ -1,6 +1,7 @@
 import { type HTTPPath, standardizeHTTPPath } from '@orpc/contract'
 import { LinearRouter } from 'hono/router/linear-router'
 import { RegExpRouter } from 'hono/router/reg-exp-router'
+import { isObject } from 'radash'
 import { ORPCError } from './error'
 import { type WELL_DEFINED_PROCEDURE, isProcedure } from './procedure'
 import { createProcedureCaller } from './procedure-caller'
@@ -81,17 +82,20 @@ export function createRouterHandler<TRouter extends Router<any>>(opts: {
 
       await opts.hooks?.(context_, meta)
 
-      const input =
-        input_ === undefined && Object.keys(params ?? {}).length >= 1
-          ? params
-          : typeof input_ === 'object' &&
-              input_ !== null &&
-              !Array.isArray(input_)
-            ? {
-                ...params,
-                ...input_,
-              }
-            : input_
+      const input = (() => {
+        if (
+          params &&
+          Object.keys(params).length > 0 &&
+          (input_ === undefined || isObject(input_))
+        ) {
+          return {
+            ...params,
+            ...input_,
+          }
+        }
+
+        return input_
+      })()
 
       const caller = createProcedureCaller({
         procedure: procedure,

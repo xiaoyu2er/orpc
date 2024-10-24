@@ -1,8 +1,10 @@
 /// <reference lib="dom" />
 
-import { ORPC_TRANSFORMER_HEADER, type Transformer } from '@orpc/contract'
+import {
+  packIntoRequestResponseInit,
+  unpackFromRequestResponse,
+} from '@orpc/transformer'
 import { trim } from 'radash'
-import SuperJSON from 'superjson'
 import { ORPCError } from '../error'
 import type { RouterHandler } from '../router-handler'
 import type { Hooks, Promisable } from '../types'
@@ -40,27 +42,11 @@ export interface FetchHandlerOptions<THandler extends RouterHandler<any>> {
     context: THandler extends RouterHandler<infer UContext> ? UContext : never,
     hooks: Hooks<Response>,
   ) => Promisable<void>
-
-  /**
-   * The transformer used to support more data types of the request and response.
-   * It's only used when x-orpc-transformer=1 is set in the request header.
-   *
-   * @default SuperJSON
-   */
-  transformer?: Transformer
 }
 
 export async function fetchHandler<THandler extends RouterHandler<any>>(
   opts: FetchHandlerOptions<THandler>,
 ): Promise<Response> {
-  const transformer: Transformer = (() => {
-    if (opts.request.headers.get(ORPC_TRANSFORMER_HEADER) !== '1') {
-      return JSON
-    }
-
-    return opts.transformer ?? SuperJSON
-  })()
-
   try {
     const response = await hook<Response>(async (hooks) => {
       const url = new URL(opts.request.url)
@@ -84,27 +70,16 @@ export async function fetchHandler<THandler extends RouterHandler<any>>(
           return { ...url.searchParams }
         }
 
-        const text = await opts.request.text()
-        if (text === '') return undefined
-
-        try {
-          return transformer.parse(text)
-        } catch (e) {
-          throw new ORPCError({
-            code: 'BAD_REQUEST',
-            message: 'Invalid JSON was received by the server.',
-            cause: e,
-          })
-        }
+        return await unpackFromRequestResponse(opts.request)
       })()
 
       const output = await opts.handler(way, input, opts.context)
 
-      return new Response(transformer.stringify(output), {
+      const { body, headers } = packIntoRequestResponseInit(output)
+
+      return new Response(body, {
         status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
       })
     })
 
@@ -119,11 +94,11 @@ export async function fetchHandler<THandler extends RouterHandler<any>>(
             cause: e,
           })
 
-    return new Response(transformer.stringify(error.toJSON()), {
+    const { body, headers } = packIntoRequestResponseInit(error.toJSON())
+
+    return new Response(body, {
       status: error.status,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: headers,
     })
   }
 }

@@ -1,15 +1,12 @@
 /// <reference lib="dom" />
 
-import {
-  ORPC_TRANSFORMER_HEADER,
-  type Schema,
-  type SchemaInput,
-  type SchemaOutput,
-  type Transformer,
-} from '@orpc/contract'
+import type { Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import { ORPCError, type Promisable } from '@orpc/server'
+import {
+  packIntoRequestResponseInit,
+  unpackFromRequestResponse,
+} from '@orpc/transformer'
 import { trim } from 'radash'
-import SuperJSON from 'superjson'
 
 export interface ProcedureClient<
   TInputSchema extends Schema,
@@ -43,14 +40,6 @@ export interface CreateProcedureClientOptions {
    * The path of the procedure on server.
    */
   path: string[]
-
-  /**
-   * The transformer used to support more data types of the request and response.
-   * The transformer must match the transformer used on server.
-   *
-   * @default SuperJSON
-   */
-  transformer?: Transformer
 }
 
 export function createProcedureClient<
@@ -63,21 +52,22 @@ export function createProcedureClient<
   const client = async (input: unknown): Promise<unknown> => {
     const fetch_ = options.fetch ?? fetch
     const url = `${trim(options.baseURL, '/')}/.${options.path.join('.')}`
-    const transformer: Transformer = options.transformer ?? SuperJSON
     let headers = await options.headers?.(input)
     headers = headers instanceof Headers ? headers : new Headers(headers)
 
-    headers.set('Content-Type', 'application/json')
-    headers.set(ORPC_TRANSFORMER_HEADER, '1')
+    const { body, headers: headers_ } = packIntoRequestResponseInit(
+      input,
+      headers,
+    )
 
     const response = await fetch_(url, {
       method: 'POST',
-      headers: headers,
-      body: transformer.stringify(input),
+      headers: headers_,
+      body: body,
     })
 
-    const text = await response.text()
-    const json = text ? transformer.parse(text) : undefined
+    const json = await unpackFromRequestResponse(response)
+
     if (!response.ok) {
       throw (
         ORPCError.fromJSON(json) ??

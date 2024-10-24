@@ -43,5 +43,9 @@
   "scripts": {
     "build": "UNPLUGIN_ON_SUCCESS='tsc -b --noCheck' vite build",
     "type:check": "tsc -b"
+  },
+  "dependencies": {
+    "is-what": "^5.0.2",
+    "superjson": "^2.2.1"
   }
 }

@@ -4,7 +4,6 @@ import type {
   ContractProcedure,
   ContractRouter,
   SchemaOutput,
-  Transformer,
 } from '@orpc/contract'
 import type { Procedure, Promisable, Router } from '@orpc/server'
 import { type ProcedureClient, createProcedureClient } from './procedure'
@@ -58,14 +57,6 @@ export interface CreateRouterClientOptions {
    * @internal
    */
   path?: string[]
-
-  /**
-   * The transformer used to support more data types of the request and response.
-   * The transformer must match the transformer used on server.
-   *
-   * @default SuperJSON
-   */
-  transformer?: Transformer
 }
 
 export function createRouterClient<
@@ -84,7 +75,6 @@ export function createRouterClient<
       baseURL: options.baseURL,
       fetch: options.fetch,
       headers: options.headers,
-      transformer: options.transformer,
       path,
     }),
     {

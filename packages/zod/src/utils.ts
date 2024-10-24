@@ -58,12 +58,9 @@ export function coerceType(value: unknown, expected: ZodParsedType): unknown {
 
   if (expected === 'boolean') {
     if (typeof value === 'string' || typeof value === 'number') {
-      if (
-        value === 'false' ||
-        value === 'False' ||
-        value === 'off' ||
-        value === '0'
-      ) {
+      const lower = value.toString().toLowerCase()
+
+      if (lower === 'false' || lower === 'off' || lower === '0') {
         return false
       }
 

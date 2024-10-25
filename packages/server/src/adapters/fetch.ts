@@ -1,9 +1,7 @@
 /// <reference lib="dom" />
 
-import {
-  packIntoRequestResponseInit,
-  unpackFromRequestResponse,
-} from '@orpc/transformer'
+import { ORPC_HEADER, ORPC_HEADER_VALUE } from '@orpc/contract'
+import { ORPCTransformer, OpenAPITransformer } from '@orpc/transformer'
 import { trim } from 'radash'
 import { ORPCError } from '../error'
 import type { RouterHandler } from '../router-handler'
@@ -47,6 +45,11 @@ export interface FetchHandlerOptions<THandler extends RouterHandler<any>> {
 export async function fetchHandler<THandler extends RouterHandler<any>>(
   opts: FetchHandlerOptions<THandler>,
 ): Promise<Response> {
+  const transformer =
+    opts.request.headers.get(ORPC_HEADER) === ORPC_HEADER_VALUE
+      ? new ORPCTransformer()
+      : new OpenAPITransformer()
+
   try {
     const response = await hook<Response>(async (hooks) => {
       const url = new URL(opts.request.url)
@@ -65,17 +68,11 @@ export async function fetchHandler<THandler extends RouterHandler<any>>(
 
       await opts.hooks?.(opts.context, hooks)
 
-      const input = await (async () => {
-        if (opts.request.method === 'GET') {
-          return { ...url.searchParams }
-        }
-
-        return await unpackFromRequestResponse(opts.request)
-      })()
+      const input = await transformer.deserialize(opts.request)
 
       const output = await opts.handler(way, input, opts.context)
 
-      const { body, headers } = packIntoRequestResponseInit(output)
+      const { body, headers } = transformer.serialize(output)
 
       return new Response(body, {
         status: 200,
@@ -94,7 +91,7 @@ export async function fetchHandler<THandler extends RouterHandler<any>>(
             cause: e,
           })
 
-    const { body, headers } = packIntoRequestResponseInit(error.toJSON())
+    const { body, headers } = transformer.serialize(error.toJSON())
 
     return new Response(body, {
       status: error.status,

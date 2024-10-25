@@ -1,11 +1,14 @@
 /// <reference lib="dom" />
 
-import type { Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
-import { ORPCError, type Promisable } from '@orpc/server'
 import {
-  packIntoRequestResponseInit,
-  unpackFromRequestResponse,
-} from '@orpc/transformer'
+  ORPC_HEADER,
+  ORPC_HEADER_VALUE,
+  type Schema,
+  type SchemaInput,
+  type SchemaOutput,
+} from '@orpc/contract'
+import { ORPCError, type Promisable } from '@orpc/server'
+import { ORPCTransformer } from '@orpc/transformer'
 import { trim } from 'radash'
 
 export interface ProcedureClient<
@@ -49,24 +52,30 @@ export function createProcedureClient<
 >(
   options: CreateProcedureClientOptions,
 ): ProcedureClient<TInputSchema, TOutputSchema, THandlerOutput> {
+  const transformer = new ORPCTransformer()
+
   const client = async (input: unknown): Promise<unknown> => {
     const fetch_ = options.fetch ?? fetch
     const url = `${trim(options.baseURL, '/')}/.${options.path.join('.')}`
     let headers = await options.headers?.(input)
     headers = headers instanceof Headers ? headers : new Headers(headers)
 
-    const { body, headers: headers_ } = packIntoRequestResponseInit(
-      input,
-      headers,
-    )
+    const { body, headers: headers_ } = transformer.serialize(input)
+
+    for (const key in Object.fromEntries(headers_.entries())) {
+      const value = headers_.get(key)!
+      headers.set(key, value)
+    }
+
+    headers.set(ORPC_HEADER, ORPC_HEADER_VALUE)
 
     const response = await fetch_(url, {
       method: 'POST',
-      headers: headers_,
-      body: body,
+      headers,
+      body,
     })
 
-    const json = await unpackFromRequestResponse(response)
+    const json = await transformer.deserialize(response)
 
     if (!response.ok) {
       throw (

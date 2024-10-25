@@ -1,3 +1,4 @@
+import { ORPC_HEADER, ORPC_HEADER_VALUE } from '@orpc/contract'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { ORPCError, createRouterHandler, initORPC } from '..'
@@ -40,7 +41,7 @@ describe('simple', () => {
     })
 
     expect(response.status).toBe(200)
-    expect(await response.json()).toMatchObject({ data: 'pong' })
+    expect(await response.json()).toEqual('pong')
 
     const response2 = await fetchHandler({
       prefix: '/orpc',
@@ -52,7 +53,7 @@ describe('simple', () => {
     })
 
     expect(response2.status).toBe(200)
-    expect(await response2.json()).toMatchObject({ data: 'pong2' })
+    expect(await response2.json()).toEqual('pong2')
   })
 
   it('200: internal url', async () => {
@@ -63,7 +64,7 @@ describe('simple', () => {
     })
 
     expect(response.status).toBe(200)
-    expect(await response.json()).toMatchObject({ data: 'pong' })
+    expect(await response.json()).toEqual('pong')
 
     const response2 = await fetchHandler({
       prefix: '/orpc',
@@ -73,7 +74,7 @@ describe('simple', () => {
     })
 
     expect(response2.status).toBe(200)
-    expect(await response2.json()).toMatchObject({ data: 'pong2' })
+    expect(await response2.json()).toEqual('pong2')
   })
 
   it('404', async () => {
@@ -99,12 +100,10 @@ describe('procedure throw error', () => {
     })
 
     expect(response.status).toBe(500)
-    expect(await response.json()).toMatchObject({
-      data: {
-        code: 'INTERNAL_SERVER_ERROR',
-        status: 500,
-        message: 'Internal server error',
-      },
+    expect(await response.json()).toEqual({
+      code: 'INTERNAL_SERVER_ERROR',
+      status: 500,
+      message: 'Internal server error',
     })
   })
 
@@ -124,8 +123,10 @@ describe('procedure throw error', () => {
     })
 
     expect(response.status).toBe(408)
-    expect(await response.json()).toMatchObject({
-      data: { code: 'TIMEOUT', status: 408, message: '' },
+    expect(await response.json()).toEqual({
+      code: 'TIMEOUT',
+      status: 408,
+      message: '',
     })
   })
 
@@ -149,13 +150,11 @@ describe('procedure throw error', () => {
     })
 
     expect(response.status).toBe(413)
-    expect(await response.json()).toMatchObject({
-      data: {
-        code: 'PAYLOAD_TOO_LARGE',
-        status: 413,
-        message: 'test',
-        data: { max: '10mb' },
-      },
+    expect(await response.json()).toEqual({
+      code: 'PAYLOAD_TOO_LARGE',
+      status: 413,
+      message: 'test',
+      data: { max: '10mb' },
     })
   })
 
@@ -185,12 +184,10 @@ describe('procedure throw error', () => {
     })
 
     expect(response.status).toBe(500)
-    expect(await response.json()).toMatchObject({
-      data: {
-        code: 'INTERNAL_SERVER_ERROR',
-        status: 500,
-        message: 'Internal server error',
-      },
+    expect(await response.json()).toEqual({
+      code: 'INTERNAL_SERVER_ERROR',
+      status: 500,
+      message: 'Internal server error',
     })
 
     const response2 = await fetchHandler({
@@ -200,12 +197,10 @@ describe('procedure throw error', () => {
     })
 
     expect(response2.status).toBe(488)
-    expect(await response2.json()).toMatchObject({
-      data: {
-        code: 'PAYLOAD_TOO_LARGE',
-        status: 488,
-        message: '',
-      },
+    expect(await response2.json()).toEqual({
+      code: 'PAYLOAD_TOO_LARGE',
+      status: 488,
+      message: '',
     })
   })
 
@@ -228,21 +223,19 @@ describe('procedure throw error', () => {
     })
 
     expect(response.status).toBe(400)
-    expect(await response.json()).toMatchObject({
-      data: {
-        code: 'BAD_REQUEST',
-        status: 400,
-        message: 'Validation input failed',
-        issues: [
-          {
-            code: 'invalid_type',
-            expected: 'object',
-            message: 'Expected object, received string',
-            path: [],
-            received: 'string',
-          },
-        ],
-      },
+    expect(await response.json()).toEqual({
+      code: 'BAD_REQUEST',
+      status: 400,
+      message: 'Validation input failed',
+      issues: [
+        {
+          code: 'invalid_type',
+          expected: 'object',
+          message: 'Required',
+          path: [],
+          received: 'undefined',
+        },
+      ],
     })
   })
 
@@ -268,12 +261,10 @@ describe('procedure throw error', () => {
     })
 
     expect(response.status).toBe(500)
-    expect(await response.json()).toMatchObject({
-      data: {
-        code: 'INTERNAL_SERVER_ERROR',
-        status: 500,
-        message: 'Validation output failed',
-      },
+    expect(await response.json()).toEqual({
+      code: 'INTERNAL_SERVER_ERROR',
+      status: 500,
+      message: 'Validation output failed',
     })
   })
 })
@@ -359,12 +350,19 @@ describe('file upload', () => {
   const blob3 = new Blob(['dinwwwh'], { type: 'application/octet-stream' })
 
   it('single file', async () => {
+    const rForm = new FormData()
+    rForm.set('maps', JSON.stringify([[]]))
+    rForm.set('0', blob3)
+
     const response = await fetchHandler({
       prefix: '/orpc',
       handler,
       request: new Request('http://localhost/orpc.signal', {
         method: 'POST',
-        body: blob3,
+        body: rForm,
+        headers: {
+          [ORPC_HEADER]: ORPC_HEADER_VALUE,
+        },
       }),
       context: { auth: true },
     })
@@ -381,8 +379,10 @@ describe('file upload', () => {
 
   it('multiple file', async () => {
     const form = new FormData()
-    form.append('first', blob1)
-    form.append('second', blob2)
+    form.set('data', JSON.stringify({ first: blob1, second: blob2 }))
+    form.set('maps', JSON.stringify([['first'], ['second']]))
+    form.set('0', blob1)
+    form.set('1', blob2)
 
     const response = await fetchHandler({
       prefix: '/orpc',
@@ -390,6 +390,9 @@ describe('file upload', () => {
       request: new Request('http://localhost/orpc.multiple', {
         method: 'POST',
         body: form,
+        headers: {
+          [ORPC_HEADER]: ORPC_HEADER_VALUE,
+        },
       }),
       context: { auth: true },
     })

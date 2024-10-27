@@ -1,6 +1,7 @@
 /// <reference lib="dom" />
 /// <reference lib="dom.iterable" />
 
+import qs from 'qs'
 import { construct } from '../object/construct'
 import { crush } from '../object/crush'
 import type { Body, Transformer } from '../types'
@@ -57,7 +58,12 @@ export class OpenAPITransformer implements Transformer {
   async deserialize(re: Request | Response): Promise<unknown> {
     if ('method' in re && re.method === 'GET') {
       const url = new URL(re.url)
-      return { ...url.searchParams }
+      const data = qs.parse(url.search, {
+        arrayLimit: 0,
+        ignoreQueryPrefix: true,
+        duplicates: 'last',
+      })
+      return data
     }
 
     const contentType = re.headers.get('Content-Type')

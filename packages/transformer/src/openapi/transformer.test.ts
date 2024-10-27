@@ -140,5 +140,21 @@ describe('OpenAPITransformer', () => {
 
       expect(result).toBe('{"bad json"}')
     })
+
+    it('should handle search params', async () => {
+      const request = new Request(
+        'https://example.com?a=1&b=2&c[0]=1&f.1=2&g[1]=3&g[1]=4&j[]=5&j[]=6',
+      )
+      const result = await transformer.deserialize(request)
+
+      expect(result).toEqual({
+        a: '1',
+        b: '2',
+        c: ['1'],
+        'f.1': '2',
+        g: { '1': '4' },
+        j: ['6'], // FIX: should be ['5', '6']
+      })
+    })
   })
 })

@@ -45,7 +45,9 @@
     "type:check": "tsc -b"
   },
   "dependencies": {
+    "@types/qs": "^6.9.16",
     "is-what": "^5.0.2",
+    "qs": "^6.13.0",
     "superjson": "^2.2.1"
   }
 }

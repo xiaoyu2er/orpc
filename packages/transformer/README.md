@@ -49,7 +49,7 @@ A transformer designed for external clients consuming the API through OpenAPI sp
 
 **Server-Side Behavior:**
 
-Thanks to @orpc/zod, the server can handle OpenAPI requests with the same capabilities as the oRPC transformer.
+Thanks to oRPC server, the server can handle OpenAPI requests with the same capabilities as the oRPC transformer.
 
 **Client-Side Limitations:**
 When making manual requests, clients must handle:
@@ -78,7 +78,7 @@ When using `form-data` with manual requests, bracket notation is required for ne
 
 **When Sending Requests:**
 Limitations that only effect when you `deserialize` the payload. oRPC server still affects by these limitations
-but with the help of [@orpc/zod](../zod/README.md) can remove these limitations.
+but with the help of zod schema and some extra logics can remove these limitations.
 
 - Cannot express empty array or object (`{}` and `[]`).
 - `[]` at end can express both object with `''` empty key or an element of array, so can mislead in some cases.

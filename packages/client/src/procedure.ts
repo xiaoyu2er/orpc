@@ -1,4 +1,5 @@
 /// <reference lib="dom" />
+/// <reference lib="dom.iterable" />
 
 import {
   ORPC_HEADER,
@@ -62,8 +63,7 @@ export function createProcedureClient<
 
     const { body, headers: headers_ } = transformer.serialize(input)
 
-    for (const key in Object.fromEntries(headers_.entries())) {
-      const value = headers_.get(key)!
+    for (const [key, value] of headers_.entries()) {
       headers.set(key, value)
     }
 

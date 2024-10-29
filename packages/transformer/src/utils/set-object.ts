@@ -1,8 +1,13 @@
-export function setObject(obj: object, path: string[], value: any): void {
-  const lastKey = path.pop()
+export function setObject(
+  obj: object,
+  path: readonly string[],
+  value: any,
+): void {
+  const path_ = [...path]
+  const lastKey = path_.pop()
   if (lastKey === undefined) return
 
-  const target = path.reduce((acc, key) => {
+  const target = path_.reduce((acc, key) => {
     return acc[key]
   }, obj as any)
 

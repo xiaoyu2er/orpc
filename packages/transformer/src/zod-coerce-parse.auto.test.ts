@@ -2,7 +2,7 @@ import { generateMock } from '@anatine/zod-mock'
 import { copy } from 'copy-anything'
 import { isPlainObject } from 'is-what'
 import { z } from 'zod'
-import { coerceParse, coerceParseAsync } from '../src/parse'
+import { coerceParse } from './zod-coerce-parse'
 
 it('sync', { repeats: 1000 }, () => {
   const schema = generateRandomZodSchema(3)
@@ -11,15 +11,6 @@ it('sync', { repeats: 1000 }, () => {
   // if failed, the error come from generator so can bypass it
   if (schema.safeParse(data).error) return
   coerceParse(schema, uglyData(data))
-})
-
-it('async', { repeats: 1000 }, async () => {
-  const schema = generateRandomZodSchema(3)
-  const data = generateMock(schema)
-
-  // if failed, the error come from generator so can bypass it
-  if ((await schema.safeParseAsync(data)).error) return
-  await coerceParseAsync(schema, uglyData(data))
 })
 
 function uglyData(target: any) {

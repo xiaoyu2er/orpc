@@ -1,5 +1,176 @@
 import { ZodError, z } from 'zod'
-import { coerceParse, coerceParseAsync } from './parse'
+import { coerceParse, coerceType } from './zod-coerce-parse'
+
+describe('coerceType', () => {
+  it('string', () => {
+    const expected = 'string' as const
+
+    expect(coerceType('abc', expected)).toEqual('abc')
+    expect(coerceType('1', expected)).toEqual('1')
+    expect(coerceType(1, expected)).toEqual('1')
+
+    expect(coerceType(false, expected)).toEqual(false)
+    expect(coerceType(null, expected)).toEqual(null)
+    expect(coerceType(undefined, expected)).toEqual(undefined)
+    expect(coerceType([], expected)).toEqual([])
+    expect(coerceType({}, expected)).toEqual({})
+  })
+
+  it('number', () => {
+    const expected = 'number' as const
+
+    expect(coerceType('abc', expected)).toEqual('abc')
+    expect(coerceType('1', expected)).toEqual(1)
+    expect(coerceType(1, expected)).toEqual(1)
+
+    expect(coerceType(false, expected)).toEqual(false)
+    expect(coerceType(null, expected)).toEqual(null)
+    expect(coerceType(undefined, expected)).toEqual(undefined)
+    expect(coerceType([], expected)).toEqual([])
+    expect(coerceType({}, expected)).toEqual({})
+  })
+
+  it('float', () => {
+    const expected = 'float' as const
+
+    expect(coerceType('abc', expected)).toEqual('abc')
+    expect(coerceType('1', expected)).toEqual(1)
+    expect(coerceType(1, expected)).toEqual(1)
+
+    expect(coerceType(false, expected)).toEqual(false)
+    expect(coerceType(null, expected)).toEqual(null)
+    expect(coerceType(undefined, expected)).toEqual(undefined)
+    expect(coerceType([], expected)).toEqual([])
+    expect(coerceType({}, expected)).toEqual({})
+  })
+
+  it('integer', () => {
+    const expected = 'integer' as const
+
+    expect(coerceType('abc', expected)).toEqual('abc')
+    expect(coerceType('1', expected)).toEqual(1)
+    expect(coerceType(1, expected)).toEqual(1)
+
+    expect(coerceType(false, expected)).toEqual(false)
+    expect(coerceType(null, expected)).toEqual(null)
+    expect(coerceType(undefined, expected)).toEqual(undefined)
+    expect(coerceType([], expected)).toEqual([])
+    expect(coerceType({}, expected)).toEqual({})
+  })
+
+  it('bigint', () => {
+    const expected = 'bigint' as const
+
+    expect(coerceType('abc', expected)).toEqual('abc')
+    expect(coerceType('1', expected)).toEqual(1n)
+    expect(coerceType(1, expected)).toEqual(1n)
+
+    expect(coerceType(false, expected)).toEqual(false)
+    expect(coerceType(null, expected)).toEqual(null)
+    expect(coerceType(undefined, expected)).toEqual(undefined)
+    expect(coerceType([], expected)).toEqual([])
+    expect(coerceType({}, expected)).toEqual({})
+  })
+
+  it('nan', () => {
+    const expected = 'nan' as const
+
+    expect(coerceType('abc', expected)).toEqual(Number.NaN)
+    expect(coerceType('1', expected)).toEqual(1)
+    expect(coerceType(1, expected)).toEqual(1)
+
+    expect(coerceType(false, expected)).toEqual(false)
+    expect(coerceType(null, expected)).toEqual(null)
+    expect(coerceType(undefined, expected)).toEqual(undefined)
+    expect(coerceType([], expected)).toEqual([])
+    expect(coerceType({}, expected)).toEqual({})
+  })
+
+  it('boolean', () => {
+    const expected = 'boolean' as const
+
+    expect(coerceType('', expected)).toEqual(false)
+    expect(coerceType('0', expected)).toEqual(false)
+    expect(coerceType(0, expected)).toEqual(false)
+    expect(coerceType('off', expected)).toEqual(false)
+    expect(coerceType('false', expected)).toEqual(false)
+    expect(coerceType('False', expected)).toEqual(false)
+
+    expect(coerceType('1', expected)).toEqual(true)
+    expect(coerceType(1, expected)).toEqual(true)
+    expect(coerceType('on', expected)).toEqual(true)
+    expect(coerceType('true', expected)).toEqual(true)
+    expect(coerceType('True', expected)).toEqual(true)
+
+    expect(coerceType('abc', expected)).toEqual(true)
+    expect(coerceType('879', expected)).toEqual(true)
+
+    expect(coerceType(false, expected)).toEqual(false)
+    expect(coerceType(null, expected)).toEqual(null)
+    expect(coerceType(undefined, expected)).toEqual(undefined)
+    expect(coerceType([], expected)).toEqual([])
+    expect(coerceType({}, expected)).toEqual({})
+  })
+
+  it('date', () => {
+    const expected = 'date' as const
+
+    expect(coerceType('abc', expected)).toEqual('abc')
+    expect(coerceType('1', expected)).toEqual('1')
+    expect(coerceType(1, expected)).toEqual(1)
+    expect(coerceType('2023-01-01', expected)).toEqual(new Date('2023-01-01'))
+    expect(coerceType('2023-01-01T00:00:00', expected)).toEqual(
+      new Date('2023-01-01T00:00:00'),
+    )
+
+    expect(coerceType('09:06:00', expected)).toEqual(new Date('09:06:00'))
+
+    expect(coerceType(false, expected)).toEqual(false)
+    expect(coerceType(null, expected)).toEqual(null)
+    expect(coerceType(undefined, expected)).toEqual(undefined)
+    expect(coerceType([], expected)).toEqual([])
+    expect(coerceType({}, expected)).toEqual({})
+  })
+
+  it('object', () => {
+    const expected = 'object' as const
+
+    expect(coerceType('abc', expected)).toEqual('abc')
+    expect(coerceType(123, expected)).toEqual(123)
+    expect(coerceType([1, 2], expected)).toEqual({ [0]: 1, [1]: 2 })
+  })
+
+  it('set', () => {
+    const expected = 'set' as const
+
+    expect(coerceType('abc', expected)).toEqual('abc')
+    expect(coerceType(123, expected)).toEqual(123)
+    expect(coerceType([1, 2], expected)).toEqual(new Set([1, 2]))
+  })
+
+  it('map', () => {
+    const expected = 'map' as const
+
+    expect(coerceType('abc', expected)).toEqual('abc')
+    expect(coerceType(123, expected)).toEqual(123)
+    expect(coerceType([1, 2], expected)).toEqual([1, 2])
+    expect(coerceType([[1, 2], 2], expected)).toEqual([[1, 2], 2])
+    expect(
+      coerceType(
+        [
+          [1, 2],
+          [2, 3],
+        ],
+        expected,
+      ),
+    ).toEqual(
+      new Map([
+        [1, 2],
+        [2, 3],
+      ]),
+    )
+  })
+})
 
 describe('primitive', () => {
   it('only convert string & number', () => {
@@ -626,133 +797,5 @@ describe('advanced', () => {
     }
 
     expect(coerceParse(schema, data)).toEqual(validData)
-  })
-})
-
-describe('async', () => {
-  it('case 1', async () => {
-    const schema = z.object({
-      a: z.union([z.number(), z.date()]),
-      b: z.union([z.number(), z.date()]),
-      c: z
-        .object({
-          a: z.set(z.number()),
-          b: z.map(z.string(), z.number()),
-        })
-        .or(
-          z.object({
-            b: z.number(),
-          }),
-        ),
-    })
-    const validData = {
-      a: new Date('2023-01-01'),
-      b: 123,
-      c: {
-        a: new Set([1, 2, 3]),
-        b: new Map([
-          ['a', 1],
-          ['b', 2],
-        ]),
-      },
-    }
-
-    const data = {
-      a: '2023-01-01',
-      b: '123',
-      c: {
-        a: [1, 2, 3],
-        b: [
-          ['a', 1],
-          ['b', 2],
-        ],
-      },
-    }
-
-    expect(await coerceParseAsync(schema, data)).toEqual(validData)
-  })
-
-  it('case 2', async () => {
-    const schema = z.object({
-      a: z.union([z.number(), z.date()]),
-      b: z.union([z.number(), z.date()]),
-      c: z
-        .object({
-          a: z.set(z.number()),
-          b: z.map(z.string(), z.number()),
-        })
-        .or(
-          z.object({
-            b: z.number(),
-          }),
-        ),
-    })
-    const validData = {
-      a: new Date('2023-01-01'),
-      b: 123,
-      c: {
-        a: new Set([1, 2, 3]),
-        b: new Map([
-          ['a', 1],
-          ['b', 2],
-        ]),
-      },
-    }
-
-    const data = {
-      a: '2023-01-01',
-      b: '123',
-      c: {
-        a: [1, 2, 3],
-        b: [
-          ['a', 1],
-          ['b', 2],
-        ],
-      },
-    }
-
-    expect(await coerceParseAsync(schema, data)).toEqual(validData)
-  })
-
-  it('case 3', async () => {
-    const schema = z.object({
-      a: z.union([z.number(), z.date()]),
-      b: z.union([z.number(), z.date()]),
-      c: z
-        .object({
-          a: z.set(z.number()),
-          b: z.map(z.string(), z.number()),
-        })
-        .or(
-          z.object({
-            b: z.number(),
-          }),
-        ),
-    })
-    const validData = {
-      a: new Date('2023-01-01'),
-      b: 123,
-      c: {
-        a: new Set([1, 2, 3]),
-        b: new Map([
-          ['a', 1],
-          ['b', 2],
-        ]),
-      },
-    }
-
-    const data = {
-      a: '2023-01-01',
-      b: '123',
-      c: {
-        a: [1, 2, 3],
-        b: [
-          ['a', 1],
-          ['b', 2],
-        ],
-      },
-    }
-
-    expect(await coerceParseAsync(schema, data)).toEqual(validData)
   })
 })

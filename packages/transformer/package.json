@@ -14,7 +14,9 @@
     "url": "https://github.com/dinwwwh/dinwwwh.git",
     "directory": "examples/typescript-vite-package"
   },
-  "keywords": ["dinwwwh"],
+  "keywords": [
+    "dinwwwh"
+  ],
   "publishConfig": {
     "access": "public",
     "exports": {
@@ -28,6 +30,11 @@
         "import": "./dist/bracket-notation.js",
         "default": "./dist/bracket-notation.js"
       },
+      "./zod-coerce-parse": {
+        "types": "./dist/src/zod-coerce-parse.d.ts",
+        "import": "./dist/zod-coerce-parse.js",
+        "default": "./dist/zod-coerce-parse.js"
+      },
       "./🔒/*": {
         "types": "./dist/src/*.d.ts"
       }
@@ -36,19 +43,32 @@
   "exports": {
     ".": "./src/index.ts",
     "./bracket-notation": "./src/bracket-notation.ts",
+    "./zod-coerce-parse": "./src/zod-coerce-parse.ts",
     "./🔒/*": {
       "types": "./src/*.ts"
     }
   },
-  "files": ["dist", "src"],
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
     "build": "UNPLUGIN_ON_SUCCESS='tsc -b --noCheck' vite build",
     "type:check": "tsc -b"
   },
   "dependencies": {
     "@types/qs": "^6.9.16",
+    "copy-anything": "^4.0.2",
     "is-what": "^5.0.2",
     "qs": "^6.13.0",
+    "radash": "^12.1.0",
     "superjson": "^2.2.1"
+  },
+  "devDependencies": {
+    "@anatine/zod-mock": "^3.13.4",
+    "zod": "^3.23.8"
+  },
+  "peerDependencies": {
+    "zod": "^3.23.8"
   }
 }

@@ -1,5 +1,5 @@
 import type { SchemaInput, SchemaOutput } from '@orpc/contract'
-import { coerceParseAsync } from '@orpc/zod'
+import { coerceParse } from '@orpc/transformer/zod-coerce-parse'
 import { ORPCError } from './error'
 import type { Middleware } from './middleware'
 import type { Procedure } from './procedure'
@@ -137,13 +137,13 @@ export function createProcedureCaller<
         internal,
       })
 
-      const validInput = await (async () => {
+      const validInput = (() => {
         if (!validate) return input
         const schema = procedure.zz$p.contract.zz$cp.InputSchema
         if (!schema) return input
 
         try {
-          const result = await coerceParseAsync(schema, input)
+          const result = coerceParse(schema, input)
           return result
         } catch (e) {
           throw new ORPCError({

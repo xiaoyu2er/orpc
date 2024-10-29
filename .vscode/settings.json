@@ -5,7 +5,7 @@
     "source.organizeImports.biome": "explicit"
   },
   "explorer.fileNesting.patterns": {
-    "package.json": "*",
+    "package.json": ".*, *ts, *.json, *.yaml",
     "*.ts": "${capture}.*",
     "*.tsx": "${capture}.*"
   },

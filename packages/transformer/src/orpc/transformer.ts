@@ -13,7 +13,7 @@ export class ORPCTransformer implements Transformer {
     let body: string | FormData | Blob | undefined
 
     const { json, meta } = SuperJSON.serialize(payload)
-    const { maps, values } = findDeepMatches((v) => v instanceof Blob, payload)
+    const { maps, values } = findDeepMatches((v) => v instanceof Blob, json)
 
     if (values.length > 0) {
       body = new FormData()
@@ -75,7 +75,7 @@ export class ORPCTransformer implements Transformer {
       const maps = rawMaps === null ? undefined : parseJSONSafely(rawMaps)
 
       const dataRef = {
-        value: SuperJSON.deserialize({ json: data as any, meta: meta as any }),
+        value: data,
       }
 
       if (Array.isArray(maps)) {
@@ -84,7 +84,10 @@ export class ORPCTransformer implements Transformer {
         }
       }
 
-      return dataRef.value
+      return SuperJSON.deserialize({
+        json: dataRef.value as any,
+        meta: meta as any,
+      })
     }
 
     return await re.blob()

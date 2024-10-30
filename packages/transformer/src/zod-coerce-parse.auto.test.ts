@@ -10,7 +10,7 @@ it('sync', { repeats: 1000 }, () => {
 
   // if failed, the error come from generator so can bypass it
   if (schema.safeParse(data).error) return
-  coerceParse(schema, uglyData(data))
+  coerceParse(schema, uglyData(data), { bracketNotation: true })
 })
 
 function uglyData(target: any) {
@@ -18,12 +18,12 @@ function uglyData(target: any) {
 
   if (!isPlainObject(target)) {
     if (Math.random() < 0.7) {
-      if (target === undefined) {
-        return 'undefined'
+      if (target === null) {
+        return undefined
       }
 
-      if (target === null) {
-        return 'null'
+      if (Number.isNaN(target)) {
+        return undefined
       }
 
       if (target === true) {

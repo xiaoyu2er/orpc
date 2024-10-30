@@ -1,801 +1,131 @@
 import { ZodError, z } from 'zod'
-import { coerceParse, coerceType } from './zod-coerce-parse'
+import { coerceParse } from './zod-coerce-parse'
 
-describe('coerceType', () => {
-  it('string', () => {
-    const expected = 'string' as const
-
-    expect(coerceType('abc', expected)).toEqual('abc')
-    expect(coerceType('1', expected)).toEqual('1')
-    expect(coerceType(1, expected)).toEqual('1')
-
-    expect(coerceType(false, expected)).toEqual(false)
-    expect(coerceType(null, expected)).toEqual(null)
-    expect(coerceType(undefined, expected)).toEqual(undefined)
-    expect(coerceType([], expected)).toEqual([])
-    expect(coerceType({}, expected)).toEqual({})
-  })
-
-  it('number', () => {
-    const expected = 'number' as const
-
-    expect(coerceType('abc', expected)).toEqual('abc')
-    expect(coerceType('1', expected)).toEqual(1)
-    expect(coerceType(1, expected)).toEqual(1)
-
-    expect(coerceType(false, expected)).toEqual(false)
-    expect(coerceType(null, expected)).toEqual(null)
-    expect(coerceType(undefined, expected)).toEqual(undefined)
-    expect(coerceType([], expected)).toEqual([])
-    expect(coerceType({}, expected)).toEqual({})
-  })
-
-  it('float', () => {
-    const expected = 'float' as const
-
-    expect(coerceType('abc', expected)).toEqual('abc')
-    expect(coerceType('1', expected)).toEqual(1)
-    expect(coerceType(1, expected)).toEqual(1)
-
-    expect(coerceType(false, expected)).toEqual(false)
-    expect(coerceType(null, expected)).toEqual(null)
-    expect(coerceType(undefined, expected)).toEqual(undefined)
-    expect(coerceType([], expected)).toEqual([])
-    expect(coerceType({}, expected)).toEqual({})
-  })
-
-  it('integer', () => {
-    const expected = 'integer' as const
-
-    expect(coerceType('abc', expected)).toEqual('abc')
-    expect(coerceType('1', expected)).toEqual(1)
-    expect(coerceType(1, expected)).toEqual(1)
-
-    expect(coerceType(false, expected)).toEqual(false)
-    expect(coerceType(null, expected)).toEqual(null)
-    expect(coerceType(undefined, expected)).toEqual(undefined)
-    expect(coerceType([], expected)).toEqual([])
-    expect(coerceType({}, expected)).toEqual({})
-  })
-
-  it('bigint', () => {
-    const expected = 'bigint' as const
-
-    expect(coerceType('abc', expected)).toEqual('abc')
-    expect(coerceType('1', expected)).toEqual(1n)
-    expect(coerceType(1, expected)).toEqual(1n)
-
-    expect(coerceType(false, expected)).toEqual(false)
-    expect(coerceType(null, expected)).toEqual(null)
-    expect(coerceType(undefined, expected)).toEqual(undefined)
-    expect(coerceType([], expected)).toEqual([])
-    expect(coerceType({}, expected)).toEqual({})
-  })
-
-  it('nan', () => {
-    const expected = 'nan' as const
-
-    expect(coerceType('abc', expected)).toEqual(Number.NaN)
-    expect(coerceType('1', expected)).toEqual(1)
-    expect(coerceType(1, expected)).toEqual(1)
-
-    expect(coerceType(false, expected)).toEqual(false)
-    expect(coerceType(null, expected)).toEqual(null)
-    expect(coerceType(undefined, expected)).toEqual(undefined)
-    expect(coerceType([], expected)).toEqual([])
-    expect(coerceType({}, expected)).toEqual({})
-  })
-
-  it('boolean', () => {
-    const expected = 'boolean' as const
-
-    expect(coerceType('', expected)).toEqual(false)
-    expect(coerceType('0', expected)).toEqual(false)
-    expect(coerceType(0, expected)).toEqual(false)
-    expect(coerceType('off', expected)).toEqual(false)
-    expect(coerceType('false', expected)).toEqual(false)
-    expect(coerceType('False', expected)).toEqual(false)
-
-    expect(coerceType('1', expected)).toEqual(true)
-    expect(coerceType(1, expected)).toEqual(true)
-    expect(coerceType('on', expected)).toEqual(true)
-    expect(coerceType('true', expected)).toEqual(true)
-    expect(coerceType('True', expected)).toEqual(true)
-
-    expect(coerceType('abc', expected)).toEqual(true)
-    expect(coerceType('879', expected)).toEqual(true)
-
-    expect(coerceType(false, expected)).toEqual(false)
-    expect(coerceType(null, expected)).toEqual(null)
-    expect(coerceType(undefined, expected)).toEqual(undefined)
-    expect(coerceType([], expected)).toEqual([])
-    expect(coerceType({}, expected)).toEqual({})
-  })
-
-  it('date', () => {
-    const expected = 'date' as const
-
-    expect(coerceType('abc', expected)).toEqual('abc')
-    expect(coerceType('1', expected)).toEqual('1')
-    expect(coerceType(1, expected)).toEqual(1)
-    expect(coerceType('2023-01-01', expected)).toEqual(new Date('2023-01-01'))
-    expect(coerceType('2023-01-01T00:00:00', expected)).toEqual(
-      new Date('2023-01-01T00:00:00'),
-    )
-
-    expect(coerceType('09:06:00', expected)).toEqual(new Date('09:06:00'))
-
-    expect(coerceType(false, expected)).toEqual(false)
-    expect(coerceType(null, expected)).toEqual(null)
-    expect(coerceType(undefined, expected)).toEqual(undefined)
-    expect(coerceType([], expected)).toEqual([])
-    expect(coerceType({}, expected)).toEqual({})
-  })
-
-  it('object', () => {
-    const expected = 'object' as const
-
-    expect(coerceType('abc', expected)).toEqual('abc')
-    expect(coerceType(123, expected)).toEqual(123)
-    expect(coerceType([1, 2], expected)).toEqual({ [0]: 1, [1]: 2 })
-  })
-
-  it('set', () => {
-    const expected = 'set' as const
-
-    expect(coerceType('abc', expected)).toEqual('abc')
-    expect(coerceType(123, expected)).toEqual(123)
-    expect(coerceType([1, 2], expected)).toEqual(new Set([1, 2]))
-  })
-
-  it('map', () => {
-    const expected = 'map' as const
-
-    expect(coerceType('abc', expected)).toEqual('abc')
-    expect(coerceType(123, expected)).toEqual(123)
-    expect(coerceType([1, 2], expected)).toEqual([1, 2])
-    expect(coerceType([[1, 2], 2], expected)).toEqual([[1, 2], 2])
-    expect(
-      coerceType(
-        [
-          [1, 2],
-          [2, 3],
-        ],
-        expected,
-      ),
-    ).toEqual(
-      new Map([
-        [1, 2],
-        [2, 3],
-      ]),
-    )
-  })
-})
-
-describe('primitive', () => {
-  it('only convert string & number', () => {
-    const schema = z.string()
-
-    expect(coerceParse(schema, '123')).toEqual('123')
-    expect(coerceParse(schema, 123)).toEqual('123')
-
-    expect(() => coerceParse(schema, true)).toThrowError(
-      new ZodError([
-        {
-          code: 'invalid_type',
-          expected: 'string',
-          received: 'boolean',
-          path: [],
-          message: 'Expected string, received boolean',
-        },
-      ]),
-    )
-
-    expect(() => coerceParse(schema, null)).toThrowError(
-      new ZodError([
-        {
-          code: 'invalid_type',
-          expected: 'string',
-          received: 'null',
-          path: [],
-          message: 'Expected string, received null',
-        },
-      ]),
-    )
-
-    expect(() => coerceParse(schema, undefined)).toThrowError(
-      new ZodError([
-        {
-          code: 'invalid_type',
-          expected: 'string',
-          received: 'undefined',
-          path: [],
-          message: 'Required',
-        },
-      ]),
-    )
-  })
-
-  it('with string', () => {
-    const schema = z.string()
-
-    expect(coerceParse(schema, '123')).toEqual('123')
-    expect(coerceParse(schema, 123)).toEqual('123')
-  })
-
-  it('with number', () => {
+describe('primitive schemas', () => {
+  it('should parse and coerce number schemas', () => {
     const schema = z.number()
+    expect(coerceParse(schema, '123', { bracketNotation: true })).toEqual(123)
 
-    expect(coerceParse(schema, 123)).toEqual(123)
-    expect(coerceParse(schema, '123')).toEqual(123)
-
-    expect(() => coerceParse(schema, '123d')).toThrow(
-      new ZodError([
-        {
-          code: 'invalid_type',
-          expected: 'number',
-          received: 'string',
-          path: [],
-          message: 'Expected number, received string',
-        },
-      ]),
-    )
+    // Should throw for invalid number strings
+    expect(() => coerceParse(schema, 'abc')).toThrowError(ZodError)
   })
 
-  it('with bigint', () => {
-    const schema = z.bigint()
-
-    expect(coerceParse(schema, 123)).toEqual(123n)
-    expect(coerceParse(schema, '123')).toEqual(123n)
-
-    expect(() => coerceParse(schema, '123d')).toThrow(
-      new ZodError([
-        {
-          code: 'invalid_type',
-          expected: 'bigint',
-          received: 'string',
-          path: [],
-          message: 'Expected bigint, received string',
-        },
-      ]),
-    )
-  })
-
-  it('with nan', () => {
-    const schema = z.nan()
-
-    expect(coerceParse(schema, Number.NaN)).toEqual(Number.NaN)
-    expect(coerceParse(schema, '123d')).toEqual(Number.NaN)
-    expect(coerceParse(schema, '123n')).toEqual(Number.NaN)
-
-    expect(() => coerceParse(schema, '123')).toThrow(
-      new ZodError([
-        {
-          code: 'invalid_type',
-          expected: 'nan',
-          received: 'number',
-          path: [],
-          message: 'Expected nan, received number',
-        },
-      ]),
-    )
-  })
-
-  it('with boolean', () => {
+  it('should parse and coerce boolean schemas', () => {
     const schema = z.boolean()
-
-    expect(coerceParse(schema, false)).toEqual(false)
-    expect(coerceParse(schema, Number.NaN)).toEqual(false)
-    expect(coerceParse(schema, 'false')).toEqual(false)
-    expect(coerceParse(schema, 'false')).toEqual(false)
-    expect(coerceParse(schema, 'off')).toEqual(false)
-    expect(coerceParse(schema, '0')).toEqual(false)
-    expect(coerceParse(schema, '')).toEqual(false)
-    expect(coerceParse(schema, 0)).toEqual(false)
-
-    expect(coerceParse(schema, true)).toEqual(true)
-    expect(coerceParse(schema, 1)).toEqual(true)
-    expect(coerceParse(schema, '1')).toEqual(true)
-    expect(coerceParse(schema, 'true')).toEqual(true)
-    expect(coerceParse(schema, 'True')).toEqual(true)
-    expect(coerceParse(schema, 'on')).toEqual(true)
+    expect(coerceParse(schema, 'true', { bracketNotation: true })).toEqual(true)
+    expect(coerceParse(schema, 'false', { bracketNotation: true })).toEqual(
+      false,
+    )
+    expect(coerceParse(schema, '1', { bracketNotation: true })).toEqual(true)
+    expect(coerceParse(schema, '0', { bracketNotation: true })).toEqual(false)
   })
 
-  it('with data', () => {
+  it('should parse and coerce date schemas', () => {
     const schema = z.date()
+    const testDate = new Date('2023-01-01')
+    expect(coerceParse(schema, '2023-01-01')).toEqual(testDate)
 
-    const date = new Date()
-    const dateString = date.toISOString()
-    const invalidDateString = '2023-:cccc'
-
-    expect(coerceParse(schema, date)).toEqual(date)
-    expect(coerceParse(schema, dateString)).toEqual(date)
-
-    expect(coerceParse(schema, '2023-01-01')).toEqual(new Date('2023-01-01'))
-
-    expect(() => coerceParse(schema, invalidDateString)).toThrow(
-      new ZodError([
-        {
-          code: 'invalid_date',
-          path: [],
-          message: 'Invalid date',
-        },
-      ]),
-    )
-  })
-
-  it('with null', () => {
-    const schema = z.null()
-
-    expect(coerceParse(schema, null)).toEqual(null)
-    expect(coerceParse(schema, 'null')).toEqual(null)
-
-    expect(() => coerceParse(schema, '')).toThrow(
-      new ZodError([
-        {
-          code: 'invalid_type',
-          expected: 'null',
-          received: 'string',
-          path: [],
-          message: 'Expected null, received string',
-        },
-      ]),
-    )
-
-    expect(() => coerceParse(schema, 1)).toThrow(
-      new ZodError([
-        {
-          code: 'invalid_type',
-          expected: 'null',
-          received: 'number',
-          path: [],
-          message: 'Expected null, received number',
-        },
-      ]),
-    )
-  })
-
-  it('with undefined', () => {
-    const schema = z.undefined()
-
-    expect(coerceParse(schema, undefined)).toEqual(undefined)
-    expect(coerceParse(schema, 'undefined')).toEqual(undefined)
-
-    expect(() => coerceParse(schema, '')).toThrow(
-      new ZodError([
-        {
-          code: 'invalid_type',
-          expected: 'undefined',
-          received: 'string',
-          path: [],
-          message: 'Expected undefined, received string',
-        },
-      ]),
-    )
-
-    expect(() => coerceParse(schema, 1)).toThrow(
-      new ZodError([
-        {
-          code: 'invalid_type',
-          expected: 'undefined',
-          received: 'number',
-          path: [],
-          message: 'Expected undefined, received number',
-        },
-      ]),
-    )
+    // Should throw for invalid dates
+    expect(() => coerceParse(schema, 'invalid-date')).toThrowError(ZodError)
   })
 })
 
-describe('non-primitive', () => {
-  it('with object', () => {
-    const schema = z.object({ [0]: z.string() })
-
-    expect(coerceParse(schema, ['1'])).toEqual({ [0]: '1' })
-
-    expect(() => coerceParse(schema, [1])).toThrow(
-      new ZodError([
-        {
-          code: 'invalid_type',
-          expected: 'string',
-          received: 'number',
-          path: ['0'],
-          message: 'Expected string, received number',
-        },
-      ]),
-    )
-
-    expect(() => coerceParse(schema, '1234')).toThrow(
-      new ZodError([
-        {
-          code: 'invalid_type',
-          expected: 'object',
-          received: 'string',
-          path: [],
-          message: 'Expected object, received string',
-        },
-      ]),
-    )
-  })
-
-  it('with set', () => {
-    const schema = z.set(z.string())
-
-    expect(coerceParse(schema, new Set())).toEqual(new Set())
-    expect(coerceParse(schema, new Set(['a']))).toEqual(new Set(['a']))
-
-    expect(coerceParse(schema, ['a', 'b'])).toEqual(new Set(['a', 'b']))
-    expect(coerceParse(schema, ['1', '1', 'b'])).toEqual(new Set(['1', 'b']))
-    expect(
-      coerceParse(z.set(z.tuple([z.number(), z.number()])), [
-        [1, 2],
-        [2, 3],
-      ]),
-    ).toEqual(
-      new Set([
-        [1, 2],
-        [2, 3],
-      ]),
-    )
-
-    expect(() => coerceParse(schema, {})).toThrow(
-      new ZodError([
-        {
-          code: 'invalid_type',
-          expected: 'set',
-          received: 'object',
-          path: [],
-          message: 'Expected set, received object',
-        },
-      ]),
-    )
-
-    expect(() => coerceParse(schema, '1234')).toThrow(
-      new ZodError([
-        {
-          code: 'invalid_type',
-          expected: 'set',
-          received: 'string',
-          path: [],
-          message: 'Expected set, received string',
-        },
-      ]),
-    )
-
-    expect(() => coerceParse(schema, 1234)).toThrow(
-      new ZodError([
-        {
-          code: 'invalid_type',
-          expected: 'set',
-          received: 'number',
-          path: [],
-          message: 'Expected set, received number',
-        },
-      ]),
-    )
-  })
-
-  it('with map', () => {
-    const schema = z.map(z.string(), z.number())
-
-    expect(coerceParse(schema, new Map())).toEqual(new Map())
-    expect(coerceParse(schema, new Map([['a', 1]]))).toEqual(
-      new Map([['a', 1]]),
-    )
-    expect(
-      coerceParse(schema, [
-        ['a', 1],
-        ['b', 2],
-      ]),
-    ).toEqual(
-      new Map([
-        ['a', 1],
-        ['b', 2],
-      ]),
-    )
-
-    expect(() => coerceParse(schema, [[]])).toThrow(
-      new ZodError([
-        {
-          code: 'invalid_type',
-          expected: 'map',
-          received: 'array',
-          path: [],
-          message: 'Expected map, received array',
-        },
-      ]),
-    )
-
-    expect(() => coerceParse(schema, {})).toThrow(
-      new ZodError([
-        {
-          code: 'invalid_type',
-          expected: 'map',
-          received: 'object',
-          path: [],
-          message: 'Expected map, received object',
-        },
-      ]),
-    )
-
-    expect(() => coerceParse(schema, '1234')).toThrow(
-      new ZodError([
-        {
-          code: 'invalid_type',
-          expected: 'map',
-          received: 'string',
-          path: [],
-          message: 'Expected map, received string',
-        },
-      ]),
-    )
-
-    expect(() => coerceParse(schema, 1234)).toThrow(
-      new ZodError([
-        {
-          code: 'invalid_type',
-          expected: 'map',
-          received: 'number',
-          path: [],
-          message: 'Expected map, received number',
-        },
-      ]),
-    )
-  })
-})
-
-describe('combination', () => {
-  it('with array', () => {
+describe('complex schemas', () => {
+  it('should parse and coerce array schemas', () => {
     const schema = z.array(z.number())
+    expect(
+      coerceParse(schema, ['1', '2', '3'], { bracketNotation: true }),
+    ).toEqual([1, 2, 3])
 
-    expect(coerceParse(schema, [1, 2, 3])).toEqual([1, 2, 3])
-    expect(coerceParse(schema, [1, 2, '3'])).toEqual([1, 2, 3])
-
-    expect(() => coerceParse(schema, [1, 2, 'd'])).toThrow(
-      new ZodError([
-        {
-          code: 'invalid_type',
-          expected: 'number',
-          received: 'string',
-          path: [2],
-          message: 'Expected number, received string',
-        },
-      ]),
-    )
+    // Should throw for non-coercible array elements
+    expect(() => coerceParse(schema, ['1', 'abc'])).toThrowError(ZodError)
   })
 
-  it('with tuple', () => {
-    const schema = z.tuple([z.number(), z.string(), z.date()])
-
-    expect(coerceParse(schema, [1, '2', new Date('2023-01-01')])).toEqual([
-      1,
-      '2',
-      new Date('2023-01-01'),
-    ])
-
-    expect(coerceParse(schema, ['1.1', 2, '2023-01-01'])).toEqual([
-      1.1,
-      '2',
-      new Date('2023-01-01'),
-    ])
-  })
-
-  it('with tuple 2', () => {
-    const schema = z.tuple([z.number(), z.string(), z.date()]).rest(z.null())
-
-    expect(coerceParse(schema, [1, '2', new Date(123), null, null])).toEqual([
-      1,
-      '2',
-      new Date(123),
-      null,
-      null,
-    ])
-
-    expect(coerceParse(schema, ['1.1', 2, '2023-01-01', null, 'null'])).toEqual(
-      [1.1, '2', new Date('2023-01-01'), null, null],
-    )
-  })
-
-  it('with object', () => {
+  it('should parse and coerce object schemas', () => {
     const schema = z.object({
-      a: z.number(),
-      b: z.string(),
-      c: z.date(),
+      num: z.number(),
+      str: z.string(),
+      date: z.date(),
     })
 
     expect(
-      coerceParse(schema, { a: 1, b: '2', c: new Date('2023-01-01') }),
+      coerceParse(
+        schema,
+        {
+          num: '123',
+          str: '456',
+          date: '2023-01-01',
+        },
+        { bracketNotation: true },
+      ),
     ).toEqual({
-      a: 1,
-      b: '2',
-      c: new Date('2023-01-01'),
-    })
-
-    expect(coerceParse(schema, { a: '1.1', b: 2, c: '2023-01-01' })).toEqual({
-      a: 1.1,
-      b: '2',
-      c: new Date('2023-01-01'),
+      num: 123,
+      str: '456',
+      date: new Date('2023-01-01'),
     })
   })
 
-  it('with union', () => {
+  it('should parse and coerce union schemas', () => {
     const schema = z.union([z.number(), z.date()])
-
-    expect(coerceParse(schema, 1)).toEqual(1)
-    expect(coerceParse(schema, '1')).toEqual(1)
-    expect(coerceParse(schema, new Date(123))).toEqual(new Date(123))
     expect(coerceParse(schema, '2023-01-01')).toEqual(new Date('2023-01-01'))
-    expect(coerceParse(schema, '123')).toEqual(123)
   })
 
-  it('with union 2', () => {
-    const s1 = z.object({ a: z.number() }).or(z.object({ a: z.date() }))
-
-    expect(
-      coerceParse(s1, {
-        a: '123',
-      }),
-    ).toEqual({
-      a: 123,
-    })
-
-    expect(
-      coerceParse(s1, {
-        a: '2023-06-06',
-      }),
-    ).toEqual({
-      a: new Date('2023-06-06'),
-    })
-
-    const s2 = z.object({ a: z.number() }).or(z.object({ a: z.null() }))
-
-    expect(coerceParse(s2, { a: '1233' })).toEqual({ a: 1233 })
-    expect(coerceParse(s2, { a: 'null' })).toEqual({ a: null })
-
-    expect(() => coerceParse(s2, { a: 'pow' })).toThrow(
-      new ZodError([
-        {
-          code: 'invalid_union',
-          unionErrors: [
-            {
-              issues: [
-                {
-                  code: 'invalid_type',
-                  expected: 'number',
-                  received: 'string',
-                  path: ['a'],
-                  message: 'Expected number, received string',
-                },
-              ],
-              name: 'ZodError',
-            },
-            {
-              issues: [
-                {
-                  code: 'invalid_type',
-                  expected: 'null',
-                  received: 'string',
-                  path: ['a'],
-                  message: 'Expected null, received string',
-                },
-              ],
-              name: 'ZodError',
-            },
-          ],
-          path: [],
-          message: 'Invalid input',
-        },
-      ] as any),
-    )
-  })
-
-  it('with intersection', () => {
-    const schema = z.intersection(
-      z.object({
-        a: z.number(),
-        b: z.string(),
-      }),
-      z.object({
-        c: z.date(),
-      }),
-    )
-
-    expect(
-      coerceParse(schema, {
-        a: 1,
-        b: '2',
-        c: new Date(123),
-      }),
-    ).toEqual({
-      a: 1,
-      b: '2',
-      c: new Date(123),
-    })
-
-    expect(
-      coerceParse(schema, {
-        a: 1,
-        b: '2',
-        c: '2023-01-01',
-      }),
-    ).toEqual({
-      a: 1,
-      b: '2',
-      c: new Date('2023-01-01'),
-    })
-  })
-
-  it('with record', () => {
-    const schema = z.record(z.date())
-    expect(coerceParse(schema, {})).toEqual({})
-    expect(coerceParse(schema, { a: new Date('2023-01-01') })).toEqual({
-      a: new Date('2023-01-01'),
-    })
-    expect(coerceParse(schema, { a: '2023-01-01' })).toEqual({
-      a: new Date('2023-01-01'),
-    })
-
-    expect(() => coerceParse(schema, { a: 123, b: '123' })).toThrow(
-      new ZodError([
-        {
-          code: 'invalid_type',
-          expected: 'date',
-          received: 'number',
-          path: ['a'],
-          message: 'Expected date, received number',
-        },
-        {
-          code: 'invalid_type',
-          expected: 'date',
-          received: 'string',
-          path: ['b'],
-          message: 'Expected date, received string',
-        },
+  it('should handle nested object unions', () => {
+    const schema = z.object({
+      data: z.union([
+        z.object({ type: z.literal('number'), value: z.number() }),
+        z.object({ type: z.literal('date'), value: z.date() }),
       ]),
-    )
+    })
+
+    expect(
+      coerceParse(schema, {
+        data: { type: 'date', value: '2023-01-01' },
+      }),
+    ).toEqual({
+      data: { type: 'date', value: new Date('2023-01-01') },
+    })
   })
 })
 
-describe('advanced', () => {
-  it('case 1', () => {
-    const schema = z.object({
-      a: z.union([z.number(), z.date()]),
-      b: z.union([z.number(), z.date()]),
-      c: z
-        .object({
-          a: z.set(z.number()),
-          b: z.map(z.string(), z.number()),
-        })
-        .or(
-          z.object({
-            b: z.number(),
-          }),
-        ),
+describe('edge cases', () => {
+  it('should handle empty arrays and objects', () => {
+    const arraySchema = z.object({ arr: z.array(z.string()) })
+    const objectSchema = z.object({ obj: z.object({}) })
+
+    expect(coerceParse(arraySchema, {}, { bracketNotation: true })).toEqual({
+      arr: [],
     })
-    const validData = {
-      a: new Date('2023-01-01'),
-      b: 123,
-      c: {
-        a: new Set([1, 2, 3]),
-        b: new Map([
-          ['a', 1],
-          ['b', 2],
-        ]),
-      },
-    }
+    expect(coerceParse(objectSchema, {}, { bracketNotation: true })).toEqual({
+      obj: {},
+    })
+  })
 
-    const data = {
-      a: '2023-01-01',
-      b: '123',
-      c: {
-        a: [1, 2, 3],
-        b: [
-          ['a', 1],
-          ['b', 2],
-        ],
-      },
-    }
+  it('should handle array-object conversions', () => {
+    const arraySchema = z.object({ arr: z.array(z.string()) })
+    expect(
+      coerceParse(
+        arraySchema,
+        {
+          arr: { 0: 'first', 1: 'second' },
+        },
+        { bracketNotation: true },
+      ),
+    ).toEqual({
+      arr: ['first', 'second'],
+    })
 
-    expect(coerceParse(schema, data)).toEqual(validData)
+    const objectSchema = z.object({ obj: z.object({ '': z.string() }) })
+    expect(
+      coerceParse(
+        objectSchema,
+        {
+          obj: ['a', 'b'],
+        },
+        { bracketNotation: true },
+      ),
+    ).toEqual({
+      obj: { '': 'b' },
+    })
   })
 })

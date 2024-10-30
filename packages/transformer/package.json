@@ -57,10 +57,8 @@
     "type:check": "tsc -b"
   },
   "dependencies": {
-    "@types/qs": "^6.9.16",
     "copy-anything": "^4.0.2",
     "is-what": "^5.0.2",
-    "qs": "^6.13.0",
     "radash": "^12.1.0",
     "superjson": "^2.2.1"
   },

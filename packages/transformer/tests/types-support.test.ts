@@ -1,78 +1,134 @@
-import { ORPCTransformer } from '../src'
+import { type ZodType, z } from 'zod'
+import { ORPCTransformer, OpenAPITransformer, type Transformer } from '../src'
 
-const transformers = [
+const transformers: {
+  name: string
+  createTransformer: (schema: ZodType<any, any, any>) => Transformer
+  isFileSupport: boolean
+}[] = [
   {
-    name: 'ORPCTransformer full',
-    transformer: new ORPCTransformer(),
+    name: 'ORPCTransformer',
+    createTransformer: () => new ORPCTransformer(),
     isFileSupport: true,
   },
+  {
+    name: 'OpenAPITransformer auto',
+    createTransformer: (schema) => new OpenAPITransformer({ schema }),
+    isFileSupport: true,
+  },
+  // {
+  //   name: 'OpenAPITransformer multipart/form-data',
+  //   createTransformer: (schema) =>
+  //     new OpenAPITransformer({
+  //       schema,
+  //       serialize: { accept: 'multipart/form-data' },
+  //     }),
+  //   isFileSupport: true,
+  // },
+  // {
+  //   name: 'OpenAPITransformer application/json',
+  //   createTransformer: (schema) =>
+  //     new OpenAPITransformer({
+  //       schema,
+  //       serialize: { accept: 'application/json' },
+  //     }),
+  //   isFileSupport: false,
+  // },
+  // {
+  //   name: 'OpenAPITransformer application/www-form-urlencoded',
+  //   createTransformer: (schema) =>
+  //     new OpenAPITransformer({
+  //       schema,
+  //       serialize: { accept: 'application/www-form-urlencoded' },
+  //     }),
+  //   isFileSupport: false,
+  // },
 ]
 
-const cases = [
-  'string',
-  1234,
-  //   Number.NaN, // TODO: fix NaN on new Map as key
-  true,
-  false,
-  null,
-  undefined,
-  new Date('2023-01-01'),
-  BigInt(1234),
-  new Set([1, 2, 3]),
-  new Map([
-    [1, 2],
-    [3, 4],
-  ]),
-  new File(['content of file'], 'file.txt', {
-    type: 'application/octet-stream',
-  }),
-  new File(['content of file 2'], 'file.txt', { type: 'application/pdf' }),
-]
+const types = [
+  ['string', z.string()],
+  [1234, z.number()],
+  //  [ Number.NaN, z.nan()], // TODO: fix NaN on new Map as key
+  [true, z.boolean()],
+  [false, z.boolean()],
+  [null, z.null()],
+  [undefined, z.undefined()],
+  [new Date('2023-01-01'), z.date()],
+  [BigInt(1234), z.bigint()],
+  [new Set([1, 2, 3]), z.set(z.number())],
+  [
+    new Map([
+      [1, 2],
+      [3, 4],
+    ]),
+    z.map(z.number(), z.number()),
+  ],
+  // [
+  //   new File(['content of file'], 'file.txt', {
+  //     type: 'application/json',
+  //   }),
+  //   z.instanceof(File),
+  // ],
+  [
+    new File(['content of file'], 'file.txt', {
+      type: 'application/octet-stream',
+    }),
+    z.instanceof(Blob),
+  ],
+  [
+    new File(['content of file 2'], 'file.pdf', { type: 'application/pdf' }),
+    z.instanceof(Blob),
+  ],
+] as const
 
-describe.each(transformers)(
-  'types support for $name',
-  ({ transformer, isFileSupport }) => {
-    it.each(cases)('should work on flat: %s', async (origin) => {
-      if (!isFileSupport && origin instanceof Blob) {
-        return
-      }
+describe.each(transformers)('$name', ({ createTransformer, isFileSupport }) => {
+  it.each(types)('should work on flat: %s', async (origin, schema) => {
+    if (!isFileSupport && origin instanceof Blob) {
+      return
+    }
 
-      const { body, headers } = transformer.serialize(origin)
+    const transformer = createTransformer(schema)
 
-      const request = new Request('http://localhost', {
-        method: 'POST',
-        headers,
-        body,
-      })
+    const { body, headers } = transformer.serialize(origin)
 
-      const data = await transformer.deserialize(request)
-
-      expect(data).toEqual(origin)
+    const request = new Request('http://localhost', {
+      method: 'POST',
+      headers,
+      body,
     })
 
-    it.each(cases)('should work on nested object: %s', async (origin) => {
-      if (!isFileSupport && origin instanceof Blob) {
-        return
-      }
+    const data = await transformer.deserialize(request)
 
-      const object = {
-        data: origin,
-      }
+    expect(data).toEqual(origin)
+  })
 
-      const { body, headers } = transformer.serialize(object)
+  it.each(types)('should work on nested object: %s', async (origin, schema) => {
+    if (!isFileSupport && origin instanceof Blob) {
+      return
+    }
 
-      const request = new Request('http://localhost', {
-        method: 'POST',
-        headers,
-        body,
-      })
+    const object = {
+      data: origin,
+    }
 
-      const data = await transformer.deserialize(request)
+    const transformer = createTransformer(z.object({ data: schema }))
 
-      expect(data).toEqual(object)
+    const { body, headers } = transformer.serialize(object)
+
+    const request = new Request('http://localhost', {
+      method: 'POST',
+      headers,
+      body,
     })
 
-    it.each(cases)('should work on complex object: %s', async (origin) => {
+    const data = await transformer.deserialize(request)
+
+    expect(data).toEqual(object)
+  })
+
+  it.each(types)(
+    'should work on complex object: %s',
+    async (origin, schema) => {
       if (!isFileSupport && origin instanceof Blob) {
         return
       }
@@ -84,6 +140,15 @@ describe.each(transformers)(
         set: new Set([origin]),
       }
 
+      const transformer = createTransformer(
+        z.object({
+          data: schema,
+          list: z.array(schema),
+          map: z.map(schema, schema),
+          set: z.set(schema),
+        }),
+      )
+
       const { body, headers } = transformer.serialize(object)
 
       const request = new Request('http://localhost', {
@@ -95,6 +160,6 @@ describe.each(transformers)(
       const data = await transformer.deserialize(request)
 
       expect(data).toEqual(object)
-    })
-  },
-)
+    },
+  )
+})

@@ -1,4 +1,4 @@
-import { type ZodType, z } from 'zod'
+import { type ZodType, object, z } from 'zod'
 import { ORPCTransformer, OpenAPITransformer, type Transformer } from '../src'
 
 const transformers: {
@@ -16,45 +16,67 @@ const transformers: {
     createTransformer: (schema) => new OpenAPITransformer({ schema }),
     isFileSupport: true,
   },
-  // {
-  //   name: 'OpenAPITransformer multipart/form-data',
-  //   createTransformer: (schema) =>
-  //     new OpenAPITransformer({
-  //       schema,
-  //       serialize: { accept: 'multipart/form-data' },
-  //     }),
-  //   isFileSupport: true,
-  // },
-  // {
-  //   name: 'OpenAPITransformer application/json',
-  //   createTransformer: (schema) =>
-  //     new OpenAPITransformer({
-  //       schema,
-  //       serialize: { accept: 'application/json' },
-  //     }),
-  //   isFileSupport: false,
-  // },
-  // {
-  //   name: 'OpenAPITransformer application/www-form-urlencoded',
-  //   createTransformer: (schema) =>
-  //     new OpenAPITransformer({
-  //       schema,
-  //       serialize: { accept: 'application/www-form-urlencoded' },
-  //     }),
-  //   isFileSupport: false,
-  // },
+  {
+    name: 'OpenAPITransformer multipart/form-data',
+    createTransformer: (schema) =>
+      new OpenAPITransformer({
+        schema,
+        serialize: { accept: 'multipart/form-data' },
+      }),
+    isFileSupport: true,
+  },
+  {
+    name: 'OpenAPITransformer application/json',
+    createTransformer: (schema) =>
+      new OpenAPITransformer({
+        schema,
+        serialize: { accept: 'application/json' },
+      }),
+    isFileSupport: false,
+  },
+  {
+    name: 'OpenAPITransformer application/www-form-urlencoded',
+    createTransformer: (schema) =>
+      new OpenAPITransformer({
+        schema,
+        serialize: { accept: 'application/www-form-urlencoded' },
+      }),
+    isFileSupport: false,
+  },
 ]
 
+enum Test {
+  A = 1,
+  B = 2,
+  C = 'C',
+  D = 'D',
+}
+
 const types = [
+  ['enum', z.enum(['enum', 'enum2'])],
+  [Test.B, z.nativeEnum(Test)],
+  [Test.D, z.nativeEnum(Test)],
   ['string', z.string()],
-  [1234, z.number()],
-  //  [ Number.NaN, z.nan()], // TODO: fix NaN on new Map as key
+  ['string', z.literal('string').or(object({}))],
+  [1234, z.number().or(object({}))],
+  [1234, z.literal(1234)],
+  // [Number.NaN, z.nan()], // TODO: fix NaN on new Map as key
   [true, z.boolean()],
+  [true, z.literal(true)],
   [false, z.boolean()],
+  [false, z.literal(false)],
   [null, z.null()],
+  [null, z.literal(null)],
   [undefined, z.undefined()],
+  [undefined, z.literal(undefined)],
   [new Date('2023-01-01'), z.date()],
   [BigInt(1234), z.bigint()],
+  [BigInt(1234), z.literal(BigInt(1234))],
+  [
+    { a: 1, b: 2, c: 3 },
+    z.object({ a: z.number(), b: z.number(), c: z.number() }),
+  ],
+  [[1, 2, 3], z.array(z.number())],
   [new Set([1, 2, 3]), z.set(z.number())],
   [
     new Map([
@@ -63,12 +85,25 @@ const types = [
     ]),
     z.map(z.number(), z.number()),
   ],
-  // [
-  //   new File(['content of file'], 'file.txt', {
-  //     type: 'application/json',
-  //   }),
-  //   z.instanceof(File),
-  // ],
+  [
+    { a: [1, 2, 3], b: new Set([1, 2, 3]) },
+    z
+      .object({ a: z.array(z.number()) })
+      .and(z.object({ b: z.set(z.number()) })),
+  ],
+  [
+    new Map([
+      [1, 2],
+      [3, 4],
+    ]),
+    z.map(z.number(), z.number()),
+  ],
+  [
+    new File(['"name"'], 'file.json', {
+      type: 'application/json',
+    }),
+    z.instanceof(File),
+  ],
   [
     new File(['content of file'], 'file.txt', {
       type: 'application/octet-stream',
@@ -134,20 +169,20 @@ describe.each(transformers)('$name', ({ createTransformer, isFileSupport }) => {
       }
 
       const object = {
-        data: origin,
+        '[]data\\]': origin,
         list: [origin],
         map: new Map([[origin, origin]]),
         set: new Set([origin]),
       }
 
-      const transformer = createTransformer(
-        z.object({
-          data: schema,
-          list: z.array(schema),
-          map: z.map(schema, schema),
-          set: z.set(schema),
-        }),
-      )
+      const objectSchema = z.object({
+        '[]data\\]': schema,
+        list: z.array(schema),
+        map: z.map(schema, schema),
+        set: z.set(schema),
+      })
+
+      const transformer = createTransformer(objectSchema)
 
       const { body, headers } = transformer.serialize(object)
 

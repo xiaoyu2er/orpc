@@ -1,32 +1,32 @@
 import { bench } from 'vitest'
 import { z } from 'zod'
-import { coerceParse } from './zod-coerce-parse'
+import { zodCoerce } from '../src/openapi/zod-coerce'
 
-describe('should be equal', () => {
+describe('with valid data', () => {
   const schema = z.number().or(z.string())
 
   const data = 1234
 
-  bench('raw zod parse', () => {
-    schema.safeParse(data)
+  bench('without zodCoerce', () => {
+    schema.parse(data)
   })
 
-  bench('coerce parse', () => {
-    coerceParse(schema, data)
+  bench('with zodCoerce', () => {
+    schema.parse(zodCoerce(schema, data))
   })
 })
 
 describe('simple', () => {
-  const schema = z.number()
+  const schema = z.number().optional()
 
   const data = '1234'
 
-  bench('raw zod parse', () => {
+  bench('without zodCoerce', () => {
     schema.safeParse(data)
   })
 
   bench('coerce parse', () => {
-    coerceParse(schema, data)
+    schema.parse(zodCoerce(schema, data, { bracketNotation: true }))
   })
 })
 
@@ -58,12 +58,12 @@ describe('with unions', () => {
     },
   }
 
-  bench('raw zod parse', () => {
+  bench('without zodCoerce', () => {
     schema.safeParse(data)
   })
 
   bench('coerce parse', () => {
-    coerceParse(schema, data)
+    schema.parse(zodCoerce(schema, data, { bracketNotation: true }))
   })
 })
 
@@ -91,11 +91,11 @@ describe('with deep unions', () => {
     },
   }
 
-  bench('raw zod parse', () => {
+  bench(' without zodCoerce', () => {
     schema.safeParse(data)
   })
 
   bench('coerce parse', () => {
-    coerceParse(schema, data)
+    schema.parse(zodCoerce(schema, data, { bracketNotation: true }))
   })
 })

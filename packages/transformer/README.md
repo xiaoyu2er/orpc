@@ -31,11 +31,11 @@ export async function fetch(request: Request) {
 ## Types Supported
 
 - `string`
-- `number` (exclude `NaN`)
+- `number` (include `NaN`)
 - `boolean`
 - `null`
 - `undefined`
-- `Date` (exclude `Invalid Date`)
+- `Date` (include `Invalid Date`)
 - `BigInt`
 - `Set`
 - `Map`

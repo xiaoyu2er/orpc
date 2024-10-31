@@ -1,5 +1,4 @@
 import type { SchemaInput, SchemaOutput } from '@orpc/contract'
-import { coerceParse } from '@orpc/transformer/zod-coerce-parse'
 import { ORPCError } from './error'
 import type { Middleware } from './middleware'
 import type { Procedure } from './procedure'
@@ -143,8 +142,7 @@ export function createProcedureCaller<
         if (!schema) return input
 
         try {
-          const result = coerceParse(schema, input)
-          return result
+          return schema.parse(input)
         } catch (e) {
           throw new ORPCError({
             message: 'Validation input failed',

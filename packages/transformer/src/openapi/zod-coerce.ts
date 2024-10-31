@@ -449,15 +449,6 @@ export function zodCoerce(
   else if (typeName === ZodFirstPartyTypeKind.ZodLazy) {
     const schema_ = schema as ZodLazy<ZodTypeAny>
 
-    // Not match bellow conditions, mean the value cannot be coerced
-    if (
-      !isPlainObject(value) &&
-      !Array.isArray(value) &&
-      typeof value !== 'string'
-    ) {
-      return value
-    }
-
     return zodCoerce(schema_._def.getter(), value, { ...options_, isRoot })
   }
 
@@ -493,6 +484,10 @@ export function zodCoerce(
   else if (typeName === ZodFirstPartyTypeKind.ZodNullable) {
     const schema_ = schema as ZodNullable<ZodTypeAny>
 
+    if (value === null) {
+      return null
+    }
+
     if (options_?.bracketNotation && typeof value === 'string') {
       if (schema_.safeParse(value).success) {
         return value
@@ -509,6 +504,10 @@ export function zodCoerce(
   //
   else if (typeName === ZodFirstPartyTypeKind.ZodOptional) {
     const schema_ = schema as ZodOptional<ZodTypeAny>
+
+    if (value === undefined) {
+      return undefined
+    }
 
     if (typeof value === 'string') {
       if (schema_.safeParse(value).success) {

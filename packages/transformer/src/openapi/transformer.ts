@@ -33,12 +33,7 @@ export class OpenAPITransformer implements Transformer {
     ) {
       const form = new FormData()
 
-      const serialized =
-        Array.isArray(payload_) || isPlainObject(payload_)
-          ? BracketNotation.serialize(payload_)
-          : [['', payload_] as const]
-
-      for (const [path, value] of serialized) {
+      for (const [path, value] of BracketNotation.serialize(payload_)) {
         if (
           typeof value === 'string' ||
           typeof value === 'number' ||
@@ -66,12 +61,7 @@ export class OpenAPITransformer implements Transformer {
     if (accept?.startsWith('application/www-form-urlencoded')) {
       const params = new URLSearchParams()
 
-      const serialized =
-        Array.isArray(payload_) || isPlainObject(payload_)
-          ? BracketNotation.serialize(payload_)
-          : [['', payload_] as const]
-
-      for (const [path, value] of serialized) {
+      for (const [path, value] of BracketNotation.serialize(payload_)) {
         if (
           typeof value === 'string' ||
           typeof value === 'number' ||
@@ -203,9 +193,13 @@ export class OpenAPITransformer implements Transformer {
 function preSerialize(payload: unknown): unknown {
   if (payload instanceof Set) return preSerialize([...payload])
   if (payload instanceof Map) return preSerialize([...payload.entries()])
-  if (Array.isArray(payload))
+  if (Array.isArray(payload)) {
     return payload.map((v) => (v === undefined ? 'undefined' : preSerialize(v)))
+  }
   if (Number.isNaN(payload)) return 'NaN'
+  if (payload instanceof Date && Number.isNaN(payload.getTime())) {
+    return 'Invalid Date'
+  }
   if (!isPlainObject(payload)) return payload
   return Object.keys(payload).reduce(
     (carry, key) => {

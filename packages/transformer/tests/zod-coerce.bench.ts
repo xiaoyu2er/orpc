@@ -25,7 +25,7 @@ describe('simple', () => {
     schema.safeParse(data)
   })
 
-  bench('coerce parse', () => {
+  bench('with zodCoerce', () => {
     schema.parse(zodCoerce(schema, data, { bracketNotation: true }))
   })
 })
@@ -62,7 +62,7 @@ describe('with unions', () => {
     schema.safeParse(data)
   })
 
-  bench('coerce parse', () => {
+  bench('with zodCoerce', () => {
     schema.parse(zodCoerce(schema, data, { bracketNotation: true }))
   })
 })
@@ -91,11 +91,11 @@ describe('with deep unions', () => {
     },
   }
 
-  bench(' without zodCoerce', () => {
+  bench('without zodCoerce', () => {
     schema.safeParse(data)
   })
 
-  bench('coerce parse', () => {
+  bench('with zodCoerce', () => {
     schema.parse(zodCoerce(schema, data, { bracketNotation: true }))
   })
 })

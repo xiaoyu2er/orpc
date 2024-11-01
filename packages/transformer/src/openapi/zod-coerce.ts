@@ -50,30 +50,18 @@ export function zodCoerce(
   const isRoot = options?.isRoot ?? true
   const options_ = { ...options, isRoot: false }
 
-  if (isRoot && options?.bracketNotation && isPlainObject(value)) {
-    const keys = Object.keys(value)
-    if (keys.length === 0) {
-      return zodCoerce(schema, undefined, options_)
-    }
-
-    if (keys.length === 1 && '' in value) {
-      const newValue = zodCoerce(schema, value[''], options_)
-      if (schema.safeParse(newValue).success) {
-        return newValue
-      }
-      return zodCoerce(schema, value, options_)
-    }
-  }
-
-  const flattenValue =
+  if (
     isRoot &&
     options?.bracketNotation &&
-    isPlainObject(value) &&
-    Object.keys(value).length === 1 &&
-    '' in value &&
-    typeof value[''] === 'string'
-      ? value['']
-      : undefined
+    Array.isArray(value) &&
+    value.length === 1
+  ) {
+    const newValue = zodCoerce(schema, value[0], options_)
+    if (schema.safeParse(newValue).success) {
+      return newValue
+    }
+    return zodCoerce(schema, value, options_)
+  }
 
   if (schema._def.typeName === undefined) {
     return value
@@ -81,23 +69,9 @@ export function zodCoerce(
 
   const typeName = schema._def.typeName as ZodFirstPartyTypeKind
 
-  if (typeName === ZodFirstPartyTypeKind.ZodString) {
-    if (typeof flattenValue === 'string') {
-      return flattenValue
-    }
-  }
-
-  //
-  else if (typeName === ZodFirstPartyTypeKind.ZodNumber) {
+  if (typeName === ZodFirstPartyTypeKind.ZodNumber) {
     if (options_?.bracketNotation && typeof value === 'string') {
       const num = Number(value)
-      if (!Number.isNaN(num)) {
-        return num
-      }
-    }
-
-    if (typeof flattenValue === 'string') {
-      const num = Number(flattenValue)
       if (!Number.isNaN(num)) {
         return num
       }
@@ -109,31 +83,12 @@ export function zodCoerce(
     if (typeof value === 'string' && value.toLocaleLowerCase() === 'nan') {
       return Number.NaN
     }
-
-    if (
-      typeof flattenValue === 'string' &&
-      flattenValue.toLocaleLowerCase() === 'nan'
-    ) {
-      return Number.NaN
-    }
   }
 
   //
   else if (typeName === ZodFirstPartyTypeKind.ZodBoolean) {
     if (options_?.bracketNotation && typeof value === 'string') {
       const lower = value.toLowerCase()
-
-      if (lower === 'false' || lower === 'off' || lower === 'f') {
-        return false
-      }
-
-      if (lower === 'true' || lower === 'on' || lower === 't') {
-        return true
-      }
-    }
-
-    if (typeof flattenValue === 'string') {
-      const lower = flattenValue.toLowerCase()
 
       if (lower === 'false' || lower === 'off' || lower === 'f') {
         return false
@@ -154,13 +109,6 @@ export function zodCoerce(
     ) {
       return null
     }
-
-    if (
-      typeof flattenValue === 'string' &&
-      flattenValue.toLowerCase() === 'null'
-    ) {
-      return null
-    }
   }
 
   //
@@ -170,12 +118,6 @@ export function zodCoerce(
   ) {
     if (typeof value === 'string' && value.toLowerCase() === 'undefined') {
       return undefined
-    }
-
-    if (typeof flattenValue === 'string') {
-      if (flattenValue.toLowerCase() === 'undefined') {
-        return undefined
-      }
     }
   }
 
@@ -189,29 +131,12 @@ export function zodCoerce(
     ) {
       return new Date(value)
     }
-
-    if (typeof flattenValue === 'string') {
-      if (
-        flattenValue.includes('-') ||
-        flattenValue.includes(':') ||
-        flattenValue.toLocaleLowerCase() === 'invalid date'
-      ) {
-        return new Date(flattenValue)
-      }
-    }
   }
 
   //
   else if (typeName === ZodFirstPartyTypeKind.ZodBigInt) {
     if (typeof value === 'string') {
       const num = guard(() => BigInt(value))
-      if (num !== undefined) {
-        return num
-      }
-    }
-
-    if (typeof flattenValue === 'string') {
-      const num = guard(() => BigInt(flattenValue))
       if (num !== undefined) {
         return num
       }
@@ -282,9 +207,9 @@ export function zodCoerce(
         return {}
       }
 
-      if (Array.isArray(value) && value.length !== 0) {
+      if (Array.isArray(value) && value.length === 1) {
         const emptySchema = schema_.shape[''] ?? schema_._def.catchall
-        return { '': zodCoerce(emptySchema, value.at(-1), options_) }
+        return { '': zodCoerce(emptySchema, value[0], options_) }
       }
     }
   }
@@ -488,14 +413,8 @@ export function zodCoerce(
       return null
     }
 
-    if (options_?.bracketNotation && typeof value === 'string') {
-      if (schema_.safeParse(value).success) {
-        return value
-      }
-
-      if (value.toLowerCase() === 'null') {
-        return null
-      }
+    if (typeof value === 'string' && value.toLowerCase() === 'null') {
+      return schema_.safeParse(value).success ? value : null
     }
 
     return zodCoerce(schema_._def.innerType, value, { ...options_, isRoot })
@@ -509,14 +428,8 @@ export function zodCoerce(
       return undefined
     }
 
-    if (typeof value === 'string') {
-      if (schema_.safeParse(value).success) {
-        return value
-      }
-
-      if (value.toLowerCase() === 'undefined') {
-        return undefined
-      }
+    if (typeof value === 'string' && value.toLowerCase() === 'undefined') {
+      return schema_.safeParse(value).success ? value : undefined
     }
 
     return zodCoerce(schema_._def.innerType, value, { ...options_, isRoot })
@@ -582,6 +495,7 @@ export function zodCoerce(
   //
   else {
     const _expected:
+      | ZodFirstPartyTypeKind.ZodString
       | ZodFirstPartyTypeKind.ZodEnum
       | ZodFirstPartyTypeKind.ZodSymbol
       | ZodFirstPartyTypeKind.ZodPromise

@@ -269,14 +269,14 @@ describe('deserialize', () => {
 
   it('should handle escaped characters in keys', () => {
     const input = [
-      ['key\\[with\\]brackets', 'value'],
-      ['key[va]lue]', 'value'],
+      ['key\\[with\\]bracket.s', 'value'],
+      ['key[va]lu.e]', 'value'],
     ] as const
     const expected = {
-      'key[with]brackets': 'value',
+      'key[with]bracket.s': 'value',
       key: {
         va: {
-          'lue]': 'value',
+          'lu.e]': 'value',
         },
       },
     }
@@ -344,6 +344,30 @@ describe('deserialize', () => {
         index: 'Jane',
       },
     }
+    expect(deserialize(input)).toEqual(expected)
+  })
+
+  it('should deserialize a root array', () => {
+    const input = [
+      ['', '1'],
+      ['', '2'],
+    ] as const
+    const expected = ['1', '2']
+    expect(deserialize(input)).toEqual(expected)
+  })
+
+  it('should deserialize a root array', () => {
+    const input = [
+      ['[]', '1'],
+      ['[]', '2'],
+    ] as const
+    const expected = { '': ['1', '2'] }
+    expect(deserialize(input)).toEqual(expected)
+  })
+
+  it('should return undefined when there are no entities', () => {
+    const input = [] as const
+    const expected = undefined
     expect(deserialize(input)).toEqual(expected)
   })
 })

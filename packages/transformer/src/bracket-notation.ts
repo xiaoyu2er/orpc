@@ -23,9 +23,11 @@ import { isPlainObject } from 'is-what'
  * ```
  */
 export function serialize(
-  payload: Readonly<Record<string, unknown> | unknown[]>,
+  payload: unknown,
   parentKey = '',
 ): [string, unknown][] {
+  if (!Array.isArray(payload) && !isPlainObject(payload)) return [['', payload]]
+
   const result: [string, unknown][] = []
 
   function helper(value: unknown, path: string[]) {
@@ -71,8 +73,16 @@ export function serialize(
  */
 export function deserialize(
   entities: readonly (readonly [string, unknown])[],
-): Record<string, unknown> | unknown[] {
-  const result: Record<string, unknown> = {}
+): Record<string, unknown> | unknown[] | undefined {
+  if (entities.length === 0) {
+    return undefined
+  }
+
+  // Only treat empty strings as root array indicators
+  const isRootArray = entities.every(([path]) => path === '')
+
+  // Initialize result based on whether we have a root array
+  const result: Record<string, unknown> | unknown[] = isRootArray ? [] : {}
   const arrayPushPaths = new Set<string>()
 
   // First pass: identify pure array push paths (only [] notation used)
@@ -90,16 +100,25 @@ export function deserialize(
 
   // Helper function to set nested value
   function setValue(
-    obj: Record<string, unknown>,
-    segments: [string, ...rest: string[]],
+    obj: Record<string, unknown> | unknown[],
+    segments: [string, ...string[]],
     value: unknown,
     fullPath: string,
   ): void {
     const [first, ...rest_] = segments
 
+    // Special handling for root array
+    if (Array.isArray(obj) && first === '') {
+      ;(obj as unknown[]).push(value)
+      return
+    }
+
+    // Cast obj to Record for non-array cases
+    const objAsRecord = obj as Record<string, unknown>
+
     // Base case - no more segments
     if (rest_.length === 0) {
-      obj[first] = value
+      objAsRecord[first] = value
       return
     }
 
@@ -111,31 +130,36 @@ export function deserialize(
 
       // Check if this path is only used with [] notation
       if (rest.length === 1 && arrayPushPaths.has(pathToCheck)) {
-        if (!(first in obj)) {
-          obj[first] = []
+        if (!(first in objAsRecord)) {
+          objAsRecord[first] = []
         }
-        if (Array.isArray(obj[first])) {
-          ;(obj[first] as unknown[]).push(value)
+        if (Array.isArray(objAsRecord[first])) {
+          ;(objAsRecord[first] as unknown[]).push(value)
           return
         }
       }
 
       // If not a pure array push case, treat it as an object with empty string key
-      if (!(first in obj)) {
-        obj[first] = {}
+      if (!(first in objAsRecord)) {
+        objAsRecord[first] = {}
       }
-      const target = obj[first] as Record<string, unknown>
+      const target = objAsRecord[first] as Record<string, unknown>
       target[''] = value
       return
     }
 
     // Create nested object if it doesn't exist
-    if (!(first in obj)) {
-      obj[first] = {}
+    if (!(first in objAsRecord)) {
+      objAsRecord[first] = {}
     }
 
     // Recurse into nested object
-    setValue(obj[first] as Record<string, unknown>, rest, value, fullPath)
+    setValue(
+      objAsRecord[first] as Record<string, unknown>,
+      rest,
+      value,
+      fullPath,
+    )
   }
 
   // Process each entity

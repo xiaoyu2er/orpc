@@ -1,10 +1,13 @@
+/// <reference lib="dom" />
+/// <reference lib="dom.iterable" />
+
 import cd from 'content-disposition'
 import { isPlainObject } from 'is-what'
 import type { ZodType } from 'zod'
 import * as BracketNotation from '../bracket-notation'
 import type { Body, Transformer } from '../types'
-import { findDeepMatches } from '../utils/find-deep-matches'
-import { parseJSONSafely } from '../utils/parse-json-safely'
+import { parseJSONSafely } from '../utils/json'
+import { findDeepMatches } from '../utils/object'
 import { zodCoerce } from './zod-coerce'
 
 export class UnsupportedContentTypeError extends Error {}

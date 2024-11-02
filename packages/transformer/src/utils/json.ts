@@ -3,7 +3,7 @@ export function parseJSONSafely(text: string): unknown {
 
   try {
     return JSON.parse(text)
-  } catch {
+  } catch (e) {
     return text
   }
 }

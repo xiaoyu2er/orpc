@@ -60,7 +60,7 @@ const types = [
   ['string', z.literal('string').or(object({}))],
   [1234, z.number().or(object({}))],
   [1234, z.literal(1234)],
-  // [Number.NaN, z.nan()], // TODO: fix NaN on new Map as key
+  [Number.NaN, z.nan()], // TODO: fix NaN on new Map as key
   [true, z.boolean()],
   [true, z.literal(true)],
   [false, z.boolean()],
@@ -70,7 +70,7 @@ const types = [
   [undefined, z.undefined()],
   [undefined, z.literal(undefined)],
   [new Date('2023-01-01'), z.date()],
-  // [new Date('Invalid'), z.date().catch(new Date('1970-01-01'))], // zod not support invalid date so we use a catch
+  [new Date('Invalid'), z.date().catch(new Date('1970-01-01'))], // zod not support invalid date so we use a catch
   [BigInt(1234), z.bigint()],
   [BigInt(1234), z.literal(BigInt(1234))],
   [

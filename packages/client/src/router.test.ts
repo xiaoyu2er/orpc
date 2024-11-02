@@ -1,6 +1,6 @@
 import { initORPCContract } from '@orpc/contract'
-import { createRouterHandler, initORPC } from '@orpc/server'
-import { fetchHandler } from '@orpc/server/fetch'
+import { initORPC } from '@orpc/server'
+import { createFetchHandler } from '@orpc/server/fetch'
 import { z } from 'zod'
 import { createRouterClient } from './router'
 
@@ -16,15 +16,14 @@ describe('createRouterClient', () => {
       unique: ping,
     },
   })
-  const handler = createRouterHandler({
+  const handler = createFetchHandler({
     router,
   })
   const orpcFetch: typeof fetch = async (...args) => {
     const request = new Request(...args)
-    return await fetchHandler({
+    return await handler({
       prefix: '/orpc',
       request,
-      handler,
       context: {},
     })
   }
@@ -129,7 +128,7 @@ describe('createRouterClient', () => {
         .handler((input) => input.value),
     })
 
-    const handler = createRouterHandler({
+    const handler = createFetchHandler({
       router,
     })
 
@@ -137,10 +136,9 @@ describe('createRouterClient', () => {
       baseURL: 'http://localhost:3000/orpc',
       fetch: (...args) => {
         const request = new Request(...args)
-        return fetchHandler({
+        return handler({
           prefix: '/orpc',
           request,
-          handler,
           context: {},
         })
       },

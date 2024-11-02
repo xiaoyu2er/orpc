@@ -90,20 +90,18 @@ This example uses [@hono/node-server](https://github.com/honojs/node-server) to 
 
 ```ts
 import { serve } from '@hono/node-server'
-import { createRouterHandler } from '@orpc/server'
-import { fetchHandler } from '@orpc/server/fetch'
+import { createFetchHandler } from '@orpc/server/fetch'
 
-// Create a global router handler for optimal performance
-const handler = createRouterHandler({
+// Create a global fetch handler for optimal performance
+const handler = createFetchHandler({
   router,
   serverless: false, // Set to true to improve cold start times
 })
 
 serve({
   fetch(request) {
-    return fetchHandler({
+    return handler({
       request,
-      handler,
       prefix: '/',
       context: {},
     })

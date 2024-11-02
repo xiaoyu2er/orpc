@@ -1,5 +1,5 @@
-import { ORPCError, createRouterHandler, initORPC } from '@orpc/server'
-import { fetchHandler } from '@orpc/server/fetch'
+import { ORPCError, initORPC } from '@orpc/server'
+import { createFetchHandler } from '@orpc/server/fetch'
 import { z } from 'zod'
 import { createProcedureClient } from './procedure'
 
@@ -15,15 +15,14 @@ describe('createProcedureClient', () => {
       ping,
     },
   })
-  const handler = createRouterHandler({
+  const handler = createFetchHandler({
     router,
   })
   const orpcFetch: typeof fetch = async (...args) => {
     const request = new Request(...args)
-    const response = await fetchHandler({
+    const response = await handler({
       prefix: '/orpc',
       request,
-      handler,
       context: {},
     })
     return response
@@ -105,7 +104,7 @@ describe('createProcedureClient', () => {
     })
 
     expect(client({ value: 'hello' })).rejects.toThrowError(
-      'Internal server error',
+      'Cannot parse response.',
     )
   })
 
@@ -116,7 +115,7 @@ describe('createProcedureClient', () => {
         .handler((input) => input.value),
     })
 
-    const handler = createRouterHandler({
+    const handler = createFetchHandler({
       router,
     })
 
@@ -125,10 +124,9 @@ describe('createProcedureClient', () => {
       baseURL: 'http://localhost:3000/orpc',
       fetch: (...args) => {
         const request = new Request(...args)
-        return fetchHandler({
+        return handler({
           prefix: '/orpc',
           request,
-          handler,
           context: {},
         })
       },
@@ -150,7 +148,7 @@ describe('createProcedureClient', () => {
       }),
     })
 
-    const handler = createRouterHandler({
+    const handler = createFetchHandler({
       router,
     })
 
@@ -159,10 +157,9 @@ describe('createProcedureClient', () => {
       baseURL: 'http://localhost:3000/orpc',
       fetch: (...args) => {
         const request = new Request(...args)
-        return fetchHandler({
+        return handler({
           prefix: '/orpc',
           request,
-          handler,
           context: {},
         })
       },
@@ -195,14 +192,13 @@ describe('upload file', () => {
       }),
   })
 
-  const handler = createRouterHandler({ router })
+  const handler = createFetchHandler({ router })
 
   const orpcFetch: typeof fetch = async (...args) => {
     const request = new Request(...args)
-    const response = await fetchHandler({
+    const response = await handler({
       prefix: '/orpc',
       request,
-      handler,
       context: {},
     })
     return response

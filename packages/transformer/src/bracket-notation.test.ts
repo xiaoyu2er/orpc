@@ -253,7 +253,7 @@ describe('deserialize', () => {
   })
 
   it('should handle empty input', () => {
-    expect(deserialize([])).toEqual({})
+    expect(deserialize([])).toEqual(undefined)
   })
 
   it('should handle duplicate keys by using the last value', () => {

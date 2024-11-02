@@ -1,8 +1,8 @@
 import { ORPC_HEADER, ORPC_HEADER_VALUE } from '@orpc/contract'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { ORPCError, createRouterHandler, initORPC } from '..'
-import { fetchHandler } from './fetch'
+import { ORPCError, initORPC } from '..'
+import { createFetchHandler } from './fetch'
 
 const router = initORPC.router({
   throw: initORPC.handler(() => {
@@ -16,7 +16,7 @@ const router = initORPC.router({
   }),
 })
 
-const handler = createRouterHandler({ router })
+const handler = createFetchHandler({ router })
 
 describe('simple', () => {
   const orpc = initORPC.context<{ auth?: boolean }>()
@@ -26,15 +26,14 @@ describe('simple', () => {
       .route({ method: 'GET', path: '/ping2' })
       .handler(async () => 'pong2'),
   })
-  const handler = createRouterHandler({
+  const handler = createFetchHandler({
     router,
   })
 
   it('200: public url', async () => {
-    const response = await fetchHandler({
+    const response = await handler({
       prefix: '/orpc',
-      handler,
-      request: new Request('http://localhost/orpc.ping', {
+      request: new Request('http://localhost/orpc/ping', {
         method: 'POST',
       }),
       context: { auth: true },
@@ -43,9 +42,8 @@ describe('simple', () => {
     expect(response.status).toBe(200)
     expect(await response.json()).toEqual('pong')
 
-    const response2 = await fetchHandler({
+    const response2 = await handler({
       prefix: '/orpc',
-      handler,
       request: new Request('http://localhost/orpc/ping2', {
         method: 'GET',
       }),
@@ -57,19 +55,17 @@ describe('simple', () => {
   })
 
   it('200: internal url', async () => {
-    const response = await fetchHandler({
-      handler,
-      request: new Request('http://localhost/.ping'),
+    const response = await handler({
+      request: new Request('http://localhost/ping'),
       context: { auth: true },
     })
 
     expect(response.status).toBe(200)
     expect(await response.json()).toEqual('pong')
 
-    const response2 = await fetchHandler({
+    const response2 = await handler({
       prefix: '/orpc',
-      handler,
-      request: new Request('http://localhost/orpc.ping2'),
+      request: new Request('http://localhost/orpc/ping2'),
       context: { auth: true },
     })
 
@@ -78,10 +74,9 @@ describe('simple', () => {
   })
 
   it('404', async () => {
-    const response = await fetchHandler({
+    const response = await handler({
       prefix: '/orpc',
-      handler,
-      request: new Request('http://localhost/orpc.pingp', {
+      request: new Request('http://localhost/orpc/pingp', {
         method: 'POST',
       }),
       context: { auth: true },
@@ -93,9 +88,8 @@ describe('simple', () => {
 
 describe('procedure throw error', () => {
   it('unknown error', async () => {
-    const response = await fetchHandler({
-      request: new Request('https://local.com/.throw', { method: 'POST' }),
-      handler,
+    const response = await handler({
+      request: new Request('https://local.com/throw', { method: 'POST' }),
       context: undefined,
     })
 
@@ -114,11 +108,10 @@ describe('procedure throw error', () => {
       }),
     })
 
-    const handler = createRouterHandler({ router })
+    const handler = createFetchHandler({ router })
 
-    const response = await fetchHandler({
-      request: new Request('https://local.com/.ping', { method: 'POST' }),
-      handler,
+    const response = await handler({
+      request: new Request('https://local.com/ping', { method: 'POST' }),
       context: undefined,
     })
 
@@ -141,11 +134,10 @@ describe('procedure throw error', () => {
       }),
     })
 
-    const handler = createRouterHandler({ router })
+    const handler = createFetchHandler({ router })
 
-    const response = await fetchHandler({
-      request: new Request('https://local.com/.ping', { method: 'POST' }),
-      handler,
+    const response = await handler({
+      request: new Request('https://local.com/ping', { method: 'POST' }),
       context: undefined,
     })
 
@@ -175,11 +167,10 @@ describe('procedure throw error', () => {
       }),
     })
 
-    const handler = createRouterHandler({ router })
+    const handler = createFetchHandler({ router })
 
-    const response = await fetchHandler({
-      request: new Request('https://local.com/.ping', { method: 'POST' }),
-      handler,
+    const response = await handler({
+      request: new Request('https://local.com/ping', { method: 'POST' }),
       context: undefined,
     })
 
@@ -190,9 +181,8 @@ describe('procedure throw error', () => {
       message: 'Internal server error',
     })
 
-    const response2 = await fetchHandler({
-      request: new Request('https://local.com/.ping2', { method: 'POST' }),
-      handler,
+    const response2 = await handler({
+      request: new Request('https://local.com/ping2', { method: 'POST' }),
       context: undefined,
     })
 
@@ -214,11 +204,10 @@ describe('procedure throw error', () => {
         }),
     })
 
-    const handler = createRouterHandler({ router })
+    const handler = createFetchHandler({ router })
 
-    const response = await fetchHandler({
-      request: new Request('https://local.com/.ping', { method: 'POST' }),
-      handler,
+    const response = await handler({
+      request: new Request('https://local.com/ping', { method: 'POST' }),
       context: undefined,
     })
 
@@ -249,14 +238,13 @@ describe('procedure throw error', () => {
         }),
     })
 
-    const handler = createRouterHandler({ router })
+    const handler = createFetchHandler({ router })
 
-    const response = await fetchHandler({
-      request: new Request('https://local.com/.ping', {
+    const response = await handler({
+      request: new Request('https://local.com/ping', {
         method: 'POST',
         body: '"hi"',
       }),
-      handler,
       context: undefined,
     })
 
@@ -275,18 +263,21 @@ describe('hooks', () => {
     const onError = vi.fn()
     const onFinish = vi.fn()
 
-    await fetchHandler({
-      prefix: '/orpc',
-      handler,
-      request: new Request('http://localhost/orpc.ping', {
-        method: 'POST',
-      }),
-      context: undefined,
+    const handler = createFetchHandler({
+      router,
       hooks: (context, hooks) => {
         hooks.onSuccess(onSuccess)
         hooks.onError(onError)
         hooks.onFinish(onFinish)
       },
+    })
+
+    await handler({
+      prefix: '/orpc',
+      request: new Request('http://localhost/orpc/ping', {
+        method: 'POST',
+      }),
+      context: undefined,
     })
 
     expect(onSuccess).toHaveBeenCalledTimes(1)
@@ -303,18 +294,21 @@ describe('hooks', () => {
     const onError = vi.fn()
     const onFinish = vi.fn()
 
-    await fetchHandler({
-      prefix: '/orpc',
-      handler,
-      request: new Request('http://localhost/orpc.throw', {
-        method: 'POST',
-      }),
-      context: undefined,
-      hooks: (_, hooks) => {
+    const handler = createFetchHandler({
+      router,
+      hooks: (context, hooks) => {
         hooks.onSuccess(onSuccess)
         hooks.onError(onError)
         hooks.onFinish(onFinish)
       },
+    })
+
+    await handler({
+      prefix: '/orpc',
+      request: new Request('http://localhost/orpc/throw', {
+        method: 'POST',
+      }),
+      context: undefined,
     })
 
     expect(onSuccess).toHaveBeenCalledTimes(0)
@@ -343,7 +337,7 @@ describe('file upload', () => {
       }),
   })
 
-  const handler = createRouterHandler({ router })
+  const handler = createFetchHandler({ router })
 
   const blob1 = new Blob(['hello'], { type: 'text/plain;charset=utf-8' })
   const blob2 = new Blob(['"world"'], { type: 'image/png' })
@@ -351,13 +345,13 @@ describe('file upload', () => {
 
   it('single file', async () => {
     const rForm = new FormData()
+    rForm.set('meta', JSON.stringify([]))
     rForm.set('maps', JSON.stringify([[]]))
     rForm.set('0', blob3)
 
-    const response = await fetchHandler({
+    const response = await handler({
       prefix: '/orpc',
-      handler,
-      request: new Request('http://localhost/orpc.signal', {
+      request: new Request('http://localhost/orpc/signal', {
         method: 'POST',
         body: rForm,
         headers: {
@@ -380,14 +374,14 @@ describe('file upload', () => {
   it('multiple file', async () => {
     const form = new FormData()
     form.set('data', JSON.stringify({ first: blob1, second: blob2 }))
+    form.set('meta', JSON.stringify([]))
     form.set('maps', JSON.stringify([['first'], ['second']]))
     form.set('0', blob1)
     form.set('1', blob2)
 
-    const response = await fetchHandler({
+    const response = await handler({
       prefix: '/orpc',
-      handler,
-      request: new Request('http://localhost/orpc.multiple', {
+      request: new Request('http://localhost/orpc/multiple', {
         method: 'POST',
         body: form,
         headers: {

@@ -10,20 +10,18 @@ so you can use it in any modern environment and framework.
 
 ```ts
 import { serve } from '@hono/node-server' // Simple package to use Fetch API in Node
-import { createRouterHandler } from '@orpc/server'
-import { fetchHandler } from '@orpc/server/fetch'
+import { createFetchHandler } from '@orpc/server/fetch'
 
 // For performance, create a global router handler
-const handler = createRouterHandler({
+const handler = createFetchHandler({
   router,
   serverless: false, // Set to true to improve cold start times
 })
 
 serve({
   fetch(request) {
-    return fetchHandler({
+    return handler({
       request,
-      handler,
       prefix: '/',
       context: {},
     })
@@ -41,11 +39,10 @@ While oRPC uses Hono's routing engine internally, there are additional benefits 
 
 ```ts
 import { Hono } from 'hono'
-import { createRouterHandler } from '@orpc/server'
-import { fetchHandler } from '@orpc/server/fetch'
+import { createFetchHandler } from '@orpc/server/fetch'
 
 // For performance, create a global router handler
-const handler = createRouterHandler({
+const handler = createFetchHandler({
   router,
   serverless: false, // Set to true to improve cold start times
 })
@@ -53,9 +50,8 @@ const handler = createRouterHandler({
 const app = new Hono()
 
 app.get('/api/*', (c) => {
-  return fetchHandler({
+  return handler({
     request: c.req.raw,
-    handler,
     prefix: '/api',
     context: {},
   }) 
@@ -69,19 +65,17 @@ export default app
 As of Next.js 13, you can use the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) for route handlers.
 
 ```ts title="app/api/[[...orpc]].ts"
-import { createRouterHandler } from '@orpc/server'
-import { fetchHandler } from '@orpc/server/fetch'
+import { createFetchHandler } from '@orpc/server/fetch'
 
 // For performance, create a global router handler
-const handler = createRouterHandler({
+const handler = createFetchHandler({
   router,
   serverless: false, // Set to true to improve cold start times
 })
 
 const fetchRequestHandler = async (request: Request) => {
-  return fetchHandler({
+  return handler({
     request,
-    handler,
     prefix: '/api',
     context: {},
   }) 
@@ -99,20 +93,18 @@ export const PATCH = fetchRequestHandler
 Cloudflare Workers support [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) out of the box.
 
 ```ts
-import { createRouterHandler } from '@orpc/server'
-import { fetchHandler } from '@orpc/server/fetch'
+import { createFetchHandler } from '@orpc/server/fetch'
 
 // For performance, create a global router handler
-const handler = createRouterHandler({
+const handler = createFetchHandler({
   router,
   serverless: true, // Set to true to improve cold start times
 })
 
 export default {
   async fetch(request: Request) {
-    return fetchHandler({
+    return handler({
       request,
-      handler,
       prefix: '/',
       context: {},
     })

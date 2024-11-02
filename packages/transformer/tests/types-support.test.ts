@@ -1,46 +1,50 @@
 import { type ZodType, object, z } from 'zod'
-import { ORPCTransformer, OpenAPITransformer, type Transformer } from '../src'
+import {
+  type Deserializer,
+  ORPCDeserializer,
+  ORPCSerializer,
+  OpenAPIDeserializer,
+  OpenAPISerializer,
+  type Serializer,
+} from '../src'
 
 const transformers: {
   name: string
-  createTransformer: (schema: ZodType<any, any, any>) => Transformer
+  createSerializer: () => Serializer
+  createDeserializer: (schema: ZodType<any, any, any>) => Deserializer
   isFileSupport: boolean
 }[] = [
   {
     name: 'ORPCTransformer',
-    createTransformer: () => new ORPCTransformer(),
+    createSerializer: () => new ORPCSerializer(),
+    createDeserializer: () => new ORPCDeserializer(),
     isFileSupport: true,
   },
   {
     name: 'OpenAPITransformer auto',
-    createTransformer: (schema) => new OpenAPITransformer({ schema }),
+    createSerializer: () => new OpenAPISerializer(),
+    createDeserializer: (schema) => new OpenAPIDeserializer({ schema }),
     isFileSupport: true,
   },
   {
     name: 'OpenAPITransformer multipart/form-data',
-    createTransformer: (schema) =>
-      new OpenAPITransformer({
-        schema,
-        serialize: { accept: 'multipart/form-data' },
-      }),
+    createSerializer: () =>
+      new OpenAPISerializer({ accept: 'multipart/form-data' }),
+    createDeserializer: (schema) => new OpenAPIDeserializer({ schema }),
     isFileSupport: true,
   },
   {
     name: 'OpenAPITransformer application/json',
-    createTransformer: (schema) =>
-      new OpenAPITransformer({
-        schema,
-        serialize: { accept: 'application/json' },
-      }),
+    createSerializer: () =>
+      new OpenAPISerializer({ accept: 'application/json' }),
+    createDeserializer: (schema) => new OpenAPIDeserializer({ schema }),
     isFileSupport: false,
   },
   {
     name: 'OpenAPITransformer application/www-form-urlencoded',
-    createTransformer: (schema) =>
-      new OpenAPITransformer({
-        schema,
-        serialize: { accept: 'application/www-form-urlencoded' },
-      }),
+    createSerializer: () =>
+      new OpenAPISerializer({ accept: 'application/www-form-urlencoded' }),
+    createDeserializer: (schema) => new OpenAPIDeserializer({ schema }),
     isFileSupport: false,
   },
 ]
@@ -117,75 +121,18 @@ const types = [
   ],
 ] as const
 
-describe.each(transformers)('$name', ({ createTransformer, isFileSupport }) => {
-  it.each(types)('should work on flat: %s', async (origin, schema) => {
-    if (!isFileSupport && origin instanceof Blob) {
-      return
-    }
-
-    const transformer = createTransformer(schema)
-
-    const { body, headers } = transformer.serialize(origin)
-
-    const request = new Request('http://localhost', {
-      method: 'POST',
-      headers,
-      body,
-    })
-
-    const data = await transformer.deserialize(request)
-
-    expect(data).toEqual(origin)
-  })
-
-  it.each(types)('should work on nested object: %s', async (origin, schema) => {
-    if (!isFileSupport && origin instanceof Blob) {
-      return
-    }
-
-    const object = {
-      data: origin,
-    }
-
-    const transformer = createTransformer(z.object({ data: schema }))
-
-    const { body, headers } = transformer.serialize(object)
-
-    const request = new Request('http://localhost', {
-      method: 'POST',
-      headers,
-      body,
-    })
-
-    const data = await transformer.deserialize(request)
-
-    expect(data).toEqual(object)
-  })
-
-  it.each(types)(
-    'should work on complex object: %s',
-    async (origin, schema) => {
+describe.each(transformers)(
+  '$name',
+  ({ createSerializer, createDeserializer, isFileSupport }) => {
+    it.each(types)('should work on flat: %s', async (origin, schema) => {
       if (!isFileSupport && origin instanceof Blob) {
         return
       }
 
-      const object = {
-        '[]data\\]': origin,
-        list: [origin],
-        map: new Map([[origin, origin]]),
-        set: new Set([origin]),
-      }
+      const serializer = createSerializer()
+      const deserializer = createDeserializer(schema)
 
-      const objectSchema = z.object({
-        '[]data\\]': schema,
-        list: z.array(schema),
-        map: z.map(schema, schema),
-        set: z.set(schema),
-      })
-
-      const transformer = createTransformer(objectSchema)
-
-      const { body, headers } = transformer.serialize(object)
+      const { body, headers } = serializer.serialize(origin)
 
       const request = new Request('http://localhost', {
         method: 'POST',
@@ -193,9 +140,75 @@ describe.each(transformers)('$name', ({ createTransformer, isFileSupport }) => {
         body,
       })
 
-      const data = await transformer.deserialize(request)
+      const data = await deserializer.deserialize(request)
 
-      expect(data).toEqual(object)
-    },
-  )
-})
+      expect(data).toEqual(origin)
+    })
+
+    it.each(types)(
+      'should work on nested object: %s',
+      async (origin, schema) => {
+        if (!isFileSupport && origin instanceof Blob) {
+          return
+        }
+
+        const object = {
+          data: origin,
+        }
+
+        const serializer = createSerializer()
+        const deserializer = createDeserializer(z.object({ data: schema }))
+
+        const { body, headers } = serializer.serialize(object)
+
+        const request = new Request('http://localhost', {
+          method: 'POST',
+          headers,
+          body,
+        })
+
+        const data = await deserializer.deserialize(request)
+
+        expect(data).toEqual(object)
+      },
+    )
+
+    it.each(types)(
+      'should work on complex object: %s',
+      async (origin, schema) => {
+        if (!isFileSupport && origin instanceof Blob) {
+          return
+        }
+
+        const object = {
+          '[]data\\]': origin,
+          list: [origin],
+          map: new Map([[origin, origin]]),
+          set: new Set([origin]),
+        }
+
+        const objectSchema = z.object({
+          '[]data\\]': schema,
+          list: z.array(schema),
+          map: z.map(schema, schema),
+          set: z.set(schema),
+        })
+
+        const serializer = createSerializer()
+        const deserializer = createDeserializer(objectSchema)
+
+        const { body, headers } = serializer.serialize(object)
+
+        const request = new Request('http://localhost', {
+          method: 'POST',
+          headers,
+          body,
+        })
+
+        const data = await deserializer.deserialize(request)
+
+        expect(data).toEqual(object)
+      },
+    )
+  },
+)

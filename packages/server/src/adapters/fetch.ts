@@ -10,8 +10,10 @@ import { LinearRouter } from 'hono/router/linear-router'
 import { RegExpRouter } from 'hono/router/reg-exp-router'
 import { isObject, trim } from 'radash'
 import {
-  ORPCTransformer,
-  OpenAPITransformer,
+  ORPCDeserializer,
+  ORPCSerializer,
+  OpenAPIDeserializer,
+  OpenAPISerializer,
   UnsupportedContentTypeError,
 } from '../../../transformer/src'
 import { ORPCError } from '../error'
@@ -67,10 +69,11 @@ export function createFetchHandler<TRouter extends Router<any>>(
   return async (requestOptions) => {
     const isORPCTransformer =
       requestOptions.request.headers.get(ORPC_HEADER) === ORPC_HEADER_VALUE
+    const accept = requestOptions.request.headers.get('Accept') ?? undefined
 
-    const responseTransformer = isORPCTransformer
-      ? new ORPCTransformer()
-      : new OpenAPITransformer()
+    const serializer = isORPCTransformer
+      ? new ORPCSerializer()
+      : new OpenAPISerializer({ accept })
 
     try {
       return await hook(async (hooks) => {
@@ -121,19 +124,15 @@ export function createFetchHandler<TRouter extends Router<any>>(
 
         await options.hooks?.(requestOptions.context, meta)
 
-        const accept = requestOptions.request.headers.get('Accept') ?? undefined
-        const transformer = isORPCTransformer
-          ? new ORPCTransformer()
-          : new OpenAPITransformer({
+        const deserializer = isORPCTransformer
+          ? new ORPCDeserializer()
+          : new OpenAPIDeserializer({
               schema: procedure.zz$p.contract.zz$cp.InputSchema,
-              serialize: {
-                accept,
-              },
             })
 
         const input_ = await (async () => {
           try {
-            return await transformer.deserialize(requestOptions.request)
+            return await deserializer.deserialize(requestOptions.request)
           } catch (e) {
             throw new ORPCError({
               code: 'BAD_REQUEST',
@@ -170,7 +169,7 @@ export function createFetchHandler<TRouter extends Router<any>>(
         const output = await caller(input)
 
         try {
-          const { body, headers } = transformer.serialize(output)
+          const { body, headers } = serializer.serialize(output)
 
           return new Response(body, {
             status: 200,
@@ -202,7 +201,7 @@ export function createFetchHandler<TRouter extends Router<any>>(
               cause: e,
             })
 
-      const { body, headers } = responseTransformer.serialize(error.toJSON())
+      const { body, headers } = serializer.serialize(error.toJSON())
 
       return new Response(body, {
         status: error.status,

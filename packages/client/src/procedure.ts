@@ -9,7 +9,7 @@ import {
   type SchemaOutput,
 } from '@orpc/contract'
 import { ORPCError, type Promisable } from '@orpc/server'
-import { ORPCTransformer } from '@orpc/transformer'
+import { ORPCDeserializer, ORPCSerializer } from '@orpc/transformer'
 import { trim } from 'radash'
 
 export interface ProcedureClient<
@@ -53,7 +53,8 @@ export function createProcedureClient<
 >(
   options: CreateProcedureClientOptions,
 ): ProcedureClient<TInputSchema, TOutputSchema, THandlerOutput> {
-  const transformer = new ORPCTransformer()
+  const serializer = new ORPCSerializer()
+  const deserializer = new ORPCDeserializer()
 
   const client = async (input: unknown): Promise<unknown> => {
     const fetch_ = options.fetch ?? fetch
@@ -61,7 +62,7 @@ export function createProcedureClient<
     let headers = await options.headers?.(input)
     headers = headers instanceof Headers ? headers : new Headers(headers)
 
-    const { body, headers: headers_ } = transformer.serialize(input)
+    const { body, headers: headers_ } = serializer.serialize(input)
 
     for (const [key, value] of headers_.entries()) {
       headers.set(key, value)
@@ -77,7 +78,7 @@ export function createProcedureClient<
 
     const json = await (async () => {
       try {
-        return await transformer.deserialize(response)
+        return await deserializer.deserialize(response)
       } catch (e) {
         throw new ORPCError({
           code: 'INTERNAL_SERVER_ERROR',

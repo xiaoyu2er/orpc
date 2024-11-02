@@ -1,6 +1,11 @@
 import { bench } from 'vitest'
 import { z } from 'zod'
-import { ORPCTransformer, OpenAPITransformer } from '../src'
+import {
+  ORPCDeserializer,
+  ORPCSerializer,
+  OpenAPIDeserializer,
+  OpenAPISerializer,
+} from '../src'
 
 describe('simple data', () => {
   const data = {
@@ -42,23 +47,25 @@ describe('simple data', () => {
     }),
   })
 
-  const orpcTransformer = new ORPCTransformer()
-  const openapiTransformer = new OpenAPITransformer({ schema })
+  const orpcSerializer = new ORPCSerializer()
+  const openapiSerializer = new OpenAPISerializer()
+  const orpcDeserializer = new ORPCDeserializer()
+  const openapiDeserializer = new OpenAPIDeserializer({ schema })
 
   bench('ORPCTransformer', () => {
-    orpcTransformer.deserialize(
+    orpcDeserializer.deserialize(
       new Request('http://localhost', {
         method: 'POST',
-        ...orpcTransformer.serialize(data),
+        ...orpcSerializer.serialize(data),
       }),
     )
   })
 
   bench('OpenAPITransformer', () => {
-    openapiTransformer.deserialize(
+    openapiDeserializer.deserialize(
       new Request('http://localhost', {
         method: 'POST',
-        ...openapiTransformer.serialize(data),
+        ...openapiSerializer.serialize(data),
       }),
     )
   })
@@ -108,23 +115,25 @@ describe('with file', () => {
     file: z.instanceof(File),
   })
 
-  const orpcTransformer = new ORPCTransformer()
-  const openapiTransformer = new OpenAPITransformer({ schema })
+  const orpcSerializer = new ORPCSerializer()
+  const openapiSerializer = new OpenAPISerializer()
+  const orpcDeserializer = new ORPCDeserializer()
+  const openapiDeserializer = new OpenAPIDeserializer({ schema })
 
   bench('ORPCTransformer', () => {
-    orpcTransformer.deserialize(
+    orpcDeserializer.deserialize(
       new Request('http://localhost', {
         method: 'POST',
-        ...orpcTransformer.serialize(data),
+        ...orpcSerializer.serialize(data),
       }),
     )
   })
 
   bench('OpenAPITransformer', () => {
-    openapiTransformer.deserialize(
+    openapiDeserializer.deserialize(
       new Request('http://localhost', {
         method: 'POST',
-        ...openapiTransformer.serialize(data),
+        ...openapiSerializer.serialize(data),
       }),
     )
   })
@@ -161,23 +170,25 @@ describe('with unions', () => {
     ]),
   })
 
-  const orpcTransformer = new ORPCTransformer()
-  const openapiTransformer = new OpenAPITransformer({ schema })
+  const orpcSerializer = new ORPCSerializer()
+  const openapiSerializer = new OpenAPISerializer()
+  const orpcDeserializer = new ORPCDeserializer()
+  const openapiDeserializer = new OpenAPIDeserializer({ schema })
 
   bench('ORPCTransformer', () => {
-    orpcTransformer.deserialize(
+    orpcDeserializer.deserialize(
       new Request('http://localhost', {
         method: 'POST',
-        ...orpcTransformer.serialize(data),
+        ...orpcSerializer.serialize(data),
       }),
     )
   })
 
   bench('OpenAPITransformer', () => {
-    openapiTransformer.deserialize(
+    openapiDeserializer.deserialize(
       new Request('http://localhost', {
         method: 'POST',
-        ...openapiTransformer.serialize(data),
+        ...openapiSerializer.serialize(data),
       }),
     )
   })

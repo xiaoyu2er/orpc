@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { OpenAPITransformer } from '../src'
+import { OpenAPIDeserializer, OpenAPISerializer } from '../src'
 
 describe('OpenAPI transformer human readable', () => {
   it('should deserialize object', async () => {
@@ -18,10 +18,10 @@ describe('OpenAPI transformer human readable', () => {
       }),
     })
 
-    const transformer = new OpenAPITransformer({ schema })
+    const deserializer = new OpenAPIDeserializer({ schema })
 
     expect(
-      await transformer.deserialize(
+      await deserializer.deserialize(
         new Request('http://localhost', {
           method: 'POST',
           body: form,
@@ -51,10 +51,10 @@ describe('OpenAPI transformer human readable', () => {
       a2: z.array(z.date()),
     })
 
-    const transformer = new OpenAPITransformer({ schema })
+    const deserializer = new OpenAPIDeserializer({ schema })
 
     expect(
-      await transformer.deserialize(
+      await deserializer.deserialize(
         new Request('http://localhost', {
           method: 'POST',
           body: form,
@@ -75,7 +75,7 @@ describe('OpenAPI transformer human readable', () => {
       type: 'text/plain',
     })
 
-    const { body } = new OpenAPITransformer().serialize({
+    const { body } = new OpenAPISerializer().serialize({
       name: 'test',
       object: { a: 1, b: 2 },
       file: file,

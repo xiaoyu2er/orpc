@@ -197,6 +197,9 @@ importers:
 
   packages/transformer:
     dependencies:
+      '@orpc/zod':
+        specifier: workspace:*
+        version: link:../zod
       '@types/content-disposition':
         specifier: ^0.5.8
         version: 0.5.8
@@ -212,6 +215,9 @@ importers:
       radash:
         specifier: ^12.1.0
         version: 12.1.0
+      zod:
+        specifier: ^3.23.8
+        version: 3.23.8
     devDependencies:
       '@anatine/zod-mock':
         specifier: ^3.13.4
@@ -219,6 +225,9 @@ importers:
       superjson:
         specifier: ^2.2.1
         version: 2.2.1
+
+  packages/zod:
+    dependencies:
       zod:
         specifier: ^3.23.8
         version: 3.23.8

@@ -134,6 +134,8 @@ function preSerialize(payload: unknown): unknown {
   if (payload instanceof Date && Number.isNaN(payload.getTime())) {
     return 'Invalid Date'
   }
+  if (payload instanceof RegExp) return payload.toString()
+  if (payload instanceof URL) return payload.toString()
   if (!isPlainObject(payload)) return payload
   return Object.keys(payload).reduce(
     (carry, key) => {

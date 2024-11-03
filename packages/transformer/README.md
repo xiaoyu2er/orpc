@@ -38,6 +38,8 @@ export async function fetch(request: Request) {
 - `undefined`
 - `Date` (include `Invalid Date`)
 - `BigInt`
+- `RegExp`
+- `URL`
 - `Set`
 - `Map`
 - `Blob`

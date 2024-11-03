@@ -22,6 +22,8 @@ describe('with simple data', () => {
       a: [1, 2, 3],
       b: new Set([1, 2, 3]),
     },
+    url: new URL('https://dinwwwh.com'),
+    regexp: /uic/gi,
   }
 
   bench('SuperJSON', () => {
@@ -55,6 +57,8 @@ describe('with deep data', () => {
             a: [1, 2, 3],
             b: new Set([1, 2, 3]),
           },
+          url: new URL('https://dinwwwh.com'),
+          regexp: /uic/gi,
         },
       },
     },

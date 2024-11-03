@@ -1,3 +1,4 @@
+import { oz } from '@orpc/zod'
 import { type ZodType, object, z } from 'zod'
 import {
   type Deserializer,
@@ -75,8 +76,12 @@ const types = [
   [undefined, z.literal(undefined)],
   [new Date('2023-01-01'), z.date()],
   [new Date('Invalid'), z.date().catch(new Date('1970-01-01'))], // zod not support invalid date so we use a catch
+  [new Date('Invalid'), oz.invalidDate()], // zod not support invalid date so we use a catch
   [BigInt(1234), z.bigint()],
   [BigInt(1234), z.literal(BigInt(1234))],
+  [/uic/gi, oz.regexp()],
+  [/npa|npb/gi, oz.regexp()],
+  [new URL('https://dinwwwh.com'), oz.url()],
   [
     { a: 1, b: 2, c: 3 },
     z.object({ a: z.number(), b: z.number(), c: z.number() }),

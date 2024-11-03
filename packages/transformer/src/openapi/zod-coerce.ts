@@ -1,3 +1,4 @@
+import { getCustomZodType } from '@orpc/zod'
 import { isPlainObject } from 'is-what'
 import { guard } from 'radash'
 import {
@@ -61,6 +62,33 @@ export function zodCoerce(
       return newValue
     }
     return zodCoerce(schema, value, options_)
+  }
+
+  const customType = getCustomZodType(schema)
+
+  if (customType === 'Invalid Date') {
+    if (
+      typeof value === 'string' &&
+      value.toLocaleLowerCase() === 'invalid date'
+    ) {
+      return new Date('Invalid Date')
+    }
+  } else if (customType === 'RegExp') {
+    if (typeof value === 'string' && value.startsWith('/')) {
+      const match = value.match(/^\/(.*)\/([a-z]*)$/)
+
+      if (match) {
+        const [, pattern, flags] = match
+        return new RegExp(pattern!, flags)
+      }
+    }
+  } else if (customType === 'URL') {
+    if (typeof value === 'string') {
+      const url = guard(() => new URL(value))
+      if (url !== undefined) {
+        return url
+      }
+    }
   }
 
   if (schema._def.typeName === undefined) {

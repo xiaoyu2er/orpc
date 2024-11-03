@@ -1,5 +1,5 @@
 {
-  "name": "@orpc/transformer",
+  "name": "@orpc/zod",
   "type": "module",
   "version": "0.0.0",
   "author": {
@@ -45,16 +45,6 @@
     "type:check": "tsc -b"
   },
   "dependencies": {
-    "@orpc/zod": "workspace:*",
-    "@types/content-disposition": "^0.5.8",
-    "content-disposition": "^0.5.4",
-    "copy-anything": "^4.0.2",
-    "is-what": "^5.0.2",
-    "radash": "^12.1.0",
     "zod": "^3.23.8"
-  },
-  "devDependencies": {
-    "@anatine/zod-mock": "^3.13.4",
-    "superjson": "^2.2.1"
   }
 }

@@ -3,11 +3,10 @@
   "compilerOptions": {
     "types": []
   },
-  "references": [{ "path": "../zod" }],
+  "references": [],
   "include": ["src"],
   "exclude": [
     "**/*.test.*",
-    "**/*.bench.*",
     "**/*.test-d.ts",
     "**/__tests__/**",
     "**/__mocks__/**",

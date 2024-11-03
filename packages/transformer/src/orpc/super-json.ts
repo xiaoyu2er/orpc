@@ -8,6 +8,9 @@ export type JSONExtraType =
   | 'undefined'
   | 'set'
   | 'map'
+  | 'regexp'
+  | 'url'
+
 export type JSONMeta = [JSONExtraType, Segment[]][]
 
 export function serialize(
@@ -34,6 +37,16 @@ export function serialize(
   if (Number.isNaN(value)) {
     meta.push(['nan', segments])
     return { data: 'NaN', meta }
+  }
+
+  if (value instanceof RegExp) {
+    meta.push(['regexp', segments])
+    return { data: value.toString(), meta }
+  }
+
+  if (value instanceof URL) {
+    meta.push(['url', segments])
+    return { data: value.toString(), meta }
   }
 
   if (isPlainObject(value)) {
@@ -107,6 +120,23 @@ export function deserialize({
 
       case 'date':
         currentRef[preSegment] = new Date(currentRef[preSegment])
+        break
+
+      case 'regexp': {
+        const match = currentRef[preSegment].match(/^\/(.*)\/([a-z]*)$/)
+
+        if (match) {
+          const [, pattern, flags] = match
+          currentRef[preSegment] = new RegExp(pattern!, flags)
+        } else {
+          currentRef[preSegment] = new RegExp(currentRef[preSegment])
+        }
+
+        break
+      }
+
+      case 'url':
+        currentRef[preSegment] = new URL(currentRef[preSegment])
         break
 
       case 'undefined':

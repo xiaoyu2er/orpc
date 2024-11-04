@@ -64,7 +64,7 @@ export function zodCoerce(
     return zodCoerce(schema, value, options_)
   }
 
-  const customType = getCustomZodType(schema)
+  const customType = getCustomZodType(schema._def)
 
   if (customType === 'Invalid Date') {
     if (

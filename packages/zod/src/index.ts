@@ -5,7 +5,6 @@ import {
   type CustomErrorParams,
   type ZodEffects,
   type ZodType,
-  type ZodTypeAny,
   type ZodTypeDef,
   custom,
 } from 'zod'
@@ -20,16 +19,16 @@ type CustomParams = CustomErrorParams & {
   fatal?: boolean
 }
 
-export function getCustomZodType(
-  schema: ZodTypeAny,
-): CustomZodType | undefined {
-  return schema._def[customZodTypeSymbol] as CustomZodType | undefined
+export function getCustomZodType(def: ZodTypeDef): CustomZodType | undefined {
+  return customZodTypeSymbol in def
+    ? (def[customZodTypeSymbol] as CustomZodType)
+    : undefined
 }
 
-export function getCustomZodFileMimeType(
-  schema: ZodTypeAny,
-): string | undefined {
-  return schema._def[customZodFileMimeTypeSymbol] as string | undefined
+export function getCustomZodFileMimeType(def: ZodTypeDef): string | undefined {
+  return customZodFileMimeTypeSymbol in def
+    ? (def[customZodFileMimeTypeSymbol] as string)
+    : undefined
 }
 
 function composeParams<T = unknown>(options: {

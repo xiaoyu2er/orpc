@@ -99,8 +99,8 @@ describe('Custom Zod Types', () => {
   it.each(cases)(
     'should validate %s',
     (name, schema, value, mimeType, errorMessage) => {
-      expect(getCustomZodType(schema)).toEqual(name)
-      expect(getCustomZodFileMimeType(schema)).toEqual(mimeType)
+      expect(getCustomZodType(schema._def)).toEqual(name)
+      expect(getCustomZodFileMimeType(schema._def)).toEqual(mimeType)
 
       if (!errorMessage) {
         expect(schema.safeParse(value)).toEqual({

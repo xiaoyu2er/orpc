@@ -30,6 +30,13 @@ export interface GenerateOpenAPIOptions {
    * @default false
    */
   throwOnMissingTagDefinition?: boolean
+
+  /**
+   * Weather ignore procedures that has no path defined.
+   *
+   * @default false
+   */
+  ignoreUndefinedPathProcedures?: boolean
 }
 
 export function generateOpenAPI(
@@ -40,6 +47,8 @@ export function generateOpenAPI(
 ): OpenAPIObject {
   const throwOnMissingTagDefinition =
     options?.throwOnMissingTagDefinition ?? false
+  const ignoreUndefinedPathProcedures =
+    options?.ignoreUndefinedPathProcedures ?? false
 
   const builder = new OpenApiBuilder({
     ...omit(opts, ['router']),
@@ -51,7 +60,12 @@ export function generateOpenAPI(
 
   eachContractRouterLeaf(router, (procedure, path_) => {
     const internal = procedure.zz$cp
-    const path = internal.path ?? `/.${path_.join('.')}`
+
+    if (ignoreUndefinedPathProcedures && internal.path === undefined) {
+      return
+    }
+
+    const path = internal.path ?? `/${path_.map(encodeURIComponent).join('/')}`
     const method = internal.method ?? 'POST'
 
     const inputSchema = internal.InputSchema

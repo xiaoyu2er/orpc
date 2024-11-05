@@ -58,7 +58,7 @@ export function createProcedureClient<
 
   const client = async (input: unknown): Promise<unknown> => {
     const fetch_ = options.fetch ?? fetch
-    const url = `${trim(options.baseURL, '/')}/${options.path.join('.')}`
+    const url = `${trim(options.baseURL, '/')}/${options.path.map(encodeURIComponent).join('/')}`
     let headers = await options.headers?.(input)
     headers = headers instanceof Headers ? headers : new Headers(headers)
 

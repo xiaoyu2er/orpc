@@ -33,7 +33,7 @@ it('works', () => {
       version: '1.0.0',
     },
     paths: {
-      '/.ping': {
+      '/ping': {
         post: {
           responses: {
             '200': {
@@ -130,7 +130,7 @@ it('throwOnMissingTagDefinition option', () => {
       },
     ],
     paths: {
-      '/.ping': {
+      '/ping': {
         post: {
           responses: {
             '200': {
@@ -219,7 +219,7 @@ it('support single file upload', () => {
 
   expect(spec).toMatchObject({
     paths: {
-      '/.upload': {
+      '/upload': {
         post: {
           requestBody: {
             content: {
@@ -231,7 +231,7 @@ it('support single file upload', () => {
               },
               'application/json': {
                 schema: {
-                  anyOf: [{ type: 'string' }],
+                  type: 'string',
                 },
               },
             },
@@ -285,7 +285,7 @@ it('support multipart/form-data', () => {
 
   expect(spec).toMatchObject({
     paths: {
-      '/.resize': {
+      '/resize': {
         post: {
           requestBody: {
             content: {

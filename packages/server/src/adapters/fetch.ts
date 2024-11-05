@@ -85,8 +85,8 @@ export function createFetchHandler<TRouter extends Router<any>>(
         let params: Record<string, string | number> | undefined
 
         if (isORPCTransformer) {
-          path = pathname.replace('/', '').split('.')
-          const val = get(options.router, path) // TODO: escape dot
+          path = trim(pathname, '/').split('/').map(decodeURIComponent)
+          const val = get(options.router, path)
 
           if (isProcedure(val)) {
             procedure = val
@@ -101,9 +101,9 @@ export function createFetchHandler<TRouter extends Router<any>>(
           params = match?.[1]
 
           if (!path || !procedure) {
-            path = pathname.replace('/', '').split('.')
+            path = trim(pathname, '/').split('/').map(decodeURIComponent)
 
-            const val = get(options.router, path) // TODO: escape dot
+            const val = get(options.router, path)
 
             if (isProcedure(val)) {
               procedure = val

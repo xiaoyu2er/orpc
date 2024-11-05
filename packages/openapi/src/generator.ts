@@ -1,5 +1,6 @@
 import { type ContractRouter, eachContractRouterLeaf } from '@orpc/contract'
 import { type Router, toContractRouter } from '@orpc/server'
+import type { JSONSchema } from 'json-schema-typed/draft-2019-09'
 import {
   type MediaTypeObject,
   type OpenAPIObject,
@@ -11,7 +12,8 @@ import {
 } from 'openapi3-ts/oas31'
 import { mapEntries, omit } from 'radash'
 import type { JsonSchema7Type } from 'zod-to-json-schema'
-import { schemaToJsonSchema } from './json-schema'
+import { findDeepMatches } from './object'
+import { extractJSONSchema, zodToJsonSchema } from './zod-to-json-schema'
 
 // Reference: https://spec.openapis.org/oas/v3.1.0.html#style-values
 // TODO: support query as array
@@ -52,8 +54,12 @@ export function generateOpenAPI(
     const path = internal.path ?? `/.${path_.join('.')}`
     const method = internal.method ?? 'POST'
 
-    const inputSchema = schemaToJsonSchema(internal.InputSchema)
-    const outputSchema = schemaToJsonSchema(internal.OutputSchema)
+    const inputSchema = internal.InputSchema
+      ? zodToJsonSchema(internal.InputSchema, { mode: 'input' })
+      : {}
+    const outputSchema = internal.OutputSchema
+      ? zodToJsonSchema(internal.OutputSchema, { mode: 'output' })
+      : {}
 
     const params: ParameterObject[] | undefined = (() => {
       const names = path.match(/{([^}]+)}/g)
@@ -62,7 +68,7 @@ export function generateOpenAPI(
         return undefined
       }
 
-      if (inputSchema.type !== 'object') {
+      if (typeof inputSchema !== 'object' || inputSchema.type !== 'object') {
         throw new Error(
           `When path has parameters, input schema must be an object [${path_.join('.')}]`,
         )
@@ -90,7 +96,7 @@ export function generateOpenAPI(
             name,
             in: 'path',
             required: true,
-            schema: schema,
+            schema: schema as any,
             example: internal.inputExample?.[name],
             examples: internal.inputExamples
               ? mapEntries(
@@ -109,7 +115,7 @@ export function generateOpenAPI(
         return undefined
       }
 
-      if (!('properties' in inputSchema)) {
+      if (typeof inputSchema !== 'object' || inputSchema.type !== 'object') {
         throw new Error(
           `When method is GET, input schema must be an object [${path_.join('.')}]`,
         )
@@ -121,8 +127,9 @@ export function generateOpenAPI(
           return {
             name,
             in: 'query',
+            style: 'deepObject',
             required: true,
-            schema,
+            schema: schema as any,
             example: internal.inputExample?.[name],
             examples: internal.inputExamples
               ? mapEntries(
@@ -143,17 +150,24 @@ export function generateOpenAPI(
         return undefined
       }
 
-      const { schema, files } = separateRootFiles(inputSchema)
-      const isHasFileUpload = schema ? hasFileUpload(schema) : false
+      const { schema, matches } = extractJSONSchema(inputSchema, isFileSchema)
+
+      const files = matches as (JSONSchema & {
+        type: 'string'
+        contentMediaType: string
+      })[]
+
+      const isStillHasFileSchema =
+        findDeepMatches(isFileSchema, schema).values.length > 0
 
       if (files.length) {
         parameters.push({
-          name: 'Content-Disposition',
+          name: 'content-disposition',
           in: 'header',
-          required: !schema,
+          required: schema === undefined,
           schema: {
             type: 'string',
-            pattern: '^.*filename=.*$',
+            pattern: '^.*filename.*$',
             example: 'filename="file.png"',
             description:
               'To define the file name. Required when the request body is a file.',
@@ -171,13 +185,12 @@ export function generateOpenAPI(
         }
       }
 
-      if (schema) {
-        content[isHasFileUpload ? 'multipart/form-data' : 'application/json'] =
-          {
-            schema: schema as any,
-            example: internal.inputExample,
-            examples: internal.inputExamples,
-          }
+      if (schema !== undefined) {
+        content[
+          isStillHasFileSchema ? 'multipart/form-data' : 'application/json'
+        ] = {
+          schema: schema as any,
+        }
       }
 
       return {
@@ -187,26 +200,31 @@ export function generateOpenAPI(
     })()
 
     const successResponse: ResponseObject = (() => {
-      const { schema, files } = separateRootFiles(outputSchema)
-      const isHasFileUpload = schema ? hasFileUpload(schema) : false
+      const { schema, matches } = extractJSONSchema(outputSchema, isFileSchema)
+      const files = matches as (JSONSchema & {
+        type: 'string'
+        contentMediaType: string
+      })[]
+
+      const isStillHasFileSchema =
+        findDeepMatches(isFileSchema, schema).values.length > 0
 
       const content: Record<string, MediaTypeObject> = {}
 
       for (const file of files) {
         content[file.contentMediaType] = {
           schema: file as any,
-          example: internal.outputExample,
-          examples: internal.outputExamples,
         }
       }
 
-      if (schema) {
-        content[isHasFileUpload ? 'multipart/form-data' : 'application/json'] =
-          {
-            schema: schema as any,
-            example: internal.outputExample,
-            examples: internal.outputExamples,
-          }
+      if (schema !== undefined) {
+        content[
+          isStillHasFileSchema ? 'multipart/form-data' : 'application/json'
+        ] = {
+          schema: schema as any,
+          example: internal.outputExample,
+          examples: internal.outputExamples,
+        }
       }
 
       return {
@@ -403,4 +421,14 @@ function separateRootFiles(
   }
 
   return { schema, files }
+}
+
+function isFileSchema(schema: unknown) {
+  if (typeof schema !== 'object' || schema === null) return false
+  return (
+    'type' in schema &&
+    'contentMediaType' in schema &&
+    typeof schema.type === 'string' &&
+    typeof schema.contentMediaType === 'string'
+  )
 }

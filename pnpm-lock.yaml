@@ -134,6 +134,15 @@ importers:
       '@orpc/zod':
         specifier: workspace:*
         version: link:../zod
+      escape-string-regexp:
+        specifier: ^5.0.0
+        version: 5.0.0
+      is-what:
+        specifier: ^5.0.2
+        version: 5.0.2
+      json-schema-typed:
+        specifier: ^8.0.1
+        version: 8.0.1
       openapi3-ts:
         specifier: ^4.4.0
         version: 4.4.0
@@ -2697,6 +2706,9 @@ packages:
 
   json-schema-traverse@1.0.0:
     resolution: {integrity: sha512-NM8/P9n3XjXhIZn1lLhkFaACTOURQXjWhV4BA/RnOv8xvgqtqpAX9IO4mRQxSx1Rlo4tqzeqb0sOlruaOy3dug==}
+
+  json-schema-typed@8.0.1:
+    resolution: {integrity: sha512-XQmWYj2Sm4kn4WeTYvmpKEbyPsL7nBsb647c7pMe6l02/yx2+Jfc4dT6UZkEXnIUb5LhD55r2HPsJ1milQ4rDg==}
 
   json-to-ast@2.1.0:
     resolution: {integrity: sha512-W9Lq347r8tA1DfMvAGn9QNcgYm4Wm7Yc+k8e6vezpMnRT+NHbtlxgNBXRVjXe9YM6eTn6+p/MKOlV/aABJcSnQ==}
@@ -6370,6 +6382,8 @@ snapshots:
       - utf-8-validate
 
   json-schema-traverse@1.0.0: {}
+
+  json-schema-typed@8.0.1: {}
 
   json-to-ast@2.1.0:
     dependencies:

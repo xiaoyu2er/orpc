@@ -48,7 +48,9 @@
     "@orpc/contract": "workspace:*",
     "@orpc/server": "workspace:*",
     "@orpc/zod": "workspace:*",
-    "openapi3-ts": "^4.4.0",
-    "zod-to-json-schema": "^3.23.3"
+    "escape-string-regexp": "^5.0.0",
+    "is-what": "^5.0.2",
+    "json-schema-typed": "^8.0.1",
+    "openapi3-ts": "^4.4.0"
   }
 }

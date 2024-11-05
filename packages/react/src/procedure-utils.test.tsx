@@ -44,7 +44,7 @@ describe('fetchInfiniteQuery', () => {
   })
 
   it('on success', async () => {
-    const data = await utils.fetchInfiniteQuery({}, {})
+    const data = await utils.fetchInfiniteQuery({ input: {} })
 
     expect(data).toMatchObject({
       pageParams: [undefined],
@@ -67,7 +67,7 @@ describe('fetchInfiniteQuery', () => {
   it('on error', () => {
     expect(
       // @ts-expect-error invalid input
-      utils.fetchInfiniteQuery({ keyword: {} }, {}),
+      utils.fetchInfiniteQuery({ input: { keyword: {} } }),
     ).rejects.toThrowError('Validation input failed')
   })
 })
@@ -113,7 +113,7 @@ describe('prefetchInfiniteQuery', () => {
   })
 
   it('on success', async () => {
-    const result = await utils.prefetchInfiniteQuery({}, {})
+    const result = await utils.prefetchInfiniteQuery({ input: {} })
     expect(result).toEqual(undefined)
 
     expect(
@@ -179,7 +179,7 @@ describe('ensureInfiniteQuery', () => {
   })
 
   it('on success', async () => {
-    const data = await utils.ensureInfiniteQueryData({}, {})
+    const data = await utils.ensureInfiniteQueryData({ input: {} })
 
     expect(data).toMatchObject({
       pageParams: [undefined],
@@ -202,7 +202,7 @@ describe('ensureInfiniteQuery', () => {
   it('on error', () => {
     expect(
       // @ts-expect-error invalid input
-      utils.ensureInfiniteQueryData({ keyword: {} }, {}),
+      utils.ensureInfiniteQueryData({ input: { keyword: {} } }),
     ).rejects.toThrowError('Validation input failed')
   })
 })
@@ -230,7 +230,7 @@ describe('getInfiniteQueryData', () => {
 
   it('on success', async () => {
     expect(utils.getInfiniteQueryData({})).toEqual(undefined)
-    const data = await utils.ensureInfiniteQueryData({}, {})
+    const data = await utils.ensureInfiniteQueryData({ input: {} })
     expect(utils.getInfiniteQueryData({})).toBe(data)
   })
 })
@@ -261,7 +261,7 @@ describe('getInfiniteQueryState', () => {
 
   it('on success', async () => {
     expect(utils.getInfiniteQueryState({})).toEqual(undefined)
-    const data = await utils.ensureInfiniteQueryData({}, {})
+    const data = await utils.ensureInfiniteQueryData({ input: {} })
     expect(utils.getInfiniteQueryState({})).toMatchObject({
       status: 'success',
       data,
@@ -307,7 +307,7 @@ describe('getInfiniteQueryData', () => {
   })
 
   it('on success', async () => {
-    const original = await utils.ensureInfiniteQueryData({}, {})
+    const original = await utils.ensureInfiniteQueryData({ input: {} })
 
     const data = {
       pages: [],

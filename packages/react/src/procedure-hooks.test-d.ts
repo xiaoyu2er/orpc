@@ -64,19 +64,19 @@ describe('useInfiniteQuery', () => {
   })
 
   it('simple', () => {
-    expectTypeOf<Parameters<typeof hooks.useInfiniteQuery>[0]>().toMatchTypeOf<{
+    expectTypeOf<
+      Parameters<typeof hooks.useInfiniteQuery>[0]['input']
+    >().toMatchTypeOf<{
       keyword?: string
       cursor?: never /** prevent user to set cursor */
     }>()
 
-    const query = hooks.useInfiniteQuery(
-      { keyword: '1' },
-      {
-        getNextPageParam(lastPage) {
-          return lastPage.nextCursor
-        },
+    const query = hooks.useInfiniteQuery({
+      input: { keyword: '1' },
+      getNextPageParam(lastPage) {
+        return lastPage.nextCursor
       },
-    )
+    })
 
     expectTypeOf(query.data).toEqualTypeOf<
       | undefined
@@ -88,27 +88,25 @@ describe('useInfiniteQuery', () => {
   })
 
   it('with select', () => {
-    const query = hooks.useInfiniteQuery(
-      {},
-      {
-        initialPageParam: 12344,
-        getNextPageParam(lastPage) {
-          return lastPage.nextCursor
-        },
-        select(data) {
-          expectTypeOf(data).toEqualTypeOf<
-            InfiniteData<
-              SchemaOutput<typeof UserListOutputSchema>,
-              number | undefined
-            >
-          >()
-
-          return {
-            select: data,
-          }
-        },
+    const query = hooks.useInfiniteQuery({
+      input: { keyword: '1' },
+      initialPageParam: 12344,
+      getNextPageParam(lastPage) {
+        return lastPage.nextCursor
       },
-    )
+      select(data) {
+        expectTypeOf(data).toEqualTypeOf<
+          InfiniteData<
+            SchemaOutput<typeof UserListOutputSchema>,
+            number | undefined
+          >
+        >()
+
+        return {
+          select: data,
+        }
+      },
+    })
 
     expectTypeOf(query.data).toEqualTypeOf<
       | undefined
@@ -174,20 +172,18 @@ describe('useSuspenseInfiniteQuery', () => {
 
   it('simple', () => {
     expectTypeOf<
-      Parameters<typeof hooks.useSuspenseInfiniteQuery>[0]
+      Parameters<typeof hooks.useSuspenseInfiniteQuery>[0]['input']
     >().toMatchTypeOf<{
       keyword?: string
       cursor?: never /** prevent user to set cursor */
     }>()
 
-    const query = hooks.useSuspenseInfiniteQuery(
-      { keyword: '1' },
-      {
-        getNextPageParam(lastPage) {
-          return lastPage.nextCursor
-        },
+    const query = hooks.useSuspenseInfiniteQuery({
+      input: { keyword: '1' },
+      getNextPageParam(lastPage) {
+        return lastPage.nextCursor
       },
-    )
+    })
 
     expectTypeOf(query.data).toEqualTypeOf<
       InfiniteData<
@@ -198,27 +194,25 @@ describe('useSuspenseInfiniteQuery', () => {
   })
 
   it('with select', () => {
-    const query = hooks.useSuspenseInfiniteQuery(
-      {},
-      {
-        initialPageParam: 12344,
-        getNextPageParam(lastPage) {
-          return lastPage.nextCursor
-        },
-        select(data) {
-          expectTypeOf(data).toEqualTypeOf<
-            InfiniteData<
-              SchemaOutput<typeof UserListOutputSchema>,
-              number | undefined
-            >
-          >()
-
-          return {
-            select: data,
-          }
-        },
+    const query = hooks.useSuspenseInfiniteQuery({
+      input: {},
+      initialPageParam: 12344,
+      getNextPageParam(lastPage) {
+        return lastPage.nextCursor
       },
-    )
+      select(data) {
+        expectTypeOf(data).toEqualTypeOf<
+          InfiniteData<
+            SchemaOutput<typeof UserListOutputSchema>,
+            number | undefined
+          >
+        >()
+
+        return {
+          select: data,
+        }
+      },
+    })
 
     expectTypeOf(query.data).toEqualTypeOf<{
       select: InfiniteData<
@@ -262,13 +256,13 @@ describe('usePrefetchInfiniteQuery', () => {
 
   it('simple', () => {
     expectTypeOf<
-      Parameters<typeof hooks.usePrefetchInfiniteQuery>[0]
+      Parameters<typeof hooks.usePrefetchInfiniteQuery>[0]['input']
     >().toMatchTypeOf<{
       keyword?: string
       cursor?: never /** prevent user to set cursor */
     }>()
 
-    hooks.usePrefetchInfiniteQuery({ keyword: '1' }, {})
+    hooks.usePrefetchInfiniteQuery({ input: { keyword: '1' } })
 
     hooks.usePrefetchInfiniteQuery(
       { keyword: '1' },
@@ -279,16 +273,14 @@ describe('usePrefetchInfiniteQuery', () => {
       },
     )
 
-    const query = hooks.usePrefetchInfiniteQuery(
-      { keyword: '1' },
-      {
-        initialPageParam: 12344,
-        pages: 3,
-        getNextPageParam(lastPage) {
-          return lastPage.nextCursor
-        },
+    const query = hooks.usePrefetchInfiniteQuery({
+      input: { keyword: '1' },
+      initialPageParam: 12344,
+      pages: 3,
+      getNextPageParam(lastPage) {
+        return lastPage.nextCursor
       },
-    )
+    })
 
     expectTypeOf(query).toEqualTypeOf<void>()
   })

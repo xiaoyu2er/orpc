@@ -52,13 +52,13 @@ describe('fetchInfiniteQuery', () => {
 
   it('simple', async () => {
     expectTypeOf<
-      Parameters<typeof utils.fetchInfiniteQuery>[0]
+      Parameters<typeof utils.fetchInfiniteQuery>[0]['input']
     >().toMatchTypeOf<{
       keyword?: string
       cursor?: never /** prevent user to set cursor */
     }>()
 
-    const data = await utils.fetchInfiniteQuery({}, {})
+    const data = await utils.fetchInfiniteQuery({ input: {} })
 
     expectTypeOf(data).toEqualTypeOf<
       InfiniteData<
@@ -69,20 +69,18 @@ describe('fetchInfiniteQuery', () => {
   })
 
   it('with options', async () => {
-    await utils.fetchInfiniteQuery(
-      { keyword: '1' },
-      {
-        initialPageParam: 4,
-        pages: 5,
-        getNextPageParam(lastPage) {
-          expectTypeOf(lastPage).toEqualTypeOf<
-            SchemaOutput<typeof UserListOutputSchema>
-          >()
+    await utils.fetchInfiniteQuery({
+      input: { keyword: '1' },
+      initialPageParam: 4,
+      pages: 5,
+      getNextPageParam(lastPage) {
+        expectTypeOf(lastPage).toEqualTypeOf<
+          SchemaOutput<typeof UserListOutputSchema>
+        >()
 
-          return lastPage.nextCursor
-        },
+        return lastPage.nextCursor
       },
-    )
+    })
 
     await utils.fetchInfiniteQuery(
       { keyword: '1' },
@@ -92,20 +90,16 @@ describe('fetchInfiniteQuery', () => {
       },
     )
 
-    await utils.fetchInfiniteQuery(
-      {},
-      {
-        initialData: { pageParams: [], pages: [] },
-      },
-    )
+    await utils.fetchInfiniteQuery({
+      input: {},
+      initialData: { pageParams: [], pages: [] },
+    })
 
-    await utils.fetchInfiniteQuery(
-      {},
-      {
-        // @ts-expect-error invalid initialData
-        initialData: { pageParams: [] },
-      },
-    )
+    await utils.fetchInfiniteQuery({
+      input: {},
+      // @ts-expect-error invalid initialData
+      initialData: { pageParams: [] },
+    })
   })
 })
 
@@ -153,21 +147,21 @@ describe('prefetchInfiniteQuery', () => {
 
   it('simple', () => {
     expectTypeOf<
-      Parameters<typeof utils.prefetchInfiniteQuery>[0]
+      Parameters<typeof utils.prefetchInfiniteQuery>[0]['input']
     >().toMatchTypeOf<{
       keyword?: string
       cursor?: never /** prevent user to set cursor */
     }>()
 
-    const result = utils.prefetchInfiniteQuery({}, {})
+    const result = utils.prefetchInfiniteQuery({ input: {} })
 
     expectTypeOf(result).toEqualTypeOf<Promise<void>>()
   })
 
   it('with options', async () => {
     await utils.prefetchInfiniteQuery(
-      { keyword: '1' },
       {
+        input: { keyword: '1' },
         initialPageParam: 4,
         pages: 5,
         getNextPageParam(lastPage) {
@@ -189,19 +183,17 @@ describe('prefetchInfiniteQuery', () => {
     )
 
     await utils.prefetchInfiniteQuery(
-      {},
       {
+        input: {},
         initialData: { pageParams: [], pages: [] },
       },
     )
 
-    await utils.prefetchInfiniteQuery(
-      {},
-      {
-        // @ts-expect-error invalid initialData
-        initialData: { pageParams: [] },
-      },
-    )
+    await utils.prefetchInfiniteQuery({
+      input: {},
+      // @ts-expect-error invalid initialData
+      initialData: { pageParams: [] },
+    })
   })
 })
 
@@ -296,13 +288,15 @@ describe('ensureInfiniteQuery', () => {
 
   it('simple', async () => {
     expectTypeOf<
-      Parameters<typeof utils.ensureInfiniteQueryData>[0]
+      Parameters<typeof utils.ensureInfiniteQueryData>[0]['input']
     >().toMatchTypeOf<{
       keyword?: string
       cursor?: never /** prevent user to set cursor */
     }>()
 
-    const data = await utils.ensureInfiniteQueryData({}, {})
+    const data = await utils.ensureInfiniteQueryData({
+      input: {},
+    })
 
     expectTypeOf(data).toEqualTypeOf<
       InfiniteData<
@@ -313,20 +307,18 @@ describe('ensureInfiniteQuery', () => {
   })
 
   it('with options', async () => {
-    await utils.ensureInfiniteQueryData(
-      { keyword: '1' },
-      {
-        initialPageParam: 4,
-        pages: 5,
-        getNextPageParam(lastPage) {
-          expectTypeOf(lastPage).toEqualTypeOf<
-            SchemaOutput<typeof UserListOutputSchema>
-          >()
+    await utils.ensureInfiniteQueryData({
+      input: { keyword: '1' },
+      initialPageParam: 4,
+      pages: 5,
+      getNextPageParam(lastPage) {
+        expectTypeOf(lastPage).toEqualTypeOf<
+          SchemaOutput<typeof UserListOutputSchema>
+        >()
 
-          return lastPage.nextCursor
-        },
+        return lastPage.nextCursor
       },
-    )
+    })
 
     await utils.ensureInfiniteQueryData(
       { keyword: '1' },
@@ -336,16 +328,14 @@ describe('ensureInfiniteQuery', () => {
       },
     )
 
-    await utils.ensureInfiniteQueryData(
-      {},
-      {
-        initialData: { pageParams: [], pages: [] },
-      },
-    )
+    await utils.ensureInfiniteQueryData({
+      input: {},
+      initialData: { pageParams: [], pages: [] },
+    })
 
     await utils.ensureInfiniteQueryData(
-      {},
       {
+        input: {},
         // @ts-expect-error invalid initialData
         initialData: { pageParams: [] },
       },

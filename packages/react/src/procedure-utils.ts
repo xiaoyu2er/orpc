@@ -30,7 +30,6 @@ export interface ProcedureUtils<
     >,
   ): Promise<SchemaOutput<TOutputSchema, THandlerOutput>>
   fetchInfiniteQuery(
-    input: SchemaInputForInfiniteQuery<TInputSchema>,
     options: PartialOnUndefinedDeep<
       SetOptional<
         FetchInfiniteQueryOptions<
@@ -41,7 +40,9 @@ export interface ProcedureUtils<
           SchemaInput<TInputSchema>['cursor']
         >,
         'queryKey' | 'queryFn'
-      >
+      > & {
+        input: SchemaInputForInfiniteQuery<TInputSchema>
+      }
     >,
   ): Promise<
     InfiniteData<
@@ -58,7 +59,6 @@ export interface ProcedureUtils<
     >,
   ): Promise<void>
   prefetchInfiniteQuery(
-    input: SchemaInputForInfiniteQuery<TInputSchema>,
     options: PartialOnUndefinedDeep<
       SetOptional<
         FetchInfiniteQueryOptions<
@@ -69,7 +69,9 @@ export interface ProcedureUtils<
           SchemaInput<TInputSchema>['cursor']
         >,
         'queryKey' | 'queryFn'
-      >
+      > & {
+        input: SchemaInputForInfiniteQuery<TInputSchema>
+      }
     >,
   ): Promise<void>
 
@@ -93,7 +95,6 @@ export interface ProcedureUtils<
     >,
   ): Promise<SchemaOutput<TOutputSchema, THandlerOutput>>
   ensureInfiniteQueryData(
-    input: SchemaInputForInfiniteQuery<TInputSchema>,
     options: PartialOnUndefinedDeep<
       SetOptional<
         EnsureInfiniteQueryDataOptions<
@@ -104,7 +105,9 @@ export interface ProcedureUtils<
           SchemaInput<TInputSchema>['cursor']
         >,
         'queryKey' | 'queryFn'
-      >
+      > & {
+        input: SchemaInputForInfiniteQuery<TInputSchema>
+      }
     >,
   ): Promise<
     InfiniteData<
@@ -192,16 +195,17 @@ export function createProcedureUtils<
         ...options_,
       })
     },
-    fetchInfiniteQuery(input, options_) {
+    fetchInfiniteQuery(options_) {
+      const { input, ...rest } = options_
       return options.queryClient.fetchInfiniteQuery({
         queryKey: getQueryKeyFromPath(options.path, {
           input,
           type: 'infinite',
         }),
         queryFn: ({ pageParam }) => {
-          return options.client({ ...input, pageParam } as any)
+          return options.client({ ...(input as any), pageParam } as any)
         },
-        ...(options_ as any),
+        ...(rest as any),
       })
     },
 
@@ -215,16 +219,17 @@ export function createProcedureUtils<
         ...options_,
       })
     },
-    prefetchInfiniteQuery(input, options_) {
+    prefetchInfiniteQuery(options_) {
+      const { input, ...rest } = options_
       return options.queryClient.prefetchInfiniteQuery({
         queryKey: getQueryKeyFromPath(options.path, {
           input,
           type: 'infinite',
         }),
         queryFn: ({ pageParam }) => {
-          return options.client({ ...input, cursor: pageParam } as any)
+          return options.client({ ...(input as any), cursor: pageParam } as any)
         },
-        ...(options_ as any),
+        ...(rest as any),
       })
     },
 
@@ -255,16 +260,17 @@ export function createProcedureUtils<
         ...options_,
       })
     },
-    ensureInfiniteQueryData(input, options_) {
+    ensureInfiniteQueryData(options_) {
+      const { input, ...rest } = options_
       return options.queryClient.ensureInfiniteQueryData({
         queryKey: getQueryKeyFromPath(options.path, {
           input,
           type: 'infinite',
         }),
         queryFn: ({ pageParam }) => {
-          return options.client({ ...input, pageParam } as any)
+          return options.client({ ...(input as any), pageParam } as any)
         },
-        ...(options_ as any),
+        ...(rest as any),
       })
     },
 

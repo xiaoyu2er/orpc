@@ -52,7 +52,6 @@ export interface ProcedureHooks<
       SchemaInput<TInputSchema>['cursor']
     >,
   >(
-    input: SchemaInputForInfiniteQuery<TInputSchema>,
     options: PartialOnUndefinedDeep<
       SetOptional<
         UseInfiniteQueryOptions<
@@ -64,7 +63,9 @@ export interface ProcedureHooks<
           SchemaInput<TInputSchema>['cursor']
         >,
         'queryFn' | 'queryKey'
-      >
+      > & {
+        input: SchemaInputForInfiniteQuery<TInputSchema>
+      }
     >,
   ): UseInfiniteQueryResult<USelectData>
 
@@ -85,7 +86,6 @@ export interface ProcedureHooks<
       SchemaInput<TInputSchema>['cursor']
     >,
   >(
-    input: SchemaInputForInfiniteQuery<TInputSchema>,
     options: PartialOnUndefinedDeep<
       SetOptional<
         UseSuspenseInfiniteQueryOptions<
@@ -97,7 +97,9 @@ export interface ProcedureHooks<
           SchemaInput<TInputSchema>['cursor']
         >,
         'queryFn' | 'queryKey'
-      >
+      > & {
+        input: SchemaInputForInfiniteQuery<TInputSchema>
+      }
     >,
   ): UseSuspenseInfiniteQueryResult<USelectData>
 
@@ -106,7 +108,6 @@ export interface ProcedureHooks<
     options?: FetchQueryOptions<SchemaOutput<TOutputSchema, THandlerOutput>>,
   ): void
   usePrefetchInfiniteQuery(
-    input: SchemaInputForInfiniteQuery<TInputSchema>,
     options: PartialOnUndefinedDeep<
       SetOptional<
         FetchInfiniteQueryOptions<
@@ -117,7 +118,9 @@ export interface ProcedureHooks<
           SchemaInput<TInputSchema>['cursor']
         >,
         'queryKey' | 'queryFn'
-      >
+      > & {
+        input: SchemaInputForInfiniteQuery<TInputSchema>
+      }
     >,
   ): void
 
@@ -171,7 +174,8 @@ export function createProcedureHooks<
         context.queryClient,
       )
     },
-    useInfiniteQuery(input, options_) {
+    useInfiniteQuery(options_) {
+      const { input, ...rest } = options_
       const context = useORPCContext(options.context)
       const client = get(context.client, options.path) as any
       return useInfiniteQuery(
@@ -180,8 +184,9 @@ export function createProcedureHooks<
             input,
             type: 'infinite',
           }),
-          queryFn: ({ pageParam }) => client({ ...input, cursor: pageParam }),
-          ...(options_ as any),
+          queryFn: ({ pageParam }) =>
+            client({ ...(input as any), cursor: pageParam }),
+          ...(rest as any),
         },
         context.queryClient,
       )
@@ -199,7 +204,8 @@ export function createProcedureHooks<
         context.queryClient,
       )
     },
-    useSuspenseInfiniteQuery(input, options_) {
+    useSuspenseInfiniteQuery(options_) {
+      const { input, ...rest } = options_
       const context = useORPCContext(options.context)
       const client = get(context.client, options.path) as any
       return useSuspenseInfiniteQuery(
@@ -208,8 +214,9 @@ export function createProcedureHooks<
             input,
             type: 'infinite',
           }),
-          queryFn: ({ pageParam }) => client({ ...input, cursor: pageParam }),
-          ...(options_ as any),
+          queryFn: ({ pageParam }) =>
+            client({ ...(input as any), cursor: pageParam }),
+          ...(rest as any),
         },
         context.queryClient,
       )
@@ -227,7 +234,8 @@ export function createProcedureHooks<
         context.queryClient,
       )
     },
-    usePrefetchInfiniteQuery(input, options_) {
+    usePrefetchInfiniteQuery(options_) {
+      const { input, ...rest } = options_
       const context = useORPCContext(options.context)
       const client = get(context.client, options.path) as any
       return usePrefetchInfiniteQuery(
@@ -236,8 +244,9 @@ export function createProcedureHooks<
             input,
             type: 'infinite',
           }),
-          queryFn: ({ pageParam }) => client({ ...input, cursor: pageParam }),
-          ...(options_ as any),
+          queryFn: ({ pageParam }) =>
+            client({ ...(input as any), cursor: pageParam }),
+          ...(rest as any),
         },
         context.queryClient,
       )

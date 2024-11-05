@@ -73,14 +73,12 @@ describe('useInfiniteQuery', () => {
   it('on success', async () => {
     const { result } = renderHook(
       () =>
-        hooks.useInfiniteQuery(
-          { keyword: '1' },
-          {
-            getNextPageParam(lastPage) {
-              return lastPage.nextCursor
-            },
+        hooks.useInfiniteQuery({
+          input: { keyword: '1' },
+          getNextPageParam(lastPage) {
+            return lastPage.nextCursor
           },
-        ),
+        }),
       {
         wrapper,
       },
@@ -130,15 +128,13 @@ describe('useInfiniteQuery', () => {
   it('on error', async () => {
     const { result } = renderHook(
       () =>
-        hooks.useInfiniteQuery(
+        hooks.useInfiniteQuery({
           // @ts-expect-error invalid input
-          { keyword: {} },
-          {
-            getNextPageParam(lastPage) {
-              return lastPage.nextCursor
-            },
+          input: { keyword: {} },
+          getNextPageParam(lastPage) {
+            return lastPage.nextCursor
           },
-        ),
+        }),
       {
         wrapper,
       },
@@ -209,14 +205,12 @@ describe('useSuspenseInfiniteQuery', () => {
   it('on success', async () => {
     const { result } = renderHook(
       () =>
-        hooks.useSuspenseInfiniteQuery(
-          { keyword: '1' },
-          {
-            getNextPageParam(lastPage) {
-              return lastPage.nextCursor
-            },
+        hooks.useSuspenseInfiniteQuery({
+          input: { keyword: '1' },
+          getNextPageParam(lastPage) {
+            return lastPage.nextCursor
           },
-        ),
+        }),
       {
         wrapper,
       },
@@ -266,15 +260,13 @@ describe('useSuspenseInfiniteQuery', () => {
   it('on error', async () => {
     const { result } = renderHook(
       () =>
-        hooks.useSuspenseInfiniteQuery(
+        hooks.useSuspenseInfiniteQuery({
           // @ts-expect-error invalid input
-          { keyword: {} },
-          {
-            getNextPageParam(lastPage) {
-              return lastPage.nextCursor
-            },
+          input: { keyword: {} },
+          getNextPageParam(lastPage) {
+            return lastPage.nextCursor
           },
-        ),
+        }),
       {
         wrapper,
       },
@@ -328,9 +320,12 @@ describe('usePrefetchInfiniteQuery', () => {
   })
 
   it('on success', async () => {
-    renderHook(() => hooks.usePrefetchInfiniteQuery({ keyword: '1' }, {}), {
-      wrapper,
-    })
+    renderHook(
+      () => hooks.usePrefetchInfiniteQuery({ input: { keyword: '1' } }),
+      {
+        wrapper,
+      },
+    )
 
     await waitFor(() =>
       expect(

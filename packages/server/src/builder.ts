@@ -2,12 +2,12 @@ import {
   ContractProcedure,
   type ContractRouter,
   type HTTPPath,
-  type IsEqual,
   type RouteOptions,
   type Schema,
   type SchemaOutput,
   isContractProcedure,
 } from '@orpc/contract'
+import type { IsEqual } from '@orpc/shared'
 import {
   type DecoratedMiddleware,
   type MapInputMiddleware,

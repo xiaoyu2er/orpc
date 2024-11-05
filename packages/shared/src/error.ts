@@ -1,4 +1,3 @@
-import type { HTTPStatus } from '@orpc/contract'
 import { ZodError, type ZodIssue } from 'zod'
 
 export const ORPC_ERROR_CODE_STATUSES = {
@@ -30,7 +29,7 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
   constructor(
     public zz$oe: {
       code: TCode
-      status?: HTTPStatus
+      status?: number
       message?: string
       cause?: unknown
     } & (undefined extends TData ? { data?: TData } : { data: TData }),
@@ -46,7 +45,7 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
     return this.zz$oe.code
   }
 
-  get status(): HTTPStatus {
+  get status(): number {
     return this.zz$oe.status ?? ORPC_ERROR_CODE_STATUSES[this.code]
   }
 
@@ -64,7 +63,7 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
 
   toJSON(): {
     code: TCode
-    status: HTTPStatus
+    status: number
     message: string
     data: TData
     issues?: ZodIssue[]
@@ -98,7 +97,7 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
 
     return new ORPCError({
       code: json.code as ORPCErrorCode,
-      status: json.status as HTTPStatus,
+      status: json.status as number,
       message: Reflect.get(json, 'message') as string,
       data: Reflect.get(json, 'data') as any,
       cause: 'issues' in json ? new ZodError(json.issues as any) : undefined,

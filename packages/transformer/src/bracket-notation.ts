@@ -1,4 +1,4 @@
-import { isPlainObject } from 'is-what'
+import { isPlainObject } from '@orpc/shared'
 
 /**
  * Serialize an object or array into a list of [key, value] pairs.

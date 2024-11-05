@@ -47,12 +47,13 @@
   },
   "dependencies": {
     "@orpc/contract": "workspace:*",
-    "@orpc/transformer": "workspace:*",
-    "superjson": "^2.2.1",
+    "@orpc/shared": "workspace:*",
+    "@orpc/transformer": "workspace:*"
+  },
+  "peerDependencies": {
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "hono": "^4.6.3",
-    "radash": "^12.1.0"
+    "hono": "^4.6.3"
   }
 }

@@ -3,7 +3,7 @@
   "compilerOptions": {
     "types": []
   },
-  "references": [{ "path": "../zod" }],
+  "references": [{ "path": "../shared" }, { "path": "../zod" }],
   "include": ["src"],
   "exclude": [
     "**/*.test.*",

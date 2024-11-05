@@ -1,6 +1,7 @@
 import { type ContractRouter, eachContractRouterLeaf } from '@orpc/contract'
 import { type Router, toContractRouter } from '@orpc/server'
-import type { JSONSchema } from 'json-schema-typed/draft-2019-09'
+import { findDeepMatches, mapEntries, omit } from '@orpc/shared'
+import type { JSONSchema } from 'json-schema-typed/draft-2020-12'
 import {
   type MediaTypeObject,
   type OpenAPIObject,
@@ -10,9 +11,6 @@ import {
   type RequestBodyObject,
   type ResponseObject,
 } from 'openapi3-ts/oas31'
-import { mapEntries, omit } from 'radash'
-import type { JsonSchema7Type } from 'zod-to-json-schema'
-import { findDeepMatches } from './object'
 import { extractJSONSchema, zodToJsonSchema } from './zod-to-json-schema'
 
 // Reference: https://spec.openapis.org/oas/v3.1.0.html#style-values
@@ -276,165 +274,6 @@ export function generateOpenAPI(
   })
 
   return builder.getSpec()
-}
-
-function hasFileUpload(schema: JsonSchema7Type): boolean {
-  if ('properties' in schema) {
-    for (const key in schema.properties) {
-      const property = schema.properties[key]!
-
-      if (hasFileUpload(property)) {
-        return true
-      }
-    }
-  }
-
-  if (
-    'patternProperties' in schema &&
-    typeof schema.patternProperties === 'object'
-  ) {
-    for (const key in schema.patternProperties) {
-      const property = (schema.patternProperties as any)[key]!
-
-      if (hasFileUpload(property)) {
-        return true
-      }
-    }
-  }
-
-  if (
-    'additionalProperties' in schema &&
-    typeof schema.additionalProperties === 'object'
-  ) {
-    if (hasFileUpload(schema.additionalProperties)) {
-      return true
-    }
-  }
-
-  if (
-    'items' in schema &&
-    typeof schema.items === 'object' &&
-    !Array.isArray(schema.items)
-  ) {
-    if (hasFileUpload(schema.items)) {
-      return true
-    }
-  }
-
-  if ('items' in schema && Array.isArray(schema.items)) {
-    for (const item of schema.items) {
-      if (hasFileUpload(item)) {
-        return true
-      }
-    }
-  }
-
-  if ('prefixItems' in schema && Array.isArray(schema.prefixItems)) {
-    const prefixItems = schema.prefixItems as JsonSchema7Type[] // TODO: support tuple
-
-    for (const item of prefixItems) {
-      if (hasFileUpload(item)) {
-        return true
-      }
-    }
-  }
-
-  if ('allOf' in schema && Array.isArray(schema.allOf)) {
-    for (const item of schema.allOf) {
-      if (!('type' in item)) continue
-
-      if (hasFileUpload(item)) {
-        return true
-      }
-    }
-  }
-
-  if ('anyOf' in schema && Array.isArray(schema.anyOf)) {
-    for (const item of schema.anyOf) {
-      if (!('type' in item)) continue
-
-      if (hasFileUpload(item)) {
-        return true
-      }
-    }
-  }
-
-  if ('oneOf' in schema && Array.isArray(schema.oneOf)) {
-    for (const item of schema.oneOf) {
-      if (!('type' in item)) continue
-
-      if (hasFileUpload(item)) {
-        return true
-      }
-    }
-  }
-
-  if (
-    'contentMediaType' in schema &&
-    typeof schema.contentMediaType === 'string' &&
-    'type' in schema &&
-    schema.type === 'string'
-  ) {
-    return true
-  }
-
-  return false
-}
-
-function separateRootFiles(
-  schema: JsonSchema7Type,
-  files: (JsonSchema7Type & {
-    type: 'string'
-    contentMediaType: string
-  })[] = [],
-): {
-  schema: JsonSchema7Type | undefined
-  files: (JsonSchema7Type & { type: 'string'; contentMediaType: string })[]
-} {
-  if ('anyOf' in schema && Array.isArray(schema.anyOf)) {
-    const anyOf = schema.anyOf
-      .map((item) => {
-        if (!('type' in item)) return item
-
-        return separateRootFiles(item, files).schema
-      })
-      .filter(Boolean)
-    const newSchema = {
-      ...schema,
-      anyOf: anyOf.length ? anyOf : undefined,
-    }
-
-    return { schema: newSchema, files }
-  }
-
-  if ('oneOf' in schema && Array.isArray(schema.oneOf)) {
-    const oneOf = schema.oneOf
-      .map((item) => {
-        if (!('type' in item)) return item
-
-        return separateRootFiles(item, files).schema
-      })
-      .filter(Boolean)
-
-    const newSchema = {
-      ...schema,
-      oneOf: oneOf.length ? oneOf : undefined,
-    }
-
-    return { schema: newSchema, files }
-  }
-
-  if (
-    'contentMediaType' in schema &&
-    typeof schema.contentMediaType === 'string' &&
-    'type' in schema &&
-    schema.type === 'string'
-  ) {
-    files.push(schema as any)
-    return { schema: undefined, files }
-  }
-
-  return { schema, files }
 }
 
 function isFileSchema(schema: unknown) {

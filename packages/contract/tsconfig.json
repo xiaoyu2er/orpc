@@ -3,6 +3,7 @@
   "compilerOptions": {
     "types": []
   },
+  "references": [{ "path": "../shared" }],
   "include": ["src"],
   "exclude": [
     "**/*.test.*",

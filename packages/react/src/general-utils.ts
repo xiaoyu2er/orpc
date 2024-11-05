@@ -1,4 +1,5 @@
 import type { Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { PartialDeep, SetOptional } from '@orpc/shared'
 import type {
   CancelOptions,
   DefaultError,
@@ -15,7 +16,6 @@ import type {
   SetDataOptions,
   Updater,
 } from '@tanstack/react-query'
-import type { PartialDeep, SetOptional } from 'type-fest'
 import { getMutationKeyFromPath, getQueryKeyFromPath } from './tanstack-key'
 import type {
   ORPCInvalidateQueryFilters,

@@ -1,6 +1,6 @@
+import { guard } from '@orpc/shared'
 import { getCustomZodType } from '@orpc/zod'
 import { isPlainObject } from 'is-what'
-import { guard } from 'radash'
 import {
   type EnumLike,
   type ZodArray,

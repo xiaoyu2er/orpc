@@ -8,9 +8,9 @@ import {
   type SchemaInput,
   type SchemaOutput,
 } from '@orpc/contract'
-import { ORPCError, type Promisable } from '@orpc/server'
+import { ORPCError, type Promisable } from '@orpc/shared'
+import { trim } from '@orpc/shared'
 import { ORPCDeserializer, ORPCSerializer } from '@orpc/transformer'
-import { trim } from 'radash'
 
 export interface ProcedureClient<
   TInputSchema extends Schema,

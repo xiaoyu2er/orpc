@@ -6,22 +6,21 @@ import {
   ORPC_HEADER_VALUE,
   standardizeHTTPPath,
 } from '@orpc/contract'
-import { LinearRouter } from 'hono/router/linear-router'
-import { RegExpRouter } from 'hono/router/reg-exp-router'
-import { isObject, trim } from 'radash'
+import { get, isPlainObject, trim } from '@orpc/shared'
+import { ORPCError } from '@orpc/shared'
 import {
   ORPCDeserializer,
   ORPCSerializer,
   OpenAPIDeserializer,
   OpenAPISerializer,
-  UnsupportedContentTypeError,
-} from '../../../transformer/src'
-import { ORPCError } from '../error'
+} from '@orpc/transformer'
+import { LinearRouter } from 'hono/router/linear-router'
+import { RegExpRouter } from 'hono/router/reg-exp-router'
 import { type WELL_DEFINED_PROCEDURE, isProcedure } from '../procedure'
 import { createProcedureCaller } from '../procedure-caller'
 import type { Router } from '../router'
 import type { Meta, Promisable } from '../types'
-import { get, hook } from '../utils'
+import { hook } from '../utils'
 
 export interface CreateFetchHandlerOptions<TRouter extends Router<any>> {
   router: TRouter
@@ -147,7 +146,7 @@ export function createFetchHandler<TRouter extends Router<any>>(
           if (
             params &&
             Object.keys(params).length > 0 &&
-            (input_ === undefined || isObject(input_))
+            (input_ === undefined || isPlainObject(input_))
           ) {
             return {
               ...params,
@@ -168,28 +167,12 @@ export function createFetchHandler<TRouter extends Router<any>>(
 
         const output = await caller(input)
 
-        try {
-          const { body, headers } = serializer.serialize(output)
+        const { body, headers } = serializer.serialize(output)
 
-          return new Response(body, {
-            status: 200,
-            headers,
-          })
-        } catch (e) {
-          if (e instanceof UnsupportedContentTypeError) {
-            throw new ORPCError({
-              code: 'NOT_ACCEPTABLE',
-              message: `The content-type ${accept} is not supported.`,
-              cause: e,
-            })
-          }
-
-          throw new ORPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Cannot serialize response.',
-            cause: e,
-          })
-        }
+        return new Response(body, {
+          status: 200,
+          headers,
+        })
       })
     } catch (e) {
       const error =

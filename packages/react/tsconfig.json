@@ -3,7 +3,11 @@
   "compilerOptions": {
     "types": []
   },
-  "references": [{ "path": "../contract" }, { "path": "../client" }],
+  "references": [
+    { "path": "../contract" },
+    { "path": "../client" },
+    { "path": "../shared" }
+  ],
   "include": ["src", "tests/path.test.ts"],
   "exclude": [
     "**/*.test.*",

@@ -1,5 +1,5 @@
+import { findDeepMatches } from '@orpc/shared'
 import type { Body, Serializer } from '../types'
-import { findDeepMatches } from '../utils/object'
 import * as SuperJSON from './super-json'
 
 export class ORPCSerializer implements Serializer {

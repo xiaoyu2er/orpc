@@ -1,10 +1,8 @@
+import { ORPCError, findDeepMatches } from '@orpc/shared'
 import cd from 'content-disposition'
 import { isPlainObject } from 'is-what'
 import * as BracketNotation from '../bracket-notation'
 import type { Body, Serializer } from '../types'
-import { findDeepMatches } from '../utils/object'
-
-export class UnsupportedContentTypeError extends Error {}
 
 export class OpenAPISerializer implements Serializer {
   constructor(
@@ -99,9 +97,10 @@ export class OpenAPISerializer implements Serializer {
       const contentType = payload_.type || 'application/octet-stream'
 
       if (accept && !accept.startsWith(contentType)) {
-        throw new UnsupportedContentTypeError(
-          `Unsupported content-type: ${accept}`,
-        )
+        throw new ORPCError({
+          code: 'NOT_ACCEPTABLE',
+          message: `Unsupported content-type: ${accept}`,
+        })
       }
 
       const fileName = payload_ instanceof File ? payload_.name : 'blob'
@@ -113,9 +112,10 @@ export class OpenAPISerializer implements Serializer {
     }
 
     if (accept) {
-      throw new UnsupportedContentTypeError(
-        `Unsupported content-type: ${accept}`,
-      )
+      throw new ORPCError({
+        code: 'NOT_ACCEPTABLE',
+        message: `Unsupported content-type: ${accept}`,
+      })
     }
 
     throw new Error(

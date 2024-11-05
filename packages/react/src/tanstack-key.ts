@@ -1,6 +1,6 @@
 import type { SchemaInput } from '@orpc/contract'
+import type { PartialDeep } from '@orpc/shared'
 import type { MutationKey, QueryKey } from '@tanstack/react-query'
-import type { PartialDeep } from 'type-fest'
 import { getORPCPath } from './orpc-path'
 import type { ProcedureHooks } from './procedure-hooks'
 import type {

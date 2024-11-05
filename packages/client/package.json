@@ -40,12 +40,14 @@
     "type:check": "tsc -b"
   },
   "devDependencies": {
-    "radash": "^12.1.0",
     "zod": "^3.23.8"
   },
   "dependencies": {
-    "@orpc/contract": "workspace:*",
-    "@orpc/server": "workspace:*",
+    "@orpc/shared": "workspace:*",
     "@orpc/transformer": "workspace:*"
+  },
+  "peerDependencies": {
+    "@orpc/contract": "workspace:*",
+    "@orpc/server": "workspace:*"
   }
 }

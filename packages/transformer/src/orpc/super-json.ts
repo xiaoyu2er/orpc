@@ -1,5 +1,5 @@
+import type { Segment } from '@orpc/shared'
 import { isPlainObject } from 'is-what'
-import type { Segment } from '../utils/object'
 
 export type JSONExtraType =
   | 'bigint'

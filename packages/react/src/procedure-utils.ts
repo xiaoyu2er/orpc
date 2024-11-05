@@ -1,5 +1,6 @@
 import type { ProcedureClient } from '@orpc/client'
 import type { Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { PartialOnUndefinedDeep, SetOptional } from '@orpc/shared'
 import type {
   DefaultError,
   EnsureInfiniteQueryDataOptions,
@@ -13,7 +14,6 @@ import type {
   SetDataOptions,
   Updater,
 } from '@tanstack/react-query'
-import type { PartialOnUndefinedDeep, SetOptional } from 'type-fest'
 import { getQueryKeyFromPath } from './tanstack-key'
 import type { SchemaInputForInfiniteQuery } from './types'
 

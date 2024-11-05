@@ -3,11 +3,11 @@
 
 import type { Deserializer } from '../types'
 
+import { parseJSONSafely } from '@orpc/shared'
 import cd from 'content-disposition'
 import type { ZodType } from 'zod'
 import * as BracketNotation from '../bracket-notation'
 import type {} from '../types'
-import { parseJSONSafely } from '../utils/json'
 import { zodCoerce } from './zod-coerce'
 
 export class OpenAPIDeserializer implements Deserializer {

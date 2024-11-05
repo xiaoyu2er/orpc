@@ -1,6 +1,6 @@
 import type { SchemaOutput } from '@orpc/contract'
+import type { Promisable } from '@orpc/shared'
 import type { InfiniteData } from '@tanstack/react-query'
-import type { Promisable } from 'type-fest'
 import {
   type UserCreateInputSchema,
   type UserFindInputSchema,

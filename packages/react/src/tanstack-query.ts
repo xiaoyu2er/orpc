@@ -1,8 +1,8 @@
+import type { SetOptional } from '@orpc/shared'
 import type {
   InvalidateQueryFilters,
   QueryFilters,
 } from '@tanstack/react-query'
-import type { SetOptional } from 'type-fest'
 import type { QueryType } from './tanstack-key'
 
 export interface ORPCAdditionalQueryFilters<TFilterInput> {

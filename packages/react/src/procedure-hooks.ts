@@ -1,5 +1,10 @@
 import type { Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import {
+  type PartialOnUndefinedDeep,
+  type SetOptional,
+  get,
+} from '@orpc/shared'
+import {
   type DefaultError,
   type FetchInfiniteQueryOptions,
   type FetchQueryOptions,
@@ -23,12 +28,10 @@ import {
   useSuspenseInfiniteQuery,
   useSuspenseQuery,
 } from '@tanstack/react-query'
-import type { PartialOnUndefinedDeep, SetOptional } from 'type-fest'
 import { orpcPathSymbol } from './orpc-path'
 import { type ORPCContext, useORPCContext } from './react-context'
 import { getMutationKeyFromPath, getQueryKeyFromPath } from './tanstack-key'
 import type { SchemaInputForInfiniteQuery } from './types'
-import { get } from './utils'
 
 export interface ProcedureHooks<
   TInputSchema extends Schema,

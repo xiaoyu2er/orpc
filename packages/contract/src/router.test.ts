@@ -1,15 +1,15 @@
-import { eachContractRouterLeaf, initORPCContract } from '.'
+import { eachContractRouterLeaf, ioc } from '.'
 
 test('each router leaf', () => {
-  const orpc = initORPCContract
+  const oc = ioc
 
   const router = {
-    ping: orpc.route({
+    ping: oc.route({
       method: 'GET',
       path: '/ping',
     }),
     user: {
-      find: orpc.route({
+      find: oc.route({
         method: 'GET',
         path: '/users/{id}',
       }),

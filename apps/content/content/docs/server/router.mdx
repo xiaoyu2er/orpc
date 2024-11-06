@@ -8,12 +8,12 @@ description: A powerful way to organize procedures with enhanced developer exper
 A router is a collection of procedures with utilities that help reduce code duplication and improve organization.
 
 ```ts
-export const appRouter = orpc.router({
+export const appRouter = ios.router({
     user: {
         find: findUser,
     },
 
-    nested: orpc
+    nested: ios
         .prefix('/users')  // Prefix will be concatenated with paths defined in route(...)
         .use(() => {})     // Apply middleware to all routes in this router
         .router({
@@ -30,7 +30,7 @@ All router functionality is fully typed and begins with the `orpc` instance, pro
 You can add a prefix to all routes in a router:
 
 ```ts
-const userRouter = orpc
+const userRouter = ios
     .prefix('/users')
     .router({
         find: findUserHandler,
@@ -43,7 +43,7 @@ const userRouter = orpc
 Apply middleware to all procedures in a router:
 
 ```ts
-const protectedRouter = orpc
+const protectedRouter = ios
     .use(authMiddleware)
     .router({
         sensitiveData: getSensitiveDataHandler,
@@ -56,10 +56,10 @@ const protectedRouter = orpc
 Create hierarchical route structures:
 
 ```ts
-const apiRouter = orpc.router({
+const apiRouter = ios.router({
     users: userRouter,
     posts: postRouter,
-    comments: orpc.prefix('comments').router(commentRouter),
+    comments: ios.prefix('comments').router(commentRouter),
 })
 ```
 
@@ -70,7 +70,7 @@ In oRPC, a router is essentially a nested object of procedures.
 The router syntax provides a convenient way to apply common configurations to multiple procedures:
 
 ```ts
-const router = orpc.prefix('/users').router({
+const router = ios.prefix('/users').router({
     find: findUserHandler,
     create: createUserHandler,
 })

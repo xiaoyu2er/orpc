@@ -1,12 +1,12 @@
 import { createORPCClient } from '@orpc/client'
-import { initORPC } from '@orpc/server'
+import { ios } from '@orpc/server'
 import { createFetchHandler } from '@orpc/server/fetch'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import React, { Suspense } from 'react'
 import { z } from 'zod'
 import { createORPCReact } from '../src'
 
-export const orpcServer = initORPC
+export const orpcServer = ios
 
 export const ping = orpcServer.handler(() => 'pong')
 

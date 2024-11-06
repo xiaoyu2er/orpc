@@ -1,14 +1,14 @@
 import { z } from 'zod'
-import { initORPCContract, isContractProcedure } from '.'
+import { ioc, isContractProcedure } from '.'
 import type { DecoratedContractProcedure } from './procedure'
 
 test('prefix method', () => {
-  const orpc = initORPCContract
-  const p1 = orpc.route({
+  const os = ioc
+  const p1 = os.route({
     method: 'GET',
     path: '/ping',
   })
-  const p2 = orpc.input(z.object({}))
+  const p2 = os.input(z.object({}))
 
   expect(p1.prefix('/prefix').zz$cp.path).toEqual('/prefix/ping')
   expect(p2.prefix('/prefix').zz$cp.path).toEqual(undefined)
@@ -18,7 +18,7 @@ test('prefix method', () => {
 })
 
 test('route method', () => {
-  const p = initORPCContract
+  const p = ioc
     .route({
       method: 'POST',
     })
@@ -47,7 +47,7 @@ test('route method', () => {
 
 test('input method', () => {
   const schema = z.string()
-  const p = initORPCContract.route({}).input(schema)
+  const p = ioc.route({}).input(schema)
 
   expectTypeOf(p).toEqualTypeOf<
     DecoratedContractProcedure<typeof schema, undefined>
@@ -62,7 +62,7 @@ test('input method', () => {
 
 test('output method', () => {
   const schema = z.string()
-  const p = initORPCContract.route({}).output(schema)
+  const p = ioc.route({}).output(schema)
 
   expectTypeOf(p).toEqualTypeOf<
     DecoratedContractProcedure<undefined, typeof schema>
@@ -77,7 +77,7 @@ test('output method', () => {
 
 it('addTags method', () => {
   const schema = z.string()
-  const p = initORPCContract.route({}).output(schema)
+  const p = ioc.route({}).output(schema)
 
   expect(p.zz$cp.tags).toBe(undefined)
 
@@ -91,13 +91,13 @@ it('addTags method', () => {
 })
 
 test('isContractProcedure function', () => {
-  const orpc = initORPCContract
+  const oc = ioc
 
-  expect(isContractProcedure(orpc)).toBe(false)
-  expect(isContractProcedure(orpc.router({}))).toBe(false)
-  expect(isContractProcedure(orpc.route({}))).toBe(true)
+  expect(isContractProcedure(oc)).toBe(false)
+  expect(isContractProcedure(oc.router({}))).toBe(false)
+  expect(isContractProcedure(oc.route({}))).toBe(true)
 
-  expect(
-    isContractProcedure(orpc.router({ prefix: orpc.route({}) }).prefix),
-  ).toBe(true)
+  expect(isContractProcedure(oc.router({ prefix: oc.route({}) }).prefix)).toBe(
+    true,
+  )
 })

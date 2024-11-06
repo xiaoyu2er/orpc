@@ -1,15 +1,15 @@
-import { ORPCError, initORPC } from '@orpc/server'
+import { ORPCError, ios } from '@orpc/server'
 import { createFetchHandler } from '@orpc/server/fetch'
 import { z } from 'zod'
 import { createProcedureClient } from './procedure'
 
 describe('createProcedureClient', () => {
-  const orpc = initORPC
+  const os = ios
   const schema = z.object({
     value: z.string(),
   })
-  const ping = orpc.input(schema).handler((_, __, { path }) => path)
-  const router = orpc.router({
+  const ping = os.input(schema).handler((_, __, { path }) => path)
+  const router = os.router({
     ping,
     nested: {
       ping,
@@ -109,8 +109,8 @@ describe('createProcedureClient', () => {
   })
 
   it('transformer', async () => {
-    const router = orpc.router({
-      ping: orpc
+    const router = os.router({
+      ping: os
         .input(z.object({ value: z.date() }))
         .handler((input) => input.value),
     })
@@ -137,8 +137,8 @@ describe('createProcedureClient', () => {
   })
 
   it('error include data', async () => {
-    const router = orpc.router({
-      ping: orpc.handler((input) => {
+    const router = os.router({
+      ping: os.handler((input) => {
         throw new ORPCError({
           code: 'BAD_GATEWAY',
           data: {
@@ -179,11 +179,11 @@ describe('createProcedureClient', () => {
 })
 
 describe('upload file', () => {
-  const router = initORPC.router({
-    signal: initORPC.input(z.instanceof(Blob)).handler((input) => {
+  const router = ios.router({
+    signal: ios.input(z.instanceof(Blob)).handler((input) => {
       return input
     }),
-    multiple: initORPC
+    multiple: ios
       .input(
         z.object({ first: z.instanceof(Blob), second: z.instanceof(Blob) }),
       )

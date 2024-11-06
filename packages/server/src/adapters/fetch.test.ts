@@ -1,17 +1,17 @@
 import { ORPC_HEADER, ORPC_HEADER_VALUE } from '@orpc/contract'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { ORPCError, initORPC } from '..'
+import { ORPCError, ios } from '..'
 import { createFetchHandler } from './fetch'
 
-const router = initORPC.router({
-  throw: initORPC.handler(() => {
+const router = ios.router({
+  throw: ios.handler(() => {
     throw new Error('test')
   }),
-  ping: initORPC.handler(() => {
+  ping: ios.handler(() => {
     return 'ping'
   }),
-  ping2: initORPC.route({ method: 'GET', path: '/ping2' }).handler(() => {
+  ping2: ios.route({ method: 'GET', path: '/ping2' }).handler(() => {
     return 'ping2'
   }),
 })
@@ -19,10 +19,10 @@ const router = initORPC.router({
 const handler = createFetchHandler({ router })
 
 describe('simple', () => {
-  const orpc = initORPC.context<{ auth?: boolean }>()
-  const router = orpc.router({
-    ping: orpc.handler(async () => 'pong'),
-    ping2: orpc
+  const os = ios.context<{ auth?: boolean }>()
+  const router = os.router({
+    ping: os.handler(async () => 'pong'),
+    ping2: os
       .route({ method: 'GET', path: '/ping2' })
       .handler(async () => 'pong2'),
   })
@@ -90,7 +90,6 @@ describe('procedure throw error', () => {
   it('unknown error', async () => {
     const response = await handler({
       request: new Request('https://local.com/throw', { method: 'POST' }),
-      context: undefined,
     })
 
     expect(response.status).toBe(500)
@@ -102,8 +101,8 @@ describe('procedure throw error', () => {
   })
 
   it('orpc error', async () => {
-    const router = initORPC.router({
-      ping: initORPC.handler(() => {
+    const router = ios.router({
+      ping: ios.handler(() => {
         throw new ORPCError({ code: 'TIMEOUT' })
       }),
     })
@@ -112,7 +111,6 @@ describe('procedure throw error', () => {
 
     const response = await handler({
       request: new Request('https://local.com/ping', { method: 'POST' }),
-      context: undefined,
     })
 
     expect(response.status).toBe(408)
@@ -124,8 +122,8 @@ describe('procedure throw error', () => {
   })
 
   it('orpc error with data', async () => {
-    const router = initORPC.router({
-      ping: initORPC.handler(() => {
+    const router = ios.router({
+      ping: ios.handler(() => {
         throw new ORPCError({
           code: 'PAYLOAD_TOO_LARGE',
           message: 'test',
@@ -138,7 +136,6 @@ describe('procedure throw error', () => {
 
     const response = await handler({
       request: new Request('https://local.com/ping', { method: 'POST' }),
-      context: undefined,
     })
 
     expect(response.status).toBe(413)
@@ -151,15 +148,15 @@ describe('procedure throw error', () => {
   })
 
   it('orpc error with custom status', async () => {
-    const router = initORPC.router({
-      ping: initORPC.handler(() => {
+    const router = ios.router({
+      ping: ios.handler(() => {
         throw new ORPCError({
           code: 'PAYLOAD_TOO_LARGE',
           status: 100,
         })
       }),
 
-      ping2: initORPC.handler(() => {
+      ping2: ios.handler(() => {
         throw new ORPCError({
           code: 'PAYLOAD_TOO_LARGE',
           status: 488,
@@ -171,7 +168,6 @@ describe('procedure throw error', () => {
 
     const response = await handler({
       request: new Request('https://local.com/ping', { method: 'POST' }),
-      context: undefined,
     })
 
     expect(response.status).toBe(500)
@@ -183,7 +179,6 @@ describe('procedure throw error', () => {
 
     const response2 = await handler({
       request: new Request('https://local.com/ping2', { method: 'POST' }),
-      context: undefined,
     })
 
     expect(response2.status).toBe(488)
@@ -195,8 +190,8 @@ describe('procedure throw error', () => {
   })
 
   it('input validation error', async () => {
-    const router = initORPC.router({
-      ping: initORPC
+    const router = ios.router({
+      ping: ios
         .input(z.object({}))
         .output(z.string())
         .handler(() => {
@@ -208,7 +203,6 @@ describe('procedure throw error', () => {
 
     const response = await handler({
       request: new Request('https://local.com/ping', { method: 'POST' }),
-      context: undefined,
     })
 
     expect(response.status).toBe(400)
@@ -229,8 +223,8 @@ describe('procedure throw error', () => {
   })
 
   it('output validation error', async () => {
-    const router = initORPC.router({
-      ping: initORPC
+    const router = ios.router({
+      ping: ios
         .input(z.string())
         .output(z.string())
         .handler(() => {
@@ -245,7 +239,6 @@ describe('procedure throw error', () => {
         method: 'POST',
         body: '"hi"',
       }),
-      context: undefined,
     })
 
     expect(response.status).toBe(500)
@@ -277,7 +270,6 @@ describe('hooks', () => {
       request: new Request('http://localhost/orpc/ping', {
         method: 'POST',
       }),
-      context: undefined,
     })
 
     expect(onSuccess).toHaveBeenCalledTimes(1)
@@ -308,7 +300,6 @@ describe('hooks', () => {
       request: new Request('http://localhost/orpc/throw', {
         method: 'POST',
       }),
-      context: undefined,
     })
 
     expect(onSuccess).toHaveBeenCalledTimes(0)
@@ -324,11 +315,11 @@ describe('hooks', () => {
 })
 
 describe('file upload', () => {
-  const router = initORPC.router({
-    signal: initORPC.input(z.instanceof(Blob)).handler((input) => {
+  const router = ios.router({
+    signal: ios.input(z.instanceof(Blob)).handler((input) => {
       return input
     }),
-    multiple: initORPC
+    multiple: ios
       .input(
         z.object({ first: z.instanceof(Blob), second: z.instanceof(Blob) }),
       )
@@ -358,7 +349,6 @@ describe('file upload', () => {
           [ORPC_HEADER]: ORPC_HEADER_VALUE,
         },
       }),
-      context: { auth: true },
     })
 
     expect(response.status).toBe(200)
@@ -388,7 +378,6 @@ describe('file upload', () => {
           [ORPC_HEADER]: ORPC_HEADER_VALUE,
         },
       }),
-      context: { auth: true },
     })
 
     expect(response.status).toBe(200)

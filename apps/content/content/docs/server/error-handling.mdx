@@ -4,11 +4,11 @@ description: How to intercept, handle or log errors inside oRPC
 ---
 
 ```ts
-import { ORPCError, initORPC } from '@orpc/server'
+import { ORPCError, ios } from '@orpc/server'
 
-const orpc = initORPC
+const os = ios
 
-const ping = orpc
+const ping = os
     .use((input, context, meta) => {
         meta.onError(async (error) => {
             if(!(error instanceof ORPCError)) return;

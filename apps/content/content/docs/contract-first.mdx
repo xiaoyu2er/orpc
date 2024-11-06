@@ -24,14 +24,17 @@ Start by defining your API contract:
 
 ```ts
 import { z } from 'zod'
-import { initORPCContract } from '@orpc/contract'
+import { ioc } from '@orpc/contract'
 
-const orpc = initORPCContract
+const oc = ioc
 
-export const appRouterContract = orpc.router({
-    ping: orpc
+export const appRouterContract = oc.router({
+    ping: oc
         .route({method: 'GET', 'path': '/ping'}) // optional
         .input(z.object({ name: z.string() })) // optional
+        .output(z.object({ message: z.string() })) // optional
+    
+    pong: oc.route({method: 'GET', 'path': '/pong'}) // optional
         .output(z.object({ message: z.string() })) // optional
 })
 ```
@@ -41,13 +44,17 @@ export const appRouterContract = orpc.router({
 With your contract defined, implement the server logic:
 
 ```ts
-import { initORPC } from '@orpc/server'
+import { ios } from '@orpc/server'
 import { appRouterContract } from './contract'
 
-const orpc = initORPC.contract(appRouterContract)
+const os = ios.contract(appRouterContract)
 
-export const appRouter = orpc.router({
-    ping: orpc.ping.handler(async (input, context, meta) => ({
+export const appRouter = os.router({
+    ping: os.ping.handler(async (input, context, meta) => ({
+        message: `pong ${input.name}`
+    })),
+
+    pong: os.contract(appRouterContract.pong).handler(async (input, context, meta) => ({
         message: `pong ${input.name}`
     })),
 })

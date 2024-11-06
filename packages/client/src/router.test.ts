@@ -1,16 +1,16 @@
-import { initORPCContract } from '@orpc/contract'
-import { initORPC } from '@orpc/server'
+import { ioc } from '@orpc/contract'
+import { ios } from '@orpc/server'
 import { createFetchHandler } from '@orpc/server/fetch'
 import { z } from 'zod'
 import { createRouterClient } from './router'
 
 describe('createRouterClient', () => {
-  const orpc = initORPC
+  const os = ios
   const schema = z.object({
     value: z.string(),
   })
-  const ping = orpc.input(schema).handler((_, __, { path }) => path)
-  const router = orpc.router({
+  const ping = os.input(schema).handler((_, __, { path }) => path)
+  const router = os.router({
     ping,
     nested: {
       unique: ping,
@@ -29,15 +29,15 @@ describe('createRouterClient', () => {
   }
 
   it('types with contract router', () => {
-    const orpc = initORPCContract
+    const oc = ioc
     const schema = z.object({
       value: z.string(),
     })
 
-    const ping = orpc.input(schema)
-    const pong = orpc.output(schema)
-    const peng = orpc.route({})
-    const router = orpc.router({
+    const ping = oc.input(schema)
+    const pong = oc.output(schema)
+    const peng = oc.route({})
+    const router = oc.router({
       ping,
       pong,
       peng,
@@ -67,11 +67,11 @@ describe('createRouterClient', () => {
     const schema = z.object({
       value: z.string(),
     })
-    const ping = orpc.input(schema).handler(() => '')
-    const pong = orpc.output(schema).handler(() => ({ value: 'string' }))
-    const peng = orpc.route({}).handler(() => ({ age: 1244 }))
+    const ping = os.input(schema).handler(() => '')
+    const pong = os.output(schema).handler(() => ({ value: 'string' }))
+    const peng = os.route({}).handler(() => ({ age: 1244 }))
 
-    const router = orpc.router({
+    const router = os.router({
       ping,
       pong,
       peng,
@@ -122,8 +122,8 @@ describe('createRouterClient', () => {
   })
 
   it('transformer', async () => {
-    const router = orpc.router({
-      ping: orpc
+    const router = os.router({
+      ping: os
         .input(z.object({ value: z.date() }))
         .handler((input) => input.value),
     })

@@ -1,13 +1,13 @@
-import { initORPCContract } from '@orpc/contract'
+import { ioc } from '@orpc/contract'
 import { z } from 'zod'
-import { RouterImplementer, initORPC } from '.'
+import { RouterImplementer, ios } from '.'
 
-const cp1 = initORPCContract.input(z.string()).output(z.string())
-const cp2 = initORPCContract.output(z.string())
-const cp3 = initORPCContract.route({ method: 'GET', path: '/test' })
-const cr = initORPCContract.router({
+const cp1 = ioc.input(z.string()).output(z.string())
+const cp2 = ioc.output(z.string())
+const cp3 = ioc.route({ method: 'GET', path: '/test' })
+const cr = ioc.router({
   p1: cp1,
-  nested: initORPCContract.router({
+  nested: ioc.router({
     p2: cp2,
   }),
   nested2: {
@@ -15,17 +15,17 @@ const cr = initORPCContract.router({
   },
 })
 
-const orpc = initORPC.context<{ auth: boolean }>().contract(cr)
+const os = ios.context<{ auth: boolean }>().contract(cr)
 
-const p1 = orpc.p1.handler(() => {
+const p1 = os.p1.handler(() => {
   return 'dinwwwh'
 })
 
-const p2 = orpc.nested.p2.handler(() => {
+const p2 = os.nested.p2.handler(() => {
   return 'dinwwwh'
 })
 
-const p3 = orpc.nested2.p3.handler(() => {
+const p3 = os.nested2.p3.handler(() => {
   return 'dinwwwh'
 })
 
@@ -37,7 +37,7 @@ it('required all procedure match', () => {
   implementer.router({
     p1: p1,
     nested: {
-      p2: initORPC.contract(cp2).handler(() => ''),
+      p2: ios.contract(cp2).handler(() => ''),
     },
     nested2: {
       p3: p3,
@@ -47,7 +47,7 @@ it('required all procedure match', () => {
   expect(() => {
     implementer.router({
       // @ts-expect-error p1 is mismatch
-      p1: initORPC.handler(() => {}),
+      p1: ios.handler(() => {}),
       nested: {
         p2: p2,
       },
@@ -60,7 +60,7 @@ it('required all procedure match', () => {
   expect(() => {
     implementer.router({
       // @ts-expect-error p1 is mismatch
-      p1: initORPC,
+      p1: ios,
       nested: {
         p2: p2,
       },
@@ -73,7 +73,7 @@ it('required all procedure match', () => {
   expect(() => {
     implementer.router({
       // Not allow manual specification
-      p1: initORPC
+      p1: ios
         .input(z.string())
         .output(z.string())
         .handler(() => 'dinwwwh'),

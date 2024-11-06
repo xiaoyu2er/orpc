@@ -17,7 +17,4 @@ export * from './router-implementer'
 export * from './types'
 export * from './utils'
 
-export const initORPC = new Builder<
-  undefined | Record<string, unknown>,
-  undefined
->()
+export const ios = new Builder<undefined | Record<string, unknown>, undefined>()

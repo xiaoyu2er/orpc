@@ -1,6 +1,6 @@
 import { DecoratedContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
-import { type Meta, initORPC } from '.'
+import { type Meta, ios } from '.'
 import { DecoratedProcedure, isProcedure } from './procedure'
 
 it('isProcedure', () => {
@@ -38,7 +38,7 @@ it('isProcedure', () => {
 })
 
 test('prefix method', () => {
-  const p = initORPC.context<{ auth: boolean }>().handler(() => {
+  const p = ios.context<{ auth: boolean }>().handler(() => {
     return 'dinwwwh'
   })
 
@@ -46,7 +46,7 @@ test('prefix method', () => {
 
   expect(p2.zz$p.contract.zz$cp.path).toBe(undefined)
 
-  const p3 = initORPC
+  const p3 = ios
     .context<{ auth: boolean }>()
     .route({ path: '/test1' })
     .handler(() => {
@@ -59,7 +59,7 @@ test('prefix method', () => {
 
 describe('use middleware', () => {
   it('infer types', () => {
-    const p1 = initORPC
+    const p1 = ios
       .context<{ auth: boolean }>()
       .use(() => {
         return { context: { postId: 'string' } }
@@ -104,7 +104,7 @@ describe('use middleware', () => {
   it('can map input', () => {
     const mid = (input: { id: number }) => {}
 
-    initORPC.input(z.object({ postId: z.number() })).use(mid, (input) => {
+    ios.input(z.object({ postId: z.number() })).use(mid, (input) => {
       expectTypeOf(input).toEqualTypeOf<{ postId: number }>()
 
       return {
@@ -113,10 +113,10 @@ describe('use middleware', () => {
     })
 
     // @ts-expect-error mismatch input
-    initORPC.input(z.object({ postId: z.number() })).use(mid)
+    ios.input(z.object({ postId: z.number() })).use(mid)
 
     // @ts-expect-error mismatch input
-    initORPC.input(z.object({ postId: z.number() })).use(mid, (input) => {
+    ios.input(z.object({ postId: z.number() })).use(mid, (input) => {
       return {
         wrong: input.postId,
       }
@@ -128,7 +128,7 @@ describe('use middleware', () => {
     const mid2 = vi.fn()
     const mid3 = vi.fn()
 
-    const p1 = initORPC.use(mid1).handler(() => 'dinwwwh')
+    const p1 = ios.use(mid1).handler(() => 'dinwwwh')
     const p2 = p1.use(mid2).use(mid3)
 
     expect(p2.zz$p.middlewares).toEqual([mid3, mid2, mid1])

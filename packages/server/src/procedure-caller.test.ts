@@ -1,13 +1,13 @@
 import { z } from 'zod'
-import { createProcedureCaller, initORPC } from '.'
+import { createProcedureCaller, ios } from '.'
 
 describe('createProcedureCaller', () => {
   let internal = false
   let path = ['ping']
   let context = { auth: true }
 
-  const orpc = initORPC.context<{ auth?: boolean }>()
-  const procedure = orpc
+  const os = ios.context<{ auth?: boolean }>()
+  const procedure = os
     .input(z.object({ value: z.string().transform((v) => Number(v)) }))
     .output(z.object({ value: z.number().transform((v) => v.toString()) }))
     .handler((input, context, meta) => {
@@ -79,7 +79,7 @@ describe('createProcedureCaller', () => {
   })
 
   it('without validate and schema', () => {
-    const procedure = orpc.handler(() => {
+    const procedure = os.handler(() => {
       return { value: true }
     })
 
@@ -101,7 +101,7 @@ describe('createProcedureCaller', () => {
     const ref = { value: 0 }
 
     const mid1 = vi.fn(
-      orpc.middleware((input: { id: string }, context, meta) => {
+      os.middleware((input: { id: string }, context, meta) => {
         expect(input).toEqual({ id: '1' })
 
         expect(ref.value).toBe(0)
@@ -126,7 +126,7 @@ describe('createProcedureCaller', () => {
     )
 
     const mid2 = vi.fn(
-      orpc.middleware((input, context, meta) => {
+      os.middleware((input, context, meta) => {
         expect(ref.value).toBe(1)
         ref.value++
 
@@ -142,7 +142,7 @@ describe('createProcedureCaller', () => {
       }),
     )
 
-    const ping = orpc
+    const ping = os
       .input(z.object({ id: z.string() }))
       .use(mid1)
       .use(mid2)

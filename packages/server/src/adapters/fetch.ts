@@ -6,7 +6,12 @@ import {
   ORPC_HEADER_VALUE,
   standardizeHTTPPath,
 } from '@orpc/contract'
-import { get, isPlainObject, trim } from '@orpc/shared'
+import {
+  type PartialOnUndefinedDeep,
+  get,
+  isPlainObject,
+  trim,
+} from '@orpc/shared'
 import { ORPCError } from '@orpc/shared'
 import {
   ORPCDeserializer,
@@ -121,7 +126,7 @@ export function createFetchHandler<TRouter extends Router<any>>(
           internal: false,
         }
 
-        await options.hooks?.(requestOptions.context, meta)
+        await options.hooks?.(requestOptions.context as any, meta)
 
         const deserializer = isORPCTransformer
           ? new ORPCDeserializer()
@@ -198,16 +203,11 @@ function openAPIPathToRouterPath(path: HTTPPath): string {
   return standardizeHTTPPath(path).replace(/\{([^}]+)\}/g, ':$1')
 }
 
-export interface FetchHandlerOptions<TRouter extends Router<any>> {
+export type FetchHandlerOptions<TRouter extends Router<any>> = {
   /**
    * The request need to be handled.
    */
   request: Request
-
-  /**
-   * The context used to handle the request.
-   */
-  context: TRouter extends Router<infer UContext> ? UContext : never
 
   /**
    * Remove the prefix from the request path.
@@ -216,7 +216,12 @@ export interface FetchHandlerOptions<TRouter extends Router<any>> {
    * @example /api
    */
   prefix?: string
-}
+} & PartialOnUndefinedDeep<{
+  /**
+   * The context used to handle the request.
+   */
+  context: TRouter extends Router<infer UContext> ? UContext : never
+}>
 
 export interface FetchHandler<TRouter extends Router<any>> {
   (options: FetchHandlerOptions<TRouter>): Promise<Response>

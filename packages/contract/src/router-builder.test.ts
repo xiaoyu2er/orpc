@@ -1,31 +1,25 @@
 import { z } from 'zod'
-import {
-  ContractProcedure,
-  DecoratedContractProcedure,
-  initORPCContract,
-} from '.'
+import { ContractProcedure, DecoratedContractProcedure, ioc } from '.'
 import { ContractRouterBuilder } from './router-builder'
 
 test('prefix method', () => {
-  expect(initORPCContract.prefix('/1').prefix('/2').zz$crb.prefix).toEqual(
-    '/1/2',
-  )
+  expect(ioc.prefix('/1').prefix('/2').zz$crb.prefix).toEqual('/1/2')
 })
 
 test('tags method', () => {
-  expect(initORPCContract.tags('1').tags('2').zz$crb.tags).toEqual(['1', '2'])
+  expect(ioc.tags('1').tags('2').zz$crb.tags).toEqual(['1', '2'])
 })
 
 test('define a router', () => {
-  const orpc = initORPCContract
-  const ping = orpc.route({ method: 'GET', path: '/ping' })
-  const pong = orpc.input(z.object({ id: z.string() }))
+  const oc = ioc
+  const ping = oc.route({ method: 'GET', path: '/ping' })
+  const pong = oc.input(z.object({ id: z.string() }))
 
-  const router = orpc.router({
+  const router = oc.router({
     ping,
     pong,
 
-    internal: orpc
+    internal: oc
       .prefix('/internal')
       .tags('internal')
       .router({

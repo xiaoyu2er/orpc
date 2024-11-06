@@ -6,12 +6,12 @@ description: Beyond the basics, oRPC offers more advanced features
 ## Internal Caller
 
 ```ts
-import { initORPC, createRouterCaller } from '@orpc/server'
+import { ios, createRouterCaller } from '@orpc/server'
 
-const orpc = initORPC
+const os = ios
 
-const appRouter = orpc.router({
-    ping: orpc.handler(() => 'pong')
+const appRouter = os.router({
+    ping: os.handler(() => 'pong')
 })
 
 const caller = createRouterCaller({
@@ -22,33 +22,4 @@ const caller = createRouterCaller({
 
 const result = await caller.ping() // result is 'pong'
 ```
-
-## Transformer
-
-oRPC supports [SuperJSON](https://github.com/flightcontrolhq/superjson) as a transformer out of the box.
-If you want to use other transformers, you can use the `transformer` option.
-
-```ts
-const newTransformer = {
-    stringify: (data) => SuperJSON.stringify(data),
-    parse: (data) => SuperJSON.parse(data),
-}
-
-// on server
-fetchHandler({
-    request,
-    handler,
-    prefix: '/',
-    context: {},
-    transformer: newTransformer,
-})
-
-// on client
-const client = createORPCClient({
-  baseURL: 'http://localhost:2026',
-  transformer: newTransformer
-})
-```
-
-The transformer in client must be the same as the one in server.
 

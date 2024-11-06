@@ -1,11 +1,11 @@
 import { z } from 'zod'
-import { type DecoratedContractProcedure, initORPCContract } from '.'
+import { type DecoratedContractProcedure, ioc } from '.'
 
 describe('define a procedure', () => {
-  const orpc = initORPCContract
+  const oc = ioc
 
   test('use route method', () => {
-    const procedure = orpc.route({
+    const procedure = oc.route({
       method: 'GET',
       path: '/users/{id}',
       deprecated: true,
@@ -33,7 +33,7 @@ describe('define a procedure', () => {
       id: z.string(),
     })
 
-    const procedure = orpc.input(schema, { id: '123' }, { user: { id: '123' } })
+    const procedure = oc.input(schema, { id: '123' }, { user: { id: '123' } })
 
     expectTypeOf(procedure).toEqualTypeOf<
       DecoratedContractProcedure<typeof schema, undefined>
@@ -49,11 +49,7 @@ describe('define a procedure', () => {
   test('use output method', () => {
     const schema = z.object({ id: z.string() })
 
-    const procedure = orpc.output(
-      schema,
-      { id: '123' },
-      { user: { id: '123' } },
-    )
+    const procedure = oc.output(schema, { id: '123' }, { user: { id: '123' } })
 
     expectTypeOf(procedure).toEqualTypeOf<
       DecoratedContractProcedure<undefined, typeof schema>
@@ -69,19 +65,19 @@ describe('define a procedure', () => {
 
 describe('define a router', () => {
   it('simple', () => {
-    const orpc = initORPCContract
+    const oc = ioc
 
     const schema1 = z.string()
     const schema2 = z.object({ id: z.string() })
-    const ping = orpc.output(schema1)
-    const find = orpc.output(schema2)
+    const ping = oc.output(schema1)
+    const find = oc.output(schema2)
 
-    const router = orpc.router({
+    const router = oc.router({
       ping,
       user: {
         find,
       },
-      user2: orpc.router({
+      user2: oc.router({
         find,
       }),
     })
@@ -108,19 +104,19 @@ describe('define a router', () => {
   })
 
   it('with prefix', () => {
-    const orpc = initORPCContract
+    const oc = ioc
 
     const schema1 = z.string()
     const schema2 = z.object({ id: z.string() })
-    const ping = orpc.output(schema1)
-    const find = orpc.output(schema2)
+    const ping = oc.output(schema1)
+    const find = oc.output(schema2)
 
-    const router = orpc.router({
+    const router = oc.router({
       ping: ping.prefix('/ping'),
       user: {
         find,
       },
-      user2: orpc
+      user2: oc
         .prefix('/internal')
         .prefix('/user2')
         .router({
@@ -150,19 +146,19 @@ describe('define a router', () => {
   })
 
   it('with tags', () => {
-    const orpc = initORPCContract
+    const oc = ioc
 
     const schema1 = z.string()
     const schema2 = z.object({ id: z.string() })
-    const ping = orpc.output(schema1)
-    const find = orpc.output(schema2)
+    const ping = oc.output(schema1)
+    const find = oc.output(schema2)
 
-    const router = orpc.router({
+    const router = oc.router({
       ping: ping.prefix('/ping'),
       user: {
         find,
       },
-      user2: orpc
+      user2: oc
         .tags('user')
         .tags('internal')
         .router({

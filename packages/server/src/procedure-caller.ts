@@ -1,5 +1,5 @@
 import type { SchemaInput, SchemaOutput } from '@orpc/contract'
-import { ORPCError } from '@orpc/shared'
+import { ORPCError } from '@orpc/shared/error'
 import type { Middleware } from './middleware'
 import type { Procedure } from './procedure'
 import type { Context, Hooks, Meta, Promisable } from './types'

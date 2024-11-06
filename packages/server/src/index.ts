@@ -1,11 +1,7 @@
 import { Builder } from './builder'
 
 export * from './builder'
-export {
-  ORPCError,
-  type ORPCErrorCode,
-  ORPC_ERROR_CODE_STATUSES,
-} from '@orpc/shared'
+export * from '@orpc/shared/error'
 export * from './middleware'
 export * from './procedure'
 export * from './procedure-caller'

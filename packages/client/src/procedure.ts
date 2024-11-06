@@ -8,8 +8,9 @@ import {
   type SchemaInput,
   type SchemaOutput,
 } from '@orpc/contract'
-import { ORPCError, type Promisable } from '@orpc/shared'
+import type { Promisable } from '@orpc/shared'
 import { trim } from '@orpc/shared'
+import { ORPCError } from '@orpc/shared/error'
 import { ORPCDeserializer, ORPCSerializer } from '@orpc/transformer'
 
 export interface ProcedureClient<

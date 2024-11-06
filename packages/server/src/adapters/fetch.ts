@@ -12,7 +12,7 @@ import {
   isPlainObject,
   trim,
 } from '@orpc/shared'
-import { ORPCError } from '@orpc/shared'
+import { ORPCError } from '@orpc/shared/error'
 import {
   ORPCDeserializer,
   ORPCSerializer,

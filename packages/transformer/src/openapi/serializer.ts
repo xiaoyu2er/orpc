@@ -1,8 +1,11 @@
-import { ORPCError, findDeepMatches } from '@orpc/shared'
+import { findDeepMatches } from '@orpc/shared'
+import { ORPCError } from '@orpc/shared/error'
 import cd from 'content-disposition'
+import { safeParse } from 'fast-content-type-parse'
 import { isPlainObject } from 'is-what'
+import wcmatch from 'wildcard-match'
 import * as BracketNotation from '../bracket-notation'
-import type { Body, Serializer } from '../types'
+import type { Serialized, Serializer } from '../types'
 
 export class OpenAPISerializer implements Serializer {
   constructor(
@@ -11,116 +14,141 @@ export class OpenAPISerializer implements Serializer {
     } = {},
   ) {}
 
-  serialize(payload: unknown): { body: Body; headers: Headers } {
-    const accept = this.options.accept
-    const headers = new Headers()
-    const payload_ = preSerialize(payload)
+  serialize(payload: unknown): Serialized {
+    const typeMatchers = (
+      this.options.accept?.split(',').map(safeParse) ?? [{ type: '*/*' }]
+    ).map(({ type }) => wcmatch(type))
 
+    if (payload instanceof Blob) {
+      const contentType = this.getBlobContentType(payload)
+
+      if (typeMatchers.some((isMatch) => isMatch(contentType))) {
+        return this.serializeAsBlob(payload)
+      }
+    }
+
+    const payload_ = preSerialize(payload)
     const hasBlobs =
       findDeepMatches((v) => v instanceof Blob, payload_).values.length > 0
 
-    if (
-      accept?.startsWith('multipart/form-data') ||
-      (!accept && !(payload_ instanceof Blob) && hasBlobs)
-    ) {
-      const form = new FormData()
-
-      for (const [path, value] of BracketNotation.serialize(payload_)) {
-        if (
-          typeof value === 'string' ||
-          typeof value === 'number' ||
-          typeof value === 'bigint' ||
-          typeof value === 'boolean'
-        ) {
-          form.append(path, value.toString())
-        } else if (value === null) {
-          form.append(path, 'null')
-        } else if (value instanceof Date && !Number.isNaN(value.valueOf())) {
-          form.append(
-            path,
-            Number.isNaN(value.getTime())
-              ? 'Invalid Date'
-              : value.toISOString(),
-          )
-        } else if (value instanceof Blob) {
-          form.append(path, value)
-        }
-      }
-
-      return { body: form, headers }
-    }
-
-    if (accept?.startsWith('application/www-form-urlencoded')) {
-      const params = new URLSearchParams()
-
-      for (const [path, value] of BracketNotation.serialize(payload_)) {
-        if (
-          typeof value === 'string' ||
-          typeof value === 'number' ||
-          typeof value === 'bigint' ||
-          typeof value === 'boolean'
-        ) {
-          params.append(path, value.toString())
-        } else if (value === null) {
-          params.append(path, 'null')
-        } else if (value instanceof Date && !Number.isNaN(value.valueOf())) {
-          params.append(
-            path,
-            Number.isNaN(value.getTime())
-              ? 'Invalid Date'
-              : value.toISOString(),
-          )
-        }
-      }
-      headers.set('Content-Type', 'application/x-www-form-urlencoded')
-
-      return { body: params.toString(), headers }
-    }
-
-    if (
-      accept?.startsWith('application/json') ||
-      (!accept && !(payload_ instanceof Blob))
-    ) {
-      const body = JSON.stringify(payload_, (_, value) => {
-        if (typeof value === 'bigint') {
-          return value.toString()
-        }
-
-        return value
-      })
-      headers.set('Content-Type', 'application/json')
-
-      return { body, headers }
-    }
-
-    if (payload_ instanceof Blob) {
-      const contentType = payload_.type || 'application/octet-stream'
-
-      if (accept && !accept.startsWith(contentType)) {
-        throw new ORPCError({
-          code: 'NOT_ACCEPTABLE',
-          message: `Unsupported content-type: ${accept}`,
-        })
-      }
-
-      const fileName = payload_ instanceof File ? payload_.name : 'blob'
-
-      headers.set('Content-Type', contentType)
-      headers.set('Content-Disposition', cd(fileName))
-
-      return { body: payload_, headers }
-    }
-
-    if (accept) {
-      throw new ORPCError({
-        code: 'NOT_ACCEPTABLE',
-        message: `Unsupported content-type: ${accept}`,
-      })
-    }
-
-    throw new Error(
-      `Cannot serialize payload with typeof ${typeof payload_}. This error should not never happen. Please report this issue to the maintainers.`,
+    const isExpectedMultipartFormData = typeMatchers.some((isMatch) =>
+      isMatch('multipart/form-data'),
     )
+
+    if (hasBlobs && isExpectedMultipartFormData) {
+      return this.serializeAsMultipartFormData(payload_)
+    }
+
+    if (typeMatchers.some((isMatch) => isMatch('application/json'))) {
+      return this.serializeAsJSON(payload_)
+    }
+
+    if (
+      typeMatchers.some((isMatch) =>
+        isMatch('application/x-www-form-urlencoded'),
+      )
+    ) {
+      return this.serializeAsURLEncoded(payload_)
+    }
+
+    if (isExpectedMultipartFormData) {
+      return this.serializeAsMultipartFormData(payload_)
+    }
+
+    throw new ORPCError({
+      code: 'NOT_ACCEPTABLE',
+      message: `Unsupported content-type: ${this.options.accept}`,
+    })
+  }
+
+  private serializeAsJSON(payload: unknown): Serialized {
+    const body = JSON.stringify(payload, (_, value) => {
+      if (typeof value === 'bigint') {
+        return value.toString()
+      }
+
+      return value
+    })
+
+    return {
+      body,
+      headers: new Headers({ 'Content-Type': 'application/json' }),
+    }
+  }
+
+  private serializeAsMultipartFormData(payload: unknown): Serialized {
+    const form = new FormData()
+
+    for (const [path, value] of BracketNotation.serialize(payload)) {
+      if (
+        typeof value === 'string' ||
+        typeof value === 'number' ||
+        typeof value === 'bigint' ||
+        typeof value === 'boolean'
+      ) {
+        form.append(path, value.toString())
+      } else if (value === null) {
+        form.append(path, 'null')
+      } else if (value instanceof Date && !Number.isNaN(value.valueOf())) {
+        form.append(
+          path,
+          Number.isNaN(value.getTime()) ? 'Invalid Date' : value.toISOString(),
+        )
+      } else if (value instanceof Blob) {
+        form.append(path, value)
+      }
+    }
+
+    return {
+      body: form,
+      headers: new Headers(),
+    }
+  }
+
+  private serializeAsURLEncoded(payload: unknown): Serialized {
+    const params = new URLSearchParams()
+
+    for (const [path, value] of BracketNotation.serialize(payload)) {
+      if (
+        typeof value === 'string' ||
+        typeof value === 'number' ||
+        typeof value === 'bigint' ||
+        typeof value === 'boolean'
+      ) {
+        params.append(path, value.toString())
+      } else if (value === null) {
+        params.append(path, 'null')
+      } else if (value instanceof Date && !Number.isNaN(value.valueOf())) {
+        params.append(
+          path,
+          Number.isNaN(value.getTime()) ? 'Invalid Date' : value.toISOString(),
+        )
+      }
+    }
+
+    return {
+      body: params.toString(),
+      headers: new Headers({
+        'Content-Type': 'application/x-www-form-urlencoded',
+      }),
+    }
+  }
+
+  private serializeAsBlob(payload: Blob): Serialized {
+    const contentType = this.getBlobContentType(payload)
+    const fileName = payload instanceof File ? payload.name : 'blob'
+
+    return {
+      body: payload,
+      headers: new Headers({
+        'Content-Type': contentType,
+        'Content-Disposition': cd(fileName),
+      }),
+    }
+  }
+
+  private getBlobContentType(blob: Blob): string {
+    return blob.type || 'application/octet-stream'
   }
 }
 

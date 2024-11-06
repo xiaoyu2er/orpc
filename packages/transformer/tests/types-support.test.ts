@@ -42,9 +42,9 @@ const transformers: {
     isFileSupport: false,
   },
   {
-    name: 'OpenAPITransformer application/www-form-urlencoded',
+    name: 'OpenAPITransformer application/x-www-form-urlencoded',
     createSerializer: () =>
-      new OpenAPISerializer({ accept: 'application/www-form-urlencoded' }),
+      new OpenAPISerializer({ accept: 'application/x-www-form-urlencoded' }),
     createDeserializer: (schema) => new OpenAPIDeserializer({ schema }),
     isFileSupport: false,
   },

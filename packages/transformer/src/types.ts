@@ -2,22 +2,17 @@
 
 export type Body = string | FormData | Blob
 
-export interface Transformer {
-  serialize(payload: unknown): {
-    body: Body
-    headers: Headers
-  }
-
-  deserialize(re: Request | Response): Promise<unknown>
+export interface Serialized {
+  body: Body
+  headers: Headers
 }
 
 export interface Serializer {
-  serialize(payload: unknown): {
-    body: Body
-    headers: Headers
-  }
+  serialize(payload: unknown): Serialized
 }
 
+export type Deserialized = Promise<unknown>
+
 export interface Deserializer {
-  deserialize(re: Request | Response): Promise<unknown>
+  deserialize(re: Request | Response): Deserialized
 }

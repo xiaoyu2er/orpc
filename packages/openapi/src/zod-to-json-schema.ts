@@ -1,6 +1,10 @@
 import { getCustomZodFileMimeType, getCustomZodType } from '@orpc/zod'
 import escapeStringRegexp from 'escape-string-regexp'
-import { Format, type JSONSchema } from 'json-schema-typed/draft-2020-12'
+import {
+  Format,
+  type JSONSchema,
+  type keywords,
+} from 'json-schema-typed/draft-2020-12'
 import {
   type EnumLike,
   type KeySchema,
@@ -37,6 +41,37 @@ import {
   type ZodUnion,
   type ZodUnionOptions,
 } from 'zod'
+
+export const NON_LOGIC_KEYWORDS = [
+  // Core Documentation Keywords
+  '$anchor',
+  '$comment',
+  '$defs',
+  '$id',
+  'title',
+  'description',
+
+  // Value Keywords
+  'default',
+  'deprecated',
+  'examples',
+
+  // Metadata Keywords
+  '$schema',
+  'definitions', // Legacy, but still used
+  'readOnly',
+  'writeOnly',
+
+  // Display and UI Hints
+  'contentMediaType',
+  'contentEncoding',
+  'format',
+
+  // Custom Extensions
+  '$vocabulary',
+  '$dynamicAnchor',
+  '$dynamicRef',
+] satisfies (typeof keywords)[number][]
 
 export const UNSUPPORTED_JSON_SCHEMA = { not: {} }
 export const UNDEFINED_JSON_SCHEMA = { const: 'undefined' }
@@ -548,10 +583,14 @@ export function extractJSONSchema(
     return { schema, matches }
   }
 
-  // TODO: ignore when has another logic keyword
   // TODO: $ref
 
-  if (schema.anyOf) {
+  if (
+    schema.anyOf &&
+    Object.keys(schema).every(
+      (k) => k === 'anyOf' || NON_LOGIC_KEYWORDS.includes(k as any),
+    )
+  ) {
     const anyOf = schema.anyOf
       .map((s) => extractJSONSchema(s, check, matches).schema)
       .filter((v) => !!v)
@@ -569,10 +608,14 @@ export function extractJSONSchema(
     }
   }
 
-  // TODO: ignore when has another logic keyword
   // TODO: $ref
 
-  if (schema.oneOf) {
+  if (
+    schema.oneOf &&
+    Object.keys(schema).every(
+      (k) => k === 'oneOf' || NON_LOGIC_KEYWORDS.includes(k as any),
+    )
+  ) {
     const oneOf = schema.oneOf
       .map((s) => extractJSONSchema(s, check, matches).schema)
       .filter((v) => !!v)

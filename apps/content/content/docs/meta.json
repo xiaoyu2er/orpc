@@ -2,6 +2,7 @@
   "pages": [
     "index",
     "contract-first",
+    "playground",
     "architecture",
     "comparisons",
     "motivation",

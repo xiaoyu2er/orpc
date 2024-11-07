@@ -224,7 +224,7 @@ export function zodToJsonSchema(
 
       const json: JSONSchema = { type: 'string', pattern: '^-?[0-9]+$' }
 
-      // TODO: support checks
+      // WARN: ignore checks
 
       return json
     }
@@ -240,7 +240,7 @@ export function zodToJsonSchema(
 
       const jsonSchema: JSONSchema = { type: 'string', format: Format.Date }
 
-      // TODO: support checks
+      // WARN: ignore checks
 
       return jsonSchema
     }
@@ -556,7 +556,6 @@ export function extractJSONSchema(
       .map((s) => extractJSONSchema(s, check, matches).schema)
       .filter((v) => !!v)
 
-    // TODO: ignore when conflict condition with root
     if (anyOf.length === 1 && typeof anyOf[0] === 'object') {
       return { schema: { ...schema, anyOf: undefined, ...anyOf[0] }, matches }
     }
@@ -578,7 +577,6 @@ export function extractJSONSchema(
       .map((s) => extractJSONSchema(s, check, matches).schema)
       .filter((v) => !!v)
 
-    // TODO: ignore when conflict condition with root
     if (oneOf.length === 1 && typeof oneOf[0] === 'object') {
       return { schema: { ...schema, oneOf: undefined, ...oneOf[0] }, matches }
     }

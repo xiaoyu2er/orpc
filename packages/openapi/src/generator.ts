@@ -14,9 +14,6 @@ import {
 import { extractJSONSchema, zodToJsonSchema } from './zod-to-json-schema'
 
 // Reference: https://spec.openapis.org/oas/v3.1.0.html#style-values
-// TODO: support query as array
-// TODO: support query as object
-// TODO: support params as array
 
 export interface GenerateOpenAPIOptions {
   /**

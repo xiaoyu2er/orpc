@@ -65,7 +65,7 @@ const types = [
   ['string', z.literal('string').or(object({}))],
   [1234, z.number().or(object({}))],
   [1234, z.literal(1234)],
-  [Number.NaN, z.nan()], // TODO: fix NaN on new Map as key
+  [Number.NaN, z.nan()],
   [true, z.boolean()],
   [true, z.literal(true)],
   [false, z.boolean()],

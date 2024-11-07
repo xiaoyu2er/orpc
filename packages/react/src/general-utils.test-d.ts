@@ -83,8 +83,7 @@ describe('getInfiniteQueriesData', () => {
 
 describe('setQueriesData', () => {
   it('simple', () => {
-    // @ts-expect-error TODO: fix types for old
-    user_utils.setQueriesData({}, (old) => {
+    user_utils.setQueriesData({}, (old: unknown) => {
       expectTypeOf(old).toMatchTypeOf<unknown | undefined>()
 
       return 'can return any value'

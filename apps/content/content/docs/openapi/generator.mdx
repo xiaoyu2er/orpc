@@ -13,13 +13,11 @@ npm i @orpc/openapi
 
 ```ts
 import { z } from 'zod'
-import { initORPC } from '@orpc/server'
+import { ios } from '@orpc/server'
 
-const orpc = initORPC
-
-export const router = orpc.router({
+export const router = ios.router({
     user: {
-        find: orpc
+        find: ios
                 .route({
                     method: 'GET', 
                     path: '/user/{id}', // use parameters id

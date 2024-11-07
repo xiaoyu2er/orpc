@@ -14,18 +14,16 @@ npm i @orpc/contract
 The API almost the same as the `server` except that contract will not define the handler.
 
 ```ts
-import { initORPCContract } from '@orpc/contract'
+import { ioc } from '@orpc/contract'
 
-const orpc = initORPCContract
-
-export const appRouterContract = orpc.router({
-    ping: orpc
+export const appRouterContract = ioc.router({
+    ping: ioc
         .route({ method: 'GET', path: '/ping' }) // optional
         .input(z.object({ value: z.string() }))   // optional
         .output(z.string()),                      // optional
 
-    user: orpc.prefix('/users').router({
-        find: orpc 
+    user: ioc.prefix('/users').router({
+        find: ioc 
             .input(z.object({ id: z.string() }))
             .output(z.object({ id: z.string(), name: z.string() })),
     })
@@ -37,15 +35,15 @@ export const appRouterContract = orpc.router({
 All `server` features are available, except the input, output, and route parts, which are defined in the contract.
 
 ```ts
-import { initORPC } from '@orpc/server'
+import { ios } from '@orpc/server'
 import { appRouterContract } from './contract'
 
-const orpc = initORPC.contract(appRouterContract)
+const os = ios.contract(appRouterContract)
 
-export const appRouter = orpc.router({
-    ping: orpc.ping.handler(({ input }) => input.value),
+export const appRouter = os.router({
+    ping: os.ping.handler(({ input }) => input.value),
     user: {
-        find: orpc.user.find.handler(({ input }) => {
+        find: os.user.find.handler(({ input }) => {
             return {
                 id: input.id,
                 name: 'dinwwwh',

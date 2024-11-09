@@ -6,7 +6,7 @@ import {
   type SchemaOutput,
   isContractProcedure,
 } from '@orpc/contract'
-import type { Schema } from '@orpc/contract'
+import type { RouteOptions, Schema } from '@orpc/contract'
 import {
   type MapInputMiddleware,
   type Middleware,
@@ -87,6 +87,23 @@ export class DecoratedProcedure<
       ...this.zz$p,
       contract: DecoratedContractProcedure.decorate(this.zz$p.contract).prefix(
         prefix,
+      ),
+    })
+  }
+
+    route(
+    opts: RouteOptions,
+  ): DecoratedProcedure<
+    TContext,
+    TExtraContext,
+    TInputSchema,
+    TOutputSchema,
+    THandlerOutput
+  > {
+    return new DecoratedProcedure({
+      ...this.zz$p,
+      contract: DecoratedContractProcedure.decorate(this.zz$p.contract).route(
+        opts,
       ),
     })
   }

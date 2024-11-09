@@ -37,6 +37,105 @@ it('isProcedure', () => {
   expect(null).not.toSatisfy(isProcedure)
 })
 
+describe('route method', () => {
+  it('sets route options correctly', () => {
+    const p = ios
+      .context<{ auth: boolean }>()
+      .handler(() => {
+        return 'test'
+      })
+
+    const p2 = p.route({ path: '/test', method: 'GET' })
+    
+    expect(p2.zz$p.contract.zz$cp.path).toBe('/test')
+    expect(p2.zz$p.contract.zz$cp.method).toBe('GET')
+  })
+
+  it('preserves existing context and handler', () => {
+    const handler = () => 'test'
+    const p = ios
+      .context<{ auth: boolean }>()
+      .handler(handler)
+
+    const p2 = p.route({ path: '/test' })
+    
+    expect(p2.zz$p.handler).toBe(handler)
+    // Context type is preserved through the route method
+    expectTypeOf(p2).toEqualTypeOf<
+      DecoratedProcedure<{ auth: boolean }, undefined, undefined, undefined, string>
+    >()
+  })
+
+  it('works with prefix method', () => {
+    const p = ios
+      .context<{ auth: boolean }>()
+      .route({ path: '/api', method: 'POST' })
+      .handler(() => 'test')
+
+    const p2 = p.prefix('/v1')
+    
+    expect(p2.zz$p.contract.zz$cp.path).toBe('/v1/api')
+    expect(p2.zz$p.contract.zz$cp.method).toBe('POST')
+  })
+
+  it('works with middleware', () => {
+    const mid = vi.fn(() => ({ context: { userId: '1' } }))
+    
+    const p = ios
+      .context<{ auth: boolean }>()
+      .route({ path: '/test' })
+      .use(mid)
+      .handler((input, context) => {
+        expectTypeOf(context).toEqualTypeOf<
+          { auth: boolean } & { userId: string }
+        >()
+        return 'test'
+      })
+
+    expect(p.zz$p.contract.zz$cp.path).toBe('/test')
+    expect(p.zz$p.middlewares).toEqual([mid])
+  })
+
+  it('overrides existing route options', () => {
+    const p = ios
+      .context<{ auth: boolean }>()
+      .route({ path: '/test1', method: 'GET' })
+      .handler(() => 'test')
+
+    const p2 = p.route({ path: '/test2', method: 'POST' })
+    
+    expect(p2.zz$p.contract.zz$cp.path).toBe('/test2')
+    expect(p2.zz$p.contract.zz$cp.method).toBe('POST')
+  })
+
+  it('preserves input/output schemas', () => {
+    const inputSchema = z.object({ id: z.number() })
+    const outputSchema = z.string()
+    const p = ios
+    .context<{ auth: boolean }>()
+      .input(inputSchema)
+      .output(outputSchema)
+      .route({ path: '/test' })
+      .handler((input) => {
+        expectTypeOf(input).toEqualTypeOf<{ id: number }>()
+        return 'test'
+      })
+
+    const p2 = p.route({ path: '/test2' })
+    
+    // Type checking that schemas are preserved
+    expectTypeOf(p2).toEqualTypeOf<
+      DecoratedProcedure<
+        { auth: boolean },
+        undefined,
+        typeof inputSchema,
+        typeof outputSchema,
+        string
+      >
+    >()
+  })
+})
+
 test('prefix method', () => {
   const p = ios.context<{ auth: boolean }>().handler(() => {
     return 'dinwwwh'

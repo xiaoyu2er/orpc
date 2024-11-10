@@ -34,10 +34,10 @@ importers:
         version: 25.0.1
       tsup:
         specifier: ^8.3.0
-        version: 8.3.0(@microsoft/api-extractor@7.47.9(@types/node@22.7.9))(jiti@2.1.0)(postcss@8.4.47)(tsx@4.19.2)(typescript@5.6.3)(yaml@2.6.0)
+        version: 8.3.0(@microsoft/api-extractor@7.47.9(@types/node@22.7.9))(jiti@2.1.0)(postcss@8.4.47)(tsx@4.19.2)(typescript@5.7.1-rc)(yaml@2.6.0)
       typescript:
-        specifier: ^5.6.2
-        version: 5.6.3
+        specifier: 5.7.1-rc
+        version: 5.7.1-rc
       vite:
         specifier: ^5.4.8
         version: 5.4.10(@types/node@22.7.9)
@@ -3692,6 +3692,11 @@ packages:
 
   typescript@5.6.3:
     resolution: {integrity: sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
+  typescript@5.7.1-rc:
+    resolution: {integrity: sha512-d6m+HT78uZtyUbXbUyIvuJ6kXCTSJEfy+2pZSUwt9d6JZ0kOMNDwhIILfV5FnaxMwVa48Yfw4sK0ISC4Qyq5tw==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -7628,7 +7633,7 @@ snapshots:
 
   tslib@2.8.0: {}
 
-  tsup@8.3.0(@microsoft/api-extractor@7.47.9(@types/node@22.7.9))(jiti@2.1.0)(postcss@8.4.47)(tsx@4.19.2)(typescript@5.6.3)(yaml@2.6.0):
+  tsup@8.3.0(@microsoft/api-extractor@7.47.9(@types/node@22.7.9))(jiti@2.1.0)(postcss@8.4.47)(tsx@4.19.2)(typescript@5.7.1-rc)(yaml@2.6.0):
     dependencies:
       bundle-require: 5.0.0(esbuild@0.23.1)
       cac: 6.7.14
@@ -7649,7 +7654,7 @@ snapshots:
     optionalDependencies:
       '@microsoft/api-extractor': 7.47.9(@types/node@22.7.9)
       postcss: 8.4.47
-      typescript: 5.6.3
+      typescript: 5.7.1-rc
     transitivePeerDependencies:
       - jiti
       - supports-color
@@ -7670,6 +7675,8 @@ snapshots:
     optional: true
 
   typescript@5.6.3: {}
+
+  typescript@5.7.1-rc: {}
 
   undici-types@6.19.8: {}
 

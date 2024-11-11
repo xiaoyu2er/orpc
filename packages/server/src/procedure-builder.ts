@@ -3,6 +3,7 @@ import {
   DecoratedContractProcedure,
   type RouteOptions,
   type Schema,
+  type SchemaInput,
   type SchemaOutput,
 } from '@orpc/contract'
 import type { MapInputMiddleware, Middleware } from './middleware'
@@ -44,8 +45,8 @@ export class ProcedureBuilder<
 
   input<USchema extends Schema = undefined>(
     schema: USchema,
-    example?: SchemaOutput<USchema>,
-    examples?: Record<string, SchemaOutput<USchema>>,
+    example?: SchemaInput<USchema>,
+    examples?: Record<string, SchemaInput<USchema>>,
   ): ProcedureBuilder<TContext, TExtraContext, USchema, TOutputSchema> {
     return new ProcedureBuilder({
       ...this.zz$pb,

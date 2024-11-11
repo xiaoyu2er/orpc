@@ -1,4 +1,10 @@
-import type { HTTPMethod, HTTPPath, Schema, SchemaOutput } from './types'
+import type {
+  HTTPMethod,
+  HTTPPath,
+  Schema,
+  SchemaInput,
+  SchemaOutput,
+} from './types'
 
 export interface RouteOptions {
   method?: HTTPMethod
@@ -77,8 +83,8 @@ export class DecoratedContractProcedure<
 
   input<USchema extends Schema>(
     schema: USchema,
-    example?: SchemaOutput<USchema>,
-    examples?: Record<string, SchemaOutput<USchema>>,
+    example?: SchemaInput<USchema>,
+    examples?: Record<string, SchemaInput<USchema>>,
   ): DecoratedContractProcedure<USchema, TOutputSchema> {
     return new DecoratedContractProcedure({
       ...this.zz$cp,

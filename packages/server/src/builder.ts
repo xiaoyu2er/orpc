@@ -4,6 +4,7 @@ import {
   type HTTPPath,
   type RouteOptions,
   type Schema,
+  type SchemaInput,
   type SchemaOutput,
   isContractProcedure,
 } from '@orpc/contract'
@@ -107,8 +108,8 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
 
   input<USchema extends Schema = undefined>(
     schema: USchema,
-    example?: SchemaOutput<USchema>,
-    examples?: Record<string, SchemaOutput<USchema>>,
+    example?: SchemaInput<USchema>,
+    examples?: Record<string, SchemaInput<USchema>>,
   ): ProcedureBuilder<TContext, TExtraContext, USchema, undefined> {
     return new ProcedureBuilder({
       middlewares: this.zz$b.middlewares,

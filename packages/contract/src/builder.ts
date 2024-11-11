@@ -1,7 +1,7 @@
 import { DecoratedContractProcedure, type RouteOptions } from './procedure'
 import type { ContractRouter } from './router'
 import { ContractRouterBuilder } from './router-builder'
-import type { HTTPPath, Schema, SchemaOutput } from './types'
+import type { HTTPPath, Schema, SchemaInput, SchemaOutput } from './types'
 
 export class ContractBuilder {
   prefix(prefix: HTTPPath): ContractRouterBuilder {
@@ -26,8 +26,8 @@ export class ContractBuilder {
 
   input<USchema extends Schema>(
     schema: USchema,
-    example?: SchemaOutput<USchema>,
-    examples?: Record<string, SchemaOutput<USchema>>,
+    example?: SchemaInput<USchema>,
+    examples?: Record<string, SchemaInput<USchema>>,
   ): DecoratedContractProcedure<USchema, undefined> {
     return new DecoratedContractProcedure({
       InputSchema: schema,

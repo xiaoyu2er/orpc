@@ -3,7 +3,7 @@ import { z } from 'zod'
 import {
   type Builder,
   type DecoratedMiddleware,
-  DecoratedProcedure,
+  type DecoratedProcedure,
   type Meta,
   ProcedureBuilder,
   ProcedureImplementer,
@@ -139,7 +139,7 @@ test('router method', () => {
     os.router.handler(() => {
       return { name: '' }
     }),
-  ).toBeInstanceOf(DecoratedProcedure)
+  ).toSatisfy(isProcedure)
 })
 
 describe('define procedure builder', () => {

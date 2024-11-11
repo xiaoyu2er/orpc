@@ -14,7 +14,11 @@ import {
   type Middleware,
   decorateMiddleware,
 } from './middleware'
-import { DecoratedProcedure, type ProcedureHandler } from './procedure'
+import {
+  type DecoratedProcedure,
+  type ProcedureHandler,
+  decorateProcedure,
+} from './procedure'
 import { ProcedureBuilder } from './procedure-builder'
 import { ProcedureImplementer } from './procedure-implementer'
 import type { HandledRouter, Router } from './router'
@@ -151,13 +155,15 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
     undefined,
     UHandlerOutput
   > {
-    return new DecoratedProcedure({
-      middlewares: this.zz$b.middlewares,
-      contract: new ContractProcedure({
-        InputSchema: undefined,
-        OutputSchema: undefined,
-      }),
-      handler,
+    return decorateProcedure({
+      zz$p: {
+        middlewares: this.zz$b.middlewares,
+        contract: new ContractProcedure({
+          InputSchema: undefined,
+          OutputSchema: undefined,
+        }),
+        handler,
+      },
     })
   }
 

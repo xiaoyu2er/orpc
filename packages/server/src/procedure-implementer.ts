@@ -5,7 +5,11 @@ import {
   type Middleware,
   decorateMiddleware,
 } from './middleware'
-import { DecoratedProcedure, type ProcedureHandler } from './procedure'
+import {
+  type DecoratedProcedure,
+  type ProcedureHandler,
+  decorateProcedure,
+} from './procedure'
 import type { Context, MergeContext } from './types'
 
 export class ProcedureImplementer<
@@ -88,10 +92,12 @@ export class ProcedureImplementer<
     TOutputSchema,
     UHandlerOutput
   > {
-    return new DecoratedProcedure({
-      middlewares: this.zz$pi.middlewares,
-      contract: this.zz$pi.contract,
-      handler,
+    return decorateProcedure({
+      zz$p: {
+        middlewares: this.zz$pi.middlewares,
+        contract: this.zz$pi.contract,
+        handler,
+      },
     })
   }
 }

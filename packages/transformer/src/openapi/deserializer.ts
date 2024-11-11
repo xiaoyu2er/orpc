@@ -64,10 +64,8 @@ export class OpenAPIDeserializer implements Deserializer {
 
     if (contentType.startsWith('multipart/form-data')) {
       const form = await re.formData()
-      const data = BracketNotation.deserialize([...form.entries()])
-      return this.options.schema
-        ? zodCoerce(this.options.schema, data, { bracketNotation: true })
-        : data
+
+      return this.deserializeAsFormData(form)
     }
 
     const blob = await re.blob()
@@ -75,5 +73,12 @@ export class OpenAPIDeserializer implements Deserializer {
       type: blob.type,
     })
     return this.options.schema ? zodCoerce(this.options.schema, data) : data
+  }
+
+  deserializeAsFormData(form: FormData): unknown {
+    const data = BracketNotation.deserialize([...form.entries()])
+    return this.options.schema
+      ? zodCoerce(this.options.schema, data, { bracketNotation: true })
+      : data
   }
 }

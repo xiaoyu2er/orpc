@@ -4,7 +4,7 @@ import {
   type Middleware,
   decorateMiddleware,
 } from './middleware'
-import { DecoratedProcedure, isProcedure } from './procedure'
+import { decorateProcedure, isProcedure } from './procedure'
 import type { HandledRouter, Router } from './router'
 import type { Context, MergeContext } from './types'
 
@@ -101,12 +101,14 @@ export class RouterBuilder<
           item.zz$p.contract,
         ).addTags(...(this.zz$rb.tags ?? []))
 
-        handled[key] = new DecoratedProcedure({
-          ...item.zz$p,
-          contract: this.zz$rb.prefix
-            ? contract.prefix(this.zz$rb.prefix)
-            : contract,
-          middlewares,
+        handled[key] = decorateProcedure({
+          zz$p: {
+            ...item.zz$p,
+            contract: this.zz$rb.prefix
+              ? contract.prefix(this.zz$rb.prefix)
+              : contract,
+            middlewares,
+          },
         })
       } else {
         handled[key] = this.router(item as any)

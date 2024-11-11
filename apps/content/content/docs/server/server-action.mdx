@@ -1,0 +1,141 @@
+---
+title: Server Actions
+description: Use oRPC to improve your server actions.
+---
+
+# Server Actions
+
+Server actions allow you to use oRPC procedures directly as form handlers in frameworks that support server actions (like Next.js). They provide automatic type coercion and FormData handling out of the box.
+
+## Context Requirements
+
+Server actions are automatically enabled for procedures that have either:
+- No context requirements (`undefined` context)
+- Optional context (`Context | undefined`)
+
+```ts
+// This creates a server action since context is undefined
+const actionProcedure = ios
+  .input(z.object({ id: z.number() }))
+  .handler(() => 'result')
+
+// This also creates a server action since context is optional
+const optionalContextProcedure = ios
+  .context<{ auth: boolean } | undefined>()
+  .handler(() => 'result')
+
+// This won't be a server action since it requires context
+const regularProcedure = ios
+  .context<{ auth: boolean }>()
+  .handler(() => 'result')
+```
+
+## Usage Examples
+
+### Define Server Action
+
+Create type-safe server actions with full input validation:
+
+```ts
+"use server"
+
+import { ios } from '@orpc/server'
+import { z } from 'zod'
+import { redirect } from "next/navigation"
+
+export const createUser = ios
+  .input(z.object({ 
+    id: z.number(),
+    profile: z.object({
+      name: z.string(),
+      age: z.number(),
+      avatar: z.instanceof(File),
+    }),
+    tags: z.array(z.string())
+  }))
+  .handler(async (input) => {
+    // input is fully typed
+    
+    // Save user to database
+    // Save avatar to storage
+
+    redirect('/users')
+  })
+```
+
+### Form Integration
+
+Use with React forms and get automatic type coercion:
+
+```tsx
+import { createUser } from './actions'
+
+export default function CreateUserForm() {
+  return (
+    <form action={createUser}>
+      <input name="id" type="number" />
+      {/* Nested objects use square bracket notation */}
+      <input name="profile[name]" type="text" />
+      <input name="profile[age]" type="number" />
+      <input name="profile[avatar]" type="file" accept="image/*" />
+      {/* Arrays use empty square brackets */}
+      <input name="tags[]" type="text" />
+      <input name="tags[]" type="text" />
+      <button type="submit">Create User</button>
+    </form>
+  )
+}
+```
+
+### Direct Client Calls
+
+Call server actions directly from client components:
+
+```tsx
+"use client"
+
+import { createUser } from './actions'
+
+export default function CreateUserButton() {
+  async function handleClick() {
+    // Call with plain object - types are preserved
+    await createUser({
+      id: 123,
+      profile: {
+        name: 'John',
+        age: 30,
+        avatar: document.querySelector('input[name="profile[avatar]"]').files[0]
+      },
+      tags: ['developer', 'typescript']
+    })
+  }
+
+  return <button onClick={handleClick}>Create User</button>
+}
+```
+
+### Using FormData
+
+You can also manually construct FormData:
+
+```tsx
+"use client"
+
+import { createUser } from './actions'
+
+export default function CreateUserWithFormData() {
+  async function handleSubmit() {
+    const formData = new FormData()
+    formData.set('id', '123')
+    formData.set('profile[name]', 'John')
+    formData.set('profile[age]', '30')
+    formData.set('profile[avatar]', document.querySelector('input[name="profile[avatar]"]').files[0])
+    formData.set('tags[]', 'developer')
+    formData.set('tags[]', 'typescript')
+
+    await createUser(formData)
+  }
+
+  return <button onClick={handleSubmit}>Create User</button>
+}
+```

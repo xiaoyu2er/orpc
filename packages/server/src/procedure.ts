@@ -7,11 +7,13 @@ import {
   isContractProcedure,
 } from '@orpc/contract'
 import type { RouteOptions, Schema } from '@orpc/contract'
+import { OpenAPIDeserializer } from '@orpc/transformer'
 import {
   type MapInputMiddleware,
   type Middleware,
   decorateMiddleware,
 } from './middleware'
+import { createProcedureCaller } from './procedure-caller'
 import type { Context, MergeContext, Meta, Promisable } from './types'
 
 export class Procedure<
@@ -36,44 +38,19 @@ export class Procedure<
   ) {}
 }
 
-export class DecoratedProcedure<
+export type DecoratedProcedure<
   TContext extends Context,
   TExtraContext extends Context,
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaOutput<TOutputSchema>,
-> extends Procedure<
+> = Procedure<
   TContext,
   TExtraContext,
   TInputSchema,
   TOutputSchema,
   THandlerOutput
-> {
-  static decorate<
-    TContext extends Context,
-    TExtraContext extends Context,
-    TInputSchema extends Schema,
-    TOutputSchema extends Schema,
-    THandlerOutput extends SchemaOutput<TOutputSchema>,
-  >(
-    p: Procedure<
-      TContext,
-      TExtraContext,
-      TInputSchema,
-      TOutputSchema,
-      THandlerOutput
-    >,
-  ): DecoratedProcedure<
-    TContext,
-    TExtraContext,
-    TInputSchema,
-    TOutputSchema,
-    THandlerOutput
-  > {
-    if (p instanceof DecoratedProcedure) return p
-    return new DecoratedProcedure(p.zz$p)
-  }
-
+> & {
   prefix(
     prefix: HTTPPath,
   ): DecoratedProcedure<
@@ -82,16 +59,9 @@ export class DecoratedProcedure<
     TInputSchema,
     TOutputSchema,
     THandlerOutput
-  > {
-    return new DecoratedProcedure({
-      ...this.zz$p,
-      contract: DecoratedContractProcedure.decorate(this.zz$p.contract).prefix(
-        prefix,
-      ),
-    })
-  }
+  >
 
-    route(
+  route(
     opts: RouteOptions,
   ): DecoratedProcedure<
     TContext,
@@ -99,14 +69,7 @@ export class DecoratedProcedure<
     TInputSchema,
     TOutputSchema,
     THandlerOutput
-  > {
-    return new DecoratedProcedure({
-      ...this.zz$p,
-      contract: DecoratedContractProcedure.decorate(this.zz$p.contract).route(
-        opts,
-      ),
-    })
-  }
+  >
 
   use<
     UExtraContext extends
@@ -150,21 +113,12 @@ export class DecoratedProcedure<
     TOutputSchema,
     THandlerOutput
   >
-
-  use(
-    middleware: Middleware<any, any, any, any>,
-    mapInput?: MapInputMiddleware<any, any>,
-  ): DecoratedProcedure<any, any, any, any, any> {
-    const middleware_ = mapInput
-      ? decorateMiddleware(middleware).mapInput(mapInput)
-      : middleware
-
-    return new DecoratedProcedure({
-      ...this.zz$p,
-      middlewares: [middleware_, ...(this.zz$p.middlewares ?? [])],
-    })
-  }
-}
+} & (undefined extends TContext
+    ? (
+        input: SchemaInput<TInputSchema> | FormData,
+      ) => Promise<SchemaOutput<TOutputSchema, THandlerOutput>>
+    : // biome-ignore lint/complexity/noBannedTypes: {} seem has no side-effect on this case
+      {})
 
 export interface ProcedureHandler<
   TContext extends Context,
@@ -180,6 +134,98 @@ export interface ProcedureHandler<
   ): Promisable<SchemaInput<TOutputSchema, TOutput>>
 }
 
+const DECORATED_PROCEDURE_SYMBOL = Symbol('DECORATED_PROCEDURE')
+
+export function decorateProcedure<
+  TContext extends Context,
+  TExtraContext extends Context,
+  TInputSchema extends Schema,
+  TOutputSchema extends Schema,
+  THandlerOutput extends SchemaOutput<TOutputSchema>,
+>(
+  procedure: Procedure<
+    TContext,
+    TExtraContext,
+    TInputSchema,
+    TOutputSchema,
+    THandlerOutput
+  >,
+): DecoratedProcedure<
+  TContext,
+  TExtraContext,
+  TInputSchema,
+  TOutputSchema,
+  THandlerOutput
+> {
+  if (DECORATED_PROCEDURE_SYMBOL in procedure) {
+    return procedure as any
+  }
+
+  const serverAction = async (input: unknown) => {
+    const input_ = (() => {
+      if (!(input instanceof FormData)) return input
+
+      const transformer = new OpenAPIDeserializer({
+        schema: procedure.zz$p.contract.zz$cp.InputSchema,
+      })
+
+      return transformer.deserializeAsFormData(input)
+    })()
+
+    const procedureCaller = createProcedureCaller({
+      procedure,
+      context: undefined as any,
+      internal: false,
+      validate: true,
+    })
+
+    return await procedureCaller(input_ as any)
+  }
+
+  return Object.assign(serverAction, {
+    [DECORATED_PROCEDURE_SYMBOL]: true,
+    zz$p: procedure.zz$p,
+
+    prefix(prefix: HTTPPath) {
+      return decorateProcedure({
+        zz$p: {
+          ...procedure.zz$p,
+          contract: DecoratedContractProcedure.decorate(
+            procedure.zz$p.contract,
+          ).prefix(prefix),
+        },
+      })
+    },
+
+    route(opts: RouteOptions) {
+      return decorateProcedure({
+        zz$p: {
+          ...procedure.zz$p,
+          contract: DecoratedContractProcedure.decorate(
+            procedure.zz$p.contract,
+          ).route(opts),
+        },
+      })
+    },
+
+    use(
+      middleware: Middleware<any, any, any, any>,
+      mapInput?: MapInputMiddleware<any, any>,
+    ) {
+      const middleware_ = mapInput
+        ? decorateMiddleware(middleware).mapInput(mapInput)
+        : middleware
+
+      return decorateProcedure({
+        zz$p: {
+          ...procedure.zz$p,
+          middlewares: [middleware_, ...(procedure.zz$p.middlewares ?? [])],
+        },
+      })
+    },
+  }) as any
+}
+
 export type WELL_DEFINED_PROCEDURE = Procedure<
   Context,
   Context,
@@ -191,14 +237,15 @@ export type WELL_DEFINED_PROCEDURE = Procedure<
 export function isProcedure(item: unknown): item is WELL_DEFINED_PROCEDURE {
   if (item instanceof Procedure) return true
 
-  try {
-    const anyItem = item as WELL_DEFINED_PROCEDURE
-
-    return (
-      isContractProcedure(anyItem.zz$p.contract) &&
-      typeof anyItem.zz$p.handler === 'function'
-    )
-  } catch {
-    return false
-  }
+  return (
+    (typeof item === 'object' || typeof item === 'function') &&
+    item !== null &&
+    'zz$p' in item &&
+    typeof item.zz$p === 'object' &&
+    item.zz$p !== null &&
+    'contract' in item.zz$p &&
+    isContractProcedure(item.zz$p.contract) &&
+    'handler' in item.zz$p &&
+    typeof item.zz$p.handler === 'function'
+  )
 }

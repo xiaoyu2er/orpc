@@ -1,6 +1,6 @@
 import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
-import { DecoratedProcedure, Procedure, ios } from '.'
+import { Procedure, decorateProcedure, ios, isProcedure } from '.'
 import { RouterBuilder } from './router-builder'
 
 const builder = new RouterBuilder<undefined, undefined>({})
@@ -83,12 +83,14 @@ describe('middleware', () => {
       handler: () => {},
     })
 
-    const decorated = new DecoratedProcedure({
-      contract: new ContractProcedure({
-        InputSchema: undefined,
-        OutputSchema: undefined,
-      }),
-      handler: () => {},
+    const decorated = decorateProcedure({
+      zz$p: {
+        contract: new ContractProcedure({
+          InputSchema: undefined,
+          OutputSchema: undefined,
+        }),
+        handler: () => {},
+      },
     })
 
     const router = builder.router({ ping, nested: { ping } })
@@ -98,7 +100,7 @@ describe('middleware', () => {
       nested: { ping: typeof decorated }
     }>()
 
-    expect(router.ping).instanceOf(DecoratedProcedure)
-    expect(router.nested.ping).instanceOf(DecoratedProcedure)
+    expect(router.ping).satisfies(isProcedure)
+    expect(router.nested.ping).satisfies(isProcedure)
   })
 })

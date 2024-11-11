@@ -245,6 +245,9 @@ importers:
 
   packages/zod:
     dependencies:
+      json-schema-typed:
+        specifier: ^8.0.1
+        version: 8.0.1
       wildcard-match:
         specifier: ^5.1.3
         version: 5.1.3

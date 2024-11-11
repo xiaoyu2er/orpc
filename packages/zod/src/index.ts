@@ -1,12 +1,17 @@
 /// <reference lib="dom" />
 
+import type { JSONSchema } from 'json-schema-typed/draft-2020-12'
+
 import wcmatch from 'wildcard-match'
 import {
   type CustomErrorParams,
   type ZodEffects,
   type ZodType,
+  type ZodTypeAny,
   type ZodTypeDef,
   custom,
+  type input,
+  type output,
 } from 'zod'
 
 export type CustomZodType = 'File' | 'Blob' | 'Invalid Date' | 'RegExp' | 'URL'
@@ -14,6 +19,10 @@ export type CustomZodType = 'File' | 'Blob' | 'Invalid Date' | 'RegExp' | 'URL'
 const customZodTypeSymbol = Symbol('customZodTypeSymbol')
 
 const customZodFileMimeTypeSymbol = Symbol('customZodFileMimeTypeSymbol')
+
+const CUSTOM_JSON_SCHEMA_SYMBOL = Symbol('CUSTOM_JSON_SCHEMA')
+const CUSTOM_JSON_SCHEMA_INPUT_SYMBOL = Symbol('CUSTOM_JSON_SCHEMA_INPUT')
+const CUSTOM_JSON_SCHEMA_OUTPUT_SYMBOL = Symbol('CUSTOM_JSON_SCHEMA_OUTPUT')
 
 type CustomParams = CustomErrorParams & {
   fatal?: boolean
@@ -29,6 +38,25 @@ export function getCustomZodFileMimeType(def: ZodTypeDef): string | undefined {
   return customZodFileMimeTypeSymbol in def
     ? (def[customZodFileMimeTypeSymbol] as string)
     : undefined
+}
+
+export function getCustomJSONSchema(
+  def: ZodTypeDef,
+  options?: { mode?: 'input' | 'output' },
+): Exclude<JSONSchema, boolean> | undefined {
+  if (options?.mode === 'input' && CUSTOM_JSON_SCHEMA_INPUT_SYMBOL in def) {
+    return def[CUSTOM_JSON_SCHEMA_INPUT_SYMBOL] as Exclude<JSONSchema, boolean>
+  }
+
+  if (options?.mode === 'output' && CUSTOM_JSON_SCHEMA_OUTPUT_SYMBOL in def) {
+    return def[CUSTOM_JSON_SCHEMA_OUTPUT_SYMBOL] as Exclude<JSONSchema, boolean>
+  }
+
+  if (CUSTOM_JSON_SCHEMA_SYMBOL in def) {
+    return def[CUSTOM_JSON_SCHEMA_SYMBOL] as Exclude<JSONSchema, boolean>
+  }
+
+  return undefined
 }
 
 function composeParams<T = unknown>(options: {
@@ -172,7 +200,41 @@ export function url(options?: CustomParams): ZodType<URL, ZodTypeDef, URL> {
   return schema
 }
 
+export function openapi<
+  T extends ZodTypeAny,
+  TMode extends 'input' | 'output' | 'both' = 'both',
+>(
+  schema: T,
+  custom: Exclude<
+    JSONSchema<
+      TMode extends 'input'
+        ? input<T>
+        : TMode extends 'output'
+          ? output<T>
+          : input<T> & output<T>
+    >,
+    boolean
+  >,
+  options?: { mode: TMode },
+): ReturnType<T['refine']> {
+  const newSchema = schema.refine(() => true) as ReturnType<T['refine']>
+
+  const SYMBOL =
+    options?.mode === 'input'
+      ? CUSTOM_JSON_SCHEMA_INPUT_SYMBOL
+      : options?.mode === 'output'
+        ? CUSTOM_JSON_SCHEMA_OUTPUT_SYMBOL
+        : CUSTOM_JSON_SCHEMA_SYMBOL
+
+  Object.assign(newSchema._def, {
+    [SYMBOL]: custom,
+  })
+
+  return newSchema
+}
+
 export const oz = {
+  openapi,
   file,
   blob,
   invalidDate,

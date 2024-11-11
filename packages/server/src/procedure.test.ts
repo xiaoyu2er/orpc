@@ -304,6 +304,9 @@ describe('server action', () => {
     form.append('id', '123')
     form.append('nested[date]', '2022-01-01')
 
-    expect(await p(form)).toEqual({ id: 123, date: new Date('2022-01-01') })
+    expect(await p(form)).toEqual({
+      id: 123,
+      nested: { date: new Date('2022-01-01') },
+    })
   })
 })

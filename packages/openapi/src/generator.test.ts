@@ -326,3 +326,140 @@ it('support multipart/form-data', () => {
     },
   })
 })
+
+it('work with example', () => {
+  const router = ioc.router({
+    upload: ioc
+      .input(
+        z.object({
+          set: z.set(z.string()),
+          map: z.map(z.string(), z.number()),
+        }),
+        {
+          set: new Set(['a', 'b', 'c']),
+          map: new Map([
+            ['a', 1],
+            ['b', 2],
+            ['c', 3],
+          ]),
+        },
+      )
+      .output(
+        z.object({
+          set: z.set(z.string()),
+          map: z.map(z.string(), z.number()),
+        }),
+        {
+          set: new Set(['a', 'b', 'c']),
+          map: new Map([
+            ['a', 1],
+            ['b', 2],
+            ['c', 3],
+          ]),
+        },
+      ),
+  })
+
+  const spec = generateOpenAPI({
+    router,
+    info: {
+      title: 'test',
+      version: '1.0.0',
+    },
+  })
+
+  expect(spec).toMatchObject({
+    paths: {
+      '/upload': {
+        post: {
+          requestBody: {
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    set: {
+                      type: 'array',
+                      items: {
+                        type: 'string',
+                      },
+                    },
+                    map: {
+                      type: 'array',
+                      items: {
+                        type: 'array',
+                        prefixItems: [
+                          {
+                            type: 'string',
+                          },
+                          {
+                            type: 'number',
+                          },
+                        ],
+                        maxItems: 2,
+                        minItems: 2,
+                      },
+                    },
+                  },
+                  required: ['set', 'map'],
+                },
+                example: {
+                  set: ['a', 'b', 'c'],
+                  map: [
+                    ['a', 1],
+                    ['b', 2],
+                    ['c', 3],
+                  ],
+                },
+              },
+            },
+          },
+          responses: {
+            '200': {
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      set: {
+                        type: 'array',
+                        items: {
+                          type: 'string',
+                        },
+                      },
+                      map: {
+                        type: 'array',
+                        items: {
+                          type: 'array',
+                          prefixItems: [
+                            {
+                              type: 'string',
+                            },
+                            {
+                              type: 'number',
+                            },
+                          ],
+                          maxItems: 2,
+                          minItems: 2,
+                        },
+                      },
+                    },
+                    required: ['set', 'map'],
+                  },
+                  example: {
+                    set: ['a', 'b', 'c'],
+                    map: [
+                      ['a', 1],
+                      ['b', 2],
+                      ['c', 3],
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  })
+})

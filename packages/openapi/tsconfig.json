@@ -7,6 +7,7 @@
     { "path": "../contract" },
     { "path": "../server" },
     { "path": "../shared" },
+    { "path": "../transformer" },
     { "path": "../zod" }
   ],
   "include": ["src"],

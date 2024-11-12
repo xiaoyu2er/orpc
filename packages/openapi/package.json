@@ -47,6 +47,7 @@
     "@orpc/contract": "workspace:*",
     "@orpc/server": "workspace:*",
     "@orpc/shared": "workspace:*",
+    "@orpc/transformer": "workspace:*",
     "@orpc/zod": "workspace:*",
     "escape-string-regexp": "^5.0.0",
     "json-schema-typed": "^8.0.1",

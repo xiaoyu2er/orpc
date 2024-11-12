@@ -62,13 +62,7 @@ export class OpenAPISerializer implements Serializer {
   }
 
   private serializeAsJSON(payload: unknown): Serialized {
-    const body = JSON.stringify(payload, (_, value) => {
-      if (typeof value === 'bigint') {
-        return value.toString()
-      }
-
-      return value
-    })
+    const body = JSON.stringify(payload)
 
     return {
       body,
@@ -83,7 +77,6 @@ export class OpenAPISerializer implements Serializer {
       if (
         typeof value === 'string' ||
         typeof value === 'number' ||
-        typeof value === 'bigint' ||
         typeof value === 'boolean'
       ) {
         form.append(path, value.toString())
@@ -112,7 +105,6 @@ export class OpenAPISerializer implements Serializer {
       if (
         typeof value === 'string' ||
         typeof value === 'number' ||
-        typeof value === 'bigint' ||
         typeof value === 'boolean'
       ) {
         params.append(path, value.toString())
@@ -152,13 +144,14 @@ export class OpenAPISerializer implements Serializer {
   }
 }
 
-function preSerialize(payload: unknown): unknown {
+export function preSerialize(payload: unknown): unknown {
   if (payload instanceof Set) return preSerialize([...payload])
   if (payload instanceof Map) return preSerialize([...payload.entries()])
   if (Array.isArray(payload)) {
     return payload.map((v) => (v === undefined ? 'undefined' : preSerialize(v)))
   }
   if (Number.isNaN(payload)) return 'NaN'
+  if (typeof payload === 'bigint') return payload.toString()
   if (payload instanceof Date && Number.isNaN(payload.getTime())) {
     return 'Invalid Date'
   }

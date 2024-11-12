@@ -1,6 +1,7 @@
 import { type ContractRouter, eachContractRouterLeaf } from '@orpc/contract'
 import { type Router, toContractRouter } from '@orpc/server'
 import { findDeepMatches, mapEntries, omit } from '@orpc/shared'
+import { preSerialize } from '@orpc/transformer'
 import type { JSONSchema } from 'json-schema-typed/draft-2020-12'
 import {
   type MediaTypeObject,
@@ -176,7 +177,7 @@ export function generateOpenAPI(
           required: schema === undefined,
           schema: {
             type: 'string',
-            pattern: '^.*filename.*$',
+            pattern: 'filename',
             example: 'filename="file.png"',
             description:
               'To define the file name. Required when the request body is a file.',
@@ -189,8 +190,6 @@ export function generateOpenAPI(
       for (const file of files) {
         content[file.contentMediaType] = {
           schema: file as any,
-          example: internal.inputExample,
-          examples: internal.inputExamples,
         }
       }
 
@@ -199,6 +198,8 @@ export function generateOpenAPI(
           isStillHasFileSchema ? 'multipart/form-data' : 'application/json'
         ] = {
           schema: schema as any,
+          example: internal.inputExample,
+          examples: internal.inputExamples,
         }
       }
 
@@ -270,7 +271,7 @@ export function generateOpenAPI(
     })
   })
 
-  return builder.getSpec()
+  return preSerialize(builder.getSpec()) as OpenAPIObject
 }
 
 function isFileSchema(schema: unknown) {

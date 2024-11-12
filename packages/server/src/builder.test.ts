@@ -150,7 +150,7 @@ describe('define procedure builder', () => {
   const example2 = { a: '' }
 
   test('input method', () => {
-    const builder = os.input(schema1, example1, { default: example1 })
+    const builder = os.input(schema1, example1)
 
     expectTypeOf(builder).toEqualTypeOf<
       ProcedureBuilder<{ auth: boolean }, undefined, typeof schema1, undefined>
@@ -163,14 +163,13 @@ describe('define procedure builder', () => {
         zz$cp: {
           InputSchema: schema1,
           inputExample: example1,
-          inputExamples: { default: example1 },
         },
       },
     })
   })
 
   test('output method', () => {
-    const builder = os.output(schema2, example2, { default: example2 })
+    const builder = os.output(schema2, example2)
 
     expectTypeOf(builder).toEqualTypeOf<
       ProcedureBuilder<{ auth: boolean }, undefined, undefined, typeof schema2>
@@ -183,7 +182,6 @@ describe('define procedure builder', () => {
         zz$cp: {
           OutputSchema: schema2,
           outputExample: example2,
-          outputExamples: { default: example2 },
         },
       },
     })

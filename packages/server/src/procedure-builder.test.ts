@@ -23,7 +23,7 @@ const builder = new ProcedureBuilder<
 })
 
 it('input', () => {
-  const builder2 = builder.input(schema1, example1, { default: example1 })
+  const builder2 = builder.input(schema1, example1)
 
   expectTypeOf(builder2).toEqualTypeOf<
     ProcedureBuilder<{ auth: boolean }, undefined, typeof schema1, undefined>
@@ -34,14 +34,13 @@ it('input', () => {
       zz$cp: {
         InputSchema: schema1,
         inputExample: example1,
-        inputExamples: { default: example1 },
       },
     },
   })
 })
 
 it('output', () => {
-  const builder2 = builder.output(schema2, example2, { default: example2 })
+  const builder2 = builder.output(schema2, example2)
 
   expectTypeOf(builder2).toEqualTypeOf<
     ProcedureBuilder<{ auth: boolean }, undefined, undefined, typeof schema2>
@@ -52,7 +51,6 @@ it('output', () => {
       zz$cp: {
         OutputSchema: schema2,
         outputExample: example2,
-        outputExamples: { default: example2 },
       },
     },
   })

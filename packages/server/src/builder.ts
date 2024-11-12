@@ -109,7 +109,6 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
   input<USchema extends Schema = undefined>(
     schema: USchema,
     example?: SchemaInput<USchema>,
-    examples?: Record<string, SchemaInput<USchema>>,
   ): ProcedureBuilder<TContext, TExtraContext, USchema, undefined> {
     return new ProcedureBuilder({
       middlewares: this.zz$b.middlewares,
@@ -117,7 +116,6 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
         OutputSchema: undefined,
         InputSchema: schema,
         inputExample: example,
-        inputExamples: examples,
       }),
     })
   }
@@ -125,7 +123,6 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
   output<USchema extends Schema = undefined>(
     schema: USchema,
     example?: SchemaOutput<USchema>,
-    examples?: Record<string, SchemaOutput<USchema>>,
   ): ProcedureBuilder<TContext, TExtraContext, undefined, USchema> {
     return new ProcedureBuilder({
       middlewares: this.zz$b.middlewares,
@@ -133,7 +130,6 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
         InputSchema: undefined,
         OutputSchema: schema,
         outputExample: example,
-        outputExamples: examples,
       }),
     })
   }

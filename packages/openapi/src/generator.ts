@@ -1,6 +1,6 @@
 import { type ContractRouter, eachContractRouterLeaf } from '@orpc/contract'
 import { type Router, toContractRouter } from '@orpc/server'
-import { findDeepMatches, mapEntries, omit } from '@orpc/shared'
+import { findDeepMatches, omit } from '@orpc/shared'
 import { preSerialize } from '@orpc/transformer'
 import type { JSONSchema } from 'json-schema-typed/draft-2020-12'
 import {
@@ -108,14 +108,6 @@ export function generateOpenAPI(
             required: true,
             schema: schema as any,
             example: internal.inputExample?.[name],
-            examples: internal.inputExamples
-              ? mapEntries(
-                  internal.inputExamples as Record<string, Record<string, any>>,
-                  (key, example) => {
-                    return [key, example[name]]
-                  },
-                )
-              : undefined,
           }
         })
     })()
@@ -141,14 +133,6 @@ export function generateOpenAPI(
             required: true,
             schema: schema as any,
             example: internal.inputExample?.[name],
-            examples: internal.inputExamples
-              ? mapEntries(
-                  internal.inputExamples as Record<string, Record<string, any>>,
-                  (key, example) => {
-                    return [key, example[name]]
-                  },
-                )
-              : undefined,
           }
         })
     })()
@@ -199,7 +183,6 @@ export function generateOpenAPI(
         ] = {
           schema: schema as any,
           example: internal.inputExample,
-          examples: internal.inputExamples,
         }
       }
 
@@ -233,7 +216,6 @@ export function generateOpenAPI(
         ] = {
           schema: schema as any,
           example: internal.outputExample,
-          examples: internal.outputExamples,
         }
       }
 

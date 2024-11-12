@@ -33,7 +33,7 @@ describe('define a procedure', () => {
       id: z.string(),
     })
 
-    const procedure = oc.input(schema, { id: '123' }, { user: { id: '123' } })
+    const procedure = oc.input(schema, { id: '123' })
 
     expectTypeOf(procedure).toEqualTypeOf<
       DecoratedContractProcedure<typeof schema, undefined>
@@ -42,14 +42,13 @@ describe('define a procedure', () => {
     expect(procedure.zz$cp).toMatchObject({
       InputSchema: schema,
       inputExample: { id: '123' },
-      inputExamples: { user: { id: '123' } },
     })
   })
 
   test('use output method', () => {
     const schema = z.object({ id: z.string() })
 
-    const procedure = oc.output(schema, { id: '123' }, { user: { id: '123' } })
+    const procedure = oc.output(schema, { id: '123' })
 
     expectTypeOf(procedure).toEqualTypeOf<
       DecoratedContractProcedure<undefined, typeof schema>
@@ -58,7 +57,6 @@ describe('define a procedure', () => {
     expect(procedure.zz$cp).toMatchObject({
       OutputSchema: schema,
       outputExample: { id: '123' },
-      outputExamples: { user: { id: '123' } },
     })
   })
 })

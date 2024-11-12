@@ -46,14 +46,12 @@ export class ProcedureBuilder<
   input<USchema extends Schema = undefined>(
     schema: USchema,
     example?: SchemaInput<USchema>,
-    examples?: Record<string, SchemaInput<USchema>>,
   ): ProcedureBuilder<TContext, TExtraContext, USchema, TOutputSchema> {
     return new ProcedureBuilder({
       ...this.zz$pb,
       contract: DecoratedContractProcedure.decorate(this.zz$pb.contract).input(
         schema,
         example,
-        examples,
       ),
     })
   }
@@ -61,14 +59,12 @@ export class ProcedureBuilder<
   output<USchema extends Schema = undefined>(
     schema: USchema,
     example?: SchemaOutput<USchema>,
-    examples?: Record<string, SchemaOutput<USchema>>,
   ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, USchema> {
     return new ProcedureBuilder({
       ...this.zz$pb,
       contract: DecoratedContractProcedure.decorate(this.zz$pb.contract).output(
         schema,
         example,
-        examples,
       ),
     })
   }

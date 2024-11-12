@@ -27,12 +27,10 @@ export class ContractBuilder {
   input<USchema extends Schema>(
     schema: USchema,
     example?: SchemaInput<USchema>,
-    examples?: Record<string, SchemaInput<USchema>>,
   ): DecoratedContractProcedure<USchema, undefined> {
     return new DecoratedContractProcedure({
       InputSchema: schema,
       inputExample: example,
-      inputExamples: examples,
       OutputSchema: undefined,
     })
   }
@@ -40,13 +38,11 @@ export class ContractBuilder {
   output<USchema extends Schema>(
     schema: USchema,
     example?: SchemaOutput<USchema>,
-    examples?: Record<string, SchemaOutput<USchema>>,
   ): DecoratedContractProcedure<undefined, USchema> {
     return new DecoratedContractProcedure({
       InputSchema: undefined,
       OutputSchema: schema,
       outputExample: example,
-      outputExamples: examples,
     })
   }
 

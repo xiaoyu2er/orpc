@@ -56,7 +56,6 @@ test('input method', () => {
   expect(p.zz$cp).toMatchObject({
     InputSchema: schema,
     inputExample: undefined,
-    inputExamples: undefined,
   })
 })
 
@@ -71,7 +70,6 @@ test('output method', () => {
   expect(p.zz$cp).toMatchObject({
     OutputSchema: schema,
     outputExample: undefined,
-    outputExamples: undefined,
   })
 })
 

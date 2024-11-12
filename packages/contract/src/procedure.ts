@@ -29,10 +29,8 @@ export class ContractProcedure<
       tags?: string[]
       InputSchema: TInputSchema
       inputExample?: SchemaOutput<TInputSchema>
-      inputExamples?: Record<string, SchemaOutput<TInputSchema>>
       OutputSchema: TOutputSchema
       outputExample?: SchemaOutput<TOutputSchema>
-      outputExamples?: Record<string, SchemaOutput<TOutputSchema>>
     },
   ) {}
 }
@@ -84,26 +82,22 @@ export class DecoratedContractProcedure<
   input<USchema extends Schema>(
     schema: USchema,
     example?: SchemaInput<USchema>,
-    examples?: Record<string, SchemaInput<USchema>>,
   ): DecoratedContractProcedure<USchema, TOutputSchema> {
     return new DecoratedContractProcedure({
       ...this.zz$cp,
       InputSchema: schema,
       inputExample: example,
-      inputExamples: examples,
     })
   }
 
   output<USchema extends Schema>(
     schema: USchema,
     example?: SchemaOutput<USchema>,
-    examples?: Record<string, SchemaOutput<USchema>>,
   ): DecoratedContractProcedure<TInputSchema, USchema> {
     return new DecoratedContractProcedure({
       ...this.zz$cp,
       OutputSchema: schema,
       outputExample: example,
-      outputExamples: examples,
     })
   }
 }

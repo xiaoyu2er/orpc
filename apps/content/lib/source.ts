@@ -1,8 +1,8 @@
 import { docs, meta } from '@/.source'
+import * as icons from '@/components/icons'
 import { IconContainer } from '@/components/ui/icon'
 import { loader } from 'fumadocs-core/source'
 import { createMDXSource } from 'fumadocs-mdx'
-import { icons } from 'lucide-react'
 import { createElement } from 'react'
 
 export const source = loader({

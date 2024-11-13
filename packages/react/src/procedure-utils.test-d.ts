@@ -159,20 +159,18 @@ describe('prefetchInfiniteQuery', () => {
   })
 
   it('with options', async () => {
-    await utils.prefetchInfiniteQuery(
-      {
-        input: { keyword: '1' },
-        initialPageParam: 4,
-        pages: 5,
-        getNextPageParam(lastPage) {
-          expectTypeOf(lastPage).toEqualTypeOf<
-            SchemaOutput<typeof UserListOutputSchema>
-          >()
+    await utils.prefetchInfiniteQuery({
+      input: { keyword: '1' },
+      initialPageParam: 4,
+      pages: 5,
+      getNextPageParam(lastPage) {
+        expectTypeOf(lastPage).toEqualTypeOf<
+          SchemaOutput<typeof UserListOutputSchema>
+        >()
 
-          return lastPage.nextCursor
-        },
+        return lastPage.nextCursor
       },
-    )
+    })
 
     await utils.prefetchInfiniteQuery(
       { keyword: '1' },
@@ -182,12 +180,10 @@ describe('prefetchInfiniteQuery', () => {
       },
     )
 
-    await utils.prefetchInfiniteQuery(
-      {
-        input: {},
-        initialData: { pageParams: [], pages: [] },
-      },
-    )
+    await utils.prefetchInfiniteQuery({
+      input: {},
+      initialData: { pageParams: [], pages: [] },
+    })
 
     await utils.prefetchInfiniteQuery({
       input: {},
@@ -333,13 +329,11 @@ describe('ensureInfiniteQuery', () => {
       initialData: { pageParams: [], pages: [] },
     })
 
-    await utils.ensureInfiniteQueryData(
-      {
-        input: {},
-        // @ts-expect-error invalid initialData
-        initialData: { pageParams: [] },
-      },
-    )
+    await utils.ensureInfiniteQueryData({
+      input: {},
+      // @ts-expect-error invalid initialData
+      initialData: { pageParams: [] },
+    })
   })
 })
 

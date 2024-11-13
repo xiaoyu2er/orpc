@@ -1,27 +1,27 @@
-import { ioc } from '@orpc/contract'
+import { oc } from '@orpc/contract'
 import { z } from 'zod'
-import { type RouterWithContract, ios, toContractRouter } from '.'
+import { os, type RouterWithContract, toContractRouter } from '.'
 
 it('require procedure match context', () => {
-  const os = ios.context<{ auth: boolean; userId: string }>()
+  const osw = os.context<{ auth: boolean; userId: string }>()
 
-  os.router({
-    ping: ios.context<{ auth: boolean }>().handler(() => {
+  osw.router({
+    ping: osw.context<{ auth: boolean }>().handler(() => {
       return { pong: 'ping' }
     }),
 
     // @ts-expect-error userId is not match
-    ping2: ios.context<{ userId: number }>().handler(() => {
+    ping2: osw.context<{ userId: number }>().handler(() => {
       return { name: 'dinwwwh' }
     }),
 
     nested: {
-      ping: ios.context<{ auth: boolean }>().handler(() => {
+      ping: osw.context<{ auth: boolean }>().handler(() => {
         return { pong: 'ping' }
       }),
 
       // @ts-expect-error userId is not match
-      ping2: ios.context<{ userId: number }>().handler(() => {
+      ping2: osw.context<{ userId: number }>().handler(() => {
         return { name: 'dinwwwh' }
       }),
     },
@@ -29,20 +29,20 @@ it('require procedure match context', () => {
 })
 
 it('require match contract', () => {
-  const pingContract = ioc.route({ method: 'GET', path: '/ping' })
-  const pongContract = ioc.input(z.string()).output(z.string())
-  const ping = ios.contract(pingContract).handler(() => {
+  const pingContract = oc.route({ method: 'GET', path: '/ping' })
+  const pongContract = oc.input(z.string()).output(z.string())
+  const ping = os.contract(pingContract).handler(() => {
     return 'ping'
   })
-  const pong = ios.contract(pongContract).handler(() => {
+  const pong = os.contract(pongContract).handler(() => {
     return 'pong'
   })
 
-  const contract = ioc.router({
+  const contract = oc.router({
     ping: pingContract,
     pong: pongContract,
 
-    nested: ioc.router({
+    nested: oc.router({
       ping: pingContract,
       pong: pongContract,
     }),
@@ -62,7 +62,7 @@ it('require match contract', () => {
     ping,
     pong,
 
-    nested: ios.contract(contract.nested).router({
+    nested: os.contract(contract.nested).router({
       ping,
       pong,
     }),
@@ -85,7 +85,7 @@ it('require match contract', () => {
     nested: {
       ping,
       // @ts-expect-error nested.pong is mismatch
-      pong: ios.handler(() => 'ping'),
+      pong: os.handler(() => 'ping'),
     },
   }
 
@@ -101,14 +101,14 @@ it('require match contract', () => {
 })
 
 it('toContractRouter', () => {
-  const p1 = ioc.input(z.string()).output(z.string())
-  const p2 = ioc.output(z.string())
-  const p3 = ioc.route({ method: 'GET', path: '/test' })
+  const p1 = oc.input(z.string()).output(z.string())
+  const p2 = oc.output(z.string())
+  const p3 = oc.route({ method: 'GET', path: '/test' })
 
-  const contract = ioc.router({
+  const contract = oc.router({
     p1: p1,
 
-    nested: ioc.router({
+    nested: oc.router({
       p2: p2,
     }),
 
@@ -117,21 +117,21 @@ it('toContractRouter', () => {
     },
   })
 
-  const os = ios.contract(contract)
+  const osw = os.contract(contract)
 
-  const router = os.router({
-    p1: os.p1.handler(() => {
+  const router = osw.router({
+    p1: osw.p1.handler(() => {
       return 'dinwwwh'
     }),
 
-    nested: os.nested.router({
-      p2: os.nested.p2.handler(() => {
+    nested: osw.nested.router({
+      p2: osw.nested.p2.handler(() => {
         return 'dinwwwh'
       }),
     }),
 
     nested2: {
-      p3: os.nested2.p3.handler(() => {
+      p3: osw.nested2.p3.handler(() => {
         return 'dinwwwh'
       }),
     },

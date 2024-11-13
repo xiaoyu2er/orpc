@@ -1,6 +1,6 @@
 import { DecoratedContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
-import { type DecoratedProcedure, type Meta, ios, isProcedure } from '.'
+import { os, type DecoratedProcedure, type Meta, isProcedure } from '.'
 import { ProcedureImplementer } from './procedure-implementer'
 
 const p1 = new DecoratedContractProcedure({
@@ -108,7 +108,7 @@ describe('use middleware', () => {
 
 describe('output schema', () => {
   it('auto infer output schema if output schema is not specified', async () => {
-    const sr = ios.handler(() => ({ a: 1 }))
+    const sr = os.handler(() => ({ a: 1 }))
 
     const result = await sr.zz$p.handler({}, undefined, {
       method: 'GET',

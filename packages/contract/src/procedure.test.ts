@@ -1,9 +1,9 @@
 import { z } from 'zod'
-import { ioc, isContractProcedure } from '.'
+import { isContractProcedure, oc } from '.'
 import type { DecoratedContractProcedure } from './procedure'
 
 test('prefix method', () => {
-  const os = ioc
+  const os = oc
   const p1 = os.route({
     method: 'GET',
     path: '/ping',
@@ -18,7 +18,7 @@ test('prefix method', () => {
 })
 
 test('route method', () => {
-  const p = ioc
+  const p = oc
     .route({
       method: 'POST',
     })
@@ -47,7 +47,7 @@ test('route method', () => {
 
 test('input method', () => {
   const schema = z.string()
-  const p = ioc.route({}).input(schema)
+  const p = oc.route({}).input(schema)
 
   expectTypeOf(p).toEqualTypeOf<
     DecoratedContractProcedure<typeof schema, undefined>
@@ -61,7 +61,7 @@ test('input method', () => {
 
 test('output method', () => {
   const schema = z.string()
-  const p = ioc.route({}).output(schema)
+  const p = oc.route({}).output(schema)
 
   expectTypeOf(p).toEqualTypeOf<
     DecoratedContractProcedure<undefined, typeof schema>
@@ -75,7 +75,7 @@ test('output method', () => {
 
 it('addTags method', () => {
   const schema = z.string()
-  const p = ioc.route({}).output(schema)
+  const p = oc.route({}).output(schema)
 
   expect(p.zz$cp.tags).toBe(undefined)
 
@@ -89,8 +89,6 @@ it('addTags method', () => {
 })
 
 test('isContractProcedure function', () => {
-  const oc = ioc
-
   expect(isContractProcedure(oc)).toBe(false)
   expect(isContractProcedure(oc.router({}))).toBe(false)
   expect(isContractProcedure(oc.route({}))).toBe(true)

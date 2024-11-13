@@ -4,9 +4,7 @@ description: How to intercept, handle or log errors inside oRPC
 ---
 
 ```ts
-import { ORPCError, ios } from '@orpc/server'
-
-const os = ios
+import { ORPCError, os } from '@orpc/server'
 
 const ping = os
     .use((input, context, meta) => {

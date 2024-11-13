@@ -51,15 +51,15 @@ npm i @orpc/server @orpc/client
 ## Define Your First Router
 
 ```ts twoslash
-import { ios } from '@orpc/server'
+import { os } from '@orpc/server'
 import { z } from 'zod'
 
 export type Context = {}
 
-const os = ios.context<Context>()
+const osw = os.context<Context>()
 
-const router = os.router({
-  ping: os
+const router = osw.router({
+  ping: osw
     .route({method: 'GET', path: '/ping'}) // Optional
     .input(z.object({ name: z.string() })) // Optional
     .use((input, context, meta) => {
@@ -80,8 +80,8 @@ const router = os.router({
     })
     .handler(async (input, context, meta) => `pong ${input.name}`),
 
-  ping2: ios.handler(() => {
-    // use ios if you don't care about context
+  ping2: os.handler(() => {
+    // use os if you don't care about context
     return 'pong2'
   }),
 })

@@ -1,11 +1,10 @@
-import { ioc } from '@orpc/contract'
-import { ios } from '@orpc/server'
+import { oc } from '@orpc/contract'
+import { os } from '@orpc/server'
 import { createFetchHandler } from '@orpc/server/fetch'
 import { z } from 'zod'
 import { createRouterClient } from './router'
 
 describe('createRouterClient', () => {
-  const os = ios
   const schema = z.object({
     value: z.string(),
   })
@@ -29,7 +28,6 @@ describe('createRouterClient', () => {
   }
 
   it('types with contract router', () => {
-    const oc = ioc
     const schema = z.object({
       value: z.string(),
     })

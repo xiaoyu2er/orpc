@@ -1,17 +1,16 @@
 import { z } from 'zod'
-import { ContractProcedure, DecoratedContractProcedure, ioc } from '.'
+import { ContractProcedure, DecoratedContractProcedure, oc } from '.'
 import { ContractRouterBuilder } from './router-builder'
 
 test('prefix method', () => {
-  expect(ioc.prefix('/1').prefix('/2').zz$crb.prefix).toEqual('/1/2')
+  expect(oc.prefix('/1').prefix('/2').zz$crb.prefix).toEqual('/1/2')
 })
 
 test('tags method', () => {
-  expect(ioc.tags('1').tags('2').zz$crb.tags).toEqual(['1', '2'])
+  expect(oc.tags('1').tags('2').zz$crb.tags).toEqual(['1', '2'])
 })
 
 test('define a router', () => {
-  const oc = ioc
   const ping = oc.route({ method: 'GET', path: '/ping' })
   const pong = oc.input(z.object({ id: z.string() }))
 

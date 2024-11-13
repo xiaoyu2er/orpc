@@ -1,6 +1,6 @@
 import { ContractProcedure, DecoratedContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
-import { type Meta, ios } from '.'
+import { os, type Meta } from '.'
 import {
   type DecoratedProcedure,
   Procedure,
@@ -56,7 +56,7 @@ it('isProcedure', () => {
 
 describe('route method', () => {
   it('sets route options correctly', () => {
-    const p = ios.context<{ auth: boolean }>().handler(() => {
+    const p = os.context<{ auth: boolean }>().handler(() => {
       return 'test'
     })
 
@@ -68,7 +68,7 @@ describe('route method', () => {
 
   it('preserves existing context and handler', () => {
     const handler = () => 'test'
-    const p = ios.context<{ auth: boolean }>().handler(handler)
+    const p = os.context<{ auth: boolean }>().handler(handler)
 
     const p2 = p.route({ path: '/test' })
 
@@ -86,7 +86,7 @@ describe('route method', () => {
   })
 
   it('works with prefix method', () => {
-    const p = ios
+    const p = os
       .context<{ auth: boolean }>()
       .route({ path: '/api', method: 'POST' })
       .handler(() => 'test')
@@ -100,7 +100,7 @@ describe('route method', () => {
   it('works with middleware', () => {
     const mid = vi.fn(() => ({ context: { userId: '1' } }))
 
-    const p = ios
+    const p = os
       .context<{ auth: boolean }>()
       .route({ path: '/test' })
       .use(mid)
@@ -116,7 +116,7 @@ describe('route method', () => {
   })
 
   it('overrides existing route options', () => {
-    const p = ios
+    const p = os
       .context<{ auth: boolean }>()
       .route({ path: '/test1', method: 'GET' })
       .handler(() => 'test')
@@ -130,7 +130,7 @@ describe('route method', () => {
   it('preserves input/output schemas', () => {
     const inputSchema = z.object({ id: z.number() })
     const outputSchema = z.string()
-    const p = ios
+    const p = os
       .context<{ auth: boolean }>()
       .input(inputSchema)
       .output(outputSchema)
@@ -156,7 +156,7 @@ describe('route method', () => {
 })
 
 test('prefix method', () => {
-  const p = ios.context<{ auth: boolean }>().handler(() => {
+  const p = os.context<{ auth: boolean }>().handler(() => {
     return 'dinwwwh'
   })
 
@@ -164,7 +164,7 @@ test('prefix method', () => {
 
   expect(p2.zz$p.contract.zz$cp.path).toBe(undefined)
 
-  const p3 = ios
+  const p3 = os
     .context<{ auth: boolean }>()
     .route({ path: '/test1' })
     .handler(() => {
@@ -177,7 +177,7 @@ test('prefix method', () => {
 
 describe('use middleware', () => {
   it('infer types', () => {
-    const p1 = ios
+    const p1 = os
       .context<{ auth: boolean }>()
       .use(() => {
         return { context: { postId: 'string' } }
@@ -222,7 +222,7 @@ describe('use middleware', () => {
   it('can map input', () => {
     const mid = (input: { id: number }) => {}
 
-    ios.input(z.object({ postId: z.number() })).use(mid, (input) => {
+    os.input(z.object({ postId: z.number() })).use(mid, (input) => {
       expectTypeOf(input).toEqualTypeOf<{ postId: number }>()
 
       return {
@@ -231,10 +231,10 @@ describe('use middleware', () => {
     })
 
     // @ts-expect-error mismatch input
-    ios.input(z.object({ postId: z.number() })).use(mid)
+    os.input(z.object({ postId: z.number() })).use(mid)
 
     // @ts-expect-error mismatch input
-    ios.input(z.object({ postId: z.number() })).use(mid, (input) => {
+    os.input(z.object({ postId: z.number() })).use(mid, (input) => {
       return {
         wrong: input.postId,
       }
@@ -246,7 +246,7 @@ describe('use middleware', () => {
     const mid2 = vi.fn()
     const mid3 = vi.fn()
 
-    const p1 = ios.use(mid1).handler(() => 'dinwwwh')
+    const p1 = os.use(mid1).handler(() => 'dinwwwh')
     const p2 = p1.use(mid2).use(mid3)
 
     expect(p2.zz$p.middlewares).toEqual([mid3, mid2, mid1])
@@ -255,17 +255,17 @@ describe('use middleware', () => {
 
 describe('server action', () => {
   it('only accept undefined context', () => {
-    expectTypeOf(ios.handler(() => {})).toMatchTypeOf<(...args: any[]) => any>()
+    expectTypeOf(os.handler(() => {})).toMatchTypeOf<(...args: any[]) => any>()
     expectTypeOf(
-      ios.context<{ auth: boolean } | undefined>().handler(() => {}),
+      os.context<{ auth: boolean } | undefined>().handler(() => {}),
     ).toMatchTypeOf<(...args: any[]) => any>()
     expectTypeOf(
-      ios.context<{ auth: boolean }>().handler(() => {}),
+      os.context<{ auth: boolean }>().handler(() => {}),
     ).not.toMatchTypeOf<(...args: any[]) => any>()
   })
 
   it('infer types', () => {
-    const p = ios
+    const p = os
       .input(z.object({ id: z.number() }))
       .output(z.string())
       .handler(() => 'string')
@@ -274,7 +274,7 @@ describe('server action', () => {
       (input: { id: number } | FormData) => Promise<string>
     >()
 
-    const p2 = ios.input(z.object({ id: z.number() })).handler(() => 12333)
+    const p2 = os.input(z.object({ id: z.number() })).handler(() => 12333)
 
     expectTypeOf(p2).toMatchTypeOf<
       (input: { id: number } | FormData) => Promise<number>
@@ -282,7 +282,7 @@ describe('server action', () => {
   })
 
   it('works with input', async () => {
-    const p = ios
+    const p = os
       .input(z.object({ id: z.number(), date: z.date() }))
       .handler(async (input, context) => {
         expect(context).toBe(undefined)
@@ -296,7 +296,7 @@ describe('server action', () => {
   })
 
   it('can deserialize form data', async () => {
-    const p = ios
+    const p = os
       .input(z.object({ id: z.number(), nested: z.object({ date: z.date() }) }))
       .handler(async (input) => input)
 

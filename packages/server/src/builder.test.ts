@@ -1,6 +1,7 @@
-import { ioc } from '@orpc/contract'
+import { oc } from '@orpc/contract'
 import { z } from 'zod'
 import {
+  os,
   type Builder,
   type DecoratedMiddleware,
   type DecoratedProcedure,
@@ -8,25 +9,22 @@ import {
   ProcedureBuilder,
   ProcedureImplementer,
   RouterImplementer,
-  ios,
   isProcedure,
 } from '.'
 import { RouterBuilder } from './router-builder'
 
 test('context method', () => {
-  const os = ios
-
   expectTypeOf<
     typeof os extends Builder<infer TContext, any> ? TContext : never
   >().toEqualTypeOf<undefined | Record<string, unknown>>()
 
-  const os2 = ios.context<{ foo: 'bar' }>()
+  const os2 = os.context<{ foo: 'bar' }>()
 
   expectTypeOf<
     typeof os2 extends Builder<infer TContext, any> ? TContext : never
   >().toEqualTypeOf<{ foo: 'bar' }>()
 
-  const os3 = ios.context<{ foo: 'bar' }>().context()
+  const os3 = os.context<{ foo: 'bar' }>().context()
 
   expectTypeOf<
     typeof os3 extends Builder<infer TContext, any> ? TContext : never
@@ -36,10 +34,10 @@ test('context method', () => {
 describe('use middleware', () => {
   type Context = { auth: boolean }
 
-  const os = ios.context<Context>()
+  const osw = os.context<Context>()
 
   it('infer types', () => {
-    os.use((input, context, meta) => {
+    osw.use((input, context, meta) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()
       expectTypeOf(context).toEqualTypeOf<Context>()
       expectTypeOf(meta).toEqualTypeOf<Meta<unknown>>()
@@ -47,15 +45,17 @@ describe('use middleware', () => {
   })
 
   it('can map context', () => {
-    os.use(() => {
-      return { context: { userId: '1' } }
-    }).use((_, context) => {
-      expectTypeOf(context).toMatchTypeOf<Context & { userId: string }>()
-    })
+    osw
+      .use(() => {
+        return { context: { userId: '1' } }
+      })
+      .use((_, context) => {
+        expectTypeOf(context).toMatchTypeOf<Context & { userId: string }>()
+      })
   })
 
   it('can map input', () => {
-    os
+    osw
       // @ts-expect-error mismatch input
       .use((input: { postId: string }) => {})
       .use(
@@ -75,7 +75,7 @@ describe('use middleware', () => {
 
 describe('create middleware', () => {
   it('infer types', () => {
-    const mid = ios
+    const mid = os
       .context<{ auth: boolean }>()
       .middleware((input, context, meta) => {
         expectTypeOf(input).toEqualTypeOf<unknown>()
@@ -89,7 +89,7 @@ describe('create middleware', () => {
   })
 
   it('map context', () => {
-    const mid = ios.context<{ auth: boolean }>().middleware(() => {
+    const mid = os.context<{ auth: boolean }>().middleware(() => {
       return { context: { userId: '1' } }
     })
 
@@ -105,52 +105,52 @@ describe('create middleware', () => {
 })
 
 test('router method', () => {
-  const pingContract = ioc.input(z.string()).output(z.string())
-  const userFindContract = ioc
+  const pingContract = oc.input(z.string()).output(z.string())
+  const userFindContract = oc
     .input(z.object({ id: z.string() }))
     .output(z.object({ name: z.string() }))
 
-  const contract = ioc.router({
+  const contract = oc.router({
     ping: pingContract,
     user: {
       find: userFindContract,
     },
 
-    user2: ioc.router({
+    user2: oc.router({
       find: userFindContract,
     }),
 
     router: userFindContract,
   })
 
-  const os = ios.contract(contract)
+  const osw = os.contract(contract)
 
-  expect(os.ping).instanceOf(ProcedureImplementer)
-  expect(os.ping.zz$pi.contract).toEqual(pingContract)
+  expect(osw.ping).instanceOf(ProcedureImplementer)
+  expect(osw.ping.zz$pi.contract).toEqual(pingContract)
 
-  expect(os.user).instanceOf(RouterImplementer)
+  expect(osw.user).instanceOf(RouterImplementer)
 
-  expect(os.user.find).instanceOf(ProcedureImplementer)
-  expect(os.user.find.zz$pi.contract).toEqual(userFindContract)
+  expect(osw.user.find).instanceOf(ProcedureImplementer)
+  expect(osw.user.find.zz$pi.contract).toEqual(userFindContract)
 
   // Because of the router keyword is special, we can't use instanceof
-  expect(os.router.zz$pi.contract).toEqual(userFindContract)
+  expect(osw.router.zz$pi.contract).toEqual(userFindContract)
   expect(
-    os.router.handler(() => {
+    osw.router.handler(() => {
       return { name: '' }
     }),
   ).toSatisfy(isProcedure)
 })
 
 describe('define procedure builder', () => {
-  const os = ios.context<{ auth: boolean }>()
+  const osw = os.context<{ auth: boolean }>()
   const schema1 = z.object({})
   const example1 = {}
   const schema2 = z.object({ a: z.string() })
   const example2 = { a: '' }
 
   test('input method', () => {
-    const builder = os.input(schema1, example1)
+    const builder = osw.input(schema1, example1)
 
     expectTypeOf(builder).toEqualTypeOf<
       ProcedureBuilder<{ auth: boolean }, undefined, typeof schema1, undefined>
@@ -169,7 +169,7 @@ describe('define procedure builder', () => {
   })
 
   test('output method', () => {
-    const builder = os.output(schema2, example2)
+    const builder = osw.output(schema2, example2)
 
     expectTypeOf(builder).toEqualTypeOf<
       ProcedureBuilder<{ auth: boolean }, undefined, undefined, typeof schema2>
@@ -188,7 +188,7 @@ describe('define procedure builder', () => {
   })
 
   test('route method', () => {
-    const builder = os.route({
+    const builder = osw.route({
       method: 'GET',
       path: '/test',
       deprecated: true,
@@ -218,7 +218,7 @@ describe('define procedure builder', () => {
   })
 
   test('with middlewares', () => {
-    const mid = ios.middleware(() => {
+    const mid = os.middleware(() => {
       return {
         context: {
           userId: 'string',
@@ -226,7 +226,7 @@ describe('define procedure builder', () => {
       }
     })
 
-    const mid2 = ios.middleware(() => {
+    const mid2 = os.middleware(() => {
       return {
         context: {
           mid2: true,
@@ -234,11 +234,11 @@ describe('define procedure builder', () => {
       }
     })
 
-    const os = ios.context<{ auth: boolean }>().use(mid).use(mid2)
+    const osw = os.context<{ auth: boolean }>().use(mid).use(mid2)
 
-    const builder1 = os.input(schema1)
-    const builder2 = os.output(schema2)
-    const builder3 = os.route({ method: 'GET', path: '/test' })
+    const builder1 = osw.input(schema1)
+    const builder2 = osw.output(schema2)
+    const builder3 = osw.route({ method: 'GET', path: '/test' })
 
     expectTypeOf(builder1).toEqualTypeOf<
       ProcedureBuilder<
@@ -275,9 +275,9 @@ describe('define procedure builder', () => {
 
 describe('handler method', () => {
   it('without middlewares', () => {
-    const os = ios.context<{ auth: boolean }>()
+    const osw = os.context<{ auth: boolean }>()
 
-    const procedure = os.handler((input, context, meta) => {
+    const procedure = osw.handler((input, context, meta) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()
       expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
       expectTypeOf(meta).toEqualTypeOf<Meta<unknown>>()
@@ -298,7 +298,7 @@ describe('handler method', () => {
   })
 
   it('with middlewares', () => {
-    const mid = ios.middleware(() => {
+    const mid = os.middleware(() => {
       return {
         context: {
           userId: 'string',
@@ -306,9 +306,9 @@ describe('handler method', () => {
       }
     })
 
-    const os = ios.context<{ auth: boolean }>().use(mid)
+    const osw = os.context<{ auth: boolean }>().use(mid)
 
-    const procedure = os.handler((input, context, meta) => {
+    const procedure = osw.handler((input, context, meta) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()
       expectTypeOf(context).toMatchTypeOf<{ auth: boolean }>()
       expectTypeOf(meta).toEqualTypeOf<Meta<unknown>>()
@@ -330,7 +330,7 @@ describe('handler method', () => {
 })
 
 test('prefix', () => {
-  const builder = ios
+  const builder = os
     .context<{ auth: boolean }>()
     .use(() => {
       return { context: { userId: '1' } }
@@ -346,7 +346,7 @@ test('prefix', () => {
 })
 
 test('tags', () => {
-  const builder = ios
+  const builder = os
     .context<{ auth: boolean }>()
     .use(() => {
       return { context: { userId: '1' } }

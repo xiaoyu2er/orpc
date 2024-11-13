@@ -8,7 +8,9 @@ description: The powerful and flexible way to reuse logic across procedures in o
 Middleware in oRPC is both powerful and flexible, enabling you to accomplish many tasks efficiently.
 
 ```ts
-const authMiddleware = ios.middleware(async (input, context, meta) => {
+import { os } from '@orpc/server'
+
+const authMiddleware = os.middleware(async (input, context, meta) => {
     meta.onSuccess(async (output) => {
         // Invoked after successful handler execution
         // Other callbacks: onError, onFinish
@@ -29,7 +31,7 @@ const authMiddleware = ios.middleware(async (input, context, meta) => {
 })
 
 // Now every procedure or router defined in this oRPC will be protected by authMiddleware
-const authedORPC = ios.use(authMiddleware)
+const authedORPC = os.use(authMiddleware)
 ```
 
 ## Typed Input
@@ -37,12 +39,12 @@ const authedORPC = ios.use(authMiddleware)
 Middleware can expect specific input types, opening up many possibilities:
 
 ```ts
-const canEditPostMiddleware = ios
+const canEditPostMiddleware = os
     .middleware(async (input: {id: string}, context, meta) => { 
         // Now you can specify the input type for middleware
     })
 
-ios
+os
     .input(z.object({ postId: z.string() }))
     .use(canEditPostMiddleware) // ❗ mismatched input type
     .use(canEditPostMiddleware, (input) => ({ id: input.postId })) // ✅ map the input to match expected type
@@ -69,10 +71,10 @@ type Context = {
     }
 }
 
-const os = ios.context<Context>()
+const osw = os.context<Context>()
 
 // Any procedure using this middleware will infer context.user as NonNullable<typeof context['user']>
-const authMiddleware = os
+const authMiddleware = osw
     .middleware(async (input, context, meta) => {
         if (!context.user) {
             throw new ORPCError({ code: 'UNAUTHORIZED' })
@@ -85,7 +87,7 @@ const authMiddleware = os
         }
     })
 
-const procedure = os
+const procedure = osw
     .use(authMiddleware)
     .use((input, context, meta) => {
         expectTypeOf(context).toMatchTypeOf<{user: {id: string}}>()

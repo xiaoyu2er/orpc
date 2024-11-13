@@ -1,17 +1,17 @@
 import { ORPC_HEADER, ORPC_HEADER_VALUE } from '@orpc/contract'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { ORPCError, ios } from '..'
+import { os, ORPCError } from '..'
 import { createFetchHandler } from './fetch'
 
-const router = ios.router({
-  throw: ios.handler(() => {
+const router = os.router({
+  throw: os.handler(() => {
     throw new Error('test')
   }),
-  ping: ios.handler(() => {
+  ping: os.handler(() => {
     return 'ping'
   }),
-  ping2: ios.route({ method: 'GET', path: '/ping2' }).handler(() => {
+  ping2: os.route({ method: 'GET', path: '/ping2' }).handler(() => {
     return 'ping2'
   }),
 })
@@ -19,10 +19,10 @@ const router = ios.router({
 const handler = createFetchHandler({ router })
 
 describe('simple', () => {
-  const os = ios.context<{ auth?: boolean }>()
-  const router = os.router({
-    ping: os.handler(async () => 'pong'),
-    ping2: os
+  const osw = os.context<{ auth?: boolean }>()
+  const router = osw.router({
+    ping: osw.handler(async () => 'pong'),
+    ping2: osw
       .route({ method: 'GET', path: '/ping2' })
       .handler(async () => 'pong2'),
   })
@@ -101,8 +101,8 @@ describe('procedure throw error', () => {
   })
 
   it('orpc error', async () => {
-    const router = ios.router({
-      ping: ios.handler(() => {
+    const router = os.router({
+      ping: os.handler(() => {
         throw new ORPCError({ code: 'TIMEOUT' })
       }),
     })
@@ -122,8 +122,8 @@ describe('procedure throw error', () => {
   })
 
   it('orpc error with data', async () => {
-    const router = ios.router({
-      ping: ios.handler(() => {
+    const router = os.router({
+      ping: os.handler(() => {
         throw new ORPCError({
           code: 'PAYLOAD_TOO_LARGE',
           message: 'test',
@@ -148,15 +148,15 @@ describe('procedure throw error', () => {
   })
 
   it('orpc error with custom status', async () => {
-    const router = ios.router({
-      ping: ios.handler(() => {
+    const router = os.router({
+      ping: os.handler(() => {
         throw new ORPCError({
           code: 'PAYLOAD_TOO_LARGE',
           status: 100,
         })
       }),
 
-      ping2: ios.handler(() => {
+      ping2: os.handler(() => {
         throw new ORPCError({
           code: 'PAYLOAD_TOO_LARGE',
           status: 488,
@@ -190,8 +190,8 @@ describe('procedure throw error', () => {
   })
 
   it('input validation error', async () => {
-    const router = ios.router({
-      ping: ios
+    const router = os.router({
+      ping: os
         .input(z.object({}))
         .output(z.string())
         .handler(() => {
@@ -223,8 +223,8 @@ describe('procedure throw error', () => {
   })
 
   it('output validation error', async () => {
-    const router = ios.router({
-      ping: ios
+    const router = os.router({
+      ping: os
         .input(z.string())
         .output(z.string())
         .handler(() => {
@@ -315,11 +315,11 @@ describe('hooks', () => {
 })
 
 describe('file upload', () => {
-  const router = ios.router({
-    signal: ios.input(z.instanceof(Blob)).handler((input) => {
+  const router = os.router({
+    signal: os.input(z.instanceof(Blob)).handler((input) => {
       return input
     }),
-    multiple: ios
+    multiple: os
       .input(
         z.object({ first: z.instanceof(Blob), second: z.instanceof(Blob) }),
       )

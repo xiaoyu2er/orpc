@@ -1,9 +1,7 @@
 import { z } from 'zod'
-import { type DecoratedContractProcedure, ioc } from '.'
+import { type DecoratedContractProcedure, oc } from '.'
 
 describe('define a procedure', () => {
-  const oc = ioc
-
   test('use route method', () => {
     const procedure = oc.route({
       method: 'GET',
@@ -63,8 +61,6 @@ describe('define a procedure', () => {
 
 describe('define a router', () => {
   it('simple', () => {
-    const oc = ioc
-
     const schema1 = z.string()
     const schema2 = z.object({ id: z.string() })
     const ping = oc.output(schema1)
@@ -102,8 +98,6 @@ describe('define a router', () => {
   })
 
   it('with prefix', () => {
-    const oc = ioc
-
     const schema1 = z.string()
     const schema2 = z.object({ id: z.string() })
     const ping = oc.output(schema1)
@@ -144,8 +138,6 @@ describe('define a router', () => {
   })
 
   it('with tags', () => {
-    const oc = ioc
-
     const schema1 = z.string()
     const schema2 = z.object({ id: z.string() })
     const ping = oc.output(schema1)

@@ -9,4 +9,4 @@ export * from './router'
 export * from './types'
 export * from './utils'
 
-export const ioc = new ContractBuilder()
+export const oc = new ContractBuilder()

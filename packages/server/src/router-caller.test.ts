@@ -1,13 +1,13 @@
 import { z } from 'zod'
-import { createRouterCaller, ios } from '.'
+import { os, createRouterCaller } from '.'
 
 describe('createRouterCaller', () => {
   let internal = false
   let context = { auth: true }
 
-  const os = ios.context<{ auth?: boolean }>()
+  const osw = os.context<{ auth?: boolean }>()
 
-  const ping = os
+  const ping = osw
     .input(z.object({ value: z.string().transform((v) => Number(v)) }))
     .output(z.object({ value: z.number().transform((v) => v.toString()) }))
     .handler((input, context, meta) => {
@@ -17,14 +17,14 @@ describe('createRouterCaller', () => {
       return input
     })
 
-  const pong = os.handler((_, context, meta) => {
+  const pong = osw.handler((_, context, meta) => {
     expect(context).toEqual(context)
     expect(meta.internal).toBe(internal)
 
     return { value: true }
   })
 
-  const router = os.router({
+  const router = osw.router({
     ping,
     pong,
     nested: {
@@ -143,11 +143,11 @@ describe('createRouterCaller', () => {
   })
 
   it('path', () => {
-    const ping = os.handler((_, __, { path }) => {
+    const ping = osw.handler((_, __, { path }) => {
       return path
     })
 
-    const router = os.router({
+    const router = osw.router({
       ping,
       nested: {
         ping,

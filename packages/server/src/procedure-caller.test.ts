@@ -1,13 +1,13 @@
 import { z } from 'zod'
-import { createProcedureCaller, ios } from '.'
+import { os, createProcedureCaller } from '.'
 
 describe('createProcedureCaller', () => {
   let internal = false
   let path = ['ping']
   let context = { auth: true }
 
-  const os = ios.context<{ auth?: boolean }>()
-  const procedure = os
+  const osw = os.context<{ auth?: boolean }>()
+  const procedure = osw
     .input(z.object({ value: z.string().transform((v) => Number(v)) }))
     .output(z.object({ value: z.number().transform((v) => v.toString()) }))
     .handler((input, context, meta) => {
@@ -79,7 +79,7 @@ describe('createProcedureCaller', () => {
   })
 
   it('without validate and schema', () => {
-    const procedure = os.handler(() => {
+    const procedure = osw.handler(() => {
       return { value: true }
     })
 
@@ -101,7 +101,7 @@ describe('createProcedureCaller', () => {
     const ref = { value: 0 }
 
     const mid1 = vi.fn(
-      os.middleware((input: { id: string }, context, meta) => {
+      osw.middleware((input: { id: string }, context, meta) => {
         expect(input).toEqual({ id: '1' })
 
         expect(ref.value).toBe(0)
@@ -126,7 +126,7 @@ describe('createProcedureCaller', () => {
     )
 
     const mid2 = vi.fn(
-      os.middleware((input, context, meta) => {
+      osw.middleware((input, context, meta) => {
         expect(ref.value).toBe(1)
         ref.value++
 
@@ -142,7 +142,7 @@ describe('createProcedureCaller', () => {
       }),
     )
 
-    const ping = os
+    const ping = osw
       .input(z.object({ id: z.string() }))
       .use(mid1)
       .use(mid2)

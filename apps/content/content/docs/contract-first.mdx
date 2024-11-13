@@ -24,9 +24,7 @@ Start by defining your API contract:
 
 ```ts
 import { z } from 'zod'
-import { ioc } from '@orpc/contract'
-
-const oc = ioc
+import { oc } from '@orpc/contract'
 
 export const appRouterContract = oc.router({
     ping: oc
@@ -44,17 +42,17 @@ export const appRouterContract = oc.router({
 With your contract defined, implement the server logic:
 
 ```ts
-import { ios } from '@orpc/server'
+import { os } from '@orpc/server'
 import { appRouterContract } from './contract'
 
-const os = ios.contract(appRouterContract)
+const osw = os.contract(appRouterContract)
 
-export const appRouter = os.router({
-    ping: os.ping.handler(async (input, context, meta) => ({
+export const appRouter = osw.router({
+    ping: osw.ping.handler(async (input, context, meta) => ({
         message: `pong ${input.name}`
     })),
 
-    pong: os.contract(appRouterContract.pong).handler(async (input, context, meta) => ({
+    pong: osw.contract(appRouterContract.pong).handler(async (input, context, meta) => ({
         message: `pong ${input.name}`
     })),
 })

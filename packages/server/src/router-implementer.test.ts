@@ -1,13 +1,13 @@
-import { ioc } from '@orpc/contract'
+import { oc } from '@orpc/contract'
 import { z } from 'zod'
-import { RouterImplementer, ios } from '.'
+import { os, RouterImplementer } from '.'
 
-const cp1 = ioc.input(z.string()).output(z.string())
-const cp2 = ioc.output(z.string())
-const cp3 = ioc.route({ method: 'GET', path: '/test' })
-const cr = ioc.router({
+const cp1 = oc.input(z.string()).output(z.string())
+const cp2 = oc.output(z.string())
+const cp3 = oc.route({ method: 'GET', path: '/test' })
+const cr = oc.router({
   p1: cp1,
-  nested: ioc.router({
+  nested: oc.router({
     p2: cp2,
   }),
   nested2: {
@@ -15,17 +15,17 @@ const cr = ioc.router({
   },
 })
 
-const os = ios.context<{ auth: boolean }>().contract(cr)
+const osw = os.context<{ auth: boolean }>().contract(cr)
 
-const p1 = os.p1.handler(() => {
+const p1 = osw.p1.handler(() => {
   return 'dinwwwh'
 })
 
-const p2 = os.nested.p2.handler(() => {
+const p2 = osw.nested.p2.handler(() => {
   return 'dinwwwh'
 })
 
-const p3 = os.nested2.p3.handler(() => {
+const p3 = osw.nested2.p3.handler(() => {
   return 'dinwwwh'
 })
 
@@ -37,7 +37,7 @@ it('required all procedure match', () => {
   implementer.router({
     p1: p1,
     nested: {
-      p2: ios.contract(cp2).handler(() => ''),
+      p2: os.contract(cp2).handler(() => ''),
     },
     nested2: {
       p3: p3,
@@ -47,7 +47,7 @@ it('required all procedure match', () => {
   expect(() => {
     implementer.router({
       // @ts-expect-error p1 is mismatch
-      p1: ios.handler(() => {}),
+      p1: os.handler(() => {}),
       nested: {
         p2: p2,
       },
@@ -60,7 +60,7 @@ it('required all procedure match', () => {
   expect(() => {
     implementer.router({
       // @ts-expect-error p1 is mismatch
-      p1: ios,
+      p1: osw,
       nested: {
         p2: p2,
       },
@@ -73,7 +73,7 @@ it('required all procedure match', () => {
   expect(() => {
     implementer.router({
       // Not allow manual specification
-      p1: ios
+      p1: os
         .input(z.string())
         .output(z.string())
         .handler(() => 'dinwwwh'),

@@ -15,17 +15,17 @@ Server actions are automatically enabled for procedures that have either:
 
 ```ts
 // This creates a server action since context is undefined
-const actionProcedure = ios
+const actionProcedure = os
   .input(z.object({ id: z.number() }))
   .handler(() => 'result')
 
 // This also creates a server action since context is optional
-const optionalContextProcedure = ios
+const optionalContextProcedure = os
   .context<{ auth: boolean } | undefined>()
   .handler(() => 'result')
 
 // This won't be a server action since it requires context
-const regularProcedure = ios
+const regularProcedure = os
   .context<{ auth: boolean }>()
   .handler(() => 'result')
 ```
@@ -39,11 +39,11 @@ Create type-safe server actions with full input validation:
 ```ts
 "use server"
 
-import { ios } from '@orpc/server'
+import { os } from '@orpc/server'
 import { z } from 'zod'
 import { redirect } from "next/navigation"
 
-export const createUser = ios
+export const createUser = os
   .input(z.object({ 
     id: z.number(),
     profile: z.object({

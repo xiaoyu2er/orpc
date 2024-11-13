@@ -1,11 +1,11 @@
-import { ioc } from '@orpc/contract'
+import { oc } from '@orpc/contract'
 import { oz } from '@orpc/zod'
 import type { OpenAPIObject } from 'openapi3-ts/oas31'
 import { z } from 'zod'
 import { generateOpenAPI } from './generator'
 
 it('works', () => {
-  const o = ioc
+  const o = oc
 
   const router = o.router({
     ping: o.output(z.string()),
@@ -87,7 +87,7 @@ it('works', () => {
 })
 
 it('throwOnMissingTagDefinition option', () => {
-  const o = ioc
+  const o = oc
 
   const router = o.router({
     ping: o.output(z.string()),
@@ -199,7 +199,7 @@ it('throwOnMissingTagDefinition option', () => {
 })
 
 it('support single file upload', () => {
-  const o = ioc
+  const o = oc
 
   const router = o.router({
     upload: o
@@ -261,7 +261,7 @@ it('support single file upload', () => {
 })
 
 it('support multipart/form-data', () => {
-  const o = ioc
+  const o = oc
 
   const router = o.router({
     resize: o
@@ -328,8 +328,8 @@ it('support multipart/form-data', () => {
 })
 
 it('work with example', () => {
-  const router = ioc.router({
-    upload: ioc
+  const router = oc.router({
+    upload: oc
       .input(
         z.object({
           set: z.set(z.string()),

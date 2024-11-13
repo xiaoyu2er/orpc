@@ -1,13 +1,13 @@
 import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
-import { Procedure, decorateProcedure, ios, isProcedure } from '.'
+import { os, Procedure, decorateProcedure, isProcedure } from '.'
 import { RouterBuilder } from './router-builder'
 
 const builder = new RouterBuilder<undefined, undefined>({})
-const ping = ios
+const ping = os
   .route({ method: 'GET', path: '/ping', tags: ['ping'] })
   .handler(() => 'ping')
-const pong = ios
+const pong = os
   .output(z.object({ id: z.string() }))
   .handler(() => ({ id: '123' }))
 

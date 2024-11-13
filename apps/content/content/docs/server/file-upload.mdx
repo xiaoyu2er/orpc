@@ -15,10 +15,10 @@ oRPC allows you to define file upload handlers with ease.
 In this example, we define an endpoint that accepts a file input:
 
 ```typescript
-import { ios } from '@orpc/server'
+import { os } from '@orpc/server'
 import { z } from 'zod'
 
-export const uploadFile = ios.input(
+export const uploadFile = os.input(
     z.object({ file: z.instanceof(File) })
 ).handler(async (input) => {
     const file: File = input.file
@@ -39,18 +39,18 @@ With these, you can apply more granular constraints, such as file type filtering
 Here's an example using `oz.file()` from `@orpc/zod`, which allows specifying a file type restriction for images:
 
 ```typescript
-import { ios } from '@orpc/server'
+import { os } from '@orpc/server'
 import { oz } from '@orpc/zod'
 import { z } from 'zod'
 
-export const uploadFile = ios.input(
+export const uploadFile = os.input(
     z.object({ file: oz.file().type('image/*') })
 ).handler(async (input) => {
     const image: File = input.file 
     // Process the image file as needed
 })
 
-export const appRouter = ios.router({
+export const appRouter = os.router({
   uploadFile,
 })
 ```

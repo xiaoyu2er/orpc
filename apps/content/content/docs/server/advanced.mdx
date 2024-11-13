@@ -6,9 +6,7 @@ description: Beyond the basics, oRPC offers more advanced features
 ## Internal Caller
 
 ```ts
-import { ios, createRouterCaller } from '@orpc/server'
-
-const os = ios
+import { os, createRouterCaller } from '@orpc/server'
 
 const appRouter = os.router({
     ping: os.handler(() => 'pong')

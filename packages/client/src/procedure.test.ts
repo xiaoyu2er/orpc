@@ -1,10 +1,9 @@
-import { ORPCError, ios } from '@orpc/server'
+import { os, ORPCError } from '@orpc/server'
 import { createFetchHandler } from '@orpc/server/fetch'
 import { z } from 'zod'
 import { createProcedureClient } from './procedure'
 
 describe('createProcedureClient', () => {
-  const os = ios
   const schema = z.object({
     value: z.string(),
   })
@@ -179,11 +178,11 @@ describe('createProcedureClient', () => {
 })
 
 describe('upload file', () => {
-  const router = ios.router({
-    signal: ios.input(z.instanceof(Blob)).handler((input) => {
+  const router = os.router({
+    signal: os.input(z.instanceof(Blob)).handler((input) => {
       return input
     }),
-    multiple: ios
+    multiple: os
       .input(
         z.object({ first: z.instanceof(Blob), second: z.instanceof(Blob) }),
       )

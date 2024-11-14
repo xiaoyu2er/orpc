@@ -43,7 +43,7 @@
   "files": ["dist", "src"],
   "scripts": {
     "build": "tsup --entry.index=src/index.ts --entry.fetch=src/adapters/fetch.ts --clean --sourcemap --splitting --format=esm --onSuccess='tsc -b --noCheck'",
-    "type:check": "tsc -b"
+    "check": "tsc -b"
   },
   "dependencies": {
     "@orpc/contract": "workspace:*",

@@ -51,39 +51,85 @@ npm i @orpc/server @orpc/client
 ## Define Your First Router
 
 ```ts twoslash
-import { os } from '@orpc/server'
+import { os, ORPCError } from '@orpc/server'
+import { oz } from '@orpc/zod'
 import { z } from 'zod'
 
-export type Context = {}
+export type Context = { user?: { id: string } }
 
-const osw = os.context<Context>()
+// global osw completely optional, needed when you want to use context
+export const osw /** os with ... */ = os.context<Context>()
 
-const router = osw.router({
-  ping: osw
-    .route({method: 'GET', path: '/ping'}) // Optional
-    .input(z.object({ name: z.string() })) // Optional
-    .use((input, context, meta) => {
-      //  ^input, context, meta is fully typed
-
-      meta.onSuccess(async (output) => {
-        // ^output is fully typed
-      })
-
-      meta.onError(async (error) => {})
-      meta.onFinish(async (error) => {})
-
+export const router = osw.router({
+  getting: os
+    .input(
+      z.object({
+        name: z.string(),
+      }),
+    )
+    .handler(async (input, context, meta) => {
       return {
-        context: {
-          value: 'this will be merged into context',
-        }
+        message: `Hello, ${input.name}!`,
       }
-    })
-    .handler(async (input, context, meta) => `pong ${input.name}`),
+    }),
 
-  ping2: os.handler(() => {
-    // use os if you don't care about context
-    return 'pong2'
-  }),
+  post: {
+    find: osw
+      .input(
+        z.object({
+          id: z.string({}),
+        }),
+      )
+      .output(
+        z.object({
+          id: z.string(),
+          title: z.string(),
+          description: z.string(),
+        }),
+      )
+      .use((input, context, meta) => {
+        if (!context.user) {
+          throw new ORPCError({
+            code: 'UNAUTHORIZED',
+          })
+        }
+
+        meta.onSuccess((output) => {
+          // do something on success
+        })
+
+        return {
+          context: {
+            user: context.user, // from now user not undefined-able
+          },
+        }
+      })
+      .handler((input, context, meta) => {
+        return {
+          id: 'example',
+          title: 'example',
+          description: 'example',
+        }
+      }),
+
+    create: osw
+      .input(
+        z.object({
+          title: z.string(),
+          description: z.string(),
+          thumb: oz.file().type('image/*'),
+        }),
+      )
+      .handler(async (input, context, meta) => {
+        input.thumb // file upload out of the box
+
+        return {
+          id: 'example',
+          title: input.title,
+          description: input.description,
+        }
+      }),
+  },
 })
 ```
 
@@ -91,45 +137,66 @@ In oRPC middleware is very useful and fully typed you can find more info [here](
 
 ## Start Your Server
 
-This example uses [@hono/node-server](https://github.com/honojs/node-server) to create a Node server with [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
+This example uses [srvx](https://srvx.unjs.io/) to create a Node server with [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
 
-```ts
-import { serve } from '@hono/node-server'
+```ts twoslash
 import { createFetchHandler } from '@orpc/server/fetch'
+import { serve } from 'srvx'
+import { router } from 'examples/server'
 
-// Create a global fetch handler for optimal performance
 const handler = createFetchHandler({
   router,
-  serverless: false, // Set to true to improve cold start times
+  serverless: false, // set true will improve cold start times
 })
 
-serve({
+const server = serve({
   fetch(request) {
     return handler({
       request,
-      prefix: '/',
       context: {},
+      prefix: '/api'
     })
   },
-  port: 2026
+  port: 2206,
 })
+
+await server.ready()
+
+// biome-ignore lint/suspicious/noConsole: <explanation>
+console.log(`🚀 Server ready at ${server.url}`)
 ```
 
-Start the server and visit http://localhost:2026/ping?name=yourname to see the result.
+Start the server and visit http://localhost:2026/api/getting?name=yourname to see the result.
 
 ## Client Usage
 
 Use the fully typed client in any environment:
 
-```ts
-import { createORPCClient } from '@orpc/client'
+```ts twoslash
+import { createORPCClient, ORPCError } from '@orpc/client'
+import type { router } from 'examples/server'
 
-const client = createORPCClient<typeof router>({
-  baseURL: 'http://localhost:2026',
+const client = createORPCClient<typeof router /* or contract router */>({
+  baseURL: 'http://localhost:2026/api',
+  // fetch: optional override for the default fetch function
+  // headers: provide additional headers
+})
+ 
+//  File upload out of the box
+const output = await client.post.create({
+  title: 'My Amazing Title',
+  description: 'This is a detailed description of my content',
+  thumb: (document.getElementById('thumb') as HTMLInputElement).files[0]!,
 })
 
-client.ping({ name: 'yourname' }).then((output) => console.log(output))
-//          ^input is typed             ^output is typed
+// @noErrors
+client.post.
+//          ^|
+
+
+
+
+// typesafe and completion out of box
 ```
 
 That's all you need to get started with oRPC!

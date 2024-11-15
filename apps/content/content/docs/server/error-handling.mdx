@@ -3,7 +3,7 @@ title: Error Handling
 description: How to intercept, handle or log errors inside oRPC
 ---
 
-```ts
+```ts twoslash
 import { ORPCError, os } from '@orpc/server'
 
 const ping = os
@@ -15,8 +15,8 @@ const ping = os
             // do something here
         })
 
-        meta.onSuccess(() => {})
-        meta.onFinish(() => {})
+        meta.onSuccess((output) => {})
+        meta.onFinish((output, error) => {})
     })
     .handler((input, context, meta) => {
         throw new ORPCError({

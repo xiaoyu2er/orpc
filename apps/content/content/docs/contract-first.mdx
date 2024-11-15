@@ -22,18 +22,59 @@ npm i @orpc/contract @orpc/server @orpc/client
 
 Start by defining your API contract:
 
-```ts
-import { z } from 'zod'
+```ts twoslash
 import { oc } from '@orpc/contract'
+import { oz } from '@orpc/zod'
+import { z } from 'zod'
 
-export const appRouterContract = oc.router({
-    ping: oc
-        .route({method: 'GET', 'path': '/ping'}) // optional
-        .input(z.object({ name: z.string() })) // optional
-        .output(z.object({ message: z.string() })) // optional
-    
-    pong: oc.route({method: 'GET', 'path': '/pong'}) // optional
-        .output(z.object({ message: z.string() })) // optional
+export const contract = oc.router({
+    getting: oc
+    .input(
+      z.object({
+        name: z.string(),
+      }),
+    )
+    .output(
+      z.object({
+        message: z.string(),
+      }),
+    ),
+
+  post: oc.prefix('/posts').router({
+    find: oc
+      .route({
+        path: '/{id}',
+        method: 'GET',
+      })
+      .input(
+        z.object({
+          id: z.string(),
+        }),
+      )
+      .output(
+        z.object({
+          id: z.string(),
+          title: z.string(),
+          description: z.string(),
+        }),
+      ),
+
+    create: oc
+      .input(
+        z.object({
+          title: z.string(),
+          description: z.string(),
+          thumb: oz.file().type('image/*'),
+        }),
+      )
+      .output(
+        z.object({
+          id: z.string(),
+          title: z.string(),
+          description: z.string(),
+        }),
+      ),
+  }),
 })
 ```
 
@@ -41,20 +82,37 @@ export const appRouterContract = oc.router({
 
 With your contract defined, implement the server logic:
 
-```ts
-import { os } from '@orpc/server'
-import { appRouterContract } from './contract'
+```ts twoslash
+import { os, ORPCError } from '@orpc/server'
+import { contract } from 'examples/contract'
 
-const osw = os.contract(appRouterContract)
+export const osw /** os with ... */ = os.contract(contract) // Ensure every implement must be match contract
 
-export const appRouter = osw.router({
-    ping: osw.ping.handler(async (input, context, meta) => ({
-        message: `pong ${input.name}`
-    })),
+export const router = osw.router({
+  getting: osw.getting.handler((input, context, meta) => {
+    return {
+      message: `Hello, ${input.name}!`,
+    }
+  }),
 
-    pong: osw.contract(appRouterContract.pong).handler(async (input, context, meta) => ({
-        message: `pong ${input.name}`
-    })),
+  post: {
+    find: osw.post.find
+      .handler((input, context, meta) => {
+        return {
+          id: 'example',
+          title: 'example',
+          description: 'example',
+        }
+      }),
+
+    create: osw.post.create.handler((input, context, meta) => {
+      return {
+        id: 'example',
+        title: input.title,
+        description: input.description,
+      }
+    }),
+  },
 })
 ```
 
@@ -64,18 +122,31 @@ That's it! The contract definition and implementation are now completely separat
 
 Create a fully typed client using just the contract definition:
 
-```ts
-import { createORPCClient } from '@orpc/client'
-import { appRouterContract } from './contract'
+```ts twoslash
+import { createORPCClient, ORPCError } from '@orpc/client'
+import type { contract } from 'examples/contract'
 
-const client = createORPCClient<typeof appRouterContract>({
-    baseURL: 'http://localhost:2026',
+const client = createORPCClient<typeof contract /* or server router */>({
+  baseURL: 'http://localhost:2026/prefix',
+  // fetch: optional override for the default fetch function
+  // headers: provide additional headers
+})
+ 
+//  File upload out of the box
+const output = await client.post.create({
+  title: 'My Amazing Title',
+  description: 'This is a detailed description of my content',
+  thumb: (document.getElementById('thumb') as HTMLInputElement).files[0]!,
 })
 
-// Example usage
-client.ping({ name: 'world' }).then(response => {
-    console.log(response.message) // Outputs: "pong world"
-})
+// @noErrors
+client.post.
+//          ^|
+
+
+
+
+// typesafe and completion out of box
 ```
 
 The client is type-safe and can be used in any JavaScript environment.

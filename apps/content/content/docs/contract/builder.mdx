@@ -13,20 +13,62 @@ npm i @orpc/contract
 
 The API almost the same as the `server` except that contract will not define the handler.
 
-```ts
+```ts twoslash
 import { oc } from '@orpc/contract'
+import { oz } from '@orpc/zod'
+import { z } from 'zod'
 
-export const appRouterContract = oc.router({
-    ping: oc
-        .route({ method: 'GET', path: '/ping' }) // optional
-        .input(z.object({ value: z.string() }))   // optional
-        .output(z.string()),                      // optional
+// Define your contract first
+// This contract can replace server router in most-case
 
-    user: oc.prefix('/users').router({
-        find: oc 
-            .input(z.object({ id: z.string() }))
-            .output(z.object({ id: z.string(), name: z.string() })),
-    })
+export const contract = oc.router({
+  getting: oc
+    .input(
+      z.object({
+        name: z.string(),
+      }),
+    )
+    .output(
+      z.object({
+        message: z.string(),
+      }),
+    ),
+
+  post: oc.prefix('/posts').router({
+    find: oc
+      .route({
+        path: '/{id}',
+        method: 'GET',
+      })
+      .input(
+        z.object({
+          id: z.string(),
+        }),
+      )
+      .output(
+        z.object({
+          id: z.string(),
+          title: z.string(),
+          description: z.string(),
+        }),
+      ),
+
+    create: oc
+      .input(
+        z.object({
+          title: z.string(),
+          description: z.string(),
+          thumb: oz.file().type('image/*'),
+        }),
+      )
+      .output(
+        z.object({
+          id: z.string(),
+          title: z.string(),
+          description: z.string(),
+        }),
+      ),
+  }),
 })
 ```
 
@@ -34,21 +76,37 @@ export const appRouterContract = oc.router({
 
 All `server` features are available, except the input, output, and route parts, which are defined in the contract.
 
-```ts
+```ts twoslash
 import { os } from '@orpc/server'
-import { appRouterContract } from './contract'
+import { contract } from 'examples/contract'
 
-const osw = os.contract(appRouterContract)
+export type Context = { user?: { id: string } }
+export const osw /** os with ... */ = os.context<Context>().contract(contract) // Ensure every implement must be match contract
 
-export const appRouter = osw.router({
-    ping: osw.ping.handler(({ input }) => input.value),
-    user: {
-        find: osw.user.find.handler(({ input }) => {
-            return {
-                id: input.id,
-                name: 'dinwwwh',
-            }
-        }),
+export const router = osw.router({
+  getting: osw.getting.handler((input, context, meta) => {
+    return {
+      message: `Hello, ${input.name}!`,
     }
+  }),
+
+  post: {
+    find: osw.post.find
+      .handler((input, context, meta) => {
+        return {
+          id: 'example',
+          title: 'example',
+          description: 'example',
+        }
+      }),
+
+    create: osw.post.create.handler((input, context, meta) => {
+      return {
+        id: 'example',
+        title: input.title,
+        description: input.description,
+      }
+    }),
+  },
 })
 ```

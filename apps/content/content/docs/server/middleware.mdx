@@ -7,10 +7,15 @@ description: The powerful and flexible way to reuse logic across procedures in o
 
 Middleware in oRPC is both powerful and flexible, enabling you to accomplish many tasks efficiently.
 
-```ts
-import { os } from '@orpc/server'
+```ts twoslash
+import { os, ORPCError } from '@orpc/server'
 
-const authMiddleware = os.middleware(async (input, context, meta) => {
+export type Context = { user?: { id: string } }
+
+// global osw completely optional, needed when you want to use context
+export const osw /** os with ... */ = os.context<Context>()
+
+const authMiddleware = osw.middleware(async (input, context, meta) => {
     meta.onSuccess(async (output) => {
         // Invoked after successful handler execution
         // Other callbacks: onError, onFinish
@@ -31,14 +36,18 @@ const authMiddleware = os.middleware(async (input, context, meta) => {
 })
 
 // Now every procedure or router defined in this oRPC will be protected by authMiddleware
-const authedORPC = os.use(authMiddleware)
+const authOS = osw.use(authMiddleware)
 ```
 
 ## Typed Input
 
 Middleware can expect specific input types, opening up many possibilities:
 
-```ts
+```ts twoslash
+// @errors: 2345
+import { os, ORPCError } from '@orpc/server'
+import { z } from 'zod' 
+
 const canEditPostMiddleware = os
     .middleware(async (input: {id: string}, context, meta) => { 
         // Now you can specify the input type for middleware
@@ -54,17 +63,24 @@ os
 
 You can merge or extend middlewares using concatenation:
 
-```ts
-const authAndCan = authMiddleware.concat(canEditPostMiddleware) // Merge middlewares
+```ts twoslash
+import { os } from '@orpc/server'
 
-const authAndCan2 = authMiddleware.concat((input, context, meta) => {}) // Extend middleware
+const auth = os.middleware(async (input, context, meta) => {})
+const can = os.middleware(async (input, context, meta) => {})
+
+const authAndCan = auth.concat(can) // Merge middleware
+
+const authAndCan2 = auth.concat((input, context, meta) => {}) // Extend middleware
 ```
 
 ## Extra Context
 
 Extra context is created by middlewares and automatically merges with the global context, enhancing developer experience:
 
-```ts
+```ts twoslash
+import { os, ORPCError } from '@orpc/server'
+
 type Context = {
     user?: {
         id: string
@@ -90,7 +106,8 @@ const authMiddleware = osw
 const procedure = osw
     .use(authMiddleware)
     .use((input, context, meta) => {
-        expectTypeOf(context).toMatchTypeOf<{user: {id: string}}>()
+
+        const _expect: NonNullable<typeof context['user']> = context.user
 
         return {
             context: {
@@ -99,7 +116,10 @@ const procedure = osw
         }
     })
     .handler(async (input, context, meta) => {
-        expectTypeOf(context).toMatchTypeOf<{user: {id: string}; say: string}>()
+        
+        const _expect1: NonNullable<typeof context['user']> = context.user
+        const _expect2: string = context.say
+
     })
 ```
 
@@ -107,14 +127,16 @@ const procedure = osw
 
 In oRPC, middleware is simply a JavaScript function, making it easy to customize:
 
-```ts
-import type { Meta } from '@orpc/server'
+```ts twoslash
+import { Meta, os } from '@orpc/server'
 
-const mid = os.middleware(async (input, context, meta) => {})
+export type Context = { user?: { id: string } }
+
+const mid = os.context<Context>().middleware(async (input, context, meta) => {})
 
 // This is equivalent to:
 
-const mid = async (input: unknown, context: Context, meta: Meta<unknown>): void => {
+const mid2 = async (input: unknown, context: Context, meta: Meta<unknown>): Promise<void> => {
 
 }
 ```

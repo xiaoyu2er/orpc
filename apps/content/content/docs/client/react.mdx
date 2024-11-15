@@ -11,21 +11,22 @@ npm i @orpc/client @orpc/react @tanstack/react-query
 
 ## Setup
 
-```tsx
+```tsx twoslash
 import { createORPCReact } from '@orpc/react'
 import { createORPCClient } from '@orpc/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState } from 'react'
-import type { router } from './app-router-or-contract-router'
-
-export const { orpc, ORPCContext } = createORPCReact<typeof router>()
+import type { router } from 'examples/server'
+import * as React from 'react'
+ 
+export const { orpc, ORPCContext } = createORPCReact<typeof router /** or contract router */>()
 
 export function ORPCProvider({ children }: { children: React.ReactNode }) {
-    const [client] = useState(() => createORPCClient<typeof router>({
-        baseURL: 'http://localhost:2026',
+    const [client] = useState(() => createORPCClient<typeof router /** must match with createORPCReact*/>({
+        baseURL: 'http://localhost:2026/api',
     }))
     const [queryClient] = useState(() => new QueryClient())
-
+ 
     return (
         <QueryClientProvider client={queryClient}>
             <ORPCContext.Provider value={{ client, queryClient }}>
@@ -42,20 +43,28 @@ You can create it globally or in a component based on your needs.
 
 ## Usage
 
-```tsx
-import { orpc } from './provider'
+```tsx twoslash
+import { orpc } from 'examples/react'
 
-export function MyComponent() {
-    const { data, status } = orpc.ping.useQuery({ name: 'dinwwwh' })
+const { data: gettingData } = orpc.getting.useQuery({ name: 'dinwwwh' })
+const { data: postData } = orpc.post.find.useQuery({ id: 'example' })
+const { mutate: postMutate } = orpc.post.create.useMutation()
 
-    return (
-        <div>
-            {status === 'loading' && 'Loading...'}
-            {status === 'success' && <div>Data: {data}</div>}
-            {status === 'error' && <div>Error: {error.message}</div>}
-        </div>
-    )
-}
+// @noErrors
+orpc.post.find.
+//             ^|
+
+
+
+
+
+
+
+
+
+
+
+
 ```
 
 `useMutation` and other APIs are exactly the same; we just wrap [TanStack Query](https://tanstack.com/query/latest).
@@ -65,10 +74,15 @@ However, oRPC will manage the `query key` and `function` for you, providing the 
 
 To use `useInfiniteQuery`, the procedure must have a `cursor` input field (with any type).
 
-```tsx
+```tsx twoslash
+import { os } from '@orpc/server'
+import { z } from 'zod'
+import * as React from 'react'
+import { createORPCReact } from '@orpc/react'
+
 const router = {
     user: {
-        list: orpc
+        list: os
         .input(z.object({ cursor: z.number(), limit: z.number() }))
         .handler((input) => {
             return {
@@ -79,19 +93,20 @@ const router = {
     }
 }
 
+const { orpc } = createORPCReact<typeof router>()
+
 export function MyComponent() {
     const query = orpc.user.list.useInfiniteQuery(
-        {
-            limit: 10
-        }, {
+         {
+            input: { limit: 10 },
             getNextPageParam: (lastPage) => lastPage.nextCursor,
             initialPageParam: 0,
         })
 
     return (
         <div>
-            {query.status === 'loading' && 'Loading...'}
-            {query.status === 'success' && <div>Data: {query.data}</div>}
+            {query.status === 'pending' && 'pending...'}
+            {query.status === 'success' && <div>Data: {JSON.stringify(query.data)}</div>}
             {query.status === 'error' && <div>Error: {query.error.message}</div>}
         </div>
     )
@@ -101,34 +116,39 @@ export function MyComponent() {
 Again, oRPC `useInfiniteQuery` just wraps [TanStack Query](https://tanstack.com/query/latest). 
 However, oRPC will manage the `query key` and `function` for you, providing the best developer experience.
 
-> **Note:** The React client is still in progress. We will add more features in the future.
-
 ## Utils
 
-```ts
-const utils = orpc.useUtils()
+```ts twoslash
+import { orpc } from 'examples/react'
 
-utils.user.invalidate()
-// ...
+const utils = orpc.useUtils()
+utils.invalidate() // invalidate all queries
+const data = await utils.getting.fetchQuery({ name: 'dinwwwh' })
+
+// @noErrors
+utils.post.find.
+//              ^|
 ```
 
 ## Use Queries
 
-```ts
-const queries = orpc.useQueries((o) => {
-    return [
-        o.user.find({ id: '123' }),
-        o.user.list({}),
-    ]
-})
+```ts twoslash
+import { orpc } from 'examples/react'
+
+const queries = orpc.useQueries(o => [
+  o.getting({ name: 'dinwwwh' }), 
+  o.post.find({ id: 'example' })
+])
 ```
 
 ## Use Context
 
-```ts
+```tsx twoslash
+import { orpc } from 'examples/react'
+
 const {client, queryClient} = orpc.useContext()
 
-const user = await client.user.find({ id: '123' })
+const data = await client.getting({ name: 'dinwwwh' })
 ```
 
 ## Others

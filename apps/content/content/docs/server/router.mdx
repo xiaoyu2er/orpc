@@ -7,7 +7,11 @@ description: A powerful way to organize procedures with enhanced developer exper
 
 A router is a collection of procedures with utilities that help reduce code duplication and improve organization.
 
-```ts
+```ts twoslash
+import { os } from '@orpc/server'
+
+const findUser = os.route({path: '/'}).handler(() => {})
+
 export const appRouter = os.router({
     user: {
         find: findUser,
@@ -29,25 +33,30 @@ All router functionality is fully typed and begins with the `orpc` instance, pro
 ### Prefixing Routes
 You can add a prefix to all routes in a router:
 
-```ts
+```ts twoslash
+import { os } from '@orpc/server'
+
 const userRouter = os
     .prefix('/users')
     .router({
-        find: findUserHandler,
-        create: createUserHandler,
+        // ...
     })
-// Results in routes: /users/find and /users/create
 ```
 
 ### Middleware Application
 Apply middleware to all procedures in a router:
 
-```ts
+```ts twoslash
+import { os } from '@orpc/server'
+
+const authMiddleware = os.middleware(async (input, context, meta) => {
+    // ...
+})
+
 const protectedRouter = os
     .use(authMiddleware)
     .router({
-        sensitiveData: getSensitiveDataHandler,
-        updateProfile: updateProfileHandler,
+       // ...
     })
 // All routes in this router will require authentication
 ```
@@ -55,11 +64,25 @@ const protectedRouter = os
 ### Nested Routers
 Create hierarchical route structures:
 
-```ts
+```ts twoslash
+import { os } from '@orpc/server'
+
+const userRouter = os.router({
+    // ...
+})
+
+const postRouter = os.router({
+    // ...
+})
+
+const commentRouter = os.router({
+    // ...
+})
+
 const apiRouter = os.router({
     users: userRouter,
     posts: postRouter,
-    comments: os.prefix('comments').router(commentRouter),
+    comments: os.prefix('/comments').router(commentRouter),
 })
 ```
 
@@ -69,7 +92,12 @@ const apiRouter = os.router({
 In oRPC, a router is essentially a nested object of procedures. 
 The router syntax provides a convenient way to apply common configurations to multiple procedures:
 
-```ts
+```ts twoslash
+import { os } from '@orpc/server'
+
+const findUserHandler = os.handler(() => {})
+const createUserHandler = os.handler(() => {})
+
 const router = os.prefix('/users').router({
     find: findUserHandler,
     create: createUserHandler,
@@ -77,7 +105,7 @@ const router = os.prefix('/users').router({
 
 // This is equivalent to:
 
-const router = {
+const router2 = {
     find: findUserHandler.prefix('/users'),
     create: createUserHandler.prefix('/users'),
 }

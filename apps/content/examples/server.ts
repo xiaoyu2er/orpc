@@ -101,9 +101,10 @@ const server = serve({
     return handler({
       request,
       context: {},
-      // prefix: if you prefix your apis
+      prefix: '/api',
     })
   },
+  port: 2206,
 })
 
 await server.ready()

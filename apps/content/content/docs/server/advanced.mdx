@@ -5,19 +5,19 @@ description: Beyond the basics, oRPC offers more advanced features
 
 ## Internal Caller
 
-```ts
+```ts twoslash
 import { os, createRouterCaller } from '@orpc/server'
 
-const appRouter = os.router({
+const router = os.router({
     ping: os.handler(() => 'pong')
 })
 
 const caller = createRouterCaller({
-    router: appRouter,
-    context: {}
+    router: router,
+    context: {},
     validate: true // set false if you want bypass the validation input and output
 })
 
-const result = await caller.ping() // result is 'pong'
+const result = await caller.ping(undefined) // result is 'pong'
 ```
 

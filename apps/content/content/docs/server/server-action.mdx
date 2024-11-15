@@ -13,7 +13,12 @@ Server actions are automatically enabled for procedures that have either:
 - No context requirements (`undefined` context)
 - Optional context (`Context | undefined`)
 
-```ts
+```ts twoslash
+"use server"
+
+import { os } from '@orpc/server'
+import { z } from 'zod'
+
 // This creates a server action since context is undefined
 const actionProcedure = os
   .input(z.object({ id: z.number() }))
@@ -36,30 +41,26 @@ const regularProcedure = os
 
 Create type-safe server actions with full input validation:
 
-```ts
+```ts twoslash
 "use server"
 
 import { os } from '@orpc/server'
+import { oz } from '@orpc/zod'
 import { z } from 'zod'
 import { redirect } from "next/navigation"
 
-export const createUser = os
-  .input(z.object({ 
-    id: z.number(),
-    profile: z.object({
-      name: z.string(),
-      age: z.number(),
-      avatar: z.instanceof(File),
+export const createPost = os
+  .input(
+    z.object({
+      nested: z.object({
+        title: z.string(),
+        description: z.string(),
+        thumbs: z.array(oz.file().type('image/*')).nullable(),
+      }),
     }),
-    tags: z.array(z.string())
-  }))
-  .handler(async (input) => {
-    // input is fully typed
-    
-    // Save user to database
-    // Save avatar to storage
-
-    redirect('/users')
+  )
+  .handler((input) => {
+    redirect('/posts/new')
   })
 ```
 
@@ -67,21 +68,23 @@ export const createUser = os
 
 Use with React forms and get automatic type coercion:
 
-```tsx
-import { createUser } from './actions'
+```tsx twoslash
+import { createPost } from 'examples/server-action'
+import * as React from 'react'
 
-export default function CreateUserForm() {
+export default function CreatePostForm() {
   return (
-    <form action={createUser}>
-      <input name="id" type="number" />
+    <form action={createPost}>
       {/* Nested objects use square bracket notation */}
-      <input name="profile[name]" type="text" />
-      <input name="profile[age]" type="number" />
-      <input name="profile[avatar]" type="file" accept="image/*" />
-      {/* Arrays use empty square brackets */}
-      <input name="tags[]" type="text" />
-      <input name="tags[]" type="text" />
-      <button type="submit">Create User</button>
+      <input type="text" name="nested[title]" required />
+      <input type="text" name="nested[description]" required />
+      <input
+        id="files"
+        type="file"
+        name="nested[thumbs][]"
+        multiple
+        accept="image/*"
+      />
     </form>
   )
 }
@@ -91,51 +94,26 @@ export default function CreateUserForm() {
 
 Call server actions directly from client components:
 
-```tsx
+```tsx twoslash
 "use client"
 
-import { createUser } from './actions'
+import { createPost } from 'examples/server-action'
+import * as React from 'react'
 
 export default function CreateUserButton() {
   async function handleClick() {
+    const files = (document.getElementById('files') as HTMLInputElement).files
+
     // Call with plain object - types are preserved
-    await createUser({
-      id: 123,
-      profile: {
-        name: 'John',
-        age: 30,
-        avatar: document.querySelector('input[name="profile[avatar]"]').files[0]
+    await createPost({
+      nested: {
+        title: 'hello',
+        description: 'world',
+        thumbs: files ? [...files] : null,
       },
-      tags: ['developer', 'typescript']
     })
   }
 
   return <button onClick={handleClick}>Create User</button>
-}
-```
-
-### Using FormData
-
-You can also manually construct FormData:
-
-```tsx
-"use client"
-
-import { createUser } from './actions'
-
-export default function CreateUserWithFormData() {
-  async function handleSubmit() {
-    const formData = new FormData()
-    formData.set('id', '123')
-    formData.set('profile[name]', 'John')
-    formData.set('profile[age]', '30')
-    formData.set('profile[avatar]', document.querySelector('input[name="profile[avatar]"]').files[0])
-    formData.set('tags[]', 'developer')
-    formData.set('tags[]', 'typescript')
-
-    await createUser(formData)
-  }
-
-  return <button onClick={handleSubmit}>Create User</button>
 }
 ```

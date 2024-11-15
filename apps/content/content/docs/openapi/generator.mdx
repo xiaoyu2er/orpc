@@ -11,41 +11,236 @@ npm i @orpc/openapi
 
 ## Define the Route
 
-```ts
+```ts twoslash
+import { os, ORPCError } from '@orpc/server'
+import { oz } from '@orpc/zod'
 import { z } from 'zod'
-import { os } from '@orpc/server'
 
-export const router = os.router({
-    user: {
-        find: os
-                .route({
-                    method: 'GET', 
-                    path: '/user/{id}', // use parameters id
-                    summary: 'summary',
-                    description: 'description',
-                    deprecated: false,
-                }) 
-                .input(z.object({ id: z.string() })) // The parameters must appear in the input schema
-                .handler(() => 'hello world'),
-    }
+export type Context = { user?: { id: string } }
+
+// global osw completely optional, needed when you want to use context
+export const osw /** os with ... */ = os.context<Context>()
+
+export const router = osw.router({
+  getting: os
+    .input(
+      z.object({
+        name: z.string(),
+      }),
+    )
+    .handler(async (input, context, meta) => {
+      return {
+        message: `Hello, ${input.name}!`,
+      }
+    }),
+
+  post: osw.prefix('/posts').router({
+    find: osw
+      .route({
+        path: '/{id}', // custom your OpenAPI
+        method: 'GET',
+      })
+      .input(
+        z.object({
+          id: z.string({}),
+        }),
+      )
+      .output(
+        z.object({
+          id: z.string(),
+          title: z.string(),
+          description: z.string(),
+        }),
+      )
+      .handler((input, context, meta) => {
+        return {
+          id: 'example',
+          title: 'example',
+          description: 'example',
+        }
+      }),
+
+    create: osw
+      .input(
+        z.object({
+          title: z.string(),
+          description: z.string(),
+          thumb: oz.file().type('image/*'),
+        }),
+      )
+      .handler(async (input, context, meta) => {
+        input.thumb // file upload out of the box
+
+        return {
+          id: 'example',
+          title: input.title,
+          description: input.description,
+        }
+      }),
+  }),
 })
-
 ```
 
 ## Generate the OpenAPI Specification
 
 To generate an OpenAPI specification, you need either the type of the [router](/docs/server/router)  you intend to use or the [contract](/docs/contract/builder).
 
-```ts
+```ts twoslash
 import { generateOpenAPI } from '@orpc/openapi'
+import { router } from 'examples/server'
+import { contract } from 'examples/contract'
 
 const spec = generateOpenAPI({
-    router, // app router or contract router
+    router: contract, // both router and contract are supported
     info: {
-      title: 'test',
-      version: '1.0.0',
+        title: 'My App',
+        version: '0.0.0',
     },
 })
 
 console.log(JSON.stringify(spec, null, 2))
+```
+
+Here is the result:
+
+```
+{
+  info: {
+    title: 'My App',
+    version: '0.0.0',
+  },
+  openapi: '3.1.0',
+  paths: {
+    '/getting': {
+      post: {
+        operationId: 'getting',
+        requestBody: {
+          required: false,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  name: {
+                    type: 'string',
+                  },
+                },
+                required: ['name'],
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'OK',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string',
+                    },
+                  },
+                  required: ['message'],
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/posts/{id}': {
+      get: {
+        operationId: 'post.find',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'OK',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    id: {
+                      type: 'string',
+                    },
+                    title: {
+                      type: 'string',
+                    },
+                    description: {
+                      type: 'string',
+                    },
+                  },
+                  required: ['id', 'title', 'description'],
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/post/create': {
+      post: {
+        operationId: 'post.create',
+        requestBody: {
+          required: false,
+          content: {
+            'multipart/form-data': {
+              schema: {
+                type: 'object',
+                properties: {
+                  title: {
+                    type: 'string',
+                  },
+                  description: {
+                    type: 'string',
+                  },
+                  thumb: {
+                    type: 'string',
+                    contentMediaType: 'image/*',
+                  },
+                },
+                required: ['title', 'description', 'thumb'],
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'OK',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    id: {
+                      type: 'string',
+                    },
+                    title: {
+                      type: 'string',
+                    },
+                    description: {
+                      type: 'string',
+                    },
+                  },
+                  required: ['id', 'title', 'description'],
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+}
 ```

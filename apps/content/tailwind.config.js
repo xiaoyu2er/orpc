@@ -1,4 +1,5 @@
 import { createPreset } from 'fumadocs-ui/tailwind-plugin'
+import theme from 'tailwindcss/defaultTheme'
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -14,4 +15,12 @@ export default {
       addGlobalColors: true,
     }),
   ],
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['var(--font-geist-sans)', ...theme.fontFamily.sans],
+        mono: ['var(--font-geist-mono)', ...theme.fontFamily.mono],
+      },
+    },
+  },
 }

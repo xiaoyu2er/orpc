@@ -1,4 +1,4 @@
-import { docs, meta } from '@/.source'
+import { docs, home, meta } from '@/.source'
 import * as icons from '@/components/icons'
 import { IconContainer } from '@/components/ui/icon'
 import { loader } from 'fumadocs-core/source'
@@ -14,4 +14,8 @@ export const source = loader({
         icon: icons[icon as keyof typeof icons],
       })
   },
+})
+
+export const homeSource = loader({
+  source: createMDXSource(home, home),
 })

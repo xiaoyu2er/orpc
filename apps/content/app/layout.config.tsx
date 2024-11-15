@@ -18,6 +18,11 @@ export const baseOptions: BaseLayoutProps = {
       active: 'nested-url',
     },
     {
+      text: 'Playground',
+      url: '/docs/playground',
+      active: 'nested-url',
+    },
+    {
       type: 'icon',
       url: 'https://github.com/dinwwwh/orpc',
       text: 'Github',

@@ -1,0 +1,170 @@
+<Tabs items={['Client', 'React', 'CURL']}>
+<Tab value="Client">
+```ts twoslash
+import { createORPCClient, ORPCError } from '@orpc/client'
+import type { router } from 'examples/server'
+
+const client = createORPCClient<typeof router /* or contract router */>({
+  baseURL: 'http://localhost:2026/prefix',
+  // fetch: optional override for the default fetch function
+  // headers: provide additional headers
+})
+ 
+//  File upload out of the box
+const output = await client.post.create({
+  title: 'My Amazing Title',
+  description: 'This is a detailed description of my content',
+  thumb: (document.getElementById('thumb') as HTMLInputElement).files[0]!,
+})
+
+// @noErrors
+client.post.
+//          ^|
+
+
+
+
+// typesafe and completion out of box
+
+
+try {
+  const post = await client.post.find({ id: 'example' })
+} catch (error) {
+  if (error instanceof ORPCError) {
+    // handle error
+  }
+}
+
+
+
+
+```
+</Tab>
+
+<Tab value="React">
+```tsx twoslash
+import { createORPCReact } from '@orpc/react'
+import { createORPCClient } from '@orpc/client'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { useState } from 'react'
+import type { router } from 'examples/server'
+import * as React from 'react'
+ 
+export const { orpc, ORPCContext } = createORPCReact<typeof router /** or contract router */>()
+
+// ------------------ Example ------------------
+
+const { data: gettingData } = orpc.getting.useQuery({ name: 'dinwwwh' })
+const { data: postData } = orpc.post.find.useQuery({ id: 'example' })
+const { mutate: postMutate } = orpc.post.create.useMutation()
+
+// @noErrors
+orpc.post.find.
+//             ^|
+
+
+
+
+
+
+
+
+
+
+
+const utils = orpc.useUtils()
+utils.invalidate() // invalidate all queries
+const data = await utils.getting.fetchQuery({ name: 'dinwwwh' })
+
+// @noErrors
+utils.post.find.
+//              ^|
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const queries = orpc.useQueries(o => [
+  o.getting({ name: 'dinwwwh' }), 
+  o.post.find({ id: 'example' })
+])
+
+// ------------------ Provider ------------------
+ 
+export function ORPCProvider({ children }: { children: React.ReactNode }) {
+    const [client] = useState(() => createORPCClient<typeof router /** must match with createORPCReact*/>({
+        baseURL: 'http://localhost:2026/any-prefix',
+    }))
+    const [queryClient] = useState(() => new QueryClient())
+ 
+    return (
+        <QueryClientProvider client={queryClient}>
+            <ORPCContext.Provider value={{ client, queryClient }}>
+                {/* If you has own QueryClientProvider please put it here*/}
+                {children}
+            </ORPCContext.Provider>
+        </QueryClientProvider>
+    )
+}
+
+
+```
+</Tab>
+
+<Tab value="CURL">
+```bash
+curl --request POST \
+  --url http://localhost:2026/prefix/getting \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "name": "dinwwwh"
+  }'
+```
+
+```bash
+curl --request GET http://localhost:2026/prefix/posts/example-id 
+```
+
+```bash
+curl -X POST http://localhost:2026/prefix/post/create \
+  -H "Content-Type: multipart/form-data" \
+  -F "title=My Amazing Title" \
+  -F "description=This is a detailed description of my content" \
+  -F "thumb=@/path/to/your/image.jpg"
+```
+
+```bash
+# You can express nested data with square brackets
+curl -X POST http://localhost:2026/prefix/post/create \
+  -H "Content-Type: multipart/form-data" \
+  -F "nested[title]=My Amazing Title" \
+  -F "nested[description]=This is a detailed description of my content" \
+  -F "inside[thumb]=@/path/to/your/image.jpg"
+```
+</Tab>
+</Tabs>

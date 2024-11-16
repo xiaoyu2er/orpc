@@ -7,8 +7,6 @@ export default defineConfig({
     lib: {
       entry: {
         index: 'src/index.ts',
-        'bracket-notation': 'src/bracket-notation.ts',
-        'zod-coerce-parse': 'src/zod-coerce-parse.ts',
       },
       formats: ['es'],
     },

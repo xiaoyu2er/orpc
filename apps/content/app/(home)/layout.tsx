@@ -129,12 +129,12 @@ function Footer() {
           <p className="text-fd-muted-foreground">
             Built with ❤️ by{' '}
             <a
-              href="https://dinwwwh.com"
+              href="https://unnoq.com"
               rel="noreferrer noopener"
               target="_blank"
               className="hover:text-foreground/90 transition"
             >
-              Dinwwwh
+              unnoq
             </a>
           </p>
         </div>
@@ -142,7 +142,7 @@ function Footer() {
         <div className="flex items-center gap-2">
           <div>
             <a
-              href="https://x.com/dinwwwh"
+              href="https://x.com/unnoqcom"
               className="text-fd-muted-foreground hover:text-foreground/90 transition"
             >
               Discord
@@ -151,7 +151,7 @@ function Footer() {
           <span>·</span>
           <div>
             <a
-              href="https://x.com/dinwwwh"
+              href="https://x.com/unnoqcom"
               className="text-fd-muted-foreground hover:text-foreground/90 transition"
             >
               Twitter
@@ -160,7 +160,7 @@ function Footer() {
           <span>·</span>
           <div>
             <a
-              href="https://github.com/dinwwwh/orpc"
+              href="https://github.com/unnoq/orpc"
               className="text-fd-muted-foreground hover:text-foreground/90 transition"
             >
               Github

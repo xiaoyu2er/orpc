@@ -12,7 +12,7 @@ it('require procedure match context', () => {
 
     // @ts-expect-error userId is not match
     ping2: osw.context<{ userId: number }>().handler(() => {
-      return { name: 'dinwwwh' }
+      return { name: 'unnoq' }
     }),
 
     nested: {
@@ -22,7 +22,7 @@ it('require procedure match context', () => {
 
       // @ts-expect-error userId is not match
       ping2: osw.context<{ userId: number }>().handler(() => {
-        return { name: 'dinwwwh' }
+        return { name: 'unnoq' }
       }),
     },
   })
@@ -121,18 +121,18 @@ it('toContractRouter', () => {
 
   const router = osw.router({
     p1: osw.p1.handler(() => {
-      return 'dinwwwh'
+      return 'unnoq'
     }),
 
     nested: osw.nested.router({
       p2: osw.nested.p2.handler(() => {
-        return 'dinwwwh'
+        return 'unnoq'
       }),
     }),
 
     nested2: {
       p3: osw.nested2.p3.handler(() => {
-        return 'dinwwwh'
+        return 'unnoq'
       }),
     },
   })

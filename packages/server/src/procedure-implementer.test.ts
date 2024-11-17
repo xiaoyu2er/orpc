@@ -145,7 +145,7 @@ describe('handler', () => {
       expectTypeOf(meta).toEqualTypeOf<Meta<unknown>>()
 
       return {
-        name: 'dinwwwh',
+        name: 'unnoq',
       }
     })
 
@@ -166,7 +166,7 @@ describe('handler', () => {
       expectTypeOf(meta).toEqualTypeOf<Meta<unknown>>()
 
       return {
-        name: 'dinwwwh',
+        name: 'unnoq',
       }
     })
 
@@ -196,7 +196,7 @@ describe('handler', () => {
         expectTypeOf(meta).toEqualTypeOf<Meta<unknown>>()
 
         return {
-          name: 'dinwwwh',
+          name: 'unnoq',
         }
       })
 

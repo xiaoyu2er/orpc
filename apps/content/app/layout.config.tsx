@@ -24,7 +24,7 @@ export const baseOptions: BaseLayoutProps = {
     },
     {
       type: 'icon',
-      url: 'https://github.com/dinwwwh/orpc',
+      url: 'https://github.com/unnoq/orpc',
       text: 'Github',
       icon: (
         <svg role="img" viewBox="0 0 24 24" fill="currentColor">

@@ -3,18 +3,18 @@
   "type": "module",
   "version": "0.0.0",
   "author": {
-    "name": "dinwwwh",
-    "email": "dinwwwh@gmail.com",
-    "url": "https://dinwwwh.com"
+    "name": "unnoq",
+    "email": "contact@unnoq.com",
+    "url": "https://unnoq.com"
   },
   "license": "MIT",
-  "homepage": "https://github.com/dinwwwh/orpc",
+  "homepage": "https://github.com/unnoq/orpc",
   "repository": {
     "type": "git",
-    "url": "https://github.com/dinwwwh/orpc.git",
+    "url": "https://github.com/unnoq/orpc.git",
     "directory": "packages/contract"
   },
-  "keywords": ["dinwwwh", "orpc"],
+  "keywords": ["unnoq", "orpc"],
   "publishConfig": {
     "access": "public",
     "exports": {

@@ -46,7 +46,7 @@ You can create it globally or in a component based on your needs.
 ```tsx twoslash
 import { orpc } from 'examples/react'
 
-const { data: gettingData } = orpc.getting.useQuery({ name: 'dinwwwh' })
+const { data: gettingData } = orpc.getting.useQuery({ name: 'unnoq' })
 const { data: postData } = orpc.post.find.useQuery({ id: 'example' })
 const { mutate: postMutate } = orpc.post.create.useMutation()
 
@@ -123,7 +123,7 @@ import { orpc } from 'examples/react'
 
 const utils = orpc.useUtils()
 utils.invalidate() // invalidate all queries
-const data = await utils.getting.fetchQuery({ name: 'dinwwwh' })
+const data = await utils.getting.fetchQuery({ name: 'unnoq' })
 
 // @noErrors
 utils.post.find.
@@ -136,7 +136,7 @@ utils.post.find.
 import { orpc } from 'examples/react'
 
 const queries = orpc.useQueries(o => [
-  o.getting({ name: 'dinwwwh' }), 
+  o.getting({ name: 'unnoq' }), 
   o.post.find({ id: 'example' })
 ])
 ```
@@ -148,7 +148,7 @@ import { orpc } from 'examples/react'
 
 const {client, queryClient} = orpc.useContext()
 
-const data = await client.getting({ name: 'dinwwwh' })
+const data = await client.getting({ name: 'unnoq' })
 ```
 
 ## Others

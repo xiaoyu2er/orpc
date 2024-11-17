@@ -217,7 +217,7 @@ describe('useMutationState', () => {
       ),
     )
 
-    mutation.current.mutate({ name: 'dinwwwh' } as any)
+    mutation.current.mutate({ name: 'unnoq' } as any)
 
     await new Promise((resolve) => setTimeout(resolve, 50)) // < 100 make sure the query is not finished
 
@@ -227,6 +227,6 @@ describe('useMutationState', () => {
 
     expect(result.current[0]).toEqual(result3.current[0])
 
-    expect(result.current[0]?.variables).toEqual({ name: 'dinwwwh' })
+    expect(result.current[0]?.variables).toEqual({ name: 'unnoq' })
   })
 })

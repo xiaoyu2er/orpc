@@ -3,9 +3,9 @@
   "type": "module",
   "private": true,
   "author": {
-    "name": "dinwwwh",
-    "email": "dinwwwh@gmail.com",
-    "url": "https://dinwwwh.com"
+    "name": "unnoq",
+    "email": "contact@unnoq.com",
+    "url": "https://unnoq.com"
   },
   "scripts": {
     "build": "pnpm run -r build",
@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
-    "@dinwwwh/unplugin": "^0.0.2",
+    "@unnoq/unplugin": "^0.0.0",
     "@testing-library/jest-dom": "^6.6.2",
     "@testing-library/react": "^16.0.1",
     "@types/node": "^22.9.0",

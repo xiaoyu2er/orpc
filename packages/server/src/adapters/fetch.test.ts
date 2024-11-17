@@ -195,7 +195,7 @@ describe('procedure throw error', () => {
         .input(z.object({}))
         .output(z.string())
         .handler(() => {
-          return 'dinwwwh'
+          return 'unnoq'
         }),
     })
 
@@ -332,7 +332,7 @@ describe('file upload', () => {
 
   const blob1 = new Blob(['hello'], { type: 'text/plain;charset=utf-8' })
   const blob2 = new Blob(['"world"'], { type: 'image/png' })
-  const blob3 = new Blob(['dinwwwh'], { type: 'application/octet-stream' })
+  const blob3 = new Blob(['unnoq'], { type: 'application/octet-stream' })
 
   it('single file', async () => {
     const rForm = new FormData()
@@ -358,7 +358,7 @@ describe('file upload', () => {
     expect(file0).toBeInstanceOf(File)
     expect(file0.name).toBe('blob')
     expect(file0.type).toBe('application/octet-stream')
-    expect(await file0.text()).toBe('dinwwwh')
+    expect(await file0.text()).toBe('unnoq')
   })
 
   it('multiple file', async () => {

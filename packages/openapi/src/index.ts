@@ -1,3 +1,3 @@
-/** dinwwwh */
+/** unnoq */
 
 export * from './generator'

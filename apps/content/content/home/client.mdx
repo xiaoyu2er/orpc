@@ -54,7 +54,7 @@ export const { orpc, ORPCContext } = createORPCReact<typeof router /** or contra
 
 // ------------------ Example ------------------
 
-const { data: gettingData } = orpc.getting.useQuery({ name: 'dinwwwh' })
+const { data: gettingData } = orpc.getting.useQuery({ name: 'unnoq' })
 const { data: postData } = orpc.post.find.useQuery({ id: 'example' })
 const { mutate: postMutate } = orpc.post.create.useMutation()
 
@@ -74,7 +74,7 @@ orpc.post.find.
 
 const utils = orpc.useUtils()
 utils.invalidate() // invalidate all queries
-const data = await utils.getting.fetchQuery({ name: 'dinwwwh' })
+const data = await utils.getting.fetchQuery({ name: 'unnoq' })
 
 // @noErrors
 utils.post.find.
@@ -110,7 +110,7 @@ utils.post.find.
 
 
 const queries = orpc.useQueries(o => [
-  o.getting({ name: 'dinwwwh' }), 
+  o.getting({ name: 'unnoq' }), 
   o.post.find({ id: 'example' })
 ])
 
@@ -142,7 +142,7 @@ curl --request POST \
   --url http://localhost:2026/api/getting \
   --header 'Content-Type: application/json' \
   --data '{
-    "name": "dinwwwh"
+    "name": "unnoq"
   }'
 ```
 

@@ -18,15 +18,15 @@ const cr = oc.router({
 const osw = os.context<{ auth: boolean }>().contract(cr)
 
 const p1 = osw.p1.handler(() => {
-  return 'dinwwwh'
+  return 'unnoq'
 })
 
 const p2 = osw.nested.p2.handler(() => {
-  return 'dinwwwh'
+  return 'unnoq'
 })
 
 const p3 = osw.nested2.p3.handler(() => {
-  return 'dinwwwh'
+  return 'unnoq'
 })
 
 it('required all procedure match', () => {
@@ -76,7 +76,7 @@ it('required all procedure match', () => {
       p1: os
         .input(z.string())
         .output(z.string())
-        .handler(() => 'dinwwwh'),
+        .handler(() => 'unnoq'),
       nested: {
         p2: p2,
       },

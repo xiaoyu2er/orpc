@@ -8,7 +8,7 @@ import type { Meta } from './types'
 const schema1 = z.object({ id: z.string() })
 const example1 = { id: '1' }
 const schema2 = z.object({ name: z.string() })
-const example2 = { name: 'dinwwwh' }
+const example2 = { name: 'unnoq' }
 
 const builder = new ProcedureBuilder<
   { auth: boolean },
@@ -200,7 +200,7 @@ describe('handler', () => {
         expectTypeOf(meta).toEqualTypeOf<Meta<unknown>>()
 
         return {
-          name: 'dinwwwh',
+          name: 'unnoq',
         }
       })
 

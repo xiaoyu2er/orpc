@@ -5,7 +5,7 @@ describe('OpenAPI transformer human readable', () => {
   it('should deserialize object', async () => {
     const form = new FormData()
     form.append('number', '123')
-    form.append('user[name]', 'dinwwwh')
+    form.append('user[name]', 'unnoq')
     form.append('user[age]', '18')
     form.append('user[gender]', 'male')
 
@@ -30,7 +30,7 @@ describe('OpenAPI transformer human readable', () => {
     ).toEqual({
       number: 123,
       user: {
-        name: 'dinwwwh',
+        name: 'unnoq',
         age: 18,
         gender: 'male',
       },

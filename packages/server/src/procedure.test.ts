@@ -157,7 +157,7 @@ describe('route method', () => {
 
 test('prefix method', () => {
   const p = os.context<{ auth: boolean }>().handler(() => {
-    return 'dinwwwh'
+    return 'unnoq'
   })
 
   const p2 = p.prefix('/test')
@@ -168,7 +168,7 @@ test('prefix method', () => {
     .context<{ auth: boolean }>()
     .route({ path: '/test1' })
     .handler(() => {
-      return 'dinwwwh'
+      return 'unnoq'
     })
 
   const p4 = p3.prefix('/test')
@@ -183,7 +183,7 @@ describe('use middleware', () => {
         return { context: { postId: 'string' } }
       })
       .handler(() => {
-        return 'dinwwwh'
+        return 'unnoq'
       })
 
     const p2 = p1
@@ -246,7 +246,7 @@ describe('use middleware', () => {
     const mid2 = vi.fn()
     const mid3 = vi.fn()
 
-    const p1 = os.use(mid1).handler(() => 'dinwwwh')
+    const p1 = os.use(mid1).handler(() => 'unnoq')
     const p2 = p1.use(mid2).use(mid3)
 
     expect(p2.zz$p.middlewares).toEqual([mid3, mid2, mid1])

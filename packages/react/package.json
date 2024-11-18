@@ -37,7 +37,7 @@
   "files": ["dist", "src"],
   "scripts": {
     "build": "UNPLUGIN_ON_SUCCESS='tsc -b --noCheck' vite build",
-    "check": "tsc -b"
+    "type:check": "tsc -b"
   },
   "dependencies": {
     "@orpc/client": "workspace:*",

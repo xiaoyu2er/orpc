@@ -7,7 +7,7 @@
     "dev": "next dev",
     "start": "next start",
     "postinstall": "fumadocs-mdx",
-    "check": "tsc -b && pnpm run build"
+    "type:check": "tsc -b && pnpm run build"
   },
   "dependencies": {
     "fumadocs-core": "14.4.0",

@@ -1,0 +1,89 @@
+name: Main
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  check-code:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - run: pnpm i
+
+      - run: pnpm run lint:check
+
+      - run: pnpm run type:check
+
+      - run: pnpm run test
+
+      - run: pnpm run build
+
+  stable-release:
+    needs: [check-code]
+
+    if: ${{ needs.check-code.result == 'success' }}
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    outputs:
+      hasChangesets: ${{ steps.changesets.outputs.hasChangesets }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - name: NPM registry authentication
+        run: pnpm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - run: pnpm i
+
+      - name: Changesets version or deploy and publish on @latest
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          commit: 'chore(release): version packages'
+          title: 'chore(release): version packages'
+          publish: pnpm run release:next
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  next-release:
+    needs: [stable-release]
+
+    if: ${{ needs.stable-release.result == 'success' && needs.stable-release.outputs.hasChangesets == 'true' }}
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - name: NPM registry authentication
+        run: pnpm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - run: pnpm i
+
+      - run: pnpm changeset version --snapshot next
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish
+        run: pnpm run release:next

@@ -1,0 +1,30 @@
+name: pr-quality
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  check-and-fix-code:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - run: pnpm i
+
+      - run: pnpm run lint:fix
+
+      - run: pnpm run type:check
+
+      - run: pnpm run test
+
+      - run: pnpm run build
+
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'style: lint & format fixed'

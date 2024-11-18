@@ -57,8 +57,8 @@ jobs:
         id: publish
         continue-on-error: true
         run: |
-          pnpm changeset version --snapshot unsafe-pr-${{ github.event.pull_request.number }}
-          pnpm run release:unsafe-pr
+          pnpm run changeset:version --snapshot unsafe-pr-${{ github.event.pull_request.number }}
+          pnpm run changeset:publish --tag unsafe-pr
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

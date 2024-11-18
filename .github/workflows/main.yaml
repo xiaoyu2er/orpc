@@ -15,7 +15,7 @@ jobs:
 
       - run: pnpm i
 
-      - run: pnpm run lint:check
+      - run: pnpm run lint
 
       - run: pnpm run type:check
 
@@ -55,7 +55,8 @@ jobs:
         with:
           commit: 'chore(release): version packages'
           title: 'chore(release): version packages'
-          publish: pnpm run release:next
+          version: pnpm run changeset:version
+          publish: pnpm run changeset:publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -81,9 +82,8 @@ jobs:
 
       - run: pnpm i
 
-      - run: pnpm changeset version --snapshot next
+      - run: pnpm run changeset:version --snapshot next
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish
-        run: pnpm run release:next
+      - run: pnpm run changeset:publish --tag next

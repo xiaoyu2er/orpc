@@ -397,3 +397,97 @@ describe('file upload', () => {
     expect(await file1.text()).toBe('"world"')
   })
 })
+
+
+describe("accept header", () => {
+  const router = os.router({
+    ping: os.handler(async () => 'pong'),
+  })
+  const handler = createFetchHandler({
+    router,
+  })
+
+  it("application/json", async () => {
+    const response = await handler({
+      prefix: '/orpc',
+      request: new Request('http://localhost/orpc/ping', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+        },
+      }),
+    })
+
+    expect(response.headers.get('Content-Type')).toEqual('application/json')
+
+    expect(await response.json()).toEqual('pong')
+  })
+
+  it("multipart/form-data", async () => {
+    const response = await handler({
+      prefix: '/orpc',
+      request: new Request('http://localhost/orpc/ping', {
+        method: 'POST',
+        headers: {
+          'Accept': 'multipart/form-data',
+        },
+      }),
+    })
+
+    expect(response.headers.get('Content-Type')).toContain('multipart/form-data')
+
+    const form = await response.formData()
+    expect(form.get('')).toEqual('pong')
+  })
+
+  it("application/x-www-form-urlencoded", async () => {
+    const response = await handler({
+      prefix: '/orpc',
+      request: new Request('http://localhost/orpc/ping', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/x-www-form-urlencoded',
+        },
+      }),
+    })
+
+    expect(response.headers.get('Content-Type')).toEqual('application/x-www-form-urlencoded')
+
+    const params = new URLSearchParams(await response.text())
+    expect(params.get('')).toEqual('pong')
+  })
+
+  it("*/*", async () => {
+    const response = await handler({
+      prefix: '/orpc',
+      request: new Request('http://localhost/orpc/ping', {
+        method: 'POST',
+        headers: {
+          'Accept': '*/*',
+        },
+      }),
+    })
+
+    expect(response.headers.get('Content-Type')).toEqual('application/json')
+    expect(await response.json()).toEqual('pong')
+  })
+
+  it("invalid", async () => {
+    const response = await handler({
+      prefix: '/orpc',
+      request: new Request('http://localhost/orpc/ping', {
+        method: 'POST',
+        headers: {
+          'Accept': 'invalid',
+        },
+      }),
+    })
+
+    expect(response.headers.get('Content-Type')).toEqual('application/json')
+    expect(await response.json()).toEqual({
+      "code": "NOT_ACCEPTABLE",
+      "message": "Unsupported content-type: invalid",
+      "status": 406,
+    })
+  })
+})

@@ -73,7 +73,7 @@ export function createFetchHandler<TRouter extends Router<any>>(
   return async (requestOptions) => {
     const isORPCTransformer =
       requestOptions.request.headers.get(ORPC_HEADER) === ORPC_HEADER_VALUE
-    const accept = requestOptions.request.headers.get('Accept') ?? undefined
+    const accept = requestOptions.request.headers.get('Accept') || undefined
 
     const serializer = isORPCTransformer
       ? new ORPCSerializer()
@@ -131,8 +131,8 @@ export function createFetchHandler<TRouter extends Router<any>>(
         const deserializer = isORPCTransformer
           ? new ORPCDeserializer()
           : new OpenAPIDeserializer({
-              schema: procedure.zz$p.contract.zz$cp.InputSchema,
-            })
+            schema: procedure.zz$p.contract.zz$cp.InputSchema,
+          })
 
         const input_ = await (async () => {
           try {
@@ -180,21 +180,26 @@ export function createFetchHandler<TRouter extends Router<any>>(
         })
       })
     } catch (e) {
-      const error =
-        e instanceof ORPCError
-          ? e
-          : new ORPCError({
-              code: 'INTERNAL_SERVER_ERROR',
-              message: 'Internal server error',
-              cause: e,
-            })
+      const error = toORPCError(e)
 
-      const { body, headers } = serializer.serialize(error.toJSON())
+      try {
+        const { body, headers } = serializer.serialize(error.toJSON())
 
-      return new Response(body, {
-        status: error.status,
-        headers: headers,
-      })
+        return new Response(body, {
+          status: error.status,
+          headers: headers,
+        })
+      } catch (e) {
+        const error = toORPCError(e)
+
+        // fallback to OpenAPI serializer (without accept) when expected serializer has failed
+        const { body, headers } = new OpenAPISerializer().serialize(error.toJSON())
+
+        return new Response(body, {
+          status: error.status,
+          headers: headers,
+        })
+      }
     }
   }
 }
@@ -225,4 +230,15 @@ export type FetchHandlerOptions<TRouter extends Router<any>> = {
 
 export interface FetchHandler<TRouter extends Router<any>> {
   (options: FetchHandlerOptions<TRouter>): Promise<Response>
+}
+
+
+function toORPCError(e: unknown): ORPCError<any, any> {
+  return e instanceof ORPCError
+    ? e
+    : new ORPCError({
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'Internal server error',
+      cause: e,
+    })
 }

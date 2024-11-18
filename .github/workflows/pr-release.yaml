@@ -113,6 +113,13 @@ jobs:
         with:
           path: packages/openapi
 
+      - name: Get @orpc/zod version
+        if: steps.publish.outcome == 'success'
+        uses: martinbeentjes/npm-get-version-action@v1.3.1
+        id: orpc-zod-version
+        with:
+          path: packages/zod
+
       - name: Update pr-release comment with published status
         if: steps.publish.outcome == 'success'
         uses: peter-evans/create-or-update-comment@v4
@@ -132,6 +139,7 @@ jobs:
             npm install @orpc/client@${{ steps.orpc-client-version.outputs.current-version}}
             npm install @orpc/react@${{ steps.orpc-react-version.outputs.current-version}}
             npm install @orpc/openapi@${{ steps.orpc-openapi-version.outputs.current-version}}
+            npm install @orpc/zod@${{ steps.orpc-zod-version.outputs.current-version}}
             ```
 
             [View logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ github.job }})

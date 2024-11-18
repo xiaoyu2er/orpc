@@ -32,8 +32,16 @@ export function get(
   let preSegment: string | number = 'root'
 
   for (const segment of segments) {
+    if (typeof currentRef !== 'object' || currentRef === null) {
+      return undefined
+    }
+
     currentRef = currentRef[preSegment]
     preSegment = segment
+  }
+
+  if (typeof currentRef !== 'object' || currentRef === null) {
+    return undefined
   }
 
   return currentRef[preSegment]

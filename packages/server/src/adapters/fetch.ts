@@ -131,8 +131,8 @@ export function createFetchHandler<TRouter extends Router<any>>(
         const deserializer = isORPCTransformer
           ? new ORPCDeserializer()
           : new OpenAPIDeserializer({
-            schema: procedure.zz$p.contract.zz$cp.InputSchema,
-          })
+              schema: procedure.zz$p.contract.zz$cp.InputSchema,
+            })
 
         const input_ = await (async () => {
           try {
@@ -193,7 +193,9 @@ export function createFetchHandler<TRouter extends Router<any>>(
         const error = toORPCError(e)
 
         // fallback to OpenAPI serializer (without accept) when expected serializer has failed
-        const { body, headers } = new OpenAPISerializer().serialize(error.toJSON())
+        const { body, headers } = new OpenAPISerializer().serialize(
+          error.toJSON(),
+        )
 
         return new Response(body, {
           status: error.status,
@@ -232,13 +234,12 @@ export interface FetchHandler<TRouter extends Router<any>> {
   (options: FetchHandlerOptions<TRouter>): Promise<Response>
 }
 
-
 function toORPCError(e: unknown): ORPCError<any, any> {
   return e instanceof ORPCError
     ? e
     : new ORPCError({
-      code: 'INTERNAL_SERVER_ERROR',
-      message: 'Internal server error',
-      cause: e,
-    })
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Internal server error',
+        cause: e,
+      })
 }

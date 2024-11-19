@@ -98,10 +98,13 @@ export function createFetchHandler<TRouter extends Router<any>>(
             procedure = val
           }
         } else {
-          const [matches, params_] = routing.match(
-            requestOptions.request.method,
-            pathname,
-          )
+          const customMethod =
+            requestOptions.request.method === 'POST'
+              ? url.searchParams.get('method')?.toUpperCase()
+              : undefined
+          const method = customMethod || requestOptions.request.method
+
+          const [matches, params_] = routing.match(method, pathname)
 
           const [match] = matches.sort((a, b) => {
             return Object.keys(a[1]).length - Object.keys(b[1]).length
@@ -179,7 +182,7 @@ export function createFetchHandler<TRouter extends Router<any>>(
               ) as object)
             : params
 
-          if (input_ !== undefined && !isPlainObject(input_)) {
+          if (!isPlainObject(input_)) {
             return coercedParams
           }
 

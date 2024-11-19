@@ -6,7 +6,8 @@
   "references": [
     { "path": "../contract" },
     { "path": "../shared" },
-    { "path": "../transformer" }
+    { "path": "../transformer" },
+    { "path": "../zod" }
   ],
   "include": ["src"],
   "exclude": [

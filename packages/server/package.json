@@ -51,6 +51,7 @@
     "@orpc/transformer": "workspace:*"
   },
   "peerDependencies": {
+    "@orpc/zod": "workspace:*",
     "zod": "^3.23.8"
   },
   "devDependencies": {

@@ -1,4 +1,5 @@
 import { ORPC_HEADER, ORPC_HEADER_VALUE } from '@orpc/contract'
+import { oz } from '@orpc/zod'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { os, ORPCError } from '..'
@@ -499,13 +500,14 @@ describe('dynamic params', () => {
   const router = os.router({
     deep: os
       .route({
-        method: 'GET',
+        method: 'POST',
         path: '/{id}/{id2}',
       })
       .input(
         z.object({
           id: z.number(),
           id2: z.string(),
+          file: oz.file(),
         }),
       )
       .handler((input) => input),
@@ -544,12 +546,69 @@ describe('dynamic params', () => {
   })
 
   it.each(handlers)('should handle deep dynamic params', async (handler) => {
+    const form = new FormData()
+    form.append('file', new Blob(['hello']), 'hello.txt')
+
     const response = await handler({
-      request: new Request('http://localhost/123/dfdsfds'),
+      request: new Request('http://localhost/123/dfdsfds', {
+        method: 'POST',
+        body: form,
+      }),
     })
 
     expect(response.status).toEqual(200)
-    expect(response.headers.get('Content-Type')).toEqual('application/json')
-    expect(await response.json()).toEqual({ id: 123, id2: 'dfdsfds' })
+    const rForm = await response.formData()
+    expect(rForm.get('id')).toEqual('123')
+    expect(rForm.get('id2')).toEqual('dfdsfds')
+  })
+})
+
+describe('can control method on POST request', () => {
+  const router = os.router({
+    update: os
+      .route({
+        method: 'PUT',
+        path: '/{id}',
+      })
+      .input(
+        z.object({
+          id: z.number(),
+          file: oz.file(),
+        }),
+      )
+      .handler((input) => input),
+  })
+
+  const handlers = [
+    createFetchHandler({
+      router,
+    }),
+    createFetchHandler({
+      router,
+      serverless: true,
+    }),
+  ]
+
+  it.each(handlers)('work', async (handler) => {
+    const form = new FormData()
+    form.set('file', new File(['hello'], 'hello.txt'))
+
+    const response = await handler({
+      request: new Request('http://localhost/123', {
+        method: 'POST',
+        body: form,
+      }),
+    })
+
+    expect(response.status).toEqual(404)
+
+    const response2 = await handler({
+      request: new Request('http://localhost/123?method=PUT', {
+        method: 'POST',
+        body: form,
+      }),
+    })
+
+    expect(response2.status).toEqual(200)
   })
 })

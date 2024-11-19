@@ -234,6 +234,9 @@ importers:
       '@orpc/transformer':
         specifier: workspace:*
         version: link:../transformer
+      '@orpc/zod':
+        specifier: workspace:*
+        version: link:../zod
       zod:
         specifier: ^3.23.8
         version: 3.23.8

@@ -219,6 +219,8 @@ export function zodCoerce(
       ])
 
       for (const k of keys) {
+        if (!(k in value)) continue
+
         const v = value[k]
         newObj[k] = zodCoerce(
           schema_.shape[k] ?? schema_._def.catchall,

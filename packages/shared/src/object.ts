@@ -32,7 +32,10 @@ export function get(
   let preSegment: string | number = 'root'
 
   for (const segment of segments) {
-    if (typeof currentRef !== 'object' || currentRef === null) {
+    if (
+      (typeof currentRef !== 'object' && typeof currentRef !== 'function') ||
+      currentRef === null
+    ) {
       return undefined
     }
 
@@ -40,7 +43,10 @@ export function get(
     preSegment = segment
   }
 
-  if (typeof currentRef !== 'object' || currentRef === null) {
+  if (
+    (typeof currentRef !== 'object' && typeof currentRef !== 'function') ||
+    currentRef === null
+  ) {
     return undefined
   }
 

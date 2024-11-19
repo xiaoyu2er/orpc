@@ -494,3 +494,62 @@ describe('accept header', () => {
     })
   })
 })
+
+describe('dynamic params', () => {
+  const router = os.router({
+    deep: os
+      .route({
+        method: 'GET',
+        path: '/{id}/{id2}',
+      })
+      .input(
+        z.object({
+          id: z.number(),
+          id2: z.string(),
+        }),
+      )
+      .handler((input) => input),
+
+    find: os
+      .route({
+        method: 'GET',
+        path: '/{id}',
+      })
+      .input(
+        z.object({
+          id: z.number(),
+        }),
+      )
+      .handler((input) => input),
+  })
+
+  const handlers = [
+    createFetchHandler({
+      router,
+    }),
+    createFetchHandler({
+      router,
+      serverless: true,
+    }),
+  ]
+
+  it.each(handlers)('should handle dynamic params', async (handler) => {
+    const response = await handler({
+      request: new Request('http://localhost/123'),
+    })
+
+    expect(response.status).toEqual(200)
+    expect(response.headers.get('Content-Type')).toEqual('application/json')
+    expect(await response.json()).toEqual({ id: 123 })
+  })
+
+  it.each(handlers)('should handle deep dynamic params', async (handler) => {
+    const response = await handler({
+      request: new Request('http://localhost/123/dfdsfds'),
+    })
+
+    expect(response.status).toEqual(200)
+    expect(response.headers.get('Content-Type')).toEqual('application/json')
+    expect(await response.json()).toEqual({ id: 123, id2: 'dfdsfds' })
+  })
+})

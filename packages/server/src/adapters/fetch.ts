@@ -10,6 +10,7 @@ import {
   type PartialOnUndefinedDeep,
   get,
   isPlainObject,
+  mapValues,
   trim,
 } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
@@ -18,6 +19,7 @@ import {
   ORPCSerializer,
   OpenAPIDeserializer,
   OpenAPISerializer,
+  zodCoerce,
 } from '@orpc/transformer'
 import { LinearRouter } from 'hono/router/linear-router'
 import { RegExpRouter } from 'hono/router/reg-exp-router'
@@ -86,7 +88,7 @@ export function createFetchHandler<TRouter extends Router<any>>(
 
         let path: string[] | undefined
         let procedure: WELL_DEFINED_PROCEDURE | undefined
-        let params: Record<string, string | number> | undefined
+        let params: Record<string, string> | undefined
 
         if (isORPCTransformer) {
           path = trim(pathname, '/').split('/').map(decodeURIComponent)
@@ -96,13 +98,28 @@ export function createFetchHandler<TRouter extends Router<any>>(
             procedure = val
           }
         } else {
-          const [[match]] = routing.match(
+          const [matches, params_] = routing.match(
             requestOptions.request.method,
             pathname,
           )
-          path = match?.[0][0]
-          procedure = match?.[0][1]
-          params = match?.[1]
+
+          const [match] = matches.sort((a, b) => {
+            return Object.keys(a[1]).length - Object.keys(b[1]).length
+          })
+
+          if (match) {
+            path = match[0][0]
+            procedure = match[0][1]
+
+            if (params_) {
+              params = mapValues(
+                (match as any)[1]!,
+                (v) => params_[v as number]!,
+              )
+            } else {
+              params = match[1] as Record<string, string>
+            }
+          }
 
           if (!path || !procedure) {
             path = trim(pathname, '/').split('/').map(decodeURIComponent)
@@ -148,18 +165,28 @@ export function createFetchHandler<TRouter extends Router<any>>(
         })()
 
         const input = (() => {
-          if (
-            params &&
-            Object.keys(params).length > 0 &&
-            (input_ === undefined || isPlainObject(input_))
-          ) {
-            return {
-              ...params,
-              ...input_,
-            }
+          if (!params || Object.keys(params).length === 0) {
+            return input_
           }
 
-          return input_
+          const coercedParams = procedure.zz$p.contract.zz$cp.InputSchema
+            ? (zodCoerce(
+                procedure.zz$p.contract.zz$cp.InputSchema,
+                { ...params },
+                {
+                  bracketNotation: true,
+                },
+              ) as object)
+            : params
+
+          if (input_ !== undefined && !isPlainObject(input_)) {
+            return coercedParams
+          }
+
+          return {
+            ...coercedParams,
+            ...input_,
+          }
         })()
 
         const caller = createProcedureCaller({

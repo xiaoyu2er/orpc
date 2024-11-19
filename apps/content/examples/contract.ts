@@ -117,23 +117,29 @@ const handler = createFetchHandler({
 
 // Modern runtime that support fetch api like deno, bun, cloudflare workers, even node can used
 
-import { serve } from 'srvx'
+import { createServer } from 'node:http'
+import { createServerAdapter } from '@whatwg-node/server'
 
-const server = serve({
-  fetch(request) {
-    return handler({
-      request,
-      context: {},
-      prefix: '/api',
-    })
-  },
-  port: 2206,
+const server = createServer(
+  createServerAdapter((request: Request) => {
+    const url = new URL(request.url)
+
+    if (url.pathname.startsWith('/api')) {
+      return handler({
+        request,
+        prefix: '/api',
+        context: {},
+      })
+    }
+
+    return new Response('Not found', { status: 404 })
+  }),
+)
+
+server.listen(2026, () => {
+  // biome-ignore lint/suspicious/noConsole: <explanation>
+  console.log('Server is available at http://localhost:2026')
 })
-
-await server.ready()
-
-// biome-ignore lint/suspicious/noConsole: <explanation>
-console.log(`🚀 Server ready at ${server.url}`)
 
 //
 //

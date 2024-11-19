@@ -13,7 +13,7 @@ const orpcHandler = createFetchHandler({
   },
 })
 
-app.get(
+app.all(
   '/api/*',
   createServerAdapter((request: Request) => {
     const context = request.headers.get('Authorization')

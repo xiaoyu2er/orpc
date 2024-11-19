@@ -77,7 +77,7 @@ export const userCreate = orpcServer
   .handler((input) => {
     return {
       data: {
-        id: crypto.randomUUID(),
+        id: '28aa6286-48e9-4f23-adea-3486c86acd55',
         name: input.data.name,
       },
     }

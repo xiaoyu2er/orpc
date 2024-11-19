@@ -12,7 +12,7 @@ export const signup = osw
   .output(UserSchema)
   .handler(async (input, context, meta) => {
     return {
-      id: crypto.randomUUID(),
+      id: '28aa6286-48e9-4f23-adea-3486c86acd55',
       email: input.email,
       name: input.name,
     }

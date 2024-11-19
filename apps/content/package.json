@@ -23,6 +23,12 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@orpc/client": "workspace:*",
+    "@orpc/contract": "workspace:*",
+    "@orpc/openapi": "workspace:*",
+    "@orpc/react": "workspace:*",
+    "@orpc/server": "workspace:*",
+    "@orpc/zod": "workspace:*",
     "@types/mdx": "^2.0.13",
     "@types/node": "22.9.0",
     "@types/react": "^18.3.12",

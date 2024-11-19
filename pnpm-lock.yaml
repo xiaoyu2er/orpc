@@ -87,6 +87,24 @@ importers:
         specifier: ^3.23.8
         version: 3.23.8
     devDependencies:
+      '@orpc/client':
+        specifier: workspace:*
+        version: link:../../packages/client
+      '@orpc/contract':
+        specifier: workspace:*
+        version: link:../../packages/contract
+      '@orpc/openapi':
+        specifier: workspace:*
+        version: link:../../packages/openapi
+      '@orpc/react':
+        specifier: workspace:*
+        version: link:../../packages/react
+      '@orpc/server':
+        specifier: workspace:*
+        version: link:../../packages/server
+      '@orpc/zod':
+        specifier: workspace:*
+        version: link:../../packages/zod
       '@types/mdx':
         specifier: ^2.0.13
         version: 2.0.13

@@ -3,10 +3,37 @@ title: Integrations
 description: Integrating oRPC with your existing stacks, environments, and frameworks.
 ---
 
-## Introduction
+Integrate oRPC with various stacks, environments, and frameworks effortlessly.
+oRPC is designed with the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) in mind, 
+making it compatible with any modern environment or framework.
 
-oRPC is design with [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) in mind, 
-so you can use it in any modern environment and framework.
+It uses the highly performant [Hono RegExpRouter](https://hono.dev/) under the hood, ensuring low-latency routing. 
+Whether you're targeting serverless, edge environments, or traditional backends, oRPC is optimized for all scenarios.
+
+## Quick Example
+
+```ts twoslash
+import { createFetchHandler } from '@orpc/server/fetch'
+import { router } from 'examples/server'
+
+const handler = createFetchHandler({
+  router,
+  serverless: false, // Set true for faster cold starts
+})
+
+export function fetch(request: Request) {
+  return handler({
+    request,
+    context: {},
+    // prefix: '/api', // Optionally define a route prefix
+  })
+}
+```
+
+## Node.js
+
+Node.js doesn't provide native support for creating server with [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), 
+but you can easily use [@whatwg-node/server](https://npmjs.com/package/@whatwg-node/server) as an adapter.
 
 ```ts twoslash
 import { createFetchHandler } from '@orpc/server/fetch'
@@ -16,48 +43,62 @@ import { router } from 'examples/server'
 
 const handler = createFetchHandler({
   router,
-  serverless: false, // set true will improve cold start times
+  serverless: false,
 })
-
 
 const server = createServer(
   createServerAdapter((request: Request) => {
-    const url = new URL(request.url)
-
-    if (url.pathname.startsWith('/api')) {
-      return handler({
-        request,
-        prefix: '/api',
-        context: {},
-      })
-    }
-
-    return new Response('Not found', { status: 404 })
-  }),
+    return handler({
+      request,
+      context: {},
+      // prefix: '/api',
+    })
+  })
 )
 
 server.listen(2026, () => {
-  // biome-ignore lint/suspicious/noConsole: <explanation>
   console.log('Server is available at http://localhost:2026')
 })
 ```
 
-Under the hood, oRPC utilizes the RegExpRouter from [Hono](https://hono.dev/) (the fastest router in the JavaScript ecosystem).
-We also provide first-class support for Edge and serverless environments.
+## Express.js
+
+```ts twoslash
+import { createFetchHandler } from '@orpc/server/fetch'
+import { createServerAdapter } from '@whatwg-node/server'
+import express from 'express'
+import { router } from 'examples/server'
+
+const handler = createFetchHandler({
+  router,
+  serverless: false,
+})
+
+const app = express()
+
+app.all('/api/*', createServerAdapter((request: Request) => {
+  return handler({
+    request,
+    context: {},
+    prefix: '/api',
+  })
+}))
+
+app.listen(2026, () => {
+  console.log('Server is available at http://localhost:2026')
+})
+```
 
 ## Hono
-
-While oRPC uses Hono's routing engine internally, there are additional benefits to using oRPC with Hono directly.
 
 ```ts twoslash
 import { Hono } from 'hono'
 import { createFetchHandler } from '@orpc/server/fetch'
 import { router } from 'examples/server'
 
-// For performance, create a global router handler
 const handler = createFetchHandler({
   router,
-  serverless: false, // Set to true to improve cold start times
+  serverless: false,
 })
 
 const app = new Hono()
@@ -73,18 +114,15 @@ app.get('/api/*', (c) => {
 export default app
 ```
 
-## Next.JS
+## Next.js
 
-As of Next.js 13, you can use the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) for route handlers.
-
-```ts title="app/api/[[...orpc]].ts" twoslash
+```ts title="app/api/[...orpc]/route.ts" twoslash
 import { createFetchHandler } from '@orpc/server/fetch'
 import { router } from 'examples/server'
 
-// For performance, create a global router handler
 const handler = createFetchHandler({
   router,
-  serverless: false, // Set to true to improve cold start times
+  serverless: true,
 })
 
 const fetchRequestHandler = async (request: Request) => {
@@ -92,7 +130,7 @@ const fetchRequestHandler = async (request: Request) => {
     request,
     prefix: '/api',
     context: {},
-  }) 
+  })
 }
 
 export const GET = fetchRequestHandler
@@ -102,18 +140,15 @@ export const DELETE = fetchRequestHandler
 export const PATCH = fetchRequestHandler
 ```
 
-## Cloudflare Worker
-
-Cloudflare Workers support [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) out of the box.
+## Cloudflare Workers
 
 ```ts twoslash
 import { createFetchHandler } from '@orpc/server/fetch'
 import { router } from 'examples/server'
 
-// For performance, create a global router handler
 const handler = createFetchHandler({
   router,
-  serverless: true, // Set to true to improve cold start times
+  serverless: true,
 })
 
 export default {
@@ -129,5 +164,5 @@ export default {
 
 ## Other Environments and Frameworks
 
-Since most modern environments and frameworks support the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API),
-you can use oRPC with virtually any environment or framework.
+oRPC works in any modern environment that supports the creating server with [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
+If not you can use [@whatwg-node/server](https://npmjs.com/package/@whatwg-node/server) to create a server adapter.

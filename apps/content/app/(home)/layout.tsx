@@ -2,12 +2,6 @@ import { baseOptions } from '@/app/layout.config'
 import { HomeLayout } from 'fumadocs-ui/layouts/home'
 import type { ReactNode } from 'react'
 
-export const metadata = {
-  title: 'oRPC - End-to-end typesafe APIs builder',
-  description:
-    'oRPC is an open-source solution for building modern, typesafe APIs. Build robust, scalable APIs and expose them to the internet with typesafe clients and full OpenAPI support.',
-}
-
 export default function Layout({
   children,
 }: {

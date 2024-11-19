@@ -1,0 +1,29 @@
+{
+  "name": "orpc-nextjs-playground",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@orpc/client": "latest",
+    "@orpc/openapi": "latest",
+    "@orpc/react": "latest",
+    "@orpc/server": "latest",
+    "@orpc/zod": "latest",
+    "@tanstack/react-query": "^5.60.5",
+    "next": "15.0.3",
+    "react": "19.0.0-rc-66855b96-20241106",
+    "react-dom": "19.0.0-rc-66855b96-20241106",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "typescript": "^5"
+  }
+}

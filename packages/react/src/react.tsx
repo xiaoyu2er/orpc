@@ -26,7 +26,7 @@ export type ORPCReactWithContractRouter<TRouter extends ContractRouter> =
   ORPCHooksWithContractRouter<TRouter> & {
     useContext: () => ORPCContextValue<TRouter>
     useUtils: () => ORPCUtilsWithContractRouter<TRouter>
-    useQueries: () => UseQueriesWithContractRouter<TRouter>
+    useQueries: UseQueriesWithContractRouter<TRouter>
   }
 
 export type ORPCReactWithRouter<TRouter extends Router<any>> =

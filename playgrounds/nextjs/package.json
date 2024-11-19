@@ -1,11 +1,13 @@
 {
   "name": "orpc-nextjs-playground",
   "version": "0.1.0",
+  "description": "oRPC NextJS Playground",
   "private": true,
+  "keywords": ["orpc", "nextjs", "playground", "unnoq"],
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port 2026",
     "build": "next build",
-    "start": "next start",
+    "start": "next start --port 2026",
     "lint": "next lint"
   },
   "dependencies": {

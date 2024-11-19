@@ -1,10 +1,41 @@
 ---
 title: Playground
-description: The playground for oRPC
+description: Interactive development environments for exploring and testing oRPC functionality.
 icon: Code
 ---
 
-The oRPC Playground is an interactive environment for testing and experimenting with oRPC without local setup. 
-Try it out on [StackBlitz](https://stackblitz.com/~/github/unnoq/orpc-playground).
+Explore oRPC implementations through our interactive playgrounds, 
+featuring pre-configured examples accessible instantly via StackBlitz or local setup.
 
-<iframe src="https://stackblitz.com/~/github.com/unnoq/orpc-playground?embed=1" className="w-full"></iframe>
+## Available Playgrounds
+
+| Environment | StackBlitz | GitHub Source |
+|------------|------------|---------------|
+| Next.js Playground | [Open in StackBlitz](https://stackblitz.com/github/unnoq/orpc/tree/main/playgrounds/nextjs?file=src%2Frouter%2Findex.ts) | [View Source](https://github.com/unnoq/orpc/tree/main/playgrounds/nextjs/src/router/index.ts) |
+| OpenAPI Playground | [Open in StackBlitz](https://stackblitz.com/github/unnoq/orpc/tree/main/playgrounds/openapi?file=src%2Frouter%2Findex.ts) | [View Source](https://github.com/unnoq/orpc/tree/main/playgrounds/openapi/src/router/index.ts) |
+| OpenAPI with Contract Playground | [Open in StackBlitz](https://stackblitz.com/github/unnoq/orpc/tree/main/playgrounds/contract-openapi?file=src%2Frouter%2Findex.ts) | [View Source](https://github.com/unnoq/orpc/tree/main/playgrounds/contract-openapi/src/router/index.ts) |
+| Express.js Playground | [Open in StackBlitz](https://stackblitz.com/github/unnoq/orpc/tree/main/playgrounds/expressjs?file=src%2Frouter%2Findex.ts) | [View Source](https://github.com/unnoq/orpc/tree/main/playgrounds/expressjs/src/router/index.ts) |
+
+## Local Development
+
+If you prefer working locally, you can clone any playground using the following commands:
+
+```bash
+# Clone specific playground environments
+npx copy-github-directory https://github.com/unnoq/orpc/tree/main/playgrounds/nextjs orpc-nextjs-playground
+npx copy-github-directory https://github.com/unnoq/orpc/tree/main/playgrounds/openapi orpc-openapi-playground
+npx copy-github-directory https://github.com/unnoq/orpc/tree/main/playgrounds/contract-openapi orpc-contract-openapi-playground
+npx copy-github-directory https://github.com/unnoq/orpc/tree/main/playgrounds/expressjs orpc-expressjs-playground
+```
+
+For each project, set up the development environment:
+
+```bash
+# Install dependencies
+npm install
+
+# Start the development server
+npm run dev
+```
+
+That's it! You can now access the playground at `http://localhost:2026`.

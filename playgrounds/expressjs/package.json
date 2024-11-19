@@ -1,18 +1,13 @@
 {
-  "name": "orpc-openapi-playground",
+  "name": "orpc-expresjs-playground",
   "version": "0.0.0",
-  "description": "oRPC OpenAPI Playground",
+  "description": "oRPC ExpressJS Playground",
   "type": "module",
   "scripts": {
     "dev": "tsx --watch src/main.ts",
     "start": "tsx src/main.ts"
   },
-  "keywords": [
-    "orpc",
-    "openapi",
-    "playground",
-    "unnoq"
-  ],
+  "keywords": ["orpc", "expressjs", "playground", "unnoq"],
   "author": "",
   "license": "ISC",
   "devDependencies": {

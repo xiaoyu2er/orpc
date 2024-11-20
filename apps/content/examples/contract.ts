@@ -60,17 +60,23 @@ export const contract = oc.router({
 import { os, ORPCError } from '@orpc/server'
 
 export type Context = { user?: { id: string } }
-export const osw /** os with ... */ = os.context<Context>().contract(contract) // Ensure every implement must be match contract
+export const base = os.context<Context>()
+export const pub /** os with ... */ = base.contract(contract) // Ensure every implement must be match contract
+export const authed /** require authed */ = base
+  .use(() => {
+    /* auth logic */
+  })
+  .contract(contract)
 
-export const router = osw.router({
-  getting: osw.getting.handler((input, context, meta) => {
+export const router = pub.router({
+  getting: pub.getting.handler((input, context, meta) => {
     return {
       message: `Hello, ${input.name}!`,
     }
   }),
 
   post: {
-    find: osw.post.find
+    find: pub.post.find
       .use((input, context, meta) => {
         if (!context.user) {
           throw new ORPCError({
@@ -96,7 +102,7 @@ export const router = osw.router({
         }
       }),
 
-    create: osw.post.create.handler((input, context, meta) => {
+    create: authed.post.create.handler((input, context, meta) => {
       return {
         id: 'example',
         title: input.title,

@@ -5,17 +5,19 @@ import { z } from 'zod'
 
 export type Context = { user?: { id: string } }
 
-const osw = os.context<Context>().use((input, context, meta) => {
-  // This middleware will apply to everything create from osw
-  const start = Date.now()
+export const pub /** public access */ = os
+  .context<Context>()
+  .use((input, context, meta) => {
+    // This middleware will apply to everything create from pub
+    const start = Date.now()
 
-  meta.onFinish((output, error) => {
-    // biome-ignore lint/suspicious/noConsole: <explanation>
-    console.log(`middleware cost ${Date.now() - start}ms`)
+    meta.onFinish((output, error) => {
+      // biome-ignore lint/suspicious/noConsole: <explanation>
+      console.log(`middleware cost ${Date.now() - start}ms`)
+    })
   })
-})
 
-export const authMiddleware = osw.middleware(async (input, context, meta) => {
+export const authMid = pub.middleware(async (input, context, meta) => {
   if (!context.user) {
     throw new ORPCError({ code: 'UNAUTHORIZED' })
   }
@@ -34,9 +36,9 @@ export const authMiddleware = osw.middleware(async (input, context, meta) => {
   }
 })
 
-export const authOS = osw.use(authMiddleware) // any procedure compose from authOS will be protected
+export const authed = pub.use(authMid) // any procedure compose from authOS will be protected
 
-export const canEditPost = authMiddleware.concat(
+export const canEditPost = authMid.concat(
   // Now you expect to have id in input
   async (input: { id: string }, context, meta) => {
     if (context.user.id !== input.id) {
@@ -45,7 +47,7 @@ export const canEditPost = authMiddleware.concat(
   },
 )
 
-const editPost = authOS
+export const editPost = authed
   .input(z.object({ id: z.string() }))
   .output(z.string())
   .use(canEditPost) // if input not match, will throw type error

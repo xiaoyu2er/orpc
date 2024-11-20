@@ -4,10 +4,13 @@ import { z } from 'zod'
 
 export type Context = { user?: { id: string } }
 
-// global osw completely optional, needed when you want to use context
-export const osw /** os with ... */ = os.context<Context>()
+// global pub, authed completely optional
+export const pub /** public access */ = os.context<Context>()
+export const authed /** require authed */ = pub.use(() => {
+  /* auth logic */
+})
 
-export const router = osw.router({
+export const router = pub.router({
   getting: os
     .input(
       z.object({
@@ -20,8 +23,8 @@ export const router = osw.router({
       }
     }),
 
-  post: osw.prefix('/posts').router({
-    find: osw
+  post: pub.prefix('/posts').router({
+    find: pub
       .route({
         path: '/{id}', // custom your OpenAPI
         method: 'GET',
@@ -63,7 +66,7 @@ export const router = osw.router({
         }
       }),
 
-    create: osw
+    create: authed
       .input(
         z.object({
           title: z.string(),

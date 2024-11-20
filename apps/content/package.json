@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "next build",
     "dev": "next dev",
-    "start": "next start",
+    "build": "next build",
+    "preview": "next start",
     "postinstall": "fumadocs-mdx",
     "type:check": "tsc -b"
   },

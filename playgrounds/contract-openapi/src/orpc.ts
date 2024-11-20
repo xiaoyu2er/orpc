@@ -5,7 +5,7 @@ import type { UserSchema } from './schemas/user'
 
 export type ORPCContext = { user?: z.infer<typeof UserSchema>; db: any }
 
-const osBase = os.context<ORPCContext>().use((input, context, meta) => {
+const base = os.context<ORPCContext>().use((input, context, meta) => {
   const start = Date.now()
 
   meta.onFinish(() => {
@@ -14,7 +14,7 @@ const osBase = os.context<ORPCContext>().use((input, context, meta) => {
   })
 })
 
-const authedBase = osBase.use((input, context, meta) => {
+const authMid = base.middleware((input, context, meta) => {
   if (!context.user) {
     throw new ORPCError({
       code: 'UNAUTHORIZED',
@@ -28,5 +28,5 @@ const authedBase = osBase.use((input, context, meta) => {
   }
 })
 
-export const osw = osBase.contract(contract)
-export const authed = authedBase.contract(contract)
+export const pub = base.contract(contract)
+export const authed = base.use(authMid).contract(contract)

@@ -1,8 +1,8 @@
-import { authed, osw } from '../orpc'
+import { authed, pub } from '../orpc'
 import { CredentialSchema, TokenSchema } from '../schemas/auth'
 import { NewUserSchema, UserSchema } from '../schemas/user'
 
-export const signup = osw
+export const signup = pub
   .route({
     method: 'POST',
     path: '/signup',
@@ -18,7 +18,7 @@ export const signup = osw
     }
   })
 
-export const signin = osw
+export const signin = pub
   .route({
     method: 'POST',
     path: '/signin',

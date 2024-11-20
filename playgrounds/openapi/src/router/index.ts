@@ -1,4 +1,4 @@
-import { osw } from '../orpc'
+import { pub } from '../orpc'
 import { me, refresh, revoke, signin, signup } from './auth'
 import {
   createPlanet,
@@ -9,8 +9,8 @@ import {
   updatePlanetImage,
 } from './planet'
 
-export const router = osw.router({
-  auth: osw.tags('Authentication').prefix('/auth').router({
+export const router = pub.router({
+  auth: pub.tags('Authentication').prefix('/auth').router({
     signup,
     signin,
     refresh,
@@ -18,7 +18,7 @@ export const router = osw.router({
     me,
   }),
 
-  planet: osw.tags('Planets').prefix('/planets').router({
+  planet: pub.tags('Planets').prefix('/planets').router({
     list: listPlanets,
     create: createPlanet,
     find: findPlanet,

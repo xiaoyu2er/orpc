@@ -1,8 +1,8 @@
 import { ORPCError } from '@orpc/server'
 import { planets } from '../data/planet'
-import { authed } from '../orpc'
+import { authed, pub } from '../orpc'
 
-export const listPlanets = authed.planet.list.handler(
+export const listPlanets = pub.planet.list.handler(
   async (input, context, meta) => {
     return planets
   },
@@ -26,7 +26,7 @@ export const createPlanet = authed.planet.create.handler(
   },
 )
 
-export const findPlanet = authed.planet.find.handler(
+export const findPlanet = pub.planet.find.handler(
   async (input, context, meta) => {
     const planet = planets.find((planet) => planet.id === input.id)
 

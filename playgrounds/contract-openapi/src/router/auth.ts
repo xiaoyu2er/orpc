@@ -1,6 +1,6 @@
-import { authed, osw } from '../orpc'
+import { authed, pub } from '../orpc'
 
-export const signup = osw.auth.signup.handler(async (input, context, meta) => {
+export const signup = pub.auth.signup.handler(async (input, context, meta) => {
   return {
     id: '28aa6286-48e9-4f23-adea-3486c86acd55',
     email: input.email,
@@ -8,7 +8,7 @@ export const signup = osw.auth.signup.handler(async (input, context, meta) => {
   }
 })
 
-export const signin = osw.auth.signin.handler(async (input, context, meta) => {
+export const signin = pub.auth.signin.handler(async (input, context, meta) => {
   return {
     token: 'token',
   }

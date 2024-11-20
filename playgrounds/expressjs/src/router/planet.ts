@@ -2,14 +2,14 @@ import { ORPCError } from '@orpc/server'
 import { oz } from '@orpc/zod'
 import { z } from 'zod'
 import { planets } from '../data/planet'
-import { authed } from '../orpc'
+import { authed, pub } from '../orpc'
 import {
   NewPlanetSchema,
   PlanetSchema,
   UpdatePlanetSchema,
 } from '../schemas/planet'
 
-export const listPlanets = authed
+export const listPlanets = pub
   .route({
     method: 'GET',
     path: '/',
@@ -50,7 +50,7 @@ export const createPlanet = authed
     return planet
   })
 
-export const findPlanet = authed
+export const findPlanet = pub
   .route({
     method: 'GET',
     path: '/{id}',

@@ -1,6 +1,6 @@
 import { type ContractRouter, eachContractRouterLeaf } from '@orpc/contract'
 import { type Router, toContractRouter } from '@orpc/server'
-import { findDeepMatches, omit } from '@orpc/shared'
+import { findDeepMatches, isPlainObject, omit } from '@orpc/shared'
 import { preSerialize } from '@orpc/transformer'
 import type { JSONSchema } from 'json-schema-typed/draft-2020-12'
 import {
@@ -12,7 +12,11 @@ import {
   type RequestBodyObject,
   type ResponseObject,
 } from 'openapi3-ts/oas31'
-import { extractJSONSchema, zodToJsonSchema } from './zod-to-json-schema'
+import {
+  UNSUPPORTED_JSON_SCHEMA,
+  extractJSONSchema,
+  zodToJsonSchema,
+} from './zod-to-json-schema'
 
 // Reference: https://spec.openapis.org/oas/v3.1.0.html#style-values
 
@@ -64,7 +68,7 @@ export function generateOpenAPI(
     const path = internal.path ?? `/${path_.map(encodeURIComponent).join('/')}`
     const method = internal.method ?? 'POST'
 
-    const inputSchema = internal.InputSchema
+    let inputSchema = internal.InputSchema
       ? zodToJsonSchema(internal.InputSchema, { mode: 'input' })
       : {}
     const outputSchema = internal.OutputSchema
@@ -87,10 +91,10 @@ export function generateOpenAPI(
       return names
         .map((raw) => raw.slice(1, -1))
         .map((name) => {
-          const schema = inputSchema.properties?.[name]
+          let schema = inputSchema.properties?.[name]
           const required = inputSchema.required?.includes(name)
 
-          if (!schema) {
+          if (schema === undefined) {
             throw new Error(
               `Parameter ${name} is missing in input schema [${path_.join('.')}]`,
             )
@@ -100,6 +104,54 @@ export function generateOpenAPI(
             throw new Error(
               `Parameter ${name} must be required in input schema [${path_.join('.')}]`,
             )
+          }
+
+          const examples = inputSchema.examples
+            ?.filter((example) => {
+              return isPlainObject(example) && name in example
+            })
+            .map((example) => {
+              return example[name]
+            })
+
+          schema = {
+            examples: examples?.length ? examples : undefined,
+            ...(schema === true
+              ? {}
+              : schema === false
+                ? UNSUPPORTED_JSON_SCHEMA
+                : schema),
+          }
+
+          inputSchema = {
+            ...inputSchema,
+            properties: inputSchema.properties
+              ? Object.entries(inputSchema.properties).reduce(
+                  (acc, [key, value]) => {
+                    if (key !== name) {
+                      acc[key] = value
+                    }
+
+                    return acc
+                  },
+                  {} as Record<string, JSONSchema>,
+                )
+              : undefined,
+            required: inputSchema.required?.filter((v) => v !== name),
+            examples: inputSchema.examples?.map((example) => {
+              if (!isPlainObject(example)) return example
+
+              return Object.entries(example).reduce(
+                (acc, [key, value]) => {
+                  if (key !== name) {
+                    acc[key] = value
+                  }
+
+                  return acc
+                },
+                {} as Record<string, unknown>,
+              )
+            }),
           }
 
           return {
@@ -123,18 +175,35 @@ export function generateOpenAPI(
         )
       }
 
-      return Object.entries(inputSchema.properties ?? {})
-        .filter(([name]) => !params?.find((param) => param.name === name))
-        .map(([name, schema]) => {
+      return Object.entries(inputSchema.properties ?? {}).map(
+        ([name, schema]) => {
+          const examples = inputSchema.examples
+            ?.filter((example) => {
+              return isPlainObject(example) && name in example
+            })
+            .map((example) => {
+              return example[name]
+            })
+
+          const schema_ = {
+            examples: examples?.length ? examples : undefined,
+            ...(schema === true
+              ? {}
+              : schema === false
+                ? UNSUPPORTED_JSON_SCHEMA
+                : schema),
+          }
+
           return {
             name,
             in: 'query',
             style: 'deepObject',
-            required: true,
-            schema: schema as any,
+            required: inputSchema?.required?.includes(name) ?? false,
+            schema: schema_ as any,
             example: internal.inputExample?.[name],
           }
-        })
+        },
+      )
     })()
 
     const parameters = [...(params ?? []), ...(query ?? [])]

@@ -463,3 +463,181 @@ it('work with example', () => {
     },
   })
 })
+
+it('should remove params on body', () => {
+  const router = oc.router({
+    upload: oc.route({ method: 'POST', path: '/upload/{id}' }).input(
+      oz.openapi(
+        z.object({
+          id: z.number(),
+          file: z.string().url(),
+        }),
+        {
+          examples: [
+            {
+              id: 123,
+              file: 'https://example.com/file.png',
+            },
+          ],
+        },
+      ),
+    ),
+  })
+
+  const spec = generateOpenAPI({
+    router,
+    info: {
+      title: 'test',
+      version: '1.0.0',
+    },
+  })
+
+  expect(spec).toEqual({
+    info: { title: 'test', version: '1.0.0' },
+    openapi: '3.1.0',
+    paths: {
+      '/upload/{id}': {
+        post: {
+          summary: undefined,
+          description: undefined,
+          deprecated: undefined,
+          tags: undefined,
+          operationId: 'upload',
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              schema: { examples: [123], type: 'number' },
+              example: undefined,
+            },
+          ],
+          requestBody: {
+            required: false,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: { file: { type: 'string', format: 'uri' } },
+                  required: ['file'],
+                  examples: [{ file: 'https://example.com/file.png' }],
+                },
+                example: undefined,
+              },
+            },
+          },
+          responses: {
+            '200': {
+              description: 'OK',
+              content: {
+                'application/json': { schema: {}, example: undefined },
+              },
+            },
+          },
+        },
+      },
+    },
+  })
+})
+
+it('should remove params on query', () => {
+  const router = oc.router({
+    upload: oc.route({ method: 'GET', path: '/upload/{id}' }).input(
+      oz.openapi(
+        z.object({
+          id: z.number(),
+          file: z.string().url(),
+          object: z
+            .object({
+              name: z.string(),
+            })
+            .optional(),
+        }),
+        {
+          examples: [
+            {
+              id: 123,
+              file: 'https://example.com/file.png',
+              object: { name: 'test' },
+            },
+            {
+              id: 456,
+              file: 'https://example.com/file2.png',
+            },
+          ],
+        },
+      ),
+    ),
+  })
+
+  const spec = generateOpenAPI({
+    router,
+    info: {
+      title: 'test',
+      version: '1.0.0',
+    },
+  })
+
+  expect(spec).toEqual({
+    info: { title: 'test', version: '1.0.0' },
+    openapi: '3.1.0',
+    paths: {
+      '/upload/{id}': {
+        get: {
+          summary: undefined,
+          description: undefined,
+          deprecated: undefined,
+          tags: undefined,
+          operationId: 'upload',
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              schema: { examples: [123, 456], type: 'number' },
+              example: undefined,
+            },
+            {
+              name: 'file',
+              in: 'query',
+              style: 'deepObject',
+              required: true,
+              schema: {
+                examples: [
+                  'https://example.com/file.png',
+                  'https://example.com/file2.png',
+                ],
+                type: 'string',
+                format: 'uri',
+              },
+              example: undefined,
+            },
+            {
+              name: 'object',
+              in: 'query',
+              style: 'deepObject',
+              required: false,
+              schema: {
+                examples: [{ name: 'test' }],
+                anyOf: undefined,
+                type: 'object',
+                properties: { name: { type: 'string' } },
+                required: ['name'],
+              },
+              example: undefined,
+            },
+          ],
+          requestBody: undefined,
+          responses: {
+            '200': {
+              description: 'OK',
+              content: {
+                'application/json': { schema: {}, example: undefined },
+              },
+            },
+          },
+        },
+      },
+    },
+  })
+})

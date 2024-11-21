@@ -1,11 +1,13 @@
-name: pr-quality
+name: Code Quality
 
 on:
+  push:
+    branches: [main]
   pull_request:
     branches: [main]
 
 jobs:
-  check-and-fix-code:
+  main:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -23,8 +25,6 @@ jobs:
 
       - run: pnpm run test
 
-      - run: pnpm run build
-
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: 'style: lint & format fixed'
+          commit_message: 'style: apply lint fixes'

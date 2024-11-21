@@ -137,12 +137,12 @@ function Footer() {
         <div className="flex items-center gap-2">
           <div>
             <a
-              href="https://discord.gg/TXEbwRBvQn"
+              href="https://github.com/unnoq/orpc"
               className="text-fd-muted-foreground hover:text-foreground/90 transition"
               rel="noreferrer noopener"
               target="_blank"
             >
-              Discord
+              Github
             </a>
           </div>
           <span>·</span>
@@ -159,12 +159,23 @@ function Footer() {
           <span>·</span>
           <div>
             <a
-              href="https://github.com/unnoq/orpc"
+              href="https://bsky.app/profile/unnoq.com"
               className="text-fd-muted-foreground hover:text-foreground/90 transition"
               rel="noreferrer noopener"
               target="_blank"
             >
-              Github
+              Bluesky
+            </a>
+          </div>
+          <span>·</span>
+          <div>
+            <a
+              href="https://discord.gg/TXEbwRBvQn"
+              className="text-fd-muted-foreground hover:text-foreground/90 transition"
+              rel="noreferrer noopener"
+              target="_blank"
+            >
+              Discord
             </a>
           </div>
         </div>

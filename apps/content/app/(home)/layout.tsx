@@ -136,8 +136,10 @@ function Footer() {
         <div className="flex items-center gap-2">
           <div>
             <a
-              href="https://x.com/unnoqcom"
+              href="https://discord.gg/TXEbwRBvQn"
               className="text-fd-muted-foreground hover:text-foreground/90 transition"
+              rel="noreferrer noopener"
+              target="_blank"
             >
               Discord
             </a>
@@ -147,6 +149,8 @@ function Footer() {
             <a
               href="https://x.com/unnoqcom"
               className="text-fd-muted-foreground hover:text-foreground/90 transition"
+              rel="noreferrer noopener"
+              target="_blank"
             >
               Twitter
             </a>
@@ -156,6 +160,8 @@ function Footer() {
             <a
               href="https://github.com/unnoq/orpc"
               className="text-fd-muted-foreground hover:text-foreground/90 transition"
+              rel="noreferrer noopener"
+              target="_blank"
             >
               Github
             </a>

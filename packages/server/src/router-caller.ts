@@ -1,8 +1,8 @@
 import type {} from '@orpc/contract'
-import { type Procedure, isProcedure } from './procedure'
-import { type ProcedureCaller, createProcedureCaller } from './procedure-caller'
 import type { Router } from './router'
 import type { Meta, Promisable } from './types'
+import { isProcedure, type Procedure } from './procedure'
+import { createProcedureCaller, type ProcedureCaller } from './procedure-caller'
 import {} from './utils'
 
 export interface CreateRouterCallerOptions<
@@ -75,11 +75,12 @@ export function createRouterCaller<
         procedure: item,
         context: options.context as any,
         hooks: options.hooks as any,
-        path: path,
+        path,
         internal,
         validate,
       })
-    } else {
+    }
+    else {
       caller[key] = createRouterCaller({
         router: item as any,
         context: options.context,

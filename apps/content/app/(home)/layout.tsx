@@ -1,6 +1,6 @@
+import type { ReactNode } from 'react'
 import { baseOptions } from '@/app/layout.config'
 import { HomeLayout } from 'fumadocs-ui/layouts/home'
-import type { ReactNode } from 'react'
 
 export default function Layout({
   children,
@@ -121,7 +121,8 @@ function Footer() {
       <div className="container flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-fd-muted-foreground">
-            Built with ❤️ by{' '}
+            Built with ❤️ by
+            {' '}
             <a
               href="https://unnoq.com"
               rel="noreferrer noopener"

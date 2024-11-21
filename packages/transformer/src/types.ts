@@ -8,11 +8,11 @@ export interface Serialized {
 }
 
 export interface Serializer {
-  serialize(payload: unknown): Serialized
+  serialize: (payload: unknown) => Serialized
 }
 
 export type Deserialized = Promise<unknown>
 
 export interface Deserializer {
-  deserialize(re: Request | Response): Deserialized
+  deserialize: (re: Request | Response) => Deserialized
 }

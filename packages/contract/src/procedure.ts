@@ -42,7 +42,8 @@ export class DecoratedContractProcedure<
   static decorate<TInputSchema extends Schema, TOutputSchema extends Schema>(
     cp: ContractProcedure<TInputSchema, TOutputSchema>,
   ): DecoratedContractProcedure<TInputSchema, TOutputSchema> {
-    if (cp instanceof DecoratedContractProcedure) return cp
+    if (cp instanceof DecoratedContractProcedure)
+      return cp
     return new DecoratedContractProcedure(cp.zz$cp)
   }
 
@@ -60,7 +61,8 @@ export class DecoratedContractProcedure<
   prefix(
     prefix: HTTPPath,
   ): DecoratedContractProcedure<TInputSchema, TOutputSchema> {
-    if (!this.zz$cp.path) return this
+    if (!this.zz$cp.path)
+      return this
 
     return new DecoratedContractProcedure({
       ...this.zz$cp,
@@ -71,7 +73,8 @@ export class DecoratedContractProcedure<
   addTags(
     ...tags: string[]
   ): DecoratedContractProcedure<TInputSchema, TOutputSchema> {
-    if (!tags.length) return this
+    if (!tags.length)
+      return this
 
     return new DecoratedContractProcedure({
       ...this.zz$cp,
@@ -107,15 +110,16 @@ export type WELL_DEFINED_CONTRACT_PROCEDURE = ContractProcedure<Schema, Schema>
 export function isContractProcedure(
   item: unknown,
 ): item is WELL_DEFINED_CONTRACT_PROCEDURE {
-  if (item instanceof ContractProcedure) return true
+  if (item instanceof ContractProcedure)
+    return true
 
   return (
-    (typeof item === 'object' || typeof item === 'function') &&
-    item !== null &&
-    'zz$cp' in item &&
-    typeof item.zz$cp === 'object' &&
-    item.zz$cp !== null &&
-    'InputSchema' in item.zz$cp &&
-    'OutputSchema' in item.zz$cp
+    (typeof item === 'object' || typeof item === 'function')
+    && item !== null
+    && 'zz$cp' in item
+    && typeof item.zz$cp === 'object'
+    && item.zz$cp !== null
+    && 'InputSchema' in item.zz$cp
+    && 'OutputSchema' in item.zz$cp
   )
 }

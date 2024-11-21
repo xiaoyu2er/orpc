@@ -1,9 +1,9 @@
+import type { Meta } from './types'
 import {
   type DecoratedMiddleware,
-  type Middleware,
   decorateMiddleware,
+  type Middleware,
 } from './middleware'
-import type { Meta } from './types'
 
 describe('middleware', () => {
   it('just a function', () => {
@@ -195,7 +195,7 @@ describe('decorateMiddleware', () => {
       DecoratedMiddleware<
         { auth: boolean },
         undefined,
-        { id: never; status: string },
+        { id: never, status: string },
         unknown
       >
     >()
@@ -219,7 +219,7 @@ describe('decorateMiddleware', () => {
       (input: { postId: number }) => {
         return { context: { a: 'a' } }
       },
-      (input) => ({ postId: 12455 }),
+      input => ({ postId: 12455 }),
     )
 
     // mid2 input is unknown, because it's map input does not expect anything

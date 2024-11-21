@@ -113,7 +113,7 @@ describe('createRouterClient', () => {
       fetch: orpcFetch,
     })
 
-    // @ts-expect-error
+    // @ts-expect-error - invalid input
     expect(client.ping({ value: {} })).rejects.toThrowError(
       'Validation input failed',
     )
@@ -123,7 +123,7 @@ describe('createRouterClient', () => {
     const router = os.router({
       ping: os
         .input(z.object({ value: z.date() }))
-        .handler((input) => input.value),
+        .handler(input => input.value),
     })
 
     const handler = createFetchHandler({

@@ -20,8 +20,8 @@ export interface ORPCAdditionalQueryFilters<TFilterInput> {
 
 export interface ORPCQueryFilters<TFilterInput>
   extends SetOptional<QueryFilters, 'queryKey'>,
-    ORPCAdditionalQueryFilters<TFilterInput> {}
+  ORPCAdditionalQueryFilters<TFilterInput> {}
 
 export interface ORPCInvalidateQueryFilters<TFilterInput>
   extends SetOptional<InvalidateQueryFilters, 'queryKey'>,
-    ORPCAdditionalQueryFilters<TFilterInput> {}
+  ORPCAdditionalQueryFilters<TFilterInput> {}

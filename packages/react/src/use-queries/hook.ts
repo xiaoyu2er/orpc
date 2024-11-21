@@ -7,9 +7,9 @@ import {
 } from '@tanstack/react-query'
 import { type ORPCContext, useORPCContext } from '../react-context'
 import {
+  createUseQueriesBuilders,
   type UseQueriesBuildersWithContractRouter,
   type UseQueriesBuildersWithRouter,
-  createUseQueriesBuilders,
 } from './builders'
 
 export interface UseQueriesWithContractRouter<TRouter extends ContractRouter> {
@@ -39,19 +39,19 @@ export interface UseQueriesFactoryOptions<
 export function useQueriesFactory<TRouter extends Router<any> | ContractRouter>(
   options: UseQueriesFactoryOptions<TRouter>,
 ): TRouter extends Router<any>
-  ? UseQueriesWithRouter<TRouter>
-  : TRouter extends ContractRouter
-    ? UseQueriesWithContractRouter<TRouter>
-    : never {
-  const hook = (build: any, combine?: any) => {
+    ? UseQueriesWithRouter<TRouter>
+    : TRouter extends ContractRouter
+      ? UseQueriesWithContractRouter<TRouter>
+      : never {
+  const Hook = (build: any, combine?: any): any => {
     const orpc = useORPCContext(options.context)
     const builders = createUseQueriesBuilders({ client: orpc.client as any })
 
     return useQueries({
       queries: build(builders),
-      combine: combine,
+      combine,
     })
   }
 
-  return hook as any
+  return Hook as any
 }

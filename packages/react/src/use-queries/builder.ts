@@ -54,7 +54,7 @@ export function createUseQueriesBuilder<
   TInputSchema extends Schema = undefined,
   TOutputSchema extends Schema = undefined,
   THandlerOutput extends
-    SchemaOutput<TOutputSchema> = SchemaOutput<TOutputSchema>,
+  SchemaOutput<TOutputSchema> = SchemaOutput<TOutputSchema>,
 >(
   options: CreateUseQueriesBuilderOptions<
     TInputSchema,

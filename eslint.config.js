@@ -1,7 +1,6 @@
 import antfu from '@antfu/eslint-config'
 
 export default antfu({
-  type: 'lib',
   react: true,
   formatters: true,
 }, {
@@ -15,11 +14,6 @@ export default antfu({
   rules: {
     'unused-imports/no-unused-vars': 'off',
     'antfu/no-top-level-await': 'off',
-  },
-}, {
-  files: ['apps/**', 'playgrounds/**'],
-  rules: {
-    'ts/explicit-function-return-type': 'off',
   },
 }, {
   files: ['playgrounds/**'],

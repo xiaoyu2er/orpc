@@ -1,10 +1,10 @@
-import './global.css'
-import 'fumadocs-twoslash/twoslash.css'
-
+import type { Metadata } from 'next'
 import { RootProvider } from 'fumadocs-ui/provider'
+
 import { GeistMono } from 'geist/font/mono'
 import { GeistSans } from 'geist/font/sans'
-import type { Metadata } from 'next'
+import './global.css'
+import 'fumadocs-twoslash/twoslash.css'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://orpc.unnoq.com'),

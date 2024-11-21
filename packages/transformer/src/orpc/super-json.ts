@@ -18,9 +18,9 @@ export function serialize(
   segments: Segment[] = [],
   meta: JSONMeta = [],
 ): {
-  data: unknown
-  meta: JSONMeta
-} {
+    data: unknown
+    meta: JSONMeta
+  } {
   if (typeof value === 'bigint') {
     meta.push(['bigint', segments])
     return { data: value.toString(), meta }
@@ -128,7 +128,8 @@ export function deserialize({
         if (match) {
           const [, pattern, flags] = match
           currentRef[preSegment] = new RegExp(pattern!, flags)
-        } else {
+        }
+        else {
           currentRef[preSegment] = new RegExp(currentRef[preSegment])
         }
 

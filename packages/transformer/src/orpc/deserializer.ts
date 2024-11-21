@@ -1,5 +1,5 @@
-import { set } from '@orpc/shared'
 import type { Deserializer } from '../types'
+import { set } from '@orpc/shared'
 import * as SuperJSON from './super-json'
 
 export class ORPCDeserializer implements Deserializer {

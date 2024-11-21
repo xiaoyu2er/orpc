@@ -9,7 +9,7 @@ const app = express()
 const orpcHandler = createFetchHandler({
   router,
   hooks(context, meta) {
-    meta.onError((e) => console.error(e))
+    meta.onError(e => console.error(e))
   },
 })
 
@@ -97,6 +97,6 @@ app.get('/', (req, res) => {
 })
 
 app.listen(2026, () => {
-  // biome-ignore lint/suspicious/noConsole: <explanation>
+  // eslint-disable-next-line no-console
   console.log('Playground is available at http://localhost:2026')
 })

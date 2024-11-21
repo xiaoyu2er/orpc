@@ -2,17 +2,17 @@ import type { SchemaOutput } from '@orpc/contract'
 import type { Promisable } from '@orpc/shared'
 import type { InfiniteData } from '@tanstack/react-query'
 import {
+  queryClient,
   type UserCreateInputSchema,
   type UserFindInputSchema,
   type UserListInputSchema,
   type UserListOutputSchema,
   type UserSchema,
-  queryClient,
 } from '../tests/orpc'
 import { createGeneralUtils } from './general-utils'
 
 const user_utils = createGeneralUtils({
-  queryClient: queryClient,
+  queryClient,
   path: ['user'],
 })
 
@@ -21,7 +21,7 @@ const user_find_utils = createGeneralUtils<
   typeof UserSchema,
   SchemaOutput<typeof UserSchema>
 >({
-  queryClient: queryClient,
+  queryClient,
   path: ['user', 'find'],
 })
 
@@ -30,7 +30,7 @@ const user_list_utils = createGeneralUtils<
   typeof UserListOutputSchema,
   SchemaOutput<typeof UserListOutputSchema>
 >({
-  queryClient: queryClient,
+  queryClient,
   path: ['user', 'list'],
 })
 
@@ -39,7 +39,7 @@ const user_create_utils = createGeneralUtils<
   typeof UserSchema,
   SchemaOutput<typeof UserSchema>
 >({
-  queryClient: queryClient,
+  queryClient,
   path: ['user', 'create'],
 })
 
@@ -121,9 +121,9 @@ describe('setInfiniteQueriesData', () => {
     user_list_utils.setInfiniteQueriesData({}, (old) => {
       expectTypeOf(old).toEqualTypeOf<
         | InfiniteData<
-            SchemaOutput<typeof UserListOutputSchema>,
+          SchemaOutput<typeof UserListOutputSchema>,
             number | undefined
-          >
+        >
         | undefined
       >()
 

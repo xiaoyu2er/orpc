@@ -1,6 +1,6 @@
 import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
-import { os, Procedure, decorateProcedure, isProcedure } from '.'
+import { decorateProcedure, isProcedure, os, Procedure } from '.'
 import { RouterBuilder } from './router-builder'
 
 const builder = new RouterBuilder<undefined, undefined>({})
@@ -22,7 +22,7 @@ describe('prefix', () => {
     const router = builder
       .prefix('/api')
       .prefix('/users')
-      .router({ ping: ping, pong })
+      .router({ ping, pong })
 
     expect(router.ping.zz$p.contract.zz$cp.path).toEqual('/api/users/ping')
     expect(router.pong.zz$p.contract.zz$cp.path).toEqual(undefined)
@@ -43,7 +43,7 @@ describe('tags', () => {
     const router = builder
       .tags('api')
       .tags('users')
-      .router({ ping: ping, pong })
+      .router({ ping, pong })
 
     expect(router.ping.zz$p.contract.zz$cp.tags).toEqual([
       'ping',
@@ -68,7 +68,7 @@ describe('middleware', () => {
   })
 
   it('router', () => {
-    const router = builder.use(mid1).use(mid2).router({ ping: ping, pong })
+    const router = builder.use(mid1).use(mid2).router({ ping, pong })
 
     expect(router.ping.zz$p.middlewares).toEqual([mid1, mid2])
     expect(router.pong.zz$p.middlewares).toEqual([mid1, mid2])

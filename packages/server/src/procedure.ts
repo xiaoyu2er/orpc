@@ -1,20 +1,21 @@
+import type { Context, MergeContext, Meta, Promisable } from './types'
 import {
   type ContractProcedure,
   DecoratedContractProcedure,
   type HTTPPath,
+  isContractProcedure,
+  type RouteOptions,
+  type Schema,
   type SchemaInput,
   type SchemaOutput,
-  isContractProcedure,
 } from '@orpc/contract'
-import type { RouteOptions, Schema } from '@orpc/contract'
 import { OpenAPIDeserializer } from '@orpc/transformer'
 import {
+  decorateMiddleware,
   type MapInputMiddleware,
   type Middleware,
-  decorateMiddleware,
 } from './middleware'
 import { createProcedureCaller } from './procedure-caller'
-import type { Context, MergeContext, Meta, Promisable } from './types'
 
 export class Procedure<
   TContext extends Context,
@@ -51,9 +52,9 @@ export type DecoratedProcedure<
   TOutputSchema,
   THandlerOutput
 > & {
-  prefix(
+  prefix: (
     prefix: HTTPPath,
-  ): DecoratedProcedure<
+  ) => DecoratedProcedure<
     TContext,
     TExtraContext,
     TInputSchema,
@@ -61,9 +62,9 @@ export type DecoratedProcedure<
     THandlerOutput
   >
 
-  route(
+  route: (
     opts: RouteOptions,
-  ): DecoratedProcedure<
+  ) => DecoratedProcedure<
     TContext,
     TExtraContext,
     TInputSchema,
@@ -71,10 +72,10 @@ export type DecoratedProcedure<
     THandlerOutput
   >
 
-  use<
+  use: (<
     UExtraContext extends
-      | Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>
-      | undefined = undefined,
+    | Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>
+    | undefined = undefined,
   >(
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
@@ -82,18 +83,16 @@ export type DecoratedProcedure<
       SchemaOutput<TInputSchema>,
       SchemaOutput<TOutputSchema, THandlerOutput>
     >,
-  ): DecoratedProcedure<
+  ) => DecoratedProcedure<
     TContext,
     MergeContext<TExtraContext, UExtraContext>,
     TInputSchema,
     TOutputSchema,
     THandlerOutput
-  >
-
-  use<
+  >) & (<
     UExtraContext extends
-      | Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>
-      | undefined = undefined,
+    | Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>
+    | undefined = undefined,
     UMappedInput = unknown,
   >(
     middleware: Middleware<
@@ -106,19 +105,18 @@ export type DecoratedProcedure<
       SchemaOutput<TInputSchema, THandlerOutput>,
       UMappedInput
     >,
-  ): DecoratedProcedure<
+  ) => DecoratedProcedure<
     TContext,
     MergeContext<TExtraContext, UExtraContext>,
     TInputSchema,
     TOutputSchema,
     THandlerOutput
-  >
+  >)
 } & (undefined extends TContext
-    ? (
-        input: SchemaInput<TInputSchema> | FormData,
-      ) => Promise<SchemaOutput<TOutputSchema, THandlerOutput>>
-    : // biome-ignore lint/complexity/noBannedTypes: {} seem has no side-effect on this case
-      {})
+  ? (
+      input: SchemaInput<TInputSchema> | FormData,
+    ) => Promise<SchemaOutput<TOutputSchema, THandlerOutput>>
+  : unknown)
 
 export interface ProcedureHandler<
   TContext extends Context,
@@ -151,19 +149,20 @@ export function decorateProcedure<
     THandlerOutput
   >,
 ): DecoratedProcedure<
-  TContext,
-  TExtraContext,
-  TInputSchema,
-  TOutputSchema,
-  THandlerOutput
-> {
+    TContext,
+    TExtraContext,
+    TInputSchema,
+    TOutputSchema,
+    THandlerOutput
+  > {
   if (DECORATED_PROCEDURE_SYMBOL in procedure) {
     return procedure as any
   }
 
-  const serverAction = async (input: unknown) => {
+  const serverAction = async (input: unknown): Promise<SchemaOutput<TOutputSchema, THandlerOutput>> => {
     const input_ = (() => {
-      if (!(input instanceof FormData)) return input
+      if (!(input instanceof FormData))
+        return input
 
       const transformer = new OpenAPIDeserializer({
         schema: procedure.zz$p.contract.zz$cp.InputSchema,
@@ -235,17 +234,18 @@ export type WELL_DEFINED_PROCEDURE = Procedure<
 >
 
 export function isProcedure(item: unknown): item is WELL_DEFINED_PROCEDURE {
-  if (item instanceof Procedure) return true
+  if (item instanceof Procedure)
+    return true
 
   return (
-    (typeof item === 'object' || typeof item === 'function') &&
-    item !== null &&
-    'zz$p' in item &&
-    typeof item.zz$p === 'object' &&
-    item.zz$p !== null &&
-    'contract' in item.zz$p &&
-    isContractProcedure(item.zz$p.contract) &&
-    'handler' in item.zz$p &&
-    typeof item.zz$p.handler === 'function'
+    (typeof item === 'object' || typeof item === 'function')
+    && item !== null
+    && 'zz$p' in item
+    && typeof item.zz$p === 'object'
+    && item.zz$p !== null
+    && 'contract' in item.zz$p
+    && isContractProcedure(item.zz$p.contract)
+    && 'handler' in item.zz$p
+    && typeof item.zz$p.handler === 'function'
   )
 }

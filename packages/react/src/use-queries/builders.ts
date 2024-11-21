@@ -9,7 +9,7 @@ import type {
 } from '@orpc/contract'
 import type { Procedure, Router } from '@orpc/server'
 import type {} from '@tanstack/react-query'
-import { type UseQueriesBuilder, createUseQueriesBuilder } from './builder'
+import { createUseQueriesBuilder, type UseQueriesBuilder } from './builder'
 
 export type UseQueriesBuildersWithContractRouter<
   TRouter extends ContractRouter,
@@ -19,10 +19,10 @@ export type UseQueriesBuildersWithContractRouter<
     infer UOutputSchema
   >
     ? UseQueriesBuilder<
-        UInputSchema,
-        UOutputSchema,
-        SchemaOutput<UOutputSchema>
-      >
+      UInputSchema,
+      UOutputSchema,
+      SchemaOutput<UOutputSchema>
+    >
     : TRouter[K] extends ContractRouter
       ? UseQueriesBuildersWithContractRouter<TRouter[K]>
       : never
@@ -62,10 +62,10 @@ export function createUseQueriesBuilders<
 >(
   options: CreateUseQueriesBuildersOptions<TRouter>,
 ): TRouter extends Router<any>
-  ? UseQueriesBuildersWithRouter<TRouter>
-  : TRouter extends ContractRouter
-    ? UseQueriesBuildersWithContractRouter<TRouter>
-    : never {
+    ? UseQueriesBuildersWithRouter<TRouter>
+    : TRouter extends ContractRouter
+      ? UseQueriesBuildersWithContractRouter<TRouter>
+      : never {
   const path = options.path ?? []
   const client = options.client as any
 

@@ -1,11 +1,11 @@
 import { oz } from '@orpc/zod'
-import { type ZodType, object, z } from 'zod'
+import { object, z, type ZodType } from 'zod'
 import {
   type Deserializer,
-  ORPCDeserializer,
-  ORPCSerializer,
   OpenAPIDeserializer,
   OpenAPISerializer,
+  ORPCDeserializer,
+  ORPCSerializer,
   type Serializer,
 } from '../src'
 
@@ -24,28 +24,28 @@ const transformers: {
   {
     name: 'OpenAPITransformer auto',
     createSerializer: () => new OpenAPISerializer(),
-    createDeserializer: (schema) => new OpenAPIDeserializer({ schema }),
+    createDeserializer: schema => new OpenAPIDeserializer({ schema }),
     isFileSupport: true,
   },
   {
     name: 'OpenAPITransformer multipart/form-data',
     createSerializer: () =>
       new OpenAPISerializer({ accept: 'multipart/form-data' }),
-    createDeserializer: (schema) => new OpenAPIDeserializer({ schema }),
+    createDeserializer: schema => new OpenAPIDeserializer({ schema }),
     isFileSupport: true,
   },
   {
     name: 'OpenAPITransformer application/json',
     createSerializer: () =>
       new OpenAPISerializer({ accept: 'application/json' }),
-    createDeserializer: (schema) => new OpenAPIDeserializer({ schema }),
+    createDeserializer: schema => new OpenAPIDeserializer({ schema }),
     isFileSupport: false,
   },
   {
     name: 'OpenAPITransformer application/x-www-form-urlencoded',
     createSerializer: () =>
       new OpenAPISerializer({ accept: 'application/x-www-form-urlencoded' }),
-    createDeserializer: (schema) => new OpenAPIDeserializer({ schema }),
+    createDeserializer: schema => new OpenAPIDeserializer({ schema }),
     isFileSupport: false,
   },
 ]
@@ -187,16 +187,16 @@ describe.each(transformers)(
 
         const object = {
           '[]data\\]': origin,
-          list: [origin],
-          map: new Map([[origin, origin]]),
-          set: new Set([origin]),
+          'list': [origin],
+          'map': new Map([[origin, origin]]),
+          'set': new Set([origin]),
         }
 
         const objectSchema = z.object({
           '[]data\\]': schema,
-          list: z.array(schema),
-          map: z.map(schema, schema),
-          set: z.set(schema),
+          'list': z.array(schema),
+          'map': z.map(schema, schema),
+          'set': z.set(schema),
         })
 
         const serializer = createSerializer()

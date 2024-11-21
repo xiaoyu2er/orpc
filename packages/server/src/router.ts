@@ -1,3 +1,4 @@
+import type { Context } from './types'
 import {
   type ContractProcedure,
   type ContractRouter,
@@ -5,10 +6,9 @@ import {
 } from '@orpc/contract'
 import {
   type DecoratedProcedure,
-  type Procedure,
   isProcedure,
+  type Procedure,
 } from './procedure'
-import type { Context } from './types'
 
 export interface Router<TContext extends Context> {
   [k: string]: Procedure<TContext, any, any, any, any> | Router<TContext>
@@ -23,12 +23,12 @@ export type HandledRouter<TRouter extends Router<any>> = {
     infer UHandlerOutput
   >
     ? DecoratedProcedure<
-        UContext,
-        UExtraContext,
-        UInputSchema,
-        UOutputSchema,
-        UHandlerOutput
-      >
+      UContext,
+      UExtraContext,
+      UInputSchema,
+      UOutputSchema,
+      UHandlerOutput
+    >
     : TRouter[K] extends Router<any>
       ? HandledRouter<TRouter[K]>
       : never
@@ -58,9 +58,11 @@ export function toContractRouter(
 
     if (isContractProcedure(item)) {
       contract[key] = item
-    } else if (isProcedure(item)) {
+    }
+    else if (isProcedure(item)) {
       contract[key] = item.zz$p.contract
-    } else {
+    }
+    else {
       contract[key] = toContractRouter(item as any)
     }
   }

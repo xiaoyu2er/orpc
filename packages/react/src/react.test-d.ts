@@ -1,16 +1,16 @@
 import type { SchemaOutput } from '@orpc/contract'
 import type { QueryClient } from '@tanstack/react-query'
-import {
-  ORPCContext,
-  type UserFindInputSchema,
-  type UserSchema,
-  orpc,
-  orpcClient,
-} from '../tests/orpc'
 import type { GeneralHooks } from './general-hooks'
 import type { GeneralUtils } from './general-utils'
 import type { ProcedureHooks } from './procedure-hooks'
 import type { ProcedureUtils } from './procedure-utils'
+import {
+  orpc,
+  orpcClient,
+  ORPCContext,
+  type UserFindInputSchema,
+  type UserSchema,
+} from '../tests/orpc'
 import { useQueriesFactory } from './use-queries/hook'
 
 describe('useUtils', () => {

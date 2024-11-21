@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { os, createProcedureCaller } from '.'
+import { createProcedureCaller, os } from '.'
 
 describe('createProcedureCaller', () => {
   let internal = false
@@ -8,8 +8,8 @@ describe('createProcedureCaller', () => {
 
   const osw = os.context<{ auth?: boolean }>()
   const procedure = osw
-    .input(z.object({ value: z.string().transform((v) => Number(v)) }))
-    .output(z.object({ value: z.number().transform((v) => v.toString()) }))
+    .input(z.object({ value: z.string().transform(v => Number(v)) }))
+    .output(z.object({ value: z.number().transform(v => v.toString()) }))
     .handler((input, context, meta) => {
       expect(context).toEqual(context)
       expect(meta.internal).toBe(internal)
@@ -47,7 +47,7 @@ describe('createProcedureCaller', () => {
 
     expect(await caller({ value: '123' })).toEqual({ value: '123' })
 
-    // @ts-expect-error
+    // @ts-expect-error - invalid input
     expect(caller({ value: {} })).rejects.toThrowError(
       'Validation input failed',
     )
@@ -177,10 +177,10 @@ describe('createProcedureCaller', () => {
     const ref = { value: 0 }
 
     const caller = createProcedureCaller({
-      procedure: procedure,
-      context: context,
-      internal: internal,
-      path: path,
+      procedure,
+      context,
+      internal,
+      path,
       hooks: (context, meta) => {
         expect(context).toEqual(context)
         expect(meta.internal).toBe(internal)

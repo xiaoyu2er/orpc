@@ -1,10 +1,10 @@
 import { bench } from 'vitest'
 import { z } from 'zod'
 import {
-  ORPCDeserializer,
-  ORPCSerializer,
   OpenAPIDeserializer,
   OpenAPISerializer,
+  ORPCDeserializer,
+  ORPCSerializer,
 } from '../src'
 
 describe('simple data', () => {
@@ -13,7 +13,7 @@ describe('simple data', () => {
     number: 1234,
     boolean: true,
     null: null,
-    undefined: undefined,
+    undefined,
     bigint: BigInt(1234),
     date: new Date('2023-01-01'),
     map: new Map([
@@ -52,7 +52,7 @@ describe('simple data', () => {
   const orpcDeserializer = new ORPCDeserializer()
   const openapiDeserializer = new OpenAPIDeserializer({ schema })
 
-  bench('ORPCTransformer', () => {
+  bench('oRPCTransformer', () => {
     orpcDeserializer.deserialize(
       new Request('http://localhost', {
         method: 'POST',
@@ -61,7 +61,7 @@ describe('simple data', () => {
     )
   })
 
-  bench('OpenAPITransformer', () => {
+  bench('openAPITransformer', () => {
     openapiDeserializer.deserialize(
       new Request('http://localhost', {
         method: 'POST',
@@ -77,7 +77,7 @@ describe('with file', () => {
     number: 1234,
     boolean: true,
     null: null,
-    undefined: undefined,
+    undefined,
     bigint: BigInt(1234),
     date: new Date('2023-01-01'),
     map: new Map([
@@ -120,7 +120,7 @@ describe('with file', () => {
   const orpcDeserializer = new ORPCDeserializer()
   const openapiDeserializer = new OpenAPIDeserializer({ schema })
 
-  bench('ORPCTransformer', () => {
+  bench('oRPCTransformer', () => {
     orpcDeserializer.deserialize(
       new Request('http://localhost', {
         method: 'POST',
@@ -129,7 +129,7 @@ describe('with file', () => {
     )
   })
 
-  bench('OpenAPITransformer', () => {
+  bench('openAPITransformer', () => {
     openapiDeserializer.deserialize(
       new Request('http://localhost', {
         method: 'POST',
@@ -175,7 +175,7 @@ describe('with unions', () => {
   const orpcDeserializer = new ORPCDeserializer()
   const openapiDeserializer = new OpenAPIDeserializer({ schema })
 
-  bench('ORPCTransformer', () => {
+  bench('oRPCTransformer', () => {
     orpcDeserializer.deserialize(
       new Request('http://localhost', {
         method: 'POST',
@@ -184,7 +184,7 @@ describe('with unions', () => {
     )
   })
 
-  bench('OpenAPITransformer', () => {
+  bench('openAPITransformer', () => {
     openapiDeserializer.deserialize(
       new Request('http://localhost', {
         method: 'POST',

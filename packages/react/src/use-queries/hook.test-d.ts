@@ -1,9 +1,9 @@
 import type { SchemaOutput } from '@orpc/contract'
 import {
+  orpcClient,
   ORPCContext,
   type UserListOutputSchema,
   type UserSchema,
-  orpcClient,
 } from '../../tests/orpc'
 import { createUseQueriesBuilders } from './builders'
 import { useQueriesFactory } from './hook'

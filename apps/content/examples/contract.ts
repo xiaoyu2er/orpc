@@ -2,6 +2,19 @@ import { oc } from '@orpc/contract'
 import { oz } from '@orpc/zod'
 import { z } from 'zod'
 
+// Implement the contract
+
+import { ORPCError, os } from '@orpc/server'
+
+// Expose apis to the internet with fetch handler
+
+import { createFetchHandler } from '@orpc/server/fetch'
+
+// Modern runtime that support fetch api like deno, bun, cloudflare workers, even node can used
+
+import { createServer } from 'node:http'
+import { createServerAdapter } from '@whatwg-node/server'
+
 // Define your contract first
 // This contract can replace server router in most-case
 
@@ -54,10 +67,6 @@ export const contract = oc.router({
       ),
   }),
 })
-
-// Implement the contract
-
-import { os, ORPCError } from '@orpc/server'
 
 export type Context = { user?: { id: string } }
 export const base = os.context<Context>()
@@ -112,19 +121,10 @@ export const router = pub.router({
   },
 })
 
-// Expose apis to the internet with fetch handler
-
-import { createFetchHandler } from '@orpc/server/fetch'
-
 const handler = createFetchHandler({
   router,
   serverless: false, // set true will improve cold start times
 })
-
-// Modern runtime that support fetch api like deno, bun, cloudflare workers, even node can used
-
-import { createServer } from 'node:http'
-import { createServerAdapter } from '@whatwg-node/server'
 
 const server = createServer(
   createServerAdapter((request: Request) => {
@@ -143,7 +143,7 @@ const server = createServer(
 )
 
 server.listen(2026, () => {
-  // biome-ignore lint/suspicious/noConsole: <explanation>
+  // eslint-disable-next-line no-console
   console.log('Server is available at http://localhost:2026')
 })
 

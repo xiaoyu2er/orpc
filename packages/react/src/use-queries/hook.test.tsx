@@ -1,5 +1,5 @@
 import { renderHook, waitFor } from '@testing-library/react'
-import { ORPCContext, orpcClient, wrapper } from '../../tests/orpc'
+import { orpcClient, ORPCContext, wrapper } from '../../tests/orpc'
 import { createUseQueriesBuilders } from './builders'
 import { useQueriesFactory } from './hook'
 
@@ -18,7 +18,7 @@ describe('useQueriesFactory', () => {
 
           return [o.user.find({ id: '123' }), o.user.list({})]
         }),
-      { wrapper: wrapper },
+      { wrapper },
     )
 
     await waitFor(() =>

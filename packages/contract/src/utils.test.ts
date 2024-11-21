@@ -1,13 +1,13 @@
 import { prefixHTTPPath, standardizeHTTPPath } from './utils'
 
-test('standardizeHTTPPath', () => {
+it('standardizeHTTPPath', () => {
   expect(standardizeHTTPPath('/abc')).toBe('/abc')
   expect(standardizeHTTPPath('/abc/')).toBe('/abc')
   expect(standardizeHTTPPath('/abc//')).toBe('/abc')
   expect(standardizeHTTPPath('//abc//')).toBe('/abc')
 })
 
-test('prefixHTTPPath', () => {
+it('prefixHTTPPath', () => {
   expect(prefixHTTPPath('/', '/abc')).toBe('/abc')
   expect(prefixHTTPPath('/', '/abc/')).toBe('/abc')
   expect(prefixHTTPPath('/', '/abc//')).toBe('/abc')

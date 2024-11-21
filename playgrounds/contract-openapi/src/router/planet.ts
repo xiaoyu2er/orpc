@@ -28,7 +28,7 @@ export const createPlanet = authed.planet.create.handler(
 
 export const findPlanet = pub.planet.find.handler(
   async (input, context, meta) => {
-    const planet = planets.find((planet) => planet.id === input.id)
+    const planet = planets.find(planet => planet.id === input.id)
 
     if (!planet) {
       throw new ORPCError({
@@ -43,7 +43,7 @@ export const findPlanet = pub.planet.find.handler(
 
 export const updatePlanet = authed.planet.update.handler(
   async (input, context, meta) => {
-    const planet = planets.find((planet) => planet.id === input.id)
+    const planet = planets.find(planet => planet.id === input.id)
 
     if (!planet) {
       throw new ORPCError({
@@ -62,7 +62,7 @@ export const updatePlanet = authed.planet.update.handler(
 
 export const updatePlanetImage = authed.planet.updateImage.handler(
   async (input, context, meta) => {
-    const planet = planets.find((planet) => planet.id === input.id)
+    const planet = planets.find(planet => planet.id === input.id)
 
     if (!planet) {
       throw new ORPCError({
@@ -79,7 +79,7 @@ export const updatePlanetImage = authed.planet.updateImage.handler(
 
 export const deletePlanet = authed.planet.delete.handler(
   async (input, context, meta) => {
-    const planet = planets.find((planet) => planet.id === input.id)
+    const planet = planets.find(planet => planet.id === input.id)
 
     if (!planet) {
       throw new ORPCError({

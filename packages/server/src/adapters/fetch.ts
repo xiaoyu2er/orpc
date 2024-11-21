@@ -1,5 +1,7 @@
 /// <reference lib="dom" />
 
+import type { Router } from '../router'
+import type { Meta, Promisable } from '../types'
 import {
   type HTTPPath,
   ORPC_HEADER,
@@ -7,26 +9,24 @@ import {
   standardizeHTTPPath,
 } from '@orpc/contract'
 import {
-  type PartialOnUndefinedDeep,
   get,
   isPlainObject,
   mapValues,
+  type PartialOnUndefinedDeep,
   trim,
 } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
 import {
-  ORPCDeserializer,
-  ORPCSerializer,
   OpenAPIDeserializer,
   OpenAPISerializer,
+  ORPCDeserializer,
+  ORPCSerializer,
   zodCoerce,
 } from '@orpc/transformer'
 import { LinearRouter } from 'hono/router/linear-router'
 import { RegExpRouter } from 'hono/router/reg-exp-router'
-import { type WELL_DEFINED_PROCEDURE, isProcedure } from '../procedure'
+import { isProcedure, type WELL_DEFINED_PROCEDURE } from '../procedure'
 import { createProcedureCaller } from '../procedure-caller'
-import type { Router } from '../router'
-import type { Meta, Promisable } from '../types'
 import { hook } from '../utils'
 
 export interface CreateFetchHandlerOptions<TRouter extends Router<any>> {
@@ -64,7 +64,8 @@ export function createFetchHandler<TRouter extends Router<any>>(
 
           routing.add(method, path, [currentPath, item])
         }
-      } else {
+      }
+      else {
         addRouteRecursively(item, currentPath)
       }
     }
@@ -73,8 +74,8 @@ export function createFetchHandler<TRouter extends Router<any>>(
   addRouteRecursively(options.router, [])
 
   return async (requestOptions) => {
-    const isORPCTransformer =
-      requestOptions.request.headers.get(ORPC_HEADER) === ORPC_HEADER_VALUE
+    const isORPCTransformer
+      = requestOptions.request.headers.get(ORPC_HEADER) === ORPC_HEADER_VALUE
     const accept = requestOptions.request.headers.get('Accept') || undefined
 
     const serializer = isORPCTransformer
@@ -97,9 +98,10 @@ export function createFetchHandler<TRouter extends Router<any>>(
           if (isProcedure(val)) {
             procedure = val
           }
-        } else {
-          const customMethod =
-            requestOptions.request.method === 'POST'
+        }
+        else {
+          const customMethod
+            = requestOptions.request.method === 'POST'
               ? url.searchParams.get('method')?.toUpperCase()
               : undefined
           const method = customMethod || requestOptions.request.method
@@ -117,9 +119,10 @@ export function createFetchHandler<TRouter extends Router<any>>(
             if (params_) {
               params = mapValues(
                 (match as any)[1]!,
-                (v) => params_[v as number]!,
+                v => params_[v as number]!,
               )
-            } else {
+            }
+            else {
               params = match[1] as Record<string, string>
             }
           }
@@ -142,7 +145,7 @@ export function createFetchHandler<TRouter extends Router<any>>(
         const meta: Meta<unknown> = {
           ...hooks,
           procedure,
-          path: path,
+          path,
           internal: false,
         }
 
@@ -151,13 +154,14 @@ export function createFetchHandler<TRouter extends Router<any>>(
         const deserializer = isORPCTransformer
           ? new ORPCDeserializer()
           : new OpenAPIDeserializer({
-              schema: procedure.zz$p.contract.zz$cp.InputSchema,
-            })
+            schema: procedure.zz$p.contract.zz$cp.InputSchema,
+          })
 
         const input_ = await (async () => {
           try {
             return await deserializer.deserialize(requestOptions.request)
-          } catch (e) {
+          }
+          catch (e) {
             throw new ORPCError({
               code: 'BAD_REQUEST',
               message:
@@ -209,7 +213,8 @@ export function createFetchHandler<TRouter extends Router<any>>(
           headers,
         })
       })
-    } catch (e) {
+    }
+    catch (e) {
       const error = toORPCError(e)
 
       try {
@@ -217,9 +222,10 @@ export function createFetchHandler<TRouter extends Router<any>>(
 
         return new Response(body, {
           status: error.status,
-          headers: headers,
+          headers,
         })
-      } catch (e) {
+      }
+      catch (e) {
         const error = toORPCError(e)
 
         // fallback to OpenAPI serializer (without accept) when expected serializer has failed
@@ -229,7 +235,7 @@ export function createFetchHandler<TRouter extends Router<any>>(
 
         return new Response(body, {
           status: error.status,
-          headers: headers,
+          headers,
         })
       }
     }
@@ -268,8 +274,8 @@ function toORPCError(e: unknown): ORPCError<any, any> {
   return e instanceof ORPCError
     ? e
     : new ORPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Internal server error',
-        cause: e,
-      })
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'Internal server error',
+      cause: e,
+    })
 }

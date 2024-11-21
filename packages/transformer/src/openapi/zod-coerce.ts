@@ -37,7 +37,7 @@ export interface ZodCoerceOptions {
   /**
    * Some fix rules only apply in the root
    *
-   * @internal use it with your own risk
+   * @internal
    * @default true
    */
   isRoot?: boolean
@@ -52,10 +52,10 @@ export function zodCoerce(
   const options_ = { ...options, isRoot: false }
 
   if (
-    isRoot &&
-    options?.bracketNotation &&
-    Array.isArray(value) &&
-    value.length === 1
+    isRoot
+    && options?.bracketNotation
+    && Array.isArray(value)
+    && value.length === 1
   ) {
     const newValue = zodCoerce(schema, value[0], options_)
     if (schema.safeParse(newValue).success) {
@@ -68,12 +68,13 @@ export function zodCoerce(
 
   if (customType === 'Invalid Date') {
     if (
-      typeof value === 'string' &&
-      value.toLocaleLowerCase() === 'invalid date'
+      typeof value === 'string'
+      && value.toLocaleLowerCase() === 'invalid date'
     ) {
       return new Date('Invalid Date')
     }
-  } else if (customType === 'RegExp') {
+  }
+  else if (customType === 'RegExp') {
     if (typeof value === 'string' && value.startsWith('/')) {
       const match = value.match(/^\/(.*)\/([a-z]*)$/)
 
@@ -82,7 +83,8 @@ export function zodCoerce(
         return new RegExp(pattern!, flags)
       }
     }
-  } else if (customType === 'URL') {
+  }
+  else if (customType === 'URL') {
     if (typeof value === 'string') {
       const url = guard(() => new URL(value))
       if (url !== undefined) {
@@ -131,9 +133,9 @@ export function zodCoerce(
   //
   else if (typeName === ZodFirstPartyTypeKind.ZodNull) {
     if (
-      options_?.bracketNotation &&
-      typeof value === 'string' &&
-      value.toLowerCase() === 'null'
+      options_?.bracketNotation
+      && typeof value === 'string'
+      && value.toLowerCase() === 'null'
     ) {
       return null
     }
@@ -141,8 +143,8 @@ export function zodCoerce(
 
   //
   else if (
-    typeName === ZodFirstPartyTypeKind.ZodUndefined ||
-    typeName === ZodFirstPartyTypeKind.ZodVoid
+    typeName === ZodFirstPartyTypeKind.ZodUndefined
+    || typeName === ZodFirstPartyTypeKind.ZodVoid
   ) {
     if (typeof value === 'string' && value.toLowerCase() === 'undefined') {
       return undefined
@@ -152,10 +154,10 @@ export function zodCoerce(
   //
   else if (typeName === ZodFirstPartyTypeKind.ZodDate) {
     if (
-      typeof value === 'string' &&
-      (value.includes('-') ||
-        value.includes(':') ||
-        value.toLocaleLowerCase() === 'invalid date')
+      typeof value === 'string'
+      && (value.includes('-')
+        || value.includes(':')
+        || value.toLocaleLowerCase() === 'invalid date')
     ) {
       return new Date(value)
     }
@@ -173,13 +175,13 @@ export function zodCoerce(
 
   //
   else if (
-    typeName === ZodFirstPartyTypeKind.ZodArray ||
-    typeName === ZodFirstPartyTypeKind.ZodTuple
+    typeName === ZodFirstPartyTypeKind.ZodArray
+    || typeName === ZodFirstPartyTypeKind.ZodTuple
   ) {
     const schema_ = schema as ZodArray<ZodTypeAny>
 
     if (Array.isArray(value)) {
-      return value.map((v) => zodCoerce(schema_._def.type, v, options_))
+      return value.map(v => zodCoerce(schema_._def.type, v, options_))
     }
 
     if (options_?.bracketNotation) {
@@ -188,14 +190,14 @@ export function zodCoerce(
       }
 
       if (
-        isPlainObject(value) &&
-        Object.keys(value).every((k) => /^[1-9][0-9]*$/.test(k) || k === '0')
+        isPlainObject(value)
+        && Object.keys(value).every(k => /^[1-9]\d*$/.test(k) || k === '0')
       ) {
         const indexes = Object.keys(value)
-          .map((k) => Number(k))
+          .map(k => Number(k))
           .sort((a, b) => a - b)
 
-        const arr = new Array((indexes.at(-1) ?? -1) + 1)
+        const arr = Array.from({ length: (indexes.at(-1) ?? -1) + 1 })
 
         for (const i of indexes) {
           arr[i] = zodCoerce(schema_._def.type, value[i], options_)
@@ -219,7 +221,8 @@ export function zodCoerce(
       ])
 
       for (const k of keys) {
-        if (!(k in value)) continue
+        if (!(k in value))
+          continue
 
         const v = value[k]
         newObj[k] = zodCoerce(
@@ -250,7 +253,7 @@ export function zodCoerce(
 
     if (Array.isArray(value)) {
       return new Set(
-        value.map((v) => zodCoerce(schema_._def.valueType, v, options_)),
+        value.map(v => zodCoerce(schema_._def.valueType, v, options_)),
       )
     }
 
@@ -260,14 +263,14 @@ export function zodCoerce(
       }
 
       if (
-        isPlainObject(value) &&
-        Object.keys(value).every((k) => /^[1-9][0-9]*$/.test(k) || k === '0')
+        isPlainObject(value)
+        && Object.keys(value).every(k => /^[1-9]\d*$/.test(k) || k === '0')
       ) {
         const indexes = Object.keys(value)
-          .map((k) => Number(k))
+          .map(k => Number(k))
           .sort((a, b) => a - b)
 
-        const arr = new Array((indexes.at(-1) ?? -1) + 1)
+        const arr = Array.from({ length: (indexes.at(-1) ?? -1) + 1 })
 
         for (const i of indexes) {
           arr[i] = zodCoerce(schema_._def.valueType, value[i], options_)
@@ -283,8 +286,8 @@ export function zodCoerce(
     const schema_ = schema as ZodMap
 
     if (
-      Array.isArray(value) &&
-      value.every((i) => Array.isArray(i) && i.length === 2)
+      Array.isArray(value)
+      && value.every(i => Array.isArray(i) && i.length === 2)
     ) {
       return new Map(
         value.map(([k, v]) => [
@@ -300,18 +303,18 @@ export function zodCoerce(
       }
 
       if (isPlainObject(value)) {
-        const arr = new Array(Object.keys(value).length)
+        const arr = Array.from({ length: Object.keys(value).length })
           .fill(undefined)
           .map((_, i) =>
-            isPlainObject(value[i]) &&
-            Object.keys(value[i]).length === 2 &&
-            '0' in value[i] &&
-            '1' in value[i]
+            isPlainObject(value[i])
+            && Object.keys(value[i]).length === 2
+            && '0' in value[i]
+            && '1' in value[i]
               ? ([value[i]['0'], value[i]['1']] as const)
               : undefined,
           )
 
-        if (arr.every((v) => !!v)) {
+        if (arr.every(v => !!v)) {
           return new Map(
             arr.map(([k, v]) => [
               zodCoerce(schema_._def.keyType, k, options_),
@@ -342,8 +345,8 @@ export function zodCoerce(
 
   //
   else if (
-    typeName === ZodFirstPartyTypeKind.ZodUnion ||
-    typeName === ZodFirstPartyTypeKind.ZodDiscriminatedUnion
+    typeName === ZodFirstPartyTypeKind.ZodUnion
+    || typeName === ZodFirstPartyTypeKind.ZodDiscriminatedUnion
   ) {
     const schema_ = schema as
       | ZodUnion<[ZodTypeAny]>
@@ -357,7 +360,8 @@ export function zodCoerce(
     for (const s of schema_._def.options) {
       const newValue = zodCoerce(s, value, { ...options_, isRoot })
 
-      if (newValue === value) continue
+      if (newValue === value)
+        continue
 
       const result = schema_.safeParse(newValue)
 
@@ -493,17 +497,20 @@ export function zodCoerce(
         if (num !== undefined) {
           return num
         }
-      } else if (expectedValue === undefined) {
+      }
+      else if (expectedValue === undefined) {
         if (value.toLocaleLowerCase() === 'undefined') {
           return undefined
         }
-      } else if (options?.bracketNotation) {
+      }
+      else if (options?.bracketNotation) {
         if (typeof expectedValue === 'number') {
           const num = Number(value)
           if (!Number.isNaN(num)) {
             return num
           }
-        } else if (typeof expectedValue === 'boolean') {
+        }
+        else if (typeof expectedValue === 'boolean') {
           const lower = value.toLowerCase()
 
           if (lower === 'false' || lower === 'off' || lower === 'f') {
@@ -513,7 +520,8 @@ export function zodCoerce(
           if (lower === 'true' || lower === 'on' || lower === 't') {
             return true
           }
-        } else if (expectedValue === null) {
+        }
+        else if (expectedValue === null) {
           if (value.toLocaleLowerCase() === 'null') {
             return null
           }

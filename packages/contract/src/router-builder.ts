@@ -1,9 +1,9 @@
-import { DecoratedContractProcedure, isContractProcedure } from './procedure'
 import type { ContractRouter, HandledContractRouter } from './router'
 import type { HTTPPath } from './types'
+import { DecoratedContractProcedure, isContractProcedure } from './procedure'
 
 export class ContractRouterBuilder {
-  constructor(public zz$crb: { prefix?: HTTPPath; tags?: string[] }) {}
+  constructor(public zz$crb: { prefix?: HTTPPath, tags?: string[] }) {}
 
   prefix(prefix: HTTPPath): ContractRouterBuilder {
     return new ContractRouterBuilder({
@@ -13,7 +13,8 @@ export class ContractRouterBuilder {
   }
 
   tags(...tags: string[]): ContractRouterBuilder {
-    if (!tags.length) return this
+    if (!tags.length)
+      return this
 
     return new ContractRouterBuilder({
       ...this.zz$crb,
@@ -34,7 +35,8 @@ export class ContractRouterBuilder {
         handled[key] = this.zz$crb.prefix
           ? decorated.prefix(this.zz$crb.prefix)
           : decorated
-      } else {
+      }
+      else {
         handled[key] = this.router(item as ContractRouter)
       }
     }

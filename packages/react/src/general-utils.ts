@@ -16,41 +16,39 @@ import type {
   SetDataOptions,
   Updater,
 } from '@tanstack/react-query'
-import { getMutationKeyFromPath, getQueryKeyFromPath } from './tanstack-key'
 import type {
   ORPCInvalidateQueryFilters,
   ORPCQueryFilters,
 } from './tanstack-query'
 import type { SchemaInputForInfiniteQuery } from './types'
+import { getMutationKeyFromPath, getQueryKeyFromPath } from './tanstack-key'
 
 export interface GeneralUtils<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaOutput<TOutputSchema>,
 > {
-  getQueriesData(
+  getQueriesData: (
     filters?: OmitKeyof<
       ORPCQueryFilters<PartialDeep<SchemaInput<TInputSchema>>>,
       'queryType'
     >,
-  ): [QueryKey, SchemaOutput<TOutputSchema, THandlerOutput> | undefined][]
-  getInfiniteQueriesData(
+  ) => [QueryKey, SchemaOutput<TOutputSchema, THandlerOutput> | undefined][]
+  getInfiniteQueriesData: (
     filters?: OmitKeyof<
       ORPCQueryFilters<PartialDeep<SchemaInputForInfiniteQuery<TInputSchema>>>,
       'queryType'
     >,
-  ): [
+  ) => [
     QueryKey,
-    (
-      | InfiniteData<
-          SchemaOutput<TOutputSchema, THandlerOutput>,
-          SchemaInput<TInputSchema>['cursor']
-        >
-      | undefined
-    ),
+    | undefined
+    | InfiniteData<
+      SchemaOutput<TOutputSchema, THandlerOutput>,
+      SchemaInput<TInputSchema>['cursor']
+    >,
   ][]
 
-  setQueriesData(
+  setQueriesData: (
     filters: OmitKeyof<
       ORPCQueryFilters<PartialDeep<SchemaInput<TInputSchema>>>,
       'queryType'
@@ -60,78 +58,76 @@ export interface GeneralUtils<
       SchemaOutput<TOutputSchema, THandlerOutput> | undefined
     >,
     options?: SetDataOptions,
-  ): [QueryKey, SchemaOutput<TOutputSchema, THandlerOutput> | undefined][]
-  setInfiniteQueriesData(
+  ) => [QueryKey, SchemaOutput<TOutputSchema, THandlerOutput> | undefined][]
+  setInfiniteQueriesData: (
     filters: OmitKeyof<
       ORPCQueryFilters<PartialDeep<SchemaInputForInfiniteQuery<TInputSchema>>>,
       'queryType'
     >,
     updater: Updater<
       | InfiniteData<
-          SchemaOutput<TOutputSchema, THandlerOutput>,
-          SchemaInput<TInputSchema>['cursor']
-        >
+        SchemaOutput<TOutputSchema, THandlerOutput>,
+        SchemaInput<TInputSchema>['cursor']
+      >
       | undefined,
       | InfiniteData<
-          SchemaOutput<TOutputSchema, THandlerOutput>,
-          SchemaInput<TInputSchema>['cursor']
-        >
+        SchemaOutput<TOutputSchema, THandlerOutput>,
+        SchemaInput<TInputSchema>['cursor']
+      >
       | undefined
     >,
     options?: SetDataOptions,
-  ): [
+  ) => [
     QueryKey,
-    (
-      | InfiniteData<
-          SchemaOutput<TOutputSchema, THandlerOutput>,
-          SchemaInput<TInputSchema>['cursor']
-        >
-      | undefined
-    ),
+    | undefined
+    | InfiniteData<
+      SchemaOutput<TOutputSchema, THandlerOutput>,
+      SchemaInput<TInputSchema>['cursor']
+    >,
   ][]
 
-  invalidate(
+  invalidate: (
     filters?: ORPCInvalidateQueryFilters<
       PartialDeep<SchemaInput<TInputSchema>>
     >,
     options?: InvalidateOptions,
-  ): Promise<void>
-  refetch(
+  ) => Promise<void>
+  refetch: (
     filters?: ORPCQueryFilters<PartialDeep<SchemaInput<TInputSchema>>>,
     options?: RefetchOptions,
-  ): Promise<void>
-  cancel(
+  ) => Promise<void>
+  cancel: (
     filters?: ORPCQueryFilters<PartialDeep<SchemaInput<TInputSchema>>>,
     options?: CancelOptions,
-  ): Promise<void>
-  remove(
+  ) => Promise<void>
+  remove: (
     filters?: ORPCQueryFilters<PartialDeep<SchemaInput<TInputSchema>>>,
-  ): void
-  reset(
+  ) => void
+  reset: (
     filters?: ORPCQueryFilters<PartialDeep<SchemaInput<TInputSchema>>>,
     options?: ResetOptions,
-  ): Promise<void>
+  ) => Promise<void>
 
-  isFetching(
+  isFetching: (
     filters?: ORPCQueryFilters<PartialDeep<SchemaInput<TInputSchema>>>,
-  ): number
-  isMutating(filters?: SetOptional<MutationFilters, 'mutationKey'>): number
+  ) => number
+  isMutating: (filters?: SetOptional<MutationFilters, 'mutationKey'>) => number
 
-  getQueryDefaults(
+  getQueryDefaults: (
     filters?: Pick<
       ORPCQueryFilters<PartialDeep<SchemaInput<TInputSchema>>>,
       'input' | 'queryKey'
     >,
-  ): OmitKeyof<
+  ) => OmitKeyof<
     QueryObserverOptions<SchemaOutput<TOutputSchema, THandlerOutput>>,
     'queryKey'
   >
-  getInfiniteQueryDefaults(
+  getInfiniteQueryDefaults: (
     filters?: Pick<
       ORPCQueryFilters<PartialDeep<SchemaInputForInfiniteQuery<TInputSchema>>>,
       'input' | 'queryKey'
     >,
-  ): OmitKeyof<
+  ) => OmitKeyof<
     QueryObserverOptions<
       SchemaOutput<TOutputSchema, THandlerOutput>,
       DefaultError,
@@ -143,7 +139,7 @@ export interface GeneralUtils<
     'queryKey'
   >
 
-  setQueryDefaults(
+  setQueryDefaults: (
     options: Partial<
       OmitKeyof<
         QueryObserverOptions<SchemaOutput<TOutputSchema, THandlerOutput>>,
@@ -154,8 +150,8 @@ export interface GeneralUtils<
       ORPCQueryFilters<PartialDeep<SchemaInput<TInputSchema>>>,
       'input' | 'queryKey'
     >,
-  ): void
-  setInfiniteQueryDefaults(
+  ) => void
+  setInfiniteQueryDefaults: (
     options: Partial<
       OmitKeyof<
         QueryObserverOptions<
@@ -173,7 +169,7 @@ export interface GeneralUtils<
       ORPCQueryFilters<PartialDeep<SchemaInput<TInputSchema>>>,
       'input' | 'queryKey'
     >,
-  ): void
+  ) => void
 
   getMutationDefaults: (
     filters?: Pick<MutationFilters, 'mutationKey'>,
@@ -210,7 +206,7 @@ export function createGeneralUtils<
   TInputSchema extends Schema = undefined,
   TOutputSchema extends Schema = undefined,
   THandlerOutput extends
-    SchemaOutput<TOutputSchema> = SchemaOutput<TOutputSchema>,
+  SchemaOutput<TOutputSchema> = SchemaOutput<TOutputSchema>,
 >(
   options: CreateGeneralUtilsOptions,
 ): GeneralUtils<TInputSchema, TOutputSchema, THandlerOutput> {
@@ -344,40 +340,40 @@ export function createGeneralUtils<
 
     getQueryDefaults(filters) {
       return options.queryClient.getQueryDefaults(
-        filters?.queryKey ??
-          getQueryKeyFromPath(options.path, {
-            input: filters?.input,
-            type: 'query',
-          }),
+        filters?.queryKey
+        ?? getQueryKeyFromPath(options.path, {
+          input: filters?.input,
+          type: 'query',
+        }),
       )
     },
     getInfiniteQueryDefaults(filters) {
       return options.queryClient.getQueryDefaults(
-        filters?.queryKey ??
-          getQueryKeyFromPath(options.path, {
-            input: filters?.input,
-            type: 'infinite',
-          }),
+        filters?.queryKey
+        ?? getQueryKeyFromPath(options.path, {
+          input: filters?.input,
+          type: 'infinite',
+        }),
       ) as any
     },
 
     setQueryDefaults(options_, filters) {
       return options.queryClient.setQueryDefaults(
-        filters?.queryKey ??
-          getQueryKeyFromPath(options.path, {
-            input: filters?.input,
-            type: 'query',
-          }),
+        filters?.queryKey
+        ?? getQueryKeyFromPath(options.path, {
+          input: filters?.input,
+          type: 'query',
+        }),
         options_ as any,
       )
     },
     setInfiniteQueryDefaults(options_, filters) {
       return options.queryClient.setQueryDefaults(
-        filters?.queryKey ??
-          getQueryKeyFromPath(options.path, {
-            input: filters?.input,
-            type: 'infinite',
-          }),
+        filters?.queryKey
+        ?? getQueryKeyFromPath(options.path, {
+          input: filters?.input,
+          type: 'infinite',
+        }),
         options_ as any,
       )
     },

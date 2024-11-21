@@ -233,9 +233,9 @@ describe('getInfiniteQueryData', () => {
     expectTypeOf(data).toEqualTypeOf<
       | undefined
       | InfiniteData<
-          SchemaOutput<typeof UserListOutputSchema>,
+        SchemaOutput<typeof UserListOutputSchema>,
           number | undefined
-        >
+      >
     >()
   })
 })
@@ -377,11 +377,11 @@ describe('getInfiniteQueryState', () => {
     expectTypeOf(data).toEqualTypeOf<
       | undefined
       | QueryState<
-          InfiniteData<
-            SchemaOutput<typeof UserListOutputSchema>,
+        InfiniteData<
+          SchemaOutput<typeof UserListOutputSchema>,
             number | undefined
-          >
         >
+      >
     >()
   })
 })
@@ -444,9 +444,9 @@ describe('setInfiniteQueryData', () => {
       expectTypeOf(data).toEqualTypeOf<
         | undefined
         | InfiniteData<
-            SchemaOutput<typeof UserListOutputSchema>,
+          SchemaOutput<typeof UserListOutputSchema>,
             number | undefined
-          >
+        >
       >()
 
       return {
@@ -458,9 +458,9 @@ describe('setInfiniteQueryData', () => {
     expectTypeOf(data).toEqualTypeOf<
       | undefined
       | InfiniteData<
-          SchemaOutput<typeof UserListOutputSchema>,
+        SchemaOutput<typeof UserListOutputSchema>,
           number | undefined
-        >
+      >
     >()
   })
 

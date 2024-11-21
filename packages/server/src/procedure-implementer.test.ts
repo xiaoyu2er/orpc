@@ -1,6 +1,6 @@
 import { DecoratedContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
-import { os, type DecoratedProcedure, type Meta, isProcedure } from '.'
+import { type DecoratedProcedure, isProcedure, type Meta, os } from '.'
 import { ProcedureImplementer } from './procedure-implementer'
 
 const p1 = new DecoratedContractProcedure({
@@ -76,12 +76,12 @@ describe('use middleware', () => {
         return { context: { a: 'a' } }
       },
       // @ts-expect-error mismatch input
-      (input) => ({ postId: 12455 }),
+      input => ({ postId: 12455 }),
     )
 
     implementer2.use(
       (input: { postId: string }) => {},
-      (input) => ({ postId: '12455' }),
+      input => ({ postId: '12455' }),
     )
 
     const i = implementer2.use(
@@ -92,7 +92,7 @@ describe('use middleware', () => {
           },
         }
       },
-      (input) => ({ id: Number.parseInt(input.id) }),
+      input => ({ id: Number.parseInt(input.id) }),
     )
 
     expectTypeOf(i).toEqualTypeOf<

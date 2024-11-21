@@ -35,12 +35,12 @@ it('required all procedure match', () => {
   })
 
   implementer.router({
-    p1: p1,
+    p1,
     nested: {
       p2: os.contract(cp2).handler(() => ''),
     },
     nested2: {
-      p3: p3,
+      p3,
     },
   })
 
@@ -49,10 +49,10 @@ it('required all procedure match', () => {
       // @ts-expect-error p1 is mismatch
       p1: os.handler(() => {}),
       nested: {
-        p2: p2,
+        p2,
       },
       nested2: {
-        p3: p3,
+        p3,
       },
     })
   }).toThrowError('Mismatch implementation for procedure at [p1]')
@@ -62,10 +62,10 @@ it('required all procedure match', () => {
       // @ts-expect-error p1 is mismatch
       p1: osw,
       nested: {
-        p2: p2,
+        p2,
       },
       nested2: {
-        p3: p3,
+        p3,
       },
     })
   }).toThrowError('Mismatch implementation for procedure at [p1]')
@@ -78,10 +78,10 @@ it('required all procedure match', () => {
         .output(z.string())
         .handler(() => 'unnoq'),
       nested: {
-        p2: p2,
+        p2,
       },
       nested2: {
-        p3: p3,
+        p3,
       },
     })
   }).toThrowError('Mismatch implementation for procedure at [p1]')
@@ -93,9 +93,9 @@ it('required all procedure match', () => {
 
   expect(() => {
     implementer.router({
-      p1: p1,
+      p1,
       nested: {
-        p2: p2,
+        p2,
       },
       // @ts-expect-error missing p3
       nested2: {},
@@ -104,9 +104,9 @@ it('required all procedure match', () => {
 
   expect(() => {
     implementer.router({
-      p1: p1,
+      p1,
       nested: {
-        p2: p2,
+        p2,
       },
       nested2: {
         p3: p3.prefix('/test'),

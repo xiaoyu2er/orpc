@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { type ZodEffects, z } from 'zod'
+import { z, type ZodEffects } from 'zod'
 import { getCustomJSONSchema, openapi } from '../src'
 
 describe('openapi function', () => {

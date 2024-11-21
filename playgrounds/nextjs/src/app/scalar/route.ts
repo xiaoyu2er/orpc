@@ -1,4 +1,4 @@
-export const GET = () => {
+export function GET() {
   return new Response(
     `
         <!doctype html>

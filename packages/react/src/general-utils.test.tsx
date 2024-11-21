@@ -1,11 +1,4 @@
 import type { SchemaOutput } from '@orpc/contract'
-import {
-  QueryClient,
-  useInfiniteQuery,
-  useMutation,
-  useQuery,
-} from '@tanstack/react-query'
-import { renderHook } from '@testing-library/react'
 import type {
   UserCreateInputSchema,
   UserFindInputSchema,
@@ -13,6 +6,13 @@ import type {
   UserListOutputSchema,
   UserSchema,
 } from '../tests/orpc'
+import {
+  QueryClient,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+} from '@tanstack/react-query'
+import { renderHook } from '@testing-library/react'
 import { createGeneralUtils } from './general-utils'
 
 let qc = new QueryClient()
@@ -299,8 +299,8 @@ describe('refetch', () => {
   const infiniteQueryKey = [['user', 'list'], { type: 'infinite' }]
   const queryKey = [['user', 'list'], { type: 'query' }]
 
-  const fn1 = vi.fn(() => new Promise((resolve) => setTimeout(resolve, 100)))
-  const fn2 = vi.fn(() => new Promise((resolve) => setTimeout(resolve, 100)))
+  const fn1 = vi.fn(() => new Promise(resolve => setTimeout(resolve, 100)))
+  const fn2 = vi.fn(() => new Promise(resolve => setTimeout(resolve, 100)))
 
   beforeEach(() => {
     fn1.mockClear()
@@ -321,7 +321,7 @@ describe('refetch', () => {
     renderHook(() =>
       useQuery(
         {
-          queryKey: queryKey,
+          queryKey,
           queryFn: fn2,
         },
         qc,
@@ -338,7 +338,7 @@ describe('refetch', () => {
     expect(fn1).toHaveBeenCalledTimes(1)
     expect(fn2).toHaveBeenCalledTimes(1)
 
-    await new Promise((resolve) => setTimeout(resolve, 101))
+    await new Promise(resolve => setTimeout(resolve, 101))
     user_utils.refetch()
 
     expect(fn1).toHaveBeenCalledTimes(2)
@@ -350,7 +350,7 @@ describe('refetch', () => {
     expect(fn1).toHaveBeenCalledTimes(1)
     expect(fn2).toHaveBeenCalledTimes(1)
 
-    await new Promise((resolve) => setTimeout(resolve, 101))
+    await new Promise(resolve => setTimeout(resolve, 101))
     user_utils.refetch({ queryType: 'query' })
 
     expect(fn1).toHaveBeenCalledTimes(1)
@@ -363,7 +363,7 @@ describe('refetch', () => {
     expect(fn1).toHaveBeenCalledTimes(1)
     expect(fn2).toHaveBeenCalledTimes(1)
 
-    await new Promise((resolve) => setTimeout(resolve, 101))
+    await new Promise(resolve => setTimeout(resolve, 101))
     user_list_utils.refetch()
 
     expect(fn1).toHaveBeenCalledTimes(2)
@@ -376,7 +376,7 @@ describe('refetch', () => {
     expect(fn1).toHaveBeenCalledTimes(1)
     expect(fn2).toHaveBeenCalledTimes(1)
 
-    await new Promise((resolve) => setTimeout(resolve, 101))
+    await new Promise(resolve => setTimeout(resolve, 101))
     user_list_utils.refetch({ queryType: 'infinite' })
 
     expect(fn1).toHaveBeenCalledTimes(2)
@@ -389,7 +389,7 @@ describe('refetch', () => {
     expect(fn1).toHaveBeenCalledTimes(1)
     expect(fn2).toHaveBeenCalledTimes(1)
 
-    await new Promise((resolve) => setTimeout(resolve, 101))
+    await new Promise(resolve => setTimeout(resolve, 101))
     user_find_utils.refetch()
 
     expect(fn1).toHaveBeenCalledTimes(1)
@@ -407,7 +407,7 @@ describe('cancel', () => {
         {
           queryKey: infiniteQueryKey,
           queryFn: async () =>
-            await new Promise((resolve) => setTimeout(resolve, 100)),
+            await new Promise(resolve => setTimeout(resolve, 100)),
           getNextPageParam: () => 2,
           initialPageParam: 1,
         },
@@ -418,9 +418,9 @@ describe('cancel', () => {
     renderHook(() =>
       useQuery(
         {
-          queryKey: queryKey,
+          queryKey,
           queryFn: async () =>
-            await new Promise((resolve) => setTimeout(resolve, 100)),
+            await new Promise(resolve => setTimeout(resolve, 100)),
         },
         qc,
       ),
@@ -516,8 +516,8 @@ describe('reset', () => {
   const infiniteQueryKey = [['user', 'list'], { type: 'infinite' }]
   const queryKey = [['user', 'list'], { type: 'query' }]
 
-  const fn1 = vi.fn(() => new Promise((resolve) => setTimeout(resolve, 100)))
-  const fn2 = vi.fn(() => new Promise((resolve) => setTimeout(resolve, 100)))
+  const fn1 = vi.fn(() => new Promise(resolve => setTimeout(resolve, 100)))
+  const fn2 = vi.fn(() => new Promise(resolve => setTimeout(resolve, 100)))
 
   beforeEach(() => {
     fn1.mockClear()
@@ -538,7 +538,7 @@ describe('reset', () => {
     renderHook(() =>
       useQuery(
         {
-          queryKey: queryKey,
+          queryKey,
           queryFn: fn2,
         },
         qc,
@@ -594,7 +594,7 @@ it('isFetching', () => {
       {
         queryKey: infiniteQueryKey,
         queryFn: async () =>
-          await new Promise((resolve) => setTimeout(resolve, 100)),
+          await new Promise(resolve => setTimeout(resolve, 100)),
         getNextPageParam: () => 2,
         initialPageParam: 1,
       },
@@ -605,9 +605,9 @@ it('isFetching', () => {
   renderHook(() =>
     useQuery(
       {
-        queryKey: queryKey,
+        queryKey,
         queryFn: async () =>
-          await new Promise((resolve) => setTimeout(resolve, 100)),
+          await new Promise(resolve => setTimeout(resolve, 100)),
       },
       qc,
     ),
@@ -630,7 +630,7 @@ it('isMutating', async () => {
     useMutation(
       {
         mutationKey: [['user', 'create']],
-        mutationFn: () => new Promise((resolve) => setTimeout(resolve, 100)),
+        mutationFn: () => new Promise(resolve => setTimeout(resolve, 100)),
       },
       qc,
     ),

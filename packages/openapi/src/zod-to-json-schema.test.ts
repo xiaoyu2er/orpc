@@ -244,7 +244,7 @@ describe('special types', () => {
 
 describe('transform and effects', () => {
   it('should handle transform effects based on mode', () => {
-    const schema = z.string().transform((val) => val.length)
+    const schema = z.string().transform(val => val.length)
 
     expect(zodToJsonSchema(schema, { mode: 'input' })).toEqual({
       type: 'string',

@@ -5,32 +5,21 @@ import type {
   SchemaOutput,
 } from '@orpc/contract'
 import type { Procedure, Router } from '@orpc/server'
-import { type GeneralUtils, createGeneralUtils } from './general-utils'
-import { type ProcedureUtils, createProcedureUtils } from './procedure-utils'
 import type { ORPCContextValue } from './react-context'
+import { createGeneralUtils, type GeneralUtils } from './general-utils'
+import { createProcedureUtils, type ProcedureUtils } from './procedure-utils'
 
 export type ORPCUtilsWithContractRouter<TRouter extends ContractRouter> = {
-  [K in keyof TRouter]: TRouter[K] extends ContractProcedure<
-    infer UInputSchema,
-    infer UOutputSchema
-  >
-    ? ProcedureUtils<UInputSchema, UOutputSchema, SchemaOutput<UOutputSchema>> &
-        GeneralUtils<UInputSchema, UOutputSchema, SchemaOutput<UOutputSchema>>
+  [K in keyof TRouter]: TRouter[K] extends ContractProcedure<infer UInputSchema, infer UOutputSchema>
+    ? ProcedureUtils<UInputSchema, UOutputSchema, SchemaOutput<UOutputSchema>> & GeneralUtils<UInputSchema, UOutputSchema, SchemaOutput<UOutputSchema>>
     : TRouter[K] extends ContractRouter
       ? ORPCUtilsWithContractRouter<TRouter[K]>
       : never
 } & GeneralUtils<undefined, undefined, unknown>
 
 export type ORPCUtilsWithRouter<TRouter extends Router<any>> = {
-  [K in keyof TRouter]: TRouter[K] extends Procedure<
-    any,
-    any,
-    infer UInputSchema,
-    infer UOutputSchema,
-    infer UHandlerOutput
-  >
-    ? ProcedureUtils<UInputSchema, UOutputSchema, UHandlerOutput> &
-        GeneralUtils<UInputSchema, UOutputSchema, UHandlerOutput>
+  [K in keyof TRouter]: TRouter[K] extends Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UHandlerOutput>
+    ? ProcedureUtils<UInputSchema, UOutputSchema, UHandlerOutput> & GeneralUtils<UInputSchema, UOutputSchema, UHandlerOutput>
     : TRouter[K] extends Router<any>
       ? ORPCUtilsWithRouter<TRouter[K]>
       : never
@@ -52,10 +41,10 @@ export interface CreateORPCUtilsOptions<
 export function createORPCUtils<TRouter extends ContractRouter | Router<any>>(
   options: CreateORPCUtilsOptions<TRouter>,
 ): TRouter extends Router<any>
-  ? ORPCUtilsWithRouter<TRouter>
-  : TRouter extends ContractRouter
-    ? ORPCUtilsWithContractRouter<TRouter>
-    : never {
+    ? ORPCUtilsWithRouter<TRouter>
+    : TRouter extends ContractRouter
+      ? ORPCUtilsWithContractRouter<TRouter>
+      : never {
   const path = options.path ?? []
   const client = options.contextValue.client as any
 
@@ -67,10 +56,10 @@ export function createORPCUtils<TRouter extends ContractRouter | Router<any>>(
   // for sure root is not procedure, so do not it procedure utils on root
   const procedureUtils = path.length
     ? createProcedureUtils({
-        client,
-        queryClient: options.contextValue.queryClient,
-        path,
-      })
+      client,
+      queryClient: options.contextValue.queryClient,
+      path,
+    })
     : {}
 
   return new Proxy(

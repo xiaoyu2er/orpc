@@ -14,11 +14,8 @@ import {
   type KeySchema,
   type ZodAny,
   type ZodArray,
-  type ZodBigInt,
-  type ZodBoolean,
   type ZodBranded,
   type ZodCatch,
-  type ZodDate,
   type ZodDefault,
   type ZodDiscriminatedUnion,
   type ZodEffects,
@@ -28,7 +25,6 @@ import {
   type ZodLazy,
   type ZodLiteral,
   type ZodMap,
-  type ZodNaN,
   type ZodNativeEnum,
   type ZodNullable,
   type ZodNumber,
@@ -213,8 +209,8 @@ export function zodToJsonSchema(
             json.pattern = `${escapeStringRegexp(check.value)}$`
             break
           case 'emoji':
-            json.pattern =
-              '^(\\p{Extended_Pictographic}|\\p{Emoji_Component})+$'
+            json.pattern
+              = '^(\\p{Extended_Pictographic}|\\p{Emoji_Component})+$'
             break
           case 'nanoid':
             json.pattern = '^[a-zA-Z0-9_-]{21}$'
@@ -278,14 +274,10 @@ export function zodToJsonSchema(
     }
 
     case ZodFirstPartyTypeKind.ZodNaN: {
-      const schema_ = schema as ZodNaN
-
       return { const: 'NaN' }
     }
 
     case ZodFirstPartyTypeKind.ZodBigInt: {
-      const schema_ = schema as ZodBigInt
-
       const json: JSONSchema = { type: 'string', pattern: '^-?[0-9]+$' }
 
       // WARN: ignore checks
@@ -294,14 +286,10 @@ export function zodToJsonSchema(
     }
 
     case ZodFirstPartyTypeKind.ZodBoolean: {
-      const schema_ = schema as ZodBoolean
-
       return { type: 'boolean' }
     }
 
     case ZodFirstPartyTypeKind.ZodDate: {
-      const schema_ = schema as ZodDate
-
       const jsonSchema: JSONSchema = { type: 'string', format: Format.Date }
 
       // WARN: ignore checks
@@ -398,7 +386,7 @@ export function zodToJsonSchema(
       for (const [key, value] of Object.entries(schema_.shape)) {
         const { schema, matches } = extractJSONSchema(
           zodToJsonSchema(value, childOptions),
-          (schema) => schema === UNDEFINED_JSON_SCHEMA,
+          schema => schema === UNDEFINED_JSON_SCHEMA,
         )
 
         if (schema) {
@@ -423,14 +411,15 @@ export function zodToJsonSchema(
         childOptions,
       )
       if (schema_._def.unknownKeys === 'strict') {
-        json.additionalProperties =
-          additionalProperties === UNSUPPORTED_JSON_SCHEMA
+        json.additionalProperties
+          = additionalProperties === UNSUPPORTED_JSON_SCHEMA
             ? false
             : additionalProperties
-      } else {
+      }
+      else {
         if (
-          additionalProperties &&
-          additionalProperties !== UNSUPPORTED_JSON_SCHEMA
+          additionalProperties
+          && additionalProperties !== UNSUPPORTED_JSON_SCHEMA
         ) {
           json.additionalProperties = additionalProperties
         }
@@ -551,8 +540,8 @@ export function zodToJsonSchema(
       const schema_ = schema as ZodEffects<ZodTypeAny>
 
       if (
-        schema_._def.effect.type === 'transform' &&
-        childOptions?.mode === 'output'
+        schema_._def.effect.type === 'transform'
+        && childOptions?.mode === 'output'
       ) {
         return {}
       }
@@ -602,7 +591,7 @@ export function extractJSONSchema(
   schema: JSONSchema,
   check: (schema: JSONSchema) => boolean,
   matches: JSONSchema[] = [],
-): { schema: JSONSchema | undefined; matches: JSONSchema[] } {
+): { schema: JSONSchema | undefined, matches: JSONSchema[] } {
   if (check(schema)) {
     matches.push(schema)
     return { schema: undefined, matches }
@@ -615,14 +604,14 @@ export function extractJSONSchema(
   // TODO: $ref
 
   if (
-    schema.anyOf &&
-    Object.keys(schema).every(
-      (k) => k === 'anyOf' || NON_LOGIC_KEYWORDS.includes(k as any),
+    schema.anyOf
+    && Object.keys(schema).every(
+      k => k === 'anyOf' || NON_LOGIC_KEYWORDS.includes(k as any),
     )
   ) {
     const anyOf = schema.anyOf
-      .map((s) => extractJSONSchema(s, check, matches).schema)
-      .filter((v) => !!v)
+      .map(s => extractJSONSchema(s, check, matches).schema)
+      .filter(v => !!v)
 
     if (anyOf.length === 1 && typeof anyOf[0] === 'object') {
       return { schema: { ...schema, anyOf: undefined, ...anyOf[0] }, matches }
@@ -640,14 +629,14 @@ export function extractJSONSchema(
   // TODO: $ref
 
   if (
-    schema.oneOf &&
-    Object.keys(schema).every(
-      (k) => k === 'oneOf' || NON_LOGIC_KEYWORDS.includes(k as any),
+    schema.oneOf
+    && Object.keys(schema).every(
+      k => k === 'oneOf' || NON_LOGIC_KEYWORDS.includes(k as any),
     )
   ) {
     const oneOf = schema.oneOf
-      .map((s) => extractJSONSchema(s, check, matches).schema)
-      .filter((v) => !!v)
+      .map(s => extractJSONSchema(s, check, matches).schema)
+      .filter(v => !!v)
 
     if (oneOf.length === 1 && typeof oneOf[0] === 'object') {
       return { schema: { ...schema, oneOf: undefined, ...oneOf[0] }, matches }

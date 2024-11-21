@@ -15,7 +15,7 @@ export function getORPCPath(
   const val = Reflect.get(orpc, orpcPathSymbol)
 
   if (!Array.isArray(val)) {
-    throw new Error(
+    throw new TypeError(
       'orpcPathSymbol is not implemented, please use getORPCPath with correct instance.',
     )
   }

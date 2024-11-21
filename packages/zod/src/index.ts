@@ -4,14 +4,14 @@ import type { JSONSchema } from 'json-schema-typed/draft-2020-12'
 
 import wcmatch from 'wildcard-match'
 import {
+  custom,
   type CustomErrorParams,
+  type input,
+  type output,
   type ZodEffects,
   type ZodType,
   type ZodTypeAny,
   type ZodTypeDef,
-  custom,
-  type input,
-  type output,
 } from 'zod'
 
 export type CustomZodType = 'File' | 'Blob' | 'Invalid Date' | 'RegExp' | 'URL'
@@ -64,8 +64,8 @@ function composeParams<T = unknown>(options: {
   defaultMessage?: string | ((input: T) => string)
 }): (input: T) => CustomParams {
   return (val) => {
-    const defaultMessage =
-      typeof options.defaultMessage === 'function'
+    const defaultMessage
+      = typeof options.defaultMessage === 'function'
         ? options.defaultMessage(val)
         : options.defaultMessage
 
@@ -98,17 +98,17 @@ function composeParams<T = unknown>(options: {
 export function file(
   params?: string | CustomParams | ((input: unknown) => CustomParams),
 ): ZodType<InstanceType<typeof File>, ZodTypeDef, InstanceType<typeof File>> & {
-  type(
+  type: (
     mimeType: string,
     params?: string | CustomParams | ((input: unknown) => CustomParams),
-  ): ZodEffects<
+  ) => ZodEffects<
     ZodType<InstanceType<typeof File>, ZodTypeDef, InstanceType<typeof File>>,
     InstanceType<typeof File>,
     InstanceType<typeof File>
   >
 } {
   const schema = custom<InstanceType<typeof File>>(
-    (val) => val instanceof File,
+    val => val instanceof File,
     composeParams({ params, defaultMessage: 'Input is not a file' }),
   )
 
@@ -119,15 +119,15 @@ export function file(
   return Object.assign(schema, {
     type: (
       mimeType: string,
-      params: string | CustomParams | ((input: unknown) => CustomParams),
+      params?: string | CustomParams | ((input: unknown) => CustomParams),
     ) => {
       const isMatch = wcmatch(mimeType)
 
       const refinedSchema = schema.refine(
-        (val) => isMatch(val.type.split(';')[0]!),
+        val => isMatch(val.type.split(';')[0]!),
         composeParams<InstanceType<typeof File>>({
           params,
-          defaultMessage: (val) =>
+          defaultMessage: val =>
             `Expected a file of type ${mimeType} but got a file of type ${val.type || 'unknown'}`,
         }),
       )
@@ -146,7 +146,7 @@ export function blob(
   params?: string | CustomParams | ((input: unknown) => CustomParams),
 ): ZodType<InstanceType<typeof Blob>, ZodTypeDef, InstanceType<typeof Blob>> {
   const schema = custom<InstanceType<typeof Blob>>(
-    (val) => val instanceof Blob,
+    val => val instanceof Blob,
     composeParams({ params, defaultMessage: 'Input is not a blob' }),
   )
 
@@ -161,7 +161,7 @@ export function invalidDate(
   params?: string | CustomParams | ((input: unknown) => CustomParams),
 ): ZodType<Date, ZodTypeDef, Date> {
   const schema = custom<Date>(
-    (val) => val instanceof Date && Number.isNaN(val.getTime()),
+    val => val instanceof Date && Number.isNaN(val.getTime()),
     composeParams({ params, defaultMessage: 'Input is not an invalid date' }),
   )
 
@@ -176,7 +176,7 @@ export function regexp(
   options?: CustomParams,
 ): ZodType<RegExp, ZodTypeDef, RegExp> {
   const schema = custom<RegExp>(
-    (val) => val instanceof RegExp,
+    val => val instanceof RegExp,
     composeParams({ params: options, defaultMessage: 'Input is not a regexp' }),
   )
 
@@ -189,7 +189,7 @@ export function regexp(
 
 export function url(options?: CustomParams): ZodType<URL, ZodTypeDef, URL> {
   const schema = custom<URL>(
-    (val) => val instanceof URL,
+    val => val instanceof URL,
     composeParams({ params: options, defaultMessage: 'Input is not a URL' }),
   )
 
@@ -219,8 +219,8 @@ export function openapi<
 ): ReturnType<T['refine']> {
   const newSchema = schema.refine(() => true) as ReturnType<T['refine']>
 
-  const SYMBOL =
-    options?.mode === 'input'
+  const SYMBOL
+    = options?.mode === 'input'
       ? CUSTOM_JSON_SCHEMA_INPUT_SYMBOL
       : options?.mode === 'output'
         ? CUSTOM_JSON_SCHEMA_OUTPUT_SYMBOL

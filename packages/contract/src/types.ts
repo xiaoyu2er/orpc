@@ -1,4 +1,4 @@
-import type { ZodType, input, output } from 'zod'
+import type { input, output, ZodType } from 'zod'
 
 export type HTTPPath = `/${string}`
 export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'

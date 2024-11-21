@@ -1,6 +1,7 @@
 /// <reference lib="dom" />
 /// <reference lib="dom.iterable" />
 
+import type { Promisable } from '@orpc/shared'
 import {
   ORPC_HEADER,
   ORPC_HEADER_VALUE,
@@ -8,7 +9,6 @@ import {
   type SchemaInput,
   type SchemaOutput,
 } from '@orpc/contract'
-import type { Promisable } from '@orpc/shared'
 import { trim } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
 import { ORPCDeserializer, ORPCSerializer } from '@orpc/transformer'
@@ -80,7 +80,8 @@ export function createProcedureClient<
     const json = await (async () => {
       try {
         return await deserializer.deserialize(response)
-      } catch (e) {
+      }
+      catch (e) {
         throw new ORPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Cannot parse response.',
@@ -91,8 +92,8 @@ export function createProcedureClient<
 
     if (!response.ok) {
       throw (
-        ORPCError.fromJSON(json) ??
-        new ORPCError({
+        ORPCError.fromJSON(json)
+        ?? new ORPCError({
           status: response.status,
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Internal server error',

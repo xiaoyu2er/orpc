@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { os, createRouterCaller } from '.'
+import { createRouterCaller, os } from '.'
 
 describe('createRouterCaller', () => {
   let internal = false
@@ -8,8 +8,8 @@ describe('createRouterCaller', () => {
   const osw = os.context<{ auth?: boolean }>()
 
   const ping = osw
-    .input(z.object({ value: z.string().transform((v) => Number(v)) }))
-    .output(z.object({ value: z.number().transform((v) => v.toString()) }))
+    .input(z.object({ value: z.string().transform(v => Number(v)) }))
+    .output(z.object({ value: z.number().transform(v => v.toString()) }))
     .handler((input, context, meta) => {
       expect(context).toEqual(context)
       expect(meta.internal).toEqual(internal)
@@ -87,12 +87,12 @@ describe('createRouterCaller', () => {
       value: true,
     })
 
-    // @ts-expect-error
+    // @ts-expect-error - invalid input
     expect(caller.ping({ value: new Date('2023-01-01') })).rejects.toThrowError(
       'Validation input failed',
     )
 
-    // @ts-expect-error
+    // @ts-expect-error - invalid input
     expect(caller.nested.ping({ value: true })).rejects.toThrowError(
       'Validation input failed',
     )
@@ -158,7 +158,7 @@ describe('createRouterCaller', () => {
     })
 
     const caller = createRouterCaller({
-      router: router,
+      router,
       context,
     })
 

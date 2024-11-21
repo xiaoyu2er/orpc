@@ -1,12 +1,12 @@
-import { DecoratedContractProcedure, type HTTPPath } from '@orpc/contract'
-import {
-  type MapInputMiddleware,
-  type Middleware,
-  decorateMiddleware,
-} from './middleware'
-import { decorateProcedure, isProcedure } from './procedure'
 import type { HandledRouter, Router } from './router'
 import type { Context, MergeContext } from './types'
+import { DecoratedContractProcedure, type HTTPPath } from '@orpc/contract'
+import {
+  decorateMiddleware,
+  type MapInputMiddleware,
+  type Middleware,
+} from './middleware'
+import { decorateProcedure, isProcedure } from './procedure'
 
 export class RouterBuilder<
   TContext extends Context,
@@ -28,7 +28,8 @@ export class RouterBuilder<
   }
 
   tags(...tags: string[]): RouterBuilder<TContext, TExtraContext> {
-    if (!tags.length) return this
+    if (!tags.length)
+      return this
 
     return new RouterBuilder({
       ...this.zz$rb,
@@ -38,8 +39,8 @@ export class RouterBuilder<
 
   use<
     UExtraContext extends
-      | Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>
-      | undefined = undefined,
+    | Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>
+    | undefined = undefined,
   >(
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
@@ -51,8 +52,8 @@ export class RouterBuilder<
 
   use<
     UExtraContext extends
-      | Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>
-      | undefined = undefined,
+    | Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>
+    | undefined = undefined,
     UMappedInput = unknown,
   >(
     middleware: Middleware<
@@ -93,7 +94,7 @@ export class RouterBuilder<
         const middlewares = [
           ...builderMiddlewares,
           ...itemMiddlewares.filter(
-            (item) => !builderMiddlewares.includes(item),
+            item => !builderMiddlewares.includes(item),
           ),
         ]
 
@@ -110,7 +111,8 @@ export class RouterBuilder<
             middlewares,
           },
         })
-      } else {
+      }
+      else {
         handled[key] = this.router(item as any)
       }
     }

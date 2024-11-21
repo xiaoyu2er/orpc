@@ -1,8 +1,8 @@
 import {
   type ContractProcedure,
   type DecoratedContractProcedure,
-  type WELL_DEFINED_CONTRACT_PROCEDURE,
   isContractProcedure,
+  type WELL_DEFINED_CONTRACT_PROCEDURE,
 } from './procedure'
 
 export interface ContractRouter {
@@ -30,7 +30,8 @@ export function eachContractRouterLeaf(
 
     if (isContractProcedure(item)) {
       callback(item, [...prefix, key])
-    } else {
+    }
+    else {
       eachContractRouterLeaf(item as ContractRouter, callback, [...prefix, key])
     }
   }

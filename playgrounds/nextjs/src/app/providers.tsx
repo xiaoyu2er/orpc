@@ -1,6 +1,6 @@
 'use client'
 
-import { ORPCContext, orpcClient } from '@/lib/orpc'
+import { orpcClient, ORPCContext } from '@/lib/orpc'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState } from 'react'
 
@@ -9,7 +9,7 @@ export function Providers(props: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ORPCContext.Provider value={{ client: orpcClient, queryClient }}>
+      <ORPCContext.Provider value={useMemo(() => ({ client: orpcClient, queryClient }), [queryClient])}>
         {props.children}
       </ORPCContext.Provider>
     </QueryClientProvider>

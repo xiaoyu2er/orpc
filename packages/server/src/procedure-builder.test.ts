@@ -1,9 +1,9 @@
+import type { ProcedureImplementer } from './procedure-implementer'
+import type { Meta } from './types'
 import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
 import { type DecoratedProcedure, isProcedure } from './procedure'
 import { ProcedureBuilder } from './procedure-builder'
-import type { ProcedureImplementer } from './procedure-implementer'
-import type { Meta } from './types'
 
 const schema1 = z.object({ id: z.string() })
 const example1 = { id: '1' }
@@ -127,12 +127,12 @@ describe('use middleware', () => {
         return { context: { a: 'a' } }
       },
       // @ts-expect-error mismatch input
-      (input) => ({ postId: 12455 }),
+      input => ({ postId: 12455 }),
     )
 
     builder.use(
       (input: { postId: string }) => {},
-      (input) => ({ postId: '12455' }),
+      input => ({ postId: '12455' }),
     )
 
     const implementer = builder.input(schema1).use(
@@ -143,7 +143,7 @@ describe('use middleware', () => {
           },
         }
       },
-      (input) => ({ id: Number.parseInt(input.id) }),
+      input => ({ id: Number.parseInt(input.id) }),
     )
 
     expectTypeOf(implementer).toEqualTypeOf<

@@ -1,8 +1,8 @@
+import type { DecoratedContractProcedure } from './procedure'
 import { z } from 'zod'
 import { isContractProcedure, oc } from '.'
-import type { DecoratedContractProcedure } from './procedure'
 
-test('prefix method', () => {
+it('prefix method', () => {
   const os = oc
   const p1 = os.route({
     method: 'GET',
@@ -17,7 +17,7 @@ test('prefix method', () => {
   expect(p2.prefix('/1').prefix('/2').zz$cp.path).toEqual(undefined)
 })
 
-test('route method', () => {
+it('route method', () => {
   const p = oc
     .route({
       method: 'POST',
@@ -45,7 +45,7 @@ test('route method', () => {
   })
 })
 
-test('input method', () => {
+it('input method', () => {
   const schema = z.string()
   const p = oc.route({}).input(schema)
 
@@ -59,7 +59,7 @@ test('input method', () => {
   })
 })
 
-test('output method', () => {
+it('output method', () => {
   const schema = z.string()
   const p = oc.route({}).output(schema)
 
@@ -88,7 +88,7 @@ it('addTags method', () => {
   expect(p3.zz$cp.tags).toEqual(['foo', 'bar', 'baz'])
 })
 
-test('isContractProcedure function', () => {
+it('isContractProcedure function', () => {
   expect(isContractProcedure(oc)).toBe(false)
   expect(isContractProcedure(oc.router({}))).toBe(false)
   expect(isContractProcedure(oc.route({}))).toBe(true)

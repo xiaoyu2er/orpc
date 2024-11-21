@@ -1,11 +1,11 @@
-import { findDeepMatches } from '@orpc/shared'
 import type { Body, Serializer } from '../types'
+import { findDeepMatches } from '@orpc/shared'
 import * as SuperJSON from './super-json'
 
 export class ORPCSerializer implements Serializer {
-  serialize(payload: unknown): { body: Body; headers: Headers } {
+  serialize(payload: unknown): { body: Body, headers: Headers } {
     const { data, meta } = SuperJSON.serialize(payload)
-    const { maps, values } = findDeepMatches((v) => v instanceof Blob, data)
+    const { maps, values } = findDeepMatches(v => v instanceof Blob, data)
 
     if (values.length > 0) {
       const form = new FormData()

@@ -63,7 +63,7 @@ export const findPlanet = pub
   )
   .output(PlanetSchema)
   .handler(async (input, context, meta) => {
-    const planet = planets.find((planet) => planet.id === input.id)
+    const planet = planets.find(planet => planet.id === input.id)
 
     if (!planet) {
       throw new ORPCError({
@@ -84,7 +84,7 @@ export const updatePlanet = authed
   .input(UpdatePlanetSchema)
   .output(PlanetSchema)
   .handler(async (input, context, meta) => {
-    const planet = planets.find((planet) => planet.id === input.id)
+    const planet = planets.find(planet => planet.id === input.id)
 
     if (!planet) {
       throw new ORPCError({
@@ -114,7 +114,7 @@ export const updatePlanetImage = authed
   )
   .output(PlanetSchema)
   .handler(async (input, context, meta) => {
-    const planet = planets.find((planet) => planet.id === input.id)
+    const planet = planets.find(planet => planet.id === input.id)
 
     if (!planet) {
       throw new ORPCError({
@@ -141,7 +141,7 @@ export const deletePlanet = authed
     }),
   )
   .handler(async (input, context, meta) => {
-    const planet = planets.find((planet) => planet.id === input.id)
+    const planet = planets.find(planet => planet.id === input.id)
 
     if (!planet) {
       throw new ORPCError({

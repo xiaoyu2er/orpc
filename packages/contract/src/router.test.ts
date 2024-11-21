@@ -1,6 +1,6 @@
 import { eachContractRouterLeaf, oc } from '.'
 
-test('each router leaf', () => {
+it('each router leaf', () => {
   const router = {
     ping: oc.route({
       method: 'GET',

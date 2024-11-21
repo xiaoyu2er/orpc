@@ -8,7 +8,11 @@ export default function Home() {
     <div>
       <h1>ORPC Playground</h1>
       <p>
-        You can visit the <a href="/scalar">Scalar API Reference</a> page.
+        You can visit the
+        {' '}
+        <a href="/scalar">Scalar API Reference</a>
+        {' '}
+        page.
       </p>
 
       <ServerActionsTest />
@@ -21,10 +25,10 @@ export default function Home() {
 }
 
 function SSRListPlanets() {
-  const { data, refetch, fetchNextPage, hasNextPage } =
-    orpc.planet.list.useSuspenseInfiniteQuery({
+  const { data, refetch, fetchNextPage, hasNextPage }
+    = orpc.planet.list.useSuspenseInfiniteQuery({
       input: {},
-      getNextPageParam: (lastPage) => (lastPage.at(-1)?.id ?? -1) + 1,
+      getNextPageParam: lastPage => (lastPage.at(-1)?.id ?? -1) + 1,
     })
 
   return (
@@ -39,7 +43,8 @@ function SSRListPlanets() {
       </thead>
       <tbody>
         {data.pages.flatMap((page, i) =>
-          page.map((planet) => (
+          page.map(planet => (
+            // eslint-disable-next-line react/no-array-index-key
             <tr key={`${planet.id}-${i}`}>
               <td>{planet.id}</td>
               <td>{planet.name}</td>
@@ -90,8 +95,8 @@ function AddPlanet() {
         const form = new FormData(e.target as HTMLFormElement)
 
         const name = form.get('name') as string
-        const description =
-          (form.get('description') as string | null) ?? undefined
+        const description
+          = (form.get('description') as string | null) ?? undefined
         const image = form.get('image') as File
 
         mutate({
@@ -121,7 +126,8 @@ function AddPlanet() {
 function ServerActionsTest() {
   return (
     <form>
-      Server Actions Test:{' '}
+      Server Actions Test:
+      {' '}
       <button type="submit" formAction={visitScalar}>
         Visit Scalar
       </button>

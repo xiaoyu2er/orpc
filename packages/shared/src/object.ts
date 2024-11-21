@@ -33,8 +33,8 @@ export function get(
 
   for (const segment of segments) {
     if (
-      (typeof currentRef !== 'object' && typeof currentRef !== 'function') ||
-      currentRef === null
+      (typeof currentRef !== 'object' && typeof currentRef !== 'function')
+      || currentRef === null
     ) {
       return undefined
     }
@@ -44,8 +44,8 @@ export function get(
   }
 
   if (
-    (typeof currentRef !== 'object' && typeof currentRef !== 'function') ||
-    currentRef === null
+    (typeof currentRef !== 'object' && typeof currentRef !== 'function')
+    || currentRef === null
   ) {
     return undefined
   }
@@ -59,15 +59,17 @@ export function findDeepMatches(
   segments: Segment[] = [],
   maps: Segment[][] = [],
   values: unknown[] = [],
-): { maps: Segment[][]; values: unknown[] } {
+): { maps: Segment[][], values: unknown[] } {
   if (check(payload)) {
     maps.push(segments)
     values.push(payload)
-  } else if (Array.isArray(payload)) {
+  }
+  else if (Array.isArray(payload)) {
     payload.forEach((v, i) => {
       findDeepMatches(check, v, [...segments, i], maps, values)
     })
-  } else if (isPlainObject(payload)) {
+  }
+  else if (isPlainObject(payload)) {
     for (const key in payload) {
       findDeepMatches(check, payload[key], [...segments, key], maps, values)
     }

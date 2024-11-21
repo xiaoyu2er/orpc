@@ -6,7 +6,7 @@ import type {
   SchemaOutput,
 } from '@orpc/contract'
 import type { Procedure, Promisable, Router } from '@orpc/server'
-import { type ProcedureClient, createProcedureClient } from './procedure'
+import { createProcedureClient, type ProcedureClient } from './procedure'
 
 export type RouterClientWithContractRouter<TRouter extends ContractRouter> = {
   [K in keyof TRouter]: TRouter[K] extends ContractProcedure<
@@ -64,10 +64,10 @@ export function createRouterClient<
 >(
   options: CreateRouterClientOptions,
 ): TRouter extends Router<any>
-  ? RouterClientWithRouter<TRouter>
-  : TRouter extends ContractRouter
-    ? RouterClientWithContractRouter<TRouter>
-    : never {
+    ? RouterClientWithRouter<TRouter>
+    : TRouter extends ContractRouter
+      ? RouterClientWithContractRouter<TRouter>
+      : never {
   const path = options?.path ?? []
 
   const client = new Proxy(

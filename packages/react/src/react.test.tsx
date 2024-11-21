@@ -6,7 +6,7 @@ beforeEach(() => {
 })
 
 it('useUtils', async () => {
-  const { result } = renderHook(() => orpc.useUtils(), { wrapper: wrapper })
+  const { result } = renderHook(() => orpc.useUtils(), { wrapper })
 
   const promise = result.current.user.find.ensureQueryData({ id: '1' })
   expect(result.current.user.isFetching()).toBe(1)
@@ -26,7 +26,7 @@ it('useUtils', async () => {
 })
 
 it('useContext', async () => {
-  const { result } = renderHook(() => orpc.useContext(), { wrapper: wrapper })
+  const { result } = renderHook(() => orpc.useContext(), { wrapper })
 
   expect(result.current.client).toBe(orpcClient)
   expect(result.current.queryClient).toBe(queryClient)
@@ -38,8 +38,8 @@ it('useContext', async () => {
 
 it('useQueries', async () => {
   const queries = renderHook(
-    () => orpc.useQueries((o) => [o.user.find({ id: '123' })]),
-    { wrapper: wrapper },
+    () => orpc.useQueries(o => [o.user.find({ id: '123' })]),
+    { wrapper },
   )
 
   await waitFor(() =>
@@ -52,20 +52,20 @@ it('useQueries', async () => {
 
 it('hooks', async () => {
   const isFetching = renderHook(() => orpc.user.useIsFetching(), {
-    wrapper: wrapper,
+    wrapper,
   })
   const isMutating = renderHook(() => orpc.user.useIsMutating(), {
-    wrapper: wrapper,
+    wrapper,
   })
 
   expect(isFetching.result.current).toBe(0)
   expect(isMutating.result.current).toBe(0)
 
   const query = renderHook(() => orpc.user.find.useQuery({ id: '1' }), {
-    wrapper: wrapper,
+    wrapper,
   })
   const mutation = renderHook(() => orpc.user.create.useMutation(), {
-    wrapper: wrapper,
+    wrapper,
   })
 
   await waitFor(() => expect(query.result.current.status).toEqual('pending'))

@@ -2,8 +2,8 @@
  * This file is where you can play with type of oRPC Client.
  */
 
-import { createORPCClient } from '@orpc/client'
 import type { contract } from './contract'
+import { createORPCClient } from '@orpc/client'
 
 const orpc = createORPCClient<typeof contract>({
   baseURL: 'http://localhost:2026/api',

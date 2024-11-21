@@ -1,12 +1,13 @@
+import type { generateOpenAPI } from './src/generator'
 import OpenAPIParser from '@readme/openapi-parser'
 import { expect, vi } from 'vitest'
-import type { generateOpenAPI } from './src/generator'
 
+// eslint-disable-next-line antfu/no-top-level-await
 const generator = await vi.importActual('./src/generator')
 
 vi.mock('./src/generator', () => ({
   generateOpenAPI: vi.fn((...args) => {
-    // @ts-expect-error
+    // @ts-expect-error - untyped
     const spec = generator.generateOpenAPI(...args)
     expect(
       (async () => {

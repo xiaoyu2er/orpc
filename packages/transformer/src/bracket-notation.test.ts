@@ -13,10 +13,8 @@ describe('stringifyPath', () => {
   })
 
   it('should handle empty path segments', () => {
-    ;() => {
-      // @ts-expect-error: empty segments are not allowed
-      expect(stringifyPath([])).toBe('')
-    }
+    // @ts-expect-error: empty segments are not allowed
+    expect(() => stringifyPath([])).toThrow()
     expect(stringifyPath(['', 'test'])).toBe('[test]')
   })
 
@@ -274,7 +272,7 @@ describe('deserialize', () => {
     ] as const
     const expected = {
       'key[with]bracket.s': 'value',
-      key: {
+      'key': {
         va: {
           'lu.e]': 'value',
         },
@@ -319,7 +317,7 @@ describe('deserialize', () => {
     const expected = {
       names: {
         '': 'empty',
-        age: 'string',
+        'age': 'string',
       },
     }
     expect(deserialize(input)).toEqual(expected)
@@ -341,7 +339,7 @@ describe('deserialize', () => {
     const expected = {
       names: {
         '': 'John3',
-        index: 'Jane',
+        'index': 'Jane',
       },
     }
     expect(deserialize(input)).toEqual(expected)
@@ -356,7 +354,7 @@ describe('deserialize', () => {
     expect(deserialize(input)).toEqual(expected)
   })
 
-  it('should deserialize a root array', () => {
+  it('should deserialize a root array 2', () => {
     const input = [
       ['[]', '1'],
       ['[]', '2'],

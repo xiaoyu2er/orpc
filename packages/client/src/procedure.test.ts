@@ -1,4 +1,4 @@
-import { os, ORPCError } from '@orpc/server'
+import { ORPCError, os } from '@orpc/server'
 import { createFetchHandler } from '@orpc/server/fetch'
 import { z } from 'zod'
 import { createProcedureClient } from './procedure'
@@ -111,7 +111,7 @@ describe('createProcedureClient', () => {
     const router = os.router({
       ping: os
         .input(z.object({ value: z.date() }))
-        .handler((input) => input.value),
+        .handler(input => input.value),
     })
 
     const handler = createFetchHandler({
@@ -167,7 +167,8 @@ describe('createProcedureClient', () => {
     let error: any
     try {
       await client(undefined)
-    } catch (e) {
+    }
+    catch (e) {
       error = e
     }
 

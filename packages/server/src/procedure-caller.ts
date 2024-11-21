@@ -1,8 +1,8 @@
 import type { SchemaInput, SchemaOutput } from '@orpc/contract'
-import { ORPCError } from '@orpc/shared/error'
 import type { Middleware } from './middleware'
 import type { Procedure } from './procedure'
 import type { Context, Hooks, Meta, Promisable } from './types'
+import { ORPCError } from '@orpc/shared/error'
 import { hook, mergeContext } from './utils'
 
 export interface CreateProcedureCallerOptions<
@@ -80,7 +80,7 @@ export function createProcedureCaller<
   const procedure = options.procedure
   const validate = options.validate ?? true
 
-  const caller = async (input: unknown) => {
+  const caller = async (input: unknown): Promise<unknown> => {
     const handler = async (
       input: unknown,
       context: Context,
@@ -111,16 +111,19 @@ export function createProcedureCaller<
         })
 
         const validOutput = await (async () => {
-          if (!validate) return output
+          if (!validate)
+            return output
           const schema = procedure.zz$p.contract.zz$cp.OutputSchema
-          if (!schema) return output
+          if (!schema)
+            return output
           const result = await schema.safeParseAsync(output)
-          if (result.error)
+          if (result.error) {
             throw new ORPCError({
               message: 'Validation output failed',
               code: 'INTERNAL_SERVER_ERROR',
               cause: result.error,
             })
+          }
           return result.data
         })()
 
@@ -137,13 +140,16 @@ export function createProcedureCaller<
       })
 
       const validInput = (() => {
-        if (!validate) return input
+        if (!validate)
+          return input
         const schema = procedure.zz$p.contract.zz$cp.InputSchema
-        if (!schema) return input
+        if (!schema)
+          return input
 
         try {
           return schema.parse(input)
-        } catch (e) {
+        }
+        catch (e) {
           throw new ORPCError({
             message: 'Validation input failed',
             code: 'BAD_REQUEST',

@@ -1,16 +1,15 @@
-import type { ContractProcedure, SchemaOutput } from '@orpc/contract'
-import type { Schema } from '@orpc/contract'
+import type { ContractProcedure, Schema, SchemaOutput } from '@orpc/contract'
+import type { Context, MergeContext } from './types'
 import {
+  decorateMiddleware,
   type MapInputMiddleware,
   type Middleware,
-  decorateMiddleware,
 } from './middleware'
 import {
   type DecoratedProcedure,
-  type ProcedureHandler,
   decorateProcedure,
+  type ProcedureHandler,
 } from './procedure'
-import type { Context, MergeContext } from './types'
 
 export class ProcedureImplementer<
   TContext extends Context,
@@ -27,8 +26,8 @@ export class ProcedureImplementer<
 
   use<
     UExtraContext extends
-      | Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>
-      | undefined = undefined,
+    | Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>
+    | undefined = undefined,
   >(
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
@@ -45,8 +44,8 @@ export class ProcedureImplementer<
 
   use<
     UExtraContext extends
-      | Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>
-      | undefined = undefined,
+    | Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>
+    | undefined = undefined,
     UMappedInput = unknown,
   >(
     middleware: Middleware<
@@ -86,12 +85,12 @@ export class ProcedureImplementer<
       UHandlerOutput
     >,
   ): DecoratedProcedure<
-    TContext,
-    TExtraContext,
-    TInputSchema,
-    TOutputSchema,
-    UHandlerOutput
-  > {
+      TContext,
+      TExtraContext,
+      TInputSchema,
+      TOutputSchema,
+      UHandlerOutput
+    > {
     return decorateProcedure({
       zz$p: {
         middlewares: this.zz$pi.middlewares,

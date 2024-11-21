@@ -168,7 +168,7 @@ const server = createServer(
 )
 
 server.listen(2026, () => {
-  // biome-ignore lint/suspicious/noConsole: <explanation>
+  // eslint-disable-next-line no-console
   console.log('Server is available at http://localhost:2026')
 })
 ```

@@ -2,12 +2,12 @@ import type { SchemaOutput } from '@orpc/contract'
 import { renderHook, screen, waitFor } from '@testing-library/react'
 import {
   ORPCContext,
+  queryClient,
   type UserCreateInputSchema,
   type UserFindInputSchema,
   type UserListInputSchema,
   type UserListOutputSchema,
   type UserSchema,
-  queryClient,
   wrapper,
 } from '../tests/orpc'
 import { createProcedureHooks } from './procedure-hooks'

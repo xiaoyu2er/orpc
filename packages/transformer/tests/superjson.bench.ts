@@ -1,6 +1,5 @@
-import { describe } from 'node:test'
 import SuperJSON from 'superjson'
-import { bench } from 'vitest'
+import { bench, describe } from 'vitest'
 import * as SuperJSON2 from '../src/orpc/super-json'
 
 describe('with simple data', () => {
@@ -26,11 +25,11 @@ describe('with simple data', () => {
     regexp: /uic/gi,
   }
 
-  bench('SuperJSON', () => {
+  bench('superJSON', () => {
     SuperJSON.deserialize(SuperJSON.serialize(data))
   })
 
-  bench('SuperJSON2', () => {
+  bench('superJSON2', () => {
     SuperJSON2.deserialize(SuperJSON2.serialize(data))
   })
 })
@@ -64,11 +63,11 @@ describe('with deep data', () => {
     },
   }
 
-  bench('SuperJSON', () => {
+  bench('superJSON', () => {
     SuperJSON.deserialize(SuperJSON.serialize(data))
   })
 
-  bench('SuperJSON2', () => {
+  bench('superJSON2', () => {
     SuperJSON2.deserialize(SuperJSON2.serialize(data))
   })
 })

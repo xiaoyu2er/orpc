@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { type DecoratedContractProcedure, oc } from '.'
 
 describe('define a procedure', () => {
-  test('use route method', () => {
+  it('use route method', () => {
     const procedure = oc.route({
       method: 'GET',
       path: '/users/{id}',
@@ -26,7 +26,7 @@ describe('define a procedure', () => {
     })
   })
 
-  test('use input method', () => {
+  it('use input method', () => {
     const schema = z.object({
       id: z.string(),
     })
@@ -43,7 +43,7 @@ describe('define a procedure', () => {
     })
   })
 
-  test('use output method', () => {
+  it('use output method', () => {
     const schema = z.object({ id: z.string() })
 
     const procedure = oc.output(schema, { id: '123' })

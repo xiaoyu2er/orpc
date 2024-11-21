@@ -26,21 +26,19 @@ export interface DecoratedMiddleware<
   TInput,
   TOutput,
 > extends Middleware<TContext, TExtraContext, TInput, TOutput> {
-  concat<UExtraContext extends Context = undefined, UInput = TInput>(
+  concat: (<UExtraContext extends Context = undefined, UInput = TInput>(
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
       UExtraContext,
       UInput & TInput,
       TOutput
     >,
-  ): DecoratedMiddleware<
+  ) => DecoratedMiddleware<
     TContext,
     MergeContext<TExtraContext, UExtraContext>,
     TInput & UInput,
     TOutput
-  >
-
-  concat<
+  >) & (<
     UExtraContext extends Context = undefined,
     UInput = TInput,
     UMappedInput = unknown,
@@ -52,16 +50,16 @@ export interface DecoratedMiddleware<
       TOutput
     >,
     mapInput: MapInputMiddleware<UInput, UMappedInput>,
-  ): DecoratedMiddleware<
+  ) => DecoratedMiddleware<
     TContext,
     MergeContext<TExtraContext, UExtraContext>,
     TInput & UInput,
     TOutput
-  >
+  >)
 
-  mapInput<UInput = unknown>(
+  mapInput: <UInput = unknown>(
     map: MapInputMiddleware<UInput, TInput>,
-  ): DecoratedMiddleware<TContext, TExtraContext, UInput, TOutput>
+  ) => DecoratedMiddleware<TContext, TExtraContext, UInput, TOutput>
 }
 
 const decoratedMiddlewareSymbol = Symbol('🔒decoratedMiddleware')
@@ -81,7 +79,7 @@ export function decorateMiddleware<
   const concat = (
     concatMiddleware: Middleware<any, any, any, any>,
     mapInput?: MapInputMiddleware<any, any>,
-  ) => {
+  ): Middleware<any, any, any, any> => {
     const concatMiddleware_ = mapInput
       ? decorateMiddleware(concatMiddleware).mapInput(mapInput)
       : concatMiddleware

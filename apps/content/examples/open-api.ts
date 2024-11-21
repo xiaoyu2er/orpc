@@ -1,6 +1,9 @@
 import { generateOpenAPI } from '@orpc/openapi'
 import { router } from 'examples/server'
 
+// or generate from contract
+import { contract } from 'examples/contract'
+
 export const specFromServerRouter = generateOpenAPI({
   router,
   info: {
@@ -8,9 +11,6 @@ export const specFromServerRouter = generateOpenAPI({
     version: '0.0.0',
   },
 })
-
-// or generate from contract
-import { contract } from 'examples/contract'
 
 export const specFromContractRouter = generateOpenAPI({
   router: contract,
@@ -47,7 +47,7 @@ const _exampleSpec = {
           },
         },
         responses: {
-          '200': {
+          200: {
             description: 'OK',
             content: {
               'application/json': {
@@ -80,7 +80,7 @@ const _exampleSpec = {
           },
         ],
         responses: {
-          '200': {
+          200: {
             description: 'OK',
             content: {
               'application/json': {
@@ -132,7 +132,7 @@ const _exampleSpec = {
           },
         },
         responses: {
-          '200': {
+          200: {
             description: 'OK',
             content: {
               'application/json': {

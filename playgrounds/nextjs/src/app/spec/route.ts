@@ -1,7 +1,7 @@
 import { router } from '@/router'
 import { generateOpenAPI } from '@orpc/openapi'
 
-export const GET = (request: Request) => {
+export function GET(request: Request) {
   const spec = generateOpenAPI({
     router,
     info: {

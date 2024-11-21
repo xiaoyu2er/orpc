@@ -5,11 +5,12 @@ A library for transforming oRPC payloads in different client-server scenarios.
 ## Overview
 
 `@orpc/transformer` provides two distinct sets of serializers and deserializers for different use cases:
+
 1. `ORPC` serializer/deserializer designed for internal oRPC clients and servers to communicate with each other.
 2. `OpenAPI` serializer/deserializer designed for external clients consuming the API through OpenAPI specifications.
 
 ```ts
-import { ORPCSerializer, ORPCDeserializer } from '@orpc/transformer'
+import { ORPCDeserializer, ORPCSerializer } from '@orpc/transformer'
 
 const serializer = new ORPCSerializer() // or OpenAPISerializer
 const deserializer = new ORPCDeserializer() // or OpenAPIDeserializer
@@ -74,9 +75,9 @@ const payload = {
   friends: ['Alice', 'Bob'],
 }
 
-// with bracket notation 
+// with bracket notation
 
-{
+const equivalent = {
   'user[name]': 'John Doe',
   'user[age]': 30,
   'avatar': new File([], 'avatar.png'),

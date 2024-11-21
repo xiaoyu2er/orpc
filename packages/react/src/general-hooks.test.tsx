@@ -3,10 +3,10 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { renderHook } from '@testing-library/react'
 import {
   ORPCContext,
+  queryClient,
   type UserCreateInputSchema,
   type UserFindInputSchema,
   type UserSchema,
-  queryClient,
   wrapper,
 } from '../tests/orpc'
 import { createGeneralHooks } from './general-hooks'
@@ -72,7 +72,7 @@ describe('useIsFetching', () => {
             { input: { id: '12333' }, type: 'query' },
           ],
           queryFn: async () => {
-            await new Promise((resolve) => setTimeout(resolve, 100))
+            await new Promise(resolve => setTimeout(resolve, 100))
           },
         },
         queryClient,
@@ -86,14 +86,14 @@ describe('useIsFetching', () => {
             { input: { id: '12333' }, type: 'infinite' },
           ],
           queryFn: async () => {
-            await new Promise((resolve) => setTimeout(resolve, 100))
+            await new Promise(resolve => setTimeout(resolve, 100))
           },
         },
         queryClient,
       ),
     )
 
-    await new Promise((resolve) => setTimeout(resolve, 50)) // < 100 make sure the query is not finished
+    await new Promise(resolve => setTimeout(resolve, 50)) // < 100 make sure the query is not finished
 
     expect(result.current).toBe(2)
     expect(result2.current).toBe(2)
@@ -147,7 +147,7 @@ describe('useIsMutating', () => {
         {
           mutationKey: [['user', 'create']],
           mutationFn: async () => {
-            await new Promise((resolve) => setTimeout(resolve, 100))
+            await new Promise(resolve => setTimeout(resolve, 100))
           },
         },
         queryClient,
@@ -156,7 +156,7 @@ describe('useIsMutating', () => {
 
     mutation.current.mutate()
 
-    await new Promise((resolve) => setTimeout(resolve, 50)) // < 100 make sure the query is not finished
+    await new Promise(resolve => setTimeout(resolve, 50)) // < 100 make sure the query is not finished
 
     expect(result.current).toBe(1)
     expect(result2.current).toBe(0)
@@ -210,7 +210,7 @@ describe('useMutationState', () => {
         {
           mutationKey: [['user', 'create']],
           mutationFn: async () => {
-            await new Promise((resolve) => setTimeout(resolve, 100))
+            await new Promise(resolve => setTimeout(resolve, 100))
           },
         },
         queryClient,
@@ -219,7 +219,7 @@ describe('useMutationState', () => {
 
     mutation.current.mutate({ name: 'unnoq' } as any)
 
-    await new Promise((resolve) => setTimeout(resolve, 50)) // < 100 make sure the query is not finished
+    await new Promise(resolve => setTimeout(resolve, 50)) // < 100 make sure the query is not finished
 
     expect(result.current.length).toBe(1)
     expect(result2.current.length).toBe(0)

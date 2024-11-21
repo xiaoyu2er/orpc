@@ -26,7 +26,8 @@ export function serialize(
   payload: unknown,
   parentKey = '',
 ): [string, unknown][] {
-  if (!Array.isArray(payload) && !isPlainObject(payload)) return [['', payload]]
+  if (!Array.isArray(payload) && !isPlainObject(payload))
+    return [['', payload]]
 
   const result: [string, unknown][] = []
 
@@ -35,11 +36,13 @@ export function serialize(
       value.forEach((item, index) => {
         helper(item, [...path, String(index)])
       })
-    } else if (isPlainObject(value)) {
+    }
+    else if (isPlainObject(value)) {
       for (const [key, val] of Object.entries(value)) {
         helper(val, [...path, key])
       }
-    } else {
+    }
+    else {
       result.push([stringifyPath(path as [string, ...string[]]), value])
     }
   }
@@ -93,7 +96,8 @@ export function deserialize(
 
     if (last === '') {
       arrayPushPaths.add(base)
-    } else {
+    }
+    else {
       arrayPushPaths.delete(base)
     }
   }
@@ -180,7 +184,7 @@ export function deserialize(
  * ```
  */
 export function escapeSegment(segment: string): string {
-  return segment.replace(/\\|\[|\]/g, (match) => {
+  return segment.replace(/[\\[\]]/g, (match) => {
     switch (match) {
       case '\\':
         return '\\\\'
@@ -237,7 +241,8 @@ export function stringifyPath(path: readonly [string, ...string[]]): string {
  * ```
  */
 export function parsePath(path: string): [string, ...string[]] {
-  if (path === '') return ['']
+  if (path === '')
+    return ['']
 
   const result: string[] = []
   let currentSegment = ''
@@ -264,14 +269,17 @@ export function parsePath(path: string): [string, ...string[]] {
         if (backslashCount % 2 === 1) {
           if (inBracket) {
             bracketContent += literalBackslashes + char
-          } else {
+          }
+          else {
             currentSegment += literalBackslashes + char
           }
-        } else {
+        }
+        else {
           // Even number means the bracket is not escaped
           if (inBracket) {
             bracketContent += literalBackslashes
-          } else {
+          }
+          else {
             currentSegment += literalBackslashes
           }
 
@@ -282,24 +290,29 @@ export function parsePath(path: string): [string, ...string[]] {
             inBracket = true
             bracketContent = ''
             currentSegment = ''
-          } else if (char === ']' && inBracket) {
+          }
+          else if (char === ']' && inBracket) {
             result.push(bracketContent)
             inBracket = false
             bracketContent = ''
-          } else {
+          }
+          else {
             if (inBracket) {
               bracketContent += char
-            } else {
+            }
+            else {
               currentSegment += char
             }
           }
         }
-      } else {
+      }
+      else {
         // For non-bracket characters, just add all backslashes as literals
         const allBackslashes = '\\'.repeat(backslashCount)
         if (inBracket) {
           bracketContent += allBackslashes + char
-        } else {
+        }
+        else {
           currentSegment += allBackslashes + char
         }
       }
@@ -328,7 +341,8 @@ export function parsePath(path: string): [string, ...string[]] {
     // Add normal characters
     if (inBracket) {
       bracketContent += char
-    } else {
+    }
+    else {
       currentSegment += char
     }
   }
@@ -338,7 +352,8 @@ export function parsePath(path: string): [string, ...string[]] {
     const remainingBackslashes = '\\'.repeat(backslashCount)
     if (inBracket) {
       bracketContent += remainingBackslashes
-    } else {
+    }
+    else {
       currentSegment += remainingBackslashes
     }
   }
@@ -349,7 +364,8 @@ export function parsePath(path: string): [string, ...string[]] {
       result.push(currentSegment)
     }
     result.push(`[${bracketContent}`)
-  } else if (currentSegment !== '' || result.length === 0) {
+  }
+  else if (currentSegment !== '' || result.length === 0) {
     result.push(currentSegment)
   }
 

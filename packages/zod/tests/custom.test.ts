@@ -95,7 +95,7 @@ const cases = [
   ],
 ] as const
 
-describe('Custom Zod Types', () => {
+describe('custom Zod Types', () => {
   it.each(cases)(
     'should validate %s',
     (name, schema, value, mimeType, errorMessage) => {
@@ -107,7 +107,8 @@ describe('Custom Zod Types', () => {
           success: true,
           data: value,
         })
-      } else {
+      }
+      else {
         expect(schema.safeParse(value).error?.issues[0]?.message).toEqual(
           errorMessage,
         )

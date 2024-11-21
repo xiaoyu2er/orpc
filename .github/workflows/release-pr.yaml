@@ -35,7 +35,7 @@ jobs:
         with:
           issue-number: ${{ github.event.pull_request.number }}
           comment-author: 'github-actions[bot]'
-          body-includes: '<!--pr-release-->'
+          body-includes: <!--pr-release-->
 
       - name: Create or update pr-release comment with in process status
         uses: peter-evans/create-or-update-comment@v4

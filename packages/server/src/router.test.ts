@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { os, type RouterWithContract, toContractRouter } from '.'
 
 it('require procedure match context', () => {
-  const osw = os.context<{ auth: boolean; userId: string }>()
+  const osw = os.context<{ auth: boolean, userId: string }>()
 
   osw.router({
     ping: osw.context<{ auth: boolean }>().handler(() => {
@@ -106,14 +106,14 @@ it('toContractRouter', () => {
   const p3 = oc.route({ method: 'GET', path: '/test' })
 
   const contract = oc.router({
-    p1: p1,
+    p1,
 
     nested: oc.router({
-      p2: p2,
+      p2,
     }),
 
     nested2: {
-      p3: p3,
+      p3,
     },
   })
 

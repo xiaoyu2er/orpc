@@ -1,13 +1,13 @@
+import type { Middleware } from './middleware'
+import type { RouterWithContract } from './router'
+import type { Context } from './types'
 import {
   type ContractProcedure,
   type ContractRouter,
   isContractProcedure,
 } from '@orpc/contract'
-import type { Middleware } from './middleware'
 import { isProcedure } from './procedure'
 import { ProcedureImplementer } from './procedure-implementer'
-import type { RouterWithContract } from './router'
-import type { Context } from './types'
 
 export class RouterImplementer<
   TContext extends Context,
@@ -61,7 +61,8 @@ export function chainRouterImplementer<
         contract: item,
         middlewares,
       })
-    } else {
+    }
+    else {
       result[key] = chainRouterImplementer(item as ContractRouter, middlewares)
     }
   }
@@ -94,12 +95,14 @@ export function assertRouterImplementation(
             `Mismatch implementation for procedure at [${currentPath.join('.')}]`,
           )
         }
-      } else {
+      }
+      else {
         throw new Error(
           `Mismatch implementation for procedure at [${currentPath.join('.')}]`,
         )
       }
-    } else {
+    }
+    else {
       assertRouterImplementation(
         contractItem as ContractRouter,
         routerItem as any,

@@ -1,13 +1,12 @@
 /// <reference lib="dom" />
 /// <reference lib="dom.iterable" />
 
-import type { Deserializer } from '../types'
+import type { ZodType } from 'zod'
 
+import type { Deserializer } from '../types'
 import { parseJSONSafely } from '@orpc/shared'
 import cd from 'content-disposition'
-import type { ZodType } from 'zod'
 import * as BracketNotation from '../bracket-notation'
-import type {} from '../types'
 import { zodCoerce } from './zod-coerce'
 
 export class OpenAPIDeserializer implements Deserializer {
@@ -33,11 +32,11 @@ export class OpenAPIDeserializer implements Deserializer {
     }
 
     if (
-      ('method' in re && re.method === 'GET') ||
-      contentType?.startsWith('application/x-www-form-urlencoded')
+      ('method' in re && re.method === 'GET')
+      || contentType?.startsWith('application/x-www-form-urlencoded')
     ) {
-      const params =
-        'method' in re && re.method === 'GET'
+      const params
+        = 'method' in re && re.method === 'GET'
           ? new URLSearchParams(re.url.split('?')[1])
           : new URLSearchParams(await re.text())
 

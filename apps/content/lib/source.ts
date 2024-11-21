@@ -9,10 +9,11 @@ export const source = loader({
   baseUrl: '/docs',
   source: createMDXSource(docs, meta),
   icon(icon) {
-    if (icon && icon in icons)
+    if (icon && icon in icons) {
       return createElement(IconContainer, {
         icon: icons[icon as keyof typeof icons],
       })
+    }
   },
 })
 

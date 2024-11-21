@@ -12,10 +12,10 @@ export const ping = orpcServer.handler(() => 'pong')
 
 export const UserSchema = z
   .object({ data: z.object({ id: z.string(), name: z.string() }) })
-  .transform((data) => data.data)
+  .transform(data => data.data)
 export const UserFindInputSchema = z
   .object({ id: z.string() })
-  .transform((data) => ({ data }))
+  .transform(data => ({ data }))
 
 export const userFind = orpcServer
   .input(UserFindInputSchema)
@@ -34,7 +34,7 @@ export const UserListInputSchema = z
     keyword: z.string().optional(),
     cursor: z.number().default(0),
   })
-  .transform((data) => ({ data }))
+  .transform(data => ({ data }))
 export const UserListOutputSchema = z
   .object({
     data: z.object({
@@ -42,7 +42,7 @@ export const UserListOutputSchema = z
       users: z.array(UserSchema),
     }),
   })
-  .transform((data) => data.data)
+  .transform(data => data.data)
 export const userList = orpcServer
   .input(UserListInputSchema)
   .output(UserListOutputSchema)
@@ -70,7 +70,7 @@ export const userList = orpcServer
 
 export const UserCreateInputSchema = z
   .object({ name: z.string() })
-  .transform((data) => ({ data }))
+  .transform(data => ({ data }))
 export const userCreate = orpcServer
   .input(UserCreateInputSchema)
   .output(UserSchema)
@@ -98,7 +98,7 @@ export const orpcClient = createORPCClient<typeof appRouter>({
   baseURL: 'http://localhost:3000',
 
   async fetch(...args) {
-    await new Promise((resolve) => setTimeout(resolve, 100))
+    await new Promise(resolve => setTimeout(resolve, 100))
     const request = new Request(...args)
 
     return appHandler({
@@ -120,15 +120,10 @@ export const queryClient = new QueryClient({
 
 export class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
-  { hasError?: boolean; error: unknown }
+  { hasError?: boolean, error: unknown }
 > {
   static getDerivedStateFromError(error: any) {
     return { hasError: true, error }
-  }
-
-  override componentDidCatch(error: unknown, errorInfo: unknown) {
-    // You can use your own error logging service here
-    // console.log({ error, errorInfo })
   }
 
   override render() {
@@ -145,7 +140,7 @@ export class ErrorBoundary extends React.Component<
   }
 }
 
-export const wrapper = (props: { children: React.ReactNode }) => {
+export function wrapper(props: { children: React.ReactNode }) {
   return (
     <ORPCContext.Provider value={{ client: orpcClient, queryClient }}>
       <QueryClientProvider client={queryClient}>

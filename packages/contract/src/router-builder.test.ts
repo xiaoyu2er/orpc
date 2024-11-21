@@ -2,15 +2,15 @@ import { z } from 'zod'
 import { ContractProcedure, DecoratedContractProcedure, oc } from '.'
 import { ContractRouterBuilder } from './router-builder'
 
-test('prefix method', () => {
+it('prefix method', () => {
   expect(oc.prefix('/1').prefix('/2').zz$crb.prefix).toEqual('/1/2')
 })
 
-test('tags method', () => {
+it('tags method', () => {
   expect(oc.tags('1').tags('2').zz$crb.tags).toEqual(['1', '2'])
 })
 
-test('define a router', () => {
+it('define a router', () => {
   const ping = oc.route({ method: 'GET', path: '/ping' })
   const pong = oc.input(z.object({ id: z.string() }))
 
@@ -22,11 +22,11 @@ test('define a router', () => {
       .prefix('/internal')
       .tags('internal')
       .router({
-        ping: ping,
-        pong: pong,
+        ping,
+        pong,
 
         nested: {
-          ping: ping,
+          ping,
         },
       }),
   })

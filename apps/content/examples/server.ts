@@ -1,6 +1,15 @@
-import { os, ORPCError } from '@orpc/server'
+import { ORPCError, os } from '@orpc/server'
 import { oz } from '@orpc/zod'
 import { z } from 'zod'
+
+// Expose apis to the internet with fetch handler
+
+import { createFetchHandler } from '@orpc/server/fetch'
+
+// Modern runtime that support fetch api like deno, bun, cloudflare workers, even node can used
+
+import { createServer } from 'node:http'
+import { createServerAdapter } from '@whatwg-node/server'
 
 export type Context = { user?: { id: string } }
 
@@ -75,7 +84,7 @@ export const router = pub.router({
         }),
       )
       .handler(async (input, context, meta) => {
-        input.thumb // file upload out of the box
+        const _thumb = input.thumb // file upload out of the box
 
         return {
           id: 'example',
@@ -86,19 +95,10 @@ export const router = pub.router({
   }),
 })
 
-// Expose apis to the internet with fetch handler
-
-import { createFetchHandler } from '@orpc/server/fetch'
-
 const handler = createFetchHandler({
   router,
   serverless: false, // set true will improve cold start times
 })
-
-// Modern runtime that support fetch api like deno, bun, cloudflare workers, even node can used
-
-import { createServer } from 'node:http'
-import { createServerAdapter } from '@whatwg-node/server'
 
 const server = createServer(
   createServerAdapter((request: Request) => {
@@ -117,7 +117,7 @@ const server = createServer(
 )
 
 server.listen(2026, () => {
-  // biome-ignore lint/suspicious/noConsole: <explanation>
+  // eslint-disable-next-line no-console
   console.log('Server is available at http://localhost:2026')
 })
 

@@ -1,11 +1,11 @@
 import { ContractProcedure, DecoratedContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
-import { os, type Meta } from '.'
+import { type Meta, os } from '.'
 import {
   type DecoratedProcedure,
-  Procedure,
   decorateProcedure,
   isProcedure,
+  Procedure,
 } from './procedure'
 
 it('isProcedure', () => {
@@ -155,7 +155,7 @@ describe('route method', () => {
   })
 })
 
-test('prefix method', () => {
+it('prefix method', () => {
   const p = os.context<{ auth: boolean }>().handler(() => {
     return 'unnoq'
   })
@@ -298,7 +298,7 @@ describe('server action', () => {
   it('can deserialize form data', async () => {
     const p = os
       .input(z.object({ id: z.number(), nested: z.object({ date: z.date() }) }))
-      .handler(async (input) => input)
+      .handler(async input => input)
 
     const form = new FormData()
     form.append('id', '123')

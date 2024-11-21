@@ -1,19 +1,19 @@
 import { oc } from '@orpc/contract'
 import { z } from 'zod'
 import {
-  os,
   type Builder,
   type DecoratedMiddleware,
   type DecoratedProcedure,
+  isProcedure,
   type Meta,
+  os,
   ProcedureBuilder,
   ProcedureImplementer,
   RouterImplementer,
-  isProcedure,
 } from '.'
 import { RouterBuilder } from './router-builder'
 
-test('context method', () => {
+it('context method', () => {
   expectTypeOf<
     typeof os extends Builder<infer TContext, any> ? TContext : never
   >().toEqualTypeOf<undefined | Record<string, unknown>>()
@@ -104,7 +104,7 @@ describe('create middleware', () => {
   })
 })
 
-test('router method', () => {
+it('router method', () => {
   const pingContract = oc.input(z.string()).output(z.string())
   const userFindContract = oc
     .input(z.object({ id: z.string() }))
@@ -149,7 +149,7 @@ describe('define procedure builder', () => {
   const schema2 = z.object({ a: z.string() })
   const example2 = { a: '' }
 
-  test('input method', () => {
+  it('input method', () => {
     const builder = osw.input(schema1, example1)
 
     expectTypeOf(builder).toEqualTypeOf<
@@ -168,7 +168,7 @@ describe('define procedure builder', () => {
     })
   })
 
-  test('output method', () => {
+  it('output method', () => {
     const builder = osw.output(schema2, example2)
 
     expectTypeOf(builder).toEqualTypeOf<
@@ -187,7 +187,7 @@ describe('define procedure builder', () => {
     })
   })
 
-  test('route method', () => {
+  it('route method', () => {
     const builder = osw.route({
       method: 'GET',
       path: '/test',
@@ -217,7 +217,7 @@ describe('define procedure builder', () => {
     })
   })
 
-  test('with middlewares', () => {
+  it('with middlewares', () => {
     const mid = os.middleware(() => {
       return {
         context: {
@@ -329,7 +329,7 @@ describe('handler method', () => {
   })
 })
 
-test('prefix', () => {
+it('prefix', () => {
   const builder = os
     .context<{ auth: boolean }>()
     .use(() => {
@@ -345,7 +345,7 @@ test('prefix', () => {
   expect(builder.zz$rb.prefix).toEqual('/api')
 })
 
-test('tags', () => {
+it('tags', () => {
   const builder = os
     .context<{ auth: boolean }>()
     .use(() => {

@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { ORPCError } from './error'
 
-test('issues', () => {
+it('issues', () => {
   const zodError = z.object({ a: z.string() }).safeParse({ a: 1 }).error
 
   expect(

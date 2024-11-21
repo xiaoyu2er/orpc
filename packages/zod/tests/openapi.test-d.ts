@@ -12,19 +12,19 @@ describe('openapi function', () => {
     })
 
     oz.openapi(schema, {
-      // @ts-expect-error
+      // @ts-expect-error - invalid example
       examples: [{ a: '23' }],
     })
 
     oz.openapi(schema, {
-      // @ts-expect-error
+      // @ts-expect-error - invalid example
       examples: [12343],
     })
   })
 
   it('strict on input & output', () => {
     const schema = z.object({
-      name: z.string().transform((val) => val.length),
+      name: z.string().transform(val => val.length),
     })
 
     oz.openapi(schema, {

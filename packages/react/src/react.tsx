@@ -1,25 +1,25 @@
 import type { ContractRouter } from '@orpc/contract'
 import type { Router } from '@orpc/server'
 import {
+  createORPCContext,
   type ORPCContext,
   type ORPCContextValue,
-  createORPCContext,
   useORPCContext,
 } from './react-context'
 import {
+  createORPCHooks,
   type ORPCHooksWithContractRouter,
   type ORPCHooksWithRouter,
-  createORPCHooks,
 } from './react-hooks'
 import {
+  createORPCUtils,
   type ORPCUtilsWithContractRouter,
   type ORPCUtilsWithRouter,
-  createORPCUtils,
 } from './react-utils'
 import {
+  useQueriesFactory,
   type UseQueriesWithContractRouter,
   type UseQueriesWithRouter,
-  useQueriesFactory,
 } from './use-queries/hook'
 
 export type ORPCReactWithContractRouter<TRouter extends ContractRouter> =
@@ -49,6 +49,7 @@ export function createORPCReact<
   const Context = createORPCContext<TRouter>()
   const useContext = () => useORPCContext(Context)
   const useUtils = () => createORPCUtils({ contextValue: useContext() })
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const useQueries = useQueriesFactory({ context: Context })
   const hooks = createORPCHooks({ context: Context })
 

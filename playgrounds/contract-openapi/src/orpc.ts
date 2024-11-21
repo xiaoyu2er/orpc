@@ -1,15 +1,15 @@
-import { os, ORPCError } from '@orpc/server'
 import type { z } from 'zod'
-import { contract } from './contract'
 import type { UserSchema } from './schemas/user'
+import { ORPCError, os } from '@orpc/server'
+import { contract } from './contract'
 
-export type ORPCContext = { user?: z.infer<typeof UserSchema>; db: any }
+export type ORPCContext = { user?: z.infer<typeof UserSchema>, db: any }
 
 const base = os.context<ORPCContext>().use((input, context, meta) => {
   const start = Date.now()
 
   meta.onFinish(() => {
-    // biome-ignore lint/suspicious/noConsole: <explanation>
+    // eslint-disable-next-line no-console
     console.log(`[${meta.path.join('/')}] ${Date.now() - start}ms`)
   })
 })

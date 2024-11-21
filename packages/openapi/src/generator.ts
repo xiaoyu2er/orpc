@@ -1,20 +1,20 @@
+import type { JSONSchema } from 'json-schema-typed/draft-2020-12'
 import { type ContractRouter, eachContractRouterLeaf } from '@orpc/contract'
 import { type Router, toContractRouter } from '@orpc/server'
 import { findDeepMatches, isPlainObject, omit } from '@orpc/shared'
 import { preSerialize } from '@orpc/transformer'
-import type { JSONSchema } from 'json-schema-typed/draft-2020-12'
 import {
   type MediaTypeObject,
-  type OpenAPIObject,
   OpenApiBuilder,
+  type OpenAPIObject,
   type OperationObject,
   type ParameterObject,
   type RequestBodyObject,
   type ResponseObject,
 } from 'openapi3-ts/oas31'
 import {
-  UNSUPPORTED_JSON_SCHEMA,
   extractJSONSchema,
+  UNSUPPORTED_JSON_SCHEMA,
   zodToJsonSchema,
 } from './zod-to-json-schema'
 
@@ -45,17 +45,17 @@ export function generateOpenAPI(
   } & Omit<OpenAPIObject, 'openapi'>,
   options?: GenerateOpenAPIOptions,
 ): OpenAPIObject {
-  const throwOnMissingTagDefinition =
-    options?.throwOnMissingTagDefinition ?? false
-  const ignoreUndefinedPathProcedures =
-    options?.ignoreUndefinedPathProcedures ?? false
+  const throwOnMissingTagDefinition
+    = options?.throwOnMissingTagDefinition ?? false
+  const ignoreUndefinedPathProcedures
+    = options?.ignoreUndefinedPathProcedures ?? false
 
   const builder = new OpenApiBuilder({
     ...omit(opts, ['router']),
     openapi: '3.1.0',
   })
 
-  const rootTags = opts.tags?.map((tag) => tag.name) ?? []
+  const rootTags = opts.tags?.map(tag => tag.name) ?? []
   const router = toContractRouter(opts.router)
 
   eachContractRouterLeaf(router, (procedure, path_) => {
@@ -76,7 +76,7 @@ export function generateOpenAPI(
       : {}
 
     const params: ParameterObject[] | undefined = (() => {
-      const names = path.match(/{([^}]+)}/g)
+      const names = path.match(/\{([^}]+)\}/g)
 
       if (!names || !names.length) {
         return undefined
@@ -89,7 +89,7 @@ export function generateOpenAPI(
       }
 
       return names
-        .map((raw) => raw.slice(1, -1))
+        .map(raw => raw.slice(1, -1))
         .map((name) => {
           let schema = inputSchema.properties?.[name]
           const required = inputSchema.required?.includes(name)
@@ -127,19 +127,20 @@ export function generateOpenAPI(
             ...inputSchema,
             properties: inputSchema.properties
               ? Object.entries(inputSchema.properties).reduce(
-                  (acc, [key, value]) => {
-                    if (key !== name) {
-                      acc[key] = value
-                    }
+                (acc, [key, value]) => {
+                  if (key !== name) {
+                    acc[key] = value
+                  }
 
-                    return acc
-                  },
-                  {} as Record<string, JSONSchema>,
-                )
+                  return acc
+                },
+                {} as Record<string, JSONSchema>,
+              )
               : undefined,
-            required: inputSchema.required?.filter((v) => v !== name),
+            required: inputSchema.required?.filter(v => v !== name),
             examples: inputSchema.examples?.map((example) => {
-              if (!isPlainObject(example)) return example
+              if (!isPlainObject(example))
+                return example
 
               return Object.entries(example).reduce(
                 (acc, [key, value]) => {
@@ -220,8 +221,8 @@ export function generateOpenAPI(
         contentMediaType: string
       })[]
 
-      const isStillHasFileSchema =
-        findDeepMatches(isFileSchema, schema).values.length > 0
+      const isStillHasFileSchema
+        = findDeepMatches(isFileSchema, schema).values.length > 0
 
       if (files.length) {
         parameters.push({
@@ -268,8 +269,8 @@ export function generateOpenAPI(
         contentMediaType: string
       })[]
 
-      const isStillHasFileSchema =
-        findDeepMatches(isFileSchema, schema).values.length > 0
+      const isStillHasFileSchema
+        = findDeepMatches(isFileSchema, schema).values.length > 0
 
       const content: Record<string, MediaTypeObject> = {}
 
@@ -295,7 +296,7 @@ export function generateOpenAPI(
     })()
 
     if (throwOnMissingTagDefinition && internal.tags) {
-      const missingTag = internal.tags.find((tag) => !rootTags.includes(tag))
+      const missingTag = internal.tags.find(tag => !rootTags.includes(tag))
 
       if (missingTag !== undefined) {
         throw new Error(
@@ -313,7 +314,7 @@ export function generateOpenAPI(
       parameters: parameters.length ? parameters : undefined,
       requestBody,
       responses: {
-        '200': successResponse,
+        200: successResponse,
       },
     }
 
@@ -326,11 +327,12 @@ export function generateOpenAPI(
 }
 
 function isFileSchema(schema: unknown) {
-  if (typeof schema !== 'object' || schema === null) return false
+  if (typeof schema !== 'object' || schema === null)
+    return false
   return (
-    'type' in schema &&
-    'contentMediaType' in schema &&
-    typeof schema.type === 'string' &&
-    typeof schema.contentMediaType === 'string'
+    'type' in schema
+    && 'contentMediaType' in schema
+    && typeof schema.type === 'string'
+    && typeof schema.contentMediaType === 'string'
   )
 }

@@ -81,9 +81,9 @@ describe('useInfiniteQuery', () => {
     expectTypeOf(query.data).toEqualTypeOf<
       | undefined
       | InfiniteData<
-          SchemaOutput<typeof UserListOutputSchema>,
+        SchemaOutput<typeof UserListOutputSchema>,
           number | undefined
-        >
+      >
     >()
   })
 
@@ -111,11 +111,11 @@ describe('useInfiniteQuery', () => {
     expectTypeOf(query.data).toEqualTypeOf<
       | undefined
       | {
-          select: InfiniteData<
-            SchemaOutput<typeof UserListOutputSchema>,
+        select: InfiniteData<
+          SchemaOutput<typeof UserListOutputSchema>,
             number | undefined
-          >
-        }
+        >
+      }
     >()
   })
 })

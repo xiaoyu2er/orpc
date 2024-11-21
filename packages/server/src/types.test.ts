@@ -1,6 +1,6 @@
 import type { MergeContext } from './types'
 
-test('MergeContext', () => {
+it('mergeContext', () => {
   expectTypeOf<MergeContext<undefined, undefined>>().toEqualTypeOf<undefined>()
   expectTypeOf<MergeContext<undefined, { foo: string }>>().toEqualTypeOf<{
     foo: string

@@ -2,7 +2,7 @@ import { ORPC_HEADER, ORPC_HEADER_VALUE } from '@orpc/contract'
 import { oz } from '@orpc/zod'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { os, ORPCError } from '..'
+import { ORPCError, os } from '..'
 import { createFetchHandler } from './fetch'
 
 const router = os.router({
@@ -252,7 +252,7 @@ describe('procedure throw error', () => {
 })
 
 describe('hooks', () => {
-  test('on success', async () => {
+  it('on success', async () => {
     const onSuccess = vi.fn()
     const onError = vi.fn()
     const onFinish = vi.fn()
@@ -282,7 +282,7 @@ describe('hooks', () => {
     expect(onFinish.mock.calls[0]?.[1]).toBe(undefined)
   })
 
-  test('on failed', async () => {
+  it('on failed', async () => {
     const onSuccess = vi.fn()
     const onError = vi.fn()
     const onFinish = vi.fn()
@@ -510,7 +510,7 @@ describe('dynamic params', () => {
           file: oz.file(),
         }),
       )
-      .handler((input) => input),
+      .handler(input => input),
 
     find: os
       .route({
@@ -522,7 +522,7 @@ describe('dynamic params', () => {
           id: z.number(),
         }),
       )
-      .handler((input) => input),
+      .handler(input => input),
   })
 
   const handlers = [
@@ -576,7 +576,7 @@ describe('can control method on POST request', () => {
           file: oz.file(),
         }),
       )
-      .handler((input) => input),
+      .handler(input => input),
   })
 
   const handlers = [

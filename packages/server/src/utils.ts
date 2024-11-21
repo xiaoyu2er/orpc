@@ -4,8 +4,10 @@ export function mergeContext<A extends Context, B extends Context>(
   a: A,
   b: B,
 ): MergeContext<A, B> {
-  if (!a) return b as any
-  if (!b) return a as any
+  if (!a)
+    return b as any
+  if (!b)
+    return a as any
 
   return {
     ...a,
@@ -29,7 +31,8 @@ export async function hook<T>(
 
       return () => {
         const index = onSuccessFns.indexOf(fn)
-        if (index !== -1) onSuccessFns.splice(index, 1)
+        if (index !== -1)
+          onSuccessFns.splice(index, 1)
       }
     },
 
@@ -38,7 +41,8 @@ export async function hook<T>(
 
       return () => {
         const index = onErrorFns.indexOf(fn)
-        if (index !== -1) onErrorFns.splice(index, 1)
+        if (index !== -1)
+          onErrorFns.splice(index, 1)
       }
     },
 
@@ -47,13 +51,14 @@ export async function hook<T>(
 
       return () => {
         const index = onFinishFns.indexOf(fn)
-        if (index !== -1) onFinishFns.splice(index, 1)
+        if (index !== -1)
+          onFinishFns.splice(index, 1)
       }
     },
   }
 
-  let error: unknown = undefined
-  let output: T | undefined = undefined
+  let error: unknown
+  let output: T | undefined
 
   try {
     output = await fn(hooks)
@@ -63,32 +68,36 @@ export async function hook<T>(
     }
 
     return output
-  } catch (e) {
+  }
+  catch (e) {
     error = e
 
     for (const onErrorFn of onErrorFns) {
       try {
         await onErrorFn(error)
-      } catch (e) {
+      }
+      catch (e) {
         error = e
       }
     }
 
     throw error
-  } finally {
+  }
+  finally {
     let hasNewError = false
 
     for (const onFinishFn of onFinishFns) {
       try {
         await onFinishFn(output, error)
-      } catch (e) {
+      }
+      catch (e) {
         error = e
         hasNewError = true
       }
     }
 
     if (hasNewError) {
-      // biome-ignore lint/correctness/noUnsafeFinally: this behavior is expected
+      // eslint-disable-next-line no-unsafe-finally
       throw error
     }
   }

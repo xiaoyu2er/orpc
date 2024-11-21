@@ -1,8 +1,9 @@
 import type { Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { SchemaInputForInfiniteQuery } from './types'
 import {
+  get,
   type PartialOnUndefinedDeep,
   type SetOptional,
-  get,
 } from '@orpc/shared'
 import {
   type DefaultError,
@@ -10,35 +11,34 @@ import {
   type FetchQueryOptions,
   type InfiniteData,
   type QueryKey,
+  useInfiniteQuery,
   type UseInfiniteQueryOptions,
   type UseInfiniteQueryResult,
+  useMutation,
   type UseMutationOptions,
   type UseMutationResult,
-  type UseQueryOptions,
-  type UseQueryResult,
-  type UseSuspenseInfiniteQueryOptions,
-  type UseSuspenseInfiniteQueryResult,
-  type UseSuspenseQueryOptions,
-  type UseSuspenseQueryResult,
-  useInfiniteQuery,
-  useMutation,
   usePrefetchInfiniteQuery,
   usePrefetchQuery,
   useQuery,
+  type UseQueryOptions,
+  type UseQueryResult,
   useSuspenseInfiniteQuery,
+  type UseSuspenseInfiniteQueryOptions,
+  type UseSuspenseInfiniteQueryResult,
   useSuspenseQuery,
+  type UseSuspenseQueryOptions,
+  type UseSuspenseQueryResult,
 } from '@tanstack/react-query'
 import { orpcPathSymbol } from './orpc-path'
 import { type ORPCContext, useORPCContext } from './react-context'
 import { getMutationKeyFromPath, getQueryKeyFromPath } from './tanstack-key'
-import type { SchemaInputForInfiniteQuery } from './types'
 
 export interface ProcedureHooks<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaOutput<TOutputSchema>,
 > {
-  useQuery<USelectData = SchemaOutput<TOutputSchema, THandlerOutput>>(
+  useQuery: <USelectData = SchemaOutput<TOutputSchema, THandlerOutput>>(
     input: SchemaInput<TInputSchema>,
     options?: SetOptional<
       UseQueryOptions<
@@ -48,8 +48,8 @@ export interface ProcedureHooks<
       >,
       'queryFn' | 'queryKey'
     >,
-  ): UseQueryResult<USelectData>
-  useInfiniteQuery<
+  ) => UseQueryResult<USelectData>
+  useInfiniteQuery: <
     USelectData = InfiniteData<
       SchemaOutput<TOutputSchema, THandlerOutput>,
       SchemaInput<TInputSchema>['cursor']
@@ -70,9 +70,9 @@ export interface ProcedureHooks<
         input: SchemaInputForInfiniteQuery<TInputSchema>
       }
     >,
-  ): UseInfiniteQueryResult<USelectData>
+  ) => UseInfiniteQueryResult<USelectData>
 
-  useSuspenseQuery<USelectData = SchemaOutput<TOutputSchema, THandlerOutput>>(
+  useSuspenseQuery: <USelectData = SchemaOutput<TOutputSchema, THandlerOutput>>(
     input: SchemaInput<TInputSchema>,
     options?: SetOptional<
       UseSuspenseQueryOptions<
@@ -82,8 +82,8 @@ export interface ProcedureHooks<
       >,
       'queryFn' | 'queryKey'
     >,
-  ): UseSuspenseQueryResult<USelectData>
-  useSuspenseInfiniteQuery<
+  ) => UseSuspenseQueryResult<USelectData>
+  useSuspenseInfiniteQuery: <
     USelectData = InfiniteData<
       SchemaOutput<TOutputSchema, THandlerOutput>,
       SchemaInput<TInputSchema>['cursor']
@@ -104,13 +104,13 @@ export interface ProcedureHooks<
         input: SchemaInputForInfiniteQuery<TInputSchema>
       }
     >,
-  ): UseSuspenseInfiniteQueryResult<USelectData>
+  ) => UseSuspenseInfiniteQueryResult<USelectData>
 
-  usePrefetchQuery(
+  usePrefetchQuery: (
     input: SchemaInput<TInputSchema>,
     options?: FetchQueryOptions<SchemaOutput<TOutputSchema, THandlerOutput>>,
-  ): void
-  usePrefetchInfiniteQuery(
+  ) => void
+  usePrefetchInfiniteQuery: (
     options: PartialOnUndefinedDeep<
       SetOptional<
         FetchInfiniteQueryOptions<
@@ -125,9 +125,9 @@ export interface ProcedureHooks<
         input: SchemaInputForInfiniteQuery<TInputSchema>
       }
     >,
-  ): void
+  ) => void
 
-  useMutation(
+  useMutation: (
     options?: SetOptional<
       UseMutationOptions<
         SchemaOutput<TOutputSchema, THandlerOutput>,
@@ -136,7 +136,7 @@ export interface ProcedureHooks<
       >,
       'mutationFn' | 'mutationKey'
     >,
-  ): UseMutationResult<
+  ) => UseMutationResult<
     SchemaOutput<TOutputSchema, THandlerOutput>,
     DefaultError,
     SchemaInput<TInputSchema>
@@ -158,7 +158,7 @@ export function createProcedureHooks<
   TInputSchema extends Schema = undefined,
   TOutputSchema extends Schema = undefined,
   THandlerOutput extends
-    SchemaOutput<TOutputSchema> = SchemaOutput<TOutputSchema>,
+  SchemaOutput<TOutputSchema> = SchemaOutput<TOutputSchema>,
 >(
   options: CreateProcedureHooksOptions,
 ): ProcedureHooks<TInputSchema, TOutputSchema, THandlerOutput> {
@@ -261,7 +261,7 @@ export function createProcedureHooks<
       return useMutation(
         {
           mutationKey: getMutationKeyFromPath(options.path),
-          mutationFn: (input) => client(input),
+          mutationFn: input => client(input),
           ...options_,
         },
         context.queryClient,

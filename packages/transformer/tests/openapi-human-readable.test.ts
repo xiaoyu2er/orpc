@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { OpenAPIDeserializer, OpenAPISerializer } from '../src'
 
-describe('OpenAPI transformer human readable', () => {
+describe('openAPI transformer human readable', () => {
   it('should deserialize object', async () => {
     const form = new FormData()
     form.append('number', '123')
@@ -78,14 +78,15 @@ describe('OpenAPI transformer human readable', () => {
     const { body } = new OpenAPISerializer().serialize({
       name: 'test',
       object: { a: 1, b: 2 },
-      file: file,
+      file,
       nested: {
-        file: file,
+        'file': file,
         '[]file\\]': file,
       },
     })
 
-    if (!(body instanceof FormData)) throw new Error('body must be FormData')
+    if (!(body instanceof FormData))
+      throw new Error('body must be FormData')
 
     expect(body.get('file')).toBeInstanceOf(Blob)
     expect(body.get('nested[file]')).toBeInstanceOf(Blob)

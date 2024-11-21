@@ -1,6 +1,6 @@
+import type { OpenAPIObject } from 'openapi3-ts/oas31'
 import { oc } from '@orpc/contract'
 import { oz } from '@orpc/zod'
-import type { OpenAPIObject } from 'openapi3-ts/oas31'
 import { z } from 'zod'
 import { generateOpenAPI } from './generator'
 
@@ -36,7 +36,7 @@ it('works', () => {
       '/ping': {
         post: {
           responses: {
-            '200': {
+            200: {
               description: 'OK',
               content: {
                 'application/json': {
@@ -63,7 +63,7 @@ it('works', () => {
             },
           ],
           responses: {
-            '200': {
+            200: {
               description: 'OK',
               content: {
                 'application/json': {
@@ -133,7 +133,7 @@ it('throwOnMissingTagDefinition option', () => {
       '/ping': {
         post: {
           responses: {
-            '200': {
+            200: {
               description: 'OK',
               content: {
                 'application/json': {
@@ -160,7 +160,7 @@ it('throwOnMissingTagDefinition option', () => {
             },
           ],
           responses: {
-            '200': {
+            200: {
               description: 'OK',
               content: {
                 'application/json': {
@@ -237,7 +237,7 @@ it('support single file upload', () => {
             },
           },
           responses: {
-            '200': {
+            200: {
               content: {
                 'image/jpg': {
                   schema: {
@@ -310,7 +310,7 @@ it('support multipart/form-data', () => {
             },
           },
           responses: {
-            '200': {
+            200: {
               content: {
                 'image/*': {
                   schema: {
@@ -415,7 +415,7 @@ it('work with example', () => {
             },
           },
           responses: {
-            '200': {
+            200: {
               content: {
                 'application/json': {
                   schema: {
@@ -527,7 +527,7 @@ it('should remove params on body', () => {
             },
           },
           responses: {
-            '200': {
+            200: {
               description: 'OK',
               content: {
                 'application/json': { schema: {}, example: undefined },
@@ -629,7 +629,7 @@ it('should remove params on query', () => {
           ],
           requestBody: undefined,
           responses: {
-            '200': {
+            200: {
               description: 'OK',
               content: {
                 'application/json': { schema: {}, example: undefined },

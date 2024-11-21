@@ -1,4 +1,4 @@
-import { os, ORPCError } from '@orpc/server'
+import { ORPCError, os } from '@orpc/server'
 import { z } from 'zod'
 
 // in oRPC middleware is so powerful
@@ -12,7 +12,7 @@ export const pub /** public access */ = os
     const start = Date.now()
 
     meta.onFinish((output, error) => {
-      // biome-ignore lint/suspicious/noConsole: <explanation>
+      // eslint-disable-next-line no-console
       console.log(`middleware cost ${Date.now() - start}ms`)
     })
   })
@@ -23,11 +23,11 @@ export const authMid = pub.middleware(async (input, context, meta) => {
   }
 
   meta.onSuccess((output) => {})
-  meta.onSuccess((error) => {})
+  meta.onSuccess((_error) => {})
   meta.onFinish((output, error) => {})
 
-  meta.path // for analyze
-  meta.procedure // for analyze
+  const _path = meta.path // for analyze
+  const _procedure = meta.procedure // for analyze
 
   return {
     context: {
@@ -51,7 +51,7 @@ export const editPost = authed
   .input(z.object({ id: z.string() }))
   .output(z.string())
   .use(canEditPost) // if input not match, will throw type error
-  .use(canEditPost, (old) => ({ id: old.id })) // Can map input if needed
+  .use(canEditPost, old => ({ id: old.id })) // Can map input if needed
   .use((input, context, meta) => {
     // If middleware create after .input and .output them will be typed
 

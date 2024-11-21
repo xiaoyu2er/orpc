@@ -1,5 +1,6 @@
 import type { Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { PartialDeep, SetOptional } from '@orpc/shared'
+import type { ORPCQueryFilters } from './tanstack-query'
 import {
   type DefaultError,
   type Mutation,
@@ -11,19 +12,18 @@ import {
 } from '@tanstack/react-query'
 import { type ORPCContext, useORPCContext } from './react-context'
 import { getMutationKeyFromPath, getQueryKeyFromPath } from './tanstack-key'
-import type { ORPCQueryFilters } from './tanstack-query'
 
 export interface GeneralHooks<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaOutput<TOutputSchema>,
 > {
-  useIsFetching(
+  useIsFetching: (
     filers?: ORPCQueryFilters<PartialDeep<SchemaInput<TInputSchema>>>,
-  ): number
-  useIsMutating(filters?: SetOptional<MutationFilters, 'mutationKey'>): number
+  ) => number
+  useIsMutating: (filters?: SetOptional<MutationFilters, 'mutationKey'>) => number
 
-  useMutationState<
+  useMutationState: <
     UResult = MutationState<
       SchemaOutput<TOutputSchema, THandlerOutput>,
       DefaultError,
@@ -38,7 +38,8 @@ export interface GeneralHooks<
         SchemaInput<TInputSchema>
       >,
     ) => UResult
-  }): UResult[]
+  }
+  ) => UResult[]
 }
 
 export interface CreateGeneralHooksOptions {
@@ -56,7 +57,7 @@ export function createGeneralHooks<
   TInputSchema extends Schema = undefined,
   TOutputSchema extends Schema = undefined,
   THandlerOutput extends
-    SchemaOutput<TOutputSchema> = SchemaOutput<TOutputSchema>,
+  SchemaOutput<TOutputSchema> = SchemaOutput<TOutputSchema>,
 >(
   options: CreateGeneralHooksOptions,
 ): GeneralHooks<TInputSchema, TOutputSchema, THandlerOutput> {

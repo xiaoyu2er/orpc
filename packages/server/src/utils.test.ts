@@ -1,6 +1,6 @@
 import { hook, mergeContext } from './utils'
 
-test('mergeContext', () => {
+it('mergeContext', () => {
   expect(mergeContext(undefined, undefined)).toBe(undefined)
   expect(mergeContext(undefined, { foo: 'bar' })).toEqual({ foo: 'bar' })
   expect(mergeContext({ foo: 'bar' }, undefined)).toEqual({ foo: 'bar' })
@@ -48,7 +48,8 @@ describe('hook', async () => {
 
         throw error
       })
-    } catch (e) {
+    }
+    catch (e) {
       expect(e).toBe(error)
     }
 
@@ -68,7 +69,8 @@ describe('hook', async () => {
           throw error
         })
       })
-    } catch (e) {
+    }
+    catch (e) {
       expect(e).toBe(error)
     }
 
@@ -78,7 +80,8 @@ describe('hook', async () => {
           throw error1
         })
       })
-    } catch (e) {
+    }
+    catch (e) {
       expect(e).toBe(error1)
     }
 
@@ -88,7 +91,8 @@ describe('hook', async () => {
           throw error2
         })
       })
-    } catch (e) {
+    }
+    catch (e) {
       expect(e).toBe(error2)
     }
 
@@ -105,12 +109,13 @@ describe('hook', async () => {
 
         throw error
       })
-    } catch (e) {
+    }
+    catch (e) {
       expect(e).toBe(error2)
     }
   })
 
-  it('Fist In Last Out', async () => {
+  it('fist In Last Out', async () => {
     const ref = { value: 0 }
     const hooked = hook(async (hooks) => {
       hooks.onSuccess(() => {
@@ -144,7 +149,7 @@ describe('hook', async () => {
     expect(ref).toEqual({ value: 6 })
   })
 
-  it('Fist In Last Out - onError', async () => {
+  it('fist In Last Out - onError', async () => {
     const ref = { value: 0 }
     const hooked = hook(async (hooks) => {
       hooks.onError(() => {
@@ -203,7 +208,8 @@ describe('hook', async () => {
 
         throw error2
       })
-    } catch (e) {
+    }
+    catch (e) {
       expect(e).toBe(error1)
     }
 

@@ -9,7 +9,7 @@ describe('fetchQuery', () => {
   const utils = createProcedureUtils({
     client: orpcClient.user.find,
     path: ['user', 'find'],
-    queryClient: queryClient,
+    queryClient,
   })
 
   it('on success', async () => {
@@ -40,7 +40,7 @@ describe('fetchInfiniteQuery', () => {
   const utils = createProcedureUtils({
     client: orpcClient.user.list,
     path: ['user', 'list'],
-    queryClient: queryClient,
+    queryClient,
   })
 
   it('on success', async () => {
@@ -76,7 +76,7 @@ describe('prefetchQuery', () => {
   const utils = createProcedureUtils({
     client: orpcClient.user.find,
     path: ['user', 'find'],
-    queryClient: queryClient,
+    queryClient,
   })
 
   it('on success', async () => {
@@ -109,7 +109,7 @@ describe('prefetchInfiniteQuery', () => {
   const utils = createProcedureUtils({
     client: orpcClient.user.list,
     path: ['user', 'list'],
-    queryClient: queryClient,
+    queryClient,
   })
 
   it('on success', async () => {
@@ -144,7 +144,7 @@ describe('ensureQueryData', () => {
   const utils = createProcedureUtils({
     client: orpcClient.user.find,
     path: ['user', 'find'],
-    queryClient: queryClient,
+    queryClient,
   })
 
   it('on success', async () => {
@@ -175,7 +175,7 @@ describe('ensureInfiniteQuery', () => {
   const utils = createProcedureUtils({
     client: orpcClient.user.list,
     path: ['user', 'list'],
-    queryClient: queryClient,
+    queryClient,
   })
 
   it('on success', async () => {
@@ -211,7 +211,7 @@ describe('getQueryData', () => {
   const utils = createProcedureUtils({
     client: orpcClient.user.find,
     path: ['user', 'find'],
-    queryClient: queryClient,
+    queryClient,
   })
 
   it('on success', async () => {
@@ -225,7 +225,7 @@ describe('getInfiniteQueryData', () => {
   const utils = createProcedureUtils({
     client: orpcClient.user.list,
     path: ['user', 'list'],
-    queryClient: queryClient,
+    queryClient,
   })
 
   it('on success', async () => {
@@ -239,7 +239,7 @@ describe('getQueryState', () => {
   const utils = createProcedureUtils({
     client: orpcClient.user.find,
     path: ['user', 'find'],
-    queryClient: queryClient,
+    queryClient,
   })
 
   it('on success', async () => {
@@ -256,7 +256,7 @@ describe('getInfiniteQueryState', () => {
   const utils = createProcedureUtils({
     client: orpcClient.user.list,
     path: ['user', 'list'],
-    queryClient: queryClient,
+    queryClient,
   })
 
   it('on success', async () => {
@@ -273,7 +273,7 @@ describe('setQueryData', () => {
   const utils = createProcedureUtils({
     client: orpcClient.user.find,
     path: ['user', 'find'],
-    queryClient: queryClient,
+    queryClient,
   })
 
   it('on success', async () => {
@@ -299,11 +299,11 @@ describe('setQueryData', () => {
   })
 })
 
-describe('getInfiniteQueryData', () => {
+describe('getInfiniteQueryData 2', () => {
   const utils = createProcedureUtils({
     client: orpcClient.user.list,
     path: ['user', 'list'],
-    queryClient: queryClient,
+    queryClient,
   })
 
   it('on success', async () => {

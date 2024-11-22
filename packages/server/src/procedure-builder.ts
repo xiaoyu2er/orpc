@@ -82,7 +82,7 @@ export class ProcedureBuilder<
       MergeContext<TContext, TExtraContext>,
       UExtraContext,
       SchemaOutput<TInputSchema>,
-      SchemaOutput<TOutputSchema>
+      SchemaInput<TOutputSchema>
     >,
   ): ProcedureImplementer<
     TContext,
@@ -101,7 +101,7 @@ export class ProcedureBuilder<
       MergeContext<TContext, TExtraContext>,
       UExtraContext,
       UMappedInput,
-      SchemaOutput<TOutputSchema>
+      SchemaInput<TOutputSchema>
     >,
     mapInput: MapInputMiddleware<SchemaOutput<TInputSchema>, UMappedInput>,
   ): ProcedureImplementer<

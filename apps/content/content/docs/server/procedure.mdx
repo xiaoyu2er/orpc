@@ -26,16 +26,10 @@ const findUser = pub
     .route({ method: 'GET', path: '/{id}' }) // Optional: if you want custom api under OpenAPI Specifications
     .input(z.object({ id: z.string() })) // Optional
     .output(z.object({ id: z.string(), name: z.string() })) // Optional
-    .use((input, context, meta) => { // Optional
+    .use(async (input, context, meta) => { // Optional
         // Middleware runs before the handler
         // input, context, and meta are fully typed
         
-        // Add success callback
-        meta.onSuccess(async (output) => {
-            // Invoked after successful handler execution
-            // Other callbacks: onError, onFinish
-        })
-
         // Example: Authentication check
         if (!context.user) {
             throw new ORPCError({
@@ -45,11 +39,16 @@ const findUser = pub
         }
 
         // Modify context for next middleware/handler
-        return {
+        const result = await meta.next({
             context: {
                 user: context.user // TypeScript will infer user as NonNullable
             }
-        }
+        })
+
+        // do something on success
+        const _output_is_typed = result.output
+
+        return result
     })
     
     // Define handler with business logic

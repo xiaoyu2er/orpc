@@ -1,6 +1,7 @@
+import type { DecoratedProcedure, Meta, MiddlewareMeta } from '.'
 import { DecoratedContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
-import { type DecoratedProcedure, isProcedure, type Meta, os } from '.'
+import { isProcedure, os } from '.'
 import { ProcedureImplementer } from './procedure-implementer'
 
 const p1 = new DecoratedContractProcedure({
@@ -39,20 +40,22 @@ describe('use middleware', () => {
       .use((input, context, meta) => {
         expectTypeOf(input).toEqualTypeOf<unknown>()
         expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
-        expectTypeOf(meta).toEqualTypeOf<Meta<unknown>>()
+        expectTypeOf(meta).toEqualTypeOf<MiddlewareMeta<unknown>>()
 
-        return {
+        return meta.next({
           context: {
             userId: '1',
           },
-        }
+        })
       })
       .use((input, context, meta) => {
         expectTypeOf(input).toEqualTypeOf<unknown>()
         expectTypeOf(context).toEqualTypeOf<
           { userId: string } & { auth: boolean }
         >()
-        expectTypeOf(meta).toEqualTypeOf<Meta<unknown>>()
+        expectTypeOf(meta).toEqualTypeOf<MiddlewareMeta<unknown>>()
+
+        return meta.next({})
       })
 
     expectTypeOf(i).toEqualTypeOf<
@@ -72,25 +75,25 @@ describe('use middleware', () => {
     })
 
     implementer2.use(
-      (input: { postId: string }) => {
-        return { context: { a: 'a' } }
+      (input: { postId: string }, _, meta) => {
+        return meta.next({ context: { a: 'a' } })
       },
       // @ts-expect-error mismatch input
       input => ({ postId: 12455 }),
     )
 
     implementer2.use(
-      (input: { postId: string }) => {},
+      (input: { postId: string }, context, meta) => meta.next({}),
       input => ({ postId: '12455' }),
     )
 
     const i = implementer2.use(
-      (input: { id: number }) => {
-        return {
+      (input: { id: number }, _, meta) => {
+        return meta.next({
           context: {
             userIdd: '1',
           },
-        }
+        })
       },
       input => ({ id: Number.parseInt(input.id) }),
     )
@@ -142,7 +145,7 @@ describe('handler', () => {
     const handler = implementer1.handler((input, context, meta) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()
       expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
-      expectTypeOf(meta).toEqualTypeOf<Meta<unknown>>()
+      expectTypeOf(meta).toEqualTypeOf<Meta>()
 
       return {
         name: 'unnoq',
@@ -163,7 +166,7 @@ describe('handler', () => {
     implementer2.handler((input, context, meta) => {
       expectTypeOf(input).toEqualTypeOf<{ id: string }>()
       expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
-      expectTypeOf(meta).toEqualTypeOf<Meta<unknown>>()
+      expectTypeOf(meta).toEqualTypeOf<Meta>()
 
       return {
         name: 'unnoq',
@@ -175,15 +178,17 @@ describe('handler', () => {
   })
 
   it('combine middlewares', () => {
-    const mid1 = () => {
-      return {
+    const mid1 = os.middleware((input, context, meta) => {
+      return meta.next({
         context: {
           userId: '1',
         },
-      }
-    }
+      })
+    })
 
-    const mid2 = () => {}
+    const mid2 = os.middleware((input, context, meta) => {
+      return meta.next({ })
+    })
 
     const handler = implementer2
       .use(mid1)
@@ -193,7 +198,7 @@ describe('handler', () => {
         expectTypeOf(context).toEqualTypeOf<
           { auth: boolean } & { userId: string }
         >()
-        expectTypeOf(meta).toEqualTypeOf<Meta<unknown>>()
+        expectTypeOf(meta).toEqualTypeOf<Meta>()
 
         return {
           name: 'unnoq',

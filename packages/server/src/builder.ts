@@ -195,18 +195,20 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
    * Create ExtendedMiddleware
    */
 
-  middleware<UExtraContext extends Context = undefined, TInput = unknown>(
+  // TODO: TOutput always any, infer not work at all, because TOutput used inside middleware params,
+  // solution (maybe): create new generic for .output() method
+  middleware<UExtraContext extends Context = undefined, TInput = unknown, TOutput = any>(
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
       UExtraContext,
       TInput,
-      unknown
+      TOutput
     >,
   ): DecoratedMiddleware<
       MergeContext<TContext, TExtraContext>,
       UExtraContext,
       TInput,
-      unknown
+      TOutput
     > {
     return decorateMiddleware(middleware)
   }

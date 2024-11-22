@@ -7,14 +7,17 @@ export type Context = { user?: { id: string } }
 
 export const pub /** public access */ = os
   .context<Context>()
-  .use((input, context, meta) => {
+  .use(async (input, context, meta) => {
     // This middleware will apply to everything create from pub
     const start = Date.now()
 
-    meta.onFinish((output, error) => {
-      // eslint-disable-next-line no-console
+    try {
+      return await meta.next({})
+    }
+    finally {
+    // eslint-disable-next-line no-console
       console.log(`middleware cost ${Date.now() - start}ms`)
-    })
+    }
   })
 
 export const authMid = pub.middleware(async (input, context, meta) => {
@@ -22,18 +25,12 @@ export const authMid = pub.middleware(async (input, context, meta) => {
     throw new ORPCError({ code: 'UNAUTHORIZED' })
   }
 
-  meta.onSuccess((output) => {})
-  meta.onSuccess((_error) => {})
-  meta.onFinish((output, error) => {})
-
   const _path = meta.path // for analyze
   const _procedure = meta.procedure // for analyze
 
-  return {
-    context: {
-      user: context.user,
-    },
-  }
+  const result = await meta.next({ context: { user: context.user } })
+  const _output = result.output // for analyze
+  return result
 })
 
 export const authed = pub.use(authMid) // any procedure compose from authOS will be protected
@@ -44,6 +41,8 @@ export const canEditPost = authMid.concat(
     if (context.user.id !== input.id) {
       throw new ORPCError({ code: 'UNAUTHORIZED' })
     }
+
+    return meta.next({})
   },
 )
 
@@ -52,10 +51,12 @@ export const editPost = authed
   .output(z.string())
   .use(canEditPost) // if input not match, will throw type error
   .use(canEditPost, old => ({ id: old.id })) // Can map input if needed
-  .use((input, context, meta) => {
+  .use(async (input, context, meta) => {
     // If middleware create after .input and .output them will be typed
 
-    meta.onSuccess((output) => {})
+    const result = await meta.next({})
+    const _output = result.output
+    return result
   })
   .handler(() => 'Edited')
 

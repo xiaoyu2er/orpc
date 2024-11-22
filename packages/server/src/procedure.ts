@@ -1,4 +1,5 @@
-import type { Context, MergeContext, Meta, Promisable } from './types'
+import type { Promisable } from '@orpc/shared'
+import type { Context, MergeContext, Meta } from './types'
 import {
   type ContractProcedure,
   DecoratedContractProcedure,
@@ -81,7 +82,7 @@ export type DecoratedProcedure<
       MergeContext<TContext, TExtraContext>,
       UExtraContext,
       SchemaOutput<TInputSchema>,
-      SchemaOutput<TOutputSchema, THandlerOutput>
+      SchemaInput<TOutputSchema, THandlerOutput>
     >,
   ) => DecoratedProcedure<
     TContext,
@@ -99,7 +100,7 @@ export type DecoratedProcedure<
       MergeContext<TContext, TExtraContext>,
       UExtraContext,
       UMappedInput,
-      SchemaOutput<TOutputSchema, THandlerOutput>
+      SchemaInput<TOutputSchema, THandlerOutput>
     >,
     mapInput: MapInputMiddleware<
       SchemaOutput<TInputSchema, THandlerOutput>,
@@ -128,7 +129,7 @@ export interface ProcedureHandler<
   (
     input: SchemaOutput<TInputSchema>,
     context: MergeContext<TContext, TExtraContext>,
-    meta: Meta<unknown>,
+    meta: Meta,
   ): Promisable<SchemaInput<TOutputSchema, TOutput>>
 }
 

@@ -259,10 +259,19 @@ describe('hooks', () => {
 
     const handler = createFetchHandler({
       router,
-      hooks: (context, hooks) => {
-        hooks.onSuccess(onSuccess)
-        hooks.onError(onError)
-        hooks.onFinish(onFinish)
+      hooks: async (context, hooks) => {
+        try {
+          const response = await hooks.next()
+          onSuccess(response)
+          return response
+        }
+        catch (e) {
+          onError(e)
+          throw e
+        }
+        finally {
+          onFinish()
+        }
       },
     })
 
@@ -278,7 +287,6 @@ describe('hooks', () => {
     expect(onFinish).toHaveBeenCalledTimes(1)
 
     expect(onSuccess.mock.calls[0]?.[0]).toBeInstanceOf(Response)
-    expect(onFinish.mock.calls[0]?.[0]).toBeInstanceOf(Response)
     expect(onFinish.mock.calls[0]?.[1]).toBe(undefined)
   })
 
@@ -289,10 +297,19 @@ describe('hooks', () => {
 
     const handler = createFetchHandler({
       router,
-      hooks: (context, hooks) => {
-        hooks.onSuccess(onSuccess)
-        hooks.onError(onError)
-        hooks.onFinish(onFinish)
+      hooks: async (context, hooks) => {
+        try {
+          const response = await hooks.next()
+          onSuccess(response)
+          return response
+        }
+        catch (e) {
+          onError(e)
+          throw e
+        }
+        finally {
+          onFinish()
+        }
       },
     })
 
@@ -310,8 +327,6 @@ describe('hooks', () => {
     expect(onError.mock.calls[0]?.[0]).toBeInstanceOf(Error)
     expect(onError.mock.calls[0]?.[0]?.message).toBe('test')
     expect(onFinish.mock.calls[0]?.[0]).toBe(undefined)
-    expect(onFinish.mock.calls[0]?.[1]).toBeInstanceOf(Error)
-    expect(onFinish.mock.calls[0]?.[1]?.message).toBe('test')
   })
 })
 

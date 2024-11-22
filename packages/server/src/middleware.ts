@@ -1,5 +1,20 @@
-import type { Context, MergeContext, Meta, Promisable } from './types'
+import type { Promisable } from '@orpc/shared'
+import type { Context, MergeContext, Meta } from './types'
 import { mergeContext } from './utils'
+
+export type MiddlewareResult<TExtraContext extends Context, TOutput> = Promisable<{
+  output: TOutput
+  context: TExtraContext
+}>
+
+export interface MiddlewareMeta<
+  TOutput,
+> extends Meta {
+  next: <UExtraContext extends Context = undefined>(
+    options: UExtraContext extends undefined ? { context?: UExtraContext } : { context: UExtraContext }
+  ) => MiddlewareResult<UExtraContext, TOutput>
+  output: <UOutput>(output: UOutput) => MiddlewareResult<undefined, UOutput>
+}
 
 export interface Middleware<
   TContext extends Context,
@@ -10,9 +25,9 @@ export interface Middleware<
   (
     input: TInput,
     context: TContext,
-    meta: Meta<TOutput>,
+    meta: MiddlewareMeta<TOutput>,
   ): Promisable<
-    TExtraContext extends undefined ? void : { context: TExtraContext }
+    MiddlewareResult<TExtraContext, TOutput>
   >
 }
 
@@ -26,7 +41,10 @@ export interface DecoratedMiddleware<
   TInput,
   TOutput,
 > extends Middleware<TContext, TExtraContext, TInput, TOutput> {
-  concat: (<UExtraContext extends Context = undefined, UInput = TInput>(
+  concat: (<
+    UExtraContext extends Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>> | undefined = undefined,
+    UInput = TInput,
+  >(
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
       UExtraContext,
@@ -39,7 +57,7 @@ export interface DecoratedMiddleware<
     TInput & UInput,
     TOutput
   >) & (<
-    UExtraContext extends Context = undefined,
+    UExtraContext extends Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>> | undefined = undefined,
     UInput = TInput,
     UMappedInput = unknown,
   >(
@@ -89,15 +107,16 @@ export function decorateMiddleware<
       const context_ = context as any
       const meta_ = meta as any
 
-      const m1 = await middleware(input_, context_, meta_, ...rest)
-      const m2 = await concatMiddleware_(
-        input_,
-        mergeContext(context_, m1?.context),
-        meta_,
-        ...rest,
-      )
+      const next: MiddlewareMeta<any>['next'] = async (options) => {
+        return concatMiddleware_(input_, mergeContext(context_, options.context), meta_, ...rest)
+      }
 
-      return { context: mergeContext(m1?.context, m2?.context) }
+      const m1 = await middleware(input_, context_, {
+        ...meta_,
+        next,
+      }, ...rest)
+
+      return m1
     })
   }
 

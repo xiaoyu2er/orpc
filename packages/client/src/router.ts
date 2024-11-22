@@ -5,7 +5,8 @@ import type {
   ContractRouter,
   SchemaOutput,
 } from '@orpc/contract'
-import type { Procedure, Promisable, Router } from '@orpc/server'
+import type { Procedure, Router } from '@orpc/server'
+import type { Promisable } from '@orpc/shared'
 import { createProcedureClient, type ProcedureClient } from './procedure'
 
 export type RouterClientWithContractRouter<TRouter extends ContractRouter> = {

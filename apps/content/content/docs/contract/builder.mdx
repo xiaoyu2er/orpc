@@ -83,7 +83,9 @@ import { contract } from 'examples/contract'
 export type Context = { user?: { id: string } }
 export const base = os.context<Context>()
 export const pub /** public access */ = base.contract(contract) // Ensure every implement must be match contract
-export const authed /** require authed */ = base.use(() => {/* auth logic */}).contract(contract)
+export const authed /** require authed */ = base
+  .use((input, context, meta) => /** put auth logic here */ meta.next({}))
+  .contract(contract)
 
 export const router = pub.router({
   getting: pub.getting.handler((input, context, meta) => {

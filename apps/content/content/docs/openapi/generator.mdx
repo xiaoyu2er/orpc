@@ -20,7 +20,7 @@ export type Context = { user?: { id: string } }
 
 // global pub, authed completely optional
 export const pub /** public access */ = os.context<Context>()
-export const authed /** require authed */ = pub.use(() => {/* auth logic */})
+export const authed /** require authed */ = pub.use((input, context, meta) => /** put auth logic here */ meta.next({}))
 
 export const router = pub.router({
   getting: os

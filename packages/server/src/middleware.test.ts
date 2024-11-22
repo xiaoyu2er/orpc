@@ -1,9 +1,6 @@
-import type { Meta } from './types'
-import {
-  type DecoratedMiddleware,
-  decorateMiddleware,
-  type Middleware,
-} from './middleware'
+import type { DecoratedMiddleware, Middleware, MiddlewareMeta } from './middleware'
+import { os } from '.'
+import { decorateMiddleware } from './middleware'
 
 describe('middleware', () => {
   it('just a function', () => {
@@ -15,13 +12,9 @@ describe('middleware', () => {
     > = (input, context, meta) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()
       expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
-      expectTypeOf(meta).toEqualTypeOf<Meta<unknown>>()
+      expectTypeOf(meta).toEqualTypeOf<MiddlewareMeta< unknown>>()
 
-      return {
-        context: {
-          userId: '1',
-        },
-      }
+      return meta.next({ context: { userId: '1' } })
     }
   })
 
@@ -34,16 +27,12 @@ describe('middleware', () => {
     > = (input, context, meta) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()
       expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
-      expectTypeOf(meta).toEqualTypeOf<Meta<unknown>>()
+      expectTypeOf(meta).toEqualTypeOf<MiddlewareMeta< unknown>>()
 
-      return {
-        context: {
-          userId: '1',
-        },
-      }
+      return meta.next({ context: { userId: '1' } })
     }
 
-    // @ts-expect-error mid is not return extra context
+    // @ts-expect-error mid must call next
     const mid2: Middleware<
       { auth: boolean },
       { userId: string },
@@ -52,7 +41,7 @@ describe('middleware', () => {
     > = (input, context, meta) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()
       expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
-      expectTypeOf(meta).toEqualTypeOf<Meta<unknown>>()
+      expectTypeOf(meta).toEqualTypeOf<MiddlewareMeta< unknown>>()
     }
 
     // @ts-expect-error mid return invalid context
@@ -64,42 +53,13 @@ describe('middleware', () => {
     > = (input, context, meta) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()
       expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
-      expectTypeOf(meta).toEqualTypeOf<Meta<unknown>>()
+      expectTypeOf(meta).toEqualTypeOf<MiddlewareMeta<unknown>>()
 
-      return {
+      return meta.next({
         context: {
           valid: false,
         },
-      }
-    }
-  })
-
-  it('not allow return if has no extra context', () => {
-    const mid: Middleware<{ auth: boolean }, undefined, unknown, unknown> = (
-      input,
-      context,
-      meta,
-    ) => {
-      expectTypeOf(input).toEqualTypeOf<unknown>()
-      expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
-      expectTypeOf(meta).toEqualTypeOf<Meta<unknown>>()
-    }
-
-    // @ts-expect-error mid2 is not return extra context
-    const mid2: Middleware<{ auth: boolean }, undefined, unknown, unknown> = (
-      input,
-      context,
-      meta,
-    ) => {
-      expectTypeOf(input).toEqualTypeOf<unknown>()
-      expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
-      expectTypeOf(meta).toEqualTypeOf<Meta<unknown>>()
-
-      return {
-        context: {
-          userId: '1',
-        },
-      }
+      })
     }
   })
 })
@@ -114,13 +74,13 @@ describe('decorateMiddleware', () => {
     >((input, context, meta) => {
       expectTypeOf(input).toEqualTypeOf<{ id: string }>()
       expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
-      expectTypeOf(meta).toEqualTypeOf<Meta<{ name: string }>>()
+      expectTypeOf(meta).toEqualTypeOf<MiddlewareMeta<{ name: string }>>()
 
-      return {
+      return meta.next({
         context: {
           userId: '1',
         },
-      }
+      })
     })
 
     expectTypeOf(mid).toEqualTypeOf<
@@ -148,16 +108,16 @@ describe('decorateMiddleware', () => {
       undefined,
       { id: string },
       { name: string }
-    >(() => {}).concat((input, context, meta) => {
+    >((_, __, meta) => meta.next({})).concat(async (input, context, meta) => {
       expectTypeOf(input).toEqualTypeOf<{ id: string }>()
       expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
-      expectTypeOf(meta).toEqualTypeOf<Meta<{ name: string }>>()
+      expectTypeOf(meta).toEqualTypeOf<MiddlewareMeta<{ name: string }>>()
 
-      return {
+      return meta.next({
         context: {
           userId: '1',
         },
-      }
+      })
     })
 
     expectTypeOf(mid).toEqualTypeOf<
@@ -176,9 +136,9 @@ describe('decorateMiddleware', () => {
       undefined,
       unknown,
       unknown
-    >(() => {})
-      .concat((input: { id: string }) => {})
-      .concat((input: { status: string }) => {})
+    >((_, __, meta) => meta.next({}))
+      .concat((input: { id: string }, _, meta) => meta.next({}))
+      .concat((input: { status: string }, _, meta) => meta.next({}))
 
     expectTypeOf(mid).toEqualTypeOf<
       DecoratedMiddleware<
@@ -190,7 +150,7 @@ describe('decorateMiddleware', () => {
     >()
 
     // MID2 isn't usable because input type is wrong
-    const mid2 = mid.concat((input: { id: number }) => {})
+    const mid2 = mid.concat((input: { id: number }, _, meta) => meta.next({}))
     expectTypeOf(mid2).toMatchTypeOf<
       DecoratedMiddleware<
         { auth: boolean },
@@ -202,8 +162,8 @@ describe('decorateMiddleware', () => {
   })
 
   it('concat: deep copy', () => {
-    const middleware = decorateMiddleware(() => {})
-    const mid2 = middleware.concat(() => {})
+    const middleware = decorateMiddleware((_, __, meta) => meta.next({}))
+    const mid2 = middleware.concat((_, __, meta) => meta.next({}))
     expect(mid2).not.toBe(middleware)
   })
 
@@ -213,12 +173,10 @@ describe('decorateMiddleware', () => {
       undefined,
       unknown,
       unknown
-    >(() => {})
+    >((_, __, meta) => meta.next({}))
 
     const mid2 = middleware.concat(
-      (input: { postId: number }) => {
-        return { context: { a: 'a' } }
-      },
+      (input: { postId: number }, _, meta) => meta.next({ context: { a: 'a' } }),
       input => ({ postId: 12455 }),
     )
 
@@ -229,9 +187,11 @@ describe('decorateMiddleware', () => {
 
     const fn = vi.fn()
     const mid3 = middleware.concat(
-      (input: { postId: string }) => {
+      (input: { postId: string }, _, meta) => {
         fn()
         expect(input).toEqual({ postId: '123' })
+
+        return meta.next({})
       },
       (input: { postId: number }) => {
         fn()
@@ -242,7 +202,7 @@ describe('decorateMiddleware', () => {
       },
     )
 
-    await mid3({ postId: 123 }, {} as any, {} as any)
+    await mid3({ postId: 123 }, {} as any, { next: () => {} } as any)
     expect(fn).toHaveBeenCalledTimes(2)
 
     // INPUT now follow expect types from map not from middleware
@@ -276,4 +236,25 @@ describe('decorateMiddleware', () => {
 
     expect(fn).toHaveBeenCalledWith({ id: '1' }, undefined, {})
   })
+})
+
+it('middleware can output', async () => {
+  let mid2Called = false
+  let handlerCalled = false
+  const ping = os
+    .use((input, ctx, meta) => {
+      return meta.output('from middleware')
+    })
+    .use((input, ctx, meta) => {
+      mid2Called = true
+      return meta.output('from middleware 2')
+    })
+    .handler(() => {
+      handlerCalled = true
+      return 'from handler'
+    })
+
+  expect(await ping(undefined)).toBe('from middleware')
+  expect(mid2Called).toBeFalsy()
+  expect(handlerCalled).toBeFalsy()
 })

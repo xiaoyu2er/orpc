@@ -1,7 +1,9 @@
+import type { MiddlewareMeta } from './middleware'
 import type { ProcedureImplementer } from './procedure-implementer'
 import type { Meta } from './types'
 import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
+import { os } from '.'
 import { type DecoratedProcedure, isProcedure } from './procedure'
 import { ProcedureBuilder } from './procedure-builder'
 
@@ -90,20 +92,22 @@ describe('use middleware', () => {
       .use((input, context, meta) => {
         expectTypeOf(input).toEqualTypeOf<unknown>()
         expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
-        expectTypeOf(meta).toEqualTypeOf<Meta<unknown>>()
+        expectTypeOf(meta).toEqualTypeOf<MiddlewareMeta<unknown>>()
 
-        return {
+        return meta.next({
           context: {
             userId: '1',
           },
-        }
+        })
       })
       .use((input, context, meta) => {
         expectTypeOf(input).toEqualTypeOf<unknown>()
         expectTypeOf(context).toEqualTypeOf<
           { userId: string } & { auth: boolean }
         >()
-        expectTypeOf(meta).toEqualTypeOf<Meta<unknown>>()
+        expectTypeOf(meta).toEqualTypeOf<MiddlewareMeta<unknown>>()
+
+        return meta.next({})
       })
 
     expectTypeOf(implementer).toEqualTypeOf<
@@ -123,25 +127,25 @@ describe('use middleware', () => {
     })
 
     builder.use(
-      (input: { postId: string }) => {
-        return { context: { a: 'a' } }
+      (input: { postId: string }, _, meta) => {
+        return meta.next({ context: { a: 'a' } })
       },
       // @ts-expect-error mismatch input
       input => ({ postId: 12455 }),
     )
 
     builder.use(
-      (input: { postId: string }) => {},
+      (input: { postId: string }, context, meta) => meta.next({}),
       input => ({ postId: '12455' }),
     )
 
     const implementer = builder.input(schema1).use(
-      (input: { id: number }) => {
-        return {
+      (input: { id: number }, _, meta) => {
+        return meta.next({
           context: {
             userId555: '1',
           },
-        }
+        })
       },
       input => ({ id: Number.parseInt(input.id) }),
     )
@@ -162,7 +166,7 @@ describe('handler', () => {
     const handler = builder.handler((input, context, meta) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()
       expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
-      expectTypeOf(meta).toEqualTypeOf<Meta<unknown>>()
+      expectTypeOf(meta).toEqualTypeOf<Meta>()
     })
 
     expectTypeOf(handler).toEqualTypeOf<
@@ -179,15 +183,15 @@ describe('handler', () => {
   })
 
   it('combine middlewares', () => {
-    const mid1 = () => {
-      return {
+    const mid1 = os.middleware((input, context, meta) => {
+      return meta.next({
         context: {
           userId: '1',
         },
-      }
-    }
+      })
+    })
 
-    const mid2 = () => {}
+    const mid2 = os.middleware((_, __, meta) => meta.next({}))
 
     const handler = builder
       .use(mid1)
@@ -197,7 +201,7 @@ describe('handler', () => {
         expectTypeOf(context).toEqualTypeOf<
           { userId: string } & { auth: boolean }
         >()
-        expectTypeOf(meta).toEqualTypeOf<Meta<unknown>>()
+        expectTypeOf(meta).toEqualTypeOf<Meta>()
 
         return {
           name: 'unnoq',

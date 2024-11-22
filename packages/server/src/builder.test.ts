@@ -1,11 +1,14 @@
+import type {
+  Builder,
+  DecoratedMiddleware,
+  DecoratedProcedure,
+  Meta,
+  MiddlewareMeta,
+} from '.'
 import { oc } from '@orpc/contract'
 import { z } from 'zod'
 import {
-  type Builder,
-  type DecoratedMiddleware,
-  type DecoratedProcedure,
   isProcedure,
-  type Meta,
   os,
   ProcedureBuilder,
   ProcedureImplementer,
@@ -40,17 +43,21 @@ describe('use middleware', () => {
     osw.use((input, context, meta) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()
       expectTypeOf(context).toEqualTypeOf<Context>()
-      expectTypeOf(meta).toEqualTypeOf<Meta<unknown>>()
+      expectTypeOf(meta).toEqualTypeOf<MiddlewareMeta<unknown>>()
+
+      return meta.next({})
     })
   })
 
   it('can map context', () => {
     osw
-      .use(() => {
-        return { context: { userId: '1' } }
+      .use((_, __, meta) => {
+        return meta.next({ context: { userId: '1' } })
       })
-      .use((_, context) => {
+      .use((_, context, meta) => {
         expectTypeOf(context).toMatchTypeOf<Context & { userId: string }>()
+
+        return meta.next({})
       })
   })
 
@@ -59,8 +66,8 @@ describe('use middleware', () => {
       // @ts-expect-error mismatch input
       .use((input: { postId: string }) => {})
       .use(
-        (input: { postId: string }) => {
-          return { context: { user: '1' } }
+        (input: { postId: string }, _, meta) => {
+          return meta.next({ context: { user: '1' } })
         },
         (input) => {
           expectTypeOf(input).toEqualTypeOf<unknown>()
@@ -80,17 +87,19 @@ describe('create middleware', () => {
       .middleware((input, context, meta) => {
         expectTypeOf(input).toEqualTypeOf<unknown>()
         expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
-        expectTypeOf(meta).toEqualTypeOf<Meta<unknown>>()
+        expectTypeOf(meta).toEqualTypeOf<MiddlewareMeta<any>>()
+
+        return meta.next({ })
       })
 
     expectTypeOf(mid).toEqualTypeOf<
-      DecoratedMiddleware<{ auth: boolean }, undefined, unknown, unknown>
+      DecoratedMiddleware<{ auth: boolean }, undefined, unknown, any>
     >()
   })
 
   it('map context', () => {
-    const mid = os.context<{ auth: boolean }>().middleware(() => {
-      return { context: { userId: '1' } }
+    const mid = os.context<{ auth: boolean }>().middleware((_, __, meta) => {
+      return meta.next({ context: { userId: '1' } })
     })
 
     expectTypeOf(mid).toEqualTypeOf<
@@ -98,7 +107,7 @@ describe('create middleware', () => {
         { auth: boolean },
         { userId: string },
         unknown,
-        unknown
+        any
       >
     >()
   })
@@ -218,20 +227,20 @@ describe('define procedure builder', () => {
   })
 
   it('with middlewares', () => {
-    const mid = os.middleware(() => {
-      return {
+    const mid = os.middleware((_, __, meta) => {
+      return meta.next({
         context: {
           userId: 'string',
         },
-      }
+      })
     })
 
-    const mid2 = os.middleware(() => {
-      return {
+    const mid2 = os.middleware((_, __, meta) => {
+      return meta.next({
         context: {
           mid2: true,
         },
-      }
+      })
     })
 
     const osw = os.context<{ auth: boolean }>().use(mid).use(mid2)
@@ -280,7 +289,7 @@ describe('handler method', () => {
     const procedure = osw.handler((input, context, meta) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()
       expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
-      expectTypeOf(meta).toEqualTypeOf<Meta<unknown>>()
+      expectTypeOf(meta).toEqualTypeOf<Meta>()
     })
 
     expectTypeOf(procedure).toEqualTypeOf<
@@ -298,12 +307,12 @@ describe('handler method', () => {
   })
 
   it('with middlewares', () => {
-    const mid = os.middleware(() => {
-      return {
+    const mid = os.middleware((_, __, meta) => {
+      return meta.next({
         context: {
           userId: 'string',
         },
-      }
+      })
     })
 
     const osw = os.context<{ auth: boolean }>().use(mid)
@@ -311,7 +320,7 @@ describe('handler method', () => {
     const procedure = osw.handler((input, context, meta) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()
       expectTypeOf(context).toMatchTypeOf<{ auth: boolean }>()
-      expectTypeOf(meta).toEqualTypeOf<Meta<unknown>>()
+      expectTypeOf(meta).toEqualTypeOf<Meta>()
     })
 
     expectTypeOf(procedure).toEqualTypeOf<
@@ -332,8 +341,8 @@ describe('handler method', () => {
 it('prefix', () => {
   const builder = os
     .context<{ auth: boolean }>()
-    .use(() => {
-      return { context: { userId: '1' } }
+    .use((_, __, meta) => {
+      return meta.next({ context: { userId: '1' } })
     })
     .prefix('/api')
 
@@ -348,8 +357,8 @@ it('prefix', () => {
 it('tags', () => {
   const builder = os
     .context<{ auth: boolean }>()
-    .use(() => {
-      return { context: { userId: '1' } }
+    .use((_, __, meta) => {
+      return meta.next({ context: { userId: '1' } })
     })
     .tags('user', 'user2')
 

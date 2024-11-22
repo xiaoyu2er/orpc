@@ -1,4 +1,4 @@
-import type { Promisable } from '@orpc/server'
+import type { Promisable } from '@orpc/shared'
 import { orpcClient } from '../../tests/orpc'
 import { createUseQueriesBuilder } from './builder'
 
@@ -19,7 +19,7 @@ it('createUseQueriesBuilder', () => {
   builder({ id: 123 })
 
   if (typeof result.queryFn === 'function') {
-    expectTypeOf(result.queryFn({} as any)).toEqualTypeOf<
+    expectTypeOf(result.queryFn({} as any)).toMatchTypeOf<
       Promisable<{
         id: string
         name: string

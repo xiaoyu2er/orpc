@@ -1,9 +1,9 @@
 import type { SchemaInput, SchemaOutput } from '@orpc/contract'
-import type { Middleware } from './middleware'
+import type { MiddlewareMeta } from './middleware'
 import type { Procedure } from './procedure'
-import type { Context, Hooks, Meta, Promisable } from './types'
+import type { Context } from './types'
 import { ORPCError } from '@orpc/shared/error'
-import { hook, mergeContext } from './utils'
+import { mergeContext } from './utils'
 
 export interface CreateProcedureCallerOptions<
   TProcedure extends Procedure<any, any, any, any, any>,
@@ -17,16 +17,6 @@ export interface CreateProcedureCallerOptions<
   context: TProcedure extends Procedure<infer UContext, any, any, any, any>
     ? UContext
     : never
-
-  /**
-   * Helpful hooks to do some logics on specific time.
-   */
-  hooks?: (
-    context: TProcedure extends Procedure<infer UContext, any, any, any, any>
-      ? UContext
-      : never,
-    meta: Meta<unknown>,
-  ) => Promisable<void>
 
   /**
    * This is helpful for logging and analytics.
@@ -81,90 +71,75 @@ export function createProcedureCaller<
   const validate = options.validate ?? true
 
   const caller = async (input: unknown): Promise<unknown> => {
-    const handler = async (
-      input: unknown,
-      context: Context,
-      partialMeta: Omit<Meta<unknown>, keyof Hooks<unknown>>,
-      middlewares: Middleware<any, any, any, any>[],
-    ): Promise<unknown> => {
-      if (middlewares[0]) {
-        const [middleware, ...rest] = middlewares
+    const validInput = (() => {
+      if (!validate)
+        return input
+      const schema = procedure.zz$p.contract.zz$cp.InputSchema
+      if (!schema)
+        return input
 
-        return await hook(async (hooks) => {
-          const mid = await middleware(input, context, {
-            ...partialMeta,
-            ...hooks,
-          })
-          return await handler(
-            input,
-            mergeContext(context, mid?.context),
-            partialMeta,
-            rest,
-          )
+      try {
+        return schema.parse(input)
+      }
+      catch (e) {
+        throw new ORPCError({
+          message: 'Validation input failed',
+          code: 'BAD_REQUEST',
+          cause: e,
         })
       }
+    })()
 
-      return await hook(async (hooks) => {
-        const output = await procedure.zz$p.handler(input, context, {
-          ...partialMeta,
-          ...hooks,
+    const middlewares = procedure.zz$p.middlewares ?? []
+    let currentMidIndex = 0
+    let currentContext: Context = options.context
+
+    const next: MiddlewareMeta<unknown>['next'] = async (nextOptions) => {
+      const mid = middlewares[currentMidIndex]
+      currentMidIndex += 1
+      currentContext = mergeContext(currentContext, nextOptions.context)
+
+      if (mid) {
+        return await mid(validInput, currentContext, {
+          path,
+          procedure,
+          internal,
+          next,
+          output: output => ({ output, context: undefined }),
         })
-
-        const validOutput = await (async () => {
-          if (!validate)
-            return output
-          const schema = procedure.zz$p.contract.zz$cp.OutputSchema
-          if (!schema)
-            return output
-          const result = await schema.safeParseAsync(output)
-          if (result.error) {
-            throw new ORPCError({
-              message: 'Validation output failed',
-              code: 'INTERNAL_SERVER_ERROR',
-              cause: result.error,
-            })
-          }
-          return result.data
-        })()
-
-        return validOutput
-      })
+      }
+      else {
+        return {
+          output: await await procedure.zz$p.handler(validInput, currentContext, {
+            path,
+            procedure,
+            internal,
+          }),
+          context: currentContext,
+        }
+      }
     }
 
-    return await hook(async (hooks) => {
-      options.hooks?.(options.context, {
-        ...hooks,
-        path,
-        procedure,
-        internal,
-      })
+    const output = (await next({})).output
 
-      const validInput = (() => {
-        if (!validate)
-          return input
-        const schema = procedure.zz$p.contract.zz$cp.InputSchema
-        if (!schema)
-          return input
+    const validOutput = await (async () => {
+      if (!validate)
+        return output
+      const schema = procedure.zz$p.contract.zz$cp.OutputSchema
+      if (!schema)
+        return output
+      const result = await schema.safeParseAsync(output)
+      if (result.error) {
+        throw new ORPCError({
+          message: 'Validation output failed',
+          code: 'INTERNAL_SERVER_ERROR',
+          cause: result.error,
+        })
+      }
+      return result.data
+    })()
 
-        try {
-          return schema.parse(input)
-        }
-        catch (e) {
-          throw new ORPCError({
-            message: 'Validation input failed',
-            code: 'BAD_REQUEST',
-            cause: e,
-          })
-        }
-      })()
-
-      return await handler(
-        validInput,
-        options.context,
-        { path, procedure, internal },
-        procedure.zz$p.middlewares ?? [],
-      )
-    })
+    return validOutput
   }
 
   return caller as ProcedureCaller<TProcedure, TValidate>

@@ -1,4 +1,4 @@
-import type { ContractProcedure, Schema, SchemaOutput } from '@orpc/contract'
+import type { ContractProcedure, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Context, MergeContext } from './types'
 import {
   decorateMiddleware,
@@ -33,7 +33,7 @@ export class ProcedureImplementer<
       MergeContext<TContext, TExtraContext>,
       UExtraContext,
       SchemaOutput<TInputSchema>,
-      SchemaOutput<TOutputSchema>
+      SchemaInput<TOutputSchema>
     >,
   ): ProcedureImplementer<
     TContext,
@@ -52,7 +52,7 @@ export class ProcedureImplementer<
       MergeContext<TContext, TExtraContext>,
       UExtraContext,
       UMappedInput,
-      SchemaOutput<TOutputSchema>
+      SchemaInput<TOutputSchema>
     >,
     mapInput: MapInputMiddleware<SchemaOutput<TInputSchema>, UMappedInput>,
   ): ProcedureImplementer<

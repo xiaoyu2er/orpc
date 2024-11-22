@@ -101,44 +101,44 @@ describe('createProcedureCaller', () => {
     const ref = { value: 0 }
 
     const mid1 = vi.fn(
-      osw.middleware((input: { id: string }, context, meta) => {
+      osw.middleware(async (input: { id: string }, context, meta) => {
         expect(input).toEqual({ id: '1' })
 
         expect(ref.value).toBe(0)
         ref.value++
 
-        meta.onSuccess(() => {
-          expect(ref.value).toBe(7)
+        try {
+          const result = await meta.next({
+            context: {
+              userId: '1',
+            },
+          })
+          expect(ref.value).toBe(5)
           ref.value++
-        })
-
-        meta.onFinish(() => {
-          expect(ref.value).toBe(8)
+          return result
+        }
+        finally {
+          expect(ref.value).toBe(6)
           ref.value++
-        })
-
-        return {
-          context: {
-            userId: '1',
-          },
         }
       }),
     )
 
     const mid2 = vi.fn(
-      osw.middleware((input, context, meta) => {
+      osw.middleware(async (input, context, meta) => {
         expect(ref.value).toBe(1)
         ref.value++
 
-        meta.onSuccess(() => {
-          expect(ref.value).toBe(5)
+        try {
+          const result = await meta.next({})
+          expect(ref.value).toBe(3)
           ref.value++
-        })
-
-        meta.onFinish(() => {
-          expect(ref.value).toBe(6)
+          return result
+        }
+        finally {
+          expect(ref.value).toBe(4)
           ref.value++
-        })
+        }
       }),
     )
 
@@ -152,16 +152,6 @@ describe('createProcedureCaller', () => {
         expect(ref.value).toBe(2)
         ref.value++
 
-        meta.onSuccess(() => {
-          expect(ref.value).toBe(3)
-          ref.value++
-        })
-
-        meta.onFinish(() => {
-          expect(ref.value).toBe(4)
-          ref.value++
-        })
-
         return 'pong'
       })
 
@@ -171,40 +161,5 @@ describe('createProcedureCaller', () => {
     })
 
     expect(caller({ id: '1' })).resolves.toEqual('pong')
-  })
-
-  it('hooks', async () => {
-    const ref = { value: 0 }
-
-    const caller = createProcedureCaller({
-      procedure,
-      context,
-      internal,
-      path,
-      hooks: (context, meta) => {
-        expect(context).toEqual(context)
-        expect(meta.internal).toBe(internal)
-        expect(meta.path).toBe(path)
-        expect(meta.procedure).toBe(procedure)
-
-        expect(ref.value).toBe(0)
-        ref.value++
-
-        meta.onSuccess(() => {
-          expect(ref.value).toBe(1)
-          ref.value++
-        })
-
-        meta.onFinish(() => {
-          expect(ref.value).toBe(2)
-          ref.value++
-
-          throw new Error('foo')
-        })
-      },
-    })
-
-    await expect(caller({ value: '1243' })).rejects.toThrow('foo')
-    expect(ref.value).toBe(3)
   })
 })

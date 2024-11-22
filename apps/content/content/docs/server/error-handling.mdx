@@ -7,16 +7,17 @@ description: How to intercept, handle or log errors inside oRPC
 import { ORPCError, os } from '@orpc/server'
 
 const ping = os
-    .use((input, context, meta) => {
-        meta.onError(async (error) => {
-            if(!(error instanceof ORPCError)) return;
-
-            console.log(error.code, error.message, error.data)
-            // do something here
-        })
-
-        meta.onSuccess((output) => {})
-        meta.onFinish((output, error) => {})
+    .use(async (input, context, meta) => {
+        try {
+            const result = await meta.next({})
+            const _output = result.output // do something on success
+            return result
+        } catch (e) {
+            // do something on error
+            throw e
+        } finally {
+            // do something on finish
+        }
     })
     .handler((input, context, meta) => {
         throw new ORPCError({

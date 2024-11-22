@@ -1,6 +1,7 @@
+import type { MiddlewareMeta } from '.'
 import { ContractProcedure, DecoratedContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
-import { type Meta, os } from '.'
+import { os } from '.'
 import {
   type DecoratedProcedure,
   decorateProcedure,
@@ -98,7 +99,7 @@ describe('route method', () => {
   })
 
   it('works with middleware', () => {
-    const mid = vi.fn(() => ({ context: { userId: '1' } }))
+    const mid = os.middleware((_, __, meta) => meta.next({ context: { userId: '1' } }))
 
     const p = os
       .context<{ auth: boolean }>()
@@ -179,8 +180,8 @@ describe('use middleware', () => {
   it('infer types', () => {
     const p1 = os
       .context<{ auth: boolean }>()
-      .use(() => {
-        return { context: { postId: 'string' } }
+      .use((_, __, meta) => {
+        return meta.next({ context: { postId: 'string' } })
       })
       .handler(() => {
         return 'unnoq'
@@ -192,20 +193,22 @@ describe('use middleware', () => {
         expectTypeOf(context).toEqualTypeOf<
           { auth: boolean } & { postId: string }
         >()
-        expectTypeOf(meta).toEqualTypeOf<Meta<string>>()
+        expectTypeOf(meta).toEqualTypeOf<MiddlewareMeta<string>>()
 
-        return {
+        return meta.next({
           context: {
             userId: '1',
           },
-        }
+        })
       })
       .use((input, context, meta) => {
         expectTypeOf(input).toEqualTypeOf<unknown>()
         expectTypeOf(context).toEqualTypeOf<
           { userId: string } & { postId: string } & { auth: boolean }
         >()
-        expectTypeOf(meta).toEqualTypeOf<Meta<string>>()
+        expectTypeOf(meta).toEqualTypeOf<MiddlewareMeta<string>>()
+
+        return meta.next({})
       })
 
     expectTypeOf(p2).toEqualTypeOf<
@@ -220,7 +223,9 @@ describe('use middleware', () => {
   })
 
   it('can map input', () => {
-    const mid = (input: { id: number }) => {}
+    const mid = os.middleware((input: { id: number }, __, meta) => {
+      return meta.next({})
+    })
 
     os.input(z.object({ postId: z.number() })).use(mid, (input) => {
       expectTypeOf(input).toEqualTypeOf<{ postId: number }>()

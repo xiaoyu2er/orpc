@@ -1,9 +1,7 @@
 import type {} from '@orpc/contract'
 import type { Router } from './router'
-import type { Meta, Promisable } from './types'
 import { isProcedure, type Procedure } from './procedure'
 import { createProcedureCaller, type ProcedureCaller } from './procedure-caller'
-import {} from './utils'
 
 export interface CreateRouterCallerOptions<
   TRouter extends Router<any>,
@@ -15,14 +13,6 @@ export interface CreateRouterCallerOptions<
    * The context used when calling the procedure.
    */
   context: TRouter extends Router<infer UContext> ? UContext : never
-
-  /**
-   * Helpful hooks to do some logics on specific time.
-   */
-  hooks?: (
-    context: TRouter extends Router<infer UContext> ? UContext : never,
-    meta: Meta<unknown>,
-  ) => Promisable<void>
 
   /**
    * This is helpful for logging and analytics.
@@ -74,7 +64,6 @@ export function createRouterCaller<
       caller[key] = createProcedureCaller({
         procedure: item,
         context: options.context as any,
-        hooks: options.hooks as any,
         path,
         internal,
         validate,
@@ -84,7 +73,6 @@ export function createRouterCaller<
       caller[key] = createRouterCaller({
         router: item as any,
         context: options.context,
-        hooks: options.hooks,
         basePath: path,
         internal,
         validate,

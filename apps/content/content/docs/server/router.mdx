@@ -19,7 +19,7 @@ export const appRouter = os.router({
 
     nested: os
         .prefix('/users')  // Prefix will be concatenated with paths defined in route(...)
-        .use(() => {})     // Apply middleware to all routes in this router
+        .use((input, context, meta) => /* Logic applies for all routes in this router */ meta.next({}))
         .router({
             find: findUser,
         }),
@@ -51,6 +51,7 @@ import { os } from '@orpc/server'
 
 const authMiddleware = os.middleware(async (input, context, meta) => {
     // ...
+    return meta.next({})
 })
 
 const protectedRouter = os

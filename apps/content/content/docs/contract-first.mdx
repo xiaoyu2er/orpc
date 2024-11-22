@@ -87,7 +87,9 @@ import { os, ORPCError } from '@orpc/server'
 import { contract } from 'examples/contract'
 
 export const pub /** public access */ = os.contract(contract) // Ensure every implement must be match contract
-export const authed /** require authed */ = os.use(() => {/* auth logic */}).contract(contract)
+export const authed /** require authed */ = os
+  .use((input, context, meta) => /** put auth logic here */ meta.next({}))
+  .contract(contract)
 
 export const router = pub.router({
   getting: pub.getting.handler((input, context, meta) => {

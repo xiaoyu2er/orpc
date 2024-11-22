@@ -72,9 +72,7 @@ export type Context = { user?: { id: string } }
 export const base = os.context<Context>()
 export const pub /** os with ... */ = base.contract(contract) // Ensure every implement must be match contract
 export const authed /** require authed */ = base
-  .use(() => {
-    /* auth logic */
-  })
+  .use((input, context, meta) => /** put auth logic here */ meta.next({}))
   .contract(contract)
 
 export const router = pub.router({
@@ -86,22 +84,22 @@ export const router = pub.router({
 
   post: {
     find: pub.post.find
-      .use((input, context, meta) => {
+      .use(async (input, context, meta) => {
         if (!context.user) {
           throw new ORPCError({
             code: 'UNAUTHORIZED',
           })
         }
 
-        meta.onSuccess((output) => {
-          // do something on success
-        })
-
-        return {
+        const result = await meta.next({
           context: {
             user: context.user, // from now user not undefined-able
           },
-        }
+        })
+
+        const _output = result.output // do something on success
+
+        return result
       })
       .handler((input, context, meta) => {
         return {

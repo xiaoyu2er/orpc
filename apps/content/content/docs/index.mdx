@@ -59,7 +59,7 @@ export type Context = { user?: { id: string } }
 
 // global pub, authed completely optional
 export const pub /** public access */ = os.context<Context>()
-export const authed /** require authed */ = pub.use(() => {/* auth logic */})
+export const authed /** require authed */ = pub.use((input, context, meta) => /** put auth logic here */ meta.next({}))
 
 export const router = pub.router({
   getting: os
@@ -88,22 +88,22 @@ export const router = pub.router({
           description: z.string(),
         }),
       )
-      .use((input, context, meta) => {
+      .use(async (input, context, meta) => {
         if (!context.user) {
           throw new ORPCError({
             code: 'UNAUTHORIZED',
           })
         }
 
-        meta.onSuccess((output) => {
-          // do something on success
-        })
-
-        return {
+        const result = await meta.next({
           context: {
             user: context.user, // from now user not undefined-able
           },
-        }
+        })
+
+        // do something on success
+
+        return result
       })
       .handler((input, context, meta) => {
         return {

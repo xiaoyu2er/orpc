@@ -1,11 +1,15 @@
 name: Release Next
 
 on:
-  push:
+  workflow_run:
+    workflows: [Release Stable]
+    types: [completed]
     branches: [main]
 
 jobs:
   main:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
     runs-on: ubuntu-latest
 
     permissions:

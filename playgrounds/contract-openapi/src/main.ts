@@ -7,8 +7,14 @@ import { router } from './router'
 
 const orpcHandler = createFetchHandler({
   router,
-  hooks(context, meta) {
-    meta.onError(e => console.error(e))
+  async hooks(context, hooks) {
+    try {
+      return hooks.next()
+    }
+    catch (e) {
+      console.error(e)
+      throw e
+    }
   },
 })
 

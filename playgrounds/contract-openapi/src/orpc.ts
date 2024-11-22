@@ -5,13 +5,16 @@ import { contract } from './contract'
 
 export type ORPCContext = { user?: z.infer<typeof UserSchema>, db: any }
 
-const base = os.context<ORPCContext>().use((input, context, meta) => {
+const base = os.context<ORPCContext>().use(async (input, context, meta) => {
   const start = Date.now()
 
-  meta.onFinish(() => {
+  try {
+    return await meta.next({})
+  }
+  finally {
     // eslint-disable-next-line no-console
     console.log(`[${meta.path.join('/')}] ${Date.now() - start}ms`)
-  })
+  }
 })
 
 const authMid = base.middleware((input, context, meta) => {
@@ -21,11 +24,11 @@ const authMid = base.middleware((input, context, meta) => {
     })
   }
 
-  return {
+  return meta.next({
     context: {
       user: context.user,
     },
-  }
+  })
 })
 
 export const pub = base.contract(contract)

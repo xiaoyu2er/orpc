@@ -6,6 +6,7 @@
 !.vscode/
 !.changeset/
 !.github/
+!.husky/
 
 # Common generated folders
 logs/

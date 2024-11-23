@@ -1,6 +1,5 @@
 import type { ProcedureClient } from '@orpc/client'
 import type { Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
-import type {} from '@orpc/server'
 import type { SetOptional } from '@orpc/shared'
 import type {
   DefaultError,

@@ -1,3 +1,4 @@
+import type { SchemaInput, SchemaOutput } from './types'
 import {
   type ContractProcedure,
   type DecoratedContractProcedure,
@@ -35,4 +36,20 @@ export function eachContractRouterLeaf(
       eachContractRouterLeaf(item as ContractRouter, callback, [...prefix, key])
     }
   }
+}
+
+export type InferContractRouterInputs<T extends ContractRouter> = {
+  [K in keyof T]: T[K] extends ContractProcedure<infer UInputSchema, any>
+    ? SchemaInput<UInputSchema>
+    : T[K] extends ContractRouter
+      ? InferContractRouterInputs<T[K]>
+      : never
+}
+
+export type InferContractRouterOutputs<T extends ContractRouter> = {
+  [K in keyof T]: T[K] extends ContractProcedure<any, infer UOutputSchema>
+    ? SchemaOutput<UOutputSchema>
+    : T[K] extends ContractRouter
+      ? InferContractRouterOutputs<T[K]>
+      : never
 }

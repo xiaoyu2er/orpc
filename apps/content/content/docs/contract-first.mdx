@@ -23,7 +23,7 @@ npm i @orpc/contract @orpc/server @orpc/client
 Start by defining your API contract:
 
 ```ts twoslash
-import { oc } from '@orpc/contract'
+import { oc, type InferContractRouterInputs, type InferContractRouterOutputs } from '@orpc/contract'
 import { oz } from '@orpc/zod'
 import { z } from 'zod'
 
@@ -76,6 +76,9 @@ export const contract = oc.router({
       ),
   }),
 })
+
+export type Inputs = InferContractRouterInputs<typeof contract>
+export type Outputs = InferContractRouterOutputs<typeof contract>
 ```
 
 ## Implement Your Server

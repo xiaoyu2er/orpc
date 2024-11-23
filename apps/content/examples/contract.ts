@@ -1,3 +1,4 @@
+import type { InferContractRouterInputs, InferContractRouterOutputs } from '@orpc/contract'
 import { oc } from '@orpc/contract'
 import { oz } from '@orpc/zod'
 import { z } from 'zod'
@@ -67,6 +68,9 @@ export const contract = oc.router({
       ),
   }),
 })
+
+export type Inputs = InferContractRouterInputs<typeof contract>
+export type Outputs = InferContractRouterOutputs<typeof contract>
 
 export type Context = { user?: { id: string } }
 export const base = os.context<Context>()

@@ -51,7 +51,7 @@ npm i @orpc/server @orpc/client
 ## Define Your First Router
 
 ```ts twoslash
-import { os, ORPCError } from '@orpc/server'
+import { os, ORPCError, type InferRouterInputs, type InferRouterOutputs } from '@orpc/server'
 import { oz } from '@orpc/zod'
 import { z } from 'zod'
 
@@ -132,6 +132,9 @@ export const router = pub.router({
       }),
   },
 })
+
+export type Inputs = InferRouterInputs<typeof router>
+export type Outputs = InferRouterOutputs<typeof router>
 ```
 
 In oRPC middleware is very useful and fully typed you can find more info [here](/docs/server/middleware)

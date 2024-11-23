@@ -88,28 +88,17 @@ const apiRouter = os.router({
 ```
 
 
-## Fundamentals
+## Infer Router Inputs and Outputs
 
-In oRPC, a router is essentially a nested object of procedures. 
-The router syntax provides a convenient way to apply common configurations to multiple procedures:
+The `InferRouterInputs` and `InferRouterOutputs` type utilities can be used to infer the input and output types of a router, respectively.
 
 ```ts twoslash
-import { os } from '@orpc/server'
+import { type InferRouterInputs, type InferRouterOutputs } from '@orpc/server'
+import { router } from 'examples/server'
 
-const findUserHandler = os.handler(() => {})
-const createUserHandler = os.handler(() => {})
+type Inputs = InferRouterInputs<typeof router>
+type Outputs = InferRouterOutputs<typeof router>
 
-const router = os.prefix('/users').router({
-    find: findUserHandler,
-    create: createUserHandler,
-})
-
-// This is equivalent to:
-
-const router2 = {
-    find: findUserHandler.prefix('/users'),
-    create: createUserHandler.prefix('/users'),
-}
-
-// The same principle applies to middlewares
+type GettingInput = Inputs['getting']
+type PostFindOutput = Outputs['post']['find']
 ```

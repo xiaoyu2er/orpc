@@ -114,3 +114,18 @@ export const router = pub.router({
   },
 })
 ```
+
+## Infer Contract Router Inputs and Outputs
+
+The `InferContractRouterInputs` and `InferContractRouterOutputs` type utilities can be used to infer the input and output types of a router, respectively.
+
+```ts twoslash
+import { type InferContractRouterInputs, type InferContractRouterOutputs } from '@orpc/contract'
+import { contract } from 'examples/contract'
+
+type Inputs = InferContractRouterInputs<typeof contract>
+type Outputs = InferContractRouterOutputs<typeof contract>
+
+type GettingInput = Inputs['getting']
+type PostFindOutput = Outputs['post']['find']
+```

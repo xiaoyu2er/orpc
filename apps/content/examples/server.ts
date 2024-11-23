@@ -1,3 +1,4 @@
+import type { InferRouterInputs, InferRouterOutputs } from '@orpc/server'
 import { ORPCError, os } from '@orpc/server'
 import { oz } from '@orpc/zod'
 import { z } from 'zod'
@@ -92,6 +93,9 @@ export const router = pub.router({
       }),
   }),
 })
+
+export type Inputs = InferRouterInputs<typeof router>
+export type Outputs = InferRouterOutputs<typeof router>
 
 const handler = createFetchHandler({
   router,

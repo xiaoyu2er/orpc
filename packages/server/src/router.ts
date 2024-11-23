@@ -1,7 +1,11 @@
+import type {
+  ContractProcedure,
+  ContractRouter,
+  SchemaInput,
+  SchemaOutput,
+} from '@orpc/contract'
 import type { Context } from './types'
 import {
-  type ContractProcedure,
-  type ContractRouter,
   isContractProcedure,
 } from '@orpc/contract'
 import {
@@ -68,4 +72,20 @@ export function toContractRouter(
   }
 
   return contract
+}
+
+export type InferRouterInputs<T extends Router<any>> = {
+  [K in keyof T]: T[K] extends Procedure<any, any, infer UInputSchema, any, any>
+    ? SchemaInput<UInputSchema>
+    : T[K] extends Router<any>
+      ? InferRouterInputs<T[K]>
+      : never
+}
+
+export type InferRouterOutputs<T extends Router<any>> = {
+  [K in keyof T]: T[K] extends Procedure<any, any, any, infer UOutputSchema, infer UHandlerOutput>
+    ? SchemaOutput<UOutputSchema, UHandlerOutput>
+    : T[K] extends Router<any>
+      ? InferRouterOutputs<T[K]>
+      : never
 }

@@ -1,3 +1,0 @@
-pnpm run lint:fix
-pnpm run type:check
-pnpm run test

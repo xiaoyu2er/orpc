@@ -6,7 +6,7 @@ import type { contract } from './contract'
 import { createORPCClient } from '@orpc/client'
 
 const orpc = createORPCClient<typeof contract>({
-  baseURL: 'http://localhost:2026/api',
+  baseURL: 'http://localhost:3000/api',
 })
 
 const planets = await orpc.planet.list({})

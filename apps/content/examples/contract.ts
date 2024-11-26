@@ -144,9 +144,9 @@ const server = createServer(
   }),
 )
 
-server.listen(2026, () => {
+server.listen(3000, () => {
   // eslint-disable-next-line no-console
-  console.log('Server is available at http://localhost:2026')
+  console.log('Server is available at http://localhost:3000')
 })
 
 //

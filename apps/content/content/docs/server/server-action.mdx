@@ -16,7 +16,7 @@ Server actions are automatically enabled for procedures that have either:
 ```ts twoslash
 "use server"
 
-import { os } from '@orpc/server'
+import { os, createProcedureCaller } from '@orpc/server'
 import { z } from 'zod'
 
 // This creates a server action since context is undefined
@@ -33,6 +33,15 @@ const optionalContextProcedure = os
 const regularProcedure = os
   .context<{ auth: boolean }>()
   .func(() => 'result')
+
+// But this will be a server action since it already provided context
+const regularProcedure2 = createProcedureCaller({
+  procedure: regularProcedure,
+  context: async () => {
+    // you can use headers, cookies, etc. here
+    return { auth: true }
+  },
+})
 ```
 
 ## Usage Examples

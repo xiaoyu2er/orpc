@@ -37,7 +37,7 @@ describe('simple', () => {
       request: new Request('http://localhost/orpc/ping', {
         method: 'POST',
       }),
-      context: { auth: true },
+      context: () => ({ auth: true }),
     })
 
     expect(response.status).toBe(200)

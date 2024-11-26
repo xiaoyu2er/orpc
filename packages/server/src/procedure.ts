@@ -1,4 +1,5 @@
 import type { Promisable } from '@orpc/shared'
+import type { ProcedureCaller } from './procedure-caller'
 import type { Context, MergeContext, Meta } from './types'
 import {
   type ContractProcedure,
@@ -10,7 +11,6 @@ import {
   type SchemaInput,
   type SchemaOutput,
 } from '@orpc/contract'
-import { OpenAPIDeserializer } from '@orpc/transformer'
 import {
   decorateMiddleware,
   type MapInputMiddleware,
@@ -114,9 +114,13 @@ export type DecoratedProcedure<
     TFuncOutput
   >)
 } & (undefined extends TContext
-  ? (
-      input: SchemaInput<TInputSchema> | FormData,
-    ) => Promise<SchemaOutput<TOutputSchema, TFuncOutput>>
+  ? ProcedureCaller<Procedure<
+    TContext,
+    TExtraContext,
+    TInputSchema,
+    TOutputSchema,
+    TFuncOutput
+  >>
   : unknown)
 
 export interface ProcedureFunc<
@@ -160,29 +164,10 @@ export function decorateProcedure<
     return procedure as any
   }
 
-  const serverAction = async (input: unknown): Promise<SchemaOutput<TOutputSchema, TFuncOutput>> => {
-    const input_ = (() => {
-      if (!(input instanceof FormData))
-        return input
-
-      const transformer = new OpenAPIDeserializer({
-        schema: procedure.zz$p.contract.zz$cp.InputSchema,
-      })
-
-      return transformer.deserializeAsFormData(input)
-    })()
-
-    const procedureCaller = createProcedureCaller({
-      procedure,
-      context: undefined as any,
-      internal: false,
-      validate: true,
-    })
-
-    return await procedureCaller(input_ as any)
-  }
-
-  return Object.assign(serverAction, {
+  return Object.assign(createProcedureCaller({
+    procedure,
+    context: undefined as any,
+  }), {
     [DECORATED_PROCEDURE_SYMBOL]: true,
     zz$p: procedure.zz$p,
 

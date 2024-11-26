@@ -3,6 +3,7 @@ import { cn } from '@/utils/cn'
 import { Popup, PopupContent, PopupTrigger } from 'fumadocs-twoslash/ui'
 import { CodeBlock, Pre } from 'fumadocs-ui/components/codeblock'
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs'
+import { DocsBody } from 'fumadocs-ui/page'
 import Link from 'next/link'
 
 const mdxComponents = {
@@ -26,6 +27,8 @@ const mdxComponents = {
 }
 
 export default function HomePage() {
+  const landing = homeSource.getPage(['landing'])!
+  const LandingMDX = landing.data.body
   const server = homeSource.getPage(['server'])!
   const ServerMDX = server.data.body
   const client = homeSource.getPage(['client'])!
@@ -38,16 +41,26 @@ export default function HomePage() {
           <div className="flex flex-col items-center">
             <h1 className="max-w-5xl text-foreground text-4xl sm:text-5xl sm:leading-none lg:text-6xl">
               <span className="block text-foreground">
-                End-to-end typesafe APIs builder,
+                End-to-End Typesafe API Builder for Developers
               </span>
-              <span className="block md:ml-0">Developer-first simplicity</span>
+              {/* <span className="block md:ml-0">Developer-first simplicity</span> */}
             </h1>
             <p className="max-w-2xl pt-2 text-foreground my-3 text-xs sm:mt-5 lg:mb-0 sm:text-sm lg:text-base">
-              oRPC is an open-source solution for building modern, typesafe
-              APIs.
-              <br className="hidden md:block" />
-              Build robust, scalable APIs and expose them to the internet with
-              typesafe clients and full OpenAPI support.
+              <strong className="font-semibold">oRPC</strong>
+              {' '}
+              is an open-source toolkit that helps developers build robust TypeScript functions
+              and expose them to the internet using typesafe clients, OpenAPI standards, or even server actions.
+              Our focus is on
+              {' '}
+              <strong className="font-semibold">developer experience</strong>
+              ,
+              {' '}
+              <strong className="font-semibold">performance</strong>
+              , and
+              {' '}
+              <strong className="font-semibold">reliability</strong>
+              .
+              {/* <br className="hidden md:block" /> */}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -82,6 +95,12 @@ export default function HomePage() {
             <ClientMDX components={mdxComponents} />
           </div>
         </div>
+      </div>
+
+      <div className="mt-24 max-w-5xl mx-auto">
+        <DocsBody>
+          <LandingMDX components={mdxComponents} />
+        </DocsBody>
       </div>
 
       {/* <div className="mt-24 grid grid-cols-6 gap-4">

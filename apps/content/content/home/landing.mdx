@@ -1,0 +1,152 @@
+## Build Robust, Typesafe Functions
+
+```tsx
+export const getting = os
+	.use(authMiddleware) // require auth
+	.use(cache('5m')) // cache the output
+	.use(canMiddleware, (i) => i.id) // permission check by id
+	.route({
+		path: '/getting/{id}' // dynamic params support
+		method: 'POST' // custom OpenAPI method
+	})
+	.input(z.object({
+		id: z.bigint(),
+		user: z.object({
+			name: z.string(),
+			avatar: oz.file().type('image/*')
+		})
+	}))
+	.output(z.string()) // validate output
+	.func(async (input) => 'Name and Avatar has been updated')
+```
+
+> Only the `.func` method is required. All other chain methods are optional.
+> 
+
+With [Middleware] and the [Procedure Builder], you can create **reusable logic** that ensures **type safety** and adds **power** and **flexibility** to your functions.
+
+## Use as a Regular Function
+
+```tsx
+const text = await getting({ 
+	id: 1992n,
+	user: {
+		name: 'unnoq',
+		avatar: await readFile('/image.jpg'),
+	}
+})
+```
+
+The [Procedure Caller] feature lets your procedures behave like regular TypeScript functions.
+
+## Expose It Online with a Fully Typed Client
+
+```tsx
+const text = await orpc.getting({ 
+	id: 1992n,
+	user: {
+		name: 'unnoq',
+		avatar: document.getElementById('avatar').files[0],
+	}
+})
+```
+
+Our [Vanilla Client] is fully typed and doesn't rely on generated code—thanks to TypeScript!
+
+## Seamless Integration with TanStack Query
+
+```tsx
+const utils = orpc.useUtils()
+const { mutate, isPending } = orpc.getting.useMutation({
+	onSuccess(){
+    utils.invalidate() // invalidate all queries
+  }
+})
+
+mutate({ 
+	id: 1992n,
+	user: {
+		name: 'unnoq',
+		avatar: document.getElementById('avatar').files[0],
+	}
+})
+```
+
+oRPC's [TanStack Query integration] includes over 10 hooks and 29+ utilities, such as `useQuery`, `useSuspenseQuery`, `useMutation`, `invalidate`, and more. Absolutely everything is typesafe!
+
+## Access via OpenAPI Standard
+
+```bash
+curl -X POST http://localhost:2026/api/getting/1992 \
+  -H "Content-Type: multipart/form-data" \
+  -F "user[name]=unnoq" \
+  -F "user[avatar]=@/path/to/your/image.jpg"
+```
+
+Features like [Smart Casting] and [Bracket Notation] automatically convert `1992` into a `bigint` and seamlessly parse objects like `user`.
+
+## Use as a Server Action
+
+```tsx
+<form action={getting}>
+  <input type="number" name="id" value="1992" />
+  <input type="string" name="user[name]" value="unnoq" />
+  <input type="file" name="user[avatar]" accept="image/*" />
+</form>
+```
+
+With [Smart Casting] and [Bracket Notation], inputs are automatically parsed into the correct types, ensuring smooth data handling.
+Learn more about [Server Actions].
+
+## Dependency Injection with Context
+
+```tsx
+type ORPCContext = { db: DB, user?: { id: string } }
+
+const pub /* public access */ = os.context<ORPCContext>()
+
+const getting = pub
+	.use((input, context, meta) => {
+		if(!context.user){
+			throw new ORPCError({ code: 'UNAUTHORIZED' })
+		}
+		
+		return meta.next({
+			context: {
+				user: context.user // modify user context
+			}
+		})
+	})
+	.func((input, context, meta) => {
+		// ^ context.user is now guaranteed to be defined
+	})
+```
+
+When you use [Global Context], every call to your procedure will require a valid `ORPCContext`.
+
+## **Contract-First Development**
+
+```tsx
+const gettingContract = oc
+	.route({/*something*/})
+	.input({/*something*/})
+	.output({/*something*/})
+	
+const getting = os
+	.contract(gettingContract)
+	.func(async () => 'Worked')
+```
+
+With [oRPC's Contract First Development], you can easily separate the procedure's definition from its implementation.
+
+## Modern Adapters
+
+oRPC works seamlessly in any environment that supports the **Fetch API**, including **Node.js**, **Bun**, **Deno**, **Next.js**, **Nuxt.js**, **Cloudflare Workers**, **Supabase Functions**, and more. We offer first-class serverless support with a dedicated router optimized for cold start performance.
+
+## Performance
+
+We focus on both runtime performance and TypeScript checking performance to ensure a developer-first experience. Benchmarks are coming soon!
+
+## Reliability
+
+We are committed to delivering robust software. Our aim is 100% test coverage to ensure oRPC's reliability at every level.

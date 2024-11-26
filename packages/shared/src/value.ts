@@ -1,14 +1,12 @@
 import type { Promisable } from 'type-fest'
 
-export type PromisableValue<T> = T | (() => Promisable<T>)
+export type Value<T> = T | (() => Promisable<T>)
 
-export async function resolvePromisableValue<T extends PromisableValue<any>>(value: T):
-Promise<
-  Awaited<T extends (...args: any[]) => any ? ReturnType<T> : T>
-> {
+export function value<T extends Value<any>>(value: T):
+Promise<T extends Value<infer U> ? U : never> {
   if (typeof value === 'function') {
     return value()
   }
 
-  return Promise.resolve(value) as any
+  return value as any
 }

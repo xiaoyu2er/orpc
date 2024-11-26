@@ -2,7 +2,7 @@ import type { SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { MiddlewareMeta } from './middleware'
 import type { Procedure } from './procedure'
 import type { Context } from './types'
-import { type PromisableValue, resolvePromisableValue } from '@orpc/shared'
+import { type Value, value } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
 import { OpenAPIDeserializer } from '@orpc/transformer'
 import { mergeContext } from './utils'
@@ -15,7 +15,7 @@ export interface CreateProcedureCallerOptions<
   /**
    * The context used when calling the procedure.
    */
-  context: PromisableValue<
+  context: Value<
     TProcedure extends Procedure<infer UContext, any, any, any, any>
       ? UContext
       : never
@@ -86,7 +86,7 @@ export function createProcedureCaller<
 
     const middlewares = procedure.zz$p.middlewares ?? []
     let currentMidIndex = 0
-    let currentContext: Context = await resolvePromisableValue(options.context)
+    let currentContext: Context = await value(options.context)
 
     const next: MiddlewareMeta<unknown>['next'] = async (nextOptions) => {
       const mid = middlewares[currentMidIndex]

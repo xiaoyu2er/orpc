@@ -3,7 +3,7 @@
 import type {
   PartialOnUndefinedDeep,
   Promisable,
-  PromisableValue,
+  Value,
 } from '@orpc/shared'
 import type { Router } from '../router'
 import {
@@ -16,8 +16,8 @@ import {
   get,
   isPlainObject,
   mapValues,
-  resolvePromisableValue,
   trim,
+  value,
 } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
 import {
@@ -93,7 +93,7 @@ export function createFetchHandler<TRouter extends Router<any>>(
       ? new ORPCSerializer()
       : new OpenAPISerializer({ accept })
 
-    const context = await resolvePromisableValue(requestOptions.context)
+    const context = await value(requestOptions.context)
 
     const handler = async () => {
       const url = new URL(requestOptions.request.url)
@@ -270,7 +270,7 @@ export type FetchHandlerOptions<TRouter extends Router<any>> = {
   /**
    * The context used to handle the request.
    */
-  context: PromisableValue<
+  context: Value<
     TRouter extends Router<infer UContext> ? UContext : never
   >
 }>

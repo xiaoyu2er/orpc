@@ -1,4 +1,4 @@
-import type { PromisableValue } from '@orpc/shared'
+import type { Value } from '@orpc/shared'
 import type { Router } from './router'
 import { isProcedure, type Procedure } from './procedure'
 import { createProcedureCaller, type ProcedureCaller } from './procedure-caller'
@@ -11,7 +11,7 @@ export interface CreateRouterCallerOptions<
   /**
    * The context used when calling the procedure.
    */
-  context: PromisableValue<
+  context: Value<
     TRouter extends Router<infer UContext> ? UContext : never
   >
 

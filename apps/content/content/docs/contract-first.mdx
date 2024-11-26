@@ -133,7 +133,7 @@ import { createORPCClient, ORPCError } from '@orpc/client'
 import type { contract } from 'examples/contract'
 
 const client = createORPCClient<typeof contract /* or server router */>({
-  baseURL: 'http://localhost:2026/prefix',
+  baseURL: 'http://localhost:3000/prefix',
   // fetch: optional override for the default fetch function
   // headers: provide additional headers
 })

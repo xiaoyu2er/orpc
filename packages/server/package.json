@@ -1,7 +1,7 @@
 {
   "name": "@orpc/server",
   "type": "module",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "author": {
     "name": "unnoq",
     "email": "contact@unnoq.com",
@@ -51,6 +51,9 @@
     "build:watch": "pnpm run build --watch",
     "type:check": "tsc -b"
   },
+  "peerDependencies": {
+    "zod": "^3"
+  },
   "dependencies": {
     "@orpc/contract": "workspace:*",
     "@orpc/shared": "workspace:*",
@@ -58,7 +61,6 @@
   },
   "devDependencies": {
     "@orpc/zod": "workspace:*",
-    "hono": "^4.6.3",
-    "zod": "^3.23.8"
+    "hono": "^4.6.3"
   }
 }

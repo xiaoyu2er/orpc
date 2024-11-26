@@ -170,13 +170,13 @@ const server = createServer(
   }),
 )
 
-server.listen(2026, () => {
+server.listen(3000, () => {
   // eslint-disable-next-line no-console
-  console.log('Server is available at http://localhost:2026')
+  console.log('Server is available at http://localhost:3000')
 })
 ```
 
-Start the server and visit http://localhost:2026/api/getting?name=yourname to see the result.
+Start the server and visit http://localhost:3000/api/getting?name=yourname to see the result.
 
 ## Client Usage
 
@@ -187,7 +187,7 @@ import { createORPCClient, ORPCError } from '@orpc/client'
 import type { router } from 'examples/server'
 
 const client = createORPCClient<typeof router /* or contract router */>({
-  baseURL: 'http://localhost:2026/api',
+  baseURL: 'http://localhost:3000/api',
   // fetch: optional override for the default fetch function
   // headers: provide additional headers
 })

@@ -5,7 +5,7 @@ import { createORPCClient, ORPCError } from '@orpc/client'
 import type { router } from 'examples/server'
 
 const client = createORPCClient<typeof router /* or contract router */>({
-  baseURL: 'http://localhost:2026/api',
+  baseURL: 'http://localhost:3000/api',
   // fetch: optional override for the default fetch function
   // headers: provide additional headers
 })
@@ -118,7 +118,7 @@ const queries = orpc.useQueries(o => [
  
 export function ORPCProvider({ children }: { children: React.ReactNode }) {
     const [client] = useState(() => createORPCClient<typeof router /** must match with createORPCReact*/>({
-        baseURL: 'http://localhost:2026/api',
+        baseURL: 'http://localhost:3000/api',
     }))
     const [queryClient] = useState(() => new QueryClient())
  
@@ -139,7 +139,7 @@ export function ORPCProvider({ children }: { children: React.ReactNode }) {
 <Tab value="CURL">
 ```bash
 curl --request POST \
-  --url http://localhost:2026/api/getting \
+  --url http://localhost:3000/api/getting \
   --header 'Content-Type: application/json' \
   --data '{
     "name": "unnoq"
@@ -147,11 +147,11 @@ curl --request POST \
 ```
 
 ```bash
-curl --request GET http://localhost:2026/api/posts/example-id 
+curl --request GET http://localhost:3000/api/posts/example-id 
 ```
 
 ```bash
-curl -X POST http://localhost:2026/api/post/create \
+curl -X POST http://localhost:3000/api/post/create \
   -H "Content-Type: multipart/form-data" \
   -F "title=My Amazing Title" \
   -F "description=This is a detailed description of my content" \
@@ -160,7 +160,7 @@ curl -X POST http://localhost:2026/api/post/create \
 
 ```bash
 # You can express nested data with square brackets
-curl -X POST http://localhost:2026/api/post/create \
+curl -X POST http://localhost:3000/api/post/create \
   -H "Content-Type: multipart/form-data" \
   -F "nested[title]=My Amazing Title" \
   -F "nested[description]=This is a detailed description of my content" \

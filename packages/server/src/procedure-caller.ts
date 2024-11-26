@@ -46,7 +46,7 @@ export type ProcedureCaller<
   any,
   infer UInputSchema,
   infer UOutputSchema,
-  infer UHandlerOutput
+  infer UFuncOutput
 >
   ? (
       input: TValidate extends true
@@ -54,8 +54,8 @@ export type ProcedureCaller<
         : SchemaOutput<UInputSchema>,
     ) => Promise<
       TValidate extends true
-        ? SchemaOutput<UOutputSchema, UHandlerOutput>
-        : SchemaInput<UOutputSchema, UHandlerOutput>
+        ? SchemaOutput<UOutputSchema, UFuncOutput>
+        : SchemaInput<UOutputSchema, UFuncOutput>
     >
   : never
 
@@ -110,7 +110,7 @@ export function createProcedureCaller<
       }
       else {
         return {
-          output: await await procedure.zz$p.handler(validInput, currentContext, {
+          output: await await procedure.zz$p.func(validInput, currentContext, {
             path,
             procedure,
             internal,

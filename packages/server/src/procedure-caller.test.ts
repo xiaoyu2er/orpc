@@ -10,7 +10,7 @@ describe('createProcedureCaller', () => {
   const procedure = osw
     .input(z.object({ value: z.string().transform(v => Number(v)) }))
     .output(z.object({ value: z.number().transform(v => v.toString()) }))
-    .handler((input, context, meta) => {
+    .func((input, context, meta) => {
       expect(context).toEqual(context)
       expect(meta.internal).toBe(internal)
       expect(meta.path).toBe(path)
@@ -79,7 +79,7 @@ describe('createProcedureCaller', () => {
   })
 
   it('without validate and schema', () => {
-    const procedure = osw.handler(() => {
+    const procedure = osw.func(() => {
       return { value: true }
     })
 
@@ -146,7 +146,7 @@ describe('createProcedureCaller', () => {
       .input(z.object({ id: z.string() }))
       .use(mid1)
       .use(mid2)
-      .handler((input, context, meta) => {
+      .func((input, context, meta) => {
         expect(context).toEqual({ userId: '1', auth: false })
 
         expect(ref.value).toBe(2)

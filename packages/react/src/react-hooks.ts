@@ -21,8 +21,8 @@ export type ORPCHooksWithContractRouter<TRouter extends ContractRouter> = {
 } & GeneralHooks<undefined, undefined, unknown>
 
 export type ORPCHooksWithRouter<TRouter extends Router<any>> = {
-  [K in keyof TRouter]: TRouter[K] extends Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UHandlerOutput>
-    ? ProcedureHooks<UInputSchema, UOutputSchema, UHandlerOutput> & GeneralHooks<UInputSchema, UOutputSchema, UHandlerOutput>
+  [K in keyof TRouter]: TRouter[K] extends Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
+    ? ProcedureHooks<UInputSchema, UOutputSchema, UFuncOutput> & GeneralHooks<UInputSchema, UOutputSchema, UFuncOutput>
     : TRouter[K] extends Router<any>
       ? ORPCHooksWithRouter<TRouter[K]>
       : never

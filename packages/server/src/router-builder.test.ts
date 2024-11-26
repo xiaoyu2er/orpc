@@ -6,10 +6,10 @@ import { RouterBuilder } from './router-builder'
 const builder = new RouterBuilder<undefined, undefined>({})
 const ping = os
   .route({ method: 'GET', path: '/ping', tags: ['ping'] })
-  .handler(() => 'ping')
+  .func(() => 'ping')
 const pong = os
   .output(z.object({ id: z.string() }))
-  .handler(() => ({ id: '123' }))
+  .func(() => ({ id: '123' }))
 
 describe('prefix', () => {
   it('chainable prefix', () => {
@@ -80,7 +80,7 @@ describe('middleware', () => {
         InputSchema: undefined,
         OutputSchema: undefined,
       }),
-      handler: () => {},
+      func: () => {},
     })
 
     const decorated = decorateProcedure({
@@ -89,7 +89,7 @@ describe('middleware', () => {
           InputSchema: undefined,
           OutputSchema: undefined,
         }),
-        handler: () => {},
+        func: () => {},
       },
     })
 

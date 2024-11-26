@@ -23,18 +23,18 @@ export class Procedure<
   TExtraContext extends Context,
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
-  THandlerOutput extends SchemaOutput<TOutputSchema>,
+  TFuncOutput extends SchemaOutput<TOutputSchema>,
 > {
   constructor(
     public zz$p: {
       middlewares?: Middleware<any, any, any, any>[]
       contract: ContractProcedure<TInputSchema, TOutputSchema>
-      handler: ProcedureHandler<
+      func: ProcedureFunc<
         TContext,
         TExtraContext,
         TInputSchema,
         TOutputSchema,
-        THandlerOutput
+        TFuncOutput
       >
     },
   ) {}
@@ -45,13 +45,13 @@ export type DecoratedProcedure<
   TExtraContext extends Context,
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
-  THandlerOutput extends SchemaOutput<TOutputSchema>,
+  TFuncOutput extends SchemaOutput<TOutputSchema>,
 > = Procedure<
   TContext,
   TExtraContext,
   TInputSchema,
   TOutputSchema,
-  THandlerOutput
+  TFuncOutput
 > & {
   prefix: (
     prefix: HTTPPath,
@@ -60,7 +60,7 @@ export type DecoratedProcedure<
     TExtraContext,
     TInputSchema,
     TOutputSchema,
-    THandlerOutput
+    TFuncOutput
   >
 
   route: (
@@ -70,7 +70,7 @@ export type DecoratedProcedure<
     TExtraContext,
     TInputSchema,
     TOutputSchema,
-    THandlerOutput
+    TFuncOutput
   >
 
   use: (<
@@ -82,14 +82,14 @@ export type DecoratedProcedure<
       MergeContext<TContext, TExtraContext>,
       UExtraContext,
       SchemaOutput<TInputSchema>,
-      SchemaInput<TOutputSchema, THandlerOutput>
+      SchemaInput<TOutputSchema, TFuncOutput>
     >,
   ) => DecoratedProcedure<
     TContext,
     MergeContext<TExtraContext, UExtraContext>,
     TInputSchema,
     TOutputSchema,
-    THandlerOutput
+    TFuncOutput
   >) & (<
     UExtraContext extends
     | Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>
@@ -100,10 +100,10 @@ export type DecoratedProcedure<
       MergeContext<TContext, TExtraContext>,
       UExtraContext,
       UMappedInput,
-      SchemaInput<TOutputSchema, THandlerOutput>
+      SchemaInput<TOutputSchema, TFuncOutput>
     >,
     mapInput: MapInputMiddleware<
-      SchemaOutput<TInputSchema, THandlerOutput>,
+      SchemaOutput<TInputSchema, TFuncOutput>,
       UMappedInput
     >,
   ) => DecoratedProcedure<
@@ -111,15 +111,15 @@ export type DecoratedProcedure<
     MergeContext<TExtraContext, UExtraContext>,
     TInputSchema,
     TOutputSchema,
-    THandlerOutput
+    TFuncOutput
   >)
 } & (undefined extends TContext
   ? (
       input: SchemaInput<TInputSchema> | FormData,
-    ) => Promise<SchemaOutput<TOutputSchema, THandlerOutput>>
+    ) => Promise<SchemaOutput<TOutputSchema, TFuncOutput>>
   : unknown)
 
-export interface ProcedureHandler<
+export interface ProcedureFunc<
   TContext extends Context,
   TExtraContext extends Context,
   TInputSchema extends Schema,
@@ -140,27 +140,27 @@ export function decorateProcedure<
   TExtraContext extends Context,
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
-  THandlerOutput extends SchemaOutput<TOutputSchema>,
+  TFuncOutput extends SchemaOutput<TOutputSchema>,
 >(
   procedure: Procedure<
     TContext,
     TExtraContext,
     TInputSchema,
     TOutputSchema,
-    THandlerOutput
+    TFuncOutput
   >,
 ): DecoratedProcedure<
     TContext,
     TExtraContext,
     TInputSchema,
     TOutputSchema,
-    THandlerOutput
+    TFuncOutput
   > {
   if (DECORATED_PROCEDURE_SYMBOL in procedure) {
     return procedure as any
   }
 
-  const serverAction = async (input: unknown): Promise<SchemaOutput<TOutputSchema, THandlerOutput>> => {
+  const serverAction = async (input: unknown): Promise<SchemaOutput<TOutputSchema, TFuncOutput>> => {
     const input_ = (() => {
       if (!(input instanceof FormData))
         return input
@@ -246,7 +246,7 @@ export function isProcedure(item: unknown): item is WELL_DEFINED_PROCEDURE {
     && item.zz$p !== null
     && 'contract' in item.zz$p
     && isContractProcedure(item.zz$p.contract)
-    && 'handler' in item.zz$p
-    && typeof item.zz$p.handler === 'function'
+    && 'func' in item.zz$p
+    && typeof item.zz$p.func === 'function'
   )
 }

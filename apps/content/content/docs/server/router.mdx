@@ -10,7 +10,7 @@ A router is a collection of procedures with utilities that help reduce code dupl
 ```ts twoslash
 import { os } from '@orpc/server'
 
-const findUser = os.route({path: '/'}).handler(() => {})
+const findUser = os.route({path: '/'}).func(() => {})
 
 export const appRouter = os.router({
     user: {

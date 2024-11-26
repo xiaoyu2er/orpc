@@ -6,13 +6,13 @@ import { ORPCError, os } from '..'
 import { createFetchHandler } from './fetch'
 
 const router = os.router({
-  throw: os.handler(() => {
+  throw: os.func(() => {
     throw new Error('test')
   }),
-  ping: os.handler(() => {
+  ping: os.func(() => {
     return 'ping'
   }),
-  ping2: os.route({ method: 'GET', path: '/ping2' }).handler(() => {
+  ping2: os.route({ method: 'GET', path: '/ping2' }).func(() => {
     return 'ping2'
   }),
 })
@@ -22,10 +22,10 @@ const handler = createFetchHandler({ router })
 describe('simple', () => {
   const osw = os.context<{ auth?: boolean }>()
   const router = osw.router({
-    ping: osw.handler(async () => 'pong'),
+    ping: osw.func(async () => 'pong'),
     ping2: osw
       .route({ method: 'GET', path: '/ping2' })
-      .handler(async () => 'pong2'),
+      .func(async () => 'pong2'),
   })
   const handler = createFetchHandler({
     router,
@@ -103,7 +103,7 @@ describe('procedure throw error', () => {
 
   it('orpc error', async () => {
     const router = os.router({
-      ping: os.handler(() => {
+      ping: os.func(() => {
         throw new ORPCError({ code: 'TIMEOUT' })
       }),
     })
@@ -124,7 +124,7 @@ describe('procedure throw error', () => {
 
   it('orpc error with data', async () => {
     const router = os.router({
-      ping: os.handler(() => {
+      ping: os.func(() => {
         throw new ORPCError({
           code: 'PAYLOAD_TOO_LARGE',
           message: 'test',
@@ -150,14 +150,14 @@ describe('procedure throw error', () => {
 
   it('orpc error with custom status', async () => {
     const router = os.router({
-      ping: os.handler(() => {
+      ping: os.func(() => {
         throw new ORPCError({
           code: 'PAYLOAD_TOO_LARGE',
           status: 100,
         })
       }),
 
-      ping2: os.handler(() => {
+      ping2: os.func(() => {
         throw new ORPCError({
           code: 'PAYLOAD_TOO_LARGE',
           status: 488,
@@ -195,7 +195,7 @@ describe('procedure throw error', () => {
       ping: os
         .input(z.object({}))
         .output(z.string())
-        .handler(() => {
+        .func(() => {
           return 'unnoq'
         }),
     })
@@ -228,7 +228,7 @@ describe('procedure throw error', () => {
       ping: os
         .input(z.string())
         .output(z.string())
-        .handler(() => {
+        .func(() => {
           return 12344 as any
         }),
     })
@@ -332,14 +332,14 @@ describe('hooks', () => {
 
 describe('file upload', () => {
   const router = os.router({
-    signal: os.input(z.instanceof(Blob)).handler((input) => {
+    signal: os.input(z.instanceof(Blob)).func((input) => {
       return input
     }),
     multiple: os
       .input(
         z.object({ first: z.instanceof(Blob), second: z.instanceof(Blob) }),
       )
-      .handler((input) => {
+      .func((input) => {
         return input
       }),
   })
@@ -416,7 +416,7 @@ describe('file upload', () => {
 
 describe('accept header', () => {
   const router = os.router({
-    ping: os.handler(async () => 'pong'),
+    ping: os.func(async () => 'pong'),
   })
   const handler = createFetchHandler({
     router,
@@ -525,7 +525,7 @@ describe('dynamic params', () => {
           file: oz.file(),
         }),
       )
-      .handler(input => input),
+      .func(input => input),
 
     find: os
       .route({
@@ -537,7 +537,7 @@ describe('dynamic params', () => {
           id: z.number(),
         }),
       )
-      .handler(input => input),
+      .func(input => input),
   })
 
   const handlers = [
@@ -591,7 +591,7 @@ describe('can control method on POST request', () => {
           file: oz.file(),
         }),
       )
-      .handler(input => input),
+      .func(input => input),
   })
 
   const handlers = [

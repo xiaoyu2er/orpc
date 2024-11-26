@@ -18,7 +18,7 @@ export const createPost = os
       }),
     }),
   )
-  .handler((input) => {
+  .func((input) => {
     redirect('/posts/new')
   })
 

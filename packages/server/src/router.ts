@@ -24,14 +24,14 @@ export type HandledRouter<TRouter extends Router<any>> = {
     infer UExtraContext,
     infer UInputSchema,
     infer UOutputSchema,
-    infer UHandlerOutput
+    infer UFuncOutput
   >
     ? DecoratedProcedure<
       UContext,
       UExtraContext,
       UInputSchema,
       UOutputSchema,
-      UHandlerOutput
+      UFuncOutput
     >
     : TRouter[K] extends Router<any>
       ? HandledRouter<TRouter[K]>
@@ -83,8 +83,8 @@ export type InferRouterInputs<T extends Router<any>> = {
 }
 
 export type InferRouterOutputs<T extends Router<any>> = {
-  [K in keyof T]: T[K] extends Procedure<any, any, any, infer UOutputSchema, infer UHandlerOutput>
-    ? SchemaOutput<UOutputSchema, UHandlerOutput>
+  [K in keyof T]: T[K] extends Procedure<any, any, any, infer UOutputSchema, infer UFuncOutput>
+    ? SchemaOutput<UOutputSchema, UFuncOutput>
     : T[K] extends Router<any>
       ? InferRouterOutputs<T[K]>
       : never

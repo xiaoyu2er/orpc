@@ -20,7 +20,7 @@ import {
 import {
   type DecoratedProcedure,
   decorateProcedure,
-  type ProcedureHandler,
+  type ProcedureFunc,
 } from './procedure'
 import { ProcedureBuilder } from './procedure-builder'
 import { ProcedureImplementer } from './procedure-implementer'
@@ -137,20 +137,20 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
   /**
    * Convert to Procedure
    */
-  handler<UHandlerOutput = undefined>(
-    handler: ProcedureHandler<
+  func<UFuncOutput = undefined>(
+    func: ProcedureFunc<
       TContext,
       TExtraContext,
       undefined,
       undefined,
-      UHandlerOutput
+      UFuncOutput
     >,
   ): DecoratedProcedure<
       TContext,
       TExtraContext,
       undefined,
       undefined,
-      UHandlerOutput
+      UFuncOutput
     > {
     return decorateProcedure({
       zz$p: {
@@ -159,7 +159,7 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
           InputSchema: undefined,
           OutputSchema: undefined,
         }),
-        handler,
+        func,
       },
     })
   }

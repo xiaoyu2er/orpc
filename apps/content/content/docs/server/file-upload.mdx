@@ -20,7 +20,7 @@ import { z } from 'zod'
 
 export const uploadFile = os.input(
     z.object({ file: z.instanceof(File) })
-).handler(async (input) => {
+).func(async (input) => {
     const file: File = input.file
     // Handle the file as needed, e.g., save to storage, process, etc.
 })
@@ -45,7 +45,7 @@ import { z } from 'zod'
 
 export const uploadFile = os.input(
     z.object({ file: oz.file().type('image/*') })
-).handler(async (input) => {
+).func(async (input) => {
     const image: File = input.file 
     // Process the image file as needed
 })

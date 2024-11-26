@@ -9,7 +9,7 @@ description: Beyond the basics, oRPC offers more advanced features
 import { os, createRouterCaller } from '@orpc/server'
 
 const router = os.router({
-    ping: os.handler(() => 'pong')
+    ping: os.func(() => 'pong')
 })
 
 const caller = createRouterCaller({

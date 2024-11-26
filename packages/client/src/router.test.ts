@@ -8,7 +8,7 @@ describe('createRouterClient', () => {
   const schema = z.object({
     value: z.string(),
   })
-  const ping = os.input(schema).handler((_, __, { path }) => path)
+  const ping = os.input(schema).func((_, __, { path }) => path)
   const router = os.router({
     ping,
     nested: {
@@ -65,9 +65,9 @@ describe('createRouterClient', () => {
     const schema = z.object({
       value: z.string(),
     })
-    const ping = os.input(schema).handler(() => '')
-    const pong = os.output(schema).handler(() => ({ value: 'string' }))
-    const peng = os.route({}).handler(() => ({ age: 1244 }))
+    const ping = os.input(schema).func(() => '')
+    const pong = os.output(schema).func(() => ({ value: 'string' }))
+    const peng = os.route({}).func(() => ({ age: 1244 }))
 
     const router = os.router({
       ping,
@@ -123,7 +123,7 @@ describe('createRouterClient', () => {
     const router = os.router({
       ping: os
         .input(z.object({ value: z.date() }))
-        .handler(input => input.value),
+        .func(input => input.value),
     })
 
     const handler = createFetchHandler({

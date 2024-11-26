@@ -20,22 +20,22 @@ import { getQueryKeyFromPath } from './tanstack-key'
 export interface ProcedureUtils<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
-  THandlerOutput extends SchemaOutput<TOutputSchema>,
+  TFuncOutput extends SchemaOutput<TOutputSchema>,
 > {
   fetchQuery: (
     input: SchemaInput<TInputSchema>,
     options?: SetOptional<
-      FetchQueryOptions<SchemaOutput<TOutputSchema, THandlerOutput>>,
+      FetchQueryOptions<SchemaOutput<TOutputSchema, TFuncOutput>>,
       'queryKey' | 'queryFn'
     >,
-  ) => Promise<SchemaOutput<TOutputSchema, THandlerOutput>>
+  ) => Promise<SchemaOutput<TOutputSchema, TFuncOutput>>
   fetchInfiniteQuery: (
     options: PartialOnUndefinedDeep<
       SetOptional<
         FetchInfiniteQueryOptions<
-          SchemaOutput<TOutputSchema, THandlerOutput>,
+          SchemaOutput<TOutputSchema, TFuncOutput>,
           DefaultError,
-          SchemaOutput<TOutputSchema, THandlerOutput>,
+          SchemaOutput<TOutputSchema, TFuncOutput>,
           QueryKey,
           SchemaInput<TInputSchema>['cursor']
         >,
@@ -46,7 +46,7 @@ export interface ProcedureUtils<
     >,
   ) => Promise<
     InfiniteData<
-      SchemaOutput<TOutputSchema, THandlerOutput>,
+      SchemaOutput<TOutputSchema, TFuncOutput>,
       SchemaInput<TInputSchema>['cursor']
     >
   >
@@ -54,7 +54,7 @@ export interface ProcedureUtils<
   prefetchQuery: (
     input: SchemaInput<TInputSchema>,
     options?: SetOptional<
-      FetchQueryOptions<SchemaOutput<TOutputSchema, THandlerOutput>>,
+      FetchQueryOptions<SchemaOutput<TOutputSchema, TFuncOutput>>,
       'queryKey' | 'queryFn'
     >,
   ) => Promise<void>
@@ -62,9 +62,9 @@ export interface ProcedureUtils<
     options: PartialOnUndefinedDeep<
       SetOptional<
         FetchInfiniteQueryOptions<
-          SchemaOutput<TOutputSchema, THandlerOutput>,
+          SchemaOutput<TOutputSchema, TFuncOutput>,
           DefaultError,
-          SchemaOutput<TOutputSchema, THandlerOutput>,
+          SchemaOutput<TOutputSchema, TFuncOutput>,
           QueryKey,
           SchemaInput<TInputSchema>['cursor']
         >,
@@ -77,11 +77,11 @@ export interface ProcedureUtils<
 
   getQueryData: (
     input: SchemaInput<TInputSchema>,
-  ) => SchemaOutput<TOutputSchema, THandlerOutput> | undefined
+  ) => SchemaOutput<TOutputSchema, TFuncOutput> | undefined
   getInfiniteQueryData: (
     input: SchemaInputForInfiniteQuery<TInputSchema>,
   ) => | InfiniteData<
-    SchemaOutput<TOutputSchema, THandlerOutput>,
+    SchemaOutput<TOutputSchema, TFuncOutput>,
     SchemaInput<TInputSchema>['cursor']
   >
   | undefined
@@ -89,17 +89,17 @@ export interface ProcedureUtils<
   ensureQueryData: (
     input: SchemaInput<TInputSchema>,
     options?: SetOptional<
-      EnsureQueryDataOptions<SchemaOutput<TOutputSchema, THandlerOutput>>,
+      EnsureQueryDataOptions<SchemaOutput<TOutputSchema, TFuncOutput>>,
       'queryFn' | 'queryKey'
     >,
-  ) => Promise<SchemaOutput<TOutputSchema, THandlerOutput>>
+  ) => Promise<SchemaOutput<TOutputSchema, TFuncOutput>>
   ensureInfiniteQueryData: (
     options: PartialOnUndefinedDeep<
       SetOptional<
         EnsureInfiniteQueryDataOptions<
-          SchemaOutput<TOutputSchema, THandlerOutput>,
+          SchemaOutput<TOutputSchema, TFuncOutput>,
           DefaultError,
-          SchemaOutput<TOutputSchema, THandlerOutput>,
+          SchemaOutput<TOutputSchema, TFuncOutput>,
           QueryKey,
           SchemaInput<TInputSchema>['cursor']
         >,
@@ -110,19 +110,19 @@ export interface ProcedureUtils<
     >,
   ) => Promise<
     InfiniteData<
-      SchemaOutput<TOutputSchema, THandlerOutput>,
+      SchemaOutput<TOutputSchema, TFuncOutput>,
       SchemaInput<TInputSchema>['cursor']
     >
   >
 
   getQueryState: (
     input: SchemaInput<TInputSchema>,
-  ) => QueryState<SchemaOutput<TOutputSchema, THandlerOutput>> | undefined
+  ) => QueryState<SchemaOutput<TOutputSchema, TFuncOutput>> | undefined
   getInfiniteQueryState: (
     input: SchemaInputForInfiniteQuery<TInputSchema>,
   ) => | QueryState<
     InfiniteData<
-      SchemaOutput<TOutputSchema, THandlerOutput>,
+      SchemaOutput<TOutputSchema, TFuncOutput>,
       SchemaInput<TInputSchema>['cursor']
     >
   >
@@ -131,28 +131,28 @@ export interface ProcedureUtils<
   setQueryData: (
     input: SchemaInput<TInputSchema>,
     updater: Updater<
-      SchemaOutput<TOutputSchema, THandlerOutput> | undefined,
-      SchemaOutput<TOutputSchema, THandlerOutput> | undefined
+      SchemaOutput<TOutputSchema, TFuncOutput> | undefined,
+      SchemaOutput<TOutputSchema, TFuncOutput> | undefined
     >,
     options?: SetDataOptions,
-  ) => SchemaOutput<TOutputSchema, THandlerOutput> | undefined
+  ) => SchemaOutput<TOutputSchema, TFuncOutput> | undefined
   setInfiniteQueryData: (
     input: SchemaInputForInfiniteQuery<TInputSchema>,
     updater: Updater<
       | InfiniteData<
-        SchemaOutput<TOutputSchema, THandlerOutput>,
+        SchemaOutput<TOutputSchema, TFuncOutput>,
         SchemaInput<TInputSchema>['cursor']
       >
       | undefined,
       | InfiniteData<
-        SchemaOutput<TOutputSchema, THandlerOutput>,
+        SchemaOutput<TOutputSchema, TFuncOutput>,
         SchemaInput<TInputSchema>['cursor']
       >
       | undefined
     >,
     options?: SetDataOptions,
   ) => | InfiniteData<
-    SchemaOutput<TOutputSchema, THandlerOutput>,
+    SchemaOutput<TOutputSchema, TFuncOutput>,
     SchemaInput<TInputSchema>['cursor']
   >
   | undefined
@@ -161,10 +161,10 @@ export interface ProcedureUtils<
 export interface CreateProcedureUtilsOptions<
   TInputSchema extends Schema = undefined,
   TOutputSchema extends Schema = undefined,
-  THandlerOutput extends
+  TFuncOutput extends
   SchemaOutput<TOutputSchema> = SchemaOutput<TOutputSchema>,
 > {
-  client: ProcedureClient<TInputSchema, TOutputSchema, THandlerOutput>
+  client: ProcedureClient<TInputSchema, TOutputSchema, TFuncOutput>
   queryClient: QueryClient
 
   /**
@@ -176,14 +176,14 @@ export interface CreateProcedureUtilsOptions<
 export function createProcedureUtils<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
-  THandlerOutput extends SchemaOutput<TOutputSchema>,
+  TFuncOutput extends SchemaOutput<TOutputSchema>,
 >(
   options: CreateProcedureUtilsOptions<
     TInputSchema,
     TOutputSchema,
-    THandlerOutput
+    TFuncOutput
   >,
-): ProcedureUtils<TInputSchema, TOutputSchema, THandlerOutput> {
+): ProcedureUtils<TInputSchema, TOutputSchema, TFuncOutput> {
   return {
     fetchQuery(input, options_) {
       return options.queryClient.fetchQuery({

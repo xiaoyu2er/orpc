@@ -10,14 +10,14 @@ describe('createRouterCaller', () => {
   const ping = osw
     .input(z.object({ value: z.string().transform(v => Number(v)) }))
     .output(z.object({ value: z.number().transform(v => v.toString()) }))
-    .handler((input, context, meta) => {
+    .func((input, context, meta) => {
       expect(context).toEqual(context)
       expect(meta.internal).toEqual(internal)
 
       return input
     })
 
-  const pong = osw.handler((_, context, meta) => {
+  const pong = osw.func((_, context, meta) => {
     expect(context).toEqual(context)
     expect(meta.internal).toBe(internal)
 
@@ -143,7 +143,7 @@ describe('createRouterCaller', () => {
   })
 
   it('path', () => {
-    const ping = osw.handler((_, __, { path }) => {
+    const ping = osw.func((_, __, { path }) => {
       return path
     })
 

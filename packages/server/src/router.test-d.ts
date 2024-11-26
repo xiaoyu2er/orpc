@@ -6,11 +6,11 @@ const router = os.router({
   ping: os
     .input(z.object({ ping: z.string().transform(() => 1) }))
     .output(z.object({ pong: z.number().transform(() => '1') }))
-    .handler(() => ({ pong: 1 })),
+    .func(() => ({ pong: 1 })),
   user: {
     find: os
       .input(z.object({ find: z.number().transform(() => '1') }))
-      .handler(() => ({ user: { id: 1 } }))
+      .func(() => ({ user: { id: 1 } }))
     ,
   },
 })

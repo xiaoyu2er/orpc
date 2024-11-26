@@ -249,7 +249,7 @@ it('middleware can output', async () => {
       mid2Called = true
       return meta.output('from middleware 2')
     })
-    .handler(() => {
+    .func(() => {
       handlerCalled = true
       return 'from handler'
     })

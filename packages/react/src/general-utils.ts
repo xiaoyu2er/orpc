@@ -26,14 +26,14 @@ import { getMutationKeyFromPath, getQueryKeyFromPath } from './tanstack-key'
 export interface GeneralUtils<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
-  THandlerOutput extends SchemaOutput<TOutputSchema>,
+  TFuncOutput extends SchemaOutput<TOutputSchema>,
 > {
   getQueriesData: (
     filters?: OmitKeyof<
       ORPCQueryFilters<PartialDeep<SchemaInput<TInputSchema>>>,
       'queryType'
     >,
-  ) => [QueryKey, SchemaOutput<TOutputSchema, THandlerOutput> | undefined][]
+  ) => [QueryKey, SchemaOutput<TOutputSchema, TFuncOutput> | undefined][]
   getInfiniteQueriesData: (
     filters?: OmitKeyof<
       ORPCQueryFilters<PartialDeep<SchemaInputForInfiniteQuery<TInputSchema>>>,
@@ -43,7 +43,7 @@ export interface GeneralUtils<
     QueryKey,
     | undefined
     | InfiniteData<
-      SchemaOutput<TOutputSchema, THandlerOutput>,
+      SchemaOutput<TOutputSchema, TFuncOutput>,
       SchemaInput<TInputSchema>['cursor']
     >,
   ][]
@@ -54,11 +54,11 @@ export interface GeneralUtils<
       'queryType'
     >,
     updater: Updater<
-      SchemaOutput<TOutputSchema, THandlerOutput> | undefined,
-      SchemaOutput<TOutputSchema, THandlerOutput> | undefined
+      SchemaOutput<TOutputSchema, TFuncOutput> | undefined,
+      SchemaOutput<TOutputSchema, TFuncOutput> | undefined
     >,
     options?: SetDataOptions,
-  ) => [QueryKey, SchemaOutput<TOutputSchema, THandlerOutput> | undefined][]
+  ) => [QueryKey, SchemaOutput<TOutputSchema, TFuncOutput> | undefined][]
   setInfiniteQueriesData: (
     filters: OmitKeyof<
       ORPCQueryFilters<PartialDeep<SchemaInputForInfiniteQuery<TInputSchema>>>,
@@ -66,12 +66,12 @@ export interface GeneralUtils<
     >,
     updater: Updater<
       | InfiniteData<
-        SchemaOutput<TOutputSchema, THandlerOutput>,
+        SchemaOutput<TOutputSchema, TFuncOutput>,
         SchemaInput<TInputSchema>['cursor']
       >
       | undefined,
       | InfiniteData<
-        SchemaOutput<TOutputSchema, THandlerOutput>,
+        SchemaOutput<TOutputSchema, TFuncOutput>,
         SchemaInput<TInputSchema>['cursor']
       >
       | undefined
@@ -81,7 +81,7 @@ export interface GeneralUtils<
     QueryKey,
     | undefined
     | InfiniteData<
-      SchemaOutput<TOutputSchema, THandlerOutput>,
+      SchemaOutput<TOutputSchema, TFuncOutput>,
       SchemaInput<TInputSchema>['cursor']
     >,
   ][]
@@ -119,7 +119,7 @@ export interface GeneralUtils<
       'input' | 'queryKey'
     >,
   ) => OmitKeyof<
-    QueryObserverOptions<SchemaOutput<TOutputSchema, THandlerOutput>>,
+    QueryObserverOptions<SchemaOutput<TOutputSchema, TFuncOutput>>,
     'queryKey'
   >
   getInfiniteQueryDefaults: (
@@ -129,10 +129,10 @@ export interface GeneralUtils<
     >,
   ) => OmitKeyof<
     QueryObserverOptions<
-      SchemaOutput<TOutputSchema, THandlerOutput>,
+      SchemaOutput<TOutputSchema, TFuncOutput>,
       DefaultError,
-      SchemaOutput<TOutputSchema, THandlerOutput>,
-      InfiniteData<SchemaOutput<TOutputSchema, THandlerOutput>>,
+      SchemaOutput<TOutputSchema, TFuncOutput>,
+      InfiniteData<SchemaOutput<TOutputSchema, TFuncOutput>>,
       QueryKey,
       SchemaInput<TInputSchema>['cursor']
     >,
@@ -142,7 +142,7 @@ export interface GeneralUtils<
   setQueryDefaults: (
     options: Partial<
       OmitKeyof<
-        QueryObserverOptions<SchemaOutput<TOutputSchema, THandlerOutput>>,
+        QueryObserverOptions<SchemaOutput<TOutputSchema, TFuncOutput>>,
         'queryKey'
       >
     >,
@@ -155,10 +155,10 @@ export interface GeneralUtils<
     options: Partial<
       OmitKeyof<
         QueryObserverOptions<
-          SchemaOutput<TOutputSchema, THandlerOutput>,
+          SchemaOutput<TOutputSchema, TFuncOutput>,
           DefaultError,
-          SchemaOutput<TOutputSchema, THandlerOutput>,
-          InfiniteData<SchemaOutput<TOutputSchema, THandlerOutput>>,
+          SchemaOutput<TOutputSchema, TFuncOutput>,
+          InfiniteData<SchemaOutput<TOutputSchema, TFuncOutput>>,
           QueryKey,
           SchemaInput<TInputSchema>['cursor']
         >,
@@ -174,14 +174,14 @@ export interface GeneralUtils<
   getMutationDefaults: (
     filters?: Pick<MutationFilters, 'mutationKey'>,
   ) => MutationObserverOptions<
-    SchemaOutput<TOutputSchema, THandlerOutput>,
+    SchemaOutput<TOutputSchema, TFuncOutput>,
     DefaultError,
     SchemaInput<TInputSchema>
   >
   setMutationDefaults: (
     options: OmitKeyof<
       MutationObserverOptions<
-        SchemaOutput<TOutputSchema, THandlerOutput>,
+        SchemaOutput<TOutputSchema, TFuncOutput>,
         DefaultError,
         SchemaInput<TInputSchema>
       >,
@@ -205,11 +205,11 @@ export interface CreateGeneralUtilsOptions {
 export function createGeneralUtils<
   TInputSchema extends Schema = undefined,
   TOutputSchema extends Schema = undefined,
-  THandlerOutput extends
+  TFuncOutput extends
   SchemaOutput<TOutputSchema> = SchemaOutput<TOutputSchema>,
 >(
   options: CreateGeneralUtilsOptions,
-): GeneralUtils<TInputSchema, TOutputSchema, THandlerOutput> {
+): GeneralUtils<TInputSchema, TOutputSchema, TFuncOutput> {
   return {
     getQueriesData(filters) {
       const { input, ...rest } = filters ?? {}

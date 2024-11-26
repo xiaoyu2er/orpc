@@ -22,17 +22,17 @@ import { z } from 'zod'
 // This creates a server action since context is undefined
 const actionProcedure = os
   .input(z.object({ id: z.number() }))
-  .handler(() => 'result')
+  .func(() => 'result')
 
 // This also creates a server action since context is optional
 const optionalContextProcedure = os
   .context<{ auth: boolean } | undefined>()
-  .handler(() => 'result')
+  .func(() => 'result')
 
 // This won't be a server action since it requires context
 const regularProcedure = os
   .context<{ auth: boolean }>()
-  .handler(() => 'result')
+  .func(() => 'result')
 ```
 
 ## Usage Examples
@@ -59,7 +59,7 @@ export const createPost = os
       }),
     }),
   )
-  .handler((input) => {
+  .func((input) => {
     redirect('/posts/new')
   })
 ```

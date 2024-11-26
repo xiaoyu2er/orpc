@@ -111,9 +111,9 @@ describe('use middleware', () => {
 
 describe('output schema', () => {
   it('auto infer output schema if output schema is not specified', async () => {
-    const sr = os.handler(() => ({ a: 1 }))
+    const sr = os.func(() => ({ a: 1 }))
 
-    const result = await sr.zz$p.handler({}, undefined, {
+    const result = await sr.zz$p.func({}, undefined, {
       method: 'GET',
       path: '/',
     } as any)
@@ -129,9 +129,9 @@ describe('output schema', () => {
       }),
     })
 
-    const sr = srb1.handler(() => ({ b: 1 }))
+    const sr = srb1.func(() => ({ b: 1 }))
 
-    const result = await sr.zz$p.handler({}, {}, {
+    const result = await sr.zz$p.func({}, {}, {
       method: 'GET',
       path: '/',
     } as any)
@@ -142,7 +142,7 @@ describe('output schema', () => {
 
 describe('handler', () => {
   it('infer types', () => {
-    const handler = implementer1.handler((input, context, meta) => {
+    const handler = implementer1.func((input, context, meta) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()
       expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
       expectTypeOf(meta).toEqualTypeOf<Meta>()
@@ -163,7 +163,7 @@ describe('handler', () => {
     >()
     expect(isProcedure(handler)).toBe(true)
 
-    implementer2.handler((input, context, meta) => {
+    implementer2.func((input, context, meta) => {
       expectTypeOf(input).toEqualTypeOf<{ id: string }>()
       expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
       expectTypeOf(meta).toEqualTypeOf<Meta>()
@@ -174,7 +174,7 @@ describe('handler', () => {
     })
 
     // @ts-expect-error mismatch output
-    implementer2.handler(() => {})
+    implementer2.func(() => {})
   })
 
   it('combine middlewares', () => {
@@ -193,7 +193,7 @@ describe('handler', () => {
     const handler = implementer2
       .use(mid1)
       .use(mid2)
-      .handler((input, context, meta) => {
+      .func((input, context, meta) => {
         expectTypeOf(input).toEqualTypeOf<{ id: string }>()
         expectTypeOf(context).toEqualTypeOf<
           { auth: boolean } & { userId: string }

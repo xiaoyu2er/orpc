@@ -16,11 +16,11 @@ import { ORPCDeserializer, ORPCSerializer } from '@orpc/transformer'
 export interface ProcedureClient<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
-  THandlerOutput extends SchemaOutput<TOutputSchema>,
+  TFuncOutput extends SchemaOutput<TOutputSchema>,
 > {
   (
     input: SchemaInput<TInputSchema>,
-  ): Promise<SchemaOutput<TOutputSchema, THandlerOutput>>
+  ): Promise<SchemaOutput<TOutputSchema, TFuncOutput>>
 }
 
 export interface CreateProcedureClientOptions {
@@ -50,10 +50,10 @@ export interface CreateProcedureClientOptions {
 export function createProcedureClient<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
-  THandlerOutput extends SchemaOutput<TOutputSchema>,
+  TFuncOutput extends SchemaOutput<TOutputSchema>,
 >(
   options: CreateProcedureClientOptions,
-): ProcedureClient<TInputSchema, TOutputSchema, THandlerOutput> {
+): ProcedureClient<TInputSchema, TOutputSchema, TFuncOutput> {
   const serializer = new ORPCSerializer()
   const deserializer = new ORPCDeserializer()
 

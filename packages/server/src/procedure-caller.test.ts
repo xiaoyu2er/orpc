@@ -2,17 +2,15 @@ import { z } from 'zod'
 import { createProcedureCaller, os } from '.'
 
 describe('createProcedureCaller', () => {
-  let internal = false
-  let path = ['ping']
-  let context = { auth: true }
+  const path = ['ping']
+  const context = { auth: true }
 
   const osw = os.context<{ auth?: boolean }>()
   const procedure = osw
     .input(z.object({ value: z.string().transform(v => Number(v)) }))
     .output(z.object({ value: z.number().transform(v => v.toString()) }))
-    .handler((input, context, meta) => {
+    .func((input, context, meta) => {
       expect(context).toEqual(context)
-      expect(meta.internal).toBe(internal)
       expect(meta.path).toBe(path)
 
       return input
@@ -34,8 +32,7 @@ describe('createProcedureCaller', () => {
   it('with validate', async () => {
     const caller = createProcedureCaller({
       procedure,
-      context,
-      internal,
+      context: async () => context,
       path,
     })
 
@@ -53,41 +50,14 @@ describe('createProcedureCaller', () => {
     )
   })
 
-  it('without validate', async () => {
-    internal = true
-    path = []
-    context = { auth: false }
-
-    const caller = createProcedureCaller({
-      procedure,
-      context,
-      internal,
-      path,
-      validate: false,
-    })
-
-    expectTypeOf(caller).toMatchTypeOf<
-      (input: { value: number }) => Promise<{
-        value: number
-      }>
-    >()
-
-    expect(await caller({ value: 123 })).toEqual({ value: 123 })
-
-    // @ts-expect-error it's not validate so bellow still works
-    expect(await caller({ value: '123' })).toEqual({ value: '123' })
-  })
-
   it('without validate and schema', () => {
-    const procedure = osw.handler(() => {
+    const procedure = osw.func(() => {
       return { value: true }
     })
 
     const caller = createProcedureCaller({
       procedure,
       context,
-      internal,
-      validate: false,
     })
 
     expectTypeOf(caller).toMatchTypeOf<
@@ -146,7 +116,7 @@ describe('createProcedureCaller', () => {
       .input(z.object({ id: z.string() }))
       .use(mid1)
       .use(mid2)
-      .handler((input, context, meta) => {
+      .func((input, context, meta) => {
         expect(context).toEqual({ userId: '1', auth: false })
 
         expect(ref.value).toBe(2)
@@ -161,5 +131,26 @@ describe('createProcedureCaller', () => {
     })
 
     expect(caller({ id: '1' })).resolves.toEqual('pong')
+  })
+
+  it('accept form data', async () => {
+    const ping = osw
+      .input(z.object({ id: z.number() }))
+      .output(z.object({ id: z.number() }))
+      .func((input, context, meta) => {
+        expect(context).toEqual(context)
+
+        return input
+      })
+
+    const caller = createProcedureCaller({
+      procedure: ping,
+      context,
+    })
+
+    const form = new FormData()
+    form.append('id', '1')
+
+    expect(await caller(form)).toEqual({ id: 1 })
   })
 })

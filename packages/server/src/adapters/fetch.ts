@@ -3,6 +3,7 @@
 import type {
   PartialOnUndefinedDeep,
   Promisable,
+  PromisableValue,
 } from '@orpc/shared'
 import type { Router } from '../router'
 import {
@@ -15,6 +16,7 @@ import {
   get,
   isPlainObject,
   mapValues,
+  resolvePromisableValue,
   trim,
 } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
@@ -90,6 +92,8 @@ export function createFetchHandler<TRouter extends Router<any>>(
     const serializer = isORPCTransformer
       ? new ORPCSerializer()
       : new OpenAPISerializer({ accept })
+
+    const context = await resolvePromisableValue(requestOptions.context)
 
     const handler = async () => {
       const url = new URL(requestOptions.request.url)
@@ -196,9 +200,7 @@ export function createFetchHandler<TRouter extends Router<any>>(
       })()
 
       const caller = createProcedureCaller({
-        context: requestOptions.context,
-        internal: false,
-        validate: true,
+        context,
         procedure,
         path,
       })
@@ -214,7 +216,7 @@ export function createFetchHandler<TRouter extends Router<any>>(
     }
 
     try {
-      return await options.hooks?.(requestOptions.context as any, {
+      return await options.hooks?.(context as any, {
         next: handler,
         response: response => response,
       }) ?? await handler()
@@ -268,7 +270,9 @@ export type FetchHandlerOptions<TRouter extends Router<any>> = {
   /**
    * The context used to handle the request.
    */
-  context: TRouter extends Router<infer UContext> ? UContext : never
+  context: PromisableValue<
+    TRouter extends Router<infer UContext> ? UContext : never
+  >
 }>
 
 export interface FetchHandler<TRouter extends Router<any>> {

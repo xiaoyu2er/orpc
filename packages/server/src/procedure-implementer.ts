@@ -8,7 +8,7 @@ import {
 import {
   type DecoratedProcedure,
   decorateProcedure,
-  type ProcedureHandler,
+  type ProcedureFunc,
 } from './procedure'
 
 export class ProcedureImplementer<
@@ -76,26 +76,26 @@ export class ProcedureImplementer<
     })
   }
 
-  handler<UHandlerOutput extends SchemaOutput<TOutputSchema>>(
-    handler: ProcedureHandler<
+  func<UFuncOutput extends SchemaOutput<TOutputSchema>>(
+    func: ProcedureFunc<
       TContext,
       TExtraContext,
       TInputSchema,
       TOutputSchema,
-      UHandlerOutput
+      UFuncOutput
     >,
   ): DecoratedProcedure<
       TContext,
       TExtraContext,
       TInputSchema,
       TOutputSchema,
-      UHandlerOutput
+      UFuncOutput
     > {
     return decorateProcedure({
       zz$p: {
         middlewares: this.zz$pi.middlewares,
         contract: this.zz$pi.contract,
-        handler,
+        func,
       },
     })
   }

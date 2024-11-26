@@ -26,9 +26,9 @@ export type RouterClientWithRouter<TRouter extends Router<any>> = {
     any,
     infer UInputSchema,
     infer UOutputSchema,
-    infer UHandlerOutput
+    infer UFuncOutput
   >
-    ? ProcedureClient<UInputSchema, UOutputSchema, UHandlerOutput>
+    ? ProcedureClient<UInputSchema, UOutputSchema, UFuncOutput>
     : TRouter[K] extends Router<any>
       ? RouterClientWithRouter<TRouter[K]>
       : never

@@ -25,23 +25,23 @@ type UseQueryOptionsForUseQueries<
 export interface UseQueriesBuilder<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
-  THandlerOutput extends SchemaOutput<TOutputSchema>,
+  TFuncOutput extends SchemaOutput<TOutputSchema>,
 > {
   (
     input: SchemaInput<TInputSchema>,
     options?: SetOptional<
-      UseQueryOptionsForUseQueries<SchemaOutput<TOutputSchema, THandlerOutput>>,
+      UseQueryOptionsForUseQueries<SchemaOutput<TOutputSchema, TFuncOutput>>,
       'queryFn' | 'queryKey'
     >,
-  ): UseQueryOptionsForUseQueries<SchemaOutput<TOutputSchema, THandlerOutput>>
+  ): UseQueryOptionsForUseQueries<SchemaOutput<TOutputSchema, TFuncOutput>>
 }
 
 export interface CreateUseQueriesBuilderOptions<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
-  THandlerOutput extends SchemaOutput<TOutputSchema>,
+  TFuncOutput extends SchemaOutput<TOutputSchema>,
 > {
-  client: ProcedureClient<TInputSchema, TOutputSchema, THandlerOutput>
+  client: ProcedureClient<TInputSchema, TOutputSchema, TFuncOutput>
 
   /**
    * The path of procedure on server
@@ -52,15 +52,15 @@ export interface CreateUseQueriesBuilderOptions<
 export function createUseQueriesBuilder<
   TInputSchema extends Schema = undefined,
   TOutputSchema extends Schema = undefined,
-  THandlerOutput extends
+  TFuncOutput extends
   SchemaOutput<TOutputSchema> = SchemaOutput<TOutputSchema>,
 >(
   options: CreateUseQueriesBuilderOptions<
     TInputSchema,
     TOutputSchema,
-    THandlerOutput
+    TFuncOutput
   >,
-): UseQueriesBuilder<TInputSchema, TOutputSchema, THandlerOutput> {
+): UseQueriesBuilder<TInputSchema, TOutputSchema, TFuncOutput> {
   return (input, options_) => {
     return {
       queryKey: getQueryKeyFromPath(options.path, { input, type: 'query' }),

@@ -18,7 +18,7 @@ it('isProcedure', () => {
             InputSchema: undefined,
             OutputSchema: undefined,
           }),
-          handler: () => {},
+          func: () => {},
         }),
       ),
     ),
@@ -29,7 +29,7 @@ it('isProcedure', () => {
         InputSchema: undefined,
         OutputSchema: undefined,
       }),
-      handler: () => {},
+      func: () => {},
     },
   }).toSatisfy(isProcedure)
 
@@ -57,7 +57,7 @@ it('isProcedure', () => {
 
 describe('route method', () => {
   it('sets route options correctly', () => {
-    const p = os.context<{ auth: boolean }>().handler(() => {
+    const p = os.context<{ auth: boolean }>().func(() => {
       return 'test'
     })
 
@@ -69,11 +69,11 @@ describe('route method', () => {
 
   it('preserves existing context and handler', () => {
     const handler = () => 'test'
-    const p = os.context<{ auth: boolean }>().handler(handler)
+    const p = os.context<{ auth: boolean }>().func(handler)
 
     const p2 = p.route({ path: '/test' })
 
-    expect(p2.zz$p.handler).toBe(handler)
+    expect(p2.zz$p.func).toBe(handler)
     // Context type is preserved through the route method
     expectTypeOf(p2).toEqualTypeOf<
       DecoratedProcedure<
@@ -90,7 +90,7 @@ describe('route method', () => {
     const p = os
       .context<{ auth: boolean }>()
       .route({ path: '/api', method: 'POST' })
-      .handler(() => 'test')
+      .func(() => 'test')
 
     const p2 = p.prefix('/v1')
 
@@ -105,7 +105,7 @@ describe('route method', () => {
       .context<{ auth: boolean }>()
       .route({ path: '/test' })
       .use(mid)
-      .handler((input, context) => {
+      .func((input, context) => {
         expectTypeOf(context).toEqualTypeOf<
           { auth: boolean } & { userId: string }
         >()
@@ -120,7 +120,7 @@ describe('route method', () => {
     const p = os
       .context<{ auth: boolean }>()
       .route({ path: '/test1', method: 'GET' })
-      .handler(() => 'test')
+      .func(() => 'test')
 
     const p2 = p.route({ path: '/test2', method: 'POST' })
 
@@ -136,7 +136,7 @@ describe('route method', () => {
       .input(inputSchema)
       .output(outputSchema)
       .route({ path: '/test' })
-      .handler((input) => {
+      .func((input) => {
         expectTypeOf(input).toEqualTypeOf<{ id: number }>()
         return 'test'
       })
@@ -157,7 +157,7 @@ describe('route method', () => {
 })
 
 it('prefix method', () => {
-  const p = os.context<{ auth: boolean }>().handler(() => {
+  const p = os.context<{ auth: boolean }>().func(() => {
     return 'unnoq'
   })
 
@@ -168,7 +168,7 @@ it('prefix method', () => {
   const p3 = os
     .context<{ auth: boolean }>()
     .route({ path: '/test1' })
-    .handler(() => {
+    .func(() => {
       return 'unnoq'
     })
 
@@ -183,7 +183,7 @@ describe('use middleware', () => {
       .use((_, __, meta) => {
         return meta.next({ context: { postId: 'string' } })
       })
-      .handler(() => {
+      .func(() => {
         return 'unnoq'
       })
 
@@ -251,7 +251,7 @@ describe('use middleware', () => {
     const mid2 = vi.fn()
     const mid3 = vi.fn()
 
-    const p1 = os.use(mid1).handler(() => 'unnoq')
+    const p1 = os.use(mid1).func(() => 'unnoq')
     const p2 = p1.use(mid2).use(mid3)
 
     expect(p2.zz$p.middlewares).toEqual([mid3, mid2, mid1])
@@ -260,12 +260,12 @@ describe('use middleware', () => {
 
 describe('server action', () => {
   it('only accept undefined context', () => {
-    expectTypeOf(os.handler(() => {})).toMatchTypeOf<(...args: any[]) => any>()
+    expectTypeOf(os.func(() => {})).toMatchTypeOf<(...args: any[]) => any>()
     expectTypeOf(
-      os.context<{ auth: boolean } | undefined>().handler(() => {}),
+      os.context<{ auth: boolean } | undefined>().func(() => {}),
     ).toMatchTypeOf<(...args: any[]) => any>()
     expectTypeOf(
-      os.context<{ auth: boolean }>().handler(() => {}),
+      os.context<{ auth: boolean }>().func(() => {}),
     ).not.toMatchTypeOf<(...args: any[]) => any>()
   })
 
@@ -273,13 +273,13 @@ describe('server action', () => {
     const p = os
       .input(z.object({ id: z.number() }))
       .output(z.string())
-      .handler(() => 'string')
+      .func(() => 'string')
 
     expectTypeOf(p).toMatchTypeOf<
       (input: { id: number } | FormData) => Promise<string>
     >()
 
-    const p2 = os.input(z.object({ id: z.number() })).handler(() => 12333)
+    const p2 = os.input(z.object({ id: z.number() })).func(() => 12333)
 
     expectTypeOf(p2).toMatchTypeOf<
       (input: { id: number } | FormData) => Promise<number>
@@ -289,7 +289,7 @@ describe('server action', () => {
   it('works with input', async () => {
     const p = os
       .input(z.object({ id: z.number(), date: z.date() }))
-      .handler(async (input, context) => {
+      .func(async (input, context) => {
         expect(context).toBe(undefined)
         return input
       })
@@ -303,7 +303,7 @@ describe('server action', () => {
   it('can deserialize form data', async () => {
     const p = os
       .input(z.object({ id: z.number(), nested: z.object({ date: z.date() }) }))
-      .handler(async input => input)
+      .func(async input => input)
 
     const form = new FormData()
     form.append('id', '123')

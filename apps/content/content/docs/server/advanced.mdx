@@ -9,13 +9,12 @@ description: Beyond the basics, oRPC offers more advanced features
 import { os, createRouterCaller } from '@orpc/server'
 
 const router = os.router({
-    ping: os.handler(() => 'pong')
+    ping: os.func(() => 'pong')
 })
 
 const caller = createRouterCaller({
     router: router,
     context: {},
-    validate: true // set false if you want bypass the validation input and output
 })
 
 const result = await caller.ping(undefined) // result is 'pong'

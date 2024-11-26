@@ -2,84 +2,78 @@ import type { SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { MiddlewareMeta } from './middleware'
 import type { Procedure } from './procedure'
 import type { Context } from './types'
+import { type PromisableValue, resolvePromisableValue } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
+import { OpenAPIDeserializer } from '@orpc/transformer'
 import { mergeContext } from './utils'
 
 export interface CreateProcedureCallerOptions<
   TProcedure extends Procedure<any, any, any, any, any>,
-  TValidate extends boolean,
 > {
   procedure: TProcedure
 
   /**
    * The context used when calling the procedure.
    */
-  context: TProcedure extends Procedure<infer UContext, any, any, any, any>
-    ? UContext
-    : never
+  context: PromisableValue<
+    TProcedure extends Procedure<infer UContext, any, any, any, any>
+      ? UContext
+      : never
+  >
 
   /**
    * This is helpful for logging and analytics.
+   *
+   * @internal
    */
   path?: string[]
-
-  /**
-   * This flag helpful when you want bypass some logics not necessary to internal server calls.
-   *
-   * @default true
-   */
-  internal?: boolean
-
-  /**
-   * Indicate whether validate input and output.
-   *
-   * @default true
-   */
-  validate?: TValidate
 }
 
 export type ProcedureCaller<
   TProcedure extends Procedure<any, any, any, any, any>,
-  TValidate extends boolean,
 > = TProcedure extends Procedure<
   any,
   any,
   infer UInputSchema,
   infer UOutputSchema,
-  infer UHandlerOutput
+  infer UFuncOutput
 >
   ? (
-      input: TValidate extends true
-        ? SchemaInput<UInputSchema>
-        : SchemaOutput<UInputSchema>,
+      input: SchemaInput<UInputSchema> | FormData,
     ) => Promise<
-      TValidate extends true
-        ? SchemaOutput<UOutputSchema, UHandlerOutput>
-        : SchemaInput<UOutputSchema, UHandlerOutput>
+      SchemaOutput<UOutputSchema, UFuncOutput>
     >
   : never
 
 export function createProcedureCaller<
   TProcedure extends Procedure<any, any, any, any, any>,
-  TValidate extends boolean = true,
 >(
-  options: CreateProcedureCallerOptions<TProcedure, TValidate>,
-): ProcedureCaller<TProcedure, TValidate> {
-  const internal = options.internal ?? true
+  options: CreateProcedureCallerOptions<TProcedure>,
+): ProcedureCaller<TProcedure> {
   const path = options.path ?? []
   const procedure = options.procedure
-  const validate = options.validate ?? true
 
   const caller = async (input: unknown): Promise<unknown> => {
+    const input_ = (() => {
+      if (!(input instanceof FormData)) {
+        return input
+      }
+
+      const transformer = new OpenAPIDeserializer({
+        schema: procedure.zz$p.contract.zz$cp.InputSchema,
+      })
+
+      return transformer.deserializeAsFormData(input)
+    })()
+
     const validInput = (() => {
-      if (!validate)
-        return input
       const schema = procedure.zz$p.contract.zz$cp.InputSchema
-      if (!schema)
-        return input
+      if (!schema) {
+        return input_
+      }
 
       try {
-        return schema.parse(input)
+        return schema.parse(input_)
       }
       catch (e) {
         throw new ORPCError({
@@ -92,7 +86,7 @@ export function createProcedureCaller<
 
     const middlewares = procedure.zz$p.middlewares ?? []
     let currentMidIndex = 0
-    let currentContext: Context = options.context
+    let currentContext: Context = await resolvePromisableValue(options.context)
 
     const next: MiddlewareMeta<unknown>['next'] = async (nextOptions) => {
       const mid = middlewares[currentMidIndex]
@@ -103,17 +97,15 @@ export function createProcedureCaller<
         return await mid(validInput, currentContext, {
           path,
           procedure,
-          internal,
           next,
           output: output => ({ output, context: undefined }),
         })
       }
       else {
         return {
-          output: await await procedure.zz$p.handler(validInput, currentContext, {
+          output: await await procedure.zz$p.func(validInput, currentContext, {
             path,
             procedure,
-            internal,
           }),
           context: currentContext,
         }
@@ -123,11 +115,11 @@ export function createProcedureCaller<
     const output = (await next({})).output
 
     const validOutput = await (async () => {
-      if (!validate)
-        return output
       const schema = procedure.zz$p.contract.zz$cp.OutputSchema
-      if (!schema)
+      if (!schema) {
         return output
+      }
+
       const result = await schema.safeParseAsync(output)
       if (result.error) {
         throw new ORPCError({
@@ -142,5 +134,5 @@ export function createProcedureCaller<
     return validOutput
   }
 
-  return caller as ProcedureCaller<TProcedure, TValidate>
+  return caller as ProcedureCaller<TProcedure>
 }

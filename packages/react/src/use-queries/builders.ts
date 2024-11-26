@@ -34,9 +34,9 @@ export type UseQueriesBuildersWithRouter<TRouter extends Router<any>> = {
     any,
     infer UInputSchema,
     infer UOutputSchema,
-    infer UHandlerOutput
+    infer UFuncOutput
   >
-    ? UseQueriesBuilder<UInputSchema, UOutputSchema, UHandlerOutput>
+    ? UseQueriesBuilder<UInputSchema, UOutputSchema, UFuncOutput>
     : TRouter[K] extends Router<any>
       ? UseQueriesBuildersWithRouter<TRouter[K]>
       : never

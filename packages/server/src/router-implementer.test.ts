@@ -17,15 +17,15 @@ const cr = oc.router({
 
 const osw = os.context<{ auth: boolean }>().contract(cr)
 
-const p1 = osw.p1.handler(() => {
+const p1 = osw.p1.func(() => {
   return 'unnoq'
 })
 
-const p2 = osw.nested.p2.handler(() => {
+const p2 = osw.nested.p2.func(() => {
   return 'unnoq'
 })
 
-const p3 = osw.nested2.p3.handler(() => {
+const p3 = osw.nested2.p3.func(() => {
   return 'unnoq'
 })
 
@@ -37,7 +37,7 @@ it('required all procedure match', () => {
   implementer.router({
     p1,
     nested: {
-      p2: os.contract(cp2).handler(() => ''),
+      p2: os.contract(cp2).func(() => ''),
     },
     nested2: {
       p3,
@@ -47,7 +47,7 @@ it('required all procedure match', () => {
   expect(() => {
     implementer.router({
       // @ts-expect-error p1 is mismatch
-      p1: os.handler(() => {}),
+      p1: os.func(() => {}),
       nested: {
         p2,
       },
@@ -76,7 +76,7 @@ it('required all procedure match', () => {
       p1: os
         .input(z.string())
         .output(z.string())
-        .handler(() => 'unnoq'),
+        .func(() => 'unnoq'),
       nested: {
         p2,
       },

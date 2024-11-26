@@ -36,13 +36,13 @@ import { getMutationKeyFromPath, getQueryKeyFromPath } from './tanstack-key'
 export interface ProcedureHooks<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
-  THandlerOutput extends SchemaOutput<TOutputSchema>,
+  TFuncOutput extends SchemaOutput<TOutputSchema>,
 > {
-  useQuery: <USelectData = SchemaOutput<TOutputSchema, THandlerOutput>>(
+  useQuery: <USelectData = SchemaOutput<TOutputSchema, TFuncOutput>>(
     input: SchemaInput<TInputSchema>,
     options?: SetOptional<
       UseQueryOptions<
-        SchemaOutput<TOutputSchema, THandlerOutput>,
+        SchemaOutput<TOutputSchema, TFuncOutput>,
         DefaultError,
         USelectData
       >,
@@ -51,17 +51,17 @@ export interface ProcedureHooks<
   ) => UseQueryResult<USelectData>
   useInfiniteQuery: <
     USelectData = InfiniteData<
-      SchemaOutput<TOutputSchema, THandlerOutput>,
+      SchemaOutput<TOutputSchema, TFuncOutput>,
       SchemaInput<TInputSchema>['cursor']
     >,
   >(
     options: PartialOnUndefinedDeep<
       SetOptional<
         UseInfiniteQueryOptions<
-          SchemaOutput<TOutputSchema, THandlerOutput>,
+          SchemaOutput<TOutputSchema, TFuncOutput>,
           DefaultError,
           USelectData,
-          SchemaOutput<TOutputSchema, THandlerOutput>,
+          SchemaOutput<TOutputSchema, TFuncOutput>,
           QueryKey,
           SchemaInput<TInputSchema>['cursor']
         >,
@@ -72,11 +72,11 @@ export interface ProcedureHooks<
     >,
   ) => UseInfiniteQueryResult<USelectData>
 
-  useSuspenseQuery: <USelectData = SchemaOutput<TOutputSchema, THandlerOutput>>(
+  useSuspenseQuery: <USelectData = SchemaOutput<TOutputSchema, TFuncOutput>>(
     input: SchemaInput<TInputSchema>,
     options?: SetOptional<
       UseSuspenseQueryOptions<
-        SchemaOutput<TOutputSchema, THandlerOutput>,
+        SchemaOutput<TOutputSchema, TFuncOutput>,
         DefaultError,
         USelectData
       >,
@@ -85,17 +85,17 @@ export interface ProcedureHooks<
   ) => UseSuspenseQueryResult<USelectData>
   useSuspenseInfiniteQuery: <
     USelectData = InfiniteData<
-      SchemaOutput<TOutputSchema, THandlerOutput>,
+      SchemaOutput<TOutputSchema, TFuncOutput>,
       SchemaInput<TInputSchema>['cursor']
     >,
   >(
     options: PartialOnUndefinedDeep<
       SetOptional<
         UseSuspenseInfiniteQueryOptions<
-          SchemaOutput<TOutputSchema, THandlerOutput>,
+          SchemaOutput<TOutputSchema, TFuncOutput>,
           DefaultError,
           USelectData,
-          SchemaOutput<TOutputSchema, THandlerOutput>,
+          SchemaOutput<TOutputSchema, TFuncOutput>,
           QueryKey,
           SchemaInput<TInputSchema>['cursor']
         >,
@@ -108,15 +108,15 @@ export interface ProcedureHooks<
 
   usePrefetchQuery: (
     input: SchemaInput<TInputSchema>,
-    options?: FetchQueryOptions<SchemaOutput<TOutputSchema, THandlerOutput>>,
+    options?: FetchQueryOptions<SchemaOutput<TOutputSchema, TFuncOutput>>,
   ) => void
   usePrefetchInfiniteQuery: (
     options: PartialOnUndefinedDeep<
       SetOptional<
         FetchInfiniteQueryOptions<
-          SchemaOutput<TOutputSchema, THandlerOutput>,
+          SchemaOutput<TOutputSchema, TFuncOutput>,
           DefaultError,
-          SchemaOutput<TOutputSchema, THandlerOutput>,
+          SchemaOutput<TOutputSchema, TFuncOutput>,
           QueryKey,
           SchemaInput<TInputSchema>['cursor']
         >,
@@ -130,14 +130,14 @@ export interface ProcedureHooks<
   useMutation: (
     options?: SetOptional<
       UseMutationOptions<
-        SchemaOutput<TOutputSchema, THandlerOutput>,
+        SchemaOutput<TOutputSchema, TFuncOutput>,
         DefaultError,
         SchemaInput<TInputSchema>
       >,
       'mutationFn' | 'mutationKey'
     >,
   ) => UseMutationResult<
-    SchemaOutput<TOutputSchema, THandlerOutput>,
+    SchemaOutput<TOutputSchema, TFuncOutput>,
     DefaultError,
     SchemaInput<TInputSchema>
   >
@@ -157,11 +157,11 @@ export interface CreateProcedureHooksOptions {
 export function createProcedureHooks<
   TInputSchema extends Schema = undefined,
   TOutputSchema extends Schema = undefined,
-  THandlerOutput extends
+  TFuncOutput extends
   SchemaOutput<TOutputSchema> = SchemaOutput<TOutputSchema>,
 >(
   options: CreateProcedureHooksOptions,
-): ProcedureHooks<TInputSchema, TOutputSchema, THandlerOutput> {
+): ProcedureHooks<TInputSchema, TOutputSchema, TFuncOutput> {
   return {
     [orpcPathSymbol as any]: options.path,
 

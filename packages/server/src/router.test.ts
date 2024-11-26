@@ -6,22 +6,22 @@ it('require procedure match context', () => {
   const osw = os.context<{ auth: boolean, userId: string }>()
 
   osw.router({
-    ping: osw.context<{ auth: boolean }>().handler(() => {
+    ping: osw.context<{ auth: boolean }>().func(() => {
       return { pong: 'ping' }
     }),
 
     // @ts-expect-error userId is not match
-    ping2: osw.context<{ userId: number }>().handler(() => {
+    ping2: osw.context<{ userId: number }>().func(() => {
       return { name: 'unnoq' }
     }),
 
     nested: {
-      ping: osw.context<{ auth: boolean }>().handler(() => {
+      ping: osw.context<{ auth: boolean }>().func(() => {
         return { pong: 'ping' }
       }),
 
       // @ts-expect-error userId is not match
-      ping2: osw.context<{ userId: number }>().handler(() => {
+      ping2: osw.context<{ userId: number }>().func(() => {
         return { name: 'unnoq' }
       }),
     },
@@ -31,10 +31,10 @@ it('require procedure match context', () => {
 it('require match contract', () => {
   const pingContract = oc.route({ method: 'GET', path: '/ping' })
   const pongContract = oc.input(z.string()).output(z.string())
-  const ping = os.contract(pingContract).handler(() => {
+  const ping = os.contract(pingContract).func(() => {
     return 'ping'
   })
-  const pong = os.contract(pongContract).handler(() => {
+  const pong = os.contract(pongContract).func(() => {
     return 'pong'
   })
 
@@ -85,7 +85,7 @@ it('require match contract', () => {
     nested: {
       ping,
       // @ts-expect-error nested.pong is mismatch
-      pong: os.handler(() => 'ping'),
+      pong: os.func(() => 'ping'),
     },
   }
 
@@ -120,18 +120,18 @@ it('toContractRouter', () => {
   const osw = os.contract(contract)
 
   const router = osw.router({
-    p1: osw.p1.handler(() => {
+    p1: osw.p1.func(() => {
       return 'unnoq'
     }),
 
     nested: osw.nested.router({
-      p2: osw.nested.p2.handler(() => {
+      p2: osw.nested.p2.func(() => {
         return 'unnoq'
       }),
     }),
 
     nested2: {
-      p3: osw.nested2.p3.handler(() => {
+      p3: osw.nested2.p3.func(() => {
         return 'unnoq'
       }),
     },

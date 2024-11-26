@@ -18,8 +18,8 @@ export type ORPCUtilsWithContractRouter<TRouter extends ContractRouter> = {
 } & GeneralUtils<undefined, undefined, unknown>
 
 export type ORPCUtilsWithRouter<TRouter extends Router<any>> = {
-  [K in keyof TRouter]: TRouter[K] extends Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UHandlerOutput>
-    ? ProcedureUtils<UInputSchema, UOutputSchema, UHandlerOutput> & GeneralUtils<UInputSchema, UOutputSchema, UHandlerOutput>
+  [K in keyof TRouter]: TRouter[K] extends Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
+    ? ProcedureUtils<UInputSchema, UOutputSchema, UFuncOutput> & GeneralUtils<UInputSchema, UOutputSchema, UFuncOutput>
     : TRouter[K] extends Router<any>
       ? ORPCUtilsWithRouter<TRouter[K]>
       : never

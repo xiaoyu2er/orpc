@@ -163,7 +163,7 @@ describe('use middleware', () => {
 
 describe('handler', () => {
   it('infer types', () => {
-    const handler = builder.handler((input, context, meta) => {
+    const handler = builder.func((input, context, meta) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()
       expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
       expectTypeOf(meta).toEqualTypeOf<Meta>()
@@ -196,7 +196,7 @@ describe('handler', () => {
     const handler = builder
       .use(mid1)
       .use(mid2)
-      .handler((input, context, meta) => {
+      .func((input, context, meta) => {
         expectTypeOf(input).toEqualTypeOf<unknown>()
         expectTypeOf(context).toEqualTypeOf<
           { userId: string } & { auth: boolean }

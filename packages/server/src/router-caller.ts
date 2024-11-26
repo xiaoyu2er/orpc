@@ -1,59 +1,43 @@
-import type {} from '@orpc/contract'
+import type { PromisableValue } from '@orpc/shared'
 import type { Router } from './router'
 import { isProcedure, type Procedure } from './procedure'
 import { createProcedureCaller, type ProcedureCaller } from './procedure-caller'
 
 export interface CreateRouterCallerOptions<
   TRouter extends Router<any>,
-  TValidate extends boolean,
 > {
   router: TRouter
 
   /**
    * The context used when calling the procedure.
    */
-  context: TRouter extends Router<infer UContext> ? UContext : never
+  context: PromisableValue<
+    TRouter extends Router<infer UContext> ? UContext : never
+  >
 
   /**
    * This is helpful for logging and analytics.
+   *
+   * @internal
    */
   basePath?: string[]
-
-  /**
-   * This flag helpful when you want bypass some logics not necessary to internal server calls.
-   *
-   * @default true
-   */
-  internal?: boolean
-
-  /**
-   * Indicate whether validate input and output.
-   *
-   * @default true
-   */
-  validate?: TValidate
 }
 
 export type RouterCaller<
   TRouter extends Router<any>,
-  TValidate extends boolean,
 > = {
   [K in keyof TRouter]: TRouter[K] extends Procedure<any, any, any, any, any>
-    ? ProcedureCaller<TRouter[K], TValidate>
+    ? ProcedureCaller<TRouter[K]>
     : TRouter[K] extends Router<any>
-      ? RouterCaller<TRouter[K], TValidate>
+      ? RouterCaller<TRouter[K]>
       : never
 }
 
 export function createRouterCaller<
   TRouter extends Router<any>,
-  TValidate extends boolean = true,
 >(
-  options: CreateRouterCallerOptions<TRouter, TValidate>,
-): RouterCaller<TRouter, TValidate> {
-  const internal = options.internal ?? true
-  const validate = options.validate ?? true
-
+  options: CreateRouterCallerOptions<TRouter>,
+): RouterCaller<TRouter> {
   const caller: Record<string, unknown> = {}
 
   for (const key in options.router) {
@@ -65,8 +49,6 @@ export function createRouterCaller<
         procedure: item,
         context: options.context as any,
         path,
-        internal,
-        validate,
       })
     }
     else {
@@ -74,11 +56,9 @@ export function createRouterCaller<
         router: item as any,
         context: options.context,
         basePath: path,
-        internal,
-        validate,
       })
     }
   }
 
-  return caller as RouterCaller<TRouter, TValidate>
+  return caller as RouterCaller<TRouter>
 }

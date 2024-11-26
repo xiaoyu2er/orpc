@@ -9,6 +9,5 @@ export type MergeContext<
 
 export interface Meta {
   path: string[]
-  internal: boolean
   procedure: WELL_DEFINED_PROCEDURE
 }

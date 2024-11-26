@@ -7,7 +7,7 @@ describe('createProcedureClient', () => {
   const schema = z.object({
     value: z.string(),
   })
-  const ping = os.input(schema).handler((_, __, { path }) => path)
+  const ping = os.input(schema).func((_, __, { path }) => path)
   const router = os.router({
     ping,
     nested: {
@@ -111,7 +111,7 @@ describe('createProcedureClient', () => {
     const router = os.router({
       ping: os
         .input(z.object({ value: z.date() }))
-        .handler(input => input.value),
+        .func(input => input.value),
     })
 
     const handler = createFetchHandler({
@@ -137,7 +137,7 @@ describe('createProcedureClient', () => {
 
   it('error include data', async () => {
     const router = os.router({
-      ping: os.handler((input) => {
+      ping: os.func((input) => {
         throw new ORPCError({
           code: 'BAD_GATEWAY',
           data: {
@@ -180,14 +180,14 @@ describe('createProcedureClient', () => {
 
 describe('upload file', () => {
   const router = os.router({
-    signal: os.input(z.instanceof(Blob)).handler((input) => {
+    signal: os.input(z.instanceof(Blob)).func((input) => {
       return input
     }),
     multiple: os
       .input(
         z.object({ first: z.instanceof(Blob), second: z.instanceof(Blob) }),
       )
-      .handler((input) => {
+      .func((input) => {
         return input
       }),
   })

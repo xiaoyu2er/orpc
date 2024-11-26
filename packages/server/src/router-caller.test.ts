@@ -2,24 +2,22 @@ import { z } from 'zod'
 import { createRouterCaller, os } from '.'
 
 describe('createRouterCaller', () => {
-  let internal = false
-  let context = { auth: true }
+  const internal = false
+  const context = { auth: true }
 
   const osw = os.context<{ auth?: boolean }>()
 
   const ping = osw
     .input(z.object({ value: z.string().transform(v => Number(v)) }))
     .output(z.object({ value: z.number().transform(v => v.toString()) }))
-    .handler((input, context, meta) => {
+    .func((input, context, meta) => {
       expect(context).toEqual(context)
-      expect(meta.internal).toEqual(internal)
 
       return input
     })
 
-  const pong = osw.handler((_, context, meta) => {
+  const pong = osw.func((_, context, meta) => {
     expect(context).toEqual(context)
-    expect(meta.internal).toBe(internal)
 
     return { value: true }
   })
@@ -50,7 +48,6 @@ describe('createRouterCaller', () => {
     const caller = createRouterCaller({
       router,
       context,
-      internal,
     })
 
     expectTypeOf(caller.ping).toMatchTypeOf<
@@ -98,52 +95,8 @@ describe('createRouterCaller', () => {
     )
   })
 
-  it('without validate', () => {
-    internal = true
-    context = { auth: false }
-
-    const caller = createRouterCaller({
-      router,
-      context,
-      internal,
-      validate: false,
-    })
-
-    expectTypeOf(caller.ping).toMatchTypeOf<
-      (input: { value: number }) => Promise<{
-        value: number
-      }>
-    >()
-
-    expectTypeOf(caller.pong).toMatchTypeOf<
-      (input: unknown) => Promise<{
-        value: boolean
-      }>
-    >()
-
-    expectTypeOf(caller.nested.ping).toMatchTypeOf<
-      (input: { value: number }) => Promise<{
-        value: number
-      }>
-    >()
-
-    expectTypeOf(caller.nested.pong).toMatchTypeOf<
-      (input: unknown) => Promise<{
-        value: boolean
-      }>
-    >()
-
-    expect(caller.ping({ value: 123 })).resolves.toEqual({ value: 123 })
-    expect(caller.pong({ value: 123 })).resolves.toEqual({ value: true })
-    expect(caller.nested.ping({ value: 123 })).resolves.toEqual({ value: 123 })
-    expect(caller.nested.pong({ value: 123 })).resolves.toEqual({ value: true })
-
-    // @ts-expect-error it's not validate so bellow still works
-    expect(caller.ping({ value: '123' })).resolves.toEqual({ value: '123' })
-  })
-
   it('path', () => {
-    const ping = osw.handler((_, __, { path }) => {
+    const ping = osw.func((_, __, { path }) => {
       return path
     })
 

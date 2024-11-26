@@ -84,7 +84,7 @@ const router = {
     user: {
         list: os
         .input(z.object({ cursor: z.number(), limit: z.number() }))
-        .handler((input) => {
+        .func((input) => {
             return {
                 nextCursor: input.cursor + input.limit,
                 users: []

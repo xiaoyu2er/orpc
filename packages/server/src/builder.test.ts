@@ -74,7 +74,7 @@ describe('use middleware', () => {
           return { postId: '1' }
         },
       )
-      .handler((_, context) => {
+      .func((_, context) => {
         expectTypeOf(context).toMatchTypeOf<{ user: string }>()
       })
   })
@@ -145,7 +145,7 @@ it('router method', () => {
   // Because of the router keyword is special, we can't use instanceof
   expect(osw.router.zz$pi.contract).toEqual(userFindContract)
   expect(
-    osw.router.handler(() => {
+    osw.router.func(() => {
       return { name: '' }
     }),
   ).toSatisfy(isProcedure)
@@ -286,7 +286,7 @@ describe('handler method', () => {
   it('without middlewares', () => {
     const osw = os.context<{ auth: boolean }>()
 
-    const procedure = osw.handler((input, context, meta) => {
+    const procedure = osw.func((input, context, meta) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()
       expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
       expectTypeOf(meta).toEqualTypeOf<Meta>()
@@ -317,7 +317,7 @@ describe('handler method', () => {
 
     const osw = os.context<{ auth: boolean }>().use(mid)
 
-    const procedure = osw.handler((input, context, meta) => {
+    const procedure = osw.func((input, context, meta) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()
       expectTypeOf(context).toMatchTypeOf<{ auth: boolean }>()
       expectTypeOf(meta).toEqualTypeOf<Meta>()

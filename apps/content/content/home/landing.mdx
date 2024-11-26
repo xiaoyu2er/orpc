@@ -23,7 +23,8 @@ export const getting = os
 > Only the `.func` method is required. All other chain methods are optional.
 > 
 
-With [Middleware] and the [Procedure Builder], you can create **reusable logic** that ensures **type safety** and adds **power** and **flexibility** to your functions.
+With [Middleware](/docs/server/middleware) and the [Procedure Builder](/docs/server/procedure), 
+you can create **reusable logic** that ensures **type safety** and adds **power** and **flexibility** to your functions.
 
 ## Use as a Regular Function
 
@@ -37,7 +38,7 @@ const text = await getting({
 })
 ```
 
-The [Procedure Caller] feature lets your procedures behave like regular TypeScript functions.
+The [Procedure Caller](/docs/server/caller) feature lets your procedures behave like regular TypeScript functions.
 
 ## Expose It Online with a Fully Typed Client
 
@@ -51,7 +52,7 @@ const text = await orpc.getting({
 })
 ```
 
-Our [Vanilla Client] is fully typed and doesn't rely on generated code—thanks to TypeScript!
+Our [Vanilla Client](/docs/client/vanilla) is fully typed and doesn't rely on generated code—thanks to TypeScript!
 
 ## Seamless Integration with TanStack Query
 
@@ -72,7 +73,8 @@ mutate({
 })
 ```
 
-oRPC's [TanStack Query integration] includes over 10 hooks and 29+ utilities, such as `useQuery`, `useSuspenseQuery`, `useMutation`, `invalidate`, and more. Absolutely everything is typesafe!
+oRPC's [TanStack Query integration](/docs/client/react) includes over 10 hooks and 29+ utilities, 
+such as `useQuery`, `useSuspenseQuery`, `useMutation`, `invalidate`, and more. Absolutely everything is typesafe!
 
 ## Access via OpenAPI Standard
 
@@ -83,7 +85,8 @@ curl -X POST http://localhost:2026/api/getting/1992 \
   -F "user[avatar]=@/path/to/your/image.jpg"
 ```
 
-Features like [Smart Casting] and [Bracket Notation] automatically convert `1992` into a `bigint` and seamlessly parse objects like `user`.
+Features like [Smart Conversion](/docs/openapi/smart-conversion) and [Bracket Notation](/docs/openapi/bracket-notation) automatically 
+convert `1992` into a `bigint` and seamlessly parse objects like `user`.
 
 ## Use as a Server Action
 
@@ -95,8 +98,9 @@ Features like [Smart Casting] and [Bracket Notation] automatically convert `1992
 </form>
 ```
 
-With [Smart Casting] and [Bracket Notation], inputs are automatically parsed into the correct types, ensuring smooth data handling.
-Learn more about [Server Actions].
+With [Smart Conversion](/docs/openapi/smart-conversion) and [Bracket Notation](/docs/openapi/bracket-notation), 
+inputs are automatically parsed into the correct types, ensuring smooth data handling.
+Learn more about [Server Action](/docs/server/server-action).
 
 ## Dependency Injection with Context
 
@@ -122,7 +126,7 @@ const getting = pub
 	})
 ```
 
-When you use [Global Context], every call to your procedure will require a valid `ORPCContext`.
+When you use [Global Context](/docs/server/global-context), every call to your procedure will require a valid `ORPCContext`.
 
 ## **Contract-First Development**
 
@@ -137,11 +141,13 @@ const getting = os
 	.func(async () => 'Worked')
 ```
 
-With [oRPC's Contract First Development], you can easily separate the procedure's definition from its implementation.
+With [oRPC's Contract First Development](/docs/server/contract), you can easily separate the procedure's definition 
+from its implementation.
 
 ## Modern Adapters
 
 oRPC works seamlessly in any environment that supports the **Fetch API**, including **Node.js**, **Bun**, **Deno**, **Next.js**, **Nuxt.js**, **Cloudflare Workers**, **Supabase Functions**, and more. We offer first-class serverless support with a dedicated router optimized for cold start performance.
+Learn more about [oRPC's Modern Adapters](/docs/server/integrations).
 
 ## Performance
 

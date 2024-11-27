@@ -1,0 +1,167 @@
+---
+title: Context
+description: Typesafe dependency injection pattern for oRPC.
+---
+
+## Introduction
+
+In oRPC, context is a mechanism for managing dependencies and data throughout your application. Context comes in two forms:
+- **Initial Context**: Supplied explicitly when invoking a procedure or router.
+- **Middleware Context**: Created or modified by middleware, injected automatically during execution.
+
+Whenever possible, prefer **Middleware Context**. 
+It simplifies procedure and router invocations by reducing the need to supply context manually.
+
+```ts twoslash
+import { os } from '@orpc/server'
+import { z } from 'zod'
+import { headers } from 'next/headers'
+
+type ORPCContext = { db: 'fake-db', user?: { id: string } }
+const base = os.context<ORPCContext>() // define `initial context`
+
+const pub = os.context<ORPCContext>().use(async (input, context, meta) => {
+    const headersList = await headers()
+
+    // the `user` is `middleware context`, because it is created by middleware
+    return meta.next({
+        context: {
+            user: headersList.get('Authorization') ? { id: 'example' } : undefined,
+        }
+    })
+})
+
+export const router = pub.router({
+    getting: pub.func((input, context, meta) => {
+        // ^ context is combined from `initial context` and `middleware context`
+    }),
+})
+```
+
+## Middleware Context
+
+Middleware context is the context that is created or modified by middleware.
+If your procedure only depends on `Middleware Context`, you can 
+[call it](/docs/server/caller) or use it as a [Server Action](/docs/server/server-action) directly.
+
+```ts twoslash
+import { os, ORPCError } from '@orpc/server'
+import { createFetchHandler } from '@orpc/server/fetch'
+import { headers } from 'next/headers'
+
+const base = os.use(async (input, context, meta) => {
+    return meta.next({
+        context: {
+            db: 'fake-db',
+        }
+    })
+})
+
+const authMid = base.middleware(async (input, context, meta) => {
+    const headersList = await headers()
+    const user = headersList.get('Authorization') ? { id: 'example' } : undefined
+
+    if (!user) {
+        throw new ORPCError({ code: 'UNAUTHORIZED' })
+    }
+
+    return meta.next({
+        context: {
+            user,
+        }
+    })
+})
+
+export const router = base.router({
+    getting: base
+        .use(authMid)
+        .func((input, context, meta) => {
+            // ^ context is fully typed
+        }),
+})
+
+// You can call this procedure directly without manually providing context
+const output = await router.getting('any')
+
+const handler = createFetchHandler({
+    router,
+})
+
+export function fetch(request: Request) {
+    // No need to pass context; middleware handles it
+    return handler({
+        request,
+    })
+}
+```
+
+## Initial Context
+
+**Initial Context** is explicitly provided when invoking a procedure or router. 
+This pattern is useful for server-side applications where dependencies can be initialized during each request, 
+rather than relying on global mechanisms like `headers` or `cookies` in Next.js.
+
+```ts twoslash
+import { os, ORPCError, createProcedureCaller } from '@orpc/server'
+import { createFetchHandler } from '@orpc/server/fetch'
+
+type ORPCContext = { user?: { id: string }, db: 'fake-db' }
+
+const base = os.context<ORPCContext>()
+
+const authMid = base.middleware((input, context, meta) => {
+    if(!context.user) {
+        throw new ORPCError({ code: 'UNAUTHORIZED' })
+    }
+
+    return meta.next({
+        context: {
+            user: context.user
+        }
+    })
+})
+
+export const router = base.router({
+    getting: base
+        .use(authMid)
+        .func((input, context, meta) => {
+            // ^ context is fully typed
+        }),
+})
+
+const handler = createFetchHandler({
+    router,
+})
+
+export function fetch(request: Request) {
+    // Initialize context explicitly for each request
+    const db = 'fake-db' as const
+    const user = request.headers.get('Authorization') ? { id: 'example' } : undefined
+
+    return handler({
+        request,
+        context: { db, user },
+    })
+}
+
+// If you want to call this procedure or use as server action
+//  you must create another caller with context by using `createProcedureCaller` or `createRouterCaller`
+const caller = createProcedureCaller({
+    procedure: router.getting,
+    context: async () => {
+        // some logic to create context
+        return { 
+            db: 'fake-db' as const,
+            user: { id: 'example' },
+         }
+    },
+})
+
+const output = await caller('any')
+```
+
+## Summary
+
+- **Middleware** Context is managed by middleware and automatically applied, requiring no additional input during invocation.
+- **Initial Context** must be explicitly provided when invoking a procedure or router.
+- Combining both types of context allows for a powerful, type-safe way to manage dependencies in your application.

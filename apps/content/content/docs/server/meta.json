@@ -3,10 +3,14 @@
     "procedure",
     "middleware",
     "router",
+    "context",
+    "contract",
     "file-upload",
+    "server-action",
+    "caller",
     "error-handling",
+    "data-types",
     "integrations",
-    "advanced",
     "..."
   ]
 }

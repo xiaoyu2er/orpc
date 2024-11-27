@@ -1,97 +1,87 @@
 ---
 title: Server Actions
-description: Use oRPC to improve your server actions.
+description: Leverage oRPC for type-safe and powerful server actions
 ---
 
-# Server Actions
+## Introduction
 
-Server actions allow you to use oRPC procedures directly as form handlers in frameworks that support server actions (like Next.js). They provide automatic type coercion and FormData handling out of the box.
+oRPC makes it simple to implement server actions, offering a robust and type-safe way to manage server-side logic. 
+Server actions are supported out of the box and are powered by several key features: 
 
-## Context Requirements
+- [Middleware](/docs/server/middleware),
+- [Procedure Caller](/docs/server/caller)
+- [Smart Conversion](/docs/openapi/smart-conversion)
+- [Bracket Notation](/docs/openapi/bracket-notation),
 
-Server actions are automatically enabled for procedures that have either:
-- No context requirements (`undefined` context)
-- Optional context (`Context | undefined`)
+## Requirements
 
-```ts twoslash
-"use server"
+To use a procedure as a server action, the procedure must either:
 
-import { os, createProcedureCaller } from '@orpc/server'
-import { z } from 'zod'
+1. Be [directly callable](/docs/server/caller#direct-procedure-calls), or
+2. Use [Calling Procedures with Context](/docs/server/caller#calling-procedures-with-context) to create a callable procedure with context.
 
-// This creates a server action since context is undefined
-const actionProcedure = os
-  .input(z.object({ id: z.number() }))
-  .func(() => 'result')
-
-// This also creates a server action since context is optional
-const optionalContextProcedure = os
-  .context<{ auth: boolean } | undefined>()
-  .func(() => 'result')
-
-// This won't be a server action since it requires context
-const regularProcedure = os
-  .context<{ auth: boolean }>()
-  .func(() => 'result')
-
-// But this will be a server action since it already provided context
-const regularProcedure2 = createProcedureCaller({
-  procedure: regularProcedure,
-  context: async () => {
-    // you can use headers, cookies, etc. here
-    return { auth: true }
-  },
-})
-```
-
-## Usage Examples
-
-### Define Server Action
-
-Create type-safe server actions with full input validation:
+## Usage
 
 ```ts twoslash
 "use server"
 
-import { os } from '@orpc/server'
-import { oz } from '@orpc/zod'
+import { os, ORPCError } from '@orpc/server'
 import { z } from 'zod'
+import { headers } from 'next/headers'
 import { redirect } from "next/navigation"
+import { oz } from '@orpc/zod'
 
-export const createPost = os
+const authMid = os.middleware(async (input, context, meta) => {
+      const headersList = await headers()
+      const user = headersList.get('Authorization') ? { id: 'example' } : undefined
+
+      if(!user) {
+          throw new ORPCError({ code: 'UNAUTHORIZED' })
+      }
+
+      return meta.next({
+          context: {
+              user,
+          }
+      })
+})
+
+export const updateUser = os
+  .use(authMid)
   .input(
     z.object({
-      nested: z.object({
-        title: z.string(),
-        description: z.string(),
-        thumbs: z.array(oz.file().type('image/*')).nullable(),
+      id: z.bigint(),
+      user: z.object({
+        name: z.string(),
+        avatar: oz.file().type('image/*').optional(),
       }),
     }),
   )
-  .func((input) => {
-    redirect('/posts/new')
+  .func((input, context, meta) => {
+    // ^ context.user is automatically injected
+     redirect('/some-where') // or return some thing
   })
 ```
 
 ### Form Integration
 
-Use with React forms and get automatic type coercion:
+Integrate server actions seamlessly with React forms for automatic type coercion:
 
 ```tsx twoslash
-import { createPost } from 'examples/server-action'
+import { updateUser } from 'examples/server-action'
 import * as React from 'react'
 
-export default function CreatePostForm() {
+export default function UpdateUserForm() {
   return (
-    <form action={createPost}>
-      {/* Nested objects use square bracket notation */}
-      <input type="text" name="nested[title]" required />
-      <input type="text" name="nested[description]" required />
+    <form action={updateUser}>
+      {/* Auto convert 1992 to bigint */}
+      <input type="number" name="id" value="1992" />
+      {/* Auto parse user object */}
+      <input type="text" name="user[name]" value="Unnoq" />
       <input
-        id="files"
+        id="avatar"
         type="file"
-        name="nested[thumbs][]"
-        multiple
+        name="user[avatar]"
         accept="image/*"
       />
     </form>
@@ -99,30 +89,65 @@ export default function CreatePostForm() {
 }
 ```
 
+Thanks to [Smart Conversion](/docs/openapi/smart-conversion), and [Bracket Notation](/docs/openapi/bracket-notation),
+automatically convert `1992` into a `bigint` and seamlessly parse objects like `user`.
+
 ### Direct Client Calls
 
-Call server actions directly from client components:
+Call server actions directly from client components for greater flexibility:
 
 ```tsx twoslash
 "use client"
 
-import { createPost } from 'examples/server-action'
+import { updateUser } from 'examples/server-action'
 import * as React from 'react'
 
-export default function CreateUserButton() {
+export default function UpdateUserButton() {
   async function handleClick() {
-    const files = (document.getElementById('files') as HTMLInputElement).files
+    const files = (document.getElementById('avatar') as HTMLInputElement).files
 
     // Call with plain object - types are preserved
-    await createPost({
-      nested: {
-        title: 'hello',
-        description: 'world',
-        thumbs: files ? [...files] : null,
+    await updateUser({
+      id: 1992n,
+      user: {
+        name: 'Unnoq',
+        avatar: files?.[0],
       },
     })
   }
 
-  return <button onClick={handleClick}>Create User</button>
+  return <button onClick={handleClick}>Update User</button>
 }
+```
+
+## Server Actions with Context
+
+Some procedures cannot be used as server actions directly. This is typically because they 
+require additional context, such as user information or other runtime data. 
+In such cases, you can use [createProcedureCaller](/docs/server/caller#calling-procedures-with-context) 
+to provide the required context dynamically, making the procedure callable and usable as a server action.
+
+```ts twoslash
+import { createProcedureCaller, os } from '@orpc/server'
+import { z } from 'zod'
+
+type Context = { user?: { id: string } }
+
+const getting = os
+.context<Context>()
+.input(z.object({ name: z.string() }))
+.func(({ name }) => `Hello, ${name}!`)
+
+// @errors: 2349
+getting({ name: 'Unnoq' }) // ❌ cannot call this procedure directly, and cannot be used as a server action
+
+export const caller = createProcedureCaller({
+    procedure: getting,
+    context: async () => {
+        // you can access headers, cookies, etc. here to create context
+        return { user: { id: 'example' } }
+    },
+})
+
+caller({ name: 'Unnoq' }) // ✅ can call this procedure directly, and can be used as a server action
 ```

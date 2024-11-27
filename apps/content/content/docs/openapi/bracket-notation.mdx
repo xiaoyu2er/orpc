@@ -1,0 +1,46 @@
+---
+title: Bracket Notation
+description: Express structured data with bracket notation.
+---
+
+> **Note**: This feature not supported when using **JSON**
+> Because JSON has its own way to express structured data.
+
+## Object
+
+```ts
+const form = new FormData()
+form.append('user[name]', 'John Doe')
+form.append('user[age]', '30')
+
+const params = new URLSearchParams()
+params.append('user[name]', 'John Doe')
+params.append('user[age]', '30')
+
+// is equivalent to
+
+const data = {
+    user: {
+        name: 'John Doe',
+        age: '30'
+    }
+}
+```
+
+## Array
+
+```ts
+const form = new FormData()
+form.append('ids[]', '1')
+form.append('ids[]', '2')
+
+const params = new URLSearchParams()
+params.append('ids[]', '1')
+params.append('ids[]', '2')
+
+// is equivalent to
+
+const data = {
+    ids: ['1', '2']
+}
+```

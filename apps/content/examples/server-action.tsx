@@ -1,50 +1,67 @@
 'use server'
 
-import { os } from '@orpc/server'
-
+import { ORPCError, os } from '@orpc/server'
 import { oz } from '@orpc/zod'
+import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
-// biome-ignore lint/correctness/noUnusedImports: <explanation>
 import * as React from 'react'
 import { z } from 'zod'
 
-export const createPost = os
+const authMid = os.middleware(async (input, context, meta) => {
+  const headersList = await headers()
+  const user = headersList.get('Authorization') ? { id: 'example' } : undefined
+
+  if (!user) {
+    throw new ORPCError({ code: 'UNAUTHORIZED' })
+  }
+
+  return meta.next({
+    context: {
+      user,
+    },
+  })
+})
+
+export const updateUser = os
+  .use(authMid)
   .input(
     z.object({
-      nested: z.object({
-        title: z.string(),
-        description: z.string(),
-        thumbs: z.array(oz.file().type('image/*')).nullable(),
+      id: z.bigint(),
+      user: z.object({
+        name: z.string(),
+        avatar: oz.file().type('image/*').optional(),
       }),
     }),
   )
-  .func((input) => {
-    redirect('/posts/new')
+  .func((input, context, meta) => {
+    // ^ context.user is automatically injected
+    redirect('/some-where') // or return some thing
   })
 
 export default async function Page() {
   const orYouCanCallDirectly = async () => {
     const files = (document.getElementById('files') as HTMLInputElement).files
 
-    createPost({
-      nested: {
-        title: 'hello',
-        description: 'world',
-        thumbs: files ? [...files] : null,
+    updateUser({
+      id: 1992n,
+      user: {
+        name: 'Unnoq',
+        avatar: files?.[0],
       },
     })
   }
 
   // You can use square brackets to express nested data
   return (
-    <form action={createPost}>
-      <input type="text" name="nested[title]" required />
-      <input type="text" name="nested[description]" required />
+    <form action={updateUser}>
+      {/* Auto convert 1992 to bigint */}
+      <input type="number" name="id" value="1992" />
+      {/* Auto parse user object */}
+      <input type="text" name="user[name]" value="Unnoq" />
       <input
-        id="files"
+        id="avatar"
         type="file"
-        name="nested[thumbs][]"
-        multiple
+        name="user[avatar]"
         accept="image/*"
       />
     </form>

@@ -2,16 +2,28 @@
 
 import { orpc } from '@/lib/orpc'
 
-export function SSRListPlanets() {
-  const { data, refetch, fetchNextPage, hasNextPage }
-    = orpc.planet.list.useSuspenseInfiniteQuery({
+export function ListPlanetsQuery() {
+  const { data, refetch, fetchNextPage, hasNextPage, isLoading, status }
+    = orpc.planet.list.useInfiniteQuery({
       input: {},
       getNextPageParam: lastPage => (lastPage.at(-1)?.id ?? -1) + 1,
     })
 
+  if (status === 'pending') {
+    return <p>Loading...</p>
+  }
+
+  if (status === 'error') {
+    return (
+      <p>
+        Something went wrong.
+      </p>
+    )
+  }
+
   return (
     <div>
-      <h2>oRPC and Tanstack Query | List Planets example with SSR</h2>
+      <h2>oRPC and Tanstack Query | List Planets example</h2>
 
       <table>
         <thead>

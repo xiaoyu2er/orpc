@@ -1,7 +1,5 @@
-'use client'
-
 import { CreatePlanetMutationForm } from './orpc-mutation'
-import { SSRListPlanets } from './orpc-query'
+import { ListPlanetsQuery } from './orpc-query'
 import { CreatePlanetServerAction } from './orpc-server-actions'
 
 export default function Home() {
@@ -20,7 +18,7 @@ export default function Home() {
       <hr />
       <CreatePlanetMutationForm />
       <hr />
-      <SSRListPlanets />
+      <ListPlanetsQuery />
     </div>
   )
 }

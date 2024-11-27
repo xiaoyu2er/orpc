@@ -1,3 +1,5 @@
+'use client'
+
 import { createPlanet } from '@/actions/planet'
 
 export function CreatePlanetServerAction() {

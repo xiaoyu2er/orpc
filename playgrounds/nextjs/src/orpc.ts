@@ -1,10 +1,29 @@
 import type { z } from 'zod'
 import type { UserSchema } from './schemas/user'
 import { ORPCError, os } from '@orpc/server'
+import { cookies, headers } from 'next/headers'
 
-export type ORPCContext = { user?: z.infer<typeof UserSchema>, db: any }
+const base = os.use(async (input, context, meta) => {
+  const headerList = await headers()
+  let user = headerList.get('Authorization')
+    ? { id: 'test', name: 'John Doe', email: 'john@doe.com' } satisfies z.infer<typeof UserSchema>
+    : undefined
 
-export const pub = os.context<ORPCContext>().use(async (input, context, meta) => {
+  if (!user) {
+    const cookieList = await cookies()
+    // do something with cookies
+    user = { id: 'test', name: 'John Doe', email: 'john@doe.com' }
+  }
+
+  return meta.next({
+    context: {
+      db: 'dummy:postgres',
+      user,
+    },
+  })
+})
+
+export const pub = base.use(async (input, context, meta) => {
   const start = Date.now()
 
   try {
@@ -16,7 +35,7 @@ export const pub = os.context<ORPCContext>().use(async (input, context, meta) =>
   }
 })
 
-export const authed = pub.use((input, context, meta) => {
+export const authed = pub.use(async (input, context, meta) => {
   if (!context.user) {
     throw new ORPCError({
       code: 'UNAUTHORIZED',

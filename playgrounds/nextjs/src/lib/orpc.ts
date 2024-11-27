@@ -1,4 +1,4 @@
-import type { router } from '@/router'
+import type { router } from '@/app/api/[...rest]/router'
 import { createORPCClient } from '@orpc/client'
 
 import { createORPCReact } from '@orpc/react'

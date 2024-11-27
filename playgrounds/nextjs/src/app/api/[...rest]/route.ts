@@ -1,5 +1,5 @@
-import { router } from '@/router'
 import { createFetchHandler } from '@orpc/server/fetch'
+import { router } from './router'
 
 const handler = createFetchHandler({
   router,

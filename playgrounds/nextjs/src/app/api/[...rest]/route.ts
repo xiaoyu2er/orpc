@@ -4,17 +4,15 @@ import { router } from './router'
 const handler = createFetchHandler({
   router,
   serverless: true,
+  // hooks(context, hooks) {
+  //   return hooks.next()
+  // },
 })
 
 function handleRequest(request: Request) {
-  const context = request.headers.get('Authorization')
-    ? { user: { id: 'test', name: 'John Doe', email: 'john@doe.com' } }
-    : {}
-
   return handler({
     request,
     prefix: '/api',
-    context,
   })
 }
 

@@ -2,6 +2,7 @@ import type { z } from 'zod'
 import type { UserSchema } from './schemas/user'
 import { ORPCError, os } from '@orpc/server'
 import { cookies, headers } from 'next/headers'
+import './polyfill'
 
 const base = os.use(async (input, context, meta) => {
   const headerList = await headers()

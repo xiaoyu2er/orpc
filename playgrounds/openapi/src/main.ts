@@ -3,6 +3,7 @@ import { generateOpenAPI } from '@orpc/openapi'
 import { createFetchHandler } from '@orpc/server/fetch'
 import { createServerAdapter } from '@whatwg-node/server'
 import { router } from './router'
+import './polyfill'
 
 const orpcHandler = createFetchHandler({
   router,

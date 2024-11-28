@@ -3,6 +3,7 @@ import { createFetchHandler } from '@orpc/server/fetch'
 import { createServerAdapter } from '@whatwg-node/server'
 import express from 'express'
 import { router } from './router'
+import './polyfill'
 
 const app = express()
 

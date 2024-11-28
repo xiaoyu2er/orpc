@@ -4,6 +4,7 @@ import { createFetchHandler } from '@orpc/server/fetch'
 import { createServerAdapter } from '@whatwg-node/server'
 import { contract } from './contract'
 import { router } from './router'
+import './polyfill'
 
 const orpcHandler = createFetchHandler({
   router,

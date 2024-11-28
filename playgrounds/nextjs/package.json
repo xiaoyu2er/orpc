@@ -2,7 +2,9 @@
   "name": "orpc-nextjs-playground",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@8.15.6",
   "description": "oRPC NextJS Playground",
+  "author": "unnoq",
   "keywords": [
     "orpc",
     "nextjs",

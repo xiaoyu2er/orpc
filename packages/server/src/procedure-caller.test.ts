@@ -158,14 +158,14 @@ describe('createProcedureCaller', () => {
     os.func(() => { })()
     os.func(() => { })({})
     // @ts-expect-error input is required
-    os.input(z.string()).func(() => { })()
+    expect(os.input(z.string()).func(() => { })()).rejects.toThrow()
     os.input(z.string().optional()).func(() => { })()
     // @ts-expect-error input is required
-    os.input(z.object({})).func(() => { })()
+    expect(os.input(z.object({})).func(() => { })()).rejects.toThrow()
     os.input(z.object({}).optional()).func(() => { })()
     os.input(z.unknown()).func(() => { })()
     os.input(z.any()).func(() => { })()
     // @ts-expect-error input is required
-    os.input(z.boolean()).func(() => { })()
+    expect(os.input(z.boolean()).func(() => { })()).rejects.toThrow()
   })
 })

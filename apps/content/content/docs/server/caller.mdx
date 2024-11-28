@@ -15,11 +15,11 @@ import { z } from 'zod'
 // ❌ Cannot call this procedure directly because undefined is not assignable to 'Context'
 const e1 = os.context<{ auth: boolean }>().func(() => 'pong')
 // @errors: 2349
-e1('any') // Error: Procedure 'e1' cannot be called directly
+e1() // Error: Procedure 'e1' cannot be called directly
 
 // ✅ Can call this procedure directly because undefined is assignable to 'Context'
 const e2 = os.context<{ auth: boolean } | undefined>().func(() => 'pong')
-const o2 = await e2('any') // Ok, output is 'pong'
+const o2 = await e2() // Ok, output is 'pong'
 
 // ✅ Can call this procedure directly because undefined is assignable to 'Context'
 const getting = os.input(z.object({ name: z.string() })).func(({ name }) => `Hello, ${name}!`)
@@ -54,7 +54,7 @@ const gettingCaller = createProcedureCaller({
     },
 })
 
-const output = await gettingCaller('any') // output is 'pong'
+const output = await gettingCaller() // output is 'pong'
 ```
 
 Now, you can provide context when invoking a procedure. 
@@ -76,7 +76,7 @@ const caller = createRouterCaller({
     context: {},
 })
 
-const result = await caller.ping('any') // result is 'pong'
+const result = await caller.ping() // result is 'pong'
 ```
 
 ## Summary

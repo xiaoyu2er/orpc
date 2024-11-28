@@ -153,4 +153,19 @@ describe('createProcedureCaller', () => {
 
     expect(await caller(form)).toEqual({ id: 1 })
   })
+
+  it('optional input when possible', async () => {
+    os.func(() => { })()
+    os.func(() => { })({})
+    // @ts-expect-error input is required
+    expect(os.input(z.string()).func(() => { })()).rejects.toThrow()
+    os.input(z.string().optional()).func(() => { })()
+    // @ts-expect-error input is required
+    expect(os.input(z.object({})).func(() => { })()).rejects.toThrow()
+    os.input(z.object({}).optional()).func(() => { })()
+    os.input(z.unknown()).func(() => { })()
+    os.input(z.any()).func(() => { })()
+    // @ts-expect-error input is required
+    expect(os.input(z.boolean()).func(() => { })()).rejects.toThrow()
+  })
 })

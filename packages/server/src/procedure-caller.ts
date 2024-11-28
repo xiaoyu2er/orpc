@@ -39,7 +39,7 @@ export type ProcedureCaller<
   infer UFuncOutput
 >
   ? (
-      input: SchemaInput<UInputSchema> | FormData,
+      ...input: [input: SchemaInput<UInputSchema> | FormData] | (undefined extends SchemaInput<UInputSchema> ? [] : never)
     ) => Promise<
       SchemaOutput<UOutputSchema, UFuncOutput>
     >

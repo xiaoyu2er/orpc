@@ -81,7 +81,7 @@ export const router = base.router({
 })
 
 // You can call this procedure directly without manually providing context
-const output = await router.getting('any')
+const output = await router.getting()
 
 const handler = createFetchHandler({
     router,
@@ -157,7 +157,7 @@ const caller = createProcedureCaller({
     },
 })
 
-const output = await caller('any')
+const output = await caller()
 ```
 
 ## Summary

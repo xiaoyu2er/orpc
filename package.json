@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "pnpm run -r build",
-    "build:packages": "pnpm --filter=\"./packages/*\" run -r build",
+    "build:packages": "pnpm --filter='./packages/*' run -r build",
     "preview": "pnpm run --parallel preview",
     "type:check": "pnpm run -r type:check && tsc -b",
     "test": "vitest run",
@@ -22,14 +22,12 @@
     "sherif:fix": "pnpm run sherif --fix",
     "knip": "pnpm dlx knip --production",
     "knip:fix": "pnpm run knip --fix --allow-remove-files",
-    "changeset:version": "changeset version",
-    "changeset:publish": "pnpm run build:packages && pnpm changeset publish",
+    "publish:packages": "pnpm --filter='./packages/*' publish -r",
+    "publish:packages:commit": "pnpm dlx pkg-pr-new publish './packages/*' --pnpm --template './playgrounds/*'",
     "prepare": "simple-git-hooks"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^3.9.2",
-    "@changesets/changelog-github": "^0.5.0",
-    "@changesets/cli": "^2.27.9",
     "@eslint-react/eslint-plugin": "^1.16.2",
     "@testing-library/jest-dom": "^6.6.2",
     "@testing-library/react": "^16.0.1",

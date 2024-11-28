@@ -1,15 +1,27 @@
-name: Code Quality
+name: Main PR CI
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
 
 jobs:
-  main:
+  lint:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+
+      - run: pnpm i
+
+      - run: pnpm run lint
+
+      - run: pnpm run type:check
+
+      - run: pnpm run test
+
+  test:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 

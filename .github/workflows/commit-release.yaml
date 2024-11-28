@@ -1,0 +1,18 @@
+name: Commit Release
+
+on: [push, pull_request]
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - run: pnpm i
+
+      - run: pnpm build:packages
+
+      - run: pnpm publish:packages:commit

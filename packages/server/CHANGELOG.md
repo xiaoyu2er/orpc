@@ -1,5 +1,11 @@
 # @orpc/server
 
+## 0.4.0
+
+### Minor Changes
+
+- [#36](https://github.com/unnoq/orpc/pull/36) [`779114a`](https://github.com/unnoq/orpc/commit/779114a32b089042e97eb4b7a408a389e17beaf1) Thanks [@unnoq](https://github.com/unnoq)! - feat(server): input of procedure caller now can optional
+
 ## 0.3.1
 
 ### Patch Changes

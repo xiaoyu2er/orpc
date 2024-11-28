@@ -1,5 +1,12 @@
 # @orpc/openapi
 
+## 0.0.11
+
+### Patch Changes
+
+- Updated dependencies [[`779114a`](https://github.com/unnoq/orpc/commit/779114a32b089042e97eb4b7a408a389e17beaf1)]:
+  - @orpc/server@0.4.0
+
 ## 0.0.10
 
 ### Patch Changes

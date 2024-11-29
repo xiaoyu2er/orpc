@@ -36,6 +36,8 @@ jobs:
   publish:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [lint, test]
+    permissions:
+      id-token: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -57,9 +59,12 @@ jobs:
           publish: pnpm run changeset:publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
 
   publish-next:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      id-token: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -77,6 +82,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - run: pnpm run changeset:publish --tag next
+        env:
+          NPM_CONFIG_PROVENANCE: true
 
   publish-commit:
     runs-on: ubuntu-latest

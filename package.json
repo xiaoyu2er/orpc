@@ -24,6 +24,7 @@
     "knip:fix": "pnpm run knip --fix --allow-remove-files",
     "changeset:version": "changeset version",
     "changeset:publish": "pnpm run build:packages && pnpm changeset publish",
+    "publish:packages:commit": "pnpm dlx pkg-pr-new publish './packages/*' --pnpm --compact --template './playgrounds/*'",
     "prepare": "simple-git-hooks"
   },
   "devDependencies": {

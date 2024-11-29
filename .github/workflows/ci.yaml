@@ -1,8 +1,6 @@
-name: Main CI
+name: CI
 
-on:
-  push:
-    branches: [main]
+on: [push, pull_request]
 
 jobs:
   lint:
@@ -21,7 +19,6 @@ jobs:
       - run: pnpm run test
 
   test:
-    needs: [lint]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,8 +33,27 @@ jobs:
 
       - run: pnpm run test
 
-  release:
+  publish:
+    if: github.event_name == 'push'
     needs: [lint, test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - name: NPM registry authentication
+        run: pnpm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - run: pnpm i
+
+      - run: pnpm build:packages
+
+      - run: pnpm publish:packages
+
+  publish-commit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

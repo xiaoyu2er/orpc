@@ -2,8 +2,9 @@
   "name": "orpc-contract-openapi-playground",
   "type": "module",
   "version": "0.0.0",
+  "packageManager": "pnpm@8.15.6",
   "description": "oRPC Contract OpenAPI Playground",
-  "author": "",
+  "author": "unnoq",
   "license": "ISC",
   "keywords": ["orpc", "contract", "openapi", "playground", "unnoq"],
   "scripts": {

@@ -1,0 +1,58 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        required: true
+        type: choice
+        options:
+          - next
+          - patch
+          - minor
+          - major
+          - prepatch
+          - preminor
+          - premajor
+
+      preid:
+        type: choice
+        required: true
+        default: beta
+        options:
+          - alpha
+          - beta
+          - canary
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - run: pnpm i
+
+      - run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - run: pnpm dlx bumpp ${{ github.event.inputs.bump }} -r --yes --preid ${{ github.event.inputs.preid }}
+
+      - run: pnpm --filter='./packages/*' run -r build
+
+      - run: pnpm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - run: pnpm --filter='./packages/*' publish -r --access=public --tag="${{ github.event.inputs.preid || 'latest' }}"
+
+      - run: pnpm dlx changelogithub
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

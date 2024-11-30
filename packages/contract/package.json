@@ -19,7 +19,6 @@
     "orpc"
   ],
   "publishConfig": {
-    "access": "public",
     "exports": {
       ".": {
         "types": "./dist/src/index.d.ts",

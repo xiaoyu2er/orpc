@@ -2,7 +2,6 @@
   "name": "orpc-expresjs-playground",
   "type": "module",
   "version": "0.0.0",
-  "packageManager": "pnpm@8.15.6",
   "description": "oRPC ExpressJS Playground",
   "author": "unnoq",
   "license": "ISC",

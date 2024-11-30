@@ -51,7 +51,8 @@
     "type:check": "tsc -b"
   },
   "peerDependencies": {
-    "zod": "^3"
+    "@orpc/zod": "workspace:*",
+    "zod": ">=3.23.0"
   },
   "dependencies": {
     "@orpc/contract": "workspace:*",
@@ -59,7 +60,6 @@
     "@orpc/transformer": "workspace:*"
   },
   "devDependencies": {
-    "@orpc/zod": "workspace:*",
     "hono": "^4.6.3"
   }
 }

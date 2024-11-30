@@ -150,6 +150,12 @@ importers:
 
   packages/client:
     dependencies:
+      '@orpc/contract':
+        specifier: workspace:*
+        version: link:../contract
+      '@orpc/server':
+        specifier: workspace:*
+        version: link:../server
       '@orpc/shared':
         specifier: workspace:*
         version: link:../shared
@@ -157,12 +163,6 @@ importers:
         specifier: workspace:*
         version: link:../transformer
     devDependencies:
-      '@orpc/contract':
-        specifier: workspace:*
-        version: link:../contract
-      '@orpc/server':
-        specifier: workspace:*
-        version: link:../server
       zod:
         specifier: ^3.23.8
         version: 3.23.8
@@ -173,7 +173,7 @@ importers:
         specifier: workspace:*
         version: link:../shared
       zod:
-        specifier: ^3
+        specifier: '>=3.23.0'
         version: 3.23.8
 
   packages/openapi:
@@ -215,22 +215,22 @@ importers:
       '@orpc/client':
         specifier: workspace:*
         version: link:../client
-      '@orpc/shared':
-        specifier: workspace:*
-        version: link:../shared
-      '@tanstack/react-query':
-        specifier: ^5.59.9
-        version: 5.59.15(react@18.3.1)
-      react:
-        specifier: ^18.3.1 || ^19.0.0
-        version: 18.3.1
-    devDependencies:
       '@orpc/contract':
         specifier: workspace:*
         version: link:../contract
       '@orpc/server':
         specifier: workspace:*
         version: link:../server
+      '@orpc/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@tanstack/react-query':
+        specifier: '>=5.59.0'
+        version: 5.59.15(react@18.3.1)
+      react:
+        specifier: '>=18.3.0'
+        version: 18.3.1
+    devDependencies:
       zod:
         specifier: ^3.23.8
         version: 3.23.8
@@ -246,13 +246,13 @@ importers:
       '@orpc/transformer':
         specifier: workspace:*
         version: link:../transformer
-      zod:
-        specifier: ^3
-        version: 3.23.8
-    devDependencies:
       '@orpc/zod':
         specifier: workspace:*
         version: link:../zod
+      zod:
+        specifier: '>=3.23.0'
+        version: 3.23.8
+    devDependencies:
       hono:
         specifier: ^4.6.3
         version: 4.6.6

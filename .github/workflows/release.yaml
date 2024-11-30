@@ -50,6 +50,8 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - run: pnpm packages:publish --tag="${{ github.event.inputs.preid || 'latest' }}"
+        env:
+          NPM_CONFIG_PROVENANCE: true
 
       - run: pnpm packages:changelog:github
         env:

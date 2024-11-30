@@ -1,4 +1,3 @@
-import type {} from '@orpc/client'
 import type {
   ContractProcedure,
   ContractRouter,

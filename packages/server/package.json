@@ -1,7 +1,7 @@
 {
   "name": "@orpc/server",
   "type": "module",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "author": {
     "name": "unnoq",
     "email": "contact@unnoq.com",
@@ -18,7 +18,6 @@
     "unnoq"
   ],
   "publishConfig": {
-    "access": "public",
     "exports": {
       ".": {
         "types": "./dist/src/index.d.ts",
@@ -52,7 +51,8 @@
     "type:check": "tsc -b"
   },
   "peerDependencies": {
-    "zod": "^3"
+    "@orpc/zod": "workspace:*",
+    "zod": ">=3.23.0"
   },
   "dependencies": {
     "@orpc/contract": "workspace:*",
@@ -60,7 +60,6 @@
     "@orpc/transformer": "workspace:*"
   },
   "devDependencies": {
-    "@orpc/zod": "workspace:*",
     "hono": "^4.6.3"
   }
 }

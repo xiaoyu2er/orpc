@@ -43,16 +43,14 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - run: pnpm dlx bumpp ${{ github.event.inputs.bump }} -r --yes --preid ${{ github.event.inputs.preid }}
-
-      - run: pnpm --filter='./packages/*' run -r build
+      - run: pnpm packages:bump ${{ github.event.inputs.bump }} --yes --preid ${{ github.event.inputs.preid }}
 
       - run: pnpm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - run: pnpm --filter='./packages/*' publish -r --access=public --tag="${{ github.event.inputs.preid || 'latest' }}"
+      - run: pnpm packages:publish --tag="${{ github.event.inputs.preid || 'latest' }}"
 
-      - run: pnpm dlx changelogithub
+      - run: pnpm packages:changelog:github
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

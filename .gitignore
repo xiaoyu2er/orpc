@@ -4,7 +4,6 @@
 !.npmrc
 !.*.example
 !.vscode/
-!.changeset/
 !.github/
 
 # Common generated folders

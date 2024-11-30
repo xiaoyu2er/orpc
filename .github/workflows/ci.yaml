@@ -16,8 +16,6 @@ jobs:
 
       - run: pnpm run type:check
 
-      - run: pnpm run test
-
   test:
     runs-on: ubuntu-latest
     steps:
@@ -26,10 +24,6 @@ jobs:
       - uses: pnpm/action-setup@v4
 
       - run: pnpm i
-
-      - run: pnpm run lint
-
-      - run: pnpm run type:check
 
       - run: pnpm run test
 
@@ -42,4 +36,4 @@ jobs:
 
       - run: pnpm i
 
-      - run: pnpm pnpm packages:publish:commit
+      - run: pnpm run packages:publish:commit

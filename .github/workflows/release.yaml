@@ -3,38 +3,42 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
-      bump:
+      version:
+        description: 'Bump version (e.g., 4.0.0, 4.1.0-alpha.1, 5.0.0-beta.2)'
         required: true
-        type: choice
-        options:
-          - next
-          - patch
-          - minor
-          - major
-          - prepatch
-          - preminor
-          - premajor
-
-      preid:
-        type: choice
-        required: true
-        default: beta
-        options:
-          - alpha
-          - beta
-          - canary
+        type: string
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  publish:
+  release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
       id-token: write
     steps:
+      - id: version
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+
+          if [[ $VERSION =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-([a-z]+)\.([1-9][0-9]*))?$ ]]; then
+            if [[ "${BASH_REMATCH[5]}" == "latest" ]]; then
+              echo "INVALID VERSION FORMAT ('latest' is not allowed): $VERSION" >&2
+              exit 1
+            fi
+
+            echo "major=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+            echo "minor=${BASH_REMATCH[2]}" >> $GITHUB_OUTPUT
+            echo "patch=${BASH_REMATCH[3]}" >> $GITHUB_OUTPUT
+            echo "preid=${BASH_REMATCH[5]}" >> $GITHUB_OUTPUT
+            echo "number=${BASH_REMATCH[6]}" >> $GITHUB_OUTPUT
+          else
+            echo "INVALID VERSION FORMAT: $VERSION" >&2
+            exit 1
+          fi
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -47,28 +51,13 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - run: pnpm run packages:bump ${{ github.event.inputs.bump }} --yes --preid ${{ github.event.inputs.preid }}
-
-      - id: package-version
-        uses: martinbeentjes/npm-get-version-action@v1.3.1
-        with:
-          path: packages/server
-
-      - id: prerelease-tag
-        run: |
-          VERSION=${{ steps.package-version.outputs.current-version }}
-
-          if [[ $VERSION =~ ^[0-9\.]+(-([0-9A-Za-z-]+).*)?$ ]]; then
-            echo "tag=${BASH_REMATCH[2]}"
-          else
-            echo "tag=unknown"
-          fi
+      - run: pnpm run packages:bump ${{ github.event.inputs.version }} --yes --preid=${{ steps.version.outputs.preid }}
 
       - run: pnpm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - run: pnpm run packages:publish --tag="${{ steps.prerelease-tag.outputs.tag || 'latest' }}"
+      - run: pnpm run packages:publish --tag="${{ steps.version.outputs.preid || 'latest' }}"
         env:
           NPM_CONFIG_PROVENANCE: true
 

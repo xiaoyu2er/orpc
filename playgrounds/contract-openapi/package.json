@@ -2,10 +2,7 @@
   "name": "orpc-contract-openapi-playground",
   "type": "module",
   "version": "0.0.0",
-  "description": "oRPC Contract OpenAPI Playground",
-  "author": "unnoq",
-  "license": "ISC",
-  "keywords": ["orpc", "contract", "openapi", "playground", "unnoq"],
+  "private": true,
   "scripts": {
     "dev": "tsx --watch src/main.ts",
     "start": "tsx src/main.ts"

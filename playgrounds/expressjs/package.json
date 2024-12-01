@@ -2,10 +2,7 @@
   "name": "orpc-expresjs-playground",
   "type": "module",
   "version": "0.0.0",
-  "description": "oRPC ExpressJS Playground",
-  "author": "unnoq",
-  "license": "ISC",
-  "keywords": ["orpc", "expressjs", "playground", "unnoq"],
+  "private": true,
   "scripts": {
     "dev": "tsx --watch src/main.ts",
     "start": "tsx src/main.ts"

@@ -51,7 +51,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - run: pnpm run packages:bump ${{ github.event.inputs.version }} --yes --preid=${{ steps.version.outputs.preid }}
+      - run: pnpm run packages:bump ${{ github.event.inputs.version }} --yes
 
       - run: pnpm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
         env:

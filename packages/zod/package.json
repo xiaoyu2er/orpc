@@ -10,7 +10,8 @@
     "directory": "packages/zod"
   },
   "keywords": [
-    "unnoq"
+    "unnoq",
+    "orpc"
   ],
   "publishConfig": {
     "exports": {
@@ -31,11 +32,11 @@
     }
   },
   "files": [
-    "dist",
-    "src"
+    "!dist/*.tsbuildinfo",
+    "dist"
   ],
   "scripts": {
-    "build": "tsup --clean --sourcemap --entry.index=src/index.ts --format=esm --onSuccess='tsc -b --noCheck'",
+    "build": "tsup --clean --entry.index=src/index.ts --format=esm --onSuccess='tsc -b --noCheck'",
     "build:watch": "pnpm run build --watch",
     "type:check": "tsc -b"
   },

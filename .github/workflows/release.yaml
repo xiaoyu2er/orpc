@@ -57,7 +57,7 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - run: pnpm run packages:publish --tag="${{ steps.version.outputs.preid || 'latest' }}"
+      - run: pnpm run packages:publish --tag=${{ steps.version.outputs.preid || 'latest' }}
         env:
           NPM_CONFIG_PROVENANCE: true
 

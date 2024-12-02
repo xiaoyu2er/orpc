@@ -106,9 +106,9 @@ export function createOpenAPIHandler(createHonoRouter: () => Routing): FetchHand
   }
 }
 
-export function createResolveRouter(createHonoRouter: () => Routing): ResolveRouter {
-  const routingCache = new Map<Router<any>, Routing>()
+const routingCache = new Map<Router<any>, Routing>()
 
+export function createResolveRouter(createHonoRouter: () => Routing): ResolveRouter {
   return (router: Router<any>, method: string, pathname: string) => {
     let routing = routingCache.get(router)
 

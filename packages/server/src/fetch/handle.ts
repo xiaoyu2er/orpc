@@ -3,7 +3,7 @@ import type { FetchHandler, FetchHandlerOptions } from './types'
 import { ORPCError } from '@orpc/shared/error'
 
 export type HandleFetchRequestOptions<TRouter extends Router<any>> = FetchHandlerOptions<TRouter> & {
-  handlers: FetchHandler[]
+  handlers: [FetchHandler, ...FetchHandler[]]
 }
 
 export async function handleFetchRequest< TRouter extends Router<any>>(

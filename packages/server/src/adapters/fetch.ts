@@ -1,12 +1,16 @@
 /// <reference lib="dom" />
 
 import type {
+  ContractRouter,
+} from '@orpc/contract'
+import type {
   PartialOnUndefinedDeep,
   Promisable,
   Value,
 } from '@orpc/shared'
-import type { Procedure, WELL_DEFINED_PROCEDURE } from '../procedure'
+import type { WELL_DEFINED_PROCEDURE } from '../procedure'
 import type { Router } from '../router'
+import type { RoutingOptions } from '../routing'
 import {
   ORPC_HEADER,
   ORPC_HEADER_VALUE,
@@ -24,51 +28,52 @@ import {
   ORPCSerializer,
   zodCoerce,
 } from '@orpc/transformer'
-import { isProcedure } from '../procedure'
 import { createProcedureCaller } from '../procedure-caller'
+import { orpcRouting } from '../routing'
 
 export interface FetchHandlerHooks {
   next: () => Promise<Response>
   response: (response: Response) => Response
 }
 
-export type HandleFetchRequestOptions<TRouter extends Router<any>> = {
-  /**
-   * The router used to handle the request.
-   */
-  router: TRouter
+export type HandleFetchRequestOptions<
+  TContractRouter extends ContractRouter | undefined,
+  TRouter extends Router<any>,
+> =
+  {
+    /**
+     * The request need to be handled.
+     */
+    request: Request
 
-  /**
-   * The request need to be handled.
-   */
-  request: Request
+    /**
+     * Remove the prefix from the request path.
+     *
+     * @example /orpc
+     * @example /api
+     */
+    prefix?: string
 
-  /**
-   * Remove the prefix from the request path.
-   *
-   * @example /orpc
-   * @example /api
-   */
-  prefix?: string
+    /**
+     * Hooks for executing logics on lifecycle events.
+     */
+    hooks?: (
+      context: TRouter extends Router<infer UContext> ? UContext : never,
+      hooks: FetchHandlerHooks,
+    ) => Promisable<Response>
+  }
+  & Omit<RoutingOptions<TContractRouter, TRouter>, 'pathname'>
+  & PartialOnUndefinedDeep<{
+    /**
+     * The context used to handle the request.
+     */
+    context: Value<
+      TRouter extends Router<infer UContext> ? UContext : never
+    >
+  }>
 
-  /**
-   * Hooks for executing logics on lifecycle events.
-   */
-  hooks?: (
-    context: TRouter extends Router<infer UContext> ? UContext : never,
-    hooks: FetchHandlerHooks,
-  ) => Promisable<Response>
-} & PartialOnUndefinedDeep<{
-  /**
-   * The context used to handle the request.
-   */
-  context: Value<
-    TRouter extends Router<infer UContext> ? UContext : never
-  >
-}>
-
-export async function handleFetchRequest<TRouter extends Router<any>>(
-  options: HandleFetchRequestOptions<TRouter>,
+export async function handleFetchRequest<TContractRouter extends ContractRouter | undefined, TRouter extends Router<any>>(
+  options: HandleFetchRequestOptions<TContractRouter, TRouter>,
 ): Promise<Response> {
   const isORPCTransformer
       = options.request.headers.get(ORPC_HEADER) === ORPC_HEADER_VALUE
@@ -89,20 +94,15 @@ export async function handleFetchRequest<TRouter extends Router<any>>(
     let params: Record<string, string> | undefined
 
     if (isORPCTransformer) {
-      path = trim(pathname, '/').split('/').map(decodeURIComponent)
+      const match = orpcRouting({
+        router: options.router,
+        pathname,
+      })
 
-      let current: Router<any> | Procedure<any, any, any, any, any> | undefined = options.router
-      for (const segment of path) {
-        if ((typeof current !== 'object' || current === null) && typeof current !== 'function') {
-          current = undefined
-          break
-        }
-
-        current = (current as any)[segment]
-      }
-
-      if (isProcedure(current)) {
-        procedure = current
+      if (match) {
+        procedure = match.procedure
+        path = match.path
+        params = match.params
       }
     }
     else {
@@ -119,7 +119,7 @@ export async function handleFetchRequest<TRouter extends Router<any>>(
         schema: procedure.zz$p.contract.zz$cp.InputSchema,
       })
 
-    const input_ = await (async () => {
+    const input = await (async () => {
       try {
         return await deserializer.deserialize(options.request)
       }
@@ -133,30 +133,11 @@ export async function handleFetchRequest<TRouter extends Router<any>>(
       }
     })()
 
-    const input = (() => {
-      if (!params || Object.keys(params).length === 0) {
-        return input_
-      }
+    const coercedParams = params && procedure.zz$p.contract.zz$cp.InputSchema
+      ? zodCoerce(procedure.zz$p.contract.zz$cp.InputSchema, params, { bracketNotation: true }) as Record<string, unknown>
+      : params
 
-      const coercedParams = procedure.zz$p.contract.zz$cp.InputSchema
-        ? (zodCoerce(
-            procedure.zz$p.contract.zz$cp.InputSchema,
-            { ...params },
-            {
-              bracketNotation: true,
-            },
-          ) as object)
-        : params
-
-      if (!isPlainObject(input_)) {
-        return coercedParams
-      }
-
-      return {
-        ...coercedParams,
-        ...input_,
-      }
-    })()
+    const mergedInput = mergeParamsAndInput(coercedParams, input)
 
     const caller = createProcedureCaller({
       context,
@@ -164,7 +145,7 @@ export async function handleFetchRequest<TRouter extends Router<any>>(
       path,
     })
 
-    const output = await caller(input)
+    const output = await caller(mergedInput)
 
     const { body, headers } = serializer.serialize(output)
 
@@ -215,4 +196,19 @@ function toORPCError(e: unknown): ORPCError<any, any> {
       message: 'Internal server error',
       cause: e,
     })
+}
+
+function mergeParamsAndInput(coercedParams: Record<string, unknown> | undefined, input: unknown) {
+  if (!coercedParams || Object.keys(coercedParams).length === 0) {
+    return input
+  }
+
+  if (!isPlainObject(input)) {
+    return coercedParams
+  }
+
+  return {
+    ...coercedParams,
+    ...input,
+  }
 }

@@ -1,6 +1,5 @@
 import { oc } from '@orpc/contract'
 import { os } from '@orpc/server'
-import { createFetchHandler } from '@orpc/server/fetch'
 import { z } from 'zod'
 import { createRouterClient } from './router'
 
@@ -15,7 +14,7 @@ describe('createRouterClient', () => {
       unique: ping,
     },
   })
-  const handler = createFetchHandler({
+  const handler = handleFetchRequest({
     router,
   })
   const orpcFetch: typeof fetch = async (...args) => {
@@ -126,7 +125,7 @@ describe('createRouterClient', () => {
         .func(input => input.value),
     })
 
-    const handler = createFetchHandler({
+    const handler = handleFetchRequest({
       router,
     })
 

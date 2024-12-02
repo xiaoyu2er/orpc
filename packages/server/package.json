@@ -54,8 +54,5 @@
     "@orpc/contract": "workspace:*",
     "@orpc/shared": "workspace:*",
     "@orpc/transformer": "workspace:*"
-  },
-  "devDependencies": {
-    "hono": "^4.6.3"
   }
 }

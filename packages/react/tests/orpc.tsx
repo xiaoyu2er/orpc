@@ -1,6 +1,5 @@
 import { createORPCClient } from '@orpc/client'
 import { os } from '@orpc/server'
-import { createFetchHandler } from '@orpc/server/fetch'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import React, { Suspense } from 'react'
 import { z } from 'zod'
@@ -92,7 +91,7 @@ export const appRouter = orpcServer.router({
   },
 })
 
-export const appHandler = createFetchHandler({ router: appRouter })
+export const appHandler = handleFetchRequest({ router: appRouter })
 
 export const orpcClient = createORPCClient<typeof appRouter>({
   baseURL: 'http://localhost:3000',

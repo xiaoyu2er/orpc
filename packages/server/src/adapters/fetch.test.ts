@@ -3,7 +3,7 @@ import { oz } from '@orpc/zod'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { ORPCError, os } from '..'
-import { createFetchHandler } from './fetch'
+import { handleFetchRequest } from './fetch'
 
 const router = os.router({
   throw: os.func(() => {
@@ -17,8 +17,6 @@ const router = os.router({
   }),
 })
 
-const handler = createFetchHandler({ router })
-
 describe('simple', () => {
   const osw = os.context<{ auth?: boolean }>()
   const router = osw.router({
@@ -27,12 +25,10 @@ describe('simple', () => {
       .route({ method: 'GET', path: '/ping2' })
       .func(async () => 'pong2'),
   })
-  const handler = createFetchHandler({
-    router,
-  })
 
   it('200: public url', async () => {
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
       prefix: '/orpc',
       request: new Request('http://localhost/orpc/ping', {
         method: 'POST',
@@ -43,7 +39,8 @@ describe('simple', () => {
     expect(response.status).toBe(200)
     expect(await response.json()).toEqual('pong')
 
-    const response2 = await handler({
+    const response2 = await handleFetchRequest({
+      router,
       prefix: '/orpc',
       request: new Request('http://localhost/orpc/ping2', {
         method: 'GET',
@@ -56,7 +53,8 @@ describe('simple', () => {
   })
 
   it('200: internal url', async () => {
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
       request: new Request('http://localhost/ping'),
       context: { auth: true },
     })
@@ -64,7 +62,8 @@ describe('simple', () => {
     expect(response.status).toBe(200)
     expect(await response.json()).toEqual('pong')
 
-    const response2 = await handler({
+    const response2 = await handleFetchRequest({
+      router,
       prefix: '/orpc',
       request: new Request('http://localhost/orpc/ping2'),
       context: { auth: true },
@@ -75,7 +74,8 @@ describe('simple', () => {
   })
 
   it('404', async () => {
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
       prefix: '/orpc',
       request: new Request('http://localhost/orpc/pingp', {
         method: 'POST',
@@ -89,7 +89,8 @@ describe('simple', () => {
 
 describe('procedure throw error', () => {
   it('unknown error', async () => {
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
       request: new Request('https://local.com/throw', { method: 'POST' }),
     })
 
@@ -108,9 +109,8 @@ describe('procedure throw error', () => {
       }),
     })
 
-    const handler = createFetchHandler({ router })
-
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
       request: new Request('https://local.com/ping', { method: 'POST' }),
     })
 
@@ -133,9 +133,8 @@ describe('procedure throw error', () => {
       }),
     })
 
-    const handler = createFetchHandler({ router })
-
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
       request: new Request('https://local.com/ping', { method: 'POST' }),
     })
 
@@ -165,9 +164,8 @@ describe('procedure throw error', () => {
       }),
     })
 
-    const handler = createFetchHandler({ router })
-
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
       request: new Request('https://local.com/ping', { method: 'POST' }),
     })
 
@@ -178,7 +176,8 @@ describe('procedure throw error', () => {
       message: 'Internal server error',
     })
 
-    const response2 = await handler({
+    const response2 = await handleFetchRequest({
+      router,
       request: new Request('https://local.com/ping2', { method: 'POST' }),
     })
 
@@ -200,9 +199,8 @@ describe('procedure throw error', () => {
         }),
     })
 
-    const handler = createFetchHandler({ router })
-
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
       request: new Request('https://local.com/ping', { method: 'POST' }),
     })
 
@@ -233,9 +231,8 @@ describe('procedure throw error', () => {
         }),
     })
 
-    const handler = createFetchHandler({ router })
-
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
       request: new Request('https://local.com/ping', {
         method: 'POST',
         body: '"hi"',
@@ -257,7 +254,8 @@ describe('hooks', () => {
     const onError = vi.fn()
     const onFinish = vi.fn()
 
-    const handler = createFetchHandler({
+    await handleFetchRequest({
+      prefix: '/orpc',
       router,
       hooks: async (context, hooks) => {
         try {
@@ -273,10 +271,6 @@ describe('hooks', () => {
           onFinish()
         }
       },
-    })
-
-    await handler({
-      prefix: '/orpc',
       request: new Request('http://localhost/orpc/ping', {
         method: 'POST',
       }),
@@ -295,7 +289,7 @@ describe('hooks', () => {
     const onError = vi.fn()
     const onFinish = vi.fn()
 
-    const handler = createFetchHandler({
+    await handleFetchRequest({
       router,
       hooks: async (context, hooks) => {
         try {
@@ -311,9 +305,6 @@ describe('hooks', () => {
           onFinish()
         }
       },
-    })
-
-    await handler({
       prefix: '/orpc',
       request: new Request('http://localhost/orpc/throw', {
         method: 'POST',
@@ -344,8 +335,6 @@ describe('file upload', () => {
       }),
   })
 
-  const handler = createFetchHandler({ router })
-
   const blob1 = new Blob(['hello'], { type: 'text/plain;charset=utf-8' })
   const blob2 = new Blob(['"world"'], { type: 'image/png' })
   const blob3 = new Blob(['unnoq'], { type: 'application/octet-stream' })
@@ -356,7 +345,8 @@ describe('file upload', () => {
     rForm.set('maps', JSON.stringify([[]]))
     rForm.set('0', blob3)
 
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
       prefix: '/orpc',
       request: new Request('http://localhost/orpc/signal', {
         method: 'POST',
@@ -385,7 +375,8 @@ describe('file upload', () => {
     form.set('0', blob1)
     form.set('1', blob2)
 
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
       prefix: '/orpc',
       request: new Request('http://localhost/orpc/multiple', {
         method: 'POST',
@@ -418,12 +409,10 @@ describe('accept header', () => {
   const router = os.router({
     ping: os.func(async () => 'pong'),
   })
-  const handler = createFetchHandler({
-    router,
-  })
 
   it('application/json', async () => {
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
       prefix: '/orpc',
       request: new Request('http://localhost/orpc/ping', {
         method: 'POST',
@@ -439,7 +428,8 @@ describe('accept header', () => {
   })
 
   it('multipart/form-data', async () => {
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
       prefix: '/orpc',
       request: new Request('http://localhost/orpc/ping', {
         method: 'POST',
@@ -458,7 +448,8 @@ describe('accept header', () => {
   })
 
   it('application/x-www-form-urlencoded', async () => {
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
       prefix: '/orpc',
       request: new Request('http://localhost/orpc/ping', {
         method: 'POST',
@@ -477,7 +468,8 @@ describe('accept header', () => {
   })
 
   it('*/*', async () => {
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
       prefix: '/orpc',
       request: new Request('http://localhost/orpc/ping', {
         method: 'POST',
@@ -492,7 +484,8 @@ describe('accept header', () => {
   })
 
   it('invalid', async () => {
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
       prefix: '/orpc',
       request: new Request('http://localhost/orpc/ping', {
         method: 'POST',
@@ -541,17 +534,13 @@ describe('dynamic params', () => {
   })
 
   const handlers = [
-    createFetchHandler({
-      router,
-    }),
-    createFetchHandler({
-      router,
-      serverless: true,
-    }),
+    { router },
+    { router }, // TODO: to test for serverless
   ]
 
-  it.each(handlers)('should handle dynamic params', async (handler) => {
-    const response = await handler({
+  it.each(handlers)('should handle dynamic params', async ({ router }) => {
+    const response = await handleFetchRequest({
+      router,
       request: new Request('http://localhost/123'),
     })
 
@@ -564,7 +553,8 @@ describe('dynamic params', () => {
     const form = new FormData()
     form.append('file', new Blob(['hello']), 'hello.txt')
 
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
       request: new Request('http://localhost/123/dfdsfds', {
         method: 'POST',
         body: form,
@@ -595,20 +585,16 @@ describe('can control method on POST request', () => {
   })
 
   const handlers = [
-    createFetchHandler({
-      router,
-    }),
-    createFetchHandler({
-      router,
-      serverless: true,
-    }),
+    { router },
+    { router }, // TODO: to test for serverless
   ]
 
-  it.each(handlers)('work', async (handler) => {
+  it.each(handlers)('work', async ({ router }) => {
     const form = new FormData()
     form.set('file', new File(['hello'], 'hello.txt'))
 
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
       request: new Request('http://localhost/123', {
         method: 'POST',
         body: form,
@@ -617,7 +603,8 @@ describe('can control method on POST request', () => {
 
     expect(response.status).toEqual(404)
 
-    const response2 = await handler({
+    const response2 = await handleFetchRequest({
+      router,
       request: new Request('http://localhost/123?method=PUT', {
         method: 'POST',
         body: form,

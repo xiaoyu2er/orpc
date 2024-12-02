@@ -1,5 +1,4 @@
 import { ORPCError, os } from '@orpc/server'
-import { createFetchHandler } from '@orpc/server/fetch'
 import { z } from 'zod'
 import { createProcedureClient } from './procedure'
 
@@ -14,7 +13,7 @@ describe('createProcedureClient', () => {
       ping,
     },
   })
-  const handler = createFetchHandler({
+  const handler = handleFetchRequest({
     router,
   })
   const orpcFetch: typeof fetch = async (...args) => {
@@ -114,7 +113,7 @@ describe('createProcedureClient', () => {
         .func(input => input.value),
     })
 
-    const handler = createFetchHandler({
+    const handler = handleFetchRequest({
       router,
     })
 
@@ -147,7 +146,7 @@ describe('createProcedureClient', () => {
       }),
     })
 
-    const handler = createFetchHandler({
+    const handler = handleFetchRequest({
       router,
     })
 
@@ -192,7 +191,7 @@ describe('upload file', () => {
       }),
   })
 
-  const handler = createFetchHandler({ router })
+  const handler = handleFetchRequest({ router })
 
   const orpcFetch: typeof fetch = async (...args) => {
     const request = new Request(...args)

@@ -1,24 +1,12 @@
 import { generateOpenAPI } from '@orpc/openapi'
-import { createFetchHandler } from '@orpc/server/fetch'
+import { OpenAPIServerHandler } from '@orpc/openapi/fetch'
+import { handleFetchRequest, ORPCHandler } from '@orpc/server/fetch'
 import { createServerAdapter } from '@whatwg-node/server'
 import express from 'express'
 import { router } from './router'
 import './polyfill'
 
 const app = express()
-
-const orpcHandler = createFetchHandler({
-  router,
-  async hooks(context, hooks) {
-    try {
-      return hooks.next()
-    }
-    catch (e) {
-      console.error(e)
-      throw e
-    }
-  },
-})
 
 app.all(
   '/api/*',
@@ -27,10 +15,21 @@ app.all(
       ? { user: { id: 'test', name: 'John Doe', email: 'john@doe.com' } }
       : {}
 
-    return orpcHandler({
+    return handleFetchRequest({
       request,
       prefix: '/api',
       context,
+      router,
+      handlers: [ORPCHandler, OpenAPIServerHandler],
+      async hooks(context, hooks) {
+        try {
+          return hooks.next()
+        }
+        catch (e) {
+          console.error(e)
+          throw e
+        }
+      },
     })
   }),
 )

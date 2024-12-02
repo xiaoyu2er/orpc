@@ -31,8 +31,13 @@ export function createOpenAPIHandler(createHonoRouter: () => Routing): FetchHand
     const handler = async () => {
       const url = new URL(options.request.url)
       const pathname = `/${trim(url.pathname.replace(options.prefix ?? '', ''), '/')}`
+      const customMethod
+        = options.request.method === 'POST'
+          ? url.searchParams.get('method')?.toUpperCase()
+          : undefined
+      const method = customMethod || options.request.method
 
-      const match = resolveRouter(options.router, options.request.method, pathname)
+      const match = resolveRouter(options.router, method, pathname)
 
       if (!match) {
         throw new ORPCError({ code: 'NOT_FOUND', message: 'Not found' })
@@ -116,12 +121,12 @@ export function createResolveRouter(createHonoRouter: () => Routing): ResolveRou
           const item = router[key] as WELL_DEFINED_PROCEDURE | Router<any>
 
           if (isProcedure(item)) {
-            if (item.zz$p.contract.zz$cp.path) {
-              const method = item.zz$p.contract.zz$cp.method ?? 'POST'
-              const path = openAPIPathToRouterPath(item.zz$p.contract.zz$cp.path)
+            const method = item.zz$p.contract.zz$cp.method ?? 'POST'
+            const path = item.zz$p.contract.zz$cp.path
+              ? openAPIPathToRouterPath(item.zz$p.contract.zz$cp.path)
+              : `/${currentPath.map(encodeURIComponent).join('/')}`
 
-              routing.add(method, path, [currentPath, item])
-            }
+            routing.add(method, path, [currentPath, item])
           }
           else {
             addRouteRecursively(routing, item, currentPath)

@@ -54,5 +54,8 @@
     "@orpc/contract": "workspace:*",
     "@orpc/shared": "workspace:*",
     "@orpc/transformer": "workspace:*"
+  },
+  "devDependencies": {
+    "@orpc/openapi": "workspace:*"
   }
 }

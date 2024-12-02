@@ -16,6 +16,11 @@ export default antfu({
     'antfu/no-top-level-await': 'off',
   },
 }, {
+  files: ['apps/content/examples/**'],
+  rules: {
+    'import/first': 'off',
+  },
+}, {
   files: ['playgrounds/**'],
   rules: {
     'no-alert': 'off',

@@ -1,8 +1,7 @@
 /// <reference lib="dom" />
 
-import type { ContractRouter } from '@orpc/contract'
 import type { PartialOnUndefinedDeep, Promisable, Value } from '@orpc/shared'
-import type { Router, RouterWithContract } from '../router'
+import type { Router } from '../router'
 
 export interface FetchHandlerHooks {
   next: () => Promise<Response>
@@ -10,23 +9,13 @@ export interface FetchHandlerHooks {
 }
 
 export type FetchHandlerOptions<
-  TContractRouter extends ContractRouter | undefined,
   TRouter extends Router<any>,
 > = {
   /**
-   * The `contract router` used for routing the request.
-   * If not provided, the `router` will be used.
-   *
-   * @default undefined
-   */
-  contract?: TContractRouter
-
-  /**
-   * The `router` used for handling the request,
-   * and routing if `contract` is not provided.
+   * The `router` used for handling the request and routing,
    *
    */
-  router: TRouter & (TContractRouter extends ContractRouter ? RouterWithContract<any, TContractRouter> : unknown)
+  router: TRouter
 
   /**
    * The request need to be handled.
@@ -57,9 +46,6 @@ export type FetchHandlerOptions<
   >
 }>
 
-export type FetchHandler = <
-  TContractRouter extends ContractRouter | undefined,
-  TRouter extends Router<any>,
->(
-  options: FetchHandlerOptions<TContractRouter, TRouter>
+export type FetchHandler = <TRouter extends Router<any>>(
+  options: FetchHandlerOptions<TRouter>
 ) => Promise<Response | undefined>

@@ -1,17 +1,13 @@
-import type { ContractRouter } from '@orpc/contract'
 import type { Router } from '../router'
 import type { FetchHandler, FetchHandlerOptions } from './types'
 import { ORPCError } from '@orpc/shared/error'
 
-export type HandleFetchRequestOptions<
-  TContractRouter extends ContractRouter | undefined,
-  TRouter extends Router<any>,
-> = FetchHandlerOptions<TContractRouter, TRouter> & {
+export type HandleFetchRequestOptions<TRouter extends Router<any>> = FetchHandlerOptions<TRouter> & {
   handlers: FetchHandler[]
 }
 
-export async function handleFetchRequest<TContractRouter extends ContractRouter | undefined, TRouter extends Router<any>>(
-  options: HandleFetchRequestOptions<TContractRouter, TRouter>,
+export async function handleFetchRequest< TRouter extends Router<any>>(
+  options: HandleFetchRequestOptions<TRouter>,
 ) {
   for (const handler of options.handlers) {
     const response = await handler(options)

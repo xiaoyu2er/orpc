@@ -1,3 +1,5 @@
+/// <reference lib="dom" />
+
 import type { HTTPPath } from '@orpc/contract'
 import type { FetchHandler } from '@orpc/server/fetch'
 import type { Router as HonoRouter } from 'hono/router'

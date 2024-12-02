@@ -157,6 +157,9 @@ importers:
         specifier: workspace:*
         version: link:../transformer
     devDependencies:
+      '@orpc/openapi':
+        specifier: workspace:*
+        version: link:../openapi
       zod:
         specifier: ^3.23.8
         version: 3.23.8

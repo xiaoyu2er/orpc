@@ -20,6 +20,11 @@
         "import": "./dist/index.js",
         "default": "./dist/index.js"
       },
+      "./fetch": {
+        "types": "./dist/src/fetch/index.d.ts",
+        "import": "./dist/fetch.js",
+        "default": "./dist/fetch.js"
+      },
       "./🔒/*": {
         "types": "./dist/src/*.d.ts"
       }
@@ -27,6 +32,7 @@
   },
   "exports": {
     ".": "./src/index.ts",
+    "./fetch": "./src/fetch/index.ts",
     "./🔒/*": {
       "types": "./src/*.ts"
     }
@@ -36,7 +42,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup --clean --entry.index=src/index.ts --format=esm --onSuccess='tsc -b --noCheck'",
+    "build": "tsup --clean --entry.index=src/index.ts --entry.fetch=src/fetch/index.ts --format=esm --onSuccess='tsc -b --noCheck'",
     "build:watch": "pnpm run build --watch",
     "type:check": "tsc -b"
   },
@@ -52,6 +58,7 @@
   },
   "devDependencies": {
     "@readme/openapi-parser": "^2.6.0",
+    "hono": "^4.6.12",
     "zod": "^3.23.8"
   }
 }

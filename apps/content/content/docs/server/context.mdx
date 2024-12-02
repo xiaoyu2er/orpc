@@ -46,7 +46,6 @@ If your procedure only depends on `Middleware Context`, you can
 
 ```ts twoslash
 import { os, ORPCError } from '@orpc/server'
-import { createFetchHandler } from '@orpc/server/fetch'
 import { headers } from 'next/headers'
 
 const base = os.use(async (input, context, meta) => {
@@ -83,14 +82,18 @@ export const router = base.router({
 // You can call this procedure directly without manually providing context
 const output = await router.getting()
 
-const handler = createFetchHandler({
-    router,
-})
+import { handleFetchRequest, createORPCHandler } from '@orpc/server/fetch'
+import { createOpenAPIServerlessHandler, createOpenAPIServerHandler } from '@orpc/openapi/fetch'
 
 export function fetch(request: Request) {
     // No need to pass context; middleware handles it
-    return handler({
+    return handleFetchRequest({
+        router,
         request,
+        handlers: [
+            createORPCHandler(), 
+            createOpenAPIServerlessHandler()
+        ],
     })
 }
 ```
@@ -103,7 +106,8 @@ rather than relying on global mechanisms like `headers` or `cookies` in Next.js.
 
 ```ts twoslash
 import { os, ORPCError, createProcedureCaller } from '@orpc/server'
-import { createFetchHandler } from '@orpc/server/fetch'
+import { handleFetchRequest, createORPCHandler } from '@orpc/server/fetch'
+import { createOpenAPIServerlessHandler, createOpenAPIServerHandler } from '@orpc/openapi/fetch'
 
 type ORPCContext = { user?: { id: string }, db: 'fake-db' }
 
@@ -129,18 +133,16 @@ export const router = base.router({
         }),
 })
 
-const handler = createFetchHandler({
-    router,
-})
-
 export function fetch(request: Request) {
     // Initialize context explicitly for each request
     const db = 'fake-db' as const
     const user = request.headers.get('Authorization') ? { id: 'example' } : undefined
 
-    return handler({
+    return handleFetchRequest({
+        router,
         request,
         context: { db, user },
+        handlers: [createORPCHandler(), createOpenAPIServerlessHandler()],
     })
 }
 

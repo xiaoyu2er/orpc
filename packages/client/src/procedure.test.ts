@@ -1,5 +1,6 @@
+import { createOpenAPIServerHandler, createOpenAPIServerlessHandler } from '@orpc/openapi/fetch'
 import { ORPCError, os } from '@orpc/server'
-import { createFetchHandler } from '@orpc/server/fetch'
+import { createORPCHandler, handleFetchRequest } from '@orpc/server/fetch'
 import { z } from 'zod'
 import { createProcedureClient } from './procedure'
 
@@ -14,12 +15,12 @@ describe('createProcedureClient', () => {
       ping,
     },
   })
-  const handler = createFetchHandler({
-    router,
-  })
+
   const orpcFetch: typeof fetch = async (...args) => {
     const request = new Request(...args)
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
+      handlers: [createOpenAPIServerHandler(), createOpenAPIServerlessHandler(), createORPCHandler()], // make sure still work with openapi handlers
       prefix: '/orpc',
       request,
       context: {},
@@ -114,16 +115,14 @@ describe('createProcedureClient', () => {
         .func(input => input.value),
     })
 
-    const handler = createFetchHandler({
-      router,
-    })
-
     const client = createProcedureClient({
       path: ['ping'],
       baseURL: 'http://localhost:3000/orpc',
       fetch: (...args) => {
         const request = new Request(...args)
-        return handler({
+        return handleFetchRequest({
+          router,
+          handlers: [createORPCHandler(), createOpenAPIServerHandler()],
           prefix: '/orpc',
           request,
           context: {},
@@ -147,16 +146,14 @@ describe('createProcedureClient', () => {
       }),
     })
 
-    const handler = createFetchHandler({
-      router,
-    })
-
     const client = createProcedureClient({
       path: ['ping'],
       baseURL: 'http://localhost:3000/orpc',
       fetch: (...args) => {
         const request = new Request(...args)
-        return handler({
+        return handleFetchRequest({
+          router,
+          handlers: [createORPCHandler()],
           prefix: '/orpc',
           request,
           context: {},
@@ -192,16 +189,15 @@ describe('upload file', () => {
       }),
   })
 
-  const handler = createFetchHandler({ router })
-
   const orpcFetch: typeof fetch = async (...args) => {
     const request = new Request(...args)
-    const response = await handler({
+    return handleFetchRequest({
+      router,
+      handlers: [createORPCHandler()],
       prefix: '/orpc',
       request,
       context: {},
     })
-    return response
   }
 
   const blob1 = new Blob(['hello'], { type: 'text/plain;charset=utf-8' })

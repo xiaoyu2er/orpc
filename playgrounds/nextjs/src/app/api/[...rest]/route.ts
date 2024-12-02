@@ -1,23 +1,17 @@
-import { createFetchHandler } from '@orpc/server/fetch'
+import { createOpenAPIServerHandler } from '@orpc/openapi/fetch'
+import { createORPCHandler, handleFetchRequest } from '@orpc/server/fetch'
 import { router } from './router'
 
-const handler = createFetchHandler({
-  router,
-  serverless: true,
-  // hooks(context, hooks) {
-  //   return hooks.next()
-  // },
-})
-
-function handleRequest(request: Request) {
-  return handler({
+export function GET(request: Request) {
+  return handleFetchRequest({
+    router,
     request,
     prefix: '/api',
+    handlers: [createORPCHandler(), createOpenAPIServerHandler()],
   })
 }
 
-export const GET = handleRequest
-export const POST = handleRequest
-export const PUT = handleRequest
-export const DELETE = handleRequest
-export const PATCH = handleRequest
+export const POST = GET
+export const PUT = GET
+export const DELETE = GET
+export const PATCH = GET

@@ -7,15 +7,6 @@ import { z } from 'zod'
 
 import { ORPCError, os } from '@orpc/server'
 
-// Expose apis to the internet with fetch handler
-
-import { createFetchHandler } from '@orpc/server/fetch'
-
-// Modern runtime that support fetch api like deno, bun, cloudflare workers, even node can used
-
-import { createServer } from 'node:http'
-import { createServerAdapter } from '@whatwg-node/server'
-
 // Define your contract first
 // This contract can replace server router in most-case
 
@@ -123,20 +114,27 @@ export const router = pub.router({
   },
 })
 
-const handler = createFetchHandler({
-  router,
-  serverless: false, // set true will improve cold start times
-})
+// Expose apis to the internet with fetch handler
+import { createOpenAPIServerlessHandler } from '@orpc/openapi/fetch'
+import { createORPCHandler, handleFetchRequest } from '@orpc/server/fetch'
+// Modern runtime that support fetch api like deno, bun, cloudflare workers, even node can used
+import { createServer } from 'node:http'
+import { createServerAdapter } from '@whatwg-node/server'
 
 const server = createServer(
   createServerAdapter((request: Request) => {
     const url = new URL(request.url)
 
     if (url.pathname.startsWith('/api')) {
-      return handler({
+      return handleFetchRequest({
+        router,
         request,
         prefix: '/api',
         context: {},
+        handlers: [
+          createORPCHandler(),
+          createOpenAPIServerlessHandler(),
+        ],
       })
     }
 

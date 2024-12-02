@@ -144,25 +144,26 @@ In oRPC middleware is very useful and fully typed you can find more info [here](
 This example uses [@whatwg-node/server](https://www.npmjs.com/package/@whatwg-node/server) to create a Node server with [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
 
 ```ts twoslash
-import { createFetchHandler } from '@orpc/server/fetch'
+import { handleFetchRequest, createORPCHandler } from '@orpc/server/fetch'
+import { createOpenAPIServerlessHandler } from '@orpc/openapi/fetch'
 import { createServer } from 'node:http'
 import { createServerAdapter } from '@whatwg-node/server'
 import { router } from 'examples/server'
-
-const handler = createFetchHandler({
-  router,
-  serverless: false, // set true will improve cold start times
-})
 
 const server = createServer(
   createServerAdapter((request: Request) => {
     const url = new URL(request.url)
 
     if (url.pathname.startsWith('/api')) {
-      return handler({
+      return handleFetchRequest({
+        router,
         request,
         prefix: '/api',
         context: {},
+        handlers: [
+          createORPCHandler(),
+          createOpenAPIServerlessHandler(),
+        ],
       })
     }
 

@@ -1,9 +1,11 @@
 import { ORPC_HEADER, ORPC_HEADER_VALUE } from '@orpc/contract'
+import { createOpenAPIServerHandler, createOpenAPIServerlessHandler } from '@orpc/openapi/fetch'
 import { oz } from '@orpc/zod'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { ORPCError, os } from '..'
-import { createFetchHandler } from './fetch'
+import { handleFetchRequest } from './handle'
+import { createORPCHandler } from './handler'
 
 const router = os.router({
   throw: os.func(() => {
@@ -17,8 +19,6 @@ const router = os.router({
   }),
 })
 
-const handler = createFetchHandler({ router })
-
 describe('simple', () => {
   const osw = os.context<{ auth?: boolean }>()
   const router = osw.router({
@@ -27,12 +27,11 @@ describe('simple', () => {
       .route({ method: 'GET', path: '/ping2' })
       .func(async () => 'pong2'),
   })
-  const handler = createFetchHandler({
-    router,
-  })
 
   it('200: public url', async () => {
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
+      handlers: [createORPCHandler(), createOpenAPIServerlessHandler()],
       prefix: '/orpc',
       request: new Request('http://localhost/orpc/ping', {
         method: 'POST',
@@ -43,7 +42,9 @@ describe('simple', () => {
     expect(response.status).toBe(200)
     expect(await response.json()).toEqual('pong')
 
-    const response2 = await handler({
+    const response2 = await handleFetchRequest({
+      router,
+      handlers: [createORPCHandler(), createOpenAPIServerlessHandler()],
       prefix: '/orpc',
       request: new Request('http://localhost/orpc/ping2', {
         method: 'GET',
@@ -56,15 +57,21 @@ describe('simple', () => {
   })
 
   it('200: internal url', async () => {
-    const response = await handler({
-      request: new Request('http://localhost/ping'),
+    const response = await handleFetchRequest({
+      router,
+      handlers: [createORPCHandler(), createOpenAPIServerlessHandler()],
+      request: new Request('http://localhost/ping', {
+        method: 'POST',
+      }),
       context: { auth: true },
     })
 
     expect(response.status).toBe(200)
     expect(await response.json()).toEqual('pong')
 
-    const response2 = await handler({
+    const response2 = await handleFetchRequest({
+      router,
+      handlers: [createORPCHandler(), createOpenAPIServerlessHandler()],
       prefix: '/orpc',
       request: new Request('http://localhost/orpc/ping2'),
       context: { auth: true },
@@ -75,7 +82,9 @@ describe('simple', () => {
   })
 
   it('404', async () => {
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
+      handlers: [createORPCHandler(), createOpenAPIServerHandler()],
       prefix: '/orpc',
       request: new Request('http://localhost/orpc/pingp', {
         method: 'POST',
@@ -89,7 +98,9 @@ describe('simple', () => {
 
 describe('procedure throw error', () => {
   it('unknown error', async () => {
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
+      handlers: [createORPCHandler(), createOpenAPIServerHandler()],
       request: new Request('https://local.com/throw', { method: 'POST' }),
     })
 
@@ -108,9 +119,9 @@ describe('procedure throw error', () => {
       }),
     })
 
-    const handler = createFetchHandler({ router })
-
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
+      handlers: [createORPCHandler(), createOpenAPIServerHandler()],
       request: new Request('https://local.com/ping', { method: 'POST' }),
     })
 
@@ -133,9 +144,9 @@ describe('procedure throw error', () => {
       }),
     })
 
-    const handler = createFetchHandler({ router })
-
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
+      handlers: [createORPCHandler(), createOpenAPIServerHandler()],
       request: new Request('https://local.com/ping', { method: 'POST' }),
     })
 
@@ -165,9 +176,9 @@ describe('procedure throw error', () => {
       }),
     })
 
-    const handler = createFetchHandler({ router })
-
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
+      handlers: [createORPCHandler(), createOpenAPIServerHandler()],
       request: new Request('https://local.com/ping', { method: 'POST' }),
     })
 
@@ -178,7 +189,9 @@ describe('procedure throw error', () => {
       message: 'Internal server error',
     })
 
-    const response2 = await handler({
+    const response2 = await handleFetchRequest({
+      router,
+      handlers: [createORPCHandler(), createOpenAPIServerHandler()],
       request: new Request('https://local.com/ping2', { method: 'POST' }),
     })
 
@@ -200,9 +213,9 @@ describe('procedure throw error', () => {
         }),
     })
 
-    const handler = createFetchHandler({ router })
-
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
+      handlers: [createORPCHandler(), createOpenAPIServerHandler()],
       request: new Request('https://local.com/ping', { method: 'POST' }),
     })
 
@@ -233,9 +246,9 @@ describe('procedure throw error', () => {
         }),
     })
 
-    const handler = createFetchHandler({ router })
-
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
+      handlers: [createORPCHandler(), createOpenAPIServerHandler()],
       request: new Request('https://local.com/ping', {
         method: 'POST',
         body: '"hi"',
@@ -257,8 +270,9 @@ describe('hooks', () => {
     const onError = vi.fn()
     const onFinish = vi.fn()
 
-    const handler = createFetchHandler({
+    await handleFetchRequest({
       router,
+      handlers: [createORPCHandler(), createOpenAPIServerHandler()],
       hooks: async (context, hooks) => {
         try {
           const response = await hooks.next()
@@ -273,9 +287,6 @@ describe('hooks', () => {
           onFinish()
         }
       },
-    })
-
-    await handler({
       prefix: '/orpc',
       request: new Request('http://localhost/orpc/ping', {
         method: 'POST',
@@ -295,8 +306,9 @@ describe('hooks', () => {
     const onError = vi.fn()
     const onFinish = vi.fn()
 
-    const handler = createFetchHandler({
+    await handleFetchRequest({
       router,
+      handlers: [createORPCHandler(), createOpenAPIServerHandler()],
       hooks: async (context, hooks) => {
         try {
           const response = await hooks.next()
@@ -311,9 +323,6 @@ describe('hooks', () => {
           onFinish()
         }
       },
-    })
-
-    await handler({
       prefix: '/orpc',
       request: new Request('http://localhost/orpc/throw', {
         method: 'POST',
@@ -344,8 +353,6 @@ describe('file upload', () => {
       }),
   })
 
-  const handler = createFetchHandler({ router })
-
   const blob1 = new Blob(['hello'], { type: 'text/plain;charset=utf-8' })
   const blob2 = new Blob(['"world"'], { type: 'image/png' })
   const blob3 = new Blob(['unnoq'], { type: 'application/octet-stream' })
@@ -356,7 +363,9 @@ describe('file upload', () => {
     rForm.set('maps', JSON.stringify([[]]))
     rForm.set('0', blob3)
 
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
+      handlers: [createORPCHandler(), createOpenAPIServerHandler()],
       prefix: '/orpc',
       request: new Request('http://localhost/orpc/signal', {
         method: 'POST',
@@ -385,7 +394,9 @@ describe('file upload', () => {
     form.set('0', blob1)
     form.set('1', blob2)
 
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
+      handlers: [createORPCHandler(), createOpenAPIServerHandler()],
       prefix: '/orpc',
       request: new Request('http://localhost/orpc/multiple', {
         method: 'POST',
@@ -418,12 +429,11 @@ describe('accept header', () => {
   const router = os.router({
     ping: os.func(async () => 'pong'),
   })
-  const handler = createFetchHandler({
-    router,
-  })
 
   it('application/json', async () => {
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
+      handlers: [createORPCHandler(), createOpenAPIServerHandler()],
       prefix: '/orpc',
       request: new Request('http://localhost/orpc/ping', {
         method: 'POST',
@@ -439,7 +449,9 @@ describe('accept header', () => {
   })
 
   it('multipart/form-data', async () => {
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
+      handlers: [createORPCHandler(), createOpenAPIServerHandler()],
       prefix: '/orpc',
       request: new Request('http://localhost/orpc/ping', {
         method: 'POST',
@@ -458,7 +470,9 @@ describe('accept header', () => {
   })
 
   it('application/x-www-form-urlencoded', async () => {
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
+      handlers: [createORPCHandler(), createOpenAPIServerHandler()],
       prefix: '/orpc',
       request: new Request('http://localhost/orpc/ping', {
         method: 'POST',
@@ -477,7 +491,9 @@ describe('accept header', () => {
   })
 
   it('*/*', async () => {
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
+      handlers: [createORPCHandler(), createOpenAPIServerHandler()],
       prefix: '/orpc',
       request: new Request('http://localhost/orpc/ping', {
         method: 'POST',
@@ -492,7 +508,9 @@ describe('accept header', () => {
   })
 
   it('invalid', async () => {
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
+      handlers: [createORPCHandler(), createOpenAPIServerHandler()],
       prefix: '/orpc',
       request: new Request('http://localhost/orpc/ping', {
         method: 'POST',
@@ -541,17 +559,20 @@ describe('dynamic params', () => {
   })
 
   const handlers = [
-    createFetchHandler({
+    {
       router,
-    }),
-    createFetchHandler({
+      handlers: [createORPCHandler(), createOpenAPIServerHandler()] as const,
+    },
+    {
       router,
-      serverless: true,
-    }),
+      handlers: [createORPCHandler(), createOpenAPIServerlessHandler()] as const,
+    },
   ]
 
-  it.each(handlers)('should handle dynamic params', async (handler) => {
-    const response = await handler({
+  it.each(handlers)('should handle dynamic params', async ({ router, handlers }) => {
+    const response = await handleFetchRequest({
+      router,
+      handlers,
       request: new Request('http://localhost/123'),
     })
 
@@ -560,11 +581,13 @@ describe('dynamic params', () => {
     expect(await response.json()).toEqual({ id: 123 })
   })
 
-  it.each(handlers)('should handle deep dynamic params', async (handler) => {
+  it.each(handlers)('should handle deep dynamic params', async ({ handlers }) => {
     const form = new FormData()
     form.append('file', new Blob(['hello']), 'hello.txt')
 
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
+      handlers,
       request: new Request('http://localhost/123/dfdsfds', {
         method: 'POST',
         body: form,
@@ -595,20 +618,17 @@ describe('can control method on POST request', () => {
   })
 
   const handlers = [
-    createFetchHandler({
-      router,
-    }),
-    createFetchHandler({
-      router,
-      serverless: true,
-    }),
-  ]
+    [createORPCHandler(), createOpenAPIServerHandler()],
+    [createORPCHandler(), createOpenAPIServerlessHandler()],
+  ] as const
 
-  it.each(handlers)('work', async (handler) => {
+  it.each(handlers)('work', async (...handlers) => {
     const form = new FormData()
     form.set('file', new File(['hello'], 'hello.txt'))
 
-    const response = await handler({
+    const response = await handleFetchRequest({
+      router,
+      handlers,
       request: new Request('http://localhost/123', {
         method: 'POST',
         body: form,
@@ -617,7 +637,9 @@ describe('can control method on POST request', () => {
 
     expect(response.status).toEqual(404)
 
-    const response2 = await handler({
+    const response2 = await handleFetchRequest({
+      router,
+      handlers,
       request: new Request('http://localhost/123?method=PUT', {
         method: 'POST',
         body: form,

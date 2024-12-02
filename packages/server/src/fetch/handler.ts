@@ -11,62 +11,64 @@ import { createProcedureCaller } from '../procedure-caller'
 const serializer = new ORPCSerializer()
 const deserializer = new ORPCDeserializer()
 
-export const ORPCHandler: FetchHandler = async (options) => {
-  if (options.request.headers.get(ORPC_HEADER) !== ORPC_HEADER_VALUE) {
-    return undefined
-  }
-
-  const context = await value(options.context)
-
-  const handler = async () => {
-    const url = new URL(options.request.url)
-    const pathname = `/${trim(url.pathname.replace(options.prefix ?? '', ''), '/')}`
-
-    const match = resolveORPCRouter(options.router, pathname)
-
-    if (!match) {
-      throw new ORPCError({ code: 'NOT_FOUND', message: 'Not found' })
+export function createORPCHandler(): FetchHandler {
+  return async (options) => {
+    if (options.request.headers.get(ORPC_HEADER) !== ORPC_HEADER_VALUE) {
+      return undefined
     }
 
-    const input = await deserializeRequest(options.request)
+    const context = await value(options.context)
 
-    const caller = createProcedureCaller({
-      context,
-      procedure: match.procedure,
-      path: match.path,
-    })
+    const handler = async () => {
+      const url = new URL(options.request.url)
+      const pathname = `/${trim(url.pathname.replace(options.prefix ?? '', ''), '/')}`
 
-    const output = await caller(input)
+      const match = resolveORPCRouter(options.router, pathname)
 
-    const { body, headers } = serializer.serialize(output)
+      if (!match) {
+        throw new ORPCError({ code: 'NOT_FOUND', message: 'Not found' })
+      }
 
-    return new Response(body, {
-      status: 200,
-      headers,
-    })
-  }
+      const input = await deserializeRequest(options.request)
 
-  try {
-    return await options.hooks?.(
-      context as any,
-      { next: handler, response: response => response },
-    ) ?? await handler()
-  }
-  catch (e) {
-    const error = e instanceof ORPCError
-      ? e
-      : new ORPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Internal server error',
-        cause: e,
+      const caller = createProcedureCaller({
+        context,
+        procedure: match.procedure,
+        path: match.path,
       })
 
-    const { body, headers } = serializer.serialize(error.toJSON())
+      const output = await caller(input)
 
-    return new Response(body, {
-      status: error.status,
-      headers,
-    })
+      const { body, headers } = serializer.serialize(output)
+
+      return new Response(body, {
+        status: 200,
+        headers,
+      })
+    }
+
+    try {
+      return await options.hooks?.(
+        context as any,
+        { next: handler, response: response => response },
+      ) ?? await handler()
+    }
+    catch (e) {
+      const error = e instanceof ORPCError
+        ? e
+        : new ORPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Internal server error',
+          cause: e,
+        })
+
+      const { body, headers } = serializer.serialize(error.toJSON())
+
+      return new Response(body, {
+        status: error.status,
+        headers,
+      })
+    }
   }
 }
 

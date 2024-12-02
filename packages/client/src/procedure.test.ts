@@ -1,6 +1,6 @@
-import { OpenAPIServerHandler, OpenAPIServerlessHandler } from '@orpc/openapi/fetch'
+import { createOpenAPIServerHandler, createOpenAPIServerlessHandler } from '@orpc/openapi/fetch'
 import { ORPCError, os } from '@orpc/server'
-import { handleFetchRequest, ORPCHandler } from '@orpc/server/fetch'
+import { createORPCHandler, handleFetchRequest } from '@orpc/server/fetch'
 import { z } from 'zod'
 import { createProcedureClient } from './procedure'
 
@@ -20,7 +20,7 @@ describe('createProcedureClient', () => {
     const request = new Request(...args)
     const response = await handleFetchRequest({
       router,
-      handlers: [OpenAPIServerHandler, OpenAPIServerlessHandler, ORPCHandler], // make sure still work with openapi handlers
+      handlers: [createOpenAPIServerHandler(), createOpenAPIServerlessHandler(), createORPCHandler()], // make sure still work with openapi handlers
       prefix: '/orpc',
       request,
       context: {},
@@ -122,7 +122,7 @@ describe('createProcedureClient', () => {
         const request = new Request(...args)
         return handleFetchRequest({
           router,
-          handlers: [ORPCHandler, OpenAPIServerHandler],
+          handlers: [createORPCHandler(), createOpenAPIServerHandler()],
           prefix: '/orpc',
           request,
           context: {},
@@ -153,7 +153,7 @@ describe('createProcedureClient', () => {
         const request = new Request(...args)
         return handleFetchRequest({
           router,
-          handlers: [ORPCHandler],
+          handlers: [createORPCHandler()],
           prefix: '/orpc',
           request,
           context: {},
@@ -193,7 +193,7 @@ describe('upload file', () => {
     const request = new Request(...args)
     return handleFetchRequest({
       router,
-      handlers: [ORPCHandler],
+      handlers: [createORPCHandler()],
       prefix: '/orpc',
       request,
       context: {},

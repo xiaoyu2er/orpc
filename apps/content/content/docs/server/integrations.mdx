@@ -13,8 +13,8 @@ Whether you're targeting serverless, edge environments, or traditional backends,
 ## Quick Example
 
 ```ts twoslash
-import { handleFetchRequest, ORPCHandler } from '@orpc/server/fetch'
-import { OpenAPIServerlessHandler, OpenAPIServerHandler } from '@orpc/openapi/fetch'
+import { handleFetchRequest, createORPCHandler } from '@orpc/server/fetch'
+import { createOpenAPIServerlessHandler, createOpenAPIServerHandler } from '@orpc/openapi/fetch'
 import { router } from 'examples/server'
 
 export function fetch(request: Request) {
@@ -23,7 +23,10 @@ export function fetch(request: Request) {
     request,
     context: {},
     // prefix: '/api', // Optionally define a route prefix
-    handlers: [ORPCHandler, OpenAPIServerlessHandler],
+    handlers: [
+      createORPCHandler(),
+      createOpenAPIServerlessHandler(),
+    ],
   })
 }
 ```
@@ -34,8 +37,8 @@ Node.js doesn't provide native support for creating server with [Fetch API](http
 but you can easily use [@whatwg-node/server](https://npmjs.com/package/@whatwg-node/server) as an adapter.
 
 ```ts twoslash
-import { handleFetchRequest, ORPCHandler } from '@orpc/server/fetch'
-import { OpenAPIServerlessHandler, OpenAPIServerHandler } from '@orpc/openapi/fetch'
+import { handleFetchRequest, createORPCHandler } from '@orpc/server/fetch'
+import { createOpenAPIServerlessHandler, createOpenAPIServerHandler } from '@orpc/openapi/fetch'
 import { createServer } from 'node:http'
 import { createServerAdapter } from '@whatwg-node/server'
 import { router } from 'examples/server'
@@ -47,7 +50,10 @@ const server = createServer(
       request,
       context: {},
       // prefix: '/api',
-      handlers: [ORPCHandler, OpenAPIServerHandler],
+      handlers: [
+        createORPCHandler(),
+        createOpenAPIServerlessHandler(),
+      ],
     })
   })
 )
@@ -60,8 +66,8 @@ server.listen(3000, () => {
 ## Express.js
 
 ```ts twoslash
-import { handleFetchRequest, ORPCHandler } from '@orpc/server/fetch'
-import { OpenAPIServerlessHandler, OpenAPIServerHandler } from '@orpc/openapi/fetch'
+import { handleFetchRequest, createORPCHandler } from '@orpc/server/fetch'
+import { createOpenAPIServerlessHandler, createOpenAPIServerHandler } from '@orpc/openapi/fetch'
 import { createServerAdapter } from '@whatwg-node/server'
 import express from 'express'
 import { router } from 'examples/server'
@@ -74,7 +80,10 @@ app.all('/api/*', createServerAdapter((request: Request) => {
     request,
     context: {},
     prefix: '/api',
-    handlers: [ORPCHandler, OpenAPIServerHandler],
+      handlers: [
+        createORPCHandler(),
+        createOpenAPIServerHandler(),
+      ],
   })
 }))
 
@@ -87,8 +96,8 @@ app.listen(3000, () => {
 
 ```ts twoslash
 import { Hono } from 'hono'
-import { handleFetchRequest, ORPCHandler } from '@orpc/server/fetch'
-import { OpenAPIServerlessHandler, OpenAPIServerHandler } from '@orpc/openapi/fetch'
+import { handleFetchRequest, createORPCHandler } from '@orpc/server/fetch'
+import { createOpenAPIServerlessHandler, createOpenAPIServerHandler } from '@orpc/openapi/fetch'
 import { router } from 'examples/server'
 
 const app = new Hono()
@@ -99,7 +108,10 @@ app.get('/api/*', (c) => {
     request: c.req.raw,
     prefix: '/api',
     context: {},
-    handlers: [ORPCHandler, OpenAPIServerlessHandler],
+    handlers: [
+      createORPCHandler(),
+      createOpenAPIServerlessHandler(),
+    ],
   }) 
 })
 
@@ -109,8 +121,8 @@ export default app
 ## Next.js
 
 ```ts title="app/api/[...orpc]/route.ts" twoslash
-import { handleFetchRequest, ORPCHandler } from '@orpc/server/fetch'
-import { OpenAPIServerlessHandler, OpenAPIServerHandler } from '@orpc/openapi/fetch'
+import { handleFetchRequest, createORPCHandler } from '@orpc/server/fetch'
+import { createOpenAPIServerlessHandler, createOpenAPIServerHandler } from '@orpc/openapi/fetch'
 import { router } from 'examples/server'
 
 export function GET(request: Request) {
@@ -119,7 +131,10 @@ export function GET(request: Request) {
     request,
     prefix: '/api',
     context: {},
-    handlers: [ORPCHandler, OpenAPIServerlessHandler],
+    handlers: [
+      createORPCHandler(),
+      createOpenAPIServerlessHandler(),
+    ],
   })
 }
 
@@ -132,8 +147,8 @@ export const PATCH = GET
 ## Cloudflare Workers
 
 ```ts twoslash
-import { handleFetchRequest, ORPCHandler } from '@orpc/server/fetch'
-import { OpenAPIServerlessHandler, OpenAPIServerHandler } from '@orpc/openapi/fetch'
+import { handleFetchRequest, createORPCHandler } from '@orpc/server/fetch'
+import { createOpenAPIServerlessHandler, createOpenAPIServerHandler } from '@orpc/openapi/fetch'
 import { router } from 'examples/server'
 
 export default {
@@ -143,7 +158,10 @@ export default {
       request,
       prefix: '/',
       context: {},
-      handlers: [ORPCHandler, OpenAPIServerlessHandler],
+      handlers: [
+        createORPCHandler(),
+        createOpenAPIServerlessHandler(),
+      ],
     })
   },
 }

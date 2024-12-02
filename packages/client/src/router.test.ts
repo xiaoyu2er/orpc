@@ -1,6 +1,6 @@
 import { oc } from '@orpc/contract'
 import { os } from '@orpc/server'
-import { handleFetchRequest, ORPCHandler } from '@orpc/server/fetch'
+import { createORPCHandler, handleFetchRequest } from '@orpc/server/fetch'
 import { z } from 'zod'
 import { createRouterClient } from './router'
 
@@ -22,7 +22,7 @@ describe('createRouterClient', () => {
       prefix: '/orpc',
       request,
       context: {},
-      handlers: [ORPCHandler],
+      handlers: [createORPCHandler()],
     })
   }
 
@@ -134,7 +134,7 @@ describe('createRouterClient', () => {
           prefix: '/orpc',
           request,
           context: {},
-          handlers: [ORPCHandler],
+          handlers: [createORPCHandler()],
         })
       },
     })

@@ -1,6 +1,6 @@
 import { generateOpenAPI } from '@orpc/openapi'
-import { OpenAPIServerHandler } from '@orpc/openapi/fetch'
-import { handleFetchRequest, ORPCHandler } from '@orpc/server/fetch'
+import { createOpenAPIServerHandler } from '@orpc/openapi/fetch'
+import { createORPCHandler, handleFetchRequest } from '@orpc/server/fetch'
 import { createServerAdapter } from '@whatwg-node/server'
 import express from 'express'
 import { router } from './router'
@@ -20,7 +20,7 @@ app.all(
       prefix: '/api',
       context,
       router,
-      handlers: [ORPCHandler, OpenAPIServerHandler],
+      handlers: [createORPCHandler(), createOpenAPIServerHandler()],
       async hooks(context, hooks) {
         try {
           return hooks.next()

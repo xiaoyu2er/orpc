@@ -1,3 +1,3 @@
 export * from './handle'
-export * from './orpc-handler'
+export * from './handler'
 export * from './types'

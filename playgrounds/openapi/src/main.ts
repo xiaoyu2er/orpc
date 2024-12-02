@@ -1,7 +1,7 @@
 import { createServer } from 'node:http'
 import { generateOpenAPI } from '@orpc/openapi'
-import { OpenAPIServerHandler } from '@orpc/openapi/fetch'
-import { handleFetchRequest, ORPCHandler } from '@orpc/server/fetch'
+import { createOpenAPIServerHandler } from '@orpc/openapi/fetch'
+import { createORPCHandler, handleFetchRequest } from '@orpc/server/fetch'
 import { createServerAdapter } from '@whatwg-node/server'
 import { router } from './router'
 import './polyfill'
@@ -20,7 +20,7 @@ const server = createServer(
         prefix: '/api',
         context,
         router,
-        handlers: [ORPCHandler, OpenAPIServerHandler],
+        handlers: [createORPCHandler(), createOpenAPIServerHandler()],
         async hooks(context, hooks) {
           try {
             return hooks.next()

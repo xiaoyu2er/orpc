@@ -46,8 +46,6 @@ If your procedure only depends on `Middleware Context`, you can
 
 ```ts twoslash
 import { os, ORPCError } from '@orpc/server'
-import { handleFetchRequest, ORPCHandler } from '@orpc/server/fetch'
-import { OpenAPIServerlessHandler, OpenAPIServerHandler } from '@orpc/openapi/fetch'
 import { headers } from 'next/headers'
 
 const base = os.use(async (input, context, meta) => {
@@ -84,12 +82,18 @@ export const router = base.router({
 // You can call this procedure directly without manually providing context
 const output = await router.getting()
 
+import { handleFetchRequest, createORPCHandler } from '@orpc/server/fetch'
+import { createOpenAPIServerlessHandler, createOpenAPIServerHandler } from '@orpc/openapi/fetch'
+
 export function fetch(request: Request) {
     // No need to pass context; middleware handles it
     return handleFetchRequest({
         router,
         request,
-        handlers: [ORPCHandler, OpenAPIServerlessHandler],
+        handlers: [
+            createORPCHandler(), 
+            createOpenAPIServerlessHandler()
+        ],
     })
 }
 ```
@@ -102,8 +106,8 @@ rather than relying on global mechanisms like `headers` or `cookies` in Next.js.
 
 ```ts twoslash
 import { os, ORPCError, createProcedureCaller } from '@orpc/server'
-import { handleFetchRequest, ORPCHandler } from '@orpc/server/fetch'
-import { OpenAPIServerlessHandler, OpenAPIServerHandler } from '@orpc/openapi/fetch'
+import { handleFetchRequest, createORPCHandler } from '@orpc/server/fetch'
+import { createOpenAPIServerlessHandler, createOpenAPIServerHandler } from '@orpc/openapi/fetch'
 
 type ORPCContext = { user?: { id: string }, db: 'fake-db' }
 
@@ -138,7 +142,7 @@ export function fetch(request: Request) {
         router,
         request,
         context: { db, user },
-        handlers: [ORPCHandler, OpenAPIServerlessHandler],
+        handlers: [createORPCHandler(), createOpenAPIServerlessHandler()],
     })
 }
 

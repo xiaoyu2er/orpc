@@ -1,5 +1,5 @@
-import { OpenAPIServerHandler } from '@orpc/openapi/fetch'
-import { handleFetchRequest, ORPCHandler } from '@orpc/server/fetch'
+import { createOpenAPIServerHandler } from '@orpc/openapi/fetch'
+import { createORPCHandler, handleFetchRequest } from '@orpc/server/fetch'
 import { router } from './router'
 
 export function GET(request: Request) {
@@ -7,7 +7,7 @@ export function GET(request: Request) {
     router,
     request,
     prefix: '/api',
-    handlers: [ORPCHandler, OpenAPIServerHandler],
+    handlers: [createORPCHandler(), createOpenAPIServerHandler()],
   })
 }
 

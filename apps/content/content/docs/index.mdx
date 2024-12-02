@@ -161,7 +161,7 @@ const server = createServer(
         prefix: '/api',
         context: {},
         handlers: [
-          createORPCHandler()
+          createORPCHandler(),
           createOpenAPIServerlessHandler(),
         ],
       })

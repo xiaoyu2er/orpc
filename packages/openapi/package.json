@@ -38,11 +38,12 @@
     }
   },
   "files": [
-    "!dist/*.tsbuildinfo",
+    "!**/*.map",
+    "!**/*.tsbuildinfo",
     "dist"
   ],
   "scripts": {
-    "build": "tsup --clean --entry.index=src/index.ts --entry.fetch=src/fetch/index.ts --format=esm --onSuccess='tsc -b --noCheck'",
+    "build": "tsup --clean --sourcemap --entry.index=src/index.ts --entry.fetch=src/fetch/index.ts --format=esm --onSuccess='tsc -b --noCheck'",
     "build:watch": "pnpm run build --watch",
     "type:check": "tsc -b"
   },

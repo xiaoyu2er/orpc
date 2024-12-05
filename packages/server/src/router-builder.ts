@@ -1,6 +1,9 @@
+import type { DecoratedLazy, Lazy } from './lazy'
+import type { ANY_LAZY_PROCEDURE, ANY_PROCEDURE, DecoratedProcedure } from './procedure'
 import type { HandledRouter, Router } from './router'
 import type { Context, MergeContext } from './types'
 import { DecoratedContractProcedure, type HTTPPath } from '@orpc/contract'
+import { createLazy, decorateLazy, isLazy, loadLazy } from './lazy'
 import {
   decorateMiddleware,
   type MapInputMiddleware,
@@ -82,41 +85,115 @@ export class RouterBuilder<
   router<URouter extends Router<TContext>>(
     router: URouter,
   ): HandledRouter<URouter> {
-    const handled: Router<TContext> = {}
-
-    for (const key in router) {
-      const item = router[key]
-
-      if (isProcedure(item)) {
-        const builderMiddlewares = this.zz$rb.middlewares ?? []
-        const itemMiddlewares = item.zz$p.middlewares ?? []
-
-        const middlewares = [
-          ...builderMiddlewares,
-          ...itemMiddlewares.filter(
-            item => !builderMiddlewares.includes(item),
-          ),
-        ]
-
-        const contract = DecoratedContractProcedure.decorate(
-          item.zz$p.contract,
-        ).addTags(...(this.zz$rb.tags ?? []))
-
-        handled[key] = decorateProcedure({
-          zz$p: {
-            ...item.zz$p,
-            contract: this.zz$rb.prefix
-              ? contract.prefix(this.zz$rb.prefix)
-              : contract,
-            middlewares,
-          },
-        })
-      }
-      else {
-        handled[key] = this.router(item as any)
-      }
-    }
-
-    return handled as HandledRouter<URouter>
+    return adaptRouter({
+      routerOrChild: router,
+      middlewares: this.zz$rb.middlewares,
+      tags: this.zz$rb.tags,
+    }) as any
   }
+
+  lazy<U extends Router<TContext>>(
+    loader: () => Promise<{ default: U }>,
+  ): DecoratedLazy<U> {
+    return adaptLazyRouter({
+      current: createLazy(loader),
+      middlewares: this.zz$rb.middlewares,
+      tags: this.zz$rb.tags,
+    }) as any
+  }
+}
+
+function adaptRouter(options: {
+  routerOrChild: Router<any> | Router<any>[keyof Router<any>]
+  middlewares?: Middleware<any, any, any, any>[]
+  tags?: string[]
+}) {
+  if (isProcedure(options.routerOrChild)) {
+    return adaptProcedure({
+      ...options,
+      procedure: options.routerOrChild,
+    })
+  }
+
+  if (isLazy(options.routerOrChild)) {
+    return adaptLazyRouter({
+      ...options,
+      current: options.routerOrChild,
+    })
+  }
+
+  const handled: Record<string, any> = {}
+
+  for (const key in options.routerOrChild) {
+    handled[key] = adaptRouter({
+      ...options,
+      routerOrChild: options.routerOrChild[key]!,
+    })
+  }
+
+  return handled as any
+}
+
+function adaptLazyRouter(options: {
+  current: ANY_LAZY_PROCEDURE | Lazy<Router<any>>
+  middlewares?: Middleware<any, any, any, any>[]
+  tags?: string[]
+}): DecoratedLazy<ANY_LAZY_PROCEDURE | Lazy<Router<any>>> {
+  const loader = async (): Promise<{ default: unknown }> => {
+    const current = (await loadLazy<any>(options.current)).default
+
+    return {
+      default: adaptRouter({
+        ...options,
+        routerOrChild: current,
+      }),
+    }
+  }
+
+  const decoratedLazy = decorateLazy(createLazy(loader))
+
+  const recursive = new Proxy(decoratedLazy, {
+    get(target, key) {
+      if (typeof key !== 'string') {
+        return Reflect.get(target, key)
+      }
+
+      const child = (options.current as any)[key]
+
+      return adaptLazyRouter({
+        ...options,
+        current: child,
+      })
+    },
+  })
+
+  return recursive as any
+}
+
+function adaptProcedure(options: {
+  procedure: ANY_PROCEDURE
+  middlewares?: Middleware<any, any, any, any>[]
+  tags?: string[]
+}): DecoratedProcedure<any, any, any, any, any> {
+  const builderMiddlewares = options.middlewares ?? []
+  const procedureMiddlewares = options.procedure.zz$p.middlewares ?? []
+
+  const middlewares = [
+    ...builderMiddlewares,
+    ...procedureMiddlewares.filter(
+      item => !builderMiddlewares.includes(item),
+    ),
+  ]
+
+  const contract = DecoratedContractProcedure.decorate(
+    options.procedure.zz$p.contract,
+  ).addTags(...(options.tags ?? []))
+
+  return decorateProcedure({
+    zz$p: {
+      ...options.procedure.zz$p,
+      contract,
+      middlewares,
+    },
+  })
 }

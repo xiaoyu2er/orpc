@@ -4,7 +4,7 @@ import type {
   SchemaInput,
   SchemaOutput,
 } from '@orpc/contract'
-import type { Lazy } from './lazy'
+import type { ANY_LAZY, DecoratedLazy, Lazy } from './lazy'
 import type { Context } from './types'
 import {
   isContractProcedure,
@@ -38,9 +38,11 @@ export type HandledRouter<TRouter extends Router<any>> = {
       UOutputSchema,
       UFuncOutput
     >
-    : TRouter[K] extends Router<any>
-      ? HandledRouter<TRouter[K]>
-      : never
+    : TRouter[K] extends ANY_LAZY
+      ? DecoratedLazy<TRouter[K]>
+      : TRouter[K] extends Router<any>
+        ? HandledRouter<TRouter[K]>
+        : never
 }
 
 export type RouterWithContract<

@@ -1,4 +1,5 @@
-import type { Router } from '.'
+import type { ANY_PROCEDURE, Router } from '.'
+import type { Lazy } from './lazy'
 import { z } from 'zod'
 import { os } from '.'
 import { createLazy, decorateLazy } from './lazy'
@@ -22,6 +23,9 @@ const complexLazyRouter = createLazy(() => Promise.resolve({
 describe('DecoratedLazy', () => {
   it('with procedure', () => {
     const decorated = decorateLazy(lazyPing)
+
+    type IsLazyProcedure = typeof decorated extends Lazy<ANY_PROCEDURE> ? true : false
+    expectTypeOf<IsLazyProcedure>().toEqualTypeOf<true>()
 
     expectTypeOf(decorated).toMatchTypeOf<
       (input: string) => Promise<string>

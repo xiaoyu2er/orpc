@@ -57,15 +57,14 @@ export function createFlattenLazy<T>(lazy: Lazy<T>): FlattenLazy<T> {
 
 export type DecoratedLazy<T> = T extends Lazy<infer U>
   ? DecoratedLazy<U>
-  : (T extends Procedure<infer UContext, any, any, any, any>
-      ? undefined extends UContext
-        ? Lazy<T> & ProcedureCaller<T>
-        : unknown
-      : T extends Record<any, any>
-        ? {
-            [K in keyof T]: DecoratedLazy<T[K]>
-          } /** Notice: this still a lazy, but type not work when I & Lazy<T>, maybe it's a bug, should improve */
-        : unknown)
+  : (
+      T extends Procedure<infer UContext, any, any, any, any> ? Lazy<T> & (undefined extends UContext ? ProcedureCaller<T> : unknown)
+        : T extends Record<any, any>
+          ? {
+              [K in keyof T]: DecoratedLazy<T[K]>
+            } /** Notice: this still a lazy, but type not work when I & Lazy<T>, maybe it's a bug, should improve */
+          : Lazy<T>
+    )
 
 export function decorateLazy<T>(lazy: Lazy<T>): DecoratedLazy<T> {
   const flattenLazy = createFlattenLazy(lazy)
@@ -75,13 +74,11 @@ export function decorateLazy<T>(lazy: Lazy<T>): DecoratedLazy<T> {
     context: undefined as any,
   })
 
+  Object.assign(procedureCaller, flattenLazy)
+
   const recursive = new Proxy(procedureCaller, {
     get(target, key) {
       if (typeof key !== 'string') {
-        if (key in flattenLazy) {
-          return Reflect.get(flattenLazy, key)
-        }
-
         return Reflect.get(target, key)
       }
 

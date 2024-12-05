@@ -1,4 +1,6 @@
 import type { IsEqual } from '@orpc/shared'
+import type { DecoratedLazy } from './lazy'
+import type { DecoratedProcedure, Procedure, ProcedureFunc } from './procedure'
 import type { HandledRouter, Router } from './router'
 import type { Context, MergeContext } from './types'
 import {
@@ -11,17 +13,14 @@ import {
   type SchemaInput,
   type SchemaOutput,
 } from '@orpc/contract'
+import { createLazy, decorateLazy } from './lazy'
 import {
   type DecoratedMiddleware,
   decorateMiddleware,
   type MapInputMiddleware,
   type Middleware,
 } from './middleware'
-import {
-  type DecoratedProcedure,
-  decorateProcedure,
-  type ProcedureFunc,
-} from './procedure'
+import { decorateProcedure } from './procedure'
 import { ProcedureBuilder } from './procedure-builder'
 import { ProcedureImplementer } from './procedure-implementer'
 import { RouterBuilder } from './router-builder'
@@ -234,5 +233,11 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
     router: URouter,
   ): HandledRouter<URouter> {
     return new RouterBuilder<TContext, TExtraContext>(this.zz$b).router(router)
+  }
+
+  lazy<U extends Router<TContext> | Procedure<TContext, any, any, any, any>>(
+    loader: () => Promise<{ default: U }>,
+  ): DecoratedLazy<U> {
+    return decorateLazy(createLazy(loader))
   }
 }

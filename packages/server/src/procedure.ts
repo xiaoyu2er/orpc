@@ -42,6 +42,7 @@ export class Procedure<
 }
 
 export type ANY_PROCEDURE = Procedure<any, any, any, any, any>
+export type WELL_DEFINED_PROCEDURE = Procedure<Context, Context, Schema, Schema, unknown>
 export type ANY_LAZY_PROCEDURE = Lazy<ANY_PROCEDURE>
 
 export type DecoratedProcedure<
@@ -215,15 +216,7 @@ export function decorateProcedure<
   }) as any
 }
 
-export type WELL_DEFINED_PROCEDURE = Procedure<
-  Context,
-  Context,
-  Schema,
-  Schema,
-  unknown
->
-
-export function isProcedure(item: unknown): item is WELL_DEFINED_PROCEDURE {
+export function isProcedure(item: unknown): item is ANY_PROCEDURE {
   if (item instanceof Procedure)
     return true
 

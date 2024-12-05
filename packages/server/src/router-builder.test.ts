@@ -1,6 +1,8 @@
+import type { DecoratedLazy } from './lazy'
 import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
 import { decorateProcedure, isProcedure, os, Procedure } from '.'
+import { createLazy, isLazy, LAZY_LOADER_SYMBOL } from './lazy'
 import { RouterBuilder } from './router-builder'
 
 const builder = new RouterBuilder<undefined, undefined>({})
@@ -10,6 +12,21 @@ const ping = os
 const pong = os
   .output(z.object({ id: z.string() }))
   .func(() => ({ id: '123' }))
+
+const lazy = os.lazy(() => Promise.resolve({
+  default: os.route({
+    method: 'GET',
+    path: '/lazy',
+    tags: ['lazy'],
+  }).func(() => 'lazy'),
+}))
+
+const lazyRouter = os.lazy(() => Promise.resolve({
+  default: {
+    lazy,
+    lazyRouter: os.lazy(() => Promise.resolve({ default: { lazy } })),
+  },
+}))
 
 describe('prefix', () => {
   it('chainable prefix', () => {
@@ -39,11 +56,11 @@ describe('tags', () => {
     ])
   })
 
-  it('router', () => {
+  it('router', async () => {
     const router = builder
       .tags('api')
       .tags('users')
-      .router({ ping, pong })
+      .router({ ping, pong, lazy, lazyRouter })
 
     expect(router.ping.zz$p.contract.zz$cp.tags).toEqual([
       'ping',
@@ -51,6 +68,22 @@ describe('tags', () => {
       'users',
     ])
     expect(router.pong.zz$p.contract.zz$cp.tags).toEqual(['api', 'users'])
+
+    expect((await (router.lazy[LAZY_LOADER_SYMBOL]())).default.zz$p.contract.zz$cp.tags).toEqual([
+      'lazy',
+      'api',
+      'users',
+    ])
+    expect((await (router.lazyRouter.lazy[LAZY_LOADER_SYMBOL]())).default.zz$p.contract.zz$cp.tags).toEqual([
+      'lazy',
+      'api',
+      'users',
+    ])
+    expect((await (router.lazyRouter.lazyRouter.lazy[LAZY_LOADER_SYMBOL]())).default.zz$p.contract.zz$cp.tags).toEqual([
+      'lazy',
+      'api',
+      'users',
+    ])
   })
 })
 
@@ -67,11 +100,15 @@ describe('middleware', () => {
     ])
   })
 
-  it('router', () => {
-    const router = builder.use(mid1).use(mid2).router({ ping, pong })
+  it('router', async () => {
+    const router = builder.use(mid1).use(mid2).router({ ping, pong, lazy, lazyRouter })
 
     expect(router.ping.zz$p.middlewares).toEqual([mid1, mid2])
     expect(router.pong.zz$p.middlewares).toEqual([mid1, mid2])
+
+    expect((await (router.lazy[LAZY_LOADER_SYMBOL]())).default.zz$p.middlewares).toEqual([mid1, mid2])
+    expect((await (router.lazyRouter.lazy[LAZY_LOADER_SYMBOL]())).default.zz$p.middlewares).toEqual([mid1, mid2])
+    expect((await (router.lazyRouter.lazyRouter.lazy[LAZY_LOADER_SYMBOL]())).default.zz$p.middlewares).toEqual([mid1, mid2])
   })
 
   it('decorate items', () => {
@@ -80,7 +117,7 @@ describe('middleware', () => {
         InputSchema: undefined,
         OutputSchema: undefined,
       }),
-      func: () => {},
+      func: () => { },
     })
 
     const decorated = decorateProcedure({
@@ -89,18 +126,22 @@ describe('middleware', () => {
           InputSchema: undefined,
           OutputSchema: undefined,
         }),
-        func: () => {},
+        func: () => { },
       },
     })
 
-    const router = builder.router({ ping, nested: { ping } })
+    const lazy = createLazy(() => Promise.resolve({ default: ping }))
+
+    const router = builder.router({ ping, nested: { ping }, lazy })
 
     expectTypeOf(router).toEqualTypeOf<{
       ping: typeof decorated
       nested: { ping: typeof decorated }
+      lazy: DecoratedLazy<typeof ping>
     }>()
 
     expect(router.ping).satisfies(isProcedure)
     expect(router.nested.ping).satisfies(isProcedure)
+    expect(router.lazy).satisfies(isLazy)
   })
 })

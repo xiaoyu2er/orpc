@@ -1,10 +1,11 @@
 /// <reference lib="dom" />
 
 import type { HTTPPath } from '@orpc/contract'
+import type { ANY_LAZY_PROCEDURE, Procedure, Router, WELL_DEFINED_PROCEDURE } from '@orpc/server'
 import type { FetchHandler } from '@orpc/server/fetch'
 import type { Router as HonoRouter } from 'hono/router'
 import { ORPC_HEADER, standardizeHTTPPath } from '@orpc/contract'
-import { createProcedureCaller, isProcedure, ORPCError, type Procedure, type Router, type WELL_DEFINED_PROCEDURE } from '@orpc/server'
+import { createProcedureCaller, isProcedure, ORPCError } from '@orpc/server'
 import { isPlainObject, mapValues, trim, value } from '@orpc/shared'
 import { OpenAPIDeserializer, OpenAPISerializer, zodCoerce } from '@orpc/transformer'
 
@@ -118,7 +119,7 @@ export function createResolveRouter(createHonoRouter: () => Routing): ResolveRou
       const addRouteRecursively = (routing: Routing, router: Router<any>, basePath: string[]) => {
         for (const key in router) {
           const currentPath = [...basePath, key]
-          const item = router[key] as WELL_DEFINED_PROCEDURE | Router<any>
+          const item = router[key] as WELL_DEFINED_PROCEDURE | Router<any> | ANY_LAZY_PROCEDURE
 
           if (isProcedure(item)) {
             const method = item.zz$p.contract.zz$cp.method ?? 'POST'

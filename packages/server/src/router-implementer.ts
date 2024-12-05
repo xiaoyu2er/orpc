@@ -1,13 +1,13 @@
+import type { DecoratedLazy } from './lazy'
 import type { Middleware } from './middleware'
-import type { RouterWithContract } from './router'
+import type { HandledRouter, RouterWithContract } from './router'
 import type { Context } from './types'
-import {
-  type ContractProcedure,
-  type ContractRouter,
-  isContractProcedure,
-} from '@orpc/contract'
-import { isProcedure } from './procedure'
+import { type ContractProcedure, type ContractRouter, isContractProcedure } from '@orpc/contract'
+import { createLazy, decorateLazy } from './lazy'
 import { ProcedureImplementer } from './procedure-implementer'
+import { RouterBuilder } from './router-builder'
+
+export const ROUTER_CONTRACT_SYMBOL = Symbol('ORPC_ROUTER_CONTRACT')
 
 export class RouterImplementer<
   TContext extends Context,
@@ -19,12 +19,23 @@ export class RouterImplementer<
     },
   ) {}
 
-  router(
-    router: RouterWithContract<TContext, TContract>,
-  ): RouterWithContract<TContext, TContract> {
-    assertRouterImplementation(this.zz$ri.contract, router)
+  router<T extends RouterWithContract<TContext, TContract>>(
+    router: T,
+  ): HandledRouter<T> {
+    return Object.assign(new RouterBuilder<TContext, undefined>({}).router(router), {
+      [ROUTER_CONTRACT_SYMBOL]: this.zz$ri.contract,
+    })
+  }
 
-    return router
+  lazy<U extends RouterWithContract<TContext, TContract>>(
+    loader: () => Promise<{ default: U }>,
+  ): DecoratedLazy<U> {
+    const lazy = createLazy(loader)
+    const decorated = decorateLazy(lazy)
+
+    return Object.assign(decorated, {
+      [ROUTER_CONTRACT_SYMBOL]: this.zz$ri.contract,
+    })
   }
 }
 
@@ -70,44 +81,4 @@ export function chainRouterImplementer<
   const implementer = new RouterImplementer({ contract })
 
   return Object.assign(implementer, result) as any
-}
-
-export function assertRouterImplementation(
-  contract: ContractRouter,
-  router: RouterWithContract<any, any>,
-  path: string[] = [],
-): void {
-  for (const key in contract) {
-    const currentPath = [...path, key]
-    const contractItem = contract[key]
-    const routerItem = router[key]
-
-    if (!routerItem) {
-      throw new Error(
-        `Missing implementation for procedure at [${currentPath.join('.')}]`,
-      )
-    }
-
-    if (isContractProcedure(contractItem)) {
-      if (isProcedure(routerItem)) {
-        if (routerItem.zz$p.contract !== contractItem) {
-          throw new Error(
-            `Mismatch implementation for procedure at [${currentPath.join('.')}]`,
-          )
-        }
-      }
-      else {
-        throw new Error(
-          `Mismatch implementation for procedure at [${currentPath.join('.')}]`,
-        )
-      }
-    }
-    else {
-      assertRouterImplementation(
-        contractItem as ContractRouter,
-        routerItem as any,
-        currentPath,
-      )
-    }
-  }
 }

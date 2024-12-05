@@ -13,7 +13,6 @@ import {
   type SchemaInput,
   type SchemaOutput,
 } from '@orpc/contract'
-import { createLazy, decorateLazy } from './lazy'
 import {
   type DecoratedMiddleware,
   decorateMiddleware,
@@ -34,7 +33,7 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
     public zz$b: {
       middlewares?: Middleware<any, any, any, any>[]
     } = {},
-  ) {}
+  ) { }
 
   /**
    * Self chainable
@@ -238,6 +237,7 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
   lazy<U extends Router<TContext> | Procedure<TContext, any, any, any, any>>(
     loader: () => Promise<{ default: U }>,
   ): DecoratedLazy<U> {
-    return decorateLazy(createLazy(loader))
+    // TODO: replace with a more solid solution
+    return new RouterBuilder<TContext, TExtraContext>(this.zz$b).lazy(loader as any) as any
   }
 }

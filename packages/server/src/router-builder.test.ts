@@ -3,7 +3,7 @@ import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
 import { decorateProcedure, isProcedure, os, Procedure } from '.'
 import { createLazy, isLazy, LAZY_LOADER_SYMBOL } from './lazy'
-import { RouterBuilder } from './router-builder'
+import { ROUTER_PREFIX_SYMBOL, RouterBuilder } from './router-builder'
 
 const builder = new RouterBuilder<undefined, undefined>({})
 const ping = os
@@ -41,7 +41,9 @@ describe('prefix', () => {
       .prefix('/users')
       .router({ ping, pong })
 
-    expect(router.ping.zz$p.contract.zz$cp.path).toEqual('/api/users/ping')
+    expect((router as any)[ROUTER_PREFIX_SYMBOL]).toEqual('/api/users')
+    expect((router.ping as any)[ROUTER_PREFIX_SYMBOL]).toEqual(undefined)
+    expect(router.ping.zz$p.contract.zz$cp.path).toEqual('/ping')
     expect(router.pong.zz$p.contract.zz$cp.path).toEqual(undefined)
   })
 })

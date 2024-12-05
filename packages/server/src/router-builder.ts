@@ -11,6 +11,8 @@ import {
 } from './middleware'
 import { decorateProcedure, isProcedure } from './procedure'
 
+export const ROUTER_PREFIX_SYMBOL = Symbol('ORPC_ROUTER_PREFIX')
+
 export class RouterBuilder<
   TContext extends Context,
   TExtraContext extends Context,
@@ -21,7 +23,7 @@ export class RouterBuilder<
       tags?: string[]
       middlewares?: Middleware<any, any, any, any>[]
     },
-  ) {}
+  ) { }
 
   prefix(prefix: HTTPPath): RouterBuilder<TContext, TExtraContext> {
     return new RouterBuilder({
@@ -85,21 +87,33 @@ export class RouterBuilder<
   router<URouter extends Router<TContext>>(
     router: URouter,
   ): HandledRouter<URouter> {
-    return adaptRouter({
+    const handled = adaptRouter({
       routerOrChild: router,
       middlewares: this.zz$rb.middlewares,
       tags: this.zz$rb.tags,
     }) as any
+
+    return this.zz$rb.prefix
+      ? Object.assign(handled, {
+        [ROUTER_PREFIX_SYMBOL]: this.zz$rb.prefix,
+      })
+      : handled
   }
 
   lazy<U extends Router<TContext>>(
     loader: () => Promise<{ default: U }>,
   ): DecoratedLazy<U> {
-    return adaptLazyRouter({
+    const lazy = adaptLazyRouter({
       current: createLazy(loader),
       middlewares: this.zz$rb.middlewares,
       tags: this.zz$rb.tags,
     }) as any
+
+    return this.zz$rb.prefix
+      ? Object.assign(lazy, {
+        [ROUTER_PREFIX_SYMBOL]: this.zz$rb.prefix,
+      })
+      : lazy
   }
 }
 
@@ -158,11 +172,12 @@ function adaptLazyRouter(options: {
         return Reflect.get(target, key)
       }
 
-      const child = (options.current as any)[key]
-
       return adaptLazyRouter({
         ...options,
-        current: child,
+        current: createLazy(async () => {
+          const current = (await loadLazy<any>(options.current)).default
+          return { default: current[key] }
+        }),
       })
     },
   })

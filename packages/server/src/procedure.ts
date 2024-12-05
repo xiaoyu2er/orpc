@@ -1,4 +1,5 @@
 import type { Promisable } from '@orpc/shared'
+import type { Lazy } from './lazy'
 import type { ProcedureCaller } from './procedure-caller'
 import type { Context, MergeContext, Meta } from './types'
 import {
@@ -39,6 +40,9 @@ export class Procedure<
     },
   ) {}
 }
+
+export type ANY_PROCEDURE = Procedure<any, any, any, any, any>
+export type ANY_LAZY_PROCEDURE = Lazy<ANY_PROCEDURE>
 
 export type DecoratedProcedure<
   TContext extends Context,

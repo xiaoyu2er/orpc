@@ -3,7 +3,7 @@ import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
 import { decorateProcedure, isProcedure, os, Procedure } from '.'
 import { createLazy, isLazy, LAZY_LOADER_SYMBOL } from './lazy'
-import { ROUTER_PREFIX_SYMBOL, RouterBuilder } from './router-builder'
+import { LAZY_ROUTER_PREFIX_SYMBOL, RouterBuilder } from './router-builder'
 
 const builder = new RouterBuilder<undefined, undefined>({})
 const ping = os
@@ -35,16 +35,21 @@ describe('prefix', () => {
     )
   })
 
-  it('router', () => {
+  it('router', async () => {
     const router = builder
       .prefix('/api')
       .prefix('/users')
-      .router({ ping, pong })
+      .router({ ping, pong, lazy: builder.lazy(() => Promise.resolve({ default: {
+        ping,
+        lazy: os.route({ method: 'GET', path: '/lazy' }).func(() => 'lazy'),
+      } })) })
 
-    expect((router as any)[ROUTER_PREFIX_SYMBOL]).toEqual('/api/users')
-    expect((router.ping as any)[ROUTER_PREFIX_SYMBOL]).toEqual(undefined)
-    expect(router.ping.zz$p.contract.zz$cp.path).toEqual('/ping')
+    expect(router.ping.zz$p.contract.zz$cp.path).toEqual('/api/users/ping')
     expect(router.pong.zz$p.contract.zz$cp.path).toEqual(undefined)
+    expect((await router.lazy.lazy[LAZY_LOADER_SYMBOL]()).default.zz$p.contract.zz$cp.path).toEqual('/api/users/lazy')
+    expect((await (router.lazy as any)[LAZY_LOADER_SYMBOL]()).default.lazy.zz$p.contract.zz$cp.path).toEqual('/api/users/lazy')
+    expect((router.lazy as any)[LAZY_ROUTER_PREFIX_SYMBOL]).toEqual('/api/users')
+    expect((router.lazy.lazy as any)[LAZY_ROUTER_PREFIX_SYMBOL]).toEqual('/api/users')
   })
 })
 

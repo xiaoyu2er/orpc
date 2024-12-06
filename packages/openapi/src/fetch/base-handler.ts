@@ -5,15 +5,15 @@ import type { ANY_LAZY_PROCEDURE, Procedure, Router, WELL_DEFINED_PROCEDURE } fr
 import type { FetchHandler } from '@orpc/server/fetch'
 import type { Router as HonoRouter } from 'hono/router'
 import { ORPC_HEADER, standardizeHTTPPath } from '@orpc/contract'
-import { createProcedureCaller, isProcedure, ORPCError } from '@orpc/server'
+import { createProcedureCaller, isLazy, isProcedure, LAZY_LOADER_SYMBOL, LAZY_ROUTER_PREFIX_SYMBOL, ORPCError } from '@orpc/server'
 import { isPlainObject, mapValues, trim, value } from '@orpc/shared'
 import { OpenAPIDeserializer, OpenAPISerializer, zodCoerce } from '@orpc/transformer'
 
-export type ResolveRouter = (router: Router<any>, method: string, pathname: string) => {
+export type ResolveRouter = (router: Router<any>, method: string, pathname: string) => Promise<{
   path: string[]
   procedure: Procedure<any, any, any, any, any>
   params: Record<string, string>
-} | undefined
+} | undefined>
 
 type Routing = HonoRouter<[string[], Procedure<any, any, any, any, any>]>
 
@@ -38,7 +38,7 @@ export function createOpenAPIHandler(createHonoRouter: () => Routing): FetchHand
           : undefined
       const method = customMethod || options.request.method
 
-      const match = resolveRouter(options.router, method, pathname)
+      const match = await resolveRouter(options.router, method, pathname)
 
       if (!match) {
         throw new ORPCError({ code: 'NOT_FOUND', message: 'Not found' })
@@ -106,38 +106,72 @@ export function createOpenAPIHandler(createHonoRouter: () => Routing): FetchHand
     }
   }
 }
-
+type Pending = { ref: [string, string | undefined, () => Promise<void>][] }
 const routingCache = new Map<Router<any>, Routing>()
+const pendingCache = new Map<Router<any>, Pending>()
 
 export function createResolveRouter(createHonoRouter: () => Routing): ResolveRouter {
-  return (router: Router<any>, method: string, pathname: string) => {
-    let routing = routingCache.get(router)
+  const addRouteRecursively = (routing: Routing, pending: Pending, routerOrChild: WELL_DEFINED_PROCEDURE | Router<any> | ANY_LAZY_PROCEDURE, currentPath: string[]) => {
+    if (isProcedure(routerOrChild)) {
+      const method = routerOrChild.zz$p.contract.zz$cp.method ?? 'POST'
+      const path = routerOrChild.zz$p.contract.zz$cp.path
+        ? openAPIPathToRouterPath(routerOrChild.zz$p.contract.zz$cp.path)
+        : `/${currentPath.map(encodeURIComponent).join('/')}`
 
-    if (!routing) {
-      routing = createHonoRouter()
+      routing.add(method, path, [currentPath, routerOrChild])
+    }
+    else if (isLazy(routerOrChild)) {
+      pending.ref.push([
+        `/${currentPath.map(encodeURIComponent).join('/')}`,
+        (routerOrChild as any)[LAZY_ROUTER_PREFIX_SYMBOL],
+        async () => addRouteRecursively(routing, pending, (await routerOrChild[LAZY_LOADER_SYMBOL]() as any).default, currentPath),
+      ])
+    }
+    else {
+      for (const key in routerOrChild) {
+        addRouteRecursively(routing, pending, (routerOrChild as any)[key], [...currentPath, key])
+      }
+    }
+  }
 
-      const addRouteRecursively = (routing: Routing, router: Router<any>, basePath: string[]) => {
-        for (const key in router) {
-          const currentPath = [...basePath, key]
-          const item = router[key] as WELL_DEFINED_PROCEDURE | Router<any> | ANY_LAZY_PROCEDURE
-
-          if (isProcedure(item)) {
-            const method = item.zz$p.contract.zz$cp.method ?? 'POST'
-            const path = item.zz$p.contract.zz$cp.path
-              ? openAPIPathToRouterPath(item.zz$p.contract.zz$cp.path)
-              : `/${currentPath.map(encodeURIComponent).join('/')}`
-
-            routing.add(method, path, [currentPath, item])
-          }
-          else {
-            addRouteRecursively(routing, item, currentPath)
-          }
-        }
+  return async (router: Router<any>, method: string, pathname: string) => {
+    const pending = (() => {
+      let pending = pendingCache.get(router)
+      if (!pending) {
+        pending = { ref: [] }
+        pendingCache.set(router, pending)
       }
 
-      addRouteRecursively(routing, router, [])
+      return pending
+    })()
+
+    const routing = (() => {
+      let routing = routingCache.get(router)
+
+      if (routing) {
+        return routing
+      }
+
+      routing = createHonoRouter()
       routingCache.set(router, routing)
+
+      addRouteRecursively(routing, pending, router, [])
+
+      return routing
+    })()
+
+    const newPending = []
+
+    for (const value of pending.ref) {
+      if (pathname.startsWith(value[0]) || !value[1] || pathname.startsWith(value[1])) {
+        await value[2]()
+      }
+      else {
+        newPending.push(value)
+      }
     }
+
+    pending.ref = newPending
 
     const [matches, params_] = routing.match(method, pathname)
 

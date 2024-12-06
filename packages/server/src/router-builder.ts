@@ -23,7 +23,11 @@ export class RouterBuilder<
       tags?: string[]
       middlewares?: Middleware<any, any, any, any>[]
     },
-  ) { }
+  ) {
+    if (zz$rb.prefix && zz$rb.prefix.includes('{')) {
+      throw new Error('Prefix cannot contain "{" for dynamic routing')
+    }
+  }
 
   prefix(prefix: HTTPPath): RouterBuilder<TContext, TExtraContext> {
     return new RouterBuilder({

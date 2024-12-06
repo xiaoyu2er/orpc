@@ -3,7 +3,7 @@ import type {
   ContractRouter,
   SchemaOutput,
 } from '@orpc/contract'
-import type { Procedure, Router } from '@orpc/server'
+import type { Lazy, Procedure, Router } from '@orpc/server'
 import type { ORPCContextValue } from './react-context'
 import { createGeneralUtils, type GeneralUtils } from './general-utils'
 import { createProcedureUtils, type ProcedureUtils } from './procedure-utils'
@@ -17,7 +17,9 @@ export type ORPCUtilsWithContractRouter<TRouter extends ContractRouter> = {
 } & GeneralUtils<undefined, undefined, unknown>
 
 export type ORPCUtilsWithRouter<TRouter extends Router<any>> = {
-  [K in keyof TRouter]: TRouter[K] extends Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
+  [K in keyof TRouter]: TRouter[K] extends
+  | Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
+  | Lazy<Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>>
     ? ProcedureUtils<UInputSchema, UOutputSchema, UFuncOutput> & GeneralUtils<UInputSchema, UOutputSchema, UFuncOutput>
     : TRouter[K] extends Router<any>
       ? ORPCUtilsWithRouter<TRouter[K]>

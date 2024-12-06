@@ -3,7 +3,7 @@ import type {
   ContractRouter,
   SchemaOutput,
 } from '@orpc/contract'
-import type { Procedure, Router } from '@orpc/server'
+import type { Lazy, Procedure, Router } from '@orpc/server'
 import type { ORPCContext } from './react-context'
 import { createGeneralHooks, type GeneralHooks } from './general-hooks'
 import { orpcPathSymbol } from './orpc-path'
@@ -21,7 +21,9 @@ export type ORPCHooksWithContractRouter<TRouter extends ContractRouter> = {
 } & GeneralHooks<undefined, undefined, unknown>
 
 export type ORPCHooksWithRouter<TRouter extends Router<any>> = {
-  [K in keyof TRouter]: TRouter[K] extends Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
+  [K in keyof TRouter]: TRouter[K] extends
+  | Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
+  | Lazy<Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>>
     ? ProcedureHooks<UInputSchema, UOutputSchema, UFuncOutput> & GeneralHooks<UInputSchema, UOutputSchema, UFuncOutput>
     : TRouter[K] extends Router<any>
       ? ORPCHooksWithRouter<TRouter[K]>

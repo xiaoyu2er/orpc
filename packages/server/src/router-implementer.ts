@@ -19,17 +19,17 @@ export class RouterImplementer<
     },
   ) {}
 
-  router<T extends RouterWithContract<TContext, TContract>>(
-    router: T,
-  ): HandledRouter<T> {
+  router(
+    router: RouterWithContract<TContext, TContract>,
+  ): HandledRouter<RouterWithContract<TContext, TContract>> {
     return Object.assign(new RouterBuilder<TContext, undefined>({}).router(router), {
       [ROUTER_CONTRACT_SYMBOL]: this.zz$ri.contract,
     })
   }
 
-  lazy<U extends RouterWithContract<TContext, TContract>>(
-    loader: () => Promise<{ default: U }>,
-  ): DecoratedLazy<U> {
+  lazy(
+    loader: () => Promise<{ default: RouterWithContract<TContext, TContract> }>,
+  ): DecoratedLazy<RouterWithContract<TContext, TContract>> {
     const lazy = createLazy(loader)
     const decorated = decorateLazy(lazy)
 

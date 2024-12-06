@@ -35,7 +35,7 @@ app.all(
 )
 
 app.get('/spec.json', async (req, res) => {
-  const spec = generateOpenAPI({
+  const spec = await generateOpenAPI({
     router,
     info: {
       title: 'ORPC Playground',

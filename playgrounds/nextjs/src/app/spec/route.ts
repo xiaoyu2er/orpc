@@ -1,8 +1,8 @@
 import { generateOpenAPI } from '@orpc/openapi'
 import { router } from '../api/[...rest]/router'
 
-export function GET(request: Request) {
-  const spec = generateOpenAPI({
+export async function GET(request: Request) {
+  const spec = await generateOpenAPI({
     router,
     info: {
       title: 'ORPC Playground',

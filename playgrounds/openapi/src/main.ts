@@ -7,7 +7,7 @@ import { router } from './router'
 import './polyfill'
 
 const server = createServer(
-  createServerAdapter((request: Request) => {
+  createServerAdapter(async (request: Request) => {
     const url = new URL(request.url)
 
     const context = request.headers.get('Authorization')
@@ -34,7 +34,7 @@ const server = createServer(
     }
 
     if (url.pathname === '/spec.json') {
-      const spec = generateOpenAPI({
+      const spec = await generateOpenAPI({
         router,
         info: {
           title: 'ORPC Playground',

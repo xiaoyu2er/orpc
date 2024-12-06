@@ -35,6 +35,8 @@ export class ContractProcedure<
   ) {}
 }
 
+export type WELL_CONTRACT_PROCEDURE = ContractProcedure<Schema, Schema>
+
 export class DecoratedContractProcedure<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,

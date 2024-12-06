@@ -1,10 +1,11 @@
 import type { OpenAPIObject } from 'openapi3-ts/oas31'
 import { oc } from '@orpc/contract'
+import { os } from '@orpc/server'
 import { oz } from '@orpc/zod'
 import { z } from 'zod'
 import { generateOpenAPI } from './generator'
 
-it('works', () => {
+it('works', async () => {
   const o = oc
 
   const router = o.router({
@@ -18,7 +19,7 @@ it('works', () => {
     },
   })
 
-  const spec = generateOpenAPI({
+  const spec = await generateOpenAPI({
     router,
     info: {
       title: 'test',
@@ -86,7 +87,7 @@ it('works', () => {
   } satisfies OpenAPIObject)
 })
 
-it('throwOnMissingTagDefinition option', () => {
+it('throwOnMissingTagDefinition option', async () => {
   const o = oc
 
   const router = o.router({
@@ -100,7 +101,7 @@ it('throwOnMissingTagDefinition option', () => {
     },
   })
 
-  const spec = generateOpenAPI(
+  const spec = await generateOpenAPI(
     {
       router,
       info: {
@@ -182,23 +183,18 @@ it('throwOnMissingTagDefinition option', () => {
     },
   } satisfies OpenAPIObject)
 
-  expect(() =>
-    generateOpenAPI(
-      {
-        router,
-        info: {
-          title: 'test',
-          version: '1.0.0',
-        },
-      },
-      { throwOnMissingTagDefinition: true },
-    ),
-  ).toThrow(
-    'Tag "user" is missing definition. Please define it in OpenAPI root tags object. [user.find]',
-  )
+  expect(generateOpenAPI({
+    router,
+    info: {
+      title: 'test',
+      version: '1.0.0',
+    },
+  }, { throwOnMissingTagDefinition: true }))
+    .rejects
+    .toThrowError('Tag "user" is missing definition. Please define it in OpenAPI root tags object. [user.find]')
 })
 
-it('support single file upload', () => {
+it('support single file upload', async () => {
   const o = oc
 
   const router = o.router({
@@ -209,7 +205,7 @@ it('support single file upload', () => {
       ),
   })
 
-  const spec = generateOpenAPI({
+  const spec = await generateOpenAPI({
     router,
     info: {
       title: 'test',
@@ -260,7 +256,7 @@ it('support single file upload', () => {
   })
 })
 
-it('support multipart/form-data', () => {
+it('support multipart/form-data', async () => {
   const o = oc
 
   const router = o.router({
@@ -275,7 +271,7 @@ it('support multipart/form-data', () => {
       .output(oz.file().type('image/*')),
   })
 
-  const spec = generateOpenAPI({
+  const spec = await generateOpenAPI({
     router,
     info: {
       title: 'test',
@@ -327,7 +323,7 @@ it('support multipart/form-data', () => {
   })
 })
 
-it('work with example', () => {
+it('work with example', async () => {
   const router = oc.router({
     upload: oc
       .input(
@@ -360,7 +356,7 @@ it('work with example', () => {
       ),
   })
 
-  const spec = generateOpenAPI({
+  const spec = await generateOpenAPI({
     router,
     info: {
       title: 'test',
@@ -464,7 +460,7 @@ it('work with example', () => {
   })
 })
 
-it('should remove params on body', () => {
+it('should remove params on body', async () => {
   const router = oc.router({
     upload: oc.route({ method: 'POST', path: '/upload/{id}' }).input(
       oz.openapi(
@@ -484,7 +480,7 @@ it('should remove params on body', () => {
     ),
   })
 
-  const spec = generateOpenAPI({
+  const spec = await generateOpenAPI({
     router,
     info: {
       title: 'test',
@@ -540,7 +536,7 @@ it('should remove params on body', () => {
   })
 })
 
-it('should remove params on query', () => {
+it('should remove params on query', async () => {
   const router = oc.router({
     upload: oc.route({ method: 'GET', path: '/upload/{id}' }).input(
       oz.openapi(
@@ -570,7 +566,7 @@ it('should remove params on query', () => {
     ),
   })
 
-  const spec = generateOpenAPI({
+  const spec = await generateOpenAPI({
     router,
     info: {
       title: 'test',
@@ -640,4 +636,109 @@ it('should remove params on query', () => {
       },
     },
   })
+})
+
+it('works with lazy', async () => {
+  const ping = os.input(z.string()).output(z.string()).func(() => 'pong')
+
+  const lazyRouter = os.lazy(() => Promise.resolve({ default: {
+    ping,
+  } }))
+
+  const router = os.router({
+    ping,
+    lazyRouter,
+  })
+
+  const spec = await generateOpenAPI({
+    router,
+    info: {
+      title: 'test',
+      version: '1.0.0',
+    },
+  })
+
+  expect(spec).toMatchObject({
+    openapi: '3.1.0',
+    info: {
+      title: 'test',
+      version: '1.0.0',
+    },
+    paths: {
+      '/ping': {
+        post: {
+          responses: {
+            200: {
+              description: 'OK',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'string',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/lazyRouter/ping': {
+        post: {
+          responses: {
+            200: {
+              description: 'OK',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'string',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  } satisfies OpenAPIObject)
+})
+
+it('works will use contract instead of implemented', async () => {
+  const contract = oc.router({
+    ping: oc.route({ path: '/contract' }),
+  })
+
+  const implemented = os.contract(contract).router({
+    ping: os.route({ path: '/implemented' }).func(() => 'pong'),
+  })
+
+  const spec = await generateOpenAPI({
+    router: implemented,
+    info: {
+      title: 'test',
+      version: '1.0.0',
+    },
+  })
+
+  expect(spec).toMatchObject({
+    openapi: '3.1.0',
+    info: {
+      title: 'test',
+      version: '1.0.0',
+    },
+    paths: {
+      '/contract': {
+        post: {
+          responses: {
+            200: {
+              description: 'OK',
+              content: {
+                'application/json': {
+                  schema: {},
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  } satisfies OpenAPIObject)
 })

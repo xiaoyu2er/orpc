@@ -123,3 +123,5 @@ server.listen(3000, () => {
 
 //
 //
+
+export default router

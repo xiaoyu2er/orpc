@@ -5,7 +5,7 @@ import type {
   ContractRouter,
   SchemaOutput,
 } from '@orpc/contract'
-import type { Procedure, Router } from '@orpc/server'
+import type { Lazy, Procedure, Router } from '@orpc/server'
 import type { Promisable } from '@orpc/shared'
 import { createProcedureClient, type ProcedureClient } from './procedure'
 
@@ -21,13 +21,9 @@ export type RouterClientWithContractRouter<TRouter extends ContractRouter> = {
 }
 
 export type RouterClientWithRouter<TRouter extends Router<any>> = {
-  [K in keyof TRouter]: TRouter[K] extends Procedure<
-    any,
-    any,
-    infer UInputSchema,
-    infer UOutputSchema,
-    infer UFuncOutput
-  >
+  [K in keyof TRouter]: TRouter[K] extends
+  | Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
+  | Lazy<Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>>
     ? ProcedureClient<UInputSchema, UOutputSchema, UFuncOutput>
     : TRouter[K] extends Router<any>
       ? RouterClientWithRouter<TRouter[K]>

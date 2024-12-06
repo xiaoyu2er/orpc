@@ -1,0 +1,42 @@
+---
+title: Lazy Router
+description: Enhance the performance of your oRPC router with lazy-loaded routers.
+---
+
+Enhance the performance of your oRPC router with lazy-loaded routers.
+Lazy routers in oRPC allow you to defer the loading of specific router modules until they're actually needed. 
+This can improve startup times and optimize resource usage, especially for large applications.
+
+
+## Overview 
+
+```typescript twoslash
+import { os } from '@orpc/server'
+
+const pub = os.context<{ user?: { id: string } }>()
+
+// Define a router with lazy loading
+const router = pub.router({
+    lazy: pub.lazy(() => import('examples/server')) // Lazy-load the 'examples/server' router
+})
+
+// Use the lazy-loaded router as if it were a regular one
+const output = await router.lazy.getting({ name: 'unnoq' })
+```
+
+### Key Points:
+1. **Export Requirement:**  
+   The `examples/server.ts` file must export a router as the default export. Example:  
+   ```typescript
+   import { os } from '@orpc/server'
+
+   export default os.router({
+       // something
+   })
+   ```
+
+2. **Seamless Functionality:**  
+   Once the lazy router is loaded, it behaves exactly like a standard router. You don't need to configure anything extra or worry about limitations.
+
+
+By using lazy routers, you can keep your application modular and efficient while maintaining the same user-friendly API you're used to.

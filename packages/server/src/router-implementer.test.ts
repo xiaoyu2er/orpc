@@ -44,73 +44,107 @@ it('required all procedure match', () => {
     },
   })
 
-  expect(() => {
-    implementer.router({
-      // @ts-expect-error p1 is mismatch
-      p1: os.func(() => {}),
-      nested: {
-        p2,
-      },
-      nested2: {
-        p3,
-      },
-    })
-  }).toThrowError('Mismatch implementation for procedure at [p1]')
+  implementer.router({
+    p1,
+    nested: {
+      p2: os.contract(cp2).func(() => ''),
+    },
+    nested2: {
+      p3: os.context<{ auth: boolean }>().lazy(() => Promise.resolve({ default: p3 })),
+    },
+  })
 
-  expect(() => {
-    implementer.router({
-      // @ts-expect-error p1 is mismatch
-      p1: osw,
-      nested: {
-        p2,
-      },
-      nested2: {
-        p3,
-      },
-    })
-  }).toThrowError('Mismatch implementation for procedure at [p1]')
+  implementer.router({
+    p1,
+    nested: {
+      p2: os.contract(cp2).func(() => ''),
+    },
+    nested2: osw.nested2.lazy(() => Promise.resolve({ default: {
+      p3,
+    } })),
+  })
 
-  expect(() => {
-    implementer.router({
-      // Not allow manual specification
-      p1: os
-        .input(z.string())
-        .output(z.string())
-        .func(() => 'unnoq'),
-      nested: {
-        p2,
+  implementer.router({
+    p1,
+    nested: {
+      p2: os.contract(cp2).lazy(() => Promise.resolve({ default: os.output(z.string()).func(() => {
+        return ''
+      }) })),
+    },
+    nested2: osw.nested2.lazy(() => Promise.resolve({
+      default: {
+        p3: osw.nested2.p3.lazy(() => Promise.resolve({ default: p3 })),
       },
-      nested2: {
-        p3,
-      },
-    })
-  }).toThrowError('Mismatch implementation for procedure at [p1]')
+    })),
+  })
 
-  expect(() => {
-    // @ts-expect-error required all procedure match
-    implementer.router({})
-  }).toThrowError('Missing implementation for procedure at [p1]')
-
-  expect(() => {
-    implementer.router({
+  implementer.lazy(() => Promise.resolve({
+    default: {
       p1,
       nested: {
-        p2,
+        p2: os.contract(cp2).func(() => ''),
       },
-      // @ts-expect-error missing p3
-      nested2: {},
-    })
-  }).toThrowError('Missing implementation for procedure at [nested2.p3]')
+      nested2: osw.nested2.lazy(() => Promise.resolve({
+        default: {
+          p3,
+        },
+      })),
+    },
+  }))
 
-  expect(() => {
-    implementer.router({
-      p1,
-      nested: {
-        p2,
-      },
-      nested2: {
-        p3: p3.prefix('/test'),
-      },
-    })
-  }).toThrowError('Mismatch implementation for procedure at [nested2.p3]')
+  implementer.router({
+    // @ts-expect-error p1 is mismatch
+    p1: os.func(() => { }),
+    nested: {
+      p2,
+    },
+    nested2: {
+      p3,
+    },
+  })
+
+  implementer.router({
+    // @ts-expect-error p1 is mismatch
+    p1: p2,
+    nested: {
+      p2,
+    },
+    nested2: {
+      p3,
+    },
+  })
+
+  // @ts-expect-error required all procedure match
+  implementer.router({})
+
+  implementer.router({
+    p1,
+    nested: {
+      p2,
+    },
+    // @ts-expect-error missing p3
+    nested2: {},
+  })
+
+  implementer.router({
+    p1,
+    nested: {
+      p2,
+    },
+    nested2: {
+      p3: p3.prefix('/test'),
+    },
+  })
+
+  implementer.router({
+    p1,
+    // @ts-expect-error not allow define more than expected
+    p2: p1,
+    nested: {
+      p2,
+    },
+    nested2: {
+      p3: p3.prefix('/test'),
+    },
+  })
 })

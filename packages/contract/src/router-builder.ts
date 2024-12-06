@@ -3,7 +3,11 @@ import type { HTTPPath } from './types'
 import { DecoratedContractProcedure, isContractProcedure } from './procedure'
 
 export class ContractRouterBuilder {
-  constructor(public zz$crb: { prefix?: HTTPPath, tags?: string[] }) {}
+  constructor(public zz$crb: { prefix?: HTTPPath, tags?: string[] }) {
+    if (zz$crb.prefix && zz$crb.prefix.includes('{')) {
+      throw new Error('Prefix cannot contain "{" for dynamic routing')
+    }
+  }
 
   prefix(prefix: HTTPPath): ContractRouterBuilder {
     return new ContractRouterBuilder({

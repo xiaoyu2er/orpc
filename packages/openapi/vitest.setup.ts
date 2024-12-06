@@ -6,9 +6,9 @@ import { expect, vi } from 'vitest'
 const generator = await vi.importActual('./src/generator')
 
 vi.mock('./src/generator', () => ({
-  generateOpenAPI: vi.fn((...args) => {
+  generateOpenAPI: vi.fn(async (...args) => {
     // @ts-expect-error - untyped
-    const spec = generator.generateOpenAPI(...args)
+    const spec = await generator.generateOpenAPI(...args)
     expect(
       (async () => {
         await OpenAPIParser.validate(spec)

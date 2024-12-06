@@ -4,6 +4,7 @@ import type {
   SchemaInput,
   SchemaOutput,
 } from '@orpc/contract'
+import type { ANY_LAZY, DecoratedLazy, Lazy } from './lazy'
 import type { Context } from './types'
 import {
   isContractProcedure,
@@ -15,7 +16,11 @@ import {
 } from './procedure'
 
 export interface Router<TContext extends Context> {
-  [k: string]: Procedure<TContext, any, any, any, any> | Router<TContext>
+  [k: string]:
+    | Procedure<TContext, any, any, any, any>
+    | Lazy<Procedure<TContext, any, any, any, any>>
+    | Router<TContext>
+    | Lazy<Router<TContext>>
 }
 
 export type HandledRouter<TRouter extends Router<any>> = {
@@ -33,9 +38,11 @@ export type HandledRouter<TRouter extends Router<any>> = {
       UOutputSchema,
       UFuncOutput
     >
-    : TRouter[K] extends Router<any>
-      ? HandledRouter<TRouter[K]>
-      : never
+    : TRouter[K] extends ANY_LAZY
+      ? DecoratedLazy<TRouter[K]>
+      : TRouter[K] extends Router<any>
+        ? HandledRouter<TRouter[K]>
+        : never
 }
 
 export type RouterWithContract<
@@ -46,9 +53,9 @@ export type RouterWithContract<
     infer UInputSchema,
     infer UOutputSchema
   >
-    ? Procedure<TContext, any, UInputSchema, UOutputSchema, any>
+    ? Procedure<TContext, any, UInputSchema, UOutputSchema, any> | Lazy<Procedure<TContext, any, UInputSchema, UOutputSchema, any>>
     : TContract[K] extends ContractRouter
-      ? RouterWithContract<TContext, TContract[K]>
+      ? RouterWithContract<TContext, TContract[K]> | Lazy<RouterWithContract<TContext, TContract[K]>>
       : never
 }
 

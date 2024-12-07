@@ -33,6 +33,7 @@ export interface ORPCErrorJSON<TCode extends ORPCErrorCode, TData> {
   issues?: ZodIssue[]
 }
 
+export type ANY_ORPC_ERROR_JSON = ORPCErrorJSON<any, any>
 export type WELL_ORPC_ERROR_JSON = ORPCErrorJSON<ORPCErrorCode, unknown>
 
 export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {

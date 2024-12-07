@@ -1,157 +1,23 @@
-import type { SchemaInput, SchemaOutput } from '@orpc/contract'
-import type { Lazy, Procedure } from '@orpc/server'
-import type { SafeAction } from './safe-action'
-import { type GeneralHook, implementGeneralHook } from '@orpc/shared'
-import { ORPCError } from '@orpc/shared/error'
-import { useCallback, useMemo, useState } from 'react'
+import type { GeneralHook } from '@orpc/shared'
+import { type ANY_ORPC_ERROR_JSON, ORPCError } from '@orpc/server'
+import { useCallback } from 'react'
+import { useAction, type UseActionState } from './action-hooks'
 
-export type GeneralHookFromSafeAction<T extends SafeAction<any>> = T extends SafeAction<
-  | Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
-  | Lazy<Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>>
->
-  ? GeneralHook<SchemaInput<UInputSchema>, SchemaOutput<UOutputSchema, UFuncOutput>, undefined, unknown>
-  : never
+export function useSafeAction<TInput, TOutput>(
+  action: (input: TInput) => Promise<[TOutput, undefined, 'success'] | [undefined, ANY_ORPC_ERROR_JSON, 'error']>,
+  hooks?: GeneralHook<TInput, TOutput, undefined, unknown>,
+): UseActionState<TInput, TOutput> {
+  const normal = useCallback(async (input: TInput) => {
+    const [output, errorJson, status] = await action(input)
 
-export type UseSafeActionExecuteFn<T extends SafeAction<any>> = (
-  ...options:
-    | [input: Parameters<T>[0], hooks?: GeneralHookFromSafeAction<T>]
-    | (undefined extends Parameters<T>[0] ? [] : never)
-) => Promise<
-  | [(Awaited<ReturnType<T>> & [unknown, unknown, 'success'])[0], undefined]
-  | [undefined, Error]
->
-
-export type UseSafeActionResult<T extends SafeAction<any>> = {
-  execute: UseSafeActionExecuteFn<T>
-  reset: () => void
-} & (
-  | {
-    status: 'idle'
-    isPending: false
-    isError: false
-    error: undefined
-    data: undefined
-  }
-  | {
-    status: 'pending'
-    isPending: true
-    isError: false
-    error: undefined
-    data: undefined
-  }
-  | {
-    status: 'success'
-    isPending: false
-    isError: false
-    error: undefined
-    data: (Awaited<ReturnType<T>> & [unknown, unknown, 'success'])[0]
-  } | {
-    status: 'error'
-    isPending: false
-    isError: true
-    error: Error
-    data: undefined
-  }
-)
-
-export function useSafeAction<T extends SafeAction<any>>(
-  action: T,
-  hooks?: GeneralHookFromSafeAction<T>,
-): UseSafeActionResult<T> {
-  const [state, setState] = useState<Omit<UseSafeActionResult<T>, 'execute' | 'reset'>>({
-    status: 'idle',
-    isPending: false,
-    isError: false,
-    error: undefined,
-    data: undefined,
-  })
-
-  const reset = useCallback(() => {
-    setState({
-      status: 'idle',
-      isPending: false,
-      isError: false,
-      error: undefined,
-      data: undefined,
-    })
-  }, [])
-
-  const execute = useCallback(async (input: any, executeHooks?: GeneralHookFromSafeAction<T>) => {
-    const next = async () => {
-      const next2 = async () => {
-        setState({
-          status: 'pending',
-          isPending: true,
-          isError: false,
-          error: undefined,
-          data: undefined,
-        })
-
-        try {
-          const [output, errorJson, status] = await action(input)
-          const error = status === 'error' ? ORPCError.fromJSON(errorJson) : undefined
-
-          if (error) {
-            setState({
-              status: 'error',
-              isPending: false,
-              isError: true,
-              error,
-              data: undefined,
-            })
-          }
-          else {
-            setState({
-              status: 'success',
-              isPending: false,
-              isError: false,
-              error: undefined,
-              data: output,
-            })
-          }
-
-          return [output, error]
-        }
-        catch (e) {
-          const error = e instanceof Error ? e : new Error('Unknown error', { cause: e })
-
-          setState({
-            status: 'error',
-            isPending: false,
-            isError: true,
-            error,
-            data: undefined,
-          })
-
-          return [undefined, error]
-        }
-      }
-
-      return implementGeneralHook({
-        context: undefined,
-        hook: executeHooks ?? {},
-        input,
-        meta: {
-          next: next2,
-        },
-      })
+    if (status === 'error') {
+      throw ORPCError.fromJSON(errorJson)
     }
 
-    return implementGeneralHook({
-      context: undefined,
-      input,
-      hook: hooks ?? {},
-      meta: {
-        next,
-      },
-    })
-  }, [action, hooks])
+    return output
+  }, [action])
 
-  const result = useMemo(() => ({
-    ...state,
-    execute,
-    reset,
-  }), [state, execute, reset])
+  const state = useAction(normal, hooks)
 
-  return result as any
+  return state
 }

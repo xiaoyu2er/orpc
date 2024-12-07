@@ -87,8 +87,8 @@ export function useSafeAction<T extends SafeAction<any>>(
         })
 
         try {
-          const [output, errorJson] = await action(input)
-          const error = errorJson ? ORPCError.fromJSON(errorJson) : undefined
+          const [output, errorJson, status] = await action(input)
+          const error = status === 'error' ? ORPCError.fromJSON(errorJson) : undefined
 
           if (error) {
             setState({

@@ -5,7 +5,6 @@ import type { MiddlewareMeta } from './middleware'
 import type { Context } from './types'
 import { trim, value } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
-import { OpenAPIDeserializer } from '@orpc/transformer'
 import { isLazy, loadLazy } from './lazy'
 import { type ANY_LAZY_PROCEDURE, type ANY_PROCEDURE, isProcedure, type Procedure } from './procedure'
 import { mergeContext } from './utils'
@@ -38,7 +37,7 @@ export type ProcedureCaller<
 | Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput >
 | Lazy<Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput >>
   ? (
-      ...input: [input: SchemaInput<UInputSchema> | FormData] | (undefined extends SchemaInput<UInputSchema> ? [] : never)
+      ...input: [input: SchemaInput<UInputSchema>] | (undefined extends SchemaInput<UInputSchema> ? [] : never)
     ) => Promise<
       SchemaOutput<UOutputSchema, UFuncOutput>
     >
@@ -52,26 +51,15 @@ export function createProcedureCaller<
   const caller = async (input: unknown): Promise<unknown> => {
     const path = options.path ?? []
     const procedure = await loadProcedure(options.procedure)
-    const input_ = (() => {
-      if (!(input instanceof FormData)) {
-        return input
-      }
-
-      const transformer = new OpenAPIDeserializer({
-        schema: procedure.zz$p.contract.zz$cp.InputSchema,
-      })
-
-      return transformer.deserializeAsFormData(input)
-    })()
 
     const validInput = (() => {
       const schema = procedure.zz$p.contract.zz$cp.InputSchema
       if (!schema) {
-        return input_
+        return input
       }
 
       try {
-        return schema.parse(input_)
+        return schema.parse(input)
       }
       catch (e) {
         throw new ORPCError({

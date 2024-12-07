@@ -173,6 +173,8 @@ importers:
         specifier: '>=3.23.0'
         version: 3.23.8
 
+  packages/next: {}
+
   packages/openapi:
     dependencies:
       '@orpc/contract':

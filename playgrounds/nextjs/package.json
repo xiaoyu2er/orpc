@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@orpc/client": "latest",
+    "@orpc/next": "latest",
     "@orpc/openapi": "latest",
     "@orpc/react": "latest",
     "@orpc/server": "latest",

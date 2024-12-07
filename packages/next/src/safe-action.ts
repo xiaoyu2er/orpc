@@ -7,11 +7,9 @@ import { isRedirectError } from 'next/dist/client/components/redirect'
 export type SafeAction<T extends ANY_PROCEDURE | ANY_LAZY_PROCEDURE> = T extends
   | Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
   | Lazy<Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>>
-  ? (
-      ...input: [input: SchemaInput<UInputSchema>] | (undefined extends SchemaInput<UInputSchema> ? [] : never)
-    ) => Promise<
-      | [SchemaOutput<UOutputSchema, UFuncOutput>, undefined]
-      | [undefined, WELL_ORPC_ERROR_JSON]
+  ? (input: SchemaInput<UInputSchema>) => Promise<
+    | [SchemaOutput<UOutputSchema, UFuncOutput>, undefined, 'success']
+    | [undefined, WELL_ORPC_ERROR_JSON, 'error']
     >
   : never
 
@@ -21,7 +19,7 @@ export function createSafeAction<T extends ANY_PROCEDURE | ANY_LAZY_PROCEDURE>(o
   const safeAction = async (...input: [any] | []) => {
     try {
       const output = await caller(...input)
-      return [output as any, undefined]
+      return [output as any, undefined, 'success']
     }
     catch (e) {
       if (isRedirectError(e)) {
@@ -30,7 +28,7 @@ export function createSafeAction<T extends ANY_PROCEDURE | ANY_LAZY_PROCEDURE>(o
 
       const error = convertToORPCError(e)
 
-      return [undefined, error.toJSON()]
+      return [undefined, error.toJSON(), 'error']
     }
   }
 

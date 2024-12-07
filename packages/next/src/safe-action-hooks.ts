@@ -11,20 +11,14 @@ export type GeneralHookFromSafeAction<T extends SafeAction<any>> = T extends Saf
   ? GeneralHook<SchemaInput<UInputSchema>, SchemaOutput<UOutputSchema, UFuncOutput>, undefined, unknown>
   : never
 
-export type UseSafeActionExecuteFn<T extends SafeAction<any>> = T extends SafeAction<
-  | Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
-  | Lazy<Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>>
+export type UseSafeActionExecuteFn<T extends SafeAction<any>> = (
+  ...options:
+    | [input: Parameters<T>[0], hooks?: GeneralHookFromSafeAction<T>]
+    | (undefined extends Parameters<T>[0] ? [] : never)
+) => Promise<
+  | [(Awaited<ReturnType<T>> & [unknown, unknown, 'success'])[0], undefined]
+  | [undefined, Error]
 >
-  ? (
-      ...input: [
-        input: SchemaInput<UInputSchema>,
-        GeneralHookFromSafeAction<T>,
-      ] | (undefined extends SchemaInput<UInputSchema> ? [] : never)
-    ) => Promise<
-      | [SchemaOutput<UOutputSchema, UFuncOutput>, undefined]
-      | [undefined, Error]
-    >
-  : never
 
 export type UseSafeActionResult<T extends SafeAction<any>> = {
   execute: UseSafeActionExecuteFn<T>
@@ -49,7 +43,7 @@ export type UseSafeActionResult<T extends SafeAction<any>> = {
     isPending: false
     isError: false
     error: undefined
-    data: Awaited<ReturnType<T>>
+    data: (Awaited<ReturnType<T>> & [unknown, unknown, 'success'])[0]
   } | {
     status: 'error'
     isPending: false
@@ -61,7 +55,7 @@ export type UseSafeActionResult<T extends SafeAction<any>> = {
 
 export function useSafeAction<T extends SafeAction<any>>(
   action: T,
-  hooks: GeneralHookFromSafeAction<T>,
+  hooks?: GeneralHookFromSafeAction<T>,
 ): UseSafeActionResult<T> {
   const [state, setState] = useState<Omit<UseSafeActionResult<T>, 'execute' | 'reset'>>({
     status: 'idle',
@@ -81,7 +75,7 @@ export function useSafeAction<T extends SafeAction<any>>(
     })
   }, [])
 
-  const execute = useCallback(async (input: any, executeHooks: GeneralHookFromSafeAction<T>) => {
+  const execute = useCallback(async (input: any, executeHooks?: GeneralHookFromSafeAction<T>) => {
     const next = async () => {
       const next2 = async () => {
         setState({
@@ -93,7 +87,7 @@ export function useSafeAction<T extends SafeAction<any>>(
         })
 
         try {
-          const [output, errorJson] = await action(...input)
+          const [output, errorJson] = await action(input)
           const error = errorJson ? ORPCError.fromJSON(errorJson) : undefined
 
           if (error) {
@@ -134,7 +128,7 @@ export function useSafeAction<T extends SafeAction<any>>(
 
       return implementGeneralHook({
         context: undefined,
-        hook: executeHooks,
+        hook: executeHooks ?? {},
         input,
         meta: {
           next: next2,
@@ -145,7 +139,7 @@ export function useSafeAction<T extends SafeAction<any>>(
     return implementGeneralHook({
       context: undefined,
       input,
-      hook: hooks,
+      hook: hooks ?? {},
       meta: {
         next,
       },

@@ -4,7 +4,7 @@ export interface BaseGeneralHookMeta<TOutput> {
   next: () => Promise<TOutput>
 }
 
-export interface GeneralHook<TInput, TOutput, TContext, TMeta extends Record<string, unknown>> {
+export interface GeneralHook<TInput, TOutput, TContext, TMeta extends Record<string, unknown> | unknown> {
   execute?: (input: TInput, context: TContext, meta: BaseGeneralHookMeta<TOutput> & TMeta) => Promise<TOutput>
   onSuccess?: (output: TOutput, context: TContext) => Promisable<void>
   onError?: (error: unknown, context: TContext) => Promisable<void>

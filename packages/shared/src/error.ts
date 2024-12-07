@@ -108,3 +108,5 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
     })
   }
 }
+
+export type WELL_ORPC_ERROR = ORPCError<ORPCErrorCode, unknown>

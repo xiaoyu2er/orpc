@@ -25,6 +25,16 @@ export const ORPC_ERROR_CODE_STATUSES = {
 
 export type ORPCErrorCode = keyof typeof ORPC_ERROR_CODE_STATUSES
 
+export interface ORPCErrorJSON<TCode extends ORPCErrorCode, TData> {
+  code: TCode
+  status: number
+  message: string
+  data: TData
+  issues?: ZodIssue[]
+}
+
+export type WELL_ORPC_ERROR_JSON = ORPCErrorJSON<ORPCErrorCode, unknown>
+
 export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
   constructor(
     public zz$oe: {
@@ -61,13 +71,7 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
     return undefined
   }
 
-  toJSON(): {
-    code: TCode
-    status: number
-    message: string
-    data: TData
-    issues?: ZodIssue[]
-  } {
+  toJSON(): ORPCErrorJSON<TCode, TData> {
     return {
       code: this.code,
       status: this.status,

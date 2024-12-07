@@ -3,14 +3,16 @@
   "type": "module",
   "version": "0.0.0",
   "license": "MIT",
-  "homepage": "https://unnoq.com",
+  "homepage": "https://orpc.unnoq.com",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/unnoq/unnoq.git",
-    "directory": "examples/package"
+    "url": "git+https://github.com/unnoq/orpc.git",
+    "directory": "packages/next"
   },
   "keywords": [
-    "unnoq"
+    "unnoq",
+    "orpc",
+    "nextjs"
   ],
   "publishConfig": {
     "exports": {
@@ -39,5 +41,14 @@
     "build": "tsup --clean --sourcemap --entry.index=src/index.ts --format=esm --onSuccess='tsc -b --noCheck'",
     "build:watch": "pnpm run build --watch",
     "type:check": "tsc -b"
+  },
+  "peerDependencies": {
+    "@orpc/server": "workspace:*",
+    "next": ">=15.0.0",
+    "react": ">=18.3.0"
+  },
+  "dependencies": {
+    "@orpc/contract": "workspace:*",
+    "@orpc/shared": "workspace:*"
   }
 }

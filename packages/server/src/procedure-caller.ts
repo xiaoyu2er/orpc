@@ -1,19 +1,27 @@
 import type { SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { PartialOnUndefinedDeep, Value } from '@orpc/shared'
 import type { Lazy } from './lazy'
 import type { MiddlewareMeta } from './middleware'
 import type { Context } from './types'
-import { trim, type Value, value } from '@orpc/shared'
+import { trim, value } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
 import { OpenAPIDeserializer } from '@orpc/transformer'
 import { isLazy, loadLazy } from './lazy'
 import { type ANY_LAZY_PROCEDURE, type ANY_PROCEDURE, isProcedure, type Procedure } from './procedure'
 import { mergeContext } from './utils'
 
-export interface CreateProcedureCallerOptions<
+export type CreateProcedureCallerOptions<
   TProcedure extends ANY_PROCEDURE | ANY_LAZY_PROCEDURE,
-> {
+> = {
   procedure: TProcedure
 
+  /**
+   * This is helpful for logging and analytics.
+   *
+   * @internal
+   */
+  path?: string[]
+} & PartialOnUndefinedDeep<{
   /**
    * The context used when calling the procedure.
    */
@@ -22,14 +30,7 @@ export interface CreateProcedureCallerOptions<
       ? UContext
       : never
   >
-
-  /**
-   * This is helpful for logging and analytics.
-   *
-   * @internal
-   */
-  path?: string[]
-}
+}>
 
 export type ProcedureCaller<
   TProcedure extends ANY_PROCEDURE | ANY_LAZY_PROCEDURE,
@@ -48,33 +49,9 @@ export function createProcedureCaller<
 >(
   options: CreateProcedureCallerOptions<TProcedure>,
 ): ProcedureCaller<TProcedure> {
-  const loadProcedure = async (): Promise<ANY_PROCEDURE> => {
-    let procedure: ANY_PROCEDURE
-
-    if (isLazy(options.procedure)) {
-      procedure = (await loadLazy(options.procedure)).default
-    }
-    else {
-      procedure = options.procedure
-    }
-
-    if (!isProcedure(procedure)) {
-      throw new ORPCError({
-        code: 'NOT_FOUND',
-        message: 'Not found',
-        cause: new Error(trim(`
-          This error should be caught by the typescript compiler.
-          But if you still see this error, it means that you trying to call a lazy router (expected to be a lazy procedure).
-        `)),
-      })
-    }
-
-    return procedure
-  }
-
   const caller = async (input: unknown): Promise<unknown> => {
     const path = options.path ?? []
-    const procedure = await loadProcedure()
+    const procedure = await loadProcedure(options.procedure)
     const input_ = (() => {
       if (!(input instanceof FormData)) {
         return input
@@ -156,4 +133,28 @@ export function createProcedureCaller<
   }
 
   return caller as ProcedureCaller<TProcedure>
+}
+
+export async function loadProcedure(procedure: ANY_PROCEDURE | ANY_LAZY_PROCEDURE): Promise<ANY_PROCEDURE> {
+  let loadedProcedure: ANY_PROCEDURE
+
+  if (isLazy(procedure)) {
+    loadedProcedure = (await loadLazy(procedure)).default
+  }
+  else {
+    loadedProcedure = procedure
+  }
+
+  if (!isProcedure(loadedProcedure)) {
+    throw new ORPCError({
+      code: 'NOT_FOUND',
+      message: 'Not found',
+      cause: new Error(trim(`
+          This error should be caught by the typescript compiler.
+          But if you still see this error, it means that you trying to call a lazy router (expected to be a lazy procedure).
+        `)),
+    })
+  }
+
+  return loadedProcedure
 }

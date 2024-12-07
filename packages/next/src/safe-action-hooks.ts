@@ -1,7 +1,8 @@
 import type { SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { Lazy, Procedure } from '@orpc/server'
 import type { SafeAction } from './safe-action'
-import { type Lazy, ORPCError, type Procedure } from '@orpc/server'
 import { type GeneralHook, implementGeneralHook } from '@orpc/shared'
+import { ORPCError } from '@orpc/shared/error'
 import { useCallback, useMemo, useState } from 'react'
 
 export type GeneralHookFromSafeAction<T extends SafeAction<any>> = T extends SafeAction<

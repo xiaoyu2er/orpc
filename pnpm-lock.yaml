@@ -93,6 +93,9 @@ importers:
       '@orpc/contract':
         specifier: workspace:*
         version: link:../../packages/contract
+      '@orpc/next':
+        specifier: workspace:*
+        version: link:../../packages/next
       '@orpc/openapi':
         specifier: workspace:*
         version: link:../../packages/openapi

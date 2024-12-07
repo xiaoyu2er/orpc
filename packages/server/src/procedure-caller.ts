@@ -53,7 +53,7 @@ export function createProcedureCaller<
     const procedure = await loadProcedure(options.procedure)
     const context = await value(options.context)
 
-    const next = async () => {
+    const execute = async () => {
       const validInput = (() => {
         const schema = procedure.zz$p.contract.zz$cp.InputSchema
         if (!schema) {
@@ -123,14 +123,14 @@ export function createProcedureCaller<
     }
 
     return implementGeneralHook({
-      hook: options,
+      hooks: options,
       input,
       context,
       meta: {
-        next,
         path,
         procedure,
       },
+      execute,
     })
   }
 

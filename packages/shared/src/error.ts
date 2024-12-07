@@ -111,3 +111,25 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
 }
 
 export type WELL_ORPC_ERROR = ORPCError<ORPCErrorCode, unknown>
+
+export function convertToStandardError(error: unknown): Error {
+  if (error instanceof Error) {
+    return error
+  }
+
+  if (typeof error === 'string') {
+    return new Error(error, { cause: error })
+  }
+
+  if (typeof error === 'object' && error !== null) {
+    if ('message' in error && typeof error.message === 'string') {
+      return new Error(error.message, { cause: error })
+    }
+
+    if ('name' in error && typeof error.name === 'string') {
+      return new Error(error.name, { cause: error })
+    }
+  }
+
+  return new Error('Unknown error', { cause: error })
+}

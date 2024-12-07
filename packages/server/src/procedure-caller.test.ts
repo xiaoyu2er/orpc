@@ -159,6 +159,7 @@ describe('createProcedureCaller', () => {
     const caller = createProcedureCaller({
       procedure,
       context: { val: 'context' },
+      path: ['cc'],
       execute: async (input, context, meta) => {
         onExecute(input, context, meta)
         try {
@@ -179,16 +180,16 @@ describe('createProcedureCaller', () => {
     await caller('input')
     expect(onExecute).toBeCalledTimes(1)
     expect(onExecute).toHaveBeenCalledWith('input', { val: 'context' }, {
-      path: [],
+      path: ['cc'],
       procedure,
       next: expect.any(Function),
     })
     expect(onSuccess).toBeCalledTimes(2)
     expect(onSuccess).toHaveBeenNthCalledWith(1, 'output', { val: 'context' })
-    expect(onSuccess).toHaveBeenNthCalledWith(2, 'output', { val: 'context' })
+    expect(onSuccess).toHaveBeenNthCalledWith(2, 'output', { val: 'context' }, { path: ['cc'], procedure })
     expect(onError).not.toBeCalled()
     expect(onFinish).toBeCalledTimes(1)
-    expect(onFinish).toBeCalledWith({ val: 'context' })
+    expect(onFinish).toBeCalledWith({ status: 'success', output: 'output', error: undefined }, { val: 'context' }, { path: ['cc'], procedure })
 
     onSuccess.mockClear()
     onError.mockClear()
@@ -202,7 +203,7 @@ describe('createProcedureCaller', () => {
 
     expect(onExecute).toBeCalledTimes(1)
     expect(onExecute).toHaveBeenCalledWith(123, { val: 'context' }, {
-      path: [],
+      path: ['cc'],
       procedure,
       next: expect.any(Function),
     })
@@ -216,9 +217,13 @@ describe('createProcedureCaller', () => {
       message: 'Validation input failed',
       code: 'BAD_REQUEST',
       cause: expect.any(Error),
-    }), { val: 'context' })
+    }), { val: 'context' }, { path: ['cc'], procedure })
     expect(onSuccess).not.toBeCalled()
     expect(onFinish).toBeCalledTimes(1)
-    expect(onFinish).toBeCalledWith({ val: 'context' })
+    expect(onFinish).toBeCalledWith({ status: 'error', output: undefined, error: new ORPCError({
+      message: 'Validation input failed',
+      code: 'BAD_REQUEST',
+      cause: expect.any(Error),
+    }) }, { val: 'context' }, { path: ['cc'], procedure })
   })
 })

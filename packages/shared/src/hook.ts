@@ -1,65 +1,101 @@
-import type { Arrayable, Promisable } from 'type-fest'
+import type { Arrayable, Merge, Promisable } from 'type-fest'
+import { convertToStandardError } from './error'
 
 export interface BaseGeneralHookMeta<TOutput> {
   next: () => Promise<TOutput>
 }
 
-export interface GeneralHook<TInput, TOutput, TContext, TMeta extends Record<string, unknown> | unknown> {
-  execute?: Arrayable<(input: TInput, context: TContext, meta: BaseGeneralHookMeta<TOutput> & TMeta) => Promise<TOutput>>
-  onSuccess?: Arrayable<(output: TOutput, context: TContext) => Promisable<void>>
-  onError?: Arrayable<(error: Error, context: TContext) => Promisable<void>>
-  onFinish?: Arrayable<(context: TContext) => Promisable<void>>
+export type FinishState<TOutput> =
+  | { status: 'success', output: TOutput, error: undefined }
+  | { status: 'error', output: undefined, error: Error }
+
+export interface GeneralHook<TInput, TOutput, TContext, TMeta extends Record<string, unknown> & { next?: never } | undefined> {
+  execute?: Arrayable<(input: TInput, context: TContext, meta: Merge<BaseGeneralHookMeta<TOutput>, TMeta>) => Promise<TOutput>>
+  onStart?: Arrayable<(input: TInput, context: TContext, meta: TMeta) => Promisable<void>>
+  onSuccess?: Arrayable<(output: TOutput, context: TContext, meta: TMeta) => Promisable<void>>
+  onError?: Arrayable<(error: Error, context: TContext, meta: TMeta) => Promisable<void>>
+  onFinish?: Arrayable<(state: FinishState<TOutput>, context: TContext, meta: TMeta) => Promisable<void>>
 }
 
-async function executeArrayableMethod<T extends any[], R>(
-  method: Arrayable<(...args: T) => Promisable<R>> | undefined,
-  ...args: T
-): Promise<R | undefined> {
-  if (!method) {
-    return undefined
-  }
-
-  const methods = Array.isArray(method) ? method : [method]
-  let result: R | undefined
-
-  for (const fn of methods) {
-    result = await fn(...args)
-  }
-
-  return result
-}
-
-export async function implementGeneralHook<TInput, TOutput, TContext, TMeta extends Record<string, unknown>>(
+export async function implementGeneralHook<TInput, TOutput, TContext, TMeta extends Record<string, unknown> & { next?: never } | undefined>(
   options: {
-    hook?: GeneralHook<TInput, TOutput, TContext, TMeta>
+    hooks?: GeneralHook<TInput, TOutput, TContext, TMeta>
     input: TInput
     context: TContext
-    meta: BaseGeneralHookMeta<TOutput> & TMeta
-    internalOnStart?: (input: TInput, context: TContext) => Promisable<void>
-    internalOnSuccess?: (output: TOutput, context: TContext) => Promisable<void>
-    internalOnError?: (error: Error, context: TContext) => Promisable<void>
-    internalOnFinish?: (context: TContext) => Promisable<void>
+    meta: TMeta
+    execute: BaseGeneralHookMeta<TOutput>['next']
   },
 ): Promise<TOutput> {
+  let state: FinishState<TOutput> | undefined
+
+  const executes = convertToArray(options.hooks?.execute)
+  const onStarts = convertToArray(options.hooks?.onStart)
+  const onSuccesses = convertToArray(options.hooks?.onSuccess)
+  const onErrors = convertToArray(options.hooks?.onError)
+  const onFinishes = convertToArray(options.hooks?.onFinish)
+
+  let currentExecuteIndex = 0
+
+  const next = async (): Promise<TOutput> => {
+    const execute = executes[currentExecuteIndex]
+
+    if (!execute) {
+      return await options.execute()
+    }
+
+    currentExecuteIndex++
+    return await execute(options.input, options.context, {
+      ...options.meta,
+      next,
+    })
+  }
+
   try {
-    await options.internalOnStart?.(options.input, options.context)
+    for (const onStart of onStarts) {
+      await onStart(options.input, options.context, options.meta)
+    }
 
-    const output = !options.hook?.execute || !options.hook.execute.length
-      ? await options.meta.next()
-      : await executeArrayableMethod(options.hook.execute, options.input, options.context, options.meta) as TOutput
+    const output = await next()
 
-    await options.internalOnSuccess?.(output, options.context)
-    await executeArrayableMethod(options.hook?.onSuccess, output, options.context)
-    return output
+    for (let i = onSuccesses.length - 1; i >= 0; i--) {
+      await onSuccesses[i]!(output, options.context, options.meta)
+    }
+
+    state = { status: 'success', output, error: undefined }
   }
   catch (e) {
-    const error = e instanceof Error ? e : new Error('Unknown error', { cause: e })
-    await options.internalOnError?.(error, options.context)
-    await executeArrayableMethod(options.hook?.onError, error, options.context)
-    throw error
+    state = { status: 'error', error: convertToStandardError(e), output: undefined }
+
+    for (let i = onErrors.length - 1; i >= 0; i--) {
+      try {
+        await onErrors[i]!(state.error, options.context, options.meta)
+      }
+      catch (e) {
+        state = { status: 'error', error: convertToStandardError(e), output: undefined }
+      }
+    }
   }
-  finally {
-    await options.internalOnFinish?.(options.context)
-    await executeArrayableMethod(options.hook?.onFinish, options.context)
+
+  for (let i = onFinishes.length - 1; i >= 0; i--) {
+    try {
+      await onFinishes[i]!(state, options.context, options.meta)
+    }
+    catch (e) {
+      state = { status: 'error', output: undefined, error: convertToStandardError(e) }
+    }
   }
+
+  if (state.status === 'error') {
+    throw state.error
+  }
+
+  return state.output
+}
+
+export function convertToArray<T>(value: undefined | T | readonly T[]): readonly T[] {
+  if (value === undefined) {
+    return []
+  }
+
+  return Array.isArray(value) ? value : [value] as any
 }

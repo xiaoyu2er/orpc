@@ -7,9 +7,13 @@ import { isRedirectError } from 'next/dist/client/components/redirect'
 export type SafeAction<T extends ANY_PROCEDURE | ANY_LAZY_PROCEDURE> = T extends
   | Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
   | Lazy<Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>>
-  ? (input: SchemaInput<UInputSchema>) => Promise<
-    | [SchemaOutput<UOutputSchema, UFuncOutput>, undefined, 'success']
-    | [undefined, WELL_ORPC_ERROR_JSON, 'error']
+  ? (
+      ...options:
+        | [input: SchemaInput<UInputSchema>]
+        | (undefined extends SchemaInput<UInputSchema> ? [] : never)
+    ) => Promise<
+      | [SchemaOutput<UOutputSchema, UFuncOutput>, undefined, 'success']
+      | [undefined, WELL_ORPC_ERROR_JSON, 'error']
     >
   : never
 

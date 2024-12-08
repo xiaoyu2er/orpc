@@ -19,7 +19,7 @@ export default defineWorkspace([
       globals: true,
       environment: 'jsdom',
       setupFiles: ['./vitest.jsdom-react.ts'],
-      include: ['./packages/react/**/*.test.tsx'],
+      include: ['./packages/{next,react}/**/*.test.tsx'],
     },
   },
 ])

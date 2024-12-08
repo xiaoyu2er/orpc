@@ -56,5 +56,8 @@
   "dependencies": {
     "@orpc/contract": "workspace:*",
     "@orpc/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "zod": "^3.21.4"
   }
 }

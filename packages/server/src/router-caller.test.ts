@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createRouterCaller, os } from '.'
+import { createRouterCaller, ORPCError, os } from '.'
 
 describe('createRouterCaller', () => {
   const internal = false
@@ -193,5 +193,86 @@ describe('createRouterCaller', () => {
       'lazyRouter',
       'ping',
     ])
+  })
+
+  it('hooks', async () => {
+    const onStart = vi.fn()
+    const onSuccess = vi.fn()
+    const onError = vi.fn()
+    const onFinish = vi.fn()
+    const onExecute = vi.fn()
+
+    const procedure = os.input(z.string()).func(() => 'output')
+
+    const context = { val: 'context' }
+    const caller = createRouterCaller({
+      router: { procedure, nested: { procedure } },
+      context,
+      execute: async (input, context, meta) => {
+        onStart(input, context, meta)
+        onExecute(input, context, meta)
+        try {
+          const output = await meta.next()
+          onSuccess(output, context, meta)
+          return output
+        }
+        catch (e) {
+          onError(e, context, meta)
+          throw e
+        }
+      },
+      onStart,
+      onSuccess,
+      onError,
+      onFinish,
+    })
+
+    const meta = {
+      path: ['procedure'],
+      procedure,
+    }
+
+    await caller.procedure('input')
+    expect(onStart).toBeCalledTimes(2)
+    expect(onStart).toHaveBeenNthCalledWith(1, 'input', context, { ...meta, next: expect.any(Function) })
+    expect(onStart).toHaveBeenNthCalledWith(2, { input: 'input', status: 'pending' }, context, meta)
+    expect(onExecute).toBeCalledTimes(1)
+    expect(onExecute).toHaveBeenCalledWith('input', context, { ...meta, next: expect.any(Function) })
+    expect(onSuccess).toBeCalledTimes(2)
+    expect(onSuccess).toHaveBeenNthCalledWith(1, { output: 'output', input: 'input', status: 'success' }, context, meta)
+    expect(onSuccess).toHaveBeenNthCalledWith(2, 'output', context, { ...meta, next: expect.any(Function) })
+    expect(onError).not.toBeCalled()
+    expect(onFinish).toBeCalledTimes(1)
+    expect(onFinish).toBeCalledWith({ output: 'output', input: 'input', status: 'success' }, context, meta)
+
+    onSuccess.mockClear()
+    onError.mockClear()
+    onFinish.mockClear()
+    onExecute.mockClear()
+
+    // @ts-expect-error - invalid input
+    await expect(caller.nested.procedure(123)).rejects.toThrowError(
+      'Validation input failed',
+    )
+
+    const meta2 = {
+      path: ['nested', 'procedure'],
+      procedure,
+    }
+
+    const error2 = new ORPCError({
+      message: 'Validation input failed',
+      code: 'BAD_REQUEST',
+      cause: expect.any(Error),
+    })
+
+    expect(onExecute).toBeCalledTimes(1)
+    expect(onExecute).toHaveBeenCalledWith(123, context, { ...meta2, next: expect.any(Function) })
+    expect(onError).toBeCalledTimes(2)
+    expect(onError).toHaveBeenNthCalledWith(1, { input: 123, error: error2, status: 'error' }, context, meta2)
+    expect(onError).toHaveBeenNthCalledWith(2, error2, context, { ...meta2, next: expect.any(Function) })
+    expect(onSuccess).not.toBeCalled()
+    expect(onFinish).toBeCalledTimes(1)
+    expect(onFinish).toBeCalledWith({ input: 123, error: error2, status: 'error' }, context, meta2)
   })
 })

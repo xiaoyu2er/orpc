@@ -25,6 +25,17 @@ export const ORPC_ERROR_CODE_STATUSES = {
 
 export type ORPCErrorCode = keyof typeof ORPC_ERROR_CODE_STATUSES
 
+export interface ORPCErrorJSON<TCode extends ORPCErrorCode, TData> {
+  code: TCode
+  status: number
+  message: string
+  data: TData
+  issues?: ZodIssue[]
+}
+
+export type ANY_ORPC_ERROR_JSON = ORPCErrorJSON<any, any>
+export type WELL_ORPC_ERROR_JSON = ORPCErrorJSON<ORPCErrorCode, unknown>
+
 export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
   constructor(
     public zz$oe: {
@@ -61,13 +72,7 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
     return undefined
   }
 
-  toJSON(): {
-    code: TCode
-    status: number
-    message: string
-    data: TData
-    issues?: ZodIssue[]
-  } {
+  toJSON(): ORPCErrorJSON<TCode, TData> {
     return {
       code: this.code,
       status: this.status,
@@ -103,4 +108,28 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
       cause: 'issues' in json ? new ZodError(json.issues as any) : undefined,
     })
   }
+}
+
+export type WELL_ORPC_ERROR = ORPCError<ORPCErrorCode, unknown>
+
+export function convertToStandardError(error: unknown): Error {
+  if (error instanceof Error) {
+    return error
+  }
+
+  if (typeof error === 'string') {
+    return new Error(error, { cause: error })
+  }
+
+  if (typeof error === 'object' && error !== null) {
+    if ('message' in error && typeof error.message === 'string') {
+      return new Error(error.message, { cause: error })
+    }
+
+    if ('name' in error && typeof error.name === 'string') {
+      return new Error(error.name, { cause: error })
+    }
+  }
+
+  return new Error('Unknown error', { cause: error })
 }

@@ -93,18 +93,15 @@ convert `1992` into a `bigint` and seamlessly parse objects like `user`.
 ```tsx
 // call directly from client
 const onSubmit = () => { getting({ /***/ }) }
-// safe caller
-const gettingSA = createSafeAction({ procedure: getting })
-const onSubmit = () => { 
-	const [output, error] = await gettingSA({ /***/ })
-}
 // use with a hook
-const { execute, isPending, isError, error, data } = useSafeAction(gettingSA)
+const { execute, isPending, isError, error, output, input, status } = useAction(getting)
+// createSafeAction and useSafeAction if you want catch error on client
 // use as a form action
 const gettingFA = createFormAction({ 
 	procedure: getting,
 	onSuccess: () => redirect('/some-where')
 })
+
 
 <form action={gettingFA}>
   <input type="number" name="id" value="1992" />

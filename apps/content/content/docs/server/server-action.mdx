@@ -91,33 +91,14 @@ export default function UpdateUserButton() {
 }
 ```
 
-### Safe Server Actions
-
-To handle errors gracefully or use hooks for improved reusability, leverage `createSafeAction` and `useSafeAction`:
+### With Hooks
 
 ```tsx twoslash
-import { createSafeAction } from '@orpc/next'
-import { useSafeAction } from '@orpc/next/hooks'
+import { useAction } from '@orpc/next/client'
 import { updateUser } from 'examples/server-action'
 
-// on server
-const updateUserSA = createSafeAction({ 
-  procedure: updateUser,
-})
-
-// on client
-const onSubmit = async () => {
-  const [output, error] = await updateUserSA({ 
-    id: 1992n,
-    user: {
-      name: 'Unnoq',
-      avatar: (document.getElementById('avatar') as any).files[0],
-    },
-  })
-}
-
 // with a hook
-const { execute, isPending, isError, error, data } = useSafeAction(updateUserSA)
+const { execute, isPending, isError, error, output, input, status } = useAction(updateUser)
 
 const onSubmit2 = () => {
   execute({ 
@@ -130,8 +111,23 @@ const onSubmit2 = () => {
 }
 ```
 
-This approach simplifies error handling and improves the maintainability of your server actions.
+To handle errors gracefully or use hooks for improved reusability, you can leverage `createSafeAction` and `useSafeAction`:
 
+```tsx twoslash
+import { useSafeAction } from '@orpc/next/client'
+import { createSafeAction } from '@orpc/next'
+import { updateUser } from 'examples/server-action'
+
+// on server
+const updateUserSA = createSafeAction({ 
+  procedure: updateUser,
+})
+
+// with a hook
+const { execute, isPending, isError, error, output, input, status } = useSafeAction(updateUserSA)
+
+// error will include more information than normal useAction
+```
 
 ### Enhanced Form Integration
 

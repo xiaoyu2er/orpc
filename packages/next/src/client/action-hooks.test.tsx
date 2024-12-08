@@ -19,8 +19,6 @@ describe('useAction', () => {
     expect(result.current.error).toBe(undefined)
     expect(result.current.output).toBe(undefined)
 
-    result.current.execute({ value: 'hello' })
-
     await vi.waitFor(() => expect(result.current.status).toBe('pending'))
     expect(result.current.isPending).toBe(true)
     expect(result.current.isError).toBe(false)
@@ -64,6 +62,37 @@ describe('useAction', () => {
     expect(result.current.input).toEqual({ value: 12334 })
     expect(result.current.output).toEqual(undefined)
     expect(result.current.error?.message).toEqual('Validation input failed')
+  })
+
+  it('return result on execute', async () => {
+    const { result } = renderHook(() => useAction(procedure))
+
+    const [output, error, status] = await result.current.execute({ value: 'hello' })
+
+    expect(output).toBe('hello')
+    expect(error).toBe(undefined)
+    expect(status).toBe('success')
+
+    await vi.waitFor(() => expect(result.current.status).toBe('success'))
+    expect(result.current.isPending).toBe(false)
+    expect(result.current.isError).toBe(false)
+    expect(result.current.input).toEqual({ value: 'hello' })
+    expect(result.current.output).toEqual('hello')
+    expect(result.current.error).toEqual(undefined)
+
+    // @ts-expect-error - invalid input
+    const [output2, error2, status2] = await result.current.execute({ value: 123 })
+
+    expect(output2).toBe(undefined)
+    expect(error2?.message).toBe('Validation input failed')
+    expect(status2).toBe('error')
+
+    await vi.waitFor(() => expect(result.current.status).toBe('error'))
+    expect(result.current.isPending).toBe(false)
+    expect(result.current.isError).toBe(true)
+    expect(result.current.input).toEqual({ value: 123 })
+    expect(result.current.output).toEqual(undefined)
+    expect(result.current.error?.message).toBe('Validation input failed')
   })
 
   it('hooks', async () => {

@@ -235,7 +235,7 @@ describe('createRouterCaller', () => {
     expect(onSuccess).toHaveBeenNthCalledWith(2, 'output', { val: 'context' }, { procedure, path: ['procedure'] })
     expect(onError).not.toBeCalled()
     expect(onFinish).toBeCalledTimes(1)
-    expect(onFinish).toBeCalledWith({ status: 'success', output: 'output', error: undefined }, { val: 'context' }, { procedure, path: ['procedure'] })
+    expect(onFinish).toBeCalledWith(['output', undefined, 'success'], { val: 'context' }, { procedure, path: ['procedure'] })
 
     onSuccess.mockClear()
     onError.mockClear()
@@ -266,14 +266,10 @@ describe('createRouterCaller', () => {
     }), { val: 'context' }, { procedure, path: ['nested', 'procedure'] })
     expect(onSuccess).not.toBeCalled()
     expect(onFinish).toBeCalledTimes(1)
-    expect(onFinish).toBeCalledWith({
-      status: 'error',
-      output: undefined,
-      error: new ORPCError({
-        message: 'Validation input failed',
-        code: 'BAD_REQUEST',
-        cause: expect.any(Error),
-      }),
-    }, { val: 'context' }, { procedure, path: ['nested', 'procedure'] })
+    expect(onFinish).toBeCalledWith([undefined, new ORPCError({
+      message: 'Validation input failed',
+      code: 'BAD_REQUEST',
+      cause: expect.any(Error),
+    }), 'error'], { val: 'context' }, { procedure, path: ['nested', 'procedure'] })
   })
 })

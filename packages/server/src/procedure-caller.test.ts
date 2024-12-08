@@ -189,7 +189,7 @@ describe('createProcedureCaller', () => {
     expect(onSuccess).toHaveBeenNthCalledWith(2, 'output', { val: 'context' }, { path: ['cc'], procedure })
     expect(onError).not.toBeCalled()
     expect(onFinish).toBeCalledTimes(1)
-    expect(onFinish).toBeCalledWith({ status: 'success', output: 'output', error: undefined }, { val: 'context' }, { path: ['cc'], procedure })
+    expect(onFinish).toBeCalledWith(['output', undefined, 'success'], { val: 'context' }, { path: ['cc'], procedure })
 
     onSuccess.mockClear()
     onError.mockClear()
@@ -220,10 +220,10 @@ describe('createProcedureCaller', () => {
     }), { val: 'context' }, { path: ['cc'], procedure })
     expect(onSuccess).not.toBeCalled()
     expect(onFinish).toBeCalledTimes(1)
-    expect(onFinish).toBeCalledWith({ status: 'error', output: undefined, error: new ORPCError({
+    expect(onFinish).toBeCalledWith([undefined, new ORPCError({
       message: 'Validation input failed',
       code: 'BAD_REQUEST',
       cause: expect.any(Error),
-    }) }, { val: 'context' }, { path: ['cc'], procedure })
+    }), 'error'], { val: 'context' }, { path: ['cc'], procedure })
   })
 })

@@ -19,6 +19,8 @@ describe('useAction', () => {
     expect(result.current.error).toBe(undefined)
     expect(result.current.output).toBe(undefined)
 
+    result.current.execute({ value: 'hello' })
+
     await vi.waitFor(() => expect(result.current.status).toBe('pending'))
     expect(result.current.isPending).toBe(true)
     expect(result.current.isError).toBe(false)

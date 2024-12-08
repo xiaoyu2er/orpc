@@ -82,7 +82,9 @@ export function toContractRouter(
 }
 
 export type InferRouterInputs<T extends Router<any>> = {
-  [K in keyof T]: T[K] extends Procedure<any, any, infer UInputSchema, any, any>
+  [K in keyof T]: T[K] extends
+  | Procedure<any, any, infer UInputSchema, any, any>
+  | Lazy<Procedure<any, any, infer UInputSchema, any, any>>
     ? SchemaInput<UInputSchema>
     : T[K] extends Router<any>
       ? InferRouterInputs<T[K]>
@@ -90,7 +92,9 @@ export type InferRouterInputs<T extends Router<any>> = {
 }
 
 export type InferRouterOutputs<T extends Router<any>> = {
-  [K in keyof T]: T[K] extends Procedure<any, any, any, infer UOutputSchema, infer UFuncOutput>
+  [K in keyof T]: T[K] extends
+  | Procedure<any, any, any, infer UOutputSchema, infer UFuncOutput>
+  | Lazy<Procedure<any, any, any, infer UOutputSchema, infer UFuncOutput>>
     ? SchemaOutput<UOutputSchema, UFuncOutput>
     : T[K] extends Router<any>
       ? InferRouterOutputs<T[K]>

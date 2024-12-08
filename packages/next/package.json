@@ -21,10 +21,10 @@
         "import": "./dist/index.js",
         "default": "./dist/index.js"
       },
-      "./hooks": {
-        "types": "./dist/src/hooks.d.ts",
-        "import": "./dist/hooks.js",
-        "default": "./dist/hooks.js"
+      "./client": {
+        "types": "./dist/src/client/index.d.ts",
+        "import": "./dist/client.js",
+        "default": "./dist/client.js"
       },
       "./🔒/*": {
         "types": "./dist/src/*.d.ts"
@@ -33,7 +33,7 @@
   },
   "exports": {
     ".": "./src/index.ts",
-    "./hooks": "./src/hooks.ts",
+    "./client": "./src/client/index.ts",
     "./🔒/*": {
       "types": "./src/*.ts"
     }
@@ -44,7 +44,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup --clean --sourcemap --entry.index=src/index.ts --entry.hooks=src/hooks.ts --format=esm --onSuccess='tsc -b --noCheck'",
+    "build": "tsup --clean --sourcemap --entry.index=src/index.ts --entry.client=src/client/index.ts --format=esm --onSuccess='tsc -b --noCheck'",
     "build:watch": "pnpm run build --watch",
     "type:check": "tsc -b"
   },

@@ -1,8 +1,8 @@
 import { os } from '@orpc/server'
 import { renderHook } from '@testing-library/react'
 import { z } from 'zod'
-import { createSafeAction } from './safe-action'
-import { useSafeAction } from './safe-action-hooks'
+import { createSafeAction } from '../action-safe'
+import { useSafeAction } from './action-safe-hooks'
 
 describe('useSafeAction', () => {
   const procedure = os.input(z.object({ value: z.string() })).func(async ({ value }) => {

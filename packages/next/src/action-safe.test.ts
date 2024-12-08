@@ -1,6 +1,6 @@
 import { os } from '@orpc/server'
 import { z } from 'zod'
-import { createSafeAction } from './safe-action'
+import { createSafeAction } from './action-safe'
 
 describe('createSafeAction', () => {
   const procedure = os.input(z.object({

@@ -1,6 +1,6 @@
 import { os } from '@orpc/server'
 import { z } from 'zod'
-import { createFormAction } from './form-action'
+import { createFormAction } from './action-form'
 
 describe('createFormAction', () => {
   const procedure = os.input(z.object({

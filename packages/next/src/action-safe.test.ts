@@ -45,12 +45,16 @@ describe('createSafeAction', () => {
     await expect(safe({ name: 'hello' })).resolves.toEqual(['hello', undefined, 'success'])
 
     expect(onSuccess).toHaveBeenCalledTimes(1)
-    expect(onSuccess).toHaveBeenCalledWith('hello', { val: 'context' }, {
-      path: [
-        'name',
-      ],
-      procedure,
-    })
+    expect(onSuccess).toHaveBeenCalledWith(
+      { output: 'hello', input: { name: 'hello' }, status: 'success' },
+      { val: 'context' },
+      {
+        path: [
+          'name',
+        ],
+        procedure,
+      },
+    )
     expect(onError).not.toHaveBeenCalled()
   })
 })

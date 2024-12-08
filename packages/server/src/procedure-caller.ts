@@ -122,7 +122,7 @@ export function createProcedureCaller<
       return validOutput
     }
 
-    const [output, error, status] = await executeWithHooks({
+    const output = await executeWithHooks({
       hooks: options,
       input,
       context,
@@ -132,10 +132,6 @@ export function createProcedureCaller<
       },
       execute,
     })
-
-    if (status === 'error') {
-      throw error
-    }
 
     return output
   }

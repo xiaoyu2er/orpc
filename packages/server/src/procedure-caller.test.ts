@@ -149,47 +149,57 @@ describe('createProcedureCaller', () => {
   })
 
   it('hooks', async () => {
+    const onStart = vi.fn()
     const onSuccess = vi.fn()
     const onError = vi.fn()
     const onFinish = vi.fn()
     const onExecute = vi.fn()
 
     const procedure = os.input(z.string()).func(() => 'output')
-
+    const context = { val: 'context' }
     const caller = createProcedureCaller({
       procedure,
-      context: { val: 'context' },
+      context,
       path: ['cc'],
       execute: async (input, context, meta) => {
         onExecute(input, context, meta)
         try {
           const output = await meta.next()
-          onSuccess(output, context)
+          onSuccess(output, context, meta)
           return output
         }
         catch (e) {
-          onError(e, context)
+          onError(e, context, meta)
           throw e
         }
       },
+      onStart,
       onSuccess,
       onError,
       onFinish,
     })
 
-    await caller('input')
-    expect(onExecute).toBeCalledTimes(1)
-    expect(onExecute).toHaveBeenCalledWith('input', { val: 'context' }, {
+    const meta = {
       path: ['cc'],
       procedure,
+    }
+
+    const metaFull = {
+      ...meta,
       next: expect.any(Function),
-    })
+    }
+
+    await caller('input')
+    expect(onExecute).toBeCalledTimes(1)
+    expect(onExecute).toHaveBeenCalledWith('input', context, metaFull)
+    expect(onStart).toBeCalledTimes(1)
+    expect(onStart).toHaveBeenCalledWith({ input: 'input', status: 'pending' }, context, meta)
     expect(onSuccess).toBeCalledTimes(2)
-    expect(onSuccess).toHaveBeenNthCalledWith(1, 'output', { val: 'context' })
-    expect(onSuccess).toHaveBeenNthCalledWith(2, 'output', { val: 'context' }, { path: ['cc'], procedure })
+    expect(onSuccess).toHaveBeenNthCalledWith(1, { output: 'output', input: 'input', status: 'success' }, context, meta)
+    expect(onSuccess).toHaveBeenNthCalledWith(2, 'output', context, metaFull)
     expect(onError).not.toBeCalled()
     expect(onFinish).toBeCalledTimes(1)
-    expect(onFinish).toBeCalledWith(['output', undefined, 'success'], { val: 'context' }, { path: ['cc'], procedure })
+    expect(onFinish).toBeCalledWith({ output: 'output', input: 'input', status: 'success' }, context, meta)
 
     onSuccess.mockClear()
     onError.mockClear()
@@ -201,29 +211,29 @@ describe('createProcedureCaller', () => {
       'Validation input failed',
     )
 
-    expect(onExecute).toBeCalledTimes(1)
-    expect(onExecute).toHaveBeenCalledWith(123, { val: 'context' }, {
+    const meta2 = {
       path: ['cc'],
       procedure,
+    }
+
+    const metaFull2 = {
+      ...meta2,
       next: expect.any(Function),
+    }
+
+    const error2 = new ORPCError({
+      message: 'Validation input failed',
+      code: 'BAD_REQUEST',
+      cause: expect.any(Error),
     })
+
+    expect(onExecute).toBeCalledTimes(1)
+    expect(onExecute).toHaveBeenCalledWith(123, context, metaFull2)
     expect(onError).toBeCalledTimes(2)
-    expect(onError).toHaveBeenNthCalledWith(1, new ORPCError({
-      message: 'Validation input failed',
-      code: 'BAD_REQUEST',
-      cause: expect.any(Error),
-    }), { val: 'context' })
-    expect(onError).toHaveBeenNthCalledWith(2, new ORPCError({
-      message: 'Validation input failed',
-      code: 'BAD_REQUEST',
-      cause: expect.any(Error),
-    }), { val: 'context' }, { path: ['cc'], procedure })
+    expect(onError).toHaveBeenNthCalledWith(1, { input: 123, error: error2, status: 'error' }, context, meta2)
+    expect(onError).toHaveBeenNthCalledWith(2, error2, context, metaFull2)
     expect(onSuccess).not.toBeCalled()
     expect(onFinish).toBeCalledTimes(1)
-    expect(onFinish).toBeCalledWith([undefined, new ORPCError({
-      message: 'Validation input failed',
-      code: 'BAD_REQUEST',
-      cause: expect.any(Error),
-    }), 'error'], { val: 'context' }, { path: ['cc'], procedure })
+    expect(onFinish).toBeCalledWith({ input: 123, error: error2, status: 'error' }, context, meta2)
   })
 })

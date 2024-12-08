@@ -15,30 +15,34 @@ describe('useAction', () => {
     expect(result.current.status).toBe('idle')
     expect(result.current.isPending).toBe(false)
     expect(result.current.isError).toBe(false)
+    expect(result.current.input).toBe(undefined)
     expect(result.current.error).toBe(undefined)
-    expect(result.current.data).toBe(undefined)
+    expect(result.current.output).toBe(undefined)
 
     result.current.execute({ value: 'hello' })
 
     await vi.waitFor(() => expect(result.current.status).toBe('pending'))
     expect(result.current.isPending).toBe(true)
     expect(result.current.isError).toBe(false)
-    expect(result.current.error).toBe(undefined)
-    expect(result.current.data).toBe(undefined)
+    expect(result.current.input).toEqual({ value: 'hello' })
+    expect(result.current.error).toEqual(undefined)
+    expect(result.current.output).toEqual(undefined)
 
     await vi.waitFor(() => expect(result.current.status).toBe('success'))
     expect(result.current.isPending).toBe(false)
     expect(result.current.isError).toBe(false)
-    expect(result.current.error).toBe(undefined)
-    expect(result.current.data).toBe('hello')
+    expect(result.current.input).toEqual({ value: 'hello' })
+    expect(result.current.output).toEqual('hello')
+    expect(result.current.error).toEqual(undefined)
 
     result.current.reset()
 
     await vi.waitFor(() => expect(result.current.status).toBe('idle'))
     expect(result.current.isPending).toBe(false)
     expect(result.current.isError).toBe(false)
-    expect(result.current.error).toBe(undefined)
-    expect(result.current.data).toBe(undefined)
+    expect(result.current.input).toEqual(undefined)
+    expect(result.current.output).toEqual(undefined)
+    expect(result.current.error).toEqual(undefined)
   })
 
   it('should work - on error', async () => {
@@ -47,8 +51,9 @@ describe('useAction', () => {
     expect(result.current.status).toBe('idle')
     expect(result.current.isPending).toBe(false)
     expect(result.current.isError).toBe(false)
-    expect(result.current.error).toBe(undefined)
-    expect(result.current.data).toBe(undefined)
+    expect(result.current.input).toEqual(undefined)
+    expect(result.current.output).toEqual(undefined)
+    expect(result.current.error).toEqual(undefined)
 
     // @ts-expect-error - invalid input
     result.current.execute({ value: 12334 })
@@ -56,7 +61,8 @@ describe('useAction', () => {
     await vi.waitFor(() => expect(result.current.status).toBe('error'))
     expect(result.current.isPending).toBe(false)
     expect(result.current.isError).toBe(true)
-    expect(result.current.data).toBe(undefined)
+    expect(result.current.input).toEqual({ value: 12334 })
+    expect(result.current.output).toEqual(undefined)
     expect(result.current.error?.message).toEqual('Validation input failed')
   })
 
@@ -71,8 +77,18 @@ describe('useAction', () => {
     await vi.waitFor(() => expect(result.current.status).toBe('success'))
 
     expect(onSuccess).toHaveBeenCalledTimes(2)
-    expect(onSuccess).toHaveBeenNthCalledWith(1, 'hello', undefined, undefined)
-    expect(onSuccess).toHaveBeenNthCalledWith(2, 'hello', undefined, undefined)
+    expect(onSuccess).toHaveBeenNthCalledWith(1, {
+      input: { value: 'hello' },
+      output: 'hello',
+      error: undefined,
+      status: 'success',
+    }, undefined, undefined)
+    expect(onSuccess).toHaveBeenNthCalledWith(2, {
+      input: { value: 'hello' },
+      output: 'hello',
+      error: undefined,
+      status: 'success',
+    }, undefined, undefined)
 
     expect(onError).not.toHaveBeenCalled()
   })

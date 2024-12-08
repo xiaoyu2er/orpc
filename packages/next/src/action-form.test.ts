@@ -16,7 +16,11 @@ describe('createFormAction', () => {
 
     await expect(formAction(form)).resolves.toEqual(undefined)
     expect(onSuccess).toHaveBeenCalledTimes(1)
-    expect(onSuccess).toHaveBeenCalledWith(BigInt('19992'), undefined, {
+    expect(onSuccess).toHaveBeenCalledWith({
+      input: { big: BigInt('19992') },
+      output: BigInt('19992'),
+      status: 'success',
+    }, undefined, {
       path: [
         'name',
       ],
@@ -43,7 +47,11 @@ describe('createFormAction', () => {
     await expect(formAction(form)).resolves.toEqual(undefined)
 
     expect(onSuccess).toHaveBeenCalledTimes(1)
-    expect(onSuccess).toHaveBeenCalledWith(BigInt('19992'), undefined, {
+    expect(onSuccess).toHaveBeenCalledWith({
+      input: { big: BigInt('19992') },
+      output: BigInt('19992'),
+      status: 'success',
+    }, undefined, {
       path: [
         'name',
       ],

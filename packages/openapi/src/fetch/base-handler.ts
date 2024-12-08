@@ -7,7 +7,7 @@ import type { Router as HonoRouter } from 'hono/router'
 import type { EachContractLeafResultItem, EachLeafOptions } from '../utils'
 import { ORPC_HEADER, standardizeHTTPPath } from '@orpc/contract'
 import { createProcedureCaller, isLazy, isProcedure, LAZY_LOADER_SYMBOL, LAZY_ROUTER_PREFIX_SYMBOL, ORPCError } from '@orpc/server'
-import { isPlainObject, mapValues, trim, value } from '@orpc/shared'
+import { executeWithHooks, isPlainObject, mapValues, trim, value } from '@orpc/shared'
 import { OpenAPIDeserializer, OpenAPISerializer, zodCoerce } from '@orpc/transformer'
 import { eachContractProcedureLeaf } from '../utils'
 
@@ -83,10 +83,13 @@ export function createOpenAPIHandler(createHonoRouter: () => Routing): FetchHand
     }
 
     try {
-      return await options.hooks?.(context as any, {
-        next: handler,
-        response: response => response,
-      }) ?? await handler()
+      return await executeWithHooks({
+        context: context as any,
+        hooks: options,
+        execute: handler,
+        input: options.request,
+        meta: undefined,
+      })
     }
     catch (e) {
       const error = toORPCError(e)

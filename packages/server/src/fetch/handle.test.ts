@@ -264,81 +264,6 @@ describe('procedure throw error', () => {
   })
 })
 
-describe('hooks', () => {
-  it('on success', async () => {
-    const onSuccess = vi.fn()
-    const onError = vi.fn()
-    const onFinish = vi.fn()
-
-    await handleFetchRequest({
-      router,
-      handlers: [createORPCHandler(), createOpenAPIServerHandler()],
-      hooks: async (context, hooks) => {
-        try {
-          const response = await hooks.next()
-          onSuccess(response)
-          return response
-        }
-        catch (e) {
-          onError(e)
-          throw e
-        }
-        finally {
-          onFinish()
-        }
-      },
-      prefix: '/orpc',
-      request: new Request('http://localhost/orpc/ping', {
-        method: 'POST',
-      }),
-    })
-
-    expect(onSuccess).toHaveBeenCalledTimes(1)
-    expect(onError).toHaveBeenCalledTimes(0)
-    expect(onFinish).toHaveBeenCalledTimes(1)
-
-    expect(onSuccess.mock.calls[0]?.[0]).toBeInstanceOf(Response)
-    expect(onFinish.mock.calls[0]?.[1]).toBe(undefined)
-  })
-
-  it('on failed', async () => {
-    const onSuccess = vi.fn()
-    const onError = vi.fn()
-    const onFinish = vi.fn()
-
-    await handleFetchRequest({
-      router,
-      handlers: [createORPCHandler(), createOpenAPIServerHandler()],
-      hooks: async (context, hooks) => {
-        try {
-          const response = await hooks.next()
-          onSuccess(response)
-          return response
-        }
-        catch (e) {
-          onError(e)
-          throw e
-        }
-        finally {
-          onFinish()
-        }
-      },
-      prefix: '/orpc',
-      request: new Request('http://localhost/orpc/throw', {
-        method: 'POST',
-      }),
-    })
-
-    expect(onSuccess).toHaveBeenCalledTimes(0)
-    expect(onError).toHaveBeenCalledTimes(1)
-    expect(onFinish).toHaveBeenCalledTimes(1)
-
-    expect(onError.mock.calls[0]?.[0]).toBeInstanceOf(Error)
-    expect(onError.mock.calls[0]?.[0]?.message).toBe('test')
-    expect(onFinish.mock.calls[0]?.[0]).toBe(undefined)
-  })
-})
-
 describe('file upload', () => {
   const router = os.router({
     signal: os.input(z.instanceof(Blob)).func((input) => {
@@ -648,4 +573,67 @@ describe('can control method on POST request', () => {
 
     expect(response2.status).toEqual(200)
   })
+})
+
+it('hooks', async () => {
+  const onSuccess = vi.fn()
+  const onError = vi.fn()
+
+  const router = {
+    ping: os.input(z.object({ value: z.string() })).func(input => input.value),
+  }
+
+  const handlers = [
+    createORPCHandler(),
+    createOpenAPIServerHandler(),
+  ] as const
+
+  const context = { auth: true }
+
+  const request = new Request('http://localhost/ping', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ value: 'hello' }),
+  })
+
+  const response = await handleFetchRequest({
+    router,
+    request,
+    handlers,
+    onSuccess,
+    onError,
+    context,
+  })
+
+  expect(response.status).toEqual(200)
+  expect(onSuccess).toHaveBeenCalledTimes(1)
+  expect(onSuccess).toBeCalledWith({ input: request, output: response, status: 'success' }, context, undefined)
+  expect(onError).toHaveBeenCalledTimes(0)
+
+  onSuccess.mockClear()
+  onError.mockClear()
+
+  const errorRequest = new Request('http://localhost/ping', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ value: 1233 }),
+  })
+
+  const errorResponse = await handleFetchRequest({
+    router,
+    request: errorRequest,
+    handlers,
+    onSuccess,
+    onError,
+    context,
+  })
+
+  expect(errorResponse.status).toEqual(400)
+  expect(onSuccess).toHaveBeenCalledTimes(0)
+  expect(onError).toHaveBeenCalledTimes(1)
+  expect(onError).toBeCalledWith({ input: errorRequest, error: expect.any(Error), status: 'error' }, context, undefined)
 })

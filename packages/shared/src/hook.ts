@@ -1,4 +1,4 @@
-import type { Arrayable, Merge, Promisable } from 'type-fest'
+import type { Arrayable, Promisable } from 'type-fest'
 import { convertToStandardError } from './error'
 
 export type OnStartState<TInput> = { status: 'pending', input: TInput, output: undefined, error: undefined }
@@ -10,7 +10,7 @@ export interface BaseHookMeta<TOutput> {
 }
 
 export interface Hooks<TInput, TOutput, TContext, TMeta extends (Record<string, unknown> & { next?: never }) | undefined> {
-  execute?: Arrayable<(input: TInput, context: TContext, meta: Merge<BaseHookMeta<TOutput>, TMeta>) => Promise<TOutput>>
+  execute?: Arrayable<(input: TInput, context: TContext, meta: (TMeta extends undefined ? unknown : TMeta) & BaseHookMeta<TOutput>) => Promise<TOutput>>
   onStart?: Arrayable<(state: OnStartState<TInput>, context: TContext, meta: TMeta) => Promisable<void>>
   onSuccess?: Arrayable<(state: OnSuccessState<TInput, TOutput>, context: TContext, meta: TMeta) => Promisable<void>>
   onError?: Arrayable<(state: OnErrorState<TInput>, context: TContext, meta: TMeta) => Promisable<void>>
@@ -42,7 +42,7 @@ export async function executeWithHooks<TInput, TOutput, TContext, TMeta extends 
       return await execute(options.input, options.context, {
         ...options.meta,
         next,
-      })
+      } as any)
     }
 
     let state: OnSuccessState<TInput, TOutput> | OnErrorState<TInput> | OnStartState<TInput>

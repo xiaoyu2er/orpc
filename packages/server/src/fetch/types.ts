@@ -1,12 +1,7 @@
 /// <reference lib="dom" />
 
-import type { PartialOnUndefinedDeep, Promisable, Value } from '@orpc/shared'
+import type { Hooks, PartialOnUndefinedDeep, Value } from '@orpc/shared'
 import type { Router } from '../router'
-
-export interface FetchHandlerHooks {
-  next: () => Promise<Response>
-  response: (response: Response) => Response
-}
 
 export type FetchHandlerOptions<
   TRouter extends Router<any>,
@@ -29,14 +24,6 @@ export type FetchHandlerOptions<
    * @example /api
    */
   prefix?: string
-
-  /**
-   * Hooks for executing logics on lifecycle events.
-   */
-  hooks?: (
-    context: TRouter extends Router<infer UContext> ? UContext : never,
-    hooks: FetchHandlerHooks,
-  ) => Promisable<Response>
 } & PartialOnUndefinedDeep<{
   /**
    * The context used to handle the request.
@@ -44,7 +31,7 @@ export type FetchHandlerOptions<
   context: Value<
     TRouter extends Router<infer UContext> ? UContext : never
   >
-}>
+}> & Hooks<Request, Response, TRouter extends Router<infer UContext> ? UContext : never, undefined>
 
 export type FetchHandler = <TRouter extends Router<any>>(
   options: FetchHandlerOptions<TRouter>

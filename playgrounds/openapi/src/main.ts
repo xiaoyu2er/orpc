@@ -21,14 +21,8 @@ const server = createServer(
         context,
         router,
         handlers: [createORPCHandler(), createOpenAPIServerHandler()],
-        async hooks(context, hooks) {
-          try {
-            return hooks.next()
-          }
-          catch (e) {
-            console.error(e)
-            throw e
-          }
+        onError: ({ error }) => {
+          console.error(error)
         },
       })
     }

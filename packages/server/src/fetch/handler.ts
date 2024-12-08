@@ -2,7 +2,7 @@ import type { ANY_LAZY_PROCEDURE, ANY_PROCEDURE } from '../procedure'
 import type { Router } from '../router'
 import type { FetchHandler } from './types'
 import { ORPC_HEADER, ORPC_HEADER_VALUE } from '@orpc/contract'
-import { trim, value } from '@orpc/shared'
+import { executeWithHooks, trim, value } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
 import { ORPCDeserializer, ORPCSerializer } from '@orpc/transformer'
 import { isLazy } from '../lazy'
@@ -49,10 +49,13 @@ export function createORPCHandler(): FetchHandler {
     }
 
     try {
-      return await options.hooks?.(
-        context as any,
-        { next: handler, response: response => response },
-      ) ?? await handler()
+      return await executeWithHooks({
+        hooks: options,
+        context: context as any,
+        execute: handler,
+        input: options.request,
+        meta: undefined,
+      })
     }
     catch (e) {
       const error = e instanceof ORPCError

@@ -1,10 +1,10 @@
-import { convertToStandardError } from '@orpc/server'
-import { convertToArray, type GeneralHook, implementGeneralHook } from '@orpc/shared'
+import type { Hooks } from '@orpc/shared'
+import { convertToArray, executeWithHooks } from '@orpc/shared'
 import { useCallback, useMemo, useState } from 'react'
 
 export type UseActionExecuteFn<TInput, TOutput> = (
   ...options:
-    | [input: TInput, hooks?: GeneralHook<TInput, TOutput, undefined, undefined>]
+    | [input: TInput, hooks?: Hooks<TInput, TOutput, undefined, undefined>]
     | (undefined extends TInput ? [] : never)
 ) => Promise<[TOutput, undefined, 'success'] | [undefined, Error, 'error']>
 
@@ -51,7 +51,7 @@ const idleState = {
 
 export function useAction<TInput, TOutput>(
   action: (input: TInput) => Promise<TOutput>,
-  hooks?: GeneralHook<TInput, TOutput, undefined, undefined>,
+  hooks?: Hooks<TInput, TOutput, undefined, undefined>,
 ): UseActionState<TInput, TOutput> {
   const [state, setState] = useState<Omit<UseActionState<TInput, TOutput>, 'execute' | 'reset'>>(idleState)
 
@@ -59,7 +59,10 @@ export function useAction<TInput, TOutput>(
     setState(idleState)
   }, [])
 
-  const execute = useCallback(async (input: any, executeHooks?: GeneralHook<TInput, TOutput, undefined, undefined>) => {
+  const execute = useCallback<UseActionExecuteFn<TInput, TOutput>>(async (...args) => {
+    const input = args[0] as TInput
+    const executeHooks = args[1]
+
     setState({
       status: 'pending',
       isPending: true,
@@ -68,44 +71,40 @@ export function useAction<TInput, TOutput>(
       data: undefined,
     })
 
-    try {
-      const output = await implementGeneralHook({
-        context: undefined,
-        hooks: {
-          execute: [...convertToArray(hooks?.execute), ...convertToArray(executeHooks?.execute)],
-          onStart: [...convertToArray(hooks?.onStart), ...convertToArray(executeHooks?.onStart)],
-          onSuccess: [...convertToArray(hooks?.onSuccess), ...convertToArray(executeHooks?.onSuccess)],
-          onError: [...convertToArray(hooks?.onError), ...convertToArray(executeHooks?.onError)],
-          onFinish: [...convertToArray(hooks?.onFinish), ...convertToArray(executeHooks?.onFinish)],
-        },
-        input,
-        meta: undefined,
-        execute: () => action(input),
-      })
+    const result = await executeWithHooks({
+      context: undefined,
+      hooks: {
+        execute: [...convertToArray(hooks?.execute), ...convertToArray(executeHooks?.execute)],
+        onStart: [...convertToArray(hooks?.onStart), ...convertToArray(executeHooks?.onStart)],
+        onSuccess: [...convertToArray(hooks?.onSuccess), ...convertToArray(executeHooks?.onSuccess)],
+        onError: [...convertToArray(hooks?.onError), ...convertToArray(executeHooks?.onError)],
+        onFinish: [...convertToArray(hooks?.onFinish), ...convertToArray(executeHooks?.onFinish)],
+      },
+      input,
+      meta: undefined,
+      execute: () => action(input),
+    })
 
+    if (result[2] === 'error') {
+      setState({
+        status: 'error',
+        isPending: false,
+        isError: true,
+        error: result[1],
+        data: undefined,
+      })
+    }
+    else {
       setState({
         status: 'success',
         isPending: false,
         isError: false,
         error: undefined,
-        data: output,
+        data: result[0],
       })
-
-      return [output, undefined, 'success']
     }
-    catch (e) {
-      const error = convertToStandardError(e)
 
-      setState({
-        status: 'error',
-        isPending: false,
-        isError: true,
-        error,
-        data: undefined,
-      })
-
-      return [undefined, error, 'error']
-    }
+    return result
   }, [action, hooks])
 
   const result = useMemo(() => ({

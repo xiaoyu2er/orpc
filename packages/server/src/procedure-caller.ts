@@ -1,10 +1,10 @@
 import type { SchemaInput, SchemaOutput } from '@orpc/contract'
-import type { GeneralHook, PartialOnUndefinedDeep, Value } from '@orpc/shared'
+import type { Hooks, PartialOnUndefinedDeep, Value } from '@orpc/shared'
 import type { Lazy } from './lazy'
 import type { MiddlewareMeta } from './middleware'
 import type { ANY_LAZY_PROCEDURE, ANY_PROCEDURE, Procedure } from './procedure'
 import type { Context } from './types'
-import { implementGeneralHook, trim, value } from '@orpc/shared'
+import { executeWithHooks, trim, value } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
 import { isLazy, loadLazy } from './lazy'
 import { isProcedure } from './procedure'
@@ -28,7 +28,7 @@ export type CreateProcedureCallerOptions<
    * The context used when calling the procedure.
    */
   context: Value<UContext>
-}> & GeneralHook<unknown, SchemaOutput<UOutputSchema, UFuncOutput>, UContext, { path: string[], procedure: ANY_PROCEDURE }>
+}> & Hooks<unknown, SchemaOutput<UOutputSchema, UFuncOutput>, UContext, { path: string[], procedure: ANY_PROCEDURE }>
   : never
 
 export type ProcedureCaller<
@@ -122,7 +122,7 @@ export function createProcedureCaller<
       return validOutput
     }
 
-    return implementGeneralHook({
+    const [output, error, status] = await executeWithHooks({
       hooks: options,
       input,
       context,
@@ -132,6 +132,12 @@ export function createProcedureCaller<
       },
       execute,
     })
+
+    if (status === 'error') {
+      throw error
+    }
+
+    return output
   }
 
   return caller as ProcedureCaller<TProcedure>

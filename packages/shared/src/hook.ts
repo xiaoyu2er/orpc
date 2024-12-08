@@ -1,31 +1,31 @@
 import type { Arrayable, Merge, Promisable } from 'type-fest'
 import { convertToStandardError } from './error'
 
-export interface BaseGeneralHookMeta<TOutput> {
+export interface BaseHookMeta<TOutput> {
   next: () => Promise<TOutput>
 }
 
 export type FinishState<TOutput> =
-  | { status: 'success', output: TOutput, error: undefined }
-  | { status: 'error', output: undefined, error: Error }
+  | [TOutput, undefined, 'success']
+  | [undefined, Error, 'error']
 
-export interface GeneralHook<TInput, TOutput, TContext, TMeta extends Record<string, unknown> & { next?: never } | undefined> {
-  execute?: Arrayable<(input: TInput, context: TContext, meta: Merge<BaseGeneralHookMeta<TOutput>, TMeta>) => Promise<TOutput>>
+export interface Hooks<TInput, TOutput, TContext, TMeta extends Record<string, unknown> & { next?: never } | undefined> {
+  execute?: Arrayable<(input: TInput, context: TContext, meta: Merge<BaseHookMeta<TOutput>, TMeta>) => Promise<TOutput>>
   onStart?: Arrayable<(input: TInput, context: TContext, meta: TMeta) => Promisable<void>>
   onSuccess?: Arrayable<(output: TOutput, context: TContext, meta: TMeta) => Promisable<void>>
   onError?: Arrayable<(error: Error, context: TContext, meta: TMeta) => Promisable<void>>
   onFinish?: Arrayable<(state: FinishState<TOutput>, context: TContext, meta: TMeta) => Promisable<void>>
 }
 
-export async function implementGeneralHook<TInput, TOutput, TContext, TMeta extends Record<string, unknown> & { next?: never } | undefined>(
+export async function executeWithHooks<TInput, TOutput, TContext, TMeta extends Record<string, unknown> & { next?: never } | undefined>(
   options: {
-    hooks?: GeneralHook<TInput, TOutput, TContext, TMeta>
+    hooks?: Hooks<TInput, TOutput, TContext, TMeta>
     input: TInput
     context: TContext
     meta: TMeta
-    execute: BaseGeneralHookMeta<TOutput>['next']
+    execute: BaseHookMeta<TOutput>['next']
   },
-): Promise<TOutput> {
+): Promise<FinishState<TOutput>> {
   let state: FinishState<TOutput> | undefined
 
   const executes = convertToArray(options.hooks?.execute)
@@ -61,17 +61,17 @@ export async function implementGeneralHook<TInput, TOutput, TContext, TMeta exte
       await onSuccesses[i]!(output, options.context, options.meta)
     }
 
-    state = { status: 'success', output, error: undefined }
+    state = [output, undefined, 'success']
   }
   catch (e) {
-    state = { status: 'error', error: convertToStandardError(e), output: undefined }
+    state = [undefined, convertToStandardError(e), 'error']
 
     for (let i = onErrors.length - 1; i >= 0; i--) {
       try {
-        await onErrors[i]!(state.error, options.context, options.meta)
+        await onErrors[i]!(state[1], options.context, options.meta)
       }
       catch (e) {
-        state = { status: 'error', error: convertToStandardError(e), output: undefined }
+        state = [undefined, convertToStandardError(e), 'error']
       }
     }
   }
@@ -81,15 +81,11 @@ export async function implementGeneralHook<TInput, TOutput, TContext, TMeta exte
       await onFinishes[i]!(state, options.context, options.meta)
     }
     catch (e) {
-      state = { status: 'error', output: undefined, error: convertToStandardError(e) }
+      state = [undefined, convertToStandardError(e), 'error']
     }
   }
 
-  if (state.status === 'error') {
-    throw state.error
-  }
-
-  return state.output
+  return state
 }
 
 export function convertToArray<T>(value: undefined | T | readonly T[]): readonly T[] {

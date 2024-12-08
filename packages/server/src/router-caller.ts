@@ -1,4 +1,4 @@
-import type { GeneralHook, Merge, Value } from '@orpc/shared'
+import type { Hooks, Merge, Value } from '@orpc/shared'
 import type { ANY_LAZY_PROCEDURE, ANY_PROCEDURE } from './procedure'
 import type { Router } from './router'
 import { isLazy } from './lazy'
@@ -7,7 +7,7 @@ import { createProcedureCaller, type ProcedureCaller } from './procedure-caller'
 
 export interface CreateRouterCallerOptions<
   TRouter extends Router<any>,
-> extends GeneralHook<
+> extends Hooks<
     unknown,
     unknown,
     TRouter extends Router<infer UContext> ? UContext : never,

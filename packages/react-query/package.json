@@ -43,5 +43,15 @@
     "build": "tsup --clean --sourcemap --entry.index=src/index.ts --format=esm --onSuccess='tsc -b --noCheck'",
     "build:watch": "pnpm run build --watch",
     "type:check": "tsc -b"
+  },
+  "peerDependencies": {
+    "@orpc/client": "workspace:*",
+    "@orpc/contract": "workspace:*",
+    "@orpc/server": "workspace:*",
+    "@tanstack/react-query": ">=5.59.0",
+    "react": ">=18.3.0"
+  },
+  "dependencies": {
+    "@orpc/shared": "workspace:*"
   }
 }

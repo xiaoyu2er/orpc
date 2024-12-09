@@ -14,7 +14,7 @@ export type RouterUtils<T extends Router<any> | ContractRouter> = {
     : T[K] extends Router<any> | ContractRouter
       ? RouterUtils<T[K]>
       : never
-}
+} & GeneralUtils<unknown>
 
 export interface CreateRouterUtilsOptions<_T extends Router<any> | ContractRouter> {
   prefix: string

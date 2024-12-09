@@ -1,11 +1,12 @@
 import type { QueryKey } from '@tanstack/react-query'
-import { buildKey, type BuildKeyOptions } from './key'
+import type { BuildKeyOptions, KeyType } from './key'
+import { buildKey } from './key'
 
 /**
  * Utils at any level (procedure or router)
  */
 export interface GeneralUtils<TInput> {
-  key: (options?: BuildKeyOptions<any, TInput>) => QueryKey
+  key: <UType extends KeyType = undefined>(options?: BuildKeyOptions<UType, TInput>) => QueryKey
 }
 
 export function createGeneralUtils<TInput>(

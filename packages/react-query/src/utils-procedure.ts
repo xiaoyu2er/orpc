@@ -8,9 +8,10 @@ import { buildKey } from './key'
  */
 export interface ProcedureUtils<TInput, TOutput> {
   queryOptions: <U = TOutput>(
-    options:
+    ...options: [
       & SetOptional<UseQueryOptions<TOutput, DefaultError, U, QueryKey>, 'queryFn' | 'queryKey'>
-      & PartialOnUndefinedDeep<{ input: TInput }>
+      & PartialOnUndefinedDeep<{ input: TInput }>,
+    ] | (undefined extends TInput ? [] : never)
   ) => UseQueryOptions<TOutput, DefaultError, U, QueryKey>
 
   infiniteOptions: <U = InfiniteData<TOutput, InferCursor<TInput>>>(
@@ -36,18 +37,18 @@ export function createProcedureUtils<TInput, TOutput>(
   const path: string[] = [] // TODO
 
   return {
-    queryOptions(options) {
-      const input = options.input as TInput
+    queryOptions(...[options]) {
+      const input = options?.input
 
       return {
         queryKey: buildKey(prefix, path, { type: 'query', input }),
-        queryFn: () => client(input),
+        queryFn: () => client(input as TInput),
         ...options,
       }
     },
 
     infiniteOptions(options) {
-      const input = options.input as Omit<TInput, 'cursor'>
+      const input = options.input
 
       return {
         queryKey: buildKey(prefix, path, { type: 'infinite', input }),

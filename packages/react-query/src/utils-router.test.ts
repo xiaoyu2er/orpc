@@ -53,4 +53,15 @@ describe('router utils', () => {
     expect(typeof utils.ping.peng.key).toEqual('function')
     expect(typeof utils.ping.peng.queryOptions).toEqual('function')
   })
+
+  it('can custom prefix and base path', () => {
+    const client = vi.fn() as any
+
+    const utils = createRouterUtils(client, 'prefix', ['base']) as any
+
+    expect(generalUtilsSpy).toHaveBeenCalledTimes(1)
+    expect(generalUtilsSpy).toHaveBeenCalledWith('prefix', ['base'])
+    expect(procedureUtilsSpy).toHaveBeenCalledTimes(1)
+    expect(procedureUtilsSpy).toHaveBeenCalledWith(client, 'prefix', ['base'])
+  })
 })

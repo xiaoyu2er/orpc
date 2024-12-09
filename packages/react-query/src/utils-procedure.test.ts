@@ -3,6 +3,10 @@ import { createProcedureUtils } from './utils-procedure'
 
 const buildKeySpy = vi.spyOn(keyModule, 'buildKey')
 
+beforeEach(() => {
+  buildKeySpy.mockClear()
+})
+
 describe('queryOptions', () => {
   const client = vi.fn((input: number | undefined) => Promise.resolve(input?.toString()))
   const utils = createProcedureUtils(client, '__ORPC__', ['ping'])

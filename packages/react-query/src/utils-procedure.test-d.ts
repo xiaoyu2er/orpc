@@ -171,3 +171,40 @@ describe('infiniteOptions', () => {
     }
   })
 })
+
+describe('mutationOptions', () => {
+  const client = vi.fn((input: number) => Promise.resolve(input.toString()))
+  const utils = createProcedureUtils(client, '__ORPC__', [])
+
+  it('infer correct input type', () => {
+    const option = utils.mutationOptions({
+      onSuccess: (data, input) => {
+        expectTypeOf(input).toEqualTypeOf<number>()
+      },
+    })
+
+    option.mutationFn!(1)
+
+    // @ts-expect-error invalid input
+    option.mutationFn!('1')
+    // @ts-expect-error invalid input
+    option.mutationFn!()
+  })
+
+  it('infer correct output type', () => {
+    const option = utils.mutationOptions({
+      onSuccess: (data, input) => {
+        expectTypeOf(input).toEqualTypeOf<number>()
+        expectTypeOf(data).toEqualTypeOf<string>()
+      },
+    })
+
+    expectTypeOf(option.mutationFn!(1)).toEqualTypeOf <Promise<string>>()
+  })
+
+  it('can be called without argument', () => {
+    const option = utils.mutationOptions()
+
+    expectTypeOf(option.mutationFn!(1)).toEqualTypeOf <Promise<string>>()
+  })
+})

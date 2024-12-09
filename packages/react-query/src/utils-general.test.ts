@@ -3,6 +3,10 @@ import { createGeneralUtils } from './utils-general'
 
 const buildKeySpy = vi.spyOn(keyModule, 'buildKey')
 
+beforeEach(() => {
+  buildKeySpy.mockClear()
+})
+
 describe('key', () => {
   it('works', () => {
     const utils = createGeneralUtils('__ORPC__', ['path'])

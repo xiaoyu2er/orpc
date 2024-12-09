@@ -26,7 +26,7 @@ export interface ProcedureUtils<TInput, TOutput> {
   ) => UseInfiniteQueryOptions<TOutput, DefaultError, U, TOutput, QueryKey, InferCursor<TInput>>
 
   mutationOptions: (
-    options: SetOptional<UseMutationOptions<TOutput, DefaultError, TInput>, 'mutationFn' | 'mutationKey'>
+    options?: SetOptional<UseMutationOptions<TOutput, DefaultError, TInput>, 'mutationFn' | 'mutationKey'>
   ) => UseMutationOptions<TOutput, DefaultError, TInput>
 }
 

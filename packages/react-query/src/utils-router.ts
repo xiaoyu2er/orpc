@@ -40,10 +40,7 @@ export function createRouterUtils<T extends Router<any> | ContractRouter>(
         return value
       }
 
-      const nextUtils = createRouterUtils({
-        prefix,
-        client: client[prop],
-      })
+      const nextUtils = createRouterUtils(client[prop], prefix, [...path, prop])
 
       if (typeof value !== 'function') {
         return nextUtils

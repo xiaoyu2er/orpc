@@ -31,11 +31,10 @@ export interface ProcedureUtils<TInput, TOutput> {
 }
 
 export function createProcedureUtils<TInput, TOutput>(
-  prefix: string,
   client: (input: TInput) => Promise<TOutput>,
+  prefix: string,
+  path: string[],
 ): ProcedureUtils<TInput, TOutput> {
-  const path: string[] = [] // TODO
-
   return {
     queryOptions(...[options]) {
       const input = options?.input

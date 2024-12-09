@@ -4,10 +4,10 @@ import { createProcedureUtils } from './utils-procedure'
 
 describe('queryOptions', () => {
   const client = vi.fn((input: number | undefined) => Promise.resolve(input?.toString()))
-  const utils = createProcedureUtils('__ORPC__', client)
+  const utils = createProcedureUtils(client, '__ORPC__', [])
 
   const client2 = vi.fn((input: number) => Promise.resolve(input.toString()))
-  const utils2 = createProcedureUtils('__ORPC__', client2)
+  const utils2 = createProcedureUtils(client2, '__ORPC__', [])
 
   it('infer correct input type', () => {
     utils.queryOptions({ input: 1 })
@@ -51,7 +51,7 @@ describe('infiniteOptions', () => {
   const getNextPageParam = vi.fn()
 
   it('cannot use on procedure without input object-able', () => {
-    const utils = createProcedureUtils('__ORPC__', {} as (input: number) => Promise<string>)
+    const utils = createProcedureUtils({} as (input: number) => Promise<string>, '__ORPC__', [])
 
     // @ts-expect-error missing initialPageParam
     utils.infiniteOptions({
@@ -74,7 +74,7 @@ describe('infiniteOptions', () => {
   })
 
   it('infer correct input type', () => {
-    const utils = createProcedureUtils('__ORPC__', {} as (input: { limit?: number, cursor: number }) => Promise<string>)
+    const utils = createProcedureUtils({} as (input: { limit?: number, cursor: number }) => Promise<string>, '__ORPC__', [])
 
     utils.infiniteOptions({
       input: {
@@ -105,7 +105,7 @@ describe('infiniteOptions', () => {
   })
 
   it('infer correct initialPageParam type', () => {
-    const utils = createProcedureUtils('__ORPC__', {} as (input: { limit?: number, cursor: number }) => Promise<string>)
+    const utils = createProcedureUtils({} as (input: { limit?: number, cursor: number }) => Promise<string>, '__ORPC__', [])
 
     utils.infiniteOptions({
       input: {},
@@ -128,7 +128,7 @@ describe('infiniteOptions', () => {
   })
 
   it('initialPageParam can be optional', () => {
-    const utils = createProcedureUtils('__ORPC__', {} as (input: { limit?: number, cursor?: number }) => Promise<string>)
+    const utils = createProcedureUtils({} as (input: { limit?: number, cursor?: number }) => Promise<string>, '__ORPC__', [])
 
     utils.infiniteOptions({
       input: {},
@@ -137,7 +137,7 @@ describe('infiniteOptions', () => {
   })
 
   it('infer correct output type', () => {
-    const utils = createProcedureUtils('__ORPC__', {} as (input: { limit?: number, cursor: number }) => Promise<string>)
+    const utils = createProcedureUtils({} as (input: { limit?: number, cursor: number }) => Promise<string>, '__ORPC__', [])
     const query = useInfiniteQuery(utils.infiniteOptions({
       input: {
         limit: 1,
@@ -152,7 +152,7 @@ describe('infiniteOptions', () => {
   })
 
   it('work with select options', () => {
-    const utils = createProcedureUtils('__ORPC__', {} as (input: { limit?: number, cursor: number }) => Promise<string>)
+    const utils = createProcedureUtils({} as (input: { limit?: number, cursor: number }) => Promise<string>, '__ORPC__', [])
     const query = useInfiniteQuery(utils.infiniteOptions({
       input: {
         limit: 1,

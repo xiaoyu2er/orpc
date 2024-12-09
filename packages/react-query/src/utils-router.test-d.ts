@@ -25,9 +25,9 @@ describe('with contract router', () => {
     const utils = createRouterUtils<typeof contractRouter>({} as any)
 
     const generalUtils = createGeneralUtils('__ORPC__', [])
-    const pingUtils = createProcedureUtils('__ORPC__', ping)
+    const pingUtils = createProcedureUtils(ping, '__ORPC__', [])
     const pingGeneralUtils = createGeneralUtils<{ name: string }>('__ORPC__', ['ping'])
-    const pongUtils = createProcedureUtils('__ORPC__', pong)
+    const pongUtils = createProcedureUtils(pong, '__ORPC__', [])
     const pongGeneralUtils = createGeneralUtils<number>('__ORPC__', ['ping'])
 
     expectTypeOf(utils).toMatchTypeOf<typeof generalUtils>()
@@ -43,9 +43,9 @@ describe('with  router', () => {
     const utils = createRouterUtils<typeof router>({} as any)
 
     const generalUtils = createGeneralUtils('__ORPC__', [])
-    const pingUtils = createProcedureUtils('__ORPC__', ping)
+    const pingUtils = createProcedureUtils(ping, '__ORPC__', [])
     const pingGeneralUtils = createGeneralUtils<{ name: string }>('__ORPC__', ['ping'])
-    const pongUtils = createProcedureUtils('__ORPC__', pong)
+    const pongUtils = createProcedureUtils(pong, '__ORPC__', [])
     const pongGeneralUtils = createGeneralUtils<number>('__ORPC__', ['ping'])
 
     expectTypeOf(utils).toMatchTypeOf<typeof generalUtils>()

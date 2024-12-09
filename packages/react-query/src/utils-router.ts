@@ -16,16 +16,18 @@ export type RouterUtils<T extends Router<any> | ContractRouter> = {
       : never
 } & GeneralUtils<unknown>
 
-export interface CreateRouterUtilsOptions<_T extends Router<any> | ContractRouter> {
-  prefix: string
-  client: any // TODO
-}
-
+/**
+ * @param client - The client create form `@orpc/client`
+ * @param prefix - Prefix query, mutation key help you prevent conflict with other query or mutation
+ * @param path - The path of the procedure
+ */
 export function createRouterUtils<T extends Router<any> | ContractRouter>(
-  options: CreateRouterUtilsOptions<T>,
+  client: any, // TODO typed
+  prefix: string = '__oRPC__',
+  path: string[] = [],
 ): RouterUtils<T> {
-  const generalUtils = createGeneralUtils(options.prefix, []) // TODO
-  const procedureUtils = createProcedureUtils(options.prefix, options.client)
+  const generalUtils = createGeneralUtils(prefix, path)
+  const procedureUtils = createProcedureUtils(client, prefix, path)
 
   const recursive = new Proxy({
     ...generalUtils,
@@ -39,8 +41,8 @@ export function createRouterUtils<T extends Router<any> | ContractRouter>(
       }
 
       const nextUtils = createRouterUtils({
-        prefix: options.prefix,
-        client: options.client[prop],
+        prefix,
+        client: client[prop],
       })
 
       if (typeof value !== 'function') {

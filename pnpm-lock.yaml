@@ -260,6 +260,8 @@ importers:
         specifier: ^3.23.8
         version: 3.23.8
 
+  packages/react-query: {}
+
   packages/server:
     dependencies:
       '@orpc/contract':

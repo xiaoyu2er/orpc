@@ -10,12 +10,11 @@ export interface GeneralUtils<TInput> {
 }
 
 export function createGeneralUtils<TInput>(
-  prefix: string,
   path: string[],
 ): GeneralUtils<TInput> {
   return {
     key(options) {
-      return buildKey(prefix, path, options)
+      return buildKey(path, options)
     },
   }
 }

@@ -9,9 +9,9 @@ beforeEach(() => {
 
 describe('key', () => {
   it('works', () => {
-    const utils = createGeneralUtils('__ORPC__', ['path'])
+    const utils = createGeneralUtils(['path'])
     expect(utils.key({ input: 'input', type: 'infinite' })).toEqual(['__ORPC__', ['path'], { input: 'input', type: 'infinite' }])
     expect(buildKeySpy).toHaveBeenCalledTimes(1)
-    expect(buildKeySpy).toHaveBeenCalledWith('__ORPC__', ['path'], { input: 'input', type: 'infinite' })
+    expect(buildKeySpy).toHaveBeenCalledWith(['path'], { input: 'input', type: 'infinite' })
   })
 })

@@ -32,7 +32,6 @@ export interface ProcedureUtils<TInput, TOutput> {
 
 export function createProcedureUtils<TInput, TOutput>(
   client: (input: TInput) => Promise<TOutput>,
-  prefix: string,
   path: string[],
 ): ProcedureUtils<TInput, TOutput> {
   return {
@@ -40,7 +39,7 @@ export function createProcedureUtils<TInput, TOutput>(
       const input = options?.input
 
       return {
-        queryKey: buildKey(prefix, path, { type: 'query', input }),
+        queryKey: buildKey(path, { type: 'query', input }),
         queryFn: () => client(input as TInput),
         ...options,
       }
@@ -50,7 +49,7 @@ export function createProcedureUtils<TInput, TOutput>(
       const input = options.input
 
       return {
-        queryKey: buildKey(prefix, path, { type: 'infinite', input }),
+        queryKey: buildKey(path, { type: 'infinite', input }),
         queryFn: ({ pageParam }) => client({ ...(input as any), cursor: pageParam }),
         ...(options as any),
       }
@@ -58,7 +57,7 @@ export function createProcedureUtils<TInput, TOutput>(
 
     mutationOptions(options) {
       return {
-        mutationKey: buildKey(prefix, path, { type: 'mutation' }),
+        mutationKey: buildKey(path, { type: 'mutation' }),
         mutationFn: input => client(input),
         ...options,
       }

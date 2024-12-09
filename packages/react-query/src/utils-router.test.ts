@@ -19,9 +19,9 @@ describe('router utils', () => {
     const utils = createRouterUtils(client) as any
 
     expect(generalUtilsSpy).toHaveBeenCalledTimes(1)
-    expect(generalUtilsSpy).toHaveBeenCalledWith('__oRPC__', [])
+    expect(generalUtilsSpy).toHaveBeenCalledWith([])
     expect(procedureUtilsSpy).toHaveBeenCalledTimes(1)
-    expect(procedureUtilsSpy).toHaveBeenCalledWith(client, '__oRPC__', [])
+    expect(procedureUtilsSpy).toHaveBeenCalledWith(client, [])
 
     expect(typeof utils.key).toEqual('function')
     expect(typeof utils.queryOptions).toEqual('function')
@@ -31,9 +31,9 @@ describe('router utils', () => {
     void utils.ping
 
     expect(generalUtilsSpy).toHaveBeenCalledTimes(1)
-    expect(generalUtilsSpy).toHaveBeenCalledWith('__oRPC__', ['ping'])
+    expect(generalUtilsSpy).toHaveBeenCalledWith(['ping'])
     expect(procedureUtilsSpy).toHaveBeenCalledTimes(1)
-    expect(procedureUtilsSpy).toHaveBeenCalledWith(client.ping, '__oRPC__', ['ping'])
+    expect(procedureUtilsSpy).toHaveBeenCalledWith(client.ping, ['ping'])
 
     expect(typeof utils.ping.key).toEqual('function')
     expect(typeof utils.ping.queryOptions).toEqual('function')
@@ -43,25 +43,25 @@ describe('router utils', () => {
     void utils.ping.peng
 
     expect(generalUtilsSpy).toHaveBeenCalledTimes(2)
-    expect(generalUtilsSpy).toHaveBeenNthCalledWith(1, '__oRPC__', ['ping'])
-    expect(generalUtilsSpy).toHaveBeenNthCalledWith(2, '__oRPC__', ['ping', 'peng'])
+    expect(generalUtilsSpy).toHaveBeenNthCalledWith(1, ['ping'])
+    expect(generalUtilsSpy).toHaveBeenNthCalledWith(2, ['ping', 'peng'])
 
     expect(procedureUtilsSpy).toHaveBeenCalledTimes(2)
-    expect(procedureUtilsSpy).toHaveBeenNthCalledWith(1, client.ping, '__oRPC__', ['ping'])
-    expect(procedureUtilsSpy).toHaveBeenNthCalledWith(2, client.ping.peng, '__oRPC__', ['ping', 'peng'])
+    expect(procedureUtilsSpy).toHaveBeenNthCalledWith(1, client.ping, ['ping'])
+    expect(procedureUtilsSpy).toHaveBeenNthCalledWith(2, client.ping.peng, ['ping', 'peng'])
 
     expect(typeof utils.ping.peng.key).toEqual('function')
     expect(typeof utils.ping.peng.queryOptions).toEqual('function')
   })
 
-  it('can custom prefix and base path', () => {
+  it('can custom  base path', () => {
     const client = vi.fn() as any
 
-    const utils = createRouterUtils(client, 'prefix', ['base']) as any
+    const utils = createRouterUtils(client, ['base']) as any
 
     expect(generalUtilsSpy).toHaveBeenCalledTimes(1)
-    expect(generalUtilsSpy).toHaveBeenCalledWith('prefix', ['base'])
+    expect(generalUtilsSpy).toHaveBeenCalledWith(['base'])
     expect(procedureUtilsSpy).toHaveBeenCalledTimes(1)
-    expect(procedureUtilsSpy).toHaveBeenCalledWith(client, 'prefix', ['base'])
+    expect(procedureUtilsSpy).toHaveBeenCalledWith(client, ['base'])
   })
 })

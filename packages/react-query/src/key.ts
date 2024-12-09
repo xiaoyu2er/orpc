@@ -9,7 +9,6 @@ export interface BuildKeyOptions<TType extends KeyType, TInput> {
 }
 
 export function buildKey<TType extends KeyType, TInput>(
-  prefix: string,
   path: string[],
   options?: BuildKeyOptions<TType, TInput>,
 ): QueryKey {
@@ -18,7 +17,7 @@ export function buildKey<TType extends KeyType, TInput>(
   const withType = options?.type !== undefined ? { type: options?.type } : {}
 
   return [
-    prefix,
+    '__ORPC__',
     path,
     {
       ...withInput,

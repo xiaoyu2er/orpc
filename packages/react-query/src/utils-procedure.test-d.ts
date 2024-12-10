@@ -134,6 +134,29 @@ describe('infiniteOptions', () => {
       input: {},
       getNextPageParam,
     })
+
+    const utils2 = createProcedureUtils({} as (input: { limit?: number, cursor: number }) => Promise<string>, [])
+
+    // @ts-expect-error initialPageParam is required
+    utils2.infiniteOptions({
+      input: {},
+      getNextPageParam,
+    })
+  })
+
+  it('input can be optional', () => {
+    const utils = createProcedureUtils({} as (input: { limit?: number, cursor?: number } | undefined) => Promise<string>, [])
+
+    utils.infiniteOptions({
+      getNextPageParam,
+    })
+
+    const utils2 = createProcedureUtils({} as (input: { limit?: number, cursor?: number }) => Promise<string>, [])
+
+    // @ts-expect-error input is required
+    utils2.infiniteOptions({
+      getNextPageParam,
+    })
   })
 
   it('infer correct output type', () => {

@@ -13,7 +13,7 @@ export type QueryOptions<TInput, TOutput, TSelectData> = (undefined extends TInp
   SetOptional<UndefinedInitialDataOptions<TOutput, DefaultError, TSelectData, QueryKey>, 'queryKey'>
 )
 
-export type InfiniteOptions<TInput, TOutput, TSelectData> = { input: Omit<TInput, 'cursor'> } & (
+export type InfiniteOptions<TInput, TOutput, TSelectData> = (undefined extends TInput ? { input?: Omit<TInput, 'cursor'> } : { input: Omit<TInput, 'cursor'> }) & (
   SetOptional<
     UndefinedInitialDataInfiniteOptions<TOutput, DefaultError, TSelectData, QueryKey, InferCursor<TInput>>,
     'queryKey' | (undefined extends InferCursor<TInput> ? 'initialPageParam' : never)

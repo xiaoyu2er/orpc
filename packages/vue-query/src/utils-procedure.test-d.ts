@@ -228,9 +228,7 @@ describe('mutationOptions', () => {
 
   it('infer correct input type', () => {
     const option = utils.mutationOptions({
-      // @ts-expect-error TODO
       onSuccess: (data, input) => {
-        // @ts-expect-error TODO
         expectTypeOf(input).toEqualTypeOf<number>()
       },
     })
@@ -245,11 +243,8 @@ describe('mutationOptions', () => {
 
   it('infer correct output type', () => {
     const option = utils.mutationOptions({
-      // @ts-expect-error TODO
       onSuccess: (data, input) => {
-        // @ts-expect-error TODO
         expectTypeOf(input).toEqualTypeOf<number>()
-        // @ts-expect-error TODO
         expectTypeOf(data).toEqualTypeOf<string>()
       },
     })

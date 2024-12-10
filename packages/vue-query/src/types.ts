@@ -1,13 +1,15 @@
-import type { SetOptional } from '@orpc/shared'
+import type { AnyFunction, SetOptional } from '@orpc/shared'
 import type { DefaultError, MutationObserverOptions, QueryKey, QueryObserverOptions, UseInfiniteQueryOptions } from '@tanstack/vue-query'
 import type { MaybeRef, MaybeRefOrGetter } from 'vue'
 
 export type MaybeDeepRef<T> = MaybeRef<
-  T extends object
-    ? {
-        [K in keyof T]: MaybeDeepRef<T[K]>
-      }
-    : T
+  T extends AnyFunction
+    ? T
+    : T extends object
+      ? {
+          [K in keyof T]: MaybeDeepRef<T[K]>
+        }
+      : T
 >
 
 export type NonUndefinedGuard<T> = T extends undefined ? never : T

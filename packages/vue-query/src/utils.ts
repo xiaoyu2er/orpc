@@ -1,7 +1,7 @@
-import type { MaybeRefDeep } from './types'
+import type { MaybeDeepRef } from './types'
 import { isRef } from 'vue'
 
-export function deepUnref<T>(value: MaybeRefDeep<T>): T {
+export function deepUnref<T>(value: MaybeDeepRef<T>): T {
   if (isRef(value)) {
     return deepUnref(value.value)
   }

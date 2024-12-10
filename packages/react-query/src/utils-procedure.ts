@@ -44,7 +44,7 @@ export function createProcedureUtils<TInput, TOutput>(
 
       return {
         queryKey: buildKey(path, { type: 'infinite', input }),
-        queryFn: ({ pageParam }) => client({ ...input, cursor: pageParam }),
+        queryFn: ({ pageParam }: { pageParam: unknown }) => client({ ...input, cursor: pageParam }),
         ...(options as any),
       }
     },

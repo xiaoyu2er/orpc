@@ -1,5 +1,5 @@
-import type { InfiniteData } from '@tanstack/react-query'
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
+import type { InfiniteData } from '@tanstack/vue-query'
+import { useInfiniteQuery, useQuery } from '@tanstack/vue-query'
 import { createProcedureUtils } from './utils-procedure'
 
 describe('queryOptions', () => {
@@ -26,27 +26,20 @@ describe('queryOptions', () => {
   it('infer correct output type', () => {
     const query = useQuery(utils2.queryOptions({ input: 1 }))
 
-    if (query.status === 'success') {
-      expectTypeOf(query.data).toEqualTypeOf<string>()
-    }
+    expectTypeOf(query.data.value).toEqualTypeOf<string | undefined>()
   })
 
   it('work with select options', () => {
     const query = useQuery(utils2.queryOptions({
       input: 1,
-      queryFn: () => 1244,
-      // @ts-expect-error TODO
       select(data) {
-        // @ts-expect-error TODO
         expectTypeOf(data).toEqualTypeOf<string>()
 
         return 'new' as const
       },
     }))
 
-    if (query.status === 'success') {
-      expectTypeOf(query.data).toEqualTypeOf<'new'>()
-    }
+    expectTypeOf(query.data.value).toEqualTypeOf<'new' | undefined>()
   })
 })
 
@@ -172,9 +165,7 @@ describe('infiniteOptions', () => {
       initialPageParam: 1,
     }))
 
-    if (query.status === 'success') {
-      expectTypeOf(query.data).toEqualTypeOf<InfiniteData<string, unknown>>()
-    }
+    expectTypeOf(query.data.value).toEqualTypeOf<InfiniteData<string, unknown> | undefined>()
   })
 
   it('work with select options', () => {
@@ -192,9 +183,7 @@ describe('infiniteOptions', () => {
       },
     }))
 
-    if (query.status === 'success') {
-      expectTypeOf(query.data).toEqualTypeOf<'new'>()
-    }
+    expectTypeOf(query.data.value).toEqualTypeOf<'new' | undefined>()
   })
 })
 

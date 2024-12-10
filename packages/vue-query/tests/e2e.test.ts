@@ -7,7 +7,6 @@ beforeEach(() => {
 
 describe('useQuery', () => {
   it('works - onSuccess', async () => {
-    // @ts-expect-error -- TODO
     const query = useQuery(orpc.ping.queryOptions(), queryClient)
 
     expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(1)

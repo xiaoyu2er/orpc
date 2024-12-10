@@ -1,5 +1,6 @@
 import type { InfiniteData, QueryKey } from '@tanstack/vue-query'
 import { useInfiniteQuery, useQuery } from '@tanstack/vue-query'
+import { ref } from 'vue'
 import { createProcedureUtils } from './utils-procedure'
 
 describe('queryOptions', () => {
@@ -11,10 +12,14 @@ describe('queryOptions', () => {
 
   it('infer correct input type', () => {
     utils.queryOptions({ input: 1 })
+    utils.queryOptions({ input: ref(1) })
     utils.queryOptions({ input: undefined })
+    utils.queryOptions({ input: ref(undefined) })
 
     // @ts-expect-error invalid input
     utils.queryOptions({ input: '1' })
+    // @ts-expect-error invalid input
+    utils.queryOptions({ input: ref('1') })
   })
 
   it('can be called without argument', () => {
@@ -88,7 +93,21 @@ describe('infiniteOptions', () => {
       },
       getNextPageParam,
       initialPageParam: 1,
+    })
 
+    utils.infiniteOptions({
+      input: {
+        limit: ref(1),
+      },
+      getNextPageParam,
+      initialPageParam: 1,
+    })
+    utils.infiniteOptions({
+      input: {
+        limit: undefined,
+      },
+      getNextPageParam,
+      initialPageParam: 1,
     })
 
     utils.infiniteOptions({
@@ -115,8 +134,21 @@ describe('infiniteOptions', () => {
     utils.infiniteOptions({
       input: {},
       getNextPageParam,
+      initialPageParam: ref(1),
+    })
+
+    utils.infiniteOptions({
+      input: {},
+      getNextPageParam,
       // @ts-expect-error initialPageParam must be number
       initialPageParam: '234',
+    })
+
+    utils.infiniteOptions({
+      input: {},
+      getNextPageParam,
+      // @ts-expect-error initialPageParam must be number
+      initialPageParam: ref('234'),
     })
 
     // @ts-expect-error initialPageParam is required
@@ -175,7 +207,7 @@ describe('infiniteOptions', () => {
     const utils = createProcedureUtils({} as (input: { limit?: number, cursor: number }) => Promise<string>, [])
     const query = useInfiniteQuery(utils.infiniteOptions({
       input: {
-        limit: 1,
+        limit: ref(1),
       },
       getNextPageParam,
       initialPageParam: 1,

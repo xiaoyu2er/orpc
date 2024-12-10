@@ -1,4 +1,5 @@
 import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/vue-query'
+import { ref } from 'vue'
 import { orpc, queryClient } from './helpers'
 
 beforeEach(() => {
@@ -16,6 +17,20 @@ describe('useQuery', () => {
     await vi.waitFor(() => expect(query.data.value).toEqual('pong'))
 
     expect(queryClient.getQueryData(orpc.ping.key({ type: 'query' }))).toEqual('pong')
+  })
+
+  it('works - with ref', async () => {
+    const id = ref('id-1')
+
+    const query = useQuery(orpc.user.find.queryOptions({
+      input: ref({ id }),
+    }), queryClient)
+
+    await vi.waitFor(() => expect(query.data.value).toEqual({ id: 'id-1', name: 'name-id-1' }))
+
+    id.value = 'id-2'
+
+    await vi.waitFor(() => expect(query.data.value).toEqual({ id: 'id-2', name: 'name-id-2' }))
   })
 
   it('works - onError', async () => {
@@ -40,6 +55,27 @@ describe('useInfiniteQuery', () => {
     query.fetchNextPage()
 
     await vi.waitFor(() => expect(query.data.value?.pages.length).toEqual(2))
+  })
+
+  it('works - with ref', async () => {
+    const keyword = ref('keyword-1')
+
+    const query = useInfiniteQuery(orpc.user.list.infiniteOptions({
+      input: { keyword },
+      getNextPageParam: lastPage => lastPage.nextCursor,
+    }), queryClient)
+
+    await vi.waitFor(() => expect(query.data.value?.pages.length).toEqual(1))
+    expect(query.data.value?.pages[0]!.users[0]?.name).toEqual('number-keyword-1')
+
+    query.fetchNextPage()
+
+    await vi.waitFor(() => expect(query.data.value?.pages.length).toEqual(2))
+    expect(query.data.value?.pages[1]!.users[0]?.name).toEqual('number-keyword-1')
+
+    keyword.value = 'keyword-2'
+
+    await vi.waitFor(() => expect(query.data.value?.pages[0]!.users[0]?.name).toEqual('number-keyword-2'))
   })
 })
 

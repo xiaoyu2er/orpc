@@ -53,13 +53,7 @@ export const userList = orpcServer
           {
             data: {
               id: `id-${input.data.cursor}`,
-              name: `number-${input.data.cursor}`,
-            },
-          },
-          {
-            data: {
-              id: `id-${input.data.cursor + 1}`,
-              name: `number-${input.data.cursor + 1}`,
+              name: `number-${input.data.keyword}`,
             },
           },
         ],

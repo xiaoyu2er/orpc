@@ -1,3 +1,4 @@
+import { ref } from 'vue'
 import { createGeneralUtils } from './utils-general'
 
 describe('key', () => {
@@ -13,10 +14,17 @@ describe('key', () => {
     utils.key({ input: { a: { b: {} } } })
     utils.key({ input: { a: { b: { c: 1 } } } })
 
+    utils.key({ type: ref('infinite'), input: { a: ref({ b: ref({ c: 1 }) }) } })
+
     // @ts-expect-error invalid input
     utils.key({ input: 123 })
     // @ts-expect-error invalid input
     utils.key({ input: { a: { b: { c: '1' } } } })
+
+    // @ts-expect-error invalid input
+    utils.key({ input: ref(123) })
+    // @ts-expect-error invalid type
+    utils.key({ type: ref(123) })
 
     // @ts-expect-error invalid input
     utils.key({ type: 'ddd' })
@@ -26,5 +34,7 @@ describe('key', () => {
     utils.key({ type: 'mutation' })
     // @ts-expect-error input is not allowed when type is mutation
     utils.key({ input: {}, type: 'mutation' })
+    // @ts-expect-error input is not allowed when type is mutation
+    utils.key({ input: ref({}), type: 'mutation' })
   })
 })

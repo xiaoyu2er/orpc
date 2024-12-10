@@ -1,29 +1,21 @@
-import type { PartialOnUndefinedDeep, SetOptional } from '@orpc/shared'
-import type { DefaultError, InfiniteData, QueryKey, UseInfiniteQueryOptions, UseMutationOptions, UseQueryOptions } from '@tanstack/react-query'
-import type { InferCursor } from './types'
+import type { IsEqual, SetOptional } from '@orpc/shared'
+import type { DefaultError, QueryKey, UseMutationOptions } from '@tanstack/react-query'
+import type { InfiniteOptions, QueryOptions } from './types'
 import { buildKey } from './key'
 
 /**
  * Utils at procedure level
  */
 export interface ProcedureUtils<TInput, TOutput> {
-  queryOptions: <U = TOutput>(
-    ...options: [
-      & SetOptional<UseQueryOptions<TOutput, DefaultError, U, QueryKey>, 'queryFn' | 'queryKey'>
-      & PartialOnUndefinedDeep<{ input: TInput }>,
-    ] | (undefined extends TInput ? [] : never)
-  ) => UseQueryOptions<TOutput, DefaultError, U, QueryKey>
+  queryOptions: <U extends QueryOptions<TInput, TOutput, TOutput>>(
+    ...options: [U] | (undefined extends TInput ? [] : never)
+  ) => IsEqual<U, QueryOptions<TInput, TOutput, TOutput>> extends true
+    ? { queryKey: QueryKey, queryFn: () => Promise<TOutput> }
+    : Omit<{ queryKey: QueryKey, queryFn: () => Promise<TOutput> }, keyof U> & U
 
-  infiniteOptions: <U = InfiniteData<TOutput, InferCursor<TInput>>>(
-    options:
-      & SetOptional<
-        PartialOnUndefinedDeep<
-          UseInfiniteQueryOptions<TOutput, DefaultError, U, TOutput, QueryKey, InferCursor<TInput>>
-        >,
-        'queryFn' | 'queryKey'
-      >
-      & PartialOnUndefinedDeep<{ input: Omit<TInput, 'cursor'> }>
-  ) => UseInfiniteQueryOptions<TOutput, DefaultError, U, TOutput, QueryKey, InferCursor<TInput>>
+  infiniteOptions: <U extends InfiniteOptions<TInput, TOutput, any>>(
+    options: U
+  ) => Omit<{ queryKey: QueryKey, queryFn: () => Promise<TOutput>, initialPageParam: undefined }, keyof U> & U
 
   mutationOptions: (
     options?: SetOptional<UseMutationOptions<TOutput, DefaultError, TInput>, 'mutationFn' | 'mutationKey'>
@@ -36,23 +28,27 @@ export function createProcedureUtils<TInput, TOutput>(
 ): ProcedureUtils<TInput, TOutput> {
   return {
     queryOptions(...[options]) {
-      const input = options?.input
+      const input = options?.input as any
 
-      return {
+      const result = {
         queryKey: buildKey(path, { type: 'query', input }),
-        queryFn: () => client(input as TInput),
+        queryFn: () => client(input),
         ...options,
       }
+
+      return result as any
     },
 
     infiniteOptions(options) {
-      const input = options.input
+      const input = options.input as any
 
-      return {
+      const result = {
         queryKey: buildKey(path, { type: 'infinite', input }),
-        queryFn: ({ pageParam }) => client({ ...(input as any), cursor: pageParam }),
+        queryFn: ({ pageParam }: { pageParam: any }) => client({ ...input, cursor: pageParam }),
         ...(options as any),
       }
+
+      return result
     },
 
     mutationOptions(options) {

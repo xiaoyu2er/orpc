@@ -1,20 +1,23 @@
+import type { SetOptional } from '@orpc/shared'
 import type {
   DefaultError,
   QueryKey,
-  UseInfiniteQueryOptions,
+  UndefinedInitialDataInfiniteOptions,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
-  UseQueryOptions,
 } from '@tanstack/react-query'
 
-export interface QueryOptions<TInput, TOutput, TSelectData> extends UseQueryOptions<TOutput, DefaultError, TSelectData, QueryKey> {
-  input: TInput
-}
-
-export interface InfiniteOptions<TInput, TOutput, TSelectData, TCursor> extends UseInfiniteQueryOptions<TOutput, DefaultError, TSelectData, TOutput, QueryKey, TCursor> {
-  input: TInput
-}
-
-export interface MutationOptions<TInput, TOutput> extends UseMutationOptions<TOutput, DefaultError, TInput> {
-}
-
 export type InferCursor<T> = T extends { cursor?: any } ? T['cursor'] : never
+
+export type QueryOptions<TInput, TOutput, TSelectData> = (undefined extends TInput ? { input?: TInput } : { input: TInput }) & (
+  SetOptional<UndefinedInitialDataOptions<TOutput, DefaultError, TSelectData, QueryKey>, 'queryKey'>
+)
+
+export type InfiniteOptions<TInput, TOutput, TSelectData> = { input: Omit<TInput, 'cursor'> } & (
+  SetOptional<
+    UndefinedInitialDataInfiniteOptions<TOutput, DefaultError, TSelectData, QueryKey, InferCursor<TInput>>,
+    'queryKey' | (undefined extends InferCursor<TInput> ? 'initialPageParam' : never)
+  >
+)
+
+export type MutationOptions<TInput, TOutput> = UseMutationOptions<TOutput, DefaultError, TInput>

@@ -1,7 +1,7 @@
 import { createGeneralUtils } from './utils-general'
 
 describe('key', () => {
-  const utils = createGeneralUtils<{ a: { b: { c: number } } }>('__ORPC__', [])
+  const utils = createGeneralUtils<{ a: { b: { c: number } } }>([])
 
   it('infer correct input type & partial input', () => {
     utils.key()

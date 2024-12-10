@@ -142,12 +142,12 @@ describe('infiniteOptions', () => {
       input: {
         limit: 1,
       },
-      getNextPageParam,
+      getNextPageParam: () => 1,
       initialPageParam: 1,
     }))
 
     if (query.status === 'success') {
-      expectTypeOf(query.data).toEqualTypeOf<InfiniteData<string, number>>()
+      expectTypeOf(query.data).toEqualTypeOf<InfiniteData<string, unknown>>()
     }
   })
 

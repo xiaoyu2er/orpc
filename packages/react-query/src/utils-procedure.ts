@@ -1,15 +1,15 @@
-import type { IsEqual, SetOptional } from '@orpc/shared'
-import type { DefaultError, QueryKey, UseMutationOptions } from '@tanstack/react-query'
-import type { InfiniteOptions, QueryOptions } from './types'
+import type { IsEqual } from '@orpc/shared'
+import type { QueryKey } from '@tanstack/react-query'
+import type { InfiniteOptions, MutationOptions, QueryOptions } from './types'
 import { buildKey } from './key'
 
 /**
  * Utils at procedure level
  */
 export interface ProcedureUtils<TInput, TOutput> {
-  queryOptions: <U extends QueryOptions<TInput, TOutput, TOutput>>(
+  queryOptions: <U extends QueryOptions<TInput, TOutput, any>>(
     ...options: [U] | (undefined extends TInput ? [] : never)
-  ) => IsEqual<U, QueryOptions<TInput, TOutput, TOutput>> extends true
+  ) => IsEqual<U, QueryOptions<TInput, TOutput, any>> extends true
     ? { queryKey: QueryKey, queryFn: () => Promise<TOutput> }
     : Omit<{ queryKey: QueryKey, queryFn: () => Promise<TOutput> }, keyof U> & U
 
@@ -17,9 +17,11 @@ export interface ProcedureUtils<TInput, TOutput> {
     options: U
   ) => Omit<{ queryKey: QueryKey, queryFn: () => Promise<TOutput>, initialPageParam: undefined }, keyof U> & U
 
-  mutationOptions: (
-    options?: SetOptional<UseMutationOptions<TOutput, DefaultError, TInput>, 'mutationFn' | 'mutationKey'>
-  ) => UseMutationOptions<TOutput, DefaultError, TInput>
+  mutationOptions: <U extends MutationOptions<TInput, TOutput>>(
+    options?: U
+  ) => IsEqual<U, MutationOptions<TInput, TOutput>> extends true
+    ? { mutationKey: QueryKey, mutationFn: (input: TInput) => Promise<TOutput> }
+    : Omit<{ mutationKey: QueryKey, mutationFn: (input: TInput) => Promise<TOutput> }, keyof U> & U
 }
 
 export function createProcedureUtils<TInput, TOutput>(
@@ -30,32 +32,28 @@ export function createProcedureUtils<TInput, TOutput>(
     queryOptions(...[options]) {
       const input = options?.input as any
 
-      const result = {
+      return {
         queryKey: buildKey(path, { type: 'query', input }),
         queryFn: () => client(input),
-        ...options,
+        ...(options as any),
       }
-
-      return result as any
     },
 
     infiniteOptions(options) {
       const input = options.input as any
 
-      const result = {
+      return {
         queryKey: buildKey(path, { type: 'infinite', input }),
-        queryFn: ({ pageParam }: { pageParam: any }) => client({ ...input, cursor: pageParam }),
+        queryFn: ({ pageParam }) => client({ ...input, cursor: pageParam }),
         ...(options as any),
       }
-
-      return result
     },
 
     mutationOptions(options) {
       return {
         mutationKey: buildKey(path, { type: 'mutation' }),
         mutationFn: input => client(input),
-        ...options,
+        ...(options as any),
       }
     },
   }

@@ -1,4 +1,4 @@
-import type { InfiniteData } from '@tanstack/react-query'
+import type { InfiniteData, QueryKey } from '@tanstack/react-query'
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { createProcedureUtils } from './utils-procedure'
 
@@ -18,7 +18,10 @@ describe('queryOptions', () => {
   })
 
   it('can be called without argument', () => {
-    utils.queryOptions()
+    const option = utils.queryOptions()
+
+    expectTypeOf(option.queryKey).toEqualTypeOf<QueryKey>()
+    expectTypeOf(option.queryFn).toEqualTypeOf<() => Promise<string | undefined>>()
     // @ts-expect-error invalid is required
     utils2.queryOptions()
   })
@@ -37,12 +40,12 @@ describe('queryOptions', () => {
       select(data) {
         expectTypeOf(data).toEqualTypeOf<string>()
 
-        return 'new' as const
+        return 12344 as const
       },
     }))
 
     if (query.status === 'success') {
-      expectTypeOf(query.data).toEqualTypeOf<'new'>()
+      expectTypeOf(query.data).toEqualTypeOf<12344>()
     }
   })
 })
@@ -185,12 +188,12 @@ describe('infiniteOptions', () => {
       select(data) {
         expectTypeOf(data).toEqualTypeOf<InfiniteData<string, number>>()
 
-        return 'new' as const
+        return { value: 'string' }
       },
     }))
 
     if (query.status === 'success') {
-      expectTypeOf(query.data).toEqualTypeOf<'new'>()
+      expectTypeOf(query.data).toEqualTypeOf<{ value: string }>()
     }
   })
 })
@@ -228,6 +231,7 @@ describe('mutationOptions', () => {
   it('can be called without argument', () => {
     const option = utils.mutationOptions()
 
-    expectTypeOf(option.mutationFn!(1)).toEqualTypeOf <Promise<string>>()
+    expectTypeOf(option.mutationKey).toEqualTypeOf<QueryKey>()
+    expectTypeOf(option.mutationFn).toEqualTypeOf<(input: number) => Promise<string>>()
   })
 })

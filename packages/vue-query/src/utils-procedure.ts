@@ -8,9 +8,9 @@ import { deepUnref } from './utils'
  * Utils at procedure level
  */
 export interface ProcedureUtils<TInput, TOutput> {
-  queryOptions: <U extends QueryOptions<TInput, TOutput, TOutput>>(
+  queryOptions: <U extends QueryOptions<TInput, TOutput, any>>(
     ...options: [U] | (undefined extends TInput ? [] : never)
-  ) => IsEqual<U, QueryOptions<TInput, TOutput, TOutput>> extends true
+  ) => IsEqual<U, QueryOptions<TInput, TOutput, any>> extends true
     ? { queryKey: QueryKey, queryFn: () => Promise<TOutput> }
     : Omit<{ queryKey: QueryKey, queryFn: () => Promise<TOutput> }, keyof U> & U
 

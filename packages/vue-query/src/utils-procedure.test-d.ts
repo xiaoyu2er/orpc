@@ -1,4 +1,4 @@
-import type { InfiniteData } from '@tanstack/vue-query'
+import type { InfiniteData, QueryKey } from '@tanstack/vue-query'
 import { useInfiniteQuery, useQuery } from '@tanstack/vue-query'
 import { createProcedureUtils } from './utils-procedure'
 
@@ -18,7 +18,10 @@ describe('queryOptions', () => {
   })
 
   it('can be called without argument', () => {
-    utils.queryOptions()
+    const options = utils.queryOptions()
+
+    expectTypeOf(options.queryKey).toEqualTypeOf<QueryKey>()
+    expectTypeOf(options.queryFn).toEqualTypeOf<() => Promise<string | undefined>>()
     // @ts-expect-error invalid is required
     utils2.queryOptions()
   })
@@ -35,11 +38,11 @@ describe('queryOptions', () => {
       select(data) {
         expectTypeOf(data).toEqualTypeOf<string>()
 
-        return 'new' as const
+        return { value: 123 }
       },
     }))
 
-    expectTypeOf(query.data.value).toEqualTypeOf<'new' | undefined>()
+    expectTypeOf(query.data.value).toEqualTypeOf<{ value: number } | undefined>()
   })
 })
 
@@ -179,11 +182,11 @@ describe('infiniteOptions', () => {
       select(data) {
         expectTypeOf(data).toEqualTypeOf<InfiniteData<string, number>>()
 
-        return 'new' as const
+        return { value: 123 }
       },
     }))
 
-    expectTypeOf(query.data.value).toEqualTypeOf<'new' | undefined>()
+    expectTypeOf(query.data.value).toEqualTypeOf<{ value: number } | undefined>()
   })
 })
 
@@ -219,12 +222,13 @@ describe('mutationOptions', () => {
       },
     })
 
-    expectTypeOf(option.mutationFn!(1)).toEqualTypeOf<Promise<string>>()
+    expectTypeOf(option.mutationFn).toEqualTypeOf<(input: number) => Promise<string>>()
   })
 
   it('can be called without argument', () => {
     const option = utils.mutationOptions()
 
+    expectTypeOf(option.mutationKey).toEqualTypeOf<QueryKey>()
     expectTypeOf(option.mutationFn).toMatchTypeOf<(input: number) => Promise<string>>()
   })
 })

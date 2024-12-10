@@ -43,5 +43,9 @@
     "build": "tsup --clean --sourcemap --entry.index=src/index.ts --format=esm --onSuccess='tsc -b --noCheck'",
     "build:watch": "pnpm run build --watch",
     "type:check": "tsc -b"
+  },
+  "peerDependencies": {
+    "@tanstack/vue-query": ">=5.50.0",
+    "vue": ">=3.3.0"
   }
 }

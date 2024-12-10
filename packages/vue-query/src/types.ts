@@ -34,9 +34,9 @@ export type InfiniteOptions<TInput, TOutput, TSelectData> =
   >
 
 export type MutationOptions<TInput, TOutput> =
-  & SetOptional<{
+  & {
     [P in keyof MutationObserverOptions<TOutput, DefaultError, TInput, unknown>]: MaybeDeepRef<MutationObserverOptions<TOutput, DefaultError, TInput, unknown>[P]>
-  }, 'mutationKey' | 'mutationFn'>
+  }
   & {
     shallow?: MaybeRef<boolean>
   }

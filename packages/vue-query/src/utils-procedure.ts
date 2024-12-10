@@ -20,7 +20,9 @@ export interface ProcedureUtils<TInput, TOutput> {
 
   mutationOptions: <U extends MutationOptions<TInput, TOutput>>(
     options?: U
-  ) => Omit<{ mutationKey: QueryKey, mutationFn: (input: TInput) => Promise<TOutput> }, keyof U> & U
+  ) => IsEqual<U, MutationOptions<TInput, TOutput>> extends true
+    ? { mutationKey: QueryKey, mutationFn: (input: TInput) => Promise<TOutput> }
+    : Omit<{ mutationKey: QueryKey, mutationFn: (input: TInput) => Promise<TOutput> }, keyof U> & U
 }
 
 export function createProcedureUtils<TInput, TOutput>(

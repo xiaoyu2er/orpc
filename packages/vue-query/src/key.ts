@@ -1,6 +1,8 @@
 import type { PartialDeep } from '@orpc/shared'
 import type { QueryKey } from '@tanstack/vue-query'
 
+// TODO: this file duplicate with react query
+
 export type KeyType = 'query' | 'infinite' | 'mutation' | undefined
 
 export interface BuildKeyOptions<TType extends KeyType, TInput> {

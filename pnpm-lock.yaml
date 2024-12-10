@@ -102,6 +102,9 @@ importers:
       '@orpc/react':
         specifier: workspace:*
         version: link:../../packages/react
+      '@orpc/react-query':
+        specifier: workspace:*
+        version: link:../../packages/react-query
       '@orpc/server':
         specifier: workspace:*
         version: link:../../packages/server

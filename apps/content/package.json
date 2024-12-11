@@ -7,7 +7,7 @@
     "build": "next build",
     "preview": "next start",
     "postinstall": "fumadocs-mdx",
-    "type:check": "tsc -b"
+    "type:check": "tsc --noEmit"
   },
   "dependencies": {
     "fumadocs-core": "14.4.0",

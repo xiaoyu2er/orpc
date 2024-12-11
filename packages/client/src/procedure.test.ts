@@ -1,3 +1,4 @@
+import type { CallerOptions } from '@orpc/server'
 import { createOpenAPIServerHandler, createOpenAPIServerlessHandler } from '@orpc/openapi/fetch'
 import { ORPCError, os } from '@orpc/server'
 import { createORPCHandler, handleFetchRequest } from '@orpc/server/fetch'
@@ -38,8 +39,8 @@ describe('createProcedureClient', () => {
       { age: number }
     >({} as any)
 
-    expectTypeOf(client).toEqualTypeOf<
-      (input: { value: string }) => Promise<{ age: number }>
+    expectTypeOf(client).toMatchTypeOf<
+      (input: { value: string }, options?: CallerOptions) => Promise<{ age: number }>
     >()
 
     const client2 = createProcedureClient<
@@ -48,8 +49,8 @@ describe('createProcedureClient', () => {
       { value: string }
     >({} as any)
 
-    expectTypeOf(client2).toEqualTypeOf<
-      (input: unknown) => Promise<{ value: string }>
+    expectTypeOf(client2).toMatchTypeOf<
+      (input: unknown, options?: CallerOptions) => Promise<{ value: string }>
     >()
   })
 
@@ -172,6 +173,24 @@ describe('createProcedureClient', () => {
     expect(error).toBeInstanceOf(ORPCError)
     expect(error.code).toEqual('BAD_GATEWAY')
     expect(error.data).toEqual({ value: 'from error' })
+  })
+
+  it('abort signal', async () => {
+    const controller = new AbortController()
+    const signal = controller.signal
+
+    const fetch = vi.fn().mockReturnValue(new Response(JSON.stringify({ meta: [] })))
+
+    const client = createProcedureClient({
+      path: ['ping'],
+      baseURL: 'http://localhost:3000/orpc',
+      fetch,
+    })
+
+    await client(undefined, { signal })
+
+    expect(fetch).toBeCalledTimes(1)
+    expect(fetch.mock.calls[0]![1].signal).toBe(signal)
   })
 })
 

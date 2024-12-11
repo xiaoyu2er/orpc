@@ -1,6 +1,7 @@
 /// <reference lib="dom" />
 /// <reference lib="dom.iterable" />
 
+import type { Caller } from '@orpc/server'
 import type { Promisable } from '@orpc/shared'
 import {
   ORPC_HEADER,
@@ -13,15 +14,11 @@ import { trim } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
 import { ORPCDeserializer, ORPCSerializer } from '@orpc/transformer'
 
-export interface ProcedureClient<
+export type ProcedureClient<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   TFuncOutput extends SchemaOutput<TOutputSchema>,
-> {
-  (
-    input: SchemaInput<TInputSchema>,
-  ): Promise<SchemaOutput<TOutputSchema, TFuncOutput>>
-}
+> = Caller<SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, TFuncOutput>>
 
 export interface CreateProcedureClientOptions {
   /**
@@ -57,7 +54,9 @@ export function createProcedureClient<
   const serializer = new ORPCSerializer()
   const deserializer = new ORPCDeserializer()
 
-  const client = async (input: unknown): Promise<unknown> => {
+  const client: Caller<unknown, unknown> = async (...args) => {
+    const [input, callerOptions] = args
+
     const fetch_ = options.fetch ?? fetch
     const url = `${trim(options.baseURL, '/')}/${options.path.map(encodeURIComponent).join('/')}`
     let headers = await options.headers?.(input)
@@ -75,6 +74,7 @@ export function createProcedureClient<
       method: 'POST',
       headers,
       body,
+      signal: callerOptions?.signal,
     })
 
     const json = await (async () => {

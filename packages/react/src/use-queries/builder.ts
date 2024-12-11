@@ -1,5 +1,5 @@
-import type { ProcedureClient } from '@orpc/client'
 import type { Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { Caller } from '@orpc/server'
 import type { SetOptional } from '@orpc/shared'
 import type {
   DefaultError,
@@ -41,7 +41,7 @@ export interface CreateUseQueriesBuilderOptions<
   TOutputSchema extends Schema,
   TFuncOutput extends SchemaOutput<TOutputSchema>,
 > {
-  client: ProcedureClient<TInputSchema, TOutputSchema, TFuncOutput>
+  client: Caller<SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, TFuncOutput>>
 
   /**
    * The path of procedure on server

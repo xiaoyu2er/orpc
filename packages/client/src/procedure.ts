@@ -3,22 +3,10 @@
 
 import type { Caller } from '@orpc/server'
 import type { Promisable } from '@orpc/shared'
-import {
-  ORPC_HEADER,
-  ORPC_HEADER_VALUE,
-  type Schema,
-  type SchemaInput,
-  type SchemaOutput,
-} from '@orpc/contract'
+import { ORPC_HEADER, ORPC_HEADER_VALUE } from '@orpc/contract'
 import { trim } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
 import { ORPCDeserializer, ORPCSerializer } from '@orpc/transformer'
-
-export type ProcedureClient<
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
-  TFuncOutput extends SchemaOutput<TOutputSchema>,
-> = Caller<SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, TFuncOutput>>
 
 export interface CreateProcedureClientOptions {
   /**
@@ -44,16 +32,12 @@ export interface CreateProcedureClientOptions {
   path: string[]
 }
 
-export function createProcedureClient<
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
-  TFuncOutput extends SchemaOutput<TOutputSchema>,
->(
-  options: CreateProcedureClientOptions,
-): ProcedureClient<TInputSchema, TOutputSchema, TFuncOutput> {
-  const serializer = new ORPCSerializer()
-  const deserializer = new ORPCDeserializer()
+const serializer = new ORPCSerializer()
+const deserializer = new ORPCDeserializer()
 
+export function createProcedureClient<TInput, TOutput>(
+  options: CreateProcedureClientOptions,
+): Caller<TInput, TOutput> {
   const client: Caller<unknown, unknown> = async (...args) => {
     const [input, callerOptions] = args
 
@@ -65,7 +49,7 @@ export function createProcedureClient<
     const { body, headers: headers_ } = serializer.serialize(input)
 
     for (const [key, value] of headers_.entries()) {
-      headers.set(key, value)
+      headers.append(key, value)
     }
 
     headers.set(ORPC_HEADER, ORPC_HEADER_VALUE)

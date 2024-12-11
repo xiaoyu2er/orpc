@@ -24,7 +24,7 @@ export const client = createORPCClient<typeof router>({
 });
 
 // Create React Query utilities for ORPC
-export const orpc = createORPCReactQueryUtils<typeof router>(client);
+export const orpc = createORPCReactQueryUtils(client);
 
 // @noErrors
 orpc.getting.
@@ -60,7 +60,7 @@ export function ORPCProvider({ children }: { children: React.ReactNode }) {
   );
   const [queryClient] = React.useState(() => new QueryClient());
 
-  const orpc = React.useMemo(() => createORPCReactQueryUtils<typeof router>(client), [client]);
+  const orpc = React.useMemo(() => createORPCReactQueryUtils(client), [client]);
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -1,3 +1,4 @@
+import type { RouterClient } from '@orpc/client'
 import type { ContractProcedure, ContractRouter, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Lazy, Procedure, Router } from '@orpc/server'
 import { createGeneralUtils, type GeneralUtils } from './utils-general'
@@ -21,11 +22,11 @@ export type RouterUtils<T extends Router<any> | ContractRouter> = {
  * @param path - The base path for query key
  */
 export function createRouterUtils<T extends Router<any> | ContractRouter>(
-  client: any, // TODO typed
+  client: RouterClient<T>,
   path: string[] = [],
 ): RouterUtils<T> {
   const generalUtils = createGeneralUtils(path)
-  const procedureUtils = createProcedureUtils(client, path)
+  const procedureUtils = createProcedureUtils(client as any, path)
 
   const recursive = new Proxy({
     ...generalUtils,
@@ -38,7 +39,7 @@ export function createRouterUtils<T extends Router<any> | ContractRouter>(
         return value
       }
 
-      const nextUtils = createRouterUtils(client[prop], [...path, prop])
+      const nextUtils = createRouterUtils((client as any)[prop], [...path, prop])
 
       if (typeof value !== 'function') {
         return nextUtils

@@ -106,7 +106,7 @@ export const orpcClient = createORPCClient<typeof appRouter>({
   },
 })
 
-export const orpc = createORPCReactQueryUtils<typeof appRouter>(orpcClient)
+export const orpc = createORPCReactQueryUtils(orpcClient)
 
 export const queryClient = new QueryClient({
   defaultOptions: {

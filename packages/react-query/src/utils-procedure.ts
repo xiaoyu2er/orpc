@@ -1,3 +1,4 @@
+import type { Caller } from '@orpc/server'
 import type { IsEqual } from '@orpc/shared'
 import type { QueryKey } from '@tanstack/react-query'
 import type { InfiniteOptions, MutationOptions, QueryOptions } from './types'
@@ -8,7 +9,7 @@ import { buildKey } from './key'
  */
 export interface ProcedureUtils<TInput, TOutput> {
   queryOptions: <U extends QueryOptions<TInput, TOutput, any>>(
-    ...options: [U] | (undefined extends TInput ? [] : never)
+    ...opts: [options: U] | (undefined extends TInput ? [] : never)
   ) => IsEqual<U, QueryOptions<TInput, TOutput, any>> extends true
     ? { queryKey: QueryKey, queryFn: () => Promise<TOutput> }
     : Omit<{ queryKey: QueryKey, queryFn: () => Promise<TOutput> }, keyof U> & U
@@ -25,7 +26,7 @@ export interface ProcedureUtils<TInput, TOutput> {
 }
 
 export function createProcedureUtils<TInput, TOutput>(
-  client: (input: TInput) => Promise<TOutput>,
+  client: Caller<TInput, TOutput>,
   path: string[],
 ): ProcedureUtils<TInput, TOutput> {
   return {

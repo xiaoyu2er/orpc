@@ -100,7 +100,7 @@ export const orpcClient = createORPCClient<typeof appRouter>({
   },
 })
 
-export const orpc = createORPCVueQueryUtils<typeof appRouter>(orpcClient)
+export const orpc = createORPCVueQueryUtils(orpcClient)
 
 export const queryClient = new QueryClient({
   defaultOptions: {

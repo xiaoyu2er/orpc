@@ -1,3 +1,4 @@
+import type { Caller } from '@orpc/server'
 import type { IsEqual } from '@orpc/shared'
 import type { QueryKey } from '@tanstack/vue-query'
 import type { InfiniteOptions, MutationOptions, QueryOptions } from './types'
@@ -26,7 +27,7 @@ export interface ProcedureUtils<TInput, TOutput> {
 }
 
 export function createProcedureUtils<TInput, TOutput>(
-  client: (input: TInput) => Promise<TOutput>,
+  client: Caller<TInput, TOutput>,
   path: string[],
 ): ProcedureUtils<TInput, TOutput> {
   return {

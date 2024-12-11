@@ -1,3 +1,4 @@
+import type { Caller } from '@orpc/server'
 import { ref } from 'vue'
 import * as keyModule from './key'
 import { createProcedureUtils } from './utils-procedure'
@@ -9,7 +10,9 @@ beforeEach(() => {
 })
 
 describe('queryOptions', () => {
-  const client = vi.fn((input: number | undefined) => Promise.resolve(input?.toString()))
+  const client = vi.fn<Caller<number | undefined, string | undefined>>(
+    (...[input]) => Promise.resolve(input?.toString()),
+  )
   const utils = createProcedureUtils(client, ['ping'])
 
   beforeEach(() => {

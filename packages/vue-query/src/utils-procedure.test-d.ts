@@ -1,10 +1,13 @@
+import type { Caller } from '@orpc/server'
 import type { InfiniteData, QueryKey } from '@tanstack/vue-query'
 import { useInfiniteQuery, useQuery } from '@tanstack/vue-query'
 import { ref } from 'vue'
 import { createProcedureUtils } from './utils-procedure'
 
 describe('queryOptions', () => {
-  const client = vi.fn((input: number | undefined) => Promise.resolve(input?.toString()))
+  const client = vi.fn <Caller<number | undefined, string | undefined>>(
+    (...[input]) => Promise.resolve(input?.toString()),
+  )
   const utils = createProcedureUtils(client, [])
 
   const client2 = vi.fn((input: number) => Promise.resolve(input.toString()))
@@ -176,7 +179,7 @@ describe('infiniteOptions', () => {
   })
 
   it('input can be optional', () => {
-    const utils = createProcedureUtils({} as (input: { limit?: number, cursor?: number } | undefined) => Promise<string>, [])
+    const utils = createProcedureUtils({} as Caller<{ limit?: number, cursor?: number } | undefined, string>, [])
 
     utils.infiniteOptions({
       getNextPageParam,

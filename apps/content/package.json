@@ -28,10 +28,13 @@
     "@orpc/react": "workspace:*",
     "@orpc/react-query": "workspace:*",
     "@orpc/server": "workspace:*",
+    "@orpc/vue-query": "workspace:*",
     "@orpc/zod": "workspace:*",
+    "@tanstack/react-query": "^5.62.7",
+    "@tanstack/vue-query": "^5.62.7",
     "@types/express": "^5.0.0",
     "@types/mdx": "^2.0.13",
-    "@types/node": "22.9.0",
+    "@types/node": "^22.9.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@whatwg-node/server": "^0.9.55",
@@ -39,7 +42,7 @@
     "express": "^4.21.1",
     "postcss": "^8.4.48",
     "tailwindcss": "^3.4.14",
-    "typescript": "^5.6.3",
+    "typescript": "5.7.2",
     "zod": "^3.23.8"
   }
 }

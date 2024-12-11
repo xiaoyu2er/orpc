@@ -56,9 +56,7 @@ Our [Vanilla Client](/docs/client/vanilla) is fully typed and doesn't rely on ge
 
 ## Seamless Integration with TanStack Query
 
-```tsx
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-
+```ts
 // Fetch data with oRPC
 const { data, status } = useQuery(
   orpc.post.find.queryOptions({ input: { id: 'example' } })
@@ -85,7 +83,7 @@ mutate({
 });
 ```
 
-Learn more about [React Query Integration](/docs/client/react-query).
+We now support [React Query Integration](/docs/client/react-query) and [Vue Query Integration](/docs/client/vue-query).
 
 ## Access via OpenAPI Standard
 

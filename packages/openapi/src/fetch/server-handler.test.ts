@@ -194,4 +194,34 @@ describe.each(handlers)('openAPIServerHandler', (handler) => {
       ],
     })
   })
+
+  it('abort signal', async () => {
+    const controller = new AbortController()
+    const signal = controller.signal
+
+    const func = vi.fn()
+    const onSuccess = vi.fn()
+
+    const ping = os.func(func)
+
+    const response = await handler({
+      router: { ping },
+      request: new Request('http://localhost/ping', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ }),
+      }),
+      signal,
+      onSuccess,
+    })
+
+    expect(response?.status).toEqual(200)
+
+    expect(func).toBeCalledTimes(1)
+    expect(func.mock.calls[0]![2].signal).toBe(signal)
+    expect(onSuccess).toBeCalledTimes(1)
+    expect(func.mock.calls[0]![2].signal).toBe(signal)
+  })
 })

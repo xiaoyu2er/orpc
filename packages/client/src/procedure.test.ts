@@ -1,241 +1,86 @@
-import { createOpenAPIServerHandler, createOpenAPIServerlessHandler } from '@orpc/openapi/fetch'
-import { ORPCError, os } from '@orpc/server'
-import { createORPCHandler, handleFetchRequest } from '@orpc/server/fetch'
-import { z } from 'zod'
+import { ORPCDeserializer, ORPCSerializer } from '@orpc/transformer'
 import { createProcedureClient } from './procedure'
 
-describe('createProcedureClient', () => {
-  const schema = z.object({
-    value: z.string(),
-  })
-  const ping = os.input(schema).func((_, __, { path }) => path)
-  const router = os.router({
-    ping,
-    nested: {
-      ping,
-    },
-  })
+vi.mock('@orpc/transformer', () => ({
+  ORPCSerializer: vi.fn().mockReturnValue({ serialize: vi.fn() }),
+  ORPCDeserializer: vi.fn().mockReturnValue({ deserialize: vi.fn() }),
+}))
 
-  const orpcFetch: typeof fetch = async (...args) => {
-    const request = new Request(...args)
-    const response = await handleFetchRequest({
-      router,
-      handlers: [createOpenAPIServerHandler(), createOpenAPIServerlessHandler(), createORPCHandler()], // make sure still work with openapi handlers
-      prefix: '/orpc',
-      request,
-      context: {},
-    })
-    return response
-  }
-
-  it('types', () => {
-    const schema = z.object({
-      value: z.string(),
-    })
-    const client = createProcedureClient<
-      typeof schema,
-      undefined,
-      { age: number }
-    >({} as any)
-
-    expectTypeOf(client).toEqualTypeOf<
-      (input: { value: string }) => Promise<{ age: number }>
-    >()
-
-    const client2 = createProcedureClient<
-      undefined,
-      typeof schema,
-      { value: string }
-    >({} as any)
-
-    expectTypeOf(client2).toEqualTypeOf<
-      (input: unknown) => Promise<{ value: string }>
-    >()
-  })
-
-  it('simple', async () => {
-    const client = createProcedureClient({
-      baseURL: 'http://localhost:3000/orpc',
-      fetch: orpcFetch,
-      path: ['ping'],
-    })
-
-    const result = await client({ value: 'hello' })
-
-    expect(result).toEqual(['ping'])
-
-    const client2 = createProcedureClient({
-      baseURL: 'http://localhost:3000/orpc',
-      fetch: orpcFetch,
-      path: ['nested', 'ping'],
-    })
-
-    const result2 = await client2({ value: 'hello' })
-
-    expect(result2).toEqual(['nested', 'ping'])
-  })
-
-  it('on known error', () => {
-    const client = createProcedureClient({
-      baseURL: 'http://localhost:3000/orpc',
-      fetch: orpcFetch,
-      path: ['ping'],
-    })
-
-    expect(client({ value: {} })).rejects.toThrowError(
-      'Validation input failed',
-    )
-  })
-
-  it('on unknown error', () => {
-    const orpcFetch: typeof fetch = async () => {
-      return new Response(JSON.stringify({}), {
-        status: 400,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-    }
-
-    const client = createProcedureClient({
-      baseURL: 'http://localhost:3000/orpc',
-      fetch: orpcFetch,
-      path: ['ping'],
-    })
-
-    expect(client({ value: 'hello' })).rejects.toThrowError(
-      'Cannot parse response.',
-    )
-  })
-
-  it('transformer', async () => {
-    const router = os.router({
-      ping: os
-        .input(z.object({ value: z.date() }))
-        .func(input => input.value),
-    })
-
-    const client = createProcedureClient({
-      path: ['ping'],
-      baseURL: 'http://localhost:3000/orpc',
-      fetch: (...args) => {
-        const request = new Request(...args)
-        return handleFetchRequest({
-          router,
-          handlers: [createORPCHandler(), createOpenAPIServerHandler()],
-          prefix: '/orpc',
-          request,
-          context: {},
-        })
-      },
-    })
-
-    const now = new Date()
-    expect(await client({ value: now })).toEqual(now)
-  })
-
-  it('error include data', async () => {
-    const router = os.router({
-      ping: os.func((input) => {
-        throw new ORPCError({
-          code: 'BAD_GATEWAY',
-          data: {
-            value: 'from error',
-          },
-        })
-      }),
-    })
-
-    const client = createProcedureClient({
-      path: ['ping'],
-      baseURL: 'http://localhost:3000/orpc',
-      fetch: (...args) => {
-        const request = new Request(...args)
-        return handleFetchRequest({
-          router,
-          handlers: [createORPCHandler()],
-          prefix: '/orpc',
-          request,
-          context: {},
-        })
-      },
-    })
-
-    let error: any
-    try {
-      await client(undefined)
-    }
-    catch (e) {
-      error = e
-    }
-
-    expect(error).toBeInstanceOf(ORPCError)
-    expect(error.code).toEqual('BAD_GATEWAY')
-    expect(error.data).toEqual({ value: 'from error' })
-  })
+beforeEach(() => {
+  vi.clearAllMocks()
 })
 
-describe('upload file', () => {
-  const router = os.router({
-    signal: os.input(z.instanceof(Blob)).func((input) => {
-      return input
-    }),
-    multiple: os
-      .input(
-        z.object({ first: z.instanceof(Blob), second: z.instanceof(Blob) }),
-      )
-      .func((input) => {
-        return input
-      }),
-  })
+describe('procedure client', () => {
+  const serialize = (ORPCSerializer as any)().serialize
+  const deserialize = (ORPCDeserializer as any)().deserialize
+  const response = new Response('output')
+  const headers = new Headers({ 'Content-Type': 'application/json' })
 
-  const orpcFetch: typeof fetch = async (...args) => {
-    const request = new Request(...args)
-    return handleFetchRequest({
-      router,
-      handlers: [createORPCHandler()],
-      prefix: '/orpc',
-      request,
-      context: {},
-    })
-  }
+  const fakeFetch = vi.fn()
+  fakeFetch.mockReturnValue(response)
+  serialize.mockReturnValue({ body: 'transformed_input', headers })
+  deserialize.mockReturnValue('transformed_output')
 
-  const blob1 = new Blob(['hello'], { type: 'text/plain;charset=utf-8' })
-  const blob2 = new Blob(['"world"'], { type: 'image/png' })
-  const blob3 = new Blob(['unnoq'], { type: 'application/octet-stream' })
-
-  it('single file', async () => {
+  it('works', async () => {
     const client = createProcedureClient({
       baseURL: 'http://localhost:3000/orpc',
-      fetch: orpcFetch,
-      path: ['signal'],
+      path: ['ping'],
+      fetch: fakeFetch,
     })
 
-    const output = await client(blob1)
+    const output = await client('input')
 
-    expect(output).toBeInstanceOf(Blob)
-    expect(output.type).toBe('text/plain;charset=utf-8')
-    expect(await output.text()).toBe('hello')
+    expect(output).toBe('transformed_output')
+
+    expect(serialize).toBeCalledTimes(1)
+    expect(serialize).toBeCalledWith('input')
+
+    expect(fakeFetch).toBeCalledTimes(1)
+    expect(fakeFetch).toBeCalledWith('http://localhost:3000/orpc/ping', {
+      method: 'POST',
+      body: 'transformed_input',
+      headers: expect.any(Headers),
+    })
+
+    expect(deserialize).toBeCalledTimes(1)
+    expect(deserialize).toBeCalledWith(response)
   })
 
-  it('multiple file', async () => {
+  it.each([
+    async () => new Headers({ 'x-test': 'hello' }),
+    async () => ({ 'x-test': 'hello' }),
+  ])('works with headers', async (headers) => {
     const client = createProcedureClient({
+      path: ['ping'],
       baseURL: 'http://localhost:3000/orpc',
-      fetch: orpcFetch,
-      path: ['multiple'],
+      fetch: fakeFetch,
+      headers,
     })
 
-    const output = await client({ first: blob3, second: blob2 })
+    await client({ value: 'hello' })
 
-    const file0 = output.first
-    const file1 = output.second
+    expect(fakeFetch).toBeCalledWith('http://localhost:3000/orpc/ping', {
+      method: 'POST',
+      body: 'transformed_input',
+      headers: expect.any(Headers),
+    })
 
-    expect(file0).toBeInstanceOf(Blob)
-    expect(file0.type).toBe('application/octet-stream')
-    expect(await file0.text()).toBe('unnoq')
+    expect(fakeFetch.mock.calls[0]![1].headers.get('x-test')).toBe('hello')
+  })
 
-    expect(file1).toBeInstanceOf(Blob)
-    expect(file1.type).toBe('image/png')
-    expect(await file1.text()).toBe('"world"')
+  it('abort signal', async () => {
+    const controller = new AbortController()
+    const signal = controller.signal
+
+    const client = createProcedureClient({
+      path: ['ping'],
+      baseURL: 'http://localhost:3000/orpc',
+      fetch: fakeFetch,
+    })
+
+    await client(undefined, { signal })
+
+    expect(fakeFetch).toBeCalledTimes(1)
+    expect(fakeFetch.mock.calls[0]![1].signal).toBe(signal)
   })
 })

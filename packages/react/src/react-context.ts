@@ -1,7 +1,4 @@
-import type {
-  RouterClientWithContractRouter,
-  RouterClientWithRouter,
-} from '@orpc/client'
+import type { RouterClient } from '@orpc/client'
 import type { ContractRouter } from '@orpc/contract'
 import type { Router } from '@orpc/server'
 import type { QueryClient } from '@tanstack/react-query'
@@ -10,11 +7,7 @@ import { type Context, createContext, useContext } from 'react'
 export interface ORPCContextValue<
   TRouter extends ContractRouter | Router<any>,
 > {
-  client: TRouter extends ContractRouter
-    ? RouterClientWithContractRouter<TRouter>
-    : TRouter extends Router<any>
-      ? RouterClientWithRouter<TRouter>
-      : never
+  client: RouterClient<TRouter>
   queryClient: QueryClient
 }
 

@@ -4,16 +4,14 @@
     "types": []
   },
   "references": [
+    { "path": "../client" },
     { "path": "../contract" },
-    { "path": "../openapi" },
-    { "path": "../server" },
     { "path": "../shared" },
-    { "path": "../transformer" }
+    { "path": "../server" }
   ],
   "include": ["src"],
   "exclude": [
     "**/*.test.*",
-    "**/*.bench.*",
     "**/*.test-d.ts",
     "**/__tests__/**",
     "**/__mocks__/**",

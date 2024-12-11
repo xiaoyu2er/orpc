@@ -1,3 +1,5 @@
+import type { SchemaOutput } from '@orpc/contract'
+import type { UserFindInputSchema, UserListInputSchema, UserListOutputSchema, UserSchema } from '../../tests/orpc'
 import { orpcClient } from '../../tests/orpc'
 import { createUseQueriesBuilder } from './builder'
 import { createUseQueriesBuilders } from './builders'
@@ -8,14 +10,14 @@ it('createUseQueriesBuilders', () => {
   })
 
   expectTypeOf(builder.user.find).toEqualTypeOf(
-    createUseQueriesBuilder({
+    createUseQueriesBuilder<typeof UserFindInputSchema, typeof UserSchema, SchemaOutput<typeof UserSchema>>({
       client: orpcClient.user.find,
       path: ['user', 'find'],
     }),
   )
 
   expectTypeOf(builder.user.list).toEqualTypeOf(
-    createUseQueriesBuilder({
+    createUseQueriesBuilder<typeof UserListInputSchema, typeof UserListOutputSchema, SchemaOutput<typeof UserListOutputSchema>>({
       client: orpcClient.user.list,
       path: ['user', 'list'],
     }),

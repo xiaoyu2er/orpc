@@ -1,27 +1,12 @@
 /// <reference lib="dom" />
 /// <reference lib="dom.iterable" />
 
+import type { Caller } from '@orpc/server'
 import type { Promisable } from '@orpc/shared'
-import {
-  ORPC_HEADER,
-  ORPC_HEADER_VALUE,
-  type Schema,
-  type SchemaInput,
-  type SchemaOutput,
-} from '@orpc/contract'
+import { ORPC_HEADER, ORPC_HEADER_VALUE } from '@orpc/contract'
 import { trim } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
 import { ORPCDeserializer, ORPCSerializer } from '@orpc/transformer'
-
-export interface ProcedureClient<
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
-  TFuncOutput extends SchemaOutput<TOutputSchema>,
-> {
-  (
-    input: SchemaInput<TInputSchema>,
-  ): Promise<SchemaOutput<TOutputSchema, TFuncOutput>>
-}
 
 export interface CreateProcedureClientOptions {
   /**
@@ -47,17 +32,15 @@ export interface CreateProcedureClientOptions {
   path: string[]
 }
 
-export function createProcedureClient<
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
-  TFuncOutput extends SchemaOutput<TOutputSchema>,
->(
-  options: CreateProcedureClientOptions,
-): ProcedureClient<TInputSchema, TOutputSchema, TFuncOutput> {
-  const serializer = new ORPCSerializer()
-  const deserializer = new ORPCDeserializer()
+const serializer = new ORPCSerializer()
+const deserializer = new ORPCDeserializer()
 
-  const client = async (input: unknown): Promise<unknown> => {
+export function createProcedureClient<TInput, TOutput>(
+  options: CreateProcedureClientOptions,
+): Caller<TInput, TOutput> {
+  const client: Caller<unknown, unknown> = async (...args) => {
+    const [input, callerOptions] = args
+
     const fetch_ = options.fetch ?? fetch
     const url = `${trim(options.baseURL, '/')}/${options.path.map(encodeURIComponent).join('/')}`
     let headers = await options.headers?.(input)
@@ -66,7 +49,7 @@ export function createProcedureClient<
     const { body, headers: headers_ } = serializer.serialize(input)
 
     for (const [key, value] of headers_.entries()) {
-      headers.set(key, value)
+      headers.append(key, value)
     }
 
     headers.set(ORPC_HEADER, ORPC_HEADER_VALUE)
@@ -75,6 +58,7 @@ export function createProcedureClient<
       method: 'POST',
       headers,
       body,
+      signal: callerOptions?.signal,
     })
 
     const json = await (async () => {

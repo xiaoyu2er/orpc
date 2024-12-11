@@ -1,9 +1,11 @@
+import type { SchemaOutput } from '@orpc/contract'
 import type { Promisable } from '@orpc/shared'
+import type { UserFindInputSchema, UserSchema } from '../../tests/orpc'
 import { orpcClient } from '../../tests/orpc'
 import { createUseQueriesBuilder } from './builder'
 
 it('createUseQueriesBuilder', () => {
-  const builder = createUseQueriesBuilder({
+  const builder = createUseQueriesBuilder<typeof UserFindInputSchema, typeof UserSchema, SchemaOutput<typeof UserSchema>>({
     client: orpcClient.user.find,
     path: ['user', 'find'],
   })

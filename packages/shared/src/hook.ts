@@ -9,7 +9,7 @@ export interface BaseHookMeta<TOutput> {
   next: () => Promise<TOutput>
 }
 
-export interface Hooks<TInput, TOutput, TContext, TMeta extends (Record<string, unknown> & { next?: never }) | undefined> {
+export interface Hooks<TInput, TOutput, TContext, TMeta extends (Record<string, any> & { next?: never }) | undefined> {
   execute?: Arrayable<(input: TInput, context: TContext, meta: (TMeta extends undefined ? unknown : TMeta) & BaseHookMeta<TOutput>) => Promise<TOutput>>
   onStart?: Arrayable<(state: OnStartState<TInput>, context: TContext, meta: TMeta) => Promisable<void>>
   onSuccess?: Arrayable<(state: OnSuccessState<TInput, TOutput>, context: TContext, meta: TMeta) => Promisable<void>>

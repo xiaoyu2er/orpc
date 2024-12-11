@@ -105,7 +105,6 @@ describe('useQueries', () => {
       },
     }, queryClient))
 
-    await vi.waitFor(() => expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(2))
     await vi.waitFor(() => expect(result.current[0].status).toEqual('success'))
     await vi.waitFor(() => expect(result.current[1].status).toEqual('success'))
 

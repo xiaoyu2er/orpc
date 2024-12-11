@@ -4,6 +4,9 @@ import { createProcedureUtils } from './utils-procedure'
 
 const buildKeySpy = vi.spyOn(keyModule, 'buildKey')
 
+const controller = new AbortController()
+const signal = controller.signal
+
 beforeEach(() => {
   buildKeySpy.mockClear()
 })
@@ -20,9 +23,9 @@ describe('queryOptions', () => {
     expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { type: 'query', input: 1 })
 
     client.mockResolvedValueOnce('__mocked__')
-    await expect((options as any).queryFn()).resolves.toEqual('__mocked__')
+    await expect((options as any).queryFn({ signal })).resolves.toEqual('__mocked__')
     expect(client).toHaveBeenCalledTimes(1)
-    expect(client).toBeCalledWith(1)
+    expect(client).toBeCalledWith(1, { signal })
   })
 })
 
@@ -45,9 +48,9 @@ describe('infiniteOptions', () => {
     expect(buildKeySpy).toHaveBeenCalledWith([], { type: 'infinite', input: { limit: 5 } })
 
     client.mockResolvedValueOnce('__mocked__')
-    await expect((options as any).queryFn({ pageParam: 1 })).resolves.toEqual('__mocked__')
+    await expect((options as any).queryFn({ pageParam: 1, signal })).resolves.toEqual('__mocked__')
     expect(client).toHaveBeenCalledTimes(1)
-    expect(client).toBeCalledWith({ limit: 5, cursor: 1 })
+    expect(client).toBeCalledWith({ limit: 5, cursor: 1 }, { signal })
   })
 
   it('works without initialPageParam', async () => {
@@ -64,8 +67,8 @@ describe('infiniteOptions', () => {
     expect(buildKeySpy).toHaveBeenCalledWith([], { type: 'infinite', input: { limit: 5 } })
 
     client.mockResolvedValueOnce('__mocked__')
-    await expect((options as any).queryFn({ pageParam: undefined })).resolves.toEqual('__mocked__')
+    await expect((options as any).queryFn({ pageParam: undefined, signal })).resolves.toEqual('__mocked__')
     expect(client).toHaveBeenCalledTimes(1)
-    expect(client).toBeCalledWith({ limit: 5, cursor: undefined })
+    expect(client).toBeCalledWith({ limit: 5, cursor: undefined }, { signal })
   })
 })

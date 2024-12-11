@@ -25,7 +25,7 @@ describe('queryOptions', () => {
   it('works', async () => {
     const options = utils.queryOptions({ input: 1 })
 
-    expect(options.queryKey).toEqual(['__ORPC__', ['ping'], { type: 'query', input: 1 }])
+    expect(options.queryKey.value).toEqual(['__ORPC__', ['ping'], { type: 'query', input: 1 }])
     expect(buildKeySpy).toHaveBeenCalledTimes(1)
     expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { type: 'query', input: 1 })
 
@@ -39,9 +39,9 @@ describe('queryOptions', () => {
     const input = ref(1)
     const options = utils.queryOptions({ input })
 
-    expect(options.queryKey).toEqual(['__ORPC__', ['ping'], { type: 'query', input }])
+    expect(options.queryKey.value).toEqual(['__ORPC__', ['ping'], { type: 'query', input: 1 }])
     expect(buildKeySpy).toHaveBeenCalledTimes(1)
-    expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { type: 'query', input })
+    expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { type: 'query', input: 1 })
 
     client.mockResolvedValueOnce('__mocked__')
     await expect((options as any).queryFn({ signal })).resolves.toEqual('__mocked__')
@@ -64,7 +64,7 @@ describe('infiniteOptions', () => {
     })
 
     expect(options.initialPageParam).toEqual(1)
-    expect(options.queryKey).toEqual(['__ORPC__', [], { type: 'infinite', input: { limit: 5 } }])
+    expect(options.queryKey.value).toEqual(['__ORPC__', [], { type: 'infinite', input: { limit: 5 } }])
     expect(buildKeySpy).toHaveBeenCalledTimes(1)
     expect(buildKeySpy).toHaveBeenCalledWith([], { type: 'infinite', input: { limit: 5 } })
 
@@ -83,7 +83,7 @@ describe('infiniteOptions', () => {
       getNextPageParam,
     })
 
-    expect(options.queryKey).toEqual(['__ORPC__', [], { type: 'infinite', input: { limit: 5 } }])
+    expect(options.queryKey.value).toEqual(['__ORPC__', [], { type: 'infinite', input: { limit: 5 } }])
     expect(buildKeySpy).toHaveBeenCalledTimes(1)
     expect(buildKeySpy).toHaveBeenCalledWith([], { type: 'infinite', input: { limit: 5 } })
 
@@ -105,9 +105,9 @@ describe('infiniteOptions', () => {
     })
 
     expect(options.initialPageParam).toEqual(1)
-    expect(options.queryKey).toEqual(['__ORPC__', [], { type: 'infinite', input }])
+    expect(options.queryKey.value).toEqual(['__ORPC__', [], { type: 'infinite', input: input.value }])
     expect(buildKeySpy).toHaveBeenCalledTimes(1)
-    expect(buildKeySpy).toHaveBeenCalledWith([], { type: 'infinite', input })
+    expect(buildKeySpy).toHaveBeenCalledWith([], { type: 'infinite', input: input.value })
 
     client.mockResolvedValueOnce('__mocked__')
     await expect((options as any).queryFn({ pageParam: 1, signal })).resolves.toEqual('__mocked__')

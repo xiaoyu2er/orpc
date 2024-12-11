@@ -72,3 +72,23 @@ describe('infiniteOptions', () => {
     expect(client).toBeCalledWith({ limit: 5, cursor: undefined }, { signal })
   })
 })
+
+describe('mutationOptions', () => {
+  it('works', async () => {
+    const client = vi.fn<Caller<number | undefined, string | undefined>>(
+      (...[input]) => Promise.resolve(input?.toString()),
+    )
+    const utils = createProcedureUtils(client, ['ping'])
+
+    const options = utils.mutationOptions()
+
+    expect(options.mutationKey).toEqual(['__ORPC__', ['ping'], { type: 'mutation' }])
+    expect(buildKeySpy).toHaveBeenCalledTimes(1)
+    expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { type: 'mutation' })
+
+    client.mockResolvedValueOnce('__mocked__')
+    await expect(options.mutationFn(1)).resolves.toEqual('__mocked__')
+    expect(client).toHaveBeenCalledTimes(1)
+    expect(client).toBeCalledWith(1)
+  })
+})

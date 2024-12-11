@@ -171,7 +171,7 @@ export function createProcedureHooks<
       return useQuery(
         {
           queryKey: getQueryKeyFromPath(options.path, { input, type: 'query' }),
-          queryFn: () => client(input),
+          queryFn: ({ signal }) => client(input, { signal }),
           ...options_,
         },
         context.queryClient,
@@ -187,8 +187,8 @@ export function createProcedureHooks<
             input,
             type: 'infinite',
           }),
-          queryFn: ({ pageParam }) =>
-            client({ ...(input as any), cursor: pageParam }),
+          queryFn: ({ pageParam, signal }) =>
+            client({ ...(input as any), cursor: pageParam }, { signal }),
           ...(rest as any),
         },
         context.queryClient,
@@ -201,7 +201,7 @@ export function createProcedureHooks<
       return useSuspenseQuery(
         {
           queryKey: getQueryKeyFromPath(options.path, { input, type: 'query' }),
-          queryFn: () => client(input),
+          queryFn: ({ signal }) => client(input, { signal }),
           ...options_,
         },
         context.queryClient,
@@ -217,8 +217,8 @@ export function createProcedureHooks<
             input,
             type: 'infinite',
           }),
-          queryFn: ({ pageParam }) =>
-            client({ ...(input as any), cursor: pageParam }),
+          queryFn: ({ pageParam, signal }) =>
+            client({ ...(input as any), cursor: pageParam }, { signal }),
           ...(rest as any),
         },
         context.queryClient,
@@ -231,7 +231,7 @@ export function createProcedureHooks<
       return usePrefetchQuery(
         {
           queryKey: getQueryKeyFromPath(options.path, { input, type: 'query' }),
-          queryFn: () => client(input),
+          queryFn: ({ signal }) => client(input, { signal }),
           ...options_,
         },
         context.queryClient,
@@ -247,8 +247,8 @@ export function createProcedureHooks<
             input,
             type: 'infinite',
           }),
-          queryFn: ({ pageParam }) =>
-            client({ ...(input as any), cursor: pageParam }),
+          queryFn: ({ pageParam, signal }) =>
+            client({ ...(input as any), cursor: pageParam }, { signal }),
           ...(rest as any),
         },
         context.queryClient,

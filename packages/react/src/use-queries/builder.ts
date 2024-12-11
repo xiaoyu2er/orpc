@@ -64,7 +64,7 @@ export function createUseQueriesBuilder<
   return (input, options_) => {
     return {
       queryKey: getQueryKeyFromPath(options.path, { input, type: 'query' }),
-      queryFn: () => options.client(input),
+      queryFn: ({ signal }) => options.client(input, { signal }),
       ...options_,
     }
   }

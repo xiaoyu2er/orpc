@@ -1,5 +1,5 @@
+export * from './function'
 export * from './hook'
-
 export * from './json'
 export * from './object'
 export * from './value'

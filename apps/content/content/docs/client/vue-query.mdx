@@ -1,0 +1,101 @@
+---
+title: Vue Query
+description: Simplify Vue Query usage with minimal integration using ORPC and TanStack Query
+---
+
+## Installation
+
+```package-install
+@orpc/client @orpc/vue-query @tanstack/vue-query
+```
+
+## Setup
+
+```ts twoslash
+import { createORPCVueQueryUtils } from '@orpc/vue-query';
+import { createORPCClient } from '@orpc/client';
+import type { router } from 'examples/server';
+
+// Create an ORPC client
+export const client = createORPCClient<typeof router>({
+  baseURL: 'http://localhost:3000/api',
+});
+
+// Create Vue Query utilities for ORPC
+export const orpc = createORPCVueQueryUtils(client);
+
+// @noErrors
+orpc.getting.
+//           ^|
+```
+
+## Multiple ORPC Instances
+
+To prevent conflicts when using multiple ORPC instances, you can provide a unique base path to `createORPCVueQueryUtils`.
+
+```tsx twoslash
+import { createORPCVueQueryUtils } from '@orpc/vue-query'
+
+// Create separate ORPC instances with unique base paths
+const userORPC = createORPCVueQueryUtils('fake-client' as any, ['__user-api__'])
+const postORPC = createORPCVueQueryUtils('fake-client' as any, ['__post-api__'])
+```
+
+This ensures that each instance manages its own set of query keys and avoids any conflicts.
+
+## Usage
+
+### Standard Queries and Mutations
+
+```ts twoslash
+import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
+import { orpc } from 'examples/vue-query'
+
+// Fetch data
+const { data: gettingData } = useQuery(orpc.getting.queryOptions({ input: { name: 'unnoq' } }))
+
+// Perform mutations
+const { mutate: postMutate } = useMutation(orpc.post.create.mutationOptions())
+
+// Invalidate queries
+const queryClient = useQueryClient()
+queryClient.invalidateQueries({ queryKey: orpc.key() }) // Invalidate all queries
+queryClient.invalidateQueries({ queryKey: orpc.post.find.key({ input: { id: 'example' } }) }) // Specific queries
+```
+
+> **Note**: This library enhances [TanStack Query](https://tanstack.com/query/latest) by managing query keys and functions for you, providing a seamless developer experience.
+
+
+## Infinite Queries
+
+Infinite queries require a `cursor` in the input field for pagination.
+
+```ts twoslash
+import { os } from '@orpc/server';
+import { z } from 'zod';
+import { createORPCVueQueryUtils } from '@orpc/vue-query';
+import { useInfiniteQuery } from '@tanstack/vue-query';
+
+const router = {
+  user: {
+    list: os
+      .input(z.object({ cursor: z.number(), limit: z.number() }))
+      .func((input) => ({
+        nextCursor: input.cursor + input.limit,
+        users: [], // Fetch your actual data here
+      })),
+  },
+};
+
+const orpc = createORPCVueQueryUtils<typeof router>('fake-client' as any);
+
+const query = useInfiniteQuery(
+  orpc.user.list.infiniteOptions({
+    input: { limit: 10 },
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    initialPageParam: 0,
+  })
+);
+
+console.log(query.data.value);
+```

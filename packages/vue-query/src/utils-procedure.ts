@@ -36,7 +36,7 @@ export function createProcedureUtils<TInput, TOutput>(
 
       return {
         queryKey: buildKey(path, { type: 'query', input }),
-        queryFn: () => client(deepUnref(input)),
+        queryFn: ({ signal }) => client(deepUnref(input), { signal }),
         ...(options as any),
       }
     },
@@ -46,7 +46,7 @@ export function createProcedureUtils<TInput, TOutput>(
 
       return {
         queryKey: buildKey(path, { type: 'infinite', input }),
-        queryFn: ({ pageParam }) => client({ ...deepUnref(input), cursor: pageParam }),
+        queryFn: ({ pageParam, signal }) => client({ ...deepUnref(input), cursor: pageParam }, { signal }),
         ...(options as any),
       }
     },

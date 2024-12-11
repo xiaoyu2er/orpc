@@ -236,4 +236,25 @@ describe('createProcedureCaller', () => {
     expect(onFinish).toBeCalledTimes(1)
     expect(onFinish).toBeCalledWith({ input: 123, error: error2, status: 'error' }, context, meta2)
   })
+
+  it('abort signal', async () => {
+    const controller = new AbortController()
+    const signal = controller.signal
+
+    const procedure = os
+      .use(async (_, __, meta) => {
+        expect(meta.signal).toBe(signal)
+
+        return meta.next({})
+      })
+      .func((_, __, meta) => {
+        expect(meta.signal).toBe(signal)
+      })
+
+    const caller = createProcedureCaller({
+      procedure,
+    })
+
+    await caller(undefined, { signal })
+  })
 })

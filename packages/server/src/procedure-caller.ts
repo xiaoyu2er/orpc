@@ -3,7 +3,7 @@ import type { Hooks, PartialOnUndefinedDeep, Value } from '@orpc/shared'
 import type { Lazy } from './lazy'
 import type { MiddlewareMeta } from './middleware'
 import type { ANY_LAZY_PROCEDURE, ANY_PROCEDURE, Procedure } from './procedure'
-import type { Context } from './types'
+import type { Caller, Context, Meta } from './types'
 import { executeWithHooks, trim, value } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
 import { isLazy, loadLazy } from './lazy'
@@ -36,11 +36,7 @@ export type ProcedureCaller<
 > = TProcedure extends
 | Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput >
 | Lazy<Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput >>
-  ? (
-      ...input: [input: SchemaInput<UInputSchema>] | (undefined extends SchemaInput<UInputSchema> ? [] : never)
-    ) => Promise<
-      SchemaOutput<UOutputSchema, UFuncOutput>
-    >
+  ? Caller<SchemaInput<UInputSchema>, SchemaOutput<UOutputSchema, UFuncOutput>>
   : never
 
 export function createProcedureCaller<
@@ -48,7 +44,9 @@ export function createProcedureCaller<
 >(
   options: CreateProcedureCallerOptions<TProcedure>,
 ): ProcedureCaller<TProcedure> {
-  const caller = async (input: unknown): Promise<unknown> => {
+  const caller: Caller<unknown, unknown> = async (...args) => {
+    const [input, callerOptions] = args
+
     const path = options.path ?? []
     const procedure = await loadProcedure(options.procedure)
     const context = await value(options.context)
@@ -72,6 +70,12 @@ export function createProcedureCaller<
         }
       })()
 
+      const meta: Meta = {
+        path,
+        procedure,
+        signal: callerOptions?.signal,
+      }
+
       const middlewares = procedure.zz$p.middlewares ?? []
       let currentMidIndex = 0
       let currentContext: Context = context
@@ -83,18 +87,14 @@ export function createProcedureCaller<
 
         if (mid) {
           return await mid(validInput, currentContext, {
-            path,
-            procedure,
+            ...meta,
             next,
             output: output => ({ output, context: undefined }),
           })
         }
         else {
           return {
-            output: await await procedure.zz$p.func(validInput, currentContext, {
-              path,
-              procedure,
-            }),
+            output: await await procedure.zz$p.func(validInput, currentContext, meta),
             context: currentContext,
           }
         }
@@ -136,7 +136,7 @@ export function createProcedureCaller<
     return output
   }
 
-  return caller as ProcedureCaller<TProcedure>
+  return caller as any
 }
 
 export async function loadProcedure(procedure: ANY_PROCEDURE | ANY_LAZY_PROCEDURE): Promise<ANY_PROCEDURE> {

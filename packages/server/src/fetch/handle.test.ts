@@ -637,3 +637,34 @@ it('hooks', async () => {
   expect(onError).toHaveBeenCalledTimes(1)
   expect(onError).toBeCalledWith({ input: errorRequest, error: expect.any(Error), status: 'error' }, context, undefined)
 })
+
+it('abort signal', async () => {
+  const controller = new AbortController()
+  const signal = controller.signal
+
+  const func = vi.fn()
+  const onSuccess = vi.fn()
+
+  const ping = os.func(func)
+
+  const response = await handleFetchRequest({
+    router: { ping },
+    request: new Request('http://localhost/ping', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ value: '123' }),
+    }),
+    signal,
+    onSuccess,
+    handlers: [createOpenAPIServerHandler()],
+  })
+
+  expect(response?.status).toEqual(200)
+
+  expect(func).toBeCalledTimes(1)
+  expect(func.mock.calls[0]![2].signal).toBe(signal)
+  expect(onSuccess).toBeCalledTimes(1)
+  expect(func.mock.calls[0]![2].signal).toBe(signal)
+})

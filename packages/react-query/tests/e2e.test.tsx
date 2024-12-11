@@ -1,4 +1,4 @@
-import { useInfiniteQuery, useMutation, useQuery, useSuspenseInfiniteQuery, useSuspenseQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQueries, useQuery, useSuspenseInfiniteQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { renderHook } from '@testing-library/react'
 import { orpc, queryClient } from './helpers'
 
@@ -85,5 +85,37 @@ describe('useSuspenseInfiniteQuery', () => {
     result.current.fetchNextPage()
 
     await vi.waitFor(() => expect(result.current.data?.pages.length).toEqual(2))
+  })
+})
+
+describe('useQueries', () => {
+  it('works - onSuccess', async () => {
+    const { result } = renderHook(() => useQueries({
+      queries: [
+        orpc.user.find.queryOptions({
+          queryKey: [''],
+          input: { id: '0' },
+        }),
+        orpc.user.list.queryOptions({
+          input: {},
+        }),
+      ],
+      combine([user, users]) {
+        return [user, users] as const
+      },
+    }, queryClient))
+
+    await vi.waitFor(() => expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(2))
+    await vi.waitFor(() => expect(result.current[0].status).toEqual('success'))
+    await vi.waitFor(() => expect(result.current[1].status).toEqual('success'))
+
+    expect(result.current[0].data).toEqual({ id: '0', name: 'name-0' })
+    expect(result.current[1].data).toEqual({
+      users: [
+        { id: 'id-0', name: 'number-0' },
+        { id: 'id-1', name: 'number-1' },
+      ],
+      nextCursor: 2,
+    })
   })
 })

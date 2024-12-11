@@ -1,4 +1,4 @@
-import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/vue-query'
+import { useInfiniteQuery, useMutation, useQueries, useQuery } from '@tanstack/vue-query'
 import { ref } from 'vue'
 import { orpc, queryClient } from './helpers'
 
@@ -91,5 +91,32 @@ describe('useMutation', () => {
     expect(queryClient.isMutating({ mutationKey: orpc.ping.key({ type: 'mutation' }) })).toEqual(1)
 
     await vi.waitFor(() => expect(query.data.value).toEqual('pong'))
+  })
+})
+
+describe('useQueries', () => {
+  it('works - onSuccess', async () => {
+    const query = useQueries({
+      queries: [
+        orpc.user.find.queryOptions({
+          input: { id: '0' },
+        }),
+        orpc.user.list.queryOptions({
+          input: {},
+        }),
+      ],
+    }, queryClient)
+
+    await vi.waitFor(() => expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(2))
+    await vi.waitFor(() => expect(query.value[0].status).toEqual('success'))
+    await vi.waitFor(() => expect(query.value[1].status).toEqual('success'))
+
+    expect(query.value[0].data).toEqual({ id: '0', name: 'name-0' })
+    expect(query.value[1].data).toEqual({
+      users: [
+        { id: 'id-0', name: 'number-undefined' },
+      ],
+      nextCursor: 2,
+    })
   })
 })

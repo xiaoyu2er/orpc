@@ -236,8 +236,14 @@ export function zodToJsonSchema(
           case 'ip':
             json.format = Format.IPv4
             break
+          case 'jwt':
+            json.pattern = '^[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]*$'
+            break
+          case 'base64url':
+            json.pattern = '^([0-9a-zA-Z-_]{4})*(([0-9a-zA-Z-_]{2}(==)?)|([0-9a-zA-Z-_]{3}(=)?))?$'
+            break
           default: {
-            const _expect: 'toLowerCase' | 'toUpperCase' | 'trim' = check.kind
+            const _expect: 'toLowerCase' | 'toUpperCase' | 'trim' | 'cidr' = check.kind
           }
         }
       }

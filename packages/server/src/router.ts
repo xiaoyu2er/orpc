@@ -55,7 +55,7 @@ export type RouterWithContract<
   >
     ? Procedure<TContext, any, UInputSchema, UOutputSchema, any> | Lazy<Procedure<TContext, any, UInputSchema, UOutputSchema, any>>
     : TContract[K] extends ContractRouter
-      ? RouterWithContract<TContext, TContract[K]> | Lazy<RouterWithContract<TContext, TContract[K]>>
+      ? RouterWithContract<TContext, TContract[K]>
       : never
 }
 

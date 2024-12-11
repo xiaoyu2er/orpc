@@ -14,8 +14,7 @@ export type RouterClient<T extends Router<any> | ContractRouter> = {
   | ContractProcedure<infer UInputSchema, infer UOutputSchema>
   | Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
   | Lazy<Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>>
-    ?
-    & Caller<SchemaInput<UInputSchema>, SchemaOutput<UOutputSchema, UFuncOutput>>
+    ? Caller<SchemaInput<UInputSchema>, SchemaOutput<UOutputSchema, UFuncOutput>>
     : T[K] extends Router<any> | ContractRouter
       ? RouterClient<T[K]>
       : never

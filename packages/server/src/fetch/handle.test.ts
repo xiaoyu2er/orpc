@@ -609,7 +609,7 @@ it('hooks', async () => {
 
   expect(response.status).toEqual(200)
   expect(onSuccess).toHaveBeenCalledTimes(1)
-  expect(onSuccess).toBeCalledWith({ input: request, output: response, status: 'success' }, context, undefined)
+  expect(onSuccess).toBeCalledWith({ input: request, output: response, status: 'success' }, context, {})
   expect(onError).toHaveBeenCalledTimes(0)
 
   onSuccess.mockClear()
@@ -635,7 +635,7 @@ it('hooks', async () => {
   expect(errorResponse.status).toEqual(400)
   expect(onSuccess).toHaveBeenCalledTimes(0)
   expect(onError).toHaveBeenCalledTimes(1)
-  expect(onError).toBeCalledWith({ input: errorRequest, error: expect.any(Error), status: 'error' }, context, undefined)
+  expect(onError).toBeCalledWith({ input: errorRequest, error: expect.any(Error), status: 'error' }, context, {})
 })
 
 it('abort signal', async () => {

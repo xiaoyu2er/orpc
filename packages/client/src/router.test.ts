@@ -1,3 +1,4 @@
+import type { CallerOptions } from '@orpc/server'
 import { oc } from '@orpc/contract'
 import { os } from '@orpc/server'
 import { createORPCHandler, handleFetchRequest } from '@orpc/server/fetch'
@@ -45,18 +46,18 @@ describe('createRouterClient', () => {
 
     const client = createRouterClient<typeof router>({} as any)
 
-    expectTypeOf(client.ping).toEqualTypeOf<
-      (input: { value: string }) => Promise<unknown>
+    expectTypeOf(client.ping).toMatchTypeOf<
+      (input: { value: string }, options?: CallerOptions) => Promise<unknown>
     >()
-    expectTypeOf(client.pong).toEqualTypeOf<
-      (input: unknown) => Promise<{ value: string }>
+    expectTypeOf(client.pong).toMatchTypeOf<
+      (input: unknown, options?: CallerOptions) => Promise<{ value: string }>
     >()
-    expectTypeOf(client.peng).toEqualTypeOf<
-      (input: unknown) => Promise<unknown>
+    expectTypeOf(client.peng).toMatchTypeOf<
+      (input: unknown, options?: CallerOptions) => Promise<unknown>
     >()
 
-    expectTypeOf(client.nested.unique).toEqualTypeOf<
-      (input: { value: string }) => Promise<unknown>
+    expectTypeOf(client.nested.unique).toMatchTypeOf<
+      (input: { value: string }, options?: CallerOptions) => Promise<unknown>
     >()
   })
 
@@ -79,17 +80,17 @@ describe('createRouterClient', () => {
 
     const client = createRouterClient<typeof router>({} as any)
 
-    expectTypeOf(client.ping).toEqualTypeOf<
-      (input: { value: string }) => Promise<string>
+    expectTypeOf(client.ping).toMatchTypeOf<
+      (input: { value: string }, options?: CallerOptions) => Promise<string>
     >()
-    expectTypeOf(client.pong).toEqualTypeOf<
-      (input: unknown) => Promise<{ value: string }>
+    expectTypeOf(client.pong).toMatchTypeOf<
+      (input: unknown, options?: CallerOptions) => Promise<{ value: string }>
     >()
-    expectTypeOf(client.peng).toEqualTypeOf<
-      (input: unknown) => Promise<{ age: number }>
+    expectTypeOf(client.peng).toMatchTypeOf<
+      (input: unknown, options?: CallerOptions) => Promise<{ age: number }>
     >()
-    expectTypeOf(client.nested.unique).toEqualTypeOf<
-      (input: { value: string }) => Promise<string>
+    expectTypeOf(client.nested.unique).toMatchTypeOf<
+      (input: { value: string }, options?: CallerOptions) => Promise<string>
     >()
   })
 

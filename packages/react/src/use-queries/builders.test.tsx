@@ -15,7 +15,7 @@ it('createUseQueriesBuilders', async () => {
 
   expect(e1.queryKey).toEqual(a1.queryKey)
 
-  expect(await (e1 as any).queryFn()).toEqual(await (a1 as any).queryFn())
+  expect(await (e1 as any).queryFn({})).toEqual(await (a1 as any).queryFn({}))
 
   const e2 = builder.user.list({})
   const a2 = createUseQueriesBuilder({
@@ -25,5 +25,5 @@ it('createUseQueriesBuilders', async () => {
 
   expect(e2.queryKey).toEqual(a2.queryKey)
 
-  expect(await (e2 as any).queryFn()).toEqual(await (a2 as any).queryFn())
+  expect(await (e2 as any).queryFn({})).toEqual(await (a2 as any).queryFn({}))
 })

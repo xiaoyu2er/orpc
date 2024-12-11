@@ -609,7 +609,7 @@ it('hooks', async () => {
 
   expect(response.status).toEqual(200)
   expect(onSuccess).toHaveBeenCalledTimes(1)
-  expect(onSuccess).toBeCalledWith({ input: request, output: response, status: 'success' }, context, undefined)
+  expect(onSuccess).toBeCalledWith({ input: request, output: response, status: 'success' }, context, {})
   expect(onError).toHaveBeenCalledTimes(0)
 
   onSuccess.mockClear()
@@ -635,5 +635,36 @@ it('hooks', async () => {
   expect(errorResponse.status).toEqual(400)
   expect(onSuccess).toHaveBeenCalledTimes(0)
   expect(onError).toHaveBeenCalledTimes(1)
-  expect(onError).toBeCalledWith({ input: errorRequest, error: expect.any(Error), status: 'error' }, context, undefined)
+  expect(onError).toBeCalledWith({ input: errorRequest, error: expect.any(Error), status: 'error' }, context, {})
+})
+
+it('abort signal', async () => {
+  const controller = new AbortController()
+  const signal = controller.signal
+
+  const func = vi.fn()
+  const onSuccess = vi.fn()
+
+  const ping = os.func(func)
+
+  const response = await handleFetchRequest({
+    router: { ping },
+    request: new Request('http://localhost/ping', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ value: '123' }),
+    }),
+    signal,
+    onSuccess,
+    handlers: [createOpenAPIServerHandler()],
+  })
+
+  expect(response?.status).toEqual(200)
+
+  expect(func).toBeCalledTimes(1)
+  expect(func.mock.calls[0]![2].signal).toBe(signal)
+  expect(onSuccess).toBeCalledTimes(1)
+  expect(func.mock.calls[0]![2].signal).toBe(signal)
 })

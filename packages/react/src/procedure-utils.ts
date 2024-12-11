@@ -1,5 +1,5 @@
-import type { ProcedureClient } from '@orpc/client'
 import type { Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { Caller } from '@orpc/server'
 import type { PartialOnUndefinedDeep, SetOptional } from '@orpc/shared'
 import type {
   DefaultError,
@@ -164,7 +164,7 @@ export interface CreateProcedureUtilsOptions<
   TFuncOutput extends
   SchemaOutput<TOutputSchema> = SchemaOutput<TOutputSchema>,
 > {
-  client: ProcedureClient<TInputSchema, TOutputSchema, TFuncOutput>
+  client: Caller<SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, TFuncOutput>>
   queryClient: QueryClient
 
   /**
@@ -188,7 +188,7 @@ export function createProcedureUtils<
     fetchQuery(input, options_) {
       return options.queryClient.fetchQuery({
         queryKey: getQueryKeyFromPath(options.path, { input, type: 'query' }),
-        queryFn: () => options.client(input),
+        queryFn: ({ signal }) => options.client(input, { signal }),
         ...options_,
       })
     },
@@ -199,8 +199,8 @@ export function createProcedureUtils<
           input,
           type: 'infinite',
         }),
-        queryFn: ({ pageParam }) => {
-          return options.client({ ...(input as any), pageParam } as any)
+        queryFn: ({ pageParam, signal }) => {
+          return options.client({ ...(input as any), pageParam } as any, { signal })
         },
         ...(rest as any),
       })
@@ -212,7 +212,7 @@ export function createProcedureUtils<
           input,
           type: 'query',
         }),
-        queryFn: () => options.client(input),
+        queryFn: ({ signal }) => options.client(input, { signal }),
         ...options_,
       })
     },
@@ -223,8 +223,8 @@ export function createProcedureUtils<
           input,
           type: 'infinite',
         }),
-        queryFn: ({ pageParam }) => {
-          return options.client({ ...(input as any), cursor: pageParam } as any)
+        queryFn: ({ pageParam, signal }) => {
+          return options.client({ ...(input as any), cursor: pageParam } as any, { signal })
         },
         ...(rest as any),
       })
@@ -253,7 +253,7 @@ export function createProcedureUtils<
           input,
           type: 'query',
         }),
-        queryFn: () => options.client(input),
+        queryFn: ({ signal }) => options.client(input, { signal }),
         ...options_,
       })
     },
@@ -264,8 +264,8 @@ export function createProcedureUtils<
           input,
           type: 'infinite',
         }),
-        queryFn: ({ pageParam }) => {
-          return options.client({ ...(input as any), pageParam } as any)
+        queryFn: ({ pageParam, signal }) => {
+          return options.client({ ...(input as any), pageParam } as any, { signal })
         },
         ...(rest as any),
       })

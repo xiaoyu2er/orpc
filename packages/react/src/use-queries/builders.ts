@@ -1,7 +1,4 @@
-import type {
-  RouterClientWithContractRouter,
-  RouterClientWithRouter,
-} from '@orpc/client'
+import type { RouterClient } from '@orpc/client'
 import type {
   ContractProcedure,
   ContractRouter,
@@ -45,11 +42,7 @@ export type UseQueriesBuildersWithRouter<TRouter extends Router<any>> = {
 export interface CreateUseQueriesBuildersOptions<
   TRouter extends Router<any> | ContractRouter,
 > {
-  client: TRouter extends Router<any>
-    ? RouterClientWithRouter<TRouter>
-    : TRouter extends ContractRouter
-      ? RouterClientWithContractRouter<TRouter>
-      : never
+  client: RouterClient<TRouter>
 
   /**
    * The path of router on server

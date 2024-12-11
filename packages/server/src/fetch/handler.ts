@@ -38,7 +38,7 @@ export function createORPCHandler(): FetchHandler {
         path: match.path,
       })
 
-      const output = await caller(input)
+      const output = await caller(input, { signal: options.signal })
 
       const { body, headers } = serializer.serialize(output)
 
@@ -54,7 +54,9 @@ export function createORPCHandler(): FetchHandler {
         context: context as any,
         execute: handler,
         input: options.request,
-        meta: undefined,
+        meta: {
+          signal: options.signal,
+        },
       })
     }
     catch (e) {

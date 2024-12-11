@@ -72,7 +72,7 @@ export function createOpenAPIHandler(createHonoRouter: () => Routing): FetchHand
         path,
       })
 
-      const output = await caller(mergedInput)
+      const output = await caller(mergedInput, { signal: options.signal })
 
       const { body, headers } = serializer.serialize(output)
 
@@ -88,7 +88,9 @@ export function createOpenAPIHandler(createHonoRouter: () => Routing): FetchHand
         hooks: options,
         execute: handler,
         input: options.request,
-        meta: undefined,
+        meta: {
+          signal: options.signal,
+        },
       })
     }
     catch (e) {

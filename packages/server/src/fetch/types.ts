@@ -2,6 +2,7 @@
 
 import type { Hooks, PartialOnUndefinedDeep, Value } from '@orpc/shared'
 import type { Router } from '../router'
+import type { CallerOptions } from '../types'
 
 export type FetchHandlerOptions<
   TRouter extends Router<any>,
@@ -31,7 +32,9 @@ export type FetchHandlerOptions<
   context: Value<
     TRouter extends Router<infer UContext> ? UContext : never
   >
-}> & Hooks<Request, Response, TRouter extends Router<infer UContext> ? UContext : never, undefined>
+}>
+& CallerOptions
+& Hooks<Request, Response, TRouter extends Router<infer UContext> ? UContext : never, CallerOptions>
 
 export type FetchHandler = <TRouter extends Router<any>>(
   options: FetchHandlerOptions<TRouter>

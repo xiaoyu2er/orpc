@@ -1,3 +1,5 @@
+import type { SchemaOutput } from '@orpc/contract'
+import type { UserFindInputSchema, UserListInputSchema, UserListOutputSchema, UserSchema } from '../tests/orpc'
 import { orpcClient, queryClient } from '../tests/orpc'
 import { createProcedureUtils } from './procedure-utils'
 
@@ -6,7 +8,7 @@ beforeEach(() => {
 })
 
 describe('fetchQuery', () => {
-  const utils = createProcedureUtils({
+  const utils = createProcedureUtils<typeof UserFindInputSchema, typeof UserSchema, SchemaOutput<typeof UserSchema>>({
     client: orpcClient.user.find,
     path: ['user', 'find'],
     queryClient,
@@ -37,7 +39,7 @@ describe('fetchQuery', () => {
 })
 
 describe('fetchInfiniteQuery', () => {
-  const utils = createProcedureUtils({
+  const utils = createProcedureUtils<typeof UserListInputSchema, typeof UserListOutputSchema, SchemaOutput<typeof UserListOutputSchema>>({
     client: orpcClient.user.list,
     path: ['user', 'list'],
     queryClient,
@@ -73,7 +75,7 @@ describe('fetchInfiniteQuery', () => {
 })
 
 describe('prefetchQuery', () => {
-  const utils = createProcedureUtils({
+  const utils = createProcedureUtils<typeof UserFindInputSchema, typeof UserSchema, SchemaOutput<typeof UserSchema>>({
     client: orpcClient.user.find,
     path: ['user', 'find'],
     queryClient,
@@ -141,7 +143,7 @@ describe('prefetchInfiniteQuery', () => {
 })
 
 describe('ensureQueryData', () => {
-  const utils = createProcedureUtils({
+  const utils = createProcedureUtils<typeof UserFindInputSchema, typeof UserSchema, SchemaOutput<typeof UserSchema>>({
     client: orpcClient.user.find,
     path: ['user', 'find'],
     queryClient,
@@ -172,7 +174,7 @@ describe('ensureQueryData', () => {
 })
 
 describe('ensureInfiniteQuery', () => {
-  const utils = createProcedureUtils({
+  const utils = createProcedureUtils<typeof UserListInputSchema, typeof UserListOutputSchema, SchemaOutput<typeof UserListOutputSchema>>({
     client: orpcClient.user.list,
     path: ['user', 'list'],
     queryClient,
@@ -270,7 +272,7 @@ describe('getInfiniteQueryState', () => {
 })
 
 describe('setQueryData', () => {
-  const utils = createProcedureUtils({
+  const utils = createProcedureUtils<typeof UserFindInputSchema, typeof UserSchema, SchemaOutput<typeof UserSchema>>({
     client: orpcClient.user.find,
     path: ['user', 'find'],
     queryClient,

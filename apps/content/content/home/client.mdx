@@ -1,4 +1,4 @@
-<Tabs items={['Client', 'React', 'CURL']}>
+<Tabs items={['Client', 'React', 'React Query', 'Vue Query', 'CURL']}>
 <Tab value="Client">
 ```ts twoslash
 import { createORPCClient, ORPCError } from '@orpc/client'
@@ -131,6 +131,80 @@ export function ORPCProvider({ children }: { children: React.ReactNode }) {
         </QueryClientProvider>
     )
 }
+
+
+```
+</Tab>
+
+<Tab value="React Query">
+```ts twoslash
+import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
+import { orpc } from 'examples/react-query'
+
+// Fetch data
+const { data: gettingData } = useQuery(orpc.getting.queryOptions({ input: { name: 'unnoq' } }))
+
+// Use suspense query
+const { data: postData } = useSuspenseQuery(
+  orpc.post.find.queryOptions({ input: { id: 'example' } }),
+)
+
+// Perform mutations
+const { mutate: postMutate } = useMutation(orpc.post.create.mutationOptions())
+
+// Invalidate queries
+const queryClient = useQueryClient()
+queryClient.invalidateQueries({ queryKey: orpc.key() }) // Invalidate all queries
+queryClient.invalidateQueries({ queryKey: orpc.post.find.key({ input: { id: 'example' } }) }) // Specific queries
+
+// @noErrors
+orpc.getting.
+//           ^|
+
+
+
+
+
+
+
+
+
+
+
+```
+</Tab>
+
+<Tab value="Vue Query">
+```ts twoslash
+import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
+import { orpc } from 'examples/vue-query'
+
+// Fetch data
+const { data: gettingData } = useQuery(orpc.getting.queryOptions({ input: { name: 'unnoq' } }))
+
+// Perform mutations
+const { mutate: postMutate } = useMutation(orpc.post.create.mutationOptions())
+
+// Invalidate queries
+const queryClient = useQueryClient()
+queryClient.invalidateQueries({ queryKey: orpc.key() }) // Invalidate all queries
+queryClient.invalidateQueries({ queryKey: orpc.post.find.key({ input: { id: 'example' } }) }) // Specific queries
+
+// @noErrors
+orpc.getting.
+//           ^|
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ```

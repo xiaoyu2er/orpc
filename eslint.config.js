@@ -14,6 +14,7 @@ export default antfu({
   rules: {
     'unused-imports/no-unused-vars': 'off',
     'antfu/no-top-level-await': 'off',
+    'react-hooks/rules-of-hooks': 'off',
   },
 }, {
   files: ['apps/content/examples/**'],

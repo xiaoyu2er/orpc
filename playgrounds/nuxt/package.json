@@ -1,0 +1,25 @@
+{
+  "name": "nuxt-app",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@orpc/client": "latest",
+    "@orpc/openapi": "latest",
+    "@orpc/server": "latest",
+    "@orpc/vue-query": "latest",
+    "@orpc/zod": "latest",
+    "@tanstack/vue-query": "^5.62.7",
+    "@whatwg-node/server": "^0.9.55",
+    "nuxt": "^3.14.1592",
+    "vue": "latest",
+    "vue-router": "latest",
+    "zod": "^3.24.1"
+  }
+}

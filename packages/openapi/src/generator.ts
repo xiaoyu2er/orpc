@@ -1,4 +1,5 @@
 import type { JSONSchema } from 'json-schema-typed/draft-2020-12'
+import type { ZodTypeAny } from 'zod'
 import type { EachLeafOptions } from './utils'
 import { type ContractRouter, isContractProcedure } from '@orpc/contract'
 import { LAZY_LOADER_SYMBOL, type Router } from '@orpc/server'
@@ -79,11 +80,18 @@ export async function generateOpenAPI(
       const httpPath = internal.path ?? `/${path.map(encodeURIComponent).join('/')}`
       const method = internal.method ?? 'POST'
 
+      if (
+        (internal.InputSchema && internal.InputSchema['~standard'].vendor !== 'zod')
+        || (internal.OutputSchema && internal.OutputSchema['~standard'].vendor !== 'zod')
+      ) {
+        throw new Error('@orpc/openapi only support zod schema for now')
+      }
+
       let inputSchema = internal.InputSchema
-        ? zodToJsonSchema(internal.InputSchema, { mode: 'input' })
+        ? zodToJsonSchema(internal.InputSchema as ZodTypeAny, { mode: 'input' })
         : {}
       const outputSchema = internal.OutputSchema
-        ? zodToJsonSchema(internal.OutputSchema, { mode: 'output' })
+        ? zodToJsonSchema(internal.OutputSchema as ZodTypeAny, { mode: 'output' })
         : {}
 
       const params: ParameterObject[] | undefined = (() => {
@@ -171,7 +179,7 @@ export async function generateOpenAPI(
               in: 'path',
               required: true,
               schema: schema as any,
-              example: internal.inputExample?.[name],
+              example: (internal.inputExample as any)?.[name],
             }
           })
       })()
@@ -212,7 +220,7 @@ export async function generateOpenAPI(
               style: 'deepObject',
               required: inputSchema?.required?.includes(name) ?? false,
               schema: schema_ as any,
-              example: internal.inputExample?.[name],
+              example: (internal.inputExample as any)?.[name],
             }
           },
         )
@@ -263,12 +271,12 @@ export async function generateOpenAPI(
             isStillHasFileSchema ? 'multipart/form-data' : 'application/json'
           ] = {
             schema: schema as any,
-            example: internal.inputExample,
+            example: (internal.inputExample as any),
           }
         }
 
         return {
-          required: Boolean(internal.InputSchema?.isOptional()),
+          required: Boolean((internal.InputSchema as ZodTypeAny)?.isOptional()),
           content,
         }
       })()

@@ -227,6 +227,9 @@ importers:
       '@orpc/zod':
         specifier: workspace:*
         version: link:../zod
+      '@standard-schema/spec':
+        specifier: 1.0.0-beta.4
+        version: 1.0.0-beta.4
       escape-string-regexp:
         specifier: ^5.0.0
         version: 5.0.0

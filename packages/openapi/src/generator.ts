@@ -1,5 +1,4 @@
 import type { JSONSchema } from 'json-schema-typed/draft-2020-12'
-import type { ZodTypeAny } from 'zod'
 import type { EachLeafOptions } from './utils'
 import { type ContractRouter, isContractProcedure } from '@orpc/contract'
 import { LAZY_LOADER_SYMBOL, type Router } from '@orpc/server'
@@ -80,18 +79,11 @@ export async function generateOpenAPI(
       const httpPath = internal.path ?? `/${path.map(encodeURIComponent).join('/')}`
       const method = internal.method ?? 'POST'
 
-      if (
-        (internal.InputSchema && internal.InputSchema['~standard'].vendor !== 'zod')
-        || (internal.OutputSchema && internal.OutputSchema['~standard'].vendor !== 'zod')
-      ) {
-        throw new Error('@orpc/openapi only support zod schema for now')
-      }
-
       let inputSchema = internal.InputSchema
-        ? zodToJsonSchema(internal.InputSchema as ZodTypeAny, { mode: 'input' })
+        ? zodToJsonSchema(internal.InputSchema, { mode: 'input' })
         : {}
       const outputSchema = internal.OutputSchema
-        ? zodToJsonSchema(internal.OutputSchema as ZodTypeAny, { mode: 'output' })
+        ? zodToJsonSchema(internal.OutputSchema, { mode: 'output' })
         : {}
 
       const params: ParameterObject[] | undefined = (() => {
@@ -276,7 +268,13 @@ export async function generateOpenAPI(
         }
 
         return {
-          required: Boolean((internal.InputSchema as ZodTypeAny)?.isOptional()),
+          required: Boolean(
+            internal.InputSchema
+            && 'isOptional' in internal.InputSchema
+            && typeof internal.InputSchema.isOptional === 'function'
+              ? internal.InputSchema.isOptional()
+              : false,
+          ),
           content,
         }
       })()

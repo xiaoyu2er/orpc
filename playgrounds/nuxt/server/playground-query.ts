@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/vue-query'
-import { orpc } from './lib/orpc'
+import { orpc } from '../lib/orpc'
 
 const query = useQuery(orpc.planet.find.queryOptions({
   input: { id: 1 },

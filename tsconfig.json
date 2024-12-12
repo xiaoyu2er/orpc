@@ -29,5 +29,8 @@
     "*/*/scripts",
     "*/*/tests",
     "*/*/*"
+  ],
+  "exclude": [
+    "playgrounds/**"
   ]
 }

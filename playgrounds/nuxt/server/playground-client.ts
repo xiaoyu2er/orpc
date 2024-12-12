@@ -1,4 +1,4 @@
-import { client } from './lib/orpc'
+import { client } from '../lib/orpc'
 
 const planets = await client.planet.list({})
 

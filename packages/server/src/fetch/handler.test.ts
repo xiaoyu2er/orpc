@@ -1,4 +1,4 @@
-import { ORPC_HEADER, ORPC_HEADER_VALUE } from '@orpc/contract'
+import { ORPC_PROTOCOL_HEADER, ORPC_PROTOCOL_VALUE } from '@orpc/shared'
 import { z } from 'zod'
 import { os } from '..'
 import { createORPCHandler } from './handler'
@@ -31,7 +31,7 @@ describe('oRPCHandler', () => {
       request: new Request('http://localhost/ping', {
         method: 'POST',
         headers: {
-          [ORPC_HEADER]: ORPC_HEADER_VALUE,
+          [ORPC_PROTOCOL_HEADER]: ORPC_PROTOCOL_VALUE,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ data: { value: '123' }, meta: [] }),
@@ -48,7 +48,7 @@ describe('oRPCHandler', () => {
       request: new Request('http://localhost/lazyRouter/ping', {
         method: 'POST',
         headers: {
-          [ORPC_HEADER]: ORPC_HEADER_VALUE,
+          [ORPC_PROTOCOL_HEADER]: ORPC_PROTOCOL_VALUE,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ data: { value: '123' }, meta: [] }),
@@ -65,7 +65,7 @@ describe('oRPCHandler', () => {
       request: new Request('http://localhost/lazyRouter/lazyRouter/ping', {
         method: 'POST',
         headers: {
-          [ORPC_HEADER]: ORPC_HEADER_VALUE,
+          [ORPC_PROTOCOL_HEADER]: ORPC_PROTOCOL_VALUE,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ data: { value: '123' }, meta: [] }),
@@ -82,7 +82,7 @@ describe('oRPCHandler', () => {
       request: new Request('http://localhost/pingp', {
         method: 'POST',
         headers: {
-          [ORPC_HEADER]: ORPC_HEADER_VALUE,
+          [ORPC_PROTOCOL_HEADER]: ORPC_PROTOCOL_VALUE,
         },
         body: JSON.stringify({ data: { value: '123' }, meta: [] }),
       }),
@@ -98,7 +98,7 @@ describe('oRPCHandler', () => {
       request: new Request('http://localhost/lazyRouter/not_found', {
         method: 'POST',
         headers: {
-          [ORPC_HEADER]: ORPC_HEADER_VALUE,
+          [ORPC_PROTOCOL_HEADER]: ORPC_PROTOCOL_VALUE,
         },
         body: JSON.stringify({ data: { value: '123' }, meta: [] }),
       }),
@@ -114,7 +114,7 @@ describe('oRPCHandler', () => {
       request: new Request('http://localhost/ping', {
         method: 'POST',
         headers: {
-          [ORPC_HEADER]: ORPC_HEADER_VALUE,
+          [ORPC_PROTOCOL_HEADER]: ORPC_PROTOCOL_VALUE,
         },
         body: JSON.stringify({ data: { value: 123 }, meta: [] }),
       }),
@@ -148,7 +148,7 @@ describe('oRPCHandler', () => {
       request: new Request('http://localhost/lazyRouter/ping', {
         method: 'POST',
         headers: {
-          [ORPC_HEADER]: ORPC_HEADER_VALUE,
+          [ORPC_PROTOCOL_HEADER]: ORPC_PROTOCOL_VALUE,
         },
         body: JSON.stringify({ data: { value: 123 }, meta: [] }),
       }),
@@ -182,7 +182,7 @@ describe('oRPCHandler', () => {
       request: new Request('http://localhost/lazyRouter/lazyRouter/ping', {
         method: 'POST',
         headers: {
-          [ORPC_HEADER]: ORPC_HEADER_VALUE,
+          [ORPC_PROTOCOL_HEADER]: ORPC_PROTOCOL_VALUE,
         },
         body: JSON.stringify({ data: { value: 123 }, meta: [] }),
       }),
@@ -224,7 +224,7 @@ describe('oRPCHandler', () => {
       request: new Request('http://localhost/ping', {
         method: 'POST',
         headers: {
-          [ORPC_HEADER]: ORPC_HEADER_VALUE,
+          [ORPC_PROTOCOL_HEADER]: ORPC_PROTOCOL_VALUE,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ data: { value: '123' }, meta: [] }),

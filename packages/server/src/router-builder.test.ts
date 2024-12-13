@@ -44,10 +44,10 @@ describe('prefix', () => {
         lazy: os.route({ method: 'GET', path: '/lazy' }).func(() => 'lazy'),
       } })) })
 
-    expect(router.ping.zz$p.contract.zz$cp.path).toEqual('/api/users/ping')
-    expect(router.pong.zz$p.contract.zz$cp.path).toEqual(undefined)
-    expect((await router.lazy.lazy[LAZY_LOADER_SYMBOL]()).default.zz$p.contract.zz$cp.path).toEqual('/api/users/lazy')
-    expect((await (router.lazy as any)[LAZY_LOADER_SYMBOL]()).default.lazy.zz$p.contract.zz$cp.path).toEqual('/api/users/lazy')
+    expect(router.ping.zz$p.contract['~orpc'].route?.path).toEqual('/api/users/ping')
+    expect(router.pong.zz$p.contract['~orpc'].route?.path).toEqual(undefined)
+    expect((await router.lazy.lazy[LAZY_LOADER_SYMBOL]()).default.zz$p.contract['~orpc'].route?.path).toEqual('/api/users/lazy')
+    expect((await (router.lazy as any)[LAZY_LOADER_SYMBOL]()).default.lazy.zz$p.contract['~orpc'].route?.path).toEqual('/api/users/lazy')
     expect((router.lazy as any)[LAZY_ROUTER_PREFIX_SYMBOL]).toEqual('/api/users')
     expect((router.lazy.lazy as any)[LAZY_ROUTER_PREFIX_SYMBOL]).toEqual('/api/users')
   })
@@ -69,24 +69,24 @@ describe('tags', () => {
       .tags('users')
       .router({ ping, pong, lazy, lazyRouter })
 
-    expect(router.ping.zz$p.contract.zz$cp.tags).toEqual([
+    expect(router.ping.zz$p.contract['~orpc'].route?.tags).toEqual([
       'ping',
       'api',
       'users',
     ])
-    expect(router.pong.zz$p.contract.zz$cp.tags).toEqual(['api', 'users'])
+    expect(router.pong.zz$p.contract['~orpc'].route?.tags).toEqual(['api', 'users'])
 
-    expect((await (router.lazy[LAZY_LOADER_SYMBOL]())).default.zz$p.contract.zz$cp.tags).toEqual([
+    expect((await (router.lazy[LAZY_LOADER_SYMBOL]())).default.zz$p.contract['~orpc'].route?.tags).toEqual([
       'lazy',
       'api',
       'users',
     ])
-    expect((await (router.lazyRouter.lazy[LAZY_LOADER_SYMBOL]())).default.zz$p.contract.zz$cp.tags).toEqual([
+    expect((await (router.lazyRouter.lazy[LAZY_LOADER_SYMBOL]())).default.zz$p.contract['~orpc'].route?.tags).toEqual([
       'lazy',
       'api',
       'users',
     ])
-    expect((await (router.lazyRouter.lazyRouter.lazy[LAZY_LOADER_SYMBOL]())).default.zz$p.contract.zz$cp.tags).toEqual([
+    expect((await (router.lazyRouter.lazyRouter.lazy[LAZY_LOADER_SYMBOL]())).default.zz$p.contract['~orpc'].route?.tags).toEqual([
       'lazy',
       'api',
       'users',

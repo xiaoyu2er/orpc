@@ -5,11 +5,10 @@ import type { ANY_LAZY_PROCEDURE, ANY_PROCEDURE, Router } from '@orpc/server'
 import type { FetchHandler } from '@orpc/server/fetch'
 import type { Router as HonoRouter } from 'hono/router'
 import type { EachContractLeafResultItem, EachLeafOptions } from '../utils'
-import { ORPC_HEADER, standardizeHTTPPath } from '@orpc/contract'
 import { createProcedureCaller, isLazy, isProcedure, LAZY_LOADER_SYMBOL, LAZY_ROUTER_PREFIX_SYMBOL, ORPCError } from '@orpc/server'
-import { executeWithHooks, isPlainObject, mapValues, trim, value } from '@orpc/shared'
+import { executeWithHooks, isPlainObject, mapValues, ORPC_PROTOCOL_HEADER, ORPC_PROTOCOL_VALUE, trim, value } from '@orpc/shared'
 import { OpenAPIDeserializer, OpenAPISerializer, zodCoerce } from '@orpc/transformer'
-import { eachContractProcedureLeaf } from '../utils'
+import { eachContractProcedureLeaf, standardizeHTTPPath } from '../utils'
 
 export type ResolveRouter = (router: Router<any>, method: string, pathname: string) => Promise<{
   path: string[]
@@ -23,7 +22,7 @@ export function createOpenAPIHandler(createHonoRouter: () => Routing): FetchHand
   const resolveRouter = createResolveRouter(createHonoRouter)
 
   return async (options) => {
-    if (options.request.headers.get(ORPC_HEADER) !== null) {
+    if (options.request.headers.get(ORPC_PROTOCOL_HEADER)?.includes(ORPC_PROTOCOL_VALUE)) {
       return undefined
     }
 
@@ -55,9 +54,9 @@ export function createOpenAPIHandler(createHonoRouter: () => Routing): FetchHand
         })
       }
 
-      const params = procedure.zz$p.contract.zz$cp.InputSchema
+      const params = procedure.zz$p.contract['~orpc'].InputSchema
         ? zodCoerce(
-          procedure.zz$p.contract.zz$cp.InputSchema,
+          procedure.zz$p.contract['~orpc'].InputSchema,
           match.params,
           { bracketNotation: true },
         ) as Record<string, unknown>
@@ -127,9 +126,9 @@ const pendingCache = new Map<Router<any>, { ref: EachContractLeafResultItem[] }>
 export function createResolveRouter(createHonoRouter: () => Routing): ResolveRouter {
   const addRoutes = (routing: Routing, pending: { ref: EachContractLeafResultItem[] }, options: EachLeafOptions) => {
     const lazies = eachContractProcedureLeaf(options, ({ path, contract }) => {
-      const method = contract.zz$cp.method ?? 'POST'
-      const httpPath = contract.zz$cp.path
-        ? openAPIPathToRouterPath(contract.zz$cp.path)
+      const method = contract['~orpc'].route?.method ?? 'POST'
+      const httpPath = contract['~orpc'].route?.path
+        ? openAPIPathToRouterPath(contract['~orpc'].route?.path)
         : `/${path.map(encodeURIComponent).join('/')}`
 
       routing.add(method, httpPath, path)
@@ -236,7 +235,7 @@ function mergeParamsAndInput(coercedParams: Record<string, unknown>, input: unkn
 
 async function deserializeInput(request: Request, procedure: ANY_PROCEDURE): Promise<unknown> {
   const deserializer = new OpenAPIDeserializer({
-    schema: procedure.zz$p.contract.zz$cp.InputSchema,
+    schema: procedure.zz$p.contract['~orpc'].InputSchema,
   })
 
   try {
@@ -261,6 +260,6 @@ function toORPCError(e: unknown): ORPCError<any, any> {
     })
 }
 
-export function openAPIPathToRouterPath(path: HTTPPath): string {
+function openAPIPathToRouterPath(path: HTTPPath): string {
   return standardizeHTTPPath(path).replace(/\{([^}]+)\}/g, ':$1')
 }

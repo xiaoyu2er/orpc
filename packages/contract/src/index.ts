@@ -3,10 +3,10 @@
 import { ContractBuilder } from './builder'
 
 export * from './builder'
-export * from './constants'
 export * from './procedure'
+export * from './procedure-decorated'
 export * from './router'
+export * from './router-builder'
 export * from './types'
-export * from './utils'
 
 export const oc = new ContractBuilder()

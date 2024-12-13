@@ -13,7 +13,7 @@ export function createFormAction<T extends ANY_PROCEDURE | ANY_LAZY_PROCEDURE>(o
       const procedure = await loadProcedure(opt.procedure)
 
       const deserializer = new OpenAPIDeserializer({
-        schema: procedure.zz$p.contract.zz$cp.InputSchema,
+        schema: procedure.zz$p.contract['~orpc'].InputSchema,
       })
 
       const deserializedInput = deserializer.deserializeAsFormData(input)

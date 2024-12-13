@@ -2,7 +2,7 @@ import type { DecoratedLazy, Lazy } from './lazy'
 import type { ANY_LAZY_PROCEDURE, ANY_PROCEDURE, DecoratedProcedure } from './procedure'
 import type { HandledRouter, Router } from './router'
 import type { Context, MergeContext } from './types'
-import { DecoratedContractProcedure, type HTTPPath, prefixHTTPPath } from '@orpc/contract'
+import { DecoratedContractProcedure, type HTTPPath } from '@orpc/contract'
 import { createLazy, decorateLazy, isLazy, loadLazy } from './lazy'
 import {
   decorateMiddleware,
@@ -167,9 +167,7 @@ function adaptLazyRouter(options: {
   let lazyRouterPrefix = options.prefix
 
   if (LAZY_ROUTER_PREFIX_SYMBOL in options.current && typeof options.current[LAZY_ROUTER_PREFIX_SYMBOL] === 'string') {
-    lazyRouterPrefix = lazyRouterPrefix
-      ? prefixHTTPPath(options.current[LAZY_ROUTER_PREFIX_SYMBOL] as HTTPPath, lazyRouterPrefix)
-      : options.current[LAZY_ROUTER_PREFIX_SYMBOL] as HTTPPath
+    lazyRouterPrefix = `${options.current[LAZY_ROUTER_PREFIX_SYMBOL]}${lazyRouterPrefix ?? ''}` as HTTPPath
   }
 
   const decoratedLazy = Object.assign(decorateLazy(createLazy(loader)), {
@@ -213,7 +211,7 @@ function adaptProcedure(options: {
 
   let contract = DecoratedContractProcedure.decorate(
     options.procedure.zz$p.contract,
-  ).addTags(...(options.tags ?? []))
+  ).pushTag(...(options.tags ?? []))
 
   if (options.prefix) {
     contract = contract.prefix(options.prefix)

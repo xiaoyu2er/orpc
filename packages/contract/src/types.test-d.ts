@@ -1,16 +1,44 @@
-import type { SchemaInput, SchemaOutput } from './types'
+import type { Schema, SchemaInput, SchemaOutput } from './types'
+import { type } from 'arktype'
+import * as v from 'valibot'
 import { z } from 'zod'
 
-test('SchemaInput', () => {
-  const schema = z.string()
-
-  expectTypeOf<SchemaInput<undefined>>().toEqualTypeOf<unknown>()
-  expectTypeOf<SchemaInput<typeof schema>>().toEqualTypeOf<string>()
+const zod = z.object({
+  value: z.string().transform(() => 123),
 })
 
-test('SchemaOutput', () => {
-  const schema = z.string().transform(v => Number.parseFloat(v))
+const valibot = v.object({
+  value: v.pipe(v.string(), v.transform(() => 123)),
+})
 
-  expectTypeOf<SchemaOutput<undefined>>().toEqualTypeOf<unknown>()
-  expectTypeOf<SchemaOutput<typeof schema>>().toEqualTypeOf<number>()
+// How convert value into number?
+const arktype = type({
+  value: 'string',
+})
+
+describe('Schema', () => {
+  it('assignable', () => {
+    const _undefined: Schema = undefined
+    const _zod: Schema = zod
+    const _valibot: Schema = valibot
+    const _arktype: Schema = arktype
+  })
+})
+
+describe('SchemaInput', () => {
+  it('inferable', () => {
+    expectTypeOf<SchemaInput<undefined>>().toEqualTypeOf<unknown>()
+    expectTypeOf<SchemaInput<typeof zod>>().toEqualTypeOf<{ value: string }>()
+    expectTypeOf<SchemaInput<typeof valibot>>().toEqualTypeOf<{ value: string }>()
+    expectTypeOf<SchemaInput<typeof arktype>>().toEqualTypeOf<{ value: string }>()
+  })
+})
+
+describe('SchemaOutput', () => {
+  it('inferable', () => {
+    expectTypeOf<SchemaOutput<undefined>>().toEqualTypeOf<unknown>()
+    expectTypeOf<SchemaOutput<typeof zod>>().toEqualTypeOf<{ value: number }>()
+    expectTypeOf<SchemaOutput<typeof valibot>>().toEqualTypeOf<{ value: number }>()
+    expectTypeOf<SchemaOutput<typeof arktype>>().toEqualTypeOf<{ value: string }>()
+  })
 })

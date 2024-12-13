@@ -1,10 +1,10 @@
-import type { ContractProcedure, ContractRouter, WELL_CONTRACT_PROCEDURE } from '@orpc/contract'
+import type { ANY_CONTRACT_PROCEDURE, ContractRouter, HTTPPath, WELL_CONTRACT_PROCEDURE } from '@orpc/contract'
 import type { ANY_LAZY_PROCEDURE, ANY_PROCEDURE, Lazy, Router } from '@orpc/server'
 import { isContractProcedure } from '@orpc/contract'
 import { isLazy, isProcedure, ROUTER_CONTRACT_SYMBOL } from '@orpc/server'
 
 export interface EachLeafOptions {
-  router: ANY_PROCEDURE | Router<any> | ContractRouter | ContractProcedure<any, any>
+  router: ANY_PROCEDURE | Router<any> | ContractRouter | ANY_CONTRACT_PROCEDURE
   path: string[]
 }
 
@@ -74,4 +74,8 @@ export function eachContractProcedureLeaf(
   }
 
   return result
+}
+
+export function standardizeHTTPPath(path: HTTPPath): HTTPPath {
+  return `/${path.replace(/\/{2,}/g, '/').replace(/^\/|\/$/g, '')}`
 }

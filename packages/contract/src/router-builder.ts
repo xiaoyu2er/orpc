@@ -1,50 +1,68 @@
-import type { ContractRouter, HandledContractRouter } from './router'
+import type { ContractProcedure } from './procedure'
+import type { ContractRouter } from './router'
 import type { HTTPPath } from './types'
-import { DecoratedContractProcedure, isContractProcedure } from './procedure'
+import { isContractProcedure } from './procedure'
+import { DecoratedContractProcedure } from './procedure-decorated'
+
+export type AdaptedContractRouter<TContract extends ContractRouter> = {
+  [K in keyof TContract]: TContract[K] extends ContractProcedure<infer UInputSchema, infer UOutputSchema >
+    ? DecoratedContractProcedure<UInputSchema, UOutputSchema>
+    : TContract[K] extends ContractRouter
+      ? AdaptedContractRouter<TContract[K]>
+      : never
+}
+
+export interface ContractRouterBuilderDef {
+  prefix?: HTTPPath
+  tags?: string[]
+}
 
 export class ContractRouterBuilder {
-  constructor(public zz$crb: { prefix?: HTTPPath, tags?: string[] }) {
-    if (zz$crb.prefix && zz$crb.prefix.includes('{')) {
-      throw new Error('Prefix cannot contain "{" for dynamic routing')
-    }
+  '~type' = 'ContractProcedure' as const
+  '~orpc': ContractRouterBuilderDef
+
+  constructor(def: ContractRouterBuilderDef) {
+    this['~orpc'] = def
   }
 
   prefix(prefix: HTTPPath): ContractRouterBuilder {
     return new ContractRouterBuilder({
-      ...this.zz$crb,
-      prefix: `${this.zz$crb.prefix ?? ''}${prefix}`,
+      ...this['~orpc'],
+      prefix: `${this['~orpc'].prefix ?? ''}${prefix}`,
     })
   }
 
-  tags(...tags: string[]): ContractRouterBuilder {
-    if (!tags.length)
-      return this
-
+  tag(...tags: string[]): ContractRouterBuilder {
     return new ContractRouterBuilder({
-      ...this.zz$crb,
-      tags: [...(this.zz$crb.tags ?? []), ...tags],
+      ...this['~orpc'],
+      tags: [...(this['~orpc'].tags ?? []), ...tags],
     })
   }
 
-  router<T extends ContractRouter>(router: T): HandledContractRouter<T> {
-    const handled: ContractRouter = {}
+  router<T extends ContractRouter>(router: T): AdaptedContractRouter<T> {
+    const adapted: ContractRouter = {}
 
     for (const key in router) {
       const item = router[key]
-      if (isContractProcedure(item)) {
-        const decorated = DecoratedContractProcedure.decorate(item).addTags(
-          ...(this.zz$crb.tags ?? []),
-        )
 
-        handled[key] = this.zz$crb.prefix
-          ? decorated.prefix(this.zz$crb.prefix)
-          : decorated
+      if (isContractProcedure(item)) {
+        let decorated = DecoratedContractProcedure.decorate(item)
+
+        if (this['~orpc'].tags) {
+          decorated = decorated.pushTag(...this['~orpc'].tags)
+        }
+
+        if (this['~orpc'].prefix) {
+          decorated = decorated.prefix(this['~orpc'].prefix)
+        }
+
+        adapted[key] = decorated
       }
       else {
-        handled[key] = this.router(item as ContractRouter)
+        adapted[key] = this.router(item as ContractRouter)
       }
     }
 
-    return handled as HandledContractRouter<T>
+    return adapted as any
   }
 }

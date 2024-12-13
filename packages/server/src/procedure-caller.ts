@@ -53,7 +53,7 @@ export function createProcedureCaller<
 
     const execute = async () => {
       const validInput = await (async () => {
-        const schema = procedure.zz$p.contract.zz$cp.InputSchema
+        const schema = procedure.zz$p.contract['~orpc'].InputSchema
         if (!schema) {
           return input
         }
@@ -104,7 +104,7 @@ export function createProcedureCaller<
       const output = (await next({})).output
 
       const validOutput = await (async () => {
-        const schema = procedure.zz$p.contract.zz$cp.OutputSchema
+        const schema = procedure.zz$p.contract['~orpc'].OutputSchema
         if (!schema) {
           return output
         }

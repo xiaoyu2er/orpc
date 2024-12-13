@@ -1,70 +1,64 @@
 import { z } from 'zod'
-import { ContractProcedure, DecoratedContractProcedure, oc } from '.'
+import { ContractProcedure } from './procedure'
+import { DecoratedContractProcedure } from './procedure-decorated'
 import { ContractRouterBuilder } from './router-builder'
 
-it('prefix method', () => {
-  expect(oc.prefix('/1').prefix('/2').zz$crb.prefix).toEqual('/1/2')
+const schema = z.object({
+  value: z.string(),
 })
 
-it('tags method', () => {
-  expect(oc.tags('1').tags('2').zz$crb.tags).toEqual(['1', '2'])
+const procedure = new ContractProcedure({ InputSchema: schema, OutputSchema: undefined, route: { path: '/procedure' } })
+const decorated = DecoratedContractProcedure.decorate(procedure)
+
+const router = {
+  procedure,
+  decorated,
+  nested: {
+    procedure,
+    decorated,
+  },
+}
+
+const builder = new ContractRouterBuilder({})
+
+describe('prefix', () => {
+  it('works', () => {
+    expect(builder.prefix('/1').prefix('/2')['~orpc'].prefix).toEqual('/1/2')
+  })
 })
 
-it('define a router', () => {
-  const ping = oc.route({ method: 'GET', path: '/ping' })
-  const pong = oc.input(z.object({ id: z.string() }))
-
-  const router = oc.router({
-    ping,
-    pong,
-
-    internal: oc
-      .prefix('/internal')
-      .tags('internal')
-      .router({
-        ping,
-        pong,
-
-        nested: {
-          ping,
-        },
-      }),
+describe('tag', () => {
+  it('works', () => {
+    expect(builder.tag('1', '2').tag('3')['~orpc'].tags).toEqual(['1', '2', '3'])
   })
-
-  expect(router.ping.zz$cp.path).toEqual('/ping')
-  expect(router.pong.zz$cp.path).toEqual(undefined)
-
-  expect(router.internal.ping.zz$cp.path).toEqual('/internal/ping')
-  expect(router.internal.pong.zz$cp.path).toEqual(undefined)
-  expect(router.internal.nested.ping.zz$cp.path).toEqual('/internal/ping')
-
-  expect(router.internal.ping.zz$cp.tags).toEqual(['internal'])
-  expect(router.internal.pong.zz$cp.tags).toEqual(['internal'])
-  expect(router.internal.nested.ping.zz$cp.tags).toEqual(['internal'])
 })
 
-it('router: decorate items', () => {
-  const builder = new ContractRouterBuilder({})
+describe('router', () => {
+  it('adapt all procedures', () => {
+    const routed = builder.router(router)
 
-  const ping = new ContractProcedure({
-    InputSchema: undefined,
-    OutputSchema: undefined,
+    expect(routed.procedure).instanceOf(DecoratedContractProcedure)
+    expect(routed.decorated).instanceOf(DecoratedContractProcedure)
+    expect(routed.nested.procedure).instanceOf(DecoratedContractProcedure)
+    expect(routed.nested.decorated).instanceOf(DecoratedContractProcedure)
   })
 
-  const decorated = new DecoratedContractProcedure({
-    InputSchema: undefined,
-    OutputSchema: undefined,
-    method: 'GET',
-    path: '/ping',
+  it('adapt with prefix and tags', () => {
+    const routed = builder
+      .prefix('/p1')
+      .prefix('/p2')
+      .tag('t1', 't2')
+      .tag('t3')
+      .router(router)
+
+    expect(routed.procedure).instanceOf(DecoratedContractProcedure)
+    expect(routed.decorated).instanceOf(DecoratedContractProcedure)
+    expect(routed.nested.procedure).instanceOf(DecoratedContractProcedure)
+    expect(routed.nested.decorated).instanceOf(DecoratedContractProcedure)
+
+    expect(routed.procedure['~orpc'].route?.path).toEqual('/p1/p2/procedure')
+    expect(routed.decorated['~orpc'].route?.path).toEqual('/p1/p2/procedure')
+    expect(routed.nested.procedure['~orpc'].route?.path).toEqual('/p1/p2/procedure')
+    expect(routed.nested.decorated['~orpc'].route?.path).toEqual('/p1/p2/procedure')
   })
-
-  const router = builder.router({ ping, nested: { ping } })
-
-  expectTypeOf(router).toEqualTypeOf<{
-    ping: typeof decorated
-    nested: { ping: typeof decorated }
-  }>()
-
-  expect(router.ping).instanceOf(DecoratedContractProcedure)
-  expect(router.nested.ping).instanceOf(DecoratedContractProcedure)
 })

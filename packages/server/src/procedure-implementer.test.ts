@@ -7,8 +7,10 @@ import { ProcedureImplementer } from './procedure-implementer'
 const p1 = new DecoratedContractProcedure({
   InputSchema: undefined,
   OutputSchema: undefined,
-  method: undefined,
-  path: undefined,
+  route: {
+    method: undefined,
+    path: undefined,
+  },
 })
 const implementer1 = new ProcedureImplementer<
   { auth: boolean },
@@ -23,8 +25,10 @@ const schema2 = z.object({ name: z.string() })
 const p2 = new DecoratedContractProcedure({
   InputSchema: schema1,
   OutputSchema: schema2,
-  method: 'GET',
-  path: '/test',
+  route: {
+    method: 'GET',
+    path: '/test',
+  },
 })
 
 const implementer2 = new ProcedureImplementer<

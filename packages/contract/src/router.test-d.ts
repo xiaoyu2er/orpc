@@ -1,63 +1,68 @@
-import type { InferContractRouterInputs, InferContractRouterOutputs } from '.'
+import type { ContractRouter, InferContractRouterInputs, InferContractRouterOutputs } from './router'
 import { z } from 'zod'
-import { oc } from '.'
+import { ContractProcedure } from './procedure'
+import { DecoratedContractProcedure } from './procedure-decorated'
+
+const schema = z.object({
+  value: z.string().transform(() => 1),
+})
+
+ type SchemaIn = { value: string }
+ type SchemaOut = { value: number }
+
+const ping = new ContractProcedure({ InputSchema: schema, OutputSchema: undefined, route: { path: '/procedure' } })
+const pinged = DecoratedContractProcedure.decorate(ping)
+
+const pong = new ContractProcedure({ InputSchema: undefined, OutputSchema: schema })
+const ponged = DecoratedContractProcedure.decorate(pong)
 
 const router = {
-  ping: oc.route({
-    method: 'GET',
-    path: '/ping',
-  })
-    .input(z.object({
-      ping: z.string().transform(() => 1),
-    }))
-    .output(z.object({
-      pong: z.string().transform(() => 1),
-    })),
-  user: {
-    find: oc.route({
-      method: 'GET',
-      path: '/users/{id}',
-    })
-      .input(z.object({
-        find: z.number().transform(() => '1'),
-      }))
-      .output(z.object({
-        user: z.object({
-          id: z.number().transform(() => '1'),
-        }),
-      }))
-    ,
+  ping,
+  pinged,
+  pong,
+  ponged,
+  nested: {
+    ping,
+    pinged,
+    pong,
+    ponged,
   },
 }
 
-it('InferContractRouterInputs', () => {
-  type Inputs = InferContractRouterInputs<typeof router>
-
-  expectTypeOf<Inputs>().toEqualTypeOf<{
-    ping: {
-      ping: string
-    }
-    user: {
-      find: {
-        find: number
-      }
-    }
-  }>()
+describe('ContractRouter', () => {
+  it('just an object and accepts both procedures and decorated procedures', () => {
+    const _: ContractRouter = router
+  })
 })
 
-it('InferContractRouterOutputs', () => {
-  type Outputs = InferContractRouterOutputs<typeof router>
+describe('InferContractRouterInputs', () => {
+  it('works', () => {
+    type Inputs = InferContractRouterInputs<typeof router>
 
-  expectTypeOf<Outputs>().toEqualTypeOf<{
-    ping: {
-      pong: number
-    }
-    user: {
-      find: {
-        user: {
-          id: string
-        }
-      }
-    }
-  }>()
+    expectTypeOf<Inputs['ping']>().toEqualTypeOf<SchemaIn>()
+    expectTypeOf<Inputs['pinged']>().toEqualTypeOf<SchemaIn>()
+    expectTypeOf<Inputs['pong']>().toEqualTypeOf<unknown>()
+    expectTypeOf<Inputs['ponged']>().toEqualTypeOf<unknown>()
+
+    expectTypeOf<Inputs['nested']['ping']>().toEqualTypeOf<SchemaIn>()
+    expectTypeOf<Inputs['nested']['pinged']>().toEqualTypeOf<SchemaIn>()
+    expectTypeOf<Inputs['nested']['pong']>().toEqualTypeOf<unknown>()
+    expectTypeOf<Inputs['nested']['ponged']>().toEqualTypeOf<unknown>()
+  })
+})
+
+describe('InferContractRouterOutputs', () => {
+  it('works', () => {
+    type Outputs = InferContractRouterOutputs<typeof router>
+
+    expectTypeOf<Outputs['ping']>().toEqualTypeOf<unknown>()
+    expectTypeOf<Outputs['pinged']>().toEqualTypeOf<unknown>()
+    expectTypeOf<Outputs['pong']>().toEqualTypeOf<SchemaOut>()
+    expectTypeOf<Outputs['ponged']>().toEqualTypeOf<SchemaOut>()
+
+    expectTypeOf<Outputs['nested']['ping']>().toEqualTypeOf<unknown>()
+    expectTypeOf<Outputs['nested']['pinged']>().toEqualTypeOf<unknown>()
+    expectTypeOf<Outputs['nested']['pong']>().toEqualTypeOf<SchemaOut>()
+    expectTypeOf<Outputs['nested']['ponged']>().toEqualTypeOf<SchemaOut>()
+  })
 })

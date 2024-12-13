@@ -63,8 +63,8 @@ describe('route method', () => {
 
     const p2 = p.route({ path: '/test', method: 'GET' })
 
-    expect(p2.zz$p.contract.zz$cp.path).toBe('/test')
-    expect(p2.zz$p.contract.zz$cp.method).toBe('GET')
+    expect(p2.zz$p.contract['~orpc'].route?.path).toBe('/test')
+    expect(p2.zz$p.contract['~orpc'].route?.method).toBe('GET')
   })
 
   it('preserves existing context and handler', () => {
@@ -94,8 +94,8 @@ describe('route method', () => {
 
     const p2 = p.prefix('/v1')
 
-    expect(p2.zz$p.contract.zz$cp.path).toBe('/v1/api')
-    expect(p2.zz$p.contract.zz$cp.method).toBe('POST')
+    expect(p2.zz$p.contract['~orpc'].route?.path).toBe('/v1/api')
+    expect(p2.zz$p.contract['~orpc'].route?.method).toBe('POST')
   })
 
   it('works with middleware', () => {
@@ -112,7 +112,7 @@ describe('route method', () => {
         return 'test'
       })
 
-    expect(p.zz$p.contract.zz$cp.path).toBe('/test')
+    expect(p.zz$p.contract['~orpc'].route?.path).toBe('/test')
     expect(p.zz$p.middlewares).toEqual([mid])
   })
 
@@ -124,8 +124,8 @@ describe('route method', () => {
 
     const p2 = p.route({ path: '/test2', method: 'POST' })
 
-    expect(p2.zz$p.contract.zz$cp.path).toBe('/test2')
-    expect(p2.zz$p.contract.zz$cp.method).toBe('POST')
+    expect(p2.zz$p.contract['~orpc'].route?.path).toBe('/test2')
+    expect(p2.zz$p.contract['~orpc'].route?.method).toBe('POST')
   })
 
   it('preserves input/output schemas', () => {
@@ -163,7 +163,7 @@ it('prefix method', () => {
 
   const p2 = p.prefix('/test')
 
-  expect(p2.zz$p.contract.zz$cp.path).toBe(undefined)
+  expect(p2.zz$p.contract['~orpc'].route?.path).toBe(undefined)
 
   const p3 = os
     .context<{ auth: boolean }>()
@@ -173,7 +173,7 @@ it('prefix method', () => {
     })
 
   const p4 = p3.prefix('/test')
-  expect(p4.zz$p.contract.zz$cp.path).toBe('/test/test1')
+  expect(p4.zz$p.contract['~orpc'].route?.path).toBe('/test/test1')
 })
 
 describe('use middleware', () => {

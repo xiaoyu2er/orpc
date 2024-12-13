@@ -1,8 +1,7 @@
 import type { ANY_LAZY_PROCEDURE, ANY_PROCEDURE } from '../procedure'
 import type { Router } from '../router'
 import type { FetchHandler } from './types'
-import { ORPC_HEADER, ORPC_HEADER_VALUE } from '@orpc/contract'
-import { executeWithHooks, trim, value } from '@orpc/shared'
+import { executeWithHooks, ORPC_PROTOCOL_HEADER, ORPC_PROTOCOL_VALUE, trim, value } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
 import { ORPCDeserializer, ORPCSerializer } from '@orpc/transformer'
 import { isLazy } from '../lazy'
@@ -14,7 +13,7 @@ const deserializer = new ORPCDeserializer()
 
 export function createORPCHandler(): FetchHandler {
   return async (options) => {
-    if (options.request.headers.get(ORPC_HEADER) !== ORPC_HEADER_VALUE) {
+    if (options.request.headers.get(ORPC_PROTOCOL_HEADER)?.includes(ORPC_PROTOCOL_VALUE)) {
       return undefined
     }
 

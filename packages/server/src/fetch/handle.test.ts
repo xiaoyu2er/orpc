@@ -1,5 +1,5 @@
-import { ORPC_HEADER, ORPC_HEADER_VALUE } from '@orpc/contract'
 import { createOpenAPIServerHandler, createOpenAPIServerlessHandler } from '@orpc/openapi/fetch'
+import { ORPC_PROTOCOL_HEADER, ORPC_PROTOCOL_VALUE } from '@orpc/shared'
 import { oz } from '@orpc/zod'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
@@ -296,7 +296,7 @@ describe('file upload', () => {
         method: 'POST',
         body: rForm,
         headers: {
-          [ORPC_HEADER]: ORPC_HEADER_VALUE,
+          [ORPC_PROTOCOL_HEADER]: ORPC_PROTOCOL_VALUE,
         },
       }),
     })
@@ -327,7 +327,7 @@ describe('file upload', () => {
         method: 'POST',
         body: form,
         headers: {
-          [ORPC_HEADER]: ORPC_HEADER_VALUE,
+          [ORPC_PROTOCOL_HEADER]: ORPC_PROTOCOL_VALUE,
         },
       }),
     })

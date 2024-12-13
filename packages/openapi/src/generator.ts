@@ -13,7 +13,7 @@ import {
   type RequestBodyObject,
   type ResponseObject,
 } from 'openapi3-ts/oas31'
-import { eachContractProcedureLeaf } from './utils'
+import { eachContractProcedureLeaf, standardizeHTTPPath } from './utils'
 import {
   extractJSONSchema,
   UNSUPPORTED_JSON_SCHEMA,
@@ -70,14 +70,17 @@ export async function generateOpenAPI(
         return
       }
 
-      const internal = contract.zz$cp
+      const internal = contract['~orpc']
 
-      if (ignoreUndefinedPathProcedures && internal.path === undefined) {
+      if (ignoreUndefinedPathProcedures && internal.route?.path === undefined) {
         return
       }
 
-      const httpPath = internal.path ?? `/${path.map(encodeURIComponent).join('/')}`
-      const method = internal.method ?? 'POST'
+      const httpPath = internal.route?.path
+        ? standardizeHTTPPath(internal.route?.path)
+        : `/${path.map(encodeURIComponent).join('/')}`
+
+      const method = internal.route?.method ?? 'POST'
 
       let inputSchema = internal.InputSchema
         ? zodToJsonSchema(internal.InputSchema, { mode: 'input' })
@@ -312,8 +315,8 @@ export async function generateOpenAPI(
         }
       })()
 
-      if (throwOnMissingTagDefinition && internal.tags) {
-        const missingTag = internal.tags.find(tag => !rootTags.includes(tag))
+      if (throwOnMissingTagDefinition && internal.route?.tags) {
+        const missingTag = internal.route?.tags.find(tag => !rootTags.includes(tag))
 
         if (missingTag !== undefined) {
           throw new Error(
@@ -323,10 +326,10 @@ export async function generateOpenAPI(
       }
 
       const operation: OperationObject = {
-        summary: internal.summary,
-        description: internal.description,
-        deprecated: internal.deprecated,
-        tags: internal.tags,
+        summary: internal.route?.summary,
+        description: internal.route?.description,
+        deprecated: internal.route?.deprecated,
+        tags: internal.route?.tags,
         operationId: path.join('.'),
         parameters: parameters.length ? parameters : undefined,
         requestBody,

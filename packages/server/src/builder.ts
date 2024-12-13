@@ -1,3 +1,12 @@
+import type {
+  ANY_CONTRACT_PROCEDURE,
+  ContractRouter,
+  HTTPPath,
+  RouteOptions,
+  Schema,
+  SchemaInput,
+  SchemaOutput,
+} from '@orpc/contract'
 import type { IsEqual } from '@orpc/shared'
 import type { DecoratedLazy } from './lazy'
 import type { DecoratedProcedure, Procedure, ProcedureFunc } from './procedure'
@@ -5,13 +14,7 @@ import type { HandledRouter, Router } from './router'
 import type { Context, MergeContext } from './types'
 import {
   ContractProcedure,
-  type ContractRouter,
-  type HTTPPath,
   isContractProcedure,
-  type RouteOptions,
-  type Schema,
-  type SchemaInput,
-  type SchemaOutput,
 } from '@orpc/contract'
 import {
   type DecoratedMiddleware,

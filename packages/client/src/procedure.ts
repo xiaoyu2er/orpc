@@ -3,8 +3,7 @@
 
 import type { Caller } from '@orpc/server'
 import type { Promisable } from '@orpc/shared'
-import { ORPC_HEADER, ORPC_HEADER_VALUE } from '@orpc/contract'
-import { trim } from '@orpc/shared'
+import { ORPC_PROTOCOL_HEADER, ORPC_PROTOCOL_VALUE, trim } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
 import { ORPCDeserializer, ORPCSerializer } from '@orpc/transformer'
 
@@ -43,16 +42,16 @@ export function createProcedureClient<TInput, TOutput>(
 
     const fetch_ = options.fetch ?? fetch
     const url = `${trim(options.baseURL, '/')}/${options.path.map(encodeURIComponent).join('/')}`
-    let headers = await options.headers?.(input)
-    headers = headers instanceof Headers ? headers : new Headers(headers)
 
-    const { body, headers: headers_ } = serializer.serialize(input)
+    const { body, headers } = serializer.serialize(input)
 
-    for (const [key, value] of headers_.entries()) {
+    headers.append(ORPC_PROTOCOL_HEADER, ORPC_PROTOCOL_VALUE)
+
+    let customHeaders = await options.headers?.(input)
+    customHeaders = customHeaders instanceof Headers ? customHeaders : new Headers(customHeaders)
+    for (const [key, value] of customHeaders.entries()) {
       headers.append(key, value)
     }
-
-    headers.set(ORPC_HEADER, ORPC_HEADER_VALUE)
 
     const response = await fetch_(url, {
       method: 'POST',

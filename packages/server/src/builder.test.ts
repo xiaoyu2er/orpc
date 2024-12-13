@@ -169,7 +169,7 @@ describe('define procedure builder', () => {
     expect(builder.zz$pb.middlewares).toBe(undefined)
     expect(builder.zz$pb).toMatchObject({
       contract: {
-        zz$cp: {
+        '~orpc': {
           InputSchema: schema1,
           inputExample: example1,
         },
@@ -188,7 +188,7 @@ describe('define procedure builder', () => {
     expect(builder.zz$pb.middlewares).toBe(undefined)
     expect(builder.zz$pb).toMatchObject({
       contract: {
-        zz$cp: {
+        '~orpc': {
           OutputSchema: schema2,
           outputExample: example2,
         },
@@ -214,13 +214,15 @@ describe('define procedure builder', () => {
     expect(builder.zz$pb.middlewares).toBe(undefined)
     expect(builder.zz$pb).toMatchObject({
       contract: {
-        zz$cp: {
-          method: 'GET',
-          path: '/test',
-          deprecated: true,
-          description: 'des',
-          summary: 'sum',
-          tags: ['cccc'],
+        '~orpc': {
+          route: {
+            method: 'GET',
+            path: '/test',
+            deprecated: true,
+            description: 'des',
+            summary: 'sum',
+            tags: ['cccc'],
+          },
         },
       },
     })

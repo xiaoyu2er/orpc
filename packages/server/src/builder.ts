@@ -95,12 +95,12 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
    */
 
   route(
-    opts: RouteOptions,
+    route: RouteOptions,
   ): ProcedureBuilder<TContext, TExtraContext, undefined, undefined> {
     return new ProcedureBuilder({
       middlewares: this.zz$b.middlewares,
       contract: new ContractProcedure({
-        ...opts,
+        route,
         InputSchema: undefined,
         OutputSchema: undefined,
       }),

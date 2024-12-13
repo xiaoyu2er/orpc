@@ -13,7 +13,7 @@ const deserializer = new ORPCDeserializer()
 
 export function createORPCHandler(): FetchHandler {
   return async (options) => {
-    if (options.request.headers.get(ORPC_PROTOCOL_HEADER)?.includes(ORPC_PROTOCOL_VALUE)) {
+    if (!options.request.headers.get(ORPC_PROTOCOL_HEADER)?.includes(ORPC_PROTOCOL_VALUE)) {
       return undefined
     }
 

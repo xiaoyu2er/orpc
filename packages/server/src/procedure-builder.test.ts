@@ -33,7 +33,7 @@ it('input', () => {
 
   expect(builder2.zz$pb).toMatchObject({
     contract: {
-      zz$cp: {
+      '~orpc': {
         InputSchema: schema1,
         inputExample: example1,
       },
@@ -50,7 +50,7 @@ it('output', () => {
 
   expect(builder2.zz$pb).toMatchObject({
     contract: {
-      zz$cp: {
+      '~orpc': {
         OutputSchema: schema2,
         outputExample: example2,
       },
@@ -74,13 +74,15 @@ it('route', () => {
 
   expect(builder2.zz$pb).toMatchObject({
     contract: {
-      zz$cp: {
-        method: 'GET',
-        path: '/test',
-        deprecated: true,
-        description: 'des',
-        summary: 'sum',
-        tags: ['hi'],
+      '~orpc': {
+        route: {
+          method: 'GET',
+          path: '/test',
+          deprecated: true,
+          description: 'des',
+          summary: 'sum',
+          tags: ['hi'],
+        },
       },
     },
   })

@@ -43,9 +43,9 @@ export function createProcedureClient<TInput, TOutput>(
     const fetch_ = options.fetch ?? fetch
     const url = `${trim(options.baseURL, '/')}/${options.path.map(encodeURIComponent).join('/')}`
 
-    const { body, headers } = serializer.serialize(input)
-
-    headers.append(ORPC_PROTOCOL_HEADER, ORPC_PROTOCOL_VALUE)
+    const headers = new Headers({
+      [ORPC_PROTOCOL_HEADER]: ORPC_PROTOCOL_VALUE,
+    })
 
     let customHeaders = await options.headers?.(input)
     customHeaders = customHeaders instanceof Headers ? customHeaders : new Headers(customHeaders)
@@ -53,10 +53,16 @@ export function createProcedureClient<TInput, TOutput>(
       headers.append(key, value)
     }
 
+    const serialized = serializer.serialize(input)
+
+    for (const [key, value] of serialized.headers.entries()) {
+      headers.append(key, value)
+    }
+
     const response = await fetch_(url, {
       method: 'POST',
       headers,
-      body,
+      body: serialized.body,
       signal: callerOptions?.signal,
     })
 

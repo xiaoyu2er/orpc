@@ -5,15 +5,12 @@ import type {
   SchemaOutput,
 } from '@orpc/contract'
 import type { ANY_LAZY, DecoratedLazy, Lazy } from './lazy'
-import type { Context } from './types'
-import {
-  isContractProcedure,
-} from '@orpc/contract'
-import {
-  type DecoratedProcedure,
-  isProcedure,
-  type Procedure,
+import type {
+  DecoratedProcedure,
+  Procedure,
 } from './procedure'
+
+import type { Context } from './types'
 
 export interface Router<TContext extends Context> {
   [k: string]:
@@ -57,28 +54,6 @@ export type RouterWithContract<
     : TContract[K] extends ContractRouter
       ? RouterWithContract<TContext, TContract[K]>
       : never
-}
-
-export function toContractRouter(
-  router: ContractRouter | Router<any>,
-): ContractRouter {
-  const contract: ContractRouter = {}
-
-  for (const key in router) {
-    const item = router[key]
-
-    if (isContractProcedure(item)) {
-      contract[key] = item
-    }
-    else if (isProcedure(item)) {
-      contract[key] = item.zz$p.contract
-    }
-    else {
-      contract[key] = toContractRouter(item as any)
-    }
-  }
-
-  return contract
 }
 
 export type InferRouterInputs<T extends Router<any>> = {

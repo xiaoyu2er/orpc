@@ -166,7 +166,7 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
    * Convert to ProcedureImplementer | RouterBuilder
    */
 
-  contract<UContract extends ContractProcedure<any, any> | ContractRouter>(
+  contract<UContract extends ANY_CONTRACT_PROCEDURE | ContractRouter>(
     contract: UContract,
   ): UContract extends ContractProcedure<
       infer UInputSchema,

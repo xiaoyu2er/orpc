@@ -32,7 +32,7 @@ export class ContractRouterBuilder {
     })
   }
 
-  tags(...tags: string[]): ContractRouterBuilder {
+  tag(...tags: string[]): ContractRouterBuilder {
     return new ContractRouterBuilder({
       ...this['~orpc'],
       tags: [...(this['~orpc'].tags ?? []), ...tags],
@@ -46,14 +46,14 @@ export class ContractRouterBuilder {
       const item = router[key]
 
       if (isContractProcedure(item)) {
-        const decorated = DecoratedContractProcedure.decorate(item)
+        let decorated = DecoratedContractProcedure.decorate(item)
 
         if (this['~orpc'].tags) {
-          decorated.pushTags(...this['~orpc'].tags)
+          decorated = decorated.pushTag(...this['~orpc'].tags)
         }
 
         if (this['~orpc'].prefix) {
-          decorated.prefix(this['~orpc'].prefix)
+          decorated = decorated.prefix(this['~orpc'].prefix)
         }
 
         adapted[key] = decorated

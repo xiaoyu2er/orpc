@@ -1,4 +1,4 @@
-import type { ANY_CONTRACT_PROCEDURE, RouteOptions } from './procedure'
+import type { RouteOptions } from './procedure'
 import type { HTTPPath, Schema, SchemaInput, SchemaOutput } from './types'
 import { ContractProcedure } from './procedure'
 
@@ -6,7 +6,12 @@ export class DecoratedContractProcedure<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
 > extends ContractProcedure<TInputSchema, TOutputSchema> {
-  static decorate<U extends ANY_CONTRACT_PROCEDURE>(procedure: U) {
+  static decorate<
+    UInputSchema extends Schema = undefined,
+    UOutputSchema extends Schema = undefined,
+  >(
+    procedure: ContractProcedure<UInputSchema, UOutputSchema>,
+  ): DecoratedContractProcedure<UInputSchema, UOutputSchema> {
     if (procedure instanceof DecoratedContractProcedure) {
       return procedure
     }
@@ -14,24 +19,34 @@ export class DecoratedContractProcedure<
     return new DecoratedContractProcedure(procedure['~orpc'])
   }
 
-  route(opts: RouteOptions): DecoratedContractProcedure<TInputSchema, TOutputSchema> {
+  route(route: RouteOptions): DecoratedContractProcedure<TInputSchema, TOutputSchema> {
     return new DecoratedContractProcedure({
       ...this['~orpc'],
-      ...opts,
+      route,
     })
   }
 
   prefix(prefix: HTTPPath): DecoratedContractProcedure<TInputSchema, TOutputSchema> {
     return new DecoratedContractProcedure({
       ...this['~orpc'],
-      path: `${prefix}${this['~orpc'].path}`,
+      ...(this['~orpc'].route?.path
+        ? {
+            route: {
+              ...this['~orpc'].route,
+              path: `${prefix}${this['~orpc'].route.path}`,
+            },
+          }
+        : undefined),
     })
   }
 
-  pushTags(...tags: string[]): DecoratedContractProcedure<TInputSchema, TOutputSchema> {
+  pushTag(...tags: string[]): DecoratedContractProcedure<TInputSchema, TOutputSchema> {
     return new DecoratedContractProcedure({
       ...this['~orpc'],
-      tags: [...(this['~orpc'].tags ?? []), ...tags],
+      route: {
+        ...this['~orpc'].route,
+        tags: [...(this['~orpc'].route?.tags ?? []), ...tags],
+      },
     })
   }
 

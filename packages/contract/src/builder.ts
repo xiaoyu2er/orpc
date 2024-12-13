@@ -11,15 +11,17 @@ export class ContractBuilder {
     })
   }
 
-  tags(...tags: string[]): ContractRouterBuilder {
+  tag(...tags: string[]): ContractRouterBuilder {
     return new ContractRouterBuilder({
       tags,
     })
   }
 
-  route(opts: RouteOptions): DecoratedContractProcedure<undefined, undefined> {
+  route(route: RouteOptions): DecoratedContractProcedure<undefined, undefined> {
     return new DecoratedContractProcedure({
-      ...opts,
+      route,
+      InputSchema: undefined,
+      OutputSchema: undefined,
     })
   }
 
@@ -27,6 +29,7 @@ export class ContractBuilder {
     return new DecoratedContractProcedure({
       InputSchema: schema,
       inputExample: example,
+      OutputSchema: undefined,
     })
   }
 
@@ -34,6 +37,7 @@ export class ContractBuilder {
     return new DecoratedContractProcedure({
       OutputSchema: schema,
       outputExample: example,
+      InputSchema: undefined,
     })
   }
 

@@ -14,10 +14,11 @@ export interface RouteOptions {
   tags?: string[]
 }
 
-export interface ContractProcedureDef<TInputSchema extends Schema, TOutputSchema extends Schema> extends RouteOptions {
-  InputSchema?: TInputSchema
+export interface ContractProcedureDef<TInputSchema extends Schema, TOutputSchema extends Schema> {
+  route?: RouteOptions
+  InputSchema: TInputSchema
   inputExample?: SchemaOutput<TInputSchema>
-  OutputSchema?: TOutputSchema
+  OutputSchema: TOutputSchema
   outputExample?: SchemaOutput<TOutputSchema>
 }
 

@@ -1,179 +1,89 @@
 import { z } from 'zod'
-import { type DecoratedContractProcedure, oc } from '.'
+import { ContractBuilder } from './builder'
+import { ContractProcedure } from './procedure'
+import { DecoratedContractProcedure } from './procedure-decorated'
+import { ContractRouterBuilder } from './router-builder'
 
-describe('define a procedure', () => {
-  it('use route method', () => {
-    const procedure = oc.route({
-      method: 'GET',
-      path: '/users/{id}',
-      deprecated: true,
-      summary: 'Get user',
-      description: 'Get user by id',
-      tags: ['bbbb'],
-    })
+vi.mock('./procedure-decorated', () => ({
+  DecoratedContractProcedure: vi.fn(),
+}))
 
-    expectTypeOf(procedure).toEqualTypeOf<
-      DecoratedContractProcedure<undefined, undefined>
-    >()
+vi.mock('./router-builder', () => ({
+  ContractRouterBuilder: vi.fn(),
+}))
 
-    expect(procedure.zz$cp).toMatchObject({
-      method: 'GET',
-      path: '/users/{id}',
-      deprecated: true,
-      summary: 'Get user',
-      description: 'Get user by id',
-      tags: ['bbbb'],
-    })
-  })
+beforeEach(() => {
+  vi.clearAllMocks()
+})
 
-  it('use input method', () => {
-    const schema = z.object({
-      id: z.string(),
-    })
+describe('to ContractRouterBuilder', () => {
+  const builder = new ContractBuilder()
 
-    const procedure = oc.input(schema, { id: '123' })
+  it('prefix', () => {
+    expect(builder.prefix('/prefix')).toBeInstanceOf(ContractRouterBuilder)
 
-    expectTypeOf(procedure).toEqualTypeOf<
-      DecoratedContractProcedure<typeof schema, undefined>
-    >()
-
-    expect(procedure.zz$cp).toMatchObject({
-      InputSchema: schema,
-      inputExample: { id: '123' },
+    expect(ContractRouterBuilder).toHaveBeenCalledWith({
+      prefix: '/prefix',
     })
   })
 
-  it('use output method', () => {
-    const schema = z.object({ id: z.string() })
+  it('tag', () => {
+    expect(builder.tag('tag1', 'tag2')).toBeInstanceOf(ContractRouterBuilder)
 
-    const procedure = oc.output(schema, { id: '123' })
-
-    expectTypeOf(procedure).toEqualTypeOf<
-      DecoratedContractProcedure<undefined, typeof schema>
-    >()
-
-    expect(procedure.zz$cp).toMatchObject({
-      OutputSchema: schema,
-      outputExample: { id: '123' },
+    expect(ContractRouterBuilder).toHaveBeenCalledWith({
+      tags: ['tag1', 'tag2'],
     })
   })
 })
 
-describe('define a router', () => {
-  it('simple', () => {
-    const schema1 = z.string()
-    const schema2 = z.object({ id: z.string() })
-    const ping = oc.output(schema1)
-    const find = oc.output(schema2)
+describe('to DecoratedContractProcedure', () => {
+  const builder = new ContractBuilder()
 
-    const router = oc.router({
-      ping,
-      user: {
-        find,
-      },
-      user2: oc.router({
-        find,
-      }),
-    })
+  it('route', () => {
+    const route = { method: 'GET', path: '/path' } as const
+    const procedure = builder.route(route)
 
-    expectTypeOf(router).toMatchTypeOf<{
-      ping: typeof ping
-      user: {
-        find: typeof find
-      }
-      user2: {
-        find: typeof find
-      }
-    }>()
-
-    expect(router).toMatchObject({
-      ping,
-      user: {
-        find,
-      },
-      user2: {
-        find,
-      },
-    })
+    expect(procedure).toBeInstanceOf(DecoratedContractProcedure)
+    expect(DecoratedContractProcedure).toHaveBeenCalledWith({ route })
   })
 
-  it('with prefix', () => {
-    const schema1 = z.string()
-    const schema2 = z.object({ id: z.string() })
-    const ping = oc.output(schema1)
-    const find = oc.output(schema2)
+  const schema = z.object({
+    value: z.string(),
+  })
+  const example = { value: 'example' }
 
-    const router = oc.router({
-      ping: ping.prefix('/ping'),
-      user: {
-        find,
-      },
-      user2: oc
-        .prefix('/internal')
-        .prefix('/user2')
-        .router({
-          find2: find.prefix('/find2'),
-        }),
-    })
+  it('input', () => {
+    const procedure = builder.input(schema, example)
 
-    expectTypeOf(router).toMatchTypeOf<{
-      ping: typeof ping
-      user: {
-        find: typeof find
-      }
-      user2: {
-        find2: typeof find
-      }
-    }>()
-
-    expect(router).toMatchObject({
-      ping: ping.prefix('/ping'),
-      user: {
-        find,
-      },
-      user2: {
-        find2: find.prefix('/internal/user2/find2'),
-      },
-    })
+    expect(procedure).toBeInstanceOf(DecoratedContractProcedure)
+    expect(DecoratedContractProcedure).toHaveBeenCalledWith({ InputSchema: schema, inputExample: example })
   })
 
-  it('with tags', () => {
-    const schema1 = z.string()
-    const schema2 = z.object({ id: z.string() })
-    const ping = oc.output(schema1)
-    const find = oc.output(schema2)
+  it('output', () => {
+    const procedure = builder.output(schema, example)
 
-    const router = oc.router({
-      ping: ping.prefix('/ping'),
-      user: {
-        find,
-      },
-      user2: oc
-        .tags('user')
-        .tags('internal')
-        .router({
-          find2: find.prefix('/find2'),
-        }),
-    })
+    expect(procedure).toBeInstanceOf(DecoratedContractProcedure)
+    expect(DecoratedContractProcedure).toHaveBeenCalledWith({ OutputSchema: schema, outputExample: example })
+  })
+})
 
-    expectTypeOf(router).toMatchTypeOf<{
-      ping: typeof ping
-      user: {
-        find: typeof find
-      }
-      user2: {
-        find2: typeof find
-      }
-    }>()
+describe('to router', () => {
+  const builder = new ContractBuilder()
 
-    expect(router).toMatchObject({
-      ping: ping.prefix('/ping'),
-      user: {
-        find,
+  const router = {
+    a: {
+      b: {
+        c: new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined }),
       },
-      user2: {
-        find2: find.addTags('user', 'internal'),
-      },
-    })
+    },
+  }
+
+  const emptyRouter = {
+
+  }
+
+  it('router', () => {
+    expect(builder.router(router)).toBe(router)
+    expect(builder.router(emptyRouter)).toBe(emptyRouter)
   })
 })

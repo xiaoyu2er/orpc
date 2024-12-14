@@ -2,7 +2,7 @@ import type { RouteOptions } from '@orpc/contract'
 import type { Middleware } from './middleware'
 import type { DecoratedProcedure } from './procedure-decorated'
 import type { ProcedureImplementer } from './procedure-implementer'
-import type { WELL_CONTEXT } from './types'
+import type { Meta, WELL_CONTEXT } from './types'
 import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
 import { ProcedureBuilder } from './procedure-builder'
@@ -148,6 +148,7 @@ describe('to DecoratedProcedure', () => {
     const procedure = builder.func(async (input, context, meta) => {
       expectTypeOf(context).toEqualTypeOf<{ id?: string } | undefined>()
       expectTypeOf(input).toEqualTypeOf<{ id: number }>()
+      expectTypeOf(meta).toEqualTypeOf<Meta>()
 
       return { id: '1' }
     })

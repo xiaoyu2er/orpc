@@ -43,7 +43,7 @@ export interface DecoratedMiddleware<
   TOutput,
 > extends Middleware<TContext, TExtraContext, TInput, TOutput> {
   concat: (<
-    UExtraContext extends Context & (Partial<MergeContext<TContext, TExtraContext>> | undefined) = undefined,
+    UExtraContext extends Context & Partial<MergeContext<TContext, TExtraContext>> | undefined = undefined,
     UInput = unknown,
   >(
     middleware: Middleware<
@@ -58,7 +58,7 @@ export interface DecoratedMiddleware<
     UInput & TInput,
     TOutput
   >) & (<
-    UExtraContext extends Context & (Partial<MergeContext<TContext, TExtraContext>> | undefined) = undefined,
+    UExtraContext extends Context & Partial<MergeContext<TContext, TExtraContext>> | undefined = undefined,
     UInput = TInput,
     UMappedInput = unknown,
   >(

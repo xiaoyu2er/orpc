@@ -9,7 +9,7 @@ export interface ProcedureFunc<
   TExtraContext extends Context,
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
-  TOutput extends SchemaOutput<TOutputSchema>,
+  TOutput extends SchemaInput<TOutputSchema>,
 > {
   (
     input: SchemaOutput<TInputSchema>,
@@ -35,7 +35,7 @@ export class Procedure<
   TExtraContext extends Context,
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
-  TFuncOutput extends SchemaOutput<TOutputSchema>,
+  TFuncOutput extends SchemaInput<TOutputSchema>,
 > {
   '~type' = 'Procedure' as const
   '~orpc': ProcedureDef<TContext, TExtraContext, TInputSchema, TOutputSchema, TFuncOutput>

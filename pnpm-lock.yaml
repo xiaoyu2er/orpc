@@ -328,6 +328,9 @@ importers:
       '@orpc/openapi':
         specifier: workspace:*
         version: link:../openapi
+      zod:
+        specifier: ^3.24.1
+        version: 3.24.1
 
   packages/shared:
     dependencies:

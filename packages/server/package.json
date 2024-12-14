@@ -56,6 +56,7 @@
     "@orpc/transformer": "workspace:*"
   },
   "devDependencies": {
-    "@orpc/openapi": "workspace:*"
+    "@orpc/openapi": "workspace:*",
+    "zod": "^3.24.1"
   }
 }

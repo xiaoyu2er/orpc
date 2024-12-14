@@ -12,7 +12,7 @@ export type DecoratedProcedure<
   TExtraContext extends Context,
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
-  TFuncOutput extends SchemaOutput<TOutputSchema>,
+  TFuncOutput extends SchemaInput<TOutputSchema>,
 > =
   & Procedure<TContext, TExtraContext, TInputSchema, TOutputSchema, TFuncOutput>
   & {

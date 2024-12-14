@@ -1,14 +1,22 @@
 import type { ContractProcedure, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { DecoratedLazy } from './lazy'
-import type { DecoratedProcedure, Procedure, ProcedureFunc } from './procedure'
+import type { ProcedureFunc } from './procedure'
+import type { DecoratedProcedure } from './procedure-decorated'
 import type { Context, MergeContext } from './types'
-import {
-  decorateMiddleware,
-  type MapInputMiddleware,
-  type Middleware,
-} from './middleware'
-import { decorateProcedure } from './procedure'
+import { decorateMiddleware, type MapInputMiddleware, type Middleware } from './middleware'
+import { Procedure } from './procedure'
+import { decorateProcedure } from './procedure-decorated'
 import { RouterBuilder } from './router-builder'
+
+export type ProcedureImplementerDef<
+  _TContext extends Context,
+  _TExtraContext extends Context,
+  TInputSchema extends Schema,
+  TOutputSchema extends Schema,
+> = {
+  contract: ContractProcedure<TInputSchema, TOutputSchema>
+  middlewares?: Middleware<any, any, any, any>[]
+}
 
 export class ProcedureImplementer<
   TContext extends Context,
@@ -16,12 +24,12 @@ export class ProcedureImplementer<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
 > {
-  constructor(
-    public zz$pi: {
-      contract: ContractProcedure<TInputSchema, TOutputSchema>
-      middlewares?: Middleware<any, any, any, any>[]
-    },
-  ) {}
+  '~type' = 'ProcedureImplementer' as const
+  '~orpc': ProcedureImplementerDef<TContext, TExtraContext, TInputSchema, TOutputSchema>
+
+  constructor(def: ProcedureImplementerDef<TContext, TExtraContext, TInputSchema, TOutputSchema>) {
+    this['~orpc'] = def
+  }
 
   use<
     UExtraContext extends
@@ -65,44 +73,30 @@ export class ProcedureImplementer<
     middleware: Middleware<any, any, any, any>,
     mapInput?: MapInputMiddleware<any, any>,
   ): ProcedureImplementer<any, any, any, any> {
-    const middleware_ = mapInput
+    const mappedMiddleware = mapInput
       ? decorateMiddleware(middleware).mapInput(mapInput)
-      : middleware
+      : decorateMiddleware(middleware)
 
     return new ProcedureImplementer({
-      ...this.zz$pi,
-      middlewares: [...(this.zz$pi.middlewares ?? []), middleware_],
+      ...this['~orpc'],
+      middlewares: [...(this['~orpc'].middlewares ?? []), mappedMiddleware],
     })
   }
 
   func<UFuncOutput extends SchemaOutput<TOutputSchema>>(
-    func: ProcedureFunc<
-      TContext,
-      TExtraContext,
-      TInputSchema,
-      TOutputSchema,
-      UFuncOutput
-    >,
-  ): DecoratedProcedure<
-      TContext,
-      TExtraContext,
-      TInputSchema,
-      TOutputSchema,
-      UFuncOutput
-    > {
-    return decorateProcedure({
-      zz$p: {
-        middlewares: this.zz$pi.middlewares,
-        contract: this.zz$pi.contract,
-        func,
-      },
-    })
+    func: ProcedureFunc<TContext, TExtraContext, TInputSchema, TOutputSchema, UFuncOutput >,
+  ): DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, UFuncOutput > {
+    return decorateProcedure(new Procedure({
+      middlewares: this['~orpc'].middlewares,
+      contract: this['~orpc'].contract,
+      func,
+    }))
   }
 
   lazy<U extends Procedure<TContext, TExtraContext, TInputSchema, TOutputSchema, SchemaOutput<TOutputSchema>>>(
     loader: () => Promise<{ default: U }>,
   ): DecoratedLazy<U> {
     // TODO: replace with a more solid solution
-    return new RouterBuilder<TContext, TExtraContext>(this.zz$pi).lazy(loader as any) as any
+    return new RouterBuilder<TContext, TExtraContext>(this['~orpc']).lazy(loader as any) as any
   }
 }

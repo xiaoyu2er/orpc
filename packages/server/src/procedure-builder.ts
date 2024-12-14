@@ -1,4 +1,5 @@
 import type { MapInputMiddleware, Middleware } from './middleware'
+import type { DecoratedProcedure } from './procedure-decorated'
 import type { Context, MergeContext } from './types'
 import {
   type ContractProcedure,
@@ -9,11 +10,21 @@ import {
   type SchemaOutput,
 } from '@orpc/contract'
 import {
-  type DecoratedProcedure,
-  decorateProcedure,
+  Procedure,
   type ProcedureFunc,
 } from './procedure'
+import { decorateProcedure } from './procedure-decorated'
 import { ProcedureImplementer } from './procedure-implementer'
+
+export interface ProcedureBuilderDef<
+  _TContext extends Context,
+  _TExtraContext extends Context,
+  TInputSchema extends Schema,
+  TOutputSchema extends Schema,
+> {
+  contract: ContractProcedure<TInputSchema, TOutputSchema>
+  middlewares?: Middleware<any, any, any, any>[]
+}
 
 export class ProcedureBuilder<
   TContext extends Context,
@@ -21,25 +32,21 @@ export class ProcedureBuilder<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
 > {
-  constructor(
-    public zz$pb: {
-      contract: ContractProcedure<TInputSchema, TOutputSchema>
-      middlewares?: Middleware<any, any, any, any>[]
-    },
-  ) {}
+  '~type' = 'ProcedureBuilder' as const
+  '~orpc': ProcedureBuilderDef<TContext, TExtraContext, TInputSchema, TOutputSchema>
 
-  /**
-   * Self chainable
-   */
+  constructor(def: ProcedureBuilderDef<TContext, TExtraContext, TInputSchema, TOutputSchema>) {
+    this['~orpc'] = def
+  }
 
   route(
-    opts: RouteOptions,
+    route: RouteOptions,
   ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema> {
     return new ProcedureBuilder({
-      ...this.zz$pb,
-      contract: DecoratedContractProcedure.decorate(this.zz$pb.contract).route(
-        opts,
-      ),
+      ...this['~orpc'],
+      contract: DecoratedContractProcedure
+        .decorate(this['~orpc'].contract)
+        .route(route),
     })
   }
 
@@ -48,11 +55,10 @@ export class ProcedureBuilder<
     example?: SchemaInput<USchema>,
   ): ProcedureBuilder<TContext, TExtraContext, USchema, TOutputSchema> {
     return new ProcedureBuilder({
-      ...this.zz$pb,
-      contract: DecoratedContractProcedure.decorate(this.zz$pb.contract).input(
-        schema,
-        example,
-      ),
+      ...this['~orpc'],
+      contract: DecoratedContractProcedure
+        .decorate(this['~orpc'].contract)
+        .input(schema, example),
     })
   }
 
@@ -61,17 +67,12 @@ export class ProcedureBuilder<
     example?: SchemaOutput<USchema>,
   ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, USchema> {
     return new ProcedureBuilder({
-      ...this.zz$pb,
-      contract: DecoratedContractProcedure.decorate(this.zz$pb.contract).output(
-        schema,
-        example,
-      ),
+      ...this['~orpc'],
+      contract: DecoratedContractProcedure
+        .decorate(this['~orpc'].contract)
+        .output(schema, example),
     })
   }
-
-  /**
-   * Convert to ProcedureBuilder
-   */
 
   use<
     UExtraContext extends
@@ -117,42 +118,24 @@ export class ProcedureBuilder<
   ): ProcedureImplementer<any, any, any, any> {
     if (!mapInput) {
       return new ProcedureImplementer({
-        contract: this.zz$pb.contract,
-        middlewares: this.zz$pb.middlewares,
+        contract: this['~orpc'].contract,
+        middlewares: this['~orpc'].middlewares,
       }).use(middleware)
     }
 
     return new ProcedureImplementer({
-      contract: this.zz$pb.contract,
-      middlewares: this.zz$pb.middlewares,
+      contract: this['~orpc'].contract,
+      middlewares: this['~orpc'].middlewares,
     }).use(middleware, mapInput)
   }
 
-  /**
-   * Convert to Procedure
-   */
-
   func<UFuncOutput extends SchemaOutput<TOutputSchema>>(
-    func: ProcedureFunc<
-      TContext,
-      TExtraContext,
-      TInputSchema,
-      TOutputSchema,
-      UFuncOutput
-    >,
-  ): DecoratedProcedure<
-      TContext,
-      TExtraContext,
-      TInputSchema,
-      TOutputSchema,
-      UFuncOutput
-    > {
-    return decorateProcedure({
-      zz$p: {
-        middlewares: this.zz$pb.middlewares,
-        contract: this.zz$pb.contract,
-        func,
-      },
-    })
+    func: ProcedureFunc<TContext, TExtraContext, TInputSchema, TOutputSchema, UFuncOutput>,
+  ): DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, UFuncOutput > {
+    return decorateProcedure(new Procedure({
+      middlewares: this['~orpc'].middlewares,
+      contract: this['~orpc'].contract,
+      func,
+    }))
   }
 }

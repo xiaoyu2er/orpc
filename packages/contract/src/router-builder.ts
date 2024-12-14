@@ -49,7 +49,7 @@ export class ContractRouterBuilder {
         let decorated = DecoratedContractProcedure.decorate(item)
 
         if (this['~orpc'].tags) {
-          decorated = decorated.pushTag(...this['~orpc'].tags)
+          decorated = decorated.unshiftTag(...this['~orpc'].tags)
         }
 
         if (this['~orpc'].prefix) {

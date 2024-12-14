@@ -211,7 +211,7 @@ function adaptProcedure(options: {
 
   let contract = DecoratedContractProcedure.decorate(
     options.procedure.zz$p.contract,
-  ).pushTag(...(options.tags ?? []))
+  ).unshiftTag(...(options.tags ?? []))
 
   if (options.prefix) {
     contract = contract.prefix(options.prefix)

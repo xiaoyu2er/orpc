@@ -1,15 +1,12 @@
 import type { Promisable } from '@orpc/shared'
-import type { Context, MergeContext, Meta } from './types'
-import { mergeContext } from './utils'
+import type { Context, MergeContext, Meta, WELL_CONTEXT } from './types'
 
 export type MiddlewareResult<TExtraContext extends Context, TOutput> = Promisable<{
   output: TOutput
   context: TExtraContext
 }>
 
-export interface MiddlewareMeta<
-  TOutput,
-> extends Meta {
+export interface MiddlewareMeta<TOutput> extends Meta {
   next: <UExtraContext extends Context = undefined>(
     options: UExtraContext extends undefined ? { context?: UExtraContext } : { context: UExtraContext }
   ) => MiddlewareResult<UExtraContext, TOutput>
@@ -31,9 +28,13 @@ export interface Middleware<
   >
 }
 
+export type ANY_MIDDLEWARE = Middleware<any, any, any, any>
+
 export interface MapInputMiddleware<TInput, TMappedInput> {
   (input: TInput): TMappedInput
 }
+
+export type ANY_MAP_INPUT_MIDDLEWARE = MapInputMiddleware<any, any>
 
 export interface DecoratedMiddleware<
   TContext extends Context,
@@ -42,8 +43,8 @@ export interface DecoratedMiddleware<
   TOutput,
 > extends Middleware<TContext, TExtraContext, TInput, TOutput> {
   concat: (<
-    UExtraContext extends Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>> | undefined = undefined,
-    UInput = TInput,
+    UExtraContext extends Context & (Partial<MergeContext<TContext, TExtraContext>> | undefined) = undefined,
+    UInput = unknown,
   >(
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
@@ -54,10 +55,10 @@ export interface DecoratedMiddleware<
   ) => DecoratedMiddleware<
     TContext,
     MergeContext<TExtraContext, UExtraContext>,
-    TInput & UInput,
+    UInput & TInput,
     TOutput
   >) & (<
-    UExtraContext extends Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>> | undefined = undefined,
+    UExtraContext extends Context & (Partial<MergeContext<TContext, TExtraContext>> | undefined) = undefined,
     UInput = TInput,
     UMappedInput = unknown,
   >(
@@ -67,11 +68,11 @@ export interface DecoratedMiddleware<
       UMappedInput,
       TOutput
     >,
-    mapInput: MapInputMiddleware<UInput, UMappedInput>,
+    mapInput: MapInputMiddleware<UInput & TInput, UMappedInput>,
   ) => DecoratedMiddleware<
     TContext,
     MergeContext<TExtraContext, UExtraContext>,
-    TInput & UInput,
+    UInput & TInput,
     TOutput
   >)
 
@@ -80,57 +81,41 @@ export interface DecoratedMiddleware<
   ) => DecoratedMiddleware<TContext, TExtraContext, UInput, TOutput>
 }
 
-const decoratedMiddlewareSymbol = Symbol('🔒decoratedMiddleware')
-
 export function decorateMiddleware<
-  TContext extends Context,
-  TExtraContext extends Context,
-  TInput,
-  TOutput,
+  TContext extends Context = WELL_CONTEXT,
+  TExtraContext extends Context = undefined,
+  TInput = unknown,
+  TOutput = unknown,
 >(
   middleware: Middleware<TContext, TExtraContext, TInput, TOutput>,
 ): DecoratedMiddleware<TContext, TExtraContext, TInput, TOutput> {
-  if (Reflect.get(middleware, decoratedMiddlewareSymbol)) {
-    return middleware as any
+  const decorated = middleware as DecoratedMiddleware<TContext, TExtraContext, TInput, TOutput>
+
+  decorated.mapInput = (mapInput) => {
+    const mapped = decorateMiddleware(
+      (input, ...rest) => middleware(mapInput(input as any), ...rest as [any, any]),
+    )
+
+    return mapped as any
   }
 
-  const concat = (
-    concatMiddleware: Middleware<any, any, any, any>,
-    mapInput?: MapInputMiddleware<any, any>,
-  ): Middleware<any, any, any, any> => {
-    const concatMiddleware_ = mapInput
+  decorated.concat = (concatMiddleware: ANY_MIDDLEWARE, mapInput?: ANY_MAP_INPUT_MIDDLEWARE) => {
+    const mapped = mapInput
       ? decorateMiddleware(concatMiddleware).mapInput(mapInput)
       : concatMiddleware
 
-    return decorateMiddleware(async (input, context, meta, ...rest) => {
-      const input_ = input as any
-      const context_ = context as any
-      const meta_ = meta as any
-
+    const concatted = decorateMiddleware((input, context, meta, ...rest) => {
       const next: MiddlewareMeta<any>['next'] = async (options) => {
-        return concatMiddleware_(input_, mergeContext(context_, options.context), meta_, ...rest)
+        return mapped(input, { ...context, ...options.context }, meta, ...rest)
       }
 
-      const m1 = await middleware(input_, context_, {
-        ...meta_,
-        next,
-      }, ...rest)
+      const merged = middleware(input as any, context as any, { ...meta, next }, ...rest)
 
-      return m1
+      return merged
     })
+
+    return concatted as any
   }
 
-  const mapInput = <UInput = unknown>(
-    map: MapInputMiddleware<UInput, TInput>,
-  ): DecoratedMiddleware<TContext, TExtraContext, UInput, TOutput> => {
-    return decorateMiddleware((input, ...rest) =>
-      middleware(map(input), ...rest),
-    )
-  }
-
-  return Object.assign(middleware, {
-    [decoratedMiddlewareSymbol]: true,
-    concat: concat as any,
-    mapInput,
-  })
+  return decorated
 }

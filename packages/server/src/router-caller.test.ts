@@ -133,22 +133,22 @@ describe('createRouterCaller', () => {
 
     // @ts-expect-error - invalid input
     expect(caller.ping({ value: new Date('2023-01-01') })).rejects.toThrowError(
-      'Validation input failed',
+      'Input validation failed',
     )
 
     // @ts-expect-error - invalid input
     expect(caller.nested.ping({ value: true })).rejects.toThrowError(
-      'Validation input failed',
+      'Input validation failed',
     )
 
     // @ts-expect-error - invalid input
     expect(caller.lazyRouter.ping({ value: true })).rejects.toThrowError(
-      'Validation input failed',
+      'Input validation failed',
     )
 
     // @ts-expect-error - invalid input
     expect(caller.lazyRouter.lazyRouter.ping({ value: true })).rejects.toThrowError(
-      'Validation input failed',
+      'Input validation failed',
     )
   })
 
@@ -252,7 +252,7 @@ describe('createRouterCaller', () => {
 
     // @ts-expect-error - invalid input
     await expect(caller.nested.procedure(123)).rejects.toThrowError(
-      'Validation input failed',
+      'Input validation failed',
     )
 
     const meta2 = {
@@ -261,7 +261,7 @@ describe('createRouterCaller', () => {
     }
 
     const error2 = new ORPCError({
-      message: 'Validation input failed',
+      message: 'Input validation failed',
       code: 'BAD_REQUEST',
       cause: expect.any(Error),
     })

@@ -1,5 +1,6 @@
 import type { Promisable } from '@orpc/shared'
 import type { Context, MergeContext, Meta, WELL_CONTEXT } from './types'
+import { mergeContext } from './utils'
 
 export type MiddlewareResult<TExtraContext extends Context, TOutput> = Promisable<{
   output: TOutput
@@ -106,7 +107,7 @@ export function decorateMiddleware<
 
     const concatted = decorateMiddleware((input, context, meta, ...rest) => {
       const next: MiddlewareMeta<any>['next'] = async (options) => {
-        return mapped(input, { ...context, ...options.context }, meta, ...rest)
+        return mapped(input, mergeContext(context, options.context), meta, ...rest)
       }
 
       const merged = middleware(input as any, context as any, { ...meta, next }, ...rest)

@@ -57,7 +57,7 @@ describe('self chainable', () => {
   })
 })
 
-it('to ProcedureImplementer', () => {
+describe('to ProcedureImplementer', () => {
   const schema = z.object({ id: z.string().transform(v => Number.parseInt(v)) })
 
   const builder = new ProcedureBuilder<{ id?: string } | undefined, undefined, typeof schema, typeof schema>({
@@ -133,7 +133,7 @@ it('to ProcedureImplementer', () => {
   })
 })
 
-it('to DecoratedProcedure', () => {
+describe('to DecoratedProcedure', () => {
   const schema = z.object({ id: z.string().transform(v => Number.parseInt(v)) })
 
   const builder = new ProcedureBuilder<{ id?: string } | undefined, undefined, typeof schema, typeof schema>({

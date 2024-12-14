@@ -11,7 +11,7 @@ export interface RouteOptions {
   summary?: string
   description?: string
   deprecated?: boolean
-  tags?: string[]
+  tags?: readonly string[]
 }
 
 export interface ContractProcedureDef<TInputSchema extends Schema, TOutputSchema extends Schema> {

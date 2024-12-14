@@ -58,14 +58,14 @@ export function createProcedureCaller<
     const procedure = await loadProcedure(options.procedure) as WELL_PROCEDURE
     const context = await value(options.context) as TContext
 
+    const meta: Meta = {
+      path,
+      procedure,
+      signal: callerOptions?.signal,
+    }
+
     const executeWithValidation = async () => {
       const validInput = await validateInput(procedure, input)
-
-      const meta: Meta = {
-        path,
-        procedure,
-        signal: callerOptions?.signal,
-      }
 
       const output = await executeMiddlewareChain(
         procedure,
@@ -81,7 +81,7 @@ export function createProcedureCaller<
       hooks: options,
       input,
       context,
-      meta: { path, procedure },
+      meta,
       execute: executeWithValidation,
     })
   }

@@ -7,9 +7,9 @@ import { createProcedureCaller } from './procedure-caller'
 
 const schema = z.object({ val: z.string().transform(v => Number(v)) })
 
-const func = vi.fn()
-const mid = vi.fn()
-const mid2 = vi.fn()
+const func = vi.fn(() => ({ val: '123' }))
+const mid1 = vi.fn((_, __, meta) => meta.next({}))
+const mid2 = vi.fn((_, __, meta) => meta.next({}))
 
 const procedure = new Procedure<WELL_CONTEXT, undefined, typeof schema, typeof schema, { val: string }>({
   contract: new ContractProcedure({
@@ -17,60 +17,36 @@ const procedure = new Procedure<WELL_CONTEXT, undefined, typeof schema, typeof s
     OutputSchema: schema,
   }),
   func,
-})
-
-const procedureWithMiddleware = new Procedure<{ userId?: string }, { db: string }, typeof schema, typeof schema, { val: string }>({
-  contract: new ContractProcedure({
-    InputSchema: schema,
-    OutputSchema: schema,
-  }),
-  func,
-  middlewares: [mid],
-})
-
-const procedureWithMultipleMiddleware = new Procedure<{ userId?: string }, { db: string }, typeof schema, typeof schema, { val: string }>({
-  contract: new ContractProcedure({
-    InputSchema: schema,
-    OutputSchema: schema,
-  }),
-  func,
-  middlewares: [mid, mid2],
+  middlewares: [mid1, mid2],
 })
 
 const procedureCases = [
-  [
-    'default',
-    procedure,
-    procedureWithMiddleware,
-    procedureWithMultipleMiddleware,
-  ],
-  [
-    'lazy',
-    createLazy(() => Promise.resolve({ default: procedure })),
-    createLazy(() => Promise.resolve({ default: procedureWithMiddleware })),
-    createLazy(() => Promise.resolve({ default: procedureWithMultipleMiddleware })),
-  ],
+  ['without lazy', procedure],
+  ['with lazy', createLazy(() => Promise.resolve({ default: procedure }))],
 ] as const
 
 beforeEach(() => {
-  vi.resetAllMocks()
+  vi.clearAllMocks()
 })
 
-describe.each(procedureCases)('createProcedureCaller - %s', (_, procedure, procedureWithMiddleware, procedureWithMultipleMiddleware) => {
-  const unwrapLazy = async (val: any) => {
-    return isLazy(val) ? (await loadLazy(val)).default : val
-  }
+describe.each(procedureCases)('createProcedureCaller - case %s', async (_, procedure) => {
+  const unwrappedProcedure = isLazy(procedure) ? (await loadLazy(procedure)).default : procedure
 
   it('just a caller', async () => {
     const caller = createProcedureCaller({
       procedure,
     })
 
-    func.mockReturnValueOnce({ val: '123' })
-
     await expect(caller({ val: '123' })).resolves.toEqual({ val: 123 })
 
-    expect(func).toHaveBeenCalledWith({ val: 123 }, undefined, { path: [], procedure: await unwrapLazy(procedure) })
+    expect(func).toBeCalledTimes(1)
+    expect(func).toBeCalledWith({ val: 123 }, undefined, { path: [], procedure: unwrappedProcedure })
+
+    expect(mid1).toBeCalledTimes(1)
+    expect(mid1).toBeCalledWith({ val: 123 }, undefined, { path: [], procedure: unwrappedProcedure, next: expect.any(Function), output: expect.any(Function) })
+
+    expect(mid2).toBeCalledTimes(1)
+    expect(mid2).toBeCalledWith({ val: 123 }, undefined, { path: [], procedure: unwrappedProcedure, next: expect.any(Function), output: expect.any(Function) })
   })
 
   it('validate input and output', () => {
@@ -81,115 +57,61 @@ describe.each(procedureCases)('createProcedureCaller - %s', (_, procedure, proce
     // @ts-expect-error - invalid input
     expect(caller({ val: 123 })).rejects.toThrow('Input validation failed')
 
+    // @ts-expect-error - invalid output
     func.mockReturnValueOnce({ val: 1234 })
     expect(caller({ val: '1234' })).rejects.toThrow('Output validation failed')
   })
 
-  it('middleware can return output directly - single', async () => {
+  it('middleware can return output directly', async () => {
     const caller = createProcedureCaller({
-      procedure: procedureWithMiddleware,
-      context: { userId: '123' },
+      procedure,
     })
 
-    mid.mockReturnValueOnce({ output: { val: '123' } })
+    mid1.mockReturnValueOnce({ output: { val: '990' } })
 
-    await expect(caller({ val: '123' })).resolves.toEqual({ val: 123 })
+    await expect(caller({ val: '123' })).resolves.toEqual({ val: 990 })
 
+    expect(mid1).toBeCalledTimes(1)
+    expect(mid2).toBeCalledTimes(0)
     expect(func).toBeCalledTimes(0)
 
-    expect(mid).toBeCalledTimes(1)
-    expect(mid).toHaveBeenCalledWith({ val: 123 }, { userId: '123' }, {
-      path: [],
-      procedure: await unwrapLazy(procedureWithMiddleware),
-      next: expect.any(Function),
-      output: expect.any(Function),
-    })
-  })
+    vi.clearAllMocks()
 
-  it('middleware can return output directly - multiple', async () => {
-    const caller = createProcedureCaller({
-      procedure: procedureWithMultipleMiddleware,
-      context: { userId: '123' },
-    })
+    mid2.mockReturnValueOnce({ output: { val: '9900' } })
 
-    mid.mockImplementationOnce((input, context, meta) => {
-      return meta.next({
-        context: {
-          extra: '__extra__',
-        },
-      })
-    })
+    await expect(caller({ val: '123' })).resolves.toEqual({ val: 9900 })
 
-    mid2.mockReturnValueOnce({ output: { val: '1234567' } })
-
-    await expect(caller({ val: '123' })).resolves.toEqual({ val: 1234567 })
-
-    expect(func).toBeCalledTimes(0)
-
-    expect(mid).toBeCalledTimes(1)
-    expect(mid).toHaveBeenCalledWith({ val: 123 }, { userId: '123' }, {
-      path: [],
-      procedure: await unwrapLazy(procedureWithMultipleMiddleware),
-      next: expect.any(Function),
-      output: expect.any(Function),
-    })
-    expect(mid).toReturnWith(Promise.resolve({ output: { val: '1234567' }, context: { extra: '__extra__' } }))
-
+    expect(mid1).toBeCalledTimes(1)
     expect(mid2).toBeCalledTimes(1)
-    expect(mid2).toHaveBeenCalledWith({ val: 123 }, { userId: '123', extra: '__extra__' }, {
-      path: [],
-      procedure: await unwrapLazy(procedureWithMultipleMiddleware),
-      next: expect.any(Function),
-      output: expect.any(Function),
-    })
+    expect(func).toBeCalledTimes(0)
+
+    expect(mid1).toReturnWith(Promise.resolve({ output: { val: '9900' }, context: undefined }))
   })
 
   it('output from middleware still be validated', async () => {
     const caller = createProcedureCaller({
-      procedure: procedureWithMiddleware,
+      procedure,
       context: { userId: '123' },
     })
 
-    mid.mockReturnValueOnce({ output: { val: 1234 } })
+    mid1.mockReturnValueOnce({ output: { val: 990 } })
+    await expect(caller({ val: '1234' })).rejects.toThrow('Output validation failed')
 
+    vi.clearAllMocks()
+
+    mid2.mockReturnValueOnce({ output: { val: 9900 } })
     await expect(caller({ val: '1234' })).rejects.toThrow('Output validation failed')
   })
 
   it('middleware can add extra context - single', async () => {
     const caller = createProcedureCaller({
-      procedure: procedureWithMiddleware,
-      context: { userId: '123' },
+      procedure,
     })
 
-    mid.mockImplementationOnce((input, context, meta) => {
+    mid1.mockImplementationOnce((input, context, meta) => {
       return meta.next({
         context: {
-          extra: '__extra__',
-        },
-      })
-    })
-
-    func.mockReturnValueOnce({ val: '1234' })
-
-    await expect(caller({ val: '1234' })).resolves.toEqual({ val: 1234 })
-
-    expect(func).toBeCalledTimes(1)
-    expect(func).toHaveBeenCalledWith({ val: 1234 }, { userId: '123', extra: '__extra__' }, {
-      path: [],
-      procedure: await unwrapLazy(procedureWithMiddleware),
-    })
-  })
-
-  it('middleware can add extra context - multiple', async () => {
-    const caller = createProcedureCaller({
-      procedure: procedureWithMultipleMiddleware,
-      context: { userId: '123' },
-    })
-
-    mid.mockImplementationOnce((input, context, meta) => {
-      return meta.next({
-        context: {
-          extra: '__extra__',
+          extra1: '__extra1__',
         },
       })
     })
@@ -202,57 +124,28 @@ describe.each(procedureCases)('createProcedureCaller - %s', (_, procedure, proce
       })
     })
 
-    func.mockReturnValueOnce({ val: '1234' })
+    await expect(caller({ val: '123' })).resolves.toEqual({ val: 123 })
 
-    await expect(caller({ val: '1234' })).resolves.toEqual({ val: 1234 })
+    expect(mid1).toBeCalledTimes(1)
+    expect(mid1).toHaveBeenCalledWith(expect.any(Object), undefined, expect.any(Object))
+
+    expect(mid2).toBeCalledTimes(1)
+    expect(mid2).toHaveBeenCalledWith(expect.any(Object), expect.objectContaining({ extra1: '__extra1__' }), expect.any(Object))
 
     expect(func).toBeCalledTimes(1)
-    expect(func).toHaveBeenCalledWith({ val: 1234 }, {
-      userId: '123',
-      extra: '__extra__',
-      extra2: '__extra2__',
-    }, {
-      path: [],
-      procedure: await unwrapLazy(procedureWithMultipleMiddleware),
-    })
+    expect(func).toHaveBeenCalledWith(expect.any(Object), { extra1: '__extra1__', extra2: '__extra2__' }, expect.any(Object))
   })
 
-  it('middleware can override context - signal', async () => {
+  it('middleware can override context', async () => {
     const caller = createProcedureCaller({
-      procedure: procedureWithMiddleware,
+      procedure,
       context: { userId: '123' },
     })
 
-    mid.mockImplementationOnce((input, context, meta) => {
+    mid1.mockImplementationOnce((input, context, meta) => {
       return meta.next({
         context: {
-          userId: '456',
-        },
-      })
-    })
-
-    func.mockReturnValueOnce({ val: '1234' })
-
-    await expect(caller({ val: '1234' })).resolves.toEqual({ val: 1234 })
-
-    expect(func).toBeCalledTimes(1)
-    expect(func).toHaveBeenCalledWith({ val: 1234 }, { userId: '456' }, {
-      path: [],
-      procedure: await unwrapLazy(procedureWithMiddleware),
-    })
-  })
-
-  it('middleware can override context - multiple', async () => {
-    const caller = createProcedureCaller({
-      procedure: procedureWithMultipleMiddleware,
-      context: { userId: '123' },
-    })
-
-    mid.mockImplementationOnce((input, context, meta) => {
-      return meta.next({
-        context: {
-          userId: '456',
-          extra: '1',
+          userId: '__override1__',
         },
       })
     })
@@ -260,21 +153,21 @@ describe.each(procedureCases)('createProcedureCaller - %s', (_, procedure, proce
     mid2.mockImplementationOnce((input, context, meta) => {
       return meta.next({
         context: {
-          userId: '789',
-          extra: '2',
+          userId: '__override2__',
         },
       })
     })
 
-    func.mockReturnValueOnce({ val: '1234' })
+    await expect(caller({ val: '123' })).resolves.toEqual({ val: 123 })
 
-    await expect(caller({ val: '1234' })).resolves.toEqual({ val: 1234 })
+    expect(mid1).toBeCalledTimes(1)
+    expect(mid1).toHaveBeenCalledWith(expect.any(Object), expect.objectContaining({ userId: '123' }), expect.any(Object))
+
+    expect(mid2).toBeCalledTimes(1)
+    expect(mid2).toHaveBeenCalledWith(expect.any(Object), expect.objectContaining({ userId: '__override1__' }), expect.any(Object))
 
     expect(func).toBeCalledTimes(1)
-    expect(func).toHaveBeenCalledWith({ val: 1234 }, { userId: '789', extra: '2' }, {
-      path: [],
-      procedure: await unwrapLazy(procedureWithMultipleMiddleware),
-    })
+    expect(func).toHaveBeenCalledWith(expect.any(Object), expect.objectContaining({ userId: '__override2__' }), expect.any(Object))
   })
 
   const contextCases = [
@@ -283,21 +176,26 @@ describe.each(procedureCases)('createProcedureCaller - %s', (_, procedure, proce
     ['async function value', async () => ({ val: '__val__' })],
   ] as const
 
-  it.each(contextCases)('can accept %s', async (_, context) => {
-    func.mockReturnValue({ val: '1234' })
-
-    const caller1 = createProcedureCaller({
+  it.each(contextCases)('can accept context: %s', async (_, context) => {
+    const caller = createProcedureCaller({
       procedure,
       context,
     })
 
-    await caller1({ val: '123' })
+    await caller({ val: '123' })
+
+    expect(mid1).toBeCalledTimes(1)
+    expect(mid1).toBeCalledWith(expect.any(Object), { val: '__val__' }, expect.any(Object))
+
+    expect(mid2).toBeCalledTimes(1)
+    expect(mid2).toBeCalledWith(expect.any(Object), { val: '__val__' }, expect.any(Object))
+
     expect(func).toBeCalledTimes(1)
-    expect(func).toHaveBeenCalledWith({ val: 123 }, { val: '__val__' }, { path: [], procedure: await unwrapLazy(procedure) })
+    expect(func).toBeCalledWith(expect.any(Object), { val: '__val__' }, expect.any(Object))
   })
 
   it.each(contextCases)('can accept hooks - context: %s', async (_, context) => {
-    const execute = vi.fn()
+    const execute = vi.fn((input, context, meta) => meta.next())
     const onStart = vi.fn()
     const onSuccess = vi.fn()
     const onError = vi.fn()
@@ -314,14 +212,11 @@ describe.each(procedureCases)('createProcedureCaller - %s', (_, procedure, proce
       onFinish,
     })
 
-    execute.mockImplementation((input, context, meta) => meta.next())
-    func.mockReturnValueOnce({ val: '123' })
-
     await caller({ val: '123' })
 
     const meta = {
       path: ['users'],
-      procedure: await unwrapLazy(procedure),
+      procedure: unwrappedProcedure,
     }
 
     const contextValue = { val: '__val__' }
@@ -357,31 +252,134 @@ describe.each(procedureCases)('createProcedureCaller - %s', (_, procedure, proce
       onSuccess,
     })
 
-    func.mockReturnValueOnce({ val: '123' })
-
     await caller({ val: '123' })
 
+    expect(mid1).toBeCalledTimes(1)
+    expect(mid1).toHaveBeenCalledWith(expect.any(Object), undefined, expect.objectContaining({ path: ['users'] }))
+
+    expect(mid2).toBeCalledTimes(1)
+    expect(mid2).toHaveBeenCalledWith(expect.any(Object), undefined, expect.objectContaining({ path: ['users'] }))
+
     expect(func).toBeCalledTimes(1)
-    expect(func).toHaveBeenCalledWith({ val: 123 }, undefined, { path: ['users'], procedure: await unwrapLazy(procedure) })
+    expect(func).toHaveBeenCalledWith(expect.any(Object), undefined, expect.objectContaining({ path: ['users'] }))
 
     expect(onSuccess).toBeCalledTimes(1)
-    expect(onSuccess).toHaveBeenCalledWith(
-      { status: 'success', input: { val: '123' }, output: { val: 123 }, error: undefined },
-      undefined,
-      { path: ['users'], procedure: await unwrapLazy(procedure) },
-    )
+    expect(onSuccess).toHaveBeenCalledWith(expect.any(Object), undefined, expect.objectContaining({ path: ['users'] }))
+  })
+
+  it('support signal', async () => {
+    const controller = new AbortController()
+    const signal = controller.signal
+
+    const onSuccess = vi.fn()
+
+    const caller = createProcedureCaller({
+      procedure,
+      onSuccess,
+      context: { userId: '123' },
+    })
+
+    await caller({ val: '123' }, { signal })
+
+    expect(mid1).toBeCalledTimes(1)
+    expect(mid1).toHaveBeenCalledWith(expect.any(Object), expect.any(Object), expect.objectContaining({ signal }))
+
+    expect(mid2).toBeCalledTimes(1)
+    expect(mid2).toHaveBeenCalledWith(expect.any(Object), expect.any(Object), expect.objectContaining({ signal }))
+
+    expect(func).toBeCalledTimes(1)
+    expect(func).toHaveBeenCalledWith(expect.any(Object), expect.any(Object), expect.objectContaining({ signal }))
+
+    expect(onSuccess).toBeCalledTimes(1)
+    expect(onSuccess).toHaveBeenCalledWith(expect.any(Object), expect.any(Object), expect.objectContaining({ signal }))
   })
 })
 
-describe('createProcedure on invalid lazy procedure', () => {
-  it('should throw error', () => {
-    const lazy = createLazy(() => Promise.resolve({ default: 123 }))
+it('should throw error when invalid lazy procedure', () => {
+  const lazy = createLazy(() => Promise.resolve({ default: 123 }))
 
-    const caller = createProcedureCaller({
-      // @ts-expect-error - invalid lazy procedure
-      procedure: lazy,
-    })
-
-    expect(caller()).rejects.toThrow('Not found')
+  const caller = createProcedureCaller({
+    // @ts-expect-error - invalid lazy procedure
+    procedure: lazy,
   })
+
+  expect(caller()).rejects.toThrow('Not found')
+})
+
+it('still work without middleware', async () => {
+  const procedure = new Procedure({
+    contract: new ContractProcedure({
+      InputSchema: schema,
+      OutputSchema: schema,
+    }),
+    func,
+  })
+
+  const caller = createProcedureCaller({
+    procedure,
+  })
+
+  await expect(caller({ val: '123' })).resolves.toEqual({ val: 123 })
+
+  expect(func).toBeCalledTimes(1)
+  expect(func).toHaveBeenCalledWith({ val: 123 }, undefined, { path: [], procedure })
+})
+
+it('still work without InputSchema', async () => {
+  const procedure = new Procedure({
+    contract: new ContractProcedure({
+      InputSchema: undefined,
+      OutputSchema: schema,
+    }),
+    func,
+  })
+
+  const caller = createProcedureCaller({
+    procedure,
+  })
+
+  await expect(caller('anything')).resolves.toEqual({ val: 123 })
+
+  expect(func).toBeCalledTimes(1)
+  expect(func).toHaveBeenCalledWith('anything', undefined, { path: [], procedure })
+})
+
+it('still work without OutputSchema', async () => {
+  const procedure = new Procedure({
+    contract: new ContractProcedure({
+      InputSchema: schema,
+      OutputSchema: undefined,
+    }),
+    func,
+  })
+
+  const caller = createProcedureCaller({
+    procedure,
+  })
+
+  // @ts-expect-error - without output schema
+  func.mockReturnValueOnce('anything')
+
+  await expect(caller({ val: '123' })).resolves.toEqual('anything')
+
+  expect(func).toBeCalledTimes(1)
+  expect(func).toHaveBeenCalledWith({ val: 123 }, undefined, { path: [], procedure })
+})
+
+it('has helper `output` in meta', async () => {
+  const caller = createProcedureCaller({
+    procedure,
+  })
+
+  mid2.mockImplementationOnce((input, context, meta) => {
+    return meta.output({ val: '99990' })
+  })
+
+  await expect(caller({ val: '123' })).resolves.toEqual({ val: 99990 })
+
+  expect(mid1).toBeCalledTimes(1)
+  expect(mid2).toBeCalledTimes(1)
+  expect(func).toBeCalledTimes(0)
+
+  expect(mid1).toReturnWith(Promise.resolve({ output: { val: '99990' }, context: undefined }))
 })

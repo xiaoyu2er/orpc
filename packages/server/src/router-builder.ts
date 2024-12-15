@@ -1,6 +1,7 @@
-import type { DecoratedLazy, Lazy } from './lazy'
-import type { ANY_LAZY_PROCEDURE, ANY_PROCEDURE, DecoratedProcedure } from './procedure'
-import type { HandledRouter, Router } from './router'
+import type { ANY_LAZY, DecoratedLazy, Lazy } from './lazy'
+import type { ANY_LAZY_PROCEDURE, ANY_PROCEDURE, Procedure } from './procedure'
+import type { DecoratedProcedure } from './procedure-decorated'
+import type { Router } from './router'
 import type { Context, MergeContext } from './types'
 import { DecoratedContractProcedure, type HTTPPath } from '@orpc/contract'
 import { createLazy, decorateLazy, isLazy, loadLazy } from './lazy'
@@ -9,7 +10,29 @@ import {
   type MapInputMiddleware,
   type Middleware,
 } from './middleware'
-import { decorateProcedure, isProcedure } from './procedure'
+import { isProcedure } from './procedure'
+
+export type AdaptedRouter<TRouter extends Router<any>> = {
+  [K in keyof TRouter]: TRouter[K] extends Procedure<
+    infer UContext,
+    infer UExtraContext,
+    infer UInputSchema,
+    infer UOutputSchema,
+    infer UFuncOutput
+  >
+    ? DecoratedProcedure<
+      UContext,
+      UExtraContext,
+      UInputSchema,
+      UOutputSchema,
+      UFuncOutput
+    >
+    : TRouter[K] extends ANY_LAZY
+      ? DecoratedLazy<TRouter[K]>
+      : TRouter[K] extends Router<any>
+        ? AdaptedRouter<TRouter[K]>
+        : never
+}
 
 export const LAZY_ROUTER_PREFIX_SYMBOL = Symbol('ORPC_LAZY_ROUTER_PREFIX')
 
@@ -90,7 +113,7 @@ export class RouterBuilder<
 
   router<URouter extends Router<TContext>>(
     router: URouter,
-  ): HandledRouter<URouter> {
+  ): AdaptedRouter<URouter> {
     const handled = adaptRouter({
       routerOrChild: router,
       middlewares: this.zz$rb.middlewares,

@@ -1,18 +1,14 @@
 import type { ANY_LAZY, DecoratedLazy, Lazy } from './lazy'
+import type { Middleware } from './middleware'
 import type { ANY_LAZY_PROCEDURE, ANY_PROCEDURE, Procedure } from './procedure'
 import type { DecoratedProcedure } from './procedure-decorated'
-import type { Router } from './router'
+import type { ANY_ROUTER, Router } from './router'
 import type { Context, MergeContext } from './types'
 import { DecoratedContractProcedure, type HTTPPath } from '@orpc/contract'
 import { createLazy, decorateLazy, isLazy, loadLazy } from './lazy'
-import {
-  decorateMiddleware,
-  type MapInputMiddleware,
-  type Middleware,
-} from './middleware'
 import { isProcedure } from './procedure'
 
-export type AdaptedRouter<TRouter extends Router<any>> = {
+export type AdaptedRouter<TRouter extends ANY_ROUTER> = {
   [K in keyof TRouter]: TRouter[K] extends Procedure<
     infer UContext,
     infer UExtraContext,
@@ -29,9 +25,15 @@ export type AdaptedRouter<TRouter extends Router<any>> = {
     >
     : TRouter[K] extends ANY_LAZY
       ? DecoratedLazy<TRouter[K]>
-      : TRouter[K] extends Router<any>
+      : TRouter[K] extends ANY_ROUTER
         ? AdaptedRouter<TRouter[K]>
         : never
+}
+
+export type RouterBuilderDef<TContext extends Context, TExtraContext extends Context> = {
+  prefix?: HTTPPath
+  tags?: readonly string[]
+  middlewares?: Middleware<MergeContext<TContext, TExtraContext>, TExtraContext, unknown, any>[]
 }
 
 export const LAZY_ROUTER_PREFIX_SYMBOL = Symbol('ORPC_LAZY_ROUTER_PREFIX')
@@ -40,80 +42,51 @@ export class RouterBuilder<
   TContext extends Context,
   TExtraContext extends Context,
 > {
-  constructor(
-    public zz$rb: {
-      prefix?: HTTPPath
-      tags?: string[]
-      middlewares?: Middleware<any, any, any, any>[]
-    },
-  ) {
-    if (zz$rb.prefix && zz$rb.prefix.includes('{')) {
-      throw new Error('Prefix cannot contain "{" for dynamic routing')
+  '~type' = 'RouterBuilder' as const
+  '~orpc': RouterBuilderDef<TContext, TExtraContext>
+
+  constructor(def: RouterBuilderDef<TContext, TExtraContext>) {
+    this['~orpc'] = def
+
+    if (def.prefix && def.prefix.includes('{')) {
+      throw new Error(`
+        Dynamic routing in prefix not supported yet.
+        Please remove "{" from "${def.prefix}".
+      `)
     }
   }
 
   prefix(prefix: HTTPPath): RouterBuilder<TContext, TExtraContext> {
     return new RouterBuilder({
-      ...this.zz$rb,
-      prefix: `${this.zz$rb.prefix ?? ''}${prefix}`,
+      ...this['~orpc'],
+      prefix: `${this['~orpc'].prefix ?? ''}${prefix}`,
     })
   }
 
-  tags(...tags: string[]): RouterBuilder<TContext, TExtraContext> {
-    if (!tags.length)
-      return this
-
+  tag(...tags: string[]): RouterBuilder<TContext, TExtraContext> {
     return new RouterBuilder({
-      ...this.zz$rb,
-      tags: [...(this.zz$rb.tags ?? []), ...tags],
+      ...this['~orpc'],
+      tags: [...(this['~orpc'].tags ?? []), ...tags],
     })
   }
 
-  use<
-    UExtraContext extends
-    | Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>
-    | undefined = undefined,
-  >(
+  use<U extends Context & Partial<MergeContext<TContext, TExtraContext>> | undefined = undefined>(
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
-      UExtraContext,
+      U,
       unknown,
       unknown
     >,
-  ): RouterBuilder<TContext, MergeContext<TExtraContext, UExtraContext>>
-
-  use<
-    UExtraContext extends
-    | Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>
-    | undefined = undefined,
-    UMappedInput = unknown,
-  >(
-    middleware: Middleware<
-      MergeContext<TContext, TExtraContext>,
-      UExtraContext,
-      UMappedInput,
-      unknown
-    >,
-    mapInput: MapInputMiddleware<unknown, UMappedInput>,
-  ): RouterBuilder<TContext, MergeContext<TExtraContext, UExtraContext>>
-
-  use(
-    middleware: Middleware<any, any, any, any>,
-    mapInput?: MapInputMiddleware<any, any>,
-  ): RouterBuilder<any, any> {
-    const middleware_ = mapInput
-      ? decorateMiddleware(middleware).mapInput(mapInput)
-      : middleware
-
+  ): RouterBuilder<TContext, MergeContext<TExtraContext, U>> {
     return new RouterBuilder({
-      ...this.zz$rb,
-      middlewares: [...(this.zz$rb.middlewares || []), middleware_],
+      ...this['~orpc'],
+      middlewares: [...(this['~orpc'].middlewares ?? []), middleware as any],
     })
   }
 
-  router<URouter extends Router<TContext>>(
-    router: URouter,
-  ): AdaptedRouter<URouter> {
+  router<U extends Router<TContext, any>>(
+    router: U,
+  ): AdaptedRouter<U> {
     const handled = adaptRouter({
       routerOrChild: router,
       middlewares: this.zz$rb.middlewares,
@@ -124,7 +97,7 @@ export class RouterBuilder<
     return handled as any
   }
 
-  lazy<U extends Router<TContext>>(
+  lazy<U extends Router<TContext, any>>(
     loader: () => Promise<{ default: U }>,
   ): DecoratedLazy<U> {
     const lazy = adaptLazyRouter({

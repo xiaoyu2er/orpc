@@ -55,7 +55,7 @@ describe('prefix', () => {
 
 describe('tags', () => {
   it('chainable tags', () => {
-    expect(builder.tags('1', '2').tags('3').tags('4').zz$rb.tags).toEqual([
+    expect(builder.tag('1', '2').tag('3').tag('4').zz$rb.tags).toEqual([
       '1',
       '2',
       '3',
@@ -65,8 +65,8 @@ describe('tags', () => {
 
   it('router', async () => {
     const router = builder
-      .tags('api')
-      .tags('users')
+      .tag('api')
+      .tag('users')
       .router({ ping, pong, lazy, lazyRouter })
 
     expect(router.ping.zz$p.contract['~orpc'].route?.tags).toEqual([

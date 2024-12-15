@@ -1,5 +1,5 @@
 import type { HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
-import type { MapInputMiddleware, Middleware } from './middleware'
+import type { ANY_MIDDLEWARE, MapInputMiddleware, Middleware } from './middleware'
 import type { ProcedureCaller } from './procedure-caller'
 import type { Context, MergeContext } from './types'
 import { DecoratedContractProcedure } from '@orpc/contract'
@@ -23,10 +23,6 @@ export type DecoratedProcedure<
     route: (
       route: RouteOptions,
     ) => DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, TFuncOutput>
-
-    unshiftTag: (...tags: string[]) => DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, TFuncOutput>
-
-    unshiftMiddleware: (...middlewares: Middleware<TContext, any, any, any>[]) => DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, TFuncOutput>
 
     use:
     & (
@@ -68,6 +64,13 @@ export type DecoratedProcedure<
         TFuncOutput
       >
     )
+
+    unshiftTag: (...tags: string[]) => DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, TFuncOutput>
+
+    unshiftMiddleware: <U extends Context & Partial<MergeContext<TContext, TExtraContext>> | undefined = undefined>(
+      ...middlewares: Middleware<TContext, U | undefined, SchemaOutput<TInputSchema>, SchemaInput<TOutputSchema, TFuncOutput>>[]
+    ) => DecoratedProcedure<TContext, MergeContext<TExtraContext, U>, TInputSchema, TOutputSchema, TFuncOutput>
+
   }
   & (undefined extends TContext ? ProcedureCaller<TInputSchema, TOutputSchema, TFuncOutput> : unknown)
 
@@ -76,7 +79,7 @@ export function decorateProcedure<
   TExtraContext extends Context,
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
-  TFuncOutput extends SchemaOutput<TOutputSchema>,
+  TFuncOutput extends SchemaInput<TOutputSchema>,
 >(
   procedure: Procedure<
     TContext,
@@ -110,20 +113,6 @@ export function decorateProcedure<
     }))
   }
 
-  decorated.unshiftTag = (...tags) => {
-    return decorateProcedure(new Procedure({
-      ...procedure['~orpc'],
-      contract: DecoratedContractProcedure.decorate(procedure['~orpc'].contract).unshiftTag(...tags),
-    }))
-  }
-
-  decorated.unshiftMiddleware = (...middlewares) => {
-    return decorateProcedure(new Procedure({
-      ...procedure['~orpc'],
-      middlewares: [...middlewares, ...(procedure['~orpc'].middlewares ?? [])],
-    }))
-  }
-
   decorated.use = (middleware: Middleware<any, any, any, any>, mapInput?: MapInputMiddleware<any, any>) => {
     const middleware_ = mapInput
       ? decorateMiddleware(middleware).mapInput(mapInput)
@@ -131,7 +120,21 @@ export function decorateProcedure<
 
     return decorateProcedure(new Procedure({
       ...procedure['~orpc'],
-      middlewares: [middleware_, ...(procedure['~orpc'].middlewares ?? [])],
+      middlewares: [...(procedure['~orpc'].middlewares ?? []), middleware_],
+    })) as any
+  }
+
+  decorated.unshiftTag = (...tags) => {
+    return decorateProcedure(new Procedure({
+      ...procedure['~orpc'],
+      contract: DecoratedContractProcedure.decorate(procedure['~orpc'].contract).unshiftTag(...tags),
+    }))
+  }
+
+  decorated.unshiftMiddleware = (...middlewares: ANY_MIDDLEWARE[]) => {
+    return decorateProcedure(new Procedure({
+      ...procedure['~orpc'],
+      middlewares: [...middlewares, ...(procedure['~orpc'].middlewares ?? [])],
     })) as any
   }
 

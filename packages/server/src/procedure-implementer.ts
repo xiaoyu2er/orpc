@@ -16,7 +16,7 @@ export type ProcedureImplementerDef<
   TOutputSchema extends Schema,
 > = {
   contract: ContractProcedure<TInputSchema, TOutputSchema>
-  middlewares?: Middleware<TContext, TExtraContext, SchemaOutput<TInputSchema>, SchemaInput<TOutputSchema>>[]
+  middlewares?: Middleware<MergeContext<TContext, TExtraContext>, TExtraContext, SchemaOutput<TInputSchema>, SchemaInput<TOutputSchema>>[]
 }
 
 export class ProcedureImplementer<

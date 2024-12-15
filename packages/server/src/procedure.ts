@@ -9,13 +9,13 @@ export interface ProcedureFunc<
   TExtraContext extends Context,
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
-  TOutput extends SchemaInput<TOutputSchema>,
+  TFuncOutput extends SchemaInput<TOutputSchema>,
 > {
   (
     input: SchemaOutput<TInputSchema>,
     context: MergeContext<TContext, TExtraContext>,
     meta: Meta,
-  ): Promisable<SchemaInput<TOutputSchema, TOutput>>
+  ): Promisable<SchemaInput<TOutputSchema, TFuncOutput>>
 }
 
 export interface ProcedureDef<
@@ -23,11 +23,11 @@ export interface ProcedureDef<
   TExtraContext extends Context,
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
-  TFuncOutput extends SchemaOutput<TOutputSchema>,
+  TFuncOutput extends SchemaInput<TOutputSchema>,
 > {
-  middlewares?: Middleware<any, any, any, any>[]
+  middlewares?: Middleware<TContext, TExtraContext, SchemaOutput<TInputSchema>, any>[]
   contract: ContractProcedure<TInputSchema, TOutputSchema>
-  func: ProcedureFunc<TContext, TExtraContext, TInputSchema, TOutputSchema, TFuncOutput >
+  func: ProcedureFunc<TContext, TExtraContext, TInputSchema, TOutputSchema, TFuncOutput>
 }
 
 export class Procedure<

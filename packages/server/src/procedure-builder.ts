@@ -23,7 +23,7 @@ export interface ProcedureBuilderDef<
   TOutputSchema extends Schema,
 > {
   contract: ContractProcedure<TInputSchema, TOutputSchema>
-  middlewares?: Middleware<TContext, TExtraContext, unknown, unknown>[]
+  middlewares?: Middleware<TContext, TExtraContext, unknown, any>[]
 }
 
 export class ProcedureBuilder<

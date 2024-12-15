@@ -16,6 +16,12 @@ import { isLazy, loadLazy } from './lazy'
 import { isProcedure } from './procedure'
 import { mergeContext } from './utils'
 
+export type ProcedureCaller<
+  TInputSchema extends Schema,
+  TOutputSchema extends Schema,
+  TFuncOutput extends SchemaInput<TOutputSchema>,
+> = Caller<SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, TFuncOutput>>
+
 /**
  * Options for creating a procedure caller with comprehensive type safety
  */
@@ -52,7 +58,7 @@ export function createProcedureCaller<
   TFuncOutput extends SchemaInput<TOutputSchema> = SchemaInput<TOutputSchema>,
 >(
   options: CreateProcedureCallerOptions<TContext, TInputSchema, TOutputSchema, TFuncOutput>,
-): Caller<SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, TFuncOutput>> {
+): ProcedureCaller<TInputSchema, TOutputSchema, TFuncOutput> {
   return async (...[input, callerOptions]) => {
     const path = options.path ?? []
     const procedure = await loadProcedure(options.procedure) as WELL_PROCEDURE
@@ -144,10 +150,12 @@ async function executeMiddlewareChain(
       })
     }
 
-    return {
+    const result = {
       output: await procedure['~orpc'].func(input, currentContext, meta),
       context: currentContext,
     }
+
+    return result as any
   }
 
   return (await next({})).output

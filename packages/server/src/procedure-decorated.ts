@@ -28,48 +28,48 @@ export type DecoratedProcedure<
 
     unshiftMiddleware: (...middlewares: Middleware<TContext, any, any, any>[]) => DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, TFuncOutput>
 
-    use: (<
-      UExtraContext extends
-      | Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>
-      | undefined = undefined,
-    >(
-      middleware: Middleware<
-        MergeContext<TContext, TExtraContext>,
-        UExtraContext,
-        SchemaOutput<TInputSchema>,
-        SchemaInput<TOutputSchema, TFuncOutput>
-      >,
-    ) => DecoratedProcedure<
-      TContext,
-      MergeContext<TExtraContext, UExtraContext>,
-      TInputSchema,
-      TOutputSchema,
-      TFuncOutput
-    >) & (<
-      UExtraContext extends
-      | Partial<MergeContext<Context, MergeContext<TContext, TExtraContext>>>
-      | undefined = undefined,
-      UMappedInput = unknown,
-    >(
-      middleware: Middleware<
-        MergeContext<TContext, TExtraContext>,
-        UExtraContext,
-        UMappedInput,
-        SchemaInput<TOutputSchema, TFuncOutput>
-      >,
-      mapInput: MapInputMiddleware<
-        SchemaOutput<TInputSchema, TFuncOutput>,
-        UMappedInput
-      >,
-    ) => DecoratedProcedure<
-      TContext,
-      MergeContext<TExtraContext, UExtraContext>,
-      TInputSchema,
-      TOutputSchema,
-      TFuncOutput
-    >)
+    use:
+    & (
+      <U extends Context & Partial<MergeContext<TContext, TExtraContext>> | undefined = undefined>(
+        middleware: Middleware<
+          MergeContext<TContext, TExtraContext>,
+          U,
+          SchemaOutput<TInputSchema>,
+          SchemaInput<TOutputSchema, TFuncOutput>
+        >,
+      ) => DecoratedProcedure<
+        TContext,
+        MergeContext<TExtraContext, U>,
+        TInputSchema,
+        TOutputSchema,
+        TFuncOutput
+      >
+    )
+    & (
+      <
+        UExtra extends Context & Partial<MergeContext<TContext, TExtraContext>> | undefined = undefined,
+        UInput = unknown,
+      >(
+        middleware: Middleware<
+          MergeContext<TContext, TExtraContext>,
+          UExtra,
+          UInput,
+          SchemaInput<TOutputSchema, TFuncOutput>
+        >,
+        mapInput: MapInputMiddleware<
+          SchemaOutput<TInputSchema, TFuncOutput>,
+          UInput
+        >,
+      ) => DecoratedProcedure<
+        TContext,
+        MergeContext<TExtraContext, UExtra>,
+        TInputSchema,
+        TOutputSchema,
+        TFuncOutput
+      >
+    )
   }
-  & (undefined extends TContext ? ProcedureCaller<Procedure<TContext, TExtraContext, TInputSchema, TOutputSchema, TFuncOutput>> : unknown)
+  & (undefined extends TContext ? ProcedureCaller<TInputSchema, TOutputSchema, TFuncOutput> : unknown)
 
 export function decorateProcedure<
   TContext extends Context,

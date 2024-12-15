@@ -102,6 +102,20 @@ describe('self chainable', () => {
     // @ts-expect-error - conflict with context
     implementer.use((input, context, meta) => meta.next({ context: { id: 1, extra: true } }), () => 'anything')
   })
+
+  it('handle middleware with output is typed', () => {
+    const mid1 = {} as Middleware<WELL_CONTEXT, undefined, unknown, any>
+    const mid2 = {} as Middleware<WELL_CONTEXT, undefined, unknown, { val: string }>
+    const mid3 = {} as Middleware<WELL_CONTEXT, undefined, unknown, unknown>
+    const mid4 = {} as Middleware<WELL_CONTEXT, undefined, unknown, { val: number }>
+
+    implementer.use(mid1)
+    implementer.use(mid2)
+    // @ts-expect-error - required used any for output
+    implementer.use(mid3)
+    // @ts-expect-error - output is not match
+    implementer.use(mid4)
+  })
 })
 
 describe('to DecoratedProcedure', () => {

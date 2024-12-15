@@ -108,7 +108,7 @@ describe('to ProcedureImplementer', () => {
     builder.use(mid, input => input)
   })
 
-  it('prevent conflict on context', () => {
+  it('use middleware prevent conflict on context', () => {
     builder.use((input, context, meta) => meta.next({}))
     builder.use((input, context, meta) => meta.next({ context: { id: '1' } }))
     builder.use((input, context, meta) => meta.next({ context: { id: '1', extra: true } }))
@@ -130,6 +130,19 @@ describe('to ProcedureImplementer', () => {
 
     // @ts-expect-error - conflict with context
     builder.use((input, context, meta) => meta.next({ context: { id: 1, extra: true } }), () => 'anything')
+  })
+
+  it('not allow use middleware with output is typed', () => {
+    const mid1 = {} as Middleware<WELL_CONTEXT, undefined, unknown, any>
+    const mid2 = {} as Middleware<WELL_CONTEXT, undefined, unknown, unknown>
+    const mid3 = {} as Middleware<WELL_CONTEXT, undefined, unknown, { type: 'post', id: string }>
+
+    builder.use(mid1)
+
+    // @ts-expect-error - required used any for output
+    builder.use(mid2)
+    // @ts-expect-error - typed output is not allow because builder is not know output yet
+    builder.use(mid3)
   })
 })
 

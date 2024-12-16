@@ -52,7 +52,7 @@ describe('prefix', () => {
   })
 })
 
-describe('pushTag', () => {
+describe('unshiftTag', () => {
   const decorated = new DecoratedContractProcedure({ InputSchema: undefined, OutputSchema: undefined })
 
   it('works', () => {
@@ -69,6 +69,12 @@ describe('pushTag', () => {
     const tagged = decorated.unshiftTag('tag1', 'tag2')
     expect(tagged['~orpc']).not.toBe(decorated['~orpc'])
     expect(tagged).not.toBe(decorated)
+  })
+
+  it('prevent duplicate', () => {
+    const tagged = decorated.unshiftTag('tag1', 'tag2')
+    const tagged2 = tagged.unshiftTag('tag1', 'tag3')
+    expect(tagged2['~orpc'].route?.tags).toEqual(['tag1', 'tag3', 'tag2'])
   })
 })
 

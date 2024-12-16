@@ -68,8 +68,8 @@ export type DecoratedProcedure<
     unshiftTag: (...tags: string[]) => DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, TFuncOutput>
 
     unshiftMiddleware: <U extends Context & Partial<MergeContext<TContext, TExtraContext>> | undefined = undefined>(
-      ...middlewares: Middleware<TContext, U | undefined, SchemaOutput<TInputSchema>, SchemaInput<TOutputSchema, TFuncOutput>>[]
-    ) => DecoratedProcedure<TContext, MergeContext<TExtraContext, U>, TInputSchema, TOutputSchema, TFuncOutput>
+      ...middlewares: readonly Middleware<TContext, U, SchemaOutput<TInputSchema>, SchemaInput<TOutputSchema, TFuncOutput>>[]
+    ) => DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, TFuncOutput>
 
   }
   & (undefined extends TContext ? ProcedureCaller<TInputSchema, TOutputSchema, TFuncOutput> : unknown)
@@ -134,7 +134,10 @@ export function decorateProcedure<
   decorated.unshiftMiddleware = (...middlewares: ANY_MIDDLEWARE[]) => {
     return decorateProcedure(new Procedure({
       ...procedure['~orpc'],
-      middlewares: [...middlewares, ...(procedure['~orpc'].middlewares ?? [])],
+      middlewares: [
+        ...middlewares,
+        ...procedure['~orpc'].middlewares?.filter(middleware => !middlewares.includes(middleware)) ?? [],
+      ],
     })) as any
   }
 

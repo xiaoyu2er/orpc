@@ -152,25 +152,34 @@ describe('self chainable', () => {
 
     expectTypeOf(decorated.unshiftMiddleware(mid1)).toEqualTypeOf<typeof decorated>()
     expectTypeOf(decorated.unshiftMiddleware(mid1, mid2)).toEqualTypeOf<typeof decorated>()
-    expectTypeOf(decorated.unshiftMiddleware(mid1, mid2, mid3)).toEqualTypeOf<
-      DecoratedProcedure<{ auth: boolean }, { dev: boolean } & { db: string }, typeof schema, typeof schema, { val: string }>
-    >()
+    expectTypeOf(decorated.unshiftMiddleware(mid1, mid2, mid3)).toEqualTypeOf<typeof decorated>()
 
     const mid4 = {} as Middleware<{ auth: 'invalid' }, undefined, unknown, any>
     const mid5 = {} as Middleware<{ auth: boolean }, undefined, { val: string }, any>
     const mid6 = {} as Middleware<WELL_CONTEXT, undefined, unknown, { val: number }>
     const mid7 = {} as Middleware<{ db: string }, undefined, unknown, { val: string }>
+    const mid8 = {} as Middleware<WELL_CONTEXT, { auth: string }, unknown, { val: string }>
 
-    // @ts-expect-error - invalid middleware
+    // @ts-expect-error - context is not match
     decorated.unshiftMiddleware(mid4)
-    // @ts-expect-error - invalid middleware
+    // @ts-expect-error - input is not match
     decorated.unshiftMiddleware(mid5)
-    // @ts-expect-error - invalid middleware
+    // @ts-expect-error - output is not match
     decorated.unshiftMiddleware(mid6)
-    // @ts-expect-error - invalid middleware
+    // @ts-expect-error - context is not match
     decorated.unshiftMiddleware(mid7)
+    // @ts-expect-error - extra context is conflict with context
+    decorated.unshiftMiddleware(mid8)
     // @ts-expect-error - invalid middleware
-    decorated.unshiftMiddleware(mid4, mid5, mid6, mid7)
+    decorated.unshiftMiddleware(mid4, mid5, mid6, mid7, mid8)
+
+    const mid9 = {} as Middleware<WELL_CONTEXT, { something_does_not_exists_yet: boolean }, unknown, any>
+    const mid10 = {} as Middleware<WELL_CONTEXT, { something_does_not_exists_yet: string }, { val: number }, any>
+
+    decorated.unshiftMiddleware(mid9)
+    decorated.unshiftMiddleware(mid10)
+    // @ts-expect-error - extra context of mid10 is conflict with extra context of mid9
+    decorated.unshiftMiddleware(mid9, mid10)
 
     // @ts-expect-error - invalid middleware
     decorated.unshiftMiddleware(1)

@@ -91,6 +91,15 @@ describe('self chainable', () => {
     expect(applied).toSatisfy(isProcedure)
     expect(applied['~orpc'].middlewares).toEqual([mid1, mid2, mid])
   })
+
+  it('unshiftMiddleware - prevent duplicate', () => {
+    const mid1 = vi.fn()
+    const mid2 = vi.fn()
+    const mid3 = vi.fn()
+
+    const applied = decorated.unshiftMiddleware(mid1, mid2).unshiftMiddleware(mid1, mid3, mid)
+    expect(applied['~orpc'].middlewares).toEqual([mid1, mid3, mid, mid2])
+  })
 })
 
 it('can use middleware when has no middleware', () => {

@@ -1,11 +1,11 @@
 import type { DecoratedLazy, Lazy } from './lazy'
 import type { Middleware } from './middleware'
 import type { Procedure } from './procedure'
+import type { DecoratedProcedure } from './procedure-decorated'
 import type { AdaptedRouter, RouterBuilder } from './router-builder'
 import type { WELL_CONTEXT } from './types'
 import { z } from 'zod'
 import { createLazy } from './lazy'
-import { decorateProcedure } from './procedure-decorated'
 
 const builder = {} as RouterBuilder<{ auth: boolean }, { db: string }>
 
@@ -23,12 +23,20 @@ describe('AdaptedRouter', () => {
       },
     }
 
-    const adapted = {} as AdaptedRouter<typeof router>
+    const adapted = {} as AdaptedRouter<{ log: true }, typeof router>
 
-    expectTypeOf(adapted.ping).toEqualTypeOf(decorateProcedure(ping))
-    expectTypeOf(adapted.pong).toEqualTypeOf(decorateProcedure(pong))
-    expectTypeOf(adapted.nested.ping).toEqualTypeOf(decorateProcedure(ping))
-    expectTypeOf(adapted.nested.pong).toEqualTypeOf(decorateProcedure(pong))
+    expectTypeOf(adapted.ping).toEqualTypeOf<
+      DecoratedProcedure<{ log: true } & { auth: boolean }, { db: string }, undefined, undefined, unknown>
+    >()
+    expectTypeOf(adapted.pong).toEqualTypeOf<
+      DecoratedProcedure<{ log: true } & WELL_CONTEXT, undefined, undefined, undefined, unknown>
+    >()
+    expectTypeOf(adapted.nested.ping).toEqualTypeOf<
+      DecoratedProcedure<{ log: true } & { auth: boolean }, { db: string }, undefined, undefined, unknown>
+    >()
+    expectTypeOf(adapted.nested.pong).toEqualTypeOf<
+      DecoratedProcedure<{ log: true } & WELL_CONTEXT, undefined, undefined, undefined, unknown>
+    >()
   })
 
   it('with lazy', () => {
@@ -43,10 +51,12 @@ describe('AdaptedRouter', () => {
       })),
     }
 
-    const adapted = {} as AdaptedRouter<typeof router>
+    const adapted = {} as AdaptedRouter<{ log: true }, typeof router>
 
     expectTypeOf(adapted.ping).toEqualTypeOf<DecoratedLazy<typeof ping>>()
-    expectTypeOf(adapted.pong).toEqualTypeOf(decorateProcedure(pong))
+    expectTypeOf(adapted.pong).toEqualTypeOf<
+      DecoratedProcedure<{ log: true } & WELL_CONTEXT, undefined, undefined, undefined, unknown>
+    >()
     expectTypeOf(adapted.nested.ping).toEqualTypeOf<DecoratedLazy<typeof ping>>()
     expectTypeOf(adapted.nested.pong).toEqualTypeOf<DecoratedLazy<typeof pong>>()
   })
@@ -111,7 +121,14 @@ describe('to AdaptedRouter', () => {
 
   it('router without lazy', () => {
     expectTypeOf(builder.router({ ping, pong, nested: { ping, pong } })).toEqualTypeOf<
-      AdaptedRouter<{ ping: typeof ping, pong: typeof pong, nested: { ping: typeof ping, pong: typeof pong } }>
+      AdaptedRouter<
+        { auth: boolean },
+        {
+          ping: typeof ping
+          pong: typeof pong
+          nested: { ping: typeof ping, pong: typeof pong }
+        }
+      >
     >()
 
     builder.router({ ping })
@@ -130,11 +147,14 @@ describe('to AdaptedRouter', () => {
         },
       })),
     })).toEqualTypeOf<
-      AdaptedRouter<{
-        ping: Lazy<typeof ping>
-        pong: typeof pong
-        nested: Lazy<{ ping: typeof ping, pong: Lazy<typeof pong> }>
-      }>
+      AdaptedRouter<
+        { auth: boolean },
+        {
+          ping: Lazy<typeof ping>
+          pong: typeof pong
+          nested: Lazy<{ ping: typeof ping, pong: Lazy<typeof pong> }>
+        }
+      >
     >()
 
     builder.router({ ping: createLazy(() => Promise.resolve({ default: ping })) })

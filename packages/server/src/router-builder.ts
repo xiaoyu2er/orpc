@@ -8,7 +8,10 @@ import { DecoratedContractProcedure, type HTTPPath } from '@orpc/contract'
 import { createLazy, decorateLazy, isLazy, loadLazy } from './lazy'
 import { isProcedure } from './procedure'
 
-export type AdaptedRouter<TRouter extends ANY_ROUTER> = {
+export type AdaptedRouter<
+  TContext extends Context,
+  TRouter extends Router<any, any>,
+> = {
   [K in keyof TRouter]: TRouter[K] extends Procedure<
     infer UContext,
     infer UExtraContext,
@@ -17,16 +20,16 @@ export type AdaptedRouter<TRouter extends ANY_ROUTER> = {
     infer UFuncOutput
   >
     ? DecoratedProcedure<
-      UContext,
+      TContext & UContext,
       UExtraContext,
       UInputSchema,
       UOutputSchema,
       UFuncOutput
     >
     : TRouter[K] extends ANY_LAZY
-      ? DecoratedLazy<TRouter[K]>
+      ? DecoratedLazy<TRouter[K]> // TODO: pass TContext here
       : TRouter[K] extends ANY_ROUTER
-        ? AdaptedRouter<TRouter[K]>
+        ? AdaptedRouter<TContext, TRouter[K]>
         : never
 }
 
@@ -86,7 +89,7 @@ export class RouterBuilder<
 
   router<U extends Router<TContext, any>>(
     router: U,
-  ): AdaptedRouter<U> {
+  ): AdaptedRouter<TContext, U> {
     const handled = adaptRouter({
       routerOrChild: router,
       middlewares: this.zz$rb.middlewares,

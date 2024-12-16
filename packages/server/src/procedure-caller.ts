@@ -12,15 +12,9 @@ import type { Caller, Context, Meta, WELL_CONTEXT } from './types'
 
 import { executeWithHooks, trim, value } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
-import { isLazy, loadLazy } from './lazy'
+import { isLazy, unwrapLazy } from './lazy'
 import { isProcedure } from './procedure'
 import { mergeContext } from './utils'
-
-export type ProcedureCaller<
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
-  TFuncOutput extends SchemaInput<TOutputSchema>,
-> = Caller<SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, TFuncOutput>>
 
 /**
  * Options for creating a procedure caller with comprehensive type safety
@@ -58,7 +52,7 @@ export function createProcedureCaller<
   TFuncOutput extends SchemaInput<TOutputSchema> = SchemaInput<TOutputSchema>,
 >(
   options: CreateProcedureCallerOptions<TContext, TInputSchema, TOutputSchema, TFuncOutput>,
-): ProcedureCaller<TInputSchema, TOutputSchema, TFuncOutput> {
+): Caller<SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, TFuncOutput>> {
   return async (...[input, callerOptions]) => {
     const path = options.path ?? []
     const procedure = await loadProcedure(options.procedure) as WELL_PROCEDURE
@@ -163,7 +157,7 @@ async function executeMiddlewareChain(
 
 export async function loadProcedure(procedure: ANY_PROCEDURE | ANY_LAZY_PROCEDURE): Promise<ANY_PROCEDURE> {
   const loadedProcedure = isLazy(procedure)
-    ? (await loadLazy(procedure)).default
+    ? (await unwrapLazy(procedure)).default
     : procedure
 
   if (!isProcedure(loadedProcedure)) {

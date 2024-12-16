@@ -1,7 +1,7 @@
 import type { Procedure } from './procedure'
 import type { Caller, Meta, WELL_CONTEXT } from './types'
 import { z } from 'zod'
-import { createLazy } from './lazy'
+import { lazy } from './lazy'
 import { createProcedureCaller } from './procedure-caller'
 
 beforeEach(() => {
@@ -125,10 +125,10 @@ describe('createProcedureCaller', () => {
 it('support lazy procedure', () => {
   const schema = z.object({ val: z.string().transform(v => Number(v)) })
   const procedure = {} as Procedure<{ userId?: string }, undefined, typeof schema, typeof schema, { val: string }>
-  const lazy = createLazy(() => Promise.resolve({ default: procedure }))
+  const lazied = lazy(() => Promise.resolve({ default: procedure }))
 
   const caller = createProcedureCaller({
-    procedure: lazy,
+    procedure: lazied,
     context: async () => ({ userId: 'string' }),
     path: ['users'],
 

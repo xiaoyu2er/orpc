@@ -1,7 +1,7 @@
 import type { WELL_CONTEXT } from './types'
 import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
-import { createLazy, isLazy, loadLazy } from './lazy'
+import { isLazy, lazy, unwrapLazy } from './lazy'
 import { Procedure } from './procedure'
 import { createProcedureCaller } from './procedure-caller'
 
@@ -22,7 +22,7 @@ const procedure = new Procedure<WELL_CONTEXT, undefined, typeof schema, typeof s
 
 const procedureCases = [
   ['without lazy', procedure],
-  ['with lazy', createLazy(() => Promise.resolve({ default: procedure }))],
+  ['with lazy', lazy(() => Promise.resolve({ default: procedure }))],
 ] as const
 
 beforeEach(() => {
@@ -30,7 +30,7 @@ beforeEach(() => {
 })
 
 describe.each(procedureCases)('createProcedureCaller - case %s', async (_, procedure) => {
-  const unwrappedProcedure = isLazy(procedure) ? (await loadLazy(procedure)).default : procedure
+  const unwrappedProcedure = isLazy(procedure) ? (await unwrapLazy(procedure)).default : procedure
 
   it('just a caller', async () => {
     const caller = createProcedureCaller({
@@ -296,11 +296,11 @@ describe.each(procedureCases)('createProcedureCaller - case %s', async (_, proce
 })
 
 it('should throw error when invalid lazy procedure', () => {
-  const lazy = createLazy(() => Promise.resolve({ default: 123 }))
+  const lazied = lazy(() => Promise.resolve({ default: 123 }))
 
   const caller = createProcedureCaller({
     // @ts-expect-error - invalid lazy procedure
-    procedure: lazy,
+    procedure: lazied,
   })
 
   expect(caller()).rejects.toThrow('Not found')

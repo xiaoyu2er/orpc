@@ -1,154 +1,155 @@
-import type { DecoratedLazy } from './lazy'
-import { ContractProcedure } from '@orpc/contract'
+import type { DecoratedLazy, Lazy } from './lazy'
+import type { Procedure } from './procedure'
+import type { AdaptedRouter } from './router-builder'
+import type { WELL_CONTEXT } from './types'
 import { z } from 'zod'
-import { decorateProcedure, isProcedure, os, Procedure } from '.'
-import { createLazy, isLazy, LAZY_LOADER_SYMBOL } from './lazy'
-import { LAZY_ROUTER_PREFIX_SYMBOL, RouterBuilder } from './router-builder'
+import { createLazy } from './lazy'
+import { RouterBuilder } from './router-builder'
 
-const builder = new RouterBuilder<undefined, undefined>({})
-const ping = os
-  .route({ method: 'GET', path: '/ping', tags: ['ping'] })
-  .func(() => 'ping')
-const pong = os
-  .output(z.object({ id: z.string() }))
-  .func(() => ({ id: '123' }))
+const mid1 = vi.fn()
+const mid2 = vi.fn()
 
-const lazy = os.lazy(() => Promise.resolve({
-  default: os.route({
-    method: 'GET',
-    path: '/lazy',
-    tags: ['lazy'],
-  }).func(() => 'lazy'),
-}))
+const builder = new RouterBuilder<{ auth: boolean }, { db: string }>({
+  middlewares: [mid1, mid2],
+  prefix: '/prefix',
+  tags: ['tag1', 'tag2'],
+})
 
-const lazyRouter = os.lazy(() => Promise.resolve({
-  default: {
-    lazy,
-    lazyRouter: os.lazy(() => Promise.resolve({ default: { lazy } })),
-  },
-}))
-
-describe('prefix', () => {
-  it('chainable prefix', () => {
-    expect(builder.prefix('/1').prefix('/2').prefix('/3').zz$rb.prefix).toEqual(
-      '/1/2/3',
-    )
+describe('self chainable', () => {
+  it('prefix', () => {
+    const prefixed = builder.prefix('/test')
+    expect(prefixed).not.toBe(builder)
+    expect(prefixed).toBeInstanceOf(RouterBuilder)
+    expect(prefixed['~orpc'].prefix).toBe('/prefix/test')
   })
 
-  it('router', async () => {
-    const router = builder
-      .prefix('/api')
-      .prefix('/users')
-      .router({ ping, pong, lazy: builder.lazy(() => Promise.resolve({ default: {
+  it('tag', () => {
+    const tagged = builder.tag('test1', 'test2')
+    expect(tagged).not.toBe(builder)
+    expect(tagged).toBeInstanceOf(RouterBuilder)
+    expect(tagged['~orpc'].tags).toEqual(['tag1', 'tag2', 'test1', 'test2'])
+  })
+
+  it('use middleware', () => {
+    const mid3 = vi.fn()
+    const mid4 = vi.fn()
+
+    const applied = builder.use(mid3).use(mid4)
+    expect(applied).not.toBe(builder)
+    expect(applied).toBeInstanceOf(RouterBuilder)
+    expect(applied['~orpc'].middlewares).toEqual([mid1, mid2, mid3, mid4])
+  })
+})
+
+describe('to AdaptedRouter', () => {
+  const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
+  const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, typeof schema, { val: string }>
+  const pong = {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown>
+
+  const wrongPing = {} as Procedure<{ auth: 'invalid' }, undefined, undefined, undefined, unknown>
+
+  it('router without lazy', () => {
+    expectTypeOf(builder.router({ ping, pong, nested: { ping, pong } })).toEqualTypeOf<
+      AdaptedRouter<
+        { auth: boolean },
+        {
+          ping: typeof ping
+          pong: typeof pong
+          nested: { ping: typeof ping, pong: typeof pong }
+        }
+      >
+    >()
+
+    builder.router({ ping })
+    // @ts-expect-error - context is not match
+    builder.router({ wrongPing })
+  })
+
+  it('router with lazy', () => {
+    expectTypeOf(builder.router({
+      ping: createLazy(() => Promise.resolve({ default: ping })),
+      pong,
+      nested: createLazy(() => Promise.resolve({
+        default: {
+          ping,
+          pong: createLazy(() => Promise.resolve({ default: pong })),
+        },
+      })),
+    })).toEqualTypeOf<
+      AdaptedRouter<
+        { auth: boolean },
+        {
+          ping: Lazy<typeof ping>
+          pong: typeof pong
+          nested: Lazy<{ ping: typeof ping, pong: Lazy<typeof pong> }>
+        }
+      >
+    >()
+
+    builder.router({ ping: createLazy(() => Promise.resolve({ default: ping })) })
+    // @ts-expect-error - context is not match
+    builder.router({ wrongPing: createLazy(() => Promise.resolve({ default: wrongPing })) })
+  })
+})
+
+describe('to DecoratedLazy', () => {
+  const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
+  const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, typeof schema, { val: string }>
+  const pong = {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown>
+
+  const wrongPing = {} as Procedure<{ auth: 'invalid' }, undefined, undefined, undefined, unknown>
+
+  it('router without lazy', () => {
+    expectTypeOf(builder.lazy(() => Promise.resolve({
+      default: {
         ping,
-        lazy: os.route({ method: 'GET', path: '/lazy' }).func(() => 'lazy'),
-      } })) })
-
-    expect(router.ping.zz$p.contract['~orpc'].route?.path).toEqual('/api/users/ping')
-    expect(router.pong.zz$p.contract['~orpc'].route?.path).toEqual(undefined)
-    expect((await router.lazy.lazy[LAZY_LOADER_SYMBOL]()).default.zz$p.contract['~orpc'].route?.path).toEqual('/api/users/lazy')
-    expect((await (router.lazy as any)[LAZY_LOADER_SYMBOL]()).default.lazy.zz$p.contract['~orpc'].route?.path).toEqual('/api/users/lazy')
-    expect((router.lazy as any)[LAZY_ROUTER_PREFIX_SYMBOL]).toEqual('/api/users')
-    expect((router.lazy.lazy as any)[LAZY_ROUTER_PREFIX_SYMBOL]).toEqual('/api/users')
-  })
-})
-
-describe('tags', () => {
-  it('chainable tags', () => {
-    expect(builder.tag('1', '2').tag('3').tag('4').zz$rb.tags).toEqual([
-      '1',
-      '2',
-      '3',
-      '4',
-    ])
-  })
-
-  it('router', async () => {
-    const router = builder
-      .tag('api')
-      .tag('users')
-      .router({ ping, pong, lazy, lazyRouter })
-
-    expect(router.ping.zz$p.contract['~orpc'].route?.tags).toEqual([
-      'ping',
-      'api',
-      'users',
-    ])
-    expect(router.pong.zz$p.contract['~orpc'].route?.tags).toEqual(['api', 'users'])
-
-    expect((await (router.lazy[LAZY_LOADER_SYMBOL]())).default.zz$p.contract['~orpc'].route?.tags).toEqual([
-      'lazy',
-      'api',
-      'users',
-    ])
-    expect((await (router.lazyRouter.lazy[LAZY_LOADER_SYMBOL]())).default.zz$p.contract['~orpc'].route?.tags).toEqual([
-      'lazy',
-      'api',
-      'users',
-    ])
-    expect((await (router.lazyRouter.lazyRouter.lazy[LAZY_LOADER_SYMBOL]())).default.zz$p.contract['~orpc'].route?.tags).toEqual([
-      'lazy',
-      'api',
-      'users',
-    ])
-  })
-})
-
-describe('middleware', () => {
-  const mid1 = vi.fn()
-  const mid2 = vi.fn()
-  const mid3 = vi.fn()
-
-  it('chainable middleware', () => {
-    expect(builder.use(mid1).use(mid2).use(mid3).zz$rb.middlewares).toEqual([
-      mid1,
-      mid2,
-      mid3,
-    ])
-  })
-
-  it('router', async () => {
-    const router = builder.use(mid1).use(mid2).router({ ping, pong, lazy, lazyRouter })
-
-    expect(router.ping.zz$p.middlewares).toEqual([mid1, mid2])
-    expect(router.pong.zz$p.middlewares).toEqual([mid1, mid2])
-
-    expect((await (router.lazy[LAZY_LOADER_SYMBOL]())).default.zz$p.middlewares).toEqual([mid1, mid2])
-    expect((await (router.lazyRouter.lazy[LAZY_LOADER_SYMBOL]())).default.zz$p.middlewares).toEqual([mid1, mid2])
-    expect((await (router.lazyRouter.lazyRouter.lazy[LAZY_LOADER_SYMBOL]())).default.zz$p.middlewares).toEqual([mid1, mid2])
-  })
-
-  it('decorate items', () => {
-    const ping = new Procedure({
-      contract: new ContractProcedure({
-        InputSchema: undefined,
-        OutputSchema: undefined,
-      }),
-      func: () => { },
-    })
-
-    const decorated = decorateProcedure({
-      zz$p: {
-        contract: new ContractProcedure({
-          InputSchema: undefined,
-          OutputSchema: undefined,
-        }),
-        func: () => { },
+        pong,
+        nested: {
+          ping,
+          pong,
+        },
       },
-    })
+    }))).toEqualTypeOf<
+      DecoratedLazy<{
+        ping: typeof ping
+        pong: typeof pong
+        nested: {
+          ping: typeof ping
+          pong: typeof pong
+        }
+      }>
+    >()
 
-    const lazy = createLazy(() => Promise.resolve({ default: ping }))
+    builder.lazy(() => Promise.resolve({ default: { ping } }))
+    // @ts-expect-error - context is not match
+    builder.lazy(() => Promise.resolve({ default: { wrongPing } }))
+  })
 
-    const router = builder.router({ ping, nested: { ping }, lazy })
+  it('router with lazy', () => {
+    expectTypeOf(builder.lazy(() => Promise.resolve({
+      default: {
+        ping: createLazy(() => Promise.resolve({ default: ping })),
+        pong,
+        nested: createLazy(() => Promise.resolve({
+          default: {
+            ping,
+            pong: createLazy(() => Promise.resolve({ default: pong })),
+          },
+        })),
+      },
+    }))).toEqualTypeOf<
+      DecoratedLazy<{
+        ping: DecoratedLazy<typeof ping>
+        pong: typeof pong
+        nested: {
+          ping: typeof ping
+          pong: DecoratedLazy<typeof pong>
+        }
+      }>
+    >()
 
-    expectTypeOf(router).toEqualTypeOf<{
-      ping: typeof decorated
-      nested: { ping: typeof decorated }
-      lazy: DecoratedLazy<typeof ping>
-    }>()
-
-    expect(router.ping).satisfies(isProcedure)
-    expect(router.nested.ping).satisfies(isProcedure)
-    expect(router.lazy).satisfies(isLazy)
+    builder.lazy(() => Promise.resolve({ default: { ping: createLazy(() => Promise.resolve({ default: ping })) } }))
+    // @ts-expect-error - context is not match
+    builder.lazy(() => Promise.resolve({ default: { wrongPing: createLazy(() => Promise.resolve({ default: wrongPing })) } }))
   })
 })

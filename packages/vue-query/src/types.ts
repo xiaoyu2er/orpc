@@ -20,7 +20,7 @@ export type QueryOptions<TInput, TOutput, TSelectData> =
   & (undefined extends TInput ? { input?: MaybeDeepRef<TInput> } : { input: MaybeDeepRef<TInput> })
   & SetOptional<{
     [P in keyof QueryObserverOptions<TOutput, DefaultError, TSelectData, TOutput, QueryKey>]: P extends 'enabled'
-      ? MaybeRefOrGetter<MaybeDeepRef<QueryObserverOptions<TOutput, DefaultError, TSelectData, TOutput, QueryKey>[P]>>
+      ? MaybeRefOrGetter<QueryObserverOptions<TOutput, DefaultError, TSelectData, TOutput, QueryKey>[P]>
       : MaybeDeepRef<QueryObserverOptions<TOutput, DefaultError, TSelectData, TOutput, QueryKey>[P]>
   }, 'queryKey'>
   & {

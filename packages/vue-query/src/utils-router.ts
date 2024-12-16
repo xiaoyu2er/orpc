@@ -35,6 +35,7 @@ export function createRouterUtils<T extends Router<any> | ContractRouter>(
     get(target, prop) {
       const value = Reflect.get(target, prop)
 
+      /* v8 ignore next 3 - orpc router does support symbol at all, so this is safe */
       if (typeof prop !== 'string') {
         return value
       }

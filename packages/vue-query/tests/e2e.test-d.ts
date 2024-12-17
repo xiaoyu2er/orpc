@@ -1,5 +1,5 @@
 import type { InfiniteData } from '@tanstack/vue-query'
-import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/vue-query'
+import { useInfiniteQuery, useMutation, useQueries, useQuery } from '@tanstack/vue-query'
 import { computed, ref } from 'vue'
 import { orpc, queryClient } from './helpers'
 
@@ -115,5 +115,71 @@ describe('useMutation', () => {
     expectTypeOf(query.data.value).toEqualTypeOf<{ id: string, name: string } | undefined>()
 
     expectTypeOf(query.mutateAsync).toMatchTypeOf<(input: { id: string }) => Promise<{ id: string, name: string }>>()
+  })
+})
+
+describe('useQueries', () => {
+  it('inter types correctly', async () => {
+    const queries = useQueries({
+      queries: [
+        orpc.user.find.queryOptions({
+          input: { id: '0' },
+        }),
+        orpc.user.list.queryOptions({
+          input: {},
+        }),
+      ],
+      combine(result) {
+        expectTypeOf(result[0].data).toEqualTypeOf<{ id: string, name: string } | undefined>()
+        expectTypeOf(result[1].data).toEqualTypeOf<{
+          nextCursor: number
+          users: {
+            id: string
+            name: string
+          }[]
+        } | undefined>()
+
+        return result
+      },
+    }, queryClient)
+
+    expectTypeOf(queries.value[0].data).toEqualTypeOf<{ id: string, name: string } | undefined>()
+    expectTypeOf(queries.value[1].data).toEqualTypeOf<{
+      nextCursor: number
+      users: {
+        id: string
+        name: string
+      }[]
+    } | undefined>()
+  })
+
+  it('TODO: not work with select yet', () => {
+    useQueries({
+      queries: [
+        // @ts-expect-error --- TODO: not work with select yet
+        orpc.user.find.queryOptions({
+          input: { id: '0' },
+          // @ts-expect-error --- TODO: not work with select yet
+          select(data) { return data },
+        }),
+      ],
+    })
+  })
+
+  it('strict on input', () => {
+    useQueries({ queries: [
+      orpc.user.find.queryOptions({
+        input: { id: '0' },
+      }),
+    ] })
+
+    useQueries({
+      queries: [
+        orpc.user.find.queryOptions({
+          // @ts-expect-error --- input must be a string
+          input: { id: 1 },
+        }),
+      ],
+    })
   })
 })

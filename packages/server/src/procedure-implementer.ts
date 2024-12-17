@@ -1,5 +1,5 @@
 import type { ContractProcedure, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
-import type { DecoratedLazy } from './lazy'
+import type { DecoratedLazy } from './lazy-decorated'
 import type { ANY_MAP_INPUT_MIDDLEWARE, ANY_MIDDLEWARE, MapInputMiddleware, Middleware } from './middleware'
 import type { ProcedureFunc } from './procedure'
 import type { DecoratedProcedure } from './procedure-decorated'
@@ -16,7 +16,7 @@ export type ProcedureImplementerDef<
   TOutputSchema extends Schema,
 > = {
   contract: ContractProcedure<TInputSchema, TOutputSchema>
-  middlewares?: Middleware<MergeContext<TContext, TExtraContext>, TExtraContext, SchemaOutput<TInputSchema>, SchemaInput<TOutputSchema>>[]
+  middlewares?: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, SchemaOutput<TInputSchema>, SchemaInput<TOutputSchema>>[]
 }
 
 export class ProcedureImplementer<
@@ -92,6 +92,7 @@ export class ProcedureImplementer<
     loader: () => Promise<{ default: U }>,
   ): DecoratedLazy<U> {
     // TODO: replace with a more solid solution
+    // @ts-expect-error - invalid lazy
     return new RouterBuilder<TContext, TExtraContext>(this['~orpc']).lazy(loader as any) as any
   }
 }

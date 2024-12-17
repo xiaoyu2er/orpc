@@ -25,7 +25,7 @@ export interface ProcedureDef<
   TOutputSchema extends Schema,
   TFuncOutput extends SchemaInput<TOutputSchema>,
 > {
-  middlewares?: Middleware<MergeContext<TContext, TExtraContext>, TExtraContext, SchemaOutput<TInputSchema>, any>[]
+  middlewares?: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, SchemaOutput<TInputSchema>, any>[]
   contract: ContractProcedure<TInputSchema, TOutputSchema>
   func: ProcedureFunc<TContext, TExtraContext, TInputSchema, TOutputSchema, TFuncOutput>
 }

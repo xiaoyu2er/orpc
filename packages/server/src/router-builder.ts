@@ -53,7 +53,7 @@ export type AdaptedRouter<
 export type RouterBuilderDef<TContext extends Context, TExtraContext extends Context> = {
   prefix?: HTTPPath
   tags?: readonly string[]
-  middlewares?: Middleware<MergeContext<TContext, TExtraContext>, TExtraContext, unknown, any>[]
+  middlewares?: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any>[]
 }
 
 export const LAZY_ROUTER_PREFIX_SYMBOL = Symbol('ORPC_LAZY_ROUTER_PREFIX')

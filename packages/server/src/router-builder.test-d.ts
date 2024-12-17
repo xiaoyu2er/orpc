@@ -23,20 +23,19 @@ describe('AdaptedRouter', () => {
         pong,
       },
     }
-
-    const adapted = {} as AdaptedRouter<{ log: true }, typeof router>
+    const adapted = {} as AdaptedRouter<{ log: true, auth: boolean }, typeof router>
 
     expectTypeOf(adapted.ping).toEqualTypeOf<
-      DecoratedProcedure<{ log: true } & { auth: boolean }, { db: string }, undefined, undefined, unknown>
+      DecoratedProcedure<{ log: true, auth: boolean }, { db: string }, undefined, undefined, unknown>
     >()
     expectTypeOf(adapted.pong).toEqualTypeOf<
-      DecoratedProcedure<{ log: true } & WELL_CONTEXT, undefined, undefined, undefined, unknown>
+      DecoratedProcedure<{ log: true, auth: boolean }, undefined, undefined, undefined, unknown>
     >()
     expectTypeOf(adapted.nested.ping).toEqualTypeOf<
-      DecoratedProcedure<{ log: true } & { auth: boolean }, { db: string }, undefined, undefined, unknown>
+      DecoratedProcedure<{ log: true, auth: boolean }, { db: string }, undefined, undefined, unknown>
     >()
     expectTypeOf(adapted.nested.pong).toEqualTypeOf<
-      DecoratedProcedure<{ log: true } & WELL_CONTEXT, undefined, undefined, undefined, unknown>
+      DecoratedProcedure<{ log: true, auth: boolean }, undefined, undefined, undefined, unknown>
     >()
   })
 
@@ -55,16 +54,16 @@ describe('AdaptedRouter', () => {
     const adapted = {} as AdaptedRouter<{ log: true } | undefined, typeof router>
 
     expectTypeOf(adapted.ping).toEqualTypeOf<DecoratedLazy<
-      DecoratedProcedure<{ log: true } & { auth: boolean }, { db: string }, undefined, undefined, unknown>
+      DecoratedProcedure<{ log: true } | undefined, { db: string }, undefined, undefined, unknown>
     >>()
     expectTypeOf(adapted.pong).toEqualTypeOf<
-      DecoratedProcedure<({ log: true } | undefined) & WELL_CONTEXT, undefined, undefined, undefined, unknown>
+      DecoratedProcedure<{ log: true } | undefined, undefined, undefined, undefined, unknown>
     >()
     expectTypeOf(adapted.nested.ping).toEqualTypeOf<DecoratedLazy<
-      DecoratedProcedure<{ log: true } & { auth: boolean }, { db: string }, undefined, undefined, unknown>
+      DecoratedProcedure<{ log: true } | undefined, { db: string }, undefined, undefined, unknown>
     >>()
     expectTypeOf(adapted.nested.pong).toEqualTypeOf<DecoratedLazy<
-      DecoratedProcedure<({ log: true } | undefined) & WELL_CONTEXT, undefined, undefined, undefined, unknown>
+      DecoratedProcedure<{ log: true } | undefined, undefined, undefined, undefined, unknown>
     >>()
   })
 })

@@ -14,14 +14,14 @@ export type AdaptedRouter<
   TRouter extends Router<any, any>,
 > = {
   [K in keyof TRouter]: TRouter[K] extends Procedure<
-    infer UContext,
+    any,
     infer UExtraContext,
     infer UInputSchema,
     infer UOutputSchema,
     infer UFuncOutput
   >
     ? DecoratedProcedure<
-      TContext & UContext,
+      TContext,
       UExtraContext,
       UInputSchema,
       UOutputSchema,
@@ -29,14 +29,14 @@ export type AdaptedRouter<
     >
     : TRouter[K] extends Lazy<infer U>
       ? U extends Procedure<
-        infer UContext,
+        any,
         infer UExtraContext,
         infer UInputSchema,
         infer UOutputSchema,
         infer UFuncOutput
       >
         ? DecoratedLazy<DecoratedProcedure<
-          TContext & UContext,
+          TContext,
           UExtraContext,
           UInputSchema,
           UOutputSchema,
@@ -104,7 +104,7 @@ export class RouterBuilder<
     })
   }
 
-  router<U extends Router<TContext, any>>(
+  router<U extends Router<MergeContext<TContext, TExtraContext>, any>>(
     router: U,
   ): AdaptedRouter<TContext, U> {
     const handled = adaptRouter({
@@ -117,7 +117,7 @@ export class RouterBuilder<
     return handled as any
   }
 
-  lazy<U extends Router<TContext, any>>(
+  lazy<U extends Router<MergeContext<TContext, TExtraContext>, any>>(
     loader: () => Promise<{ default: U }>,
   ): DecoratedLazy<AdaptedRouter<TContext, U>> {
     const lazied = adaptLazyRouter({

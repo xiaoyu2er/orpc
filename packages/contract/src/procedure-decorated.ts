@@ -40,7 +40,7 @@ export class DecoratedContractProcedure<
     })
   }
 
-  unshiftTag(...tags: readonly string[]): DecoratedContractProcedure<TInputSchema, TOutputSchema> {
+  unshiftTag(...tags: string[]): DecoratedContractProcedure<TInputSchema, TOutputSchema> {
     return new DecoratedContractProcedure({
       ...this['~orpc'],
       route: {

@@ -92,13 +92,44 @@ describe('self chainable', () => {
     expect(applied['~orpc'].middlewares).toEqual([mid1, mid2, mid])
   })
 
-  it('unshiftMiddleware - prevent duplicate', () => {
+  describe('unshiftMiddleware --- prevent duplicate', () => {
     const mid1 = vi.fn()
     const mid2 = vi.fn()
     const mid3 = vi.fn()
+    const mid4 = vi.fn()
+    const mid5 = vi.fn()
 
-    const applied = decorated.unshiftMiddleware(mid1, mid2).unshiftMiddleware(mid1, mid3, mid)
-    expect(applied['~orpc'].middlewares).toEqual([mid1, mid3, mid, mid2])
+    it('no duplicate', () => {
+      expect(
+        decorated.unshiftMiddleware(mid1, mid2)['~orpc'].middlewares,
+      ).toEqual([mid1, mid2, mid])
+    })
+
+    it('case 1', () => {
+      expect(
+        decorated.unshiftMiddleware(mid1, mid2).unshiftMiddleware(mid1, mid3)['~orpc'].middlewares,
+      ).toEqual([mid1, mid3, mid2, mid])
+    })
+
+    it('case 2', () => {
+      expect(
+        decorated.unshiftMiddleware(mid1, mid2, mid3, mid4).unshiftMiddleware(mid1, mid4, mid2, mid3)['~orpc'].middlewares,
+      ).toEqual([mid1, mid4, mid2, mid3, mid4, mid])
+    })
+
+    it('case 3', () => {
+      expect(
+        decorated.unshiftMiddleware(mid1, mid5, mid2, mid3, mid4).unshiftMiddleware(mid1, mid4, mid2, mid3)['~orpc'].middlewares,
+      ).toEqual([mid1, mid4, mid2, mid3, mid5, mid2, mid3, mid4, mid])
+    })
+
+    it('case 4', () => {
+      expect(
+        decorated
+          .unshiftMiddleware(mid2, mid2)
+          .unshiftMiddleware(mid1, mid2)['~orpc'].middlewares,
+      ).toEqual([mid1, mid2, mid2, mid])
+    })
   })
 })
 

@@ -67,7 +67,7 @@ export type DecoratedProcedure<
     unshiftTag: (...tags: string[]) => DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, TFuncOutput>
 
     unshiftMiddleware: <U extends Context & Partial<MergeContext<TContext, TExtraContext>> | undefined = undefined>(
-      ...middlewares: readonly Middleware<TContext, U, SchemaOutput<TInputSchema>, SchemaInput<TOutputSchema, TFuncOutput>>[]
+      ...middlewares: Middleware<TContext, U, SchemaOutput<TInputSchema>, SchemaInput<TOutputSchema, TFuncOutput>>[]
     ) => DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, TFuncOutput>
 
   }
@@ -131,13 +131,25 @@ export function decorateProcedure<
   }
 
   decorated.unshiftMiddleware = (...middlewares: ANY_MIDDLEWARE[]) => {
+    if (procedure['~orpc'].middlewares?.length) {
+      let exclusiveMinimum = -1
+
+      for (let i = 0; i < procedure['~orpc'].middlewares.length; i++) {
+        const index = middlewares.indexOf(procedure['~orpc'].middlewares[i]!)
+
+        if (index <= exclusiveMinimum) {
+          middlewares.push(...procedure['~orpc'].middlewares.slice(i))
+          break
+        }
+
+        exclusiveMinimum = index
+      }
+    }
+
     return decorateProcedure(new Procedure({
       ...procedure['~orpc'],
-      middlewares: [
-        ...middlewares,
-        ...procedure['~orpc'].middlewares?.filter(middleware => !middlewares.includes(middleware)) ?? [],
-      ],
-    })) as any
+      middlewares,
+    }))
   }
 
   return decorated

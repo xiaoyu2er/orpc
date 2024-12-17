@@ -1,6 +1,4 @@
-import type { DecoratedLazy } from './lazy'
 import type { Middleware, MiddlewareMeta } from './middleware'
-import type { Procedure } from './procedure'
 import type { DecoratedProcedure } from './procedure-decorated'
 import type { Meta, WELL_CONTEXT } from './types'
 import { ContractProcedure } from '@orpc/contract'
@@ -148,46 +146,5 @@ describe('to DecoratedProcedure', () => {
 
     // @ts-expect-error - invalid output
     implementer.func(() => {})
-  })
-})
-
-describe('to DecoratedLazy', () => {
-  const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
-
-  const global_mid = vi.fn()
-  const implementer = new ProcedureImplementer<{ id?: string } | undefined, { db: string }, typeof schema, typeof schema>({
-    contract: new ContractProcedure({
-      InputSchema: schema,
-      OutputSchema: schema,
-    }),
-    middlewares: [global_mid],
-  })
-
-  it('lazy', () => {
-    const lazy = implementer.lazy(() => Promise.resolve({
-      default: {} as Procedure<{ id?: string } | undefined, { db: string }, typeof schema, typeof schema, { val: string }>,
-    }))
-
-    expectTypeOf(lazy).toEqualTypeOf<
-      DecoratedLazy<
-        Procedure<{ id?: string } | undefined, { db: string }, typeof schema, typeof schema, { val: string }>
-      >
-    >()
-
-    // @ts-expect-error - invalid procedure
-    implementer.lazy(() => Promise.resolve({ default: {} }))
-    // @ts-expect-error - invalid procedure
-    implementer.lazy(() => Promise.resolve({
-      default: {} as Procedure<{ id?: string } | undefined, { db: string }, undefined, typeof schema, { val: string }>,
-    }))
-    // @ts-expect-error - invalid procedure
-    implementer.lazy(() => Promise.resolve({
-      default: {} as Procedure<{ id?: string } | undefined, { db: string }, typeof schema, undefined, { val: string }>,
-    }))
-    // @ts-expect-error - invalid procedure
-    implementer.lazy(() => Promise.resolve({
-      // @ts-expect-error - invalid func output
-      default: {} as Procedure<{ id?: string } | undefined, { db: string }, typeof schema, typeof schema, { val: number }>,
-    }))
   })
 })

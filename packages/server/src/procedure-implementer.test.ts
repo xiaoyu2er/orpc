@@ -66,20 +66,3 @@ describe('to DecoratedProcedure', () => {
     expect(procedure['~orpc'].middlewares).toEqual([global_mid])
   })
 })
-
-describe('to DecoratedLazy', () => {
-  const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
-
-  const global_mid = vi.fn()
-  const implementer = new ProcedureImplementer<{ id?: string } | undefined, { db: string }, typeof schema, typeof schema>({
-    contract: new ContractProcedure({
-      InputSchema: schema,
-      OutputSchema: schema,
-    }),
-    middlewares: [global_mid],
-  })
-
-  it('lazy', { todo: true }, () => {
-
-  })
-})

@@ -166,6 +166,15 @@ describe('useQueries', () => {
     })
   })
 
+  it('support ref', () => {
+    useQueries({ queries: [
+      orpc.user.find.queryOptions({ input: { id: ref('0') } }),
+    ] })
+    useQueries({ queries: [
+      orpc.user.find.queryOptions({ input: computed(() => ({ id: ref('0') })) }),
+    ] })
+  })
+
   it('strict on input', () => {
     useQueries({ queries: [
       orpc.user.find.queryOptions({

@@ -119,4 +119,19 @@ describe('useQueries', () => {
       nextCursor: 2,
     })
   })
+
+  it('support ref', async () => {
+    const id = ref('id-1')
+    const queries = useQueries({
+      queries: [
+        orpc.user.find.queryOptions({ input: { id } }),
+      ],
+    }, queryClient)
+
+    await vi.waitFor(() => expect(queries.value[0].data).toEqual({ id: 'id-1', name: 'name-id-1' }))
+
+    id.value = 'id-2'
+
+    await vi.waitFor(() => expect(queries.value[0].data).toEqual({ id: 'id-2', name: 'name-id-2' }))
+  })
 })

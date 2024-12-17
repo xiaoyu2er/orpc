@@ -1,4 +1,4 @@
-import type { ANY_PROCEDURE, ANY_ROUTER, Caller, Procedure, WELL_CONTEXT } from '.'
+import type { ANY_PROCEDURE, ANY_ROUTER, Caller, DecoratedProcedure, Procedure, WELL_CONTEXT } from '.'
 import type { Lazy } from './lazy'
 import type { DecoratedLazy } from './lazy-decorated'
 import { z } from 'zod'
@@ -8,7 +8,7 @@ import { decorateLazy } from './lazy-decorated'
 const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
 
 const ping = {} as Procedure<WELL_CONTEXT, { db: string }, undefined, typeof schema, { val: string }>
-const pong = {} as Procedure<WELL_CONTEXT, undefined, typeof schema, undefined, unknown>
+const pong = {} as DecoratedProcedure<WELL_CONTEXT, undefined, typeof schema, undefined, unknown>
 
 const lazyPing = lazy(() => Promise.resolve({ default: ping }))
 const lazyPong = lazy(() => Promise.resolve({ default: pong }))

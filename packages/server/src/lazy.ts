@@ -21,8 +21,8 @@ export function isLazy(item: unknown): item is ANY_LAZY {
   )
 }
 
-export function unwrapLazy<T>(lazy: Lazy<T>): Promise<{ default: T }> {
-  return lazy[LAZY_LOADER_SYMBOL]()
+export function unwrapLazy<T extends Lazy<any>>(lazy: T): Promise<{ default: T extends Lazy<infer U> ? U : never }> {
+  return lazy[LAZY_LOADER_SYMBOL]() as any
 }
 
 export type FlattenLazy<T> = T extends Lazy<infer U>

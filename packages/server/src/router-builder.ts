@@ -1,13 +1,13 @@
+import type { HTTPPath } from '@orpc/contract'
 import type { Lazy } from './lazy'
-import type { DecoratedLazy } from './lazy-decorated'
-import type { Middleware } from './middleware'
-import type { ANY_LAZY_PROCEDURE, ANY_PROCEDURE, Procedure } from './procedure'
-import type { DecoratedProcedure } from './procedure-decorated'
+import type { ANY_MIDDLEWARE, Middleware } from './middleware'
+import type { ANY_PROCEDURE, Procedure } from './procedure'
 import type { ANY_ROUTER, Router } from './router'
 import type { Context, MergeContext } from './types'
-import { DecoratedContractProcedure, type HTTPPath } from '@orpc/contract'
 import { isLazy, lazy, unwrapLazy } from './lazy'
+import { type DecoratedLazy, decorateLazy } from './lazy-decorated'
 import { isProcedure } from './procedure'
+import { type DecoratedProcedure, decorateProcedure } from './procedure-decorated'
 
 export type AdaptedRouter<
   TContext extends Context,
@@ -107,137 +107,90 @@ export class RouterBuilder<
   router<U extends Router<MergeContext<TContext, TExtraContext>, any>>(
     router: U,
   ): AdaptedRouter<TContext, U> {
-    const handled = adaptRouter({
-      routerOrChild: router,
-      middlewares: this.zz$rb.middlewares,
-      tags: this.zz$rb.tags,
-      prefix: this.zz$rb.prefix,
-    })
-
-    return handled as any
+    const adapted = adapt(router, this['~orpc'])
+    return adapted as any
   }
 
   lazy<U extends Router<MergeContext<TContext, TExtraContext>, any>>(
     loader: () => Promise<{ default: U }>,
   ): DecoratedLazy<AdaptedRouter<TContext, U>> {
-    const lazied = adaptLazyRouter({
-      current: lazy(loader),
-      middlewares: this.zz$rb.middlewares,
-      tags: this.zz$rb.tags,
-      prefix: this.zz$rb.prefix,
-    })
-
-    return lazied as any
+    const adapted = adapt(lazy(loader), this['~orpc'])
+    return adapted as any
   }
 }
 
-function adaptRouter(options: {
-  routerOrChild: Router<any> | Router<any>[keyof Router<any>]
-  middlewares?: Middleware<any, any, any, any>[]
-  tags?: string[]
-  prefix?: HTTPPath
-}) {
-  if (isProcedure(options.routerOrChild)) {
-    return adaptProcedure({
-      ...options,
-      procedure: options.routerOrChild,
-    })
-  }
+function adapt(
+  item: ANY_ROUTER | ANY_ROUTER[string],
+  options: {
+    middlewares?: ANY_MIDDLEWARE[]
+    tags?: readonly string[]
+    prefix?: HTTPPath
+  },
+): unknown {
+  if (isLazy(item)) {
+    const adaptedLazy = decorateLazy(lazy(async () => {
+      const routerOrProcedure = (await unwrapLazy(item)).default as ANY_ROUTER | ANY_PROCEDURE
+      const adapted = adapt(routerOrProcedure, options)
 
-  if (isLazy(options.routerOrChild)) {
-    return adaptLazyRouter({
-      ...options,
-      current: options.routerOrChild,
-    })
-  }
+      return { default: adapted }
+    }))
 
-  const handled: Record<string, any> = {}
-
-  for (const key in options.routerOrChild) {
-    handled[key] = adaptRouter({
-      ...options,
-      routerOrChild: options.routerOrChild[key]!,
-    })
-  }
-
-  return handled as any
-}
-
-function adaptLazyRouter(options: {
-  current: ANY_LAZY_PROCEDURE | Lazy<Router<any>>
-  middlewares?: Middleware<any, any, any, any>[]
-  tags?: string[]
-  prefix?: HTTPPath
-}): DecoratedLazy<ANY_LAZY_PROCEDURE | Lazy<Router<any>>> {
-  const loader = async (): Promise<{ default: unknown }> => {
-    const current = (await unwrapLazy<any>(options.current)).default
-
-    return {
-      default: adaptRouter({
-        ...options,
-        routerOrChild: current,
-      }),
+    const lazyPrefix = getLazyRouterPrefix(item)
+    if (options.prefix || lazyPrefix) {
+      const prefixed = deepSetLazyRouterPrefix(adaptedLazy, `${options.prefix ?? ''}${lazyPrefix ?? ''}` as any)
+      return prefixed
     }
+
+    return adaptedLazy
   }
 
-  let lazyRouterPrefix = options.prefix
+  if (isProcedure(item)) {
+    let decorated = decorateProcedure(item)
 
-  if (LAZY_ROUTER_PREFIX_SYMBOL in options.current && typeof options.current[LAZY_ROUTER_PREFIX_SYMBOL] === 'string') {
-    lazyRouterPrefix = `${options.current[LAZY_ROUTER_PREFIX_SYMBOL]}${lazyRouterPrefix ?? ''}` as HTTPPath
+    if (options.tags?.length) {
+      decorated = decorated.unshiftTag(...options.tags)
+    }
+
+    if (options.prefix) {
+      decorated = decorated.prefix(options.prefix)
+    }
+
+    if (options.middlewares?.length) {
+      decorated = decorated.unshiftMiddleware(...options.middlewares)
+    }
+
+    return decorated
   }
 
-  const decoratedLazy = Object.assign(decorateLazy(lazy(loader)), {
-    [LAZY_ROUTER_PREFIX_SYMBOL]: lazyRouterPrefix,
-  })
+  const adapted = {} as Record<string, any>
+  for (const key in item) {
+    adapted[key] = adapt(item[key]!, options)
+  }
 
-  const recursive = new Proxy(decoratedLazy, {
+  return adapted
+}
+
+function deepSetLazyRouterPrefix<T extends object>(router: T, prefix: HTTPPath): T {
+  return new Proxy(router, {
     get(target, key) {
-      if (typeof key !== 'string') {
-        return Reflect.get(target, key)
+      if (key !== LAZY_ROUTER_PREFIX_SYMBOL) {
+        const val = Reflect.get(target, key)
+        if (val && (typeof val === 'object' || typeof val === 'function')) {
+          return deepSetLazyRouterPrefix(val, prefix)
+        }
+
+        return val
       }
 
-      return adaptLazyRouter({
-        ...options,
-        current: lazy(async () => {
-          const current = (await unwrapLazy<any>(options.current)).default
-          return { default: current[key] }
-        }),
-      })
+      return prefix
     },
   })
-
-  return recursive as any
 }
 
-function adaptProcedure(options: {
-  procedure: ANY_PROCEDURE
-  middlewares?: Middleware<any, any, any, any>[]
-  tags?: string[]
-  prefix?: HTTPPath
-}): DecoratedProcedure<any, any, any, any, any> {
-  const builderMiddlewares = options.middlewares ?? []
-  const procedureMiddlewares = options.procedure.zz$p.middlewares ?? []
-
-  const middlewares = [
-    ...builderMiddlewares,
-    ...procedureMiddlewares.filter(
-      item => !builderMiddlewares.includes(item),
-    ),
-  ]
-
-  let contract = DecoratedContractProcedure.decorate(
-    options.procedure.zz$p.contract,
-  ).unshiftTag(...(options.tags ?? []))
-
-  if (options.prefix) {
-    contract = contract.prefix(options.prefix)
+export function getLazyRouterPrefix(router: unknown): HTTPPath | undefined {
+  if (router && (typeof router === 'object' || typeof router === 'function')) {
+    return (router as any)[LAZY_ROUTER_PREFIX_SYMBOL]
   }
 
-  return decorateProcedure({
-    zz$p: {
-      ...options.procedure.zz$p,
-      contract,
-      middlewares,
-    },
-  })
+  return undefined
 }

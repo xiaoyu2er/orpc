@@ -1,11 +1,12 @@
-import type { DecoratedLazy, Lazy } from './lazy'
+import type { Lazy } from './lazy'
+import type { DecoratedLazy } from './lazy-decorated'
 import type { Middleware } from './middleware'
 import type { Procedure } from './procedure'
 import type { DecoratedProcedure } from './procedure-decorated'
 import type { AdaptedRouter, RouterBuilder } from './router-builder'
 import type { WELL_CONTEXT } from './types'
 import { z } from 'zod'
-import { createLazy } from './lazy'
+import { lazy } from './lazy'
 
 const builder = {} as RouterBuilder<{ auth: boolean }, { db: string }>
 
@@ -41,24 +42,30 @@ describe('AdaptedRouter', () => {
 
   it('with lazy', () => {
     const router = {
-      ping: createLazy(() => Promise.resolve({ default: ping })),
+      ping: lazy(() => Promise.resolve({ default: ping })),
       pong,
-      nested: createLazy(() => Promise.resolve({
+      nested: lazy(() => Promise.resolve({
         default: {
           ping,
-          pong: createLazy(() => Promise.resolve({ default: pong })),
+          pong: lazy(() => Promise.resolve({ default: pong })),
         },
       })),
     }
 
-    const adapted = {} as AdaptedRouter<{ log: true }, typeof router>
+    const adapted = {} as AdaptedRouter<{ log: true } | undefined, typeof router>
 
-    expectTypeOf(adapted.ping).toEqualTypeOf<DecoratedLazy<typeof ping>>()
+    expectTypeOf(adapted.ping).toEqualTypeOf<DecoratedLazy<
+      DecoratedProcedure<{ log: true } & { auth: boolean }, { db: string }, undefined, undefined, unknown>
+    >>()
     expectTypeOf(adapted.pong).toEqualTypeOf<
-      DecoratedProcedure<{ log: true } & WELL_CONTEXT, undefined, undefined, undefined, unknown>
+      DecoratedProcedure<({ log: true } | undefined) & WELL_CONTEXT, undefined, undefined, undefined, unknown>
     >()
-    expectTypeOf(adapted.nested.ping).toEqualTypeOf<DecoratedLazy<typeof ping>>()
-    expectTypeOf(adapted.nested.pong).toEqualTypeOf<DecoratedLazy<typeof pong>>()
+    expectTypeOf(adapted.nested.ping).toEqualTypeOf<DecoratedLazy<
+      DecoratedProcedure<{ log: true } & { auth: boolean }, { db: string }, undefined, undefined, unknown>
+    >>()
+    expectTypeOf(adapted.nested.pong).toEqualTypeOf<DecoratedLazy<
+      DecoratedProcedure<({ log: true } | undefined) & WELL_CONTEXT, undefined, undefined, undefined, unknown>
+    >>()
   })
 })
 
@@ -138,12 +145,12 @@ describe('to AdaptedRouter', () => {
 
   it('router with lazy', () => {
     expectTypeOf(builder.router({
-      ping: createLazy(() => Promise.resolve({ default: ping })),
+      ping: lazy(() => Promise.resolve({ default: ping })),
       pong,
-      nested: createLazy(() => Promise.resolve({
+      nested: lazy(() => Promise.resolve({
         default: {
           ping,
-          pong: createLazy(() => Promise.resolve({ default: pong })),
+          pong: lazy(() => Promise.resolve({ default: pong })),
         },
       })),
     })).toEqualTypeOf<
@@ -157,9 +164,9 @@ describe('to AdaptedRouter', () => {
       >
     >()
 
-    builder.router({ ping: createLazy(() => Promise.resolve({ default: ping })) })
+    builder.router({ ping: lazy(() => Promise.resolve({ default: ping })) })
     // @ts-expect-error - context is not match
-    builder.router({ wrongPing: createLazy(() => Promise.resolve({ default: wrongPing })) })
+    builder.router({ wrongPing: lazy(() => Promise.resolve({ default: wrongPing })) })
   })
 })
 
@@ -171,24 +178,17 @@ describe('to DecoratedLazy', () => {
   const wrongPing = {} as Procedure<{ auth: 'invalid' }, undefined, undefined, undefined, unknown>
 
   it('router without lazy', () => {
-    expectTypeOf(builder.lazy(() => Promise.resolve({
-      default: {
+    const router = {
+      ping,
+      pong,
+      nested: {
         ping,
         pong,
-        nested: {
-          ping,
-          pong,
-        },
       },
-    }))).toEqualTypeOf<
-      DecoratedLazy<{
-        ping: typeof ping
-        pong: typeof pong
-        nested: {
-          ping: typeof ping
-          pong: typeof pong
-        }
-      }>
+    }
+
+    expectTypeOf(builder.lazy(() => Promise.resolve({ default: router }))).toEqualTypeOf<
+      DecoratedLazy<AdaptedRouter<{ auth: boolean }, typeof router>>
     >()
 
     builder.lazy(() => Promise.resolve({ default: { ping } }))
@@ -197,30 +197,23 @@ describe('to DecoratedLazy', () => {
   })
 
   it('router with lazy', () => {
-    expectTypeOf(builder.lazy(() => Promise.resolve({
-      default: {
-        ping: createLazy(() => Promise.resolve({ default: ping })),
-        pong,
-        nested: createLazy(() => Promise.resolve({
-          default: {
-            ping,
-            pong: createLazy(() => Promise.resolve({ default: pong })),
-          },
-        })),
-      },
-    }))).toEqualTypeOf<
-      DecoratedLazy<{
-        ping: DecoratedLazy<typeof ping>
-        pong: typeof pong
-        nested: {
-          ping: typeof ping
-          pong: DecoratedLazy<typeof pong>
-        }
-      }>
+    const router = {
+      ping: lazy(() => Promise.resolve({ default: ping })),
+      pong,
+      nested: lazy(() => Promise.resolve({
+        default: {
+          ping,
+          pong: lazy(() => Promise.resolve({ default: pong })),
+        },
+      })),
+    }
+
+    expectTypeOf(builder.lazy(() => Promise.resolve({ default: router }))).toEqualTypeOf<
+      DecoratedLazy<AdaptedRouter<{ auth: boolean }, typeof router>>
     >()
 
-    builder.lazy(() => Promise.resolve({ default: { ping: createLazy(() => Promise.resolve({ default: ping })) } }))
+    builder.lazy(() => Promise.resolve({ default: { ping: lazy(() => Promise.resolve({ default: ping })) } }))
     // @ts-expect-error - context is not match
-    builder.lazy(() => Promise.resolve({ default: { wrongPing: createLazy(() => Promise.resolve({ default: wrongPing })) } }))
+    builder.lazy(() => Promise.resolve({ default: { wrongPing: lazy(() => Promise.resolve({ default: wrongPing })) } }))
   })
 })

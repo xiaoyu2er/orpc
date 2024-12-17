@@ -3,7 +3,7 @@ import type { InferRouterInputs, InferRouterOutputs, Router } from './router'
 import type { WELL_CONTEXT } from './types'
 import { oc } from '@orpc/contract'
 import { z } from 'zod'
-import { createLazy } from './lazy'
+import { lazy } from './lazy'
 
 const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
 
@@ -11,17 +11,17 @@ const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, t
 const pong = {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown>
 
 const router = {
-  ping: createLazy(() => Promise.resolve({ default: ping })),
+  ping: lazy(() => Promise.resolve({ default: ping })),
   pong,
   nested: {
     ping,
     pong,
   },
-  lazy: createLazy(() => Promise.resolve({ default: {
-    ping: createLazy(() => Promise.resolve({ default: ping })),
+  lazy: lazy(() => Promise.resolve({ default: {
+    ping: lazy(() => Promise.resolve({ default: ping })),
     pong,
-    nested: createLazy(() => Promise.resolve({ default: {
-      ping: createLazy(() => Promise.resolve({ default: ping })),
+    nested: lazy(() => Promise.resolve({ default: {
+      ping: lazy(() => Promise.resolve({ default: ping })),
       pong,
     } })),
   } })),
@@ -68,54 +68,54 @@ describe('Router', () => {
         pong,
       },
 
-      pingLazy: createLazy(() => Promise.resolve({ default: ping })),
+      pingLazy: lazy(() => Promise.resolve({ default: ping })),
       // @ts-expect-error auth is not match
-      pongLazy: createLazy(() => Promise.resolve({ default: pong })),
+      pongLazy: lazy(() => Promise.resolve({ default: pong })),
 
-      nestedLazy1: createLazy(() => Promise.resolve({
+      nestedLazy1: lazy(() => Promise.resolve({
         default: {
           ping,
         },
       })),
 
-      nestedLazy2: createLazy(() => Promise.resolve({
+      nestedLazy2: lazy(() => Promise.resolve({
         default: {
-          ping: createLazy(() => Promise.resolve({ default: ping })),
+          ping: lazy(() => Promise.resolve({ default: ping })),
         },
       })),
 
       // @ts-expect-error auth is not match
-      nestedLazy3: createLazy(() => Promise.resolve({
+      nestedLazy3: lazy(() => Promise.resolve({
         default: {
           pong,
         },
       })),
 
       // @ts-expect-error auth is not match
-      nestedLazy4: createLazy(() => Promise.resolve({
+      nestedLazy4: lazy(() => Promise.resolve({
         default: {
           nested: {
-            pong: createLazy(() => Promise.resolve({ default: pong })),
+            pong: lazy(() => Promise.resolve({ default: pong })),
           },
         },
       })),
 
-      nestedLazy6: createLazy(() => Promise.resolve({
+      nestedLazy6: lazy(() => Promise.resolve({
         default: {
-          nested: createLazy(() => Promise.resolve({
+          nested: lazy(() => Promise.resolve({
             default: {
-              pingLazy: createLazy(() => Promise.resolve({ default: ping })),
+              pingLazy: lazy(() => Promise.resolve({ default: ping })),
             },
           })),
         },
       })),
 
       // @ts-expect-error auth is not match
-      nestedLazy5: createLazy(() => Promise.resolve({
+      nestedLazy5: lazy(() => Promise.resolve({
         default: {
-          nested: createLazy(() => Promise.resolve({
+          nested: lazy(() => Promise.resolve({
             default: {
-              pongLazy: createLazy(() => Promise.resolve({ default: pong })),
+              pongLazy: lazy(() => Promise.resolve({ default: pong })),
             },
           })),
         },
@@ -148,19 +148,19 @@ describe('Router', () => {
 
     const router2: Router<{ auth: boolean, userId: string }, typeof contract> = {
       ping,
-      pong: createLazy(() => Promise.resolve({ default: pong })),
+      pong: lazy(() => Promise.resolve({ default: pong })),
       nested: {
-        ping: createLazy(() => Promise.resolve({ default: ping })),
+        ping: lazy(() => Promise.resolve({ default: ping })),
         pong,
       },
     }
 
     const router3: Router<{ auth: boolean, userId: string }, typeof contract> = {
-      ping: createLazy(() => Promise.resolve({ default: ping })),
+      ping: lazy(() => Promise.resolve({ default: ping })),
       pong,
-      nested: createLazy(() => Promise.resolve({
+      nested: lazy(() => Promise.resolve({
         default: {
-          ping: createLazy(() => Promise.resolve({ default: ping })),
+          ping: lazy(() => Promise.resolve({ default: ping })),
           pong,
         },
       })),
@@ -182,24 +182,24 @@ describe('Router', () => {
 
     const router565: Router<{ auth: boolean, userId: string }, typeof contract> = {
       // @ts-expect-error wrong ping
-      ping: createLazy(() => Promise.resolve({ default: pong })),
+      ping: lazy(() => Promise.resolve({ default: pong })),
       pong,
       nested: {
         ping,
         // @ts-expect-error wrong pong
-        pong: createLazy(() => Promise.resolve({ default: ping })),
+        pong: lazy(() => Promise.resolve({ default: ping })),
       },
     }
 
     const router343: Router<{ auth: boolean, userId: string }, typeof contract> = {
       // @ts-expect-error wrong ping
-      ping: createLazy(() => Promise.resolve({ default: pong })),
+      ping: lazy(() => Promise.resolve({ default: pong })),
       pong,
       // @ts-expect-error wrong nested
-      nested: createLazy(() => Promise.resolve({
+      nested: lazy(() => Promise.resolve({
         default: {
-          ping: createLazy(() => Promise.resolve({ default: ping })),
-          pong: createLazy(() => Promise.resolve({ default: ping })),
+          ping: lazy(() => Promise.resolve({ default: ping })),
+          pong: lazy(() => Promise.resolve({ default: ping })),
         },
       })),
     }

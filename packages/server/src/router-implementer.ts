@@ -1,9 +1,9 @@
-import type { DecoratedLazy } from './lazy'
+import type { DecoratedLazy } from './lazy-decorated'
 import type { Middleware } from './middleware'
-import type { HandledRouter, RouterWithContract } from './router'
+import type { Router } from './router'
+import type { AdaptedRouter } from './router-builder'
 import type { Context } from './types'
 import { type ContractProcedure, type ContractRouter, isContractProcedure } from '@orpc/contract'
-import { createLazy, decorateLazy } from './lazy'
 import { ProcedureImplementer } from './procedure-implementer'
 import { RouterBuilder } from './router-builder'
 
@@ -19,21 +19,18 @@ export class RouterImplementer<
     },
   ) {}
 
-  router<U extends RouterWithContract<TContext, TContract>>(
+  router<U extends Router<TContext, TContract>>(
     router: U,
-  ): HandledRouter<U> {
+  ): AdaptedRouter<TContext, U> {
     return Object.assign(new RouterBuilder<TContext, undefined>({}).router(router), {
       [ROUTER_CONTRACT_SYMBOL]: this.zz$ri.contract,
     })
   }
 
-  lazy<U extends RouterWithContract<TContext, TContract>>(
+  lazy<U extends Router<TContext, TContract>>(
     loader: () => Promise<{ default: U }>,
-  ): DecoratedLazy<U> {
-    const lazy = createLazy(loader)
-    const decorated = decorateLazy(lazy)
-
-    return Object.assign(decorated, {
+  ): DecoratedLazy<AdaptedRouter<TContext, U>> {
+    return Object.assign(new RouterBuilder<TContext, undefined>({}).lazy(loader), {
       [ROUTER_CONTRACT_SYMBOL]: this.zz$ri.contract,
     })
   }

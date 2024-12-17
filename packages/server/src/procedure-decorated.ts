@@ -1,7 +1,6 @@
 import type { HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { ANY_MIDDLEWARE, MapInputMiddleware, Middleware } from './middleware'
-import type { ProcedureCaller } from './procedure-caller'
-import type { Context, MergeContext } from './types'
+import type { Caller, Context, MergeContext } from './types'
 import { DecoratedContractProcedure } from '@orpc/contract'
 import { decorateMiddleware } from './middleware'
 import { Procedure } from './procedure'
@@ -72,7 +71,7 @@ export type DecoratedProcedure<
     ) => DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, TFuncOutput>
 
   }
-  & (undefined extends TContext ? ProcedureCaller<TInputSchema, TOutputSchema, TFuncOutput> : unknown)
+  & (undefined extends TContext ? Caller<SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, TFuncOutput>> : unknown)
 
 export function decorateProcedure<
   TContext extends Context,

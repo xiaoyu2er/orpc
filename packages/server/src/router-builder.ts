@@ -1,11 +1,12 @@
-import type { ANY_LAZY, DecoratedLazy, Lazy } from './lazy'
+import type { Lazy } from './lazy'
+import type { DecoratedLazy } from './lazy-decorated'
 import type { Middleware } from './middleware'
 import type { ANY_LAZY_PROCEDURE, ANY_PROCEDURE, Procedure } from './procedure'
 import type { DecoratedProcedure } from './procedure-decorated'
 import type { ANY_ROUTER, Router } from './router'
 import type { Context, MergeContext } from './types'
 import { DecoratedContractProcedure, type HTTPPath } from '@orpc/contract'
-import { createLazy, decorateLazy, isLazy, loadLazy } from './lazy'
+import { isLazy, lazy, unwrapLazy } from './lazy'
 import { isProcedure } from './procedure'
 
 export type AdaptedRouter<
@@ -26,8 +27,24 @@ export type AdaptedRouter<
       UOutputSchema,
       UFuncOutput
     >
-    : TRouter[K] extends ANY_LAZY
-      ? DecoratedLazy<TRouter[K]> // TODO: pass TContext here
+    : TRouter[K] extends Lazy<infer U>
+      ? U extends Procedure<
+        infer UContext,
+        infer UExtraContext,
+        infer UInputSchema,
+        infer UOutputSchema,
+        infer UFuncOutput
+      >
+        ? DecoratedLazy<DecoratedProcedure<
+          TContext & UContext,
+          UExtraContext,
+          UInputSchema,
+          UOutputSchema,
+          UFuncOutput
+        >>
+        : U extends ANY_ROUTER
+          ? DecoratedLazy<AdaptedRouter<TContext, U>>
+          : never
       : TRouter[K] extends ANY_ROUTER
         ? AdaptedRouter<TContext, TRouter[K]>
         : never
@@ -102,15 +119,15 @@ export class RouterBuilder<
 
   lazy<U extends Router<TContext, any>>(
     loader: () => Promise<{ default: U }>,
-  ): DecoratedLazy<U> {
-    const lazy = adaptLazyRouter({
-      current: createLazy(loader),
+  ): DecoratedLazy<AdaptedRouter<TContext, U>> {
+    const lazied = adaptLazyRouter({
+      current: lazy(loader),
       middlewares: this.zz$rb.middlewares,
       tags: this.zz$rb.tags,
       prefix: this.zz$rb.prefix,
     })
 
-    return lazy as any
+    return lazied as any
   }
 }
 
@@ -153,7 +170,7 @@ function adaptLazyRouter(options: {
   prefix?: HTTPPath
 }): DecoratedLazy<ANY_LAZY_PROCEDURE | Lazy<Router<any>>> {
   const loader = async (): Promise<{ default: unknown }> => {
-    const current = (await loadLazy<any>(options.current)).default
+    const current = (await unwrapLazy<any>(options.current)).default
 
     return {
       default: adaptRouter({
@@ -169,7 +186,7 @@ function adaptLazyRouter(options: {
     lazyRouterPrefix = `${options.current[LAZY_ROUTER_PREFIX_SYMBOL]}${lazyRouterPrefix ?? ''}` as HTTPPath
   }
 
-  const decoratedLazy = Object.assign(decorateLazy(createLazy(loader)), {
+  const decoratedLazy = Object.assign(decorateLazy(lazy(loader)), {
     [LAZY_ROUTER_PREFIX_SYMBOL]: lazyRouterPrefix,
   })
 
@@ -181,8 +198,8 @@ function adaptLazyRouter(options: {
 
       return adaptLazyRouter({
         ...options,
-        current: createLazy(async () => {
-          const current = (await loadLazy<any>(options.current)).default
+        current: lazy(async () => {
+          const current = (await unwrapLazy<any>(options.current)).default
           return { default: current[key] }
         }),
       })

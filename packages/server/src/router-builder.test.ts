@@ -1,8 +1,9 @@
 import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
+import { getLazyRouterPrefix } from './hidden'
 import { isLazy, lazy, unwrapLazy } from './lazy'
 import { isProcedure, Procedure } from './procedure'
-import { getLazyRouterPrefix, LAZY_ROUTER_PREFIX_SYMBOL, RouterBuilder } from './router-builder'
+import { RouterBuilder } from './router-builder'
 
 const mid1 = vi.fn()
 const mid2 = vi.fn()
@@ -157,11 +158,11 @@ describe('adapt router', () => {
   it('router with lazy', async () => {
     const adapted = builder.router(routerWithLazy) as any
 
-    expect(adapted.ping[LAZY_ROUTER_PREFIX_SYMBOL]).toBe('/prefix')
-    expect(adapted.pong[LAZY_ROUTER_PREFIX_SYMBOL]).toBe(undefined)
-    expect(adapted.nested[LAZY_ROUTER_PREFIX_SYMBOL]).toBe('/prefix')
-    expect(adapted.nested.ping[LAZY_ROUTER_PREFIX_SYMBOL]).toBe('/prefix')
-    expect(adapted.nested.pong[LAZY_ROUTER_PREFIX_SYMBOL]).toBe('/prefix')
+    expect(getLazyRouterPrefix(adapted.ping)).toBe('/prefix')
+    expect(getLazyRouterPrefix(adapted.pong)).toBe(undefined)
+    expect(getLazyRouterPrefix(adapted.nested)).toBe('/prefix')
+    expect(getLazyRouterPrefix(adapted.nested.ping)).toBe('/prefix')
+    expect(getLazyRouterPrefix(adapted.nested.pong)).toBe('/prefix')
 
     expect(adapted.ping).toSatisfy(isLazy)
     expect(typeof adapted.ping).toBe('function')
@@ -202,11 +203,11 @@ describe('adapt router', () => {
   it('router lazy with nested lazy', async () => {
     const adapted = builder.lazy(() => Promise.resolve({ default: routerWithLazy })) as any
 
-    expect(adapted.ping[LAZY_ROUTER_PREFIX_SYMBOL]).toBe('/prefix')
-    expect(adapted.pong[LAZY_ROUTER_PREFIX_SYMBOL]).toBe('/prefix')
-    expect(adapted.nested[LAZY_ROUTER_PREFIX_SYMBOL]).toBe('/prefix')
-    expect(adapted.nested.ping[LAZY_ROUTER_PREFIX_SYMBOL]).toBe('/prefix')
-    expect(adapted.nested.pong[LAZY_ROUTER_PREFIX_SYMBOL]).toBe('/prefix')
+    expect(getLazyRouterPrefix(adapted.ping)).toBe('/prefix')
+    expect(getLazyRouterPrefix(adapted.pong)).toBe('/prefix')
+    expect(getLazyRouterPrefix(adapted.nested)).toBe('/prefix')
+    expect(getLazyRouterPrefix(adapted.nested.ping)).toBe('/prefix')
+    expect(getLazyRouterPrefix(adapted.nested.pong)).toBe('/prefix')
 
     expect(adapted.ping).toSatisfy(isLazy)
     expect(typeof adapted.ping).toBe('function')
@@ -269,24 +270,22 @@ describe('adapt router', () => {
 
   it('can concat LAZY_ROUTER_PREFIX_SYMBOL', () => {
     const adapted = builder.prefix('/hi').router(builder.router(routerWithLazy)) as any
-    expect(adapted.ping[LAZY_ROUTER_PREFIX_SYMBOL]).toBe('/prefix/hi/prefix')
+    expect(getLazyRouterPrefix(adapted.ping)).toBe('/prefix/hi/prefix')
   })
 
   it('works with LAZY_ROUTER_PREFIX_SYMBOL when prefix is not set', () => {
     const builderWithoutPrefix = new RouterBuilder({})
     const adapted = builderWithoutPrefix.router(routerWithLazy) as any
-    expect(adapted.ping[LAZY_ROUTER_PREFIX_SYMBOL]).toBe(undefined)
-    expect(adapted.pong[LAZY_ROUTER_PREFIX_SYMBOL]).toBe(undefined)
+    expect(getLazyRouterPrefix(adapted.ping)).toBe(undefined)
+    expect(getLazyRouterPrefix(adapted.pong)).toBe(undefined)
 
     const adapted2 = builderWithoutPrefix.router(builder.router(routerWithLazy) as any) as any
-    expect(adapted2.ping[LAZY_ROUTER_PREFIX_SYMBOL]).toBe('/prefix')
-    expect(adapted2.pong[LAZY_ROUTER_PREFIX_SYMBOL]).toBe(undefined)
+    expect(getLazyRouterPrefix(adapted2.ping)).toBe('/prefix')
+    expect(getLazyRouterPrefix(adapted2.pong)).toBe(undefined)
   })
 
   it('getLazyRouterPrefix works', () => {
     expect(getLazyRouterPrefix({})).toBe(undefined)
-    expect(getLazyRouterPrefix(undefined)).toBe(undefined)
-    expect(getLazyRouterPrefix(null)).toBe(undefined)
     expect(getLazyRouterPrefix(builder.router(routerWithLazy).ping)).toBe('/prefix')
     expect(getLazyRouterPrefix(builder.router(routerWithLazy).pong)).toBe(undefined)
   })

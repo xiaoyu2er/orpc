@@ -4,6 +4,7 @@ import type { ANY_MIDDLEWARE, Middleware } from './middleware'
 import type { ANY_PROCEDURE, Procedure } from './procedure'
 import type { ANY_ROUTER, Router } from './router'
 import type { Context, MergeContext } from './types'
+import { deepSetLazyRouterPrefix, getLazyRouterPrefix } from './hidden'
 import { flatLazy, isLazy, lazy, unwrapLazy } from './lazy'
 import { type DecoratedLazy, decorateLazy } from './lazy-decorated'
 import { isProcedure } from './procedure'
@@ -25,8 +26,6 @@ export type RouterBuilderDef<TContext extends Context, TExtraContext extends Con
   tags?: readonly string[]
   middlewares?: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any>[]
 }
-
-export const LAZY_ROUTER_PREFIX_SYMBOL = Symbol('ORPC_LAZY_ROUTER_PREFIX')
 
 export class RouterBuilder<
   TContext extends Context,
@@ -138,29 +137,4 @@ function adapt(
   }
 
   return adapted
-}
-
-function deepSetLazyRouterPrefix<T extends object>(router: T, prefix: HTTPPath): T {
-  return new Proxy(router, {
-    get(target, key) {
-      if (key !== LAZY_ROUTER_PREFIX_SYMBOL) {
-        const val = Reflect.get(target, key)
-        if (val && (typeof val === 'object' || typeof val === 'function')) {
-          return deepSetLazyRouterPrefix(val, prefix)
-        }
-
-        return val
-      }
-
-      return prefix
-    },
-  })
-}
-
-export function getLazyRouterPrefix(router: unknown): HTTPPath | undefined {
-  if (router && (typeof router === 'object' || typeof router === 'function')) {
-    return (router as any)[LAZY_ROUTER_PREFIX_SYMBOL]
-  }
-
-  return undefined
 }

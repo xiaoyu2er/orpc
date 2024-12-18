@@ -1,8 +1,9 @@
 import { oc } from '@orpc/contract'
 import { z } from 'zod'
+import { getRouterContract } from './hidden'
 import { Procedure } from './procedure'
 import { RouterBuilder } from './router-builder'
-import { ROUTER_CONTRACT_SYMBOL, RouterImplementer } from './router-implementer'
+import { RouterImplementer } from './router-implementer'
 
 vi.mock('./router-builder', () => ({
   RouterBuilder: vi.fn(() => ({
@@ -90,7 +91,7 @@ describe('to AdaptedRouter', () => {
 
   it('attach contract', () => {
     const adapted = implementer.router(router) as any
-    expect(adapted[ROUTER_CONTRACT_SYMBOL]).toBe(contract)
+    expect(getRouterContract(adapted)).toBe(contract)
   })
 })
 
@@ -111,6 +112,6 @@ describe('to AdaptedLazy', () => {
 
   it('attach contract', () => {
     const adapted = implementer.lazy(() => Promise.resolve({ default: router })) as any
-    expect(adapted[ROUTER_CONTRACT_SYMBOL]).toBe(contract)
+    expect(getRouterContract(adapted)).toBe(contract)
   })
 })

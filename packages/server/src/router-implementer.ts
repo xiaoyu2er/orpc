@@ -1,12 +1,11 @@
 import type { ContractRouter } from '@orpc/contract'
-import type { DecoratedLazy } from './lazy-decorated'
+import type { FlattenLazy } from './lazy'
 import type { Middleware } from './middleware'
 import type { Router } from './router'
 import type { AdaptedRouter } from './router-builder'
 import type { Context, MergeContext } from './types'
+import { setRouterContract } from './hidden'
 import { RouterBuilder } from './router-builder'
-
-export const ROUTER_CONTRACT_SYMBOL = Symbol('ORPC_ROUTER_CONTRACT')
 
 export interface RouterImplementerDef<
   TContext extends Context,
@@ -48,26 +47,18 @@ export class RouterImplementer<
   ): AdaptedRouter<TContext, U> {
     const adapted = new RouterBuilder(this['~orpc']).router(router)
 
-    const contracted = this.attachContract(adapted)
+    const contracted = setRouterContract(adapted, this['~orpc'].contract)
 
     return contracted
   }
 
   lazy<U extends Router<MergeContext<TContext, TExtraContext>, TContract>>(
     loader: () => Promise<{ default: U }>,
-  ): DecoratedLazy<AdaptedRouter<TContext, U>> {
+  ): AdaptedRouter<TContext, FlattenLazy<U>> {
     const adapted = new RouterBuilder(this['~orpc']).lazy(loader)
 
-    const contracted = this.attachContract(adapted)
+    const contracted = setRouterContract(adapted, this['~orpc'].contract)
 
     return contracted
-  }
-
-  private attachContract<T extends object>(
-    router: T,
-  ): T {
-    return Object.defineProperty(router, ROUTER_CONTRACT_SYMBOL, {
-      value: this['~orpc'].contract,
-    })
   }
 }

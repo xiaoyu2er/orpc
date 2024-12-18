@@ -2,6 +2,7 @@ import type { WELL_CONTEXT } from './types'
 import { Builder } from './builder'
 
 export * from './builder'
+export * from './hidden'
 export * from './implementer-chainable'
 export * from './lazy'
 export * from './lazy-decorated'

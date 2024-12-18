@@ -130,6 +130,14 @@ describe('self chainable', () => {
           .unshiftMiddleware(mid1, mid2)['~orpc'].middlewares,
       ).toEqual([mid1, mid2, mid2, mid])
     })
+
+    it('case 5', () => {
+      expect(
+        decorated
+          .unshiftMiddleware(mid2, mid2)
+          .unshiftMiddleware(mid1, mid2, mid2)['~orpc'].middlewares,
+      ).toEqual([mid1, mid2, mid2, mid])
+    })
   })
 })
 

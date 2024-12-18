@@ -132,17 +132,17 @@ export function decorateProcedure<
 
   decorated.unshiftMiddleware = (...middlewares: ANY_MIDDLEWARE[]) => {
     if (procedure['~orpc'].middlewares?.length) {
-      let exclusiveMinimum = -1
+      let min = 0
 
       for (let i = 0; i < procedure['~orpc'].middlewares.length; i++) {
-        const index = middlewares.indexOf(procedure['~orpc'].middlewares[i]!)
+        const index = middlewares.indexOf(procedure['~orpc'].middlewares[i]!, min)
 
-        if (index <= exclusiveMinimum) {
+        if (index === -1) {
           middlewares.push(...procedure['~orpc'].middlewares.slice(i))
           break
         }
 
-        exclusiveMinimum = index
+        min = index + 1
       }
     }
 

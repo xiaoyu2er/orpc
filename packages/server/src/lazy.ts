@@ -29,9 +29,9 @@ export type FlattenLazy<T> = T extends Lazy<infer U>
   ? FlattenLazy<U>
   : Lazy<T>
 
-export function flatLazy<T>(lazy: Lazy<T>): FlattenLazy<T> {
+export function flatLazy<T extends ANY_LAZY>(lazied: T): FlattenLazy<T> {
   const flattenLoader = async () => {
-    let current = await unwrapLazy(lazy)
+    let current = await unwrapLazy(lazied)
 
     while (true) {
       if (!isLazy(current.default)) {
@@ -44,9 +44,5 @@ export function flatLazy<T>(lazy: Lazy<T>): FlattenLazy<T> {
     return current
   }
 
-  const flattenLazy = {
-    [LAZY_LOADER_SYMBOL]: flattenLoader,
-  }
-
-  return flattenLazy as any
+  return lazy(flattenLoader) as any
 }

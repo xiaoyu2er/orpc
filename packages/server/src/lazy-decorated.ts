@@ -1,8 +1,9 @@
 import type { SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { AnyFunction } from '@orpc/shared'
+import type { ANY_LAZY, Lazy } from './lazy'
 import type { Procedure } from './procedure'
 import type { Caller } from './types'
-import { flatLazy, lazy, type Lazy, unwrapLazy } from './lazy'
+import { flatLazy, lazy, unwrapLazy } from './lazy'
 import { createProcedureCaller } from './procedure-caller'
 
 export type DecoratedLazy<T> = T extends Lazy<infer U>
@@ -18,7 +19,7 @@ export type DecoratedLazy<T> = T extends Lazy<infer U>
             : Lazy<T>
     )
 
-export function decorateLazy<T>(lazied: Lazy<T>): DecoratedLazy<T> {
+export function decorateLazy<T extends ANY_LAZY>(lazied: T): DecoratedLazy<T> {
   const flattenLazy = flatLazy(lazied)
 
   const procedureCaller = createProcedureCaller({

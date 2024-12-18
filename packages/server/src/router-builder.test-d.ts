@@ -66,6 +66,16 @@ describe('AdaptedRouter', () => {
       DecoratedProcedure<{ log: true } | undefined, undefined, undefined, undefined, unknown>
     >>()
   })
+
+  it('with procedure', () => {
+    expectTypeOf<AdaptedRouter<{ log: boolean }, typeof ping>>().toEqualTypeOf<
+      DecoratedProcedure<{ log: boolean }, { db: string }, undefined, undefined, unknown>
+    >()
+
+    expectTypeOf < AdaptedRouter<{ log: boolean }, Lazy<typeof ping>>>().toEqualTypeOf<
+      DecoratedLazy<DecoratedProcedure<{ log: boolean }, { db: string }, undefined, undefined, unknown>>
+    >()
+  })
 })
 
 describe('self chainable', () => {
@@ -167,9 +177,25 @@ describe('to AdaptedRouter', () => {
     // @ts-expect-error - context is not match
     builder.router({ wrongPing: lazy(() => Promise.resolve({ default: wrongPing })) })
   })
+
+  it('procedure as a router', () => {
+    expectTypeOf(builder.router(ping)).toEqualTypeOf<
+      AdaptedRouter<
+        { auth: boolean },
+        typeof ping
+      >
+    >()
+
+    expectTypeOf(builder.router(lazy(() => Promise.resolve({ default: ping })))).toEqualTypeOf<
+      AdaptedRouter<
+        { auth: boolean },
+        Lazy<typeof ping>
+      >
+    >()
+  })
 })
 
-describe('to DecoratedLazy', () => {
+describe('to Decorated Adapted Lazy', () => {
   const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
   const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, typeof schema, { val: string }>
   const pong = {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown>

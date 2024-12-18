@@ -204,4 +204,15 @@ describe('Router', () => {
       })),
     }
   })
+
+  it('support procedure as a router', () => {
+    const router1: Router<{ auth: boolean, userId: string }, any> = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown>
+    // @ts-expect-error - invalid context
+    const router2: Router<{ auth: boolean, userId: string }, any> = {} as Procedure<{ auth: boolean, dev: boolean }, { db: string }, typeof schema, undefined, unknown>
+
+    const pingContract = oc.input(schema)
+    const router3: Router<{ auth: boolean, userId: string }, typeof pingContract> = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown>
+    // @ts-expect-error - mismatch contract
+    const router4: Router<{ auth: boolean, userId: string }, typeof pingContract> = {} as Procedure<{ auth: boolean }, { db: string }, undefined, undefined, unknown>
+  })
 })

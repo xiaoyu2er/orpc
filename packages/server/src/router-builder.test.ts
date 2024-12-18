@@ -245,6 +245,28 @@ describe('adapt router', () => {
     expect((await unwrapLazy(adapted.nested.pong) as any).default['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2'])
   })
 
+  it('support procedure as a router', async () => {
+    const adapted = builder.router(ping)
+
+    expect(adapted).toSatisfy(isProcedure)
+    expect(typeof adapted).toBe('function')
+    expect(adapted['~orpc'].func).toBe(ping['~orpc'].func)
+    expect(adapted['~orpc'].middlewares).toEqual([mid1, mid2, pMid1, pMid2])
+    expect(adapted['~orpc'].contract['~orpc'].route?.path).toBe(undefined)
+    expect(adapted['~orpc'].contract['~orpc'].route?.method).toBe(undefined)
+    expect(adapted['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2', 'tag3', 'tag4'])
+
+    const adaptedLazy = builder.router(lazy(() => Promise.resolve({ default: ping })))
+
+    expect(adaptedLazy).toSatisfy(isLazy)
+    expect(typeof adaptedLazy).toBe('function')
+    expect((await unwrapLazy(adaptedLazy) as any).default).toSatisfy(isProcedure)
+    expect((await unwrapLazy(adaptedLazy) as any).default['~orpc'].func).toBe(ping['~orpc'].func)
+    expect((await unwrapLazy(adaptedLazy) as any).default['~orpc'].middlewares).toEqual([mid1, mid2, pMid1, pMid2])
+    expect((await unwrapLazy(adaptedLazy) as any).default['~orpc'].contract['~orpc'].route?.path).toBe(undefined)
+    expect((await unwrapLazy(adaptedLazy) as any).default['~orpc'].contract['~orpc'].route?.method).toBe(undefined)
+  })
+
   it('can concat LAZY_ROUTER_PREFIX_SYMBOL', () => {
     const adapted = builder.prefix('/hi').router(builder.router(routerWithLazy)) as any
     expect(adapted.ping[LAZY_ROUTER_PREFIX_SYMBOL]).toBe('/prefix/hi/prefix')

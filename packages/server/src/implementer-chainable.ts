@@ -1,6 +1,7 @@
 import type { Middleware } from './middleware'
 import type { Context, MergeContext, WELL_CONTEXT } from './types'
 import { type ContractProcedure, type ContractRouter, isContractProcedure } from '@orpc/contract'
+import { createCallableObject } from '@orpc/shared'
 import { ProcedureImplementer } from './procedure-implementer'
 import { RouterImplementer } from './router-implementer'
 
@@ -31,38 +32,28 @@ export function createChainableImplementer<
     return implementer as any
   }
 
-  const chainable: Record<string, unknown> = {}
+  const chainable = {} as ChainableImplementer<TContext, TExtraContext, TContract>
 
   for (const key in contract) {
-    chainable[key] = createChainableImplementer(contract[key]!, middlewares)
+    (chainable as any)[key] = createChainableImplementer(contract[key]!, middlewares)
   }
 
   const routerImplementer = new RouterImplementer({ contract, middlewares })
 
   const merged = new Proxy(chainable, {
     get(target, key) {
-      const next = Reflect.get(target, key)
+      const next = Reflect.get(target, key) as ChainableImplementer<TContext, TExtraContext, TContract> | undefined
       const method = Reflect.get(routerImplementer, key)
 
       if (typeof key !== 'string' || typeof method !== 'function') {
         return next
       }
 
-      return new Proxy(method.bind(routerImplementer), {
-        get(target, key) {
-          // TODO: create own utils for object callable proxy
-          if (
-            typeof key !== 'string'
-            || !next
-            || (typeof next !== 'object' && typeof next !== 'function')
-            || !(key in next)
-          ) {
-            return Reflect.get(target, key)
-          }
+      if (!next) {
+        return method.bind(routerImplementer)
+      }
 
-          return next[key]
-        },
-      })
+      return createCallableObject(next, method.bind(routerImplementer))
     },
   })
 

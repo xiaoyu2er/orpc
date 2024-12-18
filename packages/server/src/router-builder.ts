@@ -1,5 +1,5 @@
 import type { HTTPPath } from '@orpc/contract'
-import type { Lazy } from './lazy'
+import type { FlattenLazy, Lazy } from './lazy'
 import type { ANY_MIDDLEWARE, Middleware } from './middleware'
 import type { ANY_PROCEDURE, Procedure } from './procedure'
 import type { ANY_ROUTER, Router } from './router'
@@ -14,20 +14,8 @@ export type AdaptedRouter<
   TRouter extends ANY_ROUTER,
 > = TRouter extends Lazy<infer U extends ANY_ROUTER>
   ? DecoratedLazy<AdaptedRouter<TContext, U>>
-  : TRouter extends Procedure<
-    any,
-    infer UExtraContext,
-    infer UInputSchema,
-    infer UOutputSchema,
-    infer UFuncOutput
-  >
-    ? DecoratedProcedure<
-      TContext,
-      UExtraContext,
-      UInputSchema,
-      UOutputSchema,
-      UFuncOutput
-    >
+  : TRouter extends Procedure<any, infer UExtraContext, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
+    ? DecoratedProcedure<TContext, UExtraContext, UInputSchema, UOutputSchema, UFuncOutput>
     : {
         [K in keyof TRouter]: TRouter[K] extends ANY_ROUTER ? AdaptedRouter<TContext, TRouter[K]> : never
       }
@@ -95,7 +83,7 @@ export class RouterBuilder<
 
   lazy<U extends Router<MergeContext<TContext, TExtraContext>, any>>(
     loader: () => Promise<{ default: U }>,
-  ): DecoratedLazy<AdaptedRouter<TContext, U>> {
+  ): AdaptedRouter<TContext, FlattenLazy<U>> {
     const adapted = adapt(flatLazy(lazy(loader)), this['~orpc'])
     return adapted as any
   }

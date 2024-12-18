@@ -52,7 +52,7 @@ export function createRouterCaller<
 
 function createRouterCallerInternal(
   options: Merge<CreateRouterCallerOptions<ANY_ROUTER>, {
-    router: ANY_ROUTER | ANY_ROUTER[string]
+    router: ANY_ROUTER
   }>,
 ) {
   const router = isLazy(options.router) ? decorateLazy(options.router) : options.router

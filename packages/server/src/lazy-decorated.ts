@@ -1,5 +1,4 @@
 import type { SchemaInput, SchemaOutput } from '@orpc/contract'
-import type { AnyFunction } from '@orpc/shared'
 import type { ANY_LAZY, Lazy } from './lazy'
 import type { Procedure } from './procedure'
 import type { Caller } from './types'
@@ -9,14 +8,13 @@ import { createProcedureCaller } from './procedure-caller'
 export type DecoratedLazy<T> = T extends Lazy<infer U>
   ? DecoratedLazy<U>
   : (
-      T extends Procedure<infer UContext, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput> ?
-      & Lazy<T>
-      & (undefined extends UContext ? Caller<SchemaInput<UInputSchema>, SchemaOutput<UOutputSchema, UFuncOutput>> : unknown)
-        : T extends AnyFunction ? Lazy<T>
-          : T extends object ? {
-            [K in keyof T & string]: DecoratedLazy<T[K]>
-          } & Lazy<T>
-            : Lazy<T>
+      T extends Procedure<infer UContext, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
+        ?
+        & Lazy<T>
+        & (undefined extends UContext ? Caller<SchemaInput<UInputSchema>, SchemaOutput<UOutputSchema, UFuncOutput>> : unknown)
+        : {
+          [K in keyof T]: DecoratedLazy<T[K]>
+        } & Lazy<T>
     )
 
 export function decorateLazy<T extends ANY_LAZY>(lazied: T): DecoratedLazy<T> {

@@ -1,24 +1,23 @@
 import type { Middleware } from './middleware'
 import type { Context, MergeContext, WELL_CONTEXT } from './types'
-import { type ANY_CONTRACT_PROCEDURE, type ContractProcedure, type ContractRouter, isContractProcedure } from '@orpc/contract'
+import { type ContractProcedure, type ContractRouter, isContractProcedure } from '@orpc/contract'
 import { ProcedureImplementer } from './procedure-implementer'
 import { RouterImplementer } from './router-implementer'
 
 export type ChainableImplementer<
   TContext extends Context,
   TExtraContext extends Context,
-  TContract extends ContractRouter | ANY_CONTRACT_PROCEDURE,
-> = TContract extends ContractProcedure<infer UInputSchema, infer UOutputSchema >
+  TContract extends ContractRouter,
+> = TContract extends ContractProcedure<infer UInputSchema, infer UOutputSchema>
   ? ProcedureImplementer<TContext, TExtraContext, UInputSchema, UOutputSchema>
-  : TContract extends ContractRouter ? {
-    [K in keyof TContract]: ChainableImplementer<TContext, TExtraContext, TContract[K]>
+  : {
+    [K in keyof TContract]: TContract[K] extends ContractRouter ? ChainableImplementer<TContext, TExtraContext, TContract[K]> : never
   } & Omit<RouterImplementer<TContext, TExtraContext, TContract>, '~type' | '~orpc'>
-    : never
 
 export function createChainableImplementer<
   TContext extends Context = WELL_CONTEXT,
   TExtraContext extends Context = undefined,
-  TContract extends ContractRouter | ANY_CONTRACT_PROCEDURE = any,
+  TContract extends ContractRouter = any,
 >(
   contract: TContract,
   middlewares?: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any>[],

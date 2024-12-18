@@ -4,16 +4,17 @@ import type { ANY_MIDDLEWARE, Middleware } from './middleware'
 import type { ANY_PROCEDURE, Procedure } from './procedure'
 import type { ANY_ROUTER, Router } from './router'
 import type { Context, MergeContext } from './types'
-import { isLazy, lazy, unwrapLazy } from './lazy'
+import { flatLazy, isLazy, lazy, unwrapLazy } from './lazy'
 import { type DecoratedLazy, decorateLazy } from './lazy-decorated'
 import { isProcedure } from './procedure'
 import { type DecoratedProcedure, decorateProcedure } from './procedure-decorated'
 
 export type AdaptedRouter<
   TContext extends Context,
-  TRouter extends Router<any, any>,
-> = {
-  [K in keyof TRouter]: TRouter[K] extends Procedure<
+  TRouter extends ANY_ROUTER,
+> = TRouter extends Lazy<infer U extends ANY_ROUTER>
+  ? DecoratedLazy<AdaptedRouter<TContext, U>>
+  : TRouter extends Procedure<
     any,
     infer UExtraContext,
     infer UInputSchema,
@@ -27,28 +28,9 @@ export type AdaptedRouter<
       UOutputSchema,
       UFuncOutput
     >
-    : TRouter[K] extends Lazy<infer U>
-      ? U extends Procedure<
-        any,
-        infer UExtraContext,
-        infer UInputSchema,
-        infer UOutputSchema,
-        infer UFuncOutput
-      >
-        ? DecoratedLazy<DecoratedProcedure<
-          TContext,
-          UExtraContext,
-          UInputSchema,
-          UOutputSchema,
-          UFuncOutput
-        >>
-        : U extends ANY_ROUTER
-          ? DecoratedLazy<AdaptedRouter<TContext, U>>
-          : never
-      : TRouter[K] extends ANY_ROUTER
-        ? AdaptedRouter<TContext, TRouter[K]>
-        : never
-}
+    : {
+        [K in keyof TRouter]: TRouter[K] extends ANY_ROUTER ? AdaptedRouter<TContext, TRouter[K]> : never
+      }
 
 export type RouterBuilderDef<TContext extends Context, TExtraContext extends Context> = {
   prefix?: HTTPPath
@@ -114,13 +96,13 @@ export class RouterBuilder<
   lazy<U extends Router<MergeContext<TContext, TExtraContext>, any>>(
     loader: () => Promise<{ default: U }>,
   ): DecoratedLazy<AdaptedRouter<TContext, U>> {
-    const adapted = adapt(lazy(loader), this['~orpc'])
+    const adapted = adapt(flatLazy(lazy(loader)), this['~orpc'])
     return adapted as any
   }
 }
 
 function adapt(
-  item: ANY_ROUTER | ANY_ROUTER[string],
+  item: ANY_ROUTER,
   options: {
     middlewares?: ANY_MIDDLEWARE[]
     tags?: readonly string[]

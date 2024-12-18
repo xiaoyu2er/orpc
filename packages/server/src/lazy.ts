@@ -4,6 +4,8 @@ export interface Lazy<T> {
   [LAZY_LOADER_SYMBOL]: () => Promise<{ default: T }>
 }
 
+export type Lazyable<T> = T | Lazy<T>
+
 export type ANY_LAZY = Lazy<any>
 
 export function lazy<T>(loader: () => Promise<{ default: T }>): Lazy<T> {

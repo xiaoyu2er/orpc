@@ -62,7 +62,7 @@ describe('unshiftTag', () => {
 
     const tagged2 = tagged.unshiftTag('tag3')
     expect(tagged2).toBeInstanceOf(DecoratedContractProcedure)
-    expect(tagged2['~orpc']).toEqual({ route: { tags: ['tag1', 'tag2', 'tag3'] } })
+    expect(tagged2['~orpc']).toEqual({ route: { tags: ['tag3', 'tag1', 'tag2'] } })
   })
 
   it('not reference', () => {

@@ -1,3 +1,5 @@
+/// <reference lib="dom" />
+
 import type { WELL_PROCEDURE } from './procedure'
 
 export type Context = Record<string, any> | undefined

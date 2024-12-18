@@ -3,7 +3,7 @@ import type { ANY_MAP_INPUT_MIDDLEWARE, ANY_MIDDLEWARE, MapInputMiddleware, Midd
 import type { ProcedureFunc } from './procedure'
 import type { DecoratedProcedure } from './procedure-decorated'
 import type { Context, MergeContext } from './types'
-import { decorateMiddleware } from './middleware'
+import { decorateMiddleware } from './middleware-decorated'
 import { Procedure } from './procedure'
 import { decorateProcedure } from './procedure-decorated'
 

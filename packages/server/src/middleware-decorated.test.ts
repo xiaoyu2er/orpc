@@ -1,4 +1,4 @@
-import { decorateMiddleware } from './middleware'
+import { decorateMiddleware } from './middleware-decorated'
 
 describe('decorateMiddleware', () => {
   it('just a function', () => {

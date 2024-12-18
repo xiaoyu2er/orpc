@@ -2,7 +2,7 @@ import type { HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '
 import type { ANY_MIDDLEWARE, MapInputMiddleware, Middleware } from './middleware'
 import type { Caller, Context, MergeContext } from './types'
 import { DecoratedContractProcedure } from '@orpc/contract'
-import { decorateMiddleware } from './middleware'
+import { decorateMiddleware } from './middleware-decorated'
 import { Procedure } from './procedure'
 import { createProcedureCaller } from './procedure-caller'
 

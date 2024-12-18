@@ -1,6 +1,7 @@
 import type { ChainableImplementer } from './implementer-chainable'
 import type { DecoratedLazy } from './lazy-decorated'
-import type { DecoratedMiddleware, Middleware, MiddlewareMeta } from './middleware'
+import type { Middleware, MiddlewareMeta } from './middleware'
+import type { DecoratedMiddleware } from './middleware-decorated'
 import type { ANY_PROCEDURE, Procedure } from './procedure'
 import type { ProcedureBuilder } from './procedure-builder'
 import type { DecoratedProcedure } from './procedure-decorated'

@@ -103,7 +103,7 @@ describe('self chainable', () => {
 
     const mid4 = {} as Middleware<{ auth: boolean }, { dev: string }, unknown, { val: string }>
     const mid5 = {} as Middleware<{ auth: boolean }, { dev: string }, unknown, { val: number }>
-    const mid6 = {} as Middleware<{ auth: boolean }, { dev: string }, { val: number }, unknown>
+    const mid6 = {} as Middleware<{ auth: 'invalid' }, undefined, any, unknown>
 
     // @ts-expect-error - invalid middleware
     builder.use(mid4)

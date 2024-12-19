@@ -1,6 +1,6 @@
 import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
-import { lazy, unlazy } from './lazy'
+import { isLazy, lazy, unlazy } from './lazy'
 import { Procedure } from './procedure'
 import { createProcedureCaller } from './procedure-caller'
 import { createRouterCaller } from './router-caller'
@@ -146,5 +146,42 @@ describe('createRouterCaller', () => {
 
   it('not recursive on symbol', () => {
     expect((caller as any)[Symbol('something')]).toBeUndefined()
+  })
+
+  it('throw error if call on invalid lazy', async () => {
+    const caller = createRouterCaller({
+      router: lazy(() => Promise.resolve({ default: undefined })),
+    })
+
+    // @ts-expect-error --- invalid lazy
+    caller.router.ping.pong({ val: '123' })
+
+    const procedure = vi.mocked(createProcedureCaller).mock.calls[0]![0].procedure
+
+    expect(procedure).toSatisfy(isLazy)
+
+    expect(unlazy(procedure)).rejects.toThrow('Expected a valid procedure or lazy<procedure> but got unknown.')
+  })
+
+  it('return undefined if access the undefined key', async () => {
+    const caller = createRouterCaller({
+      router: {
+        ping,
+      },
+    })
+
+    // @ts-expect-error --- invalid access
+    expect(caller.router).toBeUndefined()
+  })
+
+  it('works without base path', async () => {
+    const caller = createRouterCaller({
+      router: {
+        ping,
+      },
+    })
+
+    expect(caller.ping({ val: '123' })).toEqual('__mocked__')
+    expect(vi.mocked(createProcedureCaller).mock.calls[0]![0].path).toEqual(['ping'])
   })
 })

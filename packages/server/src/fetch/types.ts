@@ -1,5 +1,6 @@
 /// <reference lib="dom" />
 
+import type { HTTPPath } from '@orpc/contract'
 import type { Hooks, Value } from '@orpc/shared'
 import type { Router } from '../router'
 import type { CallerOptions, Context } from '../types'
@@ -23,7 +24,7 @@ export type FetchHandlerOptions<T extends Context> =
      * @example /orpc
      * @example /api
      */
-    prefix?: string
+    prefix?: HTTPPath
   }
   & NoInfer<(undefined extends T ? { context?: Value<T> } : { context: Value<T> })>
   & CallerOptions

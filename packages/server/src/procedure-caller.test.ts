@@ -295,16 +295,6 @@ describe.each(procedureCases)('createProcedureCaller - case %s', async (_, proce
   })
 })
 
-it('should throw error when invalid lazy procedure', () => {
-  const lazied = lazy(() => Promise.resolve({ default: 123 }))
-
-  const caller = createProcedureCaller({
-    procedure: lazied,
-  })
-
-  expect(caller()).rejects.toThrow('Not found')
-})
-
 it('still work without middleware', async () => {
   const procedure = new Procedure({
     contract: new ContractProcedure({

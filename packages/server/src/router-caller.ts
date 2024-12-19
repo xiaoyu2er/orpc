@@ -3,7 +3,7 @@ import type { Hooks, Value } from '@orpc/shared'
 import type { Lazy } from './lazy'
 import type { Procedure } from './procedure'
 import type { Caller, Meta } from './types'
-import { isLazy } from './lazy'
+import { isLazy, lazy, unlazy } from './lazy'
 import { isProcedure } from './procedure'
 import { createProcedureCaller } from './procedure-caller'
 import { type ANY_ROUTER, getRouterChild, type Router } from './router'
@@ -53,7 +53,19 @@ export function createRouterCaller<
   const procedureCaller = isLazy(options.router)
     ? createProcedureCaller({
       ...options,
-      procedure: options.router,
+      procedure: lazy(async () => {
+        const { default: maybeProcedure } = await unlazy(options.router)
+
+        if (!isProcedure(maybeProcedure)) {
+          throw new Error(`
+            Expected a valid procedure or lazy<procedure> but got unknown.
+            This should be caught by TypeScript compilation.
+            Please report this issue if this makes you feel uncomfortable.
+          `)
+        }
+
+        return { default: maybeProcedure }
+      }),
       context: options.context,
       path: options.path,
     })

@@ -1,6 +1,6 @@
 /// <reference lib="dom" />
 
-import type { WELL_PROCEDURE } from './procedure'
+import type { ANY_PROCEDURE } from './procedure'
 
 export type Context = Record<string, any> | undefined
 export type WELL_CONTEXT = Record<string, unknown> | undefined
@@ -20,5 +20,5 @@ export interface Caller<TInput, TOutput> {
 
 export interface Meta extends CallerOptions {
   path: string[]
-  procedure: WELL_PROCEDURE
+  procedure: ANY_PROCEDURE
 }

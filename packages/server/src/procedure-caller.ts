@@ -1,19 +1,16 @@
 import type { Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Hooks, Value } from '@orpc/shared'
-import type { Lazy, Lazyable } from './lazy'
+import type { Lazyable } from './lazy'
 import type { MiddlewareMeta } from './middleware'
-import type { Caller, Context, Meta, WELL_CONTEXT } from './types'
-
-import { executeWithHooks, trim, value } from '@orpc/shared'
-import { ORPCError } from '@orpc/shared/error'
-import { isLazy, unlazy } from './lazy'
-import {
-  type ANY_LAZY_PROCEDURE,
-  type ANY_PROCEDURE,
-  isProcedure,
-  type Procedure,
-  type WELL_PROCEDURE,
+import type {
+  ANY_PROCEDURE,
+  Procedure,
 } from './procedure'
+
+import type { Caller, Context, Meta, WELL_CONTEXT } from './types'
+import { executeWithHooks, value } from '@orpc/shared'
+import { ORPCError } from '@orpc/shared/error'
+import { unlazy } from './lazy'
 import { mergeContext } from './utils'
 
 /**
@@ -26,9 +23,7 @@ export type CreateProcedureCallerOptions<
   TFuncOutput extends SchemaInput<TOutputSchema>,
 > =
   & {
-    procedure:
-      | Lazyable<Procedure<TContext, any, TInputSchema, TOutputSchema, TFuncOutput>>
-      | Lazy<unknown>
+    procedure: Lazyable<Procedure<TContext, any, TInputSchema, TOutputSchema, TFuncOutput>>
 
     /**
      * This is helpful for logging and analytics.
@@ -55,7 +50,7 @@ export function createProcedureCaller<
 ): Caller<SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, TFuncOutput>> {
   return async (...[input, callerOptions]) => {
     const path = options.path ?? []
-    const procedure = await loadProcedure(options.procedure) as WELL_PROCEDURE
+    const { default: procedure } = await unlazy(options.procedure)
     const context = await value(options.context) as TContext
 
     const meta: Meta = {
@@ -87,7 +82,7 @@ export function createProcedureCaller<
   }
 }
 
-async function validateInput(procedure: WELL_PROCEDURE, input: unknown) {
+async function validateInput(procedure: ANY_PROCEDURE, input: unknown) {
   const schema = procedure['~orpc'].contract['~orpc'].InputSchema
   if (!schema)
     return input
@@ -104,7 +99,7 @@ async function validateInput(procedure: WELL_PROCEDURE, input: unknown) {
   return result.value
 }
 
-async function validateOutput(procedure: WELL_PROCEDURE, output: unknown) {
+async function validateOutput(procedure: ANY_PROCEDURE, output: unknown) {
   const schema = procedure['~orpc'].contract['~orpc'].OutputSchema
   if (!schema)
     return output
@@ -122,7 +117,7 @@ async function validateOutput(procedure: WELL_PROCEDURE, output: unknown) {
 }
 
 async function executeMiddlewareChain(
-  procedure: WELL_PROCEDURE,
+  procedure: ANY_PROCEDURE,
   input: unknown,
   context: Context,
   meta: Meta,
@@ -153,23 +148,4 @@ async function executeMiddlewareChain(
   }
 
   return (await next({})).output
-}
-
-export async function loadProcedure(procedure: ANY_PROCEDURE | ANY_LAZY_PROCEDURE | Lazy<unknown>): Promise<ANY_PROCEDURE> {
-  const loadedProcedure = isLazy(procedure)
-    ? (await unlazy(procedure)).default
-    : procedure
-
-  if (!isProcedure(loadedProcedure)) {
-    throw new ORPCError({
-      code: 'NOT_FOUND',
-      message: 'Not found',
-      cause: new Error(trim(`
-        Attempted to call a lazy router or invalid procedure. 
-        This should typically be caught by TypeScript compilation.
-      `)),
-    })
-  }
-
-  return loadedProcedure
 }

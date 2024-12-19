@@ -41,7 +41,7 @@ describe('decorated lazy', () => {
     expect((await unlazy(decorateLazy(l3))).default.ping).toBe(lazyPing)
   })
 
-  it('throw error on load child of lazy that does not exist', () => {
+  it('return undefined when not exists child', () => {
     const decorated = decorateLazy(lazy(() => Promise.resolve({ default: { ping: { pong: lazyPing } } }))) as any
 
     const child = decorated.ping.pong.peng.pang.p
@@ -49,7 +49,7 @@ describe('decorated lazy', () => {
     expect(child).toBeInstanceOf(Function)
     expect(child).toSatisfy(isLazy)
 
-    expect(unlazy(child)).rejects.toThrow(`Not found`)
+    expect(unlazy(child)).resolves.toEqual({ default: undefined })
   })
 
   describe('callable', () => {

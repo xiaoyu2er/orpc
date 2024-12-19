@@ -1,19 +1,27 @@
 import type { SchemaInput, SchemaOutput } from '@orpc/contract'
-import type { Hooks, Merge, Value } from '@orpc/shared'
+import type { Hooks, Value } from '@orpc/shared'
 import type { Lazy } from './lazy'
 import type { Procedure } from './procedure'
-import type { ANY_ROUTER, Router } from './router'
 import type { Caller, Meta } from './types'
 import { isLazy } from './lazy'
-import { decorateLazy } from './lazy-decorated'
 import { isProcedure } from './procedure'
 import { createProcedureCaller } from './procedure-caller'
+import { type ANY_ROUTER, getRouterChild, type Router } from './router'
+
+export type RouterCaller<T extends ANY_ROUTER> = T extends Lazy<infer U extends ANY_ROUTER>
+  ? RouterCaller<U>
+  : T extends Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
+    ? Caller<SchemaInput<UInputSchema>, SchemaOutput<UOutputSchema, UFuncOutput>>
+    : {
+        [K in keyof T]: T[K] extends ANY_ROUTER ? RouterCaller<T[K]> : never
+      }
 
 export type CreateRouterCallerOptions<
   TRouter extends ANY_ROUTER,
 > =
   & {
-    router: TRouter
+    router: TRouter | Lazy<undefined>
+
     /**
      * This is helpful for logging and analytics.
      *
@@ -26,41 +34,26 @@ export type CreateRouterCallerOptions<
     : never)
   & Hooks<unknown, unknown, TRouter extends Router<infer UContext, any> ? UContext : never, Meta>
 
-export type RouterCaller<
-  TRouter extends ANY_ROUTER,
-> = {
-  [K in keyof TRouter]: TRouter[K] extends
-  | Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
-  | Lazy<Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>>
-    ? Caller<SchemaInput<UInputSchema>, SchemaOutput<UOutputSchema, UFuncOutput>>
-    : TRouter[K] extends ANY_ROUTER
-      ? RouterCaller<TRouter[K]>
-      : TRouter[K] extends Lazy<infer U>
-        ? U extends ANY_ROUTER
-          ? RouterCaller<U>
-          : never
-        : never
-}
-
 export function createRouterCaller<
   TRouter extends ANY_ROUTER,
 >(
   options: CreateRouterCallerOptions<TRouter>,
 ): RouterCaller<TRouter> {
-  return createRouterCallerInternal(options) as any
-}
+  if (isProcedure(options.router)) {
+    const caller = createProcedureCaller({
+      ...options,
+      procedure: options.router,
+      context: options.context,
+      path: options.path,
+    })
 
-function createRouterCallerInternal(
-  options: Merge<CreateRouterCallerOptions<ANY_ROUTER>, {
-    router: ANY_ROUTER
-  }>,
-) {
-  const router = isLazy(options.router) ? decorateLazy(options.router) : options.router
+    return caller as any
+  }
 
-  const procedureCaller = isLazy(options.router) || isProcedure(options.router)
+  const procedureCaller = isLazy(options.router)
     ? createProcedureCaller({
       ...options,
-      procedure: router as any,
+      procedure: options.router,
       context: options.context,
       path: options.path,
     })
@@ -72,9 +65,13 @@ function createRouterCallerInternal(
         return Reflect.get(target, key)
       }
 
-      const next = (router as any)[key]
+      const next = getRouterChild(options.router, key)
 
-      return createRouterCallerInternal({
+      if (!next) {
+        return Reflect.get(target, key)
+      }
+
+      return createRouterCaller({
         ...options,
         router: next,
         path: [...(options.path ?? []), key],
@@ -82,5 +79,5 @@ function createRouterCallerInternal(
     },
   })
 
-  return recursive
+  return recursive as any
 }

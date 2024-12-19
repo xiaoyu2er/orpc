@@ -48,6 +48,10 @@ describe('RouterCaller', () => {
   it('support lazy', () => {
     expectTypeOf<RouterCaller<typeof routerWithLazy>>().toEqualTypeOf<RouterCaller<typeof router>>()
   })
+
+  it('support procedure as router', () => {
+    expectTypeOf<RouterCaller<typeof ping>>().toEqualTypeOf<Caller<{ val: string }, { val: number }>>()
+  })
 })
 
 describe('createRouterCaller', () => {

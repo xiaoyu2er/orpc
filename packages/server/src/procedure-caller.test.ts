@@ -1,7 +1,7 @@
 import type { WELL_CONTEXT } from './types'
 import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
-import { isLazy, lazy, unwrapLazy } from './lazy'
+import { isLazy, lazy, unlazy } from './lazy'
 import { Procedure } from './procedure'
 import { createProcedureCaller } from './procedure-caller'
 
@@ -30,7 +30,7 @@ beforeEach(() => {
 })
 
 describe.each(procedureCases)('createProcedureCaller - case %s', async (_, procedure) => {
-  const unwrappedProcedure = isLazy(procedure) ? (await unwrapLazy(procedure)).default : procedure
+  const unwrappedProcedure = isLazy(procedure) ? (await unlazy(procedure)).default : procedure
 
   it('just a caller', async () => {
     const caller = createProcedureCaller({
@@ -299,7 +299,6 @@ it('should throw error when invalid lazy procedure', () => {
   const lazied = lazy(() => Promise.resolve({ default: 123 }))
 
   const caller = createProcedureCaller({
-    // @ts-expect-error - invalid lazy procedure
     procedure: lazied,
   })
 

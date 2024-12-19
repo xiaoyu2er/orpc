@@ -5,7 +5,7 @@ import type { ANY_PROCEDURE, Procedure } from './procedure'
 import type { ANY_ROUTER, Router } from './router'
 import type { Context, MergeContext } from './types'
 import { deepSetLazyRouterPrefix, getLazyRouterPrefix } from './hidden'
-import { flatLazy, isLazy, lazy, unwrapLazy } from './lazy'
+import { flatLazy, isLazy, lazy, unlazy } from './lazy'
 import { type DecoratedLazy, decorateLazy } from './lazy-decorated'
 import { isProcedure } from './procedure'
 import { type DecoratedProcedure, decorateProcedure } from './procedure-decorated'
@@ -95,10 +95,10 @@ function adapt(
     tags?: readonly string[]
     prefix?: HTTPPath
   },
-): unknown {
+): ANY_ROUTER {
   if (isLazy(item)) {
     const adaptedLazy = decorateLazy(lazy(async () => {
-      const routerOrProcedure = (await unwrapLazy(item)).default as ANY_ROUTER | ANY_PROCEDURE
+      const routerOrProcedure = (await unlazy(item)).default as ANY_ROUTER | ANY_PROCEDURE
       const adapted = adapt(routerOrProcedure, options)
 
       return { default: adapted }

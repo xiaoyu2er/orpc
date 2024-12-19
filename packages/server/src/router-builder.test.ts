@@ -1,7 +1,7 @@
 import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
 import { getLazyRouterPrefix } from './hidden'
-import { isLazy, lazy, unwrapLazy } from './lazy'
+import { isLazy, lazy, unlazy } from './lazy'
 import { isProcedure, Procedure } from './procedure'
 import { RouterBuilder } from './router-builder'
 
@@ -166,12 +166,12 @@ describe('adapt router', () => {
 
     expect(adapted.ping).toSatisfy(isLazy)
     expect(typeof adapted.ping).toBe('function')
-    expect((await unwrapLazy(adapted.ping) as any).default).toSatisfy(isProcedure)
-    expect((await unwrapLazy(adapted.ping) as any).default['~orpc'].func).toBe(ping['~orpc'].func)
-    expect((await unwrapLazy(adapted.ping) as any).default['~orpc'].middlewares).toEqual([mid1, mid2, pMid1, pMid2])
-    expect((await unwrapLazy(adapted.ping) as any).default['~orpc'].contract['~orpc'].route?.path).toBe(undefined)
-    expect((await unwrapLazy(adapted.ping) as any).default['~orpc'].contract['~orpc'].route?.method).toBe(undefined)
-    expect((await unwrapLazy(adapted.ping) as any).default['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2', 'tag3', 'tag4'])
+    expect((await unlazy(adapted.ping) as any).default).toSatisfy(isProcedure)
+    expect((await unlazy(adapted.ping) as any).default['~orpc'].func).toBe(ping['~orpc'].func)
+    expect((await unlazy(adapted.ping) as any).default['~orpc'].middlewares).toEqual([mid1, mid2, pMid1, pMid2])
+    expect((await unlazy(adapted.ping) as any).default['~orpc'].contract['~orpc'].route?.path).toBe(undefined)
+    expect((await unlazy(adapted.ping) as any).default['~orpc'].contract['~orpc'].route?.method).toBe(undefined)
+    expect((await unlazy(adapted.ping) as any).default['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2', 'tag3', 'tag4'])
 
     expect(adapted.pong).toSatisfy(isProcedure)
     expect(typeof adapted.pong).toBe('function')
@@ -183,21 +183,21 @@ describe('adapt router', () => {
 
     expect(adapted.nested.ping).toSatisfy(isLazy)
     expect(typeof adapted.nested.ping).toBe('function')
-    expect((await unwrapLazy(adapted.nested.ping) as any).default).toSatisfy(isProcedure)
-    expect((await unwrapLazy(adapted.nested.ping) as any).default['~orpc'].func).toBe(ping['~orpc'].func)
-    expect((await unwrapLazy(adapted.nested.ping) as any).default['~orpc'].middlewares).toEqual([mid1, mid2, pMid1, pMid2])
-    expect((await unwrapLazy(adapted.nested.ping) as any).default['~orpc'].contract['~orpc'].route?.path).toBe(undefined)
-    expect((await unwrapLazy(adapted.nested.ping) as any).default['~orpc'].contract['~orpc'].route?.method).toBe(undefined)
-    expect((await unwrapLazy(adapted.nested.ping) as any).default['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2', 'tag3', 'tag4'])
+    expect((await unlazy(adapted.nested.ping) as any).default).toSatisfy(isProcedure)
+    expect((await unlazy(adapted.nested.ping) as any).default['~orpc'].func).toBe(ping['~orpc'].func)
+    expect((await unlazy(adapted.nested.ping) as any).default['~orpc'].middlewares).toEqual([mid1, mid2, pMid1, pMid2])
+    expect((await unlazy(adapted.nested.ping) as any).default['~orpc'].contract['~orpc'].route?.path).toBe(undefined)
+    expect((await unlazy(adapted.nested.ping) as any).default['~orpc'].contract['~orpc'].route?.method).toBe(undefined)
+    expect((await unlazy(adapted.nested.ping) as any).default['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2', 'tag3', 'tag4'])
 
     expect(adapted.nested.pong).toSatisfy(isLazy)
     expect(typeof adapted.nested.pong).toBe('function')
-    expect((await unwrapLazy(adapted.nested.pong) as any).default).toSatisfy(isProcedure)
-    expect((await unwrapLazy(adapted.nested.pong) as any).default['~orpc'].func).toBe(pong['~orpc'].func)
-    expect((await unwrapLazy(adapted.nested.pong) as any).default['~orpc'].middlewares).toEqual([mid1, mid2])
-    expect((await unwrapLazy(adapted.nested.pong) as any).default['~orpc'].contract['~orpc'].route?.path).toBe('/prefix/pong')
-    expect((await unwrapLazy(adapted.nested.pong) as any).default['~orpc'].contract['~orpc'].route?.method).toBe('GET')
-    expect((await unwrapLazy(adapted.nested.pong) as any).default['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2'])
+    expect((await unlazy(adapted.nested.pong) as any).default).toSatisfy(isProcedure)
+    expect((await unlazy(adapted.nested.pong) as any).default['~orpc'].func).toBe(pong['~orpc'].func)
+    expect((await unlazy(adapted.nested.pong) as any).default['~orpc'].middlewares).toEqual([mid1, mid2])
+    expect((await unlazy(adapted.nested.pong) as any).default['~orpc'].contract['~orpc'].route?.path).toBe('/prefix/pong')
+    expect((await unlazy(adapted.nested.pong) as any).default['~orpc'].contract['~orpc'].route?.method).toBe('GET')
+    expect((await unlazy(adapted.nested.pong) as any).default['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2'])
   })
 
   it('router lazy with nested lazy', async () => {
@@ -211,39 +211,39 @@ describe('adapt router', () => {
 
     expect(adapted.ping).toSatisfy(isLazy)
     expect(typeof adapted.ping).toBe('function')
-    expect((await unwrapLazy(adapted.ping) as any).default).toSatisfy(isProcedure)
-    expect((await unwrapLazy(adapted.ping) as any).default['~orpc'].func).toBe(ping['~orpc'].func)
-    expect((await unwrapLazy(adapted.ping) as any).default['~orpc'].middlewares).toEqual([mid1, mid2, pMid1, pMid2])
-    expect((await unwrapLazy(adapted.ping) as any).default['~orpc'].contract['~orpc'].route?.path).toBe(undefined)
-    expect((await unwrapLazy(adapted.ping) as any).default['~orpc'].contract['~orpc'].route?.method).toBe(undefined)
-    expect((await unwrapLazy(adapted.ping) as any).default['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2', 'tag3', 'tag4'])
+    expect((await unlazy(adapted.ping) as any).default).toSatisfy(isProcedure)
+    expect((await unlazy(adapted.ping) as any).default['~orpc'].func).toBe(ping['~orpc'].func)
+    expect((await unlazy(adapted.ping) as any).default['~orpc'].middlewares).toEqual([mid1, mid2, pMid1, pMid2])
+    expect((await unlazy(adapted.ping) as any).default['~orpc'].contract['~orpc'].route?.path).toBe(undefined)
+    expect((await unlazy(adapted.ping) as any).default['~orpc'].contract['~orpc'].route?.method).toBe(undefined)
+    expect((await unlazy(adapted.ping) as any).default['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2', 'tag3', 'tag4'])
 
     expect(adapted.pong).toSatisfy(isLazy)
     expect(typeof adapted.pong).toBe('function')
-    expect((await unwrapLazy(adapted.pong) as any).default).toSatisfy(isProcedure)
-    expect((await unwrapLazy(adapted.pong) as any).default['~orpc'].func).toBe(pong['~orpc'].func)
-    expect((await unwrapLazy(adapted.pong) as any).default['~orpc'].middlewares).toEqual([mid1, mid2])
-    expect((await unwrapLazy(adapted.pong) as any).default['~orpc'].contract['~orpc'].route?.path).toBe('/prefix/pong')
-    expect((await unwrapLazy(adapted.pong) as any).default['~orpc'].contract['~orpc'].route?.method).toBe('GET')
-    expect((await unwrapLazy(adapted.pong) as any).default['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2'])
+    expect((await unlazy(adapted.pong) as any).default).toSatisfy(isProcedure)
+    expect((await unlazy(adapted.pong) as any).default['~orpc'].func).toBe(pong['~orpc'].func)
+    expect((await unlazy(adapted.pong) as any).default['~orpc'].middlewares).toEqual([mid1, mid2])
+    expect((await unlazy(adapted.pong) as any).default['~orpc'].contract['~orpc'].route?.path).toBe('/prefix/pong')
+    expect((await unlazy(adapted.pong) as any).default['~orpc'].contract['~orpc'].route?.method).toBe('GET')
+    expect((await unlazy(adapted.pong) as any).default['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2'])
 
     expect(adapted.nested.ping).toSatisfy(isLazy)
     expect(typeof adapted.nested.ping).toBe('function')
-    expect((await unwrapLazy(adapted.nested.ping) as any).default).toSatisfy(isProcedure)
-    expect((await unwrapLazy(adapted.nested.ping) as any).default['~orpc'].func).toBe(ping['~orpc'].func)
-    expect((await unwrapLazy(adapted.nested.ping) as any).default['~orpc'].middlewares).toEqual([mid1, mid2, pMid1, pMid2])
-    expect((await unwrapLazy(adapted.nested.ping) as any).default['~orpc'].contract['~orpc'].route?.path).toBe(undefined)
-    expect((await unwrapLazy(adapted.nested.ping) as any).default['~orpc'].contract['~orpc'].route?.method).toBe(undefined)
-    expect((await unwrapLazy(adapted.nested.ping) as any).default['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2', 'tag3', 'tag4'])
+    expect((await unlazy(adapted.nested.ping) as any).default).toSatisfy(isProcedure)
+    expect((await unlazy(adapted.nested.ping) as any).default['~orpc'].func).toBe(ping['~orpc'].func)
+    expect((await unlazy(adapted.nested.ping) as any).default['~orpc'].middlewares).toEqual([mid1, mid2, pMid1, pMid2])
+    expect((await unlazy(adapted.nested.ping) as any).default['~orpc'].contract['~orpc'].route?.path).toBe(undefined)
+    expect((await unlazy(adapted.nested.ping) as any).default['~orpc'].contract['~orpc'].route?.method).toBe(undefined)
+    expect((await unlazy(adapted.nested.ping) as any).default['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2', 'tag3', 'tag4'])
 
     expect(adapted.nested.pong).toSatisfy(isLazy)
     expect(typeof adapted.nested.pong).toBe('function')
-    expect((await unwrapLazy(adapted.nested.pong) as any).default).toSatisfy(isProcedure)
-    expect((await unwrapLazy(adapted.nested.pong) as any).default['~orpc'].func).toBe(pong['~orpc'].func)
-    expect((await unwrapLazy(adapted.nested.pong) as any).default['~orpc'].middlewares).toEqual([mid1, mid2])
-    expect((await unwrapLazy(adapted.nested.pong) as any).default['~orpc'].contract['~orpc'].route?.path).toBe('/prefix/pong')
-    expect((await unwrapLazy(adapted.nested.pong) as any).default['~orpc'].contract['~orpc'].route?.method).toBe('GET')
-    expect((await unwrapLazy(adapted.nested.pong) as any).default['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2'])
+    expect((await unlazy(adapted.nested.pong) as any).default).toSatisfy(isProcedure)
+    expect((await unlazy(adapted.nested.pong) as any).default['~orpc'].func).toBe(pong['~orpc'].func)
+    expect((await unlazy(adapted.nested.pong) as any).default['~orpc'].middlewares).toEqual([mid1, mid2])
+    expect((await unlazy(adapted.nested.pong) as any).default['~orpc'].contract['~orpc'].route?.path).toBe('/prefix/pong')
+    expect((await unlazy(adapted.nested.pong) as any).default['~orpc'].contract['~orpc'].route?.method).toBe('GET')
+    expect((await unlazy(adapted.nested.pong) as any).default['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2'])
   })
 
   it('support procedure as a router', async () => {
@@ -261,11 +261,11 @@ describe('adapt router', () => {
 
     expect(adaptedLazy).toSatisfy(isLazy)
     expect(typeof adaptedLazy).toBe('function')
-    expect((await unwrapLazy(adaptedLazy) as any).default).toSatisfy(isProcedure)
-    expect((await unwrapLazy(adaptedLazy) as any).default['~orpc'].func).toBe(ping['~orpc'].func)
-    expect((await unwrapLazy(adaptedLazy) as any).default['~orpc'].middlewares).toEqual([mid1, mid2, pMid1, pMid2])
-    expect((await unwrapLazy(adaptedLazy) as any).default['~orpc'].contract['~orpc'].route?.path).toBe(undefined)
-    expect((await unwrapLazy(adaptedLazy) as any).default['~orpc'].contract['~orpc'].route?.method).toBe(undefined)
+    expect((await unlazy(adaptedLazy) as any).default).toSatisfy(isProcedure)
+    expect((await unlazy(adaptedLazy) as any).default['~orpc'].func).toBe(ping['~orpc'].func)
+    expect((await unlazy(adaptedLazy) as any).default['~orpc'].middlewares).toEqual([mid1, mid2, pMid1, pMid2])
+    expect((await unlazy(adaptedLazy) as any).default['~orpc'].contract['~orpc'].route?.path).toBe(undefined)
+    expect((await unlazy(adaptedLazy) as any).default['~orpc'].contract['~orpc'].route?.method).toBe(undefined)
   })
 
   it('can concat LAZY_ROUTER_PREFIX_SYMBOL', () => {

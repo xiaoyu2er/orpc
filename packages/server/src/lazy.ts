@@ -23,8 +23,8 @@ export function isLazy(item: unknown): item is ANY_LAZY {
   )
 }
 
-export function unwrapLazy<T extends Lazy<any>>(lazy: T): Promise<{ default: T extends Lazy<infer U> ? U : never }> {
-  return lazy[LAZY_LOADER_SYMBOL]() as any
+export function unlazy<T>(lazied: Lazyable<T>): Promise<{ default: T }> {
+  return isLazy(lazied) ? lazied[LAZY_LOADER_SYMBOL]() : Promise.resolve({ default: lazied })
 }
 
 export type FlattenLazy<T> = T extends Lazy<infer U>
@@ -33,14 +33,14 @@ export type FlattenLazy<T> = T extends Lazy<infer U>
 
 export function flatLazy<T extends ANY_LAZY>(lazied: T): FlattenLazy<T> {
   const flattenLoader = async () => {
-    let current = await unwrapLazy(lazied)
+    let current = await unlazy(lazied)
 
     while (true) {
       if (!isLazy(current.default)) {
         break
       }
 
-      current = await unwrapLazy(current.default)
+      current = await unlazy(current.default)
     }
 
     return current

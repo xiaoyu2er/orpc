@@ -1,9 +1,11 @@
+import type { ANY_LAZY, Lazy } from './lazy'
 import type { Procedure } from './procedure'
-import type { InferRouterInputs, InferRouterOutputs, Router } from './router'
+import type { ANY_ROUTER, InferRouterInputs, InferRouterOutputs, Router } from './router'
 import type { WELL_CONTEXT } from './types'
 import { oc } from '@orpc/contract'
 import { z } from 'zod'
 import { lazy } from './lazy'
+import { getRouterChild } from './router'
 
 const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
 
@@ -214,5 +216,26 @@ describe('Router', () => {
     const router3: Router<{ auth: boolean, userId: string }, typeof pingContract> = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown>
     // @ts-expect-error - mismatch contract
     const router4: Router<{ auth: boolean, userId: string }, typeof pingContract> = {} as Procedure<{ auth: boolean }, { db: string }, undefined, undefined, unknown>
+  })
+})
+
+describe('getRouterChild', () => {
+  it('works', () => {
+    getRouterChild({})
+    getRouterChild(router)
+    getRouterChild(lazy(() => Promise.resolve({ default: router })))
+    getRouterChild(lazy(() => Promise.resolve({ default: undefined })))
+
+    // @ts-expect-error --- invalid router
+    getRouterChild(1)
+
+    expectTypeOf(getRouterChild({})).toEqualTypeOf<ANY_ROUTER | Lazy<undefined> | undefined>()
+  })
+
+  it('return lazy if router is lazy', () => {
+    expectTypeOf(
+      getRouterChild(lazy(() => Promise.resolve({ default: router })), 'a', 'b'),
+    )
+      .toMatchTypeOf<ANY_LAZY>()
   })
 })

@@ -1,28 +1,31 @@
 import type { SchemaInput, SchemaOutput } from '@orpc/contract'
-import type { ANY_LAZY, Lazy } from './lazy'
+import type { Lazy } from './lazy'
 import type { Procedure } from './procedure'
 import type { Caller } from './types'
-import { flatLazy, lazy, unwrapLazy } from './lazy'
+import { flatLazy } from './lazy'
 import { createProcedureCaller } from './procedure-caller'
+import { type ANY_ROUTER, getRouterChild } from './router'
 
 export type DecoratedLazy<T> = T extends Lazy<infer U>
   ? DecoratedLazy<U>
-  : (
-      T extends Procedure<infer UContext, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
-        ?
-        & Lazy<T>
-        & (undefined extends UContext ? Caller<SchemaInput<UInputSchema>, SchemaOutput<UOutputSchema, UFuncOutput>> : unknown)
-        : {
-          [K in keyof T]: DecoratedLazy<T[K]>
-        } & Lazy<T>
+  :
+    & Lazy<T>
+    & (
+       T extends Procedure<infer UContext, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
+         ? undefined extends UContext
+           ? Caller<SchemaInput<UInputSchema>, SchemaOutput<UOutputSchema, UFuncOutput>>
+           : unknown
+         : {
+             [K in keyof T]: T[K] extends object ? DecoratedLazy<T[K]> : never
+           }
     )
 
-export function decorateLazy<T extends ANY_LAZY>(lazied: T): DecoratedLazy<T> {
+export function decorateLazy<T extends Lazy<ANY_ROUTER | undefined>>(lazied: T): DecoratedLazy<T> {
   const flattenLazy = flatLazy(lazied)
 
   const procedureCaller = createProcedureCaller({
-    procedure: flattenLazy as any,
-    context: undefined as any,
+    procedure: flattenLazy,
+    context: undefined,
   })
 
   Object.assign(procedureCaller, flattenLazy)
@@ -33,10 +36,9 @@ export function decorateLazy<T extends ANY_LAZY>(lazied: T): DecoratedLazy<T> {
         return Reflect.get(target, key)
       }
 
-      return decorateLazy(lazy(async () => {
-        const current = await unwrapLazy(flattenLazy)
-        return { default: (current.default as any)[key] }
-      }))
+      const next = getRouterChild(flattenLazy, key)
+
+      return decorateLazy(next)
     },
   })
 

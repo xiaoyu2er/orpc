@@ -1,6 +1,6 @@
 import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
-import { isLazy, lazy, unwrapLazy } from './lazy'
+import { isLazy, lazy, unlazy } from './lazy'
 import { decorateLazy } from './lazy-decorated'
 import { Procedure } from './procedure'
 import { createProcedureCaller } from './procedure-caller'
@@ -30,15 +30,26 @@ describe('decorated lazy', () => {
   it('still a lazy', async () => {
     expect(decorateLazy(lazyPing)).toSatisfy(isLazy)
 
-    expect((await unwrapLazy(decorateLazy(lazyPing))).default).toBe(ping)
+    expect((await unlazy(decorateLazy(lazyPing))).default).toBe(ping)
 
     const l2 = lazy(() => Promise.resolve({ default: { ping } }))
     expect(decorateLazy(l2)).toSatisfy(isLazy)
-    expect((await unwrapLazy(decorateLazy(l2))).default.ping).toBe(ping)
+    expect((await unlazy(decorateLazy(l2))).default.ping).toBe(ping)
 
     const l3 = lazy(() => Promise.resolve({ default: { ping: lazyPing } }))
     expect(decorateLazy(l3)).toSatisfy(isLazy)
-    expect((await unwrapLazy(decorateLazy(l3))).default.ping).toBe(lazyPing)
+    expect((await unlazy(decorateLazy(l3))).default.ping).toBe(lazyPing)
+  })
+
+  it('throw error on load child of lazy that does not exist', () => {
+    const decorated = decorateLazy(lazy(() => Promise.resolve({ default: { ping: { pong: lazyPing } } }))) as any
+
+    const child = decorated.ping.pong.peng.pang.p
+
+    expect(child).toBeInstanceOf(Function)
+    expect(child).toSatisfy(isLazy)
+
+    expect(unlazy(child)).rejects.toThrow(`Not found`)
   })
 
   describe('callable', () => {
@@ -63,7 +74,7 @@ describe('decorated lazy', () => {
         context: undefined,
       })
       expect(vi.mocked(createProcedureCaller).mock.calls[0]![0].procedure).toSatisfy(isLazy)
-      const unwrapped = await unwrapLazy(vi.mocked(createProcedureCaller).mock.calls[0]![0].procedure as any)
+      const unwrapped = await unlazy(vi.mocked(createProcedureCaller).mock.calls[0]![0].procedure as any)
       expect(unwrapped.default).toBe(router)
 
       expect(await decorated({ val: '1' }, { signal })).toBe('__mocked__')
@@ -81,7 +92,7 @@ describe('decorated lazy', () => {
         context: undefined,
       })
       expect(vi.mocked(createProcedureCaller).mock.calls[2]![0].procedure).toSatisfy(isLazy)
-      const unwrapped = await unwrapLazy(vi.mocked(createProcedureCaller).mock.calls[2]![0].procedure as any)
+      const unwrapped = await unlazy(vi.mocked(createProcedureCaller).mock.calls[2]![0].procedure as any)
       expect(unwrapped.default).toBe(ping)
 
       expect(await decorated({ val: '1' }, { signal })).toBe('__mocked__')

@@ -1,7 +1,7 @@
 import type { ANY_LAZY, FlattenLazy, Lazy } from './lazy'
 import type { Procedure } from './procedure'
 import type { WELL_CONTEXT } from './types'
-import { flatLazy, isLazy, lazy, unwrapLazy } from './lazy'
+import { flatLazy, isLazy, lazy, unlazy } from './lazy'
 
 const procedure = {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown>
 
@@ -27,11 +27,11 @@ it('isLazy', () => {
 
 it('unwrapLazy', () => {
   expectTypeOf(
-    unwrapLazy(lazy(() => Promise.resolve({ default: procedure }))),
+    unlazy(lazy(() => Promise.resolve({ default: procedure }))),
   ).toMatchTypeOf<Promise<{ default: typeof procedure }>>()
 
   expectTypeOf(
-    unwrapLazy(lazy(() => Promise.resolve({ default: router }))),
+    unlazy(lazy(() => Promise.resolve({ default: router }))),
   ).toMatchTypeOf<Promise<{ default: typeof router }>>()
 })
 

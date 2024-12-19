@@ -1,6 +1,6 @@
 import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
-import { lazy, unwrapLazy } from './lazy'
+import { lazy, unlazy } from './lazy'
 import { Procedure } from './procedure'
 import { createProcedureCaller } from './procedure-caller'
 import { createRouterCaller } from './router-caller'
@@ -62,34 +62,54 @@ describe('createRouterCaller', () => {
   it('work with lazy', async () => {
     expect(caller.ping({ val: '123' })).toEqual('__mocked__')
 
-    expect(createProcedureCaller).toBeCalledTimes(2)
-    expect(createProcedureCaller).toHaveBeenNthCalledWith(2, expect.objectContaining({
-      procedure: expect.any(Function),
+    expect(createProcedureCaller).toBeCalledTimes(1)
+    expect(createProcedureCaller).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      procedure: expect.any(Object),
       context: { auth: true },
       path: ['users', 'ping'],
     }))
 
-    expect((await unwrapLazy(vi.mocked(createProcedureCaller as any).mock.calls[1]![0].procedure)).default).toBe(ping)
+    expect((await unlazy(vi.mocked(createProcedureCaller as any).mock.calls[0]![0].procedure)).default).toBe(ping)
 
-    expect(vi.mocked(createProcedureCaller).mock.results[1]?.value).toBeCalledTimes(1)
-    expect(vi.mocked(createProcedureCaller).mock.results[1]?.value).toBeCalledWith({ val: '123' })
+    expect(vi.mocked(createProcedureCaller).mock.results[0]?.value).toBeCalledTimes(1)
+    expect(vi.mocked(createProcedureCaller).mock.results[0]?.value).toBeCalledWith({ val: '123' })
   })
 
   it('work with nested lazy', async () => {
     expect(caller.nested.ping({ val: '123' })).toEqual('__mocked__')
 
-    expect(createProcedureCaller).toBeCalledTimes(5)
-    expect(createProcedureCaller).toHaveBeenNthCalledWith(5, expect.objectContaining({
-      procedure: expect.any(Function),
+    expect(createProcedureCaller).toBeCalledTimes(2)
+    expect(createProcedureCaller).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      procedure: expect.any(Object),
       context: { auth: true },
       path: ['users', 'nested', 'ping'],
     }))
 
-    const lazied = vi.mocked(createProcedureCaller as any).mock.calls[4]![0].procedure
-    expect(await unwrapLazy(lazied)).toEqual({ default: ping })
+    const lazied = vi.mocked(createProcedureCaller as any).mock.calls[1]![0].procedure
+    expect(await unlazy(lazied)).toEqual({ default: ping })
 
-    expect(vi.mocked(createProcedureCaller).mock.results[4]?.value).toBeCalledTimes(1)
-    expect(vi.mocked(createProcedureCaller).mock.results[4]?.value).toBeCalledWith({ val: '123' })
+    expect(vi.mocked(createProcedureCaller).mock.results[1]?.value).toBeCalledTimes(1)
+    expect(vi.mocked(createProcedureCaller).mock.results[1]?.value).toBeCalledWith({ val: '123' })
+  })
+
+  it('work with procedure as router', () => {
+    const caller = createRouterCaller({
+      router: ping,
+      context: { auth: true },
+      path: ['users'],
+    })
+
+    expect(caller({ val: '123' })).toEqual('__mocked__')
+
+    expect(createProcedureCaller).toBeCalledTimes(1)
+    expect(createProcedureCaller).toHaveBeenCalledWith(expect.objectContaining({
+      procedure: ping,
+      context: { auth: true },
+      path: ['users'],
+    }))
+
+    expect(vi.mocked(createProcedureCaller).mock.results[0]?.value).toBeCalledTimes(1)
+    expect(vi.mocked(createProcedureCaller).mock.results[0]?.value).toBeCalledWith({ val: '123' })
   })
 
   it('hooks', async () => {

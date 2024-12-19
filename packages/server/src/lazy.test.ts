@@ -1,6 +1,6 @@
 import type { WELL_CONTEXT } from './types'
 import { ContractProcedure } from '@orpc/contract'
-import { flatLazy, isLazy, lazy, LAZY_LOADER_SYMBOL, unwrapLazy } from './lazy'
+import { flatLazy, isLazy, lazy, LAZY_LOADER_SYMBOL, unlazy } from './lazy'
 import { Procedure } from './procedure'
 
 const procedure = new Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown>({
@@ -35,8 +35,8 @@ it('isLazy', () => {
 it('unwrapLazy', async () => {
   const lazied = lazy(() => Promise.resolve({ default: 'root' }))
 
-  expect(unwrapLazy(lazied)).resolves.toEqual({ default: 'root' })
-  expect((await unwrapLazy(lazy(() => Promise.resolve({ default: lazied })))).default).toSatisfy(isLazy)
+  expect(unlazy(lazied)).resolves.toEqual({ default: 'root' })
+  expect((await unlazy(lazy(() => Promise.resolve({ default: lazied })))).default).toSatisfy(isLazy)
 })
 
 it('flatLazy', () => {

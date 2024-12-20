@@ -1,20 +1,20 @@
-import { createProcedureClient } from './procedure'
-import { createRouterClient } from './router'
+import { createProcedureFetchClient } from './procedure-fetch-client'
+import { createRouterFetchClient } from './router-fetch-client'
 
-vi.mock('./procedure', () => ({
-  createProcedureClient: vi.fn(),
+vi.mock('./procedure-fetch-client', () => ({
+  createProcedureFetchClient: vi.fn(),
 }))
 
 beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe('router client', () => {
+describe('router fetch client', () => {
   const procedureClient = vi.fn().mockReturnValue('__mocked__')
-  vi.mocked(createProcedureClient).mockReturnValue(procedureClient)
+  vi.mocked(createProcedureFetchClient).mockReturnValue(procedureClient)
 
   it('works', async () => {
-    const client = createRouterClient({
+    const client = createRouterFetchClient({
       baseURL: 'http://localhost:3000/orpc',
     }) as any
 
@@ -22,8 +22,8 @@ describe('router client', () => {
     const o1 = await client.ping({ value: 'hello' })
 
     expect(o1).toEqual('__mocked__')
-    expect(createProcedureClient).toBeCalledTimes(1)
-    expect(createProcedureClient).toBeCalledWith({
+    expect(createProcedureFetchClient).toBeCalledTimes(1)
+    expect(createProcedureFetchClient).toBeCalledWith({
       baseURL: 'http://localhost:3000/orpc',
       path: ['ping'],
     })
@@ -32,8 +32,8 @@ describe('router client', () => {
     const o2 = await client.nested.pong({ value: 'hello' })
 
     expect(o2).toEqual('__mocked__')
-    expect(createProcedureClient).toBeCalledTimes(2)
-    expect(createProcedureClient).toBeCalledWith({
+    expect(createProcedureFetchClient).toBeCalledTimes(2)
+    expect(createProcedureFetchClient).toBeCalledWith({
       baseURL: 'http://localhost:3000/orpc',
       path: ['nested', 'pong'],
     })
@@ -42,7 +42,7 @@ describe('router client', () => {
   it('works with options', async () => {
     const headers = vi.fn()
     const fetch = vi.fn()
-    const client = createRouterClient({
+    const client = createRouterFetchClient({
       baseURL: 'http://localhost:3000/orpc',
       path: ['base'],
       headers,
@@ -52,8 +52,8 @@ describe('router client', () => {
     vi.clearAllMocks()
     await client.ping({ value: 'hello' })
 
-    expect(createProcedureClient).toBeCalledTimes(1)
-    expect(createProcedureClient).toBeCalledWith({
+    expect(createProcedureFetchClient).toBeCalledTimes(1)
+    expect(createProcedureFetchClient).toBeCalledWith({
       baseURL: 'http://localhost:3000/orpc',
       path: ['base', 'ping'],
       headers,

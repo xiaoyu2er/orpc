@@ -1,9 +1,9 @@
 /** unnoq */
 
-import { createRouterClient } from './router'
+import { createRouterFetchClient } from './router-fetch-client'
 
-export * from './procedure'
-export * from './router'
+export * from './procedure-fetch-client'
+export * from './router-fetch-client'
 export * from '@orpc/shared/error'
 
-export const createORPCClient = createRouterClient
+export const createORPCFetchClient = createRouterFetchClient

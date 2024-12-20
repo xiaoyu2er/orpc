@@ -1,5 +1,5 @@
 import { ORPCDeserializer, ORPCSerializer } from '@orpc/transformer'
-import { createProcedureClient } from './procedure'
+import { createProcedureFetchClient } from './procedure-fetch-client'
 
 vi.mock('@orpc/transformer', () => ({
   ORPCSerializer: vi.fn().mockReturnValue({ serialize: vi.fn() }),
@@ -10,7 +10,7 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe('procedure client', () => {
+describe('procedure fetch client', () => {
   const serialize = (ORPCSerializer as any)().serialize
   const deserialize = (ORPCDeserializer as any)().deserialize
   const response = new Response('output')
@@ -22,7 +22,7 @@ describe('procedure client', () => {
   deserialize.mockReturnValue('transformed_output')
 
   it('works', async () => {
-    const client = createProcedureClient({
+    const client = createProcedureFetchClient({
       baseURL: 'http://localhost:3000/orpc',
       path: ['ping'],
       fetch: fakeFetch,
@@ -50,7 +50,7 @@ describe('procedure client', () => {
     async () => new Headers({ 'x-test': 'hello' }),
     async () => ({ 'x-test': 'hello' }),
   ])('works with headers', async (headers) => {
-    const client = createProcedureClient({
+    const client = createProcedureFetchClient({
       path: ['ping'],
       baseURL: 'http://localhost:3000/orpc',
       fetch: fakeFetch,
@@ -72,7 +72,7 @@ describe('procedure client', () => {
     const controller = new AbortController()
     const signal = controller.signal
 
-    const client = createProcedureClient({
+    const client = createProcedureFetchClient({
       path: ['ping'],
       baseURL: 'http://localhost:3000/orpc',
       fetch: fakeFetch,

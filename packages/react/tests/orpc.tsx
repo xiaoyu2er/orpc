@@ -1,4 +1,4 @@
-import { createORPCClient } from '@orpc/client'
+import { createORPCFetchClient } from '@orpc/client'
 import { os } from '@orpc/server'
 import { createORPCHandler, handleFetchRequest } from '@orpc/server/fetch'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -92,7 +92,7 @@ export const appRouter = orpcServer.router({
   },
 })
 
-export const orpcClient = createORPCClient<typeof appRouter>({
+export const orpcClient = createORPCFetchClient<typeof appRouter>({
   baseURL: 'http://localhost:3000',
 
   async fetch(...args) {

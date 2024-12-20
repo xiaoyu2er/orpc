@@ -1,26 +1,27 @@
-import type { SchemaInput, SchemaOutput } from '@orpc/contract'
-import type { ANY_LAZY_PROCEDURE, ANY_PROCEDURE, CreateProcedureCallerOptions, Lazy, Procedure, WELL_ORPC_ERROR_JSON } from '@orpc/server'
+import type { Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { Context, CreateProcedureCallerOptions, ProcedureClient, WELL_ORPC_ERROR_JSON } from '@orpc/server'
 import { createProcedureClient, ORPCError } from '@orpc/server'
 
-export type SafeAction<T extends ANY_PROCEDURE | ANY_LAZY_PROCEDURE> = T extends
-  | Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
-  | Lazy<Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>>
-  ? (
-      ...options:
-        | [input: SchemaInput<UInputSchema>]
-        | (undefined extends SchemaInput<UInputSchema> ? [] : never)
-    ) => Promise<
-      | [SchemaOutput<UOutputSchema, UFuncOutput>, undefined, 'success']
-      | [undefined, WELL_ORPC_ERROR_JSON, 'error']
-    >
-  : never
+export type SafeAction<TInput, TOutput,
+> = ProcedureClient<
+  TInput,
+  | [TOutput, undefined, 'success']
+  | [undefined, WELL_ORPC_ERROR_JSON, 'error']
+>
 
-export function createSafeAction<T extends ANY_PROCEDURE | ANY_LAZY_PROCEDURE>(opt: CreateProcedureCallerOptions<T>): SafeAction<T> {
+export function createSafeAction<
+  TContext extends Context,
+  TInputSchema extends Schema,
+  TOutputSchema extends Schema,
+  TFuncOutput extends SchemaInput<TOutputSchema>,
+>(
+  opt: CreateProcedureCallerOptions<TContext, TInputSchema, TOutputSchema, TFuncOutput>,
+): SafeAction<SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, TFuncOutput>> {
   const caller = createProcedureClient(opt)
 
-  const safeAction = async (...input: [any] | []) => {
+  const safeAction: SafeAction<SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, TFuncOutput>> = async (...[input, option]) => {
     try {
-      const output = await caller(...input)
+      const output = await caller(input as any, option)
       return [output as any, undefined, 'success']
     }
     catch (e) {

@@ -5,8 +5,8 @@ import { decorateLazy } from './lazy-decorated'
 import { Procedure } from './procedure'
 import { createProcedureClient } from './procedure-client'
 
-vi.mock('./procedure-caller', () => ({
-  createProcedureCaller: vi.fn(() => vi.fn()),
+vi.mock('./procedure-client', () => ({
+  createProcedureClient: vi.fn(() => vi.fn()),
 }))
 
 beforeEach(() => {
@@ -74,8 +74,7 @@ describe('decorated lazy', () => {
         context: undefined,
       })
       expect(vi.mocked(createProcedureClient).mock.calls[0]![0].procedure).toSatisfy(isLazy)
-      const unwrapped = await unlazy(vi.mocked(createProcedureClient).mock.calls[0]![0].procedure as any)
-      expect(unwrapped.default).toBe(router)
+      expect(unlazy(vi.mocked(createProcedureClient).mock.calls[0]![0].procedure as any)).rejects.toThrow('Expected a lazy<procedure> but got lazy<unknown>')
 
       expect(await decorated({ val: '1' }, { signal })).toBe('__mocked__')
       expect(caller).toHaveBeenCalledTimes(1)

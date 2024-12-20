@@ -1,10 +1,10 @@
-import type { ANY_CONTRACT_PROCEDURE, ContractRouter, HTTPPath, WELL_CONTRACT_PROCEDURE } from '@orpc/contract'
-import type { ANY_LAZY_PROCEDURE, ANY_PROCEDURE, Lazy, Router } from '@orpc/server'
+import type { ContractRouter, HTTPPath, WELL_CONTRACT_PROCEDURE } from '@orpc/contract'
+import type { ANY_PROCEDURE, ANY_ROUTER, Lazy } from '@orpc/server'
 import { isContractProcedure } from '@orpc/contract'
-import { isLazy, isProcedure, ROUTER_CONTRACT_SYMBOL } from '@orpc/server'
+import { flatLazy, getRouterContract, isLazy, isProcedure } from '@orpc/server'
 
 export interface EachLeafOptions {
-  router: ANY_PROCEDURE | Router<any> | ContractRouter | ANY_CONTRACT_PROCEDURE
+  router: ContractRouter | ANY_ROUTER
   path: string[]
 }
 
@@ -14,7 +14,7 @@ export interface EachLeafCallbackOptions {
 }
 
 export interface EachContractLeafResultItem {
-  lazy: ANY_LAZY_PROCEDURE | Lazy<Router<any>>
+  lazy: Lazy<ANY_PROCEDURE> | Lazy<Record<string, ANY_ROUTER>>
   path: string[]
 }
 
@@ -24,11 +24,13 @@ export function eachContractProcedureLeaf(
   result: EachContractLeafResultItem[] = [],
   isCurrentRouterContract = false,
 ): EachContractLeafResultItem[] {
-  if (!isCurrentRouterContract && ROUTER_CONTRACT_SYMBOL in options.router && options.router[ROUTER_CONTRACT_SYMBOL]) {
+  const hiddenContract = getRouterContract(options.router)
+
+  if (!isCurrentRouterContract && hiddenContract) {
     return eachContractProcedureLeaf(
       {
         path: options.path,
-        router: options.router[ROUTER_CONTRACT_SYMBOL] as any,
+        router: hiddenContract,
       },
       callback,
       result,
@@ -38,7 +40,7 @@ export function eachContractProcedureLeaf(
 
   if (isLazy(options.router)) {
     result.push({
-      lazy: options.router,
+      lazy: flatLazy(options.router),
       path: options.path,
     })
   }
@@ -46,7 +48,7 @@ export function eachContractProcedureLeaf(
   //
   else if (isProcedure(options.router)) {
     callback({
-      contract: options.router.zz$p.contract,
+      contract: options.router['~orpc'].contract,
       path: options.path,
     })
   }

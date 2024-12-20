@@ -1,7 +1,7 @@
 import type { JSONSchema } from 'json-schema-typed/draft-2020-12'
 import type { EachLeafOptions } from './utils'
 import { type ContractRouter, isContractProcedure } from '@orpc/contract'
-import { LAZY_LOADER_SYMBOL, type Router } from '@orpc/server'
+import { type ANY_ROUTER, unlazy } from '@orpc/server'
 import { findDeepMatches, isPlainObject, omit } from '@orpc/shared'
 import { preSerialize } from '@orpc/transformer'
 import {
@@ -43,7 +43,7 @@ export interface GenerateOpenAPIOptions {
 
 export async function generateOpenAPI(
   opts: {
-    router: ContractRouter | Router<any>
+    router: ContractRouter | ANY_ROUTER
   } & Omit<OpenAPIObject, 'openapi'>,
   options?: GenerateOpenAPIOptions,
 ): Promise<OpenAPIObject> {
@@ -329,7 +329,7 @@ export async function generateOpenAPI(
         summary: internal.route?.summary,
         description: internal.route?.description,
         deprecated: internal.route?.deprecated,
-        tags: internal.route?.tags,
+        tags: internal.route?.tags ? [...internal.route.tags] : undefined,
         operationId: path.join('.'),
         parameters: parameters.length ? parameters : undefined,
         requestBody,
@@ -344,7 +344,7 @@ export async function generateOpenAPI(
     })
 
     for (const lazy of lazies) {
-      const router = (await lazy.lazy[LAZY_LOADER_SYMBOL]()).default
+      const { default: router } = await unlazy(lazy.lazy)
 
       pending.push({
         path: lazy.path,

@@ -1,4 +1,4 @@
-import type { SchemaOutput } from '@orpc/contract'
+import type { SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { QueryClient } from '@tanstack/react-query'
 import type { GeneralHooks } from './general-hooks'
 import type { GeneralUtils } from './general-utils'
@@ -13,33 +13,34 @@ import {
 } from '../tests/orpc'
 import { useQueriesFactory } from './use-queries/hook'
 
+type UserFindInput = SchemaInput<typeof UserFindInputSchema>
+type User = SchemaOutput<typeof UserSchema>
+
 describe('useUtils', () => {
   const utils = orpc.useUtils()
 
   it('router level', () => {
     expectTypeOf(utils).toMatchTypeOf<
-      GeneralUtils<undefined, undefined, unknown>
+      GeneralUtils<unknown, unknown>
     >()
 
     expectTypeOf(utils.user).toMatchTypeOf<
-      GeneralUtils<undefined, undefined, unknown>
+      GeneralUtils<unknown, unknown>
     >()
   })
 
   it('procedure level', () => {
     expectTypeOf(utils.user.find).toMatchTypeOf<
       GeneralUtils<
-        typeof UserFindInputSchema,
-        typeof UserSchema,
-        SchemaOutput<typeof UserSchema>
+        UserFindInput,
+        User
       >
     >()
 
     expectTypeOf(utils.user.find).toMatchTypeOf<
       ProcedureUtils<
-        typeof UserFindInputSchema,
-        typeof UserSchema,
-        SchemaOutput<typeof UserSchema>
+        UserFindInput,
+        User
       >
     >()
   })
@@ -61,28 +62,26 @@ it('useQueries', () => {
 describe('hooks', () => {
   it('router level', () => {
     expectTypeOf(orpc).toMatchTypeOf<
-      GeneralHooks<undefined, undefined, unknown>
+      GeneralHooks<unknown, unknown>
     >()
 
     expectTypeOf(orpc.user).toMatchTypeOf<
-      GeneralHooks<undefined, undefined, unknown>
+      GeneralHooks<unknown, unknown>
     >()
   })
 
   it('procedure level', () => {
     expectTypeOf(orpc.user.find).toMatchTypeOf<
       GeneralHooks<
-        typeof UserFindInputSchema,
-        typeof UserSchema,
-        SchemaOutput<typeof UserSchema>
+        UserFindInput,
+        User
       >
     >()
 
     expectTypeOf(orpc.user.find).toMatchTypeOf<
       ProcedureHooks<
-        typeof UserFindInputSchema,
-        typeof UserSchema,
-        SchemaOutput<typeof UserSchema>
+        UserFindInput,
+        User
       >
     >()
   })

@@ -1,4 +1,4 @@
-import type { SchemaOutput } from '@orpc/contract'
+import type { SchemaInput, SchemaOutput } from '@orpc/contract'
 import type {
   UserCreateInputSchema,
   UserFindInputSchema,
@@ -15,6 +15,14 @@ import {
 import { renderHook } from '@testing-library/react'
 import { createGeneralUtils } from './general-utils'
 
+type UserFindInput = SchemaInput<typeof UserFindInputSchema>
+type User = SchemaOutput<typeof UserSchema>
+
+type UserListInput = SchemaInput<typeof UserListInputSchema>
+type UserListOutput = SchemaOutput<typeof UserListOutputSchema>
+
+type UserCreateInput = SchemaInput<typeof UserCreateInputSchema>
+
 let qc = new QueryClient()
 
 let user_utils = createGeneralUtils({
@@ -22,28 +30,22 @@ let user_utils = createGeneralUtils({
   path: ['user'],
 })
 
-let user_find_utils = createGeneralUtils<
-  typeof UserFindInputSchema,
-  typeof UserSchema,
-  SchemaOutput<typeof UserSchema>
->({
+let user_find_utils = createGeneralUtils<UserFindInput, User>({
   queryClient: qc,
   path: ['user', 'find'],
 })
 
 let user_list_utils = createGeneralUtils<
-  typeof UserListInputSchema,
-  typeof UserListOutputSchema,
-  SchemaOutput<typeof UserListOutputSchema>
+  UserListInput,
+  UserListOutput
 >({
   queryClient: qc,
   path: ['user', 'list'],
 })
 
 let user_create_utils = createGeneralUtils<
-  typeof UserCreateInputSchema,
-  typeof UserSchema,
-  SchemaOutput<typeof UserSchema>
+  UserCreateInput,
+  User
 >({
   queryClient: qc,
   path: ['user', 'create'],
@@ -57,27 +59,24 @@ beforeEach(() => {
   })
 
   user_find_utils = createGeneralUtils<
-    typeof UserFindInputSchema,
-    typeof UserSchema,
-    SchemaOutput<typeof UserSchema>
+    UserFindInput,
+    User
   >({
     queryClient: qc,
     path: ['user', 'find'],
   })
 
   user_list_utils = createGeneralUtils<
-    typeof UserListInputSchema,
-    typeof UserListOutputSchema,
-    SchemaOutput<typeof UserListOutputSchema>
+    UserListInput,
+    UserListOutput
   >({
     queryClient: qc,
     path: ['user', 'list'],
   })
 
   user_create_utils = createGeneralUtils<
-    typeof UserCreateInputSchema,
-    typeof UserSchema,
-    SchemaOutput<typeof UserSchema>
+    UserCreateInput,
+    User
   >({
     queryClient: qc,
     path: ['user', 'create'],

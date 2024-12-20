@@ -1,4 +1,4 @@
-import type { Caller } from '@orpc/server'
+import type { ProcedureClient } from '@orpc/server'
 import { ref } from 'vue'
 import * as keyModule from './key'
 import { createProcedureUtils } from './utils-procedure'
@@ -13,7 +13,7 @@ beforeEach(() => {
 })
 
 describe('queryOptions', () => {
-  const client = vi.fn<Caller<number | undefined, string | undefined>>(
+  const client = vi.fn<ProcedureClient<number | undefined, string | undefined>>(
     (...[input]) => Promise.resolve(input?.toString()),
   )
   const utils = createProcedureUtils(client, ['ping'])
@@ -117,7 +117,7 @@ describe('infiniteOptions', () => {
 })
 
 describe('mutationOptions', () => {
-  const client = vi.fn<Caller<number | undefined, string | undefined>>(
+  const client = vi.fn<ProcedureClient<number | undefined, string | undefined>>(
     (...[input]) => Promise.resolve(input?.toString()),
   )
   const utils = createProcedureUtils(client, ['ping'])

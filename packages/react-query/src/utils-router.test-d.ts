@@ -1,3 +1,4 @@
+import type { RouterClient } from '@orpc/server'
 import { oc } from '@orpc/contract'
 import { os } from '@orpc/server'
 import { z } from 'zod'
@@ -22,7 +23,7 @@ const router = os.contract(contractRouter).router({
 
 describe('with contract router', () => {
   it('build correct types', () => {
-    const utils = createRouterUtils<typeof contractRouter>({} as any)
+    const utils = createRouterUtils({} as RouterClient<typeof contractRouter>)
 
     const generalUtils = createGeneralUtils([])
     const pingUtils = createProcedureUtils(ping, [])
@@ -40,7 +41,7 @@ describe('with contract router', () => {
 
 describe('with  router', () => {
   it('build correct types', () => {
-    const utils = createRouterUtils<typeof router>({} as any)
+    const utils = createRouterUtils({} as RouterClient<typeof router>)
 
     const generalUtils = createGeneralUtils([])
     const pingUtils = createProcedureUtils(ping, [])

@@ -63,9 +63,9 @@ To upload files with oRPC from the client, set up an oRPC client
 and pass a `File` object directly to the upload endpoint.
 
 ```typescript
-import { createORPCClient } from '@orpc/client'
+import { createORPCFetchClient } from '@orpc/client'
 
-const client = createORPCClient<typeof appRouter>({
+const client = createORPCFetchClient<typeof appRouter>({
   baseURL: 'http://localhost:3000',
 })
 

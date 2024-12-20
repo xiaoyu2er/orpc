@@ -9,8 +9,7 @@ import { type ANY_ROUTER, getRouterChild } from './router'
 
 export type DecoratedLazy<T> = T extends Lazy<infer U>
   ? DecoratedLazy<U>
-  :
-    & Lazy<T>
+  : Lazy<T>
     & (
        T extends Procedure<infer UContext, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
          ? undefined extends UContext

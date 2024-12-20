@@ -3,7 +3,7 @@ import { ORPCError, os } from '@orpc/server'
 import { oz } from '@orpc/zod'
 import { z } from 'zod'
 
-export type Context = { user?: { id: string } }
+export type Context = { user?: { id: string } } | undefined
 
 // global pub, authed completely optional
 export const pub /** public access */ = os.context<Context>()
@@ -41,7 +41,7 @@ export const router = pub.router({
         }),
       )
       .use(async (input, context, meta) => {
-        if (!context.user) {
+        if (!context?.user) {
           throw new ORPCError({
             code: 'UNAUTHORIZED',
           })

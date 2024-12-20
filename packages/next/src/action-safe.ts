@@ -1,5 +1,5 @@
 import type { Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
-import type { Context, CreateProcedureCallerOptions, ProcedureClient, WELL_ORPC_ERROR_JSON } from '@orpc/server'
+import type { Context, CreateProcedureClientOptions, ProcedureClient, WELL_ORPC_ERROR_JSON } from '@orpc/server'
 import { createProcedureClient, ORPCError } from '@orpc/server'
 
 export type SafeAction<TInput, TOutput,
@@ -15,7 +15,7 @@ export function createSafeAction<
   TOutputSchema extends Schema,
   TFuncOutput extends SchemaInput<TOutputSchema>,
 >(
-  opt: CreateProcedureCallerOptions<TContext, TInputSchema, TOutputSchema, TFuncOutput>,
+  opt: CreateProcedureClientOptions<TContext, TInputSchema, TOutputSchema, TFuncOutput>,
 ): SafeAction<SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, TFuncOutput>> {
   const caller = createProcedureClient(opt)
 

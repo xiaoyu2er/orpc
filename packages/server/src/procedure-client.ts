@@ -16,7 +16,7 @@ export interface ProcedureClient<TInput, TOutput> {
 /**
  * Options for creating a procedure caller with comprehensive type safety
  */
-export type CreateProcedureCallerOptions<
+export type CreateProcedureClientOptions<
   TContext extends Context,
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
@@ -46,7 +46,7 @@ export function createProcedureClient<
   TOutputSchema extends Schema = undefined,
   TFuncOutput extends SchemaInput<TOutputSchema> = SchemaInput<TOutputSchema>,
 >(
-  options: CreateProcedureCallerOptions<TContext, TInputSchema, TOutputSchema, TFuncOutput>,
+  options: CreateProcedureClientOptions<TContext, TInputSchema, TOutputSchema, TFuncOutput>,
 ): ProcedureClient<SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, TFuncOutput>> {
   return async (...[input, callerOptions]) => {
     const path = options.path ?? []

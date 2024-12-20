@@ -1,5 +1,5 @@
 import type { Schema, SchemaInput } from '@orpc/contract'
-import type { Context, CreateProcedureCallerOptions } from '@orpc/server'
+import type { Context, CreateProcedureClientOptions } from '@orpc/server'
 import { createProcedureClient, ORPCError, unlazy } from '@orpc/server'
 import { OpenAPIDeserializer } from '@orpc/transformer'
 import { forbidden, notFound, unauthorized } from 'next/navigation'
@@ -11,7 +11,7 @@ export function createFormAction<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   TFuncOutput extends SchemaInput<TOutputSchema>,
->(opt: CreateProcedureCallerOptions<TContext, TInputSchema, TOutputSchema, TFuncOutput>): FormAction {
+>(opt: CreateProcedureClientOptions<TContext, TInputSchema, TOutputSchema, TFuncOutput>): FormAction {
   const caller = createProcedureClient(opt)
 
   const formAction = async (input: FormData): Promise<void> => {

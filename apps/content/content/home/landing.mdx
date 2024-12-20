@@ -4,7 +4,6 @@
 export const getting = os
 	.use(authMiddleware) // require auth
 	.use(cache('5m')) // cache the output
-	.use(canMiddleware, (i) => i.id) // permission check by id
 	.route({
 		path: '/getting/{id}' // dynamic params support
 		method: 'POST' // custom OpenAPI method
@@ -16,6 +15,7 @@ export const getting = os
 			avatar: oz.file().type('image/*')
 		})
 	}))
+	.use(canMiddleware, (i) => i.id) // permission check by id
 	.output(z.string()) // validate output
 	.func(async (input) => 'Name and Avatar has been updated')
 ```
@@ -38,7 +38,7 @@ const text = await getting({
 })
 ```
 
-The [Procedure Caller](/docs/server/caller) feature lets your procedures behave like regular TypeScript functions.
+The [Procedure Client](/docs/server/client) feature lets your procedures behave like regular TypeScript functions.
 
 ## Expose It Online with a Fully Typed Client
 

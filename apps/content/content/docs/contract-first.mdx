@@ -129,10 +129,10 @@ That's it! The contract definition and implementation are now completely separat
 Create a fully typed client using just the contract definition:
 
 ```ts twoslash
-import { createORPCClient, ORPCError } from '@orpc/client'
+import { createORPCFetchClient, ORPCError } from '@orpc/client'
 import type { contract } from 'examples/contract'
 
-const client = createORPCClient<typeof contract /* or server router */>({
+const client = createORPCFetchClient<typeof contract /* or server router */>({
   baseURL: 'http://localhost:3000/prefix',
   // fetch: optional override for the default fetch function
   // headers: provide additional headers

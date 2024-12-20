@@ -14,10 +14,10 @@ npm i @orpc/client
 To create a fully typed client, you need either the type of the [router](/docs/server/router) you intend to use or the [contract](/docs/contract/builder).
 
 ```ts twoslash
-import { createORPCClient, ORPCError } from '@orpc/client'
+import { createORPCFetchClient, ORPCError } from '@orpc/client'
 import type { router } from 'examples/server'
 
-const client = createORPCClient<typeof router /* or contract router */>({
+const client = createORPCFetchClient<typeof router /* or contract router */>({
   baseURL: 'http://localhost:3000/api',
   // fetch: optional override for the default fetch function
   // headers: provide additional headers

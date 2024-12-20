@@ -42,7 +42,7 @@ export const router = pub.router({
 
 Middleware context is the context that is created or modified by middleware.
 If your procedure only depends on `Middleware Context`, you can 
-[call it](/docs/server/caller) or use it as a [Server Action](/docs/server/server-action) directly.
+[call it](/docs/server/client) or use it as a [Server Action](/docs/server/server-action) directly.
 
 ```ts twoslash
 import { os, ORPCError } from '@orpc/server'
@@ -105,7 +105,7 @@ This pattern is useful for server-side applications where dependencies can be in
 rather than relying on global mechanisms like `headers` or `cookies` in Next.js.
 
 ```ts twoslash
-import { os, ORPCError, createProcedureCaller } from '@orpc/server'
+import { os, ORPCError, createProcedureClient } from '@orpc/server'
 import { handleFetchRequest, createORPCHandler } from '@orpc/server/fetch'
 import { createOpenAPIServerlessHandler, createOpenAPIServerHandler } from '@orpc/openapi/fetch'
 
@@ -147,8 +147,8 @@ export function fetch(request: Request) {
 }
 
 // If you want to call this procedure or use as server action
-//  you must create another caller with context by using `createProcedureCaller` or `createRouterCaller`
-const caller = createProcedureCaller({
+//  you must create another client with context by using `createProcedureClient` or `createRouterClient`
+const client = createProcedureClient({
     procedure: router.getting,
     context: async () => {
         // some logic to create context
@@ -159,7 +159,7 @@ const caller = createProcedureCaller({
     },
 })
 
-const output = await caller()
+const output = await client()
 ```
 
 ## Summary

@@ -8,7 +8,7 @@
     "file-upload",
     "lazy",
     "server-action",
-    "caller",
+    "client",
     "error-handling",
     "data-types",
     "integrations",

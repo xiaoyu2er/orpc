@@ -13,11 +13,11 @@ description: Simplify Vue Query usage with minimal integration using ORPC and Ta
 
 ```ts twoslash
 import { createORPCVueQueryUtils } from '@orpc/vue-query';
-import { createORPCClient } from '@orpc/client';
+import { createORPCFetchClient } from '@orpc/client';
 import type { router } from 'examples/server';
 
 // Create an ORPC client
-export const client = createORPCClient<typeof router>({
+export const client = createORPCFetchClient<typeof router>({
   baseURL: 'http://localhost:3000/api',
 });
 

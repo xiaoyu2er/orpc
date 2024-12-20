@@ -120,9 +120,9 @@ describe('to RouterBuilder', () => {
     }))
   })
 
-  it('tags', () => {
+  it('tag', () => {
     vi.mocked(RouterBuilder).mockReturnValueOnce({ mocked: true } as any)
-    expect(builder.tags('tag1', 'tag2')).toEqual({ mocked: true })
+    expect(builder.tag('tag1', 'tag2')).toEqual({ mocked: true })
 
     expect(RouterBuilder).toBeCalledTimes(1)
     expect(RouterBuilder).toBeCalledWith(expect.objectContaining({

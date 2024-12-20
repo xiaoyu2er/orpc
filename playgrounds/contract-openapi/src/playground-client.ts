@@ -3,9 +3,9 @@
  */
 
 import type { contract } from './contract'
-import { createORPCClient } from '@orpc/client'
+import { createORPCFetchClient } from '@orpc/client'
 
-const orpc = createORPCClient<typeof contract>({
+const orpc = createORPCFetchClient<typeof contract>({
   baseURL: 'http://localhost:3000/api',
 })
 

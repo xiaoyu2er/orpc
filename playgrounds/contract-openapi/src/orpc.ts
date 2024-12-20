@@ -3,7 +3,10 @@ import type { UserSchema } from './schemas/user'
 import { ORPCError, os } from '@orpc/server'
 import { contract } from './contract'
 
-export type ORPCContext = { user?: z.infer<typeof UserSchema>, db: any }
+export interface ORPCContext {
+  user?: z.infer<typeof UserSchema>
+  db?: any
+}
 
 const base = os.context<ORPCContext>().use(async (input, context, meta) => {
   const start = Date.now()

@@ -10,7 +10,7 @@ import {
 } from './planet'
 
 export const router = {
-  auth: pub.tags('Authentication').prefix('/auth').router({
+  auth: pub.tag('Authentication').prefix('/auth').router({
     signup,
     signin,
     refresh,
@@ -18,7 +18,7 @@ export const router = {
     me,
   }),
 
-  planet: pub.tags('Planets').prefix('/planets').router({
+  planet: pub.tag('Planets').prefix('/planets').router({
     list: listPlanets,
     create: createPlanet,
     find: findPlanet,

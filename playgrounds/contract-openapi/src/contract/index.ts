@@ -10,7 +10,7 @@ import {
 } from './planet'
 
 export const contract = oc.router({
-  auth: oc.tags('Authentication').prefix('/auth').router({
+  auth: oc.tag('Authentication').prefix('/auth').router({
     signup,
     signin,
     refresh,
@@ -18,7 +18,7 @@ export const contract = oc.router({
     me,
   }),
 
-  planet: oc.tags('Planets').prefix('/planets').router({
+  planet: oc.tag('Planets').prefix('/planets').router({
     list: listPlanets,
     create: createPlanet,
     find: findPlanet,

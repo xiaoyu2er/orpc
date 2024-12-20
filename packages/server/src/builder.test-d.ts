@@ -140,12 +140,12 @@ describe('to RouterBuilder', () => {
   })
 
   it('tags', () => {
-    expectTypeOf(builder.tags('test', 'test2')).toEqualTypeOf<
+    expectTypeOf(builder.tag('test', 'test2')).toEqualTypeOf<
       RouterBuilder<{ auth: boolean }, { db: string }>
     >()
 
     // @ts-expect-error invalid tags
-    builder.tags(123)
+    builder.tag(123)
   })
 })
 

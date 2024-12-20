@@ -1,8 +1,8 @@
-import { createORPCClient } from '@orpc/client'
+import { createORPCFetchClient } from '@orpc/client'
 import { createORPCVueQueryUtils } from '@orpc/vue-query'
 import type { router } from '~/server/router'
 
-export const client = createORPCClient<typeof router>({
+export const client = createORPCFetchClient<typeof router>({
   baseURL: 'http://localhost:3000/api',
   headers: () => ({
     Authorization: 'Bearer default-token',

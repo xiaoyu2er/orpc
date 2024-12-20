@@ -122,7 +122,7 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
     })
   }
 
-  tags(...tags: string[]): RouterBuilder<TContext, TExtraContext> {
+  tag(...tags: string[]): RouterBuilder<TContext, TExtraContext> {
     return new RouterBuilder({
       middlewares: this['~orpc'].middlewares,
       tags,

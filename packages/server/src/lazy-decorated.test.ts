@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { isLazy, lazy, unlazy } from './lazy'
 import { decorateLazy } from './lazy-decorated'
 import { Procedure } from './procedure'
-import { createProcedureCaller } from './procedure-caller'
+import { createProcedureClient } from './procedure-client'
 
 vi.mock('./procedure-caller', () => ({
   createProcedureCaller: vi.fn(() => vi.fn()),
@@ -62,19 +62,19 @@ describe('decorated lazy', () => {
     const signal = controller.signal
 
     const caller = vi.fn(() => '__mocked__')
-    vi.mocked(createProcedureCaller).mockReturnValue(caller as any)
+    vi.mocked(createProcedureClient).mockReturnValue(caller as any)
 
     it('on root', async () => {
       const decorated = decorateLazy(lazied) as any
       expect(decorated).toBeInstanceOf(Function)
 
-      expect(createProcedureCaller).toHaveBeenCalledTimes(1)
-      expect(createProcedureCaller).toHaveBeenCalledWith({
+      expect(createProcedureClient).toHaveBeenCalledTimes(1)
+      expect(createProcedureClient).toHaveBeenCalledWith({
         procedure: expect.any(Object),
         context: undefined,
       })
-      expect(vi.mocked(createProcedureCaller).mock.calls[0]![0].procedure).toSatisfy(isLazy)
-      const unwrapped = await unlazy(vi.mocked(createProcedureCaller).mock.calls[0]![0].procedure as any)
+      expect(vi.mocked(createProcedureClient).mock.calls[0]![0].procedure).toSatisfy(isLazy)
+      const unwrapped = await unlazy(vi.mocked(createProcedureClient).mock.calls[0]![0].procedure as any)
       expect(unwrapped.default).toBe(router)
 
       expect(await decorated({ val: '1' }, { signal })).toBe('__mocked__')
@@ -86,13 +86,13 @@ describe('decorated lazy', () => {
       const decorated = decorateLazy(lazied).nested.ping as any
       expect(decorated).toBeInstanceOf(Function)
 
-      expect(createProcedureCaller).toHaveBeenCalledTimes(3)
-      expect(createProcedureCaller).toHaveBeenNthCalledWith(3, {
+      expect(createProcedureClient).toHaveBeenCalledTimes(3)
+      expect(createProcedureClient).toHaveBeenNthCalledWith(3, {
         procedure: expect.any(Object),
         context: undefined,
       })
-      expect(vi.mocked(createProcedureCaller).mock.calls[2]![0].procedure).toSatisfy(isLazy)
-      const unwrapped = await unlazy(vi.mocked(createProcedureCaller).mock.calls[2]![0].procedure as any)
+      expect(vi.mocked(createProcedureClient).mock.calls[2]![0].procedure).toSatisfy(isLazy)
+      const unwrapped = await unlazy(vi.mocked(createProcedureClient).mock.calls[2]![0].procedure as any)
       expect(unwrapped.default).toBe(ping)
 
       expect(await decorated({ val: '1' }, { signal })).toBe('__mocked__')

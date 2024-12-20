@@ -5,7 +5,7 @@ import type { ANY_LAZY_PROCEDURE, ANY_PROCEDURE, Router } from '@orpc/server'
 import type { FetchHandler } from '@orpc/server/fetch'
 import type { Router as HonoRouter } from 'hono/router'
 import type { EachContractLeafResultItem, EachLeafOptions } from '../utils'
-import { createProcedureCaller, isLazy, isProcedure, LAZY_LOADER_SYMBOL, LAZY_ROUTER_PREFIX_SYMBOL, ORPCError } from '@orpc/server'
+import { createProcedureClient, isLazy, isProcedure, LAZY_LOADER_SYMBOL, LAZY_ROUTER_PREFIX_SYMBOL, ORPCError } from '@orpc/server'
 import { executeWithHooks, isPlainObject, mapValues, ORPC_PROTOCOL_HEADER, ORPC_PROTOCOL_VALUE, trim, value } from '@orpc/shared'
 import { OpenAPIDeserializer, OpenAPISerializer, zodCoerce } from '@orpc/transformer'
 import { eachContractProcedureLeaf, standardizeHTTPPath } from '../utils'
@@ -65,7 +65,7 @@ export function createOpenAPIHandler(createHonoRouter: () => Routing): FetchHand
       const input = await deserializeInput(options.request, procedure)
       const mergedInput = mergeParamsAndInput(params, input)
 
-      const caller = createProcedureCaller({
+      const caller = createProcedureClient({
         context,
         procedure,
         path,

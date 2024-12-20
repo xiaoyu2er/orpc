@@ -1,8 +1,9 @@
 import type { Procedure } from './procedure'
-import type { Caller, Meta, WELL_CONTEXT } from './types'
+import type { ProcedureClient } from './procedure-client'
+import type { Meta, WELL_CONTEXT } from './types'
 import { z } from 'zod'
 import { lazy } from './lazy'
-import { createRouterCaller, type RouterCaller } from './router-caller'
+import { createRouterClient, type RouterClient } from './router-client'
 
 const schema = z.object({ val: z.string().transform(val => Number(val)) })
 const ping = {} as Procedure<WELL_CONTEXT, undefined, typeof schema, typeof schema, { val: string }>
@@ -26,84 +27,84 @@ const routerWithLazy = {
   } })),
 }
 
-describe('RouterCaller', () => {
+describe('RouterClient', () => {
   it('router without lazy', () => {
-    const caller = {} as RouterCaller<typeof router>
+    const client = {} as RouterClient<typeof router>
 
-    expectTypeOf(caller.ping).toEqualTypeOf<
-      Caller<{ val: string }, { val: number }>
+    expectTypeOf(client.ping).toEqualTypeOf<
+      ProcedureClient<{ val: string }, { val: number }>
     >()
-    expectTypeOf(caller.pong).toEqualTypeOf<
-      Caller<unknown, unknown>
+    expectTypeOf(client.pong).toEqualTypeOf<
+      ProcedureClient<unknown, unknown>
     >()
 
-    expectTypeOf(caller.nested.ping).toEqualTypeOf<
-      Caller<{ val: string }, { val: number }>
+    expectTypeOf(client.nested.ping).toEqualTypeOf<
+      ProcedureClient<{ val: string }, { val: number }>
     >()
-    expectTypeOf(caller.nested.pong).toEqualTypeOf<
-      Caller<unknown, unknown>
+    expectTypeOf(client.nested.pong).toEqualTypeOf<
+      ProcedureClient<unknown, unknown>
     >()
   })
 
   it('support lazy', () => {
-    expectTypeOf<RouterCaller<typeof routerWithLazy>>().toEqualTypeOf<RouterCaller<typeof router>>()
+    expectTypeOf<RouterClient<typeof routerWithLazy>>().toEqualTypeOf<RouterClient<typeof router>>()
   })
 
   it('support procedure as router', () => {
-    expectTypeOf<RouterCaller<typeof ping>>().toEqualTypeOf<Caller<{ val: string }, { val: number }>>()
+    expectTypeOf<RouterClient<typeof ping>>().toEqualTypeOf<ProcedureClient<{ val: string }, { val: number }>>()
   })
 })
 
-describe('createRouterCaller', () => {
-  it('return RouterCaller', () => {
-    const caller = createRouterCaller({
+describe('createRouterClient', () => {
+  it('return RouterClient', () => {
+    const client = createRouterClient({
       router,
       context: { auth: true },
     })
 
-    expectTypeOf(caller).toMatchTypeOf<RouterCaller<typeof router>>()
+    expectTypeOf(client).toMatchTypeOf<RouterClient<typeof router>>()
 
-    const caller2 = createRouterCaller({
+    const client2 = createRouterClient({
       router: routerWithLazy,
       context: { auth: true },
     })
-    expectTypeOf(caller2).toMatchTypeOf<RouterCaller<typeof routerWithLazy>>()
+    expectTypeOf(client2).toMatchTypeOf<RouterClient<typeof routerWithLazy>>()
   })
 
   it('required context when needed', () => {
-    createRouterCaller({
+    createRouterClient({
       router: { ping },
     })
 
-    createRouterCaller({
+    createRouterClient({
       router: { pong },
       context: { auth: true },
     })
 
-    createRouterCaller({
+    createRouterClient({
       router: { pong },
       context: () => ({ auth: true }),
     })
 
-    createRouterCaller({
+    createRouterClient({
       router: { pong },
       context: async () => ({ auth: true }),
     })
 
-    createRouterCaller({
+    createRouterClient({
       router: { pong },
       // @ts-expect-error --- invalid context
       context: { auth: 'invalid' },
     })
 
     // @ts-expect-error --- missing context
-    createRouterCaller({
+    createRouterClient({
       router: { pong },
     })
   })
 
   it('support hooks', () => {
-    createRouterCaller({
+    createRouterClient({
       router,
       context: { auth: true },
       onSuccess: async ({ output }, context, meta) => {
@@ -117,13 +118,13 @@ describe('createRouterCaller', () => {
   })
 
   it('support base path', () => {
-    createRouterCaller({
+    createRouterClient({
       router: { ping },
       context: { auth: true },
       path: ['users'],
     })
 
-    createRouterCaller({
+    createRouterClient({
       router: { ping },
       context: { auth: true },
       // @ts-expect-error --- invalid path

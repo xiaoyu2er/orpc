@@ -3,7 +3,7 @@ import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
 import { isLazy, lazy, unlazy } from './lazy'
 import { Procedure } from './procedure'
-import { createProcedureCaller } from './procedure-caller'
+import { createProcedureClient } from './procedure-client'
 
 const schema = z.object({ val: z.string().transform(v => Number(v)) })
 
@@ -29,15 +29,15 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe.each(procedureCases)('createProcedureCaller - case %s', async (_, procedure) => {
+describe.each(procedureCases)('createProcedureClient - case %s', async (_, procedure) => {
   const unwrappedProcedure = isLazy(procedure) ? (await unlazy(procedure)).default : procedure
 
-  it('just a caller', async () => {
-    const caller = createProcedureCaller({
+  it('just a client', async () => {
+    const client = createProcedureClient({
       procedure,
     })
 
-    await expect(caller({ val: '123' })).resolves.toEqual({ val: 123 })
+    await expect(client({ val: '123' })).resolves.toEqual({ val: 123 })
 
     expect(func).toBeCalledTimes(1)
     expect(func).toBeCalledWith({ val: 123 }, undefined, { path: [], procedure: unwrappedProcedure })
@@ -50,26 +50,26 @@ describe.each(procedureCases)('createProcedureCaller - case %s', async (_, proce
   })
 
   it('validate input and output', () => {
-    const caller = createProcedureCaller({
+    const client = createProcedureClient({
       procedure,
     })
 
     // @ts-expect-error - invalid input
-    expect(caller({ val: 123 })).rejects.toThrow('Input validation failed')
+    expect(client({ val: 123 })).rejects.toThrow('Input validation failed')
 
     // @ts-expect-error - invalid output
     func.mockReturnValueOnce({ val: 1234 })
-    expect(caller({ val: '1234' })).rejects.toThrow('Output validation failed')
+    expect(client({ val: '1234' })).rejects.toThrow('Output validation failed')
   })
 
   it('middleware can return output directly', async () => {
-    const caller = createProcedureCaller({
+    const client = createProcedureClient({
       procedure,
     })
 
     mid1.mockReturnValueOnce({ output: { val: '990' } })
 
-    await expect(caller({ val: '123' })).resolves.toEqual({ val: 990 })
+    await expect(client({ val: '123' })).resolves.toEqual({ val: 990 })
 
     expect(mid1).toBeCalledTimes(1)
     expect(mid2).toBeCalledTimes(0)
@@ -79,7 +79,7 @@ describe.each(procedureCases)('createProcedureCaller - case %s', async (_, proce
 
     mid2.mockReturnValueOnce({ output: { val: '9900' } })
 
-    await expect(caller({ val: '123' })).resolves.toEqual({ val: 9900 })
+    await expect(client({ val: '123' })).resolves.toEqual({ val: 9900 })
 
     expect(mid1).toBeCalledTimes(1)
     expect(mid2).toBeCalledTimes(1)
@@ -89,22 +89,22 @@ describe.each(procedureCases)('createProcedureCaller - case %s', async (_, proce
   })
 
   it('output from middleware still be validated', async () => {
-    const caller = createProcedureCaller({
+    const client = createProcedureClient({
       procedure,
       context: { userId: '123' },
     })
 
     mid1.mockReturnValueOnce({ output: { val: 990 } })
-    await expect(caller({ val: '1234' })).rejects.toThrow('Output validation failed')
+    await expect(client({ val: '1234' })).rejects.toThrow('Output validation failed')
 
     vi.clearAllMocks()
 
     mid2.mockReturnValueOnce({ output: { val: 9900 } })
-    await expect(caller({ val: '1234' })).rejects.toThrow('Output validation failed')
+    await expect(client({ val: '1234' })).rejects.toThrow('Output validation failed')
   })
 
   it('middleware can add extra context - single', async () => {
-    const caller = createProcedureCaller({
+    const client = createProcedureClient({
       procedure,
     })
 
@@ -124,7 +124,7 @@ describe.each(procedureCases)('createProcedureCaller - case %s', async (_, proce
       })
     })
 
-    await expect(caller({ val: '123' })).resolves.toEqual({ val: 123 })
+    await expect(client({ val: '123' })).resolves.toEqual({ val: 123 })
 
     expect(mid1).toBeCalledTimes(1)
     expect(mid1).toHaveBeenCalledWith(expect.any(Object), undefined, expect.any(Object))
@@ -137,7 +137,7 @@ describe.each(procedureCases)('createProcedureCaller - case %s', async (_, proce
   })
 
   it('middleware can override context', async () => {
-    const caller = createProcedureCaller({
+    const client = createProcedureClient({
       procedure,
       context: { userId: '123' },
     })
@@ -158,7 +158,7 @@ describe.each(procedureCases)('createProcedureCaller - case %s', async (_, proce
       })
     })
 
-    await expect(caller({ val: '123' })).resolves.toEqual({ val: 123 })
+    await expect(client({ val: '123' })).resolves.toEqual({ val: 123 })
 
     expect(mid1).toBeCalledTimes(1)
     expect(mid1).toHaveBeenCalledWith(expect.any(Object), expect.objectContaining({ userId: '123' }), expect.any(Object))
@@ -177,12 +177,12 @@ describe.each(procedureCases)('createProcedureCaller - case %s', async (_, proce
   ] as const
 
   it.each(contextCases)('can accept context: %s', async (_, context) => {
-    const caller = createProcedureCaller({
+    const client = createProcedureClient({
       procedure,
       context,
     })
 
-    await caller({ val: '123' })
+    await client({ val: '123' })
 
     expect(mid1).toBeCalledTimes(1)
     expect(mid1).toBeCalledWith(expect.any(Object), { val: '__val__' }, expect.any(Object))
@@ -201,7 +201,7 @@ describe.each(procedureCases)('createProcedureCaller - case %s', async (_, proce
     const onError = vi.fn()
     const onFinish = vi.fn()
 
-    const caller = createProcedureCaller({
+    const client = createProcedureClient({
       procedure,
       context,
       path: ['users'],
@@ -212,7 +212,7 @@ describe.each(procedureCases)('createProcedureCaller - case %s', async (_, proce
       onFinish,
     })
 
-    await caller({ val: '123' })
+    await client({ val: '123' })
 
     const meta = {
       path: ['users'],
@@ -246,13 +246,13 @@ describe.each(procedureCases)('createProcedureCaller - case %s', async (_, proce
 
   it('accept paths', async () => {
     const onSuccess = vi.fn()
-    const caller = createProcedureCaller({
+    const client = createProcedureClient({
       procedure,
       path: ['users'],
       onSuccess,
     })
 
-    await caller({ val: '123' })
+    await client({ val: '123' })
 
     expect(mid1).toBeCalledTimes(1)
     expect(mid1).toHaveBeenCalledWith(expect.any(Object), undefined, expect.objectContaining({ path: ['users'] }))
@@ -273,13 +273,13 @@ describe.each(procedureCases)('createProcedureCaller - case %s', async (_, proce
 
     const onSuccess = vi.fn()
 
-    const caller = createProcedureCaller({
+    const client = createProcedureClient({
       procedure,
       onSuccess,
       context: { userId: '123' },
     })
 
-    await caller({ val: '123' }, { signal })
+    await client({ val: '123' }, { signal })
 
     expect(mid1).toBeCalledTimes(1)
     expect(mid1).toHaveBeenCalledWith(expect.any(Object), expect.any(Object), expect.objectContaining({ signal }))
@@ -304,11 +304,11 @@ it('still work without middleware', async () => {
     func,
   })
 
-  const caller = createProcedureCaller({
+  const client = createProcedureClient({
     procedure,
   })
 
-  await expect(caller({ val: '123' })).resolves.toEqual({ val: 123 })
+  await expect(client({ val: '123' })).resolves.toEqual({ val: 123 })
 
   expect(func).toBeCalledTimes(1)
   expect(func).toHaveBeenCalledWith({ val: 123 }, undefined, { path: [], procedure })
@@ -323,11 +323,11 @@ it('still work without InputSchema', async () => {
     func,
   })
 
-  const caller = createProcedureCaller({
+  const client = createProcedureClient({
     procedure,
   })
 
-  await expect(caller('anything')).resolves.toEqual({ val: 123 })
+  await expect(client('anything')).resolves.toEqual({ val: 123 })
 
   expect(func).toBeCalledTimes(1)
   expect(func).toHaveBeenCalledWith('anything', undefined, { path: [], procedure })
@@ -342,21 +342,21 @@ it('still work without OutputSchema', async () => {
     func,
   })
 
-  const caller = createProcedureCaller({
+  const client = createProcedureClient({
     procedure,
   })
 
   // @ts-expect-error - without output schema
   func.mockReturnValueOnce('anything')
 
-  await expect(caller({ val: '123' })).resolves.toEqual('anything')
+  await expect(client({ val: '123' })).resolves.toEqual('anything')
 
   expect(func).toBeCalledTimes(1)
   expect(func).toHaveBeenCalledWith({ val: 123 }, undefined, { path: [], procedure })
 })
 
 it('has helper `output` in meta', async () => {
-  const caller = createProcedureCaller({
+  const client = createProcedureClient({
     procedure,
   })
 
@@ -364,7 +364,7 @@ it('has helper `output` in meta', async () => {
     return meta.output({ val: '99990' })
   })
 
-  await expect(caller({ val: '123' })).resolves.toEqual({ val: 99990 })
+  await expect(client({ val: '123' })).resolves.toEqual({ val: 99990 })
 
   expect(mid1).toBeCalledTimes(1)
   expect(mid2).toBeCalledTimes(1)

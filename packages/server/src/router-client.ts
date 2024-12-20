@@ -2,21 +2,23 @@ import type { SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Hooks, Value } from '@orpc/shared'
 import type { Lazy } from './lazy'
 import type { Procedure } from './procedure'
-import type { Caller, Meta } from './types'
-import { isLazy, lazy, unlazy } from './lazy'
+import type { ProcedureClient } from './procedure-client'
+import type { Meta } from './types'
+import { isLazy } from './lazy'
+import { createLazyProcedureFormAnyLazy } from './lazy-utils'
 import { isProcedure } from './procedure'
-import { createProcedureCaller } from './procedure-caller'
+import { createProcedureClient } from './procedure-client'
 import { type ANY_ROUTER, getRouterChild, type Router } from './router'
 
-export type RouterCaller<T extends ANY_ROUTER> = T extends Lazy<infer U extends ANY_ROUTER>
-  ? RouterCaller<U>
+export type RouterClient<T extends ANY_ROUTER> = T extends Lazy<infer U extends ANY_ROUTER>
+  ? RouterClient<U>
   : T extends Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
-    ? Caller<SchemaInput<UInputSchema>, SchemaOutput<UOutputSchema, UFuncOutput>>
+    ? ProcedureClient<SchemaInput<UInputSchema>, SchemaOutput<UOutputSchema, UFuncOutput>>
     : {
-        [K in keyof T]: T[K] extends ANY_ROUTER ? RouterCaller<T[K]> : never
+        [K in keyof T]: T[K] extends ANY_ROUTER ? RouterClient<T[K]> : never
       }
 
-export type CreateRouterCallerOptions<
+export type CreateRouterClientOptions<
   TRouter extends ANY_ROUTER,
 > =
   & {
@@ -34,13 +36,13 @@ export type CreateRouterCallerOptions<
     : never)
   & Hooks<unknown, unknown, TRouter extends Router<infer UContext, any> ? UContext : never, Meta>
 
-export function createRouterCaller<
+export function createRouterClient<
   TRouter extends ANY_ROUTER,
 >(
-  options: CreateRouterCallerOptions<TRouter>,
-): RouterCaller<TRouter> {
+  options: CreateRouterClientOptions<TRouter>,
+): RouterClient<TRouter> {
   if (isProcedure(options.router)) {
-    const caller = createProcedureCaller({
+    const caller = createProcedureClient({
       ...options,
       procedure: options.router,
       context: options.context,
@@ -51,21 +53,9 @@ export function createRouterCaller<
   }
 
   const procedureCaller = isLazy(options.router)
-    ? createProcedureCaller({
+    ? createProcedureClient({
       ...options,
-      procedure: lazy(async () => {
-        const { default: maybeProcedure } = await unlazy(options.router)
-
-        if (!isProcedure(maybeProcedure)) {
-          throw new Error(`
-            Expected a valid procedure or lazy<procedure> but got unknown.
-            This should be caught by TypeScript compilation.
-            Please report this issue if this makes you feel uncomfortable.
-          `)
-        }
-
-        return { default: maybeProcedure }
-      }),
+      procedure: createLazyProcedureFormAnyLazy(options.router),
       context: options.context,
       path: options.path,
     })
@@ -83,7 +73,7 @@ export function createRouterCaller<
         return Reflect.get(target, key)
       }
 
-      return createRouterCaller({
+      return createRouterClient({
         ...options,
         router: next,
         path: [...(options.path ?? []), key],

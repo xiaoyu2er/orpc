@@ -1,5 +1,5 @@
 import type { ANY_CONTRACT_PROCEDURE, ContractRouter, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
-import type { DecoratedLazy } from './lazy-decorated'
+import type { FlattenLazy } from './lazy'
 import type { Middleware } from './middleware'
 import type { DecoratedMiddleware } from './middleware-decorated'
 import type { Router } from './router'
@@ -137,7 +137,7 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
 
   lazy<U extends Router<MergeContext<TContext, TExtraContext>, any>>(
     loader: () => Promise<{ default: U }>,
-  ): DecoratedLazy<AdaptedRouter<TContext, U>> {
+  ): AdaptedRouter<TContext, FlattenLazy<U>> {
     return new RouterBuilder<TContext, TExtraContext>(this['~orpc']).lazy(loader)
   }
 

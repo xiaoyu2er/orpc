@@ -1,12 +1,12 @@
 import type { ANY_LAZY_PROCEDURE, ANY_PROCEDURE, CreateProcedureCallerOptions } from '@orpc/server'
-import { createProcedureCaller, loadProcedure, ORPCError } from '@orpc/server'
+import { createProcedureClient, loadProcedure, ORPCError } from '@orpc/server'
 import { OpenAPIDeserializer } from '@orpc/transformer'
 import { forbidden, notFound, unauthorized } from 'next/navigation'
 
 export type FormAction = (input: FormData) => Promise<void>
 
 export function createFormAction<T extends ANY_PROCEDURE | ANY_LAZY_PROCEDURE>(opt: CreateProcedureCallerOptions<T>): FormAction {
-  const caller = createProcedureCaller(opt)
+  const caller = createProcedureClient(opt)
 
   const formAction = async (input: FormData): Promise<void> => {
     try {

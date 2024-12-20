@@ -1,5 +1,5 @@
 import type { Procedure } from '../procedure'
-import type { CallerOptions, WELL_CONTEXT } from '../types'
+import type { WELL_CONTEXT, WithSignal } from '../types'
 import { lazy } from '../lazy'
 import { handleFetchRequest } from './handle-request'
 
@@ -64,7 +64,7 @@ describe('handleFetchRequest', () => {
         expectTypeOf(output).toEqualTypeOf<Response>()
         expectTypeOf(input).toEqualTypeOf<Request>()
         expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
-        expectTypeOf(meta).toEqualTypeOf<CallerOptions>()
+        expectTypeOf(meta).toEqualTypeOf<WithSignal>()
       },
     })
   })

@@ -1,6 +1,6 @@
 import type { SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { ANY_LAZY_PROCEDURE, ANY_PROCEDURE, CreateProcedureCallerOptions, Lazy, Procedure, WELL_ORPC_ERROR_JSON } from '@orpc/server'
-import { createProcedureCaller, ORPCError } from '@orpc/server'
+import { createProcedureClient, ORPCError } from '@orpc/server'
 
 export type SafeAction<T extends ANY_PROCEDURE | ANY_LAZY_PROCEDURE> = T extends
   | Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
@@ -16,7 +16,7 @@ export type SafeAction<T extends ANY_PROCEDURE | ANY_LAZY_PROCEDURE> = T extends
   : never
 
 export function createSafeAction<T extends ANY_PROCEDURE | ANY_LAZY_PROCEDURE>(opt: CreateProcedureCallerOptions<T>): SafeAction<T> {
-  const caller = createProcedureCaller(opt)
+  const caller = createProcedureClient(opt)
 
   const safeAction = async (...input: [any] | []) => {
     try {

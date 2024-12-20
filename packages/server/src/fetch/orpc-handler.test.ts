@@ -3,11 +3,11 @@ import { ORPC_PROTOCOL_HEADER, ORPC_PROTOCOL_VALUE } from '@orpc/shared'
 import { describe, expect, it, vi } from 'vitest'
 import { lazy } from '../lazy'
 import { Procedure } from '../procedure'
-import { createProcedureCaller } from '../procedure-caller'
+import { createProcedureClient } from '../procedure-client'
 import { createORPCHandler } from './orpc-handler'
 
-vi.mock('../procedure-caller', () => ({
-  createProcedureCaller: vi.fn(() => vi.fn()),
+vi.mock('../procedure-client', () => ({
+  createProcedureClient: vi.fn(() => vi.fn()),
 }))
 
 describe('createORPCHandler', () => {
@@ -74,7 +74,7 @@ describe('createORPCHandler', () => {
     const handler = createORPCHandler()
 
     const caller = vi.fn().mockReturnValueOnce('__mocked__')
-    vi.mocked(createProcedureCaller).mockReturnValue(caller)
+    vi.mocked(createProcedureClient).mockReturnValue(caller)
 
     const mockRequest = new Request('https://example.com/ping', {
       headers: new Headers({ [ORPC_PROTOCOL_HEADER]: ORPC_PROTOCOL_VALUE }),
@@ -119,7 +119,7 @@ describe('createORPCHandler', () => {
   it('should handle unexpected errors and return a 500 response', async () => {
     const handler = createORPCHandler()
 
-    vi.mocked(createProcedureCaller).mockImplementationOnce(() => {
+    vi.mocked(createProcedureClient).mockImplementationOnce(() => {
       throw new Error('Unexpected error')
     })
 
@@ -146,7 +146,7 @@ describe('createORPCHandler', () => {
     const handler = createORPCHandler()
 
     const caller = vi.fn().mockReturnValueOnce('__mocked__')
-    vi.mocked(createProcedureCaller).mockReturnValue(caller)
+    vi.mocked(createProcedureClient).mockReturnValue(caller)
 
     const mockRequest = new Request('https://example.com/ping', {
       headers: new Headers({ [ORPC_PROTOCOL_HEADER]: ORPC_PROTOCOL_VALUE }),

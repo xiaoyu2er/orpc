@@ -1,69 +1,122 @@
 import type { Procedure } from './procedure'
-import type { Caller, Meta, WELL_CONTEXT } from './types'
+import type { ProcedureClient } from './procedure-client'
+import type { Meta, WELL_CONTEXT, WithSignal } from './types'
 import { z } from 'zod'
 import { lazy } from './lazy'
-import { createProcedureCaller } from './procedure-caller'
+import { createProcedureClient } from './procedure-client'
 
 beforeEach(() => {
   vi.resetAllMocks()
 })
 
-describe('createProcedureCaller', () => {
+describe('ProcedureClient', () => {
+  const fn: ProcedureClient<string, number> = async (input, options) => {
+    expectTypeOf(input).toEqualTypeOf<string>()
+    expectTypeOf(options).toEqualTypeOf<WithSignal | undefined>()
+    return 123
+  }
+
+  const fnWithOptionalInput: ProcedureClient<string | undefined, number> = async (...args) => {
+    const [input, options] = args
+
+    expectTypeOf(input).toEqualTypeOf<string | undefined>()
+    expectTypeOf(options).toEqualTypeOf<WithSignal | undefined>()
+    return 123
+  }
+
+  it('just a function', () => {
+    expectTypeOf(fn).toEqualTypeOf<(input: string, options?: WithSignal) => Promise<number>>()
+    expectTypeOf(fnWithOptionalInput).toMatchTypeOf<(input: string | undefined, options?: WithSignal) => Promise<number>>()
+  })
+
+  it('infer correct input', () => {
+    fn('123')
+    fnWithOptionalInput('123')
+
+    // @ts-expect-error - invalid input
+    fn(123)
+    // @ts-expect-error - invalid input
+    fnWithOptionalInput(123)
+
+    // @ts-expect-error - invalid input
+    fn({})
+    // @ts-expect-error - invalid input
+    fnWithOptionalInput({})
+  })
+
+  it('accept signal', () => {
+    fn('123', { signal: new AbortSignal() })
+    fnWithOptionalInput('123', { signal: new AbortSignal() })
+
+    // @ts-expect-error - invalid signal
+    fn('123', { signal: 1234 })
+    // @ts-expect-error - invalid signal
+    fnWithOptionalInput('123', { signal: 1234 })
+  })
+
+  it('can accept call without args', () => {
+    expectTypeOf(fnWithOptionalInput()).toEqualTypeOf<Promise<number>>()
+    // @ts-expect-error - input is required
+    expectTypeOf(fn()).toEqualTypeOf<Promise<number>>()
+  })
+})
+
+describe('createProcedureClient', () => {
   const schema = z.object({ val: z.string().transform(v => Number(v)) })
   const procedure = {} as Procedure<WELL_CONTEXT, { val: string }, typeof schema, typeof schema, { val: string }>
   const procedureWithContext = {} as Procedure<{ userId?: string }, { db: string }, typeof schema, typeof schema, { val: string }>
 
-  it('just a caller', () => {
-    const caller = createProcedureCaller({
+  it('just a client', () => {
+    const client = createProcedureClient({
       procedure,
     })
 
-    expectTypeOf(caller).toEqualTypeOf<Caller<{ val: string }, { val: number }>>()
+    expectTypeOf(client).toEqualTypeOf<ProcedureClient<{ val: string }, { val: number }>>()
   })
 
   it('context can be optional and can be a sync or async function', () => {
-    createProcedureCaller({
+    createProcedureClient({
       procedure,
     })
 
-    createProcedureCaller({
+    createProcedureClient({
       procedure,
       context: undefined,
     })
 
     // @ts-expect-error - missing context
-    createProcedureCaller({
+    createProcedureClient({
       procedure: procedureWithContext,
     })
 
-    createProcedureCaller({
+    createProcedureClient({
       procedure: procedureWithContext,
       context: { userId: '123' },
     })
 
-    createProcedureCaller({
+    createProcedureClient({
       procedure: procedureWithContext,
       // @ts-expect-error invalid context
       context: { userId: 123 },
     })
 
-    createProcedureCaller({
+    createProcedureClient({
       procedure: procedureWithContext,
       context: () => ({ userId: '123' }),
     })
 
-    createProcedureCaller({
+    createProcedureClient({
       procedure: procedureWithContext,
       // @ts-expect-error invalid context
       context: () => ({ userId: 123 }),
     })
 
-    createProcedureCaller({
+    createProcedureClient({
       procedure: procedureWithContext,
       context: async () => ({ userId: '123' }),
     })
 
-    createProcedureCaller({
+    createProcedureClient({
       procedure: procedureWithContext,
       // @ts-expect-error invalid context
       context: async () => ({ userId: 123 }),
@@ -71,7 +124,7 @@ describe('createProcedureCaller', () => {
   })
 
   it('accept hooks', () => {
-    createProcedureCaller({
+    createProcedureClient({
       procedure,
 
       async execute(input, context, meta) {
@@ -109,12 +162,12 @@ describe('createProcedureCaller', () => {
   })
 
   it('accept paths', () => {
-    createProcedureCaller({
+    createProcedureClient({
       procedure,
       path: ['users'],
     })
 
-    createProcedureCaller({
+    createProcedureClient({
       procedure,
       // @ts-expect-error - invalid path
       path: [123],
@@ -127,7 +180,7 @@ it('support lazy procedure', () => {
   const procedure = {} as Procedure<{ userId?: string }, undefined, typeof schema, typeof schema, { val: string }>
   const lazied = lazy(() => Promise.resolve({ default: procedure }))
 
-  const caller = createProcedureCaller({
+  const client = createProcedureClient({
     procedure: lazied,
     context: async () => ({ userId: 'string' }),
     path: ['users'],
@@ -139,5 +192,5 @@ it('support lazy procedure', () => {
     },
   })
 
-  expectTypeOf(caller).toEqualTypeOf<Caller<{ val: string }, { val: number }>>()
+  expectTypeOf(client).toEqualTypeOf<ProcedureClient<{ val: string }, { val: number }>>()
 })

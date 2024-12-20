@@ -1,9 +1,10 @@
 import type { SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Lazy } from './lazy'
 import type { Procedure } from './procedure'
-import type { Caller } from './types'
+import type { ProcedureClient } from './procedure-client'
 import { flatLazy } from './lazy'
-import { createProcedureCaller } from './procedure-caller'
+import { createLazyProcedureFormAnyLazy } from './lazy-utils'
+import { createProcedureClient } from './procedure-client'
 import { type ANY_ROUTER, getRouterChild } from './router'
 
 export type DecoratedLazy<T> = T extends Lazy<infer U>
@@ -13,7 +14,7 @@ export type DecoratedLazy<T> = T extends Lazy<infer U>
     & (
        T extends Procedure<infer UContext, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
          ? undefined extends UContext
-           ? Caller<SchemaInput<UInputSchema>, SchemaOutput<UOutputSchema, UFuncOutput>>
+           ? ProcedureClient<SchemaInput<UInputSchema>, SchemaOutput<UOutputSchema, UFuncOutput>>
            : unknown
          : {
              [K in keyof T]: T[K] extends object ? DecoratedLazy<T[K]> : never
@@ -23,14 +24,14 @@ export type DecoratedLazy<T> = T extends Lazy<infer U>
 export function decorateLazy<T extends Lazy<ANY_ROUTER | undefined>>(lazied: T): DecoratedLazy<T> {
   const flattenLazy = flatLazy(lazied)
 
-  const procedureCaller = createProcedureCaller({
-    procedure: flattenLazy,
+  const procedureProcedureClient = createProcedureClient({
+    procedure: createLazyProcedureFormAnyLazy(flattenLazy),
     context: undefined,
   })
 
-  Object.assign(procedureCaller, flattenLazy)
+  Object.assign(procedureProcedureClient, flattenLazy)
 
-  const recursive = new Proxy(procedureCaller, {
+  const recursive = new Proxy(procedureProcedureClient, {
     get(target, key) {
       if (typeof key !== 'string') {
         return Reflect.get(target, key)

@@ -5,7 +5,7 @@ import { ORPCError } from '@orpc/shared/error'
 import { ORPCDeserializer, ORPCSerializer } from '@orpc/transformer'
 import { unlazy } from '../lazy'
 import { isProcedure } from '../procedure'
-import { createProcedureCaller } from '../procedure-caller'
+import { createProcedureClient } from '../procedure-client'
 import { type ANY_ROUTER, getRouterChild } from '../router'
 
 const serializer = new ORPCSerializer()
@@ -31,7 +31,7 @@ export function createORPCHandler(): FetchHandler {
 
       const input = await parseRequestInput(options.request)
 
-      const caller = createProcedureCaller({
+      const caller = createProcedureClient({
         context,
         procedure: match.procedure,
         path: match.path,

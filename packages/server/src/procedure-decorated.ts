@@ -1,10 +1,11 @@
 import type { HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { ANY_MIDDLEWARE, MapInputMiddleware, Middleware } from './middleware'
-import type { Caller, Context, MergeContext } from './types'
+import type { ProcedureClient } from './procedure-client'
+import type { Context, MergeContext } from './types'
 import { DecoratedContractProcedure } from '@orpc/contract'
 import { decorateMiddleware } from './middleware-decorated'
 import { Procedure } from './procedure'
-import { createProcedureCaller } from './procedure-caller'
+import { createProcedureClient } from './procedure-client'
 
 export type DecoratedProcedure<
   TContext extends Context,
@@ -71,7 +72,7 @@ export type DecoratedProcedure<
     ) => DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, TFuncOutput>
 
   }
-  & (undefined extends TContext ? Caller<SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, TFuncOutput>> : unknown)
+  & (undefined extends TContext ? ProcedureClient<SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, TFuncOutput>> : unknown)
 
 export function decorateProcedure<
   TContext extends Context,
@@ -80,16 +81,10 @@ export function decorateProcedure<
   TOutputSchema extends Schema,
   TFuncOutput extends SchemaInput<TOutputSchema>,
 >(
-  procedure: Procedure<
-    TContext,
-    TExtraContext,
-    TInputSchema,
-    TOutputSchema,
-    TFuncOutput
-  >,
-): DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, TFuncOutput > {
-  const caller = createProcedureCaller({
-    procedure: procedure as any,
+  procedure: Procedure<TContext, TExtraContext, TInputSchema, TOutputSchema, TFuncOutput>,
+): DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, TFuncOutput> {
+  const caller = createProcedureClient({
+    procedure,
     context: undefined as any,
   })
 

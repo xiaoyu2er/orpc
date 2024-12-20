@@ -2,16 +2,16 @@ import type { Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Hooks, Value } from '@orpc/shared'
 import type { Lazyable } from './lazy'
 import type { MiddlewareMeta } from './middleware'
-import type {
-  ANY_PROCEDURE,
-  Procedure,
-} from './procedure'
-
-import type { Caller, Context, Meta, WELL_CONTEXT } from './types'
+import type { ANY_PROCEDURE, Procedure } from './procedure'
+import type { Context, Meta, WELL_CONTEXT, WithSignal } from './types'
 import { executeWithHooks, value } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
 import { unlazy } from './lazy'
 import { mergeContext } from './utils'
+
+export interface ProcedureClient<TInput, TOutput> {
+  (...opts: [input: TInput, options?: WithSignal] | (undefined extends TInput ? [] : never)): Promise<TOutput>
+}
 
 /**
  * Options for creating a procedure caller with comprehensive type safety
@@ -40,14 +40,14 @@ export type CreateProcedureCallerOptions<
   } | (undefined extends TContext ? { context?: undefined } : never))
   & Hooks<unknown, SchemaOutput<TOutputSchema, TFuncOutput>, TContext, Meta>
 
-export function createProcedureCaller<
+export function createProcedureClient<
   TContext extends Context = WELL_CONTEXT,
   TInputSchema extends Schema = undefined,
   TOutputSchema extends Schema = undefined,
   TFuncOutput extends SchemaInput<TOutputSchema> = SchemaInput<TOutputSchema>,
 >(
   options: CreateProcedureCallerOptions<TContext, TInputSchema, TOutputSchema, TFuncOutput>,
-): Caller<SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, TFuncOutput>> {
+): ProcedureClient<SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, TFuncOutput>> {
   return async (...[input, callerOptions]) => {
     const path = options.path ?? []
     const { default: procedure } = await unlazy(options.procedure)

@@ -23,7 +23,7 @@ export function isLazy(item: unknown): item is ANY_LAZY {
   )
 }
 
-export function unlazy<T>(lazied: Lazyable<T>): Promise<{ default: T }> {
+export function unlazy<T extends Lazyable<any>>(lazied: T): Promise<{ default: T extends Lazy<infer U> ? U : T }> {
   return isLazy(lazied) ? lazied[LAZY_LOADER_SYMBOL]() : Promise.resolve({ default: lazied })
 }
 

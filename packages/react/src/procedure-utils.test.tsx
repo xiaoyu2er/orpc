@@ -1,14 +1,20 @@
-import type { SchemaOutput } from '@orpc/contract'
+import type { SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { UserFindInputSchema, UserListInputSchema, UserListOutputSchema, UserSchema } from '../tests/orpc'
 import { orpcClient, queryClient } from '../tests/orpc'
 import { createProcedureUtils } from './procedure-utils'
+
+type UserFindInput = SchemaInput<typeof UserFindInputSchema>
+type User = SchemaOutput<typeof UserSchema>
+
+type UserListInput = SchemaInput<typeof UserListInputSchema>
+type UserListOutput = SchemaOutput<typeof UserListOutputSchema>
 
 beforeEach(() => {
   queryClient.clear()
 })
 
 describe('fetchQuery', () => {
-  const utils = createProcedureUtils<typeof UserFindInputSchema, typeof UserSchema, SchemaOutput<typeof UserSchema>>({
+  const utils = createProcedureUtils<UserFindInput, User>({
     client: orpcClient.user.find,
     path: ['user', 'find'],
     queryClient,
@@ -33,13 +39,13 @@ describe('fetchQuery', () => {
   it('on error', () => {
     // @ts-expect-error invalid input
     expect(utils.fetchQuery({ id: {} })).rejects.toThrowError(
-      'Validation input failed',
+      'Input validation failed',
     )
   })
 })
 
 describe('fetchInfiniteQuery', () => {
-  const utils = createProcedureUtils<typeof UserListInputSchema, typeof UserListOutputSchema, SchemaOutput<typeof UserListOutputSchema>>({
+  const utils = createProcedureUtils<UserListInput, UserListOutput>({
     client: orpcClient.user.list,
     path: ['user', 'list'],
     queryClient,
@@ -70,12 +76,12 @@ describe('fetchInfiniteQuery', () => {
     expect(
       // @ts-expect-error invalid input
       utils.fetchInfiniteQuery({ input: { keyword: {} } }),
-    ).rejects.toThrowError('Validation input failed')
+    ).rejects.toThrowError('Input validation failed')
   })
 })
 
 describe('prefetchQuery', () => {
-  const utils = createProcedureUtils<typeof UserFindInputSchema, typeof UserSchema, SchemaOutput<typeof UserSchema>>({
+  const utils = createProcedureUtils<UserFindInput, User>({
     client: orpcClient.user.find,
     path: ['user', 'find'],
     queryClient,
@@ -108,7 +114,7 @@ describe('prefetchQuery', () => {
 })
 
 describe('prefetchInfiniteQuery', () => {
-  const utils = createProcedureUtils<typeof UserListInputSchema, typeof UserListOutputSchema, SchemaOutput<typeof UserListOutputSchema>>({
+  const utils = createProcedureUtils<UserListInput, UserListOutput>({
     client: orpcClient.user.list,
     path: ['user', 'list'],
     queryClient,
@@ -143,7 +149,7 @@ describe('prefetchInfiniteQuery', () => {
 })
 
 describe('ensureQueryData', () => {
-  const utils = createProcedureUtils<typeof UserFindInputSchema, typeof UserSchema, SchemaOutput<typeof UserSchema>>({
+  const utils = createProcedureUtils<UserFindInput, User>({
     client: orpcClient.user.find,
     path: ['user', 'find'],
     queryClient,
@@ -168,13 +174,13 @@ describe('ensureQueryData', () => {
   it('on error', () => {
     // @ts-expect-error invalid input
     expect(utils.ensureQueryData({ id: {} })).rejects.toThrowError(
-      'Validation input failed',
+      'Input validation failed',
     )
   })
 })
 
 describe('ensureInfiniteQuery', () => {
-  const utils = createProcedureUtils<typeof UserListInputSchema, typeof UserListOutputSchema, SchemaOutput<typeof UserListOutputSchema>>({
+  const utils = createProcedureUtils<UserListInput, UserListOutput>({
     client: orpcClient.user.list,
     path: ['user', 'list'],
     queryClient,
@@ -205,12 +211,12 @@ describe('ensureInfiniteQuery', () => {
     expect(
       // @ts-expect-error invalid input
       utils.ensureInfiniteQueryData({ input: { keyword: {} } }),
-    ).rejects.toThrowError('Validation input failed')
+    ).rejects.toThrowError('Input validation failed')
   })
 })
 
 describe('getQueryData', () => {
-  const utils = createProcedureUtils<typeof UserFindInputSchema, typeof UserSchema, SchemaOutput<typeof UserSchema>>({
+  const utils = createProcedureUtils<UserFindInput, User>({
     client: orpcClient.user.find,
     path: ['user', 'find'],
     queryClient,
@@ -224,7 +230,7 @@ describe('getQueryData', () => {
 })
 
 describe('getInfiniteQueryData', () => {
-  const utils = createProcedureUtils<typeof UserListInputSchema, typeof UserListOutputSchema, SchemaOutput<typeof UserListOutputSchema>>({
+  const utils = createProcedureUtils<UserListInput, UserListOutput>({
     client: orpcClient.user.list,
     path: ['user', 'list'],
     queryClient,
@@ -238,7 +244,7 @@ describe('getInfiniteQueryData', () => {
 })
 
 describe('getQueryState', () => {
-  const utils = createProcedureUtils<typeof UserFindInputSchema, typeof UserSchema, SchemaOutput<typeof UserSchema>>({
+  const utils = createProcedureUtils<UserFindInput, User>({
     client: orpcClient.user.find,
     path: ['user', 'find'],
     queryClient,
@@ -255,7 +261,7 @@ describe('getQueryState', () => {
 })
 
 describe('getInfiniteQueryState', () => {
-  const utils = createProcedureUtils<typeof UserListInputSchema, typeof UserListOutputSchema, SchemaOutput<typeof UserListOutputSchema>>({
+  const utils = createProcedureUtils<UserListInput, UserListOutput>({
     client: orpcClient.user.list,
     path: ['user', 'list'],
     queryClient,
@@ -272,7 +278,7 @@ describe('getInfiniteQueryState', () => {
 })
 
 describe('setQueryData', () => {
-  const utils = createProcedureUtils<typeof UserFindInputSchema, typeof UserSchema, SchemaOutput<typeof UserSchema>>({
+  const utils = createProcedureUtils<UserFindInput, User>({
     client: orpcClient.user.find,
     path: ['user', 'find'],
     queryClient,
@@ -302,7 +308,7 @@ describe('setQueryData', () => {
 })
 
 describe('getInfiniteQueryData 2', () => {
-  const utils = createProcedureUtils<typeof UserListInputSchema, typeof UserListOutputSchema, SchemaOutput<typeof UserListOutputSchema>>({
+  const utils = createProcedureUtils<UserListInput, UserListOutput>({
     client: orpcClient.user.list,
     path: ['user', 'list'],
     queryClient,

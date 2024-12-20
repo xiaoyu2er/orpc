@@ -3,9 +3,9 @@
  */
 
 import type { router } from './router'
-import { createORPCClient } from '@orpc/client'
+import { createORPCFetchClient } from '@orpc/client'
 
-const orpc = createORPCClient<typeof router>({
+const orpc = createORPCFetchClient<typeof router>({
   baseURL: 'http://localhost:3000/api',
 })
 

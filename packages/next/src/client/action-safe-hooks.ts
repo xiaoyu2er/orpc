@@ -1,14 +1,16 @@
+import type { ProcedureClient } from '@orpc/server'
 import type { Hooks } from '@orpc/shared'
-import { type ANY_ORPC_ERROR_JSON, ORPCError } from '@orpc/server'
+import type { SafeAction } from '../action-safe'
+import { ORPCError } from '@orpc/server'
 import { useCallback } from 'react'
 import { useAction, type UseActionState } from './action-hooks'
 
 export function useSafeAction<TInput, TOutput>(
-  action: (input: TInput) => Promise<[TOutput, undefined, 'success'] | [undefined, ANY_ORPC_ERROR_JSON, 'error']>,
+  action: SafeAction<TInput, TOutput>,
   hooks?: Hooks<TInput, TOutput, undefined, undefined>,
 ): UseActionState<TInput, TOutput> {
-  const normal = useCallback(async (input: TInput) => {
-    const [output, errorJson, status] = await action(input)
+  const normal: ProcedureClient<TInput, TOutput> = useCallback(async (...args) => {
+    const [output, errorJson, status] = await action(...args)
 
     if (status === 'error') {
       throw ORPCError.fromJSON(errorJson)

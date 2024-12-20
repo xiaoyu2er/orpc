@@ -1,6 +1,7 @@
 {
   "extends": "../../tsconfig.lib.json",
   "compilerOptions": {
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "types": []
   },
   "references": [

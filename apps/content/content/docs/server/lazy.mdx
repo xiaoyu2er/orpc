@@ -16,7 +16,7 @@ Here's how you can set up and use them:
 ```typescript twoslash
 import { os } from '@orpc/server'
 
-const pub = os.context<{ user?: { id: string } }>()
+const pub = os.context<{ user?: { id: string } } | undefined>()
 
 // Define a router with lazy loading
 const router = pub.router({

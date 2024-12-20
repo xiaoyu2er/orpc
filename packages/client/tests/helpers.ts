@@ -1,7 +1,7 @@
 import { os } from '@orpc/server'
 import { createORPCHandler, handleFetchRequest } from '@orpc/server/fetch'
 import { z } from 'zod'
-import { createORPCClient } from '../src'
+import { createORPCFetchClient } from '../src'
 
 export const orpcServer = os
 
@@ -96,7 +96,7 @@ export const appRouter = orpcServer.router({
   },
 })
 
-export const client = createORPCClient<typeof appRouter>({
+export const client = createORPCFetchClient<typeof appRouter>({
   baseURL: 'http://localhost:3000',
 
   async fetch(...args) {

@@ -15,11 +15,11 @@ description: Simplify React Query usage with minimal integration using ORPC and 
 
 ```ts twoslash
 import { createORPCReactQueryUtils } from '@orpc/react-query';
-import { createORPCClient } from '@orpc/client';
+import { createORPCFetchClient } from '@orpc/client';
 import type { router } from 'examples/server';
 
 // Create an ORPC client
-export const client = createORPCClient<typeof router>({
+export const client = createORPCFetchClient<typeof router>({
   baseURL: 'http://localhost:3000/api',
 });
 
@@ -35,12 +35,13 @@ orpc.getting.
 
 ```tsx twoslash
 import { createORPCReactQueryUtils, RouterUtils } from '@orpc/react-query';
-import { createORPCClient } from '@orpc/client';
+import { createORPCFetchClient } from '@orpc/client';
+import { RouterClient } from '@orpc/server';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { router } from 'examples/server';
 import * as React from 'react';
 
-const ORPCContext = React.createContext<RouterUtils<typeof router> | undefined>(undefined);
+const ORPCContext = React.createContext<RouterUtils<RouterClient<typeof router>> | undefined>(undefined);
 
 export function useORPC() {
   const orpc = React.useContext(ORPCContext);
@@ -54,7 +55,7 @@ export function useORPC() {
 
 export function ORPCProvider({ children }: { children: React.ReactNode }) {
   const [client] = React.useState(() =>
-    createORPCClient<typeof router>({
+    createORPCFetchClient<typeof router>({
       baseURL: 'http://localhost:3000/api',
     })
   );

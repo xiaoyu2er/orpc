@@ -2,10 +2,11 @@
  * This file is where you can play with type of oRPC React.
  */
 
+import type { RouterClient } from '@orpc/server'
 import type { contract } from './contract'
 import { createORPCReact } from '@orpc/react'
 
-const { orpc } = createORPCReact<typeof contract>()
+const { orpc } = createORPCReact<RouterClient<typeof contract>>()
 
 const listQuery = orpc.planet.list.useInfiniteQuery({
   input: {},

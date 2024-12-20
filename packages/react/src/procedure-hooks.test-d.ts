@@ -11,11 +11,16 @@ import {
 } from '../tests/orpc'
 import { createProcedureHooks } from './procedure-hooks'
 
+type UserFindInput = SchemaInput<typeof UserFindInputSchema>
+type User = SchemaOutput<typeof UserSchema>
+
+type UserListInput = SchemaInput<typeof UserListInputSchema>
+type UserListOutput = SchemaOutput<typeof UserListOutputSchema>
+
 describe('useQuery', () => {
   const hooks = createProcedureHooks<
-    typeof UserFindInputSchema,
-    typeof UserSchema,
-    SchemaOutput<typeof UserSchema>
+    UserFindInput,
+    User
   >({
     context: ORPCContext,
     path: ['user', 'find'],
@@ -55,9 +60,8 @@ describe('useQuery', () => {
 
 describe('useInfiniteQuery', () => {
   const hooks = createProcedureHooks<
-    typeof UserListInputSchema,
-    typeof UserListOutputSchema,
-    SchemaOutput<typeof UserListOutputSchema>
+    UserListInput,
+    UserListOutput
   >({
     context: ORPCContext,
     path: ['user', 'list'],
@@ -122,9 +126,8 @@ describe('useInfiniteQuery', () => {
 
 describe('useSuspenseQuery', () => {
   const hooks = createProcedureHooks<
-    typeof UserFindInputSchema,
-    typeof UserSchema,
-    SchemaOutput<typeof UserSchema>
+    UserFindInput,
+    User
   >({
     context: ORPCContext,
     path: ['user', 'find'],
@@ -162,9 +165,8 @@ describe('useSuspenseQuery', () => {
 
 describe('useSuspenseInfiniteQuery', () => {
   const hooks = createProcedureHooks<
-    typeof UserListInputSchema,
-    typeof UserListOutputSchema,
-    SchemaOutput<typeof UserListOutputSchema>
+    UserListInput,
+    UserListOutput
   >({
     context: ORPCContext,
     path: ['user', 'list'],
@@ -225,9 +227,8 @@ describe('useSuspenseInfiniteQuery', () => {
 
 describe('usePrefetchQuery', () => {
   const hooks = createProcedureHooks<
-    typeof UserFindInputSchema,
-    typeof UserSchema,
-    SchemaOutput<typeof UserSchema>
+    UserFindInput,
+    User
   >({
     context: ORPCContext,
     path: ['user', 'find'],
@@ -246,9 +247,8 @@ describe('usePrefetchQuery', () => {
 
 describe('usePrefetchInfiniteQuery', () => {
   const hooks = createProcedureHooks<
-    typeof UserListInputSchema,
-    typeof UserListOutputSchema,
-    SchemaOutput<typeof UserListOutputSchema>
+    UserListInput,
+    UserListOutput
   >({
     context: ORPCContext,
     path: ['user', 'list'],
@@ -286,11 +286,12 @@ describe('usePrefetchInfiniteQuery', () => {
   })
 })
 
+type UserCreateInput = SchemaInput<typeof UserCreateInputSchema>
+
 describe('useMutation', () => {
   const hooks = createProcedureHooks<
-    typeof UserCreateInputSchema,
-    typeof UserSchema,
-    SchemaOutput<typeof UserSchema>
+    UserCreateInput,
+    User
   >({
     context: ORPCContext,
     path: ['user', 'create'],

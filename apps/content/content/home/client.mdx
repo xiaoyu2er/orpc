@@ -1,10 +1,10 @@
 <Tabs items={['Client', 'React', 'React Query', 'Vue Query', 'CURL']}>
 <Tab value="Client">
 ```ts twoslash
-import { createORPCClient, ORPCError } from '@orpc/client'
+import { createORPCFetchClient, ORPCError } from '@orpc/client'
 import type { router } from 'examples/server'
 
-const client = createORPCClient<typeof router /* or contract router */>({
+const client = createORPCFetchClient<typeof router /* or contract router */>({
   baseURL: 'http://localhost:3000/api',
   // fetch: optional override for the default fetch function
   // headers: provide additional headers
@@ -44,13 +44,14 @@ try {
 <Tab value="React">
 ```tsx twoslash
 import { createORPCReact } from '@orpc/react'
-import { createORPCClient } from '@orpc/client'
+import { createORPCFetchClient } from '@orpc/client'
+import { RouterClient } from '@orpc/server'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState } from 'react'
 import type { router } from 'examples/server'
 import * as React from 'react'
  
-export const { orpc, ORPCContext } = createORPCReact<typeof router /** or contract router */>()
+export const { orpc, ORPCContext } = createORPCReact<RouterClient<typeof router /** or contract router */>>()
 
 // ------------------ Example ------------------
 
@@ -117,7 +118,7 @@ const queries = orpc.useQueries(o => [
 // ------------------ Provider ------------------
  
 export function ORPCProvider({ children }: { children: React.ReactNode }) {
-    const [client] = useState(() => createORPCClient<typeof router /** must match with createORPCReact*/>({
+    const [client] = useState(() => createORPCFetchClient<typeof router /** must match with createORPCReact*/>({
         baseURL: 'http://localhost:3000/api',
     }))
     const [queryClient] = useState(() => new QueryClient())

@@ -10,7 +10,7 @@ import {
 import { pub } from '@/orpc'
 
 export const router = pub.router({
-  auth: pub.tags('Authentication').router({
+  auth: pub.tag('Authentication').router({
     signup,
     signin,
     refresh,
@@ -18,7 +18,7 @@ export const router = pub.router({
     me,
   }),
 
-  planet: pub.tags('Planets').router({
+  planet: pub.tag('Planets').router({
     list: listPlanets,
     create: createPlanet,
     find: findPlanet,

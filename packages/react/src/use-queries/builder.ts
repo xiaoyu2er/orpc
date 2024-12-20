@@ -1,5 +1,4 @@
-import type { Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
-import type { Caller } from '@orpc/server'
+import type { ProcedureClient } from '@orpc/server'
 import type { SetOptional } from '@orpc/shared'
 import type {
   DefaultError,
@@ -22,26 +21,18 @@ type UseQueryOptionsForUseQueries<
   placeholderData?: TQueryFnData | QueriesPlaceholderDataFunction<TQueryFnData>
 }
 
-export interface UseQueriesBuilder<
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
-  TFuncOutput extends SchemaOutput<TOutputSchema>,
-> {
+export interface UseQueriesBuilder<TInput, TOutput> {
   (
-    input: SchemaInput<TInputSchema>,
+    input: TInput,
     options?: SetOptional<
-      UseQueryOptionsForUseQueries<SchemaOutput<TOutputSchema, TFuncOutput>>,
+      UseQueryOptionsForUseQueries<TOutput>,
       'queryFn' | 'queryKey'
     >,
-  ): UseQueryOptionsForUseQueries<SchemaOutput<TOutputSchema, TFuncOutput>>
+  ): UseQueryOptionsForUseQueries<TOutput>
 }
 
-export interface CreateUseQueriesBuilderOptions<
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
-  TFuncOutput extends SchemaOutput<TOutputSchema>,
-> {
-  client: Caller<SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, TFuncOutput>>
+export interface CreateUseQueriesBuilderOptions<TInput, TOutput> {
+  client: ProcedureClient<TInput, TOutput>
 
   /**
    * The path of procedure on server
@@ -49,18 +40,9 @@ export interface CreateUseQueriesBuilderOptions<
   path: string[]
 }
 
-export function createUseQueriesBuilder<
-  TInputSchema extends Schema = undefined,
-  TOutputSchema extends Schema = undefined,
-  TFuncOutput extends
-  SchemaOutput<TOutputSchema> = SchemaOutput<TOutputSchema>,
->(
-  options: CreateUseQueriesBuilderOptions<
-    TInputSchema,
-    TOutputSchema,
-    TFuncOutput
-  >,
-): UseQueriesBuilder<TInputSchema, TOutputSchema, TFuncOutput> {
+export function createUseQueriesBuilder<TInput, TOutput>(
+  options: CreateUseQueriesBuilderOptions<TInput, TOutput>,
+): UseQueriesBuilder<TInput, TOutput> {
   return (input, options_) => {
     return {
       queryKey: getQueryKeyFromPath(options.path, { input, type: 'query' }),

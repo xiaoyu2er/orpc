@@ -1,13 +1,10 @@
-import type { SchemaOutput } from '@orpc/contract'
+import type { SchemaInput, SchemaOutput } from '@orpc/contract'
 import { renderHook, screen, waitFor } from '@testing-library/react'
 import {
   ORPCContext,
   queryClient,
-  type UserCreateInputSchema,
-  type UserFindInputSchema,
   type UserListInputSchema,
   type UserListOutputSchema,
-  type UserSchema,
   wrapper,
 } from '../tests/orpc'
 import { createProcedureHooks } from './procedure-hooks'
@@ -17,11 +14,7 @@ beforeEach(() => {
 })
 
 describe('useQuery', () => {
-  const hooks = createProcedureHooks<
-    typeof UserFindInputSchema,
-    typeof UserSchema,
-    SchemaOutput<typeof UserSchema>
-  >({
+  const hooks = createProcedureHooks({
     context: ORPCContext,
     path: ['user', 'find'],
   })
@@ -47,7 +40,6 @@ describe('useQuery', () => {
   })
 
   it('on error', async () => {
-    // @ts-expect-error invalid input
     const { result } = renderHook(() => hooks.useQuery({ id: {} }), {
       wrapper,
     })
@@ -55,16 +47,18 @@ describe('useQuery', () => {
     await waitFor(() => expect(result.current.status).toBe('error'))
 
     expect((result.current.error as any).message).toEqual(
-      'Validation input failed',
+      'Input validation failed',
     )
   })
 })
 
+type UserListInput = SchemaInput<typeof UserListInputSchema>
+type UserListOutput = SchemaOutput<typeof UserListOutputSchema>
+
 describe('useInfiniteQuery', () => {
   const hooks = createProcedureHooks<
-    typeof UserListInputSchema,
-    typeof UserListOutputSchema,
-    SchemaOutput<typeof UserListOutputSchema>
+    UserListInput,
+    UserListOutput
   >({
     context: ORPCContext,
     path: ['user', 'list'],
@@ -143,17 +137,13 @@ describe('useInfiniteQuery', () => {
     await waitFor(() => expect(result.current.status).toBe('error'))
 
     expect((result.current.error as any).message).toEqual(
-      'Validation input failed',
+      'Input validation failed',
     )
   })
 })
 
 describe('useSuspenseQuery', () => {
-  const hooks = createProcedureHooks<
-    typeof UserFindInputSchema,
-    typeof UserSchema,
-    SchemaOutput<typeof UserSchema>
-  >({
+  const hooks = createProcedureHooks({
     context: ORPCContext,
     path: ['user', 'find'],
   })
@@ -179,14 +169,13 @@ describe('useSuspenseQuery', () => {
   })
 
   it('on error', async () => {
-    // @ts-expect-error invalid input
     const { result } = renderHook(() => hooks.useSuspenseQuery({ id: {} }), {
       wrapper,
     })
 
     await waitFor(() =>
       expect(screen.getByTestId('error-boundary')).toHaveTextContent(
-        'Validation input failed',
+        'Input validation failed',
       ),
     )
   })
@@ -194,9 +183,8 @@ describe('useSuspenseQuery', () => {
 
 describe('useSuspenseInfiniteQuery', () => {
   const hooks = createProcedureHooks<
-    typeof UserListInputSchema,
-    typeof UserListOutputSchema,
-    SchemaOutput<typeof UserListOutputSchema>
+    UserListInput,
+    UserListOutput
   >({
     context: ORPCContext,
     path: ['user', 'list'],
@@ -274,18 +262,14 @@ describe('useSuspenseInfiniteQuery', () => {
 
     await waitFor(() =>
       expect(screen.getByTestId('error-boundary')).toHaveTextContent(
-        'Validation input failed',
+        'Input validation failed',
       ),
     )
   })
 })
 
 describe('usePrefetchQuery', () => {
-  const hooks = createProcedureHooks<
-    typeof UserFindInputSchema,
-    typeof UserSchema,
-    SchemaOutput<typeof UserSchema>
-  >({
+  const hooks = createProcedureHooks({
     context: ORPCContext,
     path: ['user', 'find'],
   })
@@ -311,9 +295,8 @@ describe('usePrefetchQuery', () => {
 
 describe('usePrefetchInfiniteQuery', () => {
   const hooks = createProcedureHooks<
-    typeof UserListInputSchema,
-    typeof UserListOutputSchema,
-    SchemaOutput<typeof UserListOutputSchema>
+    UserListInput,
+    UserListOutput
   >({
     context: ORPCContext,
     path: ['user', 'list'],
@@ -350,11 +333,7 @@ describe('usePrefetchInfiniteQuery', () => {
 })
 
 describe('useMutation', () => {
-  const hooks = createProcedureHooks<
-    typeof UserCreateInputSchema,
-    typeof UserSchema,
-    SchemaOutput<typeof UserSchema>
-  >({
+  const hooks = createProcedureHooks({
     context: ORPCContext,
     path: ['user', 'create'],
   })
@@ -376,12 +355,11 @@ describe('useMutation', () => {
       wrapper,
     })
 
-    // @ts-expect-error invalid input
     result.current.mutate({ name: {} })
 
     await waitFor(() =>
       expect((result.current.error as any)?.message).toEqual(
-        'Validation input failed',
+        'Input validation failed',
       ),
     )
   })

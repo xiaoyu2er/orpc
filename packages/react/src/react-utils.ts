@@ -1,35 +1,17 @@
-import type {
-  ContractProcedure,
-  ContractRouter,
-  SchemaOutput,
-} from '@orpc/contract'
-import type { Lazy, Procedure, Router } from '@orpc/server'
+import type { ProcedureClient, RouterClient } from '@orpc/server'
 import type { ORPCContextValue } from './react-context'
 import { createGeneralUtils, type GeneralUtils } from './general-utils'
 import { createProcedureUtils, type ProcedureUtils } from './procedure-utils'
 
-export type ORPCUtilsWithContractRouter<TRouter extends ContractRouter> = {
-  [K in keyof TRouter]: TRouter[K] extends ContractProcedure<infer UInputSchema, infer UOutputSchema>
-    ? ProcedureUtils<UInputSchema, UOutputSchema, SchemaOutput<UOutputSchema>> & GeneralUtils<UInputSchema, UOutputSchema, SchemaOutput<UOutputSchema>>
-    : TRouter[K] extends ContractRouter
-      ? ORPCUtilsWithContractRouter<TRouter[K]>
-      : never
-} & GeneralUtils<undefined, undefined, unknown>
+export type ORPCUtils<T extends RouterClient<any>> =
+  T extends ProcedureClient<infer TInput, infer TOutput>
+    ? ProcedureUtils<TInput, TOutput> & GeneralUtils<TInput, TOutput>
+    : {
+      [K in keyof T]: T[K] extends RouterClient<any> ? ORPCUtils<T[K]> : never
+    } & GeneralUtils<unknown, unknown>
 
-export type ORPCUtilsWithRouter<TRouter extends Router<any>> = {
-  [K in keyof TRouter]: TRouter[K] extends
-  | Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
-  | Lazy<Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>>
-    ? ProcedureUtils<UInputSchema, UOutputSchema, UFuncOutput> & GeneralUtils<UInputSchema, UOutputSchema, UFuncOutput>
-    : TRouter[K] extends Router<any>
-      ? ORPCUtilsWithRouter<TRouter[K]>
-      : never
-} & GeneralUtils<undefined, undefined, unknown>
-
-export interface CreateORPCUtilsOptions<
-  TRouter extends ContractRouter | Router<any>,
-> {
-  contextValue: ORPCContextValue<TRouter>
+export interface CreateORPCUtilsOptions<T extends RouterClient<any>> {
+  contextValue: ORPCContextValue<T>
 
   /**
    * The path of the router.
@@ -39,13 +21,9 @@ export interface CreateORPCUtilsOptions<
   path?: string[]
 }
 
-export function createORPCUtils<TRouter extends ContractRouter | Router<any>>(
-  options: CreateORPCUtilsOptions<TRouter>,
-): TRouter extends Router<any>
-    ? ORPCUtilsWithRouter<TRouter>
-    : TRouter extends ContractRouter
-      ? ORPCUtilsWithContractRouter<TRouter>
-      : never {
+export function createORPCUtils<T extends RouterClient<any>>(
+  options: CreateORPCUtilsOptions<T>,
+): ORPCUtils<T> {
   const path = options.path ?? []
   const client = options.contextValue.client as any
 

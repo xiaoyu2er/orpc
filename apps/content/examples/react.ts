@@ -1,6 +1,5 @@
+import type { RouterClient } from '@orpc/server'
 import type { router } from 'examples/server'
 import { createORPCReact } from '@orpc/react'
-// biome-ignore lint/correctness/noUnusedImports: <explanation>
 
-export const { orpc, ORPCContext }
-  = createORPCReact<typeof router /** or contract router */>()
+export const { orpc, ORPCContext } = createORPCReact<RouterClient<typeof router /** or contract router */>>()

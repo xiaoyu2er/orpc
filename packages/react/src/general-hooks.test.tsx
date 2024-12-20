@@ -1,12 +1,8 @@
-import type { SchemaOutput } from '@orpc/contract'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { renderHook } from '@testing-library/react'
 import {
   ORPCContext,
   queryClient,
-  type UserCreateInputSchema,
-  type UserFindInputSchema,
-  type UserSchema,
   wrapper,
 } from '../tests/orpc'
 import { createGeneralHooks } from './general-hooks'
@@ -16,25 +12,17 @@ beforeEach(() => {
 })
 
 describe('useIsFetching', () => {
-  const user_hooks = createGeneralHooks<undefined, undefined, unknown>({
+  const user_hooks = createGeneralHooks({
     context: ORPCContext,
     path: ['user'],
   })
 
-  const user_find_Hooks = createGeneralHooks<
-    typeof UserFindInputSchema,
-    typeof UserSchema,
-    SchemaOutput<typeof UserSchema>
-  >({
+  const user_find_Hooks = createGeneralHooks({
     context: ORPCContext,
     path: ['user', 'find'],
   })
 
-  const user_create_Hooks = createGeneralHooks<
-    typeof UserCreateInputSchema,
-    typeof UserSchema,
-    SchemaOutput<typeof UserSchema>
-  >({
+  const user_create_Hooks = createGeneralHooks({
     context: ORPCContext,
     path: ['user', 'create'],
   })
@@ -104,25 +92,17 @@ describe('useIsFetching', () => {
 })
 
 describe('useIsMutating', () => {
-  const user_hooks = createGeneralHooks<undefined, undefined, unknown>({
+  const user_hooks = createGeneralHooks({
     context: ORPCContext,
     path: ['user'],
   })
 
-  const user_find_Hooks = createGeneralHooks<
-    typeof UserFindInputSchema,
-    typeof UserSchema,
-    SchemaOutput<typeof UserSchema>
-  >({
+  const user_find_Hooks = createGeneralHooks({
     context: ORPCContext,
     path: ['user', 'find'],
   })
 
-  const user_create_Hooks = createGeneralHooks<
-    typeof UserCreateInputSchema,
-    typeof UserSchema,
-    SchemaOutput<typeof UserSchema>
-  >({
+  const user_create_Hooks = createGeneralHooks({
     context: ORPCContext,
     path: ['user', 'create'],
   })
@@ -165,25 +145,17 @@ describe('useIsMutating', () => {
 })
 
 describe('useMutationState', () => {
-  const user_hooks = createGeneralHooks<undefined, undefined, unknown>({
+  const user_hooks = createGeneralHooks({
     context: ORPCContext,
     path: ['user'],
   })
 
-  const user_find_Hooks = createGeneralHooks<
-    typeof UserFindInputSchema,
-    typeof UserSchema,
-    SchemaOutput<typeof UserSchema>
-  >({
+  const user_find_Hooks = createGeneralHooks({
     context: ORPCContext,
     path: ['user', 'find'],
   })
 
-  const user_create_Hooks = createGeneralHooks<
-    typeof UserCreateInputSchema,
-    typeof UserSchema,
-    SchemaOutput<typeof UserSchema>
-  >({
+  const user_create_Hooks = createGeneralHooks({
     context: ORPCContext,
     path: ['user', 'create'],
   })

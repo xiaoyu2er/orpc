@@ -1,16 +1,14 @@
-import type { SchemaOutput } from '@orpc/contract'
-import type { appRouter, UserFindInputSchema, UserListInputSchema, UserListOutputSchema, UserSchema } from '../../tests/orpc'
 import { orpcClient } from '../../tests/orpc'
 import { createUseQueriesBuilder } from './builder'
 import { createUseQueriesBuilders } from './builders'
 
 it('createUseQueriesBuilders', async () => {
-  const builder = createUseQueriesBuilders<typeof appRouter>({
+  const builder = createUseQueriesBuilders({
     client: orpcClient,
   })
 
   const e1 = builder.user.find({ id: '123' })
-  const a1 = createUseQueriesBuilder<typeof UserFindInputSchema, typeof UserSchema, SchemaOutput<typeof UserSchema>>({
+  const a1 = createUseQueriesBuilder({
     client: orpcClient.user.find,
     path: ['user', 'find'],
   })({ id: '123' })
@@ -20,7 +18,7 @@ it('createUseQueriesBuilders', async () => {
   expect(await (e1 as any).queryFn({})).toEqual(await (a1 as any).queryFn({}))
 
   const e2 = builder.user.list({})
-  const a2 = createUseQueriesBuilder<typeof UserListInputSchema, typeof UserListOutputSchema, SchemaOutput<typeof UserListOutputSchema>>({
+  const a2 = createUseQueriesBuilder({
     client: orpcClient.user.list,
     path: ['user', 'list'],
   })({})

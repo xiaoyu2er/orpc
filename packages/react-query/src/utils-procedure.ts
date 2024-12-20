@@ -1,4 +1,4 @@
-import type { Caller } from '@orpc/server'
+import type { ProcedureClient } from '@orpc/server'
 import type { IsEqual } from '@orpc/shared'
 import type { QueryKey } from '@tanstack/react-query'
 import type { InfiniteOptions, MutationOptions, QueryOptions } from './types'
@@ -26,7 +26,7 @@ export interface ProcedureUtils<TInput, TOutput> {
 }
 
 export function createProcedureUtils<TInput, TOutput>(
-  client: Caller<TInput, TOutput>,
+  client: ProcedureClient<TInput, TOutput>,
   path: string[],
 ): ProcedureUtils<TInput, TOutput> {
   return {

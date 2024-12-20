@@ -1,18 +1,18 @@
 /// <reference lib="dom" />
 
 import type { HTTPPath } from '@orpc/contract'
-import type { ANY_LAZY_PROCEDURE, ANY_PROCEDURE, Router } from '@orpc/server'
+import type { ANY_PROCEDURE, ANY_ROUTER } from '@orpc/server'
 import type { FetchHandler } from '@orpc/server/fetch'
 import type { Router as HonoRouter } from 'hono/router'
 import type { EachContractLeafResultItem, EachLeafOptions } from '../utils'
-import { createProcedureCaller, isLazy, isProcedure, LAZY_LOADER_SYMBOL, LAZY_ROUTER_PREFIX_SYMBOL, ORPCError } from '@orpc/server'
+import { createProcedureClient, getLazyRouterPrefix, getRouterChild, isProcedure, LAZY_LOADER_SYMBOL, ORPCError, unlazy } from '@orpc/server'
 import { executeWithHooks, isPlainObject, mapValues, ORPC_PROTOCOL_HEADER, ORPC_PROTOCOL_VALUE, trim, value } from '@orpc/shared'
 import { OpenAPIDeserializer, OpenAPISerializer, zodCoerce } from '@orpc/transformer'
 import { eachContractProcedureLeaf, standardizeHTTPPath } from '../utils'
 
-export type ResolveRouter = (router: Router<any>, method: string, pathname: string) => Promise<{
+export type ResolveRouter = (router: ANY_ROUTER, method: string, pathname: string) => Promise<{
   path: string[]
-  procedure: ANY_PROCEDURE | ANY_LAZY_PROCEDURE
+  procedure: ANY_PROCEDURE
   params: Record<string, string>
 } | undefined>
 
@@ -44,19 +44,12 @@ export function createOpenAPIHandler(createHonoRouter: () => Routing): FetchHand
       if (!match) {
         throw new ORPCError({ code: 'NOT_FOUND', message: 'Not found' })
       }
-      const procedure = isLazy(match.procedure) ? (await match.procedure[LAZY_LOADER_SYMBOL]()).default : match.procedure
-      const path = match.path
 
-      if (!isProcedure(procedure)) {
-        throw new ORPCError({
-          code: 'NOT_FOUND',
-          message: 'Not found',
-        })
-      }
+      const { path, procedure } = match
 
-      const params = procedure.zz$p.contract['~orpc'].InputSchema
+      const params = procedure['~orpc'].contract['~orpc'].InputSchema
         ? zodCoerce(
-          procedure.zz$p.contract['~orpc'].InputSchema,
+          procedure['~orpc'].contract['~orpc'].InputSchema,
           match.params,
           { bracketNotation: true },
         ) as Record<string, unknown>
@@ -65,7 +58,7 @@ export function createOpenAPIHandler(createHonoRouter: () => Routing): FetchHand
       const input = await deserializeInput(options.request, procedure)
       const mergedInput = mergeParamsAndInput(params, input)
 
-      const caller = createProcedureCaller({
+      const caller = createProcedureClient({
         context,
         procedure,
         path,
@@ -120,8 +113,8 @@ export function createOpenAPIHandler(createHonoRouter: () => Routing): FetchHand
   }
 }
 
-const routingCache = new Map<Router<any>, Routing>()
-const pendingCache = new Map<Router<any>, { ref: EachContractLeafResultItem[] }> ()
+const routingCache = new Map<ANY_ROUTER, Routing>()
+const pendingCache = new Map<ANY_ROUTER, { ref: EachContractLeafResultItem[] }> ()
 
 export function createResolveRouter(createHonoRouter: () => Routing): ResolveRouter {
   const addRoutes = (routing: Routing, pending: { ref: EachContractLeafResultItem[] }, options: EachLeafOptions) => {
@@ -137,7 +130,7 @@ export function createResolveRouter(createHonoRouter: () => Routing): ResolveRou
     pending.ref.push(...lazies)
   }
 
-  return async (router: Router<any>, method: string, pathname: string) => {
+  return async (router: ANY_ROUTER, method: string, pathname: string) => {
     const pending = (() => {
       let pending = pendingCache.get(router)
       if (!pending) {
@@ -163,10 +156,11 @@ export function createResolveRouter(createHonoRouter: () => Routing): ResolveRou
     const newPending = []
 
     for (const item of pending.ref) {
+      const lazyPrefix = getLazyRouterPrefix(item.lazy)
+
       if (
-        (LAZY_ROUTER_PREFIX_SYMBOL in item.lazy)
-        && item.lazy[LAZY_ROUTER_PREFIX_SYMBOL]
-        && !pathname.startsWith(item.lazy[LAZY_ROUTER_PREFIX_SYMBOL] as HTTPPath)
+        lazyPrefix
+        && !pathname.startsWith(lazyPrefix)
         && !pathname.startsWith(`/${item.path.map(encodeURIComponent).join('/')}`)
       ) {
         newPending.push(item)
@@ -198,23 +192,17 @@ export function createResolveRouter(createHonoRouter: () => Routing): ResolveRou
       )
       : match[1] as Record<string, string>
 
-    let current: Router<any> | ANY_PROCEDURE | ANY_LAZY_PROCEDURE | undefined = router
-    for (const segment of path) {
-      if ((typeof current !== 'object' && typeof current !== 'function') || !current) {
-        current = undefined
-        break
-      }
+    const { default: maybeProcedure } = await unlazy(getRouterChild(router, ...path))
 
-      current = (current as any)[segment]
+    if (!isProcedure(maybeProcedure)) {
+      return undefined
     }
 
-    return isProcedure(current) || isLazy(current)
-      ? {
-          path,
-          procedure: current,
-          params: { ...params }, // params from hono not a normal object, so we need spread here
-        }
-      : undefined
+    return {
+      path,
+      procedure: maybeProcedure,
+      params: { ...params }, // params from hono not a normal object, so we need spread here
+    }
   }
 }
 
@@ -235,7 +223,7 @@ function mergeParamsAndInput(coercedParams: Record<string, unknown>, input: unkn
 
 async function deserializeInput(request: Request, procedure: ANY_PROCEDURE): Promise<unknown> {
   const deserializer = new OpenAPIDeserializer({
-    schema: procedure.zz$p.contract['~orpc'].InputSchema,
+    schema: procedure['~orpc'].contract['~orpc'].InputSchema,
   })
 
   try {

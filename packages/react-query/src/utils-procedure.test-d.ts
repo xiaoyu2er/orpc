@@ -1,10 +1,10 @@
-import type { Caller } from '@orpc/server'
+import type { ProcedureClient } from '@orpc/server'
 import type { InfiniteData, QueryKey } from '@tanstack/react-query'
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { createProcedureUtils } from './utils-procedure'
 
 describe('queryOptions', () => {
-  const client = vi.fn<Caller<number | undefined, string | undefined>>(
+  const client = vi.fn<ProcedureClient<number | undefined, string | undefined>>(
     (...[input]) => Promise.resolve(input?.toString()),
   )
   const utils = createProcedureUtils(client, [])
@@ -151,7 +151,7 @@ describe('infiniteOptions', () => {
   })
 
   it('input can be optional', () => {
-    const utils = createProcedureUtils({} as Caller<{ limit?: number, cursor?: number } | undefined, string>, [])
+    const utils = createProcedureUtils({} as ProcedureClient<{ limit?: number, cursor?: number } | undefined, string>, [])
 
     utils.infiniteOptions({
       getNextPageParam,

@@ -1,7 +1,4 @@
-/// <reference lib="dom" />
-/// <reference lib="dom.iterable" />
-
-import type { Caller } from '@orpc/server'
+import type { ProcedureClient } from '@orpc/server'
 import type { Promisable } from '@orpc/shared'
 import { ORPC_PROTOCOL_HEADER, ORPC_PROTOCOL_VALUE, trim } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
@@ -34,13 +31,11 @@ export interface CreateProcedureClientOptions {
 const serializer = new ORPCSerializer()
 const deserializer = new ORPCDeserializer()
 
-export function createProcedureClient<TInput, TOutput>(
+export function createProcedureFetchClient<TInput, TOutput>(
   options: CreateProcedureClientOptions,
-): Caller<TInput, TOutput> {
-  const client: Caller<unknown, unknown> = async (...args) => {
-    const [input, callerOptions] = args
-
-    const fetch_ = options.fetch ?? fetch
+): ProcedureClient<TInput, TOutput> {
+  const client: ProcedureClient<TInput, TOutput> = async (...[input, callerOptions]) => {
+    const fetchClient = options.fetch ?? fetch
     const url = `${trim(options.baseURL, '/')}/${options.path.map(encodeURIComponent).join('/')}`
 
     const headers = new Headers({
@@ -59,7 +54,7 @@ export function createProcedureClient<TInput, TOutput>(
       headers.append(key, value)
     }
 
-    const response = await fetch_(url, {
+    const response = await fetchClient(url, {
       method: 'POST',
       headers,
       body: serialized.body,
@@ -90,8 +85,8 @@ export function createProcedureClient<TInput, TOutput>(
       )
     }
 
-    return json
+    return json as any
   }
 
-  return client as any
+  return client
 }

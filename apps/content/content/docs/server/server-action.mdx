@@ -9,7 +9,7 @@ oRPC makes it simple to implement server actions, offering a robust and type-saf
 Server actions are supported out of the box and are powered by several key features: 
 
 - [Middleware](/docs/server/middleware),
-- [Procedure Caller](/docs/server/caller)
+- [Procedure Client](/docs/server/client)
 - [Smart Conversion](/docs/openapi/smart-conversion)
 - [Bracket Notation](/docs/openapi/bracket-notation),
 
@@ -17,8 +17,8 @@ Server actions are supported out of the box and are powered by several key featu
 
 To use a procedure as a server action, the procedure must either:
 
-1. Be [directly callable](/docs/server/caller#direct-procedure-calls), or
-2. Use [Calling Procedures with Context](/docs/server/caller#calling-procedures-with-context) to create a callable procedure with context.
+1. Be [directly callable](/docs/server/client#direct-procedure-calls), or
+2. Use [Calling Procedures with Context](/docs/server/client#calling-procedures-with-context) to create a callable procedure with context.
 
 ## Usage
 
@@ -172,13 +172,13 @@ automatically convert `1992` into a `bigint` and seamlessly parse objects like `
 
 Some procedures cannot be used as server actions directly. This is typically because they 
 require additional context, such as user information or other runtime data. 
-In such cases, you can use [createProcedureCaller](/docs/server/caller#calling-procedures-with-context)
-or `createSafeAction` and `createFormAction` (built on top of `createProcedureCaller`)
+In such cases, you can use [createProcedureClient](/docs/server/client#calling-procedures-with-context)
+or `createSafeAction` and `createFormAction` (built on top of `createProcedureClient`)
 to provide the required context dynamically, making the procedure callable and usable as a server action.
 
 ```ts twoslash
 import { createSafeAction, createFormAction } from '@orpc/next'
-import { createProcedureCaller, os } from '@orpc/server'
+import { createProcedureClient, os } from '@orpc/server'
 import { z } from 'zod'
 
 type Context = { user?: { id: string } }
@@ -191,7 +191,7 @@ const getting = os
 // @errors: 2349
 getting({ name: 'Unnoq' }) // ❌ cannot call this procedure directly, and cannot be used as a server action
 
-export const caller = createProcedureCaller({ // or createSafeAction or createFormAction
+export const client = createProcedureClient({ // or createSafeAction or createFormAction
     procedure: getting,
     context: async () => {
         // you can access headers, cookies, etc. here to create context
@@ -199,7 +199,7 @@ export const caller = createProcedureCaller({ // or createSafeAction or createFo
     },
 })
 
-caller({ name: 'Unnoq' }) // ✅ can call this procedure directly, and can be used as a server action
+client({ name: 'Unnoq' }) // ✅ can call this procedure directly, and can be used as a server action
 ```
 
 This flexibility ensures you can adapt server actions to scenarios requiring runtime information, enhancing usability across diverse use cases.

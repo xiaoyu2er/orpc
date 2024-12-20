@@ -65,3 +65,38 @@ describe('router utils', () => {
     expect(procedureUtilsSpy).toHaveBeenCalledWith(client, ['base'])
   })
 })
+
+it('still works when router conflict with methods', () => {
+  const client = vi.fn() as any
+  client.key = vi.fn()
+  client.queryOptions = vi.fn()
+  client.queryOptions.key = vi.fn()
+  client.queryOptions.queryOptions = vi.fn()
+
+  const utils = createRouterUtils(client) as any
+
+  expect(utils.key()).toEqual(['__ORPC__', [], {}])
+  expect(utils.key.key()).toEqual(['__ORPC__', ['key'], {}])
+
+  expect(utils.queryOptions.key()).toEqual(['__ORPC__', ['queryOptions'], {}])
+  expect(utils.queryOptions.key.key()).toEqual(['__ORPC__', ['queryOptions', 'key'], {}])
+  expect(utils.queryOptions.queryOptions.key()).toEqual(['__ORPC__', ['queryOptions', 'queryOptions'], {}])
+})
+
+it('not recursive on symbol', async () => {
+  const symbol = Symbol('a')
+  const client = vi.fn() as any
+  client.a = {
+    b: {
+      c: vi.fn(),
+    },
+    [symbol]: {
+      d: vi.fn(),
+    },
+  }
+
+  const utils = createRouterUtils(client) as any
+
+  expect(typeof utils.a.b.c).toBe('object')
+  expect(utils.a[symbol]).toBe(undefined)
+})

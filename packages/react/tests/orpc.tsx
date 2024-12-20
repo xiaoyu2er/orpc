@@ -1,3 +1,4 @@
+import type { RouterClient } from '@orpc/server'
 import { createORPCFetchClient } from '@orpc/client'
 import { os } from '@orpc/server'
 import { createORPCHandler, handleFetchRequest } from '@orpc/server/fetch'
@@ -107,7 +108,7 @@ export const orpcClient = createORPCFetchClient<typeof appRouter>({
   },
 })
 
-export const { orpc, ORPCContext } = createORPCReact<typeof appRouter>()
+export const { orpc, ORPCContext } = createORPCReact<RouterClient<typeof appRouter>>()
 
 export const queryClient = new QueryClient({
   defaultOptions: {

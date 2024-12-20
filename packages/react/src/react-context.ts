@@ -1,29 +1,23 @@
-import type { RouterClient } from '@orpc/client'
-import type { ContractRouter } from '@orpc/contract'
-import type { Router } from '@orpc/server'
+import type { RouterClient } from '@orpc/server'
 import type { QueryClient } from '@tanstack/react-query'
 import { type Context, createContext, useContext } from 'react'
 
-export interface ORPCContextValue<
-  TRouter extends ContractRouter | Router<any>,
-> {
-  client: RouterClient<TRouter>
+export interface ORPCContextValue<T extends RouterClient<any>> {
+  client: T
   queryClient: QueryClient
 }
 
-export type ORPCContext<TRouter extends ContractRouter | Router<any>> = Context<
-  ORPCContextValue<TRouter> | undefined
+export type ORPCContext<T extends RouterClient<any>> = Context<
+  ORPCContextValue<T> | undefined
 >
 
-export function createORPCContext<
-  TRouter extends ContractRouter | Router<any>,
->(): ORPCContext<TRouter> {
+export function createORPCContext<T extends RouterClient<any>>(): ORPCContext<T> {
   return createContext(undefined as any)
 }
 
-export function useORPCContext<TRouter extends ContractRouter | Router<any>>(
-  context: ORPCContext<TRouter>,
-): ORPCContextValue<TRouter> {
+export function useORPCContext<T extends RouterClient<any>>(
+  context: ORPCContext<T>,
+): ORPCContextValue<T> {
   const value = useContext(context)
 
   if (!value) {

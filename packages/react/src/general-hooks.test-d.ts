@@ -1,4 +1,4 @@
-import type { SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { SchemaOutput } from '@orpc/contract'
 import type {
   DefaultError,
   Mutation,
@@ -6,22 +6,21 @@ import type {
 } from '@tanstack/react-query'
 import {
   ORPCContext,
-  type UserCreateInputSchema,
-  type UserFindInputSchema,
   type UserSchema,
 } from '../tests/orpc'
 import { createGeneralHooks } from './general-hooks'
 
+type User = SchemaOutput<typeof UserSchema>
+
 describe('useIsFetching', () => {
-  const hooks = createGeneralHooks<undefined, undefined, unknown>({
+  const hooks = createGeneralHooks<unknown, unknown>({
     context: ORPCContext,
     path: ['user'],
   })
 
   const procedureHooks = createGeneralHooks<
-    typeof UserFindInputSchema,
-    typeof UserSchema,
-    SchemaOutput<typeof UserSchema>
+    { id: string },
+    User
   >({
     context: ORPCContext,
     path: ['user', 'find'],
@@ -55,15 +54,14 @@ describe('useIsFetching', () => {
 })
 
 describe('useIsMutating', () => {
-  const hooks = createGeneralHooks<undefined, undefined, unknown>({
+  const hooks = createGeneralHooks<unknown, unknown>({
     context: ORPCContext,
     path: ['user'],
   })
 
   const procedureHooks = createGeneralHooks<
-    typeof UserCreateInputSchema,
-    typeof UserSchema,
-    SchemaOutput<typeof UserSchema>
+    { id: string },
+    User
   >({
     context: ORPCContext,
     path: ['user', 'create'],
@@ -83,15 +81,14 @@ describe('useIsMutating', () => {
 })
 
 describe('useMutationState', () => {
-  const hooks = createGeneralHooks<undefined, undefined, unknown>({
+  const hooks = createGeneralHooks<unknown, unknown>({
     context: ORPCContext,
     path: ['user'],
   })
 
   const procedureHooks = createGeneralHooks<
-    typeof UserCreateInputSchema,
-    typeof UserSchema,
-    SchemaOutput<typeof UserSchema>
+    { id: string },
+    User
   >({
     context: ORPCContext,
     path: ['user', 'create'],
@@ -106,9 +103,9 @@ describe('useMutationState', () => {
     const result2 = procedureHooks.useMutationState()
     expectTypeOf(result2).toEqualTypeOf<
       MutationState<
-        SchemaOutput<typeof UserSchema>,
+        { id: string, name: string },
         DefaultError,
-        SchemaInput<typeof UserCreateInputSchema>
+        { id: string }
       >[]
     >()
   })
@@ -137,9 +134,9 @@ describe('useMutationState', () => {
       select: (data) => {
         expectTypeOf(data).toEqualTypeOf<
           Mutation<
-            SchemaOutput<typeof UserSchema>,
+            { id: string, name: string },
             DefaultError,
-            SchemaInput<typeof UserCreateInputSchema>
+            { id: string }
           >
         >()
 

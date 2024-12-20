@@ -1,10 +1,8 @@
-import type { SchemaOutput } from '@orpc/contract'
-import type { UserFindInputSchema, UserSchema } from '../../tests/orpc'
 import { orpcClient } from '../../tests/orpc'
 import { createUseQueriesBuilder } from './builder'
 
 it('createUseQueriesBuilder', async () => {
-  const builder = createUseQueriesBuilder<typeof UserFindInputSchema, typeof UserSchema, SchemaOutput<typeof UserSchema>>({
+  const builder = createUseQueriesBuilder({
     client: orpcClient.user.find,
     path: ['user', 'find'],
   })

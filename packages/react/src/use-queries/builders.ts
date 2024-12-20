@@ -1,48 +1,16 @@
-import type { RouterClient } from '@orpc/client'
-import type {
-  ContractProcedure,
-  ContractRouter,
-  SchemaOutput,
-} from '@orpc/contract'
-import type { Procedure, Router } from '@orpc/server'
+import type { ProcedureClient, RouterClient } from '@orpc/server'
 import type {} from '@tanstack/react-query'
 import { createUseQueriesBuilder, type UseQueriesBuilder } from './builder'
 
-export type UseQueriesBuildersWithContractRouter<
-  TRouter extends ContractRouter,
-> = {
-  [K in keyof TRouter]: TRouter[K] extends ContractProcedure<
-    infer UInputSchema,
-    infer UOutputSchema
-  >
-    ? UseQueriesBuilder<
-      UInputSchema,
-      UOutputSchema,
-      SchemaOutput<UOutputSchema>
-    >
-    : TRouter[K] extends ContractRouter
-      ? UseQueriesBuildersWithContractRouter<TRouter[K]>
-      : never
-}
+export type UseQueriesBuilders<T extends RouterClient<any>> =
+  T extends ProcedureClient<infer UInput, infer UOutput>
+    ? UseQueriesBuilder<UInput, UOutput>
+    : {
+        [K in keyof T]: T[K] extends RouterClient<any> ? UseQueriesBuilders<T[K]> : never
+      }
 
-export type UseQueriesBuildersWithRouter<TRouter extends Router<any>> = {
-  [K in keyof TRouter]: TRouter[K] extends Procedure<
-    any,
-    any,
-    infer UInputSchema,
-    infer UOutputSchema,
-    infer UFuncOutput
-  >
-    ? UseQueriesBuilder<UInputSchema, UOutputSchema, UFuncOutput>
-    : TRouter[K] extends Router<any>
-      ? UseQueriesBuildersWithRouter<TRouter[K]>
-      : never
-}
-
-export interface CreateUseQueriesBuildersOptions<
-  TRouter extends Router<any> | ContractRouter,
-> {
-  client: RouterClient<TRouter>
+export interface CreateUseQueriesBuildersOptions<T extends RouterClient<any>> {
+  client: T
 
   /**
    * The path of router on server
@@ -50,15 +18,9 @@ export interface CreateUseQueriesBuildersOptions<
   path?: string[]
 }
 
-export function createUseQueriesBuilders<
-  TRouter extends Router<any> | ContractRouter,
->(
-  options: CreateUseQueriesBuildersOptions<TRouter>,
-): TRouter extends Router<any>
-    ? UseQueriesBuildersWithRouter<TRouter>
-    : TRouter extends ContractRouter
-      ? UseQueriesBuildersWithContractRouter<TRouter>
-      : never {
+export function createUseQueriesBuilders<T extends RouterClient<any>>(
+  options: CreateUseQueriesBuildersOptions<T>,
+): UseQueriesBuilders<T> {
   const path = options.path ?? []
   const client = options.client as any
 

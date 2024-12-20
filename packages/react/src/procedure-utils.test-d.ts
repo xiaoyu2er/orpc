@@ -8,11 +8,16 @@ import type {
 } from '../tests/orpc'
 import { createProcedureUtils } from './procedure-utils'
 
+type UserFindInput = SchemaInput<typeof UserFindInputSchema>
+type User = SchemaOutput<typeof UserSchema>
+
+type UserListInput = SchemaInput<typeof UserListInputSchema>
+type UserListOutput = SchemaOutput<typeof UserListOutputSchema>
+
 describe('fetchQuery', () => {
   const utils = createProcedureUtils<
-    typeof UserFindInputSchema,
-    typeof UserSchema,
-    SchemaOutput<typeof UserSchema>
+    UserFindInput,
+    User
   >({} as any)
 
   it('simple', async () => {
@@ -45,9 +50,8 @@ describe('fetchQuery', () => {
 
 describe('fetchInfiniteQuery', () => {
   const utils = createProcedureUtils<
-    typeof UserListInputSchema,
-    typeof UserListOutputSchema,
-    SchemaOutput<typeof UserListOutputSchema>
+    UserListInput,
+    UserListOutput
   >({} as any)
 
   it('simple', async () => {
@@ -105,9 +109,8 @@ describe('fetchInfiniteQuery', () => {
 
 describe('prefetchQuery', () => {
   const utils = createProcedureUtils<
-    typeof UserFindInputSchema,
-    typeof UserSchema,
-    SchemaOutput<typeof UserSchema>
+    UserFindInput,
+    User
   >({} as any)
 
   it('simple', async () => {
@@ -140,9 +143,8 @@ describe('prefetchQuery', () => {
 
 describe('prefetchInfiniteQuery', () => {
   const utils = createProcedureUtils<
-    typeof UserListInputSchema,
-    typeof UserListOutputSchema,
-    SchemaOutput<typeof UserListOutputSchema>
+    UserListInput,
+    UserListOutput
   >({} as any)
 
   it('simple', () => {
@@ -195,9 +197,8 @@ describe('prefetchInfiniteQuery', () => {
 
 describe('getQueryData', () => {
   const utils = createProcedureUtils<
-    typeof UserFindInputSchema,
-    typeof UserSchema,
-    SchemaOutput<typeof UserSchema>
+    UserFindInput,
+    User
   >({} as any)
 
   it('simple', () => {
@@ -215,9 +216,8 @@ describe('getQueryData', () => {
 
 describe('getInfiniteQueryData', () => {
   const utils = createProcedureUtils<
-    typeof UserListInputSchema,
-    typeof UserListOutputSchema,
-    SchemaOutput<typeof UserListOutputSchema>
+    UserListInput,
+    UserListOutput
   >({} as any)
 
   it('simple', () => {
@@ -242,9 +242,8 @@ describe('getInfiniteQueryData', () => {
 
 describe('ensureQueryData', () => {
   const utils = createProcedureUtils<
-    typeof UserFindInputSchema,
-    typeof UserSchema,
-    SchemaOutput<typeof UserSchema>
+    UserFindInput,
+    User
   >({} as any)
 
   it('simple', async () => {
@@ -277,9 +276,8 @@ describe('ensureQueryData', () => {
 
 describe('ensureInfiniteQuery', () => {
   const utils = createProcedureUtils<
-    typeof UserListInputSchema,
-    typeof UserListOutputSchema,
-    SchemaOutput<typeof UserListOutputSchema>
+    UserListInput,
+    UserListOutput
   >({} as any)
 
   it('simple', async () => {
@@ -339,9 +337,8 @@ describe('ensureInfiniteQuery', () => {
 
 describe('getQueryState', () => {
   const utils = createProcedureUtils<
-    typeof UserFindInputSchema,
-    typeof UserSchema,
-    SchemaOutput<typeof UserSchema>
+    UserFindInput,
+    User
   >({} as any)
 
   it('simple', () => {
@@ -359,9 +356,8 @@ describe('getQueryState', () => {
 
 describe('getInfiniteQueryState', () => {
   const utils = createProcedureUtils<
-    typeof UserListInputSchema,
-    typeof UserListOutputSchema,
-    SchemaOutput<typeof UserListOutputSchema>
+    UserListInput,
+    UserListOutput
   >({} as any)
 
   it('simple', () => {
@@ -388,9 +384,8 @@ describe('getInfiniteQueryState', () => {
 
 describe('setQueryData', () => {
   const utils = createProcedureUtils<
-    typeof UserFindInputSchema,
-    typeof UserSchema,
-    SchemaOutput<typeof UserSchema>
+    UserFindInput,
+    User
   >({} as any)
 
   it('simple', () => {
@@ -427,9 +422,8 @@ describe('setQueryData', () => {
 
 describe('setInfiniteQueryData', () => {
   const utils = createProcedureUtils<
-    typeof UserListInputSchema,
-    typeof UserListOutputSchema,
-    SchemaOutput<typeof UserListOutputSchema>
+    UserListInput,
+    UserListOutput
   >({} as any)
 
   it('simple', () => {

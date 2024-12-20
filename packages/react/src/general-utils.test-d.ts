@@ -1,9 +1,8 @@
-import type { SchemaOutput } from '@orpc/contract'
+import type { SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Promisable } from '@orpc/shared'
 import type { InfiniteData } from '@tanstack/react-query'
 import {
   queryClient,
-  type UserCreateInputSchema,
   type UserFindInputSchema,
   type UserListInputSchema,
   type UserListOutputSchema,
@@ -11,33 +10,36 @@ import {
 } from '../tests/orpc'
 import { createGeneralUtils } from './general-utils'
 
+type UserFindInput = SchemaInput<typeof UserFindInputSchema>
+type User = SchemaOutput<typeof UserSchema>
+
+type UserListInput = SchemaInput<typeof UserListInputSchema>
+type UserListOutput = SchemaOutput<typeof UserListOutputSchema>
+
 const user_utils = createGeneralUtils({
   queryClient,
   path: ['user'],
 })
 
 const user_find_utils = createGeneralUtils<
-  typeof UserFindInputSchema,
-  typeof UserSchema,
-  SchemaOutput<typeof UserSchema>
+  UserFindInput,
+  User
 >({
   queryClient,
   path: ['user', 'find'],
 })
 
 const user_list_utils = createGeneralUtils<
-  typeof UserListInputSchema,
-  typeof UserListOutputSchema,
-  SchemaOutput<typeof UserListOutputSchema>
+  UserListInput,
+  UserListOutput
 >({
   queryClient,
   path: ['user', 'list'],
 })
 
 const user_create_utils = createGeneralUtils<
-  typeof UserCreateInputSchema,
-  typeof UserSchema,
-  SchemaOutput<typeof UserSchema>
+  UserFindInput,
+  User
 >({
   queryClient,
   path: ['user', 'create'],

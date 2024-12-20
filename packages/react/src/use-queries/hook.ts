@@ -1,51 +1,33 @@
-import type { ContractRouter } from '@orpc/contract'
-import type { Router } from '@orpc/server'
-import {
-  type QueriesOptions,
-  type QueriesResults,
-  useQueries,
+import type { RouterClient } from '@orpc/server'
+import type {
+  QueriesOptions,
+  QueriesResults,
 } from '@tanstack/react-query'
-import { type ORPCContext, useORPCContext } from '../react-context'
-import {
-  createUseQueriesBuilders,
-  type UseQueriesBuildersWithContractRouter,
-  type UseQueriesBuildersWithRouter,
-} from './builders'
+import type { ORPCContext } from '../react-context'
+import type { UseQueriesBuilders } from './builders'
+import { useQueries } from '@tanstack/react-query'
+import { useORPCContext } from '../react-context'
+import { createUseQueriesBuilders } from './builders'
 
-export interface UseQueriesWithContractRouter<TRouter extends ContractRouter> {
-  <T extends Array<any> = [], TCombinedResult = QueriesResults<T>>(
+export interface UseQueries<T extends RouterClient<any>> {
+  <U extends Array<any> = [], UCombinedResult = QueriesResults<U>>(
     build: (
-      builders: UseQueriesBuildersWithContractRouter<TRouter>,
-    ) => [...QueriesOptions<T>],
-    combine?: (result: QueriesResults<T>) => TCombinedResult,
-  ): TCombinedResult
+      builders: UseQueriesBuilders<T>,
+    ) => [...QueriesOptions<U>],
+    combine?: (result: QueriesResults<U>) => UCombinedResult,
+  ): UCombinedResult
 }
 
-export interface UseQueriesWithRouter<TRouter extends Router<any>> {
-  <T extends Array<any> = [], TCombinedResult = QueriesResults<T>>(
-    build: (
-      builders: UseQueriesBuildersWithRouter<TRouter>,
-    ) => [...QueriesOptions<T>],
-    combine?: (result: QueriesResults<T>) => TCombinedResult,
-  ): TCombinedResult
+export interface UseQueriesFactoryOptions<T extends RouterClient<any>> {
+  context: ORPCContext<T>
 }
 
-export interface UseQueriesFactoryOptions<
-  TRouter extends Router<any> | ContractRouter,
-> {
-  context: ORPCContext<TRouter>
-}
-
-export function useQueriesFactory<TRouter extends Router<any> | ContractRouter>(
-  options: UseQueriesFactoryOptions<TRouter>,
-): TRouter extends Router<any>
-    ? UseQueriesWithRouter<TRouter>
-    : TRouter extends ContractRouter
-      ? UseQueriesWithContractRouter<TRouter>
-      : never {
+export function useQueriesFactory<T extends RouterClient<any>>(
+  options: UseQueriesFactoryOptions<T>,
+): UseQueries<T> {
   const Hook = (build: any, combine?: any): any => {
     const orpc = useORPCContext(options.context)
-    const builders = createUseQueriesBuilders({ client: orpc.client as any })
+    const builders = createUseQueriesBuilders({ client: orpc.client })
 
     return useQueries({
       queries: build(builders),
@@ -53,5 +35,5 @@ export function useQueriesFactory<TRouter extends Router<any> | ContractRouter>(
     })
   }
 
-  return Hook as any
+  return Hook
 }

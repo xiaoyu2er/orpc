@@ -1,11 +1,7 @@
-import type { SchemaInput } from '@orpc/contract'
 import type { PartialDeep } from '@orpc/shared'
 import type { MutationKey, QueryKey } from '@tanstack/react-query'
 import type { ProcedureHooks } from './procedure-hooks'
-import type {
-  ORPCHooksWithContractRouter,
-  ORPCHooksWithRouter,
-} from './react-hooks'
+import type { ORPCHooks } from './react-hooks'
 import { getORPCPath } from './orpc-path'
 
 export type QueryType = 'query' | 'infinite' | undefined
@@ -17,14 +13,13 @@ export interface GetQueryKeyOptions<TInput> {
 
 export function getQueryKey<
   T extends
-  | ORPCHooksWithContractRouter<any>
-  | ORPCHooksWithRouter<any>
-  | ProcedureHooks<any, any, any>,
+  | ORPCHooks<any>
+  | ProcedureHooks<any, any>,
 >(
   orpc: T,
   options?: GetQueryKeyOptions<
-    T extends ProcedureHooks<infer UInputSchema, any, any>
-      ? PartialDeep<SchemaInput<UInputSchema>>
+    T extends ProcedureHooks<infer UInput, any>
+      ? PartialDeep<UInput>
       : unknown
   >,
 ): QueryKey {
@@ -51,9 +46,8 @@ export function getQueryKeyFromPath(
 
 export function getMutationKey<
   T extends
-  | ORPCHooksWithContractRouter<any>
-  | ORPCHooksWithRouter<any>
-  | ProcedureHooks<any, any, any>,
+  | ORPCHooks<any>
+  | ProcedureHooks<any, any>,
 >(orpc: T): MutationKey {
   const path = getORPCPath(orpc)
   return getMutationKeyFromPath(path)

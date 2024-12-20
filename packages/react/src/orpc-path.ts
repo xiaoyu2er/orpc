@@ -1,16 +1,12 @@
 import type { ProcedureHooks } from './procedure-hooks'
-import type {
-  ORPCHooksWithContractRouter,
-  ORPCHooksWithRouter,
-} from './react-hooks'
+import type { ORPCHooks } from './react-hooks'
 
 export const orpcPathSymbol = Symbol('orpcPathSymbol')
 
 export function getORPCPath(
   orpc:
-    | ORPCHooksWithContractRouter<any>
-    | ORPCHooksWithRouter<any>
-    | ProcedureHooks<any, any, any>,
+    | ORPCHooks<any>
+    | ProcedureHooks<any, any>,
 ): string[] {
   const val = Reflect.get(orpc, orpcPathSymbol)
 

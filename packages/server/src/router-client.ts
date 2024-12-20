@@ -1,4 +1,4 @@
-import type { SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ContractProcedure, ContractRouter, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Hooks, Value } from '@orpc/shared'
 import type { Lazy } from './lazy'
 import type { Procedure } from './procedure'
@@ -10,12 +10,15 @@ import { isProcedure } from './procedure'
 import { createProcedureClient } from './procedure-client'
 import { type ANY_ROUTER, getRouterChild, type Router } from './router'
 
-export type RouterClient<T extends ANY_ROUTER> = T extends Lazy<infer U extends ANY_ROUTER>
+export type RouterClient<T extends ANY_ROUTER | ContractRouter> =
+T extends Lazy<infer U extends ANY_ROUTER | ContractRouter>
   ? RouterClient<U>
-  : T extends Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
+  : T extends
+  | ContractProcedure<infer UInputSchema, infer UOutputSchema>
+  | Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
     ? ProcedureClient<SchemaInput<UInputSchema>, SchemaOutput<UOutputSchema, UFuncOutput>>
     : {
-        [K in keyof T]: T[K] extends ANY_ROUTER ? RouterClient<T[K]> : never
+        [K in keyof T]: T[K] extends ANY_ROUTER | ContractRouter ? RouterClient<T[K]> : never
       }
 
 export type CreateRouterClientOptions<

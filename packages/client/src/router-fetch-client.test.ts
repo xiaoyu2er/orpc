@@ -60,4 +60,12 @@ describe('router fetch client', () => {
       fetch,
     })
   })
+
+  it('not recursive on symbol', async () => {
+    const client = createRouterFetchClient({
+      baseURL: 'http://localhost:3000/orpc',
+    }) as any
+
+    expect(client[Symbol('test')]).toBeUndefined()
+  })
 })

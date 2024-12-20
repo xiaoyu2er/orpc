@@ -34,7 +34,7 @@ const deserializer = new ORPCDeserializer()
 export function createProcedureFetchClient<TInput, TOutput>(
   options: CreateProcedureClientOptions,
 ): ProcedureClient<TInput, TOutput> {
-  const client: ProcedureClient<unknown, unknown> = async (...[input, callerOptions]) => {
+  const client: ProcedureClient<TInput, TOutput> = async (...[input, callerOptions]) => {
     const fetchClient = options.fetch ?? fetch
     const url = `${trim(options.baseURL, '/')}/${options.path.map(encodeURIComponent).join('/')}`
 
@@ -85,8 +85,8 @@ export function createProcedureFetchClient<TInput, TOutput>(
       )
     }
 
-    return json
+    return json as any
   }
 
-  return client as any
+  return client
 }

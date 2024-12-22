@@ -1,8 +1,6 @@
 <div align="center">
-  <image align="center" src="https://i.ibb.co/rZw671M/New-Project-2.png" width=400 />
+  <image align="center" src="./logo.png" width=400 />
 </div>
-
-<h1></h1>
 
 <div align="center">
 
@@ -40,14 +38,14 @@ You can find the full documentation & examples [here](https://orpc.unnoq.com).
 ## Packages
 
 - `@orpc/contract`: Build your API contract.
-- `@orpc/server`: Handle your contract on the server.
-- `@orpc/client`: Consume your contract on the client.
-- `@orpc/react`: React hooks for your client.
-- `@orpc/react-query`: React Query wrapper for your client.
-- `@orpc/vue-query`: Vue Query wrapper for your client.
-- `@orpc/openapi`: Generate an OpenAPI spec from your contract.
-- `@orpc/next`: Next.js API server handler.
-- `@orpc/zod`: Specialised Zod schema types for your contract.
+- `@orpc/server`: Build your API or implement API contract.
+- `@orpc/client`: Consume your API on the client with type-safety.
+- `@orpc/react`: High level integration with [React Query](https://tanstack.com/query/latest/docs/framework/react/overview).
+- `@orpc/react-query`: Low level integration with [React Query](https://tanstack.com/query/latest/docs/framework/react/overview).
+- `@orpc/vue-query`: Low level integration with [Vue Query](https://tanstack.com/query/latest/docs/framework/vue/overview).
+- `@orpc/openapi`: Generate OpenAPI specs and provide OpenAPI handler for `@orpc/server`.
+- `@orpc/next`: Helpers and hooks for [Next.JS](https://nextjs.org/).
+- `@orpc/zod`: More schemas that [Zod](https://zod.dev/) doesn't support yet.
 
 ---
 

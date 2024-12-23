@@ -17,6 +17,7 @@ export type Router<
 >
 
 export type ANY_ROUTER = Router<any, any>
+export type ANY_LAZY_ROUTER = Lazy<ANY_PROCEDURE> | Lazy<Record<string, ANY_ROUTER>>
 
 export type InferRouterInputs<T extends ANY_ROUTER> =
   T extends Lazy<infer U extends ANY_ROUTER> ? InferRouterInputs<U>

@@ -240,6 +240,9 @@ importers:
       '@standard-schema/spec':
         specifier: 1.0.0-beta.4
         version: 1.0.0-beta.4
+      content-disposition:
+        specifier: ^0.5.4
+        version: 0.5.4
       escape-string-regexp:
         specifier: ^5.0.0
         version: 5.0.0

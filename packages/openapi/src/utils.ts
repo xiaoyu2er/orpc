@@ -1,33 +1,33 @@
 import type { ContractRouter, HTTPPath, WELL_CONTRACT_PROCEDURE } from '@orpc/contract'
-import type { ANY_PROCEDURE, ANY_ROUTER, Lazy } from '@orpc/server'
+import type { ANY_LAZY_ROUTER, ANY_ROUTER } from '@orpc/server'
 import { isContractProcedure } from '@orpc/contract'
 import { flatLazy, getRouterContract, isLazy, isProcedure } from '@orpc/server'
 
-export interface EachLeafOptions {
+export interface ForEachContractProcedureOptions {
   router: ContractRouter | ANY_ROUTER
   path: string[]
 }
 
-export interface EachLeafCallbackOptions {
+export interface ForEachContractProcedureCallbackOptions {
   contract: WELL_CONTRACT_PROCEDURE
   path: string[]
 }
 
-export interface EachContractLeafResultItem {
-  lazy: Lazy<ANY_PROCEDURE> | Lazy<Record<string, ANY_ROUTER>>
+export interface PendingLazyRouter {
+  router: ANY_LAZY_ROUTER
   path: string[]
 }
 
-export function eachContractProcedureLeaf(
-  options: EachLeafOptions,
-  callback: (options: EachLeafCallbackOptions) => void,
-  result: EachContractLeafResultItem[] = [],
+export function forEachContractProcedure(
+  options: ForEachContractProcedureOptions,
+  callback: (options: ForEachContractProcedureCallbackOptions) => void,
+  result: PendingLazyRouter[] = [],
   isCurrentRouterContract = false,
-): EachContractLeafResultItem[] {
+): PendingLazyRouter[] {
   const hiddenContract = getRouterContract(options.router)
 
   if (!isCurrentRouterContract && hiddenContract) {
-    return eachContractProcedureLeaf(
+    return forEachContractProcedure(
       {
         path: options.path,
         router: hiddenContract,
@@ -40,7 +40,7 @@ export function eachContractProcedureLeaf(
 
   if (isLazy(options.router)) {
     result.push({
-      lazy: flatLazy(options.router),
+      router: flatLazy(options.router),
       path: options.path,
     })
   }
@@ -64,7 +64,7 @@ export function eachContractProcedureLeaf(
   //
   else {
     for (const key in options.router) {
-      eachContractProcedureLeaf(
+      forEachContractProcedure(
         {
           router: (options.router as any)[key],
           path: [...options.path, key],

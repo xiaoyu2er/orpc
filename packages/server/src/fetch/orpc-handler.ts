@@ -1,4 +1,4 @@
-import type { ANY_LAZY_PROCEDURE, ANY_PROCEDURE } from '../procedure'
+import type { ANY_PROCEDURE } from '../procedure'
 import type { FetchHandler } from './types'
 import { executeWithHooks, ORPC_PROTOCOL_HEADER, ORPC_PROTOCOL_VALUE, trim, value } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
@@ -67,10 +67,7 @@ export function createORPCHandler(): FetchHandler {
 async function resolveRouterMatch(
   router: ANY_ROUTER,
   pathname: string,
-): Promise<{
-  path: string[]
-  procedure: ANY_PROCEDURE | ANY_LAZY_PROCEDURE
-} | undefined> {
+): Promise<{ path: string[], procedure: ANY_PROCEDURE } | undefined> {
   const pathSegments = trim(pathname, '/').split('/').map(decodeURIComponent)
 
   const match = getRouterChild(router, ...pathSegments)

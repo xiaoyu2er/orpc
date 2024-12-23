@@ -1,5 +1,5 @@
 import type { JSONSchema } from 'json-schema-typed/draft-2020-12'
-import type { EachLeafOptions } from './utils'
+import type { ForEachContractProcedureOptions } from './utils'
 import { type ContractRouter, isContractProcedure } from '@orpc/contract'
 import { type ANY_ROUTER, unlazy } from '@orpc/server'
 import { findDeepMatches, isPlainObject, omit } from '@orpc/shared'
@@ -13,7 +13,7 @@ import {
   type RequestBodyObject,
   type ResponseObject,
 } from 'openapi3-ts/oas31'
-import { eachContractProcedureLeaf, standardizeHTTPPath } from './utils'
+import { forEachContractProcedure, standardizeHTTPPath } from './utils'
 import {
   extractJSONSchema,
   UNSUPPORTED_JSON_SCHEMA,
@@ -59,13 +59,13 @@ export async function generateOpenAPI(
 
   const rootTags = opts.tags?.map(tag => tag.name) ?? []
 
-  const pending: EachLeafOptions[] = [{
+  const pending: ForEachContractProcedureOptions[] = [{
     path: [],
     router: opts.router,
   }]
 
   for (const item of pending) {
-    const lazies = eachContractProcedureLeaf(item, ({ contract, path }) => {
+    const lazies = forEachContractProcedure(item, ({ contract, path }) => {
       if (!isContractProcedure(contract)) {
         return
       }
@@ -344,7 +344,7 @@ export async function generateOpenAPI(
     })
 
     for (const lazy of lazies) {
-      const { default: router } = await unlazy(lazy.lazy)
+      const { default: router } = await unlazy(lazy.router)
 
       pending.push({
         path: lazy.path,

@@ -1,8 +1,8 @@
+import type { HTTPPath } from '@orpc/contract'
 import type { Router as BaseHono, ParamIndexMap, Params } from 'hono/router'
 import { type ANY_PROCEDURE, type ANY_ROUTER, getLazyRouterPrefix, getRouterChild, isProcedure, unlazy } from '@orpc/server'
 import { mapValues } from '@orpc/shared'
-import { forEachContractProcedure } from '../utils'
-import { convertOpenAPIPathToRouterPath } from './utils'
+import { forEachContractProcedure, standardizeHTTPPath } from '../utils'
 
 export type Hono = BaseHono<[string, string[]]>
 
@@ -10,7 +10,7 @@ type PendingRouter = { path: string[], router: ANY_ROUTER }
 type PendingRoutersRef = { value: PendingRouter[] }
 const caches = new WeakMap<ANY_ROUTER, WeakMap<Hono, PendingRoutersRef>>()
 
-export class OpenAPIMatcher {
+export class OpenAPIProcedureMatcher {
   private pendingRoutersRef: PendingRoutersRef
 
   constructor(
@@ -91,7 +91,7 @@ export class OpenAPIMatcher {
     const lazies = forEachContractProcedure({ path, router }, ({ path, contract }) => {
       const method = contract['~orpc'].route?.method ?? 'POST'
       const httpPath = contract['~orpc'].route?.path
-        ? convertOpenAPIPathToRouterPath(contract['~orpc'].route?.path)
+        ? this.convertOpenAPIPathToRouterPath(contract['~orpc'].route?.path)
         : `/${path.map(encodeURIComponent).join('/')}`
 
       this.hono.add(method, httpPath, [httpPath, path])
@@ -121,5 +121,9 @@ export class OpenAPIMatcher {
     }
 
     this.pendingRoutersRef.value = newPendingLazyRouters
+  }
+
+  private convertOpenAPIPathToRouterPath(path: HTTPPath): string {
+    return standardizeHTTPPath(path).replace(/\{([^}]+)\}/g, ':$1')
   }
 }

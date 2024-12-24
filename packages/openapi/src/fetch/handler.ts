@@ -1,8 +1,9 @@
 import type { Context, Router, WithSignal } from '@orpc/server'
 import type { FetchHandler, FetchOptions } from '@orpc/server/fetch'
 import type { Hooks } from '@orpc/shared'
+import type { OpenApiInputBuilder } from './input-builder'
 import type { Hono } from './procedure-matcher'
-import type { OpenApiInputBuilder, OpenAPITransformer } from './types'
+import type { OpenAPITransformer } from './transformer'
 import { createProcedureClient, ORPCError } from '@orpc/server'
 import { executeWithHooks, trim, value } from '@orpc/shared'
 import { OpenAPIBodyParser } from './body-parser'
@@ -12,7 +13,6 @@ import { OpenAPIResponseBuilder } from './response-builder'
 import { OpenAPICompositeTransformer } from './transformer-composite'
 
 export type OpenAPIHandlerOptions<T extends Context> = Hooks<Request, Response, T, WithSignal> & {
-  defaultInputBuilder?: OpenApiInputBuilder
   bodyParser?: OpenAPIBodyParser
   responseBuilder?: OpenAPIResponseBuilder
   transformers?: OpenAPITransformer[]
@@ -20,7 +20,7 @@ export type OpenAPIHandlerOptions<T extends Context> = Hooks<Request, Response, 
 
 export class OpenAPIHandler<T extends Context> implements FetchHandler<T> {
   private matcher: OpenAPIProcedureMatcher
-  private defaultInputBuilder: OpenApiInputBuilder
+  private simpleInputBuilder: OpenApiInputBuilder
   private bodyParser: OpenAPIBodyParser
   private responseBuilder: OpenAPIResponseBuilder
   private compositeTransformer: OpenAPICompositeTransformer
@@ -32,7 +32,7 @@ export class OpenAPIHandler<T extends Context> implements FetchHandler<T> {
   ) {
     this.matcher = new OpenAPIProcedureMatcher(hono, router)
 
-    this.defaultInputBuilder = options?.defaultInputBuilder ?? new OpenAPISimpleInputBuilder()
+    this.simpleInputBuilder = new OpenAPISimpleInputBuilder()
     this.bodyParser = options?.bodyParser ?? new OpenAPIBodyParser()
     this.responseBuilder = options?.responseBuilder ?? new OpenAPIResponseBuilder()
     this.compositeTransformer = new OpenAPICompositeTransformer(options?.transformers ?? [])
@@ -92,7 +92,7 @@ export class OpenAPIHandler<T extends Context> implements FetchHandler<T> {
     const body = await this.bodyParser.parse(request)
 
     // TODO: use procedure level input builder
-    const input = this.defaultInputBuilder.build(params, query, headers, body)
+    const input = this.simpleInputBuilder.build(params, query, headers, body)
 
     const deserializedInput = await this.compositeTransformer.deserialize(input)
 

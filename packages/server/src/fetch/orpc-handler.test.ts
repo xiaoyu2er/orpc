@@ -1,16 +1,15 @@
 import { ContractProcedure } from '@orpc/contract'
-import { ORPC_PROTOCOL_HEADER, ORPC_PROTOCOL_VALUE } from '@orpc/shared'
 import { describe, expect, it, vi } from 'vitest'
 import { lazy } from '../lazy'
 import { Procedure } from '../procedure'
 import { createProcedureClient } from '../procedure-client'
-import { createORPCHandler } from './orpc-handler'
+import { ORPCHandler } from './orpc-handler'
 
 vi.mock('../procedure-client', () => ({
   createProcedureClient: vi.fn(() => vi.fn()),
 }))
 
-describe('createORPCHandler', () => {
+describe('oRPCHandler', () => {
   const ping = new Procedure({
     contract: new ContractProcedure({
       InputSchema: undefined,
@@ -29,40 +28,22 @@ describe('createORPCHandler', () => {
   const router = {
     ping: lazy(() => Promise.resolve({ default: ping })),
     pong,
-    nested: lazy(() => Promise.resolve({ default: {
-      ping,
-      pong: lazy(() => Promise.resolve({ default: pong })),
-    } })),
+    nested: lazy(() => Promise.resolve({
+      default: {
+        ping,
+        pong: lazy(() => Promise.resolve({ default: pong })),
+      },
+    })),
   }
 
-  it('should return undefined if the protocol header is missing or incorrect', async () => {
-    const handler = createORPCHandler()
-
-    const response = await handler({
-      request: new Request('https://example.com', {
-        headers: new Headers({}),
-      }),
-      router,
-      context: undefined,
-      signal: undefined,
-    })
-
-    expect(response).toBeUndefined()
-  })
-
   it('should return a 404 response if no matching procedure is found', async () => {
-    const handler = createORPCHandler()
+    const handler = new ORPCHandler(router)
 
     const mockRequest = new Request('https://example.com/not_found', {
-      headers: new Headers({ [ORPC_PROTOCOL_HEADER]: ORPC_PROTOCOL_VALUE }),
+      headers: new Headers({ }),
     })
 
-    const response = await handler({
-      request: mockRequest,
-      router,
-      context: undefined,
-      signal: undefined,
-    })
+    const response = await handler.fetch(mockRequest)
 
     expect(response?.status).toBe(404)
 
@@ -71,21 +52,18 @@ describe('createORPCHandler', () => {
   })
 
   it('should return a 200 response with serialized output if procedure is resolved successfully', async () => {
-    const handler = createORPCHandler()
+    const handler = new ORPCHandler(router)
 
     const caller = vi.fn().mockReturnValueOnce('__mocked__')
     vi.mocked(createProcedureClient).mockReturnValue(caller)
 
     const mockRequest = new Request('https://example.com/ping', {
-      headers: new Headers({ [ORPC_PROTOCOL_HEADER]: ORPC_PROTOCOL_VALUE }),
+      headers: new Headers({ }),
       method: 'POST',
       body: JSON.stringify({ data: { value: '123' }, meta: [] }),
     })
 
-    const response = await handler({
-      request: mockRequest,
-      router,
-    })
+    const response = await handler.fetch(mockRequest)
 
     expect(response?.status).toBe(200)
 
@@ -97,18 +75,15 @@ describe('createORPCHandler', () => {
   })
 
   it('should handle deserialization errors and return a 400 response', async () => {
-    const handler = createORPCHandler()
+    const handler = new ORPCHandler(router)
 
     const mockRequest = new Request('https://example.com/ping', {
       method: 'POST',
-      headers: new Headers({ [ORPC_PROTOCOL_HEADER]: ORPC_PROTOCOL_VALUE, 'Content-Type': 'application/json' }),
+      headers: new Headers({ 'Content-Type': 'application/json' }),
       body: '{ invalid json',
     })
 
-    const response = await handler({
-      request: mockRequest,
-      router,
-    })
+    const response = await handler.fetch(mockRequest)
 
     expect(response?.status).toBe(400)
 
@@ -117,24 +92,19 @@ describe('createORPCHandler', () => {
   })
 
   it('should handle unexpected errors and return a 500 response', async () => {
-    const handler = createORPCHandler()
+    const handler = new ORPCHandler(router)
 
     vi.mocked(createProcedureClient).mockImplementationOnce(() => {
       throw new Error('Unexpected error')
     })
 
     const mockRequest = new Request('https://example.com/ping', {
-      headers: new Headers({ [ORPC_PROTOCOL_HEADER]: ORPC_PROTOCOL_VALUE }),
+      headers: new Headers({ }),
       method: 'POST',
       body: JSON.stringify({ data: { value: '123' }, meta: [] }),
     })
 
-    const response = await handler({
-      request: mockRequest,
-      router,
-      context: undefined,
-      signal: undefined,
-    })
+    const response = await handler.fetch(mockRequest)
 
     expect(response?.status).toBe(500)
 
@@ -143,13 +113,13 @@ describe('createORPCHandler', () => {
   })
 
   it('support signal', async () => {
-    const handler = createORPCHandler()
+    const handler = new ORPCHandler(router)
 
     const caller = vi.fn().mockReturnValueOnce('__mocked__')
     vi.mocked(createProcedureClient).mockReturnValue(caller)
 
     const mockRequest = new Request('https://example.com/ping', {
-      headers: new Headers({ [ORPC_PROTOCOL_HEADER]: ORPC_PROTOCOL_VALUE }),
+      headers: new Headers({ }),
       method: 'POST',
       body: JSON.stringify({ data: { value: '123' }, meta: [] }),
     })
@@ -157,11 +127,7 @@ describe('createORPCHandler', () => {
     const controller = new AbortController()
     const signal = controller.signal
 
-    const response = await handler({
-      request: mockRequest,
-      router,
-      signal,
-    })
+    const response = await handler.fetch(mockRequest, { signal })
 
     expect(response?.status).toBe(200)
 
@@ -173,10 +139,8 @@ describe('createORPCHandler', () => {
   })
 
   it('hooks', async () => {
-    const handler = createORPCHandler()
-
     const mockRequest = new Request('https://example.com/not_found', {
-      headers: new Headers({ [ORPC_PROTOCOL_HEADER]: ORPC_PROTOCOL_VALUE }),
+      headers: new Headers({ }),
       method: 'POST',
       body: JSON.stringify({ data: { value: '123' }, meta: [] }),
     })
@@ -185,13 +149,13 @@ describe('createORPCHandler', () => {
     const onSuccess = vi.fn()
     const onError = vi.fn()
 
-    const response = await handler({
-      request: mockRequest,
-      router,
+    const handler = new ORPCHandler(router, {
       onStart,
       onSuccess,
       onError,
     })
+
+    const response = await handler.fetch(mockRequest)
 
     expect(response?.status).toBe(404)
 

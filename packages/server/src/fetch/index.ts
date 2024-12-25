@@ -1,3 +1,5 @@
-export * from './handle-request'
+export * from './composite-handler'
 export * from './orpc-handler'
+export * from './orpc-payload-codec'
+export * from './orpc-procedure-matcher'
 export * from './types'

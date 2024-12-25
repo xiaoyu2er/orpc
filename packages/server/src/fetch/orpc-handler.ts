@@ -1,114 +1,100 @@
-import type { ANY_PROCEDURE } from '../procedure'
-import type { FetchHandler } from './types'
-import { executeWithHooks, ORPC_PROTOCOL_HEADER, ORPC_PROTOCOL_VALUE, trim, value } from '@orpc/shared'
+import type { Hooks } from '@orpc/shared'
+import type { Router } from '../router'
+import type { Context, WithSignal } from '../types'
+import type { FetchHandler, FetchOptions } from './types'
+import { executeWithHooks, trim } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
-import { ORPCDeserializer, ORPCSerializer } from '@orpc/transformer'
-import { unlazy } from '../lazy'
-import { isProcedure } from '../procedure'
 import { createProcedureClient } from '../procedure-client'
-import { type ANY_ROUTER, getRouterChild } from '../router'
+import { ORPCCodec } from './orpc-codec'
+import { ORPCMatcher } from './orpc-matcher'
 
-const serializer = new ORPCSerializer()
-const deserializer = new ORPCDeserializer()
+export type ORPCHandlerOptions<T extends Context> =
+  & Hooks<Request, Response, T, WithSignal>
+  & {
+    matcher?: ORPCMatcher
+    codec?: ORPCCodec
+  }
 
-export function createORPCHandler(): FetchHandler {
-  return async (options) => {
-    if (!options.request.headers.get(ORPC_PROTOCOL_HEADER)?.includes(ORPC_PROTOCOL_VALUE)) {
-      return undefined
-    }
+export class ORPCHandler<T extends Context> implements FetchHandler<T> {
+  private readonly matcher: ORPCMatcher
+  private readonly codec: ORPCCodec
 
-    const context = await value(options.context)
+  constructor(
+    readonly router: Router<T, any>,
+    readonly options?: NoInfer<ORPCHandlerOptions<T>>,
+  ) {
+    this.matcher = options?.matcher ?? new ORPCMatcher(router)
+    this.codec = new ORPCCodec()
+  }
 
-    const handler = async () => {
-      const url = new URL(options.request.url)
-      const pathname = `/${trim(url.pathname.replace(options.prefix ?? '', ''), '/')}`
+  async fetch(
+    request: Request,
+    ...[options]: [options: FetchOptions<T>] | (undefined extends T ? [] : never)
+  ): Promise<Response> {
+    const context = options?.context as T
 
-      const match = await resolveRouterMatch(options.router, pathname)
+    const execute = async () => {
+      const url = new URL(request.url)
+      const pathname = `/${trim(url.pathname.replace(options?.prefix ?? '', ''), '/')}`
+
+      const match = await this.matcher.match(pathname)
 
       if (!match) {
         throw new ORPCError({ code: 'NOT_FOUND', message: 'Not found' })
       }
 
-      const input = await parseRequestInput(options.request)
+      const input = await this.decodeInput(request)
 
-      const caller = createProcedureClient({
+      const client = createProcedureClient({
         context,
         procedure: match.procedure,
         path: match.path,
       })
 
-      const output = await caller(input, { signal: options.signal })
+      const output = await client(input, { signal: options?.signal })
 
-      const { body, headers } = serializer.serialize(output)
+      const body = this.codec.encode(output)
 
-      return new Response(body, {
-        status: 200,
-        headers,
-      })
+      return new Response(body)
     }
 
     try {
       return await executeWithHooks({
-        hooks: options,
-        context: context as any,
-        execute: handler,
-        input: options.request,
+        context,
+        execute,
+        input: request,
+        hooks: this.options,
         meta: {
-          signal: options.signal,
+          signal: options?.signal,
         },
       })
     }
-    catch (error) {
-      return handleErrorResponse(error)
+    catch (e) {
+      const error = e instanceof ORPCError
+        ? e
+        : new ORPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Internal server error',
+          cause: e,
+        })
+
+      const body = this.codec.encode(error.toJSON())
+      return new Response(body, {
+        status: error.status,
+      })
     }
   }
-}
 
-async function resolveRouterMatch(
-  router: ANY_ROUTER,
-  pathname: string,
-): Promise<{ path: string[], procedure: ANY_PROCEDURE } | undefined> {
-  const pathSegments = trim(pathname, '/').split('/').map(decodeURIComponent)
-
-  const match = getRouterChild(router, ...pathSegments)
-  const { default: maybeProcedure } = await unlazy(match)
-
-  if (!isProcedure(maybeProcedure)) {
-    return undefined
+  private async decodeInput(request: Request): Promise<unknown> {
+    try {
+      return await this.codec.decode(request)
+    }
+    catch (e) {
+      throw new ORPCError({
+        code: 'BAD_REQUEST',
+        message: 'Cannot parse request. Please check the request body and Content-Type header.',
+        cause: e,
+      })
+    }
   }
-
-  return {
-    procedure: maybeProcedure,
-    path: pathSegments,
-  }
-}
-
-async function parseRequestInput(request: Request): Promise<unknown> {
-  try {
-    return await deserializer.deserialize(request)
-  }
-  catch (error) {
-    throw new ORPCError({
-      code: 'BAD_REQUEST',
-      message: 'Cannot parse request. Please check the request body and Content-Type header.',
-      cause: error,
-    })
-  }
-}
-
-function handleErrorResponse(error: unknown): Response {
-  const orpcError = error instanceof ORPCError
-    ? error
-    : new ORPCError({
-      code: 'INTERNAL_SERVER_ERROR',
-      message: 'Internal server error',
-      cause: error,
-    })
-
-  const { body, headers } = serializer.serialize(orpcError.toJSON())
-
-  return new Response(body, {
-    status: orpcError.status,
-    headers,
-  })
 }

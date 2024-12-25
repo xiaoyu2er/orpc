@@ -1,21 +1,20 @@
-import { handleFetchRequest } from './handle-request'
-import { createORPCHandler } from './orpc-handler'
+import type { WithSignal } from '..'
+import { os } from '..'
+import { ORPCHandler } from './orpc-handler'
 
-it('assignable to handlers', () => {
-  handleFetchRequest({
-    request: new Request('https://example.com', {}),
-    router: {},
-    handlers: [
-      createORPCHandler(),
-    ],
-  })
+describe('oRPCHandler', () => {
+  it('hooks', () => {
+    const router = {
+      ping: os.context<{ userId?: string }>().func(() => 'pong'),
+    }
 
-  handleFetchRequest({
-    request: new Request('https://example.com', {}),
-    router: {},
-    handlers: [
-      // @ts-expect-error - invalid handler
-      createORPCHandler,
-    ],
+    const handler = new ORPCHandler(router, {
+      onSuccess(state, context, meta) {
+        expectTypeOf(state.input).toEqualTypeOf<Request>()
+        expectTypeOf(state.output).toEqualTypeOf<Response>()
+        expectTypeOf(context).toEqualTypeOf<{ userId?: string }>()
+        expectTypeOf(meta).toEqualTypeOf<WithSignal>()
+      },
+    })
   })
 })

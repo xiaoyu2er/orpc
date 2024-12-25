@@ -1,14 +1,10 @@
 import type { Context } from '../types'
-import type { ConditionalFetchHandler, FetchOptions } from './types'
+import type { ConditionalFetchHandler, FetchHandler, FetchOptions } from './types'
 
-export class CompositeHandler<T extends Context> implements ConditionalFetchHandler<T> {
+export class CompositeHandler<T extends Context> implements FetchHandler<T> {
   constructor(
     private readonly handlers: ConditionalFetchHandler<T>[],
   ) {}
-
-  condition(): boolean {
-    return true
-  }
 
   async fetch(
     request: Request,

@@ -37,11 +37,12 @@ export class ORPCPayloadCodec {
       if (re.headers.get('Content-Type')?.startsWith('multipart/form-data')) {
         const form = await re.formData()
 
-        const rawData = form.get('data') as null | string
+        // Since form-data only used when has file, so the data cannot be null
+        const rawData = form.get('data') as string
         const rawMeta = form.get('meta') as string
         const rawMaps = form.get('maps') as string
 
-        let data = rawData === null ? undefined : JSON.parse(rawData)
+        let data = JSON.parse(rawData)
         const meta = JSON.parse(rawMeta) as SuperJSON.JSONMeta
         const maps = JSON.parse(rawMaps) as (string | number)[][]
 

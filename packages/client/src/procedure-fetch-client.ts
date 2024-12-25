@@ -1,6 +1,6 @@
 import type { ProcedureClient } from '@orpc/server'
 import type { Promisable } from '@orpc/shared'
-import { ORPC_PROTOCOL_HEADER, ORPC_PROTOCOL_VALUE, trim } from '@orpc/shared'
+import { ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE, trim } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
 import { ORPCDeserializer, ORPCSerializer } from '@orpc/transformer'
 
@@ -39,7 +39,7 @@ export function createProcedureFetchClient<TInput, TOutput>(
     const url = `${trim(options.baseURL, '/')}/${options.path.map(encodeURIComponent).join('/')}`
 
     const headers = new Headers({
-      [ORPC_PROTOCOL_HEADER]: ORPC_PROTOCOL_VALUE,
+      [ORPC_HANDLER_HEADER]: ORPC_HANDLER_VALUE,
     })
 
     let customHeaders = await options.headers?.(input)

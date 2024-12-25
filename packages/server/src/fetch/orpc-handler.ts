@@ -2,7 +2,7 @@ import type { Hooks } from '@orpc/shared'
 import type { Router } from '../router'
 import type { Context, WithSignal } from '../types'
 import type { ConditionalFetchHandler, FetchOptions } from './types'
-import { executeWithHooks, ORPC_PROTOCOL_HEADER, ORPC_PROTOCOL_VALUE, trim } from '@orpc/shared'
+import { executeWithHooks, ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE, trim } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
 import { createProcedureClient } from '../procedure-client'
 import { ORPCPayloadCodec, type PublicORPCPayloadCodec } from './orpc-payload-codec'
@@ -28,7 +28,7 @@ export class ORPCHandler<T extends Context> implements ConditionalFetchHandler<T
   }
 
   condition(request: Request): boolean {
-    return Boolean(request.headers.get(ORPC_PROTOCOL_HEADER)?.includes(ORPC_PROTOCOL_VALUE))
+    return Boolean(request.headers.get(ORPC_HANDLER_HEADER)?.includes(ORPC_HANDLER_VALUE))
   }
 
   async fetch(

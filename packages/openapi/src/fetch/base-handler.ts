@@ -6,7 +6,7 @@ import type { FetchHandler } from '@orpc/server/fetch'
 import type { Router as HonoRouter } from 'hono/router'
 import type { EachContractLeafResultItem, EachLeafOptions } from '../utils'
 import { createProcedureClient, getLazyRouterPrefix, getRouterChild, isProcedure, LAZY_LOADER_SYMBOL, ORPCError, unlazy } from '@orpc/server'
-import { executeWithHooks, isPlainObject, mapValues, ORPC_PROTOCOL_HEADER, ORPC_PROTOCOL_VALUE, trim, value } from '@orpc/shared'
+import { executeWithHooks, isPlainObject, mapValues, ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE, trim, value } from '@orpc/shared'
 import { OpenAPIDeserializer, OpenAPISerializer, zodCoerce } from '@orpc/transformer'
 import { eachContractProcedureLeaf, standardizeHTTPPath } from '../utils'
 
@@ -22,7 +22,7 @@ export function createOpenAPIHandler(createHonoRouter: () => Routing): FetchHand
   const resolveRouter = createResolveRouter(createHonoRouter)
 
   return async (options) => {
-    if (options.request.headers.get(ORPC_PROTOCOL_HEADER)?.includes(ORPC_PROTOCOL_VALUE)) {
+    if (options.request.headers.get(ORPC_HANDLER_HEADER)?.includes(ORPC_HANDLER_VALUE)) {
       return undefined
     }
 

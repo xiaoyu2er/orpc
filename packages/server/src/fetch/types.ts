@@ -13,6 +13,6 @@ export interface FetchHandler<T extends Context> {
   ) => Promise<Response>
 }
 
-export interface ConditionalFetchHandler<T extends Context> extends FetchHandler <T> {
+export interface ConditionalFetchHandler<T extends Context> extends FetchHandler<T> {
   condition: (request: Request) => boolean
 }

@@ -123,15 +123,9 @@ export function deserialize({
         break
 
       case 'regexp': {
-        const match = currentRef[preSegment].match(/^\/(.*)\/([a-z]*)$/)
+        const [, pattern, flags] = currentRef[preSegment].match(/^\/(.*)\/([a-z]*)$/)
 
-        if (match) {
-          const [, pattern, flags] = match
-          currentRef[preSegment] = new RegExp(pattern!, flags)
-        }
-        else {
-          currentRef[preSegment] = new RegExp(currentRef[preSegment])
-        }
+        currentRef[preSegment] = new RegExp(pattern!, flags)
 
         break
       }
@@ -152,6 +146,7 @@ export function deserialize({
         currentRef[preSegment] = new Set(currentRef[preSegment])
         break
 
+      /* v8 ignore next 3 */
       default: {
         const _expected: never = type
       }

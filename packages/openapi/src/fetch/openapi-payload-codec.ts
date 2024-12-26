@@ -6,7 +6,7 @@ import wcmatch from 'wildcard-match'
 import * as BracketNotation from './bracket-notation'
 
 export class OpenAPIPayloadCodec {
-  encode(payload: unknown, accept?: string): FormData | Blob | string | undefined {
+  encode(payload: unknown, accept?: string): { body: FormData | Blob | string | undefined, headers?: Headers } {
     const typeMatchers = (
       accept?.split(',').map(safeParse) ?? [{ type: '*/*' }]
     ).map(({ type }) => wcmatch(type))
@@ -15,7 +15,12 @@ export class OpenAPIPayloadCodec {
       const contentType = payload.type || 'application/octet-stream'
 
       if (typeMatchers.some(isMatch => isMatch(contentType))) {
-        return payload
+        return {
+          body: payload,
+          headers: new Headers({
+            'Content-Type': contentType,
+          }),
+        }
       }
     }
 
@@ -52,15 +57,25 @@ export class OpenAPIPayloadCodec {
     })
   }
 
-  private encodeAsJSON(payload: unknown): Blob | undefined {
+  private encodeAsJSON(payload: unknown) {
     if (payload === undefined) {
-      return undefined
+      return {
+        body: undefined,
+        headers: new Headers({
+          'Content-Type': 'application/json',
+        }),
+      }
     }
 
-    return new Blob([JSON.stringify(payload)], { type: 'application/json' })
+    return {
+      body: JSON.stringify(payload),
+      headers: new Headers({
+        'Content-Type': 'application/json',
+      }),
+    }
   }
 
-  private encodeAsFormData(payload: unknown): FormData {
+  private encodeAsFormData(payload: unknown) {
     const form = new FormData()
 
     for (const [path, value] of BracketNotation.serialize(payload)) {
@@ -85,10 +100,12 @@ export class OpenAPIPayloadCodec {
       }
     }
 
-    return form
+    return {
+      body: form,
+    }
   }
 
-  private encodeAsURLSearchParams(payload: unknown): Blob {
+  private encodeAsURLSearchParams(payload: unknown) {
     const params = new URLSearchParams()
 
     for (const [path, value] of BracketNotation.serialize(payload)) {
@@ -110,7 +127,12 @@ export class OpenAPIPayloadCodec {
       }
     }
 
-    return new Blob([params.toString()], { type: 'application/x-www-form-urlencoded' })
+    return {
+      body: params.toString(),
+      headers: new Headers({
+        'Content-Type': 'application/x-www-form-urlencoded',
+      }),
+    }
   }
 
   private preEncode(payload: unknown): unknown {

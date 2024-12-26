@@ -57,9 +57,9 @@ export class ORPCHandler<T extends Context> implements ConditionalFetchHandler<T
 
       const output = await client(input, { signal: options?.signal })
 
-      const body = this.payloadCodec.encode(output)
+      const { body, headers } = this.payloadCodec.encode(output)
 
-      return new Response(body)
+      return new Response(body, { headers })
     }
 
     try {
@@ -82,8 +82,9 @@ export class ORPCHandler<T extends Context> implements ConditionalFetchHandler<T
           cause: e,
         })
 
-      const body = this.payloadCodec.encode(error.toJSON())
+      const { body, headers } = this.payloadCodec.encode(error.toJSON())
       return new Response(body, {
+        headers,
         status: error.status,
       })
     }

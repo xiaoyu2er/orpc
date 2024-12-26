@@ -71,7 +71,8 @@ describe('orpc-payload-codec', () => {
   const codec = new ORPCPayloadCodec()
 
   const encode = (data: unknown) => {
-    return new Response(codec.encode(data))
+    const { body, headers } = codec.encode(data)
+    return new Response(body, { headers })
   }
 
   it.each(types)('should work on flat: %s', async (origin) => {

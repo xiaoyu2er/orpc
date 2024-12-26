@@ -75,9 +75,9 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
 
       const output = await client(input, { signal: options?.signal })
 
-      const body = this.payloadCodec.encode(output)
+      const { body, headers } = this.payloadCodec.encode(output)
 
-      return new Response(body)
+      return new Response(body, { headers })
     }
 
     try {
@@ -95,9 +95,10 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
       const error = this.convertToORPCError(e)
 
       try {
-        const body = this.payloadCodec.encode(error.toJSON(), accept)
+        const { body, headers } = this.payloadCodec.encode(error.toJSON(), accept)
         return new Response(body, {
           status: error.status,
+          headers,
         })
       }
       catch (e) {
@@ -107,9 +108,10 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
 
         const error = this.convertToORPCError(e)
 
-        const body = this.payloadCodec.encode(error.toJSON())
+        const { body, headers } = this.payloadCodec.encode(error.toJSON())
         return new Response(body, {
           status: error.status,
+          headers,
         })
       }
     }

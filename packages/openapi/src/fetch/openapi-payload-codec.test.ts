@@ -8,16 +8,14 @@ describe('openAPIPayloadCodec', () => {
       const payload = { name: 'test', age: 25 }
       const result = codec.encode(payload, 'application/json') as any
 
-      expect(result).toBeInstanceOf(Blob)
-      expect(result?.type).toBe('application/json')
-
-      const text = await result?.text()
-      expect(JSON.parse(text!)).toEqual(payload)
+      expect(JSON.parse(result?.body as string)).toEqual(payload)
+      expect(result?.headers?.get('Content-Type')).toBe('application/json')
     })
 
     it('should handle undefined payload for JSON', () => {
       const result = codec.encode(undefined, 'application/json')
-      expect(result).toBeUndefined()
+      expect(result.body).toBeUndefined()
+      expect(result.headers?.get('Content-Type')).toBe('application/json')
     })
 
     it('should encode FormData when accept header is multipart/form-data', () => {
@@ -26,22 +24,18 @@ describe('openAPIPayloadCodec', () => {
         file: new Blob(['test content'], { type: 'text/plain' }),
       }
       const result = codec.encode(payload, 'multipart/form-data')
-
-      expect(result).toBeInstanceOf(FormData)
-      const formData = result as FormData
+      const formData = result.body as FormData
+      expect(formData).toBeInstanceOf(FormData)
       expect(formData.get('name')).toBe('test')
       expect(formData.get('file')).toBeInstanceOf(Blob)
     })
 
     it('should encode URL params when accept header is application/x-www-form-urlencoded', async () => {
       const payload = { name: 'test', age: 25 }
-      const result = codec.encode(payload, 'application/x-www-form-urlencoded') as any
+      const result = codec.encode(payload, 'application/x-www-form-urlencoded')
 
-      expect(result).toBeInstanceOf(Blob)
-      expect(result?.type).toBe('application/x-www-form-urlencoded')
-
-      const text = await result?.text()
-      expect(text).toBe('name=test&age=25')
+      expect(result.body).toBe('name=test&age=25')
+      expect(result.headers?.get('Content-Type')).toBe('application/x-www-form-urlencoded')
     })
 
     it('should throw NOT_ACCEPTABLE error for unsupported content type', () => {

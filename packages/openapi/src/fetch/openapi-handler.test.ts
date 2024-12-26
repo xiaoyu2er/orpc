@@ -4,13 +4,16 @@ import { ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE } from '@orpc/shared'
 import { LinearRouter } from 'hono/router/linear-router'
 import { PatternRouter } from 'hono/router/pattern-router'
 import { TrieRouter } from 'hono/router/trie-router'
-import { describe, expect, it, vi } from 'vitest'
 import { OpenAPIHandler } from './openapi-handler'
 
 vi.mock('@orpc/server', async original => ({
   ...(await original()),
   createProcedureClient: vi.fn(() => vi.fn()),
 }))
+
+beforeEach(() => {
+  vi.clearAllMocks()
+})
 
 const hono = [
   ['LinearRouter', new LinearRouter<any>()],

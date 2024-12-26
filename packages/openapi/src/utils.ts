@@ -1,7 +1,7 @@
 import type { ContractRouter, HTTPPath, WELL_CONTRACT_PROCEDURE } from '@orpc/contract'
 import type { ANY_PROCEDURE, ANY_ROUTER, Lazy } from '@orpc/server'
 import { isContractProcedure } from '@orpc/contract'
-import { flatLazy, getRouterContract, isLazy, isProcedure } from '@orpc/server'
+import { getRouterContract, isLazy, isProcedure } from '@orpc/server'
 
 export interface EachLeafOptions {
   router: ContractRouter | ANY_ROUTER
@@ -14,11 +14,11 @@ export interface EachLeafCallbackOptions {
 }
 
 export interface EachContractLeafResultItem {
-  lazy: Lazy<ANY_PROCEDURE> | Lazy<Record<string, ANY_ROUTER>>
+  router: Lazy<ANY_PROCEDURE> | Lazy<Record<string, ANY_ROUTER> | ANY_PROCEDURE>
   path: string[]
 }
 
-export function eachContractProcedureLeaf(
+export function forEachContractProcedure(
   options: EachLeafOptions,
   callback: (options: EachLeafCallbackOptions) => void,
   result: EachContractLeafResultItem[] = [],
@@ -27,7 +27,7 @@ export function eachContractProcedureLeaf(
   const hiddenContract = getRouterContract(options.router)
 
   if (!isCurrentRouterContract && hiddenContract) {
-    return eachContractProcedureLeaf(
+    return forEachContractProcedure(
       {
         path: options.path,
         router: hiddenContract,
@@ -40,7 +40,7 @@ export function eachContractProcedureLeaf(
 
   if (isLazy(options.router)) {
     result.push({
-      lazy: flatLazy(options.router),
+      router: options.router,
       path: options.path,
     })
   }
@@ -64,7 +64,7 @@ export function eachContractProcedureLeaf(
   //
   else {
     for (const key in options.router) {
-      eachContractProcedureLeaf(
+      forEachContractProcedure(
         {
           router: (options.router as any)[key],
           path: [...options.path, key],

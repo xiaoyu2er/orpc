@@ -8,7 +8,7 @@ import type { EachContractLeafResultItem, EachLeafOptions } from '../utils'
 import { createProcedureClient, getLazyRouterPrefix, getRouterChild, isProcedure, LAZY_LOADER_SYMBOL, ORPCError, unlazy } from '@orpc/server'
 import { executeWithHooks, isPlainObject, mapValues, ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE, trim, value } from '@orpc/shared'
 import { OpenAPIDeserializer, OpenAPISerializer, zodCoerce } from '@orpc/transformer'
-import { eachContractProcedureLeaf, standardizeHTTPPath } from '../utils'
+import { forEachContractProcedure, standardizeHTTPPath } from '../utils'
 
 export type ResolveRouter = (router: ANY_ROUTER, method: string, pathname: string) => Promise<{
   path: string[]
@@ -118,7 +118,7 @@ const pendingCache = new Map<ANY_ROUTER, { ref: EachContractLeafResultItem[] }> 
 
 export function createResolveRouter(createHonoRouter: () => Routing): ResolveRouter {
   const addRoutes = (routing: Routing, pending: { ref: EachContractLeafResultItem[] }, options: EachLeafOptions) => {
-    const lazies = eachContractProcedureLeaf(options, ({ path, contract }) => {
+    const lazies = forEachContractProcedure(options, ({ path, contract }) => {
       const method = contract['~orpc'].route?.method ?? 'POST'
       const httpPath = contract['~orpc'].route?.path
         ? openAPIPathToRouterPath(contract['~orpc'].route?.path)
@@ -156,7 +156,7 @@ export function createResolveRouter(createHonoRouter: () => Routing): ResolveRou
     const newPending = []
 
     for (const item of pending.ref) {
-      const lazyPrefix = getLazyRouterPrefix(item.lazy)
+      const lazyPrefix = getLazyRouterPrefix(item.router)
 
       if (
         lazyPrefix
@@ -167,7 +167,7 @@ export function createResolveRouter(createHonoRouter: () => Routing): ResolveRou
         continue
       }
 
-      const router = (await item.lazy[LAZY_LOADER_SYMBOL]()).default
+      const router = (await item.router[LAZY_LOADER_SYMBOL]()).default
 
       addRoutes(routing, pending, { path: item.path, router })
     }

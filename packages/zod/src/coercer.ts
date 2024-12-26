@@ -35,7 +35,7 @@ export class ZodCoercer implements SchemaCoercer {
     }
 
     const zodSchema = schema as ZodTypeAny
-    const coerced = zodCoerceInternal(zodSchema, value)
+    const coerced = zodCoerceInternal(zodSchema, value, { bracketNotation: true })
     return coerced
   }
 }

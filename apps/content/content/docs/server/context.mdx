@@ -104,8 +104,6 @@ import { os, ORPCError, createProcedureClient } from '@orpc/server'
 import { ORPCHandler } from '@orpc/server/fetch'
 import { OpenAPIServerlessHandler, OpenAPIServerHandler } from '@orpc/openapi/fetch'
 
-const orpcHandler = new ORPCHandler(router)
-
 type ORPCContext = { user?: { id: string }, db: 'fake-db' }
 
 const base = os.context<ORPCContext>()
@@ -129,6 +127,8 @@ export const router = base.router({
             // ^ context is fully typed
         }),
 })
+
+const orpcHandler = new ORPCHandler(router)
 
 export function fetch(request: Request) {
     // Initialize context explicitly for each request

@@ -1,9 +1,9 @@
 import type { JSONSchema } from 'json-schema-typed/draft-2020-12'
+import type { PublicOpenAPIPayloadCodec } from './fetch'
 import type { EachLeafOptions } from './utils'
 import { type ContractRouter, isContractProcedure } from '@orpc/contract'
 import { type ANY_ROUTER, unlazy } from '@orpc/server'
 import { findDeepMatches, isPlainObject, omit } from '@orpc/shared'
-import { preSerialize } from '@orpc/transformer'
 import {
   type MediaTypeObject,
   OpenApiBuilder,
@@ -13,6 +13,7 @@ import {
   type RequestBodyObject,
   type ResponseObject,
 } from 'openapi3-ts/oas31'
+import { OpenAPIPayloadCodec } from './fetch'
 import { forEachContractProcedure, standardizeHTTPPath } from './utils'
 import {
   extractJSONSchema,
@@ -39,6 +40,8 @@ export interface GenerateOpenAPIOptions {
    * @default false
    */
   ignoreUndefinedPathProcedures?: boolean
+
+  payloadCodec?: PublicOpenAPIPayloadCodec
 }
 
 export async function generateOpenAPI(
@@ -51,6 +54,7 @@ export async function generateOpenAPI(
     = options?.throwOnMissingTagDefinition ?? false
   const ignoreUndefinedPathProcedures
     = options?.ignoreUndefinedPathProcedures ?? false
+  const payloadCodec = options?.payloadCodec ?? new OpenAPIPayloadCodec()
 
   const builder = new OpenApiBuilder({
     ...omit(opts, ['router']),
@@ -353,7 +357,7 @@ export async function generateOpenAPI(
     }
   }
 
-  return preSerialize(builder.getSpec()) as OpenAPIObject
+  return payloadCodec.serialize(builder.getSpec()) as OpenAPIObject
 }
 
 function isFileSchema(schema: unknown) {

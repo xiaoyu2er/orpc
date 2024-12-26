@@ -10,13 +10,6 @@ export default defineWorkspace([
   {
     test: {
       globals: true,
-      setupFiles: ['./packages/openapi/vitest.setup.ts'],
-      include: ['./packages/openapi/**/*.test.ts'],
-    },
-  },
-  {
-    test: {
-      globals: true,
       environment: 'jsdom',
       setupFiles: ['./vitest.jsdom-react.ts'],
       include: ['./packages/next/**/*.test.tsx', './packages/react-query/**/*.test.tsx'],

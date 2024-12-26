@@ -8,8 +8,7 @@
     { "path": "../contract" },
     { "path": "../openapi" },
     { "path": "../server" },
-    { "path": "../shared" },
-    { "path": "../transformer" }
+    { "path": "../shared" }
   ],
   "include": ["src"],
   "exclude": [

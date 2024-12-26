@@ -24,7 +24,7 @@ export class OpenAPIPayloadCodec {
       }
     }
 
-    const handledPayload = this.preEncode(payload)
+    const handledPayload = this.serialize(payload)
     const hasBlobs = findDeepMatches(v => v instanceof Blob, handledPayload).values.length > 0
 
     const isExpectedMultipartFormData = typeMatchers.some(isMatch =>
@@ -135,13 +135,13 @@ export class OpenAPIPayloadCodec {
     }
   }
 
-  private preEncode(payload: unknown): unknown {
+  serialize(payload: unknown): unknown {
     if (payload instanceof Set)
-      return this.preEncode([...payload])
+      return this.serialize([...payload])
     if (payload instanceof Map)
-      return this.preEncode([...payload.entries()])
+      return this.serialize([...payload.entries()])
     if (Array.isArray(payload)) {
-      return payload.map(v => (v === undefined ? 'undefined' : this.preEncode(v)))
+      return payload.map(v => (v === undefined ? 'undefined' : this.serialize(v)))
     }
     if (Number.isNaN(payload))
       return 'NaN'
@@ -159,15 +159,19 @@ export class OpenAPIPayloadCodec {
     return Object.keys(payload).reduce(
       (carry, key) => {
         const val = payload[key]
-        carry[key] = this.preEncode(val)
+        carry[key] = this.serialize(val)
         return carry
       },
       {} as Record<string, unknown>,
     )
   }
 
-  async decode(re: Request | Response | Headers | URLSearchParams): Promise<unknown> {
-    if (re instanceof Headers || re instanceof URLSearchParams) {
+  async decode(re: Request | Response | Headers | URLSearchParams | FormData): Promise<unknown> {
+    if (
+      re instanceof Headers
+      || re instanceof URLSearchParams
+      || re instanceof FormData
+    ) {
       return BracketNotation.deserialize([...re.entries()])
     }
 
@@ -204,7 +208,7 @@ export class OpenAPIPayloadCodec {
 
     if (contentType.startsWith('multipart/form-data')) {
       const form = await re.formData()
-      return BracketNotation.deserialize([...form.entries()])
+      return this.decode(form)
     }
 
     const blob = await re.blob()

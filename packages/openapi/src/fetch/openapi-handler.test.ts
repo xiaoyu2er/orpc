@@ -7,7 +7,7 @@ import { TrieRouter } from 'hono/router/trie-router'
 import { OpenAPIHandler } from './openapi-handler'
 
 vi.mock('@orpc/server', async original => ({
-  ...(await original()),
+  ...await original(),
   createProcedureClient: vi.fn(() => vi.fn()),
 }))
 
@@ -21,6 +21,10 @@ const hono = [
   ['TrieRouter', new TrieRouter<any>()],
   ['PatternRouter', new PatternRouter<any>()],
 ] as const
+
+beforeEach(() => {
+  vi.clearAllMocks()
+})
 
 describe.each(hono)('openAPIHandler: %s', (_, hono) => {
   const ping = new Procedure({
@@ -212,6 +216,7 @@ describe.each(hono)('openAPIHandler: %s', (_, hono) => {
 
     expect(coerce).toBeCalledTimes(1)
     expect(coerce).toBeCalledWith(undefined, { value: '123' })
+    expect(createProcedureClient).toBeCalledTimes(1)
     expect(vi.mocked(createProcedureClient).mock.results[0]?.value).toBeCalledTimes(1)
     expect(vi.mocked(createProcedureClient).mock.results[0]?.value).toBeCalledWith('__mocked__', { signal: undefined })
   })

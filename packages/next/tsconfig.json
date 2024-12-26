@@ -5,6 +5,7 @@
   },
   "references": [
     { "path": "../contract" },
+    { "path": "../openapi" },
     { "path": "../server" },
     { "path": "../shared" }
   ],

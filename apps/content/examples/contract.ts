@@ -1,6 +1,6 @@
 import type { InferContractRouterInputs, InferContractRouterOutputs } from '@orpc/contract'
 import { oc } from '@orpc/contract'
-import { oz } from '@orpc/zod'
+import { oz, ZodCoercer } from '@orpc/zod'
 import { z } from 'zod'
 
 // Implement the contract
@@ -121,7 +121,11 @@ import { CompositeHandler, ORPCHandler } from '@orpc/server/fetch'
 import { createServer } from 'node:http'
 import { createServerAdapter } from '@whatwg-node/server'
 
-const openapiHandler = new OpenAPIServerlessHandler(router)
+const openapiHandler = new OpenAPIServerlessHandler(router, {
+  schemaCoercers: [
+    new ZodCoercer(),
+  ],
+})
 const orpcHandler = new ORPCHandler(router)
 const compositeHandler = new CompositeHandler([openapiHandler, orpcHandler])
 

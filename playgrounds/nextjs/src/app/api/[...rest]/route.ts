@@ -1,13 +1,19 @@
-import { createOpenAPIServerHandler } from '@orpc/openapi/fetch'
-import { createORPCHandler, handleFetchRequest } from '@orpc/server/fetch'
+import { OpenAPIServerlessHandler } from '@orpc/openapi/fetch'
+import { CompositeHandler, ORPCHandler } from '@orpc/server/fetch'
+import { ZodCoercer } from '@orpc/zod'
 import { router } from './router'
 
+const openAPIHandler = new OpenAPIServerlessHandler(router, {
+  schemaCoercers: [
+    new ZodCoercer(),
+  ],
+})
+const orpcHandler = new ORPCHandler(router)
+const compositeHandler = new CompositeHandler([openAPIHandler, orpcHandler])
+
 export function GET(request: Request) {
-  return handleFetchRequest({
-    router,
-    request,
+  return compositeHandler.fetch(request, {
     prefix: '/api',
-    handlers: [createORPCHandler(), createOpenAPIServerHandler()],
   })
 }
 

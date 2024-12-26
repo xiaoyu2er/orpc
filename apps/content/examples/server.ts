@@ -1,6 +1,6 @@
 import type { InferRouterInputs, InferRouterOutputs } from '@orpc/server'
 import { ORPCError, os } from '@orpc/server'
-import { oz } from '@orpc/zod'
+import { oz, ZodCoercer } from '@orpc/zod'
 import { z } from 'zod'
 
 export type Context = { user?: { id: string } } | undefined
@@ -95,7 +95,11 @@ import { CompositeHandler, ORPCHandler } from '@orpc/server/fetch'
 import { createServer } from 'node:http'
 import { createServerAdapter } from '@whatwg-node/server'
 
-const openapiHandler = new OpenAPIServerlessHandler(router)
+const openapiHandler = new OpenAPIServerlessHandler(router, {
+  schemaCoercers: [
+    new ZodCoercer(),
+  ],
+})
 const orpcHandler = new ORPCHandler(router)
 const compositeHandler = new CompositeHandler([openapiHandler, orpcHandler])
 

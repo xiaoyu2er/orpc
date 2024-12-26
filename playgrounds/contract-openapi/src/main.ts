@@ -1,11 +1,20 @@
 import { createServer } from 'node:http'
 import { generateOpenAPI } from '@orpc/openapi'
-import { createOpenAPIServerHandler } from '@orpc/openapi/fetch'
-import { createORPCHandler, handleFetchRequest } from '@orpc/server/fetch'
+import { OpenAPIServerHandler } from '@orpc/openapi/fetch'
+import { CompositeHandler, ORPCHandler } from '@orpc/server/fetch'
+import { ZodCoercer } from '@orpc/zod'
 import { createServerAdapter } from '@whatwg-node/server'
 import { contract } from './contract'
 import { router } from './router'
 import './polyfill'
+
+const openAPIHandler = new OpenAPIServerHandler(router, {
+  schemaCoercers: [
+    new ZodCoercer(),
+  ],
+})
+const orpcHandler = new ORPCHandler(router)
+const compositeHandler = new CompositeHandler([openAPIHandler, orpcHandler])
 
 const server = createServer(
   createServerAdapter(async (request: Request) => {
@@ -16,15 +25,9 @@ const server = createServer(
       : {}
 
     if (url.pathname.startsWith('/api')) {
-      return handleFetchRequest({
-        router,
-        request,
+      return compositeHandler.fetch(request, {
         prefix: '/api',
         context,
-        handlers: [createORPCHandler(), createOpenAPIServerHandler()],
-        onError: ({ error }) => {
-          console.error(error)
-        },
       })
     }
 

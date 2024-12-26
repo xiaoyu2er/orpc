@@ -82,19 +82,14 @@ export const router = base.router({
 // You can call this procedure directly without manually providing context
 const output = await router.getting()
 
-import { handleFetchRequest, createORPCHandler } from '@orpc/server/fetch'
-import { createOpenAPIServerlessHandler, createOpenAPIServerHandler } from '@orpc/openapi/fetch'
+import { ORPCHandler } from '@orpc/server/fetch'
+import { OpenAPIServerlessHandler, OpenAPIServerHandler } from '@orpc/openapi/fetch'
+
+const orpcHandler = new ORPCHandler(router)
 
 export function fetch(request: Request) {
     // No need to pass context; middleware handles it
-    return handleFetchRequest({
-        router,
-        request,
-        handlers: [
-            createORPCHandler(), 
-            createOpenAPIServerlessHandler()
-        ],
-    })
+    return orpcHandler.fetch(request)
 }
 ```
 
@@ -106,8 +101,10 @@ rather than relying on global mechanisms like `headers` or `cookies` in Next.js.
 
 ```ts twoslash
 import { os, ORPCError, createProcedureClient } from '@orpc/server'
-import { handleFetchRequest, createORPCHandler } from '@orpc/server/fetch'
-import { createOpenAPIServerlessHandler, createOpenAPIServerHandler } from '@orpc/openapi/fetch'
+import { ORPCHandler } from '@orpc/server/fetch'
+import { OpenAPIServerlessHandler, OpenAPIServerHandler } from '@orpc/openapi/fetch'
+
+const orpcHandler = new ORPCHandler(router)
 
 type ORPCContext = { user?: { id: string }, db: 'fake-db' }
 
@@ -138,12 +135,7 @@ export function fetch(request: Request) {
     const db = 'fake-db' as const
     const user = request.headers.get('Authorization') ? { id: 'example' } : undefined
 
-    return handleFetchRequest({
-        router,
-        request,
-        context: { db, user },
-        handlers: [createORPCHandler(), createOpenAPIServerlessHandler()],
-    })
+    return orpcHandler.fetch(request, { context: { db, user } })
 }
 
 // If you want to call this procedure or use as server action

@@ -404,6 +404,9 @@ importers:
 
   packages/zod:
     dependencies:
+      '@orpc/openapi':
+        specifier: workspace:*
+        version: link:../openapi
       json-schema-typed:
         specifier: ^8.0.1
         version: 8.0.1

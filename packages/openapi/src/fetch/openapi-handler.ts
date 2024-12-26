@@ -6,6 +6,7 @@ import { InputBuilderFull, type PublicInputBuilderFull } from './input-builder-f
 import { InputBuilderSimple } from './input-builder-simple'
 import { OpenAPIPayloadCodec, type PublicOpenAPIPayloadCodec } from './openapi-payload-codec'
 import { type Hono, OpenAPIProcedureMatcher, type PublicOpenAPIProcedureMatcher } from './openapi-procedure-matcher'
+import { CompositeSchemaCoercer, type SchemaCoercer } from './schema-coercer'
 
 export type OpenAPIHandlerOptions<T extends Context> =
   & Hooks<Request, Response, T, WithSignal>
@@ -14,6 +15,7 @@ export type OpenAPIHandlerOptions<T extends Context> =
     payloadCodec?: PublicOpenAPIPayloadCodec
     inputBuilderSimple?: PublicInputBuilderSimple
     inputBuilderFull?: PublicInputBuilderFull
+    schemaCoercers?: SchemaCoercer[]
   }
 
 export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandler<T> {
@@ -21,6 +23,7 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
   private readonly payloadCodec: PublicOpenAPIPayloadCodec
   private readonly inputBuilderSimple: PublicInputBuilderSimple
   private readonly inputBuilderFull: PublicInputBuilderFull
+  private readonly compositeSchemaCoercer: SchemaCoercer
 
   constructor(
     hono: Hono,
@@ -31,6 +34,7 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
     this.payloadCodec = options?.payloadCodec ?? new OpenAPIPayloadCodec()
     this.inputBuilderSimple = options?.inputBuilderSimple ?? new InputBuilderSimple()
     this.inputBuilderFull = options?.inputBuilderFull ?? new InputBuilderFull()
+    this.compositeSchemaCoercer = new CompositeSchemaCoercer(options?.schemaCoercers ?? [])
   }
 
   condition(request: Request): boolean {
@@ -67,13 +71,15 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
 
       const input = this.inputBuilderSimple.build(match.params, decodedPayload)
 
+      const coercedInput = this.compositeSchemaCoercer.coerce(match.procedure['~orpc'].contract['~orpc'].InputSchema, input)
+
       const client = createProcedureClient({
         context,
         procedure: match.procedure,
         path: match.path,
       })
 
-      const output = await client(input, { signal: options?.signal })
+      const output = await client(coercedInput, { signal: options?.signal })
 
       const { body, headers } = this.payloadCodec.encode(output)
 

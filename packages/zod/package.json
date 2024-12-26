@@ -41,6 +41,9 @@
     "build:watch": "pnpm run build --watch",
     "type:check": "tsc -b"
   },
+  "peerDependencies": {
+    "@orpc/openapi": "workspace:*"
+  },
   "dependencies": {
     "json-schema-typed": "^8.0.1",
     "wildcard-match": "^5.1.3",

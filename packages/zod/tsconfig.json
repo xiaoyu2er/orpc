@@ -3,7 +3,9 @@
   "compilerOptions": {
     "types": []
   },
-  "references": [],
+  "references": [
+    { "path": "../openapi" }
+  ],
   "include": ["src"],
   "exclude": [
     "**/*.test.*",

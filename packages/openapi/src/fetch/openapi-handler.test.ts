@@ -187,4 +187,29 @@ describe.each(hono)('openAPIHandler: %s', (_, hono) => {
       headers: new Headers({ [ORPC_HANDLER_HEADER]: ORPC_HANDLER_VALUE }),
     }))).toBe(false)
   })
+
+  it('schema coercer', async () => {
+    const coerce = vi.fn().mockReturnValue('__mocked__')
+
+    const handler = new OpenAPIHandler(hono, router, {
+      schemaCoercers: [
+        {
+          coerce,
+        },
+      ],
+    })
+
+    const mockRequest = new Request('https://example.com/ping?value=123', {
+      headers: new Headers({}),
+    })
+
+    const response = await handler.fetch(mockRequest)
+
+    expect(response?.status).toBe(200)
+
+    expect(coerce).toBeCalledTimes(1)
+    expect(coerce).toBeCalledWith(undefined, { value: '123' })
+    expect(vi.mocked(createProcedureClient).mock.results[0]?.value).toBeCalledTimes(1)
+    expect(vi.mocked(createProcedureClient).mock.results[0]?.value).toBeCalledWith('__mocked__', { signal: undefined })
+  })
 })

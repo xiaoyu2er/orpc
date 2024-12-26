@@ -12,6 +12,7 @@
   ],
   "include": ["src"],
   "exclude": [
+    "**/*.bench.*",
     "**/*.test.*",
     "**/*.test-d.ts",
     "**/__tests__/**",

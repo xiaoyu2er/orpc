@@ -3,7 +3,7 @@ import { ORPCError } from '@orpc/shared/error'
 import * as SuperJSON from './super-json'
 
 export class ORPCPayloadCodec {
-  encode(payload: unknown): FormData | Blob | string | undefined {
+  encode(payload: unknown): FormData | Blob {
     const { data, meta } = SuperJSON.serialize(payload)
     const { maps, values } = findDeepMatches(v => v instanceof Blob, data)
 

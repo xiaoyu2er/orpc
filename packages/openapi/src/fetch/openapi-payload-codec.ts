@@ -15,11 +15,17 @@ export class OpenAPIPayloadCodec {
       const contentType = payload.type || 'application/octet-stream'
 
       if (typeMatchers.some(isMatch => isMatch(contentType))) {
+        const headers = new Headers({
+          'Content-Type': contentType,
+        })
+
+        if (payload instanceof File && payload.name) {
+          headers.append('Content-Disposition', cd(payload.name))
+        }
+
         return {
           body: payload,
-          headers: new Headers({
-            'Content-Type': contentType,
-          }),
+          headers,
         }
       }
     }

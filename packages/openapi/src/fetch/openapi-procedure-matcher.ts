@@ -7,29 +7,15 @@ import { forEachContractProcedure, standardizeHTTPPath } from '../utils'
 export type Hono = BaseHono<[string, string[]]>
 
 type PendingRouter = { path: string[], router: ANY_ROUTER }
-type PendingRoutersRef = { value: PendingRouter[] }
-const caches = new WeakMap<ANY_ROUTER, WeakMap<Hono, PendingRoutersRef>>()
 
 export class OpenAPIProcedureMatcher {
-  private pendingRoutersRef: PendingRoutersRef
+  private pendingRouters: PendingRouter[]
 
   constructor(
     private readonly hono: Hono,
     private readonly router: ANY_ROUTER,
   ) {
-    let cache = caches.get(router)
-    if (!cache) {
-      cache = new WeakMap()
-      caches.set(router, cache)
-    }
-
-    let pending = cache.get(hono)
-    if (!pending) {
-      pending = { value: [{ path: [], router }] }
-      cache.set(hono, pending)
-    }
-
-    this.pendingRoutersRef = pending
+    this.pendingRouters = [{ path: [], router }]
   }
 
   async match(
@@ -97,13 +83,13 @@ export class OpenAPIProcedureMatcher {
       this.hono.add(method, httpPath, [httpPath, path])
     })
 
-    this.pendingRoutersRef.value.push(...lazies)
+    this.pendingRouters.push(...lazies)
   }
 
   private async handlePendingRouters(pathname: string): Promise<void> {
     const newPendingLazyRouters: PendingRouter[] = []
 
-    for (const item of this.pendingRoutersRef.value) {
+    for (const item of this.pendingRouters) {
       const lazyPrefix = getLazyRouterPrefix(item.router)
 
       if (
@@ -120,7 +106,7 @@ export class OpenAPIProcedureMatcher {
       this.add(item.path, router)
     }
 
-    this.pendingRoutersRef.value = newPendingLazyRouters
+    this.pendingRouters = newPendingLazyRouters
   }
 
   private convertOpenAPIPathToRouterPath(path: HTTPPath): string {

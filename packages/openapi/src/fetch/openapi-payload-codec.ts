@@ -191,3 +191,5 @@ export class OpenAPIPayloadCodec {
     })
   }
 }
+
+export type PublicOpenAPIPayloadCodec = Pick<OpenAPIPayloadCodec, keyof OpenAPIPayloadCodec>

@@ -1,6 +1,6 @@
+import type { router } from '~/server/router'
 import { createORPCFetchClient } from '@orpc/client'
 import { createORPCVueQueryUtils } from '@orpc/vue-query'
-import type { router } from '~/server/router'
 
 export const client = createORPCFetchClient<typeof router>({
   baseURL: 'http://localhost:3000/api',

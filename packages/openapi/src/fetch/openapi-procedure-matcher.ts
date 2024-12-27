@@ -55,9 +55,9 @@ export class OpenAPIProcedureMatcher {
     const path = match[0][1]
     const params = paramStash
       ? mapValues<number, string, string>(
-        match[1] as ParamIndexMap, // if paramStash is defined, then match[1] is ParamIndexMap
-        v => paramStash[v]!,
-      )
+          match[1] as ParamIndexMap, // if paramStash is defined, then match[1] is ParamIndexMap
+          v => paramStash[v]!,
+        )
       : match[1] as Params // if paramStash is undefined, then match[1] is Params
 
     const { default: maybeProcedure } = await unlazy(getRouterChild(this.router, ...path))

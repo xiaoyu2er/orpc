@@ -35,10 +35,10 @@ export function createORPCUtils<T extends RouterClient<any>>(
   // for sure root is not procedure, so do not it procedure utils on root
   const procedureUtils = path.length
     ? createProcedureUtils({
-      client,
-      queryClient: options.contextValue.queryClient,
-      path,
-    })
+        client,
+        queryClient: options.contextValue.queryClient,
+        path,
+      })
     : {}
 
   return new Proxy(

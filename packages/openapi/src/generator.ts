@@ -145,15 +145,15 @@ export async function generateOpenAPI(
               ...inputSchema,
               properties: inputSchema.properties
                 ? Object.entries(inputSchema.properties).reduce(
-                  (acc, [key, value]) => {
-                    if (key !== name) {
-                      acc[key] = value
-                    }
+                    (acc, [key, value]) => {
+                      if (key !== name) {
+                        acc[key] = value
+                      }
 
-                    return acc
-                  },
-                  {} as Record<string, JSONSchema>,
-                )
+                      return acc
+                    },
+                    {} as Record<string, JSONSchema>,
+                  )
                 : undefined,
               required: inputSchema.required?.filter(v => v !== name),
               examples: inputSchema.examples?.map((example) => {

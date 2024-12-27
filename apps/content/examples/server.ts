@@ -88,11 +88,11 @@ export const router = pub.router({
 export type Inputs = InferRouterInputs<typeof router>
 export type Outputs = InferRouterOutputs<typeof router>
 
+// Modern runtime that support fetch api like deno, bun, cloudflare workers, even node can used
+import { createServer } from 'node:http'
 // Expose apis to the internet with fetch handler
 import { OpenAPIServerlessHandler } from '@orpc/openapi/fetch'
 import { CompositeHandler, ORPCHandler } from '@orpc/server/fetch'
-// Modern runtime that support fetch api like deno, bun, cloudflare workers, even node can used
-import { createServer } from 'node:http'
 import { createServerAdapter } from '@whatwg-node/server'
 
 const openapiHandler = new OpenAPIServerlessHandler(router, {

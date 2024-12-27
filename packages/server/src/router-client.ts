@@ -57,11 +57,11 @@ export function createRouterClient<
 
   const procedureCaller = isLazy(options.router)
     ? createProcedureClient({
-      ...options,
-      procedure: createLazyProcedureFormAnyLazy(options.router),
-      context: options.context,
-      path: options.path,
-    })
+        ...options,
+        procedure: createLazyProcedureFormAnyLazy(options.router),
+        context: options.context,
+        path: options.path,
+      })
     : {}
 
   const recursive = new Proxy(procedureCaller, {

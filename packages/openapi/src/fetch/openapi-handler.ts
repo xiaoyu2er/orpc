@@ -65,9 +65,9 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
       // TODO: handle input-builder-full
       // const decodedHeaders = await this.payloadCodec.decode(headers)
       // const decodedQuery = await this.payloadCodec.decode(query)
-      const decodedPayload = request.method === 'POST'
-        ? await this.payloadCodec.decode(request)
-        : await this.payloadCodec.decode(query)
+      const decodedPayload = request.method === 'GET'
+        ? await this.payloadCodec.decode(query)
+        : await this.payloadCodec.decode(request)
 
       const input = this.inputBuilderSimple.build(match.params, decodedPayload)
 

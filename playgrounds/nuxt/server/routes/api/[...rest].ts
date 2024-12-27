@@ -3,13 +3,21 @@ import { CompositeHandler, ORPCHandler } from '@orpc/server/fetch'
 import { ZodCoercer } from '@orpc/zod'
 import { createServerAdapter } from '@whatwg-node/server'
 import { router } from '~/server/router'
+import '../../polyfill'
 
 const openAPIHandler = new OpenAPIServerlessHandler(router, {
   schemaCoercers: [
     new ZodCoercer(),
   ],
+  onError: ({ error }) => {
+    console.error(error)
+  },
 })
-const orpcHandler = new ORPCHandler(router)
+const orpcHandler = new ORPCHandler(router, {
+  onError: ({ error }) => {
+    console.error(error)
+  },
+})
 const compositeHandler = new CompositeHandler([openAPIHandler, orpcHandler])
 
 export default defineEventHandler((event) => {

@@ -68,7 +68,7 @@ export class OpenAPIPayloadCodec {
       return {
         body: undefined,
         headers: new Headers({
-          'Content-Type': 'application/json',
+          'content-type': 'application/json',
         }),
       }
     }
@@ -76,7 +76,7 @@ export class OpenAPIPayloadCodec {
     return {
       body: JSON.stringify(payload),
       headers: new Headers({
-        'Content-Type': 'application/json',
+        'content-type': 'application/json',
       }),
     }
   }
@@ -136,7 +136,7 @@ export class OpenAPIPayloadCodec {
     return {
       body: params.toString(),
       headers: new Headers({
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'content-type': 'application/x-www-form-urlencoded',
       }),
     }
   }
@@ -181,8 +181,8 @@ export class OpenAPIPayloadCodec {
       return BracketNotation.deserialize([...re.entries()])
     }
 
-    const contentType = re.headers.get('Content-Type')
-    const contentDisposition = re.headers.get('Content-Disposition')
+    const contentType = re.headers.get('content-type')
+    const contentDisposition = re.headers.get('content-disposition')
     const fileName = contentDisposition ? cd.parse(contentDisposition).parameters.filename : undefined
 
     if (fileName) {

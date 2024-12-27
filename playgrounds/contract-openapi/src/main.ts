@@ -12,8 +12,15 @@ const openAPIHandler = new OpenAPIServerHandler(router, {
   schemaCoercers: [
     new ZodCoercer(),
   ],
+  onError: ({ error }) => {
+    console.error(error)
+  },
 })
-const orpcHandler = new ORPCHandler(router)
+const orpcHandler = new ORPCHandler(router, {
+  onError: ({ error }) => {
+    console.error(error)
+  },
+})
 const compositeHandler = new CompositeHandler([openAPIHandler, orpcHandler])
 
 const server = createServer(

@@ -28,14 +28,14 @@ export class ORPCPayloadCodec {
     return {
       body: JSON.stringify({ data, meta }),
       headers: new Headers({
-        'Content-Type': 'application/json',
+        'content-type': 'application/json',
       }),
     }
   }
 
   async decode(re: Request | Response): Promise<unknown> {
     try {
-      if (re.headers.get('Content-Type')?.startsWith('multipart/form-data')) {
+      if (re.headers.get('content-type')?.startsWith('multipart/form-data')) {
         const form = await re.formData()
 
         // Since form-data only used when has file, so the data cannot be null

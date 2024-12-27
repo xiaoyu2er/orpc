@@ -1,33 +1,18 @@
 import type { HTTPPath } from '@orpc/contract'
-import type { Hooks, Value } from '@orpc/shared'
-import type { Router } from '../router'
 import type { Context, WithSignal } from '../types'
 
-export type FetchHandlerOptions<T extends Context> =
-  {
-  /**
-   * The `router` used for handling the request and routing,
-   *
-   */
-    router: Router<T, any>
-
-    /**
-     * The request need to be handled.
-     */
-    request: Request
-
-    /**
-     * Remove the prefix from the request path.
-     *
-     * @example /orpc
-     * @example /api
-     */
-    prefix?: HTTPPath
-  }
-  & NoInfer<(undefined extends T ? { context?: Value<T> } : { context: Value<T> })>
+export type FetchOptions<T extends Context> =
   & WithSignal
-  & Hooks<Request, Response, T, WithSignal>
+  & { prefix?: HTTPPath }
+  & (undefined extends T ? { context?: T } : { context: T })
 
-export type FetchHandler = <T extends Context>(
-  options: FetchHandlerOptions<T>
-) => Promise<Response | undefined>
+export interface FetchHandler<T extends Context> {
+  fetch: (
+    request: Request,
+    ...opt: [options: FetchOptions<T>] | (undefined extends T ? [] : never)
+  ) => Promise<Response>
+}
+
+export interface ConditionalFetchHandler<T extends Context> extends FetchHandler<T> {
+  condition: (request: Request) => boolean
+}

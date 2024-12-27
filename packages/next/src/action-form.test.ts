@@ -1,4 +1,5 @@
 import { os } from '@orpc/server'
+import { ZodCoercer } from '@orpc/zod'
 import { z } from 'zod'
 import { createFormAction } from './action-form'
 
@@ -9,7 +10,14 @@ describe('createFormAction', () => {
 
   it('should accept form data and auto-convert types', async () => {
     const onSuccess = vi.fn()
-    const formAction = createFormAction({ procedure, path: ['name'], onSuccess })
+    const formAction = createFormAction({
+      procedure,
+      path: ['name'],
+      onSuccess,
+      schemaCoercers: [
+        new ZodCoercer(),
+      ],
+    })
 
     const form = new FormData()
     form.append('big', '19992')
@@ -39,6 +47,9 @@ describe('createFormAction', () => {
       path: ['name'],
       onSuccess,
       onError,
+      schemaCoercers: [
+        new ZodCoercer(),
+      ],
     })
 
     const form = new FormData()

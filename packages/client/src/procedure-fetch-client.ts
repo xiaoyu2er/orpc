@@ -1,8 +1,8 @@
 import type { ProcedureClient } from '@orpc/server'
 import type { Promisable } from '@orpc/shared'
-import { ORPC_PROTOCOL_HEADER, ORPC_PROTOCOL_VALUE, trim } from '@orpc/shared'
+import { ORPCPayloadCodec } from '@orpc/server/fetch'
+import { ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE, trim } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
-import { ORPCDeserializer, ORPCSerializer } from '@orpc/transformer'
 
 export interface CreateProcedureClientOptions {
   /**
@@ -28,8 +28,7 @@ export interface CreateProcedureClientOptions {
   path: string[]
 }
 
-const serializer = new ORPCSerializer()
-const deserializer = new ORPCDeserializer()
+const payloadCodec = new ORPCPayloadCodec()
 
 export function createProcedureFetchClient<TInput, TOutput>(
   options: CreateProcedureClientOptions,
@@ -38,9 +37,11 @@ export function createProcedureFetchClient<TInput, TOutput>(
     const fetchClient = options.fetch ?? fetch
     const url = `${trim(options.baseURL, '/')}/${options.path.map(encodeURIComponent).join('/')}`
 
-    const headers = new Headers({
-      [ORPC_PROTOCOL_HEADER]: ORPC_PROTOCOL_VALUE,
-    })
+    const encoded = payloadCodec.encode(input)
+
+    const headers = new Headers(encoded.headers)
+
+    headers.append(ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE)
 
     let customHeaders = await options.headers?.(input)
     customHeaders = customHeaders instanceof Headers ? customHeaders : new Headers(customHeaders)
@@ -48,22 +49,16 @@ export function createProcedureFetchClient<TInput, TOutput>(
       headers.append(key, value)
     }
 
-    const serialized = serializer.serialize(input)
-
-    for (const [key, value] of serialized.headers.entries()) {
-      headers.append(key, value)
-    }
-
     const response = await fetchClient(url, {
       method: 'POST',
       headers,
-      body: serialized.body,
+      body: encoded.body,
       signal: callerOptions?.signal,
     })
 
     const json = await (async () => {
       try {
-        return await deserializer.deserialize(response)
+        return await payloadCodec.decode(response)
       }
       catch (e) {
         throw new ORPCError({

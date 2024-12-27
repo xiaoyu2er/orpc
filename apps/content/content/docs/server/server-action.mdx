@@ -137,8 +137,11 @@ React forms integrate seamlessly with server actions using `createFormAction`. T
 // on server
 import { createFormAction } from '@orpc/next'
 import { updateUser } from 'examples/server-action'
+import { ZodCoercer } from '@orpc/zod'
+
 const updateUserFA = createFormAction({ 
   procedure: updateUser,
+  schemaCoercers: [new ZodCoercer()],
   onSuccess: () => {
     // redirect('/some-where')
   }

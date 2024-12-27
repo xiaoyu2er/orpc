@@ -1,9 +1,9 @@
 import type { JSONSchema } from 'json-schema-typed/draft-2020-12'
+import type { PublicOpenAPIPayloadCodec } from './fetch'
 import type { EachLeafOptions } from './utils'
 import { type ContractRouter, isContractProcedure } from '@orpc/contract'
 import { type ANY_ROUTER, unlazy } from '@orpc/server'
 import { findDeepMatches, isPlainObject, omit } from '@orpc/shared'
-import { preSerialize } from '@orpc/transformer'
 import {
   type MediaTypeObject,
   OpenApiBuilder,
@@ -13,7 +13,8 @@ import {
   type RequestBodyObject,
   type ResponseObject,
 } from 'openapi3-ts/oas31'
-import { eachContractProcedureLeaf, standardizeHTTPPath } from './utils'
+import { OpenAPIPayloadCodec } from './fetch'
+import { forEachContractProcedure, standardizeHTTPPath } from './utils'
 import {
   extractJSONSchema,
   UNSUPPORTED_JSON_SCHEMA,
@@ -39,6 +40,8 @@ export interface GenerateOpenAPIOptions {
    * @default false
    */
   ignoreUndefinedPathProcedures?: boolean
+
+  payloadCodec?: PublicOpenAPIPayloadCodec
 }
 
 export async function generateOpenAPI(
@@ -51,6 +54,7 @@ export async function generateOpenAPI(
     = options?.throwOnMissingTagDefinition ?? false
   const ignoreUndefinedPathProcedures
     = options?.ignoreUndefinedPathProcedures ?? false
+  const payloadCodec = options?.payloadCodec ?? new OpenAPIPayloadCodec()
 
   const builder = new OpenApiBuilder({
     ...omit(opts, ['router']),
@@ -65,7 +69,7 @@ export async function generateOpenAPI(
   }]
 
   for (const item of pending) {
-    const lazies = eachContractProcedureLeaf(item, ({ contract, path }) => {
+    const lazies = forEachContractProcedure(item, ({ contract, path }) => {
       if (!isContractProcedure(contract)) {
         return
       }
@@ -141,15 +145,15 @@ export async function generateOpenAPI(
               ...inputSchema,
               properties: inputSchema.properties
                 ? Object.entries(inputSchema.properties).reduce(
-                  (acc, [key, value]) => {
-                    if (key !== name) {
-                      acc[key] = value
-                    }
+                    (acc, [key, value]) => {
+                      if (key !== name) {
+                        acc[key] = value
+                      }
 
-                    return acc
-                  },
-                  {} as Record<string, JSONSchema>,
-                )
+                      return acc
+                    },
+                    {} as Record<string, JSONSchema>,
+                  )
                 : undefined,
               required: inputSchema.required?.filter(v => v !== name),
               examples: inputSchema.examples?.map((example) => {
@@ -344,7 +348,7 @@ export async function generateOpenAPI(
     })
 
     for (const lazy of lazies) {
-      const { default: router } = await unlazy(lazy.lazy)
+      const { default: router } = await unlazy(lazy.router)
 
       pending.push({
         path: lazy.path,
@@ -353,7 +357,7 @@ export async function generateOpenAPI(
     }
   }
 
-  return preSerialize(builder.getSpec()) as OpenAPIObject
+  return payloadCodec.serialize(builder.getSpec()) as OpenAPIObject
 }
 
 function isFileSchema(schema: unknown) {

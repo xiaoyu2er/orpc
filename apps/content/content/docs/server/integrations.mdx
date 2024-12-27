@@ -13,20 +13,22 @@ Whether you're targeting serverless, edge environments, or traditional backends,
 ## Quick Example
 
 ```ts twoslash
-import { handleFetchRequest, createORPCHandler } from '@orpc/server/fetch'
-import { createOpenAPIServerlessHandler, createOpenAPIServerHandler } from '@orpc/openapi/fetch'
+import { ORPCHandler, CompositeHandler } from '@orpc/server/fetch'
+import { OpenAPIServerlessHandler } from '@orpc/openapi/fetch'
 import { router } from 'examples/server'
+import { ZodCoercer } from '@orpc/zod'
+
+const openapiHandler = new OpenAPIServerlessHandler(router, {
+  schemaCoercers: [
+    new ZodCoercer(),
+  ],
+})
+const orpcHandler = new ORPCHandler(router)
+const compositeHandler = new CompositeHandler([openapiHandler, orpcHandler])
 
 export function fetch(request: Request) {
-  return handleFetchRequest({
-    router,
-    request,
+  return compositeHandler.fetch(request, {
     context: {},
-    // prefix: '/api', // Optionally define a route prefix
-    handlers: [
-      createORPCHandler(),
-      createOpenAPIServerlessHandler(),
-    ],
   })
 }
 ```
@@ -37,23 +39,25 @@ Node.js doesn't provide native support for creating server with [Fetch API](http
 but you can easily use [@whatwg-node/server](https://npmjs.com/package/@whatwg-node/server) as an adapter.
 
 ```ts twoslash
-import { handleFetchRequest, createORPCHandler } from '@orpc/server/fetch'
-import { createOpenAPIServerlessHandler, createOpenAPIServerHandler } from '@orpc/openapi/fetch'
 import { createServer } from 'node:http'
 import { createServerAdapter } from '@whatwg-node/server'
+import { ORPCHandler, CompositeHandler } from '@orpc/server/fetch'
+import { OpenAPIServerlessHandler } from '@orpc/openapi/fetch'
 import { router } from 'examples/server'
+import { ZodCoercer } from '@orpc/zod'
+
+const openapiHandler = new OpenAPIServerlessHandler(router, {
+  schemaCoercers: [
+    new ZodCoercer(),
+  ],
+})
+const orpcHandler = new ORPCHandler(router)
+const compositeHandler = new CompositeHandler([openapiHandler, orpcHandler])
 
 const server = createServer(
   createServerAdapter((request: Request) => {
-    return handleFetchRequest({
-      router,
-      request,
+    return compositeHandler.fetch(request, {
       context: {},
-      // prefix: '/api',
-      handlers: [
-        createORPCHandler(),
-        createOpenAPIServerlessHandler(),
-      ],
     })
   })
 )
@@ -66,24 +70,27 @@ server.listen(3000, () => {
 ## Express.js
 
 ```ts twoslash
-import { handleFetchRequest, createORPCHandler } from '@orpc/server/fetch'
-import { createOpenAPIServerlessHandler, createOpenAPIServerHandler } from '@orpc/openapi/fetch'
-import { createServerAdapter } from '@whatwg-node/server'
 import express from 'express'
+import { createServerAdapter } from '@whatwg-node/server'
+import { ORPCHandler, CompositeHandler } from '@orpc/server/fetch'
+import { OpenAPIServerlessHandler } from '@orpc/openapi/fetch'
 import { router } from 'examples/server'
+import { ZodCoercer } from '@orpc/zod'
+
+const openapiHandler = new OpenAPIServerlessHandler(router, {
+  schemaCoercers: [
+    new ZodCoercer(),
+  ],
+})
+const orpcHandler = new ORPCHandler(router)
+const compositeHandler = new CompositeHandler([openapiHandler, orpcHandler])
 
 const app = express()
 
 app.all('/api/*', createServerAdapter((request: Request) => {
-  return handleFetchRequest({
-    router,
-    request,
+  return compositeHandler.fetch(request, {
     context: {},
     prefix: '/api',
-      handlers: [
-        createORPCHandler(),
-        createOpenAPIServerHandler(),
-      ],
   })
 }))
 
@@ -96,23 +103,26 @@ app.listen(3000, () => {
 
 ```ts twoslash
 import { Hono } from 'hono'
-import { handleFetchRequest, createORPCHandler } from '@orpc/server/fetch'
-import { createOpenAPIServerlessHandler, createOpenAPIServerHandler } from '@orpc/openapi/fetch'
+import { ORPCHandler, CompositeHandler } from '@orpc/server/fetch'
+import { OpenAPIServerlessHandler } from '@orpc/openapi/fetch'
 import { router } from 'examples/server'
+import { ZodCoercer } from '@orpc/zod'
+
+const openapiHandler = new OpenAPIServerlessHandler(router, {
+  schemaCoercers: [
+    new ZodCoercer(),
+  ],
+})
+const orpcHandler = new ORPCHandler(router)
+const compositeHandler = new CompositeHandler([openapiHandler, orpcHandler])
 
 const app = new Hono()
 
 app.get('/api/*', (c) => {
-  return handleFetchRequest({
-    router,
-    request: c.req.raw,
+  return compositeHandler.fetch(c.req.raw, {
     prefix: '/api',
     context: {},
-    handlers: [
-      createORPCHandler(),
-      createOpenAPIServerlessHandler(),
-    ],
-  }) 
+  })
 })
 
 export default app
@@ -121,20 +131,23 @@ export default app
 ## Next.js
 
 ```ts title="app/api/[...orpc]/route.ts" twoslash
-import { handleFetchRequest, createORPCHandler } from '@orpc/server/fetch'
-import { createOpenAPIServerlessHandler, createOpenAPIServerHandler } from '@orpc/openapi/fetch'
+import { ORPCHandler, CompositeHandler } from '@orpc/server/fetch'
+import { OpenAPIServerlessHandler } from '@orpc/openapi/fetch'
 import { router } from 'examples/server'
+import { ZodCoercer } from '@orpc/zod'
+
+const openapiHandler = new OpenAPIServerlessHandler(router, {
+  schemaCoercers: [
+    new ZodCoercer(),
+  ],
+})
+const orpcHandler = new ORPCHandler(router)
+const compositeHandler = new CompositeHandler([openapiHandler, orpcHandler])
 
 export function GET(request: Request) {
-  return handleFetchRequest({
-    router,
-    request,
+  return compositeHandler.fetch(request, {
     prefix: '/api',
     context: {},
-    handlers: [
-      createORPCHandler(),
-      createOpenAPIServerlessHandler(),
-    ],
   })
 }
 
@@ -147,21 +160,24 @@ export const PATCH = GET
 ## Cloudflare Workers
 
 ```ts twoslash
-import { handleFetchRequest, createORPCHandler } from '@orpc/server/fetch'
-import { createOpenAPIServerlessHandler, createOpenAPIServerHandler } from '@orpc/openapi/fetch'
+import { ORPCHandler, CompositeHandler } from '@orpc/server/fetch'
+import { OpenAPIServerlessHandler } from '@orpc/openapi/fetch'
 import { router } from 'examples/server'
+import { ZodCoercer } from '@orpc/zod'
+
+const openapiHandler = new OpenAPIServerlessHandler(router, {
+  schemaCoercers: [
+    new ZodCoercer(),
+  ],
+})
+const orpcHandler = new ORPCHandler(router)
+const compositeHandler = new CompositeHandler([openapiHandler, orpcHandler])
 
 export default {
   async fetch(request: Request) {
-    return handleFetchRequest({
-      router,
-      request,
+    return compositeHandler.fetch(request, {
       prefix: '/',
       context: {},
-      handlers: [
-        createORPCHandler(),
-        createOpenAPIServerlessHandler(),
-      ],
     })
   },
 }

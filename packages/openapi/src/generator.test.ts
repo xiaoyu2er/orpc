@@ -2,6 +2,7 @@ import type { OpenAPIObject } from 'openapi3-ts/oas31'
 import { oc } from '@orpc/contract'
 import { os } from '@orpc/server'
 import { oz } from '@orpc/zod'
+import OpenAPIParser from '@readme/openapi-parser'
 import { z } from 'zod'
 import { generateOpenAPI } from './generator'
 
@@ -26,6 +27,8 @@ it('works', async () => {
       version: '1.0.0',
     },
   })
+
+  await OpenAPIParser.validate(spec as any)
 
   expect(spec).toMatchObject({
     openapi: '3.1.0',
@@ -117,6 +120,8 @@ it('throwOnMissingTagDefinition option', async () => {
     },
     { throwOnMissingTagDefinition: true },
   )
+
+  await OpenAPIParser.validate(spec as any)
 
   expect(spec).toMatchObject({
     openapi: '3.1.0',
@@ -212,6 +217,8 @@ it('support single file upload', async () => {
       version: '1.0.0',
     },
   })
+
+  await OpenAPIParser.validate(spec as any)
 
   expect(spec).toMatchObject({
     paths: {
@@ -364,6 +371,8 @@ it('work with example', async () => {
     },
   })
 
+  await OpenAPIParser.validate(spec as any)
+
   expect(spec).toMatchObject({
     paths: {
       '/upload': {
@@ -488,6 +497,8 @@ it('should remove params on body', async () => {
     },
   })
 
+  await OpenAPIParser.validate(spec as any)
+
   expect(spec).toEqual({
     info: { title: 'test', version: '1.0.0' },
     openapi: '3.1.0',
@@ -574,6 +585,8 @@ it('should remove params on query', async () => {
     },
   })
 
+  await OpenAPIParser.validate(spec as any)
+
   expect(spec).toEqual({
     info: { title: 'test', version: '1.0.0' },
     openapi: '3.1.0',
@@ -658,6 +671,8 @@ it('works with lazy', async () => {
     },
   })
 
+  await OpenAPIParser.validate(spec as any)
+
   expect(spec).toMatchObject({
     openapi: '3.1.0',
     info: {
@@ -717,6 +732,8 @@ it('works will use contract instead of implemented', async () => {
       version: '1.0.0',
     },
   })
+
+  await OpenAPIParser.validate(spec as any)
 
   expect(spec).toMatchObject({
     openapi: '3.1.0',

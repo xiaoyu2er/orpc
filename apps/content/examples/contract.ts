@@ -1,11 +1,8 @@
 import type { InferContractRouterInputs, InferContractRouterOutputs } from '@orpc/contract'
 import { oc } from '@orpc/contract'
-import { oz } from '@orpc/zod'
-import { z } from 'zod'
-
-// Implement the contract
-
 import { ORPCError, os } from '@orpc/server'
+import { oz, ZodCoercer } from '@orpc/zod'
+import { z } from 'zod'
 
 // Define your contract first
 // This contract can replace server router in most-case
@@ -63,6 +60,8 @@ export const contract = oc.router({
 export type Inputs = InferContractRouterInputs<typeof contract>
 export type Outputs = InferContractRouterOutputs<typeof contract>
 
+// Implement the contract
+
 export type Context = { user?: { id: string } }
 export const base = os.context<Context>()
 export const pub /** os with ... */ = base.contract(contract) // Ensure every implement must be match contract
@@ -114,27 +113,29 @@ export const router = pub.router({
   },
 })
 
-// Expose apis to the internet with fetch handler
-import { createOpenAPIServerlessHandler } from '@orpc/openapi/fetch'
-import { createORPCHandler, handleFetchRequest } from '@orpc/server/fetch'
 // Modern runtime that support fetch api like deno, bun, cloudflare workers, even node can used
 import { createServer } from 'node:http'
+// Expose apis to the internet with fetch handler
+import { OpenAPIServerlessHandler } from '@orpc/openapi/fetch'
+import { CompositeHandler, ORPCHandler } from '@orpc/server/fetch'
 import { createServerAdapter } from '@whatwg-node/server'
+
+const openapiHandler = new OpenAPIServerlessHandler(router, {
+  schemaCoercers: [
+    new ZodCoercer(),
+  ],
+})
+const orpcHandler = new ORPCHandler(router)
+const compositeHandler = new CompositeHandler([openapiHandler, orpcHandler])
 
 const server = createServer(
   createServerAdapter((request: Request) => {
     const url = new URL(request.url)
 
     if (url.pathname.startsWith('/api')) {
-      return handleFetchRequest({
-        router,
-        request,
-        prefix: '/api',
+      return compositeHandler.fetch(request, {
         context: {},
-        handlers: [
-          createORPCHandler(),
-          createOpenAPIServerlessHandler(),
-        ],
+        prefix: '/api',
       })
     }
 

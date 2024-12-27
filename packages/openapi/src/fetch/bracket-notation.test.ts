@@ -1,10 +1,4 @@
-import { describe, expect, it } from 'vitest'
-import {
-  deserialize,
-  parsePath,
-  serialize,
-  stringifyPath,
-} from './bracket-notation'
+import { deserialize, parsePath, serialize, stringifyPath } from './bracket-notation'
 
 describe('stringifyPath', () => {
   it('should convert simple path segments to bracket notation', () => {

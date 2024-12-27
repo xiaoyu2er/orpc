@@ -1,3 +1,5 @@
+import type { Schema } from '@orpc/contract'
+import type { SchemaCoercer } from '@orpc/openapi/fetch'
 import { guard } from '@orpc/shared'
 import { getCustomZodType } from '@orpc/zod'
 import { isPlainObject } from 'is-what'
@@ -26,33 +28,23 @@ import {
   type ZodUnion,
 } from 'zod'
 
-export interface ZodCoerceOptions {
-  /**
-   * Whether to enable fix bracket-notation limitations.
-   *
-   * @default false
-   */
-  bracketNotation?: boolean
+export class ZodCoercer implements SchemaCoercer {
+  coerce(schema: Schema, value: unknown): unknown {
+    if (!schema || schema['~standard'].vendor !== 'zod') {
+      return value
+    }
 
-  /**
-   * Some fix rules only apply in the root
-   *
-   * @internal
-   * @default true
-   */
-  isRoot?: boolean
+    const zodSchema = schema as ZodTypeAny
+    const coerced = zodCoerceInternal(zodSchema, value, { bracketNotation: true })
+    return coerced
+  }
 }
 
-export function zodCoerce(
+function zodCoerceInternal(
   schema: ZodTypeAny,
   value: unknown,
-  options?: ZodCoerceOptions,
+  options?: { isRoot?: boolean, bracketNotation?: boolean },
 ): unknown {
-  if (schema['~standard'].vendor !== 'zod') {
-    // not support other schema yet
-    return value
-  }
-
   const isRoot = options?.isRoot ?? true
   const options_ = { ...options, isRoot: false }
 
@@ -62,11 +54,11 @@ export function zodCoerce(
     && Array.isArray(value)
     && value.length === 1
   ) {
-    const newValue = zodCoerce(schema, value[0], options_)
+    const newValue = zodCoerceInternal(schema, value[0], options_)
     if (schema.safeParse(newValue).success) {
       return newValue
     }
-    return zodCoerce(schema, value, options_)
+    return zodCoerceInternal(schema, value, options_)
   }
 
   const customType = getCustomZodType(schema._def)
@@ -186,7 +178,7 @@ export function zodCoerce(
     const schema_ = schema as ZodArray<ZodTypeAny>
 
     if (Array.isArray(value)) {
-      return value.map(v => zodCoerce(schema_._def.type, v, options_))
+      return value.map(v => zodCoerceInternal(schema_._def.type, v, options_))
     }
 
     if (options_?.bracketNotation) {
@@ -205,7 +197,7 @@ export function zodCoerce(
         const arr = Array.from({ length: (indexes.at(-1) ?? -1) + 1 })
 
         for (const i of indexes) {
-          arr[i] = zodCoerce(schema_._def.type, value[i], options_)
+          arr[i] = zodCoerceInternal(schema_._def.type, value[i], options_)
         }
 
         return arr
@@ -230,7 +222,7 @@ export function zodCoerce(
           continue
 
         const v = value[k]
-        newObj[k] = zodCoerce(
+        newObj[k] = zodCoerceInternal(
           schema_.shape[k] ?? schema_._def.catchall,
           v,
           options_,
@@ -247,7 +239,7 @@ export function zodCoerce(
 
       if (Array.isArray(value) && value.length === 1) {
         const emptySchema = schema_.shape[''] ?? schema_._def.catchall
-        return { '': zodCoerce(emptySchema, value[0], options_) }
+        return { '': zodCoerceInternal(emptySchema, value[0], options_) }
       }
     }
   }
@@ -258,7 +250,7 @@ export function zodCoerce(
 
     if (Array.isArray(value)) {
       return new Set(
-        value.map(v => zodCoerce(schema_._def.valueType, v, options_)),
+        value.map(v => zodCoerceInternal(schema_._def.valueType, v, options_)),
       )
     }
 
@@ -278,7 +270,7 @@ export function zodCoerce(
         const arr = Array.from({ length: (indexes.at(-1) ?? -1) + 1 })
 
         for (const i of indexes) {
-          arr[i] = zodCoerce(schema_._def.valueType, value[i], options_)
+          arr[i] = zodCoerceInternal(schema_._def.valueType, value[i], options_)
         }
 
         return new Set(arr)
@@ -296,8 +288,8 @@ export function zodCoerce(
     ) {
       return new Map(
         value.map(([k, v]) => [
-          zodCoerce(schema_._def.keyType, k, options_),
-          zodCoerce(schema_._def.valueType, v, options_),
+          zodCoerceInternal(schema_._def.keyType, k, options_),
+          zodCoerceInternal(schema_._def.valueType, v, options_),
         ]),
       )
     }
@@ -322,8 +314,8 @@ export function zodCoerce(
         if (arr.every(v => !!v)) {
           return new Map(
             arr.map(([k, v]) => [
-              zodCoerce(schema_._def.keyType, k, options_),
-              zodCoerce(schema_._def.valueType, v, options_),
+              zodCoerceInternal(schema_._def.keyType, k, options_),
+              zodCoerceInternal(schema_._def.valueType, v, options_),
             ]),
           )
         }
@@ -339,8 +331,8 @@ export function zodCoerce(
       const newObj: any = {}
 
       for (const [k, v] of Object.entries(value)) {
-        const key = zodCoerce(schema_._def.keyType, k, options_) as any
-        const val = zodCoerce(schema_._def.valueType, v, options_)
+        const key = zodCoerceInternal(schema_._def.keyType, k, options_) as any
+        const val = zodCoerceInternal(schema_._def.valueType, v, options_)
         newObj[key] = val
       }
 
@@ -363,7 +355,7 @@ export function zodCoerce(
 
     const results: [unknown, number][] = []
     for (const s of schema_._def.options) {
-      const newValue = zodCoerce(s, value, { ...options_, isRoot })
+      const newValue = zodCoerceInternal(s, value, { ...options_, isRoot })
 
       if (newValue === value)
         continue
@@ -388,9 +380,9 @@ export function zodCoerce(
   else if (typeName === ZodFirstPartyTypeKind.ZodIntersection) {
     const schema_ = schema as ZodIntersection<ZodTypeAny, ZodTypeAny>
 
-    return zodCoerce(
+    return zodCoerceInternal(
       schema_._def.right,
-      zodCoerce(schema_._def.left, value, { ...options_, isRoot }),
+      zodCoerceInternal(schema_._def.left, value, { ...options_, isRoot }),
       { ...options_, isRoot },
     )
   }
@@ -399,49 +391,49 @@ export function zodCoerce(
   else if (typeName === ZodFirstPartyTypeKind.ZodReadonly) {
     const schema_ = schema as ZodReadonly<ZodTypeAny>
 
-    return zodCoerce(schema_._def.innerType, value, { ...options_, isRoot })
+    return zodCoerceInternal(schema_._def.innerType, value, { ...options_, isRoot })
   }
 
   //
   else if (typeName === ZodFirstPartyTypeKind.ZodPipeline) {
     const schema_ = schema as ZodPipeline<ZodTypeAny, ZodTypeAny>
 
-    return zodCoerce(schema_._def.in, value, { ...options_, isRoot })
+    return zodCoerceInternal(schema_._def.in, value, { ...options_, isRoot })
   }
 
   //
   else if (typeName === ZodFirstPartyTypeKind.ZodLazy) {
     const schema_ = schema as ZodLazy<ZodTypeAny>
 
-    return zodCoerce(schema_._def.getter(), value, { ...options_, isRoot })
+    return zodCoerceInternal(schema_._def.getter(), value, { ...options_, isRoot })
   }
 
   //
   else if (typeName === ZodFirstPartyTypeKind.ZodEffects) {
     const schema_ = schema as ZodEffects<ZodTypeAny>
 
-    return zodCoerce(schema_._def.schema, value, { ...options_, isRoot })
+    return zodCoerceInternal(schema_._def.schema, value, { ...options_, isRoot })
   }
 
   //
   else if (typeName === ZodFirstPartyTypeKind.ZodBranded) {
     const schema_ = schema as ZodBranded<ZodTypeAny, any>
 
-    return zodCoerce(schema_._def.type, value, { ...options_, isRoot })
+    return zodCoerceInternal(schema_._def.type, value, { ...options_, isRoot })
   }
 
   //
   else if (typeName === ZodFirstPartyTypeKind.ZodCatch) {
     const schema_ = schema as ZodCatch<ZodTypeAny>
 
-    return zodCoerce(schema_._def.innerType, value, { ...options_, isRoot })
+    return zodCoerceInternal(schema_._def.innerType, value, { ...options_, isRoot })
   }
 
   //
   else if (typeName === ZodFirstPartyTypeKind.ZodDefault) {
     const schema_ = schema as ZodDefault<ZodTypeAny>
 
-    return zodCoerce(schema_._def.innerType, value, { ...options_, isRoot })
+    return zodCoerceInternal(schema_._def.innerType, value, { ...options_, isRoot })
   }
 
   //
@@ -456,7 +448,7 @@ export function zodCoerce(
       return schema_.safeParse(value).success ? value : null
     }
 
-    return zodCoerce(schema_._def.innerType, value, { ...options_, isRoot })
+    return zodCoerceInternal(schema_._def.innerType, value, { ...options_, isRoot })
   }
 
   //
@@ -471,7 +463,7 @@ export function zodCoerce(
       return schema_.safeParse(value).success ? value : undefined
     }
 
-    return zodCoerce(schema_._def.innerType, value, { ...options_, isRoot })
+    return zodCoerceInternal(schema_._def.innerType, value, { ...options_, isRoot })
   }
 
   //

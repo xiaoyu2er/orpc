@@ -42,12 +42,11 @@
     "type:check": "tsc -b"
   },
   "peerDependencies": {
-    "@orpc/contract": "workspace:*",
-    "@orpc/server": "workspace:*"
+    "@orpc/contract": "workspace:*"
   },
   "dependencies": {
-    "@orpc/shared": "workspace:*",
-    "@orpc/transformer": "workspace:*"
+    "@orpc/server": "workspace:*",
+    "@orpc/shared": "workspace:*"
   },
   "devDependencies": {
     "@orpc/openapi": "workspace:*",

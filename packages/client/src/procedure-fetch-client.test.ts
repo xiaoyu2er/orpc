@@ -1,9 +1,8 @@
-import { ORPCDeserializer, ORPCSerializer } from '@orpc/transformer'
+import { ORPCPayloadCodec } from '@orpc/server/fetch'
 import { createProcedureFetchClient } from './procedure-fetch-client'
 
-vi.mock('@orpc/transformer', () => ({
-  ORPCSerializer: vi.fn().mockReturnValue({ serialize: vi.fn() }),
-  ORPCDeserializer: vi.fn().mockReturnValue({ deserialize: vi.fn() }),
+vi.mock('@orpc/server/fetch', () => ({
+  ORPCPayloadCodec: vi.fn().mockReturnValue({ encode: vi.fn(), decode: vi.fn() }),
 }))
 
 beforeEach(() => {
@@ -11,15 +10,15 @@ beforeEach(() => {
 })
 
 describe('procedure fetch client', () => {
-  const serialize = (ORPCSerializer as any)().serialize
-  const deserialize = (ORPCDeserializer as any)().deserialize
+  const encode = (ORPCPayloadCodec as any)().encode
+  const decode = (ORPCPayloadCodec as any)().decode
   const response = new Response('output')
   const headers = new Headers({ 'Content-Type': 'application/json' })
 
   const fakeFetch = vi.fn()
   fakeFetch.mockReturnValue(response)
-  serialize.mockReturnValue({ body: 'transformed_input', headers })
-  deserialize.mockReturnValue('transformed_output')
+  encode.mockReturnValue({ body: 'transformed_input', headers })
+  decode.mockReturnValue('transformed_output')
 
   it('works', async () => {
     const client = createProcedureFetchClient({
@@ -32,8 +31,8 @@ describe('procedure fetch client', () => {
 
     expect(output).toBe('transformed_output')
 
-    expect(serialize).toBeCalledTimes(1)
-    expect(serialize).toBeCalledWith('input')
+    expect(encode).toBeCalledTimes(1)
+    expect(encode).toBeCalledWith('input')
 
     expect(fakeFetch).toBeCalledTimes(1)
     expect(fakeFetch).toBeCalledWith('http://localhost:3000/orpc/ping', {
@@ -42,8 +41,8 @@ describe('procedure fetch client', () => {
       headers: expect.any(Headers),
     })
 
-    expect(deserialize).toBeCalledTimes(1)
-    expect(deserialize).toBeCalledWith(response)
+    expect(decode).toBeCalledTimes(1)
+    expect(decode).toBeCalledWith(response)
   })
 
   it.each([

@@ -108,6 +108,7 @@ const { execute, isPending, isError, error, output, input, status } = useAction(
 // use as a form action
 const gettingFA = createFormAction({ 
 	procedure: getting,
+	schemaCoercers: [new ZodCoercer()],
 	onSuccess: () => redirect('/some-where')
 })
 

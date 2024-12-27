@@ -2,7 +2,7 @@
 
 import { createFormAction } from '@orpc/next'
 import { ORPCError } from '@orpc/server'
-import { oz } from '@orpc/zod'
+import { oz, ZodCoercer } from '@orpc/zod'
 import { z } from 'zod'
 import { planets } from '../data/planet'
 import { authed, pub } from '../orpc'
@@ -45,6 +45,7 @@ export const createPlanet = authed
 
 export const createPlanetFA = createFormAction({
   procedure: createPlanet,
+  schemaCoercers: [new ZodCoercer()],
   onSuccess(output) {
     // redirect('/planets')
   },

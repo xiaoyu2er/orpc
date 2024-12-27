@@ -30,7 +30,7 @@ import {
 
 export class ZodCoercer implements SchemaCoercer {
   coerce(schema: Schema, value: unknown): unknown {
-    if (schema && schema['~standard'].vendor !== 'zod') {
+    if (!schema || schema['~standard'].vendor !== 'zod') {
       return value
     }
 

@@ -1,7 +1,7 @@
 {
   "name": "@orpc/client",
   "type": "module",
-  "version": "0.18.0",
+  "version": "0.19.0",
   "license": "MIT",
   "homepage": "https://orpc.unnoq.com",
   "repository": {

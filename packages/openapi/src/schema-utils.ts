@@ -15,11 +15,15 @@ export class SchemaUtils {
   }
 
   isUndefinableSchema(schema: JSONSchema.JSONSchema): boolean {
-    if (typeof schema === 'boolean') {
-      return schema
-    }
+    const [matches] = this.filterSchemaBranches(schema, (schema) => {
+      if (typeof schema === 'boolean') {
+        return schema
+      }
 
-    return Object.keys(schema).length === 0
+      return Object.keys(schema).length === 0
+    })
+
+    return matches.length > 0
   }
 
   separateObjectSchema(schema: ObjectSchema, separatedProperties: string[]): [matched: ObjectSchema, rest: ObjectSchema] {
@@ -75,18 +79,18 @@ export class SchemaUtils {
     return [matched, rest]
   }
 
-  splitSchemaPreservingLogic(
+  filterSchemaBranches(
     schema: JSONSchema.JSONSchema,
     check: (schema: JSONSchema.JSONSchema) => boolean,
     matches: JSONSchema.JSONSchema[] = [],
-  ): [JSONSchema.JSONSchema | undefined, JSONSchema.JSONSchema[]] {
+  ): [matches: JSONSchema.JSONSchema[], rest: JSONSchema.JSONSchema | undefined] {
     if (check(schema)) {
       matches.push(schema)
-      return [undefined, matches]
+      return [matches, undefined]
     }
 
     if (typeof schema === 'boolean') {
-      return [schema, matches]
+      return [matches, schema]
     }
 
     // TODO: $ref
@@ -98,14 +102,14 @@ export class SchemaUtils {
       )
     ) {
       const anyOf = schema.anyOf
-        .map(s => this.splitSchemaPreservingLogic(s, check, matches)[0])
+        .map(s => this.filterSchemaBranches(s, check, matches)[1])
         .filter(v => !!v)
 
       if (anyOf.length === 1 && typeof anyOf[0] === 'object') {
-        return [{ ...schema, anyOf: undefined, ...anyOf[0] }, matches]
+        return [matches, { ...schema, anyOf: undefined, ...anyOf[0] }]
       }
 
-      return [{ ...schema, anyOf }, matches]
+      return [matches, { ...schema, anyOf }]
     }
 
     // TODO: $ref
@@ -117,17 +121,17 @@ export class SchemaUtils {
       )
     ) {
       const oneOf = schema.oneOf
-        .map(s => this.splitSchemaPreservingLogic(s, check, matches)[0])
+        .map(s => this.filterSchemaBranches(s, check, matches)[1])
         .filter(v => !!v)
 
       if (oneOf.length === 1 && typeof oneOf[0] === 'object') {
-        return [{ ...schema, oneOf: undefined, ...oneOf[0] }, matches]
+        return [matches, { ...schema, oneOf: undefined, ...oneOf[0] }]
       }
 
-      return [{ ...schema, oneOf }, matches]
+      return [matches, { ...schema, oneOf }]
     }
 
-    return [schema, matches]
+    return [matches, schema]
   }
 }
 

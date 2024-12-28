@@ -11,7 +11,7 @@ export class OpenAPIContentBuilder {
   build(jsonSchema: JSONSchema.JSONSchema, options?: Partial<OpenAPI.MediaTypeObject>): OpenAPI.ContentObject {
     const isFileSchema = this.schemaUtils.isFileSchema.bind(this.schemaUtils)
 
-    const [schema, matches] = this.schemaUtils.splitSchemaPreservingLogic(jsonSchema, isFileSchema)
+    const [matches, schema] = this.schemaUtils.filterSchemaBranches(jsonSchema, isFileSchema)
 
     const files = matches as (JSONSchema.JSONSchema & {
       type: 'string'

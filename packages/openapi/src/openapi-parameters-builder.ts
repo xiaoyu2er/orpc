@@ -1,7 +1,6 @@
 import type { OpenAPI } from './openapi'
 import type { JSONSchema } from './schema'
 import { get, isPlainObject } from '@orpc/shared'
-import { UNSUPPORTED_JSON_SCHEMA } from '../../zod/src/converter'
 
 export class OpenAPIParametersBuilder {
   build(
@@ -27,7 +26,7 @@ export class OpenAPIParametersBuilder {
         ...(schema === true
           ? {}
           : schema === false
-            ? UNSUPPORTED_JSON_SCHEMA
+            ? { not: {} }
             : schema),
       }
 

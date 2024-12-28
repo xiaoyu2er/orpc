@@ -1,10 +1,12 @@
 import type { ContractRouter } from '@orpc/contract'
 import type { ANY_ROUTER } from '@orpc/server'
+import type { PublicOpenAPIPathParser } from './openapi-path-parser'
 import type { SchemaConverter } from './schema-converter'
 import { JSONSerializer, type PublicJSONSerializer } from './json-serializer'
 import { type OpenAPI, OpenApiBuilder } from './openapi'
 import { OpenAPIContentBuilder, type PublicOpenAPIContentBuilder } from './openapi-content-builder'
 import { OpenAPIParametersBuilder, type PublicOpenAPIParametersBuilder } from './openapi-parameters-builder'
+import { OpenAPIPathParser } from './openapi-path-parser'
 import { CompositeSchemaConverter } from './schema-converter'
 import { type PublicSchemaUtils, SchemaUtils } from './schema-utils'
 import { forEachAllContractProcedure, standardizeHTTPPath } from './utils'
@@ -15,6 +17,7 @@ export interface OpenAPIGeneratorOptions {
   schemaConverters?: SchemaConverter[]
   schemaUtils?: PublicSchemaUtils
   jsonSerializer?: PublicJSONSerializer
+  pathParser?: PublicOpenAPIPathParser
 
   /**
    * Throw error when you missing define tag definition on OpenAPI root tags
@@ -47,6 +50,7 @@ export class OpenAPIGenerator {
   private readonly schemaConverter: CompositeSchemaConverter
   private readonly schemaUtils: PublicSchemaUtils
   private readonly jsonSerializer: PublicJSONSerializer
+  private readonly pathParser: PublicOpenAPIPathParser
 
   constructor(private readonly options?: OpenAPIGeneratorOptions) {
     this.parametersBuilder = options?.parametersBuilder ?? new OpenAPIParametersBuilder()
@@ -54,6 +58,7 @@ export class OpenAPIGenerator {
     this.schemaUtils = options?.schemaUtils ?? new SchemaUtils()
     this.jsonSerializer = options?.jsonSerializer ?? new JSONSerializer()
     this.contentBuilder = options?.contentBuilder ?? new OpenAPIContentBuilder(this.schemaUtils)
+    this.pathParser = new OpenAPIPathParser()
   }
 
   async generate(router: ContractRouter | ANY_ROUTER, doc: Omit<OpenAPI.OpenAPIObject, 'openapi'>): Promise<OpenAPI.OpenAPIObject> {
@@ -78,9 +83,9 @@ export class OpenAPIGenerator {
       const outputSchema = this.schemaConverter.convert(def.OutputSchema, { strategy: 'output' })
 
       const params: OpenAPI.ParameterObject[] | undefined = (() => {
-        const names = httpPath.match(/\{([^}]+)\}/g)?.map(raw => raw.slice(1, -1))
+        const dynamic = this.pathParser.parseDynamicParams(httpPath)
 
-        if (!names || !names.length) {
+        if (!dynamic.length) {
           return undefined
         }
 
@@ -98,7 +103,7 @@ export class OpenAPIGenerator {
           return undefined
         }
 
-        const [matched, rest] = this.schemaUtils.separateObjectSchema(inputSchema, names)
+        const [matched, rest] = this.schemaUtils.separateObjectSchema(inputSchema, dynamic.map(v => v.name))
 
         inputSchema = rest
 

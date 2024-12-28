@@ -127,7 +127,7 @@ describe('createProcedureClient', () => {
     createProcedureClient({
       procedure,
 
-      async execute(input, context, meta) {
+      async interceptor(input, context, meta) {
         expectTypeOf(input).toEqualTypeOf<unknown>()
         expectTypeOf(context).toEqualTypeOf<WELL_CONTEXT>()
         expectTypeOf(meta).toEqualTypeOf<Meta & { next: () => Promise<{ val: number }> }>()

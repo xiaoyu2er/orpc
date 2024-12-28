@@ -1,8 +1,8 @@
 import type { Schema } from '@orpc/contract'
-import type { SchemaConverter, SchemaConvertOptions } from '@orpc/openapi'
+import type { JSONSchema, SchemaConverter, SchemaConvertOptions } from '@orpc/openapi'
 import type { StandardSchemaV1 } from '@standard-schema/spec'
+import { JSONSchemaFormat } from '@orpc/openapi'
 import escapeStringRegexp from 'escape-string-regexp'
-import { Format, type JSONSchema, type keywords } from 'json-schema-typed/draft-2020-12'
 import {
   type EnumLike,
   type KeySchema,
@@ -70,7 +70,7 @@ export const NON_LOGIC_KEYWORDS = [
   '$vocabulary',
   '$dynamicAnchor',
   '$dynamicRef',
-] satisfies (typeof keywords)[number][]
+] satisfies (typeof JSONSchema.keywords)[number][]
 
 export const UNSUPPORTED_JSON_SCHEMA = { not: {} }
 export const UNDEFINED_JSON_SCHEMA = { const: 'undefined' }
@@ -110,7 +110,7 @@ export interface ZodToJsonSchemaOptions {
 export function zodToJsonSchema(
   schema: StandardSchemaV1,
   options?: ZodToJsonSchemaOptions,
-): Exclude<JSONSchema, boolean> {
+): Exclude<JSONSchema.JSONSchema, boolean> {
   if (schema['~standard'].vendor !== 'zod') {
     console.warn(`Generate JSON schema not support ${schema['~standard'].vendor} yet`)
     return {}
@@ -161,7 +161,7 @@ export function zodToJsonSchema(
     }
 
     case 'URL': {
-      return { type: 'string', format: Format.URI }
+      return { type: 'string', format: JSONSchemaFormat.URI }
     }
   }
 
@@ -173,7 +173,7 @@ export function zodToJsonSchema(
     case ZodFirstPartyTypeKind.ZodString: {
       const schema_ = schema__ as ZodString
 
-      const json: JSONSchema = { type: 'string' }
+      const json: JSONSchema.JSONSchema = { type: 'string' }
 
       for (const check of schema_._def.checks) {
         switch (check.kind) {
@@ -184,13 +184,13 @@ export function zodToJsonSchema(
             json.pattern = '^[0-9A-HJKMNP-TV-Z]{26}$'
             break
           case 'email':
-            json.format = Format.Email
+            json.format = JSONSchemaFormat.Email
             break
           case 'url':
-            json.format = Format.URI
+            json.format = JSONSchemaFormat.URI
             break
           case 'uuid':
-            json.format = Format.UUID
+            json.format = JSONSchemaFormat.UUID
             break
           case 'regex':
             json.pattern = check.regex.source
@@ -228,19 +228,19 @@ export function zodToJsonSchema(
             json.pattern = '^[0-9A-HJKMNP-TV-Z]{26}$'
             break
           case 'datetime':
-            json.format = Format.DateTime
+            json.format = JSONSchemaFormat.DateTime
             break
           case 'date':
-            json.format = Format.Date
+            json.format = JSONSchemaFormat.Date
             break
           case 'time':
-            json.format = Format.Time
+            json.format = JSONSchemaFormat.Time
             break
           case 'duration':
-            json.format = Format.Duration
+            json.format = JSONSchemaFormat.Duration
             break
           case 'ip':
-            json.format = Format.IPv4
+            json.format = JSONSchemaFormat.IPv4
             break
           case 'jwt':
             json.pattern = '^[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]*$'
@@ -260,7 +260,7 @@ export function zodToJsonSchema(
     case ZodFirstPartyTypeKind.ZodNumber: {
       const schema_ = schema__ as ZodNumber
 
-      const json: JSONSchema = { type: 'number' }
+      const json: JSONSchema.JSONSchema = { type: 'number' }
 
       for (const check of schema_._def.checks) {
         switch (check.kind) {
@@ -290,7 +290,7 @@ export function zodToJsonSchema(
     }
 
     case ZodFirstPartyTypeKind.ZodBigInt: {
-      const json: JSONSchema = { type: 'string', pattern: '^-?[0-9]+$' }
+      const json: JSONSchema.JSONSchema = { type: 'string', pattern: '^-?[0-9]+$' }
 
       // WARN: ignore checks
 
@@ -302,11 +302,11 @@ export function zodToJsonSchema(
     }
 
     case ZodFirstPartyTypeKind.ZodDate: {
-      const jsonSchema: JSONSchema = { type: 'string', format: Format.Date }
+      const schema: JSONSchema.JSONSchema = { type: 'string', format: JSONSchemaFormat.Date }
 
       // WARN: ignore checks
 
-      return jsonSchema
+      return schema
     }
 
     case ZodFirstPartyTypeKind.ZodNull: {
@@ -343,7 +343,7 @@ export function zodToJsonSchema(
       const schema_ = schema__ as ZodArray<ZodTypeAny>
       const def = schema_._def
 
-      const json: JSONSchema = { type: 'array' }
+      const json: JSONSchema.JSONSchema = { type: 'array' }
 
       if (def.exactLength) {
         json.maxItems = def.exactLength.value
@@ -367,8 +367,8 @@ export function zodToJsonSchema(
         ZodTypeAny | null
       >
 
-      const prefixItems: JSONSchema[] = []
-      const json: JSONSchema = { type: 'array' }
+      const prefixItems: JSONSchema.JSONSchema[] = []
+      const json: JSONSchema.JSONSchema = { type: 'array' }
 
       for (const item of schema_._def.items) {
         prefixItems.push(zodToJsonSchema(item, childOptions))
@@ -391,8 +391,8 @@ export function zodToJsonSchema(
     case ZodFirstPartyTypeKind.ZodObject: {
       const schema_ = schema__ as ZodObject<ZodRawShape>
 
-      const json: JSONSchema = { type: 'object' }
-      const properties: Record<string, JSONSchema> = {}
+      const json: JSONSchema.JSONSchema = { type: 'object' }
+      const properties: Record<string, JSONSchema.JSONSchema> = {}
       const required: string[] = []
 
       for (const [key, value] of Object.entries(schema_.shape)) {
@@ -443,7 +443,7 @@ export function zodToJsonSchema(
     case ZodFirstPartyTypeKind.ZodRecord: {
       const schema_ = schema__ as ZodRecord<KeySchema, ZodAny>
 
-      const json: JSONSchema = { type: 'object' }
+      const json: JSONSchema.JSONSchema = { type: 'object' }
 
       json.additionalProperties = zodToJsonSchema(
         schema_._def.valueType,
@@ -485,7 +485,7 @@ export function zodToJsonSchema(
         | ZodUnion<ZodUnionOptions>
         | ZodDiscriminatedUnion<string, [ZodObject<any>, ...ZodObject<any>[]]>
 
-      const anyOf: JSONSchema[] = []
+      const anyOf: JSONSchema.JSONSchema[] = []
 
       for (const s of schema_._def.options) {
         anyOf.push(zodToJsonSchema(s, childOptions))
@@ -497,7 +497,7 @@ export function zodToJsonSchema(
     case ZodFirstPartyTypeKind.ZodIntersection: {
       const schema_ = schema__ as ZodIntersection<ZodTypeAny, ZodTypeAny>
 
-      const allOf: JSONSchema[] = []
+      const allOf: JSONSchema.JSONSchema[] = []
 
       for (const s of [schema_._def.left, schema_._def.right]) {
         allOf.push(zodToJsonSchema(s, childOptions))
@@ -600,10 +600,10 @@ export function zodToJsonSchema(
 }
 
 function extractJSONSchema(
-  schema: JSONSchema,
-  check: (schema: JSONSchema) => boolean,
-  matches: JSONSchema[] = [],
-): { schema: JSONSchema | undefined, matches: JSONSchema[] } {
+  schema: JSONSchema.JSONSchema,
+  check: (schema: JSONSchema.JSONSchema) => boolean,
+  matches: JSONSchema.JSONSchema[] = [],
+): { schema: JSONSchema.JSONSchema | undefined, matches: JSONSchema.JSONSchema[] } {
   if (check(schema)) {
     matches.push(schema)
     return { schema: undefined, matches }
@@ -671,7 +671,7 @@ export class ZodToJsonSchemaConverter implements SchemaConverter {
     return Boolean(schema && schema['~standard'].vendor === 'zod')
   }
 
-  convert(schema: Schema, options: SchemaConvertOptions): any { // TODO
+  convert(schema: Schema, options: SchemaConvertOptions): JSONSchema.JSONSchema { // TODO
     const jsonSchema = schema as ZodTypeAny
     return zodToJsonSchema(jsonSchema, { mode: options.strategy })
   }

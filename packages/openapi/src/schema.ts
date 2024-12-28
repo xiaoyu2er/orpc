@@ -1,5 +1,6 @@
 import * as JSONSchema from 'json-schema-typed/draft-2020-12'
 
+export { Format as JSONSchemaFormat } from 'json-schema-typed/draft-2020-12'
 export { JSONSchema }
 
 export type ObjectSchema = JSONSchema.JSONSchema & { type: 'object' } & object

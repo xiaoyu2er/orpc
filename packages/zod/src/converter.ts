@@ -1,16 +1,8 @@
+import type { Schema } from '@orpc/contract'
+import type { SchemaConverter, SchemaConvertOptions } from '@orpc/openapi'
 import type { StandardSchemaV1 } from '@standard-schema/spec'
-import {
-  getCustomJSONSchema,
-  getCustomZodFileMimeType,
-  getCustomZodType,
-} from '@orpc/zod'
 import escapeStringRegexp from 'escape-string-regexp'
-import {
-  Format,
-  type JSONSchema,
-  type keywords,
-} from 'json-schema-typed/draft-2020-12'
-
+import { Format, type JSONSchema, type keywords } from 'json-schema-typed/draft-2020-12'
 import {
   type EnumLike,
   type KeySchema,
@@ -43,6 +35,11 @@ import {
   type ZodUnion,
   type ZodUnionOptions,
 } from 'zod'
+import {
+  getCustomJSONSchema,
+  getCustomZodFileMimeType,
+  getCustomZodType,
+} from './schemas'
 
 export const NON_LOGIC_KEYWORDS = [
   // Core Documentation Keywords
@@ -602,7 +599,7 @@ export function zodToJsonSchema(
   return UNSUPPORTED_JSON_SCHEMA
 }
 
-export function extractJSONSchema(
+function extractJSONSchema(
   schema: JSONSchema,
   check: (schema: JSONSchema) => boolean,
   matches: JSONSchema[] = [],
@@ -667,4 +664,15 @@ export function extractJSONSchema(
   }
 
   return { schema, matches }
+}
+
+export class ZodToJsonSchemaConverter implements SchemaConverter {
+  condition(schema: Schema): boolean {
+    return Boolean(schema && schema['~standard'].vendor === 'zod')
+  }
+
+  convert(schema: Schema, options: SchemaConvertOptions): any { // TODO
+    const jsonSchema = schema as ZodTypeAny
+    return zodToJsonSchema(jsonSchema, { mode: options.strategy })
+  }
 }

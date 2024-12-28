@@ -26,7 +26,7 @@ export class OpenAPIContentBuilder {
       }
     }
 
-    const isStillHasFileSchema = findDeepMatches(isFileSchema, schema).values.length > 0
+    const isStillHasFileSchema = findDeepMatches(isFileSchema as any /** TODO */, schema).values.length > 0
 
     if (schema !== undefined) {
       content[

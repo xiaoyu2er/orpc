@@ -171,7 +171,7 @@ describe('mutationOptions', () => {
     client.mockResolvedValueOnce('__mocked__')
     await expect(options.mutationFn(1)).resolves.toEqual('__mocked__')
     expect(client).toHaveBeenCalledTimes(1)
-    expect(client).toBeCalledWith(1)
+    expect(client).toBeCalledWith(1, {})
   })
 
   it('works with client context', async () => {

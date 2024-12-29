@@ -97,7 +97,7 @@ export const appRouter = orpcServer.router({
 const orpcHandler = new ORPCHandler(appRouter)
 
 const orpcLink = new ORPCLink({
-  url: 'http://localhost:3000/api',
+  url: 'http://localhost:3000',
   async fetch(input, init) {
     await new Promise(resolve => setTimeout(resolve, 100))
     const request = new Request(input, init)

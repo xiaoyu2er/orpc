@@ -62,6 +62,8 @@ const client = createORPCClient<typeof router, ClientContext>(orpcLink)
 client.getting({ name: 'unnoq' }, { context: { cache: 'force-cache' } })
 ```
 
+> Note: this work-out of the box with [Vue Query](/docs/client/vue-query) and [React Query](/docs/client/react-query).
+
 ## Dynamic Link
 
 ```ts twoslash

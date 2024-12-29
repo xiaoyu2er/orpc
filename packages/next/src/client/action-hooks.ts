@@ -23,7 +23,7 @@ export type UseActionState<TInput, TOutput> = {
 const idleState = { status: 'idle', isPending: false, isError: false, input: undefined, output: undefined, error: undefined } as const
 
 export function useAction<TInput, TOutput>(
-  action: ProcedureClient<TInput, TOutput>,
+  action: ProcedureClient<TInput, TOutput, any>,
   hooks?: Hooks<TInput, TOutput, undefined, undefined>,
 ): UseActionState<TInput, TOutput> {
   const [state, setState] = useState<Omit<UseActionState<TInput, TOutput>, 'execute' | 'reset'>>(idleState)

@@ -18,7 +18,7 @@ export class ORPCLink<TClientContext> implements ClientLink<TClientContext> {
   private readonly payloadCodec: PublicORPCPayloadCodec
 
   constructor(private readonly options: ORPCLinkOptions<TClientContext>) {
-    this.fetch = options.fetch ?? fetch
+    this.fetch = options.fetch ?? globalThis.fetch.bind(globalThis)
     this.payloadCodec = options.payloadCodec ?? new ORPCPayloadCodec()
   }
 

@@ -1,4 +1,3 @@
-/* eslint-disable react/no-context-provider */
 import type { RouterClient } from '@orpc/server'
 import { createClient } from '@orpc/client'
 import { ORPCLink } from '@orpc/client/fetch'

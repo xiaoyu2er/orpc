@@ -41,11 +41,11 @@ client.post.
 ## Client Context
 
 ```ts twoslash
+import type { router } from 'examples/server'
 import { createORPCClient, ORPCError } from '@orpc/client'
 import { ORPCLink } from '@orpc/client/fetch'
-import type { router } from 'examples/server'
 
-type ClientContext = { cache?: string, tags?: string[] } | undefined
+type ClientContext = { cache?: RequestCache } | undefined
 // if context is not undefinable, it will require you pass context in every call
 
 const orpcLink = new ORPCLink<ClientContext>({
@@ -53,8 +53,7 @@ const orpcLink = new ORPCLink<ClientContext>({
   // headers: provide additional headers
   fetch: (input, init, context) => globalThis.fetch(input, {
     ...init,
-    cache: context.cache,
-    tags: context.tags,
+    cache: context?.cache,
   }),
 })
 
@@ -66,9 +65,9 @@ client.getting({ name: 'unnoq' }, { context: { cache: 'force-cache' } })
 ## Dynamic Link
 
 ```ts twoslash
-import { createORPCClient, ORPCError } from '@orpc/client'
-import { ORPCLink } from '@orpc/client/fetch'
 import type { router } from 'examples/server'
+import { createORPCClient, DynamicLink, ORPCError } from '@orpc/client'
+import { ORPCLink } from '@orpc/client/fetch'
 
 const orpcLink1 = new ORPCLink({
   url: 'http://localhost:3000/api',
@@ -80,7 +79,7 @@ const orpcLink2 = new ORPCLink({
   // headers: provide additional headers
 })
 
-const dynamicLink = new DynamicLink<ClientContext>((path, input, options) => { // can be async
+const dynamicLink = new DynamicLink((path, input, options) => { // can be async
   // const clientContext = options.context
   if (path.includes('post')) {
     return orpcLink1

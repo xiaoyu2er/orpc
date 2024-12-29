@@ -40,6 +40,8 @@ client.post.
 
 ## Client Context
 
+The `Client Context` feature allows you to pass additional contextual information (like caching policies) to your client calls.
+
 ```ts twoslash
 import type { router } from 'examples/server'
 import { createORPCClient, ORPCError } from '@orpc/client'
@@ -62,9 +64,11 @@ const client = createORPCClient<typeof router, ClientContext>(orpcLink)
 client.getting({ name: 'unnoq' }, { context: { cache: 'force-cache' } })
 ```
 
-> Note: this work-out of the box with [Vue Query](/docs/client/vue-query) and [React Query](/docs/client/react-query).
+> **Note**: This works seamlessly with [Vue Query](/docs/client/vue-query) and [React Query](/docs/client/react-query).
 
 ## Dynamic Link
+
+With the **Dynamic Link** mechanism, you can define custom logic to dynamically choose between different ORPC links based on the request's context, path, or input.
 
 ```ts twoslash
 import type { router } from 'examples/server'

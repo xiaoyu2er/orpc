@@ -1,7 +1,7 @@
 import { os } from '@orpc/server'
 import { ORPCHandler } from '@orpc/server/fetch'
 import { z } from 'zod'
-import { createClient } from '../src'
+import { createORPCClient } from '../src'
 import { ORPCLink } from '../src/adapters/fetch'
 
 export const orpcServer = os
@@ -110,4 +110,4 @@ const orpcLink = new ORPCLink({
   },
 })
 
-export const client = createClient<typeof appRouter>(orpcLink)
+export const client = createORPCClient<typeof appRouter>(orpcLink)

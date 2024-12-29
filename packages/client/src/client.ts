@@ -2,16 +2,16 @@ import type { ContractRouter } from '@orpc/contract'
 import type { ANY_ROUTER, ProcedureClient, RouterClient } from '@orpc/server'
 import type { ClientLink } from './types'
 
-export interface CreateClientOptions {
+export interface createORPCClientOptions {
   /**
    * Use as base path for all procedure, useful when you only want to call a subset of the procedure.
    */
   path?: string[]
 }
 
-export function createClient<TRouter extends ANY_ROUTER | ContractRouter, TClientContext = unknown>(
+export function createORPCClient<TRouter extends ANY_ROUTER | ContractRouter, TClientContext = unknown>(
   link: ClientLink<TClientContext>,
-  options?: CreateClientOptions,
+  options?: createORPCClientOptions,
 ): RouterClient<TRouter, TClientContext> {
   const path = options?.path ?? []
 
@@ -25,7 +25,7 @@ export function createClient<TRouter extends ANY_ROUTER | ContractRouter, TClien
         return Reflect.get(target, key)
       }
 
-      return createClient(link, {
+      return createORPCClient(link, {
         ...options,
         path: [...path, key],
       })

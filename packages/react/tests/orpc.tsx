@@ -1,5 +1,5 @@
 import type { RouterClient } from '@orpc/server'
-import { createClient } from '@orpc/client'
+import { createORPCClient } from '@orpc/client'
 import { ORPCLink } from '@orpc/client/fetch'
 import { os } from '@orpc/server'
 import { ORPCHandler } from '@orpc/server/fetch'
@@ -106,7 +106,7 @@ const orpcLink = new ORPCLink({
   },
 })
 
-export const orpcClient = createClient<typeof appRouter>(orpcLink)
+export const orpcClient = createORPCClient<typeof appRouter>(orpcLink)
 
 export const { orpc, ORPCContext } = createORPCReact<RouterClient<typeof appRouter, unknown>>()
 

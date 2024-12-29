@@ -1,5 +1,5 @@
 import type { router } from '~/server/router'
-import { createClient } from '@orpc/client'
+import { createORPCClient } from '@orpc/client'
 import { ORPCLink } from '@orpc/client/fetch'
 import { createORPCVueQueryUtils } from '@orpc/vue-query'
 
@@ -10,6 +10,6 @@ const orpcLink = new ORPCLink({
   }),
 })
 
-export const client = createClient<typeof router>(orpcLink)
+export const client = createORPCClient<typeof router>(orpcLink)
 
 export const orpc = createORPCVueQueryUtils(client)

@@ -1,4 +1,4 @@
-import { createClient } from '@orpc/client'
+import { createORPCClient } from '@orpc/client'
 import { ORPCLink } from '@orpc/client/fetch'
 import { os } from '@orpc/server'
 import { ORPCHandler } from '@orpc/server/fetch'
@@ -98,7 +98,7 @@ const orpcLink = new ORPCLink({
   },
 })
 
-export const orpcClient = createClient<typeof appRouter, { batch?: boolean } | undefined>(orpcLink)
+export const orpcClient = createORPCClient<typeof appRouter, { batch?: boolean } | undefined>(orpcLink)
 
 export const orpc = createORPCVueQueryUtils(orpcClient)
 

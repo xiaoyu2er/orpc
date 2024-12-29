@@ -30,7 +30,7 @@ export class ORPCLink<TClientContext> implements ClientLink<TClientContext> {
     headers.append(ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE)
 
     // clientContext only undefined when context is undefinable so we can safely cast it
-    const clientContext = options.context as Exclude<typeof options.context, undefined>
+    const clientContext = options.context as typeof options.context & { context: TClientContext }
 
     let customHeaders = await this.options.headers?.(input, clientContext)
     customHeaders = customHeaders instanceof Headers ? customHeaders : new Headers(customHeaders)

@@ -1,5 +1,7 @@
+/* eslint-disable react/no-context-provider */
 import type { RouterClient } from '@orpc/server'
-import { createORPCFetchClient } from '@orpc/client'
+import { createClient } from '@orpc/client'
+import { ORPCLink } from '@orpc/client/fetch'
 import { os } from '@orpc/server'
 import { ORPCHandler } from '@orpc/server/fetch'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -95,18 +97,19 @@ export const appRouter = orpcServer.router({
 
 const orpcHandler = new ORPCHandler(appRouter)
 
-export const orpcClient = createORPCFetchClient<typeof appRouter>({
-  baseURL: 'http://localhost:3000',
-
-  async fetch(...args) {
+const orpcLink = new ORPCLink({
+  url: 'http://localhost:3000/api',
+  async fetch(input, init) {
     await new Promise(resolve => setTimeout(resolve, 100))
-    const request = new Request(...args)
+    const request = new Request(input, init)
 
     return orpcHandler.fetch(request)
   },
 })
 
-export const { orpc, ORPCContext } = createORPCReact<RouterClient<typeof appRouter>>()
+export const orpcClient = createClient<typeof appRouter>(orpcLink)
+
+export const { orpc, ORPCContext } = createORPCReact<RouterClient<typeof appRouter, unknown>>()
 
 export const queryClient = new QueryClient({
   defaultOptions: {

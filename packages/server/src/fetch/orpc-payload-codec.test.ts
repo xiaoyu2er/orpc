@@ -112,6 +112,36 @@ describe('orpc-payload-codec', () => {
     },
   )
 
+  it.each(types)('should work with GET method: %s', async (origin) => {
+    if (origin instanceof Blob) {
+      return
+    }
+
+    const object = {
+      '[]data\\]': origin,
+      'list': [origin],
+      'map': new Map([[origin, origin]]),
+      'set': new Set([origin]),
+    }
+
+    const { query } = codec.encode(object, 'GET')
+
+    const url = new URL('http://localhost?data=still&meta=work_when_conflict')
+
+    if (query) {
+      for (const [key, value] of query.entries()) {
+        url.searchParams.append(key, value)
+      }
+    }
+
+    const encoded = new Request(url)
+
+    expect(
+      await codec.decode(encoded),
+    )
+      .toEqual(object)
+  })
+
   it('throw error when decode invalid payload', async () => {
     expect(codec.decode(new Response('invalid payload'))).rejects.toThrowError('Cannot parse request/response. Please check the request/response body and Content-Type header.')
   })

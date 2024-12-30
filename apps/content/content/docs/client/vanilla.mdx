@@ -57,6 +57,18 @@ const orpcLink = new ORPCLink<ClientContext>({
     ...init,
     cache: context?.cache,
   }),
+  method: (path, input, context) => {
+    if (context?.cache === 'force-cache' || context?.cache === 'only-if-cached') {
+      return 'GET'
+    }
+
+    // or base on the path
+    if (['get', 'find', 'list', 'search'].includes(path.at(-1)!)) {
+      return 'GET'
+    }
+
+    return 'POST'
+  },
 })
 
 const client = createORPCClient<typeof router, ClientContext>(orpcLink)

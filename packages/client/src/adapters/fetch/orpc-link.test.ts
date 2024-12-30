@@ -38,7 +38,7 @@ describe('oRPCLink', () => {
 
     // Verify fetch was called with correct parameters
     expect(mockFetch).toHaveBeenCalledWith(
-      'http://api.example.com/users/get',
+      new URL('http://api.example.com/users/get'),
       {
         method: 'POST',
         headers: expect.any(Headers),
@@ -53,7 +53,7 @@ describe('oRPCLink', () => {
     expect(headers.get(ORPC_HANDLER_HEADER)).toBe(ORPC_HANDLER_VALUE)
 
     // Verify payload codec usage
-    expect(mockPayloadCodec.encode).toHaveBeenCalledWith({ id: 1 })
+    expect(mockPayloadCodec.encode).toHaveBeenCalledWith({ id: 1 }, 'POST')
     expect(mockPayloadCodec.decode).toHaveBeenCalledWith(expect.objectContaining({
       ok: true,
       status: 200,
@@ -114,7 +114,7 @@ describe('oRPCLink', () => {
     const result = await link.call(['path with spaces', 'special/chars'], {}, { context: {} })
 
     expect(mockFetch).toHaveBeenCalledWith(
-      'http://api.example.com/path%20with%20spaces/special%2Fchars',
+      new URL('http://api.example.com/path%20with%20spaces/special%2Fchars'),
       expect.any(Object),
       expect.any(Object),
     )
@@ -213,7 +213,7 @@ describe('oRPCLink', () => {
     })
 
     expect(mockFetch).toHaveBeenCalledWith(
-      expect.any(String),
+      expect.any(URL),
       expect.objectContaining({
         signal: abortController.signal,
       }),
@@ -241,5 +241,82 @@ describe('oRPCLink', () => {
     abortController.abort()
 
     await expect(promise).rejects.toThrow('The operation was aborted')
+  })
+
+  describe('custom method', () => {
+    it('work with GET method', async () => {
+      const mockMethod = vi.fn()
+
+      const link = new ORPCLink({
+        url: 'http://api.example.com',
+        fetch: mockFetch,
+        method: mockMethod,
+      })
+
+      mockMethod.mockResolvedValueOnce('GET')
+      mockFetch.mockResolvedValue(new Response(JSON.stringify({ data: '__mocked__', meta: [] })))
+
+      const result = await link.call(['test'], '__input__', { context: {} })
+
+      expect(result).toEqual('__mocked__')
+      expect(mockMethod).toHaveBeenCalledWith(['test'], '__input__', {})
+      expect(mockFetch).toHaveBeenCalledWith(
+        new URL('http://api.example.com/test?data=%22__input__%22&meta=%5B%5D'),
+        { method: 'GET', headers: expect.any(Headers) },
+        {},
+      )
+    })
+
+    const methods = ['POST', 'PUT', 'PATCH', 'DELETE'] as const
+
+    it.each(methods)('work with %s method', async (method) => {
+      const mockMethod = vi.fn()
+
+      const link = new ORPCLink({
+        url: 'http://api.example.com',
+        fetch: mockFetch,
+        method: mockMethod,
+      })
+
+      mockMethod.mockResolvedValueOnce(method)
+      mockFetch.mockResolvedValue(new Response(JSON.stringify({ data: '__mocked__', meta: [] })))
+
+      const result = await link.call(['test'], '__input__', { context: {} })
+
+      expect(result).toEqual('__mocked__')
+      expect(mockMethod).toHaveBeenCalledWith(['test'], '__input__', {})
+      expect(mockFetch).toHaveBeenCalledWith(
+        new URL('http://api.example.com/test'),
+        {
+          method,
+          headers: expect.any(Headers),
+          body: JSON.stringify({ data: '__input__', meta: [] }),
+        },
+        {},
+      )
+    })
+
+    it('work when GET method and url is conflicted', async () => {
+      const mockMethod = vi.fn()
+
+      const link = new ORPCLink({
+        url: 'http://api.example.com/?data=xin&meta=chao',
+        fetch: mockFetch,
+        method: mockMethod,
+      })
+
+      mockMethod.mockResolvedValueOnce('GET')
+      mockFetch.mockResolvedValue(new Response(JSON.stringify({ data: '__mocked__', meta: [] })))
+
+      const result = await link.call(['test'], '__input__', { context: {} })
+
+      expect(result).toEqual('__mocked__')
+      expect(mockMethod).toHaveBeenCalledWith(['test'], '__input__', {})
+      expect(mockFetch).toHaveBeenCalledWith(
+        new URL('http://api.example.com/?data=xin&meta=chao%2Ftest&data=%22__input__%22&meta=%5B%5D'),
+        { method: 'GET', headers: expect.any(Headers) },
+        {},
+      )
+    })
   })
 })

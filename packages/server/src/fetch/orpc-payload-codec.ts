@@ -1,10 +1,24 @@
+import type { HTTPMethod } from '@orpc/contract'
 import { findDeepMatches, set } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
 import * as SuperJSON from './super-json'
 
 export class ORPCPayloadCodec {
-  encode(payload: unknown): { body: FormData | string, headers?: Headers } {
+  encode(
+    payload: unknown,
+    method: HTTPMethod = 'POST',
+  ): { query?: URLSearchParams, body?: FormData | string, headers?: Headers } {
     const { data, meta } = SuperJSON.serialize(payload)
+
+    if (method === 'GET') {
+      const query = new URLSearchParams({
+        data: JSON.stringify(data),
+        meta: JSON.stringify(meta),
+      })
+
+      return { query }
+    }
+
     const { maps, values } = findDeepMatches(v => v instanceof Blob, data)
 
     if (values.length > 0) {
@@ -35,6 +49,19 @@ export class ORPCPayloadCodec {
 
   async decode(re: Request | Response): Promise<unknown> {
     try {
+      if ('method' in re && re.method === 'GET') {
+        const url = new URL(re.url)
+        const query = url.searchParams
+
+        const data = JSON.parse(query.getAll('data').at(-1) as string)
+        const meta = JSON.parse(query.getAll('meta').at(-1) as string)
+
+        return SuperJSON.deserialize({
+          data,
+          meta,
+        })
+      }
+
       if (re.headers.get('content-type')?.startsWith('multipart/form-data')) {
         const form = await re.formData()
 

@@ -1,3 +1,4 @@
+import type { HTTPMethod } from '@orpc/contract'
 import type { ProcedureClientOptions } from '@orpc/server'
 import type { Promisable } from '@orpc/shared'
 import type { ClientLink } from '../../types'
@@ -8,7 +9,8 @@ import { ORPCError } from '@orpc/shared/error'
 
 export interface ORPCLinkOptions<TClientContext> {
   url: string
-  headers?: (input: unknown, context: TClientContext) => Promisable<Headers | Record<string, string>>
+  method?: (path: readonly string[], input: unknown, context: TClientContext) => Promisable<HTTPMethod | undefined>
+  headers?: (path: readonly string[], input: unknown, context: TClientContext) => Promisable<Headers | Record<string, string>>
   fetch?: FetchWithContext<TClientContext>
   payloadCodec?: PublicORPCPayloadCodec
 }
@@ -23,23 +25,32 @@ export class ORPCLink<TClientContext> implements ClientLink<TClientContext> {
   }
 
   async call(path: readonly string[], input: unknown, options: ProcedureClientOptions<TClientContext>): Promise<unknown> {
-    const url = `${trim(this.options.url, '/')}/${path.map(encodeURIComponent).join('/')}`
-    const encoded = this.payloadCodec.encode(input)
+    const clientContext = options.context as typeof options.context & { context: TClientContext }
+
+    const url = new URL(`${trim(this.options.url, '/')}/${path.map(encodeURIComponent).join('/')}`)
+    const method = await this.options.method?.(path, input, clientContext) ?? 'POST'
+    const encoded = this.payloadCodec.encode(input, method)
+
+    if (encoded.query) {
+      for (const [key, value] of encoded.query.entries()) {
+        url.searchParams.append(key, value)
+      }
+    }
+
     const headers = new Headers(encoded.headers)
 
     headers.append(ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE)
 
     // clientContext only undefined when context is undefinable so we can safely cast it
-    const clientContext = options.context as typeof options.context & { context: TClientContext }
 
-    let customHeaders = await this.options.headers?.(input, clientContext)
+    let customHeaders = await this.options.headers?.(path, input, clientContext)
     customHeaders = customHeaders instanceof Headers ? customHeaders : new Headers(customHeaders)
     for (const [key, value] of customHeaders.entries()) {
       headers.append(key, value)
     }
 
     const response = await this.fetch(url, {
-      method: 'POST',
+      method,
       headers,
       body: encoded.body,
       signal: options.signal,

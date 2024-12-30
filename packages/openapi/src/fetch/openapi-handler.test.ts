@@ -220,4 +220,29 @@ describe.each(hono)('openAPIHandler: %s', (_, hono) => {
     expect(vi.mocked(createProcedureClient).mock.results[0]?.value).toBeCalledTimes(1)
     expect(vi.mocked(createProcedureClient).mock.results[0]?.value).toBeCalledWith('__mocked__', { signal: undefined })
   })
+
+  it('custom success status', async () => {
+    const router = {
+      ping: new Procedure({
+        contract: new ContractProcedure({
+          route: {
+            method: 'GET',
+            path: '/ping',
+            successStatus: 298,
+          },
+          InputSchema: undefined,
+          OutputSchema: undefined,
+        }),
+        handler: vi.fn(),
+      }),
+    }
+
+    const handler = new OpenAPIHandler(hono, router)
+
+    const mockRequest = new Request('https://example.com/ping')
+
+    const response = await handler.fetch(mockRequest)
+
+    expect(response?.status).toBe(298)
+  })
 })

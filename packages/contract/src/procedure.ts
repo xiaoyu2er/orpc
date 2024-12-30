@@ -12,6 +12,7 @@ export interface RouteOptions {
   description?: string
   deprecated?: boolean
   tags?: readonly string[]
+  successStatus?: number
 }
 
 export interface ContractProcedureDef<TInputSchema extends Schema, TOutputSchema extends Schema> {
@@ -27,6 +28,10 @@ export class ContractProcedure<TInputSchema extends Schema, TOutputSchema extend
   '~orpc': ContractProcedureDef<TInputSchema, TOutputSchema>
 
   constructor(def: ContractProcedureDef<TInputSchema, TOutputSchema>) {
+    if (def.route?.successStatus && (def.route.successStatus < 200 || def.route?.successStatus > 299)) {
+      throw new Error('[ContractProcedure] The successStatus must be between 200 and 299')
+    }
+
     this['~orpc'] = def
   }
 }

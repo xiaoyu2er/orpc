@@ -180,7 +180,7 @@ export class OpenAPIGenerator {
         parameters: parameters.length ? parameters : undefined,
         requestBody,
         responses: {
-          200: successResponse,
+          [def.route?.successStatus ?? 200]: successResponse,
         },
       }
 

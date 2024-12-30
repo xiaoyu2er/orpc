@@ -87,7 +87,10 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
 
       const { body, headers } = this.payloadCodec.encode(output)
 
-      return new Response(body, { headers })
+      return new Response(body, {
+        headers,
+        status: match.procedure['~orpc'].contract['~orpc'].route?.successStatus ?? 200,
+      })
     }
 
     try {

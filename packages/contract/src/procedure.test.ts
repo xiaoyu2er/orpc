@@ -1,6 +1,20 @@
 import { z } from 'zod'
 import { ContractProcedure, isContractProcedure } from './procedure'
 
+describe('contractProcedure', () => {
+  it('throws error when route.successStatus is not between 200 and 299', () => {
+    expect(
+      () => new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, route: { successStatus: 100 } }),
+    ).toThrowError()
+    expect(
+      () => new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, route: { successStatus: 300 } }),
+    ).toThrowError()
+    expect(
+      () => new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, route: { successStatus: 299 } }),
+    ).not.toThrowError()
+  })
+})
+
 describe('isContractProcedure', () => {
   it('works', () => {
     expect(new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined })).toSatisfy(isContractProcedure)

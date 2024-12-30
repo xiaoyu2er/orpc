@@ -145,4 +145,31 @@ describe('orpc-payload-codec', () => {
   it('throw error when decode invalid payload', async () => {
     expect(codec.decode(new Response('invalid payload'))).rejects.toThrowError('Cannot parse request/response. Please check the request/response body and Content-Type header.')
   })
+
+  it('use fallback method if method is GET and payload contain file', async () => {
+    const payload = {
+      file: new File([''], 'file.txt', { type: 'text/plain' }),
+    }
+
+    const { body, headers, method, query } = codec.encode(payload, 'GET')
+
+    expect(method).toBe('POST')
+    expect(body).toBeInstanceOf(FormData)
+    expect(headers).toBeUndefined()
+    expect(query).toBeUndefined()
+  })
+
+  it('force to use GET method if fallback method is GET', () => {
+    const payload = {
+      file: new File([''], 'file.txt', { type: 'text/plain' }),
+      number: 123,
+    }
+
+    const { body, headers, method, query } = codec.encode(payload, 'GET', 'GET')
+
+    expect(method).toBe('GET')
+    expect(query).toBeInstanceOf(URLSearchParams)
+    expect(query?.toString()).toBe('data=%7B%22file%22%3A%7B%7D%2C%22number%22%3A123%7D&meta=%5B%5D')
+    expect(headers).toBeUndefined()
+  })
 })

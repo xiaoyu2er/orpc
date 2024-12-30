@@ -4,22 +4,36 @@ import { ORPCError } from '@orpc/shared/error'
 import * as SuperJSON from './super-json'
 
 export class ORPCPayloadCodec {
+  /**
+   * If method is GET, the payload will be encoded as query string.
+   * If method is GET and payload contain file, the method will be fallback to fallbackMethod. (fallbackMethod = GET will force to use GET method)
+   */
   encode(
     payload: unknown,
     method: HTTPMethod = 'POST',
-  ): { query?: URLSearchParams, body?: FormData | string, headers?: Headers } {
+    fallbackMethod: HTTPMethod = 'POST',
+  ): {
+      query?: URLSearchParams
+      body?: FormData | string
+      headers?: Headers
+      method: HTTPMethod
+    } {
     const { data, meta } = SuperJSON.serialize(payload)
+    const { maps, values } = findDeepMatches(v => v instanceof Blob, data)
 
-    if (method === 'GET') {
+    if (method === 'GET' && (values.length === 0 || fallbackMethod === 'GET')) {
       const query = new URLSearchParams({
         data: JSON.stringify(data),
         meta: JSON.stringify(meta),
       })
 
-      return { query }
+      return {
+        query,
+        method: 'GET',
+      }
     }
 
-    const { maps, values } = findDeepMatches(v => v instanceof Blob, data)
+    const nonGETMethod = method === 'GET' ? fallbackMethod : method
 
     if (values.length > 0) {
       const form = new FormData()
@@ -36,7 +50,10 @@ export class ORPCPayloadCodec {
         form.append(i, value)
       }
 
-      return { body: form }
+      return {
+        body: form,
+        method: nonGETMethod,
+      }
     }
 
     return {
@@ -44,6 +61,7 @@ export class ORPCPayloadCodec {
       headers: new Headers({
         'content-type': 'application/json',
       }),
+      method: nonGETMethod,
     }
   }
 

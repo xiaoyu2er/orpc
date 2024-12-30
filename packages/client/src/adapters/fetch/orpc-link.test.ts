@@ -15,7 +15,7 @@ describe('oRPCLink', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     // Default mock implementations
-    mockPayloadCodec.encode.mockReturnValue({ headers: {}, body: 'encoded-body' })
+    mockPayloadCodec.encode.mockReturnValue({ headers: new Headers(), body: 'encoded-body', method: 'POST' })
     mockPayloadCodec.decode.mockReturnValue({ data: 'decoded-data' })
   })
 
@@ -53,7 +53,7 @@ describe('oRPCLink', () => {
     expect(headers.get(ORPC_HANDLER_HEADER)).toBe(ORPC_HANDLER_VALUE)
 
     // Verify payload codec usage
-    expect(mockPayloadCodec.encode).toHaveBeenCalledWith({ id: 1 }, 'POST')
+    expect(mockPayloadCodec.encode).toHaveBeenCalledWith({ id: 1 }, 'POST', 'POST')
     expect(mockPayloadCodec.decode).toHaveBeenCalledWith(expect.objectContaining({
       ok: true,
       status: 200,
@@ -315,6 +315,61 @@ describe('oRPCLink', () => {
       expect(mockFetch).toHaveBeenCalledWith(
         new URL('http://api.example.com/?data=xin&meta=chao%2Ftest&data=%22__input__%22&meta=%5B%5D'),
         { method: 'GET', headers: expect.any(Headers) },
+        {},
+      )
+    })
+
+    it('should fallback to POST method if method is GET and payload contain file', async () => {
+      const mockMethod = vi.fn()
+      const link = new ORPCLink({
+        url: 'http://api.example.com',
+        fetch: mockFetch,
+        method: mockMethod,
+        fallbackMethod: 'POST',
+      })
+
+      mockMethod.mockResolvedValueOnce('GET')
+      mockFetch.mockResolvedValue(new Response(JSON.stringify({ data: '__mocked__', meta: [] })))
+
+      const result = await link.call(['test'], { file: new File([''], 'file.txt', { type: 'text/plain' }) }, { context: {} })
+
+      expect(result).toEqual('__mocked__')
+      expect(mockMethod).toHaveBeenCalledWith(['test'], { file: new File([''], 'file.txt', { type: 'text/plain' }) }, {})
+      expect(mockFetch).toHaveBeenCalledWith(
+        new URL('http://api.example.com/test'),
+        {
+          method: 'POST',
+          headers: expect.any(Headers),
+          body: expect.any(FormData),
+        },
+        {},
+      )
+    })
+
+    it('method GET should fallback to fallbackMethod if payload too large', async () => {
+      const mockMethod = vi.fn()
+      const link = new ORPCLink({
+        url: 'http://api.example.com',
+        fetch: mockFetch,
+        method: mockMethod,
+        fallbackMethod: 'DELETE',
+        maxURLLength: 100,
+      })
+
+      mockMethod.mockResolvedValueOnce('GET')
+      mockFetch.mockResolvedValue(new Response(JSON.stringify({ data: '__mocked__', meta: [] })))
+
+      const result = await link.call(['test'], '_'.repeat(100), { context: {} })
+
+      expect(result).toEqual('__mocked__')
+      expect(mockMethod).toHaveBeenCalledWith(['test'], '_'.repeat(100), {})
+      expect(mockFetch).toHaveBeenCalledWith(
+        new URL('http://api.example.com/test'),
+        {
+          method: 'DELETE',
+          headers: expect.any(Headers),
+          body: expect.any(String),
+        },
         {},
       )
     })

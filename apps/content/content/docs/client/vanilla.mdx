@@ -58,7 +58,9 @@ const orpcLink = new ORPCLink<ClientContext>({
     cache: context?.cache,
   }),
   method: (path, input, context) => {
-    if (context?.cache === 'force-cache' || context?.cache === 'only-if-cached') {
+    // if input contain file, and you return GET, oRPC will change it to POST automatically
+
+    if (context?.cache) {
       return 'GET'
     }
 

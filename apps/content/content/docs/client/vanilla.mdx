@@ -97,8 +97,7 @@ const orpcLink2 = new ORPCLink({
   // headers: provide additional headers
 })
 
-const dynamicLink = new DynamicLink((path, input, options) => { // can be async
-  // const clientContext = options.context
+const dynamicLink = new DynamicLink((path, input, context) => { // can be async
   if (path.includes('post')) {
     return orpcLink1
   }

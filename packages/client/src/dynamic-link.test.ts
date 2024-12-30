@@ -19,7 +19,7 @@ describe('dynamicLink', () => {
     expect(await link.call(path, input, options)).toEqual('__mocked__')
 
     expect(mockLinkResolver).toHaveBeenCalledTimes(1)
-    expect(mockLinkResolver).toHaveBeenCalledWith(path, input, options)
+    expect(mockLinkResolver).toHaveBeenCalledWith(path, input, options.context)
     expect(mockedLink.call).toHaveBeenCalledTimes(1)
     expect(mockedLink.call).toHaveBeenCalledWith(path, input, options)
   })

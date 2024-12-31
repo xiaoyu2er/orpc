@@ -1,3 +1,4 @@
+import type { Router } from 'hono/router'
 import { ContractProcedure } from '@orpc/contract'
 import { createProcedureClient, lazy, Procedure } from '@orpc/server'
 import { ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE } from '@orpc/shared'
@@ -16,17 +17,23 @@ beforeEach(() => {
 })
 
 const hono = [
-  ['LinearRouter', new LinearRouter<any>()],
+  ['LinearRouter', LinearRouter],
   // ['RegExpRouter', new RegExpRouter<any>()],
-  ['TrieRouter', new TrieRouter<any>()],
-  ['PatternRouter', new PatternRouter<any>()],
+  ['TrieRouter', TrieRouter],
+  ['PatternRouter', PatternRouter],
 ] as const
 
 beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe.each(hono)('openAPIHandler: %s', (_, hono) => {
+describe.each(hono)('openAPIHandler: %s', (_, Construct) => {
+  let hono = new Construct() as Router<any>
+
+  beforeEach(() => {
+    hono = new Construct()
+  })
+
   const ping = new Procedure({
     contract: new ContractProcedure({
       route: {
@@ -281,5 +288,125 @@ describe.each(hono)('openAPIHandler: %s', (_, hono) => {
         method: 'POST',
       })),
     ).toSatisfy((r: any) => r.status === 200)
+  })
+
+  describe('input structure', () => {
+    it('compact', async () => {
+      const handler = new OpenAPIHandler(hono, {
+        ping: new Procedure({
+          contract: new ContractProcedure({
+            route: {
+              method: 'GET',
+              path: '/ping',
+              inputStructure: 'compact',
+            },
+            InputSchema: undefined,
+            OutputSchema: undefined,
+          }),
+          handler: vi.fn(),
+        }),
+        pong: new Procedure({
+          contract: new ContractProcedure({
+            route: {
+              method: 'POST',
+              path: '/pong',
+              inputStructure: 'compact',
+            },
+            InputSchema: undefined,
+            OutputSchema: undefined,
+          }),
+          handler: vi.fn(),
+        }),
+      })
+
+      const mockClient = vi.fn()
+      vi.mocked(createProcedureClient).mockReturnValue(mockClient)
+
+      await handler.fetch(new Request('https://example.com/ping?value=123'))
+
+      expect(mockClient).toBeCalledTimes(1)
+      expect(mockClient).toBeCalledWith({ value: '123' }, { signal: undefined })
+
+      mockClient.mockClear()
+      await handler.fetch(new Request('https://example.com/pong?value=123', {
+        method: 'POST',
+        body: new Blob([JSON.stringify({ value: '456' })], { type: 'application/json' }),
+      }))
+
+      expect(mockClient).toBeCalledTimes(1)
+      expect(mockClient).toBeCalledWith({ value: '456' }, { signal: undefined })
+    })
+
+    it('detailed', async () => {
+      const handler = new OpenAPIHandler(hono, {
+        ping: new Procedure({
+          contract: new ContractProcedure({
+            route: {
+              method: 'GET',
+              path: '/ping',
+              inputStructure: 'detailed',
+            },
+            InputSchema: undefined,
+            OutputSchema: undefined,
+          }),
+          handler: vi.fn(),
+        }),
+        pong: new Procedure({
+          contract: new ContractProcedure({
+            route: {
+              method: 'POST',
+              path: '/pong/{id}',
+              inputStructure: 'detailed',
+            },
+            InputSchema: undefined,
+            OutputSchema: undefined,
+          }),
+          handler: vi.fn(),
+        }),
+      })
+
+      const mockClient = vi.fn()
+      vi.mocked(createProcedureClient).mockReturnValue(mockClient)
+
+      await handler.fetch(new Request('https://example.com/ping?value=123', {
+        headers: {
+          'x-custom-header': 'custom-value',
+        },
+      }))
+
+      expect(mockClient).toBeCalledTimes(1)
+      expect(mockClient).toBeCalledWith(
+        {
+          params: {},
+          query: { value: '123' },
+          headers: { 'x-custom-header': 'custom-value' },
+          body: undefined,
+        },
+        { signal: undefined },
+      )
+
+      mockClient.mockClear()
+      await handler.fetch(new Request('https://example.com/pong/hud?value=123', {
+        method: 'POST',
+        body: new Blob([JSON.stringify({ value: '456' })], { type: 'application/json' }),
+        headers: {
+          'x-custom-header': 'custom-value',
+        },
+      }))
+
+      expect(mockClient).toBeCalledTimes(1)
+      expect(mockClient).toBeCalledWith(
+        {
+          params: { id: 'hud' },
+          query: { value: '123' },
+          headers: {
+            'content-type': 'application/json',
+            'x-custom-header': 'custom-value',
+          },
+          body: { value: '456' },
+        },
+        { signal: undefined },
+      )
+    })
   })
 })

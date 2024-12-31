@@ -1,6 +1,6 @@
 import type { Params } from 'hono/router'
 
-export class InputBuilderFull {
+export class InputStructureDetailed {
   build(params: Params, query: unknown, headers: unknown, body: unknown): { params: Params, query: unknown, headers: unknown, body: unknown } {
     return {
       params,
@@ -11,4 +11,4 @@ export class InputBuilderFull {
   }
 }
 
-export type PublicInputBuilderFull = Pick<InputBuilderFull, keyof InputBuilderFull>
+export type PublicInputStructureDetailed = Pick<InputStructureDetailed, keyof InputStructureDetailed>

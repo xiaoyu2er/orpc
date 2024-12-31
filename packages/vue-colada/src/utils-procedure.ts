@@ -3,7 +3,7 @@ import type { IsEqual } from '@orpc/shared'
 import type { EntryKey } from '@pinia/colada'
 import type { ComputedRef } from 'vue'
 import type { MutationOptions, QueryOptions, UseQueryFnContext } from './types'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { buildKey } from './key'
 import { deepUnref } from './utils'
 

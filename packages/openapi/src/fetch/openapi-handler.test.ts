@@ -245,4 +245,41 @@ describe.each(hono)('openAPIHandler: %s', (_, hono) => {
 
     expect(response?.status).toBe(298)
   })
+
+  it('custom method', async () => {
+    const router = {
+      ping: new Procedure({
+        contract: new ContractProcedure({
+          route: {
+            method: 'DELETE',
+            path: '/ping',
+          },
+          InputSchema: undefined,
+          OutputSchema: undefined,
+        }),
+        handler: vi.fn(),
+      }),
+    }
+
+    const handler = new OpenAPIHandler(hono, router)
+
+    expect(
+      await handler.fetch(new Request('https://example.com/ping', {
+        method: 'POST',
+      })),
+    ).toSatisfy((r: any) => r.status === 404)
+
+    // only allow custom method when method is POST
+    expect(
+      await handler.fetch(new Request('https://example.com/ping?method=DeleTe', {
+        method: 'PATCH',
+      })),
+    ).toSatisfy((r: any) => r.status === 404)
+
+    expect(
+      await handler.fetch(new Request('https://example.com/ping?method=DeleTe', {
+        method: 'POST',
+      })),
+    ).toSatisfy((r: any) => r.status === 200)
+  })
 })

@@ -1,0 +1,71 @@
+---
+title: Vue Colada
+description: Simplify oRPC usage with minimal integration Pinia Colada
+---
+
+## Installation
+
+```package-install
+@orpc/client @orpc/vue-colada @pinia/colada
+```
+
+## Setup
+
+```ts twoslash
+import { createORPCVueColadaUtils } from '@orpc/vue-colada';
+import { createORPCClient } from '@orpc/client';
+import { ORPCLink } from '@orpc/client/fetch';
+import type { router } from 'examples/server';
+
+const orpcLink = new ORPCLink({
+  url: 'http://localhost:3000/api',
+  // fetch: optional override for the default fetch function
+  // headers: provide additional headers
+});
+
+// Create an ORPC client
+export const client = createORPCClient<typeof router>(orpcLink);
+
+// Create Vue Query utilities for ORPC
+export const orpc = createORPCVueColadaUtils(client);
+
+// @noErrors
+orpc.getting.
+//           ^|
+```
+
+## Multiple ORPC Instances
+
+To prevent conflicts when using multiple ORPC instances, you can provide a unique base path to `createORPCVueColadaUtils`.
+
+```tsx twoslash
+import { createORPCVueColadaUtils } from '@orpc/vue-colada'
+
+// Create separate ORPC instances with unique base paths
+const userORPC = createORPCVueColadaUtils('fake-client' as any, ['__user-api__'])
+const postORPC = createORPCVueColadaUtils('fake-client' as any, ['__post-api__'])
+```
+
+This ensures that each instance manages its own set of query keys and avoids any conflicts.
+
+## Usage
+
+### Standard Queries and Mutations
+
+```ts twoslash
+import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
+import { orpc } from 'examples/vue-colada'
+
+// Fetch data
+const { data: gettingData } = useQuery(orpc.getting.queryOptions({ input: { name: 'unnoq' } }))
+
+// Perform mutations
+const { mutate: postMutate } = useMutation(orpc.post.create.mutationOptions())
+
+// Invalidate queries
+const queryCache = useQueryCache()
+queryCache.invalidateQueries({ key: orpc.key() }) // Invalidate all queries
+queryCache.invalidateQueries({ key: orpc.post.find.key({ input: { id: 'example' } }) }) // Specific queries
+```
+
+> **Note**: This library enhances [Pinia Colada](https://pinia-colada.esm.dev/) by managing keys and functions for you, providing a seamless developer experience.

@@ -12,7 +12,11 @@ export default defineWorkspace([
       globals: true,
       environment: 'jsdom',
       setupFiles: ['./vitest.jsdom-react.ts'],
-      include: ['./packages/next/**/*.test.tsx', './packages/react-query/**/*.test.tsx'],
+      include: [
+        './packages/next/**/*.test.tsx',
+        './packages/react-query/**/*.test.tsx',
+        './packages/vue-colada/**/*.test.tsx',
+      ],
     },
   },
 ])

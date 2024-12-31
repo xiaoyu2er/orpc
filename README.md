@@ -45,6 +45,7 @@ You can find the full documentation & examples [here](https://orpc.unnoq.com).
 - `@orpc/react`: High level integration with [React Query](https://tanstack.com/query/latest/docs/framework/react/overview).
 - `@orpc/react-query`: Low level integration with [React Query](https://tanstack.com/query/latest/docs/framework/react/overview).
 - `@orpc/vue-query`: Low level integration with [Vue Query](https://tanstack.com/query/latest/docs/framework/vue/overview).
+- `@orpc/vue-colada`: Low level integration with [Pinia Colada](https://pinia-colada.esm.dev/).
 - `@orpc/openapi`: Generate OpenAPI specs and provide OpenAPI handler for `@orpc/server`.
 - `@orpc/next`: Helpers and hooks for [Next.JS](https://nextjs.org/).
 - `@orpc/zod`: More schemas that [Zod](https://zod.dev/) doesn't support yet.

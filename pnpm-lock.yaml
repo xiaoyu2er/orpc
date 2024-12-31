@@ -108,6 +108,9 @@ importers:
       '@orpc/server':
         specifier: workspace:*
         version: link:../../packages/server
+      '@orpc/vue-colada':
+        specifier: workspace:*
+        version: link:../../packages/vue-colada
       '@orpc/vue-query':
         specifier: workspace:*
         version: link:../../packages/vue-query

@@ -2,6 +2,9 @@ import { createORPCClient } from '@orpc/client'
 import { ORPCLink } from '@orpc/client/fetch'
 import { os } from '@orpc/server'
 import { ORPCHandler } from '@orpc/server/fetch'
+import { PiniaColada } from '@pinia/colada'
+import { mount as baseMount } from '@vue/test-utils'
+import { createPinia } from 'pinia'
 import { z } from 'zod'
 import { createORPCVueQueryUtils } from '../src'
 
@@ -100,3 +103,15 @@ const orpcLink = new ORPCLink({
 export const orpcClient = createORPCClient<typeof appRouter, { batch?: boolean } | undefined>(orpcLink)
 
 export const orpc = createORPCVueQueryUtils(orpcClient)
+
+export const mount: typeof baseMount = (component, options) => {
+  return baseMount(component, {
+    global: {
+      plugins: [
+        createPinia(),
+        PiniaColada,
+      ],
+    },
+    ...options,
+  })
+}

@@ -1,10 +1,6 @@
 import { useMutation, useQuery } from '@pinia/colada'
 import { computed, ref } from 'vue'
-import { orpc, queryClient } from './helpers'
-
-beforeEach(() => {
-  queryClient.clear()
-})
+import { orpc } from './helpers'
 
 describe('useQuery', () => {
   it('infer types correctly', async () => {

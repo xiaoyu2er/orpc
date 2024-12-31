@@ -373,5 +373,15 @@ describe('oRPCLink', () => {
         {},
       )
     })
+
+    it('always throw error when url is too long', async () => {
+      const link = new ORPCLink({
+        url: 'http://api.example.com'.repeat(100),
+      })
+
+      expect(link.call(['test'], '__input__', { context: {} }))
+        .rejects
+        .toThrow('Cannot encode the request, please check the url length or payload.')
+    })
   })
 })

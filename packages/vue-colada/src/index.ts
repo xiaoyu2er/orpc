@@ -6,4 +6,4 @@ export * from './utils-general'
 export * from './utils-procedure'
 export * from './utils-router'
 
-export const createORPCVueQueryUtils = createRouterUtils
+export const createORPCVueColadaUtils = createRouterUtils

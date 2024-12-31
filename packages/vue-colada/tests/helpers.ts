@@ -6,7 +6,7 @@ import { PiniaColada } from '@pinia/colada'
 import { mount as baseMount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { z } from 'zod'
-import { createORPCVueQueryUtils } from '../src'
+import { createORPCVueColadaUtils } from '../src'
 
 export const orpcServer = os
 
@@ -102,7 +102,7 @@ const orpcLink = new ORPCLink({
 
 export const orpcClient = createORPCClient<typeof appRouter, { batch?: boolean } | undefined>(orpcLink)
 
-export const orpc = createORPCVueQueryUtils(orpcClient)
+export const orpc = createORPCVueColadaUtils(orpcClient)
 
 export const mount: typeof baseMount = (component, options) => {
   return baseMount(component, {

@@ -29,7 +29,7 @@ describe('queryOptions', () => {
     expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { type: 'query', input: 1 })
 
     client.mockResolvedValueOnce('__mocked__')
-    await expect((options as any).queryFn({ signal })).resolves.toEqual('__mocked__')
+    await expect(options.queryFn({ signal } as any)).resolves.toEqual('__mocked__')
     expect(client).toHaveBeenCalledTimes(1)
     expect(client).toBeCalledWith(1, { signal })
   })
@@ -43,7 +43,7 @@ describe('queryOptions', () => {
     expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { type: 'query', input: 1 })
 
     client.mockResolvedValueOnce('__mocked__')
-    await expect((options as any).queryFn({ signal })).resolves.toEqual('__mocked__')
+    await expect(options.queryFn({ signal } as any)).resolves.toEqual('__mocked__')
     expect(client).toHaveBeenCalledTimes(1)
     expect(client).toBeCalledWith(1, { signal })
   })
@@ -59,7 +59,7 @@ describe('queryOptions', () => {
     expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { type: 'query' })
 
     client.mockResolvedValueOnce('__mocked__')
-    await expect((options as any).queryFn({ signal })).resolves.toEqual('__mocked__')
+    await expect(options.queryFn({ signal } as any)).resolves.toEqual('__mocked__')
     expect(client).toHaveBeenCalledTimes(1)
     expect(client).toBeCalledWith(undefined, { signal, context: { batch: true } })
   })
@@ -84,7 +84,7 @@ describe('infiniteOptions', () => {
     expect(buildKeySpy).toHaveBeenCalledWith([], { type: 'infinite', input: { limit: 5 } })
 
     client.mockResolvedValueOnce('__mocked__')
-    await expect((options as any).queryFn({ pageParam: 1, signal })).resolves.toEqual('__mocked__')
+    await expect(options.queryFn({ pageParam: 1, signal } as any)).resolves.toEqual('__mocked__')
     expect(client).toHaveBeenCalledTimes(1)
     expect(client).toBeCalledWith({ limit: 5, cursor: 1 }, { signal })
   })
@@ -103,7 +103,7 @@ describe('infiniteOptions', () => {
     expect(buildKeySpy).toHaveBeenCalledWith([], { type: 'infinite', input: { limit: 5 } })
 
     client.mockResolvedValueOnce('__mocked__')
-    await expect((options as any).queryFn({ pageParam: undefined, signal })).resolves.toEqual('__mocked__')
+    await expect(options.queryFn({ pageParam: undefined, signal } as any)).resolves.toEqual('__mocked__')
     expect(client).toHaveBeenCalledTimes(1)
     expect(client).toBeCalledWith({ limit: 5, cursor: undefined }, { signal })
   })
@@ -125,7 +125,7 @@ describe('infiniteOptions', () => {
     expect(buildKeySpy).toHaveBeenCalledWith([], { type: 'infinite', input: input.value })
 
     client.mockResolvedValueOnce('__mocked__')
-    await expect((options as any).queryFn({ pageParam: 1, signal })).resolves.toEqual('__mocked__')
+    await expect(options.queryFn({ pageParam: 1, signal } as any)).resolves.toEqual('__mocked__')
     expect(client).toHaveBeenCalledTimes(1)
     expect(client).toBeCalledWith({ limit: 5, cursor: 1 }, { signal })
   })
@@ -145,7 +145,7 @@ describe('infiniteOptions', () => {
     expect(buildKeySpy).toHaveBeenCalledWith([], { type: 'infinite' })
 
     client.mockResolvedValueOnce('__mocked__')
-    await expect((options as any).queryFn({ pageParam: 1, signal })).resolves.toEqual('__mocked__')
+    await expect(options.queryFn({ pageParam: 1, signal } as any)).resolves.toEqual('__mocked__')
     expect(client).toHaveBeenCalledTimes(1)
     expect(client).toBeCalledWith({ limit: undefined, cursor: 1 }, { signal, context: { batch: true } })
   })

@@ -1,8 +1,8 @@
 import type { ProcedureClient } from '@orpc/server'
 import type { IsEqual } from '@orpc/shared'
-import type { QueryKey } from '@tanstack/vue-query'
+import type { QueryFunctionContext, QueryKey } from '@tanstack/vue-query'
 import type { ComputedRef } from 'vue'
-import type { InfiniteOptions, MutationOptions, QueryOptions } from './types'
+import type { InferCursor, InfiniteOptions, MutationOptions, QueryOptions } from './types'
 import { computed } from 'vue'
 import { buildKey } from './key'
 import { deepUnref } from './utils'
@@ -14,12 +14,16 @@ export interface ProcedureUtils<TInput, TOutput, TClientContext> {
   queryOptions: <U extends QueryOptions<TInput, TOutput, TClientContext, any>>(
     ...opt: [options: U] | (undefined extends TInput & TClientContext ? [] : never)
   ) => IsEqual<U, QueryOptions<TInput, TOutput, TClientContext, any>> extends true
-    ? { queryKey: QueryKey, queryFn: () => Promise<TOutput> }
-    : Omit<{ queryKey: ComputedRef<QueryKey>, queryFn: () => Promise<TOutput> }, keyof U> & U
+    ? { queryKey: ComputedRef<QueryKey>, queryFn: (ctx: QueryFunctionContext) => Promise<TOutput> }
+    : Omit<{ queryKey: ComputedRef<QueryKey>, queryFn: (ctx: QueryFunctionContext) => Promise<TOutput> }, keyof U> & U
 
   infiniteOptions: <U extends InfiniteOptions<TInput, TOutput, TClientContext, any>>(
     options: U
-  ) => Omit<{ queryKey: ComputedRef<QueryKey>, queryFn: () => Promise<TOutput>, initialPageParam: undefined }, keyof U> & U
+  ) => Omit<{
+    queryKey: ComputedRef<QueryKey>
+    queryFn: (ctx: QueryFunctionContext<QueryKey, InferCursor<TInput>>) => Promise<TOutput>
+    initialPageParam: undefined
+  }, keyof U> & U
 
   mutationOptions: <U extends MutationOptions<TInput, TOutput, TClientContext>>(
     ...opt: [options: U] | (undefined extends TClientContext ? [] : never)
@@ -48,7 +52,9 @@ export function createProcedureUtils<TInput, TOutput, TClientContext>(
 
       return {
         queryKey: computed(() => buildKey(path, { type: 'infinite', input: deepUnref(input) })),
-        queryFn: ({ pageParam, signal }) => client({ ...deepUnref(input), cursor: pageParam }, { signal, context: deepUnref(options.context) } as any),
+        queryFn: ({ pageParam, signal }: any) => {
+          return client({ ...deepUnref(input), cursor: pageParam }, { signal, context: deepUnref(options.context) } as any)
+        },
         ...(options as any),
       }
     },

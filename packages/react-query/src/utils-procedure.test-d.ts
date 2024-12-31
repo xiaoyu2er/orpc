@@ -1,5 +1,5 @@
 import type { ProcedureClient } from '@orpc/server'
-import type { InfiniteData, QueryKey } from '@tanstack/react-query'
+import type { InfiniteData, QueryFunctionContext, QueryKey } from '@tanstack/react-query'
 import type { ProcedureUtils } from './utils-procedure'
 import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query'
 import { createProcedureUtils } from './utils-procedure'
@@ -25,7 +25,7 @@ describe('queryOptions', () => {
     const option = utils.queryOptions()
 
     expectTypeOf(option.queryKey).toEqualTypeOf<QueryKey>()
-    expectTypeOf(option.queryFn).toEqualTypeOf<() => Promise<string | undefined>>()
+    expectTypeOf(option.queryFn).toEqualTypeOf<(ctx: QueryFunctionContext) => Promise<string | undefined>>()
     // @ts-expect-error invalid is required
     utils2.queryOptions()
   })
@@ -101,6 +101,17 @@ describe('infiniteOptions', () => {
       getNextPageParam,
       initialPageParam: 123 as never,
     })
+  })
+
+  it('infer correct queryFn type', () => {
+    const utils = createProcedureUtils({} as ProcedureClient<{ limit?: number, cursor: number }, string, unknown>, [])
+    const options = utils.infiniteOptions({
+      input: {},
+      getNextPageParam,
+      initialPageParam: 1,
+    })
+
+    expectTypeOf(options.queryFn).toEqualTypeOf<(ctx: QueryFunctionContext<QueryKey, number>) => Promise<string>>()
   })
 
   it('infer correct input type', () => {

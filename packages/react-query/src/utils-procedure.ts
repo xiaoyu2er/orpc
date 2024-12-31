@@ -1,7 +1,7 @@
 import type { ProcedureClient } from '@orpc/server'
 import type { IsEqual } from '@orpc/shared'
-import type { QueryKey } from '@tanstack/react-query'
-import type { InfiniteOptions, MutationOptions, QueryOptions } from './types'
+import type { QueryFunctionContext, QueryKey } from '@tanstack/react-query'
+import type { InferCursor, InfiniteOptions, MutationOptions, QueryOptions } from './types'
 import { buildKey } from './key'
 
 /**
@@ -11,12 +11,12 @@ export interface ProcedureUtils<TInput, TOutput, TClientContext> {
   queryOptions: <U extends QueryOptions<TInput, TOutput, TClientContext, any>>(
     ...opts: [options: U] | (undefined extends TInput & TClientContext ? [] : never)
   ) => IsEqual<U, QueryOptions<TInput, TOutput, TClientContext, any>> extends true
-    ? { queryKey: QueryKey, queryFn: () => Promise<TOutput> }
-    : Omit<{ queryKey: QueryKey, queryFn: () => Promise<TOutput> }, keyof U> & U
+    ? { queryKey: QueryKey, queryFn: (ctx: QueryFunctionContext) => Promise<TOutput> }
+    : Omit<{ queryKey: QueryKey, queryFn: (ctx: QueryFunctionContext) => Promise<TOutput> }, keyof U> & U
 
   infiniteOptions: <U extends InfiniteOptions<TInput, TOutput, TClientContext, any>>(
     options: U
-  ) => Omit<{ queryKey: QueryKey, queryFn: () => Promise<TOutput>, initialPageParam: undefined }, keyof U> & U
+  ) => Omit<{ queryKey: QueryKey, queryFn: (ctx: QueryFunctionContext<QueryKey, InferCursor<TInput>>) => Promise<TOutput>, initialPageParam: undefined }, keyof U> & U
 
   mutationOptions: <U extends MutationOptions<TInput, TOutput, TClientContext>>(
     ...opt: [options: U] | (undefined extends TClientContext ? [] : never)

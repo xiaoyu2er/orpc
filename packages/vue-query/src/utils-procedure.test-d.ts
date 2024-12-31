@@ -1,5 +1,6 @@
 import type { ProcedureClient } from '@orpc/server'
-import type { InfiniteData, QueryKey } from '@tanstack/vue-query'
+import type { InfiniteData, QueryFunctionContext, QueryKey } from '@tanstack/vue-query'
+import type { ComputedRef } from 'vue'
 import type { ProcedureUtils } from './utils-procedure'
 import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/vue-query'
 import { ref } from 'vue'
@@ -29,8 +30,8 @@ describe('queryOptions', () => {
   it('can be called without argument', () => {
     const options = utils.queryOptions()
 
-    expectTypeOf(options.queryKey).toEqualTypeOf<QueryKey>()
-    expectTypeOf(options.queryFn).toEqualTypeOf<() => Promise<string | undefined>>()
+    expectTypeOf(options.queryKey).toEqualTypeOf <ComputedRef<QueryKey>>()
+    expectTypeOf(options.queryFn).toEqualTypeOf<(ctx: QueryFunctionContext) => Promise<string | undefined>>()
     // @ts-expect-error invalid is required
     utils2.queryOptions()
   })
@@ -108,6 +109,17 @@ describe('infiniteOptions', () => {
       getNextPageParam,
       initialPageParam: 123 as never,
     })
+  })
+
+  it('infer correct queryFn type', () => {
+    const utils = createProcedureUtils({} as ProcedureClient<{ limit?: number, cursor: number }, string, undefined>, [])
+    const options = utils.infiniteOptions({
+      input: {},
+      getNextPageParam,
+      initialPageParam: 1,
+    })
+
+    expectTypeOf(options.queryFn).toEqualTypeOf<(ctx: QueryFunctionContext<QueryKey, number>) => Promise<string>>()
   })
 
   it('infer correct input type', () => {

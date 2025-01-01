@@ -30,7 +30,7 @@ export const client = createORPCClient<typeof router>(orpcLink);
 export const orpc = createORPCVueColadaUtils(client);
 
 // @noErrors
-orpc.getting.
+orpc.getUser.
 //           ^|
 ```
 
@@ -57,15 +57,15 @@ import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import { orpc } from 'examples/vue-colada'
 
 // Fetch data
-const { data: gettingData } = useQuery(orpc.getting.queryOptions({ input: { name: 'unnoq' } }))
+const { data: gettingData } = useQuery(orpc.getUser.queryOptions({ input: { id: '123' } }))
 
 // Perform mutations
-const { mutate: postMutate } = useMutation(orpc.post.create.mutationOptions())
+const { mutate: postMutate } = useMutation(orpc.posts.createPost.mutationOptions())
 
 // Invalidate queries
 const queryCache = useQueryCache()
 queryCache.invalidateQueries({ key: orpc.key() }) // Invalidate all queries
-queryCache.invalidateQueries({ key: orpc.post.find.key({ input: { id: 'example' } }) }) // Specific queries
+queryCache.invalidateQueries({ key: orpc.posts.getPost.key({ input: { id: 'example' } }) }) // Specific queries
 ```
 
 > **Note**: This library enhances [Pinia Colada](https://pinia-colada.esm.dev/) by managing keys and functions for you, providing a seamless developer experience.

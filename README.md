@@ -71,7 +71,12 @@ This comparison table helps you understand how oRPC differs from other popular T
 | OpenAPI Support            | ✅   | 🟡   | 🟡      | Generation and consumption of OpenAPI specs.             |
 | Server Actions Support     | ✅   | ✅   | 🛑      | React/Next.js Actions compatibility.                     |
 
----
+## References
+
+oRPC is inspired by existing solutions that prioritize type safety and developer experience. Special acknowledgments to:
+
+- [tRPC](https://trpc.io): For pioneering the concept of end-to-end type-safe RPC and influencing the development of type-safe APIs.
+- [ts-rest](https://ts-rest.com): For its emphasis on contract-first development and OpenAPI integration, which have greatly inspired oRPC’s feature set.
 
 ## License
 

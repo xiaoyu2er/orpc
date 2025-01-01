@@ -10,11 +10,11 @@ import 'fumadocs-twoslash/twoslash.css'
 export const metadata: Metadata = {
   metadataBase: new URL('https://orpc.unnoq.com'),
   title: {
-    default: 'oRPC - End-to-End Typesafe API Builder for Developers',
+    default: `oRPC - Typesafe API's Made Simple 🪄`,
     template: '%s - oRPC',
   },
   description:
-    'oRPC is an open-source toolkit that helps developers build robust TypeScript functions and expose them to the internet using typesafe clients, OpenAPI standards, or even server actions. Our focus is on developer experience, performance, and reliability.',
+    `End-to-End Typesafe API's made easy in a toolkit that helps developers build robust TypeScript API's with a focus on developer experience, reliability.`,
 }
 
 export default function Layout({ children }: { children: React.ReactNode }) {

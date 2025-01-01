@@ -23,8 +23,8 @@ export interface OpenAPIGeneratorOptions {
   schemaUtils?: PublicSchemaUtils
   jsonSerializer?: PublicJSONSerializer
   pathParser?: PublicOpenAPIPathParser
-  inputStructureParser: PublicOpenAPIInputStructureParser
-  outputStructureParser: PublicOpenAPIOutputStructureParser
+  inputStructureParser?: PublicOpenAPIInputStructureParser
+  outputStructureParser?: PublicOpenAPIOutputStructureParser
 
   /**
    * Throw error when you missing define tag definition on OpenAPI root tags

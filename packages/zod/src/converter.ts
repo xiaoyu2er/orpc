@@ -105,6 +105,13 @@ export interface ZodToJsonSchemaOptions {
    * @internal
    */
   isHandledCustomJSONSchema?: boolean
+
+  /**
+   * Track if current level schema is handled zod description to prevent recursive
+   *
+   * @internal
+   */
+  isHandledZodDescription?: boolean
 }
 
 export function zodToJsonSchema(
@@ -117,6 +124,18 @@ export function zodToJsonSchema(
   }
 
   const schema__ = schema as ZodTypeAny
+
+  if (!options?.isHandledZodDescription && 'description' in schema__._def) {
+    const json = zodToJsonSchema(schema__, {
+      ...options,
+      isHandledZodDescription: true,
+    })
+
+    return {
+      description: schema__._def.description,
+      ...json,
+    }
+  }
 
   if (!options?.isHandledCustomJSONSchema) {
     const customJSONSchema = getCustomJSONSchema(schema__._def, options)

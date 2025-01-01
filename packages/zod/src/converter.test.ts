@@ -389,3 +389,34 @@ describe('with custom json schema', () => {
     })
   })
 })
+
+it('zod description', () => {
+  const schema = z.object({
+    name: z.string().describe('name description'),
+
+    nested: z.object({
+      name: z.string().describe('nested name description'),
+    }),
+  })
+
+  expect(zodToJsonSchema(schema)).toEqual({
+    type: 'object',
+    properties: {
+      name: {
+        type: 'string',
+        description: 'name description',
+      },
+      nested: {
+        type: 'object',
+        properties: {
+          name: {
+            type: 'string',
+            description: 'nested name description',
+          },
+        },
+        required: ['name'],
+      },
+    },
+    required: ['name', 'nested'],
+  })
+})

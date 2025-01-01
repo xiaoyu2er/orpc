@@ -1,10 +1,12 @@
+import type { ANY_PROCEDURE, Context, Router, WithSignal } from '@orpc/server'
 import type { ConditionalFetchHandler, FetchOptions } from '@orpc/server/fetch'
-import type { PublicInputBuilderSimple } from './input-builder-simple'
-import { type Context, createProcedureClient, ORPCError, type Router, type WithSignal } from '@orpc/server'
-import { executeWithHooks, type Hooks, ORPC_HANDLER_HEADER, trim } from '@orpc/shared'
+import type { Params } from 'hono/router'
+import type { PublicInputStructureCompact } from './input-structure-compact'
+import { createProcedureClient, ORPCError } from '@orpc/server'
+import { executeWithHooks, type Hooks, isPlainObject, ORPC_HANDLER_HEADER, trim } from '@orpc/shared'
 import { JSONSerializer, type PublicJSONSerializer } from '../json-serializer'
-import { InputBuilderFull, type PublicInputBuilderFull } from './input-builder-full'
-import { InputBuilderSimple } from './input-builder-simple'
+import { InputStructureCompact } from './input-structure-compact'
+import { InputStructureDetailed, type PublicInputStructureDetailed } from './input-structure-detailed'
 import { OpenAPIPayloadCodec, type PublicOpenAPIPayloadCodec } from './openapi-payload-codec'
 import { type Hono, OpenAPIProcedureMatcher, type PublicOpenAPIProcedureMatcher } from './openapi-procedure-matcher'
 import { CompositeSchemaCoercer, type SchemaCoercer } from './schema-coercer'
@@ -15,16 +17,16 @@ export type OpenAPIHandlerOptions<T extends Context> =
     jsonSerializer?: PublicJSONSerializer
     procedureMatcher?: PublicOpenAPIProcedureMatcher
     payloadCodec?: PublicOpenAPIPayloadCodec
-    inputBuilderSimple?: PublicInputBuilderSimple
-    inputBuilderFull?: PublicInputBuilderFull
+    inputBuilderSimple?: PublicInputStructureCompact
+    inputBuilderFull?: PublicInputStructureDetailed
     schemaCoercers?: SchemaCoercer[]
   }
 
 export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandler<T> {
   private readonly procedureMatcher: PublicOpenAPIProcedureMatcher
   private readonly payloadCodec: PublicOpenAPIPayloadCodec
-  private readonly inputBuilderSimple: PublicInputBuilderSimple
-  private readonly inputBuilderFull: PublicInputBuilderFull
+  private readonly inputStructureCompact: PublicInputStructureCompact
+  private readonly inputStructureDetailed: PublicInputStructureDetailed
   private readonly compositeSchemaCoercer: SchemaCoercer
 
   constructor(
@@ -36,8 +38,8 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
 
     this.procedureMatcher = options?.procedureMatcher ?? new OpenAPIProcedureMatcher(hono, router)
     this.payloadCodec = options?.payloadCodec ?? new OpenAPIPayloadCodec(jsonSerializer)
-    this.inputBuilderSimple = options?.inputBuilderSimple ?? new InputBuilderSimple()
-    this.inputBuilderFull = options?.inputBuilderFull ?? new InputBuilderFull()
+    this.inputStructureCompact = options?.inputBuilderSimple ?? new InputStructureCompact()
+    this.inputStructureDetailed = options?.inputBuilderFull ?? new InputStructureDetailed()
     this.compositeSchemaCoercer = new CompositeSchemaCoercer(options?.schemaCoercers ?? [])
   }
 
@@ -58,38 +60,33 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
       const pathname = `/${trim(url.pathname.replace(options?.prefix ?? '', ''), '/')}`
       const query = url.searchParams
       const customMethod = request.method === 'POST' ? query.get('method')?.toUpperCase() : undefined
-      const method = customMethod || request.method
+      const matchedMethod = customMethod || request.method
 
-      const match = await this.procedureMatcher.match(method, pathname)
+      const matched = await this.procedureMatcher.match(matchedMethod, pathname)
 
-      if (!match) {
+      if (!matched) {
         throw new ORPCError({ code: 'NOT_FOUND', message: 'Not found' })
       }
 
-      // TODO: handle input-builder-full
-      // const decodedHeaders = await this.payloadCodec.decode(headers)
-      // const decodedQuery = await this.payloadCodec.decode(query)
-      const decodedPayload = request.method === 'GET'
-        ? await this.payloadCodec.decode(query)
-        : await this.payloadCodec.decode(request)
+      const contractDef = matched.procedure['~orpc'].contract['~orpc']
 
-      const input = this.inputBuilderSimple.build(match.params, decodedPayload)
+      const input = await this.decodeInput(matched.procedure, matched.params, request)
 
-      const coercedInput = this.compositeSchemaCoercer.coerce(match.procedure['~orpc'].contract['~orpc'].InputSchema, input)
+      const coercedInput = this.compositeSchemaCoercer.coerce(contractDef.InputSchema, input)
 
       const client = createProcedureClient({
         context,
-        procedure: match.procedure,
-        path: match.path,
+        procedure: matched.procedure,
+        path: matched.path,
       })
 
       const output = await client(coercedInput, { signal: options?.signal })
 
-      const { body, headers } = this.payloadCodec.encode(output)
+      const { body, headers: resHeaders } = this.encodeOutput(matched.procedure, output, accept)
 
       return new Response(body, {
-        headers,
-        status: match.procedure['~orpc'].contract['~orpc'].route?.successStatus ?? 200,
+        headers: resHeaders,
+        status: contractDef.route?.successStatus ?? 200,
       })
     }
 
@@ -109,6 +106,7 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
 
       try {
         const { body, headers } = this.payloadCodec.encode(error.toJSON(), accept)
+
         return new Response(body, {
           status: error.status,
           headers,
@@ -118,15 +116,106 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
         /**
          * This catch usually happens when the `Accept` header is not supported.
          */
-
         const error = this.convertToORPCError(e)
 
-        const { body, headers } = this.payloadCodec.encode(error.toJSON())
+        const { body, headers } = this.payloadCodec.encode(error.toJSON(), undefined)
         return new Response(body, {
           status: error.status,
           headers,
         })
       }
+    }
+  }
+
+  private async decodeInput(procedure: ANY_PROCEDURE, params: Params, request: Request): Promise<unknown> {
+    const inputStructure = procedure['~orpc'].contract['~orpc'].route?.inputStructure
+
+    const url = new URL(request.url)
+    const query = url.searchParams
+    const headers = request.headers
+
+    if (!inputStructure || inputStructure === 'compact') {
+      return this.inputStructureCompact.build(
+        params,
+        request.method === 'GET'
+          ? await this.payloadCodec.decode(query)
+          : await this.payloadCodec.decode(request),
+      )
+    }
+
+    const _expect: 'detailed' = inputStructure
+
+    const decodedQuery = await this.payloadCodec.decode(query)
+    const decodedHeaders = await this.payloadCodec.decode(headers)
+    const decodedBody = await this.payloadCodec.decode(request)
+
+    return this.inputStructureDetailed.build(params, decodedQuery, decodedHeaders, decodedBody)
+  }
+
+  private encodeOutput(
+    procedure: ANY_PROCEDURE,
+    output: unknown,
+    accept: string | undefined,
+  ): { body: string | Blob | FormData | undefined, headers?: Headers } {
+    const outputStructure = procedure['~orpc'].contract['~orpc'].route?.outputStructure
+
+    if (!outputStructure || outputStructure === 'compact') {
+      return this.payloadCodec.encode(output, accept)
+    }
+
+    const _expect: 'detailed' = outputStructure
+
+    this.assertDetailedOutput(output)
+
+    const headers = new Headers()
+
+    if (output.headers) {
+      for (const [key, value] of Object.entries(output.headers)) {
+        headers.append(key, value)
+      }
+    }
+
+    const { body, headers: encodedHeaders } = this.payloadCodec.encode(output.body, accept)
+
+    if (encodedHeaders) {
+      for (const [key, value] of encodedHeaders.entries()) {
+        headers.append(key, value)
+      }
+    }
+
+    return { body, headers }
+  }
+
+  private assertDetailedOutput(output: unknown): asserts output is { body: unknown, headers?: Record<string, string> } {
+    const error = new Error(`
+      Invalid output structure for 'detailed' output. 
+      Expected format:
+      {
+        body?: unknown;       // The main response content (optional)
+        headers?: {           // Additional headers (optional)
+          [key: string]: string;
+        };
+      }
+
+      Example:
+      {
+        body: { message: "Success" },
+        headers: { "X-Custom-Header": "Custom-Value" },
+      }
+
+      Fix: Ensure your output matches the expected structure.
+    `)
+
+    if (!isPlainObject(output) || Object.keys(output).some(key => key !== 'body' && key !== 'headers')) {
+      throw error
+    }
+
+    if (output.headers !== undefined && !isPlainObject(output.headers)) {
+      throw error
+    }
+
+    if (output.headers && Object.entries(output.headers).some(([key, value]) => typeof key !== 'string' || typeof value !== 'string')) {
+      throw error
     }
   }
 

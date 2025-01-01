@@ -9,7 +9,7 @@ import * as BracketNotation from './bracket-notation'
 export class OpenAPIPayloadCodec {
   constructor(private readonly jsonSerializer: PublicJSONSerializer) {}
 
-  encode(payload: unknown, accept?: string): { body: FormData | Blob | string | undefined, headers?: Headers } {
+  encode(payload: unknown, accept: string | undefined): { body: FormData | Blob | string | undefined, headers?: Headers } {
     const typeMatchers = (
       accept?.split(',').map(safeParse) ?? [{ type: '*/*' }]
     ).map(({ type }) => wcmatch(type))

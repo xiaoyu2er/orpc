@@ -1,5 +1,6 @@
+import type { Router } from 'hono/router'
 import { ContractProcedure } from '@orpc/contract'
-import { createProcedureClient, lazy, Procedure } from '@orpc/server'
+import { createProcedureClient, os, Procedure } from '@orpc/server'
 import { ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE } from '@orpc/shared'
 import { LinearRouter } from 'hono/router/linear-router'
 import { PatternRouter } from 'hono/router/pattern-router'
@@ -16,47 +17,42 @@ beforeEach(() => {
 })
 
 const hono = [
-  ['LinearRouter', new LinearRouter<any>()],
+  ['LinearRouter', LinearRouter],
   // ['RegExpRouter', new RegExpRouter<any>()],
-  ['TrieRouter', new TrieRouter<any>()],
-  ['PatternRouter', new PatternRouter<any>()],
+  ['TrieRouter', TrieRouter],
+  ['PatternRouter', PatternRouter],
 ] as const
 
 beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe.each(hono)('openAPIHandler: %s', (_, hono) => {
-  const ping = new Procedure({
-    contract: new ContractProcedure({
-      route: {
-        method: 'GET',
-        path: '/ping',
-      },
-      InputSchema: undefined,
-      OutputSchema: undefined,
-    }),
-    handler: vi.fn(),
-  })
-  const pong = new Procedure({
-    contract: new ContractProcedure({
-      InputSchema: undefined,
-      OutputSchema: undefined,
-      route: {
-        method: 'POST',
-        path: '/pong/{name}',
-      },
-    }),
-    handler: vi.fn(),
+describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
+  let hono = new HonoConstructor() as Router<any>
+
+  beforeEach(() => {
+    hono = new HonoConstructor()
   })
 
+  const ping = os.route({
+    method: 'GET',
+    path: '/ping',
+  })
+    .handler(vi.fn())
+
+  const pong = os.route({
+    method: 'POST',
+    path: '/pong/{name}',
+  })
+    .handler(vi.fn())
+
   const router = {
-    ping: lazy(() => Promise.resolve({ default: ping })),
+    ping: os.lazy(() => Promise.resolve({ default: ping })),
     pong,
-    nested: lazy(() => Promise.resolve({
+    nested: os.lazy(() => Promise.resolve({
       default: {
         ping,
-        pong: lazy(() => Promise.resolve({ default: pong })),
+        pong: os.lazy(() => Promise.resolve({ default: pong })),
       },
     })),
   }
@@ -281,5 +277,167 @@ describe.each(hono)('openAPIHandler: %s', (_, hono) => {
         method: 'POST',
       })),
     ).toSatisfy((r: any) => r.status === 200)
+  })
+
+  describe('input structure', () => {
+    it('compact', async () => {
+      const handler = new OpenAPIHandler(hono, {
+        ping: ping.route({
+          method: 'GET',
+          path: '/ping',
+          inputStructure: 'compact',
+        }),
+        pong: pong.route({
+          method: 'POST',
+          path: '/pong/{name}',
+          inputStructure: 'compact',
+        }),
+      })
+
+      const mockClient = vi.fn()
+      vi.mocked(createProcedureClient).mockReturnValue(mockClient)
+
+      await handler.fetch(new Request('https://example.com/ping?value=123'))
+
+      expect(mockClient).toBeCalledTimes(1)
+      expect(mockClient).toBeCalledWith({ value: '123' }, { signal: undefined })
+
+      mockClient.mockClear()
+      await handler.fetch(new Request('https://example.com/pong/unnoq?value=123', {
+        method: 'POST',
+        body: new Blob([JSON.stringify({ value: '456' })], { type: 'application/json' }),
+      }))
+
+      expect(mockClient).toBeCalledTimes(1)
+      expect(mockClient).toBeCalledWith({ value: '456', name: 'unnoq' }, { signal: undefined })
+    })
+
+    it('detailed', async () => {
+      const handler = new OpenAPIHandler(hono, {
+        ping: ping.route({
+          method: 'GET',
+          path: '/ping',
+          inputStructure: 'detailed',
+        }),
+        pong: pong.route({
+          method: 'POST',
+          path: '/pong/{id}',
+          inputStructure: 'detailed',
+        }),
+      })
+
+      const mockClient = vi.fn()
+      vi.mocked(createProcedureClient).mockReturnValue(mockClient)
+
+      await handler.fetch(new Request('https://example.com/ping?value=123', {
+        headers: {
+          'x-custom-header': 'custom-value',
+        },
+      }))
+
+      expect(mockClient).toBeCalledTimes(1)
+      expect(mockClient).toBeCalledWith(
+        {
+          params: {},
+          query: { value: '123' },
+          headers: { 'x-custom-header': 'custom-value' },
+          body: undefined,
+        },
+        { signal: undefined },
+      )
+
+      mockClient.mockClear()
+      await handler.fetch(new Request('https://example.com/pong/hud?value=123', {
+        method: 'POST',
+        body: new Blob([JSON.stringify({ value: '456' })], { type: 'application/json' }),
+        headers: {
+          'x-custom-header': 'custom-value',
+        },
+      }))
+
+      expect(mockClient).toBeCalledTimes(1)
+      expect(mockClient).toBeCalledWith(
+        {
+          params: { id: 'hud' },
+          query: { value: '123' },
+          headers: {
+            'content-type': 'application/json',
+            'x-custom-header': 'custom-value',
+          },
+          body: { value: '456' },
+        },
+        { signal: undefined },
+      )
+    })
+  })
+
+  describe('output structure', () => {
+    it('compact', async () => {
+      const handler = new OpenAPIHandler(hono, {
+        ping: ping.route({
+          method: 'GET',
+          path: '/ping',
+          outputStructure: 'compact',
+        }),
+      })
+
+      const mockClient = vi.fn(() => Promise.resolve('__mocked__'))
+      vi.mocked(createProcedureClient).mockReturnValue(mockClient)
+
+      const response = await handler.fetch(new Request('https://example.com/ping?value=123'))
+
+      expect(await response?.json()).toBe('__mocked__')
+    })
+
+    it('detailed', async () => {
+      const handler = new OpenAPIHandler(hono, {
+        ping: ping.route({
+          method: 'GET',
+          path: '/ping',
+          outputStructure: 'detailed',
+        }),
+      })
+
+      const mockClient = vi.fn()
+      vi.mocked(createProcedureClient).mockReturnValue(mockClient)
+
+      mockClient.mockReturnValueOnce({ body: '__mocked__', headers: { 'x-custom-header': 'custom-value' } })
+      const response = await handler.fetch(new Request('https://example.com/ping?value=123'))
+
+      expect(await response?.json()).toBe('__mocked__')
+      expect(response?.headers.get('x-custom-header')).toBe('custom-value')
+
+      mockClient.mockReturnValueOnce({ body: '__mocked2__' })
+      const response2 = await handler.fetch(new Request('https://example.com/ping?value=123'))
+      expect(await response2?.json()).toBe('__mocked2__')
+
+      mockClient.mockReturnValueOnce({ headers: { 'x-custom-header': 'custom-value2' } })
+      const response3 = await handler.fetch(new Request('https://example.com/ping?value=123'))
+      expect(response3?.headers.get('x-custom-header')).toBe('custom-value2')
+    })
+
+    const invalidDetailedOutputs = [
+      ['not an object', []],
+      ['headers is not an object', { headers: [] }],
+      ['headers has non-string value', { headers: { abc: 123 } }],
+    ] as const
+
+    it.each(invalidDetailedOutputs)('invalid detailed output: %s', async (_, output) => {
+      const handler = new OpenAPIHandler(hono, {
+        ping: ping.route({
+          method: 'GET',
+          path: '/ping',
+          outputStructure: 'detailed',
+        }),
+      })
+
+      const mockClient = vi.fn()
+      vi.mocked(createProcedureClient).mockReturnValue(mockClient)
+
+      mockClient.mockReturnValueOnce(output)
+      const response = await handler.fetch(new Request('https://example.com/ping?value=123'))
+
+      expect(response.status).toBe(500)
+    })
   })
 })

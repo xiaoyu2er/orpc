@@ -1,6 +1,6 @@
 import type { OpenAPI } from './openapi'
 import type { JSONSchema } from './schema'
-import { get, isPlainObject } from '@orpc/shared'
+import { get, isPlainObject, omit } from '@orpc/shared'
 
 export class OpenAPIParametersBuilder {
   build(
@@ -43,6 +43,20 @@ export class OpenAPIParametersBuilder {
     }
 
     return parameters
+  }
+
+  buildHeadersObject(
+    jsonSchema: JSONSchema.JSONSchema & { type: 'object' } & object,
+    options?: Pick<OpenAPI.ParameterObject, 'example' | 'style' | 'required'>,
+  ): OpenAPI.HeadersObject {
+    const parameters = this.build('header', jsonSchema, options)
+    const headersObject: OpenAPI.HeadersObject = {}
+
+    for (const param of parameters) {
+      headersObject[param.name] = omit(param, ['name', 'in'])
+    }
+
+    return headersObject
   }
 }
 

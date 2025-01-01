@@ -1,7 +1,7 @@
 import type { Params } from 'hono/router'
 import { isPlainObject } from '@orpc/shared'
 
-export class InputBuilderSimple {
+export class InputStructureCompact {
   build(params: Params, payload: unknown): unknown {
     if (Object.keys(params).length === 0) {
       return payload
@@ -18,4 +18,4 @@ export class InputBuilderSimple {
   }
 }
 
-export type PublicInputBuilderSimple = Pick<InputBuilderSimple, keyof InputBuilderSimple>
+export type PublicInputStructureCompact = Pick<InputStructureCompact, keyof InputStructureCompact>

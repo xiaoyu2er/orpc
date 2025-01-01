@@ -370,4 +370,74 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
       )
     })
   })
+
+  describe('output structure', () => {
+    it('compact', async () => {
+      const handler = new OpenAPIHandler(hono, {
+        ping: ping.route({
+          method: 'GET',
+          path: '/ping',
+          outputStructure: 'compact',
+        }),
+      })
+
+      const mockClient = vi.fn(() => Promise.resolve('__mocked__'))
+      vi.mocked(createProcedureClient).mockReturnValue(mockClient)
+
+      const response = await handler.fetch(new Request('https://example.com/ping?value=123'))
+
+      expect(await response?.json()).toBe('__mocked__')
+    })
+
+    it('detailed', async () => {
+      const handler = new OpenAPIHandler(hono, {
+        ping: ping.route({
+          method: 'GET',
+          path: '/ping',
+          outputStructure: 'detailed',
+        }),
+      })
+
+      const mockClient = vi.fn()
+      vi.mocked(createProcedureClient).mockReturnValue(mockClient)
+
+      mockClient.mockReturnValueOnce({ body: '__mocked__', headers: { 'x-custom-header': 'custom-value' } })
+      const response = await handler.fetch(new Request('https://example.com/ping?value=123'))
+
+      expect(await response?.json()).toBe('__mocked__')
+      expect(response?.headers.get('x-custom-header')).toBe('custom-value')
+
+      mockClient.mockReturnValueOnce({ body: '__mocked2__' })
+      const response2 = await handler.fetch(new Request('https://example.com/ping?value=123'))
+      expect(await response2?.json()).toBe('__mocked2__')
+
+      mockClient.mockReturnValueOnce({ headers: { 'x-custom-header': 'custom-value2' } })
+      const response3 = await handler.fetch(new Request('https://example.com/ping?value=123'))
+      expect(response3?.headers.get('x-custom-header')).toBe('custom-value2')
+    })
+
+    const invalidDetailedOutputs = [
+      ['not an object', []],
+      ['headers is not an object', { headers: [] }],
+      ['headers has non-string value', { headers: { abc: 123 } }],
+    ] as const
+
+    it.each(invalidDetailedOutputs)('invalid detailed output: %s', async (_, output) => {
+      const handler = new OpenAPIHandler(hono, {
+        ping: ping.route({
+          method: 'GET',
+          path: '/ping',
+          outputStructure: 'detailed',
+        }),
+      })
+
+      const mockClient = vi.fn()
+      vi.mocked(createProcedureClient).mockReturnValue(mockClient)
+
+      mockClient.mockReturnValueOnce(output)
+      const response = await handler.fetch(new Request('https://example.com/ping?value=123'))
+
+      expect(response.status).toBe(500)
+    })
+  })
 })

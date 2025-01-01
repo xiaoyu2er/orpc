@@ -3,7 +3,7 @@ import type { ConditionalFetchHandler, FetchOptions } from '@orpc/server/fetch'
 import type { Params } from 'hono/router'
 import type { PublicInputStructureCompact } from './input-structure-compact'
 import { createProcedureClient, ORPCError } from '@orpc/server'
-import { executeWithHooks, type Hooks, ORPC_HANDLER_HEADER, trim } from '@orpc/shared'
+import { executeWithHooks, type Hooks, isPlainObject, ORPC_HANDLER_HEADER, trim } from '@orpc/shared'
 import { JSONSerializer, type PublicJSONSerializer } from '../json-serializer'
 import { InputStructureCompact } from './input-structure-compact'
 import { InputStructureDetailed, type PublicInputStructureDetailed } from './input-structure-detailed'
@@ -68,9 +68,11 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
         throw new ORPCError({ code: 'NOT_FOUND', message: 'Not found' })
       }
 
+      const contractDef = matched.procedure['~orpc'].contract['~orpc']
+
       const input = await this.decodeInput(matched.procedure, matched.params, request)
 
-      const coercedInput = this.compositeSchemaCoercer.coerce(matched.procedure['~orpc'].contract['~orpc'].InputSchema, input)
+      const coercedInput = this.compositeSchemaCoercer.coerce(contractDef.InputSchema, input)
 
       const client = createProcedureClient({
         context,
@@ -80,11 +82,11 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
 
       const output = await client(coercedInput, { signal: options?.signal })
 
-      const { body, headers: resHeaders } = this.payloadCodec.encode(output)
+      const { body, headers: resHeaders } = this.encodeOutput(matched.procedure, output, accept)
 
       return new Response(body, {
         headers: resHeaders,
-        status: matched.procedure['~orpc'].contract['~orpc'].route?.successStatus ?? 200,
+        status: contractDef.route?.successStatus ?? 200,
       })
     }
 
@@ -104,6 +106,7 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
 
       try {
         const { body, headers } = this.payloadCodec.encode(error.toJSON(), accept)
+
         return new Response(body, {
           status: error.status,
           headers,
@@ -113,10 +116,9 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
         /**
          * This catch usually happens when the `Accept` header is not supported.
          */
-
         const error = this.convertToORPCError(e)
 
-        const { body, headers } = this.payloadCodec.encode(error.toJSON())
+        const { body, headers } = this.payloadCodec.encode(error.toJSON(), undefined)
         return new Response(body, {
           status: error.status,
           headers,
@@ -148,6 +150,73 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
     const decodedBody = await this.payloadCodec.decode(request)
 
     return this.inputStructureDetailed.build(params, decodedQuery, decodedHeaders, decodedBody)
+  }
+
+  private encodeOutput(
+    procedure: ANY_PROCEDURE,
+    output: unknown,
+    accept: string | undefined,
+  ): { body: string | Blob | FormData | undefined, headers?: Headers } {
+    const outputStructure = procedure['~orpc'].contract['~orpc'].route?.outputStructure
+
+    if (!outputStructure || outputStructure === 'compact') {
+      return this.payloadCodec.encode(output, accept)
+    }
+
+    const _expect: 'detailed' = outputStructure
+
+    this.assertDetailedOutput(output)
+
+    const headers = new Headers()
+
+    if (output.headers) {
+      for (const [key, value] of Object.entries(output.headers)) {
+        headers.append(key, value)
+      }
+    }
+
+    const { body, headers: encodedHeaders } = this.payloadCodec.encode(output.body, accept)
+
+    if (encodedHeaders) {
+      for (const [key, value] of encodedHeaders.entries()) {
+        headers.append(key, value)
+      }
+    }
+
+    return { body, headers }
+  }
+
+  private assertDetailedOutput(output: unknown): asserts output is { body: unknown, headers?: Record<string, string> } {
+    const error = new Error(`
+      Invalid output structure for 'detailed' output. 
+      Expected format:
+      {
+        body?: unknown;       // The main response content (optional)
+        headers?: {           // Additional headers (optional)
+          [key: string]: string;
+        };
+      }
+
+      Example:
+      {
+        body: { message: "Success" },
+        headers: { "X-Custom-Header": "Custom-Value" },
+      }
+
+      Fix: Ensure your output matches the expected structure.
+    `)
+
+    if (!isPlainObject(output) || Object.keys(output).some(key => key !== 'body' && key !== 'headers')) {
+      throw error
+    }
+
+    if (output.headers !== undefined && !isPlainObject(output.headers)) {
+      throw error
+    }
+
+    if (output.headers && Object.entries(output.headers).some(([key, value]) => typeof key !== 'string' || typeof value !== 'string')) {
+      throw error
+    }
   }
 
   private convertToORPCError(e: unknown): ORPCError<any, any> {

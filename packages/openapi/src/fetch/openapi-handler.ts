@@ -68,7 +68,7 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
         throw new ORPCError({ code: 'NOT_FOUND', message: 'Not found' })
       }
 
-      const input = await this.parseInput(matched.procedure, matched.params, request)
+      const input = await this.decodeInput(matched.procedure, matched.params, request)
 
       const coercedInput = this.compositeSchemaCoercer.coerce(matched.procedure['~orpc'].contract['~orpc'].InputSchema, input)
 
@@ -125,7 +125,7 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
     }
   }
 
-  private async parseInput(procedure: ANY_PROCEDURE, params: Params, request: Request): Promise<unknown> {
+  private async decodeInput(procedure: ANY_PROCEDURE, params: Params, request: Request): Promise<unknown> {
     const inputStructure = procedure['~orpc'].contract['~orpc'].route?.inputStructure
 
     const url = new URL(request.url)

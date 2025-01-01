@@ -1,6 +1,6 @@
 import type { Router } from 'hono/router'
 import { ContractProcedure } from '@orpc/contract'
-import { createProcedureClient, lazy, Procedure } from '@orpc/server'
+import { createProcedureClient, os, Procedure } from '@orpc/server'
 import { ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE } from '@orpc/shared'
 import { LinearRouter } from 'hono/router/linear-router'
 import { PatternRouter } from 'hono/router/pattern-router'
@@ -27,43 +27,32 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe.each(hono)('openAPIHandler: %s', (_, Construct) => {
-  let hono = new Construct() as Router<any>
+describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
+  let hono = new HonoConstructor() as Router<any>
 
   beforeEach(() => {
-    hono = new Construct()
+    hono = new HonoConstructor()
   })
 
-  const ping = new Procedure({
-    contract: new ContractProcedure({
-      route: {
-        method: 'GET',
-        path: '/ping',
-      },
-      InputSchema: undefined,
-      OutputSchema: undefined,
-    }),
-    handler: vi.fn(),
+  const ping = os.route({
+    method: 'GET',
+    path: '/ping',
   })
-  const pong = new Procedure({
-    contract: new ContractProcedure({
-      InputSchema: undefined,
-      OutputSchema: undefined,
-      route: {
-        method: 'POST',
-        path: '/pong/{name}',
-      },
-    }),
-    handler: vi.fn(),
+    .handler(vi.fn())
+
+  const pong = os.route({
+    method: 'POST',
+    path: '/pong/{name}',
   })
+    .handler(vi.fn())
 
   const router = {
-    ping: lazy(() => Promise.resolve({ default: ping })),
+    ping: os.lazy(() => Promise.resolve({ default: ping })),
     pong,
-    nested: lazy(() => Promise.resolve({
+    nested: os.lazy(() => Promise.resolve({
       default: {
         ping,
-        pong: lazy(() => Promise.resolve({ default: pong })),
+        pong: os.lazy(() => Promise.resolve({ default: pong })),
       },
     })),
   }
@@ -293,29 +282,15 @@ describe.each(hono)('openAPIHandler: %s', (_, Construct) => {
   describe('input structure', () => {
     it('compact', async () => {
       const handler = new OpenAPIHandler(hono, {
-        ping: new Procedure({
-          contract: new ContractProcedure({
-            route: {
-              method: 'GET',
-              path: '/ping',
-              inputStructure: 'compact',
-            },
-            InputSchema: undefined,
-            OutputSchema: undefined,
-          }),
-          handler: vi.fn(),
+        ping: ping.route({
+          method: 'GET',
+          path: '/ping',
+          inputStructure: 'compact',
         }),
-        pong: new Procedure({
-          contract: new ContractProcedure({
-            route: {
-              method: 'POST',
-              path: '/pong',
-              inputStructure: 'compact',
-            },
-            InputSchema: undefined,
-            OutputSchema: undefined,
-          }),
-          handler: vi.fn(),
+        pong: pong.route({
+          method: 'POST',
+          path: '/pong/{name}',
+          inputStructure: 'compact',
         }),
       })
 
@@ -328,40 +303,26 @@ describe.each(hono)('openAPIHandler: %s', (_, Construct) => {
       expect(mockClient).toBeCalledWith({ value: '123' }, { signal: undefined })
 
       mockClient.mockClear()
-      await handler.fetch(new Request('https://example.com/pong?value=123', {
+      await handler.fetch(new Request('https://example.com/pong/unnoq?value=123', {
         method: 'POST',
         body: new Blob([JSON.stringify({ value: '456' })], { type: 'application/json' }),
       }))
 
       expect(mockClient).toBeCalledTimes(1)
-      expect(mockClient).toBeCalledWith({ value: '456' }, { signal: undefined })
+      expect(mockClient).toBeCalledWith({ value: '456', name: 'unnoq' }, { signal: undefined })
     })
 
     it('detailed', async () => {
       const handler = new OpenAPIHandler(hono, {
-        ping: new Procedure({
-          contract: new ContractProcedure({
-            route: {
-              method: 'GET',
-              path: '/ping',
-              inputStructure: 'detailed',
-            },
-            InputSchema: undefined,
-            OutputSchema: undefined,
-          }),
-          handler: vi.fn(),
+        ping: ping.route({
+          method: 'GET',
+          path: '/ping',
+          inputStructure: 'detailed',
         }),
-        pong: new Procedure({
-          contract: new ContractProcedure({
-            route: {
-              method: 'POST',
-              path: '/pong/{id}',
-              inputStructure: 'detailed',
-            },
-            InputSchema: undefined,
-            OutputSchema: undefined,
-          }),
-          handler: vi.fn(),
+        pong: pong.route({
+          method: 'POST',
+          path: '/pong/{id}',
+          inputStructure: 'detailed',
         }),
       })
 

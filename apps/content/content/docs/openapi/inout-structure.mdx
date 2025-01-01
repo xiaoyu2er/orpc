@@ -1,0 +1,85 @@
+---
+title: Input/Output Structure
+description: Control how input and output data is structured in your API.
+---
+
+## Introduction
+
+Input and output structures define how data is organized when procedures are executed, 
+affecting how input data is processed and how output data is formatted in the HTTP response.
+
+```ts twoslash
+import { oc } from '@orpc/contract'
+import { os } from '@orpc/server'
+import { z } from 'zod'
+
+const contract = oc.route({
+  inputStructure: 'detailed',
+  outputStructure: 'detailed',
+})
+
+// or
+
+const procedure = os.route({
+  path: '/ping/{name}',
+  method: 'POST',
+  inputStructure: 'detailed',
+  outputStructure: 'detailed',
+})
+  .input(z.object({
+    params: z.object({ name: z.string() }),
+    query: z.object({ search: z.string() }).optional(),
+    body: z.object({ description: z.string() }).optional(),
+    headers: z.object({ 'content-type': z.string() }), // please use lowercase
+  }))
+  .handler((input, context, meta) => {
+    return {
+      body: 'the body',
+      headers: {
+        'x-custom-header': 'custom-value',
+      },
+    }
+  })
+```
+
+> **Note**: You only need to define the input and output schemas according to your requirements. The example provided above is solely for demonstration purposes.
+
+## Input Structure Options
+
+The `inputStructure` option determines how the input data is structured based on `params`, `query`, `headers`, and `body`.
+
+- **'compact'**: Combines `params` and either `query` or `body` (depending on the HTTP method) into a single object.
+  
+  - For example, in a GET request, `params` and `query` are combined.
+  - In a POST request, `params` and `body` are combined.
+
+- **'detailed'**: Keeps each part of the request (`params`, `query`, `headers`, and `body`) as separate fields in the input object.
+
+  ```ts
+  const input = {
+    params: { id: 1 },
+    query: { search: 'hello' },
+    headers: { 'Content-Type': 'application/json' },
+    body: { name: 'John' },
+  };
+  ```
+
+## Output Structure Options
+
+The `outputStructure` option determines how the response is structured based on the output.
+
+- **'compact'**: Includes only the body data, encoded directly in the response.
+
+- **'detailed'**: Separates the output into `headers` and `body` fields.
+
+  ```ts
+  const output = {
+    headers: { 'x-custom-header': 'value' },
+    body: { message: 'Hello, world!' },
+  };
+  ```
+
+## Default Behavior
+
+- `inputStructure` defaults to `'compact'`
+- `outputStructure` defaults to `'compact'`

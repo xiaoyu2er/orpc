@@ -28,7 +28,7 @@ const procedure = os.route({
 })
   .input(z.object({
     params: z.object({ name: z.string() }),
-    query: z.object({ search: z.string() }).optional(),
+    query: z.object({ search: z.string() }),
     body: z.object({ description: z.string() }).optional(),
     headers: z.object({ 'content-type': z.string() }), // please use lowercase
   }))

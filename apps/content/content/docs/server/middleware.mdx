@@ -12,7 +12,7 @@ import { os, ORPCError } from '@orpc/server'
 
 export type Context = { user?: { id: string } }
 
-export const pub /** public access */ = os.context<Context>()
+export const pub = os.context<Context>()
 
 const authMiddleware = pub.middleware(async (input, context, meta) => {
     if (!context.user) {

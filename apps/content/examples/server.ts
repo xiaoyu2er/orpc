@@ -6,31 +6,35 @@ import { z } from 'zod'
 export type Context = { user?: { id: string } } | undefined
 
 // global pub, authed completely optional
-export const pub /** public access */ = os.context<Context>()
-export const authed /** require authed */ = pub.use((input, context, meta) => /** put auth logic here */ meta.next({}))
+export const pub = os.context<Context>()
+export const authed = pub.use((input, context, meta) => {
+  /** put auth logic here */
+  return meta.next({})
+})
 
 export const router = pub.router({
-  getting: os
+  getUser: os
     .input(
       z.object({
-        name: z.string(),
+        id: z.string(),
       }),
     )
     .handler(async (input, context, meta) => {
       return {
-        message: `Hello, ${input.name}!`,
+        id: input.id,
+        name: 'example',
       }
     }),
 
-  post: pub.prefix('/posts').router({
-    find: pub
+  posts: pub.prefix('/posts').router({
+    getPost: pub
       .route({
         path: '/{id}', // custom your OpenAPI
         method: 'GET',
       })
       .input(
         z.object({
-          id: z.string({}),
+          id: z.string(),
         }),
       )
       .output(
@@ -65,7 +69,7 @@ export const router = pub.router({
         }
       }),
 
-    create: authed
+    createPost: authed
       .input(
         z.object({
           title: z.string(),

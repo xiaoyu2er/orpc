@@ -2,7 +2,6 @@ import { OpenAPIServerlessHandler } from '@orpc/openapi/node'
 import { CompositeHandler, ORPCHandler } from '@orpc/server/node'
 import { ZodCoercer } from '@orpc/zod'
 import { router } from '~/server/router'
-import '../../polyfill'
 
 const openAPIHandler = new OpenAPIServerlessHandler(router, {
   schemaCoercers: [

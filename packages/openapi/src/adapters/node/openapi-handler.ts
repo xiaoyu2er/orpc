@@ -4,7 +4,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { OpenAPIHandlerOptions } from '../fetch/openapi-handler'
 import type { Hono } from '../fetch/openapi-procedure-matcher'
 import { createRequest, sendResponse } from '@mjackson/node-fetch-server'
-import { ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE } from '@orpc/shared'
+import { ORPC_HANDLER_HEADER } from '@orpc/shared'
 import { OpenAPIHandler as OpenAPIFetchHandler } from '../fetch/openapi-handler'
 
 export class OpenAPIHandler<T extends Context> implements ConditionalRequestHandler<T> {
@@ -15,7 +15,7 @@ export class OpenAPIHandler<T extends Context> implements ConditionalRequestHand
   }
 
   condition(request: IncomingMessage): boolean {
-    return Boolean(request.headers[ORPC_HANDLER_HEADER]?.includes(ORPC_HANDLER_VALUE))
+    return request.headers[ORPC_HANDLER_HEADER] === undefined
   }
 
   async handle(req: IncomingMessage, res: ServerResponse, ...[options]: [options: RequestOptions<T>] | (undefined extends T ? [] : never)): Promise<void> {

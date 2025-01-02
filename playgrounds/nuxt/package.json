@@ -17,7 +17,6 @@
     "@orpc/vue-query": "latest",
     "@orpc/zod": "latest",
     "@tanstack/vue-query": "^5.62.7",
-    "@whatwg-node/server": "^0.9.55",
     "nuxt": "^3.14.1592",
     "vue": "latest",
     "vue-router": "latest",

@@ -43,10 +43,10 @@ function onSubmit(e: Event) {
         Description
         <textarea name="description" />
       </label>
-      <!-- <label>
+      <label>
         Image
         <input type="file" name="image" accept="image/*">
-      </label> -->
+      </label>
       <button type="submit">
         Submit
       </button>

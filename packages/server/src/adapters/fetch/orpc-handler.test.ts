@@ -1,12 +1,12 @@
 import { ContractProcedure } from '@orpc/contract'
 import { ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE } from '@orpc/shared'
 import { describe, expect, it, vi } from 'vitest'
-import { lazy } from '../lazy'
-import { Procedure } from '../procedure'
-import { createProcedureClient } from '../procedure-client'
+import { lazy } from '../../lazy'
+import { Procedure } from '../../procedure'
+import { createProcedureClient } from '../../procedure-client'
 import { ORPCHandler } from './orpc-handler'
 
-vi.mock('../procedure-client', () => ({
+vi.mock('../../procedure-client', () => ({
   createProcedureClient: vi.fn(() => vi.fn()),
 }))
 

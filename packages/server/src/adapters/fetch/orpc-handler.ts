@@ -1,10 +1,10 @@
 import type { Hooks } from '@orpc/shared'
-import type { Router } from '../router'
-import type { Context, WithSignal } from '../types'
+import type { Router } from '../../router'
+import type { Context, WithSignal } from '../../types'
 import type { ConditionalFetchHandler, FetchOptions } from './types'
 import { executeWithHooks, ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE, trim } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
-import { createProcedureClient } from '../procedure-client'
+import { createProcedureClient } from '../../procedure-client'
 import { ORPCPayloadCodec, type PublicORPCPayloadCodec } from './orpc-payload-codec'
 import { ORPCProcedureMatcher, type PublicORPCProcedureMatcher } from './orpc-procedure-matcher'
 

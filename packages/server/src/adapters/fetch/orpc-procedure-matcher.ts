@@ -1,8 +1,8 @@
-import type { ANY_PROCEDURE } from '../procedure'
+import type { ANY_PROCEDURE } from '../../procedure'
 import { trim } from '@orpc/shared'
-import { unlazy } from '../lazy'
-import { isProcedure } from '../procedure'
-import { type ANY_ROUTER, getRouterChild } from '../router'
+import { unlazy } from '../../lazy'
+import { isProcedure } from '../../procedure'
+import { type ANY_ROUTER, getRouterChild } from '../../router'
 
 export class ORPCProcedureMatcher {
   constructor(

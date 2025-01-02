@@ -1,4 +1,4 @@
-import { JSONSerializer } from '../json-serializer'
+import { JSONSerializer } from '../../json-serializer'
 import { OpenAPIPayloadCodec } from './openapi-payload-codec'
 
 describe('openAPIPayloadCodec', () => {

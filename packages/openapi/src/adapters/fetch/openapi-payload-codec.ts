@@ -1,4 +1,4 @@
-import type { PublicJSONSerializer } from '../json-serializer'
+import type { PublicJSONSerializer } from '../../json-serializer'
 import { ORPCError } from '@orpc/server'
 import { findDeepMatches } from '@orpc/shared'
 import cd from 'content-disposition'

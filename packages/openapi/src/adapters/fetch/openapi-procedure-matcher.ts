@@ -2,7 +2,7 @@ import type { HTTPPath } from '@orpc/contract'
 import type { Router as BaseHono, ParamIndexMap, Params } from 'hono/router'
 import { type ANY_PROCEDURE, type ANY_ROUTER, getLazyRouterPrefix, getRouterChild, isProcedure, unlazy } from '@orpc/server'
 import { mapValues } from '@orpc/shared'
-import { forEachContractProcedure, standardizeHTTPPath } from '../utils'
+import { forEachContractProcedure, standardizeHTTPPath } from '../../utils'
 
 export type Hono = BaseHono<[string, string[]]>
 

@@ -219,8 +219,8 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
   it('conditions', () => {
     const handler = new OpenAPIHandler(hono, router)
 
-    expect(handler.condition({ headers: {} } as any)).toBe(false)
-    expect(handler.condition({ headers: { [ORPC_HANDLER_HEADER]: ORPC_HANDLER_VALUE } } as any)).toBe(true)
+    expect(handler.condition({ headers: {} } as any)).toBe(true)
+    expect(handler.condition({ headers: { [ORPC_HANDLER_HEADER]: ORPC_HANDLER_VALUE } } as any)).toBe(false)
   })
 
   it('schema coercer', async () => {

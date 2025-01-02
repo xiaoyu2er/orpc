@@ -145,13 +145,10 @@ In oRPC middleware is very useful and fully typed you can find more info [here](
 
 ## Start Your Server
 
-This example uses [@whatwg-node/server](https://www.npmjs.com/package/@whatwg-node/server) to create a Node server with [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
-
 ```ts twoslash
-import { ORPCHandler, CompositeHandler } from '@orpc/server/fetch'
-import { OpenAPIServerlessHandler } from '@orpc/openapi/fetch'
+import { ORPCHandler, CompositeHandler } from '@orpc/server/node'
+import { OpenAPIServerlessHandler } from '@orpc/openapi/node'
 import { createServer } from 'node:http'
-import { createServerAdapter } from '@whatwg-node/server'
 import { router } from 'examples/server'
 import { ZodCoercer } from '@orpc/zod'
 
@@ -163,20 +160,17 @@ const openapiHandler = new OpenAPIServerlessHandler(router, {
 const orpcHandler = new ORPCHandler(router)
 const compositeHandler = new CompositeHandler([openapiHandler, orpcHandler])
 
-const server = createServer(
-  createServerAdapter((request: Request) => {
-    const url = new URL(request.url)
+const server = createServer(async (req, res) => {
+  if (req.url?.startsWith('/api')) {
+    return compositeHandler.handle(req, res, {
+      prefix: '/api',
+      context: {},
+    })
+  }
 
-    if (url.pathname.startsWith('/api')) {
-      return compositeHandler.fetch(request, {
-        prefix: '/api',
-        context: {},
-      })
-    }
-
-    return new Response('Not found', { status: 404 })
-  }),
-)
+  res.statusCode = 404
+  res.end('Not found')
+})
 
 server.listen(3000, () => {
   // eslint-disable-next-line no-console

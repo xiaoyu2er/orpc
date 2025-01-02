@@ -35,14 +35,10 @@ export function fetch(request: Request) {
 
 ## Node.js
 
-Node.js doesn't provide native support for creating server with [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), 
-but you can easily use [@whatwg-node/server](https://npmjs.com/package/@whatwg-node/server) as an adapter.
-
 ```ts twoslash
 import { createServer } from 'node:http'
-import { createServerAdapter } from '@whatwg-node/server'
-import { ORPCHandler, CompositeHandler } from '@orpc/server/fetch'
-import { OpenAPIServerlessHandler } from '@orpc/openapi/fetch'
+import { ORPCHandler, CompositeHandler } from '@orpc/server/node'
+import { OpenAPIServerlessHandler } from '@orpc/openapi/node'
 import { router } from 'examples/server'
 import { ZodCoercer } from '@orpc/zod'
 
@@ -54,13 +50,11 @@ const openapiHandler = new OpenAPIServerlessHandler(router, {
 const orpcHandler = new ORPCHandler(router)
 const compositeHandler = new CompositeHandler([openapiHandler, orpcHandler])
 
-const server = createServer(
-  createServerAdapter((request: Request) => {
-    return compositeHandler.fetch(request, {
-      context: {},
-    })
+const server = createServer((req, res) => {
+  return compositeHandler.handle(req, res, {
+    context: {},
   })
-)
+})
 
 server.listen(3000, () => {
   console.log('Server is available at http://localhost:3000')
@@ -71,9 +65,8 @@ server.listen(3000, () => {
 
 ```ts twoslash
 import express from 'express'
-import { createServerAdapter } from '@whatwg-node/server'
-import { ORPCHandler, CompositeHandler } from '@orpc/server/fetch'
-import { OpenAPIServerlessHandler } from '@orpc/openapi/fetch'
+import { ORPCHandler, CompositeHandler } from '@orpc/server/node'
+import { OpenAPIServerlessHandler } from '@orpc/openapi/node'
 import { router } from 'examples/server'
 import { ZodCoercer } from '@orpc/zod'
 
@@ -87,12 +80,12 @@ const compositeHandler = new CompositeHandler([openapiHandler, orpcHandler])
 
 const app = express()
 
-app.all('/api/*', createServerAdapter((request: Request) => {
-  return compositeHandler.fetch(request, {
+app.all('/api/*', (req, res) => {
+  return compositeHandler.handle(req, res, {
     context: {},
     prefix: '/api',
   })
-}))
+})
 
 app.listen(3000, () => {
   console.log('Server is available at http://localhost:3000')
@@ -186,4 +179,3 @@ export default {
 ## Other Environments and Frameworks
 
 oRPC works in any modern environment that supports the creating server with [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
-If not you can use [@whatwg-node/server](https://npmjs.com/package/@whatwg-node/server) to create a server adapter.

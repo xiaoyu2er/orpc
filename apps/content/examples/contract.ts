@@ -124,10 +124,8 @@ export const router = pub.router({
 
 // Modern runtime that support fetch api like deno, bun, cloudflare workers, even node can used
 import { createServer } from 'node:http'
-// Expose apis to the internet with fetch handler
-import { OpenAPIServerlessHandler } from '@orpc/openapi/fetch'
-import { CompositeHandler, ORPCHandler } from '@orpc/server/fetch'
-import { createServerAdapter } from '@whatwg-node/server'
+import { OpenAPIServerlessHandler } from '@orpc/openapi/node'
+import { CompositeHandler, ORPCHandler } from '@orpc/server/node'
 
 const openapiHandler = new OpenAPIServerlessHandler(router, {
   schemaCoercers: [
@@ -137,19 +135,17 @@ const openapiHandler = new OpenAPIServerlessHandler(router, {
 const orpcHandler = new ORPCHandler(router)
 const compositeHandler = new CompositeHandler([openapiHandler, orpcHandler])
 
-const server = createServer(
-  createServerAdapter((request: Request) => {
-    const url = new URL(request.url)
+const server = createServer((req, res) => {
+  if (req.url?.startsWith('/api')) {
+    return compositeHandler.handle(req, res, {
+      context: {},
+      prefix: '/api',
+    })
+  }
 
-    if (url.pathname.startsWith('/api')) {
-      return compositeHandler.fetch(request, {
-        context: {},
-        prefix: '/api',
-      })
-    }
-
-    return new Response('Not found', { status: 404 })
-  }),
+  res.statusCode = 404
+  res.end('Not found')
+},
 )
 
 server.listen(3000, () => {

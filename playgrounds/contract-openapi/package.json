@@ -15,7 +15,6 @@
     "@orpc/react": "latest",
     "@orpc/server": "latest",
     "@orpc/zod": "latest",
-    "@whatwg-node/server": "^0.9.55",
     "zod": "^3.24.1"
   },
   "devDependencies": {

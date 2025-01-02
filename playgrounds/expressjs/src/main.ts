@@ -1,8 +1,7 @@
 import { OpenAPIGenerator } from '@orpc/openapi'
-import { OpenAPIServerHandler } from '@orpc/openapi/fetch'
-import { CompositeHandler, ORPCHandler } from '@orpc/server/fetch'
+import { OpenAPIServerHandler } from '@orpc/openapi/node'
+import { CompositeHandler, ORPCHandler } from '@orpc/server/node'
 import { ZodCoercer, ZodToJsonSchemaConverter } from '@orpc/zod'
-import { createServerAdapter } from '@whatwg-node/server'
 import express from 'express'
 import { router } from './router'
 import './polyfill'
@@ -17,26 +16,26 @@ const openAPIHandler = new OpenAPIServerHandler(router, {
     console.error(error)
   },
 })
+
 const orpcHandler = new ORPCHandler(router, {
   onError: ({ error }) => {
     console.error(error)
   },
 })
+
 const compositeHandler = new CompositeHandler([openAPIHandler, orpcHandler])
 
-app.all(
-  '/api/*',
-  createServerAdapter((request: Request) => {
-    const context = request.headers.get('Authorization')
-      ? { user: { id: 'test', name: 'John Doe', email: 'john@doe.com' } }
-      : {}
+app.all('/api/*', (req, res) => {
+  const context = req.headers.authorization
+    ? { user: { id: 'test', name: 'John Doe', email: 'john@doe.com' } }
+    : {}
 
-    return compositeHandler.fetch(request, {
-      prefix: '/api',
-      context,
-    })
-  }),
-)
+  return compositeHandler.handle(req, res, {
+    prefix: '/api',
+    context,
+  })
+})
+
 const openAPIGenerator = new OpenAPIGenerator({
   schemaConverters: [
     new ZodToJsonSchemaConverter(),

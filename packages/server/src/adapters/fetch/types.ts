@@ -1,5 +1,5 @@
 import type { HTTPPath } from '@orpc/contract'
-import type { Context, WithSignal } from '../types'
+import type { Context, WithSignal } from '../../types'
 
 export type FetchOptions<T extends Context> =
   & WithSignal

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { os } from '..'
-import { isProcedure } from '../procedure'
+import { os } from '../..'
+import { isProcedure } from '../../procedure'
 import { ORPCProcedureMatcher } from './orpc-procedure-matcher'
 
 describe('oRPCProcedureMatcher', () => {

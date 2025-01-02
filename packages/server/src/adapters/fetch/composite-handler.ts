@@ -1,4 +1,4 @@
-import type { Context } from '../types'
+import type { Context } from '../../types'
 import type { ConditionalFetchHandler, FetchHandler, FetchOptions } from './types'
 
 export class CompositeHandler<T extends Context> implements FetchHandler<T> {

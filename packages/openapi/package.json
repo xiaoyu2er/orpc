@@ -21,9 +21,14 @@
         "default": "./dist/index.js"
       },
       "./fetch": {
-        "types": "./dist/src/fetch/index.d.ts",
+        "types": "./dist/src/adapters/fetch/index.d.ts",
         "import": "./dist/fetch.js",
         "default": "./dist/fetch.js"
+      },
+      "./node": {
+        "types": "./dist/src/adapters/node/index.d.ts",
+        "import": "./dist/node.js",
+        "default": "./dist/node.js"
       },
       "./🔒/*": {
         "types": "./dist/src/*.d.ts"
@@ -32,7 +37,8 @@
   },
   "exports": {
     ".": "./src/index.ts",
-    "./fetch": "./src/fetch/index.ts",
+    "./fetch": "./src/adapters/fetch/index.ts",
+    "./node": "./src/adapters/node/index.ts",
     "./🔒/*": {
       "types": "./src/*.ts"
     }
@@ -43,11 +49,12 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup --clean --sourcemap --entry.index=src/index.ts --entry.fetch=src/fetch/index.ts --format=esm --onSuccess='tsc -b --noCheck'",
+    "build": "tsup --clean --sourcemap --entry.index=src/index.ts --entry.fetch=src/adapters/fetch/index.ts --entry.node=src/adapters/node/index.ts --format=esm --onSuccess='tsc -b --noCheck'",
     "build:watch": "pnpm run build --watch",
     "type:check": "tsc -b"
   },
   "dependencies": {
+    "@mjackson/node-fetch-server": "^0.5.0",
     "@orpc/contract": "workspace:*",
     "@orpc/server": "workspace:*",
     "@orpc/shared": "workspace:*",

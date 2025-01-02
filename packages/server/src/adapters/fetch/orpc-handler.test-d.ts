@@ -1,5 +1,5 @@
-import type { WithSignal } from '..'
-import { os } from '..'
+import type { WithSignal } from '../..'
+import { os } from '../..'
 import { ORPCHandler } from './orpc-handler'
 
 describe('oRPCHandler', () => {

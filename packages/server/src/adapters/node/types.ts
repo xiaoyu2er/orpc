@@ -12,7 +12,7 @@ export type RequestOptions<T extends Context> =
   & { prefix?: HTTPPath }
   & (undefined extends T ? { context?: T } : { context: T })
   & {
-    beforeSend?: (request: IncomingMessage, response: ServerResponse) => Promisable<void>
+    beforeSend?: (response: Response, context: T) => Promisable<void>
   }
 
 export interface RequestHandler<T extends Context> {

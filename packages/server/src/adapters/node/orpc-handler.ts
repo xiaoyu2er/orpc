@@ -21,9 +21,11 @@ export class ORPCHandler<T extends Context> implements ConditionalRequestHandler
   async handle(req: IncomingMessage, res: ServerResponse, ...[options]: [options: RequestOptions<T>] | (undefined extends T ? [] : never)): Promise<void> {
     const request = createRequest(req, res, options)
 
-    const response = await this.orpcFetchHandler.fetch(request, (options ?? {}) as Exclude<typeof options, undefined>)
+    const castedOptions = (options ?? {}) as Exclude<typeof options, undefined>
 
-    await options?.beforeSend?.(req, res)
+    const response = await this.orpcFetchHandler.fetch(request, castedOptions)
+
+    await options?.beforeSend?.(response, castedOptions.context as T)
 
     return await sendResponse(res, response)
   }

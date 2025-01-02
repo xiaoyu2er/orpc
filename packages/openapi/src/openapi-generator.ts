@@ -16,6 +16,8 @@ import { CompositeSchemaConverter } from './schema-converter'
 import { type PublicSchemaUtils, SchemaUtils } from './schema-utils'
 import { forEachAllContractProcedure, standardizeHTTPPath } from './utils'
 
+type ErrorHandlerStrategy = 'throw' | 'log' | 'ignore'
+
 export interface OpenAPIGeneratorOptions {
   contentBuilder?: PublicOpenAPIContentBuilder
   parametersBuilder?: PublicOpenAPIParametersBuilder
@@ -44,11 +46,11 @@ export interface OpenAPIGeneratorOptions {
   ignoreUndefinedPathProcedures?: boolean
 
   /**
-   * Throw error when you have error in OpenAPI generator
+   * What to do when we found an error with our router
    *
-   * @default false
+   * @default 'throw'
    */
-  throwOnError?: boolean
+  errorHandlerStrategy?: ErrorHandlerStrategy
 }
 
 export class OpenAPIGenerator {
@@ -60,8 +62,11 @@ export class OpenAPIGenerator {
   private readonly pathParser: PublicOpenAPIPathParser
   private readonly inputStructureParser: PublicOpenAPIInputStructureParser
   private readonly outputStructureParser: PublicOpenAPIOutputStructureParser
+  private readonly errorHandlerStrategy: ErrorHandlerStrategy
+  private readonly ignoreUndefinedPathProcedures: boolean
+  private readonly considerMissingTagDefinitionAsError: boolean
 
-  constructor(private readonly options?: OpenAPIGeneratorOptions) {
+  constructor(options?: OpenAPIGeneratorOptions) {
     this.parametersBuilder = options?.parametersBuilder ?? new OpenAPIParametersBuilder()
     this.schemaConverter = new CompositeSchemaConverter(options?.schemaConverters ?? [])
     this.schemaUtils = options?.schemaUtils ?? new SchemaUtils()
@@ -71,6 +76,10 @@ export class OpenAPIGenerator {
 
     this.inputStructureParser = options?.inputStructureParser ?? new OpenAPIInputStructureParser(this.schemaConverter, this.schemaUtils, this.pathParser)
     this.outputStructureParser = options?.outputStructureParser ?? new OpenAPIOutputStructureParser(this.schemaConverter, this.schemaUtils)
+
+    this.errorHandlerStrategy = options?.errorHandlerStrategy ?? 'throw'
+    this.ignoreUndefinedPathProcedures = options?.ignoreUndefinedPathProcedures ?? false
+    this.considerMissingTagDefinitionAsError = options?.considerMissingTagDefinitionAsError ?? false
   }
 
   async generate(router: ContractRouter | ANY_ROUTER, doc: Omit<OpenAPI.OpenAPIObject, 'openapi'>): Promise<OpenAPI.OpenAPIObject> {
@@ -86,7 +95,7 @@ export class OpenAPIGenerator {
         // TODO: inputExample and outputExample ???
         const def = contract['~orpc']
 
-        if (this.options?.ignoreUndefinedPathProcedures && def.route?.path === undefined) {
+        if (this.ignoreUndefinedPathProcedures && def.route?.path === undefined) {
           return
         }
 
@@ -133,7 +142,7 @@ export class OpenAPIGenerator {
             : undefined,
         }
 
-        if (this.options?.considerMissingTagDefinitionAsError && def.route?.tags) {
+        if (this.considerMissingTagDefinitionAsError && def.route?.tags) {
           const missingTag = def.route?.tags.find(tag => !rootTags.includes(tag))
 
           if (missingTag !== undefined) {
@@ -167,11 +176,16 @@ export class OpenAPIGenerator {
             Happened at path: ${path.join('.')}
           `, { cause: e })
 
-          if (this.options?.throwOnError) {
+          if (this.errorHandlerStrategy === 'throw') {
             throw error
           }
 
-          console.error(error)
+          if (this.errorHandlerStrategy === 'log') {
+            console.error(error)
+          }
+        }
+        else {
+          throw e
         }
       }
     })

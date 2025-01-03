@@ -21,7 +21,7 @@ const pub = os.context<{ user?: { id: string } } | undefined>()
 // Define a router with lazy loading
 const router = pub.router({
     lazy: pub.lazy(() => import('examples/server')),
-    // Please use .prefix when you use OpenAPI
+    // Please use .prefix when you use OpenAPI (Not necessary for contract-first approach)
     better: pub.prefix('/some').lazy(() => import('examples/server'))
 })
 
@@ -52,6 +52,8 @@ const output = await router.lazy.getUser({ id: '123' })
 
     const lazy = pub.prefix('/some').lazy(() => import('examples/server'))
     ```
+
+    > **Note:** Contract-first approach is optimized by default, so you don't need to use `prefix` when implementing.
 
     Adding a prefix helps oRPC dynamically load the router only when it's needed, 
     improving efficiency and alignment with OpenAPI specifications. While optional, 

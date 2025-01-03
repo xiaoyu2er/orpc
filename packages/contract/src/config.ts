@@ -38,6 +38,13 @@ const GLOBAL_CONFIG_REF: { value: ORPCConfig } = { value: DEFAULT_CONFIG }
  * Set the global configuration, this configuration can effect entire project
  */
 export function configGlobal(config: ORPCConfig): void {
+  if (
+    config.defaultSuccessStatus !== undefined
+    && (config.defaultSuccessStatus < 200 || config.defaultSuccessStatus > 299)
+  ) {
+    throw new Error('[configGlobal] The defaultSuccessStatus must be between 200 and 299')
+  }
+
   GLOBAL_CONFIG_REF.value = config
 }
 

@@ -1,8 +1,8 @@
-import type { ANY_CONTRACT_PROCEDURE } from '@orpc/contract'
 import type { PublicOpenAPIPathParser } from './openapi-path-parser'
 import type { JSONSchema, ObjectSchema } from './schema'
 import type { SchemaConverter } from './schema-converter'
 import type { PublicSchemaUtils } from './schema-utils'
+import { type ANY_CONTRACT_PROCEDURE, fallbackToGlobalConfig } from '@orpc/contract'
 import { OpenAPIError } from './openapi-error'
 
 export interface OpenAPIInputStructureParseResult {
@@ -21,7 +21,7 @@ export class OpenAPIInputStructureParser {
 
   parse(contract: ANY_CONTRACT_PROCEDURE, structure: 'compact' | 'detailed'): OpenAPIInputStructureParseResult {
     const inputSchema = this.schemaConverter.convert(contract['~orpc'].InputSchema, { strategy: 'input' })
-    const method = contract['~orpc'].route?.method ?? 'POST'
+    const method = fallbackToGlobalConfig('defaultMethod', contract['~orpc'].route?.method)
     const httpPath = contract['~orpc'].route?.path
 
     if (this.schemaUtils.isAnySchema(inputSchema)) {

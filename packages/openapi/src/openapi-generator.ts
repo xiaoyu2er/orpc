@@ -1,9 +1,9 @@
-import type { ContractRouter } from '@orpc/contract'
 import type { ANY_ROUTER } from '@orpc/server'
 import type { PublicOpenAPIInputStructureParser } from './openapi-input-structure-parser'
 import type { PublicOpenAPIOutputStructureParser } from './openapi-output-structure-parser'
 import type { PublicOpenAPIPathParser } from './openapi-path-parser'
 import type { SchemaConverter } from './schema-converter'
+import { type ContractRouter, fallbackToGlobalConfig } from '@orpc/contract'
 import { JSONSerializer, type PublicJSONSerializer } from './json-serializer'
 import { type OpenAPI, OpenApiBuilder } from './openapi'
 import { OpenAPIContentBuilder, type PublicOpenAPIContentBuilder } from './openapi-content-builder'
@@ -99,11 +99,13 @@ export class OpenAPIGenerator {
           return
         }
 
-        const method = def.route?.method ?? 'POST'
+        const method = fallbackToGlobalConfig('defaultMethod', def.route?.method)
         const httpPath = def.route?.path ? standardizeHTTPPath(def.route?.path) : `/${path.map(encodeURIComponent).join('/')}`
+        const inputStructure = fallbackToGlobalConfig('defaultInputStructure', def.route?.inputStructure)
+        const outputStructure = fallbackToGlobalConfig('defaultOutputStructure', def.route?.outputStructure)
 
-        const { paramsSchema, querySchema, headersSchema, bodySchema } = this.inputStructureParser.parse(contract, def.route?.inputStructure ?? 'compact')
-        const { headersSchema: resHeadersSchema, bodySchema: resBodySchema } = this.outputStructureParser.parse(contract, def.route?.outputStructure ?? 'compact')
+        const { paramsSchema, querySchema, headersSchema, bodySchema } = this.inputStructureParser.parse(contract, inputStructure)
+        const { headersSchema: resHeadersSchema, bodySchema: resBodySchema } = this.outputStructureParser.parse(contract, outputStructure)
 
         const params = paramsSchema
           ? this.parametersBuilder.build('path', paramsSchema, {
@@ -161,7 +163,7 @@ export class OpenAPIGenerator {
           parameters: parameters.length ? parameters : undefined,
           requestBody,
           responses: {
-            [def.route?.successStatus ?? 200]: successResponse,
+            [fallbackToGlobalConfig('defaultSuccessStatus', def.route?.successStatus)]: successResponse,
           },
         }
 

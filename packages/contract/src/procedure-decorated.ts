@@ -22,7 +22,10 @@ export class DecoratedContractProcedure<
   route(route: RouteOptions): DecoratedContractProcedure<TInputSchema, TOutputSchema> {
     return new DecoratedContractProcedure({
       ...this['~orpc'],
-      route,
+      route: {
+        ...this['~orpc'].route,
+        ...route,
+      },
     })
   }
 

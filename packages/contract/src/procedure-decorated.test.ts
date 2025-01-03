@@ -27,6 +27,19 @@ describe('route', () => {
     expect(routed['~orpc']).not.toBe(decorated['~orpc'])
     expect(routed).not.toBe(decorated)
   })
+
+  it('should spread merge route options', () => {
+    const routed = decorated
+      .route({ inputStructure: 'detailed' })
+      .route({ outputStructure: 'detailed' })
+
+    expect(routed['~orpc']).toEqual({
+      route: {
+        inputStructure: 'detailed',
+        outputStructure: 'detailed',
+      },
+    })
+  })
 })
 
 describe('prefix', () => {

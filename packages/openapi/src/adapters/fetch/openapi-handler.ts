@@ -2,7 +2,7 @@ import type { ANY_PROCEDURE, Context, Router, WithSignal } from '@orpc/server'
 import type { ConditionalFetchHandler, FetchOptions } from '@orpc/server/fetch'
 import type { Params } from 'hono/router'
 import type { PublicInputStructureCompact } from './input-structure-compact'
-import { createProcedureClient, ORPCError } from '@orpc/server'
+import { createProcedureClient, fallbackToGlobalConfig, ORPCError } from '@orpc/server'
 import { executeWithHooks, type Hooks, isPlainObject, ORPC_HANDLER_HEADER, trim } from '@orpc/shared'
 import { JSONSerializer, type PublicJSONSerializer } from '../../json-serializer'
 import { InputStructureCompact } from './input-structure-compact'
@@ -86,7 +86,7 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
 
       return new Response(body, {
         headers: resHeaders,
-        status: contractDef.route?.successStatus ?? 200,
+        status: fallbackToGlobalConfig('defaultSuccessStatus', contractDef.route?.successStatus),
       })
     }
 
@@ -128,13 +128,13 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
   }
 
   private async decodeInput(procedure: ANY_PROCEDURE, params: Params, request: Request): Promise<unknown> {
-    const inputStructure = procedure['~orpc'].contract['~orpc'].route?.inputStructure
+    const inputStructure = fallbackToGlobalConfig('defaultInputStructure', procedure['~orpc'].contract['~orpc'].route?.inputStructure)
 
     const url = new URL(request.url)
     const query = url.searchParams
     const headers = request.headers
 
-    if (!inputStructure || inputStructure === 'compact') {
+    if (inputStructure === 'compact') {
       return this.inputStructureCompact.build(
         params,
         request.method === 'GET'
@@ -142,8 +142,6 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
           : await this.payloadCodec.decode(request),
       )
     }
-
-    const _expect: 'detailed' = inputStructure
 
     const decodedQuery = await this.payloadCodec.decode(query)
     const decodedHeaders = await this.payloadCodec.decode(headers)
@@ -157,13 +155,11 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
     output: unknown,
     accept: string | undefined,
   ): { body: string | Blob | FormData | undefined, headers?: Headers } {
-    const outputStructure = procedure['~orpc'].contract['~orpc'].route?.outputStructure
+    const outputStructure = fallbackToGlobalConfig('defaultOutputStructure', procedure['~orpc'].contract['~orpc'].route?.outputStructure)
 
-    if (!outputStructure || outputStructure === 'compact') {
+    if (outputStructure === 'compact') {
       return this.payloadCodec.encode(output, accept)
     }
-
-    const _expect: 'detailed' = outputStructure
 
     this.assertDetailedOutput(output)
 

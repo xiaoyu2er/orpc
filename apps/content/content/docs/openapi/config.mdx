@@ -1,0 +1,19 @@
+---
+title: Config
+description: How to configure your oRPC project.
+---
+
+```ts twoslash
+import { configGlobal } from '@orpc/contract'; // or '@orpc/server'
+
+configGlobal({
+  defaultMethod: 'GET', // Default HTTP method for requests
+  defaultSuccessStatus: 200, // Default HTTP status for successful responses
+  defaultInputStructure: 'compact', // Input payload structure: 'compact' or 'expanded'
+  defaultOutputStructure: 'compact', // Output payload structure: 'compact' or 'expanded'
+});
+```
+
+I recommend placing this script at the top of the `main.ts` file, where the server is initialized.
+Alternatively, include it at the top of the file where you define `global oRPC builders or the app router`.
+This ensures the configuration is applied before any other part of your code is executed.

@@ -1,6 +1,8 @@
 import type {
   HTTPMethod,
   HTTPPath,
+  InputStructure,
+  OutputStructure,
   Schema,
   SchemaOutput,
 } from './types'
@@ -41,7 +43,7 @@ export interface RouteOptions {
    *
    * @default 'compact'
    */
-  inputStructure?: 'compact' | 'detailed'
+  inputStructure?: InputStructure
 
   /**
    * Determines how the response should be structured based on the output.
@@ -64,7 +66,7 @@ export interface RouteOptions {
    *
    * @default 'compact'
    */
-  outputStructure?: 'compact' | 'detailed'
+  outputStructure?: OutputStructure
 }
 
 export interface ContractProcedureDef<TInputSchema extends Schema, TOutputSchema extends Schema> {

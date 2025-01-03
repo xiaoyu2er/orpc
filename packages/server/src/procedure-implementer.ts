@@ -1,6 +1,6 @@
 import type { ContractProcedure, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { ANY_MAP_INPUT_MIDDLEWARE, ANY_MIDDLEWARE, MapInputMiddleware, Middleware } from './middleware'
-import type { ProcedureFunc } from './procedure'
+import type { ProcedureHandler } from './procedure'
 import type { DecoratedProcedure } from './procedure-decorated'
 import type { Context, MergeContext } from './types'
 import { decorateMiddleware } from './middleware-decorated'
@@ -77,7 +77,7 @@ export class ProcedureImplementer<
   }
 
   handler<UFuncOutput extends SchemaInput<TOutputSchema>>(
-    handler: ProcedureFunc<TContext, TExtraContext, TInputSchema, TOutputSchema, UFuncOutput>,
+    handler: ProcedureHandler<TContext, TExtraContext, TInputSchema, TOutputSchema, UFuncOutput>,
   ): DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, UFuncOutput > {
     return decorateProcedure(new Procedure({
       middlewares: this['~orpc'].middlewares,

@@ -8,7 +8,7 @@ import type { Context, MergeContext, WELL_CONTEXT } from './types'
 import { ContractProcedure } from '@orpc/contract'
 import { type ChainableImplementer, createChainableImplementer } from './implementer-chainable'
 import { decorateMiddleware } from './middleware-decorated'
-import { Procedure, type ProcedureFunc } from './procedure'
+import { Procedure, type ProcedureHandler } from './procedure'
 import { ProcedureBuilder } from './procedure-builder'
 import { type DecoratedProcedure, decorateProcedure } from './procedure-decorated'
 import { RouterBuilder } from './router-builder'
@@ -103,7 +103,7 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
   }
 
   handler<UFuncOutput = undefined>(
-    handler: ProcedureFunc<TContext, TExtraContext, undefined, undefined, UFuncOutput>,
+    handler: ProcedureHandler<TContext, TExtraContext, undefined, undefined, UFuncOutput>,
   ): DecoratedProcedure<TContext, TExtraContext, undefined, undefined, UFuncOutput> {
     return decorateProcedure(new Procedure({
       middlewares: this['~orpc'].middlewares,

@@ -4,7 +4,7 @@ import type { Middleware } from './middleware'
 import type { Context, MergeContext, Meta } from './types'
 import { type ContractProcedure, isContractProcedure, type Schema, type SchemaInput, type SchemaOutput } from '@orpc/contract'
 
-export interface ProcedureFunc<
+export interface ProcedureHandler<
   TContext extends Context,
   TExtraContext extends Context,
   TInputSchema extends Schema,
@@ -27,7 +27,7 @@ export interface ProcedureDef<
 > {
   middlewares?: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, SchemaOutput<TInputSchema>, any>[]
   contract: ContractProcedure<TInputSchema, TOutputSchema>
-  handler: ProcedureFunc<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput>
+  handler: ProcedureHandler<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput>
 }
 
 export class Procedure<

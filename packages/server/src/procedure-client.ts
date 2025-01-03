@@ -2,7 +2,7 @@ import type { Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Hooks, Value } from '@orpc/shared'
 import type { Lazyable } from './lazy'
 import type { MiddlewareMeta } from './middleware'
-import type { ANY_PROCEDURE, Procedure } from './procedure'
+import type { ANY_PROCEDURE, Procedure, ProcedureHandlerOptions } from './procedure'
 import type { Context, Meta, WELL_CONTEXT, WithSignal } from './types'
 import { executeWithHooks, value } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
@@ -71,12 +71,13 @@ export function createProcedureClient<
     const executeWithValidation = async () => {
       const validInput = await validateInput(procedure, input)
 
-      const output = await executeMiddlewareChain(
-        procedure,
-        validInput,
+      const output = await executeMiddlewareChain({
         context,
-        meta,
-      )
+        input: validInput,
+        path,
+        procedure,
+        signal: callerOptions?.signal,
+      })
 
       return validateOutput(procedure, output) as SchemaOutput<TOutputSchema, THandlerOutput>
     }
@@ -125,15 +126,10 @@ async function validateOutput(procedure: ANY_PROCEDURE, output: unknown) {
   return result.value
 }
 
-async function executeMiddlewareChain(
-  procedure: ANY_PROCEDURE,
-  input: unknown,
-  context: Context,
-  meta: Meta,
-) {
-  const middlewares = procedure['~orpc'].middlewares ?? []
+async function executeMiddlewareChain(opt: ProcedureHandlerOptions<any, any>) {
+  const middlewares = opt.procedure['~orpc'].middlewares ?? []
   let currentMidIndex = 0
-  let currentContext = context
+  let currentContext = opt.context
 
   const next: MiddlewareMeta<unknown>['next'] = async (nextOptions) => {
     const mid = middlewares[currentMidIndex]
@@ -141,15 +137,15 @@ async function executeMiddlewareChain(
     currentContext = mergeContext(currentContext, nextOptions.context)
 
     if (mid) {
-      return await mid(input, currentContext, {
-        ...meta,
+      return await mid(opt.input, currentContext, {
+        ...opt,
         next,
         output: output => ({ output, context: undefined }),
       })
     }
 
     const result = {
-      output: await procedure['~orpc'].handler(input, currentContext, meta),
+      output: await opt.procedure['~orpc'].handler({ ...opt, context: currentContext }),
       context: currentContext,
     }
 

@@ -1,8 +1,16 @@
 import type { Promisable } from '@orpc/shared'
 import type { Lazy } from './lazy'
 import type { Middleware } from './middleware'
-import type { Context, MergeContext, Meta } from './types'
+import type { AbortSignal, Context, MergeContext } from './types'
 import { type ContractProcedure, isContractProcedure, type Schema, type SchemaInput, type SchemaOutput } from '@orpc/contract'
+
+export interface ProcedureHandlerOptions<TContext extends Context, TInput> {
+  context: TContext
+  input: TInput
+  path: string[]
+  procedure: ANY_PROCEDURE
+  signal?: AbortSignal
+}
 
 export interface ProcedureHandler<
   TContext extends Context,
@@ -12,9 +20,7 @@ export interface ProcedureHandler<
   THandlerOutput extends SchemaInput<TOutputSchema>,
 > {
   (
-    input: SchemaOutput<TInputSchema>,
-    context: MergeContext<TContext, TExtraContext>,
-    meta: Meta,
+    opt: ProcedureHandlerOptions<MergeContext<TContext, TExtraContext>, SchemaOutput<TInputSchema>>
   ): Promisable<SchemaInput<TOutputSchema, THandlerOutput>>
 }
 

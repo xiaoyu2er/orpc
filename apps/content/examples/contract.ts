@@ -78,7 +78,7 @@ export const authed = base
   .contract(contract)
 
 export const router = pub.router({
-  getUser: pub.getUser.handler((input, context, meta) => {
+  getUser: pub.getUser.handler(({ input, context }) => {
     return {
       username: `user_${input.id}`,
       avatar: `avatar_${input.id}.png`,
@@ -104,7 +104,7 @@ export const router = pub.router({
 
         return result
       })
-      .handler((input, context, meta) => {
+      .handler(({ input, context }) => {
         return {
           id: 'example',
           title: 'example',
@@ -112,7 +112,7 @@ export const router = pub.router({
         }
       }),
 
-    createPost: authed.posts.createPost.handler((input, context, meta) => {
+    createPost: authed.posts.createPost.handler(({ input, context }) => {
       return {
         id: 'example',
         title: input.title,

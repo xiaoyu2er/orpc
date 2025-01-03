@@ -4,9 +4,9 @@ import { z } from 'zod'
 import { useAction } from './action-hooks'
 
 describe('useAction', () => {
-  const procedure = os.input(z.object({ value: z.string() })).handler(async ({ value }) => {
+  const procedure = os.input(z.object({ value: z.string() })).handler(async ({ input }) => {
     await new Promise(resolve => setTimeout(resolve, 100))
-    return value
+    return input.value
   })
 
   it('should work - on success', async () => {

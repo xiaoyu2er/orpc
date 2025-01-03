@@ -20,7 +20,7 @@ export const UserFindInputSchema = z
 export const userFind = orpcServer
   .input(UserFindInputSchema)
   .output(UserSchema)
-  .handler((input) => {
+  .handler(({ input }) => {
     return {
       data: {
         id: input.data.id,
@@ -46,7 +46,7 @@ export const UserListOutputSchema = z
 export const userList = orpcServer
   .input(UserListInputSchema)
   .output(UserListOutputSchema)
-  .handler((input) => {
+  .handler(({ input }) => {
     return {
       data: {
         nextCursor: input.data.cursor + 2,
@@ -74,7 +74,7 @@ export const UserCreateInputSchema = z
 export const userCreate = orpcServer
   .input(UserCreateInputSchema)
   .output(UserSchema)
-  .handler((input) => {
+  .handler(({ input }) => {
     return {
       data: {
         id: '28aa6286-48e9-4f23-adea-3486c86acd55',

@@ -20,14 +20,14 @@ export const listPlanets = pub
     }),
   )
   .output(z.array(PlanetSchema))
-  .handler(async (input, context, meta) => {
+  .handler(async ({ input, context }) => {
     return planets
   })
 
 export const createPlanet = authed
   .input(NewPlanetSchema)
   .output(PlanetSchema)
-  .handler(async (input, context, meta) => {
+  .handler(async ({ input, context }) => {
     const id = planets.length + 1
 
     const planet = {
@@ -58,7 +58,7 @@ export const findPlanet = pub
     }),
   )
   .output(PlanetSchema)
-  .handler(async (input, context, meta) => {
+  .handler(async ({ input, context }) => {
     const planet = planets.find(planet => planet.id === input.id)
 
     if (!planet) {
@@ -74,7 +74,7 @@ export const findPlanet = pub
 export const updatePlanet = authed
   .input(UpdatePlanetSchema)
   .output(PlanetSchema)
-  .handler(async (input, context, meta) => {
+  .handler(async ({ input, context }) => {
     const planet = planets.find(planet => planet.id === input.id)
 
     if (!planet) {
@@ -99,7 +99,7 @@ export const updatePlanetImage = authed
     }),
   )
   .output(PlanetSchema)
-  .handler(async (input, context, meta) => {
+  .handler(async ({ input, context }) => {
     const planet = planets.find(planet => planet.id === input.id)
 
     if (!planet) {
@@ -120,7 +120,7 @@ export const deletePlanet = authed
       id: z.number().int().min(1),
     }),
   )
-  .handler(async (input, context, meta) => {
+  .handler(async ({ input, context }) => {
     const planet = planets.find(planet => planet.id === input.id)
 
     if (!planet) {

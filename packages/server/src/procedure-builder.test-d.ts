@@ -1,8 +1,9 @@
 import type { RouteOptions } from '@orpc/contract'
 import type { Middleware } from './middleware'
+import type { ANY_PROCEDURE } from './procedure'
 import type { DecoratedProcedure } from './procedure-decorated'
 import type { ProcedureImplementer } from './procedure-implementer'
-import type { Meta, WELL_CONTEXT } from './types'
+import type { WELL_CONTEXT } from './types'
 import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
 import { ProcedureBuilder } from './procedure-builder'
@@ -158,10 +159,12 @@ describe('to DecoratedProcedure', () => {
   })
 
   it('handler', () => {
-    const procedure = builder.handler(async (input, context, meta) => {
+    const procedure = builder.handler(async ({ input, context, path, procedure, signal }) => {
       expectTypeOf(context).toEqualTypeOf<{ id?: string } | undefined>()
       expectTypeOf(input).toEqualTypeOf<{ id: number }>()
-      expectTypeOf(meta).toEqualTypeOf<Meta>()
+      expectTypeOf(procedure).toEqualTypeOf<ANY_PROCEDURE>()
+      expectTypeOf(path).toEqualTypeOf<string[]>()
+      expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
 
       return { id: '1' }
     })
@@ -171,9 +174,9 @@ describe('to DecoratedProcedure', () => {
     >()
 
     // @ts-expect-error - invalid output
-    builder.handler(async (input, context, meta) => ({ id: 1 }))
+    builder.handler(async ({ input, context }) => ({ id: 1 }))
 
     // @ts-expect-error - invalid output
-    builder.handler(async (input, context, meta) => (true))
+    builder.handler(async ({ input, context }) => (true))
   })
 })

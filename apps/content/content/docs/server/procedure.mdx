@@ -52,7 +52,7 @@ const getUser = pub
     })
     
     // Define handler with business logic
-    .handler(async (input, context, meta) => {
+    .handler(async ({ input, context }) => {
         // Implement your business logic here
         
         return {

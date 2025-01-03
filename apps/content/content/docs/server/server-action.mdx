@@ -57,7 +57,7 @@ export const updateUser = os
       }),
     }),
   )
-  .handler((input, context, meta) => {
+  .handler(({ input, context }) => {
     // ^ context.user is automatically injected
      redirect('/some-where') // or return some thing
   })

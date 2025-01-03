@@ -19,7 +19,7 @@ export const router = pub.router({
         id: z.string(),
       }),
     )
-    .handler(async (input, context, meta) => {
+    .handler(async ({ input, context }) => {
       return {
         id: input.id,
         name: 'example',
@@ -61,7 +61,7 @@ export const router = pub.router({
 
         return result
       })
-      .handler((input, context, meta) => {
+      .handler(({ input, context }) => {
         return {
           id: 'example',
           title: 'example',
@@ -77,7 +77,7 @@ export const router = pub.router({
           thumb: oz.file().type('image/*'),
         }),
       )
-      .handler(async (input, context, meta) => {
+      .handler(async ({ input, context }) => {
         const _thumb = input.thumb // file upload out of the box
 
         return {

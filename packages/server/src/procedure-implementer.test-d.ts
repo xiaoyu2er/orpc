@@ -1,6 +1,7 @@
 import type { Middleware, MiddlewareMeta } from './middleware'
+import type { ANY_PROCEDURE } from './procedure'
 import type { DecoratedProcedure } from './procedure-decorated'
-import type { Meta, WELL_CONTEXT } from './types'
+import type { WELL_CONTEXT } from './types'
 import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
 import { ProcedureImplementer } from './procedure-implementer'
@@ -129,10 +130,12 @@ describe('to DecoratedProcedure', () => {
   })
 
   it('handler', () => {
-    const procedure = implementer.handler((input, context, meta) => {
+    const procedure = implementer.handler(({ input, context, procedure, path, signal }) => {
       expectTypeOf(context).toEqualTypeOf<({ id?: string } & { db: string }) | { db: string }>()
       expectTypeOf(input).toEqualTypeOf<{ val: number }>()
-      expectTypeOf(meta).toEqualTypeOf<Meta>()
+      expectTypeOf(procedure).toEqualTypeOf<ANY_PROCEDURE>()
+      expectTypeOf(path).toEqualTypeOf<string[]>()
+      expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
 
       return { val: '1' }
     })

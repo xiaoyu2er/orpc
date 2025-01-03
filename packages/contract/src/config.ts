@@ -32,18 +32,13 @@ const DEFAULT_CONFIG: Required<ORPCConfig> = {
   defaultOutputStructure: 'compact',
 }
 
-const GLOBAL_CONFIG: Required<ORPCConfig> = {
-  ...DEFAULT_CONFIG,
-}
+const GLOBAL_CONFIG_REF: { value: ORPCConfig } = { value: DEFAULT_CONFIG }
 
 /**
  * Set the global configuration, this configuration can effect entire project
- * If value is undefined, it will use the default value
  */
 export function configGlobal(config: ORPCConfig): void {
-  for (const [key, value] of Object.entries(config)) {
-    Reflect.set(GLOBAL_CONFIG, key, value !== undefined ? value : DEFAULT_CONFIG[key as keyof typeof DEFAULT_CONFIG])
-  }
+  GLOBAL_CONFIG_REF.value = config
 }
 
 /**
@@ -51,7 +46,13 @@ export function configGlobal(config: ORPCConfig): void {
  */
 export function fallbackToGlobalConfig<T extends keyof ORPCConfig>(key: T, value: ORPCConfig[T]): Exclude<ORPCConfig[T], undefined> {
   if (value === undefined) {
-    return GLOBAL_CONFIG[key] as any
+    const fallback = GLOBAL_CONFIG_REF.value[key]
+
+    if (fallback === undefined) {
+      return DEFAULT_CONFIG[key] as any
+    }
+
+    return fallback as any
   }
 
   return value as any

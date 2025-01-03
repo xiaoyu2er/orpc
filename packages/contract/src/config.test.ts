@@ -17,4 +17,9 @@ it('configGlobal & fallbackToGlobalConfig', () => {
 
   expect(fallbackToGlobalConfig('defaultInputStructure', undefined)).toBe('compact')
   expect(fallbackToGlobalConfig('defaultInputStructure', 'detailed')).toBe('detailed')
+
+  /** Reset to make sure the global config is not affected other tests */
+  configGlobal({
+    defaultMethod: 'POST',
+  })
 })

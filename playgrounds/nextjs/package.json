@@ -10,12 +10,12 @@
     "type:check": "tsc --noEmit"
   },
   "dependencies": {
-    "@orpc/client": "latest",
-    "@orpc/next": "latest",
-    "@orpc/openapi": "latest",
-    "@orpc/react": "latest",
-    "@orpc/server": "latest",
-    "@orpc/zod": "latest",
+    "@orpc/client": "next",
+    "@orpc/next": "next",
+    "@orpc/openapi": "next",
+    "@orpc/react": "next",
+    "@orpc/server": "next",
+    "@orpc/zod": "next",
     "@tanstack/react-query": "^5.61.5",
     "next": "15.0.3",
     "react": "19.0.0",

@@ -411,22 +411,22 @@ importers:
   playgrounds/contract-openapi:
     dependencies:
       '@orpc/client':
-        specifier: latest
+        specifier: next
         version: link:../../packages/client
       '@orpc/contract':
-        specifier: latest
+        specifier: next
         version: link:../../packages/contract
       '@orpc/openapi':
-        specifier: latest
+        specifier: next
         version: link:../../packages/openapi
       '@orpc/react':
-        specifier: latest
+        specifier: next
         version: link:../../packages/react
       '@orpc/server':
-        specifier: latest
+        specifier: next
         version: link:../../packages/server
       '@orpc/zod':
-        specifier: latest
+        specifier: next
         version: link:../../packages/zod
       zod:
         specifier: ^3.24.1
@@ -445,19 +445,19 @@ importers:
   playgrounds/expressjs:
     dependencies:
       '@orpc/client':
-        specifier: latest
+        specifier: next
         version: link:../../packages/client
       '@orpc/openapi':
-        specifier: latest
+        specifier: next
         version: link:../../packages/openapi
       '@orpc/react':
-        specifier: latest
+        specifier: next
         version: link:../../packages/react
       '@orpc/server':
-        specifier: latest
+        specifier: next
         version: link:../../packages/server
       '@orpc/zod':
-        specifier: latest
+        specifier: next
         version: link:../../packages/zod
       express:
         specifier: ^4.21.1
@@ -482,22 +482,22 @@ importers:
   playgrounds/nextjs:
     dependencies:
       '@orpc/client':
-        specifier: latest
+        specifier: next
         version: link:../../packages/client
       '@orpc/next':
-        specifier: latest
+        specifier: next
         version: link:../../packages/next
       '@orpc/openapi':
-        specifier: latest
+        specifier: next
         version: link:../../packages/openapi
       '@orpc/react':
-        specifier: latest
+        specifier: next
         version: link:../../packages/react
       '@orpc/server':
-        specifier: latest
+        specifier: next
         version: link:../../packages/server
       '@orpc/zod':
-        specifier: latest
+        specifier: next
         version: link:../../packages/zod
       '@tanstack/react-query':
         specifier: ^5.61.5
@@ -531,19 +531,19 @@ importers:
   playgrounds/nuxt:
     dependencies:
       '@orpc/client':
-        specifier: latest
+        specifier: next
         version: link:../../packages/client
       '@orpc/openapi':
-        specifier: latest
+        specifier: next
         version: link:../../packages/openapi
       '@orpc/server':
-        specifier: latest
+        specifier: next
         version: link:../../packages/server
       '@orpc/vue-query':
-        specifier: latest
+        specifier: next
         version: link:../../packages/vue-query
       '@orpc/zod':
-        specifier: latest
+        specifier: next
         version: link:../../packages/zod
       '@tanstack/vue-query':
         specifier: ^5.62.7
@@ -564,19 +564,19 @@ importers:
   playgrounds/openapi:
     dependencies:
       '@orpc/client':
-        specifier: latest
+        specifier: next
         version: link:../../packages/client
       '@orpc/openapi':
-        specifier: latest
+        specifier: next
         version: link:../../packages/openapi
       '@orpc/react':
-        specifier: latest
+        specifier: next
         version: link:../../packages/react
       '@orpc/server':
-        specifier: latest
+        specifier: next
         version: link:../../packages/server
       '@orpc/zod':
-        specifier: latest
+        specifier: next
         version: link:../../packages/zod
       zod:
         specifier: ^3.24.1

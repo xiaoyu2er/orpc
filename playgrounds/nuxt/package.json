@@ -11,11 +11,11 @@
     "type:check": "nuxt typecheck"
   },
   "dependencies": {
-    "@orpc/client": "latest",
-    "@orpc/openapi": "latest",
-    "@orpc/server": "latest",
-    "@orpc/vue-query": "latest",
-    "@orpc/zod": "latest",
+    "@orpc/client": "next",
+    "@orpc/openapi": "next",
+    "@orpc/server": "next",
+    "@orpc/vue-query": "next",
+    "@orpc/zod": "next",
     "@tanstack/vue-query": "^5.62.7",
     "nuxt": "^3.14.1592",
     "vue": "latest",

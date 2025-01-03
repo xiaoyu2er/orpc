@@ -145,54 +145,69 @@ export class OpenAPIPayloadCodec {
   }
 
   async decode(re: Request | Response | Headers | URLSearchParams | FormData): Promise<unknown> {
-    if (
-      re instanceof Headers
-      || re instanceof URLSearchParams
-      || re instanceof FormData
-    ) {
-      return BracketNotation.deserialize([...re.entries()])
-    }
-
-    const contentType = re.headers.get('content-type')
-    const contentDisposition = re.headers.get('content-disposition')
-    const fileName = contentDisposition ? cd.parse(contentDisposition).parameters.filename : undefined
-
-    if (fileName) {
-      const blob = await re.blob()
-      const file = new File([blob], fileName, {
-        type: blob.type,
-      })
-
-      return file
-    }
-
-    if (!contentType || contentType.startsWith('application/json')) {
-      if (!re.body) {
-        return undefined
+    try {
+      if (
+        re instanceof Headers
+        || re instanceof URLSearchParams
+        || re instanceof FormData
+      ) {
+        return BracketNotation.deserialize([...re.entries()])
       }
 
-      return await re.json()
-    }
+      const contentType = re.headers.get('content-type')
+      const contentDisposition = re.headers.get('content-disposition')
+      const fileName = contentDisposition ? cd.parse(contentDisposition).parameters.filename : undefined
 
-    if (contentType.startsWith('application/x-www-form-urlencoded')) {
-      const params = new URLSearchParams(await re.text())
-      return this.decode(params)
-    }
+      if (fileName) {
+        const blob = await re.blob()
+        const file = new File([blob], fileName, {
+          type: blob.type,
+        })
 
-    if (contentType.startsWith('text/')) {
-      const text = await re.text()
-      return text
-    }
+        return file
+      }
 
-    if (contentType.startsWith('multipart/form-data')) {
-      const form = await re.formData()
-      return this.decode(form)
-    }
+      if (!contentType || contentType.startsWith('application/json')) {
+        if (!re.body) {
+          return undefined
+        }
 
-    const blob = await re.blob()
-    return new File([blob], 'blob', {
-      type: blob.type,
-    })
+        const text = await re.text()
+
+        if (!text) {
+          return undefined
+        }
+
+        return JSON.parse(text)
+      }
+
+      if (contentType.startsWith('application/x-www-form-urlencoded')) {
+        const params = new URLSearchParams(await re.text())
+        return this.decode(params)
+      }
+
+      if (contentType.startsWith('text/')) {
+        const text = await re.text()
+        return text
+      }
+
+      if (contentType.startsWith('multipart/form-data')) {
+        const form = await re.formData()
+        return this.decode(form)
+      }
+
+      const blob = await re.blob()
+      return new File([blob], 'blob', {
+        type: blob.type,
+      })
+    }
+    catch (e) {
+      throw new ORPCError({
+        code: 'BAD_REQUEST',
+        message: 'Cannot parse request/response. Please check the request/response body and Content-Type header.',
+        cause: e,
+      })
+    }
   }
 }
 

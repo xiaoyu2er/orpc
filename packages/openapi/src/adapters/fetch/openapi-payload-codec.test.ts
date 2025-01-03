@@ -107,6 +107,23 @@ describe('openAPIPayloadCodec', () => {
 
       const result = await codec.decode(response)
       expect(result).toBeUndefined()
+
+      const response2 = new Response('', {
+        headers: { 'Content-Type': 'application/json' },
+      })
+
+      const result2 = await codec.decode(response2)
+      expect(result2).toBeUndefined()
+    })
+
+    it('throws 400 BAD_REQUEST when the body is invalid', async () => {
+      const response = new Response('invalid json', {
+        headers: { 'Content-Type': 'application/json' },
+      })
+
+      await expect(codec.decode(response))
+        .rejects
+        .toThrow('Cannot parse request/response. Please check the request/response body and Content-Type header.')
     })
   })
 })

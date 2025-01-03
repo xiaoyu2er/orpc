@@ -70,8 +70,8 @@ This comparison table helps you understand how oRPC differs from other popular T
 | File Operations            | ✅   | 🟡   | 🟡      | Built-in support for file uploads/downloads.             |
 | OpenAPI Support            | ✅   | 🟡   | 🟡      | Generation and consumption of OpenAPI specs.             |
 | Server Actions Support     | ✅   | ✅   | 🛑      | React/Next.js Actions compatibility.                     |
-| WebSockets/SSE Support     | 🛑   | ✅   | 🛑      | React/Next.js Actions compatibility.                     |
-| Nest.js integration        | 🛑   | 🟡   | ✅      | React/Next.js Actions compatibility.                     |
+| WebSockets/SSE Support     | 🛑   | ✅   | 🛑      | WebSockets/SSE support.                                  |
+| Nest.js integration        | 🛑   | 🟡   | ✅      | Integration with Nest.js.                                |
 
 ## References
 

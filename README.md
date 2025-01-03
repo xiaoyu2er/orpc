@@ -63,13 +63,15 @@ This comparison table helps you understand how oRPC differs from other popular T
 | Feature                    | oRPC | tRPC | ts-rest | Description                                              |
 | -------------------------- | ---- | ---- | ------- | -------------------------------------------------------- |
 | End-to-end Type Safety     | ✅   | ✅   | ✅      | Full TypeScript type inference from backend to frontend. |
-| SSR Support                | ✅   | ✅   | ✅      | Server-side rendering compatibility.                     |
 | React Query Integration    | ✅   | ✅   | 🟡      | Native support for React Query/TanStack Query.           |
 | Vue Query Integration      | ✅   | 🛑   | 🟡      | Native support for Vue Query/TanStack Query.             |
+| Pinia Colada Integration   | ✅   | 🛑   | 🛑      | Native support for VPinia Colada.                        |
 | Contract-First Development | ✅   | 🛑   | ✅      | API definitions before implementation.                   |
 | File Operations            | ✅   | 🟡   | 🟡      | Built-in support for file uploads/downloads.             |
 | OpenAPI Support            | ✅   | 🟡   | 🟡      | Generation and consumption of OpenAPI specs.             |
 | Server Actions Support     | ✅   | ✅   | 🛑      | React/Next.js Actions compatibility.                     |
+| WebSockets/SSE Support     | 🛑   | ✅   | 🛑      | React/Next.js Actions compatibility.                     |
+| Nest.js integration        | 🛑   | 🟡   | ✅      | React/Next.js Actions compatibility.                     |
 
 ## References
 

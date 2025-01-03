@@ -131,7 +131,7 @@ export class OpenAPIGenerator {
           : undefined
 
         const successResponse: OpenAPI.ResponseObject = {
-          description: 'OK',
+          description: fallbackToGlobalConfig('defaultSuccessDescription', def.route?.successDescription),
           content: resBodySchema !== undefined
             ? this.contentBuilder.build(resBodySchema, {
                 example: def.outputExample,

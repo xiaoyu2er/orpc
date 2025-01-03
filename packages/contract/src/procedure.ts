@@ -23,6 +23,13 @@ export interface RouteOptions {
   successStatus?: number
 
   /**
+   * The description of the response when the procedure is successful.
+   *
+   * @default 'OK'
+   */
+  successDescription?: string
+
+  /**
    * Determines how the input should be structured based on `params`, `query`, `headers`, and `body`.
    *
    * @option 'compact'

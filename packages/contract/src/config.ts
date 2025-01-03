@@ -14,6 +14,12 @@ export interface ORPCConfig {
 
   /**
    *
+   * @default 'OK'
+   */
+  defaultSuccessDescription?: string
+
+  /**
+   *
    * @default 'compact'
    */
   defaultInputStructure?: InputStructure
@@ -28,6 +34,7 @@ export interface ORPCConfig {
 const DEFAULT_CONFIG: Required<ORPCConfig> = {
   defaultMethod: 'POST',
   defaultSuccessStatus: 200,
+  defaultSuccessDescription: 'OK',
   defaultInputStructure: 'compact',
   defaultOutputStructure: 'compact',
 }

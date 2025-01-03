@@ -3,6 +3,7 @@
 import { ContractBuilder } from './builder'
 
 export * from './builder'
+export * from './config'
 export * from './procedure'
 export * from './procedure-decorated'
 export * from './router'

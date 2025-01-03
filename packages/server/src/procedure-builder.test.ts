@@ -23,7 +23,7 @@ describe('self chainable', () => {
 
     expect(routed).not.toBe(builder)
     expect(routed).toBeInstanceOf(ProcedureBuilder)
-    expect(routed['~orpc'].contract['~orpc'].route).toBe(route)
+    expect(routed['~orpc'].contract['~orpc'].route).toEqual(route)
   })
 
   it('input', () => {

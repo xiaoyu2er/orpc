@@ -41,7 +41,14 @@ describe('self chainable', () => {
 
     expect(routed).not.toBe(decorated)
     expect(routed).toSatisfy(isProcedure)
-    expect(routed['~orpc'].contract['~orpc'].route).toBe(route)
+    expect(routed['~orpc'].contract['~orpc'].route).toEqual({
+      path: '/test',
+      method: 'GET',
+      deprecated: true,
+      description: 'des',
+      summary: 'sum',
+      tags: ['hiu'],
+    })
   })
 
   it('use middleware', () => {

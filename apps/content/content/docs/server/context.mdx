@@ -20,11 +20,11 @@ import { headers } from 'next/headers'
 type ORPCContext = { db: 'fake-db', user?: { id: string } }
 const base = os.context<ORPCContext>() // define `initial context`
 
-const pub = os.context<ORPCContext>().use(async (input, context, meta) => {
+const pub = os.context<ORPCContext>().use(async ({ context, path, next }, input) => {
     const headersList = await headers()
 
     // the `user` is `middleware context`, because it is created by middleware
-    return meta.next({
+    return next({
         context: {
             user: headersList.get('Authorization') ? { id: 'example' } : undefined,
         }
@@ -32,7 +32,7 @@ const pub = os.context<ORPCContext>().use(async (input, context, meta) => {
 })
 
 export const router = pub.router({
-    getUser: pub.handler((input, context, meta) => {
+    getUser: pub.handler(({ input, context }) => {
         // ^ context is combined from `initial context` and `middleware context`
     }),
 })
@@ -48,15 +48,15 @@ If your procedure only depends on `Middleware Context`, you can
 import { os, ORPCError } from '@orpc/server'
 import { headers } from 'next/headers'
 
-const base = os.use(async (input, context, meta) => {
-    return meta.next({
+const base = os.use(async ({ context, path, next }, input) => {
+    return next({
         context: {
             db: 'fake-db',
         }
     })
 })
 
-const authMid = base.middleware(async (input, context, meta) => {
+const authMid = base.middleware(async ({ context, next, path }, input) => {
     const headersList = await headers()
     const user = headersList.get('Authorization') ? { id: 'example' } : undefined
 
@@ -64,7 +64,7 @@ const authMid = base.middleware(async (input, context, meta) => {
         throw new ORPCError({ code: 'UNAUTHORIZED' })
     }
 
-    return meta.next({
+    return next({
         context: {
             user,
         }
@@ -74,7 +74,7 @@ const authMid = base.middleware(async (input, context, meta) => {
 export const router = base.router({
     getUser: base
         .use(authMid)
-        .handler((input, context, meta) => {
+        .handler(({ input, context }) => {
             // ^ context is fully typed
         }),
 })
@@ -108,12 +108,12 @@ type ORPCContext = { user?: { id: string }, db: 'fake-db' }
 
 const base = os.context<ORPCContext>()
 
-const authMid = base.middleware((input, context, meta) => {
+const authMid = base.middleware(({ context, next, path }, input) => {
     if(!context.user) {
         throw new ORPCError({ code: 'UNAUTHORIZED' })
     }
 
-    return meta.next({
+    return next({
         context: {
             user: context.user
         }
@@ -123,7 +123,7 @@ const authMid = base.middleware((input, context, meta) => {
 export const router = base.router({
     getUser: base
         .use(authMid)
-        .handler((input, context, meta) => {
+        .handler(({ input, context }) => {
             // ^ context is fully typed
         }),
 })

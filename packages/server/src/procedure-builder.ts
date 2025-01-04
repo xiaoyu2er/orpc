@@ -11,7 +11,7 @@ import {
 } from '@orpc/contract'
 import {
   Procedure,
-  type ProcedureFunc,
+  type ProcedureHandler,
 } from './procedure'
 import { decorateProcedure } from './procedure-decorated'
 import { ProcedureImplementer } from './procedure-implementer'
@@ -122,7 +122,7 @@ export class ProcedureBuilder<
   }
 
   handler<UFuncOutput extends SchemaInput<TOutputSchema>>(
-    handler: ProcedureFunc<TContext, TExtraContext, TInputSchema, TOutputSchema, UFuncOutput>,
+    handler: ProcedureHandler<TContext, TExtraContext, TInputSchema, TOutputSchema, UFuncOutput>,
   ): DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, UFuncOutput > {
     return decorateProcedure(new Procedure({
       middlewares: this['~orpc'].middlewares,

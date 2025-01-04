@@ -26,7 +26,7 @@ const getUser = pub
     .route({ method: 'GET', path: '/{id}' }) // Optional: if you want custom api under OpenAPI Specifications
     .input(z.object({ id: z.string() })) // Optional
     .output(z.object({ id: z.string(), name: z.string() })) // Optional
-    .use(async (input, context, meta) => { // Optional
+    .use(async ({ context, path, next }, input) => { // Optional
         // Middleware runs before the handler
         // input, context, and meta are fully typed
         
@@ -39,7 +39,7 @@ const getUser = pub
         }
 
         // Modify context for next middleware/handler
-        const result = await meta.next({
+        const result = await next({
             context: {
                 user: context.user // TypeScript will infer user as NonNullable
             }
@@ -52,7 +52,7 @@ const getUser = pub
     })
     
     // Define handler with business logic
-    .handler(async (input, context, meta) => {
+    .handler(async ({ input, context }) => {
         // Implement your business logic here
         
         return {

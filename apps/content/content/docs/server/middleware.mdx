@@ -14,7 +14,7 @@ export type Context = { user?: { id: string } }
 
 export const pub = os.context<Context>()
 
-const authMiddleware = pub.middleware(async (input, context, meta) => {
+const authMiddleware = pub.middleware(async ({ context, next, path }, input) => {
     if (!context.user) {
         throw new ORPCError({
             code: 'UNAUTHORIZED',
@@ -22,7 +22,7 @@ const authMiddleware = pub.middleware(async (input, context, meta) => {
         })
     }
 
-    const result = await meta.next({
+    const result = await next({
         context: {
             user: context.user,
         }
@@ -47,9 +47,9 @@ import { os, ORPCError } from '@orpc/server'
 import { z } from 'zod' 
 
 const canEditPostMiddleware = os
-    .middleware(async (input: {id: string}, context, meta) => { 
+    .middleware(async ({ context, next }, input: { id: string }) => { 
         // Now you can specify the input type for middleware
-        return meta.next({})
+        return next({})
     })
 
 os
@@ -65,12 +65,12 @@ You can merge or extend middlewares using concatenation:
 ```ts twoslash
 import { os } from '@orpc/server'
 
-const auth = os.middleware(async (input, context, meta) => meta.next({}))
-const can = os.middleware(async (input, context, meta) => meta.next({}))
+const auth = os.middleware(async ({ context, next, path }, input) => next({}))
+const can = os.middleware(async ({ context, next, path }, input) => next({}))
 
 const authAndCan = auth.concat(can) // Merge middleware
 
-const authAndCan2 = auth.concat((input, context, meta) => meta.next({})) // Extend middleware
+const authAndCan2 = auth.concat(({ context, next, path }, input) => next({})) // Extend middleware
 ```
 
 ## Extra Context
@@ -90,12 +90,12 @@ export const pub = os.context<Context>()
 
 // Any procedure using this middleware will infer context.user as NonNullable<typeof context['user']>
 const authMiddleware = pub
-    .middleware(async (input, context, meta) => {
+    .middleware(async ({ context, next, path }, input) => {
         if (!context.user) {
             throw new ORPCError({ code: 'UNAUTHORIZED' })
         }
 
-        return meta.next({
+        return next({
             context: {
                 user: context.user
             }
@@ -104,17 +104,17 @@ const authMiddleware = pub
 
 export const authed = pub
     .use(authMiddleware)
-    .use((input, context, meta) => {
+    .use(({ context, path, next }, input) => {
 
         const _expect: NonNullable<typeof context['user']> = context.user
 
-        return meta.next({
+        return next({
             context: {
                 say: 'hi'
             }
         })
     })
-    .handler(async (input, context, meta) => {
+    .handler(async ({ input, context }) => {
         
         const _expect1: NonNullable<typeof context['user']> = context.user
         const _expect2: string = context.say
@@ -132,14 +132,14 @@ import { os } from '@orpc/server'
 
 const fakeCache = new Map<string, unknown>()
 
-const cacheMid = os.middleware(async (input, context, meta) => {
-    const cacheKey = meta.path.join('/') + JSON.stringify(input) /* stringify is not ideal, but it's just an example */
+const cacheMid = os.middleware(async ({ context, next, path }, input, output) => {
+    const cacheKey = path.join('/') + JSON.stringify(input) /* stringify is not ideal, but it's just an example */
 
     if (fakeCache.has(cacheKey)) {
-        return meta.output(fakeCache.get(cacheKey))
+        return output(fakeCache.get(cacheKey))
     }
 
-    const result = await meta.next({})
+    const result = await next({})
     fakeCache.set(cacheKey, result.output)
     return result
 })

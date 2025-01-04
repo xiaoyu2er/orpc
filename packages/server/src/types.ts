@@ -1,3 +1,4 @@
+import type { FindGlobalInstanceType } from '@orpc/shared'
 import type { ANY_PROCEDURE } from './procedure'
 
 export type Context = Record<string, any> | undefined
@@ -7,6 +8,8 @@ export type MergeContext<
   TA extends Context,
   TB extends Context,
 > = TA extends undefined ? TB : TB extends undefined ? TA : TA & TB
+
+export type AbortSignal = FindGlobalInstanceType<'AbortSignal'>
 
 export interface WithSignal {
   signal?: AbortSignal

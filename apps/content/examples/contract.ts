@@ -71,14 +71,14 @@ export type Context = { user?: { id: string } }
 export const base = os.context<Context>()
 export const pub = base.contract(contract) // Ensure every implement must be match contract
 export const authed = base
-  .use((input, context, meta) => {
+  .use(({ context, path, next }, input) => {
     /** put auth logic here */
-    return meta.next({})
+    return next({})
   })
   .contract(contract)
 
 export const router = pub.router({
-  getUser: pub.getUser.handler((input, context, meta) => {
+  getUser: pub.getUser.handler(({ input, context }) => {
     return {
       username: `user_${input.id}`,
       avatar: `avatar_${input.id}.png`,
@@ -87,14 +87,14 @@ export const router = pub.router({
 
   posts: {
     getPost: pub.posts.getPost
-      .use(async (input, context, meta) => {
+      .use(async ({ context, path, next }, input) => {
         if (!context.user) {
           throw new ORPCError({
             code: 'UNAUTHORIZED',
           })
         }
 
-        const result = await meta.next({
+        const result = await next({
           context: {
             user: context.user, // from now user not undefined-able
           },
@@ -104,7 +104,7 @@ export const router = pub.router({
 
         return result
       })
-      .handler((input, context, meta) => {
+      .handler(({ input, context }) => {
         return {
           id: 'example',
           title: 'example',
@@ -112,7 +112,7 @@ export const router = pub.router({
         }
       }),
 
-    createPost: authed.posts.createPost.handler((input, context, meta) => {
+    createPost: authed.posts.createPost.handler(({ input, context }) => {
       return {
         id: 'example',
         title: input.title,

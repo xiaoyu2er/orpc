@@ -131,18 +131,18 @@ type ORPCContext = { db: DB, user?: { id: string } }
 const pub = os.context<ORPCContext>()
 
 const createPost = pub
-	.use((input, context, meta) => {
+	.use(({ context, path, next }, input) => {
 		if(!context.user){
 			throw new ORPCError({ code: 'UNAUTHORIZED' })
 		}
 		
-		return meta.next({
+		return next({
 			context: {
 				user: context.user // modify user context
 			}
 		})
 	})
-	.handler((input, context, meta) => {
+	.handler(({ input, context }) => {
 		// ^ context.user is now guaranteed to be defined
 	})
 ```

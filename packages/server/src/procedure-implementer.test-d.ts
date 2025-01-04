@@ -1,6 +1,7 @@
-import type { Middleware, MiddlewareMeta } from './middleware'
+import type { Middleware, MiddlewareOutputFn } from './middleware'
+import type { ANY_PROCEDURE } from './procedure'
 import type { DecoratedProcedure } from './procedure-decorated'
-import type { Meta, WELL_CONTEXT } from './types'
+import type { WELL_CONTEXT } from './types'
 import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
 import { ProcedureImplementer } from './procedure-implementer'
@@ -18,25 +19,29 @@ describe('self chainable', () => {
 
   it('use middleware', () => {
     const i = implementer
-      .use((input, context, meta) => {
+      .use(({ context, path, next, procedure }, input, output) => {
         expectTypeOf(input).toEqualTypeOf<{ val: number }>()
         expectTypeOf(context).toEqualTypeOf<{ id?: string }>()
-        expectTypeOf(meta).toEqualTypeOf<MiddlewareMeta<{ val: string }>>()
+        expectTypeOf(path).toEqualTypeOf<string[]>()
+        expectTypeOf(procedure).toEqualTypeOf<ANY_PROCEDURE>()
+        expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<{ val: string }>>()
 
-        return meta.next({
+        return next({
           context: {
             auth: true,
           },
         })
       })
-      .use((input, context, meta) => {
+      .use(({ context, path, next, procedure }, input, output) => {
         expectTypeOf(input).toEqualTypeOf<{ val: number }>()
         expectTypeOf(context).toEqualTypeOf<
           { id?: string } & { auth: boolean }
         >()
-        expectTypeOf(meta).toEqualTypeOf<MiddlewareMeta<{ val: string }>>()
+        expectTypeOf(path).toEqualTypeOf<string[]>()
+        expectTypeOf(procedure).toEqualTypeOf<ANY_PROCEDURE>()
+        expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<{ val: string }>>()
 
-        return meta.next({})
+        return next({})
       })
 
     expectTypeOf(i).toEqualTypeOf<
@@ -50,8 +55,8 @@ describe('self chainable', () => {
   })
 
   it('use middleware with map input', () => {
-    const mid: Middleware<WELL_CONTEXT, { id: string, extra: boolean }, number, any> = (input, context, meta) => {
-      return meta.next({
+    const mid: Middleware<WELL_CONTEXT, { id: string, extra: boolean }, number, any> = ({ next }) => {
+      return next({
         context: { id: 'string', extra: true },
       })
     }
@@ -78,27 +83,27 @@ describe('self chainable', () => {
   })
 
   it('prevent conflict on context', () => {
-    implementer.use((input, context, meta) => meta.next({}))
-    implementer.use((input, context, meta) => meta.next({ context: { id: '1' } }))
-    implementer.use((input, context, meta) => meta.next({ context: { id: '1', extra: true } }))
-    implementer.use((input, context, meta) => meta.next({ context: { auth: true } }))
+    implementer.use(({ context, path, next }, input) => next({}))
+    implementer.use(({ context, path, next }, input) => next({ context: { id: '1' } }))
+    implementer.use(({ context, path, next }, input) => next({ context: { id: '1', extra: true } }))
+    implementer.use(({ context, path, next }, input) => next({ context: { auth: true } }))
 
-    implementer.use((input, context, meta) => meta.next({}), () => 'anything')
-    implementer.use((input, context, meta) => meta.next({ context: { id: '1' } }), () => 'anything')
-    implementer.use((input, context, meta) => meta.next({ context: { id: '1', extra: true } }), () => 'anything')
-    implementer.use((input, context, meta) => meta.next({ context: { auth: true } }), () => 'anything')
-
-    // @ts-expect-error - conflict with context
-    implementer.use((input, context, meta) => meta.next({ context: { id: 1 } }))
+    implementer.use(({ context, path, next }, input) => next({}), () => 'anything')
+    implementer.use(({ context, path, next }, input) => next({ context: { id: '1' } }), () => 'anything')
+    implementer.use(({ context, path, next }, input) => next({ context: { id: '1', extra: true } }), () => 'anything')
+    implementer.use(({ context, path, next }, input) => next({ context: { auth: true } }), () => 'anything')
 
     // @ts-expect-error - conflict with context
-    implementer.use((input, context, meta) => meta.next({ context: { id: 1, extra: true } }))
+    implementer.use(({ context, path, next }, input) => next({ context: { id: 1 } }))
 
     // @ts-expect-error - conflict with context
-    implementer.use((input, context, meta) => meta.next({ context: { id: 1 } }), () => 'anything')
+    implementer.use(({ context, path, next }, input) => next({ context: { id: 1, extra: true } }))
 
     // @ts-expect-error - conflict with context
-    implementer.use((input, context, meta) => meta.next({ context: { id: 1, extra: true } }), () => 'anything')
+    implementer.use(({ context, path, next }, input) => next({ context: { id: 1 } }), () => 'anything')
+
+    // @ts-expect-error - conflict with context
+    implementer.use(({ context, path, next }, input) => next({ context: { id: 1, extra: true } }), () => 'anything')
   })
 
   it('handle middleware with output is typed', () => {
@@ -129,10 +134,12 @@ describe('to DecoratedProcedure', () => {
   })
 
   it('handler', () => {
-    const procedure = implementer.handler((input, context, meta) => {
+    const procedure = implementer.handler(({ input, context, procedure, path, signal }) => {
       expectTypeOf(context).toEqualTypeOf<({ id?: string } & { db: string }) | { db: string }>()
       expectTypeOf(input).toEqualTypeOf<{ val: number }>()
-      expectTypeOf(meta).toEqualTypeOf<Meta>()
+      expectTypeOf(procedure).toEqualTypeOf<ANY_PROCEDURE>()
+      expectTypeOf(path).toEqualTypeOf<string[]>()
+      expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
 
       return { val: '1' }
     })

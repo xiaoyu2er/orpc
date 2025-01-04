@@ -35,13 +35,13 @@ describe('self chainable', () => {
     map.mockReturnValueOnce('__input__')
     mid.mockReturnValueOnce('__mid__')
 
-    expect((i as any)['~orpc'].middlewares[0]('input')).toBe('__mid__')
+    expect((i as any)['~orpc'].middlewares[0]({}, 'input', '__output__')).toBe('__mid__')
 
     expect(map).toBeCalledTimes(1)
     expect(map).toBeCalledWith('input')
 
     expect(mid).toBeCalledTimes(1)
-    expect(mid).toBeCalledWith('__input__')
+    expect(mid).toBeCalledWith({}, '__input__', '__output__')
   })
 })
 

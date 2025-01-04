@@ -3,13 +3,13 @@ import { planets } from '../data/planet'
 import { authed, pub } from '../orpc'
 
 export const listPlanets = pub.planet.list.handler(
-  async (input, context, meta) => {
+  async ({ input, context }) => {
     return planets
   },
 )
 
 export const createPlanet = authed.planet.create.handler(
-  async (input, context, meta) => {
+  async ({ input, context }) => {
     const id = planets.length + 1
 
     const planet = {
@@ -27,7 +27,7 @@ export const createPlanet = authed.planet.create.handler(
 )
 
 export const findPlanet = pub.planet.find.handler(
-  async (input, context, meta) => {
+  async ({ input, context }) => {
     const planet = planets.find(planet => planet.id === input.id)
 
     if (!planet) {
@@ -42,7 +42,7 @@ export const findPlanet = pub.planet.find.handler(
 )
 
 export const updatePlanet = authed.planet.update.handler(
-  async (input, context, meta) => {
+  async ({ input, context }) => {
     const planet = planets.find(planet => planet.id === input.id)
 
     if (!planet) {
@@ -61,7 +61,7 @@ export const updatePlanet = authed.planet.update.handler(
 )
 
 export const updatePlanetImage = authed.planet.updateImage.handler(
-  async (input, context, meta) => {
+  async ({ input, context }) => {
     const planet = planets.find(planet => planet.id === input.id)
 
     if (!planet) {
@@ -78,7 +78,7 @@ export const updatePlanetImage = authed.planet.updateImage.handler(
 )
 
 export const deletePlanet = authed.planet.delete.handler(
-  async (input, context, meta) => {
+  async ({ input, context }) => {
     const planet = planets.find(planet => planet.id === input.id)
 
     if (!planet) {

@@ -1,5 +1,5 @@
-import type { Middleware, MiddlewareMeta } from './middleware'
-import type { Procedure } from './procedure'
+import type { Middleware, MiddlewareOutputFn } from './middleware'
+import type { ANY_PROCEDURE, Procedure } from './procedure'
 import type { DecoratedProcedure } from './procedure-decorated'
 import type { WELL_CONTEXT } from './types'
 import { z } from 'zod'
@@ -41,23 +41,27 @@ describe('self chainable', () => {
 
   it('use middleware', () => {
     const i = decorated
-      .use((input, context, meta) => {
+      .use(({ context, path, next, procedure }, input, output) => {
         expectTypeOf(input).toEqualTypeOf<{ val: number }>()
         expectTypeOf(context).toEqualTypeOf<{ auth: boolean } & { db: string }>()
-        expectTypeOf(meta).toEqualTypeOf<MiddlewareMeta<{ val: string }>>()
+        expectTypeOf(path).toEqualTypeOf<string[]>()
+        expectTypeOf(procedure).toEqualTypeOf<ANY_PROCEDURE>()
+        expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<{ val: string }>>()
 
-        return meta.next({
+        return next({
           context: {
             dev: true,
           },
         })
       })
-      .use((input, context, meta) => {
+      .use(({ context, path, next, procedure }, input, output) => {
         expectTypeOf(input).toEqualTypeOf<{ val: number }>()
         expectTypeOf(context).toEqualTypeOf<{ auth: boolean } & { db: string } & { dev: boolean }>()
-        expectTypeOf(meta).toEqualTypeOf<MiddlewareMeta<{ val: string }>>()
+        expectTypeOf(path).toEqualTypeOf<string[]>()
+        expectTypeOf(procedure).toEqualTypeOf<ANY_PROCEDURE>()
+        expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<{ val: string }>>()
 
-        return meta.next({})
+        return next({})
       })
 
     expectTypeOf(i).toEqualTypeOf<
@@ -97,27 +101,27 @@ describe('self chainable', () => {
   })
 
   it('prevent conflict on context', () => {
-    decorated.use((input, context, meta) => meta.next({}))
-    decorated.use((input, context, meta) => meta.next({ context: { id: '1' } }))
-    decorated.use((input, context, meta) => meta.next({ context: { id: '1', extra: true } }))
-    decorated.use((input, context, meta) => meta.next({ context: { auth: true } }))
+    decorated.use(({ context, path, next }, input) => next({}))
+    decorated.use(({ context, path, next }, input) => next({ context: { id: '1' } }))
+    decorated.use(({ context, path, next }, input) => next({ context: { id: '1', extra: true } }))
+    decorated.use(({ context, path, next }, input) => next({ context: { auth: true } }))
 
-    decorated.use((input, context, meta) => meta.next({}), () => 'anything')
-    decorated.use((input, context, meta) => meta.next({ context: { id: '1' } }), () => 'anything')
-    decorated.use((input, context, meta) => meta.next({ context: { id: '1', extra: true } }), () => 'anything')
-    decorated.use((input, context, meta) => meta.next({ context: { auth: true } }), () => 'anything')
-
-    // @ts-expect-error - conflict with context
-    decorated.use((input, context, meta) => meta.next({ context: { auth: 1 } }))
+    decorated.use(({ context, path, next }, input) => next({}), () => 'anything')
+    decorated.use(({ context, path, next }, input) => next({ context: { id: '1' } }), () => 'anything')
+    decorated.use(({ context, path, next }, input) => next({ context: { id: '1', extra: true } }), () => 'anything')
+    decorated.use(({ context, path, next }, input) => next({ context: { auth: true } }), () => 'anything')
 
     // @ts-expect-error - conflict with context
-    decorated.use((input, context, meta) => meta.next({ context: { auth: 1, extra: true } }))
+    decorated.use(({ context, path, next }, input) => next({ context: { auth: 1 } }))
 
     // @ts-expect-error - conflict with context
-    decorated.use((input, context, meta) => meta.next({ context: { auth: 1 } }), () => 'anything')
+    decorated.use(({ context, path, next }, input) => next({ context: { auth: 1, extra: true } }))
 
     // @ts-expect-error - conflict with context
-    decorated.use((input, context, meta) => meta.next({ context: { auth: 1, extra: true } }), () => 'anything')
+    decorated.use(({ context, path, next }, input) => next({ context: { auth: 1 } }), () => 'anything')
+
+    // @ts-expect-error - conflict with context
+    decorated.use(({ context, path, next }, input) => next({ context: { auth: 1, extra: true } }), () => 'anything')
   })
 
   it('handle middleware with output is typed', () => {

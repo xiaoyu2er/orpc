@@ -5,9 +5,9 @@ import { createSafeAction } from '../action-safe'
 import { useSafeAction } from './action-safe-hooks'
 
 describe('useSafeAction', () => {
-  const procedure = os.input(z.object({ value: z.string() })).handler(async ({ value }) => {
+  const procedure = os.input(z.object({ value: z.string() })).handler(async ({ input }) => {
     await new Promise(resolve => setTimeout(resolve, 100))
-    return value
+    return input.value
   })
 
   const safeAction = createSafeAction({ procedure })

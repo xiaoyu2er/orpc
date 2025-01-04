@@ -31,7 +31,7 @@ import { headers } from 'next/headers'
 import { redirect } from "next/navigation"
 import { oz } from '@orpc/zod'
 
-const authMid = os.middleware(async (input, context, meta) => {
+const authMid = os.middleware(async ({ context, next, path }, input) => {
       const headersList = await headers()
       const user = headersList.get('Authorization') ? { id: 'example' } : undefined
 
@@ -39,7 +39,7 @@ const authMid = os.middleware(async (input, context, meta) => {
           throw new ORPCError({ code: 'UNAUTHORIZED' })
       }
 
-      return meta.next({
+      return next({
           context: {
               user,
           }
@@ -57,7 +57,7 @@ export const updateUser = os
       }),
     }),
   )
-  .handler((input, context, meta) => {
+  .handler(({ input, context }) => {
     // ^ context.user is automatically injected
      redirect('/some-where') // or return some thing
   })
@@ -189,7 +189,7 @@ type Context = { user?: { id: string } }
 const getting = os
 .context<Context>()
 .input(z.object({ name: z.string() }))
-.handler(({ name }) => `Hello, ${name}!`)
+.handler(({ input }) => `Hello, ${input.name}!`)
 
 // @errors: 2349
 getting({ name: 'Unnoq' }) // ❌ cannot call this procedure directly, and cannot be used as a server action

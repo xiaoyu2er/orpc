@@ -1,4 +1,4 @@
-import type { ANY_MAP_INPUT_MIDDLEWARE, ANY_MIDDLEWARE, MapInputMiddleware, Middleware, MiddlewareMeta } from './middleware'
+import type { ANY_MAP_INPUT_MIDDLEWARE, ANY_MIDDLEWARE, MapInputMiddleware, Middleware, MiddlewareNextFn } from './middleware'
 import type { Context, MergeContext, WELL_CONTEXT } from './types'
 import { mergeContext } from './utils'
 
@@ -59,7 +59,7 @@ export function decorateMiddleware<
 
   decorated.mapInput = (mapInput) => {
     const mapped = decorateMiddleware(
-      (input, ...rest) => middleware(mapInput(input as any), ...rest as [any, any]),
+      (options, input, ...rest) => middleware(options as any, mapInput(input as any), ...rest as [any]),
     )
 
     return mapped as any
@@ -70,12 +70,12 @@ export function decorateMiddleware<
       ? decorateMiddleware(concatMiddleware).mapInput(mapInput)
       : concatMiddleware
 
-    const concatted = decorateMiddleware((input, context, meta, ...rest) => {
-      const next: MiddlewareMeta<any>['next'] = async (options) => {
-        return mapped(input, mergeContext(context, options.context), meta, ...rest)
+    const concatted = decorateMiddleware((options, input, output, ...rest) => {
+      const next: MiddlewareNextFn<any> = async (nextOptions) => {
+        return mapped({ ...options, context: mergeContext(nextOptions.context, options.context) }, input, output, ...rest)
       }
 
-      const merged = middleware(input as any, context as any, { ...meta, next }, ...rest)
+      const merged = middleware({ ...options, next } as any, input as any, output as any, ...rest)
 
       return merged
     })

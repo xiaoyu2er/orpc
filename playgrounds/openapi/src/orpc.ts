@@ -7,26 +7,26 @@ export interface ORPCContext {
   db?: any
 }
 
-export const pub = os.context<ORPCContext>().use(async (input, context, meta) => {
+export const pub = os.context<ORPCContext>().use(async ({ context, path, next }, input) => {
   const start = Date.now()
 
   try {
-    return await meta.next({})
+    return await next({})
   }
   finally {
     // eslint-disable-next-line no-console
-    console.log(`[${meta.path.join('/')}] ${Date.now() - start}ms`)
+    console.log(`[${path.join('/')}] ${Date.now() - start}ms`)
   }
 })
 
-export const authed = pub.use((input, context, meta) => {
+export const authed = pub.use(({ context, path, next }, input) => {
   if (!context.user) {
     throw new ORPCError({
       code: 'UNAUTHORIZED',
     })
   }
 
-  return meta.next({
+  return next({
     context: {
       user: context.user,
     },

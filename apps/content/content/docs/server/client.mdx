@@ -22,7 +22,7 @@ const e2 = os.context<{ auth: boolean } | undefined>().handler(() => 'pong')
 const o2 = await e2() // Ok, output is 'pong'
 
 // ✅ Can call this procedure directly because undefined is assignable to 'Context'
-const getting = os.input(z.object({ name: z.string() })).handler(({ name }) => `Hello, ${name}!`)
+const getting = os.input(z.object({ name: z.string() })).handler(({ input }) => `Hello, ${input.name}!`)
 
 const router = os.router({
     getting

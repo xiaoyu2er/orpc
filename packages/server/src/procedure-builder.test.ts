@@ -77,13 +77,13 @@ describe('to ProcedureImplementer', () => {
     map_input.mockReturnValueOnce('__input__')
     mid.mockReturnValueOnce('__mid__')
 
-    expect((implementer as any)['~orpc'].middlewares[1]('input')).toBe('__mid__')
+    expect((implementer as any)['~orpc'].middlewares[1]({}, 'input', '__output__')).toBe('__mid__')
 
     expect(map_input).toBeCalledTimes(1)
     expect(map_input).toBeCalledWith('input')
 
     expect(mid).toBeCalledTimes(1)
-    expect(mid).toBeCalledWith('__input__')
+    expect(mid).toBeCalledWith({}, '__input__', '__output__')
   })
 })
 

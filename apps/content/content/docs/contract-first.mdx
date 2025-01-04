@@ -92,14 +92,14 @@ import { contract } from 'examples/contract'
 
 export const pub = os.contract(contract) // Ensure every implement must be match contract
 export const authed = os
-  .use((input, context, meta) => {
+  .use(({ context, path, next }, input) => {
     /** put auth logic here */
-    return meta.next({})
+    return next({})
   })
   .contract(contract)
 
 export const router = pub.router({
-  getUser: pub.getUser.handler((input, context, meta) => {
+  getUser: pub.getUser.handler(({ input, context }) => {
     return {
       username: 'example',
       avatar: 'example',
@@ -108,7 +108,7 @@ export const router = pub.router({
 
   posts: {
     getPost: pub.posts.getPost
-      .handler((input, context, meta) => {
+      .handler(({ input, context }) => {
         return {
           id: 'example',
           title: 'example',
@@ -116,7 +116,7 @@ export const router = pub.router({
         }
       }),
 
-    createPost: authed.posts.createPost.handler((input, context, meta) => {
+    createPost: authed.posts.createPost.handler(({ input, context }) => {
       return {
         id: 'example',
         title: input.title,

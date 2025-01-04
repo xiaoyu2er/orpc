@@ -7,9 +7,9 @@ export type Context = { user?: { id: string } } | undefined
 
 // global pub, authed completely optional
 export const pub = os.context<Context>()
-export const authed = pub.use((input, context, meta) => {
+export const authed = pub.use(({ context, path, next }, input) => {
   /** put auth logic here */
-  return meta.next({})
+  return next({})
 })
 
 export const router = pub.router({
@@ -19,7 +19,7 @@ export const router = pub.router({
         id: z.string(),
       }),
     )
-    .handler(async (input, context, meta) => {
+    .handler(async ({ input, context }) => {
       return {
         id: input.id,
         name: 'example',
@@ -44,14 +44,14 @@ export const router = pub.router({
           description: z.string(),
         }),
       )
-      .use(async (input, context, meta) => {
+      .use(async ({ context, path, next }, input) => {
         if (!context?.user) {
           throw new ORPCError({
             code: 'UNAUTHORIZED',
           })
         }
 
-        const result = await meta.next({
+        const result = await next({
           context: {
             user: context.user, // from now user not undefined-able
           },
@@ -61,7 +61,7 @@ export const router = pub.router({
 
         return result
       })
-      .handler((input, context, meta) => {
+      .handler(({ input, context }) => {
         return {
           id: 'example',
           title: 'example',
@@ -77,7 +77,7 @@ export const router = pub.router({
           thumb: oz.file().type('image/*'),
         }),
       )
-      .handler(async (input, context, meta) => {
+      .handler(async ({ input, context }) => {
         const _thumb = input.thumb // file upload out of the box
 
         return {

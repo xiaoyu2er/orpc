@@ -33,6 +33,6 @@ describe('zodCoercer', () => {
     }))
 
     expect(res.status).toBe(200)
-    expect(fn).toHaveBeenCalledWith({ val: 123n }, undefined, expect.any(Object))
+    expect(fn).toHaveBeenCalledWith(expect.objectContaining({ input: { val: 123n } }))
   })
 })

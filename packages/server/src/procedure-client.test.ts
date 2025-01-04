@@ -40,13 +40,13 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     await expect(client({ val: '123' })).resolves.toEqual({ val: 123 })
 
     expect(handler).toBeCalledTimes(1)
-    expect(handler).toBeCalledWith({ val: 123 }, undefined, { path: [], procedure: unwrappedProcedure })
+    expect(handler).toBeCalledWith({ input: { val: 123 }, context: undefined, path: [], procedure: unwrappedProcedure })
 
     expect(mid1).toBeCalledTimes(1)
-    expect(mid1).toBeCalledWith({ val: 123 }, undefined, { path: [], procedure: unwrappedProcedure, next: expect.any(Function), output: expect.any(Function) })
+    expect(mid1).toBeCalledWith({ val: 123 }, undefined, expect.objectContaining({ path: [], procedure: unwrappedProcedure, next: expect.any(Function), output: expect.any(Function) }))
 
     expect(mid2).toBeCalledTimes(1)
-    expect(mid2).toBeCalledWith({ val: 123 }, undefined, { path: [], procedure: unwrappedProcedure, next: expect.any(Function), output: expect.any(Function) })
+    expect(mid2).toBeCalledWith({ val: 123 }, undefined, expect.objectContaining({ path: [], procedure: unwrappedProcedure, next: expect.any(Function), output: expect.any(Function) }))
   })
 
   it('validate input and output', () => {
@@ -133,7 +133,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     expect(mid2).toHaveBeenCalledWith(expect.any(Object), expect.objectContaining({ extra1: '__extra1__' }), expect.any(Object))
 
     expect(handler).toBeCalledTimes(1)
-    expect(handler).toHaveBeenCalledWith(expect.any(Object), { extra1: '__extra1__', extra2: '__extra2__' }, expect.any(Object))
+    expect(handler).toHaveBeenCalledWith(expect.objectContaining({ context: { extra1: '__extra1__', extra2: '__extra2__' } }))
   })
 
   it('middleware can override context', async () => {
@@ -167,7 +167,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     expect(mid2).toHaveBeenCalledWith(expect.any(Object), expect.objectContaining({ userId: '__override1__' }), expect.any(Object))
 
     expect(handler).toBeCalledTimes(1)
-    expect(handler).toHaveBeenCalledWith(expect.any(Object), expect.objectContaining({ userId: '__override2__' }), expect.any(Object))
+    expect(handler).toHaveBeenCalledWith(expect.objectContaining({ context: expect.objectContaining({ userId: '__override2__' }) }))
   })
 
   const contextCases = [
@@ -191,7 +191,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     expect(mid2).toBeCalledWith(expect.any(Object), { val: '__val__' }, expect.any(Object))
 
     expect(handler).toBeCalledTimes(1)
-    expect(handler).toBeCalledWith(expect.any(Object), { val: '__val__' }, expect.any(Object))
+    expect(handler).toBeCalledWith(expect.objectContaining({ context: { val: '__val__' } }))
   })
 
   it.each(contextCases)('can accept hooks - context: %s', async (_, context) => {
@@ -261,7 +261,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     expect(mid2).toHaveBeenCalledWith(expect.any(Object), undefined, expect.objectContaining({ path: ['users'] }))
 
     expect(handler).toBeCalledTimes(1)
-    expect(handler).toHaveBeenCalledWith(expect.any(Object), undefined, expect.objectContaining({ path: ['users'] }))
+    expect(handler).toHaveBeenCalledWith(expect.objectContaining({ path: ['users'] }))
 
     expect(onSuccess).toBeCalledTimes(1)
     expect(onSuccess).toHaveBeenCalledWith(expect.any(Object), undefined, expect.objectContaining({ path: ['users'] }))
@@ -288,7 +288,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     expect(mid2).toHaveBeenCalledWith(expect.any(Object), expect.any(Object), expect.objectContaining({ signal }))
 
     expect(handler).toBeCalledTimes(1)
-    expect(handler).toHaveBeenCalledWith(expect.any(Object), expect.any(Object), expect.objectContaining({ signal }))
+    expect(handler).toHaveBeenCalledWith(expect.objectContaining({ signal }))
 
     expect(onSuccess).toBeCalledTimes(1)
     expect(onSuccess).toHaveBeenCalledWith(expect.any(Object), expect.any(Object), expect.objectContaining({ signal }))
@@ -311,7 +311,7 @@ it('still work without middleware', async () => {
   await expect(client({ val: '123' })).resolves.toEqual({ val: 123 })
 
   expect(handler).toBeCalledTimes(1)
-  expect(handler).toHaveBeenCalledWith({ val: 123 }, undefined, { path: [], procedure })
+  expect(handler).toHaveBeenCalledWith({ input: { val: 123 }, context: undefined, path: [], procedure })
 })
 
 it('still work without InputSchema', async () => {
@@ -330,7 +330,7 @@ it('still work without InputSchema', async () => {
   await expect(client('anything')).resolves.toEqual({ val: 123 })
 
   expect(handler).toBeCalledTimes(1)
-  expect(handler).toHaveBeenCalledWith('anything', undefined, { path: [], procedure })
+  expect(handler).toHaveBeenCalledWith({ input: 'anything', context: undefined, path: [], procedure })
 })
 
 it('still work without OutputSchema', async () => {
@@ -352,7 +352,7 @@ it('still work without OutputSchema', async () => {
   await expect(client({ val: '123' })).resolves.toEqual('anything')
 
   expect(handler).toBeCalledTimes(1)
-  expect(handler).toHaveBeenCalledWith({ val: 123 }, undefined, { path: [], procedure })
+  expect(handler).toHaveBeenCalledWith({ input: { val: 123 }, context: undefined, path: [], procedure })
 })
 
 it('has helper `output` in meta', async () => {

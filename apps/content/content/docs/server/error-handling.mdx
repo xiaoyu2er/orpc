@@ -7,9 +7,9 @@ description: How to intercept, handle or log errors inside oRPC
 import { ORPCError, os } from '@orpc/server'
 
 const ping = os
-    .use(async (input, context, meta) => {
+    .use(async ({ context, path, next }, input) => {
         try {
-            const result = await meta.next({})
+            const result = await next({})
             const _output = result.output // do something on success
             return result
         } catch (e) {

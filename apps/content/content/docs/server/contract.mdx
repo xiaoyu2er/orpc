@@ -85,9 +85,9 @@ export type Context = { user?: { id: string } }
 export const base = os.context<Context>()
 export const pub = base.contract(contract) // Ensure every implement must be match contract
 export const authed = base
-  .use((input, context, meta) => {
+  .use(({ context, path, next }, input) => {
     /** put auth logic here */
-    return meta.next({})
+    return next({})
   })
   .contract(contract)
 

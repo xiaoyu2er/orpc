@@ -1,16 +1,28 @@
 import type { Promisable } from '@orpc/shared'
-import type { Context, Meta } from './types'
+import type { ANY_PROCEDURE } from './procedure'
+import type { Context } from './types'
 
 export type MiddlewareResult<TExtraContext extends Context, TOutput> = Promisable<{
   output: TOutput
   context: TExtraContext
 }>
 
-export interface MiddlewareMeta<TOutput> extends Meta {
-  next: <UExtraContext extends Context = undefined>(
+export interface MiddlewareNextFn<TOutput> {
+  <UExtraContext extends Context = undefined>(
     options: UExtraContext extends undefined ? { context?: UExtraContext } : { context: UExtraContext }
-  ) => MiddlewareResult<UExtraContext, TOutput>
-  output: <UOutput>(output: UOutput) => MiddlewareResult<undefined, UOutput>
+  ): MiddlewareResult<UExtraContext, TOutput>
+}
+
+export interface MiddlewareOutputFn<TOutput> {
+  (output: TOutput): MiddlewareResult<undefined, TOutput>
+}
+
+export interface MiddlewareOptions<TContext extends Context, TOutput> {
+  context: TContext
+  path: string[]
+  procedure: ANY_PROCEDURE
+  signal?: AbortSignal
+  next: MiddlewareNextFn<TOutput>
 }
 
 export interface Middleware<
@@ -20,9 +32,9 @@ export interface Middleware<
   TOutput,
 > {
   (
+    options: MiddlewareOptions<TContext, TOutput>,
     input: TInput,
-    context: TContext,
-    meta: MiddlewareMeta<TOutput>,
+    output: MiddlewareOutputFn<TOutput>,
   ): Promisable<
     MiddlewareResult<TExtraContext, TOutput>
   >

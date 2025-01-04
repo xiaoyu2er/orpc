@@ -19,9 +19,9 @@ export const usersRouter = os.prefix('/users').router({
 export const appRouter = os.router({
     users: os
         .prefix('/users')  // Prefix will be concatenated with paths defined in route(...)
-        .use((input, context, meta) => {
+        .use(({ context, path, next }, input) => {
             /* Logic applies for all routes in this router */
-            return meta.next({})
+            return next({})
         })
         .router(usersRouter),
 })
@@ -50,9 +50,9 @@ Apply middleware to all procedures in a router:
 ```ts twoslash
 import { os } from '@orpc/server'
 
-const authMiddleware = os.middleware(async (input, context, meta) => {
+const authMiddleware = os.middleware(async ({ context, next, path }, input) => {
     // ...
-    return meta.next({})
+    return next({})
 })
 
 const protectedRouter = os

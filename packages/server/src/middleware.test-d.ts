@@ -1,78 +1,87 @@
-import type { Middleware, MiddlewareMeta } from './middleware'
+import type { Middleware, MiddlewareNextFn, MiddlewareOptions, MiddlewareOutputFn } from './middleware'
+import type { ANY_PROCEDURE } from './procedure'
 
 describe('middleware', () => {
   it('just a function', () => {
-    const mid: Middleware<{ auth: boolean }, undefined, unknown, unknown> = (input, context, meta) => {
+    const mid: Middleware<{ auth: boolean }, undefined, unknown, unknown> = ({ context, path, procedure, signal, next }, input, output) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()
       expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
-      expectTypeOf(meta).toEqualTypeOf<MiddlewareMeta<unknown>>()
+      expectTypeOf(path).toEqualTypeOf<string[]>()
+      expectTypeOf(procedure).toEqualTypeOf<ANY_PROCEDURE>()
+      expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
+      expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<unknown>>()
+      expectTypeOf(next).toEqualTypeOf<MiddlewareNextFn<unknown>>()
 
-      return meta.next({})
+      return next({})
     }
 
-    const mid2: Middleware<{ auth: boolean }, undefined, unknown, unknown> = async (input, context, meta) => {
+    const mid2: Middleware<{ auth: boolean }, undefined, unknown, unknown> = async ({ context, path, procedure, signal, next }, input, output) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()
       expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
-      expectTypeOf(meta).toEqualTypeOf<MiddlewareMeta<unknown>>()
+      expectTypeOf(path).toEqualTypeOf<string[]>()
+      expectTypeOf(procedure).toEqualTypeOf<ANY_PROCEDURE>()
+      expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
+      expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<unknown>>()
+      expectTypeOf(next).toEqualTypeOf<MiddlewareNextFn<unknown>>()
 
-      return await meta.next({})
+      return await next({})
     }
 
     // @ts-expect-error - missing return type
-    const mid3: Middleware<{ auth: boolean }, undefined, unknown, unknown> = (input, context, meta) => {
+    const mid3: Middleware<{ auth: boolean }, undefined, unknown, unknown> = () => {
     }
 
     // @ts-expect-error - missing return type
-    const mid4: Middleware<{ auth: boolean }, undefined, unknown, unknown> = async (input, context, meta) => {
+    const mid4: Middleware<{ auth: boolean }, undefined, unknown, unknown> = async () => {
     }
   })
 
   it('require return valid extra context', () => {
-    const mid0: Middleware<undefined, undefined, unknown, unknown> = (_, __, meta) => {
-      return meta.next({ })
+    const mid0: Middleware<undefined, undefined, unknown, unknown> = ({ next }) => {
+      return next({ })
     }
 
-    const mid: Middleware<undefined, { userId: string }, unknown, unknown > = (_, __, meta) => {
-      return meta.next({ context: { userId: '1' } })
+    const mid: Middleware<undefined, { userId: string }, unknown, unknown > = ({ next }) => {
+      return next({ context: { userId: '1' } })
     }
 
     // @ts-expect-error invalid extra context
-    const mid2: Middleware<undefined, { userId: string }, unknown, unknown> = (_, __, meta) => {
-      return meta.next({ context: { userId: 1 } })
+    const mid2: Middleware<undefined, { userId: string }, unknown, unknown> = ({ next }) => {
+      return next({ context: { userId: 1 } })
     }
 
-    const mid3: Middleware<undefined, { userId: string }, unknown, unknown> = (_, __, meta) => {
+    const mid3: Middleware<undefined, { userId: string }, unknown, unknown> = ({ next }) => {
       // @ts-expect-error missing extra context
-      return meta.next({})
+      return next({})
     }
   })
 
   it('can type input', () => {
-    const mid: Middleware<undefined, undefined, { id: string }, unknown> = (input, context, meta) => {
+    const mid: Middleware<undefined, undefined, { id: string }, unknown> = ({ next }, input) => {
       expectTypeOf(input).toEqualTypeOf<{ id: string }>()
 
-      return meta.next({})
+      return next({})
     }
   })
 
   it('can type output', () => {
-    const mid: Middleware<undefined, undefined, unknown, { id: string }> = async (_, context, meta) => {
-      const result = await meta.next({})
+    const mid: Middleware<undefined, undefined, unknown, { id: string }> = async ({ next }, input, output) => {
+      const result = await next({})
 
       expectTypeOf(result.output).toEqualTypeOf<{ id: string }>()
 
-      return meta.output({ id: '1' })
+      return output({ id: '1' })
     }
 
-    // @ts-expect-error invalid output
-    const mid2: Middleware<undefined, undefined, unknown, { id: string }> = async (_, context, meta) => {
-      return meta.output({ id: 123 })
+    const mid2: Middleware<undefined, undefined, unknown, { id: string }> = async (_, __, output) => {
+      // @ts-expect-error invalid output
+      return output({ id: 123 })
     }
   })
 
   it('can infer types from function', () => {
-    const handler = (input: 'input', context: { context: 'context' }, meta: MiddlewareMeta<'output'>) => {
-      return meta.next({ context: { extra: 'extra' as const } })
+    const handler = ({ next }: MiddlewareOptions<{ context: 'context' }, 'output'>, input: 'input', output: MiddlewareOutputFn<'output'>) => {
+      return next({ context: { extra: 'extra' as const } })
     }
 
     type Inferred = typeof handler extends Middleware<infer TContext, infer TExtraContext, infer TInput, infer TOutput>

@@ -1,6 +1,6 @@
 import type { ChainableImplementer } from './implementer-chainable'
 import type { DecoratedLazy } from './lazy-decorated'
-import type { Middleware, MiddlewareMeta } from './middleware'
+import type { Middleware, MiddlewareOutputFn } from './middleware'
 import type { DecoratedMiddleware } from './middleware-decorated'
 import type { ANY_PROCEDURE, Procedure } from './procedure'
 import type { ProcedureBuilder } from './procedure-builder'
@@ -52,12 +52,14 @@ describe('self chainable', () => {
 
 describe('create middleware', () => {
   it('works', () => {
-    const mid = builder.middleware((input, context, meta) => {
+    const mid = builder.middleware(({ context, next, path, procedure }, input, output) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()
       expectTypeOf(context).toEqualTypeOf<{ auth: boolean } & { db: string }>()
-      expectTypeOf(meta).toEqualTypeOf<MiddlewareMeta<any>>()
+      expectTypeOf(path).toEqualTypeOf<string[]>()
+      expectTypeOf(procedure).toEqualTypeOf<ANY_PROCEDURE>()
+      expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<any>>()
 
-      return meta.next({
+      return next({
         context: {
           dev: true,
         },
@@ -69,7 +71,7 @@ describe('create middleware', () => {
     >()
 
     // @ts-expect-error - conflict extra context and context
-    builder.middleware((input, context, meta) => meta.next({
+    builder.middleware(({ context, next, path }, input) => next({
       context: {
         auth: 'invalid',
       },

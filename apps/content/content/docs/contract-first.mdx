@@ -92,9 +92,9 @@ import { contract } from 'examples/contract'
 
 export const pub = os.contract(contract) // Ensure every implement must be match contract
 export const authed = os
-  .use((input, context, meta) => {
+  .use(({ context, path, next }, input) => {
     /** put auth logic here */
-    return meta.next({})
+    return next({})
   })
   .contract(contract)
 

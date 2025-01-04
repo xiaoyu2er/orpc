@@ -70,15 +70,15 @@ describe('to ProcedureImplementer', () => {
   })
 
   it('use middleware', () => {
-    const implementer = builder.use(async (input, context, meta) => {
+    const implementer = builder.use(async ({ context, path, next }, input) => {
       expectTypeOf(context).toEqualTypeOf<{ id?: string } | undefined>()
       expectTypeOf(input).toEqualTypeOf<{ id: number }>()
 
-      const result = await meta.next({})
+      const result = await next({})
 
       expectTypeOf(result.output).toEqualTypeOf<{ id: string }>()
 
-      return meta.next({ context: { id: '1', extra: true } })
+      return next({ context: { id: '1', extra: true } })
     })
 
     expectTypeOf(implementer).toEqualTypeOf<
@@ -87,8 +87,8 @@ describe('to ProcedureImplementer', () => {
   })
 
   it('use middleware with map input', () => {
-    const mid: Middleware<WELL_CONTEXT, { id: string, extra: boolean }, number, any> = (input, context, meta) => {
-      return meta.next({
+    const mid: Middleware<WELL_CONTEXT, { id: string, extra: boolean }, number, any> = ({ next }) => {
+      return next({
         context: { id: 'string', extra: true },
       })
     }
@@ -110,27 +110,27 @@ describe('to ProcedureImplementer', () => {
   })
 
   it('use middleware prevent conflict on context', () => {
-    builder.use((input, context, meta) => meta.next({}))
-    builder.use((input, context, meta) => meta.next({ context: { id: '1' } }))
-    builder.use((input, context, meta) => meta.next({ context: { id: '1', extra: true } }))
-    builder.use((input, context, meta) => meta.next({ context: { auth: true } }))
+    builder.use(({ context, path, next }, input) => next({}))
+    builder.use(({ context, path, next }, input) => next({ context: { id: '1' } }))
+    builder.use(({ context, path, next }, input) => next({ context: { id: '1', extra: true } }))
+    builder.use(({ context, path, next }, input) => next({ context: { auth: true } }))
 
-    builder.use((input, context, meta) => meta.next({}), () => 'anything')
-    builder.use((input, context, meta) => meta.next({ context: { id: '1' } }), () => 'anything')
-    builder.use((input, context, meta) => meta.next({ context: { id: '1', extra: true } }), () => 'anything')
-    builder.use((input, context, meta) => meta.next({ context: { auth: true } }), () => 'anything')
-
-    // @ts-expect-error - conflict with context
-    builder.use((input, context, meta) => meta.next({ context: { id: 1 } }))
+    builder.use(({ context, path, next }, input) => next({}), () => 'anything')
+    builder.use(({ context, path, next }, input) => next({ context: { id: '1' } }), () => 'anything')
+    builder.use(({ context, path, next }, input) => next({ context: { id: '1', extra: true } }), () => 'anything')
+    builder.use(({ context, path, next }, input) => next({ context: { auth: true } }), () => 'anything')
 
     // @ts-expect-error - conflict with context
-    builder.use((input, context, meta) => meta.next({ context: { id: 1, extra: true } }))
+    builder.use(({ context, path, next }, input) => next({ context: { id: 1 } }))
 
     // @ts-expect-error - conflict with context
-    builder.use((input, context, meta) => meta.next({ context: { id: 1 } }), () => 'anything')
+    builder.use(({ context, path, next }, input) => next({ context: { id: 1, extra: true } }))
 
     // @ts-expect-error - conflict with context
-    builder.use((input, context, meta) => meta.next({ context: { id: 1, extra: true } }), () => 'anything')
+    builder.use(({ context, path, next }, input) => next({ context: { id: 1 } }), () => 'anything')
+
+    // @ts-expect-error - conflict with context
+    builder.use(({ context, path, next }, input) => next({ context: { id: 1, extra: true } }), () => 'anything')
   })
 
   it('not allow use middleware with output is typed', () => {

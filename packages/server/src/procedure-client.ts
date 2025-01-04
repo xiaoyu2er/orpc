@@ -1,7 +1,7 @@
 import type { Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Hooks, Value } from '@orpc/shared'
 import type { Lazyable } from './lazy'
-import type { MiddlewareMeta } from './middleware'
+import type { MiddlewareNextFn } from './middleware'
 import type { ANY_PROCEDURE, Procedure, ProcedureHandlerOptions } from './procedure'
 import type { Context, Meta, WELL_CONTEXT, WithSignal } from './types'
 import { executeWithHooks, value } from '@orpc/shared'
@@ -131,17 +131,13 @@ async function executeMiddlewareChain(opt: ProcedureHandlerOptions<any, any>) {
   let currentMidIndex = 0
   let currentContext = opt.context
 
-  const next: MiddlewareMeta<unknown>['next'] = async (nextOptions) => {
+  const next: MiddlewareNextFn<any> = async (nextOptions) => {
     const mid = middlewares[currentMidIndex]
     currentMidIndex += 1
     currentContext = mergeContext(currentContext, nextOptions.context)
 
     if (mid) {
-      return await mid(opt.input, currentContext, {
-        ...opt,
-        next,
-        output: output => ({ output, context: undefined }),
-      })
+      return await mid({ ...opt, context: currentContext, next }, opt.input, output => ({ output, context: undefined }))
     }
 
     const result = {
@@ -149,7 +145,7 @@ async function executeMiddlewareChain(opt: ProcedureHandlerOptions<any, any>) {
       context: currentContext,
     }
 
-    return result as any
+    return result
   }
 
   return (await next({})).output

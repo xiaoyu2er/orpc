@@ -8,7 +8,7 @@ beforeEach(() => {
 })
 
 const handler = vi.fn(() => ({ val: '123' }))
-const mid = vi.fn((_, __, meta) => meta.next({}))
+const mid = vi.fn(({ next }, _, __) => next({}))
 
 const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
 const procedure = new Procedure<{ auth: boolean }, { db: string }, typeof schema, typeof schema, { val: string }>({
@@ -73,13 +73,13 @@ describe('self chainable', () => {
     extraMid.mockReturnValueOnce('__extra__')
     map.mockReturnValueOnce('__map__')
 
-    expect((applied as any)['~orpc'].middlewares[1]('input')).toBe('__extra__')
+    expect((applied as any)['~orpc'].middlewares[1]({}, 'input', '__output__')).toBe('__extra__')
 
     expect(map).toBeCalledTimes(1)
     expect(map).toBeCalledWith('input')
 
     expect(extraMid).toBeCalledTimes(1)
-    expect(extraMid).toBeCalledWith('__map__')
+    expect(extraMid).toBeCalledWith({}, '__map__', '__output__')
   })
 
   it('unshiftTag', () => {

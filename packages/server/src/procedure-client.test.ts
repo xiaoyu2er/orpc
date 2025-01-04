@@ -8,8 +8,8 @@ import { createProcedureClient } from './procedure-client'
 const schema = z.object({ val: z.string().transform(v => Number(v)) })
 
 const handler = vi.fn(() => ({ val: '123' }))
-const mid1 = vi.fn((_, __, meta) => meta.next({}))
-const mid2 = vi.fn((_, __, meta) => meta.next({}))
+const mid1 = vi.fn(({ next }, input, output) => next({}))
+const mid2 = vi.fn(({ next }, input, output) => next({}))
 
 const procedure = new Procedure<WELL_CONTEXT, undefined, typeof schema, typeof schema, { val: string }>({
   contract: new ContractProcedure({
@@ -43,10 +43,20 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     expect(handler).toBeCalledWith({ input: { val: 123 }, context: undefined, path: [], procedure: unwrappedProcedure })
 
     expect(mid1).toBeCalledTimes(1)
-    expect(mid1).toBeCalledWith({ val: 123 }, undefined, expect.objectContaining({ path: [], procedure: unwrappedProcedure, next: expect.any(Function), output: expect.any(Function) }))
+    expect(mid1).toBeCalledWith(expect.objectContaining({
+      path: [],
+      procedure: unwrappedProcedure,
+      next: expect.any(Function),
+      context: undefined,
+    }), { val: 123 }, expect.any(Function))
 
     expect(mid2).toBeCalledTimes(1)
-    expect(mid2).toBeCalledWith({ val: 123 }, undefined, expect.objectContaining({ path: [], procedure: unwrappedProcedure, next: expect.any(Function), output: expect.any(Function) }))
+    expect(mid2).toBeCalledWith(expect.objectContaining({
+      path: [],
+      procedure: unwrappedProcedure,
+      next: expect.any(Function),
+      context: undefined,
+    }), { val: 123 }, expect.any(Function))
   })
 
   it('validate input and output', () => {
@@ -108,16 +118,16 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
       procedure,
     })
 
-    mid1.mockImplementationOnce((input, context, meta) => {
-      return meta.next({
+    mid1.mockImplementationOnce(({ next }) => {
+      return next({
         context: {
           extra1: '__extra1__',
         },
       })
     })
 
-    mid2.mockImplementationOnce((input, context, meta) => {
-      return meta.next({
+    mid2.mockImplementationOnce(({ next }) => {
+      return next({
         context: {
           extra2: '__extra2__',
         },
@@ -127,10 +137,12 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     await expect(client({ val: '123' })).resolves.toEqual({ val: 123 })
 
     expect(mid1).toBeCalledTimes(1)
-    expect(mid1).toHaveBeenCalledWith(expect.any(Object), undefined, expect.any(Object))
+    expect(mid1).toHaveBeenCalledWith(expect.objectContaining({ context: undefined }), expect.any(Object), expect.any(Function))
 
     expect(mid2).toBeCalledTimes(1)
-    expect(mid2).toHaveBeenCalledWith(expect.any(Object), expect.objectContaining({ extra1: '__extra1__' }), expect.any(Object))
+    expect(mid2).toHaveBeenCalledWith(expect.objectContaining({
+      context: expect.objectContaining({ extra1: '__extra1__' }),
+    }), expect.any(Object), expect.any(Function))
 
     expect(handler).toBeCalledTimes(1)
     expect(handler).toHaveBeenCalledWith(expect.objectContaining({ context: { extra1: '__extra1__', extra2: '__extra2__' } }))
@@ -142,16 +154,16 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
       context: { userId: '123' },
     })
 
-    mid1.mockImplementationOnce((input, context, meta) => {
-      return meta.next({
+    mid1.mockImplementationOnce(({ next }) => {
+      return next({
         context: {
           userId: '__override1__',
         },
       })
     })
 
-    mid2.mockImplementationOnce((input, context, meta) => {
-      return meta.next({
+    mid2.mockImplementationOnce(({ next }) => {
+      return next({
         context: {
           userId: '__override2__',
         },
@@ -161,10 +173,14 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     await expect(client({ val: '123' })).resolves.toEqual({ val: 123 })
 
     expect(mid1).toBeCalledTimes(1)
-    expect(mid1).toHaveBeenCalledWith(expect.any(Object), expect.objectContaining({ userId: '123' }), expect.any(Object))
+    expect(mid1).toHaveBeenCalledWith(expect.objectContaining({
+      context: expect.objectContaining({ userId: '123' }),
+    }), expect.any(Object), expect.any(Function))
 
     expect(mid2).toBeCalledTimes(1)
-    expect(mid2).toHaveBeenCalledWith(expect.any(Object), expect.objectContaining({ userId: '__override1__' }), expect.any(Object))
+    expect(mid2).toHaveBeenCalledWith(expect.objectContaining({
+      context: expect.objectContaining({ userId: '__override1__' }),
+    }), expect.any(Object), expect.any(Function))
 
     expect(handler).toBeCalledTimes(1)
     expect(handler).toHaveBeenCalledWith(expect.objectContaining({ context: expect.objectContaining({ userId: '__override2__' }) }))
@@ -185,10 +201,18 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     await client({ val: '123' })
 
     expect(mid1).toBeCalledTimes(1)
-    expect(mid1).toBeCalledWith(expect.any(Object), { val: '__val__' }, expect.any(Object))
+    expect(mid1).toBeCalledWith(
+      expect.objectContaining({ context: { val: '__val__' } }),
+      expect.any(Object),
+      expect.any(Function),
+    )
 
     expect(mid2).toBeCalledTimes(1)
-    expect(mid2).toBeCalledWith(expect.any(Object), { val: '__val__' }, expect.any(Object))
+    expect(mid2).toBeCalledWith(
+      expect.objectContaining({ context: { val: '__val__' } }),
+      expect.any(Object),
+      expect.any(Function),
+    )
 
     expect(handler).toBeCalledTimes(1)
     expect(handler).toBeCalledWith(expect.objectContaining({ context: { val: '__val__' } }))
@@ -255,10 +279,10 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     await client({ val: '123' })
 
     expect(mid1).toBeCalledTimes(1)
-    expect(mid1).toHaveBeenCalledWith(expect.any(Object), undefined, expect.objectContaining({ path: ['users'] }))
+    expect(mid1).toHaveBeenCalledWith(expect.objectContaining({ path: ['users'] }), expect.any(Object), expect.any(Function))
 
     expect(mid2).toBeCalledTimes(1)
-    expect(mid2).toHaveBeenCalledWith(expect.any(Object), undefined, expect.objectContaining({ path: ['users'] }))
+    expect(mid2).toHaveBeenCalledWith(expect.objectContaining({ path: ['users'] }), expect.any(Object), expect.any(Function))
 
     expect(handler).toBeCalledTimes(1)
     expect(handler).toHaveBeenCalledWith(expect.objectContaining({ path: ['users'] }))
@@ -282,10 +306,10 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     await client({ val: '123' }, { signal })
 
     expect(mid1).toBeCalledTimes(1)
-    expect(mid1).toHaveBeenCalledWith(expect.any(Object), expect.any(Object), expect.objectContaining({ signal }))
+    expect(mid1).toHaveBeenCalledWith(expect.objectContaining({ signal }), expect.any(Object), expect.any(Function))
 
     expect(mid2).toBeCalledTimes(1)
-    expect(mid2).toHaveBeenCalledWith(expect.any(Object), expect.any(Object), expect.objectContaining({ signal }))
+    expect(mid2).toHaveBeenCalledWith(expect.objectContaining({ signal }), expect.any(Object), expect.any(Function))
 
     expect(handler).toBeCalledTimes(1)
     expect(handler).toHaveBeenCalledWith(expect.objectContaining({ signal }))
@@ -360,8 +384,8 @@ it('has helper `output` in meta', async () => {
     procedure,
   })
 
-  mid2.mockImplementationOnce((input, context, meta) => {
-    return meta.output({ val: '99990' })
+  mid2.mockImplementationOnce((_, __, output) => {
+    return output({ val: '99990' })
   })
 
   await expect(client({ val: '123' })).resolves.toEqual({ val: 99990 })

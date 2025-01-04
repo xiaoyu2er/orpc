@@ -8,7 +8,7 @@ import { redirect } from 'next/navigation'
 import * as React from 'react'
 import { z } from 'zod'
 
-const authMid = os.middleware(async (input, context, meta) => {
+const authMid = os.middleware(async ({ context, next, path }, input) => {
   const headersList = await headers()
   const user = headersList.get('Authorization') ? { id: 'example' } : undefined
 
@@ -16,7 +16,7 @@ const authMid = os.middleware(async (input, context, meta) => {
     throw new ORPCError({ code: 'UNAUTHORIZED' })
   }
 
-  return meta.next({
+  return next({
     context: {
       user,
     },

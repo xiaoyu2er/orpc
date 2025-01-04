@@ -53,7 +53,7 @@ describe('compositeHandler', () => {
     expect(mockHandler1.fetch).toHaveBeenCalledTimes(0)
     expect(mockHandler2.fetch).toHaveBeenCalledTimes(0)
     expect(response.status).toBe(404)
-    expect(await response.text()).toBe('None of the handlers can handle the request.')
+    expect(await response.text()).toBe('No handler found for the request.')
   })
 
   it('should handle an empty handlers array', async () => {
@@ -63,7 +63,7 @@ describe('compositeHandler', () => {
     const response = await compositeHandler.fetch(request)
 
     expect(response.status).toBe(404)
-    expect(await response.text()).toBe('None of the handlers can handle the request.')
+    expect(await response.text()).toBe('No handler found for the request.')
   })
 
   it('should handle multiple handlers, but only call the first matching handler', async () => {
@@ -85,5 +85,17 @@ describe('compositeHandler', () => {
     expect(mockHandler1.fetch).toHaveBeenCalledTimes(1)
     expect(mockHandler2.fetch).toHaveBeenCalledTimes(0)
     expect(await response.text()).toBe('Handler 1 response')
+  })
+
+  it('returnFalseOnNoMatch option', async () => {
+    const compositeHandler = new CompositeHandler([])
+
+    const request = new Request('https://example.com/unknown')
+
+    const r1 = await compositeHandler.fetch(request)
+    expect(r1).toBeInstanceOf(Response)
+
+    const r2 = await compositeHandler.fetch(request, { returnFalseOnNoMatch: true })
+    expect(r2).toBe(false)
   })
 })

@@ -5,7 +5,7 @@ import { CompositeHandler } from './composite-handler'
 // Mock a basic handler implementation
 function createMockHandler(
   condition: (request: IncomingMessage) => boolean,
-  handle: (req: IncomingMessage, res: ServerResponse, options?: RequestOptions<any>) => Promise<void>,
+  handle: (req: IncomingMessage, res: ServerResponse, options?: RequestOptions<any, any>) => Promise<void>,
 ): ConditionalRequestHandler<any> {
   return {
     condition,
@@ -51,7 +51,7 @@ describe('compositeHandler', () => {
     expect(mockHandler1.handle).toHaveBeenCalledTimes(0)
     expect(mockHandler2.handle).toHaveBeenCalledTimes(0)
     expect(mockEnd).toHaveBeenCalledTimes(1)
-    expect(mockEnd).toHaveBeenCalledWith('None of the handlers can handle the request.')
+    expect(mockEnd).toHaveBeenCalledWith('No handler found for the request.')
   })
 
   it('should handle multiple handlers, but only call the first matching handler', async () => {
@@ -78,5 +78,19 @@ describe('compositeHandler', () => {
     expect(mockHandler2.handle).toHaveBeenCalledTimes(0)
     expect(mockEnd).toHaveBeenCalledTimes(1)
     expect(mockEnd).toHaveBeenCalledWith('Handler 1 response')
+  })
+
+  it('returnFalseOnNoMatch option', async () => {
+    const mockEnd = vi.fn()
+
+    const result = await compositeHandler.handle({ url: 'handler6' } as any, { end: mockEnd } as any, { context: {} })
+    expect(result).toBe(undefined)
+    expect(mockEnd).toHaveBeenCalledTimes(1)
+    expect(mockEnd).toHaveBeenCalledWith('No handler found for the request.')
+
+    vi.clearAllMocks()
+    const result2 = await compositeHandler.handle({ url: 'handler6' } as any, { end: mockEnd } as any, { context: {}, returnFalseOnNoMatch: true })
+    expect(result2).toBe(false)
+    expect(mockEnd).toHaveBeenCalledTimes(0)
   })
 })

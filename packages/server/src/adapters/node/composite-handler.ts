@@ -7,14 +7,22 @@ export class CompositeHandler<T extends Context> implements RequestHandler<T> {
     private readonly handlers: ConditionalRequestHandler<T>[],
   ) {}
 
-  async handle(req: IncomingMessage, res: ServerResponse, ...opt: [options: RequestOptions<T>] | (undefined extends T ? [] : never)): Promise<void> {
+  async handle<UReturnFalseOnNoMatch extends boolean = false>(
+    req: IncomingMessage,
+    res: ServerResponse,
+    ...opt: [options: RequestOptions<T, UReturnFalseOnNoMatch>] | (undefined extends T ? [] : never)
+  ): Promise<void | (true extends UReturnFalseOnNoMatch ? false : never)> {
     for (const handler of this.handlers) {
       if (handler.condition(req)) {
         return handler.handle(req, res, ...opt)
       }
     }
 
+    if (opt[0]?.returnFalseOnNoMatch) {
+      return false as any
+    }
+
     res.statusCode = 404
-    res.end('None of the handlers can handle the request.')
+    res.end('No handler found for the request.')
   }
 }

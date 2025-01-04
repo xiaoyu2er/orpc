@@ -16,7 +16,11 @@ export class CompositeHandler<T extends Context> implements FetchHandler<T> {
       }
     }
 
-    return new Response('None of the handlers can handle the request.', {
+    if (opt[0]?.returnFalseOnNoMatch) {
+      return false as any
+    }
+
+    return new Response('No handler found for the request.', {
       status: 404,
     })
   }

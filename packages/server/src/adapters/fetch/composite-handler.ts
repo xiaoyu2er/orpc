@@ -6,10 +6,10 @@ export class CompositeHandler<T extends Context> implements FetchHandler<T> {
     private readonly handlers: ConditionalFetchHandler<T>[],
   ) {}
 
-  async fetch(
+  async fetch<UReturnFalseOnNoMatch extends boolean = false>(
     request: Request,
-    ...opt: [options: FetchOptions<T>] | (undefined extends T ? [] : never)
-  ): Promise<Response> {
+    ...opt: [options: FetchOptions<T, UReturnFalseOnNoMatch>] | (undefined extends T ? [] : never)
+  ): Promise<Response | (true extends UReturnFalseOnNoMatch ? false : never)> {
     for (const handler of this.handlers) {
       if (handler.condition(request)) {
         return handler.fetch(request, ...opt)

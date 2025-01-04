@@ -4,7 +4,7 @@ import { CompositeHandler } from './composite-handler'
 // Mock a basic handler implementation
 function createMockHandler(
   condition: (request: Request) => boolean,
-  fetch: (request: Request, options?: FetchOptions<any>) => Promise<Response>,
+  fetch: (request: Request, options?: FetchOptions<any, any>) => Promise<Response>,
 ): ConditionalFetchHandler<any> {
   return {
     condition,

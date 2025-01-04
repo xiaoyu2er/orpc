@@ -11,7 +11,7 @@ describe('oRPCHandler', () => {
     const handler = new ORPCHandler(router, {
       onSuccess(state, context, meta) {
         expectTypeOf(state.input).toEqualTypeOf<Request>()
-        expectTypeOf(state.output).toEqualTypeOf<Response>()
+        expectTypeOf(state.output).toEqualTypeOf<Response | false>()
         expectTypeOf(context).toEqualTypeOf<{ userId?: string }>()
         expectTypeOf(meta).toEqualTypeOf<WithSignal>()
       },

@@ -173,4 +173,14 @@ describe('oRPCHandler', () => {
       headers: new Headers({ [ORPC_HANDLER_HEADER]: ORPC_HANDLER_VALUE }),
     }))).toBe(true)
   })
+
+  it('returnFalseOnNoMatch option', async () => {
+    const handler = new ORPCHandler(router)
+
+    expect(await handler.fetch(new Request('https://example.com/not_found')))
+      .toBeInstanceOf(Response)
+
+    expect(await handler.fetch(new Request('https://example.com/not_found'), { returnFalseOnNoMatch: true }))
+      .toBe(false)
+  })
 })

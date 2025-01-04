@@ -9,7 +9,7 @@ import { ORPCPayloadCodec, type PublicORPCPayloadCodec } from './orpc-payload-co
 import { ORPCProcedureMatcher, type PublicORPCProcedureMatcher } from './orpc-procedure-matcher'
 
 export type ORPCHandlerOptions<T extends Context> =
-  & Hooks<Request, Response, T, WithSignal>
+  & Hooks<Request, Response | false, T, WithSignal>
   & {
     procedureMatcher?: PublicORPCProcedureMatcher
     payloadCodec?: PublicORPCPayloadCodec
@@ -31,10 +31,10 @@ export class ORPCHandler<T extends Context> implements ConditionalFetchHandler<T
     return Boolean(request.headers.get(ORPC_HANDLER_HEADER)?.includes(ORPC_HANDLER_VALUE))
   }
 
-  async fetch(
+  async fetch<UReturnFalseOnNoMatch extends boolean = false>(
     request: Request,
-    ...[options]: [options: FetchOptions<T>] | (undefined extends T ? [] : never)
-  ): Promise<Response> {
+    ...[options]: [options: FetchOptions<T, UReturnFalseOnNoMatch>] | (undefined extends T ? [] : never)
+  ): Promise<Response | (true extends UReturnFalseOnNoMatch ? false : never)> {
     const context = options?.context as T
 
     const execute = async () => {
@@ -44,6 +44,10 @@ export class ORPCHandler<T extends Context> implements ConditionalFetchHandler<T
       const match = await this.procedureMatcher.match(pathname)
 
       if (!match) {
+        if (options?.returnFalseOnNoMatch) {
+          return false as const
+        }
+
         throw new ORPCError({ code: 'NOT_FOUND', message: 'Not found' })
       }
 
@@ -63,7 +67,7 @@ export class ORPCHandler<T extends Context> implements ConditionalFetchHandler<T
     }
 
     try {
-      return await executeWithHooks({
+      const result = await executeWithHooks({
         context,
         execute,
         input: request,
@@ -72,6 +76,8 @@ export class ORPCHandler<T extends Context> implements ConditionalFetchHandler<T
           signal: options?.signal,
         },
       })
+
+      return result as any
     }
     catch (e) {
       const error = e instanceof ORPCError

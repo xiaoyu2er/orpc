@@ -47,7 +47,7 @@ import { os, ORPCError } from '@orpc/server'
 import { z } from 'zod' 
 
 const canEditPostMiddleware = os
-    .middleware(async (input: {id: string}, context, meta) => { 
+    .middleware(async ({ context }, input: { id: string }) => { 
         // Now you can specify the input type for middleware
         return next({})
     })
@@ -70,7 +70,7 @@ const can = os.middleware(async ({ context, next, path }, input) => next({}))
 
 const authAndCan = auth.concat(can) // Merge middleware
 
-const authAndCan2 = auth.concat((input, context, meta) => next({})) // Extend middleware
+const authAndCan2 = auth.concat(({ context, next, path }, input) => next({})) // Extend middleware
 ```
 
 ## Extra Context
@@ -132,11 +132,11 @@ import { os } from '@orpc/server'
 
 const fakeCache = new Map<string, unknown>()
 
-const cacheMid = os.middleware(async ({ context, next, path }, input) => {
+const cacheMid = os.middleware(async ({ context, next, path }, input, output) => {
     const cacheKey = path.join('/') + JSON.stringify(input) /* stringify is not ideal, but it's just an example */
 
     if (fakeCache.has(cacheKey)) {
-        return meta.output(fakeCache.get(cacheKey))
+        return output(fakeCache.get(cacheKey))
     }
 
     const result = await next({})

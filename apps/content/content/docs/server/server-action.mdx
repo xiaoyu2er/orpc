@@ -189,7 +189,7 @@ type Context = { user?: { id: string } }
 const getting = os
 .context<Context>()
 .input(z.object({ name: z.string() }))
-.handler(({ name }) => `Hello, ${name}!`)
+.handler(({ input }) => `Hello, ${input.name}!`)
 
 // @errors: 2349
 getting({ name: 'Unnoq' }) // ❌ cannot call this procedure directly, and cannot be used as a server action

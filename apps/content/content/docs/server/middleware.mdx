@@ -47,7 +47,7 @@ import { os, ORPCError } from '@orpc/server'
 import { z } from 'zod' 
 
 const canEditPostMiddleware = os
-    .middleware(async ({ context }, input: { id: string }) => { 
+    .middleware(async ({ context, next }, input: { id: string }) => { 
         // Now you can specify the input type for middleware
         return next({})
     })

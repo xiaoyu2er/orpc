@@ -12,7 +12,7 @@ import { type Hono, OpenAPIProcedureMatcher, type PublicOpenAPIProcedureMatcher 
 import { CompositeSchemaCoercer, type SchemaCoercer } from './schema-coercer'
 
 export type OpenAPIHandlerOptions<T extends Context> =
-  & Hooks<Request, Response, T, WithSignal>
+  & Hooks<Request, Response | false, T, WithSignal>
   & {
     jsonSerializer?: PublicJSONSerializer
     procedureMatcher?: PublicOpenAPIProcedureMatcher
@@ -47,10 +47,10 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
     return request.headers.get(ORPC_HANDLER_HEADER) === null
   }
 
-  async fetch(
+  async fetch<UReturnFalseOnNoMatch extends boolean = false>(
     request: Request,
-    ...[options]: [options: FetchOptions<T>] | (undefined extends T ? [] : never)
-  ): Promise<Response> {
+    ...[options]: [options: FetchOptions<T, UReturnFalseOnNoMatch>] | (undefined extends T ? [] : never)
+  ): Promise<Response | (true extends UReturnFalseOnNoMatch ? false : never)> {
     const context = options?.context as T
     const headers = request.headers
     const accept = headers.get('Accept') || undefined
@@ -65,6 +65,10 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
       const matched = await this.procedureMatcher.match(matchedMethod, pathname)
 
       if (!matched) {
+        if (options?.returnFalseOnNoMatch) {
+          return false as const
+        }
+
         throw new ORPCError({ code: 'NOT_FOUND', message: 'Not found' })
       }
 
@@ -91,7 +95,7 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
     }
 
     try {
-      return await executeWithHooks({
+      const result = await executeWithHooks({
         context,
         execute,
         input: request,
@@ -100,6 +104,8 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
           signal: options?.signal,
         },
       })
+
+      return result as any
     }
     catch (e) {
       const error = this.convertToORPCError(e)

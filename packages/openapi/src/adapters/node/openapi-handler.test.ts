@@ -585,4 +585,14 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
     expect(mockBeforeSend).toHaveBeenCalledTimes(1)
     expect(mockBeforeSend).toHaveBeenCalledWith(expect.any(Response), { __context: true })
   })
+
+  it('returnFalseOnNoMatch option', async () => {
+    const handler = new OpenAPIHandler(hono, router)
+
+    vi.mocked(createRequest).mockReturnValue(new Request('https://example.com/not_found'))
+
+    expect(await handler.handle(req, res)).toBe(undefined)
+
+    expect(await handler.handle(req, res, { returnFalseOnNoMatch: true })).toBe(false)
+  })
 })

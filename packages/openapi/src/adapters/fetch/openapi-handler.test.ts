@@ -440,4 +440,14 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
       expect(response.status).toBe(500)
     })
   })
+
+  it('returnFalseOnNoMatch option', async () => {
+    const handler = new OpenAPIHandler(hono, router)
+
+    expect(await handler.fetch(new Request('https://example.com/not_found')))
+      .toBeInstanceOf(Response)
+
+    expect(await handler.fetch(new Request('https://example.com/not_found'), { returnFalseOnNoMatch: true }))
+      .toBe(false)
+  })
 })

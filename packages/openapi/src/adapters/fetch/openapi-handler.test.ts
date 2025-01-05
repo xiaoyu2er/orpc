@@ -1,7 +1,6 @@
 import type { Router } from 'hono/router'
 import { ContractProcedure } from '@orpc/contract'
 import { createProcedureClient, os, Procedure } from '@orpc/server'
-import { ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE } from '@orpc/shared'
 import { LinearRouter } from 'hono/router/linear-router'
 import { PatternRouter } from 'hono/router/pattern-router'
 import { TrieRouter } from 'hono/router/trie-router'
@@ -57,19 +56,17 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
     })),
   }
 
-  it('should return a 404 response if no matching procedure is found', async () => {
+  it('should return matched=false if no matching procedure is found', async () => {
     const handler = new OpenAPIHandler(hono, router)
 
     const mockRequest = new Request('https://example.com/not_found', {
       headers: new Headers({}),
     })
 
-    const response = await handler.handle(mockRequest)
+    const { matched, response } = await handler.handle(mockRequest)
 
-    expect(response?.status).toBe(404)
-
-    const body = await response?.text()
-    expect(body).toContain('Not found')
+    expect(matched).toBe(false)
+    expect(response).toBeUndefined()
   })
 
   it('should return a 200 response with serialized output if procedure is resolved successfully', async () => {
@@ -82,7 +79,7 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
       headers: new Headers({}),
     })
 
-    const response = await handler.handle(mockRequest)
+    const { response } = await handler.handle(mockRequest)
 
     expect(response?.status).toBe(200)
 
@@ -90,7 +87,7 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
     expect(body).toEqual('__mocked__')
 
     expect(caller).toBeCalledTimes(1)
-    expect(caller).toBeCalledWith({ value: '123' }, { signal: undefined })
+    expect(caller).toBeCalledWith({ value: '123' }, { signal: mockRequest.signal })
   })
 
   it('support params', async () => {
@@ -104,7 +101,7 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
       body: new Blob([JSON.stringify({ value: '123' })], { type: 'application/json' }),
     })
 
-    const response = await handler.handle(mockRequest)
+    const { response } = await handler.handle(mockRequest)
 
     expect(response?.status).toBe(200)
 
@@ -112,7 +109,7 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
     expect(body).toEqual('__mocked__')
 
     expect(caller).toBeCalledTimes(1)
-    expect(caller).toBeCalledWith({ value: '123', name: 'unnoq' }, { signal: undefined })
+    expect(caller).toBeCalledWith({ value: '123', name: 'unnoq' }, { signal: mockRequest.signal })
   })
 
   it('should handle unexpected errors and return a 500 response', async () => {
@@ -124,7 +121,7 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
 
     const mockRequest = new Request('https://example.com/ping')
 
-    const response = await handler.handle(mockRequest)
+    const { response } = await handler.handle(mockRequest)
 
     expect(response?.status).toBe(500)
 
@@ -142,10 +139,7 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
       headers: new Headers({}),
     })
 
-    const controller = new AbortController()
-    const signal = controller.signal
-
-    const response = await handler.handle(mockRequest, { signal })
+    const { response } = await handler.handle(mockRequest, { })
 
     expect(response?.status).toBe(200)
 
@@ -153,7 +147,7 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
     expect(body).toEqual('__mocked__')
 
     expect(caller).toBeCalledTimes(1)
-    expect(caller).toBeCalledWith({ value: '123' }, { signal })
+    expect(caller).toBeCalledWith({ value: '123' }, { signal: mockRequest.signal })
   })
 
   it('hooks', async () => {
@@ -173,22 +167,13 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
       onError,
     })
 
-    const response = await handler.handle(mockRequest)
+    const { matched } = await handler.handle(mockRequest)
 
-    expect(response?.status).toBe(404)
+    expect(matched).toBe(false)
 
     expect(onStart).toBeCalledTimes(1)
-    expect(onSuccess).toBeCalledTimes(0)
-    expect(onError).toBeCalledTimes(1)
-  })
-
-  it('conditions', () => {
-    const handler = new OpenAPIHandler(hono, router)
-
-    expect(handler.condition(new Request('https://example.com'))).toBe(true)
-    expect(handler.condition(new Request('https://example.com', {
-      headers: new Headers({ [ORPC_HANDLER_HEADER]: ORPC_HANDLER_VALUE }),
-    }))).toBe(false)
+    expect(onSuccess).toBeCalledTimes(1)
+    expect(onError).toBeCalledTimes(0)
   })
 
   it('schema coercer', async () => {
@@ -206,7 +191,7 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
       headers: new Headers({}),
     })
 
-    const response = await handler.handle(mockRequest)
+    const { response } = await handler.handle(mockRequest)
 
     expect(response?.status).toBe(200)
 
@@ -214,7 +199,7 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
     expect(coerce).toBeCalledWith(undefined, { value: '123' })
     expect(createProcedureClient).toBeCalledTimes(1)
     expect(vi.mocked(createProcedureClient).mock.results[0]?.value).toBeCalledTimes(1)
-    expect(vi.mocked(createProcedureClient).mock.results[0]?.value).toBeCalledWith('__mocked__', { signal: undefined })
+    expect(vi.mocked(createProcedureClient).mock.results[0]?.value).toBeCalledWith('__mocked__', { signal: mockRequest.signal })
   })
 
   it('custom success status', async () => {
@@ -237,7 +222,7 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
 
     const mockRequest = new Request('https://example.com/ping')
 
-    const response = await handler.handle(mockRequest)
+    const { response } = await handler.handle(mockRequest)
 
     expect(response?.status).toBe(298)
   })
@@ -263,20 +248,20 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
       await handler.handle(new Request('https://example.com/ping', {
         method: 'POST',
       })),
-    ).toSatisfy((r: any) => r.status === 404)
+    ).toSatisfy((result: any) => result?.matched === false)
 
     // only allow custom method when method is POST
     expect(
       await handler.handle(new Request('https://example.com/ping?method=DeleTe', {
         method: 'PATCH',
       })),
-    ).toSatisfy((r: any) => r.status === 404)
+    ).toSatisfy((result: any) => result?.matched === false)
 
     expect(
       await handler.handle(new Request('https://example.com/ping?method=DeleTe', {
         method: 'POST',
       })),
-    ).toSatisfy((r: any) => r.status === 200)
+    ).toSatisfy((result: any) => result?.matched === true)
   })
 
   describe('input structure', () => {
@@ -297,19 +282,22 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
       const mockClient = vi.fn()
       vi.mocked(createProcedureClient).mockReturnValue(mockClient)
 
-      await handler.handle(new Request('https://example.com/ping?value=123'))
+      const request = new Request('https://example.com/ping?value=123')
+      await handler.handle(request)
 
       expect(mockClient).toBeCalledTimes(1)
-      expect(mockClient).toBeCalledWith({ value: '123' }, { signal: undefined })
+      expect(mockClient).toBeCalledWith({ value: '123' }, { signal: request.signal })
 
       mockClient.mockClear()
-      await handler.handle(new Request('https://example.com/pong/unnoq?value=123', {
+
+      const request2 = new Request('https://example.com/pong/unnoq?value=123', {
         method: 'POST',
         body: new Blob([JSON.stringify({ value: '456' })], { type: 'application/json' }),
-      }))
+      })
+      await handler.handle(request2)
 
       expect(mockClient).toBeCalledTimes(1)
-      expect(mockClient).toBeCalledWith({ value: '456', name: 'unnoq' }, { signal: undefined })
+      expect(mockClient).toBeCalledWith({ value: '456', name: 'unnoq' }, { signal: request2.signal })
     })
 
     it('detailed', async () => {
@@ -329,11 +317,13 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
       const mockClient = vi.fn()
       vi.mocked(createProcedureClient).mockReturnValue(mockClient)
 
-      await handler.handle(new Request('https://example.com/ping?value=123', {
+      const request = new Request('https://example.com/ping?value=123', {
         headers: {
           'x-custom-header': 'custom-value',
         },
-      }))
+      })
+
+      await handler.handle(request)
 
       expect(mockClient).toBeCalledTimes(1)
       expect(mockClient).toBeCalledWith(
@@ -343,17 +333,19 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
           headers: { 'x-custom-header': 'custom-value' },
           body: undefined,
         },
-        { signal: undefined },
+        { signal: request.signal },
       )
 
       mockClient.mockClear()
-      await handler.handle(new Request('https://example.com/pong/hud?value=123', {
+
+      const request2 = new Request('https://example.com/pong/hud?value=123', {
         method: 'POST',
         body: new Blob([JSON.stringify({ value: '456' })], { type: 'application/json' }),
         headers: {
           'x-custom-header': 'custom-value',
         },
-      }))
+      })
+      await handler.handle(request2)
 
       expect(mockClient).toBeCalledTimes(1)
       expect(mockClient).toBeCalledWith(
@@ -366,7 +358,7 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
           },
           body: { value: '456' },
         },
-        { signal: undefined },
+        { signal: request2.signal },
       )
     })
   })
@@ -384,7 +376,7 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
       const mockClient = vi.fn(() => Promise.resolve('__mocked__'))
       vi.mocked(createProcedureClient).mockReturnValue(mockClient)
 
-      const response = await handler.handle(new Request('https://example.com/ping?value=123'))
+      const { response } = await handler.handle(new Request('https://example.com/ping?value=123'))
 
       expect(await response?.json()).toBe('__mocked__')
     })
@@ -402,17 +394,17 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
       vi.mocked(createProcedureClient).mockReturnValue(mockClient)
 
       mockClient.mockReturnValueOnce({ body: '__mocked__', headers: { 'x-custom-header': 'custom-value' } })
-      const response = await handler.handle(new Request('https://example.com/ping?value=123'))
+      const { response } = await handler.handle(new Request('https://example.com/ping?value=123'))
 
       expect(await response?.json()).toBe('__mocked__')
       expect(response?.headers.get('x-custom-header')).toBe('custom-value')
 
       mockClient.mockReturnValueOnce({ body: '__mocked2__' })
-      const response2 = await handler.handle(new Request('https://example.com/ping?value=123'))
+      const { response: response2 } = await handler.handle(new Request('https://example.com/ping?value=123'))
       expect(await response2?.json()).toBe('__mocked2__')
 
       mockClient.mockReturnValueOnce({ headers: { 'x-custom-header': 'custom-value2' } })
-      const response3 = await handler.handle(new Request('https://example.com/ping?value=123'))
+      const { response: response3 } = await handler.handle(new Request('https://example.com/ping?value=123'))
       expect(response3?.headers.get('x-custom-header')).toBe('custom-value2')
     })
 
@@ -435,9 +427,9 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
       vi.mocked(createProcedureClient).mockReturnValue(mockClient)
 
       mockClient.mockReturnValueOnce(output)
-      const response = await handler.handle(new Request('https://example.com/ping?value=123'))
+      const { response } = await handler.handle(new Request('https://example.com/ping?value=123'))
 
-      expect(response.status).toBe(500)
+      expect(response?.status).toBe(500)
     })
   })
 })

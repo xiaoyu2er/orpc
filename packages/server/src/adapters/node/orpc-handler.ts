@@ -26,7 +26,7 @@ export class ORPCHandler<T extends Context> implements RequestHandler<T> {
 
     await options?.beforeSend?.(result.response, castedOptions.context as T)
 
-    void await sendResponse(res, result.response)
+    await sendResponse(res, result.response)
 
     return { matched: true }
   }

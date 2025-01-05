@@ -1,9 +1,9 @@
 import type { ANY_PROCEDURE, Context, Router, WithSignal } from '@orpc/server'
-import type { ConditionalFetchHandler, FetchHandleOptions } from '@orpc/server/fetch'
+import type { FetchHandler, FetchHandleRest, FetchHandleResult } from '@orpc/server/fetch'
 import type { Params } from 'hono/router'
 import type { PublicInputStructureCompact } from './input-structure-compact'
 import { createProcedureClient, fallbackToGlobalConfig, ORPCError } from '@orpc/server'
-import { executeWithHooks, type Hooks, isPlainObject, ORPC_HANDLER_HEADER, trim } from '@orpc/shared'
+import { executeWithHooks, type Hooks, isPlainObject, trim } from '@orpc/shared'
 import { JSONSerializer, type PublicJSONSerializer } from '../../json-serializer'
 import { InputStructureCompact } from './input-structure-compact'
 import { InputStructureDetailed, type PublicInputStructureDetailed } from './input-structure-detailed'
@@ -12,7 +12,7 @@ import { type Hono, OpenAPIProcedureMatcher, type PublicOpenAPIProcedureMatcher 
 import { CompositeSchemaCoercer, type SchemaCoercer } from './schema-coercer'
 
 export type OpenAPIHandlerOptions<T extends Context> =
-  & Hooks<Request, Response, T, WithSignal>
+  & Hooks<Request, FetchHandleResult, T, WithSignal>
   & {
     jsonSerializer?: PublicJSONSerializer
     procedureMatcher?: PublicOpenAPIProcedureMatcher
@@ -22,7 +22,7 @@ export type OpenAPIHandlerOptions<T extends Context> =
     schemaCoercers?: SchemaCoercer[]
   }
 
-export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandler<T> {
+export class OpenAPIHandler<T extends Context> implements FetchHandler<T> {
   private readonly procedureMatcher: PublicOpenAPIProcedureMatcher
   private readonly payloadCodec: PublicOpenAPIPayloadCodec
   private readonly inputStructureCompact: PublicInputStructureCompact
@@ -43,19 +43,12 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
     this.compositeSchemaCoercer = new CompositeSchemaCoercer(options?.schemaCoercers ?? [])
   }
 
-  condition(request: Request): boolean {
-    return request.headers.get(ORPC_HANDLER_HEADER) === null
-  }
-
-  async handle(
-    request: Request,
-    ...[options]: [options: FetchHandleOptions<T>] | (undefined extends T ? [] : never)
-  ): Promise<Response> {
+  async handle(request: Request, ...[options]: FetchHandleRest<T>): Promise<FetchHandleResult> {
     const context = options?.context as T
     const headers = request.headers
-    const accept = headers.get('Accept') || undefined
+    const accept = headers.get('accept') || undefined
 
-    const execute = async () => {
+    const execute = async (): Promise<FetchHandleResult> => {
       const url = new URL(request.url)
       const pathname = `/${trim(url.pathname.replace(options?.prefix ?? '', ''), '/')}`
       const query = url.searchParams
@@ -65,7 +58,7 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
       const matched = await this.procedureMatcher.match(matchedMethod, pathname)
 
       if (!matched) {
-        throw new ORPCError({ code: 'NOT_FOUND', message: 'Not found' })
+        return { matched: false, response: undefined }
       }
 
       const contractDef = matched.procedure['~orpc'].contract['~orpc']
@@ -80,14 +73,16 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
         path: matched.path,
       })
 
-      const output = await client(coercedInput, { signal: options?.signal })
+      const output = await client(coercedInput, { signal: request.signal })
 
       const { body, headers: resHeaders } = this.encodeOutput(matched.procedure, output, accept)
 
-      return new Response(body, {
+      const response = new Response(body, {
         headers: resHeaders,
         status: fallbackToGlobalConfig('defaultSuccessStatus', contractDef.route?.successStatus),
       })
+
+      return { matched: true, response }
     }
 
     try {
@@ -97,7 +92,7 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
         input: request,
         hooks: this.options,
         meta: {
-          signal: options?.signal,
+          signal: request.signal,
         },
       })
     }
@@ -107,10 +102,12 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
       try {
         const { body, headers } = this.payloadCodec.encode(error.toJSON(), accept)
 
-        return new Response(body, {
+        const response = new Response(body, {
           status: error.status,
           headers,
         })
+
+        return { matched: true, response }
       }
       catch (e) {
         /**
@@ -119,10 +116,13 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
         const error = this.convertToORPCError(e)
 
         const { body, headers } = this.payloadCodec.encode(error.toJSON(), undefined)
-        return new Response(body, {
+
+        const response = new Response(body, {
           status: error.status,
           headers,
         })
+
+        return { matched: true, response }
       }
     }
   }

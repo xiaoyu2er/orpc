@@ -96,7 +96,7 @@ const orpcLink = new ORPCLink({
   async fetch(input, init) {
     await new Promise(resolve => setTimeout(resolve, 100))
     const request = new Request(input, init)
-    return orpcHandler.fetch(request)
+    return orpcHandler.handle(request)
   },
 })
 

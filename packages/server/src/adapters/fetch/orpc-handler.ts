@@ -1,7 +1,7 @@
 import type { Hooks } from '@orpc/shared'
 import type { Router } from '../../router'
-import type { Context, WithSignal } from '../../types'
-import type { ConditionalFetchHandler, FetchOptions } from './types'
+import type { Context } from '../../types'
+import type { ConditionalFetchHandler, FetchHandleRest, FetchHandleResult } from './types'
 import { executeWithHooks, ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE, trim } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
 import { createProcedureClient } from '../../procedure-client'
@@ -9,7 +9,7 @@ import { ORPCPayloadCodec, type PublicORPCPayloadCodec } from './orpc-payload-co
 import { ORPCProcedureMatcher, type PublicORPCProcedureMatcher } from './orpc-procedure-matcher'
 
 export type ORPCHandlerOptions<T extends Context> =
-  & Hooks<Request, Response, T, WithSignal>
+  & Hooks<Request, FetchHandleResult, T, { signal?: AbortSignal }>
   & {
     procedureMatcher?: PublicORPCProcedureMatcher
     payloadCodec?: PublicORPCPayloadCodec
@@ -19,32 +19,25 @@ export class ORPCHandler<T extends Context> implements ConditionalFetchHandler<T
   private readonly procedureMatcher: PublicORPCProcedureMatcher
   private readonly payloadCodec: PublicORPCPayloadCodec
 
-  constructor(
-    readonly router: Router<T, any>,
-    readonly options?: NoInfer<ORPCHandlerOptions<T>>,
-  ) {
+  constructor(router: Router<T, any>, private readonly options?: NoInfer<ORPCHandlerOptions<T>>) {
     this.procedureMatcher = options?.procedureMatcher ?? new ORPCProcedureMatcher(router)
     this.payloadCodec = options?.payloadCodec ?? new ORPCPayloadCodec()
   }
 
-  condition(request: Request): boolean {
+  condition(request: Request, ..._rest: FetchHandleRest<T>): boolean {
     return Boolean(request.headers.get(ORPC_HANDLER_HEADER)?.includes(ORPC_HANDLER_VALUE))
   }
 
-  async fetch(
-    request: Request,
-    ...[options]: [options: FetchOptions<T>] | (undefined extends T ? [] : never)
-  ): Promise<Response> {
+  async handle(request: Request, ...[options]: FetchHandleRest<T>): Promise<FetchHandleResult> {
     const context = options?.context as T
 
-    const execute = async () => {
+    const execute = async (): Promise<FetchHandleResult> => {
       const url = new URL(request.url)
       const pathname = `/${trim(url.pathname.replace(options?.prefix ?? '', ''), '/')}`
-
       const match = await this.procedureMatcher.match(pathname)
 
       if (!match) {
-        throw new ORPCError({ code: 'NOT_FOUND', message: 'Not found' })
+        return { matched: false, response: undefined }
       }
 
       const input = await this.payloadCodec.decode(request)
@@ -55,23 +48,27 @@ export class ORPCHandler<T extends Context> implements ConditionalFetchHandler<T
         path: match.path,
       })
 
-      const output = await client(input, { signal: options?.signal })
+      const output = await client(input, { signal: request.signal })
 
       const { body, headers } = this.payloadCodec.encode(output)
 
-      return new Response(body, { headers })
+      const response = new Response(body, { headers })
+
+      return { matched: true, response }
     }
 
     try {
-      return await executeWithHooks({
+      const result = await executeWithHooks({
         context,
         execute,
         input: request,
         hooks: this.options,
         meta: {
-          signal: options?.signal,
+          signal: request.signal,
         },
       })
+
+      return result
     }
     catch (e) {
       const error = e instanceof ORPCError
@@ -83,10 +80,13 @@ export class ORPCHandler<T extends Context> implements ConditionalFetchHandler<T
         })
 
       const { body, headers } = this.payloadCodec.encode(error.toJSON())
-      return new Response(body, {
+
+      const response = new Response(body, {
         headers,
         status: error.status,
       })
+
+      return { matched: true, response }
     }
   }
 }

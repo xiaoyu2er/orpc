@@ -22,7 +22,7 @@ describe('zodCoercer', () => {
         new ZodCoercer(),
       ],
     })
-    const res = await handler.fetch(new Request('https://example.com/ping', {
+    const res = await handler.handle(new Request('https://example.com/ping', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -23,7 +23,7 @@ export class OpenAPIHandler<T extends Context> implements ConditionalRequestHand
 
     const castedOptions = (options ?? {}) as Exclude<typeof options, undefined>
 
-    const response = await this.openapiFetchHandler.fetch(request, castedOptions)
+    const response = await this.openapiFetchHandler.handle(request, castedOptions)
 
     await options?.beforeSend?.(response, castedOptions.context as T)
 

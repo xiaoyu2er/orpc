@@ -1,5 +1,5 @@
 import type { ANY_PROCEDURE, Context, Router, WithSignal } from '@orpc/server'
-import type { ConditionalFetchHandler, FetchOptions } from '@orpc/server/fetch'
+import type { ConditionalFetchHandler, FetchHandleOptions } from '@orpc/server/fetch'
 import type { Params } from 'hono/router'
 import type { PublicInputStructureCompact } from './input-structure-compact'
 import { createProcedureClient, fallbackToGlobalConfig, ORPCError } from '@orpc/server'
@@ -47,9 +47,9 @@ export class OpenAPIHandler<T extends Context> implements ConditionalFetchHandle
     return request.headers.get(ORPC_HANDLER_HEADER) === null
   }
 
-  async fetch(
+  async handle(
     request: Request,
-    ...[options]: [options: FetchOptions<T>] | (undefined extends T ? [] : never)
+    ...[options]: [options: FetchHandleOptions<T>] | (undefined extends T ? [] : never)
   ): Promise<Response> {
     const context = options?.context as T
     const headers = request.headers

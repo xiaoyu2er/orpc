@@ -64,7 +64,7 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
       headers: new Headers({}),
     })
 
-    const response = await handler.fetch(mockRequest)
+    const response = await handler.handle(mockRequest)
 
     expect(response?.status).toBe(404)
 
@@ -82,7 +82,7 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
       headers: new Headers({}),
     })
 
-    const response = await handler.fetch(mockRequest)
+    const response = await handler.handle(mockRequest)
 
     expect(response?.status).toBe(200)
 
@@ -104,7 +104,7 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
       body: new Blob([JSON.stringify({ value: '123' })], { type: 'application/json' }),
     })
 
-    const response = await handler.fetch(mockRequest)
+    const response = await handler.handle(mockRequest)
 
     expect(response?.status).toBe(200)
 
@@ -124,7 +124,7 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
 
     const mockRequest = new Request('https://example.com/ping')
 
-    const response = await handler.fetch(mockRequest)
+    const response = await handler.handle(mockRequest)
 
     expect(response?.status).toBe(500)
 
@@ -145,7 +145,7 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
     const controller = new AbortController()
     const signal = controller.signal
 
-    const response = await handler.fetch(mockRequest, { signal })
+    const response = await handler.handle(mockRequest, { signal })
 
     expect(response?.status).toBe(200)
 
@@ -173,7 +173,7 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
       onError,
     })
 
-    const response = await handler.fetch(mockRequest)
+    const response = await handler.handle(mockRequest)
 
     expect(response?.status).toBe(404)
 
@@ -206,7 +206,7 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
       headers: new Headers({}),
     })
 
-    const response = await handler.fetch(mockRequest)
+    const response = await handler.handle(mockRequest)
 
     expect(response?.status).toBe(200)
 
@@ -237,7 +237,7 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
 
     const mockRequest = new Request('https://example.com/ping')
 
-    const response = await handler.fetch(mockRequest)
+    const response = await handler.handle(mockRequest)
 
     expect(response?.status).toBe(298)
   })
@@ -260,20 +260,20 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
     const handler = new OpenAPIHandler(hono, router)
 
     expect(
-      await handler.fetch(new Request('https://example.com/ping', {
+      await handler.handle(new Request('https://example.com/ping', {
         method: 'POST',
       })),
     ).toSatisfy((r: any) => r.status === 404)
 
     // only allow custom method when method is POST
     expect(
-      await handler.fetch(new Request('https://example.com/ping?method=DeleTe', {
+      await handler.handle(new Request('https://example.com/ping?method=DeleTe', {
         method: 'PATCH',
       })),
     ).toSatisfy((r: any) => r.status === 404)
 
     expect(
-      await handler.fetch(new Request('https://example.com/ping?method=DeleTe', {
+      await handler.handle(new Request('https://example.com/ping?method=DeleTe', {
         method: 'POST',
       })),
     ).toSatisfy((r: any) => r.status === 200)
@@ -297,13 +297,13 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
       const mockClient = vi.fn()
       vi.mocked(createProcedureClient).mockReturnValue(mockClient)
 
-      await handler.fetch(new Request('https://example.com/ping?value=123'))
+      await handler.handle(new Request('https://example.com/ping?value=123'))
 
       expect(mockClient).toBeCalledTimes(1)
       expect(mockClient).toBeCalledWith({ value: '123' }, { signal: undefined })
 
       mockClient.mockClear()
-      await handler.fetch(new Request('https://example.com/pong/unnoq?value=123', {
+      await handler.handle(new Request('https://example.com/pong/unnoq?value=123', {
         method: 'POST',
         body: new Blob([JSON.stringify({ value: '456' })], { type: 'application/json' }),
       }))
@@ -329,7 +329,7 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
       const mockClient = vi.fn()
       vi.mocked(createProcedureClient).mockReturnValue(mockClient)
 
-      await handler.fetch(new Request('https://example.com/ping?value=123', {
+      await handler.handle(new Request('https://example.com/ping?value=123', {
         headers: {
           'x-custom-header': 'custom-value',
         },
@@ -347,7 +347,7 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
       )
 
       mockClient.mockClear()
-      await handler.fetch(new Request('https://example.com/pong/hud?value=123', {
+      await handler.handle(new Request('https://example.com/pong/hud?value=123', {
         method: 'POST',
         body: new Blob([JSON.stringify({ value: '456' })], { type: 'application/json' }),
         headers: {
@@ -384,7 +384,7 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
       const mockClient = vi.fn(() => Promise.resolve('__mocked__'))
       vi.mocked(createProcedureClient).mockReturnValue(mockClient)
 
-      const response = await handler.fetch(new Request('https://example.com/ping?value=123'))
+      const response = await handler.handle(new Request('https://example.com/ping?value=123'))
 
       expect(await response?.json()).toBe('__mocked__')
     })
@@ -402,17 +402,17 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
       vi.mocked(createProcedureClient).mockReturnValue(mockClient)
 
       mockClient.mockReturnValueOnce({ body: '__mocked__', headers: { 'x-custom-header': 'custom-value' } })
-      const response = await handler.fetch(new Request('https://example.com/ping?value=123'))
+      const response = await handler.handle(new Request('https://example.com/ping?value=123'))
 
       expect(await response?.json()).toBe('__mocked__')
       expect(response?.headers.get('x-custom-header')).toBe('custom-value')
 
       mockClient.mockReturnValueOnce({ body: '__mocked2__' })
-      const response2 = await handler.fetch(new Request('https://example.com/ping?value=123'))
+      const response2 = await handler.handle(new Request('https://example.com/ping?value=123'))
       expect(await response2?.json()).toBe('__mocked2__')
 
       mockClient.mockReturnValueOnce({ headers: { 'x-custom-header': 'custom-value2' } })
-      const response3 = await handler.fetch(new Request('https://example.com/ping?value=123'))
+      const response3 = await handler.handle(new Request('https://example.com/ping?value=123'))
       expect(response3?.headers.get('x-custom-header')).toBe('custom-value2')
     })
 
@@ -435,7 +435,7 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
       vi.mocked(createProcedureClient).mockReturnValue(mockClient)
 
       mockClient.mockReturnValueOnce(output)
-      const response = await handler.fetch(new Request('https://example.com/ping?value=123'))
+      const response = await handler.handle(new Request('https://example.com/ping?value=123'))
 
       expect(response.status).toBe(500)
     })

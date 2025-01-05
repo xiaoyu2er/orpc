@@ -1,18 +1,17 @@
 import type { HTTPPath } from '@orpc/contract'
-import type { Context, WithSignal } from '../../types'
+import type { Context } from '../../types'
 
-export type FetchOptions<T extends Context> =
-  & WithSignal
+export type FetchHandleOptions<T extends Context> =
   & { prefix?: HTTPPath }
   & (undefined extends T ? { context?: T } : { context: T })
 
+export type FetchHandleRest<T extends Context> = [options: FetchHandleOptions<T>] | (undefined extends T ? [] : never)
+export type FetchHandleResult = { matched: true, response: Response } | { matched: false, response: undefined }
+
 export interface FetchHandler<T extends Context> {
-  fetch: (
-    request: Request,
-    ...opt: [options: FetchOptions<T>] | (undefined extends T ? [] : never)
-  ) => Promise<Response>
+  handle: (request: Request, ...rest: FetchHandleRest<T>) => Promise<FetchHandleResult>
 }
 
 export interface ConditionalFetchHandler<T extends Context> extends FetchHandler<T> {
-  condition: (request: Request) => boolean
+  condition: (request: Request, ...rest: FetchHandleRest<T>) => boolean
 }

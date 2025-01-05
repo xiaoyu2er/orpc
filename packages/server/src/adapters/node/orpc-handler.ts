@@ -23,7 +23,7 @@ export class ORPCHandler<T extends Context> implements ConditionalRequestHandler
 
     const castedOptions = (options ?? {}) as Exclude<typeof options, undefined>
 
-    const response = await this.orpcFetchHandler.fetch(request, castedOptions)
+    const response = await this.orpcFetchHandler.handle(request, castedOptions)
 
     await options?.beforeSend?.(response, castedOptions.context as T)
 

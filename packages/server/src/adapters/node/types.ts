@@ -4,21 +4,17 @@ import type { RequestOptions as BaseRequestOptions } from '@mjackson/node-fetch-
 import type { HTTPPath } from '@orpc/contract'
 import type { Promisable } from '@orpc/shared'
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import type { Context, WithSignal } from '../../types'
+import type { Context } from '../../types'
 
-export type RequestOptions<T extends Context> =
+export type RequestHandleOptions<T extends Context> =
   & BaseRequestOptions
-  & WithSignal
-  & { prefix?: HTTPPath }
+  & { prefix?: HTTPPath, beforeSend?: (response: Response, context: T) => Promisable<void> }
   & (undefined extends T ? { context?: T } : { context: T })
-  & {
-    beforeSend?: (response: Response, context: T) => Promisable<void>
-  }
+
+export type RequestHandleRest<T extends Context> = [options: RequestHandleOptions<T>] | (undefined extends T ? [] : never)
+
+export type RequestHandleResult = { matched: true } | { matched: false }
 
 export interface RequestHandler<T extends Context> {
-  handle: (req: IncomingMessage, res: ServerResponse, ...opt: [options: RequestOptions<T>] | (undefined extends T ? [] : never)) => void
-}
-
-export interface ConditionalRequestHandler<T extends Context> extends RequestHandler<T> {
-  condition: (request: IncomingMessage) => boolean
+  handle: (req: IncomingMessage, res: ServerResponse, ...rest: RequestHandleRest<T>) => Promise<RequestHandleResult>
 }

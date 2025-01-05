@@ -11,7 +11,3 @@ export type FetchHandleResult = { matched: true, response: Response } | { matche
 export interface FetchHandler<T extends Context> {
   handle: (request: Request, ...rest: FetchHandleRest<T>) => Promise<FetchHandleResult>
 }
-
-export interface ConditionalFetchHandler<T extends Context> extends FetchHandler<T> {
-  condition: (request: Request, ...rest: FetchHandleRest<T>) => boolean
-}

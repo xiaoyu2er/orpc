@@ -1,8 +1,8 @@
 import type { Hooks } from '@orpc/shared'
 import type { Router } from '../../router'
 import type { Context } from '../../types'
-import type { ConditionalFetchHandler, FetchHandleRest, FetchHandleResult } from './types'
-import { executeWithHooks, ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE, trim } from '@orpc/shared'
+import type { FetchHandler, FetchHandleRest, FetchHandleResult } from './types'
+import { executeWithHooks, trim } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
 import { createProcedureClient } from '../../procedure-client'
 import { ORPCPayloadCodec, type PublicORPCPayloadCodec } from './orpc-payload-codec'
@@ -15,17 +15,13 @@ export type ORPCHandlerOptions<T extends Context> =
     payloadCodec?: PublicORPCPayloadCodec
   }
 
-export class ORPCHandler<T extends Context> implements ConditionalFetchHandler<T> {
+export class ORPCHandler<T extends Context> implements FetchHandler<T> {
   private readonly procedureMatcher: PublicORPCProcedureMatcher
   private readonly payloadCodec: PublicORPCPayloadCodec
 
   constructor(router: Router<T, any>, private readonly options?: NoInfer<ORPCHandlerOptions<T>>) {
     this.procedureMatcher = options?.procedureMatcher ?? new ORPCProcedureMatcher(router)
     this.payloadCodec = options?.payloadCodec ?? new ORPCPayloadCodec()
-  }
-
-  condition(request: Request, ..._rest: FetchHandleRest<T>): boolean {
-    return Boolean(request.headers.get(ORPC_HANDLER_HEADER)?.includes(ORPC_HANDLER_VALUE))
   }
 
   async handle(request: Request, ...[options]: FetchHandleRest<T>): Promise<FetchHandleResult> {

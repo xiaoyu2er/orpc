@@ -1,5 +1,4 @@
 import { ContractProcedure } from '@orpc/contract'
-import { ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE } from '@orpc/shared'
 import { describe, expect, it, vi } from 'vitest'
 import { lazy } from '../../lazy'
 import { Procedure } from '../../procedure'
@@ -164,14 +163,5 @@ describe('oRPCHandler', () => {
     expect(onStart).toBeCalledTimes(1)
     expect(onSuccess).toBeCalledTimes(1)
     expect(onError).toBeCalledTimes(0)
-  })
-
-  it('conditions', () => {
-    const handler = new ORPCHandler(router)
-
-    expect(handler.condition(new Request('https://example.com'))).toBe(false)
-    expect(handler.condition(new Request('https://example.com', {
-      headers: new Headers({ [ORPC_HANDLER_HEADER]: ORPC_HANDLER_VALUE }),
-    }))).toBe(true)
   })
 })

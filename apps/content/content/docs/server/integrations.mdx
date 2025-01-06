@@ -211,7 +211,7 @@ export const { GET, POST, PUT, PATCH, DELETE } = serve(openAPIHandler, {
 ```
 
 ```ts title="app/rpc/[...orpc]/route.ts" twoslash
-import { serve, ORPCHandler } from '@orpc/server/fetch'
+import { serve, ORPCHandler } from '@orpc/server/next'
 import { router } from 'examples/server'
 
 const orpcHandler = new ORPCHandler(router)

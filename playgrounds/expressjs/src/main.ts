@@ -1,6 +1,6 @@
 import { OpenAPIGenerator } from '@orpc/openapi'
 import { OpenAPIServerHandler } from '@orpc/openapi/node'
-import { CompositeHandler, ORPCHandler } from '@orpc/server/node'
+import { ORPCHandler } from '@orpc/server/node'
 import { ZodCoercer, ZodToJsonSchemaConverter } from '@orpc/zod'
 import express from 'express'
 import { router } from './router'
@@ -17,23 +17,44 @@ const openAPIHandler = new OpenAPIServerHandler(router, {
   },
 })
 
+app.use('/api/*', async (req, res, next) => {
+  const context = req.headers.authorization
+    ? { user: { id: 'test', name: 'John Doe', email: 'john@doe.com' } }
+    : {}
+
+  const { matched } = await openAPIHandler.handle(req, res, {
+    prefix: '/api',
+    context,
+  })
+
+  if (matched) {
+    return
+  }
+
+  next()
+})
+
 const orpcHandler = new ORPCHandler(router, {
   onError: ({ error }) => {
     console.error(error)
   },
 })
 
-const compositeHandler = new CompositeHandler([openAPIHandler, orpcHandler])
-
-app.all('/api/*', (req, res) => {
+app.use('/rpc/*', async (req, res, next) => {
   const context = req.headers.authorization
     ? { user: { id: 'test', name: 'John Doe', email: 'john@doe.com' } }
     : {}
 
-  return compositeHandler.handle(req, res, {
-    prefix: '/api',
+  const { matched } = await orpcHandler.handle(req, res, {
+    prefix: '/rpc',
     context,
   })
+
+  if (matched) {
+    return
+  }
+
+  next()
 })
 
 const openAPIGenerator = new OpenAPIGenerator({

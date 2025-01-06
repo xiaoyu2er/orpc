@@ -1,32 +1,33 @@
-import type { IncomingMessage, ServerResponse } from 'node:http'
+import type { ServerResponse } from 'node:http'
 import type { Router } from '../../router'
 import type { Context } from '../../types'
 import type { ORPCHandlerOptions } from '../fetch/orpc-handler'
-import type { ConditionalRequestHandler, RequestOptions } from './types'
-import { createRequest, sendResponse } from '@mjackson/node-fetch-server'
-import { ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE } from '@orpc/shared'
+import type { RequestHandler, RequestHandleRest, RequestHandleResult } from './types'
 import { ORPCHandler as ORPCFetchHandler } from '../fetch/orpc-handler'
+import { createRequest, type ExpressableIncomingMessage, sendResponse } from './request-listener'
 
-export class ORPCHandler<T extends Context> implements ConditionalRequestHandler<T> {
+export class ORPCHandler<T extends Context> implements RequestHandler<T> {
   private readonly orpcFetchHandler: ORPCFetchHandler<T>
 
   constructor(router: Router<T, any>, options?: NoInfer<ORPCHandlerOptions<T>>) {
     this.orpcFetchHandler = new ORPCFetchHandler(router, options)
   }
 
-  condition(request: IncomingMessage): boolean {
-    return Boolean(request.headers[ORPC_HANDLER_HEADER]?.includes(ORPC_HANDLER_VALUE))
-  }
-
-  async handle(req: IncomingMessage, res: ServerResponse, ...[options]: [options: RequestOptions<T>] | (undefined extends T ? [] : never)): Promise<void> {
-    const request = createRequest(req, res, options)
+  async handle(req: ExpressableIncomingMessage, res: ServerResponse, ...[options]: RequestHandleRest<T>): Promise<RequestHandleResult> {
+    const request = createRequest(req, res)
 
     const castedOptions = (options ?? {}) as Exclude<typeof options, undefined>
 
-    const response = await this.orpcFetchHandler.fetch(request, castedOptions)
+    const result = await this.orpcFetchHandler.handle(request, castedOptions)
 
-    await options?.beforeSend?.(response, castedOptions.context as T)
+    if (result.matched === false) {
+      return { matched: false }
+    }
 
-    return await sendResponse(res, response)
+    await options?.beforeSend?.(result.response, castedOptions.context as T)
+
+    await sendResponse(res, result.response)
+
+    return { matched: true }
   }
 }

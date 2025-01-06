@@ -1,7 +1,7 @@
 import { createServer } from 'node:http'
 import { OpenAPIGenerator } from '@orpc/openapi'
 import { OpenAPIServerHandler } from '@orpc/openapi/node'
-import { CompositeHandler, ORPCHandler } from '@orpc/server/node'
+import { ORPCHandler } from '@orpc/server/node'
 import { ZodCoercer, ZodToJsonSchemaConverter } from '@orpc/zod'
 import { contract } from './contract'
 import { router } from './router'
@@ -22,8 +22,6 @@ const orpcHandler = new ORPCHandler(router, {
   },
 })
 
-const compositeHandler = new CompositeHandler([openAPIHandler, orpcHandler])
-
 const openAPIGenerator = new OpenAPIGenerator({
   schemaConverters: [
     new ZodToJsonSchemaConverter(),
@@ -36,10 +34,25 @@ const server = createServer(async (req, res) => {
     : {}
 
   if (req.url?.startsWith('/api')) {
-    return compositeHandler.handle(req, res, {
+    const { matched } = await openAPIHandler.handle(req, res, {
       prefix: '/api',
       context,
     })
+
+    if (matched) {
+      return
+    }
+  }
+
+  if (req.url?.startsWith('/rpc')) {
+    const { matched } = await orpcHandler.handle(req, res, {
+      prefix: '/rpc',
+      context,
+    })
+
+    if (matched) {
+      return
+    }
   }
 
   if (req.url === '/spec.json') {

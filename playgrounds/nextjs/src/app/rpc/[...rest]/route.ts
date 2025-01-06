@@ -1,19 +1,15 @@
-import { OpenAPIServerlessHandler } from '@orpc/openapi/fetch'
-import { ZodCoercer } from '@orpc/zod'
+import { ORPCHandler } from '@orpc/server/fetch'
 import { router } from '../../router'
 import '../../../polyfill'
 
-const openAPIHandler = new OpenAPIServerlessHandler(router, {
-  schemaCoercers: [
-    new ZodCoercer(),
-  ],
+const openAPIHandler = new ORPCHandler(router, {
   onError: ({ error }) => {
     console.error(error)
   },
 })
 
 export async function GET(request: Request) {
-  const { matched, response } = await openAPIHandler.handle(request, { prefix: '/api' })
+  const { matched, response } = await openAPIHandler.handle(request, { prefix: '/rpc' })
 
   if (matched) {
     return response

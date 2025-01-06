@@ -1,16 +1,16 @@
 import type { FetchHandler } from './types'
 
 describe('FetchHandler', () => {
-  it('optional second argument when context is not required', () => {
+  it('optional context when context is undefinable', () => {
     const handler = {} as FetchHandler<{ auth: boolean } | undefined>
 
-    handler.fetch(new Request('https://example.com'))
-    handler.fetch(new Request('https://example.com'), { context: { auth: true } })
+    handler.handle(new Request('https://example.com'))
+    handler.handle(new Request('https://example.com'), { context: { auth: true } })
 
     const handler2 = {} as FetchHandler<{ auth: boolean }>
 
+    handler2.handle(new Request('https://example.com'), { context: { auth: true } })
     // @ts-expect-error -- context is required
-    handler2.fetch(new Request('https://example.com'))
-    handler2.fetch(new Request('https://example.com'), { context: { auth: true } })
+    handler2.handle(new Request('https://example.com'))
   })
 })

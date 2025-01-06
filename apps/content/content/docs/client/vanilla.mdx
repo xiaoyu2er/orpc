@@ -19,7 +19,7 @@ import { ORPCLink } from '@orpc/client/fetch'
 import type { router } from 'examples/server'
 
 const orpcLink = new ORPCLink({
-  url: 'http://localhost:3000/api',
+  url: 'http://localhost:3000/rpc',
   // fetch: optional override for the default fetch function
   // headers: provide additional headers
 })
@@ -51,7 +51,7 @@ type ClientContext = { cache?: RequestCache } | undefined
 // if context is not undefinable, it will require you pass context in every call
 
 const orpcLink = new ORPCLink<ClientContext>({
-  url: 'http://localhost:3000/api',
+  url: 'http://localhost:3000/rpc',
   // headers: provide additional headers
   fetch: (input, init, context) => globalThis.fetch(input, {
     ...init,
@@ -90,7 +90,7 @@ import { createORPCClient, DynamicLink, ORPCError } from '@orpc/client'
 import { ORPCLink } from '@orpc/client/fetch'
 
 const orpcLink1 = new ORPCLink({
-  url: 'http://localhost:3000/api',
+  url: 'http://localhost:3000/rpc',
   // headers: provide additional headers
 })
 

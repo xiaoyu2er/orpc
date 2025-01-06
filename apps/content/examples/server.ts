@@ -95,19 +95,16 @@ export type Outputs = InferRouterOutputs<typeof router>
 // Modern runtime that support fetch api like deno, bun, cloudflare workers, even node can used
 import { createServer } from 'node:http'
 import { OpenAPIServerlessHandler } from '@orpc/openapi/node'
-import { CompositeHandler, ORPCHandler } from '@orpc/server/node'
 
 const openapiHandler = new OpenAPIServerlessHandler(router, {
   schemaCoercers: [
     new ZodCoercer(),
   ],
 })
-const orpcHandler = new ORPCHandler(router)
-const compositeHandler = new CompositeHandler([openapiHandler, orpcHandler])
 
 const server = createServer((req, res) => {
   if (req.url?.startsWith('/api')) {
-    return compositeHandler.handle(req, res, {
+    return openapiHandler.handle(req, res, {
       prefix: '/api',
       context: {},
     })

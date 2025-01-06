@@ -4,7 +4,7 @@ import { ORPCLink } from '@orpc/client/fetch'
 import { createORPCVueQueryUtils } from '@orpc/vue-query'
 
 const orpcLink = new ORPCLink({
-  url: 'http://localhost:3000/api',
+  url: 'http://localhost:3000/rpc',
   headers: () => ({
     Authorization: 'Bearer default-token',
   }),

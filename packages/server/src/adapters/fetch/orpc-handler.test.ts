@@ -1,5 +1,4 @@
 import { ContractProcedure } from '@orpc/contract'
-import { ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE } from '@orpc/shared'
 import { describe, expect, it, vi } from 'vitest'
 import { lazy } from '../../lazy'
 import { Procedure } from '../../procedure'
@@ -44,12 +43,10 @@ describe('oRPCHandler', () => {
       headers: new Headers({ }),
     })
 
-    const response = await handler.fetch(mockRequest)
+    const { matched, response } = await handler.handle(mockRequest)
 
-    expect(response?.status).toBe(404)
-
-    const body = await response?.text()
-    expect(body).toContain('Not found')
+    expect(matched).toBe(false)
+    expect(response).toBeUndefined()
   })
 
   it('should return a 200 response with serialized output if procedure is resolved successfully', async () => {
@@ -64,7 +61,9 @@ describe('oRPCHandler', () => {
       body: JSON.stringify({ data: { value: '123' }, meta: [] }),
     })
 
-    const response = await handler.fetch(mockRequest)
+    const { response, matched } = await handler.handle(mockRequest)
+
+    expect(matched).toBe(true)
 
     expect(response?.status).toBe(200)
 
@@ -72,7 +71,7 @@ describe('oRPCHandler', () => {
     expect(body).toEqual({ data: '__mocked__', meta: [] })
 
     expect(caller).toBeCalledTimes(1)
-    expect(caller).toBeCalledWith({ value: '123' }, { signal: undefined })
+    expect(caller).toBeCalledWith({ value: '123' }, { signal: mockRequest.signal })
   })
 
   it('should handle deserialization errors and return a 400 response', async () => {
@@ -84,7 +83,7 @@ describe('oRPCHandler', () => {
       body: '{ invalid json',
     })
 
-    const response = await handler.fetch(mockRequest)
+    const { response } = await handler.handle(mockRequest)
 
     expect(response?.status).toBe(400)
 
@@ -105,7 +104,7 @@ describe('oRPCHandler', () => {
       body: JSON.stringify({ data: { value: '123' }, meta: [] }),
     })
 
-    const response = await handler.fetch(mockRequest)
+    const { response } = await handler.handle(mockRequest)
 
     expect(response?.status).toBe(500)
 
@@ -119,16 +118,17 @@ describe('oRPCHandler', () => {
     const caller = vi.fn().mockReturnValueOnce('__mocked__')
     vi.mocked(createProcedureClient).mockReturnValue(caller)
 
+    const controller = new AbortController()
+    const signal = controller.signal
+
     const mockRequest = new Request('https://example.com/ping', {
       headers: new Headers({ }),
       method: 'POST',
       body: JSON.stringify({ data: { value: '123' }, meta: [] }),
+      signal,
     })
 
-    const controller = new AbortController()
-    const signal = controller.signal
-
-    const response = await handler.fetch(mockRequest, { signal })
+    const { response } = await handler.handle(mockRequest)
 
     expect(response?.status).toBe(200)
 
@@ -136,7 +136,7 @@ describe('oRPCHandler', () => {
     expect(body).toEqual({ data: '__mocked__', meta: [] })
 
     expect(caller).toBeCalledTimes(1)
-    expect(caller).toBeCalledWith({ value: '123' }, { signal })
+    expect(caller).toBeCalledWith({ value: '123' }, { signal: mockRequest.signal })
   })
 
   it('hooks', async () => {
@@ -156,21 +156,12 @@ describe('oRPCHandler', () => {
       onError,
     })
 
-    const response = await handler.fetch(mockRequest)
+    const { matched } = await handler.handle(mockRequest)
 
-    expect(response?.status).toBe(404)
+    expect(matched).toBe(false)
 
     expect(onStart).toBeCalledTimes(1)
-    expect(onSuccess).toBeCalledTimes(0)
-    expect(onError).toBeCalledTimes(1)
-  })
-
-  it('conditions', () => {
-    const handler = new ORPCHandler(router)
-
-    expect(handler.condition(new Request('https://example.com'))).toBe(false)
-    expect(handler.condition(new Request('https://example.com', {
-      headers: new Headers({ [ORPC_HANDLER_HEADER]: ORPC_HANDLER_VALUE }),
-    }))).toBe(true)
+    expect(onSuccess).toBeCalledTimes(1)
+    expect(onError).toBeCalledTimes(0)
   })
 })

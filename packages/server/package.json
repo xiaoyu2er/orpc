@@ -59,11 +59,11 @@
     "build:watch": "pnpm run build --watch",
     "type:check": "tsc -b"
   },
+  "peerDependencies": {
+    "hono": ">=4.6.0"
+  },
   "dependencies": {
     "@orpc/contract": "workspace:*",
     "@orpc/shared": "workspace:*"
-  },
-  "devDependencies": {
-    "zod": "^3.24.1"
   }
 }

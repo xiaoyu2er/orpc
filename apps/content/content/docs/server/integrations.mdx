@@ -155,47 +155,35 @@ app.listen(3000, () => {
 
 ```ts twoslash
 import { Hono } from 'hono'
-import { ORPCHandler } from '@orpc/server/fetch'
-import { OpenAPIServerlessHandler } from '@orpc/openapi/fetch'
+import { ORPCHandler, createMiddleware } from '@orpc/server/hono'
+import { OpenAPIServerlessHandler } from '@orpc/openapi/hono'
 import { router } from 'examples/server'
 import { ZodCoercer } from '@orpc/zod'
+
+
+const app = new Hono()
 
 const openapiHandler = new OpenAPIServerlessHandler(router, {
   schemaCoercers: [
     new ZodCoercer(),
   ],
 })
+
+app.use('/api/*', createMiddleware(openapiHandler, {
+  prefix: '/api',
+  context: async (c) => {
+    return {}
+  }
+}))
+
 const orpcHandler = new ORPCHandler(router)
 
-const app = new Hono()
-
-app.use('/api/*', async (c, next) => {
-  const { matched, response } = await openapiHandler.handle(c.req.raw, {
-    prefix: '/api',
-    context: {},
-  })
-
-  if (matched) {
-    c.res = response
-    return
+app.use('/rpc/*', createMiddleware(orpcHandler, {
+  prefix: '/rpc',
+  context: async (c) => {
+    return {}
   }
-
-  await next()
-})
-
-app.use('/rpc/*', async (c, next) => {
-  const { matched, response } = await orpcHandler.handle(c.req.raw, {
-    prefix: '/rpc',
-    context: {},
-  })
-
-  if (matched) {
-    c.res = response
-    return
-  }
-
-  await next()
-})
+}))
 
 export default app
 ```

@@ -25,6 +25,11 @@
         "import": "./dist/fetch.js",
         "default": "./dist/fetch.js"
       },
+      "./hono": {
+        "types": "./dist/src/adapters/hono/index.d.ts",
+        "import": "./dist/hono.js",
+        "default": "./dist/hono.js"
+      },
       "./node": {
         "types": "./dist/src/adapters/node/index.d.ts",
         "import": "./dist/node.js",
@@ -38,6 +43,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./fetch": "./src/adapters/fetch/index.ts",
+    "./hono": "./src/adapters/hono/index.ts",
     "./node": "./src/adapters/node/index.ts",
     "./🔒/*": {
       "types": "./src/*.ts"
@@ -49,15 +55,15 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup --clean --sourcemap --entry.index=src/index.ts --entry.fetch=src/adapters/fetch/index.ts --entry.node=src/adapters/node/index.ts --format=esm --onSuccess='tsc -b --noCheck'",
+    "build": "tsup --onSuccess='tsc -b --noCheck'",
     "build:watch": "pnpm run build --watch",
     "type:check": "tsc -b"
+  },
+  "peerDependencies": {
+    "hono": ">=4.6.0"
   },
   "dependencies": {
     "@orpc/contract": "workspace:*",
     "@orpc/shared": "workspace:*"
-  },
-  "devDependencies": {
-    "zod": "^3.24.1"
   }
 }

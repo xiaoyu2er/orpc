@@ -155,9 +155,8 @@ app.listen(3000, () => {
 
 ```ts twoslash
 import { Hono } from 'hono'
-import { ORPCHandler } from '@orpc/server/fetch'
-import { createMiddleware } from '@orpc/server/hono'
-import { OpenAPIServerlessHandler } from '@orpc/openapi/fetch'
+import { ORPCHandler, createMiddleware } from '@orpc/server/hono'
+import { OpenAPIServerlessHandler } from '@orpc/openapi/hono'
 import { router } from 'examples/server'
 import { ZodCoercer } from '@orpc/zod'
 

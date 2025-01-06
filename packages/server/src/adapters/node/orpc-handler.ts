@@ -1,10 +1,10 @@
-import type { IncomingMessage, ServerResponse } from 'node:http'
+import type { ServerResponse } from 'node:http'
 import type { Router } from '../../router'
 import type { Context } from '../../types'
 import type { ORPCHandlerOptions } from '../fetch/orpc-handler'
 import type { RequestHandler, RequestHandleRest, RequestHandleResult } from './types'
-import { createRequest, sendResponse } from '@mjackson/node-fetch-server'
 import { ORPCHandler as ORPCFetchHandler } from '../fetch/orpc-handler'
+import { createRequest, type ExpressableIncomingMessage, sendResponse } from './request-listener'
 
 export class ORPCHandler<T extends Context> implements RequestHandler<T> {
   private readonly orpcFetchHandler: ORPCFetchHandler<T>
@@ -13,8 +13,8 @@ export class ORPCHandler<T extends Context> implements RequestHandler<T> {
     this.orpcFetchHandler = new ORPCFetchHandler(router, options)
   }
 
-  async handle(req: IncomingMessage, res: ServerResponse, ...[options]: RequestHandleRest<T>): Promise<RequestHandleResult> {
-    const request = createRequest(req, res, options)
+  async handle(req: ExpressableIncomingMessage, res: ServerResponse, ...[options]: RequestHandleRest<T>): Promise<RequestHandleResult> {
+    const request = createRequest(req, res)
 
     const castedOptions = (options ?? {}) as Exclude<typeof options, undefined>
 

@@ -1,4 +1,4 @@
-import { createRequest, sendResponse } from '@mjackson/node-fetch-server'
+import { createRequest, sendResponse } from '@orpc/server/node'
 import { OpenAPIHandler as OpenAPIFetchHandler } from '../fetch/openapi-handler'
 import { OpenAPIHandler } from './openapi-handler'
 
@@ -6,7 +6,7 @@ vi.mock('../fetch/openapi-handler', () => ({
   OpenAPIHandler: vi.fn(),
 }))
 
-vi.mock('@mjackson/node-fetch-server', async origin => ({
+vi.mock('@orpc/server/node', async origin => ({
   ...await origin(),
   createRequest: vi.fn(),
   sendResponse: vi.fn(),
@@ -34,7 +34,7 @@ describe('openAPIHandler', () => {
     await handler.handle(req, res)
 
     expect(createRequest).toHaveBeenCalledTimes(1)
-    expect(createRequest).toHaveBeenCalledWith(req, res, undefined)
+    expect(createRequest).toHaveBeenCalledWith(req, res)
 
     expect(sendResponse).toHaveBeenCalledTimes(1)
     expect(sendResponse).toHaveBeenCalledWith(res, response)

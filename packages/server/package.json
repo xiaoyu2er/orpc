@@ -54,7 +54,6 @@
     "type:check": "tsc -b"
   },
   "dependencies": {
-    "@mjackson/node-fetch-server": "^0.5.0",
     "@orpc/contract": "workspace:*",
     "@orpc/shared": "workspace:*"
   },

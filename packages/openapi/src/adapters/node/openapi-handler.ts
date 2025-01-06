@@ -1,9 +1,8 @@
 import type { Context, Router } from '@orpc/server'
-import type { RequestHandler, RequestHandleRest, RequestHandleResult } from '@orpc/server/node'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { OpenAPIHandlerOptions } from '../fetch/openapi-handler'
 import type { Hono } from '../fetch/openapi-procedure-matcher'
-import { createRequest, sendResponse } from '@mjackson/node-fetch-server'
+import { createRequest, type RequestHandler, type RequestHandleRest, type RequestHandleResult, sendResponse } from '@orpc/server/node'
 import { OpenAPIHandler as OpenAPIFetchHandler } from '../fetch/openapi-handler'
 
 export class OpenAPIHandler<T extends Context> implements RequestHandler<T> {
@@ -14,7 +13,7 @@ export class OpenAPIHandler<T extends Context> implements RequestHandler<T> {
   }
 
   async handle(req: IncomingMessage, res: ServerResponse, ...[options]: RequestHandleRest<T>): Promise<RequestHandleResult> {
-    const request = createRequest(req, res, options)
+    const request = createRequest(req, res)
 
     const castedOptions = (options ?? {}) as Exclude<typeof options, undefined>
 

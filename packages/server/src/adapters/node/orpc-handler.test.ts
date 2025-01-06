@@ -1,14 +1,13 @@
-import { createRequest, sendResponse } from '@mjackson/node-fetch-server'
 import { describe, expect, it, vi } from 'vitest'
 import { ORPCHandler as ORPCFetchHandler } from '../fetch/orpc-handler'
 import { ORPCHandler } from './orpc-handler'
+import { createRequest, sendResponse } from './request-listener'
 
 vi.mock('../fetch/orpc-handler', () => ({
   ORPCHandler: vi.fn(),
 }))
 
-vi.mock('@mjackson/node-fetch-server', async origin => ({
-  ...await origin(),
+vi.mock('./request-listener', () => ({
   createRequest: vi.fn(),
   sendResponse: vi.fn(),
 }))
@@ -34,7 +33,7 @@ describe('oRPCHandler', () => {
     await handler.handle(req, res)
 
     expect(createRequest).toHaveBeenCalledTimes(1)
-    expect(createRequest).toHaveBeenCalledWith(req, res, undefined)
+    expect(createRequest).toHaveBeenCalledWith(req, res)
 
     expect(sendResponse).toHaveBeenCalledTimes(1)
     expect(sendResponse).toHaveBeenCalledWith(res, response)

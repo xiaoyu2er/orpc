@@ -202,7 +202,7 @@ const openapiHandler = new OpenAPIServerlessHandler(router, {
   ],
 })
 
-export const { GET, POST, PUT, PATCH, DELETE } = serve(openAPIHandler, {
+export const { GET, POST, PUT, PATCH, DELETE } = serve(openapiHandler, {
   prefix: '/api',
   context: async (req) => {
     return {}

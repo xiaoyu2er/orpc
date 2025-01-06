@@ -5,6 +5,7 @@ export default defineConfig({
     index: 'src/index.ts',
     fetch: 'src/adapters/fetch/index.ts',
     node: 'src/adapters/node/index.ts',
+    next: 'src/adapters/next/index.ts',
     hono: 'src/adapters/hono/index.ts',
   },
   sourcemap: true,

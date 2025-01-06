@@ -30,6 +30,11 @@
         "import": "./dist/hono.js",
         "default": "./dist/hono.js"
       },
+      "./next": {
+        "types": "./dist/src/adapters/next/index.d.ts",
+        "import": "./dist/next.js",
+        "default": "./dist/next.js"
+      },
       "./node": {
         "types": "./dist/src/adapters/node/index.d.ts",
         "import": "./dist/node.js",
@@ -44,6 +49,7 @@
     ".": "./src/index.ts",
     "./fetch": "./src/adapters/fetch/index.ts",
     "./hono": "./src/adapters/hono/index.ts",
+    "./next": "./src/adapters/next/index.ts",
     "./node": "./src/adapters/node/index.ts",
     "./🔒/*": {
       "types": "./src/*.ts"
@@ -60,7 +66,8 @@
     "type:check": "tsc -b"
   },
   "peerDependencies": {
-    "hono": ">=4.6.0"
+    "hono": ">=4.6.0",
+    "next": ">=14.0.0"
   },
   "dependencies": {
     "@orpc/contract": "workspace:*",

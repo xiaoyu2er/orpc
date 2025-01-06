@@ -6,7 +6,7 @@ import { ORPCLink } from '@orpc/client/fetch'
 import type { router } from 'examples/server'
 
 const orpcLink = new ORPCLink({
-  url: 'http://localhost:3000/api',
+  url: 'http://localhost:3000/rpc',
   // fetch: optional override for the default fetch function
   // headers: provide additional headers
 })
@@ -124,7 +124,7 @@ const queries = orpc.useQueries(o => [
 export function ORPCProvider({ children }: { children: React.ReactNode }) {
     const [client] = useState(() => {
         const orpcLink = new ORPCLink({
-            url: 'http://localhost:3000/api',
+            url: 'http://localhost:3000/rpc',
             // fetch: optional override for the default fetch function
             // headers: provide additional headers
         })

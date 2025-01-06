@@ -22,7 +22,7 @@ describe('zodCoercer', () => {
         new ZodCoercer(),
       ],
     })
-    const res = await handler.handle(new Request('https://example.com/ping', {
+    const { response } = await handler.handle(new Request('https://example.com/ping', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -32,7 +32,7 @@ describe('zodCoercer', () => {
       }),
     }))
 
-    expect(res.status).toBe(200)
+    expect(response?.status).toBe(200)
     expect(fn).toHaveBeenCalledWith(expect.objectContaining({ input: { val: 123n } }))
   })
 })

@@ -94,7 +94,13 @@ const orpcLink = new ORPCLink({
   async fetch(input, init) {
     await new Promise(resolve => setTimeout(resolve, 100))
     const request = new Request(input, init)
-    return orpcHandler.handle(request)
+    const { matched, response } = await orpcHandler.handle(request)
+
+    if (!matched) {
+      throw new Error('expect matched=true any time')
+    }
+
+    return response
   },
 })
 

@@ -191,7 +191,8 @@ export default app
 ## Next.js
 
 ```ts title="app/api/[...orpc]/route.ts" twoslash
-import { OpenAPIServerlessHandler } from '@orpc/openapi/fetch'
+import { OpenAPIServerlessHandler } from '@orpc/openapi/next'
+import { serve } from '@orpc/server/next'
 import { router } from 'examples/server'
 import { ZodCoercer } from '@orpc/zod'
 
@@ -201,48 +202,26 @@ const openapiHandler = new OpenAPIServerlessHandler(router, {
   ],
 })
 
-export async function GET(request: Request) {
-  const { matched, response } = await openapiHandler.handle(request, {
-    prefix: '/rpc',
-    context: {},
-  })
-
-  if (matched) {
-    return response
-  }
-
-  return new Response('Not found', { status: 404 })
-}
-
-export const POST = GET
-export const PUT = GET
-export const DELETE = GET
-export const PATCH = GET
+export const { GET, POST, PUT, PATCH, DELETE } = serve(openAPIHandler, {
+  prefix: '/api',
+  context: async (req) => {
+    return {}
+  },
+})
 ```
 
 ```ts title="app/rpc/[...orpc]/route.ts" twoslash
-import { ORPCHandler } from '@orpc/server/fetch'
+import { serve, ORPCHandler } from '@orpc/server/fetch'
 import { router } from 'examples/server'
 
 const orpcHandler = new ORPCHandler(router)
 
-export async function GET(request: Request) {
-  const { matched, response } = await orpcHandler.handle(request, {
-    prefix: '/rpc',
-    context: {},
-  })
-
-  if (matched) {
-    return response
-  }
-
-  return new Response('Not found', { status: 404 })
-}
-
-export const POST = GET
-export const PUT = GET
-export const DELETE = GET
-export const PATCH = GET
+export const { GET, POST, PUT, PATCH, DELETE } = serve(orpcHandler, {
+  prefix: '/rpc',
+  context: async (req) => {
+    return {}
+  },
+})
 ```
 
 ## Cloudflare Workers

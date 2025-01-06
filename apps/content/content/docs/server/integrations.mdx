@@ -69,7 +69,7 @@ const openapiHandler = new OpenAPIServerlessHandler(router, {
 })
 const orpcHandler = new ORPCHandler(router)
 
-const server = createServer((req, res) => {
+const server = createServer(async (req, res) => {
   if (req.url?.startsWith('/api')) {
     const { matched } = await openapiHandler.handle(req, res, {
       prefix: '/api',
@@ -118,7 +118,7 @@ const openapiHandler = new OpenAPIServerlessHandler(router, {
   ],
 })
 
-app.use('/api/*', (req, res, next) => {
+app.use('/api/*', async (req, res, next) => {
   const { matched } = await openapiHandler.handle(req, res, {
     prefix: '/api',
     context: {},
@@ -133,7 +133,7 @@ app.use('/api/*', (req, res, next) => {
 
 const orpcHandler = new ORPCHandler(router)
 
-app.use('/rpc/*', (req, res, next) => {
+app.use('/rpc/*', async (req, res, next) => {
   const { matched } = await orpcHandler.handle(req, res, {
     prefix: '/rpc',
     context: {},
@@ -213,11 +213,17 @@ const openapiHandler = new OpenAPIServerlessHandler(router, {
   ],
 })
 
-export function GET(request: Request) {
-  return openapiHandler.fetch(request, {
-    prefix: '/api',
+export async function GET(request: Request) {
+  const { matched, response } = await openapiHandler.handle(request, {
+    prefix: '/rpc',
     context: {},
   })
+
+  if (matched) {
+    return response
+  }
+
+  return new Response('Not found', { status: 404 })
 }
 
 export const POST = GET
@@ -232,11 +238,17 @@ import { router } from 'examples/server'
 
 const orpcHandler = new ORPCHandler(router)
 
-export function GET(request: Request) {
-  return orpcHandler.fetch(request, {
+export async function GET(request: Request) {
+  const { matched, response } = await orpcHandler.handle(request, {
     prefix: '/rpc',
     context: {},
   })
+
+  if (matched) {
+    return response
+  }
+
+  return new Response('Not found', { status: 404 })
 }
 
 export const POST = GET

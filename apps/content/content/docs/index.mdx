@@ -146,7 +146,7 @@ In oRPC middleware is very useful and fully typed you can find more info [here](
 ## Start Your Server
 
 ```ts twoslash
-import { ORPCHandler, CompositeHandler } from '@orpc/server/node'
+import { ORPCHandler } from '@orpc/server/node'
 import { OpenAPIServerlessHandler } from '@orpc/openapi/node'
 import { createServer } from 'node:http'
 import { router } from 'examples/server'
@@ -157,15 +157,30 @@ const openapiHandler = new OpenAPIServerlessHandler(router, {
     new ZodCoercer(),
   ],
 })
+
 const orpcHandler = new ORPCHandler(router)
-const compositeHandler = new CompositeHandler([openapiHandler, orpcHandler])
 
 const server = createServer(async (req, res) => {
   if (req.url?.startsWith('/api')) {
-    return compositeHandler.handle(req, res, {
+    const { matched } = await openapiHandler.handle(req, res, {
       prefix: '/api',
       context: {},
     })
+
+    if(matched){
+      return 
+    }
+  }
+
+  if(req.url?.startsWith('/rpc')){
+    const { matched } = await orpcHandler.handle(req, res, {
+      prefix: '/rpc',
+      context: {},
+    })
+
+    if(matched){
+      return 
+    }
   }
 
   res.statusCode = 404

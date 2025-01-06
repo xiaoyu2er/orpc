@@ -13,7 +13,7 @@ Whether you're targeting serverless, edge environments, or traditional backends,
 ## Quick Example
 
 ```ts twoslash
-import { ORPCHandler, CompositeHandler } from '@orpc/server/fetch'
+import { ORPCHandler } from '@orpc/server/fetch'
 import { OpenAPIServerlessHandler } from '@orpc/openapi/fetch'
 import { router } from 'examples/server'
 import { ZodCoercer } from '@orpc/zod'
@@ -23,13 +23,33 @@ const openapiHandler = new OpenAPIServerlessHandler(router, {
     new ZodCoercer(),
   ],
 })
-const orpcHandler = new ORPCHandler(router)
-const compositeHandler = new CompositeHandler([openapiHandler, orpcHandler])
 
-export function fetch(request: Request) {
-  return compositeHandler.fetch(request, {
-    context: {},
-  })
+const orpcHandler = new ORPCHandler(router)
+
+export async function fetch(request: Request) {
+  const url = new URL(request.url)
+
+  if (url.pathname.startsWith('/api')) {
+     const { matched, response } = await openapiHandler.handle(request, {
+       prefix: '/api'
+     })
+
+     if (matched) {
+       return response
+     }
+  }
+
+  if (url.pathname.startsWith('/rpc')) {
+    const { matched, response } = await orpcHandler.handle(request, {
+      prefix: '/rpc'
+    })
+
+    if (matched) {
+      return response
+    }
+  }
+
+  return new Response('Not found', { status: 404 })
 }
 ```
 
@@ -37,7 +57,7 @@ export function fetch(request: Request) {
 
 ```ts twoslash
 import { createServer } from 'node:http'
-import { ORPCHandler, CompositeHandler } from '@orpc/server/node'
+import { ORPCHandler } from '@orpc/server/node'
 import { OpenAPIServerlessHandler } from '@orpc/openapi/node'
 import { router } from 'examples/server'
 import { ZodCoercer } from '@orpc/zod'
@@ -48,12 +68,32 @@ const openapiHandler = new OpenAPIServerlessHandler(router, {
   ],
 })
 const orpcHandler = new ORPCHandler(router)
-const compositeHandler = new CompositeHandler([openapiHandler, orpcHandler])
 
 const server = createServer((req, res) => {
-  return compositeHandler.handle(req, res, {
-    context: {},
-  })
+  if (req.url?.startsWith('/api')) {
+    const { matched } = await openapiHandler.handle(req, res, {
+      prefix: '/api',
+      context: {},
+    })
+
+    if (matched) {
+      return
+    }
+  }
+
+  if (req.url?.startsWith('/rpc')) {
+    const { matched } = await orpcHandler.handle(req, res, {
+      prefix: '/rpc',
+      context: {},
+    })
+
+    if (matched) {
+      return
+    }
+  }
+  
+  res.statusCode = 404
+  res.end('Not found')
 })
 
 server.listen(3000, () => {
@@ -65,26 +105,45 @@ server.listen(3000, () => {
 
 ```ts twoslash
 import express from 'express'
-import { ORPCHandler, CompositeHandler } from '@orpc/server/node'
+import { ORPCHandler } from '@orpc/server/node'
 import { OpenAPIServerlessHandler } from '@orpc/openapi/node'
 import { router } from 'examples/server'
 import { ZodCoercer } from '@orpc/zod'
+
+const app = express()
 
 const openapiHandler = new OpenAPIServerlessHandler(router, {
   schemaCoercers: [
     new ZodCoercer(),
   ],
 })
-const orpcHandler = new ORPCHandler(router)
-const compositeHandler = new CompositeHandler([openapiHandler, orpcHandler])
 
-const app = express()
-
-app.all('/api/*', (req, res) => {
-  return compositeHandler.handle(req, res, {
-    context: {},
+app.use('/api/*', (req, res, next) => {
+  const { matched } = await openapiHandler.handle(req, res, {
     prefix: '/api',
+    context: {},
   })
+
+  if (matched) {
+    return
+  }
+
+  next()
+})
+
+const orpcHandler = new ORPCHandler(router)
+
+app.use('/rpc/*', (req, res, next) => {
+  const { matched } = await orpcHandler.handle(req, res, {
+    prefix: '/rpc',
+    context: {},
+  })
+
+  if (matched) {
+    return
+  }
+
+  next()
 })
 
 app.listen(3000, () => {
@@ -96,7 +155,7 @@ app.listen(3000, () => {
 
 ```ts twoslash
 import { Hono } from 'hono'
-import { ORPCHandler, CompositeHandler } from '@orpc/server/fetch'
+import { ORPCHandler } from '@orpc/server/fetch'
 import { OpenAPIServerlessHandler } from '@orpc/openapi/fetch'
 import { router } from 'examples/server'
 import { ZodCoercer } from '@orpc/zod'
@@ -107,15 +166,35 @@ const openapiHandler = new OpenAPIServerlessHandler(router, {
   ],
 })
 const orpcHandler = new ORPCHandler(router)
-const compositeHandler = new CompositeHandler([openapiHandler, orpcHandler])
 
 const app = new Hono()
 
-app.get('/api/*', (c) => {
-  return compositeHandler.fetch(c.req.raw, {
+app.use('/api/*', async (c, next) => {
+  const { matched, response } = await openapiHandler.handle(c.req.raw, {
     prefix: '/api',
     context: {},
   })
+
+  if (matched) {
+    c.res = response
+    return
+  }
+
+  await next()
+})
+
+app.use('/rpc/*', async (c, next) => {
+  const { matched, response } = await orpcHandler.handle(c.req.raw, {
+    prefix: '/rpc',
+    context: {},
+  })
+
+  if (matched) {
+    c.res = response
+    return
+  }
+
+  await next()
 })
 
 export default app
@@ -124,7 +203,6 @@ export default app
 ## Next.js
 
 ```ts title="app/api/[...orpc]/route.ts" twoslash
-import { ORPCHandler, CompositeHandler } from '@orpc/server/fetch'
 import { OpenAPIServerlessHandler } from '@orpc/openapi/fetch'
 import { router } from 'examples/server'
 import { ZodCoercer } from '@orpc/zod'
@@ -134,12 +212,29 @@ const openapiHandler = new OpenAPIServerlessHandler(router, {
     new ZodCoercer(),
   ],
 })
-const orpcHandler = new ORPCHandler(router)
-const compositeHandler = new CompositeHandler([openapiHandler, orpcHandler])
 
 export function GET(request: Request) {
-  return compositeHandler.fetch(request, {
+  return openapiHandler.fetch(request, {
     prefix: '/api',
+    context: {},
+  })
+}
+
+export const POST = GET
+export const PUT = GET
+export const DELETE = GET
+export const PATCH = GET
+```
+
+```ts title="app/rpc/[...orpc]/route.ts" twoslash
+import { ORPCHandler } from '@orpc/server/fetch'
+import { router } from 'examples/server'
+
+const orpcHandler = new ORPCHandler(router)
+
+export function GET(request: Request) {
+  return orpcHandler.fetch(request, {
+    prefix: '/rpc',
     context: {},
   })
 }
@@ -153,7 +248,7 @@ export const PATCH = GET
 ## Cloudflare Workers
 
 ```ts twoslash
-import { ORPCHandler, CompositeHandler } from '@orpc/server/fetch'
+import { ORPCHandler } from '@orpc/server/fetch'
 import { OpenAPIServerlessHandler } from '@orpc/openapi/fetch'
 import { router } from 'examples/server'
 import { ZodCoercer } from '@orpc/zod'
@@ -163,15 +258,34 @@ const openapiHandler = new OpenAPIServerlessHandler(router, {
     new ZodCoercer(),
   ],
 })
+
 const orpcHandler = new ORPCHandler(router)
-const compositeHandler = new CompositeHandler([openapiHandler, orpcHandler])
 
 export default {
   async fetch(request: Request) {
-    return compositeHandler.fetch(request, {
-      prefix: '/',
-      context: {},
-    })
+    const url = new URL(request.url)
+
+    if (url.pathname.startsWith('/api')) {
+      const { matched, response } = await openapiHandler.handle(request, {
+        prefix: '/api'
+      })
+
+      if (matched) {
+        return response
+      }
+    }
+
+    if (url.pathname.startsWith('/rpc')) {
+      const { matched, response } = await orpcHandler.handle(request, {
+        prefix: '/rpc'
+      })
+
+      if (matched) {
+        return response
+      }
+    }
+
+    return new Response('Not found', { status: 404 })
   },
 }
 ```

@@ -160,14 +160,14 @@ import { OpenAPIServerlessHandler } from '@orpc/openapi/hono'
 import { router } from 'examples/server'
 import { ZodCoercer } from '@orpc/zod'
 
+
+const app = new Hono()
+
 const openapiHandler = new OpenAPIServerlessHandler(router, {
   schemaCoercers: [
     new ZodCoercer(),
   ],
 })
-const orpcHandler = new ORPCHandler(router)
-
-const app = new Hono()
 
 app.use('/api/*', createMiddleware(openapiHandler, {
   prefix: '/api',
@@ -175,6 +175,8 @@ app.use('/api/*', createMiddleware(openapiHandler, {
     return {}
   }
 }))
+
+const orpcHandler = new ORPCHandler(router)
 
 app.use('/rpc/*', createMiddleware(orpcHandler, {
   prefix: '/rpc',

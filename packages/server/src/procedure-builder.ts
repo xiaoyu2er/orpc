@@ -53,7 +53,7 @@ export class ProcedureBuilder<
     })
   }
 
-  input<U extends Schema = undefined>(
+  input<U extends Schema>(
     schema: U,
     example?: SchemaInput<U>,
   ): ProcedureBuilder<TContext, TExtraContext, U, TOutputSchema, TErrorMap> {
@@ -65,7 +65,7 @@ export class ProcedureBuilder<
     })
   }
 
-  output<U extends Schema = undefined>(
+  output<U extends Schema>(
     schema: U,
     example?: SchemaOutput<U>,
   ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, U, TErrorMap> {
@@ -74,6 +74,17 @@ export class ProcedureBuilder<
       contract: DecoratedContractProcedure
         .decorate(this['~orpc'].contract)
         .output(schema, example),
+    })
+  }
+
+  errors<UErrorMap extends ErrorMap>(
+    errors: UErrorMap,
+  ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema, UErrorMap> {
+    return new ProcedureBuilder({
+      ...this['~orpc'],
+      contract: DecoratedContractProcedure
+        .decorate(this['~orpc'].contract)
+        .errors(errors),
     })
   }
 

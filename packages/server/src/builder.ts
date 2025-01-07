@@ -1,4 +1,4 @@
-import type { ANY_CONTRACT_PROCEDURE, ContractRouter, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ANY_CONTRACT_PROCEDURE, ContractRouter, ErrorMap, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { FlattenLazy } from './lazy'
 import type { Middleware } from './middleware'
 import type { DecoratedMiddleware } from './middleware-decorated'
@@ -75,7 +75,7 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
     })
   }
 
-  input<USchema extends Schema = undefined>(
+  input<USchema extends Schema>(
     schema: USchema,
     example?: SchemaInput<USchema>,
   ): ProcedureBuilder<TContext, TExtraContext, USchema, undefined, Record<never, never>> {
@@ -90,7 +90,7 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
     })
   }
 
-  output<USchema extends Schema = undefined>(
+  output<USchema extends Schema>(
     schema: USchema,
     example?: SchemaOutput<USchema>,
   ): ProcedureBuilder<TContext, TExtraContext, undefined, USchema, Record<never, never>> {
@@ -101,6 +101,17 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
         OutputSchema: schema,
         outputExample: example,
         errorMap: {},
+      }),
+    })
+  }
+
+  errors<UErrorMap extends ErrorMap>(errors: UErrorMap): ProcedureBuilder<TContext, TExtraContext, undefined, undefined, UErrorMap> {
+    return new ProcedureBuilder({
+      middlewares: this['~orpc'].middlewares,
+      contract: new ContractProcedure({
+        InputSchema: undefined,
+        OutputSchema: undefined,
+        errorMap: errors,
       }),
     })
   }

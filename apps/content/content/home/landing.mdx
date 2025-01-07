@@ -15,9 +15,9 @@ export const updateUser = os
 			avatar: oz.file().type('image/*')
 		})
 	}))
-	.use(canMiddleware, (i) => i.id) // permission check by id
 	.output(z.literal("success")) // validate output
-	.handler(async (input) => /* handle user update */)
+	.use(canMiddleware, (input) => input.id) // permission check by id
+	.handler(async ({ input }) => /* handle user update */)
 ```
 
 > Only the `.handler` method is required. All other chain methods are optional.
@@ -149,17 +149,17 @@ const createPost = pub
 
 When you use [Initial Context](/docs/server/context#initial-context), every call to your procedure will require a valid `ORPCContext`.
 
-## **Contract-First Development**
+## **Contract-First Development** (completely optional)
 
 ```tsx
-const userContract = oc
+const getUserContract = oc
 	.route({/*something*/})
 	.input({/*something*/})
 	.output({/*something*/})
 
-// All nested procedures will be embedded in the parent contract
-const contract = os
-	.contract(userContract)
+const getUser = os
+	.contract(getUserContract)
+	.handler(({ input }) => /* handle user */)
 ```
 
 With [oRPC's Contract First Development](/docs/server/contract), you can easily separate the procedure's definition 

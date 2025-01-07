@@ -1,25 +1,29 @@
-import type { Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ErrorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Hooks, Value } from '@orpc/shared'
 import type { Lazyable } from './lazy'
 import type { MiddlewareNextFn } from './middleware'
 import type { ANY_PROCEDURE, Procedure, ProcedureHandlerOptions } from './procedure'
-import type { Context, Meta, WELL_CONTEXT, WithSignal } from './types'
+import type { AbortSignal, Context, Meta } from './types'
 import { executeWithHooks, value } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
 import { unlazy } from './lazy'
 import { mergeContext } from './utils'
 
 export type ProcedureClientOptions<TClientContext> =
-  & WithSignal
+  & { signal?: AbortSignal }
   & (undefined extends TClientContext ? { context?: TClientContext } : { context: TClientContext })
 
-export interface ProcedureClient<TInput, TOutput, TClientContext> {
+export interface ProcedureClient<TClientContext, TInput, TOutput, TError> {
   (
     ...opts:
       | [input: TInput, options: ProcedureClientOptions<TClientContext>]
       | (undefined extends TInput & TClientContext ? [] : never)
       | (undefined extends TClientContext ? [input: TInput] : never)
   ): Promise<TOutput>
+
+  ['~orpcTypes']?: {
+    __error?: TError
+  }
 }
 
 /**
@@ -30,9 +34,10 @@ export type CreateProcedureClientOptions<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
+  TErrorMap extends ErrorMap,
 > =
   & {
-    procedure: Lazyable<Procedure<TContext, any, TInputSchema, TOutputSchema, THandlerOutput>>
+    procedure: Lazyable<Procedure<TContext, any, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>>
 
     /**
      * This is helpful for logging and analytics.
@@ -50,13 +55,15 @@ export type CreateProcedureClientOptions<
   & Hooks<unknown, SchemaOutput<TOutputSchema, THandlerOutput>, TContext, Meta>
 
 export function createProcedureClient<
-  TContext extends Context = WELL_CONTEXT,
-  TInputSchema extends Schema = undefined,
-  TOutputSchema extends Schema = undefined,
-  THandlerOutput extends SchemaInput<TOutputSchema> = SchemaInput<TOutputSchema>,
+  TContext extends Context,
+  TInputSchema extends Schema,
+  TOutputSchema extends Schema,
+  THandlerOutput extends SchemaInput<TOutputSchema>,
+  TErrorMap extends ErrorMap,
 >(
-  options: CreateProcedureClientOptions<TContext, TInputSchema, TOutputSchema, THandlerOutput>,
-): ProcedureClient<SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, THandlerOutput>, unknown> {
+  options: CreateProcedureClientOptions<TContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>,
+): ProcedureClient<unknown, SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, THandlerOutput>, TErrorMap> {
+  // TODO: handle errors
   return async (...[input, callerOptions]) => {
     const path = options.path ?? []
     const { default: procedure } = await unlazy(options.procedure)

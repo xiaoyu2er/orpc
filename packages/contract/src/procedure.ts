@@ -113,5 +113,6 @@ export function isContractProcedure(item: unknown): item is ANY_CONTRACT_PROCEDU
     && item['~orpc'] !== null
     && 'InputSchema' in item['~orpc']
     && 'OutputSchema' in item['~orpc']
+    && 'errorMap' in item['~orpc']
   )
 }

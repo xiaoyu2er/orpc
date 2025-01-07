@@ -9,8 +9,8 @@ export type ChainableImplementer<
   TContext extends Context,
   TExtraContext extends Context,
   TContract extends ContractRouter,
-> = TContract extends ContractProcedure<infer UInputSchema, infer UOutputSchema>
-  ? ProcedureImplementer<TContext, TExtraContext, UInputSchema, UOutputSchema>
+> = TContract extends ContractProcedure<infer UInputSchema, infer UOutputSchema, infer UErrorMap>
+  ? ProcedureImplementer<TContext, TExtraContext, UInputSchema, UOutputSchema, UErrorMap>
   : {
     [K in keyof TContract]: TContract[K] extends ContractRouter ? ChainableImplementer<TContext, TExtraContext, TContract[K]> : never
   } & Omit<RouterImplementer<TContext, TExtraContext, TContract>, '~type' | '~orpc'>

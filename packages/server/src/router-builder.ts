@@ -15,8 +15,8 @@ export type AdaptedRouter<
   TRouter extends ANY_ROUTER,
 > = TRouter extends Lazy<infer U extends ANY_ROUTER>
   ? DecoratedLazy<AdaptedRouter<TContext, U>>
-  : TRouter extends Procedure<any, infer UExtraContext, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
-    ? DecoratedProcedure<TContext, UExtraContext, UInputSchema, UOutputSchema, UFuncOutput>
+  : TRouter extends Procedure<any, infer UExtraContext, infer UInputSchema, infer UOutputSchema, infer UFuncOutput, infer UErrorMap>
+    ? DecoratedProcedure<TContext, UExtraContext, UInputSchema, UOutputSchema, UFuncOutput, UErrorMap>
     : {
         [K in keyof TRouter]: TRouter[K] extends ANY_ROUTER ? AdaptedRouter<TContext, TRouter[K]> : never
       }

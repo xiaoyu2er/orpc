@@ -1,4 +1,4 @@
-import type { ORPCErrorCode } from '@orpc/shared/error'
+import type { ORPCError, ORPCErrorCode } from '@orpc/shared/error'
 import type { StandardSchemaV1 } from '@standard-schema/spec'
 
 export type HTTPPath = `/${string}`
@@ -40,3 +40,13 @@ export type ErrorMapItem<TDataSchema extends Schema> = {
 export type ErrorMap = {
   [key in ORPCErrorCode | (string & {})]?: ErrorMapItem<Schema>
 }
+
+export type ErrorMapToORPCError<TErrorMap extends ErrorMap> = {
+  [K in keyof TErrorMap]: K extends string
+    ? TErrorMap[K] extends ErrorMapItem<infer TDataSchema>
+      ? ORPCError<K, SchemaOutput<TDataSchema>>
+      : never
+    : never
+}[keyof TErrorMap]
+
+export type ErrorMapToError<TErrorMap extends ErrorMap> = Error | ErrorMapToORPCError<TErrorMap>

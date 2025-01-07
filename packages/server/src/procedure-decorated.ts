@@ -1,4 +1,4 @@
-import type { HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ErrorMap, ErrorMapToError, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { ANY_MIDDLEWARE, MapInputMiddleware, Middleware } from './middleware'
 import type { ProcedureClient } from './procedure-client'
 import type { Context, MergeContext } from './types'
@@ -13,16 +13,17 @@ export type DecoratedProcedure<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
+  TErrorMap extends ErrorMap,
 > =
-  & Procedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput>
+  & Procedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>
   & {
     prefix: (
       prefix: HTTPPath,
-    ) => DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput>
+    ) => DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>
 
     route: (
       route: RouteOptions,
-    ) => DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput>
+    ) => DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>
 
     use:
     & (
@@ -38,7 +39,8 @@ export type DecoratedProcedure<
         MergeContext<TExtraContext, U>,
         TInputSchema,
         TOutputSchema,
-        THandlerOutput
+        THandlerOutput,
+        TErrorMap
       >
     )
     & (
@@ -61,18 +63,19 @@ export type DecoratedProcedure<
         MergeContext<TExtraContext, UExtra>,
         TInputSchema,
         TOutputSchema,
-        THandlerOutput
+        THandlerOutput,
+        TErrorMap
       >
     )
 
-    unshiftTag: (...tags: string[]) => DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput>
+    unshiftTag: (...tags: string[]) => DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>
 
     unshiftMiddleware: <U extends Context & Partial<MergeContext<TContext, TExtraContext>> | undefined = undefined>(
       ...middlewares: Middleware<TContext, U, SchemaOutput<TInputSchema>, SchemaInput<TOutputSchema, THandlerOutput>>[]
-    ) => DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput>
+    ) => DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>
 
   }
-  & (undefined extends TContext ? ProcedureClient<SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, THandlerOutput>, unknown> : unknown)
+  & (undefined extends TContext ? ProcedureClient<unknown, SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, THandlerOutput>, ErrorMapToError<TErrorMap>> : unknown)
 
 export function decorateProcedure<
   TContext extends Context,
@@ -80,15 +83,16 @@ export function decorateProcedure<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
+  TErrorMap extends ErrorMap,
 >(
-  procedure: Procedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput>,
-): DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput> {
+  procedure: Procedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>,
+): DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap> {
   const caller = createProcedureClient({
     procedure,
     context: undefined as any,
   })
 
-  const decorated = caller as DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput>
+  const decorated = caller as DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>
 
   decorated['~type'] = procedure['~type']
   decorated['~orpc'] = procedure['~orpc']

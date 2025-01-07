@@ -1,34 +1,33 @@
 import type { ProcedureClient } from '@orpc/server'
 import type { IsEqual } from '@orpc/shared'
-import type { QueryFunctionContext, QueryKey } from '@tanstack/react-query'
-import type { InferCursor, InfiniteOptions, MutationOptions, QueryOptions } from './types'
+import type { InfiniteOptionsBase, InfiniteOptionsExtra, MutationOptionsBase, MutationOptionsExtra, QueryOptionsBase, QueryOptionsExtra } from './types'
 import { buildKey } from './key'
 
 /**
  * Utils at procedure level
  */
-export interface ProcedureUtils<TInput, TOutput, TClientContext> {
-  queryOptions: <U extends QueryOptions<TInput, TOutput, TClientContext, any>>(
+export interface ProcedureUtils<TClientContext, TInput, TOutput, TError> {
+  queryOptions: <U extends QueryOptionsExtra<TClientContext, TInput, TOutput, TError, any>>(
     ...opts: [options: U] | (undefined extends TInput & TClientContext ? [] : never)
-  ) => IsEqual<U, QueryOptions<TInput, TOutput, TClientContext, any>> extends true
-    ? { queryKey: QueryKey, queryFn: (ctx: QueryFunctionContext) => Promise<TOutput> }
-    : Omit<{ queryKey: QueryKey, queryFn: (ctx: QueryFunctionContext) => Promise<TOutput> }, keyof U> & U
+  ) => IsEqual<U, QueryOptionsExtra<TClientContext, TInput, TOutput, TError, any>> extends true
+    ? QueryOptionsBase<TOutput, TError>
+    : Omit<QueryOptionsBase<TOutput, TError>, keyof U> & U
 
-  infiniteOptions: <U extends InfiniteOptions<TInput, TOutput, TClientContext, any>>(
+  infiniteOptions: <U extends InfiniteOptionsExtra<TClientContext, TInput, TOutput, TError, any>>(
     options: U
-  ) => Omit<{ queryKey: QueryKey, queryFn: (ctx: QueryFunctionContext<QueryKey, InferCursor<TInput>>) => Promise<TOutput>, initialPageParam: undefined }, keyof U> & U
+  ) => Omit<InfiniteOptionsBase<TInput, TOutput, TError>, keyof U> & U
 
-  mutationOptions: <U extends MutationOptions<TInput, TOutput, TClientContext>>(
+  mutationOptions: <U extends MutationOptionsExtra<TClientContext, TInput, TOutput, TError>>(
     ...opt: [options: U] | (undefined extends TClientContext ? [] : never)
-  ) => IsEqual<U, MutationOptions<TInput, TOutput, TClientContext>> extends true
-    ? { mutationKey: QueryKey, mutationFn: (input: TInput) => Promise<TOutput> }
-    : Omit<{ mutationKey: QueryKey, mutationFn: (input: TInput) => Promise<TOutput> }, keyof U> & U
+  ) => IsEqual<U, MutationOptionsExtra<TClientContext, TInput, TOutput, TError>> extends true
+    ? MutationOptionsBase<TInput, TOutput, TError>
+    : Omit<MutationOptionsBase<TInput, TOutput, TError>, keyof U> & U
 }
 
-export function createProcedureUtils<TInput, TOutput, TClientContext>(
-  client: ProcedureClient<TInput, TOutput, TClientContext>,
+export function createProcedureUtils<TClientContext, TInput, TOutput, TError>(
+  client: ProcedureClient<TClientContext, TInput, TOutput, TError>,
   path: string[],
-): ProcedureUtils<TInput, TOutput, TClientContext> {
+): ProcedureUtils<TClientContext, TInput, TOutput, TError> {
   return {
     queryOptions(...[options]) {
       const input = options?.input as any
@@ -44,6 +43,7 @@ export function createProcedureUtils<TInput, TOutput, TClientContext>(
       const input = options.input as any
 
       return {
+        initialPageParam: undefined,
         queryKey: buildKey(path, { type: 'infinite', input }),
         queryFn: ({ pageParam, signal }) => client({ ...input, cursor: pageParam }, { signal, context: options.context } as any),
         ...(options as any),

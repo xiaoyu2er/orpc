@@ -15,7 +15,7 @@ export function createORPCClient<TRouter extends ANY_ROUTER | ContractRouter, TC
 ): RouterClient<TRouter, TClientContext> {
   const path = options?.path ?? []
 
-  const procedureClient: ProcedureClient<unknown, unknown, TClientContext> = async (...[input, options]) => {
+  const procedureClient: ProcedureClient<TClientContext, unknown, unknown, Error> = async (...[input, options]) => {
     return await link.call(path, input, (options ?? {}) as Exclude<typeof options, undefined>)
   }
 

@@ -9,10 +9,11 @@ import { z } from 'zod'
 import { ProcedureBuilder } from './procedure-builder'
 
 describe('self chainable', () => {
-  const builder = new ProcedureBuilder<{ id?: string }, undefined, undefined, undefined>({
+  const builder = new ProcedureBuilder<{ id?: string }, undefined, undefined, undefined, Record<never, never>>({
     contract: new ContractProcedure({
       InputSchema: undefined,
       OutputSchema: undefined,
+      errorMap: {},
     }),
     middlewares: [],
   })
@@ -25,10 +26,10 @@ describe('self chainable', () => {
 
   it('input', () => {
     expectTypeOf(builder.input(schema))
-      .toEqualTypeOf<ProcedureBuilder<{ id?: string }, undefined, typeof schema, undefined>>()
+      .toEqualTypeOf<ProcedureBuilder<{ id?: string }, undefined, typeof schema, undefined, Record<never, never>>>()
 
     expectTypeOf(builder.input(schema, { id: '1' }))
-      .toEqualTypeOf<ProcedureBuilder<{ id?: string }, undefined, typeof schema, undefined>>()
+      .toEqualTypeOf<ProcedureBuilder<{ id?: string }, undefined, typeof schema, undefined, Record<never, never>>>()
 
     // @ts-expect-error - invalid schema
     builder.input({})
@@ -42,10 +43,10 @@ describe('self chainable', () => {
 
   it('output', () => {
     expectTypeOf(builder.output(schema))
-      .toEqualTypeOf<ProcedureBuilder<{ id?: string }, undefined, undefined, typeof schema>>()
+      .toEqualTypeOf<ProcedureBuilder<{ id?: string }, undefined, undefined, typeof schema, Record<never, never>>>()
 
     expectTypeOf(builder.output(schema, { id: 1 }))
-      .toEqualTypeOf<ProcedureBuilder<{ id?: string }, undefined, undefined, typeof schema>>()
+      .toEqualTypeOf<ProcedureBuilder<{ id?: string }, undefined, undefined, typeof schema, Record<never, never>>>()
 
     // @ts-expect-error - invalid schema
     builder.output({})
@@ -61,10 +62,11 @@ describe('self chainable', () => {
 describe('to ProcedureImplementer', () => {
   const schema = z.object({ id: z.string().transform(v => Number.parseInt(v)) })
 
-  const builder = new ProcedureBuilder<{ id?: string } | undefined, undefined, typeof schema, typeof schema>({
+  const builder = new ProcedureBuilder<{ id?: string } | undefined, undefined, typeof schema, typeof schema, Record<never, never>>({
     contract: new ContractProcedure({
       InputSchema: schema,
       OutputSchema: schema,
+      errorMap: {},
     }),
     middlewares: [],
   })
@@ -82,7 +84,7 @@ describe('to ProcedureImplementer', () => {
     })
 
     expectTypeOf(implementer).toEqualTypeOf<
-      ProcedureImplementer<{ id?: string } | undefined, { id: string, extra: boolean }, typeof schema, typeof schema>
+      ProcedureImplementer<{ id?: string } | undefined, { id: string, extra: boolean }, typeof schema, typeof schema, Record<never, never>>
     >()
   })
 
@@ -99,7 +101,7 @@ describe('to ProcedureImplementer', () => {
     })
 
     expectTypeOf(implementer).toEqualTypeOf<
-      ProcedureImplementer<{ id?: string } | undefined, { id: string, extra: boolean }, typeof schema, typeof schema>
+      ProcedureImplementer<{ id?: string } | undefined, { id: string, extra: boolean }, typeof schema, typeof schema, Record<never, never>>
     >()
 
     // @ts-expect-error - invalid input
@@ -150,10 +152,11 @@ describe('to ProcedureImplementer', () => {
 describe('to DecoratedProcedure', () => {
   const schema = z.object({ id: z.string().transform(v => Number.parseInt(v)) })
 
-  const builder = new ProcedureBuilder<{ id?: string } | undefined, undefined, typeof schema, typeof schema>({
+  const builder = new ProcedureBuilder<{ id?: string } | undefined, undefined, typeof schema, typeof schema, Record<never, never>>({
     contract: new ContractProcedure({
       InputSchema: schema,
       OutputSchema: schema,
+      errorMap: {},
     }),
     middlewares: [],
   })
@@ -170,7 +173,7 @@ describe('to DecoratedProcedure', () => {
     })
 
     expectTypeOf(procedure).toEqualTypeOf<
-      DecoratedProcedure<{ id?: string } | undefined, undefined, typeof schema, typeof schema, { id: string }>
+      DecoratedProcedure<{ id?: string } | undefined, undefined, typeof schema, typeof schema, { id: string }, Record<never, never>>
     >()
 
     // @ts-expect-error - invalid output

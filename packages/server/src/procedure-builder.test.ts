@@ -5,10 +5,11 @@ import { ProcedureBuilder } from './procedure-builder'
 import { ProcedureImplementer } from './procedure-implementer'
 
 describe('self chainable', () => {
-  const builder = new ProcedureBuilder<{ id?: string }, undefined, undefined, undefined>({
+  const builder = new ProcedureBuilder<{ id?: string }, undefined, undefined, undefined, Record<never, never>>({
     contract: new ContractProcedure({
       InputSchema: undefined,
       OutputSchema: undefined,
+      errorMap: {},
     }),
     middlewares: [],
   })
@@ -49,10 +50,11 @@ describe('to ProcedureImplementer', () => {
   const schema = z.object({ id: z.string().transform(v => Number.parseInt(v)) })
 
   const global_mid = vi.fn()
-  const builder = new ProcedureBuilder<{ id?: string } | undefined, undefined, typeof schema, typeof schema>({
+  const builder = new ProcedureBuilder<{ id?: string } | undefined, undefined, typeof schema, typeof schema, Record<never, never>>({
     contract: new ContractProcedure({
       InputSchema: schema,
       OutputSchema: schema,
+      errorMap: {},
     }),
     middlewares: [global_mid],
   })
@@ -91,10 +93,11 @@ describe('to DecoratedProcedure', () => {
   const schema = z.object({ id: z.string().transform(v => Number.parseInt(v)) })
 
   const global_mid = vi.fn()
-  const builder = new ProcedureBuilder<{ id?: string } | undefined, undefined, typeof schema, typeof schema>({
+  const builder = new ProcedureBuilder<{ id?: string } | undefined, undefined, typeof schema, typeof schema, Record<never, never>>({
     contract: new ContractProcedure({
       InputSchema: schema,
       OutputSchema: schema,
+      errorMap: {},
     }),
     middlewares: [global_mid],
   })

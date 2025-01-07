@@ -84,6 +84,7 @@ describe('adapt router', () => {
       route: {
         tags: ['tag3', 'tag4'],
       },
+      errorMap: {},
     }),
     handler: vi.fn(),
     middlewares: [mid1, pMid1, pMid2],
@@ -97,6 +98,7 @@ describe('adapt router', () => {
         path: '/pong',
         description: 'desc',
       },
+      errorMap: {},
     }),
     handler: vi.fn(),
   })

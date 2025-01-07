@@ -6,8 +6,8 @@ import { lazy } from './lazy'
 import { createRouterClient, type RouterClient } from './router-client'
 
 const schema = z.object({ val: z.string().transform(val => Number(val)) })
-const ping = {} as Procedure<WELL_CONTEXT, undefined, typeof schema, typeof schema, { val: string }>
-const pong = {} as Procedure<{ auth: boolean }, undefined, undefined, undefined, unknown>
+const ping = {} as Procedure<WELL_CONTEXT, undefined, typeof schema, typeof schema, { val: string }, Record<never, never>>
+const pong = {} as Procedure<{ auth: boolean }, undefined, undefined, undefined, unknown, Record<never, never>>
 
 const router = {
   ping,
@@ -32,17 +32,17 @@ describe('RouterClient', () => {
     const client = {} as RouterClient<typeof router, unknown>
 
     expectTypeOf(client.ping).toEqualTypeOf<
-      ProcedureClient<{ val: string }, { val: number }, unknown>
+      ProcedureClient<unknown, { val: string }, { val: number }, Error>
     >()
     expectTypeOf(client.pong).toEqualTypeOf<
-      ProcedureClient<unknown, unknown, unknown>
+      ProcedureClient<unknown, unknown, unknown, Error>
     >()
 
     expectTypeOf(client.nested.ping).toEqualTypeOf<
-      ProcedureClient<{ val: string }, { val: number }, unknown>
+      ProcedureClient<unknown, { val: string }, { val: number }, Error>
     >()
     expectTypeOf(client.nested.pong).toEqualTypeOf<
-      ProcedureClient<unknown, unknown, unknown>
+      ProcedureClient<unknown, unknown, unknown, Error>
     >()
   })
 
@@ -51,7 +51,7 @@ describe('RouterClient', () => {
   })
 
   it('support procedure as router', () => {
-    expectTypeOf<RouterClient<typeof ping, unknown>>().toEqualTypeOf<ProcedureClient<{ val: string }, { val: number }, unknown>>()
+    expectTypeOf<RouterClient<typeof ping, unknown>>().toEqualTypeOf<ProcedureClient<unknown, { val: string }, { val: number }, Error>>()
   })
 })
 

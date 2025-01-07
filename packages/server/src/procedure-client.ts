@@ -1,4 +1,4 @@
-import type { ErrorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ErrorMap, ErrorMapToError, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Hooks, Value } from '@orpc/shared'
 import type { Lazyable } from './lazy'
 import type { MiddlewareNextFn } from './middleware'
@@ -62,7 +62,7 @@ export function createProcedureClient<
   TErrorMap extends ErrorMap,
 >(
   options: CreateProcedureClientOptions<TContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>,
-): ProcedureClient<unknown, SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, THandlerOutput>, TErrorMap> {
+): ProcedureClient<unknown, SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, THandlerOutput>, ErrorMapToError<TErrorMap>> {
   // TODO: handle errors
   return async (...[input, callerOptions]) => {
     const path = options.path ?? []

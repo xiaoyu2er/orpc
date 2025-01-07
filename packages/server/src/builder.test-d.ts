@@ -82,7 +82,7 @@ describe('create middleware', () => {
 describe('to ProcedureBuilder', () => {
   it('route', () => {
     expectTypeOf(builder.route({ path: '/test', method: 'GET' })).toEqualTypeOf<
-      ProcedureBuilder<{ auth: boolean }, { db: string }, undefined, undefined>
+      ProcedureBuilder<{ auth: boolean }, { db: string }, undefined, undefined, Record<never, never>>
     >()
 
     // @ts-expect-error - invalid path
@@ -94,7 +94,7 @@ describe('to ProcedureBuilder', () => {
 
   it('input', () => {
     expectTypeOf(builder.input(schema, { val: '123' })).toEqualTypeOf<
-      ProcedureBuilder<{ auth: boolean }, { db: string }, typeof schema, undefined>
+      ProcedureBuilder<{ auth: boolean }, { db: string }, typeof schema, undefined, Record<never, never>>
     >()
 
     builder.input(schema)
@@ -106,7 +106,7 @@ describe('to ProcedureBuilder', () => {
 
   it('output', () => {
     expectTypeOf(builder.output(schema, { val: 123 })).toEqualTypeOf<
-      ProcedureBuilder<{ auth: boolean }, { db: string }, undefined, typeof schema>
+      ProcedureBuilder<{ auth: boolean }, { db: string }, undefined, typeof schema, Record<never, never>>
     >()
 
     builder.output(schema)
@@ -128,7 +128,7 @@ describe('to DecoratedProcedure', () => {
 
       return 456
     })).toMatchTypeOf<
-      DecoratedProcedure<{ auth: boolean }, { db: string }, undefined, undefined, number>
+      DecoratedProcedure<{ auth: boolean }, { db: string }, undefined, undefined, number, Record<never, never>>
     >()
   })
 })
@@ -154,7 +154,7 @@ describe('to RouterBuilder', () => {
 })
 
 it('to AdaptedRouter', () => {
-  const ping = {} as Procedure<{ auth: boolean, db: string }, undefined, undefined, undefined, unknown>
+  const ping = {} as Procedure<{ auth: boolean, db: string }, undefined, undefined, undefined, unknown, Record<never, never>>
   const router = {
     ping,
     nested: {
@@ -170,7 +170,7 @@ it('to AdaptedRouter', () => {
 })
 
 it('to DecoratedLazy', () => {
-  const ping = {} as Procedure<{ auth: boolean, db: string }, undefined, undefined, undefined, unknown>
+  const ping = {} as Procedure<{ auth: boolean, db: string }, undefined, undefined, undefined, unknown, Record<never, never>>
   const router = {
     ping,
     nested: {
@@ -186,7 +186,7 @@ it('to DecoratedLazy', () => {
 
   // @ts-expect-error - context is not match
   builder.lazy(() => Promise.resolve({ default: {
-    ping: {} as Procedure<{ invalid: true }, undefined, undefined, undefined, unknown>,
+    ping: {} as Procedure<{ invalid: true }, undefined, undefined, undefined, unknown, Record<never, never>>,
   } }))
 })
 

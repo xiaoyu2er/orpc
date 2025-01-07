@@ -10,13 +10,13 @@ beforeEach(() => {
 })
 
 describe('ProcedureClient', () => {
-  const fn: ProcedureClient<string, number, unknown> = async (...[input, options]) => {
+  const fn: ProcedureClient<unknown, string, number, Error> = async (...[input, options]) => {
     expectTypeOf(input).toEqualTypeOf<string>()
     expectTypeOf(options).toEqualTypeOf<(WithSignal & { context?: unknown }) | undefined>()
     return 123
   }
 
-  const fnWithOptionalInput: ProcedureClient<string | undefined, number, unknown> = async (...args) => {
+  const fnWithOptionalInput: ProcedureClient<unknown, string | undefined, number, Error> = async (...args) => {
     const [input, options] = args
 
     expectTypeOf(input).toEqualTypeOf<string | undefined>()
@@ -62,7 +62,7 @@ describe('ProcedureClient', () => {
 
   describe('context', () => {
     it('can accept context', () => {
-      const client = {} as ProcedureClient<{ val: string }, { val: number }, { userId: string }>
+      const client = {} as ProcedureClient<{ userId: string }, { val: string }, { val: number }, Error>
 
       client({ val: '123' }, { context: { userId: '123' } })
       // @ts-expect-error - invalid context
@@ -72,14 +72,14 @@ describe('ProcedureClient', () => {
     })
 
     it('optional options when context is optional', () => {
-      const client = {} as ProcedureClient<{ val: string }, { val: number }, undefined | { userId: string }>
+      const client = {} as ProcedureClient<undefined | { userId: string }, { val: string }, { val: number }, Error>
 
       client({ val: '123' })
       client({ val: '123' }, { context: { userId: '123' } })
     })
 
     it('can call without args when both input and context are optional', () => {
-      const client = {} as ProcedureClient<undefined | { val: string }, { val: number }, undefined | { userId: string }>
+      const client = {} as ProcedureClient<undefined | { userId: string }, undefined | { val: string }, { val: number }, Error>
 
       client()
       client({ val: 'string' }, { context: { userId: '123' } })
@@ -93,15 +93,15 @@ describe('ProcedureClient', () => {
 
 describe('createProcedureClient', () => {
   const schema = z.object({ val: z.string().transform(v => Number(v)) })
-  const procedure = {} as Procedure<WELL_CONTEXT, { val: string }, typeof schema, typeof schema, { val: string }>
-  const procedureWithContext = {} as Procedure<{ userId?: string }, { db: string }, typeof schema, typeof schema, { val: string }>
+  const procedure = {} as Procedure<WELL_CONTEXT, { val: string }, typeof schema, typeof schema, { val: string }, Record<never, never>>
+  const procedureWithContext = {} as Procedure<{ userId?: string }, { db: string }, typeof schema, typeof schema, { val: string }, Record<never, never>>
 
   it('just a client', () => {
     const client = createProcedureClient({
       procedure,
     })
 
-    expectTypeOf(client).toEqualTypeOf<ProcedureClient<{ val: string }, { val: number }, unknown>>()
+    expectTypeOf(client).toEqualTypeOf<ProcedureClient <unknown, { val: string }, { val: number }, Error>>()
   })
 
   it('context can be optional and can be a sync or async function', () => {
@@ -207,7 +207,7 @@ describe('createProcedureClient', () => {
 
 it('support lazy procedure', () => {
   const schema = z.object({ val: z.string().transform(v => Number(v)) })
-  const procedure = {} as Procedure<{ userId?: string }, undefined, typeof schema, typeof schema, { val: string }>
+  const procedure = {} as Procedure<{ userId?: string }, undefined, typeof schema, typeof schema, { val: string }, Record<never, never>>
   const lazied = lazy(() => Promise.resolve({ default: procedure }))
 
   const client = createProcedureClient({
@@ -222,5 +222,5 @@ it('support lazy procedure', () => {
     },
   })
 
-  expectTypeOf(client).toEqualTypeOf<ProcedureClient<{ val: string }, { val: number }, unknown>>()
+  expectTypeOf(client).toEqualTypeOf<ProcedureClient<unknown, { val: string }, { val: number }, Error>>()
 })

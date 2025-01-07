@@ -7,8 +7,8 @@ import { decorateLazy } from './lazy-decorated'
 
 const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
 
-const ping = {} as Procedure<WELL_CONTEXT, { db: string }, undefined, typeof schema, { val: string }>
-const pong = {} as DecoratedProcedure<WELL_CONTEXT, undefined, typeof schema, undefined, unknown>
+const ping = {} as Procedure<WELL_CONTEXT, { db: string }, undefined, typeof schema, { val: string }, Record<never, never>>
+const pong = {} as DecoratedProcedure<WELL_CONTEXT, undefined, typeof schema, undefined, unknown, Record<never, never>>
 
 const lazyPing = lazy(() => Promise.resolve({ default: ping }))
 const lazyPong = lazy(() => Promise.resolve({ default: pong }))
@@ -42,7 +42,7 @@ describe('DecoratedLazy', () => {
     expectTypeOf(decorated).toMatchTypeOf<Lazy<ANY_PROCEDURE>>()
 
     expectTypeOf(decorated).toMatchTypeOf<
-      ProcedureClient<unknown, { val: number }, unknown>
+      ProcedureClient<unknown, unknown, { val: number }, Error>
     >()
   })
 
@@ -53,19 +53,19 @@ describe('DecoratedLazy', () => {
     expectTypeOf({ router: decorated }).toMatchTypeOf<ANY_ROUTER>()
 
     expectTypeOf(decorated.ping).toMatchTypeOf<Lazy<ANY_PROCEDURE>>()
-    expectTypeOf(decorated.ping).toMatchTypeOf<ProcedureClient<unknown, { val: number }, unknown>>()
+    expectTypeOf(decorated.ping).toMatchTypeOf<ProcedureClient<unknown, { val: number }, unknown, Record<never, never>>>()
 
     expectTypeOf(decorated.pong).toMatchTypeOf<Lazy<ANY_PROCEDURE>>()
-    expectTypeOf(decorated.pong).toMatchTypeOf<ProcedureClient<{ val: string }, unknown, unknown>>()
+    expectTypeOf(decorated.pong).toMatchTypeOf<ProcedureClient<unknown, { val: string }, unknown, Error>>()
 
     expectTypeOf(decorated.nested).toMatchTypeOf<Lazy<ANY_ROUTER>>()
     expectTypeOf({ router: decorated.nested }).toMatchTypeOf<ANY_ROUTER>()
 
     expectTypeOf(decorated.nested.ping).toMatchTypeOf<Lazy<ANY_PROCEDURE>>()
-    expectTypeOf(decorated.nested.ping).toMatchTypeOf<ProcedureClient<unknown, { val: number }, unknown>>()
+    expectTypeOf(decorated.nested.ping).toMatchTypeOf<ProcedureClient<unknown, { val: number }, unknown, Error>>()
 
     expectTypeOf(decorated.nested.pong).toMatchTypeOf<Lazy<ANY_PROCEDURE>>()
-    expectTypeOf(decorated.nested.pong).toMatchTypeOf<ProcedureClient<{ val: string }, unknown, unknown>>()
+    expectTypeOf(decorated.nested.pong).toMatchTypeOf<ProcedureClient<unknown, { val: string }, unknown, Error>>()
   })
 
   it('flat lazy', () => {
@@ -85,8 +85,8 @@ describe('DecoratedLazy', () => {
   it('not callable when context is required', () => {
     const d1 = {} as DecoratedLazy<typeof ping>
     const d2 = {} as DecoratedLazy<typeof router>
-    const d3 = {} as DecoratedLazy<Procedure<undefined | { auth: boolean }, { db: string }, undefined, undefined, undefined>>
-    const d4 = {} as DecoratedLazy<Procedure<{ auth: boolean }, { db: string }, undefined, undefined, undefined>>
+    const d3 = {} as DecoratedLazy<Procedure<undefined | { auth: boolean }, { db: string }, undefined, undefined, undefined, Record<never, never>>>
+    const d4 = {} as DecoratedLazy<Procedure<{ auth: boolean }, { db: string }, undefined, undefined, undefined, Record<never, never>>>
 
     d1()
     d3()

@@ -24,7 +24,7 @@ export interface ProcedureUtils<TClientContext, TInput, TOutput, TError> {
     : Omit<MutationOptionsBase<TInput, TOutput, TError>, keyof U> & U
 }
 
-export function createProcedureUtils<TClientContext, TInput, TOutput, TError>(
+export function createProcedureUtils<TClientContext, TInput, TOutput, TError extends Error>(
   client: ProcedureClient<TClientContext, TInput, TOutput, TError>,
   path: string[],
 ): ProcedureUtils<TClientContext, TInput, TOutput, TError> {

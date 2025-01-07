@@ -13,17 +13,13 @@ export type ProcedureClientOptions<TClientContext> =
   & { signal?: AbortSignal }
   & (undefined extends TClientContext ? { context?: TClientContext } : { context: TClientContext })
 
-export interface ProcedureClient<TClientContext, TInput, TOutput, TError> {
+export interface ProcedureClient<TClientContext, TInput, TOutput, TError extends Error> {
   (
     ...opts:
       | [input: TInput, options: ProcedureClientOptions<TClientContext>]
       | (undefined extends TInput & TClientContext ? [] : never)
       | (undefined extends TClientContext ? [input: TInput] : never)
-  ): Promise<TOutput>
-
-  ['~orpcTypes']?: {
-    __error?: TError
-  }
+  ): Promise<TOutput> & { __typeError?: TError }
 }
 
 /**

@@ -55,7 +55,7 @@ describe('ProcedureClient', () => {
   })
 
   it('can accept call without args', () => {
-    expectTypeOf(fnWithOptionalInput()).toEqualTypeOf<Promise<number>>()
+    expectTypeOf(fnWithOptionalInput()).toMatchTypeOf<Promise<number>>()
     // @ts-expect-error - input is required
     expectTypeOf(fn()).toEqualTypeOf<Promise<number>>()
   })

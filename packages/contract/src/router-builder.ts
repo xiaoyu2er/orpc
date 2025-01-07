@@ -5,8 +5,8 @@ import { isContractProcedure } from './procedure'
 import { DecoratedContractProcedure } from './procedure-decorated'
 
 export type AdaptedContractRouter<TContract extends ContractRouter> = {
-  [K in keyof TContract]: TContract[K] extends ContractProcedure<infer UInputSchema, infer UOutputSchema >
-    ? DecoratedContractProcedure<UInputSchema, UOutputSchema>
+  [K in keyof TContract]: TContract[K] extends ContractProcedure<infer UInputSchema, infer UOutputSchema, infer UErrors>
+    ? DecoratedContractProcedure<UInputSchema, UOutputSchema, UErrors>
     : TContract[K] extends ContractRouter
       ? AdaptedContractRouter<TContract[K]>
       : never

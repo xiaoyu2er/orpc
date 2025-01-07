@@ -1,11 +1,4 @@
-import type {
-  HTTPMethod,
-  HTTPPath,
-  InputStructure,
-  OutputStructure,
-  Schema,
-  SchemaOutput,
-} from './types'
+import type { ErrorMap, HTTPMethod, HTTPPath, InputStructure, OutputStructure, Schema, SchemaOutput } from './types'
 
 export interface RouteOptions {
   method?: HTTPMethod
@@ -76,19 +69,24 @@ export interface RouteOptions {
   outputStructure?: OutputStructure
 }
 
-export interface ContractProcedureDef<TInputSchema extends Schema, TOutputSchema extends Schema> {
+export interface ContractProcedureDef<
+  TInputSchema extends Schema,
+  TOutputSchema extends Schema,
+  TErrorMap extends ErrorMap,
+> {
   route?: RouteOptions
   InputSchema: TInputSchema
   inputExample?: SchemaOutput<TInputSchema>
   OutputSchema: TOutputSchema
   outputExample?: SchemaOutput<TOutputSchema>
+  errorMap: TErrorMap
 }
 
-export class ContractProcedure<TInputSchema extends Schema, TOutputSchema extends Schema> {
+export class ContractProcedure<TInputSchema extends Schema, TOutputSchema extends Schema, TErrorMap extends ErrorMap> {
   '~type' = 'ContractProcedure' as const
-  '~orpc': ContractProcedureDef<TInputSchema, TOutputSchema>
+  '~orpc': ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap>
 
-  constructor(def: ContractProcedureDef<TInputSchema, TOutputSchema>) {
+  constructor(def: ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap>) {
     if (def.route?.successStatus && (def.route.successStatus < 200 || def.route?.successStatus > 299)) {
       throw new Error('[ContractProcedure] The successStatus must be between 200 and 299')
     }
@@ -97,8 +95,8 @@ export class ContractProcedure<TInputSchema extends Schema, TOutputSchema extend
   }
 }
 
-export type ANY_CONTRACT_PROCEDURE = ContractProcedure<any, any>
-export type WELL_CONTRACT_PROCEDURE = ContractProcedure<Schema, Schema>
+export type ANY_CONTRACT_PROCEDURE = ContractProcedure<any, any, any>
+export type WELL_CONTRACT_PROCEDURE = ContractProcedure<Schema, Schema, ErrorMap>
 
 export function isContractProcedure(item: unknown): item is ANY_CONTRACT_PROCEDURE {
   if (item instanceof ContractProcedure) {

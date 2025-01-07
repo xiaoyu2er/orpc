@@ -73,7 +73,7 @@ describe('to router', () => {
   const router = {
     a: {
       b: {
-        c: new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined }),
+        c: new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: {} }),
       },
     },
   }

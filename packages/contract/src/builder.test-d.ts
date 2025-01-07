@@ -33,11 +33,11 @@ describe('to ContractRouterBuilder', () => {
 describe('to DecoratedContractProcedure', () => {
   it('route', () => {
     expectTypeOf(builder.route({ method: 'GET', path: '/path' })).toEqualTypeOf<
-      DecoratedContractProcedure<undefined, undefined>
+      DecoratedContractProcedure<undefined, undefined, Record<never, never>>
     >()
 
     expectTypeOf(builder.route({ })).toEqualTypeOf<
-      DecoratedContractProcedure<undefined, undefined>
+      DecoratedContractProcedure<undefined, undefined, Record<never, never>>
     >()
 
     // @ts-expect-error - invalid method
@@ -52,11 +52,11 @@ describe('to DecoratedContractProcedure', () => {
 
   it('input', () => {
     expectTypeOf(builder.input(schema)).toEqualTypeOf<
-      DecoratedContractProcedure<typeof schema, undefined>
+      DecoratedContractProcedure<typeof schema, undefined, Record<never, never>>
     >()
 
     expectTypeOf(builder.input(schema, { value: 'example' })).toEqualTypeOf<
-      DecoratedContractProcedure<typeof schema, undefined>
+      DecoratedContractProcedure<typeof schema, undefined, Record<never, never>>
     >()
 
     // @ts-expect-error - invalid schema
@@ -68,11 +68,11 @@ describe('to DecoratedContractProcedure', () => {
 
   it('output', () => {
     expectTypeOf(builder.output(schema)).toEqualTypeOf<
-      DecoratedContractProcedure<undefined, typeof schema>
+      DecoratedContractProcedure<undefined, typeof schema, Record<never, never>>
     >()
 
     expectTypeOf(builder.output(schema, { value: 'example' })).toEqualTypeOf<
-      DecoratedContractProcedure<undefined, typeof schema>
+      DecoratedContractProcedure<undefined, typeof schema, Record<never, never>>
     >()
 
     // @ts-expect-error - invalid schema
@@ -87,7 +87,7 @@ describe('to router', () => {
   const router = {
     a: {
       b: {
-        c: new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined }),
+        c: new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: {} }),
       },
     },
   }

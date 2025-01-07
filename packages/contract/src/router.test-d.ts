@@ -10,10 +10,10 @@ const schema = z.object({
  type SchemaIn = { value: string }
  type SchemaOut = { value: number }
 
-const ping = new ContractProcedure({ InputSchema: schema, OutputSchema: undefined, route: { path: '/procedure' } })
+const ping = new ContractProcedure({ InputSchema: schema, OutputSchema: undefined, route: { path: '/procedure' }, errorMap: {} })
 const pinged = DecoratedContractProcedure.decorate(ping)
 
-const pong = new ContractProcedure({ InputSchema: undefined, OutputSchema: schema })
+const pong = new ContractProcedure({ InputSchema: undefined, OutputSchema: schema, errorMap: {} })
 const ponged = DecoratedContractProcedure.decorate(pong)
 
 const router = {

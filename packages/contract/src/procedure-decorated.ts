@@ -57,16 +57,23 @@ export class DecoratedContractProcedure<
   input<U extends Schema>(schema: U, example?: SchemaInput<U>): DecoratedContractProcedure<U, TOutputSchema, TErrorMap> {
     return new DecoratedContractProcedure({
       ...this['~orpc'],
-      InputSchema: schema as any,
-      inputExample: example as any,
+      InputSchema: schema,
+      inputExample: example,
     })
   }
 
   output<U extends Schema>(schema: U, example?: SchemaOutput<U>): DecoratedContractProcedure<TInputSchema, U, TErrorMap> {
     return new DecoratedContractProcedure({
       ...this['~orpc'],
-      OutputSchema: schema as any,
-      outputExample: example as any,
+      OutputSchema: schema,
+      outputExample: example,
+    })
+  }
+
+  errors<U extends ErrorMap>(errorMap: U): DecoratedContractProcedure<TInputSchema, TOutputSchema, U> {
+    return new DecoratedContractProcedure({
+      ...this['~orpc'],
+      errorMap,
     })
   }
 }

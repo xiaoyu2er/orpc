@@ -1,4 +1,5 @@
 import type { ContractProcedure, ErrorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ORPCErrorConstructorMap } from './error-map'
 import type { ANY_MAP_INPUT_MIDDLEWARE, ANY_MIDDLEWARE, MapInputMiddleware, Middleware } from './middleware'
 import type { ProcedureHandler } from './procedure'
 import type { DecoratedProcedure } from './procedure-decorated'
@@ -15,7 +16,13 @@ export type ProcedureImplementerDef<
   TErrorMap extends ErrorMap,
 > = {
   contract: ContractProcedure<TInputSchema, TOutputSchema, TErrorMap>
-  middlewares?: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, SchemaOutput<TInputSchema>, SchemaInput<TOutputSchema>>[]
+  middlewares?: Middleware<
+    MergeContext<TContext, TExtraContext>,
+    Partial<TExtraContext> | undefined,
+    SchemaOutput<TInputSchema>,
+    SchemaInput<TOutputSchema>,
+    ORPCErrorConstructorMap<TErrorMap>
+  >[]
 }
 
 export class ProcedureImplementer<
@@ -37,7 +44,8 @@ export class ProcedureImplementer<
       MergeContext<TContext, TExtraContext>,
       U,
       SchemaOutput<TInputSchema>,
-      SchemaInput<TOutputSchema>
+      SchemaInput<TOutputSchema>,
+      ORPCErrorConstructorMap<TErrorMap>
     >,
   ): ProcedureImplementer<
     TContext,
@@ -55,7 +63,8 @@ export class ProcedureImplementer<
       MergeContext<TContext, TExtraContext>,
       UExtra,
       UInput,
-      SchemaInput<TOutputSchema>
+      SchemaInput<TOutputSchema>,
+      ORPCErrorConstructorMap<TErrorMap>
     >,
     mapInput: MapInputMiddleware<SchemaOutput<TInputSchema>, UInput>,
   ): ProcedureImplementer<

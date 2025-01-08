@@ -114,7 +114,7 @@ describe('createChainableImplementer', () => {
   })
 
   it('with middlewares', () => {
-    const mid = {} as Middleware<{ auth: boolean }, { db: string }, unknown, unknown>
+    const mid = {} as Middleware<{ auth: boolean }, { db: string }, unknown, unknown, Record<string, unknown>>
     const implementer = createChainableImplementer(contract, [mid])
     expectTypeOf(implementer).toEqualTypeOf<ChainableImplementer<{ auth: boolean }, { db: string }, typeof contract>>()
   })

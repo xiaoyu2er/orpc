@@ -1,4 +1,5 @@
 import type { Promisable } from '@orpc/shared'
+import type { ORPCErrorConstructorMap } from './error-map'
 import type { ANY_PROCEDURE } from './procedure'
 import type { Context } from './types'
 
@@ -17,12 +18,17 @@ export interface MiddlewareOutputFn<TOutput> {
   (output: TOutput): MiddlewareResult<undefined, TOutput>
 }
 
-export interface MiddlewareOptions<TContext extends Context, TOutput> {
+export interface MiddlewareOptions<
+  TContext extends Context,
+  TOutput,
+  TErrorConstructorMap extends ORPCErrorConstructorMap<any>,
+> {
   context: TContext
   path: string[]
   procedure: ANY_PROCEDURE
   signal?: AbortSignal
   next: MiddlewareNextFn<TOutput>
+  errors: TErrorConstructorMap
 }
 
 export interface Middleware<
@@ -30,9 +36,10 @@ export interface Middleware<
   TExtraContext extends Context,
   TInput,
   TOutput,
+  TErrorConstructorMap extends ORPCErrorConstructorMap<any>,
 > {
   (
-    options: MiddlewareOptions<TContext, TOutput>,
+    options: MiddlewareOptions<TContext, TOutput, TErrorConstructorMap>,
     input: TInput,
     output: MiddlewareOutputFn<TOutput>,
   ): Promisable<
@@ -40,7 +47,7 @@ export interface Middleware<
   >
 }
 
-export type ANY_MIDDLEWARE = Middleware<any, any, any, any>
+export type ANY_MIDDLEWARE = Middleware<any, any, any, any, any>
 
 export interface MapInputMiddleware<TInput, TMappedInput> {
   (input: TInput): TMappedInput

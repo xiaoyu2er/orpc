@@ -24,13 +24,13 @@ describe('self chainable', () => {
 
   it('use middleware', () => {
     expectTypeOf(
-      builder.use({} as Middleware<{ auth: boolean }, undefined, unknown, unknown>),
+      builder.use({} as Middleware<{ auth: boolean }, undefined, unknown, unknown, Record<string, unknown>>),
     ).toEqualTypeOf<Builder<{ auth: boolean }, { db: string }>>()
     expectTypeOf(
-      builder.use({} as Middleware<{ auth: boolean }, { dev: string }, unknown, unknown>),
+      builder.use({} as Middleware<{ auth: boolean }, { dev: string }, unknown, unknown, Record<string, unknown>>),
     ).toEqualTypeOf<Builder<{ auth: boolean }, { db: string } & { dev: string }>>()
     expectTypeOf(
-      builder.use({} as Middleware<WELL_CONTEXT, undefined, unknown, unknown>),
+      builder.use({} as Middleware<WELL_CONTEXT, undefined, unknown, unknown, Record<string, unknown>>),
     ).toEqualTypeOf<Builder<{ auth: boolean }, { db: string }>>()
 
     // @ts-expect-error - context is not match
@@ -67,7 +67,7 @@ describe('create middleware', () => {
     })
 
     expectTypeOf(mid).toEqualTypeOf<
-      DecoratedMiddleware<{ auth: boolean } & { db: string }, { dev: boolean }, unknown, any>
+      DecoratedMiddleware<{ auth: boolean } & { db: string }, { dev: boolean }, unknown, any, Record<string, unknown>>
     >()
 
     // @ts-expect-error - conflict extra context and context

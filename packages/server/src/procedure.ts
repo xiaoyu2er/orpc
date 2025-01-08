@@ -41,7 +41,7 @@ export interface ProcedureDef<
   THandlerOutput extends SchemaInput<TOutputSchema>,
   TErrorMap extends ErrorMap,
 > {
-  middlewares?: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, SchemaOutput<TInputSchema>, any>[]
+  middlewares?: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, SchemaOutput<TInputSchema>, any, any>[]
   contract: ContractProcedure<TInputSchema, TOutputSchema, TErrorMap>
   /**
    * Why ErrorMap pass to ProcedureHandler is any?

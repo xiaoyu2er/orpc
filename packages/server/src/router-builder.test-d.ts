@@ -99,9 +99,9 @@ describe('self chainable', () => {
   })
 
   it('use middleware', () => {
-    const mid1 = {} as Middleware<{ auth: boolean }, undefined, unknown, unknown>
-    const mid2 = {} as Middleware<{ auth: boolean }, { dev: string }, unknown, unknown>
-    const mid3 = {} as Middleware<{ auth: boolean, db: string }, { dev: string }, unknown, unknown>
+    const mid1 = {} as Middleware<{ auth: boolean }, undefined, unknown, unknown, Record<string, unknown>>
+    const mid2 = {} as Middleware<{ auth: boolean }, { dev: string }, unknown, unknown, Record<string, unknown>>
+    const mid3 = {} as Middleware<{ auth: boolean, db: string }, { dev: string }, unknown, unknown, Record<string, unknown>>
 
     expectTypeOf(builder.use(mid1)).toEqualTypeOf<typeof builder>()
     expectTypeOf(builder.use(mid2)).toEqualTypeOf<
@@ -111,9 +111,9 @@ describe('self chainable', () => {
       RouterBuilder<{ auth: boolean }, { db: string } & { dev: string }>
     >()
 
-    const mid4 = {} as Middleware<{ auth: boolean }, { dev: string }, unknown, { val: string }>
-    const mid5 = {} as Middleware<{ auth: boolean }, { dev: string }, unknown, { val: number }>
-    const mid6 = {} as Middleware<{ auth: 'invalid' }, undefined, any, unknown>
+    const mid4 = {} as Middleware<{ auth: boolean }, { dev: string }, unknown, { val: string }, Record<string, unknown>>
+    const mid5 = {} as Middleware<{ auth: boolean }, { dev: string }, unknown, { val: number }, Record<string, unknown>>
+    const mid6 = {} as Middleware<{ auth: 'invalid' }, undefined, any, unknown, Record<string, unknown>>
 
     // @ts-expect-error - invalid middleware
     builder.use(mid4)

@@ -1,5 +1,6 @@
 import type { ErrorMap, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { ErrorFromErrorMap } from './error'
+import type { ORPCErrorConstructorMap } from './error-map'
 import type { ANY_MIDDLEWARE, MapInputMiddleware, Middleware } from './middleware'
 import type { ProcedureClient } from './procedure-client'
 import type { Context, MergeContext } from './types'
@@ -33,7 +34,8 @@ export type DecoratedProcedure<
           MergeContext<TContext, TExtraContext>,
           U,
           SchemaOutput<TInputSchema>,
-          SchemaInput<TOutputSchema, THandlerOutput>
+          SchemaInput<TOutputSchema, THandlerOutput>,
+          ORPCErrorConstructorMap<TErrorMap>
         >,
       ) => DecoratedProcedure<
         TContext,
@@ -53,7 +55,8 @@ export type DecoratedProcedure<
           MergeContext<TContext, TExtraContext>,
           UExtra,
           UInput,
-          SchemaInput<TOutputSchema, THandlerOutput>
+          SchemaInput<TOutputSchema, THandlerOutput>,
+          ORPCErrorConstructorMap<TErrorMap>
         >,
         mapInput: MapInputMiddleware<
           SchemaOutput<TInputSchema, THandlerOutput>,
@@ -72,7 +75,7 @@ export type DecoratedProcedure<
     unshiftTag: (...tags: string[]) => DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>
 
     unshiftMiddleware: <U extends Context & Partial<MergeContext<TContext, TExtraContext>> | undefined = undefined>(
-      ...middlewares: Middleware<TContext, U, SchemaOutput<TInputSchema>, SchemaInput<TOutputSchema, THandlerOutput>>[]
+      ...middlewares: Middleware<TContext, U, SchemaOutput<TInputSchema>, SchemaInput<TOutputSchema, THandlerOutput>, ORPCErrorConstructorMap<TErrorMap>>[]
     ) => DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>
 
   }
@@ -112,7 +115,7 @@ export function decorateProcedure<
     }))
   }
 
-  decorated.use = (middleware: Middleware<any, any, any, any>, mapInput?: MapInputMiddleware<any, any>) => {
+  decorated.use = (middleware: Middleware<any, any, any, any, any>, mapInput?: MapInputMiddleware<any, any>) => {
     const middleware_ = mapInput
       ? decorateMiddleware(middleware).mapInput(mapInput)
       : middleware

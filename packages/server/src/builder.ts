@@ -14,7 +14,7 @@ import { type DecoratedProcedure, decorateProcedure } from './procedure-decorate
 import { RouterBuilder } from './router-builder'
 
 export interface BuilderDef<TContext extends Context, TExtraContext extends Context> {
-  middlewares?: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any>[]
+  middlewares?: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, Record<string, unknown>>[]
 }
 
 export class Builder<TContext extends Context, TExtraContext extends Context> {
@@ -34,7 +34,8 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
       MergeContext<TContext, TExtraContext>,
       U,
       unknown,
-      unknown
+      unknown,
+      Record<string, unknown>
     >,
   ): Builder<TContext, MergeContext<TExtraContext, U>> {
     return new Builder({
@@ -52,13 +53,15 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
       MergeContext<TContext, TExtraContext>,
       UExtraContext,
       TInput,
-      TOutput
+      TOutput,
+      Record<string, unknown>
     >,
   ): DecoratedMiddleware<
       MergeContext<TContext, TExtraContext>,
       UExtraContext,
       TInput,
-      TOutput
+      TOutput,
+      Record<string, unknown>
     > {
     return decorateMiddleware(middleware)
   }

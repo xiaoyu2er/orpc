@@ -3,21 +3,21 @@ import type { DecoratedMiddleware } from './middleware-decorated'
 import type { WELL_CONTEXT } from './types'
 
 describe('decorateMiddleware', () => {
-  const decorated = {} as DecoratedMiddleware<{ user?: string }, { auth: true, user: string }, { name: string }, unknown>
+  const decorated = {} as DecoratedMiddleware<{ user?: string }, { auth: true, user: string }, { name: string }, unknown, Record<string, unknown>>
 
   it('assignable to middleware', () => {
-    const decorated = {} as DecoratedMiddleware<WELL_CONTEXT, undefined, { input: 'input' }, unknown>
-    const mid: Middleware<WELL_CONTEXT, undefined, { input: 'input' }, unknown> = decorated
+    const decorated = {} as DecoratedMiddleware<WELL_CONTEXT, undefined, { input: 'input' }, unknown, Record<string, unknown>>
+    const mid: Middleware<WELL_CONTEXT, undefined, { input: 'input' }, unknown, Record<string, unknown>> = decorated
 
-    const decorated2 = {} as DecoratedMiddleware<WELL_CONTEXT, { extra: boolean }, unknown, 'output'>
-    const mid2: Middleware<WELL_CONTEXT, { extra: boolean }, unknown, 'output'> = decorated2
+    const decorated2 = {} as DecoratedMiddleware<WELL_CONTEXT, { extra: boolean }, unknown, 'output', Record<string, unknown>>
+    const mid2: Middleware<WELL_CONTEXT, { extra: boolean }, unknown, 'output', Record<string, unknown>> = decorated2
   })
 
   it('can map input', () => {
     const mapped = decorated.mapInput((input: 'something') => ({ name: input }))
 
     expectTypeOf(mapped).toEqualTypeOf<
-      DecoratedMiddleware<{ user?: string }, { auth: true, user: string }, 'something', unknown>
+      DecoratedMiddleware<{ user?: string }, { auth: true, user: string }, 'something', unknown, Record<string, unknown>>
     >()
   })
 
@@ -31,7 +31,8 @@ describe('decorateMiddleware', () => {
         { user?: string },
         { auth: true, user: string } & { db: boolean },
         { name: string } & { age: number },
-        unknown
+        unknown,
+        Record<string, unknown>
       >
     >()
   })
@@ -47,7 +48,8 @@ describe('decorateMiddleware', () => {
         { user?: string },
         { auth: true, user: string } & { db: boolean },
         { name: string } & { year: number },
-        unknown
+        unknown,
+        Record<string, unknown>
       >
     >()
 
@@ -68,7 +70,8 @@ describe('decorateMiddleware', () => {
         { user?: string },
         { auth: true, user: string } & { db: boolean },
         { name: string },
-        unknown
+        unknown,
+        Record<string, unknown>
       >
     >()
 

@@ -10,14 +10,14 @@ export interface ProcedureHandlerOptions<
   TContext extends Context,
   TExtraContext extends Context,
   TInput,
-  TErrorMap extends ORPCErrorConstructorMap<any>,
+  TErrorConstructorMap extends ORPCErrorConstructorMap<any>,
 > {
   context: MergeContext<TContext, TExtraContext>
   input: TInput
   path: string[]
   procedure: ANY_PROCEDURE
   signal?: AbortSignal
-  errors: TErrorMap
+  errors: TErrorConstructorMap
 }
 
 export interface ProcedureHandler<
@@ -33,6 +33,17 @@ export interface ProcedureHandler<
   ): Promisable<SchemaInput<TOutputSchema, THandlerOutput>>
 }
 
+/**
+ * Why is `ErrorConstructorMap` passed to `Middleware` as `any`?
+ * Why is `ErrorMap` passed to `ProcedureHandler` as `any`?
+ *
+ * Passing `ErrorMap/ErrorConstructorMap` directly to `Middleware/ProcedureHandler`
+ * causes unexpected errors in the router (the root cause is unclear, but it occurs consistently).
+ * To avoid these issues, `any` is used as a workaround.
+ *
+ * This approach is still functional because `ProcedureDef` can infer the `ErrorMap` from `ContractProcedure`.
+ * The only downside is that direct access to them requires careful type checking to ensure safety.
+ */
 export interface ProcedureDef<
   TContext extends Context,
   TExtraContext extends Context,
@@ -43,12 +54,6 @@ export interface ProcedureDef<
 > {
   middlewares?: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, SchemaOutput<TInputSchema>, any, any>[]
   contract: ContractProcedure<TInputSchema, TOutputSchema, TErrorMap>
-  /**
-   * Why ErrorMap pass to ProcedureHandler is any?
-   * Because if I pass ErrorMap to ProcedureHandler, some error will happen in router... (I don't know why, but it happened)
-   * So I decide to pass any to ProcedureHandler.
-   * It still fine since, ProcedureDef still can infer ErrorMap from ContractProcedure.
-   */
   handler: ProcedureHandler<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, any>
 }
 

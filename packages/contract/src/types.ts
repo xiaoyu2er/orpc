@@ -1,4 +1,3 @@
-import type { ORPCErrorCode } from '@orpc/shared/error'
 import type { StandardSchemaV1 } from '@standard-schema/spec'
 
 export type HTTPPath = `/${string}`
@@ -25,18 +24,3 @@ export type SchemaOutput<
   : TSchema extends StandardSchemaV1
     ? StandardSchemaV1.InferOutput<TSchema>
     : TFallback
-
-export type ErrorMapItem<TDataSchema extends Schema> = {
-  /**
-   *
-   * @default 200
-   */
-  status?: number
-  message?: string
-  description?: string
-  data?: TDataSchema
-}
-
-export type ErrorMap = undefined | {
-  [key in ORPCErrorCode | (string & {})]?: ErrorMapItem<Schema>
-}

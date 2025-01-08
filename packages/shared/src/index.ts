@@ -1,4 +1,5 @@
 export * from './constants'
+export * from './error'
 export * from './function'
 export * from './hook'
 export * from './json'

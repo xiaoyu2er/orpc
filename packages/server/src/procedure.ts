@@ -1,6 +1,6 @@
 import type { ContractProcedure, ErrorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Promisable } from '@orpc/shared'
-import type { ORPCErrorConstructorMap } from './error-map'
+import type { ORPCErrorConstructorMap } from './error'
 import type { Lazy } from './lazy'
 import type { Middleware } from './middleware'
 import type { AbortSignal, Context, MergeContext } from './types'

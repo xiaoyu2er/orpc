@@ -6,7 +6,7 @@ import type {
   SchemaInput,
   SchemaOutput,
 } from '@orpc/contract'
-import type { ORPCErrorConstructorMap } from './error-map'
+import type { ORPCErrorConstructorMap } from './error'
 import type { MapInputMiddleware, Middleware } from './middleware'
 import type { DecoratedProcedure } from './procedure-decorated'
 import type { Context, MergeContext } from './types'

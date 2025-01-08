@@ -1,4 +1,4 @@
-import type { ORPCErrorConstructorMap } from './error-map'
+import type { ORPCErrorConstructorMap } from './error'
 import type { ANY_MAP_INPUT_MIDDLEWARE, ANY_MIDDLEWARE, MapInputMiddleware, Middleware, MiddlewareNextFn } from './middleware'
 import type { Context, MergeContext } from './types'
 import { mergeContext } from './utils'

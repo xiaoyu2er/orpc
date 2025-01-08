@@ -1,5 +1,5 @@
 import type { Arrayable, Promisable } from 'type-fest'
-import { convertToStandardError } from './error'
+import { toError } from './error'
 
 export type OnStartState<TInput> = { status: 'pending', input: TInput, output: undefined, error: undefined }
 export type OnSuccessState<TInput, TOutput> = { status: 'success', input: TInput, output: TOutput, error: undefined }
@@ -62,14 +62,14 @@ export async function executeWithHooks<TInput, TOutput, TContext, TMeta extends 
       }
     }
     catch (e) {
-      state = { status: 'error', input: options.input, error: convertToStandardError(e), output: undefined }
+      state = { status: 'error', input: options.input, error: toError(e), output: undefined }
 
       for (let i = onErrors.length - 1; i >= 0; i--) {
         try {
           await onErrors[i]!(state, options.context, options.meta)
         }
         catch (e) {
-          state = { status: 'error', input: options.input, error: convertToStandardError(e), output: undefined }
+          state = { status: 'error', input: options.input, error: toError(e), output: undefined }
         }
       }
     }
@@ -79,7 +79,7 @@ export async function executeWithHooks<TInput, TOutput, TContext, TMeta extends 
         await onFinishes[i]!(state, options.context, options.meta)
       }
       catch (e) {
-        state = { status: 'error', input: options.input, error: convertToStandardError(e), output: undefined }
+        state = { status: 'error', input: options.input, error: toError(e), output: undefined }
       }
     }
 

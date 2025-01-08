@@ -1,5 +1,5 @@
 import type { Promisable } from '@orpc/shared'
-import type { ORPCErrorConstructorMap } from './error-map'
+import type { ORPCErrorConstructorMap } from './error'
 import type { ANY_PROCEDURE } from './procedure'
 import type { Context } from './types'
 

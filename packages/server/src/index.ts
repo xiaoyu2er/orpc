@@ -2,6 +2,7 @@ import type { WELL_CONTEXT } from './types'
 import { Builder } from './builder'
 
 export * from './builder'
+export * from './error'
 export * from './hidden'
 export * from './implementer-chainable'
 export * from './lazy'
@@ -20,7 +21,6 @@ export * from './router-implementer'
 export * from './types'
 export * from './utils'
 
-export { configGlobal, fallbackToGlobalConfig } from '@orpc/contract'
-export * from '@orpc/shared/error'
+export { configGlobal, fallbackToGlobalConfig, isDefinedError, ORPCError } from '@orpc/contract'
 
 export const os = new Builder<WELL_CONTEXT, undefined>({})

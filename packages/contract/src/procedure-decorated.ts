@@ -1,5 +1,6 @@
+import type { ErrorMap } from './error-map'
 import type { RouteOptions } from './procedure'
-import type { ErrorMap, HTTPPath, Schema, SchemaInput, SchemaOutput } from './types'
+import type { HTTPPath, Schema, SchemaInput, SchemaOutput } from './types'
 import { ContractProcedure } from './procedure'
 
 export class DecoratedContractProcedure<
@@ -7,7 +8,7 @@ export class DecoratedContractProcedure<
   TOutputSchema extends Schema,
   TErrorMap extends ErrorMap,
 > extends ContractProcedure<TInputSchema, TOutputSchema, TErrorMap> {
-  static decorate<UInputSchema extends Schema, UOutputSchema extends Schema, TErrorMap extends ErrorMap >(
+  static decorate<UInputSchema extends Schema, UOutputSchema extends Schema, TErrorMap extends ErrorMap>(
     procedure: ContractProcedure<UInputSchema, UOutputSchema, TErrorMap>,
   ): DecoratedContractProcedure<UInputSchema, UOutputSchema, TErrorMap> {
     if (procedure instanceof DecoratedContractProcedure) {

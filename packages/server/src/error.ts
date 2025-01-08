@@ -1,20 +1,53 @@
-import type { ErrorMap } from '@orpc/contract'
-import type { StandardSchemaV1 } from '@standard-schema/spec'
-import type { ORPCErrorFromErrorMap } from './error-orpc'
+import type { ErrorMap, ErrorMapItem, ORPCErrorOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import { ORPCError } from '@orpc/contract'
 
-export type ErrorFromErrorMap<TErrorMap extends ErrorMap> = Error | ORPCErrorFromErrorMap<TErrorMap>
+export type ORPCErrorConstructorMapItemOptions<TData> = Omit<ORPCErrorOptions<any, TData>, 'defined' | 'code' | 'status'>
 
-export interface ValidationErrorOptions extends ErrorOptions {
-  message: string
-  issues: readonly StandardSchemaV1.Issue[]
-}
+export type ORPCErrorConstructorMapItemRest<TData> =
+  | [options: ORPCErrorConstructorMapItemOptions<TData>]
+  | (undefined extends TData ? [] : never)
 
-export class ValidationError extends Error {
-  readonly issues: readonly StandardSchemaV1.Issue[]
+export type ORPCErrorConstructorMapItem<TCode extends string, TDataSchema extends Schema> =
+    (...rest: ORPCErrorConstructorMapItemRest<SchemaInput<TDataSchema>>) => ORPCError<TCode, SchemaOutput<TDataSchema>>
 
-  constructor(options: ValidationErrorOptions) {
-    super(options.message, options)
+export type ORPCErrorConstructorMap<T extends ErrorMap> =
+    T extends undefined
+      ? Record<string, unknown>
+      : {
+          [K in keyof T]: K extends string
+            ? T[K] extends ErrorMapItem<infer UInputSchema>
+              ? ORPCErrorConstructorMapItem<K, UInputSchema>
+              : never
+            : never
+        }
 
-    this.issues = options.issues
+export function createORPCErrorConstructorMap<T extends ErrorMap>(errors: T): ORPCErrorConstructorMap<T> {
+  const constructors = {} as ORPCErrorConstructorMap<T>
+
+  if (!errors) {
+    return constructors
   }
+
+  for (const code in errors) {
+    const config = errors[code]
+
+    if (!config) {
+      continue
+    }
+
+    const constructor: ORPCErrorConstructorMapItem<string, Schema> = (...[options]) => {
+      return new ORPCError({
+        code,
+        defined: true,
+        status: config.status,
+        message: options?.message ?? config.message,
+        data: options?.data,
+        cause: options?.cause,
+      })
+    }
+
+    constructors[code] = constructor as any
+  }
+
+  return constructors
 }

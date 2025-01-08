@@ -1,13 +1,11 @@
-import type { ErrorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Hooks, Value } from '@orpc/shared'
-import type { ErrorFromErrorMap } from './error'
 import type { Lazyable } from './lazy'
 import type { MiddlewareNextFn } from './middleware'
 import type { ANY_PROCEDURE, Procedure, ProcedureHandlerOptions } from './procedure'
 import type { AbortSignal, Context, Meta } from './types'
-import { executeWithHooks, value } from '@orpc/shared'
-import { ORPCError } from '@orpc/shared/error'
-import { createORPCErrorConstructorMap } from './error-map'
+import { type ErrorFromErrorMap, type ErrorMap, ORPCError, type Schema, type SchemaInput, type SchemaOutput, validateORPCError, ValidationError } from '@orpc/contract'
+import { executeWithHooks, toError, value } from '@orpc/shared'
+import { createORPCErrorConstructorMap } from './error'
 import { unlazy } from './lazy'
 import { mergeContext } from './utils'
 
@@ -61,7 +59,6 @@ export function createProcedureClient<
 >(
   options: CreateProcedureClientOptions<TContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>,
 ): ProcedureClient<unknown, SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, THandlerOutput>, ErrorFromErrorMap<TErrorMap>> {
-  // TODO: handle errors
   return async (...[input, callerOptions]) => {
     const path = options.path ?? []
     const { default: procedure } = await unlazy(options.procedure)
@@ -88,13 +85,24 @@ export function createProcedureClient<
       return validateOutput(procedure, output) as SchemaOutput<TOutputSchema, THandlerOutput>
     }
 
-    return executeWithHooks({
-      hooks: options,
-      input,
-      context,
-      meta,
-      execute: executeWithValidation,
-    })
+    try {
+      return executeWithHooks({
+        hooks: options,
+        input,
+        context,
+        meta,
+        execute: executeWithValidation,
+      })
+    }
+    catch (e) {
+      if (!(e instanceof ORPCError)) {
+        throw toError(e)
+      }
+
+      const validated = await validateORPCError(procedure['~orpc'].contract['~orpc'].errorMap, e)
+
+      throw validated
+    }
   }
 }
 
@@ -108,7 +116,10 @@ async function validateInput(procedure: ANY_PROCEDURE, input: unknown) {
     throw new ORPCError({
       message: 'Input validation failed',
       code: 'BAD_REQUEST',
-      issues: result.issues,
+      data: {
+        issues: result.issues,
+      },
+      cause: new ValidationError({ message: 'Input validation failed', issues: result.issues }),
     })
   }
 
@@ -125,7 +136,7 @@ async function validateOutput(procedure: ANY_PROCEDURE, output: unknown) {
     throw new ORPCError({
       message: 'Output validation failed',
       code: 'INTERNAL_SERVER_ERROR',
-      issues: result.issues,
+      cause: new ValidationError({ message: 'Output validation failed', issues: result.issues }),
     })
   }
 

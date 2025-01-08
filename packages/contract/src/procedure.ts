@@ -1,4 +1,5 @@
-import type { ErrorMap, HTTPMethod, HTTPPath, InputStructure, OutputStructure, Schema, SchemaOutput } from './types'
+import type { ErrorMap } from './error-map'
+import type { HTTPMethod, HTTPPath, InputStructure, OutputStructure, Schema, SchemaOutput } from './types'
 
 export interface RouteOptions {
   method?: HTTPMethod

@@ -1,5 +1,4 @@
-import type { SchemaInput, SchemaOutput } from '@orpc/contract'
-import type { ErrorFromErrorMap } from './error'
+import type { ErrorFromErrorMap, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Lazy } from './lazy'
 import type { Procedure } from './procedure'
 import type { ProcedureClient } from './procedure-client'

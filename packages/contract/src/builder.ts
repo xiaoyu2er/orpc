@@ -45,7 +45,8 @@ export class ContractBuilder {
     })
   }
 
-  errors<U extends ErrorMap>(errorMap: U): DecoratedContractProcedure<undefined, undefined, U> {
+  errors<const U extends ErrorMap>(errorMap: U): DecoratedContractProcedure<undefined, undefined, U> {
+    // use const here for make sure the when implement must match the errorMap from contract from status to data schema
     return new DecoratedContractProcedure({
       InputSchema: undefined,
       OutputSchema: undefined,

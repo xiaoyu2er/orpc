@@ -70,7 +70,8 @@ export class DecoratedContractProcedure<
     })
   }
 
-  errors<U extends ErrorMap>(errorMap: U): DecoratedContractProcedure<TInputSchema, TOutputSchema, U> {
+  errors<const U extends ErrorMap>(errorMap: U): DecoratedContractProcedure<TInputSchema, TOutputSchema, U> {
+    // use const here for make sure the when implement must match the errorMap from contract from status to data schema
     return new DecoratedContractProcedure({
       ...this['~orpc'],
       errorMap,

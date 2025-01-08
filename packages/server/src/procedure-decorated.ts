@@ -1,4 +1,5 @@
-import type { ErrorMap, ErrorMapToError, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ErrorMap, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ErrorFromErrorMap } from './error'
 import type { ANY_MIDDLEWARE, MapInputMiddleware, Middleware } from './middleware'
 import type { ProcedureClient } from './procedure-client'
 import type { Context, MergeContext } from './types'
@@ -75,7 +76,7 @@ export type DecoratedProcedure<
     ) => DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>
 
   }
-  & (undefined extends TContext ? ProcedureClient<unknown, SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, THandlerOutput>, ErrorMapToError<TErrorMap>> : unknown)
+  & (undefined extends TContext ? ProcedureClient<unknown, SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, THandlerOutput>, ErrorFromErrorMap<TErrorMap>> : unknown)
 
 export function decorateProcedure<
   TContext extends Context,

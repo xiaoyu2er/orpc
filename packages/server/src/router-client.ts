@@ -1,5 +1,6 @@
-import type { ContractProcedure, ContractRouter, ErrorMapToError, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ContractProcedure, ContractRouter, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Hooks, Value } from '@orpc/shared'
+import type { ErrorFromErrorMap } from './error'
 import type { Lazy } from './lazy'
 import type { Procedure } from './procedure'
 import type { ProcedureClient } from './procedure-client'
@@ -16,7 +17,7 @@ TRouter extends Lazy<infer U extends ANY_ROUTER | ContractRouter>
   : TRouter extends
   | ContractProcedure<infer UInputSchema, infer UOutputSchema, infer UErrorMap>
   | Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput, infer UErrorMap>
-    ? ProcedureClient<TClientContext, SchemaInput<UInputSchema>, SchemaOutput<UOutputSchema, UFuncOutput>, ErrorMapToError<UErrorMap>>
+    ? ProcedureClient<TClientContext, SchemaInput<UInputSchema>, SchemaOutput<UOutputSchema, UFuncOutput>, ErrorFromErrorMap<UErrorMap>>
     : {
         [K in keyof TRouter]: TRouter[K] extends ANY_ROUTER | ContractRouter ? RouterClient<TRouter[K], TClientContext> : never
       }

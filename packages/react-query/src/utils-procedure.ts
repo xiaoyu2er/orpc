@@ -6,7 +6,7 @@ import { buildKey } from './key'
 /**
  * Utils at procedure level
  */
-export interface ProcedureUtils<TClientContext, TInput, TOutput, TError> {
+export interface ProcedureUtils<TClientContext, TInput, TOutput, TError extends Error> {
   queryOptions: <U extends QueryOptionsExtra<TClientContext, TInput, TOutput, TError, any>>(
     ...opts: [options: U] | (undefined extends TInput & TClientContext ? [] : never)
   ) => IsEqual<U, QueryOptionsExtra<TClientContext, TInput, TOutput, TError, any>> extends true

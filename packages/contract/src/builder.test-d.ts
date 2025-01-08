@@ -33,11 +33,11 @@ describe('to ContractRouterBuilder', () => {
 describe('to DecoratedContractProcedure', () => {
   it('route', () => {
     expectTypeOf(builder.route({ method: 'GET', path: '/path' })).toEqualTypeOf<
-      DecoratedContractProcedure<undefined, undefined, Record<never, never>>
+      DecoratedContractProcedure<undefined, undefined, undefined>
     >()
 
     expectTypeOf(builder.route({ })).toEqualTypeOf<
-      DecoratedContractProcedure<undefined, undefined, Record<never, never>>
+      DecoratedContractProcedure<undefined, undefined, undefined>
     >()
 
     // @ts-expect-error - invalid method
@@ -52,11 +52,11 @@ describe('to DecoratedContractProcedure', () => {
 
   it('input', () => {
     expectTypeOf(builder.input(schema)).toEqualTypeOf<
-      DecoratedContractProcedure<typeof schema, undefined, Record<never, never>>
+      DecoratedContractProcedure<typeof schema, undefined, undefined>
     >()
 
     expectTypeOf(builder.input(schema, { value: 'example' })).toEqualTypeOf<
-      DecoratedContractProcedure<typeof schema, undefined, Record<never, never>>
+      DecoratedContractProcedure<typeof schema, undefined, undefined>
     >()
 
     // @ts-expect-error - invalid schema
@@ -68,11 +68,11 @@ describe('to DecoratedContractProcedure', () => {
 
   it('output', () => {
     expectTypeOf(builder.output(schema)).toEqualTypeOf<
-      DecoratedContractProcedure<undefined, typeof schema, Record<never, never>>
+      DecoratedContractProcedure<undefined, typeof schema, undefined>
     >()
 
     expectTypeOf(builder.output(schema, { value: 'example' })).toEqualTypeOf<
-      DecoratedContractProcedure<undefined, typeof schema, Record<never, never>>
+      DecoratedContractProcedure<undefined, typeof schema, undefined>
     >()
 
     // @ts-expect-error - invalid schema
@@ -87,7 +87,7 @@ describe('to router', () => {
   const router = {
     a: {
       b: {
-        c: new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: {} }),
+        c: new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: undefined }),
       },
     },
   }

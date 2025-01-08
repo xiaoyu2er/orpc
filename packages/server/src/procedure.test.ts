@@ -6,7 +6,7 @@ describe('isProcedure', () => {
     contract: new ContractProcedure({
       InputSchema: undefined,
       OutputSchema: undefined,
-      errorMap: {},
+      errorMap: undefined,
     }),
     handler: () => {},
   })

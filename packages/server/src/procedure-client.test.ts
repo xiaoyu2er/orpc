@@ -11,11 +11,11 @@ const handler = vi.fn(() => ({ val: '123' }))
 const mid1 = vi.fn(({ next }, input, output) => next({}))
 const mid2 = vi.fn(({ next }, input, output) => next({}))
 
-const procedure = new Procedure<WELL_CONTEXT, undefined, typeof schema, typeof schema, { val: string }, Record<never, never>>({
+const procedure = new Procedure<WELL_CONTEXT, undefined, typeof schema, typeof schema, { val: string }, undefined>({
   contract: new ContractProcedure({
     InputSchema: schema,
     OutputSchema: schema,
-    errorMap: {},
+    errorMap: undefined,
   }),
   handler,
   middlewares: [mid1, mid2],
@@ -325,7 +325,7 @@ it('still work without middleware', async () => {
     contract: new ContractProcedure({
       InputSchema: schema,
       OutputSchema: schema,
-      errorMap: {},
+      errorMap: undefined,
     }),
     handler,
   })
@@ -345,7 +345,7 @@ it('still work without InputSchema', async () => {
     contract: new ContractProcedure({
       InputSchema: undefined,
       OutputSchema: schema,
-      errorMap: {},
+      errorMap: undefined,
     }),
     handler,
   })
@@ -365,7 +365,7 @@ it('still work without OutputSchema', async () => {
     contract: new ContractProcedure({
       InputSchema: schema,
       OutputSchema: undefined,
-      errorMap: {},
+      errorMap: undefined,
     }),
     handler,
   })

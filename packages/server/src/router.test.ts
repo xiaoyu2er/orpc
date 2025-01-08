@@ -11,7 +11,7 @@ describe('getRouterChild', () => {
     contract: new ContractProcedure({
       InputSchema: schema,
       OutputSchema: schema,
-      errorMap: {},
+      errorMap: undefined,
     }),
     handler: vi.fn(() => ({ val: '123' })),
   })
@@ -19,7 +19,7 @@ describe('getRouterChild', () => {
     contract: new ContractProcedure({
       InputSchema: undefined,
       OutputSchema: undefined,
-      errorMap: {},
+      errorMap: undefined,
     }),
     handler: vi.fn(() => ('output')),
   })

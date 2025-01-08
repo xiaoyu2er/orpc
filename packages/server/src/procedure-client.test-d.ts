@@ -93,8 +93,8 @@ describe('ProcedureClient', () => {
 
 describe('createProcedureClient', () => {
   const schema = z.object({ val: z.string().transform(v => Number(v)) })
-  const procedure = {} as Procedure<WELL_CONTEXT, { val: string }, typeof schema, typeof schema, { val: string }, Record<never, never>>
-  const procedureWithContext = {} as Procedure<{ userId?: string }, { db: string }, typeof schema, typeof schema, { val: string }, Record<never, never>>
+  const procedure = {} as Procedure<WELL_CONTEXT, { val: string }, typeof schema, typeof schema, { val: string }, undefined>
+  const procedureWithContext = {} as Procedure<{ userId?: string }, { db: string }, typeof schema, typeof schema, { val: string }, undefined>
 
   it('just a client', () => {
     const client = createProcedureClient({
@@ -207,7 +207,7 @@ describe('createProcedureClient', () => {
 
 it('support lazy procedure', () => {
   const schema = z.object({ val: z.string().transform(v => Number(v)) })
-  const procedure = {} as Procedure<{ userId?: string }, undefined, typeof schema, typeof schema, { val: string }, Record<never, never>>
+  const procedure = {} as Procedure<{ userId?: string }, undefined, typeof schema, typeof schema, { val: string }, undefined>
   const lazied = lazy(() => Promise.resolve({ default: procedure }))
 
   const client = createProcedureClient({

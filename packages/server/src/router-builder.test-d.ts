@@ -11,8 +11,8 @@ import { lazy } from './lazy'
 const builder = {} as RouterBuilder<{ auth: boolean }, { db: string }>
 
 describe('AdaptedRouter', () => {
-  const ping = {} as Procedure<{ auth: boolean }, { db: string }, undefined, undefined, unknown, Record<never, never>>
-  const pong = {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown, Record<never, never>>
+  const ping = {} as Procedure<{ auth: boolean }, { db: string }, undefined, undefined, unknown, undefined>
+  const pong = {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown, undefined>
 
   it('without lazy', () => {
     const router = {
@@ -26,16 +26,16 @@ describe('AdaptedRouter', () => {
     const adapted = {} as AdaptedRouter<{ log: true, auth: boolean }, typeof router>
 
     expectTypeOf(adapted.ping).toEqualTypeOf<
-      DecoratedProcedure<{ log: true, auth: boolean }, { db: string }, undefined, undefined, unknown, Record<never, never>>
+      DecoratedProcedure<{ log: true, auth: boolean }, { db: string }, undefined, undefined, unknown, undefined>
     >()
     expectTypeOf(adapted.pong).toEqualTypeOf<
-      DecoratedProcedure<{ log: true, auth: boolean }, undefined, undefined, undefined, unknown, Record<never, never>>
+      DecoratedProcedure<{ log: true, auth: boolean }, undefined, undefined, undefined, unknown, undefined>
     >()
     expectTypeOf(adapted.nested.ping).toEqualTypeOf<
-      DecoratedProcedure<{ log: true, auth: boolean }, { db: string }, undefined, undefined, unknown, Record<never, never>>
+      DecoratedProcedure<{ log: true, auth: boolean }, { db: string }, undefined, undefined, unknown, undefined>
     >()
     expectTypeOf(adapted.nested.pong).toEqualTypeOf<
-      DecoratedProcedure<{ log: true, auth: boolean }, undefined, undefined, undefined, unknown, Record<never, never>>
+      DecoratedProcedure<{ log: true, auth: boolean }, undefined, undefined, undefined, unknown, undefined>
     >()
   })
 
@@ -54,26 +54,26 @@ describe('AdaptedRouter', () => {
     const adapted = {} as AdaptedRouter<{ log: true } | undefined, typeof router>
 
     expectTypeOf(adapted.ping).toEqualTypeOf<DecoratedLazy<
-      DecoratedProcedure<{ log: true } | undefined, { db: string }, undefined, undefined, unknown, Record<never, never>>
+      DecoratedProcedure<{ log: true } | undefined, { db: string }, undefined, undefined, unknown, undefined>
     >>()
     expectTypeOf(adapted.pong).toEqualTypeOf<
-      DecoratedProcedure<{ log: true } | undefined, undefined, undefined, undefined, unknown, Record<never, never>>
+      DecoratedProcedure<{ log: true } | undefined, undefined, undefined, undefined, unknown, undefined>
     >()
     expectTypeOf(adapted.nested.ping).toEqualTypeOf<DecoratedLazy<
-      DecoratedProcedure<{ log: true } | undefined, { db: string }, undefined, undefined, unknown, Record<never, never>>
+      DecoratedProcedure<{ log: true } | undefined, { db: string }, undefined, undefined, unknown, undefined>
     >>()
     expectTypeOf(adapted.nested.pong).toEqualTypeOf<DecoratedLazy<
-      DecoratedProcedure<{ log: true } | undefined, undefined, undefined, undefined, unknown, Record<never, never>>
+      DecoratedProcedure<{ log: true } | undefined, undefined, undefined, undefined, unknown, undefined>
     >>()
   })
 
   it('with procedure', () => {
     expectTypeOf<AdaptedRouter<{ log: boolean }, typeof ping>>().toEqualTypeOf<
-      DecoratedProcedure<{ log: boolean }, { db: string }, undefined, undefined, unknown, Record<never, never>>
+      DecoratedProcedure<{ log: boolean }, { db: string }, undefined, undefined, unknown, undefined>
     >()
 
     expectTypeOf < AdaptedRouter<{ log: boolean }, Lazy<typeof ping>>>().toEqualTypeOf<
-      DecoratedLazy<DecoratedProcedure<{ log: boolean }, { db: string }, undefined, undefined, unknown, Record<never, never>>>
+      DecoratedLazy<DecoratedProcedure<{ log: boolean }, { db: string }, undefined, undefined, unknown, undefined>>
     >()
   })
 })
@@ -130,10 +130,10 @@ describe('self chainable', () => {
 
 describe('to AdaptedRouter', () => {
   const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
-  const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, typeof schema, { val: string }, Record<never, never>>
-  const pong = {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown, Record<never, never>>
+  const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, typeof schema, { val: string }, undefined>
+  const pong = {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown, undefined>
 
-  const wrongPing = {} as Procedure<{ auth: 'invalid' }, undefined, undefined, undefined, unknown, Record<never, never>>
+  const wrongPing = {} as Procedure<{ auth: 'invalid' }, undefined, undefined, undefined, unknown, undefined>
 
   it('router without lazy', () => {
     expectTypeOf(builder.router({ ping, pong, nested: { ping, pong } })).toEqualTypeOf<
@@ -197,10 +197,10 @@ describe('to AdaptedRouter', () => {
 
 describe('to Decorated Adapted Lazy', () => {
   const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
-  const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, typeof schema, { val: string }, Record<never, never>>
-  const pong = {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown, Record<never, never>>
+  const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, typeof schema, { val: string }, undefined>
+  const pong = {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown, undefined>
 
-  const wrongPing = {} as Procedure<{ auth: 'invalid' }, undefined, undefined, undefined, unknown, Record<never, never>>
+  const wrongPing = {} as Procedure<{ auth: 'invalid' }, undefined, undefined, undefined, unknown, undefined>
 
   it('router without lazy', () => {
     const router = {

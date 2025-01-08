@@ -11,14 +11,14 @@ const handler = vi.fn(() => ({ val: '123' }))
 const mid = vi.fn(({ next }, _, __) => next({}))
 
 const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
-const procedure = new Procedure<{ auth: boolean }, { db: string }, typeof schema, typeof schema, { val: string }, Record<never, never>>({
+const procedure = new Procedure<{ auth: boolean }, { db: string }, typeof schema, typeof schema, { val: string }, undefined>({
   contract: new ContractProcedure({
     InputSchema: schema,
     OutputSchema: schema,
     route: { path: '/test', method: 'GET', deprecated: true, description: 'des', summary: 'sum', tags: ['hi'] },
     inputExample: { val: 123 },
     outputExample: { val: 456 },
-    errorMap: {},
+    errorMap: undefined,
   }),
   handler,
   middlewares: [mid],
@@ -154,7 +154,7 @@ it('can use middleware when has no middleware', () => {
     contract: new ContractProcedure({
       InputSchema: undefined,
       OutputSchema: undefined,
-      errorMap: {},
+      errorMap: undefined,
     }),
     handler: () => { },
   }))
@@ -172,7 +172,7 @@ it('can unshift middleware when has no middleware', () => {
     contract: new ContractProcedure({
       InputSchema: undefined,
       OutputSchema: undefined,
-      errorMap: {},
+      errorMap: undefined,
     }),
     handler: () => { },
   }))

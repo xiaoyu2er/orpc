@@ -9,8 +9,8 @@ import { getRouterChild } from './router'
 
 const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
 
-const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, typeof schema, { val: string }, Record<never, never>>
-const pong = {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown, Record<never, never>>
+const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, typeof schema, { val: string }, undefined>
+const pong = {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown, undefined>
 
 const router = {
   ping: lazy(() => Promise.resolve({ default: ping })),
@@ -57,8 +57,8 @@ it('InferRouterOutputs', () => {
 
 describe('Router', () => {
   it('require match context', () => {
-    const ping = {} as Procedure<{ auth: boolean }, { db: string }, undefined, undefined, unknown, Record<never, never>>
-    const pong = {} as Procedure<{ auth: string }, undefined, undefined, undefined, unknown, Record<never, never>>
+    const ping = {} as Procedure<{ auth: boolean }, { db: string }, undefined, undefined, unknown, undefined>
+    const pong = {} as Procedure<{ auth: string }, undefined, undefined, undefined, unknown, undefined>
 
     const router: Router<{ auth: boolean, userId: string }, any> = {
       ping,
@@ -136,8 +136,8 @@ describe('Router', () => {
       }),
     })
 
-    const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, Record<never, never>>
-    const pong = {} as Procedure<WELL_CONTEXT, undefined, undefined, typeof schema, { val: string }, Record<never, never>>
+    const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, undefined>
+    const pong = {} as Procedure<WELL_CONTEXT, undefined, undefined, typeof schema, { val: string }, undefined>
 
     const router1: Router<{ auth: boolean, userId: string }, typeof contract> = {
       ping,
@@ -208,12 +208,12 @@ describe('Router', () => {
   })
 
   it('support procedure as a router', () => {
-    const router1: Router<{ auth: boolean, userId: string }, any> = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, Record<never, never>>
+    const router1: Router<{ auth: boolean, userId: string }, any> = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, undefined>
     // @ts-expect-error - invalid context
     const router2: Router<{ auth: boolean, userId: string }, any> = {} as Procedure<{ auth: boolean, dev: boolean }, { db: string }, typeof schema, undefined, unknown>
 
     const pingContract = oc.input(schema)
-    const router3: Router<{ auth: boolean, userId: string }, typeof pingContract> = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, Record<never, never>>
+    const router3: Router<{ auth: boolean, userId: string }, typeof pingContract> = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, undefined>
     // @ts-expect-error - mismatch contract
     const router4: Router<{ auth: boolean, userId: string }, typeof pingContract> = {} as Procedure<{ auth: boolean }, { db: string }, undefined, undefined, unknown>
   })

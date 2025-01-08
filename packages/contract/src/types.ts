@@ -37,7 +37,7 @@ export type ErrorMapItem<TDataSchema extends Schema> = {
   data?: TDataSchema
 }
 
-export type ErrorMap = {
+export type ErrorMap = undefined | {
   [key in ORPCErrorCode | (string & {})]?: ErrorMapItem<Schema>
 }
 

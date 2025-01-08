@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { decorateProcedure } from './procedure-decorated'
 
 const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
-const procedure = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, typeof schema, { val: string }, Record<never, never>>
+const procedure = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, typeof schema, { val: string }, undefined>
 
 const decorated = decorateProcedure(procedure)
 
@@ -71,7 +71,7 @@ describe('self chainable', () => {
         typeof schema,
         typeof schema,
         { val: string },
-        Record<never, never>
+        undefined
       >
     >()
   })
@@ -91,7 +91,7 @@ describe('self chainable', () => {
         typeof schema,
         typeof schema,
         { val: string },
-        Record<never, never>
+        undefined
       >
     >()
 

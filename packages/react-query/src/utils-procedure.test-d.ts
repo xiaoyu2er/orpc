@@ -104,7 +104,7 @@ describe('infiniteOptions', () => {
   })
 
   it('infer correct queryFn type', () => {
-    const utils = createProcedureUtils({} as ProcedureClient<unknown, { limit?: number, cursor: number }, string, Record<never, never>>, [])
+    const utils = createProcedureUtils({} as ProcedureClient<unknown, { limit?: number, cursor: number }, string, Error>, [])
     const options = utils.infiniteOptions({
       input: {},
       getNextPageParam,
@@ -115,7 +115,7 @@ describe('infiniteOptions', () => {
   })
 
   it('infer correct input type', () => {
-    const utils = createProcedureUtils({} as ProcedureClient<unknown, { limit?: number, cursor: number }, string, Record<never, never>>, [])
+    const utils = createProcedureUtils({} as ProcedureClient<unknown, { limit?: number, cursor: number }, string, Error>, [])
 
     utils.infiniteOptions({
       input: {

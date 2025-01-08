@@ -9,11 +9,11 @@ import { ProcedureImplementer } from './procedure-implementer'
 describe('self chainable', () => {
   const global_mid = vi.fn()
   const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
-  const implementer = new ProcedureImplementer<{ id?: string }, undefined, typeof schema, typeof schema, Record<never, never>>({
+  const implementer = new ProcedureImplementer<{ id?: string }, undefined, typeof schema, typeof schema, undefined>({
     contract: new ContractProcedure({
       InputSchema: schema,
       OutputSchema: schema,
-      errorMap: {},
+      errorMap: undefined,
     }),
     middlewares: [global_mid],
   })
@@ -51,7 +51,7 @@ describe('self chainable', () => {
         { auth: boolean },
         typeof schema,
         typeof schema,
-        Record<never, never>
+        undefined
       >
     >()
   })
@@ -74,7 +74,7 @@ describe('self chainable', () => {
         { id: string, extra: boolean },
         typeof schema,
         typeof schema,
-        Record<never, never>
+        undefined
       >
     >()
 
@@ -128,11 +128,11 @@ describe('to DecoratedProcedure', () => {
   const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
 
   const global_mid = vi.fn()
-  const implementer = new ProcedureImplementer<{ id?: string } | undefined, { db: string }, typeof schema, typeof schema, Record<never, never>>({
+  const implementer = new ProcedureImplementer<{ id?: string } | undefined, { db: string }, typeof schema, typeof schema, undefined>({
     contract: new ContractProcedure({
       InputSchema: schema,
       OutputSchema: schema,
-      errorMap: {},
+      errorMap: undefined,
     }),
     middlewares: [global_mid],
   })
@@ -149,7 +149,7 @@ describe('to DecoratedProcedure', () => {
     })
 
     expectTypeOf(procedure).toEqualTypeOf<
-      DecoratedProcedure<{ id?: string } | undefined, { db: string }, typeof schema, typeof schema, { val: string }, Record<never, never>>
+      DecoratedProcedure<{ id?: string } | undefined, { db: string }, typeof schema, typeof schema, { val: string }, undefined>
     >()
 
     // @ts-expect-error - invalid output

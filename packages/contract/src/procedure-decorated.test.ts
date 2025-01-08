@@ -3,7 +3,7 @@ import { ContractProcedure } from './procedure'
 import { DecoratedContractProcedure } from './procedure-decorated'
 
 describe('decorate', () => {
-  const procedure = new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: {} })
+  const procedure = new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: undefined })
 
   it('works', () => {
     const decorated = DecoratedContractProcedure.decorate(procedure)
@@ -13,7 +13,7 @@ describe('decorate', () => {
 })
 
 describe('route', () => {
-  const decorated = new DecoratedContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: {} })
+  const decorated = new DecoratedContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: undefined })
 
   it('works', () => {
     const route = { method: 'GET', path: '/path' } as const
@@ -43,7 +43,7 @@ describe('route', () => {
 })
 
 describe('prefix', () => {
-  const decorated = new DecoratedContractProcedure({ InputSchema: undefined, OutputSchema: undefined, route: { path: '/path' }, errorMap: {} })
+  const decorated = new DecoratedContractProcedure({ InputSchema: undefined, OutputSchema: undefined, route: { path: '/path' }, errorMap: undefined })
 
   it('works', () => {
     const prefixed = decorated.prefix('/prefix')
@@ -52,7 +52,7 @@ describe('prefix', () => {
   })
 
   it('do nothing on non-path procedure', () => {
-    const decorated = new DecoratedContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: {} })
+    const decorated = new DecoratedContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: undefined })
     const prefixed = decorated.prefix('/prefix')
     expect(prefixed).toBeInstanceOf(DecoratedContractProcedure)
     expect(prefixed['~orpc']).toEqual({ })
@@ -66,7 +66,7 @@ describe('prefix', () => {
 })
 
 describe('unshiftTag', () => {
-  const decorated = new DecoratedContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: {} })
+  const decorated = new DecoratedContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: undefined })
 
   it('works', () => {
     const tagged = decorated.unshiftTag('tag1', 'tag2')
@@ -92,7 +92,7 @@ describe('unshiftTag', () => {
 })
 
 describe('input', () => {
-  const decorated = new DecoratedContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: {} })
+  const decorated = new DecoratedContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: undefined })
   const schema = z.object({
     value: z.string(),
   })
@@ -112,7 +112,7 @@ describe('input', () => {
 })
 
 describe('output', () => {
-  const decorated = new DecoratedContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: {} })
+  const decorated = new DecoratedContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: undefined })
   const schema = z.object({
     value: z.string(),
   })

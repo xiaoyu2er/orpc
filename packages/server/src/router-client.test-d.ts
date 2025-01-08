@@ -6,8 +6,8 @@ import { lazy } from './lazy'
 import { createRouterClient, type RouterClient } from './router-client'
 
 const schema = z.object({ val: z.string().transform(val => Number(val)) })
-const ping = {} as Procedure<WELL_CONTEXT, undefined, typeof schema, typeof schema, { val: string }, Record<never, never>>
-const pong = {} as Procedure<{ auth: boolean }, undefined, undefined, undefined, unknown, Record<never, never>>
+const ping = {} as Procedure<WELL_CONTEXT, undefined, typeof schema, typeof schema, { val: string }, undefined>
+const pong = {} as Procedure<{ auth: boolean }, undefined, undefined, undefined, unknown, undefined>
 
 const router = {
   ping,

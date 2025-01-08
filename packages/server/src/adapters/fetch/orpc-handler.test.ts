@@ -14,6 +14,7 @@ describe('oRPCHandler', () => {
     contract: new ContractProcedure({
       InputSchema: undefined,
       OutputSchema: undefined,
+      errorMap: undefined,
     }),
     handler: vi.fn(),
   })
@@ -21,6 +22,7 @@ describe('oRPCHandler', () => {
     contract: new ContractProcedure({
       InputSchema: undefined,
       OutputSchema: undefined,
+      errorMap: undefined,
     }),
     handler: vi.fn(),
   })

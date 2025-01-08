@@ -7,6 +7,7 @@ import type { ANY_PROCEDURE, Procedure, ProcedureHandlerOptions } from './proced
 import type { AbortSignal, Context, Meta } from './types'
 import { executeWithHooks, value } from '@orpc/shared'
 import { ORPCError } from '@orpc/shared/error'
+import { createORPCErrorConstructorMap } from './error-map'
 import { unlazy } from './lazy'
 import { mergeContext } from './utils'
 
@@ -81,6 +82,7 @@ export function createProcedureClient<
         path,
         procedure,
         signal: callerOptions?.signal,
+        errors: createORPCErrorConstructorMap(procedure['~orpc'].contract['~orpc'].errorMap),
       })
 
       return validateOutput(procedure, output) as SchemaOutput<TOutputSchema, THandlerOutput>
@@ -130,7 +132,7 @@ async function validateOutput(procedure: ANY_PROCEDURE, output: unknown) {
   return result.value
 }
 
-async function executeMiddlewareChain(opt: ProcedureHandlerOptions<any, any>) {
+async function executeMiddlewareChain(opt: ProcedureHandlerOptions<any, any, any, any>) {
   const middlewares = opt.procedure['~orpc'].middlewares ?? []
   let currentMidIndex = 0
   let currentContext = opt.context

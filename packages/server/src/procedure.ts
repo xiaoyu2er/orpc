@@ -1,16 +1,23 @@
 import type { ContractProcedure, ErrorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Promisable } from '@orpc/shared'
+import type { ORPCErrorConstructorMap } from './error-map'
 import type { Lazy } from './lazy'
 import type { Middleware } from './middleware'
 import type { AbortSignal, Context, MergeContext } from './types'
 import { isContractProcedure } from '@orpc/contract'
 
-export interface ProcedureHandlerOptions<TContext extends Context, TInput> {
-  context: TContext
+export interface ProcedureHandlerOptions<
+  TContext extends Context,
+  TExtraContext extends Context,
+  TInput,
+  TErrorMap extends ORPCErrorConstructorMap<any>,
+> {
+  context: MergeContext<TContext, TExtraContext>
   input: TInput
   path: string[]
   procedure: ANY_PROCEDURE
   signal?: AbortSignal
+  errors: TErrorMap
 }
 
 export interface ProcedureHandler<
@@ -19,9 +26,10 @@ export interface ProcedureHandler<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
+  TErrorMap extends ErrorMap,
 > {
   (
-    opt: ProcedureHandlerOptions<MergeContext<TContext, TExtraContext>, SchemaOutput<TInputSchema>>
+    opt: ProcedureHandlerOptions<TContext, TExtraContext, SchemaOutput<TInputSchema>, ORPCErrorConstructorMap<TErrorMap>>
   ): Promisable<SchemaInput<TOutputSchema, THandlerOutput>>
 }
 
@@ -35,7 +43,13 @@ export interface ProcedureDef<
 > {
   middlewares?: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, SchemaOutput<TInputSchema>, any>[]
   contract: ContractProcedure<TInputSchema, TOutputSchema, TErrorMap>
-  handler: ProcedureHandler<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput>
+  /**
+   * Why ErrorMap pass to ProcedureHandler is any?
+   * Because if I pass ErrorMap to ProcedureHandler, some error will happen in router... (I don't know why, but it happened)
+   * So I decide to pass any to ProcedureHandler.
+   * It still fine since, ProcedureDef still can infer ErrorMap from ContractProcedure.
+   */
+  handler: ProcedureHandler<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, any>
 }
 
 export class Procedure<

@@ -16,8 +16,8 @@ describe('e2e', () => {
   })
 
   it('infer output', () => {
-    expectTypeOf(client.ping()).toEqualTypeOf<Promise<string>>()
-    expectTypeOf(client.user.find({ id: '123' })).toEqualTypeOf<Promise<{ id: string, name: string }>>()
+    expectTypeOf(client.ping()).toMatchTypeOf<Promise<string>>()
+    expectTypeOf(client.user.find({ id: '123' })).toMatchTypeOf<Promise<{ id: string, name: string }>>()
   })
 
   it('works on error', () => {

@@ -1,3 +1,4 @@
+import type { ORPCError } from '@orpc/contract'
 import type { Procedure } from './procedure'
 import type { ProcedureClient } from './procedure-client'
 import type { Meta, WELL_CONTEXT, WithSignal } from './types'
@@ -93,7 +94,12 @@ describe('ProcedureClient', () => {
 
 describe('createProcedureClient', () => {
   const schema = z.object({ val: z.string().transform(v => Number(v)) })
-  const procedure = {} as Procedure<WELL_CONTEXT, { val: string }, typeof schema, typeof schema, { val: string }, undefined>
+  const baseErrors = {
+    CODE: {
+      data: z.object({ why: z.string().transform(v => Number(v)) }),
+    },
+  }
+  const procedure = {} as Procedure<WELL_CONTEXT, { val: string }, typeof schema, typeof schema, { val: string }, typeof baseErrors>
   const procedureWithContext = {} as Procedure<{ userId?: string }, { db: string }, typeof schema, typeof schema, { val: string }, undefined>
 
   it('just a client', () => {
@@ -101,7 +107,7 @@ describe('createProcedureClient', () => {
       procedure,
     })
 
-    expectTypeOf(client).toEqualTypeOf<ProcedureClient <unknown, { val: string }, { val: number }, Error>>()
+    expectTypeOf(client).toEqualTypeOf<ProcedureClient<unknown, { val: string }, { val: number }, Error | ORPCError<'CODE', { why: number }>>>()
   })
 
   it('context can be optional and can be a sync or async function', () => {

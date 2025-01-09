@@ -1,9 +1,21 @@
+import type { ORPCErrorConstructorMap } from './error'
 import type { Middleware, MiddlewareNextFn, MiddlewareOptions, MiddlewareOutputFn } from './middleware'
 import type { ANY_PROCEDURE } from './procedure'
+import { z } from 'zod'
+
+const baseErrors = {
+  code: {
+    status: 500,
+    message: 'Internal Server Error',
+    data: z.object({
+      why: z.string(),
+    }),
+  },
+}
 
 describe('middleware', () => {
   it('just a function', () => {
-    const mid: Middleware<{ auth: boolean }, undefined, unknown, unknown, Record<string, unknown>> = ({ context, path, procedure, signal, next }, input, output) => {
+    const mid: Middleware<{ auth: boolean }, undefined, unknown, unknown, ORPCErrorConstructorMap<typeof baseErrors>> = ({ context, path, procedure, signal, next, errors }, input, output) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()
       expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
       expectTypeOf(path).toEqualTypeOf<string[]>()
@@ -11,6 +23,7 @@ describe('middleware', () => {
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
       expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<unknown>>()
       expectTypeOf(next).toEqualTypeOf<MiddlewareNextFn<unknown>>()
+      expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrors>>()
 
       return next({})
     }

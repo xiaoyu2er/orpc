@@ -9,7 +9,13 @@ import { getRouterChild } from './router'
 
 const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
 
-const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, typeof schema, { val: string }, undefined>
+const baseErrors = {
+  CODE: {
+    data: z.object({ why: z.string() }),
+  },
+} as const
+
+const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, typeof schema, { val: string }, typeof baseErrors>
 const pong = {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown, undefined>
 
 const router = {

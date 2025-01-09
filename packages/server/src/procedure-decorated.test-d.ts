@@ -1,3 +1,4 @@
+import type { ORPCErrorConstructorMap } from './error'
 import type { Middleware, MiddlewareOutputFn } from './middleware'
 import type { ANY_PROCEDURE, Procedure } from './procedure'
 import type { DecoratedProcedure } from './procedure-decorated'
@@ -5,8 +6,13 @@ import type { WELL_CONTEXT } from './types'
 import { z } from 'zod'
 import { decorateProcedure } from './procedure-decorated'
 
-const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
-const procedure = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, typeof schema, { val: string }, undefined>
+const baseSchema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
+const baseErrors = {
+  CODE: {
+    data: z.object({ why: z.string() }),
+  },
+}
+const procedure = {} as Procedure<{ auth: boolean }, { db: string }, typeof baseSchema, typeof baseSchema, { val: string }, typeof baseErrors>
 
 const decorated = decorateProcedure(procedure)
 
@@ -41,12 +47,13 @@ describe('self chainable', () => {
 
   it('use middleware', () => {
     const i = decorated
-      .use(({ context, path, next, procedure }, input, output) => {
+      .use(({ context, path, next, procedure, errors }, input, output) => {
         expectTypeOf(input).toEqualTypeOf<{ val: number }>()
         expectTypeOf(context).toEqualTypeOf<{ auth: boolean } & { db: string }>()
         expectTypeOf(path).toEqualTypeOf<string[]>()
         expectTypeOf(procedure).toEqualTypeOf<ANY_PROCEDURE>()
         expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<{ val: string }>>()
+        expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrors>>()
 
         return next({
           context: {
@@ -54,12 +61,13 @@ describe('self chainable', () => {
           },
         })
       })
-      .use(({ context, path, next, procedure }, input, output) => {
+      .use(({ context, path, next, procedure, errors }, input, output) => {
         expectTypeOf(input).toEqualTypeOf<{ val: number }>()
         expectTypeOf(context).toEqualTypeOf<{ auth: boolean } & { db: string } & { dev: boolean }>()
         expectTypeOf(path).toEqualTypeOf<string[]>()
         expectTypeOf(procedure).toEqualTypeOf<ANY_PROCEDURE>()
         expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<{ val: string }>>()
+        expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrors>>()
 
         return next({})
       })
@@ -68,10 +76,10 @@ describe('self chainable', () => {
       DecoratedProcedure<
         { auth: boolean },
         { db: string } & { dev: boolean },
-        typeof schema,
-        typeof schema,
+        typeof baseSchema,
+        typeof baseSchema,
         { val: string },
-        undefined
+        typeof baseErrors
       >
     >()
   })
@@ -88,10 +96,10 @@ describe('self chainable', () => {
       DecoratedProcedure<
         { auth: boolean },
         { db: string } & { extra: boolean },
-        typeof schema,
-        typeof schema,
+        typeof baseSchema,
+        typeof baseSchema,
         { val: string },
-        undefined
+        typeof baseErrors
       >
     >()
 

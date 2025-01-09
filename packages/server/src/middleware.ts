@@ -1,7 +1,7 @@
 import type { Promisable } from '@orpc/shared'
 import type { ORPCErrorConstructorMap } from './error'
 import type { ANY_PROCEDURE } from './procedure'
-import type { Context } from './types'
+import type { AbortSignal, Context } from './types'
 
 export type MiddlewareResult<TExtraContext extends Context, TOutput> = Promisable<{
   output: TOutput

@@ -1,31 +1,32 @@
+import type { ORPCErrorConstructorMap } from './error'
 import type { Middleware, MiddlewareOutputFn } from './middleware'
 import type { ANY_PROCEDURE } from './procedure'
 import type { DecoratedProcedure } from './procedure-decorated'
+import type { ProcedureImplementer } from './procedure-implementer'
 import type { WELL_CONTEXT } from './types'
-import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
-import { ProcedureImplementer } from './procedure-implementer'
+
+const baseSchema = z.object({ base: z.string().transform(v => Number.parseInt(v)) })
+const baseErrors = {
+  PAYMENT_REQUIRED: {
+    status: 402,
+    message: 'default message',
+    data: baseSchema,
+  },
+}
+
+const implementer = {} as ProcedureImplementer<{ id?: string }, { extra: true }, typeof baseSchema, typeof baseSchema, typeof baseErrors>
 
 describe('self chainable', () => {
-  const global_mid = vi.fn()
-  const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
-  const implementer = new ProcedureImplementer<{ id?: string }, undefined, typeof schema, typeof schema, undefined>({
-    contract: new ContractProcedure({
-      InputSchema: schema,
-      OutputSchema: schema,
-      errorMap: undefined,
-    }),
-    middlewares: [global_mid],
-  })
-
   it('use middleware', () => {
     const i = implementer
-      .use(({ context, path, next, procedure }, input, output) => {
-        expectTypeOf(input).toEqualTypeOf<{ val: number }>()
-        expectTypeOf(context).toEqualTypeOf<{ id?: string }>()
+      .use(({ context, path, next, procedure, errors }, input, output) => {
+        expectTypeOf(input).toEqualTypeOf<{ base: number }>()
+        expectTypeOf(context).toEqualTypeOf<{ id?: string } & { extra: true }>()
         expectTypeOf(path).toEqualTypeOf<string[]>()
         expectTypeOf(procedure).toEqualTypeOf<ANY_PROCEDURE>()
-        expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<{ val: string }>>()
+        expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<{ base: string }>>()
+        expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrors>>()
 
         return next({
           context: {
@@ -33,14 +34,13 @@ describe('self chainable', () => {
           },
         })
       })
-      .use(({ context, path, next, procedure }, input, output) => {
-        expectTypeOf(input).toEqualTypeOf<{ val: number }>()
-        expectTypeOf(context).toEqualTypeOf<
-          { id?: string } & { auth: boolean }
-        >()
+      .use(({ context, path, next, procedure, errors }, input, output) => {
+        expectTypeOf(input).toEqualTypeOf<{ base: number }>()
+        expectTypeOf(context).toEqualTypeOf<{ id?: string } & { auth: boolean } & { extra: true }>()
         expectTypeOf(path).toEqualTypeOf<string[]>()
         expectTypeOf(procedure).toEqualTypeOf<ANY_PROCEDURE>()
-        expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<{ val: string }>>()
+        expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<{ base: string }>>()
+        expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrors>>()
 
         return next({})
       })
@@ -48,33 +48,33 @@ describe('self chainable', () => {
     expectTypeOf(i).toEqualTypeOf<
       ProcedureImplementer<
         { id?: string },
-        { auth: boolean },
-        typeof schema,
-        typeof schema,
-        undefined
+        { auth: boolean } & { extra: true },
+        typeof baseSchema,
+        typeof baseSchema,
+        typeof baseErrors
       >
     >()
   })
 
   it('use middleware with map input', () => {
-    const mid: Middleware<WELL_CONTEXT, { id: string, extra: boolean }, number, any, Record<string, unknown>> = ({ next }) => {
+    const mid: Middleware<WELL_CONTEXT, { id: string, extra: true }, number, any, Record<string, unknown>> = ({ next }) => {
       return next({
         context: { id: 'string', extra: true },
       })
     }
 
     const i = implementer.use(mid, (input) => {
-      expectTypeOf(input).toEqualTypeOf<{ val: number }>()
-      return input.val
+      expectTypeOf(input).toEqualTypeOf<{ base: number }>()
+      return input.base
     })
 
     expectTypeOf(i).toEqualTypeOf<
       ProcedureImplementer<
         { id?: string },
-        { id: string, extra: boolean },
-        typeof schema,
-        typeof schema,
-        undefined
+        { extra: true } & { id: string, extra: true },
+        typeof baseSchema,
+        typeof baseSchema,
+        typeof baseErrors
       >
     >()
 
@@ -111,9 +111,9 @@ describe('self chainable', () => {
 
   it('handle middleware with output is typed', () => {
     const mid1 = {} as Middleware<WELL_CONTEXT, undefined, unknown, any, Record<string, unknown>>
-    const mid2 = {} as Middleware<WELL_CONTEXT, undefined, unknown, { val: string }, Record<string, unknown>>
+    const mid2 = {} as Middleware<WELL_CONTEXT, undefined, unknown, { base: string }, Record<string, unknown>>
     const mid3 = {} as Middleware<WELL_CONTEXT, undefined, unknown, unknown, Record<string, unknown>>
-    const mid4 = {} as Middleware<WELL_CONTEXT, undefined, unknown, { val: number }, Record<string, unknown>>
+    const mid4 = {} as Middleware<WELL_CONTEXT, undefined, unknown, { base: number }, Record<string, unknown>>
 
     implementer.use(mid1)
     implementer.use(mid2)
@@ -125,35 +125,24 @@ describe('self chainable', () => {
 })
 
 describe('to DecoratedProcedure', () => {
-  const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
-
-  const global_mid = vi.fn()
-  const implementer = new ProcedureImplementer<{ id?: string } | undefined, { db: string }, typeof schema, typeof schema, undefined>({
-    contract: new ContractProcedure({
-      InputSchema: schema,
-      OutputSchema: schema,
-      errorMap: undefined,
-    }),
-    middlewares: [global_mid],
-  })
-
   it('handler', () => {
-    const procedure = implementer.handler(({ input, context, procedure, path, signal }) => {
-      expectTypeOf(context).toEqualTypeOf<({ id?: string } & { db: string }) | { db: string }>()
-      expectTypeOf(input).toEqualTypeOf<{ val: number }>()
+    const procedure = implementer.handler(({ input, context, procedure, path, signal, errors }) => {
+      expectTypeOf(context).toEqualTypeOf<{ id?: string } & { extra: true }>()
+      expectTypeOf(input).toEqualTypeOf<{ base: number }>()
       expectTypeOf(procedure).toEqualTypeOf<ANY_PROCEDURE>()
       expectTypeOf(path).toEqualTypeOf<string[]>()
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
+      expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrors>>()
 
-      return { val: '1' }
+      return { base: '1' }
     })
 
     expectTypeOf(procedure).toEqualTypeOf<
-      DecoratedProcedure<{ id?: string } | undefined, { db: string }, typeof schema, typeof schema, { val: string }, undefined>
+      DecoratedProcedure<{ id?: string }, { extra: true }, typeof baseSchema, typeof baseSchema, { base: string }, typeof baseErrors>
     >()
 
     // @ts-expect-error - invalid output
-    implementer.handler(() => ({ val: 1 }))
+    implementer.handler(() => ({ base: 1 }))
 
     // @ts-expect-error - invalid output
     implementer.handler(() => {})

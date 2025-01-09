@@ -1,5 +1,6 @@
 import type { DecoratedLazy } from './lazy-decorated'
-import type { Middleware } from './middleware'
+import type { Middleware, MiddlewareOutputFn } from './middleware'
+import type { ANY_PROCEDURE } from './procedure'
 import type { AdaptedRouter } from './router-builder'
 import type { RouterImplementer } from './router-implementer'
 import { oc } from '@orpc/contract'
@@ -55,6 +56,18 @@ const implementer = {} as RouterImplementer<{ auth: boolean }, { db: string }, t
 
 describe('self chainable', () => {
   it('use middleware', () => {
+    implementer.use(({ context, path, errors, next, procedure, signal }, input, output) => {
+      expectTypeOf(context).toEqualTypeOf<{ auth: boolean } & { db: string }>()
+      expectTypeOf(path).toEqualTypeOf<string[]>()
+      expectTypeOf(errors).toEqualTypeOf<Record<string, unknown>>()
+      expectTypeOf(procedure).toEqualTypeOf<ANY_PROCEDURE>()
+      expectTypeOf(signal).toEqualTypeOf<AbortSignal | undefined>()
+      expectTypeOf(input).toEqualTypeOf<unknown>()
+      expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<unknown>>()
+
+      return next({})
+    })
+
     const mid1 = {} as Middleware<{ auth: boolean }, undefined, unknown, unknown, Record<string, unknown>>
     const mid2 = {} as Middleware<{ auth: boolean }, { dev: string }, unknown, unknown, Record<string, unknown>>
     const mid3 = {} as Middleware<{ auth: boolean, db: string }, { dev: string }, unknown, unknown, Record<string, unknown>>

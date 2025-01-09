@@ -115,6 +115,15 @@ describe('to ProcedureBuilder', () => {
     // @ts-expect-error - invalid schema
     builder.output({})
   })
+
+  it('errors', () => {
+    expectTypeOf(builder.errors({ ANYTHING: { data: schema } })).toEqualTypeOf<
+      ProcedureBuilder<{ auth: boolean }, { db: string }, undefined, undefined, { ANYTHING: { data: typeof schema } }>
+    >()
+
+    // @ts-expect-error - invalid schema
+    builder.errors({ ANYTHING: { data: {} } })
+  })
 })
 
 describe('to DecoratedProcedure', () => {

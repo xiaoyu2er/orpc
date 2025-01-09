@@ -1,7 +1,7 @@
 import type { Lazy } from './lazy'
 import type { DecoratedLazy } from './lazy-decorated'
-import type { Middleware } from './middleware'
-import type { Procedure } from './procedure'
+import type { Middleware, MiddlewareOutputFn } from './middleware'
+import type { ANY_PROCEDURE, Procedure } from './procedure'
 import type { DecoratedProcedure } from './procedure-decorated'
 import type { AdaptedRouter, RouterBuilder } from './router-builder'
 import type { WELL_CONTEXT } from './types'
@@ -10,8 +10,14 @@ import { lazy } from './lazy'
 
 const builder = {} as RouterBuilder<{ auth: boolean }, { db: string }>
 
+const baseErrors = {
+  CODE: {
+    data: z.object({ why: z.string() }),
+  },
+}
+
 describe('AdaptedRouter', () => {
-  const ping = {} as Procedure<{ auth: boolean }, { db: string }, undefined, undefined, unknown, undefined>
+  const ping = {} as Procedure<{ auth: boolean }, { db: string }, undefined, undefined, unknown, typeof baseErrors>
   const pong = {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown, undefined>
 
   it('without lazy', () => {
@@ -26,13 +32,13 @@ describe('AdaptedRouter', () => {
     const adapted = {} as AdaptedRouter<{ log: true, auth: boolean }, typeof router>
 
     expectTypeOf(adapted.ping).toEqualTypeOf<
-      DecoratedProcedure<{ log: true, auth: boolean }, { db: string }, undefined, undefined, unknown, undefined>
+      DecoratedProcedure<{ log: true, auth: boolean }, { db: string }, undefined, undefined, unknown, typeof baseErrors>
     >()
     expectTypeOf(adapted.pong).toEqualTypeOf<
       DecoratedProcedure<{ log: true, auth: boolean }, undefined, undefined, undefined, unknown, undefined>
     >()
     expectTypeOf(adapted.nested.ping).toEqualTypeOf<
-      DecoratedProcedure<{ log: true, auth: boolean }, { db: string }, undefined, undefined, unknown, undefined>
+      DecoratedProcedure<{ log: true, auth: boolean }, { db: string }, undefined, undefined, unknown, typeof baseErrors>
     >()
     expectTypeOf(adapted.nested.pong).toEqualTypeOf<
       DecoratedProcedure<{ log: true, auth: boolean }, undefined, undefined, undefined, unknown, undefined>
@@ -54,13 +60,13 @@ describe('AdaptedRouter', () => {
     const adapted = {} as AdaptedRouter<{ log: true } | undefined, typeof router>
 
     expectTypeOf(adapted.ping).toEqualTypeOf<DecoratedLazy<
-      DecoratedProcedure<{ log: true } | undefined, { db: string }, undefined, undefined, unknown, undefined>
+      DecoratedProcedure<{ log: true } | undefined, { db: string }, undefined, undefined, unknown, typeof baseErrors>
     >>()
     expectTypeOf(adapted.pong).toEqualTypeOf<
       DecoratedProcedure<{ log: true } | undefined, undefined, undefined, undefined, unknown, undefined>
     >()
     expectTypeOf(adapted.nested.ping).toEqualTypeOf<DecoratedLazy<
-      DecoratedProcedure<{ log: true } | undefined, { db: string }, undefined, undefined, unknown, undefined>
+      DecoratedProcedure<{ log: true } | undefined, { db: string }, undefined, undefined, unknown, typeof baseErrors>
     >>()
     expectTypeOf(adapted.nested.pong).toEqualTypeOf<DecoratedLazy<
       DecoratedProcedure<{ log: true } | undefined, undefined, undefined, undefined, unknown, undefined>
@@ -69,11 +75,11 @@ describe('AdaptedRouter', () => {
 
   it('with procedure', () => {
     expectTypeOf<AdaptedRouter<{ log: boolean }, typeof ping>>().toEqualTypeOf<
-      DecoratedProcedure<{ log: boolean }, { db: string }, undefined, undefined, unknown, undefined>
+      DecoratedProcedure<{ log: boolean }, { db: string }, undefined, undefined, unknown, typeof baseErrors>
     >()
 
     expectTypeOf < AdaptedRouter<{ log: boolean }, Lazy<typeof ping>>>().toEqualTypeOf<
-      DecoratedLazy<DecoratedProcedure<{ log: boolean }, { db: string }, undefined, undefined, unknown, undefined>>
+      DecoratedLazy<DecoratedProcedure<{ log: boolean }, { db: string }, undefined, undefined, unknown, typeof baseErrors>>
     >()
   })
 })
@@ -99,6 +105,18 @@ describe('self chainable', () => {
   })
 
   it('use middleware', () => {
+    builder.use(({ next, context, path, procedure, signal, errors }, input, output) => {
+      expectTypeOf(input).toEqualTypeOf<unknown>()
+      expectTypeOf(context).toEqualTypeOf<{ auth: boolean } & { db: string }>()
+      expectTypeOf(path).toEqualTypeOf<string[]>()
+      expectTypeOf(procedure).toEqualTypeOf<ANY_PROCEDURE>()
+      expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<unknown>>()
+      expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
+      expectTypeOf(errors).toEqualTypeOf<Record<string, unknown>>()
+
+      return next({})
+    })
+
     const mid1 = {} as Middleware<{ auth: boolean }, undefined, unknown, unknown, Record<string, unknown>>
     const mid2 = {} as Middleware<{ auth: boolean }, { dev: string }, unknown, unknown, Record<string, unknown>>
     const mid3 = {} as Middleware<{ auth: boolean, db: string }, { dev: string }, unknown, unknown, Record<string, unknown>>
@@ -130,7 +148,7 @@ describe('self chainable', () => {
 
 describe('to AdaptedRouter', () => {
   const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
-  const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, typeof schema, { val: string }, undefined>
+  const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, typeof schema, { val: string }, typeof baseErrors>
   const pong = {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown, undefined>
 
   const wrongPing = {} as Procedure<{ auth: 'invalid' }, undefined, undefined, undefined, unknown, undefined>
@@ -197,7 +215,7 @@ describe('to AdaptedRouter', () => {
 
 describe('to Decorated Adapted Lazy', () => {
   const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
-  const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, typeof schema, { val: string }, undefined>
+  const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, typeof schema, { val: string }, typeof baseErrors>
   const pong = {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown, undefined>
 
   const wrongPing = {} as Procedure<{ auth: 'invalid' }, undefined, undefined, undefined, unknown, undefined>

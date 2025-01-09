@@ -81,6 +81,30 @@ describe('to DecoratedContractProcedure', () => {
     // @ts-expect-error - invalid example
     builder.output(schema, {})
   })
+
+  it('errors', () => {
+    const errors = {
+      BAD: {
+        status: 500,
+        data: schema,
+      },
+      ERROR2: {
+        status: 401,
+        data: schema,
+      },
+    } as const
+
+    expectTypeOf(builder.errors(errors)).toEqualTypeOf<
+      DecoratedContractProcedure<undefined, undefined, typeof errors>
+    >()
+
+    expectTypeOf(builder.output(schema, { value: 'example' })).toEqualTypeOf<
+      DecoratedContractProcedure<undefined, typeof schema, undefined>
+    >()
+
+    // @ts-expect-error - invalid schema
+    builder.errors({ UNAUTHORIZED: { data: {} } })
+  })
 })
 
 describe('to router', () => {

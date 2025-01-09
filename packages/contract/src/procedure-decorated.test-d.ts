@@ -129,3 +129,32 @@ describe('output', () => {
     decorated.output(schema2, 'string')
   })
 })
+
+describe('errors', () => {
+  const schema = z.object({
+    value: z.string(),
+  })
+
+  const schema2 = z.number()
+
+  it('can modify one or multiple times', () => {
+    const modified = decorated.errors({
+      BAD_GATEWAY: {
+        data: schema,
+      },
+    })
+
+    expectTypeOf(modified).toMatchTypeOf<
+      DecoratedContractProcedure<undefined, undefined, { BAD_GATEWAY: { data: typeof schema } }>
+    >()
+
+    expectTypeOf(modified.errors({
+      UNAUTHORIZED: {
+        status: 2001,
+        data: schema2,
+      },
+    })).toMatchTypeOf<
+      DecoratedContractProcedure<undefined, undefined, { UNAUTHORIZED: { status: 2001, data: typeof schema2 } }>
+    >()
+  })
+})

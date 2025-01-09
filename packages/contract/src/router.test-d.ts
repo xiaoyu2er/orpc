@@ -7,10 +7,12 @@ const schema = z.object({
   value: z.string().transform(() => 1),
 })
 
- type SchemaIn = { value: string }
- type SchemaOut = { value: number }
+const errorMap = { BAD_GATEWAY: { data: schema } } as const
 
-const ping = new ContractProcedure({ InputSchema: schema, OutputSchema: undefined, route: { path: '/procedure' }, errorMap: undefined })
+type SchemaIn = { value: string }
+type SchemaOut = { value: number }
+
+const ping = new ContractProcedure({ InputSchema: schema, OutputSchema: undefined, route: { path: '/procedure' }, errorMap })
 const pinged = DecoratedContractProcedure.decorate(ping)
 
 const pong = new ContractProcedure({ InputSchema: undefined, OutputSchema: schema, errorMap: undefined })

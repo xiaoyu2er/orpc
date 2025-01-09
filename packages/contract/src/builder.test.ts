@@ -65,6 +65,20 @@ describe('to DecoratedContractProcedure', () => {
     expect(procedure).toBeInstanceOf(DecoratedContractProcedure)
     expect(DecoratedContractProcedure).toHaveBeenCalledWith({ OutputSchema: schema, outputExample: example })
   })
+
+  it('errors', () => {
+    const errors = {
+      BAD: {
+        status: 500,
+        data: schema,
+      },
+    }
+
+    const procedure = builder.errors(errors)
+
+    expect(procedure).toBeInstanceOf(DecoratedContractProcedure)
+    expect(DecoratedContractProcedure).toHaveBeenCalledWith({ errorMap: errors })
+  })
 })
 
 describe('to router', () => {

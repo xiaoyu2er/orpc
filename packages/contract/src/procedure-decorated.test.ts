@@ -130,3 +130,28 @@ describe('output', () => {
     expect(outputted).not.toBe(decorated)
   })
 })
+
+describe('errors', () => {
+  const decorated = new DecoratedContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: undefined })
+  const schema = z.object({
+    value: z.string(),
+  })
+  const errors = {
+    BAD_GATEWAY: {
+      status: 400,
+      data: schema,
+    },
+  }
+
+  it('works', () => {
+    const outputted = decorated.errors(errors)
+    expect(outputted).toBeInstanceOf(DecoratedContractProcedure)
+    expect(outputted['~orpc'].errorMap).toEqual(errors)
+  })
+
+  it('not reference', () => {
+    const outputted = decorated.errors(errors)
+    expect(outputted['~orpc']).not.toBe(decorated['~orpc'])
+    expect(outputted).not.toBe(decorated)
+  })
+})

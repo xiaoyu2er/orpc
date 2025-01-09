@@ -1,4 +1,4 @@
-import type { ProcedureClient } from '@orpc/server'
+import type { ORPCError, ProcedureClient } from '@orpc/server'
 import type { InfiniteData, QueryFunctionContext, QueryKey } from '@tanstack/react-query'
 import type { ProcedureUtils } from './utils-procedure'
 import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query'
@@ -74,6 +74,12 @@ describe('queryOptions', () => {
       // @ts-expect-error --- invalid context
       useQuery(utils.queryOptions({ context: { batch: 123 } }))
     })
+  })
+
+  it('can infer errors', () => {
+    const utils = createProcedureUtils({} as ProcedureClient<unknown, unknown, string, Error | ORPCError<'CODE', 'data'>>, [])
+    expectTypeOf(useQuery(utils.queryOptions()).error).toEqualTypeOf<Error | ORPCError<'CODE', 'data'> | null>()
+    expectTypeOf(useQuery(utils.queryOptions({})).error).toEqualTypeOf<Error | ORPCError<'CODE', 'data'> | null>()
   })
 })
 

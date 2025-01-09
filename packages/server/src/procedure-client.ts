@@ -80,13 +80,15 @@ export function createProcedureClient<
     }
 
     try {
-      return executeWithHooks({
+      const output = await executeWithHooks({
         hooks: options,
         input,
         context,
         meta,
         execute: executeWithValidation,
       })
+
+      return output
     }
     catch (e) {
       if (!(e instanceof ORPCError)) {

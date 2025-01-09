@@ -20,10 +20,6 @@ const baseErrors = {
 } as const
 
 describe('createORPCErrorConstructorMap', () => {
-  it('works with undefined', () => {
-    expect(createORPCErrorConstructorMap(undefined)).toEqual({})
-  })
-
   const constructors = createORPCErrorConstructorMap(baseErrors)
 
   it('create ORPC Error', () => {
@@ -47,5 +43,10 @@ describe('createORPCErrorConstructorMap', () => {
   it('inherit status', () => {
     const error = constructors.UNAUTHORIZED({ data: { why: '123' } })
     expect(error.status).toBe(499)
+  })
+
+  it('works with undefined', () => {
+    expect(createORPCErrorConstructorMap(undefined)).toEqual({})
+    expect(createORPCErrorConstructorMap({ CODE: undefined })).toEqual({})
   })
 })

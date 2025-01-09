@@ -77,3 +77,21 @@ describe('to DecoratedProcedure', () => {
     expect(procedure['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
   })
 })
+
+it('use method should works without any middleware inside', () => {
+  const implementer = new ProcedureImplementer({
+    contract: new ContractProcedure({
+      InputSchema: baseSchema,
+      OutputSchema: baseSchema,
+      errorMap: baseErrors,
+    }),
+  })
+
+  const mid1 = vi.fn()
+  const mid2 = vi.fn()
+
+  const applied = implementer.use(mid1).use(mid2)
+  expect(applied).not.toBe(implementer)
+  expect(applied).toBeInstanceOf(ProcedureImplementer)
+  expect(applied['~orpc'].middlewares).toEqual([mid1, mid2])
+})

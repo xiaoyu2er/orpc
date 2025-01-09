@@ -10,30 +10,87 @@ export type ORPCErrorFromErrorMap<TErrorMap extends ErrorMap> = {
     : never
 }[keyof TErrorMap]
 
-export const COMMON_ORPC_ERROR_CODE_STATUSES = {
-  BAD_REQUEST: 400,
-  UNAUTHORIZED: 401,
-  FORBIDDEN: 403,
-  NOT_FOUND: 404,
-  METHOD_NOT_SUPPORTED: 405,
-  NOT_ACCEPTABLE: 406,
-  TIMEOUT: 408,
-  CONFLICT: 409,
-  PRECONDITION_FAILED: 412,
-  PAYLOAD_TOO_LARGE: 413,
-  UNSUPPORTED_MEDIA_TYPE: 415,
-  UNPROCESSABLE_CONTENT: 422,
-  TOO_MANY_REQUESTS: 429,
-  CLIENT_CLOSED_REQUEST: 499,
+export const COMMON_ORPC_ERROR_DEFS = {
+  BAD_REQUEST: {
+    status: 400,
+    message: 'Bad Request',
+  },
+  UNAUTHORIZED: {
+    status: 401,
+    message: 'Unauthorized',
+  },
+  FORBIDDEN: {
+    status: 403,
+    message: 'Forbidden',
+  },
+  NOT_FOUND: {
+    status: 404,
+    message: 'Not Found',
+  },
+  METHOD_NOT_SUPPORTED: {
+    status: 405,
+    message: 'Method Not Supported',
+  },
+  NOT_ACCEPTABLE: {
+    status: 406,
+    message: 'Not Acceptable',
+  },
+  TIMEOUT: {
+    status: 408,
+    message: 'Request Timeout',
+  },
+  CONFLICT: {
+    status: 409,
+    message: 'Conflict',
+  },
+  PRECONDITION_FAILED: {
+    status: 412,
+    message: 'Precondition Failed',
+  },
+  PAYLOAD_TOO_LARGE: {
+    status: 413,
+    message: 'Payload Too Large',
+  },
+  UNSUPPORTED_MEDIA_TYPE: {
+    status: 415,
+    message: 'Unsupported Media Type',
+  },
+  UNPROCESSABLE_CONTENT: {
+    status: 422,
+    message: 'Unprocessable Content',
+  },
+  TOO_MANY_REQUESTS: {
+    status: 429,
+    message: 'Too Many Requests',
+  },
+  CLIENT_CLOSED_REQUEST: {
+    status: 499,
+    message: 'Client Closed Request',
+  },
 
-  INTERNAL_SERVER_ERROR: 500,
-  NOT_IMPLEMENTED: 501,
-  BAD_GATEWAY: 502,
-  SERVICE_UNAVAILABLE: 503,
-  GATEWAY_TIMEOUT: 504,
+  INTERNAL_SERVER_ERROR: {
+    status: 500,
+    message: 'Internal Server Error',
+  },
+  NOT_IMPLEMENTED: {
+    status: 501,
+    message: 'Not Implemented',
+  },
+  BAD_GATEWAY: {
+    status: 502,
+    message: 'Bad Gateway',
+  },
+  SERVICE_UNAVAILABLE: {
+    status: 503,
+    message: 'Service Unavailable',
+  },
+  GATEWAY_TIMEOUT: {
+    status: 504,
+    message: 'Gateway Timeout',
+  },
 } as const
 
-export type CommonORPCErrorCode = keyof typeof COMMON_ORPC_ERROR_CODE_STATUSES
+export type CommonORPCErrorCode = keyof typeof COMMON_ORPC_ERROR_DEFS
 
 export type ORPCErrorOptions<TCode extends string, TData> =
   & ErrorOptions
@@ -41,7 +98,11 @@ export type ORPCErrorOptions<TCode extends string, TData> =
   & (undefined extends TData ? { data?: TData } : { data: TData })
 
 export function fallbackORPCErrorStatus(code: CommonORPCErrorCode | (string & {}), status: number | undefined): number {
-  return status ?? (COMMON_ORPC_ERROR_CODE_STATUSES as any)[code] ?? 500
+  return status ?? (COMMON_ORPC_ERROR_DEFS as any)[code]?.status ?? 500
+}
+
+export function fallbackORPCErrorMessage(code: CommonORPCErrorCode | (string & {}), message: string | undefined): string {
+  return message || (COMMON_ORPC_ERROR_DEFS as any)[code]?.message || code
 }
 
 export class ORPCError<TCode extends CommonORPCErrorCode | (string & {}), TData> extends Error {
@@ -55,7 +116,9 @@ export class ORPCError<TCode extends CommonORPCErrorCode | (string & {}), TData>
       throw new Error('[ORPCError] The error status code must be in the 400-599 range.')
     }
 
-    super(options.message, options)
+    const message = fallbackORPCErrorMessage(options.code, options.message)
+
+    super(message, options)
 
     this.code = options.code
     this.status = fallbackORPCErrorStatus(options.code, options.status)

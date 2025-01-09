@@ -92,6 +92,10 @@ export class ContractProcedure<TInputSchema extends Schema, TOutputSchema extend
       throw new Error('[ContractProcedure] The successStatus must be between 200 and 299')
     }
 
+    if (Object.values(def.errorMap ?? {}).some(val => val && val.status && (val.status < 400 || val.status > 599))) {
+      throw new Error('[ContractProcedure] The error status code must be in the 400-599 range.')
+    }
+
     this['~orpc'] = def
   }
 }

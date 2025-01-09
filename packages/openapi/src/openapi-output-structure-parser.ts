@@ -18,6 +18,7 @@ export class OpenAPIOutputStructureParser {
   parse(contract: ANY_CONTRACT_PROCEDURE, structure: 'compact' | 'detailed'): OpenAPIOutputStructureParseResult {
     const outputSchema = this.schemaConverter.convert(contract['~orpc'].OutputSchema, { strategy: 'output' })
 
+    // TODO: refactor and remove this logic
     if (this.schemaUtils.isAnySchema(outputSchema)) {
       return {
         headersSchema: undefined,

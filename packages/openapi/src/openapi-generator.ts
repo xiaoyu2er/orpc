@@ -2,8 +2,10 @@ import type { ANY_ROUTER } from '@orpc/server'
 import type { PublicOpenAPIInputStructureParser } from './openapi-input-structure-parser'
 import type { PublicOpenAPIOutputStructureParser } from './openapi-output-structure-parser'
 import type { PublicOpenAPIPathParser } from './openapi-path-parser'
+import type { JSONSchema } from './schema'
 import type { SchemaConverter } from './schema-converter'
-import { type ContractRouter, fallbackToGlobalConfig } from '@orpc/contract'
+import { type ContractRouter, fallbackORPCErrorStatus, fallbackToGlobalConfig } from '@orpc/contract'
+import { group } from '@orpc/shared'
 import { JSONSerializer, type PublicJSONSerializer } from './json-serializer'
 import { type OpenAPI, OpenApiBuilder } from './openapi'
 import { OpenAPIContentBuilder, type PublicOpenAPIContentBuilder } from './openapi-content-builder'
@@ -51,6 +53,13 @@ export interface OpenAPIGeneratorOptions {
    * @default 'throw'
    */
   errorHandlerStrategy?: ErrorHandlerStrategy
+
+  /**
+   * Strict error response
+   *
+   * @default true
+   */
+  strictErrorResponses?: boolean
 }
 
 export class OpenAPIGenerator {
@@ -65,6 +74,7 @@ export class OpenAPIGenerator {
   private readonly errorHandlerStrategy: ErrorHandlerStrategy
   private readonly ignoreUndefinedPathProcedures: boolean
   private readonly considerMissingTagDefinitionAsError: boolean
+  private readonly strictErrorResponses: boolean
 
   constructor(options?: OpenAPIGeneratorOptions) {
     this.parametersBuilder = options?.parametersBuilder ?? new OpenAPIParametersBuilder()
@@ -80,6 +90,7 @@ export class OpenAPIGenerator {
     this.errorHandlerStrategy = options?.errorHandlerStrategy ?? 'throw'
     this.ignoreUndefinedPathProcedures = options?.ignoreUndefinedPathProcedures ?? false
     this.considerMissingTagDefinitionAsError = options?.considerMissingTagDefinitionAsError ?? false
+    this.strictErrorResponses = options?.strictErrorResponses ?? true
   }
 
   async generate(router: ContractRouter | ANY_ROUTER, doc: Omit<OpenAPI.OpenAPIObject, 'openapi'>): Promise<OpenAPI.OpenAPIObject> {
@@ -130,7 +141,9 @@ export class OpenAPIGenerator {
             }
           : undefined
 
-        const successResponse: OpenAPI.ResponseObject = {
+        const responses: OpenAPI.ResponsesObject = {}
+
+        responses[fallbackToGlobalConfig('defaultSuccessStatus', def.route?.successStatus)] = {
           description: fallbackToGlobalConfig('defaultSuccessDescription', def.route?.successDescription),
           content: resBodySchema !== undefined
             ? this.contentBuilder.build(resBodySchema, {
@@ -142,6 +155,74 @@ export class OpenAPIGenerator {
                 example: def.outputExample,
               })
             : undefined,
+        }
+
+        const errors = group(Object.entries(def.errorMap ?? {})
+          .filter(([_, config]) => config)
+          .map(([code, config]) => ({
+            ...config,
+            code,
+            status: fallbackORPCErrorStatus(code, config?.status),
+          })), error => error.status)
+
+        for (const status in errors) {
+          const configs = errors[status]
+
+          if (!configs || configs.length === 0) {
+            continue
+          }
+
+          const schemas: JSONSchema.JSONSchema[] = configs
+            .map(({ data, code, message }) => {
+              const json = {
+                type: 'object',
+                properties: {
+                  defined: { const: true },
+                  code: { const: code },
+                  status: { const: Number(status) },
+                  message: { type: 'string', default: message },
+                  data: {},
+                },
+                required: ['defined', 'code', 'status', 'message'],
+              } satisfies JSONSchema.JSONSchema
+
+              if (data) {
+                const dataJson = this.schemaConverter.convert(data, { strategy: 'output' })
+
+                json.properties.data = dataJson
+
+                if (!this.schemaUtils.isUndefinableSchema(dataJson)) {
+                  json.required.push('data')
+                }
+              }
+
+              return json
+            })
+
+          if (this.strictErrorResponses) {
+            schemas.push({
+              type: 'object',
+              properties: {
+                defined: { const: false },
+                code: { type: 'string' },
+                status: { type: 'number' },
+                message: { type: 'string' },
+                data: {},
+              },
+              required: ['defined', 'code', 'status', 'message'],
+            })
+          }
+
+          const contentSchema = schemas.length === 1
+            ? schemas[0]!
+            : {
+                oneOf: schemas,
+              }
+
+          responses[status] = {
+            description: status,
+            content: this.contentBuilder.build(contentSchema),
+          }
         }
 
         if (this.considerMissingTagDefinitionAsError && def.route?.tags) {
@@ -162,9 +243,7 @@ export class OpenAPIGenerator {
           operationId: path.join('.'),
           parameters: parameters.length ? parameters : undefined,
           requestBody,
-          responses: {
-            [fallbackToGlobalConfig('defaultSuccessStatus', def.route?.successStatus)]: successResponse,
-          },
+          responses,
         }
 
         builder.addPath(httpPath, {

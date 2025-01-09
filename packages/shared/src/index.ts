@@ -8,6 +8,6 @@ export * from './proxy'
 export * from './value'
 
 export { isPlainObject } from 'is-what'
-export { guard, mapEntries, mapValues, omit, trim } from 'radash'
+export { group, guard, mapEntries, mapValues, omit, trim } from 'radash'
 
 export type * from 'type-fest'

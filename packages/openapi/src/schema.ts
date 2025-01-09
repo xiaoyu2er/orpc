@@ -6,7 +6,7 @@ export { JSONSchema }
 export type ObjectSchema = JSONSchema.JSONSchema & { type: 'object' } & object
 export type FileSchema = JSONSchema.JSONSchema & { type: 'string', contentMediaType: string } & object
 
-export const NON_LOGIC_KEYWORDS = [
+export const NON_LOGIC_KEYWORDS: string[] = [
   // Core Documentation Keywords
   '$anchor',
   '$comment',

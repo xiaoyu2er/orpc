@@ -1,18 +1,15 @@
-import type { ProcedureClient } from '@orpc/server'
-import type { ComputedRef } from 'vue'
-import type { UseQueryFnContext } from './types'
+import type { ORPCError, ProcedureClient } from '@orpc/server'
+import type { QueryOptions } from './types'
 import type { ProcedureUtils } from './utils-procedure'
-import { type EntryKey, useMutation, useQuery } from '@pinia/colada'
+import { useMutation, useQuery } from '@pinia/colada'
 import { ref } from 'vue'
 import { createProcedureUtils } from './utils-procedure'
 
 describe('queryOptions', () => {
-  const client = vi.fn <ProcedureClient<number | undefined, string | undefined, undefined>>(
-    (...[input]) => Promise.resolve(input?.toString()),
-  )
+  const client = {} as ProcedureClient<undefined, number | undefined, string | undefined, Error>
   const utils = createProcedureUtils(client, [])
 
-  const client2 = {} as ProcedureClient<number, string, undefined>
+  const client2 = {} as ProcedureClient<undefined, number, string, Error>
   const utils2 = createProcedureUtils(client2, [])
 
   it('infer correct input type', () => {
@@ -30,8 +27,7 @@ describe('queryOptions', () => {
   it('can be called without argument', () => {
     const options = utils.queryOptions()
 
-    expectTypeOf(options.key).toEqualTypeOf<ComputedRef<EntryKey>>()
-    expectTypeOf(options.query).toEqualTypeOf<(ctx: UseQueryFnContext) => Promise<string | undefined>>()
+    expectTypeOf(options).toEqualTypeOf<QueryOptions<string | undefined, Error>>()
     // @ts-expect-error invalid is required
     utils2.queryOptions()
   })
@@ -44,7 +40,7 @@ describe('queryOptions', () => {
 
   describe('client context', () => {
     it('can be optional', () => {
-      const utils = {} as ProcedureUtils<undefined, string, undefined | { batch?: boolean }>
+      const utils = {} as ProcedureUtils<undefined | { batch?: boolean }, undefined, string, Error>
       useQuery(utils.queryOptions())
       useQuery(utils.queryOptions({}))
       useQuery(utils.queryOptions({ context: undefined }))
@@ -57,7 +53,7 @@ describe('queryOptions', () => {
     })
 
     it('required pass context when non-optional', () => {
-      const utils = {} as ProcedureUtils<undefined, string, { batch?: boolean }>
+      const utils = {} as ProcedureUtils<{ batch?: boolean }, undefined, string, Error>
       // @ts-expect-error --- missing context
       useQuery(utils.queryOptions())
       // @ts-expect-error --- missing context
@@ -70,10 +66,16 @@ describe('queryOptions', () => {
       useQuery(utils.queryOptions({ context: { batch: ref('invalid') } }))
     })
   })
+
+  it('can infer errors', () => {
+    const utils = {} as ProcedureUtils<unknown, unknown, unknown, Error | ORPCError<'CODE', 'data'>>
+    expectTypeOf(useQuery(utils.queryOptions()).error.value).toEqualTypeOf<Error | ORPCError<'CODE', 'data'> | null>()
+    expectTypeOf(useQuery(utils.queryOptions({})).error.value).toEqualTypeOf<Error | ORPCError<'CODE', 'data'> | null>()
+  })
 })
 
 describe('mutationOptions', () => {
-  const client = {} as ProcedureClient<number, string, undefined>
+  const client = {} as ProcedureClient<undefined, number, string, Error>
   const utils = createProcedureUtils(client, [])
 
   it('infer correct input type', () => {
@@ -83,12 +85,14 @@ describe('mutationOptions', () => {
       },
     })
 
-    option.mutation(1)
+    const mutation = useMutation(option)
+
+    mutation.mutate(1)
 
     // @ts-expect-error invalid input
-    option.mutation('1')
+    mutation.mutate('1')
     // @ts-expect-error invalid input
-    option.mutation()
+    mutation.mutate()
   })
 
   it('infer correct output type', () => {
@@ -99,19 +103,19 @@ describe('mutationOptions', () => {
       },
     })
 
-    expectTypeOf(option.mutation).toEqualTypeOf<(input: number) => Promise<string>>()
+    const mutation = useMutation(option)
+
+    expectTypeOf(mutation.data.value).toEqualTypeOf<string | undefined>()
   })
 
   it('can be called without argument', () => {
-    const option = utils.mutationOptions()
-
-    expectTypeOf(option.key).toEqualTypeOf<(input: number) => EntryKey>()
-    expectTypeOf(option.mutation).toMatchTypeOf<(input: number) => Promise<string>>()
+    const mutation = useMutation(utils.mutationOptions())
+    expectTypeOf(mutation.data.value).toEqualTypeOf<string | undefined>()
   })
 
   describe('client context', () => {
     it('can be optional', () => {
-      const utils = {} as ProcedureUtils<undefined, string, undefined | { batch?: boolean }>
+      const utils = {} as ProcedureUtils<undefined | { batch?: boolean }, undefined, string, Error>
       useMutation(utils.mutationOptions())
       useMutation(utils.mutationOptions({}))
       useMutation(utils.mutationOptions({ context: undefined }))
@@ -124,7 +128,7 @@ describe('mutationOptions', () => {
     })
 
     it('required pass context when non-optional', () => {
-      const utils = {} as ProcedureUtils<undefined, string, { batch?: boolean }>
+      const utils = {} as ProcedureUtils<{ batch?: boolean }, undefined, string, Error>
       // @ts-expect-error --- missing context
       useMutation(utils.mutationOptions())
       // @ts-expect-error --- missing context
@@ -136,5 +140,11 @@ describe('mutationOptions', () => {
       // @ts-expect-error --- invalid context
       useMutation(utils.mutationOptions({ context: { batch: ref(123) } }))
     })
+  })
+
+  it('can infer errors', () => {
+    const utils = {} as ProcedureUtils<unknown, unknown, unknown, Error | ORPCError<'CODE', 'data'>>
+    expectTypeOf(useMutation(utils.mutationOptions()).error.value).toEqualTypeOf<Error | ORPCError<'CODE', 'data'> | null>()
+    expectTypeOf(useMutation(utils.mutationOptions({})).error.value).toEqualTypeOf<Error | ORPCError<'CODE', 'data'> | null>()
   })
 })

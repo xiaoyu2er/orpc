@@ -63,9 +63,9 @@ it('with client context', () => {
   const utils = createRouterUtils({} as RouterClient<typeof router, undefined | { batch?: boolean }>)
 
   const generalUtils = {} as GeneralUtils<unknown>
-  const pingUtils = {} as ProcedureUtils<{ name: string }, string, undefined | { batch?: boolean }>
+  const pingUtils = {} as ProcedureUtils<undefined | { batch?: boolean }, { name: string }, string, Error>
   const pingGeneralUtils = createGeneralUtils<{ name: string }>(['ping'])
-  const pongUtils = {} as ProcedureUtils<number, string, undefined | { batch?: boolean }>
+  const pongUtils = {} as ProcedureUtils<undefined | { batch?: boolean }, number, string, Error>
   const pongGeneralUtils = {} as GeneralUtils<number>
 
   expectTypeOf(utils).toMatchTypeOf<typeof generalUtils>()

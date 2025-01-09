@@ -16,11 +16,15 @@ export type UseQueryFnContext = Parameters<UseQueryOptions<any>['query']>[0]
 
 export type InferCursor<T> = T extends { cursor?: any } ? T['cursor'] : never
 
-export type QueryOptions<TInput, TOutput, TClientContext> =
+export type QueryOptionsExtra<TClientContext, TInput, TOutput, TError extends Error> =
   & (undefined extends TInput ? { input?: MaybeDeepRef<TInput> } : { input: MaybeDeepRef<TInput> })
   & (undefined extends TClientContext ? { context?: MaybeDeepRef<TClientContext> } : { context: MaybeDeepRef<TClientContext> })
-  & SetOptional<UseQueryOptions<TOutput>, 'key' | 'query'>
+  & SetOptional<UseQueryOptions<TOutput, TError>, 'key' | 'query'>
 
-export type MutationOptions<TInput, TOutput, TClientContext> =
+export type QueryOptions<TOutput, TError extends Error> = UseQueryOptions<TOutput, TError>
+
+export type MutationOptionsExtra<TClientContext, TInput, TOutput, TError extends Error> =
   & (undefined extends TClientContext ? { context?: MaybeDeepRef<TClientContext> } : { context: MaybeDeepRef<TClientContext> })
-  & SetOptional<UseMutationOptions<TOutput, TInput>, 'mutation'>
+  & SetOptional<UseMutationOptions<TOutput, TInput, TError>, 'mutation'>
+
+export type MutationOptions<TInput, TOutput, TError extends Error> = UseMutationOptions<TOutput, TInput, TError>

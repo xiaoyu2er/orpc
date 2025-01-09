@@ -213,6 +213,38 @@ describe('Router', () => {
     }
   })
 
+  it('require match contract and errorMap', () => {
+    const pingContract = oc.input(schema).errors({
+      BAD_GATEWAY: {
+        status: 502,
+        data: z.object({
+          val: z.string().transform(val => Number(val)),
+        }),
+      },
+    })
+
+    const routerContract = {
+      ping: pingContract,
+    }
+
+    expectTypeOf({
+      ping: {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, typeof pingContract['~orpc']['errorMap']>,
+    }).toMatchTypeOf<Router<{ auth: boolean, userId: string }, typeof routerContract>>()
+
+    const likeErrors = {
+      BAD_GATEWAY: {
+        status: 502,
+        data: z.object({
+          val: z.string().transform(val => Number(val)),
+        }),
+      },
+    }
+
+    expectTypeOf({
+      ping: {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, typeof likeErrors>,
+    }).not.toMatchTypeOf<Router<{ auth: boolean, userId: string }, typeof routerContract>>()
+  })
+
   it('support procedure as a router', () => {
     const router1: Router<{ auth: boolean, userId: string }, any> = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, undefined>
     // @ts-expect-error - invalid context

@@ -1,4 +1,4 @@
-import type { ProcedureClient } from '@orpc/server'
+import type { ORPCError, ProcedureClient } from '@orpc/server'
 import type { InfiniteData, QueryFunctionContext, QueryKey } from '@tanstack/vue-query'
 import type { ComputedRef } from 'vue'
 import type { ProcedureUtils } from './utils-procedure'
@@ -7,12 +7,10 @@ import { ref } from 'vue'
 import { createProcedureUtils } from './utils-procedure'
 
 describe('queryOptions', () => {
-  const client = vi.fn <ProcedureClient<number | undefined, string | undefined, undefined>>(
-    (...[input]) => Promise.resolve(input?.toString()),
-  )
+  const client = {} as ProcedureClient<undefined, number | undefined, string | undefined, Error>
   const utils = createProcedureUtils(client, [])
 
-  const client2 = {} as ProcedureClient<number, string, undefined>
+  const client2 = {} as ProcedureClient<undefined, number, string, Error>
   const utils2 = createProcedureUtils(client2, [])
 
   it('infer correct input type', () => {
@@ -57,7 +55,7 @@ describe('queryOptions', () => {
 
   describe('client context', () => {
     it('can be optional', () => {
-      const utils = {} as ProcedureUtils<undefined, string, undefined | { batch?: boolean }>
+      const utils = {} as ProcedureUtils<undefined | { batch?: boolean }, undefined, string, Error>
       useQuery(utils.queryOptions())
       useQuery(utils.queryOptions({}))
       useQuery(utils.queryOptions({ context: undefined }))
@@ -70,7 +68,7 @@ describe('queryOptions', () => {
     })
 
     it('required pass context when non-optional', () => {
-      const utils = {} as ProcedureUtils<undefined, string, { batch?: boolean }>
+      const utils = {} as ProcedureUtils<{ batch?: boolean }, undefined, string, Error>
       // @ts-expect-error --- missing context
       useQuery(utils.queryOptions())
       // @ts-expect-error --- missing context
@@ -83,13 +81,24 @@ describe('queryOptions', () => {
       useQuery(utils.queryOptions({ context: { batch: ref('invalid') } }))
     })
   })
+
+  it('can infer Error', () => {
+    const utils = {} as ProcedureUtils<undefined, undefined, undefined, Error | ORPCError<'CODE', 'data'>>
+
+    expectTypeOf(useQuery(utils.queryOptions()).error.value).toEqualTypeOf<
+      Error | ORPCError<'CODE', 'data'> | null
+    >()
+    expectTypeOf(useQuery(utils.queryOptions({})).error.value).toEqualTypeOf<
+      Error | ORPCError<'CODE', 'data'> | null
+    >()
+  })
 })
 
 describe('infiniteOptions', () => {
   const getNextPageParam = vi.fn()
 
   it('cannot use on procedure without input object-able', () => {
-    const utils = createProcedureUtils({} as ProcedureClient<number, string, undefined>, [])
+    const utils = createProcedureUtils({} as ProcedureClient<undefined, number, string, Error>, [])
 
     // @ts-expect-error missing initialPageParam
     utils.infiniteOptions({
@@ -112,7 +121,7 @@ describe('infiniteOptions', () => {
   })
 
   it('infer correct queryFn type', () => {
-    const utils = createProcedureUtils({} as ProcedureClient<{ limit?: number, cursor: number }, string, undefined>, [])
+    const utils = createProcedureUtils({} as ProcedureClient<undefined, { limit?: number, cursor: number }, string, Error>, [])
     const options = utils.infiniteOptions({
       input: {},
       getNextPageParam,
@@ -123,7 +132,7 @@ describe('infiniteOptions', () => {
   })
 
   it('infer correct input type', () => {
-    const utils = createProcedureUtils({} as ProcedureClient<{ limit?: number, cursor: number }, string, undefined>, [])
+    const utils = createProcedureUtils({} as ProcedureClient<undefined, { limit?: number, cursor: number }, string, Error>, [])
 
     utils.infiniteOptions({
       input: {
@@ -168,7 +177,7 @@ describe('infiniteOptions', () => {
   })
 
   it('infer correct initialPageParam type', () => {
-    const utils = createProcedureUtils({} as ProcedureClient<{ limit?: number, cursor: number }, string, undefined>, [])
+    const utils = createProcedureUtils({} as ProcedureClient<undefined, { limit?: number, cursor: number }, string, Error>, [])
 
     utils.infiniteOptions({
       input: {},
@@ -204,14 +213,14 @@ describe('infiniteOptions', () => {
   })
 
   it('initialPageParam can be optional', () => {
-    const utils = createProcedureUtils({} as ProcedureClient<{ limit?: number, cursor?: number }, string, undefined>, [])
+    const utils = createProcedureUtils({} as ProcedureClient<undefined, { limit?: number, cursor?: number }, string, Error>, [])
 
     utils.infiniteOptions({
       input: {},
       getNextPageParam,
     })
 
-    const utils2 = createProcedureUtils({} as ProcedureClient<{ limit?: number, cursor: number }, string, undefined>, [])
+    const utils2 = createProcedureUtils({} as ProcedureClient<undefined, { limit?: number, cursor: number }, string, Error>, [])
 
     // @ts-expect-error initialPageParam is required
     utils2.infiniteOptions({
@@ -221,13 +230,13 @@ describe('infiniteOptions', () => {
   })
 
   it('input can be optional', () => {
-    const utils = createProcedureUtils({} as ProcedureClient<{ limit?: number, cursor?: number } | undefined, string, undefined>, [])
+    const utils = createProcedureUtils({} as ProcedureClient<undefined, { limit?: number, cursor?: number } | undefined, string, Error>, [])
 
     utils.infiniteOptions({
       getNextPageParam,
     })
 
-    const utils2 = createProcedureUtils({} as ProcedureClient<{ limit?: number, cursor?: number }, string, undefined>, [])
+    const utils2 = createProcedureUtils({} as ProcedureClient<undefined, { limit?: number, cursor?: number }, string, Error>, [])
 
     // @ts-expect-error input is required
     utils2.infiniteOptions({
@@ -236,7 +245,7 @@ describe('infiniteOptions', () => {
   })
 
   it('infer correct output type', () => {
-    const utils = createProcedureUtils({} as ProcedureClient<{ limit?: number, cursor: number }, string, undefined>, [])
+    const utils = createProcedureUtils({} as ProcedureClient<undefined, { limit?: number, cursor: number }, string, Error>, [])
     const query = useInfiniteQuery(utils.infiniteOptions({
       input: {
         limit: 1,
@@ -249,7 +258,7 @@ describe('infiniteOptions', () => {
   })
 
   it('work with select options', () => {
-    const utils = createProcedureUtils({} as ProcedureClient<{ limit?: number, cursor: number }, string, undefined>, [])
+    const utils = createProcedureUtils({} as ProcedureClient<undefined, { limit?: number, cursor: number }, string, Error>, [])
     const query = useInfiniteQuery(utils.infiniteOptions({
       input: {
         limit: ref(1),
@@ -268,7 +277,7 @@ describe('infiniteOptions', () => {
 
   describe('client context', () => {
     it('can be optional', () => {
-      const utils = {} as ProcedureUtils<undefined | { limit?: number, cursor: number }, string, undefined | { batch?: boolean }>
+      const utils = {} as ProcedureUtils<undefined | { batch?: boolean }, undefined | { limit?: number, cursor: number }, string, Error>
 
       const getNextPageParam = vi.fn()
       const initialPageParam = 1
@@ -284,7 +293,7 @@ describe('infiniteOptions', () => {
     })
 
     it('required pass context when non-optional', () => {
-      const utils = {} as ProcedureUtils<undefined | { limit?: number, cursor: number }, string, { batch?: boolean }>
+      const utils = {} as ProcedureUtils<{ batch?: boolean }, undefined | { limit?: number, cursor: number }, string, Error>
 
       const getNextPageParam = vi.fn()
       const initialPageParam = 1
@@ -299,10 +308,22 @@ describe('infiniteOptions', () => {
       useInfiniteQuery(utils.infiniteOptions({ getNextPageParam, initialPageParam, context: { batch: ref('invalid') } }))
     })
   })
+
+  it('can infer Error', () => {
+    const utils = {} as ProcedureUtils<undefined, { cursor?: string }, undefined, Error | ORPCError<'CODE', 'data'>>
+
+    expectTypeOf(useInfiniteQuery(utils.infiniteOptions({
+      input: {},
+      initialPageParam: 'cursor',
+      getNextPageParam: () => 'cursor',
+    })).error.value).toEqualTypeOf<
+      Error | ORPCError<'CODE', 'data'> | null
+    >()
+  })
 })
 
 describe('mutationOptions', () => {
-  const client = {} as ProcedureClient<number, string, undefined>
+  const client = {} as ProcedureClient<undefined, number, string, Error>
   const utils = createProcedureUtils(client, [])
 
   it('infer correct input type', () => {
@@ -340,7 +361,7 @@ describe('mutationOptions', () => {
 
   describe('client context', () => {
     it('can be optional', () => {
-      const utils = {} as ProcedureUtils<undefined, string, undefined | { batch?: boolean }>
+      const utils = {} as ProcedureUtils<undefined | { batch?: boolean }, undefined, string, Error>
       useMutation(utils.mutationOptions())
       useMutation(utils.mutationOptions({}))
       useMutation(utils.mutationOptions({ context: undefined }))
@@ -353,7 +374,7 @@ describe('mutationOptions', () => {
     })
 
     it('required pass context when non-optional', () => {
-      const utils = {} as ProcedureUtils<undefined, string, { batch?: boolean }>
+      const utils = {} as ProcedureUtils<{ batch?: boolean }, undefined, string, Error>
       // @ts-expect-error --- missing context
       useMutation(utils.mutationOptions())
       // @ts-expect-error --- missing context
@@ -365,5 +386,17 @@ describe('mutationOptions', () => {
       // @ts-expect-error --- invalid context
       useMutation(utils.mutationOptions({ context: { batch: ref(123) } }))
     })
+  })
+
+  it('can infer Error', () => {
+    const utils = {} as ProcedureUtils<undefined, undefined, undefined, Error | ORPCError<'CODE', 'data'>>
+
+    expectTypeOf(useMutation(utils.mutationOptions()).error.value).toEqualTypeOf<
+      Error | ORPCError<'CODE', 'data'> | null
+    >()
+
+    expectTypeOf(useMutation(utils.mutationOptions({})).error.value).toEqualTypeOf<
+      Error | ORPCError<'CODE', 'data'> | null
+    >()
   })
 })

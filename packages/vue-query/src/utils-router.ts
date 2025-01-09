@@ -3,8 +3,8 @@ import { createGeneralUtils, type GeneralUtils } from './utils-general'
 import { createProcedureUtils, type ProcedureUtils } from './utils-procedure'
 
 export type RouterUtils<T extends RouterClient<any, any>> =
-  T extends ProcedureClient<infer TInput, infer TOutput, infer TClientContext>
-    ? ProcedureUtils<TInput, TOutput, TClientContext> & GeneralUtils<TInput>
+  T extends ProcedureClient<infer TClientContext, infer UInput, infer UOutput, infer UError>
+    ? ProcedureUtils<TClientContext, UInput, UOutput, UError> & GeneralUtils<UInput>
     : {
       [K in keyof T]: T[K] extends RouterClient<any, any> ? RouterUtils<T[K]> : never
     } & GeneralUtils<unknown>

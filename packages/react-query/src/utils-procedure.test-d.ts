@@ -268,6 +268,15 @@ describe('infiniteOptions', () => {
       useInfiniteQuery(utils.infiniteOptions({ getNextPageParam, initialPageParam, context: { batch: 'invalid' } }))
     })
   })
+
+  it('can infer errors', () => {
+    const utils = createProcedureUtils({} as ProcedureClient<unknown, { cursor?: number } | undefined, string, Error | ORPCError<'CODE', 'data'>>, [])
+    expectTypeOf(
+      useInfiniteQuery(utils.infiniteOptions({
+        getNextPageParam: () => 2,
+      })).error,
+    ).toEqualTypeOf<Error | ORPCError<'CODE', 'data'> | null>()
+  })
 })
 
 describe('mutationOptions', () => {
@@ -328,5 +337,11 @@ describe('mutationOptions', () => {
       // @ts-expect-error --- invalid context
       useMutation(utils.mutationOptions({ context: { batch: 123 } }))
     })
+  })
+
+  it('can infer errors', () => {
+    const utils = createProcedureUtils({} as ProcedureClient<unknown, unknown, string, Error | ORPCError<'CODE', 'data'>>, [])
+    expectTypeOf(useMutation(utils.mutationOptions()).error).toEqualTypeOf<Error | ORPCError<'CODE', 'data'> | null>()
+    expectTypeOf(useMutation(utils.mutationOptions({})).error).toEqualTypeOf<Error | ORPCError<'CODE', 'data'> | null>()
   })
 })

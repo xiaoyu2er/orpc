@@ -20,7 +20,6 @@ export * from './router-client'
 export * from './router-implementer'
 export * from './types'
 export * from './utils'
-
-export { configGlobal, fallbackToGlobalConfig, isDefinedError, ORPCError } from '@orpc/contract'
+export { configGlobal, fallbackToGlobalConfig, isDefinedError, ORPCError, safe } from '@orpc/contract'
 
 export const os = new Builder<WELL_CONTEXT, undefined>({})

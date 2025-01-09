@@ -1,9 +1,10 @@
+import type { Client, ErrorFromErrorMap, ErrorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Hooks, Value } from '@orpc/shared'
 import type { Lazyable } from './lazy'
 import type { MiddlewareNextFn } from './middleware'
 import type { ANY_PROCEDURE, Procedure, ProcedureHandlerOptions } from './procedure'
 import type { AbortSignal, Context, Meta } from './types'
-import { type ErrorFromErrorMap, type ErrorMap, ORPCError, type Schema, type SchemaInput, type SchemaOutput, validateORPCError, ValidationError } from '@orpc/contract'
+import { ORPCError, validateORPCError, ValidationError } from '@orpc/contract'
 import { executeWithHooks, toError, value } from '@orpc/shared'
 import { createORPCErrorConstructorMap } from './error'
 import { unlazy } from './lazy'
@@ -13,14 +14,7 @@ export type ProcedureClientOptions<TClientContext> =
   & { signal?: AbortSignal }
   & (undefined extends TClientContext ? { context?: TClientContext } : { context: TClientContext })
 
-export interface ProcedureClient<TClientContext, TInput, TOutput, TError extends Error> {
-  (
-    ...opts:
-      | [input: TInput, options: ProcedureClientOptions<TClientContext>]
-      | (undefined extends TInput & TClientContext ? [] : never)
-      | (undefined extends TClientContext ? [input: TInput] : never)
-  ): Promise<TOutput> & { __typeError?: TError }
-}
+export type ProcedureClient<TClientContext, TInput, TOutput, TError extends Error> = Client<TClientContext, TInput, TOutput, TError>
 
 /**
  * Options for creating a procedure caller with comprehensive type safety

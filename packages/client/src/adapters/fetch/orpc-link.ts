@@ -85,7 +85,7 @@ export class ORPCLink<TClientContext> implements ClientLink<TClientContext> {
         throw new ORPCError(decoded)
       }
 
-      return new ORPCError({
+      throw new ORPCError({
         status: response.status,
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Internal server error',

@@ -1,19 +1,47 @@
-import { client } from './helpers'
+import { ORPCError, safe } from '@orpc/contract'
+import { orpc } from './helpers'
 
 describe('e2e', () => {
-  it('works on success', () => {
-    expect(client.ping()).resolves.toEqual('pong')
+  it('on success', () => {
+    expect(
+      orpc.post.find({ id: '1' }),
+    ).resolves.toEqual({ id: '1', title: 'title-1' })
+
+    expect(
+      orpc.post.create({ title: 'new-title', thumbnail: new File(['hello'], 'hello.txt') }),
+    ).resolves.toEqual({ id: 'id-new-title', title: 'new-title', thumbnail: 'hello.txt' })
   })
 
-  it('works on error', () => {
+  it('on error', async () => {
+    const [, error] = await safe(orpc.post.find({ id: 'NOT_FOUND' }))
+
+    expect(error).toBeInstanceOf(ORPCError)
+    expect((error as any).data).toEqual({ id: 'NOT_FOUND' })
+
+    const [, error2] = await safe(orpc.post.create({ title: 'CONFLICT' }))
+
+    expect(error2).toBeInstanceOf(ORPCError)
+    expect((error2 as any).data).toEqual({ title: 'CONFLICT' })
+
     // @ts-expect-error - invalid input
-    expect(client.user.find()).rejects.toThrowError(
-      'Input validation failed',
-    )
+    const [, error3] = await safe(orpc.post.create({ }))
+
+    expect(error3).toBeInstanceOf(ORPCError)
+    expect((error3 as any).code).toEqual('BAD_REQUEST')
+    expect((error3 as any).data).toEqual({
+      issues: [{
+        code: 'invalid_type',
+        expected: 'string',
+        message: 'Required',
+        path: ['title'],
+        received: 'undefined',
+      }],
+    })
   })
 
-  it('works on file upload', () => {
-    const file = new Blob(['hello'], { type: 'text/plain;charset=utf-8' })
-    expect(client.nested.countFileSize(file)).resolves.toEqual(5)
+  it('with client context', async () => {
+    expect(
+      orpc.post.find({ id: '1' }, { context: { cache: 'force' } }),
+    ).rejects.toThrow('cache=force is not supported')
   })
 })

@@ -92,6 +92,8 @@ export class ORPCLink<TClientContext> implements ClientLink<TClientContext> {
         cause: decoded,
       })
     }
+
+    return decoded
   }
 
   private async encode(path: readonly string[], input: unknown, options: ProcedureClientOptions<TClientContext>): Promise<{

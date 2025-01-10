@@ -1,119 +1,150 @@
+import { oc } from '@orpc/contract'
 import { os } from '@orpc/server'
 import { ORPCHandler } from '@orpc/server/fetch'
 import { z } from 'zod'
+import { oz } from '../../zod/src'
 import { createORPCClient } from '../src'
 import { ORPCLink } from '../src/adapters/fetch'
 
-export const orpcServer = os
-
-export const ping = orpcServer.handler(() => 'pong')
-
-export const UserSchema = z
-  .object({ data: z.object({ id: z.string(), name: z.string() }) })
-  .transform(data => data.data)
-export const UserFindInputSchema = z
-  .object({ id: z.string() })
-  .transform(data => ({ data }))
-
-export const userFind = orpcServer
-  .input(UserFindInputSchema)
-  .output(UserSchema)
-  .handler(({ input }) => {
-    return {
-      data: {
-        id: input.data.id,
-        name: `name-${input.data.id}`,
-      },
-    }
-  })
-
-export const UserListInputSchema = z
-  .object({
-    keyword: z.string().optional(),
-    cursor: z.number().default(0),
-  })
-  .transform(data => ({ data }))
-export const UserListOutputSchema = z
-  .object({
-    data: z.object({
-      nextCursor: z.number(),
-      users: z.array(UserSchema),
-    }),
-  })
-  .transform(data => data.data)
-export const userList = orpcServer
-  .input(UserListInputSchema)
-  .output(UserListOutputSchema)
-  .handler(({ input }) => {
-    return {
-      data: {
-        nextCursor: input.data.cursor + 2,
-        users: [
-          {
-            data: {
-              id: `id-${input.data.cursor}`,
-              name: `number-${input.data.cursor}`,
-            },
-          },
-          {
-            data: {
-              id: `id-${input.data.cursor + 1}`,
-              name: `number-${input.data.cursor + 1}`,
-            },
-          },
-        ],
-      },
-    }
-  })
-
-export const UserCreateInputSchema = z
-  .object({ name: z.string() })
-  .transform(data => ({ data }))
-export const userCreate = orpcServer
-  .input(UserCreateInputSchema)
-  .output(UserSchema)
-  .handler(({ input }) => {
-    return {
-      data: {
-        id: '28aa6286-48e9-4f23-adea-3486c86acd55',
-        name: input.data.name,
-      },
-    }
-  })
-
-const countFileSize = os.input(z.instanceof(Blob)).handler(({ input }) => {
-  return input.size
+export const PostFindInput = z.object({
+  id: z.string(),
 })
 
-export const appRouter = orpcServer.router({
-  ping,
-  user: {
-    find: userFind,
-    list: userList,
-    create: userCreate,
-  },
-  nested: {
-    countFileSize,
+export const PostFindOutput = z.object({
+  id: z.string(),
+  title: z.string(),
+  thumbnail: z.string().optional(),
+})
+
+export const PostListInput = z.object({
+  cursor: z.number().default(0),
+  keyword: z.string().optional(),
+})
+
+export const PostListOutput = z.object({
+  items: z.array(PostFindOutput),
+  nextCursor: z.number(),
+})
+
+export const PostCreateInput = z.object({
+  title: z.string(),
+  thumbnail: oz.file().optional(),
+})
+
+export const PostCreateOutput = PostFindOutput
+
+export const contract = oc.router({
+  post: {
+    find: oc
+      .input(PostFindInput)
+      .output(PostFindOutput)
+      .errors({
+        NOT_FOUND: {
+          message: 'Post not found',
+          data: PostFindInput,
+        },
+      }),
+    list: oc
+      .input(PostListInput)
+      .output(PostListOutput)
+      .errors({
+        TOO_MANY_REQUESTS: {
+          message: 'Too many requests',
+          data: PostListInput,
+        },
+      }),
+    create: oc
+      .input(PostCreateInput)
+      .output(PostCreateOutput)
+      .errors({
+        CONFLICT: {
+          message: 'Duplicated title',
+          data: PostCreateInput,
+        },
+        FORBIDDEN: {
+          message: 'You are not allowed to create post',
+          data: PostCreateInput,
+        },
+      }),
   },
 })
 
-const orpcHandler = new ORPCHandler(appRouter)
+export const router = os.contract(contract).router({
+  post: os.lazy(() => Promise.resolve({ // this lazy help tests more real, more complex
+    default: {
+      find: os.contract(contract.post.find).handler(async ({ input, errors }) => {
+        if (input.id === 'NOT_FOUND') {
+          throw errors.NOT_FOUND({
+            data: input,
+          })
+        }
 
-const orpcLink = new ORPCLink({
+        return {
+          id: input.id,
+          title: `title-${input.id}`,
+        }
+      }),
+      list: os.contract(contract.post.list).handler(async ({ input, errors }) => {
+        if (input.keyword === 'TOO_MANY_REQUESTS') {
+          throw errors.TOO_MANY_REQUESTS({
+            data: input,
+          })
+        }
+
+        return {
+          items: [
+            {
+              id: `id-${input.cursor}`,
+              title: `title-${input.cursor}`,
+            },
+          ],
+          nextCursor: input.cursor + 1,
+        }
+      }),
+      create: os.contract(contract.post.create).handler(async ({ input, errors }) => {
+        if (input.title === 'CONFLICT') {
+          throw errors.CONFLICT({
+            data: input,
+          })
+        }
+
+        if (input.title === 'FORBIDDEN') {
+          throw errors.FORBIDDEN({
+            data: input,
+          })
+        }
+
+        return {
+          id: `id-${input.title}`,
+          title: input.title,
+          thumbnail: input.thumbnail?.name,
+        }
+      }),
+    },
+  })),
+})
+
+const rpcHandler = new ORPCHandler(router)
+
+export type ClientContext = { cache?: string } | undefined
+
+const rpcLink = new ORPCLink<ClientContext>({
   url: 'http://localhost:3000',
+  fetch: async (url, init, context) => {
+    if (context?.cache) {
+      throw new Error(`cache=${context.cache} is not supported`)
+    }
 
-  async fetch(input, init) {
-    await new Promise(resolve => setTimeout(resolve, 100))
-    const request = new Request(input, init)
+    const request = new Request(url, init)
 
-    const { matched, response } = await orpcHandler.handle(request)
+    const { matched, response } = await rpcHandler.handle(request)
 
     if (!matched) {
-      throw new Error('expect matched=true any time')
+      throw new Error('No procedure matched')
     }
 
     return response
   },
 })
 
-export const client = createORPCClient<typeof appRouter>(orpcLink)
+export const orpc = createORPCClient<typeof router, ClientContext>(rpcLink)

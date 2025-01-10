@@ -20,11 +20,6 @@
         "import": "./dist/index.js",
         "default": "./dist/index.js"
       },
-      "./error": {
-        "types": "./dist/src/error.d.ts",
-        "import": "./dist/error.js",
-        "default": "./dist/error.js"
-      },
       "./🔒/*": {
         "types": "./dist/src/*.d.ts"
       }
@@ -32,7 +27,6 @@
   },
   "exports": {
     ".": "./src/index.ts",
-    "./error": "./src/error.ts",
     "./🔒/*": {
       "types": "./src/*.ts"
     }
@@ -43,7 +37,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup --clean --sourcemap --entry.index=src/index.ts --entry.error=src/error.ts --format=esm --onSuccess='tsc -b --noCheck'",
+    "build": "tsup --clean --sourcemap --entry.index=src/index.ts --format=esm --onSuccess='tsc -b --noCheck'",
     "build:watch": "pnpm run build --watch",
     "type:check": "tsc -b"
   },

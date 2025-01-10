@@ -3,15 +3,28 @@ import { z } from 'zod'
 import { isProcedure } from './procedure'
 import { ProcedureImplementer } from './procedure-implementer'
 
-describe('self chainable', () => {
-  const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
-  const implementer = new ProcedureImplementer<{ id?: string }, undefined, typeof schema, typeof schema>({
-    contract: new ContractProcedure({
-      InputSchema: schema,
-      OutputSchema: schema,
-    }),
-  })
+const baseSchema = z.object({ base: z.string().transform(v => Number.parseInt(v)) })
+const baseErrors = {
+  PAYMENT_REQUIRED: {
+    status: 402,
+    message: 'default message',
+    data: baseSchema,
+  },
+}
+const baseMid = vi.fn()
 
+const implementer = new ProcedureImplementer({
+  contract: new ContractProcedure({
+    InputSchema: baseSchema,
+    OutputSchema: baseSchema,
+    errorMap: baseErrors,
+  }),
+  middlewares: [baseMid],
+})
+
+const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
+
+describe('self chainable', () => {
   it('use middleware', () => {
     const mid1 = vi.fn()
     const mid2 = vi.fn()
@@ -19,7 +32,10 @@ describe('self chainable', () => {
 
     expect(i).not.toBe(implementer)
     expect(i).toBeInstanceOf(ProcedureImplementer)
-    expect(i['~orpc'].middlewares).toEqual([mid1, mid2])
+    expect(i['~orpc'].middlewares).toEqual([baseMid, mid1, mid2])
+    expect(i['~orpc'].contract['~orpc'].InputSchema).toEqual(baseSchema)
+    expect(i['~orpc'].contract['~orpc'].OutputSchema).toEqual(baseSchema)
+    expect(i['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
   })
 
   it('use middleware with map input', () => {
@@ -30,12 +46,15 @@ describe('self chainable', () => {
 
     expect(i).not.toBe(implementer)
     expect(i).toBeInstanceOf(ProcedureImplementer)
-    expect(i['~orpc'].middlewares).toEqual([expect.any(Function)])
+    expect(i['~orpc'].middlewares).toEqual([baseMid, expect.any(Function)])
+    expect(i['~orpc'].contract['~orpc'].InputSchema).toEqual(baseSchema)
+    expect(i['~orpc'].contract['~orpc'].OutputSchema).toEqual(baseSchema)
+    expect(i['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
 
     map.mockReturnValueOnce('__input__')
     mid.mockReturnValueOnce('__mid__')
 
-    expect((i as any)['~orpc'].middlewares[0]({}, 'input', '__output__')).toBe('__mid__')
+    expect((i as any)['~orpc'].middlewares[1]({}, 'input', '__output__')).toBe('__mid__')
 
     expect(map).toBeCalledTimes(1)
     expect(map).toBeCalledWith('input')
@@ -46,23 +65,33 @@ describe('self chainable', () => {
 })
 
 describe('to DecoratedProcedure', () => {
-  const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
-
-  const global_mid = vi.fn()
-  const implementer = new ProcedureImplementer<{ id?: string } | undefined, { db: string }, typeof schema, typeof schema>({
-    contract: new ContractProcedure({
-      InputSchema: schema,
-      OutputSchema: schema,
-    }),
-    middlewares: [global_mid],
-  })
-
   it('handler', () => {
     const handler = vi.fn()
     const procedure = implementer.handler(handler)
 
     expect(procedure).toSatisfy(isProcedure)
     expect(procedure['~orpc'].handler).toBe(handler)
-    expect(procedure['~orpc'].middlewares).toEqual([global_mid])
+    expect(procedure['~orpc'].middlewares).toEqual([baseMid])
+    expect(procedure['~orpc'].contract['~orpc'].InputSchema).toEqual(baseSchema)
+    expect(procedure['~orpc'].contract['~orpc'].OutputSchema).toEqual(baseSchema)
+    expect(procedure['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
   })
+})
+
+it('use method should works without any middleware inside', () => {
+  const implementer = new ProcedureImplementer({
+    contract: new ContractProcedure({
+      InputSchema: baseSchema,
+      OutputSchema: baseSchema,
+      errorMap: baseErrors,
+    }),
+  })
+
+  const mid1 = vi.fn()
+  const mid2 = vi.fn()
+
+  const applied = implementer.use(mid1).use(mid2)
+  expect(applied).not.toBe(implementer)
+  expect(applied).toBeInstanceOf(ProcedureImplementer)
+  expect(applied['~orpc'].middlewares).toEqual([mid1, mid2])
 })

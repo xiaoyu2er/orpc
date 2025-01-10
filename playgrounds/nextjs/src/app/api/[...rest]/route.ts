@@ -1,7 +1,7 @@
+import { router } from '@/router'
 import { OpenAPIServerlessHandler } from '@orpc/openapi/next'
 import { serve } from '@orpc/server/next'
 import { ZodCoercer } from '@orpc/zod'
-import { router } from '../../router'
 import '../../../polyfill'
 
 const openAPIHandler = new OpenAPIServerlessHandler(router, {

@@ -11,7 +11,7 @@ export class SchemaUtils {
   }
 
   isAnySchema(schema: JSONSchema.JSONSchema): boolean {
-    return schema === true || Object.keys(schema).length === 0
+    return schema === true || Object.keys(schema).filter(key => !NON_LOGIC_KEYWORDS.includes(key)).length === 0
   }
 
   isUndefinableSchema(schema: JSONSchema.JSONSchema): boolean {
@@ -20,7 +20,7 @@ export class SchemaUtils {
         return schema
       }
 
-      return Object.keys(schema).length === 0
+      return Object.keys(schema).filter(key => !NON_LOGIC_KEYWORDS.includes(key)).length === 0
     })
 
     return matches.length > 0

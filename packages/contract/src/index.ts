@@ -3,7 +3,12 @@
 import { ContractBuilder } from './builder'
 
 export * from './builder'
+export * from './client'
+export * from './client-utils'
 export * from './config'
+export * from './error'
+export * from './error-map'
+export * from './error-orpc'
 export * from './procedure'
 export * from './procedure-decorated'
 export * from './router'

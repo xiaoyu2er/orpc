@@ -1,9 +1,19 @@
-import type { WELL_CONTEXT } from './types'
-import { ContractProcedure } from '@orpc/contract'
+import { ContractProcedure, ORPCError, validateORPCError } from '@orpc/contract'
 import { z } from 'zod'
+import { createORPCErrorConstructorMap } from './error'
 import { isLazy, lazy, unlazy } from './lazy'
 import { Procedure } from './procedure'
 import { createProcedureClient } from './procedure-client'
+
+vi.mock('@orpc/contract', async origin => ({
+  ...await origin(),
+  validateORPCError: vi.fn(),
+}))
+
+vi.mock('./error', async origin => ({
+  ...await origin(),
+  createORPCErrorConstructorMap: vi.fn(),
+}))
 
 const schema = z.object({ val: z.string().transform(v => Number(v)) })
 
@@ -11,10 +21,17 @@ const handler = vi.fn(() => ({ val: '123' }))
 const mid1 = vi.fn(({ next }, input, output) => next({}))
 const mid2 = vi.fn(({ next }, input, output) => next({}))
 
-const procedure = new Procedure<WELL_CONTEXT, undefined, typeof schema, typeof schema, { val: string }>({
+const baseErrors = {
+  BAD_REQUEST: {
+    data: z.object({ why: z.string().transform(v => Number(v)) }),
+  },
+}
+
+const procedure = new Procedure({
   contract: new ContractProcedure({
     InputSchema: schema,
     OutputSchema: schema,
+    errorMap: baseErrors,
   }),
   handler,
   middlewares: [mid1, mid2],
@@ -37,10 +54,21 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
       procedure,
     })
 
+    vi.mocked(createORPCErrorConstructorMap).mockReturnValueOnce('__constructors__' as any)
+
     await expect(client({ val: '123' })).resolves.toEqual({ val: 123 })
 
+    expect(createORPCErrorConstructorMap).toBeCalledTimes(1)
+    expect(createORPCErrorConstructorMap).toBeCalledWith(baseErrors)
+
     expect(handler).toBeCalledTimes(1)
-    expect(handler).toBeCalledWith({ input: { val: 123 }, context: undefined, path: [], procedure: unwrappedProcedure })
+    expect(handler).toBeCalledWith({
+      input: { val: 123 },
+      context: undefined,
+      path: [],
+      procedure: unwrappedProcedure,
+      errors: '__constructors__',
+    })
 
     expect(mid1).toBeCalledTimes(1)
     expect(mid1).toBeCalledWith(expect.objectContaining({
@@ -48,6 +76,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
       procedure: unwrappedProcedure,
       next: expect.any(Function),
       context: undefined,
+      errors: '__constructors__',
     }), { val: 123 }, expect.any(Function))
 
     expect(mid2).toBeCalledTimes(1)
@@ -56,6 +85,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
       procedure: unwrappedProcedure,
       next: expect.any(Function),
       context: undefined,
+      errors: '__constructors__',
     }), { val: 123 }, expect.any(Function))
   })
 
@@ -317,6 +347,35 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     expect(onSuccess).toBeCalledTimes(1)
     expect(onSuccess).toHaveBeenCalledWith(expect.any(Object), expect.any(Object), expect.objectContaining({ signal }))
   })
+
+  describe('error validation', () => {
+    const client = createProcedureClient({ procedure })
+
+    it('transform non-error to error', () => {
+      handler.mockRejectedValueOnce('non-error')
+
+      expect(client({ val: '123' })).rejects.toSatisfy(error => error instanceof Error && error.message === 'non-error')
+    })
+
+    it('throw non-ORPC Error right away', () => {
+      const e1 = new Error('non-ORPC Error')
+      handler.mockRejectedValueOnce(e1)
+      expect(client({ val: '123' })).rejects.toBe(e1)
+    })
+
+    it('validate ORPC Error', async () => {
+      const e1 = new ORPCError({ code: 'BAD_REQUEST' })
+      const e2 = new ORPCError({ code: 'BAD_REQUEST', defined: true })
+
+      handler.mockRejectedValueOnce(e1)
+      vi.mocked(validateORPCError).mockReturnValueOnce(Promise.resolve(e2))
+
+      await expect(client({ val: '123' })).rejects.toBe(e2)
+
+      expect(validateORPCError).toBeCalledTimes(1)
+      expect(validateORPCError).toBeCalledWith(baseErrors, e1)
+    })
+  })
 })
 
 it('still work without middleware', async () => {
@@ -324,6 +383,7 @@ it('still work without middleware', async () => {
     contract: new ContractProcedure({
       InputSchema: schema,
       OutputSchema: schema,
+      errorMap: undefined,
     }),
     handler,
   })
@@ -343,6 +403,7 @@ it('still work without InputSchema', async () => {
     contract: new ContractProcedure({
       InputSchema: undefined,
       OutputSchema: schema,
+      errorMap: undefined,
     }),
     handler,
   })
@@ -362,6 +423,7 @@ it('still work without OutputSchema', async () => {
     contract: new ContractProcedure({
       InputSchema: schema,
       OutputSchema: undefined,
+      errorMap: undefined,
     }),
     handler,
   })

@@ -1,3 +1,4 @@
+import type { FindGlobalInstanceType } from '@orpc/shared'
 import type { StandardSchemaV1 } from '@standard-schema/spec'
 
 export type HTTPPath = `/${string}`
@@ -24,3 +25,5 @@ export type SchemaOutput<
   : TSchema extends StandardSchemaV1
     ? StandardSchemaV1.InferOutput<TSchema>
     : TFallback
+
+export type AbortSignal = FindGlobalInstanceType<'AbortSignal'>

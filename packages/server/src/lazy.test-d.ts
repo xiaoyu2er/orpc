@@ -3,7 +3,7 @@ import type { Procedure } from './procedure'
 import type { WELL_CONTEXT } from './types'
 import { flatLazy, isLazy, lazy, unlazy } from './lazy'
 
-const procedure = {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown>
+const procedure = {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown, undefined>
 
 const router = { procedure }
 

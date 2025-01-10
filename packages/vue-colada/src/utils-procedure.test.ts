@@ -24,7 +24,7 @@ describe('queryOptions', () => {
   })
 
   it('works', async () => {
-    const options = utils.queryOptions({ input: 1 })
+    const options = utils.queryOptions({ input: 1 }) as any
 
     expect(options.key.value).toEqual(['__mocked__'])
     expect(buildKeySpy).toHaveBeenCalledTimes(1)
@@ -38,7 +38,7 @@ describe('queryOptions', () => {
 
   it('works with ref', async () => {
     const input = ref(1)
-    const options = utils.queryOptions({ input })
+    const options = utils.queryOptions({ input }) as any
 
     expect(options.key.value).toEqual(['__mocked__'])
     expect(buildKeySpy).toHaveBeenCalledTimes(1)
@@ -54,7 +54,7 @@ describe('queryOptions', () => {
     const client = vi.fn((...[input]) => Promise.resolve(input?.toString()))
     const utils = createProcedureUtils(client, ['ping'])
 
-    const options = utils.queryOptions({ context: { batch: ref(true) } })
+    const options = utils.queryOptions({ context: { batch: ref(true) } }) as any
 
     expect(options.key.value).toEqual(['__mocked__'])
     expect(buildKeySpy).toHaveBeenCalledTimes(1)
@@ -78,7 +78,7 @@ describe('mutationOptions', () => {
   })
 
   it('works', async () => {
-    const options = utils.mutationOptions()
+    const options = utils.mutationOptions() as any
 
     expect(options.key('__input__')).toEqual(['__mocked__'])
     expect(buildKeySpy).toHaveBeenCalledTimes(1)
@@ -96,7 +96,7 @@ describe('mutationOptions', () => {
     )
     const utils = createProcedureUtils(client, ['ping'])
 
-    const options = utils.mutationOptions({ context: { batch: ref(true) } })
+    const options = utils.mutationOptions({ context: { batch: ref(true) } }) as any
 
     expect(options.key('__input__')).toEqual(['__mocked__'])
     expect(buildKeySpy).toHaveBeenCalledTimes(1)

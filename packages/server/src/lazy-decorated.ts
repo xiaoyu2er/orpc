@@ -1,4 +1,4 @@
-import type { SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ErrorFromErrorMap, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Lazy } from './lazy'
 import type { Procedure } from './procedure'
 import type { ProcedureClient } from './procedure-client'
@@ -11,9 +11,9 @@ export type DecoratedLazy<T> = T extends Lazy<infer U>
   ? DecoratedLazy<U>
   : Lazy<T>
     & (
-       T extends Procedure<infer UContext, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput>
+       T extends Procedure<infer UContext, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput, infer UErrorMap>
          ? undefined extends UContext
-           ? ProcedureClient<SchemaInput<UInputSchema>, SchemaOutput<UOutputSchema, UFuncOutput>, unknown>
+           ? ProcedureClient<unknown, SchemaInput<UInputSchema>, SchemaOutput<UOutputSchema, UFuncOutput>, ErrorFromErrorMap<UErrorMap>>
            : unknown
          : {
              [K in keyof T]: T[K] extends object ? DecoratedLazy<T[K]> : never

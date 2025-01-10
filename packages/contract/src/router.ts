@@ -6,14 +6,14 @@ export type ContractRouter = ANY_CONTRACT_PROCEDURE | {
 }
 
 export type InferContractRouterInputs<T extends ContractRouter> =
-  T extends ContractProcedure<infer UInputSchema, any>
+  T extends ContractProcedure<infer UInputSchema, any, any>
     ? SchemaInput<UInputSchema>
     : {
         [K in keyof T]: T[K] extends ContractRouter ? InferContractRouterInputs<T[K]> : never
       }
 
 export type InferContractRouterOutputs<T extends ContractRouter> =
-  T extends ContractProcedure<any, infer UOutputSchema>
+  T extends ContractProcedure<any, infer UOutputSchema, any>
     ? SchemaOutput<UOutputSchema>
     : {
         [K in keyof T]: T[K] extends ContractRouter ? InferContractRouterOutputs<T[K]> : never

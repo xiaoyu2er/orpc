@@ -1,273 +1,235 @@
-import type { InfiniteData } from '@tanstack/vue-query'
+import type { ORPCError } from '@orpc/contract'
 import { useInfiniteQuery, useMutation, useQueries, useQuery } from '@tanstack/vue-query'
-import { computed, ref } from 'vue'
-import { orpc, queryClient } from './helpers'
-
-beforeEach(() => {
-  queryClient.clear()
-})
+import { ref } from 'vue'
+import { orpc } from './helpers'
 
 describe('useQuery', () => {
-  it('infer types correctly', async () => {
-    const query = useQuery(orpc.user.find.queryOptions({
+  it('infer input', async () => {
+    useQuery(orpc.post.find.queryOptions({
+      input: { id: '123' },
+    }))
+
+    useQuery(orpc.post.find.queryOptions({
+      input: { id: ref('123') },
+    }))
+
+    // @ts-expect-error --- input is required
+    useQuery(orpc.post.find.queryOptions({
+    }))
+
+    useQuery(orpc.post.find.queryOptions({
+      // @ts-expect-error --- input is invalid
+      input: { id: 123 },
+    }))
+  })
+
+  it('infer output', () => {
+    const query = useQuery(orpc.post.find.queryOptions({
       input: { id: '123' },
       select(data) {
-        expectTypeOf(data).toEqualTypeOf<{ id: string, name: string }>()
+        expectTypeOf(data).toEqualTypeOf<{ id: string, title: string, thumbnail?: string }>()
 
-        return data
+        return 'new-output' as const
       },
-    }), queryClient)
+    }))
 
-    expectTypeOf(query.data.value).toEqualTypeOf<{ id: string, name: string } | undefined>()
+    expectTypeOf(query.data.value).toEqualTypeOf<'new-output' | undefined>()
   })
 
-  it('support ref', () => {
-    useQuery(orpc.user.find.queryOptions({ input: { id: ref('123') } }))
-    useQuery(orpc.user.find.queryOptions({ input: computed(() => ({ id: ref('123') })) }))
+  it('infer errors', () => {
+    const query = useQuery(orpc.post.find.queryOptions({
+      input: { id: '123' },
+      throwOnError(error) {
+        expectTypeOf(error).toEqualTypeOf<Error | ORPCError<'NOT_FOUND', { id: string }>>()
+
+        return false
+      },
+    }))
+
+    expectTypeOf(query.error.value).toEqualTypeOf<Error | ORPCError<'NOT_FOUND', { id: string }> | null>()
   })
 
-  it('strict on input', () => {
-    // @ts-expect-error options is required since input is required
-    useQuery(orpc.user.find.queryOptions())
-    // @ts-expect-error input is required
-    useQuery(orpc.user.find.queryOptions({}))
-    // @ts-expect-error input is invalid
-    useQuery(orpc.user.find.queryOptions({ input: { id: 123 } }))
-  })
+  it('infer client context', () => {
+    useQuery(orpc.post.find.queryOptions({
+      input: { id: '123' },
+      context: { cache: 'force' },
+    }))
 
-  it('infer types correctly with client context', async () => {
-    useQuery(orpc.user.find.queryOptions({ input: { id: '123' } }))
-    useQuery(orpc.user.find.queryOptions({ input: { id: '123' }, context: { batch: true } }))
-    useQuery(orpc.user.find.queryOptions({ input: { id: '123' }, context: { batch: ref(false) } }))
-    // @ts-expect-error --- invalid context
-    useQuery(orpc.user.find.queryOptions({ input: { id: '123' }, context: { batch: 'invalid' } }))
-    // @ts-expect-error --- invalid context
-    useQuery(orpc.user.find.queryOptions({ input: { id: '123' }, context: { batch: ref('invalid') } }))
+    useQuery(orpc.post.find.queryOptions({
+      input: { id: '123' },
+      context: { cache: ref('force') },
+    }))
+
+    useQuery(orpc.post.find.queryOptions({
+      input: { id: '123' },
+      context: ref({ cache: ref('force') }),
+    }))
+
+    useQuery(orpc.post.find.queryOptions({
+      input: { id: '123' },
+      // @ts-expect-error --- invalid context
+      context: { cache: 123 },
+    }))
   })
 })
 
 describe('useInfiniteQuery', () => {
-  it('infer types correctly', async () => {
-    const query = useInfiniteQuery(orpc.user.list.infiniteOptions({
-      input: {},
-      getNextPageParam: lastPage => lastPage.nextCursor,
-      select(data) {
-        expectTypeOf(data).toMatchTypeOf<InfiniteData<{
-          nextCursor: number
-          users: {
-            id: string
-            name: string
-          }[]
-        }, number | undefined>>()
-
-        return data
-      },
-    }), queryClient)
-
-    expectTypeOf(query.data.value).toMatchTypeOf<InfiniteData<{
-      nextCursor: number
-      users: {
-        id: string
-        name: string
-      }[]
-    }, number | undefined> | undefined>()
-  })
-
-  it('cannot use on un cursor procedure', () => {
-    // @ts-expect-error initialPageParam is required
-    useInfiniteQuery(orpc.user.find.infiniteOptions({
-      input: {} as any,
-      getNextPageParam: {} as any,
+  it('infer input', async () => {
+    useInfiniteQuery(orpc.post.list.infiniteOptions({
+      input: { keyword: 'keyword' },
+      getNextPageParam: () => 2,
     }))
 
-    useInfiniteQuery(orpc.user.find.infiniteOptions({
-      input: {} as any,
-      getNextPageParam: {} as any,
-      initialPageParam: {} as never, // required but must be never so cannot use this procedure
-    }))
-  })
-
-  it('support ref', () => {
-    useInfiniteQuery(orpc.user.list.infiniteOptions({
+    useInfiniteQuery(orpc.post.list.infiniteOptions({
       input: { keyword: ref('keyword') },
-      getNextPageParam: {} as any,
+      getNextPageParam: () => 2,
     }))
 
-    useInfiniteQuery(orpc.user.list.infiniteOptions({
-      input: computed(() => ({ keyword: ref('keyword') })),
-      getNextPageParam: {} as any,
-    }))
-  })
-
-  it('strict on input', () => {
-    useInfiniteQuery(orpc.user.list.infiniteOptions({
-      input: { keyword: 'keyword' },
-      getNextPageParam: {} as any,
-    }))
-
-    // @ts-expect-error input is invalid
-    useInfiniteQuery(orpc.user.list.infiniteOptions({
-      // @ts-expect-error input is invalid
+    // @ts-expect-error --- invalid input
+    useInfiniteQuery(orpc.post.list.infiniteOptions({
+      // @ts-expect-error --- invalid input
       input: { keyword: 1234 },
-      getNextPageParam: {} as any,
+      getNextPageParam: () => 2,
     }))
   })
 
-  it('infer types correctly with client context', async () => {
-    useInfiniteQuery(orpc.user.list.infiniteOptions({
+  it('infer output', async () => {
+    const query = useInfiniteQuery(orpc.post.list.infiniteOptions({
       input: { keyword: 'keyword' },
-      getNextPageParam: {} as any,
+      getNextPageParam: () => 2,
+      select(data) {
+        expectTypeOf(data.pages[0]!.items).toEqualTypeOf<{ id: string, title: string, thumbnail?: string }[]>()
+
+        return 'new-output' as const
+      },
     }))
-    useInfiniteQuery(orpc.user.list.infiniteOptions({
+
+    expectTypeOf(query.data.value).toEqualTypeOf<'new-output' | undefined>()
+  })
+
+  it('infer errors', async () => {
+    const query = useInfiniteQuery(orpc.post.list.infiniteOptions({
       input: { keyword: 'keyword' },
-      getNextPageParam: {} as any,
-      context: { batch: true },
+      getNextPageParam: () => 2,
+      throwOnError(error) {
+        expectTypeOf(error).toEqualTypeOf<Error | ORPCError<'TOO_MANY_REQUESTS', { keyword?: string, cursor: number }>>()
+
+        return false
+      },
     }))
-    useInfiniteQuery(orpc.user.list.infiniteOptions({
+
+    expectTypeOf(query.error.value).toEqualTypeOf<null | Error | ORPCError<'TOO_MANY_REQUESTS', { keyword?: string, cursor: number }>>()
+  })
+
+  it('infer client context', () => {
+    useInfiniteQuery(orpc.post.list.infiniteOptions({
       input: { keyword: 'keyword' },
-      getNextPageParam: {} as any,
-      context: { batch: ref(true) },
+      getNextPageParam: () => 2,
+      context: { cache: '1234' },
     }))
+
+    useInfiniteQuery(orpc.post.list.infiniteOptions({
+      input: { keyword: ref('keyword') },
+      getNextPageParam: () => 2,
+      context: { cache: '1234' },
+    }))
+
     // @ts-expect-error --- invalid context
-    useInfiniteQuery(orpc.user.list.infiniteOptions({
+    useInfiniteQuery(orpc.post.list.infiniteOptions({
       input: { keyword: 'keyword' },
-      getNextPageParam: {} as any,
+      getNextPageParam: () => 2,
       // @ts-expect-error --- invalid context
-      context: { batch: 'invalid' },
-    }))
-    // @ts-expect-error --- invalid context
-    useInfiniteQuery(orpc.user.list.infiniteOptions({
-      input: { keyword: 'keyword' },
-      getNextPageParam: {} as any,
-      // @ts-expect-error --- invalid context
-      context: { batch: ref('invalid') },
+      context: { cache: 1234 },
     }))
   })
 })
 
 describe('useMutation', () => {
-  it('infer types correctly', async () => {
-    const query = useMutation(orpc.user.find.mutationOptions({
-      onSuccess(data) {
-        expectTypeOf(data).toEqualTypeOf<{ id: string, name: string }>()
+  it('infer input', async () => {
+    const mutation = useMutation(orpc.post.create.mutationOptions({
+      onMutate(input) {
+        expectTypeOf(input).toEqualTypeOf<{ title: string, thumbnail?: File }>()
       },
-    }), queryClient)
+    }))
 
-    expectTypeOf(query.data.value).toEqualTypeOf<{ id: string, name: string } | undefined>()
+    mutation.mutate({ title: 'title' })
+    mutation.mutate({ title: 'title', thumbnail: new File([], 'thumbnail.png') })
 
-    expectTypeOf(query.mutateAsync).toMatchTypeOf<(input: { id: string }) => Promise<{ id: string, name: string }>>()
+    // @ts-expect-error --- invalid input
+    mutation.mutate({ title: 123 })
+    // @ts-expect-error --- invalid input
+    mutation.mutate({ title: 'title', thumbnail: 124 })
   })
 
-  it('infer types correctly with client context', async () => {
-    useMutation(orpc.user.find.mutationOptions(({})))
-    useMutation(orpc.user.find.mutationOptions(({ context: { batch: true } })))
-    useMutation(orpc.user.find.mutationOptions(({ context: { batch: ref(false) } })))
+  it('infer output', async () => {
+    const mutation = useMutation(orpc.post.create.mutationOptions({
+      onSuccess(data) {
+        expectTypeOf(data).toEqualTypeOf<{ id: string, title: string, thumbnail?: string }>()
+      },
+    }))
+
+    expectTypeOf(await mutation.mutateAsync({ title: '123' })).toEqualTypeOf<{ id: string, title: string, thumbnail?: string }>()
+  })
+
+  it('infer errors', () => {
+    const mutation = useMutation(orpc.post.create.mutationOptions({
+      onError(error) {
+        expectTypeOf(error).toEqualTypeOf<
+          | Error
+          | ORPCError<'CONFLICT', { title: string, thumbnail?: File }>
+          | ORPCError<'FORBIDDEN', { title: string, thumbnail?: File }>
+        >()
+      },
+    }))
+
+    expectTypeOf(mutation.error.value).toEqualTypeOf<
+      | null
+      | Error
+      | ORPCError<'CONFLICT', { title: string, thumbnail?: File }>
+      | ORPCError<'FORBIDDEN', { title: string, thumbnail?: File }>
+    >()
+  })
+
+  it('infer client context', () => {
+    useMutation(orpc.post.create.mutationOptions({
+      context: { cache: '1234' },
+    }))
+
+    useMutation(orpc.post.create.mutationOptions({
+      context: { cache: ref('1234') },
+    }))
+
     // @ts-expect-error --- invalid context
-    useMutation(orpc.user.find.mutationOptions(({ context: { batch: 'invalid' } })))
-    // @ts-expect-error --- invalid context
-    useMutation(orpc.user.find.mutationOptions(({ context: { batch: ref('invalid') } })))
+    useMutation(orpc.post.create.mutationOptions({
+      context: { cache: 1234 },
+    }))
   })
 })
 
-describe('useQueries', () => {
-  it('inter types correctly', async () => {
+describe('other hooks', () => {
+  it('useQueries', async () => {
     const queries = useQueries({
       queries: [
-        orpc.user.find.queryOptions({
-          input: { id: '0' },
+        orpc.post.find.queryOptions({
+          input: { id: ref('123') },
+          context: ref({ cache: '123' }),
+          // FIXME: cannot use select inside useQueries
+          // select(data) {
+          //   expectTypeOf(data).toEqualTypeOf<{ id: string, title: string, thumbnail?: string }>()
+          // },
         }),
-        orpc.user.list.queryOptions({
-          input: {},
-        }),
-      ],
-      combine(result) {
-        expectTypeOf(result[0].data).toEqualTypeOf<{ id: string, name: string } | undefined>()
-        expectTypeOf(result[1].data).toEqualTypeOf<{
-          nextCursor: number
-          users: {
-            id: string
-            name: string
-          }[]
-        } | undefined>()
-
-        return result
-      },
-    }, queryClient)
-
-    expectTypeOf(queries.value[0].data).toEqualTypeOf<{ id: string, name: string } | undefined>()
-    expectTypeOf(queries.value[1].data).toEqualTypeOf<{
-      nextCursor: number
-      users: {
-        id: string
-        name: string
-      }[]
-    } | undefined>()
-  })
-
-  it('TODO: not work with select yet', () => {
-    useQueries({
-      queries: [
-        // @ts-expect-error --- TODO: not work with select yet
-        orpc.user.find.queryOptions({
-          input: { id: '0' },
-          // @ts-expect-error --- TODO: not work with select yet
-          select(data) { return data },
+        orpc.post.list.queryOptions({
+          input: ref({}),
+          context: ref({ cache: '123' }),
         }),
       ],
     })
-  })
 
-  it('support ref', () => {
-    useQueries({ queries: [
-      orpc.user.find.queryOptions({ input: { id: ref('0') } }),
-    ] })
-    useQueries({ queries: [
-      orpc.user.find.queryOptions({ input: computed(() => ({ id: ref('0') })) }),
-    ] })
-  })
+    expectTypeOf(queries.value[0].data).toEqualTypeOf<undefined | { id: string, title: string, thumbnail?: string }>()
+    expectTypeOf(queries.value[1].data).toEqualTypeOf<undefined | { nextCursor: number, items: { id: string, title: string, thumbnail?: string }[] }>()
 
-  it('strict on input', () => {
-    useQueries({ queries: [
-      orpc.user.find.queryOptions({
-        input: { id: '0' },
-      }),
-    ] })
-
-    useQueries({
-      queries: [
-        orpc.user.find.queryOptions({
-          // @ts-expect-error --- input must be a string
-          input: { id: 1 },
-        }),
-      ],
-    })
-  })
-
-  it('infer types correctly with client context', async () => {
-    useQueries({
-      queries: [
-        orpc.user.find.queryOptions({
-          input: { id: '0' },
-        }),
-        orpc.user.find.queryOptions({
-          input: { id: '0' },
-          context: { batch: true },
-        }),
-        orpc.user.find.queryOptions({
-          input: { id: '0' },
-          context: { batch: ref(false) },
-        }),
-        orpc.user.find.queryOptions({
-          input: { id: '0' },
-          // @ts-expect-error --- invalid context
-          context: { batch: 'invalid' },
-        }),
-        orpc.user.find.queryOptions({
-          input: { id: '0' },
-          // @ts-expect-error --- invalid context
-          context: { batch: ref('invalid') },
-        }),
-      ],
-    })
+    // FIXME: useQueries cannot infer error
+    //   expectTypeOf(queries[0].error).toEqualTypeOf<Error | ORPCError<'NOT_FOUND', { id: string }> | null>()
+    //   expectTypeOf(queries[0].error).toEqualTypeOf<null | Error | ORPCError<'TOO_MANY_REQUESTS', { keyword?: string, cursor: number }>>()
   })
 })

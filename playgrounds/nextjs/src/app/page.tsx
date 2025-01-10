@@ -1,6 +1,5 @@
 import { CreatePlanetMutationForm } from './orpc-mutation'
 import { ListPlanetsQuery } from './orpc-query'
-import { CreatePlanetServerAction } from './orpc-server-actions'
 
 export default function Home() {
   return (
@@ -13,8 +12,6 @@ export default function Home() {
         {' '}
         page.
       </p>
-      <hr />
-      <CreatePlanetServerAction />
       <hr />
       <CreatePlanetMutationForm />
       <hr />

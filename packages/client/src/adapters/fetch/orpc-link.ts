@@ -1,11 +1,10 @@
-import type { HTTPMethod } from '@orpc/contract'
 import type { ProcedureClientOptions } from '@orpc/server'
 import type { Promisable } from '@orpc/shared'
 import type { ClientLink } from '../../types'
 import type { FetchWithContext } from './types'
+import { type HTTPMethod, ORPCError } from '@orpc/contract'
 import { ORPCPayloadCodec, type PublicORPCPayloadCodec } from '@orpc/server/fetch'
 import { ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE, trim } from '@orpc/shared'
-import { ORPCError } from '@orpc/shared/error'
 
 export interface ORPCLinkOptions<TClientContext> {
   /**
@@ -82,14 +81,16 @@ export class ORPCLink<TClientContext> implements ClientLink<TClientContext> {
     const decoded = await this.payloadCodec.decode(response)
 
     if (!response.ok) {
-      const error = ORPCError.fromJSON(decoded) ?? new ORPCError({
+      if (ORPCError.isValidJSON(decoded)) {
+        throw new ORPCError(decoded)
+      }
+
+      throw new ORPCError({
         status: response.status,
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Internal server error',
         cause: decoded,
       })
-
-      throw error
     }
 
     return decoded

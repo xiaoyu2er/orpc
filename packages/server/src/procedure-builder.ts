@@ -1,13 +1,17 @@
+import type {
+  ContractProcedure,
+  ErrorMap,
+  RouteOptions,
+  Schema,
+  SchemaInput,
+  SchemaOutput,
+} from '@orpc/contract'
+import type { ORPCErrorConstructorMap } from './error'
 import type { MapInputMiddleware, Middleware } from './middleware'
 import type { DecoratedProcedure } from './procedure-decorated'
 import type { Context, MergeContext } from './types'
 import {
-  type ContractProcedure,
   DecoratedContractProcedure,
-  type RouteOptions,
-  type Schema,
-  type SchemaInput,
-  type SchemaOutput,
 } from '@orpc/contract'
 import {
   Procedure,
@@ -21,9 +25,10 @@ export interface ProcedureBuilderDef<
   TExtraContext extends Context,
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
+  TErrorMap extends ErrorMap,
 > {
-  contract: ContractProcedure<TInputSchema, TOutputSchema>
-  middlewares?: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any>[]
+  contract: ContractProcedure<TInputSchema, TOutputSchema, TErrorMap>
+  middlewares?: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, Record<string, unknown>>[]
 }
 
 export class ProcedureBuilder<
@@ -31,15 +36,16 @@ export class ProcedureBuilder<
   TExtraContext extends Context,
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
+  TErrorMap extends ErrorMap,
 > {
   '~type' = 'ProcedureBuilder' as const
-  '~orpc': ProcedureBuilderDef<TContext, TExtraContext, TInputSchema, TOutputSchema>
+  '~orpc': ProcedureBuilderDef<TContext, TExtraContext, TInputSchema, TOutputSchema, TErrorMap>
 
-  constructor(def: ProcedureBuilderDef<TContext, TExtraContext, TInputSchema, TOutputSchema>) {
+  constructor(def: ProcedureBuilderDef<TContext, TExtraContext, TInputSchema, TOutputSchema, TErrorMap>) {
     this['~orpc'] = def
   }
 
-  route(route: RouteOptions): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema> {
+  route(route: RouteOptions): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema, TErrorMap> {
     return new ProcedureBuilder({
       ...this['~orpc'],
       contract: DecoratedContractProcedure
@@ -48,10 +54,10 @@ export class ProcedureBuilder<
     })
   }
 
-  input<U extends Schema = undefined>(
+  input<U extends Schema>(
     schema: U,
     example?: SchemaInput<U>,
-  ): ProcedureBuilder<TContext, TExtraContext, U, TOutputSchema> {
+  ): ProcedureBuilder<TContext, TExtraContext, U, TOutputSchema, TErrorMap> {
     return new ProcedureBuilder({
       ...this['~orpc'],
       contract: DecoratedContractProcedure
@@ -60,10 +66,10 @@ export class ProcedureBuilder<
     })
   }
 
-  output<U extends Schema = undefined>(
+  output<U extends Schema>(
     schema: U,
     example?: SchemaOutput<U>,
-  ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, U> {
+  ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, U, TErrorMap> {
     return new ProcedureBuilder({
       ...this['~orpc'],
       contract: DecoratedContractProcedure
@@ -72,18 +78,31 @@ export class ProcedureBuilder<
     })
   }
 
+  errors<UErrorMap extends ErrorMap>(
+    errors: UErrorMap,
+  ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema, UErrorMap> {
+    return new ProcedureBuilder({
+      ...this['~orpc'],
+      contract: DecoratedContractProcedure
+        .decorate(this['~orpc'].contract)
+        .errors(errors),
+    })
+  }
+
   use<U extends Context & Partial<MergeContext<TContext, TExtraContext>> | undefined = undefined>(
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
       U,
       SchemaOutput<TInputSchema>,
-      SchemaInput<TOutputSchema>
+      SchemaInput<TOutputSchema>,
+      ORPCErrorConstructorMap<TErrorMap>
     >,
   ): ProcedureImplementer<
     TContext,
     MergeContext<TExtraContext, U>,
     TInputSchema,
-    TOutputSchema
+    TOutputSchema,
+    TErrorMap
   >
 
   use<
@@ -94,20 +113,22 @@ export class ProcedureBuilder<
       MergeContext<TContext, TExtraContext>,
       UExtra,
       UInput,
-      SchemaInput<TOutputSchema>
+      SchemaInput<TOutputSchema>,
+      ORPCErrorConstructorMap<TErrorMap>
     >,
     mapInput: MapInputMiddleware<SchemaOutput<TInputSchema>, UInput>,
   ): ProcedureImplementer<
     TContext,
     MergeContext<TExtraContext, UExtra>,
     TInputSchema,
-    TOutputSchema
+    TOutputSchema,
+    TErrorMap
   >
 
   use(
-    middleware: Middleware<any, any, any, any>,
+    middleware: Middleware<any, any, any, any, any>,
     mapInput?: MapInputMiddleware<any, any>,
-  ): ProcedureImplementer<any, any, any, any> {
+  ): ProcedureImplementer<any, any, any, any, any> {
     if (!mapInput) {
       return new ProcedureImplementer({
         contract: this['~orpc'].contract,
@@ -122,8 +143,8 @@ export class ProcedureBuilder<
   }
 
   handler<UFuncOutput extends SchemaInput<TOutputSchema>>(
-    handler: ProcedureHandler<TContext, TExtraContext, TInputSchema, TOutputSchema, UFuncOutput>,
-  ): DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, UFuncOutput > {
+    handler: ProcedureHandler<TContext, TExtraContext, TInputSchema, TOutputSchema, UFuncOutput, TErrorMap>,
+  ): DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, UFuncOutput, TErrorMap> {
     return decorateProcedure(new Procedure({
       middlewares: this['~orpc'].middlewares,
       contract: this['~orpc'].contract,

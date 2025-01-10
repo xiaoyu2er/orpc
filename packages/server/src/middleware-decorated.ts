@@ -1,5 +1,6 @@
+import type { ORPCErrorConstructorMap } from './error'
 import type { ANY_MAP_INPUT_MIDDLEWARE, ANY_MIDDLEWARE, MapInputMiddleware, Middleware, MiddlewareNextFn } from './middleware'
-import type { Context, MergeContext, WELL_CONTEXT } from './types'
+import type { Context, MergeContext } from './types'
 import { mergeContext } from './utils'
 
 export interface DecoratedMiddleware<
@@ -7,7 +8,8 @@ export interface DecoratedMiddleware<
   TExtraContext extends Context,
   TInput,
   TOutput,
-> extends Middleware<TContext, TExtraContext, TInput, TOutput> {
+  TErrorConstructorMap extends ORPCErrorConstructorMap<any>,
+> extends Middleware<TContext, TExtraContext, TInput, TOutput, TErrorConstructorMap> {
   concat: (<
     UExtraContext extends Context & Partial<MergeContext<TContext, TExtraContext>> | undefined = undefined,
     UInput = unknown,
@@ -15,14 +17,16 @@ export interface DecoratedMiddleware<
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
       UExtraContext,
-            UInput & TInput,
-            TOutput
+      UInput & TInput,
+      TOutput,
+      TErrorConstructorMap
     >,
   ) => DecoratedMiddleware<
     TContext,
     MergeContext<TExtraContext, UExtraContext>,
-        UInput & TInput,
-        TOutput
+    UInput & TInput,
+    TOutput,
+    TErrorConstructorMap
   >) & (<
     UExtraContext extends Context & Partial<MergeContext<TContext, TExtraContext>> | undefined = undefined,
     UInput = TInput,
@@ -32,30 +36,33 @@ export interface DecoratedMiddleware<
       MergeContext<TContext, TExtraContext>,
       UExtraContext,
       UMappedInput,
-      TOutput
+      TOutput,
+      TErrorConstructorMap
     >,
     mapInput: MapInputMiddleware<UInput & TInput, UMappedInput>,
   ) => DecoratedMiddleware<
     TContext,
     MergeContext<TExtraContext, UExtraContext>,
-        UInput & TInput,
-        TOutput
+    UInput & TInput,
+    TOutput,
+    TErrorConstructorMap
   >)
 
   mapInput: <UInput = unknown>(
     map: MapInputMiddleware<UInput, TInput>,
-  ) => DecoratedMiddleware<TContext, TExtraContext, UInput, TOutput>
+  ) => DecoratedMiddleware<TContext, TExtraContext, UInput, TOutput, TErrorConstructorMap>
 }
 
 export function decorateMiddleware<
-  TContext extends Context = WELL_CONTEXT,
-  TExtraContext extends Context = undefined,
-  TInput = unknown,
-  TOutput = unknown,
+  TContext extends Context,
+  TExtraContext extends Context,
+  TInput,
+  TOutput,
+  TErrorConstructorMap extends ORPCErrorConstructorMap<any>,
 >(
-  middleware: Middleware<TContext, TExtraContext, TInput, TOutput>,
-): DecoratedMiddleware<TContext, TExtraContext, TInput, TOutput> {
-  const decorated = middleware as DecoratedMiddleware<TContext, TExtraContext, TInput, TOutput>
+  middleware: Middleware<TContext, TExtraContext, TInput, TOutput, TErrorConstructorMap>,
+): DecoratedMiddleware<TContext, TExtraContext, TInput, TOutput, TErrorConstructorMap> {
+  const decorated = middleware as DecoratedMiddleware<TContext, TExtraContext, TInput, TOutput, TErrorConstructorMap>
 
   decorated.mapInput = (mapInput) => {
     const mapped = decorateMiddleware(

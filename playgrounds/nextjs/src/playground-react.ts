@@ -3,17 +3,28 @@
  */
 
 import { orpc } from '@/lib/orpc'
+import { useInfiniteQuery, useQueries, useQueryClient } from '@tanstack/react-query'
 
-const listQuery = orpc.planet.list.useInfiniteQuery({
-  input: {},
-  getNextPageParam: lastPage => (lastPage.at(-1)?.id ?? -1) + 1,
+const listQuery = useInfiniteQuery(
+  orpc.planet.list.infiniteOptions({
+    input: {},
+    getNextPageParam: lastPage => 1,
+  }),
+)
+
+const queryClient = useQueryClient()
+
+queryClient.invalidateQueries({
+  queryKey: orpc.planet.key(),
 })
 
-const utils = orpc.useUtils()
-
-utils.planet.invalidate()
-
-const queries = orpc.useQueries(o => [
-  o.planet.find({ id: 1 }),
-  o.planet.list({}),
-])
+const queries = useQueries({
+  queries: [
+    orpc.planet.find.queryOptions({
+      input: { id: 1 },
+    }),
+    orpc.planet.list.queryOptions({
+      input: {},
+    }),
+  ],
+})

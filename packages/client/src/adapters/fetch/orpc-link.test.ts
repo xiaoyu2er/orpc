@@ -1,5 +1,5 @@
+import { ORPCError } from '@orpc/contract'
 import { ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE } from '@orpc/shared'
-import { ORPCError } from '@orpc/shared/error'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ORPCLink } from './orpc-link'
 

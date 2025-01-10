@@ -29,12 +29,10 @@
     { "path": "../../packages/openapi" },
     { "path": "../../packages/server" },
     { "path": "../../packages/client" },
-    { "path": "../../packages/react" },
     { "path": "../../packages/react-query" },
     { "path": "../../packages/vue-query" },
     { "path": "../../packages/vue-colada" },
-    { "path": "../../packages/zod" },
-    { "path": "../../packages/next" }
+    { "path": "../../packages/zod" }
   ],
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]

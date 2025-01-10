@@ -10,7 +10,7 @@ const orpcLink = new ORPCLink({
   url: 'http://localhost:3000/rpc',
 })
 
-const orpc = createORPCClient<typeof contract>(orpcLink)
+export const orpc = createORPCClient<typeof contract>(orpcLink)
 
 const planets = await orpc.planet.list({})
 

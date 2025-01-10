@@ -47,10 +47,8 @@
     "build:watch": "pnpm run build --watch",
     "type:check": "tsc -b"
   },
-  "peerDependencies": {
-    "@orpc/contract": "workspace:*"
-  },
   "dependencies": {
+    "@orpc/contract": "workspace:*",
     "@orpc/server": "workspace:*",
     "@orpc/shared": "workspace:*"
   },

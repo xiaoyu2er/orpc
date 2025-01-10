@@ -255,4 +255,104 @@ describe('openapi generator', () => {
       })
     })
   })
+
+  describe('errors', () => {
+    const schema = z.object({})
+
+    const contract = oc.errors({
+      BAD_GATEWAY: {
+        data: schema,
+      },
+    })
+
+    it('strictErrorResponses=true', async () => {
+      mockConverter.convert.mockReturnValue({ description: '__mocked__' })
+
+      const spec = await generator.generate(contract, defaultDoc)
+
+      expect(spec.paths!['/']).toEqual({
+        post: {
+          operationId: '',
+          responses: {
+            200: {
+              description: 'OK',
+            },
+            502: {
+              description: '502',
+              content: {
+                'application/json': {
+                  schema: {
+                    oneOf: [
+                      {
+                        type: 'object',
+                        properties: {
+                          defined: { const: true },
+                          code: { const: 'BAD_GATEWAY' },
+                          status: { const: 502 },
+                          message: { type: 'string', default: undefined },
+                          data: { description: '__mocked__' },
+                        },
+                        required: ['defined', 'code', 'status', 'message'],
+                      },
+                      {
+                        type: 'object',
+                        properties: {
+                          defined: { const: false },
+                          code: { type: 'string' },
+                          status: { type: 'number' },
+                          message: { type: 'string' },
+                          data: {},
+                        },
+                        required: ['defined', 'code', 'status', 'message'],
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+      })
+    })
+
+    it('strictErrorResponses=false', async () => {
+      const generator = new OpenAPIGenerator({
+        schemaConverters: [mockConverter],
+        strictErrorResponses: false,
+      })
+
+      mockConverter.convert.mockReturnValue({ description: '__mocked__' })
+
+      const spec = await generator.generate(contract, defaultDoc)
+
+      expect(spec.paths!['/']).toEqual({
+        post: {
+          operationId: '',
+          responses: {
+            200: {
+              description: 'OK',
+            },
+            502: {
+              description: '502',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      defined: { const: true },
+                      code: { const: 'BAD_GATEWAY' },
+                      status: { const: 502 },
+                      message: { type: 'string', default: undefined },
+                      data: { description: '__mocked__' },
+                    },
+                    required: ['defined', 'code', 'status', 'message'],
+                  },
+                },
+              },
+            },
+          },
+        },
+      })
+    })
+  })
 })

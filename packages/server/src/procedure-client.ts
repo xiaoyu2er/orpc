@@ -1,26 +1,20 @@
-import type { Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { Client, ErrorFromErrorMap, ErrorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Hooks, Value } from '@orpc/shared'
 import type { Lazyable } from './lazy'
 import type { MiddlewareNextFn } from './middleware'
 import type { ANY_PROCEDURE, Procedure, ProcedureHandlerOptions } from './procedure'
-import type { Context, Meta, WELL_CONTEXT, WithSignal } from './types'
-import { executeWithHooks, value } from '@orpc/shared'
-import { ORPCError } from '@orpc/shared/error'
+import type { AbortSignal, Context, Meta } from './types'
+import { ORPCError, validateORPCError, ValidationError } from '@orpc/contract'
+import { executeWithHooks, toError, value } from '@orpc/shared'
+import { createORPCErrorConstructorMap } from './error'
 import { unlazy } from './lazy'
 import { mergeContext } from './utils'
 
 export type ProcedureClientOptions<TClientContext> =
-  & WithSignal
+  & { signal?: AbortSignal }
   & (undefined extends TClientContext ? { context?: TClientContext } : { context: TClientContext })
 
-export interface ProcedureClient<TInput, TOutput, TClientContext> {
-  (
-    ...opts:
-      | [input: TInput, options: ProcedureClientOptions<TClientContext>]
-      | (undefined extends TInput & TClientContext ? [] : never)
-      | (undefined extends TClientContext ? [input: TInput] : never)
-  ): Promise<TOutput>
-}
+export type ProcedureClient<TClientContext, TInput, TOutput, TError extends Error> = Client<TClientContext, TInput, TOutput, TError>
 
 /**
  * Options for creating a procedure caller with comprehensive type safety
@@ -30,9 +24,10 @@ export type CreateProcedureClientOptions<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
+  TErrorMap extends ErrorMap,
 > =
   & {
-    procedure: Lazyable<Procedure<TContext, any, TInputSchema, TOutputSchema, THandlerOutput>>
+    procedure: Lazyable<Procedure<TContext, any, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>>
 
     /**
      * This is helpful for logging and analytics.
@@ -50,13 +45,14 @@ export type CreateProcedureClientOptions<
   & Hooks<unknown, SchemaOutput<TOutputSchema, THandlerOutput>, TContext, Meta>
 
 export function createProcedureClient<
-  TContext extends Context = WELL_CONTEXT,
-  TInputSchema extends Schema = undefined,
-  TOutputSchema extends Schema = undefined,
-  THandlerOutput extends SchemaInput<TOutputSchema> = SchemaInput<TOutputSchema>,
+  TContext extends Context,
+  TInputSchema extends Schema,
+  TOutputSchema extends Schema,
+  THandlerOutput extends SchemaInput<TOutputSchema>,
+  TErrorMap extends ErrorMap,
 >(
-  options: CreateProcedureClientOptions<TContext, TInputSchema, TOutputSchema, THandlerOutput>,
-): ProcedureClient<SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, THandlerOutput>, unknown> {
+  options: CreateProcedureClientOptions<TContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>,
+): ProcedureClient<unknown, SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, THandlerOutput>, ErrorFromErrorMap<TErrorMap>> {
   return async (...[input, callerOptions]) => {
     const path = options.path ?? []
     const { default: procedure } = await unlazy(options.procedure)
@@ -77,18 +73,32 @@ export function createProcedureClient<
         path,
         procedure,
         signal: callerOptions?.signal,
+        errors: createORPCErrorConstructorMap(procedure['~orpc'].contract['~orpc'].errorMap),
       })
 
       return validateOutput(procedure, output) as SchemaOutput<TOutputSchema, THandlerOutput>
     }
 
-    return executeWithHooks({
-      hooks: options,
-      input,
-      context,
-      meta,
-      execute: executeWithValidation,
-    })
+    try {
+      const output = await executeWithHooks({
+        hooks: options,
+        input,
+        context,
+        meta,
+        execute: executeWithValidation,
+      })
+
+      return output
+    }
+    catch (e) {
+      if (!(e instanceof ORPCError)) {
+        throw toError(e)
+      }
+
+      const validated = await validateORPCError(procedure['~orpc'].contract['~orpc'].errorMap, e)
+
+      throw validated
+    }
   }
 }
 
@@ -102,7 +112,10 @@ async function validateInput(procedure: ANY_PROCEDURE, input: unknown) {
     throw new ORPCError({
       message: 'Input validation failed',
       code: 'BAD_REQUEST',
-      issues: result.issues,
+      data: {
+        issues: result.issues,
+      },
+      cause: new ValidationError({ message: 'Input validation failed', issues: result.issues }),
     })
   }
 
@@ -119,14 +132,14 @@ async function validateOutput(procedure: ANY_PROCEDURE, output: unknown) {
     throw new ORPCError({
       message: 'Output validation failed',
       code: 'INTERNAL_SERVER_ERROR',
-      issues: result.issues,
+      cause: new ValidationError({ message: 'Output validation failed', issues: result.issues }),
     })
   }
 
   return result.value
 }
 
-async function executeMiddlewareChain(opt: ProcedureHandlerOptions<any, any>) {
+async function executeMiddlewareChain(opt: ProcedureHandlerOptions<any, any, any, any>) {
   const middlewares = opt.procedure['~orpc'].middlewares ?? []
   let currentMidIndex = 0
   let currentContext = opt.context

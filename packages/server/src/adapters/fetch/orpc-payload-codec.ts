@@ -1,6 +1,5 @@
-import type { HTTPMethod } from '@orpc/contract'
+import { type HTTPMethod, ORPCError } from '@orpc/contract'
 import { findDeepMatches, set } from '@orpc/shared'
-import { ORPCError } from '@orpc/shared/error'
 import * as SuperJSON from './super-json'
 
 export class ORPCPayloadCodec {

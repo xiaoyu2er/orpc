@@ -95,6 +95,14 @@ describe('to ProcedureBuilder', () => {
     expect(result['~orpc'].contract['~orpc'].OutputSchema).toBe(schema)
     expect(result['~orpc'].contract['~orpc'].outputExample).toBe(example)
   })
+
+  it('errors', () => {
+    const result = builder.errors({ ANYTHING: { data: schema } })
+
+    expect(result).instanceOf(ProcedureBuilder)
+    expect(result['~orpc'].middlewares).toEqual([mid])
+    expect(result['~orpc'].contract['~orpc'].errorMap).toEqual({ ANYTHING: { data: schema } })
+  })
 })
 
 describe('to DecoratedProcedure', () => {

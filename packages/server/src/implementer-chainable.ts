@@ -9,8 +9,8 @@ export type ChainableImplementer<
   TContext extends Context,
   TExtraContext extends Context,
   TContract extends ContractRouter,
-> = TContract extends ContractProcedure<infer UInputSchema, infer UOutputSchema>
-  ? ProcedureImplementer<TContext, TExtraContext, UInputSchema, UOutputSchema>
+> = TContract extends ContractProcedure<infer UInputSchema, infer UOutputSchema, infer UErrorMap>
+  ? ProcedureImplementer<TContext, TExtraContext, UInputSchema, UOutputSchema, UErrorMap>
   : {
     [K in keyof TContract]: TContract[K] extends ContractRouter ? ChainableImplementer<TContext, TExtraContext, TContract[K]> : never
   } & Omit<RouterImplementer<TContext, TExtraContext, TContract>, '~type' | '~orpc'>
@@ -21,7 +21,7 @@ export function createChainableImplementer<
   TContract extends ContractRouter = any,
 >(
   contract: TContract,
-  middlewares?: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any>[],
+  middlewares?: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, Record<string, unknown>>[],
 ): ChainableImplementer<TContext, TExtraContext, TContract> {
   if (isContractProcedure(contract)) {
     const implementer = new ProcedureImplementer({

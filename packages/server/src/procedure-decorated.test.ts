@@ -11,13 +11,20 @@ const handler = vi.fn(() => ({ val: '123' }))
 const mid = vi.fn(({ next }, _, __) => next({}))
 
 const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
-const procedure = new Procedure<{ auth: boolean }, { db: string }, typeof schema, typeof schema, { val: string }>({
+const baseErrors = {
+  CODE: {
+    status: 500,
+    data: z.object({ why: z.string() }),
+  },
+}
+const procedure = new Procedure({
   contract: new ContractProcedure({
     InputSchema: schema,
     OutputSchema: schema,
     route: { path: '/test', method: 'GET', deprecated: true, description: 'des', summary: 'sum', tags: ['hi'] },
     inputExample: { val: 123 },
     outputExample: { val: 456 },
+    errorMap: baseErrors,
   }),
   handler,
   middlewares: [mid],
@@ -33,6 +40,11 @@ describe('self chainable', () => {
 
     expect(prefixed).toSatisfy(isProcedure)
     expect(prefixed['~orpc'].contract['~orpc'].route?.path).toBe('/test/test')
+    expect(prefixed['~orpc'].contract['~orpc'].errorMap).toBe(baseErrors)
+    expect(prefixed['~orpc'].contract['~orpc'].InputSchema).toBe(schema)
+    expect(prefixed['~orpc'].contract['~orpc'].OutputSchema).toBe(schema)
+    expect(prefixed['~orpc'].middlewares).toEqual([mid])
+    expect(prefixed['~orpc'].handler).toBe(handler)
   })
 
   it('route', () => {
@@ -49,6 +61,12 @@ describe('self chainable', () => {
       summary: 'sum',
       tags: ['hiu'],
     })
+
+    expect(routed['~orpc'].contract['~orpc'].errorMap).toBe(baseErrors)
+    expect(routed['~orpc'].contract['~orpc'].InputSchema).toBe(schema)
+    expect(routed['~orpc'].contract['~orpc'].OutputSchema).toBe(schema)
+    expect(routed['~orpc'].middlewares).toEqual([mid])
+    expect(routed['~orpc'].handler).toBe(handler)
   })
 
   it('use middleware', () => {
@@ -59,6 +77,11 @@ describe('self chainable', () => {
     expect(applied).not.toBe(decorated)
     expect(applied).toSatisfy(isProcedure)
     expect(applied['~orpc'].middlewares).toEqual([mid, extraMid])
+
+    expect(applied['~orpc'].contract['~orpc'].errorMap).toBe(baseErrors)
+    expect(applied['~orpc'].contract['~orpc'].InputSchema).toBe(schema)
+    expect(applied['~orpc'].contract['~orpc'].OutputSchema).toBe(schema)
+    expect(applied['~orpc'].handler).toBe(handler)
   })
 
   it('use middleware with map input', () => {
@@ -69,6 +92,10 @@ describe('self chainable', () => {
     expect(applied).not.toBe(decorated)
     expect(applied).toSatisfy(isProcedure)
     expect(applied['~orpc'].middlewares).toEqual([mid, expect.any(Function)])
+    expect(applied['~orpc'].contract['~orpc'].errorMap).toBe(baseErrors)
+    expect(applied['~orpc'].contract['~orpc'].InputSchema).toBe(schema)
+    expect(applied['~orpc'].contract['~orpc'].OutputSchema).toBe(schema)
+    expect(applied['~orpc'].handler).toBe(handler)
 
     extraMid.mockReturnValueOnce('__extra__')
     map.mockReturnValueOnce('__map__')
@@ -87,6 +114,12 @@ describe('self chainable', () => {
     expect(tagged).not.toBe(decorated)
     expect(tagged).toSatisfy(isProcedure)
     expect(tagged['~orpc'].contract['~orpc'].route?.tags).toEqual(['test', 'test2', 'test3', 'hi'])
+
+    expect(tagged['~orpc'].contract['~orpc'].errorMap).toBe(baseErrors)
+    expect(tagged['~orpc'].contract['~orpc'].InputSchema).toBe(schema)
+    expect(tagged['~orpc'].contract['~orpc'].OutputSchema).toBe(schema)
+    expect(tagged['~orpc'].middlewares).toEqual([mid])
+    expect(tagged['~orpc'].handler).toBe(handler)
   })
 
   it('unshiftMiddleware', () => {
@@ -97,6 +130,11 @@ describe('self chainable', () => {
     expect(applied).not.toBe(decorated)
     expect(applied).toSatisfy(isProcedure)
     expect(applied['~orpc'].middlewares).toEqual([mid1, mid2, mid])
+
+    expect(applied['~orpc'].contract['~orpc'].errorMap).toBe(baseErrors)
+    expect(applied['~orpc'].contract['~orpc'].InputSchema).toBe(schema)
+    expect(applied['~orpc'].contract['~orpc'].OutputSchema).toBe(schema)
+    expect(applied['~orpc'].handler).toBe(handler)
   })
 
   describe('unshiftMiddleware --- prevent duplicate', () => {
@@ -153,6 +191,7 @@ it('can use middleware when has no middleware', () => {
     contract: new ContractProcedure({
       InputSchema: undefined,
       OutputSchema: undefined,
+      errorMap: undefined,
     }),
     handler: () => { },
   }))
@@ -170,6 +209,7 @@ it('can unshift middleware when has no middleware', () => {
     contract: new ContractProcedure({
       InputSchema: undefined,
       OutputSchema: undefined,
+      errorMap: undefined,
     }),
     handler: () => { },
   }))

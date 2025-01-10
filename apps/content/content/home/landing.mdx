@@ -8,6 +8,13 @@ export const updateUser = os
 		path: '/users/{id}' // dynamic params support
 		method: 'PATCH' // custom OpenAPI method
 	})
+	.errors({ // End-to-end typesafe error handling
+		NOT_FOUND: {
+			data: z.object({
+				why: z.string(),
+			}),
+		}
+	})
 	.input(z.object({
 		id: z.bigint(),
 		user: z.object({
@@ -17,11 +24,15 @@ export const updateUser = os
 	}))
 	.output(z.literal("success")) // validate output
 	.use(canMiddleware, (input) => input.id) // permission check by id
-	.handler(async ({ input }) => /* handle user update */)
+	.handler(async ({ input, errors }) => {
+		/* handle user update */
+
+		// or throw
+		throw errors.NOT_FOUND({ data: { why: 'some reason' } })
+	})
 ```
 
 > Only the `.handler` method is required. All other chain methods are optional.
-> 
 
 With [Middleware](/docs/server/middleware) and the [Procedure Builder](/docs/server/procedure), 
 you can create **reusable logic** that ensures **type safety** and adds **power** and **flexibility** to your functions.
@@ -96,32 +107,6 @@ curl -X PATCH https://example.com/api/users/1992 \
 
 Features like [Smart Conversion](/docs/openapi/smart-conversion) and [Bracket Notation](/docs/openapi/bracket-notation) automatically 
 convert `1992` into a `bigint` and seamlessly parse objects like `user`.
-
-## Use as a Server Action
-
-```tsx
-// call directly from client
-const onSubmit = () => { updateUser({ /***/ }) }
-// use with a hook
-const { execute, isPending, isError, error, output, input, status } = useAction(updateUser)
-// createSafeAction and useSafeAction if you want catch error on client
-// use as a form action
-const updateUserFA = createFormAction({ 
-	procedure: updateUser,
-	schemaCoercers: [new ZodCoercer()],
-	onSuccess: () => redirect('/some-where')
-})
-
-<form action={updateUserFA}>
-  <input type="number" name="id" value="1992" />
-  <input type="string" name="user[name]" value="unnoq" />
-  <input type="file" name="user[avatar]" accept="image/*" />
-</form>
-```
-
-With [Smart Conversion](/docs/openapi/smart-conversion) and [Bracket Notation](/docs/openapi/bracket-notation), 
-inputs are automatically parsed into the correct types, ensuring smooth data handling.
-Learn more about [Server Action](/docs/server/server-action).
 
 ## Dependency Injection with Context
 

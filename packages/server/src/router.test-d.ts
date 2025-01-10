@@ -9,8 +9,14 @@ import { getRouterChild } from './router'
 
 const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
 
-const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, typeof schema, { val: string }>
-const pong = {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown>
+const baseErrors = {
+  CODE: {
+    data: z.object({ why: z.string() }),
+  },
+} as const
+
+const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, typeof schema, { val: string }, typeof baseErrors>
+const pong = {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown, undefined>
 
 const router = {
   ping: lazy(() => Promise.resolve({ default: ping })),
@@ -57,8 +63,8 @@ it('InferRouterOutputs', () => {
 
 describe('Router', () => {
   it('require match context', () => {
-    const ping = {} as Procedure<{ auth: boolean }, { db: string }, undefined, undefined, unknown>
-    const pong = {} as Procedure<{ auth: string }, undefined, undefined, undefined, unknown>
+    const ping = {} as Procedure<{ auth: boolean }, { db: string }, undefined, undefined, unknown, undefined>
+    const pong = {} as Procedure<{ auth: string }, undefined, undefined, undefined, unknown, undefined>
 
     const router: Router<{ auth: boolean, userId: string }, any> = {
       ping,
@@ -136,8 +142,8 @@ describe('Router', () => {
       }),
     })
 
-    const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown>
-    const pong = {} as Procedure<WELL_CONTEXT, undefined, undefined, typeof schema, { val: string }>
+    const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, undefined>
+    const pong = {} as Procedure<WELL_CONTEXT, undefined, undefined, typeof schema, { val: string }, undefined>
 
     const router1: Router<{ auth: boolean, userId: string }, typeof contract> = {
       ping,
@@ -207,13 +213,45 @@ describe('Router', () => {
     }
   })
 
+  it('require match contract and errorMap', () => {
+    const pingContract = oc.input(schema).errors({
+      BAD_GATEWAY: {
+        status: 502,
+        data: z.object({
+          val: z.string().transform(val => Number(val)),
+        }),
+      },
+    })
+
+    const routerContract = {
+      ping: pingContract,
+    }
+
+    expectTypeOf({
+      ping: {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, typeof pingContract['~orpc']['errorMap']>,
+    }).toMatchTypeOf<Router<{ auth: boolean, userId: string }, typeof routerContract>>()
+
+    const likeErrors = {
+      BAD_GATEWAY: {
+        status: 502,
+        data: z.object({
+          val: z.string().transform(val => Number(val)),
+        }),
+      },
+    }
+
+    expectTypeOf({
+      ping: {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, typeof likeErrors>,
+    }).not.toMatchTypeOf<Router<{ auth: boolean, userId: string }, typeof routerContract>>()
+  })
+
   it('support procedure as a router', () => {
-    const router1: Router<{ auth: boolean, userId: string }, any> = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown>
+    const router1: Router<{ auth: boolean, userId: string }, any> = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, undefined>
     // @ts-expect-error - invalid context
     const router2: Router<{ auth: boolean, userId: string }, any> = {} as Procedure<{ auth: boolean, dev: boolean }, { db: string }, typeof schema, undefined, unknown>
 
     const pingContract = oc.input(schema)
-    const router3: Router<{ auth: boolean, userId: string }, typeof pingContract> = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown>
+    const router3: Router<{ auth: boolean, userId: string }, typeof pingContract> = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, undefined>
     // @ts-expect-error - mismatch contract
     const router4: Router<{ auth: boolean, userId: string }, typeof pingContract> = {} as Procedure<{ auth: boolean }, { db: string }, undefined, undefined, unknown>
   })

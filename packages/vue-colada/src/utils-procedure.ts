@@ -1,8 +1,5 @@
 import type { ProcedureClient } from '@orpc/server'
-import type { IsEqual } from '@orpc/shared'
-import type { EntryKey } from '@pinia/colada'
-import type { ComputedRef } from 'vue'
-import type { MutationOptions, QueryOptions, UseQueryFnContext } from './types'
+import type { MutationOptions, MutationOptionsExtra, QueryOptions, QueryOptionsExtra } from './types'
 import { computed } from 'vue'
 import { buildKey } from './key'
 import { deepUnref } from './utils'
@@ -10,24 +7,20 @@ import { deepUnref } from './utils'
 /**
  * Utils at procedure level
  */
-export interface ProcedureUtils<TInput, TOutput, TClientContext> {
-  queryOptions: <U extends QueryOptions<TInput, TOutput, TClientContext>>(
+export interface ProcedureUtils<TClientContext, TInput, TOutput, TError extends Error> {
+  queryOptions: <U extends QueryOptionsExtra<TClientContext, TInput, TOutput, TError>>(
     ...opt: [options: U] | (undefined extends TInput & TClientContext ? [] : never)
-  ) => IsEqual<U, QueryOptions<TInput, TOutput, TClientContext>> extends true
-    ? { key: ComputedRef<EntryKey>, query: (ctx: UseQueryFnContext) => Promise<TOutput> }
-    : Omit<{ key: ComputedRef<EntryKey>, query: (ctx: UseQueryFnContext) => Promise<TOutput> }, keyof U> & U
+  ) => QueryOptions<TOutput, TError>
 
-  mutationOptions: <U extends MutationOptions<TInput, TOutput, TClientContext>>(
+  mutationOptions: <U extends MutationOptionsExtra<TClientContext, TInput, TOutput, TError>>(
     ...opt: [options: U] | (undefined extends TClientContext ? [] : never)
-  ) => IsEqual<U, MutationOptions<TInput, TOutput, TClientContext>> extends true
-    ? { key: (input: TInput) => EntryKey, mutation: (input: TInput) => Promise<TOutput> }
-    : Omit<{ key: (input: TInput) => EntryKey, mutation: (input: TInput) => Promise<TOutput> }, keyof U> & U
+  ) => MutationOptions<TInput, TOutput, TError>
 }
 
-export function createProcedureUtils<TInput, TOutput, TClientContext>(
-  client: ProcedureClient<TInput, TOutput, TClientContext>,
+export function createProcedureUtils<TClientContext, TInput, TOutput, TError extends Error>(
+  client: ProcedureClient<TClientContext, TInput, TOutput, TError>,
   path: string[],
-): ProcedureUtils<TInput, TOutput, TClientContext> {
+): ProcedureUtils<TClientContext, TInput, TOutput, TError> {
   return {
     queryOptions(...[options]) {
       const input = options?.input as any

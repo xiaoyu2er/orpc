@@ -9,8 +9,8 @@ export type Router<
   TContext extends Context,
   TContract extends ContractRouter,
 > = Lazyable<
-  TContract extends ContractProcedure<infer UInputSchema, infer UOutputSchema>
-    ? Procedure<TContext, any, UInputSchema, UOutputSchema, any>
+  TContract extends ContractProcedure<infer UInputSchema, infer UOutputSchema, infer UErrorMap>
+    ? Procedure<TContext, any, UInputSchema, UOutputSchema, any, UErrorMap>
     : {
         [K in keyof TContract]: TContract[K] extends ContractRouter ? Router<TContext, TContract[K]> : never
       }
@@ -20,7 +20,7 @@ export type ANY_ROUTER = Router<any, any>
 
 export type InferRouterInputs<T extends ANY_ROUTER> =
   T extends Lazy<infer U extends ANY_ROUTER> ? InferRouterInputs<U>
-    : T extends Procedure<any, any, infer UInputSchema, any, any>
+    : T extends Procedure<any, any, infer UInputSchema, any, any, any>
       ? SchemaInput<UInputSchema>
       : {
           [K in keyof T]: T[K] extends ANY_ROUTER ? InferRouterInputs<T[K]> : never
@@ -28,7 +28,7 @@ export type InferRouterInputs<T extends ANY_ROUTER> =
 
 export type InferRouterOutputs<T extends ANY_ROUTER> =
   T extends Lazy<infer U extends ANY_ROUTER> ? InferRouterOutputs<U>
-    : T extends Procedure<any, any, any, infer UOutputSchema, infer UFuncOutput>
+    : T extends Procedure<any, any, any, infer UOutputSchema, infer UFuncOutput, any>
       ? SchemaOutput<UOutputSchema, UFuncOutput>
       : {
           [K in keyof T]: T[K] extends ANY_ROUTER ? InferRouterOutputs<T[K]> : never

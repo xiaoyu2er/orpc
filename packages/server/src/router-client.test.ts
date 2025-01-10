@@ -19,6 +19,7 @@ describe('createRouterClient', () => {
     contract: new ContractProcedure({
       InputSchema: schema,
       OutputSchema: schema,
+      errorMap: undefined,
     }),
     handler: vi.fn(() => ({ val: '123' })),
   })
@@ -26,6 +27,7 @@ describe('createRouterClient', () => {
     contract: new ContractProcedure({
       InputSchema: undefined,
       OutputSchema: undefined,
+      errorMap: undefined,
     }),
     handler: vi.fn(() => ('output')),
   })

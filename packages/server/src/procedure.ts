@@ -1,15 +1,23 @@
+import type { ContractProcedure, ErrorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Promisable } from '@orpc/shared'
+import type { ORPCErrorConstructorMap } from './error'
 import type { Lazy } from './lazy'
 import type { Middleware } from './middleware'
 import type { AbortSignal, Context, MergeContext } from './types'
-import { type ContractProcedure, isContractProcedure, type Schema, type SchemaInput, type SchemaOutput } from '@orpc/contract'
+import { isContractProcedure } from '@orpc/contract'
 
-export interface ProcedureHandlerOptions<TContext extends Context, TInput> {
-  context: TContext
+export interface ProcedureHandlerOptions<
+  TContext extends Context,
+  TExtraContext extends Context,
+  TInput,
+  TErrorConstructorMap extends ORPCErrorConstructorMap<any>,
+> {
+  context: MergeContext<TContext, TExtraContext>
   input: TInput
   path: string[]
   procedure: ANY_PROCEDURE
   signal?: AbortSignal
+  errors: TErrorConstructorMap
 }
 
 export interface ProcedureHandler<
@@ -18,22 +26,35 @@ export interface ProcedureHandler<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
+  TErrorMap extends ErrorMap,
 > {
   (
-    opt: ProcedureHandlerOptions<MergeContext<TContext, TExtraContext>, SchemaOutput<TInputSchema>>
+    opt: ProcedureHandlerOptions<TContext, TExtraContext, SchemaOutput<TInputSchema>, ORPCErrorConstructorMap<TErrorMap>>
   ): Promisable<SchemaInput<TOutputSchema, THandlerOutput>>
 }
 
+/**
+ * Why is `ErrorConstructorMap` passed to `Middleware` as `any`?
+ * Why is `ErrorMap` passed to `ProcedureHandler` as `any`?
+ *
+ * Passing `ErrorMap/ErrorConstructorMap` directly to `Middleware/ProcedureHandler`
+ * causes unexpected errors in the router (the root cause is unclear, but it occurs consistently).
+ * To avoid these issues, `any` is used as a workaround.
+ *
+ * This approach is still functional because `ProcedureDef` can infer the `ErrorMap` from `ContractProcedure`.
+ * The only downside is that direct access to them requires careful type checking to ensure safety.
+ */
 export interface ProcedureDef<
   TContext extends Context,
   TExtraContext extends Context,
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
+  TErrorMap extends ErrorMap,
 > {
-  middlewares?: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, SchemaOutput<TInputSchema>, any>[]
-  contract: ContractProcedure<TInputSchema, TOutputSchema>
-  handler: ProcedureHandler<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput>
+  middlewares?: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, SchemaOutput<TInputSchema>, any, any>[]
+  contract: ContractProcedure<TInputSchema, TOutputSchema, TErrorMap>
+  handler: ProcedureHandler<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, any>
 }
 
 export class Procedure<
@@ -42,17 +63,18 @@ export class Procedure<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
+  TErrorMap extends ErrorMap,
 > {
   '~type' = 'Procedure' as const
-  '~orpc': ProcedureDef<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput>
+  '~orpc': ProcedureDef<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>
 
-  constructor(def: ProcedureDef<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput>) {
+  constructor(def: ProcedureDef<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>) {
     this['~orpc'] = def
   }
 }
 
-export type ANY_PROCEDURE = Procedure<any, any, any, any, any>
-export type WELL_PROCEDURE = Procedure<Context, Context, Schema, Schema, unknown>
+export type ANY_PROCEDURE = Procedure<any, any, any, any, any, any>
+export type WELL_PROCEDURE = Procedure<Context, Context, Schema, Schema, unknown, any>
 export type ANY_LAZY_PROCEDURE = Lazy<ANY_PROCEDURE>
 
 export function isProcedure(item: unknown): item is ANY_PROCEDURE {

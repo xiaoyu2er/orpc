@@ -60,19 +60,20 @@ This comparison table helps you understand how oRPC differs from other popular T
 - 🟡 Lacks features, or requires third-party integrations.
 - 🛑 Not supported or not documented.
 
-| Feature                  | oRPC | tRPC | ts-rest | Description                                                   |
-| ------------------------ | ---- | ---- | ------- | ------------------------------------------------------------- |
-| End-to-end Type Safety   | ✅   | ✅   | ✅      | Full TypeScript type inference from backend to frontend.      |
-| React Query Integration  | ✅   | ✅   | 🟡      | Native support for React Query/TanStack Query.                |
-| Vue Query Integration    | ✅   | 🛑   | 🟡      | Native support for Vue Query/TanStack Query.                  |
-| Pinia Colada Integration | ✅   | 🛑   | 🛑      | Native support for VPinia Colada.                             |
-| With Contract-First      | ✅   | 🛑   | ✅      | API definitions before implementation.                        |
-| Without Contract-First   | ✅   | ✅   | 🛑      | API definitions and implementation are combined in same place |
-| File Operations          | ✅   | 🟡   | 🟡      | Built-in support for file uploads/downloads.                  |
-| OpenAPI Support          | ✅   | 🟡   | 🟡      | Generation and consumption of OpenAPI specs.                  |
-| Server Actions Support   | ✅   | ✅   | 🛑      | React/Next.js Actions compatibility.                          |
-| WebSockets/SSE Support   | 🛑   | ✅   | 🛑      | WebSockets/SSE support.                                       |
-| Nest.js integration      | 🛑   | 🟡   | ✅      | Integration with Nest.js.                                     |
+| Feature                  | oRPC | tRPC | ts-rest | Description                                                        |
+| ------------------------ | ---- | ---- | ------- | ------------------------------------------------------------------ |
+| End-to-end Type Safety   | ✅   | ✅   | ✅      | Full TypeScript type inference from backend to frontend.           |
+| End-to-end Type Error    | ✅   | 🛑   | ✅      | Full TYpeScript type inference for Error from backend to frontend. |
+| React Query Integration  | ✅   | ✅   | 🟡      | Native support for React Query/TanStack Query.                     |
+| Vue Query Integration    | ✅   | 🛑   | 🟡      | Native support for Vue Query/TanStack Query.                       |
+| Pinia Colada Integration | ✅   | 🛑   | 🛑      | Native support for VPinia Colada.                                  |
+| With Contract-First      | ✅   | 🛑   | ✅      | API definitions before implementation.                             |
+| Without Contract-First   | ✅   | ✅   | 🛑      | API definitions and implementation are combined in same place      |
+| File Operations          | ✅   | 🟡   | 🟡      | Built-in support for file uploads/downloads.                       |
+| OpenAPI Support          | ✅   | 🟡   | 🟡      | Generation and consumption of OpenAPI specs.                       |
+| Server Actions Support   | ✅   | ✅   | 🛑      | React/Next.js Actions compatibility.                               |
+| WebSockets/SSE Support   | 🛑   | ✅   | 🛑      | WebSockets/SSE support.                                            |
+| Nest.js integration      | 🛑   | 🟡   | ✅      | Integration with Nest.js.                                          |
 
 ## References
 

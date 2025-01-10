@@ -7,7 +7,7 @@ description: How to intercept, handle or log errors inside oRPC
 
 ```ts twoslash
 import { createORPCReactQueryUtils } from '@orpc/react-query'
-import { createProcedureClient, isDefinedError, os, safe } from '@orpc/server'
+import { createProcedureClient, isDefinedError, os, safe, ORPCError } from '@orpc/server'
 
 const createPost = os
   .errors({

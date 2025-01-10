@@ -1,7 +1,7 @@
 import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
-import { isProcedure, Procedure } from './procedure'
-import { decorateProcedure } from './procedure-decorated'
+import { isProcedure } from './procedure'
+import { DecoratedProcedure } from './procedure-decorated'
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -17,7 +17,7 @@ const baseErrors = {
     data: z.object({ why: z.string() }),
   },
 }
-const procedure = new Procedure({
+const decorated = new DecoratedProcedure({
   contract: new ContractProcedure({
     InputSchema: schema,
     OutputSchema: schema,
@@ -29,8 +29,6 @@ const procedure = new Procedure({
   handler,
   middlewares: [mid],
 })
-
-const decorated = decorateProcedure(procedure)
 
 describe('self chainable', () => {
   it('prefix', () => {
@@ -187,14 +185,14 @@ describe('self chainable', () => {
 })
 
 it('can use middleware when has no middleware', () => {
-  const decorated = decorateProcedure(new Procedure({
+  const decorated = new DecoratedProcedure({
     contract: new ContractProcedure({
       InputSchema: undefined,
       OutputSchema: undefined,
       errorMap: undefined,
     }),
     handler: () => { },
-  }))
+  })
 
   const mid = vi.fn()
   const applied = decorated.use(mid)
@@ -205,14 +203,14 @@ it('can use middleware when has no middleware', () => {
 })
 
 it('can unshift middleware when has no middleware', () => {
-  const decorated = decorateProcedure(new Procedure({
+  const decorated = new DecoratedProcedure({
     contract: new ContractProcedure({
       InputSchema: undefined,
       OutputSchema: undefined,
       errorMap: undefined,
     }),
     handler: () => { },
-  }))
+  })
 
   const mid1 = vi.fn()
   const mid2 = vi.fn()

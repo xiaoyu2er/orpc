@@ -1,10 +1,9 @@
 import type { ORPCErrorConstructorMap } from './error'
 import type { Middleware, MiddlewareOutputFn } from './middleware'
-import type { ANY_PROCEDURE, Procedure } from './procedure'
+import type { ANY_PROCEDURE } from './procedure'
 import type { DecoratedProcedure } from './procedure-decorated'
 import type { WELL_CONTEXT } from './types'
 import { z } from 'zod'
-import { decorateProcedure } from './procedure-decorated'
 
 const baseSchema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
 const baseErrors = {
@@ -12,9 +11,7 @@ const baseErrors = {
     data: z.object({ why: z.string() }),
   },
 }
-const procedure = {} as Procedure<{ auth: boolean }, { db: string }, typeof baseSchema, typeof baseSchema, { val: string }, typeof baseErrors>
-
-const decorated = decorateProcedure(procedure)
+const decorated = {} as DecoratedProcedure<{ auth: boolean }, { db: string }, typeof baseSchema, typeof baseSchema, { val: string }, typeof baseErrors>
 
 describe('self chainable', () => {
   it('prefix', () => {

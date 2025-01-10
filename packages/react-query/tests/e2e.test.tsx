@@ -121,6 +121,18 @@ describe('useMutation', () => {
       () => expect(result.current.error).toSatisfy((e: any) => isDefinedError(e) && e.code === 'CONFLICT'),
     )
   })
+
+  it('with client context', async () => {
+    const { result } = renderHook(() => useMutation(orpc.post.create.mutationOptions({
+      context: { cache: 'force' },
+    }), queryClient))
+
+    result.current.mutate({ title: 'CONFLICT' })
+
+    await vi.waitFor(
+      () => expect(result.current.error).toSatisfy((e: any) => e.message === 'cache=force is not supported'),
+    )
+  })
 })
 
 describe('other hooks', () => {

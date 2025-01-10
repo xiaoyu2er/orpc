@@ -94,8 +94,8 @@ export const router = os.contract(contract).router({
         return {
           items: [
             {
-              id: crypto.randomUUID(),
-              title: input.keyword ?? 'title',
+              id: `id-${input.cursor}`,
+              title: `title-${input.cursor}`,
             },
           ],
           nextCursor: input.cursor + 1,

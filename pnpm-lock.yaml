@@ -433,6 +433,9 @@ importers:
       '@orpc/openapi':
         specifier: next
         version: link:../../packages/openapi
+      '@orpc/react-query':
+        specifier: next
+        version: link:../../packages/react-query
       '@orpc/server':
         specifier: next
         version: link:../../packages/server

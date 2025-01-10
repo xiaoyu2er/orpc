@@ -12,6 +12,7 @@
   "dependencies": {
     "@orpc/client": "next",
     "@orpc/openapi": "next",
+    "@orpc/react-query": "next",
     "@orpc/server": "next",
     "@orpc/zod": "next",
     "@tanstack/react-query": "^5.63.0",

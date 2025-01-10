@@ -97,32 +97,6 @@ curl -X PATCH https://example.com/api/users/1992 \
 Features like [Smart Conversion](/docs/openapi/smart-conversion) and [Bracket Notation](/docs/openapi/bracket-notation) automatically 
 convert `1992` into a `bigint` and seamlessly parse objects like `user`.
 
-## Use as a Server Action
-
-```tsx
-// call directly from client
-const onSubmit = () => { updateUser({ /***/ }) }
-// use with a hook
-const { execute, isPending, isError, error, output, input, status } = useAction(updateUser)
-// createSafeAction and useSafeAction if you want catch error on client
-// use as a form action
-const updateUserFA = createFormAction({ 
-	procedure: updateUser,
-	schemaCoercers: [new ZodCoercer()],
-	onSuccess: () => redirect('/some-where')
-})
-
-<form action={updateUserFA}>
-  <input type="number" name="id" value="1992" />
-  <input type="string" name="user[name]" value="unnoq" />
-  <input type="file" name="user[avatar]" accept="image/*" />
-</form>
-```
-
-With [Smart Conversion](/docs/openapi/smart-conversion) and [Bracket Notation](/docs/openapi/bracket-notation), 
-inputs are automatically parsed into the correct types, ensuring smooth data handling.
-Learn more about [Server Action](/docs/server/server-action).
-
 ## Dependency Injection with Context
 
 ```tsx

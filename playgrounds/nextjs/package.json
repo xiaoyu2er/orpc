@@ -11,13 +11,11 @@
   },
   "dependencies": {
     "@orpc/client": "next",
-    "@orpc/next": "next",
     "@orpc/openapi": "next",
-    "@orpc/react": "next",
     "@orpc/server": "next",
     "@orpc/zod": "next",
-    "@tanstack/react-query": "^5.61.5",
-    "next": "15.0.3",
+    "@tanstack/react-query": "^5.63.0",
+    "next": "15.1.4",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "zod": "^3.24.1"

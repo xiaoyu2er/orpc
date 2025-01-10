@@ -1,13 +1,17 @@
 'use client'
 
 import { orpc } from '@/lib/orpc'
+import { useInfiniteQuery } from '@tanstack/react-query'
 
 export function ListPlanetsQuery() {
-  const { data, refetch, fetchNextPage, hasNextPage, isLoading, status }
-    = orpc.planet.list.useInfiniteQuery({
+  const { data, refetch, fetchNextPage, hasNextPage, isLoading, status } = useInfiniteQuery(
+    orpc.planet.list.infiniteOptions({
       input: {},
-      getNextPageParam: lastPage => (lastPage.at(-1)?.id ?? -1) + 1,
-    })
+      getNextPageParam: (lastPage) => {
+        return 2
+      },
+    }),
+  )
 
   if (status === 'pending') {
     return <p>Loading...</p>

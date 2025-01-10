@@ -1,7 +1,7 @@
-import type { router } from '@/app/router'
+import type { router } from '@/router'
 import { createORPCClient } from '@orpc/client'
 import { ORPCLink } from '@orpc/client/fetch'
-import { createORPCReact } from '@orpc/react'
+import { createORPCReactQueryUtils } from '@orpc/react-query'
 
 const orpcLink = new ORPCLink({
   url: 'http://localhost:3000/rpc',
@@ -12,4 +12,4 @@ const orpcLink = new ORPCLink({
 
 export const orpcClient = createORPCClient<typeof router>(orpcLink)
 
-export const { orpc, ORPCContext } = createORPCReact<typeof orpcClient>()
+export const orpc = createORPCReactQueryUtils(orpcClient)

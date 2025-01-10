@@ -1,14 +1,14 @@
+import { router } from '@/router'
 import { ORPCHandler, serve } from '@orpc/server/next'
-import { router } from '../../router'
 import '../../../polyfill'
 
-const openAPIHandler = new ORPCHandler(router, {
+const orpcHandler = new ORPCHandler(router, {
   onError: ({ error }) => {
     console.error(error)
   },
 })
 
-export const { GET, POST, PUT, PATCH, DELETE } = serve(openAPIHandler, {
+export const { GET, POST, PUT, PATCH, DELETE } = serve(orpcHandler, {
   prefix: '/rpc',
   context: async (req) => {
     return {}

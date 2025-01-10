@@ -1,4 +1,5 @@
-import { me, refresh, revoke, signin, signup } from '@/actions/auth'
+import { pub } from '../orpc'
+import { me, refresh, revoke, signin, signup } from './auth'
 import {
   createPlanet,
   deletePlanet,
@@ -6,11 +7,10 @@ import {
   listPlanets,
   updatePlanet,
   updatePlanetImage,
-} from '@/actions/planet'
-import { pub } from '@/orpc'
+} from './planet'
 
-export const router = pub.router({
-  auth: pub.tag('Authentication').router({
+export const router = {
+  auth: pub.tag('Authentication').prefix('/auth').router({
     signup,
     signin,
     refresh,
@@ -18,7 +18,7 @@ export const router = pub.router({
     me,
   }),
 
-  planet: pub.tag('Planets').router({
+  planet: pub.tag('Planets').prefix('/planets').router({
     list: listPlanets,
     create: createPlanet,
     find: findPlanet,
@@ -26,4 +26,4 @@ export const router = pub.router({
     updateImage: updatePlanetImage,
     delete: deletePlanet,
   }),
-})
+}

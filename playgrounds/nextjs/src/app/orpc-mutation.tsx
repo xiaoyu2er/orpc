@@ -1,18 +1,24 @@
 'use client'
 
 import { orpc } from '@/lib/orpc'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 export function CreatePlanetMutationForm() {
-  const utils = orpc.useUtils()
+  const queryClient = useQueryClient()
 
-  const { mutate } = orpc.planet.create.useMutation({
-    onSuccess() {
-      utils.planet.invalidate()
-    },
-    onError(error) {
-      alert(error.message)
-    },
-  })
+  const { mutate } = useMutation(
+    orpc.planet.create.mutationOptions({
+      onSuccess() {
+        queryClient.invalidateQueries({
+          queryKey: orpc.planet.key(),
+        })
+      },
+      onError(error) {
+        console.error(error)
+        alert(error.message)
+      },
+    }),
+  )
 
   return (
     <div>
@@ -50,6 +56,5 @@ export function CreatePlanetMutationForm() {
         <button type="submit">Submit</button>
       </form>
     </div>
-
   )
 }

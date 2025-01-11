@@ -1,3 +1,4 @@
+import type { Builder } from './builder'
 import type { ChainableImplementer } from './implementer-chainable'
 import type { DecoratedLazy } from './lazy-decorated'
 import type { Middleware, MiddlewareOutputFn } from './middleware'
@@ -9,11 +10,10 @@ import type { AdaptedRouter, RouterBuilder } from './router-builder'
 import type { WELL_CONTEXT } from './types'
 import { oc } from '@orpc/contract'
 import { z } from 'zod'
-import { Builder } from './builder'
 
 const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
 
-const builder = new Builder<{ auth: boolean }, { db: string }>({})
+const builder = {} as Builder<{ auth: boolean }, { db: string }>
 
 describe('self chainable', () => {
   it('define context', () => {

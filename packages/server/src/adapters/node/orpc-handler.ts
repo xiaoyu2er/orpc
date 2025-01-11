@@ -1,15 +1,15 @@
 import type { ServerResponse } from 'node:http'
 import type { Router } from '../../router'
 import type { Context } from '../../types'
-import type { ORPCHandlerOptions } from '../fetch/orpc-handler'
+import type { RPCHandlerOptions } from '../fetch/orpc-handler'
 import type { RequestHandler, RequestHandleRest, RequestHandleResult } from './types'
-import { ORPCHandler as ORPCFetchHandler } from '../fetch/orpc-handler'
+import { RPCHandler as ORPCFetchHandler } from '../fetch/orpc-handler'
 import { createRequest, type ExpressableIncomingMessage, sendResponse } from './request-listener'
 
-export class ORPCHandler<T extends Context> implements RequestHandler<T> {
+export class RPCHandler<T extends Context> implements RequestHandler<T> {
   private readonly orpcFetchHandler: ORPCFetchHandler<T>
 
-  constructor(router: Router<T, any>, options?: NoInfer<ORPCHandlerOptions<T>>) {
+  constructor(router: Router<T, any>, options?: NoInfer<RPCHandlerOptions<T>>) {
     this.orpcFetchHandler = new ORPCFetchHandler(router, options)
   }
 

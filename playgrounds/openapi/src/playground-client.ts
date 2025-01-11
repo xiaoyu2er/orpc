@@ -4,13 +4,13 @@
 
 import type { router } from './router'
 import { createORPCClient } from '@orpc/client'
-import { ORPCLink } from '@orpc/client/fetch'
+import { RPCLink } from '@orpc/client/fetch'
 
-const orpcLink = new ORPCLink({
+const rpcLink = new RPCLink({
   url: 'http://localhost:3000/rpc',
 })
 
-export const orpc = createORPCClient<typeof router>(orpcLink)
+export const orpc = createORPCClient<typeof router>(rpcLink)
 
 const planets = await orpc.planet.list({})
 

@@ -64,15 +64,15 @@ and pass a `File` object directly to the upload endpoint.
 
 ```typescript
 import { createORPCClient } from '@orpc/client'
-import { ORPCLink } from '@orpc/client/fetch'
+import { RPCLink } from '@orpc/client/fetch'
 
-const orpcLink = new ORPCLink({
+const rpcLink = new RPCLink({
   url: 'http://localhost:3000/rpc',
   // fetch: optional override for the default fetch function
   // headers: provide additional headers
 })
 
-const client = createORPCClient<typeof appRouter>(orpcLink)
+const client = createORPCClient<typeof appRouter>(rpcLink)
 
 // Example: Upload a file from an HTML file input
 const fileInput = document.getElementById('file-input') as HTMLInputElement

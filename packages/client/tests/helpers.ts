@@ -1,10 +1,10 @@
 import { oc } from '@orpc/contract'
 import { os } from '@orpc/server'
-import { ORPCHandler } from '@orpc/server/fetch'
+import { RPCHandler } from '@orpc/server/fetch'
 import { z } from 'zod'
 import { oz } from '../../zod/src'
 import { createORPCClient } from '../src'
-import { ORPCLink } from '../src/adapters/fetch'
+import { RPCLink } from '../src/adapters/fetch'
 
 export const PostFindInput = z.object({
   id: z.string(),
@@ -124,11 +124,11 @@ export const router = os.contract(contract).router({
   })),
 })
 
-const rpcHandler = new ORPCHandler(router)
+const rpcHandler = new RPCHandler(router)
 
 export type ClientContext = { cache?: string } | undefined
 
-const rpcLink = new ORPCLink<ClientContext>({
+const rpcLink = new RPCLink<ClientContext>({
   url: 'http://localhost:3000',
   fetch: async (url, init, context) => {
     if (context?.cache) {

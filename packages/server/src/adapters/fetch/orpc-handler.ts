@@ -8,18 +8,18 @@ import { createProcedureClient } from '../../procedure-client'
 import { ORPCPayloadCodec, type PublicORPCPayloadCodec } from './orpc-payload-codec'
 import { ORPCProcedureMatcher, type PublicORPCProcedureMatcher } from './orpc-procedure-matcher'
 
-export type ORPCHandlerOptions<T extends Context> =
+export type RPCHandlerOptions<T extends Context> =
   & Hooks<Request, FetchHandleResult, T, { signal?: AbortSignal }>
   & {
     procedureMatcher?: PublicORPCProcedureMatcher
     payloadCodec?: PublicORPCPayloadCodec
   }
 
-export class ORPCHandler<T extends Context> implements FetchHandler<T> {
+export class RPCHandler<T extends Context> implements FetchHandler<T> {
   private readonly procedureMatcher: PublicORPCProcedureMatcher
   private readonly payloadCodec: PublicORPCPayloadCodec
 
-  constructor(router: Router<T, any>, private readonly options?: NoInfer<ORPCHandlerOptions<T>>) {
+  constructor(router: Router<T, any>, private readonly options?: NoInfer<RPCHandlerOptions<T>>) {
     this.procedureMatcher = options?.procedureMatcher ?? new ORPCProcedureMatcher(router)
     this.payloadCodec = options?.payloadCodec ?? new ORPCPayloadCodec()
   }

@@ -1,7 +1,7 @@
 import { createServer } from 'node:http'
 import { OpenAPIGenerator } from '@orpc/openapi'
 import { OpenAPIServerHandler } from '@orpc/openapi/node'
-import { ORPCHandler } from '@orpc/server/node'
+import { RPCHandler } from '@orpc/server/node'
 import { ZodCoercer, ZodToJsonSchemaConverter } from '@orpc/zod'
 import { contract } from './contract'
 import { router } from './router'
@@ -16,7 +16,7 @@ const openAPIHandler = new OpenAPIServerHandler(router, {
   },
 })
 
-const orpcHandler = new ORPCHandler(router, {
+const rpcHandler = new RPCHandler(router, {
   onError: ({ error }) => {
     console.error(error)
   },
@@ -45,7 +45,7 @@ const server = createServer(async (req, res) => {
   }
 
   if (req.url?.startsWith('/rpc')) {
-    const { matched } = await orpcHandler.handle(req, res, {
+    const { matched } = await rpcHandler.handle(req, res, {
       prefix: '/rpc',
       context,
     })

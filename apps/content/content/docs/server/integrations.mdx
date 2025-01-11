@@ -13,24 +13,24 @@ Whether you're targeting serverless, edge environments, or traditional backends,
 ## Quick Example
 
 ```ts twoslash
-import { ORPCHandler } from '@orpc/server/fetch'
+import { RPCHandler } from '@orpc/server/fetch'
 import { OpenAPIServerlessHandler } from '@orpc/openapi/fetch'
 import { router } from 'examples/server'
 import { ZodCoercer } from '@orpc/zod'
 
-const openapiHandler = new OpenAPIServerlessHandler(router, {
+const openAPIHandler = new OpenAPIServerlessHandler(router, {
   schemaCoercers: [
     new ZodCoercer(),
   ],
 })
 
-const orpcHandler = new ORPCHandler(router)
+const rpcHandler = new RPCHandler(router)
 
 export async function fetch(request: Request) {
   const url = new URL(request.url)
 
   if (url.pathname.startsWith('/api')) {
-     const { matched, response } = await openapiHandler.handle(request, {
+     const { matched, response } = await openAPIHandler.handle(request, {
        prefix: '/api'
      })
 
@@ -40,7 +40,7 @@ export async function fetch(request: Request) {
   }
 
   if (url.pathname.startsWith('/rpc')) {
-    const { matched, response } = await orpcHandler.handle(request, {
+    const { matched, response } = await rpcHandler.handle(request, {
       prefix: '/rpc'
     })
 
@@ -57,21 +57,21 @@ export async function fetch(request: Request) {
 
 ```ts twoslash
 import { createServer } from 'node:http'
-import { ORPCHandler } from '@orpc/server/node'
+import { RPCHandler } from '@orpc/server/node'
 import { OpenAPIServerlessHandler } from '@orpc/openapi/node'
 import { router } from 'examples/server'
 import { ZodCoercer } from '@orpc/zod'
 
-const openapiHandler = new OpenAPIServerlessHandler(router, {
+const openAPIHandler = new OpenAPIServerlessHandler(router, {
   schemaCoercers: [
     new ZodCoercer(),
   ],
 })
-const orpcHandler = new ORPCHandler(router)
+const rpcHandler = new RPCHandler(router)
 
 const server = createServer(async (req, res) => {
   if (req.url?.startsWith('/api')) {
-    const { matched } = await openapiHandler.handle(req, res, {
+    const { matched } = await openAPIHandler.handle(req, res, {
       prefix: '/api',
       context: {},
     })
@@ -82,7 +82,7 @@ const server = createServer(async (req, res) => {
   }
 
   if (req.url?.startsWith('/rpc')) {
-    const { matched } = await orpcHandler.handle(req, res, {
+    const { matched } = await rpcHandler.handle(req, res, {
       prefix: '/rpc',
       context: {},
     })
@@ -105,21 +105,21 @@ server.listen(3000, () => {
 
 ```ts twoslash
 import express from 'express'
-import { ORPCHandler } from '@orpc/server/node'
+import { RPCHandler } from '@orpc/server/node'
 import { OpenAPIServerlessHandler } from '@orpc/openapi/node'
 import { router } from 'examples/server'
 import { ZodCoercer } from '@orpc/zod'
 
 const app = express()
 
-const openapiHandler = new OpenAPIServerlessHandler(router, {
+const openAPIHandler = new OpenAPIServerlessHandler(router, {
   schemaCoercers: [
     new ZodCoercer(),
   ],
 })
 
 app.use('/api/*', async (req, res, next) => {
-  const { matched } = await openapiHandler.handle(req, res, {
+  const { matched } = await openAPIHandler.handle(req, res, {
     prefix: '/api',
     context: {},
   })
@@ -131,10 +131,10 @@ app.use('/api/*', async (req, res, next) => {
   next()
 })
 
-const orpcHandler = new ORPCHandler(router)
+const rpcHandler = new RPCHandler(router)
 
 app.use('/rpc/*', async (req, res, next) => {
-  const { matched } = await orpcHandler.handle(req, res, {
+  const { matched } = await rpcHandler.handle(req, res, {
     prefix: '/rpc',
     context: {},
   })
@@ -155,7 +155,7 @@ app.listen(3000, () => {
 
 ```ts twoslash
 import { Hono } from 'hono'
-import { ORPCHandler, createMiddleware } from '@orpc/server/hono'
+import { RPCHandler, createMiddleware } from '@orpc/server/hono'
 import { OpenAPIServerlessHandler } from '@orpc/openapi/hono'
 import { router } from 'examples/server'
 import { ZodCoercer } from '@orpc/zod'
@@ -163,22 +163,22 @@ import { ZodCoercer } from '@orpc/zod'
 
 const app = new Hono()
 
-const openapiHandler = new OpenAPIServerlessHandler(router, {
+const openAPIHandler = new OpenAPIServerlessHandler(router, {
   schemaCoercers: [
     new ZodCoercer(),
   ],
 })
 
-app.use('/api/*', createMiddleware(openapiHandler, {
+app.use('/api/*', createMiddleware(openAPIHandler, {
   prefix: '/api',
   context: async (c) => {
     return {}
   }
 }))
 
-const orpcHandler = new ORPCHandler(router)
+const rpcHandler = new RPCHandler(router)
 
-app.use('/rpc/*', createMiddleware(orpcHandler, {
+app.use('/rpc/*', createMiddleware(rpcHandler, {
   prefix: '/rpc',
   context: async (c) => {
     return {}
@@ -196,13 +196,13 @@ import { serve } from '@orpc/server/next'
 import { router } from 'examples/server'
 import { ZodCoercer } from '@orpc/zod'
 
-const openapiHandler = new OpenAPIServerlessHandler(router, {
+const openAPIHandler = new OpenAPIServerlessHandler(router, {
   schemaCoercers: [
     new ZodCoercer(),
   ],
 })
 
-export const { GET, POST, PUT, PATCH, DELETE } = serve(openapiHandler, {
+export const { GET, POST, PUT, PATCH, DELETE } = serve(openAPIHandler, {
   prefix: '/api',
   context: async (req) => {
     return {}
@@ -211,12 +211,12 @@ export const { GET, POST, PUT, PATCH, DELETE } = serve(openapiHandler, {
 ```
 
 ```ts title="app/rpc/[...orpc]/route.ts" twoslash
-import { serve, ORPCHandler } from '@orpc/server/next'
+import { serve, RPCHandler } from '@orpc/server/next'
 import { router } from 'examples/server'
 
-const orpcHandler = new ORPCHandler(router)
+const rpcHandler = new RPCHandler(router)
 
-export const { GET, POST, PUT, PATCH, DELETE } = serve(orpcHandler, {
+export const { GET, POST, PUT, PATCH, DELETE } = serve(rpcHandler, {
   prefix: '/rpc',
   context: async (req) => {
     return {}
@@ -227,25 +227,25 @@ export const { GET, POST, PUT, PATCH, DELETE } = serve(orpcHandler, {
 ## Cloudflare Workers
 
 ```ts twoslash
-import { ORPCHandler } from '@orpc/server/fetch'
+import { RPCHandler } from '@orpc/server/fetch'
 import { OpenAPIServerlessHandler } from '@orpc/openapi/fetch'
 import { router } from 'examples/server'
 import { ZodCoercer } from '@orpc/zod'
 
-const openapiHandler = new OpenAPIServerlessHandler(router, {
+const openAPIHandler = new OpenAPIServerlessHandler(router, {
   schemaCoercers: [
     new ZodCoercer(),
   ],
 })
 
-const orpcHandler = new ORPCHandler(router)
+const rpcHandler = new RPCHandler(router)
 
 export default {
   async fetch(request: Request) {
     const url = new URL(request.url)
 
     if (url.pathname.startsWith('/api')) {
-      const { matched, response } = await openapiHandler.handle(request, {
+      const { matched, response } = await openAPIHandler.handle(request, {
         prefix: '/api'
       })
 
@@ -255,7 +255,7 @@ export default {
     }
 
     if (url.pathname.startsWith('/rpc')) {
-      const { matched, response } = await orpcHandler.handle(request, {
+      const { matched, response } = await rpcHandler.handle(request, {
         prefix: '/rpc'
       })
 

@@ -1,6 +1,6 @@
 import { OpenAPIGenerator } from '@orpc/openapi'
 import { OpenAPIServerHandler } from '@orpc/openapi/node'
-import { ORPCHandler } from '@orpc/server/node'
+import { RPCHandler } from '@orpc/server/node'
 import { ZodCoercer, ZodToJsonSchemaConverter } from '@orpc/zod'
 import express from 'express'
 import { router } from './router'
@@ -34,7 +34,7 @@ app.use('/api/*', async (req, res, next) => {
   next()
 })
 
-const orpcHandler = new ORPCHandler(router, {
+const rpcHandler = new RPCHandler(router, {
   onError: ({ error }) => {
     console.error(error)
   },
@@ -45,7 +45,7 @@ app.use('/rpc/*', async (req, res, next) => {
     ? { user: { id: 'test', name: 'John Doe', email: 'john@doe.com' } }
     : {}
 
-  const { matched } = await orpcHandler.handle(req, res, {
+  const { matched } = await rpcHandler.handle(req, res, {
     prefix: '/rpc',
     context,
   })

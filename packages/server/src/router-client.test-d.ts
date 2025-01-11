@@ -64,55 +64,44 @@ describe('RouterClient', () => {
 
 describe('createRouterClient', () => {
   it('return RouterClient', () => {
-    const client = createRouterClient({
-      router,
+    const client = createRouterClient(router, {
       context: { auth: true },
     })
 
     expectTypeOf(client).toMatchTypeOf<RouterClient<typeof router, unknown>>()
 
-    const client2 = createRouterClient({
-      router: routerWithLazy,
+    const client2 = createRouterClient(routerWithLazy, {
       context: { auth: true },
     })
     expectTypeOf(client2).toMatchTypeOf<RouterClient<typeof routerWithLazy, unknown>>()
   })
 
   it('required context when needed', () => {
-    createRouterClient({
-      router: { ping },
-    })
+    createRouterClient({ ping })
 
-    createRouterClient({
-      router: { pong },
+    createRouterClient({ pong }, {
       context: { auth: true },
     })
 
-    createRouterClient({
-      router: { pong },
+    createRouterClient({ pong }, {
       context: () => ({ auth: true }),
     })
 
-    createRouterClient({
-      router: { pong },
+    createRouterClient({ pong }, {
       context: async () => ({ auth: true }),
     })
 
-    createRouterClient({
-      router: { pong },
+    createRouterClient({ pong }, {
       // @ts-expect-error --- invalid context
       context: { auth: 'invalid' },
     })
 
     // @ts-expect-error --- missing context
-    createRouterClient({
-      router: { pong },
-    })
+    createRouterClient({ pong })
   })
 
   it('support hooks', () => {
-    createRouterClient({
-      router,
+    createRouterClient(router, {
       context: { auth: true },
       onSuccess: async ({ output }, context, meta) => {
         expectTypeOf(output).toEqualTypeOf<unknown>()
@@ -125,17 +114,28 @@ describe('createRouterClient', () => {
   })
 
   it('support base path', () => {
-    createRouterClient({
-      router: { ping },
+    createRouterClient({ ping }, {
       context: { auth: true },
       path: ['users'],
     })
 
-    createRouterClient({
-      router: { ping },
+    // @ts-expect-error --- invalid path
+    createRouterClient({ ping }, {
       context: { auth: true },
-      // @ts-expect-error --- invalid path
       path: [123],
     })
+  })
+
+  it('with client context', () => {
+    const client = createRouterClient(router, {
+      context: async (clientContext: { cache?: boolean } | undefined) => {
+        return { auth: true }
+      },
+    })
+
+    client.ping({ val: '123' })
+    client.ping({ val: '123' }, { context: { cache: true } })
+    // @ts-expect-error - invalid context
+    client.ping({ val: '123' }, { context: { cache: '123' } })
   })
 })

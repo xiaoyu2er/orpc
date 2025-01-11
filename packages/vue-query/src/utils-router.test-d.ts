@@ -15,8 +15,8 @@ const contractRouter = oc.router({
   pong: pongContract,
 })
 
-const ping = os.contract(pingContract).handler(({ input }) => `ping ${input.name}`)
-const pong = os.contract(pongContract).handler(num => `pong ${num}`)
+const ping = os.contract(pingContract).handler(({ input }) => `ping ${input.name}`).callable()
+const pong = os.contract(pongContract).handler(num => `pong ${num}`).callable()
 
 const router = os.contract(contractRouter).router({
   ping,

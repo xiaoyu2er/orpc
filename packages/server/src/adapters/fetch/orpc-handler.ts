@@ -38,9 +38,8 @@ export class ORPCHandler<T extends Context> implements FetchHandler<T> {
 
       const input = await this.payloadCodec.decode(request)
 
-      const client = createProcedureClient({
+      const client = createProcedureClient(match.procedure, {
         context,
-        procedure: match.procedure,
         path: match.path,
       })
 

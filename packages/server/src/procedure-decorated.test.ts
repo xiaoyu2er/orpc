@@ -1,7 +1,13 @@
 import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
-import { isProcedure, Procedure } from './procedure'
-import { decorateProcedure } from './procedure-decorated'
+import { isProcedure } from './procedure'
+import { createProcedureClient } from './procedure-client'
+import { DecoratedProcedure } from './procedure-decorated'
+
+vi.mock('./procedure-client', async original => ({
+  ...await original(),
+  createProcedureClient: vi.fn(() => vi.fn()),
+}))
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -17,7 +23,7 @@ const baseErrors = {
     data: z.object({ why: z.string() }),
   },
 }
-const procedure = new Procedure({
+const decorated = new DecoratedProcedure({
   contract: new ContractProcedure({
     InputSchema: schema,
     OutputSchema: schema,
@@ -29,8 +35,6 @@ const procedure = new Procedure({
   handler,
   middlewares: [mid],
 })
-
-const decorated = decorateProcedure(procedure)
 
 describe('self chainable', () => {
   it('prefix', () => {
@@ -184,17 +188,66 @@ describe('self chainable', () => {
       ).toEqual([mid1, mid2, mid2, mid])
     })
   })
+
+  describe('callable', () => {
+    it('works', () => {
+      const options = { context: { auth: true } }
+
+      const callable = decorated.callable(options)
+
+      expect(callable).toBeInstanceOf(Function)
+      expect(callable).toSatisfy(isProcedure)
+      expect(createProcedureClient).toBeCalledTimes(1)
+      expect(createProcedureClient).toBeCalledWith(decorated, options)
+    })
+
+    it('can chain after callable', () => {
+      const mid2 = vi.fn()
+
+      const applied = decorated.callable({
+        context: { auth: true },
+      }).use(mid2)
+
+      expect(applied).not.toBeInstanceOf(Function)
+      expect(applied).toSatisfy(isProcedure)
+      expect(applied['~orpc'].middlewares).toEqual([mid, mid2])
+    })
+  })
+
+  describe('actionable', () => {
+    it('works', () => {
+      const options = { context: { auth: true } }
+      const actionable = decorated.actionable(options)
+
+      expect(actionable).toBeInstanceOf(Function)
+      expect(actionable).toSatisfy(isProcedure)
+      expect(createProcedureClient).toBeCalledTimes(1)
+      expect(createProcedureClient).toBeCalledWith(decorated, options)
+    })
+
+    it('can chain after actionable', () => {
+      const mid2 = vi.fn()
+
+      const applied = decorated.actionable({
+        context: { auth: true },
+      }).use(mid2)
+
+      expect(applied).not.toBeInstanceOf(Function)
+      expect(applied).toSatisfy(isProcedure)
+      expect(applied['~orpc'].middlewares).toEqual([mid, mid2])
+    })
+  })
 })
 
 it('can use middleware when has no middleware', () => {
-  const decorated = decorateProcedure(new Procedure({
+  const decorated = new DecoratedProcedure({
     contract: new ContractProcedure({
       InputSchema: undefined,
       OutputSchema: undefined,
       errorMap: undefined,
     }),
     handler: () => { },
-  }))
+  })
 
   const mid = vi.fn()
   const applied = decorated.use(mid)
@@ -205,14 +258,14 @@ it('can use middleware when has no middleware', () => {
 })
 
 it('can unshift middleware when has no middleware', () => {
-  const decorated = decorateProcedure(new Procedure({
+  const decorated = new DecoratedProcedure({
     contract: new ContractProcedure({
       InputSchema: undefined,
       OutputSchema: undefined,
       errorMap: undefined,
     }),
     handler: () => { },
-  }))
+  })
 
   const mid1 = vi.fn()
   const mid2 = vi.fn()

@@ -1,5 +1,5 @@
-import type { ProcedureClientOptions } from '@orpc/server'
+import type { ClientOptions } from '@orpc/contract'
 
 export interface ClientLink<TClientContext> {
-  call: (path: readonly string[], input: unknown, options: ProcedureClientOptions<TClientContext>) => Promise<unknown>
+  call: (path: readonly string[], input: unknown, options: ClientOptions<TClientContext>) => Promise<unknown>
 }

@@ -41,8 +41,7 @@ describe('createRouterClient', () => {
     } })),
   }
 
-  const client = createRouterClient({
-    router,
+  const client = createRouterClient(router, {
     context: { auth: true },
     path: ['users'],
   })
@@ -51,8 +50,7 @@ describe('createRouterClient', () => {
     expect(client.pong({ val: '123' })).toEqual('__mocked__')
 
     expect(createProcedureClient).toBeCalledTimes(1)
-    expect(createProcedureClient).toBeCalledWith(expect.objectContaining({
-      procedure: pong,
+    expect(createProcedureClient).toBeCalledWith(pong, expect.objectContaining({
       context: { auth: true },
       path: ['users', 'pong'],
     }))
@@ -65,13 +63,12 @@ describe('createRouterClient', () => {
     expect(client.ping({ val: '123' })).toEqual('__mocked__')
 
     expect(createProcedureClient).toBeCalledTimes(1)
-    expect(createProcedureClient).toHaveBeenNthCalledWith(1, expect.objectContaining({
-      procedure: expect.any(Object),
+    expect(createProcedureClient).toHaveBeenCalledWith(expect.any(Object), expect.objectContaining({
       context: { auth: true },
       path: ['users', 'ping'],
     }))
 
-    expect((await unlazy(vi.mocked(createProcedureClient as any).mock.calls[0]![0].procedure)).default).toBe(ping)
+    expect((await unlazy(vi.mocked(createProcedureClient as any).mock.calls[0]![0])).default).toBe(ping)
 
     expect(vi.mocked(createProcedureClient).mock.results[0]?.value).toBeCalledTimes(1)
     expect(vi.mocked(createProcedureClient).mock.results[0]?.value).toBeCalledWith({ val: '123' })
@@ -81,13 +78,12 @@ describe('createRouterClient', () => {
     expect(client.nested.ping({ val: '123' })).toEqual('__mocked__')
 
     expect(createProcedureClient).toBeCalledTimes(2)
-    expect(createProcedureClient).toHaveBeenNthCalledWith(2, expect.objectContaining({
-      procedure: expect.any(Object),
+    expect(createProcedureClient).toHaveBeenNthCalledWith(2, expect.any(Object), expect.objectContaining({
       context: { auth: true },
       path: ['users', 'nested', 'ping'],
     }))
 
-    const lazied = vi.mocked(createProcedureClient as any).mock.calls[1]![0].procedure
+    const lazied = vi.mocked(createProcedureClient as any).mock.calls[1]![0]
     expect(await unlazy(lazied)).toEqual({ default: ping })
 
     expect(vi.mocked(createProcedureClient).mock.results[1]?.value).toBeCalledTimes(1)
@@ -95,8 +91,7 @@ describe('createRouterClient', () => {
   })
 
   it('work with procedure as router', () => {
-    const client = createRouterClient({
-      router: ping,
+    const client = createRouterClient(ping, {
       context: { auth: true },
       path: ['users'],
     })
@@ -104,8 +99,7 @@ describe('createRouterClient', () => {
     expect(client({ val: '123' })).toEqual('__mocked__')
 
     expect(createProcedureClient).toBeCalledTimes(1)
-    expect(createProcedureClient).toHaveBeenCalledWith(expect.objectContaining({
-      procedure: ping,
+    expect(createProcedureClient).toHaveBeenCalledWith(ping, expect.objectContaining({
       context: { auth: true },
       path: ['users'],
     }))
@@ -121,8 +115,7 @@ describe('createRouterClient', () => {
     const onFinish = vi.fn()
     const interceptor = vi.fn()
 
-    const client = createRouterClient({
-      router,
+    const client = createRouterClient(router, {
       context: { auth: true },
       onStart,
       onSuccess,
@@ -134,8 +127,7 @@ describe('createRouterClient', () => {
     expect(client.pong({ val: '123' })).toEqual('__mocked__')
 
     expect(createProcedureClient).toBeCalledTimes(1)
-    expect(createProcedureClient).toHaveBeenCalledWith(expect.objectContaining({
-      procedure: pong,
+    expect(createProcedureClient).toHaveBeenCalledWith(pong, expect.objectContaining({
       context: { auth: true },
       path: ['pong'],
       onStart,
@@ -152,9 +144,7 @@ describe('createRouterClient', () => {
 
   it('return undefined if access the undefined key', async () => {
     const client = createRouterClient({
-      router: {
-        ping,
-      },
+      ping,
     })
 
     // @ts-expect-error --- invalid access
@@ -163,12 +153,10 @@ describe('createRouterClient', () => {
 
   it('works without base path', async () => {
     const client = createRouterClient({
-      router: {
-        ping,
-      },
+      ping,
     })
 
     expect(client.ping({ val: '123' })).toEqual('__mocked__')
-    expect(vi.mocked(createProcedureClient).mock.calls[0]![0].path).toEqual(['ping'])
+    expect(vi.mocked(createProcedureClient).mock.calls[0]![1]!.path).toEqual(['ping'])
   })
 })

@@ -14,7 +14,7 @@ Lazy routers make your application modular and efficient without sacrificing eas
 Here's how you can set up and use them:
 
 ```typescript twoslash
-import { os } from '@orpc/server'
+import { os, call } from '@orpc/server'
 
 const pub = os.context<{ user?: { id: string } } | undefined>()
 
@@ -26,7 +26,7 @@ const router = pub.router({
 })
 
 // Use the lazy-loaded router as if it were a regular one
-const output = await router.lazy.getUser({ id: '123' })
+const output = await call(router.lazy.getUser, { id: '123' })
 ```
 
 ### Key Points:

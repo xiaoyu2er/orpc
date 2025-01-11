@@ -1,4 +1,4 @@
-import type { ANY_PROCEDURE, ANY_ROUTER, DecoratedProcedure, Procedure, ProcedureClient, WELL_CONTEXT } from '.'
+import type { ANY_PROCEDURE, ANY_ROUTER, DecoratedProcedure, Procedure, WELL_CONTEXT } from '.'
 import type { Lazy } from './lazy'
 import type { DecoratedLazy } from './lazy-decorated'
 import { z } from 'zod'
@@ -40,10 +40,6 @@ describe('DecoratedLazy', () => {
     const decorated = {} as DecoratedLazy<typeof ping>
 
     expectTypeOf(decorated).toMatchTypeOf<Lazy<ANY_PROCEDURE>>()
-
-    expectTypeOf(decorated).toMatchTypeOf<
-      ProcedureClient<unknown, unknown, { val: number }, Error>
-    >()
   })
 
   it('with router', () => {
@@ -53,19 +49,13 @@ describe('DecoratedLazy', () => {
     expectTypeOf({ router: decorated }).toMatchTypeOf<ANY_ROUTER>()
 
     expectTypeOf(decorated.ping).toMatchTypeOf<Lazy<ANY_PROCEDURE>>()
-    expectTypeOf(decorated.ping).toMatchTypeOf<ProcedureClient<unknown, { val: number }, unknown, Error>>()
-
     expectTypeOf(decorated.pong).toMatchTypeOf<Lazy<ANY_PROCEDURE>>()
-    expectTypeOf(decorated.pong).toMatchTypeOf<ProcedureClient<unknown, { val: string }, unknown, Error>>()
 
     expectTypeOf(decorated.nested).toMatchTypeOf<Lazy<ANY_ROUTER>>()
     expectTypeOf({ router: decorated.nested }).toMatchTypeOf<ANY_ROUTER>()
 
     expectTypeOf(decorated.nested.ping).toMatchTypeOf<Lazy<ANY_PROCEDURE>>()
-    expectTypeOf(decorated.nested.ping).toMatchTypeOf<ProcedureClient<unknown, { val: number }, unknown, Error>>()
-
     expectTypeOf(decorated.nested.pong).toMatchTypeOf<Lazy<ANY_PROCEDURE>>()
-    expectTypeOf(decorated.nested.pong).toMatchTypeOf<ProcedureClient<unknown, { val: string }, unknown, Error>>()
   })
 
   it('flat lazy', () => {
@@ -80,21 +70,6 @@ describe('DecoratedLazy', () => {
 
     // @ts-expect-error - lazy loader is diff
     expectTypeOf<DecoratedLazy<typeof lazyRouter>['nested']>().toEqualTypeOf<DecoratedLazy<typeof router>['nested']>()
-  })
-
-  it('not callable when context is required', () => {
-    const d1 = {} as DecoratedLazy<typeof ping>
-    const d2 = {} as DecoratedLazy<typeof router>
-    const d3 = {} as DecoratedLazy<Procedure<undefined | { auth: boolean }, { db: string }, undefined, undefined, undefined, undefined>>
-    const d4 = {} as DecoratedLazy<Procedure<{ auth: boolean }, { db: string }, undefined, undefined, undefined, undefined>>
-
-    d1()
-    d3()
-
-    // @ts-expect-error --- cannot call on router level
-    d2()
-    // @ts-expect-error --- context is required
-    d4()
   })
 })
 

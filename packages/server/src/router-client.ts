@@ -2,7 +2,7 @@ import type { ContractProcedure, ContractRouter, ErrorFromErrorMap, SchemaInput,
 import type { Hooks, Value } from '@orpc/shared'
 import type { Lazy } from './lazy'
 import type { Procedure } from './procedure'
-import type { ProcedureClient } from './procedure-client'
+import type { CreateProcedureClientRest, ProcedureClient } from './procedure-client'
 import type { Meta } from './types'
 import { isLazy } from './lazy'
 import { createLazyProcedureFormAnyLazy } from './lazy-utils'
@@ -10,23 +10,24 @@ import { isProcedure } from './procedure'
 import { createProcedureClient } from './procedure-client'
 import { type ANY_ROUTER, getRouterChild, type Router } from './router'
 
+/**
+ * FIXME: separate RouterClient and ContractRouterClient, don't mix them
+ */
 export type RouterClient<TRouter extends ANY_ROUTER | ContractRouter, TClientContext> =
-TRouter extends Lazy<infer U extends ANY_ROUTER | ContractRouter>
-  ? RouterClient<U, TClientContext>
-  : TRouter extends
-  | ContractProcedure<infer UInputSchema, infer UOutputSchema, infer UErrorMap>
-  | Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput, infer UErrorMap>
-    ? ProcedureClient<TClientContext, SchemaInput<UInputSchema>, SchemaOutput<UOutputSchema, UFuncOutput>, ErrorFromErrorMap<UErrorMap>>
-    : {
-        [K in keyof TRouter]: TRouter[K] extends ANY_ROUTER | ContractRouter ? RouterClient<TRouter[K], TClientContext> : never
-      }
+  TRouter extends Lazy<infer U extends ANY_ROUTER | ContractRouter>
+    ? RouterClient<U, TClientContext>
+    : TRouter extends
+    | ContractProcedure<infer UInputSchema, infer UOutputSchema, infer UErrorMap>
+    | Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput, infer UErrorMap>
+      ? ProcedureClient<TClientContext, SchemaInput<UInputSchema>, SchemaOutput<UOutputSchema, UFuncOutput>, ErrorFromErrorMap<UErrorMap>>
+      : {
+          [K in keyof TRouter]: TRouter[K] extends ANY_ROUTER | ContractRouter ? RouterClient<TRouter[K], TClientContext> : never
+        }
 
 export type CreateRouterClientOptions<
   TRouter extends ANY_ROUTER,
 > =
   & {
-    router: TRouter | Lazy<undefined>
-
     /**
      * This is helpful for logging and analytics.
      *
@@ -41,27 +42,19 @@ export type CreateRouterClientOptions<
 
 export function createRouterClient<
   TRouter extends ANY_ROUTER,
+  TClientContext,
 >(
-  options: CreateRouterClientOptions<TRouter>,
-): RouterClient<TRouter, unknown> {
-  if (isProcedure(options.router)) {
-    const caller = createProcedureClient({
-      ...options,
-      procedure: options.router,
-      context: options.context,
-      path: options.path,
-    })
+  router: TRouter | Lazy<undefined>,
+  ...rest: CreateProcedureClientRest<TRouter extends Router<infer UContext, any> ? UContext : never, undefined, unknown, TClientContext>
+): RouterClient<TRouter, TClientContext> {
+  if (isProcedure(router)) {
+    const caller = createProcedureClient(router, ...rest)
 
     return caller as any
   }
 
-  const procedureCaller = isLazy(options.router)
-    ? createProcedureClient({
-        ...options,
-        procedure: createLazyProcedureFormAnyLazy(options.router),
-        context: options.context,
-        path: options.path,
-      })
+  const procedureCaller = isLazy(router)
+    ? createProcedureClient(createLazyProcedureFormAnyLazy(router), ...rest)
     : {}
 
   const recursive = new Proxy(procedureCaller, {
@@ -70,16 +63,17 @@ export function createRouterClient<
         return Reflect.get(target, key)
       }
 
-      const next = getRouterChild(options.router, key)
+      const next = getRouterChild(router, key)
 
       if (!next) {
         return Reflect.get(target, key)
       }
 
-      return createRouterClient({
+      const [options] = rest as any
+
+      return createRouterClient(next, {
         ...options,
-        router: next,
-        path: [...(options.path ?? []), key],
+        path: [...(options?.path ?? []), key],
       })
     },
   })

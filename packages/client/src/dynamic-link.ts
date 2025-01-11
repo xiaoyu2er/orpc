@@ -1,4 +1,4 @@
-import type { ProcedureClientOptions } from '@orpc/server'
+import type { ClientOptions } from '@orpc/contract'
 import type { Promisable } from '@orpc/shared'
 import type { ClientLink } from './types'
 
@@ -16,7 +16,7 @@ export class DynamicLink<TClientContext> implements ClientLink<TClientContext> {
   ) {
   }
 
-  async call(path: readonly string[], input: unknown, options: ProcedureClientOptions<TClientContext>): Promise<unknown> {
+  async call(path: readonly string[], input: unknown, options: ClientOptions<TClientContext>): Promise<unknown> {
     // Since the context is only optional when the context is undefinable, we can safely cast it
     const resolvedLink = await this.linkResolver(path, input, options.context as TClientContext)
 

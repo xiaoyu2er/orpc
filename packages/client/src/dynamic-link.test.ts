@@ -1,4 +1,4 @@
-import type { ProcedureClientOptions } from '@orpc/server'
+import type { ClientOptions } from '@orpc/contract'
 import { describe, expect, it, vi } from 'vitest'
 import { DynamicLink } from './dynamic-link'
 
@@ -10,7 +10,7 @@ describe('dynamicLink', () => {
 
     const path = ['users', 'getProfile']
     const input = { id: 123 }
-    const options: ProcedureClientOptions<any> = {
+    const options: ClientOptions<any> = {
       context: {
         batch: true,
       },

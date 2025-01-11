@@ -3,16 +3,12 @@ import type { Hooks, Value } from '@orpc/shared'
 import type { Lazyable } from './lazy'
 import type { MiddlewareNextFn } from './middleware'
 import type { ANY_PROCEDURE, Procedure, ProcedureHandlerOptions } from './procedure'
-import type { AbortSignal, Context, Meta } from './types'
+import type { Context, Meta } from './types'
 import { ORPCError, validateORPCError, ValidationError } from '@orpc/contract'
 import { executeWithHooks, toError, value } from '@orpc/shared'
 import { createORPCErrorConstructorMap } from './error'
 import { unlazy } from './lazy'
 import { mergeContext } from './utils'
-
-export type ProcedureClientOptions<TClientContext> =
-  & { signal?: AbortSignal }
-  & (undefined extends TClientContext ? { context?: TClientContext } : { context: TClientContext })
 
 export type ProcedureClient<TClientContext, TInput, TOutput, TError extends Error> = Client<TClientContext, TInput, TOutput, TError>
 
@@ -21,28 +17,30 @@ export type ProcedureClient<TClientContext, TInput, TOutput, TError extends Erro
  */
 export type CreateProcedureClientOptions<
   TContext extends Context,
-  TInputSchema extends Schema,
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
-  TErrorMap extends ErrorMap,
+  TClientContext,
 > =
   & {
-    procedure: Lazyable<Procedure<TContext, any, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>>
-
     /**
      * This is helpful for logging and analytics.
-     *
-     * @internal
      */
     path?: string[]
   }
-  & ({
-    /**
-     * The context used when calling the procedure.
-     */
-    context: Value<TContext>
-  } | (undefined extends TContext ? { context?: undefined } : never))
+  & (
+    | { context: Value<TContext, [clientContext: TClientContext]> }
+    | (undefined extends TContext ? { context?: Value<TContext, [clientContext: TClientContext]> } : never)
+  )
   & Hooks<unknown, SchemaOutput<TOutputSchema, THandlerOutput>, TContext, Meta>
+
+export type CreateProcedureClientRest<
+  TContext extends Context,
+  TOutputSchema extends Schema,
+  THandlerOutput extends SchemaInput<TOutputSchema>,
+  TClientContext,
+> =
+  | [options: CreateProcedureClientOptions<TContext, TOutputSchema, THandlerOutput, TClientContext>]
+  | (undefined extends TContext ? [] : never)
 
 export function createProcedureClient<
   TContext extends Context,
@@ -50,13 +48,15 @@ export function createProcedureClient<
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
   TErrorMap extends ErrorMap,
+  TClientContext,
 >(
-  options: CreateProcedureClientOptions<TContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>,
-): ProcedureClient<unknown, SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, THandlerOutput>, ErrorFromErrorMap<TErrorMap>> {
+  lazyableProcedure: Lazyable<Procedure<TContext, any, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>>,
+  ...[options]: CreateProcedureClientRest<TContext, TOutputSchema, THandlerOutput, TClientContext>
+): ProcedureClient<TClientContext, SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, THandlerOutput>, ErrorFromErrorMap<TErrorMap>> {
   return async (...[input, callerOptions]) => {
-    const path = options.path ?? []
-    const { default: procedure } = await unlazy(options.procedure)
-    const context = await value(options.context) as TContext
+    const path = options?.path ?? []
+    const { default: procedure } = await unlazy(lazyableProcedure)
+    const context = await value(options?.context, callerOptions?.context) as TContext
 
     const meta: Meta = {
       path,

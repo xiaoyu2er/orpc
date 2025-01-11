@@ -3,86 +3,61 @@ title: Caller/Client
 description: Make your procedures callable in oRPC.
 ---
 
-## Direct Procedure Calls
-
-You can directly call a procedure if its [Global Context](/docs/server/global-context) can accept `undefined`.
-For security reasons, context cannot be passed when invoking such procedures directly.
+## Make procedures callable with `.callable()`
 
 ```ts twoslash
-import { os, createProcedureClient } from '@orpc/server'
+import { os } from '@orpc/server'
 import { z } from 'zod'
 
-// ❌ Cannot call this procedure directly because undefined is not assignable to 'Context'
-const e1 = os.context<{ auth: boolean }>().handler(() => 'pong')
-// @errors: 2349
-e1() // Error: Procedure 'e1' cannot be called directly
+export const getting = os
+  .input(z.object({
+    name: z.string(),
+  }))
+  .output(z.string())
+  .handler(async ({ input }) => {
+    return `Hello ${input.name}`
+  })
+  .callable()
 
-// ✅ Can call this procedure directly because undefined is assignable to 'Context'
-const e2 = os.context<{ auth: boolean } | undefined>().handler(() => 'pong')
-const o2 = await e2() // Ok, output is 'pong'
-
-// ✅ Can call this procedure directly because undefined is assignable to 'Context'
-const getting = os.input(z.object({ name: z.string() })).handler(({ input }) => `Hello, ${input.name}!`)
-
-const router = os.router({
-    getting
-})
-
-// call directly
-const output = await getting({ name: 'World' }) // output is 'Hello, World!'
-// or through router
-const output_ = await router.getting({ name: 'World' }) // output is 'Hello, World!'
+// use it like a regular function
+const output = await getting({ name: 'Unnoq' })
 ```
 
-## Calling Procedures with Context
-
-For context-sensitive calls, use a Procedure Client. 
-A Procedure Client securely provides the required context during invocation.
+## use `call` helper function
 
 ```ts twoslash
-import { os, createProcedureClient } from '@orpc/server'
+import { call } from '@orpc/server'
+import { os } from '@orpc/server'
+import { z } from 'zod'
 
-type Context = { user?: { id: string } }
+export const getting = os
+  .input(z.object({
+    name: z.string(),
+  }))
+  .output(z.string())
+  .handler(async ({ input }) => {
+    return `Hello ${input.name}`
+  })
 
-const getting = os.context<Context>().handler(() => 'pong')
-
-const gettingClient = createProcedureClient({
-    procedure: getting,
-    context: async () => {
-        // you can access headers, cookies, etc. here to create context
-        return { user: { id: 'example' } }
-    },
-})
-
-const output = await gettingClient() // output is 'pong'
+// call a procedure without creating a client
+const output = await call(getting, { name: 'Unnoq' })
 ```
 
-Now, you can provide context when invoking a procedure. 
-Additionally, you can use `gettingClient` as a [Server Action](/docs/server/server-action).
-
-## Calling Routers with Shared Context
+## Use `createRouterClient` or `createProcedureClient`
 
 To call multiple procedures with shared context, use a `Router Client`.
 
 ```ts twoslash
-import { os, createRouterClient } from '@orpc/server'
+import { os, createRouterClient, createProcedureClient } from '@orpc/server'
 
 const router = os.router({
     ping: os.handler(() => 'pong')
 })
 
-const client = createRouterClient({
-    router: router,
-    context: {},
-})
+const client = createRouterClient(router)
 
 const result = await client.ping() // result is 'pong'
+
+const pingClient = createProcedureClient(router.ping)
+const result2 = await pingClient() // result is 'pong'
 ```
-
-## Summary
-
-- **Direct Calls:** Use when no context is required, or the context accepts `undefined`.
-- **Procedure Client:** Use for securely calling a single procedure with a specific context.
-- **Router Client:** Use for securely calling multiple procedures with shared context.
-
-oRPC provides flexible and secure ways to invoke procedures tailored to your application needs.

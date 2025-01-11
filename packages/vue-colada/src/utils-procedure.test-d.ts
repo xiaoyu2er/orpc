@@ -1,4 +1,5 @@
-import type { ORPCError, ProcedureClient } from '@orpc/server'
+import type { Client } from '@orpc/contract'
+import type { ORPCError } from '@orpc/server'
 import type { QueryOptions } from './types'
 import type { ProcedureUtils } from './utils-procedure'
 import { useMutation, useQuery } from '@pinia/colada'
@@ -6,10 +7,10 @@ import { ref } from 'vue'
 import { createProcedureUtils } from './utils-procedure'
 
 describe('queryOptions', () => {
-  const client = {} as ProcedureClient<undefined, number | undefined, string | undefined, Error>
+  const client = {} as Client<undefined, number | undefined, string | undefined, Error>
   const utils = createProcedureUtils(client, [])
 
-  const client2 = {} as ProcedureClient<undefined, number, string, Error>
+  const client2 = {} as Client<undefined, number, string, Error>
   const utils2 = createProcedureUtils(client2, [])
 
   it('infer correct input type', () => {
@@ -75,7 +76,7 @@ describe('queryOptions', () => {
 })
 
 describe('mutationOptions', () => {
-  const client = {} as ProcedureClient<undefined, number, string, Error>
+  const client = {} as Client<undefined, number, string, Error>
   const utils = createProcedureUtils(client, [])
 
   it('infer correct input type', () => {

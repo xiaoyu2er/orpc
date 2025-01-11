@@ -30,6 +30,8 @@ export const updateUser = os
 		// or throw
 		throw errors.NOT_FOUND({ data: { why: 'some reason' } })
 	})
+	.callable() // make this work like a regular function
+	.actionable() // like .callable but compatible with server action
 ```
 
 > Only the `.handler` method is required. All other chain methods are optional.

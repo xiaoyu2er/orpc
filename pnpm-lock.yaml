@@ -243,9 +243,6 @@ importers:
       '@orpc/contract':
         specifier: workspace:*
         version: link:../contract
-      '@orpc/server':
-        specifier: workspace:*
-        version: link:../server
       '@orpc/shared':
         specifier: workspace:*
         version: link:../shared
@@ -323,9 +320,6 @@ importers:
       '@orpc/contract':
         specifier: workspace:*
         version: link:../contract
-      '@orpc/server':
-        specifier: workspace:*
-        version: link:../server
       '@tanstack/vue-query':
         specifier: '>=5.50.0'
         version: 5.62.9(vue@3.5.13(typescript@5.7.2))

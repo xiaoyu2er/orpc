@@ -10,7 +10,13 @@ import { createORPCErrorConstructorMap } from './error'
 import { unlazy } from './lazy'
 import { mergeContext } from './utils'
 
-export type ProcedureClient<TClientContext, TInput, TOutput, TError extends Error> = Client<TClientContext, TInput, TOutput, TError>
+export type ProcedureClient<
+  TClientContext,
+  TInputSchema extends Schema,
+  TOutputSchema extends Schema,
+  THandlerOutput extends SchemaInput<TOutputSchema>,
+  TErrorMap extends ErrorMap,
+> = Client<TClientContext, SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, THandlerOutput>, ErrorFromErrorMap<TErrorMap>>
 
 /**
  * Options for creating a procedure caller with comprehensive type safety
@@ -52,7 +58,7 @@ export function createProcedureClient<
 >(
   lazyableProcedure: Lazyable<Procedure<TContext, any, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>>,
   ...[options]: CreateProcedureClientRest<TContext, TOutputSchema, THandlerOutput, TClientContext>
-): ProcedureClient<TClientContext, SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, THandlerOutput>, ErrorFromErrorMap<TErrorMap>> {
+): ProcedureClient<TClientContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap> {
   return async (...[input, callerOptions]) => {
     const path = options?.path ?? []
     const { default: procedure } = await unlazy(lazyableProcedure)

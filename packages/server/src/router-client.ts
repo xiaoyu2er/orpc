@@ -1,4 +1,3 @@
-import type { ContractProcedure, ContractRouter, ErrorFromErrorMap, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Hooks, Value } from '@orpc/shared'
 import type { Lazy } from './lazy'
 import type { Procedure } from './procedure'
@@ -13,20 +12,15 @@ import { type ANY_ROUTER, getRouterChild, type Router } from './router'
 /**
  * FIXME: separate RouterClient and ContractRouterClient, don't mix them
  */
-export type RouterClient<TRouter extends ANY_ROUTER | ContractRouter, TClientContext> =
-  TRouter extends Lazy<infer U extends ANY_ROUTER | ContractRouter>
-    ? RouterClient<U, TClientContext>
-    : TRouter extends
-    | ContractProcedure<infer UInputSchema, infer UOutputSchema, infer UErrorMap>
-    | Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput, infer UErrorMap>
-      ? ProcedureClient<TClientContext, SchemaInput<UInputSchema>, SchemaOutput<UOutputSchema, UFuncOutput>, ErrorFromErrorMap<UErrorMap>>
-      : {
-          [K in keyof TRouter]: TRouter[K] extends ANY_ROUTER | ContractRouter ? RouterClient<TRouter[K], TClientContext> : never
-        }
+export type RouterClient<TRouter extends ANY_ROUTER, TClientContext> = TRouter extends Lazy<infer U extends ANY_ROUTER>
+  ? RouterClient<U, TClientContext>
+  : TRouter extends Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput, infer UErrorMap>
+    ? ProcedureClient<TClientContext, UInputSchema, UOutputSchema, UFuncOutput, UErrorMap>
+    : {
+        [K in keyof TRouter]: TRouter[K] extends ANY_ROUTER ? RouterClient<TRouter[K], TClientContext> : never
+      }
 
-export type CreateRouterClientOptions<
-  TRouter extends ANY_ROUTER,
-> =
+export type CreateRouterClientOptions<TRouter extends ANY_ROUTER> =
   & {
     /**
      * This is helpful for logging and analytics.

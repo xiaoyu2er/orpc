@@ -1,3 +1,4 @@
+import type { ContractRouterClient } from '@orpc/contract'
 import type { RouterClient } from '@orpc/server'
 import type { GeneralUtils } from './utils-general'
 import type { ProcedureUtils } from './utils-procedure'
@@ -25,7 +26,7 @@ const router = os.contract(contractRouter).router({
 
 describe('with contract router', () => {
   it('build correct types', () => {
-    const utils = createRouterUtils({} as RouterClient<typeof contractRouter, unknown>)
+    const utils = createRouterUtils({} as ContractRouterClient<typeof contractRouter, unknown>)
 
     const generalUtils = createGeneralUtils([])
     const pingUtils = createProcedureUtils(ping, [])

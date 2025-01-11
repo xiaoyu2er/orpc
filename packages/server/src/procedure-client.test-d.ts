@@ -1,4 +1,4 @@
-import type { ORPCError } from '@orpc/contract'
+import type { Client, ORPCError } from '@orpc/contract'
 import type { Procedure } from './procedure'
 import type { ProcedureClient } from './procedure-client'
 import type { Meta, WELL_CONTEXT, WithSignal } from './types'
@@ -10,20 +10,33 @@ beforeEach(() => {
   vi.resetAllMocks()
 })
 
+const baseSchema = z.string().transform(v => Number(v))
+const baseErrors = {
+  CODE: {
+    data: z.object({ why: z.string().transform(v => Number(v)) }),
+  },
+}
+
+const optionalBaseSchema = baseSchema.optional()
+
 describe('ProcedureClient', () => {
-  const fn: ProcedureClient<unknown, string, number, Error> = async (...[input, options]) => {
+  const fn: ProcedureClient<unknown, typeof baseSchema, typeof baseSchema, string, typeof baseErrors> = async (...[input, options]) => {
     expectTypeOf(input).toEqualTypeOf<string>()
     expectTypeOf(options).toEqualTypeOf<(WithSignal & { context?: unknown }) | undefined>()
     return 123
   }
 
-  const fnWithOptionalInput: ProcedureClient<unknown, string | undefined, number, Error> = async (...args) => {
+  const fnWithOptionalInput: ProcedureClient<unknown, typeof optionalBaseSchema, typeof baseSchema, string, typeof baseErrors> = async (...args) => {
     const [input, options] = args
 
     expectTypeOf(input).toEqualTypeOf<string | undefined>()
     expectTypeOf(options).toEqualTypeOf<(WithSignal & { context?: unknown }) | undefined>()
     return 123
   }
+
+  it('just a client', () => {
+    expectTypeOf(fn).toEqualTypeOf<Client<unknown, string, number, Error | ORPCError<'CODE', { why: number }>>>()
+  })
 
   it('just a function', () => {
     expectTypeOf(fn).toMatchTypeOf<(input: string, options: WithSignal & { context?: unknown }) => Promise<number>>()
@@ -63,31 +76,31 @@ describe('ProcedureClient', () => {
 
   describe('context', () => {
     it('can accept context', () => {
-      const client = {} as ProcedureClient<{ userId: string }, { val: string }, { val: number }, Error>
+      const client = {} as ProcedureClient<{ userId: string }, typeof baseSchema, typeof baseSchema, string, typeof baseErrors>
 
-      client({ val: '123' }, { context: { userId: '123' } })
+      client('input', { context: { userId: '123' } })
       // @ts-expect-error - invalid context
-      client({ val: '123' }, { context: { userId: 123 } })
+      client('input', { context: { userId: 123 } })
       // @ts-expect-error - context is required
-      client({ val: '123' })
+      client('input')
     })
 
     it('optional options when context is optional', () => {
-      const client = {} as ProcedureClient<undefined | { userId: string }, { val: string }, { val: number }, Error>
+      const client = {} as ProcedureClient<undefined | { userId: string }, typeof baseSchema, typeof baseSchema, string, typeof baseErrors>
 
-      client({ val: '123' })
-      client({ val: '123' }, { context: { userId: '123' } })
+      client('input')
+      client('input', { context: { userId: '123' } })
     })
 
     it('can call without args when both input and context are optional', () => {
-      const client = {} as ProcedureClient<undefined | { userId: string }, undefined | { val: string }, { val: number }, Error>
+      const client = {} as ProcedureClient<undefined | { userId: string }, typeof optionalBaseSchema, typeof baseSchema, string, typeof baseErrors>
 
       client()
-      client({ val: 'string' }, { context: { userId: '123' } })
+      client('input', { context: { userId: '123' } })
       // @ts-expect-error - input is invalid
-      client({ val: 123 }, { context: { userId: '123' } })
+      client(123, { context: { userId: '123' } })
       // @ts-expect-error - context is invalid
-      client({ val: '123' }, { context: { userId: 123 } })
+      client('input', { context: { userId: 123 } })
     })
   })
 })
@@ -105,7 +118,7 @@ describe('createProcedureClient', () => {
   it('just a client', () => {
     const client = createProcedureClient(procedure)
 
-    expectTypeOf(client).toEqualTypeOf<ProcedureClient<unknown, { val: string }, { val: number }, Error | ORPCError<'CODE', { why: number }>>>()
+    expectTypeOf(client).toEqualTypeOf<ProcedureClient<unknown, typeof schema, typeof schema, { val: string }, typeof baseErrors>>()
   })
 
   it('context can be optional and can be a sync or async function', () => {
@@ -226,5 +239,5 @@ it('support lazy procedure', () => {
     },
   })
 
-  expectTypeOf(client).toEqualTypeOf<ProcedureClient<unknown, { val: string }, { val: number }, Error>>()
+  expectTypeOf(client).toEqualTypeOf<ProcedureClient<unknown, typeof schema, typeof schema, { val: string }, undefined>>()
 })

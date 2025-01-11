@@ -40,7 +40,7 @@ export const getting = os
   })
 
 // call a procedure without creating a client
-const output = await call(getting, 'input')
+const output = await call(getting, { name: 'Unnoq' })
 ```
 
 ## Use `createRouterClient` or `createProcedureClient`
@@ -59,5 +59,5 @@ const client = createRouterClient(router)
 const result = await client.ping() // result is 'pong'
 
 const pingClient = createProcedureClient(router.ping)
-const result = await pingClient() // result is 'pong'
+const result2 = await pingClient() // result is 'pong'
 ```

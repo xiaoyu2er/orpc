@@ -135,7 +135,7 @@ queryClient.invalidateQueries({ queryKey: orpc.posts.getPost.key({ input: { id: 
 Infinite queries require a `cursor` in the input field for pagination.
 
 ```tsx twoslash
-import { os } from '@orpc/server';
+import { os, createRouterClient } from '@orpc/server';
 import { z } from 'zod';
 import { createORPCReactQueryUtils } from '@orpc/react-query';
 import { useInfiniteQuery, useSuspenseInfiniteQuery } from '@tanstack/react-query';
@@ -152,7 +152,8 @@ const router = {
   },
 };
 
-const orpc = createORPCReactQueryUtils<typeof router>('fake-client' as any);
+const client = createRouterClient(router); // or any kind of client
+const orpc = createORPCReactQueryUtils(client);
 
 export function MyComponent() {
   const query = useInfiniteQuery(

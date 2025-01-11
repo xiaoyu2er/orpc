@@ -76,7 +76,7 @@ queryClient.invalidateQueries({ queryKey: orpc.posts.getPost.key({ input: { id: 
 Infinite queries require a `cursor` in the input field for pagination.
 
 ```ts twoslash
-import { os } from '@orpc/server';
+import { os, createRouterClient } from '@orpc/server';
 import { z } from 'zod';
 import { createORPCVueQueryUtils } from '@orpc/vue-query';
 import { useInfiniteQuery } from '@tanstack/vue-query';
@@ -92,7 +92,8 @@ const router = {
   },
 };
 
-const orpc = createORPCVueQueryUtils<typeof router>('fake-client' as any);
+const client = createRouterClient(router); // or any kind of client
+const orpc = createORPCVueQueryUtils(client);
 
 const query = useInfiniteQuery(
   orpc.user.list.infiniteOptions({

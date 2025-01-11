@@ -45,7 +45,7 @@ If your procedure only depends on `Middleware Context`, you can
 [call it](/docs/server/client) or use it as a [Server Action](/docs/server/server-action) directly.
 
 ```ts twoslash
-import { os, ORPCError } from '@orpc/server'
+import { os, ORPCError, call } from '@orpc/server'
 import { headers } from 'next/headers'
 
 const base = os.use(async ({ context, path, next }, input) => {
@@ -80,7 +80,7 @@ export const router = base.router({
 })
 
 // You can call this procedure directly without manually providing context
-const output = await router.getUser()
+const output = await call(router.getUser, null)
 
 import { ORPCHandler } from '@orpc/server/fetch'
 import { OpenAPIServerlessHandler, OpenAPIServerHandler } from '@orpc/openapi/fetch'

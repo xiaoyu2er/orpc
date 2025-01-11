@@ -70,10 +70,7 @@ const router = os.router({
     ping: os.handler(() => 'pong')
 })
 
-const client = createRouterClient({
-    router: router,
-    context: {},
-})
+const client = createRouterClient(router)
 
 const result = await client.ping() // result is 'pong'
 ```

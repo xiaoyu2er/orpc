@@ -37,7 +37,7 @@ export type InferRouterOutputs<T extends ANY_ROUTER> =
 export function getRouterChild<
   T extends ANY_ROUTER | Lazy<undefined>,
 >(router: T, ...path: string[]): T extends ANY_LAZY
-  ? Lazy<ANY_PROCEDURE | Record<string, ANY_ROUTER> | undefined>
+  ? Lazy<ANY_PROCEDURE> | Lazy<Record<string, ANY_ROUTER>> | Lazy<undefined>
   : ANY_ROUTER | Lazy<undefined> | undefined {
   let current: ANY_ROUTER | Lazy<undefined> | undefined = router
 

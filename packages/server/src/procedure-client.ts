@@ -23,8 +23,6 @@ export type CreateProcedureClientOptions<
   & {
     /**
      * This is helpful for logging and analytics.
-     *
-     * @internal
      */
     path?: string[]
   }

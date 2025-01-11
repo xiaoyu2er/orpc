@@ -215,6 +215,33 @@ describe('self chainable', () => {
       expect(applied['~orpc'].middlewares).toEqual([mid, mid2])
     })
   })
+
+  describe('actionable', () => {
+    it('works', () => {
+      const actionable = decorated.actionable({
+        context: { auth: true },
+      })
+
+      expect(actionable).toBeInstanceOf(Function)
+      expect(actionable).toSatisfy(isProcedure)
+      expect(createProcedureClient).toBeCalledTimes(1)
+      expect(createProcedureClient).toBeCalledWith(decorated, {
+        context: { auth: true },
+      })
+    })
+
+    it('can chain after actionable', () => {
+      const mid2 = vi.fn()
+
+      const applied = decorated.actionable({
+        context: { auth: true },
+      }).use(mid2)
+
+      expect(applied).not.toBeInstanceOf(Function)
+      expect(applied).toSatisfy(isProcedure)
+      expect(applied['~orpc'].middlewares).toEqual([mid, mid2])
+    })
+  })
 })
 
 it('can use middleware when has no middleware', () => {

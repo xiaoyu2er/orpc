@@ -1,4 +1,4 @@
-import type { Client, ErrorFromErrorMap, ErrorMap, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { Client, ClientRest, ErrorFromErrorMap, ErrorMap, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { ORPCErrorConstructorMap } from './error'
 import type { ANY_MIDDLEWARE, MapInputMiddleware, Middleware } from './middleware'
 import type { CreateProcedureClientRest } from './procedure-client'
@@ -147,7 +147,17 @@ export class DecoratedProcedure<
    */
   callable(...rest: CreateProcedureClientRest<TContext, TOutputSchema, THandlerOutput>):
     & DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>
-    & Client<unknown, SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, THandlerOutput>, ErrorFromErrorMap<TErrorMap>> {
+    & (Client<unknown, SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, THandlerOutput>, ErrorFromErrorMap<TErrorMap>>) {
     return createCallableObject(this, createProcedureClient(this, ...rest))
+  }
+
+  /**
+   * Make this procedure compatible with server action (the same as .callable, but the type is compatible with server action).
+   * **Note**: this only takes effect when this method is called at the end of the chain.
+   */
+  actionable(...rest: CreateProcedureClientRest<TContext, TOutputSchema, THandlerOutput>):
+    & DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>
+    & ((...rest: ClientRest<unknown, SchemaInput<TInputSchema>>) => Promise<SchemaOutput<TOutputSchema, THandlerOutput>>) {
+    return this.callable(...rest)
   }
 }

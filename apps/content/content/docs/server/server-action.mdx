@@ -1,0 +1,100 @@
+---
+title: Server Actions
+description: Leverage oRPC for type-safe and powerful server actions
+---
+
+Server Actions in oRPC allow you to define type-safe server-side procedures that can be seamlessly invoked from client applications. 
+To enable a procedure as a server action, you need to call the `.actionable()` method.
+
+## Basic Usage
+
+To make a procedure compatible with server actions, use `.actionable()` as shown below:
+
+```ts twoslash
+'use server'
+
+import { os } from '@orpc/server'
+import { z } from 'zod'
+
+export const getting = os
+  .input(z.object({
+    name: z.string(),
+  }))
+  .output(z.string())
+  .handler(async ({ input }) => {
+    return `Hello ${input.name}`
+  })
+  .actionable()
+
+// from client just call it as a function
+const onClick = async () => {
+  const result = await getting({ name: 'Unnoq' })
+  alert(result)
+}
+```
+
+## Passing Context via `.actionable()`
+
+When calling `.actionable()`, you can pass a context function that provides additional information for the procedure:
+
+```ts twoslash
+'use server'
+
+import { os } from '@orpc/server'
+import { z } from 'zod'
+
+const pub = os.context<{ db: string } | undefined>()
+
+export const getting = pub
+  .input(z.object({
+    name: z.string(),
+  }))
+  .output(z.string())
+  .handler(async ({ input, context }) => {
+    // ^ context is fully typed
+    return `Hello ${input.name}`
+  })
+  .actionable({
+    context: async () => { // or just pass context directly
+      return { db: 'postgres' }
+    },
+  })
+```
+
+## Using Middleware to Inject Context
+
+Middleware can be used to inject context dynamically before the procedure is executed:
+
+```ts twoslash
+'use server'
+
+import { ORPCError, os } from '@orpc/server'
+import { headers } from 'next/headers'
+import { z } from 'zod'
+
+const authed = os.use(async ({ next }) => {
+  const headersList = await headers()
+  const user = headersList.get('Authorization') ? { id: 'example' } : undefined
+
+  if (!user) {
+    throw new ORPCError({ code: 'UNAUTHORIZED' })
+  }
+
+  return next({
+    context: {
+      user,
+    },
+  })
+})
+
+export const getting = authed
+  .input(z.object({
+    name: z.string(),
+  }))
+  .output(z.string())
+  .handler(async ({ input, context }) => {
+    // ^ context is fully typed
+    return `Hello ${input.name}`
+  })
+  .actionable()
+```

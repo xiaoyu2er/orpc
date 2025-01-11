@@ -145,9 +145,9 @@ export class DecoratedProcedure<
    * Make this procedure callable (works like a function while still being a procedure).
    * **Note**: this only takes effect when this method is called at the end of the chain.
    */
-  callable(...rest: CreateProcedureClientRest<TContext, TOutputSchema, THandlerOutput>):
+  callable<TClientContext>(...rest: CreateProcedureClientRest<TContext, TOutputSchema, THandlerOutput, TClientContext>):
     & DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>
-    & (Client<unknown, SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, THandlerOutput>, ErrorFromErrorMap<TErrorMap>>) {
+    & (Client<TClientContext, SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, THandlerOutput>, ErrorFromErrorMap<TErrorMap>>) {
     return createCallableObject(this, createProcedureClient(this, ...rest))
   }
 
@@ -155,9 +155,9 @@ export class DecoratedProcedure<
    * Make this procedure compatible with server action (the same as .callable, but the type is compatible with server action).
    * **Note**: this only takes effect when this method is called at the end of the chain.
    */
-  actionable(...rest: CreateProcedureClientRest<TContext, TOutputSchema, THandlerOutput>):
+  actionable<TClientContext>(...rest: CreateProcedureClientRest<TContext, TOutputSchema, THandlerOutput, TClientContext>):
     & DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>
-    & ((...rest: ClientRest<unknown, SchemaInput<TInputSchema>>) => Promise<SchemaOutput<TOutputSchema, THandlerOutput>>) {
+    & ((...rest: ClientRest<TClientContext, SchemaInput<TInputSchema>>) => Promise<SchemaOutput<TOutputSchema, THandlerOutput>>) {
     return this.callable(...rest)
   }
 }

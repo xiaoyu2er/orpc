@@ -360,6 +360,22 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
       expect(validateORPCError).toBeCalledWith(baseErrors, e1)
     })
   })
+
+  it('with client context', async () => {
+    const context = vi.fn()
+    const client = createProcedureClient(procedure, {
+      context,
+    })
+
+    await client({ val: '123' })
+    expect(context).toBeCalledTimes(1)
+    expect(context).toBeCalledWith(undefined)
+
+    context.mockClear()
+    await client({ val: '123' }, { context: { cache: true } })
+    expect(context).toBeCalledTimes(1)
+    expect(context).toBeCalledWith({ cache: true })
+  })
 })
 
 it('still work without middleware', async () => {

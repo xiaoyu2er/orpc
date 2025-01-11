@@ -125,4 +125,17 @@ describe('createRouterClient', () => {
       path: [123],
     })
   })
+
+  it('with client context', () => {
+    const client = createRouterClient(router, {
+      context: async (clientContext: { cache?: boolean } | undefined) => {
+        return { auth: true }
+      },
+    })
+
+    client.ping({ val: '123' })
+    client.ping({ val: '123' }, { context: { cache: true } })
+    // @ts-expect-error - invalid context
+    client.ping({ val: '123' }, { context: { cache: '123' } })
+  })
 })

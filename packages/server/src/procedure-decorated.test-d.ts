@@ -201,23 +201,23 @@ describe('self chainable', () => {
 
   it('callable', () => {
     const callable = decorated.callable({
-      context: { auth: true },
+      context: async (clientContext: 'something') => ({ auth: true }),
     })
 
     expectTypeOf(callable).toEqualTypeOf<
       & DecoratedProcedure<{ auth: boolean }, { db: string }, typeof baseSchema, typeof baseSchema, { val: string }, typeof baseErrors>
-      & Client<unknown, { val: string }, { val: number }, Error | ORPCError<'CODE', { why: string }>>
+      & Client<'something', { val: string }, { val: number }, Error | ORPCError<'CODE', { why: string }>>
     >()
   })
 
   it('actionable', () => {
     const actionable = decorated.actionable({
-      context: { auth: true },
+      context: async (clientContext: 'something') => ({ auth: true }),
     })
 
     expectTypeOf(actionable).toEqualTypeOf<
       & DecoratedProcedure<{ auth: boolean }, { db: string }, typeof baseSchema, typeof baseSchema, { val: string }, typeof baseErrors>
-      & ((...rest: ClientRest<unknown, { val: string }>) => Promise<{ val: number }>)
+      & ((...rest: ClientRest<'something', { val: string }>) => Promise<{ val: number }>)
     >()
   })
 })

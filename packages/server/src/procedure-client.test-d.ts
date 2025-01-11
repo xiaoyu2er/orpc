@@ -195,6 +195,19 @@ describe('createProcedureClient', () => {
       path: [123],
     })
   })
+
+  it('with client context', () => {
+    const client = createProcedureClient(procedure, {
+      context: async (clientContext: { cache?: boolean } | undefined) => {
+        return {}
+      },
+    })
+
+    client({ val: '123' })
+    client({ val: '123' }, { context: { cache: true } })
+    // @ts-expect-error - invalid context
+    client({ val: '123' }, { context: { cache: '123' } })
+  })
 })
 
 it('support lazy procedure', () => {

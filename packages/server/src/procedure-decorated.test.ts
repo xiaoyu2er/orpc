@@ -191,16 +191,14 @@ describe('self chainable', () => {
 
   describe('callable', () => {
     it('works', () => {
-      const callable = decorated.callable({
-        context: { auth: true },
-      })
+      const options = { context: { auth: true } }
+
+      const callable = decorated.callable(options)
 
       expect(callable).toBeInstanceOf(Function)
       expect(callable).toSatisfy(isProcedure)
       expect(createProcedureClient).toBeCalledTimes(1)
-      expect(createProcedureClient).toBeCalledWith(decorated, {
-        context: { auth: true },
-      })
+      expect(createProcedureClient).toBeCalledWith(decorated, options)
     })
 
     it('can chain after callable', () => {
@@ -218,16 +216,13 @@ describe('self chainable', () => {
 
   describe('actionable', () => {
     it('works', () => {
-      const actionable = decorated.actionable({
-        context: { auth: true },
-      })
+      const options = { context: { auth: true } }
+      const actionable = decorated.actionable(options)
 
       expect(actionable).toBeInstanceOf(Function)
       expect(actionable).toSatisfy(isProcedure)
       expect(createProcedureClient).toBeCalledTimes(1)
-      expect(createProcedureClient).toBeCalledWith(decorated, {
-        context: { auth: true },
-      })
+      expect(createProcedureClient).toBeCalledWith(decorated, options)
     })
 
     it('can chain after actionable', () => {

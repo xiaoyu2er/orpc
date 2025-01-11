@@ -42,10 +42,11 @@ export type CreateRouterClientOptions<
 
 export function createRouterClient<
   TRouter extends ANY_ROUTER,
+  TClientContext,
 >(
   router: TRouter | Lazy<undefined>,
-  ...rest: CreateProcedureClientRest<TRouter extends Router<infer UContext, any> ? UContext : never, undefined, unknown>
-): RouterClient<TRouter, unknown> {
+  ...rest: CreateProcedureClientRest<TRouter extends Router<infer UContext, any> ? UContext : never, undefined, unknown, TClientContext>
+): RouterClient<TRouter, TClientContext> {
   if (isProcedure(router)) {
     const caller = createProcedureClient(router, ...rest)
 

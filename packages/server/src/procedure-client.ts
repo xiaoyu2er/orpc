@@ -19,6 +19,7 @@ export type CreateProcedureClientOptions<
   TContext extends Context,
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
+  TClientContext,
 > =
   & {
     /**
@@ -26,20 +27,19 @@ export type CreateProcedureClientOptions<
      */
     path?: string[]
   }
-  & ({
-    /**
-     * The context used when calling the procedure.
-     */
-    context: Value<TContext>
-  } | (undefined extends TContext ? { context?: undefined } : never))
+  & (
+    | { context: Value<TContext, [clientContext: TClientContext]> }
+    | (undefined extends TContext ? { context?: Value<TContext, [clientContext: TClientContext]> } : never)
+  )
   & Hooks<unknown, SchemaOutput<TOutputSchema, THandlerOutput>, TContext, Meta>
 
 export type CreateProcedureClientRest<
   TContext extends Context,
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
+  TClientContext,
 > =
-  | [options: CreateProcedureClientOptions<TContext, TOutputSchema, THandlerOutput>]
+  | [options: CreateProcedureClientOptions<TContext, TOutputSchema, THandlerOutput, TClientContext>]
   | (undefined extends TContext ? [] : never)
 
 export function createProcedureClient<
@@ -48,14 +48,15 @@ export function createProcedureClient<
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
   TErrorMap extends ErrorMap,
+  TClientContext,
 >(
   lazyableProcedure: Lazyable<Procedure<TContext, any, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>>,
-  ...[options]: CreateProcedureClientRest<TContext, TOutputSchema, THandlerOutput>
-): ProcedureClient<unknown, SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, THandlerOutput>, ErrorFromErrorMap<TErrorMap>> {
+  ...[options]: CreateProcedureClientRest<TContext, TOutputSchema, THandlerOutput, TClientContext>
+): ProcedureClient<TClientContext, SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, THandlerOutput>, ErrorFromErrorMap<TErrorMap>> {
   return async (...[input, callerOptions]) => {
     const path = options?.path ?? []
     const { default: procedure } = await unlazy(lazyableProcedure)
-    const context = await value(options?.context) as TContext
+    const context = await value(options?.context, callerOptions?.context) as TContext
 
     const meta: Meta = {
       path,

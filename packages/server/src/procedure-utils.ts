@@ -23,7 +23,7 @@ export function call<
 >(
   procedure: Lazyable<Procedure<TContext, any, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>>,
   input: SchemaInput<TInputSchema>,
-  ...rest: CreateProcedureClientRest<TContext, TOutputSchema, THandlerOutput>
+  ...rest: CreateProcedureClientRest<TContext, TOutputSchema, THandlerOutput, unknown>
 ): ClientPromiseResult<SchemaOutput<TOutputSchema, THandlerOutput>, ErrorFromErrorMap<TErrorMap>> {
   return createProcedureClient(procedure, ...rest)(input)
 }

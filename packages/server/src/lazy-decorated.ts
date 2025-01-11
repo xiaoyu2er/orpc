@@ -23,8 +23,7 @@ export type DecoratedLazy<T> = T extends Lazy<infer U>
 export function decorateLazy<T extends Lazy<ANY_ROUTER | undefined>>(lazied: T): DecoratedLazy<T> {
   const flattenLazy = flatLazy(lazied)
 
-  const procedureProcedureClient = createProcedureClient({
-    procedure: createLazyProcedureFormAnyLazy(flattenLazy),
+  const procedureProcedureClient = createProcedureClient(createLazyProcedureFormAnyLazy(flattenLazy), {
     context: undefined,
   })
 

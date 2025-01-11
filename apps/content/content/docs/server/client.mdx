@@ -46,8 +46,7 @@ type Context = { user?: { id: string } }
 
 const getting = os.context<Context>().handler(() => 'pong')
 
-const gettingClient = createProcedureClient({
-    procedure: getting,
+const gettingClient = createProcedureClient(getting, {
     context: async () => {
         // you can access headers, cookies, etc. here to create context
         return { user: { id: 'example' } }

@@ -169,6 +169,6 @@ describe('createRouterClient', () => {
     })
 
     expect(client.ping({ val: '123' })).toEqual('__mocked__')
-    expect(vi.mocked(createProcedureClient).mock.calls[0]![0].path).toEqual(['ping'])
+    expect(vi.mocked(createProcedureClient).mock.calls[0]![1]!.path).toEqual(['ping'])
   })
 })

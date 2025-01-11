@@ -1,8 +1,8 @@
-import type { ProcedureClientOptions } from '@orpc/server'
+import type { ClientOptions, HTTPMethod } from '@orpc/contract'
 import type { Promisable } from '@orpc/shared'
 import type { ClientLink } from '../../types'
 import type { FetchWithContext } from './types'
-import { type HTTPMethod, ORPCError } from '@orpc/contract'
+import { ORPCError } from '@orpc/contract'
 import { ORPCPayloadCodec, type PublicORPCPayloadCodec } from '@orpc/server/fetch'
 import { ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE, trim } from '@orpc/shared'
 
@@ -66,7 +66,7 @@ export class ORPCLink<TClientContext> implements ClientLink<TClientContext> {
     }
   }
 
-  async call(path: readonly string[], input: unknown, options: ProcedureClientOptions<TClientContext>): Promise<unknown> {
+  async call(path: readonly string[], input: unknown, options: ClientOptions<TClientContext>): Promise<unknown> {
     // clientContext only undefined when context is undefinable so we can safely cast it
     const clientContext = options.context as typeof options.context & { context: TClientContext }
     const encoded = await this.encode(path, input, options)
@@ -96,7 +96,7 @@ export class ORPCLink<TClientContext> implements ClientLink<TClientContext> {
     return decoded
   }
 
-  private async encode(path: readonly string[], input: unknown, options: ProcedureClientOptions<TClientContext>): Promise<{
+  private async encode(path: readonly string[], input: unknown, options: ClientOptions<TClientContext>): Promise<{
     url: URL
     method: HTTPMethod
     headers: Headers

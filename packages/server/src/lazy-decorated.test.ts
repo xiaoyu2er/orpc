@@ -74,8 +74,8 @@ describe('decorated lazy', () => {
         procedure: expect.any(Object),
         context: undefined,
       })
-      expect(vi.mocked(createProcedureClient).mock.calls[0]![0].procedure).toSatisfy(isLazy)
-      expect(unlazy(vi.mocked(createProcedureClient).mock.calls[0]![0].procedure as any)).rejects.toThrow('Expected a lazy<procedure> but got lazy<unknown>')
+      expect(vi.mocked(createProcedureClient).mock.calls[0]![0]).toSatisfy(isLazy)
+      expect(unlazy(vi.mocked(createProcedureClient).mock.calls[0]![0] as any)).rejects.toThrow('Expected a lazy<procedure> but got lazy<unknown>')
 
       expect(await decorated({ val: '1' }, { signal })).toBe('__mocked__')
       expect(caller).toHaveBeenCalledTimes(1)
@@ -91,8 +91,8 @@ describe('decorated lazy', () => {
         procedure: expect.any(Object),
         context: undefined,
       })
-      expect(vi.mocked(createProcedureClient).mock.calls[2]![0].procedure).toSatisfy(isLazy)
-      const unwrapped = await unlazy(vi.mocked(createProcedureClient).mock.calls[2]![0].procedure as any)
+      expect(vi.mocked(createProcedureClient).mock.calls[2]![0]).toSatisfy(isLazy)
+      const unwrapped = await unlazy(vi.mocked(createProcedureClient).mock.calls[2]![0] as any)
       expect(unwrapped.default).toBe(ping)
 
       expect(await decorated({ val: '1' }, { signal })).toBe('__mocked__')

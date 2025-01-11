@@ -67,9 +67,8 @@ export class OpenAPIHandler<T extends Context> implements FetchHandler<T> {
 
       const coercedInput = this.compositeSchemaCoercer.coerce(contractDef.InputSchema, input)
 
-      const client = createProcedureClient({
+      const client = createProcedureClient(matched.procedure, {
         context,
-        procedure: matched.procedure,
         path: matched.path,
       })
 

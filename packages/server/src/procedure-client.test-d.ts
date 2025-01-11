@@ -103,66 +103,54 @@ describe('createProcedureClient', () => {
   const procedureWithContext = {} as Procedure<{ userId?: string }, { db: string }, typeof schema, typeof schema, { val: string }, undefined>
 
   it('just a client', () => {
-    const client = createProcedureClient({
-      procedure,
-    })
+    const client = createProcedureClient(procedure)
 
     expectTypeOf(client).toEqualTypeOf<ProcedureClient<unknown, { val: string }, { val: number }, Error | ORPCError<'CODE', { why: number }>>>()
   })
 
   it('context can be optional and can be a sync or async function', () => {
-    createProcedureClient({
-      procedure,
-    })
+    createProcedureClient(procedure)
 
-    createProcedureClient({
-      procedure,
+    createProcedureClient(procedure, {
       context: undefined,
     })
 
     // @ts-expect-error - missing context
-    createProcedureClient({
-      procedure: procedureWithContext,
-    })
+    createProcedureClient(procedureWithContext)
 
-    createProcedureClient({
-      procedure: procedureWithContext,
+    // @ts-expect-error - missing context
+    createProcedureClient(procedureWithContext, {})
+
+    createProcedureClient(procedureWithContext, {
       context: { userId: '123' },
     })
 
-    createProcedureClient({
-      procedure: procedureWithContext,
+    createProcedureClient(procedureWithContext, {
       // @ts-expect-error invalid context
       context: { userId: 123 },
     })
 
-    createProcedureClient({
-      procedure: procedureWithContext,
+    createProcedureClient(procedureWithContext, {
       context: () => ({ userId: '123' }),
     })
 
-    createProcedureClient({
-      procedure: procedureWithContext,
+    createProcedureClient(procedureWithContext, {
       // @ts-expect-error invalid context
       context: () => ({ userId: 123 }),
     })
 
-    createProcedureClient({
-      procedure: procedureWithContext,
+    createProcedureClient(procedureWithContext, {
       context: async () => ({ userId: '123' }),
     })
 
-    createProcedureClient({
-      procedure: procedureWithContext,
+    createProcedureClient(procedureWithContext, {
       // @ts-expect-error invalid context
       context: async () => ({ userId: 123 }),
     })
   })
 
   it('accept hooks', () => {
-    createProcedureClient({
-      procedure,
-
+    createProcedureClient(procedure, {
       async interceptor(input, context, meta) {
         expectTypeOf(input).toEqualTypeOf<unknown>()
         expectTypeOf(context).toEqualTypeOf<WELL_CONTEXT>()
@@ -198,14 +186,12 @@ describe('createProcedureClient', () => {
   })
 
   it('accept paths', () => {
-    createProcedureClient({
-      procedure,
+    createProcedureClient(procedure, {
       path: ['users'],
     })
 
-    createProcedureClient({
-      procedure,
-      // @ts-expect-error - invalid path
+    // @ts-expect-error - invalid path
+    createProcedureClient(procedure, {
       path: [123],
     })
   })
@@ -216,8 +202,7 @@ it('support lazy procedure', () => {
   const procedure = {} as Procedure<{ userId?: string }, undefined, typeof schema, typeof schema, { val: string }, undefined>
   const lazied = lazy(() => Promise.resolve({ default: procedure }))
 
-  const client = createProcedureClient({
-    procedure: lazied,
+  const client = createProcedureClient(lazied, {
     context: async () => ({ userId: 'string' }),
     path: ['users'],
 

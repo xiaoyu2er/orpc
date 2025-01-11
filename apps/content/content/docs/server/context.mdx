@@ -144,8 +144,7 @@ export async function fetch(request: Request) {
 
 // If you want to call this procedure or use as server action
 //  you must create another client with context by using `createProcedureClient` or `createRouterClient`
-const client = createProcedureClient({
-    procedure: router.getUser,
+const client = createProcedureClient(router.getUser, {
     context: async () => {
         // some logic to create context
         return { 

@@ -45,9 +45,8 @@ export function createRouterClient<
   options: CreateRouterClientOptions<TRouter>,
 ): RouterClient<TRouter, unknown> {
   if (isProcedure(options.router)) {
-    const caller = createProcedureClient({
+    const caller = createProcedureClient(options.router, {
       ...options,
-      procedure: options.router,
       context: options.context,
       path: options.path,
     })
@@ -56,9 +55,8 @@ export function createRouterClient<
   }
 
   const procedureCaller = isLazy(options.router)
-    ? createProcedureClient({
+    ? createProcedureClient(createLazyProcedureFormAnyLazy(options.router), {
         ...options,
-        procedure: createLazyProcedureFormAnyLazy(options.router),
         context: options.context,
         path: options.path,
       })

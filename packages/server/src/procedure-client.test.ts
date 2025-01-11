@@ -50,9 +50,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
   const unwrappedProcedure = isLazy(procedure) ? (await unlazy(procedure)).default : procedure
 
   it('just a client', async () => {
-    const client = createProcedureClient({
-      procedure,
-    })
+    const client = createProcedureClient(procedure)
 
     vi.mocked(createORPCErrorConstructorMap).mockReturnValueOnce('__constructors__' as any)
 
@@ -90,9 +88,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
   })
 
   it('validate input and output', () => {
-    const client = createProcedureClient({
-      procedure,
-    })
+    const client = createProcedureClient(procedure)
 
     // @ts-expect-error - invalid input
     expect(client({ val: 123 })).rejects.toThrow('Input validation failed')
@@ -103,9 +99,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
   })
 
   it('middleware can return output directly', async () => {
-    const client = createProcedureClient({
-      procedure,
-    })
+    const client = createProcedureClient(procedure)
 
     mid1.mockReturnValueOnce({ output: { val: '990' } })
 
@@ -129,10 +123,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
   })
 
   it('output from middleware still be validated', async () => {
-    const client = createProcedureClient({
-      procedure,
-      context: { userId: '123' },
-    })
+    const client = createProcedureClient(procedure)
 
     mid1.mockReturnValueOnce({ output: { val: 990 } })
     await expect(client({ val: '1234' })).rejects.toThrow('Output validation failed')
@@ -144,9 +135,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
   })
 
   it('middleware can add extra context - single', async () => {
-    const client = createProcedureClient({
-      procedure,
-    })
+    const client = createProcedureClient(procedure)
 
     mid1.mockImplementationOnce(({ next }) => {
       return next({
@@ -179,8 +168,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
   })
 
   it('middleware can override context', async () => {
-    const client = createProcedureClient({
-      procedure,
+    const client = createProcedureClient(procedure, {
       context: { userId: '123' },
     })
 
@@ -223,8 +211,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
   ] as const
 
   it.each(contextCases)('can accept context: %s', async (_, context) => {
-    const client = createProcedureClient({
-      procedure,
+    const client = createProcedureClient(procedure, {
       context,
     })
 
@@ -255,8 +242,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     const onError = vi.fn()
     const onFinish = vi.fn()
 
-    const client = createProcedureClient({
-      procedure,
+    const client = createProcedureClient(procedure, {
       context,
       path: ['users'],
       interceptor: execute,
@@ -300,8 +286,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
 
   it('accept paths', async () => {
     const onSuccess = vi.fn()
-    const client = createProcedureClient({
-      procedure,
+    const client = createProcedureClient(procedure, {
       path: ['users'],
       onSuccess,
     })
@@ -327,8 +312,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
 
     const onSuccess = vi.fn()
 
-    const client = createProcedureClient({
-      procedure,
+    const client = createProcedureClient(procedure, {
       onSuccess,
       context: { userId: '123' },
     })
@@ -349,7 +333,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
   })
 
   describe('error validation', () => {
-    const client = createProcedureClient({ procedure })
+    const client = createProcedureClient(procedure)
 
     it('transform non-error to error', () => {
       handler.mockRejectedValueOnce('non-error')
@@ -388,9 +372,7 @@ it('still work without middleware', async () => {
     handler,
   })
 
-  const client = createProcedureClient({
-    procedure,
-  })
+  const client = createProcedureClient(procedure)
 
   await expect(client({ val: '123' })).resolves.toEqual({ val: 123 })
 
@@ -408,9 +390,7 @@ it('still work without InputSchema', async () => {
     handler,
   })
 
-  const client = createProcedureClient({
-    procedure,
-  })
+  const client = createProcedureClient(procedure)
 
   await expect(client('anything')).resolves.toEqual({ val: 123 })
 
@@ -428,9 +408,7 @@ it('still work without OutputSchema', async () => {
     handler,
   })
 
-  const client = createProcedureClient({
-    procedure,
-  })
+  const client = createProcedureClient(procedure)
 
   // @ts-expect-error - without output schema
   handler.mockReturnValueOnce('anything')
@@ -442,9 +420,7 @@ it('still work without OutputSchema', async () => {
 })
 
 it('has helper `output` in meta', async () => {
-  const client = createProcedureClient({
-    procedure,
-  })
+  const client = createProcedureClient(procedure)
 
   mid2.mockImplementationOnce((_, __, output) => {
     return output({ val: '99990' })

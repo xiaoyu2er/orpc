@@ -31,7 +31,7 @@ const createPost = os
     // throw errors.ANY_CODE()
   })
 
-const client = createProcedureClient({ procedure: createPost }) // or any kind of client
+const client = createProcedureClient(createPost) // or any kind of client
 
 const [data, error, isDefined] = await safe(client({ title: 'title' }))
 

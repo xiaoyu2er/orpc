@@ -1,10 +1,13 @@
-import type { ErrorMap, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { Client, ErrorFromErrorMap, ErrorMap, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { ORPCErrorConstructorMap } from './error'
 import type { ANY_MIDDLEWARE, MapInputMiddleware, Middleware } from './middleware'
+import type { CreateProcedureClientRest } from './procedure-client'
 import type { Context, MergeContext } from './types'
 import { DecoratedContractProcedure } from '@orpc/contract'
+import { createCallableObject } from '@orpc/shared'
 import { decorateMiddleware } from './middleware-decorated'
 import { Procedure } from './procedure'
+import { createProcedureClient } from './procedure-client'
 
 export class DecoratedProcedure<
   TContext extends Context,
@@ -136,5 +139,15 @@ export class DecoratedProcedure<
       ...this['~orpc'],
       middlewares: castedMiddlewares,
     })
+  }
+
+  /**
+   * Make this procedure callable (works like a function while still being a procedure).
+   * **Note**: this only takes effect when this method is called at the end of the chain.
+   */
+  callable(...rest: CreateProcedureClientRest<TContext, TOutputSchema, THandlerOutput>):
+    & DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>
+    & Client<unknown, SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, THandlerOutput>, ErrorFromErrorMap<TErrorMap>> {
+    return createCallableObject(this, createProcedureClient(this, ...rest))
   }
 }

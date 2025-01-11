@@ -70,8 +70,7 @@ describe('decorated lazy', () => {
       expect(decorated).toBeInstanceOf(Function)
 
       expect(createProcedureClient).toHaveBeenCalledTimes(1)
-      expect(createProcedureClient).toHaveBeenCalledWith({
-        procedure: expect.any(Object),
+      expect(createProcedureClient).toHaveBeenCalledWith(expect.any(Object), {
         context: undefined,
       })
       expect(vi.mocked(createProcedureClient).mock.calls[0]![0]).toSatisfy(isLazy)
@@ -87,8 +86,7 @@ describe('decorated lazy', () => {
       expect(decorated).toBeInstanceOf(Function)
 
       expect(createProcedureClient).toHaveBeenCalledTimes(3)
-      expect(createProcedureClient).toHaveBeenNthCalledWith(3, {
-        procedure: expect.any(Object),
+      expect(createProcedureClient).toHaveBeenNthCalledWith(3, expect.any(Object), {
         context: undefined,
       })
       expect(vi.mocked(createProcedureClient).mock.calls[2]![0]).toSatisfy(isLazy)

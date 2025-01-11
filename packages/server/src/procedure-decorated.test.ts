@@ -1,7 +1,13 @@
 import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
 import { isProcedure } from './procedure'
+import { createProcedureClient } from './procedure-client'
 import { DecoratedProcedure } from './procedure-decorated'
+
+vi.mock('./procedure-client', async original => ({
+  ...await original(),
+  createProcedureClient: vi.fn(() => vi.fn()),
+}))
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -180,6 +186,33 @@ describe('self chainable', () => {
           .unshiftMiddleware(mid2, mid2)
           .unshiftMiddleware(mid1, mid2, mid2)['~orpc'].middlewares,
       ).toEqual([mid1, mid2, mid2, mid])
+    })
+  })
+
+  describe('callable', () => {
+    it('works', () => {
+      const callable = decorated.callable({
+        context: { auth: true },
+      })
+
+      expect(callable).toBeInstanceOf(Function)
+      expect(callable).toSatisfy(isProcedure)
+      expect(createProcedureClient).toBeCalledTimes(1)
+      expect(createProcedureClient).toBeCalledWith(decorated, {
+        context: { auth: true },
+      })
+    })
+
+    it('can chain after callable', () => {
+      const mid2 = vi.fn()
+
+      const applied = decorated.callable({
+        context: { auth: true },
+      }).use(mid2)
+
+      expect(applied).not.toBeInstanceOf(Function)
+      expect(applied).toSatisfy(isProcedure)
+      expect(applied['~orpc'].middlewares).toEqual([mid, mid2])
     })
   })
 })

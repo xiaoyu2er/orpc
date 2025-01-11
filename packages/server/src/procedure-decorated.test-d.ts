@@ -1,3 +1,4 @@
+import type { Client, ORPCError } from '@orpc/contract'
 import type { ORPCErrorConstructorMap } from './error'
 import type { Middleware, MiddlewareOutputFn } from './middleware'
 import type { ANY_PROCEDURE } from './procedure'
@@ -196,5 +197,19 @@ describe('self chainable', () => {
     decorated.unshiftMiddleware(1)
     // @ts-expect-error - invalid middleware
     decorated.unshiftMiddleware(() => { }, 1)
+  })
+
+  it('callable', () => {
+    const callable = decorated.callable({
+      context: { auth: true },
+    })
+
+    expectTypeOf(callable).toMatchTypeOf<
+      Client<unknown, { val: string }, { val: number }, Error | ORPCError<'CODE', { why: number }>>
+    >()
+
+    expectTypeOf(callable).toMatchTypeOf<
+      DecoratedProcedure<{ auth: boolean }, { db: string }, typeof baseSchema, typeof baseSchema, { val: string }, typeof baseErrors>
+    >()
   })
 })

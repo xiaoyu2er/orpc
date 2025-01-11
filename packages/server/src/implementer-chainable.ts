@@ -21,12 +21,13 @@ export function createChainableImplementer<
   TContract extends ContractRouter = any,
 >(
   contract: TContract,
-  middlewares?: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, Record<string, unknown>>[],
+  middlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, Record<string, unknown>>[],
 ): ChainableImplementer<TContext, TExtraContext, TContract> {
   if (isContractProcedure(contract)) {
     const implementer = new ProcedureImplementer({
       contract,
-      middlewares,
+      preMiddlewares: middlewares,
+      postMiddlewares: [],
     })
 
     return implementer as any

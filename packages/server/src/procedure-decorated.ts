@@ -57,7 +57,7 @@ export class DecoratedProcedure<
       MergeContext<TContext, TExtraContext>,
       U,
       SchemaOutput<TInputSchema>,
-      SchemaInput<TOutputSchema, THandlerOutput>,
+      THandlerOutput,
       ORPCErrorConstructorMap<TErrorMap>
     >,
   ): DecoratedProcedure<
@@ -77,7 +77,7 @@ export class DecoratedProcedure<
       MergeContext<TContext, TExtraContext>,
       UExtra,
       UInput,
-      SchemaInput<TOutputSchema, THandlerOutput>,
+      THandlerOutput,
       ORPCErrorConstructorMap<TErrorMap>
     >,
     mapInput: MapInputMiddleware<SchemaOutput<TInputSchema, THandlerOutput>, UInput>,
@@ -97,7 +97,7 @@ export class DecoratedProcedure<
 
     return new DecoratedProcedure({
       ...this['~orpc'],
-      middlewares: [...(this['~orpc'].middlewares ?? []), middleware_],
+      postMiddlewares: [...this['~orpc'].postMiddlewares, middleware_],
     })
   }
 
@@ -112,22 +112,22 @@ export class DecoratedProcedure<
     ...middlewares: Middleware<
       TContext,
       U,
-      SchemaOutput<TInputSchema>,
-      SchemaInput<TOutputSchema, THandlerOutput>,
+      unknown,
+      SchemaOutput<TOutputSchema, THandlerOutput>,
       ORPCErrorConstructorMap<TErrorMap>
     >[]
   ): DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap> {
     // FIXME: this is a hack to make the type checker happy, but it's not a good solution
     const castedMiddlewares = middlewares as ANY_MIDDLEWARE[]
 
-    if (this['~orpc'].middlewares?.length) {
+    if (this['~orpc'].preMiddlewares.length) {
       let min = 0
 
-      for (let i = 0; i < this['~orpc'].middlewares.length; i++) {
-        const index = castedMiddlewares.indexOf(this['~orpc'].middlewares[i]!, min)
+      for (let i = 0; i < this['~orpc'].preMiddlewares.length; i++) {
+        const index = castedMiddlewares.indexOf(this['~orpc'].preMiddlewares[i]!, min)
 
         if (index === -1) {
-          castedMiddlewares.push(...this['~orpc'].middlewares.slice(i))
+          castedMiddlewares.push(...this['~orpc'].preMiddlewares.slice(i))
           break
         }
 
@@ -137,7 +137,7 @@ export class DecoratedProcedure<
 
     return new DecoratedProcedure({
       ...this['~orpc'],
-      middlewares: castedMiddlewares,
+      preMiddlewares: castedMiddlewares,
     })
   }
 

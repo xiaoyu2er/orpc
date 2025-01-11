@@ -6,6 +6,9 @@ description: Make your procedures callable in oRPC.
 ## Make procedures callable with `.callable()`
 
 ```ts twoslash
+import { os } from '@orpc/server'
+import { z } from 'zod'
+
 export const getting = os
   .input(z.object({
     name: z.string(),
@@ -18,6 +21,26 @@ export const getting = os
 
 // use it like a regular function
 const output = await getting({ name: 'Unnoq' })
+```
+
+## use `call` helper function
+
+```ts twoslash
+import { call } from '@orpc/server'
+import { os } from '@orpc/server'
+import { z } from 'zod'
+
+export const getting = os
+  .input(z.object({
+    name: z.string(),
+  }))
+  .output(z.string())
+  .handler(async ({ input }) => {
+    return `Hello ${input.name}`
+  })
+
+// call a procedure without creating a client
+const output = await call(getting, 'input')
 ```
 
 ## Use `createRouterClient` or `createProcedureClient`

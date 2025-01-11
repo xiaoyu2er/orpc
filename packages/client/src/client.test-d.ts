@@ -30,15 +30,15 @@ describe('createORPCClient', () => {
   it('build correct types with contract router', () => {
     const client = createORPCClient<typeof contractRouter>({} as any)
 
-    expectTypeOf(client.ping).toMatchTypeOf<Client<unknown, { in: string }, { out: string }, Error>>()
-    expectTypeOf(client.nested.pong).toMatchTypeOf<Client<unknown, number, unknown, Error>>()
+    expectTypeOf(client.ping).toEqualTypeOf<Client<unknown, { in: string }, { out: string }, Error>>()
+    expectTypeOf(client.nested.pong).toEqualTypeOf<Client<unknown, number, unknown, Error>>()
   })
 
   it('build correct types with router', () => {
     const client = createORPCClient<typeof router>({} as any)
 
-    expectTypeOf(client.ping).toMatchTypeOf<Client<unknown, { in: string }, { out: string }, Error>>()
-    expectTypeOf(client.nested.pong).toMatchTypeOf<Client<unknown, number, string, Error>>()
+    expectTypeOf(client.ping).toEqualTypeOf<Client<unknown, { in: string }, { out: string }, Error>>()
+    expectTypeOf(client.nested.pong).toEqualTypeOf<Client<unknown, number, string, Error>>()
   })
 
   it('pass correct context', () => {

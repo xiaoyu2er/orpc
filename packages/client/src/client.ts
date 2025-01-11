@@ -14,7 +14,7 @@ export function createORPCClient<TRouter extends ANY_ROUTER | ContractRouter, TC
   options?: createORPCClientOptions,
 ): TRouter extends ContractRouter
     ? ContractRouterClient<TRouter, TClientContext>
-    : TRouter extends ANY_ROUTER
+    : TRouter extends ANY_ROUTER // put this in lower priority than ContractRouter, will make createORPCClient can work without @orpc/server
       ? RouterClient<TRouter, TClientContext>
       : never {
   const path = options?.path ?? []

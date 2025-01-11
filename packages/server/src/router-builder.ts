@@ -8,7 +8,7 @@ import { deepSetLazyRouterPrefix, getLazyRouterPrefix } from './hidden'
 import { flatLazy, isLazy, lazy, unlazy } from './lazy'
 import { type DecoratedLazy, decorateLazy } from './lazy-decorated'
 import { isProcedure } from './procedure'
-import { type DecoratedProcedure, decorateProcedure } from './procedure-decorated'
+import { DecoratedProcedure } from './procedure-decorated'
 
 export type AdaptedRouter<
   TContext extends Context,
@@ -115,7 +115,7 @@ function adapt(
   }
 
   if (isProcedure(item)) {
-    let decorated = decorateProcedure(item)
+    let decorated = DecoratedProcedure.decorate(item)
 
     if (options.tags?.length) {
       decorated = decorated.unshiftTag(...options.tags)

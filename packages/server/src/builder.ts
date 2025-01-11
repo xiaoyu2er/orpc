@@ -2,15 +2,15 @@ import type { ANY_CONTRACT_PROCEDURE, ContractRouter, ErrorMap, HTTPPath, RouteO
 import type { FlattenLazy } from './lazy'
 import type { Middleware } from './middleware'
 import type { DecoratedMiddleware } from './middleware-decorated'
+import type { ProcedureHandler } from './procedure'
 import type { Router } from './router'
 import type { AdaptedRouter } from './router-builder'
 import type { Context, MergeContext, WELL_CONTEXT } from './types'
 import { ContractProcedure } from '@orpc/contract'
 import { type ChainableImplementer, createChainableImplementer } from './implementer-chainable'
 import { decorateMiddleware } from './middleware-decorated'
-import { Procedure, type ProcedureHandler } from './procedure'
 import { ProcedureBuilder } from './procedure-builder'
-import { type DecoratedProcedure, decorateProcedure } from './procedure-decorated'
+import { DecoratedProcedure } from './procedure-decorated'
 import { RouterBuilder } from './router-builder'
 
 export interface BuilderDef<TContext extends Context, TExtraContext extends Context> {
@@ -122,7 +122,7 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
   handler<UFuncOutput = undefined>(
     handler: ProcedureHandler<TContext, TExtraContext, undefined, undefined, UFuncOutput, undefined>,
   ): DecoratedProcedure<TContext, TExtraContext, undefined, undefined, UFuncOutput, undefined> {
-    return decorateProcedure(new Procedure({
+    return new DecoratedProcedure({
       middlewares: this['~orpc'].middlewares,
       contract: new ContractProcedure({
         InputSchema: undefined,
@@ -130,7 +130,7 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
         errorMap: undefined,
       }),
       handler,
-    }))
+    })
   }
 
   prefix(prefix: HTTPPath): RouterBuilder<TContext, TExtraContext> {

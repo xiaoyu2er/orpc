@@ -2,11 +2,9 @@ import type { ContractProcedure, ErrorMap, Schema, SchemaInput, SchemaOutput } f
 import type { ORPCErrorConstructorMap } from './error'
 import type { ANY_MAP_INPUT_MIDDLEWARE, ANY_MIDDLEWARE, MapInputMiddleware, Middleware } from './middleware'
 import type { ProcedureHandler } from './procedure'
-import type { DecoratedProcedure } from './procedure-decorated'
 import type { Context, MergeContext } from './types'
 import { decorateMiddleware } from './middleware-decorated'
-import { Procedure } from './procedure'
-import { decorateProcedure } from './procedure-decorated'
+import { DecoratedProcedure } from './procedure-decorated'
 
 export type ProcedureImplementerDef<
   TContext extends Context,
@@ -92,10 +90,10 @@ export class ProcedureImplementer<
   handler<UFuncOutput extends SchemaInput<TOutputSchema>>(
     handler: ProcedureHandler<TContext, TExtraContext, TInputSchema, TOutputSchema, UFuncOutput, TErrorMap>,
   ): DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, UFuncOutput, TErrorMap> {
-    return decorateProcedure(new Procedure({
+    return new DecoratedProcedure({
       middlewares: this['~orpc'].middlewares,
       contract: this['~orpc'].contract,
       handler,
-    }))
+    })
   }
 }

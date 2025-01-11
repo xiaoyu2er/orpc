@@ -141,13 +141,13 @@ import { createORPCClient, ORPCError } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
 import type { contract } from 'examples/contract'
 
-const rPCLink = new RPCLink({
+const rpcLink = new RPCLink({
   url: 'https://localhost:3000/rpc',
   // fetch: optional override for the default fetch function
   // headers: provide additional headers
 })
 
-const client = createORPCClient<typeof contract /* or server router */>(rPCLink)
+const client = createORPCClient<typeof contract /* or server router */>(rpcLink)
  
 //  File upload out of the box
 const output = await client.posts.createPost({

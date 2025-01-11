@@ -6,11 +6,11 @@ import type { contract } from './contract'
 import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
 
-const rPCLink = new RPCLink({
+const rpcLink = new RPCLink({
   url: 'http://localhost:3000/rpc',
 })
 
-export const orpc = createORPCClient<typeof contract>(rPCLink)
+export const orpc = createORPCClient<typeof contract>(rpcLink)
 
 const planets = await orpc.planet.list({})
 

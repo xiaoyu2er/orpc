@@ -17,14 +17,14 @@ import { createORPCClient } from '@orpc/client';
 import { RPCLink } from '@orpc/client/fetch';
 import type { router } from 'examples/server';
 
-const rPCLink = new RPCLink({
+const rpcLink = new RPCLink({
   url: 'http://localhost:3000/rpc',
   // fetch: optional override for the default fetch function
   // headers: provide additional headers
 });
 
 // Create an ORPC client
-export const client = createORPCClient<typeof router>(rPCLink);
+export const client = createORPCClient<typeof router>(rpcLink);
 
 // Create Vue Query utilities for ORPC
 export const orpc = createORPCVueQueryUtils(client);

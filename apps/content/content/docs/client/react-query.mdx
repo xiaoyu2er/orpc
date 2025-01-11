@@ -19,13 +19,13 @@ import { createORPCClient } from '@orpc/client';
 import { RPCLink } from '@orpc/client/fetch';
 import type { router } from 'examples/server';
 
-const rPCLink = new RPCLink({
+const rpcLink = new RPCLink({
   url: 'http://localhost:3000/rpc',
   // fetch: optional override for the default fetch function
   // headers: provide additional headers
 })
 
-const client = createORPCClient<typeof router /* or contract router */>(rPCLink)
+const client = createORPCClient<typeof router /* or contract router */>(rpcLink)
 
 // Create React Query utilities for ORPC
 export const orpc = createORPCReactQueryUtils(client);
@@ -60,13 +60,13 @@ export function useORPC() {
 
 export function ORPCProvider({ children }: { children: React.ReactNode }) {
   const [client] = React.useState(() => {
-    const rPCLink = new RPCLink({
+    const rpcLink = new RPCLink({
       url: 'https://exanple.com/api',
       // fetch: optional override for the default fetch function
       // headers: provide additional headers
     });
 
-    return createORPCClient<typeof router>(rPCLink);
+    return createORPCClient<typeof router>(rpcLink);
   });
   const [queryClient] = React.useState(() => new QueryClient());
 

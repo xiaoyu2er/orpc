@@ -18,13 +18,13 @@ import { createORPCClient, ORPCError } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
 import type { router } from 'examples/server'
 
-const rPCLink = new RPCLink({
+const rpcLink = new RPCLink({
   url: 'http://localhost:3000/rpc',
   // fetch: optional override for the default fetch function
   // headers: provide additional headers
 })
 
-const client = createORPCClient<typeof router /* or contract router */>(rPCLink)
+const client = createORPCClient<typeof router /* or contract router */>(rpcLink)
  
 //  File upload out of the box
 const output = await client.posts.createPost({
@@ -50,7 +50,7 @@ import { RPCLink } from '@orpc/client/fetch'
 type ClientContext = { cache?: RequestCache } | undefined
 // if context is not undefinable, it will require you pass context in every call
 
-const rPCLink = new RPCLink<ClientContext>({
+const rpcLink = new RPCLink<ClientContext>({
   url: 'http://localhost:3000/rpc',
   // headers: provide additional headers
   fetch: (input, init, context) => globalThis.fetch(input, {
@@ -73,7 +73,7 @@ const rPCLink = new RPCLink<ClientContext>({
   },
 })
 
-const client = createORPCClient<typeof router, ClientContext>(rPCLink)
+const client = createORPCClient<typeof router, ClientContext>(rpcLink)
 
 client.getUser({ id: '123' }, { context: { cache: 'force-cache' } })
 ```
@@ -89,22 +89,22 @@ import type { router } from 'examples/server'
 import { createORPCClient, DynamicLink, ORPCError } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
 
-const rPCLink1 = new RPCLink({
+const rpcLink1 = new RPCLink({
   url: 'http://localhost:3000/rpc',
   // headers: provide additional headers
 })
 
-const rPCLink2 = new RPCLink({
+const rpcLink2 = new RPCLink({
   url: 'http://localhost:8000/api',
   // headers: provide additional headers
 })
 
 const dynamicLink = new DynamicLink((path, input, context) => { // can be async
   if (path.includes('post')) {
-    return rPCLink1
+    return rpcLink1
   }
 
-  return rPCLink2
+  return rpcLink2
 })
 
 const client = createORPCClient<typeof router>(dynamicLink)

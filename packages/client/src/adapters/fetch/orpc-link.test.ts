@@ -3,7 +3,7 @@ import { ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE } from '@orpc/shared'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { RPCLink } from './orpc-link'
 
-describe('rPCLink', () => {
+describe('rpcLink', () => {
   // Mock setup
   const mockFetch = vi.fn()
   const mockHeaders = vi.fn()

@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
-import { ORPCHandler as ORPCFetchHandler } from '../fetch/orpc-handler'
-import { ORPCHandler } from './orpc-handler'
+import { RPCHandler as ORPCFetchHandler } from '../fetch/orpc-handler'
+import { RPCHandler } from './orpc-handler'
 import { createRequest, sendResponse } from './request-listener'
 
 vi.mock('../fetch/orpc-handler', () => ({
-  ORPCHandler: vi.fn(),
+  RPCHandler: vi.fn(),
 }))
 
 vi.mock('./request-listener', () => ({
@@ -16,7 +16,7 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe('oRPCHandler', () => {
+describe('rpcHandler', () => {
   const router = {}
   const req = { __request: true } as any
   const res = { __response: true } as any
@@ -28,7 +28,7 @@ describe('oRPCHandler', () => {
       handle: vi.fn().mockResolvedValue({ matched: true, response }),
     } as any)
 
-    const handler = new ORPCHandler(router)
+    const handler = new RPCHandler(router)
 
     await handler.handle(req, res)
 
@@ -46,7 +46,7 @@ describe('oRPCHandler', () => {
       handle: vi.fn().mockResolvedValue({ matched: false, response }),
     } as any)
 
-    const handler = new ORPCHandler(router)
+    const handler = new RPCHandler(router)
 
     await handler.handle(req, res)
 
@@ -60,7 +60,7 @@ describe('oRPCHandler', () => {
       handle: vi.fn().mockResolvedValue({ matched: true, response }),
     } as any)
 
-    const handler = new ORPCHandler(router)
+    const handler = new RPCHandler(router)
 
     const mockBeforeSend = vi.fn()
     await handler.handle(req, res, { beforeSend: mockBeforeSend, context: { __context: true } })

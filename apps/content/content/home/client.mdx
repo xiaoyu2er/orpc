@@ -2,16 +2,16 @@
 <Tab value="Client">
 ```ts twoslash
 import { createORPCClient, ORPCError } from '@orpc/client'
-import { ORPCLink } from '@orpc/client/fetch'
+import { RPCLink } from '@orpc/client/fetch'
 import type { router } from 'examples/server'
 
-const orpcLink = new ORPCLink({
+const rPCLink = new RPCLink({
   url: 'http://localhost:3000/rpc',
   // fetch: optional override for the default fetch function
   // headers: provide additional headers
 })
 
-const client = createORPCClient<typeof router /* or contract router */>(orpcLink)
+const client = createORPCClient<typeof router /* or contract router */>(rPCLink)
  
 //  File upload out of the box
 const output = await client.posts.createPost({

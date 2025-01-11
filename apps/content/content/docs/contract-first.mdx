@@ -138,16 +138,16 @@ Create a fully typed client using just the contract definition:
 
 ```ts twoslash
 import { createORPCClient, ORPCError } from '@orpc/client'
-import { ORPCLink } from '@orpc/client/fetch'
+import { RPCLink } from '@orpc/client/fetch'
 import type { contract } from 'examples/contract'
 
-const orpcLink = new ORPCLink({
+const rPCLink = new RPCLink({
   url: 'https://localhost:3000/rpc',
   // fetch: optional override for the default fetch function
   // headers: provide additional headers
 })
 
-const client = createORPCClient<typeof contract /* or server router */>(orpcLink)
+const client = createORPCClient<typeof contract /* or server router */>(rPCLink)
  
 //  File upload out of the box
 const output = await client.posts.createPost({

@@ -16,16 +16,16 @@ description: Simplify React Query usage with minimal integration using ORPC and 
 ```ts twoslash
 import { createORPCReactQueryUtils } from '@orpc/react-query';
 import { createORPCClient } from '@orpc/client';
-import { ORPCLink } from '@orpc/client/fetch';
+import { RPCLink } from '@orpc/client/fetch';
 import type { router } from 'examples/server';
 
-const orpcLink = new ORPCLink({
+const rPCLink = new RPCLink({
   url: 'http://localhost:3000/rpc',
   // fetch: optional override for the default fetch function
   // headers: provide additional headers
 })
 
-const client = createORPCClient<typeof router /* or contract router */>(orpcLink)
+const client = createORPCClient<typeof router /* or contract router */>(rPCLink)
 
 // Create React Query utilities for ORPC
 export const orpc = createORPCReactQueryUtils(client);
@@ -40,7 +40,7 @@ orpc.getUser.
 ```tsx twoslash
 import { createORPCReactQueryUtils, RouterUtils } from '@orpc/react-query';
 import { createORPCClient } from '@orpc/client';
-import { ORPCLink } from '@orpc/client/fetch';
+import { RPCLink } from '@orpc/client/fetch';
 import { RouterClient } from '@orpc/server';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { router } from 'examples/server';
@@ -60,13 +60,13 @@ export function useORPC() {
 
 export function ORPCProvider({ children }: { children: React.ReactNode }) {
   const [client] = React.useState(() => {
-    const orpcLink = new ORPCLink({
+    const rPCLink = new RPCLink({
       url: 'https://exanple.com/api',
       // fetch: optional override for the default fetch function
       // headers: provide additional headers
     });
 
-    return createORPCClient<typeof router>(orpcLink);
+    return createORPCClient<typeof router>(rPCLink);
   });
   const [queryClient] = React.useState(() => new QueryClient());
 

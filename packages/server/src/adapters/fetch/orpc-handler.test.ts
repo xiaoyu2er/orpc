@@ -3,13 +3,13 @@ import { describe, expect, it, vi } from 'vitest'
 import { lazy } from '../../lazy'
 import { Procedure } from '../../procedure'
 import { createProcedureClient } from '../../procedure-client'
-import { ORPCHandler } from './orpc-handler'
+import { RPCHandler } from './orpc-handler'
 
 vi.mock('../../procedure-client', () => ({
   createProcedureClient: vi.fn(() => vi.fn()),
 }))
 
-describe('oRPCHandler', () => {
+describe('rpcHandler', () => {
   const ping = new Procedure({
     contract: new ContractProcedure({
       InputSchema: undefined,
@@ -39,7 +39,7 @@ describe('oRPCHandler', () => {
   }
 
   it('should return a 404 response if no matching procedure is found', async () => {
-    const handler = new ORPCHandler(router)
+    const handler = new RPCHandler(router)
 
     const mockRequest = new Request('https://example.com/not_found', {
       headers: new Headers({ }),
@@ -52,7 +52,7 @@ describe('oRPCHandler', () => {
   })
 
   it('should return a 200 response with serialized output if procedure is resolved successfully', async () => {
-    const handler = new ORPCHandler(router)
+    const handler = new RPCHandler(router)
 
     const caller = vi.fn().mockReturnValueOnce('__mocked__')
     vi.mocked(createProcedureClient).mockReturnValue(caller)
@@ -77,7 +77,7 @@ describe('oRPCHandler', () => {
   })
 
   it('should handle deserialization errors and return a 400 response', async () => {
-    const handler = new ORPCHandler(router)
+    const handler = new RPCHandler(router)
 
     const mockRequest = new Request('https://example.com/ping', {
       method: 'POST',
@@ -94,7 +94,7 @@ describe('oRPCHandler', () => {
   })
 
   it('should handle unexpected errors and return a 500 response', async () => {
-    const handler = new ORPCHandler(router)
+    const handler = new RPCHandler(router)
 
     vi.mocked(createProcedureClient).mockImplementationOnce(() => {
       throw new Error('Unexpected error')
@@ -115,7 +115,7 @@ describe('oRPCHandler', () => {
   })
 
   it('support signal', async () => {
-    const handler = new ORPCHandler(router)
+    const handler = new RPCHandler(router)
 
     const caller = vi.fn().mockReturnValueOnce('__mocked__')
     vi.mocked(createProcedureClient).mockReturnValue(caller)
@@ -152,7 +152,7 @@ describe('oRPCHandler', () => {
     const onSuccess = vi.fn()
     const onError = vi.fn()
 
-    const handler = new ORPCHandler(router, {
+    const handler = new RPCHandler(router, {
       onStart,
       onSuccess,
       onError,

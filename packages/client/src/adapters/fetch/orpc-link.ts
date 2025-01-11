@@ -6,7 +6,7 @@ import { ORPCError } from '@orpc/contract'
 import { ORPCPayloadCodec, type PublicORPCPayloadCodec } from '@orpc/server/fetch'
 import { ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE, trim } from '@orpc/shared'
 
-export interface ORPCLinkOptions<TClientContext> {
+export interface RPCLinkOptions<TClientContext> {
   /**
    * Base url for all requests.
    */
@@ -41,7 +41,7 @@ export interface ORPCLinkOptions<TClientContext> {
   payloadCodec?: PublicORPCPayloadCodec
 }
 
-export class ORPCLink<TClientContext> implements ClientLink<TClientContext> {
+export class RPCLink<TClientContext> implements ClientLink<TClientContext> {
   private readonly fetch: FetchWithContext<TClientContext>
   private readonly payloadCodec: PublicORPCPayloadCodec
   private readonly maxURLLength: number
@@ -50,7 +50,7 @@ export class ORPCLink<TClientContext> implements ClientLink<TClientContext> {
   private readonly getHeaders: (path: readonly string[], input: unknown, context: TClientContext) => Promisable<Headers>
   private readonly url: string
 
-  constructor(options: ORPCLinkOptions<TClientContext>) {
+  constructor(options: RPCLinkOptions<TClientContext>) {
     this.fetch = options.fetch ?? globalThis.fetch.bind(globalThis)
     this.payloadCodec = options.payloadCodec ?? new ORPCPayloadCodec()
     this.maxURLLength = options.maxURLLength ?? 2083

@@ -82,14 +82,14 @@ export const router = base.router({
 // You can call this procedure directly without manually providing context
 const output = await call(router.getUser, null)
 
-import { ORPCHandler } from '@orpc/server/fetch'
+import { RPCHandler } from '@orpc/server/fetch'
 import { OpenAPIServerlessHandler, OpenAPIServerHandler } from '@orpc/openapi/fetch'
 
-const orpcHandler = new ORPCHandler(router)
+const rpcHandler = new RPCHandler(router)
 
 export async function fetch(request: Request) {
     // No need to pass context; middleware handles it
-    const { response } = await orpcHandler.handle(request)
+    const { response } = await rpcHandler.handle(request)
 
     return response ?? new Response('Not found', { status: 404 })
 }
@@ -103,7 +103,7 @@ rather than relying on global mechanisms like `headers` or `cookies` in Next.js.
 
 ```ts twoslash
 import { os, ORPCError, createProcedureClient } from '@orpc/server'
-import { ORPCHandler } from '@orpc/server/fetch'
+import { RPCHandler } from '@orpc/server/fetch'
 import { OpenAPIServerlessHandler, OpenAPIServerHandler } from '@orpc/openapi/fetch'
 
 type ORPCContext = { user?: { id: string }, db: 'fake-db' }
@@ -130,14 +130,14 @@ export const router = base.router({
         }),
 })
 
-const orpcHandler = new ORPCHandler(router)
+const rpcHandler = new RPCHandler(router)
 
 export async function fetch(request: Request) {
     // Initialize context explicitly for each request
     const db = 'fake-db' as const
     const user = request.headers.get('Authorization') ? { id: 'example' } : undefined
 
-    const { response } = await orpcHandler.handle(request, { context: { db, user } })
+    const { response } = await rpcHandler.handle(request, { context: { db, user } })
 
     return response ?? new Response('Not Found', { status: 404 })
 }

@@ -15,16 +15,16 @@ To create a fully typed client, you need either the type of the [router](/docs/s
 
 ```ts twoslash
 import { createORPCClient, ORPCError } from '@orpc/client'
-import { ORPCLink } from '@orpc/client/fetch'
+import { RPCLink } from '@orpc/client/fetch'
 import type { router } from 'examples/server'
 
-const orpcLink = new ORPCLink({
+const rPCLink = new RPCLink({
   url: 'http://localhost:3000/rpc',
   // fetch: optional override for the default fetch function
   // headers: provide additional headers
 })
 
-const client = createORPCClient<typeof router /* or contract router */>(orpcLink)
+const client = createORPCClient<typeof router /* or contract router */>(rPCLink)
  
 //  File upload out of the box
 const output = await client.posts.createPost({
@@ -45,12 +45,12 @@ The `Client Context` feature allows you to pass additional contextual informatio
 ```ts twoslash
 import type { router } from 'examples/server'
 import { createORPCClient, ORPCError } from '@orpc/client'
-import { ORPCLink } from '@orpc/client/fetch'
+import { RPCLink } from '@orpc/client/fetch'
 
 type ClientContext = { cache?: RequestCache } | undefined
 // if context is not undefinable, it will require you pass context in every call
 
-const orpcLink = new ORPCLink<ClientContext>({
+const rPCLink = new RPCLink<ClientContext>({
   url: 'http://localhost:3000/rpc',
   // headers: provide additional headers
   fetch: (input, init, context) => globalThis.fetch(input, {
@@ -73,7 +73,7 @@ const orpcLink = new ORPCLink<ClientContext>({
   },
 })
 
-const client = createORPCClient<typeof router, ClientContext>(orpcLink)
+const client = createORPCClient<typeof router, ClientContext>(rPCLink)
 
 client.getUser({ id: '123' }, { context: { cache: 'force-cache' } })
 ```
@@ -87,24 +87,24 @@ With the **Dynamic Link** mechanism, you can define custom logic to dynamically 
 ```ts twoslash
 import type { router } from 'examples/server'
 import { createORPCClient, DynamicLink, ORPCError } from '@orpc/client'
-import { ORPCLink } from '@orpc/client/fetch'
+import { RPCLink } from '@orpc/client/fetch'
 
-const orpcLink1 = new ORPCLink({
+const rPCLink1 = new RPCLink({
   url: 'http://localhost:3000/rpc',
   // headers: provide additional headers
 })
 
-const orpcLink2 = new ORPCLink({
+const rPCLink2 = new RPCLink({
   url: 'http://localhost:8000/api',
   // headers: provide additional headers
 })
 
 const dynamicLink = new DynamicLink((path, input, context) => { // can be async
   if (path.includes('post')) {
-    return orpcLink1
+    return rPCLink1
   }
 
-  return orpcLink2
+  return rPCLink2
 })
 
 const client = createORPCClient<typeof router>(dynamicLink)

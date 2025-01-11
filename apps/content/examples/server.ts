@@ -96,7 +96,7 @@ export type Outputs = InferRouterOutputs<typeof router>
 import { createServer } from 'node:http'
 import { OpenAPIServerlessHandler } from '@orpc/openapi/node'
 
-const openapiHandler = new OpenAPIServerlessHandler(router, {
+const openAPIHandler = new OpenAPIServerlessHandler(router, {
   schemaCoercers: [
     new ZodCoercer(),
   ],
@@ -104,7 +104,7 @@ const openapiHandler = new OpenAPIServerlessHandler(router, {
 
 const server = createServer((req, res) => {
   if (req.url?.startsWith('/api')) {
-    return openapiHandler.handle(req, res, {
+    return openAPIHandler.handle(req, res, {
       prefix: '/api',
       context: {},
     })

@@ -1,9 +1,9 @@
 import { ORPCError } from '@orpc/contract'
 import { ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE } from '@orpc/shared'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ORPCLink } from './orpc-link'
+import { RPCLink } from './orpc-link'
 
-describe('oRPCLink', () => {
+describe('rPCLink', () => {
   // Mock setup
   const mockFetch = vi.fn()
   const mockHeaders = vi.fn()
@@ -21,7 +21,7 @@ describe('oRPCLink', () => {
 
   // Test basic successful call
   it('should make a successful call with correct parameters', async () => {
-    const link = new ORPCLink({
+    const link = new RPCLink({
       url: 'http://api.example.com',
       fetch: mockFetch,
       payloadCodec: mockPayloadCodec as any,
@@ -71,7 +71,7 @@ describe('oRPCLink', () => {
     async () => (new Headers({ 'Authorization': 'Bearer token', 'Custom-Header': 'custom-value' })),
   ]
   it.each(headers)('should properly merge custom headers and return decoded data', async (headersFn) => {
-    const link = new ORPCLink({
+    const link = new RPCLink({
       url: 'http://api.example.com',
       headers: headersFn,
       fetch: mockFetch,
@@ -98,7 +98,7 @@ describe('oRPCLink', () => {
 
   // Test URL encoding
   it('should properly encode URL parameters and handle response', async () => {
-    const link = new ORPCLink({
+    const link = new RPCLink({
       url: 'http://api.example.com/',
       fetch: mockFetch,
       payloadCodec: mockPayloadCodec as any,
@@ -125,7 +125,7 @@ describe('oRPCLink', () => {
 
   // Test error handling
   it('should properly handle server errors', async () => {
-    const link = new ORPCLink({
+    const link = new RPCLink({
       url: 'http://api.example.com',
       fetch: mockFetch,
       payloadCodec: mockPayloadCodec as any,
@@ -151,7 +151,7 @@ describe('oRPCLink', () => {
 
   // Test with default payload codec
   it('should use default ORPCPayloadCodec when none provided and return result', async () => {
-    const link = new ORPCLink({
+    const link = new RPCLink({
       url: 'http://api.example.com',
       fetch: mockFetch,
     })
@@ -172,7 +172,7 @@ describe('oRPCLink', () => {
     const realFetch = globalThis.fetch
     globalThis.fetch = mockFetch
 
-    const link = new ORPCLink({
+    const link = new RPCLink({
       url: 'http://api.example.com',
       payloadCodec: mockPayloadCodec as any,
     })
@@ -192,7 +192,7 @@ describe('oRPCLink', () => {
 
   // Test with AbortController signal
   it('should properly handle AbortController signal and return result', async () => {
-    const link = new ORPCLink({
+    const link = new RPCLink({
       url: 'http://api.example.com',
       fetch: mockFetch,
       payloadCodec: mockPayloadCodec as any,
@@ -224,7 +224,7 @@ describe('oRPCLink', () => {
   })
 
   it('should handle aborted requests properly', async () => {
-    const link = new ORPCLink({
+    const link = new RPCLink({
       url: 'http://api.example.com',
       fetch: mockFetch,
       payloadCodec: mockPayloadCodec as any,
@@ -247,7 +247,7 @@ describe('oRPCLink', () => {
     it('work with GET method', async () => {
       const mockMethod = vi.fn()
 
-      const link = new ORPCLink({
+      const link = new RPCLink({
         url: 'http://api.example.com',
         fetch: mockFetch,
         method: mockMethod,
@@ -272,7 +272,7 @@ describe('oRPCLink', () => {
     it.each(methods)('work with %s method', async (method) => {
       const mockMethod = vi.fn()
 
-      const link = new ORPCLink({
+      const link = new RPCLink({
         url: 'http://api.example.com',
         fetch: mockFetch,
         method: mockMethod,
@@ -299,7 +299,7 @@ describe('oRPCLink', () => {
     it('work when GET method and url is conflicted', async () => {
       const mockMethod = vi.fn()
 
-      const link = new ORPCLink({
+      const link = new RPCLink({
         url: 'http://api.example.com/?data=xin&meta=chao',
         fetch: mockFetch,
         method: mockMethod,
@@ -321,7 +321,7 @@ describe('oRPCLink', () => {
 
     it('should fallback to POST method if method is GET and payload contain file', async () => {
       const mockMethod = vi.fn()
-      const link = new ORPCLink({
+      const link = new RPCLink({
         url: 'http://api.example.com',
         fetch: mockFetch,
         method: mockMethod,
@@ -348,7 +348,7 @@ describe('oRPCLink', () => {
 
     it('method GET should fallback to fallbackMethod if payload too large', async () => {
       const mockMethod = vi.fn()
-      const link = new ORPCLink({
+      const link = new RPCLink({
         url: 'http://api.example.com',
         fetch: mockFetch,
         method: mockMethod,
@@ -375,7 +375,7 @@ describe('oRPCLink', () => {
     })
 
     it('always throw error when url is too long', async () => {
-      const link = new ORPCLink({
+      const link = new RPCLink({
         url: 'http://api.example.com'.repeat(100),
       })
 

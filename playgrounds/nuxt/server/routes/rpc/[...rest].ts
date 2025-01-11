@@ -1,7 +1,7 @@
-import { ORPCHandler } from '@orpc/server/node'
+import { RPCHandler } from '@orpc/server/node'
 import { router } from '~/server/router'
 
-const orpcHandler = new ORPCHandler(router, {
+const rpcHandler = new RPCHandler(router, {
   onError: ({ error }) => {
     console.error(error)
   },
@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
     ? { user: { id: 'test', name: 'John Doe', email: 'john@doe.com' } }
     : {}
 
-  const { matched } = await orpcHandler.handle(event.node.req, event.node.res, {
+  const { matched } = await rpcHandler.handle(event.node.req, event.node.res, {
     prefix: '/rpc',
     context,
   })

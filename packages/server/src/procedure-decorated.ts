@@ -1,7 +1,7 @@
-import type { Client, ClientRest, ErrorFromErrorMap, ErrorMap, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ClientRest, ErrorMap, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { ORPCErrorConstructorMap } from './error'
 import type { ANY_MIDDLEWARE, MapInputMiddleware, Middleware } from './middleware'
-import type { CreateProcedureClientRest } from './procedure-client'
+import type { CreateProcedureClientRest, ProcedureClient } from './procedure-client'
 import type { Context, MergeContext } from './types'
 import { DecoratedContractProcedure } from '@orpc/contract'
 import { createCallableObject } from '@orpc/shared'
@@ -147,7 +147,7 @@ export class DecoratedProcedure<
    */
   callable<TClientContext>(...rest: CreateProcedureClientRest<TContext, TOutputSchema, THandlerOutput, TClientContext>):
     & DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>
-    & (Client<TClientContext, SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, THandlerOutput>, ErrorFromErrorMap<TErrorMap>>) {
+    & ProcedureClient<TClientContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap> {
     return createCallableObject(this, createProcedureClient(this, ...rest))
   }
 

@@ -1,5 +1,5 @@
-import type { ContractRouter } from '@orpc/contract'
-import type { ANY_ROUTER, ProcedureClient, RouterClient } from '@orpc/server'
+import type { Client, ContractRouter, ContractRouterClient } from '@orpc/contract'
+import type { ANY_ROUTER, RouterClient } from '@orpc/server'
 import type { ClientLink } from './types'
 
 export interface createORPCClientOptions {
@@ -12,10 +12,14 @@ export interface createORPCClientOptions {
 export function createORPCClient<TRouter extends ANY_ROUTER | ContractRouter, TClientContext = unknown>(
   link: ClientLink<TClientContext>,
   options?: createORPCClientOptions,
-): RouterClient<TRouter, TClientContext> {
+): TRouter extends ContractRouter
+    ? ContractRouterClient<TRouter, TClientContext>
+    : TRouter extends ANY_ROUTER // put this in lower priority than ContractRouter, will make createORPCClient can work without @orpc/server
+      ? RouterClient<TRouter, TClientContext>
+      : never {
   const path = options?.path ?? []
 
-  const procedureClient: ProcedureClient<TClientContext, unknown, unknown, Error> = async (...[input, options]) => {
+  const procedureClient: Client<TClientContext, unknown, unknown, Error> = async (...[input, options]) => {
     return await link.call(path, input, (options ?? {}) as Exclude<typeof options, undefined>)
   }
 

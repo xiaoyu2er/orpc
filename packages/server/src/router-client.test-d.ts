@@ -1,6 +1,5 @@
-import type { ORPCError } from '@orpc/contract'
+import type { Client, NestedClient, ORPCError } from '@orpc/contract'
 import type { Procedure } from './procedure'
-import type { ProcedureClient } from './procedure-client'
 import type { Meta, WELL_CONTEXT } from './types'
 import { z } from 'zod'
 import { lazy } from './lazy'
@@ -35,21 +34,26 @@ const routerWithLazy = {
 }
 
 describe('RouterClient', () => {
+  it('compatible with NestedClient', () => {
+    expectTypeOf<RouterClient<typeof router, unknown>>().toMatchTypeOf<NestedClient<unknown>>()
+    expectTypeOf<RouterClient<typeof router, 'invalid'>>().not.toMatchTypeOf<NestedClient<unknown>>()
+  })
+
   it('router without lazy', () => {
     const client = {} as RouterClient<typeof router, unknown>
 
     expectTypeOf(client.ping).toEqualTypeOf<
-      ProcedureClient<unknown, { val: string }, { val: number }, Error | ORPCError<'CODE', { why: number }>>
+      Client<unknown, { val: string }, { val: number }, Error | ORPCError<'CODE', { why: number }>>
     >()
     expectTypeOf(client.pong).toEqualTypeOf<
-      ProcedureClient<unknown, unknown, unknown, Error>
+      Client<unknown, unknown, unknown, Error>
     >()
 
     expectTypeOf(client.nested.ping).toEqualTypeOf<
-      ProcedureClient<unknown, { val: string }, { val: number }, Error | ORPCError<'CODE', { why: number }>>
+      Client<unknown, { val: string }, { val: number }, Error | ORPCError<'CODE', { why: number }>>
     >()
     expectTypeOf(client.nested.pong).toEqualTypeOf<
-      ProcedureClient<unknown, unknown, unknown, Error>
+      Client<unknown, unknown, unknown, Error>
     >()
   })
 
@@ -58,7 +62,7 @@ describe('RouterClient', () => {
   })
 
   it('support procedure as router', () => {
-    expectTypeOf<RouterClient<typeof ping, unknown>>().toEqualTypeOf<ProcedureClient<unknown, { val: string }, { val: number }, Error | ORPCError<'CODE', { why: number }>>>()
+    expectTypeOf<RouterClient<typeof ping, unknown>>().toEqualTypeOf<Client<unknown, { val: string }, { val: number }, Error | ORPCError<'CODE', { why: number }>>>()
   })
 })
 

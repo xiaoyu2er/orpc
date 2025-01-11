@@ -1,19 +1,19 @@
-import type { ProcedureClient, RouterClient } from '@orpc/server'
+import type { Client, NestedClient } from '@orpc/contract'
 import { createGeneralUtils, type GeneralUtils } from './utils-general'
 import { createProcedureUtils, type ProcedureUtils } from './utils-procedure'
 
-export type RouterUtils<T extends RouterClient<any, any>> =
-  T extends ProcedureClient<infer UClientContext, infer UInput, infer UOutput, infer UError>
+export type RouterUtils<T extends NestedClient<any>> =
+  T extends Client<infer UClientContext, infer UInput, infer UOutput, infer UError>
     ? ProcedureUtils<UClientContext, UInput, UOutput, UError> & GeneralUtils<UInput>
     : {
-      [K in keyof T]: T[K] extends RouterClient<any, any> ? RouterUtils<T[K]> : never
+      [K in keyof T]: T[K] extends NestedClient<any> ? RouterUtils<T[K]> : never
     } & GeneralUtils<unknown>
 
 /**
  * @param client - The client create form `@orpc/client`
  * @param path - The base path for query key
  */
-export function createRouterUtils<T extends RouterClient<any, any>>(
+export function createRouterUtils<T extends NestedClient<any>>(
   client: T,
   path: string[] = [],
 ): RouterUtils<T> {

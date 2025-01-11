@@ -1,4 +1,4 @@
-import type { ProcedureClient } from '@orpc/server'
+import type { Client } from '@orpc/contract'
 import type { MutationOptions, MutationOptionsExtra, QueryOptions, QueryOptionsExtra } from './types'
 import { computed } from 'vue'
 import { buildKey } from './key'
@@ -18,7 +18,7 @@ export interface ProcedureUtils<TClientContext, TInput, TOutput, TError extends 
 }
 
 export function createProcedureUtils<TClientContext, TInput, TOutput, TError extends Error>(
-  client: ProcedureClient<TClientContext, TInput, TOutput, TError>,
+  client: Client<TClientContext, TInput, TOutput, TError>,
   path: string[],
 ): ProcedureUtils<TClientContext, TInput, TOutput, TError> {
   return {

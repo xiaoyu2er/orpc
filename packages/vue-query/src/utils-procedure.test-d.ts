@@ -1,4 +1,5 @@
-import type { ORPCError, ProcedureClient } from '@orpc/server'
+import type { Client } from '@orpc/contract'
+import type { ORPCError } from '@orpc/server'
 import type { InfiniteData, QueryFunctionContext, QueryKey } from '@tanstack/vue-query'
 import type { ComputedRef } from 'vue'
 import type { ProcedureUtils } from './utils-procedure'
@@ -7,10 +8,10 @@ import { ref } from 'vue'
 import { createProcedureUtils } from './utils-procedure'
 
 describe('queryOptions', () => {
-  const client = {} as ProcedureClient<undefined, number | undefined, string | undefined, Error>
+  const client = {} as Client<undefined, number | undefined, string | undefined, Error>
   const utils = createProcedureUtils(client, [])
 
-  const client2 = {} as ProcedureClient<undefined, number, string, Error>
+  const client2 = {} as Client<undefined, number, string, Error>
   const utils2 = createProcedureUtils(client2, [])
 
   it('infer correct input type', () => {
@@ -98,7 +99,7 @@ describe('infiniteOptions', () => {
   const getNextPageParam = vi.fn()
 
   it('cannot use on procedure without input object-able', () => {
-    const utils = createProcedureUtils({} as ProcedureClient<undefined, number, string, Error>, [])
+    const utils = createProcedureUtils({} as Client<undefined, number, string, Error>, [])
 
     // @ts-expect-error missing initialPageParam
     utils.infiniteOptions({
@@ -121,7 +122,7 @@ describe('infiniteOptions', () => {
   })
 
   it('infer correct queryFn type', () => {
-    const utils = createProcedureUtils({} as ProcedureClient<undefined, { limit?: number, cursor: number }, string, Error>, [])
+    const utils = createProcedureUtils({} as Client<undefined, { limit?: number, cursor: number }, string, Error>, [])
     const options = utils.infiniteOptions({
       input: {},
       getNextPageParam,
@@ -132,7 +133,7 @@ describe('infiniteOptions', () => {
   })
 
   it('infer correct input type', () => {
-    const utils = createProcedureUtils({} as ProcedureClient<undefined, { limit?: number, cursor: number }, string, Error>, [])
+    const utils = createProcedureUtils({} as Client<undefined, { limit?: number, cursor: number }, string, Error>, [])
 
     utils.infiniteOptions({
       input: {
@@ -177,7 +178,7 @@ describe('infiniteOptions', () => {
   })
 
   it('infer correct initialPageParam type', () => {
-    const utils = createProcedureUtils({} as ProcedureClient<undefined, { limit?: number, cursor: number }, string, Error>, [])
+    const utils = createProcedureUtils({} as Client<undefined, { limit?: number, cursor: number }, string, Error>, [])
 
     utils.infiniteOptions({
       input: {},
@@ -213,14 +214,14 @@ describe('infiniteOptions', () => {
   })
 
   it('initialPageParam can be optional', () => {
-    const utils = createProcedureUtils({} as ProcedureClient<undefined, { limit?: number, cursor?: number }, string, Error>, [])
+    const utils = createProcedureUtils({} as Client<undefined, { limit?: number, cursor?: number }, string, Error>, [])
 
     utils.infiniteOptions({
       input: {},
       getNextPageParam,
     })
 
-    const utils2 = createProcedureUtils({} as ProcedureClient<undefined, { limit?: number, cursor: number }, string, Error>, [])
+    const utils2 = createProcedureUtils({} as Client<undefined, { limit?: number, cursor: number }, string, Error>, [])
 
     // @ts-expect-error initialPageParam is required
     utils2.infiniteOptions({
@@ -230,13 +231,13 @@ describe('infiniteOptions', () => {
   })
 
   it('input can be optional', () => {
-    const utils = createProcedureUtils({} as ProcedureClient<undefined, { limit?: number, cursor?: number } | undefined, string, Error>, [])
+    const utils = createProcedureUtils({} as Client<undefined, { limit?: number, cursor?: number } | undefined, string, Error>, [])
 
     utils.infiniteOptions({
       getNextPageParam,
     })
 
-    const utils2 = createProcedureUtils({} as ProcedureClient<undefined, { limit?: number, cursor?: number }, string, Error>, [])
+    const utils2 = createProcedureUtils({} as Client<undefined, { limit?: number, cursor?: number }, string, Error>, [])
 
     // @ts-expect-error input is required
     utils2.infiniteOptions({
@@ -245,7 +246,7 @@ describe('infiniteOptions', () => {
   })
 
   it('infer correct output type', () => {
-    const utils = createProcedureUtils({} as ProcedureClient<undefined, { limit?: number, cursor: number }, string, Error>, [])
+    const utils = createProcedureUtils({} as Client<undefined, { limit?: number, cursor: number }, string, Error>, [])
     const query = useInfiniteQuery(utils.infiniteOptions({
       input: {
         limit: 1,
@@ -258,7 +259,7 @@ describe('infiniteOptions', () => {
   })
 
   it('work with select options', () => {
-    const utils = createProcedureUtils({} as ProcedureClient<undefined, { limit?: number, cursor: number }, string, Error>, [])
+    const utils = createProcedureUtils({} as Client<undefined, { limit?: number, cursor: number }, string, Error>, [])
     const query = useInfiniteQuery(utils.infiniteOptions({
       input: {
         limit: ref(1),
@@ -323,7 +324,7 @@ describe('infiniteOptions', () => {
 })
 
 describe('mutationOptions', () => {
-  const client = {} as ProcedureClient<undefined, number, string, Error>
+  const client = {} as Client<undefined, number, string, Error>
   const utils = createProcedureUtils(client, [])
 
   it('infer correct input type', () => {

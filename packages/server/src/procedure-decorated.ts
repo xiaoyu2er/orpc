@@ -108,10 +108,10 @@ export class DecoratedProcedure<
     })
   }
 
-  unshiftMiddleware<U extends Context & Partial<MergeContext<TContext, TExtraContext>> | undefined = undefined>(
+  unshiftMiddleware(
     ...middlewares: Middleware<
       TContext,
-      U,
+      Context & Partial<MergeContext<TContext, TExtraContext>> | undefined,
       unknown,
       SchemaOutput<TOutputSchema, THandlerOutput>,
       ORPCErrorConstructorMap<TErrorMap>

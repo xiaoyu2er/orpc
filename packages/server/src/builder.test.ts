@@ -34,11 +34,12 @@ describe('self chainable', () => {
     expect(applied).not.toBe(builder)
     expect(applied).toBeInstanceOf(Builder)
 
-    expect(applied['~orpc'].middlewares).toEqual(undefined)
+    expect(applied['~orpc'].middlewares).toEqual([])
   })
 
   it('use middleware', () => {
     const builder = new Builder({
+      middlewares: [],
     })
 
     const mid1 = vi.fn()
@@ -111,7 +112,7 @@ describe('to DecoratedProcedure', () => {
     const result = builder.handler(fn)
 
     expect(result).toSatisfy(isProcedure)
-    expect(result['~orpc'].middlewares).toEqual([mid])
+    expect(result['~orpc'].preMiddlewares).toEqual([mid])
     expect(result['~orpc'].handler).toBe(fn)
   })
 })

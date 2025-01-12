@@ -93,7 +93,8 @@ describe('to ProcedureImplementer', () => {
     const implementer = builder.use(mid)
 
     expect(implementer).toBeInstanceOf(ProcedureImplementer)
-    expect(implementer['~orpc'].middlewares).toEqual([baseMid, mid])
+    expect(implementer['~orpc'].preMiddlewares).toEqual([baseMid])
+    expect(implementer['~orpc'].postMiddlewares).toEqual([mid])
     expect(implementer['~orpc'].contract['~orpc'].InputSchema).toEqual(baseSchema)
     expect(implementer['~orpc'].contract['~orpc'].OutputSchema).toEqual(baseSchema)
     expect(implementer['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
@@ -105,7 +106,8 @@ describe('to ProcedureImplementer', () => {
 
     const implementer = builder.use(mid, map_input)
     expect(implementer).toBeInstanceOf(ProcedureImplementer)
-    expect(implementer['~orpc'].middlewares).toEqual([baseMid, expect.any(Function)])
+    expect(implementer['~orpc'].preMiddlewares).toEqual([baseMid])
+    expect(implementer['~orpc'].postMiddlewares).toEqual([expect.any(Function)])
     expect(implementer['~orpc'].contract['~orpc'].InputSchema).toEqual(baseSchema)
     expect(implementer['~orpc'].contract['~orpc'].OutputSchema).toEqual(baseSchema)
     expect(implementer['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
@@ -113,7 +115,7 @@ describe('to ProcedureImplementer', () => {
     map_input.mockReturnValueOnce('__input__')
     mid.mockReturnValueOnce('__mid__')
 
-    expect((implementer as any)['~orpc'].middlewares[1]({}, 'input', '__output__')).toBe('__mid__')
+    expect((implementer as any)['~orpc'].postMiddlewares[0]({}, 'input', '__output__')).toBe('__mid__')
 
     expect(map_input).toBeCalledTimes(1)
     expect(map_input).toBeCalledWith('input')
@@ -131,7 +133,7 @@ describe('to DecoratedProcedure', () => {
     expect(procedure).toSatisfy(isProcedure)
 
     expect(procedure['~orpc'].handler).toBe(handler)
-    expect(procedure['~orpc'].middlewares).toEqual([baseMid])
+    expect(procedure['~orpc'].preMiddlewares).toEqual([baseMid])
     expect(procedure['~orpc'].contract['~orpc'].InputSchema).toEqual(baseSchema)
     expect(procedure['~orpc'].contract['~orpc'].OutputSchema).toEqual(baseSchema)
     expect(procedure['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)

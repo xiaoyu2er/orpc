@@ -1,6 +1,6 @@
 import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
-import { isProcedure } from './procedure'
+import { isProcedure, Procedure } from './procedure'
 import { createProcedureClient } from './procedure-client'
 import { DecoratedProcedure } from './procedure-decorated'
 
@@ -33,7 +33,32 @@ const decorated = new DecoratedProcedure({
     errorMap: baseErrors,
   }),
   handler,
-  middlewares: [mid],
+  preMiddlewares: [mid],
+  postMiddlewares: [mid],
+})
+
+describe('decorate', () => {
+  it('works', () => {
+    const procedure = new Procedure({
+      contract: new ContractProcedure({
+        InputSchema: schema,
+        OutputSchema: schema,
+        route: { },
+        errorMap: baseErrors,
+      }),
+      handler,
+      preMiddlewares: [mid],
+      postMiddlewares: [mid],
+    })
+
+    expect(DecoratedProcedure.decorate(procedure)).toBeInstanceOf(DecoratedProcedure)
+    expect(DecoratedProcedure.decorate(procedure)).not.toBe(procedure)
+    expect(DecoratedProcedure.decorate(procedure)['~orpc']).toBe(procedure['~orpc'])
+  })
+
+  it('do nothing when procedure is already decorated', () => {
+    expect(DecoratedProcedure.decorate(decorated)).toBe(decorated)
+  })
 })
 
 describe('self chainable', () => {
@@ -47,7 +72,7 @@ describe('self chainable', () => {
     expect(prefixed['~orpc'].contract['~orpc'].errorMap).toBe(baseErrors)
     expect(prefixed['~orpc'].contract['~orpc'].InputSchema).toBe(schema)
     expect(prefixed['~orpc'].contract['~orpc'].OutputSchema).toBe(schema)
-    expect(prefixed['~orpc'].middlewares).toEqual([mid])
+    expect(prefixed['~orpc'].postMiddlewares).toEqual([mid])
     expect(prefixed['~orpc'].handler).toBe(handler)
   })
 
@@ -69,7 +94,7 @@ describe('self chainable', () => {
     expect(routed['~orpc'].contract['~orpc'].errorMap).toBe(baseErrors)
     expect(routed['~orpc'].contract['~orpc'].InputSchema).toBe(schema)
     expect(routed['~orpc'].contract['~orpc'].OutputSchema).toBe(schema)
-    expect(routed['~orpc'].middlewares).toEqual([mid])
+    expect(routed['~orpc'].postMiddlewares).toEqual([mid])
     expect(routed['~orpc'].handler).toBe(handler)
   })
 
@@ -80,7 +105,7 @@ describe('self chainable', () => {
 
     expect(applied).not.toBe(decorated)
     expect(applied).toSatisfy(isProcedure)
-    expect(applied['~orpc'].middlewares).toEqual([mid, extraMid])
+    expect(applied['~orpc'].postMiddlewares).toEqual([mid, extraMid])
 
     expect(applied['~orpc'].contract['~orpc'].errorMap).toBe(baseErrors)
     expect(applied['~orpc'].contract['~orpc'].InputSchema).toBe(schema)
@@ -95,7 +120,7 @@ describe('self chainable', () => {
     const applied = decorated.use(extraMid, map)
     expect(applied).not.toBe(decorated)
     expect(applied).toSatisfy(isProcedure)
-    expect(applied['~orpc'].middlewares).toEqual([mid, expect.any(Function)])
+    expect(applied['~orpc'].postMiddlewares).toEqual([mid, expect.any(Function)])
     expect(applied['~orpc'].contract['~orpc'].errorMap).toBe(baseErrors)
     expect(applied['~orpc'].contract['~orpc'].InputSchema).toBe(schema)
     expect(applied['~orpc'].contract['~orpc'].OutputSchema).toBe(schema)
@@ -104,7 +129,7 @@ describe('self chainable', () => {
     extraMid.mockReturnValueOnce('__extra__')
     map.mockReturnValueOnce('__map__')
 
-    expect((applied as any)['~orpc'].middlewares[1]({}, 'input', '__output__')).toBe('__extra__')
+    expect((applied as any)['~orpc'].postMiddlewares[1]({}, 'input', '__output__')).toBe('__extra__')
 
     expect(map).toBeCalledTimes(1)
     expect(map).toBeCalledWith('input')
@@ -122,7 +147,7 @@ describe('self chainable', () => {
     expect(tagged['~orpc'].contract['~orpc'].errorMap).toBe(baseErrors)
     expect(tagged['~orpc'].contract['~orpc'].InputSchema).toBe(schema)
     expect(tagged['~orpc'].contract['~orpc'].OutputSchema).toBe(schema)
-    expect(tagged['~orpc'].middlewares).toEqual([mid])
+    expect(tagged['~orpc'].postMiddlewares).toEqual([mid])
     expect(tagged['~orpc'].handler).toBe(handler)
   })
 
@@ -133,7 +158,7 @@ describe('self chainable', () => {
     const applied = decorated.unshiftMiddleware(mid1, mid2)
     expect(applied).not.toBe(decorated)
     expect(applied).toSatisfy(isProcedure)
-    expect(applied['~orpc'].middlewares).toEqual([mid1, mid2, mid])
+    expect(applied['~orpc'].preMiddlewares).toEqual([mid1, mid2, mid])
 
     expect(applied['~orpc'].contract['~orpc'].errorMap).toBe(baseErrors)
     expect(applied['~orpc'].contract['~orpc'].InputSchema).toBe(schema)
@@ -150,25 +175,25 @@ describe('self chainable', () => {
 
     it('no duplicate', () => {
       expect(
-        decorated.unshiftMiddleware(mid1, mid2)['~orpc'].middlewares,
+        decorated.unshiftMiddleware(mid1, mid2)['~orpc'].preMiddlewares,
       ).toEqual([mid1, mid2, mid])
     })
 
     it('case 1', () => {
       expect(
-        decorated.unshiftMiddleware(mid1, mid2).unshiftMiddleware(mid1, mid3)['~orpc'].middlewares,
+        decorated.unshiftMiddleware(mid1, mid2).unshiftMiddleware(mid1, mid3)['~orpc'].preMiddlewares,
       ).toEqual([mid1, mid3, mid2, mid])
     })
 
     it('case 2', () => {
       expect(
-        decorated.unshiftMiddleware(mid1, mid2, mid3, mid4).unshiftMiddleware(mid1, mid4, mid2, mid3)['~orpc'].middlewares,
+        decorated.unshiftMiddleware(mid1, mid2, mid3, mid4).unshiftMiddleware(mid1, mid4, mid2, mid3)['~orpc'].preMiddlewares,
       ).toEqual([mid1, mid4, mid2, mid3, mid4, mid])
     })
 
     it('case 3', () => {
       expect(
-        decorated.unshiftMiddleware(mid1, mid5, mid2, mid3, mid4).unshiftMiddleware(mid1, mid4, mid2, mid3)['~orpc'].middlewares,
+        decorated.unshiftMiddleware(mid1, mid5, mid2, mid3, mid4).unshiftMiddleware(mid1, mid4, mid2, mid3)['~orpc'].preMiddlewares,
       ).toEqual([mid1, mid4, mid2, mid3, mid5, mid2, mid3, mid4, mid])
     })
 
@@ -176,7 +201,7 @@ describe('self chainable', () => {
       expect(
         decorated
           .unshiftMiddleware(mid2, mid2)
-          .unshiftMiddleware(mid1, mid2)['~orpc'].middlewares,
+          .unshiftMiddleware(mid1, mid2)['~orpc'].preMiddlewares,
       ).toEqual([mid1, mid2, mid2, mid])
     })
 
@@ -184,7 +209,7 @@ describe('self chainable', () => {
       expect(
         decorated
           .unshiftMiddleware(mid2, mid2)
-          .unshiftMiddleware(mid1, mid2, mid2)['~orpc'].middlewares,
+          .unshiftMiddleware(mid1, mid2, mid2)['~orpc'].preMiddlewares,
       ).toEqual([mid1, mid2, mid2, mid])
     })
   })
@@ -210,7 +235,7 @@ describe('self chainable', () => {
 
       expect(applied).not.toBeInstanceOf(Function)
       expect(applied).toSatisfy(isProcedure)
-      expect(applied['~orpc'].middlewares).toEqual([mid, mid2])
+      expect(applied['~orpc'].postMiddlewares).toEqual([mid, mid2])
     })
   })
 
@@ -234,44 +259,7 @@ describe('self chainable', () => {
 
       expect(applied).not.toBeInstanceOf(Function)
       expect(applied).toSatisfy(isProcedure)
-      expect(applied['~orpc'].middlewares).toEqual([mid, mid2])
+      expect(applied['~orpc'].postMiddlewares).toEqual([mid, mid2])
     })
   })
-})
-
-it('can use middleware when has no middleware', () => {
-  const decorated = new DecoratedProcedure({
-    contract: new ContractProcedure({
-      InputSchema: undefined,
-      OutputSchema: undefined,
-      errorMap: undefined,
-    }),
-    handler: () => { },
-  })
-
-  const mid = vi.fn()
-  const applied = decorated.use(mid)
-
-  expect(applied).not.toBe(decorated)
-  expect(applied).toSatisfy(isProcedure)
-  expect(applied['~orpc'].middlewares).toEqual([mid])
-})
-
-it('can unshift middleware when has no middleware', () => {
-  const decorated = new DecoratedProcedure({
-    contract: new ContractProcedure({
-      InputSchema: undefined,
-      OutputSchema: undefined,
-      errorMap: undefined,
-    }),
-    handler: () => { },
-  })
-
-  const mid1 = vi.fn()
-  const mid2 = vi.fn()
-  const applied = decorated.unshiftMiddleware(mid1, mid2)
-
-  expect(applied).not.toBe(decorated)
-  expect(applied).toSatisfy(isProcedure)
-  expect(applied['~orpc'].middlewares).toEqual([mid1, mid2])
 })

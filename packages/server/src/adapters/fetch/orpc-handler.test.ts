@@ -17,6 +17,8 @@ describe('rpcHandler', () => {
       errorMap: undefined,
     }),
     handler: vi.fn(),
+    postMiddlewares: [],
+    preMiddlewares: [],
   })
   const pong = new Procedure({
     contract: new ContractProcedure({
@@ -25,6 +27,8 @@ describe('rpcHandler', () => {
       errorMap: undefined,
     }),
     handler: vi.fn(),
+    postMiddlewares: [],
+    preMiddlewares: [],
   })
 
   const router = {

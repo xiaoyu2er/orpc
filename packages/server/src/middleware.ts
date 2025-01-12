@@ -54,3 +54,7 @@ export interface MapInputMiddleware<TInput, TMappedInput> {
 }
 
 export type ANY_MAP_INPUT_MIDDLEWARE = MapInputMiddleware<any, any>
+
+export function middlewareOutputFn<TOutput>(output: TOutput): MiddlewareResult<undefined, TOutput> {
+  return { output, context: undefined }
+}

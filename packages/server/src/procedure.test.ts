@@ -9,6 +9,8 @@ describe('isProcedure', () => {
       errorMap: undefined,
     }),
     handler: () => {},
+    postMiddlewares: [],
+    preMiddlewares: [],
   })
 
   it('works', () => {

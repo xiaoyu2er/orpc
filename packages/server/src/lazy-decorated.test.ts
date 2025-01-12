@@ -18,7 +18,8 @@ describe('decorated lazy', () => {
       errorMap: undefined,
     }),
     handler: vi.fn(),
-    middlewares: [],
+    preMiddlewares: [],
+    postMiddlewares: [],
   })
 
   const lazyPing = lazy(() => Promise.resolve({ default: ping }))

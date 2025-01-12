@@ -14,7 +14,7 @@ import { DecoratedProcedure } from './procedure-decorated'
 import { RouterBuilder } from './router-builder'
 
 export interface BuilderDef<TContext extends Context, TExtraContext extends Context> {
-  middlewares?: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, Record<string, unknown>>[]
+  middlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, Record<string, unknown>>[]
 }
 
 export class Builder<TContext extends Context, TExtraContext extends Context> {
@@ -26,7 +26,9 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
   }
 
   context<UContext extends Context = WELL_CONTEXT>(): Builder<UContext, undefined> {
-    return new Builder({})
+    return new Builder({
+      middlewares: [],
+    })
   }
 
   use<U extends Context & Partial<MergeContext<TContext, TExtraContext>> | undefined = undefined>(
@@ -40,7 +42,7 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
   ): Builder<TContext, MergeContext<TExtraContext, U>> {
     return new Builder({
       ...this['~orpc'],
-      middlewares: [...(this['~orpc'].middlewares ?? []), middleware as any],
+      middlewares: [...this['~orpc'].middlewares, middleware as any],
     })
   }
 
@@ -123,7 +125,8 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
     handler: ProcedureHandler<TContext, TExtraContext, undefined, undefined, UFuncOutput, undefined>,
   ): DecoratedProcedure<TContext, TExtraContext, undefined, undefined, UFuncOutput, undefined> {
     return new DecoratedProcedure({
-      middlewares: this['~orpc'].middlewares,
+      preMiddlewares: this['~orpc'].middlewares,
+      postMiddlewares: [],
       contract: new ContractProcedure({
         InputSchema: undefined,
         OutputSchema: undefined,

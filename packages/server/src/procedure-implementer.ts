@@ -14,13 +14,8 @@ export type ProcedureImplementerDef<
   TErrorMap extends ErrorMap,
 > = {
   contract: ContractProcedure<TInputSchema, TOutputSchema, TErrorMap>
-  middlewares?: Middleware<
-    MergeContext<TContext, TExtraContext>,
-    Partial<TExtraContext> | undefined,
-    SchemaOutput<TInputSchema>,
-    SchemaInput<TOutputSchema>,
-    ORPCErrorConstructorMap<TErrorMap>
-  >[]
+  preMiddlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, Record<string, unknown>>[]
+  postMiddlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, SchemaOutput<TInputSchema>, SchemaInput<TOutputSchema>, Record<string, unknown>>[]
 }
 
 export class ProcedureImplementer<
@@ -83,7 +78,7 @@ export class ProcedureImplementer<
 
     return new ProcedureImplementer({
       ...this['~orpc'],
-      middlewares: [...(this['~orpc'].middlewares ?? []), mappedMiddleware],
+      postMiddlewares: [...this['~orpc'].postMiddlewares, mappedMiddleware],
     })
   }
 
@@ -91,7 +86,8 @@ export class ProcedureImplementer<
     handler: ProcedureHandler<TContext, TExtraContext, TInputSchema, TOutputSchema, UFuncOutput, TErrorMap>,
   ): DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, UFuncOutput, TErrorMap> {
     return new DecoratedProcedure({
-      middlewares: this['~orpc'].middlewares,
+      postMiddlewares: this['~orpc'].postMiddlewares,
+      preMiddlewares: this['~orpc'].preMiddlewares,
       contract: this['~orpc'].contract,
       handler,
     })

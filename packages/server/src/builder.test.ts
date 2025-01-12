@@ -34,7 +34,7 @@ describe('self chainable', () => {
     expect(applied).not.toBe(builder)
     expect(applied).toBeInstanceOf(Builder)
 
-    expect(applied['~orpc'].middlewares).toEqual(undefined)
+    expect(applied['~orpc'].middlewares).toEqual([])
   })
 
   it('use middleware', () => {

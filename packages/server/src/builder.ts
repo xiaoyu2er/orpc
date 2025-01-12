@@ -42,7 +42,7 @@ export class Builder<TContext extends Context, TExtraContext extends Context> {
   ): Builder<TContext, MergeContext<TExtraContext, U>> {
     return new Builder({
       ...this['~orpc'],
-      middlewares: [...(this['~orpc'].middlewares ?? []), middleware as any],
+      middlewares: [...this['~orpc'].middlewares, middleware as any],
     })
   }
 

@@ -16,7 +16,7 @@ const builder = new RouterBuilder<{ auth: boolean }, { db: string }>({
 
 it('prevent dynamic params on prefix', () => {
   expect(() => builder.prefix('/{id}')).toThrowError()
-  expect(() => new RouterBuilder({ prefix: '/{id}' })).toThrowError()
+  expect(() => new RouterBuilder({ prefix: '/{id}', middlewares: [] })).toThrowError()
 })
 
 describe('self chainable', () => {
@@ -28,7 +28,7 @@ describe('self chainable', () => {
   })
 
   it('prefix --- still work without pre prefix', () => {
-    const builder = new RouterBuilder({})
+    const builder = new RouterBuilder({ middlewares: [] })
 
     const prefixed = builder.prefix('/test')
     expect(prefixed).not.toBe(builder)
@@ -44,7 +44,7 @@ describe('self chainable', () => {
   })
 
   it('tag --- still work without pre tag', () => {
-    const builder = new RouterBuilder({})
+    const builder = new RouterBuilder({ middlewares: [] })
 
     const tagged = builder.tag('test1', 'test2')
     expect(tagged).not.toBe(builder)
@@ -63,7 +63,7 @@ describe('self chainable', () => {
   })
 
   it('use middleware --- still work without pre middleware', () => {
-    const builder = new RouterBuilder({})
+    const builder = new RouterBuilder({ middlewares: [] })
 
     const applied = builder.use(mid1).use(mid2)
     expect(applied).not.toBe(builder)
@@ -265,7 +265,7 @@ describe('adapt router', () => {
   })
 
   it('works with LAZY_ROUTER_PREFIX_SYMBOL when prefix is not set', () => {
-    const builderWithoutPrefix = new RouterBuilder({})
+    const builderWithoutPrefix = new RouterBuilder({ middlewares: [] })
     const adapted = builderWithoutPrefix.router(routerWithLazy) as any
     expect(getLazyRouterPrefix(adapted.ping)).toBe(undefined)
     expect(getLazyRouterPrefix(adapted.pong)).toBe(undefined)

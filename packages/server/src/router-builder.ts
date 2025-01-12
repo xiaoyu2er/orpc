@@ -24,7 +24,7 @@ export type AdaptedRouter<
 export type RouterBuilderDef<TContext extends Context, TExtraContext extends Context> = {
   prefix?: HTTPPath
   tags?: readonly string[]
-  middlewares?: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, Record<string, unknown>>[]
+  middlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, Record<string, unknown>>[]
 }
 
 export class RouterBuilder<
@@ -70,7 +70,7 @@ export class RouterBuilder<
   ): RouterBuilder<TContext, MergeContext<TExtraContext, U>> {
     return new RouterBuilder({
       ...this['~orpc'],
-      middlewares: [...(this['~orpc'].middlewares ?? []), middleware as any],
+      middlewares: [...this['~orpc'].middlewares, middleware as any],
     })
   }
 

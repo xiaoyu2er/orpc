@@ -14,6 +14,8 @@ describe('getRouterChild', () => {
       errorMap: undefined,
     }),
     handler: vi.fn(() => ({ val: '123' })),
+    postMiddlewares: [],
+    preMiddlewares: [],
   })
   const pong = new Procedure({
     contract: new ContractProcedure({
@@ -22,6 +24,8 @@ describe('getRouterChild', () => {
       errorMap: undefined,
     }),
     handler: vi.fn(() => ('output')),
+    postMiddlewares: [],
+    preMiddlewares: [],
   })
 
   it('with procedure as router', () => {

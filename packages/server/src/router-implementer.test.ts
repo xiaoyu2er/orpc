@@ -33,11 +33,15 @@ const contract = oc.router({
 const pingImpl = new Procedure({
   contract: ping,
   handler: vi.fn(),
+  postMiddlewares: [],
+  preMiddlewares: [],
 })
 
 const pongImpl = new Procedure({
   contract: pong,
   handler: vi.fn(),
+  postMiddlewares: [],
+  preMiddlewares: [],
 })
 
 const router = {
@@ -63,6 +67,7 @@ describe('self chainable', () => {
 
     const implementer = new RouterImplementer({
       contract,
+      middlewares: [],
     })
 
     const applied1 = implementer.use(mid1)

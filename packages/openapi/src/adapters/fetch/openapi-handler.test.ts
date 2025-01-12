@@ -216,6 +216,8 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
           errorMap: undefined,
         }),
         handler: vi.fn(),
+        postMiddlewares: [],
+        preMiddlewares: [],
       }),
     }
 
@@ -241,6 +243,8 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
           errorMap: undefined,
         }),
         handler: vi.fn(),
+        postMiddlewares: [],
+        preMiddlewares: [],
       }),
     }
 

@@ -15,6 +15,8 @@ const procedure = new Procedure({
     errorMap: undefined,
   }),
   handler: () => { },
+  postMiddlewares: [],
+  preMiddlewares: [],
 })
 
 describe('call', () => {

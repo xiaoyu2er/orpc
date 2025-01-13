@@ -7,7 +7,7 @@ const schema2 = z.object({ why: z.string() })
 
 describe('ORPCErrorConstructorMap', () => {
   it('works with undefined', () => {
-    expectTypeOf<ORPCErrorConstructorMap<undefined>>().toEqualTypeOf<Record<string, unknown>>()
+    expectTypeOf<ORPCErrorConstructorMap<Record<never, never>>>().toEqualTypeOf<Record<never, never>>()
   })
 
   it('works with error map', () => {

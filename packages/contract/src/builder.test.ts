@@ -44,7 +44,7 @@ describe('to DecoratedContractProcedure', () => {
     const procedure = builder.route(route)
 
     expect(procedure).toBeInstanceOf(DecoratedContractProcedure)
-    expect(DecoratedContractProcedure).toHaveBeenCalledWith({ route })
+    expect(DecoratedContractProcedure).toHaveBeenCalledWith({ route, errorMap: {} })
   })
 
   const schema = z.object({
@@ -56,14 +56,14 @@ describe('to DecoratedContractProcedure', () => {
     const procedure = builder.input(schema, example)
 
     expect(procedure).toBeInstanceOf(DecoratedContractProcedure)
-    expect(DecoratedContractProcedure).toHaveBeenCalledWith({ InputSchema: schema, inputExample: example })
+    expect(DecoratedContractProcedure).toHaveBeenCalledWith({ InputSchema: schema, inputExample: example, errorMap: {} })
   })
 
   it('output', () => {
     const procedure = builder.output(schema, example)
 
     expect(procedure).toBeInstanceOf(DecoratedContractProcedure)
-    expect(DecoratedContractProcedure).toHaveBeenCalledWith({ OutputSchema: schema, outputExample: example })
+    expect(DecoratedContractProcedure).toHaveBeenCalledWith({ OutputSchema: schema, outputExample: example, errorMap: {} })
   })
 
   it('errors', () => {
@@ -87,7 +87,7 @@ describe('to router', () => {
   const router = {
     a: {
       b: {
-        c: new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: undefined }),
+        c: new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: {} }),
       },
     },
   }

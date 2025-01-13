@@ -12,7 +12,7 @@ export interface RouterImplementerDef<
   TExtraContext extends Context,
   TContract extends ContractRouter,
 > {
-  middlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, Record<string, unknown>>[]
+  middlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, Record<never, never>>[]
   contract: TContract
 }
 
@@ -34,7 +34,7 @@ export class RouterImplementer<
       U,
       unknown,
       unknown,
-      Record<string, unknown>
+      Record<never, never>
     >,
   ): RouterImplementer<TContext, MergeContext<TExtraContext, U>, TContract> {
     return new RouterImplementer({

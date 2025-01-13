@@ -46,7 +46,7 @@ describe('createORPCErrorConstructorMap', () => {
   })
 
   it('works with undefined', () => {
-    expect(createORPCErrorConstructorMap(undefined)).toEqual({})
+    expect(createORPCErrorConstructorMap({})).toEqual({})
     expect(createORPCErrorConstructorMap({ CODE: undefined })).toEqual({})
   })
 })

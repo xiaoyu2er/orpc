@@ -8,7 +8,7 @@ describe('createLazyProcedureFormAnyLazy', () => {
     contract: new ContractProcedure({
       InputSchema: undefined,
       OutputSchema: undefined,
-      errorMap: undefined,
+      errorMap: {},
     }),
     handler: vi.fn(),
     postMiddlewares: [],

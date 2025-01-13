@@ -499,7 +499,7 @@ it('still work without InputSchema', async () => {
     contract: new ContractProcedure({
       InputSchema: undefined,
       OutputSchema: schema,
-      errorMap: undefined,
+      errorMap: {},
     }),
     handler,
     preMiddlewares: [],
@@ -519,7 +519,7 @@ it('still work without OutputSchema', async () => {
     contract: new ContractProcedure({
       InputSchema: schema,
       OutputSchema: undefined,
-      errorMap: undefined,
+      errorMap: {},
     }),
     handler,
     postMiddlewares: [],

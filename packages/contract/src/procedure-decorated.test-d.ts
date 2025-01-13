@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { ContractProcedure } from './procedure'
 import { DecoratedContractProcedure } from './procedure-decorated'
 
-const decorated = new DecoratedContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: undefined })
+const decorated = new DecoratedContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: {} })
 
 describe('decorate', () => {
   const schema = z.object({
@@ -10,14 +10,14 @@ describe('decorate', () => {
   })
 
   it('works', () => {
-    const simpleProcedure = new ContractProcedure({ InputSchema: schema, OutputSchema: undefined, errorMap: undefined })
+    const simpleProcedure = new ContractProcedure({ InputSchema: schema, OutputSchema: undefined, errorMap: {} })
 
     expectTypeOf(DecoratedContractProcedure.decorate(simpleProcedure)).toEqualTypeOf<
-      DecoratedContractProcedure<typeof schema, undefined, undefined>
+      DecoratedContractProcedure<typeof schema, undefined, Record<never, never>>
     >()
 
     expectTypeOf(DecoratedContractProcedure.decorate(decorated)).toEqualTypeOf<
-      DecoratedContractProcedure<undefined, undefined, undefined>
+      DecoratedContractProcedure<undefined, undefined, Record<never, never>>
     >()
   })
 })
@@ -25,7 +25,7 @@ describe('decorate', () => {
 describe('route', () => {
   it('return ContractProcedure', () => {
     const routed = decorated.route({})
-    expectTypeOf(routed).toEqualTypeOf<DecoratedContractProcedure<undefined, undefined, undefined>>()
+    expectTypeOf(routed).toEqualTypeOf<DecoratedContractProcedure<undefined, undefined, Record<never, never>>>()
   })
 
   it('throw error on invalid route', () => {
@@ -42,7 +42,7 @@ describe('route', () => {
 describe('prefix', () => {
   it('return ContractProcedure', () => {
     const prefixed = decorated.prefix('/api')
-    expectTypeOf(prefixed).toEqualTypeOf<DecoratedContractProcedure<undefined, undefined, undefined>>()
+    expectTypeOf(prefixed).toEqualTypeOf<DecoratedContractProcedure<undefined, undefined, Record<never, never>>>()
   })
 
   it('throw error on invalid prefix', () => {
@@ -57,7 +57,7 @@ describe('prefix', () => {
 describe('pushTag', () => {
   it('return ContractProcedure', () => {
     const tagged = decorated.unshiftTag('tag', 'tag2')
-    expectTypeOf(tagged).toEqualTypeOf<DecoratedContractProcedure<undefined, undefined, undefined>>()
+    expectTypeOf(tagged).toEqualTypeOf<DecoratedContractProcedure<undefined, undefined, Record<never, never>>>()
   })
 
   it('throw error on invalid tag', () => {
@@ -81,11 +81,11 @@ describe('input', () => {
     const modified = decorated.input(schema)
 
     expectTypeOf(modified).toEqualTypeOf<
-      DecoratedContractProcedure<typeof schema, undefined, undefined>
+      DecoratedContractProcedure<typeof schema, undefined, Record<never, never>>
     >()
 
     expectTypeOf(modified.input(schema2)).toEqualTypeOf<
-      DecoratedContractProcedure<typeof schema2, undefined, undefined>
+      DecoratedContractProcedure<typeof schema2, undefined, Record<never, never>>
     >()
   })
 
@@ -111,11 +111,11 @@ describe('output', () => {
     const modified = decorated.output(schema)
 
     expectTypeOf(modified).toEqualTypeOf<
-      DecoratedContractProcedure<undefined, typeof schema, undefined>
+      DecoratedContractProcedure<undefined, typeof schema, Record<never, never>>
     >()
 
     expectTypeOf(modified.output(schema2)).toEqualTypeOf<
-      DecoratedContractProcedure<undefined, typeof schema2, undefined>
+      DecoratedContractProcedure<undefined, typeof schema2, Record<never, never>>
     >()
   })
 

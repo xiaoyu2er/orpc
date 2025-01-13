@@ -14,8 +14,8 @@ export type ProcedureImplementerDef<
   TErrorMap extends ErrorMap,
 > = {
   contract: ContractProcedure<TInputSchema, TOutputSchema, TErrorMap>
-  preMiddlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, Record<string, unknown>>[]
-  postMiddlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, SchemaOutput<TInputSchema>, SchemaInput<TOutputSchema>, Record<string, unknown>>[]
+  preMiddlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, Record<never, never>>[]
+  postMiddlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, SchemaOutput<TInputSchema>, SchemaInput<TOutputSchema>, Record<never, never>>[]
 }
 
 export class ProcedureImplementer<

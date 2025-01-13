@@ -7,7 +7,7 @@ const schema = z.object({
   value: z.string(),
 })
 
-const procedure = new ContractProcedure({ InputSchema: schema, OutputSchema: undefined, route: { path: '/procedure' }, errorMap: undefined })
+const procedure = new ContractProcedure({ InputSchema: schema, OutputSchema: undefined, route: { path: '/procedure' }, errorMap: {} })
 const decorated = DecoratedContractProcedure.decorate(procedure)
 
 const router = {

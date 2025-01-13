@@ -90,7 +90,7 @@ describe('to ProcedureImplementer', () => {
   })
 
   it('use middleware with map input', () => {
-    const mid: Middleware<WELL_CONTEXT, { id: string, extra: true }, number, any, Record<string, unknown>> = ({ next }) => {
+    const mid: Middleware<WELL_CONTEXT, { id: string, extra: true }, number, any, Record<never, never>> = ({ next }) => {
       return next({
         context: { id: 'string', extra: true },
       })
@@ -137,9 +137,9 @@ describe('to ProcedureImplementer', () => {
   })
 
   it('not allow use middleware with output is typed', () => {
-    const mid1 = {} as Middleware<WELL_CONTEXT, undefined, unknown, any, Record<string, unknown>>
-    const mid2 = {} as Middleware<WELL_CONTEXT, undefined, unknown, unknown, Record<string, unknown>>
-    const mid3 = {} as Middleware<WELL_CONTEXT, undefined, unknown, { type: 'post', id: string }, Record<string, unknown>>
+    const mid1 = {} as Middleware<WELL_CONTEXT, undefined, unknown, any, Record<never, never>>
+    const mid2 = {} as Middleware<WELL_CONTEXT, undefined, unknown, unknown, Record<never, never>>
+    const mid3 = {} as Middleware<WELL_CONTEXT, undefined, unknown, { type: 'post', id: string }, Record<never, never>>
 
     builder.use(mid1)
 

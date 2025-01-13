@@ -19,30 +19,30 @@ export class ContractBuilder {
     })
   }
 
-  route(route: RouteOptions): DecoratedContractProcedure<undefined, undefined, undefined> {
+  route(route: RouteOptions): DecoratedContractProcedure<undefined, undefined, Record<never, never>> {
     return new DecoratedContractProcedure({
       route,
       InputSchema: undefined,
       OutputSchema: undefined,
-      errorMap: undefined,
+      errorMap: {},
     })
   }
 
-  input<U extends Schema>(schema: U, example?: SchemaInput<U>): DecoratedContractProcedure<U, undefined, undefined> {
+  input<U extends Schema>(schema: U, example?: SchemaInput<U>): DecoratedContractProcedure<U, undefined, Record<never, never>> {
     return new DecoratedContractProcedure({
       InputSchema: schema,
       inputExample: example,
       OutputSchema: undefined,
-      errorMap: undefined,
+      errorMap: {},
     })
   }
 
-  output<U extends Schema>(schema: U, example?: SchemaOutput<U>): DecoratedContractProcedure<undefined, U, undefined> {
+  output<U extends Schema>(schema: U, example?: SchemaOutput<U>): DecoratedContractProcedure<undefined, U, Record<never, never>> {
     return new DecoratedContractProcedure({
       OutputSchema: schema,
       outputExample: example,
       InputSchema: undefined,
-      errorMap: undefined,
+      errorMap: {},
     })
   }
 

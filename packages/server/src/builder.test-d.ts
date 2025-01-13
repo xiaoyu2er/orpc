@@ -24,13 +24,13 @@ describe('self chainable', () => {
 
   it('use middleware', () => {
     expectTypeOf(
-      builder.use({} as Middleware<{ auth: boolean }, undefined, unknown, unknown, Record<string, unknown>>),
+      builder.use({} as Middleware<{ auth: boolean }, undefined, unknown, unknown, Record<never, never>>),
     ).toEqualTypeOf<Builder<{ auth: boolean }, { db: string }>>()
     expectTypeOf(
-      builder.use({} as Middleware<{ auth: boolean }, { dev: string }, unknown, unknown, Record<string, unknown>>),
+      builder.use({} as Middleware<{ auth: boolean }, { dev: string }, unknown, unknown, Record<never, never>>),
     ).toEqualTypeOf<Builder<{ auth: boolean }, { db: string } & { dev: string }>>()
     expectTypeOf(
-      builder.use({} as Middleware<WELL_CONTEXT, undefined, unknown, unknown, Record<string, unknown>>),
+      builder.use({} as Middleware<WELL_CONTEXT, undefined, unknown, unknown, Record<never, never>>),
     ).toEqualTypeOf<Builder<{ auth: boolean }, { db: string }>>()
 
     // @ts-expect-error - context is not match
@@ -67,7 +67,7 @@ describe('create middleware', () => {
     })
 
     expectTypeOf(mid).toEqualTypeOf<
-      DecoratedMiddleware<{ auth: boolean } & { db: string }, { dev: boolean }, unknown, any, Record<string, unknown>>
+      DecoratedMiddleware<{ auth: boolean } & { db: string }, { dev: boolean }, unknown, any, Record<never, never>>
     >()
 
     // @ts-expect-error - conflict extra context and context
@@ -82,7 +82,7 @@ describe('create middleware', () => {
 describe('to ProcedureBuilder', () => {
   it('route', () => {
     expectTypeOf(builder.route({ path: '/test', method: 'GET' })).toEqualTypeOf<
-      ProcedureBuilder<{ auth: boolean }, { db: string }, undefined, undefined, undefined>
+      ProcedureBuilder<{ auth: boolean }, { db: string }, undefined, undefined, Record<never, never>>
     >()
 
     // @ts-expect-error - invalid path
@@ -94,7 +94,7 @@ describe('to ProcedureBuilder', () => {
 
   it('input', () => {
     expectTypeOf(builder.input(schema, { val: '123' })).toEqualTypeOf<
-      ProcedureBuilder<{ auth: boolean }, { db: string }, typeof schema, undefined, undefined>
+      ProcedureBuilder<{ auth: boolean }, { db: string }, typeof schema, undefined, Record<never, never>>
     >()
 
     builder.input(schema)
@@ -106,7 +106,7 @@ describe('to ProcedureBuilder', () => {
 
   it('output', () => {
     expectTypeOf(builder.output(schema, { val: 123 })).toEqualTypeOf<
-      ProcedureBuilder<{ auth: boolean }, { db: string }, undefined, typeof schema, undefined>
+      ProcedureBuilder<{ auth: boolean }, { db: string }, undefined, typeof schema, Record<never, never>>
     >()
 
     builder.output(schema)
@@ -137,7 +137,7 @@ describe('to DecoratedProcedure', () => {
 
       return 456
     })).toMatchTypeOf<
-      DecoratedProcedure<{ auth: boolean }, { db: string }, undefined, undefined, number, undefined>
+      DecoratedProcedure<{ auth: boolean }, { db: string }, undefined, undefined, number, Record<never, never>>
     >()
   })
 })
@@ -163,7 +163,7 @@ describe('to RouterBuilder', () => {
 })
 
 it('to AdaptedRouter', () => {
-  const ping = {} as Procedure<{ auth: boolean, db: string }, undefined, undefined, undefined, unknown, undefined>
+  const ping = {} as Procedure<{ auth: boolean, db: string }, undefined, undefined, undefined, unknown, Record<never, never>>
   const router = {
     ping,
     nested: {
@@ -179,7 +179,7 @@ it('to AdaptedRouter', () => {
 })
 
 it('to DecoratedLazy', () => {
-  const ping = {} as Procedure<{ auth: boolean, db: string }, undefined, undefined, undefined, unknown, undefined>
+  const ping = {} as Procedure<{ auth: boolean, db: string }, undefined, undefined, undefined, unknown, Record<never, never>>
   const router = {
     ping,
     nested: {
@@ -195,7 +195,7 @@ it('to DecoratedLazy', () => {
 
   // @ts-expect-error - context is not match
   builder.lazy(() => Promise.resolve({ default: {
-    ping: {} as Procedure<{ invalid: true }, undefined, undefined, undefined, unknown, undefined>,
+    ping: {} as Procedure<{ invalid: true }, undefined, undefined, undefined, unknown, Record<never, never>>,
   } }))
 })
 

@@ -28,7 +28,7 @@ describe('middleware', () => {
       return next({})
     }
 
-    const mid2: Middleware<{ auth: boolean }, undefined, unknown, unknown, Record<string, unknown>> = async ({ context, path, procedure, signal, next }, input, output) => {
+    const mid2: Middleware<{ auth: boolean }, undefined, unknown, unknown, Record<never, never>> = async ({ context, path, procedure, signal, next }, input, output) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()
       expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
       expectTypeOf(path).toEqualTypeOf<string[]>()
@@ -50,11 +50,11 @@ describe('middleware', () => {
   })
 
   it('require return valid extra context', () => {
-    const mid0: Middleware<undefined, undefined, unknown, unknown, Record<string, unknown>> = ({ next }) => {
+    const mid0: Middleware<undefined, undefined, unknown, unknown, Record<never, never>> = ({ next }) => {
       return next({ })
     }
 
-    const mid: Middleware<undefined, { userId: string }, unknown, unknown, Record<string, unknown>> = ({ next }) => {
+    const mid: Middleware<undefined, { userId: string }, unknown, unknown, Record<never, never>> = ({ next }) => {
       return next({ context: { userId: '1' } })
     }
 
@@ -63,14 +63,14 @@ describe('middleware', () => {
       return next({ context: { userId: 1 } })
     }
 
-    const mid3: Middleware<undefined, { userId: string }, unknown, unknown, Record<string, unknown>> = ({ next }) => {
+    const mid3: Middleware<undefined, { userId: string }, unknown, unknown, Record<never, never>> = ({ next }) => {
       // @ts-expect-error missing extra context
       return next({})
     }
   })
 
   it('can type input', () => {
-    const mid: Middleware<undefined, undefined, { id: string }, unknown, Record<string, unknown>> = ({ next }, input) => {
+    const mid: Middleware<undefined, undefined, { id: string }, unknown, Record<never, never>> = ({ next }, input) => {
       expectTypeOf(input).toEqualTypeOf<{ id: string }>()
 
       return next({})
@@ -78,7 +78,7 @@ describe('middleware', () => {
   })
 
   it('can type output', () => {
-    const mid: Middleware<undefined, undefined, unknown, { id: string }, Record<string, unknown>> = async ({ next }, input, output) => {
+    const mid: Middleware<undefined, undefined, unknown, { id: string }, Record<never, never>> = async ({ next }, input, output) => {
       const result = await next({})
 
       expectTypeOf(result.output).toEqualTypeOf<{ id: string }>()
@@ -86,14 +86,14 @@ describe('middleware', () => {
       return output({ id: '1' })
     }
 
-    const mid2: Middleware<undefined, undefined, unknown, { id: string }, Record<string, unknown>> = async (_, __, output) => {
+    const mid2: Middleware<undefined, undefined, unknown, { id: string }, Record<never, never>> = async (_, __, output) => {
       // @ts-expect-error invalid output
       return output({ id: 123 })
     }
   })
 
   it('can infer types from function', () => {
-    const handler = ({ next }: MiddlewareOptions<{ context: 'context' }, 'output', Record<string, unknown>>, input: 'input', output: MiddlewareOutputFn<'output'>) => {
+    const handler = ({ next }: MiddlewareOptions<{ context: 'context' }, 'output', Record<never, never>>, input: 'input', output: MiddlewareOutputFn<'output'>) => {
       return next({ context: { extra: 'extra' as const } })
     }
 
@@ -102,7 +102,7 @@ describe('middleware', () => {
       : never
 
     expectTypeOf<Inferred>().toEqualTypeOf<
-      [{ context: 'context' }, { extra: 'extra' }, 'input', 'output', Record<string, unknown>]
+      [{ context: 'context' }, { extra: 'extra' }, 'input', 'output', Record<never, never>]
     >()
   })
 })

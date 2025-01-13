@@ -4,7 +4,45 @@ import { z } from 'zod'
 import { ContractBuilder } from './builder'
 import { ContractProcedure } from './procedure'
 
-const builder = new ContractBuilder()
+const schema = z.object({
+  value: z.string(),
+})
+
+const baseErrorMap = {
+  BASE: {
+    status: 500,
+    data: z.object({
+      message: z.string(),
+    }),
+  },
+}
+
+const builder = new ContractBuilder({ errorMap: baseErrorMap })
+
+describe('self chainable', () => {
+  it('errors', () => {
+    const errors = {
+      BAD: {
+        status: 500,
+        data: schema,
+      },
+      ERROR2: {
+        status: 401,
+        data: schema,
+      },
+    } as const
+
+    expectTypeOf(builder.errors(errors)).toEqualTypeOf<
+      ContractBuilder<typeof errors & typeof baseErrorMap>
+    >()
+
+    // @ts-expect-error - not allow override the old errorMap
+    builder.errors({ BASE: baseErrorMap.BASE })
+
+    // @ts-expect-error - invalid schema
+    builder.errors({ UNAUTHORIZED: { data: {} } })
+  })
+})
 
 describe('to ContractRouterBuilder', () => {
   it('prefix', () => {
@@ -33,11 +71,11 @@ describe('to ContractRouterBuilder', () => {
 describe('to DecoratedContractProcedure', () => {
   it('route', () => {
     expectTypeOf(builder.route({ method: 'GET', path: '/path' })).toEqualTypeOf<
-      DecoratedContractProcedure<undefined, undefined, Record<never, never>>
+      DecoratedContractProcedure<undefined, undefined, typeof baseErrorMap>
     >()
 
     expectTypeOf(builder.route({ })).toEqualTypeOf<
-      DecoratedContractProcedure<undefined, undefined, Record<never, never>>
+      DecoratedContractProcedure<undefined, undefined, typeof baseErrorMap>
     >()
 
     // @ts-expect-error - invalid method
@@ -46,17 +84,13 @@ describe('to DecoratedContractProcedure', () => {
     builder.route({ method: 'GET', path: '' })
   })
 
-  const schema = z.object({
-    value: z.string(),
-  })
-
   it('input', () => {
     expectTypeOf(builder.input(schema)).toEqualTypeOf<
-      DecoratedContractProcedure<typeof schema, undefined, Record<never, never>>
+      DecoratedContractProcedure<typeof schema, undefined, typeof baseErrorMap>
     >()
 
     expectTypeOf(builder.input(schema, { value: 'example' })).toEqualTypeOf<
-      DecoratedContractProcedure<typeof schema, undefined, Record<never, never>>
+      DecoratedContractProcedure<typeof schema, undefined, typeof baseErrorMap>
     >()
 
     // @ts-expect-error - invalid schema
@@ -68,11 +102,11 @@ describe('to DecoratedContractProcedure', () => {
 
   it('output', () => {
     expectTypeOf(builder.output(schema)).toEqualTypeOf<
-      DecoratedContractProcedure<undefined, typeof schema, Record<never, never>>
+      DecoratedContractProcedure<undefined, typeof schema, typeof baseErrorMap>
     >()
 
     expectTypeOf(builder.output(schema, { value: 'example' })).toEqualTypeOf<
-      DecoratedContractProcedure<undefined, typeof schema, Record<never, never>>
+      DecoratedContractProcedure<undefined, typeof schema, typeof baseErrorMap>
     >()
 
     // @ts-expect-error - invalid schema
@@ -80,30 +114,6 @@ describe('to DecoratedContractProcedure', () => {
 
     // @ts-expect-error - invalid example
     builder.output(schema, {})
-  })
-
-  it('errors', () => {
-    const errors = {
-      BAD: {
-        status: 500,
-        data: schema,
-      },
-      ERROR2: {
-        status: 401,
-        data: schema,
-      },
-    } as const
-
-    expectTypeOf(builder.errors(errors)).toEqualTypeOf<
-      DecoratedContractProcedure<undefined, undefined, typeof errors>
-    >()
-
-    expectTypeOf(builder.output(schema, { value: 'example' })).toEqualTypeOf<
-      DecoratedContractProcedure<undefined, typeof schema, Record<never, never>>
-    >()
-
-    // @ts-expect-error - invalid schema
-    builder.errors({ UNAUTHORIZED: { data: {} } })
   })
 })
 

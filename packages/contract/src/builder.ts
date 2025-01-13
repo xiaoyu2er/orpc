@@ -1,4 +1,4 @@
-import type { ErrorMap } from './error-map'
+import type { ErrorMap, PreventOverrideErrorMap } from './error-map'
 import type { RouteOptions } from './procedure'
 import type { ContractRouter } from './router'
 import type { HTTPPath, Schema, SchemaInput, SchemaOutput } from './types'
@@ -6,7 +6,28 @@ import type { HTTPPath, Schema, SchemaInput, SchemaOutput } from './types'
 import { DecoratedContractProcedure } from './procedure-decorated'
 import { ContractRouterBuilder } from './router-builder'
 
-export class ContractBuilder {
+export type ContractBuilderDef<TErrorMap extends ErrorMap> = {
+  errorMap: TErrorMap
+}
+
+export class ContractBuilder<TErrorMap extends ErrorMap> {
+  '~type' = 'ContractBuilder' as const
+  '~orpc': ContractBuilderDef<TErrorMap>
+
+  constructor(def: ContractBuilderDef<TErrorMap>) {
+    this['~orpc'] = def
+  }
+
+  errors<const U extends ErrorMap & PreventOverrideErrorMap<TErrorMap>>(errors: U): ContractBuilder<U & TErrorMap> {
+    return new ContractBuilder({
+      ...this['~orpc'],
+      errorMap: {
+        ...errors,
+        ...this['~orpc'].errorMap, // ensure the old errorMap is not override (when user pass undefined)
+      },
+    })
+  }
+
   prefix(prefix: HTTPPath): ContractRouterBuilder {
     return new ContractRouterBuilder({
       prefix,
@@ -19,39 +40,30 @@ export class ContractBuilder {
     })
   }
 
-  route(route: RouteOptions): DecoratedContractProcedure<undefined, undefined, Record<never, never>> {
+  route(route: RouteOptions): DecoratedContractProcedure<undefined, undefined, TErrorMap> {
     return new DecoratedContractProcedure({
       route,
       InputSchema: undefined,
       OutputSchema: undefined,
-      errorMap: {},
+      errorMap: this['~orpc'].errorMap,
     })
   }
 
-  input<U extends Schema>(schema: U, example?: SchemaInput<U>): DecoratedContractProcedure<U, undefined, Record<never, never>> {
+  input<U extends Schema>(schema: U, example?: SchemaInput<U>): DecoratedContractProcedure<U, undefined, TErrorMap> {
     return new DecoratedContractProcedure({
       InputSchema: schema,
       inputExample: example,
       OutputSchema: undefined,
-      errorMap: {},
+      errorMap: this['~orpc'].errorMap,
     })
   }
 
-  output<U extends Schema>(schema: U, example?: SchemaOutput<U>): DecoratedContractProcedure<undefined, U, Record<never, never>> {
+  output<U extends Schema>(schema: U, example?: SchemaOutput<U>): DecoratedContractProcedure<undefined, U, TErrorMap> {
     return new DecoratedContractProcedure({
       OutputSchema: schema,
       outputExample: example,
       InputSchema: undefined,
-      errorMap: {},
-    })
-  }
-
-  errors<const U extends ErrorMap>(errorMap: U): DecoratedContractProcedure<undefined, undefined, U> {
-    // use const here for make sure the when implement must match the errorMap from contract from status to data schema
-    return new DecoratedContractProcedure({
-      InputSchema: undefined,
-      OutputSchema: undefined,
-      errorMap,
+      errorMap: this['~orpc'].errorMap,
     })
   }
 

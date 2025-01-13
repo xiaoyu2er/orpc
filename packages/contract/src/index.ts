@@ -17,4 +17,6 @@ export * from './router-builder'
 export * from './router-client'
 export * from './types'
 
-export const oc = new ContractBuilder()
+export const oc = new ContractBuilder<Record<never, never>>({
+  errorMap: {},
+})

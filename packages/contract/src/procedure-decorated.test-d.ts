@@ -174,8 +174,10 @@ describe('errors', () => {
     >()
   })
 
-  it('not allow override the old errorMap', () => {
-    // @ts-expect-error - not allow override the old errorMap
+  it('prevent redefine old errorMap', () => {
+    // @ts-expect-error - not allow redefine errorMap
     decorated.errors({ BASE: baseErrorMap.BASE })
+
+    expectTypeOf(decorated.errors({ BASE: undefined })).toEqualTypeOf<never>()
   })
 })

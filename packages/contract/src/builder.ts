@@ -1,7 +1,7 @@
-import type { ErrorMap, PreventOverrideErrorMap } from './error-map'
+import type { ErrorMap, ErrorMapGuard } from './error-map'
 import type { RouteOptions } from './procedure'
 import type { ContractRouter } from './router'
-import type { HTTPPath, Schema, SchemaInput, SchemaOutput } from './types'
+import type { HTTPPath, PreventNever, Schema, SchemaInput, SchemaOutput } from './types'
 
 import { DecoratedContractProcedure } from './procedure-decorated'
 import { ContractRouterBuilder } from './router-builder'
@@ -18,14 +18,16 @@ export class ContractBuilder<TErrorMap extends ErrorMap> {
     this['~orpc'] = def
   }
 
-  errors<const U extends ErrorMap & PreventOverrideErrorMap<TErrorMap>>(errors: U): ContractBuilder<U & TErrorMap> {
-    return new ContractBuilder({
+  errors<const U extends ErrorMap & ErrorMapGuard<TErrorMap>>(errors: U): PreventNever<TErrorMap & U> & ContractBuilder<U & TErrorMap> {
+    const builder = new ContractBuilder({
       ...this['~orpc'],
       errorMap: {
+        ...this['~orpc'].errorMap,
         ...errors,
-        ...this['~orpc'].errorMap, // ensure the old errorMap is not override (when user pass undefined)
       },
     })
+
+    return builder as typeof builder & PreventNever<TErrorMap & U>
   }
 
   prefix(prefix: HTTPPath): ContractRouterBuilder {

@@ -20,7 +20,7 @@ const baseErrorMap = {
 const builder = new ContractBuilder({ errorMap: baseErrorMap })
 
 describe('self chainable', () => {
-  it('errors', () => {
+  describe('errors', () => {
     const errors = {
       BAD: {
         status: 500,
@@ -32,15 +32,18 @@ describe('self chainable', () => {
       },
     } as const
 
-    expectTypeOf(builder.errors(errors)).toEqualTypeOf<
-      ContractBuilder<typeof errors & typeof baseErrorMap>
-    >()
+    it('should merge and strict with old one', () => {
+      expectTypeOf(builder.errors(errors)).toEqualTypeOf<
+        ContractBuilder<typeof errors & typeof baseErrorMap>
+      >()
+    })
 
-    // @ts-expect-error - not allow override the old errorMap
-    builder.errors({ BASE: baseErrorMap.BASE })
+    it('should prevent redefine errorMap', () => {
+      expectTypeOf(builder.errors({ BASE: undefined })).toEqualTypeOf<never>()
 
-    // @ts-expect-error - invalid schema
-    builder.errors({ UNAUTHORIZED: { data: {} } })
+      // @ts-expect-error - not allow redefine errorMap
+      builder.errors({ BASE: baseErrorMap.BASE })
+    })
   })
 })
 

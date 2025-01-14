@@ -1,6 +1,6 @@
-import type { ErrorMap, PreventOverrideErrorMap } from './error-map'
+import type { ErrorMap, ErrorMapGuard } from './error-map'
 import type { RouteOptions } from './procedure'
-import type { HTTPPath, Schema, SchemaInput, SchemaOutput } from './types'
+import type { HTTPPath, PreventNever, Schema, SchemaInput, SchemaOutput } from './types'
 import { ContractProcedure } from './procedure'
 
 export class DecoratedContractProcedure<
@@ -71,13 +71,15 @@ export class DecoratedContractProcedure<
     })
   }
 
-  errors<const U extends ErrorMap & PreventOverrideErrorMap<TErrorMap>>(errors: U): DecoratedContractProcedure<TInputSchema, TOutputSchema, TErrorMap & U> {
-    return new DecoratedContractProcedure({
+  errors<const U extends ErrorMap & ErrorMapGuard<TErrorMap>>(errors: U): PreventNever<TErrorMap & U> & DecoratedContractProcedure<TInputSchema, TOutputSchema, TErrorMap & U> {
+    const decorated = new DecoratedContractProcedure({
       ...this['~orpc'],
       errorMap: {
+        ...this['~orpc'].errorMap,
         ...errors,
-        ...this['~orpc'].errorMap, // ensure the old errorMap is not override (when user pass undefined)
       },
     })
+
+    return decorated as typeof decorated & PreventNever<TErrorMap & U>
   }
 }

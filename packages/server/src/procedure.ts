@@ -34,7 +34,7 @@ export interface ProcedureHandler<
 }
 
 /**
- * Why is `ErrorConstructorMap` passed to `postMiddlewares` as `Record<string, unknown>`?
+ * Why is `ErrorConstructorMap` passed to `postMiddlewares` as `Record<never, never>`?
  * Why is `ErrorMap` passed to `ProcedureHandler` as `any`?
  *
  * Passing `ErrorMap/ErrorConstructorMap` directly to `Middleware/ProcedureHandler`
@@ -52,8 +52,8 @@ export interface ProcedureDef<
   THandlerOutput extends SchemaInput<TOutputSchema>,
   TErrorMap extends ErrorMap,
 > {
-  preMiddlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, Record<string, unknown>>[]
-  postMiddlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, SchemaOutput<TInputSchema>, SchemaInput<TOutputSchema>, Record<string, unknown>>[]
+  preMiddlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, Record<never, never>>[]
+  postMiddlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, SchemaOutput<TInputSchema>, SchemaInput<TOutputSchema>, Record<never, never>>[]
   contract: ContractProcedure<TInputSchema, TOutputSchema, TErrorMap>
   handler: ProcedureHandler<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, any>
 }

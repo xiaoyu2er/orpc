@@ -263,7 +263,7 @@ describe('openapi generator', () => {
       BAD_GATEWAY: {
         data: schema,
       },
-    })
+    }).route({})
 
     it('strictErrorResponses=true', async () => {
       mockConverter.convert.mockReturnValue({ description: '__mocked__' })

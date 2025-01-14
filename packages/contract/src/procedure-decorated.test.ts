@@ -2,8 +2,20 @@ import { z } from 'zod'
 import { ContractProcedure } from './procedure'
 import { DecoratedContractProcedure } from './procedure-decorated'
 
+const baseErrorMap = {
+  BASE: {
+    status: 500,
+    data: z.object({
+      message: z.string(),
+    }),
+  },
+}
+
+const InputSchema = z.object({ input: z.string().transform(val => Number(val)) })
+const OutputSchema = z.object({ output: z.string().transform(val => Number(val)) })
+
 describe('decorate', () => {
-  const procedure = new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: undefined })
+  const procedure = new ContractProcedure({ InputSchema, OutputSchema, errorMap: baseErrorMap })
 
   it('works', () => {
     const decorated = DecoratedContractProcedure.decorate(procedure)
@@ -13,13 +25,13 @@ describe('decorate', () => {
 })
 
 describe('route', () => {
-  const decorated = new DecoratedContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: undefined })
+  const decorated = new DecoratedContractProcedure({ InputSchema, OutputSchema, errorMap: baseErrorMap })
 
   it('works', () => {
     const route = { method: 'GET', path: '/path' } as const
     const routed = decorated.route(route)
     expect(routed).toBeInstanceOf(DecoratedContractProcedure)
-    expect(routed['~orpc']).toEqual({ route })
+    expect(routed['~orpc']).toEqual({ route, errorMap: baseErrorMap, InputSchema, OutputSchema })
   })
 
   it('not reference', () => {
@@ -38,24 +50,27 @@ describe('route', () => {
         inputStructure: 'detailed',
         outputStructure: 'detailed',
       },
+      errorMap: baseErrorMap,
+      InputSchema,
+      OutputSchema,
     })
   })
 })
 
 describe('prefix', () => {
-  const decorated = new DecoratedContractProcedure({ InputSchema: undefined, OutputSchema: undefined, route: { path: '/path' }, errorMap: undefined })
+  const decorated = new DecoratedContractProcedure({ InputSchema, OutputSchema, route: { path: '/path' }, errorMap: baseErrorMap })
 
   it('works', () => {
     const prefixed = decorated.prefix('/prefix')
     expect(prefixed).toBeInstanceOf(DecoratedContractProcedure)
-    expect(prefixed['~orpc']).toEqual({ route: { path: '/prefix/path' } })
+    expect(prefixed['~orpc']).toEqual({ route: { path: '/prefix/path' }, errorMap: baseErrorMap, InputSchema, OutputSchema })
   })
 
   it('do nothing on non-path procedure', () => {
-    const decorated = new DecoratedContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: undefined })
+    const decorated = new DecoratedContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: baseErrorMap })
     const prefixed = decorated.prefix('/prefix')
     expect(prefixed).toBeInstanceOf(DecoratedContractProcedure)
-    expect(prefixed['~orpc']).toEqual({ })
+    expect(prefixed['~orpc']).toEqual({ errorMap: baseErrorMap })
   })
 
   it('not reference', () => {
@@ -66,16 +81,16 @@ describe('prefix', () => {
 })
 
 describe('unshiftTag', () => {
-  const decorated = new DecoratedContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: undefined })
+  const decorated = new DecoratedContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: baseErrorMap })
 
   it('works', () => {
     const tagged = decorated.unshiftTag('tag1', 'tag2')
     expect(tagged).toBeInstanceOf(DecoratedContractProcedure)
-    expect(tagged['~orpc']).toEqual({ route: { tags: ['tag1', 'tag2'] } })
+    expect(tagged['~orpc']).toEqual({ route: { tags: ['tag1', 'tag2'] }, errorMap: baseErrorMap })
 
     const tagged2 = tagged.unshiftTag('tag3')
     expect(tagged2).toBeInstanceOf(DecoratedContractProcedure)
-    expect(tagged2['~orpc']).toEqual({ route: { tags: ['tag3', 'tag1', 'tag2'] } })
+    expect(tagged2['~orpc']).toEqual({ route: { tags: ['tag3', 'tag1', 'tag2'] }, errorMap: baseErrorMap })
   })
 
   it('not reference', () => {
@@ -92,7 +107,7 @@ describe('unshiftTag', () => {
 })
 
 describe('input', () => {
-  const decorated = new DecoratedContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: undefined })
+  const decorated = new DecoratedContractProcedure({ InputSchema, OutputSchema, errorMap: baseErrorMap })
   const schema = z.object({
     value: z.string(),
   })
@@ -101,7 +116,7 @@ describe('input', () => {
   it('works', () => {
     const inputted = decorated.input(schema, example)
     expect(inputted).toBeInstanceOf(DecoratedContractProcedure)
-    expect(inputted['~orpc']).toEqual({ InputSchema: schema, inputExample: example })
+    expect(inputted['~orpc']).toEqual({ InputSchema: schema, inputExample: example, errorMap: baseErrorMap, OutputSchema })
   })
 
   it('not reference', () => {
@@ -112,7 +127,7 @@ describe('input', () => {
 })
 
 describe('output', () => {
-  const decorated = new DecoratedContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: undefined })
+  const decorated = new DecoratedContractProcedure({ InputSchema, OutputSchema, errorMap: baseErrorMap })
   const schema = z.object({
     value: z.string(),
   })
@@ -121,7 +136,7 @@ describe('output', () => {
   it('works', () => {
     const outputted = decorated.output(schema, example)
     expect(outputted).toBeInstanceOf(DecoratedContractProcedure)
-    expect(outputted['~orpc']).toEqual({ OutputSchema: schema, outputExample: example })
+    expect(outputted['~orpc']).toEqual({ OutputSchema: schema, outputExample: example, errorMap: baseErrorMap, InputSchema })
   })
 
   it('not reference', () => {
@@ -132,7 +147,7 @@ describe('output', () => {
 })
 
 describe('errors', () => {
-  const decorated = new DecoratedContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: undefined })
+  const decorated = new DecoratedContractProcedure({ InputSchema, OutputSchema, errorMap: baseErrorMap })
   const schema = z.object({
     value: z.string(),
   })
@@ -144,14 +159,21 @@ describe('errors', () => {
   }
 
   it('works', () => {
-    const outputted = decorated.errors(errors)
-    expect(outputted).toBeInstanceOf(DecoratedContractProcedure)
-    expect(outputted['~orpc'].errorMap).toEqual(errors)
+    const errored = decorated.errors(errors)
+    expect(errored).toBeInstanceOf(DecoratedContractProcedure)
+    expect(errored['~orpc']).toEqual({
+      InputSchema,
+      OutputSchema,
+      errorMap: {
+        ...errors,
+        ...baseErrorMap,
+      },
+    })
   })
 
   it('not reference', () => {
-    const outputted = decorated.errors(errors)
-    expect(outputted['~orpc']).not.toBe(decorated['~orpc'])
-    expect(outputted).not.toBe(decorated)
+    const errored = decorated.errors(errors)
+    expect(errored['~orpc']).not.toBe(decorated['~orpc'])
+    expect(errored).not.toBe(decorated)
   })
 })

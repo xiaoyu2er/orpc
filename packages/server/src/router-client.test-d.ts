@@ -13,7 +13,7 @@ const baseErrors = {
 }
 
 const ping = {} as Procedure<WELL_CONTEXT, undefined, typeof schema, typeof schema, { val: string }, typeof baseErrors>
-const pong = {} as Procedure<{ auth: boolean }, undefined, undefined, undefined, unknown, undefined>
+const pong = {} as Procedure<{ auth: boolean }, undefined, undefined, undefined, unknown, Record<never, never>>
 
 const router = {
   ping,

@@ -3,21 +3,21 @@ import type { DecoratedMiddleware } from './middleware-decorated'
 import type { WELL_CONTEXT } from './types'
 
 describe('decorateMiddleware', () => {
-  const decorated = {} as DecoratedMiddleware<{ user?: string }, { auth: true, user: string }, { name: string }, unknown, Record<string, unknown>>
+  const decorated = {} as DecoratedMiddleware<{ user?: string }, { auth: true, user: string }, { name: string }, unknown, Record<never, never>>
 
   it('assignable to middleware', () => {
-    const decorated = {} as DecoratedMiddleware<WELL_CONTEXT, undefined, { input: 'input' }, unknown, Record<string, unknown>>
-    const mid: Middleware<WELL_CONTEXT, undefined, { input: 'input' }, unknown, Record<string, unknown>> = decorated
+    const decorated = {} as DecoratedMiddleware<WELL_CONTEXT, undefined, { input: 'input' }, unknown, Record<never, never>>
+    const mid: Middleware<WELL_CONTEXT, undefined, { input: 'input' }, unknown, Record<never, never>> = decorated
 
-    const decorated2 = {} as DecoratedMiddleware<WELL_CONTEXT, { extra: boolean }, unknown, 'output', Record<string, unknown>>
-    const mid2: Middleware<WELL_CONTEXT, { extra: boolean }, unknown, 'output', Record<string, unknown>> = decorated2
+    const decorated2 = {} as DecoratedMiddleware<WELL_CONTEXT, { extra: boolean }, unknown, 'output', Record<never, never>>
+    const mid2: Middleware<WELL_CONTEXT, { extra: boolean }, unknown, 'output', Record<never, never>> = decorated2
   })
 
   it('can map input', () => {
     const mapped = decorated.mapInput((input: 'something') => ({ name: input }))
 
     expectTypeOf(mapped).toEqualTypeOf<
-      DecoratedMiddleware<{ user?: string }, { auth: true, user: string }, 'something', unknown, Record<string, unknown>>
+      DecoratedMiddleware<{ user?: string }, { auth: true, user: string }, 'something', unknown, Record<never, never>>
     >()
   })
 
@@ -32,7 +32,7 @@ describe('decorateMiddleware', () => {
         { auth: true, user: string } & { db: boolean },
         { name: string } & { age: number },
         unknown,
-        Record<string, unknown>
+        Record<never, never>
       >
     >()
   })
@@ -49,7 +49,7 @@ describe('decorateMiddleware', () => {
         { auth: true, user: string } & { db: boolean },
         { name: string } & { year: number },
         unknown,
-        Record<string, unknown>
+        Record<never, never>
       >
     >()
 
@@ -71,7 +71,7 @@ describe('decorateMiddleware', () => {
         { auth: true, user: string } & { db: boolean },
         { name: string },
         unknown,
-        Record<string, unknown>
+        Record<never, never>
       >
     >()
 

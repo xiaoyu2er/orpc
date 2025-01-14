@@ -63,7 +63,7 @@ describe('self chainable', () => {
     implementer.use(({ context, path, errors, next, procedure, signal }, input, output) => {
       expectTypeOf(context).toEqualTypeOf<{ auth: boolean } & { db: string }>()
       expectTypeOf(path).toEqualTypeOf<string[]>()
-      expectTypeOf(errors).toEqualTypeOf<Record<string, unknown>>()
+      expectTypeOf(errors).toEqualTypeOf<Record<never, never>>()
       expectTypeOf(procedure).toEqualTypeOf<ANY_PROCEDURE>()
       expectTypeOf(signal).toEqualTypeOf<AbortSignal | undefined>()
       expectTypeOf(input).toEqualTypeOf<unknown>()
@@ -72,9 +72,9 @@ describe('self chainable', () => {
       return next({})
     })
 
-    const mid1 = {} as Middleware<{ auth: boolean }, undefined, unknown, unknown, Record<string, unknown>>
-    const mid2 = {} as Middleware<{ auth: boolean }, { dev: string }, unknown, unknown, Record<string, unknown>>
-    const mid3 = {} as Middleware<{ auth: boolean, db: string }, { dev: string }, unknown, unknown, Record<string, unknown>>
+    const mid1 = {} as Middleware<{ auth: boolean }, undefined, unknown, unknown, Record<never, never>>
+    const mid2 = {} as Middleware<{ auth: boolean }, { dev: string }, unknown, unknown, Record<never, never>>
+    const mid3 = {} as Middleware<{ auth: boolean, db: string }, { dev: string }, unknown, unknown, Record<never, never>>
 
     expectTypeOf(implementer.use(mid1)).toEqualTypeOf<typeof implementer>()
     expectTypeOf(implementer.use(mid2)).toEqualTypeOf<
@@ -84,9 +84,9 @@ describe('self chainable', () => {
       RouterImplementer<{ auth: boolean }, { db: string } & { dev: string }, typeof contract>
     >()
 
-    const mid4 = {} as Middleware<{ auth: boolean }, { dev: string }, unknown, { val: string }, Record<string, unknown>>
-    const mid5 = {} as Middleware<{ auth: boolean }, { dev: string }, unknown, { val: number }, Record<string, unknown>>
-    const mid6 = {} as Middleware<{ auth: 'invalid' }, undefined, any, any, Record<string, unknown>>
+    const mid4 = {} as Middleware<{ auth: boolean }, { dev: string }, unknown, { val: string }, Record<never, never>>
+    const mid5 = {} as Middleware<{ auth: boolean }, { dev: string }, unknown, { val: number }, Record<never, never>>
+    const mid6 = {} as Middleware<{ auth: 'invalid' }, undefined, any, any, Record<never, never>>
 
     // @ts-expect-error - invalid middleware
     implementer.use(mid4)
@@ -103,20 +103,20 @@ describe('self chainable', () => {
 
 it('to AdaptedRouter', () => {
   expectTypeOf(implementer.router(router)).toMatchTypeOf<
-    AdaptedRouter<{ auth: boolean }, typeof router>
+    AdaptedRouter<{ auth: boolean }, typeof router, Record<string, never>>
   >()
 
   expectTypeOf(implementer.router(routerWithLazy)).toMatchTypeOf<
-    AdaptedRouter<{ auth: boolean }, typeof routerWithLazy>
+    AdaptedRouter<{ auth: boolean }, typeof routerWithLazy, Record<string, never>>
   >()
 })
 
 it('to AdaptedLazy', () => {
   expectTypeOf(implementer.lazy(() => Promise.resolve({ default: router }))).toMatchTypeOf<
-    DecoratedLazy<AdaptedRouter<{ auth: boolean }, typeof router>>
+    DecoratedLazy<AdaptedRouter<{ auth: boolean }, typeof router, Record<string, never>>>
   >()
 
   expectTypeOf(implementer.lazy(() => Promise.resolve({ default: routerWithLazy }))).toMatchTypeOf<
-    DecoratedLazy<AdaptedRouter<{ auth: boolean }, typeof routerWithLazy>>
+    DecoratedLazy<AdaptedRouter<{ auth: boolean }, typeof routerWithLazy, Record<string, never>>>
   >()
 })

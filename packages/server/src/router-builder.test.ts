@@ -8,15 +8,22 @@ import { RouterBuilder } from './router-builder'
 const mid1 = vi.fn()
 const mid2 = vi.fn()
 
-const builder = new RouterBuilder<{ auth: boolean }, { db: string }>({
+const baseErrors = {
+  BASE: {
+    data: z.object({ why: z.string() }),
+  },
+}
+
+const builder = new RouterBuilder({
   middlewares: [mid1, mid2],
   prefix: '/prefix',
   tags: ['tag1', 'tag2'],
+  errorMap: baseErrors,
 })
 
 it('prevent dynamic params on prefix', () => {
   expect(() => builder.prefix('/{id}')).toThrowError()
-  expect(() => new RouterBuilder({ prefix: '/{id}', middlewares: [] })).toThrowError()
+  expect(() => new RouterBuilder({ prefix: '/{id}', middlewares: [], errorMap: baseErrors })).toThrowError()
 })
 
 describe('self chainable', () => {
@@ -28,7 +35,7 @@ describe('self chainable', () => {
   })
 
   it('prefix --- still work without pre prefix', () => {
-    const builder = new RouterBuilder({ middlewares: [] })
+    const builder = new RouterBuilder({ middlewares: [], errorMap: baseErrors })
 
     const prefixed = builder.prefix('/test')
     expect(prefixed).not.toBe(builder)
@@ -44,7 +51,7 @@ describe('self chainable', () => {
   })
 
   it('tag --- still work without pre tag', () => {
-    const builder = new RouterBuilder({ middlewares: [] })
+    const builder = new RouterBuilder({ middlewares: [], errorMap: baseErrors })
 
     const tagged = builder.tag('test1', 'test2')
     expect(tagged).not.toBe(builder)
@@ -63,12 +70,31 @@ describe('self chainable', () => {
   })
 
   it('use middleware --- still work without pre middleware', () => {
-    const builder = new RouterBuilder({ middlewares: [] })
+    const builder = new RouterBuilder({ middlewares: [], errorMap: baseErrors })
 
     const applied = builder.use(mid1).use(mid2)
     expect(applied).not.toBe(builder)
     expect(applied).toBeInstanceOf(RouterBuilder)
     expect(applied['~orpc'].middlewares).toEqual([mid1, mid2])
+  })
+
+  it('errors', () => {
+    const errors = {
+      BAD: {
+        message: 'bad',
+        code: 400,
+        data: z.object({ val: z.string().transform(v => Number.parseInt(v)) }),
+      },
+    }
+
+    const applied = builder.errors(errors)
+    expect(applied).not.toBe(builder)
+    expect(applied).toBeInstanceOf(RouterBuilder)
+
+    expect(applied['~orpc'].errorMap).toEqual({
+      ...baseErrors,
+      ...errors,
+    })
   })
 })
 
@@ -84,7 +110,7 @@ describe('adapt router', () => {
       route: {
         tags: ['tag3', 'tag4'],
       },
-      errorMap: undefined,
+      errorMap: {},
     }),
     handler: vi.fn(),
     preMiddlewares: [mid1, pMid1, pMid2],
@@ -99,7 +125,7 @@ describe('adapt router', () => {
         path: '/pong',
         description: 'desc',
       },
-      errorMap: undefined,
+      errorMap: {},
     }),
     handler: vi.fn(),
     preMiddlewares: [],
@@ -133,6 +159,7 @@ describe('adapt router', () => {
     expect(adapted.ping['~orpc'].contract['~orpc'].route?.path).toBe(undefined)
     expect(adapted.ping['~orpc'].contract['~orpc'].route?.method).toBe(undefined)
     expect(adapted.ping['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2', 'tag3', 'tag4'])
+    expect(adapted.ping['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
 
     expect(adapted.pong).toSatisfy(isProcedure)
     expect(adapted.pong['~orpc'].handler).toBe(pong['~orpc'].handler)
@@ -140,6 +167,7 @@ describe('adapt router', () => {
     expect(adapted.pong['~orpc'].contract['~orpc'].route?.path).toBe('/prefix/pong')
     expect(adapted.pong['~orpc'].contract['~orpc'].route?.method).toBe('GET')
     expect(adapted.pong['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2'])
+    expect(adapted.pong['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
 
     expect(adapted.nested.ping).toSatisfy(isProcedure)
     expect(adapted.nested.ping['~orpc'].handler).toBe(ping['~orpc'].handler)
@@ -147,6 +175,7 @@ describe('adapt router', () => {
     expect(adapted.nested.ping['~orpc'].contract['~orpc'].route?.path).toBe(undefined)
     expect(adapted.nested.ping['~orpc'].contract['~orpc'].route?.method).toBe(undefined)
     expect(adapted.nested.ping['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2', 'tag3', 'tag4'])
+    expect(adapted.nested.ping['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
 
     expect(adapted.nested.pong).toSatisfy(isProcedure)
     expect(adapted.nested.pong['~orpc'].handler).toBe(pong['~orpc'].handler)
@@ -154,6 +183,7 @@ describe('adapt router', () => {
     expect(adapted.nested.pong['~orpc'].contract['~orpc'].route?.path).toBe('/prefix/pong')
     expect(adapted.nested.pong['~orpc'].contract['~orpc'].route?.method).toBe('GET')
     expect(adapted.nested.pong['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2'])
+    expect(adapted.nested.pong['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
   })
 
   it('router with lazy', async () => {
@@ -172,6 +202,7 @@ describe('adapt router', () => {
     expect((await unlazy(adapted.ping) as any).default['~orpc'].contract['~orpc'].route?.path).toBe(undefined)
     expect((await unlazy(adapted.ping) as any).default['~orpc'].contract['~orpc'].route?.method).toBe(undefined)
     expect((await unlazy(adapted.ping) as any).default['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2', 'tag3', 'tag4'])
+    expect((await unlazy(adapted.ping) as any).default['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
 
     expect(adapted.pong).toSatisfy(isProcedure)
     expect(adapted.pong['~orpc'].handler).toBe(pong['~orpc'].handler)
@@ -179,6 +210,7 @@ describe('adapt router', () => {
     expect(adapted.pong['~orpc'].contract['~orpc'].route?.path).toBe('/prefix/pong')
     expect(adapted.pong['~orpc'].contract['~orpc'].route?.method).toBe('GET')
     expect(adapted.pong['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2'])
+    expect(adapted.pong['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
 
     expect(adapted.nested.ping).toSatisfy(isLazy)
     expect((await unlazy(adapted.nested.ping) as any).default).toSatisfy(isProcedure)
@@ -187,6 +219,7 @@ describe('adapt router', () => {
     expect((await unlazy(adapted.nested.ping) as any).default['~orpc'].contract['~orpc'].route?.path).toBe(undefined)
     expect((await unlazy(adapted.nested.ping) as any).default['~orpc'].contract['~orpc'].route?.method).toBe(undefined)
     expect((await unlazy(adapted.nested.ping) as any).default['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2', 'tag3', 'tag4'])
+    expect((await unlazy(adapted.nested.ping) as any).default['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
 
     expect(adapted.nested.pong).toSatisfy(isLazy)
     expect((await unlazy(adapted.nested.pong) as any).default).toSatisfy(isProcedure)
@@ -195,6 +228,7 @@ describe('adapt router', () => {
     expect((await unlazy(adapted.nested.pong) as any).default['~orpc'].contract['~orpc'].route?.path).toBe('/prefix/pong')
     expect((await unlazy(adapted.nested.pong) as any).default['~orpc'].contract['~orpc'].route?.method).toBe('GET')
     expect((await unlazy(adapted.nested.pong) as any).default['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2'])
+    expect((await unlazy(adapted.nested.pong) as any).default['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
   })
 
   it('router lazy with nested lazy', async () => {
@@ -213,6 +247,7 @@ describe('adapt router', () => {
     expect((await unlazy(adapted.ping) as any).default['~orpc'].contract['~orpc'].route?.path).toBe(undefined)
     expect((await unlazy(adapted.ping) as any).default['~orpc'].contract['~orpc'].route?.method).toBe(undefined)
     expect((await unlazy(adapted.ping) as any).default['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2', 'tag3', 'tag4'])
+    expect((await unlazy(adapted.ping) as any).default['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
 
     expect(adapted.pong).toSatisfy(isLazy)
     expect((await unlazy(adapted.pong) as any).default).toSatisfy(isProcedure)
@@ -221,6 +256,7 @@ describe('adapt router', () => {
     expect((await unlazy(adapted.pong) as any).default['~orpc'].contract['~orpc'].route?.path).toBe('/prefix/pong')
     expect((await unlazy(adapted.pong) as any).default['~orpc'].contract['~orpc'].route?.method).toBe('GET')
     expect((await unlazy(adapted.pong) as any).default['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2'])
+    expect((await unlazy(adapted.pong) as any).default['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
 
     expect(adapted.nested.ping).toSatisfy(isLazy)
     expect((await unlazy(adapted.nested.ping) as any).default).toSatisfy(isProcedure)
@@ -229,6 +265,7 @@ describe('adapt router', () => {
     expect((await unlazy(adapted.nested.ping) as any).default['~orpc'].contract['~orpc'].route?.path).toBe(undefined)
     expect((await unlazy(adapted.nested.ping) as any).default['~orpc'].contract['~orpc'].route?.method).toBe(undefined)
     expect((await unlazy(adapted.nested.ping) as any).default['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2', 'tag3', 'tag4'])
+    expect((await unlazy(adapted.nested.ping) as any).default['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
 
     expect(adapted.nested.pong).toSatisfy(isLazy)
     expect((await unlazy(adapted.nested.pong) as any).default).toSatisfy(isProcedure)
@@ -237,6 +274,7 @@ describe('adapt router', () => {
     expect((await unlazy(adapted.nested.pong) as any).default['~orpc'].contract['~orpc'].route?.path).toBe('/prefix/pong')
     expect((await unlazy(adapted.nested.pong) as any).default['~orpc'].contract['~orpc'].route?.method).toBe('GET')
     expect((await unlazy(adapted.nested.pong) as any).default['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2'])
+    expect((await unlazy(adapted.nested.pong) as any).default['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
   })
 
   it('support procedure as a router', async () => {
@@ -265,7 +303,7 @@ describe('adapt router', () => {
   })
 
   it('works with LAZY_ROUTER_PREFIX_SYMBOL when prefix is not set', () => {
-    const builderWithoutPrefix = new RouterBuilder({ middlewares: [] })
+    const builderWithoutPrefix = new RouterBuilder({ middlewares: [], errorMap: baseErrors })
     const adapted = builderWithoutPrefix.router(routerWithLazy) as any
     expect(getLazyRouterPrefix(adapted.ping)).toBe(undefined)
     expect(getLazyRouterPrefix(adapted.pong)).toBe(undefined)

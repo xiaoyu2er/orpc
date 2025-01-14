@@ -113,7 +113,7 @@ describe('createProcedureClient', () => {
     },
   }
   const procedure = {} as Procedure<WELL_CONTEXT, { val: string }, typeof schema, typeof schema, { val: string }, typeof baseErrors>
-  const procedureWithContext = {} as Procedure<{ userId?: string }, { db: string }, typeof schema, typeof schema, { val: string }, undefined>
+  const procedureWithContext = {} as Procedure<{ userId?: string }, { db: string }, typeof schema, typeof schema, { val: string }, Record<never, never>>
 
   it('just a client', () => {
     const client = createProcedureClient(procedure)
@@ -225,7 +225,7 @@ describe('createProcedureClient', () => {
 
 it('support lazy procedure', () => {
   const schema = z.object({ val: z.string().transform(v => Number(v)) })
-  const procedure = {} as Procedure<{ userId?: string }, undefined, typeof schema, typeof schema, { val: string }, undefined>
+  const procedure = {} as Procedure<{ userId?: string }, undefined, typeof schema, typeof schema, { val: string }, Record<never, never>>
   const lazied = lazy(() => Promise.resolve({ default: procedure }))
 
   const client = createProcedureClient(lazied, {
@@ -239,5 +239,5 @@ it('support lazy procedure', () => {
     },
   })
 
-  expectTypeOf(client).toEqualTypeOf<ProcedureClient<unknown, typeof schema, typeof schema, { val: string }, undefined>>()
+  expectTypeOf(client).toEqualTypeOf<ProcedureClient<unknown, typeof schema, typeof schema, { val: string }, Record<never, never>>>()
 })

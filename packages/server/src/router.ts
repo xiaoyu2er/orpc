@@ -7,12 +7,12 @@ import { isProcedure } from './procedure'
 
 export type Router<
   TContext extends Context,
-  TContract extends ContractRouter,
+  TContract extends ContractRouter<any>,
 > = Lazyable<
   TContract extends ContractProcedure<infer UInputSchema, infer UOutputSchema, infer UErrorMap>
     ? Procedure<TContext, any, UInputSchema, UOutputSchema, any, UErrorMap>
     : {
-        [K in keyof TContract]: TContract[K] extends ContractRouter ? Router<TContext, TContract[K]> : never
+        [K in keyof TContract]: TContract[K] extends ContractRouter<any> ? Router<TContext, TContract[K]> : never
       }
 >
 

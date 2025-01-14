@@ -3,11 +3,11 @@ import { ContractProcedure } from '@orpc/contract'
 import { flatLazy, isLazy, lazy, LAZY_LOADER_SYMBOL, unlazy } from './lazy'
 import { Procedure } from './procedure'
 
-const procedure = new Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown, undefined>({
+const procedure = new Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown, Record<never, never>>({
   contract: new ContractProcedure({
     InputSchema: undefined,
     OutputSchema: undefined,
-    errorMap: undefined,
+    errorMap: {},
   }),
   handler: vi.fn(),
   preMiddlewares: [],

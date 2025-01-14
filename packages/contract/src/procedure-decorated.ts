@@ -1,4 +1,4 @@
-import type { ErrorMap } from './error-map'
+import type { ErrorMap, ErrorMapGuard, ErrorMapSuggestions } from './error-map'
 import type { RouteOptions } from './procedure'
 import type { HTTPPath, Schema, SchemaInput, SchemaOutput } from './types'
 import { ContractProcedure } from './procedure'
@@ -71,11 +71,13 @@ export class DecoratedContractProcedure<
     })
   }
 
-  errors<const U extends ErrorMap>(errorMap: U): DecoratedContractProcedure<TInputSchema, TOutputSchema, U> {
-    // use const here for make sure the when implement must match the errorMap from contract from status to data schema
+  errors<const U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(errors: U): DecoratedContractProcedure<TInputSchema, TOutputSchema, TErrorMap & U> {
     return new DecoratedContractProcedure({
       ...this['~orpc'],
-      errorMap,
+      errorMap: {
+        ...this['~orpc'].errorMap,
+        ...errors,
+      },
     })
   }
 }

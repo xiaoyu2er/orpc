@@ -1,6 +1,8 @@
 import type {
   ContractProcedure,
   ErrorMap,
+  ErrorMapGuard,
+  ErrorMapSuggestions,
   RouteOptions,
   Schema,
   SchemaInput,
@@ -26,7 +28,7 @@ export interface ProcedureBuilderDef<
   TErrorMap extends ErrorMap,
 > {
   contract: ContractProcedure<TInputSchema, TOutputSchema, TErrorMap>
-  middlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, Record<string, unknown>>[]
+  middlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, Record<never, never>>[]
 }
 
 export class ProcedureBuilder<
@@ -76,9 +78,9 @@ export class ProcedureBuilder<
     })
   }
 
-  errors<UErrorMap extends ErrorMap>(
-    errors: UErrorMap,
-  ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema, UErrorMap> {
+  errors<U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(
+    errors: U,
+  ): ProcedureBuilder<TContext, TExtraContext, TInputSchema, TOutputSchema, TErrorMap & U> {
     return new ProcedureBuilder({
       ...this['~orpc'],
       contract: DecoratedContractProcedure

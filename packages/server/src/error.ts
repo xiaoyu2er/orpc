@@ -10,23 +10,16 @@ export type ORPCErrorConstructorMapItemRest<TData> =
 export type ORPCErrorConstructorMapItem<TCode extends string, TDataSchema extends Schema> =
     (...rest: ORPCErrorConstructorMapItemRest<SchemaInput<TDataSchema>>) => ORPCError<TCode, SchemaOutput<TDataSchema>>
 
-export type ORPCErrorConstructorMap<T extends ErrorMap> =
-    T extends undefined
-      ? Record<string, unknown>
-      : {
-          [K in keyof T]: K extends string
-            ? T[K] extends ErrorMapItem<infer UInputSchema>
-              ? ORPCErrorConstructorMapItem<K, UInputSchema>
-              : never
-            : never
-        }
+export type ORPCErrorConstructorMap<T extends ErrorMap> = {
+  [K in keyof T]: K extends string
+    ? T[K] extends ErrorMapItem<infer UInputSchema>
+      ? ORPCErrorConstructorMapItem<K, UInputSchema>
+      : never
+    : never
+}
 
 export function createORPCErrorConstructorMap<T extends ErrorMap>(errors: T): ORPCErrorConstructorMap<T> {
   const constructors = {} as ORPCErrorConstructorMap<T>
-
-  if (!errors) {
-    return constructors
-  }
 
   for (const code in errors) {
     const config = errors[code]

@@ -57,7 +57,7 @@ describe('self chainable', () => {
   })
 
   it('use middleware with map input', () => {
-    const mid: Middleware<WELL_CONTEXT, { id: string, extra: true }, number, any, Record<string, unknown>> = ({ next }) => {
+    const mid: Middleware<WELL_CONTEXT, { id: string, extra: true }, number, any, Record<never, never>> = ({ next }) => {
       return next({
         context: { id: 'string', extra: true },
       })
@@ -110,10 +110,10 @@ describe('self chainable', () => {
   })
 
   it('handle middleware with output is typed', () => {
-    const mid1 = {} as Middleware<WELL_CONTEXT, undefined, unknown, any, Record<string, unknown>>
-    const mid2 = {} as Middleware<WELL_CONTEXT, undefined, unknown, { base: string }, Record<string, unknown>>
-    const mid3 = {} as Middleware<WELL_CONTEXT, undefined, unknown, unknown, Record<string, unknown>>
-    const mid4 = {} as Middleware<WELL_CONTEXT, undefined, unknown, { base: number }, Record<string, unknown>>
+    const mid1 = {} as Middleware<WELL_CONTEXT, undefined, unknown, any, Record<never, never>>
+    const mid2 = {} as Middleware<WELL_CONTEXT, undefined, unknown, { base: string }, Record<never, never>>
+    const mid3 = {} as Middleware<WELL_CONTEXT, undefined, unknown, unknown, Record<never, never>>
+    const mid4 = {} as Middleware<WELL_CONTEXT, undefined, unknown, { base: number }, Record<never, never>>
 
     implementer.use(mid1)
     implementer.use(mid2)

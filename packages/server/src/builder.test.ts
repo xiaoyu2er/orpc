@@ -22,9 +22,19 @@ beforeEach(() => {
 
 const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
 
+const baseErrors = {
+  BASE: {
+    status: 500,
+    data: z.object({
+      message: z.string(),
+    }),
+  },
+}
+
 const mid = vi.fn()
 const builder = new Builder({
   middlewares: [mid],
+  errorMap: baseErrors,
 })
 
 describe('self chainable', () => {
@@ -40,6 +50,7 @@ describe('self chainable', () => {
   it('use middleware', () => {
     const builder = new Builder({
       middlewares: [],
+      errorMap: {},
     })
 
     const mid1 = vi.fn()
@@ -50,6 +61,18 @@ describe('self chainable', () => {
     expect(applied).not.toBe(builder)
     expect(applied).toBeInstanceOf(Builder)
     expect(applied['~orpc'].middlewares).toEqual([mid1, mid2, mid3])
+  })
+
+  it('errors', () => {
+    const result = builder.errors({ ANYTHING: { data: schema } })
+
+    expect(result).instanceOf(Builder)
+    expect(result).not.toBe(builder)
+    expect(result['~orpc'].middlewares).toEqual([mid])
+    expect(result['~orpc'].errorMap).toEqual({
+      ...baseErrors,
+      ANYTHING: { data: schema },
+    })
   })
 })
 
@@ -75,6 +98,7 @@ describe('to ProcedureBuilder', () => {
     expect(result).instanceOf(ProcedureBuilder)
     expect(result['~orpc'].middlewares).toEqual([mid])
     expect(result['~orpc'].contract['~orpc'].route).toBe(route)
+    expect(result['~orpc'].contract['~orpc'].errorMap).toBe(baseErrors)
   })
 
   it('input', () => {
@@ -85,6 +109,7 @@ describe('to ProcedureBuilder', () => {
     expect(result['~orpc'].middlewares).toEqual([mid])
     expect(result['~orpc'].contract['~orpc'].InputSchema).toBe(schema)
     expect(result['~orpc'].contract['~orpc'].inputExample).toBe(example)
+    expect(result['~orpc'].contract['~orpc'].errorMap).toBe(baseErrors)
   })
 
   it('output', () => {
@@ -95,14 +120,7 @@ describe('to ProcedureBuilder', () => {
     expect(result['~orpc'].middlewares).toEqual([mid])
     expect(result['~orpc'].contract['~orpc'].OutputSchema).toBe(schema)
     expect(result['~orpc'].contract['~orpc'].outputExample).toBe(example)
-  })
-
-  it('errors', () => {
-    const result = builder.errors({ ANYTHING: { data: schema } })
-
-    expect(result).instanceOf(ProcedureBuilder)
-    expect(result['~orpc'].middlewares).toEqual([mid])
-    expect(result['~orpc'].contract['~orpc'].errorMap).toEqual({ ANYTHING: { data: schema } })
+    expect(result['~orpc'].contract['~orpc'].errorMap).toBe(baseErrors)
   })
 })
 
@@ -114,6 +132,7 @@ describe('to DecoratedProcedure', () => {
     expect(result).toSatisfy(isProcedure)
     expect(result['~orpc'].preMiddlewares).toEqual([mid])
     expect(result['~orpc'].handler).toBe(fn)
+    expect(result['~orpc'].contract['~orpc'].errorMap).toBe(baseErrors)
   })
 })
 
@@ -126,6 +145,7 @@ describe('to RouterBuilder', () => {
     expect(RouterBuilder).toBeCalledWith(expect.objectContaining({
       middlewares: [mid],
       prefix: '/test',
+      errorMap: baseErrors,
     }))
   })
 
@@ -137,6 +157,7 @@ describe('to RouterBuilder', () => {
     expect(RouterBuilder).toBeCalledWith(expect.objectContaining({
       middlewares: [mid],
       tags: ['tag1', 'tag2'],
+      errorMap: baseErrors,
     }))
   })
 })
@@ -155,6 +176,7 @@ it('to AdaptedRouter', () => {
   expect(RouterBuilder).toBeCalledTimes(1)
   expect(RouterBuilder).toBeCalledWith(expect.objectContaining({
     middlewares: [mid],
+    errorMap: baseErrors,
   }))
 
   const routerBuilder = vi.mocked(RouterBuilder).mock.results[0]?.value
@@ -169,6 +191,7 @@ it('to DecoratedLazy', () => {
   expect(RouterBuilder).toBeCalledTimes(1)
   expect(RouterBuilder).toBeCalledWith(expect.objectContaining({
     middlewares: [mid],
+    errorMap: baseErrors,
   }))
 
   const routerBuilder = vi.mocked(RouterBuilder).mock.results[0]?.value

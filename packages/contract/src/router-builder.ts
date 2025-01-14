@@ -1,45 +1,57 @@
+import type { ErrorMap, ErrorMapGuard, ErrorMapSuggestions, StrictErrorMap } from './error-map'
 import type { ContractProcedure } from './procedure'
 import type { ContractRouter } from './router'
 import type { HTTPPath } from './types'
 import { isContractProcedure } from './procedure'
 import { DecoratedContractProcedure } from './procedure-decorated'
 
-export type AdaptedContractRouter<TContract extends ContractRouter> = {
+export type AdaptedContractRouter<TContract extends ContractRouter<any>, TErrorMapExtra extends ErrorMap> = {
   [K in keyof TContract]: TContract[K] extends ContractProcedure<infer UInputSchema, infer UOutputSchema, infer UErrors>
-    ? DecoratedContractProcedure<UInputSchema, UOutputSchema, UErrors>
-    : TContract[K] extends ContractRouter
-      ? AdaptedContractRouter<TContract[K]>
+    ? DecoratedContractProcedure<UInputSchema, UOutputSchema, UErrors & TErrorMapExtra>
+    : TContract[K] extends ContractRouter<any>
+      ? AdaptedContractRouter<TContract[K], TErrorMapExtra>
       : never
 }
 
-export interface ContractRouterBuilderDef {
+export interface ContractRouterBuilderDef<TErrorMap extends ErrorMap> {
   prefix?: HTTPPath
   tags?: string[]
+  errorMap: TErrorMap
 }
 
-export class ContractRouterBuilder {
+export class ContractRouterBuilder<TErrorMap extends ErrorMap> {
   '~type' = 'ContractProcedure' as const
-  '~orpc': ContractRouterBuilderDef
+  '~orpc': ContractRouterBuilderDef<TErrorMap>
 
-  constructor(def: ContractRouterBuilderDef) {
+  constructor(def: ContractRouterBuilderDef<TErrorMap>) {
     this['~orpc'] = def
   }
 
-  prefix(prefix: HTTPPath): ContractRouterBuilder {
+  prefix(prefix: HTTPPath): ContractRouterBuilder<TErrorMap> {
     return new ContractRouterBuilder({
       ...this['~orpc'],
       prefix: `${this['~orpc'].prefix ?? ''}${prefix}`,
     })
   }
 
-  tag(...tags: string[]): ContractRouterBuilder {
+  tag(...tags: string[]): ContractRouterBuilder<TErrorMap> {
     return new ContractRouterBuilder({
       ...this['~orpc'],
       tags: [...(this['~orpc'].tags ?? []), ...tags],
     })
   }
 
-  router<T extends ContractRouter>(router: T): AdaptedContractRouter<T> {
+  errors<const U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(errors: U): ContractRouterBuilder<U & TErrorMap> {
+    return new ContractRouterBuilder({
+      ...this['~orpc'],
+      errorMap: {
+        ...this['~orpc'].errorMap,
+        ...errors,
+      },
+    })
+  }
+
+  router<T extends ContractRouter<ErrorMap & Partial<StrictErrorMap<TErrorMap>>>>(router: T): AdaptedContractRouter<T, TErrorMap> {
     if (isContractProcedure(router)) {
       let decorated = DecoratedContractProcedure.decorate(router)
 
@@ -51,10 +63,16 @@ export class ContractRouterBuilder {
         decorated = decorated.prefix(this['~orpc'].prefix)
       }
 
+      /**
+       * The `router` (T) has been validated to ensure no conflicts with `TErrorMap`,
+       * allowing us to safely cast here.
+       */
+      decorated = decorated.errors(this['~orpc'].errorMap as any)
+
       return decorated as any
     }
 
-    const adapted: ContractRouter = {}
+    const adapted: ContractRouter<TErrorMap> = {}
 
     for (const key in router) {
       adapted[key] = this.router(router[key]!)

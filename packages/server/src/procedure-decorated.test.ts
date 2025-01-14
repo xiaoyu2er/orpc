@@ -98,6 +98,30 @@ describe('self chainable', () => {
     expect(routed['~orpc'].handler).toBe(handler)
   })
 
+  it('errors', () => {
+    const errors = {
+      BAD_GATEWAY: {
+        data: z.object({
+          why: z.string(),
+        }),
+      },
+    }
+
+    const applied = decorated.errors(errors)
+
+    expect(applied).not.toBe(decorated)
+    expect(applied).toSatisfy(isProcedure)
+    expect(applied['~orpc'].contract['~orpc'].errorMap).toEqual({
+      ...baseErrors,
+      ...errors,
+    })
+
+    expect(applied['~orpc'].contract['~orpc'].InputSchema).toBe(schema)
+    expect(applied['~orpc'].contract['~orpc'].OutputSchema).toBe(schema)
+    expect(applied['~orpc'].postMiddlewares).toEqual([mid])
+    expect(applied['~orpc'].handler).toBe(handler)
+  })
+
   it('use middleware', () => {
     const extraMid = vi.fn()
 

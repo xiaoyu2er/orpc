@@ -79,7 +79,10 @@ describe('self chainable', () => {
 
     expect(errors_ed).not.toBe(builder)
     expect(errors_ed).toBeInstanceOf(ProcedureBuilder)
-    expect(errors_ed['~orpc'].contract['~orpc'].errorMap).toBe(errors)
+    expect(errors_ed['~orpc'].contract['~orpc'].errorMap).toEqual({
+      ...baseErrors,
+      ...errors,
+    })
     expect(errors_ed['~orpc'].contract['~orpc'].InputSchema).toEqual(baseSchema)
     expect(errors_ed['~orpc'].contract['~orpc'].OutputSchema).toEqual(baseSchema)
     expect(errors_ed['~orpc'].middlewares).toEqual([baseMid])

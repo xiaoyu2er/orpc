@@ -16,14 +16,48 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe('to ContractRouterBuilder', () => {
-  const builder = new ContractBuilder()
+const baseErrorMap = {
+  BASE: {
+    status: 500,
+    data: z.object({
+      message: z.string(),
+    }),
+  },
+}
 
+const builder = new ContractBuilder({ errorMap: baseErrorMap })
+
+const schema = z.object({ val: z.string().transform(val => Number(val)) })
+
+describe('self chainable', () => {
+  it('errors', () => {
+    const errors = {
+      BAD: {
+        status: 500,
+        data: schema,
+      },
+    }
+
+    const applied = builder.errors(errors)
+
+    expect(applied).not.toBe(builder)
+    expect(applied).toBeInstanceOf(ContractBuilder)
+    expect(applied['~orpc']).toEqual({
+      errorMap: {
+        ...baseErrorMap,
+        ...errors,
+      },
+    })
+  })
+})
+
+describe('to ContractRouterBuilder', () => {
   it('prefix', () => {
     expect(builder.prefix('/prefix')).toBeInstanceOf(ContractRouterBuilder)
 
     expect(ContractRouterBuilder).toHaveBeenCalledWith({
       prefix: '/prefix',
+      errorMap: baseErrorMap,
     })
   })
 
@@ -32,19 +66,18 @@ describe('to ContractRouterBuilder', () => {
 
     expect(ContractRouterBuilder).toHaveBeenCalledWith({
       tags: ['tag1', 'tag2'],
+      errorMap: baseErrorMap,
     })
   })
 })
 
 describe('to DecoratedContractProcedure', () => {
-  const builder = new ContractBuilder()
-
   it('route', () => {
     const route = { method: 'GET', path: '/path' } as const
     const procedure = builder.route(route)
 
     expect(procedure).toBeInstanceOf(DecoratedContractProcedure)
-    expect(DecoratedContractProcedure).toHaveBeenCalledWith({ route })
+    expect(DecoratedContractProcedure).toHaveBeenCalledWith({ route, errorMap: baseErrorMap })
   })
 
   const schema = z.object({
@@ -56,48 +89,41 @@ describe('to DecoratedContractProcedure', () => {
     const procedure = builder.input(schema, example)
 
     expect(procedure).toBeInstanceOf(DecoratedContractProcedure)
-    expect(DecoratedContractProcedure).toHaveBeenCalledWith({ InputSchema: schema, inputExample: example })
+    expect(DecoratedContractProcedure).toHaveBeenCalledWith({ InputSchema: schema, inputExample: example, errorMap: baseErrorMap })
   })
 
   it('output', () => {
     const procedure = builder.output(schema, example)
 
     expect(procedure).toBeInstanceOf(DecoratedContractProcedure)
-    expect(DecoratedContractProcedure).toHaveBeenCalledWith({ OutputSchema: schema, outputExample: example })
-  })
-
-  it('errors', () => {
-    const errors = {
-      BAD: {
-        status: 500,
-        data: schema,
-      },
-    }
-
-    const procedure = builder.errors(errors)
-
-    expect(procedure).toBeInstanceOf(DecoratedContractProcedure)
-    expect(DecoratedContractProcedure).toHaveBeenCalledWith({ errorMap: errors })
+    expect(DecoratedContractProcedure).toHaveBeenCalledWith({ OutputSchema: schema, outputExample: example, errorMap: baseErrorMap })
   })
 })
 
 describe('to router', () => {
-  const builder = new ContractBuilder()
-
   const router = {
     a: {
       b: {
-        c: new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: undefined }),
+        c: new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: baseErrorMap }),
       },
     },
   }
 
-  const emptyRouter = {
+  it('adapt all routers', () => {
+    const routerFn = vi.fn()
+    vi.mocked(ContractRouterBuilder).mockReturnValue({
+      router: routerFn,
+    } as any)
 
-  }
+    const mockedValue = { __mocked__: true }
+    routerFn.mockReturnValue(mockedValue)
 
-  it('router', () => {
-    expect(builder.router(router)).toBe(router)
-    expect(builder.router(emptyRouter)).toBe(emptyRouter)
+    expect(builder.router(router)).toBe(mockedValue)
+    expect(ContractRouterBuilder).toBeCalledTimes(1)
+    expect(ContractRouterBuilder).toBeCalledWith({
+      errorMap: baseErrorMap,
+    })
+    expect(routerFn).toBeCalledTimes(1)
+    expect(routerFn).toBeCalledWith(router)
   })
 })

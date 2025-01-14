@@ -2,7 +2,19 @@ import { z } from 'zod'
 import { ContractProcedure } from './procedure'
 import { DecoratedContractProcedure } from './procedure-decorated'
 
-const decorated = new DecoratedContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: undefined })
+const baseErrorMap = {
+  BASE: {
+    status: 500,
+    data: z.object({
+      message: z.string(),
+    }),
+  },
+}
+
+const InputSchema = z.object({ input: z.string().transform(val => Number(val)) })
+const OutputSchema = z.object({ output: z.string().transform(val => Number(val)) })
+
+const decorated = new DecoratedContractProcedure({ InputSchema, OutputSchema, errorMap: baseErrorMap })
 
 describe('decorate', () => {
   const schema = z.object({
@@ -10,14 +22,14 @@ describe('decorate', () => {
   })
 
   it('works', () => {
-    const simpleProcedure = new ContractProcedure({ InputSchema: schema, OutputSchema: undefined, errorMap: undefined })
+    const simpleProcedure = new ContractProcedure({ InputSchema: schema, OutputSchema: undefined, errorMap: baseErrorMap })
 
     expectTypeOf(DecoratedContractProcedure.decorate(simpleProcedure)).toEqualTypeOf<
-      DecoratedContractProcedure<typeof schema, undefined, undefined>
+      DecoratedContractProcedure<typeof schema, undefined, typeof baseErrorMap>
     >()
 
     expectTypeOf(DecoratedContractProcedure.decorate(decorated)).toEqualTypeOf<
-      DecoratedContractProcedure<undefined, undefined, undefined>
+      DecoratedContractProcedure<typeof InputSchema, typeof OutputSchema, typeof baseErrorMap>
     >()
   })
 })
@@ -25,7 +37,7 @@ describe('decorate', () => {
 describe('route', () => {
   it('return ContractProcedure', () => {
     const routed = decorated.route({})
-    expectTypeOf(routed).toEqualTypeOf<DecoratedContractProcedure<undefined, undefined, undefined>>()
+    expectTypeOf(routed).toEqualTypeOf<DecoratedContractProcedure<typeof InputSchema, typeof OutputSchema, typeof baseErrorMap>>()
   })
 
   it('throw error on invalid route', () => {
@@ -42,7 +54,7 @@ describe('route', () => {
 describe('prefix', () => {
   it('return ContractProcedure', () => {
     const prefixed = decorated.prefix('/api')
-    expectTypeOf(prefixed).toEqualTypeOf<DecoratedContractProcedure<undefined, undefined, undefined>>()
+    expectTypeOf(prefixed).toEqualTypeOf<DecoratedContractProcedure<typeof InputSchema, typeof OutputSchema, typeof baseErrorMap>>()
   })
 
   it('throw error on invalid prefix', () => {
@@ -57,7 +69,7 @@ describe('prefix', () => {
 describe('pushTag', () => {
   it('return ContractProcedure', () => {
     const tagged = decorated.unshiftTag('tag', 'tag2')
-    expectTypeOf(tagged).toEqualTypeOf<DecoratedContractProcedure<undefined, undefined, undefined>>()
+    expectTypeOf(tagged).toEqualTypeOf<DecoratedContractProcedure<typeof InputSchema, typeof OutputSchema, typeof baseErrorMap>>()
   })
 
   it('throw error on invalid tag', () => {
@@ -81,11 +93,11 @@ describe('input', () => {
     const modified = decorated.input(schema)
 
     expectTypeOf(modified).toEqualTypeOf<
-      DecoratedContractProcedure<typeof schema, undefined, undefined>
+      DecoratedContractProcedure<typeof schema, typeof OutputSchema, typeof baseErrorMap>
     >()
 
     expectTypeOf(modified.input(schema2)).toEqualTypeOf<
-      DecoratedContractProcedure<typeof schema2, undefined, undefined>
+      DecoratedContractProcedure<typeof schema2, typeof OutputSchema, typeof baseErrorMap>
     >()
   })
 
@@ -111,11 +123,11 @@ describe('output', () => {
     const modified = decorated.output(schema)
 
     expectTypeOf(modified).toEqualTypeOf<
-      DecoratedContractProcedure<undefined, typeof schema, undefined>
+      DecoratedContractProcedure<typeof InputSchema, typeof schema, typeof baseErrorMap>
     >()
 
     expectTypeOf(modified.output(schema2)).toEqualTypeOf<
-      DecoratedContractProcedure<undefined, typeof schema2, undefined>
+      DecoratedContractProcedure<typeof InputSchema, typeof schema2, typeof baseErrorMap>
     >()
   })
 
@@ -138,23 +150,34 @@ describe('errors', () => {
   const schema2 = z.number()
 
   it('can modify one or multiple times', () => {
-    const modified = decorated.errors({
+    const errors = {
       BAD_GATEWAY: {
         data: schema,
       },
-    })
+    }
 
-    expectTypeOf(modified).toMatchTypeOf<
-      DecoratedContractProcedure<undefined, undefined, { BAD_GATEWAY: { data: typeof schema } }>
+    const modified = decorated.errors(errors)
+
+    expectTypeOf(modified).toEqualTypeOf<
+      DecoratedContractProcedure<typeof InputSchema, typeof OutputSchema, typeof baseErrorMap & typeof errors>
     >()
 
-    expectTypeOf(modified.errors({
+    const errors2 = {
       UNAUTHORIZED: {
         status: 2001,
         data: schema2,
       },
-    })).toMatchTypeOf<
-      DecoratedContractProcedure<undefined, undefined, { UNAUTHORIZED: { status: 2001, data: typeof schema2 } }>
+    }
+
+    expectTypeOf(modified.errors(errors2)).toEqualTypeOf<
+      DecoratedContractProcedure<typeof InputSchema, typeof OutputSchema, typeof baseErrorMap & typeof errors & typeof errors2>
     >()
+  })
+
+  it('prevent redefine old errorMap', () => {
+    // @ts-expect-error - not allow redefine errorMap
+    decorated.errors({ BASE: baseErrorMap.BASE })
+    // @ts-expect-error - not allow redefine errorMap --- even with undefined
+    decorated.errors({ BASE: undefined })
   })
 })

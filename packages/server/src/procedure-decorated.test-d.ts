@@ -43,6 +43,38 @@ describe('self chainable', () => {
     decorated.route({ tags: [1] })
   })
 
+  describe('errors', () => {
+    const errors = {
+      BAD_GATEWAY: {
+        data: z.object({
+          why: z.string(),
+        }),
+      },
+    }
+
+    it('merge errors', () => {
+      const i = decorated.errors(errors)
+
+      expectTypeOf(i).toEqualTypeOf<
+        DecoratedProcedure<
+          { auth: boolean },
+          { db: string },
+          typeof baseSchema,
+          typeof baseSchema,
+          { val: string },
+          typeof baseErrors & typeof errors
+        >
+      >()
+    })
+
+    it('prevent redefine old errorMap', () => {
+      // @ts-expect-error - not allow redefine errorMap
+      decorated.errors({ CODE: baseErrors.CODE })
+      // @ts-expect-error - not allow redefine errorMap --- even with undefined
+      decorated.errors({ CODE: undefined })
+    })
+  })
+
   it('use middleware', () => {
     const i = decorated
       .use(({ context, path, next, procedure, errors }, input, output) => {
@@ -83,7 +115,7 @@ describe('self chainable', () => {
   })
 
   it('use middleware with map input', () => {
-    const mid = {} as Middleware<WELL_CONTEXT, { extra: boolean }, number, any, Record<string, unknown>>
+    const mid = {} as Middleware<WELL_CONTEXT, { extra: boolean }, number, any, Record<never, never>>
 
     const i = decorated.use(mid, (input) => {
       expectTypeOf(input).toEqualTypeOf<{ val: number }>()
@@ -133,10 +165,10 @@ describe('self chainable', () => {
   })
 
   it('handle middleware with output is typed', () => {
-    const mid1 = {} as Middleware<WELL_CONTEXT, undefined, unknown, any, Record<string, unknown>>
-    const mid2 = {} as Middleware<WELL_CONTEXT, undefined, unknown, { val: string }, Record<string, unknown>>
-    const mid3 = {} as Middleware<WELL_CONTEXT, undefined, unknown, unknown, Record<string, unknown>>
-    const mid4 = {} as Middleware<WELL_CONTEXT, undefined, unknown, { val: number }, Record<string, unknown>>
+    const mid1 = {} as Middleware<WELL_CONTEXT, undefined, unknown, any, Record<never, never>>
+    const mid2 = {} as Middleware<WELL_CONTEXT, undefined, unknown, { val: string }, Record<never, never>>
+    const mid3 = {} as Middleware<WELL_CONTEXT, undefined, unknown, unknown, Record<never, never>>
+    const mid4 = {} as Middleware<WELL_CONTEXT, undefined, unknown, { val: number }, Record<never, never>>
 
     decorated.use(mid1)
     decorated.use(mid2)
@@ -158,18 +190,18 @@ describe('self chainable', () => {
   })
 
   it('unshiftMiddleware', () => {
-    const mid1 = {} as Middleware<WELL_CONTEXT, undefined, unknown, any, Record<string, unknown>>
-    const mid2 = {} as Middleware<{ auth: boolean }, undefined, unknown, any, Record<string, unknown>>
-    const mid3 = {} as Middleware<{ auth: boolean }, { dev: boolean }, unknown, { val: number }, Record<string, unknown>>
+    const mid1 = {} as Middleware<WELL_CONTEXT, undefined, unknown, any, Record<never, never>>
+    const mid2 = {} as Middleware<{ auth: boolean }, undefined, unknown, any, Record<never, never>>
+    const mid3 = {} as Middleware<{ auth: boolean }, { dev: boolean }, unknown, { val: number }, Record<never, never>>
 
     expectTypeOf(decorated.unshiftMiddleware(mid1)).toEqualTypeOf<typeof decorated>()
     expectTypeOf(decorated.unshiftMiddleware(mid1, mid2)).toEqualTypeOf<typeof decorated>()
     expectTypeOf(decorated.unshiftMiddleware(mid1, mid2, mid3)).toEqualTypeOf<typeof decorated>()
 
-    const mid4 = {} as Middleware<{ auth: 'invalid' }, undefined, unknown, any, Record<string, unknown>>
-    const mid5 = {} as Middleware<{ auth: boolean }, undefined, { val: number }, any, Record<string, unknown>>
-    const mid7 = {} as Middleware<{ db: string }, undefined, unknown, { val: number }, Record<string, unknown>>
-    const mid8 = {} as Middleware<WELL_CONTEXT, { auth: string }, unknown, { val: number }, Record<string, unknown>>
+    const mid4 = {} as Middleware<{ auth: 'invalid' }, undefined, unknown, any, Record<never, never>>
+    const mid5 = {} as Middleware<{ auth: boolean }, undefined, { val: number }, any, Record<never, never>>
+    const mid7 = {} as Middleware<{ db: string }, undefined, unknown, { val: number }, Record<never, never>>
+    const mid8 = {} as Middleware<WELL_CONTEXT, { auth: string }, unknown, { val: number }, Record<never, never>>
 
     // @ts-expect-error - context is not match
     decorated.unshiftMiddleware(mid4)
@@ -182,8 +214,8 @@ describe('self chainable', () => {
     // @ts-expect-error - invalid middleware
     decorated.unshiftMiddleware(mid4, mid5, mid7, mid8)
 
-    const mid9 = {} as Middleware<WELL_CONTEXT, { something_does_not_exists_yet: boolean }, unknown, any, Record<string, unknown>>
-    const mid10 = {} as Middleware<WELL_CONTEXT, { something_does_not_exists_yet: string }, { val: number }, any, Record<string, unknown>>
+    const mid9 = {} as Middleware<WELL_CONTEXT, { something_does_not_exists_yet: boolean }, unknown, any, Record<never, never>>
+    const mid10 = {} as Middleware<WELL_CONTEXT, { something_does_not_exists_yet: string }, { val: number }, any, Record<never, never>>
 
     decorated.unshiftMiddleware(mid9)
     // @ts-expect-error - extra context of mid10 is conflict with extra context of mid9

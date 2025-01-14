@@ -4,7 +4,7 @@ import { isContractProcedure } from '@orpc/contract'
 import { getRouterContract, isLazy, isProcedure, unlazy } from '@orpc/server'
 
 export interface EachLeafOptions {
-  router: ContractRouter | ANY_ROUTER
+  router: ContractRouter<any> | ANY_ROUTER
   path: string[]
 }
 
@@ -79,7 +79,7 @@ export function forEachContractProcedure(
 }
 
 export async function forEachAllContractProcedure(
-  router: ContractRouter | ANY_ROUTER,
+  router: ContractRouter<any> | ANY_ROUTER,
   callback: (options: EachLeafCallbackOptions) => void,
 ) {
   const pending: EachLeafOptions[] = [{

@@ -10,14 +10,14 @@ describe('createChainableImplementer', () => {
   const ping = oc.input(schema).output(schema)
   const pong = oc.route({ method: 'GET', path: '/ping' })
 
-  const contract = oc.router({
+  const contract = {
     ping,
     pong,
     nested: {
       ping,
       pong,
     },
-  })
+  }
 
   const mid1 = vi.fn()
   const mid2 = vi.fn()
@@ -58,7 +58,7 @@ describe('createChainableImplementer', () => {
   })
 
   describe('on conflicted', () => {
-    const contract = oc.router({
+    const contract = {
       'use': ping,
       'router': {
         use: ping,
@@ -72,7 +72,7 @@ describe('createChainableImplementer', () => {
         use: ping,
         router: pong,
       },
-    })
+    }
 
     const implementer = createChainableImplementer(contract, [mid1, mid2])
 

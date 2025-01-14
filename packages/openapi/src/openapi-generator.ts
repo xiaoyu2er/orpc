@@ -93,7 +93,7 @@ export class OpenAPIGenerator {
     this.strictErrorResponses = options?.strictErrorResponses ?? true
   }
 
-  async generate(router: ContractRouter | ANY_ROUTER, doc: Omit<OpenAPI.OpenAPIObject, 'openapi'>): Promise<OpenAPI.OpenAPIObject> {
+  async generate(router: ContractRouter<any> | ANY_ROUTER, doc: Omit<OpenAPI.OpenAPIObject, 'openapi'>): Promise<OpenAPI.OpenAPIObject> {
     const builder = new OpenApiBuilder({
       ...doc,
       openapi: '3.1.1',

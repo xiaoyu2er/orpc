@@ -43,6 +43,38 @@ describe('self chainable', () => {
     decorated.route({ tags: [1] })
   })
 
+  describe('errors', () => {
+    const errors = {
+      BAD_GATEWAY: {
+        data: z.object({
+          why: z.string(),
+        }),
+      },
+    }
+
+    it('merge errors', () => {
+      const i = decorated.errors(errors)
+
+      expectTypeOf(i).toEqualTypeOf<
+        DecoratedProcedure<
+          { auth: boolean },
+          { db: string },
+          typeof baseSchema,
+          typeof baseSchema,
+          { val: string },
+          typeof baseErrors & typeof errors
+        >
+      >()
+    })
+
+    it('prevent redefine old errorMap', () => {
+      // @ts-expect-error - not allow redefine errorMap
+      decorated.errors({ CODE: baseErrors.CODE })
+      // @ts-expect-error - not allow redefine errorMap --- even with undefined
+      decorated.errors({ CODE: undefined })
+    })
+  })
+
   it('use middleware', () => {
     const i = decorated
       .use(({ context, path, next, procedure, errors }, input, output) => {

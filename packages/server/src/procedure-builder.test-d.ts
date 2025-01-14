@@ -62,11 +62,15 @@ describe('self chainable', () => {
 
   it('errors', () => {
     expectTypeOf(builder.errors({ ANYTHING: { data: schema } })).toEqualTypeOf<
-      ProcedureBuilder<{ id?: string }, { extra: true }, typeof baseSchema, typeof baseSchema, { ANYTHING: { data: typeof schema } }>
+      ProcedureBuilder<{ id?: string }, { extra: true }, typeof baseSchema, typeof baseSchema, { ANYTHING: { data: typeof schema } } & typeof baseErrors>
     >()
 
     // @ts-expect-error - invalid schema
     builder.errors({ ANYTHING: { data: {} } })
+    // @ts-expect-error - not allow redefine errorMap
+    builder.errors({ PAYMENT_REQUIRED: baseErrors.PAYMENT_REQUIRED })
+    // @ts-expect-error - not allow redefine errorMap --- even with undefined
+    builder.errors({ PAYMENT_REQUIRED: undefined })
   })
 })
 

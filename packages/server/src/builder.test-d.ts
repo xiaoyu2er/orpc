@@ -13,40 +13,62 @@ import { z } from 'zod'
 
 const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
 
-const builder = {} as Builder<{ auth: boolean }, { db: string }>
+const baseErrors = {
+  BASE: {
+    status: 500,
+    data: z.object({
+      message: z.string(),
+    }),
+  },
+}
+
+const builder = {} as Builder<{ auth: boolean }, { db: string }, typeof baseErrors>
 
 describe('self chainable', () => {
   it('define context', () => {
-    expectTypeOf(builder.context()).toEqualTypeOf<Builder<WELL_CONTEXT, undefined>>()
-    expectTypeOf(builder.context<{ db: string }>()).toEqualTypeOf<Builder<{ db: string }, undefined>>()
-    expectTypeOf(builder.context<{ auth: boolean }>()).toEqualTypeOf<Builder<{ auth: boolean }, undefined>>()
+    expectTypeOf(builder.context()).toEqualTypeOf<Builder<WELL_CONTEXT, undefined, Record<never, never>>>()
+    expectTypeOf(builder.context<{ db: string }>()).toEqualTypeOf<Builder<{ db: string }, undefined, Record<never, never>>>()
+    expectTypeOf(builder.context<{ auth: boolean }>()).toEqualTypeOf<Builder<{ auth: boolean }, undefined, Record<never, never>>>()
   })
 
   it('use middleware', () => {
     expectTypeOf(
       builder.use({} as Middleware<{ auth: boolean }, undefined, unknown, unknown, Record<never, never>>),
-    ).toEqualTypeOf<Builder<{ auth: boolean }, { db: string }>>()
+    ).toEqualTypeOf<Builder<{ auth: boolean }, { db: string }, typeof baseErrors>>()
     expectTypeOf(
       builder.use({} as Middleware<{ auth: boolean }, { dev: string }, unknown, unknown, Record<never, never>>),
-    ).toEqualTypeOf<Builder<{ auth: boolean }, { db: string } & { dev: string }>>()
+    ).toEqualTypeOf<Builder<{ auth: boolean }, { db: string } & { dev: string }, typeof baseErrors>>()
     expectTypeOf(
       builder.use({} as Middleware<WELL_CONTEXT, undefined, unknown, unknown, Record<never, never>>),
-    ).toEqualTypeOf<Builder<{ auth: boolean }, { db: string }>>()
+    ).toEqualTypeOf<Builder<{ auth: boolean }, { db: string }, typeof baseErrors>>()
 
     // @ts-expect-error - context is not match
-    builder.use({} as Middleware<{ auth: 'invalid' }, undefined, unknown, unknown>)
+    builder.use({} as Middleware<{ auth: 'invalid' }, undefined, unknown, unknown, Record<never, never>>)
 
     // @ts-expect-error - extra context is conflict with context
-    builder.use({} as Middleware<WELL_CONTEXT, { auth: 'invalid' }, unknown, unknown>)
+    builder.use({} as Middleware<WELL_CONTEXT, { auth: 'invalid' }, unknown, unknown, Record<never, never>>)
 
     // @ts-expect-error - expected input is not match with unknown
-    builder.use({} as Middleware<WELL_CONTEXT, undefined, number, unknown>)
+    builder.use({} as Middleware<WELL_CONTEXT, undefined, number, unknown, Record<never, never>>)
 
     // @ts-expect-error - expected output is not match with unknown
-    builder.use({} as Middleware<WELL_CONTEXT, undefined, unknown, number>)
+    builder.use({} as Middleware<WELL_CONTEXT, undefined, unknown, number, Record<never, never>>)
 
     // @ts-expect-error - invalid middleware
     builder.use(() => {})
+  })
+
+  it('errors', () => {
+    expectTypeOf(builder.errors({ ANYTHING: { data: schema } })).toEqualTypeOf<
+      Builder<{ auth: boolean }, { db: string }, { ANYTHING: { data: typeof schema } } & typeof baseErrors>
+    >()
+
+    // @ts-expect-error - not allow redefine errorMap
+    builder.errors({ BASE: baseErrors.BASE })
+    // @ts-expect-error - not allow redefine errorMap --- even with undefined
+    builder.errors({ BASE: undefined })
+    // @ts-expect-error - invalid schema
+    builder.errors({ ANYTHING: { data: {} } })
   })
 })
 
@@ -82,7 +104,7 @@ describe('create middleware', () => {
 describe('to ProcedureBuilder', () => {
   it('route', () => {
     expectTypeOf(builder.route({ path: '/test', method: 'GET' })).toEqualTypeOf<
-      ProcedureBuilder<{ auth: boolean }, { db: string }, undefined, undefined, Record<never, never>>
+      ProcedureBuilder<{ auth: boolean }, { db: string }, undefined, undefined, typeof baseErrors>
     >()
 
     // @ts-expect-error - invalid path
@@ -94,7 +116,7 @@ describe('to ProcedureBuilder', () => {
 
   it('input', () => {
     expectTypeOf(builder.input(schema, { val: '123' })).toEqualTypeOf<
-      ProcedureBuilder<{ auth: boolean }, { db: string }, typeof schema, undefined, Record<never, never>>
+      ProcedureBuilder<{ auth: boolean }, { db: string }, typeof schema, undefined, typeof baseErrors>
     >()
 
     builder.input(schema)
@@ -106,7 +128,7 @@ describe('to ProcedureBuilder', () => {
 
   it('output', () => {
     expectTypeOf(builder.output(schema, { val: 123 })).toEqualTypeOf<
-      ProcedureBuilder<{ auth: boolean }, { db: string }, undefined, typeof schema, Record<never, never>>
+      ProcedureBuilder<{ auth: boolean }, { db: string }, undefined, typeof schema, typeof baseErrors>
     >()
 
     builder.output(schema)
@@ -114,15 +136,6 @@ describe('to ProcedureBuilder', () => {
     builder.output(schema, { val: '123' })
     // @ts-expect-error - invalid schema
     builder.output({})
-  })
-
-  it('errors', () => {
-    expectTypeOf(builder.errors({ ANYTHING: { data: schema } })).toEqualTypeOf<
-      ProcedureBuilder<{ auth: boolean }, { db: string }, undefined, undefined, { ANYTHING: { data: typeof schema } }>
-    >()
-
-    // @ts-expect-error - invalid schema
-    builder.errors({ ANYTHING: { data: {} } })
   })
 })
 

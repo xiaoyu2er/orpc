@@ -1,4 +1,4 @@
-import type { ClientRest, ErrorMap, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ClientRest, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { ORPCErrorConstructorMap } from './error'
 import type { ANY_MIDDLEWARE, MapInputMiddleware, Middleware } from './middleware'
 import type { CreateProcedureClientRest, ProcedureClient } from './procedure-client'
@@ -49,6 +49,13 @@ export class DecoratedProcedure<
     return new DecoratedProcedure({
       ...this['~orpc'],
       contract: DecoratedContractProcedure.decorate(this['~orpc'].contract).route(route),
+    })
+  }
+
+  errors<U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(errors: U): DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap & U> {
+    return new DecoratedProcedure({
+      ...this['~orpc'],
+      contract: DecoratedContractProcedure.decorate(this['~orpc'].contract).errors(errors),
     })
   }
 

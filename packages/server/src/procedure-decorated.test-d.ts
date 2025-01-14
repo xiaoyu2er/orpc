@@ -1,7 +1,7 @@
 import type { Client, ClientRest, ORPCError } from '@orpc/contract'
 import type { ORPCErrorConstructorMap } from './error'
 import type { Middleware, MiddlewareOutputFn } from './middleware'
-import type { ANY_PROCEDURE } from './procedure'
+import type { ANY_PROCEDURE, Procedure } from './procedure'
 import type { DecoratedProcedure } from './procedure-decorated'
 import type { WELL_CONTEXT } from './types'
 import { z } from 'zod'
@@ -233,7 +233,7 @@ describe('self chainable', () => {
     })
 
     expectTypeOf(callable).toEqualTypeOf<
-      & DecoratedProcedure<{ auth: boolean }, { db: string }, typeof baseSchema, typeof baseSchema, { val: string }, typeof baseErrors>
+      & Procedure<{ auth: boolean }, { db: string }, typeof baseSchema, typeof baseSchema, { val: string }, typeof baseErrors>
       & Client<'something', { val: string }, { val: number }, Error | ORPCError<'CODE', { why: string }>>
     >()
   })
@@ -244,7 +244,7 @@ describe('self chainable', () => {
     })
 
     expectTypeOf(actionable).toEqualTypeOf<
-      & DecoratedProcedure<{ auth: boolean }, { db: string }, typeof baseSchema, typeof baseSchema, { val: string }, typeof baseErrors>
+      & Procedure<{ auth: boolean }, { db: string }, typeof baseSchema, typeof baseSchema, { val: string }, typeof baseErrors>
       & ((...rest: ClientRest<'something', { val: string }>) => Promise<{ val: number }>)
     >()
   })

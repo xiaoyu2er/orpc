@@ -39,10 +39,10 @@ describe('self chainable', () => {
     })
 
     it('should prevent redefine errorMap', () => {
-      expectTypeOf(builder.errors({ BASE: undefined })).toEqualTypeOf<never>()
-
       // @ts-expect-error - not allow redefine errorMap
       builder.errors({ BASE: baseErrorMap.BASE })
+      // @ts-expect-error - not allow redefine errorMap - even with undefined
+      builder.errors({ BASE: undefined })
     })
   })
 })

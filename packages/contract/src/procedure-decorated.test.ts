@@ -152,7 +152,6 @@ describe('errors', () => {
     value: z.string(),
   })
   const errors = {
-    BASE: undefined, // ensure the new errors not override the old errorMap
     BAD_GATEWAY: {
       status: 400,
       data: schema,

@@ -12,7 +12,28 @@ export type ErrorMapItem<TDataSchema extends Schema> = {
   data?: TDataSchema
 }
 
-export type ErrorMap = {
+export interface ErrorMap {
+  [k: string]: ErrorMapItem<Schema>
+}
+
+/**
+ * const U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions
+ *
+ * Purpose:
+ * - Helps `U` suggest `CommonORPCErrorCode` to the user when typing.
+ *
+ * Why not replace `ErrorMap` with `ErrorMapSuggestions`?
+ * - `ErrorMapSuggestions` has a drawback: it allows `undefined` values for items.
+ * - `ErrorMapGuard<TErrorMap>` uses `Partial`, which can introduce `undefined` values.
+ *
+ * This could lead to unintended behavior where `undefined` values override `TErrorMap`,
+ * potentially resulting in a `never` type after merging.
+ *
+ * Recommendation:
+ * - Use `ErrorMapSuggestions` to assist users in typing correctly but do not replace `ErrorMap`.
+ * - Ensure `ErrorMapGuard<TErrorMap>` is adjusted to prevent `undefined` values.
+ */
+export type ErrorMapSuggestions = {
   [key in CommonORPCErrorCode | (string & {})]?: ErrorMapItem<Schema>
 }
 
@@ -22,12 +43,14 @@ export type ErrorMap = {
  * `ErrorMapGuard` is a utility type that ensures `U` cannot redefine the structure of `TErrorMap`.
  * It achieves this by setting each key in `TErrorMap` to `never`, effectively preventing any redefinition.
  *
- * **Note:** This type alone doesn't prevent users from setting properties to `undefined`.
- * To fully prevent this behavior and avoid side effects, use it in conjunction with `PreventNever`.
+ * Why not just use `Partial<TErrorMap>`?
+ * - Allowing users to redefine existing error map items would require using `StrictErrorMap`.
+ * - However, I prefer not to use `StrictErrorMap` frequently, due to perceived performance concerns,
+ *   though this has not been benchmarked and is based on personal preference.
  *
  */
-export type ErrorMapGuard<T extends ErrorMap> = {
-  [K in keyof T]?: never
+export type ErrorMapGuard<TErrorMap extends ErrorMap> = {
+  [K in keyof TErrorMap]?: never
 }
 
 /**

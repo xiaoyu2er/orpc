@@ -147,7 +147,7 @@ describe('errors', () => {
   it('prevent redefine errorMap', () => {
     // @ts-expect-error - not allow redefine errorMap
     builder.errors({ BASE: baseErrors.BASE })
-
-    expectTypeOf(builder.errors({ BASE: undefined })).toEqualTypeOf<never>()
+    // @ts-expect-error - not allow redefine errorMap --- even with undefined
+    builder.errors({ BASE: undefined })
   })
 })

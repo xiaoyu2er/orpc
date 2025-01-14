@@ -32,12 +32,22 @@ const router = {
 }
 
 describe('ContractRouter', () => {
+  it('ErrorMap', () => {
+    expectTypeOf(ping).toMatchTypeOf<ContractRouter<typeof errorMap>>()
+
+    expectTypeOf(pong).not.toMatchTypeOf<ContractRouter<typeof errorMap>>()
+    expectTypeOf(router).not.toMatchTypeOf<ContractRouter<typeof errorMap>>()
+
+    expectTypeOf(pong).toMatchTypeOf<ContractRouter<Partial<typeof errorMap>>>()
+    expectTypeOf(router).toMatchTypeOf<ContractRouter<Partial<typeof errorMap>>>()
+  })
+
   it('procedure also is a contract router', () => {
-    const _: ContractRouter = ping
+    expectTypeOf(ping).toMatchTypeOf<ContractRouter<any>>()
   })
 
   it('just an object and accepts both procedures and decorated procedures', () => {
-    const _: ContractRouter = router
+    expectTypeOf({ router }).toMatchTypeOf<ContractRouter<any>>()
   })
 })
 

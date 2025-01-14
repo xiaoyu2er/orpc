@@ -32,7 +32,6 @@ const schema = z.object({ val: z.string().transform(val => Number(val)) })
 describe('self chainable', () => {
   it('errors', () => {
     const errors = {
-      BASE: undefined, // ensure the new errors not override the old errorMap
       BAD: {
         status: 500,
         data: schema,
@@ -45,8 +44,8 @@ describe('self chainable', () => {
     expect(applied).toBeInstanceOf(ContractBuilder)
     expect(applied['~orpc']).toEqual({
       errorMap: {
-        ...errors,
         ...baseErrorMap,
+        ...errors,
       },
     })
   })
@@ -58,6 +57,7 @@ describe('to ContractRouterBuilder', () => {
 
     expect(ContractRouterBuilder).toHaveBeenCalledWith({
       prefix: '/prefix',
+      errorMap: baseErrorMap,
     })
   })
 
@@ -66,6 +66,7 @@ describe('to ContractRouterBuilder', () => {
 
     expect(ContractRouterBuilder).toHaveBeenCalledWith({
       tags: ['tag1', 'tag2'],
+      errorMap: baseErrorMap,
     })
   })
 })
@@ -108,12 +109,21 @@ describe('to router', () => {
     },
   }
 
-  const emptyRouter = {
+  it('adapt all routers', () => {
+    const routerFn = vi.fn()
+    vi.mocked(ContractRouterBuilder).mockReturnValue({
+      router: routerFn,
+    } as any)
 
-  }
+    const mockedValue = { __mocked__: true }
+    routerFn.mockReturnValue(mockedValue)
 
-  it('router', () => {
-    expect(builder.router(router)).toBe(router)
-    expect(builder.router(emptyRouter)).toBe(emptyRouter)
+    expect(builder.router(router)).toBe(mockedValue)
+    expect(ContractRouterBuilder).toBeCalledTimes(1)
+    expect(ContractRouterBuilder).toBeCalledWith({
+      errorMap: baseErrorMap,
+    })
+    expect(routerFn).toBeCalledTimes(1)
+    expect(routerFn).toBeCalledWith(router)
   })
 })

@@ -8,7 +8,13 @@ const schema = z.object({
   value: z.string().transform(() => 1),
 })
 
-const ping = new ContractProcedure({ InputSchema: schema, OutputSchema: undefined, route: { path: '/procedure' }, errorMap: {} })
+const baseError = {
+  BASE: {
+    data: z.string(),
+  },
+}
+
+const ping = new ContractProcedure({ InputSchema: schema, OutputSchema: undefined, route: { path: '/procedure' }, errorMap: baseError })
 const pinged = DecoratedContractProcedure.decorate(ping)
 
 const pong = new ContractProcedure({ InputSchema: undefined, OutputSchema: schema, errorMap: {} })

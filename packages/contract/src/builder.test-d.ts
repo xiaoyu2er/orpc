@@ -1,5 +1,5 @@
 import type { DecoratedContractProcedure } from './procedure-decorated'
-import type { ContractRouterBuilder } from './router-builder'
+import type { AdaptedContractRouter, ContractRouterBuilder } from './router-builder'
 import { z } from 'zod'
 import { ContractBuilder } from './builder'
 import { ContractProcedure } from './procedure'
@@ -50,7 +50,7 @@ describe('self chainable', () => {
 describe('to ContractRouterBuilder', () => {
   it('prefix', () => {
     expectTypeOf(builder.prefix('/prefix')).toEqualTypeOf<
-      ContractRouterBuilder
+      ContractRouterBuilder<typeof baseErrorMap>
     >()
 
     // @ts-expect-error - invalid prefix
@@ -61,7 +61,7 @@ describe('to ContractRouterBuilder', () => {
 
   it('tags', () => {
     expectTypeOf(builder.tag('tag1', 'tag2')).toEqualTypeOf<
-      ContractRouterBuilder
+      ContractRouterBuilder<typeof baseErrorMap>
     >()
 
     // @ts-expect-error - invalid tag
@@ -121,27 +121,36 @@ describe('to DecoratedContractProcedure', () => {
 })
 
 describe('to router', () => {
-  const router = {
-    a: {
-      b: {
-        c: new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: {} }),
-      },
+  const errors = {
+    CONFLICT: {
+      status: 400,
+      data: z.object({
+        message: z.string(),
+      }),
     },
   }
 
-  const emptyRouter = {
+  const router = { a: { b: {
+    c: new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: errors }),
+  } } }
 
-  }
-
-  const invalidRouter = {
-    a: 1,
-  }
-
-  it('router', () => {
-    expectTypeOf(builder.router(router)).toEqualTypeOf<typeof router>()
-    expectTypeOf(builder.router(emptyRouter)).toEqualTypeOf<typeof emptyRouter>()
+  it('adapt all procedures', () => {
+    expectTypeOf(builder.router(router)).toEqualTypeOf<AdaptedContractRouter<typeof router, typeof baseErrorMap>>()
+    expectTypeOf(builder.router({})).toEqualTypeOf<Record<never, never>>()
 
     // @ts-expect-error - invalid router
-    builder.router(invalidRouter)
+    builder.router({ a: 1 })
+  })
+
+  it('throw on conflict error map', () => {
+    builder.router({ ping: {} as ContractProcedure<any, any, { BASE: typeof baseErrorMap['BASE'] }> })
+    // @ts-expect-error conflict
+    builder.router({ ping: {} as ContractProcedure<any, any, { BASE: { message: string } }> })
+  })
+
+  it('only required partial match error map', () => {
+    expectTypeOf(builder.router({ ping: {} as ContractProcedure<any, any, { OTHER: { status: number } }> })).toEqualTypeOf<{
+      ping: DecoratedContractProcedure<any, any, { OTHER: { status: number } } & typeof baseErrorMap>
+    }>()
   })
 })

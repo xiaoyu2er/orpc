@@ -29,3 +29,11 @@ export type ErrorMap = {
 export type ErrorMapGuard<T extends ErrorMap> = {
   [K in keyof T]?: never
 }
+
+/**
+ * Since `undefined` has a specific meaning (it use default value),
+ * we ensure all additional properties in each item of the ErrorMap are explicitly set to `undefined`.
+ */
+export type StrictErrorMap<T extends ErrorMap> = {
+  [K in keyof T]: T[K] & Partial<Record<Exclude<keyof ErrorMapItem<any>, keyof T[K]>, undefined>>
+}

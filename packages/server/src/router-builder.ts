@@ -143,11 +143,14 @@ function adapt(
       decorated = decorated.unshiftMiddleware(...options.middlewares)
     }
 
+    // it prevent unnecessary call especially when implements a contract
+    if (Object.keys(options.errorMap).length) {
     /**
      * The error map has been protected from conflicts at the type level,
      * so it is safe to cast here.
      */
-    decorated = decorated.errors(options.errorMap as any)
+      decorated = decorated.errors(options.errorMap as any)
+    }
 
     return decorated
   }

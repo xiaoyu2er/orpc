@@ -8,17 +8,17 @@ import { RouterImplementer } from './router-implementer'
 export type ChainableImplementer<
   TContext extends Context,
   TExtraContext extends Context,
-  TContract extends ContractRouter,
+  TContract extends ContractRouter<any>,
 > = TContract extends ContractProcedure<infer UInputSchema, infer UOutputSchema, infer UErrorMap>
   ? ProcedureImplementer<TContext, TExtraContext, UInputSchema, UOutputSchema, UErrorMap>
   : {
-    [K in keyof TContract]: TContract[K] extends ContractRouter ? ChainableImplementer<TContext, TExtraContext, TContract[K]> : never
+    [K in keyof TContract]: TContract[K] extends ContractRouter<any> ? ChainableImplementer<TContext, TExtraContext, TContract[K]> : never
   } & Omit<RouterImplementer<TContext, TExtraContext, TContract>, '~type' | '~orpc'>
 
 export function createChainableImplementer<
   TContext extends Context = WELL_CONTEXT,
   TExtraContext extends Context = undefined,
-  TContract extends ContractRouter = any,
+  TContract extends ContractRouter<any> = any,
 >(
   contract: TContract,
   middlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, Record<never, never>>[] = [],

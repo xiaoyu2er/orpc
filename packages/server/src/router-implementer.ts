@@ -10,7 +10,7 @@ import { RouterBuilder } from './router-builder'
 export interface RouterImplementerDef<
   TContext extends Context,
   TExtraContext extends Context,
-  TContract extends ContractRouter,
+  TContract extends ContractRouter<any>,
 > {
   middlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, Record<never, never>>[]
   contract: TContract
@@ -19,7 +19,7 @@ export interface RouterImplementerDef<
 export class RouterImplementer<
   TContext extends Context,
   TExtraContext extends Context,
-  TContract extends ContractRouter,
+  TContract extends ContractRouter<any>,
 > {
   '~type' = 'RouterImplementer' as const
   '~orpc': RouterImplementerDef<TContext, TExtraContext, TContract>
@@ -45,8 +45,11 @@ export class RouterImplementer<
 
   router<U extends Router<MergeContext<TContext, TExtraContext>, TContract>>(
     router: U,
-  ): AdaptedRouter<TContext, U> {
-    const adapted = new RouterBuilder(this['~orpc']).router(router)
+  ): AdaptedRouter<TContext, U, Record<never, never>> {
+    const adapted = new RouterBuilder({
+      ...this['~orpc'],
+      errorMap: {},
+    }).router(router)
 
     const contracted = setRouterContract(adapted, this['~orpc'].contract)
 
@@ -55,8 +58,11 @@ export class RouterImplementer<
 
   lazy<U extends Router<MergeContext<TContext, TExtraContext>, TContract>>(
     loader: () => Promise<{ default: U }>,
-  ): AdaptedRouter<TContext, FlattenLazy<U>> {
-    const adapted = new RouterBuilder(this['~orpc']).lazy(loader)
+  ): AdaptedRouter<TContext, FlattenLazy<U>, Record<never, never>> {
+    const adapted = new RouterBuilder({
+      ...this['~orpc'],
+      errorMap: {},
+    }).lazy(loader)
 
     const contracted = setRouterContract(adapted, this['~orpc'].contract)
 

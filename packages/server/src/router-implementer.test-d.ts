@@ -103,20 +103,20 @@ describe('self chainable', () => {
 
 it('to AdaptedRouter', () => {
   expectTypeOf(implementer.router(router)).toMatchTypeOf<
-    AdaptedRouter<{ auth: boolean }, typeof router>
+    AdaptedRouter<{ auth: boolean }, typeof router, Record<string, never>>
   >()
 
   expectTypeOf(implementer.router(routerWithLazy)).toMatchTypeOf<
-    AdaptedRouter<{ auth: boolean }, typeof routerWithLazy>
+    AdaptedRouter<{ auth: boolean }, typeof routerWithLazy, Record<string, never>>
   >()
 })
 
 it('to AdaptedLazy', () => {
   expectTypeOf(implementer.lazy(() => Promise.resolve({ default: router }))).toMatchTypeOf<
-    DecoratedLazy<AdaptedRouter<{ auth: boolean }, typeof router>>
+    DecoratedLazy<AdaptedRouter<{ auth: boolean }, typeof router, Record<string, never>>>
   >()
 
   expectTypeOf(implementer.lazy(() => Promise.resolve({ default: routerWithLazy }))).toMatchTypeOf<
-    DecoratedLazy<AdaptedRouter<{ auth: boolean }, typeof routerWithLazy>>
+    DecoratedLazy<AdaptedRouter<{ auth: boolean }, typeof routerWithLazy, Record<string, never>>>
   >()
 })

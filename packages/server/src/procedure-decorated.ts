@@ -4,7 +4,6 @@ import type { ANY_MIDDLEWARE, MapInputMiddleware, Middleware } from './middlewar
 import type { CreateProcedureClientRest, ProcedureClient } from './procedure-client'
 import type { Context, MergeContext } from './types'
 import { DecoratedContractProcedure } from '@orpc/contract'
-import { createCallableObject } from '@orpc/shared'
 import { decorateMiddleware } from './middleware-decorated'
 import { Procedure } from './procedure'
 import { createProcedureClient } from './procedure-client'
@@ -150,20 +149,21 @@ export class DecoratedProcedure<
 
   /**
    * Make this procedure callable (works like a function while still being a procedure).
-   * **Note**: this only takes effect when this method is called at the end of the chain.
    */
   callable<TClientContext>(...rest: CreateProcedureClientRest<TContext, TOutputSchema, THandlerOutput, TClientContext>):
-    & DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>
+    & Procedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>
     & ProcedureClient<TClientContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap> {
-    return createCallableObject(this, createProcedureClient(this, ...rest))
+    return Object.assign(createProcedureClient(this, ...rest), {
+      '~type': 'Procedure' as const,
+      '~orpc': this['~orpc'],
+    })
   }
 
   /**
    * Make this procedure compatible with server action (the same as .callable, but the type is compatible with server action).
-   * **Note**: this only takes effect when this method is called at the end of the chain.
    */
   actionable<TClientContext>(...rest: CreateProcedureClientRest<TContext, TOutputSchema, THandlerOutput, TClientContext>):
-    & DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>
+    & Procedure<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>
     & ((...rest: ClientRest<TClientContext, SchemaInput<TInputSchema>>) => Promise<SchemaOutput<TOutputSchema, THandlerOutput>>) {
     return this.callable(...rest)
   }

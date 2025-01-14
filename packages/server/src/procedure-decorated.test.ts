@@ -250,16 +250,14 @@ describe('self chainable', () => {
       expect(createProcedureClient).toBeCalledWith(decorated, options)
     })
 
-    it('can chain after callable', () => {
+    it('can not chain after callable', () => {
       const mid2 = vi.fn()
 
       const applied = decorated.callable({
         context: { auth: true },
-      }).use(mid2)
+      })
 
-      expect(applied).not.toBeInstanceOf(Function)
-      expect(applied).toSatisfy(isProcedure)
-      expect(applied['~orpc'].postMiddlewares).toEqual([mid, mid2])
+      expect(applied).not.haveOwnPropertyDescriptor('use')
     })
   })
 
@@ -274,16 +272,14 @@ describe('self chainable', () => {
       expect(createProcedureClient).toBeCalledWith(decorated, options)
     })
 
-    it('can chain after actionable', () => {
+    it('can not chain after actionable', () => {
       const mid2 = vi.fn()
 
       const applied = decorated.actionable({
         context: { auth: true },
-      }).use(mid2)
+      })
 
-      expect(applied).not.toBeInstanceOf(Function)
-      expect(applied).toSatisfy(isProcedure)
-      expect(applied['~orpc'].postMiddlewares).toEqual([mid, mid2])
+      expect(applied).not.haveOwnPropertyDescriptor('use')
     })
   })
 })

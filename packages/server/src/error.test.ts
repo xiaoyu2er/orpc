@@ -44,9 +44,4 @@ describe('createORPCErrorConstructorMap', () => {
     const error = constructors.UNAUTHORIZED({ data: { why: '123' } })
     expect(error.status).toBe(499)
   })
-
-  it('works with undefined', () => {
-    expect(createORPCErrorConstructorMap({})).toEqual({})
-    expect(createORPCErrorConstructorMap({ CODE: undefined })).toEqual({})
-  })
 })

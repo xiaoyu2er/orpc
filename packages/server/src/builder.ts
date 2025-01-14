@@ -1,4 +1,4 @@
-import type { ContractRouter, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ContractRouter, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput, StrictErrorMap } from '@orpc/contract'
 import type { ORPCErrorConstructorMap } from './error'
 import type { FlattenLazy } from './lazy'
 import type { Middleware } from './middleware'
@@ -140,30 +140,32 @@ export class Builder<TContext extends Context, TExtraContext extends Context, TE
     })
   }
 
-  prefix(prefix: HTTPPath): RouterBuilder<TContext, TExtraContext> {
+  prefix(prefix: HTTPPath): RouterBuilder<TContext, TExtraContext, TErrorMap> {
     return new RouterBuilder({
       middlewares: this['~orpc'].middlewares,
+      errorMap: this['~orpc'].errorMap,
       prefix,
     })
   }
 
-  tag(...tags: string[]): RouterBuilder<TContext, TExtraContext> {
+  tag(...tags: string[]): RouterBuilder<TContext, TExtraContext, TErrorMap> {
     return new RouterBuilder({
       middlewares: this['~orpc'].middlewares,
+      errorMap: this['~orpc'].errorMap,
       tags,
     })
   }
 
-  router<U extends Router<MergeContext<TContext, TExtraContext>, any>>(
+  router<U extends Router<MergeContext<TContext, TExtraContext>, ContractRouter<ErrorMap & Partial<StrictErrorMap<TErrorMap>>>>>(
     router: U,
-  ): AdaptedRouter<TContext, U> {
-    return new RouterBuilder<TContext, TExtraContext>(this['~orpc']).router(router)
+  ): AdaptedRouter<TContext, U, TErrorMap> {
+    return new RouterBuilder<TContext, TExtraContext, TErrorMap>(this['~orpc']).router(router)
   }
 
-  lazy<U extends Router<MergeContext<TContext, TExtraContext>, any>>(
+  lazy<U extends Router<MergeContext<TContext, TExtraContext>, ContractRouter<ErrorMap & Partial<StrictErrorMap<TErrorMap>>>>>(
     loader: () => Promise<{ default: U }>,
-  ): AdaptedRouter<TContext, FlattenLazy<U>> {
-    return new RouterBuilder<TContext, TExtraContext>(this['~orpc']).lazy(loader)
+  ): AdaptedRouter<TContext, FlattenLazy<U>, TErrorMap> {
+    return new RouterBuilder<TContext, TExtraContext, TErrorMap>(this['~orpc']).lazy(loader)
   }
 
   contract<U extends ContractRouter<any>>(

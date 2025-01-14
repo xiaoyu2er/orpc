@@ -158,7 +158,7 @@ describe('to DecoratedProcedure', () => {
 describe('to RouterBuilder', () => {
   it('prefix', () => {
     expectTypeOf(builder.prefix('/test')).toEqualTypeOf<
-      RouterBuilder<{ auth: boolean }, { db: string }>
+      RouterBuilder<{ auth: boolean }, { db: string }, typeof baseErrors>
     >()
 
     // @ts-expect-error invalid prefix
@@ -167,7 +167,7 @@ describe('to RouterBuilder', () => {
 
   it('tags', () => {
     expectTypeOf(builder.tag('test', 'test2')).toEqualTypeOf<
-      RouterBuilder<{ auth: boolean }, { db: string }>
+      RouterBuilder<{ auth: boolean }, { db: string }, typeof baseErrors>
     >()
 
     // @ts-expect-error invalid tags
@@ -184,7 +184,7 @@ it('to AdaptedRouter', () => {
     },
   }
   expectTypeOf(builder.router(router)).toEqualTypeOf<
-    AdaptedRouter<{ auth: boolean }, typeof router>
+    AdaptedRouter<{ auth: boolean }, typeof router, typeof baseErrors>
   >()
 
   // @ts-expect-error - context is not match
@@ -203,7 +203,7 @@ it('to DecoratedLazy', () => {
   expectTypeOf(
     builder.lazy(() => Promise.resolve({ default: router })),
   ).toEqualTypeOf<
-    DecoratedLazy<AdaptedRouter<{ auth: boolean }, typeof router>>
+    DecoratedLazy<AdaptedRouter<{ auth: boolean }, typeof router, typeof baseErrors>>
   >()
 
   // @ts-expect-error - context is not match

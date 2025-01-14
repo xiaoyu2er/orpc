@@ -8,13 +8,13 @@ import type { WELL_CONTEXT } from './types'
 import { z } from 'zod'
 import { lazy } from './lazy'
 
-const builder = {} as RouterBuilder<{ auth: boolean }, { db: string }>
-
 const baseErrors = {
-  CODE: {
+  BASE: {
     data: z.object({ why: z.string() }),
   },
 }
+
+const builder = {} as RouterBuilder<{ auth: boolean }, { db: string }, typeof baseErrors>
 
 describe('AdaptedRouter', () => {
   const ping = {} as Procedure<{ auth: boolean }, { db: string }, undefined, undefined, unknown, typeof baseErrors>
@@ -29,19 +29,19 @@ describe('AdaptedRouter', () => {
         pong,
       },
     }
-    const adapted = {} as AdaptedRouter<{ log: true, auth: boolean }, typeof router>
+    const adapted = {} as AdaptedRouter<{ log: true, auth: boolean }, typeof router, typeof baseErrors>
 
     expectTypeOf(adapted.ping).toEqualTypeOf<
       DecoratedProcedure<{ log: true, auth: boolean }, { db: string }, undefined, undefined, unknown, typeof baseErrors>
     >()
     expectTypeOf(adapted.pong).toEqualTypeOf<
-      DecoratedProcedure<{ log: true, auth: boolean }, undefined, undefined, undefined, unknown, Record<never, never>>
+      DecoratedProcedure<{ log: true, auth: boolean }, undefined, undefined, undefined, unknown, Record<never, never> & typeof baseErrors>
     >()
     expectTypeOf(adapted.nested.ping).toEqualTypeOf<
       DecoratedProcedure<{ log: true, auth: boolean }, { db: string }, undefined, undefined, unknown, typeof baseErrors>
     >()
     expectTypeOf(adapted.nested.pong).toEqualTypeOf<
-      DecoratedProcedure<{ log: true, auth: boolean }, undefined, undefined, undefined, unknown, Record<never, never>>
+      DecoratedProcedure<{ log: true, auth: boolean }, undefined, undefined, undefined, unknown, Record<never, never> & typeof baseErrors>
     >()
   })
 
@@ -57,28 +57,28 @@ describe('AdaptedRouter', () => {
       })),
     }
 
-    const adapted = {} as AdaptedRouter<{ log: true } | undefined, typeof router>
+    const adapted = {} as AdaptedRouter<{ log: true } | undefined, typeof router, typeof baseErrors>
 
     expectTypeOf(adapted.ping).toEqualTypeOf<DecoratedLazy<
       DecoratedProcedure<{ log: true } | undefined, { db: string }, undefined, undefined, unknown, typeof baseErrors>
     >>()
     expectTypeOf(adapted.pong).toEqualTypeOf<
-      DecoratedProcedure<{ log: true } | undefined, undefined, undefined, undefined, unknown, Record<never, never>>
+      DecoratedProcedure<{ log: true } | undefined, undefined, undefined, undefined, unknown, Record<never, never> & typeof baseErrors>
     >()
     expectTypeOf(adapted.nested.ping).toEqualTypeOf<DecoratedLazy<
       DecoratedProcedure<{ log: true } | undefined, { db: string }, undefined, undefined, unknown, typeof baseErrors>
     >>()
     expectTypeOf(adapted.nested.pong).toEqualTypeOf<DecoratedLazy<
-      DecoratedProcedure<{ log: true } | undefined, undefined, undefined, undefined, unknown, Record<never, never>>
+      DecoratedProcedure<{ log: true } | undefined, undefined, undefined, undefined, unknown, Record<never, never> & typeof baseErrors>
     >>()
   })
 
   it('with procedure', () => {
-    expectTypeOf<AdaptedRouter<{ log: boolean }, typeof ping>>().toEqualTypeOf<
+    expectTypeOf<AdaptedRouter<{ log: boolean }, typeof ping, typeof baseErrors>>().toEqualTypeOf<
       DecoratedProcedure<{ log: boolean }, { db: string }, undefined, undefined, unknown, typeof baseErrors>
     >()
 
-    expectTypeOf < AdaptedRouter<{ log: boolean }, Lazy<typeof ping>>>().toEqualTypeOf<
+    expectTypeOf<AdaptedRouter<{ log: boolean }, Lazy<typeof ping>, typeof baseErrors>>().toEqualTypeOf<
       DecoratedLazy<DecoratedProcedure<{ log: boolean }, { db: string }, undefined, undefined, unknown, typeof baseErrors>>
     >()
   })
@@ -123,10 +123,10 @@ describe('self chainable', () => {
 
     expectTypeOf(builder.use(mid1)).toEqualTypeOf<typeof builder>()
     expectTypeOf(builder.use(mid2)).toEqualTypeOf<
-      RouterBuilder<{ auth: boolean }, { db: string } & { dev: string }>
+      RouterBuilder<{ auth: boolean }, { db: string } & { dev: string }, typeof baseErrors>
     >()
     expectTypeOf(builder.use(mid3)).toEqualTypeOf<
-      RouterBuilder<{ auth: boolean }, { db: string } & { dev: string }>
+      RouterBuilder<{ auth: boolean }, { db: string } & { dev: string }, typeof baseErrors>
     >()
 
     const mid4 = {} as Middleware<{ auth: boolean }, { dev: string }, unknown, { val: string }, Record<never, never>>
@@ -144,6 +144,25 @@ describe('self chainable', () => {
     // @ts-expect-error - invalid middleware
     builder.use(() => {})
   })
+
+  it('errors', () => {
+    const errors = {
+      WRONG: {
+        data: z.object({ why: z.string() }),
+      },
+    }
+
+    const applied = builder.errors(errors)
+
+    expectTypeOf(applied).toEqualTypeOf<
+      RouterBuilder<{ auth: boolean }, { db: string }, typeof errors & typeof baseErrors>
+    >()
+
+    // @ts-expect-error - not allow redefine errors
+    builder.errors({ BASE: baseErrors.BASE })
+    // @ts-expect-error - not allow redefine errors --- even with undefined
+    builder.errors({ BASE: undefined })
+  })
 })
 
 describe('to AdaptedRouter', () => {
@@ -154,24 +173,12 @@ describe('to AdaptedRouter', () => {
   const wrongPing = {} as Procedure<{ auth: 'invalid' }, undefined, undefined, undefined, unknown, Record<never, never>>
 
   it('router without lazy', () => {
-    expectTypeOf(builder.router({ ping, pong, nested: { ping, pong } })).toEqualTypeOf<
-      AdaptedRouter<
-        { auth: boolean },
-        {
-          ping: typeof ping
-          pong: typeof pong
-          nested: { ping: typeof ping, pong: typeof pong }
-        }
-      >
-    >()
-
-    builder.router({ ping })
-    // @ts-expect-error - context is not match
-    builder.router({ wrongPing })
+    const router = { ping, pong, nested: { ping, pong } }
+    expectTypeOf(builder.router(router)).toEqualTypeOf <AdaptedRouter<{ auth: boolean }, typeof router, typeof baseErrors>>()
   })
 
   it('router with lazy', () => {
-    expectTypeOf(builder.router({
+    const router = {
       ping: lazy(() => Promise.resolve({ default: ping })),
       pong,
       nested: lazy(() => Promise.resolve({
@@ -180,14 +187,13 @@ describe('to AdaptedRouter', () => {
           pong: lazy(() => Promise.resolve({ default: pong })),
         },
       })),
-    })).toEqualTypeOf<
+    }
+
+    expectTypeOf(builder.router(router)).toEqualTypeOf<
       AdaptedRouter<
         { auth: boolean },
-        {
-          ping: Lazy<typeof ping>
-          pong: typeof pong
-          nested: Lazy<{ ping: typeof ping, pong: Lazy<typeof pong> }>
-        }
+        typeof router,
+        typeof baseErrors
       >
     >()
 
@@ -200,14 +206,16 @@ describe('to AdaptedRouter', () => {
     expectTypeOf(builder.router(ping)).toEqualTypeOf<
       AdaptedRouter<
         { auth: boolean },
-        typeof ping
+        typeof ping,
+        typeof baseErrors
       >
     >()
 
     expectTypeOf(builder.router(lazy(() => Promise.resolve({ default: ping })))).toEqualTypeOf<
       AdaptedRouter<
         { auth: boolean },
-        Lazy<typeof ping>
+        Lazy<typeof ping>,
+        typeof baseErrors
       >
     >()
   })
@@ -231,7 +239,7 @@ describe('to Decorated Adapted Lazy', () => {
     }
 
     expectTypeOf(builder.lazy(() => Promise.resolve({ default: router }))).toEqualTypeOf<
-      DecoratedLazy<AdaptedRouter<{ auth: boolean }, typeof router>>
+      DecoratedLazy<AdaptedRouter<{ auth: boolean }, typeof router, typeof baseErrors>>
     >()
 
     builder.lazy(() => Promise.resolve({ default: { ping } }))
@@ -252,7 +260,7 @@ describe('to Decorated Adapted Lazy', () => {
     }
 
     expectTypeOf(builder.lazy(() => Promise.resolve({ default: router }))).toEqualTypeOf<
-      DecoratedLazy<AdaptedRouter<{ auth: boolean }, typeof router>>
+      DecoratedLazy<AdaptedRouter<{ auth: boolean }, typeof router, typeof baseErrors>>
     >()
 
     builder.lazy(() => Promise.resolve({ default: { ping: lazy(() => Promise.resolve({ default: ping })) } }))

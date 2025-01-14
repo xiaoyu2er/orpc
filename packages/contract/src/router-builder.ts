@@ -63,13 +63,11 @@ export class ContractRouterBuilder<TErrorMap extends ErrorMap> {
         decorated = decorated.prefix(this['~orpc'].prefix)
       }
 
-      if (this['~orpc'].errorMap) {
-        /**
-         * The `router` (T) has been validated to ensure no conflicts with `TErrorMap`,
-         * allowing us to safely cast here.
-         */
-        decorated = decorated.errors(this['~orpc'].errorMap as any)
-      }
+      /**
+       * The `router` (T) has been validated to ensure no conflicts with `TErrorMap`,
+       * allowing us to safely cast here.
+       */
+      decorated = decorated.errors(this['~orpc'].errorMap as any)
 
       return decorated as any
     }

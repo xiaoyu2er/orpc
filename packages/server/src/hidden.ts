@@ -2,7 +2,7 @@ import type { ContractRouter, HTTPPath } from '@orpc/contract'
 
 const ROUTER_CONTRACT_SYMBOL = Symbol('ORPC_ROUTER_CONTRACT')
 
-export function setRouterContract<T extends object>(obj: T, contract: ContractRouter): T {
+export function setRouterContract<T extends object>(obj: T, contract: ContractRouter<any>): T {
   return new Proxy(obj, {
     get(target, key) {
       if (key === ROUTER_CONTRACT_SYMBOL) {
@@ -14,7 +14,7 @@ export function setRouterContract<T extends object>(obj: T, contract: ContractRo
   })
 }
 
-export function getRouterContract(obj: object): ContractRouter | undefined {
+export function getRouterContract(obj: object): ContractRouter<any> | undefined {
   return (obj as any)[ROUTER_CONTRACT_SYMBOL]
 }
 

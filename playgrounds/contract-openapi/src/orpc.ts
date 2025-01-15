@@ -8,7 +8,9 @@ export interface ORPCContext {
   db?: any
 }
 
-const base = os.context<ORPCContext>().use(async ({ context, path, next }, input) => {
+const base = os.context<ORPCContext>()
+
+const logMid = base.middleware(async ({ context, path, next }, input) => {
   const start = Date.now()
 
   try {
@@ -34,5 +36,5 @@ const authMid = base.middleware(({ context, next, path }, input) => {
   })
 })
 
-export const pub = base.contract(contract)
-export const authed = base.use(authMid).contract(contract)
+export const pub = base.use(logMid).contract(contract)
+export const authed = base.use(logMid).use(authMid).contract(contract)

@@ -5,20 +5,7 @@ import { z } from 'zod'
 
 export type Context = { user?: { id: string } }
 
-export const pub = os
-  .context<Context>()
-  .use(async ({ context, path, next }, input) => {
-    // This middleware will apply to everything create from pub
-    const start = Date.now()
-
-    try {
-      return await next({})
-    }
-    finally {
-    // eslint-disable-next-line no-console
-      console.log(`middleware cost ${Date.now() - start}ms`)
-    }
-  })
+export const pub = os.context<Context>()
 
 export const authMiddleware = pub.middleware(async ({ context, next, path, procedure }, input) => {
   if (!context.user) {

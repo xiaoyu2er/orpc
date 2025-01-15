@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { ContractBuilder } from './builder'
-import { ContractProcedure } from './procedure'
+import { ContractProcedure, isContractProcedure } from './procedure'
 import { DecoratedContractProcedure } from './procedure-decorated'
 import { ContractRouterBuilder } from './router-builder'
 
@@ -25,9 +25,13 @@ const baseErrorMap = {
   },
 }
 
-const builder = new ContractBuilder({ errorMap: baseErrorMap })
+const builder = new ContractBuilder({ errorMap: baseErrorMap, OutputSchema: undefined, InputSchema: undefined })
 
 const schema = z.object({ val: z.string().transform(val => Number(val)) })
+
+it('also is a contract procedure', () => {
+  expect(builder).toSatisfy(isContractProcedure)
+})
 
 describe('self chainable', () => {
   it('errors', () => {

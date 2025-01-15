@@ -17,7 +17,11 @@ const baseErrorMap = {
   },
 }
 
-const builder = new ContractBuilder({ errorMap: baseErrorMap })
+const builder = new ContractBuilder({ errorMap: baseErrorMap, OutputSchema: undefined, InputSchema: undefined })
+
+it('also is a contract procedure', () => {
+  expectTypeOf(builder).toMatchTypeOf<ContractProcedure<undefined, undefined, typeof baseErrorMap>>()
+})
 
 describe('self chainable', () => {
   describe('errors', () => {

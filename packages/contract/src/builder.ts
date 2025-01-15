@@ -1,9 +1,9 @@
 import type { ErrorMap, ErrorMapGuard, ErrorMapSuggestions, StrictErrorMap } from './error-map'
-import type { RouteOptions } from './procedure'
 import type { ContractRouter } from './router'
 import type { AdaptedContractRouter } from './router-builder'
-
 import type { HTTPPath, Schema, SchemaInput, SchemaOutput } from './types'
+
+import { ContractProcedure, type RouteOptions } from './procedure'
 import { DecoratedContractProcedure } from './procedure-decorated'
 import { ContractRouterBuilder } from './router-builder'
 
@@ -11,14 +11,7 @@ export type ContractBuilderDef<TErrorMap extends ErrorMap> = {
   errorMap: TErrorMap
 }
 
-export class ContractBuilder<TErrorMap extends ErrorMap> {
-  '~type' = 'ContractBuilder' as const
-  '~orpc': ContractBuilderDef<TErrorMap>
-
-  constructor(def: ContractBuilderDef<TErrorMap>) {
-    this['~orpc'] = def
-  }
-
+export class ContractBuilder<TErrorMap extends ErrorMap> extends ContractProcedure<undefined, undefined, TErrorMap> {
   errors<const U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(errors: U): ContractBuilder<U & TErrorMap> {
     return new ContractBuilder({
       ...this['~orpc'],

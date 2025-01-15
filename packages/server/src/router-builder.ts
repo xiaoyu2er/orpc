@@ -1,4 +1,5 @@
 import type { ContractRouter, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, HTTPPath, StrictErrorMap } from '@orpc/contract'
+import type { ORPCErrorConstructorMap } from './error'
 import type { FlattenLazy, Lazy } from './lazy'
 import type { ANY_MIDDLEWARE, Middleware } from './middleware'
 import type { ANY_PROCEDURE, Procedure } from './procedure'
@@ -25,7 +26,7 @@ export type AdaptedRouter<
 export type RouterBuilderDef<TContext extends Context, TExtraContext extends Context, TErrorMap extends ErrorMap> = {
   prefix?: HTTPPath
   tags?: readonly string[]
-  middlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, Record<never, never>>[]
+  middlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, ORPCErrorConstructorMap<TErrorMap>>[]
   errorMap: TErrorMap
 }
 

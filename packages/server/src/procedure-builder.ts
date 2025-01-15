@@ -28,7 +28,7 @@ export interface ProcedureBuilderDef<
   TErrorMap extends ErrorMap,
 > {
   contract: ContractProcedure<TInputSchema, TOutputSchema, TErrorMap>
-  middlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, Record<never, never>>[]
+  middlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, ORPCErrorConstructorMap<TErrorMap>>[]
 }
 
 export class ProcedureBuilder<

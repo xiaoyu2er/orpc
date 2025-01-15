@@ -1,176 +1,146 @@
-import type { ContractRouter, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput, StrictErrorMap } from '@orpc/contract'
-import type { ORPCErrorConstructorMap } from './error'
+import type { ContractRouter, ErrorMap, ErrorMapSuggestions, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ContextGuard } from './context'
 import type { FlattenLazy } from './lazy'
 import type { Middleware } from './middleware'
 import type { DecoratedMiddleware } from './middleware-decorated'
 import type { ProcedureHandler } from './procedure'
 import type { Router } from './router'
 import type { AdaptedRouter } from './router-builder'
-import type { Context, MergeContext, WELL_CONTEXT } from './types'
+import type { Context, MergeContext } from './types'
 import { ContractProcedure } from '@orpc/contract'
+import { BuilderWithErrors } from './builder-with-errors'
+import { BuilderWithMiddlewares } from './builder-with-middlewares'
 import { type ChainableImplementer, createChainableImplementer } from './implementer-chainable'
 import { decorateMiddleware } from './middleware-decorated'
 import { ProcedureBuilder } from './procedure-builder'
 import { DecoratedProcedure } from './procedure-decorated'
 import { RouterBuilder } from './router-builder'
 
-export interface BuilderDef<TContext extends Context, TExtraContext extends Context, TErrorMap extends ErrorMap> {
-  middlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, Record<never, never>>[]
-  errorMap: TErrorMap
+export interface BuilderDef<TContext extends Context> {
+  types?: { context: TContext }
 }
 
-export class Builder<TContext extends Context, TExtraContext extends Context, TErrorMap extends ErrorMap> {
+export class Builder<TContext extends Context> {
   '~type' = 'Builder' as const
-  '~orpc': BuilderDef<TContext, TExtraContext, TErrorMap>
+  '~orpc': BuilderDef<TContext>
 
-  constructor(def: BuilderDef<TContext, TExtraContext, TErrorMap>) {
+  constructor(def: BuilderDef<TContext>) {
     this['~orpc'] = def
   }
 
-  // TODO: separate it
-  context<UContext extends Context = WELL_CONTEXT>(): Builder<UContext, undefined, Record<never, never>> {
-    return new Builder({
-      middlewares: [],
-      errorMap: {},
-    })
+  context<UContext extends Context = TContext>(): Builder<UContext> {
+    return this as any // just change at type level so safely cast here
   }
 
-  use<U extends Context & Partial<MergeContext<TContext, TExtraContext>> | undefined = undefined>(
-    middleware: Middleware<
-      MergeContext<TContext, TExtraContext>,
-      U,
-      unknown,
-      unknown,
-      ORPCErrorConstructorMap<TErrorMap>
-    >,
-  ): Builder<TContext, MergeContext<TExtraContext, U>, TErrorMap> {
-    return new Builder({
-      ...this['~orpc'],
-      middlewares: [...this['~orpc'].middlewares, middleware as any],
-    })
-  }
-
-  errors<U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(errors: U): Builder<TContext, TExtraContext, TErrorMap & U> {
-    return new Builder({
-      ...this['~orpc'],
-      errorMap: {
-        ...this['~orpc'].errorMap,
-        ...errors,
-      },
-    })
-  }
-
-  // TODO: not allow define middleware after has context, or anything else
-  middleware<
-    UExtraContext extends Context & Partial<MergeContext<TContext, TExtraContext>> | undefined = undefined,
-    TInput = unknown,
-    TOutput = any,
-  >(
-    middleware: Middleware<
-      MergeContext<TContext, TExtraContext>,
-      UExtraContext,
-      TInput,
-      TOutput,
-      Record<never, never>
-    >,
-  ): DecoratedMiddleware<
-      MergeContext<TContext, TExtraContext>,
-      UExtraContext,
-      TInput,
-      TOutput,
-      Record<never, never>
-    > {
+  middleware<UExtraContext extends Context & ContextGuard<TContext>, TInput, TOutput = any >(
+    middleware: Middleware<TContext, UExtraContext, TInput, TOutput, Record<never, never>>,
+  ): DecoratedMiddleware<TContext, UExtraContext, TInput, TOutput, Record<never, never>> {
     return decorateMiddleware(middleware)
   }
 
-  route(route: RouteOptions): ProcedureBuilder<TContext, TExtraContext, undefined, undefined, TErrorMap> {
+  errors<U extends ErrorMap & ErrorMapSuggestions>(errors: U): BuilderWithErrors<TContext, U> {
+    return new BuilderWithErrors({
+      errorMap: errors,
+    })
+  }
+
+  use<U extends Context & ContextGuard<TContext>>(
+    middleware: Middleware<TContext, U, unknown, unknown, Record<never, never>>,
+  ): BuilderWithMiddlewares<TContext, U> {
+    return new BuilderWithMiddlewares<TContext, U>({
+      ...this['~orpc'],
+      middlewares: [middleware as any], // FIXME: I believe we can remove `as any` here
+    })
+  }
+
+  route(route: RouteOptions): ProcedureBuilder<TContext, undefined, undefined, undefined, Record<never, never>> {
     return new ProcedureBuilder({
-      middlewares: this['~orpc'].middlewares,
+      middlewares: [],
       contract: new ContractProcedure({
         route,
         InputSchema: undefined,
         OutputSchema: undefined,
-        errorMap: this['~orpc'].errorMap,
+        errorMap: {},
       }),
     })
   }
 
-  input<USchema extends Schema>(
-    schema: USchema,
-    example?: SchemaInput<USchema>,
-  ): ProcedureBuilder<TContext, TExtraContext, USchema, undefined, TErrorMap> {
+  input<USchema extends Schema>(schema: USchema, example?: SchemaInput<USchema>): ProcedureBuilder<TContext, undefined, USchema, undefined, Record<never, never>> {
     return new ProcedureBuilder({
-      middlewares: this['~orpc'].middlewares,
+      middlewares: [],
       contract: new ContractProcedure({
         OutputSchema: undefined,
         InputSchema: schema,
         inputExample: example,
-        errorMap: this['~orpc'].errorMap,
+        errorMap: {},
       }),
     })
   }
 
-  output<USchema extends Schema>(
-    schema: USchema,
-    example?: SchemaOutput<USchema>,
-  ): ProcedureBuilder<TContext, TExtraContext, undefined, USchema, TErrorMap> {
+  output<USchema extends Schema>(schema: USchema, example?: SchemaOutput<USchema>): ProcedureBuilder<TContext, undefined, undefined, USchema, Record<never, never>> {
     return new ProcedureBuilder({
-      middlewares: this['~orpc'].middlewares,
+      middlewares: [],
       contract: new ContractProcedure({
         InputSchema: undefined,
         OutputSchema: schema,
         outputExample: example,
-        errorMap: this['~orpc'].errorMap,
+        errorMap: {},
       }),
     })
   }
 
-  handler<UFuncOutput = undefined>(
-    handler: ProcedureHandler<TContext, TExtraContext, undefined, undefined, UFuncOutput, TErrorMap>,
-  ): DecoratedProcedure<TContext, TExtraContext, undefined, undefined, UFuncOutput, TErrorMap> {
+  handler<UFuncOutput>(
+    handler: ProcedureHandler<TContext, undefined, undefined, undefined, UFuncOutput, Record<never, never>>,
+  ): DecoratedProcedure<TContext, undefined, undefined, undefined, UFuncOutput, Record<never, never>> {
     return new DecoratedProcedure({
-      preMiddlewares: this['~orpc'].middlewares,
+      preMiddlewares: [],
       postMiddlewares: [],
       contract: new ContractProcedure({
         InputSchema: undefined,
         OutputSchema: undefined,
-        errorMap: this['~orpc'].errorMap,
+        errorMap: {},
       }),
       handler,
     })
   }
 
-  prefix(prefix: HTTPPath): RouterBuilder<TContext, TExtraContext, TErrorMap> {
+  prefix(prefix: HTTPPath): RouterBuilder<TContext, undefined, Record<never, never>> {
     return new RouterBuilder({
-      middlewares: this['~orpc'].middlewares,
-      errorMap: this['~orpc'].errorMap,
+      middlewares: [],
+      errorMap: {},
       prefix,
     })
   }
 
-  tag(...tags: string[]): RouterBuilder<TContext, TExtraContext, TErrorMap> {
+  tag(...tags: string[]): RouterBuilder<TContext, undefined, Record<never, never>> {
     return new RouterBuilder({
-      middlewares: this['~orpc'].middlewares,
-      errorMap: this['~orpc'].errorMap,
+      middlewares: [],
+      errorMap: {},
       tags,
     })
   }
 
-  router<U extends Router<MergeContext<TContext, TExtraContext>, ContractRouter<ErrorMap & Partial<StrictErrorMap<TErrorMap>>>>>(
+  router<U extends Router<MergeContext<TContext, undefined>, any>>(
     router: U,
-  ): AdaptedRouter<TContext, U, TErrorMap> {
-    return new RouterBuilder<TContext, TExtraContext, TErrorMap>(this['~orpc']).router(router)
+  ): AdaptedRouter<TContext, U, Record<never, never>> {
+    return new RouterBuilder<TContext, undefined, Record<never, never>>({
+      middlewares: [],
+      errorMap: [],
+    }).router(router)
   }
 
-  lazy<U extends Router<MergeContext<TContext, TExtraContext>, ContractRouter<ErrorMap & Partial<StrictErrorMap<TErrorMap>>>>>(
+  lazy<U extends Router<MergeContext<TContext, undefined>, any>>(
     loader: () => Promise<{ default: U }>,
-  ): AdaptedRouter<TContext, FlattenLazy<U>, TErrorMap> {
-    return new RouterBuilder<TContext, TExtraContext, TErrorMap>(this['~orpc']).lazy(loader)
+  ): AdaptedRouter<TContext, FlattenLazy<U>, Record<never, never>> {
+    return new RouterBuilder<TContext, undefined, Record<never, never>>({
+      middlewares: [],
+      errorMap: {},
+    }).lazy(loader)
   }
 
   contract<U extends ContractRouter<any>>(
     contract: U,
-  ): ChainableImplementer<TContext, TExtraContext, U> {
-    return createChainableImplementer(contract, this['~orpc'].middlewares)
+  ): ChainableImplementer<TContext, undefined, U> {
+    return createChainableImplementer(contract)
   }
 }

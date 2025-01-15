@@ -1,4 +1,5 @@
 import type { ContractProcedure, ErrorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ContextGuard } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { ANY_MAP_INPUT_MIDDLEWARE, ANY_MIDDLEWARE, MapInputMiddleware, Middleware } from './middleware'
 import type { ProcedureHandler } from './procedure'
@@ -32,7 +33,7 @@ export class ProcedureImplementer<
     this['~orpc'] = def
   }
 
-  use<U extends Context & Partial<MergeContext<TContext, TExtraContext>> | undefined = undefined>(
+  use<U extends Context & ContextGuard<MergeContext<TContext, TExtraContext>>>(
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
       U,
@@ -49,8 +50,8 @@ export class ProcedureImplementer<
   >
 
   use<
-    UExtra extends Context & Partial<MergeContext<TContext, TExtraContext>> | undefined = undefined,
-    UInput = unknown,
+    UExtra extends Context & ContextGuard<MergeContext<TContext, TExtraContext>>,
+    UInput,
   >(
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,

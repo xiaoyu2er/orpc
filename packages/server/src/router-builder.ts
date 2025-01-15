@@ -1,4 +1,5 @@
 import type { ContractRouter, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, HTTPPath, StrictErrorMap } from '@orpc/contract'
+import type { ContextGuard } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { FlattenLazy, Lazy } from './lazy'
 import type { ANY_MIDDLEWARE, Middleware } from './middleware'
@@ -73,7 +74,7 @@ export class RouterBuilder<
     })
   }
 
-  use<U extends Context & Partial<MergeContext<TContext, TExtraContext>> | undefined = undefined>(
+  use<U extends Context & ContextGuard<MergeContext<TContext, TExtraContext>>>(
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
       U,

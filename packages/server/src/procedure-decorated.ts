@@ -1,4 +1,5 @@
 import type { ClientRest, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ContextGuard } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { ANY_MIDDLEWARE, MapInputMiddleware, Middleware } from './middleware'
 import type { CreateProcedureClientRest, ProcedureClient } from './procedure-client'
@@ -58,7 +59,7 @@ export class DecoratedProcedure<
     })
   }
 
-  use<U extends Context & Partial<MergeContext<TContext, TExtraContext>> | undefined = undefined>(
+  use<U extends Context & ContextGuard<MergeContext<TContext, TExtraContext>>>(
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
       U,
@@ -76,7 +77,7 @@ export class DecoratedProcedure<
   >
 
   use<
-    UExtra extends Context & Partial<MergeContext<TContext, TExtraContext>> | undefined = undefined,
+    UExtra extends Context & ContextGuard<MergeContext<TContext, TExtraContext>>,
     UInput = unknown,
   >(
     middleware: Middleware<

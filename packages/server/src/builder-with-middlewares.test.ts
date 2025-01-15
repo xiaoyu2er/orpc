@@ -48,6 +48,7 @@ describe('builderWithMiddlewares', () => {
     const mid2 = vi.fn()
     const applied = builder.use(mid2)
     expect(applied).toBeInstanceOf(BuilderWithMiddlewares)
+    expect(applied).not.toBe(builder)
     expect(applied['~orpc'].middlewares).toEqual([mid, mid2])
   })
 

@@ -52,8 +52,14 @@ describe('Builder', () => {
       DecoratedMiddleware<{ db: string }, { extra: boolean }, unknown, any, Record<never, never>>
     >()
 
+    const mid2 = builder.middleware(({ next }, input: 'input', output: MiddlewareOutputFn<'output'>) => next({}))
+
+    expectTypeOf(mid2).toEqualTypeOf<
+      DecoratedMiddleware<{ db: string }, undefined, 'input', 'output', Record<never, never>>
+    >()
+
     // @ts-expect-error --- conflict context
-    builder.middleware(({ next }) => ({ db: 123 }))
+    builder.middleware(({ next }) => next({ db: 123 }))
   })
 
   it('.errors', () => {
@@ -79,7 +85,11 @@ describe('Builder', () => {
     expectTypeOf(applied).toEqualTypeOf<BuilderWithMiddlewares<{ db: string }, { extra: boolean }>>()
 
     // @ts-expect-error --- conflict context
-    builder.use(({ next }) => ({ db: 123 }))
+    builder.use(({ next }) => next({ db: 123 }))
+    // @ts-expect-error --- input is not match
+    builder.use(({ next }, input: 'invalid') => next({}))
+    // @ts-expect-error --- output is not match
+    builder.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}))
   })
 
   it('.route', () => {

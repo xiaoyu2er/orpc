@@ -64,6 +64,7 @@ describe('builder', () => {
   it('.errors', () => {
     const applied = builder.errors(errors)
     expect(applied).toBeInstanceOf(BuilderWithErrors)
+    expect(applied).not.toBe(builder)
     expect(applied['~orpc'].errorMap).toEqual({ ...baseErrors, ...errors })
   })
 

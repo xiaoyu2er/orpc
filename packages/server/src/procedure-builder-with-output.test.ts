@@ -1,9 +1,8 @@
 import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
-import { ProcedureBuilder } from './procedure-builder'
-import { ProcedureBuilderWithInput } from './procedure-builder-with-input'
 import { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
 import { DecoratedProcedure } from './procedure-decorated'
+import { ProcedureImplementer } from './procedure-implementer'
 
 const baseErrors = {
   BASE: {
@@ -17,25 +16,28 @@ const baseErrors = {
 
 const mid = vi.fn()
 
-const builder = new ProcedureBuilder({
+const outputSchema = z.object({ input: z.string().transform(v => Number.parseInt(v)) })
+
+const builder = new ProcedureBuilderWithOutput({
   middlewares: [mid],
   contract: new ContractProcedure({
     InputSchema: undefined,
-    OutputSchema: undefined,
+    OutputSchema: outputSchema,
     errorMap: baseErrors,
   }),
 })
 
 const schema = z.object({ id: z.string().transform(v => Number.parseInt(v)) })
 
-describe('procedureBuilder', () => {
+describe('procedureBuilderWithOutput', () => {
   it('.errors', () => {
     const errors = { CODE: { message: 'MESSAGE' } }
     const applied = builder.errors(errors)
 
-    expect(applied).toBeInstanceOf(ProcedureBuilder)
+    expect(applied).toBeInstanceOf(ProcedureBuilderWithOutput)
     expect(applied).not.toBe(builder)
     expect(applied['~orpc'].middlewares).toEqual([mid])
+    expect(applied['~orpc'].contract['~orpc'].OutputSchema).toEqual(outputSchema)
     expect(applied['~orpc'].contract['~orpc'].errorMap).toEqual({
       ...baseErrors,
       ...errors,
@@ -45,9 +47,10 @@ describe('procedureBuilder', () => {
   it('.route', () => {
     const applied = builder.route({ tags: ['a'] })
 
-    expect(applied).toBeInstanceOf(ProcedureBuilder)
+    expect(applied).toBeInstanceOf(ProcedureBuilderWithOutput)
     expect(applied).not.toBe(builder)
     expect(applied['~orpc'].middlewares).toEqual([mid])
+    expect(applied['~orpc'].contract['~orpc'].OutputSchema).toEqual(outputSchema)
     expect(applied['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
   })
 
@@ -56,27 +59,20 @@ describe('procedureBuilder', () => {
 
     const applied = builder.use(mid2)
 
-    expect(applied).toBeInstanceOf(ProcedureBuilder)
+    expect(applied).toBeInstanceOf(ProcedureBuilderWithOutput)
     expect(applied).not.toBe(builder)
     expect(applied['~orpc'].middlewares).toEqual([mid, mid2])
+    expect(applied['~orpc'].contract['~orpc'].OutputSchema).toEqual(outputSchema)
     expect(applied['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
   })
 
   it('.input', () => {
     const applied = builder.input(schema)
 
-    expect(applied).toBeInstanceOf(ProcedureBuilderWithInput)
-    expect(applied['~orpc'].middlewares).toEqual([mid])
+    expect(applied).toBeInstanceOf(ProcedureImplementer)
+    expect(applied['~orpc'].preMiddlewares).toEqual([mid])
+    expect(applied['~orpc'].contract['~orpc'].OutputSchema).toEqual(outputSchema)
     expect(applied['~orpc'].contract['~orpc'].InputSchema).toEqual(schema)
-    expect(applied['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
-  })
-
-  it('.output', () => {
-    const applied = builder.output(schema)
-
-    expect(applied).toBeInstanceOf(ProcedureBuilderWithOutput)
-    expect(applied['~orpc'].middlewares).toEqual([mid])
-    expect(applied['~orpc'].contract['~orpc'].OutputSchema).toEqual(schema)
     expect(applied['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
   })
 
@@ -86,6 +82,7 @@ describe('procedureBuilder', () => {
 
     expect(applied).toBeInstanceOf(DecoratedProcedure)
     expect(applied['~orpc'].preMiddlewares).toEqual([mid])
+    expect(applied['~orpc'].contract['~orpc'].OutputSchema).toEqual(outputSchema)
     expect(applied['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
   })
 })

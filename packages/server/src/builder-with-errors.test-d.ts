@@ -55,6 +55,15 @@ describe('BuilderWithErrors', () => {
     expectTypeOf(mid).toEqualTypeOf<
       DecoratedMiddleware<{ db: string }, { extra: boolean }, unknown, any, ORPCErrorConstructorMap<typeof baseErrors>>
     >()
+
+    const mid2 = builder.middleware(({ next }, input: 'input', output: MiddlewareOutputFn<'output'>) => next({}))
+
+    expectTypeOf(mid2).toEqualTypeOf<
+      DecoratedMiddleware<{ db: string }, undefined, 'input', 'output', ORPCErrorConstructorMap<typeof baseErrors>>
+    >()
+
+    // @ts-expect-error --- conflict context
+    builder.middleware(({ next }) => next({ db: 123 }))
   })
 
   it('.errors', () => {
@@ -83,7 +92,11 @@ describe('BuilderWithErrors', () => {
     expectTypeOf(applied).toEqualTypeOf<BuilderWithErrorsMiddlewares<{ db: string }, { extra: boolean }, typeof baseErrors>>()
 
     // @ts-expect-error --- conflict context
-    builder.middleware(({ next }) => ({ db: 123 }))
+    builder.use(({ next }) => next({ db: 123 }))
+    // @ts-expect-error --- input is not match
+    builder.use(({ next }, input: 'invalid') => next({}))
+    // @ts-expect-error --- output is not match
+    builder.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}))
   })
 
   it('.route', () => {

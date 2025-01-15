@@ -1,10 +1,9 @@
 import type { ORPCErrorConstructorMap } from './error'
 import type { MiddlewareOutputFn } from './middleware'
 import type { ANY_PROCEDURE } from './procedure'
-import type { ProcedureBuilder } from './procedure-builder'
-import type { ProcedureBuilderWithInput } from './procedure-builder-with-input'
 import type { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
 import type { DecoratedProcedure } from './procedure-decorated'
+import type { ProcedureImplementer } from './procedure-implementer'
 import { z } from 'zod'
 
 const baseErrors = {
@@ -17,15 +16,19 @@ const baseErrors = {
   },
 }
 
-const builder = {} as ProcedureBuilder<{ db: string }, { auth?: boolean }, typeof baseErrors>
+const outputSchema = z.object({ output: z.string().transform(v => Number.parseInt(v)) })
+
+const builder = {} as ProcedureBuilderWithOutput<{ db: string }, { auth?: boolean }, typeof outputSchema, typeof baseErrors>
 
 const schema = z.object({ id: z.string().transform(v => Number.parseInt(v)) })
 
-describe('ProcedureBuilder', () => {
+describe('ProcedureBuilderWithOutput', () => {
   it('.errors', () => {
     const errors = { CODE: { message: 'MESSAGE' } }
 
-    expectTypeOf(builder.errors(errors)).toEqualTypeOf<ProcedureBuilder<{ db: string }, { auth?: boolean }, typeof baseErrors & typeof errors>>()
+    expectTypeOf(builder.errors(errors)).toEqualTypeOf<
+      ProcedureBuilderWithOutput<{ db: string }, { auth?: boolean }, typeof outputSchema, typeof baseErrors & typeof errors>
+    >()
 
     // @ts-expect-error - not allow redefine error map
     builder.errors({ BASE: baseErrors.BASE })
@@ -35,13 +38,13 @@ describe('ProcedureBuilder', () => {
     expectTypeOf(builder.route({ tags: ['a'] })).toEqualTypeOf<typeof builder>()
   })
 
-  it('.use', () => {
+  describe('.use', () => {
     const applied = builder.use(({ context, next, path, procedure, errors }, input, output) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()
       expectTypeOf(context).toEqualTypeOf<{ db: string } & { auth?: boolean }>()
       expectTypeOf(path).toEqualTypeOf<string[]>()
       expectTypeOf(procedure).toEqualTypeOf<ANY_PROCEDURE>()
-      expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<unknown>>()
+      expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<{ output: string }>>()
       expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrors>>()
 
       return next({
@@ -51,7 +54,7 @@ describe('ProcedureBuilder', () => {
       })
     })
 
-    expectTypeOf(applied).toEqualTypeOf<ProcedureBuilder< { db: string }, { auth?: boolean } & { extra: boolean }, typeof baseErrors>>()
+    expectTypeOf(applied).toEqualTypeOf<ProcedureBuilderWithOutput<{ db: string }, { auth?: boolean } & { extra: boolean }, typeof outputSchema, typeof baseErrors>>()
 
     // @ts-expect-error --- conflict context
     builder.use(({ next }) => next({ db: 123 }))
@@ -62,11 +65,9 @@ describe('ProcedureBuilder', () => {
   })
 
   it('.input', () => {
-    expectTypeOf(builder.input(schema)).toEqualTypeOf<ProcedureBuilderWithInput<{ db: string }, { auth?: boolean }, typeof schema, typeof baseErrors>>()
-  })
-
-  it('.output', () => {
-    expectTypeOf(builder.output(schema)).toEqualTypeOf<ProcedureBuilderWithOutput<{ db: string }, { auth?: boolean }, typeof schema, typeof baseErrors>>()
+    expectTypeOf(builder.input(schema)).toEqualTypeOf<
+      ProcedureImplementer<{ db: string }, { auth?: boolean }, typeof schema, typeof outputSchema, typeof baseErrors>
+    >()
   })
 
   it('.handler', () => {
@@ -78,11 +79,14 @@ describe('ProcedureBuilder', () => {
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
       expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrors>>()
 
-      return 456
+      return { output: '123' }
     })
 
     expectTypeOf(procedure).toMatchTypeOf<
-      DecoratedProcedure<{ db: string }, { auth?: boolean }, undefined, undefined, number, typeof baseErrors>
+      DecoratedProcedure < { db: string }, { auth?: boolean }, undefined, typeof outputSchema, { output: string }, typeof baseErrors>
     >()
+
+    // @ts-expect-error --- invalid output
+    builder.handler(() => ({ output: 123 }))
   })
 })

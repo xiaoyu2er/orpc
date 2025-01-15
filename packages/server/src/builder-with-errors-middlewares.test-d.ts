@@ -55,7 +55,11 @@ describe('BuilderWithErrorsMiddlewares', () => {
     expectTypeOf(applied).toEqualTypeOf < BuilderWithErrorsMiddlewares < { db: string }, { auth?: boolean } & { extra: boolean }, typeof baseErrors>>()
 
     // @ts-expect-error --- conflict context
-    builder.middleware(({ next }) => ({ db: 123 }))
+    builder.use(({ next }) => next({ db: 123 }))
+    // @ts-expect-error --- input is not match
+    builder.use(({ next }, input: 'invalid') => next({}))
+    // @ts-expect-error --- output is not match
+    builder.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}))
   })
 
   it('.route', () => {

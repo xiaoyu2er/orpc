@@ -50,6 +50,7 @@ beforeEach(() => {
 describe('builder', () => {
   it('.errors', () => {
     const applied = builder.errors(errors)
+    expect(applied).not.toBe(builder)
     expect(applied).toBeInstanceOf(BuilderWithErrorsMiddlewares)
     expect(applied['~orpc'].errorMap).toEqual({ ...baseErrors, ...errors })
   })
@@ -58,6 +59,7 @@ describe('builder', () => {
     const mid2 = vi.fn()
     const applied = builder.use(mid2)
     expect(applied).toBeInstanceOf(BuilderWithErrorsMiddlewares)
+    expect(applied).not.toBe(builder)
     expect(applied['~orpc'].errorMap).toEqual(baseErrors)
     expect(applied['~orpc'].middlewares).toEqual([mid, mid2])
   })

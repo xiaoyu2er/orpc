@@ -5,6 +5,8 @@ import type { Lazy } from './lazy'
 import type { MiddlewareOutputFn } from './middleware'
 import type { ANY_PROCEDURE, Procedure } from './procedure'
 import type { ProcedureBuilder } from './procedure-builder'
+import type { ProcedureBuilderWithInput } from './procedure-builder-with-input'
+import type { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
 import type { DecoratedProcedure } from './procedure-decorated'
 import type { AdaptedRouter, RouterBuilder } from './router-builder'
 import type { WELL_CONTEXT } from './types'
@@ -51,19 +53,19 @@ describe('BuilderWithMiddlewares', () => {
 
   it('.route', () => {
     expectTypeOf(builder.route({ path: '/test', method: 'GET' })).toEqualTypeOf<
-      ProcedureBuilder<{ db: string }, { auth?: boolean }, undefined, undefined, Record<never, never>>
+      ProcedureBuilder<{ db: string }, { auth?: boolean }, Record<never, never>>
     >()
   })
 
   it('.input', () => {
     expectTypeOf(builder.input(schema)).toEqualTypeOf<
-      ProcedureBuilder<{ db: string }, { auth?: boolean }, typeof schema, undefined, Record<never, never>>
+      ProcedureBuilderWithInput<{ db: string }, { auth?: boolean }, typeof schema, Record<never, never>>
     >()
   })
 
   it('.output', () => {
     expectTypeOf(builder.output(schema)).toEqualTypeOf<
-      ProcedureBuilder<{ db: string }, { auth?: boolean }, undefined, typeof schema, Record<never, never>>
+      ProcedureBuilderWithOutput<{ db: string }, { auth?: boolean }, typeof schema, Record<never, never>>
     >()
   })
 

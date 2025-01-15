@@ -6,6 +6,8 @@ import type { MiddlewareOutputFn } from './middleware'
 import type { DecoratedMiddleware } from './middleware-decorated'
 import type { ANY_PROCEDURE, Procedure } from './procedure'
 import type { ProcedureBuilder } from './procedure-builder'
+import type { ProcedureBuilderWithInput } from './procedure-builder-with-input'
+import type { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
 import type { DecoratedProcedure } from './procedure-decorated'
 import type { AdaptedRouter, RouterBuilder } from './router-builder'
 import type { WELL_CONTEXT } from './types'
@@ -86,19 +88,19 @@ describe('BuilderWithErrors', () => {
 
   it('.route', () => {
     expectTypeOf(builder.route({ path: '/test', method: 'GET' })).toEqualTypeOf<
-      ProcedureBuilder<{ db: string }, undefined, undefined, undefined, typeof baseErrors>
+      ProcedureBuilder<{ db: string }, undefined, typeof baseErrors>
     >()
   })
 
   it('.input', () => {
     expectTypeOf(builder.input(schema)).toEqualTypeOf<
-      ProcedureBuilder<{ db: string }, undefined, typeof schema, undefined, typeof baseErrors>
+      ProcedureBuilderWithInput<{ db: string }, undefined, typeof schema, typeof baseErrors>
     >()
   })
 
   it('.output', () => {
     expectTypeOf(builder.output(schema)).toEqualTypeOf<
-      ProcedureBuilder<{ db: string }, undefined, undefined, typeof schema, typeof baseErrors>
+      ProcedureBuilderWithOutput<{ db: string }, undefined, typeof schema, typeof baseErrors>
     >()
   })
 

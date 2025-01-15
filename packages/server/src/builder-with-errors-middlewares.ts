@@ -9,6 +9,8 @@ import type { AdaptedRouter } from './router-builder'
 import type { Context, MergeContext } from './types'
 import { ContractProcedure } from '@orpc/contract'
 import { ProcedureBuilder } from './procedure-builder'
+import { ProcedureBuilderWithInput } from './procedure-builder-with-input'
+import { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
 import { DecoratedProcedure } from './procedure-decorated'
 import { RouterBuilder } from './router-builder'
 
@@ -54,7 +56,7 @@ export class BuilderWithErrorsMiddlewares<TContext extends Context, TExtraContex
     })
   }
 
-  route(route: RouteOptions): ProcedureBuilder<TContext, TExtraContext, undefined, undefined, TErrorMap> {
+  route(route: RouteOptions): ProcedureBuilder<TContext, TExtraContext, TErrorMap> {
     return new ProcedureBuilder({
       middlewares: this['~orpc'].middlewares,
       contract: new ContractProcedure({
@@ -66,8 +68,8 @@ export class BuilderWithErrorsMiddlewares<TContext extends Context, TExtraContex
     })
   }
 
-  input<USchema extends Schema>(schema: USchema, example?: SchemaInput<USchema>): ProcedureBuilder<TContext, TExtraContext, USchema, undefined, TErrorMap> {
-    return new ProcedureBuilder({
+  input<USchema extends Schema>(schema: USchema, example?: SchemaInput<USchema>): ProcedureBuilderWithInput<TContext, TExtraContext, USchema, TErrorMap> {
+    return new ProcedureBuilderWithInput({
       middlewares: this['~orpc'].middlewares,
       contract: new ContractProcedure({
         OutputSchema: undefined,
@@ -78,8 +80,8 @@ export class BuilderWithErrorsMiddlewares<TContext extends Context, TExtraContex
     })
   }
 
-  output<USchema extends Schema>(schema: USchema, example?: SchemaOutput<USchema>): ProcedureBuilder<TContext, TExtraContext, undefined, USchema, TErrorMap> {
-    return new ProcedureBuilder({
+  output<USchema extends Schema>(schema: USchema, example?: SchemaOutput<USchema>): ProcedureBuilderWithOutput<TContext, TExtraContext, USchema, TErrorMap> {
+    return new ProcedureBuilderWithOutput({
       middlewares: this['~orpc'].middlewares,
       contract: new ContractProcedure({
         InputSchema: undefined,

@@ -10,6 +10,8 @@ import { ContractProcedure } from '@orpc/contract'
 import { BuilderWithErrorsMiddlewares } from './builder-with-errors-middlewares'
 import { type ChainableImplementer, createChainableImplementer } from './implementer-chainable'
 import { ProcedureBuilder } from './procedure-builder'
+import { ProcedureBuilderWithInput } from './procedure-builder-with-input'
+import { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
 import { DecoratedProcedure } from './procedure-decorated'
 import { RouterBuilder } from './router-builder'
 
@@ -55,7 +57,7 @@ export class BuilderWithMiddlewares<TContext extends Context, TExtraContext exte
     })
   }
 
-  route(route: RouteOptions): ProcedureBuilder<TContext, TExtraContext, undefined, undefined, Record<never, never>> {
+  route(route: RouteOptions): ProcedureBuilder<TContext, TExtraContext, Record<never, never>> {
     return new ProcedureBuilder({
       middlewares: this['~orpc'].middlewares,
       contract: new ContractProcedure({
@@ -70,8 +72,8 @@ export class BuilderWithMiddlewares<TContext extends Context, TExtraContext exte
   input<USchema extends Schema>(
     schema: USchema,
     example?: SchemaInput<USchema>,
-  ): ProcedureBuilder<TContext, TExtraContext, USchema, undefined, Record<never, never>> {
-    return new ProcedureBuilder({
+  ): ProcedureBuilderWithInput<TContext, TExtraContext, USchema, Record<never, never>> {
+    return new ProcedureBuilderWithInput({
       middlewares: this['~orpc'].middlewares,
       contract: new ContractProcedure({
         OutputSchema: undefined,
@@ -85,8 +87,8 @@ export class BuilderWithMiddlewares<TContext extends Context, TExtraContext exte
   output<USchema extends Schema>(
     schema: USchema,
     example?: SchemaOutput<USchema>,
-  ): ProcedureBuilder<TContext, TExtraContext, undefined, USchema, Record<never, never>> {
-    return new ProcedureBuilder({
+  ): ProcedureBuilderWithOutput<TContext, TExtraContext, USchema, Record<never, never>> {
+    return new ProcedureBuilderWithOutput({
       middlewares: this['~orpc'].middlewares,
       contract: new ContractProcedure({
         InputSchema: undefined,

@@ -13,6 +13,8 @@ import { BuilderWithMiddlewares } from './builder-with-middlewares'
 import { type ChainableImplementer, createChainableImplementer } from './implementer-chainable'
 import { decorateMiddleware } from './middleware-decorated'
 import { ProcedureBuilder } from './procedure-builder'
+import { ProcedureBuilderWithInput } from './procedure-builder-with-input'
+import { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
 import { DecoratedProcedure } from './procedure-decorated'
 import { RouterBuilder } from './router-builder'
 
@@ -53,7 +55,7 @@ export class Builder<TContext extends Context> {
     })
   }
 
-  route(route: RouteOptions): ProcedureBuilder<TContext, undefined, undefined, undefined, Record<never, never>> {
+  route(route: RouteOptions): ProcedureBuilder<TContext, undefined, Record<never, never>> {
     return new ProcedureBuilder({
       middlewares: [],
       contract: new ContractProcedure({
@@ -65,8 +67,8 @@ export class Builder<TContext extends Context> {
     })
   }
 
-  input<USchema extends Schema>(schema: USchema, example?: SchemaInput<USchema>): ProcedureBuilder<TContext, undefined, USchema, undefined, Record<never, never>> {
-    return new ProcedureBuilder({
+  input<USchema extends Schema>(schema: USchema, example?: SchemaInput<USchema>): ProcedureBuilderWithInput<TContext, undefined, USchema, Record<never, never>> {
+    return new ProcedureBuilderWithInput({
       middlewares: [],
       contract: new ContractProcedure({
         OutputSchema: undefined,
@@ -77,8 +79,8 @@ export class Builder<TContext extends Context> {
     })
   }
 
-  output<USchema extends Schema>(schema: USchema, example?: SchemaOutput<USchema>): ProcedureBuilder<TContext, undefined, undefined, USchema, Record<never, never>> {
-    return new ProcedureBuilder({
+  output<USchema extends Schema>(schema: USchema, example?: SchemaOutput<USchema>): ProcedureBuilderWithOutput<TContext, undefined, USchema, Record<never, never>> {
+    return new ProcedureBuilderWithOutput({
       middlewares: [],
       contract: new ContractProcedure({
         InputSchema: undefined,

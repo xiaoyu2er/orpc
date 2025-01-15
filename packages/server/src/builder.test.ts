@@ -7,6 +7,8 @@ import * as implementerChainable from './implementer-chainable'
 import { unlazy } from './lazy'
 import * as middlewareDecorated from './middleware-decorated'
 import { ProcedureBuilder } from './procedure-builder'
+import { ProcedureBuilderWithInput } from './procedure-builder-with-input'
+import { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
 import { DecoratedProcedure } from './procedure-decorated'
 import { RouterBuilder } from './router-builder'
 
@@ -62,13 +64,13 @@ describe('builder', () => {
 
   it('.input', () => {
     const applied = builder.input(schema)
-    expect(applied).toBeInstanceOf(ProcedureBuilder)
+    expect(applied).toBeInstanceOf(ProcedureBuilderWithInput)
     expect(applied['~orpc'].contract['~orpc'].InputSchema).toEqual(schema)
   })
 
   it('.output', () => {
     const applied = builder.output(schema)
-    expect(applied).toBeInstanceOf(ProcedureBuilder)
+    expect(applied).toBeInstanceOf(ProcedureBuilderWithOutput)
     expect(applied['~orpc'].contract['~orpc'].OutputSchema).toEqual(schema)
   })
 

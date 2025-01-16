@@ -7,7 +7,7 @@ import { createProcedureClient } from './procedure-client'
 
 vi.mock('@orpc/contract', async origin => ({
   ...await origin(),
-  validateORPCError: vi.fn(),
+  validateORPCError: vi.fn((map, error) => error),
 }))
 
 vi.mock('./error', async origin => ({
@@ -111,7 +111,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     }), { val: 123 }, expect.any(Function))
   })
 
-  it('validate input and output', () => {
+  it('validate input and output', async () => {
     const client = createProcedureClient(procedure)
 
     // @ts-expect-error - invalid input
@@ -119,6 +119,9 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
 
     // @ts-expect-error - invalid output
     handler.mockReturnValueOnce({ val: 1234 })
+    expect(client({ val: '1234' })).rejects.toThrow('Output validation failed')
+
+    postMid1.mockReturnValueOnce({ output: { val: 1234 } })
     expect(client({ val: '1234' })).rejects.toThrow('Output validation failed')
   })
 

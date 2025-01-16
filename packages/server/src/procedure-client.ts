@@ -1,7 +1,7 @@
 import type { Client, ErrorFromErrorMap, ErrorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Hooks, Value } from '@orpc/shared'
 import type { Lazyable } from './lazy'
-import type { ANY_MIDDLEWARE, MiddlewareNextFn, MiddlewareOptions, MiddlewareResult } from './middleware'
+import type { MiddlewareNextFn } from './middleware'
 import type { ANY_PROCEDURE, Procedure, ProcedureHandlerOptions } from './procedure'
 import type { Context, Meta } from './types'
 import { ORPCError, validateORPCError, ValidationError } from '@orpc/contract'
@@ -136,55 +136,40 @@ async function validateOutput(procedure: ANY_PROCEDURE, output: unknown): Promis
   return result.value
 }
 
-function executeMiddlewareChain(middlewares: ANY_MIDDLEWARE[], opt: MiddlewareOptions<any, any, any>, input: any): MiddlewareResult<any, any> {
+async function executeProcedureInternal(procedure: ANY_PROCEDURE, options: ProcedureHandlerOptions<any, any, any, any>): Promise<any> {
+  const middlewares = procedure['~orpc'].middlewares
+  const inputValidationIndex = Math.min(Math.max(0, procedure['~orpc'].inputValidationIndex), middlewares.length)
+  const outputValidationIndex = Math.min(Math.max(0, procedure['~orpc'].outputValidationIndex), middlewares.length)
   let currentIndex = 0
-  let currentContext = opt.context
+  let currentContext = options.context
+  let currentInput = options.input
 
-  const executeMiddlewareChain: MiddlewareNextFn<any> = async (nextOptions) => {
-    const mid = middlewares[currentIndex]
+  const next: MiddlewareNextFn<any> = async (nextOptions) => {
+    const index = currentIndex
     currentIndex += 1
-
     currentContext = mergeContext(currentContext, nextOptions.context)
 
-    if (mid) {
-      return await mid({ ...opt, context: currentContext, next: executeMiddlewareChain }, input, middlewareOutputFn)
+    if (index === inputValidationIndex) {
+      currentInput = await validateInput(procedure, currentInput)
     }
 
-    // final next must be called with full context
-    return opt.next({ context: currentContext })
+    const mid = middlewares[index]
+
+    const result = mid
+      ? await mid({ ...options, context: currentContext, next }, currentInput, middlewareOutputFn)
+      : { output: await procedure['~orpc'].handler({ ...options, context: currentContext, input: currentInput }), context: currentContext }
+
+    if (index === outputValidationIndex) {
+      const validatedOutput = await validateOutput(procedure, result.output)
+
+      return {
+        ...result,
+        output: validatedOutput,
+      }
+    }
+
+    return result
   }
 
-  return executeMiddlewareChain({})
-}
-
-async function executeProcedureInternal(procedure: ANY_PROCEDURE, options: ProcedureHandlerOptions<any, any, any, any>): Promise<any> {
-  const executeHandler = async (context: any, input: any) => {
-    return await procedure['~orpc'].handler({ ...options, context, input })
-  }
-
-  const executePostMiddlewares = async (context: any, input: any) => {
-    const validatedInput = await validateInput(procedure, input)
-
-    const result = await executeMiddlewareChain(procedure['~orpc'].postMiddlewares, {
-      ...options,
-      context,
-      next: async ({ context }) => {
-        return middlewareOutputFn(
-          await executeHandler(context, validatedInput),
-        ) as any
-      },
-    }, validatedInput)
-
-    const validatedOutput = await validateOutput(procedure, result.output)
-
-    return { ...result, output: validatedOutput }
-  }
-
-  const result = await executeMiddlewareChain(procedure['~orpc'].middlewares, {
-    ...options,
-    context: options.context,
-    next: ({ context }) => executePostMiddlewares(context, options.input),
-  }, options.input)
-
-  return result.output
+  return (await next({})).output
 }

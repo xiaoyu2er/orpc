@@ -18,6 +18,8 @@ export interface BuilderWithErrorsMiddlewaresDef<TContext extends Context, TExtr
   types?: { context: TContext }
   errorMap: TErrorMap
   middlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, ORPCErrorConstructorMap<TErrorMap>>[]
+  inputValidationIndex: number
+  outputValidationIndex: number
 }
 
 /**
@@ -52,13 +54,15 @@ export class BuilderWithErrorsMiddlewares<TContext extends Context, TExtraContex
   ): BuilderWithErrorsMiddlewares<TContext, MergeContext<TExtraContext, U>, TErrorMap> {
     return new BuilderWithErrorsMiddlewares<TContext, MergeContext<TExtraContext, U>, TErrorMap>({
       ...this['~orpc'],
+      inputValidationIndex: this['~orpc'].inputValidationIndex + 1,
+      outputValidationIndex: this['~orpc'].outputValidationIndex + 1,
       middlewares: [...this['~orpc'].middlewares, middleware as any], // FIXME: I believe we can remove `as any` here
     })
   }
 
   route(route: RouteOptions): ProcedureBuilder<TContext, TExtraContext, TErrorMap> {
     return new ProcedureBuilder({
-      middlewares: this['~orpc'].middlewares,
+      ...this['~orpc'],
       contract: new ContractProcedure({
         route,
         InputSchema: undefined,
@@ -70,7 +74,7 @@ export class BuilderWithErrorsMiddlewares<TContext extends Context, TExtraContex
 
   input<USchema extends Schema>(schema: USchema, example?: SchemaInput<USchema>): ProcedureBuilderWithInput<TContext, TExtraContext, USchema, TErrorMap> {
     return new ProcedureBuilderWithInput({
-      middlewares: this['~orpc'].middlewares,
+      ...this['~orpc'],
       contract: new ContractProcedure({
         OutputSchema: undefined,
         InputSchema: schema,
@@ -82,7 +86,7 @@ export class BuilderWithErrorsMiddlewares<TContext extends Context, TExtraContex
 
   output<USchema extends Schema>(schema: USchema, example?: SchemaOutput<USchema>): ProcedureBuilderWithOutput<TContext, TExtraContext, USchema, TErrorMap> {
     return new ProcedureBuilderWithOutput({
-      middlewares: this['~orpc'].middlewares,
+      ...this['~orpc'],
       contract: new ContractProcedure({
         InputSchema: undefined,
         OutputSchema: schema,
@@ -94,8 +98,7 @@ export class BuilderWithErrorsMiddlewares<TContext extends Context, TExtraContex
 
   handler<UFuncOutput>(handler: ProcedureHandler<TContext, TExtraContext, undefined, undefined, UFuncOutput, TErrorMap>): DecoratedProcedure<TContext, TExtraContext, undefined, undefined, UFuncOutput, TErrorMap> {
     return new DecoratedProcedure({
-      preMiddlewares: this['~orpc'].middlewares,
-      postMiddlewares: [],
+      ...this['~orpc'],
       contract: new ContractProcedure({
         InputSchema: undefined,
         OutputSchema: undefined,

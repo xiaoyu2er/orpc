@@ -34,7 +34,7 @@ export interface ProcedureHandler<
 }
 
 /**
- * Why is `ErrorConstructorMap` passed to `pre/postMiddlewares` as `any`?
+ * Why is `ErrorConstructorMap` passed to `middlewares` as `any`?
  * Why is `ErrorMap` passed to `ProcedureHandler` as `any`?
  *
  * Passing `ErrorMap/ErrorConstructorMap` directly to `Middleware/ProcedureHandler`
@@ -52,8 +52,9 @@ export interface ProcedureDef<
   THandlerOutput extends SchemaInput<TOutputSchema>,
   TErrorMap extends ErrorMap,
 > {
-  preMiddlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, any>[]
-  postMiddlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, SchemaOutput<TInputSchema>, SchemaInput<TOutputSchema>, any>[]
+  middlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, unknown, any>[]
+  inputValidationIndex: number
+  outputValidationIndex: number
   contract: ContractProcedure<TInputSchema, TOutputSchema, TErrorMap>
   handler: ProcedureHandler<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, any>
 }

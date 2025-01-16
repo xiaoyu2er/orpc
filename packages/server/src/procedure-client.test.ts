@@ -38,8 +38,9 @@ const procedure = new Procedure({
     errorMap: baseErrors,
   }),
   handler,
-  preMiddlewares: [preMid1, preMid2],
-  postMiddlewares: [postMid1, postMid2],
+  middlewares: [preMid1, preMid2, postMid1, postMid2],
+  inputValidationIndex: 2,
+  outputValidationIndex: 2,
 })
 
 const procedureCases = [
@@ -502,8 +503,9 @@ it('still work without InputSchema', async () => {
       errorMap: {},
     }),
     handler,
-    preMiddlewares: [],
-    postMiddlewares: [],
+    middlewares: [],
+    inputValidationIndex: 0,
+    outputValidationIndex: 0,
   })
 
   const client = createProcedureClient(procedure)
@@ -522,8 +524,9 @@ it('still work without OutputSchema', async () => {
       errorMap: {},
     }),
     handler,
-    postMiddlewares: [],
-    preMiddlewares: [],
+    middlewares: [],
+    inputValidationIndex: 0,
+    outputValidationIndex: 0,
   })
 
   const client = createProcedureClient(procedure)

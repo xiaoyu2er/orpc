@@ -16,7 +16,9 @@ export interface ProcedureBuilderWithInputDef<
   TErrorMap extends ErrorMap,
 > {
   contract: ContractProcedure<TInputSchema, undefined, TErrorMap>
-  middlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, ORPCErrorConstructorMap<TErrorMap>>[]
+  middlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, unknown, ORPCErrorConstructorMap<TErrorMap>>[]
+  inputValidationIndex: number
+  outputValidationIndex: number
 }
 
 /**
@@ -84,14 +86,14 @@ export class ProcedureBuilderWithInput<
 
     return new ProcedureBuilderWithInput({
       ...this['~orpc'],
+      outputValidationIndex: this['~orpc'].outputValidationIndex + 1,
       middlewares: [...this['~orpc'].middlewares, maybeWithMapInput],
     })
   }
 
   output<U extends Schema>(schema: U, example?: SchemaOutput<U>): ProcedureImplementer<TContext, TExtraContext, TInputSchema, U, TErrorMap> {
     return new ProcedureImplementer({
-      preMiddlewares: this['~orpc'].middlewares,
-      postMiddlewares: [],
+      ...this['~orpc'],
       contract: new ContractProcedureBuilderWithInput(this['~orpc'].contract['~orpc']).output(schema, example),
     })
   }
@@ -100,9 +102,7 @@ export class ProcedureBuilderWithInput<
     handler: ProcedureHandler<TContext, TExtraContext, TInputSchema, undefined, UFuncOutput, TErrorMap>,
   ): DecoratedProcedure<TContext, TExtraContext, TInputSchema, undefined, UFuncOutput, TErrorMap> {
     return new DecoratedProcedure({
-      preMiddlewares: this['~orpc'].middlewares,
-      postMiddlewares: [],
-      contract: this['~orpc'].contract,
+      ...this['~orpc'],
       handler,
     })
   }

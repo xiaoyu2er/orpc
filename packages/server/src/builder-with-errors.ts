@@ -62,6 +62,8 @@ export class BuilderWithErrors<TContext extends Context, TErrorMap extends Error
   ): BuilderWithErrorsMiddlewares<TContext, U, TErrorMap> {
     return new BuilderWithErrorsMiddlewares<TContext, U, TErrorMap>({
       ...this['~orpc'],
+      inputValidationIndex: 1,
+      outputValidationIndex: 1,
       middlewares: [middleware as any], // FIXME: I believe we can remove `as any` here
     })
   }
@@ -69,6 +71,8 @@ export class BuilderWithErrors<TContext extends Context, TErrorMap extends Error
   route(route: RouteOptions): ProcedureBuilder<TContext, undefined, TErrorMap> {
     return new ProcedureBuilder({
       middlewares: [],
+      inputValidationIndex: 0,
+      outputValidationIndex: 0,
       contract: new ContractProcedure({
         route,
         InputSchema: undefined,
@@ -81,6 +85,8 @@ export class BuilderWithErrors<TContext extends Context, TErrorMap extends Error
   input<USchema extends Schema>(schema: USchema, example?: SchemaInput<USchema>): ProcedureBuilderWithInput<TContext, undefined, USchema, TErrorMap> {
     return new ProcedureBuilderWithInput({
       middlewares: [],
+      inputValidationIndex: 0,
+      outputValidationIndex: 0,
       contract: new ContractProcedure({
         OutputSchema: undefined,
         InputSchema: schema,
@@ -93,6 +99,8 @@ export class BuilderWithErrors<TContext extends Context, TErrorMap extends Error
   output<USchema extends Schema>(schema: USchema, example?: SchemaOutput<USchema>): ProcedureBuilderWithOutput<TContext, undefined, USchema, TErrorMap> {
     return new ProcedureBuilderWithOutput({
       middlewares: [],
+      inputValidationIndex: 0,
+      outputValidationIndex: 0,
       contract: new ContractProcedure({
         InputSchema: undefined,
         OutputSchema: schema,
@@ -104,8 +112,9 @@ export class BuilderWithErrors<TContext extends Context, TErrorMap extends Error
 
   handler<UFuncOutput>(handler: ProcedureHandler<TContext, undefined, undefined, undefined, UFuncOutput, TErrorMap>): DecoratedProcedure<TContext, undefined, undefined, undefined, UFuncOutput, TErrorMap> {
     return new DecoratedProcedure({
-      preMiddlewares: [],
-      postMiddlewares: [],
+      middlewares: [],
+      inputValidationIndex: 0,
+      outputValidationIndex: 0,
       contract: new ContractProcedure({
         InputSchema: undefined,
         OutputSchema: undefined,

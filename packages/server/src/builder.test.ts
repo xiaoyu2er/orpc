@@ -53,6 +53,8 @@ describe('builder', () => {
     const applied = builder.use(mid)
     expect(applied).toBeInstanceOf(BuilderWithMiddlewares)
     expect(applied['~orpc'].middlewares).toEqual([mid])
+    expect(applied['~orpc'].inputValidationIndex).toEqual(1)
+    expect(applied['~orpc'].outputValidationIndex).toEqual(1)
   })
 
   it('.route', () => {
@@ -60,18 +62,24 @@ describe('builder', () => {
     const applied = builder.route(route)
     expect(applied).toBeInstanceOf(ProcedureBuilder)
     expect(applied['~orpc'].contract['~orpc'].route).toEqual(route)
+    expect(applied['~orpc'].inputValidationIndex).toEqual(0)
+    expect(applied['~orpc'].outputValidationIndex).toEqual(0)
   })
 
   it('.input', () => {
     const applied = builder.input(schema)
     expect(applied).toBeInstanceOf(ProcedureBuilderWithInput)
     expect(applied['~orpc'].contract['~orpc'].InputSchema).toEqual(schema)
+    expect(applied['~orpc'].inputValidationIndex).toEqual(0)
+    expect(applied['~orpc'].outputValidationIndex).toEqual(0)
   })
 
   it('.output', () => {
     const applied = builder.output(schema)
     expect(applied).toBeInstanceOf(ProcedureBuilderWithOutput)
     expect(applied['~orpc'].contract['~orpc'].OutputSchema).toEqual(schema)
+    expect(applied['~orpc'].inputValidationIndex).toEqual(0)
+    expect(applied['~orpc'].outputValidationIndex).toEqual(0)
   })
 
   it('.handler', () => {
@@ -79,6 +87,8 @@ describe('builder', () => {
     const applied = builder.handler(handler)
     expect(applied).toBeInstanceOf(DecoratedProcedure)
     expect(applied['~orpc'].handler).toEqual(handler)
+    expect(applied['~orpc'].inputValidationIndex).toEqual(0)
+    expect(applied['~orpc'].outputValidationIndex).toEqual(0)
   })
 
   it('.prefix', () => {
@@ -126,6 +136,10 @@ describe('builder', () => {
     const applied = builder.contract(contract)
 
     expect(applied).toBe(createChainableImplementerSpy.mock.results[0]!.value)
-    expect(createChainableImplementerSpy).toHaveBeenCalledWith(contract)
+    expect(createChainableImplementerSpy).toHaveBeenCalledWith(contract, {
+      middlewares: [],
+      inputValidationIndex: 0,
+      outputValidationIndex: 0,
+    })
   })
 })

@@ -33,8 +33,9 @@ const decorated = new DecoratedProcedure({
     errorMap: baseErrors,
   }),
   handler,
-  preMiddlewares: [mid],
-  postMiddlewares: [mid],
+  middlewares: [mid],
+  inputValidationIndex: 1,
+  outputValidationIndex: 1,
 })
 
 describe('decorate', () => {
@@ -47,8 +48,9 @@ describe('decorate', () => {
         errorMap: baseErrors,
       }),
       handler,
-      preMiddlewares: [mid],
-      postMiddlewares: [mid],
+      middlewares: [mid],
+      inputValidationIndex: 0,
+      outputValidationIndex: 0,
     })
 
     expect(DecoratedProcedure.decorate(procedure)).toBeInstanceOf(DecoratedProcedure)
@@ -72,7 +74,9 @@ describe('self chainable', () => {
     expect(prefixed['~orpc'].contract['~orpc'].errorMap).toBe(baseErrors)
     expect(prefixed['~orpc'].contract['~orpc'].InputSchema).toBe(schema)
     expect(prefixed['~orpc'].contract['~orpc'].OutputSchema).toBe(schema)
-    expect(prefixed['~orpc'].postMiddlewares).toEqual([mid])
+    expect(prefixed['~orpc'].inputValidationIndex).toEqual(1)
+    expect(prefixed['~orpc'].outputValidationIndex).toEqual(1)
+    expect(prefixed['~orpc'].middlewares).toEqual([mid])
     expect(prefixed['~orpc'].handler).toBe(handler)
   })
 
@@ -94,7 +98,9 @@ describe('self chainable', () => {
     expect(routed['~orpc'].contract['~orpc'].errorMap).toBe(baseErrors)
     expect(routed['~orpc'].contract['~orpc'].InputSchema).toBe(schema)
     expect(routed['~orpc'].contract['~orpc'].OutputSchema).toBe(schema)
-    expect(routed['~orpc'].postMiddlewares).toEqual([mid])
+    expect(routed['~orpc'].middlewares).toEqual([mid])
+    expect(routed['~orpc'].inputValidationIndex).toEqual(1)
+    expect(routed['~orpc'].outputValidationIndex).toEqual(1)
     expect(routed['~orpc'].handler).toBe(handler)
   })
 
@@ -118,7 +124,9 @@ describe('self chainable', () => {
 
     expect(applied['~orpc'].contract['~orpc'].InputSchema).toBe(schema)
     expect(applied['~orpc'].contract['~orpc'].OutputSchema).toBe(schema)
-    expect(applied['~orpc'].postMiddlewares).toEqual([mid])
+    expect(applied['~orpc'].middlewares).toEqual([mid])
+    expect(applied['~orpc'].inputValidationIndex).toEqual(1)
+    expect(applied['~orpc'].outputValidationIndex).toEqual(1)
     expect(applied['~orpc'].handler).toBe(handler)
   })
 
@@ -129,7 +137,9 @@ describe('self chainable', () => {
 
     expect(applied).not.toBe(decorated)
     expect(applied).toSatisfy(isProcedure)
-    expect(applied['~orpc'].postMiddlewares).toEqual([mid, extraMid])
+    expect(applied['~orpc'].middlewares).toEqual([mid, extraMid])
+    expect(applied['~orpc'].inputValidationIndex).toEqual(1)
+    expect(applied['~orpc'].outputValidationIndex).toEqual(1)
 
     expect(applied['~orpc'].contract['~orpc'].errorMap).toBe(baseErrors)
     expect(applied['~orpc'].contract['~orpc'].InputSchema).toBe(schema)
@@ -144,7 +154,9 @@ describe('self chainable', () => {
     const applied = decorated.use(extraMid, map)
     expect(applied).not.toBe(decorated)
     expect(applied).toSatisfy(isProcedure)
-    expect(applied['~orpc'].postMiddlewares).toEqual([mid, expect.any(Function)])
+    expect(applied['~orpc'].middlewares).toEqual([mid, expect.any(Function)])
+    expect(applied['~orpc'].inputValidationIndex).toEqual(1)
+    expect(applied['~orpc'].outputValidationIndex).toEqual(1)
     expect(applied['~orpc'].contract['~orpc'].errorMap).toBe(baseErrors)
     expect(applied['~orpc'].contract['~orpc'].InputSchema).toBe(schema)
     expect(applied['~orpc'].contract['~orpc'].OutputSchema).toBe(schema)
@@ -153,7 +165,7 @@ describe('self chainable', () => {
     extraMid.mockReturnValueOnce('__extra__')
     map.mockReturnValueOnce('__map__')
 
-    expect((applied as any)['~orpc'].postMiddlewares[1]({}, 'input', '__output__')).toBe('__extra__')
+    expect((applied as any)['~orpc'].middlewares[1]({}, 'input', '__output__')).toBe('__extra__')
 
     expect(map).toBeCalledTimes(1)
     expect(map).toBeCalledWith('input')
@@ -171,7 +183,9 @@ describe('self chainable', () => {
     expect(tagged['~orpc'].contract['~orpc'].errorMap).toBe(baseErrors)
     expect(tagged['~orpc'].contract['~orpc'].InputSchema).toBe(schema)
     expect(tagged['~orpc'].contract['~orpc'].OutputSchema).toBe(schema)
-    expect(tagged['~orpc'].postMiddlewares).toEqual([mid])
+    expect(tagged['~orpc'].middlewares).toEqual([mid])
+    expect(tagged['~orpc'].inputValidationIndex).toEqual(1)
+    expect(tagged['~orpc'].outputValidationIndex).toEqual(1)
     expect(tagged['~orpc'].handler).toBe(handler)
   })
 
@@ -182,7 +196,9 @@ describe('self chainable', () => {
     const applied = decorated.unshiftMiddleware(mid1, mid2)
     expect(applied).not.toBe(decorated)
     expect(applied).toSatisfy(isProcedure)
-    expect(applied['~orpc'].preMiddlewares).toEqual([mid1, mid2, mid])
+    expect(applied['~orpc'].middlewares).toEqual([mid1, mid2, mid])
+    expect(applied['~orpc'].inputValidationIndex).toEqual(3)
+    expect(applied['~orpc'].outputValidationIndex).toEqual(3)
 
     expect(applied['~orpc'].contract['~orpc'].errorMap).toBe(baseErrors)
     expect(applied['~orpc'].contract['~orpc'].InputSchema).toBe(schema)
@@ -198,43 +214,46 @@ describe('self chainable', () => {
     const mid5 = vi.fn()
 
     it('no duplicate', () => {
-      expect(
-        decorated.unshiftMiddleware(mid1, mid2)['~orpc'].preMiddlewares,
-      ).toEqual([mid1, mid2, mid])
+      const applied = decorated.unshiftMiddleware(mid1, mid2)
+
+      expect(applied['~orpc'].middlewares).toEqual([mid1, mid2, mid])
+      expect(applied['~orpc'].inputValidationIndex).toEqual(3)
+      expect(applied['~orpc'].outputValidationIndex).toEqual(3)
     })
 
     it('case 1', () => {
-      expect(
-        decorated.unshiftMiddleware(mid1, mid2).unshiftMiddleware(mid1, mid3)['~orpc'].preMiddlewares,
-      ).toEqual([mid1, mid3, mid2, mid])
+      const applied = decorated.unshiftMiddleware(mid1, mid2).unshiftMiddleware(mid1, mid3)
+      expect(applied['~orpc'].middlewares).toEqual([mid1, mid3, mid2, mid])
+      expect(applied['~orpc'].inputValidationIndex).toEqual(4)
+      expect(applied['~orpc'].outputValidationIndex).toEqual(4)
     })
 
     it('case 2', () => {
-      expect(
-        decorated.unshiftMiddleware(mid1, mid2, mid3, mid4).unshiftMiddleware(mid1, mid4, mid2, mid3)['~orpc'].preMiddlewares,
-      ).toEqual([mid1, mid4, mid2, mid3, mid4, mid])
+      const applied = decorated.unshiftMiddleware(mid1, mid2, mid3, mid4).unshiftMiddleware(mid1, mid4, mid2, mid3)
+      expect(applied['~orpc'].middlewares).toEqual([mid1, mid4, mid2, mid3, mid4, mid])
+      expect(applied['~orpc'].inputValidationIndex).toEqual(6)
+      expect(applied['~orpc'].outputValidationIndex).toEqual(6)
     })
 
     it('case 3', () => {
-      expect(
-        decorated.unshiftMiddleware(mid1, mid5, mid2, mid3, mid4).unshiftMiddleware(mid1, mid4, mid2, mid3)['~orpc'].preMiddlewares,
-      ).toEqual([mid1, mid4, mid2, mid3, mid5, mid2, mid3, mid4, mid])
+      const applied = decorated.unshiftMiddleware(mid1, mid5, mid2, mid3, mid4).unshiftMiddleware(mid1, mid4, mid2, mid3)
+      expect(applied['~orpc'].middlewares).toEqual([mid1, mid4, mid2, mid3, mid5, mid2, mid3, mid4, mid])
+      expect(applied['~orpc'].inputValidationIndex).toEqual(9)
+      expect(applied['~orpc'].outputValidationIndex).toEqual(9)
     })
 
     it('case 4', () => {
-      expect(
-        decorated
-          .unshiftMiddleware(mid2, mid2)
-          .unshiftMiddleware(mid1, mid2)['~orpc'].preMiddlewares,
-      ).toEqual([mid1, mid2, mid2, mid])
+      const applied = decorated.unshiftMiddleware(mid2, mid2).unshiftMiddleware(mid1, mid2)
+      expect(applied['~orpc'].middlewares).toEqual([mid1, mid2, mid2, mid])
+      expect(applied['~orpc'].inputValidationIndex).toEqual(4)
+      expect(applied['~orpc'].outputValidationIndex).toEqual(4)
     })
 
     it('case 5', () => {
-      expect(
-        decorated
-          .unshiftMiddleware(mid2, mid2)
-          .unshiftMiddleware(mid1, mid2, mid2)['~orpc'].preMiddlewares,
-      ).toEqual([mid1, mid2, mid2, mid])
+      const applied = decorated.unshiftMiddleware(mid2, mid2).unshiftMiddleware(mid1, mid2, mid2)
+      expect(applied['~orpc'].middlewares).toEqual([mid1, mid2, mid2, mid])
+      expect(applied['~orpc'].inputValidationIndex).toEqual(4)
+      expect(applied['~orpc'].outputValidationIndex).toEqual(4)
     })
   })
 

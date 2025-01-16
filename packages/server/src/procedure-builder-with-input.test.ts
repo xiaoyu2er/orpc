@@ -23,6 +23,8 @@ const inputSchema = z.object({ input: z.string().transform(v => Number.parseInt(
 
 const builder = new ProcedureBuilderWithInput({
   middlewares: [mid],
+  inputValidationIndex: 1,
+  outputValidationIndex: 1,
   contract: new ContractProcedure({
     InputSchema: inputSchema,
     OutputSchema: undefined,
@@ -40,6 +42,8 @@ describe('procedureBuilderWithInput', () => {
     expect(applied).toBeInstanceOf(ProcedureBuilderWithInput)
     expect(applied).not.toBe(builder)
     expect(applied['~orpc'].middlewares).toEqual([mid])
+    expect(applied['~orpc'].inputValidationIndex).toEqual(1)
+    expect(applied['~orpc'].outputValidationIndex).toEqual(1)
     expect(applied['~orpc'].contract['~orpc'].InputSchema).toEqual(inputSchema)
     expect(applied['~orpc'].contract['~orpc'].errorMap).toEqual({
       ...baseErrors,
@@ -53,6 +57,8 @@ describe('procedureBuilderWithInput', () => {
     expect(applied).toBeInstanceOf(ProcedureBuilderWithInput)
     expect(applied).not.toBe(builder)
     expect(applied['~orpc'].middlewares).toEqual([mid])
+    expect(applied['~orpc'].inputValidationIndex).toEqual(1)
+    expect(applied['~orpc'].outputValidationIndex).toEqual(1)
     expect(applied['~orpc'].contract['~orpc'].InputSchema).toEqual(inputSchema)
     expect(applied['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
   })
@@ -66,6 +72,8 @@ describe('procedureBuilderWithInput', () => {
       expect(applied).toBeInstanceOf(ProcedureBuilderWithInput)
       expect(applied).not.toBe(builder)
       expect(applied['~orpc'].middlewares).toEqual([mid, mid2])
+      expect(applied['~orpc'].inputValidationIndex).toEqual(1)
+      expect(applied['~orpc'].outputValidationIndex).toEqual(2)
       expect(applied['~orpc'].contract['~orpc'].InputSchema).toEqual(inputSchema)
       expect(applied['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
     })
@@ -83,6 +91,8 @@ describe('procedureBuilderWithInput', () => {
       expect(applied).toBeInstanceOf(ProcedureBuilderWithInput)
       expect(applied).not.toBe(builder)
       expect(applied['~orpc'].middlewares).toEqual([mid, mappedMid])
+      expect(applied['~orpc'].inputValidationIndex).toEqual(1)
+      expect(applied['~orpc'].outputValidationIndex).toEqual(2)
       expect(applied['~orpc'].contract['~orpc'].InputSchema).toEqual(inputSchema)
       expect(applied['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
 
@@ -95,7 +105,9 @@ describe('procedureBuilderWithInput', () => {
     const applied = builder.output(schema)
 
     expect(applied).toBeInstanceOf(ProcedureImplementer)
-    expect(applied['~orpc'].preMiddlewares).toEqual([mid])
+    expect(applied['~orpc'].middlewares).toEqual([mid])
+    expect(applied['~orpc'].inputValidationIndex).toEqual(1)
+    expect(applied['~orpc'].outputValidationIndex).toEqual(1)
     expect(applied['~orpc'].contract['~orpc'].InputSchema).toEqual(inputSchema)
     expect(applied['~orpc'].contract['~orpc'].OutputSchema).toEqual(schema)
     expect(applied['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
@@ -106,7 +118,9 @@ describe('procedureBuilderWithInput', () => {
     const applied = builder.handler(handler)
 
     expect(applied).toBeInstanceOf(DecoratedProcedure)
-    expect(applied['~orpc'].preMiddlewares).toEqual([mid])
+    expect(applied['~orpc'].middlewares).toEqual([mid])
+    expect(applied['~orpc'].inputValidationIndex).toEqual(1)
+    expect(applied['~orpc'].outputValidationIndex).toEqual(1)
     expect(applied['~orpc'].contract['~orpc'].InputSchema).toEqual(inputSchema)
     expect(applied['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
   })

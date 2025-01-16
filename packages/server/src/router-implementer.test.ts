@@ -33,15 +33,17 @@ const contract = oc.router({
 const pingImpl = new Procedure({
   contract: ping,
   handler: vi.fn(),
-  postMiddlewares: [],
-  preMiddlewares: [],
+  middlewares: [],
+  inputValidationIndex: 0,
+  outputValidationIndex: 0,
 })
 
 const pongImpl = new Procedure({
   contract: pong,
   handler: vi.fn(),
-  postMiddlewares: [],
-  preMiddlewares: [],
+  middlewares: [],
+  inputValidationIndex: 0,
+  outputValidationIndex: 0,
 })
 
 const router = {

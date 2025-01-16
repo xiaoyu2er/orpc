@@ -180,7 +180,7 @@ async function executeProcedureInternal(procedure: ANY_PROCEDURE, options: Proce
     return { ...result, output: validatedOutput }
   }
 
-  const result = await executeMiddlewareChain(procedure['~orpc'].preMiddlewares, {
+  const result = await executeMiddlewareChain(procedure['~orpc'].middlewares, {
     ...options,
     context: options.context,
     next: ({ context }) => executePostMiddlewares(context, options.input),

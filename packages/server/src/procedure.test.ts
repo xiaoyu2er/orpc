@@ -9,8 +9,9 @@ describe('isProcedure', () => {
       errorMap: {},
     }),
     handler: () => {},
-    postMiddlewares: [],
-    preMiddlewares: [],
+    inputValidationIndex: 0,
+    outputValidationIndex: 0,
+    middlewares: [],
   })
 
   it('works', () => {

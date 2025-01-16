@@ -113,8 +113,9 @@ describe('adapt router', () => {
       errorMap: {},
     }),
     handler: vi.fn(),
-    preMiddlewares: [mid1, pMid1, pMid2],
-    postMiddlewares: [],
+    middlewares: [mid1, pMid1, pMid2],
+    inputValidationIndex: 3,
+    outputValidationIndex: 3,
   })
   const pong = new Procedure({
     contract: new ContractProcedure({
@@ -128,8 +129,9 @@ describe('adapt router', () => {
       errorMap: {},
     }),
     handler: vi.fn(),
-    preMiddlewares: [],
-    postMiddlewares: [],
+    middlewares: [],
+    inputValidationIndex: 0,
+    outputValidationIndex: 0,
   })
 
   const router = {
@@ -155,7 +157,7 @@ describe('adapt router', () => {
 
     expect(adapted.ping).toSatisfy(isProcedure)
     expect(adapted.ping['~orpc'].handler).toBe(ping['~orpc'].handler)
-    expect(adapted.ping['~orpc'].preMiddlewares).toEqual([mid1, mid2, pMid1, pMid2])
+    expect(adapted.ping['~orpc'].middlewares).toEqual([mid1, mid2, pMid1, pMid2])
     expect(adapted.ping['~orpc'].contract['~orpc'].route?.path).toBe(undefined)
     expect(adapted.ping['~orpc'].contract['~orpc'].route?.method).toBe(undefined)
     expect(adapted.ping['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2', 'tag3', 'tag4'])
@@ -163,7 +165,7 @@ describe('adapt router', () => {
 
     expect(adapted.pong).toSatisfy(isProcedure)
     expect(adapted.pong['~orpc'].handler).toBe(pong['~orpc'].handler)
-    expect(adapted.pong['~orpc'].preMiddlewares).toEqual([mid1, mid2])
+    expect(adapted.pong['~orpc'].middlewares).toEqual([mid1, mid2])
     expect(adapted.pong['~orpc'].contract['~orpc'].route?.path).toBe('/prefix/pong')
     expect(adapted.pong['~orpc'].contract['~orpc'].route?.method).toBe('GET')
     expect(adapted.pong['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2'])
@@ -171,7 +173,7 @@ describe('adapt router', () => {
 
     expect(adapted.nested.ping).toSatisfy(isProcedure)
     expect(adapted.nested.ping['~orpc'].handler).toBe(ping['~orpc'].handler)
-    expect(adapted.nested.ping['~orpc'].preMiddlewares).toEqual([mid1, mid2, pMid1, pMid2])
+    expect(adapted.nested.ping['~orpc'].middlewares).toEqual([mid1, mid2, pMid1, pMid2])
     expect(adapted.nested.ping['~orpc'].contract['~orpc'].route?.path).toBe(undefined)
     expect(adapted.nested.ping['~orpc'].contract['~orpc'].route?.method).toBe(undefined)
     expect(adapted.nested.ping['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2', 'tag3', 'tag4'])
@@ -179,7 +181,7 @@ describe('adapt router', () => {
 
     expect(adapted.nested.pong).toSatisfy(isProcedure)
     expect(adapted.nested.pong['~orpc'].handler).toBe(pong['~orpc'].handler)
-    expect(adapted.nested.pong['~orpc'].preMiddlewares).toEqual([mid1, mid2])
+    expect(adapted.nested.pong['~orpc'].middlewares).toEqual([mid1, mid2])
     expect(adapted.nested.pong['~orpc'].contract['~orpc'].route?.path).toBe('/prefix/pong')
     expect(adapted.nested.pong['~orpc'].contract['~orpc'].route?.method).toBe('GET')
     expect(adapted.nested.pong['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2'])
@@ -282,7 +284,7 @@ describe('adapt router', () => {
 
     expect(adapted).toSatisfy(isProcedure)
     expect(adapted['~orpc'].handler).toBe(ping['~orpc'].handler)
-    expect(adapted['~orpc'].preMiddlewares).toEqual([mid1, mid2, pMid1, pMid2])
+    expect(adapted['~orpc'].middlewares).toEqual([mid1, mid2, pMid1, pMid2])
     expect(adapted['~orpc'].contract['~orpc'].route?.path).toBe(undefined)
     expect(adapted['~orpc'].contract['~orpc'].route?.method).toBe(undefined)
     expect(adapted['~orpc'].contract['~orpc'].route?.tags).toEqual(['tag1', 'tag2', 'tag3', 'tag4'])

@@ -104,7 +104,7 @@ export class DecoratedProcedure<
 
     return new DecoratedProcedure({
       ...this['~orpc'],
-      postMiddlewares: [...this['~orpc'].postMiddlewares, middleware_],
+      middlewares: [...this['~orpc'].middlewares, middleware_],
     })
   }
 
@@ -127,14 +127,14 @@ export class DecoratedProcedure<
     // FIXME: this is a hack to make the type checker happy, but it's not a good solution
     const castedMiddlewares = middlewares as ANY_MIDDLEWARE[]
 
-    if (this['~orpc'].preMiddlewares.length) {
+    if (this['~orpc'].middlewares.length) {
       let min = 0
 
-      for (let i = 0; i < this['~orpc'].preMiddlewares.length; i++) {
-        const index = castedMiddlewares.indexOf(this['~orpc'].preMiddlewares[i]!, min)
+      for (let i = 0; i < this['~orpc'].middlewares.length; i++) {
+        const index = castedMiddlewares.indexOf(this['~orpc'].middlewares[i]!, min)
 
         if (index === -1) {
-          castedMiddlewares.push(...this['~orpc'].preMiddlewares.slice(i))
+          castedMiddlewares.push(...this['~orpc'].middlewares.slice(i))
           break
         }
 
@@ -142,9 +142,13 @@ export class DecoratedProcedure<
       }
     }
 
+    const numNewMiddlewares = castedMiddlewares.length - this['~orpc'].middlewares.length
+
     return new DecoratedProcedure({
       ...this['~orpc'],
-      preMiddlewares: castedMiddlewares,
+      inputValidationIndex: this['~orpc'].inputValidationIndex + numNewMiddlewares,
+      outputValidationIndex: this['~orpc'].outputValidationIndex + numNewMiddlewares,
+      middlewares: castedMiddlewares,
     })
   }
 

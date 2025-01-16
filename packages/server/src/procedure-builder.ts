@@ -12,6 +12,8 @@ import { DecoratedProcedure } from './procedure-decorated'
 export interface ProcedureBuilderDef<TContext extends Context, TExtraContext extends Context, TErrorMap extends ErrorMap> {
   contract: ContractProcedure<undefined, undefined, TErrorMap>
   middlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, ORPCErrorConstructorMap<TErrorMap>>[]
+  inputValidationIndex: number
+  outputValidationIndex: number
 }
 
 export class ProcedureBuilder<TContext extends Context, TExtraContext extends Context, TErrorMap extends ErrorMap> {
@@ -53,6 +55,8 @@ export class ProcedureBuilder<TContext extends Context, TExtraContext extends Co
   ): ProcedureBuilder<TContext, MergeContext<TExtraContext, U>, TErrorMap> {
     return new ProcedureBuilder({
       ...this['~orpc'],
+      inputValidationIndex: this['~orpc'].inputValidationIndex + 1,
+      outputValidationIndex: this['~orpc'].outputValidationIndex + 1,
       middlewares: [...this['~orpc'].middlewares, middleware as any],
     })
   }
@@ -75,9 +79,7 @@ export class ProcedureBuilder<TContext extends Context, TExtraContext extends Co
     handler: ProcedureHandler<TContext, TExtraContext, undefined, undefined, UFuncOutput, TErrorMap>,
   ): DecoratedProcedure<TContext, TExtraContext, undefined, undefined, UFuncOutput, TErrorMap> {
     return new DecoratedProcedure({
-      preMiddlewares: this['~orpc'].middlewares,
-      postMiddlewares: [],
-      contract: this['~orpc'].contract,
+      ...this['~orpc'],
       handler,
     })
   }

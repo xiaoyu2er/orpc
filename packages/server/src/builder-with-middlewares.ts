@@ -25,6 +25,8 @@ import { RouterBuilder } from './router-builder'
  */
 export interface BuilderWithMiddlewaresDef<TContext extends Context, TExtraContext extends Context> {
   middlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, Record<never, never>>[]
+  inputValidationIndex: number
+  outputValidationIndex: number
 }
 
 export class BuilderWithMiddlewares<TContext extends Context, TExtraContext extends Context> {
@@ -46,6 +48,8 @@ export class BuilderWithMiddlewares<TContext extends Context, TExtraContext exte
   ): BuilderWithMiddlewares<TContext, MergeContext<TExtraContext, U>> {
     return new BuilderWithMiddlewares({
       ...this['~orpc'],
+      inputValidationIndex: this['~orpc'].inputValidationIndex + 1,
+      outputValidationIndex: this['~orpc'].outputValidationIndex + 1,
       middlewares: [...this['~orpc'].middlewares, middleware as any],
     })
   }
@@ -59,7 +63,7 @@ export class BuilderWithMiddlewares<TContext extends Context, TExtraContext exte
 
   route(route: RouteOptions): ProcedureBuilder<TContext, TExtraContext, Record<never, never>> {
     return new ProcedureBuilder({
-      middlewares: this['~orpc'].middlewares,
+      ...this['~orpc'],
       contract: new ContractProcedure({
         route,
         InputSchema: undefined,
@@ -74,7 +78,7 @@ export class BuilderWithMiddlewares<TContext extends Context, TExtraContext exte
     example?: SchemaInput<USchema>,
   ): ProcedureBuilderWithInput<TContext, TExtraContext, USchema, Record<never, never>> {
     return new ProcedureBuilderWithInput({
-      middlewares: this['~orpc'].middlewares,
+      ...this['~orpc'],
       contract: new ContractProcedure({
         OutputSchema: undefined,
         InputSchema: schema,
@@ -89,7 +93,7 @@ export class BuilderWithMiddlewares<TContext extends Context, TExtraContext exte
     example?: SchemaOutput<USchema>,
   ): ProcedureBuilderWithOutput<TContext, TExtraContext, USchema, Record<never, never>> {
     return new ProcedureBuilderWithOutput({
-      middlewares: this['~orpc'].middlewares,
+      ...this['~orpc'],
       contract: new ContractProcedure({
         InputSchema: undefined,
         OutputSchema: schema,
@@ -103,8 +107,7 @@ export class BuilderWithMiddlewares<TContext extends Context, TExtraContext exte
     handler: ProcedureHandler<TContext, TExtraContext, undefined, undefined, UFuncOutput, Record<never, never>>,
   ): DecoratedProcedure<TContext, TExtraContext, undefined, undefined, UFuncOutput, Record<never, never>> {
     return new DecoratedProcedure({
-      preMiddlewares: this['~orpc'].middlewares,
-      postMiddlewares: [],
+      ...this['~orpc'],
       contract: new ContractProcedure({
         InputSchema: undefined,
         OutputSchema: undefined,
@@ -151,6 +154,6 @@ export class BuilderWithMiddlewares<TContext extends Context, TExtraContext exte
   contract<U extends ContractRouter<any>>(
     contract: U,
   ): ChainableImplementer<TContext, TExtraContext, U> {
-    return createChainableImplementer(contract, this['~orpc'].middlewares)
+    return createChainableImplementer(contract, this['~orpc'])
   }
 }

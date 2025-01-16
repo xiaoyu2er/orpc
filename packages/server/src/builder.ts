@@ -51,6 +51,8 @@ export class Builder<TContext extends Context> {
   ): BuilderWithMiddlewares<TContext, U> {
     return new BuilderWithMiddlewares<TContext, U>({
       ...this['~orpc'],
+      inputValidationIndex: 1,
+      outputValidationIndex: 1,
       middlewares: [middleware as any], // FIXME: I believe we can remove `as any` here
     })
   }
@@ -58,6 +60,8 @@ export class Builder<TContext extends Context> {
   route(route: RouteOptions): ProcedureBuilder<TContext, undefined, Record<never, never>> {
     return new ProcedureBuilder({
       middlewares: [],
+      inputValidationIndex: 0,
+      outputValidationIndex: 0,
       contract: new ContractProcedure({
         route,
         InputSchema: undefined,
@@ -70,6 +74,8 @@ export class Builder<TContext extends Context> {
   input<USchema extends Schema>(schema: USchema, example?: SchemaInput<USchema>): ProcedureBuilderWithInput<TContext, undefined, USchema, Record<never, never>> {
     return new ProcedureBuilderWithInput({
       middlewares: [],
+      inputValidationIndex: 0,
+      outputValidationIndex: 0,
       contract: new ContractProcedure({
         OutputSchema: undefined,
         InputSchema: schema,
@@ -82,6 +88,8 @@ export class Builder<TContext extends Context> {
   output<USchema extends Schema>(schema: USchema, example?: SchemaOutput<USchema>): ProcedureBuilderWithOutput<TContext, undefined, USchema, Record<never, never>> {
     return new ProcedureBuilderWithOutput({
       middlewares: [],
+      inputValidationIndex: 0,
+      outputValidationIndex: 0,
       contract: new ContractProcedure({
         InputSchema: undefined,
         OutputSchema: schema,
@@ -95,8 +103,9 @@ export class Builder<TContext extends Context> {
     handler: ProcedureHandler<TContext, undefined, undefined, undefined, UFuncOutput, Record<never, never>>,
   ): DecoratedProcedure<TContext, undefined, undefined, undefined, UFuncOutput, Record<never, never>> {
     return new DecoratedProcedure({
-      preMiddlewares: [],
-      postMiddlewares: [],
+      middlewares: [],
+      inputValidationIndex: 0,
+      outputValidationIndex: 0,
       contract: new ContractProcedure({
         InputSchema: undefined,
         OutputSchema: undefined,
@@ -143,6 +152,10 @@ export class Builder<TContext extends Context> {
   contract<U extends ContractRouter<any>>(
     contract: U,
   ): ChainableImplementer<TContext, undefined, U> {
-    return createChainableImplementer(contract)
+    return createChainableImplementer(contract, {
+      middlewares: [],
+      inputValidationIndex: 0,
+      outputValidationIndex: 0,
+    })
   }
 }

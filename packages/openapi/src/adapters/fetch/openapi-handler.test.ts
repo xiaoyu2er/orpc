@@ -216,8 +216,9 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
           errorMap: {},
         }),
         handler: vi.fn(),
-        postMiddlewares: [],
-        preMiddlewares: [],
+        middlewares: [],
+        inputValidationIndex: 0,
+        outputValidationIndex: 0,
       }),
     }
 
@@ -243,8 +244,9 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
           errorMap: {},
         }),
         handler: vi.fn(),
-        postMiddlewares: [],
-        preMiddlewares: [],
+        middlewares: [],
+        inputValidationIndex: 0,
+        outputValidationIndex: 0,
       }),
     }
 

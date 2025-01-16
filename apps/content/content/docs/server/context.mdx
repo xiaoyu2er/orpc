@@ -45,53 +45,53 @@ If your procedure only depends on `Middleware Context`, you can
 [call it](/docs/server/client) or use it as a [Server Action](/docs/server/server-action) directly.
 
 ```ts twoslash
-import { os, ORPCError, call } from '@orpc/server'
+import { call, ORPCError, os } from '@orpc/server'
+import { RPCHandler } from '@orpc/server/fetch'
 import { headers } from 'next/headers'
 
 const base = os.use(async ({ context, path, next }, input) => {
-    return next({
-        context: {
-            db: 'fake-db',
-        }
-    })
+  return next({
+    context: {
+      db: 'fake-db',
+    },
+  })
 })
 
-const authMid = base.middleware(async ({ context, next, path }, input) => {
+const authMid = os
+  .context<{ db: string }>() // this middleware depends on some context
+  .middleware(async ({ context, next, path }, input) => {
     const headersList = await headers()
     const user = headersList.get('Authorization') ? { id: 'example' } : undefined
 
     if (!user) {
-        throw new ORPCError({ code: 'UNAUTHORIZED' })
+      throw new ORPCError({ code: 'UNAUTHORIZED' })
     }
 
     return next({
-        context: {
-            user,
-        }
+      context: {
+        user,
+      },
     })
-})
+  })
 
 export const router = base.router({
-    getUser: base
-        .use(authMid)
-        .handler(({ input, context }) => {
-            // ^ context is fully typed
-        }),
+  getUser: base
+    .use(authMid)
+    .handler(({ input, context }) => {
+      // ^ context is fully typed
+    }),
 })
 
 // You can call this procedure directly without manually providing context
 const output = await call(router.getUser, null)
 
-import { RPCHandler } from '@orpc/server/fetch'
-import { OpenAPIServerlessHandler, OpenAPIServerHandler } from '@orpc/openapi/fetch'
-
 const rpcHandler = new RPCHandler(router)
 
 export async function fetch(request: Request) {
-    // No need to pass context; middleware handles it
-    const { response } = await rpcHandler.handle(request)
+  // No need to pass context; middleware handles it
+  const { response } = await rpcHandler.handle(request)
 
-    return response ?? new Response('Not found', { status: 404 })
+  return response ?? new Response('Not found', { status: 404 })
 }
 ```
 

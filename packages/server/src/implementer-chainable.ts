@@ -21,13 +21,18 @@ export function createChainableImplementer<
   TContract extends ContractRouter<any> = any,
 >(
   contract: TContract,
-  middlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, Record<never, never>>[] = [],
+  options: {
+    middlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, any>[]
+    inputValidationIndex: number
+    outputValidationIndex: number
+  },
 ): ChainableImplementer<TContext, TExtraContext, TContract> {
   if (isContractProcedure(contract)) {
     const implementer = new ProcedureImplementer({
       contract,
-      preMiddlewares: middlewares,
-      postMiddlewares: [],
+      middlewares: options.middlewares,
+      inputValidationIndex: options.inputValidationIndex,
+      outputValidationIndex: options.outputValidationIndex,
     })
 
     return implementer as any
@@ -36,10 +41,13 @@ export function createChainableImplementer<
   const chainable = {} as ChainableImplementer<TContext, TExtraContext, TContract>
 
   for (const key in contract) {
-    (chainable as any)[key] = createChainableImplementer(contract[key]!, middlewares)
+    (chainable as any)[key] = createChainableImplementer(contract[key]!, options)
   }
 
-  const routerImplementer = new RouterImplementer({ contract, middlewares })
+  const routerImplementer = new RouterImplementer({
+    contract,
+    middlewares: options.middlewares,
+  })
 
   const merged = new Proxy(chainable, {
     get(target, key) {

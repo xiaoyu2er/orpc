@@ -10,8 +10,9 @@ const procedure = new Procedure<WELL_CONTEXT, undefined, undefined, undefined, u
     errorMap: {},
   }),
   handler: vi.fn(),
-  preMiddlewares: [],
-  postMiddlewares: [],
+  middlewares: [],
+  inputValidationIndex: 0,
+  outputValidationIndex: 0,
 })
 
 const router = { procedure }

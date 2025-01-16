@@ -23,17 +23,17 @@ const contract = oc.router({
 
 describe('ChainableImplementer', () => {
   it('with procedure', () => {
-    expectTypeOf(createChainableImplementer(ping)).toEqualTypeOf<
+    expectTypeOf(createChainableImplementer(ping, { middlewares: [], inputValidationIndex: 0, outputValidationIndex: 0 })).toEqualTypeOf<
       ProcedureImplementer<WELL_CONTEXT, undefined, typeof schema, typeof schema, Record<never, never>>
     >()
 
-    expectTypeOf(createChainableImplementer(pong)).toEqualTypeOf<
+    expectTypeOf(createChainableImplementer(pong, { middlewares: [], inputValidationIndex: 0, outputValidationIndex: 0 })).toEqualTypeOf<
       ProcedureImplementer<WELL_CONTEXT, undefined, undefined, undefined, Record<never, never>>
     >()
   })
 
   it('with router', () => {
-    const implementer = createChainableImplementer(contract)
+    const implementer = createChainableImplementer(contract, { middlewares: [], inputValidationIndex: 0, outputValidationIndex: 0 })
 
     expectTypeOf(implementer).toMatchTypeOf<
       Omit<RouterImplementer<WELL_CONTEXT, undefined, typeof contract>, '~type' | '~orpc'>
@@ -61,7 +61,7 @@ describe('ChainableImplementer', () => {
   })
 
   it('not expose properties of router implementer', () => {
-    const implementer = createChainableImplementer(contract)
+    const implementer = createChainableImplementer(contract, { middlewares: [], inputValidationIndex: 0, outputValidationIndex: 0 })
 
     expectTypeOf(implementer).not.toHaveProperty('~orpc')
     expectTypeOf(implementer).not.toHaveProperty('~type')
@@ -78,7 +78,7 @@ describe('ChainableImplementer', () => {
       },
     })
 
-    const implementer = createChainableImplementer(contract)
+    const implementer = createChainableImplementer(contract, { middlewares: [], inputValidationIndex: 0, outputValidationIndex: 0 })
 
     expectTypeOf(implementer).toMatchTypeOf<
       Omit<RouterImplementer<WELL_CONTEXT, undefined, typeof contract>, '~type' | '~orpc'>
@@ -104,18 +104,18 @@ describe('ChainableImplementer', () => {
 
 describe('createChainableImplementer', () => {
   it('with procedure', () => {
-    const implementer = createChainableImplementer(ping)
+    const implementer = createChainableImplementer(ping, { middlewares: [], inputValidationIndex: 0, outputValidationIndex: 0 })
     expectTypeOf(implementer).toEqualTypeOf<ChainableImplementer<WELL_CONTEXT, undefined, typeof ping>>()
   })
 
   it('with router', () => {
-    const implementer = createChainableImplementer(contract)
+    const implementer = createChainableImplementer(contract, { middlewares: [], inputValidationIndex: 0, outputValidationIndex: 0 })
     expectTypeOf(implementer).toEqualTypeOf<ChainableImplementer<WELL_CONTEXT, undefined, typeof contract>>()
   })
 
   it('with middlewares', () => {
     const mid = {} as Middleware<{ auth: boolean }, { db: string }, unknown, unknown, Record<never, never>>
-    const implementer = createChainableImplementer(contract, [mid])
+    const implementer = createChainableImplementer(contract, { middlewares: [mid], inputValidationIndex: 1, outputValidationIndex: 1 })
     expectTypeOf(implementer).toEqualTypeOf<ChainableImplementer<{ auth: boolean }, { db: string }, typeof contract>>()
   })
 })

@@ -19,11 +19,10 @@ const implementer = new ProcedureImplementer({
     OutputSchema: baseSchema,
     errorMap: baseErrors,
   }),
-  preMiddlewares: [baseMid],
-  postMiddlewares: [baseMid],
+  middlewares: [baseMid],
+  inputValidationIndex: 1,
+  outputValidationIndex: 1,
 })
-
-const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
 
 describe('self chainable', () => {
   it('use middleware', () => {
@@ -33,10 +32,12 @@ describe('self chainable', () => {
 
     expect(i).not.toBe(implementer)
     expect(i).toBeInstanceOf(ProcedureImplementer)
-    expect(i['~orpc'].postMiddlewares).toEqual([baseMid, mid1, mid2])
+    expect(i['~orpc'].middlewares).toEqual([baseMid, mid1, mid2])
     expect(i['~orpc'].contract['~orpc'].InputSchema).toEqual(baseSchema)
     expect(i['~orpc'].contract['~orpc'].OutputSchema).toEqual(baseSchema)
     expect(i['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
+    expect(i['~orpc'].inputValidationIndex).toEqual(1)
+    expect(i['~orpc'].outputValidationIndex).toEqual(1)
   })
 
   it('use middleware with map input', () => {
@@ -47,15 +48,17 @@ describe('self chainable', () => {
 
     expect(i).not.toBe(implementer)
     expect(i).toBeInstanceOf(ProcedureImplementer)
-    expect(i['~orpc'].postMiddlewares).toEqual([baseMid, expect.any(Function)])
+    expect(i['~orpc'].middlewares).toEqual([baseMid, expect.any(Function)])
     expect(i['~orpc'].contract['~orpc'].InputSchema).toEqual(baseSchema)
     expect(i['~orpc'].contract['~orpc'].OutputSchema).toEqual(baseSchema)
     expect(i['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
+    expect(i['~orpc'].inputValidationIndex).toEqual(1)
+    expect(i['~orpc'].outputValidationIndex).toEqual(1)
 
     map.mockReturnValueOnce('__input__')
     mid.mockReturnValueOnce('__mid__')
 
-    expect((i as any)['~orpc'].postMiddlewares[1]({}, 'input', '__output__')).toBe('__mid__')
+    expect((i as any)['~orpc'].middlewares[1]({}, 'input', '__output__')).toBe('__mid__')
 
     expect(map).toBeCalledTimes(1)
     expect(map).toBeCalledWith('input')
@@ -72,9 +75,11 @@ describe('to DecoratedProcedure', () => {
 
     expect(procedure).toSatisfy(isProcedure)
     expect(procedure['~orpc'].handler).toBe(handler)
-    expect(procedure['~orpc'].postMiddlewares).toEqual([baseMid])
+    expect(procedure['~orpc'].middlewares).toEqual([baseMid])
     expect(procedure['~orpc'].contract['~orpc'].InputSchema).toEqual(baseSchema)
     expect(procedure['~orpc'].contract['~orpc'].OutputSchema).toEqual(baseSchema)
     expect(procedure['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
+    expect(procedure['~orpc'].inputValidationIndex).toEqual(1)
+    expect(procedure['~orpc'].outputValidationIndex).toEqual(1)
   })
 })

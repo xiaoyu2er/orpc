@@ -23,7 +23,4 @@ export * from './types'
 export * from './utils'
 export { configGlobal, fallbackToGlobalConfig, isDefinedError, ORPCError, safe } from '@orpc/contract'
 
-export const os = new Builder<WELL_CONTEXT, undefined, Record<never, never>>({
-  middlewares: [],
-  errorMap: {},
-})
+export const os = new Builder<WELL_CONTEXT>({})

@@ -1,208 +1,145 @@
+import { oc } from '@orpc/contract'
 import { z } from 'zod'
 import { Builder } from './builder'
-import { createChainableImplementer } from './implementer-chainable'
-import { isProcedure } from './procedure'
+import { BuilderWithErrors } from './builder-with-errors'
+import { BuilderWithMiddlewares } from './builder-with-middlewares'
+import * as implementerChainable from './implementer-chainable'
+import { unlazy } from './lazy'
+import * as middlewareDecorated from './middleware-decorated'
 import { ProcedureBuilder } from './procedure-builder'
+import { ProcedureBuilderWithInput } from './procedure-builder-with-input'
+import { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
+import { DecoratedProcedure } from './procedure-decorated'
 import { RouterBuilder } from './router-builder'
 
-vi.mock('./router-builder', () => ({
-  RouterBuilder: vi.fn(() => ({
-    router: vi.fn(() => ({ mocked: true })),
-    lazy: vi.fn(() => ({ mocked: true })),
-  })),
-}))
-
-vi.mock('./implementer-chainable', () => ({
-  createChainableImplementer: vi.fn(() => ({ mocked: true })),
-}))
-
-beforeEach(() => {
-  vi.clearAllMocks()
-})
+const decorateMiddlewareSpy = vi.spyOn(middlewareDecorated, 'decorateMiddleware')
+const RouterBuilderRouterSpy = vi.spyOn(RouterBuilder.prototype, 'router')
+const RouterBuilderLazySpy = vi.spyOn(RouterBuilder.prototype, 'lazy')
+const createChainableImplementerSpy = vi.spyOn(implementerChainable, 'createChainableImplementer')
 
 const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
 
-const baseErrors = {
-  BASE: {
-    status: 500,
-    data: z.object({
-      message: z.string(),
-    }),
+const errors = {
+  CODE: {
+    status: 404,
+    data: z.object({ why: z.string() }),
   },
 }
 
-const mid = vi.fn()
-const builder = new Builder({
-  middlewares: [mid],
-  errorMap: baseErrors,
-})
+const builder = new Builder({})
 
-describe('self chainable', () => {
-  it('define context', () => {
+describe('builder', () => {
+  it('.context', () => {
     const applied = builder.context()
-
-    expect(applied).not.toBe(builder)
-    expect(applied).toBeInstanceOf(Builder)
-
-    expect(applied['~orpc'].middlewares).toEqual([])
+    expect(applied).toBe(builder)
   })
 
-  it('use middleware', () => {
-    const builder = new Builder({
+  it('.middleware', () => {
+    const fn = vi.fn()
+    const mid = builder.middleware(fn)
+
+    expect(mid).toBe(decorateMiddlewareSpy.mock.results[0]!.value)
+    expect(decorateMiddlewareSpy).toHaveBeenCalledWith(fn)
+  })
+
+  it('.errors', () => {
+    const applied = builder.errors(errors)
+    expect(applied).toBeInstanceOf(BuilderWithErrors)
+    expect(applied['~orpc'].errorMap).toEqual(errors)
+  })
+
+  it('.use', () => {
+    const mid = vi.fn()
+    const applied = builder.use(mid)
+    expect(applied).toBeInstanceOf(BuilderWithMiddlewares)
+    expect(applied['~orpc'].middlewares).toEqual([mid])
+    expect(applied['~orpc'].inputValidationIndex).toEqual(1)
+    expect(applied['~orpc'].outputValidationIndex).toEqual(1)
+  })
+
+  it('.route', () => {
+    const route = { path: '/test', method: 'GET' } as const
+    const applied = builder.route(route)
+    expect(applied).toBeInstanceOf(ProcedureBuilder)
+    expect(applied['~orpc'].contract['~orpc'].route).toEqual(route)
+    expect(applied['~orpc'].inputValidationIndex).toEqual(0)
+    expect(applied['~orpc'].outputValidationIndex).toEqual(0)
+  })
+
+  it('.input', () => {
+    const applied = builder.input(schema)
+    expect(applied).toBeInstanceOf(ProcedureBuilderWithInput)
+    expect(applied['~orpc'].contract['~orpc'].InputSchema).toEqual(schema)
+    expect(applied['~orpc'].inputValidationIndex).toEqual(0)
+    expect(applied['~orpc'].outputValidationIndex).toEqual(0)
+  })
+
+  it('.output', () => {
+    const applied = builder.output(schema)
+    expect(applied).toBeInstanceOf(ProcedureBuilderWithOutput)
+    expect(applied['~orpc'].contract['~orpc'].OutputSchema).toEqual(schema)
+    expect(applied['~orpc'].inputValidationIndex).toEqual(0)
+    expect(applied['~orpc'].outputValidationIndex).toEqual(0)
+  })
+
+  it('.handler', () => {
+    const handler = vi.fn()
+    const applied = builder.handler(handler)
+    expect(applied).toBeInstanceOf(DecoratedProcedure)
+    expect(applied['~orpc'].handler).toEqual(handler)
+    expect(applied['~orpc'].inputValidationIndex).toEqual(0)
+    expect(applied['~orpc'].outputValidationIndex).toEqual(0)
+  })
+
+  it('.prefix', () => {
+    const applied = builder.prefix('/test')
+    expect(applied).toBeInstanceOf(RouterBuilder)
+    expect(applied['~orpc'].prefix).toEqual('/test')
+  })
+
+  it('.tag', () => {
+    const applied = builder.tag('test', 'test2')
+    expect(applied).toBeInstanceOf(RouterBuilder)
+    expect(applied['~orpc'].tags).toEqual(['test', 'test2'])
+  })
+
+  it('.router', () => {
+    const router = {
+      ping: {} as any,
+      pong: {} as any,
+    }
+
+    const applied = builder.router(router)
+
+    expect(applied).toBe(RouterBuilderRouterSpy.mock.results[0]!.value)
+    expect(RouterBuilderRouterSpy).toHaveBeenCalledWith(router)
+  })
+
+  it('.lazy', () => {
+    const router = {
+      ping: {} as any,
+      pong: {} as any,
+    }
+
+    const applied = builder.lazy(() => Promise.resolve({ default: router }))
+
+    expect(applied).toBe(RouterBuilderLazySpy.mock.results[0]!.value)
+    expect(RouterBuilderLazySpy).toHaveBeenCalledWith(expect.any(Function))
+    expect(unlazy(RouterBuilderLazySpy.mock.results[0]!.value)).resolves.toEqual({ default: router })
+  })
+
+  it('.contract', () => {
+    const contract = oc.router({
+      ping: oc.input(schema).output(schema),
+    })
+
+    const applied = builder.contract(contract)
+
+    expect(applied).toBe(createChainableImplementerSpy.mock.results[0]!.value)
+    expect(createChainableImplementerSpy).toHaveBeenCalledWith(contract, {
       middlewares: [],
-      errorMap: {},
-    })
-
-    const mid1 = vi.fn()
-    const mid2 = vi.fn()
-    const mid3 = vi.fn()
-
-    const applied = builder.use(mid1).use(mid2).use(mid3)
-    expect(applied).not.toBe(builder)
-    expect(applied).toBeInstanceOf(Builder)
-    expect(applied['~orpc'].middlewares).toEqual([mid1, mid2, mid3])
-  })
-
-  it('errors', () => {
-    const result = builder.errors({ ANYTHING: { data: schema } })
-
-    expect(result).instanceOf(Builder)
-    expect(result).not.toBe(builder)
-    expect(result['~orpc'].middlewares).toEqual([mid])
-    expect(result['~orpc'].errorMap).toEqual({
-      ...baseErrors,
-      ANYTHING: { data: schema },
+      inputValidationIndex: 0,
+      outputValidationIndex: 0,
     })
   })
-})
-
-describe('create middleware', () => {
-  it('works', () => {
-    const fn = vi.fn()
-    const mid = builder.middleware(fn) as any
-
-    fn.mockReturnValueOnce('__mocked__')
-    expect(mid).toBeTypeOf('function')
-    expect(mid(1, 2, 3)).toBe('__mocked__')
-
-    expect(fn).toBeCalledTimes(1)
-    expect(fn).toBeCalledWith(1, 2, 3)
-  })
-})
-
-describe('to ProcedureBuilder', () => {
-  it('route', () => {
-    const route = { path: '/test', method: 'GET', description: '124', tags: ['hi ho'] } as const
-    const result = builder.route(route)
-
-    expect(result).instanceOf(ProcedureBuilder)
-    expect(result['~orpc'].middlewares).toEqual([mid])
-    expect(result['~orpc'].contract['~orpc'].route).toBe(route)
-    expect(result['~orpc'].contract['~orpc'].errorMap).toBe(baseErrors)
-  })
-
-  it('input', () => {
-    const example = { val: '123' }
-    const result = builder.input(schema, example)
-
-    expect(result).instanceOf(ProcedureBuilder)
-    expect(result['~orpc'].middlewares).toEqual([mid])
-    expect(result['~orpc'].contract['~orpc'].InputSchema).toBe(schema)
-    expect(result['~orpc'].contract['~orpc'].inputExample).toBe(example)
-    expect(result['~orpc'].contract['~orpc'].errorMap).toBe(baseErrors)
-  })
-
-  it('output', () => {
-    const example = { val: 123 }
-    const result = builder.output(schema, example)
-
-    expect(result).instanceOf(ProcedureBuilder)
-    expect(result['~orpc'].middlewares).toEqual([mid])
-    expect(result['~orpc'].contract['~orpc'].OutputSchema).toBe(schema)
-    expect(result['~orpc'].contract['~orpc'].outputExample).toBe(example)
-    expect(result['~orpc'].contract['~orpc'].errorMap).toBe(baseErrors)
-  })
-})
-
-describe('to DecoratedProcedure', () => {
-  it('handler', () => {
-    const fn = vi.fn()
-    const result = builder.handler(fn)
-
-    expect(result).toSatisfy(isProcedure)
-    expect(result['~orpc'].preMiddlewares).toEqual([mid])
-    expect(result['~orpc'].handler).toBe(fn)
-    expect(result['~orpc'].contract['~orpc'].errorMap).toBe(baseErrors)
-  })
-})
-
-describe('to RouterBuilder', () => {
-  it('prefix', () => {
-    vi.mocked(RouterBuilder).mockReturnValueOnce({ mocked: true } as any)
-    expect(builder.prefix('/test')).toEqual({ mocked: true })
-
-    expect(RouterBuilder).toBeCalledTimes(1)
-    expect(RouterBuilder).toBeCalledWith(expect.objectContaining({
-      middlewares: [mid],
-      prefix: '/test',
-      errorMap: baseErrors,
-    }))
-  })
-
-  it('tag', () => {
-    vi.mocked(RouterBuilder).mockReturnValueOnce({ mocked: true } as any)
-    expect(builder.tag('tag1', 'tag2')).toEqual({ mocked: true })
-
-    expect(RouterBuilder).toBeCalledTimes(1)
-    expect(RouterBuilder).toBeCalledWith(expect.objectContaining({
-      middlewares: [mid],
-      tags: ['tag1', 'tag2'],
-      errorMap: baseErrors,
-    }))
-  })
-})
-
-it('to AdaptedRouter', () => {
-  const ping = vi.fn() as any
-  const router = {
-    ping,
-    nested: {
-      ping,
-    },
-  }
-
-  expect(builder.router(router)).toEqual({ mocked: true })
-
-  expect(RouterBuilder).toBeCalledTimes(1)
-  expect(RouterBuilder).toBeCalledWith(expect.objectContaining({
-    middlewares: [mid],
-    errorMap: baseErrors,
-  }))
-
-  const routerBuilder = vi.mocked(RouterBuilder).mock.results[0]?.value
-  expect(vi.mocked(routerBuilder.router)).toBeCalledTimes(1)
-  expect(vi.mocked(routerBuilder.router)).toBeCalledWith(router)
-})
-
-it('to DecoratedLazy', () => {
-  const loader = vi.fn() as any
-
-  expect(builder.lazy(loader)).toEqual({ mocked: true })
-  expect(RouterBuilder).toBeCalledTimes(1)
-  expect(RouterBuilder).toBeCalledWith(expect.objectContaining({
-    middlewares: [mid],
-    errorMap: baseErrors,
-  }))
-
-  const routerBuilder = vi.mocked(RouterBuilder).mock.results[0]?.value
-  expect(vi.mocked(routerBuilder.lazy)).toBeCalledTimes(1)
-  expect(vi.mocked(routerBuilder.lazy)).toBeCalledWith(loader)
-})
-
-it('to ChainableImplementer', () => {
-  const contract = vi.fn() as any
-
-  expect(builder.contract(contract)).toEqual({ mocked: true })
-  expect(createChainableImplementer).toBeCalledTimes(1)
-  expect(createChainableImplementer).toBeCalledWith(contract, [mid])
 })

@@ -1,4 +1,5 @@
 import type { ContractRouter } from '@orpc/contract'
+import type { ContextGuard } from './context'
 import type { FlattenLazy } from './lazy'
 import type { Middleware } from './middleware'
 import type { Router } from './router'
@@ -28,7 +29,7 @@ export class RouterImplementer<
     this['~orpc'] = def
   }
 
-  use<U extends Context & Partial<MergeContext<TContext, TExtraContext>> | undefined = undefined>(
+  use<U extends Context & ContextGuard<MergeContext<TContext, TExtraContext>>>(
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
       U,

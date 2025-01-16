@@ -11,8 +11,9 @@ describe('createLazyProcedureFormAnyLazy', () => {
       errorMap: {},
     }),
     handler: vi.fn(),
-    postMiddlewares: [],
-    preMiddlewares: [],
+    middlewares: [],
+    inputValidationIndex: 0,
+    outputValidationIndex: 0,
   })
 
   it('return a Lazy<ANY_PROCEDURE>', async () => {

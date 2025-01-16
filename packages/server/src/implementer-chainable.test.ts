@@ -24,36 +24,54 @@ describe('createChainableImplementer', () => {
   const mid3 = vi.fn()
 
   it('with procedure', () => {
-    const implementer = createChainableImplementer(ping, [mid1, mid2])
+    const implementer = createChainableImplementer(ping, {
+      middlewares: [mid1, mid2],
+      inputValidationIndex: 2,
+      outputValidationIndex: 2,
+    })
 
     expect(implementer).toBeInstanceOf(ProcedureImplementer)
-    expect(implementer['~orpc'].preMiddlewares).toEqual([mid1, mid2])
+    expect(implementer['~orpc'].middlewares).toEqual([mid1, mid2])
+    expect(implementer['~orpc'].inputValidationIndex).toEqual(2)
+    expect(implementer['~orpc'].outputValidationIndex).toEqual(2)
     expect(implementer['~orpc'].contract).toBe(ping)
   })
 
   it('with router', () => {
-    const implementer = createChainableImplementer(contract, [mid1, mid2])
+    const implementer = createChainableImplementer(contract, {
+      middlewares: [mid1, mid2],
+      inputValidationIndex: 2,
+      outputValidationIndex: 2,
+    })
 
     expect(implementer.use(mid3)['~orpc'].middlewares).toEqual([mid1, mid2, mid3])
     expect(implementer.use(mid3)['~orpc'].contract).toBe(contract)
 
     expect(implementer.ping).toBeInstanceOf(ProcedureImplementer)
-    expect(implementer.ping['~orpc'].preMiddlewares).toEqual([mid1, mid2])
+    expect(implementer.ping['~orpc'].middlewares).toEqual([mid1, mid2])
+    expect(implementer.ping['~orpc'].inputValidationIndex).toEqual(2)
+    expect(implementer.ping['~orpc'].outputValidationIndex).toEqual(2)
     expect(implementer.ping['~orpc'].contract).toBe(ping)
 
     expect(implementer.pong).toBeInstanceOf(ProcedureImplementer)
-    expect(implementer.pong['~orpc'].preMiddlewares).toEqual([mid1, mid2])
+    expect(implementer.pong['~orpc'].middlewares).toEqual([mid1, mid2])
+    expect(implementer.pong['~orpc'].inputValidationIndex).toEqual(2)
+    expect(implementer.pong['~orpc'].outputValidationIndex).toEqual(2)
     expect(implementer.pong['~orpc'].contract).toBe(pong)
 
     expect(implementer.nested.use(mid3)['~orpc'].middlewares).toEqual([mid1, mid2, mid3])
     expect(implementer.nested.use(mid3)['~orpc'].contract).toBe(contract.nested)
 
     expect(implementer.nested.ping).toBeInstanceOf(ProcedureImplementer)
-    expect(implementer.nested.ping['~orpc'].preMiddlewares).toEqual([mid1, mid2])
+    expect(implementer.nested.ping['~orpc'].middlewares).toEqual([mid1, mid2])
+    expect(implementer.nested.ping['~orpc'].inputValidationIndex).toEqual(2)
+    expect(implementer.nested.ping['~orpc'].outputValidationIndex).toEqual(2)
     expect(implementer.nested.ping['~orpc'].contract).toBe(contract.nested.ping)
 
     expect(implementer.nested.pong).toBeInstanceOf(ProcedureImplementer)
-    expect(implementer.nested.pong['~orpc'].preMiddlewares).toEqual([mid1, mid2])
+    expect(implementer.nested.pong['~orpc'].middlewares).toEqual([mid1, mid2])
+    expect(implementer.nested.pong['~orpc'].inputValidationIndex).toEqual(2)
+    expect(implementer.nested.pong['~orpc'].outputValidationIndex).toEqual(2)
     expect(implementer.nested.pong['~orpc'].contract).toBe(contract.nested.pong)
   })
 
@@ -74,7 +92,11 @@ describe('createChainableImplementer', () => {
       },
     }
 
-    const implementer = createChainableImplementer(contract, [mid1, mid2])
+    const implementer = createChainableImplementer(contract, {
+      middlewares: [mid1, mid2],
+      inputValidationIndex: 2,
+      outputValidationIndex: 2,
+    })
 
     it('still works', () => {
       expect(implementer.use(mid3)['~orpc'].middlewares).toEqual([mid1, mid2, mid3])
@@ -82,8 +104,9 @@ describe('createChainableImplementer', () => {
 
       expect(implementer.use).toBeTypeOf('function')
       expect(implementer.use.use(mid3)).toBeInstanceOf(ProcedureImplementer)
-      expect(implementer.use.use(mid3)['~orpc'].preMiddlewares).toEqual([mid1, mid2])
-      expect(implementer.use.use(mid3)['~orpc'].postMiddlewares).toEqual([mid3])
+      expect(implementer.use.use(mid3)['~orpc'].middlewares).toEqual([mid1, mid2, mid3])
+      expect(implementer.use.use(mid3)['~orpc'].inputValidationIndex).toEqual(2)
+      expect(implementer.use.use(mid3)['~orpc'].outputValidationIndex).toEqual(2)
       expect(implementer.use['~orpc'].contract).toBe(ping)
 
       expect(implementer.router).toBeTypeOf('function')
@@ -93,20 +116,23 @@ describe('createChainableImplementer', () => {
 
       expect(implementer.router.router).toBeTypeOf('function')
       expect(implementer.router.router.use(mid3)).toBeInstanceOf(ProcedureImplementer)
-      expect(implementer.router.router.use(mid3)['~orpc'].preMiddlewares).toEqual([mid1, mid2])
-      expect(implementer.router.router.use(mid3)['~orpc'].postMiddlewares).toEqual([mid3])
+      expect(implementer.router.router.use(mid3)['~orpc'].middlewares).toEqual([mid1, mid2, mid3])
+      expect(implementer.use.use(mid3)['~orpc'].inputValidationIndex).toEqual(2)
+      expect(implementer.use.use(mid3)['~orpc'].outputValidationIndex).toEqual(2)
       expect(implementer.router.router['~orpc'].contract).toBe(contract.router.router)
 
       expect(implementer.router.use).toBeTypeOf('function')
       expect(implementer.router.use.use(mid3)).toBeInstanceOf(ProcedureImplementer)
-      expect(implementer.router.use.use(mid3)['~orpc'].preMiddlewares).toEqual([mid1, mid2])
-      expect(implementer.router.use.use(mid3)['~orpc'].postMiddlewares).toEqual([mid3])
+      expect(implementer.router.use.use(mid3)['~orpc'].middlewares).toEqual([mid1, mid2, mid3])
+      expect(implementer.use.use(mid3)['~orpc'].inputValidationIndex).toEqual(2)
+      expect(implementer.use.use(mid3)['~orpc'].outputValidationIndex).toEqual(2)
       expect(implementer.router.use['~orpc'].contract).toBe(contract.router.use)
 
       expect(implementer['~orpc'].use).toBeTypeOf('function')
       expect(implementer['~orpc'].use.use(mid3)).toBeInstanceOf(ProcedureImplementer)
-      expect(implementer['~orpc'].use.use(mid3)['~orpc'].preMiddlewares).toEqual([mid1, mid2])
-      expect(implementer['~orpc'].use.use(mid3)['~orpc'].postMiddlewares).toEqual([mid3])
+      expect(implementer['~orpc'].use.use(mid3)['~orpc'].middlewares).toEqual([mid1, mid2, mid3])
+      expect(implementer.use.use(mid3)['~orpc'].inputValidationIndex).toEqual(2)
+      expect(implementer.use.use(mid3)['~orpc'].outputValidationIndex).toEqual(2)
       expect(implementer['~orpc'].use['~orpc'].contract).toBe(contract.router.use)
     })
 

@@ -1,3 +1,4 @@
+import type { ContextGuard } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { ANY_MAP_INPUT_MIDDLEWARE, ANY_MIDDLEWARE, MapInputMiddleware, Middleware, MiddlewareNextFn } from './middleware'
 import type { Context, MergeContext } from './types'
@@ -11,8 +12,8 @@ export interface DecoratedMiddleware<
   TErrorConstructorMap extends ORPCErrorConstructorMap<any>,
 > extends Middleware<TContext, TExtraContext, TInput, TOutput, TErrorConstructorMap> {
   concat: (<
-    UExtraContext extends Context & Partial<MergeContext<TContext, TExtraContext>> | undefined = undefined,
-    UInput = unknown,
+    UExtraContext extends Context & ContextGuard<MergeContext<TContext, TExtraContext>>,
+    UInput,
   >(
     middleware: Middleware<
       MergeContext<TContext, TExtraContext>,
@@ -28,7 +29,7 @@ export interface DecoratedMiddleware<
     TOutput,
     TErrorConstructorMap
   >) & (<
-    UExtraContext extends Context & Partial<MergeContext<TContext, TExtraContext>> | undefined = undefined,
+    UExtraContext extends Context & ContextGuard<MergeContext<TContext, TExtraContext>>,
     UInput = TInput,
     UMappedInput = unknown,
   >(

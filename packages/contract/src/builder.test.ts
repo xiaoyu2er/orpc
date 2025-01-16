@@ -1,24 +1,26 @@
 import { z } from 'zod'
 import { ContractBuilder } from './builder'
-import { ContractProcedure, isContractProcedure } from './procedure'
-import { DecoratedContractProcedure } from './procedure-decorated'
+import { ContractProcedure } from './procedure'
+import { ContractProcedureBuilder } from './procedure-builder'
+import { ContractProcedureBuilderWithInput } from './procedure-builder-with-input'
+import { ContractProcedureBuilderWithOutput } from './procedure-builder-with-output'
 import { ContractRouterBuilder } from './router-builder'
 
-vi.mock('./procedure-decorated', () => ({
-  DecoratedContractProcedure: vi.fn(),
-}))
+vi.mock('./router-builder', async (origin) => {
+  const ContractRouterBuilder = vi.fn()
+  ContractRouterBuilder.prototype.router = vi.fn(() => '__router__')
 
-vi.mock('./router-builder', () => ({
-  ContractRouterBuilder: vi.fn(),
-}))
-
-beforeEach(() => {
-  vi.clearAllMocks()
+  return {
+    ContractRouterBuilder,
+  }
 })
+
+const ContractRouterBuilderRouterSpy = vi.spyOn(ContractRouterBuilder.prototype, 'router')
+
+const schema = z.object({ value: z.string() })
 
 const baseErrorMap = {
   BASE: {
-    status: 500,
     data: z.object({
       message: z.string(),
     }),
@@ -27,107 +29,81 @@ const baseErrorMap = {
 
 const builder = new ContractBuilder({ errorMap: baseErrorMap, OutputSchema: undefined, InputSchema: undefined })
 
-const schema = z.object({ val: z.string().transform(val => Number(val)) })
-
-it('also is a contract procedure', () => {
-  expect(builder).toSatisfy(isContractProcedure)
+beforeEach(() => {
+  vi.clearAllMocks()
 })
 
-describe('self chainable', () => {
-  it('errors', () => {
-    const errors = {
-      BAD: {
-        status: 500,
-        data: schema,
-      },
-    }
+describe('contractBuilder', () => {
+  it('is a contract procedure', () => {
+    expect(builder).toBeInstanceOf(ContractProcedure)
+  })
+
+  it('.errors', () => {
+    const errors = { BAD_GATEWAY: { data: schema } } as const
 
     const applied = builder.errors(errors)
-
-    expect(applied).not.toBe(builder)
     expect(applied).toBeInstanceOf(ContractBuilder)
-    expect(applied['~orpc']).toEqual({
-      errorMap: {
-        ...baseErrorMap,
-        ...errors,
-      },
+    expect(applied).not.toBe(builder)
+    expect(applied['~orpc'].errorMap).toEqual({
+      ...baseErrorMap,
+      ...errors,
     })
   })
-})
 
-describe('to ContractRouterBuilder', () => {
-  it('prefix', () => {
-    expect(builder.prefix('/prefix')).toBeInstanceOf(ContractRouterBuilder)
+  it('.route', () => {
+    const route = { method: 'GET', path: '/path' } as const
+    const applied = builder.route(route)
+    expect(applied).toBeInstanceOf(ContractProcedureBuilder)
+    expect(applied['~orpc'].route).toEqual(route)
+    expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
+  })
 
+  it('.input', () => {
+    const applied = builder.input(schema)
+    expect(applied).toBeInstanceOf(ContractProcedureBuilderWithInput)
+    expect(applied['~orpc'].InputSchema).toEqual(schema)
+    expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
+  })
+
+  it('.output', () => {
+    const applied = builder.output(schema)
+    expect(applied).toBeInstanceOf(ContractProcedureBuilderWithOutput)
+    expect(applied['~orpc'].OutputSchema).toEqual(schema)
+    expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
+  })
+
+  it('.prefix', () => {
+    const applied = builder.prefix('/api')
+    expect(applied).toBeInstanceOf(ContractRouterBuilder)
+    expect(applied).toBe(vi.mocked(ContractRouterBuilder).mock.results[0]!.value)
     expect(ContractRouterBuilder).toHaveBeenCalledWith({
-      prefix: '/prefix',
+      prefix: '/api',
       errorMap: baseErrorMap,
     })
   })
 
-  it('tag', () => {
-    expect(builder.tag('tag1', 'tag2')).toBeInstanceOf(ContractRouterBuilder)
-
+  it('.tag', () => {
+    const applied = builder.tag('tag1', 'tag2')
+    expect(applied).toBeInstanceOf(ContractRouterBuilder)
+    expect(applied).toBe(vi.mocked(ContractRouterBuilder).mock.results[0]!.value)
     expect(ContractRouterBuilder).toHaveBeenCalledWith({
       tags: ['tag1', 'tag2'],
       errorMap: baseErrorMap,
     })
   })
-})
 
-describe('to DecoratedContractProcedure', () => {
-  it('route', () => {
-    const route = { method: 'GET', path: '/path' } as const
-    const procedure = builder.route(route)
+  it('.router', () => {
+    const router = {
+      ping: {} as any,
+      pong: {} as any,
+    }
 
-    expect(procedure).toBeInstanceOf(DecoratedContractProcedure)
-    expect(DecoratedContractProcedure).toHaveBeenCalledWith({ route, errorMap: baseErrorMap })
-  })
+    const applied = builder.router(router)
 
-  const schema = z.object({
-    value: z.string(),
-  })
-  const example = { value: 'example' }
-
-  it('input', () => {
-    const procedure = builder.input(schema, example)
-
-    expect(procedure).toBeInstanceOf(DecoratedContractProcedure)
-    expect(DecoratedContractProcedure).toHaveBeenCalledWith({ InputSchema: schema, inputExample: example, errorMap: baseErrorMap })
-  })
-
-  it('output', () => {
-    const procedure = builder.output(schema, example)
-
-    expect(procedure).toBeInstanceOf(DecoratedContractProcedure)
-    expect(DecoratedContractProcedure).toHaveBeenCalledWith({ OutputSchema: schema, outputExample: example, errorMap: baseErrorMap })
-  })
-})
-
-describe('to router', () => {
-  const router = {
-    a: {
-      b: {
-        c: new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: baseErrorMap }),
-      },
-    },
-  }
-
-  it('adapt all routers', () => {
-    const routerFn = vi.fn()
-    vi.mocked(ContractRouterBuilder).mockReturnValue({
-      router: routerFn,
-    } as any)
-
-    const mockedValue = { __mocked__: true }
-    routerFn.mockReturnValue(mockedValue)
-
-    expect(builder.router(router)).toBe(mockedValue)
-    expect(ContractRouterBuilder).toBeCalledTimes(1)
-    expect(ContractRouterBuilder).toBeCalledWith({
+    expect(applied).toBe(ContractRouterBuilderRouterSpy.mock.results[0]!.value)
+    expect(ContractRouterBuilderRouterSpy).toHaveBeenCalledWith(router)
+    expect(ContractRouterBuilder).toHaveBeenCalledWith({
       errorMap: baseErrorMap,
     })
-    expect(routerFn).toBeCalledTimes(1)
-    expect(routerFn).toBeCalledWith(router)
   })
 })

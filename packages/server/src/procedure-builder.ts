@@ -4,7 +4,7 @@ import type { ORPCErrorConstructorMap } from './error'
 import type { Middleware } from './middleware'
 import type { ProcedureHandler } from './procedure'
 import type { Context, MergeContext } from './types'
-import { DecoratedContractProcedure } from '@orpc/contract'
+import { ContractProcedureBuilder, DecoratedContractProcedure } from '@orpc/contract'
 import { ProcedureBuilderWithInput } from './procedure-builder-with-input'
 import { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
 import { DecoratedProcedure } from './procedure-decorated'
@@ -60,18 +60,14 @@ export class ProcedureBuilder<TContext extends Context, TExtraContext extends Co
   input<U extends Schema>(schema: U, example?: SchemaInput<U>): ProcedureBuilderWithInput<TContext, TExtraContext, U, TErrorMap> {
     return new ProcedureBuilderWithInput({
       ...this['~orpc'],
-      contract: DecoratedContractProcedure
-        .decorate(this['~orpc'].contract)
-        .input(schema, example),
+      contract: new ContractProcedureBuilder(this['~orpc'].contract['~orpc']).input(schema, example),
     })
   }
 
   output<U extends Schema>(schema: U, example?: SchemaOutput<U>): ProcedureBuilderWithOutput<TContext, TExtraContext, U, TErrorMap> {
     return new ProcedureBuilderWithOutput({
       ...this['~orpc'],
-      contract: DecoratedContractProcedure
-        .decorate(this['~orpc'].contract)
-        .output(schema, example),
+      contract: new ContractProcedureBuilder(this['~orpc'].contract['~orpc']).output(schema, example),
     })
   }
 

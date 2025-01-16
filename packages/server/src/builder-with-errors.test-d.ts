@@ -161,9 +161,16 @@ describe('BuilderWithErrors', () => {
       ping: {} as Procedure<{ auth: 'invalid' }, undefined, undefined, undefined, unknown, typeof errors>,
     })
 
+    const invalidErrorMap = {
+      BASE: {
+        ...baseErrors.BASE,
+        status: 400,
+      },
+    }
+
     builder.router({
       // @ts-expect-error - error map is not match
-      ping: {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown, { BASE: { message: 'invalid' } }>,
+      ping: {} as ContractProcedure<undefined, typeof schema, typeof invalidErrorMap>,
     })
   })
 

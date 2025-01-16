@@ -4,7 +4,7 @@ import type { ORPCErrorConstructorMap } from './error'
 import type { MapInputMiddleware, Middleware } from './middleware'
 import type { ProcedureHandler } from './procedure'
 import type { Context, MergeContext } from './types'
-import { DecoratedContractProcedure } from '@orpc/contract'
+import { ContractProcedureBuilderWithInput, DecoratedContractProcedure } from '@orpc/contract'
 import { decorateMiddleware } from './middleware-decorated'
 import { DecoratedProcedure } from './procedure-decorated'
 import { ProcedureImplementer } from './procedure-implementer'
@@ -92,9 +92,7 @@ export class ProcedureBuilderWithInput<
     return new ProcedureImplementer({
       preMiddlewares: this['~orpc'].middlewares,
       postMiddlewares: [],
-      contract: DecoratedContractProcedure
-        .decorate(this['~orpc'].contract)
-        .output(schema, example),
+      contract: new ContractProcedureBuilderWithInput(this['~orpc'].contract['~orpc']).output(schema, example),
     })
   }
 

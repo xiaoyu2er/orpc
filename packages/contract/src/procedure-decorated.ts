@@ -1,6 +1,6 @@
 import type { ErrorMap, ErrorMapGuard, ErrorMapSuggestions } from './error-map'
 import type { RouteOptions } from './procedure'
-import type { HTTPPath, Schema, SchemaInput, SchemaOutput } from './types'
+import type { HTTPPath, Schema } from './types'
 import { ContractProcedure } from './procedure'
 
 export class DecoratedContractProcedure<
@@ -16,6 +16,16 @@ export class DecoratedContractProcedure<
     }
 
     return new DecoratedContractProcedure(procedure['~orpc'])
+  }
+
+  errors<const U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(errors: U): DecoratedContractProcedure<TInputSchema, TOutputSchema, TErrorMap & U> {
+    return new DecoratedContractProcedure({
+      ...this['~orpc'],
+      errorMap: {
+        ...this['~orpc'].errorMap,
+        ...errors,
+      },
+    })
   }
 
   route(route: RouteOptions): DecoratedContractProcedure<TInputSchema, TOutputSchema, TErrorMap> {
@@ -51,32 +61,6 @@ export class DecoratedContractProcedure<
           ...tags,
           ...this['~orpc'].route?.tags?.filter(tag => !tags.includes(tag)) ?? [],
         ],
-      },
-    })
-  }
-
-  input<U extends Schema>(schema: U, example?: SchemaInput<U>): DecoratedContractProcedure<U, TOutputSchema, TErrorMap> {
-    return new DecoratedContractProcedure({
-      ...this['~orpc'],
-      InputSchema: schema,
-      inputExample: example,
-    })
-  }
-
-  output<U extends Schema>(schema: U, example?: SchemaOutput<U>): DecoratedContractProcedure<TInputSchema, U, TErrorMap> {
-    return new DecoratedContractProcedure({
-      ...this['~orpc'],
-      OutputSchema: schema,
-      outputExample: example,
-    })
-  }
-
-  errors<const U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(errors: U): DecoratedContractProcedure<TInputSchema, TOutputSchema, TErrorMap & U> {
-    return new DecoratedContractProcedure({
-      ...this['~orpc'],
-      errorMap: {
-        ...this['~orpc'].errorMap,
-        ...errors,
       },
     })
   }

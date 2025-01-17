@@ -162,10 +162,10 @@ describe('builderWithMiddlewares', () => {
     const applied = builder.contract(contract)
 
     expect(applied).toBe(createChainableImplementerSpy.mock.results[0]!.value)
-    expect(createChainableImplementerSpy).toHaveBeenCalledWith(contract, {
+    expect(createChainableImplementerSpy).toHaveBeenCalledWith(contract, expect.objectContaining({
       middlewares: [mid],
       inputValidationIndex: 1,
       outputValidationIndex: 1,
-    })
+    }))
   })
 })

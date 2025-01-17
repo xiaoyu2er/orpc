@@ -1,6 +1,6 @@
-import type { HTTPPath } from '@orpc/contract'
 import type { Router as BaseHono, ParamIndexMap, Params } from 'hono/router'
-import { type ANY_PROCEDURE, type ANY_ROUTER, fallbackToGlobalConfig, getLazyRouterPrefix, getRouterChild, isProcedure, unlazy } from '@orpc/server'
+import { fallbackContractConfig, type HTTPPath } from '@orpc/contract'
+import { type ANY_PROCEDURE, type ANY_ROUTER, getLazyRouterPrefix, getRouterChild, isProcedure, unlazy } from '@orpc/server'
 import { mapValues } from '@orpc/shared'
 import { forEachContractProcedure, standardizeHTTPPath } from '../../utils'
 
@@ -75,7 +75,7 @@ export class OpenAPIProcedureMatcher {
 
   private add(path: string[], router: ANY_ROUTER): void {
     const lazies = forEachContractProcedure({ path, router }, ({ path, contract }) => {
-      const method = fallbackToGlobalConfig('defaultMethod', contract['~orpc'].route?.method)
+      const method = fallbackContractConfig('defaultMethod', contract['~orpc'].route?.method)
       const httpPath = contract['~orpc'].route?.path
         ? this.convertOpenAPIPathToRouterPath(contract['~orpc'].route?.path)
         : `/${path.map(encodeURIComponent).join('/')}`

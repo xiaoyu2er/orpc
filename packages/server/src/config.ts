@@ -1,14 +1,16 @@
-const DEFAULT_CONFIG = {
+export interface Config {
+  initialInputValidationIndex: number
+  initialOutputValidationIndex: number
+}
+
+const DEFAULT_CONFIG: Config = {
   initialInputValidationIndex: 0,
   initialOutputValidationIndex: 0,
 }
 
-export function fallbackConfig<T extends keyof typeof DEFAULT_CONFIG>(
-  name: T,
-  value?: typeof DEFAULT_CONFIG[T],
-): typeof DEFAULT_CONFIG[T] {
+export function fallbackConfig<T extends keyof Config>(key: T, value?: Config[T]): Config[T] {
   if (value === undefined) {
-    return DEFAULT_CONFIG[name]
+    return DEFAULT_CONFIG[key]
   }
 
   return value

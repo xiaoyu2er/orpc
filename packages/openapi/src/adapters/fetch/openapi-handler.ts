@@ -2,7 +2,8 @@ import type { ANY_PROCEDURE, Context, Router, WithSignal } from '@orpc/server'
 import type { FetchHandler, FetchHandleRest, FetchHandleResult } from '@orpc/server/fetch'
 import type { Params } from 'hono/router'
 import type { PublicInputStructureCompact } from './input-structure-compact'
-import { createProcedureClient, fallbackToGlobalConfig, ORPCError } from '@orpc/server'
+import { fallbackContractConfig } from '@orpc/contract'
+import { createProcedureClient, ORPCError } from '@orpc/server'
 import { executeWithHooks, type Hooks, isPlainObject, trim } from '@orpc/shared'
 import { JSONSerializer, type PublicJSONSerializer } from '../../json-serializer'
 import { InputStructureCompact } from './input-structure-compact'
@@ -78,7 +79,7 @@ export class OpenAPIHandler<T extends Context> implements FetchHandler<T> {
 
       const response = new Response(body, {
         headers: resHeaders,
-        status: fallbackToGlobalConfig('defaultSuccessStatus', contractDef.route?.successStatus),
+        status: fallbackContractConfig('defaultSuccessStatus', contractDef.route?.successStatus),
       })
 
       return { matched: true, response }
@@ -127,7 +128,7 @@ export class OpenAPIHandler<T extends Context> implements FetchHandler<T> {
   }
 
   private async decodeInput(procedure: ANY_PROCEDURE, params: Params, request: Request): Promise<unknown> {
-    const inputStructure = fallbackToGlobalConfig('defaultInputStructure', procedure['~orpc'].contract['~orpc'].route?.inputStructure)
+    const inputStructure = fallbackContractConfig('defaultInputStructure', procedure['~orpc'].contract['~orpc'].route?.inputStructure)
 
     const url = new URL(request.url)
     const query = url.searchParams
@@ -154,7 +155,7 @@ export class OpenAPIHandler<T extends Context> implements FetchHandler<T> {
     output: unknown,
     accept: string | undefined,
   ): { body: string | Blob | FormData | undefined, headers?: Headers } {
-    const outputStructure = fallbackToGlobalConfig('defaultOutputStructure', procedure['~orpc'].contract['~orpc'].route?.outputStructure)
+    const outputStructure = fallbackContractConfig('defaultOutputStructure', procedure['~orpc'].contract['~orpc'].route?.outputStructure)
 
     if (outputStructure === 'compact') {
       return this.payloadCodec.encode(output, accept)

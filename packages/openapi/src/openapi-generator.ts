@@ -4,7 +4,7 @@ import type { PublicOpenAPIOutputStructureParser } from './openapi-output-struct
 import type { PublicOpenAPIPathParser } from './openapi-path-parser'
 import type { JSONSchema } from './schema'
 import type { SchemaConverter } from './schema-converter'
-import { type ContractRouter, fallbackORPCErrorStatus, fallbackToGlobalConfig } from '@orpc/contract'
+import { type ContractRouter, fallbackContractConfig, fallbackORPCErrorStatus } from '@orpc/contract'
 import { group } from '@orpc/shared'
 import { JSONSerializer, type PublicJSONSerializer } from './json-serializer'
 import { type OpenAPI, OpenApiBuilder } from './openapi'
@@ -110,10 +110,10 @@ export class OpenAPIGenerator {
           return
         }
 
-        const method = fallbackToGlobalConfig('defaultMethod', def.route?.method)
+        const method = fallbackContractConfig('defaultMethod', def.route?.method)
         const httpPath = def.route?.path ? standardizeHTTPPath(def.route?.path) : `/${path.map(encodeURIComponent).join('/')}`
-        const inputStructure = fallbackToGlobalConfig('defaultInputStructure', def.route?.inputStructure)
-        const outputStructure = fallbackToGlobalConfig('defaultOutputStructure', def.route?.outputStructure)
+        const inputStructure = fallbackContractConfig('defaultInputStructure', def.route?.inputStructure)
+        const outputStructure = fallbackContractConfig('defaultOutputStructure', def.route?.outputStructure)
 
         const { paramsSchema, querySchema, headersSchema, bodySchema } = this.inputStructureParser.parse(contract, inputStructure)
         const { headersSchema: resHeadersSchema, bodySchema: resBodySchema } = this.outputStructureParser.parse(contract, outputStructure)
@@ -143,8 +143,8 @@ export class OpenAPIGenerator {
 
         const responses: OpenAPI.ResponsesObject = {}
 
-        responses[fallbackToGlobalConfig('defaultSuccessStatus', def.route?.successStatus)] = {
-          description: fallbackToGlobalConfig('defaultSuccessDescription', def.route?.successDescription),
+        responses[fallbackContractConfig('defaultSuccessStatus', def.route?.successStatus)] = {
+          description: fallbackContractConfig('defaultSuccessDescription', def.route?.successDescription),
           content: resBodySchema !== undefined
             ? this.contentBuilder.build(resBodySchema, {
                 example: def.outputExample,

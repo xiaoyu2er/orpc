@@ -1,4 +1,5 @@
 import type { ContractBuilderConfig, ContractRouter, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput, StrictErrorMap } from '@orpc/contract'
+import type { BuilderConfig } from './builder'
 import type { ContextGuard } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { FlattenLazy } from './lazy'
@@ -10,6 +11,7 @@ import type { AdaptedRouter } from './router-builder'
 import type { Context, MergeContext } from './types'
 import { ContractProcedure } from '@orpc/contract'
 import { BuilderWithErrorsMiddlewares } from './builder-with-errors-middlewares'
+import { fallbackConfig } from './config'
 import { decorateMiddleware } from './middleware-decorated'
 import { ProcedureBuilder } from './procedure-builder'
 import { ProcedureBuilderWithInput } from './procedure-builder-with-input'
@@ -20,7 +22,7 @@ import { RouterBuilder } from './router-builder'
 export interface BuilderWithErrorsDef<TContext extends Context, TErrorMap extends ErrorMap> {
   types?: { context: TContext }
   errorMap: TErrorMap
-  config: ContractBuilderConfig
+  config: BuilderConfig
 }
 
 /**
@@ -38,15 +40,18 @@ export class BuilderWithErrors<TContext extends Context, TErrorMap extends Error
     this['~orpc'] = def
   }
 
-  context<UContext extends Context = TContext>(): BuilderWithErrors<UContext, TErrorMap> {
-    return this as any // just change at type level so safely cast here
-  }
-
   config(config: ContractBuilderConfig): BuilderWithErrors<TContext, TErrorMap> {
     return new BuilderWithErrors({
       ...this['~orpc'],
-      config,
+      config: {
+        ...this['~orpc'].config,
+        ...config,
+      },
     })
+  }
+
+  context<UContext extends Context = TContext>(): BuilderWithErrors<UContext, TErrorMap> {
+    return this as any // just change at type level so safely cast here
   }
 
   errors<U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(errors: U): BuilderWithErrors<TContext, TErrorMap & U> {
@@ -70,8 +75,8 @@ export class BuilderWithErrors<TContext extends Context, TErrorMap extends Error
   ): BuilderWithErrorsMiddlewares<TContext, U, TErrorMap> {
     return new BuilderWithErrorsMiddlewares<TContext, U, TErrorMap>({
       ...this['~orpc'],
-      inputValidationIndex: 1,
-      outputValidationIndex: 1,
+      inputValidationIndex: fallbackConfig('initialInputValidationIndex', this['~orpc'].config.initialInputValidationIndex) + 1,
+      outputValidationIndex: fallbackConfig('initialOutputValidationIndex', this['~orpc'].config.initialOutputValidationIndex) + 1,
       middlewares: [middleware as any], // FIXME: I believe we can remove `as any` here
     })
   }
@@ -79,8 +84,8 @@ export class BuilderWithErrors<TContext extends Context, TErrorMap extends Error
   route(route: RouteOptions): ProcedureBuilder<TContext, undefined, TErrorMap> {
     return new ProcedureBuilder({
       middlewares: [],
-      inputValidationIndex: 0,
-      outputValidationIndex: 0,
+      inputValidationIndex: fallbackConfig('initialInputValidationIndex', this['~orpc'].config.initialInputValidationIndex),
+      outputValidationIndex: fallbackConfig('initialOutputValidationIndex', this['~orpc'].config.initialOutputValidationIndex),
       contract: new ContractProcedure({
         route: {
           ...this['~orpc'].config.initialRoute,
@@ -96,8 +101,8 @@ export class BuilderWithErrors<TContext extends Context, TErrorMap extends Error
   input<USchema extends Schema>(schema: USchema, example?: SchemaInput<USchema>): ProcedureBuilderWithInput<TContext, undefined, USchema, TErrorMap> {
     return new ProcedureBuilderWithInput({
       middlewares: [],
-      inputValidationIndex: 0,
-      outputValidationIndex: 0,
+      inputValidationIndex: fallbackConfig('initialInputValidationIndex', this['~orpc'].config.initialInputValidationIndex),
+      outputValidationIndex: fallbackConfig('initialOutputValidationIndex', this['~orpc'].config.initialOutputValidationIndex),
       contract: new ContractProcedure({
         route: this['~orpc'].config.initialRoute,
         OutputSchema: undefined,
@@ -111,8 +116,8 @@ export class BuilderWithErrors<TContext extends Context, TErrorMap extends Error
   output<USchema extends Schema>(schema: USchema, example?: SchemaOutput<USchema>): ProcedureBuilderWithOutput<TContext, undefined, USchema, TErrorMap> {
     return new ProcedureBuilderWithOutput({
       middlewares: [],
-      inputValidationIndex: 0,
-      outputValidationIndex: 0,
+      inputValidationIndex: fallbackConfig('initialInputValidationIndex', this['~orpc'].config.initialInputValidationIndex),
+      outputValidationIndex: fallbackConfig('initialOutputValidationIndex', this['~orpc'].config.initialOutputValidationIndex),
       contract: new ContractProcedure({
         route: this['~orpc'].config.initialRoute,
         InputSchema: undefined,
@@ -126,8 +131,8 @@ export class BuilderWithErrors<TContext extends Context, TErrorMap extends Error
   handler<UFuncOutput>(handler: ProcedureHandler<TContext, undefined, undefined, undefined, UFuncOutput, TErrorMap>): DecoratedProcedure<TContext, undefined, undefined, undefined, UFuncOutput, TErrorMap> {
     return new DecoratedProcedure({
       middlewares: [],
-      inputValidationIndex: 0,
-      outputValidationIndex: 0,
+      inputValidationIndex: fallbackConfig('initialInputValidationIndex', this['~orpc'].config.initialInputValidationIndex),
+      outputValidationIndex: fallbackConfig('initialOutputValidationIndex', this['~orpc'].config.initialOutputValidationIndex),
       contract: new ContractProcedure({
         route: this['~orpc'].config.initialRoute,
         InputSchema: undefined,

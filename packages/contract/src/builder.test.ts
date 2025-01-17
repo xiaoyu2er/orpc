@@ -27,7 +27,16 @@ const baseErrorMap = {
   },
 }
 
-const builder = new ContractBuilder({ errorMap: baseErrorMap, OutputSchema: undefined, InputSchema: undefined })
+const builder = new ContractBuilder({
+  errorMap: baseErrorMap,
+  OutputSchema: undefined,
+  InputSchema: undefined,
+  config: {
+    initialRoute: {
+      description: 'from initial',
+    },
+  },
+})
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -36,6 +45,13 @@ beforeEach(() => {
 describe('contractBuilder', () => {
   it('is a contract procedure', () => {
     expect(builder).toBeInstanceOf(ContractProcedure)
+  })
+
+  it('.config', () => {
+    const applied = builder.config({ initialRoute: { description: 'from config' } })
+    expect(applied).toBeInstanceOf(ContractBuilder)
+    expect(applied).not.toBe(builder)
+    expect(applied['~orpc'].config).toEqual({ initialRoute: { description: 'from config' } })
   })
 
   it('.errors', () => {
@@ -48,13 +64,14 @@ describe('contractBuilder', () => {
       ...baseErrorMap,
       ...errors,
     })
+    expect(applied['~orpc'].config).toEqual({ initialRoute: { description: 'from initial' } })
   })
 
   it('.route', () => {
     const route = { method: 'GET', path: '/path' } as const
     const applied = builder.route(route)
     expect(applied).toBeInstanceOf(ContractProcedureBuilder)
-    expect(applied['~orpc'].route).toEqual(route)
+    expect(applied['~orpc'].route).toEqual({ ...route, description: 'from initial' })
     expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
   })
 
@@ -63,6 +80,7 @@ describe('contractBuilder', () => {
     expect(applied).toBeInstanceOf(ContractProcedureBuilderWithInput)
     expect(applied['~orpc'].InputSchema).toEqual(schema)
     expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
+    expect(applied['~orpc'].route).toEqual({ description: 'from initial' })
   })
 
   it('.output', () => {
@@ -70,6 +88,7 @@ describe('contractBuilder', () => {
     expect(applied).toBeInstanceOf(ContractProcedureBuilderWithOutput)
     expect(applied['~orpc'].OutputSchema).toEqual(schema)
     expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
+    expect(applied['~orpc'].route).toEqual({ description: 'from initial' })
   })
 
   it('.prefix', () => {

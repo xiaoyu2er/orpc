@@ -39,8 +39,17 @@ const baseErrors = {
   },
 }
 
+const config = {
+  initialRoute: {
+    description: 'from initial',
+  },
+  initialInputValidationIndex: 99,
+  initialOutputValidationIndex: 99,
+}
+
 const builder = new BuilderWithErrors({
   errorMap: baseErrors,
+  config,
 })
 
 beforeEach(() => {
@@ -48,6 +57,16 @@ beforeEach(() => {
 })
 
 describe('builder', () => {
+  it('.config', () => {
+    const applied = builder.config({ initialRoute: { method: 'GET' } })
+    expect(applied).instanceOf(BuilderWithErrors)
+    expect(applied).not.toBe(builder)
+    expect(applied['~orpc'].config).toEqual({
+      ...config,
+      initialRoute: { method: 'GET' },
+    })
+  })
+
   it('.context', () => {
     const applied = builder.context()
     expect(applied).toBe(builder)
@@ -66,6 +85,7 @@ describe('builder', () => {
     expect(applied).toBeInstanceOf(BuilderWithErrors)
     expect(applied).not.toBe(builder)
     expect(applied['~orpc'].errorMap).toEqual({ ...baseErrors, ...errors })
+    expect(applied['~orpc'].config).toEqual(config)
   })
 
   it('.use', () => {
@@ -74,36 +94,39 @@ describe('builder', () => {
     expect(applied).toBeInstanceOf(BuilderWithErrorsMiddlewares)
     expect(applied['~orpc'].errorMap).toEqual(baseErrors)
     expect(applied['~orpc'].middlewares).toEqual([mid])
-    expect(applied['~orpc'].inputValidationIndex).toEqual(1)
-    expect(applied['~orpc'].outputValidationIndex).toEqual(1)
+    expect(applied['~orpc'].inputValidationIndex).toEqual(100)
+    expect(applied['~orpc'].outputValidationIndex).toEqual(100)
+    expect(applied['~orpc'].config).toEqual(config)
   })
 
   it('.route', () => {
     const route = { path: '/test', method: 'GET' } as const
     const applied = builder.route(route)
     expect(applied).toBeInstanceOf(ProcedureBuilder)
-    expect(applied['~orpc'].contract['~orpc'].route).toEqual(route)
+    expect(applied['~orpc'].contract['~orpc'].route).toEqual({ ...route, description: 'from initial' })
     expect(applied['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
-    expect(applied['~orpc'].inputValidationIndex).toEqual(0)
-    expect(applied['~orpc'].outputValidationIndex).toEqual(0)
+    expect(applied['~orpc'].inputValidationIndex).toEqual(99)
+    expect(applied['~orpc'].outputValidationIndex).toEqual(99)
   })
 
   it('.input', () => {
     const applied = builder.input(schema)
     expect(applied).toBeInstanceOf(ProcedureBuilderWithInput)
     expect(applied['~orpc'].contract['~orpc'].InputSchema).toEqual(schema)
+    expect(applied['~orpc'].contract['~orpc'].route).toEqual({ description: 'from initial' })
     expect(applied['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
-    expect(applied['~orpc'].inputValidationIndex).toEqual(0)
-    expect(applied['~orpc'].outputValidationIndex).toEqual(0)
+    expect(applied['~orpc'].inputValidationIndex).toEqual(99)
+    expect(applied['~orpc'].outputValidationIndex).toEqual(99)
   })
 
   it('.output', () => {
     const applied = builder.output(schema)
     expect(applied).toBeInstanceOf(ProcedureBuilderWithOutput)
     expect(applied['~orpc'].contract['~orpc'].OutputSchema).toEqual(schema)
+    expect(applied['~orpc'].contract['~orpc'].route).toEqual({ description: 'from initial' })
     expect(applied['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
-    expect(applied['~orpc'].inputValidationIndex).toEqual(0)
-    expect(applied['~orpc'].outputValidationIndex).toEqual(0)
+    expect(applied['~orpc'].inputValidationIndex).toEqual(99)
+    expect(applied['~orpc'].outputValidationIndex).toEqual(99)
   })
 
   it('.handler', () => {
@@ -111,9 +134,10 @@ describe('builder', () => {
     const applied = builder.handler(handler)
     expect(applied).toBeInstanceOf(DecoratedProcedure)
     expect(applied['~orpc'].handler).toEqual(handler)
+    expect(applied['~orpc'].contract['~orpc'].route).toEqual({ description: 'from initial' })
     expect(applied['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
-    expect(applied['~orpc'].inputValidationIndex).toEqual(0)
-    expect(applied['~orpc'].outputValidationIndex).toEqual(0)
+    expect(applied['~orpc'].inputValidationIndex).toEqual(99)
+    expect(applied['~orpc'].outputValidationIndex).toEqual(99)
   })
 
   it('.prefix', () => {

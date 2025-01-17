@@ -1,18 +1,39 @@
 import type { ErrorMap, ErrorMapGuard, ErrorMapSuggestions, StrictErrorMap } from './error-map'
+import type { ContractProcedureDef, RouteOptions } from './procedure'
 import type { ContractRouter } from './router'
 import type { AdaptedContractRouter } from './router-builder'
 import type { HTTPPath, Schema, SchemaInput, SchemaOutput } from './types'
-import { ContractProcedure, type RouteOptions } from './procedure'
+import { ContractProcedure } from './procedure'
 import { ContractProcedureBuilder } from './procedure-builder'
 import { ContractProcedureBuilderWithInput } from './procedure-builder-with-input'
 import { ContractProcedureBuilderWithOutput } from './procedure-builder-with-output'
 import { ContractRouterBuilder } from './router-builder'
 
-export type ContractBuilderDef<TErrorMap extends ErrorMap> = {
-  errorMap: TErrorMap
+export interface ContractBuilderConfig {
+  initialRoute?: RouteOptions
+}
+
+export interface ContractBuilderDef<TErrorMap extends ErrorMap> extends ContractProcedureDef<undefined, undefined, TErrorMap> {
+  config: ContractBuilderConfig
 }
 
 export class ContractBuilder<TErrorMap extends ErrorMap> extends ContractProcedure<undefined, undefined, TErrorMap> {
+  declare '~orpc': ContractBuilderDef<TErrorMap>
+
+  constructor(def: ContractBuilderDef<TErrorMap>) {
+    super(def)
+  }
+
+  config(config: ContractBuilderConfig): ContractBuilder<TErrorMap> {
+    return new ContractBuilder({
+      ...this['~orpc'],
+      config: {
+        ...this['~orpc'].config,
+        ...config,
+      },
+    })
+  }
+
   errors<const U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(errors: U): ContractBuilder<U & TErrorMap> {
     return new ContractBuilder({
       ...this['~orpc'],
@@ -25,7 +46,10 @@ export class ContractBuilder<TErrorMap extends ErrorMap> extends ContractProcedu
 
   route(route: RouteOptions): ContractProcedureBuilder<TErrorMap> {
     return new ContractProcedureBuilder({
-      route,
+      route: {
+        ...this['~orpc'].config.initialRoute,
+        ...route,
+      },
       InputSchema: undefined,
       OutputSchema: undefined,
       errorMap: this['~orpc'].errorMap,
@@ -34,6 +58,7 @@ export class ContractBuilder<TErrorMap extends ErrorMap> extends ContractProcedu
 
   input<U extends Schema>(schema: U, example?: SchemaInput<U>): ContractProcedureBuilderWithInput<U, TErrorMap> {
     return new ContractProcedureBuilderWithInput({
+      route: this['~orpc'].config.initialRoute,
       InputSchema: schema,
       inputExample: example,
       OutputSchema: undefined,
@@ -43,6 +68,7 @@ export class ContractBuilder<TErrorMap extends ErrorMap> extends ContractProcedu
 
   output<U extends Schema>(schema: U, example?: SchemaOutput<U>): ContractProcedureBuilderWithOutput<U, TErrorMap> {
     return new ContractProcedureBuilderWithOutput({
+      route: this['~orpc'].config.initialRoute,
       OutputSchema: schema,
       outputExample: example,
       InputSchema: undefined,

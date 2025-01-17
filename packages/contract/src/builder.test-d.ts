@@ -16,11 +16,27 @@ const baseErrorMap = {
   },
 }
 
-const builder = new ContractBuilder({ errorMap: baseErrorMap, OutputSchema: undefined, InputSchema: undefined })
+const builder = new ContractBuilder({
+  errorMap: baseErrorMap,
+  OutputSchema: undefined,
+  InputSchema: undefined,
+  config: {
+    initialRoute: {
+      description: 'from initial',
+    },
+  },
+})
 
 describe('ContractBuilder', () => {
   it('is a contract procedure', () => {
     expectTypeOf(builder).toMatchTypeOf<ContractProcedure<undefined, undefined, typeof baseErrorMap>>()
+  })
+
+  it('.config', () => {
+    expectTypeOf(builder.config({ initialRoute: { description: 'from config' } })).toEqualTypeOf<typeof builder>()
+
+    // @ts-expect-error - invalid method
+    builder.config({ initialRoute: { method: 'HI' } })
   })
 
   it('.errors', () => {

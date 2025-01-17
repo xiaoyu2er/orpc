@@ -1,4 +1,4 @@
-import type { ContractRouter, ErrorMap, ErrorMapSuggestions, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ContractBuilderConfig, ContractRouter, ErrorMap, ErrorMapSuggestions, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { ContextGuard } from './context'
 import type { FlattenLazy } from './lazy'
 import type { Middleware } from './middleware'
@@ -24,6 +24,7 @@ import { RouterBuilder } from './router-builder'
  *
  */
 export interface BuilderWithMiddlewaresDef<TContext extends Context, TExtraContext extends Context> {
+  config: ContractBuilderConfig
   middlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, Record<never, never>>[]
   inputValidationIndex: number
   outputValidationIndex: number
@@ -65,7 +66,10 @@ export class BuilderWithMiddlewares<TContext extends Context, TExtraContext exte
     return new ProcedureBuilder({
       ...this['~orpc'],
       contract: new ContractProcedure({
-        route,
+        route: {
+          ...this['~orpc'].config.initialRoute,
+          ...route,
+        },
         InputSchema: undefined,
         OutputSchema: undefined,
         errorMap: {},
@@ -80,6 +84,7 @@ export class BuilderWithMiddlewares<TContext extends Context, TExtraContext exte
     return new ProcedureBuilderWithInput({
       ...this['~orpc'],
       contract: new ContractProcedure({
+        route: this['~orpc'].config.initialRoute,
         OutputSchema: undefined,
         InputSchema: schema,
         inputExample: example,
@@ -95,6 +100,7 @@ export class BuilderWithMiddlewares<TContext extends Context, TExtraContext exte
     return new ProcedureBuilderWithOutput({
       ...this['~orpc'],
       contract: new ContractProcedure({
+        route: this['~orpc'].config.initialRoute,
         InputSchema: undefined,
         OutputSchema: schema,
         outputExample: example,
@@ -109,6 +115,7 @@ export class BuilderWithMiddlewares<TContext extends Context, TExtraContext exte
     return new DecoratedProcedure({
       ...this['~orpc'],
       contract: new ContractProcedure({
+        route: this['~orpc'].config.initialRoute,
         InputSchema: undefined,
         OutputSchema: undefined,
         errorMap: {},

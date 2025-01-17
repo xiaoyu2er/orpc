@@ -32,6 +32,13 @@ describe('Builder', () => {
     expectTypeOf(builder.context<{ anything: string }>()).toEqualTypeOf<Builder<{ anything: string }>>()
   })
 
+  it('.config', () => {
+    expectTypeOf(builder.config({ initialRoute: { method: 'GET' } })).toEqualTypeOf<Builder<{ db: string }>>()
+
+    // @ts-expect-error - invalid method
+    builder.config({ initialRoute: { method: 'HE' } })
+  })
+
   it('.middleware', () => {
     const mid = builder.middleware(({ context, next, path, procedure, errors }, input, output) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()

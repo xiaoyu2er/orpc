@@ -24,4 +24,8 @@ export * from './utils'
 
 export { configGlobal, fallbackToGlobalConfig, isDefinedError, ORPCError, safe, type } from '@orpc/contract'
 
-export const os = new Builder<WELL_CONTEXT>({})
+export const os = new Builder<WELL_CONTEXT>({
+  config: {
+    initialRoute: {},
+  },
+})

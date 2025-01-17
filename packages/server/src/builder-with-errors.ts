@@ -1,4 +1,4 @@
-import type { ContractRouter, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput, StrictErrorMap } from '@orpc/contract'
+import type { ContractBuilderConfig, ContractRouter, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput, StrictErrorMap } from '@orpc/contract'
 import type { ContextGuard } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { FlattenLazy } from './lazy'
@@ -20,6 +20,7 @@ import { RouterBuilder } from './router-builder'
 export interface BuilderWithErrorsDef<TContext extends Context, TErrorMap extends ErrorMap> {
   types?: { context: TContext }
   errorMap: TErrorMap
+  config: ContractBuilderConfig
 }
 
 /**
@@ -39,6 +40,13 @@ export class BuilderWithErrors<TContext extends Context, TErrorMap extends Error
 
   context<UContext extends Context = TContext>(): BuilderWithErrors<UContext, TErrorMap> {
     return this as any // just change at type level so safely cast here
+  }
+
+  config(config: ContractBuilderConfig): BuilderWithErrors<TContext, TErrorMap> {
+    return new BuilderWithErrors({
+      ...this['~orpc'],
+      config,
+    })
   }
 
   errors<U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(errors: U): BuilderWithErrors<TContext, TErrorMap & U> {
@@ -74,7 +82,10 @@ export class BuilderWithErrors<TContext extends Context, TErrorMap extends Error
       inputValidationIndex: 0,
       outputValidationIndex: 0,
       contract: new ContractProcedure({
-        route,
+        route: {
+          ...this['~orpc'].config.initialRoute,
+          ...route,
+        },
         InputSchema: undefined,
         OutputSchema: undefined,
         errorMap: this['~orpc'].errorMap,
@@ -88,6 +99,7 @@ export class BuilderWithErrors<TContext extends Context, TErrorMap extends Error
       inputValidationIndex: 0,
       outputValidationIndex: 0,
       contract: new ContractProcedure({
+        route: this['~orpc'].config.initialRoute,
         OutputSchema: undefined,
         InputSchema: schema,
         inputExample: example,
@@ -102,6 +114,7 @@ export class BuilderWithErrors<TContext extends Context, TErrorMap extends Error
       inputValidationIndex: 0,
       outputValidationIndex: 0,
       contract: new ContractProcedure({
+        route: this['~orpc'].config.initialRoute,
         InputSchema: undefined,
         OutputSchema: schema,
         outputExample: example,
@@ -116,6 +129,7 @@ export class BuilderWithErrors<TContext extends Context, TErrorMap extends Error
       inputValidationIndex: 0,
       outputValidationIndex: 0,
       contract: new ContractProcedure({
+        route: this['~orpc'].config.initialRoute,
         InputSchema: undefined,
         OutputSchema: undefined,
         errorMap: this['~orpc'].errorMap,

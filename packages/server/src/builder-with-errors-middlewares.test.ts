@@ -43,6 +43,11 @@ const builder = new BuilderWithErrorsMiddlewares({
   errorMap: baseErrors,
   inputValidationIndex: 1,
   outputValidationIndex: 1,
+  config: {
+    initialRoute: {
+      description: 'from initial',
+    },
+  },
 })
 
 beforeEach(() => {
@@ -57,6 +62,7 @@ describe('builder', () => {
     expect(applied['~orpc'].errorMap).toEqual({ ...baseErrors, ...errors })
     expect(applied['~orpc'].inputValidationIndex).toEqual(1)
     expect(applied['~orpc'].outputValidationIndex).toEqual(1)
+    expect(applied['~orpc'].config).toEqual({ initialRoute: { description: 'from initial' } })
   })
 
   it('.use', () => {
@@ -68,13 +74,14 @@ describe('builder', () => {
     expect(applied['~orpc'].middlewares).toEqual([mid, mid2])
     expect(applied['~orpc'].inputValidationIndex).toEqual(2)
     expect(applied['~orpc'].outputValidationIndex).toEqual(2)
+    expect(applied['~orpc'].config).toEqual({ initialRoute: { description: 'from initial' } })
   })
 
   it('.route', () => {
     const route = { path: '/test', method: 'GET' } as const
     const applied = builder.route(route)
     expect(applied).toBeInstanceOf(ProcedureBuilder)
-    expect(applied['~orpc'].contract['~orpc'].route).toEqual(route)
+    expect(applied['~orpc'].contract['~orpc'].route).toEqual({ ...route, description: 'from initial' })
     expect(applied['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
     expect(applied['~orpc'].middlewares).toEqual([mid])
     expect(applied['~orpc'].inputValidationIndex).toEqual(1)
@@ -85,6 +92,7 @@ describe('builder', () => {
     const applied = builder.input(schema)
     expect(applied).toBeInstanceOf(ProcedureBuilderWithInput)
     expect(applied['~orpc'].contract['~orpc'].InputSchema).toEqual(schema)
+    expect(applied['~orpc'].contract['~orpc'].route).toEqual({ description: 'from initial' })
     expect(applied['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
     expect(applied['~orpc'].middlewares).toEqual([mid])
     expect(applied['~orpc'].inputValidationIndex).toEqual(1)
@@ -95,6 +103,7 @@ describe('builder', () => {
     const applied = builder.output(schema)
     expect(applied).toBeInstanceOf(ProcedureBuilderWithOutput)
     expect(applied['~orpc'].contract['~orpc'].OutputSchema).toEqual(schema)
+    expect(applied['~orpc'].contract['~orpc'].route).toEqual({ description: 'from initial' })
     expect(applied['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
     expect(applied['~orpc'].middlewares).toEqual([mid])
     expect(applied['~orpc'].inputValidationIndex).toEqual(1)
@@ -106,6 +115,7 @@ describe('builder', () => {
     const applied = builder.handler(handler)
     expect(applied).toBeInstanceOf(DecoratedProcedure)
     expect(applied['~orpc'].handler).toEqual(handler)
+    expect(applied['~orpc'].contract['~orpc'].route).toEqual({ description: 'from initial' })
     expect(applied['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
     expect(applied['~orpc'].middlewares).toEqual([mid])
     expect(applied['~orpc'].inputValidationIndex).toEqual(1)

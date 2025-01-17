@@ -25,4 +25,7 @@ export const oc = new ContractBuilder<Record<never, never>>({
   errorMap: {},
   InputSchema: undefined,
   OutputSchema: undefined,
+  config: {
+    initialRoute: {},
+  },
 })

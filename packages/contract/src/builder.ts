@@ -10,7 +10,7 @@ import { ContractProcedureBuilderWithOutput } from './procedure-builder-with-out
 import { ContractRouterBuilder } from './router-builder'
 
 export interface ContractBuilderConfig {
-  initialRoute?: RouteOptions
+  initialRoute: RouteOptions
 }
 
 export interface ContractBuilderDef<TErrorMap extends ErrorMap> extends ContractProcedureDef<undefined, undefined, TErrorMap> {

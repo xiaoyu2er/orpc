@@ -26,12 +26,25 @@ const errors = {
   },
 }
 
-const builder = new Builder({})
+const builder = new Builder({
+  config: {
+    initialRoute: {
+      description: 'from initial',
+    },
+  },
+})
 
 describe('builder', () => {
   it('.context', () => {
     const applied = builder.context()
     expect(applied).toBe(builder)
+  })
+
+  it('.config', () => {
+    const applied = builder.config({ initialRoute: { method: 'GET' } })
+    expect(applied).instanceOf(Builder)
+    expect(applied).not.toBe(builder)
+    expect(applied['~orpc'].config).toEqual({ initialRoute: { method: 'GET' } })
   })
 
   it('.middleware', () => {
@@ -46,6 +59,7 @@ describe('builder', () => {
     const applied = builder.errors(errors)
     expect(applied).toBeInstanceOf(BuilderWithErrors)
     expect(applied['~orpc'].errorMap).toEqual(errors)
+    expect(applied['~orpc'].config).toEqual({ initialRoute: { description: 'from initial' } })
   })
 
   it('.use', () => {
@@ -53,6 +67,7 @@ describe('builder', () => {
     const applied = builder.use(mid)
     expect(applied).toBeInstanceOf(BuilderWithMiddlewares)
     expect(applied['~orpc'].middlewares).toEqual([mid])
+    expect(applied['~orpc'].config).toEqual({ initialRoute: { description: 'from initial' } })
     expect(applied['~orpc'].inputValidationIndex).toEqual(1)
     expect(applied['~orpc'].outputValidationIndex).toEqual(1)
   })
@@ -61,7 +76,7 @@ describe('builder', () => {
     const route = { path: '/test', method: 'GET' } as const
     const applied = builder.route(route)
     expect(applied).toBeInstanceOf(ProcedureBuilder)
-    expect(applied['~orpc'].contract['~orpc'].route).toEqual(route)
+    expect(applied['~orpc'].contract['~orpc'].route).toEqual({ ...route, description: 'from initial' })
     expect(applied['~orpc'].inputValidationIndex).toEqual(0)
     expect(applied['~orpc'].outputValidationIndex).toEqual(0)
   })
@@ -70,6 +85,7 @@ describe('builder', () => {
     const applied = builder.input(schema)
     expect(applied).toBeInstanceOf(ProcedureBuilderWithInput)
     expect(applied['~orpc'].contract['~orpc'].InputSchema).toEqual(schema)
+    expect(applied['~orpc'].contract['~orpc'].route).toEqual({ description: 'from initial' })
     expect(applied['~orpc'].inputValidationIndex).toEqual(0)
     expect(applied['~orpc'].outputValidationIndex).toEqual(0)
   })
@@ -78,6 +94,7 @@ describe('builder', () => {
     const applied = builder.output(schema)
     expect(applied).toBeInstanceOf(ProcedureBuilderWithOutput)
     expect(applied['~orpc'].contract['~orpc'].OutputSchema).toEqual(schema)
+    expect(applied['~orpc'].contract['~orpc'].route).toEqual({ description: 'from initial' })
     expect(applied['~orpc'].inputValidationIndex).toEqual(0)
     expect(applied['~orpc'].outputValidationIndex).toEqual(0)
   })
@@ -86,6 +103,7 @@ describe('builder', () => {
     const handler = vi.fn()
     const applied = builder.handler(handler)
     expect(applied).toBeInstanceOf(DecoratedProcedure)
+    expect(applied['~orpc'].contract['~orpc'].route).toEqual({ description: 'from initial' })
     expect(applied['~orpc'].handler).toEqual(handler)
     expect(applied['~orpc'].inputValidationIndex).toEqual(0)
     expect(applied['~orpc'].outputValidationIndex).toEqual(0)

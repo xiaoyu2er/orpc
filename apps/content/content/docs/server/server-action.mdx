@@ -43,7 +43,7 @@ When calling `.actionable()`, you can pass a context function that provides addi
 import { os } from '@orpc/server'
 import { z } from 'zod'
 
-const pub = os.context<{ db: string } | undefined>()
+const pub = os.context<{ db: string }>()
 
 export const getting = pub
   .input(z.object({

@@ -101,8 +101,8 @@ describe('middleware', () => {
       return next({ context: { extra: 'extra' as const } })
     }
 
-    type Inferred = typeof handler extends Middleware<infer TContext, infer TExtraContext, infer TInput, infer TOutput, infer TErrorConstructorMap>
-      ? [TContext, TExtraContext, TInput, TOutput, TErrorConstructorMap]
+    type Inferred = typeof handler extends Middleware<infer TInContext, infer TOutContext, infer TInput, infer TOutput, infer TErrorConstructorMap>
+      ? [TInContext, TOutContext, TInput, TOutput, TErrorConstructorMap]
       : never
 
     expectTypeOf<Inferred>().toEqualTypeOf<

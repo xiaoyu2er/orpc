@@ -50,15 +50,15 @@ export interface DecoratedMiddleware<
 }
 
 export function decorateMiddleware<
-  TContext extends Context,
-  TExtraContext extends Context,
+  TInContext extends Context,
+  TOutContext extends Context,
   TInput,
   TOutput,
   TErrorConstructorMap extends ORPCErrorConstructorMap<any>,
 >(
-  middleware: Middleware<TContext, TExtraContext, TInput, TOutput, TErrorConstructorMap>,
-): DecoratedMiddleware<TContext, TExtraContext, TInput, TOutput, TErrorConstructorMap> {
-  const decorated = middleware as DecoratedMiddleware<TContext, TExtraContext, TInput, TOutput, TErrorConstructorMap>
+  middleware: Middleware<TInContext, TOutContext, TInput, TOutput, TErrorConstructorMap>,
+): DecoratedMiddleware<TInContext, TOutContext, TInput, TOutput, TErrorConstructorMap> {
+  const decorated = middleware as DecoratedMiddleware<TInContext, TOutContext, TInput, TOutput, TErrorConstructorMap>
 
   decorated.mapInput = (mapInput) => {
     const mapped = decorateMiddleware(

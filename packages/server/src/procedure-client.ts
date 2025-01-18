@@ -50,21 +50,21 @@ export type CreateProcedureClientRest<
   | (Record<never, never> extends TInitialContext ? [] : never)
 
 export function createProcedureClient<
-  TContext extends Context,
+  TInitialContext extends Context,
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
   TErrorMap extends ErrorMap,
   TClientContext,
 >(
-  lazyableProcedure: Lazyable<Procedure<TContext, any, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>>,
-  ...[options]: CreateProcedureClientRest<TContext, TOutputSchema, THandlerOutput, TClientContext>
+  lazyableProcedure: Lazyable<Procedure<TInitialContext, any, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>>,
+  ...[options]: CreateProcedureClientRest<TInitialContext, TOutputSchema, THandlerOutput, TClientContext>
 ): ProcedureClient<TClientContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap> {
   return async (...[input, callerOptions]) => {
     const path = options?.path ?? []
     const { default: procedure } = await unlazy(lazyableProcedure)
 
-    const context = await value(options?.context ?? {}, callerOptions?.context) as TContext
+    const context = await value(options?.context ?? {}, callerOptions?.context) as TInitialContext
     const errors = createORPCErrorConstructorMap(procedure['~orpc'].contract['~orpc'].errorMap)
 
     const executeOptions = {

@@ -1,6 +1,6 @@
 import type { ServerResponse } from 'node:http'
+import type { Context } from '../../context'
 import type { Router } from '../../router'
-import type { Context } from '../../types'
 import type { RPCHandlerOptions } from '../fetch/orpc-handler'
 import type { RequestHandler, RequestHandleRest, RequestHandleResult } from './types'
 import { RPCHandler as ORPCFetchHandler } from '../fetch/orpc-handler'
@@ -13,18 +13,18 @@ export class RPCHandler<T extends Context> implements RequestHandler<T> {
     this.orpcFetchHandler = new ORPCFetchHandler(router, options)
   }
 
-  async handle(req: ExpressableIncomingMessage, res: ServerResponse, ...[options]: RequestHandleRest<T>): Promise<RequestHandleResult> {
+  async handle(req: ExpressableIncomingMessage, res: ServerResponse, ...rest: RequestHandleRest<T>): Promise<RequestHandleResult> {
     const request = createRequest(req, res)
 
-    const castedOptions = (options ?? {}) as Exclude<typeof options, undefined>
-
-    const result = await this.orpcFetchHandler.handle(request, castedOptions)
+    const result = await this.orpcFetchHandler.handle(request, ...rest)
 
     if (result.matched === false) {
       return { matched: false }
     }
 
-    await options?.beforeSend?.(result.response, castedOptions.context as T)
+    const context = rest[0]?.context ?? {} as T
+
+    await rest[0]?.beforeSend?.(result.response, context)
 
     await sendResponse(res, result.response)
 

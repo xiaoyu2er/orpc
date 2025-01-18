@@ -1,6 +1,6 @@
 import type { Hooks } from '@orpc/shared'
+import type { Context } from '../../context'
 import type { Router } from '../../router'
-import type { Context } from '../../types'
 import type { FetchHandler, FetchHandleRest, FetchHandleResult } from './types'
 import { ORPCError } from '@orpc/contract'
 import { executeWithHooks, trim } from '@orpc/shared'
@@ -25,7 +25,7 @@ export class RPCHandler<T extends Context> implements FetchHandler<T> {
   }
 
   async handle(request: Request, ...[options]: FetchHandleRest<T>): Promise<FetchHandleResult> {
-    const context = options?.context as T
+    const context = options?.context ?? {} as T
 
     const execute = async (): Promise<FetchHandleResult> => {
       const url = new URL(request.url)

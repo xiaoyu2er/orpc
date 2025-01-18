@@ -3,13 +3,15 @@
 import type { HTTPPath } from '@orpc/contract'
 import type { Promisable } from '@orpc/shared'
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import type { Context } from '../../types'
+import type { Context } from '../../context'
 
 export type RequestHandleOptions<T extends Context> =
   & { prefix?: HTTPPath, beforeSend?: (response: Response, context: T) => Promisable<void> }
-  & (undefined extends T ? { context?: T } : { context: T })
+  & (Record<never, never> extends T ? { context?: T } : { context: T })
 
-export type RequestHandleRest<T extends Context> = [options: RequestHandleOptions<T>] | (undefined extends T ? [] : never)
+export type RequestHandleRest<T extends Context> =
+  | [options: RequestHandleOptions<T>]
+  | (Record<never, never> extends T ? [] : never)
 
 export type RequestHandleResult = { matched: true } | { matched: false }
 

@@ -47,7 +47,7 @@ describe('self chainable', () => {
 
     const a = {} as ProcedureImplementer<
       { id?: string },
-      { id?: string } & { auth: boolean } & { extra: true },
+      { id?: string } & { auth: boolean } & { extra: true } & Record<never, never>,
       typeof baseSchema,
       typeof baseSchema,
       typeof baseErrors
@@ -59,7 +59,7 @@ describe('self chainable', () => {
   it('use middleware with map input', () => {
     const mid: Middleware<Context, { id: string, extra: true }, number, any, Record<never, never>> = ({ next }) => {
       return next({
-        context: { id: 'string', extra: true },
+        context: { id: 'string', extra: true as const },
       })
     }
 
@@ -110,7 +110,7 @@ describe('self chainable', () => {
 
     // conflict context but not detected
     expectTypeOf(implementer.use(({ next }) => next({ context: { extra: undefined } }))).toEqualTypeOf<never>()
-    expectTypeOf(implementer.use(({ next }) => next({ context: { extra: undefined } })), () => {}).toEqualTypeOf<never>()
+    expectTypeOf(implementer.use(({ next }) => next({ context: { extra: undefined } }), () => {})).toEqualTypeOf<never>()
   })
 
   it('handle middleware with output is typed', () => {

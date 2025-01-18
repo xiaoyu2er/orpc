@@ -11,7 +11,7 @@ beforeEach(() => {
 describe('decorated lazy', () => {
   const schema = z.object({ val: z.string().transform(val => Number(val)) })
 
-  const ping = new Procedure<undefined, undefined, typeof schema, undefined, unknown, Record<never, never>>({
+  const ping = new Procedure({
     contract: new ContractProcedure({
       InputSchema: schema,
       OutputSchema: undefined,

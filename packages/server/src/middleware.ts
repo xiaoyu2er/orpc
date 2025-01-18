@@ -9,8 +9,16 @@ export type MiddlewareResult<TOutContext extends Context, TOutput> = Promisable<
   context: TOutContext
 }>
 
+export type MiddlewareNextFnOptions<TOutContext extends Context> = Record<never, never> extends TOutContext
+  ? { context?: TOutContext }
+  : { context: TOutContext }
+
+export type MiddlewareNextFnRest<TOutContext extends Context> =
+  | [options: MiddlewareNextFnOptions<TOutContext>]
+  | (Record<never, never> extends TOutContext ? [] : never)
+
 export interface MiddlewareNextFn<TInContext extends Context, TOutput> {
-  <U extends Context & Partial<TInContext> = Record<never, never>>(options?: { context?: U }): MiddlewareResult<U, TOutput>
+  <U extends Context & Partial<TInContext> = Record<never, never>>(...rest: MiddlewareNextFnRest<U>): MiddlewareResult<U, TOutput>
 }
 
 export interface MiddlewareOutputFn<TOutput> {

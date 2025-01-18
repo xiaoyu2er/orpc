@@ -144,7 +144,7 @@ async function executeProcedureInternal(procedure: ANY_PROCEDURE, options: Proce
   let currentContext = options.context
   let currentInput = options.input
 
-  const next: MiddlewareNextFn<any, any> = async (nextOptions) => {
+  const next: MiddlewareNextFn<any, any> = async (...[nextOptions]) => {
     const index = currentIndex
     currentIndex += 1
     currentContext = { ...currentContext, ...nextOptions?.context }

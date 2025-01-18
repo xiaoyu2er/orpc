@@ -11,7 +11,7 @@ export interface DecoratedMiddleware<
 > extends Middleware<TInContext, TOutContext, TInput, TOutput, TErrorConstructorMap> {
   concat: (<UOutContext extends Context, UInput>(
     middleware: Middleware<
-      TInContext,
+      TInContext & TOutContext,
       UOutContext,
       UInput & TInput,
       TOutput,
@@ -29,7 +29,7 @@ export interface DecoratedMiddleware<
     UMappedInput = unknown,
   >(
     middleware: Middleware<
-      TInContext,
+      TInContext & TOutContext,
       UOutContext,
       UMappedInput,
       TOutput,
@@ -74,7 +74,7 @@ export function decorateMiddleware<
       : concatMiddleware
 
     const concatted = decorateMiddleware((options, input, output, ...rest) => {
-      const next: MiddlewareNextFn<any, any> = async (nextOptions) => {
+      const next: MiddlewareNextFn<any, any> = async (...[nextOptions]) => {
         return mapped({ ...options, context: { ...nextOptions?.context, ...options.context } }, input, output, ...rest)
       }
 

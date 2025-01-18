@@ -1,15 +1,15 @@
 import type { Client, ErrorFromErrorMap, ErrorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Hooks, Value } from '@orpc/shared'
+import type { Context } from './context'
 import type { Lazyable } from './lazy'
 import type { MiddlewareNextFn } from './middleware'
 import type { ANY_PROCEDURE, Procedure, ProcedureHandlerOptions } from './procedure'
-import type { Context, Meta } from './types'
+import type { Meta } from './types'
 import { ORPCError, validateORPCError, ValidationError } from '@orpc/contract'
 import { executeWithHooks, toError, value } from '@orpc/shared'
 import { createORPCErrorConstructorMap } from './error'
 import { unlazy } from './lazy'
 import { middlewareOutputFn } from './middleware'
-import { mergeContext } from './utils'
 
 export type ProcedureClient<
   TClientContext,
@@ -23,9 +23,9 @@ export type ProcedureClient<
  * Options for creating a procedure caller with comprehensive type safety
  */
 export type CreateProcedureClientOptions<
-  TContext extends Context,
-  TOutputSchema extends Schema,
-  THandlerOutput extends SchemaInput<TOutputSchema>,
+  TInitialContext extends Context,
+  TCurrentContext extends Schema,
+  THandlerOutput extends SchemaInput<TCurrentContext>,
   TClientContext,
 > =
   & {
@@ -35,19 +35,19 @@ export type CreateProcedureClientOptions<
     path?: string[]
   }
   & (
-    | { context: Value<TContext, [clientContext: TClientContext]> }
-    | (undefined extends TContext ? { context?: Value<TContext, [clientContext: TClientContext]> } : never)
+    | { context: Value<TInitialContext, [clientContext: TClientContext]> }
+    | (undefined extends TInitialContext ? { context?: Value<TInitialContext, [clientContext: TClientContext]> } : never)
   )
-  & Hooks<unknown, SchemaOutput<TOutputSchema, THandlerOutput>, TContext, Meta>
+  & Hooks<unknown, SchemaOutput<TCurrentContext, THandlerOutput>, TInitialContext, Meta>
 
 export type CreateProcedureClientRest<
-  TContext extends Context,
+  TInitialContext extends Context,
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
   TClientContext,
 > =
-  | [options: CreateProcedureClientOptions<TContext, TOutputSchema, THandlerOutput, TClientContext>]
-  | (undefined extends TContext ? [] : never)
+  | [options: CreateProcedureClientOptions<TInitialContext, TOutputSchema, THandlerOutput, TClientContext>]
+  | (undefined extends TInitialContext ? [] : never)
 
 export function createProcedureClient<
   TContext extends Context,
@@ -136,7 +136,7 @@ async function validateOutput(procedure: ANY_PROCEDURE, output: unknown): Promis
   return result.value
 }
 
-async function executeProcedureInternal(procedure: ANY_PROCEDURE, options: ProcedureHandlerOptions<any, any, any, any>): Promise<any> {
+async function executeProcedureInternal(procedure: ANY_PROCEDURE, options: ProcedureHandlerOptions<any, any, any>): Promise<any> {
   const middlewares = procedure['~orpc'].middlewares
   const inputValidationIndex = Math.min(Math.max(0, procedure['~orpc'].inputValidationIndex), middlewares.length)
   const outputValidationIndex = Math.min(Math.max(0, procedure['~orpc'].outputValidationIndex), middlewares.length)
@@ -144,10 +144,10 @@ async function executeProcedureInternal(procedure: ANY_PROCEDURE, options: Proce
   let currentContext = options.context
   let currentInput = options.input
 
-  const next: MiddlewareNextFn<any> = async (nextOptions) => {
+  const next: MiddlewareNextFn<any, any> = async (nextOptions) => {
     const index = currentIndex
     currentIndex += 1
-    currentContext = mergeContext(currentContext, nextOptions.context)
+    currentContext = { ...currentContext, ...nextOptions?.context }
 
     if (index === inputValidationIndex) {
       currentInput = await validateInput(procedure, currentInput)

@@ -1,5 +1,5 @@
+import type { Context } from './context'
 import type { Middleware } from './middleware'
-import type { Context, MergeContext, WELL_CONTEXT } from './types'
 import { type ContractProcedure, type ContractRouter, isContractProcedure } from '@orpc/contract'
 import { createCallableObject } from '@orpc/shared'
 import { ProcedureImplementer } from './procedure-implementer'
@@ -16,13 +16,15 @@ export type ChainableImplementer<
   } & Omit<RouterImplementer<TContext, TExtraContext, TContract>, '~type' | '~orpc'>
 
 export function createChainableImplementer<
-  TContext extends Context = WELL_CONTEXT,
-  TExtraContext extends Context = undefined,
-  TContract extends ContractRouter<any> = any,
+  TContext extends Context,
+  TExtraContext extends Context,
+  TContract extends ContractRouter<any>,
 >(
   contract: TContract,
   options: {
-    middlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, any>[]
+    __initialContext?: { type: TContext }
+    __currentContext?: { type: TExtraContext }
+    middlewares: Middleware<any, any, any, any, any>[]
     inputValidationIndex: number
     outputValidationIndex: number
   },

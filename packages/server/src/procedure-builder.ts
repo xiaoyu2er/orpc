@@ -1,32 +1,33 @@
 import type { ContractProcedure, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
-import type { ContextGuard } from './context'
+import type { ConflictContextGuard, Context } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { Middleware } from './middleware'
 import type { ProcedureHandler } from './procedure'
-import type { Context, MergeContext } from './types'
 import { ContractProcedureBuilder, DecoratedContractProcedure } from '@orpc/contract'
 import { ProcedureBuilderWithInput } from './procedure-builder-with-input'
 import { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
 import { DecoratedProcedure } from './procedure-decorated'
 
-export interface ProcedureBuilderDef<TContext extends Context, TExtraContext extends Context, TErrorMap extends ErrorMap> {
+export interface ProcedureBuilderDef<TInitialContext extends Context, TCurrentContext extends Context, TErrorMap extends ErrorMap> {
+  __initialContext?: { type: TInitialContext }
+  __currentContext?: { type: TCurrentContext }
   contract: ContractProcedure<undefined, undefined, TErrorMap>
-  middlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, any, ORPCErrorConstructorMap<TErrorMap>>[]
+  middlewares: Middleware<any, any, any, any, any>[]
   inputValidationIndex: number
   outputValidationIndex: number
 }
 
-export class ProcedureBuilder<TContext extends Context, TExtraContext extends Context, TErrorMap extends ErrorMap> {
+export class ProcedureBuilder<TInitialContext extends Context, TCurrentContext extends Context, TErrorMap extends ErrorMap> {
   '~type' = 'ProcedureBuilder' as const
-  '~orpc': ProcedureBuilderDef<TContext, TExtraContext, TErrorMap>
+  '~orpc': ProcedureBuilderDef<TInitialContext, TCurrentContext, TErrorMap>
 
-  constructor(def: ProcedureBuilderDef<TContext, TExtraContext, TErrorMap>) {
+  constructor(def: ProcedureBuilderDef<TInitialContext, TCurrentContext, TErrorMap>) {
     this['~orpc'] = def
   }
 
   errors<U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(
     errors: U,
-  ): ProcedureBuilder<TContext, TExtraContext, TErrorMap & U> {
+  ): ProcedureBuilder<TInitialContext, TCurrentContext, TErrorMap & U> {
     return new ProcedureBuilder({
       ...this['~orpc'],
       contract: DecoratedContractProcedure
@@ -35,7 +36,7 @@ export class ProcedureBuilder<TContext extends Context, TExtraContext extends Co
     })
   }
 
-  route(route: RouteOptions): ProcedureBuilder<TContext, TExtraContext, TErrorMap> {
+  route(route: RouteOptions): ProcedureBuilder<TInitialContext, TCurrentContext, TErrorMap> {
     return new ProcedureBuilder({
       ...this['~orpc'],
       contract: DecoratedContractProcedure
@@ -44,31 +45,34 @@ export class ProcedureBuilder<TContext extends Context, TExtraContext extends Co
     })
   }
 
-  use<U extends Context & ContextGuard<MergeContext<TContext, TExtraContext>>>(
+  use<U extends Context>(
     middleware: Middleware<
-      MergeContext<TContext, TExtraContext>,
+      TCurrentContext,
       U,
       unknown,
       unknown,
       ORPCErrorConstructorMap<TErrorMap>
     >,
-  ): ProcedureBuilder<TContext, MergeContext<TExtraContext, U>, TErrorMap> {
-    return new ProcedureBuilder({
-      ...this['~orpc'],
+  ): ConflictContextGuard<TCurrentContext & U>
+    & ProcedureBuilder<TInitialContext, TCurrentContext & U, TErrorMap> {
+    const builder = new ProcedureBuilder<TInitialContext, TCurrentContext & U, TErrorMap>({
+      contract: this['~orpc'].contract,
       inputValidationIndex: this['~orpc'].inputValidationIndex + 1,
       outputValidationIndex: this['~orpc'].outputValidationIndex + 1,
       middlewares: [...this['~orpc'].middlewares, middleware as any],
     })
+
+    return builder as typeof builder & ConflictContextGuard<TCurrentContext & U>
   }
 
-  input<U extends Schema>(schema: U, example?: SchemaInput<U>): ProcedureBuilderWithInput<TContext, TExtraContext, U, TErrorMap> {
+  input<U extends Schema>(schema: U, example?: SchemaInput<U>): ProcedureBuilderWithInput<TInitialContext, TCurrentContext, U, TErrorMap> {
     return new ProcedureBuilderWithInput({
       ...this['~orpc'],
       contract: new ContractProcedureBuilder(this['~orpc'].contract['~orpc']).input(schema, example),
     })
   }
 
-  output<U extends Schema>(schema: U, example?: SchemaOutput<U>): ProcedureBuilderWithOutput<TContext, TExtraContext, U, TErrorMap> {
+  output<U extends Schema>(schema: U, example?: SchemaOutput<U>): ProcedureBuilderWithOutput<TInitialContext, TCurrentContext, U, TErrorMap> {
     return new ProcedureBuilderWithOutput({
       ...this['~orpc'],
       contract: new ContractProcedureBuilder(this['~orpc'].contract['~orpc']).output(schema, example),
@@ -76,8 +80,8 @@ export class ProcedureBuilder<TContext extends Context, TExtraContext extends Co
   }
 
   handler<UFuncOutput>(
-    handler: ProcedureHandler<TContext, TExtraContext, undefined, undefined, UFuncOutput, TErrorMap>,
-  ): DecoratedProcedure<TContext, TExtraContext, undefined, undefined, UFuncOutput, TErrorMap> {
+    handler: ProcedureHandler<TCurrentContext, undefined, undefined, UFuncOutput, TErrorMap>,
+  ): DecoratedProcedure<TInitialContext, TCurrentContext, undefined, undefined, UFuncOutput, TErrorMap> {
     return new DecoratedProcedure({
       ...this['~orpc'],
       handler,

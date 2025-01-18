@@ -1,8 +1,8 @@
-import type { WELL_CONTEXT } from './types'
 import { Builder } from './builder'
 
 export * from './builder'
 export * from './config'
+export * from './context'
 export * from './error'
 export * from './hidden'
 export * from './implementer-chainable'
@@ -21,10 +21,9 @@ export * from './router-builder'
 export * from './router-client'
 export * from './router-implementer'
 export * from './types'
-export * from './utils'
 
 export { isDefinedError, ORPCError, safe, type } from '@orpc/contract'
 
-export const os = new Builder<WELL_CONTEXT>({
+export const os = new Builder({
   config: {},
 })

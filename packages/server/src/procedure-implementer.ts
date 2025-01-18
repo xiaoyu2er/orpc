@@ -1,74 +1,62 @@
 import type { ContractProcedure, ErrorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
-import type { ContextGuard } from './context'
+import type { ConflictContextGuard, Context } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { ANY_MAP_INPUT_MIDDLEWARE, ANY_MIDDLEWARE, MapInputMiddleware, Middleware } from './middleware'
 import type { ProcedureHandler } from './procedure'
-import type { Context, MergeContext } from './types'
 import { decorateMiddleware } from './middleware-decorated'
 import { DecoratedProcedure } from './procedure-decorated'
 
 export type ProcedureImplementerDef<
-  TContext extends Context,
-  TExtraContext extends Context,
+  TInitialContext extends Context,
+  TCurrentContext extends Context,
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   TErrorMap extends ErrorMap,
 > = {
+  __initialContext?: { type: TInitialContext }
+  __currentContext?: { type: TCurrentContext }
   contract: ContractProcedure<TInputSchema, TOutputSchema, TErrorMap>
-  middlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, unknown, any>[]
+  middlewares: Middleware<any, any, any, any, any>[]
   inputValidationIndex: number
   outputValidationIndex: number
 }
 
 export class ProcedureImplementer<
-  TContext extends Context,
-  TExtraContext extends Context,
+  TInitialContext extends Context,
+  TCurrentContext extends Context,
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   TErrorMap extends ErrorMap,
 > {
   '~type' = 'ProcedureImplementer' as const
-  '~orpc': ProcedureImplementerDef<TContext, TExtraContext, TInputSchema, TOutputSchema, TErrorMap>
+  '~orpc': ProcedureImplementerDef<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap>
 
-  constructor(def: ProcedureImplementerDef<TContext, TExtraContext, TInputSchema, TOutputSchema, TErrorMap>) {
+  constructor(def: ProcedureImplementerDef<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap>) {
     this['~orpc'] = def
   }
 
-  use<U extends Context & ContextGuard<MergeContext<TContext, TExtraContext>>>(
+  use<U extends Context>(
     middleware: Middleware<
-      MergeContext<TContext, TExtraContext>,
+      TCurrentContext,
       U,
       SchemaOutput<TInputSchema>,
       SchemaInput<TOutputSchema>,
       ORPCErrorConstructorMap<TErrorMap>
     >,
-  ): ProcedureImplementer<
-    TContext,
-    MergeContext<TExtraContext, U>,
-    TInputSchema,
-    TOutputSchema,
-    TErrorMap
-  >
+  ): ConflictContextGuard<TCurrentContext & U>
+    & ProcedureImplementer<TInitialContext, TCurrentContext & U, TInputSchema, TOutputSchema, TErrorMap>
 
-  use<
-    UExtra extends Context & ContextGuard<MergeContext<TContext, TExtraContext>>,
-    UInput,
-  >(
+  use<UOutContext extends Context, UInput>(
     middleware: Middleware<
-      MergeContext<TContext, TExtraContext>,
-      UExtra,
+      TCurrentContext,
+      UOutContext,
       UInput,
       SchemaInput<TOutputSchema>,
       ORPCErrorConstructorMap<TErrorMap>
     >,
     mapInput: MapInputMiddleware<SchemaOutput<TInputSchema>, UInput>,
-  ): ProcedureImplementer<
-    TContext,
-    MergeContext<TExtraContext, UExtra>,
-    TInputSchema,
-    TOutputSchema,
-    TErrorMap
-  >
+  ): ConflictContextGuard<TCurrentContext & UOutContext>
+    & ProcedureImplementer<TInitialContext, TCurrentContext & UOutContext, TInputSchema, TOutputSchema, TErrorMap>
 
   use(
     middleware: ANY_MIDDLEWARE,
@@ -85,8 +73,8 @@ export class ProcedureImplementer<
   }
 
   handler<UFuncOutput extends SchemaInput<TOutputSchema>>(
-    handler: ProcedureHandler<TContext, TExtraContext, TInputSchema, TOutputSchema, UFuncOutput, TErrorMap>,
-  ): DecoratedProcedure<TContext, TExtraContext, TInputSchema, TOutputSchema, UFuncOutput, TErrorMap> {
+    handler: ProcedureHandler<TCurrentContext, TInputSchema, TOutputSchema, UFuncOutput, TErrorMap>,
+  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, UFuncOutput, TErrorMap> {
     return new DecoratedProcedure({
       ...this['~orpc'],
       handler,

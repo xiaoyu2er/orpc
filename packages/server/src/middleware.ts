@@ -1,49 +1,48 @@
 import type { Promisable } from '@orpc/shared'
+import type { Context } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { ANY_PROCEDURE } from './procedure'
-import type { AbortSignal, Context } from './types'
+import type { AbortSignal } from './types'
 
-export type MiddlewareResult<TExtraContext extends Context, TOutput> = Promisable<{
+export type MiddlewareResult<TOutContext extends Context, TOutput> = Promisable<{
   output: TOutput
-  context: TExtraContext
+  context: TOutContext
 }>
 
-export interface MiddlewareNextFn<TOutput> {
-  <UExtraContext extends Context = undefined>(
-    options: UExtraContext extends undefined ? { context?: UExtraContext } : { context: UExtraContext }
-  ): MiddlewareResult<UExtraContext, TOutput>
+export interface MiddlewareNextFn<TInContext extends Context, TOutput> {
+  <U extends Context & Partial<TInContext> = Record<never, never>>(options?: { context?: U }): MiddlewareResult<U, TOutput>
 }
 
 export interface MiddlewareOutputFn<TOutput> {
-  (output: TOutput): MiddlewareResult<undefined, TOutput>
+  (output: TOutput): MiddlewareResult<Record<never, never>, TOutput>
 }
 
 export interface MiddlewareOptions<
-  TContext extends Context,
+  TInContext extends Context,
   TOutput,
   TErrorConstructorMap extends ORPCErrorConstructorMap<any>,
 > {
-  context: TContext
+  context: TInContext
   path: string[]
   procedure: ANY_PROCEDURE
   signal?: AbortSignal
-  next: MiddlewareNextFn<TOutput>
+  next: MiddlewareNextFn<TInContext, TOutput>
   errors: TErrorConstructorMap
 }
 
 export interface Middleware<
-  TContext extends Context,
-  TExtraContext extends Context,
+  TInContext extends Context,
+  TOutContext extends Context,
   TInput,
   TOutput,
   TErrorConstructorMap extends ORPCErrorConstructorMap<any>,
 > {
   (
-    options: MiddlewareOptions<TContext, TOutput, TErrorConstructorMap>,
+    options: MiddlewareOptions<TInContext, TOutput, TErrorConstructorMap>,
     input: TInput,
     output: MiddlewareOutputFn<TOutput>,
   ): Promisable<
-    MiddlewareResult<TExtraContext, TOutput>
+    MiddlewareResult<TOutContext, TOutput>
   >
 }
 
@@ -55,6 +54,6 @@ export interface MapInputMiddleware<TInput, TMappedInput> {
 
 export type ANY_MAP_INPUT_MIDDLEWARE = MapInputMiddleware<any, any>
 
-export function middlewareOutputFn<TOutput>(output: TOutput): MiddlewareResult<undefined, TOutput> {
-  return { output, context: undefined }
+export function middlewareOutputFn<TOutput>(output: TOutput): MiddlewareResult<Record<never, never>, TOutput> {
+  return { output, context: {} }
 }

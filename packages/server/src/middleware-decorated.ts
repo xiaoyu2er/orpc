@@ -1,49 +1,44 @@
-import type { ContextGuard } from './context'
+import type { Context } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { ANY_MAP_INPUT_MIDDLEWARE, ANY_MIDDLEWARE, MapInputMiddleware, Middleware, MiddlewareNextFn } from './middleware'
-import type { Context, MergeContext } from './types'
-import { mergeContext } from './utils'
 
 export interface DecoratedMiddleware<
-  TContext extends Context,
-  TExtraContext extends Context,
+  TInContext extends Context,
+  TOutContext extends Context,
   TInput,
   TOutput,
   TErrorConstructorMap extends ORPCErrorConstructorMap<any>,
-> extends Middleware<TContext, TExtraContext, TInput, TOutput, TErrorConstructorMap> {
-  concat: (<
-    UExtraContext extends Context & ContextGuard<MergeContext<TContext, TExtraContext>>,
-    UInput,
-  >(
+> extends Middleware<TInContext, TOutContext, TInput, TOutput, TErrorConstructorMap> {
+  concat: (<UOutContext extends Context, UInput>(
     middleware: Middleware<
-      MergeContext<TContext, TExtraContext>,
-      UExtraContext,
+      TInContext,
+      UOutContext,
       UInput & TInput,
       TOutput,
       TErrorConstructorMap
     >,
   ) => DecoratedMiddleware<
-    TContext,
-    MergeContext<TExtraContext, UExtraContext>,
+    TInContext,
+    TOutContext & UOutContext,
     UInput & TInput,
     TOutput,
     TErrorConstructorMap
   >) & (<
-    UExtraContext extends Context & ContextGuard<MergeContext<TContext, TExtraContext>>,
+    UOutContext extends Context,
     UInput = TInput,
     UMappedInput = unknown,
   >(
     middleware: Middleware<
-      MergeContext<TContext, TExtraContext>,
-      UExtraContext,
+      TInContext,
+      UOutContext,
       UMappedInput,
       TOutput,
       TErrorConstructorMap
     >,
     mapInput: MapInputMiddleware<UInput & TInput, UMappedInput>,
   ) => DecoratedMiddleware<
-    TContext,
-    MergeContext<TExtraContext, UExtraContext>,
+    TInContext,
+    TOutContext & UOutContext,
     UInput & TInput,
     TOutput,
     TErrorConstructorMap
@@ -51,7 +46,7 @@ export interface DecoratedMiddleware<
 
   mapInput: <UInput = unknown>(
     map: MapInputMiddleware<UInput, TInput>,
-  ) => DecoratedMiddleware<TContext, TExtraContext, UInput, TOutput, TErrorConstructorMap>
+  ) => DecoratedMiddleware<TInContext, TOutContext, UInput, TOutput, TErrorConstructorMap>
 }
 
 export function decorateMiddleware<
@@ -79,8 +74,8 @@ export function decorateMiddleware<
       : concatMiddleware
 
     const concatted = decorateMiddleware((options, input, output, ...rest) => {
-      const next: MiddlewareNextFn<any> = async (nextOptions) => {
-        return mapped({ ...options, context: mergeContext(nextOptions.context, options.context) }, input, output, ...rest)
+      const next: MiddlewareNextFn<any, any> = async (nextOptions) => {
+        return mapped({ ...options, context: { ...nextOptions?.context, ...options.context } }, input, output, ...rest)
       }
 
       const merged = middleware({ ...options, next } as any, input as any, output as any, ...rest)

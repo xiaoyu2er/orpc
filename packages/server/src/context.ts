@@ -1,11 +1,8 @@
-import type { Context } from './types'
+import type { IsNever } from '@orpc/shared'
 
-/**
- * U extends Context & ContextGuard<TContext>
- *
- * Purpose:
- *  - Ensures that any extension `U` of `Context` must conform to the current `TContext`.
- * - This is useful when redefining `TContext` to maintain type compatibility with the existing context.
- *
- */
-export type ContextGuard<T extends Context> = Partial<T> | undefined
+export type Context = Record<string, any>
+
+export type ConflictContextGuard<T extends Context> =
+    true extends { [K in keyof T]: IsNever<T[K]> }[keyof T]
+      ? 'Conflict context detected: Please ensure your middlewares do not return conflicting context'
+      : unknown

@@ -1,4 +1,5 @@
 import type { BuilderWithErrorsMiddlewares } from './builder-with-errors-middlewares'
+import type { Context } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { Lazy } from './lazy'
 import type { MiddlewareOutputFn } from './middleware'
@@ -8,7 +9,6 @@ import type { ProcedureBuilderWithInput } from './procedure-builder-with-input'
 import type { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
 import type { DecoratedProcedure } from './procedure-decorated'
 import type { AdaptedRouter, RouterBuilder } from './router-builder'
-import type { WELL_CONTEXT } from './types'
 import { z } from 'zod'
 
 const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
@@ -26,11 +26,11 @@ const errors = {
   },
 }
 
-const builder = {} as BuilderWithErrorsMiddlewares<{ db: string }, { auth?: boolean }, typeof baseErrors>
+const builder = {} as BuilderWithErrorsMiddlewares<{ db: string }, { db: string, auth?: boolean }, typeof baseErrors>
 
 describe('BuilderWithErrorsMiddlewares', () => {
   it('.errors', () => {
-    expectTypeOf(builder.errors(errors)).toEqualTypeOf<BuilderWithErrorsMiddlewares<{ db: string }, { auth?: boolean }, typeof errors & typeof baseErrors>>()
+    expectTypeOf(builder.errors(errors)).toEqualTypeOf<BuilderWithErrorsMiddlewares<{ db: string }, { db: string, auth?: boolean }, typeof errors & typeof baseErrors>>()
 
     // @ts-expect-error --- not allow redefine error map
     builder.errors({ BASE: baseErrors.BASE })
@@ -39,7 +39,7 @@ describe('BuilderWithErrorsMiddlewares', () => {
   it('.use', () => {
     const applied = builder.use(({ context, next, path, procedure, errors }, input, output) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()
-      expectTypeOf(context).toEqualTypeOf<{ db: string } & { auth?: boolean }>()
+      expectTypeOf(context).toEqualTypeOf<{ db: string, auth?: boolean }>()
       expectTypeOf(path).toEqualTypeOf<string[]>()
       expectTypeOf(procedure).toEqualTypeOf<ANY_PROCEDURE>()
       expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<unknown>>()
@@ -52,7 +52,7 @@ describe('BuilderWithErrorsMiddlewares', () => {
       })
     })
 
-    expectTypeOf(applied).toEqualTypeOf < BuilderWithErrorsMiddlewares < { db: string }, { auth?: boolean } & { extra: boolean }, typeof baseErrors>>()
+    expectTypeOf(applied).toEqualTypeOf < BuilderWithErrorsMiddlewares < { db: string }, { db: string, auth?: boolean } & { extra: boolean }, typeof baseErrors>>()
 
     // @ts-expect-error --- conflict context
     builder.use(({ next }) => next({ db: 123 }))
@@ -64,26 +64,26 @@ describe('BuilderWithErrorsMiddlewares', () => {
 
   it('.route', () => {
     expectTypeOf(builder.route({ path: '/test', method: 'GET' })).toEqualTypeOf<
-      ProcedureBuilder<{ db: string }, { auth?: boolean }, typeof baseErrors>
+      ProcedureBuilder<{ db: string }, { db: string, auth?: boolean }, typeof baseErrors>
     >()
   })
 
   it('.input', () => {
     expectTypeOf(builder.input(schema)).toEqualTypeOf<
-      ProcedureBuilderWithInput<{ db: string }, { auth?: boolean }, typeof schema, typeof baseErrors>
+      ProcedureBuilderWithInput<{ db: string }, { db: string, auth?: boolean }, typeof schema, typeof baseErrors>
     >()
   })
 
   it('.output', () => {
     expectTypeOf(builder.output(schema)).toEqualTypeOf<
-      ProcedureBuilderWithOutput<{ db: string }, { auth?: boolean }, typeof schema, typeof baseErrors>
+      ProcedureBuilderWithOutput<{ db: string }, { db: string, auth?: boolean }, typeof schema, typeof baseErrors>
     >()
   })
 
   it('.handler', () => {
     const procedure = builder.handler(({ input, context, procedure, path, signal, errors }) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()
-      expectTypeOf(context).toEqualTypeOf<{ db: string } & { auth?: boolean }>()
+      expectTypeOf(context).toEqualTypeOf<{ db: string, auth?: boolean }>()
       expectTypeOf(procedure).toEqualTypeOf<ANY_PROCEDURE>()
       expectTypeOf(path).toEqualTypeOf<string[]>()
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
@@ -93,26 +93,26 @@ describe('BuilderWithErrorsMiddlewares', () => {
     })
 
     expectTypeOf(procedure).toMatchTypeOf<
-      DecoratedProcedure<{ db: string }, { auth?: boolean }, undefined, undefined, number, typeof baseErrors>
+      DecoratedProcedure<{ db: string }, { db: string, auth?: boolean }, undefined, undefined, number, typeof baseErrors>
     >()
   })
 
   it('.prefix', () => {
     expectTypeOf(builder.prefix('/test')).toEqualTypeOf<
-      RouterBuilder<{ db: string }, { auth?: boolean }, typeof baseErrors>
+      RouterBuilder<{ db: string }, { db: string, auth?: boolean }, typeof baseErrors>
     >()
   })
 
   it('.tag', () => {
     expectTypeOf(builder.tag('test', 'test2')).toEqualTypeOf<
-      RouterBuilder<{ db: string }, { auth?: boolean }, typeof baseErrors>
+      RouterBuilder<{ db: string }, { db: string, auth?: boolean }, typeof baseErrors>
     >()
   })
 
   it('.router', () => {
     const router = {
-      ping: {} as Procedure<{ db: string }, { auth?: boolean }, undefined, undefined, unknown, typeof errors>,
-      pong: {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown, Record<never, never>>,
+      ping: {} as Procedure<{ db: string }, { db: string, auth?: boolean }, undefined, undefined, unknown, typeof errors>,
+      pong: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>>,
     }
 
     expectTypeOf(builder.router(router)).toEqualTypeOf<
@@ -121,7 +121,7 @@ describe('BuilderWithErrorsMiddlewares', () => {
 
     builder.router({
       // @ts-expect-error - context is not match
-      ping: {} as Procedure<{ auth: 'invalid' }, undefined, undefined, undefined, unknown, typeof errors>,
+      ping: {} as Procedure<{ auth: 'invalid' }, Context, undefined, undefined, unknown, typeof errors>,
     })
 
     const invalidErrorMap = {
@@ -133,14 +133,14 @@ describe('BuilderWithErrorsMiddlewares', () => {
 
     builder.router({
       // @ts-expect-error - error map is not match
-      ping: {} as ContractProcedure<undefined, typeof schema, typeof invalidErrorMap>,
+      ping: {} as Procedure<Context, Context, undefined, undefined, unknown, typeof invalidErrorMap>,
     })
   })
 
   it('.lazy', () => {
     const router = {
-      ping: {} as Procedure<{ db: string }, { auth?: boolean }, undefined, undefined, unknown, typeof errors>,
-      pong: {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown, Record<never, never>>,
+      ping: {} as Procedure<{ db: string }, { db: string, auth?: boolean }, undefined, undefined, unknown, typeof errors>,
+      pong: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>>,
     }
 
     expectTypeOf(builder.lazy(() => Promise.resolve({ default: router }))).toEqualTypeOf<
@@ -149,13 +149,13 @@ describe('BuilderWithErrorsMiddlewares', () => {
 
     // @ts-expect-error - context is not match
     builder.lazy(() => Promise.resolve({ default: {
-      ping: {} as Procedure<{ auth: 'invalid' }, undefined, undefined, undefined, unknown, typeof errors>,
+      ping: {} as Procedure<{ auth: 'invalid' }, Context, undefined, undefined, unknown, typeof errors>,
     } }))
 
     // @ts-expect-error - error map is not match
     builder.lazy(() => Promise.resolve({
       default: {
-        ping: {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown, { BASE: { message: 'invalid' } }>,
+        ping: {} as Procedure<Context, Context, undefined, undefined, unknown, { BASE: { message: 'invalid' } }>,
       },
     }))
   })

@@ -1,6 +1,6 @@
 import type { ContractBuilderConfig, ContractRouter, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput, StrictErrorMap } from '@orpc/contract'
 import type { BuilderConfig } from './builder'
-import type { Context } from './context'
+import type { Context, TypeInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { FlattenLazy } from './lazy'
 import type { Middleware } from './middleware'
@@ -19,7 +19,7 @@ import { DecoratedProcedure } from './procedure-decorated'
 import { RouterBuilder } from './router-builder'
 
 export interface BuilderWithErrorsDef<TInitialContext extends Context, TErrorMap extends ErrorMap> {
-  __initialContext?: { type: TInitialContext }
+  __initialContext?: TypeInitialContext<TInitialContext>
   errorMap: TErrorMap
   config: BuilderConfig
 }

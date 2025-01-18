@@ -1,6 +1,6 @@
 import type { ContractProcedure, ErrorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Promisable } from '@orpc/shared'
-import type { Context } from './context'
+import type { Context, TypeInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { Lazy } from './lazy'
 import type { Middleware } from './middleware'
@@ -51,7 +51,7 @@ export interface ProcedureDef<
   THandlerOutput extends SchemaInput<TOutputSchema>,
   TErrorMap extends ErrorMap,
 > {
-  __initialContext?: { type: TInitialContext }
+  __initialContext?: TypeInitialContext<TInitialContext>
   middlewares: Middleware<any, any, any, any, any>[]
   inputValidationIndex: number
   outputValidationIndex: number

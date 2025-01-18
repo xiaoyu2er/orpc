@@ -58,7 +58,7 @@ const routerWithLazy = {
   })),
 }
 
-const implementer = {} as RouterImplementer<{ auth: boolean }, { db: string }, typeof contract>
+const implementer = {} as RouterImplementer<{ auth: boolean }, { auth: boolean } & { db: string }, typeof contract>
 
 describe('self chainable', () => {
   it('use middleware', () => {
@@ -74,21 +74,21 @@ describe('self chainable', () => {
       return next({})
     })
 
-    const mid1 = {} as Middleware<{ auth: boolean }, undefined, unknown, unknown, Record<never, never>>
-    const mid2 = {} as Middleware<{ auth: boolean }, { dev: string }, unknown, unknown, Record<never, never>>
-    const mid3 = {} as Middleware<{ auth: boolean, db: string }, { dev: string }, unknown, unknown, Record<never, never>>
+    const mid1 = {} as Middleware<{ auth: boolean }, { auth: boolean }, unknown, unknown, Record<never, never>>
+    const mid2 = {} as Middleware<{ auth: boolean }, { auth: boolean } & { dev: string }, unknown, unknown, Record<never, never>>
+    const mid3 = {} as Middleware<{ auth: boolean, db: string }, { auth: boolean, db: string } & { dev: string }, unknown, unknown, Record<never, never>>
 
     expectTypeOf(implementer.use(mid1)).toEqualTypeOf<typeof implementer>()
     expectTypeOf(implementer.use(mid2)).toEqualTypeOf<
-      RouterImplementer<{ auth: boolean }, { db: string } & { dev: string }, typeof contract>
+      RouterImplementer<{ auth: boolean }, { auth: boolean } & { db: string } & { dev: string }, typeof contract>
     >()
     expectTypeOf(implementer.use(mid3)).toEqualTypeOf<
-      RouterImplementer<{ auth: boolean }, { db: string } & { dev: string }, typeof contract>
+      RouterImplementer<{ auth: boolean }, { auth: boolean } & { db: string } & { auth: boolean, db: string } & { dev: string }, typeof contract>
     >()
 
-    const mid4 = {} as Middleware<{ auth: boolean }, { dev: string }, unknown, { val: string }, Record<never, never>>
-    const mid5 = {} as Middleware<{ auth: boolean }, { dev: string }, unknown, { val: number }, Record<never, never>>
-    const mid6 = {} as Middleware<{ auth: 'invalid' }, undefined, any, any, Record<never, never>>
+    const mid4 = {} as Middleware<{ auth: boolean }, { auth: boolean, dev: string }, unknown, { val: string }, Record<never, never>>
+    const mid5 = {} as Middleware<{ auth: boolean }, { auth: boolean, dev: string }, unknown, { val: number }, Record<never, never>>
+    const mid6 = {} as Middleware<{ auth: 'invalid' }, { auth: 'invalid' }, any, any, Record<never, never>>
 
     // @ts-expect-error - invalid middleware
     implementer.use(mid4)
@@ -100,6 +100,9 @@ describe('self chainable', () => {
     implementer.use(true)
     // @ts-expect-error - invalid middleware
     implementer.use(() => {})
+
+    // conflict context but not detected
+    expectTypeOf(implementer.use(({ next }) => next({ context: { auth: undefined } }))).toEqualTypeOf<never>()
   })
 })
 

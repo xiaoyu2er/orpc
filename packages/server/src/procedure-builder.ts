@@ -1,5 +1,5 @@
 import type { ContractProcedure, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
-import type { ConflictContextGuard, Context } from './context'
+import type { ConflictContextGuard, Context, TypeCurrentContext, TypeInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { Middleware } from './middleware'
 import type { ProcedureHandler } from './procedure'
@@ -9,8 +9,8 @@ import { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
 import { DecoratedProcedure } from './procedure-decorated'
 
 export interface ProcedureBuilderDef<TInitialContext extends Context, TCurrentContext extends Context, TErrorMap extends ErrorMap> {
-  __initialContext?: { type: TInitialContext }
-  __currentContext?: { type: TCurrentContext }
+  __initialContext?: TypeInitialContext<TInitialContext>
+  __currentContext?: TypeCurrentContext<TCurrentContext>
   contract: ContractProcedure<undefined, undefined, TErrorMap>
   middlewares: Middleware<any, any, any, any, any>[]
   inputValidationIndex: number

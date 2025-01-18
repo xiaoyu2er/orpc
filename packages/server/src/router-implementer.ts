@@ -1,5 +1,5 @@
 import type { ContractRouter } from '@orpc/contract'
-import type { ConflictContextGuard, Context } from './context'
+import type { ConflictContextGuard, Context, TypeCurrentContext, TypeInitialContext } from './context'
 import type { FlattenLazy } from './lazy'
 import type { Middleware } from './middleware'
 import type { Router } from './router'
@@ -12,8 +12,8 @@ export interface RouterImplementerDef<
   TCurrentContext extends Context,
   TContract extends ContractRouter<any>,
 > {
-  __initialContext?: { type: TInitialContext }
-  __currentContext?: { type: TCurrentContext }
+  __initialContext?: TypeInitialContext<TInitialContext>
+  __currentContext?: TypeCurrentContext<TCurrentContext>
   middlewares: Middleware<any, any, any, any, any>[]
   contract: TContract
 }

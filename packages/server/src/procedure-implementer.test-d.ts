@@ -1,9 +1,9 @@
+import type { Context } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { Middleware, MiddlewareOutputFn } from './middleware'
 import type { ANY_PROCEDURE } from './procedure'
 import type { DecoratedProcedure } from './procedure-decorated'
 import type { ProcedureImplementer } from './procedure-implementer'
-import type { WELL_CONTEXT } from './types'
 import { z } from 'zod'
 
 const baseSchema = z.object({ base: z.string().transform(v => Number.parseInt(v)) })
@@ -15,7 +15,7 @@ const baseErrors = {
   },
 }
 
-const implementer = {} as ProcedureImplementer<{ id?: string }, { extra: true }, typeof baseSchema, typeof baseSchema, typeof baseErrors>
+const implementer = {} as ProcedureImplementer<{ id?: string }, { id?: string } & { extra: true }, typeof baseSchema, typeof baseSchema, typeof baseErrors>
 
 describe('self chainable', () => {
   it('use middleware', () => {
@@ -45,19 +45,19 @@ describe('self chainable', () => {
         return next({})
       })
 
-    expectTypeOf(i).toEqualTypeOf<
-      ProcedureImplementer<
-        { id?: string },
-        { auth: boolean } & { extra: true },
-        typeof baseSchema,
-        typeof baseSchema,
-        typeof baseErrors
-      >
-    >()
+    const a = {} as ProcedureImplementer<
+      { id?: string },
+      { id?: string } & { auth: boolean } & { extra: true },
+      typeof baseSchema,
+      typeof baseSchema,
+      typeof baseErrors
+    >
+
+    expectTypeOf(i).toEqualTypeOf(a)
   })
 
   it('use middleware with map input', () => {
-    const mid: Middleware<WELL_CONTEXT, { id: string, extra: true }, number, any, Record<never, never>> = ({ next }) => {
+    const mid: Middleware<Context, { id: string, extra: true }, number, any, Record<never, never>> = ({ next }) => {
       return next({
         context: { id: 'string', extra: true },
       })
@@ -71,7 +71,7 @@ describe('self chainable', () => {
     expectTypeOf(i).toEqualTypeOf<
       ProcedureImplementer<
         { id?: string },
-        { extra: true } & { id: string, extra: true },
+      { id?: string } & { extra: true } & { id: string, extra: true },
         typeof baseSchema,
         typeof baseSchema,
         typeof baseErrors
@@ -107,13 +107,17 @@ describe('self chainable', () => {
 
     // @ts-expect-error - conflict with context
     implementer.use(({ context, path, next }, input) => next({ context: { id: 1, extra: true } }), () => 'anything')
+
+    // conflict context but not detected
+    expectTypeOf(implementer.use(({ next }) => next({ context: { extra: undefined } }))).toEqualTypeOf<never>()
+    expectTypeOf(implementer.use(({ next }) => next({ context: { extra: undefined } })), () => {}).toEqualTypeOf<never>()
   })
 
   it('handle middleware with output is typed', () => {
-    const mid1 = {} as Middleware<WELL_CONTEXT, undefined, unknown, any, Record<never, never>>
-    const mid2 = {} as Middleware<WELL_CONTEXT, undefined, unknown, { base: string }, Record<never, never>>
-    const mid3 = {} as Middleware<WELL_CONTEXT, undefined, unknown, unknown, Record<never, never>>
-    const mid4 = {} as Middleware<WELL_CONTEXT, undefined, unknown, { base: number }, Record<never, never>>
+    const mid1 = {} as Middleware<Context, Record<never, never>, unknown, any, Record<never, never>>
+    const mid2 = {} as Middleware<Context, Record<never, never>, unknown, { base: string }, Record<never, never>>
+    const mid3 = {} as Middleware<Context, Record<never, never>, unknown, unknown, Record<never, never>>
+    const mid4 = {} as Middleware<Context, Record<never, never>, unknown, { base: number }, Record<never, never>>
 
     implementer.use(mid1)
     implementer.use(mid2)
@@ -138,7 +142,7 @@ describe('to DecoratedProcedure', () => {
     })
 
     expectTypeOf(procedure).toEqualTypeOf<
-      DecoratedProcedure<{ id?: string }, { extra: true }, typeof baseSchema, typeof baseSchema, { base: string }, typeof baseErrors>
+      DecoratedProcedure<{ id?: string }, { id?: string } & { extra: true }, typeof baseSchema, typeof baseSchema, { base: string }, typeof baseErrors>
     >()
 
     // @ts-expect-error - invalid output

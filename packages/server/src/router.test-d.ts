@@ -1,7 +1,7 @@
+import type { Context } from './context'
 import type { ANY_LAZY, Lazy } from './lazy'
 import type { Procedure } from './procedure'
 import type { ANY_ROUTER, InferRouterInputs, InferRouterOutputs, Router } from './router'
-import type { WELL_CONTEXT } from './types'
 import { oc } from '@orpc/contract'
 import { z } from 'zod'
 import { lazy } from './lazy'
@@ -15,8 +15,8 @@ const baseErrors = {
   },
 } as const
 
-const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, typeof schema, { val: string }, typeof baseErrors>
-const pong = {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown, Record<never, never>>
+const ping = {} as Procedure<{ auth: boolean }, { auth: boolean, db: string }, typeof schema, typeof schema, { val: string }, typeof baseErrors>
+const pong = {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>>
 
 const router = {
   ping: lazy(() => Promise.resolve({ default: ping })),
@@ -63,8 +63,8 @@ it('InferRouterOutputs', () => {
 
 describe('Router', () => {
   it('require match context', () => {
-    const ping = {} as Procedure<{ auth: boolean }, { db: string }, undefined, undefined, unknown, Record<never, never>>
-    const pong = {} as Procedure<{ auth: string }, undefined, undefined, undefined, unknown, Record<never, never>>
+    const ping = {} as Procedure<{ auth: boolean }, { auth: boolean, db: string }, undefined, undefined, unknown, Record<never, never>>
+    const pong = {} as Procedure<{ auth: string }, { auth: string }, undefined, undefined, unknown, Record<never, never>>
 
     const router: Router<{ auth: boolean, userId: string }, any> = {
       ping,
@@ -143,7 +143,7 @@ describe('Router', () => {
     })
 
     const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, Record<never, never>>
-    const pong = {} as Procedure<WELL_CONTEXT, undefined, undefined, typeof schema, { val: string }, Record<never, never>>
+    const pong = {} as Procedure<Context, Context, undefined, typeof schema, { val: string }, Record<never, never>>
 
     const router1: Router<{ auth: boolean, userId: string }, typeof contract> = {
       ping,

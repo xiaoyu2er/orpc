@@ -1,6 +1,7 @@
 import type { Builder } from './builder'
 import type { BuilderWithErrors } from './builder-with-errors'
 import type { BuilderWithMiddlewares } from './builder-with-middlewares'
+import type { Context } from './context'
 import type { ChainableImplementer } from './implementer-chainable'
 import type { Lazy } from './lazy'
 import type { MiddlewareOutputFn } from './middleware'
@@ -11,7 +12,6 @@ import type { ProcedureBuilderWithInput } from './procedure-builder-with-input'
 import type { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
 import type { DecoratedProcedure } from './procedure-decorated'
 import type { AdaptedRouter, RouterBuilder } from './router-builder'
-import type { WELL_CONTEXT } from './types'
 import { oc } from '@orpc/contract'
 import { z } from 'zod'
 
@@ -29,7 +29,10 @@ const builder = {} as Builder<{ db: string }>
 describe('Builder', () => {
   it('.context', () => {
     expectTypeOf(builder.context()).toEqualTypeOf<Builder<{ db: string }>>()
-    expectTypeOf(builder.context<{ anything: string }>()).toEqualTypeOf<Builder<{ anything: string }>>()
+    expectTypeOf(builder.context<{ db: string, anything: string }>()).toEqualTypeOf<Builder<{ db: string, anything: string }>>()
+
+    // @ts-expect-error - new context must satisfy old context
+    builder.context<{ anything: string }>()
   })
 
   it('.config', () => {
@@ -62,7 +65,7 @@ describe('Builder', () => {
     const mid2 = builder.middleware(({ next }, input: 'input', output: MiddlewareOutputFn<'output'>) => next({}))
 
     expectTypeOf(mid2).toEqualTypeOf<
-      DecoratedMiddleware<{ db: string }, undefined, 'input', 'output', Record<never, never>>
+      DecoratedMiddleware<{ db: string }, Record<never, never>, 'input', 'output', Record<never, never>>
     >()
 
     // @ts-expect-error --- conflict context
@@ -89,10 +92,12 @@ describe('Builder', () => {
       })
     })
 
-    expectTypeOf(applied).toEqualTypeOf<BuilderWithMiddlewares<{ db: string }, { extra: boolean }>>()
+    expectTypeOf(applied).toEqualTypeOf<BuilderWithMiddlewares < { db: string }, { db: string } & { extra: boolean }>>()
 
     // @ts-expect-error --- conflict context
-    builder.use(({ next }) => next({ db: 123 }))
+    builder.use(({ next }) => next({ context: { db: 123 } }))
+    // conflict but not detected
+    expectTypeOf(builder.use(({ next }) => next({ context: { db: undefined } }))).toMatchTypeOf<never>()
     // @ts-expect-error --- input is not match
     builder.use(({ next }, input: 'invalid') => next({}))
     // @ts-expect-error --- output is not match
@@ -101,19 +106,19 @@ describe('Builder', () => {
 
   it('.route', () => {
     expectTypeOf(builder.route({ path: '/test', method: 'GET' })).toEqualTypeOf<
-      ProcedureBuilder<{ db: string }, undefined, Record<never, never>>
+      ProcedureBuilder<{ db: string }, { db: string }, Record<never, never>>
     >()
   })
 
   it('.input', () => {
     expectTypeOf(builder.input(schema)).toEqualTypeOf<
-      ProcedureBuilderWithInput<{ db: string }, undefined, typeof schema, Record<never, never>>
+      ProcedureBuilderWithInput<{ db: string }, { db: string }, typeof schema, Record<never, never>>
     >()
   })
 
   it('.output', () => {
     expectTypeOf(builder.output(schema)).toEqualTypeOf<
-      ProcedureBuilderWithOutput<{ db: string }, undefined, typeof schema, Record<never, never>>
+      ProcedureBuilderWithOutput<{ db: string }, { db: string }, typeof schema, Record<never, never>>
     >()
   })
 
@@ -130,26 +135,26 @@ describe('Builder', () => {
     })
 
     expectTypeOf(procedure).toMatchTypeOf<
-      DecoratedProcedure<{ db: string }, undefined, undefined, undefined, number, Record<never, never>>
+      DecoratedProcedure<{ db: string }, { db: string }, undefined, undefined, number, Record<never, never>>
     >()
   })
 
   it('.prefix', () => {
     expectTypeOf(builder.prefix('/test')).toEqualTypeOf<
-      RouterBuilder<{ db: string }, undefined, Record<never, never>>
+      RouterBuilder<{ db: string }, { db: string }, Record<never, never>>
     >()
   })
 
   it('.tag', () => {
     expectTypeOf(builder.tag('test', 'test2')).toEqualTypeOf<
-      RouterBuilder<{ db: string }, undefined, Record<never, never>>
+      RouterBuilder<{ db: string }, { db: string }, Record<never, never>>
     >()
   })
 
   it('.router', () => {
     const router = {
-      ping: {} as Procedure<{ db: string }, undefined, undefined, undefined, unknown, typeof errors>,
-      pong: {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown, Record<never, never>>,
+      ping: {} as Procedure<{ db: string }, { db: string }, undefined, undefined, unknown, typeof errors>,
+      pong: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>>,
     }
 
     expectTypeOf(builder.router(router)).toEqualTypeOf<
@@ -164,8 +169,8 @@ describe('Builder', () => {
 
   it('.lazy', () => {
     const router = {
-      ping: {} as Procedure<{ db: string }, undefined, undefined, undefined, unknown, typeof errors>,
-      pong: {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown, Record<never, never>>,
+      ping: {} as Procedure<{ db: string }, { db: string }, undefined, undefined, unknown, typeof errors>,
+      pong: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>>,
     }
 
     expectTypeOf(builder.lazy(() => Promise.resolve({ default: router }))).toEqualTypeOf<
@@ -174,7 +179,7 @@ describe('Builder', () => {
 
     // @ts-expect-error - context is not match
     builder.lazy(() => Promise.resolve({ default: {
-      ping: {} as Procedure<{ auth: 'invalid' }, undefined, undefined, undefined, unknown, typeof errors>,
+      ping: {} as Procedure<{ auth: 'invalid' }, Context, undefined, undefined, unknown, typeof errors>,
     } }))
   })
 
@@ -184,7 +189,7 @@ describe('Builder', () => {
     })
 
     expectTypeOf(builder.contract(contract)).toEqualTypeOf<
-      ChainableImplementer<{ db: string }, undefined, typeof contract>
+      ChainableImplementer<{ db: string }, { db: string }, typeof contract>
     >()
   })
 })

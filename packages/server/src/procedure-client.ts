@@ -36,7 +36,7 @@ export type CreateProcedureClientOptions<
   }
   & (
     | { context: Value<TInitialContext, [clientContext: TClientContext]> }
-    | (undefined extends TInitialContext ? { context?: Value<TInitialContext, [clientContext: TClientContext]> } : never)
+    | (Record<never, never> extends TInitialContext ? Record<never, never> : never)
   )
   & Hooks<unknown, SchemaOutput<TCurrentContext, THandlerOutput>, TInitialContext, Meta>
 
@@ -47,7 +47,7 @@ export type CreateProcedureClientRest<
   TClientContext,
 > =
   | [options: CreateProcedureClientOptions<TInitialContext, TOutputSchema, THandlerOutput, TClientContext>]
-  | (undefined extends TInitialContext ? [] : never)
+  | (Record<never, never> extends TInitialContext ? [] : never)
 
 export function createProcedureClient<
   TContext extends Context,
@@ -64,7 +64,7 @@ export function createProcedureClient<
     const path = options?.path ?? []
     const { default: procedure } = await unlazy(lazyableProcedure)
 
-    const context = await value(options?.context, callerOptions?.context) as TContext
+    const context = await value(options?.context ?? {}, callerOptions?.context) as TContext
     const errors = createORPCErrorConstructorMap(procedure['~orpc'].contract['~orpc'].errorMap)
 
     const executeOptions = {

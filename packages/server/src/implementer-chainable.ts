@@ -1,4 +1,4 @@
-import type { Context } from './context'
+import type { Context, TypeCurrentContext, TypeInitialContext } from './context'
 import type { Middleware } from './middleware'
 import { type ContractProcedure, type ContractRouter, isContractProcedure } from '@orpc/contract'
 import { createCallableObject } from '@orpc/shared'
@@ -6,29 +6,29 @@ import { ProcedureImplementer } from './procedure-implementer'
 import { RouterImplementer } from './router-implementer'
 
 export type ChainableImplementer<
-  TContext extends Context,
-  TExtraContext extends Context,
+  TInitialContext extends Context,
+  TCurrentContext extends Context,
   TContract extends ContractRouter<any>,
 > = TContract extends ContractProcedure<infer UInputSchema, infer UOutputSchema, infer UErrorMap>
-  ? ProcedureImplementer<TContext, TExtraContext, UInputSchema, UOutputSchema, UErrorMap>
+  ? ProcedureImplementer<TInitialContext, TCurrentContext, UInputSchema, UOutputSchema, UErrorMap>
   : {
-    [K in keyof TContract]: TContract[K] extends ContractRouter<any> ? ChainableImplementer<TContext, TExtraContext, TContract[K]> : never
-  } & Omit<RouterImplementer<TContext, TExtraContext, TContract>, '~type' | '~orpc'>
+    [K in keyof TContract]: TContract[K] extends ContractRouter<any> ? ChainableImplementer<TInitialContext, TCurrentContext, TContract[K]> : never
+  } & Omit<RouterImplementer<TInitialContext, TCurrentContext, TContract>, '~type' | '~orpc'>
 
 export function createChainableImplementer<
-  TContext extends Context,
-  TExtraContext extends Context,
+  TInitialContext extends Context,
+  TCurrentContext extends Context,
   TContract extends ContractRouter<any>,
 >(
   contract: TContract,
   options: {
-    __initialContext?: { type: TContext }
-    __currentContext?: { type: TExtraContext }
+    __initialContext?: TypeInitialContext<TInitialContext>
+    __currentContext?: TypeCurrentContext<TCurrentContext>
     middlewares: Middleware<any, any, any, any, any>[]
     inputValidationIndex: number
     outputValidationIndex: number
   },
-): ChainableImplementer<TContext, TExtraContext, TContract> {
+): ChainableImplementer<TInitialContext, TCurrentContext, TContract> {
   if (isContractProcedure(contract)) {
     const implementer = new ProcedureImplementer({
       contract,
@@ -40,7 +40,7 @@ export function createChainableImplementer<
     return implementer as any
   }
 
-  const chainable = {} as ChainableImplementer<TContext, TExtraContext, TContract>
+  const chainable = {} as ChainableImplementer<TInitialContext, TCurrentContext, TContract>
 
   for (const key in contract) {
     (chainable as any)[key] = createChainableImplementer(contract[key]!, options)
@@ -53,7 +53,7 @@ export function createChainableImplementer<
 
   const merged = new Proxy(chainable, {
     get(target, key) {
-      const next = Reflect.get(target, key) as ChainableImplementer<TContext, TExtraContext, TContract> | undefined
+      const next = Reflect.get(target, key) as ChainableImplementer<TInitialContext, TCurrentContext, TContract> | undefined
       const method = Reflect.get(routerImplementer, key)
 
       if (typeof key !== 'string' || typeof method !== 'function') {

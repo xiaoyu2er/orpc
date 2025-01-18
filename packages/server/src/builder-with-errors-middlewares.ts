@@ -1,5 +1,5 @@
 import type { ContractBuilderConfig, ContractRouter, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput, StrictErrorMap } from '@orpc/contract'
-import type { Context } from './context'
+import type { ConflictContextGuard, Context, TypeCurrentContext, TypeInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { FlattenLazy } from './lazy'
 import type { Middleware } from './middleware'
@@ -18,8 +18,8 @@ export interface BuilderWithErrorsMiddlewaresDef<
   TCurrentContext extends Context,
   TErrorMap extends ErrorMap,
 > {
-  __initialContext?: { type: TInitialContext }
-  __currentContext?: { type: TCurrentContext }
+  __initialContext?: TypeInitialContext<TInitialContext>
+  __currentContext?: TypeCurrentContext<TCurrentContext>
   errorMap: TErrorMap
   middlewares: Middleware<any, any, any, any, any>[]
   inputValidationIndex: number
@@ -62,14 +62,17 @@ export class BuilderWithErrorsMiddlewares<
 
   use<U extends Context >(
     middleware: Middleware<TCurrentContext, U, unknown, unknown, ORPCErrorConstructorMap<TErrorMap>>,
-  ): BuilderWithErrorsMiddlewares<TInitialContext, TCurrentContext & U, TErrorMap> {
-    return new BuilderWithErrorsMiddlewares<TInitialContext, TCurrentContext & U, TErrorMap>({
+  ): ConflictContextGuard<TCurrentContext & U>
+    & BuilderWithErrorsMiddlewares<TInitialContext, TCurrentContext & U, TErrorMap> {
+    const builder = new BuilderWithErrorsMiddlewares<TInitialContext, TCurrentContext & U, TErrorMap>({
       config: this['~orpc'].config,
       errorMap: this['~orpc'].errorMap,
       inputValidationIndex: this['~orpc'].inputValidationIndex + 1,
       outputValidationIndex: this['~orpc'].outputValidationIndex + 1,
       middlewares: [...this['~orpc'].middlewares, middleware],
     })
+
+    return builder as typeof builder & ConflictContextGuard<TCurrentContext & U>
   }
 
   route(route: RouteOptions): ProcedureBuilder<TInitialContext, TCurrentContext, TErrorMap> {

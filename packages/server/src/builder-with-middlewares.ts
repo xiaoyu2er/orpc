@@ -1,5 +1,5 @@
 import type { ContractBuilderConfig, ContractRouter, ErrorMap, ErrorMapSuggestions, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
-import type { Context } from './context'
+import type { ConflictContextGuard, Context, TypeCurrentContext, TypeInitialContext } from './context'
 import type { FlattenLazy } from './lazy'
 import type { Middleware } from './middleware'
 import type { ProcedureHandler } from './procedure'
@@ -23,8 +23,8 @@ import { RouterBuilder } from './router-builder'
  *
  */
 export interface BuilderWithMiddlewaresDef<TInitialContext extends Context, TCurrentContext extends Context> {
-  __initialContext?: { type: TInitialContext }
-  __currentContext?: { type: TCurrentContext }
+  __initialContext?: TypeInitialContext<TInitialContext>
+  __currentContext?: TypeCurrentContext<TCurrentContext>
   config: ContractBuilderConfig
   middlewares: Middleware<any, any, any, any, any>[]
   inputValidationIndex: number
@@ -41,13 +41,16 @@ export class BuilderWithMiddlewares<TInitialContext extends Context, TCurrentCon
 
   use<U extends Context>(
     middleware: Middleware<TCurrentContext, U, unknown, unknown, Record<never, never> >,
-  ): BuilderWithMiddlewares<TInitialContext, TCurrentContext & U> {
-    return new BuilderWithMiddlewares<TInitialContext, TCurrentContext & U>({
+  ): ConflictContextGuard<TCurrentContext & U>
+    & BuilderWithMiddlewares<TInitialContext, TCurrentContext & U> {
+    const builder = new BuilderWithMiddlewares<TInitialContext, TCurrentContext & U>({
       config: this['~orpc'].config,
       inputValidationIndex: this['~orpc'].inputValidationIndex + 1,
       outputValidationIndex: this['~orpc'].outputValidationIndex + 1,
       middlewares: [...this['~orpc'].middlewares, middleware],
     })
+
+    return builder as typeof builder & ConflictContextGuard<TCurrentContext & U>
   }
 
   errors<U extends ErrorMap & ErrorMapSuggestions>(

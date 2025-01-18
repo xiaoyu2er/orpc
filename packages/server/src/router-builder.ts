@@ -1,5 +1,5 @@
 import type { ContractRouter, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, HTTPPath, StrictErrorMap } from '@orpc/contract'
-import type { ConflictContextGuard, Context } from './context'
+import type { ConflictContextGuard, Context, TypeCurrentContext, TypeInitialContext } from './context'
 import type { FlattenLazy, Lazy } from './lazy'
 import type { ANY_MIDDLEWARE, Middleware } from './middleware'
 import type { ANY_PROCEDURE, Procedure } from './procedure'
@@ -27,8 +27,8 @@ export type RouterBuilderDef<
   TCurrentContext extends Context,
   TErrorMap extends ErrorMap,
 > = {
-  __initialContext?: { type: TInitialContext }
-  __currentContext?: { type: TCurrentContext }
+  __initialContext?: TypeInitialContext<TInitialContext>
+  __currentContext?: TypeCurrentContext<TCurrentContext>
   prefix?: HTTPPath
   tags?: readonly string[]
   middlewares: Middleware<any, any, any, any, any>[]

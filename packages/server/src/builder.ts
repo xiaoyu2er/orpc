@@ -1,5 +1,5 @@
 import type { ContractBuilderConfig, ContractRouter, ErrorMap, ErrorMapSuggestions, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
-import type { Context } from './context'
+import type { ConflictContextGuard, Context, TypeInitialContext } from './context'
 import type { FlattenLazy } from './lazy'
 import type { Middleware } from './middleware'
 import type { DecoratedMiddleware } from './middleware-decorated'
@@ -24,7 +24,7 @@ export interface BuilderConfig extends ContractBuilderConfig {
 }
 
 export interface BuilderDef<TInitialContext extends Context> {
-  __initialContext?: { type: TInitialContext }
+  __initialContext?: TypeInitialContext<TInitialContext>
   config: BuilderConfig
 }
 
@@ -65,13 +65,16 @@ export class Builder<TInitialContext extends Context> {
 
   use<UOutContext extends Context>(
     middleware: Middleware<TInitialContext, UOutContext, unknown, unknown, Record<never, never>>,
-  ): BuilderWithMiddlewares<TInitialContext, TInitialContext & UOutContext> {
-    return new BuilderWithMiddlewares<TInitialContext, TInitialContext & UOutContext>({
+  ): ConflictContextGuard<TInitialContext & UOutContext>
+    & BuilderWithMiddlewares<TInitialContext, TInitialContext & UOutContext> {
+    const builder = new BuilderWithMiddlewares<TInitialContext, TInitialContext & UOutContext>({
       ...this['~orpc'],
       inputValidationIndex: fallbackConfig('initialInputValidationIndex', this['~orpc'].config.initialInputValidationIndex) + 1,
       outputValidationIndex: fallbackConfig('initialOutputValidationIndex', this['~orpc'].config.initialOutputValidationIndex) + 1,
       middlewares: [middleware as any], // FIXME: I believe we can remove `as any` here
     })
+
+    return builder as typeof builder & ConflictContextGuard<TInitialContext & UOutContext>
   }
 
   route(route: RouteOptions): ProcedureBuilder<TInitialContext, TInitialContext, Record<never, never>> {

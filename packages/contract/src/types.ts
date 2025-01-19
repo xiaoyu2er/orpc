@@ -1,11 +1,6 @@
 import type { FindGlobalInstanceType } from '@orpc/shared'
 import type { StandardSchemaV1 } from '@standard-schema/spec'
 
-export type HTTPPath = `/${string}`
-export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
-export type InputStructure = 'compact' | 'detailed'
-export type OutputStructure = 'compact' | 'detailed'
-
 export type Schema = StandardSchemaV1 | undefined
 
 export type SchemaInput<

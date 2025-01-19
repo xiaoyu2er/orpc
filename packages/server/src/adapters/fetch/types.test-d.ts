@@ -1,8 +1,8 @@
 import type { FetchHandler } from './types'
 
 describe('FetchHandler', () => {
-  it('optional context when context is undefinable', () => {
-    const handler = {} as FetchHandler<{ auth: boolean } | undefined>
+  it('optional context when all context is optional', () => {
+    const handler = {} as FetchHandler<{ auth?: boolean }>
 
     handler.handle(new Request('https://example.com'))
     handler.handle(new Request('https://example.com'), { context: { auth: true } })

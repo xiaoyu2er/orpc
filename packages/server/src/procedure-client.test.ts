@@ -68,7 +68,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     expect(handler).toBeCalledTimes(1)
     expect(handler).toBeCalledWith({
       input: { val: 123 },
-      context: undefined,
+      context: {},
       path: [],
       procedure: unwrappedProcedure,
       errors: '__constructors__',
@@ -79,7 +79,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
       path: [],
       procedure: unwrappedProcedure,
       next: expect.any(Function),
-      context: undefined,
+      context: {},
       errors: '__constructors__',
     }), { val: '123' }, expect.any(Function))
 
@@ -88,7 +88,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
       path: [],
       procedure: unwrappedProcedure,
       next: expect.any(Function),
-      context: undefined,
+      context: {},
       errors: '__constructors__',
     }), { val: '123' }, expect.any(Function))
 
@@ -97,7 +97,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
       path: [],
       procedure: unwrappedProcedure,
       next: expect.any(Function),
-      context: undefined,
+      context: {},
       errors: '__constructors__',
     }), { val: 123 }, expect.any(Function))
 
@@ -106,7 +106,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
       path: [],
       procedure: unwrappedProcedure,
       next: expect.any(Function),
-      context: undefined,
+      context: {},
       errors: '__constructors__',
     }), { val: 123 }, expect.any(Function))
   })
@@ -144,7 +144,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     expect(postMid1).toBeCalledTimes(0)
     expect(postMid2).toBeCalledTimes(0)
     expect(handler).toBeCalledTimes(0)
-    expect(preMid1).toReturnWith(Promise.resolve({ output: { val: '9900' }, context: undefined }))
+    expect(preMid1).toReturnWith(Promise.resolve({ output: { val: '9900' }, context: {} }))
 
     vi.clearAllMocks()
     postMid1.mockReturnValueOnce({ output: { val: '9900' } })
@@ -154,8 +154,8 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     expect(postMid1).toBeCalledTimes(1)
     expect(postMid2).toBeCalledTimes(0)
     expect(handler).toBeCalledTimes(0)
-    expect(preMid1).toReturnWith(Promise.resolve({ output: { val: 9900 }, context: undefined }))
-    expect(preMid2).toReturnWith(Promise.resolve({ output: { val: 9900 }, context: undefined }))
+    expect(preMid1).toReturnWith(Promise.resolve({ output: { val: 9900 }, context: {} }))
+    expect(preMid2).toReturnWith(Promise.resolve({ output: { val: 9900 }, context: {} }))
 
     vi.clearAllMocks()
     postMid2.mockReturnValueOnce({ output: { val: '9900' } })
@@ -165,9 +165,9 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     expect(postMid1).toBeCalledTimes(1)
     expect(postMid2).toBeCalledTimes(1)
     expect(handler).toBeCalledTimes(0)
-    expect(preMid1).toReturnWith(Promise.resolve({ output: { val: 9900 }, context: undefined }))
-    expect(preMid2).toReturnWith(Promise.resolve({ output: { val: 9900 }, context: undefined }))
-    expect(postMid1).toReturnWith(Promise.resolve({ output: { val: '9900' }, context: undefined }))
+    expect(preMid1).toReturnWith(Promise.resolve({ output: { val: 9900 }, context: {} }))
+    expect(preMid2).toReturnWith(Promise.resolve({ output: { val: 9900 }, context: {} }))
+    expect(postMid1).toReturnWith(Promise.resolve({ output: { val: '9900' }, context: {} }))
   })
 
   it('middleware can add extra context', async () => {
@@ -208,7 +208,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     await expect(client({ val: '123' })).resolves.toEqual({ val: 123 })
 
     expect(preMid1).toBeCalledTimes(1)
-    expect(preMid1).toHaveBeenCalledWith(expect.objectContaining({ context: undefined }), expect.any(Object), expect.any(Function))
+    expect(preMid1).toHaveBeenCalledWith(expect.objectContaining({ context: {} }), expect.any(Object), expect.any(Function))
 
     expect(preMid2).toBeCalledTimes(1)
     expect(preMid2).toHaveBeenCalledWith(expect.objectContaining({
@@ -417,7 +417,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     expect(handler).toHaveBeenCalledWith(expect.objectContaining({ path: ['users'] }))
 
     expect(onSuccess).toBeCalledTimes(1)
-    expect(onSuccess).toHaveBeenCalledWith(expect.any(Object), undefined, expect.objectContaining({ path: ['users'] }))
+    expect(onSuccess).toHaveBeenCalledWith(expect.any(Object), {}, expect.objectContaining({ path: ['users'] }))
   })
 
   it('support signal', async () => {
@@ -516,7 +516,7 @@ it('still work without InputSchema', async () => {
   await expect(client('anything')).resolves.toEqual({ val: 123 })
 
   expect(handler).toBeCalledTimes(1)
-  expect(handler).toHaveBeenCalledWith({ input: 'anything', context: undefined, path: [], procedure })
+  expect(handler).toHaveBeenCalledWith({ input: 'anything', context: {}, path: [], procedure })
 })
 
 it('still work without OutputSchema', async () => {
@@ -540,7 +540,7 @@ it('still work without OutputSchema', async () => {
   await expect(client({ val: '123' })).resolves.toEqual('anything')
 
   expect(handler).toBeCalledTimes(1)
-  expect(handler).toHaveBeenCalledWith({ input: { val: 123 }, context: undefined, path: [], procedure })
+  expect(handler).toHaveBeenCalledWith({ input: { val: 123 }, context: {}, path: [], procedure })
 })
 
 it('has helper `output` in meta', async () => {
@@ -556,5 +556,5 @@ it('has helper `output` in meta', async () => {
   expect(preMid2).toBeCalledTimes(1)
   expect(handler).toBeCalledTimes(0)
 
-  expect(preMid1).toReturnWith(Promise.resolve({ output: { val: '99990' }, context: undefined }))
+  expect(preMid1).toReturnWith(Promise.resolve({ output: { val: '99990' }, context: {} }))
 })

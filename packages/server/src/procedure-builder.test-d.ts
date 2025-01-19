@@ -17,7 +17,7 @@ const baseErrors = {
   },
 }
 
-const builder = {} as ProcedureBuilder<{ db: string }, { auth?: boolean }, typeof baseErrors>
+const builder = {} as ProcedureBuilder<{ db: string }, { db: string } & { auth?: boolean }, typeof baseErrors>
 
 const schema = z.object({ id: z.string().transform(v => Number.parseInt(v)) })
 
@@ -25,7 +25,9 @@ describe('ProcedureBuilder', () => {
   it('.errors', () => {
     const errors = { CODE: { message: 'MESSAGE' } }
 
-    expectTypeOf(builder.errors(errors)).toEqualTypeOf<ProcedureBuilder<{ db: string }, { auth?: boolean }, typeof baseErrors & typeof errors>>()
+    expectTypeOf(builder.errors(errors)).toEqualTypeOf<
+      ProcedureBuilder < { db: string }, { db: string } & { auth?: boolean }, typeof baseErrors & typeof errors>
+    >()
 
     // @ts-expect-error - not allow redefine error map
     builder.errors({ BASE: baseErrors.BASE })
@@ -51,22 +53,31 @@ describe('ProcedureBuilder', () => {
       })
     })
 
-    expectTypeOf(applied).toEqualTypeOf<ProcedureBuilder< { db: string }, { auth?: boolean } & { extra: boolean }, typeof baseErrors>>()
+    expectTypeOf(applied).toEqualTypeOf<
+      ProcedureBuilder < { db: string }, { db: string } & { auth?: boolean } & { extra: boolean }, typeof baseErrors>
+    >()
 
     // @ts-expect-error --- conflict context
-    builder.use(({ next }) => next({ db: 123 }))
+    builder.use(({ next }) => next({ context: { db: 123 } }))
     // @ts-expect-error --- input is not match
     builder.use(({ next }, input: 'invalid') => next({}))
     // @ts-expect-error --- output is not match
     builder.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}))
+
+    // conflict context but not detected
+    expectTypeOf(builder.use(({ next }) => next({ context: { db: undefined } }))).toEqualTypeOf<never>()
   })
 
   it('.input', () => {
-    expectTypeOf(builder.input(schema)).toEqualTypeOf<ProcedureBuilderWithInput<{ db: string }, { auth?: boolean }, typeof schema, typeof baseErrors>>()
+    expectTypeOf(builder.input(schema)).toEqualTypeOf<
+      ProcedureBuilderWithInput < { db: string }, { db: string } & { auth?: boolean }, typeof schema, typeof baseErrors>
+    >()
   })
 
   it('.output', () => {
-    expectTypeOf(builder.output(schema)).toEqualTypeOf<ProcedureBuilderWithOutput<{ db: string }, { auth?: boolean }, typeof schema, typeof baseErrors>>()
+    expectTypeOf(builder.output(schema)).toEqualTypeOf<
+      ProcedureBuilderWithOutput<{ db: string }, { db: string } & { auth?: boolean }, typeof schema, typeof baseErrors>
+    >()
   })
 
   it('.handler', () => {
@@ -82,7 +93,7 @@ describe('ProcedureBuilder', () => {
     })
 
     expectTypeOf(procedure).toMatchTypeOf<
-      DecoratedProcedure<{ db: string }, { auth?: boolean }, undefined, undefined, number, typeof baseErrors>
+      DecoratedProcedure<{ db: string }, { db: string } & { auth?: boolean }, undefined, undefined, number, typeof baseErrors>
     >()
   })
 })

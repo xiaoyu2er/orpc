@@ -1,18 +1,18 @@
 import type { ContractProcedure, ContractRouter, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { Context } from './context'
 import type { ANY_LAZY, Lazy, Lazyable } from './lazy'
 import type { ANY_PROCEDURE, Procedure } from './procedure'
-import type { Context } from './types'
 import { flatLazy, isLazy, lazy, unlazy } from './lazy'
 import { isProcedure } from './procedure'
 
 export type Router<
-  TContext extends Context,
+  TInitialContext extends Context,
   TContract extends ContractRouter<any>,
 > = Lazyable<
   TContract extends ContractProcedure<infer UInputSchema, infer UOutputSchema, infer UErrorMap>
-    ? Procedure<TContext, any, UInputSchema, UOutputSchema, any, UErrorMap>
+    ? Procedure<TInitialContext, any, UInputSchema, UOutputSchema, any, UErrorMap>
     : {
-        [K in keyof TContract]: TContract[K] extends ContractRouter<any> ? Router<TContext, TContract[K]> : never
+        [K in keyof TContract]: TContract[K] extends ContractRouter<any> ? Router<TInitialContext, TContract[K]> : never
       }
 >
 

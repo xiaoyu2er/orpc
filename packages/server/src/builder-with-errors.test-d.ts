@@ -1,5 +1,6 @@
 import type { BuilderWithErrors } from './builder-with-errors'
 import type { BuilderWithErrorsMiddlewares } from './builder-with-errors-middlewares'
+import type { Context } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { Lazy } from './lazy'
 import type { MiddlewareOutputFn } from './middleware'
@@ -10,7 +11,6 @@ import type { ProcedureBuilderWithInput } from './procedure-builder-with-input'
 import type { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
 import type { DecoratedProcedure } from './procedure-decorated'
 import type { AdaptedRouter, RouterBuilder } from './router-builder'
-import type { WELL_CONTEXT } from './types'
 import { z } from 'zod'
 
 const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
@@ -33,7 +33,10 @@ const builder = {} as BuilderWithErrors<{ db: string }, typeof baseErrors>
 describe('BuilderWithErrors', () => {
   it('.context', () => {
     expectTypeOf(builder.context()).toEqualTypeOf<BuilderWithErrors<{ db: string }, typeof baseErrors>>()
-    expectTypeOf(builder.context<{ anything: string }>()).toEqualTypeOf<BuilderWithErrors<{ anything: string }, typeof baseErrors>>()
+    expectTypeOf(builder.context<{ db: string, anything: string }>()).toEqualTypeOf<BuilderWithErrors<{ db: string, anything: string }, typeof baseErrors>>()
+
+    // @ts-expect-error - new context must satisfy old context
+    builder.context<{ anything: string }>()
   })
 
   it('.config', () => {
@@ -66,7 +69,7 @@ describe('BuilderWithErrors', () => {
     const mid2 = builder.middleware(({ next }, input: 'input', output: MiddlewareOutputFn<'output'>) => next({}))
 
     expectTypeOf(mid2).toEqualTypeOf<
-      DecoratedMiddleware<{ db: string }, undefined, 'input', 'output', ORPCErrorConstructorMap<typeof baseErrors>>
+      DecoratedMiddleware<{ db: string }, Record<never, never>, 'input', 'output', ORPCErrorConstructorMap<typeof baseErrors>>
     >()
 
     // @ts-expect-error --- conflict context
@@ -96,7 +99,7 @@ describe('BuilderWithErrors', () => {
       })
     })
 
-    expectTypeOf(applied).toEqualTypeOf<BuilderWithErrorsMiddlewares<{ db: string }, { extra: boolean }, typeof baseErrors>>()
+    expectTypeOf(applied).toEqualTypeOf < BuilderWithErrorsMiddlewares < { db: string }, { db: string } & { extra: boolean }, typeof baseErrors>>()
 
     // @ts-expect-error --- conflict context
     builder.use(({ next }) => next({ db: 123 }))
@@ -108,19 +111,19 @@ describe('BuilderWithErrors', () => {
 
   it('.route', () => {
     expectTypeOf(builder.route({ path: '/test', method: 'GET' })).toEqualTypeOf<
-      ProcedureBuilder<{ db: string }, undefined, typeof baseErrors>
+      ProcedureBuilder<{ db: string }, { db: string }, typeof baseErrors>
     >()
   })
 
   it('.input', () => {
     expectTypeOf(builder.input(schema)).toEqualTypeOf<
-      ProcedureBuilderWithInput<{ db: string }, undefined, typeof schema, typeof baseErrors>
+      ProcedureBuilderWithInput<{ db: string }, { db: string }, typeof schema, typeof baseErrors>
     >()
   })
 
   it('.output', () => {
     expectTypeOf(builder.output(schema)).toEqualTypeOf<
-      ProcedureBuilderWithOutput<{ db: string }, undefined, typeof schema, typeof baseErrors>
+      ProcedureBuilderWithOutput<{ db: string }, { db: string }, typeof schema, typeof baseErrors>
     >()
   })
 
@@ -137,26 +140,26 @@ describe('BuilderWithErrors', () => {
     })
 
     expectTypeOf(procedure).toMatchTypeOf<
-      DecoratedProcedure<{ db: string }, undefined, undefined, undefined, number, typeof baseErrors>
+      DecoratedProcedure<{ db: string }, { db: string }, undefined, undefined, number, typeof baseErrors>
     >()
   })
 
   it('.prefix', () => {
     expectTypeOf(builder.prefix('/test')).toEqualTypeOf<
-      RouterBuilder<{ db: string }, undefined, typeof baseErrors>
+      RouterBuilder<{ db: string }, { db: string }, typeof baseErrors>
     >()
   })
 
   it('.tag', () => {
     expectTypeOf(builder.tag('test', 'test2')).toEqualTypeOf<
-      RouterBuilder<{ db: string }, undefined, typeof baseErrors>
+      RouterBuilder<{ db: string }, { db: string }, typeof baseErrors>
     >()
   })
 
   it('.router', () => {
     const router = {
-      ping: {} as Procedure<{ db: string }, undefined, undefined, undefined, unknown, typeof errors>,
-      pong: {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown, Record<never, never>>,
+      ping: {} as Procedure<{ db: string }, { db: string }, undefined, undefined, unknown, typeof errors>,
+      pong: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>>,
     }
 
     expectTypeOf(builder.router(router)).toEqualTypeOf<
@@ -183,8 +186,8 @@ describe('BuilderWithErrors', () => {
 
   it('.lazy', () => {
     const router = {
-      ping: {} as Procedure<{ db: string }, undefined, undefined, undefined, unknown, typeof errors>,
-      pong: {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown, Record<never, never>>,
+      ping: {} as Procedure<{ db: string }, { db: string }, undefined, undefined, unknown, typeof errors>,
+      pong: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>>,
     }
 
     expectTypeOf(builder.lazy(() => Promise.resolve({ default: router }))).toEqualTypeOf<
@@ -193,13 +196,13 @@ describe('BuilderWithErrors', () => {
 
     // @ts-expect-error - context is not match
     builder.lazy(() => Promise.resolve({ default: {
-      ping: {} as Procedure<{ auth: 'invalid' }, undefined, undefined, undefined, unknown, typeof errors>,
+      ping: {} as Procedure<{ auth: 'invalid' }, Context, undefined, undefined, unknown, typeof errors>,
     } }))
 
     // @ts-expect-error - error map is not match
     builder.lazy(() => Promise.resolve({
       default: {
-        ping: {} as Procedure<WELL_CONTEXT, undefined, undefined, undefined, unknown, { BASE: { message: 'invalid' } }>,
+        ping: {} as Procedure<Context, Context, undefined, undefined, unknown, { BASE: { message: 'invalid' } }>,
       },
     }))
   })

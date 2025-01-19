@@ -1,16 +1,16 @@
+import type { Context } from './context'
 import type { Middleware } from './middleware'
 import type { DecoratedMiddleware } from './middleware-decorated'
-import type { WELL_CONTEXT } from './types'
 
 describe('decorateMiddleware', () => {
   const decorated = {} as DecoratedMiddleware<{ user?: string }, { auth: true, user: string }, { name: string }, unknown, Record<never, never>>
 
   it('assignable to middleware', () => {
-    const decorated = {} as DecoratedMiddleware<WELL_CONTEXT, undefined, { input: 'input' }, unknown, Record<never, never>>
-    const mid: Middleware<WELL_CONTEXT, undefined, { input: 'input' }, unknown, Record<never, never>> = decorated
+    const decorated = {} as DecoratedMiddleware<Context, Record<never, never>, { input: 'input' }, unknown, Record<never, never>>
+    const mid: Middleware<Context, Record<never, never>, { input: 'input' }, unknown, Record<never, never>> = decorated
 
-    const decorated2 = {} as DecoratedMiddleware<WELL_CONTEXT, { extra: boolean }, unknown, 'output', Record<never, never>>
-    const mid2: Middleware<WELL_CONTEXT, { extra: boolean }, unknown, 'output', Record<never, never>> = decorated2
+    const decorated2 = {} as DecoratedMiddleware<Context, { extra: boolean }, unknown, 'output', Record<never, never>>
+    const mid2: Middleware<Context, { extra: boolean }, unknown, 'output', Record<never, never>> = decorated2
   })
 
   it('can map input', () => {

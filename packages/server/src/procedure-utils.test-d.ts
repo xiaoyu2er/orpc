@@ -1,6 +1,6 @@
 import type { ORPCError } from '@orpc/contract'
+import type { Context } from './context'
 import type { Procedure } from './procedure'
-import type { WELL_CONTEXT } from './types'
 import { safe } from '@orpc/contract'
 import { z } from 'zod'
 import { call } from './procedure-utils'
@@ -17,7 +17,7 @@ const baseErrors = {
   },
 }
 
-const procedure = {} as Procedure<WELL_CONTEXT, undefined, typeof schema, typeof schema, { val: string }, typeof baseErrors>
+const procedure = {} as Procedure<Context, Context, typeof schema, typeof schema, { val: string }, typeof baseErrors>
 const procedureWithContext = {} as Procedure<{ db: string }, { auth: boolean }, typeof schema, typeof schema, { val: string }, typeof baseErrors>
 
 describe('call', () => {

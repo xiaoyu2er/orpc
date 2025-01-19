@@ -3,13 +3,13 @@ import { ORPCError, os } from '@orpc/server'
 import { oz, ZodCoercer } from '@orpc/zod'
 import { z } from 'zod'
 
-export type Context = { user?: { id: string } } | undefined
+export type Context = { user?: { id: string } }
 
 // global pub, authed completely optional
 export const pub = os.context<Context>()
 export const authed = pub.use(({ context, path, next }, input) => {
   /** put auth logic here */
-  return next({})
+  return next()
 })
 
 export const router = pub.router({

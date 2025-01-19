@@ -1,7 +1,8 @@
 import type { Client, ORPCError } from '@orpc/contract'
+import type { Context } from './context'
 import type { Procedure } from './procedure'
 import type { ProcedureClient } from './procedure-client'
-import type { Meta, WELL_CONTEXT, WithSignal } from './types'
+import type { Meta, WithSignal } from './types'
 import { z } from 'zod'
 import { lazy } from './lazy'
 import { createProcedureClient } from './procedure-client'
@@ -112,8 +113,8 @@ describe('createProcedureClient', () => {
       data: z.object({ why: z.string().transform(v => Number(v)) }),
     },
   }
-  const procedure = {} as Procedure<WELL_CONTEXT, { val: string }, typeof schema, typeof schema, { val: string }, typeof baseErrors>
-  const procedureWithContext = {} as Procedure<{ userId?: string }, { db: string }, typeof schema, typeof schema, { val: string }, Record<never, never>>
+  const procedure = {} as Procedure<Context, { val: string }, typeof schema, typeof schema, { val: string }, typeof baseErrors>
+  const procedureWithContext = {} as Procedure<{ userId: string }, { db: string }, typeof schema, typeof schema, { val: string }, Record<never, never>>
 
   it('just a client', () => {
     const client = createProcedureClient(procedure)
@@ -125,7 +126,7 @@ describe('createProcedureClient', () => {
     createProcedureClient(procedure)
 
     createProcedureClient(procedure, {
-      context: undefined,
+      context: {},
     })
 
     // @ts-expect-error - missing context
@@ -166,7 +167,7 @@ describe('createProcedureClient', () => {
     createProcedureClient(procedure, {
       async interceptor(input, context, meta) {
         expectTypeOf(input).toEqualTypeOf<unknown>()
-        expectTypeOf(context).toEqualTypeOf<WELL_CONTEXT>()
+        expectTypeOf(context).toEqualTypeOf<Context>()
         expectTypeOf(meta).toEqualTypeOf<Meta & { next: () => Promise<{ val: number }> }>()
 
         return { val: 123 }
@@ -174,25 +175,25 @@ describe('createProcedureClient', () => {
 
       onStart(state, context, meta) {
         expectTypeOf(state).toEqualTypeOf<{ status: 'pending', input: unknown, output: undefined, error: undefined }>()
-        expectTypeOf(context).toEqualTypeOf<WELL_CONTEXT>()
+        expectTypeOf(context).toEqualTypeOf<Context>()
         expectTypeOf(meta).toEqualTypeOf<Meta>()
       },
 
       onSuccess(state, context, meta) {
         expectTypeOf(state).toEqualTypeOf<{ status: 'success', input: unknown, output: { val: number }, error: undefined }>()
-        expectTypeOf(context).toEqualTypeOf<WELL_CONTEXT>()
+        expectTypeOf(context).toEqualTypeOf<Context>()
         expectTypeOf(meta).toEqualTypeOf<Meta>()
       },
 
       onError(state, context, meta) {
         expectTypeOf(state).toEqualTypeOf<{ status: 'error', input: unknown, output: undefined, error: Error }>()
-        expectTypeOf(context).toEqualTypeOf<WELL_CONTEXT>()
+        expectTypeOf(context).toEqualTypeOf<Context>()
         expectTypeOf(meta).toEqualTypeOf<Meta>()
       },
 
       onFinish(state, context, meta) {
         expectTypeOf(state).toEqualTypeOf<{ status: 'success', input: unknown, output: { val: number }, error: undefined } | { status: 'error', input: unknown, output: undefined, error: Error }>()
-        expectTypeOf(context).toEqualTypeOf<WELL_CONTEXT>()
+        expectTypeOf(context).toEqualTypeOf<Context>()
         expectTypeOf(meta).toEqualTypeOf<Meta>()
       },
     })
@@ -225,7 +226,7 @@ describe('createProcedureClient', () => {
 
 it('support lazy procedure', () => {
   const schema = z.object({ val: z.string().transform(v => Number(v)) })
-  const procedure = {} as Procedure<{ userId?: string }, undefined, typeof schema, typeof schema, { val: string }, Record<never, never>>
+  const procedure = {} as Procedure<{ userId?: string }, { userId?: string }, typeof schema, typeof schema, { val: string }, Record<never, never>>
   const lazied = lazy(() => Promise.resolve({ default: procedure }))
 
   const client = createProcedureClient(lazied, {

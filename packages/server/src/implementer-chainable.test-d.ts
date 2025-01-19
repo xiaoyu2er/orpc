@@ -1,8 +1,8 @@
+import type { Context, TypeCurrentContext, TypeInitialContext } from './context'
 import type { ChainableImplementer } from './implementer-chainable'
 import type { Middleware } from './middleware'
 import type { ProcedureImplementer } from './procedure-implementer'
 import type { RouterImplementer } from './router-implementer'
-import type { WELL_CONTEXT } from './types'
 import { oc } from '@orpc/contract'
 import { z } from 'zod'
 import { createChainableImplementer } from './implementer-chainable'
@@ -24,11 +24,11 @@ const contract = oc.router({
 describe('ChainableImplementer', () => {
   it('with procedure', () => {
     expectTypeOf(createChainableImplementer(ping, { middlewares: [], inputValidationIndex: 0, outputValidationIndex: 0 })).toEqualTypeOf<
-      ProcedureImplementer<WELL_CONTEXT, undefined, typeof schema, typeof schema, Record<never, never>>
+      ProcedureImplementer<Context, Context, typeof schema, typeof schema, Record<never, never>>
     >()
 
     expectTypeOf(createChainableImplementer(pong, { middlewares: [], inputValidationIndex: 0, outputValidationIndex: 0 })).toEqualTypeOf<
-      ProcedureImplementer<WELL_CONTEXT, undefined, undefined, undefined, Record<never, never>>
+      ProcedureImplementer<Context, Context, undefined, undefined, Record<never, never>>
     >()
   })
 
@@ -36,27 +36,27 @@ describe('ChainableImplementer', () => {
     const implementer = createChainableImplementer(contract, { middlewares: [], inputValidationIndex: 0, outputValidationIndex: 0 })
 
     expectTypeOf(implementer).toMatchTypeOf<
-      Omit<RouterImplementer<WELL_CONTEXT, undefined, typeof contract>, '~type' | '~orpc'>
+      Omit<RouterImplementer<Context, Context, typeof contract>, '~type' | '~orpc'>
     >()
 
     expectTypeOf(implementer.ping).toEqualTypeOf<
-      ProcedureImplementer<WELL_CONTEXT, undefined, typeof schema, typeof schema, Record<never, never>>
+      ProcedureImplementer<Context, Context, typeof schema, typeof schema, Record<never, never>>
     >()
 
     expectTypeOf(implementer.pong).toEqualTypeOf<
-      ProcedureImplementer<WELL_CONTEXT, undefined, undefined, undefined, Record<never, never>>
+      ProcedureImplementer<Context, Context, undefined, undefined, Record<never, never>>
     >()
 
     expectTypeOf(implementer.nested).toMatchTypeOf<
-      Omit<RouterImplementer<WELL_CONTEXT, undefined, typeof contract.nested>, '~type' | '~orpc'>
+      Omit<RouterImplementer<Context, Context, typeof contract.nested>, '~type' | '~orpc'>
     >()
 
     expectTypeOf(implementer.nested.ping).toEqualTypeOf<
-      ProcedureImplementer<WELL_CONTEXT, undefined, typeof schema, typeof schema, Record<never, never>>
+      ProcedureImplementer<Context, Context, typeof schema, typeof schema, Record<never, never>>
     >()
 
     expectTypeOf(implementer.nested.pong).toEqualTypeOf<
-      ProcedureImplementer<WELL_CONTEXT, undefined, undefined, undefined, Record<never, never>>
+      ProcedureImplementer<Context, Context, undefined, undefined, Record<never, never>>
     >()
   })
 
@@ -81,23 +81,23 @@ describe('ChainableImplementer', () => {
     const implementer = createChainableImplementer(contract, { middlewares: [], inputValidationIndex: 0, outputValidationIndex: 0 })
 
     expectTypeOf(implementer).toMatchTypeOf<
-      Omit<RouterImplementer<WELL_CONTEXT, undefined, typeof contract>, '~type' | '~orpc'>
+      Omit<RouterImplementer<Context, Context, typeof contract>, '~type' | '~orpc'>
     >()
 
     expectTypeOf(implementer.use).toMatchTypeOf<
-      ProcedureImplementer<WELL_CONTEXT, undefined, typeof schema, typeof schema, Record<never, never>>
+      ProcedureImplementer<Context, Context, typeof schema, typeof schema, Record<never, never>>
     >()
 
     expectTypeOf(implementer.router).toMatchTypeOf<
-      Omit<RouterImplementer<WELL_CONTEXT, undefined, typeof contract.router>, '~type' | '~orpc'>
+      Omit<RouterImplementer<Context, Context, typeof contract.router>, '~type' | '~orpc'>
     >()
 
     expectTypeOf(implementer.router.use).toMatchTypeOf<
-      ProcedureImplementer<WELL_CONTEXT, undefined, typeof schema, typeof schema, Record<never, never>>
+      ProcedureImplementer<Context, Context, typeof schema, typeof schema, Record<never, never>>
     >()
 
     expectTypeOf(implementer.router.router).toMatchTypeOf<
-      ProcedureImplementer<WELL_CONTEXT, undefined, undefined, undefined, Record<never, never>>
+      ProcedureImplementer<Context, Context, undefined, undefined, Record<never, never>>
     >()
   })
 })
@@ -105,17 +105,25 @@ describe('ChainableImplementer', () => {
 describe('createChainableImplementer', () => {
   it('with procedure', () => {
     const implementer = createChainableImplementer(ping, { middlewares: [], inputValidationIndex: 0, outputValidationIndex: 0 })
-    expectTypeOf(implementer).toEqualTypeOf<ChainableImplementer<WELL_CONTEXT, undefined, typeof ping>>()
+    expectTypeOf(implementer).toEqualTypeOf<ChainableImplementer<Context, Context, typeof ping>>()
   })
 
   it('with router', () => {
     const implementer = createChainableImplementer(contract, { middlewares: [], inputValidationIndex: 0, outputValidationIndex: 0 })
-    expectTypeOf(implementer).toEqualTypeOf<ChainableImplementer<WELL_CONTEXT, undefined, typeof contract>>()
+    expectTypeOf(implementer).toEqualTypeOf<ChainableImplementer<Context, Context, typeof contract>>()
   })
 
   it('with middlewares', () => {
     const mid = {} as Middleware<{ auth: boolean }, { db: string }, unknown, unknown, Record<never, never>>
-    const implementer = createChainableImplementer(contract, { middlewares: [mid], inputValidationIndex: 1, outputValidationIndex: 1 })
-    expectTypeOf(implementer).toEqualTypeOf<ChainableImplementer<{ auth: boolean }, { db: string }, typeof contract>>()
+    const implementer = createChainableImplementer(contract, {
+      __initialContext: {} as TypeInitialContext<{ auth: boolean }>,
+      __currentContext: {} as TypeCurrentContext<{ auth: boolean } & { db: string }>,
+      middlewares: [mid],
+      inputValidationIndex: 1,
+      outputValidationIndex: 1,
+    })
+    expectTypeOf(implementer).toEqualTypeOf<
+      ChainableImplementer<{ auth: boolean }, { auth: boolean } & { db: string }, typeof contract>
+    >()
   })
 })

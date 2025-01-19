@@ -1,18 +1,18 @@
 import type { ContractProcedure, ErrorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Promisable } from '@orpc/shared'
+import type { Context, TypeInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { Lazy } from './lazy'
 import type { Middleware } from './middleware'
-import type { AbortSignal, Context, MergeContext } from './types'
+import type { AbortSignal } from './types'
 import { isContractProcedure } from '@orpc/contract'
 
 export interface ProcedureHandlerOptions<
-  TContext extends Context,
-  TExtraContext extends Context,
+  TCurrentContext extends Context,
   TInput,
   TErrorConstructorMap extends ORPCErrorConstructorMap<any>,
 > {
-  context: MergeContext<TContext, TExtraContext>
+  context: TCurrentContext
   input: TInput
   path: string[]
   procedure: ANY_PROCEDURE
@@ -21,15 +21,14 @@ export interface ProcedureHandlerOptions<
 }
 
 export interface ProcedureHandler<
-  TContext extends Context,
-  TExtraContext extends Context,
+  TCurrentContext extends Context,
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
   TErrorMap extends ErrorMap,
 > {
   (
-    opt: ProcedureHandlerOptions<TContext, TExtraContext, SchemaOutput<TInputSchema>, ORPCErrorConstructorMap<TErrorMap>>
+    opt: ProcedureHandlerOptions<TCurrentContext, SchemaOutput<TInputSchema>, ORPCErrorConstructorMap<TErrorMap>>
   ): Promisable<SchemaInput<TOutputSchema, THandlerOutput>>
 }
 
@@ -45,32 +44,33 @@ export interface ProcedureHandler<
  * The only downside is that direct access to them requires careful type checking to ensure safety.
  */
 export interface ProcedureDef<
-  TContext extends Context,
-  TExtraContext extends Context,
+  TInitialContext extends Context,
+  TCurrentContext extends Context,
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
   TErrorMap extends ErrorMap,
 > {
-  middlewares: Middleware<MergeContext<TContext, TExtraContext>, Partial<TExtraContext> | undefined, unknown, unknown, any>[]
+  __initialContext?: TypeInitialContext<TInitialContext>
+  middlewares: Middleware<any, any, any, any, any>[]
   inputValidationIndex: number
   outputValidationIndex: number
   contract: ContractProcedure<TInputSchema, TOutputSchema, TErrorMap>
-  handler: ProcedureHandler<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, any>
+  handler: ProcedureHandler<TCurrentContext, any, any, THandlerOutput, any>
 }
 
 export class Procedure<
-  TContext extends Context,
-  TExtraContext extends Context,
+  TInitialContext extends Context,
+  TCurrentContext extends Context,
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
   TErrorMap extends ErrorMap,
 > {
   '~type' = 'Procedure' as const
-  '~orpc': ProcedureDef<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>
+  '~orpc': ProcedureDef<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>
 
-  constructor(def: ProcedureDef<TContext, TExtraContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>) {
+  constructor(def: ProcedureDef<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>) {
     this['~orpc'] = def
   }
 }

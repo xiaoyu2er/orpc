@@ -45,7 +45,7 @@ export class OpenAPIHandler<T extends Context> implements FetchHandler<T> {
   }
 
   async handle(request: Request, ...[options]: FetchHandleRest<T>): Promise<FetchHandleResult> {
-    const context = options?.context as T
+    const context = options?.context ?? {} as T
     const headers = request.headers
     const accept = headers.get('accept') || undefined
 

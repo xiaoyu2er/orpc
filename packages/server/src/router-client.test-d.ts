@@ -1,6 +1,7 @@
 import type { Client, NestedClient, ORPCError } from '@orpc/contract'
+import type { Context } from './context'
 import type { Procedure } from './procedure'
-import type { Meta, WELL_CONTEXT } from './types'
+import type { Meta } from './types'
 import { z } from 'zod'
 import { lazy } from './lazy'
 import { createRouterClient, type RouterClient } from './router-client'
@@ -12,8 +13,8 @@ const baseErrors = {
   },
 }
 
-const ping = {} as Procedure<WELL_CONTEXT, undefined, typeof schema, typeof schema, { val: string }, typeof baseErrors>
-const pong = {} as Procedure<{ auth: boolean }, undefined, undefined, undefined, unknown, Record<never, never>>
+const ping = {} as Procedure<Context, Context, typeof schema, typeof schema, { val: string }, typeof baseErrors>
+const pong = {} as Procedure<{ auth: boolean }, { auth: boolean }, undefined, undefined, unknown, Record<never, never>>
 
 const router = {
   ping,
@@ -109,9 +110,7 @@ describe('createRouterClient', () => {
       context: { auth: true },
       onSuccess: async ({ output }, context, meta) => {
         expectTypeOf(output).toEqualTypeOf<unknown>()
-        expectTypeOf(context).toEqualTypeOf<Record<string, unknown> & {
-          auth: boolean
-        }>()
+        expectTypeOf(context).toEqualTypeOf<Context & { auth: boolean }>()
         expectTypeOf(meta).toEqualTypeOf<Meta>()
       },
     })

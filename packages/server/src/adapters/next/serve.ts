@@ -1,13 +1,15 @@
 import type { NextRequest } from 'next/server'
-import type { Context } from '../../types'
+import type { Context } from '../../context'
 import type { FetchHandleOptions, FetchHandler } from '../fetch'
 import { value, type Value } from '@orpc/shared'
 
 export type ServeOptions<T extends Context> =
   & Omit<FetchHandleOptions<T>, 'context'>
-  & (undefined extends T ? { context?: Value<T, [NextRequest]> } : { context: Value<T, [NextRequest]> })
+  & (Record<never, never> extends T ? { context?: Value<T, [NextRequest]> } : { context: Value<T, [NextRequest]> })
 
-export type ServeRest<T extends Context> = [options: ServeOptions<T>] | (undefined extends T ? [] : never)
+export type ServeRest<T extends Context> =
+  | [options: ServeOptions<T>]
+  | (Record<never, never> extends T ? [] : never)
 
 export interface ServeResult {
   GET: (req: NextRequest) => Promise<Response>
@@ -19,7 +21,7 @@ export interface ServeResult {
 
 export function serve<T extends Context>(handler: FetchHandler<T>, ...[options]: ServeRest<T>): ServeResult {
   const main = async (req: NextRequest) => {
-    const context = await value(options?.context, req) as any
+    const context = await value(options?.context ?? {}, req) as any
 
     const { matched, response } = await handler.handle(req, { ...options, context })
 

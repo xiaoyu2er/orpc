@@ -1,47 +1,62 @@
 import type { ErrorMap, ErrorMapGuard, ErrorMapSuggestions, StrictErrorMap } from './error-map'
 import type { ContractProcedure } from './procedure'
 import type { ContractRouter } from './router'
-import type { HTTPPath } from './types'
 import { isContractProcedure } from './procedure'
 import { DecoratedContractProcedure } from './procedure-decorated'
+import { type HTTPPath, mergePrefix, type MergePrefix, mergeTags, type MergeTags, type PrefixRoute, type Route, type UnshiftTagRoute } from './route'
 
-export type AdaptedContractRouter<TContract extends ContractRouter<any>, TErrorMapExtra extends ErrorMap> = {
-  [K in keyof TContract]: TContract[K] extends ContractProcedure<infer UInputSchema, infer UOutputSchema, infer UErrors>
-    ? DecoratedContractProcedure<UInputSchema, UOutputSchema, UErrors & TErrorMapExtra>
+export type AdaptRoute<TRoute extends Route, TPrefix extends HTTPPath | undefined, TTags extends string[] | undefined> =
+  TPrefix extends HTTPPath
+    ? PrefixRoute<TTags extends string[] ? UnshiftTagRoute<TRoute, TTags> : TRoute, TPrefix>
+    : TTags extends string[]
+      ? UnshiftTagRoute<TRoute, TTags>
+      : TRoute
+
+export type AdaptedContractRouter<
+  TContract extends ContractRouter<any>,
+  TErrorMapExtra extends ErrorMap,
+  TPrefix extends HTTPPath | undefined,
+  TTags extends string[] | undefined,
+> = {
+  [K in keyof TContract]: TContract[K] extends
+  ContractProcedure<infer UInputSchema, infer UOutputSchema, infer UErrors, infer URoute>
+    ? DecoratedContractProcedure<UInputSchema, UOutputSchema, UErrors & TErrorMapExtra, AdaptRoute<URoute, TPrefix, TTags>>
     : TContract[K] extends ContractRouter<any>
-      ? AdaptedContractRouter<TContract[K], TErrorMapExtra>
+      ? AdaptedContractRouter<TContract[K], TErrorMapExtra, TPrefix, TTags>
       : never
 }
 
-export interface ContractRouterBuilderDef<TErrorMap extends ErrorMap> {
-  prefix?: HTTPPath
-  tags?: string[]
+export interface ContractRouterBuilderDef<TErrorMap extends ErrorMap, TPrefix extends HTTPPath | undefined, TTags extends string[] | undefined> {
   errorMap: TErrorMap
+  prefix: TPrefix
+  tags: TTags
 }
 
-export class ContractRouterBuilder<TErrorMap extends ErrorMap> {
+export class ContractRouterBuilder<TErrorMap extends ErrorMap, TPrefix extends HTTPPath | undefined, TTags extends string[] | undefined> {
   '~type' = 'ContractProcedure' as const
-  '~orpc': ContractRouterBuilderDef<TErrorMap>
+  '~orpc': ContractRouterBuilderDef<TErrorMap, TPrefix, TTags>
 
-  constructor(def: ContractRouterBuilderDef<TErrorMap>) {
+  constructor(def: ContractRouterBuilderDef<TErrorMap, TPrefix, TTags>) {
     this['~orpc'] = def
   }
 
-  prefix(prefix: HTTPPath): ContractRouterBuilder<TErrorMap> {
+  prefix<U extends HTTPPath>(prefix: U): ContractRouterBuilder<TErrorMap, MergePrefix<TPrefix, U>, TTags> {
     return new ContractRouterBuilder({
       ...this['~orpc'],
-      prefix: `${this['~orpc'].prefix ?? ''}${prefix}`,
+      prefix: mergePrefix(this['~orpc'].prefix, prefix),
     })
   }
 
-  tag(...tags: string[]): ContractRouterBuilder<TErrorMap> {
+  tag<U extends string[]>(...tags: U): ContractRouterBuilder<TErrorMap, TPrefix, MergeTags<TTags, U>> {
     return new ContractRouterBuilder({
       ...this['~orpc'],
-      tags: [...(this['~orpc'].tags ?? []), ...tags],
+      tags: mergeTags(this['~orpc'].tags, tags),
     })
   }
 
-  errors<const U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(errors: U): ContractRouterBuilder<U & TErrorMap> {
+  errors<const U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(
+    errors: U,
+  ): ContractRouterBuilder<U & TErrorMap, TPrefix, TTags> {
     return new ContractRouterBuilder({
       ...this['~orpc'],
       errorMap: {
@@ -51,7 +66,9 @@ export class ContractRouterBuilder<TErrorMap extends ErrorMap> {
     })
   }
 
-  router<T extends ContractRouter<ErrorMap & Partial<StrictErrorMap<TErrorMap>>>>(router: T): AdaptedContractRouter<T, TErrorMap> {
+  router<T extends ContractRouter<ErrorMap & Partial<StrictErrorMap<TErrorMap>>>>(
+    router: T,
+  ): AdaptedContractRouter<T, TErrorMap, TPrefix, TTags> {
     if (isContractProcedure(router)) {
       let decorated = DecoratedContractProcedure.decorate(router)
 

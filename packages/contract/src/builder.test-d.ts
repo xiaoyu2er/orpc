@@ -1,10 +1,10 @@
+import type { ContractBuilder } from './builder'
 import type { ContractProcedure } from './procedure'
 import type { ContractProcedureBuilder } from './procedure-builder'
 import type { ContractProcedureBuilderWithInput } from './procedure-builder-with-input'
 import type { ContractProcedureBuilderWithOutput } from './procedure-builder-with-output'
 import type { AdaptedContractRouter, ContractRouterBuilder } from './router-builder'
 import { z } from 'zod'
-import { ContractBuilder } from './builder'
 
 const schema = z.object({ value: z.string() })
 
@@ -16,20 +16,11 @@ const baseErrorMap = {
   },
 }
 
-const builder = new ContractBuilder({
-  errorMap: baseErrorMap,
-  OutputSchema: undefined,
-  InputSchema: undefined,
-  config: {
-    initialRoute: {
-      description: 'from initial',
-    },
-  },
-})
+const builder = {} as ContractBuilder<{ initialRoute: { description: string } }, typeof baseErrorMap>
 
 describe('ContractBuilder', () => {
   it('is a contract procedure', () => {
-    expectTypeOf(builder).toMatchTypeOf<ContractProcedure<undefined, undefined, typeof baseErrorMap>>()
+    expectTypeOf(builder).toMatchTypeOf<ContractProcedure<undefined, undefined, typeof baseErrorMap, { description: string }>>()
   })
 
   it('.config', () => {

@@ -1,4 +1,4 @@
-import type { HTTPMethod, InputStructure } from './types'
+import type { HTTPMethod, InputStructure } from './route'
 
 export interface ContractConfig {
   defaultMethod: HTTPMethod

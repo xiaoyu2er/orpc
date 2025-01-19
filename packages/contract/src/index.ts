@@ -22,7 +22,8 @@ export * from './router-client'
 export * from './schema-utils'
 export * from './types'
 
-export const oc = new ContractBuilder<Record<never, never>>({
+export const oc = new ContractBuilder({
+  route: {},
   errorMap: {},
   InputSchema: undefined,
   OutputSchema: undefined,

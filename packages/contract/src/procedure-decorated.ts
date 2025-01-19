@@ -1,7 +1,7 @@
 import type { ErrorMap, ErrorMapGuard, ErrorMapSuggestions } from './error-map'
-import type { HTTPPath, MergeRoute, PrefixRoute, Route, UnshiftTagRoute } from './route'
 import type { Schema } from './types'
 import { ContractProcedure } from './procedure'
+import { type HTTPPath, mergeRoute, type MergeRoute, prefixRoute, type PrefixRoute, type Route, unshiftTagRoute, type UnshiftTagRoute } from './route'
 
 export class DecoratedContractProcedure<
   TInputSchema extends Schema,
@@ -41,10 +41,7 @@ export class DecoratedContractProcedure<
   ): DecoratedContractProcedure<TInputSchema, TOutputSchema, TErrorMap, MergeRoute<TRoute, U>> {
     return new DecoratedContractProcedure({
       ...this['~orpc'],
-      route: {
-        ...this['~orpc'].route,
-        ...route,
-      },
+      route: mergeRoute(this['~orpc'].route, route),
     })
   }
 
@@ -53,14 +50,7 @@ export class DecoratedContractProcedure<
   ): DecoratedContractProcedure<TInputSchema, TOutputSchema, TErrorMap, PrefixRoute<TRoute, U>> {
     return new DecoratedContractProcedure({
       ...this['~orpc'],
-      ...(this['~orpc'].route.path
-        ? {
-            route: {
-              ...this['~orpc'].route,
-              path: `${prefix}${this['~orpc'].route.path}`,
-            } as any,
-          }
-        : undefined),
+      route: prefixRoute(this['~orpc'].route, prefix),
     })
   }
 
@@ -69,13 +59,7 @@ export class DecoratedContractProcedure<
   ): DecoratedContractProcedure<TInputSchema, TOutputSchema, TErrorMap, UnshiftTagRoute<TRoute, U>> {
     return new DecoratedContractProcedure({
       ...this['~orpc'],
-      route: {
-        ...this['~orpc'].route,
-        tags: [
-          ...tags,
-          ...this['~orpc'].route?.tags?.filter(tag => !tags.includes(tag)) ?? [],
-        ] as any,
-      },
+      route: unshiftTagRoute(this['~orpc'].route, tags),
     })
   }
 }

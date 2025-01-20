@@ -81,13 +81,13 @@ export function mergeRoute<A extends Route, B extends Route>(a: A, b: B): MergeR
   }
 }
 
-export type PrefixRoute<TRoute extends Route, TPrefix extends HTTPPath> = Omit<TRoute, 'path'> & {
-  path: TRoute['path'] extends HTTPPath
-    ? `${TPrefix}${TRoute['path']}` extends HTTPPath
+export type PrefixRoute<TRoute extends Route, TPrefix extends HTTPPath> =
+  TRoute['path'] extends HTTPPath ? Omit<TRoute, 'path'> & {
+    path: `${TPrefix}${TRoute['path']}` extends HTTPPath
       ? `${TPrefix}${TRoute['path']}`
-      : `/${TPrefix}${TRoute['path']}` // I don't know why typescript complain, but this line ensures the result is a valid HTTPPath
-    : TRoute['path']
-}
+      : TRoute['path']
+  }
+    : TRoute
 
 export function prefixRoute<TRoute extends Route, TPrefix extends HTTPPath>(
   route: TRoute,
@@ -103,21 +103,17 @@ export function prefixRoute<TRoute extends Route, TPrefix extends HTTPPath>(
   }
 }
 
-export type UnshiftTagRoute<TRoute extends Route, TTags extends string[]> = Omit<TRoute, 'tags'> & {
+export type UnshiftTagRoute<TRoute extends Route, TTags extends readonly string[]> = Omit<TRoute, 'tags'> & {
   tags: TRoute['tags'] extends string[] ? [...TTags, ...TRoute['tags']] : TTags
 }
 
-export function unshiftTagRoute<TRoute extends Route, TTags extends string[]>(
+export function unshiftTagRoute<TRoute extends Route, TTags extends readonly string[]>(
   route: TRoute,
   tags: TTags,
 ): UnshiftTagRoute<TRoute, TTags> {
-  if (!route.tags) {
-    return route as any
-  }
-
   return {
     ...route,
-    tags: [...tags, ...route.tags] as any,
+    tags: [...tags, ...route.tags ?? []] as any,
   }
 }
 
@@ -127,8 +123,8 @@ export function mergePrefix<A extends HTTPPath | undefined, B extends HTTPPath>(
   return a ? `${a}${b}` : b as any
 }
 
-export type MergeTags<A extends string[] | undefined, B extends string[]> = A extends string[] ? [...A, ...B] : B
+export type MergeTags<A extends readonly string[] | undefined, B extends readonly string[]> = A extends readonly string[] ? [...A, ...B] : B
 
-export function mergeTags<A extends string[] | undefined, B extends string[]>(a: A, b: B): MergeTags<A, B> {
+export function mergeTags<A extends readonly string[] | undefined, B extends readonly string[]>(a: A, b: B): MergeTags<A, B> {
   return a ? [...a, ...b] : b as any
 }

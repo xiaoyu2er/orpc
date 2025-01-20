@@ -22,7 +22,7 @@ export class ContractProcedureBuilderWithInput<
     return new ContractProcedureBuilderWithInput(decorated['~orpc'])
   }
 
-  route<U extends Route>(route: U): ContractProcedureBuilderWithInput<TInputSchema, TErrorMap, MergeRoute<TRoute, U>> {
+  route<const U extends Route>(route: U): ContractProcedureBuilderWithInput<TInputSchema, TErrorMap, MergeRoute<TRoute, U>> {
     const decorated = DecoratedContractProcedure.decorate(this).route(route)
     return new ContractProcedureBuilderWithInput(decorated['~orpc'])
   }

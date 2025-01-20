@@ -36,7 +36,7 @@ export class DecoratedContractProcedure<
     })
   }
 
-  route<U extends Route>(
+  route<const U extends Route>(
     route: U,
   ): DecoratedContractProcedure<TInputSchema, TOutputSchema, TErrorMap, MergeRoute<TRoute, U>> {
     return new DecoratedContractProcedure({

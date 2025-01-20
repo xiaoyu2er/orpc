@@ -17,8 +17,8 @@ describe('contractProcedure', () => {
 
 describe('isContractProcedure', () => {
   it('works', () => {
-    expect(new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: {} })).toSatisfy(isContractProcedure)
-    expect(new ContractProcedure({ InputSchema: z.object({}), OutputSchema: undefined, errorMap: {} })).toSatisfy(isContractProcedure)
+    expect(new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: {}, route: {} })).toSatisfy(isContractProcedure)
+    expect(new ContractProcedure({ InputSchema: z.object({}), OutputSchema: undefined, errorMap: {}, route: {} })).toSatisfy(isContractProcedure)
     expect(new ContractProcedure({ InputSchema: z.object({}), OutputSchema: undefined, route: {}, errorMap: {} })).toSatisfy(isContractProcedure)
     expect({}).not.toSatisfy(isContractProcedure)
     expect(true).not.toSatisfy(isContractProcedure)
@@ -27,8 +27,8 @@ describe('isContractProcedure', () => {
   })
 
   it('works with raw object', () => {
-    expect(Object.assign({}, new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: {} }))).toSatisfy(isContractProcedure)
-    expect(Object.assign({}, new ContractProcedure({ InputSchema: z.object({}), OutputSchema: undefined, errorMap: {} }))).toSatisfy(isContractProcedure)
+    expect(Object.assign({}, new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: {}, route: {} }))).toSatisfy(isContractProcedure)
+    expect(Object.assign({}, new ContractProcedure({ InputSchema: z.object({}), OutputSchema: undefined, errorMap: {}, route: {} }))).toSatisfy(isContractProcedure)
     expect(Object.assign({}, new ContractProcedure({ InputSchema: z.object({}), OutputSchema: undefined, route: {}, errorMap: {} }))).toSatisfy(isContractProcedure)
   })
 })

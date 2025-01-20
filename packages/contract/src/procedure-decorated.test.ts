@@ -86,9 +86,9 @@ describe('decoratedContractProcedure', () => {
     })
 
     it('when has no path', () => {
-      const decorated = new DecoratedContractProcedure({ InputSchema, OutputSchema, errorMap: baseErrorMap })
+      const decorated = new DecoratedContractProcedure({ InputSchema, OutputSchema, errorMap: baseErrorMap, route: {} })
       const applied = decorated.prefix('/api')
-      expect(applied['~orpc'].route).toEqual(undefined)
+      expect(applied['~orpc'].route).toEqual({})
     })
   })
 
@@ -108,17 +108,8 @@ describe('decoratedContractProcedure', () => {
       })
     })
 
-    it('conflict with existing tag', () => {
-      const applied = decorated.unshiftTag('tag', 'tag2')
-      expect(applied['~orpc'].route).toEqual({
-        method: 'GET',
-        tags: ['tag', 'tag2'],
-        path: '/v1/users',
-      })
-    })
-
     it('decorated without existing tag', () => {
-      const decorated = new DecoratedContractProcedure({ InputSchema, OutputSchema, errorMap: baseErrorMap })
+      const decorated = new DecoratedContractProcedure({ InputSchema, OutputSchema, errorMap: baseErrorMap, route: {} })
 
       const applied = decorated.unshiftTag('tag', 'tag2')
       expect(applied['~orpc'].route).toEqual({

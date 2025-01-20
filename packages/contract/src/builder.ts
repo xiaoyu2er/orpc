@@ -34,7 +34,7 @@ export class ContractBuilder<TConfig extends ContractBuilderConfig, TErrorMap ex
     this['~orpc'].config = def.config
   }
 
-  config<U extends ContractBuilderConfig>(config: U): ContractBuilder<MergeContractBuilderConfig<TConfig, U>, TErrorMap> {
+  config<const U extends ContractBuilderConfig>(config: U): ContractBuilder<MergeContractBuilderConfig<TConfig, U>, TErrorMap> {
     return new ContractBuilder({
       ...this['~orpc'],
       config: {

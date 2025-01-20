@@ -5,10 +5,10 @@ import { isContractProcedure } from './procedure'
 import { DecoratedContractProcedure } from './procedure-decorated'
 import { type HTTPPath, mergePrefix, type MergePrefix, mergeTags, type MergeTags, type PrefixRoute, type Route, type UnshiftTagRoute } from './route'
 
-export type AdaptRoute<TRoute extends Route, TPrefix extends HTTPPath | undefined, TTags extends string[] | undefined> =
+export type AdaptRoute<TRoute extends Route, TPrefix extends HTTPPath | undefined, TTags extends readonly string[] | undefined> =
   TPrefix extends HTTPPath
-    ? PrefixRoute<TTags extends string[] ? UnshiftTagRoute<TRoute, TTags> : TRoute, TPrefix>
-    : TTags extends string[]
+    ? PrefixRoute<TTags extends readonly string[] ? UnshiftTagRoute<TRoute, TTags> : TRoute, TPrefix>
+    : TTags extends readonly string[]
       ? UnshiftTagRoute<TRoute, TTags>
       : TRoute
 
@@ -16,7 +16,7 @@ export type AdaptedContractRouter<
   TContract extends ContractRouter<any>,
   TErrorMapExtra extends ErrorMap,
   TPrefix extends HTTPPath | undefined,
-  TTags extends string[] | undefined,
+  TTags extends readonly string[] | undefined,
 > = {
   [K in keyof TContract]: TContract[K] extends
   ContractProcedure<infer UInputSchema, infer UOutputSchema, infer UErrors, infer URoute>
@@ -26,13 +26,13 @@ export type AdaptedContractRouter<
       : never
 }
 
-export interface ContractRouterBuilderDef<TErrorMap extends ErrorMap, TPrefix extends HTTPPath | undefined, TTags extends string[] | undefined> {
+export interface ContractRouterBuilderDef<TErrorMap extends ErrorMap, TPrefix extends HTTPPath | undefined, TTags extends readonly string[] | undefined> {
   errorMap: TErrorMap
   prefix: TPrefix
   tags: TTags
 }
 
-export class ContractRouterBuilder<TErrorMap extends ErrorMap, TPrefix extends HTTPPath | undefined, TTags extends string[] | undefined> {
+export class ContractRouterBuilder<TErrorMap extends ErrorMap, TPrefix extends HTTPPath | undefined, TTags extends readonly string[] | undefined> {
   '~type' = 'ContractProcedure' as const
   '~orpc': ContractRouterBuilderDef<TErrorMap, TPrefix, TTags>
 

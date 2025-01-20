@@ -22,7 +22,7 @@ export class ContractProcedureBuilderWithOutput<
     return new ContractProcedureBuilderWithOutput(decorated['~orpc'])
   }
 
-  route<U extends Route>(route: U): ContractProcedureBuilderWithOutput<TOutputSchema, TErrorMap, MergeRoute<TRoute, U>> {
+  route<const U extends Route>(route: U): ContractProcedureBuilderWithOutput<TOutputSchema, TErrorMap, MergeRoute<TRoute, U>> {
     const decorated = DecoratedContractProcedure.decorate(this).route(route)
     return new ContractProcedureBuilderWithOutput(decorated['~orpc'])
   }

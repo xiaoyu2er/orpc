@@ -16,6 +16,15 @@ export type Router<
       }
 >
 
+export type RouterToContract<T extends Router<any, any>> =
+  T extends Lazy<infer U extends Router<any, any>>
+    ? RouterToContract<U>
+    : T extends Procedure<any, any, infer UInputSchema, infer UOutputSchema, any, infer UErrorMap, infer URoute>
+      ? ContractProcedure<UInputSchema, UOutputSchema, UErrorMap, URoute>
+      : {
+          [K in keyof T]: T[K] extends Router<any, any> ? RouterToContract<T[K]> : never
+        }
+
 export type ANY_ROUTER = Router<any, any>
 
 export type InferRouterInputs<T extends ANY_ROUTER> =

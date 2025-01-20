@@ -1,9 +1,10 @@
+import type { ContractRouter, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, HTTPPath, Route, StrictErrorMap } from '@orpc/contract'
 import type { ConflictContextGuard, Context, TypeCurrentContext, TypeInitialContext } from './context'
 import type { FlattenLazy, Lazy } from './lazy'
 import type { ANY_MIDDLEWARE, Middleware } from './middleware'
 import type { ANY_PROCEDURE, Procedure } from './procedure'
 import type { ANY_ROUTER, Router } from './router'
-import { type ContractRouter, type ErrorMap, type ErrorMapGuard, type ErrorMapSuggestions, type HTTPPath, mergePrefix, mergeTags, type StrictErrorMap } from '@orpc/contract'
+import { mergePrefix, mergeTags } from '@orpc/contract'
 import { deepSetLazyRouterPrefix, getLazyRouterPrefix } from './hidden'
 import { flatLazy, isLazy, lazy, unlazy } from './lazy'
 import { type DecoratedLazy, decorateLazy } from './lazy-decorated'
@@ -16,8 +17,8 @@ export type AdaptedRouter<
   TErrorMapExtra extends ErrorMap,
 > = TRouter extends Lazy<infer U extends ANY_ROUTER>
   ? DecoratedLazy<AdaptedRouter<TInitialContext, U, TErrorMapExtra>>
-  : TRouter extends Procedure<any, infer UCurrentContext, infer UInputSchema, infer UOutputSchema, infer UFuncOutput, infer UErrorMap, infer URoute>
-    ? DecoratedProcedure<TInitialContext, UCurrentContext, UInputSchema, UOutputSchema, UFuncOutput, UErrorMap & TErrorMapExtra, URoute>
+  : TRouter extends Procedure<any, infer UCurrentContext, infer UInputSchema, infer UOutputSchema, infer UFuncOutput, infer UErrorMap, any>
+    ? DecoratedProcedure<TInitialContext, UCurrentContext, UInputSchema, UOutputSchema, UFuncOutput, UErrorMap & TErrorMapExtra, Route>
     : {
         [K in keyof TRouter]: TRouter[K] extends ANY_ROUTER ? AdaptedRouter<TInitialContext, TRouter[K], TErrorMapExtra> : never
       }

@@ -29,6 +29,7 @@ const builder = new ProcedureBuilderWithInput({
     InputSchema: inputSchema,
     OutputSchema: undefined,
     errorMap: baseErrors,
+    route: {},
   }),
 })
 

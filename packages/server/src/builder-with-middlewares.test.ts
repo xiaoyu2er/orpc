@@ -9,6 +9,9 @@ import { ProcedureBuilderWithInput } from './procedure-builder-with-input'
 import { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
 import { DecoratedProcedure } from './procedure-decorated'
 import { RouterBuilder } from './router-builder'
+import * as routerUtils from './router-utils'
+
+const unshiftMiddlewaresRouterSpy = vi.spyOn(routerUtils, 'unshiftMiddlewaresRouter')
 
 vi.mock('./router-builder', async (origin) => {
   const RouterBuilder = vi.fn()
@@ -135,9 +138,8 @@ describe('builderWithMiddlewares', () => {
 
     const applied = builder.router(router)
 
-    expect(applied).toBe(RouterBuilderRouterSpy.mock.results[0]!.value)
-    expect(RouterBuilderRouterSpy).toHaveBeenCalledWith(router)
-    expect(RouterBuilder).toHaveBeenCalledWith(expect.objectContaining({ middlewares: [mid] }))
+    expect(applied).toBe(unshiftMiddlewaresRouterSpy.mock.results[0]!.value)
+    expect(unshiftMiddlewaresRouterSpy).toHaveBeenCalledWith(router, expect.objectContaining({ middlewares: [mid] }))
   })
 
   it('.lazy', () => {
@@ -147,11 +149,9 @@ describe('builderWithMiddlewares', () => {
     }
 
     const applied = builder.lazy(() => Promise.resolve({ default: router }))
-
-    expect(applied).toBe(RouterBuilderLazySpy.mock.results[0]!.value)
-    expect(RouterBuilderLazySpy).toHaveBeenCalledWith(expect.any(Function))
-    expect(RouterBuilder).toHaveBeenCalledWith(expect.objectContaining({ middlewares: [mid] }))
-    expect(unlazy(RouterBuilderLazySpy.mock.results[0]!.value)).resolves.toEqual({ default: '__lazy__' })
+    expect(applied).toBe(unshiftMiddlewaresRouterSpy.mock.results[0]!.value)
+    expect(unshiftMiddlewaresRouterSpy).toHaveBeenCalledWith(expect.any(Object), expect.objectContaining({ middlewares: [mid] }))
+    expect(unlazy(unshiftMiddlewaresRouterSpy.mock.results[0]!.value)).resolves.toEqual({ default: router })
   })
 
   it('.contract', () => {

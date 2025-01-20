@@ -20,6 +20,7 @@ export * from './router'
 export * from './router-builder'
 export * from './router-client'
 export * from './router-implementer'
+export * from './router-utils'
 export * from './types'
 
 export { isDefinedError, ORPCError, safe, type } from '@orpc/contract'

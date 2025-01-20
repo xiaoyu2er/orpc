@@ -1,9 +1,10 @@
-import type { ContractRouter, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, HTTPPath, StrictErrorMap } from '@orpc/contract'
+import type { ContractRouter, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, HTTPPath, Route, StrictErrorMap } from '@orpc/contract'
 import type { ConflictContextGuard, Context, TypeCurrentContext, TypeInitialContext } from './context'
 import type { FlattenLazy, Lazy } from './lazy'
 import type { ANY_MIDDLEWARE, Middleware } from './middleware'
 import type { ANY_PROCEDURE, Procedure } from './procedure'
 import type { ANY_ROUTER, Router } from './router'
+import { mergePrefix, mergeTags } from '@orpc/contract'
 import { deepSetLazyRouterPrefix, getLazyRouterPrefix } from './hidden'
 import { flatLazy, isLazy, lazy, unlazy } from './lazy'
 import { type DecoratedLazy, decorateLazy } from './lazy-decorated'
@@ -16,8 +17,8 @@ export type AdaptedRouter<
   TErrorMapExtra extends ErrorMap,
 > = TRouter extends Lazy<infer U extends ANY_ROUTER>
   ? DecoratedLazy<AdaptedRouter<TInitialContext, U, TErrorMapExtra>>
-  : TRouter extends Procedure<any, infer UCurrentContext, infer UInputSchema, infer UOutputSchema, infer UFuncOutput, infer UErrorMap>
-    ? DecoratedProcedure<TInitialContext, UCurrentContext, UInputSchema, UOutputSchema, UFuncOutput, UErrorMap & TErrorMapExtra>
+  : TRouter extends Procedure<any, infer UCurrentContext, infer UInputSchema, infer UOutputSchema, infer UFuncOutput, infer UErrorMap, any>
+    ? DecoratedProcedure<TInitialContext, UCurrentContext, UInputSchema, UOutputSchema, UFuncOutput, UErrorMap & TErrorMapExtra, Route>
     : {
         [K in keyof TRouter]: TRouter[K] extends ANY_ROUTER ? AdaptedRouter<TInitialContext, TRouter[K], TErrorMapExtra> : never
       }
@@ -57,18 +58,20 @@ export class RouterBuilder<
   prefix(prefix: HTTPPath): RouterBuilder<TInitialContext, TCurrentContext, TErrorMap> {
     return new RouterBuilder({
       ...this['~orpc'],
-      prefix: `${this['~orpc'].prefix ?? ''}${prefix}`,
+      prefix: mergePrefix(this['~orpc'].prefix, prefix),
     })
   }
 
   tag(...tags: string[]): RouterBuilder<TInitialContext, TCurrentContext, TErrorMap> {
     return new RouterBuilder({
       ...this['~orpc'],
-      tags: [...(this['~orpc'].tags ?? []), ...tags],
+      tags: mergeTags(this['~orpc'].tags, tags),
     })
   }
 
-  errors<U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(errors: U): RouterBuilder<TInitialContext, TCurrentContext, TErrorMap & U> {
+  errors<U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(
+    errors: U,
+  ): RouterBuilder<TInitialContext, TCurrentContext, StrictErrorMap<U> & TErrorMap> {
     return new RouterBuilder({
       ...this['~orpc'],
       errorMap: {
@@ -92,14 +95,14 @@ export class RouterBuilder<
     return builder as typeof builder & ConflictContextGuard<TCurrentContext & U>
   }
 
-  router<U extends Router<TCurrentContext, ContractRouter<ErrorMap & Partial<StrictErrorMap<TErrorMap>>>>>(
+  router<U extends Router<TCurrentContext, ContractRouter<ErrorMap & Partial<TErrorMap>>>>(
     router: U,
   ): AdaptedRouter<TInitialContext, U, TErrorMap> {
     const adapted = adapt(router, this['~orpc'])
     return adapted as any
   }
 
-  lazy<U extends Router<TCurrentContext, ContractRouter<ErrorMap & Partial<StrictErrorMap<TErrorMap>>>>>(
+  lazy<U extends Router<TCurrentContext, ContractRouter<ErrorMap & Partial<TErrorMap>>>>(
     loader: () => Promise<{ default: U }>,
   ): AdaptedRouter<TInitialContext, FlattenLazy<U>, TErrorMap> {
     const adapted = adapt(flatLazy(lazy(loader)), this['~orpc'])

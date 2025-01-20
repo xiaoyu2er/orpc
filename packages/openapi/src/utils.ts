@@ -1,7 +1,7 @@
 import type { ContractRouter, HTTPPath, WELL_CONTRACT_PROCEDURE } from '@orpc/contract'
 import type { ANY_PROCEDURE, ANY_ROUTER, Lazy } from '@orpc/server'
 import { isContractProcedure } from '@orpc/contract'
-import { getRouterContract, isLazy, isProcedure, unlazy } from '@orpc/server'
+import { isLazy, isProcedure, unlazy } from '@orpc/server'
 
 export interface EachLeafOptions {
   router: ContractRouter<any> | ANY_ROUTER
@@ -22,22 +22,7 @@ export function forEachContractProcedure(
   options: EachLeafOptions,
   callback: (options: EachLeafCallbackOptions) => void,
   result: EachContractLeafResultItem[] = [],
-  isCurrentRouterContract = false,
 ): EachContractLeafResultItem[] {
-  const hiddenContract = getRouterContract(options.router)
-
-  if (!isCurrentRouterContract && hiddenContract) {
-    return forEachContractProcedure(
-      {
-        path: options.path,
-        router: hiddenContract,
-      },
-      callback,
-      result,
-      true,
-    )
-  }
-
   if (isLazy(options.router)) {
     result.push({
       router: options.router,

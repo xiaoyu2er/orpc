@@ -1,4 +1,4 @@
-import type { ContractProcedure, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ContractProcedure, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, Route, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { ConflictContextGuard, Context, TypeCurrentContext, TypeInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { Middleware } from './middleware'
@@ -11,7 +11,7 @@ import { DecoratedProcedure } from './procedure-decorated'
 export interface ProcedureBuilderDef<TInitialContext extends Context, TCurrentContext extends Context, TErrorMap extends ErrorMap> {
   __initialContext?: TypeInitialContext<TInitialContext>
   __currentContext?: TypeCurrentContext<TCurrentContext>
-  contract: ContractProcedure<undefined, undefined, TErrorMap>
+  contract: ContractProcedure<undefined, undefined, TErrorMap, Route>
   middlewares: Middleware<any, any, any, any, any>[]
   inputValidationIndex: number
   outputValidationIndex: number
@@ -36,7 +36,7 @@ export class ProcedureBuilder<TInitialContext extends Context, TCurrentContext e
     })
   }
 
-  route(route: RouteOptions): ProcedureBuilder<TInitialContext, TCurrentContext, TErrorMap> {
+  route(route: Route): ProcedureBuilder<TInitialContext, TCurrentContext, TErrorMap> {
     return new ProcedureBuilder({
       ...this['~orpc'],
       contract: DecoratedContractProcedure
@@ -81,7 +81,7 @@ export class ProcedureBuilder<TInitialContext extends Context, TCurrentContext e
 
   handler<UFuncOutput>(
     handler: ProcedureHandler<TCurrentContext, undefined, undefined, UFuncOutput, TErrorMap>,
-  ): DecoratedProcedure<TInitialContext, TCurrentContext, undefined, undefined, UFuncOutput, TErrorMap> {
+  ): DecoratedProcedure<TInitialContext, TCurrentContext, undefined, undefined, UFuncOutput, TErrorMap, Route> {
     return new DecoratedProcedure({
       ...this['~orpc'],
       handler,

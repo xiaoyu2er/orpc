@@ -1,4 +1,4 @@
-import type { ClientRest, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ClientRest, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, HTTPPath, Route, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { ConflictContextGuard, Context } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { ANY_MIDDLEWARE, MapInputMiddleware, Middleware } from './middleware'
@@ -15,7 +15,8 @@ export class DecoratedProcedure<
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
   TErrorMap extends ErrorMap,
-> extends Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap> {
+  TRoute extends Route,
+> extends Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TRoute> {
   static decorate<
     UInitialContext extends Context,
     UCurrentContext extends Context,
@@ -23,8 +24,9 @@ export class DecoratedProcedure<
     UOutputSchema extends Schema,
     UHandlerOutput extends SchemaInput<UOutputSchema>,
     UErrorMap extends ErrorMap,
+    URoute extends Route,
   >(
-    procedure: Procedure<UInitialContext, UCurrentContext, UInputSchema, UOutputSchema, UHandlerOutput, UErrorMap>,
+    procedure: Procedure<UInitialContext, UCurrentContext, UInputSchema, UOutputSchema, UHandlerOutput, UErrorMap, URoute>,
   ) {
     if (procedure instanceof DecoratedProcedure) {
       return procedure
@@ -35,7 +37,7 @@ export class DecoratedProcedure<
 
   prefix(
     prefix: HTTPPath,
-  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap> {
+  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, Route> {
     return new DecoratedProcedure({
       ...this['~orpc'],
       contract: DecoratedContractProcedure.decorate(this['~orpc'].contract).prefix(prefix),
@@ -43,15 +45,17 @@ export class DecoratedProcedure<
   }
 
   route(
-    route: RouteOptions,
-  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap> {
+    route: Route,
+  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, Route> {
     return new DecoratedProcedure({
       ...this['~orpc'],
       contract: DecoratedContractProcedure.decorate(this['~orpc'].contract).route(route),
     })
   }
 
-  errors<U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(errors: U): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap & U> {
+  errors<U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(
+    errors: U,
+  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap & U, TRoute> {
     return new DecoratedProcedure({
       ...this['~orpc'],
       contract: DecoratedContractProcedure.decorate(this['~orpc'].contract).errors(errors),
@@ -67,7 +71,7 @@ export class DecoratedProcedure<
       ORPCErrorConstructorMap<TErrorMap>
     >,
   ): ConflictContextGuard<TCurrentContext & U>
-    & DecoratedProcedure<TInitialContext, TCurrentContext & U, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap >
+    & DecoratedProcedure<TInitialContext, TCurrentContext & U, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TRoute>
 
   use<UOutContext extends Context, UInput>(
     middleware: Middleware<
@@ -79,9 +83,9 @@ export class DecoratedProcedure<
     >,
     mapInput: MapInputMiddleware<SchemaOutput<TInputSchema, THandlerOutput>, UInput>,
   ): ConflictContextGuard<TCurrentContext & UOutContext>
-    & DecoratedProcedure<TInitialContext, TCurrentContext & UOutContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>
+    & DecoratedProcedure<TInitialContext, TCurrentContext & UOutContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TRoute>
 
-  use(middleware: Middleware<any, any, any, any, any>, mapInput?: MapInputMiddleware<any, any>): DecoratedProcedure<any, any, any, any, any, any> {
+  use(middleware: Middleware<any, any, any, any, any>, mapInput?: MapInputMiddleware<any, any>): DecoratedProcedure<any, any, any, any, any, any, any> {
     const middleware_ = mapInput
       ? decorateMiddleware(middleware).mapInput(mapInput)
       : middleware
@@ -92,7 +96,9 @@ export class DecoratedProcedure<
     })
   }
 
-  unshiftTag(...tags: string[]): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap> {
+  unshiftTag(
+    ...tags: string[]
+  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, Route> {
     return new DecoratedProcedure({
       ...this['~orpc'],
       contract: DecoratedContractProcedure.decorate(this['~orpc'].contract).unshiftTag(...tags),
@@ -108,7 +114,7 @@ export class DecoratedProcedure<
       ORPCErrorConstructorMap<TErrorMap>
     >[]
   ): ConflictContextGuard<TInitialContext & U>
-    & DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap> {
+    & DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TRoute> {
     // FIXME: this is a hack to make the type checker happy, but it's not a good solution
     const castedMiddlewares = middlewares as ANY_MIDDLEWARE[]
 
@@ -143,7 +149,7 @@ export class DecoratedProcedure<
    * Make this procedure callable (works like a function while still being a procedure).
    */
   callable<TClientContext>(...rest: CreateProcedureClientRest<TInitialContext, TOutputSchema, THandlerOutput, TClientContext>):
-    & Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>
+    & Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TRoute>
     & ProcedureClient<TClientContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap> {
     return Object.assign(createProcedureClient(this, ...rest), {
       '~type': 'Procedure' as const,
@@ -155,7 +161,7 @@ export class DecoratedProcedure<
    * Make this procedure compatible with server action (the same as .callable, but the type is compatible with server action).
    */
   actionable<TClientContext>(...rest: CreateProcedureClientRest<TInitialContext, TOutputSchema, THandlerOutput, TClientContext>):
-    & Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>
+    & Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TRoute>
     & ((...rest: ClientRest<TClientContext, SchemaInput<TInputSchema>>) => Promise<SchemaOutput<TOutputSchema, THandlerOutput>>) {
     return this.callable(...rest)
   }

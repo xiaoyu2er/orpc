@@ -1,4 +1,4 @@
-import type { HTTPMethod, InputStructure } from './types'
+import type { HTTPMethod, InputStructure, Route } from './route'
 
 export interface ContractConfig {
   defaultMethod: HTTPMethod
@@ -6,6 +6,7 @@ export interface ContractConfig {
   defaultSuccessDescription: string
   defaultInputStructure: InputStructure
   defaultOutputStructure: InputStructure
+  defaultInitialRoute: Route
 }
 
 const DEFAULT_CONFIG: ContractConfig = {
@@ -14,6 +15,7 @@ const DEFAULT_CONFIG: ContractConfig = {
   defaultSuccessDescription: 'OK',
   defaultInputStructure: 'compact',
   defaultOutputStructure: 'compact',
+  defaultInitialRoute: {},
 }
 
 export function fallbackContractConfig<T extends keyof ContractConfig>(key: T, value: ContractConfig[T] | undefined): ContractConfig[T] {

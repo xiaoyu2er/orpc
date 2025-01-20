@@ -10,8 +10,9 @@ import { decorateLazy } from './lazy-decorated'
 
 const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
 
-const ping = {} as Procedure<Context, { db: string }, undefined, typeof schema, { val: string }, Record<never, never>>
-const pong = {} as DecoratedProcedure<Context, Context, typeof schema, undefined, unknown, Record<never, never>>
+const route = { method: 'GET', path: '/ping' } as const
+const ping = {} as Procedure<Context, { db: string }, undefined, typeof schema, { val: string }, Record<never, never>, typeof route>
+const pong = {} as DecoratedProcedure<Context, Context, typeof schema, undefined, unknown, Record<never, never>, Record<never, never>>
 
 const lazyPing = lazy(() => Promise.resolve({ default: ping }))
 const lazyPong = lazy(() => Promise.resolve({ default: pong }))

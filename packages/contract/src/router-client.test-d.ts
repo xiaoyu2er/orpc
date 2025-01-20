@@ -17,7 +17,7 @@ const baseError = {
 const ping = new ContractProcedure({ InputSchema: schema, OutputSchema: undefined, route: { path: '/procedure' }, errorMap: baseError })
 const pinged = DecoratedContractProcedure.decorate(ping)
 
-const pong = new ContractProcedure({ InputSchema: undefined, OutputSchema: schema, errorMap: {} })
+const pong = new ContractProcedure({ InputSchema: undefined, OutputSchema: schema, errorMap: {}, route: {} })
 const ponged = DecoratedContractProcedure.decorate(pong)
 
 const router = {

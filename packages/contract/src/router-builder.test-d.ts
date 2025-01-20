@@ -1,3 +1,5 @@
+import type { StrictErrorMap } from './error-map'
+import type { PrefixRoute, UnshiftTagRoute } from './route'
 import type { AdaptedContractRouter, ContractRouterBuilder } from './router-builder'
 import { z } from 'zod'
 import { ContractProcedure } from './procedure'
@@ -14,10 +16,12 @@ const baseErrors = {
   },
 } as const
 
-const ping = new ContractProcedure({ InputSchema: schema, OutputSchema: undefined, route: { path: '/procedure' }, errorMap: baseErrors })
+const baseRoute = { path: '/procedure' } as const
+
+const ping = new ContractProcedure({ InputSchema: schema, OutputSchema: undefined, route: baseRoute, errorMap: baseErrors })
 const pinged = DecoratedContractProcedure.decorate(ping)
 
-const pong = new ContractProcedure({ InputSchema: undefined, OutputSchema: schema, errorMap: {} })
+const pong = new ContractProcedure({ InputSchema: undefined, OutputSchema: schema, errorMap: {}, route: {} })
 const ponged = DecoratedContractProcedure.decorate(pong)
 
 const router = {
@@ -33,7 +37,7 @@ const router = {
   },
 }
 
-const builder = {} as ContractRouterBuilder<typeof baseErrors>
+const builder = {} as ContractRouterBuilder<typeof baseErrors, '/api', ['api']>
 
 describe('AdaptedContractRouter', () => {
   it('decorate and add extra context', () => {
@@ -44,16 +48,33 @@ describe('AdaptedContractRouter', () => {
       },
     } as const
 
-    expectTypeOf<AdaptedContractRouter<typeof router, typeof extraErrors>['ping']>().toEqualTypeOf<
-      DecoratedContractProcedure<typeof schema, undefined, typeof baseErrors & typeof extraErrors>
+    type G = AdaptedContractRouter<typeof router, typeof extraErrors, '/api', ['api']>['ping']
+
+    expectTypeOf<AdaptedContractRouter<typeof router, typeof extraErrors, '/api', ['api']>['ping']>().toEqualTypeOf<
+      DecoratedContractProcedure<
+        typeof schema,
+        undefined,
+        typeof baseErrors & typeof extraErrors,
+        PrefixRoute<UnshiftTagRoute<typeof baseRoute, ['api']>, '/api'>
+      >
     >()
 
-    expectTypeOf<AdaptedContractRouter<typeof router, typeof extraErrors>['pinged']>().toEqualTypeOf<
-      DecoratedContractProcedure<typeof schema, undefined, typeof baseErrors & typeof extraErrors>
+    expectTypeOf<AdaptedContractRouter<typeof router, typeof extraErrors, '/api', ['api']>['pinged']>().toEqualTypeOf<
+      DecoratedContractProcedure<
+        typeof schema,
+        undefined,
+        typeof baseErrors & typeof extraErrors,
+        PrefixRoute<UnshiftTagRoute<typeof baseRoute, ['api']>, '/api'>
+      >
     >()
 
-    expectTypeOf<AdaptedContractRouter<typeof router, typeof extraErrors>['nested']['pong']>().toEqualTypeOf<
-      DecoratedContractProcedure<undefined, typeof schema, typeof extraErrors>
+    expectTypeOf<AdaptedContractRouter<typeof router, typeof extraErrors, '/api', ['api']>['nested']['pong']>().toEqualTypeOf<
+      DecoratedContractProcedure<
+        undefined,
+        typeof schema,
+        typeof extraErrors,
+        PrefixRoute<UnshiftTagRoute<Record<never, never>, ['api']>, '/api'>
+      >
     >()
   })
 
@@ -71,20 +92,25 @@ describe('router', () => {
   it('return adapted router', () => {
     const routed = builder.router(router)
 
-    expectTypeOf(routed).toEqualTypeOf<AdaptedContractRouter<typeof router, typeof baseErrors>>()
+    expectTypeOf(routed).toEqualTypeOf<AdaptedContractRouter<typeof router, typeof baseErrors, '/api', ['api']>>()
 
-    expectTypeOf(builder.router(ping)).toEqualTypeOf<AdaptedContractRouter<typeof ping, typeof baseErrors>>()
+    expectTypeOf(builder.router(ping)).toEqualTypeOf<AdaptedContractRouter<typeof ping, typeof baseErrors, '/api', ['api']>>()
   })
 
   it('throw on conflict error map', () => {
-    builder.router({ ping: {} as ContractProcedure<any, any, { BASE: typeof baseErrors['BASE'] }> })
+    builder.router({ ping: {} as ContractProcedure<any, any, { BASE: typeof baseErrors['BASE'] }, any> })
     // @ts-expect-error conflict
     builder.router({ ping: {} as ContractProcedure<any, any, { BASE: { message: string } }> })
   })
 
   it('only required partial match error map', () => {
-    expectTypeOf(builder.router({ ping: {} as ContractProcedure<any, any, { OTHER: { status: number } }> })).toEqualTypeOf<{
-      ping: DecoratedContractProcedure<any, any, { OTHER: { status: number } } & typeof baseErrors>
+    expectTypeOf(builder.router({ ping: {} as ContractProcedure<any, any, { OTHER: { status: number } }, typeof baseRoute> })).toEqualTypeOf<{
+      ping: DecoratedContractProcedure<
+        any,
+        any,
+        { OTHER: { status: number } } & typeof baseErrors,
+        PrefixRoute<UnshiftTagRoute<typeof baseRoute, ['api']>, '/api'>
+      >
     }>()
   })
 
@@ -101,7 +127,7 @@ describe('router', () => {
 describe('prefix', () => {
   it('return ContractRouterBuilder', () => {
     const routed = builder.prefix('/api')
-    expectTypeOf(routed).toEqualTypeOf<ContractRouterBuilder<typeof baseErrors>>()
+    expectTypeOf(routed).toEqualTypeOf<ContractRouterBuilder<typeof baseErrors, '/api/api', ['api']>>()
   })
 
   it('require valid prefix', () => {
@@ -117,7 +143,7 @@ describe('prefix', () => {
 describe('tag', () => {
   it('return ContractRouterBuilder', () => {
     const applied = builder.tag('tag')
-    expectTypeOf(applied).toEqualTypeOf<ContractRouterBuilder<typeof baseErrors>>()
+    expectTypeOf(applied).toEqualTypeOf<ContractRouterBuilder<typeof baseErrors, '/api', ['api', 'tag']>>()
   })
 
   it('require valid tag', () => {
@@ -140,7 +166,7 @@ describe('errors', () => {
 
   it('merge old one', () => {
     expectTypeOf(builder.errors(errors)).toEqualTypeOf<
-      ContractRouterBuilder<typeof errors & typeof baseErrors>
+      ContractRouterBuilder<StrictErrorMap<typeof errors> & typeof baseErrors, '/api', ['api']>
     >()
   })
 

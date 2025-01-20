@@ -1,22 +1,4 @@
-import type { ContractRouter, HTTPPath } from '@orpc/contract'
-
-const ROUTER_CONTRACT_SYMBOL = Symbol('ORPC_ROUTER_CONTRACT')
-
-export function setRouterContract<T extends object>(obj: T, contract: ContractRouter<any>): T {
-  return new Proxy(obj, {
-    get(target, key) {
-      if (key === ROUTER_CONTRACT_SYMBOL) {
-        return contract
-      }
-
-      return Reflect.get(target, key)
-    },
-  })
-}
-
-export function getRouterContract(obj: object): ContractRouter<any> | undefined {
-  return (obj as any)[ROUTER_CONTRACT_SYMBOL]
-}
+import type { HTTPPath } from '@orpc/contract'
 
 const LAZY_ROUTER_PREFIX_SYMBOL = Symbol('ORPC_LAZY_ROUTER_PREFIX')
 

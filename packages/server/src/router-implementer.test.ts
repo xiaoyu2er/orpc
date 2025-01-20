@@ -1,15 +1,12 @@
 import { oc } from '@orpc/contract'
 import { z } from 'zod'
-import { getRouterContract } from './hidden'
+import { unlazy } from './lazy'
 import { Procedure } from './procedure'
-import { RouterBuilder } from './router-builder'
 import { RouterImplementer } from './router-implementer'
+import { unshiftMiddlewaresRouter } from './router-utils'
 
-vi.mock('./router-builder', () => ({
-  RouterBuilder: vi.fn(() => ({
-    router: vi.fn(() => ({ mocked: true })),
-    lazy: vi.fn(() => ({ mocked: true })),
-  })),
+vi.mock('./router-utils', () => ({
+  unshiftMiddlewaresRouter: vi.fn(() => ({ mocked: true })),
 }))
 
 beforeEach(() => {
@@ -86,19 +83,10 @@ describe('to AdaptedRouter', () => {
   it('works', () => {
     expect(implementer.router(router)).toEqual({ mocked: true })
 
-    expect(RouterBuilder).toBeCalledTimes(1)
-    expect(RouterBuilder).toBeCalledWith(expect.objectContaining({
+    expect(unshiftMiddlewaresRouter).toBeCalledTimes(1)
+    expect(unshiftMiddlewaresRouter).toBeCalledWith(router, expect.objectContaining({
       middlewares: [mid],
     }))
-
-    const builder = vi.mocked(RouterBuilder).mock.results[0]?.value
-    expect(vi.mocked(builder.router)).toBeCalledTimes(1)
-    expect(vi.mocked(builder.router)).toBeCalledWith(router)
-  })
-
-  it('attach contract', () => {
-    const adapted = implementer.router(router) as any
-    expect(getRouterContract(adapted)).toBe(contract)
   })
 })
 
@@ -107,18 +95,13 @@ describe('to AdaptedLazy', () => {
     const loader = () => Promise.resolve({ default: router })
     expect(implementer.lazy(loader)).toEqual({ mocked: true })
 
-    expect(RouterBuilder).toBeCalledTimes(1)
-    expect(RouterBuilder).toBeCalledWith(expect.objectContaining({
+    expect(unshiftMiddlewaresRouter).toBeCalledTimes(1)
+    expect(unshiftMiddlewaresRouter).toBeCalledWith(expect.any(Object), expect.objectContaining({
       middlewares: [mid],
     }))
 
-    const builder = vi.mocked(RouterBuilder).mock.results[0]?.value
-    expect(vi.mocked(builder.lazy)).toBeCalledTimes(1)
-    expect(vi.mocked(builder.lazy)).toBeCalledWith(loader)
-  })
-
-  it('attach contract', () => {
-    const adapted = implementer.lazy(() => Promise.resolve({ default: router })) as any
-    expect(getRouterContract(adapted)).toBe(contract)
+    expect(unlazy(vi.mocked(unshiftMiddlewaresRouter).mock.calls[0]![0]))
+      .resolves
+      .toEqual({ default: router })
   })
 })

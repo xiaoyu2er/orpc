@@ -1,3 +1,4 @@
+import type { Route } from '@orpc/contract'
 import type { ORPCErrorConstructorMap } from './error'
 import type { MiddlewareOutputFn } from './middleware'
 import type { ANY_PROCEDURE } from './procedure'
@@ -93,7 +94,7 @@ describe('ProcedureBuilder', () => {
     })
 
     expectTypeOf(procedure).toMatchTypeOf<
-      DecoratedProcedure<{ db: string }, { db: string } & { auth?: boolean }, undefined, undefined, number, typeof baseErrors>
+      DecoratedProcedure<{ db: string }, { db: string } & { auth?: boolean }, undefined, undefined, number, typeof baseErrors, Route>
     >()
   })
 })

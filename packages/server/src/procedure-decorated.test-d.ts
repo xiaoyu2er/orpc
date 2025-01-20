@@ -1,4 +1,4 @@
-import type { Client, ClientRest, ORPCError } from '@orpc/contract'
+import type { Client, ClientRest, ORPCError, Route } from '@orpc/contract'
 import type { Context } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { Middleware, MiddlewareOutputFn } from './middleware'
@@ -12,11 +12,17 @@ const baseErrors = {
     data: z.object({ why: z.string() }),
   },
 }
-const decorated = {} as DecoratedProcedure<{ auth: boolean }, { auth: boolean } & { db: string }, typeof baseSchema, typeof baseSchema, { val: string }, typeof baseErrors>
+const route = { method: 'GET', path: '/ping' } as const
+const decorated = {} as DecoratedProcedure<{ auth: boolean }, { auth: boolean } & { db: string }, typeof baseSchema, typeof baseSchema, { val: string }, typeof baseErrors, typeof route>
+
+// like decorated but lost route when trying change route
+const decoratedLostContract = {} as DecoratedProcedure<{ auth: boolean }, { auth: boolean } & { db: string }, typeof baseSchema, typeof baseSchema, { val: string }, typeof baseErrors, Route>
 
 describe('self chainable', () => {
   it('prefix', () => {
-    expectTypeOf(decorated.prefix('/test')).toEqualTypeOf<typeof decorated>()
+    expectTypeOf(decorated.prefix('/test')).toEqualTypeOf<
+      typeof decoratedLostContract
+    >()
 
     // @ts-expect-error - invalid prefix
     decorated.prefix('')
@@ -25,7 +31,9 @@ describe('self chainable', () => {
   })
 
   it('route', () => {
-    expectTypeOf(decorated.route({ path: '/test', method: 'GET' })).toEqualTypeOf<typeof decorated>()
+    expectTypeOf(decorated.route({ path: '/test', method: 'GET' })).toEqualTypeOf<
+      typeof decoratedLostContract
+    >()
     expectTypeOf(decorated.route({
       path: '/test',
       method: 'GET',
@@ -33,7 +41,9 @@ describe('self chainable', () => {
       summary: 'summary',
       deprecated: true,
       tags: ['tag1', 'tag2'],
-    })).toEqualTypeOf<typeof decorated>()
+    })).toEqualTypeOf<
+      typeof decoratedLostContract
+    >()
 
     // @ts-expect-error - invalid method
     decorated.route({ method: 'PUTT' })
@@ -62,7 +72,8 @@ describe('self chainable', () => {
           typeof baseSchema,
           typeof baseSchema,
           { val: string },
-          typeof baseErrors & typeof errors
+          typeof baseErrors & typeof errors,
+          typeof route
         >
       >()
     })
@@ -109,7 +120,8 @@ describe('self chainable', () => {
         typeof baseSchema,
         typeof baseSchema,
         { val: string },
-        typeof baseErrors
+        typeof baseErrors,
+        typeof route
       >
     >()
   })
@@ -129,7 +141,8 @@ describe('self chainable', () => {
         typeof baseSchema,
         typeof baseSchema,
         { val: string },
-        typeof baseErrors
+        typeof baseErrors,
+        typeof route
       >
     >()
 
@@ -180,8 +193,12 @@ describe('self chainable', () => {
   })
 
   it('unshiftTag', () => {
-    expectTypeOf(decorated.unshiftTag('test')).toEqualTypeOf<typeof decorated>()
-    expectTypeOf(decorated.unshiftTag('test', 'test2', 'test3')).toEqualTypeOf<typeof decorated>()
+    expectTypeOf(decorated.unshiftTag('test')).toEqualTypeOf<
+      DecoratedProcedure<{ auth: boolean }, { auth: boolean } & { db: string }, typeof baseSchema, typeof baseSchema, { val: string }, typeof baseErrors, Route>
+    >()
+    expectTypeOf(decorated.unshiftTag('test', 'test2', 'test3')).toEqualTypeOf<
+      DecoratedProcedure<{ auth: boolean }, { auth: boolean } & { db: string }, typeof baseSchema, typeof baseSchema, { val: string }, typeof baseErrors, Route>
+    >()
 
     // @ts-expect-error - invalid tag
     decorated.unshiftTag(1)
@@ -233,7 +250,7 @@ describe('self chainable', () => {
     })
 
     expectTypeOf(callable).toEqualTypeOf<
-      & Procedure<{ auth: boolean }, { auth: boolean } & { db: string }, typeof baseSchema, typeof baseSchema, { val: string }, typeof baseErrors>
+      & Procedure<{ auth: boolean }, { auth: boolean } & { db: string }, typeof baseSchema, typeof baseSchema, { val: string }, typeof baseErrors, typeof route>
       & Client<'something', { val: string }, { val: number }, Error | ORPCError<'CODE', { why: string }>>
     >()
   })
@@ -244,7 +261,7 @@ describe('self chainable', () => {
     })
 
     expectTypeOf(actionable).toEqualTypeOf<
-      & Procedure<{ auth: boolean }, { auth: boolean } & { db: string }, typeof baseSchema, typeof baseSchema, { val: string }, typeof baseErrors>
+      & Procedure<{ auth: boolean }, { auth: boolean } & { db: string }, typeof baseSchema, typeof baseSchema, { val: string }, typeof baseErrors, typeof route>
       & ((...rest: ClientRest<'something', { val: string }>) => Promise<{ val: number }>)
     >()
   })

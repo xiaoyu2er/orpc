@@ -1,4 +1,4 @@
-import type { Client, NestedClient, ORPCError } from '@orpc/contract'
+import type { Client, NestedClient, ORPCError, Route } from '@orpc/contract'
 import type { Context } from './context'
 import type { Procedure } from './procedure'
 import type { Meta } from './types'
@@ -13,8 +13,10 @@ const baseErrors = {
   },
 }
 
-const ping = {} as Procedure<Context, Context, typeof schema, typeof schema, { val: string }, typeof baseErrors>
-const pong = {} as Procedure<{ auth: boolean }, { auth: boolean }, undefined, undefined, unknown, Record<never, never>>
+const route = { method: 'GET', path: '/ping' } as const
+
+const ping = {} as Procedure<Context, Context, typeof schema, typeof schema, { val: string }, typeof baseErrors, typeof route>
+const pong = {} as Procedure<{ auth: boolean }, { auth: boolean }, undefined, undefined, unknown, Record<never, never>, Route>
 
 const router = {
   ping,

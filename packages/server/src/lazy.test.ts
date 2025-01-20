@@ -7,6 +7,7 @@ const procedure = new Procedure({
     InputSchema: undefined,
     OutputSchema: undefined,
     errorMap: {},
+    route: {},
   }),
   handler: vi.fn(),
   middlewares: [],

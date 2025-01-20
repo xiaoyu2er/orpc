@@ -36,6 +36,9 @@ const builder = new ContractBuilder({
       description: 'from initial',
     },
   },
+  route: {
+    description: 'from initial',
+  },
 })
 
 beforeEach(() => {

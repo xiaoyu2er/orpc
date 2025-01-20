@@ -1,3 +1,4 @@
+import type { Route, StrictErrorMap } from '@orpc/contract'
 import type { BuilderWithErrors } from './builder-with-errors'
 import type { BuilderWithErrorsMiddlewares } from './builder-with-errors-middlewares'
 import type { Context } from './context'
@@ -77,7 +78,7 @@ describe('BuilderWithErrors', () => {
   })
 
   it('.errors', () => {
-    expectTypeOf(builder.errors(errors)).toEqualTypeOf<BuilderWithErrors<{ db: string }, typeof errors & typeof baseErrors>>()
+    expectTypeOf(builder.errors(errors)).toEqualTypeOf < BuilderWithErrors<{ db: string }, StrictErrorMap<typeof errors> & typeof baseErrors>>()
 
     // @ts-expect-error --- not allow redefine error map
     builder.errors({ BASE: baseErrors.BASE })
@@ -140,7 +141,7 @@ describe('BuilderWithErrors', () => {
     })
 
     expectTypeOf(procedure).toMatchTypeOf<
-      DecoratedProcedure<{ db: string }, { db: string }, undefined, undefined, number, typeof baseErrors>
+      DecoratedProcedure<{ db: string }, { db: string }, undefined, undefined, number, typeof baseErrors, Route>
     >()
   })
 
@@ -158,8 +159,8 @@ describe('BuilderWithErrors', () => {
 
   it('.router', () => {
     const router = {
-      ping: {} as Procedure<{ db: string }, { db: string }, undefined, undefined, unknown, typeof errors>,
-      pong: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>>,
+      ping: {} as Procedure<{ db: string }, { db: string }, undefined, undefined, unknown, typeof errors, Route>,
+      pong: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>, Route>,
     }
 
     expectTypeOf(builder.router(router)).toEqualTypeOf<
@@ -186,8 +187,8 @@ describe('BuilderWithErrors', () => {
 
   it('.lazy', () => {
     const router = {
-      ping: {} as Procedure<{ db: string }, { db: string }, undefined, undefined, unknown, typeof errors>,
-      pong: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>>,
+      ping: {} as Procedure<{ db: string }, { db: string }, undefined, undefined, unknown, typeof errors, Route>,
+      pong: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>, Route>,
     }
 
     expectTypeOf(builder.lazy(() => Promise.resolve({ default: router }))).toEqualTypeOf<
@@ -196,13 +197,13 @@ describe('BuilderWithErrors', () => {
 
     // @ts-expect-error - context is not match
     builder.lazy(() => Promise.resolve({ default: {
-      ping: {} as Procedure<{ auth: 'invalid' }, Context, undefined, undefined, unknown, typeof errors>,
+      ping: {} as Procedure<{ auth: 'invalid' }, Context, undefined, undefined, unknown, typeof errors, Route>,
     } }))
 
     // @ts-expect-error - error map is not match
     builder.lazy(() => Promise.resolve({
       default: {
-        ping: {} as Procedure<Context, Context, undefined, undefined, unknown, { BASE: { message: 'invalid' } }>,
+        ping: {} as Procedure<Context, Context, undefined, undefined, unknown, { BASE: { message: 'invalid' } }, Route>,
       },
     }))
   })

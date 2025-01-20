@@ -15,15 +15,17 @@ export * from './procedure-builder-with-input'
 export * from './procedure-builder-with-output'
 export * from './procedure-client'
 export * from './procedure-decorated'
+export * from './route'
 export * from './router'
 export * from './router-builder'
 export * from './router-client'
 export * from './schema-utils'
 export * from './types'
 
-export const oc = new ContractBuilder<Record<never, never>>({
+export const oc = new ContractBuilder({
+  config: {},
+  route: {},
   errorMap: {},
   InputSchema: undefined,
   OutputSchema: undefined,
-  config: {},
 })

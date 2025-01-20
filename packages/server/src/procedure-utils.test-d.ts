@@ -17,8 +17,8 @@ const baseErrors = {
   },
 }
 
-const procedure = {} as Procedure<Context, Context, typeof schema, typeof schema, { val: string }, typeof baseErrors>
-const procedureWithContext = {} as Procedure<{ db: string }, { auth: boolean }, typeof schema, typeof schema, { val: string }, typeof baseErrors>
+const procedure = {} as Procedure<Context, Context, typeof schema, typeof schema, { val: string }, typeof baseErrors, { description: 'procedure' }>
+const procedureWithContext = {} as Procedure<{ db: string }, { auth: boolean }, typeof schema, typeof schema, { val: string }, typeof baseErrors, { description: 'procedureWithContext' }>
 
 describe('call', () => {
   it('infer input', async () => {

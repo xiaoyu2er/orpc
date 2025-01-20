@@ -1,3 +1,4 @@
+import type { Route } from '@orpc/contract'
 import type { BuilderWithErrorsMiddlewares } from './builder-with-errors-middlewares'
 import type { BuilderWithMiddlewares } from './builder-with-middlewares'
 import type { Context } from './context'
@@ -9,7 +10,8 @@ import type { ProcedureBuilder } from './procedure-builder'
 import type { ProcedureBuilderWithInput } from './procedure-builder-with-input'
 import type { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
 import type { DecoratedProcedure } from './procedure-decorated'
-import type { AdaptedRouter, RouterBuilder } from './router-builder'
+import type { RouterBuilder } from './router-builder'
+import type { UnshiftedMiddlewaresRouter } from './router-utils'
 import { oc } from '@orpc/contract'
 import { z } from 'zod'
 
@@ -88,7 +90,7 @@ describe('BuilderWithMiddlewares', () => {
     })
 
     expectTypeOf(procedure).toMatchTypeOf<
-      DecoratedProcedure<{ db: string }, { db: string, auth?: boolean }, undefined, undefined, number, Record<never, never>>
+      DecoratedProcedure<{ db: string }, { db: string, auth?: boolean }, undefined, undefined, number, Record<never, never>, Route>
     >()
   })
 
@@ -106,12 +108,12 @@ describe('BuilderWithMiddlewares', () => {
 
   it('.router', () => {
     const router = {
-      ping: {} as Procedure<{ db: string }, { db: string, auth?: boolean }, undefined, undefined, unknown, typeof errors>,
-      pong: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>>,
+      ping: {} as Procedure<{ db: string }, { db: string, auth?: boolean }, undefined, undefined, unknown, typeof errors, Route>,
+      pong: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>, Route>,
     }
 
     expectTypeOf(builder.router(router)).toEqualTypeOf<
-      AdaptedRouter<{ db: string }, typeof router, Record<never, never>>
+      UnshiftedMiddlewaresRouter<typeof router, { db: string }>
     >()
 
     builder.router({
@@ -122,17 +124,17 @@ describe('BuilderWithMiddlewares', () => {
 
   it('.lazy', () => {
     const router = {
-      ping: {} as Procedure<{ db: string }, { db: string, auth?: boolean }, undefined, undefined, unknown, typeof errors>,
-      pong: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>>,
+      ping: {} as Procedure<{ db: string }, { db: string, auth?: boolean }, undefined, undefined, unknown, typeof errors, Route>,
+      pong: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>, Route>,
     }
 
     expectTypeOf(builder.lazy(() => Promise.resolve({ default: router }))).toEqualTypeOf<
-      AdaptedRouter<{ db: string }, Lazy<typeof router>, Record<never, never>>
+      UnshiftedMiddlewaresRouter<Lazy<typeof router>, { db: string }>
     >()
 
     // @ts-expect-error - context is not match
     builder.lazy(() => Promise.resolve({ default: {
-      ping: {} as Procedure<{ auth: 'invalid' }, Context, undefined, undefined, unknown, typeof errors>,
+      ping: {} as Procedure<{ auth: 'invalid' }, Context, undefined, undefined, unknown, typeof errors, Route>,
     } }))
   })
 

@@ -1,3 +1,4 @@
+import type { Route } from '@orpc/contract'
 import type { Context } from './context'
 import type { ANY_LAZY, Lazy } from './lazy'
 import type { Procedure } from './procedure'
@@ -15,8 +16,10 @@ const baseErrors = {
   },
 } as const
 
-const ping = {} as Procedure<{ auth: boolean }, { auth: boolean, db: string }, typeof schema, typeof schema, { val: string }, typeof baseErrors>
-const pong = {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>>
+const route = { method: 'GET', path: '/ping' } as const
+
+const ping = {} as Procedure<{ auth: boolean }, { auth: boolean, db: string }, typeof schema, typeof schema, { val: string }, typeof baseErrors, typeof route>
+const pong = {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>, Route>
 
 const router = {
   ping: lazy(() => Promise.resolve({ default: ping })),
@@ -63,8 +66,8 @@ it('InferRouterOutputs', () => {
 
 describe('Router', () => {
   it('require match context', () => {
-    const ping = {} as Procedure<{ auth: boolean }, { auth: boolean, db: string }, undefined, undefined, unknown, Record<never, never>>
-    const pong = {} as Procedure<{ auth: string }, { auth: string }, undefined, undefined, unknown, Record<never, never>>
+    const ping = {} as Procedure<{ auth: boolean }, { auth: boolean, db: string }, undefined, undefined, unknown, Record<never, never>, typeof route>
+    const pong = {} as Procedure<{ auth: string }, { auth: string }, undefined, undefined, unknown, Record<never, never>, Route>
 
     const router: Router<{ auth: boolean, userId: string }, any> = {
       ping,
@@ -142,8 +145,8 @@ describe('Router', () => {
       }),
     })
 
-    const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, Record<never, never>>
-    const pong = {} as Procedure<Context, Context, undefined, typeof schema, { val: string }, Record<never, never>>
+    const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, Record<never, never>, Record<never, never>>
+    const pong = {} as Procedure<Context, Context, undefined, typeof schema, { val: string }, Record<never, never>, Record<never, never>>
 
     const router1: Router<{ auth: boolean, userId: string }, typeof contract> = {
       ping,
@@ -228,7 +231,7 @@ describe('Router', () => {
     }
 
     expectTypeOf({
-      ping: {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, typeof pingContract['~orpc']['errorMap']>,
+      ping: {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, typeof pingContract['~orpc']['errorMap'], Record<never, never>>,
     }).toMatchTypeOf<Router<{ auth: boolean, userId: string }, typeof routerContract>>()
 
     const likeErrors = {
@@ -241,17 +244,17 @@ describe('Router', () => {
     }
 
     expectTypeOf({
-      ping: {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, typeof likeErrors>,
+      ping: {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, typeof likeErrors, typeof route>,
     }).not.toMatchTypeOf<Router<{ auth: boolean, userId: string }, typeof routerContract>>()
   })
 
   it('support procedure as a router', () => {
-    const router1: Router<{ auth: boolean, userId: string }, any> = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, Record<never, never>>
+    const router1: Router<{ auth: boolean, userId: string }, any> = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, Record<never, never>, Record<never, never>>
     // @ts-expect-error - invalid context
     const router2: Router<{ auth: boolean, userId: string }, any> = {} as Procedure<{ auth: boolean, dev: boolean }, { db: string }, typeof schema, undefined, unknown>
 
     const pingContract = oc.input(schema)
-    const router3: Router<{ auth: boolean, userId: string }, typeof pingContract> = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, Record<never, never>>
+    const router3: Router<{ auth: boolean, userId: string }, typeof pingContract> = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, Record<never, never>, Record<never, never>>
     // @ts-expect-error - mismatch contract
     const router4: Router<{ auth: boolean, userId: string }, typeof pingContract> = {} as Procedure<{ auth: boolean }, { db: string }, undefined, undefined, unknown>
   })

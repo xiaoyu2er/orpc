@@ -1,4 +1,4 @@
-import type { Client, ORPCError } from '@orpc/contract'
+import type { Client, ORPCError, Route } from '@orpc/contract'
 import type { Context } from './context'
 import type { Procedure } from './procedure'
 import type { ProcedureClient } from './procedure-client'
@@ -113,8 +113,8 @@ describe('createProcedureClient', () => {
       data: z.object({ why: z.string().transform(v => Number(v)) }),
     },
   }
-  const procedure = {} as Procedure<Context, { val: string }, typeof schema, typeof schema, { val: string }, typeof baseErrors>
-  const procedureWithContext = {} as Procedure<{ userId: string }, { db: string }, typeof schema, typeof schema, { val: string }, Record<never, never>>
+  const procedure = {} as Procedure<Context, { val: string }, typeof schema, typeof schema, { val: string }, typeof baseErrors, Route>
+  const procedureWithContext = {} as Procedure<{ userId: string }, { db: string }, typeof schema, typeof schema, { val: string }, Record<never, never>, Route>
 
   it('just a client', () => {
     const client = createProcedureClient(procedure)
@@ -226,7 +226,7 @@ describe('createProcedureClient', () => {
 
 it('support lazy procedure', () => {
   const schema = z.object({ val: z.string().transform(v => Number(v)) })
-  const procedure = {} as Procedure<{ userId?: string }, { userId?: string }, typeof schema, typeof schema, { val: string }, Record<never, never>>
+  const procedure = {} as Procedure<{ userId?: string }, { userId?: string }, typeof schema, typeof schema, { val: string }, Record<never, never>, Route>
   const lazied = lazy(() => Promise.resolve({ default: procedure }))
 
   const client = createProcedureClient(lazied, {

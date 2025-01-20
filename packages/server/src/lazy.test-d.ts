@@ -3,7 +3,7 @@ import type { ANY_LAZY, FlattenLazy, Lazy } from './lazy'
 import type { Procedure } from './procedure'
 import { flatLazy, isLazy, lazy, unlazy } from './lazy'
 
-const procedure = {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>>
+const procedure = {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>, Record<never, never>>
 
 const router = { procedure }
 

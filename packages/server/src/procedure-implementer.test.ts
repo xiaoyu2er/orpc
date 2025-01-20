@@ -18,6 +18,7 @@ const implementer = new ProcedureImplementer({
     InputSchema: baseSchema,
     OutputSchema: baseSchema,
     errorMap: baseErrors,
+    route: {},
   }),
   middlewares: [baseMid],
   inputValidationIndex: 1,

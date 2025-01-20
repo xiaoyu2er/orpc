@@ -13,12 +13,28 @@ describe('contractProcedure', () => {
       () => new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, route: { successStatus: 299 }, errorMap: {} }),
     ).not.toThrowError()
   })
+
+  it('throws error when errorMap has invalid status code', () => {
+    expect(
+      () => new ContractProcedure({
+        InputSchema: undefined,
+        OutputSchema: undefined,
+        route: { },
+        errorMap: { BAD_GATEWAY: { status: 100 } },
+      }),
+    ).toThrowError()
+    expect(
+      () => new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, route: { }, errorMap: {
+        BAD_GATEWAY: { status: 600 },
+      } }),
+    ).toThrowError()
+  })
 })
 
 describe('isContractProcedure', () => {
   it('works', () => {
-    expect(new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: {} })).toSatisfy(isContractProcedure)
-    expect(new ContractProcedure({ InputSchema: z.object({}), OutputSchema: undefined, errorMap: {} })).toSatisfy(isContractProcedure)
+    expect(new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: {}, route: {} })).toSatisfy(isContractProcedure)
+    expect(new ContractProcedure({ InputSchema: z.object({}), OutputSchema: undefined, errorMap: {}, route: {} })).toSatisfy(isContractProcedure)
     expect(new ContractProcedure({ InputSchema: z.object({}), OutputSchema: undefined, route: {}, errorMap: {} })).toSatisfy(isContractProcedure)
     expect({}).not.toSatisfy(isContractProcedure)
     expect(true).not.toSatisfy(isContractProcedure)
@@ -27,8 +43,8 @@ describe('isContractProcedure', () => {
   })
 
   it('works with raw object', () => {
-    expect(Object.assign({}, new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: {} }))).toSatisfy(isContractProcedure)
-    expect(Object.assign({}, new ContractProcedure({ InputSchema: z.object({}), OutputSchema: undefined, errorMap: {} }))).toSatisfy(isContractProcedure)
+    expect(Object.assign({}, new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, errorMap: {}, route: {} }))).toSatisfy(isContractProcedure)
+    expect(Object.assign({}, new ContractProcedure({ InputSchema: z.object({}), OutputSchema: undefined, errorMap: {}, route: {} }))).toSatisfy(isContractProcedure)
     expect(Object.assign({}, new ContractProcedure({ InputSchema: z.object({}), OutputSchema: undefined, route: {}, errorMap: {} }))).toSatisfy(isContractProcedure)
   })
 })

@@ -2,10 +2,12 @@ import type { ContractRouter } from '@orpc/contract'
 import type { ConflictContextGuard, Context, TypeCurrentContext, TypeInitialContext } from './context'
 import type { FlattenLazy } from './lazy'
 import type { Middleware } from './middleware'
-import type { Router } from './router'
-import type { AdaptedRouter } from './router-builder'
-import { setRouterContract } from './hidden'
-import { RouterBuilder } from './router-builder'
+import type { Router, RouterToContract } from './router'
+import { flatLazy, lazy } from './lazy'
+import { type UnshiftedMiddlewaresRouter, unshiftMiddlewaresRouter } from './router-utils'
+
+export type EqualContractGuard<TContract extends ContractRouter<any>, TRouter extends Router<any, TContract>> =
+  TContract extends RouterToContract<TRouter> ? unknown : never
 
 export interface RouterImplementerDef<
   TInitialContext extends Context,
@@ -50,27 +52,15 @@ export class RouterImplementer<
 
   router<U extends Router<TCurrentContext, TContract>>(
     router: U,
-  ): AdaptedRouter<TInitialContext, U, Record<never, never>> {
-    const adapted = new RouterBuilder({
-      ...this['~orpc'],
-      errorMap: {},
-    }).router(router)
-
-    const contracted = setRouterContract(adapted, this['~orpc'].contract)
-
-    return contracted
+  ): EqualContractGuard<TContract, U> & UnshiftedMiddlewaresRouter<U, TInitialContext> {
+    const applied = unshiftMiddlewaresRouter(router, this['~orpc'])
+    return applied as typeof applied & EqualContractGuard<TContract, U>
   }
 
   lazy<U extends Router<TCurrentContext, TContract>>(
     loader: () => Promise<{ default: U }>,
-  ): AdaptedRouter<TInitialContext, FlattenLazy<U>, Record<never, never>> {
-    const adapted = new RouterBuilder({
-      ...this['~orpc'],
-      errorMap: {},
-    }).lazy(loader)
-
-    const contracted = setRouterContract(adapted, this['~orpc'].contract)
-
-    return contracted
+  ): EqualContractGuard<TContract, U> & UnshiftedMiddlewaresRouter<FlattenLazy<U>, TInitialContext> {
+    const applied = unshiftMiddlewaresRouter(flatLazy(lazy(loader)), this['~orpc'])
+    return applied as typeof applied & EqualContractGuard<TContract, U>
   }
 }

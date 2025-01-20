@@ -9,7 +9,7 @@ import { DecoratedProcedure } from './procedure-decorated'
 
 export type UnshiftedMiddlewaresRouter<TRouter extends ANY_ROUTER, TInitialContext extends Context> =
   TRouter extends Lazy<infer U extends ANY_ROUTER>
-    ? DecoratedLazy<UnshiftedMiddlewaresRouter<TInitialContext, U>>
+    ? DecoratedLazy<UnshiftedMiddlewaresRouter<U, TInitialContext>>
     : TRouter extends Procedure<any, infer UCurrentContext, infer UInputSchema, infer UOutputSchema, infer UFuncOutput, infer UErrorMap, infer URoute>
       ? DecoratedProcedure<TInitialContext, UCurrentContext, UInputSchema, UOutputSchema, UFuncOutput, UErrorMap, URoute>
       : {

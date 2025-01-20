@@ -13,7 +13,7 @@ export type UnshiftedMiddlewaresRouter<TRouter extends ANY_ROUTER, TInitialConte
     : TRouter extends Procedure<any, infer UCurrentContext, infer UInputSchema, infer UOutputSchema, infer UFuncOutput, infer UErrorMap, infer URoute>
       ? DecoratedProcedure<TInitialContext, UCurrentContext, UInputSchema, UOutputSchema, UFuncOutput, UErrorMap, URoute>
       : {
-          [K in keyof TRouter]: TRouter[K] extends ANY_ROUTER ? UnshiftedMiddlewaresRouter<TInitialContext, TRouter[K]> : never
+          [K in keyof TRouter]: TRouter[K] extends ANY_ROUTER ? UnshiftedMiddlewaresRouter<TRouter[K], TInitialContext> : never
         }
 
 export function unshiftMiddlewaresRouter<TRouter extends ANY_ROUTER, TInitialContext extends Context>(

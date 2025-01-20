@@ -1,4 +1,4 @@
-import type { Route } from '@orpc/contract'
+import type { Route, StrictErrorMap } from '@orpc/contract'
 import type { Context } from './context'
 import type { Lazy } from './lazy'
 import type { DecoratedLazy } from './lazy-decorated'
@@ -163,7 +163,7 @@ describe('self chainable', () => {
     const applied = builder.errors(errors)
 
     expectTypeOf(applied).toEqualTypeOf<
-      RouterBuilder < { auth: boolean }, { auth: boolean } & { db: string }, typeof errors & typeof baseErrors>
+      RouterBuilder<{ auth: boolean }, { auth: boolean } & { db: string }, StrictErrorMap<typeof errors> & typeof baseErrors>
     >()
 
     // @ts-expect-error - not allow redefine errors

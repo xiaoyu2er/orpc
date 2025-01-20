@@ -1,4 +1,4 @@
-import type { ErrorMap, ErrorMapGuard, ErrorMapSuggestions } from './error-map'
+import type { ErrorMap, ErrorMapGuard, ErrorMapSuggestions, StrictErrorMap } from './error-map'
 import type { HTTPPath, MergeRoute, PrefixRoute, Route, UnshiftTagRoute } from './route'
 import type { Schema, SchemaInput } from './types'
 import { ContractProcedure } from './procedure'
@@ -17,7 +17,7 @@ export class ContractProcedureBuilderWithOutput<
 > extends ContractProcedure<undefined, TOutputSchema, TErrorMap, TRoute> {
   errors<const U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(
     errors: U,
-  ): ContractProcedureBuilderWithOutput<TOutputSchema, TErrorMap & U, TRoute> {
+  ): ContractProcedureBuilderWithOutput<TOutputSchema, StrictErrorMap<U> & TErrorMap, TRoute> {
     const decorated = DecoratedContractProcedure.decorate(this).errors(errors)
     return new ContractProcedureBuilderWithOutput(decorated['~orpc'])
   }

@@ -69,7 +69,9 @@ export class RouterBuilder<
     })
   }
 
-  errors<U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(errors: U): RouterBuilder<TInitialContext, TCurrentContext, TErrorMap & U> {
+  errors<U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(
+    errors: U,
+  ): RouterBuilder<TInitialContext, TCurrentContext, StrictErrorMap<U> & TErrorMap> {
     return new RouterBuilder({
       ...this['~orpc'],
       errorMap: {
@@ -93,14 +95,14 @@ export class RouterBuilder<
     return builder as typeof builder & ConflictContextGuard<TCurrentContext & U>
   }
 
-  router<U extends Router<TCurrentContext, ContractRouter<ErrorMap & Partial<StrictErrorMap<TErrorMap>>>>>(
+  router<U extends Router<TCurrentContext, ContractRouter<ErrorMap & Partial<TErrorMap>>>>(
     router: U,
   ): AdaptedRouter<TInitialContext, U, TErrorMap> {
     const adapted = adapt(router, this['~orpc'])
     return adapted as any
   }
 
-  lazy<U extends Router<TCurrentContext, ContractRouter<ErrorMap & Partial<StrictErrorMap<TErrorMap>>>>>(
+  lazy<U extends Router<TCurrentContext, ContractRouter<ErrorMap & Partial<TErrorMap>>>>(
     loader: () => Promise<{ default: U }>,
   ): AdaptedRouter<TInitialContext, FlattenLazy<U>, TErrorMap> {
     const adapted = adapt(flatLazy(lazy(loader)), this['~orpc'])

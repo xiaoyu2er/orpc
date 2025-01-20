@@ -45,7 +45,9 @@ export class ContractBuilder<TConfig extends ContractBuilderConfig, TErrorMap ex
     })
   }
 
-  errors<const U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(errors: U): ContractBuilder<TConfig, U & TErrorMap> {
+  errors<const U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(
+    errors: U,
+  ): ContractBuilder<TConfig, StrictErrorMap<U> & TErrorMap> {
     return new ContractBuilder({
       ...this['~orpc'],
       errorMap: {
@@ -100,7 +102,7 @@ export class ContractBuilder<TConfig extends ContractBuilderConfig, TErrorMap ex
     })
   }
 
-  router<T extends ContractRouter<ErrorMap & Partial<StrictErrorMap<TErrorMap>>>>(
+  router<T extends ContractRouter<ErrorMap & Partial<TErrorMap>>>(
     router: T,
   ): AdaptedContractRouter<T, TErrorMap, undefined, undefined> {
     return new ContractRouterBuilder({

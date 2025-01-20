@@ -1,3 +1,4 @@
+import type { StrictErrorMap } from './error-map'
 import type { PrefixRoute, UnshiftTagRoute } from './route'
 import type { AdaptedContractRouter, ContractRouterBuilder } from './router-builder'
 import { z } from 'zod'
@@ -165,7 +166,7 @@ describe('errors', () => {
 
   it('merge old one', () => {
     expectTypeOf(builder.errors(errors)).toEqualTypeOf<
-      ContractRouterBuilder<typeof errors & typeof baseErrors, '/api', ['api']>
+      ContractRouterBuilder<StrictErrorMap<typeof errors> & typeof baseErrors, '/api', ['api']>
     >()
   })
 

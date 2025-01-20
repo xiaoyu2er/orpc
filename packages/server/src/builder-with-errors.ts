@@ -53,9 +53,9 @@ export class BuilderWithErrors<TInitialContext extends Context, TErrorMap extend
     return this as any // just change at type level so safely cast here
   }
 
-  errors<U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(
+  errors<const U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(
     errors: U,
-  ): BuilderWithErrors<TInitialContext, TErrorMap & U> {
+  ): BuilderWithErrors<TInitialContext, StrictErrorMap<U> & TErrorMap> {
     return new BuilderWithErrors({
       ...this['~orpc'],
       errorMap: {
@@ -168,7 +168,7 @@ export class BuilderWithErrors<TInitialContext extends Context, TErrorMap extend
     })
   }
 
-  router<U extends Router<TInitialContext, ContractRouter<ErrorMap & Partial<StrictErrorMap<TErrorMap>>>>>(
+  router<U extends Router<TInitialContext, ContractRouter<ErrorMap & Partial<TErrorMap>>>>(
     router: U,
   ): AdaptedRouter<TInitialContext, U, TErrorMap> {
     return new RouterBuilder<TInitialContext, TInitialContext, TErrorMap>({

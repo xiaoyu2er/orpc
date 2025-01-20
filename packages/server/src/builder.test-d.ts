@@ -1,4 +1,4 @@
-import type { Route } from '@orpc/contract'
+import type { Route, StrictErrorMap } from '@orpc/contract'
 import type { Builder } from './builder'
 import type { BuilderWithErrors } from './builder-with-errors'
 import type { BuilderWithMiddlewares } from './builder-with-middlewares'
@@ -75,7 +75,7 @@ describe('Builder', () => {
   })
 
   it('.errors', () => {
-    expectTypeOf(builder.errors(errors)).toEqualTypeOf<BuilderWithErrors<{ db: string }, typeof errors>>()
+    expectTypeOf(builder.errors(errors)).toEqualTypeOf<BuilderWithErrors<{ db: string }, StrictErrorMap<typeof errors>>>()
   })
 
   it('.use', () => {

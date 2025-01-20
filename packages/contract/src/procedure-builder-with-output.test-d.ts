@@ -1,4 +1,5 @@
 import type { ReadonlyDeep } from '@orpc/shared'
+import type { StrictErrorMap } from './error-map'
 import type { ContractProcedure } from './procedure'
 import type { ContractProcedureBuilderWithOutput } from './procedure-builder-with-output'
 import type { DecoratedContractProcedure } from './procedure-decorated'
@@ -33,7 +34,7 @@ describe('DecoratedContractProcedure', () => {
     const errors = { BAD_GATEWAY: { data: z.object({ message: z.string() }) } } as const
 
     expectTypeOf(builder.errors(errors)).toEqualTypeOf<
-      ContractProcedureBuilderWithOutput<typeof outputSchema, typeof baseErrorMap & typeof errors, BaseRoute>
+      ContractProcedureBuilderWithOutput<typeof outputSchema, typeof baseErrorMap & StrictErrorMap<typeof errors>, BaseRoute>
     >()
 
     // @ts-expect-error - not allow redefine error map

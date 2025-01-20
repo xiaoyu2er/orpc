@@ -1,4 +1,4 @@
-import type { Route } from '@orpc/contract'
+import type { Route, StrictErrorMap } from '@orpc/contract'
 import type { BuilderWithErrors } from './builder-with-errors'
 import type { BuilderWithErrorsMiddlewares } from './builder-with-errors-middlewares'
 import type { Context } from './context'
@@ -78,7 +78,7 @@ describe('BuilderWithErrors', () => {
   })
 
   it('.errors', () => {
-    expectTypeOf(builder.errors(errors)).toEqualTypeOf<BuilderWithErrors<{ db: string }, typeof errors & typeof baseErrors>>()
+    expectTypeOf(builder.errors(errors)).toEqualTypeOf < BuilderWithErrors<{ db: string }, StrictErrorMap<typeof errors> & typeof baseErrors>>()
 
     // @ts-expect-error --- not allow redefine error map
     builder.errors({ BASE: baseErrors.BASE })

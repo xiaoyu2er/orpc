@@ -1,4 +1,4 @@
-import type { ContractBuilderConfig, ContractRouter, ErrorMap, ErrorMapSuggestions, HTTPPath, Route, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ContractBuilderConfig, ContractRouter, ErrorMap, ErrorMapSuggestions, HTTPPath, Route, Schema, SchemaInput, SchemaOutput, StrictErrorMap } from '@orpc/contract'
 import type { ConflictContextGuard, Context, TypeInitialContext } from './context'
 import type { DecoratedLazy } from './lazy-decorated'
 import type { Middleware } from './middleware'
@@ -57,10 +57,10 @@ export class Builder<TInitialContext extends Context> {
     return decorateMiddleware(middleware)
   }
 
-  errors<U extends ErrorMap & ErrorMapSuggestions>(errors: U): BuilderWithErrors<TInitialContext, U> {
+  errors<const U extends ErrorMap & ErrorMapSuggestions>(errors: U): BuilderWithErrors<TInitialContext, StrictErrorMap<U>> {
     return new BuilderWithErrors({
       ...this['~orpc'],
-      errorMap: errors,
+      errorMap: errors as StrictErrorMap<U>,
     })
   }
 

@@ -23,9 +23,9 @@ export * from './schema-utils'
 export * from './types'
 
 export const oc = new ContractBuilder({
+  config: {},
   route: {},
   errorMap: {},
   InputSchema: undefined,
   OutputSchema: undefined,
-  config: {},
 })

@@ -4,7 +4,7 @@ import type { ContractProcedure } from './procedure'
 import type { ContractProcedureBuilder } from './procedure-builder'
 import type { ContractProcedureBuilderWithInput } from './procedure-builder-with-input'
 import type { ContractProcedureBuilderWithOutput } from './procedure-builder-with-output'
-import type { MergeRoute } from './route'
+import type { MergeRoute, StrictRoute } from './route'
 import type { AdaptedContractRouter, ContractRouterBuilder } from './router-builder'
 import { z } from 'zod'
 
@@ -53,7 +53,7 @@ describe('ContractBuilder', () => {
     expectTypeOf(builder.route({ method: 'GET' })).toEqualTypeOf<
       ContractProcedureBuilder<
         typeof baseErrorMap,
-        MergeRoute<GetInitialRoute<Config>, ReadonlyDeep<{ method: 'GET' }>>
+        MergeRoute<StrictRoute<GetInitialRoute<Config>>, ReadonlyDeep<{ method: 'GET' }>>
       >
     >()
 
@@ -66,14 +66,14 @@ describe('ContractBuilder', () => {
       ContractProcedureBuilderWithInput<
       typeof schema,
       typeof baseErrorMap,
-      GetInitialRoute<Config>
+      StrictRoute<GetInitialRoute<Config>>
       >
     >()
   })
 
   it('.output', () => {
     expectTypeOf(builder.output(schema)).toEqualTypeOf<
-      ContractProcedureBuilderWithOutput<typeof schema, typeof baseErrorMap, GetInitialRoute<Config>>
+      ContractProcedureBuilderWithOutput<typeof schema, typeof baseErrorMap, StrictRoute<GetInitialRoute<Config>>>
     >()
   })
 

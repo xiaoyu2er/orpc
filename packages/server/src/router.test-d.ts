@@ -145,8 +145,8 @@ describe('Router', () => {
       }),
     })
 
-    const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, Record<never, never>, typeof route>
-    const pong = {} as Procedure<Context, Context, undefined, typeof schema, { val: string }, Record<never, never>, Route>
+    const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, Record<never, never>, Record<never, never>>
+    const pong = {} as Procedure<Context, Context, undefined, typeof schema, { val: string }, Record<never, never>, Record<never, never>>
 
     const router1: Router<{ auth: boolean, userId: string }, typeof contract> = {
       ping,
@@ -231,7 +231,7 @@ describe('Router', () => {
     }
 
     expectTypeOf({
-      ping: {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, typeof pingContract['~orpc']['errorMap'], typeof route>,
+      ping: {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, typeof pingContract['~orpc']['errorMap'], Record<never, never>>,
     }).toMatchTypeOf<Router<{ auth: boolean, userId: string }, typeof routerContract>>()
 
     const likeErrors = {

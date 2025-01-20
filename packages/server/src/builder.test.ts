@@ -13,8 +13,6 @@ import { DecoratedProcedure } from './procedure-decorated'
 import { RouterBuilder } from './router-builder'
 
 const decorateMiddlewareSpy = vi.spyOn(middlewareDecorated, 'decorateMiddleware')
-const RouterBuilderRouterSpy = vi.spyOn(RouterBuilder.prototype, 'router')
-const RouterBuilderLazySpy = vi.spyOn(RouterBuilder.prototype, 'lazy')
 const createChainableImplementerSpy = vi.spyOn(implementerChainable, 'createChainableImplementer')
 
 const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
@@ -136,8 +134,7 @@ describe('builder', () => {
 
     const applied = builder.router(router)
 
-    expect(applied).toBe(RouterBuilderRouterSpy.mock.results[0]!.value)
-    expect(RouterBuilderRouterSpy).toHaveBeenCalledWith(router)
+    expect(applied).toBe(router)
   })
 
   it('.lazy', () => {
@@ -148,9 +145,7 @@ describe('builder', () => {
 
     const applied = builder.lazy(() => Promise.resolve({ default: router }))
 
-    expect(applied).toBe(RouterBuilderLazySpy.mock.results[0]!.value)
-    expect(RouterBuilderLazySpy).toHaveBeenCalledWith(expect.any(Function))
-    expect(unlazy(RouterBuilderLazySpy.mock.results[0]!.value)).resolves.toEqual({ default: router })
+    expect(unlazy(applied)).resolves.toEqual({ default: router })
   })
 
   it('.contract', () => {

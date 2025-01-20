@@ -13,6 +13,22 @@ describe('contractProcedure', () => {
       () => new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, route: { successStatus: 299 }, errorMap: {} }),
     ).not.toThrowError()
   })
+
+  it('throws error when errorMap has invalid status code', () => {
+    expect(
+      () => new ContractProcedure({
+        InputSchema: undefined,
+        OutputSchema: undefined,
+        route: { },
+        errorMap: { BAD_GATEWAY: { status: 100 } },
+      }),
+    ).toThrowError()
+    expect(
+      () => new ContractProcedure({ InputSchema: undefined, OutputSchema: undefined, route: { }, errorMap: {
+        BAD_GATEWAY: { status: 600 },
+      } }),
+    ).toThrowError()
+  })
 })
 
 describe('isContractProcedure', () => {

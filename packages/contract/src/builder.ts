@@ -4,6 +4,7 @@ import type { HTTPPath, MergeRoute, Route } from './route'
 import type { ContractRouter } from './router'
 import type { AdaptedContractRouter } from './router-builder'
 import type { Schema, SchemaInput, SchemaOutput } from './types'
+import { fallbackContractConfig } from './config'
 import { ContractProcedure } from './procedure'
 import { ContractProcedureBuilder } from './procedure-builder'
 import { ContractProcedureBuilderWithInput } from './procedure-builder-with-input'
@@ -68,7 +69,7 @@ export class ContractBuilder<TConfig extends ContractBuilderConfig, TErrorMap ex
 
   input<U extends Schema>(schema: U, example?: SchemaInput<U>): ContractProcedureBuilderWithInput<U, TErrorMap, GetInitialRoute<TConfig>> {
     return new ContractProcedureBuilderWithInput({
-      route: this['~orpc'].config.initialRoute ?? {},
+      route: fallbackContractConfig('defaultInitialRoute', this['~orpc'].config.initialRoute),
       InputSchema: schema,
       inputExample: example,
       OutputSchema: undefined,
@@ -78,7 +79,7 @@ export class ContractBuilder<TConfig extends ContractBuilderConfig, TErrorMap ex
 
   output<U extends Schema>(schema: U, example?: SchemaOutput<U>): ContractProcedureBuilderWithOutput<U, TErrorMap, GetInitialRoute<TConfig>> {
     return new ContractProcedureBuilderWithOutput({
-      route: this['~orpc'].config.initialRoute ?? {},
+      route: fallbackContractConfig('defaultInitialRoute', this['~orpc'].config.initialRoute),
       OutputSchema: schema,
       outputExample: example,
       InputSchema: undefined,

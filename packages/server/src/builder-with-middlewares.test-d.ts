@@ -10,7 +10,8 @@ import type { ProcedureBuilder } from './procedure-builder'
 import type { ProcedureBuilderWithInput } from './procedure-builder-with-input'
 import type { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
 import type { DecoratedProcedure } from './procedure-decorated'
-import type { AdaptedRouter, RouterBuilder } from './router-builder'
+import type { RouterBuilder } from './router-builder'
+import type { UnshiftedMiddlewaresRouter } from './router-utils'
 import { oc } from '@orpc/contract'
 import { z } from 'zod'
 
@@ -112,7 +113,7 @@ describe('BuilderWithMiddlewares', () => {
     }
 
     expectTypeOf(builder.router(router)).toEqualTypeOf<
-      AdaptedRouter<{ db: string }, typeof router, Record<never, never>>
+      UnshiftedMiddlewaresRouter<typeof router, { db: string }>
     >()
 
     builder.router({
@@ -128,7 +129,7 @@ describe('BuilderWithMiddlewares', () => {
     }
 
     expectTypeOf(builder.lazy(() => Promise.resolve({ default: router }))).toEqualTypeOf<
-      AdaptedRouter<{ db: string }, Lazy<typeof router>, Record<never, never>>
+      UnshiftedMiddlewaresRouter<Lazy<typeof router>, { db: string }>
     >()
 
     // @ts-expect-error - context is not match

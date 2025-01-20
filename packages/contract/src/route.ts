@@ -72,6 +72,12 @@ export interface Route {
   outputStructure?: OutputStructure
 }
 
+/**
+ * Since `undefined` has a specific meaning (it use default value),
+ * we ensure all additional properties in each item of the ErrorMap are explicitly set to `undefined`.
+ */
+export type StrictRoute<T extends Route> = T & Partial<Record<Exclude<keyof Route, keyof T>, undefined>>
+
 export type MergeRoute<A extends Route, B extends Route> = Omit<A, keyof B> & B
 
 export function mergeRoute<A extends Route, B extends Route>(a: A, b: B): MergeRoute<A, B> {

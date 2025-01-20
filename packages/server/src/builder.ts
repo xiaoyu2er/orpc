@@ -1,16 +1,17 @@
 import type { ContractBuilderConfig, ContractRouter, ErrorMap, ErrorMapSuggestions, HTTPPath, Route, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { ConflictContextGuard, Context, TypeInitialContext } from './context'
-import type { FlattenLazy } from './lazy'
+import type { DecoratedLazy } from './lazy-decorated'
 import type { Middleware } from './middleware'
 import type { DecoratedMiddleware } from './middleware-decorated'
 import type { ProcedureHandler } from './procedure'
 import type { Router } from './router'
-import type { AdaptedRouter } from './router-builder'
 import { ContractProcedure, fallbackContractConfig } from '@orpc/contract'
 import { BuilderWithErrors } from './builder-with-errors'
 import { BuilderWithMiddlewares } from './builder-with-middlewares'
 import { fallbackConfig } from './config'
 import { type ChainableImplementer, createChainableImplementer } from './implementer-chainable'
+import { flatLazy, type FlattenLazy, lazy } from './lazy'
+import { decorateLazy } from './lazy-decorated'
 import { decorateMiddleware } from './middleware-decorated'
 import { ProcedureBuilder } from './procedure-builder'
 import { ProcedureBuilderWithInput } from './procedure-builder-with-input'
@@ -163,22 +164,14 @@ export class Builder<TInitialContext extends Context> {
     })
   }
 
-  router<U extends Router<TInitialContext, any>>(
-    router: U,
-  ): AdaptedRouter<TInitialContext, U, Record<never, never>> {
-    return new RouterBuilder<TInitialContext, TInitialContext, Record<never, never>>({
-      middlewares: [],
-      errorMap: [],
-    }).router(router)
+  router<U extends Router<TInitialContext, any>>(router: U): U {
+    return router
   }
 
   lazy<U extends Router<TInitialContext, any>>(
     loader: () => Promise<{ default: U }>,
-  ): AdaptedRouter<TInitialContext, FlattenLazy<U>, Record<never, never>> {
-    return new RouterBuilder<TInitialContext, TInitialContext, Record<never, never>>({
-      middlewares: [],
-      errorMap: {},
-    }).lazy(loader)
+  ): DecoratedLazy<FlattenLazy<U>> {
+    return decorateLazy(flatLazy(lazy(loader)))
   }
 
   contract<U extends ContractRouter<any>>(

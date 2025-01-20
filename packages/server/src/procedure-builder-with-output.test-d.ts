@@ -1,3 +1,4 @@
+import type { Route } from '@orpc/contract'
 import type { ORPCErrorConstructorMap } from './error'
 import type { MiddlewareOutputFn } from './middleware'
 import type { ANY_PROCEDURE } from './procedure'
@@ -70,7 +71,7 @@ describe('ProcedureBuilderWithOutput', () => {
 
   it('.input', () => {
     expectTypeOf(builder.input(schema)).toEqualTypeOf<
-      ProcedureImplementer<{ db: string }, { db: string } & { auth?: boolean }, typeof schema, typeof outputSchema, typeof baseErrors>
+      ProcedureImplementer<{ db: string }, { db: string } & { auth?: boolean }, typeof schema, typeof outputSchema, typeof baseErrors, Route>
     >()
   })
 
@@ -87,7 +88,7 @@ describe('ProcedureBuilderWithOutput', () => {
     })
 
     expectTypeOf(procedure).toMatchTypeOf<
-      DecoratedProcedure<{ db: string }, { db: string } & { auth?: boolean }, undefined, typeof outputSchema, { output: string }, typeof baseErrors>
+      DecoratedProcedure<{ db: string }, { db: string } & { auth?: boolean }, undefined, typeof outputSchema, { output: string }, typeof baseErrors, Route>
     >()
 
     // @ts-expect-error --- invalid output

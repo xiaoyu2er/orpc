@@ -21,7 +21,7 @@ export function call<
   THandlerOutput extends SchemaInput<TOutputSchema>,
   TErrorMap extends ErrorMap,
 >(
-  procedure: Lazyable<Procedure<TInitialContext, any, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>>,
+  procedure: Lazyable<Procedure<TInitialContext, any, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, any>>,
   input: SchemaInput<TInputSchema>,
   ...rest: CreateProcedureClientRest<TInitialContext, TOutputSchema, THandlerOutput, unknown>
 ): ClientPromiseResult<SchemaOutput<TOutputSchema, THandlerOutput>, ErrorFromErrorMap<TErrorMap>> {

@@ -1,3 +1,4 @@
+import type { Route } from '@orpc/contract'
 import type { Builder } from './builder'
 import type { BuilderWithErrors } from './builder-with-errors'
 import type { BuilderWithMiddlewares } from './builder-with-middlewares'
@@ -135,7 +136,7 @@ describe('Builder', () => {
     })
 
     expectTypeOf(procedure).toMatchTypeOf<
-      DecoratedProcedure<{ db: string }, { db: string }, undefined, undefined, number, Record<never, never>>
+      DecoratedProcedure<{ db: string }, { db: string }, undefined, undefined, number, Record<never, never>, Route>
     >()
   })
 
@@ -153,8 +154,8 @@ describe('Builder', () => {
 
   it('.router', () => {
     const router = {
-      ping: {} as Procedure<{ db: string }, { db: string }, undefined, undefined, unknown, typeof errors>,
-      pong: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>>,
+      ping: {} as Procedure<{ db: string }, { db: string }, undefined, undefined, unknown, typeof errors, Route>,
+      pong: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>, Route>,
     }
 
     expectTypeOf(builder.router(router)).toEqualTypeOf<
@@ -169,8 +170,8 @@ describe('Builder', () => {
 
   it('.lazy', () => {
     const router = {
-      ping: {} as Procedure<{ db: string }, { db: string }, undefined, undefined, unknown, typeof errors>,
-      pong: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>>,
+      ping: {} as Procedure<{ db: string }, { db: string }, undefined, undefined, unknown, typeof errors, Route>,
+      pong: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>, Route>,
     }
 
     expectTypeOf(builder.lazy(() => Promise.resolve({ default: router }))).toEqualTypeOf<
@@ -179,7 +180,7 @@ describe('Builder', () => {
 
     // @ts-expect-error - context is not match
     builder.lazy(() => Promise.resolve({ default: {
-      ping: {} as Procedure<{ auth: 'invalid' }, Context, undefined, undefined, unknown, typeof errors>,
+      ping: {} as Procedure<{ auth: 'invalid' }, Context, undefined, undefined, unknown, typeof errors, Route>,
     } }))
   })
 

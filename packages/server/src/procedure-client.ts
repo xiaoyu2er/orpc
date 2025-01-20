@@ -57,7 +57,7 @@ export function createProcedureClient<
   TErrorMap extends ErrorMap,
   TClientContext,
 >(
-  lazyableProcedure: Lazyable<Procedure<TInitialContext, any, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>>,
+  lazyableProcedure: Lazyable<Procedure<TInitialContext, any, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, any>>,
   ...[options]: CreateProcedureClientRest<TInitialContext, TOutputSchema, THandlerOutput, TClientContext>
 ): ProcedureClient<TClientContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap> {
   return async (...[input, callerOptions]) => {

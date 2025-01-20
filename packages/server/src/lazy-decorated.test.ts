@@ -16,6 +16,7 @@ describe('decorated lazy', () => {
       InputSchema: schema,
       OutputSchema: undefined,
       errorMap: {},
+      route: {},
     }),
     handler: vi.fn(),
     middlewares: [],

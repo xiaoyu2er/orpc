@@ -1,3 +1,4 @@
+import type { Route } from '@orpc/contract'
 import type { BuilderWithErrorsMiddlewares } from './builder-with-errors-middlewares'
 import type { BuilderWithMiddlewares } from './builder-with-middlewares'
 import type { Context } from './context'
@@ -88,7 +89,7 @@ describe('BuilderWithMiddlewares', () => {
     })
 
     expectTypeOf(procedure).toMatchTypeOf<
-      DecoratedProcedure<{ db: string }, { db: string, auth?: boolean }, undefined, undefined, number, Record<never, never>>
+      DecoratedProcedure<{ db: string }, { db: string, auth?: boolean }, undefined, undefined, number, Record<never, never>, Route>
     >()
   })
 
@@ -106,8 +107,8 @@ describe('BuilderWithMiddlewares', () => {
 
   it('.router', () => {
     const router = {
-      ping: {} as Procedure<{ db: string }, { db: string, auth?: boolean }, undefined, undefined, unknown, typeof errors>,
-      pong: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>>,
+      ping: {} as Procedure<{ db: string }, { db: string, auth?: boolean }, undefined, undefined, unknown, typeof errors, Route>,
+      pong: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>, Route>,
     }
 
     expectTypeOf(builder.router(router)).toEqualTypeOf<
@@ -122,8 +123,8 @@ describe('BuilderWithMiddlewares', () => {
 
   it('.lazy', () => {
     const router = {
-      ping: {} as Procedure<{ db: string }, { db: string, auth?: boolean }, undefined, undefined, unknown, typeof errors>,
-      pong: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>>,
+      ping: {} as Procedure<{ db: string }, { db: string, auth?: boolean }, undefined, undefined, unknown, typeof errors, Route>,
+      pong: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>, Route>,
     }
 
     expectTypeOf(builder.lazy(() => Promise.resolve({ default: router }))).toEqualTypeOf<
@@ -132,7 +133,7 @@ describe('BuilderWithMiddlewares', () => {
 
     // @ts-expect-error - context is not match
     builder.lazy(() => Promise.resolve({ default: {
-      ping: {} as Procedure<{ auth: 'invalid' }, Context, undefined, undefined, unknown, typeof errors>,
+      ping: {} as Procedure<{ auth: 'invalid' }, Context, undefined, undefined, unknown, typeof errors, Route>,
     } }))
   })
 

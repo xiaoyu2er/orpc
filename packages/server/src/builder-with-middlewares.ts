@@ -1,11 +1,11 @@
-import type { ContractBuilderConfig, ContractRouter, ErrorMap, ErrorMapSuggestions, HTTPPath, RouteOptions, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ContractBuilderConfig, ContractRouter, ErrorMap, ErrorMapSuggestions, HTTPPath, Route, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { ConflictContextGuard, Context, TypeCurrentContext, TypeInitialContext } from './context'
 import type { FlattenLazy } from './lazy'
 import type { Middleware } from './middleware'
 import type { ProcedureHandler } from './procedure'
 import type { Router } from './router'
 import type { AdaptedRouter } from './router-builder'
-import { ContractProcedure } from '@orpc/contract'
+import { ContractProcedure, fallbackContractConfig } from '@orpc/contract'
 import { BuilderWithErrorsMiddlewares } from './builder-with-errors-middlewares'
 import { type ChainableImplementer, createChainableImplementer } from './implementer-chainable'
 import { ProcedureBuilder } from './procedure-builder'
@@ -62,7 +62,7 @@ export class BuilderWithMiddlewares<TInitialContext extends Context, TCurrentCon
     })
   }
 
-  route(route: RouteOptions): ProcedureBuilder<TInitialContext, TCurrentContext, Record<never, never>> {
+  route(route: Route): ProcedureBuilder<TInitialContext, TCurrentContext, Record<never, never>> {
     return new ProcedureBuilder({
       ...this['~orpc'],
       contract: new ContractProcedure({
@@ -84,7 +84,7 @@ export class BuilderWithMiddlewares<TInitialContext extends Context, TCurrentCon
     return new ProcedureBuilderWithInput({
       ...this['~orpc'],
       contract: new ContractProcedure({
-        route: this['~orpc'].config.initialRoute,
+        route: fallbackContractConfig('defaultInitialRoute', this['~orpc'].config.initialRoute),
         OutputSchema: undefined,
         InputSchema: schema,
         inputExample: example,
@@ -100,7 +100,7 @@ export class BuilderWithMiddlewares<TInitialContext extends Context, TCurrentCon
     return new ProcedureBuilderWithOutput({
       ...this['~orpc'],
       contract: new ContractProcedure({
-        route: this['~orpc'].config.initialRoute,
+        route: fallbackContractConfig('defaultInitialRoute', this['~orpc'].config.initialRoute),
         InputSchema: undefined,
         OutputSchema: schema,
         outputExample: example,
@@ -111,11 +111,11 @@ export class BuilderWithMiddlewares<TInitialContext extends Context, TCurrentCon
 
   handler<UFuncOutput>(
     handler: ProcedureHandler<TCurrentContext, undefined, undefined, UFuncOutput, Record<never, never>>,
-  ): DecoratedProcedure<TInitialContext, TCurrentContext, undefined, undefined, UFuncOutput, Record<never, never>> {
+  ): DecoratedProcedure<TInitialContext, TCurrentContext, undefined, undefined, UFuncOutput, Record<never, never>, Route> {
     return new DecoratedProcedure({
       ...this['~orpc'],
       contract: new ContractProcedure({
-        route: this['~orpc'].config.initialRoute,
+        route: fallbackContractConfig('defaultInitialRoute', this['~orpc'].config.initialRoute),
         InputSchema: undefined,
         OutputSchema: undefined,
         errorMap: {},

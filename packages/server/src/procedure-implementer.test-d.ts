@@ -14,8 +14,9 @@ const baseErrors = {
     data: baseSchema,
   },
 }
+const route = { method: 'GET', path: '/ping' } as const
 
-const implementer = {} as ProcedureImplementer<{ id?: string }, { id?: string } & { extra: true }, typeof baseSchema, typeof baseSchema, typeof baseErrors>
+const implementer = {} as ProcedureImplementer<{ id?: string }, { id?: string } & { extra: true }, typeof baseSchema, typeof baseSchema, typeof baseErrors, typeof route>
 
 describe('self chainable', () => {
   it('use middleware', () => {
@@ -50,7 +51,8 @@ describe('self chainable', () => {
       { id?: string } & { auth: boolean } & { extra: true } & Record<never, never>,
       typeof baseSchema,
       typeof baseSchema,
-      typeof baseErrors
+      typeof baseErrors,
+      typeof route
     >
 
     expectTypeOf(i).toEqualTypeOf(a)
@@ -74,7 +76,8 @@ describe('self chainable', () => {
       { id?: string } & { extra: true } & { id: string, extra: true },
         typeof baseSchema,
         typeof baseSchema,
-        typeof baseErrors
+        typeof baseErrors,
+        typeof route
       >
     >()
 
@@ -142,7 +145,7 @@ describe('to DecoratedProcedure', () => {
     })
 
     expectTypeOf(procedure).toEqualTypeOf<
-      DecoratedProcedure<{ id?: string }, { id?: string } & { extra: true }, typeof baseSchema, typeof baseSchema, { base: string }, typeof baseErrors>
+      DecoratedProcedure<{ id?: string }, { id?: string } & { extra: true }, typeof baseSchema, typeof baseSchema, { base: string }, typeof baseErrors, typeof route>
     >()
 
     // @ts-expect-error - invalid output

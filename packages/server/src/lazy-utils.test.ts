@@ -9,6 +9,7 @@ describe('createLazyProcedureFormAnyLazy', () => {
       InputSchema: undefined,
       OutputSchema: undefined,
       errorMap: {},
+      route: {},
     }),
     handler: vi.fn(),
     middlewares: [],

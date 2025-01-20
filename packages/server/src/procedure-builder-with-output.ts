@@ -1,4 +1,4 @@
-import type { ContractProcedure, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, RouteOptions, Schema, SchemaInput } from '@orpc/contract'
+import type { ContractProcedure, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, Route, Schema, SchemaInput } from '@orpc/contract'
 import type { ConflictContextGuard, Context, TypeCurrentContext, TypeInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { Middleware } from './middleware'
@@ -15,7 +15,7 @@ export interface ProcedureBuilderWithOutputDef<
 > {
   __initialContext?: TypeInitialContext<TInitialContext>
   __currentContext?: TypeCurrentContext<TCurrentContext>
-  contract: ContractProcedure<undefined, TOutputSchema, TErrorMap>
+  contract: ContractProcedure<undefined, TOutputSchema, TErrorMap, Route>
   middlewares: Middleware<any, any, any, any, any>[]
   inputValidationIndex: number
   outputValidationIndex: number
@@ -53,7 +53,7 @@ export class ProcedureBuilderWithOutput<
     })
   }
 
-  route(route: RouteOptions): ProcedureBuilderWithOutput<TInitialContext, TCurrentContext, TOutputSchema, TErrorMap> {
+  route(route: Route): ProcedureBuilderWithOutput<TInitialContext, TCurrentContext, TOutputSchema, TErrorMap> {
     return new ProcedureBuilderWithOutput({
       ...this['~orpc'],
       contract: DecoratedContractProcedure
@@ -79,7 +79,7 @@ export class ProcedureBuilderWithOutput<
   input<U extends Schema>(
     schema: U,
     example?: SchemaInput<U>,
-  ): ProcedureImplementer<TInitialContext, TCurrentContext, U, TOutputSchema, TErrorMap> {
+  ): ProcedureImplementer<TInitialContext, TCurrentContext, U, TOutputSchema, TErrorMap, Route> {
     return new ProcedureImplementer({
       ...this['~orpc'],
       contract: new ContractProcedureBuilderWithOutput(this['~orpc'].contract['~orpc']).input(schema, example),
@@ -88,7 +88,7 @@ export class ProcedureBuilderWithOutput<
 
   handler<UFuncOutput extends SchemaInput<TOutputSchema>>(
     handler: ProcedureHandler<TCurrentContext, undefined, TOutputSchema, UFuncOutput, TErrorMap>,
-  ): DecoratedProcedure<TInitialContext, TCurrentContext, undefined, TOutputSchema, UFuncOutput, TErrorMap> {
+  ): DecoratedProcedure<TInitialContext, TCurrentContext, undefined, TOutputSchema, UFuncOutput, TErrorMap, Route> {
     return new DecoratedProcedure({
       ...this['~orpc'],
       handler,

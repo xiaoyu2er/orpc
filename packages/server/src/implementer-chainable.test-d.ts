@@ -9,8 +9,9 @@ import { createChainableImplementer } from './implementer-chainable'
 
 const schema = z.object({ val: z.string().transform(val => Number(val)) })
 
+const route = { method: 'GET', path: '/ping' } as const
 const ping = oc.input(schema).output(schema)
-const pong = oc.route({ method: 'GET', path: '/ping' })
+const pong = oc.route(route)
 
 const contract = oc.router({
   ping,
@@ -24,11 +25,11 @@ const contract = oc.router({
 describe('ChainableImplementer', () => {
   it('with procedure', () => {
     expectTypeOf(createChainableImplementer(ping, { middlewares: [], inputValidationIndex: 0, outputValidationIndex: 0 })).toEqualTypeOf<
-      ProcedureImplementer<Context, Context, typeof schema, typeof schema, Record<never, never>>
+      ProcedureImplementer<Context, Context, typeof schema, typeof schema, Record<never, never>, Record<never, never>>
     >()
 
     expectTypeOf(createChainableImplementer(pong, { middlewares: [], inputValidationIndex: 0, outputValidationIndex: 0 })).toEqualTypeOf<
-      ProcedureImplementer<Context, Context, undefined, undefined, Record<never, never>>
+      ProcedureImplementer < Context, Context, undefined, undefined, Record<never, never>, Record < never, never > & typeof route>
     >()
   })
 
@@ -40,11 +41,11 @@ describe('ChainableImplementer', () => {
     >()
 
     expectTypeOf(implementer.ping).toEqualTypeOf<
-      ProcedureImplementer<Context, Context, typeof schema, typeof schema, Record<never, never>>
+      ProcedureImplementer<Context, Context, typeof schema, typeof schema, Record<never, never>, Record<never, never>>
     >()
 
     expectTypeOf(implementer.pong).toEqualTypeOf<
-      ProcedureImplementer<Context, Context, undefined, undefined, Record<never, never>>
+      ProcedureImplementer<Context, Context, undefined, undefined, Record<never, never>, Record<never, never> & typeof route>
     >()
 
     expectTypeOf(implementer.nested).toMatchTypeOf<
@@ -52,11 +53,11 @@ describe('ChainableImplementer', () => {
     >()
 
     expectTypeOf(implementer.nested.ping).toEqualTypeOf<
-      ProcedureImplementer<Context, Context, typeof schema, typeof schema, Record<never, never>>
+      ProcedureImplementer<Context, Context, typeof schema, typeof schema, Record<never, never>, Record<never, never>>
     >()
 
     expectTypeOf(implementer.nested.pong).toEqualTypeOf<
-      ProcedureImplementer<Context, Context, undefined, undefined, Record<never, never>>
+      ProcedureImplementer<Context, Context, undefined, undefined, Record<never, never>, Record<never, never> & typeof route>
     >()
   })
 
@@ -85,7 +86,7 @@ describe('ChainableImplementer', () => {
     >()
 
     expectTypeOf(implementer.use).toMatchTypeOf<
-      ProcedureImplementer<Context, Context, typeof schema, typeof schema, Record<never, never>>
+      ProcedureImplementer<Context, Context, typeof schema, typeof schema, Record<never, never>, Record<never, never>>
     >()
 
     expectTypeOf(implementer.router).toMatchTypeOf<
@@ -93,11 +94,11 @@ describe('ChainableImplementer', () => {
     >()
 
     expectTypeOf(implementer.router.use).toMatchTypeOf<
-      ProcedureImplementer<Context, Context, typeof schema, typeof schema, Record<never, never>>
+      ProcedureImplementer<Context, Context, typeof schema, typeof schema, Record<never, never>, Record<never, never>>
     >()
 
     expectTypeOf(implementer.router.router).toMatchTypeOf<
-      ProcedureImplementer<Context, Context, undefined, undefined, Record<never, never>>
+      ProcedureImplementer<Context, Context, undefined, undefined, Record<never, never>, Record<never, never> & typeof route>
     >()
   })
 })

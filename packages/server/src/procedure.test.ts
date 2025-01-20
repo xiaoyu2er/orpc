@@ -7,6 +7,7 @@ describe('isProcedure', () => {
       InputSchema: undefined,
       OutputSchema: undefined,
       errorMap: {},
+      route: {},
     }),
     handler: () => {},
     inputValidationIndex: 0,

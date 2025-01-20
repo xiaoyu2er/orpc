@@ -1,4 +1,4 @@
-import type { ContractProcedure, ErrorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ContractProcedure, ErrorMap, Route, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Promisable } from '@orpc/shared'
 import type { Context, TypeInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
@@ -50,12 +50,13 @@ export interface ProcedureDef<
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
   TErrorMap extends ErrorMap,
+  TRoute extends Route,
 > {
   __initialContext?: TypeInitialContext<TInitialContext>
   middlewares: Middleware<any, any, any, any, any>[]
   inputValidationIndex: number
   outputValidationIndex: number
-  contract: ContractProcedure<TInputSchema, TOutputSchema, TErrorMap>
+  contract: ContractProcedure<TInputSchema, TOutputSchema, TErrorMap, TRoute>
   handler: ProcedureHandler<TCurrentContext, any, any, THandlerOutput, any>
 }
 
@@ -66,17 +67,18 @@ export class Procedure<
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
   TErrorMap extends ErrorMap,
+  TRoute extends Route,
 > {
   '~type' = 'Procedure' as const
-  '~orpc': ProcedureDef<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>
+  '~orpc': ProcedureDef<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TRoute>
 
-  constructor(def: ProcedureDef<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap>) {
+  constructor(def: ProcedureDef<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TRoute>) {
     this['~orpc'] = def
   }
 }
 
-export type ANY_PROCEDURE = Procedure<any, any, any, any, any, any>
-export type WELL_PROCEDURE = Procedure<Context, Context, Schema, Schema, unknown, any>
+export type ANY_PROCEDURE = Procedure<any, any, any, any, any, any, any>
+export type WELL_PROCEDURE = Procedure<Context, Context, Schema, Schema, unknown, any, any>
 export type ANY_LAZY_PROCEDURE = Lazy<ANY_PROCEDURE>
 
 export function isProcedure(item: unknown): item is ANY_PROCEDURE {

@@ -83,9 +83,8 @@ export function mergeRoute<A extends Route, B extends Route>(a: A, b: B): MergeR
 
 export type PrefixRoute<TRoute extends Route, TPrefix extends HTTPPath> =
   TRoute['path'] extends HTTPPath ? Omit<TRoute, 'path'> & {
-    path: `${TPrefix}${TRoute['path']}` extends HTTPPath
-      ? `${TPrefix}${TRoute['path']}`
-      : TRoute['path']
+    // I don't know why but we need recheck TPrefix here to make typescript happy on [DecoratedContractProcedure.prefix]
+    path: TPrefix extends HTTPPath ? `${TPrefix}${TRoute['path']}` : TRoute['path']
   }
     : TRoute
 

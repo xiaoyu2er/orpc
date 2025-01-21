@@ -20,6 +20,7 @@ export * from './route'
 export * from './router'
 export * from './router-builder'
 export * from './router-client'
+export * from './schema'
 export * from './schema-utils'
 export * from './types'
 

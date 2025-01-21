@@ -1,5 +1,5 @@
 import type { ErrorMap, ErrorMapItem } from './error-map'
-import type { SchemaOutput } from './types'
+import type { SchemaOutput } from './schema'
 import { isPlainObject } from '@orpc/shared'
 
 export type ORPCErrorFromErrorMap<TErrorMap extends ErrorMap> = {

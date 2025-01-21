@@ -1,35 +1,13 @@
 import type { NestedClient } from './client'
 import type { ContractRouterClient } from './router-client'
-import { z } from 'zod'
-import { ContractProcedure } from './procedure'
-import { DecoratedContractProcedure } from './procedure-decorated'
-
-const schema = z.object({
-  value: z.string().transform(() => 1),
-})
-
-const baseError = {
-  BASE: {
-    data: z.string(),
-  },
-}
-
-const ping = new ContractProcedure({ InputSchema: schema, outputSchema: undefined, route: { path: '/procedure' }, errorMap: baseError })
-const pinged = DecoratedContractProcedure.decorate(ping)
-
-const pong = new ContractProcedure({ InputSchema: undefined, outputSchema: schema, errorMap: {}, route: {} })
-const ponged = DecoratedContractProcedure.decorate(pong)
+import { ping, pong } from '../tests/shared'
 
 const router = {
   ping,
-  pinged,
   pong,
-  ponged,
   nested: {
     ping,
-    pinged,
     pong,
-    ponged,
   },
 }
 

@@ -1,7 +1,11 @@
 import type { Meta, TypeMeta } from './meta'
+import type { HTTPPath } from './route'
+import type { MergedPrefix, MergedTags } from './route-utils'
+import type { ContractRouter } from './router'
+import type { AdaptedContractRouter } from './router-utils'
 import { type ErrorMap, type ErrorMapGuard, type ErrorMapSuggestions, type MergedErrorMap, mergeErrorMap, type StrictErrorMap } from './error-map'
-import { type HTTPPath, type MergedPrefix, type MergedTags, mergePrefix, mergeTags } from './route'
-import { adaptContractRouter, type AdaptedContractRouter, type ContractRouter } from './router'
+import { mergePrefix, mergeTags } from './route-utils'
+import { adaptContractRouter } from './router-utils'
 
 export interface ContractRouterBuilderDef<
   TErrorMap extends ErrorMap,

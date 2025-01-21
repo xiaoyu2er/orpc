@@ -1,7 +1,8 @@
 import type { ReadonlyDeep } from '@orpc/shared'
-import type { ContractProcedure, StrictErrorMap, StrictRoute } from '../src'
+import type { StrictErrorMap, StrictRoute } from '../src'
 import type { Meta, StrictMeta } from '../src/meta'
 import { z } from 'zod'
+import { ContractProcedure } from '../src'
 
 export const inputSchema = z.object({ input: z.number().transform(n => `${n}`) })
 
@@ -24,20 +25,32 @@ export const baseMeta: StrictMeta<BaseMetaDef, ReadonlyDeep<{ mode: 'dev' }>> = 
   mode: 'dev',
 }
 
-export const ping = {} as ContractProcedure<
+export const ping = new ContractProcedure<
   typeof inputSchema,
   typeof outputSchema,
   typeof baseErrorMap,
   typeof baseRoute,
   BaseMetaDef,
   typeof baseMeta
->
+>({
+  inputSchema,
+  outputSchema,
+  errorMap: baseErrorMap,
+  meta: baseMeta,
+  route: baseRoute,
+})
 
-export const pong = {} as ContractProcedure<
+export const pong = new ContractProcedure<
   undefined,
   undefined,
   Record<never, never>,
   Record<never, never>,
   Meta,
   Record<never, never>
->
+>({
+  errorMap: {},
+  inputSchema: undefined,
+  outputSchema: undefined,
+  meta: {},
+  route: {},
+})

@@ -1,99 +1,43 @@
-import { z } from 'zod'
-import { ContractProcedure } from './procedure'
-import { DecoratedContractProcedure } from './procedure-decorated'
+import { baseErrorMap, ping, pong } from '../tests/shared'
 import { ContractRouterBuilder } from './router-builder'
+import * as Router from './router-utils'
 
-const schema = z.object({
-  value: z.string(),
-})
-
-const baseErrorMap = {
-  BASE: {
-    status: 401,
-    data: z.string(),
-  },
-}
-
-const procedure = new ContractProcedure({
-  InputSchema: schema,
-  outputSchema: undefined,
-  route: { path: '/procedure', tags: ['p1'] },
-  errorMap: baseErrorMap,
-})
-const decorated = DecoratedContractProcedure.decorate(procedure)
-
-const router = {
-  procedure,
-  decorated,
-  nested: {
-    procedure,
-    decorated,
-  },
-}
-
-const builderErrorMap = {
-  BUILDER: {
-    status: 401,
-    data: z.string(),
-  },
-}
+const adaptContractRouterSpy = vi.spyOn(Router, 'adaptContractRouter')
 
 const builder = new ContractRouterBuilder({
+  errorMap: baseErrorMap,
   prefix: '/api',
-  tags: ['tag1', 'tag2'],
-  errorMap: builderErrorMap,
+  tags: ['tag'],
 })
 
-describe('prefix', () => {
-  it('works', () => {
-    expect(builder.prefix('/1').prefix('/2')['~orpc'].prefix).toEqual('/api/1/2')
+describe('contractRouterBuilder', () => {
+  it('.prefix', () => {
+    const applied = builder.prefix('/more')
+    expect(applied['~orpc'].prefix).toEqual('/api/more')
+    expect(applied['~orpc'].tags).toEqual(['tag'])
+    expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
   })
-})
 
-describe('tag', () => {
-  it('works', () => {
-    expect(builder.tag('1', '2').tag('3')['~orpc'].tags).toEqual(['tag1', 'tag2', '1', '2', '3'])
+  it('.tag', () => {
+    const applied = builder.tag('1', '2')
+    expect(applied['~orpc'].prefix).toEqual('/api')
+    expect(applied['~orpc'].tags).toEqual(['tag', '1', '2'])
+    expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
   })
-})
 
-describe('errors', () => {
-  const errors = {
-    BAD: {
-      status: 500,
-      data: schema,
-    },
-  }
-
-  it('merge old one', () => {
-    expect(builder.errors(errors)['~orpc'].errorMap).toEqual({
-      ...errors,
-      ...builder['~orpc'].errorMap,
-    })
+  it('.errors', () => {
+    const errors = { INVALID: { message: 'INVALID' } }
+    const applied = builder.errors(errors)
+    expect(applied['~orpc'].prefix).toEqual('/api')
+    expect(applied['~orpc'].tags).toEqual(['tag'])
+    expect(applied['~orpc'].errorMap).toEqual({ ...baseErrorMap, ...errors })
   })
-})
 
-describe('router', () => {
-  it('adapt all procedures', () => {
-    const routed = builder.router(router)
-
-    expect(routed.procedure).instanceOf(DecoratedContractProcedure)
-    expect(routed.procedure['~orpc'].route?.path).toEqual('/api/procedure')
-    expect(routed.procedure['~orpc'].route?.tags).toEqual(['tag1', 'tag2', 'p1'])
-    expect(routed.procedure['~orpc'].errorMap).toEqual({ ...builderErrorMap, ...baseErrorMap })
-
-    expect(routed.decorated).instanceOf(DecoratedContractProcedure)
-    expect(routed.decorated['~orpc'].route?.path).toEqual('/api/procedure')
-    expect(routed.decorated['~orpc'].route?.tags).toEqual(['tag1', 'tag2', 'p1'])
-    expect(routed.decorated['~orpc'].errorMap).toEqual({ ...builderErrorMap, ...baseErrorMap })
-
-    expect(routed.nested.procedure).instanceOf(DecoratedContractProcedure)
-    expect(routed.nested.procedure['~orpc'].route?.path).toEqual('/api/procedure')
-    expect(routed.nested.procedure['~orpc'].route?.tags).toEqual(['tag1', 'tag2', 'p1'])
-    expect(routed.nested.procedure['~orpc'].errorMap).toEqual({ ...builderErrorMap, ...baseErrorMap })
-
-    expect(routed.nested.decorated).instanceOf(DecoratedContractProcedure)
-    expect(routed.nested.decorated['~orpc'].route?.path).toEqual('/api/procedure')
-    expect(routed.nested.decorated['~orpc'].route?.tags).toEqual(['tag1', 'tag2', 'p1'])
-    expect(routed.nested.decorated['~orpc'].errorMap).toEqual({ ...builderErrorMap, ...baseErrorMap })
+  it('.router', () => {
+    const router = { ping, pong }
+    const applied = builder.router(router)
+    expect(applied).toBe(adaptContractRouterSpy.mock.results[0]!.value)
+    expect(adaptContractRouterSpy).toBeCalledTimes(1)
+    expect(adaptContractRouterSpy).toHaveBeenCalledWith(router, baseErrorMap, '/api', ['tag'])
   })
 })

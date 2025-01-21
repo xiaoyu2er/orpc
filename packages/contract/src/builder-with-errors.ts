@@ -1,14 +1,18 @@
-import type { HTTPPath, MergedRoute, Route } from './route'
+import type { Meta } from './meta'
+import type { HTTPPath, Route } from './route'
+import type { MergedRoute } from './route-utils'
+import type { ContractRouter } from './router'
+import type { AdaptedContractRouter } from './router-utils'
 import type { Schema } from './schema'
 import { type ErrorMap, type ErrorMapGuard, type ErrorMapSuggestions, type MergedErrorMap, mergeErrorMap, type StrictErrorMap } from './error-map'
-import { type MergedMeta, mergeMeta, type Meta } from './meta'
+import { type MergedMeta, mergeMeta } from './meta-utils'
 import { ContractProcedure } from './procedure'
 import { ContractProcedureBuilder } from './procedure-builder'
 import { ContractProcedureBuilderWithInput } from './procedure-builder-with-input'
 import { ContractProcedureBuilderWithOutput } from './procedure-builder-with-output'
-import { mergeRoute } from './route'
-import { adaptContractRouter, type AdaptedContractRouter, type ContractRouter } from './router'
+import { mergeRoute } from './route-utils'
 import { ContractRouterBuilder } from './router-builder'
+import { adaptContractRouter } from './router-utils'
 
 /**
  * Like `ContractBuilder` except it contains errors,

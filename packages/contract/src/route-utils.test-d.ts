@@ -1,4 +1,4 @@
-import type { AdaptedRoute, MergedPrefix, MergedRoute, MergedTags, PrefixedRoute, StrictRoute, UnshiftedTagRoute } from './route'
+import type { AdaptedRoute, MergedPrefix, MergedRoute, MergedTags, PrefixedRoute, StrictRoute, UnshiftedTagRoute } from './route-utils'
 
 it('StrictRoute', () => {
   expectTypeOf<StrictRoute<{ path: '/api' }>>().toMatchTypeOf<{ path: '/api', method?: undefined }>()

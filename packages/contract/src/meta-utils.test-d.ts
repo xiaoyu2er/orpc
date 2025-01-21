@@ -1,4 +1,4 @@
-import type { MergedMeta, StrictMeta } from './meta'
+import type { MergedMeta, StrictMeta } from './meta-utils'
 
 it('StrictMeta', () => {
   expectTypeOf<StrictMeta<{ a?: string, b?: string }, { a: '1' }>>().toMatchTypeOf<{ a: '1', b?: undefined }>()

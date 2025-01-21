@@ -1,11 +1,13 @@
-import type { MergedMeta, Meta } from './meta'
+import type { Meta } from './meta'
+import type { HTTPPath, Route } from './route'
+import type { MergedRoute, PrefixedRoute, UnshiftedTagRoute } from './route-utils'
 import type { Schema } from './schema'
 import { type ErrorMap, type ErrorMapGuard, type ErrorMapSuggestions, type MergedErrorMap, mergeErrorMap, type StrictErrorMap } from './error-map'
-import { mergeMeta } from './meta'
+import { type MergedMeta, mergeMeta } from './meta-utils'
 import { ContractProcedure } from './procedure'
 import { ContractProcedureBuilderWithInput } from './procedure-builder-with-input'
 import { ContractProcedureBuilderWithOutput } from './procedure-builder-with-output'
-import { type HTTPPath, type MergedRoute, mergeRoute, type PrefixedRoute, prefixRoute, type Route, type UnshiftedTagRoute, unshiftTagRoute } from './route'
+import { mergeRoute, prefixRoute, unshiftTagRoute } from './route-utils'
 
 export class ContractProcedureBuilder<
   TErrorMap extends ErrorMap,

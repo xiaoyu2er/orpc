@@ -1,9 +1,11 @@
-import type { ErrorMap, ErrorMapGuard, ErrorMapSuggestions, MergedErrorMap, StrictErrorMap } from './error-map'
+import type { Meta } from './meta'
+import type { HTTPPath, Route } from './route'
 import type { Schema } from './schema'
-import { type MergedMeta, mergeMeta, type Meta } from './meta'
+import { type ErrorMap, type ErrorMapGuard, type ErrorMapSuggestions, type MergedErrorMap, mergeErrorMap, type StrictErrorMap } from './error-map'
+import { type MergedMeta, mergeMeta } from './meta-utils'
 import { ContractProcedure } from './procedure'
 import { DecoratedContractProcedure } from './procedure-decorated'
-import { type HTTPPath, type MergedRoute, mergeRoute, type PrefixedRoute, prefixRoute, type Route, type UnshiftedTagRoute, unshiftTagRoute } from './route'
+import { type MergedRoute, mergeRoute, type PrefixedRoute, prefixRoute, type UnshiftedTagRoute, unshiftTagRoute } from './route-utils'
 
 /**
  * `ContractProcedureBuilderWithOutput` is a branch of `ContractProcedureBuilder` which it has output schema.
@@ -21,8 +23,10 @@ export class ContractProcedureBuilderWithOutput<
   errors<const U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(
     errors: U,
   ): ContractProcedureBuilderWithOutput<TOutputSchema, MergedErrorMap<TErrorMap, StrictErrorMap<U>>, TRoute, TMetaDef, TMeta> {
-    const decorated = DecoratedContractProcedure.decorate(this).errors(errors)
-    return new ContractProcedureBuilderWithOutput(decorated['~orpc'])
+    return new ContractProcedureBuilderWithOutput({
+      ...this['~orpc'],
+      errorMap: mergeErrorMap(this['~orpc'].errorMap, errors),
+    })
   }
 
   meta<const U extends TMetaDef>(

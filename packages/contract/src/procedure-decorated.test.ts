@@ -1,120 +1,83 @@
 import { z } from 'zod'
+import { baseErrorMap, baseMeta, baseRoute, inputSchema, outputSchema, ping } from '../tests/shared'
 import { ContractProcedure } from './procedure'
 import { DecoratedContractProcedure } from './procedure-decorated'
+import { prefixRoute, unshiftTagRoute } from './route'
 
-const baseErrorMap = {
-  BASE: {
-    status: 500,
-    data: z.object({
-      message: z.string(),
-    }),
-  },
-}
-
-const InputSchema = z.object({ input: z.string().transform(val => Number(val)) })
-const OutputSchema = z.object({ output: z.string().transform(val => Number(val)) })
-
-const baseRoute = {
-  method: 'GET',
-  path: '/v1/users',
-  tags: ['tag'],
-} as const
-
-const decorated = new DecoratedContractProcedure({ InputSchema, outputSchema: OutputSchema, errorMap: baseErrorMap, route: baseRoute })
+const builder = new DecoratedContractProcedure({
+  inputSchema,
+  outputSchema,
+  errorMap: baseErrorMap,
+  route: baseRoute,
+  meta: baseMeta,
+})
 
 describe('decoratedContractProcedure', () => {
   it('is a procedure', () => {
-    expect(decorated).toBeInstanceOf(ContractProcedure)
+    expect(builder).toBeInstanceOf(ContractProcedure)
   })
 
   it('.decorate', () => {
-    const applied = DecoratedContractProcedure.decorate(new ContractProcedure({ InputSchema, outputSchema: OutputSchema, errorMap: baseErrorMap, route: baseRoute }))
-
-    expect(applied).toEqual(decorated)
-    expect(applied).not.toBe(decorated)
-
-    expect(DecoratedContractProcedure.decorate(decorated))
-      .toBe(decorated)
+    expect(DecoratedContractProcedure.decorate(builder)).toBe(builder)
+    expect(DecoratedContractProcedure.decorate(ping)).toBeInstanceOf(DecoratedContractProcedure)
+    expect(DecoratedContractProcedure.decorate(ping)['~orpc']).toEqual(ping['~orpc'])
   })
 
   it('.errors', () => {
     const errors = { BAD_GATEWAY: { data: z.object({ message: z.string() }) } } as const
-
-    const applied = decorated.errors(errors)
-
+    const applied = builder.errors(errors)
     expect(applied).toBeInstanceOf(DecoratedContractProcedure)
-    expect(applied).not.toBe(decorated)
-    expect(applied['~orpc'].errorMap).toEqual({
-      ...baseErrorMap,
-      ...errors,
-    })
-    expect(applied['~orpc'].InputSchema).toEqual(InputSchema)
-    expect(applied['~orpc'].outputSchema).toEqual(OutputSchema)
+    expect(applied).not.toBe(builder)
+    expect(applied['~orpc'].errorMap).toEqual({ ...baseErrorMap, ...errors })
     expect(applied['~orpc'].route).toEqual(baseRoute)
+    expect(applied['~orpc'].meta).toEqual(baseMeta)
+    expect(applied['~orpc'].inputSchema).toEqual(inputSchema)
+    expect(applied['~orpc'].outputSchema).toEqual(outputSchema)
+  })
+
+  it('.meta', () => {
+    const meta = { dev: true, log: true }
+    const applied = builder.meta(meta)
+    expect(applied).toBeInstanceOf(DecoratedContractProcedure)
+    expect(applied).not.toBe(builder)
+    expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
+    expect(applied['~orpc'].route).toEqual(baseRoute)
+    expect(applied['~orpc'].meta).toEqual({ ...baseMeta, ...meta })
+    expect(applied['~orpc'].inputSchema).toEqual(inputSchema)
+    expect(applied['~orpc'].outputSchema).toEqual(outputSchema)
   })
 
   it('.route', () => {
-    const applied = decorated.route({ method: 'PATCH', description: 'new message' })
-
+    const route = { method: 'POST', path: '/v2/users', tags: ['tag'] } as const
+    const applied = builder.route(route)
     expect(applied).toBeInstanceOf(DecoratedContractProcedure)
-    expect(applied).not.toBe(decorated)
+    expect(applied).not.toBe(builder)
     expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
-    expect(applied['~orpc'].InputSchema).toEqual(InputSchema)
-    expect(applied['~orpc'].outputSchema).toEqual(OutputSchema)
-    expect(applied['~orpc'].route).toEqual({
-      method: 'PATCH',
-      description: 'new message',
-      path: '/v1/users',
-      tags: ['tag'],
-    })
+    expect(applied['~orpc'].route).toEqual({ ...baseRoute, ...route })
+    expect(applied['~orpc'].meta).toEqual(baseMeta)
+    expect(applied['~orpc'].inputSchema).toEqual(inputSchema)
+    expect(applied['~orpc'].outputSchema).toEqual(outputSchema)
   })
 
-  describe('.prefix', () => {
-    it('when has path', () => {
-      const applied = decorated.prefix('/api')
-
-      expect(applied).toBeInstanceOf(DecoratedContractProcedure)
-      expect(applied).not.toBe(decorated)
-      expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
-      expect(applied['~orpc'].InputSchema).toEqual(InputSchema)
-      expect(applied['~orpc'].outputSchema).toEqual(OutputSchema)
-      expect(applied['~orpc'].route).toEqual({
-        method: 'GET',
-        path: '/api/v1/users',
-        tags: ['tag'],
-      })
-    })
-
-    it('when has no path', () => {
-      const decorated = new DecoratedContractProcedure({ InputSchema, outputSchema: OutputSchema, errorMap: baseErrorMap, route: {} })
-      const applied = decorated.prefix('/api')
-      expect(applied['~orpc'].route).toEqual({})
-    })
+  it('.prefix', () => {
+    const applied = builder.prefix('/api')
+    expect(applied).toBeInstanceOf(DecoratedContractProcedure)
+    expect(applied).not.toBe(builder)
+    expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
+    expect(applied['~orpc'].route).toEqual(prefixRoute(baseRoute, '/api'))
+    expect(applied['~orpc'].meta).toEqual(baseMeta)
+    expect(applied['~orpc'].inputSchema).toEqual(inputSchema)
+    expect(applied['~orpc'].outputSchema).toEqual(outputSchema)
   })
 
-  describe('.unshiftTag', () => {
-    it('works', () => {
-      const applied = decorated.unshiftTag('tag2', 'tag3')
-
-      expect(applied).toBeInstanceOf(DecoratedContractProcedure)
-      expect(applied).not.toBe(decorated)
-      expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
-      expect(applied['~orpc'].InputSchema).toEqual(InputSchema)
-      expect(applied['~orpc'].outputSchema).toEqual(OutputSchema)
-      expect(applied['~orpc'].route).toEqual({
-        method: 'GET',
-        tags: ['tag2', 'tag3', 'tag'],
-        path: '/v1/users',
-      })
-    })
-
-    it('decorated without existing tag', () => {
-      const decorated = new DecoratedContractProcedure({ InputSchema, outputSchema: OutputSchema, errorMap: baseErrorMap, route: {} })
-
-      const applied = decorated.unshiftTag('tag', 'tag2')
-      expect(applied['~orpc'].route).toEqual({
-        tags: ['tag', 'tag2'],
-      })
-    })
+  it('.unshiftTag', () => {
+    const applied = builder.unshiftTag('tag2', 'tag3')
+    expect(applied).toBeInstanceOf(DecoratedContractProcedure)
+    expect(applied).not.toBe(builder)
+    expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
+    expect(applied['~orpc'].route).toEqual(unshiftTagRoute(baseRoute, ['tag2', 'tag3']))
+    expect(applied['~orpc'].meta).toEqual(baseMeta)
+    expect(applied['~orpc'].inputSchema).toEqual(inputSchema)
+    expect(applied['~orpc'].outputSchema).toEqual(outputSchema)
   })
 })

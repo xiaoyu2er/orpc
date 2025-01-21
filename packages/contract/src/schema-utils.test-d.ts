@@ -1,4 +1,4 @@
-import type { SchemaInput, SchemaOutput } from './types'
+import type { SchemaInput, SchemaOutput } from './schema'
 import { type } from './schema-utils'
 
 describe('type', () => {

@@ -2,18 +2,9 @@ import type { ReadonlyDeep } from '@orpc/shared'
 import type { baseErrorMap, baseMeta, BaseMetaDef, outputSchema } from '../tests/shared'
 import type { MergedErrorMap, StrictErrorMap } from './error-map'
 import type { ContractProcedure } from './procedure'
-import type { AdaptedContractRouter } from './router'
 import type { ContractRouterBuilder } from './router-builder'
+import type { AdaptedContractRouter } from './router-utils'
 import { ping, pong } from '../tests/shared'
-
-const router = {
-  ping,
-  pong,
-  nested: {
-    ping,
-    pong,
-  },
-}
 
 const builder = {} as ContractRouterBuilder<typeof baseErrorMap, '/api', ['api'], BaseMetaDef>
 

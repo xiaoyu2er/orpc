@@ -1,4 +1,9 @@
-import { mergePrefix, mergeRoute, mergeTags, prefixRoute, unshiftTagRoute } from './route'
+import { baseRoute } from '../tests/shared'
+import { createStrictRoute, mergePrefix, mergeRoute, mergeTags, prefixRoute, unshiftTagRoute } from './route-utils'
+
+it('crateStrictRoute', () => {
+  expect(createStrictRoute(baseRoute)).toBe(baseRoute)
+})
 
 it('mergeRoute', () => {
   expect(mergeRoute({ path: '/api' }, { path: '/v1' })).toEqual({ path: '/v1' })

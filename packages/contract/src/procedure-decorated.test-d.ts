@@ -3,7 +3,7 @@ import type { baseMeta, BaseMetaDef, baseRoute, inputSchema, outputSchema } from
 import type { MergedErrorMap, StrictErrorMap } from './error-map'
 import type { ContractProcedure } from './procedure'
 import type { DecoratedContractProcedure } from './procedure-decorated'
-import type { MergedRoute, PrefixedRoute, UnshiftedTagRoute } from './route'
+import type { MergedRoute, PrefixedRoute, UnshiftedTagRoute } from './route-utils'
 import { baseErrorMap } from '../tests/shared'
 
 const builder = {} as DecoratedContractProcedure<

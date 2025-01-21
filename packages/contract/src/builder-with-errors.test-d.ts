@@ -1,14 +1,14 @@
 import type { ReadonlyDeep } from '@orpc/shared'
 import type { ContractBuilderWithErrors } from './builder-with-errors'
 import type { MergedErrorMap, StrictErrorMap } from './error-map'
-import type { MergedMeta } from './meta'
+import type { MergedMeta } from './meta-utils'
 import type { ContractProcedure } from './procedure'
 import type { ContractProcedureBuilder } from './procedure-builder'
 import type { ContractProcedureBuilderWithInput } from './procedure-builder-with-input'
 import type { ContractProcedureBuilderWithOutput } from './procedure-builder-with-output'
-import type { MergedRoute } from './route'
-import type { AdaptedContractRouter } from './router'
+import type { MergedRoute } from './route-utils'
 import type { ContractRouterBuilder } from './router-builder'
+import type { AdaptedContractRouter } from './router-utils'
 import { baseErrorMap, type baseMeta, type BaseMetaDef, type baseRoute, inputSchema, outputSchema, ping, pong } from '../tests/shared'
 
 const builder = {} as ContractBuilderWithErrors<typeof baseErrorMap, typeof baseRoute, BaseMetaDef, typeof baseMeta>

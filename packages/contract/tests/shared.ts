@@ -1,6 +1,6 @@
 import type { ReadonlyDeep } from '@orpc/shared'
-import type { StrictErrorMap, StrictRoute } from '../src'
-import type { Meta, StrictMeta } from '../src/meta'
+import type { StrictErrorMap, StrictMeta, StrictRoute } from '../src'
+import type { Meta } from '../src/meta'
 import { z } from 'zod'
 import { ContractProcedure } from '../src'
 

@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { baseErrorMap, baseMeta, baseRoute, inputSchema, outputSchema, ping } from '../tests/shared'
 import { ContractProcedure } from './procedure'
 import { DecoratedContractProcedure } from './procedure-decorated'
-import { prefixRoute, unshiftTagRoute } from './route'
+import { prefixRoute, unshiftTagRoute } from './route-utils'
 
 const builder = new DecoratedContractProcedure({
   inputSchema,

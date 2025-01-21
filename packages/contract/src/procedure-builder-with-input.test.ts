@@ -3,7 +3,7 @@ import { baseErrorMap, baseMeta, baseRoute, inputSchema, outputSchema } from '..
 import { ContractProcedure } from './procedure'
 import { ContractProcedureBuilderWithInput } from './procedure-builder-with-input'
 import { DecoratedContractProcedure } from './procedure-decorated'
-import { prefixRoute, unshiftTagRoute } from './route'
+import { prefixRoute, unshiftTagRoute } from './route-utils'
 
 const builder = new ContractProcedureBuilderWithInput({
   inputSchema,

@@ -4,8 +4,8 @@ import { isContractProcedure } from './procedure'
 import { ContractProcedureBuilder } from './procedure-builder'
 import { ContractProcedureBuilderWithInput } from './procedure-builder-with-input'
 import { ContractProcedureBuilderWithOutput } from './procedure-builder-with-output'
-import * as Router from './router'
 import { ContractRouterBuilder } from './router-builder'
+import * as Router from './router-utils'
 
 const adaptContractRouterSpy = vi.spyOn(Router, 'adaptContractRouter')
 

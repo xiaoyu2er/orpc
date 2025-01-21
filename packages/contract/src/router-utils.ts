@@ -6,6 +6,20 @@ import { mergeErrorMap } from './error-map'
 import { ContractProcedure, isContractProcedure } from './procedure'
 import { type AdaptedRoute, adaptRoute } from './route-utils'
 
+export type InferContractRouterInputs<T extends AnyContractRouter> =
+  T extends ContractProcedure<infer UInputSchema, any, any, any, any, any>
+    ? SchemaInput<UInputSchema>
+    : {
+        [K in keyof T]: T[K] extends AnyContractRouter ? InferContractRouterInputs<T[K]> : never
+      }
+
+export type InferContractRouterOutputs<T extends AnyContractRouter> =
+  T extends ContractProcedure<any, infer UOutputSchema, any, any, any, any>
+    ? SchemaOutput<UOutputSchema>
+    : {
+        [K in keyof T]: T[K] extends AnyContractRouter ? InferContractRouterOutputs<T[K]> : never
+      }
+
 export type AdaptedContractRouter<
   TContract extends AnyContractRouter,
   TErrorMapExtra extends ErrorMap,
@@ -49,17 +63,3 @@ export function adaptContractRouter<
 
   return adapted as any
 }
-
-export type InferContractRouterInputs<T extends AnyContractRouter> =
-    T extends ContractProcedure<infer UInputSchema, any, any, any, any, any>
-      ? SchemaInput<UInputSchema>
-      : {
-          [K in keyof T]: T[K] extends AnyContractRouter ? InferContractRouterInputs<T[K]> : never
-        }
-
-export type InferContractRouterOutputs<T extends AnyContractRouter> =
-    T extends ContractProcedure<any, infer UOutputSchema, any, any, any, any>
-      ? SchemaOutput<UOutputSchema>
-      : {
-          [K in keyof T]: T[K] extends AnyContractRouter ? InferContractRouterOutputs<T[K]> : never
-        }

@@ -106,7 +106,7 @@ describe('adapt router', () => {
   const ping = new Procedure({
     contract: new ContractProcedure({
       InputSchema: schema,
-      OutputSchema: undefined,
+      outputSchema: undefined,
       route: {
         tags: ['tag3', 'tag4'],
       },
@@ -120,7 +120,7 @@ describe('adapt router', () => {
   const pong = new Procedure({
     contract: new ContractProcedure({
       InputSchema: undefined,
-      OutputSchema: schema,
+      outputSchema: schema,
       route: {
         method: 'GET',
         path: '/pong',

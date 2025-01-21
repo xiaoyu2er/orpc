@@ -1,22 +1,27 @@
-import type { ErrorMap, ErrorMapGuard, ErrorMapSuggestions, StrictErrorMap } from './error-map'
-import type { Schema } from './types'
+import type { Schema } from './schema'
+import { type ErrorMap, type ErrorMapGuard, type ErrorMapSuggestions, type MergedErrorMap, mergeErrorMap, type StrictErrorMap } from './error-map'
+import { type MergedMeta, mergeMeta, type Meta } from './meta'
 import { ContractProcedure } from './procedure'
-import { type HTTPPath, mergeRoute, type MergeRoute, prefixRoute, type PrefixRoute, type Route, unshiftTagRoute, type UnshiftTagRoute } from './route'
+import { type HTTPPath, type MergedRoute, mergeRoute, type PrefixedRoute, prefixRoute, type Route, type UnshiftedTagRoute, unshiftTagRoute } from './route'
 
 export class DecoratedContractProcedure<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   TErrorMap extends ErrorMap,
   TRoute extends Route,
-> extends ContractProcedure<TInputSchema, TOutputSchema, TErrorMap, TRoute> {
+  TMetaDef extends Meta,
+  TMeta extends TMetaDef,
+> extends ContractProcedure<TInputSchema, TOutputSchema, TErrorMap, TRoute, TMetaDef, TMeta> {
   static decorate<
     UInputSchema extends Schema,
     UOutputSchema extends Schema,
     UErrorMap extends ErrorMap,
     URoute extends Route,
+    UMetaDef extends Meta,
+    UMeta extends UMetaDef,
   >(
-    procedure: ContractProcedure<UInputSchema, UOutputSchema, UErrorMap, URoute>,
-  ): DecoratedContractProcedure<UInputSchema, UOutputSchema, UErrorMap, URoute> {
+    procedure: ContractProcedure<UInputSchema, UOutputSchema, UErrorMap, URoute, UMetaDef, UMeta>,
+  ): DecoratedContractProcedure<UInputSchema, UOutputSchema, UErrorMap, URoute, UMetaDef, UMeta> {
     if (procedure instanceof DecoratedContractProcedure) {
       return procedure
     }
@@ -26,19 +31,25 @@ export class DecoratedContractProcedure<
 
   errors<const U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(
     errors: U,
-  ): DecoratedContractProcedure<TInputSchema, TOutputSchema, StrictErrorMap<U> & TErrorMap, TRoute> {
+  ): DecoratedContractProcedure<TInputSchema, TOutputSchema, MergedErrorMap<StrictErrorMap<U>, TErrorMap>, TRoute, TMetaDef, TMeta> {
     return new DecoratedContractProcedure({
       ...this['~orpc'],
-      errorMap: {
-        ...this['~orpc'].errorMap,
-        ...errors,
-      },
+      errorMap: mergeErrorMap(this['~orpc'].errorMap, errors),
+    })
+  }
+
+  meta<const U extends TMetaDef>(
+    meta: U,
+  ): DecoratedContractProcedure<TInputSchema, TOutputSchema, TErrorMap, TRoute, TMetaDef, MergedMeta<TMeta, U>> {
+    return new DecoratedContractProcedure({
+      ...this['~orpc'],
+      meta: mergeMeta(this['~orpc'].meta, meta),
     })
   }
 
   route<const U extends Route>(
     route: U,
-  ): DecoratedContractProcedure<TInputSchema, TOutputSchema, TErrorMap, MergeRoute<TRoute, U>> {
+  ): DecoratedContractProcedure<TInputSchema, TOutputSchema, TErrorMap, MergedRoute<TRoute, U>, TMetaDef, TMeta> {
     return new DecoratedContractProcedure({
       ...this['~orpc'],
       route: mergeRoute(this['~orpc'].route, route),
@@ -47,7 +58,7 @@ export class DecoratedContractProcedure<
 
   prefix<U extends HTTPPath>(
     prefix: U,
-  ): DecoratedContractProcedure<TInputSchema, TOutputSchema, TErrorMap, PrefixRoute<TRoute, U>> {
+  ): DecoratedContractProcedure<TInputSchema, TOutputSchema, TErrorMap, PrefixedRoute<TRoute, U>, TMetaDef, TMeta> {
     return new DecoratedContractProcedure({
       ...this['~orpc'],
       route: prefixRoute(this['~orpc'].route, prefix),
@@ -56,7 +67,7 @@ export class DecoratedContractProcedure<
 
   unshiftTag<U extends string[]>(
     ...tags: U
-  ): DecoratedContractProcedure<TInputSchema, TOutputSchema, TErrorMap, UnshiftTagRoute<TRoute, U>> {
+  ): DecoratedContractProcedure<TInputSchema, TOutputSchema, TErrorMap, UnshiftedTagRoute<TRoute, U>, TMetaDef, TMeta> {
     return new DecoratedContractProcedure({
       ...this['~orpc'],
       route: unshiftTagRoute(this['~orpc'].route, tags),

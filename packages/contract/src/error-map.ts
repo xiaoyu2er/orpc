@@ -1,5 +1,5 @@
 import type { CommonORPCErrorCode } from './error-orpc'
-import type { Schema } from './types'
+import type { Schema } from './schema'
 
 export type ErrorMapItem<TDataSchema extends Schema> = {
   /**
@@ -59,4 +59,14 @@ export type ErrorMapGuard<TErrorMap extends ErrorMap> = {
  */
 export type StrictErrorMap<T extends ErrorMap> = {
   [K in keyof T]: T[K] & Partial<Record<Exclude<keyof ErrorMapItem<any>, keyof T[K]>, undefined>>
+}
+
+export function createStrictErrorMap<T extends ErrorMap>(errors: T): StrictErrorMap<T> {
+  return errors as any // just strict at type level
+}
+
+export type MergedErrorMap<T1 extends ErrorMap, T2 extends ErrorMap> = T1 & T2
+
+export function mergeErrorMap<T1 extends ErrorMap, T2 extends ErrorMap>(errorMap1: T1, errorMap2: T2): MergedErrorMap<T1, T2> {
+  return { ...errorMap1, ...errorMap2 }
 }

@@ -11,7 +11,7 @@ vi.mock('./procedure-client', async original => ({
 const procedure = new Procedure({
   contract: new ContractProcedure({
     InputSchema: undefined,
-    OutputSchema: undefined,
+    outputSchema: undefined,
     errorMap: {},
     route: {},
   }),

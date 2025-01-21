@@ -18,7 +18,7 @@ describe('createRouterClient', () => {
   const ping = new Procedure({
     contract: new ContractProcedure({
       InputSchema: schema,
-      OutputSchema: schema,
+      outputSchema: schema,
       errorMap: {},
       route: {},
     }),
@@ -30,7 +30,7 @@ describe('createRouterClient', () => {
   const pong = new Procedure({
     contract: new ContractProcedure({
       InputSchema: undefined,
-      OutputSchema: undefined,
+      outputSchema: undefined,
       errorMap: {},
       route: {},
     }),

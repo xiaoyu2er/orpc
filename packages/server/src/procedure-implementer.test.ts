@@ -16,7 +16,7 @@ const baseMid = vi.fn()
 const implementer = new ProcedureImplementer({
   contract: new ContractProcedure({
     InputSchema: baseSchema,
-    OutputSchema: baseSchema,
+    outputSchema: baseSchema,
     errorMap: baseErrors,
     route: {},
   }),

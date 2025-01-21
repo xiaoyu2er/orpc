@@ -26,7 +26,7 @@ const baseErrors = {
 const decorated = new DecoratedProcedure({
   contract: new ContractProcedure({
     InputSchema: schema,
-    OutputSchema: schema,
+    outputSchema: schema,
     route: { path: '/test', method: 'GET', deprecated: true, description: 'des', summary: 'sum', tags: ['hi'] },
     inputExample: { val: 123 },
     outputExample: { val: 456 },
@@ -43,7 +43,7 @@ describe('decorate', () => {
     const procedure = new Procedure({
       contract: new ContractProcedure({
         InputSchema: schema,
-        OutputSchema: schema,
+        outputSchema: schema,
         route: { },
         errorMap: baseErrors,
       }),

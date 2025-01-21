@@ -84,7 +84,7 @@ export class BuilderWithErrorsMiddlewares<
           ...route,
         },
         InputSchema: undefined,
-        OutputSchema: undefined,
+        outputSchema: undefined,
         errorMap: this['~orpc'].errorMap,
       }),
     })
@@ -98,7 +98,7 @@ export class BuilderWithErrorsMiddlewares<
       ...this['~orpc'],
       contract: new ContractProcedure({
         route: fallbackContractConfig('defaultInitialRoute', this['~orpc'].config.initialRoute),
-        OutputSchema: undefined,
+        outputSchema: undefined,
         InputSchema: schema,
         inputExample: example,
         errorMap: this['~orpc'].errorMap,
@@ -115,7 +115,7 @@ export class BuilderWithErrorsMiddlewares<
       contract: new ContractProcedure({
         route: fallbackContractConfig('defaultInitialRoute', this['~orpc'].config.initialRoute),
         InputSchema: undefined,
-        OutputSchema: schema,
+        outputSchema: schema,
         outputExample: example,
         errorMap: this['~orpc'].errorMap,
       }),
@@ -130,7 +130,7 @@ export class BuilderWithErrorsMiddlewares<
       contract: new ContractProcedure({
         route: fallbackContractConfig('defaultInitialRoute', this['~orpc'].config.initialRoute),
         InputSchema: undefined,
-        OutputSchema: undefined,
+        outputSchema: undefined,
         errorMap: this['~orpc'].errorMap,
       }),
       handler,

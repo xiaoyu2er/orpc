@@ -13,7 +13,7 @@ describe('rpcHandler', () => {
   const ping = new Procedure({
     contract: new ContractProcedure({
       InputSchema: undefined,
-      OutputSchema: undefined,
+      outputSchema: undefined,
       errorMap: {},
       route: {},
     }),
@@ -25,7 +25,7 @@ describe('rpcHandler', () => {
   const pong = new Procedure({
     contract: new ContractProcedure({
       InputSchema: undefined,
-      OutputSchema: undefined,
+      outputSchema: undefined,
       errorMap: {},
       route: {},
     }),

@@ -1,4 +1,4 @@
-import type { MergeRoute, StrictRoute } from '@orpc/contract'
+import type { MergedRoute, StrictRoute } from '@orpc/contract'
 import type { Context, TypeCurrentContext, TypeInitialContext } from './context'
 import type { ChainableImplementer } from './implementer-chainable'
 import type { Middleware } from './middleware'
@@ -30,7 +30,7 @@ describe('ChainableImplementer', () => {
     >()
 
     expectTypeOf(createChainableImplementer(pong, { middlewares: [], inputValidationIndex: 0, outputValidationIndex: 0 })).toEqualTypeOf<
-      ProcedureImplementer<Context, Context, undefined, undefined, Record<never, never>, MergeRoute<StrictRoute<Record<never, never>>, typeof route>>
+      ProcedureImplementer<Context, Context, undefined, undefined, Record<never, never>, MergedRoute<StrictRoute<Record<never, never>>, typeof route>>
     >()
   })
 
@@ -46,7 +46,7 @@ describe('ChainableImplementer', () => {
     >()
 
     expectTypeOf(implementer.pong).toEqualTypeOf<
-      ProcedureImplementer<Context, Context, undefined, undefined, Record<never, never>, MergeRoute<StrictRoute<Record<never, never>>, typeof route>>
+      ProcedureImplementer<Context, Context, undefined, undefined, Record<never, never>, MergedRoute<StrictRoute<Record<never, never>>, typeof route>>
     >()
 
     expectTypeOf(implementer.nested).toMatchTypeOf<
@@ -58,7 +58,7 @@ describe('ChainableImplementer', () => {
     >()
 
     expectTypeOf(implementer.nested.pong).toEqualTypeOf<
-      ProcedureImplementer<Context, Context, undefined, undefined, Record<never, never>, MergeRoute<StrictRoute<Record<never, never>>, typeof route>>
+      ProcedureImplementer<Context, Context, undefined, undefined, Record<never, never>, MergedRoute<StrictRoute<Record<never, never>>, typeof route>>
     >()
   })
 

@@ -23,7 +23,7 @@ const builder = new ProcedureBuilder({
   outputValidationIndex: 1,
   contract: new ContractProcedure({
     InputSchema: undefined,
-    OutputSchema: undefined,
+    outputSchema: undefined,
     errorMap: baseErrors,
     route: {},
   }),

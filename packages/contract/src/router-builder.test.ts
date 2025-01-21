@@ -16,7 +16,7 @@ const baseErrorMap = {
 
 const procedure = new ContractProcedure({
   InputSchema: schema,
-  OutputSchema: undefined,
+  outputSchema: undefined,
   route: { path: '/procedure', tags: ['p1'] },
   errorMap: baseErrorMap,
 })

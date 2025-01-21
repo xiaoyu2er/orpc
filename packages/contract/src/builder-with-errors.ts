@@ -1,13 +1,20 @@
-import type { MergedMeta, Meta } from './meta'
+import type { HTTPPath, MergedRoute, Route } from './route'
 import type { Schema } from './schema'
 import { type ErrorMap, type ErrorMapGuard, type ErrorMapSuggestions, type MergedErrorMap, mergeErrorMap, type StrictErrorMap } from './error-map'
-import { mergeMeta } from './meta'
+import { type MergedMeta, mergeMeta, type Meta } from './meta'
 import { ContractProcedure } from './procedure'
+import { ContractProcedureBuilder } from './procedure-builder'
 import { ContractProcedureBuilderWithInput } from './procedure-builder-with-input'
 import { ContractProcedureBuilderWithOutput } from './procedure-builder-with-output'
-import { type HTTPPath, type MergedRoute, mergeRoute, type PrefixedRoute, prefixRoute, type Route, type UnshiftedTagRoute, unshiftTagRoute } from './route'
+import { mergeRoute } from './route'
+import { adaptContractRouter, type AdaptedContractRouter, type ContractRouter } from './router'
+import { ContractRouterBuilder } from './router-builder'
 
-export class ContractProcedureBuilder<
+/**
+ * Like `ContractBuilder` except it contains errors,
+ * Which is useful when help .router in `ContractBuilder` faster.
+ */
+export class ContractBuilderWithErrors<
   TErrorMap extends ErrorMap,
   TRoute extends Route,
   TMetaDef extends Meta,
@@ -15,8 +22,8 @@ export class ContractProcedureBuilder<
 > extends ContractProcedure<undefined, undefined, TErrorMap, TRoute, TMetaDef, TMeta> {
   errors<const U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(
     errors: U,
-  ): ContractProcedureBuilder<MergedErrorMap<TErrorMap, StrictErrorMap<U>>, TRoute, TMetaDef, TMeta> {
-    return new ContractProcedureBuilder({
+  ): ContractBuilderWithErrors<MergedErrorMap<TErrorMap, StrictErrorMap<U>>, TRoute, TMetaDef, TMeta> {
+    return new ContractBuilderWithErrors({
       ...this['~orpc'],
       errorMap: mergeErrorMap(this['~orpc'].errorMap, errors),
     })
@@ -31,24 +38,12 @@ export class ContractProcedureBuilder<
     })
   }
 
-  route<const U extends Route>(route: U): ContractProcedureBuilder<TErrorMap, MergedRoute<TRoute, U>, TMetaDef, TMeta> {
+  route<const U extends Route>(
+    route: U,
+  ): ContractProcedureBuilder<TErrorMap, MergedRoute<TRoute, U>, TMetaDef, TMeta> {
     return new ContractProcedureBuilder({
       ...this['~orpc'],
       route: mergeRoute(this['~orpc'].route, route),
-    })
-  }
-
-  prefix<U extends HTTPPath>(prefix: U): ContractProcedureBuilder<TErrorMap, PrefixedRoute<TRoute, U>, TMetaDef, TMeta> {
-    return new ContractProcedureBuilder({
-      ...this['~orpc'],
-      route: prefixRoute(this['~orpc'].route, prefix),
-    })
-  }
-
-  unshiftTag<U extends string[]>(...tags: U): ContractProcedureBuilder<TErrorMap, UnshiftedTagRoute<TRoute, U>, TMetaDef, TMeta> {
-    return new ContractProcedureBuilder({
-      ...this['~orpc'],
-      route: unshiftTagRoute(this['~orpc'].route, tags),
     })
   }
 
@@ -68,5 +63,27 @@ export class ContractProcedureBuilder<
       ...this['~orpc'],
       outputSchema: schema,
     })
+  }
+
+  prefix<U extends HTTPPath>(prefix: U): ContractRouterBuilder<TErrorMap, U, undefined, TMetaDef> {
+    return new ContractRouterBuilder({
+      prefix,
+      errorMap: this['~orpc'].errorMap,
+      tags: undefined,
+    })
+  }
+
+  tag<U extends string[]>(...tags: U): ContractRouterBuilder<TErrorMap, undefined, U, TMetaDef> {
+    return new ContractRouterBuilder({
+      tags,
+      errorMap: this['~orpc'].errorMap,
+      prefix: undefined,
+    })
+  }
+
+  router<T extends ContractRouter<ErrorMap & Partial<TErrorMap>, TMetaDef>>(
+    router: T,
+  ): AdaptedContractRouter<T, TErrorMap, undefined, undefined> {
+    return adaptContractRouter(router, this['~orpc'].errorMap, undefined, undefined)
   }
 }

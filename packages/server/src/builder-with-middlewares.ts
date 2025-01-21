@@ -72,7 +72,7 @@ export class BuilderWithMiddlewares<TInitialContext extends Context, TCurrentCon
           ...route,
         },
         InputSchema: undefined,
-        OutputSchema: undefined,
+        outputSchema: undefined,
         errorMap: {},
       }),
     })
@@ -86,7 +86,7 @@ export class BuilderWithMiddlewares<TInitialContext extends Context, TCurrentCon
       ...this['~orpc'],
       contract: new ContractProcedure({
         route: fallbackContractConfig('defaultInitialRoute', this['~orpc'].config.initialRoute),
-        OutputSchema: undefined,
+        outputSchema: undefined,
         InputSchema: schema,
         inputExample: example,
         errorMap: {},
@@ -103,7 +103,7 @@ export class BuilderWithMiddlewares<TInitialContext extends Context, TCurrentCon
       contract: new ContractProcedure({
         route: fallbackContractConfig('defaultInitialRoute', this['~orpc'].config.initialRoute),
         InputSchema: undefined,
-        OutputSchema: schema,
+        outputSchema: schema,
         outputExample: example,
         errorMap: {},
       }),
@@ -118,7 +118,7 @@ export class BuilderWithMiddlewares<TInitialContext extends Context, TCurrentCon
       contract: new ContractProcedure({
         route: fallbackContractConfig('defaultInitialRoute', this['~orpc'].config.initialRoute),
         InputSchema: undefined,
-        OutputSchema: undefined,
+        outputSchema: undefined,
         errorMap: {},
       }),
       handler,

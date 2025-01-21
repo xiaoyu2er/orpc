@@ -21,7 +21,7 @@ const baseRoute = {
 
 const schema = z.object({ id: z.string().transform(v => Number.parseInt(v)) })
 
-const builder = new ContractProcedureBuilder({ InputSchema: undefined, OutputSchema: undefined, errorMap: baseErrorMap, route: baseRoute })
+const builder = new ContractProcedureBuilder({ InputSchema: undefined, outputSchema: undefined, errorMap: baseErrorMap, route: baseRoute })
 
 describe('decoratedContractProcedure', () => {
   it('is a procedure', () => {

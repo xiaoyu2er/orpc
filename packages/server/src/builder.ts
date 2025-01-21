@@ -89,7 +89,7 @@ export class Builder<TInitialContext extends Context> {
           ...route,
         },
         InputSchema: undefined,
-        OutputSchema: undefined,
+        outputSchema: undefined,
         errorMap: {},
       }),
     })
@@ -105,7 +105,7 @@ export class Builder<TInitialContext extends Context> {
       outputValidationIndex: fallbackConfig('initialOutputValidationIndex', this['~orpc'].config.initialOutputValidationIndex),
       contract: new ContractProcedure({
         route: fallbackContractConfig('defaultInitialRoute', this['~orpc'].config.initialRoute),
-        OutputSchema: undefined,
+        outputSchema: undefined,
         InputSchema: schema,
         inputExample: example,
         errorMap: {},
@@ -124,7 +124,7 @@ export class Builder<TInitialContext extends Context> {
       contract: new ContractProcedure({
         route: fallbackContractConfig('defaultInitialRoute', this['~orpc'].config.initialRoute),
         InputSchema: undefined,
-        OutputSchema: schema,
+        outputSchema: schema,
         outputExample: example,
         errorMap: {},
       }),
@@ -141,7 +141,7 @@ export class Builder<TInitialContext extends Context> {
       contract: new ContractProcedure({
         route: fallbackContractConfig('defaultInitialRoute', this['~orpc'].config.initialRoute),
         InputSchema: undefined,
-        OutputSchema: undefined,
+        outputSchema: undefined,
         errorMap: {},
       }),
       handler,

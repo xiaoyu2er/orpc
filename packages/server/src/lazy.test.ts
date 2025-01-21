@@ -5,7 +5,7 @@ import { Procedure } from './procedure'
 const procedure = new Procedure({
   contract: new ContractProcedure({
     InputSchema: undefined,
-    OutputSchema: undefined,
+    outputSchema: undefined,
     errorMap: {},
     route: {},
   }),

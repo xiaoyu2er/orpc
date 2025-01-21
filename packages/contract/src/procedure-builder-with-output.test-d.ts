@@ -1,44 +1,50 @@
 import type { ReadonlyDeep } from '@orpc/shared'
-import type { StrictErrorMap } from './error-map'
+import type { MergedErrorMap, StrictErrorMap } from './error-map'
 import type { ContractProcedure } from './procedure'
 import type { ContractProcedureBuilderWithOutput } from './procedure-builder-with-output'
 import type { DecoratedContractProcedure } from './procedure-decorated'
-import type { PrefixRoute, UnshiftTagRoute } from './route'
-import { z } from 'zod'
+import type { MergedRoute, PrefixedRoute, UnshiftedTagRoute } from './route'
+import { type baseErrorMap, type baseMeta, type BaseMetaDef, type baseRoute, inputSchema, type outputSchema } from '../tests/shared'
 
-const baseErrorMap = {
-  BASE: {
-    status: 500,
-    data: z.object({
-      message: z.string(),
-    }),
-  },
-}
-
-const outputSchema = z.object({ input: z.string().transform(v => Number.parseInt(v)) })
-
-const schema = z.object({ id: z.string().transform(v => Number.parseInt(v)) })
-
-type BaseRoute = { path: '/base' }
-
-const builder = {} as ContractProcedureBuilderWithOutput<typeof outputSchema, typeof baseErrorMap, BaseRoute>
+const builder = {} as ContractProcedureBuilderWithOutput<typeof outputSchema, typeof baseErrorMap, typeof baseRoute, BaseMetaDef, typeof baseMeta>
 
 describe('DecoratedContractProcedure', () => {
   it('is a contract procedure', () => {
     expectTypeOf(builder).toMatchTypeOf<
-      ContractProcedure<undefined, typeof outputSchema, typeof baseErrorMap, BaseRoute>
+      ContractProcedure<undefined, typeof outputSchema, typeof baseErrorMap, typeof baseRoute, BaseMetaDef, typeof baseMeta>
     >()
   })
 
   it('.errors', () => {
-    const errors = { BAD_GATEWAY: { data: z.object({ message: z.string() }) } } as const
-
-    expectTypeOf(builder.errors(errors)).toEqualTypeOf<
-      ContractProcedureBuilderWithOutput<typeof outputSchema, typeof baseErrorMap & StrictErrorMap<typeof errors>, BaseRoute>
+    expectTypeOf(builder.errors({ BAD_GATEWAY: { message: 'BAD_GATEWAY' } })).toEqualTypeOf<
+      ContractProcedureBuilderWithOutput<
+        typeof outputSchema,
+        MergedErrorMap<typeof baseErrorMap, StrictErrorMap<ReadonlyDeep<{ BAD_GATEWAY: { message: 'BAD_GATEWAY' } }>>>,
+        typeof baseRoute,
+        BaseMetaDef,
+        typeof baseMeta
+      >
     >()
 
+    // @ts-expect-error - invalid schema
+    builder.errors({ BAD_GATEWAY: { data: {} } })
     // @ts-expect-error - not allow redefine error map
     builder.errors({ BASE: baseErrorMap.BASE })
+  })
+
+  it('.meta', () => {
+    expectTypeOf(builder.route({ method: 'GET' })).toEqualTypeOf<
+      ContractProcedureBuilderWithOutput<
+        typeof outputSchema,
+        typeof baseErrorMap,
+        MergedRoute<typeof baseRoute, ReadonlyDeep<{ method: 'GET' }>>,
+        BaseMetaDef,
+        typeof baseMeta
+      >
+    >()
+
+    // @ts-expect-error - invalid method
+    builder.meta({ log: 'INVALID' })
   })
 
   it('.route', () => {
@@ -46,12 +52,14 @@ describe('DecoratedContractProcedure', () => {
       ContractProcedureBuilderWithOutput<
         typeof outputSchema,
         typeof baseErrorMap,
-        ReadonlyDeep<{ method: 'GET' }> & BaseRoute
+        MergedRoute<typeof baseRoute, ReadonlyDeep<{ method: 'GET' }>>,
+        BaseMetaDef,
+        typeof baseMeta
       >
     >()
 
     // @ts-expect-error - invalid method
-    builder.route({ method: 'HE' })
+    builder.route({ method: 'INVALID' })
   })
 
   it('.prefix', () => {
@@ -59,7 +67,9 @@ describe('DecoratedContractProcedure', () => {
       ContractProcedureBuilderWithOutput<
         typeof outputSchema,
         typeof baseErrorMap,
-        PrefixRoute<BaseRoute, '/api'>
+        PrefixedRoute<typeof baseRoute, '/api'>,
+        BaseMetaDef,
+        typeof baseMeta
       >
     >()
 
@@ -72,7 +82,9 @@ describe('DecoratedContractProcedure', () => {
       ContractProcedureBuilderWithOutput<
         typeof outputSchema,
         typeof baseErrorMap,
-        UnshiftTagRoute<BaseRoute, ['tag', 'tag2']>
+        UnshiftedTagRoute<typeof baseRoute, ['tag', 'tag2']>,
+        BaseMetaDef,
+        typeof baseMeta
       >
     >()
 
@@ -81,8 +93,15 @@ describe('DecoratedContractProcedure', () => {
   })
 
   it('.input', () => {
-    expectTypeOf(builder.input(schema)).toEqualTypeOf<
-      DecoratedContractProcedure<typeof schema, typeof outputSchema, typeof baseErrorMap, BaseRoute>
+    expectTypeOf(builder.input(inputSchema)).toEqualTypeOf<
+      DecoratedContractProcedure<
+        typeof inputSchema,
+        typeof outputSchema,
+        typeof baseErrorMap,
+        typeof baseRoute,
+        BaseMetaDef,
+        typeof baseMeta
+      >
     >()
   })
 })

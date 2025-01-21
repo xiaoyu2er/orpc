@@ -93,7 +93,7 @@ export class BuilderWithErrors<TInitialContext extends Context, TErrorMap extend
           ...route,
         },
         InputSchema: undefined,
-        OutputSchema: undefined,
+        outputSchema: undefined,
         errorMap: this['~orpc'].errorMap,
       }),
     })
@@ -109,7 +109,7 @@ export class BuilderWithErrors<TInitialContext extends Context, TErrorMap extend
       outputValidationIndex: fallbackConfig('initialOutputValidationIndex', this['~orpc'].config.initialOutputValidationIndex),
       contract: new ContractProcedure({
         route: fallbackContractConfig('defaultInitialRoute', this['~orpc'].config.initialRoute),
-        OutputSchema: undefined,
+        outputSchema: undefined,
         InputSchema: schema,
         inputExample: example,
         errorMap: this['~orpc'].errorMap,
@@ -128,7 +128,7 @@ export class BuilderWithErrors<TInitialContext extends Context, TErrorMap extend
       contract: new ContractProcedure({
         route: fallbackContractConfig('defaultInitialRoute', this['~orpc'].config.initialRoute),
         InputSchema: undefined,
-        OutputSchema: schema,
+        outputSchema: schema,
         outputExample: example,
         errorMap: this['~orpc'].errorMap,
       }),
@@ -145,7 +145,7 @@ export class BuilderWithErrors<TInitialContext extends Context, TErrorMap extend
       contract: new ContractProcedure({
         route: fallbackContractConfig('defaultInitialRoute', this['~orpc'].config.initialRoute),
         InputSchema: undefined,
-        OutputSchema: undefined,
+        outputSchema: undefined,
         errorMap: this['~orpc'].errorMap,
       }),
       handler,

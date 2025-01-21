@@ -14,7 +14,7 @@ describe('decorated lazy', () => {
   const ping = new Procedure({
     contract: new ContractProcedure({
       InputSchema: schema,
-      OutputSchema: undefined,
+      outputSchema: undefined,
       errorMap: {},
       route: {},
     }),

@@ -27,7 +27,7 @@ const builder = new ProcedureBuilderWithInput({
   outputValidationIndex: 1,
   contract: new ContractProcedure({
     InputSchema: inputSchema,
-    OutputSchema: undefined,
+    outputSchema: undefined,
     errorMap: baseErrors,
     route: {},
   }),

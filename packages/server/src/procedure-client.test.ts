@@ -34,7 +34,7 @@ const baseErrors = {
 const procedure = new Procedure({
   contract: new ContractProcedure({
     InputSchema: schema,
-    OutputSchema: schema,
+    outputSchema: schema,
     errorMap: baseErrors,
     route: {},
   }),
@@ -503,7 +503,7 @@ it('still work without InputSchema', async () => {
   const procedure = new Procedure({
     contract: new ContractProcedure({
       InputSchema: undefined,
-      OutputSchema: schema,
+      outputSchema: schema,
       errorMap: {},
       route: {},
     }),
@@ -525,7 +525,7 @@ it('still work without OutputSchema', async () => {
   const procedure = new Procedure({
     contract: new ContractProcedure({
       InputSchema: schema,
-      OutputSchema: undefined,
+      outputSchema: undefined,
       errorMap: {},
       route: {},
     }),

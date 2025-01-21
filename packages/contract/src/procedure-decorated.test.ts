@@ -20,7 +20,7 @@ const baseRoute = {
   tags: ['tag'],
 } as const
 
-const decorated = new DecoratedContractProcedure({ InputSchema, OutputSchema, errorMap: baseErrorMap, route: baseRoute })
+const decorated = new DecoratedContractProcedure({ InputSchema, outputSchema: OutputSchema, errorMap: baseErrorMap, route: baseRoute })
 
 describe('decoratedContractProcedure', () => {
   it('is a procedure', () => {
@@ -28,7 +28,7 @@ describe('decoratedContractProcedure', () => {
   })
 
   it('.decorate', () => {
-    const applied = DecoratedContractProcedure.decorate(new ContractProcedure({ InputSchema, OutputSchema, errorMap: baseErrorMap, route: baseRoute }))
+    const applied = DecoratedContractProcedure.decorate(new ContractProcedure({ InputSchema, outputSchema: OutputSchema, errorMap: baseErrorMap, route: baseRoute }))
 
     expect(applied).toEqual(decorated)
     expect(applied).not.toBe(decorated)
@@ -49,7 +49,7 @@ describe('decoratedContractProcedure', () => {
       ...errors,
     })
     expect(applied['~orpc'].InputSchema).toEqual(InputSchema)
-    expect(applied['~orpc'].OutputSchema).toEqual(OutputSchema)
+    expect(applied['~orpc'].outputSchema).toEqual(OutputSchema)
     expect(applied['~orpc'].route).toEqual(baseRoute)
   })
 
@@ -60,7 +60,7 @@ describe('decoratedContractProcedure', () => {
     expect(applied).not.toBe(decorated)
     expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
     expect(applied['~orpc'].InputSchema).toEqual(InputSchema)
-    expect(applied['~orpc'].OutputSchema).toEqual(OutputSchema)
+    expect(applied['~orpc'].outputSchema).toEqual(OutputSchema)
     expect(applied['~orpc'].route).toEqual({
       method: 'PATCH',
       description: 'new message',
@@ -77,7 +77,7 @@ describe('decoratedContractProcedure', () => {
       expect(applied).not.toBe(decorated)
       expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
       expect(applied['~orpc'].InputSchema).toEqual(InputSchema)
-      expect(applied['~orpc'].OutputSchema).toEqual(OutputSchema)
+      expect(applied['~orpc'].outputSchema).toEqual(OutputSchema)
       expect(applied['~orpc'].route).toEqual({
         method: 'GET',
         path: '/api/v1/users',
@@ -86,7 +86,7 @@ describe('decoratedContractProcedure', () => {
     })
 
     it('when has no path', () => {
-      const decorated = new DecoratedContractProcedure({ InputSchema, OutputSchema, errorMap: baseErrorMap, route: {} })
+      const decorated = new DecoratedContractProcedure({ InputSchema, outputSchema: OutputSchema, errorMap: baseErrorMap, route: {} })
       const applied = decorated.prefix('/api')
       expect(applied['~orpc'].route).toEqual({})
     })
@@ -100,7 +100,7 @@ describe('decoratedContractProcedure', () => {
       expect(applied).not.toBe(decorated)
       expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
       expect(applied['~orpc'].InputSchema).toEqual(InputSchema)
-      expect(applied['~orpc'].OutputSchema).toEqual(OutputSchema)
+      expect(applied['~orpc'].outputSchema).toEqual(OutputSchema)
       expect(applied['~orpc'].route).toEqual({
         method: 'GET',
         tags: ['tag2', 'tag3', 'tag'],
@@ -109,7 +109,7 @@ describe('decoratedContractProcedure', () => {
     })
 
     it('decorated without existing tag', () => {
-      const decorated = new DecoratedContractProcedure({ InputSchema, OutputSchema, errorMap: baseErrorMap, route: {} })
+      const decorated = new DecoratedContractProcedure({ InputSchema, outputSchema: OutputSchema, errorMap: baseErrorMap, route: {} })
 
       const applied = decorated.unshiftTag('tag', 'tag2')
       expect(applied['~orpc'].route).toEqual({

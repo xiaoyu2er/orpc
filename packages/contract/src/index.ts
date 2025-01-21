@@ -1,6 +1,7 @@
 /** unnoq */
 
 import { ContractBuilder } from './builder'
+import { createStrictRoute } from './route'
 
 export * from './builder'
 export * from './client'
@@ -23,9 +24,9 @@ export * from './schema-utils'
 export * from './types'
 
 export const oc = new ContractBuilder({
-  config: {},
-  route: {},
+  route: createStrictRoute({}), // strict is important for contract-first
   errorMap: {},
-  InputSchema: undefined,
-  OutputSchema: undefined,
+  inputSchema: undefined,
+  outputSchema: undefined,
+  meta: {},
 })

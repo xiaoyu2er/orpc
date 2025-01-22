@@ -2,7 +2,7 @@ import type { Context, TypeCurrentContext, TypeInitialContext } from './context'
 import type { Middleware } from './middleware'
 import { type ContractProcedure, type ContractRouter, isContractProcedure } from '@orpc/contract'
 import { createCallableObject } from '@orpc/shared'
-import { ProcedureImplementer } from './procedure-implementer'
+import { ProcedureBuilderWithoutHandler } from './procedure-builder-without-handler'
 import { RouterImplementer } from './router-implementer'
 
 export type ChainableImplementer<
@@ -10,7 +10,7 @@ export type ChainableImplementer<
   TCurrentContext extends Context,
   TContract extends ContractRouter<any>,
 > = TContract extends ContractProcedure<infer UInputSchema, infer UOutputSchema, infer UErrorMap, infer URoute>
-  ? ProcedureImplementer<TInitialContext, TCurrentContext, UInputSchema, UOutputSchema, UErrorMap, URoute>
+  ? ProcedureBuilderWithoutHandler<TInitialContext, TCurrentContext, UInputSchema, UOutputSchema, UErrorMap, URoute>
   : {
     [K in keyof TContract]: TContract[K] extends ContractRouter<any> ? ChainableImplementer<TInitialContext, TCurrentContext, TContract[K]> : never
   } & Omit<RouterImplementer<TInitialContext, TCurrentContext, TContract>, '~type' | '~orpc'>
@@ -30,7 +30,7 @@ export function createChainableImplementer<
   },
 ): ChainableImplementer<TInitialContext, TCurrentContext, TContract> {
   if (isContractProcedure(contract)) {
-    const implementer = new ProcedureImplementer({
+    const implementer = new ProcedureBuilderWithoutHandler({
       contract,
       middlewares: options.middlewares,
       inputValidationIndex: options.inputValidationIndex,

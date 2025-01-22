@@ -1,8 +1,8 @@
 import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
 import { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
+import { ProcedureBuilderWithoutHandler } from './procedure-builder-without-handler'
 import { DecoratedProcedure } from './procedure-decorated'
-import { ProcedureImplementer } from './procedure-implementer'
 
 const baseErrors = {
   BASE: {
@@ -78,7 +78,7 @@ describe('procedureBuilderWithOutput', () => {
   it('.input', () => {
     const applied = builder.input(schema)
 
-    expect(applied).toBeInstanceOf(ProcedureImplementer)
+    expect(applied).toBeInstanceOf(ProcedureBuilderWithoutHandler)
     expect(applied['~orpc'].middlewares).toEqual([mid])
     expect(applied['~orpc'].inputValidationIndex).toEqual(1)
     expect(applied['~orpc'].outputValidationIndex).toEqual(1)

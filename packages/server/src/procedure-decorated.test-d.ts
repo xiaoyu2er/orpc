@@ -1,22 +1,73 @@
 import type { Client, ClientRest, ORPCError, Route } from '@orpc/contract'
+import type { baseErrorMap, baseMeta, BaseMetaDef, baseRoute, inputSchema, outputSchema } from '../../contract/tests/shared'
 import type { Context } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { Middleware, MiddlewareOutputFn } from './middleware'
-import type { ANY_PROCEDURE, Procedure } from './procedure'
-import type { DecoratedProcedure } from './procedure-decorated'
+import type { Procedure } from './procedure'
+import { describe } from 'node:test'
 import { z } from 'zod'
+import { DecoratedProcedure } from './procedure-decorated'
 
-const baseSchema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
-const baseErrors = {
-  CODE: {
-    data: z.object({ why: z.string() }),
-  },
-}
-const route = { method: 'GET', path: '/ping' } as const
-const decorated = {} as DecoratedProcedure<{ auth: boolean }, { auth: boolean } & { db: string }, typeof baseSchema, typeof baseSchema, { val: string }, typeof baseErrors, typeof route>
+const decorated = {} as DecoratedProcedure<
+  { auth: boolean },
+  { auth: boolean } & { db: string },
+  typeof inputSchema,
+  typeof outputSchema,
+  { output: number },
+  typeof baseErrorMap,
+  typeof baseRoute,
+  BaseMetaDef,
+  typeof baseMeta
+>
 
-// like decorated but lost route when trying change route
-const decoratedLostContract = {} as DecoratedProcedure<{ auth: boolean }, { auth: boolean } & { db: string }, typeof baseSchema, typeof baseSchema, { val: string }, typeof baseErrors, Route>
+// like decorated but lost route when trying change contract
+const decoratedLostContract = {} as DecoratedProcedure<
+  { auth: boolean },
+  { auth: boolean } & { db: string },
+  typeof inputSchema,
+  typeof outputSchema,
+  { output: number },
+  typeof baseErrorMap,
+  Route,
+  BaseMetaDef,
+  BaseMetaDef
+>
+
+describe('DecoratedProcedure', () => {
+  it('is a procedure', () => {
+    expectTypeOf(decorated).toMatchTypeOf<Procedure<
+      { auth: boolean },
+      { auth: boolean } & { db: string },
+      typeof inputSchema,
+      typeof outputSchema,
+      { output: number },
+      typeof baseErrorMap,
+      typeof baseRoute,
+      BaseMetaDef,
+      typeof baseMeta
+    >>()
+  })
+
+  it('.decorate', () => {
+    expectTypeOf(DecoratedProcedure.decorate(
+      {} as Procedure<
+        { auth: boolean },
+        { auth: boolean } & { db: string },
+        typeof inputSchema,
+        typeof outputSchema,
+        { output: number },
+        typeof baseErrorMap,
+        typeof baseRoute,
+        BaseMetaDef,
+        typeof baseMeta
+      >,
+    )).toMatchTypeOf(decorated)
+  })
+
+  it('.errors', () => {
+
+  })
+})
 
 describe('self chainable', () => {
   it('prefix', () => {

@@ -3,8 +3,8 @@ import type { ORPCErrorConstructorMap } from './error'
 import type { MiddlewareOutputFn } from './middleware'
 import type { ANY_PROCEDURE } from './procedure'
 import type { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
+import type { ProcedureBuilderWithoutHandler } from './procedure-builder-without-handler'
 import type { DecoratedProcedure } from './procedure-decorated'
-import type { ProcedureImplementer } from './procedure-implementer'
 import { z } from 'zod'
 
 const baseErrors = {
@@ -71,7 +71,7 @@ describe('ProcedureBuilderWithOutput', () => {
 
   it('.input', () => {
     expectTypeOf(builder.input(schema)).toEqualTypeOf<
-      ProcedureImplementer<{ db: string }, { db: string } & { auth?: boolean }, typeof schema, typeof outputSchema, typeof baseErrors, Route>
+      ProcedureBuilderWithoutHandler<{ db: string }, { db: string } & { auth?: boolean }, typeof schema, typeof outputSchema, typeof baseErrors, Route>
     >()
   })
 

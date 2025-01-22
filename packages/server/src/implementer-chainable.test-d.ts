@@ -2,7 +2,7 @@ import type { MergedRoute, StrictRoute } from '@orpc/contract'
 import type { Context, TypeCurrentContext, TypeInitialContext } from './context'
 import type { ChainableImplementer } from './implementer-chainable'
 import type { Middleware } from './middleware'
-import type { ProcedureImplementer } from './procedure-implementer'
+import type { ProcedureBuilderWithoutHandler } from './procedure-builder-without-handler'
 import type { RouterImplementer } from './router-implementer'
 import { oc } from '@orpc/contract'
 import { z } from 'zod'
@@ -26,11 +26,11 @@ const contract = oc.router({
 describe('ChainableImplementer', () => {
   it('with procedure', () => {
     expectTypeOf(createChainableImplementer(ping, { middlewares: [], inputValidationIndex: 0, outputValidationIndex: 0 })).toEqualTypeOf<
-      ProcedureImplementer<Context, Context, typeof schema, typeof schema, Record<never, never>, StrictRoute<Record<never, never>>>
+      ProcedureBuilderWithoutHandler<Context, Context, typeof schema, typeof schema, Record<never, never>, StrictRoute<Record<never, never>>>
     >()
 
     expectTypeOf(createChainableImplementer(pong, { middlewares: [], inputValidationIndex: 0, outputValidationIndex: 0 })).toEqualTypeOf<
-      ProcedureImplementer<Context, Context, undefined, undefined, Record<never, never>, MergedRoute<StrictRoute<Record<never, never>>, typeof route>>
+      ProcedureBuilderWithoutHandler<Context, Context, undefined, undefined, Record<never, never>, MergedRoute<StrictRoute<Record<never, never>>, typeof route>>
     >()
   })
 
@@ -42,11 +42,11 @@ describe('ChainableImplementer', () => {
     >()
 
     expectTypeOf(implementer.ping).toEqualTypeOf<
-      ProcedureImplementer<Context, Context, typeof schema, typeof schema, Record<never, never>, StrictRoute<Record<never, never>>>
+      ProcedureBuilderWithoutHandler<Context, Context, typeof schema, typeof schema, Record<never, never>, StrictRoute<Record<never, never>>>
     >()
 
     expectTypeOf(implementer.pong).toEqualTypeOf<
-      ProcedureImplementer<Context, Context, undefined, undefined, Record<never, never>, MergedRoute<StrictRoute<Record<never, never>>, typeof route>>
+      ProcedureBuilderWithoutHandler<Context, Context, undefined, undefined, Record<never, never>, MergedRoute<StrictRoute<Record<never, never>>, typeof route>>
     >()
 
     expectTypeOf(implementer.nested).toMatchTypeOf<
@@ -54,11 +54,11 @@ describe('ChainableImplementer', () => {
     >()
 
     expectTypeOf(implementer.nested.ping).toEqualTypeOf<
-      ProcedureImplementer<Context, Context, typeof schema, typeof schema, Record<never, never>, StrictRoute<Record<never, never>>>
+      ProcedureBuilderWithoutHandler<Context, Context, typeof schema, typeof schema, Record<never, never>, StrictRoute<Record<never, never>>>
     >()
 
     expectTypeOf(implementer.nested.pong).toEqualTypeOf<
-      ProcedureImplementer<Context, Context, undefined, undefined, Record<never, never>, MergedRoute<StrictRoute<Record<never, never>>, typeof route>>
+      ProcedureBuilderWithoutHandler<Context, Context, undefined, undefined, Record<never, never>, MergedRoute<StrictRoute<Record<never, never>>, typeof route>>
     >()
   })
 
@@ -87,7 +87,7 @@ describe('ChainableImplementer', () => {
     >()
 
     expectTypeOf(implementer.use).toMatchTypeOf<
-      ProcedureImplementer<Context, Context, typeof schema, typeof schema, Record<never, never>, Record<never, never>>
+      ProcedureBuilderWithoutHandler<Context, Context, typeof schema, typeof schema, Record<never, never>, Record<never, never>>
     >()
 
     expectTypeOf(implementer.router).toMatchTypeOf<
@@ -95,11 +95,11 @@ describe('ChainableImplementer', () => {
     >()
 
     expectTypeOf(implementer.router.use).toMatchTypeOf<
-      ProcedureImplementer<Context, Context, typeof schema, typeof schema, Record<never, never>, Record<never, never>>
+      ProcedureBuilderWithoutHandler<Context, Context, typeof schema, typeof schema, Record<never, never>, Record<never, never>>
     >()
 
     expectTypeOf(implementer.router.router).toMatchTypeOf<
-      ProcedureImplementer<Context, Context, undefined, undefined, Record<never, never>, Record<never, never> & typeof route>
+      ProcedureBuilderWithoutHandler<Context, Context, undefined, undefined, Record<never, never>, Record<never, never> & typeof route>
     >()
   })
 })

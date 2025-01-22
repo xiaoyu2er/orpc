@@ -2,8 +2,8 @@ import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
 import * as middlewareDecorated from './middleware-decorated'
 import { ProcedureBuilderWithInput } from './procedure-builder-with-input'
+import { ProcedureBuilderWithoutHandler } from './procedure-builder-without-handler'
 import { DecoratedProcedure } from './procedure-decorated'
-import { ProcedureImplementer } from './procedure-implementer'
 
 const decorateMiddlewareSpy = vi.spyOn(middlewareDecorated, 'decorateMiddleware')
 
@@ -105,7 +105,7 @@ describe('procedureBuilderWithInput', () => {
   it('.output', () => {
     const applied = builder.output(schema)
 
-    expect(applied).toBeInstanceOf(ProcedureImplementer)
+    expect(applied).toBeInstanceOf(ProcedureBuilderWithoutHandler)
     expect(applied['~orpc'].middlewares).toEqual([mid])
     expect(applied['~orpc'].inputValidationIndex).toEqual(1)
     expect(applied['~orpc'].outputValidationIndex).toEqual(1)

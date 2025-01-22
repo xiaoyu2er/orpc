@@ -20,6 +20,6 @@ export function mergeMiddlewares(first: AnyMiddleware[], second: AnyMiddleware[]
   return [...first, ...dedupeMiddlewares(first, second)]
 }
 
-export function pushMiddlewares(middlewares: AnyMiddleware[], ...newMiddlewares: AnyMiddleware[]): AnyMiddleware[] {
-  return [...middlewares, ...newMiddlewares]
+export function addMiddleware(middlewares: AnyMiddleware[], addition: AnyMiddleware): AnyMiddleware[] {
+  return [...middlewares, addition]
 }

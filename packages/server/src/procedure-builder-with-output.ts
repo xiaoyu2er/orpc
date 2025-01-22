@@ -5,7 +5,7 @@ import type { ORPCErrorConstructorMap } from './error'
 import type { AnyMiddleware, Middleware } from './middleware'
 import type { ProcedureHandler } from './procedure'
 import { mergeErrorMap, mergeRoute } from '@orpc/contract'
-import { pushMiddlewares } from './middleware-utils'
+import { addMiddleware } from './middleware-utils'
 import { ProcedureBuilderWithoutHandler } from './procedure-builder-without-handler'
 import { DecoratedProcedure } from './procedure-decorated'
 
@@ -69,7 +69,7 @@ export class ProcedureBuilderWithOutput<
     const builder = new ProcedureBuilderWithOutput({
       ...this['~orpc'],
       inputValidationIndex: this['~orpc'].inputValidationIndex + 1,
-      middlewares: pushMiddlewares(this['~orpc'].middlewares, middleware),
+      middlewares: addMiddleware(this['~orpc'].middlewares, middleware),
     })
 
     return builder as any

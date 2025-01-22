@@ -5,7 +5,7 @@ import type { AnyMiddleware, MapInputMiddleware, Middleware } from './middleware
 import type { ProcedureHandler } from './procedure'
 import { type ContractProcedureDef, type ErrorMap, type ErrorMapGuard, type ErrorMapSuggestions, type MergedErrorMap, mergeErrorMap, mergeMeta, mergeRoute, type Meta, type Route, type Schema, type SchemaInput, type SchemaOutput } from '@orpc/contract'
 import { decorateMiddleware } from './middleware-decorated'
-import { pushMiddlewares } from './middleware-utils'
+import { addMiddleware } from './middleware-utils'
 import { DecoratedProcedure } from './procedure-decorated'
 
 export interface ProcedureBuilderWithoutHandlerDef<
@@ -157,7 +157,7 @@ export class ProcedureBuilderWithoutHandler<
 
     return new ProcedureBuilderWithoutHandler({
       ...this['~orpc'],
-      middlewares: pushMiddlewares(this['~orpc'].middlewares, mappedMiddleware),
+      middlewares: addMiddleware(this['~orpc'].middlewares, mappedMiddleware),
     })
   }
 

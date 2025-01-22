@@ -5,7 +5,7 @@ import type { ORPCErrorConstructorMap } from './error'
 import type { AnyMiddleware, Middleware } from './middleware'
 import type { ProcedureHandler } from './procedure'
 import { mergeErrorMap, mergeMeta, mergeRoute } from '@orpc/contract'
-import { pushMiddlewares } from './middleware-utils'
+import { addMiddleware } from './middleware-utils'
 import { ProcedureBuilderWithInput } from './procedure-builder-with-input'
 import { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
 import { DecoratedProcedure } from './procedure-decorated'
@@ -75,7 +75,7 @@ export class ProcedureBuilder<
     & ProcedureBuilder<TInitialContext, MergedContext<TCurrentContext, U>, TErrorMap, TMetaDef> {
     const builder = new ProcedureBuilder({
       ...this['~orpc'],
-      middlewares: pushMiddlewares(this['~orpc'].middlewares, middleware),
+      middlewares: addMiddleware(this['~orpc'].middlewares, middleware),
     })
 
     return builder as any

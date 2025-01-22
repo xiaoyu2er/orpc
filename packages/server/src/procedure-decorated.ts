@@ -6,7 +6,7 @@ import type { AnyMiddleware, MapInputMiddleware, Middleware } from './middleware
 import type { CreateProcedureClientRest, ProcedureClient } from './procedure-client'
 import { mergeErrorMap, mergeMeta, mergeRoute, prefixRoute, unshiftTagRoute } from '@orpc/contract'
 import { decorateMiddleware } from './middleware-decorated'
-import { mergeMiddlewares, pushMiddlewares } from './middleware-utils'
+import { addMiddleware, mergeMiddlewares } from './middleware-utils'
 import { Procedure } from './procedure'
 import { createProcedureClient } from './procedure-client'
 
@@ -98,7 +98,7 @@ export class DecoratedProcedure<
 
     return new DecoratedProcedure({
       ...this['~orpc'],
-      middlewares: pushMiddlewares(this['~orpc'].middlewares, mapped),
+      middlewares: addMiddleware(this['~orpc'].middlewares, mapped),
     })
   }
 

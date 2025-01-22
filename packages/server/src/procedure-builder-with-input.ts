@@ -6,7 +6,7 @@ import type { AnyMiddleware, MapInputMiddleware, Middleware } from './middleware
 import type { ProcedureHandler } from './procedure'
 import { mergeErrorMap, mergeRoute } from '@orpc/contract'
 import { decorateMiddleware } from './middleware-decorated'
-import { pushMiddlewares } from './middleware-utils'
+import { addMiddleware } from './middleware-utils'
 import { ProcedureBuilderWithoutHandler } from './procedure-builder-without-handler'
 import { DecoratedProcedure } from './procedure-decorated'
 
@@ -85,7 +85,7 @@ export class ProcedureBuilderWithInput<
     return new ProcedureBuilderWithInput({
       ...this['~orpc'],
       outputValidationIndex: this['~orpc'].outputValidationIndex + 1,
-      middlewares: pushMiddlewares(this['~orpc'].middlewares, maybeWithMapInput),
+      middlewares: addMiddleware(this['~orpc'].middlewares, maybeWithMapInput),
     })
   }
 

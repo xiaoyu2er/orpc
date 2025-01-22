@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { baseErrorMap, baseMeta, baseRoute, inputSchema, outputSchema, ping } from '../tests/shared'
+import { baseErrorMap, baseMeta, baseRoute, inputSchema, outputSchema } from '../tests/shared'
 import { ContractProcedure } from './procedure'
 import { DecoratedContractProcedure } from './procedure-decorated'
 import { prefixRoute, unshiftTagRoute } from './route-utils'
@@ -15,12 +15,6 @@ const builder = new DecoratedContractProcedure({
 describe('decoratedContractProcedure', () => {
   it('is a procedure', () => {
     expect(builder).toBeInstanceOf(ContractProcedure)
-  })
-
-  it('.decorate', () => {
-    expect(DecoratedContractProcedure.decorate(builder)).toBe(builder)
-    expect(DecoratedContractProcedure.decorate(ping)).toBeInstanceOf(DecoratedContractProcedure)
-    expect(DecoratedContractProcedure.decorate(ping)['~orpc']).toEqual(ping['~orpc'])
   })
 
   it('.errors', () => {

@@ -25,7 +25,6 @@ export class ContractRouterBuilder<
   TTags extends readonly string[] | undefined,
   TMetaDef extends Meta,
 > {
-  '~type' = 'ContractProcedure' as const
   '~orpc': ContractRouterBuilderDef<TErrorMap, TPrefix, TTags, TMetaDef>
 
   constructor(def: ContractRouterBuilderDef<TErrorMap, TPrefix, TTags, TMetaDef>) {

@@ -27,7 +27,6 @@ export class ContractProcedure<
   TMetaDef extends Meta,
   TMeta extends TMetaDef,
 > {
-  '~type' = 'ContractProcedure' as const
   '~orpc': ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TRoute, TMetaDef, TMeta>
 
   constructor(def: ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TRoute, TMetaDef, TMeta>) {
@@ -53,8 +52,6 @@ export function isContractProcedure(item: unknown): item is AnyContractProcedure
   return (
     (typeof item === 'object' || typeof item === 'function')
     && item !== null
-    && '~type' in item
-    && item['~type'] === 'ContractProcedure'
     && '~orpc' in item
     && typeof item['~orpc'] === 'object'
     && item['~orpc'] !== null

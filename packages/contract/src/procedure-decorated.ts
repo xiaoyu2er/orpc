@@ -16,23 +16,6 @@ export class DecoratedContractProcedure<
   TMetaDef extends Meta,
   TMeta extends TMetaDef,
 > extends ContractProcedure<TInputSchema, TOutputSchema, TErrorMap, TRoute, TMetaDef, TMeta> {
-  static decorate<
-    UInputSchema extends Schema,
-    UOutputSchema extends Schema,
-    UErrorMap extends ErrorMap,
-    URoute extends Route,
-    UMetaDef extends Meta,
-    UMeta extends UMetaDef,
-  >(
-    procedure: ContractProcedure<UInputSchema, UOutputSchema, UErrorMap, URoute, UMetaDef, UMeta>,
-  ): DecoratedContractProcedure<UInputSchema, UOutputSchema, UErrorMap, URoute, UMetaDef, UMeta> {
-    if (procedure instanceof DecoratedContractProcedure) {
-      return procedure
-    }
-
-    return new DecoratedContractProcedure(procedure['~orpc'])
-  }
-
   errors<const U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(
     errors: U,
   ): DecoratedContractProcedure<TInputSchema, TOutputSchema, MergedErrorMap<StrictErrorMap<U>, TErrorMap>, TRoute, TMetaDef, TMeta> {

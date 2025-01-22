@@ -4,7 +4,6 @@ import type { Context } from './context'
 import type { Lazyable } from './lazy'
 import type { MiddlewareNextFn } from './middleware'
 import type { AnyProcedure, Procedure, ProcedureHandlerOptions } from './procedure'
-import type { Meta } from './types'
 import { ORPCError, validateORPCError, ValidationError } from '@orpc/contract'
 import { executeWithHooks, toError, value } from '@orpc/shared'
 import { createORPCErrorConstructorMap } from './error'
@@ -38,7 +37,7 @@ export type CreateProcedureClientOptions<
     | { context: Value<TInitialContext, [clientContext: TClientContext]> }
     | (Record<never, never> extends TInitialContext ? Record<never, never> : never)
   )
-  & Hooks<unknown, SchemaOutput<TCurrentContext, THandlerOutput>, TInitialContext, Meta>
+  & Hooks<unknown, SchemaOutput<TCurrentContext, THandlerOutput>, TInitialContext, any>
 
 export type CreateProcedureClientRest<
   TInitialContext extends Context,

@@ -1,9 +1,8 @@
-import type { ContractProcedureDef, ErrorMap, Meta, Route, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { AbortSignal, ContractProcedureDef, ErrorMap, Meta, Route, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Promisable } from '@orpc/shared'
 import type { Context, TypeInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { AnyMiddleware } from './middleware'
-import type { AbortSignal } from './types'
 import { isContractProcedure } from '@orpc/contract'
 
 export interface ProcedureHandlerOptions<

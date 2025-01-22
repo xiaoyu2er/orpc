@@ -5,7 +5,6 @@ import type { BuilderWithMiddlewares } from './builder-with-middlewares'
 import type { Context } from './context'
 import type { ChainableImplementer } from './implementer-chainable'
 import type { Lazy } from './lazy'
-import type { DecoratedLazy } from './lazy-decorated'
 import type { MiddlewareOutputFn } from './middleware'
 import type { DecoratedMiddleware } from './middleware-decorated'
 import type { ANY_PROCEDURE, Procedure } from './procedure'
@@ -13,6 +12,7 @@ import type { ProcedureBuilder } from './procedure-builder'
 import type { ProcedureBuilderWithInput } from './procedure-builder-with-input'
 import type { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
 import type { DecoratedProcedure } from './procedure-decorated'
+import type { AccessibleLazyRouter } from './router-accessible-lazy'
 import type { RouterBuilder } from './router-builder'
 import { oc } from '@orpc/contract'
 import { z } from 'zod'
@@ -176,7 +176,7 @@ describe('Builder', () => {
     }
 
     expectTypeOf(builder.lazy(() => Promise.resolve({ default: router }))).toEqualTypeOf<
-      DecoratedLazy<Lazy<typeof router>>
+      AccessibleLazyRouter<Lazy<typeof router>>
     >()
 
     // @ts-expect-error - context is not match

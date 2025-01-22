@@ -4,11 +4,11 @@ import type { AnyMiddleware } from './middleware'
 import type { AnyProcedure } from './procedure'
 import type { AnyRouter } from './router'
 import { adaptRoute, type ErrorMap, type HTTPPath, mergeErrorMap, type Route, type SchemaInput, type SchemaOutput } from '@orpc/contract'
-import { deepSetLazyRouterPrefix, getLazyRouterPrefix } from './hidden'
-import { flatLazy, isLazy, lazy, unlazy } from './lazy'
-import { type DecoratedLazy, decorateLazy } from './lazy-decorated'
+import { getLazyMeta, isLazy, lazy, unlazy } from './lazy'
+import { flatLazy, prefixLazyMeta } from './lazy-utils'
 import { mergeMiddlewares } from './middleware-utils'
 import { isProcedure, Procedure } from './procedure'
+import { type AccessibleLazyRouter, createAccessibleLazyRouter } from './router-accessible-lazy'
 
 export type InferRouterInputs<T extends AnyRouter> =
   T extends Lazy<infer U extends AnyRouter> ? InferRouterInputs<U>
@@ -28,7 +28,7 @@ export type InferRouterOutputs<T extends AnyRouter> =
 
 export type UnshiftedMiddlewaresRouter<TRouter extends AnyRouter, TInitialContext extends Context> =
   TRouter extends Lazy<infer U extends AnyRouter>
-    ? DecoratedLazy<UnshiftedMiddlewaresRouter<U, TInitialContext>>
+    ? AccessibleLazyRouter<UnshiftedMiddlewaresRouter<U, TInitialContext>>
     : TRouter extends Procedure<any, infer UCurrentContext, infer UInputSchema, infer UOutputSchema, infer UFuncOutput, infer UErrorMap, infer URoute, infer UMetaDef, infer UMeta>
       ? Procedure<TInitialContext, UCurrentContext, UInputSchema, UOutputSchema, UFuncOutput, UErrorMap, URoute, UMetaDef, UMeta>
       : {
@@ -43,14 +43,17 @@ export function unshiftMiddlewaresRouter<TRouter extends AnyRouter, TInitialCont
   },
 ): UnshiftedMiddlewaresRouter<TRouter, TInitialContext> {
   if (isLazy(router)) {
-    const applied = decorateLazy(lazy(async () => {
-      const unlaziedRouter = (await unlazy(router)).default as AnyRouter
-      const applied = unshiftMiddlewaresRouter(unlaziedRouter, options) as any
+    const lazyMeta = getLazyMeta(router)
 
+    const applied = lazy(async () => {
+      const unlaziedRouter = (await unlazy(router)).default
+      const applied = unshiftMiddlewaresRouter(unlaziedRouter, options)
       return { default: applied }
-    }))
+    }, lazyMeta)
 
-    return applied as any
+    const accessible = createAccessibleLazyRouter(applied)
+
+    return accessible as any
   }
 
   if (isProcedure(router)) {
@@ -76,7 +79,7 @@ export type AdaptedRouter<
   TInitialContext extends Context,
   TErrorMapExtra extends ErrorMap,
 > = TRouter extends Lazy<infer U extends AnyRouter>
-  ? DecoratedLazy<AdaptedRouter<TInitialContext, U, TErrorMapExtra>>
+  ? AccessibleLazyRouter<AdaptedRouter<TInitialContext, U, TErrorMapExtra>>
   : TRouter extends Procedure<any, infer UCurrentContext, infer UInputSchema, infer UOutputSchema, infer UFuncOutput, infer UErrorMap, any, infer UMetaDef, infer UMeta>
     ? Procedure<TInitialContext, UCurrentContext, UInputSchema, UOutputSchema, UFuncOutput, UErrorMap & TErrorMapExtra, Route, UMetaDef, UMeta>
     : {
@@ -91,34 +94,35 @@ export function adaptRouter<
   router: TRouter,
   options: {
     __initialContext?: TypeInitialContext<TInitialContext>
-    middlewares: AnyMiddleware[]
+    middlewares?: AnyMiddleware[]
     tags?: readonly string[]
     prefix?: HTTPPath
     errorMap: ErrorMap
   },
 ): AdaptedRouter<TRouter, TInitialContext, TErrorMapExtra> {
   if (isLazy(router)) {
-    const adapted = decorateLazy(lazy(async () => {
+    const lazyMeta = options.prefix
+      ? prefixLazyMeta(getLazyMeta(router), options.prefix)
+      : getLazyMeta(router)
+
+    const adapted = lazy(async () => {
       const unlaziedRouter = (await unlazy(router)).default
       const adapted = adaptRouter(unlaziedRouter, options)
       return { default: adapted }
-    }))
+    }, lazyMeta)
 
-    const lazyPrefix = getLazyRouterPrefix(router)
-    if (options.prefix || lazyPrefix) {
-      const prefixed = deepSetLazyRouterPrefix(adapted, `${options.prefix ?? ''}${lazyPrefix ?? ''}` as any)
+    const accessible = createAccessibleLazyRouter(adapted)
 
-      return prefixed as any
-    }
-
-    return adapted as any
+    return accessible as any
   }
 
   if (isProcedure(router)) {
     const adapted = new Procedure({
       ...router['~orpc'],
       route: adaptRoute(router['~orpc'].route, options.prefix, options.tags),
-      middlewares: mergeMiddlewares(router['~orpc'].middlewares, options.middlewares),
+      middlewares: options.middlewares
+        ? mergeMiddlewares(router['~orpc'].middlewares, options.middlewares)
+        : router['~orpc'].middlewares,
       errorMap: mergeErrorMap(options.errorMap, router['~orpc'].errorMap),
     })
 

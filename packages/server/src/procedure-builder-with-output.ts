@@ -4,7 +4,7 @@ import type { ConflictContextGuard } from './context-utils'
 import type { ORPCErrorConstructorMap } from './error'
 import type { AnyMiddleware, Middleware } from './middleware'
 import type { ProcedureHandler } from './procedure'
-import { mergeErrorMap, mergeRoute } from '@orpc/contract'
+import { mergeErrorMap, mergeMeta, mergeRoute } from '@orpc/contract'
 import { addMiddleware } from './middleware-utils'
 import { ProcedureBuilderWithoutHandler } from './procedure-builder-without-handler'
 import { DecoratedProcedure } from './procedure-decorated'
@@ -50,6 +50,21 @@ export class ProcedureBuilderWithOutput<
     return new ProcedureBuilderWithOutput({
       ...this['~orpc'],
       errorMap: mergeErrorMap(this['~orpc'].errorMap, errors),
+    })
+  }
+
+  meta(
+    meta: TMetaDef,
+  ): ProcedureBuilderWithOutput<
+      TInitialContext,
+      TCurrentContext,
+      TOutputSchema,
+      TErrorMap,
+      TMetaDef
+    > {
+    return new ProcedureBuilderWithOutput({
+      ...this['~orpc'],
+      meta: mergeMeta(this['~orpc'].meta, meta),
     })
   }
 

@@ -1,5 +1,5 @@
 import { ContractProcedure } from '@orpc/contract'
-import { flatLazy, isLazy, lazy, LAZY_LOADER_SYMBOL, unlazy } from './lazy'
+import { flatLazy, isLazy, lazy, LAZY_SYMBOL, unlazy } from './lazy'
 import { Procedure } from './procedure'
 
 const procedure = new Procedure({
@@ -24,8 +24,8 @@ it('lazy', () => {
   expect(lazy(procedureLoader)).toSatisfy(isLazy)
   expect(lazy(routerLoader)).toSatisfy(isLazy)
 
-  expect(lazy(procedureLoader)[LAZY_LOADER_SYMBOL]).toBe(procedureLoader)
-  expect(lazy(routerLoader)[LAZY_LOADER_SYMBOL]).toBe(routerLoader)
+  expect(lazy(procedureLoader)[LAZY_SYMBOL]).toBe(procedureLoader)
+  expect(lazy(routerLoader)[LAZY_SYMBOL]).toBe(routerLoader)
 })
 
 it('isLazy', () => {
@@ -45,7 +45,7 @@ it('unwrapLazy', async () => {
 it('flatLazy', () => {
   const lazied = lazy(() => Promise.resolve({ default: 'root' }))
 
-  expect(flatLazy(lazied)[LAZY_LOADER_SYMBOL]()).resolves.toEqual({ default: 'root' })
-  expect(flatLazy(lazy(() => Promise.resolve({ default: lazied })))[LAZY_LOADER_SYMBOL]()).resolves.toEqual({ default: 'root' })
-  expect(flatLazy(lazy(() => Promise.resolve({ default: lazy(() => Promise.resolve({ default: lazied })) })))[LAZY_LOADER_SYMBOL]()).resolves.toEqual({ default: 'root' })
+  expect(flatLazy(lazied)[LAZY_SYMBOL]()).resolves.toEqual({ default: 'root' })
+  expect(flatLazy(lazy(() => Promise.resolve({ default: lazied })))[LAZY_SYMBOL]()).resolves.toEqual({ default: 'root' })
+  expect(flatLazy(lazy(() => Promise.resolve({ default: lazy(() => Promise.resolve({ default: lazied })) })))[LAZY_SYMBOL]()).resolves.toEqual({ default: 'root' })
 })

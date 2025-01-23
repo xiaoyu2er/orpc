@@ -77,7 +77,6 @@ export class BuilderWithMiddlewares<
   meta(meta: TMetaDef): ProcedureBuilder<TInitialContext, TCurrentContext, TErrorMap, TMetaDef> {
     return new ProcedureBuilder({
       ...this['~orpc'],
-      middlewares: [],
       meta: mergeMeta(this['~orpc'].meta, meta),
     })
   }

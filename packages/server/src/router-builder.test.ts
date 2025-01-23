@@ -1,5 +1,6 @@
 import { baseErrorMap } from '../../contract/tests/shared'
 import { router } from '../tests/shared'
+import { getLazyMeta, unlazy } from './lazy'
 import { RouterBuilder } from './router-builder'
 import * as RouterUtils from './router-utils'
 
@@ -78,5 +79,21 @@ describe('routerBuilder', () => {
       prefix: '/prefix',
       tags: ['tag'],
     })
+  })
+
+  it('.lazy', () => {
+    const applied = builder.prefix('/prefix').tag('tag').lazy(() => Promise.resolve({ default: router }))
+
+    expect(applied).toBe(adaptRouterSpy.mock.results[0]?.value)
+    expect(adaptRouterSpy).toBeCalledTimes(1)
+    expect(adaptRouterSpy).toBeCalledWith(expect.any(Object), {
+      ...def,
+      prefix: '/prefix',
+      tags: ['tag'],
+    })
+
+    expect(getLazyMeta(applied)).toEqual({ prefix: '/prefix' })
+    const lazied = adaptRouterSpy.mock.calls[0]![0]
+    expect(unlazy(lazied)).resolves.toEqual({ default: router })
   })
 })

@@ -33,7 +33,10 @@ export function isLazy(item: unknown): item is Lazy<any> {
     (typeof item === 'object' || typeof item === 'function')
     && item !== null
     && LAZY_SYMBOL in item
-    && typeof item[LAZY_SYMBOL] === 'function'
+    && typeof item[LAZY_SYMBOL] === 'object'
+    && item[LAZY_SYMBOL] !== null
+    && 'loader' in item[LAZY_SYMBOL]
+    && 'meta' in item[LAZY_SYMBOL]
   )
 }
 

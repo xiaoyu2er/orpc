@@ -2,7 +2,6 @@ import { z } from 'zod'
 import { baseErrorMap, baseMeta, baseRoute, inputSchema, outputSchema } from '../tests/shared'
 import { ContractProcedure } from './procedure'
 import { DecoratedContractProcedure } from './procedure-decorated'
-import { prefixRoute, unshiftTagRoute } from './route-utils'
 
 const builder = new DecoratedContractProcedure({
   inputSchema,
@@ -48,28 +47,6 @@ describe('decoratedContractProcedure', () => {
     expect(applied).not.toBe(builder)
     expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
     expect(applied['~orpc'].route).toEqual({ ...baseRoute, ...route })
-    expect(applied['~orpc'].meta).toEqual(baseMeta)
-    expect(applied['~orpc'].inputSchema).toEqual(inputSchema)
-    expect(applied['~orpc'].outputSchema).toEqual(outputSchema)
-  })
-
-  it('.prefix', () => {
-    const applied = builder.prefix('/api')
-    expect(applied).toBeInstanceOf(DecoratedContractProcedure)
-    expect(applied).not.toBe(builder)
-    expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
-    expect(applied['~orpc'].route).toEqual(prefixRoute(baseRoute, '/api'))
-    expect(applied['~orpc'].meta).toEqual(baseMeta)
-    expect(applied['~orpc'].inputSchema).toEqual(inputSchema)
-    expect(applied['~orpc'].outputSchema).toEqual(outputSchema)
-  })
-
-  it('.unshiftTag', () => {
-    const applied = builder.unshiftTag('tag2', 'tag3')
-    expect(applied).toBeInstanceOf(DecoratedContractProcedure)
-    expect(applied).not.toBe(builder)
-    expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
-    expect(applied['~orpc'].route).toEqual(unshiftTagRoute(baseRoute, ['tag2', 'tag3']))
     expect(applied['~orpc'].meta).toEqual(baseMeta)
     expect(applied['~orpc'].inputSchema).toEqual(inputSchema)
     expect(applied['~orpc'].outputSchema).toEqual(outputSchema)

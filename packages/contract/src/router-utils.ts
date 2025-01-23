@@ -48,7 +48,7 @@ export function adaptContractRouter<
   if (isContractProcedure(contract)) {
     const adapted = new ContractProcedure({
       ...contract['~orpc'],
-      errorMap: mergeErrorMap(contract['~orpc'].errorMap, errorMapExtra),
+      errorMap: mergeErrorMap(errorMapExtra, contract['~orpc'].errorMap),
       route: adaptRoute(contract['~orpc'].route, prefix, tags),
     })
 

@@ -1,12 +1,12 @@
 import type { Meta } from './meta'
 import type { MergedMeta } from './meta-utils'
-import type { HTTPPath, Route } from './route'
-import type { MergedRoute, PrefixedRoute, UnshiftedTagRoute } from './route-utils'
+import type { Route } from './route'
+import type { MergedRoute } from './route-utils'
 import type { Schema } from './schema'
 import { type ErrorMap, type ErrorMapGuard, type ErrorMapSuggestions, type MergedErrorMap, mergeErrorMap, type StrictErrorMap } from './error-map'
 import { mergeMeta } from './meta-utils'
 import { ContractProcedure } from './procedure'
-import { mergeRoute, prefixRoute, unshiftTagRoute } from './route-utils'
+import { mergeRoute } from './route-utils'
 
 export class DecoratedContractProcedure<
   TInputSchema extends Schema,
@@ -40,24 +40,6 @@ export class DecoratedContractProcedure<
     return new DecoratedContractProcedure({
       ...this['~orpc'],
       route: mergeRoute(this['~orpc'].route, route),
-    })
-  }
-
-  prefix<U extends HTTPPath>(
-    prefix: U,
-  ): DecoratedContractProcedure<TInputSchema, TOutputSchema, TErrorMap, PrefixedRoute<TRoute, U>, TMetaDef, TMeta> {
-    return new DecoratedContractProcedure({
-      ...this['~orpc'],
-      route: prefixRoute(this['~orpc'].route, prefix),
-    })
-  }
-
-  unshiftTag<U extends string[]>(
-    ...tags: U
-  ): DecoratedContractProcedure<TInputSchema, TOutputSchema, TErrorMap, UnshiftedTagRoute<TRoute, U>, TMetaDef, TMeta> {
-    return new DecoratedContractProcedure({
-      ...this['~orpc'],
-      route: unshiftTagRoute(this['~orpc'].route, tags),
     })
   }
 }

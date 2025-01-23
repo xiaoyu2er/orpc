@@ -6,7 +6,7 @@ import type { ContractProcedure } from './procedure'
 import type { ContractProcedureBuilder } from './procedure-builder'
 import type { ContractProcedureBuilderWithInput } from './procedure-builder-with-input'
 import type { ContractProcedureBuilderWithOutput } from './procedure-builder-with-output'
-import type { MergedRoute, PrefixedRoute, UnshiftedTagRoute } from './route-utils'
+import type { MergedRoute } from './route-utils'
 import { z } from 'zod'
 import { baseErrorMap, inputSchema, outputSchema } from '../tests/shared'
 
@@ -64,34 +64,6 @@ describe('DecoratedContractProcedure', () => {
 
     // @ts-expect-error - invalid method
     builder.route({ method: 'INVALID' })
-  })
-
-  it('.prefix', () => {
-    expectTypeOf(builder.prefix('/api')).toEqualTypeOf<
-      ContractProcedureBuilder<
-        typeof baseErrorMap,
-        PrefixedRoute<typeof baseRoute, '/api'>,
-        BaseMetaDef,
-        typeof baseMeta
-      >
-    >()
-
-    // @ts-expect-error - invalid prefix
-    builder.prefix(1)
-  })
-
-  it('.unshiftTag', () => {
-    expectTypeOf(builder.unshiftTag('tag', 'tag2')).toEqualTypeOf<
-      ContractProcedureBuilder<
-        typeof baseErrorMap,
-        UnshiftedTagRoute<typeof baseRoute, ['tag', 'tag2']>,
-        BaseMetaDef,
-        typeof baseMeta
-      >
-    >()
-
-    // @ts-expect-error - invalid tag
-    builder.unshiftTag(1)
   })
 
   it('.input', () => {

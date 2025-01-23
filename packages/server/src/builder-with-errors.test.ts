@@ -4,6 +4,7 @@ import { router } from '../tests/shared'
 import { BuilderWithErrors } from './builder-with-errors'
 import { BuilderWithMiddlewares } from './builder-with-middlewares'
 import { unlazy } from './lazy'
+import * as MiddlewareDecorated from './middleware-decorated'
 import { ProcedureBuilder } from './procedure-builder'
 import { ProcedureBuilderWithInput } from './procedure-builder-with-input'
 import { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
@@ -12,6 +13,7 @@ import * as RouterAccessibleLazy from './router-accessible-lazy'
 import { RouterBuilder } from './router-builder'
 import * as RouterUtils from './router-utils'
 
+const decorateMiddlewareSpy = vi.spyOn(MiddlewareDecorated, 'decorateMiddleware')
 const adaptRouterSpy = vi.spyOn(RouterUtils, 'adaptRouter')
 const createAccessibleLazySpy = vi.spyOn(RouterAccessibleLazy, 'createAccessibleLazyRouter')
 
@@ -30,6 +32,15 @@ const builder = new BuilderWithErrors(def)
 describe('builderWithMiddlewares', () => {
   it('is a contract procedure', () => {
     expect(builder).toSatisfy(isContractProcedure)
+  })
+
+  it('.middleware', () => {
+    const mid = vi.fn()
+    const applied = builder.middleware(mid)
+    expect(applied).toBe(decorateMiddlewareSpy.mock.results[0]?.value)
+
+    expect(decorateMiddlewareSpy).toBeCalledTimes(1)
+    expect(decorateMiddlewareSpy).toBeCalledWith(mid)
   })
 
   it('.errors', () => {

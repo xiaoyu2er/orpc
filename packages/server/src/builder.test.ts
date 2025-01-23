@@ -43,8 +43,8 @@ describe('builder', () => {
 
     expect(applied['~orpc']).toEqual({
       ...def,
-      initialInputValidationIndex: Number.NEGATIVE_INFINITY,
-      initialOutputValidationIndex: Number.POSITIVE_INFINITY,
+      inputValidationIndex: Number.NEGATIVE_INFINITY,
+      outputValidationIndex: Number.POSITIVE_INFINITY,
     })
   })
 
@@ -108,6 +108,8 @@ describe('builder', () => {
     expect(applied['~orpc']).toEqual({
       ...def,
       middlewares: [mid],
+      inputValidationIndex: 100,
+      outputValidationIndex: 89,
     })
   })
 

@@ -74,4 +74,8 @@ it('getRouterChild', () => {
 
   expect(getRouterChild(router, 'nested', 'pong')).toSatisfy(isLazy)
   expect(unlazy(getRouterChild(router, 'nested', 'pong'))).resolves.toEqual({ default: pong })
+
+  expect(getRouterChild(router, 'not-exist', 'not-exist')).toEqual(undefined)
+  expect(getRouterChild(router, 'nested', 'not-exist', 'not-exist')).toSatisfy(isLazy)
+  expect(unlazy(getRouterChild(router, 'nested', 'not-exist', 'not-exist'))).resolves.toEqual({ default: undefined })
 })

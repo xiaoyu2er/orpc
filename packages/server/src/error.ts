@@ -22,11 +22,7 @@ export function createORPCErrorConstructorMap<T extends ErrorMap>(errors: T): OR
   const constructors = {} as ORPCErrorConstructorMap<T>
 
   for (const code in errors) {
-    const config = errors[code]
-
-    if (!config) {
-      continue
-    }
+    const config = errors[code]!
 
     const constructor: ORPCErrorConstructorMapItem<string, Schema> = (...[options]) => {
       return new ORPCError({

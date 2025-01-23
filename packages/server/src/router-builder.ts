@@ -33,7 +33,6 @@ export class RouterBuilder<
   TErrorMap extends ErrorMap,
   TMetaDef extends Meta,
 > {
-  '~type' = 'RouterBuilder' as const
   '~orpc': RouterBuilderDef<TInitialContext, TCurrentContext, TErrorMap, TMetaDef>
 
   constructor(def: RouterBuilderDef<TInitialContext, TCurrentContext, TErrorMap, TMetaDef>) {

@@ -90,13 +90,18 @@ export function adaptRouter<
   }
 
   if (isProcedure(router)) {
+    const newMiddlewares = options.middlewares
+      ? mergeMiddlewares(options.middlewares, router['~orpc'].middlewares)
+      : router['~orpc'].middlewares
+    const newMiddlewareAdded = newMiddlewares.length - router['~orpc'].middlewares.length
+
     const adapted = new Procedure({
       ...router['~orpc'],
       route: adaptRoute(router['~orpc'].route, options.prefix, options.tags),
-      middlewares: options.middlewares
-        ? mergeMiddlewares(router['~orpc'].middlewares, options.middlewares)
-        : router['~orpc'].middlewares,
       errorMap: mergeErrorMap(options.errorMap, router['~orpc'].errorMap),
+      middlewares: newMiddlewares,
+      inputValidationIndex: router['~orpc'].inputValidationIndex + newMiddlewareAdded,
+      outputValidationIndex: router['~orpc'].outputValidationIndex + newMiddlewareAdded,
     })
 
     return adapted as any

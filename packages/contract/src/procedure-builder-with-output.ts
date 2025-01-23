@@ -1,11 +1,11 @@
 import type { Meta } from './meta'
-import type { HTTPPath, Route } from './route'
+import type { Route } from './route'
 import type { Schema } from './schema'
 import { type ErrorMap, type ErrorMapGuard, type ErrorMapSuggestions, type MergedErrorMap, mergeErrorMap, type StrictErrorMap } from './error-map'
 import { type MergedMeta, mergeMeta } from './meta-utils'
 import { ContractProcedure } from './procedure'
 import { DecoratedContractProcedure } from './procedure-decorated'
-import { type MergedRoute, mergeRoute, type PrefixedRoute, prefixRoute, type UnshiftedTagRoute, unshiftTagRoute } from './route-utils'
+import { type MergedRoute, mergeRoute } from './route-utils'
 
 /**
  * `ContractProcedureBuilderWithOutput` is a branch of `ContractProcedureBuilder` which it has output schema.
@@ -44,24 +44,6 @@ export class ContractProcedureBuilderWithOutput<
     return new ContractProcedureBuilderWithOutput({
       ...this['~orpc'],
       route: mergeRoute(this['~orpc'].route, route),
-    })
-  }
-
-  prefix<U extends HTTPPath>(
-    prefix: U,
-  ): ContractProcedureBuilderWithOutput<TOutputSchema, TErrorMap, PrefixedRoute<TRoute, U>, TMetaDef, TMeta> {
-    return new ContractProcedureBuilderWithOutput({
-      ...this['~orpc'],
-      route: prefixRoute(this['~orpc'].route, prefix),
-    })
-  }
-
-  unshiftTag<U extends string[]>(
-    ...tags: U
-  ): ContractProcedureBuilderWithOutput<TOutputSchema, TErrorMap, UnshiftedTagRoute<TRoute, U>, TMetaDef, TMeta> {
-    return new ContractProcedureBuilderWithOutput({
-      ...this['~orpc'],
-      route: unshiftTagRoute(this['~orpc'].route, tags),
     })
   }
 

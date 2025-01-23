@@ -4,7 +4,6 @@ import { ContractProcedure } from './procedure'
 import { ContractProcedureBuilder } from './procedure-builder'
 import { ContractProcedureBuilderWithInput } from './procedure-builder-with-input'
 import { ContractProcedureBuilderWithOutput } from './procedure-builder-with-output'
-import { prefixRoute, unshiftTagRoute } from './route-utils'
 
 const builder = new ContractProcedureBuilder({
   inputSchema: undefined,
@@ -46,24 +45,6 @@ describe('decoratedContractProcedure', () => {
     expect(applied).not.toBe(builder)
     expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
     expect(applied['~orpc'].route).toEqual({ ...baseRoute, ...route })
-    expect(applied['~orpc'].meta).toEqual(baseMeta)
-  })
-
-  it('.prefix', () => {
-    const applied = builder.prefix('/api')
-    expect(applied).toBeInstanceOf(ContractProcedureBuilder)
-    expect(applied).not.toBe(builder)
-    expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
-    expect(applied['~orpc'].route).toEqual(prefixRoute(baseRoute, '/api'))
-    expect(applied['~orpc'].meta).toEqual(baseMeta)
-  })
-
-  it('.unshiftTag', () => {
-    const applied = builder.unshiftTag('tag2', 'tag3')
-    expect(applied).toBeInstanceOf(ContractProcedureBuilder)
-    expect(applied).not.toBe(builder)
-    expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
-    expect(applied['~orpc'].route).toEqual(unshiftTagRoute(baseRoute, ['tag2', 'tag3']))
     expect(applied['~orpc'].meta).toEqual(baseMeta)
   })
 

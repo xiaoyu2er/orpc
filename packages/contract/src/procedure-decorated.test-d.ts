@@ -3,7 +3,7 @@ import type { baseMeta, BaseMetaDef, baseRoute, inputSchema, outputSchema } from
 import type { MergedErrorMap, StrictErrorMap } from './error-map'
 import type { ContractProcedure } from './procedure'
 import type { DecoratedContractProcedure } from './procedure-decorated'
-import type { MergedRoute, PrefixedRoute, UnshiftedTagRoute } from './route-utils'
+import type { MergedRoute } from './route-utils'
 import { baseErrorMap } from '../tests/shared'
 
 const builder = {} as DecoratedContractProcedure<
@@ -70,37 +70,5 @@ describe('DecoratedContractProcedure', () => {
 
     // @ts-expect-error - invalid method
     builder.route({ method: 'INVALID' })
-  })
-
-  it('.prefix', () => {
-    expectTypeOf(builder.prefix('/api')).toEqualTypeOf<
-      DecoratedContractProcedure<
-        typeof inputSchema,
-        typeof outputSchema,
-        typeof baseErrorMap,
-        PrefixedRoute<typeof baseRoute, '/api'>,
-        BaseMetaDef,
-        typeof baseMeta
-      >
-    >()
-
-    // @ts-expect-error - invalid prefix
-    builder.prefix(1)
-  })
-
-  it('.unshiftTag', () => {
-    expectTypeOf(builder.unshiftTag('tag', 'tag2')).toEqualTypeOf<
-      DecoratedContractProcedure<
-        typeof inputSchema,
-        typeof outputSchema,
-        typeof baseErrorMap,
-        UnshiftedTagRoute<typeof baseRoute, ['tag', 'tag2']>,
-        BaseMetaDef,
-        typeof baseMeta
-      >
-    >()
-
-    // @ts-expect-error - invalid tag
-    builder.unshiftTag(1)
   })
 })

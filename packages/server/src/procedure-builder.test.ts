@@ -1,106 +1,117 @@
-import { ContractProcedure } from '@orpc/contract'
-import { z } from 'zod'
+import { baseErrorMap, baseMeta, baseRoute, inputSchema, outputSchema } from '../../contract/tests/shared'
 import { ProcedureBuilder } from './procedure-builder'
 import { ProcedureBuilderWithInput } from './procedure-builder-with-input'
 import { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
-import { DecoratedProcedure } from './procedure-decorated'
-
-const baseErrors = {
-  BASE: {
-    status: 402,
-    message: 'default message',
-    data: z.object({
-      why: z.string(),
-    }),
-  },
-}
 
 const mid = vi.fn()
 
-const builder = new ProcedureBuilder({
+const def = {
   middlewares: [mid],
   inputValidationIndex: 1,
   outputValidationIndex: 1,
-  contract: new ContractProcedure({
-    InputSchema: undefined,
-    outputSchema: undefined,
-    errorMap: baseErrors,
-    route: {},
-  }),
-})
+  inputSchema: undefined,
+  outputSchema: undefined,
+  errorMap: baseErrorMap,
+  route: baseRoute,
+  meta: baseMeta as any,
+}
 
-const schema = z.object({ id: z.string().transform(v => Number.parseInt(v)) })
+const builder = new ProcedureBuilder(def)
 
 describe('procedureBuilder', () => {
   it('.errors', () => {
     const errors = { CODE: { message: 'MESSAGE' } }
-    const applied = builder.errors(errors)
 
+    const applied = builder.errors(errors)
     expect(applied).toBeInstanceOf(ProcedureBuilder)
     expect(applied).not.toBe(builder)
-    expect(applied['~orpc'].middlewares).toEqual([mid])
-    expect(applied['~orpc'].inputValidationIndex).toEqual(1)
-    expect(applied['~orpc'].outputValidationIndex).toEqual(1)
-    expect(applied['~orpc'].contract['~orpc'].errorMap).toEqual({
-      ...baseErrors,
-      ...errors,
+
+    expect(applied['~orpc']).toEqual({
+      ...def,
+      errorMap: {
+        ...def.errorMap,
+        ...errors,
+      },
+    })
+  })
+
+  it('.meta', () => {
+    const meta = { mode: 'TEST-DDD' } as const
+
+    const applied = builder.meta(meta)
+    expect(applied).toBeInstanceOf(ProcedureBuilder)
+    expect(applied).not.toBe(builder)
+
+    expect(applied['~orpc']).toEqual({
+      ...def,
+      meta: {
+        ...def.meta,
+        ...meta,
+      },
     })
   })
 
   it('.route', () => {
-    const applied = builder.route({ tags: ['a'] })
+    const route = { method: 'DELETE', tag: ['ua'] } as const
 
+    const applied = builder.route(route)
     expect(applied).toBeInstanceOf(ProcedureBuilder)
     expect(applied).not.toBe(builder)
-    expect(applied['~orpc'].middlewares).toEqual([mid])
-    expect(applied['~orpc'].inputValidationIndex).toEqual(1)
-    expect(applied['~orpc'].outputValidationIndex).toEqual(1)
-    expect(applied['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
+
+    expect(applied['~orpc']).toEqual({
+      ...def,
+      route: {
+        ...def.route,
+        ...route,
+      },
+    })
   })
 
   it('.use', () => {
-    const mid2 = vi.fn()
+    const mid = vi.fn()
 
-    const applied = builder.use(mid2)
-
+    const applied = builder.use(mid)
     expect(applied).toBeInstanceOf(ProcedureBuilder)
     expect(applied).not.toBe(builder)
-    expect(applied['~orpc'].middlewares).toEqual([mid, mid2])
-    expect(applied['~orpc'].inputValidationIndex).toEqual(2)
-    expect(applied['~orpc'].outputValidationIndex).toEqual(2)
-    expect(applied['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
+
+    expect(applied['~orpc']).toEqual({
+      ...def,
+      middlewares: [
+        ...def.middlewares,
+        mid,
+      ],
+      inputValidationIndex: 2,
+      outputValidationIndex: 2,
+    })
   })
 
   it('.input', () => {
-    const applied = builder.input(schema)
-
+    const applied = builder.input(inputSchema)
     expect(applied).toBeInstanceOf(ProcedureBuilderWithInput)
-    expect(applied['~orpc'].middlewares).toEqual([mid])
-    expect(applied['~orpc'].inputValidationIndex).toEqual(1)
-    expect(applied['~orpc'].outputValidationIndex).toEqual(1)
-    expect(applied['~orpc'].contract['~orpc'].InputSchema).toEqual(schema)
-    expect(applied['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
+
+    expect(applied['~orpc']).toEqual({
+      ...def,
+      inputSchema,
+    })
   })
 
   it('.output', () => {
-    const applied = builder.output(schema)
-
+    const applied = builder.output(outputSchema)
     expect(applied).toBeInstanceOf(ProcedureBuilderWithOutput)
-    expect(applied['~orpc'].middlewares).toEqual([mid])
-    expect(applied['~orpc'].inputValidationIndex).toEqual(1)
-    expect(applied['~orpc'].outputValidationIndex).toEqual(1)
-    expect(applied['~orpc'].contract['~orpc'].OutputSchema).toEqual(schema)
-    expect(applied['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
+
+    expect(applied['~orpc']).toEqual({
+      ...def,
+      outputSchema,
+    })
   })
 
   it('.handler', () => {
     const handler = vi.fn()
     const applied = builder.handler(handler)
 
-    expect(applied).toBeInstanceOf(DecoratedProcedure)
-    expect(applied['~orpc'].middlewares).toEqual([mid])
-    expect(applied['~orpc'].inputValidationIndex).toEqual(1)
-    expect(applied['~orpc'].outputValidationIndex).toEqual(1)
-    expect(applied['~orpc'].contract['~orpc'].errorMap).toEqual(baseErrors)
+    expect(applied['~orpc']).toEqual({
+      ...def,
+      handler,
+    })
   })
 })

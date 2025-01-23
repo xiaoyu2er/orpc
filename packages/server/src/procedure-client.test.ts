@@ -1,4 +1,4 @@
-import { ContractProcedure, ORPCError, validateORPCError } from '@orpc/contract'
+import { ORPCError, validateORPCError } from '@orpc/contract'
 import { z } from 'zod'
 import { createORPCErrorConstructorMap } from './error'
 import { isLazy, lazy, unlazy } from './lazy'
@@ -32,16 +32,15 @@ const baseErrors = {
 }
 
 const procedure = new Procedure({
-  contract: new ContractProcedure({
-    InputSchema: schema,
-    outputSchema: schema,
-    errorMap: baseErrors,
-    route: {},
-  }),
+  inputSchema: schema,
+  outputSchema: schema,
+  errorMap: baseErrors,
+  route: {},
   handler,
   middlewares: [preMid1, preMid2, postMid1, postMid2],
   inputValidationIndex: 2,
   outputValidationIndex: 2,
+  meta: {},
 })
 
 const procedureCases = [
@@ -501,12 +500,11 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
 
 it('still work without InputSchema', async () => {
   const procedure = new Procedure({
-    contract: new ContractProcedure({
-      InputSchema: undefined,
-      outputSchema: schema,
-      errorMap: {},
-      route: {},
-    }),
+    inputSchema: undefined,
+    outputSchema: schema,
+    errorMap: {},
+    route: {},
+    meta: {},
     handler,
     middlewares: [],
     inputValidationIndex: 0,
@@ -523,12 +521,11 @@ it('still work without InputSchema', async () => {
 
 it('still work without OutputSchema', async () => {
   const procedure = new Procedure({
-    contract: new ContractProcedure({
-      InputSchema: schema,
-      outputSchema: undefined,
-      errorMap: {},
-      route: {},
-    }),
+    inputSchema: schema,
+    outputSchema: undefined,
+    errorMap: {},
+    route: {},
+    meta: {},
     handler,
     middlewares: [],
     inputValidationIndex: 0,

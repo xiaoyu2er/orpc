@@ -55,18 +55,14 @@ export class BuilderWithMiddlewares<
     middleware: Middleware<TCurrentContext, U, unknown, unknown, ORPCErrorConstructorMap<TErrorMap>, TMetaDef>,
   ): ConflictContextGuard<MergedContext<TCurrentContext, U>>
     & BuilderWithMiddlewares<TInitialContext, MergedContext<TCurrentContext, U>, TErrorMap, TMetaDef> {
-    const builder = new BuilderWithMiddlewares<TInitialContext, MergedContext<TCurrentContext, U>, TErrorMap, TMetaDef>({
-      errorMap: this['~orpc'].errorMap,
-      inputSchema: this['~orpc'].inputSchema,
-      outputSchema: this['~orpc'].outputSchema,
-      meta: this['~orpc'].meta,
-      route: this['~orpc'].route,
+    const builder = new BuilderWithMiddlewares({
+      ...this['~orpc'],
       inputValidationIndex: this['~orpc'].inputValidationIndex + 1,
       outputValidationIndex: this['~orpc'].outputValidationIndex + 1,
       middlewares: addMiddleware(this['~orpc'].middlewares, middleware),
     })
 
-    return builder as typeof builder & ConflictContextGuard<MergedContext<TCurrentContext, U>>
+    return builder as any
   }
 
   errors<const U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(
@@ -113,7 +109,7 @@ export class BuilderWithMiddlewares<
 
   handler<UFuncOutput>(
     handler: ProcedureHandler<TCurrentContext, undefined, undefined, UFuncOutput, TErrorMap, TMetaDef>,
-  ): DecoratedProcedure<TInitialContext, TCurrentContext, undefined, undefined, UFuncOutput, TErrorMap, Route, TMetaDef, TMetaDef> {
+  ): DecoratedProcedure<TInitialContext, TCurrentContext, undefined, undefined, UFuncOutput, TErrorMap, TMetaDef> {
     return new DecoratedProcedure({
       ...this['~orpc'],
       handler,

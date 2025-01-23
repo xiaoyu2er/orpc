@@ -76,6 +76,8 @@ export class ProcedureBuilder<
     const builder = new ProcedureBuilder({
       ...this['~orpc'],
       middlewares: addMiddleware(this['~orpc'].middlewares, middleware),
+      inputValidationIndex: this['~orpc'].inputValidationIndex + 1,
+      outputValidationIndex: this['~orpc'].outputValidationIndex + 1,
     })
 
     return builder as any

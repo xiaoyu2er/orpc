@@ -1,27 +1,10 @@
-import { ContractProcedure } from '@orpc/contract'
-import { isProcedure, Procedure } from './procedure'
+import { ping } from '../tests/shared'
+import { isProcedure } from './procedure'
 
-describe('isProcedure', () => {
-  const procedure = new Procedure({
-    contract: new ContractProcedure({
-      InputSchema: undefined,
-      outputSchema: undefined,
-      errorMap: {},
-      route: {},
-    }),
-    handler: () => {},
-    inputValidationIndex: 0,
-    outputValidationIndex: 0,
-    middlewares: [],
-  })
+it('isProcedure', () => {
+  expect(ping).toSatisfy(isProcedure)
+  expect(Object.assign({}, ping)).toSatisfy(isProcedure)
 
-  it('works', () => {
-    expect(procedure).toSatisfy(isProcedure)
-    expect({}).not.toSatisfy(isProcedure)
-    expect(true).not.toSatisfy(isProcedure)
-  })
-
-  it('works with raw object', () => {
-    expect(Object.assign({}, procedure)).toSatisfy(isProcedure)
-  })
+  expect({}).not.toSatisfy(isProcedure)
+  expect(true).not.toSatisfy(isProcedure)
 })

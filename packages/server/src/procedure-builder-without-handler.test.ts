@@ -1,6 +1,11 @@
 import { baseErrorMap, baseMeta, baseRoute, inputSchema, outputSchema } from '../../contract/tests/shared'
-import { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
 import { ProcedureBuilderWithoutHandler } from './procedure-builder-without-handler'
+
+vi.mock('./middleware-decorated', () => ({
+  decorateMiddleware: vi.fn(mid => ({
+    mapInput: vi.fn(map => [mid, map]),
+  })),
+}))
 
 const mid = vi.fn()
 
@@ -8,21 +13,21 @@ const def = {
   middlewares: [mid],
   inputValidationIndex: 1,
   outputValidationIndex: 1,
-  inputSchema: undefined,
+  inputSchema,
   outputSchema,
   errorMap: baseErrorMap,
   route: baseRoute,
   meta: baseMeta as any,
 }
 
-const builder = new ProcedureBuilderWithOutput(def)
+const builder = new ProcedureBuilderWithoutHandler(def)
 
-describe('procedureBuilderWithOutput', () => {
+describe('procedureBuilderWithoutHandler', () => {
   it('.errors', () => {
     const errors = { CODE: { message: 'MESSAGE' } }
 
     const applied = builder.errors(errors)
-    expect(applied).toBeInstanceOf(ProcedureBuilderWithOutput)
+    expect(applied).toBeInstanceOf(ProcedureBuilderWithoutHandler)
     expect(applied).not.toBe(builder)
 
     expect(applied['~orpc']).toEqual({
@@ -38,7 +43,7 @@ describe('procedureBuilderWithOutput', () => {
     const meta = { mode: 'TEST-DDD' } as const
 
     const applied = builder.meta(meta)
-    expect(applied).toBeInstanceOf(ProcedureBuilderWithOutput)
+    expect(applied).toBeInstanceOf(ProcedureBuilderWithoutHandler)
     expect(applied).not.toBe(builder)
 
     expect(applied['~orpc']).toEqual({
@@ -54,7 +59,7 @@ describe('procedureBuilderWithOutput', () => {
     const route = { method: 'DELETE', tag: ['ua'] } as const
 
     const applied = builder.route(route)
-    expect(applied).toBeInstanceOf(ProcedureBuilderWithOutput)
+    expect(applied).toBeInstanceOf(ProcedureBuilderWithoutHandler)
     expect(applied).not.toBe(builder)
 
     expect(applied['~orpc']).toEqual({
@@ -66,31 +71,32 @@ describe('procedureBuilderWithOutput', () => {
     })
   })
 
-  it('.use', () => {
-    const mid = vi.fn()
+  describe('.use', () => {
+    it('without map input', () => {
+      const mid = vi.fn()
 
-    const applied = builder.use(mid)
-    expect(applied).toBeInstanceOf(ProcedureBuilderWithOutput)
-    expect(applied).not.toBe(builder)
+      const applied = builder.use(mid)
+      expect(applied).not.toBe(builder)
+      expect(applied).toBeInstanceOf(ProcedureBuilderWithoutHandler)
 
-    expect(applied['~orpc']).toEqual({
-      ...def,
-      middlewares: [
-        ...def.middlewares,
-        mid,
-      ],
-      inputValidationIndex: 2,
-      outputValidationIndex: 1,
+      expect(applied['~orpc']).toEqual({
+        ...def,
+        middlewares: [...def.middlewares, mid],
+      })
     })
-  })
 
-  it('.input', () => {
-    const applied = builder.input(inputSchema)
-    expect(applied).toBeInstanceOf(ProcedureBuilderWithoutHandler)
+    it('with map input', () => {
+      const mid = vi.fn()
+      const map = vi.fn()
 
-    expect(applied['~orpc']).toEqual({
-      ...def,
-      inputSchema,
+      const applied = builder.use(mid, map)
+      expect(applied).not.toBe(builder)
+      expect(applied).toBeInstanceOf(ProcedureBuilderWithoutHandler)
+
+      expect(applied['~orpc']).toEqual({
+        ...def,
+        middlewares: [...def.middlewares, [mid, map]],
+      })
     })
   })
 

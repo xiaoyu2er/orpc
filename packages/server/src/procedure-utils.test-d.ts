@@ -1,53 +1,27 @@
 import type { ORPCError } from '@orpc/contract'
-import type { Context } from './context'
-import type { Procedure } from './procedure'
+import type { ReadonlyDeep } from '@orpc/shared'
 import { safe } from '@orpc/contract'
-import { z } from 'zod'
+import { ping, pong } from '../tests/shared'
 import { call } from './procedure-utils'
 
-const schema = z.object({
-  val: z.string().transform(v => Number.parseInt(v)),
-})
+it('call', async () => {
+  const [output, error, isDefined] = await safe(call(ping, { input: 123 }, { context: { db: 'postgres' } }))
 
-const baseErrors = {
-  CODE: {
-    data: z.object({
-      why: z.string(),
-    }),
-  },
-}
+  if (!error) {
+    expectTypeOf(output).toEqualTypeOf<{ output: string }>()
+  }
 
-const procedure = {} as Procedure<Context, Context, typeof schema, typeof schema, { val: string }, typeof baseErrors, { description: 'procedure' }>
-const procedureWithContext = {} as Procedure<{ db: string }, { auth: boolean }, typeof schema, typeof schema, { val: string }, typeof baseErrors, { description: 'procedureWithContext' }>
+  if (isDefined) {
+    expectTypeOf(error).toEqualTypeOf<ORPCError<'BASE', ReadonlyDeep<{ output: string }>>>()
+  }
 
-describe('call', () => {
-  it('infer input', async () => {
-    call(procedure, { val: '123' })
-    // @ts-expect-error - invalid input
-    call(procedure, { val: 123 })
-  })
+  // @ts-expect-error - invalid input
+  call(ping, { input: '123' }, { context: { db: 'postgres' } })
 
-  it('infer output', async () => {
-    const output = await call(procedure, { val: '123' })
-    expectTypeOf(output).toEqualTypeOf<{ val: number }>()
-  })
-
-  it('infer error', async () => {
-    const [output, error] = await safe(call(procedure, { val: '123' }))
-
-    expectTypeOf(error).toEqualTypeOf<
-      | undefined
-      | Error
-      | ORPCError<'CODE', { why: string }>
-    >()
-  })
-
-  it('infer context', async () => {
-    call(procedure, { val: '123' })
-    call(procedureWithContext, { val: '123' }, { context: { db: 'postgres' } })
-    // @ts-expect-error - context is required
-    call(procedureWithContext, { val: '123' })
-    // @ts-expect-error - invalid context
-    call(procedureWithContext, { val: '123' }, { context: { db: 1 } })
-  })
+  // can call without third argument if all context fields is optional
+  call(pong, { input: 123 })
+  // @ts-expect-error - context is required
+  call(ping, { input: 123 })
+  // @ts-expect-error - invalid context
+  call(ping, { input: 123 }, { context: { db: 123 } })
 })

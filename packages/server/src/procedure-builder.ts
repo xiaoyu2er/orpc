@@ -1,4 +1,4 @@
-import type { ContractProcedureDef, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, MergedErrorMap, Meta, Route, Schema } from '@orpc/contract'
+import type { ContractProcedureDef, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, MergedErrorMap, Meta, Route, Schema, StrictErrorMap } from '@orpc/contract'
 import type { Context, TypeCurrentContext, TypeInitialContext } from './context'
 import type { ConflictContextGuard, MergedContext } from './context-utils'
 import type { ORPCErrorConstructorMap } from './error'
@@ -35,9 +35,9 @@ export class ProcedureBuilder<
     this['~orpc'] = def
   }
 
-  errors<U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(
+  errors<const U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(
     errors: U,
-  ): ProcedureBuilder<TInitialContext, TCurrentContext, MergedErrorMap<TErrorMap, U>, TMetaDef> {
+  ): ProcedureBuilder<TInitialContext, TCurrentContext, MergedErrorMap<TErrorMap, StrictErrorMap<U>>, TMetaDef> {
     return new ProcedureBuilder({
       ...this['~orpc'],
       errorMap: mergeErrorMap(this['~orpc'].errorMap, errors),
@@ -101,7 +101,7 @@ export class ProcedureBuilder<
 
   handler<UFuncOutput>(
     handler: ProcedureHandler<TCurrentContext, undefined, undefined, UFuncOutput, TErrorMap, TMetaDef>,
-  ): DecoratedProcedure<TInitialContext, TCurrentContext, undefined, undefined, UFuncOutput, TErrorMap, Route, TMetaDef, TMetaDef> {
+  ): DecoratedProcedure<TInitialContext, TCurrentContext, undefined, undefined, UFuncOutput, TErrorMap, TMetaDef> {
     return new DecoratedProcedure({
       ...this['~orpc'],
       handler,

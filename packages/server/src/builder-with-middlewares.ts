@@ -23,7 +23,7 @@ import { adaptRouter } from './router-utils'
  *
  * Why?
  * - prevents .middleware after .use (can mislead the behavior)
- * - prevents .context after .use (middlewares required current context, so it tricky when change the current context)
+ * - prevents .$context after .use (middlewares required current context, so it tricky when change the current context)
  *
  */
 export interface BuilderWithMiddlewaresDef<

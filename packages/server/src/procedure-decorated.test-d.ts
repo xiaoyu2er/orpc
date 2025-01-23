@@ -1,319 +1,216 @@
-import type { Client, ClientRest, ORPCError, Route } from '@orpc/contract'
-import type { baseErrorMap, baseMeta, BaseMetaDef, baseRoute, inputSchema, outputSchema } from '../../contract/tests/shared'
+import type { Client, ClientRest, ErrorFromErrorMap, ErrorMap, MergedErrorMap, Route, Schema, StrictErrorMap } from '@orpc/contract'
+import type { ReadonlyDeep } from '@orpc/shared'
+import type { baseErrorMap, BaseMetaDef, inputSchema, outputSchema } from '../../contract/tests/shared'
+import type { CurrentContext, InitialContext } from '../tests/shared'
 import type { Context } from './context'
 import type { ORPCErrorConstructorMap } from './error'
-import type { Middleware, MiddlewareOutputFn } from './middleware'
+import type { MiddlewareOutputFn } from './middleware'
 import type { Procedure } from './procedure'
-import { describe } from 'node:test'
-import { z } from 'zod'
-import { DecoratedProcedure } from './procedure-decorated'
+import type { DecoratedProcedure } from './procedure-decorated'
 
-const decorated = {} as DecoratedProcedure<
-  { auth: boolean },
-  { auth: boolean } & { db: string },
+const builder = {} as DecoratedProcedure<
+  InitialContext,
+  CurrentContext,
   typeof inputSchema,
   typeof outputSchema,
   { output: number },
   typeof baseErrorMap,
-  typeof baseRoute,
-  BaseMetaDef,
-  typeof baseMeta
->
-
-// like decorated but lost route when trying change contract
-const decoratedLostContract = {} as DecoratedProcedure<
-  { auth: boolean },
-  { auth: boolean } & { db: string },
-  typeof inputSchema,
-  typeof outputSchema,
-  { output: number },
-  typeof baseErrorMap,
-  Route,
-  BaseMetaDef,
   BaseMetaDef
 >
 
 describe('DecoratedProcedure', () => {
   it('is a procedure', () => {
-    expectTypeOf(decorated).toMatchTypeOf<Procedure<
-      { auth: boolean },
-      { auth: boolean } & { db: string },
-      typeof inputSchema,
-      typeof outputSchema,
-      { output: number },
-      typeof baseErrorMap,
-      typeof baseRoute,
-      BaseMetaDef,
-      typeof baseMeta
-    >>()
-  })
-
-  it('.decorate', () => {
-    expectTypeOf(DecoratedProcedure.decorate(
-      {} as Procedure<
-        { auth: boolean },
-        { auth: boolean } & { db: string },
+    expectTypeOf(builder).toMatchTypeOf<
+      Procedure<
+        InitialContext,
+        CurrentContext,
         typeof inputSchema,
         typeof outputSchema,
         { output: number },
         typeof baseErrorMap,
-        typeof baseRoute,
+        Route,
         BaseMetaDef,
-        typeof baseMeta
-      >,
-    )).toMatchTypeOf(decorated)
+        BaseMetaDef
+      >
+    >()
   })
 
   it('.errors', () => {
+    const applied = builder.errors({ BAD_GATEWAY: { message: 'BAD_GATEWAY' } })
 
+    expectTypeOf(applied).toEqualTypeOf<DecoratedProcedure<
+      InitialContext,
+      CurrentContext,
+      typeof inputSchema,
+      typeof outputSchema,
+      { output: number },
+      MergedErrorMap<typeof baseErrorMap, StrictErrorMap<ReadonlyDeep<{ BAD_GATEWAY: { message: 'BAD_GATEWAY' } }>>>,
+      BaseMetaDef
+    >>()
+
+    // @ts-expect-error - invalid schema
+    builder.errors({ BAD_GATEWAY: { data: {} } })
+    // @ts-expect-error - not allow redefine error map
+    builder.errors({ BASE: baseErrorMap.BASE })
   })
-})
 
-describe('self chainable', () => {
-  it('prefix', () => {
-    expectTypeOf(decorated.prefix('/test')).toEqualTypeOf<
-      typeof decoratedLostContract
-    >()
+  it('.meta', () => {
+    const applied = builder.meta({ mode: 'dev', log: true })
 
-    // @ts-expect-error - invalid prefix
-    decorated.prefix('')
-    // @ts-expect-error - invalid prefix
-    decorated.prefix(1)
-  })
-
-  it('route', () => {
-    expectTypeOf(decorated.route({ path: '/test', method: 'GET' })).toEqualTypeOf<
-      typeof decoratedLostContract
-    >()
-    expectTypeOf(decorated.route({
-      path: '/test',
-      method: 'GET',
-      description: 'description',
-      summary: 'summary',
-      deprecated: true,
-      tags: ['tag1', 'tag2'],
-    })).toEqualTypeOf<
-      typeof decoratedLostContract
+    expectTypeOf(applied).toEqualTypeOf<
+      DecoratedProcedure<
+        InitialContext,
+        CurrentContext,
+        typeof inputSchema,
+        typeof outputSchema,
+        { output: number },
+        typeof baseErrorMap,
+        BaseMetaDef
+      >
     >()
 
     // @ts-expect-error - invalid method
-    decorated.route({ method: 'PUTT' })
-    // @ts-expect-error - invalid path
-    decorated.route({ path: 1 })
-    // @ts-expect-error - invalid tags
-    decorated.route({ tags: [1] })
+    builder.meta({ log: 'INVALID' })
   })
 
-  describe('errors', () => {
-    const errors = {
-      BAD_GATEWAY: {
-        data: z.object({
-          why: z.string(),
-        }),
-      },
-    }
+  it('.route', () => {
+    const applied = builder.route({ method: 'POST', path: '/v2/users', tags: ['tag'] })
 
-    it('merge errors', () => {
-      const i = decorated.errors(errors)
+    expectTypeOf(applied).toEqualTypeOf<
+      DecoratedProcedure<
+        InitialContext,
+        CurrentContext,
+        typeof inputSchema,
+        typeof outputSchema,
+        { output: number },
+        typeof baseErrorMap,
+        BaseMetaDef
+      >
+    >()
 
-      expectTypeOf(i).toEqualTypeOf<
-        DecoratedProcedure<
-          { auth: boolean },
-          { auth: boolean } & { db: string },
-          typeof baseSchema,
-          typeof baseSchema,
-          { val: string },
-          typeof baseErrors & typeof errors,
-          typeof route
-        >
-      >()
-    })
-
-    it('prevent redefine old errorMap', () => {
-      // @ts-expect-error - not allow redefine errorMap
-      decorated.errors({ CODE: baseErrors.CODE })
-      // @ts-expect-error - not allow redefine errorMap --- even with undefined
-      decorated.errors({ CODE: undefined })
-    })
+    // @ts-expect-error - invalid method
+    builder.route({ method: 'INVALID' })
   })
 
-  it('use middleware', () => {
-    const i = decorated
-      .use(({ context, path, next, procedure, errors }, input, output) => {
-        expectTypeOf(input).toEqualTypeOf<{ val: number }>()
-        expectTypeOf(context).toEqualTypeOf<{ auth: boolean } & { db: string }>()
+  describe('.use', () => {
+    it('without map input', () => {
+      const applied = builder.use(({ context, next, path, procedure, errors }, input, output) => {
+        expectTypeOf(input).toEqualTypeOf<{ input: string }>()
+        expectTypeOf(context).toEqualTypeOf<CurrentContext>()
         expectTypeOf(path).toEqualTypeOf<string[]>()
-        expectTypeOf(procedure).toEqualTypeOf<ANY_PROCEDURE>()
-        expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<{ val: string }>>()
-        expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrors>>()
+        expectTypeOf(procedure).toEqualTypeOf<Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, Route, BaseMetaDef, BaseMetaDef>>()
+        expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<{ output: number }>>()
+        expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
 
         return next({
           context: {
-            dev: true,
+            extra: true,
           },
         })
       })
-      .use(({ context, path, next, procedure, errors }, input, output) => {
-        expectTypeOf(input).toEqualTypeOf<{ val: number }>()
-        expectTypeOf(context).toEqualTypeOf<{ auth: boolean } & { db: string } & { dev: boolean }>()
-        expectTypeOf(path).toEqualTypeOf<string[]>()
-        expectTypeOf(procedure).toEqualTypeOf<ANY_PROCEDURE>()
-        expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<{ val: string }>>()
-        expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrors>>()
 
-        return next({})
+      expectTypeOf(applied).toEqualTypeOf<
+        DecoratedProcedure<
+          InitialContext,
+          CurrentContext & { extra: boolean },
+          typeof inputSchema,
+          typeof outputSchema,
+          { output: number },
+          typeof baseErrorMap,
+          BaseMetaDef
+        >
+      >()
+
+      // @ts-expect-error --- conflict context
+      builder.use(({ next }) => next({ context: { db: 123 } }))
+      // @ts-expect-error --- input is not match
+      builder.use(({ next }, input: 'invalid') => next({}))
+      // @ts-expect-error --- output is not match
+      builder.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}))
+      // conflict context but not detected
+      expectTypeOf(builder.use(({ next }) => next({ context: { db: undefined } }))).toEqualTypeOf<never>()
+    })
+
+    it('with map input', () => {
+      const applied = builder.use(({ context, next, path, procedure, errors }, input: { mapped: string }, output) => {
+        expectTypeOf(context).toEqualTypeOf<CurrentContext>()
+        expectTypeOf(path).toEqualTypeOf<string[]>()
+        expectTypeOf(procedure).toEqualTypeOf<Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, Route, BaseMetaDef, BaseMetaDef>>()
+        expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<{ output: number }>>()
+        expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
+
+        return next({
+          context: {
+            extra: true,
+          },
+        })
+      }, (input) => {
+        expectTypeOf(input).toEqualTypeOf<{ input: string }>()
+        return { mapped: input.input }
       })
 
-    expectTypeOf(i).toEqualTypeOf<
-      DecoratedProcedure<
-        { auth: boolean },
-        { auth: boolean } & { db: string } & { dev: boolean } & Record<never, never>,
-        typeof baseSchema,
-        typeof baseSchema,
-        { val: string },
-        typeof baseErrors,
-        typeof route
+      expectTypeOf(applied).toEqualTypeOf<
+        DecoratedProcedure<
+          InitialContext,
+          CurrentContext & { extra: boolean },
+          typeof inputSchema,
+          typeof outputSchema,
+          { output: number },
+          typeof baseErrorMap,
+          BaseMetaDef
+        >
+      >()
+
+      // @ts-expect-error --- conflict context
+      builder.use(({ next }) => ({ context: { db: 123 } }), () => {})
+      // @ts-expect-error --- input is not match
+      builder.use(({ next }, input: 'invalid') => next({}), () => {})
+      // @ts-expect-error --- output is not match
+      builder.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}), () => {})
+      // conflict context but not detected
+      expectTypeOf(builder.use(({ next }) => next({ context: { db: undefined } }), () => {})).toEqualTypeOf<never>()
+    })
+  })
+
+  it('.callable', () => {
+    const applied = builder.callable({
+      context: async (clientContext: 'client-context') => ({ db: 'postgres' }),
+    })
+
+    expectTypeOf(applied).toEqualTypeOf<
+      Procedure<
+        InitialContext,
+        CurrentContext,
+        typeof inputSchema,
+        typeof outputSchema,
+        { output: number },
+        typeof baseErrorMap,
+        Route,
+        BaseMetaDef,
+        BaseMetaDef
       >
+      & Client<'client-context', { input: number }, { output: string }, ErrorFromErrorMap<typeof baseErrorMap>>
     >()
   })
 
-  it('use middleware with map input', () => {
-    const mid = {} as Middleware<Context, { extra: boolean }, number, any, Record<never, never>>
-
-    const i = decorated.use(mid, (input) => {
-      expectTypeOf(input).toEqualTypeOf<{ val: number }>()
-      return input.val
+  it('.actionable', () => {
+    const applied = builder.actionable({
+      context: async (clientContext: 'client-context') => ({ db: 'postgres' }),
     })
 
-    expectTypeOf(i).toEqualTypeOf<
-      DecoratedProcedure<
-        { auth: boolean },
-        { auth: boolean } & { db: string } & { extra: boolean },
-        typeof baseSchema,
-        typeof baseSchema,
-        { val: string },
-        typeof baseErrors,
-        typeof route
+    expectTypeOf(applied).toEqualTypeOf<
+      Procedure<
+        InitialContext,
+        CurrentContext,
+        typeof inputSchema,
+        typeof outputSchema,
+        { output: number },
+        typeof baseErrorMap,
+        Route,
+        BaseMetaDef,
+        BaseMetaDef
       >
-    >()
-
-    // @ts-expect-error - invalid input
-    decorated.use(mid)
-
-    // @ts-expect-error - invalid mapped input
-    decorated.use(mid, input => input)
-  })
-
-  it('prevent conflict on context', () => {
-    decorated.use(({ context, path, next }, input) => next({}))
-    decorated.use(({ context, path, next }, input) => next({ context: { id: '1' } }))
-    decorated.use(({ context, path, next }, input) => next({ context: { id: '1', extra: true } }))
-    decorated.use(({ context, path, next }, input) => next({ context: { auth: true } }))
-
-    decorated.use(({ context, path, next }, input) => next({}), () => 'anything')
-    decorated.use(({ context, path, next }, input) => next({ context: { id: '1' } }), () => 'anything')
-    decorated.use(({ context, path, next }, input) => next({ context: { id: '1', extra: true } }), () => 'anything')
-    decorated.use(({ context, path, next }, input) => next({ context: { auth: true } }), () => 'anything')
-
-    // @ts-expect-error - conflict with context
-    decorated.use(({ context, path, next }, input) => next({ context: { auth: 1 } }))
-
-    // @ts-expect-error - conflict with context
-    decorated.use(({ context, path, next }, input) => next({ context: { auth: 1, extra: true } }))
-
-    // @ts-expect-error - conflict with context
-    decorated.use(({ context, path, next }, input) => next({ context: { auth: 1 } }), () => 'anything')
-
-    // @ts-expect-error - conflict with context
-    decorated.use(({ context, path, next }, input) => next({ context: { auth: 1, extra: true } }), () => 'anything')
-  })
-
-  it('handle middleware with output is typed', () => {
-    const mid1 = {} as Middleware<Context, Record<never, never>, unknown, any, Record<never, never>>
-    const mid2 = {} as Middleware<Context, Record<never, never>, unknown, { val: string }, Record<never, never>>
-    const mid3 = {} as Middleware<Context, Record<never, never>, unknown, unknown, Record<never, never>>
-    const mid4 = {} as Middleware<Context, Record<never, never>, unknown, { val: number }, Record<never, never>>
-
-    decorated.use(mid1)
-    decorated.use(mid2)
-
-    // @ts-expect-error - required used any for output
-    decorated.use(mid3)
-    // @ts-expect-error - output is not match
-    decorated.use(mid4)
-  })
-
-  it('unshiftTag', () => {
-    expectTypeOf(decorated.unshiftTag('test')).toEqualTypeOf<
-      DecoratedProcedure<{ auth: boolean }, { auth: boolean } & { db: string }, typeof baseSchema, typeof baseSchema, { val: string }, typeof baseErrors, Route>
-    >()
-    expectTypeOf(decorated.unshiftTag('test', 'test2', 'test3')).toEqualTypeOf<
-      DecoratedProcedure<{ auth: boolean }, { auth: boolean } & { db: string }, typeof baseSchema, typeof baseSchema, { val: string }, typeof baseErrors, Route>
-    >()
-
-    // @ts-expect-error - invalid tag
-    decorated.unshiftTag(1)
-    // @ts-expect-error - invalid tag
-    decorated.unshiftTag('123', 2)
-  })
-
-  it('unshiftMiddleware', () => {
-    const mid1 = {} as Middleware<Context, Record<never, never>, unknown, any, Record<never, never>>
-    const mid2 = {} as Middleware<{ auth: boolean }, Record<never, never>, unknown, any, Record<never, never>>
-    const mid3 = {} as Middleware<{ auth: boolean }, { dev: boolean }, unknown, { val: number }, Record<never, never>>
-
-    expectTypeOf(decorated.unshiftMiddleware(mid1)).toEqualTypeOf<typeof decorated>()
-    expectTypeOf(decorated.unshiftMiddleware(mid1, mid2)).toEqualTypeOf<typeof decorated>()
-    expectTypeOf(decorated.unshiftMiddleware(mid1, mid2, mid3)).toEqualTypeOf<typeof decorated>()
-
-    const mid4 = {} as Middleware<{ auth: 'invalid' }, Record<never, never>, unknown, any, Record<never, never>>
-    const mid5 = {} as Middleware<{ auth: boolean }, Record<never, never>, { val: number }, any, Record<never, never>>
-    const mid7 = {} as Middleware<{ db: string }, Record<never, never>, unknown, { val: number }, Record<never, never>>
-    const mid8 = {} as Middleware<Context, { auth: string }, unknown, { val: number }, Record<never, never>>
-
-    // @ts-expect-error - context is not match
-    decorated.unshiftMiddleware(mid4)
-    // @ts-expect-error - input is not match
-    decorated.unshiftMiddleware(mid5)
-    // @ts-expect-error - context is not match
-    decorated.unshiftMiddleware(mid7)
-    // extra context is conflict with context
-    expectTypeOf(decorated.unshiftMiddleware(mid8)).toEqualTypeOf<never>()
-    // @ts-expect-error - invalid middleware
-    decorated.unshiftMiddleware(mid4, mid5, mid7, mid8)
-
-    const mid9 = {} as Middleware<Context, { something_does_not_exists_yet: boolean }, unknown, any, Record<never, never>>
-    const mid10 = {} as Middleware<Context, { something_does_not_exists_yet: string }, { val: number }, any, Record<never, never>>
-
-    decorated.unshiftMiddleware(mid9)
-    // @ts-expect-error - extra context of mid10 is conflict with extra context of mid9
-    decorated.unshiftMiddleware(mid9, mid10)
-
-    // @ts-expect-error - invalid middleware
-    decorated.unshiftMiddleware(1)
-    // @ts-expect-error - invalid middleware
-    decorated.unshiftMiddleware(() => { }, 1)
-  })
-
-  it('callable', () => {
-    const callable = decorated.callable({
-      context: async (clientContext: 'something') => ({ auth: true }),
-    })
-
-    expectTypeOf(callable).toEqualTypeOf<
-      & Procedure<{ auth: boolean }, { auth: boolean } & { db: string }, typeof baseSchema, typeof baseSchema, { val: string }, typeof baseErrors, typeof route>
-      & Client<'something', { val: string }, { val: number }, Error | ORPCError<'CODE', { why: string }>>
-    >()
-  })
-
-  it('actionable', () => {
-    const actionable = decorated.actionable({
-      context: async (clientContext: 'something') => ({ auth: true }),
-    })
-
-    expectTypeOf(actionable).toEqualTypeOf<
-      & Procedure<{ auth: boolean }, { auth: boolean } & { db: string }, typeof baseSchema, typeof baseSchema, { val: string }, typeof baseErrors, typeof route>
-      & ((...rest: ClientRest<'something', { val: string }>) => Promise<{ val: number }>)
+      & ((...rest: ClientRest<'client-context', { input: number }>) => Promise<{ output: string }>)
     >()
   })
 })

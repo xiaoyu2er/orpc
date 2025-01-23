@@ -1,94 +1,18 @@
-import type { Route, StrictErrorMap } from '@orpc/contract'
+import type { ErrorMap, Route, Schema } from '@orpc/contract'
+import type { baseErrorMap, BaseMetaDef } from '../../contract/tests/shared'
 import type { Context } from './context'
+import type { ORPCErrorConstructorMap } from './error'
 import type { Lazy } from './lazy'
-import type { Middleware, MiddlewareOutputFn } from './middleware'
-import type { ANY_PROCEDURE, Procedure } from './procedure'
-import type { DecoratedProcedure } from './procedure-decorated'
-import type { AccessibleLazyRouter } from './router-accessible-lazy'
-import type { AdaptedRouter, RouterBuilder } from './router-builder'
-import { z } from 'zod'
-import { lazy } from './lazy'
+import type { MiddlewareOutputFn } from './middleware'
+import type { Procedure } from './procedure'
+import type { RouterBuilder } from './router-builder'
+import type { AdaptedRouter } from './router-utils'
+import { type CurrentContext, type InitialContext, router } from '../tests/shared'
 
-const baseErrors = {
-  BASE: {
-    data: z.object({ why: z.string() }),
-  },
-}
+const builder = {} as RouterBuilder<InitialContext, CurrentContext, typeof baseErrorMap, BaseMetaDef>
 
-const builder = {} as RouterBuilder<{ auth: boolean }, { auth: boolean } & { db: string }, typeof baseErrors>
-
-const route = { method: 'GET', path: '/ping' } as const
-
-describe('AdaptedRouter', () => {
-  const ping = {} as Procedure<{ auth: boolean }, { auth: boolean } & { db: string }, undefined, undefined, unknown, typeof baseErrors, typeof route>
-  const pong = {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>, Record<never, never>>
-
-  it('without lazy', () => {
-    const router = {
-      ping,
-      pong,
-      nested: {
-        ping,
-        pong,
-      },
-    }
-    const adapted = {} as AdaptedRouter<{ log: true, auth: boolean }, typeof router, typeof baseErrors>
-
-    expectTypeOf(adapted.ping).toEqualTypeOf<
-      DecoratedProcedure<{ log: true, auth: boolean }, { auth: boolean } & { db: string }, undefined, undefined, unknown, typeof baseErrors, Route>
-    >()
-    expectTypeOf(adapted.pong).toEqualTypeOf<
-      DecoratedProcedure<{ log: true, auth: boolean }, Context, undefined, undefined, unknown, Record<never, never> & typeof baseErrors, Route>
-    >()
-    expectTypeOf(adapted.nested.ping).toEqualTypeOf<
-      DecoratedProcedure<{ log: true, auth: boolean }, { auth: boolean } & { db: string }, undefined, undefined, unknown, typeof baseErrors, Route>
-    >()
-    expectTypeOf(adapted.nested.pong).toEqualTypeOf<
-      DecoratedProcedure<{ log: true, auth: boolean }, Context, undefined, undefined, unknown, Record<never, never> & typeof baseErrors, Route>
-    >()
-  })
-
-  it('with lazy', () => {
-    const router = {
-      ping: lazy(() => Promise.resolve({ default: ping })),
-      pong,
-      nested: lazy(() => Promise.resolve({
-        default: {
-          ping,
-          pong: lazy(() => Promise.resolve({ default: pong })),
-        },
-      })),
-    }
-
-    const adapted = {} as AdaptedRouter<{ log: true }, typeof router, typeof baseErrors>
-
-    expectTypeOf(adapted.ping).toEqualTypeOf<AccessibleLazyRouter<
-      DecoratedProcedure<{ log: true }, { auth: boolean } & { db: string }, undefined, undefined, unknown, typeof baseErrors, Route>
-    >>()
-    expectTypeOf(adapted.pong).toEqualTypeOf<
-      DecoratedProcedure<{ log: true }, Context, undefined, undefined, unknown, Record<never, never> & typeof baseErrors, Route>
-    >()
-    expectTypeOf(adapted.nested.ping).toEqualTypeOf<AccessibleLazyRouter<
-      DecoratedProcedure<{ log: true }, { auth: boolean } & { db: string }, undefined, undefined, unknown, typeof baseErrors, Route>
-    >>()
-    expectTypeOf(adapted.nested.pong).toEqualTypeOf<AccessibleLazyRouter<
-      DecoratedProcedure<{ log: true }, Context, undefined, undefined, unknown, Record<never, never> & typeof baseErrors, Route>
-    >>()
-  })
-
-  it('with procedure', () => {
-    expectTypeOf<AdaptedRouter<{ log: boolean }, typeof ping, typeof baseErrors>>().toEqualTypeOf<
-      DecoratedProcedure<{ log: boolean }, { auth: boolean } & { db: string }, undefined, undefined, unknown, typeof baseErrors, Route>
-    >()
-
-    expectTypeOf<AdaptedRouter<{ log: boolean }, Lazy<typeof ping>, typeof baseErrors>>().toEqualTypeOf<
-      AccessibleLazyRouter<DecoratedProcedure<{ log: boolean }, { auth: boolean } & { db: string }, undefined, undefined, unknown, typeof baseErrors, Route>>
-    >()
-  })
-})
-
-describe('self chainable', () => {
-  it('prefix', () => {
+describe('RouterBuilder', () => {
+  it('.prefix', () => {
     expectTypeOf(builder.prefix('/test')).toEqualTypeOf<typeof builder>()
 
     // @ts-expect-error - invalid prefix
@@ -97,7 +21,7 @@ describe('self chainable', () => {
     builder.prefix(1)
   })
 
-  it('tag', () => {
+  it('.tag', () => {
     expectTypeOf(builder.tag('test')).toEqualTypeOf<typeof builder>()
     expectTypeOf(builder.tag('test', 'test2', 'test3')).toEqualTypeOf<typeof builder>()
 
@@ -107,172 +31,95 @@ describe('self chainable', () => {
     builder.tag('123', 2)
   })
 
-  it('use middleware', () => {
-    builder.use(({ next, context, path, procedure, signal, errors }, input, output) => {
+  it('.use', () => {
+    const applied = builder.use(({ next, context, path, procedure, signal, errors }, input, output) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()
-      expectTypeOf(context).toEqualTypeOf<{ auth: boolean } & { db: string }>()
+      expectTypeOf(context).toEqualTypeOf<CurrentContext>()
       expectTypeOf(path).toEqualTypeOf<string[]>()
-      expectTypeOf(procedure).toEqualTypeOf<ANY_PROCEDURE>()
+      expectTypeOf(procedure).toEqualTypeOf<
+        Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, Route, BaseMetaDef, BaseMetaDef>
+      >()
       expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<unknown>>()
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
-      expectTypeOf(errors).toEqualTypeOf<Record<never, never>>()
+      expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
 
-      return next({})
+      return next({
+        context: {
+          extra: true,
+        },
+      })
     })
 
-    const mid1 = {} as Middleware<{ auth: boolean }, Record<never, never>, unknown, unknown, Record<never, never>>
-    const mid2 = {} as Middleware<{ auth: boolean }, { dev: string }, unknown, unknown, Record<never, never>>
-    const mid3 = {} as Middleware<{ auth: boolean, db: string }, { dev: string }, unknown, unknown, Record<never, never>>
-
-    expectTypeOf(builder.use(mid1)).toEqualTypeOf<
-      RouterBuilder<{ auth: boolean }, { auth: boolean } & { db: string } & Record<never, never>, typeof baseErrors>
-    >()
-    expectTypeOf(builder.use(mid2)).toEqualTypeOf<
-      RouterBuilder<{ auth: boolean }, { auth: boolean } & { db: string } & { dev: string }, typeof baseErrors>
-    >()
-    expectTypeOf(builder.use(mid3)).toEqualTypeOf<
-      RouterBuilder < { auth: boolean }, { auth: boolean } & { db: string } & { dev: string }, typeof baseErrors>
-    >()
-
-    const mid4 = {} as Middleware<{ auth: boolean }, { dev: string }, unknown, { val: string }, Record<never, never>>
-    const mid5 = {} as Middleware<{ auth: boolean }, { dev: string }, unknown, { val: number }, Record<never, never>>
-    const mid6 = {} as Middleware<{ auth: 'invalid' }, Context, any, unknown, Record<never, never>>
-
-    // @ts-expect-error - invalid middleware
-    builder.use(mid4)
-    // @ts-expect-error - invalid middleware
-    builder.use(mid5)
-    // @ts-expect-error - invalid middleware
-    builder.use(mid6)
-    // @ts-expect-error - invalid middleware
-    builder.use(true)
-    // @ts-expect-error - invalid middleware
-    builder.use(() => {})
-
-    // conflict context but not detected
-    expectTypeOf(builder.use(({ next }) => next({ context: { auth: undefined } }))).toEqualTypeOf<never>()
-  })
-
-  it('errors', () => {
-    const errors = {
-      WRONG: {
-        data: z.object({ why: z.string() }),
-      },
-    }
-
-    const applied = builder.errors(errors)
-
     expectTypeOf(applied).toEqualTypeOf<
-      RouterBuilder<{ auth: boolean }, { auth: boolean } & { db: string }, StrictErrorMap<typeof errors> & typeof baseErrors>
+      RouterBuilder<
+        InitialContext,
+        CurrentContext & { extra: boolean },
+        typeof baseErrorMap,
+        BaseMetaDef
+      >
     >()
 
-    // @ts-expect-error - not allow redefine errors
-    builder.errors({ BASE: baseErrors.BASE })
-    // @ts-expect-error - not allow redefine errors --- even with undefined
-    builder.errors({ BASE: undefined })
-  })
-})
-
-describe('to AdaptedRouter', () => {
-  const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
-  const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, typeof schema, { val: string }, typeof baseErrors, typeof route>
-  const pong = {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>, Route>
-
-  const wrongPing = {} as Procedure<{ auth: 'invalid' }, Context, undefined, undefined, unknown, Record<never, never>, typeof route>
-
-  it('router without lazy', () => {
-    const router = { ping, pong, nested: { ping, pong } }
-    expectTypeOf(builder.router(router)).toEqualTypeOf <AdaptedRouter<{ auth: boolean }, typeof router, typeof baseErrors>>()
+    // @ts-expect-error --- conflict context
+    builder.use(({ next }) => next({ context: { db: 123 } }))
+    // @ts-expect-error --- input is not match
+    builder.use(({ next }, input: 'invalid') => next({}))
+    // @ts-expect-error --- output is not match
+    builder.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}))
+    // conflict context but not detected
+    expectTypeOf(builder.use(({ next }) => next({ context: { db: undefined } }))).toEqualTypeOf<never>()
   })
 
-  it('router with lazy', () => {
-    const router = {
-      ping: lazy(() => Promise.resolve({ default: ping })),
-      pong,
-      nested: lazy(() => Promise.resolve({
-        default: {
-          ping,
-          pong: lazy(() => Promise.resolve({ default: pong })),
-        },
-      })),
-    }
-
+  it('.router', () => {
     expectTypeOf(builder.router(router)).toEqualTypeOf<
       AdaptedRouter<
-        { auth: boolean },
         typeof router,
-        typeof baseErrors
+        InitialContext,
+        typeof baseErrorMap
       >
     >()
 
-    builder.router({ ping: lazy(() => Promise.resolve({ default: ping })) })
-    // @ts-expect-error - context is not match
-    builder.router({ wrongPing: lazy(() => Promise.resolve({ default: wrongPing })) })
+    builder.router({
+      // @ts-expect-error - initial context is not match
+      ping: {} as Procedure<{ invalid: true }, Context, undefined, undefined, unknown, Record<never, never>, Route, BaseMetaDef, BaseMetaDef>,
+    })
+
+    builder.router({
+      // @ts-expect-error - meta def is not match
+      ping: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>, Route, { invalid?: true }, { invalid: true }>,
+    })
+
+    builder.router({
+      // @ts-expect-error - error map is conflict
+      ping: {} as Procedure<Context, Context, undefined, undefined, unknown, { BASE: { message: 'invalid' } }, Route, BaseMetaDef, BaseMetaDef>,
+    })
   })
 
-  it('procedure as a router', () => {
-    expectTypeOf(builder.router(ping)).toEqualTypeOf<
+  it('.lazy', () => {
+    expectTypeOf(builder.lazy(() => Promise.resolve({ default: router }))).toEqualTypeOf<
       AdaptedRouter<
-        { auth: boolean },
-        typeof ping,
-        typeof baseErrors
+        Lazy<typeof router>,
+        InitialContext,
+        typeof baseErrorMap
       >
     >()
 
-    expectTypeOf(builder.router(lazy(() => Promise.resolve({ default: ping })))).toEqualTypeOf<
-      AdaptedRouter<
-        { auth: boolean },
-        Lazy<typeof ping>,
-        typeof baseErrors
-      >
-    >()
-  })
-})
-
-describe('to Decorated Adapted Lazy', () => {
-  const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
-  const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, typeof schema, { val: string }, typeof baseErrors, typeof route>
-  const pong = {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>, Route>
-
-  const wrongPing = {} as Procedure<{ auth: 'invalid' }, Context, undefined, undefined, unknown, Record<never, never>, typeof route>
-
-  it('router without lazy', () => {
-    const router = {
-      ping,
-      pong,
-      nested: {
-        ping,
-        pong,
+    // @ts-expect-error - initial context is not match
+    builder.lazy(() => Promise.resolve({
+      default: {
+        ping: {} as Procedure<{ invalid: true }, Context, undefined, undefined, unknown, Record<never, never>, Route, BaseMetaDef, BaseMetaDef>,
       },
-    }
+    }))
 
-    expectTypeOf(builder.lazy(() => Promise.resolve({ default: router }))).toEqualTypeOf<
-      AccessibleLazyRouter<AdaptedRouter<{ auth: boolean }, typeof router, typeof baseErrors>>
-    >()
+    // @ts-expect-error - meta def is not match
+    builder.lazy(() => Promise.resolve({
+      ping: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>, Route, { invalid?: true }, { invalid: true }>,
+    }))
 
-    builder.lazy(() => Promise.resolve({ default: { ping } }))
-    // @ts-expect-error - context is not match
-    builder.lazy(() => Promise.resolve({ default: { wrongPing } }))
-  })
-
-  it('router with lazy', () => {
-    const router = {
-      ping: lazy(() => Promise.resolve({ default: ping })),
-      pong,
-      nested: lazy(() => Promise.resolve({
-        default: {
-          ping,
-          pong: lazy(() => Promise.resolve({ default: pong })),
-        },
-      })),
-    }
-
-    expectTypeOf(builder.lazy(() => Promise.resolve({ default: router }))).toEqualTypeOf<
-      AccessibleLazyRouter<AdaptedRouter<{ auth: boolean }, typeof router, typeof baseErrors>>
-    >()
-
-    builder.lazy(() => Promise.resolve({ default: { ping: lazy(() => Promise.resolve({ default: ping })) } }))
-    // @ts-expect-error - context is not match
-    builder.lazy(() => Promise.resolve({ default: { wrongPing: lazy(() => Promise.resolve({ default: wrongPing })) } }))
+    // @ts-expect-error - error map is conflict
+    builder.lazy(() => Promise.resolve({
+      default: {
+        ping: {} as Procedure<Context, Context, undefined, undefined, unknown, { BASE: { message: 'invalid' } }, Route, BaseMetaDef, BaseMetaDef>,
+      },
+    }))
   })
 })

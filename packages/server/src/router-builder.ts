@@ -1,6 +1,7 @@
 import type { ContractRouter, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, HTTPPath, Meta, StrictErrorMap, TypeMeta } from '@orpc/contract'
 import type { Context, TypeCurrentContext, TypeInitialContext } from './context'
 import type { ConflictContextGuard, MergedContext } from './context-utils'
+import type { ORPCErrorConstructorMap } from './error'
 import type { FlattenLazy } from './lazy-utils'
 import type { AnyMiddleware, Middleware } from './middleware'
 import type { Router } from './router'
@@ -73,7 +74,14 @@ export class RouterBuilder<
   }
 
   use<U extends Context>(
-    middleware: Middleware<TCurrentContext, U, unknown, unknown, Record<never, never>, TMetaDef>,
+    middleware: Middleware<
+      TCurrentContext,
+      U,
+      unknown,
+      unknown,
+      ORPCErrorConstructorMap<TErrorMap>,
+      TMetaDef
+    >,
   ): ConflictContextGuard<MergedContext<TCurrentContext, U>>
     & RouterBuilder<TInitialContext, MergedContext<TCurrentContext, U>, TErrorMap, TMetaDef> {
     const builder = new RouterBuilder({

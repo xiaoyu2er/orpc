@@ -1,9 +1,10 @@
+import type { ErrorMap, HTTPPath, MergedErrorMap, Route, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Context, TypeInitialContext } from './context'
 import type { Lazy } from './lazy'
 import type { AnyMiddleware } from './middleware'
 import type { AnyProcedure } from './procedure'
 import type { AnyRouter } from './router'
-import { adaptRoute, type ErrorMap, type HTTPPath, mergeErrorMap, type Route, type SchemaInput, type SchemaOutput } from '@orpc/contract'
+import { adaptRoute, mergeErrorMap } from '@orpc/contract'
 import { getLazyMeta, isLazy, lazy, unlazy } from './lazy'
 import { flatLazy, prefixLazyMeta } from './lazy-utils'
 import { mergeMiddlewares } from './middleware-utils'
@@ -26,62 +27,34 @@ export type InferRouterOutputs<T extends AnyRouter> =
           [K in keyof T]: T[K] extends AnyRouter ? InferRouterOutputs<T[K]> : never
         }
 
-export type UnshiftedMiddlewaresRouter<TRouter extends AnyRouter, TInitialContext extends Context> =
-  TRouter extends Lazy<infer U extends AnyRouter>
-    ? AccessibleLazyRouter<UnshiftedMiddlewaresRouter<U, TInitialContext>>
-    : TRouter extends Procedure<any, infer UCurrentContext, infer UInputSchema, infer UOutputSchema, infer UFuncOutput, infer UErrorMap, infer URoute, infer UMetaDef, infer UMeta>
-      ? Procedure<TInitialContext, UCurrentContext, UInputSchema, UOutputSchema, UFuncOutput, UErrorMap, URoute, UMetaDef, UMeta>
-      : {
-          [K in keyof TRouter]: TRouter[K] extends AnyRouter ? UnshiftedMiddlewaresRouter<TRouter[K], TInitialContext> : never
-        }
-
-export function unshiftMiddlewaresRouter<TRouter extends AnyRouter, TInitialContext extends Context>(
-  router: TRouter,
-  options: {
-    __initialContext?: TypeInitialContext<TInitialContext>
-    middlewares: AnyMiddleware[]
-  },
-): UnshiftedMiddlewaresRouter<TRouter, TInitialContext> {
-  if (isLazy(router)) {
-    const lazyMeta = getLazyMeta(router)
-
-    const applied = lazy(async () => {
-      const unlaziedRouter = (await unlazy(router)).default
-      const applied = unshiftMiddlewaresRouter(unlaziedRouter, options)
-      return { default: applied }
-    }, lazyMeta)
-
-    const accessible = createAccessibleLazyRouter(applied)
-
-    return accessible as any
-  }
-
-  if (isProcedure(router)) {
-    const applied = new Procedure({
-      ...router['~orpc'],
-      middlewares: mergeMiddlewares(options.middlewares, router['~orpc'].middlewares),
-    })
-
-    return applied as any
-  }
-
-  const applied = {} as Record<string, any>
-
-  for (const key in router) {
-    applied[key] = unshiftMiddlewaresRouter(router[key]!, options)
-  }
-
-  return applied as any
-}
-
 export type AdaptedRouter<
   TRouter extends AnyRouter,
   TInitialContext extends Context,
   TErrorMapExtra extends ErrorMap,
 > = TRouter extends Lazy<infer U extends AnyRouter>
-  ? AccessibleLazyRouter<AdaptedRouter<TInitialContext, U, TErrorMapExtra>>
-  : TRouter extends Procedure<any, infer UCurrentContext, infer UInputSchema, infer UOutputSchema, infer UFuncOutput, infer UErrorMap, any, infer UMetaDef, infer UMeta>
-    ? Procedure<TInitialContext, UCurrentContext, UInputSchema, UOutputSchema, UFuncOutput, UErrorMap & TErrorMapExtra, Route, UMetaDef, UMeta>
+  ? AccessibleLazyRouter<AdaptedRouter<U, TInitialContext, TErrorMapExtra>>
+  : TRouter extends Procedure<
+    any,
+    infer UCurrentContext,
+    infer UInputSchema,
+    infer UOutputSchema,
+    infer UFuncOutput,
+    infer UErrorMap,
+    any,
+    infer UMetaDef,
+    infer UMeta
+  >
+    ? Procedure<
+      TInitialContext,
+      UCurrentContext,
+      UInputSchema,
+      UOutputSchema,
+      UFuncOutput,
+      MergedErrorMap<TErrorMapExtra, UErrorMap>,
+      Route,
+      UMetaDef,
+      UMeta
+    >
     : {
         [K in keyof TRouter]: TRouter[K] extends AnyRouter ? AdaptedRouter<TRouter[K], TInitialContext, TErrorMapExtra> : never
       }

@@ -1,6 +1,6 @@
 import type { ContractProcedureDef, ContractRouter, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, HTTPPath, MergedErrorMap, Meta, Route, Schema, StrictErrorMap } from '@orpc/contract'
 import type { Context, TypeInitialContext } from './context'
-import type { MergedContext } from './context-utils'
+import type { ConflictContextGuard, MergedContext } from './context-utils'
 import type { ORPCErrorConstructorMap } from './error'
 import type { FlattenLazy } from './lazy-utils'
 import type { Middleware } from './middleware'
@@ -48,6 +48,12 @@ export class BuilderWithErrors<
     this['~orpc'] = def
   }
 
+  middleware<UOutContext extends Context, TInput, TOutput = any>( // = any here is important to make middleware can be used in any output by default
+    middleware: Middleware<TInitialContext, UOutContext, TInput, TOutput, ORPCErrorConstructorMap<TErrorMap>, TMetaDef>,
+  ): DecoratedMiddleware<TInitialContext, UOutContext, TInput, TOutput, ORPCErrorConstructorMap<TErrorMap>, TMetaDef> {
+    return decorateMiddleware(middleware)
+  }
+
   errors<const U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(
     errors: U,
   ): BuilderWithErrors<TInitialContext, MergedErrorMap<TErrorMap, StrictErrorMap<U>>, TMetaDef> {
@@ -57,21 +63,18 @@ export class BuilderWithErrors<
     })
   }
 
-  middleware<UOutContext extends Context, TInput, TOutput = any>( // = any here is important to make middleware can be used in any output by default
-    middleware: Middleware<TInitialContext, UOutContext, TInput, TOutput, ORPCErrorConstructorMap<TErrorMap>, TMetaDef>,
-  ): DecoratedMiddleware<TInitialContext, UOutContext, TInput, TOutput, ORPCErrorConstructorMap<TErrorMap>, TMetaDef> {
-    return decorateMiddleware(middleware)
-  }
-
   use<U extends Context>(
     middleware: Middleware<TInitialContext, U, unknown, unknown, ORPCErrorConstructorMap<TErrorMap>, TMetaDef>,
-  ): BuilderWithMiddlewares<TInitialContext, MergedContext< TInitialContext, U>, TErrorMap, TMetaDef> {
-    return new BuilderWithMiddlewares<TInitialContext, MergedContext<TInitialContext, U>, TErrorMap, TMetaDef>({
+  ): ConflictContextGuard<MergedContext<TInitialContext, U>>
+    & BuilderWithMiddlewares<TInitialContext, MergedContext< TInitialContext, U>, TErrorMap, TMetaDef> {
+    const builder = new BuilderWithMiddlewares<TInitialContext, MergedContext<TInitialContext, U>, TErrorMap, TMetaDef>({
       ...this['~orpc'],
       middlewares: [middleware],
       inputValidationIndex: this['~orpc'].inputValidationIndex + 1,
       outputValidationIndex: this['~orpc'].outputValidationIndex + 1,
     })
+
+    return builder as typeof builder & ConflictContextGuard<MergedContext<TInitialContext, U>>
   }
 
   meta(meta: TMetaDef): ProcedureBuilder<TInitialContext, TInitialContext, TErrorMap, TMetaDef> {
@@ -112,7 +115,7 @@ export class BuilderWithErrors<
 
   handler<UFuncOutput>(
     handler: ProcedureHandler<TInitialContext, undefined, undefined, UFuncOutput, TErrorMap, TMetaDef>,
-  ): DecoratedProcedure<TInitialContext, TInitialContext, undefined, undefined, UFuncOutput, TErrorMap, Route, TMetaDef, TMetaDef> {
+  ): DecoratedProcedure<TInitialContext, TInitialContext, undefined, undefined, UFuncOutput, TErrorMap, TMetaDef> {
     return new DecoratedProcedure({
       ...this['~orpc'],
       middlewares: [],

@@ -71,7 +71,7 @@ export function createProcedureClient<
       context,
       errors,
       path,
-      procedure,
+      procedure: procedure as AnyProcedure,
       signal: callerOptions?.signal,
     }
 

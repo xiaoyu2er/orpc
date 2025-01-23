@@ -157,7 +157,7 @@ export class Builder<
 
   handler<UFuncOutput>(
     handler: ProcedureHandler<TInitialContext, undefined, undefined, UFuncOutput, Record<never, never>, TMetaDef>,
-  ): DecoratedProcedure<TInitialContext, TInitialContext, undefined, undefined, UFuncOutput, Record<never, never>, Route, TMetaDef, TMetaDef> {
+  ): DecoratedProcedure<TInitialContext, TInitialContext, undefined, undefined, UFuncOutput, Record<never, never>, TMetaDef> {
     return new DecoratedProcedure({
       ...this['~orpc'],
       middlewares: [],

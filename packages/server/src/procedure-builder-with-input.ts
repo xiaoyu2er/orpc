@@ -1,6 +1,5 @@
-import type { ContractProcedureDef, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, MergedErrorMap, Meta, Route, Schema, SchemaOutput, StrictErrorMap } from '@orpc/contract'
-import type { Context, TypeCurrentContext, TypeInitialContext } from './context'
-import type { ConflictContextGuard, MergedContext } from './context-utils'
+import type { ContractProcedureDef, ErrorMap, MergedErrorMap, Meta, Route, Schema, SchemaOutput } from '@orpc/contract'
+import type { ConflictContextGuard, Context, MergedContext, TypeCurrentContext, TypeInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { AnyMiddleware, MapInputMiddleware, Middleware } from './middleware'
 import type { ProcedureHandler } from './procedure'
@@ -15,8 +14,8 @@ export interface ProcedureBuilderWithInputDef<
   TCurrentContext extends Context,
   TInputSchema extends Schema,
   TErrorMap extends ErrorMap,
-  TMetaDef extends Meta,
-> extends ContractProcedureDef<TInputSchema, undefined, TErrorMap, Route, TMetaDef, TMetaDef> {
+  TMeta extends Meta,
+> extends ContractProcedureDef<TInputSchema, undefined, TErrorMap, TMeta> {
   __initialContext?: TypeInitialContext<TInitialContext>
   __currentContext?: TypeCurrentContext<TCurrentContext>
   middlewares: AnyMiddleware[]
@@ -37,22 +36,22 @@ export class ProcedureBuilderWithInput<
   TCurrentContext extends Context,
   TInputSchema extends Schema,
   TErrorMap extends ErrorMap,
-  TMetaDef extends Meta,
+  TMeta extends Meta,
 > {
-  '~orpc': ProcedureBuilderWithInputDef<TInitialContext, TCurrentContext, TInputSchema, TErrorMap, TMetaDef>
+  '~orpc': ProcedureBuilderWithInputDef<TInitialContext, TCurrentContext, TInputSchema, TErrorMap, TMeta>
 
-  constructor(def: ProcedureBuilderWithInputDef<TInitialContext, TCurrentContext, TInputSchema, TErrorMap, TMetaDef>) {
+  constructor(def: ProcedureBuilderWithInputDef<TInitialContext, TCurrentContext, TInputSchema, TErrorMap, TMeta>) {
     this['~orpc'] = def
   }
 
-  errors<const U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(
+  errors<const U extends ErrorMap>(
     errors: U,
   ): ProcedureBuilderWithInput<
       TInitialContext,
       TCurrentContext,
       TInputSchema,
-      MergedErrorMap<TErrorMap, StrictErrorMap<U>>,
-      TMetaDef
+      MergedErrorMap<TErrorMap, U>,
+      TMeta
     > {
     return new ProcedureBuilderWithInput({
       ...this['~orpc'],
@@ -61,13 +60,13 @@ export class ProcedureBuilderWithInput<
   }
 
   meta(
-    meta: TMetaDef,
+    meta: TMeta,
   ): ProcedureBuilderWithInput<
       TInitialContext,
       TCurrentContext,
       TInputSchema,
       TErrorMap,
-      TMetaDef
+      TMeta
     > {
     return new ProcedureBuilderWithInput({
       ...this['~orpc'],
@@ -77,7 +76,7 @@ export class ProcedureBuilderWithInput<
 
   route(
     route: Route,
-  ): ProcedureBuilderWithInput<TInitialContext, TCurrentContext, TInputSchema, TErrorMap, TMetaDef> {
+  ): ProcedureBuilderWithInput<TInitialContext, TCurrentContext, TInputSchema, TErrorMap, TMeta> {
     return new ProcedureBuilderWithInput({
       ...this['~orpc'],
       route: mergeRoute(this['~orpc'].route, route),
@@ -85,15 +84,15 @@ export class ProcedureBuilderWithInput<
   }
 
   use<U extends Context>(
-    middleware: Middleware<TCurrentContext, U, SchemaOutput<TInputSchema>, unknown, ORPCErrorConstructorMap<TErrorMap>, TMetaDef>,
+    middleware: Middleware<TCurrentContext, U, SchemaOutput<TInputSchema>, unknown, ORPCErrorConstructorMap<TErrorMap>, TMeta>,
   ): ConflictContextGuard<MergedContext<TCurrentContext, U>>
-    & ProcedureBuilderWithInput<TInitialContext, MergedContext<TCurrentContext, U>, TInputSchema, TErrorMap, TMetaDef>
+    & ProcedureBuilderWithInput<TInitialContext, MergedContext<TCurrentContext, U>, TInputSchema, TErrorMap, TMeta>
 
   use<UOutContext extends Context, UInput>(
-    middleware: Middleware<TCurrentContext, UOutContext, UInput, unknown, ORPCErrorConstructorMap<TErrorMap>, TMetaDef>,
+    middleware: Middleware<TCurrentContext, UOutContext, UInput, unknown, ORPCErrorConstructorMap<TErrorMap>, TMeta>,
     mapInput: MapInputMiddleware<SchemaOutput<TInputSchema>, UInput>,
   ): ConflictContextGuard<MergedContext<TCurrentContext, UOutContext>> &
-    ProcedureBuilderWithInput<TInitialContext, MergedContext<TCurrentContext, UOutContext>, TInputSchema, TErrorMap, TMetaDef>
+    ProcedureBuilderWithInput<TInitialContext, MergedContext<TCurrentContext, UOutContext>, TInputSchema, TErrorMap, TMeta>
 
   use(
     middleware: AnyMiddleware,
@@ -112,7 +111,7 @@ export class ProcedureBuilderWithInput<
 
   output<U extends Schema>(
     schema: U,
-  ): ProcedureBuilderWithoutHandler<TInitialContext, TCurrentContext, TInputSchema, U, TErrorMap, TMetaDef> {
+  ): ProcedureBuilderWithoutHandler<TInitialContext, TCurrentContext, TInputSchema, U, TErrorMap, TMeta> {
     return new ProcedureBuilderWithoutHandler({
       ...this['~orpc'],
       outputSchema: schema,
@@ -120,8 +119,8 @@ export class ProcedureBuilderWithInput<
   }
 
   handler<UFuncOutput>(
-    handler: ProcedureHandler<TCurrentContext, TInputSchema, undefined, UFuncOutput, TErrorMap, TMetaDef>,
-  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, undefined, UFuncOutput, TErrorMap, TMetaDef> {
+    handler: ProcedureHandler<TCurrentContext, TInputSchema, undefined, UFuncOutput, TErrorMap, TMeta>,
+  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, undefined, UFuncOutput, TErrorMap, TMeta> {
     return new DecoratedProcedure({
       ...this['~orpc'],
       handler,

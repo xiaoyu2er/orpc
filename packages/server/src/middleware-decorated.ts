@@ -9,8 +9,8 @@ export interface DecoratedMiddleware<
   TInput,
   TOutput,
   TErrorConstructorMap extends ORPCErrorConstructorMap<any>,
-  TMetaDef extends Meta,
-> extends Middleware<TInContext, TOutContext, TInput, TOutput, TErrorConstructorMap, TMetaDef> {
+  TMeta extends Meta,
+> extends Middleware<TInContext, TOutContext, TInput, TOutput, TErrorConstructorMap, TMeta> {
   concat: (<UOutContext extends Context, UInput>(
     middleware: Middleware<
       TInContext & TOutContext,
@@ -18,7 +18,7 @@ export interface DecoratedMiddleware<
       UInput & TInput,
       TOutput,
       TErrorConstructorMap,
-      TMetaDef
+      TMeta
     >,
   ) => DecoratedMiddleware<
     TInContext,
@@ -26,7 +26,7 @@ export interface DecoratedMiddleware<
     UInput & TInput,
     TOutput,
     TErrorConstructorMap,
-    TMetaDef
+    TMeta
   >) & (<
     UOutContext extends Context,
     UInput = TInput,
@@ -38,7 +38,7 @@ export interface DecoratedMiddleware<
       UMappedInput,
       TOutput,
       TErrorConstructorMap,
-      TMetaDef
+      TMeta
     >,
     mapInput: MapInputMiddleware<UInput & TInput, UMappedInput>,
   ) => DecoratedMiddleware<
@@ -47,12 +47,12 @@ export interface DecoratedMiddleware<
     UInput & TInput,
     TOutput,
     TErrorConstructorMap,
-    TMetaDef
+    TMeta
   >)
 
   mapInput: <UInput = unknown>(
     map: MapInputMiddleware<UInput, TInput>,
-  ) => DecoratedMiddleware<TInContext, TOutContext, UInput, TOutput, TErrorConstructorMap, TMetaDef>
+  ) => DecoratedMiddleware<TInContext, TOutContext, UInput, TOutput, TErrorConstructorMap, TMeta>
 }
 
 export function decorateMiddleware<
@@ -61,11 +61,11 @@ export function decorateMiddleware<
   TInput,
   TOutput,
   TErrorConstructorMap extends ORPCErrorConstructorMap<any>,
-  TMetaDef extends Meta,
+  TMeta extends Meta,
 >(
-  middleware: Middleware<TInContext, TOutContext, TInput, TOutput, TErrorConstructorMap, TMetaDef>,
-): DecoratedMiddleware<TInContext, TOutContext, TInput, TOutput, TErrorConstructorMap, TMetaDef> {
-  const decorated = middleware as DecoratedMiddleware<TInContext, TOutContext, TInput, TOutput, TErrorConstructorMap, TMetaDef>
+  middleware: Middleware<TInContext, TOutContext, TInput, TOutput, TErrorConstructorMap, TMeta>,
+): DecoratedMiddleware<TInContext, TOutContext, TInput, TOutput, TErrorConstructorMap, TMeta> {
+  const decorated = middleware as DecoratedMiddleware<TInContext, TOutContext, TInput, TOutput, TErrorConstructorMap, TMeta>
 
   decorated.mapInput = (mapInput) => {
     const mapped = decorateMiddleware(

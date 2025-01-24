@@ -1,4 +1,4 @@
-import type { baseErrorMap, BaseMetaDef } from '../../contract/tests/shared'
+import type { baseErrorMap, BaseMeta } from '../../contract/tests/shared'
 import type { CurrentContext } from '../tests/shared'
 import type { ORPCErrorConstructorMap } from './error'
 import type { Middleware } from './middleware'
@@ -10,7 +10,7 @@ const decorated = {} as DecoratedMiddleware<
   unknown,
   unknown,
   ORPCErrorConstructorMap<typeof baseErrorMap>,
-  BaseMetaDef
+  BaseMeta
 >
 
 describe('DecoratedMiddleware', () => {
@@ -22,7 +22,7 @@ describe('DecoratedMiddleware', () => {
         unknown,
         unknown,
         ORPCErrorConstructorMap<typeof baseErrorMap>,
-        BaseMetaDef
+        BaseMeta
       >
     >()
   })
@@ -37,7 +37,7 @@ describe('DecoratedMiddleware', () => {
         'input',
         unknown,
         ORPCErrorConstructorMap<typeof baseErrorMap>,
-        BaseMetaDef
+        BaseMeta
       >
     >()
   })
@@ -55,7 +55,7 @@ describe('DecoratedMiddleware', () => {
           'input',
           unknown,
           ORPCErrorConstructorMap<typeof baseErrorMap>,
-          BaseMetaDef
+          BaseMeta
         >
       >()
 
@@ -81,7 +81,7 @@ describe('DecoratedMiddleware', () => {
           'input',
           unknown,
           ORPCErrorConstructorMap<typeof baseErrorMap>,
-          BaseMetaDef
+          BaseMeta
         >
       >()
 

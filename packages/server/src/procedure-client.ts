@@ -56,7 +56,7 @@ export function createProcedureClient<
   TErrorMap extends ErrorMap,
   TClientContext,
 >(
-  lazyableProcedure: Lazyable<Procedure<TInitialContext, any, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, any, any, any>>,
+  lazyableProcedure: Lazyable<Procedure<TInitialContext, any, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, any>>,
   ...[options]: CreateProcedureClientRest<TInitialContext, TOutputSchema, THandlerOutput, TClientContext>
 ): ProcedureClient<TClientContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap> {
   return async (...[input, callerOptions]) => {
@@ -107,9 +107,8 @@ async function validateInput(procedure: AnyProcedure, input: unknown): Promise<a
 
   const result = await schema['~standard'].validate(input)
   if (result.issues) {
-    throw new ORPCError({
+    throw new ORPCError('BAD_REQUEST', {
       message: 'Input validation failed',
-      code: 'BAD_REQUEST',
       data: {
         issues: result.issues,
       },
@@ -129,9 +128,8 @@ async function validateOutput(procedure: AnyProcedure, output: unknown): Promise
 
   const result = await schema['~standard'].validate(output)
   if (result.issues) {
-    throw new ORPCError({
+    throw new ORPCError('INTERNAL_SERVER_ERROR', {
       message: 'Output validation failed',
-      code: 'INTERNAL_SERVER_ERROR',
       cause: new ValidationError({ message: 'Output validation failed', issues: result.issues }),
     })
   }

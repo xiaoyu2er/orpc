@@ -1,6 +1,5 @@
-import type { ContractProcedureDef, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, MergedErrorMap, Meta, Route, Schema, SchemaInput, SchemaOutput, StrictErrorMap } from '@orpc/contract'
-import type { Context, TypeCurrentContext, TypeInitialContext } from './context'
-import type { ConflictContextGuard, MergedContext } from './context-utils'
+import type { ContractProcedureDef, ErrorMap, MergedErrorMap, Meta, Route, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ConflictContextGuard, Context, MergedContext, TypeCurrentContext, TypeInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { AnyMiddleware, MapInputMiddleware, Middleware } from './middleware'
 import type { ProcedureHandler } from './procedure'
@@ -15,8 +14,8 @@ export interface ProcedureBuilderWithoutHandlerDef<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   TErrorMap extends ErrorMap,
-  TMetaDef extends Meta,
-> extends ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, Route, TMetaDef, TMetaDef> {
+  TMeta extends Meta,
+> extends ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta> {
   __initialContext?: TypeInitialContext<TInitialContext>
   __currentContext?: TypeCurrentContext<TCurrentContext>
   middlewares: AnyMiddleware[]
@@ -39,7 +38,7 @@ export class ProcedureBuilderWithoutHandler<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   TErrorMap extends ErrorMap,
-  TMetaDef extends Meta,
+  TMeta extends Meta,
 > {
   '~orpc': ProcedureBuilderWithoutHandlerDef<
     TInitialContext,
@@ -47,7 +46,7 @@ export class ProcedureBuilderWithoutHandler<
     TInputSchema,
     TOutputSchema,
     TErrorMap,
-    TMetaDef
+    TMeta
   >
 
   constructor(def: ProcedureBuilderWithoutHandlerDef<
@@ -56,20 +55,20 @@ export class ProcedureBuilderWithoutHandler<
     TInputSchema,
     TOutputSchema,
     TErrorMap,
-    TMetaDef
+    TMeta
   >) {
     this['~orpc'] = def
   }
 
-  errors<const U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(
+  errors<const U extends ErrorMap>(
     errors: U,
   ): ProcedureBuilderWithoutHandler<
       TInitialContext,
       TCurrentContext,
       TInputSchema,
       TOutputSchema,
-      MergedErrorMap<TErrorMap, StrictErrorMap<U>>,
-      TMetaDef
+      MergedErrorMap<TErrorMap, U>,
+      TMeta
     > {
     return new ProcedureBuilderWithoutHandler({
       ...this['~orpc'],
@@ -78,14 +77,14 @@ export class ProcedureBuilderWithoutHandler<
   }
 
   meta(
-    meta: TMetaDef,
+    meta: TMeta,
   ): ProcedureBuilderWithoutHandler<
       TInitialContext,
       TCurrentContext,
       TInputSchema,
       TOutputSchema,
       TErrorMap,
-      TMetaDef
+      TMeta
     > {
     return new ProcedureBuilderWithoutHandler({
       ...this['~orpc'],
@@ -101,7 +100,7 @@ export class ProcedureBuilderWithoutHandler<
       TInputSchema,
       TOutputSchema,
       TErrorMap,
-      TMetaDef
+      TMeta
     > {
     return new ProcedureBuilderWithoutHandler({
       ...this['~orpc'],
@@ -116,7 +115,7 @@ export class ProcedureBuilderWithoutHandler<
       SchemaOutput<TInputSchema>,
       SchemaInput<TOutputSchema>,
       ORPCErrorConstructorMap<TErrorMap>,
-      TMetaDef
+      TMeta
     >,
   ): ConflictContextGuard<MergedContext<TCurrentContext, U>>
     & ProcedureBuilderWithoutHandler<
@@ -125,7 +124,7 @@ export class ProcedureBuilderWithoutHandler<
       TInputSchema,
       TOutputSchema,
       TErrorMap,
-      TMetaDef
+      TMeta
     >
 
   use<UOutContext extends Context, UInput>(
@@ -135,7 +134,7 @@ export class ProcedureBuilderWithoutHandler<
       UInput,
       SchemaInput<TOutputSchema>,
       ORPCErrorConstructorMap<TErrorMap>,
-      TMetaDef
+      TMeta
     >,
     mapInput: MapInputMiddleware<SchemaOutput<TInputSchema>, UInput>,
   ): ConflictContextGuard<MergedContext<TCurrentContext, UOutContext>>
@@ -145,7 +144,7 @@ export class ProcedureBuilderWithoutHandler<
       TInputSchema,
       TOutputSchema,
       TErrorMap,
-      TMetaDef
+      TMeta
     >
 
   use(
@@ -163,7 +162,7 @@ export class ProcedureBuilderWithoutHandler<
   }
 
   handler<UFuncOutput extends SchemaInput<TOutputSchema>>(
-    handler: ProcedureHandler<TCurrentContext, TInputSchema, TOutputSchema, UFuncOutput, TErrorMap, TMetaDef>,
+    handler: ProcedureHandler<TCurrentContext, TInputSchema, TOutputSchema, UFuncOutput, TErrorMap, TMeta>,
   ): DecoratedProcedure<
       TInitialContext,
       TCurrentContext,
@@ -171,7 +170,7 @@ export class ProcedureBuilderWithoutHandler<
       TOutputSchema,
       UFuncOutput,
       TErrorMap,
-      TMetaDef
+      TMeta
     > {
     return new DecoratedProcedure({
       ...this['~orpc'],

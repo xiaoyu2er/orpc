@@ -1,5 +1,4 @@
-import type { ContractProcedure, ErrorMap, Route, Schema, StrictErrorMap } from '@orpc/contract'
-import type { ReadonlyDeep } from '@orpc/shared'
+import type { ContractProcedure, ErrorMap, Route, Schema } from '@orpc/contract'
 import type { Builder } from './builder'
 import type { BuilderWithErrors } from './builder-with-errors'
 import type { BuilderWithMiddlewares } from './builder-with-middlewares'
@@ -13,10 +12,10 @@ import type { ProcedureBuilderWithOutput } from './procedure-builder-with-output
 import type { DecoratedProcedure } from './procedure-decorated'
 import type { AccessibleLazyRouter } from './router-accessible-lazy'
 import type { RouterBuilder } from './router-builder'
-import { type BaseMetaDef, inputSchema, outputSchema } from '../../contract/tests/shared'
+import { type BaseMeta, inputSchema, outputSchema } from '../../contract/tests/shared'
 import { type InitialContext, router } from '../tests/shared'
 
-const builder = {} as Builder<InitialContext, BaseMetaDef>
+const builder = {} as Builder<InitialContext, BaseMeta>
 
 describe('Builder', () => {
   it('is a contract procedure', () => {
@@ -25,9 +24,7 @@ describe('Builder', () => {
         undefined,
         undefined,
         Record<never, never>,
-        Route,
-        BaseMetaDef,
-        BaseMetaDef
+        BaseMeta
       >
     >()
   })
@@ -39,7 +36,7 @@ describe('Builder', () => {
     })
 
     expectTypeOf(applied).toEqualTypeOf<
-      Builder<InitialContext, BaseMetaDef>
+      Builder<InitialContext, BaseMeta>
     >()
 
     builder.$config({
@@ -50,10 +47,10 @@ describe('Builder', () => {
 
   it('.$context', () => {
     expectTypeOf(builder.$context()).toEqualTypeOf<
-      Builder<Context, BaseMetaDef>
+      Builder<Context, BaseMeta>
     >()
     expectTypeOf(builder.$context<{ anything: string }>()).toEqualTypeOf<
-      Builder<{ anything: string }, BaseMetaDef>
+      Builder<{ anything: string }, BaseMeta>
     >()
   })
 
@@ -70,7 +67,7 @@ describe('Builder', () => {
 
   it('.$route', () => {
     expectTypeOf(builder.$route({ method: 'GET' })).toEqualTypeOf<
-      Builder<InitialContext, BaseMetaDef>
+      Builder<InitialContext, BaseMeta>
     >()
 
     // @ts-expect-error - invalid method
@@ -85,7 +82,7 @@ describe('Builder', () => {
           expectTypeOf(context).toEqualTypeOf<InitialContext>()
           expectTypeOf(path).toEqualTypeOf<string[]>()
           expectTypeOf(procedure).toEqualTypeOf<
-            Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, Route, BaseMetaDef, BaseMetaDef>
+            Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, BaseMeta>
           >()
           expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<any>>()
           expectTypeOf(errors).toEqualTypeOf<Record<never, never>>()
@@ -98,7 +95,7 @@ describe('Builder', () => {
           })
         }),
       ).toEqualTypeOf<
-        DecoratedMiddleware<InitialContext, { extra: boolean }, unknown, any, Record<never, never>, BaseMetaDef>
+        DecoratedMiddleware<InitialContext, { extra: boolean }, unknown, any, Record<never, never>, BaseMeta>
       >()
 
       // @ts-expect-error --- conflict context
@@ -109,7 +106,7 @@ describe('Builder', () => {
       expectTypeOf(
         builder.middleware(({ next }, input: 'input', output: MiddlewareOutputFn<'output'>) => next({})),
       ).toEqualTypeOf<
-        DecoratedMiddleware<InitialContext, Record<never, never>, 'input', 'output', Record<never, never>, BaseMetaDef>
+        DecoratedMiddleware<InitialContext, Record<never, never>, 'input', 'output', Record<never, never>, BaseMeta>
       >()
     })
   })
@@ -118,7 +115,7 @@ describe('Builder', () => {
     expectTypeOf(
       builder.errors({ BAD_GATEWAY: { message: 'BAD' } }),
     ).toEqualTypeOf<
-      BuilderWithErrors<InitialContext, StrictErrorMap<ReadonlyDeep<{ BAD_GATEWAY: { message: 'BAD' } }>>, BaseMetaDef>
+      BuilderWithErrors<InitialContext, { BAD_GATEWAY: { message: string } }, BaseMeta>
     >()
 
     // @ts-expect-error - invalid schema
@@ -131,7 +128,7 @@ describe('Builder', () => {
       expectTypeOf(context).toEqualTypeOf<InitialContext>()
       expectTypeOf(path).toEqualTypeOf<string[]>()
       expectTypeOf(procedure).toEqualTypeOf<
-        Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, Route, BaseMetaDef, BaseMetaDef>
+        Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, BaseMeta>
       >()
       expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<unknown>>()
       expectTypeOf(errors).toEqualTypeOf<Record<never, never>>()
@@ -145,7 +142,7 @@ describe('Builder', () => {
     })
 
     expectTypeOf(applied).toEqualTypeOf<
-      BuilderWithMiddlewares<InitialContext, InitialContext & { extra: boolean }, Record<never, never>, BaseMetaDef>
+      BuilderWithMiddlewares<InitialContext, InitialContext & { extra: boolean }, Record<never, never>, BaseMeta>
     >()
 
     // @ts-expect-error --- conflict context
@@ -160,7 +157,7 @@ describe('Builder', () => {
 
   it('.meta', () => {
     expectTypeOf(builder.meta({ log: true })).toEqualTypeOf<
-      ProcedureBuilder<InitialContext, InitialContext, Record<never, never>, BaseMetaDef>
+      ProcedureBuilder<InitialContext, InitialContext, Record<never, never>, BaseMeta>
     >()
 
     // @ts-expect-error - invalid meta
@@ -169,7 +166,7 @@ describe('Builder', () => {
 
   it('.route', () => {
     expectTypeOf(builder.route({ path: '/test', method: 'GET' })).toEqualTypeOf<
-      ProcedureBuilder<InitialContext, InitialContext, Record<never, never>, BaseMetaDef>
+      ProcedureBuilder<InitialContext, InitialContext, Record<never, never>, BaseMeta>
     >()
 
     // @ts-expect-error - invalid method
@@ -178,7 +175,7 @@ describe('Builder', () => {
 
   it('.input', () => {
     expectTypeOf(builder.input(inputSchema)).toEqualTypeOf<
-      ProcedureBuilderWithInput<InitialContext, InitialContext, typeof inputSchema, Record<never, never>, BaseMetaDef>
+      ProcedureBuilderWithInput<InitialContext, InitialContext, typeof inputSchema, Record<never, never>, BaseMeta>
     >()
 
     // @ts-expect-error - invalid schema
@@ -187,7 +184,7 @@ describe('Builder', () => {
 
   it('.output', () => {
     expectTypeOf(builder.output(outputSchema)).toEqualTypeOf<
-      ProcedureBuilderWithOutput<InitialContext, InitialContext, typeof outputSchema, Record<never, never>, BaseMetaDef>
+      ProcedureBuilderWithOutput<InitialContext, InitialContext, typeof outputSchema, Record<never, never>, BaseMeta>
     >()
 
     // @ts-expect-error - invalid schema
@@ -201,7 +198,7 @@ describe('Builder', () => {
       expectTypeOf(path).toEqualTypeOf<string[]>()
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
       expectTypeOf(procedure).toEqualTypeOf<
-        Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, Route, BaseMetaDef, BaseMetaDef>
+        Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, BaseMeta>
       >()
       expectTypeOf(errors).toEqualTypeOf<Record<never, never>>()
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
@@ -210,13 +207,13 @@ describe('Builder', () => {
     })
 
     expectTypeOf(procedure).toMatchTypeOf<
-      DecoratedProcedure<InitialContext, InitialContext, undefined, undefined, number, Record<never, never>, BaseMetaDef>
+      DecoratedProcedure<InitialContext, InitialContext, undefined, undefined, number, Record<never, never>, BaseMeta>
     >()
   })
 
   it('.prefix', () => {
     expectTypeOf(builder.prefix('/test')).toEqualTypeOf<
-      RouterBuilder<InitialContext, InitialContext, Record<never, never>, BaseMetaDef>
+      RouterBuilder<InitialContext, InitialContext, Record<never, never>, BaseMeta>
     >()
 
     // @ts-expect-error - invalid prefix
@@ -225,7 +222,7 @@ describe('Builder', () => {
 
   it('.tag', () => {
     expectTypeOf(builder.tag('test', 'test2')).toEqualTypeOf<
-      RouterBuilder<InitialContext, InitialContext, Record<never, never>, BaseMetaDef>
+      RouterBuilder<InitialContext, InitialContext, Record<never, never>, BaseMeta>
     >()
   })
 
@@ -236,7 +233,7 @@ describe('Builder', () => {
 
     builder.router({
       // @ts-expect-error - initial context is not match
-      ping: {} as Procedure<{ invalid: true }, Context, undefined, undefined, unknown, Record<never, never>, Route, BaseMetaDef, BaseMetaDef>,
+      ping: {} as Procedure<{ invalid: true }, Context, undefined, undefined, unknown, Record<never, never>, BaseMeta>,
     })
 
     builder.router({
@@ -253,13 +250,21 @@ describe('Builder', () => {
     // @ts-expect-error - initial context is not match
     builder.lazy(() => Promise.resolve({
       default: {
-        ping: {} as Procedure<{ invalid: true }, Context, undefined, undefined, unknown, Record<never, never>, Route, BaseMetaDef, BaseMetaDef>,
+        ping: {} as Procedure<{ invalid: true }, Context, undefined, undefined, unknown, Record<never, never>, BaseMeta>,
       },
     }))
 
     // @ts-expect-error - meta def is not match
     builder.lazy(() => Promise.resolve({
-      ping: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>, Route, { invalid?: true }, { invalid: true }>,
+      ping: {} as Procedure<
+        Context,
+        Context,
+        undefined,
+        undefined,
+        unknown,
+        Record<never, never>,
+        { invalid: true }
+      >,
     }))
   })
 })

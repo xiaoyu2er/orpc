@@ -1,4 +1,4 @@
-import type { AbortSignal, ContractProcedureDef, ErrorMap, Meta, Route, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { AbortSignal, ContractProcedureDef, ErrorMap, Meta, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Promisable } from '@orpc/shared'
 import type { Context, TypeInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
@@ -9,12 +9,12 @@ export interface ProcedureHandlerOptions<
   TCurrentContext extends Context,
   TInput,
   TErrorConstructorMap extends ORPCErrorConstructorMap<any>,
-  TMetaDef extends Meta,
+  TMeta extends Meta,
 > {
   context: TCurrentContext
   input: TInput
   path: string[]
-  procedure: Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, Route, TMetaDef, TMetaDef>
+  procedure: Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, TMeta>
   signal?: AbortSignal
   errors: TErrorConstructorMap
 }
@@ -25,10 +25,10 @@ export interface ProcedureHandler<
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
   TErrorMap extends ErrorMap,
-  TMetaDef extends Meta,
+  TMeta extends Meta,
 > {
   (
-    opt: ProcedureHandlerOptions<TCurrentContext, SchemaOutput<TInputSchema>, ORPCErrorConstructorMap<TErrorMap>, TMetaDef>
+    opt: ProcedureHandlerOptions<TCurrentContext, SchemaOutput<TInputSchema>, ORPCErrorConstructorMap<TErrorMap>, TMeta>
   ): Promisable<SchemaInput<TOutputSchema, THandlerOutput>>
 }
 
@@ -39,10 +39,8 @@ export interface ProcedureDef<
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
   TErrorMap extends ErrorMap,
-  TRoute extends Route,
-  TMetaDef extends Meta,
-  TMeta extends TMetaDef,
-> extends ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TRoute, TMetaDef, TMeta> {
+  TMeta extends Meta,
+> extends ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta> {
   __initialContext?: TypeInitialContext<TInitialContext>
   middlewares: AnyMiddleware[]
   inputValidationIndex: number
@@ -57,18 +55,16 @@ export class Procedure<
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
   TErrorMap extends ErrorMap,
-  TRoute extends Route,
-  TMetaDef extends Meta,
-  TMeta extends TMetaDef,
+  TMeta extends Meta,
 > {
-  '~orpc': ProcedureDef<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TRoute, TMetaDef, TMeta>
+  '~orpc': ProcedureDef<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta>
 
-  constructor(def: ProcedureDef<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TRoute, TMetaDef, TMeta>) {
+  constructor(def: ProcedureDef<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta>) {
     this['~orpc'] = def
   }
 }
 
-export type AnyProcedure = Procedure<any, any, any, any, any, any, any, any, any>
+export type AnyProcedure = Procedure<any, any, any, any, any, any, any>
 
 export function isProcedure(item: unknown): item is AnyProcedure {
   if (item instanceof Procedure) {

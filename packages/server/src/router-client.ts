@@ -11,7 +11,7 @@ import { getRouterChild } from './router-utils'
 
 export type RouterClient<TRouter extends AnyRouter, TClientContext> = TRouter extends Lazy<infer U extends AnyRouter>
   ? RouterClient<U, TClientContext>
-  : TRouter extends Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput, infer UErrorMap, any, any, any>
+  : TRouter extends Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput, infer UErrorMap, any>
     ? ProcedureClient<TClientContext, UInputSchema, UOutputSchema, UFuncOutput, UErrorMap>
     : {
         [K in keyof TRouter]: TRouter[K] extends AnyRouter ? RouterClient<TRouter[K], TClientContext> : never

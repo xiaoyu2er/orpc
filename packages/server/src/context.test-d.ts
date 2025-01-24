@@ -1,4 +1,4 @@
-import type { ConflictContextGuard, MergedContext } from './context-utils'
+import type { ConflictContextGuard, MergedContext } from './context'
 
 it('MergedContext', () => {
   expectTypeOf<MergedContext<{ a: string }, { b: number }>>().toMatchTypeOf<{ a: string, b: number }>()

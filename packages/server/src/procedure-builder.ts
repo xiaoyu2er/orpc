@@ -1,6 +1,5 @@
-import type { ContractProcedureDef, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, MergedErrorMap, Meta, Route, Schema, StrictErrorMap } from '@orpc/contract'
-import type { Context, TypeCurrentContext, TypeInitialContext } from './context'
-import type { ConflictContextGuard, MergedContext } from './context-utils'
+import type { ContractProcedureDef, ErrorMap, MergedErrorMap, Meta, Route, Schema } from '@orpc/contract'
+import type { ConflictContextGuard, Context, MergedContext, TypeCurrentContext, TypeInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { AnyMiddleware, Middleware } from './middleware'
 import type { ProcedureHandler } from './procedure'
@@ -14,8 +13,8 @@ export interface ProcedureBuilderDef<
   TInitialContext extends Context,
   TCurrentContext extends Context,
   TErrorMap extends ErrorMap,
-  TMetaDef extends Meta,
-> extends ContractProcedureDef<undefined, undefined, TErrorMap, Route, TMetaDef, TMetaDef> {
+  TMeta extends Meta,
+> extends ContractProcedureDef<undefined, undefined, TErrorMap, TMeta> {
   __initialContext?: TypeInitialContext<TInitialContext>
   __currentContext?: TypeCurrentContext<TCurrentContext>
   middlewares: AnyMiddleware[]
@@ -27,17 +26,17 @@ export class ProcedureBuilder<
   TInitialContext extends Context,
   TCurrentContext extends Context,
   TErrorMap extends ErrorMap,
-  TMetaDef extends Meta,
+  TMeta extends Meta,
 > {
-  '~orpc': ProcedureBuilderDef<TInitialContext, TCurrentContext, TErrorMap, TMetaDef>
+  '~orpc': ProcedureBuilderDef<TInitialContext, TCurrentContext, TErrorMap, TMeta>
 
-  constructor(def: ProcedureBuilderDef<TInitialContext, TCurrentContext, TErrorMap, TMetaDef>) {
+  constructor(def: ProcedureBuilderDef<TInitialContext, TCurrentContext, TErrorMap, TMeta>) {
     this['~orpc'] = def
   }
 
-  errors<const U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(
+  errors<U extends ErrorMap>(
     errors: U,
-  ): ProcedureBuilder<TInitialContext, TCurrentContext, MergedErrorMap<TErrorMap, StrictErrorMap<U>>, TMetaDef> {
+  ): ProcedureBuilder<TInitialContext, TCurrentContext, MergedErrorMap<TErrorMap, U>, TMeta> {
     return new ProcedureBuilder({
       ...this['~orpc'],
       errorMap: mergeErrorMap(this['~orpc'].errorMap, errors),
@@ -45,8 +44,8 @@ export class ProcedureBuilder<
   }
 
   meta(
-    meta: TMetaDef,
-  ): ProcedureBuilder<TInitialContext, TCurrentContext, TErrorMap, TMetaDef> {
+    meta: TMeta,
+  ): ProcedureBuilder<TInitialContext, TCurrentContext, TErrorMap, TMeta> {
     return new ProcedureBuilder({
       ...this['~orpc'],
       meta: mergeMeta(this['~orpc'].meta, meta),
@@ -55,7 +54,7 @@ export class ProcedureBuilder<
 
   route(
     route: Route,
-  ): ProcedureBuilder<TInitialContext, TCurrentContext, TErrorMap, TMetaDef> {
+  ): ProcedureBuilder<TInitialContext, TCurrentContext, TErrorMap, TMeta> {
     return new ProcedureBuilder({
       ...this['~orpc'],
       route: mergeRoute(this['~orpc'].route, route),
@@ -69,10 +68,10 @@ export class ProcedureBuilder<
       unknown,
       unknown,
       ORPCErrorConstructorMap<TErrorMap>,
-      TMetaDef
+      TMeta
     >,
   ): ConflictContextGuard<MergedContext<TCurrentContext, U>>
-    & ProcedureBuilder<TInitialContext, MergedContext<TCurrentContext, U>, TErrorMap, TMetaDef> {
+    & ProcedureBuilder<TInitialContext, MergedContext<TCurrentContext, U>, TErrorMap, TMeta> {
     const builder = new ProcedureBuilder({
       ...this['~orpc'],
       middlewares: addMiddleware(this['~orpc'].middlewares, middleware),
@@ -85,7 +84,7 @@ export class ProcedureBuilder<
 
   input<U extends Schema>(
     schema: U,
-  ): ProcedureBuilderWithInput<TInitialContext, TCurrentContext, U, TErrorMap, TMetaDef> {
+  ): ProcedureBuilderWithInput<TInitialContext, TCurrentContext, U, TErrorMap, TMeta> {
     return new ProcedureBuilderWithInput({
       ...this['~orpc'],
       inputSchema: schema,
@@ -94,7 +93,7 @@ export class ProcedureBuilder<
 
   output<U extends Schema>(
     schema: U,
-  ): ProcedureBuilderWithOutput<TInitialContext, TCurrentContext, U, TErrorMap, TMetaDef> {
+  ): ProcedureBuilderWithOutput<TInitialContext, TCurrentContext, U, TErrorMap, TMeta> {
     return new ProcedureBuilderWithOutput({
       ...this['~orpc'],
       outputSchema: schema,
@@ -102,8 +101,8 @@ export class ProcedureBuilder<
   }
 
   handler<UFuncOutput>(
-    handler: ProcedureHandler<TCurrentContext, undefined, undefined, UFuncOutput, TErrorMap, TMetaDef>,
-  ): DecoratedProcedure<TInitialContext, TCurrentContext, undefined, undefined, UFuncOutput, TErrorMap, TMetaDef> {
+    handler: ProcedureHandler<TCurrentContext, undefined, undefined, UFuncOutput, TErrorMap, TMeta>,
+  ): DecoratedProcedure<TInitialContext, TCurrentContext, undefined, undefined, UFuncOutput, TErrorMap, TMeta> {
     return new DecoratedProcedure({
       ...this['~orpc'],
       handler,

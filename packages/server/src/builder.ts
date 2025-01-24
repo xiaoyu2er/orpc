@@ -1,13 +1,12 @@
-import type { ContractProcedureDef, ContractRouter, ErrorMap, ErrorMapSuggestions, HTTPPath, Meta, Route, Schema, StrictErrorMap } from '@orpc/contract'
-import type { Context, TypeInitialContext } from './context'
-import type { ConflictContextGuard, MergedContext } from './context-utils'
+import type { ContractProcedureDef, ContractRouter, ErrorMap, HTTPPath, Meta, Route, Schema } from '@orpc/contract'
+import type { ConflictContextGuard, Context, MergedContext, TypeInitialContext } from './context'
 import type { FlattenLazy } from './lazy-utils'
 import type { Middleware } from './middleware'
 import type { DecoratedMiddleware } from './middleware-decorated'
 import type { ProcedureHandler } from './procedure'
 import type { Router } from './router'
 import type { AccessibleLazyRouter } from './router-accessible-lazy'
-import { createStrictErrorMap, mergeMeta, mergeRoute } from '@orpc/contract'
+import { mergeMeta, mergeRoute } from '@orpc/contract'
 import { BuilderWithErrors } from './builder-with-errors'
 import { BuilderWithMiddlewares } from './builder-with-middlewares'
 import { fallbackConfig } from './config'
@@ -28,8 +27,8 @@ export interface BuilderConfig {
 
 export interface BuilderDef<
   TInitialContext extends Context,
-  TMetaDef extends Meta,
-> extends ContractProcedureDef<undefined, undefined, Record<never, never>, Route, TMetaDef, TMetaDef> {
+  TMeta extends Meta,
+> extends ContractProcedureDef<undefined, undefined, Record<never, never>, TMeta> {
   __initialContext?: TypeInitialContext<TInitialContext>
   inputValidationIndex: number
   outputValidationIndex: number
@@ -37,18 +36,18 @@ export interface BuilderDef<
 
 export class Builder<
   TInitialContext extends Context,
-  TMetaDef extends Meta,
+  TMeta extends Meta,
 > {
-  '~orpc': BuilderDef<TInitialContext, TMetaDef>
+  '~orpc': BuilderDef<TInitialContext, TMeta>
 
-  constructor(def: BuilderDef<TInitialContext, TMetaDef>) {
+  constructor(def: BuilderDef<TInitialContext, TMeta>) {
     this['~orpc'] = def
   }
 
   /**
    * Reset config
    */
-  $config(config: BuilderConfig): Builder<TInitialContext, TMetaDef> {
+  $config(config: BuilderConfig): Builder<TInitialContext, TMeta> {
     return new Builder({
       ...this['~orpc'],
       inputValidationIndex: fallbackConfig('initialInputValidationIndex', config.initialInputValidationIndex),
@@ -59,7 +58,7 @@ export class Builder<
   /**
    * Reset initial context
    */
-  $context<U extends Context>(): Builder<U, TMetaDef> {
+  $context<U extends Context>(): Builder<U, TMeta> {
     return this as any // just change at type level so safely cast here
   }
 
@@ -84,32 +83,32 @@ export class Builder<
    * Reset initial route
    */
   $route<const U extends Route>(
-    route: U,
-  ): Builder<TInitialContext, TMetaDef> {
+    initialRoute: U,
+  ): Builder<TInitialContext, TMeta> {
     return new Builder({
       ...this['~orpc'],
-      route,
+      route: initialRoute,
     })
   }
 
   middleware<UOutContext extends Context, TInput, TOutput = any>( // = any here is important to make middleware can be used in any output by default
-    middleware: Middleware<TInitialContext, UOutContext, TInput, TOutput, Record<never, never>, TMetaDef>,
-  ): DecoratedMiddleware<TInitialContext, UOutContext, TInput, TOutput, Record<never, never>, TMetaDef> {
+    middleware: Middleware<TInitialContext, UOutContext, TInput, TOutput, Record<never, never>, TMeta>,
+  ): DecoratedMiddleware<TInitialContext, UOutContext, TInput, TOutput, Record<never, never>, TMeta> {
     return decorateMiddleware(middleware)
   }
 
-  errors<const U extends ErrorMap & ErrorMapSuggestions>(errors: U): BuilderWithErrors<TInitialContext, StrictErrorMap<U>, TMetaDef> {
+  errors<U extends ErrorMap>(errors: U): BuilderWithErrors<TInitialContext, U, TMeta> {
     return new BuilderWithErrors({
       ...this['~orpc'],
-      errorMap: createStrictErrorMap(errors),
+      errorMap: errors,
     })
   }
 
   use<UOutContext extends Context>(
-    middleware: Middleware<TInitialContext, UOutContext, unknown, unknown, Record<never, never>, TMetaDef>,
+    middleware: Middleware<TInitialContext, UOutContext, unknown, unknown, Record<never, never>, TMeta>,
   ): ConflictContextGuard<TInitialContext & UOutContext>
-    & BuilderWithMiddlewares<TInitialContext, MergedContext<TInitialContext, UOutContext>, Record<never, never>, TMetaDef> {
-    const builder = new BuilderWithMiddlewares<TInitialContext, MergedContext<TInitialContext, UOutContext>, Record<never, never>, TMetaDef>({
+    & BuilderWithMiddlewares<TInitialContext, MergedContext<TInitialContext, UOutContext>, Record<never, never>, TMeta> {
+    const builder = new BuilderWithMiddlewares<TInitialContext, MergedContext<TInitialContext, UOutContext>, Record<never, never>, TMeta>({
       ...this['~orpc'],
       middlewares: [middleware],
       inputValidationIndex: this['~orpc'].inputValidationIndex + 1,
@@ -119,7 +118,7 @@ export class Builder<
     return builder as typeof builder & ConflictContextGuard<TInitialContext & UOutContext>
   }
 
-  meta(meta: TMetaDef): ProcedureBuilder<TInitialContext, TInitialContext, Record<never, never>, TMetaDef> {
+  meta(meta: TMeta): ProcedureBuilder<TInitialContext, TInitialContext, Record<never, never>, TMeta> {
     return new ProcedureBuilder({
       ...this['~orpc'],
       middlewares: [],
@@ -127,7 +126,7 @@ export class Builder<
     })
   }
 
-  route(route: Route): ProcedureBuilder<TInitialContext, TInitialContext, Record<never, never>, TMetaDef> {
+  route(route: Route): ProcedureBuilder<TInitialContext, TInitialContext, Record<never, never>, TMeta> {
     return new ProcedureBuilder({
       ...this['~orpc'],
       middlewares: [],
@@ -137,7 +136,7 @@ export class Builder<
 
   input<USchema extends Schema>(
     schema: USchema,
-  ): ProcedureBuilderWithInput<TInitialContext, TInitialContext, USchema, Record<never, never>, TMetaDef> {
+  ): ProcedureBuilderWithInput<TInitialContext, TInitialContext, USchema, Record<never, never>, TMeta> {
     return new ProcedureBuilderWithInput({
       ...this['~orpc'],
       middlewares: [],
@@ -147,7 +146,7 @@ export class Builder<
 
   output<USchema extends Schema>(
     schema: USchema,
-  ): ProcedureBuilderWithOutput<TInitialContext, TInitialContext, USchema, Record<never, never>, TMetaDef> {
+  ): ProcedureBuilderWithOutput<TInitialContext, TInitialContext, USchema, Record<never, never>, TMeta> {
     return new ProcedureBuilderWithOutput({
       ...this['~orpc'],
       middlewares: [],
@@ -156,8 +155,8 @@ export class Builder<
   }
 
   handler<UFuncOutput>(
-    handler: ProcedureHandler<TInitialContext, undefined, undefined, UFuncOutput, Record<never, never>, TMetaDef>,
-  ): DecoratedProcedure<TInitialContext, TInitialContext, undefined, undefined, UFuncOutput, Record<never, never>, TMetaDef> {
+    handler: ProcedureHandler<TInitialContext, undefined, undefined, UFuncOutput, Record<never, never>, TMeta>,
+  ): DecoratedProcedure<TInitialContext, TInitialContext, undefined, undefined, UFuncOutput, Record<never, never>, TMeta> {
     return new DecoratedProcedure({
       ...this['~orpc'],
       middlewares: [],
@@ -165,7 +164,7 @@ export class Builder<
     })
   }
 
-  prefix(prefix: HTTPPath): RouterBuilder<TInitialContext, TInitialContext, Record<never, never>, TMetaDef> {
+  prefix(prefix: HTTPPath): RouterBuilder<TInitialContext, TInitialContext, Record<never, never>, TMeta> {
     return new RouterBuilder({
       middlewares: [],
       errorMap: {},
@@ -173,7 +172,7 @@ export class Builder<
     })
   }
 
-  tag(...tags: string[]): RouterBuilder<TInitialContext, TInitialContext, Record<never, never>, TMetaDef> {
+  tag(...tags: string[]): RouterBuilder<TInitialContext, TInitialContext, Record<never, never>, TMeta> {
     return new RouterBuilder({
       middlewares: [],
       errorMap: {},
@@ -181,11 +180,11 @@ export class Builder<
     })
   }
 
-  router<U extends Router<TInitialContext, ContractRouter<any, TMetaDef>>>(router: U): U {
+  router<U extends Router<TInitialContext, ContractRouter<TMeta>>>(router: U): U {
     return router
   }
 
-  lazy<U extends Router<TInitialContext, ContractRouter<any, TMetaDef>>>(
+  lazy<U extends Router<TInitialContext, ContractRouter<TMeta>>>(
     loader: () => Promise<{ default: U }>,
   ): AccessibleLazyRouter<FlattenLazy<U>> {
     return createAccessibleLazyRouter(flatLazy(lazy(loader)))

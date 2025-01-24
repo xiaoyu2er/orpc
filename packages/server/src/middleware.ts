@@ -1,4 +1,4 @@
-import type { AbortSignal, ErrorMap, Meta, Route, Schema } from '@orpc/contract'
+import type { AbortSignal, ErrorMap, Meta, Schema } from '@orpc/contract'
 import type { Promisable } from '@orpc/shared'
 import type { Context } from './context'
 import type { ORPCErrorConstructorMap } from './error'
@@ -29,11 +29,11 @@ export interface MiddlewareOptions<
   TInContext extends Context,
   TOutput,
   TErrorConstructorMap extends ORPCErrorConstructorMap<any>,
-  TMetaDef extends Meta,
+  TMeta extends Meta,
 > {
   context: TInContext
   path: string[]
-  procedure: Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, Route, TMetaDef, TMetaDef>
+  procedure: Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, TMeta>
   signal?: AbortSignal
   next: MiddlewareNextFn<TInContext, TOutput>
   errors: TErrorConstructorMap
@@ -45,10 +45,10 @@ export interface Middleware<
   TInput,
   TOutput,
   TErrorConstructorMap extends ORPCErrorConstructorMap<any>,
-  TMetaDef extends Meta,
+  TMeta extends Meta,
 > {
   (
-    options: MiddlewareOptions<TInContext, TOutput, TErrorConstructorMap, TMetaDef>,
+    options: MiddlewareOptions<TInContext, TOutput, TErrorConstructorMap, TMeta>,
     input: TInput,
     output: MiddlewareOutputFn<TOutput>,
   ): Promisable<

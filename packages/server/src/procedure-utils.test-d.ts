@@ -1,5 +1,4 @@
 import type { ORPCError } from '@orpc/contract'
-import type { ReadonlyDeep } from '@orpc/shared'
 import { safe } from '@orpc/contract'
 import { ping, pong } from '../tests/shared'
 import { call } from './procedure-utils'
@@ -12,7 +11,7 @@ it('call', async () => {
   }
 
   if (isDefined) {
-    expectTypeOf(error).toEqualTypeOf<ORPCError<'BASE', ReadonlyDeep<{ output: string }>>>()
+    expectTypeOf(error).toEqualTypeOf<ORPCError<'BASE', { output: string }> | ORPCError<'OVERRIDE', { output: string }>>()
   }
 
   // @ts-expect-error - invalid input

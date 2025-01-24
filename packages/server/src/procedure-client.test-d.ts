@@ -1,4 +1,3 @@
-import type { ReadonlyDeep } from '@orpc/shared'
 import type { baseErrorMap, inputSchema, outputSchema } from '../../contract/tests/shared'
 import { type Client, type ORPCError, safe } from '@orpc/contract'
 import { ping, pong } from '../tests/shared'
@@ -32,7 +31,7 @@ describe('ProcedureClient', () => {
     }
 
     if (isDefined) {
-      expectTypeOf(error).toEqualTypeOf<ORPCError<'BASE', ReadonlyDeep<{ output: string }>>>()
+      expectTypeOf(error).toEqualTypeOf<ORPCError<'BASE', { output: string }> | ORPCError<'OVERRIDE', { output: string }>>()
     }
 
     // @ts-expect-error - invalid input

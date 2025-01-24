@@ -1,6 +1,5 @@
-import type { Client, ClientRest, ErrorFromErrorMap, ErrorMap, MergedErrorMap, Route, Schema, StrictErrorMap } from '@orpc/contract'
-import type { ReadonlyDeep } from '@orpc/shared'
-import type { baseErrorMap, BaseMetaDef, inputSchema, outputSchema } from '../../contract/tests/shared'
+import type { Client, ClientRest, ErrorFromErrorMap, ErrorMap, MergedErrorMap, Schema } from '@orpc/contract'
+import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../../contract/tests/shared'
 import type { CurrentContext, InitialContext } from '../tests/shared'
 import type { Context } from './context'
 import type { ORPCErrorConstructorMap } from './error'
@@ -15,7 +14,7 @@ const builder = {} as DecoratedProcedure<
   typeof outputSchema,
   { output: number },
   typeof baseErrorMap,
-  BaseMetaDef
+  BaseMeta
 >
 
 describe('DecoratedProcedure', () => {
@@ -28,25 +27,28 @@ describe('DecoratedProcedure', () => {
         typeof outputSchema,
         { output: number },
         typeof baseErrorMap,
-        Route,
-        BaseMetaDef,
-        BaseMetaDef
+        BaseMeta
       >
     >()
   })
 
   it('.errors', () => {
-    const applied = builder.errors({ BAD_GATEWAY: { message: 'BAD_GATEWAY' } })
+    const applied = builder.errors({
+      BAD_GATEWAY: { message: 'BAD_GATEWAY' },
+      OVERRIDE: { message: 'OVERRIDE' },
+    })
 
-    expectTypeOf(applied).toEqualTypeOf<DecoratedProcedure<
-      InitialContext,
-      CurrentContext,
-      typeof inputSchema,
-      typeof outputSchema,
-      { output: number },
-      MergedErrorMap<typeof baseErrorMap, StrictErrorMap<ReadonlyDeep<{ BAD_GATEWAY: { message: 'BAD_GATEWAY' } }>>>,
-      BaseMetaDef
-    >>()
+    expectTypeOf(applied).toEqualTypeOf<
+      DecoratedProcedure<
+        InitialContext,
+        CurrentContext,
+        typeof inputSchema,
+        typeof outputSchema,
+        { output: number },
+        MergedErrorMap<typeof baseErrorMap, { BAD_GATEWAY: { message: string }, OVERRIDE: { message: string } }>,
+        BaseMeta
+      >
+    >()
 
     // @ts-expect-error - invalid schema
     builder.errors({ BAD_GATEWAY: { data: {} } })
@@ -65,7 +67,7 @@ describe('DecoratedProcedure', () => {
         typeof outputSchema,
         { output: number },
         typeof baseErrorMap,
-        BaseMetaDef
+        BaseMeta
       >
     >()
 
@@ -84,7 +86,7 @@ describe('DecoratedProcedure', () => {
         typeof outputSchema,
         { output: number },
         typeof baseErrorMap,
-        BaseMetaDef
+        BaseMeta
       >
     >()
 
@@ -98,7 +100,7 @@ describe('DecoratedProcedure', () => {
         expectTypeOf(input).toEqualTypeOf<{ input: string }>()
         expectTypeOf(context).toEqualTypeOf<CurrentContext>()
         expectTypeOf(path).toEqualTypeOf<string[]>()
-        expectTypeOf(procedure).toEqualTypeOf<Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, Route, BaseMetaDef, BaseMetaDef>>()
+        expectTypeOf(procedure).toEqualTypeOf<Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, BaseMeta>>()
         expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<{ output: number }>>()
         expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
 
@@ -117,7 +119,7 @@ describe('DecoratedProcedure', () => {
           typeof outputSchema,
           { output: number },
           typeof baseErrorMap,
-          BaseMetaDef
+          BaseMeta
         >
       >()
 
@@ -135,7 +137,7 @@ describe('DecoratedProcedure', () => {
       const applied = builder.use(({ context, next, path, procedure, errors }, input: { mapped: string }, output) => {
         expectTypeOf(context).toEqualTypeOf<CurrentContext>()
         expectTypeOf(path).toEqualTypeOf<string[]>()
-        expectTypeOf(procedure).toEqualTypeOf<Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, Route, BaseMetaDef, BaseMetaDef>>()
+        expectTypeOf(procedure).toEqualTypeOf<Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, BaseMeta>>()
         expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<{ output: number }>>()
         expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
 
@@ -157,7 +159,7 @@ describe('DecoratedProcedure', () => {
           typeof outputSchema,
           { output: number },
           typeof baseErrorMap,
-          BaseMetaDef
+          BaseMeta
         >
       >()
 
@@ -185,9 +187,7 @@ describe('DecoratedProcedure', () => {
         typeof outputSchema,
         { output: number },
         typeof baseErrorMap,
-        Route,
-        BaseMetaDef,
-        BaseMetaDef
+        BaseMeta
       >
       & Client<'client-context', { input: number }, { output: string }, ErrorFromErrorMap<typeof baseErrorMap>>
     >()
@@ -206,9 +206,7 @@ describe('DecoratedProcedure', () => {
         typeof outputSchema,
         { output: number },
         typeof baseErrorMap,
-        Route,
-        BaseMetaDef,
-        BaseMetaDef
+        BaseMeta
       >
       & ((...rest: ClientRest<'client-context', { input: number }>) => Promise<{ output: string }>)
     >()

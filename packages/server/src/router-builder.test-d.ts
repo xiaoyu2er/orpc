@@ -1,5 +1,5 @@
-import type { ErrorMap, Route, Schema } from '@orpc/contract'
-import type { baseErrorMap, BaseMetaDef } from '../../contract/tests/shared'
+import type { ErrorMap, MergedErrorMap, Route, Schema } from '@orpc/contract'
+import type { baseErrorMap, BaseMeta } from '../../contract/tests/shared'
 import type { Context } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { Lazy } from './lazy'
@@ -9,7 +9,7 @@ import type { RouterBuilder } from './router-builder'
 import type { AdaptedRouter } from './router-utils'
 import { type CurrentContext, type InitialContext, router } from '../tests/shared'
 
-const builder = {} as RouterBuilder<InitialContext, CurrentContext, typeof baseErrorMap, BaseMetaDef>
+const builder = {} as RouterBuilder<InitialContext, CurrentContext, typeof baseErrorMap, BaseMeta>
 
 describe('RouterBuilder', () => {
   it('.prefix', () => {
@@ -31,13 +31,32 @@ describe('RouterBuilder', () => {
     builder.tag('123', 2)
   })
 
+  it('.errors', () => {
+    expectTypeOf(
+      builder.errors({
+        BAD_GATEWAY: { message: 'BAD' },
+        OVERRIDE: { message: 'OVERRIDE' },
+      }),
+    ).toEqualTypeOf<
+      RouterBuilder<
+        InitialContext,
+        CurrentContext,
+        MergedErrorMap<typeof baseErrorMap, { BAD_GATEWAY: { message: string }, OVERRIDE: { message: string } }>,
+        BaseMeta
+      >
+    >()
+
+    // @ts-expect-error - invalid schema
+    builder.errors({ BAD_GATEWAY: { data: {} } })
+  })
+
   it('.use', () => {
     const applied = builder.use(({ next, context, path, procedure, signal, errors }, input, output) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()
       expectTypeOf(context).toEqualTypeOf<CurrentContext>()
       expectTypeOf(path).toEqualTypeOf<string[]>()
       expectTypeOf(procedure).toEqualTypeOf<
-        Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, Route, BaseMetaDef, BaseMetaDef>
+        Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, BaseMeta>
       >()
       expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<unknown>>()
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
@@ -55,7 +74,7 @@ describe('RouterBuilder', () => {
         InitialContext,
         CurrentContext & { extra: boolean },
         typeof baseErrorMap,
-        BaseMetaDef
+        BaseMeta
       >
     >()
 
@@ -80,17 +99,12 @@ describe('RouterBuilder', () => {
 
     builder.router({
       // @ts-expect-error - initial context is not match
-      ping: {} as Procedure<{ invalid: true }, Context, undefined, undefined, unknown, Record<never, never>, Route, BaseMetaDef, BaseMetaDef>,
+      ping: {} as Procedure<{ invalid: true }, Context, undefined, undefined, unknown, Record<never, never>, BaseMeta>,
     })
 
     builder.router({
       // @ts-expect-error - meta def is not match
       ping: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>, Route, { invalid?: true }, { invalid: true }>,
-    })
-
-    builder.router({
-      // @ts-expect-error - error map is conflict
-      ping: {} as Procedure<Context, Context, undefined, undefined, unknown, { BASE: { message: 'invalid' } }, Route, BaseMetaDef, BaseMetaDef>,
     })
   })
 
@@ -106,20 +120,13 @@ describe('RouterBuilder', () => {
     // @ts-expect-error - initial context is not match
     builder.lazy(() => Promise.resolve({
       default: {
-        ping: {} as Procedure<{ invalid: true }, Context, undefined, undefined, unknown, Record<never, never>, Route, BaseMetaDef, BaseMetaDef>,
+        ping: {} as Procedure<{ invalid: true }, Context, undefined, undefined, unknown, Record<never, never>, BaseMeta>,
       },
     }))
 
     // @ts-expect-error - meta def is not match
     builder.lazy(() => Promise.resolve({
-      ping: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>, Route, { invalid?: true }, { invalid: true }>,
-    }))
-
-    // @ts-expect-error - error map is conflict
-    builder.lazy(() => Promise.resolve({
-      default: {
-        ping: {} as Procedure<Context, Context, undefined, undefined, unknown, { BASE: { message: 'invalid' } }, Route, BaseMetaDef, BaseMetaDef>,
-      },
+      ping: {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>, { invalid: true }>,
     }))
   })
 })

@@ -1,7 +1,7 @@
 import { ping, pingMiddleware, pong, router } from '../tests/shared'
 import { isLazy, unlazy } from './lazy'
 import { isProcedure } from './procedure'
-import { adaptRouter, getRouterChild } from './router-utils'
+import { adaptRouter, getRouterChild } from './router'
 
 it('adaptRouter', () => {
   const mid = vi.fn()

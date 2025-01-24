@@ -1,4 +1,4 @@
-import type { ErrorMap, HTTPPath, MergedErrorMap, Route, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ErrorMap, HTTPPath, MergedErrorMap, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Context, TypeInitialContext } from './context'
 import type { Lazy } from './lazy'
 import type { AnyMiddleware } from './middleware'
@@ -13,7 +13,7 @@ import { type AccessibleLazyRouter, createAccessibleLazyRouter } from './router-
 
 export type InferRouterInputs<T extends AnyRouter> =
   T extends Lazy<infer U extends AnyRouter> ? InferRouterInputs<U>
-    : T extends Procedure<any, any, infer UInputSchema, any, any, any, any, any, any>
+    : T extends Procedure<any, any, infer UInputSchema, any, any, any, any>
       ? SchemaInput<UInputSchema>
       : {
           [K in keyof T]: T[K] extends AnyRouter ? InferRouterInputs<T[K]> : never
@@ -21,7 +21,7 @@ export type InferRouterInputs<T extends AnyRouter> =
 
 export type InferRouterOutputs<T extends AnyRouter> =
   T extends Lazy<infer U extends AnyRouter> ? InferRouterOutputs<U>
-    : T extends Procedure<any, any, any, infer UOutputSchema, infer UFuncOutput, any, any, any, any>
+    : T extends Procedure<any, any, any, infer UOutputSchema, infer UFuncOutput, any, any>
       ? SchemaOutput<UOutputSchema, UFuncOutput>
       : {
           [K in keyof T]: T[K] extends AnyRouter ? InferRouterOutputs<T[K]> : never
@@ -30,9 +30,9 @@ export type InferRouterOutputs<T extends AnyRouter> =
 export type AdaptedRouter<
   TRouter extends AnyRouter,
   TInitialContext extends Context,
-  TErrorMapExtra extends ErrorMap,
+  TErrorMap extends ErrorMap,
 > = TRouter extends Lazy<infer U extends AnyRouter>
-  ? AccessibleLazyRouter<AdaptedRouter<U, TInitialContext, TErrorMapExtra>>
+  ? AccessibleLazyRouter<AdaptedRouter<U, TInitialContext, TErrorMap>>
   : TRouter extends Procedure<
     any,
     infer UCurrentContext,
@@ -40,8 +40,6 @@ export type AdaptedRouter<
     infer UOutputSchema,
     infer UFuncOutput,
     infer UErrorMap,
-    any,
-    infer UMetaDef,
     infer UMeta
   >
     ? Procedure<
@@ -50,13 +48,11 @@ export type AdaptedRouter<
       UInputSchema,
       UOutputSchema,
       UFuncOutput,
-      MergedErrorMap<TErrorMapExtra, UErrorMap>,
-      Route,
-      UMetaDef,
+      MergedErrorMap<TErrorMap, UErrorMap>,
       UMeta
     >
     : {
-        [K in keyof TRouter]: TRouter[K] extends AnyRouter ? AdaptedRouter<TRouter[K], TInitialContext, TErrorMapExtra> : never
+        [K in keyof TRouter]: TRouter[K] extends AnyRouter ? AdaptedRouter<TRouter[K], TInitialContext, TErrorMap> : never
       }
 
 export function adaptRouter<
@@ -97,7 +93,7 @@ export function adaptRouter<
 
     const adapted = new Procedure({
       ...router['~orpc'],
-      route: adaptRoute(router['~orpc'].route, options.prefix, options.tags),
+      route: adaptRoute(router['~orpc'].route, options),
       errorMap: mergeErrorMap(options.errorMap, router['~orpc'].errorMap),
       middlewares: newMiddlewares,
       inputValidationIndex: router['~orpc'].inputValidationIndex + newMiddlewareAdded,

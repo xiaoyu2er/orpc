@@ -1,5 +1,5 @@
 import type { Meta } from '@orpc/contract'
-import type { baseErrorMap, baseMeta, BaseMetaDef, baseRoute, inputSchema, outputSchema } from '../../contract/tests/shared'
+import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../../contract/tests/shared'
 import type { Context } from '../src'
 import { ping as pingContract, pong as pongContract } from '../../contract/tests/shared'
 import { lazy, Procedure } from '../src'
@@ -17,9 +17,7 @@ export const ping = new Procedure<
   typeof outputSchema,
   { output: number },
   typeof baseErrorMap,
-  typeof baseRoute,
-  BaseMetaDef,
-  typeof baseMeta
+  BaseMeta
 >({
   ...pingContract['~orpc'],
   middlewares: [pingMiddleware],
@@ -37,9 +35,7 @@ export const pong = new Procedure<
   undefined,
   unknown,
   Record<never, never>,
-  Record<never, never>,
-  Meta,
-  Record<never, never>
+  Meta
 >({
   ...pongContract['~orpc'],
   middlewares: [],

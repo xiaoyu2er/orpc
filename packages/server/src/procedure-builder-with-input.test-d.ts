@@ -1,6 +1,6 @@
 import type { ContractProcedure, ErrorMap, MergedErrorMap, Route, Schema, StrictErrorMap } from '@orpc/contract'
 import type { ReadonlyDeep } from '@orpc/shared'
-import type { BaseMetaDef, inputSchema } from '../../contract/tests/shared'
+import type { BaseMeta, inputSchema } from '../../contract/tests/shared'
 import type { CurrentContext, InitialContext } from '../tests/shared'
 import type { Context } from './context'
 import type { ORPCErrorConstructorMap } from './error'
@@ -16,7 +16,7 @@ const builder = {} as ProcedureBuilderWithInput<
   CurrentContext,
   typeof inputSchema,
   typeof baseErrorMap,
-  BaseMetaDef
+  BaseMeta
 >
 
 describe('ProcedureBuilderWithInput', () => {
@@ -27,8 +27,8 @@ describe('ProcedureBuilderWithInput', () => {
         undefined,
         typeof baseErrorMap,
         Route,
-        BaseMetaDef,
-        BaseMetaDef
+        BaseMeta,
+        BaseMeta
       >
     >()
   })
@@ -42,7 +42,7 @@ describe('ProcedureBuilderWithInput', () => {
         CurrentContext,
         typeof inputSchema,
         MergedErrorMap<typeof baseErrorMap, StrictErrorMap<ReadonlyDeep<{ BAD_GATEWAY: { message: 'BAD_GATEWAY' } }>>>,
-        BaseMetaDef
+        BaseMeta
       >
     >()
 
@@ -61,7 +61,7 @@ describe('ProcedureBuilderWithInput', () => {
         CurrentContext,
         typeof inputSchema,
         typeof baseErrorMap,
-        BaseMetaDef
+        BaseMeta
       >
     >()
 
@@ -78,7 +78,7 @@ describe('ProcedureBuilderWithInput', () => {
         CurrentContext,
         typeof inputSchema,
         typeof baseErrorMap,
-        BaseMetaDef
+        BaseMeta
       >
     >()
 
@@ -92,7 +92,7 @@ describe('ProcedureBuilderWithInput', () => {
         expectTypeOf(input).toEqualTypeOf<{ input: string }>()
         expectTypeOf(context).toEqualTypeOf<CurrentContext>()
         expectTypeOf(path).toEqualTypeOf<string[]>()
-        expectTypeOf(procedure).toEqualTypeOf<Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, Route, BaseMetaDef, BaseMetaDef>>()
+        expectTypeOf(procedure).toEqualTypeOf<Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, Route, BaseMeta, BaseMeta>>()
         expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<unknown>>()
         expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
 
@@ -109,7 +109,7 @@ describe('ProcedureBuilderWithInput', () => {
           CurrentContext & { extra: boolean },
           typeof inputSchema,
           typeof baseErrorMap,
-          BaseMetaDef
+          BaseMeta
         >
       >()
 
@@ -127,7 +127,7 @@ describe('ProcedureBuilderWithInput', () => {
       const applied = builder.use(({ context, next, path, procedure, errors }, input: { mapped: string }, output) => {
         expectTypeOf(context).toEqualTypeOf<CurrentContext>()
         expectTypeOf(path).toEqualTypeOf<string[]>()
-        expectTypeOf(procedure).toEqualTypeOf<Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, Route, BaseMetaDef, BaseMetaDef>>()
+        expectTypeOf(procedure).toEqualTypeOf<Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, Route, BaseMeta, BaseMeta>>()
         expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<unknown>>()
         expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
 
@@ -147,7 +147,7 @@ describe('ProcedureBuilderWithInput', () => {
           CurrentContext & { extra: boolean },
           typeof inputSchema,
           typeof baseErrorMap,
-          BaseMetaDef
+          BaseMeta
         >
       >()
 
@@ -172,7 +172,7 @@ describe('ProcedureBuilderWithInput', () => {
         typeof inputSchema,
         typeof outputSchema,
         typeof baseErrorMap,
-        BaseMetaDef
+        BaseMeta
       >
     >()
 
@@ -184,7 +184,7 @@ describe('ProcedureBuilderWithInput', () => {
     const procedure = builder.handler(({ input, context, procedure, path, signal, errors }) => {
       expectTypeOf(input).toEqualTypeOf<{ input: string }>()
       expectTypeOf(context).toEqualTypeOf<CurrentContext>()
-      expectTypeOf(procedure).toEqualTypeOf<Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, Route, BaseMetaDef, BaseMetaDef>>()
+      expectTypeOf(procedure).toEqualTypeOf<Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, Route, BaseMeta, BaseMeta>>()
       expectTypeOf(path).toEqualTypeOf<string[]>()
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
       expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
@@ -200,7 +200,7 @@ describe('ProcedureBuilderWithInput', () => {
         undefined,
         { output: number },
         typeof baseErrorMap,
-        BaseMetaDef
+        BaseMeta
       >
     >()
   })

@@ -1,5 +1,5 @@
 import type { MergedErrorMap, Meta, Route } from '@orpc/contract'
-import type { baseErrorMap, baseMeta, BaseMetaDef, inputSchema, outputSchema } from '../../contract/tests/shared'
+import type { baseErrorMap, baseMeta, BaseMeta, inputSchema, outputSchema } from '../../contract/tests/shared'
 import type { CurrentContext, InitialContext, router } from '../tests/shared'
 import type { Context } from './context'
 import type { Lazy } from './lazy'
@@ -39,7 +39,7 @@ it('AdaptedRouter', () => {
             { output: number },
             typeof baseErrorMap,
             Route,
-            BaseMetaDef,
+            BaseMeta,
             typeof baseMeta
         >
       >
@@ -55,7 +55,7 @@ it('AdaptedRouter', () => {
             { output: number },
             typeof baseErrorMap,
             Route,
-            BaseMetaDef,
+            BaseMeta,
             typeof baseMeta
         >
       >

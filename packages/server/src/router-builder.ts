@@ -1,6 +1,5 @@
-import type { ContractRouter, ErrorMap, ErrorMapGuard, ErrorMapSuggestions, HTTPPath, Meta, StrictErrorMap, TypeMeta } from '@orpc/contract'
-import type { Context, TypeCurrentContext, TypeInitialContext } from './context'
-import type { ConflictContextGuard, MergedContext } from './context-utils'
+import type { ContractRouter, ErrorMap, HTTPPath, MergedErrorMap, Meta, TypeMeta } from '@orpc/contract'
+import type { ConflictContextGuard, Context, MergedContext, TypeCurrentContext, TypeInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { FlattenLazy } from './lazy-utils'
 import type { AnyMiddleware, Middleware } from './middleware'
@@ -16,11 +15,11 @@ export type RouterBuilderDef<
   TInitialContext extends Context,
   TCurrentContext extends Context,
   TErrorMap extends ErrorMap,
-  TMetaDef extends Meta,
+  TMeta extends Meta,
 > = {
   __initialContext?: TypeInitialContext<TInitialContext>
   __currentContext?: TypeCurrentContext<TCurrentContext>
-  __metaDef?: TypeMeta<TMetaDef>
+  __meta?: TypeMeta<TMeta>
   prefix?: HTTPPath
   tags?: readonly string[]
   middlewares: AnyMiddleware[]
@@ -31,11 +30,11 @@ export class RouterBuilder<
   TInitialContext extends Context,
   TCurrentContext extends Context,
   TErrorMap extends ErrorMap,
-  TMetaDef extends Meta,
+  TMeta extends Meta,
 > {
-  '~orpc': RouterBuilderDef<TInitialContext, TCurrentContext, TErrorMap, TMetaDef>
+  '~orpc': RouterBuilderDef<TInitialContext, TCurrentContext, TErrorMap, TMeta>
 
-  constructor(def: RouterBuilderDef<TInitialContext, TCurrentContext, TErrorMap, TMetaDef>) {
+  constructor(def: RouterBuilderDef<TInitialContext, TCurrentContext, TErrorMap, TMeta>) {
     this['~orpc'] = def
 
     if (def.prefix && def.prefix.includes('{')) {
@@ -46,23 +45,23 @@ export class RouterBuilder<
     }
   }
 
-  prefix(prefix: HTTPPath): RouterBuilder<TInitialContext, TCurrentContext, TErrorMap, TMetaDef> {
+  prefix(prefix: HTTPPath): RouterBuilder<TInitialContext, TCurrentContext, TErrorMap, TMeta> {
     return new RouterBuilder({
       ...this['~orpc'],
       prefix: mergePrefix(this['~orpc'].prefix, prefix),
     })
   }
 
-  tag(...tags: string[]): RouterBuilder<TInitialContext, TCurrentContext, TErrorMap, TMetaDef> {
+  tag(...tags: string[]): RouterBuilder<TInitialContext, TCurrentContext, TErrorMap, TMeta> {
     return new RouterBuilder({
       ...this['~orpc'],
       tags: mergeTags(this['~orpc'].tags, tags),
     })
   }
 
-  errors<U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(
+  errors<U extends ErrorMap >(
     errors: U,
-  ): RouterBuilder<TInitialContext, TCurrentContext, StrictErrorMap<U> & TErrorMap, TMetaDef> {
+  ): RouterBuilder<TInitialContext, TCurrentContext, MergedErrorMap<TErrorMap, U>, TMeta> {
     return new RouterBuilder({
       ...this['~orpc'],
       errorMap: {
@@ -79,10 +78,10 @@ export class RouterBuilder<
       unknown,
       unknown,
       ORPCErrorConstructorMap<TErrorMap>,
-      TMetaDef
+      TMeta
     >,
   ): ConflictContextGuard<MergedContext<TCurrentContext, U>>
-    & RouterBuilder<TInitialContext, MergedContext<TCurrentContext, U>, TErrorMap, TMetaDef> {
+    & RouterBuilder<TInitialContext, MergedContext<TCurrentContext, U>, TErrorMap, TMeta> {
     const builder = new RouterBuilder({
       ...this['~orpc'],
       middlewares: addMiddleware(this['~orpc'].middlewares, middleware),
@@ -91,13 +90,13 @@ export class RouterBuilder<
     return builder as any
   }
 
-  router<U extends Router<TCurrentContext, ContractRouter<ErrorMap & Partial<TErrorMap>, TMetaDef>>>(
+  router<U extends Router<TCurrentContext, ContractRouter<TMeta>>>(
     router: U,
   ): AdaptedRouter<U, TInitialContext, TErrorMap> {
     return adaptRouter(router, this['~orpc'])
   }
 
-  lazy<U extends Router<TCurrentContext, ContractRouter<ErrorMap & Partial<TErrorMap>, TMetaDef>>>(
+  lazy<U extends Router<TCurrentContext, ContractRouter<TMeta>>>(
     loader: () => Promise<{ default: U }>,
   ): AdaptedRouter<FlattenLazy<U>, TInitialContext, TErrorMap> {
     return adaptRouter(flatLazy(lazy(loader)), this['~orpc'])

@@ -9,9 +9,9 @@ import type { ContractProcedureBuilderWithOutput } from './procedure-builder-wit
 import type { MergedRoute } from './route-utils'
 import type { ContractRouterBuilder } from './router-builder'
 import type { AdaptedContractRouter } from './router-utils'
-import { baseErrorMap, type baseMeta, type BaseMetaDef, type baseRoute, inputSchema, outputSchema, ping, pong } from '../tests/shared'
+import { baseErrorMap, type baseMeta, type BaseMeta, type baseRoute, inputSchema, outputSchema, ping, pong } from '../tests/shared'
 
-const builder = {} as ContractBuilderWithErrors<typeof baseErrorMap, typeof baseRoute, BaseMetaDef, typeof baseMeta>
+const builder = {} as ContractBuilderWithErrors<typeof baseErrorMap, typeof baseRoute, BaseMeta, typeof baseMeta>
 
 describe('ContractBuilder', () => {
   it('is a contract procedure', () => {
@@ -21,7 +21,7 @@ describe('ContractBuilder', () => {
         undefined,
         typeof baseErrorMap,
         typeof baseRoute,
-        BaseMetaDef,
+        BaseMeta,
         typeof baseMeta
       >
     >()
@@ -32,7 +32,7 @@ describe('ContractBuilder', () => {
       ContractBuilderWithErrors<
         MergedErrorMap<typeof baseErrorMap, StrictErrorMap<ReadonlyDeep<{ INVALID: { message: 'INVALID' } }>>>,
         typeof baseRoute,
-        BaseMetaDef,
+        BaseMeta,
         typeof baseMeta
       >
     >()
@@ -49,7 +49,7 @@ describe('ContractBuilder', () => {
       ContractProcedureBuilder<
         typeof baseErrorMap,
         typeof baseRoute,
-        BaseMetaDef,
+        BaseMeta,
         MergedMeta<typeof baseMeta, ReadonlyDeep<{ log: true }>>
       >
     >()
@@ -63,7 +63,7 @@ describe('ContractBuilder', () => {
       ContractProcedureBuilder<
         typeof baseErrorMap,
         MergedRoute<typeof baseRoute, ReadonlyDeep<{ method: 'GET' }>>,
-        BaseMetaDef,
+        BaseMeta,
         typeof baseMeta
       >
     >()
@@ -78,7 +78,7 @@ describe('ContractBuilder', () => {
         typeof inputSchema,
         typeof baseErrorMap,
         typeof baseRoute,
-        BaseMetaDef,
+        BaseMeta,
         typeof baseMeta
       >
     >()
@@ -93,7 +93,7 @@ describe('ContractBuilder', () => {
         typeof outputSchema,
         typeof baseErrorMap,
         typeof baseRoute,
-        BaseMetaDef,
+        BaseMeta,
         typeof baseMeta
       >
     >()
@@ -104,7 +104,7 @@ describe('ContractBuilder', () => {
 
   it('.prefix', () => {
     expectTypeOf(builder.prefix('/api')).toEqualTypeOf<
-      ContractRouterBuilder<typeof baseErrorMap, '/api', undefined, BaseMetaDef>
+      ContractRouterBuilder<typeof baseErrorMap, '/api', undefined, BaseMeta>
     >()
 
     // @ts-expect-error - invalid prefix
@@ -113,7 +113,7 @@ describe('ContractBuilder', () => {
 
   it('.tag', () => {
     expectTypeOf(builder.tag('tag1', 'tag2')).toEqualTypeOf<
-      ContractRouterBuilder<typeof baseErrorMap, undefined, ['tag1', 'tag2'], BaseMetaDef>
+      ContractRouterBuilder<typeof baseErrorMap, undefined, ['tag1', 'tag2'], BaseMeta>
     >()
 
     // @ts-expect-error - invalid tag
@@ -140,7 +140,7 @@ describe('ContractBuilder', () => {
             typeof outputSchema,
             { BASE: { message: string } },
             { description: string },
-            BaseMetaDef,
+            BaseMeta,
             typeof baseMeta
       >,
     })

@@ -1,4 +1,4 @@
-import { mergeMeta } from './meta-utils'
+import { mergeMeta } from './meta'
 
 it('mergeMeta', () => {
   expect(mergeMeta({}, { a: 2 })).toEqual({ a: 2 })

@@ -71,3 +71,51 @@ export interface Route {
    */
   outputStructure?: OutputStructure
 }
+
+export function mergeRoute(a: Route, b: Route): Route {
+  return { ...a, ...b }
+}
+
+export function prefixRoute(route: Route, prefix: HTTPPath): Route {
+  if (!route.path) {
+    return route
+  }
+
+  return {
+    ...route,
+    path: `${prefix}${route.path}`,
+  }
+}
+export function unshiftTagRoute(route: Route, tags: readonly string[]): Route {
+  return {
+    ...route,
+    tags: [...tags, ...route.tags ?? []],
+  }
+}
+
+export function mergePrefix(a: HTTPPath | undefined, b: HTTPPath): HTTPPath {
+  return a ? `${a}${b}` : b
+}
+
+export function mergeTags(a: readonly string[] | undefined, b: readonly string[]): readonly string[] {
+  return a ? [...a, ...b] : b
+}
+
+export interface AdaptRouteOptions {
+  prefix?: HTTPPath
+  tags?: readonly string[]
+}
+
+export function adaptRoute(route: Route, options: AdaptRouteOptions): Route {
+  let router = route
+
+  if (options.prefix) {
+    router = prefixRoute(router, options.prefix)
+  }
+
+  if (options.tags) {
+    router = unshiftTagRoute(router, options.tags)
+  }
+
+  return router
+}

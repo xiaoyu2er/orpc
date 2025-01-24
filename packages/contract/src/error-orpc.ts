@@ -92,40 +92,44 @@ export const COMMON_ORPC_ERROR_DEFS = {
 
 export type CommonORPCErrorCode = keyof typeof COMMON_ORPC_ERROR_DEFS
 
-export type ORPCErrorOptions<TCode extends string, TData> =
-  & ErrorOptions
-  & { defined?: boolean, code: TCode, status?: number, message?: string }
-  & (undefined extends TData ? { data?: TData } : { data: TData })
+export type ORPCErrorCode = CommonORPCErrorCode | (string & {})
 
-export function fallbackORPCErrorStatus(code: CommonORPCErrorCode | (string & {}), status: number | undefined): number {
+export function fallbackORPCErrorStatus(code: ORPCErrorCode, status: number | undefined): number {
   return status ?? (COMMON_ORPC_ERROR_DEFS as any)[code]?.status ?? 500
 }
 
-export function fallbackORPCErrorMessage(code: CommonORPCErrorCode | (string & {}), message: string | undefined): string {
+export function fallbackORPCErrorMessage(code: ORPCErrorCode, message: string | undefined): string {
   return message || (COMMON_ORPC_ERROR_DEFS as any)[code]?.message || code
 }
 
-export class ORPCError<TCode extends CommonORPCErrorCode | (string & {}), TData> extends Error {
+export type ORPCErrorOptions< TData> =
+  & ErrorOptions
+  & { defined?: boolean, status?: number, message?: string }
+  & (undefined extends TData ? { data?: TData } : { data: TData })
+
+export type ORPCErrorOptionsRest<TData> =
+  | [options: ORPCErrorOptions<TData>]
+  | (undefined extends TData ? [] : never)
+
+export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
   readonly defined: boolean
   readonly code: TCode
   readonly status: number
   readonly data: TData
 
-  constructor(options: ORPCErrorOptions<TCode, TData>) {
-    if (options.status && (options.status < 400 || options.status >= 600)) {
+  constructor(code: TCode, ...[options]: ORPCErrorOptionsRest<TData>) {
+    if (options?.status && (options.status < 400 || options.status >= 600)) {
       throw new Error('[ORPCError] The error status code must be in the 400-599 range.')
     }
 
-    const message = fallbackORPCErrorMessage(options.code, options.message)
+    const message = fallbackORPCErrorMessage(code, options?.message)
 
     super(message, options)
 
-    this.code = options.code
-    this.status = fallbackORPCErrorStatus(options.code, options.status)
-    this.defined = options.defined ?? false
-
-    // data only optional when TData is undefinable so can safely cast here
-    this.data = options.data as TData
+    this.code = code
+    this.status = fallbackORPCErrorStatus(code, options?.status)
+    this.defined = options?.defined ?? false
+    this.data = options?.data as TData // data only optional when TData is undefinable so can safely cast here
   }
 
   toJSON(): ORPCErrorJSON<TCode, TData> {
@@ -136,6 +140,10 @@ export class ORPCError<TCode extends CommonORPCErrorCode | (string & {}), TData>
       message: this.message,
       data: this.data,
     }
+  }
+
+  fromJSON<TCode extends ORPCErrorCode, TData>(json: ORPCErrorJSON<TCode, TData>): ORPCError<TCode, TData> {
+    return new ORPCError(json.code, json)
   }
 
   static isValidJSON(json: unknown): json is ORPCErrorJSON<string, unknown> {

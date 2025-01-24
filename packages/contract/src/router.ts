@@ -1,11 +1,68 @@
-import type { ErrorMap } from './error-map'
 import type { Meta } from './meta'
-import type { ContractProcedure } from './procedure'
+import type { SchemaInput, SchemaOutput } from './schema'
+import { type ErrorMap, type MergedErrorMap, mergeErrorMap } from './error-map'
+import { ContractProcedure, isContractProcedure } from './procedure'
+import { adaptRoute, type HTTPPath } from './route'
 
-export type ContractRouter<TErrorMap extends ErrorMap, TMetaDef extends Meta> =
-  | ContractProcedure<any, any, TErrorMap, any, TMetaDef, any>
+export type ContractRouter<TMeta extends Meta> =
+  | ContractProcedure<any, any, any, TMeta>
   | {
-    [k: string]: ContractRouter<TErrorMap, TMetaDef>
+    [k: string]: ContractRouter<TMeta>
   }
 
-export type AnyContractRouter = ContractRouter<any, any>
+export type AnyContractRouter = ContractRouter<any>
+
+export type AdaptedContractRouter<
+  TContract extends AnyContractRouter,
+  TErrorMap extends ErrorMap,
+> = {
+  [K in keyof TContract]: TContract[K] extends
+  ContractProcedure<infer UInputSchema, infer UOutputSchema, infer UErrors, infer UMeta>
+    ? ContractProcedure<UInputSchema, UOutputSchema, MergedErrorMap<TErrorMap, UErrors>, UMeta>
+    : TContract[K] extends AnyContractRouter
+      ? AdaptedContractRouter<TContract[K], TErrorMap>
+      : never
+}
+
+export interface AdaptContractRouterOptions<TErrorMap extends ErrorMap> {
+  errorMap: TErrorMap
+  prefix?: HTTPPath
+  tags?: readonly string[]
+}
+
+export function adaptContractRouter<TRouter extends ContractRouter<any>, TErrorMap extends ErrorMap>(
+  contract: TRouter,
+  options: AdaptContractRouterOptions<TErrorMap>,
+): AdaptedContractRouter<TRouter, TErrorMap> {
+  if (isContractProcedure(contract)) {
+    const adapted = new ContractProcedure({
+      ...contract['~orpc'],
+      errorMap: mergeErrorMap(options.errorMap, contract['~orpc'].errorMap),
+      route: adaptRoute(contract['~orpc'].route, options),
+    })
+
+    return adapted as any
+  }
+
+  const adapted: Record<string, any> = {}
+
+  for (const key in contract) {
+    adapted[key] = adaptContractRouter(contract[key]!, options)
+  }
+
+  return adapted as any
+}
+
+export type InferContractRouterInputs<T extends AnyContractRouter> =
+  T extends ContractProcedure<infer UInputSchema, any, any, any>
+    ? SchemaInput<UInputSchema>
+    : {
+        [K in keyof T]: T[K] extends AnyContractRouter ? InferContractRouterInputs<T[K]> : never
+      }
+
+export type InferContractRouterOutputs<T extends AnyContractRouter> =
+  T extends ContractProcedure<any, infer UOutputSchema, any, any>
+    ? SchemaOutput<UOutputSchema>
+    : {
+        [K in keyof T]: T[K] extends AnyContractRouter ? InferContractRouterOutputs<T[K]> : never
+      }

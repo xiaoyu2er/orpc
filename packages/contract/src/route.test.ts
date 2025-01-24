@@ -1,9 +1,4 @@
-import { baseRoute } from '../tests/shared'
-import { adaptRoute, createStrictRoute, mergePrefix, mergeRoute, mergeTags, prefixRoute, unshiftTagRoute } from './route-utils'
-
-it('crateStrictRoute', () => {
-  expect(createStrictRoute(baseRoute)).toBe(baseRoute)
-})
+import { adaptRoute, mergePrefix, mergeRoute, mergeTags, prefixRoute, unshiftTagRoute } from './route'
 
 it('mergeRoute', () => {
   expect(mergeRoute({ path: '/api' }, { path: '/v1' })).toEqual({ path: '/v1' })
@@ -41,23 +36,30 @@ it('adaptRoute', () => {
     description: 'description',
   } as const
 
-  expect(adaptRoute(route, '/adapt', ['adapt'])).toEqual({
+  expect(adaptRoute(route, {
+    prefix: '/adapt',
+    tags: ['adapt'],
+  })).toEqual({
     path: '/adapt/api/v1',
     tags: ['adapt', 'tag'],
     description: 'description',
   })
 
-  expect(adaptRoute(route, '/adapt', undefined)).toEqual({
+  expect(adaptRoute(route, {
+    prefix: '/adapt',
+  })).toEqual({
     path: '/adapt/api/v1',
     tags: ['tag'],
     description: 'description',
   })
 
-  expect(adaptRoute(route, undefined, ['adapt'])).toEqual({
+  expect(adaptRoute(route, {
+    tags: ['adapt'],
+  })).toEqual({
     path: '/api/v1',
     tags: ['adapt', 'tag'],
     description: 'description',
   })
 
-  expect(adaptRoute(route, undefined, undefined)).toBe(route)
+  expect(adaptRoute(route, {})).toBe(route)
 })

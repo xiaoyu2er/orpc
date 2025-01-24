@@ -5,13 +5,15 @@ import { ContractProcedureBuilder } from './procedure-builder'
 import { ContractProcedureBuilderWithInput } from './procedure-builder-with-input'
 import { ContractProcedureBuilderWithOutput } from './procedure-builder-with-output'
 
-const builder = new ContractProcedureBuilder({
+const def = {
   inputSchema: undefined,
   outputSchema: undefined,
   errorMap: baseErrorMap,
   route: baseRoute,
   meta: baseMeta,
-})
+}
+
+const builder = new ContractProcedureBuilder(def)
 
 describe('decoratedContractProcedure', () => {
   it('is a procedure', () => {
@@ -19,13 +21,18 @@ describe('decoratedContractProcedure', () => {
   })
 
   it('.errors', () => {
-    const errors = { BAD_GATEWAY: { data: z.object({ message: z.string() }) } } as const
+    const errors = {
+      BAD_GATEWAY: { data: z.object({ message: z.string() }) },
+      BASE2: { data: z.object({ message: z.string() }) },
+    } as const
+
     const applied = builder.errors(errors)
     expect(applied).toBeInstanceOf(ContractProcedureBuilder)
     expect(applied).not.toBe(builder)
-    expect(applied['~orpc'].errorMap).toEqual({ ...baseErrorMap, ...errors })
-    expect(applied['~orpc'].route).toEqual(baseRoute)
-    expect(applied['~orpc'].meta).toEqual(baseMeta)
+    expect(applied['~orpc']).toEqual({
+      ...def,
+      errorMap: { ...def.errorMap, ...errors },
+    })
   })
 
   it('.meta', () => {
@@ -33,9 +40,10 @@ describe('decoratedContractProcedure', () => {
     const applied = builder.meta(meta)
     expect(applied).toBeInstanceOf(ContractProcedureBuilder)
     expect(applied).not.toBe(builder)
-    expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
-    expect(applied['~orpc'].route).toEqual(baseRoute)
-    expect(applied['~orpc'].meta).toEqual({ ...baseMeta, ...meta })
+    expect(applied['~orpc']).toEqual({
+      ...def,
+      meta: { ...def.meta, ...meta },
+    })
   })
 
   it('.route', () => {
@@ -43,26 +51,27 @@ describe('decoratedContractProcedure', () => {
     const applied = builder.route(route)
     expect(applied).toBeInstanceOf(ContractProcedureBuilder)
     expect(applied).not.toBe(builder)
-    expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
-    expect(applied['~orpc'].route).toEqual({ ...baseRoute, ...route })
-    expect(applied['~orpc'].meta).toEqual(baseMeta)
+    expect(applied['~orpc']).toEqual({
+      ...def,
+      route: { ...def.route, ...route },
+    })
   })
 
   it('.input', () => {
     const applied = builder.input(inputSchema)
     expect(applied).toBeInstanceOf(ContractProcedureBuilderWithInput)
-    expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
-    expect(applied['~orpc'].inputSchema).toEqual(inputSchema)
-    expect(applied['~orpc'].route).toEqual(baseRoute)
-    expect(applied['~orpc'].meta).toEqual(baseMeta)
+    expect(applied['~orpc']).toEqual({
+      ...def,
+      inputSchema,
+    })
   })
 
   it('.output', () => {
     const applied = builder.output(outputSchema)
     expect(applied).toBeInstanceOf(ContractProcedureBuilderWithOutput)
-    expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
-    expect(applied['~orpc'].outputSchema).toEqual(outputSchema)
-    expect(applied['~orpc'].route).toEqual(baseRoute)
-    expect(applied['~orpc'].meta).toEqual(baseMeta)
+    expect(applied['~orpc']).toEqual({
+      ...def,
+      outputSchema,
+    })
   })
 })

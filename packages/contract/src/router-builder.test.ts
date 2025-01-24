@@ -1,6 +1,6 @@
 import { baseErrorMap, ping, pong } from '../tests/shared'
+import * as Router from './router'
 import { ContractRouterBuilder } from './router-builder'
-import * as Router from './router-utils'
 
 const adaptContractRouterSpy = vi.spyOn(Router, 'adaptContractRouter')
 

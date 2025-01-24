@@ -1,17 +1,16 @@
-import type { ReadonlyDeep } from '@orpc/shared'
-import type { baseErrorMap, baseMeta, BaseMetaDef, outputSchema } from '../tests/shared'
-import type { MergedErrorMap, StrictErrorMap } from './error-map'
+import type { baseErrorMap, BaseMeta, outputSchema } from '../tests/shared'
+import type { MergedErrorMap } from './error-map'
 import type { ContractProcedure } from './procedure'
+import type { AdaptedContractRouter } from './router'
 import type { ContractRouterBuilder } from './router-builder'
-import type { AdaptedContractRouter } from './router-utils'
 import { ping, pong } from '../tests/shared'
 
-const builder = {} as ContractRouterBuilder<typeof baseErrorMap, '/api', ['api'], BaseMetaDef>
+const builder = {} as ContractRouterBuilder<typeof baseErrorMap, BaseMeta>
 
 describe('ContractRouterBuilder', () => {
   it('.prefix', () => {
     expectTypeOf(builder.prefix('/api')).toEqualTypeOf<
-      ContractRouterBuilder<typeof baseErrorMap, '/api/api', ['api'], BaseMetaDef>
+      typeof builder
     >()
 
     // @ts-expect-error - invalid prefix
@@ -20,7 +19,7 @@ describe('ContractRouterBuilder', () => {
 
   it('.tag', () => {
     expectTypeOf(builder.tag('tag', 'tag2')).toEqualTypeOf<
-      ContractRouterBuilder<typeof baseErrorMap, '/api', ['api', 'tag', 'tag2'], BaseMetaDef>
+      typeof builder
     >()
 
     // @ts-expect-error - invalid tag
@@ -30,18 +29,13 @@ describe('ContractRouterBuilder', () => {
   it('.errors', () => {
     expectTypeOf(builder.errors({ INVALID: { message: 'INVALID' } })).toEqualTypeOf<
       ContractRouterBuilder<
-        MergedErrorMap<typeof baseErrorMap, StrictErrorMap<ReadonlyDeep<{ INVALID: { message: 'INVALID' } }>>>,
-        '/api',
-        ['api'],
-        BaseMetaDef
+        MergedErrorMap<typeof baseErrorMap, { INVALID: { message: string } }>,
+        BaseMeta
       >
     >()
 
     // @ts-expect-error - schema is invalid
     builder.errors({ TOO_MANY_REQUESTS: { data: {} } })
-
-    // @ts-expect-error - not allow redefine errorMap
-    builder.errors({ BASE: baseErrorMap.BASE })
   })
 
   it('.router', () => {
@@ -51,7 +45,7 @@ describe('ContractRouterBuilder', () => {
     }
 
     expectTypeOf(builder.router(router)).toEqualTypeOf<
-      AdaptedContractRouter<typeof router, typeof baseErrorMap, '/api', ['api']>
+      AdaptedContractRouter<typeof router, typeof baseErrorMap>
     >()
 
     // @ts-expect-error - invalid router
@@ -64,8 +58,8 @@ describe('ContractRouterBuilder', () => {
         typeof outputSchema,
         { BASE: { message: string } },
         { description: string },
-        BaseMetaDef,
-        typeof baseMeta
+        BaseMeta,
+        BaseMeta
       >,
     })
 

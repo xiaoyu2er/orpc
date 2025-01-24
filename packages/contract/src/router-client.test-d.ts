@@ -12,7 +12,7 @@ const router = {
 }
 
 describe('ContractRouterClient', () => {
-  it('compatible with NestedClient', () => {
+  it('is a NestedClient', () => {
     expectTypeOf<ContractRouterClient<typeof router, unknown>>().toMatchTypeOf<NestedClient<unknown>>()
     expectTypeOf<ContractRouterClient<typeof router, 'invalid'>>().not.toMatchTypeOf<NestedClient<unknown>>()
   })

@@ -1,6 +1,6 @@
 import { baseErrorMap, ping, pong } from '../tests/shared'
+import * as Router from './router'
 import { ContractRouterBuilder } from './router-builder'
-import * as Router from './router-utils'
 
 const adaptContractRouterSpy = vi.spyOn(Router, 'adaptContractRouter')
 
@@ -38,6 +38,10 @@ describe('contractRouterBuilder', () => {
     const applied = builder.router(router)
     expect(applied).toBe(adaptContractRouterSpy.mock.results[0]!.value)
     expect(adaptContractRouterSpy).toBeCalledTimes(1)
-    expect(adaptContractRouterSpy).toHaveBeenCalledWith(router, baseErrorMap, '/api', ['tag'])
+    expect(adaptContractRouterSpy).toHaveBeenCalledWith(router, {
+      errorMap: baseErrorMap,
+      prefix: '/api',
+      tags: ['tag'],
+    })
   })
 })

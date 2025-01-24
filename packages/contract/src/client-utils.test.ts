@@ -9,11 +9,11 @@ it('safe', async () => {
   const r2 = await safe(Promise.reject(e2))
   expect(r2).toEqual([undefined, e2, false])
 
-  const e3 = new ORPCError({ code: 'BAD_GATEWAY', defined: true })
+  const e3 = new ORPCError('BAD_GATEWAY', { defined: true })
   const r3 = await safe(Promise.reject(e3))
   expect(r3).toEqual([undefined, e3, true])
 
-  const e4 = new ORPCError({ code: 'BAD_GATEWAY' })
+  const e4 = new ORPCError('BAD_GATEWAY')
   const r4 = await safe(Promise.reject(e4))
   expect(r4).toEqual([undefined, e4, false])
 })

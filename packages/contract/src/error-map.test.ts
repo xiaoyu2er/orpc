@@ -1,11 +1,9 @@
 import { baseErrorMap } from '../tests/shared'
-import { createStrictErrorMap, mergeErrorMap } from './error-map'
-
-it('createStrictErrorMap', () => {
-  expect(createStrictErrorMap(baseErrorMap)).toBe(baseErrorMap)
-})
+import { mergeErrorMap } from './error-map'
 
 it('mergeErrorMap', () => {
   expect(mergeErrorMap(baseErrorMap, baseErrorMap)).toEqual(baseErrorMap)
-  expect(mergeErrorMap(baseErrorMap, { BASE: {}, INVALID: {} })).toEqual({ BASE: {}, INVALID: {} })
+  expect(mergeErrorMap(baseErrorMap, { OVERRIDE: {}, INVALID: {} })).toEqual(
+    { OVERRIDE: {}, INVALID: {}, BASE: baseErrorMap.BASE },
+  )
 })

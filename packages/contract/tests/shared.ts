@@ -1,5 +1,3 @@
-import type { ReadonlyDeep } from '@orpc/shared'
-import type { StrictErrorMap, StrictMeta, StrictRoute } from '../src'
 import type { Meta } from '../src/meta'
 import { z } from 'zod'
 import { ContractProcedure } from '../src'
@@ -8,20 +6,20 @@ export const inputSchema = z.object({ input: z.number().transform(n => `${n}`) }
 
 export const outputSchema = z.object({ output: z.number().transform(n => `${n}`) })
 
-// StrictErrorMap and ReadonlyDeep make the type more real like built from oc
-export const baseErrorMap: StrictErrorMap<ReadonlyDeep<{ BASE: { data: typeof outputSchema } }>> = {
+export const baseErrorMap = {
   BASE: {
+    data: outputSchema,
+  },
+  OVERRIDE: {
     data: outputSchema,
   },
 }
 
-// StrictErrorMap and ReadonlyDeep make the type more real like built from oc
-export const baseRoute: StrictRoute<ReadonlyDeep<{ path: '/base' }>> = { path: '/base' }
+export const baseRoute = { path: '/base' } as const
 
-export type BaseMetaDef = { mode?: string, log?: boolean }
+export type BaseMeta = { mode?: string, log?: boolean }
 
-// StrictErrorMap and ReadonlyDeep make the type more real like built from oc
-export const baseMeta: StrictMeta<BaseMetaDef, ReadonlyDeep<{ mode: 'dev' }>> = {
+export const baseMeta: BaseMeta = {
   mode: 'dev',
 }
 
@@ -29,9 +27,7 @@ export const ping = new ContractProcedure<
   typeof inputSchema,
   typeof outputSchema,
   typeof baseErrorMap,
-  typeof baseRoute,
-  BaseMetaDef,
-  typeof baseMeta
+  BaseMeta
 >({
   inputSchema,
   outputSchema,
@@ -44,9 +40,7 @@ export const pong = new ContractProcedure<
   undefined,
   undefined,
   Record<never, never>,
-  Record<never, never>,
-  Meta,
-  Record<never, never>
+  Meta
 >({
   errorMap: {},
   inputSchema: undefined,

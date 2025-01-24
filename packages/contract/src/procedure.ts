@@ -1,5 +1,5 @@
 import type { ErrorMap } from './error-map'
-import type { Meta, TypeMeta } from './meta'
+import type { Meta } from './meta'
 import type { Route } from './route'
 import type { Schema } from './schema'
 
@@ -7,13 +7,10 @@ export interface ContractProcedureDef<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   TErrorMap extends ErrorMap,
-  TRoute extends Route,
-  TMetaDef extends Meta,
-  TMeta extends TMetaDef,
+  TMeta extends Meta,
 > {
-  __metaDef?: TypeMeta<TMetaDef>
   meta: TMeta
-  route: TRoute
+  route: Route
   inputSchema: TInputSchema
   outputSchema: TOutputSchema
   errorMap: TErrorMap
@@ -23,13 +20,11 @@ export class ContractProcedure<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   TErrorMap extends ErrorMap,
-  TRoute extends Route,
-  TMetaDef extends Meta,
-  TMeta extends TMetaDef,
+  TMeta extends Meta,
 > {
-  '~orpc': ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TRoute, TMetaDef, TMeta>
+  '~orpc': ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>
 
-  constructor(def: ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TRoute, TMetaDef, TMeta>) {
+  constructor(def: ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>) {
     if (def.route?.successStatus && (def.route.successStatus < 200 || def.route?.successStatus > 299)) {
       throw new Error('[ContractProcedure] The successStatus must be between 200 and 299')
     }
@@ -42,7 +37,7 @@ export class ContractProcedure<
   }
 }
 
-export type AnyContractProcedure = ContractProcedure<any, any, any, any, any, any>
+export type AnyContractProcedure = ContractProcedure<any, any, any, any>
 
 export function isContractProcedure(item: unknown): item is AnyContractProcedure {
   if (item instanceof ContractProcedure) {

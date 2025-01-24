@@ -1,4 +1,4 @@
-import { type } from './schema-utils'
+import { type } from './schema'
 
 describe('type', async () => {
   it('without map', async () => {

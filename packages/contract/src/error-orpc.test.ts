@@ -16,7 +16,7 @@ it('fallbackORPCErrorMessage', () => {
 
 describe('oRPCError', () => {
   it('works', () => {
-    const error = new ORPCError({ defined: true, code: 'BAD_GATEWAY', status: 500, message: 'message', data: 'data', cause: 'cause' })
+    const error = new ORPCError('BAD_GATEWAY', { defined: true, status: 500, message: 'message', data: 'data', cause: 'cause' })
     expect(error.defined).toBe(true)
     expect(error.code).toBe('BAD_GATEWAY')
     expect(error.status).toBe(500)
@@ -26,27 +26,27 @@ describe('oRPCError', () => {
   })
 
   it('default defined=false', () => {
-    const error = new ORPCError({ code: 'BAD_GATEWAY' })
+    const error = new ORPCError('BAD_GATEWAY')
     expect(error.defined).toBe(false)
   })
 
   it('fallback status', () => {
-    const error = new ORPCError({ code: 'BAD_GATEWAY' })
+    const error = new ORPCError('BAD_GATEWAY')
     expect(error.status).toBe(502)
   })
 
   it('fallback message', () => {
-    const error = new ORPCError({ code: 'BAD_GATEWAY' })
+    const error = new ORPCError('BAD_GATEWAY')
     expect(error.message).toBe('Bad Gateway')
   })
 
   it('oRPCError throw when invalid status', () => {
-    expect(() => new ORPCError({ code: 'BAD_GATEWAY', status: 100 })).toThrowError()
-    expect(() => new ORPCError({ code: 'BAD_GATEWAY', status: -1 })).toThrowError()
+    expect(() => new ORPCError('BAD_GATEWAY', { status: 100 })).toThrowError()
+    expect(() => new ORPCError('BAD_GATEWAY', { status: -1 })).toThrowError()
   })
 
   it('toJSON', () => {
-    const error = new ORPCError({ code: 'BAD_GATEWAY', status: 500, message: 'message', data: 'data', cause: 'cause' })
+    const error = new ORPCError('BAD_GATEWAY', { status: 500, message: 'message', data: 'data', cause: 'cause' })
     expect(error.toJSON()).toEqual({
       defined: false,
       code: 'BAD_GATEWAY',
@@ -56,8 +56,23 @@ describe('oRPCError', () => {
     })
   })
 
+  it('fromJSON', () => {
+    const error = ORPCError.fromJSON({
+      defined: true,
+      code: 'BAD_GATEWAY',
+      status: 500,
+      message: 'message',
+      data: 'data',
+    })
+    expect(error.defined).toBe(true)
+    expect(error.code).toBe('BAD_GATEWAY')
+    expect(error.status).toBe(500)
+    expect(error.message).toBe('message')
+    expect(error.data).toBe('data')
+  })
+
   it('isValidJSON', () => {
-    const error = new ORPCError({ code: 'BAD_GATEWAY', status: 500, message: 'message', data: 'data', cause: 'cause' })
+    const error = new ORPCError('BAD_GATEWAY', { status: 500, message: 'message', data: 'data', cause: 'cause' })
     expect(ORPCError.isValidJSON(error.toJSON())).toBe(true)
     expect(ORPCError.isValidJSON({})).toBe(false)
     expect(ORPCError.isValidJSON({ defined: true })).toBe(false)

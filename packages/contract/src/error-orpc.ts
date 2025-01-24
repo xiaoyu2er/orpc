@@ -142,7 +142,7 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
     }
   }
 
-  fromJSON<TCode extends ORPCErrorCode, TData>(json: ORPCErrorJSON<TCode, TData>): ORPCError<TCode, TData> {
+  static fromJSON<TCode extends ORPCErrorCode, TData>(json: ORPCErrorJSON<TCode, TData>): ORPCError<TCode, TData> {
     return new ORPCError(json.code, json)
   }
 

@@ -17,7 +17,7 @@ export class ContractBuilderWithErrors<
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > extends ContractProcedure<undefined, undefined, TErrorMap, TMeta> {
-  errors<const U extends ErrorMap>(
+  errors<U extends ErrorMap>(
     errors: U,
   ): ContractBuilderWithErrors<MergedErrorMap<TErrorMap, U>, TMeta> {
     return new ContractBuilderWithErrors({

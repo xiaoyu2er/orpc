@@ -105,6 +105,8 @@ describe('contractBuilder', () => {
     expect(applied).toBe(adaptContractRouterSpy.mock.results[0]?.value)
 
     expect(adaptContractRouterSpy).toBeCalledTimes(1)
-    expect(adaptContractRouterSpy).toBeCalledWith(router, baseErrorMap, undefined, undefined)
+    expect(adaptContractRouterSpy).toBeCalledWith(router, expect.objectContaining({
+      errorMap: baseErrorMap,
+    }))
   })
 })

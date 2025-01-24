@@ -38,6 +38,10 @@ describe('contractRouterBuilder', () => {
     const applied = builder.router(router)
     expect(applied).toBe(adaptContractRouterSpy.mock.results[0]!.value)
     expect(adaptContractRouterSpy).toBeCalledTimes(1)
-    expect(adaptContractRouterSpy).toHaveBeenCalledWith(router, baseErrorMap, '/api', ['tag'])
+    expect(adaptContractRouterSpy).toHaveBeenCalledWith(router, {
+      errorMap: baseErrorMap,
+      prefix: '/api',
+      tags: ['tag'],
+    })
   })
 })

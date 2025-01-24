@@ -7,7 +7,7 @@ import { isLazy } from './lazy'
 import { createLazyProcedureFormAnyLazy } from './lazy-utils'
 import { isProcedure } from './procedure'
 import { createProcedureClient } from './procedure-client'
-import { getRouterChild } from './router-utils'
+import { getRouterChild } from './router'
 
 export type RouterClient<TRouter extends AnyRouter, TClientContext> = TRouter extends Lazy<infer U extends AnyRouter>
   ? RouterClient<U, TClientContext>

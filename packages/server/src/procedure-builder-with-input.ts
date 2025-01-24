@@ -44,7 +44,7 @@ export class ProcedureBuilderWithInput<
     this['~orpc'] = def
   }
 
-  errors<const U extends ErrorMap>(
+  errors<U extends ErrorMap>(
     errors: U,
   ): ProcedureBuilderWithInput<
       TInitialContext,

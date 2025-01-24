@@ -1,11 +1,10 @@
-import type { MergedErrorMap, Meta, Route } from '@orpc/contract'
-import type { baseErrorMap, baseMeta, inputSchema, outputSchema } from '../../contract/tests/shared'
+import type { MergedErrorMap, Meta } from '@orpc/contract'
+import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../../contract/tests/shared'
 import type { CurrentContext, InitialContext } from '../tests/shared'
 import type { Context } from './context'
 import type { Lazy } from './lazy'
 import type { Procedure } from './procedure'
-import type { Router } from './router'
-import type { AdaptedRouter, InferRouterInputs, InferRouterOutputs } from './router-utils'
+import type { AdaptedRouter, InferRouterInputs, InferRouterOutputs, Router } from './router'
 import { ping, pong, router } from '../tests/shared'
 
 describe('Router', () => {
@@ -39,67 +38,60 @@ it('InferRouterOutputs', () => {
 })
 
 it('AdaptedRouter', () => {
-    type Applied = AdaptedRouter<typeof router, InitialContext, typeof baseErrorMap>
+  type TErrorMap = { INVALID: { message: string }, OVERRIDE: { message: string } }
+  type Applied = AdaptedRouter<typeof router, InitialContext, TErrorMap>
 
-    expectTypeOf<Applied['ping']>().toEqualTypeOf<
-      Lazy<
-        Procedure<
-          InitialContext,
-          CurrentContext,
-            typeof inputSchema,
-            typeof outputSchema,
-            { output: number },
-            typeof baseErrorMap,
-            Route,
-            BaseMeta,
-            typeof baseMeta
-        >
+  expectTypeOf<Applied['ping']>().toEqualTypeOf<
+    Lazy<
+      Procedure<
+        InitialContext,
+        CurrentContext,
+          typeof inputSchema,
+          typeof outputSchema,
+          { output: number },
+          MergedErrorMap <TErrorMap, typeof baseErrorMap>,
+          BaseMeta
       >
-    >()
+    >
+  >()
 
-    expectTypeOf<Applied['nested']['ping']>().toEqualTypeOf<
-      Lazy<
-        Procedure<
-          InitialContext,
-          CurrentContext,
-            typeof inputSchema,
-            typeof outputSchema,
-            { output: number },
-            typeof baseErrorMap,
-            Route,
-            BaseMeta,
-            typeof baseMeta
-        >
+  expectTypeOf<Applied['nested']['ping']>().toEqualTypeOf<
+    Lazy<
+      Procedure<
+        InitialContext,
+        CurrentContext,
+          typeof inputSchema,
+          typeof outputSchema,
+          { output: number },
+          MergedErrorMap<TErrorMap, typeof baseErrorMap>,
+          BaseMeta
       >
-    >()
+    >
+  >()
 
-    expectTypeOf<Applied['pong']>().toEqualTypeOf<
+  expectTypeOf<Applied['pong']>().toEqualTypeOf<
+    Procedure<
+      InitialContext,
+      Context,
+      undefined,
+      undefined,
+      unknown,
+      MergedErrorMap<TErrorMap, Record<never, never>>,
+      Meta
+    >
+  >()
+
+  expectTypeOf<Applied['nested']['pong']>().toEqualTypeOf<
+    Lazy<
       Procedure<
         InitialContext,
         Context,
         undefined,
         undefined,
         unknown,
-        MergedErrorMap<typeof baseErrorMap, Record<never, never>>,
-        Route,
-        Meta,
-        Record<never, never>
+        MergedErrorMap<TErrorMap, Record<never, never>>,
+        Meta
       >
-    >()
-
-    expectTypeOf<Applied['nested']['pong']>().toEqualTypeOf<
-      Lazy<
-        Procedure<
-          InitialContext,
-          Context,
-          undefined,
-          undefined,
-          unknown,
-          MergedErrorMap<typeof baseErrorMap, Record<never, never>>,
-          Route,
-          Meta,
-          Record<never, never>
-        >
-      >
-    >()
+    >
+  >()
 })

@@ -5,8 +5,8 @@ import type { ORPCErrorConstructorMap } from './error'
 import type { Lazy } from './lazy'
 import type { MiddlewareOutputFn } from './middleware'
 import type { Procedure } from './procedure'
+import type { AdaptedRouter } from './router'
 import type { RouterBuilder } from './router-builder'
-import type { AdaptedRouter } from './router-utils'
 import { type CurrentContext, type InitialContext, router } from '../tests/shared'
 
 const builder = {} as RouterBuilder<InitialContext, CurrentContext, typeof baseErrorMap, BaseMeta>

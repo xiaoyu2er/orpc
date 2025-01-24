@@ -468,8 +468,8 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     })
 
     it('validate ORPC Error', async () => {
-      const e1 = new ORPCError({ code: 'BAD_REQUEST' })
-      const e2 = new ORPCError({ code: 'BAD_REQUEST', defined: true })
+      const e1 = new ORPCError('BAD_REQUEST')
+      const e2 = new ORPCError('BAD_REQUEST', { defined: true })
 
       handler.mockRejectedValueOnce(e1)
       vi.mocked(validateORPCError).mockReturnValueOnce(Promise.resolve(e2))

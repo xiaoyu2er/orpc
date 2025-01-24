@@ -1,8 +1,8 @@
 import { baseErrorMap } from '../../contract/tests/shared'
 import { router } from '../tests/shared'
 import { getLazyMeta, unlazy } from './lazy'
+import * as RouterUtils from './router'
 import { RouterBuilder } from './router-builder'
-import * as RouterUtils from './router-utils'
 
 const adaptRouterSpy = vi.spyOn(RouterUtils, 'adaptRouter')
 

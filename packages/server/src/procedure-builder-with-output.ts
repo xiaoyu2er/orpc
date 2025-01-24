@@ -43,7 +43,7 @@ export class ProcedureBuilderWithOutput<
     this['~orpc'] = def
   }
 
-  errors<const U extends ErrorMap>(
+  errors<U extends ErrorMap>(
     errors: U,
   ): ProcedureBuilderWithOutput<TInitialContext, TCurrentContext, TOutputSchema, MergedErrorMap<TErrorMap, U>, TMeta> {
     return new ProcedureBuilderWithOutput({

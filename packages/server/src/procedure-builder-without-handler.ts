@@ -60,7 +60,7 @@ export class ProcedureBuilderWithoutHandler<
     this['~orpc'] = def
   }
 
-  errors<const U extends ErrorMap>(
+  errors<U extends ErrorMap>(
     errors: U,
   ): ProcedureBuilderWithoutHandler<
       TInitialContext,

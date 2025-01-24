@@ -2,7 +2,7 @@ import type { Lazy } from './lazy'
 import type { AnyProcedure } from './procedure'
 import type { AnyRouter } from './router'
 import { flatLazy } from './lazy-utils'
-import { getRouterChild } from './router-utils'
+import { getRouterChild } from './router'
 
 export type AccessibleLazyRouter<T extends AnyRouter | undefined | Lazy<AnyRouter | undefined>> =
   T extends Lazy<infer U extends AnyRouter | undefined | Lazy<AnyRouter | undefined>>

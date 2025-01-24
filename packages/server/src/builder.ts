@@ -82,8 +82,8 @@ export class Builder<
   /**
    * Reset initial route
    */
-  $route<const U extends Route>(
-    initialRoute: U,
+  $route(
+    initialRoute: Route,
   ): Builder<TInitialContext, TMeta> {
     return new Builder({
       ...this['~orpc'],

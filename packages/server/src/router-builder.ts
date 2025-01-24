@@ -3,13 +3,12 @@ import type { ConflictContextGuard, Context, MergedContext, TypeCurrentContext, 
 import type { ORPCErrorConstructorMap } from './error'
 import type { FlattenLazy } from './lazy-utils'
 import type { AnyMiddleware, Middleware } from './middleware'
-import type { Router } from './router'
-import type { AdaptedRouter } from './router-utils'
+import type { AdaptedRouter, Router } from './router'
 import { mergePrefix, mergeTags } from '@orpc/contract'
 import { lazy } from './lazy'
 import { flatLazy } from './lazy-utils'
 import { addMiddleware } from './middleware-utils'
-import { adaptRouter } from './router-utils'
+import { adaptRouter } from './router'
 
 export type RouterBuilderDef<
   TInitialContext extends Context,

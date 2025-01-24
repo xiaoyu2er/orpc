@@ -9,9 +9,9 @@ import { ProcedureBuilder } from './procedure-builder'
 import { ProcedureBuilderWithInput } from './procedure-builder-with-input'
 import { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
 import { DecoratedProcedure } from './procedure-decorated'
+import * as RouterUtils from './router'
 import * as RouterAccessibleLazy from './router-accessible-lazy'
 import { RouterBuilder } from './router-builder'
-import * as RouterUtils from './router-utils'
 
 const decorateMiddlewareSpy = vi.spyOn(MiddlewareDecorated, 'decorateMiddleware')
 const adaptRouterSpy = vi.spyOn(RouterUtils, 'adaptRouter')

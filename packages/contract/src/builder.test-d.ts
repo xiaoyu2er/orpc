@@ -1,13 +1,14 @@
+import type { baseErrorMap, BaseMeta } from '../tests/shared'
 import type { ContractBuilder } from './builder'
-import type { ContractBuilderWithErrors } from './builder-with-errors'
+import type { MergedErrorMap } from './error-map'
 import type { ContractProcedure } from './procedure'
 import type { ContractProcedureBuilder } from './procedure-builder'
-import type { ContractProcedureBuilderWithInput } from './procedure-builder-with-input'
-import type { ContractProcedureBuilderWithOutput } from './procedure-builder-with-output'
+import type { ContractProcedureBuilderWithoutInputMethods, ContractProcedureBuilderWithoutOutputMethods } from './procedure-builder-variants'
+import type { AdaptedContractRouter } from './router'
 import type { ContractRouterBuilder } from './router-builder'
-import { baseErrorMap, type BaseMeta, inputSchema, outputSchema, ping, pong } from '../tests/shared'
+import { inputSchema, outputSchema, ping, pong } from '../tests/shared'
 
-const builder = {} as ContractBuilder<BaseMeta>
+const builder = {} as ContractBuilder<typeof baseErrorMap, BaseMeta>
 
 describe('ContractBuilder', () => {
   it('is a contract procedure', () => {
@@ -25,7 +26,7 @@ describe('ContractBuilder', () => {
     type MetaDef = { meta1?: string, meta2?: number }
 
     expectTypeOf(builder.$meta<MetaDef>({ meta1: 'value' })).toEqualTypeOf<
-      ContractBuilder<MetaDef>
+      ContractBuilder<typeof baseErrorMap, MetaDef>
     >()
 
     // @ts-expect-error - invalid initial meta
@@ -42,8 +43,11 @@ describe('ContractBuilder', () => {
   })
 
   it('.errors', () => {
-    expectTypeOf(builder.errors(baseErrorMap)).toEqualTypeOf<
-      ContractBuilderWithErrors<typeof baseErrorMap, BaseMeta>
+    expectTypeOf(builder.errors({ INVALID: { message: 'invalid' }, OVERRIDE: { message: 'override' } })).toEqualTypeOf<
+      ContractBuilder<
+        MergedErrorMap<typeof baseErrorMap, { INVALID: { message: string }, OVERRIDE: { message: string } }>,
+        BaseMeta
+      >
     >()
 
     // @ts-expect-error - schema is invalid
@@ -53,7 +57,9 @@ describe('ContractBuilder', () => {
   it('.meta', () => {
     expectTypeOf(builder.meta({ log: true })).toEqualTypeOf<
       ContractProcedureBuilder<
-        Record<never, never>,
+        undefined,
+        undefined,
+        typeof baseErrorMap,
         BaseMeta
       >
     >()
@@ -65,7 +71,9 @@ describe('ContractBuilder', () => {
   it('.route', () => {
     expectTypeOf(builder.route({ method: 'GET' })).toEqualTypeOf<
       ContractProcedureBuilder<
-        Record<never, never>,
+        undefined,
+        undefined,
+        typeof baseErrorMap,
         BaseMeta
       >
     >()
@@ -76,9 +84,10 @@ describe('ContractBuilder', () => {
 
   it('.input', () => {
     expectTypeOf(builder.input(inputSchema)).toEqualTypeOf<
-      ContractProcedureBuilderWithInput<
+      ContractProcedureBuilderWithoutInputMethods<
         typeof inputSchema,
-        Record<never, never>,
+        undefined,
+        typeof baseErrorMap,
         BaseMeta
       >
     >()
@@ -89,9 +98,10 @@ describe('ContractBuilder', () => {
 
   it('.output', () => {
     expectTypeOf(builder.output(outputSchema)).toEqualTypeOf<
-      ContractProcedureBuilderWithOutput<
+      ContractProcedureBuilderWithoutOutputMethods<
+        undefined,
         typeof outputSchema,
-        Record<never, never>,
+        typeof baseErrorMap,
         BaseMeta
       >
     >()
@@ -102,7 +112,7 @@ describe('ContractBuilder', () => {
 
   it('.prefix', () => {
     expectTypeOf(builder.prefix('/api')).toEqualTypeOf<
-      ContractRouterBuilder<Record<never, never>, BaseMeta>
+      ContractRouterBuilder<typeof baseErrorMap, BaseMeta>
     >()
 
     // @ts-expect-error - invalid prefix
@@ -111,7 +121,7 @@ describe('ContractBuilder', () => {
 
   it('.tag', () => {
     expectTypeOf(builder.tag('tag1', 'tag2')).toEqualTypeOf<
-      ContractRouterBuilder<Record<never, never>, BaseMeta>
+      ContractRouterBuilder<typeof baseErrorMap, BaseMeta>
     >()
 
     // @ts-expect-error - invalid tag
@@ -125,7 +135,7 @@ describe('ContractBuilder', () => {
     }
 
     expectTypeOf(builder.router(router)).toEqualTypeOf<
-        typeof router
+      AdaptedContractRouter<typeof router, typeof baseErrorMap>
     >()
 
     // @ts-expect-error - invalid router

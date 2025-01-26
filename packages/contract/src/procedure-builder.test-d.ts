@@ -2,39 +2,42 @@ import type { baseErrorMap, BaseMeta } from '../tests/shared'
 import type { MergedErrorMap } from './error-map'
 import type { ContractProcedure } from './procedure'
 import type { ContractProcedureBuilder } from './procedure-builder'
-import type { ContractProcedureBuilderWithInput } from './procedure-builder-with-input'
-import type { ContractProcedureBuilderWithOutput } from './procedure-builder-with-output'
-import { z } from 'zod'
+import type { ContractProcedureBuilderWithoutInputMethods, ContractProcedureBuilderWithoutOutputMethods } from './procedure-builder-variants'
 import { inputSchema, outputSchema } from '../tests/shared'
 
-const builder = {} as ContractProcedureBuilder<typeof baseErrorMap, BaseMeta>
+const builder = {} as ContractProcedureBuilder<
+  typeof inputSchema,
+  typeof outputSchema,
+  typeof baseErrorMap,
+  BaseMeta
+>
 
 describe('DecoratedContractProcedure', () => {
   it('is a contract procedure', () => {
     expectTypeOf(builder).toMatchTypeOf<
-      ContractProcedure<undefined, undefined, typeof baseErrorMap, BaseMeta>
+      ContractProcedure<typeof inputSchema, typeof outputSchema, typeof baseErrorMap, BaseMeta>
     >()
   })
 
   it('.errors', () => {
-    const errors = {
-      BAD_GATEWAY: { data: z.object({ message: z.string() }) },
-      OVERRIDE: { data: z.object({ message: z.string() }) },
-    }
-
-    expectTypeOf(builder.errors(errors)).toEqualTypeOf<
+    expectTypeOf(builder.errors({
+      BAD_GATEWAY: { message: 'BAD_GATEWAY' },
+      OVERRIDE: { message: 'OVERRIDE' },
+    })).toEqualTypeOf<
       ContractProcedureBuilder<
-        MergedErrorMap<typeof baseErrorMap, typeof errors>,
+        typeof inputSchema,
+        typeof outputSchema,
+        MergedErrorMap<typeof baseErrorMap, { BAD_GATEWAY: { message: string }, OVERRIDE: { message: string } }>,
         BaseMeta
       >
     >()
 
     // @ts-expect-error - invalid schema
-    builder.errors({ INVALID: { data: {} } })
+    builder.errors({ BAD_GATEWAY: { data: {} } })
   })
 
   it('.meta', () => {
-    expectTypeOf(builder.meta({ log: true })).toEqualTypeOf<
+    expectTypeOf(builder.route({ method: 'GET' })).toEqualTypeOf<
       typeof builder
     >()
 
@@ -53,27 +56,29 @@ describe('DecoratedContractProcedure', () => {
 
   it('.input', () => {
     expectTypeOf(builder.input(inputSchema)).toEqualTypeOf<
-      ContractProcedureBuilderWithInput<
+      ContractProcedureBuilderWithoutInputMethods<
         typeof inputSchema,
-        typeof baseErrorMap,
-        BaseMeta
-      >
-    >()
-
-    // @ts-expect-error - invalid schema
-    builder.input({})
-  })
-
-  it('.output', () => {
-    expectTypeOf(builder.output(outputSchema)).toEqualTypeOf<
-      ContractProcedureBuilderWithOutput<
         typeof outputSchema,
         typeof baseErrorMap,
         BaseMeta
       >
     >()
 
-    // @ts-expect-error - invalid schema
+    // @ts-expect-error - schema is invalid
+    builder.input({})
+  })
+
+  it('.output', () => {
+    expectTypeOf(builder.output(outputSchema)).toEqualTypeOf<
+      ContractProcedureBuilderWithoutOutputMethods<
+        typeof inputSchema,
+        typeof outputSchema,
+        typeof baseErrorMap,
+        BaseMeta
+      >
+    >()
+
+    // @ts-expect-error - schema is invalid
     builder.output({})
   })
 })

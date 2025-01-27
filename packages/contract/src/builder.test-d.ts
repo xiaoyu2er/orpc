@@ -1,21 +1,19 @@
-import type { baseErrorMap, BaseMeta } from '../tests/shared'
+import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../tests/shared'
 import type { ContractBuilder } from './builder'
+import type { ContractProcedureBuilder, ContractProcedureBuilderWithInput, ContractProcedureBuilderWithOutput, ContractRouterBuilder } from './builder-variants'
 import type { MergedErrorMap } from './error-map'
 import type { ContractProcedure } from './procedure'
-import type { ContractProcedureBuilder } from './procedure-builder'
-import type { ContractProcedureBuilderWithoutInputMethods, ContractProcedureBuilderWithoutOutputMethods } from './procedure-builder-variants'
 import type { AdaptedContractRouter } from './router'
-import type { ContractRouterBuilder } from './router-builder'
-import { inputSchema, outputSchema, ping, pong } from '../tests/shared'
+import { generalSchema, ping, pong } from '../tests/shared'
 
-const builder = {} as ContractBuilder<typeof baseErrorMap, BaseMeta>
+const builder = {} as ContractBuilder<typeof inputSchema, typeof outputSchema, typeof baseErrorMap, BaseMeta>
 
 describe('ContractBuilder', () => {
   it('is a contract procedure', () => {
     expectTypeOf(builder).toMatchTypeOf<
       ContractProcedure<
-        undefined,
-        undefined,
+        typeof inputSchema,
+        typeof outputSchema,
         Record<never, never>,
         BaseMeta
       >
@@ -26,7 +24,7 @@ describe('ContractBuilder', () => {
     type MetaDef = { meta1?: string, meta2?: number }
 
     expectTypeOf(builder.$meta<MetaDef>({ meta1: 'value' })).toEqualTypeOf<
-      ContractBuilder<typeof baseErrorMap, MetaDef>
+      ContractBuilder<typeof inputSchema, typeof outputSchema, typeof baseErrorMap, MetaDef>
     >()
 
     // @ts-expect-error - invalid initial meta
@@ -45,6 +43,8 @@ describe('ContractBuilder', () => {
   it('.errors', () => {
     expectTypeOf(builder.errors({ INVALID: { message: 'invalid' }, OVERRIDE: { message: 'override' } })).toEqualTypeOf<
       ContractBuilder<
+        typeof inputSchema,
+        typeof outputSchema,
         MergedErrorMap<typeof baseErrorMap, { INVALID: { message: string }, OVERRIDE: { message: string } }>,
         BaseMeta
       >
@@ -57,8 +57,8 @@ describe('ContractBuilder', () => {
   it('.meta', () => {
     expectTypeOf(builder.meta({ log: true })).toEqualTypeOf<
       ContractProcedureBuilder<
-        undefined,
-        undefined,
+        typeof inputSchema,
+        typeof outputSchema,
         typeof baseErrorMap,
         BaseMeta
       >
@@ -71,8 +71,8 @@ describe('ContractBuilder', () => {
   it('.route', () => {
     expectTypeOf(builder.route({ method: 'GET' })).toEqualTypeOf<
       ContractProcedureBuilder<
-        undefined,
-        undefined,
+        typeof inputSchema,
+        typeof outputSchema,
         typeof baseErrorMap,
         BaseMeta
       >
@@ -83,10 +83,10 @@ describe('ContractBuilder', () => {
   })
 
   it('.input', () => {
-    expectTypeOf(builder.input(inputSchema)).toEqualTypeOf<
-      ContractProcedureBuilderWithoutInputMethods<
-        typeof inputSchema,
-        undefined,
+    expectTypeOf(builder.input(generalSchema)).toEqualTypeOf<
+      ContractProcedureBuilderWithInput<
+        typeof generalSchema,
+        typeof outputSchema,
         typeof baseErrorMap,
         BaseMeta
       >
@@ -97,10 +97,10 @@ describe('ContractBuilder', () => {
   })
 
   it('.output', () => {
-    expectTypeOf(builder.output(outputSchema)).toEqualTypeOf<
-      ContractProcedureBuilderWithoutOutputMethods<
-        undefined,
-        typeof outputSchema,
+    expectTypeOf(builder.output(generalSchema)).toEqualTypeOf<
+      ContractProcedureBuilderWithOutput<
+        typeof inputSchema,
+        typeof generalSchema,
         typeof baseErrorMap,
         BaseMeta
       >

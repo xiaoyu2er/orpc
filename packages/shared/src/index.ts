@@ -1,3 +1,4 @@
+export * from './chain'
 export * from './constants'
 export * from './error'
 export * from './function'

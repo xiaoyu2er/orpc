@@ -1,18 +1,19 @@
-import { baseErrorMap, baseMeta, baseRoute, inputSchema, outputSchema, ping, pong } from '../tests/shared'
+import { baseErrorMap, baseMeta, baseRoute, generalSchema, inputSchema, outputSchema, ping, pong } from '../tests/shared'
 import { ContractBuilder } from './builder'
 import { mergeErrorMap } from './error-map'
-import { ContractProcedure, isContractProcedure } from './procedure'
+import { isContractProcedure } from './procedure'
 import * as Router from './router'
-import { ContractRouterBuilder } from './router-builder'
 
 const adaptContractRouterSpy = vi.spyOn(Router, 'adaptContractRouter')
 
 const def = {
   errorMap: baseErrorMap,
-  outputSchema: undefined,
-  inputSchema: undefined,
+  outputSchema,
+  inputSchema,
   route: baseRoute,
   meta: baseMeta,
+  prefix: '/adapt' as const,
+  tags: ['adapt'],
 }
 
 const builder = new ContractBuilder(def)
@@ -63,7 +64,8 @@ describe('contractBuilder', () => {
   it('.meta', () => {
     const meta = { dev: true, log: true }
     const applied = builder.meta(meta)
-    expect(applied).toBeInstanceOf(ContractProcedure)
+    expect(applied).toBeInstanceOf(ContractBuilder)
+    expect(applied).not.toBe(builder)
     expect(applied['~orpc']).toEqual({
       ...def,
       meta: { ...def.meta, ...meta },
@@ -73,7 +75,8 @@ describe('contractBuilder', () => {
   it('.route', () => {
     const route = { method: 'GET', path: '/path' } as const
     const applied = builder.route(route)
-    expect(applied).toBeInstanceOf(ContractProcedure)
+    expect(applied).toBeInstanceOf(ContractBuilder)
+    expect(applied).not.toBe(builder)
     expect(applied['~orpc']).toEqual({
       ...def,
       route: { ...def.route, ...route },
@@ -81,38 +84,42 @@ describe('contractBuilder', () => {
   })
 
   it('.input', () => {
-    const applied = builder.input(inputSchema)
-    expect(applied).toBeInstanceOf(ContractProcedure)
+    const applied = builder.input(generalSchema)
+    expect(applied).toBeInstanceOf(ContractBuilder)
+    expect(applied).not.toBe(builder)
     expect(applied['~orpc']).toEqual({
       ...def,
-      inputSchema,
+      inputSchema: generalSchema,
     })
   })
 
   it('.output', () => {
-    const applied = builder.output(outputSchema)
-    expect(applied).toBeInstanceOf(ContractProcedure)
+    const applied = builder.output(generalSchema)
+    expect(applied).toBeInstanceOf(ContractBuilder)
+    expect(applied).not.toBe(builder)
     expect(applied['~orpc']).toEqual({
       ...def,
-      outputSchema,
+      outputSchema: generalSchema,
     })
   })
 
   it('.prefix', () => {
     const applied = builder.prefix('/api')
-    expect(applied).toBeInstanceOf(ContractRouterBuilder)
+    expect(applied).toBeInstanceOf(ContractBuilder)
+    expect(applied).not.toBe(builder)
     expect(applied['~orpc']).toEqual({
       ...def,
-      prefix: '/api',
+      prefix: '/adapt/api',
     })
   })
 
   it('.tag', () => {
     const applied = builder.tag('tag1', 'tag2')
-    expect(applied).toBeInstanceOf(ContractRouterBuilder)
+    expect(applied).toBeInstanceOf(ContractBuilder)
+    expect(applied).not.toBe(builder)
     expect(applied['~orpc']).toEqual({
       ...def,
-      tags: ['tag1', 'tag2'],
+      tags: ['adapt', 'tag1', 'tag2'],
     })
   })
 

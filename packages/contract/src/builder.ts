@@ -1,20 +1,19 @@
 import type { ContractProcedureBuilder, ContractProcedureBuilderWithInput, ContractProcedureBuilderWithOutput, ContractRouterBuilder } from './builder-variants'
 import type { ContractProcedureDef } from './procedure'
+import type { AdaptContractRouterOptions, AdaptedContractRouter, ContractRouter } from './router'
 import type { Schema } from './schema'
 import { type ErrorMap, type MergedErrorMap, mergeErrorMap } from './error-map'
 import { mergeMeta, type Meta } from './meta'
 import { ContractProcedure } from './procedure'
 import { type HTTPPath, mergePrefix, mergeRoute, mergeTags, type Route } from './route'
-import { adaptContractRouter, type AdaptedContractRouter, type ContractRouter } from './router'
+import { adaptContractRouter } from './router'
 
 export interface ContractBuilderDef<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
-> extends ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta> {
-  prefix?: HTTPPath
-  tags?: readonly string[]
+> extends ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>, AdaptContractRouterOptions<TErrorMap> {
 }
 
 export class ContractBuilder<

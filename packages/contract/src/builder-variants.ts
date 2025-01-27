@@ -1,8 +1,9 @@
+import type { ContractBuilderDef } from './builder'
 import type { ErrorMap, MergedErrorMap } from './error-map'
-import type { Meta, TypeMeta } from './meta'
+import type { Meta } from './meta'
 import type { ContractProcedure } from './procedure'
 import type { HTTPPath, Route } from './route'
-import type { AdaptContractRouterOptions, AdaptedContractRouter, ContractRouter } from './router'
+import type { AdaptedContractRouter, ContractRouter } from './router'
 import type { Schema } from './schema'
 
 export interface ContractProcedureBuilder<
@@ -30,25 +31,6 @@ export interface ContractProcedureBuilder<
   output: <U extends Schema>(
     schema: U,
   ) => ContractProcedureBuilderWithOutput<TInputSchema, U, TErrorMap, TMeta>
-}
-
-export interface ContractProcedureBuilderWithInputOutput<
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
-  TErrorMap extends ErrorMap,
-  TMeta extends Meta,
-> extends ContractProcedure<TInputSchema, TOutputSchema, TErrorMap, TMeta> {
-  errors: <U extends ErrorMap>(
-    errors: U,
-  ) => ContractProcedureBuilderWithInputOutput<TInputSchema, TOutputSchema, MergedErrorMap<TErrorMap, U>, TMeta>
-
-  meta: (
-    meta: TMeta,
-  ) => ContractProcedureBuilderWithInputOutput<TInputSchema, TOutputSchema, TErrorMap, TMeta>
-
-  route: (
-    route: Route,
-  ) => ContractProcedureBuilderWithInputOutput<TInputSchema, TOutputSchema, TErrorMap, TMeta>
 }
 
 export interface ContractProcedureBuilderWithInput<
@@ -97,18 +79,30 @@ export interface ContractProcedureBuilderWithOutput<
   ) => ContractProcedureBuilderWithInputOutput<U, TOutputSchema, TErrorMap, TMeta>
 }
 
-export interface ContractRouterBuilderDef<
+export interface ContractProcedureBuilderWithInputOutput<
+  TInputSchema extends Schema,
+  TOutputSchema extends Schema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
-> extends AdaptContractRouterOptions<TErrorMap> {
-  __meta?: TypeMeta<TMeta>
+> extends ContractProcedure<TInputSchema, TOutputSchema, TErrorMap, TMeta> {
+  errors: <U extends ErrorMap>(
+    errors: U,
+  ) => ContractProcedureBuilderWithInputOutput<TInputSchema, TOutputSchema, MergedErrorMap<TErrorMap, U>, TMeta>
+
+  meta: (
+    meta: TMeta,
+  ) => ContractProcedureBuilderWithInputOutput<TInputSchema, TOutputSchema, TErrorMap, TMeta>
+
+  route: (
+    route: Route,
+  ) => ContractProcedureBuilderWithInputOutput<TInputSchema, TOutputSchema, TErrorMap, TMeta>
 }
 
 export interface ContractRouterBuilder<
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > {
-  '~orpc': ContractRouterBuilderDef<TErrorMap, TMeta>
+  '~orpc': ContractBuilderDef<any, any, TErrorMap, TMeta>
 
   'errors': <U extends ErrorMap>(
     errors: U,

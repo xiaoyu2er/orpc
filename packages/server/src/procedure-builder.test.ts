@@ -1,7 +1,5 @@
-import { baseErrorMap, baseMeta, baseRoute, inputSchema, outputSchema } from '../../contract/tests/shared'
+import { baseErrorMap, baseMeta, baseRoute, inputSchema, outputSchema, schema } from '../../contract/tests/shared'
 import { ProcedureBuilder } from './procedure-builder'
-import { ProcedureBuilderWithInput } from './procedure-builder-with-input'
-import { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
 
 const mid = vi.fn()
 
@@ -9,8 +7,8 @@ const def = {
   middlewares: [mid],
   inputValidationIndex: 1,
   outputValidationIndex: 1,
-  inputSchema: undefined,
-  outputSchema: undefined,
+  inputSchema,
+  outputSchema,
   errorMap: baseErrorMap,
   route: baseRoute,
   meta: baseMeta as any,
@@ -86,22 +84,24 @@ describe('procedureBuilder', () => {
   })
 
   it('.input', () => {
-    const applied = builder.input(inputSchema)
-    expect(applied).toBeInstanceOf(ProcedureBuilderWithInput)
+    const applied = builder.input(schema)
+    expect(applied).toBeInstanceOf(ProcedureBuilder)
+    expect(applied).not.toBe(builder)
 
     expect(applied['~orpc']).toEqual({
       ...def,
-      inputSchema,
+      inputSchema: schema,
     })
   })
 
   it('.output', () => {
-    const applied = builder.output(outputSchema)
-    expect(applied).toBeInstanceOf(ProcedureBuilderWithOutput)
+    const applied = builder.output(schema)
+    expect(applied).toBeInstanceOf(ProcedureBuilder)
+    expect(applied).not.toBe(builder)
 
     expect(applied['~orpc']).toEqual({
       ...def,
-      outputSchema,
+      outputSchema: schema,
     })
   })
 

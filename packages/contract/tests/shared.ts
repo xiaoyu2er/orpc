@@ -6,6 +6,8 @@ export const inputSchema = z.object({ input: z.number().transform(n => `${n}`) }
 
 export const outputSchema = z.object({ output: z.number().transform(n => `${n}`) })
 
+export const schema = z.object({ id: z.string().transform(v => Number.parseInt(v)) })
+
 export const baseErrorMap = {
   BASE: {
     data: outputSchema,

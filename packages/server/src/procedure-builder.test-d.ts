@@ -1,18 +1,20 @@
 import type { ContractProcedure, ErrorMap, MergedErrorMap, Schema } from '@orpc/contract'
+import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../../contract/tests/shared'
 import type { CurrentContext, InitialContext } from '../tests/shared'
 import type { Context } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { MiddlewareOutputFn } from './middleware'
 import type { Procedure } from './procedure'
 import type { ProcedureBuilder } from './procedure-builder'
-import type { ProcedureBuilderWithInput } from './procedure-builder-with-input'
-import type { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
+import type { ProcedureBuilderWithoutInputMethods, ProcedureBuilderWithoutOutputMethods } from './procedure-builder-variants'
 import type { DecoratedProcedure } from './procedure-decorated'
-import { type baseErrorMap, type BaseMeta, inputSchema, outputSchema } from '../../contract/tests/shared'
+import { schema } from '../../contract/tests/shared'
 
 const builder = {} as ProcedureBuilder<
   InitialContext,
   CurrentContext,
+  typeof inputSchema,
+  typeof outputSchema,
   typeof baseErrorMap,
   BaseMeta
 >
@@ -21,8 +23,8 @@ describe('ProcedureBuilder', () => {
   it('is a contract procedure', () => {
     expectTypeOf(builder).toMatchTypeOf<
       ContractProcedure<
-        undefined,
-        undefined,
+        typeof inputSchema,
+        typeof outputSchema,
         typeof baseErrorMap,
         BaseMeta
       >
@@ -39,6 +41,8 @@ describe('ProcedureBuilder', () => {
       ProcedureBuilder<
         InitialContext,
         CurrentContext,
+        typeof inputSchema,
+        typeof outputSchema,
         MergedErrorMap<typeof baseErrorMap, { BAD_GATEWAY: { message: string }, OVERRIDE: { message: string } }>,
         BaseMeta
       >
@@ -46,8 +50,6 @@ describe('ProcedureBuilder', () => {
 
     // @ts-expect-error - invalid schema
     builder.errors({ BAD_GATEWAY: { data: {} } })
-    // @ts-expect-error - not allow redefine error map
-    builder.errors({ BASE: baseErrorMap.BASE })
   })
 
   it('.meta', () => {
@@ -57,6 +59,8 @@ describe('ProcedureBuilder', () => {
       ProcedureBuilder<
         InitialContext,
         CurrentContext,
+        typeof inputSchema,
+        typeof outputSchema,
         typeof baseErrorMap,
         BaseMeta
       >
@@ -73,6 +77,8 @@ describe('ProcedureBuilder', () => {
       ProcedureBuilder<
         InitialContext,
         CurrentContext,
+        typeof inputSchema,
+        typeof outputSchema,
         typeof baseErrorMap,
         BaseMeta
       >
@@ -102,6 +108,8 @@ describe('ProcedureBuilder', () => {
       ProcedureBuilder<
         InitialContext,
       CurrentContext & { extra: boolean },
+        typeof inputSchema,
+        typeof outputSchema,
       typeof baseErrorMap,
       BaseMeta
       >
@@ -118,13 +126,14 @@ describe('ProcedureBuilder', () => {
   })
 
   it('.input', () => {
-    const applied = builder.input(inputSchema)
+    const applied = builder.input(schema)
 
     expectTypeOf(applied).toEqualTypeOf<
-      ProcedureBuilderWithInput<
+      ProcedureBuilderWithoutInputMethods<
         InitialContext,
         CurrentContext,
-        typeof inputSchema,
+        typeof schema,
+        typeof outputSchema,
         typeof baseErrorMap,
         BaseMeta
       >
@@ -135,13 +144,14 @@ describe('ProcedureBuilder', () => {
   })
 
   it('.output', () => {
-    const applied = builder.output(outputSchema)
+    const applied = builder.output(schema)
 
     expectTypeOf(applied).toEqualTypeOf<
-      ProcedureBuilderWithOutput<
+      ProcedureBuilderWithoutOutputMethods<
         InitialContext,
         CurrentContext,
-        typeof outputSchema,
+        typeof inputSchema,
+        typeof schema,
         typeof baseErrorMap,
         BaseMeta
       >
@@ -153,23 +163,23 @@ describe('ProcedureBuilder', () => {
 
   it('.handler', () => {
     const procedure = builder.handler(({ input, context, procedure, path, signal, errors }) => {
-      expectTypeOf(input).toEqualTypeOf<unknown>()
+      expectTypeOf(input).toEqualTypeOf<{ input: string }>()
       expectTypeOf(context).toEqualTypeOf<CurrentContext>()
       expectTypeOf(procedure).toEqualTypeOf<Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, BaseMeta>>()
       expectTypeOf(path).toEqualTypeOf<string[]>()
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
       expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
 
-      return 456
+      return { output: 123 }
     })
 
     expectTypeOf(procedure).toEqualTypeOf<
       DecoratedProcedure<
         InitialContext,
         CurrentContext,
-        undefined,
-        undefined,
-        number,
+        typeof inputSchema,
+        typeof outputSchema,
+        { output: number },
         typeof baseErrorMap,
         BaseMeta
       >

@@ -24,11 +24,11 @@ export interface ProcedureHandler<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
-  TErrorMap extends ErrorMap,
+  TErrorConstructors extends ErrorMap,
   TMeta extends Meta,
 > {
   (
-    opt: ProcedureHandlerOptions<TCurrentContext, SchemaOutput<TInputSchema>, ORPCErrorConstructorMap<TErrorMap>, TMeta>
+    opt: ProcedureHandlerOptions<TCurrentContext, SchemaOutput<TInputSchema>, ORPCErrorConstructorMap<TErrorConstructors>, TMeta>
   ): Promisable<SchemaInput<TOutputSchema, THandlerOutput>>
 }
 

@@ -147,9 +147,7 @@ describe('ContractBuilder', () => {
         undefined,
         typeof outputSchema,
         typeof baseErrorMap,
-        { description: string },
-        { mode?: number },
-        { mode: 123 }
+        { mode?: number }
       >,
     })
   })

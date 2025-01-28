@@ -1,9 +1,8 @@
-import type { ContractBuilderDef } from './builder'
 import type { ErrorMap, MergedErrorMap } from './error-map'
 import type { Meta } from './meta'
 import type { ContractProcedure } from './procedure'
 import type { HTTPPath, Route } from './route'
-import type { AdaptedContractRouter, ContractRouter } from './router'
+import type { AdaptContractRouterOptions, AdaptedContractRouter, ContractRouter } from './router'
 import type { Schema } from './schema'
 
 export interface ContractProcedureBuilder<
@@ -102,7 +101,7 @@ export interface ContractRouterBuilder<
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > {
-  '~orpc': ContractBuilderDef<any, any, TErrorMap, TMeta>
+  '~orpc': AdaptContractRouterOptions<TErrorMap>
 
   'errors': <U extends ErrorMap>(
     errors: U,

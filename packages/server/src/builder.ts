@@ -1,21 +1,19 @@
-import type { ContractProcedureDef, ContractRouter, ErrorMap, HTTPPath, MergedErrorMap, Meta, ORPCErrorConstructorMap, Route, Schema } from '@orpc/contract'
-import type { BuilderWithMiddlewares } from './builder-variants'
+import type { ContractProcedureDef, ContractRouter, ErrorMap, HTTPPath, MergedErrorMap, Meta, ORPCErrorConstructorMap, Route, Schema, SchemaInput } from '@orpc/contract'
+import type { BuilderWithMiddlewares, ProcedureBuilder, ProcedureBuilderWithInput, ProcedureBuilderWithOutput, RouterBuilder } from './builder-variants'
 import type { ConflictContextGuard, Context, MergedContext, TypeCurrentContext, TypeInitialContext } from './context'
 import type { FlattenLazy } from './lazy-utils'
 import type { AnyMiddleware, Middleware } from './middleware'
 import type { DecoratedMiddleware } from './middleware-decorated'
 import type { ProcedureHandler } from './procedure'
-import type { ProcedureBuilderWithoutInputMethods, ProcedureBuilderWithoutOutputMethods } from './procedure-builder-variants'
+import type { AdaptedRouter, AdaptRouterOptions, Router } from './router'
 import { mergeErrorMap, mergeMeta, mergeRoute } from '@orpc/contract'
 import { fallbackConfig } from './config'
 import { lazy } from './lazy'
 import { flatLazy } from './lazy-utils'
 import { decorateMiddleware } from './middleware-decorated'
 import { addMiddleware } from './middleware-utils'
-import { ProcedureBuilder } from './procedure-builder'
 import { DecoratedProcedure } from './procedure-decorated'
-import { type AdaptedRouter, adaptRouter, type Router } from './router'
-import { RouterBuilder } from './router-builder'
+import { adaptRouter } from './router'
 
 export interface BuilderConfig {
   initialInputValidationIndex?: number
@@ -25,9 +23,11 @@ export interface BuilderConfig {
 export interface BuilderDef<
   TInitialContext extends Context,
   TCurrentContext extends Context,
+  TInputSchema extends Schema,
+  TOutputSchema extends Schema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
-> extends ContractProcedureDef<undefined, undefined, TErrorMap, TMeta> {
+> extends ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>, AdaptRouterOptions<TInitialContext, TErrorMap> {
   __initialContext?: TypeInitialContext<TInitialContext>
   __currentContext?: TypeCurrentContext<TCurrentContext>
   middlewares: AnyMiddleware[]
@@ -38,32 +38,37 @@ export interface BuilderDef<
 export class Builder<
   TInitialContext extends Context,
   TCurrentContext extends Context,
+  TInputSchema extends Schema,
+  TOutputSchema extends Schema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > {
-  '~orpc': BuilderDef<TInitialContext, TCurrentContext, TErrorMap, TMeta>
+  '~orpc': BuilderDef<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>
 
-  constructor(def: BuilderDef<TInitialContext, TCurrentContext, TErrorMap, TMeta>) {
+  constructor(def: BuilderDef<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>) {
     this['~orpc'] = def
   }
 
   /**
    * Reset config
    */
-  $config(config: BuilderConfig): Builder<TInitialContext, TCurrentContext, TErrorMap, TMeta> {
-    const middlewaresLength = this['~orpc'].middlewares.length
-
+  $config(config: BuilderConfig): Builder<TInitialContext, TInitialContext, undefined, undefined, TErrorMap, TMeta> {
     return new Builder({
-      ...this['~orpc'],
-      inputValidationIndex: fallbackConfig('initialInputValidationIndex', config.initialInputValidationIndex) + middlewaresLength,
-      outputValidationIndex: fallbackConfig('initialOutputValidationIndex', config.initialOutputValidationIndex) + middlewaresLength,
+      errorMap: this['~orpc'].errorMap,
+      meta: this['~orpc'].meta,
+      route: this['~orpc'].route,
+      inputSchema: undefined,
+      outputSchema: undefined,
+      middlewares: [],
+      inputValidationIndex: fallbackConfig('initialInputValidationIndex', config.initialInputValidationIndex),
+      outputValidationIndex: fallbackConfig('initialOutputValidationIndex', config.initialOutputValidationIndex),
     })
   }
 
   /**
    * Reset initial context
    */
-  $context<U extends Context>(): Builder<U, U, TErrorMap, TMeta> {
+  $context<U extends Context>(): Builder<U, U, undefined, undefined, TErrorMap, TMeta> {
     const middlewaresLength = this['~orpc'].middlewares.length
 
     const builder = new Builder({
@@ -81,7 +86,7 @@ export class Builder<
    */
   $meta<U extends Meta>(
     initialMeta: U,
-  ): Builder<TInitialContext, TCurrentContext, TErrorMap, U> {
+  ): Builder<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, U> {
     return new Builder({
       ...this['~orpc'],
       meta: initialMeta,
@@ -93,7 +98,7 @@ export class Builder<
    */
   $route(
     initialRoute: Route,
-  ): Builder<TInitialContext, TCurrentContext, TErrorMap, TMeta> {
+  ): Builder<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta> {
     return new Builder({
       ...this['~orpc'],
       route: initialRoute,
@@ -108,7 +113,7 @@ export class Builder<
 
   errors<U extends ErrorMap>(
     errors: U,
-  ): Builder<TInitialContext, TCurrentContext, MergedErrorMap<TErrorMap, U>, TMeta > {
+  ): Builder<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, MergedErrorMap<TErrorMap, U>, TMeta > {
     return new Builder({
       ...this['~orpc'],
       errorMap: mergeErrorMap(this['~orpc'].errorMap, errors),
@@ -118,7 +123,14 @@ export class Builder<
   use<UOutContext extends Context>(
     middleware: Middleware<TCurrentContext, UOutContext, unknown, unknown, ORPCErrorConstructorMap<TErrorMap>, TMeta>,
   ): ConflictContextGuard<MergedContext<TCurrentContext, UOutContext>>
-    & BuilderWithMiddlewares<TInitialContext, MergedContext<TCurrentContext, UOutContext>, TErrorMap, TMeta> {
+    & BuilderWithMiddlewares<
+      TInitialContext,
+      MergedContext<TCurrentContext, UOutContext>,
+      TInputSchema,
+      TOutputSchema,
+      TErrorMap,
+      TMeta
+    > {
     const builder = new Builder({
       ...this['~orpc'],
       middlewares: addMiddleware(this['~orpc'].middlewares, middleware),
@@ -129,15 +141,19 @@ export class Builder<
     return builder as any // since this change the CurrentContext so we need to cast here to make type checker happy
   }
 
-  meta(meta: TMeta): ProcedureBuilder<TInitialContext, TCurrentContext, undefined, undefined, TErrorMap, TMeta> {
-    return new ProcedureBuilder({
+  meta(
+    meta: TMeta,
+  ): BuilderWithMiddlewares<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta> {
+    return new Builder({
       ...this['~orpc'],
       meta: mergeMeta(this['~orpc'].meta, meta),
     })
   }
 
-  route(route: Route): ProcedureBuilder<TInitialContext, TCurrentContext, undefined, undefined, TErrorMap, TMeta> {
-    return new ProcedureBuilder({
+  route(
+    route: Route,
+  ): ProcedureBuilder<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta> {
+    return new Builder({
       ...this['~orpc'],
       route: mergeRoute(this['~orpc'].route, route),
     })
@@ -145,8 +161,8 @@ export class Builder<
 
   input<USchema extends Schema>(
     schema: USchema,
-  ): ProcedureBuilderWithoutInputMethods<TInitialContext, TCurrentContext, USchema, undefined, TErrorMap, TMeta> {
-    return new ProcedureBuilder({
+  ): ProcedureBuilderWithInput<TInitialContext, TCurrentContext, USchema, TOutputSchema, TErrorMap, TMeta> {
+    return new Builder({
       ...this['~orpc'],
       inputSchema: schema,
     })
@@ -154,16 +170,16 @@ export class Builder<
 
   output<USchema extends Schema>(
     schema: USchema,
-  ): ProcedureBuilderWithoutOutputMethods<TInitialContext, TCurrentContext, undefined, USchema, TErrorMap, TMeta> {
-    return new ProcedureBuilder({
+  ): ProcedureBuilderWithOutput<TInitialContext, TCurrentContext, TInputSchema, USchema, TErrorMap, TMeta> {
+    return new Builder({
       ...this['~orpc'],
       outputSchema: schema,
     })
   }
 
-  handler<UFuncOutput>(
-    handler: ProcedureHandler<TCurrentContext, undefined, undefined, UFuncOutput, TErrorMap, TMeta>,
-  ): DecoratedProcedure<TInitialContext, TCurrentContext, undefined, undefined, UFuncOutput, TErrorMap, TMeta> {
+  handler<UFuncOutput extends SchemaInput<TOutputSchema>>(
+    handler: ProcedureHandler<TCurrentContext, TInputSchema, TOutputSchema, UFuncOutput, TErrorMap, TMeta>,
+  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, UFuncOutput, TErrorMap, TMeta> {
     return new DecoratedProcedure({
       ...this['~orpc'],
       handler,
@@ -171,14 +187,14 @@ export class Builder<
   }
 
   prefix(prefix: HTTPPath): RouterBuilder<TInitialContext, TCurrentContext, TErrorMap, TMeta> {
-    return new RouterBuilder({
+    return new Builder({
       ...this['~orpc'],
       prefix,
     })
   }
 
   tag(...tags: string[]): RouterBuilder<TInitialContext, TCurrentContext, TErrorMap, TMeta> {
-    return new RouterBuilder({
+    return new Builder({
       ...this['~orpc'],
       tags,
     })

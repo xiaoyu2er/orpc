@@ -9,7 +9,6 @@ import type { Lazy } from './lazy'
 import type { MiddlewareOutputFn } from './middleware'
 import type { DecoratedMiddleware } from './middleware-decorated'
 import type { Procedure } from './procedure'
-import type { ProcedureBuilder } from './procedure-builder'
 import type { ProcedureBuilderWithoutInputMethods, ProcedureBuilderWithoutOutputMethods } from './procedure-builder-variants'
 import type { DecoratedProcedure } from './procedure-decorated'
 import type { AdaptedRouter } from './router'
@@ -172,7 +171,7 @@ describe('Builder', () => {
 
   it('.meta', () => {
     expectTypeOf(builder.meta({ log: true })).toEqualTypeOf<
-      ProcedureBuilder<InitialContext, CurrentContext, typeof baseErrorMap, BaseMeta>
+      BuilderWithMiddlewares<InitialContext, CurrentContext, typeof baseErrorMap, BaseMeta>
     >()
 
     // @ts-expect-error - invalid meta
@@ -181,7 +180,7 @@ describe('Builder', () => {
 
   it('.route', () => {
     expectTypeOf(builder.route({ path: '/test', method: 'GET' })).toEqualTypeOf<
-      ProcedureBuilder<InitialContext, CurrentContext, typeof baseErrorMap, BaseMeta>
+      BuilderWithMiddlewares<InitialContext, CurrentContext, typeof baseErrorMap, BaseMeta>
     >()
 
     // @ts-expect-error - invalid method

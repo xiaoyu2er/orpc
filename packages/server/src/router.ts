@@ -1,5 +1,5 @@
 import type { AnyContractRouter, ContractProcedure, ErrorMap, HTTPPath, MergedErrorMap, SchemaInput, SchemaOutput } from '@orpc/contract'
-import type { Context, TypeInitialContext } from './context'
+import type { Context } from './context'
 import type { Lazy, Lazyable } from './lazy'
 import type { AnyMiddleware } from './middleware'
 import type { AnyProcedure } from './procedure'
@@ -67,20 +67,21 @@ export type AdaptedRouter<
         [K in keyof TRouter]: TRouter[K] extends AnyRouter ? AdaptedRouter<TRouter[K], TInitialContext, TErrorMap> : never
       }
 
+export interface AdaptRouterOptions< TErrorMap extends ErrorMap> {
+  middlewares: AnyMiddleware[]
+  tags?: readonly string[]
+  prefix?: HTTPPath
+  errorMap: TErrorMap
+}
+
 export function adaptRouter<
   TRouter extends AnyRouter,
   TInitialContext extends Context,
-  TErrorMapExtra extends ErrorMap,
+  TErrorMap extends ErrorMap,
 >(
   router: TRouter,
-  options: {
-    __initialContext?: TypeInitialContext<TInitialContext>
-    middlewares?: AnyMiddleware[]
-    tags?: readonly string[]
-    prefix?: HTTPPath
-    errorMap: ErrorMap
-  },
-): AdaptedRouter<TRouter, TInitialContext, TErrorMapExtra> {
+  options: AdaptRouterOptions<TErrorMap>,
+): AdaptedRouter<TRouter, TInitialContext, TErrorMap> {
   if (isLazy(router)) {
     const lazyMeta = options.prefix
       ? prefixLazyMeta(getLazyMeta(router), options.prefix)
@@ -98,9 +99,7 @@ export function adaptRouter<
   }
 
   if (isProcedure(router)) {
-    const newMiddlewares = options.middlewares
-      ? mergeMiddlewares(options.middlewares, router['~orpc'].middlewares)
-      : router['~orpc'].middlewares
+    const newMiddlewares = mergeMiddlewares(options.middlewares, router['~orpc'].middlewares)
     const newMiddlewareAdded = newMiddlewares.length - router['~orpc'].middlewares.length
 
     const adapted = new Procedure({

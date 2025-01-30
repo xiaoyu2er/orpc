@@ -1,13 +1,13 @@
 import { ping } from '../tests/shared'
 import { isLazy, lazy, unlazy } from './lazy'
-import { createLazyProcedureFormAnyLazy, flatLazy, prefixLazyMeta } from './lazy-utils'
+import { createLazyProcedureFormAnyLazy, flatLazy } from './lazy-utils'
 
 it('flatLazy', () => {
   const lazied = lazy(() => Promise.resolve({
     default: lazy(() => Promise.resolve({
       default: lazy(() => Promise.resolve({ default: ping })),
     })),
-  }), { prefix: '/test' })
+  }))
 
   const flatten = flatLazy(lazied)
   expect(flatten).toSatisfy(isLazy)
@@ -37,9 +37,4 @@ describe('createLazyProcedureFormAnyLazy', () => {
 
     expect(unlazy(lazyProcedure)).resolves.toEqual({ default: ping })
   })
-})
-
-it('prefixLazyMeta', () => {
-  expect(prefixLazyMeta({}, '/test')).toEqual({ prefix: '/test' })
-  expect(prefixLazyMeta({ prefix: '/test1' }, '/test2')).toEqual({ prefix: '/test2/test1' })
 })

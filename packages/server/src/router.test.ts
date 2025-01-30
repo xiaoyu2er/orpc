@@ -1,4 +1,5 @@
 import { ping, pingMiddleware, pong, router } from '../tests/shared'
+import { getLazyRouterPrefix } from './hidden'
 import { isLazy, unlazy } from './lazy'
 import { isProcedure } from './procedure'
 import { adaptRouter, getRouterChild } from './router'
@@ -52,14 +53,20 @@ it('adaptRouter', () => {
 
   expect(adapted.ping).toSatisfy(isLazy)
   expect(unlazy(adapted.ping)).resolves.toSatisfy(satisfyAdaptedPing)
+  expect(getLazyRouterPrefix(adapted.ping)).toBe('/adapt')
+
+  expect(adapted.nested).toSatisfy(isLazy)
+  expect(getLazyRouterPrefix(adapted.nested)).toBe('/adapt')
 
   expect(adapted.nested.ping).toSatisfy(isLazy)
   expect(unlazy(adapted.nested.ping)).resolves.toSatisfy(satisfyAdaptedPing)
+  expect(getLazyRouterPrefix(adapted.nested.ping)).toBe('/adapt')
 
   expect({ default: adapted.pong }).toSatisfy(satisfyAdaptedPong)
 
   expect(adapted.nested.pong).toSatisfy(isLazy)
   expect(unlazy(adapted.nested.pong)).resolves.toSatisfy(satisfyAdaptedPong)
+  expect(getLazyRouterPrefix(adapted.nested.pong)).toBe('/adapt')
 })
 
 it('getRouterChild', () => {

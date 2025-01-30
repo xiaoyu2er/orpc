@@ -1,6 +1,5 @@
-import type { HTTPPath } from '@orpc/contract'
-import type { Lazy, LazyMeta } from './lazy'
-import { getLazyMeta, isLazy, lazy, unlazy } from './lazy'
+import type { Lazy } from './lazy'
+import { isLazy, lazy, unlazy } from './lazy'
 import { type AnyProcedure, isProcedure } from './procedure'
 
 export type FlattenLazy<T> = T extends Lazy<infer U>
@@ -22,7 +21,7 @@ export function flatLazy<T extends Lazy<any>>(lazied: T): FlattenLazy<T> {
     return current
   }
 
-  return lazy(flattenLoader, getLazyMeta(lazied)) as any
+  return lazy(flattenLoader) as any
 }
 
 export function createLazyProcedureFormAnyLazy(lazied: Lazy<any>): Lazy<AnyProcedure> {
@@ -41,13 +40,4 @@ export function createLazyProcedureFormAnyLazy(lazied: Lazy<any>): Lazy<AnyProce
   })
 
   return lazyProcedure
-}
-
-export function prefixLazyMeta(meta: LazyMeta, prefix: HTTPPath): LazyMeta {
-  return {
-    ...meta,
-    prefix: meta.prefix
-      ? `${prefix}${meta.prefix}`
-      : prefix,
-  }
 }

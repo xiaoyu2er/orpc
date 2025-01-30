@@ -3,9 +3,10 @@ import type { Context } from './context'
 import type { Lazy, Lazyable } from './lazy'
 import type { AnyMiddleware } from './middleware'
 import type { AnyProcedure } from './procedure'
-import { adaptRoute, mergeErrorMap } from '@orpc/contract'
-import { getLazyMeta, isLazy, lazy, unlazy } from './lazy'
-import { flatLazy, prefixLazyMeta } from './lazy-utils'
+import { adaptRoute, mergeErrorMap, mergePrefix } from '@orpc/contract'
+import { deepSetLazyRouterPrefix, getLazyRouterPrefix } from './hidden'
+import { isLazy, lazy, unlazy } from './lazy'
+import { flatLazy } from './lazy-utils'
 import { mergeMiddlewares } from './middleware-utils'
 import { isProcedure, Procedure } from './procedure'
 import { type AccessibleLazyRouter, createAccessibleLazyRouter } from './router-accessible-lazy'
@@ -83,17 +84,20 @@ export function adaptRouter<
   options: AdaptRouterOptions<TErrorMap>,
 ): AdaptedRouter<TRouter, TInitialContext, TErrorMap> {
   if (isLazy(router)) {
-    const lazyMeta = options.prefix
-      ? prefixLazyMeta(getLazyMeta(router), options.prefix)
-      : getLazyMeta(router)
-
     const adapted = lazy(async () => {
       const unlaziedRouter = (await unlazy(router)).default
       const adapted = adaptRouter(unlaziedRouter, options)
       return { default: adapted }
-    }, lazyMeta)
+    })
 
     const accessible = createAccessibleLazyRouter(adapted)
+
+    const currentPrefix = getLazyRouterPrefix(router)
+    const prefix = currentPrefix ? mergePrefix(options.prefix, currentPrefix) : options.prefix
+
+    if (prefix) {
+      return deepSetLazyRouterPrefix(accessible, prefix) as any
+    }
 
     return accessible as any
   }

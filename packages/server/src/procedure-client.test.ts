@@ -7,10 +7,6 @@ import { createProcedureClient } from './procedure-client'
 vi.mock('@orpc/contract', async origin => ({
   ...await origin(),
   validateORPCError: vi.fn((map, error) => error),
-}))
-
-vi.mock('@orpc/contract', async origin => ({
-  ...await origin(),
   createORPCErrorConstructorMap: vi.fn(),
 }))
 

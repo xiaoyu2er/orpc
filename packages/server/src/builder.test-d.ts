@@ -409,15 +409,17 @@ describe('Builder', () => {
 
     // @ts-expect-error - meta def is not match
     builder.lazy(() => Promise.resolve({
-      ping: {} as Procedure<
-        Context,
-        Context,
-        undefined,
-        undefined,
-        unknown,
-        Record<never, never>,
-        { invalid: true }
-      >,
+      default: {
+        ping: {} as Procedure<
+          Context,
+          Context,
+          undefined,
+          undefined,
+          unknown,
+          Record<never, never>,
+          { invalid: true }
+        >,
+      },
     }))
   })
 })

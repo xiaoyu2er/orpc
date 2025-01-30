@@ -1,5 +1,5 @@
 import { oc } from '@orpc/contract'
-import { os } from '@orpc/server'
+import { implement, os } from '@orpc/server'
 import { RPCHandler } from '@orpc/server/fetch'
 import { z } from 'zod'
 import { oz } from '../../zod/src'
@@ -69,10 +69,10 @@ export const contract = oc.router({
   },
 })
 
-export const router = os.contract(contract).router({
+export const router = implement(contract).router({
   post: os.lazy(() => Promise.resolve({ // this lazy help tests more real, more complex
     default: {
-      find: os.contract(contract.post.find).handler(async ({ input, errors }) => {
+      find: implement(contract.post.find).handler(async ({ input, errors }) => {
         if (input.id === 'NOT_FOUND') {
           throw errors.NOT_FOUND({
             data: input,
@@ -84,7 +84,7 @@ export const router = os.contract(contract).router({
           title: `title-${input.id}`,
         }
       }),
-      list: os.contract(contract.post.list).handler(async ({ input, errors }) => {
+      list: implement(contract.post.list).handler(async ({ input, errors }) => {
         if (input.keyword === 'TOO_MANY_REQUESTS') {
           throw errors.TOO_MANY_REQUESTS({
             data: input,
@@ -101,7 +101,7 @@ export const router = os.contract(contract).router({
           nextCursor: input.cursor + 1,
         }
       }),
-      create: os.contract(contract.post.create).handler(async ({ input, errors }) => {
+      create: implement(contract.post.create).handler(async ({ input, errors }) => {
         if (input.title === 'CONFLICT') {
           throw errors.CONFLICT({
             data: input,

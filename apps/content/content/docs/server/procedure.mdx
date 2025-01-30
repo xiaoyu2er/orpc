@@ -21,13 +21,11 @@ import { os, ORPCError } from '@orpc/server'
 
 // Define context type for full type inference
 const pub = os
-    .context<{user?: {id: string}}>()
-    .config({ // optional, change some default configuration
-        initialRoute: {
-            method: 'DELETE', // change default method to DELETE
-            inputStructure: 'detailed', // change default input structure to detailed
-            outputStructure: 'detailed' // change default output structure to detailed
-        }
+    .$context<{user?: {id: string}}>() // optional, set config
+    .$route({ // optional, change initial route
+        method: 'DELETE', // change default method to DELETE
+        inputStructure: 'detailed', // change default input structure to detailed
+        outputStructure: 'detailed' // change default output structure to detailed
     })
 
 const getUser = pub

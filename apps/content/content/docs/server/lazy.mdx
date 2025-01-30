@@ -16,7 +16,7 @@ Here's how you can set up and use them:
 ```typescript twoslash
 import { os, call } from '@orpc/server'
 
-const pub = os.context<{ user?: { id: string } }>()
+const pub = os.$context<{ user?: { id: string } }>()
 
 // Define a router with lazy loading
 const router = pub.router({
@@ -48,7 +48,7 @@ const output = await call(router.lazy.getUser, { id: '123' })
 
    ```ts twoslash
     import { os } from '@orpc/server'
-    const pub = os.context<{ user?: { id: string } }>()
+    const pub = os.$context<{ user?: { id: string } }>()
 
     const lazy = pub.prefix('/some').lazy(() => import('examples/server'))
     ```

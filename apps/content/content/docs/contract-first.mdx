@@ -90,16 +90,15 @@ export type Outputs = InferContractRouterOutputs<typeof contract>
 With your contract defined, implement the server logic:
 
 ```ts twoslash
-import { os, ORPCError } from '@orpc/server'
+import { implement, ORPCError } from '@orpc/server'
 import { contract } from 'examples/contract'
 
-export const pub = os.contract(contract) // Ensure every implement must be match contract
+export const pub = implement(contract) // Ensure every implement must be match contract
 export const authed = os
   .use(({ context, path, next }, input) => {
     /** put auth logic here */
     return next({})
   })
-  .contract(contract)
 
 export const router = pub.router({
   getUser: pub.getUser.handler(({ input, context }) => {

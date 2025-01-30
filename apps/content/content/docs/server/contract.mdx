@@ -78,18 +78,17 @@ export const contract = oc.router({
 All `server` features are available, except the input, output, and route parts, which are defined in the contract.
 
 ```ts twoslash
-import { os } from '@orpc/server'
+import { implement } from '@orpc/server'
 import { contract } from 'examples/contract'
 
 export type Context = { user?: { id: string } }
-export const base = os.context<Context>()
-export const pub = base.contract(contract) // Ensure every implement must be match contract
+export const base = implement(contract).$context<Context>()
+export const pub = base
 export const authed = base
   .use(({ context, path, next }, input) => {
     /** put auth logic here */
     return next({})
   })
-  .contract(contract)
 
 export const router = pub.router({
   getUser: pub.getUser.handler(({ input, context }) => {

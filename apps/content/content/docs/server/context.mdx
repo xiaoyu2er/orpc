@@ -18,9 +18,9 @@ import { z } from 'zod'
 import { headers } from 'next/headers'
 
 type ORPCContext = { db: 'fake-db', user?: { id: string } }
-const base = os.context<ORPCContext>() // define `initial context`
+const base = os.$context<ORPCContext>() // define `initial context`
 
-const pub = os.context<ORPCContext>().use(async ({ context, path, next }, input) => {
+const pub = os.$context<ORPCContext>().use(async ({ context, path, next }, input) => {
     const headersList = await headers()
 
     // the `user` is `middleware context`, because it is created by middleware
@@ -58,7 +58,7 @@ const base = os.use(async ({ context, path, next }, input) => {
 })
 
 const authMid = os
-  .context<{ db: string }>() // this middleware depends on some context
+  .$context<{ db: string }>() // this middleware depends on some context
   .middleware(async ({ context, next, path }, input) => {
     const headersList = await headers()
     const user = headersList.get('Authorization') ? { id: 'example' } : undefined
@@ -108,7 +108,7 @@ import { OpenAPIServerlessHandler, OpenAPIServerHandler } from '@orpc/openapi/fe
 
 type ORPCContext = { user?: { id: string }, db: 'fake-db' }
 
-const base = os.context<ORPCContext>()
+const base = os.$context<ORPCContext>()
 
 const authMid = base.middleware(({ context, next, path }, input) => {
     if(!context.user) {

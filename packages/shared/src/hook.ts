@@ -6,7 +6,7 @@ export type OnSuccessState<TInput, TOutput> = { status: 'success', input: TInput
 export type OnErrorState<TInput> = { status: 'error', input: TInput, output: undefined, error: Error }
 
 export interface BaseHookMeta<TOutput> {
-  next: () => Promise<TOutput>
+  next(): Promise<TOutput>
 }
 
 export interface Hooks<TInput, TOutput, TContext, TMeta extends (Record<string, any> & { next?: never }) | undefined> {

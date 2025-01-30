@@ -79,13 +79,9 @@ export function implementerInternal<
 
   const impl = new Proxy(contract, {
     get: (target, key) => {
-      if (typeof key !== 'string') {
-        return Reflect.get(target, key)
-      }
-
       let method: any
 
-      if (key === 'middlewares') {
+      if (key === 'middleware') {
         method = (mid: any) => decorateMiddleware(mid)
       }
       else if (key === 'use') {
@@ -144,21 +140,25 @@ export type Implementer<
   }
   & ImplementerInternal<TContract, TInitialContext, TCurrentContext>
 
-export function implementer<
+export function implement<
   TContract extends AnyContractRouter,
   TInitialContext extends Context,
   TCurrentContext extends Context,
 >(
   contract: TContract,
+  config: BuilderConfig = {},
 ): Implementer<TContract, TInitialContext, TCurrentContext> {
-  const implInternal = implementerInternal(contract, {}, [])
+  const implInternal = implementerInternal(contract, config, [])
 
   const impl = new Proxy(implInternal, {
     get: (target, key) => {
       let method: any
 
       if (key === '$context') {
-        method = () => implementer(contract)
+        method = () => impl
+      }
+      else if (key === '$config') {
+        method = (config: BuilderConfig) => implement(contract, config)
       }
 
       const next = Reflect.get(target, key)

@@ -35,33 +35,8 @@ describe('Implementer', () => {
     })
   })
 
-  it('each procedure is a ProcedureImplementer', () => {
-    type ExpectedPing = ProcedureImplementer<
-      InitialContext,
-      CurrentContext,
-      typeof inputSchema,
-      typeof outputSchema,
-      typeof baseErrorMap,
-      BaseMeta
-    >
-
-    type ExpectedPong = ProcedureImplementer<
-      InitialContext,
-      CurrentContext,
-      undefined,
-      undefined,
-      Record<never, never>,
-      Meta
-    >
-
-    expectTypeOf(implementer.ping).toEqualTypeOf<ExpectedPing>()
-    expectTypeOf(implementer.nested.ping).toEqualTypeOf<ExpectedPing>()
-    expectTypeOf(implementer.pong).toEqualTypeOf<ExpectedPong>()
-    expectTypeOf(implementer.nested.pong).toEqualTypeOf<ExpectedPong>()
-  })
-
   describe('router level', () => {
-    it('.middleware', () => {
+    describe('.middleware', () => {
       it('works', () => {
         const mid = implementer.nested.middleware(({ context, next, path, procedure, errors, signal }, input, output) => {
           expectTypeOf(input).toEqualTypeOf<unknown>()
@@ -208,5 +183,30 @@ describe('Implementer', () => {
         },
       }))
     })
+  })
+
+  it('each procedure is a ProcedureImplementer', () => {
+    type ExpectedPing = ProcedureImplementer<
+      InitialContext,
+      CurrentContext,
+      typeof inputSchema,
+      typeof outputSchema,
+      typeof baseErrorMap,
+      BaseMeta
+    >
+
+    type ExpectedPong = ProcedureImplementer<
+      InitialContext,
+      CurrentContext,
+      undefined,
+      undefined,
+      Record<never, never>,
+      Meta
+    >
+
+    expectTypeOf(implementer.ping).toEqualTypeOf<ExpectedPing>()
+    expectTypeOf(implementer.nested.ping).toEqualTypeOf<ExpectedPing>()
+    expectTypeOf(implementer.pong).toEqualTypeOf<ExpectedPong>()
+    expectTypeOf(implementer.nested.pong).toEqualTypeOf<ExpectedPong>()
   })
 })

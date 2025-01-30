@@ -8,7 +8,7 @@ export interface LazyMeta {
 
 export interface Lazy<T> {
   [LAZY_SYMBOL]: {
-    loader: () => Promise<{ default: T }>
+    loader(): Promise<{ default: T }>
     meta: LazyMeta
   }
 }

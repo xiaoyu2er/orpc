@@ -2,10 +2,6 @@ import type { IsNever } from '@orpc/shared'
 
 export type Context = Record<string, any>
 
-export type TypeInitialContext<T extends Context> = (type: T) => any
-
-export type TypeCurrentContext<T extends Context> = { type: T }
-
 export type MergedContext<T extends Context, U extends Context> = T & U
 
 export function mergeContext<T extends Context, U extends Context>(

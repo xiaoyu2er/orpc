@@ -1,6 +1,5 @@
-import { ORPCError, validateORPCError } from '@orpc/contract'
+import { createORPCErrorConstructorMap, ORPCError, validateORPCError } from '@orpc/contract'
 import { z } from 'zod'
-import { createORPCErrorConstructorMap } from './error'
 import { isLazy, lazy, unlazy } from './lazy'
 import { Procedure } from './procedure'
 import { createProcedureClient } from './procedure-client'
@@ -10,7 +9,7 @@ vi.mock('@orpc/contract', async origin => ({
   validateORPCError: vi.fn((map, error) => error),
 }))
 
-vi.mock('./error', async origin => ({
+vi.mock('@orpc/contract', async origin => ({
   ...await origin(),
   createORPCErrorConstructorMap: vi.fn(),
 }))

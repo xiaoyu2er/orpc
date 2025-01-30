@@ -1,6 +1,5 @@
-import type { Meta } from '@orpc/contract'
+import type { Meta, ORPCErrorConstructorMap } from '@orpc/contract'
 import type { Context } from './context'
-import type { ORPCErrorConstructorMap } from './error'
 import type { AnyMiddleware, MapInputMiddleware, Middleware, MiddlewareNextFn } from './middleware'
 
 export interface DecoratedMiddleware<
@@ -50,9 +49,9 @@ export interface DecoratedMiddleware<
     TMeta
   >)
 
-  mapInput: <UInput = unknown>(
+  mapInput<UInput = unknown>(
     map: MapInputMiddleware<UInput, TInput>,
-  ) => DecoratedMiddleware<TInContext, TOutContext, UInput, TOutput, TErrorConstructorMap, TMeta>
+  ): DecoratedMiddleware<TInContext, TOutContext, UInput, TOutput, TErrorConstructorMap, TMeta>
 }
 
 export function decorateMiddleware<

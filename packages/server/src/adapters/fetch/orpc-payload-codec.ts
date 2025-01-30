@@ -103,11 +103,10 @@ export class ORPCPayloadCodec {
 
       const json = await re.json()
 
-      return SuperJSON.deserialize(json)
+      return SuperJSON.deserialize(json as any)
     }
     catch (e) {
-      throw new ORPCError({
-        code: 'BAD_REQUEST',
+      throw new ORPCError('BAD_REQUEST', {
         message: 'Cannot parse request/response. Please check the request/response body and Content-Type header.',
         cause: e,
       })

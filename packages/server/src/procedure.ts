@@ -40,7 +40,7 @@ export interface ProcedureDef<
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > extends ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta> {
-  __initialContext?(type: TInitialContext): any
+  __initialContext?(type: TInitialContext): unknown
   middlewares: AnyMiddleware[]
   inputValidationIndex: number
   outputValidationIndex: number

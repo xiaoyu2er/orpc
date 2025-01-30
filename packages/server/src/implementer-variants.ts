@@ -16,7 +16,7 @@ export type ImplementerInternalWithMiddlewares<
       : TContract extends ContractRouter<infer UMeta> ? {
         use<U extends Context>(
           middleware: Middleware<
-            TInitialContext,
+            TCurrentContext,
             U,
             unknown,
             unknown,

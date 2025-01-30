@@ -1,4 +1,4 @@
-import type { ANY_CONTRACT_PROCEDURE } from '@orpc/contract'
+import type { AnyContractProcedure } from '@orpc/contract'
 import type { JSONSchema, ObjectSchema } from './schema'
 import type { SchemaConverter } from './schema-converter'
 import type { PublicSchemaUtils } from './schema-utils'
@@ -15,8 +15,8 @@ export class OpenAPIOutputStructureParser {
     private readonly schemaUtils: PublicSchemaUtils,
   ) { }
 
-  parse(contract: ANY_CONTRACT_PROCEDURE, structure: 'compact' | 'detailed'): OpenAPIOutputStructureParseResult {
-    const outputSchema = this.schemaConverter.convert(contract['~orpc'].OutputSchema, { strategy: 'output' })
+  parse(contract: AnyContractProcedure, structure: 'compact' | 'detailed'): OpenAPIOutputStructureParseResult {
+    const outputSchema = this.schemaConverter.convert(contract['~orpc'].outputSchema, { strategy: 'output' })
 
     // TODO: refactor and remove this logic
     if (this.schemaUtils.isAnySchema(outputSchema)) {

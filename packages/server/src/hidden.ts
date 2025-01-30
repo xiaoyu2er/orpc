@@ -40,6 +40,6 @@ export function deepSetLazyRouterPrefix<T extends Lazy<any>>(router: T, prefix: 
   })
 }
 
-export function getLazyRouterPrefix(obj: Lazy<any>): HTTPPath | undefined {
+export function getLazyRouterPrefix(obj: object): HTTPPath | undefined {
   return (obj as any)[LAZY_ROUTER_PREFIX_SYMBOL]
 }

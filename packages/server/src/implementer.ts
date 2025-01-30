@@ -6,6 +6,7 @@ import type { AnyMiddleware, Middleware } from './middleware'
 import { isContractProcedure } from '@orpc/contract'
 import { Builder, type BuilderConfig } from './builder'
 import { fallbackConfig } from './config'
+import { setRouterContract } from './hidden'
 import { lazy } from './lazy'
 import { flatLazy, type FlattenLazy } from './lazy-utils'
 import { type DecoratedMiddleware, decorateMiddleware } from './middleware-decorated'
@@ -94,16 +95,24 @@ export function implementerInternal<
         }
       }
       else if (key === 'router') {
-        method = (router: any) => adaptRouter(router, {
-          middlewares,
-          errorMap: {},
-        })
+        method = (router: any) => {
+          const adapted = adaptRouter(router, {
+            middlewares,
+            errorMap: {},
+          })
+
+          return setRouterContract(adapted, contract)
+        }
       }
       else if (key === 'lazy') {
-        method = (loader: any) => adaptRouter(flatLazy(lazy(loader)) as any, {
-          middlewares,
-          errorMap: {},
-        })
+        method = (loader: any) => {
+          const adapted = adaptRouter(flatLazy(lazy(loader)) as any, {
+            middlewares,
+            errorMap: {},
+          })
+
+          return setRouterContract(adapted, contract)
+        }
       }
 
       const next = Reflect.get(target, key)

@@ -1,20 +1,20 @@
-import type { ContractRouter, HTTPPath, WELL_CONTRACT_PROCEDURE } from '@orpc/contract'
-import type { ANY_PROCEDURE, ANY_ROUTER, Lazy } from '@orpc/server'
+import type { AnyContractProcedure, AnyContractRouter, HTTPPath } from '@orpc/contract'
+import type { AnyProcedure, AnyRouter, Lazy } from '@orpc/server'
 import { isContractProcedure } from '@orpc/contract'
-import { isLazy, isProcedure, unlazy } from '@orpc/server'
+import { getRouterContract, isLazy, unlazy } from '@orpc/server'
 
 export interface EachLeafOptions {
-  router: ContractRouter<any> | ANY_ROUTER
+  router: AnyContractRouter | AnyRouter
   path: string[]
 }
 
 export interface EachLeafCallbackOptions {
-  contract: WELL_CONTRACT_PROCEDURE
+  contract: AnyContractProcedure
   path: string[]
 }
 
 export interface EachContractLeafResultItem {
-  router: Lazy<ANY_PROCEDURE> | Lazy<Record<string, ANY_ROUTER> | ANY_PROCEDURE>
+  router: Lazy<AnyProcedure> | Lazy<Record<string, AnyRouter> | AnyProcedure>
   path: string[]
 }
 
@@ -22,18 +22,25 @@ export function forEachContractProcedure(
   options: EachLeafOptions,
   callback: (options: EachLeafCallbackOptions) => void,
   result: EachContractLeafResultItem[] = [],
+  isCurrentRouterContract = false,
 ): EachContractLeafResultItem[] {
+  const hiddenContract = getRouterContract(options.router)
+
+  if (!isCurrentRouterContract && hiddenContract) {
+    return forEachContractProcedure(
+      {
+        path: options.path,
+        router: hiddenContract,
+      },
+      callback,
+      result,
+      true,
+    )
+  }
+
   if (isLazy(options.router)) {
     result.push({
       router: options.router,
-      path: options.path,
-    })
-  }
-
-  //
-  else if (isProcedure(options.router)) {
-    callback({
-      contract: options.router['~orpc'].contract,
       path: options.path,
     })
   }
@@ -64,7 +71,7 @@ export function forEachContractProcedure(
 }
 
 export async function forEachAllContractProcedure(
-  router: ContractRouter<any> | ANY_ROUTER,
+  router: AnyContractRouter | AnyRouter,
   callback: (options: EachLeafCallbackOptions) => void,
 ) {
   const pending: EachLeafOptions[] = [{

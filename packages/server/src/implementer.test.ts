@@ -1,11 +1,14 @@
 import { router as contract } from '../../contract/tests/shared'
 import { router } from '../tests/shared'
 import { Builder } from './builder'
+import { getRouterContract } from './hidden'
+import * as Hidden from './hidden'
 import { implement } from './implementer'
 import { isLazy, unlazy } from './lazy'
 import * as MiddlewareDecorated from './middleware-decorated'
 import * as Router from './router'
 
+const setRouterContractSpy = vi.spyOn(Hidden, 'setRouterContract')
 const decorateMiddlewareSpy = vi.spyOn(MiddlewareDecorated, 'decorateMiddleware')
 const adaptRouterSpy = vi.spyOn(Router, 'adaptRouter')
 
@@ -55,7 +58,12 @@ describe('implement', () => {
     it('.router', () => {
       const applied = implementer.nested.router(router)
 
-      expect(applied).toBe(adaptRouterSpy.mock.results[0]?.value)
+      expect(getRouterContract(applied)).toBe(contract.nested)
+      expect(applied).toBe(setRouterContractSpy.mock.results[0]?.value)
+
+      expect(setRouterContractSpy).toHaveBeenCalledOnce()
+      expect(setRouterContractSpy).toHaveBeenCalledWith(adaptRouterSpy.mock.results[0]?.value, contract.nested)
+
       expect(adaptRouterSpy).toHaveBeenCalledOnce()
       expect(adaptRouterSpy).toHaveBeenCalledWith(router, {
         middlewares: [mid],
@@ -66,7 +74,12 @@ describe('implement', () => {
     it('.lazy', () => {
       const applied = implementer.nested.lazy(() => Promise.resolve({ default: router }))
 
-      expect(applied).toBe(adaptRouterSpy.mock.results[0]?.value)
+      expect(getRouterContract(applied)).toBe(contract.nested)
+      expect(applied).toBe(setRouterContractSpy.mock.results[0]?.value)
+
+      expect(setRouterContractSpy).toHaveBeenCalledOnce()
+      expect(setRouterContractSpy).toHaveBeenCalledWith(adaptRouterSpy.mock.results[0]?.value, contract.nested)
+
       expect(adaptRouterSpy).toHaveBeenCalledOnce()
       expect(adaptRouterSpy).toHaveBeenCalledWith(expect.any(Object), {
         middlewares: [mid],

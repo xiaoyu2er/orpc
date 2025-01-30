@@ -1,4 +1,4 @@
-import type { ANY_ROUTER } from '@orpc/server'
+import type { AnyRouter } from '@orpc/server'
 import type { PublicOpenAPIInputStructureParser } from './openapi-input-structure-parser'
 import type { PublicOpenAPIOutputStructureParser } from './openapi-output-structure-parser'
 import type { PublicOpenAPIPathParser } from './openapi-path-parser'
@@ -93,7 +93,7 @@ export class OpenAPIGenerator {
     this.strictErrorResponses = options?.strictErrorResponses ?? true
   }
 
-  async generate(router: ContractRouter<any> | ANY_ROUTER, doc: Omit<OpenAPI.OpenAPIObject, 'openapi'>): Promise<OpenAPI.OpenAPIObject> {
+  async generate(router: ContractRouter<any> | AnyRouter, doc: Omit<OpenAPI.OpenAPIObject, 'openapi'>): Promise<OpenAPI.OpenAPIObject> {
     const builder = new OpenApiBuilder({
       ...doc,
       openapi: '3.1.1',
@@ -146,20 +146,16 @@ export class OpenAPIGenerator {
         responses[fallbackContractConfig('defaultSuccessStatus', def.route?.successStatus)] = {
           description: fallbackContractConfig('defaultSuccessDescription', def.route?.successDescription),
           content: resBodySchema !== undefined
-            ? this.contentBuilder.build(resBodySchema, {
-                example: def.outputExample,
-              })
+            ? this.contentBuilder.build(resBodySchema)
             : undefined,
           headers: resHeadersSchema !== undefined
-            ? this.parametersBuilder.buildHeadersObject(resHeadersSchema, {
-                example: def.outputExample,
-              })
+            ? this.parametersBuilder.buildHeadersObject(resHeadersSchema)
             : undefined,
         }
 
         const errors = group(Object.entries(def.errorMap ?? {})
           .filter(([_, config]) => config)
-          .map(([code, config]) => ({
+          .map(([code, config]: any) => ({
             ...config,
             code,
             status: fallbackORPCErrorStatus(code, config?.status),

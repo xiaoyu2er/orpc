@@ -6,9 +6,9 @@ export interface SchemaConvertOptions {
 }
 
 export interface SchemaConverter {
-  condition: (schema: Schema, options: SchemaConvertOptions) => boolean
+  condition(schema: Schema, options: SchemaConvertOptions): boolean
 
-  convert: (schema: Schema, options: SchemaConvertOptions) => JSONSchema.JSONSchema
+  convert(schema: Schema, options: SchemaConvertOptions): JSONSchema.JSONSchema
 }
 
 export class CompositeSchemaConverter implements SchemaConverter {

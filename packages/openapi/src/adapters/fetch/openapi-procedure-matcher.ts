@@ -1,19 +1,20 @@
+import type { AnyProcedure, AnyRouter } from '@orpc/server'
 import type { Router as BaseHono, ParamIndexMap, Params } from 'hono/router'
 import { fallbackContractConfig, type HTTPPath } from '@orpc/contract'
-import { type ANY_PROCEDURE, type ANY_ROUTER, getLazyRouterPrefix, getRouterChild, isProcedure, unlazy } from '@orpc/server'
+import { getLazyRouterPrefix, getRouterChild, isProcedure, unlazy } from '@orpc/server'
 import { mapValues } from '@orpc/shared'
 import { forEachContractProcedure, standardizeHTTPPath } from '../../utils'
 
 export type Hono = BaseHono<[string, string[]]>
 
-type PendingRouter = { path: string[], router: ANY_ROUTER }
+type PendingRouter = { path: string[], router: AnyRouter }
 
 export class OpenAPIProcedureMatcher {
   private pendingRouters: PendingRouter[]
 
   constructor(
     private readonly hono: Hono,
-    private readonly router: ANY_ROUTER,
+    private readonly router: AnyRouter,
   ) {
     this.pendingRouters = [{ path: [], router }]
   }
@@ -21,7 +22,7 @@ export class OpenAPIProcedureMatcher {
   async match(
     method: string,
     pathname: string,
-  ): Promise<{ path: string[], procedure: ANY_PROCEDURE, params: Params } | undefined> {
+  ): Promise<{ path: string[], procedure: AnyProcedure, params: Params } | undefined> {
     await this.handlePendingRouters(pathname)
 
     const [matches, paramStash] = this.hono.match(method, pathname)
@@ -73,7 +74,7 @@ export class OpenAPIProcedureMatcher {
     }
   }
 
-  private add(path: string[], router: ANY_ROUTER): void {
+  private add(path: string[], router: AnyRouter): void {
     const lazies = forEachContractProcedure({ path, router }, ({ path, contract }) => {
       const method = fallbackContractConfig('defaultMethod', contract['~orpc'].route?.method)
       const httpPath = contract['~orpc'].route?.path

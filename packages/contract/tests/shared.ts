@@ -48,3 +48,12 @@ export const pong = new ContractProcedure<
   meta: {},
   route: {},
 })
+
+export const router = {
+  ping,
+  pong,
+  nested: {
+    ping,
+    pong,
+  },
+}

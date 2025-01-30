@@ -66,3 +66,12 @@ export type InferContractRouterOutputs<T extends AnyContractRouter> =
     : {
         [K in keyof T]: T[K] extends AnyContractRouter ? InferContractRouterOutputs<T[K]> : never
       }
+
+export type ContractRouterToErrorMap<T extends AnyContractRouter> =
+  T extends ContractProcedure<any, any, infer UErrorMap, any> ? UErrorMap :
+      {
+        [K in keyof T]: T[K] extends AnyContractRouter ? ContractRouterToErrorMap<T[K]> : never
+      }[keyof T]
+
+export type ContractRouterToMeta<T extends AnyContractRouter> =
+  T extends ContractRouter<infer UMeta> ? UMeta : never

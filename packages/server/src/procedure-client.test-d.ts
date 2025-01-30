@@ -31,7 +31,7 @@ describe('ProcedureClient', () => {
     }
 
     if (isDefined) {
-      expectTypeOf(error).toEqualTypeOf<ORPCError<'BASE', { output: string }> | ORPCError<'OVERRIDE', { output: string }>>()
+      expectTypeOf(error).toEqualTypeOf<ORPCError<'BASE', { output: string }> | ORPCError<'OVERRIDE', unknown>>()
     }
 
     // @ts-expect-error - invalid input

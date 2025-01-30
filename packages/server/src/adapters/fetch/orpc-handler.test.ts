@@ -1,4 +1,3 @@
-import { ContractProcedure } from '@orpc/contract'
 import { describe, expect, it, vi } from 'vitest'
 import { lazy } from '../../lazy'
 import { Procedure } from '../../procedure'
@@ -11,24 +10,22 @@ vi.mock('../../procedure-client', () => ({
 
 describe('rpcHandler', () => {
   const ping = new Procedure({
-    contract: new ContractProcedure({
-      InputSchema: undefined,
-      outputSchema: undefined,
-      errorMap: {},
-      route: {},
-    }),
+    inputSchema: undefined,
+    outputSchema: undefined,
+    errorMap: {},
+    route: {},
+    meta: {},
     handler: vi.fn(),
     middlewares: [],
     inputValidationIndex: 0,
     outputValidationIndex: 0,
   })
   const pong = new Procedure({
-    contract: new ContractProcedure({
-      InputSchema: undefined,
-      outputSchema: undefined,
-      errorMap: {},
-      route: {},
-    }),
+    inputSchema: undefined,
+    outputSchema: undefined,
+    errorMap: {},
+    route: {},
+    meta: {},
     handler: vi.fn(),
     middlewares: [],
     inputValidationIndex: 0,

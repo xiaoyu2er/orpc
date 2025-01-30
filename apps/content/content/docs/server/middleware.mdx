@@ -16,8 +16,7 @@ export const pub = os.context<Context>()
 
 const authMiddleware = pub.middleware(async ({ context, next, path }, input) => {
     if (!context.user) {
-        throw new ORPCError({
-            code: 'UNAUTHORIZED',
+        throw new ORPCError('UNAUTHORIZED', {
             message: 'You need to log in first',
         })
     }
@@ -92,7 +91,7 @@ export const pub = os.context<Context>()
 const authMiddleware = pub
     .middleware(async ({ context, next, path }, input) => {
         if (!context.user) {
-            throw new ORPCError({ code: 'UNAUTHORIZED' })
+            throw new ORPCError('UNAUTHORIZED')
         }
 
         return next({

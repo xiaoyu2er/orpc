@@ -77,7 +77,7 @@ const authed = os.use(async ({ next }) => {
   const user = headersList.get('Authorization') ? { id: 'example' } : undefined
 
   if (!user) {
-    throw new ORPCError({ code: 'UNAUTHORIZED' })
+    throw new ORPCError('UNAUTHORIZED')
   }
 
   return next({

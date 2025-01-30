@@ -6,7 +6,7 @@ import { z } from 'zod'
 export type Context = { user?: { id: string } }
 
 // global pub, authed completely optional
-export const pub = os.context<Context>()
+export const pub = os.$context<Context>()
 export const authed = pub.use(({ context, path, next }, input) => {
   /** put auth logic here */
   return next()
@@ -46,9 +46,7 @@ export const router = pub.router({
       )
       .use(async ({ context, path, next }, input) => {
         if (!context?.user) {
-          throw new ORPCError({
-            code: 'UNAUTHORIZED',
-          })
+          throw new ORPCError('UNAUTHORIZED')
         }
 
         const result = await next({

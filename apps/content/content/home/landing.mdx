@@ -120,7 +120,7 @@ const pub = os.context<ORPCContext>()
 const createPost = pub
 	.use(({ context, path, next }, input) => {
 		if(!context.user){
-			throw new ORPCError({ code: 'UNAUTHORIZED' })
+			throw new ORPCError('UNAUTHORIZED')
 		}
 		
 		return next({

@@ -64,7 +64,7 @@ const authMid = os
     const user = headersList.get('Authorization') ? { id: 'example' } : undefined
 
     if (!user) {
-      throw new ORPCError({ code: 'UNAUTHORIZED' })
+      throw new ORPCError('UNAUTHORIZED')
     }
 
     return next({
@@ -112,7 +112,7 @@ const base = os.context<ORPCContext>()
 
 const authMid = base.middleware(({ context, next, path }, input) => {
     if(!context.user) {
-        throw new ORPCError({ code: 'UNAUTHORIZED' })
+        throw new ORPCError('UNAUTHORIZED')
     }
 
     return next({

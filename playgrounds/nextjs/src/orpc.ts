@@ -41,9 +41,7 @@ export const pub = base
 
 export const authed = pub.use(async ({ context, path, next }, input) => {
   if (!context.user) {
-    throw new ORPCError({
-      code: 'UNAUTHORIZED',
-    })
+    throw new ORPCError('UNAUTHORIZED')
   }
 
   return next({

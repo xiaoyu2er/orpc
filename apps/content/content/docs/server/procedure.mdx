@@ -40,8 +40,7 @@ const getUser = pub
         
         // Example: Authentication check
         if (!context.user) {
-            throw new ORPCError({
-                code: 'UNAUTHORIZED',
+            throw new ORPCError('UNAUTHORIZED', {
                 message: 'Authentication required'
             })
         }

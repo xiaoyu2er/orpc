@@ -1,5 +1,5 @@
 import type { Client, ContractRouter, ContractRouterClient } from '@orpc/contract'
-import type { ANY_ROUTER, RouterClient } from '@orpc/server'
+import type { AnyRouter, RouterClient } from '@orpc/server'
 import type { ClientLink } from './types'
 
 export interface createORPCClientOptions {
@@ -9,12 +9,12 @@ export interface createORPCClientOptions {
   path?: string[]
 }
 
-export function createORPCClient<TRouter extends ANY_ROUTER | ContractRouter<any>, TClientContext = unknown>(
+export function createORPCClient<TRouter extends AnyRouter | ContractRouter<any>, TClientContext = unknown>(
   link: ClientLink<TClientContext>,
   options?: createORPCClientOptions,
 ): TRouter extends ContractRouter<any>
     ? ContractRouterClient<TRouter, TClientContext>
-    : TRouter extends ANY_ROUTER // put this in lower priority than ContractRouter, will make createORPCClient can work without @orpc/server
+    : TRouter extends AnyRouter // put this in lower priority than ContractRouter, will make createORPCClient can work without @orpc/server
       ? RouterClient<TRouter, TClientContext>
       : never {
   const path = options?.path ?? []

@@ -146,7 +146,7 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
     return new ORPCError(json.code, json)
   }
 
-  static isValidJSON(json: unknown): json is ORPCErrorJSON<string, unknown> {
+  static isValidJSON(json: unknown): json is ORPCErrorJSON<ORPCErrorCode, unknown> {
     return isPlainObject(json)
       && 'defined' in json
       && typeof json.defined === 'boolean'

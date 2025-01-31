@@ -94,7 +94,7 @@ import { implement, ORPCError } from '@orpc/server'
 import { contract } from 'examples/contract'
 
 export const pub = implement(contract) // Ensure every implement must be match contract
-export const authed = os
+export const authed = pub
   .use(({ context, path, next }, input) => {
     /** put auth logic here */
     return next({})

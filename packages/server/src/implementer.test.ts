@@ -12,6 +12,10 @@ const setRouterContractSpy = vi.spyOn(Hidden, 'setRouterContract')
 const decorateMiddlewareSpy = vi.spyOn(MiddlewareDecorated, 'decorateMiddleware')
 const adaptRouterSpy = vi.spyOn(Router, 'adaptRouter')
 
+beforeEach(() => {
+  vi.clearAllMocks()
+})
+
 describe('implement', () => {
   const rawImplementer = implement(contract)
 

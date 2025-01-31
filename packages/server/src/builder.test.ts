@@ -31,6 +31,10 @@ const def = {
 
 const builder = new Builder(def)
 
+beforeEach(() => {
+  vi.clearAllMocks()
+})
+
 describe('builder', () => {
   it('is a contract procedure', () => {
     expect(builder).toSatisfy(isContractProcedure)

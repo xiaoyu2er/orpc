@@ -1,5 +1,5 @@
 import type { Meta, ORPCErrorConstructorMap } from '@orpc/contract'
-import type { Context } from './context'
+import type { Context, MergedContext } from './context'
 import type { AnyMiddleware, MapInputMiddleware, Middleware, MiddlewareNextFn } from './middleware'
 
 export interface DecoratedMiddleware<
@@ -10,7 +10,7 @@ export interface DecoratedMiddleware<
   TErrorConstructorMap extends ORPCErrorConstructorMap<any>,
   TMeta extends Meta,
 > extends Middleware<TInContext, TOutContext, TInput, TOutput, TErrorConstructorMap, TMeta> {
-  concat: (<UOutContext extends Context, UInput>(
+  concat<UOutContext extends Context, UInput>(
     middleware: Middleware<
       TInContext & TOutContext,
       UOutContext,
@@ -19,17 +19,19 @@ export interface DecoratedMiddleware<
       TErrorConstructorMap,
       TMeta
     >,
-  ) => DecoratedMiddleware<
+  ): DecoratedMiddleware<
     TInContext,
-    TOutContext & UOutContext,
+    MergedContext<TOutContext, UOutContext>,
     UInput & TInput,
     TOutput,
     TErrorConstructorMap,
     TMeta
-  >) & (<
+  >
+
+  concat<
     UOutContext extends Context,
-    UInput = TInput,
-    UMappedInput = unknown,
+    UInput,
+    UMappedInput,
   >(
     middleware: Middleware<
       TInContext & TOutContext,
@@ -40,14 +42,14 @@ export interface DecoratedMiddleware<
       TMeta
     >,
     mapInput: MapInputMiddleware<UInput & TInput, UMappedInput>,
-  ) => DecoratedMiddleware<
+  ): DecoratedMiddleware<
     TInContext,
     TOutContext & UOutContext,
     UInput & TInput,
     TOutput,
     TErrorConstructorMap,
     TMeta
-  >)
+  >
 
   mapInput<UInput = unknown>(
     map: MapInputMiddleware<UInput, TInput>,

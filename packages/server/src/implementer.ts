@@ -22,7 +22,7 @@ export type ImplementerInternal<
     TContract extends ContractProcedure<infer UInputSchema, infer UOutputSchema, infer UErrorMap, infer UMeta>
       ? ProcedureImplementer<TInitialContext, TCurrentContext, UInputSchema, UOutputSchema, UErrorMap, UMeta>
       : TContract extends ContractRouter<infer UMeta> ? {
-        middleware<UOutContext extends Context, TInput, TOutput = any>(
+        middleware<UOutContext extends Context, TInput, TOutput = any>( // = any here is important to make middleware can be used in any output by default
           middleware: Middleware<
             TCurrentContext,
             UOutContext,
@@ -31,7 +31,7 @@ export type ImplementerInternal<
             ORPCErrorConstructorMap<ContractRouterToErrorMap<TContract>>,
             ContractRouterToMeta<TContract>
           >,
-        ): DecoratedMiddleware<TCurrentContext, UOutContext, TInput, TOutput, ORPCErrorConstructorMap<any>, UMeta>
+        ): DecoratedMiddleware<TCurrentContext, UOutContext, TInput, TOutput, ORPCErrorConstructorMap<any>, UMeta> // ORPCErrorConstructorMap<any> ensures middleware can used in any procedure
 
         use<U extends Context>(
           middleware: Middleware<

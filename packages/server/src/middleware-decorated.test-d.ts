@@ -7,8 +7,8 @@ import type { DecoratedMiddleware } from './middleware-decorated'
 const decorated = {} as DecoratedMiddleware<
   CurrentContext,
   { extra: boolean },
-  unknown,
-  unknown,
+  { input: string },
+  { output: number },
   ORPCErrorConstructorMap<typeof baseErrorMap>,
   BaseMeta
 >
@@ -19,8 +19,8 @@ describe('DecoratedMiddleware', () => {
       Middleware<
         CurrentContext,
         { extra: boolean },
-        unknown,
-        unknown,
+        { input: string },
+        { output: number },
         ORPCErrorConstructorMap<typeof baseErrorMap>,
         BaseMeta
       >
@@ -28,14 +28,14 @@ describe('DecoratedMiddleware', () => {
   })
 
   it('.mapInput', () => {
-    const mapped = decorated.mapInput((input: 'input') => ({ mapped: input }))
+    const mapped = decorated.mapInput((input: 'input') => ({ input }))
 
     expectTypeOf(mapped).toEqualTypeOf<
       DecoratedMiddleware<
         CurrentContext,
         { extra: boolean },
         'input',
-        unknown,
+        { output: number },
         ORPCErrorConstructorMap<typeof baseErrorMap>,
         BaseMeta
       >
@@ -45,41 +45,15 @@ describe('DecoratedMiddleware', () => {
   describe('.concat', () => {
     it('without map input', () => {
       const mapped = decorated.concat(
-        ({ next }, input: 'input') => next({ context: { extra2: true } }),
+        ({ next }, input: { input2: string }) => next({ context: { extra2: true } }),
       )
 
       expectTypeOf(mapped).toEqualTypeOf<
         DecoratedMiddleware<
           CurrentContext,
           { extra: boolean } & { extra2: boolean },
-          'input',
-          unknown,
-          ORPCErrorConstructorMap<typeof baseErrorMap>,
-          BaseMeta
-        >
-      >()
-
-      decorated.concat(
-        // @ts-expect-error - conflict context
-        ({ next }, input: 'input') => next({ context: { extra: 'invalid' } }),
-      )
-    })
-
-    it('with map input', () => {
-      const mapped = decorated.concat(
-        ({ next }, input) => {
-          expectTypeOf(input).toEqualTypeOf<{ mapped: 'input' }>()
-          return next({ context: { extra2: true } })
-        },
-        (input: 'input') => ({ mapped: input }),
-      )
-
-      expectTypeOf(mapped).toEqualTypeOf<
-        DecoratedMiddleware<
-          CurrentContext,
-          { extra: boolean } & { extra2: boolean },
-          'input',
-          unknown,
+          { input: string } & { input2: string },
+          { output: number },
           ORPCErrorConstructorMap<typeof baseErrorMap>,
           BaseMeta
         >
@@ -88,7 +62,33 @@ describe('DecoratedMiddleware', () => {
       decorated.concat(
         // @ts-expect-error - conflict context
         ({ next }) => next({ context: { extra: 'invalid' } }),
-        (input: 'input') => ({ mapped: input }),
+      )
+    })
+
+    it('with map input', () => {
+      const mapped = decorated.concat(
+        ({ next }, input) => {
+          expectTypeOf(input).toEqualTypeOf<{ input: { input2: string } }>()
+          return next({ context: { extra2: true } })
+        },
+        (input: { input2: string }) => ({ input }),
+      )
+
+      expectTypeOf(mapped).toEqualTypeOf<
+        DecoratedMiddleware<
+          CurrentContext,
+          { extra: boolean } & { extra2: boolean },
+          { input: string } & { input2: string },
+          { output: number },
+          ORPCErrorConstructorMap<typeof baseErrorMap>,
+          BaseMeta
+        >
+      >()
+
+      decorated.concat(
+        // @ts-expect-error - conflict context
+        ({ next }) => next({ context: { extra: 'invalid' } }),
+        input => ({ mapped: input }),
       )
     })
   })

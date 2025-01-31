@@ -210,7 +210,7 @@ describe('builder', () => {
   })
 
   it('.router', () => {
-    const applied = builder.router(router)
+    const applied = builder.router(router as any)
 
     expect(applied).toBe(adaptRouterSpy.mock.results[0]?.value)
     expect(adaptRouterSpy).toBeCalledTimes(1)

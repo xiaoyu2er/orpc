@@ -60,7 +60,7 @@ describe('implement', () => {
     })
 
     it('.router', () => {
-      const applied = implementer.nested.router(router)
+      const applied = implementer.nested.router(router as any)
 
       expect(getRouterContract(applied)).toBe(contract.nested)
       expect(applied).toBe(setRouterContractSpy.mock.results[0]?.value)
@@ -76,7 +76,7 @@ describe('implement', () => {
     })
 
     it('.lazy', () => {
-      const applied = implementer.nested.lazy(() => Promise.resolve({ default: router }))
+      const applied = implementer.nested.lazy(() => Promise.resolve({ default: router as any }))
 
       expect(getRouterContract(applied)).toBe(contract.nested)
       expect(applied).toBe(setRouterContractSpy.mock.results[0]?.value)

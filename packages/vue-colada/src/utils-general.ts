@@ -8,7 +8,7 @@ import { deepUnref } from './utils'
  * Utils at any level (procedure or router)
  */
 export interface GeneralUtils<TInput> {
-  key: (options?: MaybeDeepRef<BuildKeyOptions<TInput>>) => EntryKey
+  key(options?: MaybeDeepRef<BuildKeyOptions<TInput>>): EntryKey
 }
 
 export function createGeneralUtils<TInput>(

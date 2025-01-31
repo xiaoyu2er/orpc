@@ -12,5 +12,5 @@ export type FetchHandleRest<T extends Context> =
 export type FetchHandleResult = { matched: true, response: Response } | { matched: false, response: undefined }
 
 export interface FetchHandler<T extends Context> {
-  handle: (request: Request, ...rest: FetchHandleRest<T>) => Promise<FetchHandleResult>
+  handle(request: Request, ...rest: FetchHandleRest<T>): Promise<FetchHandleResult>
 }

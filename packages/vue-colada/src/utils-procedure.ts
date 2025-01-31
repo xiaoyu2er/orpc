@@ -8,13 +8,13 @@ import { deepUnref } from './utils'
  * Utils at procedure level
  */
 export interface ProcedureUtils<TClientContext, TInput, TOutput, TError extends Error> {
-  queryOptions: <U extends QueryOptionsExtra<TClientContext, TInput, TOutput, TError>>(
+  queryOptions<U extends QueryOptionsExtra<TClientContext, TInput, TOutput, TError>>(
     ...opt: [options: U] | (undefined extends TInput & TClientContext ? [] : never)
-  ) => QueryOptions<TOutput, TError>
+  ): QueryOptions<TOutput, TError>
 
-  mutationOptions: <U extends MutationOptionsExtra<TClientContext, TInput, TOutput, TError>>(
+  mutationOptions<U extends MutationOptionsExtra<TClientContext, TInput, TOutput, TError>>(
     ...opt: [options: U] | (undefined extends TClientContext ? [] : never)
-  ) => MutationOptions<TInput, TOutput, TError>
+  ): MutationOptions<TInput, TOutput, TError>
 }
 
 export function createProcedureUtils<TClientContext, TInput, TOutput, TError extends Error>(

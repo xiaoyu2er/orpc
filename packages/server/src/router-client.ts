@@ -2,25 +2,22 @@ import type { Hooks, Value } from '@orpc/shared'
 import type { Lazy } from './lazy'
 import type { Procedure } from './procedure'
 import type { CreateProcedureClientRest, ProcedureClient } from './procedure-client'
-import type { Meta } from './types'
+import type { AnyRouter, Router } from './router'
 import { isLazy } from './lazy'
 import { createLazyProcedureFormAnyLazy } from './lazy-utils'
 import { isProcedure } from './procedure'
 import { createProcedureClient } from './procedure-client'
-import { type ANY_ROUTER, getRouterChild, type Router } from './router'
+import { getRouterChild } from './router'
 
-/**
- * FIXME: separate RouterClient and ContractRouterClient, don't mix them
- */
-export type RouterClient<TRouter extends ANY_ROUTER, TClientContext> = TRouter extends Lazy<infer U extends ANY_ROUTER>
+export type RouterClient<TRouter extends AnyRouter, TClientContext> = TRouter extends Lazy<infer U extends AnyRouter>
   ? RouterClient<U, TClientContext>
   : TRouter extends Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput, infer UErrorMap, any>
     ? ProcedureClient<TClientContext, UInputSchema, UOutputSchema, UFuncOutput, UErrorMap>
     : {
-        [K in keyof TRouter]: TRouter[K] extends ANY_ROUTER ? RouterClient<TRouter[K], TClientContext> : never
+        [K in keyof TRouter]: TRouter[K] extends AnyRouter ? RouterClient<TRouter[K], TClientContext> : never
       }
 
-export type CreateRouterClientOptions<TRouter extends ANY_ROUTER> =
+export type CreateRouterClientOptions<TRouter extends AnyRouter> =
   & {
     /**
      * This is helpful for logging and analytics.
@@ -32,10 +29,10 @@ export type CreateRouterClientOptions<TRouter extends ANY_ROUTER> =
   & (TRouter extends Router<infer UContext, any>
     ? undefined extends UContext ? { context?: Value<UContext> } : { context: Value<UContext> }
     : never)
-  & Hooks<unknown, unknown, TRouter extends Router<infer UContext, any> ? UContext : never, Meta>
+  & Hooks<unknown, unknown, TRouter extends Router<infer UContext, any> ? UContext : never, any>
 
 export function createRouterClient<
-  TRouter extends ANY_ROUTER,
+  TRouter extends AnyRouter,
   TClientContext,
 >(
   router: TRouter | Lazy<undefined>,

@@ -1,84 +1,111 @@
-import type { ContractRouter, InferContractRouterInputs, InferContractRouterOutputs } from './router'
-import { z } from 'zod'
-import { ContractProcedure } from './procedure'
-import { DecoratedContractProcedure } from './procedure-decorated'
-
-const schema = z.object({
-  value: z.string().transform(() => 1),
-})
-
-const errorMap = { BAD_GATEWAY: { data: schema } } as const
-
-type SchemaIn = { value: string }
-type SchemaOut = { value: number }
-
-const ping = new ContractProcedure({ InputSchema: schema, OutputSchema: undefined, route: { path: '/procedure' }, errorMap })
-const pinged = DecoratedContractProcedure.decorate(ping)
-
-const pong = new ContractProcedure({ InputSchema: undefined, OutputSchema: schema, errorMap: {}, route: {} })
-const ponged = DecoratedContractProcedure.decorate(pong)
+import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../tests/shared'
+import type { MergedErrorMap } from './error-map'
+import type { Meta } from './meta'
+import type { ContractProcedure } from './procedure'
+import type { AdaptedContractRouter, ContractRouter, InferContractRouterInputs, InferContractRouterOutputs } from './router'
+import { ping, pong } from '../tests/shared'
 
 const router = {
   ping,
-  pinged,
   pong,
-  ponged,
   nested: {
     ping,
-    pinged,
     pong,
-    ponged,
   },
 }
 
 describe('ContractRouter', () => {
-  it('ErrorMap', () => {
-    expectTypeOf(ping).toMatchTypeOf<ContractRouter<typeof errorMap>>()
+  describe('meta def', () => {
+    it('works', () => {
+      expectTypeOf(ping).toMatchTypeOf<ContractRouter<BaseMeta>>()
+      expectTypeOf(pong).toMatchTypeOf<ContractRouter<BaseMeta>>()
+      expectTypeOf(router).toMatchTypeOf<ContractRouter<BaseMeta>>()
 
-    expectTypeOf(pong).not.toMatchTypeOf<ContractRouter<typeof errorMap>>()
-    expectTypeOf(router).not.toMatchTypeOf<ContractRouter<typeof errorMap>>()
+      expectTypeOf(ping).not.toMatchTypeOf<ContractRouter<{ invalid: true }>>()
+    })
 
-    expectTypeOf(pong).toMatchTypeOf<ContractRouter<Partial<typeof errorMap>>>()
-    expectTypeOf(router).toMatchTypeOf<ContractRouter<Partial<typeof errorMap>>>()
-  })
+    it('not allow conflict meta def', () => {
+      expectTypeOf({
+        ping: {} as ContractProcedure<
+          undefined,
+          typeof outputSchema,
+          typeof baseErrorMap,
+          { mode?: number }
+        >,
+      }).not.toMatchTypeOf<ContractRouter<BaseMeta>>()
+    })
 
-  it('procedure also is a contract router', () => {
-    expectTypeOf(ping).toMatchTypeOf<ContractRouter<any>>()
-  })
+    it('works when meta def is wider', () => {
+      expectTypeOf({
+        ping: {} as ContractProcedure<
+          undefined,
+          typeof outputSchema,
+          typeof baseErrorMap,
+          BaseMeta & { extra?: string }
+        >,
+      }).toMatchTypeOf<ContractRouter<BaseMeta>>()
+    })
 
-  it('just an object and accepts both procedures and decorated procedures', () => {
-    expectTypeOf({ router }).toMatchTypeOf<ContractRouter<any>>()
+    it('works when meta def is narrower', () => {
+      expectTypeOf({
+        ping: {} as ContractProcedure<
+          undefined,
+          typeof outputSchema,
+          typeof baseErrorMap,
+          Omit<BaseMeta, 'mode'>
+        >,
+      }).toMatchTypeOf<ContractRouter< BaseMeta>>()
+    })
   })
 })
 
-describe('InferContractRouterInputs', () => {
-  it('works', () => {
-    type Inputs = InferContractRouterInputs<typeof router>
+it('AdaptedContractRouter', () => {
+  const adapted = {} as AdaptedContractRouter<typeof router, { INVALID: { status: number }, BASE2: { message: string } }>
 
-    expectTypeOf<Inputs['ping']>().toEqualTypeOf<SchemaIn>()
-    expectTypeOf<Inputs['pinged']>().toEqualTypeOf<SchemaIn>()
-    expectTypeOf<Inputs['pong']>().toEqualTypeOf<unknown>()
-    expectTypeOf<Inputs['ponged']>().toEqualTypeOf<unknown>()
+  expectTypeOf(adapted.ping).toEqualTypeOf<
+    ContractProcedure<
+      typeof inputSchema,
+      typeof outputSchema,
+      MergedErrorMap<{ INVALID: { status: number }, BASE2: { message: string } }, typeof baseErrorMap>,
+      BaseMeta
+    >
+  >()
 
-    expectTypeOf<Inputs['nested']['ping']>().toEqualTypeOf<SchemaIn>()
-    expectTypeOf<Inputs['nested']['pinged']>().toEqualTypeOf<SchemaIn>()
-    expectTypeOf<Inputs['nested']['pong']>().toEqualTypeOf<unknown>()
-    expectTypeOf<Inputs['nested']['ponged']>().toEqualTypeOf<unknown>()
-  })
+  expectTypeOf(adapted.nested.ping).toEqualTypeOf<
+    ContractProcedure<
+      typeof inputSchema,
+      typeof outputSchema,
+      MergedErrorMap<{ INVALID: { status: number }, BASE2: { message: string } }, typeof baseErrorMap>,
+      BaseMeta
+    >
+  >()
+
+  expectTypeOf(adapted.pong).toEqualTypeOf<
+    ContractProcedure<
+      undefined,
+      undefined,
+      MergedErrorMap<{ INVALID: { status: number }, BASE2: { message: string } }, Record<never, never>>,
+      Meta
+    >
+  >()
 })
 
-describe('InferContractRouterOutputs', () => {
-  it('works', () => {
-    type Outputs = InferContractRouterOutputs<typeof router>
+it('InferContractRouterInputs', () => {
+  type Inputs = InferContractRouterInputs<typeof router>
 
-    expectTypeOf<Outputs['ping']>().toEqualTypeOf<unknown>()
-    expectTypeOf<Outputs['pinged']>().toEqualTypeOf<unknown>()
-    expectTypeOf<Outputs['pong']>().toEqualTypeOf<SchemaOut>()
-    expectTypeOf<Outputs['ponged']>().toEqualTypeOf<SchemaOut>()
+  expectTypeOf<Inputs['ping']>().toEqualTypeOf<{ input: number }>()
+  expectTypeOf<Inputs['pong']>().toEqualTypeOf<unknown>()
 
-    expectTypeOf<Outputs['nested']['ping']>().toEqualTypeOf<unknown>()
-    expectTypeOf<Outputs['nested']['pinged']>().toEqualTypeOf<unknown>()
-    expectTypeOf<Outputs['nested']['pong']>().toEqualTypeOf<SchemaOut>()
-    expectTypeOf<Outputs['nested']['ponged']>().toEqualTypeOf<SchemaOut>()
-  })
+  expectTypeOf<Inputs['nested']['ping']>().toEqualTypeOf<{ input: number }>()
+  expectTypeOf<Inputs['nested']['pong']>().toEqualTypeOf<unknown>()
+})
+
+it('InferContractRouterOutputs', () => {
+  type Outputs = InferContractRouterOutputs<typeof router>
+
+  expectTypeOf<Outputs['ping']>().toEqualTypeOf<{ output: string }>()
+  expectTypeOf<Outputs['pong']>().toEqualTypeOf<unknown>()
+
+  expectTypeOf<Outputs['nested']['ping']>().toEqualTypeOf<{ output: string }>()
+  expectTypeOf<Outputs['nested']['pong']>().toEqualTypeOf<unknown>()
 })

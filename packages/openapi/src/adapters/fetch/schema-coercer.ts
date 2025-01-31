@@ -1,7 +1,7 @@
 import type { Schema } from '@orpc/contract'
 
 export interface SchemaCoercer {
-  coerce: (schema: Schema, value: unknown) => unknown
+  coerce(schema: Schema, value: unknown): unknown
 }
 
 export class CompositeSchemaCoercer implements SchemaCoercer {

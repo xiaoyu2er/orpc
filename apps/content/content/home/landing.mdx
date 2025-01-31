@@ -115,12 +115,12 @@ convert `1992` into a `bigint` and seamlessly parse objects like `user`.
 ```tsx
 type ORPCContext = { db: DB, user?: { id: string } }
 
-const pub = os.context<ORPCContext>()
+const pub = os.$context<ORPCContext>()
 
 const createPost = pub
 	.use(({ context, path, next }, input) => {
 		if(!context.user){
-			throw new ORPCError({ code: 'UNAUTHORIZED' })
+			throw new ORPCError('UNAUTHORIZED')
 		}
 		
 		return next({
@@ -144,8 +144,9 @@ const getUserContract = oc
 	.input({/*something*/})
 	.output({/*something*/})
 
+const os = implement(getUserContract)
+
 const getUser = os
-	.contract(getUserContract)
 	.handler(({ input }) => /* handle user */)
 ```
 

@@ -12,11 +12,11 @@ export type ServeRest<T extends Context> =
   | (Record<never, never> extends T ? [] : never)
 
 export interface ServeResult {
-  GET: (req: NextRequest) => Promise<Response>
-  POST: (req: NextRequest) => Promise<Response>
-  PUT: (req: NextRequest) => Promise<Response>
-  PATCH: (req: NextRequest) => Promise<Response>
-  DELETE: (req: NextRequest) => Promise<Response>
+  GET(req: NextRequest): Promise<Response>
+  POST(req: NextRequest): Promise<Response>
+  PUT(req: NextRequest): Promise<Response>
+  PATCH(req: NextRequest): Promise<Response>
+  DELETE(req: NextRequest): Promise<Response>
 }
 
 export function serve<T extends Context>(handler: FetchHandler<T>, ...[options]: ServeRest<T>): ServeResult {

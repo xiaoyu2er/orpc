@@ -31,8 +31,8 @@ export type QueryOptionsExtra<TClientContext, TInput, TOutput, TError extends Er
 
 export interface QueryOptionsBase<TOutput, TError extends Error> {
   queryKey: ComputedRef<QueryKey>
-  queryFn: (ctx: QueryFunctionContext) => Promise<TOutput>
-  retry?: (failureCount: number, error: TError) => boolean // this help tanstack can infer TError
+  queryFn(ctx: QueryFunctionContext): Promise<TOutput>
+  retry?(failureCount: number, error: TError): boolean // this help tanstack can infer TError
 }
 
 export type InfiniteOptionsExtra<TClientContext, TInput, TOutput, TError extends Error, TSelectData> =
@@ -45,9 +45,9 @@ export type InfiniteOptionsExtra<TClientContext, TInput, TOutput, TError extends
 
 export interface InfiniteOptionsBase<TInput, TOutput, TError extends Error> {
   queryKey: ComputedRef<QueryKey>
-  queryFn: (ctx: QueryFunctionContext<QueryKey, InferCursor<TInput>>) => Promise<TOutput>
+  queryFn(ctx: QueryFunctionContext<QueryKey, InferCursor<TInput>>): Promise<TOutput>
   initialPageParam: undefined
-  retry?: (failureCount: number, error: TError) => boolean // this help tanstack can infer TError
+  retry?(failureCount: number, error: TError): boolean // this help tanstack can infer TError
 }
 
 export type MutationOptionsExtra<TClientContext, TInput, TOutput, TError extends Error> =
@@ -61,6 +61,6 @@ export type MutationOptionsExtra<TClientContext, TInput, TOutput, TError extends
 
 export interface MutationOptionsBase<TInput, TOutput, TError extends Error> {
   mutationKey: QueryKey
-  mutationFn: (input: TInput) => Promise<TOutput>
-  retry?: (failureCount: number, error: TError) => boolean // this help tanstack can infer TError
+  mutationFn(input: TInput): Promise<TOutput>
+  retry?(failureCount: number, error: TError): boolean // this help tanstack can infer TError
 }

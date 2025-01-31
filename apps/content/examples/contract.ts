@@ -1,6 +1,6 @@
 import type { InferContractRouterInputs, InferContractRouterOutputs } from '@orpc/contract'
 import { oc } from '@orpc/contract'
-import { ORPCError, os } from '@orpc/server'
+import { implement, ORPCError } from '@orpc/server'
 import { oz, ZodCoercer } from '@orpc/zod'
 import { z } from 'zod'
 
@@ -68,14 +68,13 @@ export type Outputs = InferContractRouterOutputs<typeof contract>
 // Implement the contract
 
 export type Context = { user?: { id: string } }
-export const base = os.context<Context>()
-export const pub = base.contract(contract) // Ensure every implement must be match contract
+export const base = implement(contract).$context<Context>()
+export const pub = base
 export const authed = base
   .use(({ context, path, next }, input) => {
     /** put auth logic here */
     return next({})
   })
-  .contract(contract)
 
 export const router = pub.router({
   getUser: pub.getUser.handler(({ input, context }) => {
@@ -89,9 +88,7 @@ export const router = pub.router({
     getPost: pub.posts.getPost
       .use(async ({ context, path, next }, input) => {
         if (!context.user) {
-          throw new ORPCError({
-            code: 'UNAUTHORIZED',
-          })
+          throw new ORPCError('UNAUTHORIZED')
         }
 
         const result = await next({

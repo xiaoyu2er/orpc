@@ -12,12 +12,11 @@ import { os, ORPCError } from '@orpc/server'
 
 export type Context = { user?: { id: string } }
 
-export const pub = os.context<Context>()
+export const pub = os.$context<Context>()
 
 const authMiddleware = pub.middleware(async ({ context, next, path }, input) => {
     if (!context.user) {
-        throw new ORPCError({
-            code: 'UNAUTHORIZED',
+        throw new ORPCError('UNAUTHORIZED', {
             message: 'You need to log in first',
         })
     }
@@ -86,13 +85,13 @@ type Context = {
     }
 }
 
-export const pub = os.context<Context>()
+export const pub = os.$context<Context>()
 
 // Any procedure using this middleware will infer context.user as NonNullable<typeof context['user']>
 const authMiddleware = pub
     .middleware(async ({ context, next, path }, input) => {
         if (!context.user) {
-            throw new ORPCError({ code: 'UNAUTHORIZED' })
+            throw new ORPCError('UNAUTHORIZED')
         }
 
         return next({

@@ -24,7 +24,7 @@ export interface RPCLinkOptions<TClientContext> {
    *
    * @default 'POST'
    */
-  method?: (path: readonly string[], input: unknown, context: TClientContext) => Promisable<HTTPMethod | undefined>
+  method?(path: readonly string[], input: unknown, context: TClientContext): Promisable<HTTPMethod | undefined>
 
   /**
    * The method to use when the payload cannot safely pass to the server with method return from method function.
@@ -34,7 +34,7 @@ export interface RPCLinkOptions<TClientContext> {
    */
   fallbackMethod?: HTTPMethod
 
-  headers?: (path: readonly string[], input: unknown, context: TClientContext) => Promisable<Headers | Record<string, string>>
+  headers?(path: readonly string[], input: unknown, context: TClientContext): Promisable<Headers | Record<string, string>>
 
   fetch?: FetchWithContext<TClientContext>
 
@@ -82,12 +82,11 @@ export class RPCLink<TClientContext> implements ClientLink<TClientContext> {
 
     if (!response.ok) {
       if (ORPCError.isValidJSON(decoded)) {
-        throw new ORPCError(decoded)
+        throw ORPCError.fromJSON(decoded)
       }
 
-      throw new ORPCError({
+      throw new ORPCError('INTERNAL_SERVER_ERROR', {
         status: response.status,
-        code: 'INTERNAL_SERVER_ERROR',
         message: 'Internal server error',
         cause: decoded,
       })
@@ -142,8 +141,7 @@ export class RPCLink<TClientContext> implements ClientLink<TClientContext> {
       }
     }
 
-    throw new ORPCError({
-      code: 'BAD_REQUEST',
+    throw new ORPCError('BAD_REQUEST', {
       message: 'Cannot encode the request, please check the url length or payload.',
     })
   }

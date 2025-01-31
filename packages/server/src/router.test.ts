@@ -1,108 +1,88 @@
-import { ContractProcedure } from '@orpc/contract'
-import { z } from 'zod'
-import { isLazy, lazy, unlazy } from './lazy'
-import { Procedure } from './procedure'
-import { getRouterChild } from './router'
+import { ping, pingMiddleware, pong, router } from '../tests/shared'
+import { getLazyRouterPrefix } from './hidden'
+import { isLazy, unlazy } from './lazy'
+import { isProcedure } from './procedure'
+import { adaptRouter, getRouterChild } from './router'
 
-describe('getRouterChild', () => {
-  const schema = z.object({ val: z.string().transform(val => Number(val)) })
+it('adaptRouter', () => {
+  const mid = vi.fn()
 
-  const ping = new Procedure({
-    contract: new ContractProcedure({
-      InputSchema: schema,
-      OutputSchema: schema,
-      errorMap: {},
-      route: {},
-    }),
-    handler: vi.fn(() => ({ val: '123' })),
-    middlewares: [],
-    inputValidationIndex: 0,
-    outputValidationIndex: 0,
-  })
-  const pong = new Procedure({
-    contract: new ContractProcedure({
-      InputSchema: undefined,
-      OutputSchema: undefined,
-      errorMap: {},
-      route: {},
-    }),
-    handler: vi.fn(() => ('output')),
-    middlewares: [],
-    inputValidationIndex: 0,
-    outputValidationIndex: 0,
+  const extraErrorMap = { EXTRA: {} }
+  const adapted = adaptRouter(router, {
+    errorMap: extraErrorMap,
+    middlewares: [mid, pingMiddleware],
+    prefix: '/adapt',
+    tags: ['adapt'],
   })
 
-  it('with procedure as router', () => {
-    expect(getRouterChild(ping)).toBe(ping)
-    expect(getRouterChild(ping, '~orpc')).toBe(undefined)
-    expect(getRouterChild(ping, '~type')).toBe(undefined)
-  })
-
-  it('with router', () => {
-    const router = {
-      ping,
-      pong,
-      nested: {
-        ping,
-        pong,
+  const satisfyAdaptedPing = ({ default: adaptedPing }: any) => {
+    expect(adaptedPing).toSatisfy(isProcedure)
+    expect(adaptedPing).not.toBe(ping)
+    expect(adaptedPing['~orpc']).toMatchObject({
+      ...ping['~orpc'],
+      errorMap: { ...ping['~orpc'].errorMap, ...extraErrorMap },
+      middlewares: [mid, ...ping['~orpc'].middlewares],
+      route: {
+        ...ping['~orpc'].route,
+        tags: ['adapt'],
+        path: '/adapt/base',
       },
-    }
+      inputValidationIndex: 2,
+      outputValidationIndex: 2,
+    })
 
-    expect(getRouterChild(router, 'ping')).toBe(ping)
-    expect(getRouterChild(router, 'pong')).toBe(pong)
-    expect(getRouterChild(router, 'nested')).toBe(router.nested)
-    expect(getRouterChild(router, 'nested', 'ping')).toBe(ping)
-    expect(getRouterChild(router, 'nested', 'pong')).toBe(pong)
-    expect(getRouterChild(router, 'nested', '~orpc')).toBe(undefined)
-    expect(getRouterChild(router, 'nested', 'ping', '~orpc')).toBe(undefined)
-    expect(getRouterChild(router, 'nested', 'pue', '~orpc', 'peng', 'pue')).toBe(undefined)
-  })
+    return true
+  }
 
-  it('with lazy router', async () => {
-    const lazyPing = lazy(() => Promise.resolve({ default: ping }))
-    const lazyPong = lazy(() => Promise.resolve({ default: pong }))
-
-    const lazyNested = lazy(() => Promise.resolve({
-      default: {
-        ping,
-        pong: lazyPong,
-        nested2: lazy(() => Promise.resolve({
-          default: {
-            ping,
-            pong: lazyPong,
-          },
-        })),
+  const satisfyAdaptedPong = ({ default: adaptedPong }: any) => {
+    expect(adaptedPong).toSatisfy(isProcedure)
+    expect(adaptedPong).not.toBe(pong)
+    expect(adaptedPong['~orpc']).toEqual({
+      ...pong['~orpc'],
+      errorMap: { ...pong['~orpc'].errorMap, ...extraErrorMap },
+      middlewares: [mid, pingMiddleware],
+      route: {
+        tags: ['adapt'],
       },
-    }))
+      inputValidationIndex: 2,
+      outputValidationIndex: 2,
+    })
 
-    const router = {
-      ping: lazyPing,
-      pong,
-      nested: lazyNested,
-    }
+    return true
+  }
 
-    expect(await unlazy(getRouterChild(router, 'ping'))).toEqual({ default: ping })
-    expect(getRouterChild(router, 'pong')).toBe(pong)
+  expect(adapted.ping).toSatisfy(isLazy)
+  expect(unlazy(adapted.ping)).resolves.toSatisfy(satisfyAdaptedPing)
+  expect(getLazyRouterPrefix(adapted.ping)).toBe('/adapt')
 
-    expect(getRouterChild(router, 'nested')).toSatisfy(isLazy)
-    expect(getRouterChild(router, 'nested', 'ping')).toSatisfy(isLazy)
-    expect(getRouterChild(router, 'nested', 'pong')).toSatisfy(isLazy)
+  expect(adapted.nested).toSatisfy(isLazy)
+  expect(getLazyRouterPrefix(adapted.nested)).toBe('/adapt')
 
-    expect(getRouterChild(router, 'nested')).toBe(lazyNested)
-    expect(await unlazy(getRouterChild(router, 'nested', 'ping'))).toEqual({ default: ping })
-    expect(await unlazy(getRouterChild(router, 'nested', 'pong'))).toEqual({ default: pong })
+  expect(adapted.nested.ping).toSatisfy(isLazy)
+  expect(unlazy(adapted.nested.ping)).resolves.toSatisfy(satisfyAdaptedPing)
+  expect(getLazyRouterPrefix(adapted.nested.ping)).toBe('/adapt')
 
-    expect(getRouterChild(router, 'nested', '~orpc')).toSatisfy(isLazy)
-    expect(await unlazy(getRouterChild(router, 'nested', '~orpc'))).toEqual({ default: undefined })
+  expect({ default: adapted.pong }).toSatisfy(satisfyAdaptedPong)
 
-    expect(await unlazy(getRouterChild(router, 'nested', 'nested2', 'pong'))).toEqual({ default: pong })
-    expect(await unlazy(getRouterChild(router, 'nested', 'nested2', 'peo', 'pue', 'cu', 'la'))).toEqual({ default: undefined })
-  })
+  expect(adapted.nested.pong).toSatisfy(isLazy)
+  expect(unlazy(adapted.nested.pong)).resolves.toSatisfy(satisfyAdaptedPong)
+  expect(getLazyRouterPrefix(adapted.nested.pong)).toBe('/adapt')
+})
 
-  it('support Lazy<undefined>', async () => {
-    const lazied = lazy(() => Promise.resolve({ default: undefined }))
+it('getRouterChild', () => {
+  expect(getRouterChild(router, 'pong')).toEqual(pong)
+  expect(getRouterChild(router, 'pong', 'not-exist')).toEqual(undefined)
 
-    expect(await unlazy(getRouterChild(lazied, 'ping'))).toEqual({ default: undefined })
-    expect(await unlazy(getRouterChild(lazied, 'ping', '~orpc'))).toEqual({ default: undefined })
-  })
+  expect(getRouterChild(router, 'ping')).toSatisfy(isLazy)
+  expect(unlazy(getRouterChild(router, 'ping'))).resolves.toEqual({ default: ping })
+
+  expect(getRouterChild(router, 'ping', 'not-exist')).toSatisfy(isLazy)
+  expect(unlazy(getRouterChild(router, 'ping', 'not-exist'))).resolves.toEqual({ default: undefined })
+
+  expect(getRouterChild(router, 'nested', 'pong')).toSatisfy(isLazy)
+  expect(unlazy(getRouterChild(router, 'nested', 'pong'))).resolves.toEqual({ default: pong })
+
+  expect(getRouterChild(router, 'not-exist', 'not-exist')).toEqual(undefined)
+  expect(getRouterChild(router, 'nested', 'not-exist', 'not-exist')).toSatisfy(isLazy)
+  expect(unlazy(getRouterChild(router, 'nested', 'not-exist', 'not-exist'))).resolves.toEqual({ default: undefined })
 })

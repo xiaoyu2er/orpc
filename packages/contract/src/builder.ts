@@ -1,114 +1,128 @@
-import type { ErrorMap, ErrorMapGuard, ErrorMapSuggestions, StrictErrorMap } from './error-map'
+import type { ContractProcedureBuilder, ContractProcedureBuilderWithInput, ContractProcedureBuilderWithOutput, ContractRouterBuilder } from './builder-variants'
 import type { ContractProcedureDef } from './procedure'
-import type { HTTPPath, MergeRoute, Route, StrictRoute } from './route'
-import type { ContractRouter } from './router'
-import type { AdaptedContractRouter } from './router-builder'
-import type { Schema, SchemaInput, SchemaOutput } from './types'
+import type { AdaptContractRouterOptions, AdaptedContractRouter, ContractRouter } from './router'
+import type { Schema } from './schema'
+import { type ErrorMap, type MergedErrorMap, mergeErrorMap } from './error-map'
+import { mergeMeta, type Meta } from './meta'
 import { ContractProcedure } from './procedure'
-import { ContractProcedureBuilder } from './procedure-builder'
-import { ContractProcedureBuilderWithInput } from './procedure-builder-with-input'
-import { ContractProcedureBuilderWithOutput } from './procedure-builder-with-output'
-import { mergeRoute } from './route'
-import { ContractRouterBuilder } from './router-builder'
+import { type HTTPPath, mergePrefix, mergeRoute, mergeTags, type Route } from './route'
+import { adaptContractRouter } from './router'
 
-export interface ContractBuilderConfig {
-  initialRoute?: Route
+export interface ContractBuilderDef<
+  TInputSchema extends Schema,
+  TOutputSchema extends Schema,
+  TErrorMap extends ErrorMap,
+  TMeta extends Meta,
+> extends ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>, AdaptContractRouterOptions<TErrorMap> {
 }
 
-export type MergeContractBuilderConfig<A extends ContractBuilderConfig, B extends ContractBuilderConfig> = Omit<A, keyof B> & B
+export class ContractBuilder<
+  TInputSchema extends Schema,
+  TOutputSchema extends Schema,
+  TErrorMap extends ErrorMap,
+  TMeta extends Meta,
+> extends ContractProcedure<TInputSchema, TOutputSchema, TErrorMap, TMeta> {
+  declare '~orpc': ContractBuilderDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>
 
-export type GetInitialRoute<T extends ContractBuilderConfig> = T['initialRoute'] extends Route
-  ? T['initialRoute']
-  : Record<never, never>
-
-export interface ContractBuilderDef<TConfig extends ContractBuilderConfig, TErrorMap extends ErrorMap>
-  extends ContractProcedureDef<undefined, undefined, TErrorMap, StrictRoute<GetInitialRoute<TConfig>>> {
-  config: TConfig
-}
-
-export class ContractBuilder<TConfig extends ContractBuilderConfig, TErrorMap extends ErrorMap>
-  extends ContractProcedure<undefined, undefined, TErrorMap, GetInitialRoute<TConfig>> {
-  declare '~orpc': ContractBuilderDef<TConfig, TErrorMap>
-
-  constructor(def: ContractBuilderDef<TConfig, TErrorMap>) {
+  constructor(def: ContractBuilderDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>) {
     super(def)
-    this['~orpc'].config = def.config
+
+    this['~orpc'].prefix = def.prefix
+    this['~orpc'].tags = def.tags
   }
 
-  config<const U extends ContractBuilderConfig>(config: U): ContractBuilder<MergeContractBuilderConfig<TConfig, U>, TErrorMap> {
+  /**
+   * Reset initial meta
+   */
+  $meta<U extends Meta>(
+    initialMeta: U,
+  ): ContractBuilder<TInputSchema, TOutputSchema, TErrorMap, U> {
     return new ContractBuilder({
       ...this['~orpc'],
-      config: {
-        ...this['~orpc'].config,
-        ...config,
-      } as any,
+      meta: initialMeta,
     })
   }
 
-  errors<const U extends ErrorMap & ErrorMapGuard<TErrorMap> & ErrorMapSuggestions>(
+  /**
+   * Reset initial route
+   */
+  $route(
+    initialRoute: Route,
+  ): ContractBuilder<TInputSchema, TOutputSchema, TErrorMap, TMeta> {
+    return new ContractBuilder({
+      ...this['~orpc'],
+      route: initialRoute,
+    })
+  }
+
+  errors<U extends ErrorMap>(
     errors: U,
-  ): ContractBuilder<TConfig, StrictErrorMap<U> & TErrorMap> {
+  ): ContractBuilder<TInputSchema, TOutputSchema, MergedErrorMap<TErrorMap, U>, TMeta> {
     return new ContractBuilder({
       ...this['~orpc'],
-      errorMap: {
-        ...this['~orpc'].errorMap,
-        ...errors,
-      },
+      errorMap: mergeErrorMap(this['~orpc'].errorMap, errors),
     })
   }
 
-  route<const U extends Route>(route: U): ContractProcedureBuilder<TErrorMap, MergeRoute<StrictRoute<GetInitialRoute<TConfig>>, U>> {
-    return new ContractProcedureBuilder({
+  meta(
+    meta: TMeta,
+  ): ContractProcedureBuilder<TInputSchema, TOutputSchema, TErrorMap, TMeta> {
+    return new ContractBuilder({
+      ...this['~orpc'],
+      meta: mergeMeta(this['~orpc'].meta, meta),
+    }) as any
+  }
+
+  route(
+    route: Route,
+  ): ContractProcedureBuilder<TInputSchema, TOutputSchema, TErrorMap, TMeta> {
+    return new ContractBuilder({
+      ...this['~orpc'],
       route: mergeRoute(this['~orpc'].route, route),
-      InputSchema: undefined,
-      OutputSchema: undefined,
-      errorMap: this['~orpc'].errorMap,
     })
   }
 
-  input<U extends Schema>(schema: U, example?: SchemaInput<U>): ContractProcedureBuilderWithInput<U, TErrorMap, StrictRoute<GetInitialRoute<TConfig>>> {
-    return new ContractProcedureBuilderWithInput({
-      route: this['~orpc'].route,
-      InputSchema: schema,
-      inputExample: example,
-      OutputSchema: undefined,
-      errorMap: this['~orpc'].errorMap,
+  input<U extends Schema>(
+    schema: U,
+  ): ContractProcedureBuilderWithInput<U, TOutputSchema, TErrorMap, TMeta> {
+    return new ContractBuilder({
+      ...this['~orpc'],
+      inputSchema: schema,
     })
   }
 
-  output<U extends Schema>(schema: U, example?: SchemaOutput<U>): ContractProcedureBuilderWithOutput<U, TErrorMap, StrictRoute<GetInitialRoute<TConfig>>> {
-    return new ContractProcedureBuilderWithOutput({
-      route: this['~orpc'].route,
-      OutputSchema: schema,
-      outputExample: example,
-      InputSchema: undefined,
-      errorMap: this['~orpc'].errorMap,
+  output<U extends Schema>(
+    schema: U,
+  ): ContractProcedureBuilderWithOutput<TInputSchema, U, TErrorMap, TMeta> {
+    return new ContractBuilder({
+      ...this['~orpc'],
+      outputSchema: schema,
     })
   }
 
-  prefix<U extends HTTPPath>(prefix: U): ContractRouterBuilder<TErrorMap, U, undefined> {
-    return new ContractRouterBuilder({
-      prefix,
-      errorMap: this['~orpc'].errorMap,
-      tags: undefined,
+  prefix(prefix: HTTPPath): ContractRouterBuilder<TErrorMap, TMeta> {
+    return new ContractBuilder({
+      ...this['~orpc'],
+      prefix: mergePrefix(this['~orpc'].prefix, prefix),
     })
   }
 
-  tag<U extends string[]>(...tags: U): ContractRouterBuilder<TErrorMap, undefined, U> {
-    return new ContractRouterBuilder({
-      tags,
-      errorMap: this['~orpc'].errorMap,
-      prefix: undefined,
+  tag(...tags: string[]): ContractRouterBuilder<TErrorMap, TMeta> {
+    return new ContractBuilder({
+      ...this['~orpc'],
+      tags: mergeTags(this['~orpc'].tags, tags),
     })
   }
 
-  router<T extends ContractRouter<ErrorMap & Partial<TErrorMap>>>(
-    router: T,
-  ): AdaptedContractRouter<T, TErrorMap, undefined, undefined> {
-    return new ContractRouterBuilder({
-      errorMap: this['~orpc'].errorMap,
-      prefix: undefined,
-      tags: undefined,
-    }).router(router)
+  router<T extends ContractRouter<TMeta>>(router: T): AdaptedContractRouter<T, TErrorMap> {
+    return adaptContractRouter(router, this['~orpc'])
   }
 }
+
+export const oc = new ContractBuilder({
+  errorMap: {},
+  inputSchema: undefined,
+  outputSchema: undefined,
+  route: {},
+  meta: {},
+})

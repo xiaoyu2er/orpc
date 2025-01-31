@@ -26,7 +26,7 @@ const createPost = os
     throw errors.CONFLICT({ data: { why: 'some reason' } })
 
     // is the same as, but this is not typed
-    throw new ORPCError({ code: 'CONFLICT', data: { why: 'some reason' } })
+    throw new ORPCError('CONFLICT', { data: { why: 'some reason' } })
 
     // throw errors.ANY_CODE()
   })
@@ -82,8 +82,7 @@ const ping = os
         }
     })
     .handler(({ input, context }) => {
-        throw new ORPCError({
-            code: 'NOT_FOUND',
+        throw new ORPCError('NOT_FOUND', {
             message: 'Not found',
             status: 404, // Optional: custom default behavior
             data: { something: 'include in the body and send to the client' } // pass data to the client

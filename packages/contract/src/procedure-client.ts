@@ -1,7 +1,7 @@
 import type { Client } from './client'
 import type { ErrorFromErrorMap } from './error'
 import type { ErrorMap } from './error-map'
-import type { Schema, SchemaInput, SchemaOutput } from './types'
+import type { Schema, SchemaInput, SchemaOutput } from './schema'
 
 export type ContractProcedureClient<
   TClientContext,

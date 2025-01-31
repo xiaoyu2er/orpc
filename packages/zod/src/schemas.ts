@@ -98,10 +98,10 @@ function composeParams<T = unknown>(options: {
 export function file(
   params?: string | CustomParams | ((input: unknown) => CustomParams),
 ): ZodType<InstanceType<typeof File>, ZodTypeDef, InstanceType<typeof File>> & {
-  type: (
+  type(
     mimeType: string,
     params?: string | CustomParams | ((input: unknown) => CustomParams),
-  ) => ZodEffects<
+  ): ZodEffects<
     ZodType<InstanceType<typeof File>, ZodTypeDef, InstanceType<typeof File>>,
     InstanceType<typeof File>,
     InstanceType<typeof File>

@@ -1,22 +1,20 @@
-import { ContractProcedure } from '@orpc/contract'
+import { ping } from '../tests/shared'
 import { isLazy, lazy, unlazy } from './lazy'
-import { createLazyProcedureFormAnyLazy } from './lazy-utils'
-import { Procedure } from './procedure'
+import { createLazyProcedureFormAnyLazy, flatLazy } from './lazy-utils'
+
+it('flatLazy', () => {
+  const lazied = lazy(() => Promise.resolve({
+    default: lazy(() => Promise.resolve({
+      default: lazy(() => Promise.resolve({ default: ping })),
+    })),
+  }))
+
+  const flatten = flatLazy(lazied)
+  expect(flatten).toSatisfy(isLazy)
+  expect(unlazy(flatten)).resolves.toEqual({ default: ping })
+})
 
 describe('createLazyProcedureFormAnyLazy', () => {
-  const ping = new Procedure({
-    contract: new ContractProcedure({
-      InputSchema: undefined,
-      OutputSchema: undefined,
-      errorMap: {},
-      route: {},
-    }),
-    handler: vi.fn(),
-    middlewares: [],
-    inputValidationIndex: 0,
-    outputValidationIndex: 0,
-  })
-
   it('return a Lazy<ANY_PROCEDURE>', async () => {
     const lazyPing = lazy(() => Promise.resolve({ default: ping }))
 

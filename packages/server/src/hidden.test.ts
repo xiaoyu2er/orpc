@@ -1,62 +1,99 @@
-import { deepSetLazyRouterPrefix, getLazyRouterPrefix } from './hidden'
+import { oc } from '@orpc/contract'
+import { router } from '../tests/shared'
+import { deepSetLazyRouterPrefix, getLazyRouterPrefix, getRouterContract, setRouterContract } from './hidden'
+import { lazy, unlazy } from './lazy'
+import { createAccessibleLazyRouter } from './router-accessible-lazy'
 
-describe('deepSetLazyRouterPrefix', () => {
-  it('sets prefix on root object', () => {
-    const obj = { value: 1 }
-    const prefixed = deepSetLazyRouterPrefix(obj, '/api')
-    expect(getLazyRouterPrefix(prefixed)).toBe('/api')
-    expect(prefixed.value).toBe(1)
+describe('setRouterContract', () => {
+  const ping = oc.route({})
+  const baseContract = { ping }
+  const nestedContract = { ping, nested: { ping } }
+
+  it('sets contract on empty object', () => {
+    const obj = {}
+    const router = setRouterContract(obj, baseContract)
+    expect(getRouterContract(router)).toBe(baseContract)
   })
 
-  it('sets prefix on all nested objects', () => {
-    const obj = {
-      l1: {
-        l2: {
-          l3: { value: 42 },
+  it('preserves original object properties', () => {
+    const obj = { existingProp: 'value' } as any
+    const router = setRouterContract(obj, baseContract)
+    expect(router.existingProp).toBe('value')
+    expect(getRouterContract(router)).toBe(baseContract)
+  })
+
+  it('handles nested contracts', () => {
+    const obj = { nested: { value: 42 } } as any
+    const router = setRouterContract(obj, nestedContract)
+    expect(getRouterContract(router)).toBe(nestedContract)
+    expect(router.nested.value).toBe(42)
+    expect(getRouterContract(router.nested)).toBeUndefined()
+  })
+
+  it('allows contract overwriting', () => {
+    const obj = {}
+    const router1 = setRouterContract(obj, baseContract)
+    const router2 = setRouterContract(router1, nestedContract)
+    expect(getRouterContract(router2)).toBe(nestedContract)
+  })
+})
+
+describe('deepSetLazyRouterPrefix', () => {
+  it('prefix on root and nested lazy', async () => {
+    const obj = createAccessibleLazyRouter(lazy(() => Promise.resolve({
+      default: {
+        l1: {
+          l2: {
+            l3: { value: router.ping },
+          },
         },
       },
-    }
+    })))
     const prefixed = deepSetLazyRouterPrefix(obj, '/api')
     expect(getLazyRouterPrefix(prefixed)).toBe('/api')
     expect(getLazyRouterPrefix(prefixed.l1)).toBe('/api')
     expect(getLazyRouterPrefix(prefixed.l1.l2)).toBe('/api')
     expect(getLazyRouterPrefix(prefixed.l1.l2.l3)).toBe('/api')
-    expect(prefixed.l1.l2.l3.value).toBe(42)
+    expect(getLazyRouterPrefix(prefixed.l1.l2.l3.value)).toBe('/api')
+    expect(await unlazy(prefixed.l1.l2.l3.value)).toEqual(await unlazy(router.ping))
   })
 
-  it('handles functions in objects', () => {
-    const obj = {
-      fn: () => 42,
-      nested: { fn: () => 43 },
-    }
-    const prefixed = deepSetLazyRouterPrefix(obj, '/api')
-    expect(getLazyRouterPrefix(prefixed.fn)).toBe('/api')
-    expect(getLazyRouterPrefix(prefixed.nested.fn)).toBe('/api')
-    expect(prefixed.fn()).toBe(42)
-    expect(prefixed.nested.fn()).toBe(43)
-  })
+  it('can override old prefix', async () => {
+    const obj = createAccessibleLazyRouter(lazy(() => Promise.resolve({
+      default: {
+        l1: {
+          l2: {
+            l3: { value: router.ping },
+          },
+        },
+      },
+    })))
 
-  it('allows prefix override', () => {
-    const obj = { value: 1 }
     const prefixed1 = deepSetLazyRouterPrefix(obj, '/api')
     const prefixed2 = deepSetLazyRouterPrefix(prefixed1, '/v2')
 
     expect(getLazyRouterPrefix(prefixed1)).toBe('/api')
+    expect(getLazyRouterPrefix(prefixed1.l1.l2.l3.value)).toBe('/api')
     expect(getLazyRouterPrefix(prefixed2)).toBe('/v2')
-    expect(prefixed2.value).toBe(1)
+    expect(getLazyRouterPrefix(prefixed2.l1.l2.l3.value)).toBe('/v2')
+
+    expect(await unlazy(obj)).toEqual(await unlazy(obj))
   })
 
-  it('handles nested prefix override', () => {
+  it('not prefix on non-lazy', () => {
     const obj = {
-      l1: { value: 1 },
-      l2: { value: 2 },
-    }
-    const prefixed1 = deepSetLazyRouterPrefix(obj, '/api')
-    const prefixed2 = deepSetLazyRouterPrefix(prefixed1.l1, '/v2')
+      l1: {
+        l2: {
+          l3: { value: router.ping },
+          value: 1, // not lazy
+        },
+      },
+    } as any
 
-    expect(getLazyRouterPrefix(prefixed1)).toBe('/api')
-    expect(getLazyRouterPrefix(prefixed1.l2)).toBe('/api')
-    expect(getLazyRouterPrefix(prefixed2)).toBe('/v2')
-    expect(prefixed2.value).toBe(1)
+    const prefixed = deepSetLazyRouterPrefix(obj, '/api') as any
+
+    expect(getLazyRouterPrefix(prefixed)).toBe('/api')
+    expect(getLazyRouterPrefix(prefixed.l1)).toBe(undefined)
+    expect(getLazyRouterPrefix(prefixed.l1.l2.value)).toBe(undefined)
   })
 })

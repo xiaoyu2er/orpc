@@ -1,6 +1,6 @@
 import type { Client } from '@orpc/contract'
 import { oc } from '@orpc/contract'
-import { os } from '@orpc/server'
+import { implement, os } from '@orpc/server'
 import { z } from 'zod'
 import { createORPCClient } from './client'
 
@@ -17,10 +17,10 @@ describe('createORPCClient', () => {
     },
   })
 
-  const ping = os.contract(pingContract).handler(name => `ping ${name}`)
-  const pong = os.contract(pongContract).handler(num => `pong ${num}`)
+  const ping = implement(pingContract).handler(name => `ping ${name}`)
+  const pong = implement(pongContract).handler(num => `pong ${num}`)
 
-  const router = os.contract(contractRouter).router({
+  const router = implement(contractRouter).router({
     ping,
     nested: os.lazy(() => Promise.resolve({ default: {
       pong: os.lazy(() => Promise.resolve({ default: pong })),

@@ -1,4 +1,4 @@
-import type { ANY_PROCEDURE, Context, Router, WithSignal } from '@orpc/server'
+import type { AnyProcedure, Context, Router } from '@orpc/server'
 import type { FetchHandler, FetchHandleRest, FetchHandleResult } from '@orpc/server/fetch'
 import type { Params } from 'hono/router'
 import type { PublicInputStructureCompact } from './input-structure-compact'
@@ -13,7 +13,7 @@ import { type Hono, OpenAPIProcedureMatcher, type PublicOpenAPIProcedureMatcher 
 import { CompositeSchemaCoercer, type SchemaCoercer } from './schema-coercer'
 
 export type OpenAPIHandlerOptions<T extends Context> =
-  & Hooks<Request, FetchHandleResult, T, WithSignal>
+  & Hooks<Request, FetchHandleResult, T, any>
   & {
     jsonSerializer?: PublicJSONSerializer
     procedureMatcher?: PublicOpenAPIProcedureMatcher
@@ -62,11 +62,11 @@ export class OpenAPIHandler<T extends Context> implements FetchHandler<T> {
         return { matched: false, response: undefined }
       }
 
-      const contractDef = matched.procedure['~orpc'].contract['~orpc']
+      const def = matched.procedure['~orpc']
 
       const input = await this.decodeInput(matched.procedure, matched.params, request)
 
-      const coercedInput = this.compositeSchemaCoercer.coerce(contractDef.InputSchema, input)
+      const coercedInput = this.compositeSchemaCoercer.coerce(def.inputSchema, input)
 
       const client = createProcedureClient(matched.procedure, {
         context,
@@ -79,7 +79,7 @@ export class OpenAPIHandler<T extends Context> implements FetchHandler<T> {
 
       const response = new Response(body, {
         headers: resHeaders,
-        status: fallbackContractConfig('defaultSuccessStatus', contractDef.route?.successStatus),
+        status: fallbackContractConfig('defaultSuccessStatus', def.route?.successStatus),
       })
 
       return { matched: true, response }
@@ -127,8 +127,8 @@ export class OpenAPIHandler<T extends Context> implements FetchHandler<T> {
     }
   }
 
-  private async decodeInput(procedure: ANY_PROCEDURE, params: Params, request: Request): Promise<unknown> {
-    const inputStructure = fallbackContractConfig('defaultInputStructure', procedure['~orpc'].contract['~orpc'].route?.inputStructure)
+  private async decodeInput(procedure: AnyProcedure, params: Params, request: Request): Promise<unknown> {
+    const inputStructure = fallbackContractConfig('defaultInputStructure', procedure['~orpc'].route.inputStructure)
 
     const url = new URL(request.url)
     const query = url.searchParams
@@ -151,11 +151,11 @@ export class OpenAPIHandler<T extends Context> implements FetchHandler<T> {
   }
 
   private encodeOutput(
-    procedure: ANY_PROCEDURE,
+    procedure: AnyProcedure,
     output: unknown,
     accept: string | undefined,
   ): { body: string | Blob | FormData | undefined, headers?: Headers } {
-    const outputStructure = fallbackContractConfig('defaultOutputStructure', procedure['~orpc'].contract['~orpc'].route?.outputStructure)
+    const outputStructure = fallbackContractConfig('defaultOutputStructure', procedure['~orpc'].route.outputStructure)
 
     if (outputStructure === 'compact') {
       return this.payloadCodec.encode(output, accept)
@@ -218,8 +218,7 @@ export class OpenAPIHandler<T extends Context> implements FetchHandler<T> {
   private convertToORPCError(e: unknown): ORPCError<any, any> {
     return e instanceof ORPCError
       ? e
-      : new ORPCError({
-        code: 'INTERNAL_SERVER_ERROR',
+      : new ORPCError('INTERNAL_SERVER_ERROR', {
         message: 'Internal server error',
         cause: e,
       })

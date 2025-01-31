@@ -1,4 +1,4 @@
-import { mergePrefix, mergeRoute, mergeTags, prefixRoute, unshiftTagRoute } from './route'
+import { adaptRoute, mergePrefix, mergeRoute, mergeTags, prefixRoute, unshiftTagRoute } from './route'
 
 it('mergeRoute', () => {
   expect(mergeRoute({ path: '/api' }, { path: '/v1' })).toEqual({ path: '/v1' })
@@ -27,4 +27,39 @@ it('mergeTags', () => {
   expect(mergeTags(undefined, ['tag'])).toEqual(['tag'])
   expect(mergeTags(['tag'], ['tag2'])).toEqual(['tag', 'tag2'])
   expect(mergeTags(['tag'], ['tag', 'tag2'])).toEqual(['tag', 'tag', 'tag2'])
+})
+
+it('adaptRoute', () => {
+  const route = {
+    path: '/api/v1',
+    tags: ['tag'],
+    description: 'description',
+  } as const
+
+  expect(adaptRoute(route, {
+    prefix: '/adapt',
+    tags: ['adapt'],
+  })).toEqual({
+    path: '/adapt/api/v1',
+    tags: ['adapt', 'tag'],
+    description: 'description',
+  })
+
+  expect(adaptRoute(route, {
+    prefix: '/adapt',
+  })).toEqual({
+    path: '/adapt/api/v1',
+    tags: ['tag'],
+    description: 'description',
+  })
+
+  expect(adaptRoute(route, {
+    tags: ['adapt'],
+  })).toEqual({
+    path: '/api/v1',
+    tags: ['adapt', 'tag'],
+    description: 'description',
+  })
+
+  expect(adaptRoute(route, {})).toBe(route)
 })

@@ -66,8 +66,7 @@ export const findPlanet = pub
     const planet = planets.find(planet => planet.id === input.id)
 
     if (!planet) {
-      throw new ORPCError({
-        code: 'NOT_FOUND',
+      throw new ORPCError('NOT_FOUND', {
         message: 'Planet not found',
       })
     }
@@ -87,8 +86,7 @@ export const updatePlanet = authed
     const planet = planets.find(planet => planet.id === input.id)
 
     if (!planet) {
-      throw new ORPCError({
-        code: 'NOT_FOUND',
+      throw new ORPCError('NOT_FOUND', {
         message: 'Planet not found',
       })
     }
@@ -117,8 +115,7 @@ export const updatePlanetImage = authed
     const planet = planets.find(planet => planet.id === input.id)
 
     if (!planet) {
-      throw new ORPCError({
-        code: 'NOT_FOUND',
+      throw new ORPCError('NOT_FOUND', {
         message: 'Planet not found',
       })
     }
@@ -144,8 +141,7 @@ export const deletePlanet = authed
     const planet = planets.find(planet => planet.id === input.id)
 
     if (!planet) {
-      throw new ORPCError({
-        code: 'NOT_FOUND',
+      throw new ORPCError('NOT_FOUND', {
         message: 'Planet not found',
       })
     }

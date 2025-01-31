@@ -1,89 +1,95 @@
-import type { Context } from './context'
+import type { ORPCErrorConstructorMap } from '@orpc/contract'
+import type { baseErrorMap, BaseMeta } from '../../contract/tests/shared'
+import type { CurrentContext } from '../tests/shared'
 import type { Middleware } from './middleware'
 import type { DecoratedMiddleware } from './middleware-decorated'
 
-describe('decorateMiddleware', () => {
-  const decorated = {} as DecoratedMiddleware<{ user?: string }, { auth: true, user: string }, { name: string }, unknown, Record<never, never>>
+const decorated = {} as DecoratedMiddleware<
+  CurrentContext,
+  { extra: boolean },
+  { input: string },
+  { output: number },
+  ORPCErrorConstructorMap<typeof baseErrorMap>,
+  BaseMeta
+>
 
-  it('assignable to middleware', () => {
-    const decorated = {} as DecoratedMiddleware<Context, Record<never, never>, { input: 'input' }, unknown, Record<never, never>>
-    const mid: Middleware<Context, Record<never, never>, { input: 'input' }, unknown, Record<never, never>> = decorated
-
-    const decorated2 = {} as DecoratedMiddleware<Context, { extra: boolean }, unknown, 'output', Record<never, never>>
-    const mid2: Middleware<Context, { extra: boolean }, unknown, 'output', Record<never, never>> = decorated2
-  })
-
-  it('can map input', () => {
-    const mapped = decorated.mapInput((input: 'something') => ({ name: input }))
-
-    expectTypeOf(mapped).toEqualTypeOf<
-      DecoratedMiddleware<{ user?: string }, { auth: true, user: string }, 'something', unknown, Record<never, never>>
-    >()
-  })
-
-  it('can concat', () => {
-    const mapped = decorated.concat(
-      ({ next }, input: { age: number }) => next({ context: { db: true } }),
-    )
-
-    expectTypeOf(mapped).toEqualTypeOf<
-      DecoratedMiddleware<
-        { user?: string },
-        { auth: true, user: string } & { db: boolean },
-        { name: string } & { age: number },
-        unknown,
-        Record<never, never>
+describe('DecoratedMiddleware', () => {
+  it('is a middleware', () => {
+    expectTypeOf(decorated).toMatchTypeOf<
+      Middleware<
+        CurrentContext,
+        { extra: boolean },
+        { input: string },
+        { output: number },
+        ORPCErrorConstructorMap<typeof baseErrorMap>,
+        BaseMeta
       >
     >()
   })
 
-  it('can concat with map input', () => {
-    const mapped = decorated.concat(
-      ({ next }, input: { age: number }) => next({ context: { db: true } }),
-      (input: { year: number }) => ({ age: 123 }),
-    )
+  it('.mapInput', () => {
+    const mapped = decorated.mapInput((input: 'input') => ({ input }))
 
     expectTypeOf(mapped).toEqualTypeOf<
       DecoratedMiddleware<
-        { user?: string },
-        { auth: true, user: string } & { db: boolean },
-        { name: string } & { year: number },
-        unknown,
-        Record<never, never>
+        CurrentContext,
+        { extra: boolean },
+        'input',
+        { output: number },
+        ORPCErrorConstructorMap<typeof baseErrorMap>,
+        BaseMeta
       >
     >()
-
-    decorated.concat(
-      ({ next }, input: { age: number }) => next({ context: { db: true } }),
-      // @ts-expect-error - invalid return input
-      (input: { year: number }) => ({ age: '123' }),
-    )
   })
 
-  it('can concat and prevent conflict on context', () => {
-    const mapped = decorated.concat(
-      ({ next }) => next({ context: { db: true } }),
-    )
+  describe('.concat', () => {
+    it('without map input', () => {
+      const mapped = decorated.concat(
+        ({ next }, input: { input2: string }) => next({ context: { extra2: true } }),
+      )
 
-    expectTypeOf(mapped).toEqualTypeOf<
-      DecoratedMiddleware<
-        { user?: string },
-        { auth: true, user: string } & { db: boolean },
-        { name: string },
-        unknown,
-        Record<never, never>
-      >
-    >()
+      expectTypeOf(mapped).toEqualTypeOf<
+        DecoratedMiddleware<
+          CurrentContext,
+          { extra: boolean } & { extra2: boolean },
+          { input: string } & { input2: string },
+          { output: number },
+          ORPCErrorConstructorMap<typeof baseErrorMap>,
+          BaseMeta
+        >
+      >()
 
-    decorated.concat(
-      // @ts-expect-error - user is not assignable to existing user context
-      (input, context, meta) => next({ context: { user: true } }),
-    )
+      decorated.concat(
+        // @ts-expect-error - conflict context
+        ({ next }) => next({ context: { extra: 'invalid' } }),
+      )
+    })
 
-    decorated.concat(
-      // @ts-expect-error - user is not assignable to existing user context
-      (input, context, meta) => next({ context: { user: true } }),
-      () => 'anything',
-    )
+    it('with map input', () => {
+      const mapped = decorated.concat(
+        ({ next }, input) => {
+          expectTypeOf(input).toEqualTypeOf<{ input: { input2: string } }>()
+          return next({ context: { extra2: true } })
+        },
+        (input: { input2: string }) => ({ input }),
+      )
+
+      expectTypeOf(mapped).toEqualTypeOf<
+        DecoratedMiddleware<
+          CurrentContext,
+          { extra: boolean } & { extra2: boolean },
+          { input: string } & { input2: string },
+          { output: number },
+          ORPCErrorConstructorMap<typeof baseErrorMap>,
+          BaseMeta
+        >
+      >()
+
+      decorated.concat(
+        // @ts-expect-error - conflict context
+        ({ next }) => next({ context: { extra: 'invalid' } }),
+        input => ({ mapped: input }),
+      )
+    })
   })
 })

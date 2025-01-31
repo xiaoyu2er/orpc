@@ -1,282 +1,97 @@
-import type { Route } from '@orpc/contract'
+import type { MergedErrorMap, Meta } from '@orpc/contract'
+import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../../contract/tests/shared'
+import type { CurrentContext, InitialContext } from '../tests/shared'
 import type { Context } from './context'
-import type { ANY_LAZY, Lazy } from './lazy'
+import type { Lazy } from './lazy'
 import type { Procedure } from './procedure'
-import type { ANY_ROUTER, InferRouterInputs, InferRouterOutputs, Router } from './router'
-import { oc } from '@orpc/contract'
-import { z } from 'zod'
-import { lazy } from './lazy'
-import { getRouterChild } from './router'
+import type { AdaptedRouter, InferRouterInputs, InferRouterOutputs, Router } from './router'
+import { ping, pong, router } from '../tests/shared'
 
-const schema = z.object({ val: z.string().transform(v => Number.parseInt(v)) })
+describe('Router', () => {
+  it('context', () => {
+    expectTypeOf(ping).toMatchTypeOf<Router<InitialContext, any>>()
+    expectTypeOf(pong).toMatchTypeOf<Router<InitialContext, any>>()
+    expectTypeOf(router).toMatchTypeOf<Router<InitialContext, any>>()
 
-const baseErrors = {
-  CODE: {
-    data: z.object({ why: z.string() }),
-  },
-} as const
-
-const route = { method: 'GET', path: '/ping' } as const
-
-const ping = {} as Procedure<{ auth: boolean }, { auth: boolean, db: string }, typeof schema, typeof schema, { val: string }, typeof baseErrors, typeof route>
-const pong = {} as Procedure<Context, Context, undefined, undefined, unknown, Record<never, never>, Route>
-
-const router = {
-  ping: lazy(() => Promise.resolve({ default: ping })),
-  pong,
-  nested: {
-    ping,
-    pong,
-  },
-  lazy: lazy(() => Promise.resolve({ default: {
-    ping: lazy(() => Promise.resolve({ default: ping })),
-    pong,
-    nested: lazy(() => Promise.resolve({ default: {
-      ping: lazy(() => Promise.resolve({ default: ping })),
-      pong,
-    } })),
-  } })),
-}
+    expectTypeOf(ping).not.toMatchTypeOf<Router<Context, any>>()
+  })
+})
 
 it('InferRouterInputs', () => {
-    type Inputs = InferRouterInputs<typeof router>
+    type Inferred = InferRouterInputs<typeof router>
 
-    expectTypeOf<Inputs['ping']>().toEqualTypeOf<{ val: string }>()
-    expectTypeOf<Inputs['pong']>().toEqualTypeOf<unknown>()
-    expectTypeOf<Inputs['nested']['ping']>().toEqualTypeOf<{ val: string }>()
-    expectTypeOf<Inputs['nested']['pong']>().toEqualTypeOf<unknown>()
-    expectTypeOf<Inputs['lazy']['ping']>().toEqualTypeOf<{ val: string }>()
-    expectTypeOf<Inputs['lazy']['pong']>().toEqualTypeOf<unknown>()
-    expectTypeOf<Inputs['lazy']['nested']['ping']>().toEqualTypeOf<{ val: string }>()
-    expectTypeOf<Inputs['lazy']['nested']['pong']>().toEqualTypeOf<unknown>()
+    expectTypeOf<Inferred['ping']>().toEqualTypeOf<{ input: number }>()
+    expectTypeOf<Inferred['nested']['ping']>().toEqualTypeOf<{ input: number }>()
+
+    expectTypeOf<Inferred['pong']>().toEqualTypeOf<unknown>()
+    expectTypeOf<Inferred['nested']['pong']>().toEqualTypeOf<unknown>()
 })
 
 it('InferRouterOutputs', () => {
-    type Outputs = InferRouterOutputs<typeof router>
+    type Inferred = InferRouterOutputs<typeof router>
 
-    expectTypeOf<Outputs['ping']>().toEqualTypeOf<{ val: number }>()
-    expectTypeOf<Outputs['pong']>().toEqualTypeOf<unknown>()
-    expectTypeOf<Outputs['nested']['ping']>().toEqualTypeOf<{ val: number }>()
-    expectTypeOf<Outputs['nested']['pong']>().toEqualTypeOf<unknown>()
-    expectTypeOf<Outputs['lazy']['ping']>().toEqualTypeOf<{ val: number }>()
-    expectTypeOf<Outputs['lazy']['pong']>().toEqualTypeOf<unknown>()
-    expectTypeOf<Outputs['lazy']['nested']['ping']>().toEqualTypeOf<{ val: number }>()
-    expectTypeOf<Outputs['lazy']['nested']['pong']>().toEqualTypeOf<unknown>()
+    expectTypeOf<Inferred['ping']>().toEqualTypeOf<{ output: string }>()
+    expectTypeOf<Inferred['nested']['ping']>().toEqualTypeOf<{ output: string }>()
+
+    expectTypeOf<Inferred['pong']>().toEqualTypeOf<unknown>()
+    expectTypeOf<Inferred['nested']['pong']>().toEqualTypeOf<unknown>()
 })
 
-describe('Router', () => {
-  it('require match context', () => {
-    const ping = {} as Procedure<{ auth: boolean }, { auth: boolean, db: string }, undefined, undefined, unknown, Record<never, never>, typeof route>
-    const pong = {} as Procedure<{ auth: string }, { auth: string }, undefined, undefined, unknown, Record<never, never>, Route>
+it('AdaptedRouter', () => {
+  type TErrorMap = { INVALID: { message: string }, OVERRIDE: { message: string } }
+  type Applied = AdaptedRouter<typeof router, InitialContext, TErrorMap>
 
-    const router: Router<{ auth: boolean, userId: string }, any> = {
-      ping,
-      // @ts-expect-error auth is not match
-      pong,
-      nested: {
-        ping,
-        // @ts-expect-error auth is not match
-        pong,
-      },
+  expectTypeOf<Applied['ping']>().toEqualTypeOf<
+    Lazy<
+      Procedure<
+        InitialContext,
+        CurrentContext,
+          typeof inputSchema,
+          typeof outputSchema,
+          { output: number },
+          MergedErrorMap <TErrorMap, typeof baseErrorMap>,
+          BaseMeta
+      >
+    >
+  >()
 
-      pingLazy: lazy(() => Promise.resolve({ default: ping })),
-      // @ts-expect-error auth is not match
-      pongLazy: lazy(() => Promise.resolve({ default: pong })),
+  expectTypeOf<Applied['nested']['ping']>().toEqualTypeOf<
+    Lazy<
+      Procedure<
+        InitialContext,
+        CurrentContext,
+          typeof inputSchema,
+          typeof outputSchema,
+          { output: number },
+          MergedErrorMap<TErrorMap, typeof baseErrorMap>,
+          BaseMeta
+      >
+    >
+  >()
 
-      nestedLazy1: lazy(() => Promise.resolve({
-        default: {
-          ping,
-        },
-      })),
+  expectTypeOf<Applied['pong']>().toEqualTypeOf<
+    Procedure<
+      InitialContext,
+      Context,
+      undefined,
+      undefined,
+      unknown,
+      MergedErrorMap<TErrorMap, Record<never, never>>,
+      Meta
+    >
+  >()
 
-      nestedLazy2: lazy(() => Promise.resolve({
-        default: {
-          ping: lazy(() => Promise.resolve({ default: ping })),
-        },
-      })),
-
-      // @ts-expect-error auth is not match
-      nestedLazy3: lazy(() => Promise.resolve({
-        default: {
-          pong,
-        },
-      })),
-
-      // @ts-expect-error auth is not match
-      nestedLazy4: lazy(() => Promise.resolve({
-        default: {
-          nested: {
-            pong: lazy(() => Promise.resolve({ default: pong })),
-          },
-        },
-      })),
-
-      nestedLazy6: lazy(() => Promise.resolve({
-        default: {
-          nested: lazy(() => Promise.resolve({
-            default: {
-              pingLazy: lazy(() => Promise.resolve({ default: ping })),
-            },
-          })),
-        },
-      })),
-
-      // @ts-expect-error auth is not match
-      nestedLazy5: lazy(() => Promise.resolve({
-        default: {
-          nested: lazy(() => Promise.resolve({
-            default: {
-              pongLazy: lazy(() => Promise.resolve({ default: pong })),
-            },
-          })),
-        },
-      })),
-    }
-  })
-
-  it('require match contract', () => {
-    const contract = oc.router({
-      ping: oc.input(schema),
-      pong: oc.output(schema),
-
-      nested: oc.router({
-        ping: oc.input(schema),
-        pong: oc.output(schema),
-      }),
-    })
-
-    const ping = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, Record<never, never>, Record<never, never>>
-    const pong = {} as Procedure<Context, Context, undefined, typeof schema, { val: string }, Record<never, never>, Record<never, never>>
-
-    const router1: Router<{ auth: boolean, userId: string }, typeof contract> = {
-      ping,
-      pong,
-      nested: {
-        ping,
-        pong,
-      },
-    }
-
-    const router2: Router<{ auth: boolean, userId: string }, typeof contract> = {
-      ping,
-      pong: lazy(() => Promise.resolve({ default: pong })),
-      nested: {
-        ping: lazy(() => Promise.resolve({ default: ping })),
-        pong,
-      },
-    }
-
-    const router3: Router<{ auth: boolean, userId: string }, typeof contract> = {
-      ping: lazy(() => Promise.resolve({ default: ping })),
-      pong,
-      nested: lazy(() => Promise.resolve({
-        default: {
-          ping: lazy(() => Promise.resolve({ default: ping })),
-          pong,
-        },
-      })),
-    }
-
-    // @ts-expect-error missing
-    const router4: Router<{ auth: boolean, userId: string }, typeof contract> = {}
-
-    const router39: Router<{ auth: boolean, userId: string }, typeof contract> = {
-      // @ts-expect-error wrong ping
-      ping: pong,
-      pong,
-      nested: {
-        ping,
-        // @ts-expect-error wrong pong
-        pong: ping,
-      },
-    }
-
-    const router565: Router<{ auth: boolean, userId: string }, typeof contract> = {
-      // @ts-expect-error wrong ping
-      ping: lazy(() => Promise.resolve({ default: pong })),
-      pong,
-      nested: {
-        ping,
-        // @ts-expect-error wrong pong
-        pong: lazy(() => Promise.resolve({ default: ping })),
-      },
-    }
-
-    const router343: Router<{ auth: boolean, userId: string }, typeof contract> = {
-      // @ts-expect-error wrong ping
-      ping: lazy(() => Promise.resolve({ default: pong })),
-      pong,
-      // @ts-expect-error wrong nested
-      nested: lazy(() => Promise.resolve({
-        default: {
-          ping: lazy(() => Promise.resolve({ default: ping })),
-          pong: lazy(() => Promise.resolve({ default: ping })),
-        },
-      })),
-    }
-  })
-
-  it('require match contract and errorMap', () => {
-    const pingContract = oc.input(schema).errors({
-      BAD_GATEWAY: {
-        status: 502,
-        data: z.object({
-          val: z.string().transform(val => Number(val)),
-        }),
-      },
-    })
-
-    const routerContract = {
-      ping: pingContract,
-    }
-
-    expectTypeOf({
-      ping: {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, typeof pingContract['~orpc']['errorMap'], Record<never, never>>,
-    }).toMatchTypeOf<Router<{ auth: boolean, userId: string }, typeof routerContract>>()
-
-    const likeErrors = {
-      BAD_GATEWAY: {
-        status: 502,
-        data: z.object({
-          val: z.string().transform(val => Number(val)),
-        }),
-      },
-    }
-
-    expectTypeOf({
-      ping: {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, typeof likeErrors, typeof route>,
-    }).not.toMatchTypeOf<Router<{ auth: boolean, userId: string }, typeof routerContract>>()
-  })
-
-  it('support procedure as a router', () => {
-    const router1: Router<{ auth: boolean, userId: string }, any> = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, Record<never, never>, Record<never, never>>
-    // @ts-expect-error - invalid context
-    const router2: Router<{ auth: boolean, userId: string }, any> = {} as Procedure<{ auth: boolean, dev: boolean }, { db: string }, typeof schema, undefined, unknown>
-
-    const pingContract = oc.input(schema)
-    const router3: Router<{ auth: boolean, userId: string }, typeof pingContract> = {} as Procedure<{ auth: boolean }, { db: string }, typeof schema, undefined, unknown, Record<never, never>, Record<never, never>>
-    // @ts-expect-error - mismatch contract
-    const router4: Router<{ auth: boolean, userId: string }, typeof pingContract> = {} as Procedure<{ auth: boolean }, { db: string }, undefined, undefined, unknown>
-  })
-})
-
-describe('getRouterChild', () => {
-  it('works', () => {
-    getRouterChild({})
-    getRouterChild(router)
-    getRouterChild(lazy(() => Promise.resolve({ default: router })))
-    getRouterChild(lazy(() => Promise.resolve({ default: undefined })))
-
-    // @ts-expect-error --- invalid router
-    getRouterChild(1)
-
-    expectTypeOf(getRouterChild({})).toEqualTypeOf<ANY_ROUTER | Lazy<undefined> | undefined>()
-  })
-
-  it('return lazy if router is lazy', () => {
-    expectTypeOf(
-      getRouterChild(lazy(() => Promise.resolve({ default: router })), 'a', 'b'),
-    )
-      .toMatchTypeOf<ANY_LAZY>()
-  })
+  expectTypeOf<Applied['nested']['pong']>().toEqualTypeOf<
+    Lazy<
+      Procedure<
+        InitialContext,
+        Context,
+        undefined,
+        undefined,
+        unknown,
+        MergedErrorMap<TErrorMap, Record<never, never>>,
+        Meta
+      >
+    >
+  >()
 })

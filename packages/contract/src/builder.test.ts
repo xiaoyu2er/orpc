@@ -1,45 +1,22 @@
-import { z } from 'zod'
+import { baseErrorMap, baseMeta, baseRoute, generalSchema, inputSchema, outputSchema, ping, pong } from '../tests/shared'
 import { ContractBuilder } from './builder'
-import { ContractProcedure } from './procedure'
-import { ContractProcedureBuilder } from './procedure-builder'
-import { ContractProcedureBuilderWithInput } from './procedure-builder-with-input'
-import { ContractProcedureBuilderWithOutput } from './procedure-builder-with-output'
-import { ContractRouterBuilder } from './router-builder'
+import { mergeErrorMap } from './error-map'
+import { isContractProcedure } from './procedure'
+import * as Router from './router'
 
-vi.mock('./router-builder', async (origin) => {
-  const ContractRouterBuilder = vi.fn()
-  ContractRouterBuilder.prototype.router = vi.fn(() => '__router__')
+const adaptContractRouterSpy = vi.spyOn(Router, 'adaptContractRouter')
 
-  return {
-    ContractRouterBuilder,
-  }
-})
-
-const ContractRouterBuilderRouterSpy = vi.spyOn(ContractRouterBuilder.prototype, 'router')
-
-const schema = z.object({ value: z.string() })
-
-const baseErrorMap = {
-  BASE: {
-    data: z.object({
-      message: z.string(),
-    }),
-  },
+const def = {
+  errorMap: baseErrorMap,
+  outputSchema,
+  inputSchema,
+  route: baseRoute,
+  meta: baseMeta,
+  prefix: '/adapt' as const,
+  tags: ['adapt'],
 }
 
-const builder = new ContractBuilder({
-  errorMap: baseErrorMap,
-  OutputSchema: undefined,
-  InputSchema: undefined,
-  config: {
-    initialRoute: {
-      description: 'from initial',
-    },
-  },
-  route: {
-    description: 'from initial',
-  },
-})
+const builder = new ContractBuilder(def)
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -47,85 +24,110 @@ beforeEach(() => {
 
 describe('contractBuilder', () => {
   it('is a contract procedure', () => {
-    expect(builder).toBeInstanceOf(ContractProcedure)
+    expect(builder).toSatisfy(isContractProcedure)
   })
 
-  it('.config', () => {
-    const applied = builder.config({ initialRoute: { description: 'from config' } })
+  it('.$meta', () => {
+    const meta = { dev: true, log: true }
+    const applied = builder.$meta(meta)
     expect(applied).toBeInstanceOf(ContractBuilder)
     expect(applied).not.toBe(builder)
-    expect(applied['~orpc'].config).toEqual({ initialRoute: { description: 'from config' } })
+    expect(applied['~orpc']).toEqual({
+      ...def,
+      meta,
+    })
+  })
+
+  it('.$route', () => {
+    const route = { path: '/api', method: 'GET' } as const
+
+    const applied = builder.$route(route)
+    expect(applied).toBeInstanceOf(ContractBuilder)
+    expect(applied['~orpc']).toEqual({
+      ...def,
+      route,
+    })
   })
 
   it('.errors', () => {
-    const errors = { BAD_GATEWAY: { data: schema } } as const
+    const errors = { BAD_GATEWAY: { data: outputSchema }, OVERRIDE: { message: 'override' } } as const
 
     const applied = builder.errors(errors)
     expect(applied).toBeInstanceOf(ContractBuilder)
     expect(applied).not.toBe(builder)
-    expect(applied['~orpc'].errorMap).toEqual({
-      ...baseErrorMap,
-      ...errors,
+    expect(applied['~orpc']).toEqual({
+      ...def,
+      errorMap: mergeErrorMap(def.errorMap, errors),
     })
-    expect(applied['~orpc'].config).toEqual({ initialRoute: { description: 'from initial' } })
+  })
+
+  it('.meta', () => {
+    const meta = { dev: true, log: true }
+    const applied = builder.meta(meta)
+    expect(applied).toBeInstanceOf(ContractBuilder)
+    expect(applied).not.toBe(builder)
+    expect(applied['~orpc']).toEqual({
+      ...def,
+      meta: { ...def.meta, ...meta },
+    })
   })
 
   it('.route', () => {
     const route = { method: 'GET', path: '/path' } as const
     const applied = builder.route(route)
-    expect(applied).toBeInstanceOf(ContractProcedureBuilder)
-    expect(applied['~orpc'].route).toEqual({ ...route, description: 'from initial' })
-    expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
+    expect(applied).toBeInstanceOf(ContractBuilder)
+    expect(applied).not.toBe(builder)
+    expect(applied['~orpc']).toEqual({
+      ...def,
+      route: { ...def.route, ...route },
+    })
   })
 
   it('.input', () => {
-    const applied = builder.input(schema)
-    expect(applied).toBeInstanceOf(ContractProcedureBuilderWithInput)
-    expect(applied['~orpc'].InputSchema).toEqual(schema)
-    expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
-    expect(applied['~orpc'].route).toEqual({ description: 'from initial' })
+    const applied = builder.input(generalSchema)
+    expect(applied).toBeInstanceOf(ContractBuilder)
+    expect(applied).not.toBe(builder)
+    expect(applied['~orpc']).toEqual({
+      ...def,
+      inputSchema: generalSchema,
+    })
   })
 
   it('.output', () => {
-    const applied = builder.output(schema)
-    expect(applied).toBeInstanceOf(ContractProcedureBuilderWithOutput)
-    expect(applied['~orpc'].OutputSchema).toEqual(schema)
-    expect(applied['~orpc'].errorMap).toEqual(baseErrorMap)
-    expect(applied['~orpc'].route).toEqual({ description: 'from initial' })
+    const applied = builder.output(generalSchema)
+    expect(applied).toBeInstanceOf(ContractBuilder)
+    expect(applied).not.toBe(builder)
+    expect(applied['~orpc']).toEqual({
+      ...def,
+      outputSchema: generalSchema,
+    })
   })
 
   it('.prefix', () => {
     const applied = builder.prefix('/api')
-    expect(applied).toBeInstanceOf(ContractRouterBuilder)
-    expect(applied).toBe(vi.mocked(ContractRouterBuilder).mock.results[0]!.value)
-    expect(ContractRouterBuilder).toHaveBeenCalledWith({
-      prefix: '/api',
-      errorMap: baseErrorMap,
+    expect(applied).toBeInstanceOf(ContractBuilder)
+    expect(applied).not.toBe(builder)
+    expect(applied['~orpc']).toEqual({
+      ...def,
+      prefix: '/adapt/api',
     })
   })
 
   it('.tag', () => {
     const applied = builder.tag('tag1', 'tag2')
-    expect(applied).toBeInstanceOf(ContractRouterBuilder)
-    expect(applied).toBe(vi.mocked(ContractRouterBuilder).mock.results[0]!.value)
-    expect(ContractRouterBuilder).toHaveBeenCalledWith({
-      tags: ['tag1', 'tag2'],
-      errorMap: baseErrorMap,
+    expect(applied).toBeInstanceOf(ContractBuilder)
+    expect(applied).not.toBe(builder)
+    expect(applied['~orpc']).toEqual({
+      ...def,
+      tags: ['adapt', 'tag1', 'tag2'],
     })
   })
 
   it('.router', () => {
-    const router = {
-      ping: {} as any,
-      pong: {} as any,
-    }
-
+    const router = { ping, pong }
     const applied = builder.router(router)
-
-    expect(applied).toBe(ContractRouterBuilderRouterSpy.mock.results[0]!.value)
-    expect(ContractRouterBuilderRouterSpy).toHaveBeenCalledWith(router)
-    expect(ContractRouterBuilder).toHaveBeenCalledWith({
-      errorMap: baseErrorMap,
-    })
+    expect(applied).toBe(adaptContractRouterSpy.mock.results[0]?.value)
+    expect(adaptContractRouterSpy).toHaveBeenCalledOnce()
+    expect(adaptContractRouterSpy).toHaveBeenCalledWith(router, def)
   })
 })

@@ -1,7 +1,5 @@
-import { ContractProcedure } from '@orpc/contract'
-import { z } from 'zod'
-import { lazy, unlazy } from './lazy'
-import { Procedure } from './procedure'
+import { ping, pong, router } from '../tests/shared'
+import { unlazy } from './lazy'
 import { createProcedureClient } from './procedure-client'
 import { createRouterClient } from './router-client'
 
@@ -14,43 +12,8 @@ beforeEach(() => {
 })
 
 describe('createRouterClient', () => {
-  const schema = z.object({ val: z.string().transform(v => Number(v)) })
-  const ping = new Procedure({
-    contract: new ContractProcedure({
-      InputSchema: schema,
-      OutputSchema: schema,
-      errorMap: {},
-      route: {},
-    }),
-    handler: vi.fn(() => ({ val: '123' })),
-    middlewares: [],
-    inputValidationIndex: 0,
-    outputValidationIndex: 0,
-  })
-  const pong = new Procedure({
-    contract: new ContractProcedure({
-      InputSchema: undefined,
-      OutputSchema: undefined,
-      errorMap: {},
-      route: {},
-    }),
-    handler: vi.fn(() => ('output')),
-    middlewares: [],
-    inputValidationIndex: 0,
-    outputValidationIndex: 0,
-  })
-
-  const router = {
-    ping: lazy(() => Promise.resolve({ default: ping })),
-    pong,
-    nested: lazy(() => Promise.resolve({ default: {
-      ping,
-      pong: lazy(() => Promise.resolve({ default: pong })),
-    } })),
-  }
-
   const client = createRouterClient(router, {
-    context: { auth: true },
+    context: { db: 'postgres' },
     path: ['users'],
   })
 
@@ -59,7 +22,7 @@ describe('createRouterClient', () => {
 
     expect(createProcedureClient).toBeCalledTimes(1)
     expect(createProcedureClient).toBeCalledWith(pong, expect.objectContaining({
-      context: { auth: true },
+      context: { db: 'postgres' },
       path: ['users', 'pong'],
     }))
 
@@ -68,52 +31,18 @@ describe('createRouterClient', () => {
   })
 
   it('work with lazy', async () => {
-    expect(client.ping({ val: '123' })).toEqual('__mocked__')
-
-    expect(createProcedureClient).toBeCalledTimes(1)
-    expect(createProcedureClient).toHaveBeenCalledWith(expect.any(Object), expect.objectContaining({
-      context: { auth: true },
-      path: ['users', 'ping'],
-    }))
-
-    expect((await unlazy(vi.mocked(createProcedureClient as any).mock.calls[0]![0])).default).toBe(ping)
-
-    expect(vi.mocked(createProcedureClient).mock.results[0]?.value).toBeCalledTimes(1)
-    expect(vi.mocked(createProcedureClient).mock.results[0]?.value).toBeCalledWith({ val: '123' })
-  })
-
-  it('work with nested lazy', async () => {
-    expect(client.nested.ping({ val: '123' })).toEqual('__mocked__')
+    expect(client.nested.ping({ input: 123 })).toEqual('__mocked__')
 
     expect(createProcedureClient).toBeCalledTimes(2)
-    expect(createProcedureClient).toHaveBeenNthCalledWith(2, expect.any(Object), expect.objectContaining({
-      context: { auth: true },
+    expect(createProcedureClient).toHaveBeenCalledWith(expect.any(Object), expect.objectContaining({
+      context: { db: 'postgres' },
       path: ['users', 'nested', 'ping'],
     }))
 
-    const lazied = vi.mocked(createProcedureClient as any).mock.calls[1]![0]
-    expect(await unlazy(lazied)).toEqual({ default: ping })
+    expect((await unlazy(vi.mocked(createProcedureClient as any).mock.calls[1]![0])).default).toBe(ping)
 
     expect(vi.mocked(createProcedureClient).mock.results[1]?.value).toBeCalledTimes(1)
-    expect(vi.mocked(createProcedureClient).mock.results[1]?.value).toBeCalledWith({ val: '123' })
-  })
-
-  it('work with procedure as router', () => {
-    const client = createRouterClient(ping, {
-      context: { auth: true },
-      path: ['users'],
-    })
-
-    expect(client({ val: '123' })).toEqual('__mocked__')
-
-    expect(createProcedureClient).toBeCalledTimes(1)
-    expect(createProcedureClient).toHaveBeenCalledWith(ping, expect.objectContaining({
-      context: { auth: true },
-      path: ['users'],
-    }))
-
-    expect(vi.mocked(createProcedureClient).mock.results[0]?.value).toBeCalledTimes(1)
-    expect(vi.mocked(createProcedureClient).mock.results[0]?.value).toBeCalledWith({ val: '123' })
+    expect(vi.mocked(createProcedureClient).mock.results[1]?.value).toBeCalledWith({ input: 123 })
   })
 
   it('hooks', async () => {
@@ -124,7 +53,7 @@ describe('createRouterClient', () => {
     const interceptor = vi.fn()
 
     const client = createRouterClient(router, {
-      context: { auth: true },
+      context: { db: 'postgres' },
       onStart,
       onSuccess,
       onError,
@@ -136,7 +65,7 @@ describe('createRouterClient', () => {
 
     expect(createProcedureClient).toBeCalledTimes(1)
     expect(createProcedureClient).toHaveBeenCalledWith(pong, expect.objectContaining({
-      context: { auth: true },
+      context: { db: 'postgres' },
       path: ['pong'],
       onStart,
       onSuccess,
@@ -152,19 +81,19 @@ describe('createRouterClient', () => {
 
   it('return undefined if access the undefined key', async () => {
     const client = createRouterClient({
-      ping,
+      pong,
     })
 
     // @ts-expect-error --- invalid access
-    expect(client.router).toBeUndefined()
+    expect(client.undefined).toBeUndefined()
   })
 
   it('works without base path', async () => {
     const client = createRouterClient({
-      ping,
+      pong,
     })
 
-    expect(client.ping({ val: '123' })).toEqual('__mocked__')
-    expect(vi.mocked(createProcedureClient).mock.calls[0]![1]!.path).toEqual(['ping'])
+    expect(client.pong({ val: '123' })).toEqual('__mocked__')
+    expect(vi.mocked(createProcedureClient).mock.calls[0]![1]!.path).toEqual(['pong'])
   })
 })

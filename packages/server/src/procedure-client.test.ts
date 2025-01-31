@@ -1,6 +1,5 @@
-import { ContractProcedure, ORPCError, validateORPCError } from '@orpc/contract'
+import { createORPCErrorConstructorMap, ORPCError, validateORPCError } from '@orpc/contract'
 import { z } from 'zod'
-import { createORPCErrorConstructorMap } from './error'
 import { isLazy, lazy, unlazy } from './lazy'
 import { Procedure } from './procedure'
 import { createProcedureClient } from './procedure-client'
@@ -8,10 +7,6 @@ import { createProcedureClient } from './procedure-client'
 vi.mock('@orpc/contract', async origin => ({
   ...await origin(),
   validateORPCError: vi.fn((map, error) => error),
-}))
-
-vi.mock('./error', async origin => ({
-  ...await origin(),
   createORPCErrorConstructorMap: vi.fn(),
 }))
 
@@ -32,16 +27,15 @@ const baseErrors = {
 }
 
 const procedure = new Procedure({
-  contract: new ContractProcedure({
-    InputSchema: schema,
-    OutputSchema: schema,
-    errorMap: baseErrors,
-    route: {},
-  }),
+  inputSchema: schema,
+  outputSchema: schema,
+  errorMap: baseErrors,
+  route: {},
   handler,
   middlewares: [preMid1, preMid2, postMid1, postMid2],
   inputValidationIndex: 2,
   outputValidationIndex: 2,
+  meta: {},
 })
 
 const procedureCases = [
@@ -469,8 +463,8 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     })
 
     it('validate ORPC Error', async () => {
-      const e1 = new ORPCError({ code: 'BAD_REQUEST' })
-      const e2 = new ORPCError({ code: 'BAD_REQUEST', defined: true })
+      const e1 = new ORPCError('BAD_REQUEST')
+      const e2 = new ORPCError('BAD_REQUEST', { defined: true })
 
       handler.mockRejectedValueOnce(e1)
       vi.mocked(validateORPCError).mockReturnValueOnce(Promise.resolve(e2))
@@ -501,12 +495,11 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
 
 it('still work without InputSchema', async () => {
   const procedure = new Procedure({
-    contract: new ContractProcedure({
-      InputSchema: undefined,
-      OutputSchema: schema,
-      errorMap: {},
-      route: {},
-    }),
+    inputSchema: undefined,
+    outputSchema: schema,
+    errorMap: {},
+    route: {},
+    meta: {},
     handler,
     middlewares: [],
     inputValidationIndex: 0,
@@ -523,12 +516,11 @@ it('still work without InputSchema', async () => {
 
 it('still work without OutputSchema', async () => {
   const procedure = new Procedure({
-    contract: new ContractProcedure({
-      InputSchema: schema,
-      OutputSchema: undefined,
-      errorMap: {},
-      route: {},
-    }),
+    inputSchema: schema,
+    outputSchema: undefined,
+    errorMap: {},
+    route: {},
+    meta: {},
     handler,
     middlewares: [],
     inputValidationIndex: 0,

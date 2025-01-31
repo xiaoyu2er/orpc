@@ -1,15 +1,16 @@
-import type { ANY_PROCEDURE } from '../../procedure'
+import type { AnyProcedure } from '../../procedure'
+import type { AnyRouter } from '../../router'
 import { trim } from '@orpc/shared'
 import { unlazy } from '../../lazy'
 import { isProcedure } from '../../procedure'
-import { type ANY_ROUTER, getRouterChild } from '../../router'
+import { getRouterChild } from '../../router'
 
 export class ORPCProcedureMatcher {
   constructor(
-    private readonly router: ANY_ROUTER,
+    private readonly router: AnyRouter,
   ) { }
 
-  async match(pathname: string): Promise<{ path: string[], procedure: ANY_PROCEDURE } | undefined> {
+  async match(pathname: string): Promise<{ path: string[], procedure: AnyProcedure } | undefined> {
     const path = trim(pathname, '/').split('/').map(decodeURIComponent)
 
     const match = getRouterChild(this.router, ...path)

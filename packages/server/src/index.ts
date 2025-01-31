@@ -1,30 +1,21 @@
-import { Builder } from './builder'
-
 export * from './builder'
+export * from './builder-variants'
 export * from './config'
 export * from './context'
-export * from './error'
 export * from './hidden'
-export * from './implementer-chainable'
+export * from './implementer'
+export * from './implementer-procedure'
+export * from './implementer-variants'
 export * from './lazy'
-export * from './lazy-decorated'
+export * from './lazy-utils'
 export * from './middleware'
 export * from './middleware-decorated'
 export * from './procedure'
-export * from './procedure-builder'
 export * from './procedure-client'
 export * from './procedure-decorated'
-export * from './procedure-implementer'
 export * from './procedure-utils'
 export * from './router'
-export * from './router-builder'
+export * from './router-accessible-lazy'
 export * from './router-client'
-export * from './router-implementer'
-export * from './router-utils'
-export * from './types'
 
 export { isDefinedError, ORPCError, safe, type } from '@orpc/contract'
-
-export const os = new Builder({
-  config: {},
-})

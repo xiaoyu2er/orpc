@@ -3,11 +3,9 @@ import type { Hooks, Value } from '@orpc/shared'
 import type { Context } from './context'
 import type { Lazyable } from './lazy'
 import type { MiddlewareNextFn } from './middleware'
-import type { ANY_PROCEDURE, Procedure, ProcedureHandlerOptions } from './procedure'
-import type { Meta } from './types'
-import { ORPCError, validateORPCError, ValidationError } from '@orpc/contract'
+import type { AnyProcedure, Procedure, ProcedureHandlerOptions } from './procedure'
+import { createORPCErrorConstructorMap, ORPCError, validateORPCError, ValidationError } from '@orpc/contract'
 import { executeWithHooks, toError, value } from '@orpc/shared'
-import { createORPCErrorConstructorMap } from './error'
 import { unlazy } from './lazy'
 import { middlewareOutputFn } from './middleware'
 
@@ -38,7 +36,7 @@ export type CreateProcedureClientOptions<
     | { context: Value<TInitialContext, [clientContext: TClientContext]> }
     | (Record<never, never> extends TInitialContext ? Record<never, never> : never)
   )
-  & Hooks<unknown, SchemaOutput<TCurrentContext, THandlerOutput>, TInitialContext, Meta>
+  & Hooks<unknown, SchemaOutput<TCurrentContext, THandlerOutput>, TInitialContext, any>
 
 export type CreateProcedureClientRest<
   TInitialContext extends Context,
@@ -65,14 +63,14 @@ export function createProcedureClient<
     const { default: procedure } = await unlazy(lazyableProcedure)
 
     const context = await value(options?.context ?? {}, callerOptions?.context) as TInitialContext
-    const errors = createORPCErrorConstructorMap(procedure['~orpc'].contract['~orpc'].errorMap)
+    const errors = createORPCErrorConstructorMap(procedure['~orpc'].errorMap)
 
     const executeOptions = {
       input,
       context,
       errors,
       path,
-      procedure,
+      procedure: procedure as AnyProcedure,
       signal: callerOptions?.signal,
     }
 
@@ -92,23 +90,24 @@ export function createProcedureClient<
         throw toError(e)
       }
 
-      const validated = await validateORPCError(procedure['~orpc'].contract['~orpc'].errorMap, e)
+      const validated = await validateORPCError(procedure['~orpc'].errorMap, e)
 
       throw validated
     }
   }
 }
 
-async function validateInput(procedure: ANY_PROCEDURE, input: unknown): Promise<any> {
-  const schema = procedure['~orpc'].contract['~orpc'].InputSchema
-  if (!schema)
+async function validateInput(procedure: AnyProcedure, input: unknown): Promise<any> {
+  const schema = procedure['~orpc'].inputSchema
+
+  if (!schema) {
     return input
+  }
 
   const result = await schema['~standard'].validate(input)
   if (result.issues) {
-    throw new ORPCError({
+    throw new ORPCError('BAD_REQUEST', {
       message: 'Input validation failed',
-      code: 'BAD_REQUEST',
       data: {
         issues: result.issues,
       },
@@ -119,16 +118,17 @@ async function validateInput(procedure: ANY_PROCEDURE, input: unknown): Promise<
   return result.value
 }
 
-async function validateOutput(procedure: ANY_PROCEDURE, output: unknown): Promise<any> {
-  const schema = procedure['~orpc'].contract['~orpc'].OutputSchema
-  if (!schema)
+async function validateOutput(procedure: AnyProcedure, output: unknown): Promise<any> {
+  const schema = procedure['~orpc'].outputSchema
+
+  if (!schema) {
     return output
+  }
 
   const result = await schema['~standard'].validate(output)
   if (result.issues) {
-    throw new ORPCError({
+    throw new ORPCError('INTERNAL_SERVER_ERROR', {
       message: 'Output validation failed',
-      code: 'INTERNAL_SERVER_ERROR',
       cause: new ValidationError({ message: 'Output validation failed', issues: result.issues }),
     })
   }
@@ -136,7 +136,7 @@ async function validateOutput(procedure: ANY_PROCEDURE, output: unknown): Promis
   return result.value
 }
 
-async function executeProcedureInternal(procedure: ANY_PROCEDURE, options: ProcedureHandlerOptions<any, any, any>): Promise<any> {
+async function executeProcedureInternal(procedure: AnyProcedure, options: ProcedureHandlerOptions<any, any, any, any>): Promise<any> {
   const middlewares = procedure['~orpc'].middlewares
   const inputValidationIndex = Math.min(Math.max(0, procedure['~orpc'].inputValidationIndex), middlewares.length)
   const outputValidationIndex = Math.min(Math.max(0, procedure['~orpc'].outputValidationIndex), middlewares.length)

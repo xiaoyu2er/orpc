@@ -1,94 +1,128 @@
-import type { ReadonlyDeep } from '@orpc/shared'
-import type { ContractBuilder, GetInitialRoute, MergeContractBuilderConfig } from './builder'
-import type { StrictErrorMap } from './error-map'
+import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../tests/shared'
+import type { ContractBuilder } from './builder'
+import type { ContractProcedureBuilder, ContractProcedureBuilderWithInput, ContractProcedureBuilderWithOutput, ContractRouterBuilder } from './builder-variants'
+import type { MergedErrorMap } from './error-map'
 import type { ContractProcedure } from './procedure'
-import type { ContractProcedureBuilder } from './procedure-builder'
-import type { ContractProcedureBuilderWithInput } from './procedure-builder-with-input'
-import type { ContractProcedureBuilderWithOutput } from './procedure-builder-with-output'
-import type { MergeRoute, StrictRoute } from './route'
-import type { AdaptedContractRouter, ContractRouterBuilder } from './router-builder'
-import { z } from 'zod'
+import type { AdaptedContractRouter } from './router'
+import { generalSchema, ping, pong } from '../tests/shared'
 
-const schema = z.object({ value: z.string() })
-
-const baseErrorMap = {
-  BASE: {
-    data: z.object({
-      message: z.string(),
-    }),
-  },
-}
-
-type BaseErrorMap = StrictErrorMap<typeof baseErrorMap>
-
-type Config = ReadonlyDeep<{ initialRoute: { description: 'from initial' } }>
-
-const builder = {} as ContractBuilder<Config, BaseErrorMap>
+const builder = {} as ContractBuilder<typeof inputSchema, typeof outputSchema, typeof baseErrorMap, BaseMeta>
 
 describe('ContractBuilder', () => {
   it('is a contract procedure', () => {
-    expectTypeOf(builder).toMatchTypeOf<ContractProcedure<undefined, undefined, BaseErrorMap, { description: string }>>()
-  })
-
-  it('.config', () => {
-    expectTypeOf(builder.config({ initialRoute: { description: 'from config' } })).toEqualTypeOf<
-      ContractBuilder<
-        MergeContractBuilderConfig<Config, ReadonlyDeep<{ initialRoute: { description: 'from config' } }>>,
-        BaseErrorMap
+    expectTypeOf(builder).toMatchTypeOf<
+      ContractProcedure<
+        typeof inputSchema,
+        typeof outputSchema,
+        Record<never, never>,
+        BaseMeta
       >
     >()
+  })
 
-    // @ts-expect-error - invalid method
-    builder.config({ initialRoute: { method: 'HI' } })
+  it('.$meta', () => {
+    type MetaDef = { meta1?: string, meta2?: number }
+
+    expectTypeOf(builder.$meta<MetaDef>({ meta1: 'value' })).toEqualTypeOf<
+      ContractBuilder<typeof inputSchema, typeof outputSchema, typeof baseErrorMap, MetaDef>
+    >()
+
+    // @ts-expect-error - invalid initial meta
+    builder.$meta<MetaDef>({ meta1: 123 })
+  })
+
+  it('.$route', () => {
+    expectTypeOf(builder.$route({ method: 'GET', path: '/api' })).toEqualTypeOf<
+      typeof builder
+    >()
+
+    // @ts-expect-error - method is invalid
+    builder.$route({ method: 'INVALID' })
   })
 
   it('.errors', () => {
-    const errors = { BAD_GATEWAY: { data: schema } } as const
+    expectTypeOf(builder.errors({ INVALID: { message: 'invalid' }, OVERRIDE: { message: 'override' } })).toEqualTypeOf<
+      ContractBuilder<
+        typeof inputSchema,
+        typeof outputSchema,
+        MergedErrorMap<typeof baseErrorMap, { INVALID: { message: string }, OVERRIDE: { message: string } }>,
+        BaseMeta
+      >
+    >()
 
-    expectTypeOf(builder.errors(errors))
-      .toEqualTypeOf < ContractBuilder<Config, BaseErrorMap & StrictErrorMap<typeof errors>>>()
+    // @ts-expect-error - schema is invalid
+    builder.errors({ TOO_MANY_REQUESTS: { data: {} } })
+  })
 
-    // @ts-expect-error - not allow redefine error map
-    builder.errors({ BASE: baseErrorMap.BASE })
+  it('.meta', () => {
+    expectTypeOf(builder.meta({ log: true })).toEqualTypeOf<
+      ContractProcedureBuilder<
+        typeof inputSchema,
+        typeof outputSchema,
+        typeof baseErrorMap,
+        BaseMeta
+      >
+    >()
+
+    // @ts-expect-error - invalid meta
+    builder.meta({ meta: 'INVALID' })
   })
 
   it('.route', () => {
     expectTypeOf(builder.route({ method: 'GET' })).toEqualTypeOf<
       ContractProcedureBuilder<
-        BaseErrorMap,
-        MergeRoute<StrictRoute<GetInitialRoute<Config>>, ReadonlyDeep<{ method: 'GET' }>>
+        typeof inputSchema,
+        typeof outputSchema,
+        typeof baseErrorMap,
+        BaseMeta
       >
     >()
 
     // @ts-expect-error - invalid method
-    builder.route({ method: 'HE' })
+    builder.route({ method: 'INVALID' })
   })
 
   it('.input', () => {
-    expectTypeOf(builder.input(schema)).toEqualTypeOf<
+    expectTypeOf(builder.input(generalSchema)).toEqualTypeOf<
       ContractProcedureBuilderWithInput<
-      typeof schema,
-        BaseErrorMap,
-        StrictRoute<GetInitialRoute<Config>>
+        typeof generalSchema,
+        typeof outputSchema,
+        typeof baseErrorMap,
+        BaseMeta
       >
     >()
+
+    // @ts-expect-error - schema is invalid
+    builder.input({})
   })
 
   it('.output', () => {
-    expectTypeOf(builder.output(schema)).toEqualTypeOf<
-      ContractProcedureBuilderWithOutput<typeof schema, BaseErrorMap, StrictRoute<GetInitialRoute<Config>>>
+    expectTypeOf(builder.output(generalSchema)).toEqualTypeOf<
+      ContractProcedureBuilderWithOutput<
+        typeof inputSchema,
+        typeof generalSchema,
+        typeof baseErrorMap,
+        BaseMeta
+      >
     >()
+
+    // @ts-expect-error - schema is invalid
+    builder.output({})
   })
 
   it('.prefix', () => {
-    expectTypeOf(builder.prefix('/api')).toEqualTypeOf<ContractRouterBuilder<BaseErrorMap, '/api', undefined>>()
+    expectTypeOf(builder.prefix('/api')).toEqualTypeOf<
+      ContractRouterBuilder<typeof baseErrorMap, BaseMeta>
+    >()
 
     // @ts-expect-error - invalid prefix
     builder.prefix(1)
   })
 
   it('.tag', () => {
-    expectTypeOf(builder.tag('tag1', 'tag2')).toEqualTypeOf<ContractRouterBuilder<BaseErrorMap, undefined, ['tag1', 'tag2']>>()
+    expectTypeOf(builder.tag('tag1', 'tag2')).toEqualTypeOf<
+      ContractRouterBuilder<typeof baseErrorMap, BaseMeta>
+    >()
 
     // @ts-expect-error - invalid tag
     builder.tag(1)
@@ -96,22 +130,25 @@ describe('ContractBuilder', () => {
 
   it('.router', () => {
     const router = {
-      ping: {} as ContractProcedure<undefined, typeof schema, BaseErrorMap, { description: string }>,
-      pong: {} as ContractProcedure<typeof schema, undefined, Record<never, never>, Record<never, never>>,
+      ping,
+      pong,
     }
 
-    expectTypeOf(builder.router(router)).toEqualTypeOf<AdaptedContractRouter<typeof router, BaseErrorMap, undefined, undefined>>()
+    expectTypeOf(builder.router(router)).toEqualTypeOf<
+      AdaptedContractRouter<typeof router, typeof baseErrorMap>
+    >()
 
-    const invalidErrorMap = {
-      BASE: {
-        ...baseErrorMap.BASE,
-        status: 400,
-      },
-    }
+    // @ts-expect-error - invalid router
+    builder.router(123)
 
     builder.router({
-      // @ts-expect-error - error map is not match
-      ping: {} as ContractProcedure<undefined, typeof schema, typeof invalidErrorMap, Record<never, never>>,
+      // @ts-expect-error - conflict meta def
+      ping: {} as ContractProcedure<
+        undefined,
+        typeof outputSchema,
+        typeof baseErrorMap,
+        { mode?: number }
+      >,
     })
   })
 })

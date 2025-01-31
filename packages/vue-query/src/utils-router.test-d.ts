@@ -3,7 +3,7 @@ import type { RouterClient } from '@orpc/server'
 import type { GeneralUtils } from './utils-general'
 import type { ProcedureUtils } from './utils-procedure'
 import { oc } from '@orpc/contract'
-import { os } from '@orpc/server'
+import { implement, os } from '@orpc/server'
 import { z } from 'zod'
 import { createGeneralUtils } from './utils-general'
 import { createProcedureUtils } from './utils-procedure'
@@ -16,10 +16,10 @@ const contractRouter = oc.router({
   pong: pongContract,
 })
 
-const ping = os.contract(pingContract).handler(({ input }) => `ping ${input.name}`).callable()
-const pong = os.contract(pongContract).handler(num => `pong ${num}`).callable()
+const ping = implement(pingContract).handler(({ input }) => `ping ${input.name}`).callable()
+const pong = implement(pongContract).handler(num => `pong ${num}`).callable()
 
-const router = os.contract(contractRouter).router({
+const router = implement(contractRouter).router({
   ping,
   pong: os.lazy(() => Promise.resolve({ default: pong })),
 })

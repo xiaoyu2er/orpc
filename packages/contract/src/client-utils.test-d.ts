@@ -1,6 +1,7 @@
 import type { Client } from './client'
+import type { ORPCError } from './error-orpc'
 import { safe } from './client-utils'
-import { isDefinedError, type ORPCError } from './error-orpc'
+import { isDefinedError } from './error-utils'
 
 it('safe', async () => {
   const client = {} as Client<unknown, string, number, Error | ORPCError<'BAD_GATEWAY', { val: string }>>

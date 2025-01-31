@@ -1,18 +1,18 @@
 import type { ErrorMap } from './error-map'
+import type { Meta } from './meta'
 import type { Route } from './route'
-import type { Schema, SchemaOutput } from './types'
+import type { Schema } from './schema'
 
 export interface ContractProcedureDef<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   TErrorMap extends ErrorMap,
-  TRoute extends Route,
+  TMeta extends Meta,
 > {
-  route: TRoute
-  InputSchema: TInputSchema
-  inputExample?: SchemaOutput<TInputSchema>
-  OutputSchema: TOutputSchema
-  outputExample?: SchemaOutput<TOutputSchema>
+  meta: TMeta
+  route: Route
+  inputSchema: TInputSchema
+  outputSchema: TOutputSchema
   errorMap: TErrorMap
 }
 
@@ -20,12 +20,11 @@ export class ContractProcedure<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   TErrorMap extends ErrorMap,
-  TRoute extends Route,
+  TMeta extends Meta,
 > {
-  '~type' = 'ContractProcedure' as const
-  '~orpc': ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TRoute>
+  '~orpc': ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>
 
-  constructor(def: ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TRoute>) {
+  constructor(def: ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>) {
     if (def.route?.successStatus && (def.route.successStatus < 200 || def.route?.successStatus > 299)) {
       throw new Error('[ContractProcedure] The successStatus must be between 200 and 299')
     }
@@ -38,10 +37,9 @@ export class ContractProcedure<
   }
 }
 
-export type ANY_CONTRACT_PROCEDURE = ContractProcedure<any, any, any, any>
-export type WELL_CONTRACT_PROCEDURE = ContractProcedure<Schema, Schema, ErrorMap, Route>
+export type AnyContractProcedure = ContractProcedure<any, any, any, any>
 
-export function isContractProcedure(item: unknown): item is ANY_CONTRACT_PROCEDURE {
+export function isContractProcedure(item: unknown): item is AnyContractProcedure {
   if (item instanceof ContractProcedure) {
     return true
   }
@@ -49,14 +47,13 @@ export function isContractProcedure(item: unknown): item is ANY_CONTRACT_PROCEDU
   return (
     (typeof item === 'object' || typeof item === 'function')
     && item !== null
-    && '~type' in item
-    && item['~type'] === 'ContractProcedure'
     && '~orpc' in item
     && typeof item['~orpc'] === 'object'
     && item['~orpc'] !== null
-    && 'InputSchema' in item['~orpc']
-    && 'OutputSchema' in item['~orpc']
+    && 'inputSchema' in item['~orpc']
+    && 'outputSchema' in item['~orpc']
     && 'errorMap' in item['~orpc']
     && 'route' in item['~orpc']
+    && 'meta' in item['~orpc']
   )
 }

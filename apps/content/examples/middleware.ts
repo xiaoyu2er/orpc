@@ -5,11 +5,11 @@ import { z } from 'zod'
 
 export type Context = { user?: { id: string } }
 
-export const pub = os.context<Context>()
+export const pub = os.$context<Context>()
 
 export const authMiddleware = pub.middleware(async ({ context, next, path, procedure }, input) => {
   if (!context.user) {
-    throw new ORPCError({ code: 'UNAUTHORIZED' })
+    throw new ORPCError('UNAUTHORIZED')
   }
 
   const result = await next({ context: { user: context.user } })
@@ -23,7 +23,7 @@ export const canEditPost = authMiddleware.concat(
   // Now you expect to have id in input
   async ({ context, next }, input: { id: string }) => {
     if (context.user.id !== input.id) {
-      throw new ORPCError({ code: 'UNAUTHORIZED' })
+      throw new ORPCError('UNAUTHORIZED')
     }
 
     return next({})

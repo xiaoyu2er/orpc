@@ -1,186 +1,238 @@
-import type { ContractBuilderConfig, ContractRouter, ErrorMap, ErrorMapSuggestions, HTTPPath, Route, Schema, SchemaInput, SchemaOutput, StrictErrorMap } from '@orpc/contract'
-import type { ConflictContextGuard, Context, TypeInitialContext } from './context'
-import type { DecoratedLazy } from './lazy-decorated'
-import type { Middleware } from './middleware'
+import type { ContractProcedureDef, ContractRouter, ErrorMap, HTTPPath, MergedErrorMap, Meta, ORPCErrorConstructorMap, Route, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { BuilderWithMiddlewares, ProcedureBuilder, ProcedureBuilderWithInput, ProcedureBuilderWithOutput, RouterBuilder } from './builder-variants'
+import type { ConflictContextGuard, Context, MergedContext } from './context'
+import type { FlattenLazy } from './lazy-utils'
+import type { AnyMiddleware, MapInputMiddleware, Middleware } from './middleware'
 import type { DecoratedMiddleware } from './middleware-decorated'
 import type { ProcedureHandler } from './procedure'
-import type { Router } from './router'
-import { ContractProcedure, fallbackContractConfig } from '@orpc/contract'
-import { BuilderWithErrors } from './builder-with-errors'
-import { BuilderWithMiddlewares } from './builder-with-middlewares'
+import type { AdaptedRouter, AdaptRouterOptions, Router } from './router'
+import { mergeErrorMap, mergeMeta, mergePrefix, mergeRoute, mergeTags } from '@orpc/contract'
 import { fallbackConfig } from './config'
-import { type ChainableImplementer, createChainableImplementer } from './implementer-chainable'
-import { flatLazy, type FlattenLazy, lazy } from './lazy'
-import { decorateLazy } from './lazy-decorated'
+import { lazy } from './lazy'
+import { flatLazy } from './lazy-utils'
 import { decorateMiddleware } from './middleware-decorated'
-import { ProcedureBuilder } from './procedure-builder'
-import { ProcedureBuilderWithInput } from './procedure-builder-with-input'
-import { ProcedureBuilderWithOutput } from './procedure-builder-with-output'
+import { addMiddleware } from './middleware-utils'
 import { DecoratedProcedure } from './procedure-decorated'
-import { RouterBuilder } from './router-builder'
+import { adaptRouter } from './router'
 
-export interface BuilderConfig extends ContractBuilderConfig {
+export interface BuilderConfig {
   initialInputValidationIndex?: number
   initialOutputValidationIndex?: number
 }
 
-export interface BuilderDef<TInitialContext extends Context> {
-  __initialContext?: TypeInitialContext<TInitialContext>
+export interface BuilderDef<
+  TInputSchema extends Schema,
+  TOutputSchema extends Schema,
+  TErrorMap extends ErrorMap,
+  TMeta extends Meta,
+> extends ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>, AdaptRouterOptions< TErrorMap> {
+  middlewares: AnyMiddleware[]
+  inputValidationIndex: number
+  outputValidationIndex: number
   config: BuilderConfig
 }
 
-export class Builder<TInitialContext extends Context> {
-  '~type' = 'Builder' as const
-  '~orpc': BuilderDef<TInitialContext>
+export class Builder<
+  TInitialContext extends Context,
+  TCurrentContext extends Context,
+  TInputSchema extends Schema,
+  TOutputSchema extends Schema,
+  TErrorMap extends ErrorMap,
+  TMeta extends Meta,
+> {
+  '~orpc': BuilderDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>
 
-  constructor(def: BuilderDef<TInitialContext>) {
+  constructor(def: BuilderDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>) {
     this['~orpc'] = def
   }
 
-  config(config: ContractBuilderConfig): Builder<TInitialContext> {
+  /**
+   * Reset config
+   */
+  $config(config: BuilderConfig): Builder<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta> {
+    const inputValidationCount = this['~orpc'].inputValidationIndex - fallbackConfig('initialInputValidationIndex', this['~orpc'].config.initialInputValidationIndex)
+    const outputValidationCount = this['~orpc'].outputValidationIndex - fallbackConfig('initialOutputValidationIndex', this['~orpc'].config.initialOutputValidationIndex)
+
     return new Builder({
       ...this['~orpc'],
-      config: {
-        ...this['~orpc'].config,
-        ...config,
-      },
+      config,
+      inputValidationIndex: fallbackConfig('initialInputValidationIndex', config.initialInputValidationIndex) + inputValidationCount,
+      outputValidationIndex: fallbackConfig('initialOutputValidationIndex', config.initialOutputValidationIndex) + outputValidationCount,
     })
   }
 
-  context<UContext extends Context & TInitialContext = TInitialContext>(): Builder<UContext> {
-    return this as any // just change at type level so safely cast here
+  /**
+   * Reset initial context
+   */
+  $context<U extends Context>(): Builder<U, U, TInputSchema, TOutputSchema, TErrorMap, TMeta> {
+    return new Builder({
+      ...this['~orpc'],
+      middlewares: [],
+      inputValidationIndex: fallbackConfig('initialInputValidationIndex', this['~orpc'].config.initialInputValidationIndex),
+      outputValidationIndex: fallbackConfig('initialOutputValidationIndex', this['~orpc'].config.initialOutputValidationIndex),
+    })
   }
 
-  middleware<UOutContext extends Context, TInput, TOutput = any >(
-    middleware: Middleware<TInitialContext, UOutContext, TInput, TOutput, Record<never, never>>,
-  ): DecoratedMiddleware<TInitialContext, UOutContext, TInput, TOutput, Record<never, never>> {
+  /**
+   * Reset initial meta
+   */
+  $meta<U extends Meta>(
+    initialMeta: U,
+  ): Builder<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, U> {
+    return new Builder({
+      ...this['~orpc'],
+      meta: initialMeta,
+    })
+  }
+
+  /**
+   * Reset initial route
+   */
+  $route(
+    initialRoute: Route,
+  ): Builder<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta> {
+    return new Builder({
+      ...this['~orpc'],
+      route: initialRoute,
+    })
+  }
+
+  middleware<UOutContext extends Context, TInput, TOutput = any>( // = any here is important to make middleware can be used in any output by default
+    middleware: Middleware<TCurrentContext, UOutContext, TInput, TOutput, ORPCErrorConstructorMap<TErrorMap>, TMeta>,
+  ): DecoratedMiddleware<TCurrentContext, UOutContext, TInput, TOutput, ORPCErrorConstructorMap<any>, TMeta> { // ORPCErrorConstructorMap<any> ensures middleware can used in any procedure
     return decorateMiddleware(middleware)
   }
 
-  errors<const U extends ErrorMap & ErrorMapSuggestions>(errors: U): BuilderWithErrors<TInitialContext, StrictErrorMap<U>> {
-    return new BuilderWithErrors({
+  errors<U extends ErrorMap>(
+    errors: U,
+  ): Builder<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, MergedErrorMap<TErrorMap, U>, TMeta > {
+    return new Builder({
       ...this['~orpc'],
-      errorMap: errors as StrictErrorMap<U>,
+      errorMap: mergeErrorMap(this['~orpc'].errorMap, errors),
     })
   }
 
   use<UOutContext extends Context>(
-    middleware: Middleware<TInitialContext, UOutContext, unknown, unknown, Record<never, never>>,
-  ): ConflictContextGuard<TInitialContext & UOutContext>
-    & BuilderWithMiddlewares<TInitialContext, TInitialContext & UOutContext> {
-    const builder = new BuilderWithMiddlewares<TInitialContext, TInitialContext & UOutContext>({
-      ...this['~orpc'],
-      inputValidationIndex: fallbackConfig('initialInputValidationIndex', this['~orpc'].config.initialInputValidationIndex) + 1,
-      outputValidationIndex: fallbackConfig('initialOutputValidationIndex', this['~orpc'].config.initialOutputValidationIndex) + 1,
-      middlewares: [middleware as any], // FIXME: I believe we can remove `as any` here
-    })
+    middleware: Middleware<
+      TCurrentContext,
+      UOutContext,
+      SchemaOutput<TInputSchema>,
+      SchemaInput<TOutputSchema>,
+      ORPCErrorConstructorMap<TErrorMap>,
+      TMeta
+    >,
+  ): ConflictContextGuard<MergedContext<TCurrentContext, UOutContext>> &
+    BuilderWithMiddlewares<TInitialContext, MergedContext<TCurrentContext, UOutContext>, TInputSchema, TOutputSchema, TErrorMap, TMeta>
 
-    return builder as typeof builder & ConflictContextGuard<TInitialContext & UOutContext>
+  use<UOutContext extends Context, UInput>(
+    middleware: Middleware<
+      TCurrentContext,
+      UOutContext,
+      UInput,
+      SchemaInput<TOutputSchema>,
+      ORPCErrorConstructorMap<TErrorMap>,
+      TMeta
+    >,
+    mapInput: MapInputMiddleware<SchemaOutput<TInputSchema>, UInput>,
+  ): ConflictContextGuard<MergedContext<TCurrentContext, UOutContext>> &
+    BuilderWithMiddlewares<TInitialContext, MergedContext<TCurrentContext, UOutContext>, TInputSchema, TOutputSchema, TErrorMap, TMeta>
+
+  use(
+    middleware: AnyMiddleware,
+    mapInput?: MapInputMiddleware<any, any>,
+  ): any {
+    const mapped = mapInput
+      ? decorateMiddleware(middleware).mapInput(mapInput)
+      : middleware
+
+    return new Builder({
+      ...this['~orpc'],
+      middlewares: addMiddleware(this['~orpc'].middlewares, mapped),
+    })
   }
 
-  route(route: Route): ProcedureBuilder<TInitialContext, TInitialContext, Record<never, never>> {
-    return new ProcedureBuilder({
-      middlewares: [],
-      inputValidationIndex: fallbackConfig('initialInputValidationIndex', this['~orpc'].config.initialInputValidationIndex),
-      outputValidationIndex: fallbackConfig('initialOutputValidationIndex', this['~orpc'].config.initialOutputValidationIndex),
-      contract: new ContractProcedure({
-        route: {
-          ...this['~orpc'].config.initialRoute,
-          ...route,
-        },
-        InputSchema: undefined,
-        OutputSchema: undefined,
-        errorMap: {},
-      }),
+  meta(
+    meta: TMeta,
+  ): ProcedureBuilder<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta> {
+    return new Builder({
+      ...this['~orpc'],
+      meta: mergeMeta(this['~orpc'].meta, meta),
+    })
+  }
+
+  route(
+    route: Route,
+  ): ProcedureBuilder<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta> {
+    return new Builder({
+      ...this['~orpc'],
+      route: mergeRoute(this['~orpc'].route, route),
     })
   }
 
   input<USchema extends Schema>(
     schema: USchema,
-    example?: SchemaInput<USchema>,
-  ): ProcedureBuilderWithInput<TInitialContext, TInitialContext, USchema, Record<never, never>> {
-    return new ProcedureBuilderWithInput({
-      middlewares: [],
-      inputValidationIndex: fallbackConfig('initialInputValidationIndex', this['~orpc'].config.initialInputValidationIndex),
-      outputValidationIndex: fallbackConfig('initialOutputValidationIndex', this['~orpc'].config.initialOutputValidationIndex),
-      contract: new ContractProcedure({
-        route: fallbackContractConfig('defaultInitialRoute', this['~orpc'].config.initialRoute),
-        OutputSchema: undefined,
-        InputSchema: schema,
-        inputExample: example,
-        errorMap: {},
-      }),
+  ): ProcedureBuilderWithInput<TInitialContext, TCurrentContext, USchema, TOutputSchema, TErrorMap, TMeta> {
+    return new Builder({
+      ...this['~orpc'],
+      inputSchema: schema,
+      inputValidationIndex: fallbackConfig('initialInputValidationIndex', this['~orpc'].config.initialInputValidationIndex) + this['~orpc'].middlewares.length,
     })
   }
 
   output<USchema extends Schema>(
     schema: USchema,
-    example?: SchemaOutput<USchema>,
-  ): ProcedureBuilderWithOutput<TInitialContext, TInitialContext, USchema, Record<never, never>> {
-    return new ProcedureBuilderWithOutput({
-      middlewares: [],
-      inputValidationIndex: fallbackConfig('initialInputValidationIndex', this['~orpc'].config.initialInputValidationIndex),
-      outputValidationIndex: fallbackConfig('initialOutputValidationIndex', this['~orpc'].config.initialOutputValidationIndex),
-      contract: new ContractProcedure({
-        route: fallbackContractConfig('defaultInitialRoute', this['~orpc'].config.initialRoute),
-        InputSchema: undefined,
-        OutputSchema: schema,
-        outputExample: example,
-        errorMap: {},
-      }),
+  ): ProcedureBuilderWithOutput<TInitialContext, TCurrentContext, TInputSchema, USchema, TErrorMap, TMeta> {
+    return new Builder({
+      ...this['~orpc'],
+      outputSchema: schema,
+      outputValidationIndex: fallbackConfig('initialOutputValidationIndex', this['~orpc'].config.initialOutputValidationIndex) + this['~orpc'].middlewares.length,
     })
   }
 
-  handler<UFuncOutput>(
-    handler: ProcedureHandler<TInitialContext, undefined, undefined, UFuncOutput, Record<never, never>>,
-  ): DecoratedProcedure<TInitialContext, TInitialContext, undefined, undefined, UFuncOutput, Record<never, never>, Route> {
+  handler<UFuncOutput extends SchemaInput<TOutputSchema>>(
+    handler: ProcedureHandler<TCurrentContext, TInputSchema, TOutputSchema, UFuncOutput, TErrorMap, TMeta>,
+  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, UFuncOutput, TErrorMap, TMeta> {
     return new DecoratedProcedure({
-      middlewares: [],
-      inputValidationIndex: fallbackConfig('initialInputValidationIndex', this['~orpc'].config.initialInputValidationIndex),
-      outputValidationIndex: fallbackConfig('initialOutputValidationIndex', this['~orpc'].config.initialOutputValidationIndex),
-      contract: new ContractProcedure({
-        route: fallbackContractConfig('defaultInitialRoute', this['~orpc'].config.initialRoute),
-        InputSchema: undefined,
-        OutputSchema: undefined,
-        errorMap: {},
-      }),
+      ...this['~orpc'],
       handler,
     })
   }
 
-  prefix(prefix: HTTPPath): RouterBuilder<TInitialContext, TInitialContext, Record<never, never>> {
-    return new RouterBuilder({
-      middlewares: [],
-      errorMap: {},
-      prefix,
-    })
+  prefix(
+    prefix: HTTPPath,
+  ): RouterBuilder<TInitialContext, TCurrentContext, TErrorMap, TMeta> {
+    return new Builder({
+      ...this['~orpc'],
+      prefix: mergePrefix(this['~orpc'].prefix, prefix),
+    }) as any
   }
 
-  tag(...tags: string[]): RouterBuilder<TInitialContext, TInitialContext, Record<never, never>> {
-    return new RouterBuilder({
-      middlewares: [],
-      errorMap: {},
-      tags,
-    })
+  tag(...tags: string[]): RouterBuilder<TInitialContext, TCurrentContext, TErrorMap, TMeta> {
+    return new Builder({
+      ...this['~orpc'],
+      tags: mergeTags(this['~orpc'].tags, tags),
+    }) as any
   }
 
-  router<U extends Router<TInitialContext, any>>(router: U): U {
-    return router
+  router<U extends Router<TCurrentContext, ContractRouter<TMeta>>>(router: U): AdaptedRouter<U, TInitialContext, TErrorMap> {
+    return adaptRouter(router, this['~orpc'])
   }
 
-  lazy<U extends Router<TInitialContext, any>>(
+  lazy<U extends Router<TCurrentContext, ContractRouter<TMeta>>>(
     loader: () => Promise<{ default: U }>,
-  ): DecoratedLazy<FlattenLazy<U>> {
-    return decorateLazy(flatLazy(lazy(loader)))
-  }
-
-  contract<U extends ContractRouter<any>>(
-    contract: U,
-  ): ChainableImplementer<TInitialContext, TInitialContext, U> {
-    return createChainableImplementer(contract, {
-      middlewares: [],
-      inputValidationIndex: 0,
-      outputValidationIndex: 0,
-    })
+  ): AdaptedRouter<FlattenLazy<U>, TInitialContext, TErrorMap> {
+    return adaptRouter(flatLazy(lazy(loader)), this['~orpc'])
   }
 }
+
+export const os = new Builder({
+  config: {},
+  route: {},
+  meta: {},
+  errorMap: {},
+  inputSchema: undefined,
+  outputSchema: undefined,
+  inputValidationIndex: fallbackConfig('initialInputValidationIndex'),
+  outputValidationIndex: fallbackConfig('initialOutputValidationIndex'),
+  middlewares: [],
+})

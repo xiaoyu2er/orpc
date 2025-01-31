@@ -1,5 +1,4 @@
 import type { Router } from 'hono/router'
-import { ContractProcedure } from '@orpc/contract'
 import { createProcedureClient, os, Procedure } from '@orpc/server'
 import { LinearRouter } from 'hono/router/linear-router'
 import { PatternRouter } from 'hono/router/pattern-router'
@@ -205,16 +204,15 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
   it('custom success status', async () => {
     const router = {
       ping: new Procedure({
-        contract: new ContractProcedure({
-          route: {
-            method: 'GET',
-            path: '/ping',
-            successStatus: 298,
-          },
-          InputSchema: undefined,
-          OutputSchema: undefined,
-          errorMap: {},
-        }),
+        meta: {},
+        route: {
+          method: 'GET',
+          path: '/ping',
+          successStatus: 298,
+        },
+        inputSchema: undefined,
+        outputSchema: undefined,
+        errorMap: {},
         handler: vi.fn(),
         middlewares: [],
         inputValidationIndex: 0,
@@ -234,15 +232,14 @@ describe.each(hono)('openAPIHandler: %s', (_, HonoConstructor) => {
   it('custom method', async () => {
     const router = {
       ping: new Procedure({
-        contract: new ContractProcedure({
-          route: {
-            method: 'DELETE',
-            path: '/ping',
-          },
-          InputSchema: undefined,
-          OutputSchema: undefined,
-          errorMap: {},
-        }),
+        meta: {},
+        route: {
+          method: 'DELETE',
+          path: '/ping',
+        },
+        inputSchema: undefined,
+        outputSchema: undefined,
+        errorMap: {},
         handler: vi.fn(),
         middlewares: [],
         inputValidationIndex: 0,

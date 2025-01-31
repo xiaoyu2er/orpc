@@ -60,8 +60,7 @@ export class OpenAPIPayloadCodec {
       return this.encodeAsFormData(handledPayload)
     }
 
-    throw new ORPCError({
-      code: 'NOT_ACCEPTABLE',
+    throw new ORPCError('NOT_ACCEPTABLE', {
       message: `Unsupported content-type: ${accept}`,
     })
   }
@@ -202,8 +201,7 @@ export class OpenAPIPayloadCodec {
       })
     }
     catch (e) {
-      throw new ORPCError({
-        code: 'BAD_REQUEST',
+      throw new ORPCError('BAD_REQUEST', {
         message: 'Cannot parse request/response. Please check the request/response body and Content-Type header.',
         cause: e,
       })

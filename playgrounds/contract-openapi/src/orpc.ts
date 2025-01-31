@@ -1,6 +1,6 @@
 import type { z } from 'zod'
 import type { UserSchema } from './schemas/user'
-import { ORPCError, os } from '@orpc/server'
+import { implement, ORPCError } from '@orpc/server'
 import { contract } from './contract'
 
 export interface ORPCContext {
@@ -8,7 +8,7 @@ export interface ORPCContext {
   db?: any
 }
 
-const base = os.context<ORPCContext>()
+const base = implement(contract).$context<ORPCContext>()
 
 const logMid = base.middleware(async ({ context, path, next }, input) => {
   const start = Date.now()
@@ -24,9 +24,7 @@ const logMid = base.middleware(async ({ context, path, next }, input) => {
 
 const authMid = base.middleware(({ context, next, path }, input) => {
   if (!context.user) {
-    throw new ORPCError({
-      code: 'UNAUTHORIZED',
-    })
+    throw new ORPCError('UNAUTHORIZED')
   }
 
   return next({
@@ -36,5 +34,5 @@ const authMid = base.middleware(({ context, next, path }, input) => {
   })
 })
 
-export const pub = base.use(logMid).contract(contract)
-export const authed = base.use(logMid).use(authMid).contract(contract)
+export const pub = base.use(logMid)
+export const authed = base.use(logMid).use(authMid)

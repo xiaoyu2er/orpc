@@ -1,12 +1,27 @@
-import type { ANY_PROCEDURE } from './procedure'
-import { isProcedure } from './procedure'
+import type { ContractProcedure } from '@orpc/contract'
+import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../../contract/tests/shared'
+import type { CurrentContext, InitialContext } from '../tests/shared'
+import type { Procedure } from './procedure'
 
-describe('isProcedure', () => {
-  it('works', () => {
-    const item = {} as unknown
+const procedure = {} as Procedure<
+  InitialContext,
+  CurrentContext,
+  typeof inputSchema,
+  typeof outputSchema,
+  { output: number },
+  typeof baseErrorMap,
+  BaseMeta
+>
 
-    if (isProcedure(item)) {
-      expectTypeOf(item).toEqualTypeOf<ANY_PROCEDURE>()
-    }
+describe('Procedure', () => {
+  it('is a contract procedure', () => {
+    expectTypeOf(procedure).toMatchTypeOf<
+      ContractProcedure<
+        typeof inputSchema,
+        typeof outputSchema,
+        typeof baseErrorMap,
+        BaseMeta
+      >
+    >()
   })
 })

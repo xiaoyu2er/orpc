@@ -72,64 +72,50 @@ export interface Route {
   outputStructure?: OutputStructure
 }
 
-/**
- * Since `undefined` has a specific meaning (it use default value),
- * we ensure all additional properties in each item of the ErrorMap are explicitly set to `undefined`.
- */
-export type StrictRoute<T extends Route> = T & Partial<Record<Exclude<keyof Route, keyof T>, undefined>>
-
-export type MergeRoute<A extends Route, B extends Route> = Omit<A, keyof B> & B
-
-export function mergeRoute<A extends Route, B extends Route>(a: A, b: B): MergeRoute<A, B> {
-  return {
-    ...a,
-    ...b,
-  }
+export function mergeRoute(a: Route, b: Route): Route {
+  return { ...a, ...b }
 }
 
-export type PrefixRoute<TRoute extends Route, TPrefix extends HTTPPath> =
-  TRoute['path'] extends HTTPPath ? Omit<TRoute, 'path'> & {
-    // I don't know why but we need recheck TPrefix here to make typescript happy on [DecoratedContractProcedure.prefix]
-    path: TPrefix extends HTTPPath ? `${TPrefix}${TRoute['path']}` : TRoute['path']
-  }
-    : TRoute
-
-export function prefixRoute<TRoute extends Route, TPrefix extends HTTPPath>(
-  route: TRoute,
-  prefix: TPrefix,
-): PrefixRoute<TRoute, TPrefix> {
+export function prefixRoute(route: Route, prefix: HTTPPath): Route {
   if (!route.path) {
-    return route as any
+    return route
   }
 
   return {
     ...route,
-    path: `${prefix}${route.path}` as any,
+    path: `${prefix}${route.path}`,
   }
 }
-
-export type UnshiftTagRoute<TRoute extends Route, TTags extends readonly string[]> = Omit<TRoute, 'tags'> & {
-  tags: TRoute['tags'] extends string[] ? [...TTags, ...TRoute['tags']] : TTags
-}
-
-export function unshiftTagRoute<TRoute extends Route, TTags extends readonly string[]>(
-  route: TRoute,
-  tags: TTags,
-): UnshiftTagRoute<TRoute, TTags> {
+export function unshiftTagRoute(route: Route, tags: readonly string[]): Route {
   return {
     ...route,
-    tags: [...tags, ...route.tags ?? []] as any,
+    tags: [...tags, ...route.tags ?? []],
   }
 }
 
-export type MergePrefix<A extends HTTPPath | undefined, B extends HTTPPath> = A extends HTTPPath ? `${A}${B}` : B
-
-export function mergePrefix<A extends HTTPPath | undefined, B extends HTTPPath>(a: A, b: B): MergePrefix<A, B> {
-  return a ? `${a}${b}` : b as any
+export function mergePrefix(a: HTTPPath | undefined, b: HTTPPath): HTTPPath {
+  return a ? `${a}${b}` : b
 }
 
-export type MergeTags<A extends readonly string[] | undefined, B extends readonly string[]> = A extends readonly string[] ? [...A, ...B] : B
+export function mergeTags(a: readonly string[] | undefined, b: readonly string[]): readonly string[] {
+  return a ? [...a, ...b] : b
+}
 
-export function mergeTags<A extends readonly string[] | undefined, B extends readonly string[]>(a: A, b: B): MergeTags<A, B> {
-  return a ? [...a, ...b] : b as any
+export interface AdaptRouteOptions {
+  prefix?: HTTPPath
+  tags?: readonly string[]
+}
+
+export function adaptRoute(route: Route, options: AdaptRouteOptions): Route {
+  let router = route
+
+  if (options.prefix) {
+    router = prefixRoute(router, options.prefix)
+  }
+
+  if (options.tags) {
+    router = unshiftTagRoute(router, options.tags)
+  }
+
+  return router
 }

@@ -68,8 +68,7 @@ export class RPCHandler<T extends Context> implements FetchHandler<T> {
     catch (e) {
       const error = e instanceof ORPCError
         ? e
-        : new ORPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+        : new ORPCError('INTERNAL_SERVER_ERROR', {
           message: 'Internal server error',
           cause: e,
         })

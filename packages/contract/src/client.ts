@@ -9,7 +9,7 @@ export type ClientRest<TClientContext, TInput> =
   | (undefined extends TInput & TClientContext ? [] : never)
   | (undefined extends TClientContext ? [input: TInput] : never)
 
-export type ClientPromiseResult<TOutput, TError extends Error> = Promise<TOutput> & { __typeError?: TError }
+export type ClientPromiseResult<TOutput, TError extends Error> = Promise<TOutput> & { __error?: { type: TError } }
 
 export interface Client<TClientContext, TInput, TOutput, TError extends Error> {
   (...rest: ClientRest<TClientContext, TInput>): ClientPromiseResult<TOutput, TError>

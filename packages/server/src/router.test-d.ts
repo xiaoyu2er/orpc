@@ -13,8 +13,7 @@ describe('Router', () => {
     expectTypeOf(pong).toMatchTypeOf<Router<InitialContext, any>>()
     expectTypeOf(router).toMatchTypeOf<Router<InitialContext, any>>()
 
-    // FIX: make bellow line work
-    // expectTypeOf(ping).not.toMatchTypeOf<Router<Context, any>>()
+    expectTypeOf(ping).not.toMatchTypeOf<Router<Context, any>>()
   })
 })
 

@@ -1,6 +1,6 @@
 import type { AbortSignal, ContractProcedureDef, ErrorMap, Meta, ORPCErrorConstructorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Promisable } from '@orpc/shared'
-import type { Context } from './context'
+import type { Context, TypeInitialContext } from './context'
 import type { AnyMiddleware } from './middleware'
 import { isContractProcedure } from '@orpc/contract'
 
@@ -40,7 +40,7 @@ export interface ProcedureDef<
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > extends ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta> {
-  __initialContext?(type: TInitialContext): unknown
+  __initialContext: TypeInitialContext<TInitialContext>
   middlewares: AnyMiddleware[]
   inputValidationIndex: number
   outputValidationIndex: number

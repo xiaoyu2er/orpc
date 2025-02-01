@@ -1,4 +1,4 @@
-import type { AnyContractRouter, ContractProcedure, ContractRouter, ContractRouterToErrorMap, ContractRouterToMeta, ORPCErrorConstructorMap } from '@orpc/contract'
+import type { AnyContractRouter, ContractProcedure, ContractRouterToErrorMap, ContractRouterToMeta, ORPCErrorConstructorMap } from '@orpc/contract'
 import type { ConflictContextGuard, Context, MergedContext } from './context'
 import type { ProcedureImplementer } from './implementer-procedure'
 import type { ImplementerInternalWithMiddlewares } from './implementer-variants'
@@ -13,6 +13,41 @@ import { type DecoratedMiddleware, decorateMiddleware } from './middleware-decor
 import { addMiddleware } from './middleware-utils'
 import { type AdaptedRouter, adaptRouter, type Router } from './router'
 
+export interface RouterImplementer<
+  TContract extends AnyContractRouter,
+  TInitialContext extends Context,
+  TCurrentContext extends Context,
+> {
+  middleware<UOutContext extends Context, TInput, TOutput = any>( // = any here is important to make middleware can be used in any output by default
+    middleware: Middleware<
+      TCurrentContext,
+      UOutContext,
+      TInput,
+      TOutput,
+      ORPCErrorConstructorMap<ContractRouterToErrorMap<TContract>>,
+      ContractRouterToMeta<TContract>
+    >,
+  ): DecoratedMiddleware<TCurrentContext, UOutContext, TInput, TOutput, ORPCErrorConstructorMap<any>, ContractRouterToMeta<TContract>> // ORPCErrorConstructorMap<any> ensures middleware can used in any procedure
+
+  use<U extends Context>(
+    middleware: Middleware<
+      TCurrentContext,
+      U,
+      unknown,
+      unknown,
+      ORPCErrorConstructorMap<ContractRouterToErrorMap<TContract>>,
+      ContractRouterToMeta<TContract>
+    >,
+  ): ConflictContextGuard<MergedContext<TCurrentContext, U>>
+    & ImplementerInternalWithMiddlewares<TContract, TInitialContext, MergedContext<TCurrentContext, U>>
+
+  router<U extends Router<TCurrentContext, TContract>>(router: U): AdaptedRouter<U, TInitialContext, Record<never, never>>
+
+  lazy<U extends Router<TCurrentContext, TContract>>(
+    loader: () => Promise<{ default: U }>
+  ): AdaptedRouter<FlattenLazy<U>, TInitialContext, Record<never, never>>
+}
+
 export type ImplementerInternal<
   TContract extends AnyContractRouter,
   TInitialContext extends Context,
@@ -21,40 +56,11 @@ export type ImplementerInternal<
   &(
     TContract extends ContractProcedure<infer UInputSchema, infer UOutputSchema, infer UErrorMap, infer UMeta>
       ? ProcedureImplementer<TInitialContext, TCurrentContext, UInputSchema, UOutputSchema, UErrorMap, UMeta>
-      : TContract extends ContractRouter<infer UMeta> ? {
-        middleware<UOutContext extends Context, TInput, TOutput = any>( // = any here is important to make middleware can be used in any output by default
-          middleware: Middleware<
-            TCurrentContext,
-            UOutContext,
-            TInput,
-            TOutput,
-            ORPCErrorConstructorMap<ContractRouterToErrorMap<TContract>>,
-            ContractRouterToMeta<TContract>
-          >,
-        ): DecoratedMiddleware<TCurrentContext, UOutContext, TInput, TOutput, ORPCErrorConstructorMap<any>, UMeta> // ORPCErrorConstructorMap<any> ensures middleware can used in any procedure
-
-        use<U extends Context>(
-          middleware: Middleware<
-            TCurrentContext,
-            U,
-            unknown,
-            unknown,
-            ORPCErrorConstructorMap<ContractRouterToErrorMap<TContract>>,
-            UMeta
-          >,
-        ): ConflictContextGuard<MergedContext<TCurrentContext, U>>
-          & ImplementerInternalWithMiddlewares<TContract, TInitialContext, MergedContext<TCurrentContext, U>>
-
-        router<U extends Router<TCurrentContext, TContract>>(router: U): AdaptedRouter<U, TInitialContext, Record<never, never>>
-
-        lazy<U extends Router<TCurrentContext, TContract>>(
-          loader: () => Promise<{ default: U }>
-        ): AdaptedRouter<FlattenLazy<U>, TInitialContext, Record<never, never>>
-      } & {
+      : RouterImplementer<TContract, TInitialContext, TCurrentContext> & {
         [K in keyof TContract]: TContract[K] extends AnyContractRouter
           ? ImplementerInternal<TContract[K], TInitialContext, TCurrentContext>
           : never
-      } : never
+      }
    )
 
 export function implementerInternal<

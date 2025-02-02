@@ -19,3 +19,4 @@ export * from './router-accessible-lazy'
 export * from './router-client'
 
 export { isDefinedError, ORPCError, safe, type, ValidationError } from '@orpc/contract'
+export { onError, onFinish, onStart, onSuccess } from '@orpc/shared'

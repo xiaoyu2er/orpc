@@ -1,6 +1,6 @@
 import type { ORPCError } from '@orpc/contract'
 import type { AnyProcedure } from '../../procedure'
-import type { StandardCodec, StandardParams, StandardRequest, StandardResponse } from './types'
+import type { StandardBody, StandardCodec, StandardParams, StandardRequest, StandardResponse } from './types'
 import { RPCSerializer } from './rpc-serializer'
 
 export class RPCCodec implements StandardCodec {
@@ -20,7 +20,7 @@ export class RPCCodec implements StandardCodec {
     return {
       status: 200,
       headers: {},
-      body: this.serializer.serialize(output),
+      body: this.serializer.serialize(output) as StandardBody,
     }
   }
 
@@ -28,7 +28,7 @@ export class RPCCodec implements StandardCodec {
     return {
       status: error.status,
       headers: {},
-      body: this.serializer.serialize(error.toJSON()),
+      body: this.serializer.serialize(error.toJSON()) as StandardBody,
     }
   }
 }

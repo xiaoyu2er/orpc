@@ -1,10 +1,13 @@
 import type { AbortSignal, HTTPPath, ORPCError } from '@orpc/contract'
+import type { JsonValue } from '@orpc/shared'
 import type { AnyProcedure } from '../../procedure'
 import type { AnyRouter } from '../../router'
 
 export interface StandardHeaders {
-  [key: string]: string | string[] | undefined
+  [key: string]: string | string[]
 }
+
+export type StandardBody = undefined | JsonValue | Blob | URLSearchParams | FormData
 
 export interface StandardRequest {
   method: string
@@ -13,10 +16,9 @@ export interface StandardRequest {
 
   /**
    * The body has been parsed base on the content-type header.
-   * The result can be <string | JSON Value | Blob | FormData>.
    * This method can safely call multiple times (cached).
    */
-  body(): Promise<unknown>
+  body(): Promise<StandardBody>
 
   signal?: AbortSignal
 }
@@ -24,11 +26,7 @@ export interface StandardRequest {
 export interface StandardResponse {
   status: number
   headers: StandardHeaders
-
-  /**
-   * Accepts <string | JSON Value | Blob | FormData>.
-   */
-  body: unknown
+  body: StandardBody
 }
 
 export type StandardParams = Record<string, string>

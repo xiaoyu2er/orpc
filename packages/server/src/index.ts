@@ -17,6 +17,7 @@ export * from './procedure-utils'
 export * from './router'
 export * from './router-accessible-lazy'
 export * from './router-client'
+export * from './utils'
 
 export { isDefinedError, ORPCError, safe, type, ValidationError } from '@orpc/contract'
 export { onError, onFinish, onStart, onSuccess } from '@orpc/shared'

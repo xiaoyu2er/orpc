@@ -5,8 +5,7 @@ import type { StandardMatcher, StandardMatchResult } from './types'
 import { type Lazy, unlazy } from '../../lazy'
 import { isProcedure } from '../../procedure'
 import { type AnyRouter, getRouterChild } from '../../router'
-import { eachContractProcedure } from '../../utils'
-import { convertPathToHttpPath, createContractedProcedure } from './utils'
+import { convertPathToHttpPath, createContractedProcedure, eachContractProcedure } from '../../utils'
 
 export class RPCMatcher implements StandardMatcher {
   private readonly tree: Record<

@@ -1,7 +1,7 @@
-import type { AnyContractProcedure, AnyContractRouter } from '@orpc/contract'
+import type { AnyContractProcedure, AnyContractRouter, HTTPPath } from '@orpc/contract'
 import type { AnyProcedure, AnyRouter, Lazy } from '@orpc/server'
 import { isContractProcedure } from '@orpc/contract'
-import { getRouterContract, isLazy, unlazy } from '@orpc/server'
+import { getRouterContract, isLazy, Procedure, unlazy } from '@orpc/server'
 
 export interface EachContractProcedureOptions {
   router: AnyRouter | AnyContractRouter
@@ -86,4 +86,20 @@ export async function eachAllContractProcedure(
       })
     }
   }
+}
+
+export function convertPathToHttpPath(path: string[]): HTTPPath {
+  return `/${path.map(encodeURIComponent).join('/')}`
+}
+
+/**
+ * Create a new procedure that ensure the contract is applied to the procedure.
+ */
+export function createContractedProcedure(contract: AnyContractProcedure, procedure: AnyProcedure): AnyProcedure {
+  return new Procedure({
+    ...procedure['~orpc'],
+    errorMap: contract['~orpc'].errorMap,
+    route: contract['~orpc'].route,
+    meta: contract['~orpc'].meta,
+  })
 }

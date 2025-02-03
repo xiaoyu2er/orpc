@@ -1,4 +1,4 @@
-import type { AbortSignal, ORPCError } from '@orpc/contract'
+import type { AbortSignal, HTTPPath, ORPCError } from '@orpc/contract'
 import type { AnyProcedure } from '../../procedure'
 import type { AnyRouter } from '../../router'
 
@@ -41,11 +41,11 @@ export type StandardMatchResult = {
 
 export interface StandardMatcher {
   init(router: AnyRouter): void
-  match(method: string, pathname: string): Promise<StandardMatchResult>
+  match(method: string, pathname: HTTPPath): Promise<StandardMatchResult>
 }
 
 export interface StandardCodec {
   encode(output: unknown, procedure: AnyProcedure): StandardResponse
   encodeError(error: ORPCError<any, any>): StandardResponse
-  decode(request: StandardRequest, params: StandardParams | undefined, procedure: AnyProcedure): unknown
+  decode(request: StandardRequest, params: StandardParams | undefined, procedure: AnyProcedure): Promise<unknown>
 }

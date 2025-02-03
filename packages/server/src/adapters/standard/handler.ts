@@ -3,16 +3,16 @@ import type { Interceptable } from '@orpc/shared'
 import type { Context } from '../../context'
 import type { Router } from '../../router'
 import type { StandardCodec, StandardMatcher, StandardRequest, StandardResponse } from './types'
-import { ORPCError } from '@orpc/contract'
+import { toORPCError } from '@orpc/contract'
 import { intercept, trim } from '@orpc/shared'
 import { createProcedureClient } from '../../procedure-client'
 
-export type FetchHandleOptions<T extends Context> =
+export type StandardHandleOptions<T extends Context> =
   & { prefix?: HTTPPath }
   & (Record<never, never> extends T ? { context?: T } : { context: T })
 
 export type StandardHandleRest<T extends Context> =
-  | [options: FetchHandleOptions<T>]
+  | [options: StandardHandleOptions<T>]
   | (Record<never, never> extends T ? [] : never)
 
 export type StandardHandleResult = { matched: true, response: StandardResponse } | { matched: false, response: undefined }
@@ -42,7 +42,7 @@ export class StandardHandler<TContext extends Context> {
         async ({ request, context }) => {
           const method = request.method
           const url = request.url
-          const pathname = `/${trim(url.pathname.replace(options?.prefix ?? '', ''), '/')}`
+          const pathname = `/${trim(url.pathname.replace(options?.prefix ?? '', ''), '/')}` as const
 
           const match = await this.matcher.match(method, pathname)
 
@@ -50,12 +50,12 @@ export class StandardHandler<TContext extends Context> {
             return { matched: false, response: undefined }
           }
 
-          const input = await this.codec.decode(request, match.params, match.procedure)
-
           const client = createProcedureClient(match.procedure, {
             context,
             path: match.path,
           })
+
+          const input = await this.codec.decode(request, match.params, match.procedure)
 
           const output = await client(input, { signal: request.signal })
 
@@ -69,12 +69,7 @@ export class StandardHandler<TContext extends Context> {
       )
     }
     catch (e) {
-      const error = e instanceof ORPCError
-        ? e
-        : new ORPCError('INTERNAL_SERVER_ERROR', {
-          message: 'Internal server error',
-          cause: e,
-        })
+      const error = toORPCError(e)
 
       const response = this.codec.encodeError(error)
 

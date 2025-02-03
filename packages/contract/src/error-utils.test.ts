@@ -2,7 +2,7 @@ import type { ErrorMap } from './error-map'
 import { z } from 'zod'
 import { outputSchema } from '../tests/shared'
 import { ORPCError } from './error-orpc'
-import { createORPCErrorConstructorMap, isDefinedError, validateORPCError } from './error-utils'
+import { createORPCErrorConstructorMap, isDefinedError, toORPCError, validateORPCError } from './error-utils'
 
 it('isDefinedError', () => {
   expect(isDefinedError(new ORPCError('BAD_GATEWAY'))).toBe(false)
@@ -114,5 +114,23 @@ describe('validateORPCError', () => {
     const v1 = await validateORPCError(errors, e1)
     expect(v1).not.toBe(e1)
     expect({ ...v1 }).toEqual({ ...e1, defined: true, data: { value: 123 } })
+  })
+})
+
+describe('toORPCError', () => {
+  const orpcError = new ORPCError('BAD_GATEWAY')
+  expect(toORPCError(orpcError)).toBe(orpcError)
+
+  const error = new Error('error')
+  expect(toORPCError(error)).toSatisfy((value: any) => {
+    expect(value).toBeInstanceOf(ORPCError)
+    expect(value.code).toEqual('INTERNAL_SERVER_ERROR')
+    expect(value.status).toBe(500)
+    expect(value.defined).toBe(false)
+    expect(value.message).toBe('Internal server error')
+    expect(value.data).toBe(undefined)
+    expect(value.cause).toBe(error)
+
+    return true
   })
 })

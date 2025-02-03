@@ -1,4 +1,4 @@
-import type { Client, ContractRouter, ContractRouterClient } from '@orpc/contract'
+import type { AnyContractRouter, Client, ContractRouterClient } from '@orpc/contract'
 import type { AnyRouter, RouterClient } from '@orpc/server'
 import type { ClientLink } from './types'
 
@@ -9,13 +9,13 @@ export interface createORPCClientOptions {
   path?: string[]
 }
 
-export function createORPCClient<TRouter extends AnyRouter | ContractRouter<any>, TClientContext = unknown>(
+export function createORPCClient<TRouter extends AnyRouter | AnyContractRouter, TClientContext = unknown>(
   link: ClientLink<TClientContext>,
   options?: createORPCClientOptions,
-): TRouter extends ContractRouter<any>
-    ? ContractRouterClient<TRouter, TClientContext>
-    : TRouter extends AnyRouter // put this in lower priority than ContractRouter, will make createORPCClient can work without @orpc/server
-      ? RouterClient<TRouter, TClientContext>
+): TRouter extends AnyRouter // TODO: move this bellow `TRouter extends AnyContractRouter` can help me remove @orpc/server in dependencies
+    ? RouterClient<TRouter, TClientContext>
+    : TRouter extends AnyContractRouter
+      ? ContractRouterClient<TRouter, TClientContext>
       : never {
   const path = options?.path ?? []
 

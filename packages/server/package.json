@@ -76,6 +76,7 @@
   },
   "dependencies": {
     "@orpc/contract": "workspace:*",
-    "@orpc/shared": "workspace:*"
+    "@orpc/shared": "workspace:*",
+    "content-disposition": "^0.5.4"
   }
 }

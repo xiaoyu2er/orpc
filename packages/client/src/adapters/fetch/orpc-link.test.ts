@@ -24,7 +24,7 @@ describe('rpcLink', () => {
     const link = new RPCLink({
       url: 'http://api.example.com',
       fetch: mockFetch,
-      payloadCodec: mockPayloadCodec as any,
+      rpcSerializer: mockPayloadCodec as any,
     })
 
     const mockResponseData = { id: 1, name: 'Test User' }
@@ -75,7 +75,7 @@ describe('rpcLink', () => {
       url: 'http://api.example.com',
       headers: headersFn,
       fetch: mockFetch,
-      payloadCodec: mockPayloadCodec as any,
+      rpcSerializer: mockPayloadCodec as any,
     })
 
     const mockResponseData = { success: true, data: 'test data' }
@@ -101,7 +101,7 @@ describe('rpcLink', () => {
     const link = new RPCLink({
       url: 'http://api.example.com/',
       fetch: mockFetch,
-      payloadCodec: mockPayloadCodec as any,
+      rpcSerializer: mockPayloadCodec as any,
     })
 
     const mockResponseData = { encoded: true, path: 'success' }
@@ -128,7 +128,7 @@ describe('rpcLink', () => {
     const link = new RPCLink({
       url: 'http://api.example.com',
       fetch: mockFetch,
-      payloadCodec: mockPayloadCodec as any,
+      rpcSerializer: mockPayloadCodec as any,
     })
 
     const errorResponse = new Response(JSON.stringify({ data: '__mocked__', meta: [] }), {
@@ -174,7 +174,7 @@ describe('rpcLink', () => {
 
     const link = new RPCLink({
       url: 'http://api.example.com',
-      payloadCodec: mockPayloadCodec as any,
+      rpcSerializer: mockPayloadCodec as any,
     })
 
     const mockResponse = new Response(JSON.stringify({ data: '__mocked__', meta: [] }))
@@ -195,7 +195,7 @@ describe('rpcLink', () => {
     const link = new RPCLink({
       url: 'http://api.example.com',
       fetch: mockFetch,
-      payloadCodec: mockPayloadCodec as any,
+      rpcSerializer: mockPayloadCodec as any,
     })
 
     const mockResponseData = { signal: 'handled' }
@@ -227,7 +227,7 @@ describe('rpcLink', () => {
     const link = new RPCLink({
       url: 'http://api.example.com',
       fetch: mockFetch,
-      payloadCodec: mockPayloadCodec as any,
+      rpcSerializer: mockPayloadCodec as any,
     })
 
     const abortController = new AbortController()

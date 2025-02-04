@@ -52,6 +52,7 @@
   },
   "exports": {
     ".": "./src/index.ts",
+    "./standard": "./src/adapters/standard/index.ts",
     "./fetch": "./src/adapters/fetch/index.ts",
     "./hono": "./src/adapters/hono/index.ts",
     "./next": "./src/adapters/next/index.ts",

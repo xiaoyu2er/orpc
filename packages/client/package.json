@@ -50,7 +50,8 @@
   "dependencies": {
     "@orpc/contract": "workspace:*",
     "@orpc/server": "workspace:*",
-    "@orpc/shared": "workspace:*"
+    "@orpc/shared": "workspace:*",
+    "content-disposition": "^0.5.4"
   },
   "devDependencies": {
     "@orpc/openapi": "workspace:*",

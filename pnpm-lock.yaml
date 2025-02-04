@@ -162,6 +162,9 @@ importers:
       '@orpc/shared':
         specifier: workspace:*
         version: link:../shared
+      content-disposition:
+        specifier: ^0.5.4
+        version: 0.5.4
     devDependencies:
       '@orpc/openapi':
         specifier: workspace:*

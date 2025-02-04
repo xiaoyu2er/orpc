@@ -22,16 +22,16 @@ export interface StandardHandlerOptions<TContext extends Context> extends Interc
   StandardHandleResult,
   unknown
 > {
+  matcher: StandardMatcher
+  codec: StandardCodec
 }
 
 export class StandardHandler<TContext extends Context> {
   constructor(
     router: Router<TContext, any>,
-    private readonly matcher: StandardMatcher,
-    private readonly codec: StandardCodec,
-    private readonly options: NoInfer<StandardHandlerOptions<TContext>> = {},
+    private readonly options: NoInfer<StandardHandlerOptions<TContext>>,
   ) {
-    this.matcher.init(router)
+    this.options.matcher.init(router)
   }
 
   async handle(request: StandardRequest, ...[options]: StandardHandleRest<TContext>): Promise<StandardHandleResult> {
@@ -44,7 +44,7 @@ export class StandardHandler<TContext extends Context> {
           const url = request.url
           const pathname = `/${trim(url.pathname.replace(options?.prefix ?? '', ''), '/')}` as const
 
-          const match = await this.matcher.match(method, pathname)
+          const match = await this.options.matcher.match(method, pathname)
 
           if (!match) {
             return { matched: false, response: undefined }
@@ -55,11 +55,11 @@ export class StandardHandler<TContext extends Context> {
             path: match.path,
           })
 
-          const input = await this.codec.decode(request, match.params, match.procedure)
+          const input = await this.options.codec.decode(request, match.params, match.procedure)
 
           const output = await client(input, { signal: request.signal })
 
-          const response = this.codec.encode(output, match.procedure)
+          const response = this.options.codec.encode(output, match.procedure)
 
           return {
             matched: true,
@@ -71,7 +71,7 @@ export class StandardHandler<TContext extends Context> {
     catch (e) {
       const error = toORPCError(e)
 
-      const response = this.codec.encodeError(error)
+      const response = this.options.codec.encodeError(error)
 
       return {
         matched: true,

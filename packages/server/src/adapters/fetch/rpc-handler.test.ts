@@ -99,8 +99,6 @@ describe('rpcHandler', () => {
     expect(StandardHandler).toHaveBeenCalledOnce()
     expect(StandardHandler).toHaveBeenCalledWith(
       router,
-      options.matcher,
-      options.codec,
       options,
     )
   })

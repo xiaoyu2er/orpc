@@ -9,8 +9,8 @@ export function fetchHeadersToStandardHeaders(headers: Headers): StandardHeaders
     if (Array.isArray(standardHeaders[key])) {
       standardHeaders[key].push(value)
     }
-    else if (key in standardHeaders) {
-      standardHeaders[key] = [standardHeaders[key]!, value]
+    else if (standardHeaders[key] !== undefined) {
+      standardHeaders[key] = [standardHeaders[key], value]
     }
     else {
       standardHeaders[key] = value
@@ -94,7 +94,7 @@ export function standardResponseToFetchHeaders(response: StandardResponse): Head
         fetchHeaders.append(key, v)
       }
     }
-    else {
+    else if (value !== undefined) {
       fetchHeaders.append(key, value)
     }
   }

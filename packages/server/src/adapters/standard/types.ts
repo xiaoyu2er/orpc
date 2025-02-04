@@ -4,7 +4,7 @@ import type { AnyProcedure } from '../../procedure'
 import type { AnyRouter } from '../../router'
 
 export interface StandardHeaders {
-  [key: string]: string | string[]
+  [key: string]: string | string[] | undefined
 }
 
 export type StandardBody = undefined | JsonValue | Blob | URLSearchParams | FormData

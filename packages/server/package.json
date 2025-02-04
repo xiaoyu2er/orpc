@@ -78,5 +78,8 @@
     "@orpc/contract": "workspace:*",
     "@orpc/shared": "workspace:*",
     "content-disposition": "^0.5.4"
+  },
+  "devDependencies": {
+    "light-my-request": "^6.5.1"
   }
 }

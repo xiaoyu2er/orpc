@@ -1,11 +1,13 @@
-import { describe, expect, it, vi } from 'vitest'
+import inject from 'light-my-request'
 import { router } from '../../../tests/shared'
 import { RPCCodec, RPCMatcher, StandardHandler } from '../standard'
 import { RPCHandler } from './rpc-handler'
-import * as Utils from './utils'
+import { nodeHttpResponseSendStandardResponse, nodeHttpToStandardRequest } from './utils'
 
-const nodeHttpToStandardRequestSpy = vi.spyOn(Utils, 'nodeHttpToStandardRequest')
-const nodeHttpResponseSendStandardResponseSpy = vi.spyOn(Utils, 'nodeHttpResponseSendStandardResponse')
+vi.mock('./utils', () => ({
+  nodeHttpToStandardRequest: vi.fn(),
+  nodeHttpResponseSendStandardResponse: vi.fn(),
+}))
 
 vi.mock('../standard', async origin => ({
   ...await origin(),
@@ -16,7 +18,7 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe('rpcHandler', () => {
+describe('rpcHandler', async () => {
   const handle = vi.fn()
 
   vi.mocked(StandardHandler).mockReturnValue({
@@ -25,10 +27,28 @@ describe('rpcHandler', () => {
 
   const handler = new RPCHandler(router)
 
-  const req = { IncomingMessage: true } as any
-  const res = { ServerResponse: true } as any
+  let req: any, res: any
+
+  await inject((_req, _res) => {
+    req = _req
+    res = _res
+    _res.end()
+  }, {
+    url: '/',
+  })
+
+  const standardRequest = {
+    method: 'POST',
+    url: new URL('https://example.com/api/v1/users/1'),
+    headers: {
+      'content-type': 'application/json',
+      'content-length': '12',
+    },
+    body: () => Promise.resolve(JSON.stringify({ name: 'John Doe' })),
+  }
 
   it('on match', async () => {
+    vi.mocked(nodeHttpToStandardRequest).mockReturnValueOnce(standardRequest)
     handle.mockReturnValueOnce({
       matched: true,
       response: {
@@ -46,15 +66,15 @@ describe('rpcHandler', () => {
 
     expect(handle).toHaveBeenCalledOnce()
     expect(handle).toHaveBeenCalledWith(
-      nodeHttpToStandardRequestSpy.mock.results[0]!.value,
+      standardRequest,
       { prefix: '/api/v1', context: { db: 'postgres' } },
     )
 
-    expect(nodeHttpToStandardRequestSpy).toHaveBeenCalledOnce()
-    expect(nodeHttpToStandardRequestSpy).toHaveBeenCalledWith(req, res)
+    expect(nodeHttpToStandardRequest).toHaveBeenCalledOnce()
+    expect(nodeHttpToStandardRequest).toHaveBeenCalledWith(req, res)
 
-    expect(nodeHttpResponseSendStandardResponseSpy).toHaveBeenCalledOnce()
-    expect(nodeHttpResponseSendStandardResponseSpy).toHaveBeenCalledWith(res, {
+    expect(nodeHttpResponseSendStandardResponse).toHaveBeenCalledOnce()
+    expect(nodeHttpResponseSendStandardResponse).toHaveBeenCalledWith(res, {
       status: 200,
       headers: {},
       body: '__body__',
@@ -62,6 +82,7 @@ describe('rpcHandler', () => {
   })
 
   it('on mismatch', async () => {
+    vi.mocked(nodeHttpToStandardRequest).mockReturnValueOnce(standardRequest)
     handle.mockReturnValueOnce({
       matched: false,
       response: undefined,
@@ -76,14 +97,14 @@ describe('rpcHandler', () => {
 
     expect(handle).toHaveBeenCalledOnce()
     expect(handle).toHaveBeenCalledWith(
-      nodeHttpToStandardRequestSpy.mock.results[0]!.value,
+      standardRequest,
       { prefix: '/api/v1', context: { db: 'postgres' } },
     )
 
-    expect(nodeHttpToStandardRequestSpy).toHaveBeenCalledOnce()
-    expect(nodeHttpToStandardRequestSpy).toHaveBeenCalledWith(req, res)
+    expect(nodeHttpToStandardRequest).toHaveBeenCalledOnce()
+    expect(nodeHttpToStandardRequest).toHaveBeenCalledWith(req, res)
 
-    expect(nodeHttpResponseSendStandardResponseSpy).not.toHaveBeenCalled()
+    expect(nodeHttpResponseSendStandardResponse).not.toHaveBeenCalled()
   })
 
   it('standardHandler constructor', async () => {

@@ -15,20 +15,21 @@ export function nodeHttpToStandardRequest(
   const host = req.headers.host ?? 'localhost'
   const url = new URL(req.originalUrl ?? req.url ?? '/', `${protocol}//${host}`)
 
-  const body = once((): Promise<StandardBody> => {
-    return nodeHttpRequestToStandardBody(req)
-  })
-
-  const signal = once((): AbortSignal => {
-    return nodeHttpResponseToAbortSignal(res)
-  })
-
   return {
     method,
     url,
     headers: req.headers,
-    body,
-    get signal() { return signal() },
+    body: once((): Promise<StandardBody> => {
+      return nodeHttpRequestToStandardBody(req)
+    }),
+    get signal() {
+      const signal = nodeHttpResponseToAbortSignal(res)
+      Object.defineProperty(this, 'signal', { value: signal, writable: true })
+      return signal
+    },
+    set signal(value) {
+      Object.defineProperty(this, 'signal', { value, writable: true })
+    },
   }
 }
 
@@ -136,32 +137,33 @@ async function nodeHttpRequestToStandardBody(req: NodeHttpRequest): Promise<Stan
 }
 
 function streamToFormData(stream: Readable, contentType: string): Promise<FormData> {
-  return streamToBuffer(stream).then((buffer) => {
-    const response = new Response(buffer, {
-      headers: {
-        'content-type': contentType,
-      },
-    })
-
-    return response.formData()
+  const response = new Response(stream, {
+    headers: {
+      'content-type': contentType,
+    },
   })
+
+  return response.formData()
 }
 
-function streamToString(stream: Readable): Promise<string> {
-  return streamToBuffer(stream).then(buffer => buffer.toString())
+async function streamToString(stream: Readable): Promise<string> {
+  let string = ''
+
+  for await (const chunk of stream) {
+    string += chunk.toString()
+  }
+
+  return string
 }
 
 async function streamToFile(stream: Readable, fileName: string, contentType: string): Promise<File> {
-  return streamToBuffer(stream).then(buffer => new File([buffer], fileName, { type: contentType }))
-}
+  const chunks: Buffer[] = []
 
-function streamToBuffer(stream: Readable): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const chunks: Buffer[] = []
-    stream.on('data', chunk => chunks.push(chunk))
-    stream.on('end', () => resolve(Buffer.concat(chunks)))
-    stream.on('error', reject)
-  })
+  for await (const chunk of stream) {
+    chunks.push(chunk)
+  }
+
+  return new File([Buffer.concat(chunks)], fileName, { type: contentType })
 }
 
 function nodeHttpResponseToAbortSignal(res: NodeHttpResponse): AbortSignal {

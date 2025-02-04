@@ -68,20 +68,21 @@ export async function fetchRequestToStandardBody(request: Request): Promise<Stan
 export function fetchRequestToStandardRequest(request: Request): StandardRequest {
   const url = new URL(request.url)
 
-  const body = once((): Promise<StandardBody> => {
-    return fetchRequestToStandardBody(request)
-  })
-
-  const headers = once((): StandardHeaders => {
-    return fetchHeadersToStandardHeaders(request.headers)
-  })
-
   return {
     url,
     signal: request.signal,
     method: request.method,
-    body,
-    get headers() { return headers() },
+    body: once((): Promise<StandardBody> => {
+      return fetchRequestToStandardBody(request)
+    }),
+    get headers() {
+      const headers = fetchHeadersToStandardHeaders(request.headers)
+      Object.defineProperty(this, 'headers', { value: headers, writable: true })
+      return headers
+    },
+    set headers(value) {
+      Object.defineProperty(this, 'headers', { value, writable: true })
+    },
   }
 }
 

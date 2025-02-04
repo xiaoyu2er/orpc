@@ -1,20 +1,22 @@
 /// <reference types="node" />
 
-import type { HTTPPath } from '@orpc/contract'
-import type { Promisable } from '@orpc/shared'
 import type { IncomingMessage, ServerResponse } from 'node:http'
+import type { Http2ServerRequest, Http2ServerResponse } from 'node:http2'
 import type { Context } from '../../context'
+import type { StandardHandleRest } from '../standard'
 
-export type RequestHandleOptions<T extends Context> =
-  & { prefix?: HTTPPath, beforeSend?(response: Response, context: T): Promisable<void> }
-  & (Record<never, never> extends T ? { context?: T } : { context: T })
+export type NodeHttpRequest = (IncomingMessage | Http2ServerRequest) & {
+  /**
+   * Replace `req.url` with `req.originalUrl` when `req.originalUrl` is available.
+   * This is useful for `express.js` middleware.
+   */
+  originalUrl?: string
+}
 
-export type RequestHandleRest<T extends Context> =
-  | [options: RequestHandleOptions<T>]
-  | (Record<never, never> extends T ? [] : never)
+export type NodeHttpResponse = ServerResponse | Http2ServerResponse
 
-export type RequestHandleResult = { matched: true } | { matched: false }
+export type NodeHttpHandleResult = { matched: true } | { matched: false }
 
-export interface RequestHandler<T extends Context> {
-  handle(req: IncomingMessage, res: ServerResponse, ...rest: RequestHandleRest<T>): Promise<RequestHandleResult>
+export interface NodeHttpHandler<T extends Context> {
+  handle(req: NodeHttpRequest, res: NodeHttpResponse, ...rest: StandardHandleRest<T>): Promise<NodeHttpHandleResult>
 }

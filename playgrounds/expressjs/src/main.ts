@@ -1,5 +1,5 @@
 import { OpenAPIGenerator } from '@orpc/openapi'
-import { OpenAPIServerHandler } from '@orpc/openapi/node'
+import { OpenAPIHandler } from '@orpc/openapi/node'
 import { RPCHandler } from '@orpc/server/node'
 import { ZodCoercer, ZodToJsonSchemaConverter } from '@orpc/zod'
 import express from 'express'
@@ -8,7 +8,7 @@ import './polyfill'
 
 const app = express()
 
-const openAPIHandler = new OpenAPIServerHandler(router, {
+const openAPIHandler = new OpenAPIHandler(router, {
   schemaCoercers: [
     new ZodCoercer(),
   ],

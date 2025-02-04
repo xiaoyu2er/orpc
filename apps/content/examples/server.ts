@@ -92,9 +92,9 @@ export type Outputs = InferRouterOutputs<typeof router>
 
 // Modern runtime that support fetch api like deno, bun, cloudflare workers, even node can used
 import { createServer } from 'node:http'
-import { OpenAPIServerlessHandler } from '@orpc/openapi/node'
+import { OpenAPIHandler } from '@orpc/openapi/node'
 
-const openAPIHandler = new OpenAPIServerlessHandler(router, {
+const openAPIHandler = new OpenAPIHandler(router, {
   schemaCoercers: [
     new ZodCoercer(),
   ],

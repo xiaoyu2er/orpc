@@ -1,8 +1,8 @@
-import { OpenAPIServerlessHandler } from '@orpc/openapi/node'
+import { OpenAPIHandler } from '@orpc/openapi/node'
 import { ZodCoercer } from '@orpc/zod'
 import { router } from '~/server/router'
 
-const openAPIHandler = new OpenAPIServerlessHandler(router, {
+const openAPIHandler = new OpenAPIHandler(router, {
   schemaCoercers: [
     new ZodCoercer(),
   ],

@@ -1,4 +1,4 @@
-import { OpenAPIServerlessHandler } from '@orpc/openapi/fetch'
+import { OpenAPIHandler } from '@orpc/openapi/fetch'
 import { os } from '@orpc/server'
 import { z } from 'zod'
 import { ZodCoercer } from '../src'
@@ -17,7 +17,7 @@ describe('zodCoercer', () => {
         .handler(fn),
     })
 
-    const handler = new OpenAPIServerlessHandler(router, {
+    const handler = new OpenAPIHandler(router, {
       schemaCoercers: [
         new ZodCoercer(),
       ],

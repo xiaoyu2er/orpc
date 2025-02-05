@@ -2,7 +2,7 @@ import type { AnyContractProcedure, HTTPPath } from '@orpc/contract'
 import type { AnyProcedure } from '../../procedure'
 import type { EachContractProcedureLaziedOptions } from '../../utils'
 import type { StandardMatcher, StandardMatchResult } from './types'
-import { type Lazy, unlazy } from '../../lazy'
+import { unlazy } from '../../lazy'
 import { isProcedure } from '../../procedure'
 import { type AnyRouter, getRouterChild } from '../../router'
 import { convertPathToHttpPath, createContractedProcedure, eachContractProcedure } from '../../utils'
@@ -13,8 +13,8 @@ export class RPCMatcher implements StandardMatcher {
     {
       path: string[]
       contract: AnyContractProcedure
-      maybeProcedure: AnyRouter | undefined | Lazy<undefined>
-      contractedProcedure?: AnyProcedure
+      procedure: AnyProcedure | undefined
+      router: AnyRouter
     }
   > = {}
 
@@ -31,15 +31,16 @@ export class RPCMatcher implements StandardMatcher {
         this.tree[httpPath] = {
           path,
           contract,
-          maybeProcedure: undefined,
-          contractedProcedure: contract, // this mean dev not used contract-first so we can used contract as procedure directly
+          procedure: contract, // this mean dev not used contract-first so we can used contract as procedure directly
+          router,
         }
       }
       else {
         this.tree[httpPath] = {
           path,
           contract,
-          maybeProcedure: getRouterChild(router, ...path),
+          procedure: undefined,
+          router,
         }
       }
     })
@@ -64,8 +65,8 @@ export class RPCMatcher implements StandardMatcher {
       return undefined
     }
 
-    if (!match.contractedProcedure) {
-      const { default: maybeProcedure } = await unlazy(match.maybeProcedure)
+    if (!match.procedure) {
+      const { default: maybeProcedure } = await unlazy(getRouterChild(match.router, ...match.path))
 
       if (!isProcedure(maybeProcedure)) {
         throw new Error(`
@@ -74,12 +75,12 @@ export class RPCMatcher implements StandardMatcher {
         `)
       }
 
-      match.contractedProcedure = createContractedProcedure(match.contract, maybeProcedure)
+      match.procedure = createContractedProcedure(match.contract, maybeProcedure)
     }
 
     return {
       path: match.path,
-      procedure: match.contractedProcedure,
+      procedure: match.procedure,
     }
   }
 }

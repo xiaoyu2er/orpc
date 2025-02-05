@@ -1,6 +1,6 @@
 import type { StandardMatcher, StandardMatchResult } from '@orpc/server/standard'
 import { type AnyContractProcedure, fallbackContractConfig, type HTTPMethod, type HTTPPath } from '@orpc/contract'
-import { type AnyProcedure, type AnyRouter, convertPathToHttpPath, createContractedProcedure, eachContractProcedure, type EachContractProcedureLaziedOptions, getRouterChild, isProcedure, type Lazy, unlazy } from '@orpc/server'
+import { type AnyProcedure, type AnyRouter, convertPathToHttpPath, createContractedProcedure, eachContractProcedure, type EachContractProcedureLaziedOptions, getRouterChild, isProcedure, unlazy } from '@orpc/server'
 import { addRoute, createRouter, findRoute } from 'rou3'
 
 export interface OpenAPIMatcherOptions {
@@ -17,8 +17,8 @@ export class OpenAPIMatcher implements StandardMatcher {
   private readonly tree = createRouter<{
     path: string[]
     contract: AnyContractProcedure
-    maybeProcedure: AnyRouter | undefined | Lazy<undefined>
-    contractedProcedure?: AnyProcedure
+    procedure: AnyProcedure | undefined
+    router: AnyRouter
   }>()
 
   private readonly fallbackMethod: HTTPMethod | undefined
@@ -47,15 +47,16 @@ export class OpenAPIMatcher implements StandardMatcher {
         addRoute(this.tree, method, httpPath, {
           path,
           contract,
-          maybeProcedure: undefined,
-          contractedProcedure: contract, // this mean dev not used contract-first so we can used contract as procedure directly
+          procedure: contract, // this mean dev not used contract-first so we can used contract as procedure directly
+          router,
         })
       }
       else {
         addRoute(this.tree, method, httpPath, {
           path,
           contract,
-          maybeProcedure: getRouterChild(router, ...path),
+          procedure: undefined,
+          router,
         })
       }
     })
@@ -80,8 +81,8 @@ export class OpenAPIMatcher implements StandardMatcher {
       return undefined
     }
 
-    if (!match.data.contractedProcedure) {
-      const { default: maybeProcedure } = await unlazy(match.data.maybeProcedure)
+    if (!match.data.procedure) {
+      const { default: maybeProcedure } = await unlazy(getRouterChild(match.data.router, ...match.data.path))
 
       if (!isProcedure(maybeProcedure)) {
         throw new Error(`
@@ -90,12 +91,12 @@ export class OpenAPIMatcher implements StandardMatcher {
         `)
       }
 
-      match.data.contractedProcedure = createContractedProcedure(match.data.contract, maybeProcedure)
+      match.data.procedure = createContractedProcedure(match.data.contract, maybeProcedure)
     }
 
     return {
       path: match.data.path,
-      procedure: match.data.contractedProcedure,
+      procedure: match.data.procedure,
       params: match.params,
     }
   }

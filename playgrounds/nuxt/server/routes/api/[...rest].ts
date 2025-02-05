@@ -1,14 +1,17 @@
-import { OpenAPIServerlessHandler } from '@orpc/openapi/node'
+import { OpenAPIHandler } from '@orpc/openapi/node'
+import { onError } from '@orpc/server'
 import { ZodCoercer } from '@orpc/zod'
 import { router } from '~/server/router'
 
-const openAPIHandler = new OpenAPIServerlessHandler(router, {
+const openAPIHandler = new OpenAPIHandler(router, {
   schemaCoercers: [
     new ZodCoercer(),
   ],
-  onError: ({ error }) => {
-    console.error(error)
-  },
+  interceptors: [
+    onError((error) => {
+      console.error(error)
+    }),
+  ],
 })
 
 export default defineEventHandler(async (event) => {

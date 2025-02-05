@@ -1,31 +1,31 @@
 import type { Context, Router } from '@orpc/server'
-import type { IncomingMessage, ServerResponse } from 'node:http'
-import type { OpenAPIHandlerOptions } from '../fetch/openapi-handler'
-import type { Hono } from '../fetch/openapi-procedure-matcher'
-import { createRequest, type RequestHandler, type RequestHandleRest, type RequestHandleResult, sendResponse } from '@orpc/server/node'
-import { OpenAPIHandler as OpenAPIFetchHandler } from '../fetch/openapi-handler'
+import type { NodeHttpHandler, NodeHttpHandleResult, NodeHttpRequest, NodeHttpResponse } from '@orpc/server/node'
+import type { StandardHandleRest } from '@orpc/server/standard'
+import type { OpenAPIHandlerOptions } from '../standard'
+import { nodeHttpResponseSendStandardResponse, nodeHttpToStandardRequest } from '@orpc/server/node'
+import { StandardHandler } from '@orpc/server/standard'
+import { OpenAPICodec, OpenAPIMatcher } from '../standard'
 
-export class OpenAPIHandler<T extends Context> implements RequestHandler<T> {
-  private readonly openapiFetchHandler: OpenAPIFetchHandler<T>
+export class OpenAPIHandler<T extends Context> implements NodeHttpHandler<T> {
+  private readonly standardHandler: StandardHandler<T>
 
-  constructor(hono: Hono, router: Router<T, any>, options?: NoInfer<OpenAPIHandlerOptions<T>>) {
-    this.openapiFetchHandler = new OpenAPIFetchHandler(hono, router, options)
+  constructor(router: Router<T, any>, options?: NoInfer<OpenAPIHandlerOptions<T>>) {
+    const matcher = options?.matcher ?? new OpenAPIMatcher(options)
+    const codec = options?.codec ?? new OpenAPICodec(options)
+
+    this.standardHandler = new StandardHandler(router, matcher, codec, { ...options })
   }
 
-  async handle(req: IncomingMessage, res: ServerResponse, ...[options]: RequestHandleRest<T>): Promise<RequestHandleResult> {
-    const request = createRequest(req, res)
+  async handle(req: NodeHttpRequest, res: NodeHttpResponse, ...rest: StandardHandleRest<T>): Promise<NodeHttpHandleResult> {
+    const standardRequest = nodeHttpToStandardRequest(req, res)
 
-    const castedOptions = (options ?? {}) as Exclude<typeof options, undefined>
+    const result = await this.standardHandler.handle(standardRequest, ...rest)
 
-    const result = await this.openapiFetchHandler.handle(request, castedOptions)
-
-    if (result.matched === false) {
+    if (!result.matched) {
       return { matched: false }
     }
 
-    await options?.beforeSend?.(result.response, castedOptions.context as T)
-
-    await sendResponse(res, result.response)
+    await nodeHttpResponseSendStandardResponse(res, result.response)
 
     return { matched: true }
   }

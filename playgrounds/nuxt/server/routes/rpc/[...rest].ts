@@ -1,10 +1,13 @@
+import { onError } from '@orpc/server'
 import { RPCHandler } from '@orpc/server/node'
 import { router } from '~/server/router'
 
 const rpcHandler = new RPCHandler(router, {
-  onError: ({ error }) => {
-    console.error(error)
-  },
+  interceptors: [
+    onError((error) => {
+      console.error(error)
+    }),
+  ],
 })
 
 export default defineEventHandler(async (event) => {

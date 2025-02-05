@@ -104,7 +104,7 @@ rather than relying on global mechanisms like `headers` or `cookies` in Next.js.
 ```ts twoslash
 import { os, ORPCError, createProcedureClient } from '@orpc/server'
 import { RPCHandler } from '@orpc/server/fetch'
-import { OpenAPIServerlessHandler, OpenAPIServerHandler } from '@orpc/openapi/fetch'
+import { OpenAPIHandler } from '@orpc/openapi/fetch'
 
 type ORPCContext = { user?: { id: string }, db: 'fake-db' }
 

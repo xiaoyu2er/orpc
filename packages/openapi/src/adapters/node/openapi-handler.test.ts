@@ -1,72 +1,129 @@
-import { createRequest, sendResponse } from '@orpc/server/node'
-import { OpenAPIHandler as OpenAPIFetchHandler } from '../fetch/openapi-handler'
+import { nodeHttpResponseSendStandardResponse, nodeHttpToStandardRequest } from '@orpc/server/node'
+import { StandardHandler } from '@orpc/server/standard'
+import inject from 'light-my-request'
+import { router } from '../../../../server/tests/shared'
+import { OpenAPICodec, OpenAPIMatcher } from '../standard'
 import { OpenAPIHandler } from './openapi-handler'
 
-vi.mock('../fetch/openapi-handler', () => ({
-  OpenAPIHandler: vi.fn(),
+vi.mock('@orpc/server/node', () => ({
+  nodeHttpToStandardRequest: vi.fn(),
+  nodeHttpResponseSendStandardResponse: vi.fn(),
 }))
 
-vi.mock('@orpc/server/node', async origin => ({
+vi.mock('@orpc/server/standard', async origin => ({
   ...await origin(),
-  createRequest: vi.fn(),
-  sendResponse: vi.fn(),
+  StandardHandler: vi.fn(),
 }))
 
 beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe('openAPIHandler', () => {
-  const hono = {} as any
-  const router = {}
-  const req = { __request: true } as any
-  const res = { __response: true } as any
+describe('openapiHandler', async () => {
+  const handle = vi.fn()
 
-  it('handle should works', async () => {
-    const response = new Response()
+  vi.mocked(StandardHandler).mockReturnValue({
+    handle,
+  } as any)
 
-    vi.mocked(OpenAPIFetchHandler).mockReturnValueOnce({
-      handle: vi.fn().mockResolvedValue({ matched: true, response }),
-    } as any)
+  const handler = new OpenAPIHandler(router)
 
-    const handler = new OpenAPIHandler(hono, router)
+  let req: any, res: any
 
-    await handler.handle(req, res)
-
-    expect(createRequest).toHaveBeenCalledTimes(1)
-    expect(createRequest).toHaveBeenCalledWith(req, res)
-
-    expect(sendResponse).toHaveBeenCalledTimes(1)
-    expect(sendResponse).toHaveBeenCalledWith(res, response)
+  await inject((_req, _res) => {
+    req = _req
+    res = _res
+    _res.end()
+  }, {
+    url: '/',
   })
 
-  it('handle when matched=false', async () => {
-    const response = undefined
+  const standardRequest = {
+    raw: {},
+    method: 'POST',
+    url: new URL('https://example.com/api/v1/users/1'),
+    headers: {
+      'content-type': 'application/json',
+      'content-length': '12',
+    },
+    body: () => Promise.resolve(JSON.stringify({ name: 'John Doe' })),
+  }
 
-    vi.mocked(OpenAPIFetchHandler).mockReturnValueOnce({
-      handle: vi.fn().mockResolvedValue({ matched: false, response }),
-    } as any)
+  it('on match', async () => {
+    vi.mocked(nodeHttpToStandardRequest).mockReturnValueOnce(standardRequest)
+    handle.mockReturnValueOnce({
+      matched: true,
+      response: {
+        status: 200,
+        headers: {},
+        body: '__body__',
+      },
+    })
 
-    const handler = new OpenAPIHandler(hono, router)
+    const result = await handler.handle(req, res, { prefix: '/api/v1', context: { db: 'postgres' } })
 
-    await handler.handle(req, res)
+    expect(result).toEqual({
+      matched: true,
+    })
 
-    expect(sendResponse).toHaveBeenCalledTimes(0)
+    expect(handle).toHaveBeenCalledOnce()
+    expect(handle).toHaveBeenCalledWith(
+      standardRequest,
+      { prefix: '/api/v1', context: { db: 'postgres' } },
+    )
+
+    expect(nodeHttpToStandardRequest).toHaveBeenCalledOnce()
+    expect(nodeHttpToStandardRequest).toHaveBeenCalledWith(req, res)
+
+    expect(nodeHttpResponseSendStandardResponse).toHaveBeenCalledOnce()
+    expect(nodeHttpResponseSendStandardResponse).toHaveBeenCalledWith(res, {
+      status: 200,
+      headers: {},
+      body: '__body__',
+    })
   })
 
-  it('beforeSend hook', async () => {
-    const response = new Response()
+  it('on mismatch', async () => {
+    vi.mocked(nodeHttpToStandardRequest).mockReturnValueOnce(standardRequest)
+    handle.mockReturnValueOnce({
+      matched: false,
+      response: undefined,
+    })
 
-    vi.mocked(OpenAPIFetchHandler).mockReturnValueOnce({
-      handle: vi.fn().mockResolvedValue({ matched: true, response }),
-    } as any)
+    const result = await handler.handle(req, res, { prefix: '/api/v1', context: { db: 'postgres' } })
 
-    const handler = new OpenAPIHandler(hono, router)
+    expect(result).toEqual({
+      matched: false,
+      response: undefined,
+    })
 
-    const mockBeforeSend = vi.fn()
-    await handler.handle(req, res, { beforeSend: mockBeforeSend, context: { __context: true } })
+    expect(handle).toHaveBeenCalledOnce()
+    expect(handle).toHaveBeenCalledWith(
+      standardRequest,
+      { prefix: '/api/v1', context: { db: 'postgres' } },
+    )
 
-    expect(mockBeforeSend).toHaveBeenCalledTimes(1)
-    expect(mockBeforeSend).toHaveBeenCalledWith(response, { __context: true })
+    expect(nodeHttpToStandardRequest).toHaveBeenCalledOnce()
+    expect(nodeHttpToStandardRequest).toHaveBeenCalledWith(req, res)
+
+    expect(nodeHttpResponseSendStandardResponse).not.toHaveBeenCalled()
+  })
+
+  it('standardHandler constructor', async () => {
+    const options = {
+      codec: new OpenAPICodec(),
+      matcher: new OpenAPIMatcher(),
+      interceptors: [vi.fn()],
+    }
+
+    const handler = new OpenAPIHandler(router, options)
+
+    expect(StandardHandler).toHaveBeenCalledOnce()
+    expect(StandardHandler).toHaveBeenCalledWith(
+      router,
+      options.matcher,
+      options.codec,
+      options,
+    )
   })
 })

@@ -3,7 +3,7 @@ import { isPlainObject } from 'is-what'
 export type Segment = string | number
 
 export function set(
-  root: Readonly<Record<string, unknown> | unknown[]>,
+  root: unknown,
   segments: Readonly<Segment[]>,
   value: unknown,
 ): unknown {

@@ -20,6 +20,11 @@
         "import": "./dist/index.js",
         "default": "./dist/index.js"
       },
+      "./standard": {
+        "types": "./dist/src/adapters/standard/index.d.ts",
+        "import": "./dist/standard.js",
+        "default": "./dist/standard.js"
+      },
       "./fetch": {
         "types": "./dist/src/adapters/fetch/index.d.ts",
         "import": "./dist/fetch.js",
@@ -47,6 +52,7 @@
   },
   "exports": {
     ".": "./src/index.ts",
+    "./standard": "./src/adapters/standard/index.ts",
     "./fetch": "./src/adapters/fetch/index.ts",
     "./hono": "./src/adapters/hono/index.ts",
     "./next": "./src/adapters/next/index.ts",
@@ -74,9 +80,9 @@
     "content-disposition": "^0.5.4",
     "escape-string-regexp": "^5.0.0",
     "fast-content-type-parse": "^2.0.0",
-    "hono": "^4.6.12",
     "json-schema-typed": "^8.0.1",
     "openapi3-ts": "^4.4.0",
+    "rou3": "^0.5.1",
     "wildcard-match": "^5.1.3"
   },
   "devDependencies": {

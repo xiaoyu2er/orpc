@@ -149,12 +149,12 @@ In oRPC middleware is very useful and fully typed you can find more info [here](
 
 ```ts twoslash
 import { RPCHandler } from '@orpc/server/node'
-import { OpenAPIServerlessHandler } from '@orpc/openapi/node'
+import { OpenAPIHandler } from '@orpc/openapi/node'
 import { createServer } from 'node:http'
 import { router } from 'examples/server'
 import { ZodCoercer } from '@orpc/zod'
 
-const openAPIHandler = new OpenAPIServerlessHandler(router, {
+const openAPIHandler = new OpenAPIHandler(router, {
   schemaCoercers: [
     new ZodCoercer(),
   ],

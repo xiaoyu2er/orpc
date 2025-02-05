@@ -1,25 +1,30 @@
 import { createServer } from 'node:http'
 import { OpenAPIGenerator } from '@orpc/openapi'
-import { OpenAPIServerHandler } from '@orpc/openapi/node'
+import { OpenAPIHandler } from '@orpc/openapi/node'
+import { onError } from '@orpc/server'
 import { RPCHandler } from '@orpc/server/node'
 import { ZodCoercer, ZodToJsonSchemaConverter } from '@orpc/zod'
 import { contract } from './contract'
 import { router } from './router'
 import './polyfill'
 
-const openAPIHandler = new OpenAPIServerHandler(router, {
+const openAPIHandler = new OpenAPIHandler(router, {
   schemaCoercers: [
     new ZodCoercer(),
   ],
-  onError: ({ error }) => {
-    console.error(error)
-  },
+  interceptors: [
+    onError((error) => {
+      console.error(error)
+    }),
+  ],
 })
 
 const rpcHandler = new RPCHandler(router, {
-  onError: ({ error }) => {
-    console.error(error)
-  },
+  interceptors: [
+    onError((error) => {
+      console.error(error)
+    }),
+  ],
 })
 
 const openAPIGenerator = new OpenAPIGenerator({

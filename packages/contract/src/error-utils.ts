@@ -79,3 +79,12 @@ export async function validateORPCError(map: ErrorMap, error: ORPCError<any, any
 
   return new ORPCError(code, { defined: true, status, message, data: validated.value, cause })
 }
+
+export function toORPCError(error: unknown): ORPCError<any, any> {
+  return error instanceof ORPCError
+    ? error
+    : new ORPCError('INTERNAL_SERVER_ERROR', {
+      message: 'Internal server error',
+      cause: error,
+    })
+}

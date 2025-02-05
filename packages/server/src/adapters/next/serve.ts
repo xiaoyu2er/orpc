@@ -1,10 +1,11 @@
 import type { NextRequest } from 'next/server'
 import type { Context } from '../../context'
-import type { FetchHandleOptions, FetchHandler } from '../fetch'
+import type { FetchHandler } from '../fetch'
+import type { StandardHandleOptions } from '../standard'
 import { value, type Value } from '@orpc/shared'
 
 export type ServeOptions<T extends Context> =
-  & Omit<FetchHandleOptions<T>, 'context'>
+  & Omit<StandardHandleOptions<T>, 'context'>
   & (Record<never, never> extends T ? { context?: Value<T, [NextRequest]> } : { context: Value<T, [NextRequest]> })
 
 export type ServeRest<T extends Context> =

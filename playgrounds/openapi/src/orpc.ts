@@ -1,8 +1,9 @@
+import type { ResponseHeadersPluginContext } from '@orpc/server/plugins'
 import type { z } from 'zod'
 import type { UserSchema } from './schemas/user'
 import { ORPCError, os } from '@orpc/server'
 
-export interface ORPCContext {
+export interface ORPCContext extends ResponseHeadersPluginContext {
   user?: z.infer<typeof UserSchema>
   db?: any
 }

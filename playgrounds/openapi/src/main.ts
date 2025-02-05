@@ -3,7 +3,7 @@ import { OpenAPIGenerator } from '@orpc/openapi'
 import { OpenAPIHandler } from '@orpc/openapi/node'
 import { onError } from '@orpc/server'
 import { RPCHandler } from '@orpc/server/node'
-import { CORSPlugin } from '@orpc/server/plugins'
+import { CORSPlugin, ResponseHeadersPlugin } from '@orpc/server/plugins'
 import { ZodCoercer, ZodToJsonSchemaConverter } from '@orpc/zod'
 import { router } from './router'
 import './polyfill'
@@ -21,6 +21,7 @@ const openAPIHandler = new OpenAPIHandler(router, {
     new CORSPlugin({
       origin: 'http://localhost:3000',
     }),
+    new ResponseHeadersPlugin(),
   ],
 })
 

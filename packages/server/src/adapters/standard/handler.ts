@@ -21,7 +21,7 @@ export type StandardHandleRest<T extends Context> =
 
 export type StandardHandleResult = { matched: true, response: StandardResponse } | { matched: false, response: undefined }
 
-export type StandardHandlerInterceptorOptions<TContext extends Context> = StandardHandleOptions<TContext> & { request: StandardRequest }
+export type StandardHandlerInterceptorOptions<TContext extends Context> = WellStandardHandleOptions<TContext> & { request: StandardRequest }
 
 export interface StandardHandlerOptions<TContext extends Context> extends Interceptable<
   StandardHandlerInterceptorOptions<TContext>,
@@ -41,9 +41,9 @@ export class StandardHandler<TContext extends Context> {
     private readonly options: NoInfer<StandardHandlerOptions<TContext>> = {},
   ) {
     this.plugin = new CompositePlugin(options?.plugins)
+    this.plugin.init(this.options)
 
     this.matcher.init(router)
-    this.plugin.init(this.options)
   }
 
   async handle(request: StandardRequest, ...[options]: StandardHandleRest<TContext>): Promise<StandardHandleResult> {

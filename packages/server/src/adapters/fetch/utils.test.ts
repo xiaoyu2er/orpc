@@ -325,6 +325,7 @@ describe('standardResponseToFetchResponse', () => {
 
     expect(response.status).toEqual(209)
     expect([...response.headers.entries()]).toEqual([
+      ['content-disposition', 'attachment; filename="blob"'],
       ['content-type', 'text/plain'],
       ['set-cookie', 'foo=bar'],
       ['set-cookie', 'baz=qux'],

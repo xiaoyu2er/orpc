@@ -364,6 +364,7 @@ describe('standardResponseToFetchResponse', () => {
     expect(res.headers).toEqual({
       ...headers,
       'content-type': 'text/plain',
+      'content-disposition': 'attachment; filename="blob"',
       'content-length': '8',
       'connection': expect.any(String),
       'date': expect.any(String),

@@ -101,8 +101,8 @@ function standardResponseToFetchHeaders(response: StandardResponse): Headers {
     }
   }
 
-  if (response.body instanceof File && !fetchHeaders.has('content-disposition')) {
-    fetchHeaders.set('content-disposition', cd(response.body.name))
+  if (response.body instanceof Blob && !fetchHeaders.has('content-disposition')) {
+    fetchHeaders.set('content-disposition', cd(response.body instanceof File ? response.body.name : 'blob'))
   }
   else if (
     !(response.body instanceof Blob)

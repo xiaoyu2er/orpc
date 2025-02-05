@@ -6,6 +6,7 @@ import { ORPCError } from '@orpc/contract'
 import { fetchReToStandardBody } from '@orpc/server/fetch'
 import { RPCSerializer } from '@orpc/server/standard'
 import { isPlainObject, trim } from '@orpc/shared'
+import cd from 'content-disposition'
 
 export interface RPCLinkOptions<TClientContext> {
   /**
@@ -72,6 +73,10 @@ export class RPCLink<TClientContext> implements ClientLink<TClientContext> {
     const clientContext = options.context as typeof options.context & { context: TClientContext }
     const encoded = await this.encode(path, input, options)
 
+    if (encoded.body instanceof Blob && !encoded.headers.has('content-disposition')) {
+      encoded.headers.set('content-disposition', cd(encoded.body instanceof File ? encoded.body.name : 'blob'))
+    }
+
     const response = await this.fetch(encoded.url, {
       method: encoded.method,
       headers: encoded.headers,
@@ -123,7 +128,7 @@ export class RPCLink<TClientContext> implements ClientLink<TClientContext> {
 
     const serialized = this.rpcSerializer.serialize(input)
 
-    if (expectMethod === 'GET' && isPlainObject(serialized)) {
+    if (expectMethod === 'GET' && isPlainObject(serialized)) { // isPlainObject mean has no blobs
       const tryURL = new URL(url)
 
       tryURL.searchParams.append('data', JSON.stringify(serialized))

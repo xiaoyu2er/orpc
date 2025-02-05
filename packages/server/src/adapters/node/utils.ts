@@ -51,8 +51,8 @@ export function nodeHttpResponseSendStandardResponse(
         'content-length': standardResponse.body.size.toString(),
       }
 
-      if (!standardResponse.headers['content-disposition'] && standardResponse.body instanceof File) {
-        resHeaders['content-disposition'] = cd(standardResponse.body.name)
+      if (!standardResponse.headers['content-disposition'] && standardResponse.body instanceof Blob) {
+        resHeaders['content-disposition'] = cd(standardResponse.body instanceof File ? standardResponse.body.name : 'blob')
       }
 
       res.writeHead(standardResponse.status, resHeaders)

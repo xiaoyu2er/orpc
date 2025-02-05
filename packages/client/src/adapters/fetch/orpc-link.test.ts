@@ -1,6 +1,13 @@
 import { ORPCError } from '@orpc/contract'
+import { os } from '@orpc/server'
+import { RPCHandler } from '@orpc/server/fetch'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { supportedDataTypes } from '../../../../server/tests/shared'
 import { RPCLink } from './orpc-link'
+
+beforeEach(() => {
+  vi.clearAllMocks()
+})
 
 describe('rpcLink', () => {
   // Mock setup
@@ -354,5 +361,67 @@ describe('rpcLink', () => {
         {},
       )
     })
+  })
+})
+
+describe.each(supportedDataTypes)('rpcLink: $name', ({ value, expected }) => {
+  async function assert(value: unknown, expected: unknown): Promise<true> {
+    const handler = vi.fn(({ input }) => input)
+
+    const rpcHandler = new RPCHandler(os.handler(handler))
+
+    const rpcLink = new RPCLink({
+      url: 'http://api.example.com',
+      fetch: async (url, init) => {
+        const request = new Request(url, init)
+        const { matched, response } = await rpcHandler.handle(request)
+
+        if (matched) {
+          return response
+        }
+
+        throw new Error('No procedure match')
+      },
+    })
+
+    const output = await rpcLink.call([], value, { context: {} })
+
+    expect(output).toEqual(expected)
+    expect(handler).toHaveBeenCalledTimes(1)
+    expect(handler).toHaveBeenCalledWith(expect.objectContaining({ input: expected }))
+
+    return true
+  }
+
+  it('should work on flat', async () => {
+    expect(await assert(value, expected)).toBe(true)
+  })
+
+  it('should work on nested object', async () => {
+    expect(await assert({
+      data: value,
+    }, {
+      data: expected,
+    })).toBe(true)
+  })
+
+  it('should work on complex object', async () => {
+    expect(await assert({
+      '!@#$%^^&()[]>?<~_<:"~+!_': value,
+      'list': [value],
+      'map': new Map([[value, value]]),
+      'set': new Set([value]),
+      'nested': {
+        nested: value,
+      },
+    }, {
+      '!@#$%^^&()[]>?<~_<:"~+!_': expected,
+      'list': [expected],
+      'map': new Map([[expected, expected]]),
+      'set': new Set([expected]),
+      'nested': {
+        nested: expected,
+      },
+    })).toBe(true)
   })
 })

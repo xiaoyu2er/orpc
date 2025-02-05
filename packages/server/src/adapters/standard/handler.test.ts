@@ -82,6 +82,7 @@ describe('standardHandler', () => {
       request,
       next: expect.any(Function),
       context: { db: 'postgres' },
+      prefix: '/api/v1',
     })
   })
 
@@ -131,6 +132,7 @@ describe('standardHandler', () => {
       request,
       next: expect.any(Function),
       context: { db: 'postgres' },
+      prefix: '/api/v1',
     })
   })
 
@@ -181,6 +183,7 @@ describe('standardHandler', () => {
       request,
       next: expect.any(Function),
       context: { db: 'postgres' },
+      prefix: '/api/v1',
     })
   })
 

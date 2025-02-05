@@ -48,7 +48,8 @@ export class StandardHandler<TContext extends Context> {
 
   async handle(request: StandardRequest, ...[options]: StandardHandleRest<TContext>): Promise<StandardHandleResult> {
     try {
-      const handleOptions = (options ?? {}) as WellStandardHandleOptions<TContext> // options only undefined when all fields are optional so we can safely force it
+      const handleOptions = (options ?? {}) as WellStandardHandleOptions<TContext> // options only undefined when all fields are optional so we can safely force it to have a context
+      handleOptions.context ??= {} as TContext // context is optional only when all fields are optional so we can safely force it to have a context
 
       return await intercept(
         this.options,

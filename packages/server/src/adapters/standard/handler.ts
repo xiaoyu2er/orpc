@@ -1,5 +1,5 @@
 import type { HTTPPath } from '@orpc/contract'
-import type { Interceptable } from '@orpc/shared'
+import type { Interceptor } from '@orpc/shared'
 import type { Context } from '../../context'
 import type { Plugin } from '../../plugins'
 import type { Router } from '../../router'
@@ -23,12 +23,18 @@ export type StandardHandleResult = { matched: true, response: StandardResponse }
 
 export type StandardHandlerInterceptorOptions<TContext extends Context> = WellStandardHandleOptions<TContext> & { request: StandardRequest }
 
-export interface StandardHandlerOptions<TContext extends Context> extends Interceptable<
-  StandardHandlerInterceptorOptions<TContext>,
-  StandardHandleResult,
-  unknown
-> {
+export interface StandardHandlerOptions<TContext extends Context> {
   plugins?: Plugin<TContext>[]
+
+  /**
+   * Interceptors at the request level, helpful when you want catch errors
+   */
+  interceptors?: Interceptor<StandardHandlerInterceptorOptions<TContext>, StandardHandleResult, unknown>[]
+
+  /**
+   * Interceptors at the root level, helpful when you want override the response
+   */
+  interceptorsRoot?: Interceptor<StandardHandlerInterceptorOptions<TContext>, StandardHandleResult, unknown>[]
 }
 
 export class StandardHandler<TContext extends Context> {
@@ -46,52 +52,58 @@ export class StandardHandler<TContext extends Context> {
     this.matcher.init(router)
   }
 
-  async handle(request: StandardRequest, ...[options]: StandardHandleRest<TContext>): Promise<StandardHandleResult> {
-    try {
-      const handleOptions = (options ?? {}) as WellStandardHandleOptions<TContext> // options only undefined when all fields are optional so we can safely force it to have a context
-      handleOptions.context ??= {} as TContext // context is optional only when all fields are optional so we can safely force it to have a context
+  handle(request: StandardRequest, ...[options]: StandardHandleRest<TContext>): Promise<StandardHandleResult> {
+    const handleOptions = (options ?? {}) as WellStandardHandleOptions<TContext> // options only undefined when all fields are optional so we can safely force it to have a context
+    handleOptions.context ??= {} as TContext // context is optional only when all fields are optional so we can safely force it to have a context
 
-      return await intercept(
-        this.options,
-        { request, ...handleOptions },
-        async ({ request, context }) => {
-          const method = request.method
-          const url = request.url
-          const pathname = `/${trim(url.pathname.replace(options?.prefix ?? '', ''), '/')}` as const
+    return intercept(
+      this.options.interceptorsRoot ?? [],
+      { request, ...handleOptions },
+      async (interceptorRootOptions) => {
+        try {
+          return await intercept(
+            this.options.interceptors ?? [],
+            interceptorRootOptions,
+            async ({ request, context }) => {
+              const method = request.method
+              const url = request.url
+              const pathname = `/${trim(url.pathname.replace(options?.prefix ?? '', ''), '/')}` as const
 
-          const match = await this.matcher.match(method, pathname)
+              const match = await this.matcher.match(method, pathname)
 
-          if (!match) {
-            return { matched: false, response: undefined }
-          }
+              if (!match) {
+                return { matched: false, response: undefined }
+              }
 
-          const client = createProcedureClient(match.procedure, {
-            context,
-            path: match.path,
-          })
+              const client = createProcedureClient(match.procedure, {
+                context,
+                path: match.path,
+              })
 
-          const input = await this.codec.decode(request, match.params, match.procedure)
+              const input = await this.codec.decode(request, match.params, match.procedure)
 
-          const output = await client(input, { signal: request.signal })
+              const output = await client(input, { signal: request.signal })
 
-          const response = this.codec.encode(output, match.procedure)
+              const response = this.codec.encode(output, match.procedure)
+
+              return {
+                matched: true,
+                response,
+              }
+            },
+          )
+        }
+        catch (e) {
+          const error = toORPCError(e)
+
+          const response = this.codec.encodeError(error)
 
           return {
             matched: true,
             response,
           }
-        },
-      )
-    }
-    catch (e) {
-      const error = toORPCError(e)
-
-      const response = this.codec.encodeError(error)
-
-      return {
-        matched: true,
-        response,
-      }
-    }
+        }
+      },
+    )
   }
 }

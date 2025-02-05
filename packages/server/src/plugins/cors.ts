@@ -28,9 +28,9 @@ export class CORSPlugin<TContext extends Context> implements Plugin<TContext> {
   }
 
   init(options: StandardHandlerOptions<TContext>): void {
-    options.interceptors ??= []
+    options.interceptorsRoot ??= []
 
-    options.interceptors.unshift(async (interceptorOptions) => {
+    options.interceptorsRoot.unshift(async (interceptorOptions) => {
       if (interceptorOptions.request.method === 'OPTIONS') {
         const resHeaders: StandardHeaders = {}
 
@@ -64,7 +64,7 @@ export class CORSPlugin<TContext extends Context> implements Plugin<TContext> {
       return interceptorOptions.next()
     })
 
-    options.interceptors.unshift(async (interceptorOptions) => {
+    options.interceptorsRoot.unshift(async (interceptorOptions) => {
       const result = await interceptorOptions.next()
 
       if (!result.matched) {

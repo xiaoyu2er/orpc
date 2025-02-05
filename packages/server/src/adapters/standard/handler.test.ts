@@ -24,9 +24,11 @@ describe('standardHandler', () => {
   }
 
   const interceptor = vi.fn(({ next }) => next())
+  const interceptorRoot = vi.fn(({ next }) => next())
 
   const handler = new StandardHandler(router, matcher, codec, {
     interceptors: [interceptor],
+    interceptorsRoot: [interceptorRoot],
   })
 
   const controller = new AbortController()
@@ -82,6 +84,15 @@ describe('standardHandler', () => {
       request,
       next: expect.any(Function),
       context: { db: 'postgres' },
+      prefix: '/api/v1',
+    })
+
+    expect(interceptorRoot).toHaveBeenCalledOnce()
+    expect(interceptorRoot).toHaveBeenCalledWith({
+      request,
+      next: expect.any(Function),
+      context: { db: 'postgres' },
+      prefix: '/api/v1',
     })
   })
 
@@ -131,6 +142,15 @@ describe('standardHandler', () => {
       request,
       next: expect.any(Function),
       context: { db: 'postgres' },
+      prefix: '/api/v1',
+    })
+
+    expect(interceptorRoot).toHaveBeenCalledOnce()
+    expect(interceptorRoot).toHaveBeenCalledWith({
+      request,
+      next: expect.any(Function),
+      context: { db: 'postgres' },
+      prefix: '/api/v1',
     })
   })
 
@@ -181,6 +201,15 @@ describe('standardHandler', () => {
       request,
       next: expect.any(Function),
       context: { db: 'postgres' },
+      prefix: '/api/v1',
+    })
+
+    expect(interceptorRoot).toHaveBeenCalledOnce()
+    expect(interceptorRoot).toHaveBeenCalledWith({
+      request,
+      next: expect.any(Function),
+      context: { db: 'postgres' },
+      prefix: '/api/v1',
     })
   })
 
@@ -206,6 +235,22 @@ describe('standardHandler', () => {
       request,
       next: expect.any(Function),
       context: {},
+    })
+
+    expect(interceptorRoot).toHaveBeenCalledOnce()
+    expect(interceptorRoot).toHaveBeenCalledWith({
+      request,
+      next: expect.any(Function),
+      context: {},
+    })
+  })
+
+  it('works without options', async () => {
+    const handler = new StandardHandler(router, matcher, codec)
+
+    expect(await handler.handle(request, { context: { db: 'postgres' } })).toEqual({
+      matched: true,
+      response: undefined,
     })
   })
 })

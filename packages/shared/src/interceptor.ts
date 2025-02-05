@@ -16,14 +16,6 @@ export type Interceptor<
   TError,
 > = (options: InterceptorOptions<TOptions, TResult>) => Promise<TResult> & { __error?: { type: TError } }
 
-export interface Interceptable<
-  TOptions extends InterceptableOptions,
-  TResult,
-  TError,
-> {
-  interceptors?: Interceptor<TOptions, TResult, TError>[]
-}
-
 /**
  * Can used for interceptors or middlewares
  */
@@ -95,12 +87,10 @@ export function onFinish<TError, TOptions extends { next(): any }, TRest extends
 }
 
 export async function intercept<TOptions extends InterceptableOptions, TResult, TError>(
-  interceptable: Interceptable<TOptions, TResult, TError>,
+  interceptors: Interceptor<TOptions, TResult, TError>[],
   options: NoInfer<TOptions>,
   main: NoInfer<(options: TOptions) => Promisable<TResult>>,
 ): Promise<TResult> {
-  const interceptors = interceptable.interceptors ?? []
-
   let index = 0
 
   const next = async (nextOptions: TOptions = options): Promise<TResult> => {

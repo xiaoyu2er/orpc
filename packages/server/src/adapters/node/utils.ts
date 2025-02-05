@@ -45,6 +45,8 @@ export function nodeHttpResponseSendStandardResponse(
     if (standardResponse.body === undefined) {
       res.writeHead(standardResponse.status, standardResponse.headers)
       res.end()
+
+      return
     }
 
     if (standardResponse.body instanceof Blob) {

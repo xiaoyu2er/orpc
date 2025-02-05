@@ -1,5 +1,4 @@
 import { ORPCError } from '@orpc/contract'
-import { ORPC_HANDLER_HEADER, ORPC_HANDLER_VALUE } from '@orpc/shared'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { RPCLink } from './orpc-link'
 
@@ -7,16 +6,16 @@ describe('rpcLink', () => {
   // Mock setup
   const mockFetch = vi.fn()
   const mockHeaders = vi.fn()
-  const mockPayloadCodec = {
-    encode: vi.fn(),
-    decode: vi.fn(),
+  const mockRPCSerializer = {
+    serialize: vi.fn(),
+    deserialize: vi.fn(),
   }
 
   beforeEach(() => {
     vi.clearAllMocks()
     // Default mock implementations
-    mockPayloadCodec.encode.mockReturnValue({ headers: new Headers(), body: 'encoded-body', method: 'POST' })
-    mockPayloadCodec.decode.mockReturnValue({ data: 'decoded-data' })
+    mockRPCSerializer.serialize.mockReturnValue('encoded-body')
+    mockRPCSerializer.deserialize.mockReturnValue('decoded-data')
   })
 
   // Test basic successful call
@@ -24,15 +23,12 @@ describe('rpcLink', () => {
     const link = new RPCLink({
       url: 'http://api.example.com',
       fetch: mockFetch,
-      rpcSerializer: mockPayloadCodec as any,
+      rpcSerializer: mockRPCSerializer as any,
     })
 
     const mockResponseData = { id: 1, name: 'Test User' }
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-    })
-    mockPayloadCodec.decode.mockResolvedValueOnce(mockResponseData)
+    mockFetch.mockResolvedValueOnce(new Response('encoded-body'))
+    mockRPCSerializer.deserialize.mockResolvedValueOnce(mockResponseData)
 
     const result = await link.call(['users', 'get'], { id: 1 }, { context: { auth: 'token' } })
 
@@ -50,14 +46,11 @@ describe('rpcLink', () => {
 
     // Verify headers
     const headers = mockFetch.mock.calls[0]![1].headers
-    expect(headers.get(ORPC_HANDLER_HEADER)).toBe(ORPC_HANDLER_VALUE)
+    expect(headers.get('x-orpc-handler')).toBe('rpc')
 
     // Verify payload codec usage
-    expect(mockPayloadCodec.encode).toHaveBeenCalledWith({ id: 1 }, 'POST', 'POST')
-    expect(mockPayloadCodec.decode).toHaveBeenCalledWith(expect.objectContaining({
-      ok: true,
-      status: 200,
-    }))
+    expect(mockRPCSerializer.serialize).toHaveBeenCalledWith({ id: 1 })
+    expect(mockRPCSerializer.deserialize).toHaveBeenCalledWith('encoded-body')
 
     // Verify the final result matches the decoded data
     expect(result).toEqual(mockResponseData)
@@ -75,22 +68,19 @@ describe('rpcLink', () => {
       url: 'http://api.example.com',
       headers: headersFn,
       fetch: mockFetch,
-      rpcSerializer: mockPayloadCodec as any,
+      rpcSerializer: mockRPCSerializer as any,
     })
 
-    const mockResponseData = { success: true, data: 'test data' }
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-    })
-    mockPayloadCodec.decode.mockResolvedValueOnce(mockResponseData)
+    const mockResponseData = { success: true, json: 'test data' }
+    mockFetch.mockResolvedValueOnce(new Response('encoded-body'))
+    mockRPCSerializer.deserialize.mockResolvedValueOnce(mockResponseData)
 
     const result = await link.call(['test'], {}, { context: {} })
 
     const headers = mockFetch.mock.calls[0]![1].headers
     expect(headers.get('Authorization')).toBe('Bearer token')
     expect(headers.get('Custom-Header')).toBe('custom-value')
-    expect(headers.get(ORPC_HANDLER_HEADER)).toBe(ORPC_HANDLER_VALUE)
+    expect(headers.get('x-orpc-handler')).toBe('rpc')
 
     // Verify the result matches the decoded data
     expect(result).toEqual(mockResponseData)
@@ -101,7 +91,7 @@ describe('rpcLink', () => {
     const link = new RPCLink({
       url: 'http://api.example.com/',
       fetch: mockFetch,
-      rpcSerializer: mockPayloadCodec as any,
+      rpcSerializer: mockRPCSerializer as any,
     })
 
     const mockResponseData = { encoded: true, path: 'success' }
@@ -109,7 +99,7 @@ describe('rpcLink', () => {
       ok: true,
       status: 200,
     })
-    mockPayloadCodec.decode.mockResolvedValueOnce(mockResponseData)
+    mockRPCSerializer.deserialize.mockResolvedValueOnce(mockResponseData)
 
     const result = await link.call(['path with spaces', 'special/chars'], {}, { context: {} })
 
@@ -128,10 +118,10 @@ describe('rpcLink', () => {
     const link = new RPCLink({
       url: 'http://api.example.com',
       fetch: mockFetch,
-      rpcSerializer: mockPayloadCodec as any,
+      rpcSerializer: mockRPCSerializer as any,
     })
 
-    const errorResponse = new Response(JSON.stringify({ data: '__mocked__', meta: [] }), {
+    const errorResponse = new Response(JSON.stringify({ json: '__mocked__', meta: [] }), {
       status: 500,
     })
 
@@ -142,7 +132,7 @@ describe('rpcLink', () => {
     }
 
     mockFetch.mockResolvedValue(errorResponse)
-    mockPayloadCodec.decode.mockResolvedValueOnce(errorData)
+    mockRPCSerializer.deserialize.mockResolvedValueOnce(errorData)
 
     await expect(link.call(['test'], {}, { context: {} }))
       .rejects
@@ -156,16 +146,9 @@ describe('rpcLink', () => {
       fetch: mockFetch,
     })
 
-    const mockResponseData = { defaultCodec: true }
-    mockFetch.mockResolvedValueOnce(new Response(JSON.stringify({ data: '__mocked__', meta: [] })))
+    mockFetch.mockResolvedValueOnce(new Response(JSON.stringify({ json: '__mocked__', meta: [] })))
 
-    const result = await link.call(['test'], {}, { context: {} })
-
-    expect(mockFetch).toHaveBeenCalled()
-    // Verify that it didn't use our mock codec
-    expect(mockPayloadCodec.encode).not.toHaveBeenCalled()
-    // The actual result would come from the default ORPCPayloadCodec
-    expect(result).toBeDefined()
+    expect(link.call(['test'], {}, { context: {} })).rejects.toThrow('Invalid RPC response')
   })
 
   it('should use default fetch when none provided', async () => {
@@ -174,18 +157,18 @@ describe('rpcLink', () => {
 
     const link = new RPCLink({
       url: 'http://api.example.com',
-      rpcSerializer: mockPayloadCodec as any,
+      rpcSerializer: mockRPCSerializer as any,
     })
 
-    const mockResponse = new Response(JSON.stringify({ data: '__mocked__', meta: [] }))
+    const mockResponse = new Response(JSON.stringify({ json: '__mocked__', meta: [] }))
     mockFetch.mockReturnValue(mockResponse)
 
     const result = await link.call(['test'], {}, { context: {} })
 
-    expect(result).toEqual({ data: 'decoded-data' })
+    expect(result).toEqual('decoded-data')
     expect(mockFetch).toHaveBeenCalledTimes(1)
-    expect(mockPayloadCodec.decode).toHaveBeenCalledTimes(1)
-    expect(mockPayloadCodec.decode).toHaveBeenCalledWith(mockResponse)
+    expect(mockRPCSerializer.deserialize).toHaveBeenCalledTimes(1)
+    expect(mockRPCSerializer.deserialize).toHaveBeenCalledWith(JSON.stringify({ json: '__mocked__', meta: [] }))
 
     globalThis.fetch = realFetch
   })
@@ -195,7 +178,7 @@ describe('rpcLink', () => {
     const link = new RPCLink({
       url: 'http://api.example.com',
       fetch: mockFetch,
-      rpcSerializer: mockPayloadCodec as any,
+      rpcSerializer: mockRPCSerializer as any,
     })
 
     const mockResponseData = { signal: 'handled' }
@@ -205,7 +188,7 @@ describe('rpcLink', () => {
       ok: true,
       status: 200,
     })
-    mockPayloadCodec.decode.mockResolvedValueOnce(mockResponseData)
+    mockRPCSerializer.deserialize.mockResolvedValueOnce(mockResponseData)
 
     const result = await link.call(['test'], {}, {
       context: {},
@@ -227,7 +210,7 @@ describe('rpcLink', () => {
     const link = new RPCLink({
       url: 'http://api.example.com',
       fetch: mockFetch,
-      rpcSerializer: mockPayloadCodec as any,
+      rpcSerializer: mockRPCSerializer as any,
     })
 
     const abortController = new AbortController()
@@ -254,14 +237,14 @@ describe('rpcLink', () => {
       })
 
       mockMethod.mockResolvedValueOnce('GET')
-      mockFetch.mockResolvedValue(new Response(JSON.stringify({ data: '__mocked__', meta: [] })))
+      mockFetch.mockResolvedValue(new Response(JSON.stringify({ json: '__mocked__', meta: [] })))
 
-      const result = await link.call(['test'], '__input__', { context: {} })
+      await expect(link.call(['test'], '__input__', { context: {} })).rejects.toThrow('Invalid RPC response')
 
-      expect(result).toEqual('__mocked__')
       expect(mockMethod).toHaveBeenCalledWith(['test'], '__input__', {})
+      expect(mockFetch).toHaveBeenCalledOnce()
       expect(mockFetch).toHaveBeenCalledWith(
-        new URL('http://api.example.com/test?data=%22__input__%22&meta=%5B%5D'),
+        new URL('http://api.example.com/test?data=%7B%22json%22%3A%22__input__%22%2C%22meta%22%3A%5B%5D%7D'),
         { method: 'GET', headers: expect.any(Headers) },
         {},
       )
@@ -279,18 +262,17 @@ describe('rpcLink', () => {
       })
 
       mockMethod.mockResolvedValueOnce(method)
-      mockFetch.mockResolvedValue(new Response(JSON.stringify({ data: '__mocked__', meta: [] })))
+      mockFetch.mockResolvedValue(new Response(JSON.stringify({ json: '__mocked__', meta: [] })))
 
-      const result = await link.call(['test'], '__input__', { context: {} })
+      await expect(link.call(['test'], '__input__', { context: {} })).rejects.toThrow('Invalid RPC response')
 
-      expect(result).toEqual('__mocked__')
       expect(mockMethod).toHaveBeenCalledWith(['test'], '__input__', {})
       expect(mockFetch).toHaveBeenCalledWith(
         new URL('http://api.example.com/test'),
         {
           method,
           headers: expect.any(Headers),
-          body: JSON.stringify({ data: '__input__', meta: [] }),
+          body: JSON.stringify({ json: '__input__', meta: [] }),
         },
         {},
       )
@@ -306,14 +288,13 @@ describe('rpcLink', () => {
       })
 
       mockMethod.mockResolvedValueOnce('GET')
-      mockFetch.mockResolvedValue(new Response(JSON.stringify({ data: '__mocked__', meta: [] })))
+      mockFetch.mockResolvedValue(new Response(JSON.stringify({ json: '__mocked__', meta: [] })))
 
-      const result = await link.call(['test'], '__input__', { context: {} })
+      await expect(link.call(['test'], '__input__', { context: {} })).rejects.toThrow('Invalid RPC response')
 
-      expect(result).toEqual('__mocked__')
       expect(mockMethod).toHaveBeenCalledWith(['test'], '__input__', {})
       expect(mockFetch).toHaveBeenCalledWith(
-        new URL('http://api.example.com/?data=xin&meta=chao%2Ftest&data=%22__input__%22&meta=%5B%5D'),
+        new URL('http://api.example.com/?data=xin&meta=chao%2Ftest&data=%7B%22json%22%3A%22__input__%22%2C%22meta%22%3A%5B%5D%7D'),
         { method: 'GET', headers: expect.any(Headers) },
         {},
       )
@@ -329,12 +310,13 @@ describe('rpcLink', () => {
       })
 
       mockMethod.mockResolvedValueOnce('GET')
-      mockFetch.mockResolvedValue(new Response(JSON.stringify({ data: '__mocked__', meta: [] })))
+      mockFetch.mockResolvedValue(new Response(JSON.stringify({ json: '__mocked__', meta: [] })))
 
-      const result = await link.call(['test'], { file: new File([''], 'file.txt', { type: 'text/plain' }) }, { context: {} })
+      const file = new File([''], 'file.txt', { type: 'text/plain' })
 
-      expect(result).toEqual('__mocked__')
-      expect(mockMethod).toHaveBeenCalledWith(['test'], { file: new File([''], 'file.txt', { type: 'text/plain' }) }, {})
+      await expect(link.call(['test'], { file }, { context: {} })).rejects.toThrow('Invalid RPC response')
+
+      expect(mockMethod).toHaveBeenCalledWith(['test'], { file }, {})
       expect(mockFetch).toHaveBeenCalledWith(
         new URL('http://api.example.com/test'),
         {
@@ -357,11 +339,10 @@ describe('rpcLink', () => {
       })
 
       mockMethod.mockResolvedValueOnce('GET')
-      mockFetch.mockResolvedValue(new Response(JSON.stringify({ data: '__mocked__', meta: [] })))
+      mockFetch.mockResolvedValue(new Response(JSON.stringify({ json: '__mocked__', meta: [] })))
 
-      const result = await link.call(['test'], '_'.repeat(100), { context: {} })
+      await expect(link.call(['test'], '_'.repeat(100), { context: {} })).rejects.toThrow('Invalid RPC response')
 
-      expect(result).toEqual('__mocked__')
       expect(mockMethod).toHaveBeenCalledWith(['test'], '_'.repeat(100), {})
       expect(mockFetch).toHaveBeenCalledWith(
         new URL('http://api.example.com/test'),
@@ -372,16 +353,6 @@ describe('rpcLink', () => {
         },
         {},
       )
-    })
-
-    it('always throw error when url is too long', async () => {
-      const link = new RPCLink({
-        url: 'http://api.example.com'.repeat(100),
-      })
-
-      expect(link.call(['test'], '__input__', { context: {} }))
-        .rejects
-        .toThrow('Cannot encode the request, please check the url length or payload.')
     })
   })
 })

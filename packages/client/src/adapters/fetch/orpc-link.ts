@@ -3,9 +3,9 @@ import type { Promisable } from '@orpc/shared'
 import type { ClientLink } from '../../types'
 import type { FetchWithContext } from './types'
 import { ORPCError } from '@orpc/contract'
+import { fetchReToStandardBody } from '@orpc/server/fetch'
 import { RPCSerializer } from '@orpc/server/standard'
 import { isPlainObject, trim } from '@orpc/shared'
-import { parseRPCResponse } from './utils'
 
 export interface RPCLinkOptions<TClientContext> {
   /**
@@ -79,13 +79,29 @@ export class RPCLink<TClientContext> implements ClientLink<TClientContext> {
       signal: options.signal,
     }, clientContext)
 
-    const decoded = await this.rpcSerializer.deserialize(await parseRPCResponse(response) as any)
+    const body = await fetchReToStandardBody(response)
 
-    if (!response.ok) {
+    try {
+      const decoded = this.rpcSerializer.deserialize(body as any)
+
+      if (response.ok) {
+        return decoded
+      }
+
       throw ORPCError.fromJSON(decoded as any)
     }
+    catch (error) {
+      if (response.ok) {
+        throw new ORPCError('INTERNAL_SERVER_ERROR', {
+          message: 'Invalid RPC response',
+          cause: error,
+        })
+      }
 
-    return decoded
+      throw new ORPCError(response.status.toString(), {
+        message: response.statusText,
+      })
+    }
   }
 
   private async encode(path: readonly string[], input: unknown, options: ClientOptions<TClientContext>): Promise<{
@@ -101,7 +117,7 @@ export class RPCLink<TClientContext> implements ClientLink<TClientContext> {
     const headers = await this.getHeaders(path, input, clientContext)
     const url = new URL(`${trim(this.url, '/')}/${path.map(encodeURIComponent).join('/')}`)
 
-    headers.append('x-orpc-handler', '1')
+    headers.append('x-orpc-handler', 'rpc')
 
     const serialized = this.rpcSerializer.serialize(input)
 

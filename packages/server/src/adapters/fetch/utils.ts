@@ -2,7 +2,7 @@ import type { StandardBody, StandardHeaders, StandardRequest, StandardResponse }
 import { once } from '@orpc/shared'
 import cd from 'content-disposition'
 
-export function fetchHeadersToStandardHeaders(headers: Headers): StandardHeaders {
+function fetchHeadersToStandardHeaders(headers: Headers): StandardHeaders {
   const standardHeaders: StandardHeaders = {}
 
   for (const [key, value] of headers) {
@@ -20,25 +20,25 @@ export function fetchHeadersToStandardHeaders(headers: Headers): StandardHeaders
   return standardHeaders
 }
 
-export async function fetchRequestToStandardBody(request: Request): Promise<StandardBody> {
-  if (!request.body) {
+export async function fetchReToStandardBody(re: Request | Response): Promise<StandardBody> {
+  if (!re.body) {
     return undefined
   }
 
-  const contentDisposition = request.headers.get('content-disposition')
+  const contentDisposition = re.headers.get('content-disposition')
   const fileName = contentDisposition ? cd.parse(contentDisposition).parameters.filename : undefined
 
   if (fileName) {
-    const blob = await request.blob()
+    const blob = await re.blob()
     return new File([blob], fileName, {
       type: blob.type,
     })
   }
 
-  const contentType = request.headers.get('content-type')
+  const contentType = re.headers.get('content-type')
 
   if (!contentType || contentType.startsWith('application/json')) {
-    const text = await request.text()
+    const text = await re.text()
 
     if (!text) {
       return undefined
@@ -48,18 +48,18 @@ export async function fetchRequestToStandardBody(request: Request): Promise<Stan
   }
 
   if (contentType.startsWith('multipart/form-data')) {
-    return await request.formData()
+    return await re.formData()
   }
 
   if (contentType.startsWith('application/x-www-form-urlencoded')) {
-    return new URLSearchParams(await request.text())
+    return new URLSearchParams(await re.text())
   }
 
   if (contentType.startsWith('text/')) {
-    return await request.text()
+    return await re.text()
   }
 
-  const blob = await request.blob()
+  const blob = await re.blob()
   return new File([blob], 'blob', {
     type: blob.type,
   })
@@ -73,7 +73,7 @@ export function fetchRequestToStandardRequest(request: Request): StandardRequest
     signal: request.signal,
     method: request.method,
     body: once((): Promise<StandardBody> => {
-      return fetchRequestToStandardBody(request)
+      return fetchReToStandardBody(request)
     }),
     get headers() {
       const headers = fetchHeadersToStandardHeaders(request.headers)
@@ -86,7 +86,7 @@ export function fetchRequestToStandardRequest(request: Request): StandardRequest
   }
 }
 
-export function standardResponseToFetchHeaders(response: StandardResponse): Headers {
+function standardResponseToFetchHeaders(response: StandardResponse): Headers {
   const fetchHeaders = new Headers()
 
   for (const [key, value] of Object.entries(response.headers)) {

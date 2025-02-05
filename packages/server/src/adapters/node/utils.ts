@@ -16,10 +16,11 @@ export function nodeHttpToStandardRequest(
   const url = new URL(req.originalUrl ?? req.url ?? '/', `${protocol}//${host}`)
 
   return {
+    raw: { request: req, response: res },
     method,
     url,
     headers: req.headers,
-    body: once((): Promise<StandardBody> => {
+    body: once(() => {
       return nodeHttpRequestToStandardBody(req)
     }),
     get signal() {

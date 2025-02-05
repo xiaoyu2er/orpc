@@ -1,16 +1,10 @@
 import type { Context, Router } from '@orpc/server'
 import type { FetchHandler, FetchHandleResult } from '@orpc/server/fetch'
-import type { StandardHandleRest, StandardHandlerOptions } from '@orpc/server/standard'
-import type { SetOptional } from '@orpc/shared'
-import type { OpenAPICodecOptions, OpenAPIMatcherOptions } from '../standard'
+import type { StandardHandleRest } from '@orpc/server/standard'
+import type { OpenAPIHandlerOptions } from '../standard'
 import { fetchRequestToStandardRequest, standardResponseToFetchResponse } from '@orpc/server/fetch'
 import { StandardHandler } from '@orpc/server/standard'
 import { OpenAPICodec, OpenAPIMatcher } from '../standard'
-
-export interface OpenAPIHandlerOptions<T extends Context>
-  extends SetOptional<StandardHandlerOptions<T>, 'codec' | 'matcher'>, OpenAPIMatcherOptions, OpenAPICodecOptions {
-
-}
 
 export class OpenAPIHandler<T extends Context> implements FetchHandler<T> {
   private readonly standardHandler: StandardHandler<T>
@@ -18,7 +12,8 @@ export class OpenAPIHandler<T extends Context> implements FetchHandler<T> {
   constructor(router: Router<T, any>, options?: NoInfer<OpenAPIHandlerOptions<T>>) {
     const matcher = options?.matcher ?? new OpenAPIMatcher(options)
     const codec = options?.codec ?? new OpenAPICodec(options)
-    this.standardHandler = new StandardHandler(router, { ...options, codec, matcher })
+
+    this.standardHandler = new StandardHandler(router, matcher, codec, options)
   }
 
   async handle(request: Request, ...rest: StandardHandleRest<T>): Promise<FetchHandleResult> {

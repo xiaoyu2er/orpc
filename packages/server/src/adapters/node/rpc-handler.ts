@@ -1,7 +1,6 @@
-import type { SetOptional } from '@orpc/shared'
 import type { Context } from '../../context'
 import type { Router } from '../../router'
-import type { StandardHandleRest, StandardHandlerOptions } from '../standard'
+import type { RPCHandlerOptions, StandardHandleRest } from '../standard'
 import type { NodeHttpHandler, NodeHttpHandleResult, NodeHttpRequest, NodeHttpResponse } from './types'
 import { RPCCodec, RPCMatcher, StandardHandler } from '../standard'
 import { nodeHttpResponseSendStandardResponse, nodeHttpToStandardRequest } from './utils'
@@ -9,15 +8,11 @@ import { nodeHttpResponseSendStandardResponse, nodeHttpToStandardRequest } from 
 export class RPCHandler<T extends Context> implements NodeHttpHandler<T> {
   private readonly standardHandler: StandardHandler<T>
 
-  constructor(router: Router<T, any>, options?: NoInfer<SetOptional<StandardHandlerOptions<T>, 'codec' | 'matcher'>>) {
+  constructor(router: Router<T, any>, options?: NoInfer<RPCHandlerOptions<T>>) {
     const codec = options?.codec ?? new RPCCodec()
     const matcher = options?.matcher ?? new RPCMatcher()
 
-    this.standardHandler = new StandardHandler(router, {
-      ...options,
-      codec,
-      matcher,
-    })
+    this.standardHandler = new StandardHandler(router, matcher, codec, options)
   }
 
   async handle(req: NodeHttpRequest, res: NodeHttpResponse, ...rest: StandardHandleRest<T>): Promise<NodeHttpHandleResult> {

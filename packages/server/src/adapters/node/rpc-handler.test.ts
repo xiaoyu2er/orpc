@@ -38,6 +38,7 @@ describe('rpcHandler', async () => {
   })
 
   const standardRequest = {
+    raw: {},
     method: 'POST',
     url: new URL('https://example.com/api/v1/users/1'),
     headers: {
@@ -119,6 +120,8 @@ describe('rpcHandler', async () => {
     expect(StandardHandler).toHaveBeenCalledOnce()
     expect(StandardHandler).toHaveBeenCalledWith(
       router,
+      options.matcher,
+      options.codec,
       options,
     )
   })

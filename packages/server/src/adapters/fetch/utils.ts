@@ -69,10 +69,11 @@ export function fetchRequestToStandardRequest(request: Request): StandardRequest
   const url = new URL(request.url)
 
   return {
+    raw: { request },
     url,
     signal: request.signal,
     method: request.method,
-    body: once((): Promise<StandardBody> => {
+    body: once(() => {
       return fetchReToStandardBody(request)
     }),
     get headers() {

@@ -10,6 +10,11 @@ export interface StandardHeaders {
 export type StandardBody = undefined | JsonValue | Blob | URLSearchParams | FormData
 
 export interface StandardRequest {
+  /**
+   * Can be { request: Request } or { request: IncomingMessage, response: ServerResponse } based on the adapter.
+   */
+  raw: Record<string, unknown>
+
   method: string
   url: URL
   headers: StandardHeaders

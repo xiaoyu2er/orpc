@@ -18,7 +18,7 @@ export class RPCMatcher implements StandardMatcher {
     }
   > = {}
 
-  private readonly pendingRouters: (EachContractProcedureLaziedOptions & { httpPath: HTTPPath }) [] = []
+  private pendingRouters: (EachContractProcedureLaziedOptions & { httpPathPrefix: HTTPPath }) [] = []
 
   init(router: AnyRouter, path: string[] = []): void {
     const laziedOptions = eachContractProcedure({
@@ -47,16 +47,25 @@ export class RPCMatcher implements StandardMatcher {
 
     this.pendingRouters.push(...laziedOptions.map(option => ({
       ...option,
-      httpPath: convertPathToHttpPath(option.path),
+      httpPathPrefix: convertPathToHttpPath(option.path),
     })))
   }
 
   async match(_method: string, pathname: HTTPPath): Promise<StandardMatchResult> {
-    for (const pendingRouter of this.pendingRouters) {
-      if (pathname.startsWith(pendingRouter.httpPath)) {
-        const { default: router } = await unlazy(pendingRouter.lazied)
-        this.init(router, pendingRouter.path)
+    if (this.pendingRouters.length) {
+      const newPendingRouters: typeof this.pendingRouters = []
+
+      for (const pendingRouter of this.pendingRouters) {
+        if (pathname.startsWith(pendingRouter.httpPathPrefix)) {
+          const { default: router } = await unlazy(pendingRouter.lazied)
+          this.init(router, pendingRouter.path)
+        }
+        else {
+          newPendingRouters.push(pendingRouter)
+        }
       }
+
+      this.pendingRouters = newPendingRouters
     }
 
     const match = this.tree[pathname]

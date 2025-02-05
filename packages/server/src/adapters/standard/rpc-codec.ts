@@ -3,10 +3,18 @@ import type { AnyProcedure } from '../../procedure'
 import type { StandardBody, StandardCodec, StandardParams, StandardRequest, StandardResponse } from './types'
 import { RPCSerializer } from './rpc-serializer'
 
+export interface StandardCodecOptions {
+  serializer?: RPCSerializer
+}
+
 export class RPCCodec implements StandardCodec {
+  private readonly serializer: RPCSerializer
+
   constructor(
-    private readonly serializer: RPCSerializer = new RPCSerializer(),
-  ) {}
+    options: StandardCodecOptions = {},
+  ) {
+    this.serializer = options.serializer ?? new RPCSerializer()
+  }
 
   async decode(request: StandardRequest, _params: StandardParams | undefined, _procedure: AnyProcedure): Promise<unknown> {
     const serialized = request.method === 'GET'

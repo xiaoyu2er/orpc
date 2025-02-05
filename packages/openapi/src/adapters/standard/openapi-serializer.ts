@@ -15,6 +15,10 @@ export class OpenAPISerializer {
   }
 
   serialize(data: unknown): unknown {
+    if (data instanceof Blob || data === undefined) {
+      return data
+    }
+
     const serializedJSON = this.jsonSerializer.serialize(data)
     const { values: blobs } = findDeepMatches(v => v instanceof Blob, serializedJSON)
 
@@ -31,6 +35,9 @@ export class OpenAPISerializer {
         || typeof value === 'boolean'
       ) {
         form.append(path, value.toString())
+      }
+      else if (value instanceof Date) {
+        form.append(path, value.toISOString())
       }
       else if (value instanceof Blob) {
         form.append(path, value)

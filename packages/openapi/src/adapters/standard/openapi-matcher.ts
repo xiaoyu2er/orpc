@@ -1,16 +1,16 @@
 import type { StandardMatcher, StandardMatchResult } from '@orpc/server/standard'
-import { type AnyContractProcedure, fallbackContractConfig, type HTTPMethod, type HTTPPath } from '@orpc/contract'
-import { type AnyProcedure, type AnyRouter, convertPathToHttpPath, createContractedProcedure, eachContractProcedure, type EachContractProcedureLaziedOptions, getRouterChild, isProcedure, unlazy } from '@orpc/server'
+import { type AnyContractProcedure, fallbackContractConfig, type HTTPPath } from '@orpc/contract'
+import { type AnyProcedure, type AnyRouter, convertPathToHttpPath, createContractedProcedure, eachContractProcedure, type EachContractProcedureLaziedOptions, getLazyRouterPrefix, getRouterChild, isProcedure, unlazy } from '@orpc/server'
 import { addRoute, createRouter, findRoute } from 'rou3'
+import { standardizeHTTPPath } from '../../utils'
 
 export interface OpenAPIMatcherOptions {
   /**
-   * Fallback method for procedure that does not have a method defined in the contract.
-   * If you set `undefined`, we will ignore any procedure that does not have a method defined in the contract.
+   * Ignore procedure that does not have a method defined in the contract.
    *
-   * @default 'POST'
+   * @default false
    */
-  fallbackMethod?: HTTPMethod | undefined
+  ignoreUndefinedMethod?: boolean
 }
 
 export class OpenAPIMatcher implements StandardMatcher {
@@ -21,27 +21,29 @@ export class OpenAPIMatcher implements StandardMatcher {
     router: AnyRouter
   }>()
 
-  private readonly fallbackMethod: HTTPMethod | undefined
+  private readonly ignoreUndefinedMethod: boolean
 
   constructor(
     options?: OpenAPIMatcherOptions,
   ) {
-    this.fallbackMethod = options && 'fallbackMethod' in options ? options.fallbackMethod : fallbackContractConfig('defaultMethod', undefined)
+    this.ignoreUndefinedMethod = options?.ignoreUndefinedMethod ?? false
   }
 
-  private readonly pendingRouters: (EachContractProcedureLaziedOptions & { httpPath: HTTPPath }) [] = []
+  private pendingRouters: (EachContractProcedureLaziedOptions & { httpPathPrefix: HTTPPath, laziedPrefix: string | undefined }) [] = []
 
   init(router: AnyRouter, path: string[] = []): void {
     const laziedOptions = eachContractProcedure({
       router,
       path,
     }, ({ path, contract }) => {
-      if (!contract['~orpc'].route.method && !this.fallbackMethod) {
+      if (!contract['~orpc'].route.method && this.ignoreUndefinedMethod) {
         return
       }
 
-      const method = contract['~orpc'].route.method ?? this.fallbackMethod
-      const httpPath = convertPathToHttpPath(path)
+      const method = fallbackContractConfig('defaultMethod', contract['~orpc'].route.method)
+      const httpPath = contract['~orpc'].route.path
+        ? convertOpenAPIPathToRouterPath(contract['~orpc'].route.path)
+        : convertPathToHttpPath(path)
 
       if (isProcedure(contract)) {
         addRoute(this.tree, method, httpPath, {
@@ -63,16 +65,30 @@ export class OpenAPIMatcher implements StandardMatcher {
 
     this.pendingRouters.push(...laziedOptions.map(option => ({
       ...option,
-      httpPath: convertPathToHttpPath(option.path),
+      httpPathPrefix: convertPathToHttpPath(option.path),
+      laziedPrefix: getLazyRouterPrefix(option.lazied),
     })))
   }
 
   async match(method: string, pathname: HTTPPath): Promise<StandardMatchResult> {
-    for (const pendingRouter of this.pendingRouters) {
-      if (pathname.startsWith(pendingRouter.httpPath)) {
-        const { default: router } = await unlazy(pendingRouter.lazied)
-        this.init(router, pendingRouter.path)
+    if (this.pendingRouters.length) {
+      const newPendingRouters: typeof this.pendingRouters = []
+
+      for (const pendingRouter of this.pendingRouters) {
+        if (
+          !pendingRouter.laziedPrefix
+          || pathname.startsWith(pendingRouter.laziedPrefix)
+          || pathname.startsWith(pendingRouter.httpPathPrefix)
+        ) {
+          const { default: router } = await unlazy(pendingRouter.lazied)
+          this.init(router, pendingRouter.path)
+        }
+        else {
+          newPendingRouters.push(pendingRouter)
+        }
       }
+
+      this.pendingRouters = newPendingRouters
     }
 
     const match = findRoute(this.tree, method, pathname)
@@ -100,4 +116,8 @@ export class OpenAPIMatcher implements StandardMatcher {
       params: match.params,
     }
   }
+}
+
+function convertOpenAPIPathToRouterPath(path: HTTPPath): string {
+  return standardizeHTTPPath(path).replace(/\{([^}]+)\}/g, ':$1')
 }

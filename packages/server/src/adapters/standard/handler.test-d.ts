@@ -4,7 +4,7 @@ import { StandardHandler } from './handler'
 
 describe('standardHandler', () => {
   it('can infer router context', () => {
-    const handler = new StandardHandler(router, {} as any, {} as any)
+    const handler = new StandardHandler(router, {} as any, {} as any, {})
 
     handler.handle({} as any, { context: { db: 'postgres' } })
     // @ts-expect-error - invalid context
@@ -18,7 +18,7 @@ describe('standardHandler', () => {
   it('not require pass second argument when all context fields is optional', () => {
     const handler = new StandardHandler({
       ping: os.$context<{ db?: string }>().handler(() => 'pong'),
-    }, {} as any, {} as any)
+    }, {} as any, {} as any, {} as any)
 
     handler.handle({} as any)
     handler.handle({} as any, {})

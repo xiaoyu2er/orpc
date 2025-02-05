@@ -1,5 +1,6 @@
 export * from './handler'
 export * from './rpc-codec'
+export * from './rpc-handler'
 export * from './rpc-matcher'
 export * from './rpc-serializer'
 export * from './types'

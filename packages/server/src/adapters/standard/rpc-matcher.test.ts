@@ -1,6 +1,8 @@
 import { router as contract } from '../../../../contract/tests/shared'
 import { ping, pong, router } from '../../../tests/shared'
+import { os } from '../../builder'
 import { implement } from '../../implementer'
+import { unlazy } from '../../lazy'
 import { Procedure } from '../../procedure'
 import { RPCMatcher } from './rpc-matcher'
 
@@ -102,5 +104,68 @@ describe('rpcMatcher', () => {
 
     expect(await rpcMatcher.match('ANYTHING', '/')).toEqual(undefined)
     expect(await rpcMatcher.match('ANYTHING', '/not_found')).toEqual(undefined)
+  })
+
+  it('lazy load lazy router', async () => {
+    const pingLoader = vi.fn(() => Promise.resolve({ default: ping }))
+    const pongLoader = vi.fn(() => Promise.resolve({ default: pong }))
+
+    const rpcMatcher = new RPCMatcher()
+
+    const base = os.$context<any>()
+
+    const router = base.router({
+      ping: base.lazy(pingLoader),
+      pong: base.lazy(pongLoader),
+      nested: base.router({
+        ping: base.lazy(pingLoader),
+        pong: base.lazy(pongLoader),
+      }),
+    })
+
+    rpcMatcher.init(router)
+
+    expect(await rpcMatcher.match('POST', '/ping')).toEqual({
+      path: ['ping'],
+      procedure: (await unlazy(router.ping)).default,
+    })
+
+    expect(pingLoader).toHaveBeenCalledTimes(2)
+    expect(pongLoader).toHaveBeenCalledTimes(0)
+
+    // mean the result is cached
+    expect(await rpcMatcher.match('POST', '/ping')).not.toBeUndefined()
+    expect(pingLoader).toHaveBeenCalledTimes(2)
+    expect(pongLoader).toHaveBeenCalledTimes(0)
+
+    expect(await rpcMatcher.match('POST', '/pong')).toEqual({
+      path: ['pong'],
+      procedure: (await unlazy(router.pong)).default,
+    })
+
+    expect(pingLoader).toHaveBeenCalledTimes(2)
+    expect(pongLoader).toHaveBeenCalledTimes(2)
+
+    expect(await rpcMatcher.match('POST', '/nested/ping')).toEqual({
+      path: ['nested', 'ping'],
+      procedure: (await unlazy(router.nested.ping)).default,
+    })
+
+    expect(pingLoader).toHaveBeenCalledTimes(4)
+    expect(pongLoader).toHaveBeenCalledTimes(2)
+
+    expect(await rpcMatcher.match('POST', '/nested/pong')).toEqual({
+      path: ['nested', 'pong'],
+      procedure: (await unlazy(router.nested.pong)).default,
+    })
+
+    expect(pingLoader).toHaveBeenCalledTimes(4)
+    expect(pongLoader).toHaveBeenCalledTimes(4)
+
+    expect(await rpcMatcher.match('POST', '/')).toEqual(undefined)
+    expect(await rpcMatcher.match('POST', '/not_found')).toEqual(undefined)
+
+    expect(pingLoader).toHaveBeenCalledTimes(4)
+    expect(pongLoader).toHaveBeenCalledTimes(4)
   })
 })

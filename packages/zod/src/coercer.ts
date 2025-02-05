@@ -1,5 +1,5 @@
 import type { Schema } from '@orpc/contract'
-import type { SchemaCoercer } from '@orpc/openapi/fetch'
+import type { SchemaCoercer } from '@orpc/openapi/standard'
 import { guard } from '@orpc/shared'
 import { getCustomZodType } from '@orpc/zod'
 import { isPlainObject } from 'is-what'

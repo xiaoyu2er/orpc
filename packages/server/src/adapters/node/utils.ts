@@ -57,7 +57,9 @@ export function nodeHttpResponseSendStandardResponse(
 
       res.writeHead(standardResponse.status, resHeaders)
 
-      Readable.fromWeb(standardResponse.body.stream()).pipe(res).on('error', reject).on('finish', resolve)
+      Readable.fromWeb(
+        standardResponse.body.stream() as any, // Conflict between types=node and lib=dom so we need to cast it
+      ).pipe(res).on('error', reject).on('finish', resolve)
 
       return
     }
@@ -70,7 +72,9 @@ export function nodeHttpResponseSendStandardResponse(
         'content-type': response.headers.get('content-type')!,
       })
 
-      Readable.fromWeb(response.body!).pipe(res).on('error', reject).on('finish', resolve)
+      Readable.fromWeb(
+        response.body! as any, // Conflict between types=node and lib=dom so we need to cast it
+      ).pipe(res).on('error', reject).on('finish', resolve)
 
       return
     }
@@ -108,7 +112,7 @@ async function nodeHttpRequestToStandardBody(req: NodeHttpRequest): Promise<Stan
   const contentType = req.headers['content-type']
 
   if (fileName) {
-    return await streamToFile(req, fileName, contentType || 'application/octet-stream')
+    return await streamToFile(req, fileName, contentType || 'application/octet-stream') as any // Conflict between types=node and lib=dom so we need to cast it
   }
 
   if (!contentType || contentType.startsWith('application/json')) {
@@ -134,11 +138,11 @@ async function nodeHttpRequestToStandardBody(req: NodeHttpRequest): Promise<Stan
     return await streamToString(req)
   }
 
-  return streamToFile(req, 'blob', contentType)
+  return streamToFile(req, 'blob', contentType) as any // Conflict between types=node and lib=dom so we need to cast it
 }
 
 function streamToFormData(stream: Readable, contentType: string): Promise<FormData> {
-  const response = new Response(stream, {
+  const response = new Response(stream as any, { // Conflict between types=node and lib=dom so we need to cast it
     headers: {
       'content-type': contentType,
     },

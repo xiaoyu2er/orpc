@@ -14,9 +14,23 @@ export type CreateMiddlewareRest<T extends Context> =
 
 export function createMiddleware<T extends Context>(handler: FetchHandler<T>, ...[options]: CreateMiddlewareRest<T>): MiddlewareHandler {
   return async (c, next) => {
+    const bodyProps = new Set(['arrayBuffer', 'blob', 'formData', 'json', 'text'] as const)
+    type BodyProp = typeof bodyProps extends Set<infer T> ? T : never
+
+    const request = c.req.method === 'GET' || c.req.method === 'HEAD'
+      ? c.req.raw
+      : new Proxy(c.req.raw, { // https://github.com/honojs/middleware/blob/main/packages/trpc-server/src/index.ts#L39
+        get(target, prop) {
+          if (bodyProps.has(prop as any)) {
+            return () => c.req[prop as BodyProp]()
+          }
+          return Reflect.get(target, prop, target)
+        },
+      })
+
     const context = await value(options?.context ?? {}, c) as any
 
-    const { matched, response } = await handler.handle(c.req.raw, { ...options, context })
+    const { matched, response } = await handler.handle(request, { ...options, context })
 
     if (matched) {
       return c.body(response.body, response)

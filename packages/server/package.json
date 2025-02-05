@@ -21,7 +21,7 @@
         "default": "./dist/index.js"
       },
       "./plugins": {
-        "types": "./dist/src/adapters/plugins/index.d.ts",
+        "types": "./dist/src/plugins/index.d.ts",
         "import": "./dist/plugins.js",
         "default": "./dist/plugins.js"
       },
@@ -57,7 +57,7 @@
   },
   "exports": {
     ".": "./src/index.ts",
-    "./plugins": "./src/adapters/plugins/index.ts",
+    "./plugins": "./src/plugins/index.ts",
     "./standard": "./src/adapters/standard/index.ts",
     "./fetch": "./src/adapters/fetch/index.ts",
     "./hono": "./src/adapters/hono/index.ts",

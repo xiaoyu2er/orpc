@@ -4,7 +4,7 @@ import type { Plugin } from './base'
 import { value, type Value } from '@orpc/shared'
 
 export interface CORSOptions<TContext extends Context> {
-  origin: Value<string | string[], [options: StandardHandlerInterceptorOptions<TContext>]>
+  origin: Value<string | string[] | null | undefined, [origin: string, options: StandardHandlerInterceptorOptions<TContext>]>
   allowMethods?: string[]
   allowHeaders?: string[]
   maxAge?: number
@@ -19,8 +19,6 @@ export class CORSPlugin<TContext extends Context> implements Plugin<TContext> {
     const defaults: CORSOptions<TContext> = {
       origin: '*',
       allowMethods: ['GET', 'HEAD', 'PUT', 'POST', 'DELETE', 'PATCH'],
-      allowHeaders: [],
-      exposeHeaders: [],
     }
 
     this.options = {
@@ -33,7 +31,7 @@ export class CORSPlugin<TContext extends Context> implements Plugin<TContext> {
     options.interceptors ??= []
 
     options.interceptors.unshift(async (interceptorOptions) => {
-      if (interceptorOptions.request.method !== 'OPTIONS') {
+      if (interceptorOptions.request.method === 'OPTIONS') {
         const resHeaders: StandardHeaders = {}
 
         if (this.options.maxAge !== undefined) {
@@ -46,7 +44,10 @@ export class CORSPlugin<TContext extends Context> implements Plugin<TContext> {
 
         const allowHeaders = this.options.allowHeaders ?? interceptorOptions.request.headers['access-control-request-headers']
 
-        if (allowHeaders !== undefined) {
+        if (Array.isArray(allowHeaders) && allowHeaders.length) {
+          resHeaders['access-control-allow-headers'] = allowHeaders.join(',')
+        }
+        else if (typeof allowHeaders === 'string') {
           resHeaders['access-control-allow-headers'] = allowHeaders
         }
 
@@ -70,20 +71,20 @@ export class CORSPlugin<TContext extends Context> implements Plugin<TContext> {
         return result
       }
 
-      const origin = interceptorOptions.request.headers.origin || ''
-      const allowedOrigin = await value(this.options.origin, interceptorOptions)
+      const origin = Array.isArray(interceptorOptions.request.headers.origin)
+        ? interceptorOptions.request.headers.origin.join(',') // the array case is never happen, but we make it for type safety
+        : interceptorOptions.request.headers.origin || ''
 
-      const originArr = Array.isArray(allowedOrigin) ? allowedOrigin : [allowedOrigin]
-      const allowedOriginArr = Array.isArray(origin) ? origin : [origin]
+      const allowedOrigin = await value(this.options.origin, origin, interceptorOptions)
 
-      for (const allowedOrigin of allowedOriginArr) {
-        if (allowedOrigin === '*' || originArr.includes(allowedOrigin)) {
-          result.response.headers['access-control-allow-origin'] = allowedOrigin
+      const allowedOriginArr = Array.isArray(allowedOrigin) ? allowedOrigin : [allowedOrigin]
 
-          if (allowedOrigin !== '*') {
-            result.response.headers.vary = interceptorOptions.request.headers.vary ?? 'origin'
-          }
-        }
+      if (allowedOriginArr.includes(origin)) {
+        result.response.headers['access-control-allow-origin'] = origin
+      }
+
+      if (!allowedOriginArr.includes('*')) {
+        result.response.headers.vary = interceptorOptions.request.headers.vary ?? 'origin'
       }
 
       if (this.options.credentials) {

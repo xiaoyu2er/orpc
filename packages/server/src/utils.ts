@@ -1,7 +1,11 @@
 import type { AnyContractProcedure, AnyContractRouter, HTTPPath } from '@orpc/contract'
-import type { AnyProcedure, AnyRouter, Lazy } from '@orpc/server'
+import type { Lazy } from './lazy'
+import type { AnyProcedure } from './procedure'
+import type { AnyRouter } from './router'
 import { isContractProcedure } from '@orpc/contract'
-import { getRouterContract, isLazy, Procedure, unlazy } from '@orpc/server'
+import { getRouterContract } from './hidden'
+import { isLazy, unlazy } from './lazy'
+import { Procedure } from './procedure'
 
 export interface EachContractProcedureOptions {
   router: AnyRouter | AnyContractRouter

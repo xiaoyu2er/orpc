@@ -1,6 +1,7 @@
+import type { AnyProcedure, AnyRouter, EachContractProcedureLaziedOptions } from '@orpc/server'
 import type { StandardMatcher, StandardMatchResult } from '@orpc/server/standard'
 import { type AnyContractProcedure, fallbackContractConfig, type HTTPPath } from '@orpc/contract'
-import { type AnyProcedure, type AnyRouter, convertPathToHttpPath, createContractedProcedure, eachContractProcedure, type EachContractProcedureLaziedOptions, getLazyRouterPrefix, getRouterChild, isProcedure, unlazy } from '@orpc/server'
+import { convertPathToHttpPath, createContractedProcedure, eachContractProcedure, getLazyRouterPrefix, getRouterChild, isProcedure, unlazy } from '@orpc/server'
 import { addRoute, createRouter, findRoute } from 'rou3'
 import { standardizeHTTPPath } from '../../utils'
 

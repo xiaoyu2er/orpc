@@ -211,6 +211,17 @@ describe('fetchRequestToStandardRequest', () => {
       'set-cookie': ['foo=bar', 'baz=qux', 'qux=quux'],
     })
   })
+
+  it('can override headers', async () => {
+    const standardRequest = fetchRequestToStandardRequest(new Request(url, {
+      headers,
+      method: 'GET',
+    }))
+
+    const newHeaders = { 'x-new-header': 'new-value' }
+    standardRequest.headers = newHeaders
+    expect(standardRequest.headers).toEqual(newHeaders)
+  })
 })
 
 describe('standardResponseToFetchResponse', () => {

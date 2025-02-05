@@ -1,5 +1,6 @@
 import { OpenAPIGenerator } from '@orpc/openapi'
 import { OpenAPIHandler } from '@orpc/openapi/node'
+import { onError } from '@orpc/server'
 import { RPCHandler } from '@orpc/server/node'
 import { ZodCoercer, ZodToJsonSchemaConverter } from '@orpc/zod'
 import express from 'express'
@@ -12,9 +13,11 @@ const openAPIHandler = new OpenAPIHandler(router, {
   schemaCoercers: [
     new ZodCoercer(),
   ],
-  onError: ({ error }) => {
-    console.error(error)
-  },
+  interceptors: [
+    onError((error) => {
+      console.error(error)
+    }),
+  ],
 })
 
 app.use('/api/*', async (req, res, next) => {
@@ -35,9 +38,11 @@ app.use('/api/*', async (req, res, next) => {
 })
 
 const rpcHandler = new RPCHandler(router, {
-  onError: ({ error }) => {
-    console.error(error)
-  },
+  interceptors: [
+    onError((error) => {
+      console.error(error)
+    }),
+  ],
 })
 
 app.use('/rpc/*', async (req, res, next) => {

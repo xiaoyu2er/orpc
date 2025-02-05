@@ -81,27 +81,29 @@ export class RPCLink<TClientContext> implements ClientLink<TClientContext> {
 
     const body = await fetchReToStandardBody(response)
 
-    try {
-      const decoded = this.rpcSerializer.deserialize(body as any)
-
-      if (response.ok) {
-        return decoded
+    const deserialized = (() => {
+      try {
+        return this.rpcSerializer.deserialize(body as any)
       }
+      catch (error) {
+        if (response.ok) {
+          throw new ORPCError('INTERNAL_SERVER_ERROR', {
+            message: 'Invalid RPC response',
+            cause: error,
+          })
+        }
 
-      throw ORPCError.fromJSON(decoded as any)
-    }
-    catch (error) {
-      if (response.ok) {
-        throw new ORPCError('INTERNAL_SERVER_ERROR', {
-          message: 'Invalid RPC response',
-          cause: error,
+        throw new ORPCError(response.status.toString(), {
+          message: response.statusText,
         })
       }
+    })()
 
-      throw new ORPCError(response.status.toString(), {
-        message: response.statusText,
-      })
+    if (response.ok) {
+      return deserialized
     }
+
+    throw ORPCError.fromJSON(deserialized as any)
   }
 
   private async encode(path: readonly string[], input: unknown, options: ClientOptions<TClientContext>): Promise<{

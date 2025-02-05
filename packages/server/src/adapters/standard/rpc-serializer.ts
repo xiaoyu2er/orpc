@@ -50,7 +50,7 @@ export class RPCSerializer {
   }
 }
 
-function serializeRPCJson(
+export function serializeRPCJson(
   value: unknown,
   segments: Segment[] = [],
   meta: RPCSerializedJsonMeta = [],

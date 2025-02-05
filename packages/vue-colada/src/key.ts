@@ -1,5 +1,5 @@
 import type { EntryKey } from '@pinia/colada'
-import { SuperJSON } from '@orpc/server/fetch'
+import { serializeRPCJson } from '@orpc/server/standard'
 
 export interface BuildKeyOptions<TInput> {
   input?: TInput
@@ -12,6 +12,6 @@ export function buildKey<TInput>(
   return [
     '__ORPC__',
     ...path,
-    ...options?.input !== undefined ? [{ input: JSON.stringify(SuperJSON.serialize(options.input)) }] : [],
+    ...options?.input !== undefined ? [{ input: JSON.stringify(serializeRPCJson(options.input)) }] : [],
   ]
 }

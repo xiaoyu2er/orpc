@@ -1,10 +1,10 @@
-import type { AnyRouter } from '@orpc/server'
 import type { PublicOpenAPIInputStructureParser } from './openapi-input-structure-parser'
 import type { PublicOpenAPIOutputStructureParser } from './openapi-output-structure-parser'
 import type { PublicOpenAPIPathParser } from './openapi-path-parser'
 import type { JSONSchema } from './schema'
 import type { SchemaConverter } from './schema-converter'
 import { type ContractRouter, fallbackContractConfig, fallbackORPCErrorStatus } from '@orpc/contract'
+import { type AnyRouter, eachAllContractProcedure } from '@orpc/server'
 import { group } from '@orpc/shared'
 import { JSONSerializer, type PublicJSONSerializer } from './json-serializer'
 import { type OpenAPI, OpenApiBuilder } from './openapi'
@@ -16,7 +16,7 @@ import { OpenAPIParametersBuilder, type PublicOpenAPIParametersBuilder } from '.
 import { OpenAPIPathParser } from './openapi-path-parser'
 import { CompositeSchemaConverter } from './schema-converter'
 import { type PublicSchemaUtils, SchemaUtils } from './schema-utils'
-import { forEachAllContractProcedure, standardizeHTTPPath } from './utils'
+import { standardizeHTTPPath } from './utils'
 
 type ErrorHandlerStrategy = 'throw' | 'log' | 'ignore'
 
@@ -101,7 +101,10 @@ export class OpenAPIGenerator {
 
     const rootTags = doc.tags?.map(tag => tag.name) ?? []
 
-    await forEachAllContractProcedure(router, ({ contract, path }) => {
+    await eachAllContractProcedure({
+      path: [],
+      router,
+    }, ({ contract, path }) => {
       try {
         // TODO: inputExample and outputExample ???
         const def = contract['~orpc']

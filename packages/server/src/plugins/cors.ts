@@ -79,7 +79,7 @@ export class CORSPlugin<TContext extends Context> implements Plugin<TContext> {
 
       const allowedOriginArr = Array.isArray(allowedOrigin) ? allowedOrigin : [allowedOrigin]
 
-      if (allowedOriginArr.includes(origin)) {
+      if (allowedOriginArr.includes(origin) || allowedOriginArr.includes('*')) {
         result.response.headers['access-control-allow-origin'] = origin
       }
 

@@ -117,7 +117,7 @@ describe('validateORPCError', () => {
   })
 })
 
-describe('toORPCError', () => {
+it('toORPCError', () => {
   const orpcError = new ORPCError('BAD_GATEWAY')
   expect(toORPCError(orpcError)).toBe(orpcError)
 

@@ -39,9 +39,12 @@ export function nodeHttpResponseSendStandardResponse(
   standardResponse: StandardResponse,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
+    res.on('error', reject)
+    res.on('finish', resolve)
+
     if (standardResponse.body === undefined) {
       res.writeHead(standardResponse.status, standardResponse.headers)
-      res.end().on('error', reject).on('finish', resolve)
+      res.end()
     }
 
     if (standardResponse.body instanceof Blob) {
@@ -59,7 +62,7 @@ export function nodeHttpResponseSendStandardResponse(
 
       Readable.fromWeb(
         standardResponse.body.stream() as any, // Conflict between types=node and lib=dom so we need to cast it
-      ).pipe(res).on('error', reject).on('finish', resolve)
+      ).pipe(res)
 
       return
     }
@@ -74,7 +77,7 @@ export function nodeHttpResponseSendStandardResponse(
 
       Readable.fromWeb(
         response.body! as any, // Conflict between types=node and lib=dom so we need to cast it
-      ).pipe(res).on('error', reject).on('finish', resolve)
+      ).pipe(res)
 
       return
     }
@@ -86,7 +89,7 @@ export function nodeHttpResponseSendStandardResponse(
       })
 
       const string = standardResponse.body.toString()
-      res.end(string).on('error', reject).on('finish', resolve)
+      res.end(string)
 
       return
     }
@@ -97,7 +100,7 @@ export function nodeHttpResponseSendStandardResponse(
     })
 
     const string = JSON.stringify(standardResponse.body)
-    res.end(string).on('error', reject).on('finish', resolve)
+    res.end(string)
   })
 }
 

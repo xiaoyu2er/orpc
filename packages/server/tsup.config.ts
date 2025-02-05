@@ -3,6 +3,7 @@ import { defineConfig } from 'tsup'
 export default defineConfig({
   entry: {
     index: 'src/index.ts',
+    plugins: 'src/adapters/plugins/index.ts',
     standard: 'src/adapters/standard/index.ts',
     fetch: 'src/adapters/fetch/index.ts',
     node: 'src/adapters/node/index.ts',

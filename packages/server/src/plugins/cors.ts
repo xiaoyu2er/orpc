@@ -4,7 +4,7 @@ import type { Plugin } from './base'
 import { value, type Value } from '@orpc/shared'
 
 export interface CORSOptions<TContext extends Context> {
-  origin: Value<string | string[] | null | undefined, [origin: string, options: StandardHandlerInterceptorOptions<TContext>]>
+  origin?: Value<string | string[] | null | undefined, [origin: string, options: StandardHandlerInterceptorOptions<TContext>]>
   timingOrigin?: Value<string | string[] | null | undefined, [origin: string, options: StandardHandlerInterceptorOptions<TContext>]>
   allowMethods?: string[]
   allowHeaders?: string[]
@@ -20,6 +20,10 @@ export class CORSPlugin<TContext extends Context> implements Plugin<TContext> {
     const defaults: CORSOptions<TContext> = {
       origin: '*',
       allowMethods: ['GET', 'HEAD', 'PUT', 'POST', 'DELETE', 'PATCH'],
+    }
+
+    if (options?.credentials) {
+      defaults.origin = origin => origin
     }
 
     this.options = {

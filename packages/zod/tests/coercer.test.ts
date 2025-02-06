@@ -1,28 +1,34 @@
 import { OpenAPIHandler } from '@orpc/openapi/fetch'
 import { os } from '@orpc/server'
 import { z } from 'zod'
-import { ZodCoercer } from '../src'
+import { ZodAutoCoercePlugin } from '../src'
 
 beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe('zodCoercer', () => {
+describe('zodAutoCoercePlugin', () => {
   it('should coerce input', async () => {
     const fn = vi.fn().mockReturnValue('__mocked__')
 
     const router = os.router({
       ping: os
-        .input(z.object({ val: z.bigint() }))
+        .route({ path: '/ping/{id}', inputStructure: 'detailed' })
+        .input(z.object({
+          params: z.object({
+            id: z.number(),
+          }),
+          body: z.object({ val: z.bigint() }),
+        }))
         .handler(fn),
     })
 
     const handler = new OpenAPIHandler(router, {
-      schemaCoercers: [
-        new ZodCoercer(),
+      plugins: [
+        new ZodAutoCoercePlugin(),
       ],
     })
-    const { response } = await handler.handle(new Request('https://example.com/ping', {
+    const { response } = await handler.handle(new Request('https://example.com/ping/12345', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -33,6 +39,11 @@ describe('zodCoercer', () => {
     }))
 
     expect(response?.status).toBe(200)
-    expect(fn).toHaveBeenCalledWith(expect.objectContaining({ input: { val: 123n } }))
+    expect(fn).toHaveBeenCalledWith(expect.objectContaining({
+      input: {
+        params: { id: 12345 },
+        body: { val: 123n },
+      },
+    }))
   })
 })

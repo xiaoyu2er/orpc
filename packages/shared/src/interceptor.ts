@@ -93,18 +93,18 @@ export async function intercept<TOptions extends InterceptableOptions, TResult, 
 ): Promise<TResult> {
   let index = 0
 
-  const next = async (nextOptions: TOptions = options): Promise<TResult> => {
+  const next = async (options: TOptions): Promise<TResult> => {
     const interceptor = interceptors[index++]
 
     if (!interceptor) {
-      return await main(nextOptions)
+      return await main(options)
     }
 
     return await interceptor({
-      ...nextOptions,
-      next,
+      ...options,
+      next: (newOptions: TOptions = options) => next(newOptions),
     })
   }
 
-  return await next()
+  return await next(options)
 }

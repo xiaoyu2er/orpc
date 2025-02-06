@@ -1,5 +1,6 @@
-import type { Schema } from '@orpc/contract'
-import type { SchemaCoercer } from '@orpc/openapi/standard'
+import type { Context } from '@orpc/server'
+import type { Plugin } from '@orpc/server/plugins'
+import type { WellCreateProcedureClientOptions } from '@orpc/server/standard'
 import { guard } from '@orpc/shared'
 import { getCustomZodType } from '@orpc/zod'
 import { isPlainObject } from 'is-what'
@@ -28,15 +29,21 @@ import {
   type ZodUnion,
 } from 'zod'
 
-export class ZodCoercer implements SchemaCoercer {
-  coerce(schema: Schema, value: unknown): unknown {
-    if (!schema || schema['~standard'].vendor !== 'zod') {
-      return value
-    }
+export class ZodAutoCoercePlugin<TContext extends Context> implements Plugin<TContext> {
+  beforeCreateProcedureClient(clientOptions: WellCreateProcedureClientOptions<TContext>): void {
+    clientOptions.interceptors ??= []
 
-    const zodSchema = schema as ZodTypeAny
-    const coerced = zodCoerceInternal(zodSchema, value, { bracketNotation: true })
-    return coerced
+    clientOptions.interceptors.unshift((options) => {
+      const inputSchema = options.procedure['~orpc'].inputSchema
+
+      if (!inputSchema || inputSchema['~standard'].vendor !== 'zod') {
+        return options.next()
+      }
+
+      const coercedInput = zodCoerceInternal(inputSchema as ZodTypeAny, options.input, { bracketNotation: true })
+
+      return options.next({ ...options, input: coercedInput })
+    })
   }
 }
 

@@ -91,10 +91,8 @@ export class CORSPlugin<TContext extends Context> implements Plugin<TContext> {
       if (this.options.timingOrigin !== undefined) {
         const timingOrigin = await value(this.options.timingOrigin, origin, interceptorOptions)
         const timingOriginArr = Array.isArray(timingOrigin) ? timingOrigin : [timingOrigin]
-        const filteredTimingOriginArr = timingOriginArr.filter(v => typeof v === 'string')
-
-        if (filteredTimingOriginArr.length) {
-          result.response.headers['timing-allow-origin'] = filteredTimingOriginArr.join(',')
+        if (timingOriginArr.includes(origin) || timingOriginArr.includes('*')) {
+          result.response.headers['timing-allow-origin'] = origin
         }
       }
 

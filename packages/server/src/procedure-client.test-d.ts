@@ -77,4 +77,15 @@ describe('createProcedureClient', () => {
       >
     >()
   })
+
+  it('optional context when all fields are optional', () => {
+    createProcedureClient(pong)
+    createProcedureClient(pong, {})
+
+    // @ts-expect-error - context is required
+    createProcedureClient(ping)
+    // @ts-expect-error - context is required
+    createProcedureClient(ping, {})
+    createProcedureClient(ping, { context: { db: 'postgres' } })
+  })
 })

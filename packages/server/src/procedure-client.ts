@@ -1,11 +1,11 @@
-import type { Client, ErrorFromErrorMap, ErrorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
-import type { Hooks, Value } from '@orpc/shared'
+import type { Client, ErrorFromErrorMap, ErrorMap, Meta, ORPCErrorConstructorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { Interceptor, Value } from '@orpc/shared'
 import type { Context } from './context'
 import type { Lazyable } from './lazy'
 import type { MiddlewareNextFn } from './middleware'
 import type { AnyProcedure, Procedure, ProcedureHandlerOptions } from './procedure'
 import { createORPCErrorConstructorMap, ORPCError, validateORPCError, ValidationError } from '@orpc/contract'
-import { executeWithHooks, toError, value } from '@orpc/shared'
+import { intercept, toError, value } from '@orpc/shared'
 import { unlazy } from './lazy'
 import { middlewareOutputFn } from './middleware'
 
@@ -17,13 +17,30 @@ export type ProcedureClient<
   TErrorMap extends ErrorMap,
 > = Client<TClientContext, SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, THandlerOutput>, ErrorFromErrorMap<TErrorMap>>
 
+export interface ProcedureClientInterceptorOptions<
+  TInitialContext extends Context,
+  TInputSchema extends Schema,
+  TErrorMap extends ErrorMap,
+  TMeta extends Meta,
+> {
+  context: TInitialContext
+  input: SchemaInput<TInputSchema>
+  errors: ORPCErrorConstructorMap<TErrorMap>
+  path: string[]
+  procedure: Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, TMeta>
+  signal?: AbortSignal
+}
+
 /**
  * Options for creating a procedure caller with comprehensive type safety
  */
 export type CreateProcedureClientOptions<
   TInitialContext extends Context,
-  TCurrentContext extends Schema,
-  THandlerOutput extends SchemaInput<TCurrentContext>,
+  TInputSchema extends Schema,
+  TOutputSchema extends Schema,
+  THandlerOutput extends SchemaInput<TOutputSchema>,
+  TErrorMap extends ErrorMap,
+  TMeta extends Meta,
   TClientContext,
 > =
   & {
@@ -31,20 +48,29 @@ export type CreateProcedureClientOptions<
      * This is helpful for logging and analytics.
      */
     path?: string[]
+
+    interceptors?: Interceptor<
+      ProcedureClientInterceptorOptions<TInitialContext, TInputSchema, TErrorMap, TMeta>,
+      SchemaOutput<TOutputSchema, THandlerOutput>,
+      ErrorFromErrorMap<TErrorMap>
+    >[]
   }
   & (
-    | { context: Value<TInitialContext, [clientContext: TClientContext]> }
-    | (Record<never, never> extends TInitialContext ? Record<never, never> : never)
+    Record<never, never> extends TInitialContext
+      ? { context?: Value<TInitialContext, [clientContext: TClientContext]> }
+      : { context: Value<TInitialContext, [clientContext: TClientContext]> }
   )
-  & Hooks<unknown, SchemaOutput<TCurrentContext, THandlerOutput>, TInitialContext, any>
 
 export type CreateProcedureClientRest<
   TInitialContext extends Context,
+  TInputSchema extends Schema,
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
+  TErrorMap extends ErrorMap,
+  TMeta extends Meta,
   TClientContext,
 > =
-  | [options: CreateProcedureClientOptions<TInitialContext, TOutputSchema, THandlerOutput, TClientContext>]
+  | [options: CreateProcedureClientOptions<TInitialContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta, TClientContext>]
   | (Record<never, never> extends TInitialContext ? [] : never)
 
 export function createProcedureClient<
@@ -53,10 +79,19 @@ export function createProcedureClient<
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
   TErrorMap extends ErrorMap,
+  TMeta extends Meta,
   TClientContext,
 >(
-  lazyableProcedure: Lazyable<Procedure<TInitialContext, any, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, any>>,
-  ...[options]: CreateProcedureClientRest<TInitialContext, TOutputSchema, THandlerOutput, TClientContext>
+  lazyableProcedure: Lazyable<Procedure<TInitialContext, any, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta>>,
+  ...[options]: CreateProcedureClientRest<
+    TInitialContext,
+    TInputSchema,
+    TOutputSchema,
+    THandlerOutput,
+    TErrorMap,
+    TMeta,
+    TClientContext
+  >
 ): ProcedureClient<TClientContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap> {
   return async (...[input, callerOptions]) => {
     const path = options?.path ?? []
@@ -65,9 +100,9 @@ export function createProcedureClient<
     const context = await value(options?.context ?? {}, callerOptions?.context) as TInitialContext
     const errors = createORPCErrorConstructorMap(procedure['~orpc'].errorMap)
 
-    const executeOptions = {
-      input,
+    const interceptorOptions: ProcedureClientInterceptorOptions<TInitialContext, TInputSchema, TErrorMap, TMeta> = {
       context,
+      input: input as SchemaInput<TInputSchema>, // input only optional when it undefinable so we can safely cast it
       errors,
       path,
       procedure: procedure as AnyProcedure,
@@ -75,15 +110,11 @@ export function createProcedureClient<
     }
 
     try {
-      const output = await executeWithHooks({
-        hooks: options,
-        input,
-        context,
-        meta: executeOptions,
-        execute: () => executeProcedureInternal(procedure, executeOptions),
-      })
-
-      return output
+      return await intercept(
+        options?.interceptors ?? [],
+        interceptorOptions,
+        interceptorOptions => executeProcedureInternal(interceptorOptions.procedure, interceptorOptions),
+      )
     }
     catch (e) {
       if (!(e instanceof ORPCError)) {

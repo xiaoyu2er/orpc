@@ -100,19 +100,17 @@ export function createProcedureClient<
     const context = await value(options?.context ?? {}, callerOptions?.context) as TInitialContext
     const errors = createORPCErrorConstructorMap(procedure['~orpc'].errorMap)
 
-    const interceptorOptions: ProcedureClientInterceptorOptions<TInitialContext, TInputSchema, TErrorMap, TMeta> = {
-      context,
-      input: input as SchemaInput<TInputSchema>, // input only optional when it undefinable so we can safely cast it
-      errors,
-      path,
-      procedure: procedure as AnyProcedure,
-      signal: callerOptions?.signal,
-    }
-
     try {
       return await intercept(
         options?.interceptors ?? [],
-        interceptorOptions,
+        {
+          context,
+          input: input as SchemaInput<TInputSchema>, // input only optional when it undefinable so we can safely cast it
+          errors,
+          path,
+          procedure: procedure as AnyProcedure,
+          signal: callerOptions?.signal,
+        },
         interceptorOptions => executeProcedureInternal(interceptorOptions.procedure, interceptorOptions),
       )
     }

@@ -5,6 +5,7 @@ import { value, type Value } from '@orpc/shared'
 
 export interface CORSOptions<TContext extends Context> {
   origin: Value<string | string[] | null | undefined, [origin: string, options: StandardHandlerInterceptorOptions<TContext>]>
+  timingOrigin?: Value<string | string[] | null | undefined, [origin: string, options: StandardHandlerInterceptorOptions<TContext>]>
   allowMethods?: string[]
   allowHeaders?: string[]
   maxAge?: number
@@ -85,6 +86,16 @@ export class CORSPlugin<TContext extends Context> implements Plugin<TContext> {
 
       if (!allowedOriginArr.includes('*')) {
         result.response.headers.vary = interceptorOptions.request.headers.vary ?? 'origin'
+      }
+
+      if (this.options.timingOrigin !== undefined) {
+        const timingOrigin = await value(this.options.timingOrigin, origin, interceptorOptions)
+        const timingOriginArr = Array.isArray(timingOrigin) ? timingOrigin : [timingOrigin]
+        const filteredTimingOriginArr = timingOriginArr.filter(v => typeof v === 'string')
+
+        if (filteredTimingOriginArr.length) {
+          result.response.headers['timing-allow-origin'] = filteredTimingOriginArr.join(',')
+        }
       }
 
       if (this.options.credentials) {

@@ -1,4 +1,4 @@
-import type { Hooks, Value } from '@orpc/shared'
+import type { ErrorMap, Meta } from '@orpc/contract'
 import type { Lazy } from './lazy'
 import type { Procedure } from './procedure'
 import type { CreateProcedureClientRest, ProcedureClient } from './procedure-client'
@@ -17,26 +17,20 @@ export type RouterClient<TRouter extends AnyRouter, TClientContext> = TRouter ex
         [K in keyof TRouter]: TRouter[K] extends AnyRouter ? RouterClient<TRouter[K], TClientContext> : never
       }
 
-export type CreateRouterClientOptions<TRouter extends AnyRouter> =
-  & {
-    /**
-     * This is helpful for logging and analytics.
-     *
-     * @internal
-     */
-    path?: string[]
-  }
-  & (TRouter extends Router<infer UContext, any>
-    ? undefined extends UContext ? { context?: Value<UContext> } : { context: Value<UContext> }
-    : never)
-  & Hooks<unknown, unknown, TRouter extends Router<infer UContext, any> ? UContext : never, any>
-
 export function createRouterClient<
   TRouter extends AnyRouter,
   TClientContext,
 >(
   router: TRouter | Lazy<undefined>,
-  ...rest: CreateProcedureClientRest<TRouter extends Router<infer UContext, any> ? UContext : never, undefined, unknown, TClientContext>
+  ...rest: CreateProcedureClientRest<
+    TRouter extends Router<infer UContext, any> ? UContext : never,
+    undefined,
+    undefined,
+    unknown,
+    ErrorMap,
+    Meta,
+    TClientContext
+  >
 ): RouterClient<TRouter, TClientContext> {
   if (isProcedure(router)) {
     const caller = createProcedureClient(router, ...rest)

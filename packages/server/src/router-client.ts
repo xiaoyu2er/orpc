@@ -17,20 +17,22 @@ export type RouterClient<TRouter extends AnyRouter, TClientContext> = TRouter ex
         [K in keyof TRouter]: TRouter[K] extends AnyRouter ? RouterClient<TRouter[K], TClientContext> : never
       }
 
+export type CreateRouterClientRest<TRouter extends AnyRouter, TClientContext> = CreateProcedureClientRest<
+  TRouter extends Router<infer UContext, any> ? UContext : never,
+  undefined,
+  undefined,
+  unknown,
+  ErrorMap,
+  Meta,
+  TClientContext
+>
+
 export function createRouterClient<
   TRouter extends AnyRouter,
   TClientContext,
 >(
   router: TRouter | Lazy<undefined>,
-  ...rest: CreateProcedureClientRest<
-    TRouter extends Router<infer UContext, any> ? UContext : never,
-    undefined,
-    undefined,
-    unknown,
-    ErrorMap,
-    Meta,
-    TClientContext
-  >
+  ...rest: CreateRouterClientRest<TRouter, TClientContext>
 ): RouterClient<TRouter, TClientContext> {
   if (isProcedure(router)) {
     const caller = createProcedureClient(router, ...rest)

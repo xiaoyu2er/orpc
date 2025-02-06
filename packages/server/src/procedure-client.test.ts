@@ -344,60 +344,36 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     expect(handler).toBeCalledWith(expect.objectContaining({ context: { val: '__val__' } }))
   })
 
-  it.each(contextCases)('can accept hooks - context: %s', async (_, context) => {
-    const execute = vi.fn((input, context, meta) => meta.next())
-    const onStart = vi.fn()
-    const onSuccess = vi.fn()
-    const onError = vi.fn()
-    const onFinish = vi.fn()
+  it.each(contextCases)('can intercept - context: %s', async (_, context) => {
+    const interceptor = vi.fn(({ next }) => next())
 
     const client = createProcedureClient(procedure, {
       context,
       path: ['users'],
-      interceptor: execute,
-      onStart,
-      onSuccess,
-      onError,
-      onFinish,
+      interceptors: [interceptor],
     })
 
-    await client({ val: '123' })
+    vi.mocked(createORPCErrorConstructorMap).mockReturnValueOnce('__constructors__' as any)
 
-    const meta = {
+    const signal = new AbortController().signal
+
+    await client({ val: '123' }, { signal })
+
+    expect(interceptor).toBeCalledTimes(1)
+    expect(interceptor).toHaveBeenCalledWith({
+      input: { val: '123' },
+      context: { val: '__val__' },
+      signal,
       path: ['users'],
+      errors: '__constructors__',
       procedure: unwrappedProcedure,
-    }
-
-    const contextValue = { val: '__val__' }
-
-    expect(execute).toBeCalledTimes(1)
-    expect(execute).toHaveBeenCalledWith({ val: '123' }, contextValue, expect.objectContaining({
-      ...meta,
       next: expect.any(Function),
-    }))
-
-    expect(onStart).toBeCalledTimes(1)
-    expect(onStart).toHaveBeenCalledWith(
-      { status: 'pending', input: { val: '123' }, output: undefined, error: undefined },
-      contextValue,
-      expect.objectContaining(meta),
-    )
-
-    expect(onSuccess).toBeCalledTimes(1)
-    expect(onSuccess).toHaveBeenCalledWith(
-      { status: 'success', input: { val: '123' }, output: { val: 123 }, error: undefined },
-      contextValue,
-      expect.objectContaining(meta),
-    )
-
-    expect(onError).toBeCalledTimes(0)
+    })
   })
 
   it('accept paths', async () => {
-    const onSuccess = vi.fn()
     const client = createProcedureClient(procedure, {
       path: ['users'],
-      onSuccess,
     })
 
     await client({ val: '123' })
@@ -410,19 +386,13 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
 
     expect(handler).toBeCalledTimes(1)
     expect(handler).toHaveBeenCalledWith(expect.objectContaining({ path: ['users'] }))
-
-    expect(onSuccess).toBeCalledTimes(1)
-    expect(onSuccess).toHaveBeenCalledWith(expect.any(Object), {}, expect.objectContaining({ path: ['users'] }))
   })
 
   it('support signal', async () => {
     const controller = new AbortController()
     const signal = controller.signal
 
-    const onSuccess = vi.fn()
-
     const client = createProcedureClient(procedure, {
-      onSuccess,
       context: { userId: '123' },
     })
 
@@ -442,9 +412,6 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
 
     expect(handler).toBeCalledTimes(1)
     expect(handler).toHaveBeenCalledWith(expect.objectContaining({ signal }))
-
-    expect(onSuccess).toBeCalledTimes(1)
-    expect(onSuccess).toHaveBeenCalledWith(expect.any(Object), expect.any(Object), expect.objectContaining({ signal }))
   })
 
   describe('error validation', () => {

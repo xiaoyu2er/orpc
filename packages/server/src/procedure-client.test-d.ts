@@ -1,5 +1,8 @@
-import type { baseErrorMap, inputSchema, outputSchema } from '../../contract/tests/shared'
-import { type Client, type ORPCError, safe } from '@orpc/contract'
+import type { Client, ErrorMap, ORPCError, ORPCErrorConstructorMap, Schema } from '@orpc/contract'
+import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../../contract/tests/shared'
+import type { Context } from './context'
+import type { Procedure } from './procedure'
+import { safe } from '@orpc/contract'
 import { ping, pong } from '../tests/shared'
 import { createProcedureClient, type ProcedureClient } from './procedure-client'
 
@@ -76,5 +79,40 @@ describe('createProcedureClient', () => {
         typeof baseErrorMap
       >
     >()
+  })
+
+  it('optional context when all fields are optional', () => {
+    createProcedureClient(pong)
+    createProcedureClient(pong, {})
+
+    // @ts-expect-error - context is required
+    createProcedureClient(ping)
+    // @ts-expect-error - context is required
+    createProcedureClient(ping, {})
+    createProcedureClient(ping, { context: { db: 'postgres' } })
+  })
+
+  it('well type interceptor', () => {
+    createProcedureClient(ping, {
+      context: { db: 'postgres' },
+      interceptors: [
+        async ({ next, signal, procedure, path, errors, context, input }) => {
+          expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
+          expectTypeOf(procedure).toEqualTypeOf<
+            Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, BaseMeta>
+          >()
+          expectTypeOf(path).toEqualTypeOf<string[]>()
+          expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
+          expectTypeOf(context).toEqualTypeOf<{ db: string }>()
+          expectTypeOf(input).toEqualTypeOf<{ input: number }>()
+
+          const output = await next()
+
+          expectTypeOf(output).toEqualTypeOf<{ output: string }>()
+
+          return output
+        },
+      ],
+    })
   })
 })

@@ -46,19 +46,11 @@ describe('createRouterClient', () => {
   })
 
   it('hooks', async () => {
-    const onStart = vi.fn()
-    const onSuccess = vi.fn()
-    const onError = vi.fn()
-    const onFinish = vi.fn()
     const interceptor = vi.fn()
 
     const client = createRouterClient(router, {
       context: { db: 'postgres' },
-      onStart,
-      onSuccess,
-      onError,
-      onFinish,
-      interceptor,
+      interceptors: [interceptor],
     })
 
     expect(client.pong({ val: '123' })).toEqual('__mocked__')
@@ -67,11 +59,7 @@ describe('createRouterClient', () => {
     expect(createProcedureClient).toHaveBeenCalledWith(pong, expect.objectContaining({
       context: { db: 'postgres' },
       path: ['pong'],
-      onStart,
-      onSuccess,
-      onError,
-      onFinish,
-      interceptor,
+      interceptors: [interceptor],
     }))
   })
 

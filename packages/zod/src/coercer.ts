@@ -36,11 +36,13 @@ export class ZodAutoCoercePlugin<TContext extends Context> implements Plugin<TCo
     clientOptions.interceptors.unshift((options) => {
       const inputSchema = options.procedure['~orpc'].inputSchema
 
-      if (inputSchema && inputSchema['~standard'].vendor !== 'zod') {
-        options.input = zodCoerceInternal(inputSchema as ZodTypeAny, options.input, { bracketNotation: true })
+      if (!inputSchema || inputSchema['~standard'].vendor !== 'zod') {
+        return options.next()
       }
 
-      return options.next()
+      const coercedInput = zodCoerceInternal(inputSchema as ZodTypeAny, options.input, { bracketNotation: true })
+
+      return options.next({ ...options, input: coercedInput })
     })
   }
 }

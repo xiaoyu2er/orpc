@@ -13,10 +13,7 @@ describe('openAPICodec', () => {
     deserialize: vi.fn(),
   } as any
 
-  const coerce = vi.fn((schema, value) => value)
-
   const codec = new OpenAPICodec({
-    schemaCoercers: [{ coerce }],
     serializer,
   })
 
@@ -40,8 +37,6 @@ describe('openAPICodec', () => {
 
         expect(serializer.deserialize).toHaveBeenCalledOnce()
         expect(serializer.deserialize).toHaveBeenCalledWith(url.searchParams)
-        expect(coerce).toHaveBeenCalledOnce()
-        expect(coerce).toHaveBeenCalledWith(ping['~orpc'].inputSchema, '__deserialized__')
       })
 
       it('with non-GET method', async () => {
@@ -61,8 +56,6 @@ describe('openAPICodec', () => {
 
         expect(serializer.deserialize).toHaveBeenCalledOnce()
         expect(serializer.deserialize).toHaveBeenCalledWith(serialized)
-        expect(coerce).toHaveBeenCalledOnce()
-        expect(coerce).toHaveBeenCalledWith(ping['~orpc'].inputSchema, '__deserialized__')
       })
     })
 

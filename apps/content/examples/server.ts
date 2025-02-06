@@ -1,6 +1,6 @@
 import type { InferRouterInputs, InferRouterOutputs } from '@orpc/server'
 import { ORPCError, os } from '@orpc/server'
-import { oz, ZodCoercer } from '@orpc/zod'
+import { oz, ZodAutoCoercePlugin } from '@orpc/zod'
 import { z } from 'zod'
 
 export type Context = { user?: { id: string } }
@@ -95,8 +95,8 @@ import { createServer } from 'node:http'
 import { OpenAPIHandler } from '@orpc/openapi/node'
 
 const openAPIHandler = new OpenAPIHandler(router, {
-  schemaCoercers: [
-    new ZodCoercer(),
+  plugins: [
+    new ZodAutoCoercePlugin(),
   ],
 })
 

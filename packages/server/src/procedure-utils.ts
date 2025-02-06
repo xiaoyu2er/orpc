@@ -1,4 +1,4 @@
-import type { ClientPromiseResult, ErrorFromErrorMap, ErrorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ClientPromiseResult, ErrorFromErrorMap, ErrorMap, Meta, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Context } from './context'
 import type { Lazyable } from './lazy'
 import type { Procedure } from './procedure'
@@ -20,10 +20,11 @@ export function call<
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
   TErrorMap extends ErrorMap,
+  TMeta extends Meta,
 >(
-  procedure: Lazyable<Procedure<TInitialContext, any, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, any>>,
+  procedure: Lazyable<Procedure<TInitialContext, any, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta>>,
   input: SchemaInput<TInputSchema>,
-  ...rest: CreateProcedureClientRest<TInitialContext, TOutputSchema, THandlerOutput, unknown>
+  ...rest: CreateProcedureClientRest<TInitialContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta, unknown>
 ): ClientPromiseResult<SchemaOutput<TOutputSchema, THandlerOutput>, ErrorFromErrorMap<TErrorMap>> {
   return createProcedureClient(procedure, ...rest)(input)
 }

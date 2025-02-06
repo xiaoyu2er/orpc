@@ -44,13 +44,17 @@ export interface ImplementedProcedure<
   /**
    * Make this procedure callable (works like a function while still being a procedure).
    */
-  callable<TClientContext>(...rest: CreateProcedureClientRest<TInitialContext, TOutputSchema, THandlerOutput, TClientContext>): & Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta>
+  callable<TClientContext>(
+    ...rest: CreateProcedureClientRest<TInitialContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta, TClientContext>
+  ): Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta>
     & ProcedureClient < TClientContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap >
 
   /**
    * Make this procedure compatible with server action (the same as .callable, but the type is compatible with server action).
    */
-  actionable<TClientContext>(...rest: CreateProcedureClientRest<TInitialContext, TOutputSchema, THandlerOutput, TClientContext>): & Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta>
+  actionable<TClientContext>(
+    ...rest: CreateProcedureClientRest<TInitialContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta, TClientContext>
+  ): Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta>
     & ((...rest: ClientRest<TClientContext, SchemaInput<TInputSchema>>) => Promise<SchemaOutput<TOutputSchema, THandlerOutput>>)
 }
 

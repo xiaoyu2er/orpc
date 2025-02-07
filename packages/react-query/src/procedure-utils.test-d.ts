@@ -43,30 +43,26 @@ describe('ProcedureUtils', () => {
     })
 
     it('works with useQuery', () => {
-      const query = useQuery({
-        ...utils.queryOptions({
-          select: data => ({ mapped: data }),
-        }),
+      const query = useQuery(utils.queryOptions({
+        select: data => ({ mapped: data }),
         throwOnError(error) {
           expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
           return false
         },
-      })
+      }))
 
       expectTypeOf(query.data).toEqualTypeOf<{ mapped: 'output' } | undefined>()
       expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
     })
 
     it('works with useSuspenseQuery', () => {
-      const query = useSuspenseQuery({
-        ...utils.queryOptions({
-          select: data => ({ mapped: data }),
-        }),
+      const query = useSuspenseQuery(utils.queryOptions({
+        select: data => ({ mapped: data }),
         retry(failureCount, error) {
           expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
           return false
         },
-      })
+      }))
 
       expectTypeOf(query.data).toEqualTypeOf<{ mapped: 'output' }>()
       expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
@@ -190,36 +186,32 @@ describe('ProcedureUtils', () => {
     })
 
     it('works with useInfiniteQuery', () => {
-      const query = useInfiniteQuery({
-        ...utils.infiniteOptions({
-          input: () => 'input',
-          getNextPageParam,
-          initialPageParam,
-          select: data => ({ mapped: data }),
-        }),
+      const query = useInfiniteQuery(utils.infiniteOptions({
+        input: () => 'input',
+        getNextPageParam,
+        initialPageParam,
+        select: data => ({ mapped: data }),
         throwOnError(error) {
           expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
           return false
         },
-      })
+      }))
 
       expectTypeOf(query.data).toEqualTypeOf<{ mapped: InfiniteData<'output', number> } | undefined>()
       expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
     })
 
     it('works with useSuspenseInfiniteQuery', () => {
-      const query = useSuspenseInfiniteQuery({
-        ...utils.infiniteOptions({
-          input: () => ({} as any),
-          getNextPageParam,
-          initialPageParam,
-          select: data => ({ mapped: data }),
-        }),
+      const query = useSuspenseInfiniteQuery(utils.infiniteOptions({
+        input: () => ({} as any),
+        getNextPageParam,
+        initialPageParam,
+        select: data => ({ mapped: data }),
         retry(failureCount, error) {
           expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
           return false
         },
-      })
+      }))
 
       expectTypeOf(query.data).toEqualTypeOf<{ mapped: InfiniteData<'output', number> }>()
       expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()

@@ -163,15 +163,17 @@ describe('.infiniteOptions', () => {
       expectTypeOf(query.data.pages[0]!).toEqualTypeOf<{ output: string }>()
     }
 
+    // @ts-expect-error --- input is invalid
     useInfiniteQuery(orpc.nested.ping.infiniteOptions({
+      // @ts-expect-error --- input is invalid
       input: pagePram => ({
-        // @ts-expect-error --- input is invalid
         input: pagePram,
       }),
       getNextPageParam: () => '2',
       initialPageParam: '2',
     }))
 
+    // @ts-expect-error --- cache is invalid
     useInfiniteQuery(orpc.nested.ping.infiniteOptions({
       input: pagePram => ({ input: pagePram }),
       context: {
@@ -205,15 +207,17 @@ describe('.infiniteOptions', () => {
       expectTypeOf(query.data.pages[0]!).toEqualTypeOf<{ output: string }>()
     }
 
+    // @ts-expect-error --- input is invalid
     useSuspenseInfiniteQuery(orpc.nested.ping.infiniteOptions({
+      // @ts-expect-error --- input is invalid
       input: pagePram => ({
-        // @ts-expect-error --- input is invalid
         input: pagePram,
       }),
       getNextPageParam: () => '2',
       initialPageParam: '2',
     }))
 
+    // @ts-expect-error --- cache is invalid
     useSuspenseInfiniteQuery(orpc.nested.ping.infiniteOptions({
       input: pagePram => ({ input: pagePram }),
       context: {
@@ -261,9 +265,9 @@ describe('.mutationOptions', () => {
       input: 'INVALID',
     })
 
-    // @ts-expect-error --- cache is invalid
     useMutation(orpc.ping.mutationOptions({
       context: {
+        // @ts-expect-error --- cache is invalid
         cache: 123,
       },
     }))

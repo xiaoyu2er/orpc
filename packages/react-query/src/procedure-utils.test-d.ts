@@ -6,15 +6,23 @@ import { useInfiniteQuery, useMutation, useQueries, useQuery, useSuspenseInfinit
 import { queryClient } from '../tests/shared'
 
 describe('ProcedureUtils', () => {
-  const utils = {} as ProcedureUtils<{ batch?: boolean } | undefined, 'input' | undefined, 'output', ErrorFromErrorMap<typeof baseErrorMap>>
+  type UtilsInput = { search?: string, cursor?: number } | undefined
+  type UtilsOutput = { title: string }[]
+
+  const utils = {} as ProcedureUtils<
+    { batch?: boolean } | undefined,
+    UtilsInput,
+    UtilsOutput,
+    ErrorFromErrorMap<typeof baseErrorMap>
+  >
 
   describe('.queryOptions', () => {
     it('can optional options', () => {
-      const requiredUtils = {} as ProcedureUtils<{ batch?: boolean }, 'input', 'output', Error>
+      const requiredUtils = {} as ProcedureUtils<{ batch?: boolean }, 'input', UtilsOutput, Error>
 
       utils.queryOptions()
       utils.queryOptions({ context: { batch: true } })
-      utils.queryOptions({ input: 'input' })
+      utils.queryOptions({ input: { search: 'search' } })
 
       requiredUtils.queryOptions({
         context: { batch: true },
@@ -27,19 +35,19 @@ describe('ProcedureUtils', () => {
       // @ts-expect-error input is required
       requiredUtils.queryOptions({ context: { batch: true } })
       // @ts-expect-error context is required
-      requiredUtils.queryOptions({ input: 'input' })
+      requiredUtils.queryOptions({ input: { search: 'search' } })
     })
 
     it('infer correct input type', () => {
-      utils.queryOptions({ input: 'input', context: { batch: true } })
+      utils.queryOptions({ input: { cursor: 1 }, context: { batch: true } })
       // @ts-expect-error invalid input
-      utils.queryOptions({ input: 'invalid', context: { batch: true } })
+      utils.queryOptions({ input: { cursor: 'invalid' }, context: { batch: true } })
     })
 
     it('infer correct context type', () => {
-      utils.queryOptions({ input: 'input', context: { batch: true } })
+      utils.queryOptions({ context: { batch: true } })
       // @ts-expect-error invalid context
-      utils.queryOptions({ input: 'input', context: { batch: 'invalid' } })
+      utils.queryOptions({ context: { batch: 'invalid' } })
     })
 
     it('works with useQuery', () => {
@@ -51,7 +59,7 @@ describe('ProcedureUtils', () => {
         },
       }))
 
-      expectTypeOf(query.data).toEqualTypeOf<{ mapped: 'output' } | undefined>()
+      expectTypeOf(query.data).toEqualTypeOf<{ mapped: UtilsOutput } | undefined>()
       expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
     })
 
@@ -64,7 +72,7 @@ describe('ProcedureUtils', () => {
         },
       }))
 
-      expectTypeOf(query.data).toEqualTypeOf<{ mapped: 'output' }>()
+      expectTypeOf(query.data).toEqualTypeOf<{ mapped: UtilsOutput }>()
       expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
     })
 
@@ -75,14 +83,14 @@ describe('ProcedureUtils', () => {
             select: data => ({ mapped: data }),
           }),
           utils.queryOptions({
-            input: 'input',
+            input: { search: 'search' },
             context: { batch: true },
           }),
         ],
       })
 
-      expectTypeOf(queries[0].data).toEqualTypeOf<{ mapped: 'output' } | undefined>()
-      expectTypeOf(queries[1].data).toEqualTypeOf<'output' | undefined>()
+      expectTypeOf(queries[0].data).toEqualTypeOf<{ mapped: UtilsOutput } | undefined>()
+      expectTypeOf(queries[1].data).toEqualTypeOf<UtilsOutput | undefined>()
 
       // FIXME: useQueries cannot infer error
       // expectTypeOf(queries[0].error).toEqualTypeOf<Error | ORPCError<'NOT_FOUND', { id: string }> | null>()
@@ -93,7 +101,7 @@ describe('ProcedureUtils', () => {
       expectTypeOf(
         queryClient.fetchQuery(utils.queryOptions()),
       ).toEqualTypeOf<
-        Promise<'output'>
+        Promise<UtilsOutput>
       >()
     })
   })
@@ -103,10 +111,10 @@ describe('ProcedureUtils', () => {
     const initialPageParam = 1
 
     it('can optional context', () => {
-      const requiredUtils = {} as ProcedureUtils<{ batch?: boolean }, 'input' | undefined, 'output', Error>
+      const requiredUtils = {} as ProcedureUtils<{ batch?: boolean }, 'input' | undefined, UtilsOutput, Error>
 
       utils.infiniteOptions({
-        input: () => 'input',
+        input: () => ({}),
         getNextPageParam,
         initialPageParam,
       })
@@ -130,8 +138,7 @@ describe('ProcedureUtils', () => {
       utils.infiniteOptions({
         input: (pageParam) => {
           expectTypeOf(pageParam).toEqualTypeOf<number>()
-
-          return 'input'
+          return { cursor: pageParam }
         },
         getNextPageParam,
         initialPageParam,
@@ -140,8 +147,7 @@ describe('ProcedureUtils', () => {
       utils.infiniteOptions({
         input: (pageParam) => {
           expectTypeOf(pageParam).toEqualTypeOf<number | undefined>()
-
-          return 'input'
+          return { cursor: pageParam }
         },
         getNextPageParam,
         initialPageParam: undefined,
@@ -159,11 +165,13 @@ describe('ProcedureUtils', () => {
       })
 
       utils.infiniteOptions({
+        // @ts-expect-error conflict types
         input: (pageParam: number) => {
           return 'input'
         },
+        // @ts-expect-error conflict types
         getNextPageParam,
-        // @ts-expect-error expect number but got undefined
+        // @ts-expect-error conflict types
         initialPageParam: undefined,
       })
     })
@@ -171,7 +179,7 @@ describe('ProcedureUtils', () => {
     it('infer correct context type', () => {
       utils.infiniteOptions({
         context: { batch: true },
-        input: () => 'input',
+        input: () => ({}),
         getNextPageParam,
         initialPageParam,
       })
@@ -179,7 +187,7 @@ describe('ProcedureUtils', () => {
       utils.infiniteOptions({
         // @ts-expect-error invalid context
         context: { batch: 'invalid' },
-        input: () => 'input',
+        input: () => ({}),
         getNextPageParam,
         initialPageParam,
       })
@@ -187,7 +195,7 @@ describe('ProcedureUtils', () => {
 
     it('works with useInfiniteQuery', () => {
       const query = useInfiniteQuery(utils.infiniteOptions({
-        input: () => 'input',
+        input: () => ({}),
         getNextPageParam,
         initialPageParam,
         select: data => ({ mapped: data }),
@@ -197,13 +205,13 @@ describe('ProcedureUtils', () => {
         },
       }))
 
-      expectTypeOf(query.data).toEqualTypeOf<{ mapped: InfiniteData<'output', number> } | undefined>()
+      expectTypeOf(query.data).toEqualTypeOf<{ mapped: InfiniteData<UtilsOutput, number> } | undefined>()
       expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
     })
 
     it('works with useSuspenseInfiniteQuery', () => {
       const query = useSuspenseInfiniteQuery(utils.infiniteOptions({
-        input: () => ({} as any),
+        input: () => ({}),
         getNextPageParam,
         initialPageParam,
         select: data => ({ mapped: data }),
@@ -213,28 +221,26 @@ describe('ProcedureUtils', () => {
         },
       }))
 
-      expectTypeOf(query.data).toEqualTypeOf<{ mapped: InfiniteData<'output', number> }>()
+      expectTypeOf(query.data).toEqualTypeOf<{ mapped: InfiniteData<UtilsOutput, number> }>()
       expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
     })
 
     it('works with fetchInfiniteQuery', () => {
       expectTypeOf(
         queryClient.fetchInfiniteQuery(utils.infiniteOptions({
-          input: () => 'input',
+          input: () => ({}),
           getNextPageParam,
           initialPageParam,
         })),
       ).toEqualTypeOf<
-        Promise<InfiniteData<'output', number>>
+        Promise<InfiniteData<UtilsOutput, number>>
       >()
     })
   })
 
   describe('.mutationOptions', () => {
-    const utils = {} as ProcedureUtils<{ batch?: boolean } | undefined, 'input' | undefined, 'output', ErrorFromErrorMap<typeof baseErrorMap>>
-
     it('can optional options', () => {
-      const requiredUtils = {} as ProcedureUtils<{ batch?: boolean }, 'input', 'output', Error>
+      const requiredUtils = {} as ProcedureUtils<{ batch?: boolean }, 'input', UtilsOutput, Error>
 
       utils.mutationOptions()
       utils.mutationOptions({})
@@ -257,16 +263,16 @@ describe('ProcedureUtils', () => {
     it('works with useMutation', () => {
       const mutation = useMutation(utils.mutationOptions({
         onSuccess: (data, input) => {
-          expectTypeOf(data).toEqualTypeOf<'output'>()
-          expectTypeOf(input).toEqualTypeOf<'input' | undefined>()
+          expectTypeOf(data).toEqualTypeOf<UtilsOutput>()
+          expectTypeOf(input).toEqualTypeOf<UtilsInput>()
         },
         onError: (error) => {
           expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
         },
       }))
 
-      expectTypeOf<Parameters<typeof mutation.mutate>[0]>().toEqualTypeOf<'input' | undefined>()
-      expectTypeOf(mutation.data).toEqualTypeOf<'output' | undefined>()
+      expectTypeOf<Parameters<typeof mutation.mutate>[0]>().toEqualTypeOf<UtilsInput>()
+      expectTypeOf(mutation.data).toEqualTypeOf<UtilsOutput | undefined>()
       expectTypeOf(mutation.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
     })
   })

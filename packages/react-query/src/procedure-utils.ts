@@ -1,25 +1,25 @@
 import type { Client } from '@orpc/contract'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { InfiniteData } from '@tanstack/react-query'
-import type { InInfiniteOptions, InMutationOptions, InQueryOptions, OutInfiniteOptions, OutMutationOptions, OutQueryOptions } from './types'
+import type { InfiniteOptionsBase, InfiniteOptionsIn, MutationOptionsBase, MutationOptionsIn, QueryOptionsBase, QueryOptionsIn } from './types'
 import { buildKey } from './key'
 
 export interface ProcedureUtils<TClientContext, TInput, TOutput, TError extends Error> {
-  queryOptions<TSelectData = TOutput>(
+  queryOptions<U, USelectData = TOutput>(
     ...rest: MaybeOptionalOptions<
-      InQueryOptions<TClientContext, TInput, TOutput, TError, TSelectData>
+      U & QueryOptionsIn<TClientContext, TInput, TOutput, TError, USelectData>
     >
-  ): OutQueryOptions<TOutput, TError, TSelectData>
+  ): NoInfer<U & QueryOptionsBase<TOutput, TError>>
 
-  infiniteOptions<TPageParam, TSelectData = InfiniteData<TOutput>>(
-    options: InInfiniteOptions<TClientContext, TInput, TOutput, TError, TSelectData, TPageParam>
-  ): OutInfiniteOptions<TOutput, TError, TSelectData, TPageParam>
+  infiniteOptions<U, UPageParam, USelectData = InfiniteData<TOutput>>(
+    options: U & InfiniteOptionsIn<TClientContext, TInput, TOutput, TError, USelectData, UPageParam>
+  ): NoInfer<U & InfiniteOptionsBase<TOutput, TError, UPageParam>>
 
-  mutationOptions(
+  mutationOptions<U>(
     ...rest: MaybeOptionalOptions<
-      InMutationOptions<TClientContext, TInput, TOutput, TError>
+      U & MutationOptionsIn<TClientContext, TInput, TOutput, TError>
     >
-  ): OutMutationOptions<TInput, TOutput, TError>
+  ): NoInfer<U & MutationOptionsBase<TInput, TOutput, TError>>
 }
 
 export function createProcedureUtils<TClientContext, TInput, TOutput, TError extends Error>(

@@ -1,151 +1,230 @@
-import type { Client } from '@orpc/contract'
-import type { ORPCError } from '@orpc/server'
+import type { ErrorFromErrorMap } from '@orpc/contract'
+import type { baseErrorMap } from '../../contract/tests/shared'
 import type { ProcedureUtils } from './procedure-utils'
-import type { QueryOptions } from './types'
 import { useMutation, useQuery } from '@pinia/colada'
-import { ref } from 'vue'
-import { createProcedureUtils } from './procedure-utils'
+import { computed, ref } from 'vue'
 
-describe('queryOptions', () => {
-  const client = {} as Client<undefined, number | undefined, string | undefined, Error>
-  const utils = createProcedureUtils(client, [])
+describe('ProcedureUtils', () => {
+  type UtilsInput = { search?: string, cursor?: number } | undefined
+  type UtilsOutput = { title: string }[]
 
-  const client2 = {} as Client<undefined, number, string, Error>
-  const utils2 = createProcedureUtils(client2, [])
+  const utils = {} as ProcedureUtils<
+    { batch?: boolean } | undefined,
+    UtilsInput,
+    UtilsOutput,
+    ErrorFromErrorMap<typeof baseErrorMap>
+  >
 
-  it('infer correct input type', () => {
-    utils.queryOptions({ input: 1 })
-    utils.queryOptions({ input: ref(1) })
-    utils.queryOptions({ input: undefined })
-    utils.queryOptions({ input: ref(undefined) })
+  describe('.queryOptions', () => {
+    it('can optional options', () => {
+      const requiredUtils = {} as ProcedureUtils<{ batch?: boolean }, 'input', UtilsOutput, Error>
 
-    // @ts-expect-error invalid input
-    utils.queryOptions({ input: '1' })
-    // @ts-expect-error invalid input
-    utils.queryOptions({ input: ref('1') })
-  })
+      utils.queryOptions()
+      utils.queryOptions({ context: { batch: true } })
+      utils.queryOptions({ input: { search: 'search' } })
 
-  it('can be called without argument', () => {
-    const options = utils.queryOptions()
-
-    expectTypeOf(options).toEqualTypeOf<QueryOptions<string | undefined, Error>>()
-    // @ts-expect-error invalid is required
-    utils2.queryOptions()
-  })
-
-  it('infer correct output type', () => {
-    const query = useQuery(utils2.queryOptions({ input: 1 }))
-
-    expectTypeOf(query.data.value).toEqualTypeOf<string | undefined>()
-  })
-
-  describe('client context', () => {
-    it('can be optional', () => {
-      const utils = {} as ProcedureUtils<undefined | { batch?: boolean }, undefined, string, Error>
-      useQuery(utils.queryOptions())
-      useQuery(utils.queryOptions({}))
-      useQuery(utils.queryOptions({ context: undefined }))
-      useQuery(utils.queryOptions({ context: { batch: true } }))
-      useQuery(utils.queryOptions({ context: { batch: ref(true) } }))
-      // @ts-expect-error --- invalid context
-      useQuery(utils.queryOptions({ context: { batch: 'invalid' } }))
-      // @ts-expect-error --- invalid context
-      useQuery(utils.queryOptions({ context: { batch: ref('invalid') } }))
+      requiredUtils.queryOptions({
+        context: { batch: true },
+        input: 'input',
+      })
+      // @ts-expect-error input and context is required
+      requiredUtils.queryOptions()
+      // @ts-expect-error input and context is required
+      requiredUtils.queryOptions({})
+      // @ts-expect-error input is required
+      requiredUtils.queryOptions({ context: { batch: true } })
+      // @ts-expect-error context is required
+      requiredUtils.queryOptions({ input: { search: 'search' } })
     })
 
-    it('required pass context when non-optional', () => {
-      const utils = {} as ProcedureUtils<{ batch?: boolean }, undefined, string, Error>
-      // @ts-expect-error --- missing context
-      useQuery(utils.queryOptions())
-      // @ts-expect-error --- missing context
-      useQuery(utils.queryOptions({}))
-      useQuery(utils.queryOptions({ context: { batch: true } }))
-      useQuery(utils.queryOptions({ context: { batch: ref(false) } }))
-      // @ts-expect-error --- invalid context
-      useQuery(utils.queryOptions({ context: { batch: 'invalid' } }))
-      // @ts-expect-error --- invalid context
-      useQuery(utils.queryOptions({ context: { batch: ref('invalid') } }))
+    it('infer correct input type', () => {
+      utils.queryOptions({ input: { cursor: 1 }, context: { batch: true } })
+      // @ts-expect-error invalid input
+      utils.queryOptions({ input: { cursor: 'invalid' }, context: { batch: true } })
+    })
+
+    it('infer correct context type', () => {
+      utils.queryOptions({ context: { batch: true } })
+      // @ts-expect-error invalid context
+      utils.queryOptions({ context: { batch: 'invalid' } })
+    })
+
+    it('works with ref', () => {
+      utils.queryOptions({
+        input: computed(() => ({ cursor: ref(1) })),
+        context: computed(() => ({ batch: true })),
+      })
+    })
+
+    it('works with useQuery', () => {
+      const query = useQuery(utils.queryOptions())
+
+      expectTypeOf(query.data.value).toEqualTypeOf<UtilsOutput | undefined>()
+      expectTypeOf(query.error.value).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
     })
   })
 
-  it('can infer errors', () => {
-    const utils = {} as ProcedureUtils<unknown, unknown, unknown, Error | ORPCError<'CODE', 'data'>>
-    expectTypeOf(useQuery(utils.queryOptions()).error.value).toEqualTypeOf<Error | ORPCError<'CODE', 'data'> | null>()
-    expectTypeOf(useQuery(utils.queryOptions({})).error.value).toEqualTypeOf<Error | ORPCError<'CODE', 'data'> | null>()
-  })
-})
+  // describe('.infiniteOptions', () => {
+  //   const getNextPageParam = {} as () => number
+  //   const initialPageParam = 1
 
-describe('mutationOptions', () => {
-  const client = {} as Client<undefined, number, string, Error>
-  const utils = createProcedureUtils(client, [])
+  //   it('can optional context', () => {
+  //     const requiredUtils = {} as ProcedureUtils<{ batch?: boolean }, 'input' | undefined, UtilsOutput, Error>
 
-  it('infer correct input type', () => {
-    const option = utils.mutationOptions({
-      onSuccess: (data, input) => {
-        expectTypeOf(input).toEqualTypeOf<number>()
-      },
+  //     utils.infiniteOptions({
+  //       input: () => ({}),
+  //       getNextPageParam,
+  //       initialPageParam,
+  //     })
+
+  //     requiredUtils.infiniteOptions({
+  //       context: { batch: true },
+  //       input: () => 'input',
+  //       getNextPageParam,
+  //       initialPageParam,
+  //     })
+
+  //     // @ts-expect-error --- missing context
+  //     requiredUtils.infiniteOptions({
+  //       input: () => 'input',
+  //       getNextPageParam,
+  //       initialPageParam,
+  //     })
+  //   })
+
+  //   it('infer correct input & pageParam type', () => {
+  //     utils.infiniteOptions({
+  //       input: (pageParam) => {
+  //         expectTypeOf(pageParam).toEqualTypeOf<number>()
+  //         return { cursor: pageParam }
+  //       },
+  //       getNextPageParam,
+  //       initialPageParam,
+  //     })
+
+  //     utils.infiniteOptions({
+  //       input: (pageParam) => {
+  //         expectTypeOf(pageParam).toEqualTypeOf<number | undefined>()
+  //         return { cursor: pageParam }
+  //       },
+  //       getNextPageParam,
+  //       initialPageParam: undefined,
+  //     })
+
+  //     utils.infiniteOptions({
+  //       // @ts-expect-error invalid input
+  //       input: (pageParam) => {
+  //         expectTypeOf(pageParam).toEqualTypeOf<number>()
+
+  //         return 'invalid'
+  //       },
+  //       getNextPageParam,
+  //       initialPageParam,
+  //     })
+
+  //     utils.infiniteOptions({
+  //       // @ts-expect-error conflict types
+  //       input: (pageParam: number) => {
+  //         return 'input'
+  //       },
+  //       // @ts-expect-error conflict types
+  //       getNextPageParam,
+  //       // @ts-expect-error conflict types
+  //       initialPageParam: undefined,
+  //     })
+  //   })
+
+  //   it('infer correct context type', () => {
+  //     utils.infiniteOptions({
+  //       context: { batch: true },
+  //       input: () => ({}),
+  //       getNextPageParam,
+  //       initialPageParam,
+  //     })
+
+  //     utils.infiniteOptions({
+  //       // @ts-expect-error invalid context
+  //       context: { batch: 'invalid' },
+  //       input: () => ({}),
+  //       getNextPageParam,
+  //       initialPageParam,
+  //     })
+  //   })
+
+  //   it('works with ref', () => {
+  //     utils.infiniteOptions({
+  //       context: computed(() => ({ batch: ref(true) })),
+  //       input: () => computed(() => ({ search: ref('search') })),
+  //       getNextPageParam,
+  //       initialPageParam,
+  //     })
+  //   })
+
+  //   it('works with useInfiniteQuery', () => {
+  //     const query = useInfiniteQuery(utils.infiniteOptions({
+  //       input: () => ({}),
+  //       getNextPageParam,
+  //       initialPageParam,
+  //       select: data => ({ mapped: data }),
+  //       throwOnError(error) {
+  //         expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
+  //         return false
+  //       },
+  //     }))
+
+  //     expectTypeOf(query.data.value).toEqualTypeOf<{ mapped: InfiniteData<UtilsOutput, number> } | undefined>()
+  //     expectTypeOf(query.error.value).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+  //   })
+
+  //   it('works with fetchInfiniteQuery', () => {
+  //     expectTypeOf(
+  //       queryClient.fetchInfiniteQuery(utils.infiniteOptions({
+  //         input: () => ({}),
+  //         getNextPageParam,
+  //         initialPageParam,
+  //       })),
+  //     ).toEqualTypeOf<
+  //       Promise<InfiniteData<UtilsOutput, number>>
+  //     >()
+  //   })
+  // })
+
+  describe('.mutationOptions', () => {
+    it('can optional options', () => {
+      const requiredUtils = {} as ProcedureUtils<{ batch?: boolean }, 'input', UtilsOutput, Error>
+
+      utils.mutationOptions()
+      utils.mutationOptions({})
+
+      requiredUtils.mutationOptions({
+        context: { batch: true },
+      })
+      // @ts-expect-error context is required
+      requiredUtils.mutationOptions()
+      // @ts-expect-error context is required
+      requiredUtils.mutationOptions({})
     })
 
-    const mutation = useMutation(option)
-
-    mutation.mutate(1)
-
-    // @ts-expect-error invalid input
-    mutation.mutate('1')
-    // @ts-expect-error invalid input
-    mutation.mutate()
-  })
-
-  it('infer correct output type', () => {
-    const option = utils.mutationOptions({
-      onSuccess: (data, input) => {
-        expectTypeOf(input).toEqualTypeOf<number>()
-        expectTypeOf(data).toEqualTypeOf<string>()
-      },
+    it('infer correct context type', () => {
+      utils.mutationOptions({ context: { batch: true } })
+      // @ts-expect-error invalid context
+      utils.mutationOptions({ context: { batch: 'invalid' } })
     })
 
-    const mutation = useMutation(option)
+    it('works with useMutation', () => {
+      const mutation = useMutation(utils.mutationOptions({
+        onSuccess: (data, input) => {
+          expectTypeOf(data).toEqualTypeOf<UtilsOutput>()
+          expectTypeOf(input).toEqualTypeOf<UtilsInput>()
+        },
+        onError: (error) => {
+          expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
+        },
+      }))
 
-    expectTypeOf(mutation.data.value).toEqualTypeOf<string | undefined>()
-  })
-
-  it('can be called without argument', () => {
-    const mutation = useMutation(utils.mutationOptions())
-    expectTypeOf(mutation.data.value).toEqualTypeOf<string | undefined>()
-  })
-
-  describe('client context', () => {
-    it('can be optional', () => {
-      const utils = {} as ProcedureUtils<undefined | { batch?: boolean }, undefined, string, Error>
-      useMutation(utils.mutationOptions())
-      useMutation(utils.mutationOptions({}))
-      useMutation(utils.mutationOptions({ context: undefined }))
-      useMutation(utils.mutationOptions({ context: { batch: true } }))
-      useMutation(utils.mutationOptions({ context: { batch: ref(false) } }))
-      // @ts-expect-error --- invalid context
-      useMutation(utils.mutationOptions({ context: { batch: 'invalid' } }))
-      // @ts-expect-error --- invalid context
-      useMutation(utils.mutationOptions({ context: { batch: ref('invalid') } }))
+      expectTypeOf<Parameters<typeof mutation.mutate>[0]>().toEqualTypeOf<UtilsInput>()
+      expectTypeOf(mutation.data.value).toEqualTypeOf<UtilsOutput | undefined>()
+      expectTypeOf(mutation.error.value).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
     })
-
-    it('required pass context when non-optional', () => {
-      const utils = {} as ProcedureUtils<{ batch?: boolean }, undefined, string, Error>
-      // @ts-expect-error --- missing context
-      useMutation(utils.mutationOptions())
-      // @ts-expect-error --- missing context
-      useMutation(utils.mutationOptions({}))
-      useMutation(utils.mutationOptions({ context: { batch: true } }))
-      useMutation(utils.mutationOptions({ context: { batch: ref(false) } }))
-      // @ts-expect-error --- invalid context
-      useMutation(utils.mutationOptions({ context: { batch: 123 } }))
-      // @ts-expect-error --- invalid context
-      useMutation(utils.mutationOptions({ context: { batch: ref(123) } }))
-    })
-  })
-
-  it('can infer errors', () => {
-    const utils = {} as ProcedureUtils<unknown, unknown, unknown, Error | ORPCError<'CODE', 'data'>>
-    expectTypeOf(useMutation(utils.mutationOptions()).error.value).toEqualTypeOf<Error | ORPCError<'CODE', 'data'> | null>()
-    expectTypeOf(useMutation(utils.mutationOptions({})).error.value).toEqualTypeOf<Error | ORPCError<'CODE', 'data'> | null>()
   })
 })

@@ -10,8 +10,8 @@ export type RouterUtils<T extends NestedClient<any>> =
     } & GeneralUtils<unknown>
 
 /**
- * @param client - The client create form `@orpc/client`
- * @param path - The base path for query key
+ * @param client - Any kind of oRPC clients: `createRouterClient`, `createORPCClient`, ...
+ * @param path - The base path for query key, when it it will be prefix to all keys
  */
 export function createRouterUtils<T extends NestedClient<any>>(
   client: T,

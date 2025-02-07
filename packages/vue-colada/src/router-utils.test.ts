@@ -6,97 +6,54 @@ const procedureUtilsSpy = vi.spyOn(procedureUtilsModule, 'createProcedureUtils')
 const generalUtilsSpy = vi.spyOn(generalUtilsModule, 'createGeneralUtils')
 
 beforeEach(() => {
-  procedureUtilsSpy.mockClear()
-  generalUtilsSpy.mockClear()
+  vi.clearAllMocks()
 })
 
-describe('router utils', () => {
+describe('createRouterUtils', () => {
+  const client = vi.fn() as any
+  client.key = vi.fn() // "key" mean client can handle when client and method is conflict
+  client.key.pong = vi.fn()
+
   it('works', () => {
-    const client = vi.fn() as any
-    client.ping = vi.fn()
-    client.ping.peng = vi.fn()
-
-    const utils = createRouterUtils(client) as any
+    const utils = createRouterUtils(client, ['__base__']) as any
 
     expect(generalUtilsSpy).toHaveBeenCalledTimes(1)
-    expect(generalUtilsSpy).toHaveBeenCalledWith([])
+    expect(generalUtilsSpy).toHaveBeenCalledWith(['__base__'])
     expect(procedureUtilsSpy).toHaveBeenCalledTimes(1)
-    expect(procedureUtilsSpy).toHaveBeenCalledWith(client, [])
+    expect(procedureUtilsSpy).toHaveBeenCalledWith(client, ['__base__'])
 
-    expect(typeof utils.key).toEqual('function')
-    expect(typeof utils.queryOptions).toEqual('function')
+    expect(utils.key()).toEqual(generalUtilsSpy.mock.results[0]!.value.key())
+    expect(utils.queryOptions().key.value).toEqual(procedureUtilsSpy.mock.results[0]!.value.queryOptions().key.value)
 
-    generalUtilsSpy.mockClear()
-    procedureUtilsSpy.mockClear()
-    void utils.ping
+    vi.clearAllMocks()
+    const keyUtils = utils.key
 
     expect(generalUtilsSpy).toHaveBeenCalledTimes(1)
-    expect(generalUtilsSpy).toHaveBeenCalledWith(['ping'])
+    expect(generalUtilsSpy).toHaveBeenCalledWith(['__base__', 'key'])
     expect(procedureUtilsSpy).toHaveBeenCalledTimes(1)
-    expect(procedureUtilsSpy).toHaveBeenCalledWith(client.ping, ['ping'])
+    expect(procedureUtilsSpy).toHaveBeenCalledWith(client.key, ['__base__', 'key'])
 
-    expect(typeof utils.ping.key).toEqual('function')
-    expect(typeof utils.ping.queryOptions).toEqual('function')
+    expect(keyUtils.key()).toEqual(generalUtilsSpy.mock.results[0]!.value.key())
+    expect(keyUtils.queryOptions().key.value).toEqual(procedureUtilsSpy.mock.results[0]!.value.queryOptions().key.value)
 
-    generalUtilsSpy.mockClear()
-    procedureUtilsSpy.mockClear()
-    void utils.ping.peng
+    vi.clearAllMocks()
+    const pongUtils = utils.key.pong
 
     expect(generalUtilsSpy).toHaveBeenCalledTimes(2)
-    expect(generalUtilsSpy).toHaveBeenNthCalledWith(1, ['ping'])
-    expect(generalUtilsSpy).toHaveBeenNthCalledWith(2, ['ping', 'peng'])
+    expect(generalUtilsSpy).toHaveBeenNthCalledWith(1, ['__base__', 'key'])
+    expect(generalUtilsSpy).toHaveBeenNthCalledWith(2, ['__base__', 'key', 'pong'])
 
     expect(procedureUtilsSpy).toHaveBeenCalledTimes(2)
-    expect(procedureUtilsSpy).toHaveBeenNthCalledWith(1, client.ping, ['ping'])
-    expect(procedureUtilsSpy).toHaveBeenNthCalledWith(2, client.ping.peng, ['ping', 'peng'])
+    expect(procedureUtilsSpy).toHaveBeenNthCalledWith(1, client.key, ['__base__', 'key'])
+    expect(procedureUtilsSpy).toHaveBeenNthCalledWith(2, client.key.pong, ['__base__', 'key', 'pong'])
 
-    expect(typeof utils.ping.peng.key).toEqual('function')
-    expect(typeof utils.ping.peng.queryOptions).toEqual('function')
+    expect(pongUtils.key()).toEqual(generalUtilsSpy.mock.results[1]!.value.key())
+    expect(pongUtils.queryOptions().key.value).toEqual(procedureUtilsSpy.mock.results[1]!.value.queryOptions().key.value)
   })
 
-  it('can custom  base path', () => {
-    const client = vi.fn() as any
+  it('not recursive on symbol', async () => {
+    const utils = createRouterUtils(client, ['__base__']) as any
 
-    const utils = createRouterUtils(client, ['base']) as any
-
-    expect(generalUtilsSpy).toHaveBeenCalledTimes(1)
-    expect(generalUtilsSpy).toHaveBeenCalledWith(['base'])
-    expect(procedureUtilsSpy).toHaveBeenCalledTimes(1)
-    expect(procedureUtilsSpy).toHaveBeenCalledWith(client, ['base'])
+    expect(utils[Symbol.for('a')]).toBe(undefined)
   })
-})
-
-it('still works when router conflict with methods', () => {
-  const client = vi.fn() as any
-  client.key = vi.fn()
-  client.queryOptions = vi.fn()
-  client.queryOptions.key = vi.fn()
-  client.queryOptions.queryOptions = vi.fn()
-
-  const utils = createRouterUtils(client) as any
-
-  expect(utils.key()).toEqual(['__ORPC__'])
-  expect(utils.key.key()).toEqual(['__ORPC__', 'key'])
-
-  expect(utils.queryOptions.key()).toEqual(['__ORPC__', 'queryOptions'])
-  expect(utils.queryOptions.key.key()).toEqual(['__ORPC__', 'queryOptions', 'key'])
-  expect(utils.queryOptions.queryOptions.key()).toEqual(['__ORPC__', 'queryOptions', 'queryOptions'])
-})
-
-it('not recursive on symbol', async () => {
-  const symbol = Symbol('a')
-  const client = vi.fn() as any
-  client.a = {
-    b: {
-      c: vi.fn(),
-    },
-    [symbol]: {
-      d: vi.fn(),
-    },
-  }
-
-  const utils = createRouterUtils(client) as any
-
-  expect(typeof utils.a.b.c).toBe('object')
-  expect(utils.a[symbol]).toBe(undefined)
 })

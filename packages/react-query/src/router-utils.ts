@@ -1,6 +1,6 @@
 import type { Client, NestedClient } from '@orpc/contract'
-import { createGeneralUtils, type GeneralUtils } from './utils-general'
-import { createProcedureUtils, type ProcedureUtils } from './utils-procedure'
+import { createGeneralUtils, type GeneralUtils } from './general-utils'
+import { createProcedureUtils, type ProcedureUtils } from './procedure-utils'
 
 export type RouterUtils<T extends NestedClient<any>> =
   T extends Client<infer UClientContext, infer UInput, infer UOutput, infer UError>
@@ -10,8 +10,8 @@ export type RouterUtils<T extends NestedClient<any>> =
     } & GeneralUtils<unknown>
 
 /**
- * @param client - The client create form `@orpc/client`
- * @param path - The base path for query key
+ * @param client - Any kind of oRPC clients: `createRouterClient`, `createORPCClient`, ...
+ * @param path - The base path for query key, when it it will be prefix to all keys
  */
 export function createRouterUtils<T extends NestedClient<any>>(
   client: T,

@@ -1,50 +1,22 @@
-import type { SetOptional } from '@orpc/shared'
-import type {
-  QueryFunctionContext,
-  QueryKey,
-  UndefinedInitialDataInfiniteOptions,
-  UndefinedInitialDataOptions,
-  UseMutationOptions,
-} from '@tanstack/react-query'
+import type { QueryKey, UseMutationOptions, UseSuspenseInfiniteQueryOptions, UseSuspenseQueryOptions } from '@tanstack/react-query'
 
-export type InferCursor<T> = T extends { cursor?: any } ? T['cursor'] : never
-
-export interface QueryOptionsBase<TOutput, TError extends Error> {
-  queryKey: QueryKey
-  queryFn(ctx: QueryFunctionContext): Promise<TOutput>
-  retry?(failureCount: number, error: TError): boolean // this make tanstack can infer the TError type
-}
-
-export type QueryOptionsExtra<TClientContext, TInput, TOutput, TError extends Error, TSelectData> =
+export type InQueryOptions<TClientContext, TInput, TOutput, TError extends Error, TSelectData> =
   & (undefined extends TInput ? { input?: TInput } : { input: TInput })
   & (undefined extends TClientContext ? { context?: TClientContext } : { context: TClientContext })
-  & (
-      SetOptional<UndefinedInitialDataOptions<TOutput, TError, TSelectData, QueryKey>, 'queryKey'>
-  )
+  & Omit<OutQueryOptions<TOutput, TError, TSelectData>, 'queryKey' | 'queryFn'>
 
-export interface InfiniteOptionsBase<TInput, TOutput, TError extends Error> {
-  queryKey: QueryKey
-  queryFn(ctx: QueryFunctionContext<QueryKey, InferCursor<TInput>>): Promise<TOutput>
-  retry?(failureCount: number, error: TError): boolean // this make tanstack can infer the TError type
-  initialPageParam: undefined
-}
+export type OutQueryOptions<TOutput, TError, TSelectData> = UseSuspenseQueryOptions<TOutput, TError, TSelectData>
 
-export type InfiniteOptionsExtra<TClientContext, TInput, TOutput, TError extends Error, TSelectData> =
-  & (undefined extends TInput ? { input?: Omit<TInput, 'cursor'> } : { input: Omit<TInput, 'cursor'> })
+export type InInfiniteOptions<TClientContext, TInput, TOutput, TError extends Error, TSelectData, TPageParam> =
+  & { input: (pageParam: TPageParam) => TInput }
   & (undefined extends TClientContext ? { context?: TClientContext } : { context: TClientContext })
-  & (
-    SetOptional<
-      UndefinedInitialDataInfiniteOptions<TOutput, TError, TSelectData, QueryKey, InferCursor<TInput>>,
-      'queryKey' | (undefined extends InferCursor<TInput> ? 'initialPageParam' : never)
-    >
-  )
+  & Omit<OutInfiniteOptions<TOutput, TError, TSelectData, TPageParam>, 'queryKey' | 'queryFn'>
 
-export interface MutationOptionsBase<TInput, TOutput, TError extends Error> {
-  mutationKey: QueryKey
-  mutationFn(input: TInput): Promise<TOutput>
-  retry?(failureCount: number, error: TError): boolean // this make tanstack can infer the TError type
-}
+export type OutInfiniteOptions<TOutput, TError extends Error, TSelectData, TPageParam> =
+  UseSuspenseInfiniteQueryOptions<TOutput, TError, TSelectData, TOutput, QueryKey, TPageParam>
 
-export type MutationOptionsExtra<TClientContext, TInput, TOutput, TError extends Error> =
+export type InMutationOptions<TClientContext, TInput, TOutput, TError extends Error> =
   & (undefined extends TClientContext ? { context?: TClientContext } : { context: TClientContext })
-  & UseMutationOptions<TOutput, TError, TInput>
+  & Omit<OutMutationOptions<TInput, TOutput, TError>, 'mutationKey' | 'mutationFn'>
+
+export type OutMutationOptions<TInput, TOutput, TError extends Error> = UseMutationOptions<TOutput, TError, TInput>

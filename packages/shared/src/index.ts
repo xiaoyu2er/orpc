@@ -6,6 +6,7 @@ export * from './interceptor'
 export * from './json'
 export * from './object'
 export * from './proxy'
+export * from './types'
 export * from './value'
 
 export { isPlainObject } from 'is-what'

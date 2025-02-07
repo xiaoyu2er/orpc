@@ -1,14 +1,12 @@
 import type { AnyFunction } from '@orpc/shared'
-import type { MutationObserverOptions, QueryFunctionContext, QueryKey, QueryObserverOptions, UseInfiniteQueryOptions } from '@tanstack/vue-query'
+import type { Enabled, MutationObserverOptions, QueryFunctionContext, QueryKey, QueryObserverOptions, UseInfiniteQueryOptions } from '@tanstack/vue-query'
 import type { ComputedRef, MaybeRef, MaybeRefOrGetter } from 'vue'
 
 export type MaybeDeepRef<T> = MaybeRef<
   T extends AnyFunction
     ? T
     : T extends object
-      ? {
-          [K in keyof T]: MaybeDeepRef<T[K]>
-        }
+      ? { [K in keyof T]: MaybeDeepRef<T[K]> }
       : T
 >
 
@@ -16,11 +14,11 @@ export type QueryOptionsIn<TClientContext, TInput, TOutput, TError extends Error
   & (undefined extends TInput ? { input?: MaybeDeepRef<TInput> } : { input: MaybeDeepRef<TInput> })
   & (undefined extends TClientContext ? { context?: MaybeDeepRef<TClientContext> } : { context: MaybeDeepRef<TClientContext> })
   & {
-    [P in keyof Omit<QueryObserverOptions<TOutput, TError, TSelectData, TOutput, QueryKey>, 'queryKey'>]: P extends 'enabled'
-      ? MaybeRefOrGetter<QueryObserverOptions<TOutput, TError, TSelectData, TOutput, QueryKey>[P]>
-      : MaybeDeepRef<QueryObserverOptions<TOutput, TError, TSelectData, TOutput, QueryKey>[P]>
+    [P in keyof Omit<QueryObserverOptions<TOutput, TError, TSelectData, TOutput>, 'queryKey' | 'enabled'>]:
+    MaybeDeepRef<QueryObserverOptions<TOutput, TError, TSelectData, TOutput>[P]>
   }
   & {
+    enabled?: MaybeRefOrGetter<Enabled<TOutput, TError, TSelectData>>
     queryKey?: MaybeDeepRef<QueryKey>
     shallow?: boolean
   }

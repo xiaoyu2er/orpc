@@ -1,6 +1,6 @@
 import { ref } from 'vue'
+import { createGeneralUtils } from './general-utils'
 import * as keyModule from './key'
-import { createGeneralUtils } from './utils-general'
 
 const buildKeySpy = vi.spyOn(keyModule, 'buildKey')
 

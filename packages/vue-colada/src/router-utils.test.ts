@@ -1,6 +1,6 @@
-import * as generalUtilsModule from './utils-general'
-import * as procedureUtilsModule from './utils-procedure'
-import { createRouterUtils } from './utils-router'
+import * as generalUtilsModule from './general-utils'
+import * as procedureUtilsModule from './procedure-utils'
+import { createRouterUtils } from './router-utils'
 
 const procedureUtilsSpy = vi.spyOn(procedureUtilsModule, 'createProcedureUtils')
 const generalUtilsSpy = vi.spyOn(generalUtilsModule, 'createGeneralUtils')

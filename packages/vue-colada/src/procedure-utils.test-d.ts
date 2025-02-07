@@ -1,10 +1,10 @@
 import type { Client } from '@orpc/contract'
 import type { ORPCError } from '@orpc/server'
+import type { ProcedureUtils } from './procedure-utils'
 import type { QueryOptions } from './types'
-import type { ProcedureUtils } from './utils-procedure'
 import { useMutation, useQuery } from '@pinia/colada'
 import { ref } from 'vue'
-import { createProcedureUtils } from './utils-procedure'
+import { createProcedureUtils } from './procedure-utils'
 
 describe('queryOptions', () => {
   const client = {} as Client<undefined, number | undefined, string | undefined, Error>

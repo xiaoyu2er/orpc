@@ -1,77 +1,31 @@
-import type { ContractRouterClient } from '@orpc/contract'
+import type { ErrorFromErrorMap } from '@orpc/contract'
 import type { RouterClient } from '@orpc/server'
+import type { baseErrorMap } from '../../contract/tests/shared'
+import type { router } from '../../server/tests/shared'
 import type { GeneralUtils } from './general-utils'
 import type { ProcedureUtils } from './procedure-utils'
-import { oc } from '@orpc/contract'
-import { implement, os } from '@orpc/server'
-import { z } from 'zod'
-import { createGeneralUtils } from './general-utils'
-import { createProcedureUtils } from './procedure-utils'
-import { createRouterUtils } from './router-utils'
+import type { RouterUtils } from './router-utils'
 
-const pingContract = oc.input(z.object({ name: z.string() })).output(z.string())
-const pongContract = oc.input(z.number()).output(z.string())
-const contractRouter = oc.router({
-  ping: pingContract,
-  pong: pongContract,
-})
+it('RouterUtils', () => {
+  const utils = {} as RouterUtils<RouterClient<typeof router, { batch?: boolean }>>
 
-const ping = implement(pingContract).handler(({ input }) => `ping ${input.name}`).callable()
-const pong = implement(pongContract).handler(num => `pong ${num}`).callable()
+  expectTypeOf(utils).toMatchTypeOf<GeneralUtils<unknown>>()
+  expectTypeOf(utils.nested).toMatchTypeOf<GeneralUtils<unknown>>()
 
-const router = implement(contractRouter).router({
-  ping,
-  pong: os.lazy(() => Promise.resolve({ default: pong })),
-})
+  expectTypeOf(utils.ping).toMatchTypeOf<GeneralUtils<{ input: number }>>()
+  expectTypeOf(utils.nested.ping).toMatchTypeOf<GeneralUtils<{ input: number }>>()
 
-describe('with contract router', () => {
-  it('build correct types', () => {
-    const utils = createRouterUtils({} as ContractRouterClient<typeof contractRouter, unknown>)
+  expectTypeOf(utils.ping).toMatchTypeOf<
+    ProcedureUtils<{ batch?: boolean }, { input: number }, { output: string }, ErrorFromErrorMap<typeof baseErrorMap>>
+  >()
+  expectTypeOf(utils.nested.ping).toMatchTypeOf<
+    ProcedureUtils<{ batch?: boolean }, { input: number }, { output: string }, ErrorFromErrorMap<typeof baseErrorMap>>
+  >()
 
-    const generalUtils = createGeneralUtils([])
-    const pingUtils = createProcedureUtils(ping, [])
-    const pingGeneralUtils = createGeneralUtils<{ name: string }>(['ping'])
-    const pongUtils = createProcedureUtils(pong, [])
-    const pongGeneralUtils = createGeneralUtils<number>(['ping'])
-
-    expectTypeOf(utils).toMatchTypeOf<typeof generalUtils>()
-    expectTypeOf(utils.ping).toMatchTypeOf<typeof pingUtils>()
-    expectTypeOf(utils.ping).toMatchTypeOf<typeof pingGeneralUtils>()
-    expectTypeOf(utils.pong).toMatchTypeOf<typeof pongUtils>()
-    expectTypeOf(utils.pong).toMatchTypeOf<typeof pongGeneralUtils>()
-  })
-})
-
-describe('with  router', () => {
-  it('build correct types', () => {
-    const utils = createRouterUtils({} as RouterClient<typeof router, unknown>)
-
-    const generalUtils = createGeneralUtils([])
-    const pingUtils = createProcedureUtils(ping, [])
-    const pingGeneralUtils = createGeneralUtils<{ name: string }>(['ping'])
-    const pongUtils = createProcedureUtils(pong, [])
-    const pongGeneralUtils = createGeneralUtils<number>(['ping'])
-
-    expectTypeOf(utils).toMatchTypeOf<typeof generalUtils>()
-    expectTypeOf(utils.ping).toMatchTypeOf<typeof pingUtils>()
-    expectTypeOf(utils.ping).toMatchTypeOf<typeof pingGeneralUtils>()
-    expectTypeOf(utils.pong).toMatchTypeOf<typeof pongUtils>()
-    expectTypeOf(utils.pong).toMatchTypeOf<typeof pongGeneralUtils>()
-  })
-})
-
-it('with client context', () => {
-  const utils = createRouterUtils({} as RouterClient<typeof router, undefined | { batch?: boolean }>)
-
-  const generalUtils = {} as GeneralUtils<unknown>
-  const pingUtils = {} as ProcedureUtils<{ name: string }, string, undefined | { batch?: boolean }, Error>
-  const pingGeneralUtils = createGeneralUtils<{ name: string }>(['ping'])
-  const pongUtils = {} as ProcedureUtils<number, string, undefined | { batch?: boolean }, Error>
-  const pongGeneralUtils = {} as GeneralUtils<number>
-
-  expectTypeOf(utils).toMatchTypeOf<typeof generalUtils>()
-  expectTypeOf(utils.ping).toMatchTypeOf<typeof pingUtils>()
-  expectTypeOf(utils.ping).toMatchTypeOf<typeof pingGeneralUtils>()
-  expectTypeOf(utils.pong).toMatchTypeOf<typeof pongUtils>()
-  expectTypeOf(utils.pong).toMatchTypeOf<typeof pongGeneralUtils>()
+  expectTypeOf(utils.pong).toMatchTypeOf<
+    ProcedureUtils<{ batch?: boolean }, unknown, unknown, Error>
+  >()
+  expectTypeOf(utils.nested.pong).toMatchTypeOf<
+    ProcedureUtils<{ batch?: boolean }, unknown, unknown, Error>
+  >()
 })

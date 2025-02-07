@@ -4,9 +4,6 @@ import type { MaybeDeepRef } from './types'
 import { buildKey } from './key'
 import { deepUnref } from './utils'
 
-/**
- * Utils at any level (procedure or router)
- */
 export interface GeneralUtils<TInput> {
   key<UType extends KeyType = undefined>(options?: MaybeDeepRef<BuildKeyOptions<UType, TInput>>): QueryKey
 }

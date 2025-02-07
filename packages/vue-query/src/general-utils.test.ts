@@ -1,27 +1,21 @@
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { createGeneralUtils } from './general-utils'
 import * as keyModule from './key'
 
 const buildKeySpy = vi.spyOn(keyModule, 'buildKey')
 
 beforeEach(() => {
-  buildKeySpy.mockClear()
+  vi.clearAllMocks()
 })
 
-describe('key', () => {
-  it('works', () => {
-    const utils = createGeneralUtils(['path'])
-    expect(utils.key({ input: 'input', type: 'infinite' })).toEqual(['__ORPC__', ['path'], { input: 'input', type: 'infinite' }])
-    expect(buildKeySpy).toHaveBeenCalledTimes(1)
-    expect(buildKeySpy).toHaveBeenCalledWith(['path'], { input: 'input', type: 'infinite' })
-  })
+describe('createGeneralUtils', () => {
+  const utils = createGeneralUtils(['path'])
 
-  it('works with ref', () => {
-    const utils = createGeneralUtils(['path'])
-    expect(utils.key({ input: ref({
-      value: ref('input'),
-    }), type: 'infinite' })).toEqual(['__ORPC__', ['path'], { input: { value: 'input' }, type: 'infinite' }])
+  it('.key', () => {
+    expect(
+      utils.key({ input: computed(() => ({ search: ref('__search__') })), type: 'infinite' }),
+    ).toEqual([['path'], { input: { search: '__search__' }, type: 'infinite' }])
     expect(buildKeySpy).toHaveBeenCalledTimes(1)
-    expect(buildKeySpy).toHaveBeenCalledWith(['path'], { input: { value: 'input' }, type: 'infinite' })
+    expect(buildKeySpy).toHaveBeenCalledWith(['path'], { input: { search: '__search__' }, type: 'infinite' })
   })
 })

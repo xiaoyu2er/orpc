@@ -1,18 +1,15 @@
 import type { Client } from '@orpc/contract'
-import type { MutationOptions, MutationOptionsExtra, QueryOptions, QueryOptionsExtra } from './types'
+import type { MutationOptions, MutationOptionsIn, QueryOptions, QueryOptionsIn } from './types'
 import { computed } from 'vue'
 import { buildKey } from './key'
 import { deepUnref } from './utils'
 
-/**
- * Utils at procedure level
- */
 export interface ProcedureUtils<TClientContext, TInput, TOutput, TError extends Error> {
-  queryOptions<U extends QueryOptionsExtra<TClientContext, TInput, TOutput, TError>>(
+  queryOptions<U extends QueryOptionsIn<TClientContext, TInput, TOutput, TError>>(
     ...opt: [options: U] | (undefined extends TInput & TClientContext ? [] : never)
   ): QueryOptions<TOutput, TError>
 
-  mutationOptions<U extends MutationOptionsExtra<TClientContext, TInput, TOutput, TError>>(
+  mutationOptions<U extends MutationOptionsIn<TClientContext, TInput, TOutput, TError>>(
     ...opt: [options: U] | (undefined extends TClientContext ? [] : never)
   ): MutationOptions<TInput, TOutput, TError>
 }

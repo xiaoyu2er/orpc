@@ -1,194 +1,64 @@
-import { ref } from 'vue'
-import * as keyModule from './key'
+import { computed, ref } from 'vue'
+import * as Key from './key'
 import { createProcedureUtils } from './procedure-utils'
 
-const buildKeySpy = vi.spyOn(keyModule, 'buildKey')
-
-const controller = new AbortController()
-const signal = controller.signal
+const buildKeySpy = vi.spyOn(Key, 'buildKey')
 
 beforeEach(() => {
-  buildKeySpy.mockClear()
+  vi.clearAllMocks()
 })
 
-describe('queryOptions', () => {
-  const client = vi.fn(
-    (...[input]) => Promise.resolve(input?.toString()),
-  )
+describe('createProcedureUtils', () => {
+  const controller = new AbortController()
+  const signal = controller.signal
+  const client = vi.fn().mockResolvedValue('__output__')
   const utils = createProcedureUtils(client, ['ping'])
 
-  beforeEach(() => {
-    client.mockClear()
-  })
+  it('.queryOptions', async () => {
+    const options = utils.queryOptions({ input: computed(() => ({ search: ref('__search__') })), context: { batch: '__batch__' } })
 
-  it('works', async () => {
-    const options = utils.queryOptions({ input: 1 })
-
-    expect(options.queryKey.value).toEqual(['__ORPC__', ['ping'], { type: 'query', input: 1 }])
+    expect(options.queryKey.value).toBe(buildKeySpy.mock.results[0]!.value)
     expect(buildKeySpy).toHaveBeenCalledTimes(1)
-    expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { type: 'query', input: 1 })
+    expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { type: 'query', input: { search: '__search__' } })
 
-    client.mockResolvedValueOnce('__mocked__')
-    await expect(options.queryFn({ signal } as any)).resolves.toEqual('__mocked__')
+    await expect(options.queryFn!({ signal } as any)).resolves.toEqual('__output__')
     expect(client).toHaveBeenCalledTimes(1)
-    expect(client).toBeCalledWith(1, { signal })
+    expect(client).toBeCalledWith({ search: '__search__' }, { signal, context: { batch: '__batch__' } })
   })
 
-  it('works with ref', async () => {
-    const input = ref(1)
-    const options = utils.queryOptions({ input })
-
-    expect(options.queryKey.value).toEqual(['__ORPC__', ['ping'], { type: 'query', input: 1 }])
-    expect(buildKeySpy).toHaveBeenCalledTimes(1)
-    expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { type: 'query', input: 1 })
-
-    client.mockResolvedValueOnce('__mocked__')
-    await expect(options.queryFn({ signal } as any)).resolves.toEqual('__mocked__')
-    expect(client).toHaveBeenCalledTimes(1)
-    expect(client).toBeCalledWith(1, { signal })
-  })
-
-  it('works with client context', async () => {
-    const client = vi.fn((...[input]) => Promise.resolve(input?.toString()))
-    const utils = createProcedureUtils(client, ['ping'])
-
-    const options = utils.queryOptions({ context: { batch: ref(true) } })
-
-    expect(options.queryKey.value).toEqual(['__ORPC__', ['ping'], { type: 'query' }])
-    expect(buildKeySpy).toHaveBeenCalledTimes(1)
-    expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { type: 'query' })
-
-    client.mockResolvedValueOnce('__mocked__')
-    await expect(options.queryFn({ signal } as any)).resolves.toEqual('__mocked__')
-    expect(client).toHaveBeenCalledTimes(1)
-    expect(client).toBeCalledWith(undefined, { signal, context: { batch: true } })
-  })
-})
-
-describe('infiniteOptions', () => {
-  const getNextPageParam = vi.fn()
-
-  it('works ', async () => {
-    const client = vi.fn()
-    const utils = createProcedureUtils(client, [])
+  it('.infiniteOptions', async () => {
+    const getNextPageParam = vi.fn()
 
     const options = utils.infiniteOptions({
-      input: { limit: 5 },
+      input: pageParam => (computed(() => ({ search: '__search__', pageParam }))),
+      context: { batch: '__batch__' },
       getNextPageParam,
-      initialPageParam: 1,
+      initialPageParam: '__initialPageParam__',
     })
 
-    expect(options.initialPageParam).toEqual(1)
-    expect(options.queryKey.value).toEqual(['__ORPC__', [], { type: 'infinite', input: { limit: 5 } }])
+    expect(options.queryKey.value).toBe(buildKeySpy.mock.results[0]!.value)
     expect(buildKeySpy).toHaveBeenCalledTimes(1)
-    expect(buildKeySpy).toHaveBeenCalledWith([], { type: 'infinite', input: { limit: 5 } })
+    expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { type: 'infinite', input: { search: '__search__', pageParam: '__initialPageParam__' } })
 
-    client.mockResolvedValueOnce('__mocked__')
-    await expect(options.queryFn({ pageParam: 1, signal } as any)).resolves.toEqual('__mocked__')
+    expect(options.initialPageParam).toEqual('__initialPageParam__')
+    expect(options.getNextPageParam).toBe(getNextPageParam)
+
+    await expect(options.queryFn!({ signal, pageParam: '__pageParam__' } as any)).resolves.toEqual('__output__')
     expect(client).toHaveBeenCalledTimes(1)
-    expect(client).toBeCalledWith({ limit: 5, cursor: 1 }, { signal })
+    expect(client).toBeCalledWith({ search: '__search__', pageParam: '__pageParam__' }, { signal, context: { batch: '__batch__' } })
   })
 
-  it('works without initialPageParam', async () => {
-    const client = vi.fn()
-    const utils = createProcedureUtils(client, [])
-
-    const options = utils.infiniteOptions({
-      input: { limit: 5 },
-      getNextPageParam,
+  it('.mutationOptions', async () => {
+    const options = utils.mutationOptions({
+      context: { batch: '__batch__' },
     })
 
-    expect(options.queryKey.value).toEqual(['__ORPC__', [], { type: 'infinite', input: { limit: 5 } }])
-    expect(buildKeySpy).toHaveBeenCalledTimes(1)
-    expect(buildKeySpy).toHaveBeenCalledWith([], { type: 'infinite', input: { limit: 5 } })
-
-    client.mockResolvedValueOnce('__mocked__')
-    await expect(options.queryFn({ pageParam: undefined, signal } as any)).resolves.toEqual('__mocked__')
-    expect(client).toHaveBeenCalledTimes(1)
-    expect(client).toBeCalledWith({ limit: 5, cursor: undefined }, { signal })
-  })
-
-  it('works with ref', async () => {
-    const client = vi.fn()
-    const utils = createProcedureUtils(client, [])
-
-    const input = ref({ limit: ref(5) })
-    const options = utils.infiniteOptions({
-      input,
-      getNextPageParam,
-      initialPageParam: 1,
-    })
-
-    expect(options.initialPageParam).toEqual(1)
-    expect(options.queryKey.value).toEqual(['__ORPC__', [], { type: 'infinite', input: input.value }])
-    expect(buildKeySpy).toHaveBeenCalledTimes(1)
-    expect(buildKeySpy).toHaveBeenCalledWith([], { type: 'infinite', input: input.value })
-
-    client.mockResolvedValueOnce('__mocked__')
-    await expect(options.queryFn({ pageParam: 1, signal } as any)).resolves.toEqual('__mocked__')
-    expect(client).toHaveBeenCalledTimes(1)
-    expect(client).toBeCalledWith({ limit: 5, cursor: 1 }, { signal })
-  })
-
-  it('works with client context', async () => {
-    const client = vi.fn()
-    const utils = createProcedureUtils(client, [])
-
-    const options = utils.infiniteOptions({
-      context: { batch: ref(true) },
-      getNextPageParam,
-      initialPageParam: 1,
-    })
-
-    expect(options.queryKey.value).toEqual(['__ORPC__', [], { type: 'infinite' }])
-    expect(buildKeySpy).toHaveBeenCalledTimes(1)
-    expect(buildKeySpy).toHaveBeenCalledWith([], { type: 'infinite' })
-
-    client.mockResolvedValueOnce('__mocked__')
-    await expect(options.queryFn({ pageParam: 1, signal } as any)).resolves.toEqual('__mocked__')
-    expect(client).toHaveBeenCalledTimes(1)
-    expect(client).toBeCalledWith({ limit: undefined, cursor: 1 }, { signal, context: { batch: true } })
-  })
-})
-
-describe('mutationOptions', () => {
-  const client = vi.fn(
-    (...[input]) => Promise.resolve(input?.toString()),
-  )
-  const utils = createProcedureUtils(client, ['ping'])
-
-  beforeEach(() => {
-    client.mockClear()
-  })
-
-  it('works', async () => {
-    const options = utils.mutationOptions()
-
-    expect(options.mutationKey).toEqual(['__ORPC__', ['ping'], { type: 'mutation' }])
+    expect(options.mutationKey).toBe(buildKeySpy.mock.results[0]!.value)
     expect(buildKeySpy).toHaveBeenCalledTimes(1)
     expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { type: 'mutation' })
 
-    client.mockResolvedValueOnce('__mocked__')
-    await expect(options.mutationFn(1)).resolves.toEqual('__mocked__')
+    await expect(options.mutationFn!('__input__')).resolves.toEqual('__output__')
     expect(client).toHaveBeenCalledTimes(1)
-    expect(client).toBeCalledWith(1, {})
-  })
-
-  it('works with client context', async () => {
-    const client = vi.fn(
-      (...[input]) => Promise.resolve(input?.toString()),
-    )
-    const utils = createProcedureUtils(client, ['ping'])
-
-    const options = utils.mutationOptions({ context: { batch: ref(true) } })
-
-    expect(options.mutationKey).toEqual(['__ORPC__', ['ping'], { type: 'mutation' }])
-    expect(buildKeySpy).toHaveBeenCalledTimes(1)
-    expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { type: 'mutation' })
-
-    client.mockResolvedValueOnce('__mocked__')
-    await expect(options.mutationFn(1)).resolves.toEqual('__mocked__')
-    expect(client).toHaveBeenCalledTimes(1)
-    expect(client).toBeCalledWith(1, { context: { batch: true } })
+    expect(client).toBeCalledWith('__input__', { context: { batch: '__batch__' } })
   })
 })

@@ -14,15 +14,15 @@ describe('createProcedureUtils', () => {
   const utils = createProcedureUtils(client, ['ping'])
 
   it('.queryOptions', async () => {
-    const options = utils.queryOptions({ input: '__input__', context: { batch: '__batch__' } })
+    const options = utils.queryOptions({ input: { search: '__search__' }, context: { batch: '__batch__' } })
 
     expect(options.queryKey).toBe(buildKeySpy.mock.results[0]!.value)
     expect(buildKeySpy).toHaveBeenCalledTimes(1)
-    expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { type: 'query', input: '__input__' })
+    expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { type: 'query', input: { search: '__search__' } })
 
     await expect(options.queryFn!({ signal } as any)).resolves.toEqual('__output__')
     expect(client).toHaveBeenCalledTimes(1)
-    expect(client).toBeCalledWith('__input__', { signal, context: { batch: '__batch__' } })
+    expect(client).toBeCalledWith({ search: '__search__' }, { signal, context: { batch: '__batch__' } })
   })
 
   it('.infiniteOptions', async () => {

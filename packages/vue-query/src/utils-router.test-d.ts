@@ -1,12 +1,12 @@
 import type { ContractRouterClient } from '@orpc/contract'
 import type { RouterClient } from '@orpc/server'
+import type { ProcedureUtils } from './procedure-utils'
 import type { GeneralUtils } from './utils-general'
-import type { ProcedureUtils } from './utils-procedure'
 import { oc } from '@orpc/contract'
 import { implement, os } from '@orpc/server'
 import { z } from 'zod'
+import { createProcedureUtils } from './procedure-utils'
 import { createGeneralUtils } from './utils-general'
-import { createProcedureUtils } from './utils-procedure'
 import { createRouterUtils } from './utils-router'
 
 const pingContract = oc.input(z.object({ name: z.string() })).output(z.string())

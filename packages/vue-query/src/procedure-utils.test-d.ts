@@ -1,7 +1,7 @@
 import type { ErrorFromErrorMap } from '@orpc/contract'
 import type { InfiniteData } from '@tanstack/vue-query'
 import type { baseErrorMap } from '../../contract/tests/shared'
-import type { ProcedureUtils } from './utils-procedure'
+import type { ProcedureUtils } from './procedure-utils'
 import { useInfiniteQuery, useMutation, useQueries, useQuery } from '@tanstack/vue-query'
 import { computed, ref } from 'vue'
 import { queryClient } from '../tests/shared'

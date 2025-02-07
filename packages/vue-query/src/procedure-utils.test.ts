@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import * as keyModule from './key'
-import { createProcedureUtils } from './utils-procedure'
+import { createProcedureUtils } from './procedure-utils'
 
 const buildKeySpy = vi.spyOn(keyModule, 'buildKey')
 

@@ -1,6 +1,6 @@
 import type { Client, NestedClient } from '@orpc/contract'
+import { createProcedureUtils, type ProcedureUtils } from './procedure-utils'
 import { createGeneralUtils, type GeneralUtils } from './utils-general'
-import { createProcedureUtils, type ProcedureUtils } from './utils-procedure'
 
 export type RouterUtils<T extends NestedClient<any>> =
   T extends Client<infer TClientContext, infer UInput, infer UOutput, infer UError>

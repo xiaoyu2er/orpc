@@ -93,8 +93,8 @@ describe('ProcedureUtils', () => {
       expectTypeOf(queries[1].data).toEqualTypeOf<UtilsOutput | undefined>()
 
       // FIXME: useQueries cannot infer error
-      // expectTypeOf(queries[0].error).toEqualTypeOf<Error | ORPCError<'NOT_FOUND', { id: string }> | null>()
-      //   expectTypeOf(queries[0].error).toEqualTypeOf<null | Error | ORPCError<'TOO_MANY_REQUESTS', { keyword?: string, cursor: number }>>()
+      // expectTypeOf(queries[0].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
+      // expectTypeOf(queries[0].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
     })
 
     it('works with fetchQuery', () => {

@@ -8,7 +8,7 @@ import { lazy, Procedure } from '../src'
 export type InitialContext = { db: string }
 export type CurrentContext = InitialContext & { auth: boolean }
 
-export const pingHandler = vi.fn()
+export const pingHandler = vi.fn(({ input }) => ({ output: Number(input.input) }))
 export const pingMiddleware = vi.fn(({ next }) => next())
 
 export const ping = new Procedure<
@@ -27,7 +27,7 @@ export const ping = new Procedure<
   outputValidationIndex: 1,
 })
 
-export const pongHandler = vi.fn()
+export const pongHandler = vi.fn(({ input }) => input)
 
 export const pong = new Procedure<
   Context,

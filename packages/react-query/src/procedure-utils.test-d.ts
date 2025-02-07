@@ -3,6 +3,7 @@ import type { InfiniteData } from '@tanstack/react-query'
 import type { baseErrorMap } from '../../contract/tests/shared'
 import type { ProcedureUtils } from './procedure-utils'
 import { useInfiniteQuery, useMutation, useQueries, useQuery, useSuspenseInfiniteQuery, useSuspenseQuery } from '@tanstack/react-query'
+import { queryClient } from '../tests/shared'
 
 describe('ProcedureUtils', () => {
   const utils = {} as ProcedureUtils<{ batch?: boolean } | undefined, 'input' | undefined, 'output', ErrorFromErrorMap<typeof baseErrorMap>>
@@ -90,6 +91,14 @@ describe('ProcedureUtils', () => {
       // FIXME: useQueries cannot infer error
       // expectTypeOf(queries[0].error).toEqualTypeOf<Error | ORPCError<'NOT_FOUND', { id: string }> | null>()
       //   expectTypeOf(queries[0].error).toEqualTypeOf<null | Error | ORPCError<'TOO_MANY_REQUESTS', { keyword?: string, cursor: number }>>()
+    })
+
+    it('works with fetchQuery', () => {
+      expectTypeOf(
+        queryClient.fetchQuery(utils.queryOptions()),
+      ).toEqualTypeOf<
+        Promise<'output'>
+      >()
     })
   })
 
@@ -214,6 +223,18 @@ describe('ProcedureUtils', () => {
 
       expectTypeOf(query.data).toEqualTypeOf<{ mapped: InfiniteData<'output', number> }>()
       expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+    })
+
+    it('works with fetchInfiniteQuery', () => {
+      expectTypeOf(
+        queryClient.fetchInfiniteQuery(utils.infiniteOptions({
+          input: () => 'input',
+          getNextPageParam,
+          initialPageParam,
+        })),
+      ).toEqualTypeOf<
+        Promise<InfiniteData<'output', number>>
+      >()
     })
   })
 

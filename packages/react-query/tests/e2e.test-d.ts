@@ -3,6 +3,17 @@ import { isDefinedError } from '@orpc/contract'
 import { useInfiniteQuery, useMutation, useQueries, useQuery, useSuspenseInfiniteQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { orpc, queryClient } from './shared'
 
+it('.key', () => {
+  queryClient.invalidateQueries({
+    queryKey: orpc.nested.key({ type: 'query' }),
+  })
+
+  orpc.ping.key({})
+  orpc.ping.key({ input: { input: 123 } })
+  // @ts-expect-error --- input is invalid
+  orpc.ping.key({ input: { input: 'INVALID' } })
+})
+
 describe('.queryOptions', () => {
   it('useQuery', () => {
     const query = useQuery(orpc.ping.queryOptions({

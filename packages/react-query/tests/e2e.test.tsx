@@ -1,204 +1,108 @@
-import { isDefinedError } from '@orpc/contract'
-import { useInfiniteQuery, useMutation, useQueries, useQuery, useSuspenseInfiniteQuery, useSuspenseQuery } from '@tanstack/react-query'
+import { isDefinedError, ORPCError } from '@orpc/contract'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { renderHook } from '@testing-library/react'
-import { orpc, queryClient } from './helpers'
+import { pingHandler } from '../../server/tests/shared'
+import { orpc, queryClient } from './shared'
 
 beforeEach(() => {
   queryClient.clear()
   vi.clearAllMocks()
 })
 
-describe('useQuery', () => {
-  it('on success', async () => {
-    const { result } = renderHook(() => useQuery(orpc.post.find.queryOptions({ input: { id: '123' } }), queryClient))
+it('case: with useQuery', async () => {
+  const { result } = renderHook(() => useQuery(orpc.nested.ping.queryOptions({ input: { input: 123 } }), queryClient))
 
-    expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(1)
-    expect(queryClient.isFetching({ queryKey: orpc.post.key() })).toEqual(1)
-    expect(queryClient.isFetching({ queryKey: orpc.post.find.key() })).toEqual(1)
-    expect(queryClient.isFetching({ queryKey: orpc.post.find.key({ input: { id: '123' } }) })).toEqual(1)
-    expect(queryClient.isFetching({ queryKey: orpc.post.key({ type: 'mutation' }) })).toEqual(0)
+  expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(1)
+  expect(queryClient.isFetching({ queryKey: orpc.nested.key() })).toEqual(1)
+  expect(queryClient.isFetching({ queryKey: orpc.nested.ping.key() })).toEqual(1)
+  expect(queryClient.isFetching({ queryKey: orpc.nested.ping.key({ input: { input: 123 } }) })).toEqual(1)
+  expect(queryClient.isFetching({ queryKey: orpc.nested.ping.key({ input: { input: 123 }, type: 'query' }) })).toEqual(1)
 
-    await vi.waitFor(() => expect(result.current.data).toEqual({ id: '123', title: 'title-123' }))
+  expect(queryClient.isFetching({ queryKey: orpc.nested.ping.key({ input: { input: 234 }, type: 'query' }) })).toEqual(0)
+  expect(queryClient.isFetching({ queryKey: orpc.nested.ping.key({ input: { input: 123 }, type: 'infinite' }) })).toEqual(0)
+  expect(queryClient.isFetching({ queryKey: orpc.nested.pong.key() })).toEqual(0)
+  expect(queryClient.isFetching({ queryKey: orpc.ping.key() })).toEqual(0)
+  expect(queryClient.isFetching({ queryKey: orpc.pong.key() })).toEqual(0)
 
-    expect(queryClient.getQueryData(orpc.post.find.key({ input: { id: '123' }, type: 'query' })))
-      .toEqual({ id: '123', title: 'title-123' })
-  })
+  await vi.waitFor(() => expect(result.current.data).toEqual({ output: '123' }))
 
-  it('on error', async () => {
-    const { result } = renderHook(() => useQuery(orpc.post.find.queryOptions({ input: { id: 'NOT_FOUND' } }), queryClient))
+  expect(
+    queryClient.getQueryData(orpc.nested.ping.key({ input: { input: 123 }, type: 'query' })),
+  ).toEqual({ output: '123' })
 
-    await vi.waitFor(
-      () => expect(result.current.error).toSatisfy((e: any) => isDefinedError(e) && e.code === 'NOT_FOUND'),
-    )
-  })
+  pingHandler.mockRejectedValue(new ORPCError('OVERRIDE'))
 
-  it('with client context', async () => {
-    const { result } = renderHook(() => useQuery(orpc.post.find.queryOptions({ input: { id: '123' }, context: { cache: 'force' } }), queryClient))
+  result.current.refetch()
 
-    await vi.waitFor(
-      () => expect(result.current.error).toSatisfy((e: any) => e.message === 'cache=force is not supported'),
-    )
-  })
-})
-
-describe('useInfiniteQuery', () => {
-  it('on success', async () => {
-    const { result } = renderHook(() => useInfiniteQuery(orpc.post.list.infiniteOptions({
-      input: { keyword: 'hi' },
-      getNextPageParam: lastPage => lastPage.nextCursor,
-    }), queryClient))
-
-    expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(1)
-    expect(queryClient.isFetching({ queryKey: orpc.post.key() })).toEqual(1)
-    expect(queryClient.isFetching({ queryKey: orpc.post.list.key() })).toEqual(1)
-    expect(queryClient.isFetching({ queryKey: orpc.post.list.key({ input: { keyword: 'hi' }, type: 'infinite' }) })).toEqual(1)
-    expect(queryClient.isFetching({ queryKey: orpc.post.key({ type: 'mutation' }) })).toEqual(0)
-
-    await vi.waitFor(() => {
-      expect(result.current.data?.pages.length).toEqual(1)
-      expect(result.current.data?.pages[0]!.items).toEqual([{ id: 'id-0', title: 'title-0' }])
-    })
-
-    result.current.fetchNextPage()
-
-    await vi.waitFor(() => expect(result.current.data?.pages.length).toEqual(2))
-  })
-
-  it('on error', async () => {
-    const { result } = renderHook(() => useInfiniteQuery(orpc.post.list.infiniteOptions({
-      input: { keyword: 'TOO_MANY_REQUESTS' },
-      getNextPageParam: lastPage => lastPage.nextCursor,
-    }), queryClient))
-
-    await vi.waitFor(
-      () => expect(result.current.error).toSatisfy((e: any) => isDefinedError(e) && e.code === 'TOO_MANY_REQUESTS'),
-    )
-  })
-
-  it('with client context', async () => {
-    const { result } = renderHook(() => useInfiniteQuery(orpc.post.list.infiniteOptions({
-      input: { },
-      context: { cache: 'force' },
-      getNextPageParam: lastPage => lastPage.nextCursor,
-    }), queryClient))
-
-    await vi.waitFor(
-      () => expect(result.current.error).toSatisfy((e: any) => e.message === 'cache=force is not supported'),
-    )
+  await vi.waitFor(() => {
+    expect((result as any).current.error).toBeInstanceOf(ORPCError)
+    expect((result as any).current.error).toSatisfy(isDefinedError)
+    expect((result as any).current.error.code).toEqual('OVERRIDE')
   })
 })
 
-describe('useMutation', () => {
-  it('on success', async () => {
-    const { result } = renderHook(() => useMutation(orpc.post.create.mutationOptions(), queryClient))
+it('case: with useInfiniteQuery', async () => {
+  const { result } = renderHook(() => useInfiniteQuery(orpc.nested.ping.infiniteOptions({
+    input: pageParam => ({ input: pageParam }),
+    getNextPageParam: lastPage => Number(lastPage.output) + 1,
+    initialPageParam: 1,
+  }), queryClient))
 
-    // FIXME: problem with jsdom when upload file
-    // result.current.mutate({ title: 'title', thumbnail: new File(['hello'], 'hello.txt') })
-    result.current.mutate({ title: 'title' })
+  expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(1)
+  expect(queryClient.isFetching({ queryKey: orpc.nested.key() })).toEqual(1)
+  expect(queryClient.isFetching({ queryKey: orpc.nested.ping.key() })).toEqual(1)
+  expect(queryClient.isFetching({ queryKey: orpc.nested.ping.key({ input: { input: 1 } }) })).toEqual(1)
+  expect(queryClient.isFetching({ queryKey: orpc.nested.ping.key({ input: { input: 1 }, type: 'infinite' }) })).toEqual(1)
 
-    expect(queryClient.isMutating({ mutationKey: orpc.key() })).toEqual(1)
-    expect(queryClient.isMutating({ mutationKey: orpc.post.key() })).toEqual(1)
-    expect(queryClient.isMutating({ mutationKey: orpc.post.create.key({ type: 'mutation' }) })).toEqual(1)
+  expect(queryClient.isFetching({ queryKey: orpc.nested.ping.key({ input: { input: 2 }, type: 'infinite' }) })).toEqual(0)
+  expect(queryClient.isFetching({ queryKey: orpc.nested.ping.key({ input: { input: 1 }, type: 'query' }) })).toEqual(0)
+  expect(queryClient.isFetching({ queryKey: orpc.nested.pong.key() })).toEqual(0)
+  expect(queryClient.isFetching({ queryKey: orpc.ping.key() })).toEqual(0)
+  expect(queryClient.isFetching({ queryKey: orpc.pong.key() })).toEqual(0)
 
-    expect(queryClient.isMutating({ mutationKey: orpc.post.list.key() })).toEqual(0)
-    expect(queryClient.isMutating({ mutationKey: orpc.post.key({ type: 'query' }) })).toEqual(0)
+  await vi.waitFor(() => expect(result.current.data).toEqual({
+    pageParams: [1],
+    pages: [
+      { output: '1' },
+    ],
+  }))
 
-    // FIXME: problem with jsdom when upload file
-    // await vi.waitFor(
-    //   () => expect(result.current.data).toEqual({ id: 'id-title', title: 'title', thumbnail: 'hello.txt' }),
-    // )
-    await vi.waitFor(
-      () => expect(result.current.data).toEqual({ id: 'id-title', title: 'title' }),
-    )
+  expect(
+    queryClient.getQueryData(orpc.nested.ping.key({ input: { input: 1 }, type: 'infinite' })),
+  ).toEqual({
+    pageParams: [1],
+    pages: [
+      { output: '1' },
+    ],
   })
 
-  it('on error', async () => {
-    const { result } = renderHook(() => useMutation(orpc.post.create.mutationOptions(), queryClient))
+  result.current.fetchNextPage()
 
-    result.current.mutate({ title: 'CONFLICT' })
+  await vi.waitFor(() => expect(result.current.data).toEqual({
+    pageParams: [1, 2],
+    pages: [
+      { output: '1' },
+      { output: '2' },
+    ],
+  }))
 
-    await vi.waitFor(
-      () => expect(result.current.error).toSatisfy((e: any) => isDefinedError(e) && e.code === 'CONFLICT'),
-    )
+  expect(
+    queryClient.getQueryData(orpc.nested.ping.key({ input: { input: 1 }, type: 'infinite' })),
+  ).toEqual({
+    pageParams: [1, 2],
+    pages: [
+      { output: '1' },
+      { output: '2' },
+    ],
   })
 
-  it('with client context', async () => {
-    const { result } = renderHook(() => useMutation(orpc.post.create.mutationOptions({
-      context: { cache: 'force' },
-    }), queryClient))
+  pingHandler.mockRejectedValue(new ORPCError('OVERRIDE'))
 
-    result.current.mutate({ title: 'CONFLICT' })
+  result.current.fetchNextPage()
 
-    await vi.waitFor(
-      () => expect(result.current.error).toSatisfy((e: any) => e.message === 'cache=force is not supported'),
-    )
-  })
-})
-
-describe('other hooks', () => {
-  it('useSuspenseQuery', async () => {
-    const { result } = renderHook(() => useSuspenseQuery(orpc.post.find.queryOptions({ input: { id: '123' } }), queryClient))
-
-    expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(1)
-    expect(queryClient.isFetching({ queryKey: orpc.post.key() })).toEqual(1)
-    expect(queryClient.isFetching({ queryKey: orpc.post.find.key() })).toEqual(1)
-    expect(queryClient.isFetching({ queryKey: orpc.post.find.key({ input: { id: '123' } }) })).toEqual(1)
-
-    expect(queryClient.isFetching({ queryKey: orpc.post.list.key() })).toEqual(0)
-    expect(queryClient.isFetching({ queryKey: orpc.post.key({ type: 'mutation' }) })).toEqual(0)
-
-    await vi.waitFor(() => expect(result.current.data).toEqual({ id: '123', title: 'title-123' }))
-
-    expect(queryClient.getQueryData(orpc.post.find.key({ input: { id: '123' }, type: 'query' })))
-      .toEqual({ id: '123', title: 'title-123' })
-  })
-
-  it('useSuspenseInfiniteQuery', async () => {
-    const { result } = renderHook(() => useSuspenseInfiniteQuery(orpc.post.list.infiniteOptions({
-      input: { keyword: 'hi' },
-      getNextPageParam: lastPage => lastPage.nextCursor,
-    }), queryClient))
-
-    expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(1)
-    expect(queryClient.isFetching({ queryKey: orpc.post.key() })).toEqual(1)
-    expect(queryClient.isFetching({ queryKey: orpc.post.list.key() })).toEqual(1)
-    expect(queryClient.isFetching({ queryKey: orpc.post.list.key({ input: { keyword: 'hi' }, type: 'infinite' }) })).toEqual(1)
-    expect(queryClient.isFetching({ queryKey: orpc.post.key({ type: 'mutation' }) })).toEqual(0)
-
-    expect(queryClient.isFetching({ queryKey: orpc.post.find.key() })).toEqual(0)
-    expect(queryClient.isFetching({ queryKey: orpc.post.key({ type: 'mutation' }) })).toEqual(0)
-
-    await vi.waitFor(() => {
-      expect(result.current.data?.pages.length).toEqual(1)
-      expect(result.current.data?.pages[0]!.items).toEqual([{ id: 'id-0', title: 'title-0' }])
-    })
-
-    result.current.fetchNextPage()
-
-    await vi.waitFor(() => expect(result.current.data?.pages.length).toEqual(2))
-  })
-
-  it('useQueries', async () => {
-    const { result } = renderHook(() => useQueries({
-      queries: [
-        orpc.post.find.queryOptions({
-          input: { id: '123' },
-        }),
-        orpc.post.list.queryOptions({
-          input: { },
-        }),
-      ],
-    }, queryClient))
-
-    expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(2)
-    expect(queryClient.isFetching({ queryKey: orpc.post.key() })).toEqual(2)
-    expect(queryClient.isFetching({ queryKey: orpc.post.find.key() })).toEqual(1)
-    expect(queryClient.isFetching({ queryKey: orpc.post.list.key() })).toEqual(1)
-
-    expect(queryClient.isFetching({ queryKey: orpc.post.create.key() })).toEqual(0)
-    expect(queryClient.isFetching({ queryKey: orpc.post.key({ type: 'mutation' }) })).toEqual(0)
-
-    await vi.waitFor(() => expect(result.current[0].data).toEqual({ id: '123', title: 'title-123' }))
-    await vi.waitFor(() => expect(result.current[1].data).toEqual({ nextCursor: 1, items: [{ id: 'id-0', title: 'title-0' }] }))
+  await vi.waitFor(() => {
+    expect((result as any).current.error).toBeInstanceOf(ORPCError)
+    expect((result as any).current.error).toSatisfy(isDefinedError)
+    expect((result as any).current.error.code).toEqual('OVERRIDE')
   })
 })

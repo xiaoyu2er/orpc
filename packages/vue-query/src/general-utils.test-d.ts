@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { createGeneralUtils } from './utils-general'
+import { createGeneralUtils } from './general-utils'
 
 describe('key', () => {
   const utils = createGeneralUtils<{ a: { b: { c: number } } }>([])

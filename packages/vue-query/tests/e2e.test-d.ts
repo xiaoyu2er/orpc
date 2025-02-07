@@ -1,235 +1,189 @@
-import type { ORPCError } from '@orpc/contract'
+import type { InfiniteData } from '@tanstack/vue-query'
+import { isDefinedError } from '@orpc/contract'
 import { useInfiniteQuery, useMutation, useQueries, useQuery } from '@tanstack/vue-query'
-import { ref } from 'vue'
-import { orpc } from './helpers'
+import { computed, ref } from 'vue'
+import { orpc, queryClient } from './shared'
 
-describe('useQuery', () => {
-  it('infer input', async () => {
-    useQuery(orpc.post.find.queryOptions({
-      input: { id: '123' },
+it('.key', () => {
+  queryClient.invalidateQueries({
+    queryKey: orpc.nested.key({ type: 'query' }),
+  })
+
+  orpc.ping.key({})
+  orpc.ping.key({ input: computed(() => ({ input: ref(123) })) })
+  // @ts-expect-error --- input is invalid
+  orpc.ping.key({ input: { input: 'INVALID' } })
+})
+
+describe('.queryOptions', () => {
+  it('useQuery', () => {
+    const query = useQuery(orpc.ping.queryOptions({
+      input: computed(() => ({ input: ref(123) })),
+      retry(failureCount, error) {
+        if (isDefinedError(error) && error.code === 'BASE') {
+          expectTypeOf(error.data).toEqualTypeOf<{ output: string }>()
+        }
+
+        return false
+      },
     }))
 
-    useQuery(orpc.post.find.queryOptions({
-      input: { id: ref('123') },
-    }))
+    if (isDefinedError(query.error.value) && query.error.value.code === 'OVERRIDE') {
+      expectTypeOf(query.error.value.data).toEqualTypeOf<unknown>()
+    }
 
-    // @ts-expect-error --- input is required
-    useQuery(orpc.post.find.queryOptions({
-    }))
+    expectTypeOf(query.data.value).toEqualTypeOf<{ output: string } | undefined>()
 
-    useQuery(orpc.post.find.queryOptions({
+    useQuery(orpc.ping.queryOptions({
       // @ts-expect-error --- input is invalid
-      input: { id: 123 },
-    }))
-  })
-
-  it('infer output', () => {
-    const query = useQuery(orpc.post.find.queryOptions({
-      input: { id: '123' },
-      select(data) {
-        expectTypeOf(data).toEqualTypeOf<{ id: string, title: string, thumbnail?: string }>()
-
-        return 'new-output' as const
+      input: {
+        input: '123',
       },
     }))
 
-    expectTypeOf(query.data.value).toEqualTypeOf<'new-output' | undefined>()
-  })
-
-  it('infer errors', () => {
-    const query = useQuery(orpc.post.find.queryOptions({
-      input: { id: '123' },
-      throwOnError(error) {
-        expectTypeOf(error).toEqualTypeOf<Error | ORPCError<'NOT_FOUND', { id: string }>>()
-
-        return false
+    useQuery(orpc.ping.queryOptions({
+      input: { input: 123 },
+      // @ts-expect-error --- cache is invalid
+      context: {
+        cache: 123,
       },
     }))
-
-    expectTypeOf(query.error.value).toEqualTypeOf<Error | ORPCError<'NOT_FOUND', { id: string }> | null>()
   })
 
-  it('infer client context', () => {
-    useQuery(orpc.post.find.queryOptions({
-      input: { id: '123' },
-      context: { cache: 'force' },
-    }))
-
-    useQuery(orpc.post.find.queryOptions({
-      input: { id: '123' },
-      context: { cache: ref('force') },
-    }))
-
-    useQuery(orpc.post.find.queryOptions({
-      input: { id: '123' },
-      context: ref({ cache: ref('force') }),
-    }))
-
-    useQuery(orpc.post.find.queryOptions({
-      input: { id: '123' },
-      // @ts-expect-error --- invalid context
-      context: { cache: 123 },
-    }))
-  })
-})
-
-describe('useInfiniteQuery', () => {
-  it('infer input', async () => {
-    useInfiniteQuery(orpc.post.list.infiniteOptions({
-      input: { keyword: 'keyword' },
-      getNextPageParam: () => 2,
-    }))
-
-    useInfiniteQuery(orpc.post.list.infiniteOptions({
-      input: { keyword: ref('keyword') },
-      getNextPageParam: () => 2,
-    }))
-
-    // @ts-expect-error --- invalid input
-    useInfiniteQuery(orpc.post.list.infiniteOptions({
-      // @ts-expect-error --- invalid input
-      input: { keyword: 1234 },
-      getNextPageParam: () => 2,
-    }))
-  })
-
-  it('infer output', async () => {
-    const query = useInfiniteQuery(orpc.post.list.infiniteOptions({
-      input: { keyword: 'keyword' },
-      getNextPageParam: () => 2,
-      select(data) {
-        expectTypeOf(data.pages[0]!.items).toEqualTypeOf<{ id: string, title: string, thumbnail?: string }[]>()
-
-        return 'new-output' as const
-      },
-    }))
-
-    expectTypeOf(query.data.value).toEqualTypeOf<'new-output' | undefined>()
-  })
-
-  it('infer errors', async () => {
-    const query = useInfiniteQuery(orpc.post.list.infiniteOptions({
-      input: { keyword: 'keyword' },
-      getNextPageParam: () => 2,
-      throwOnError(error) {
-        expectTypeOf(error).toEqualTypeOf<Error | ORPCError<'TOO_MANY_REQUESTS', { keyword?: string, cursor: number }>>()
-
-        return false
-      },
-    }))
-
-    expectTypeOf(query.error.value).toEqualTypeOf<null | Error | ORPCError<'TOO_MANY_REQUESTS', { keyword?: string, cursor: number }>>()
-  })
-
-  it('infer client context', () => {
-    useInfiniteQuery(orpc.post.list.infiniteOptions({
-      input: { keyword: 'keyword' },
-      getNextPageParam: () => 2,
-      context: { cache: '1234' },
-    }))
-
-    useInfiniteQuery(orpc.post.list.infiniteOptions({
-      input: { keyword: ref('keyword') },
-      getNextPageParam: () => 2,
-      context: { cache: '1234' },
-    }))
-
-    // @ts-expect-error --- invalid context
-    useInfiniteQuery(orpc.post.list.infiniteOptions({
-      input: { keyword: 'keyword' },
-      getNextPageParam: () => 2,
-      // @ts-expect-error --- invalid context
-      context: { cache: 1234 },
-    }))
-  })
-})
-
-describe('useMutation', () => {
-  it('infer input', async () => {
-    const mutation = useMutation(orpc.post.create.mutationOptions({
-      onMutate(input) {
-        expectTypeOf(input).toEqualTypeOf<{ title: string, thumbnail?: File }>()
-      },
-    }))
-
-    mutation.mutate({ title: 'title' })
-    mutation.mutate({ title: 'title', thumbnail: new File([], 'thumbnail.png') })
-
-    // @ts-expect-error --- invalid input
-    mutation.mutate({ title: 123 })
-    // @ts-expect-error --- invalid input
-    mutation.mutate({ title: 'title', thumbnail: 124 })
-  })
-
-  it('infer output', async () => {
-    const mutation = useMutation(orpc.post.create.mutationOptions({
-      onSuccess(data) {
-        expectTypeOf(data).toEqualTypeOf<{ id: string, title: string, thumbnail?: string }>()
-      },
-    }))
-
-    expectTypeOf(await mutation.mutateAsync({ title: '123' })).toEqualTypeOf<{ id: string, title: string, thumbnail?: string }>()
-  })
-
-  it('infer errors', () => {
-    const mutation = useMutation(orpc.post.create.mutationOptions({
-      onError(error) {
-        expectTypeOf(error).toEqualTypeOf<
-          | Error
-          | ORPCError<'CONFLICT', { title: string, thumbnail?: File }>
-          | ORPCError<'FORBIDDEN', { title: string, thumbnail?: File }>
-        >()
-      },
-    }))
-
-    expectTypeOf(mutation.error.value).toEqualTypeOf<
-      | null
-      | Error
-      | ORPCError<'CONFLICT', { title: string, thumbnail?: File }>
-      | ORPCError<'FORBIDDEN', { title: string, thumbnail?: File }>
-    >()
-  })
-
-  it('infer client context', () => {
-    useMutation(orpc.post.create.mutationOptions({
-      context: { cache: '1234' },
-    }))
-
-    useMutation(orpc.post.create.mutationOptions({
-      context: { cache: ref('1234') },
-    }))
-
-    // @ts-expect-error --- invalid context
-    useMutation(orpc.post.create.mutationOptions({
-      context: { cache: 1234 },
-    }))
-  })
-})
-
-describe('other hooks', () => {
   it('useQueries', async () => {
     const queries = useQueries({
       queries: [
-        orpc.post.find.queryOptions({
-          input: { id: ref('123') },
-          context: ref({ cache: '123' }),
-          // FIXME: cannot use select inside useQueries
-          // select(data) {
-          //   expectTypeOf(data).toEqualTypeOf<{ id: string, title: string, thumbnail?: string }>()
-          // },
+        orpc.ping.queryOptions({
+          input: computed(() => ({ input: ref(123) })),
+          select: data => ({ mapped: data }),
+          retry(failureCount, error) {
+            if (isDefinedError(error) && error.code === 'BASE') {
+              expectTypeOf(error.data).toEqualTypeOf<{ output: string }>()
+            }
+
+            return false
+          },
         }),
-        orpc.post.list.queryOptions({
-          input: ref({}),
-          context: ref({ cache: '123' }),
+        orpc.nested.pong.queryOptions({
+          context: { cache: '123' },
         }),
       ],
     })
 
-    expectTypeOf(queries.value[0].data).toEqualTypeOf<undefined | { id: string, title: string, thumbnail?: string }>()
-    expectTypeOf(queries.value[1].data).toEqualTypeOf<undefined | { nextCursor: number, items: { id: string, title: string, thumbnail?: string }[] }>()
+    if (isDefinedError(queries.value[0].error) && queries.value[0].error.code === 'OVERRIDE') {
+      expectTypeOf(queries.value[0].error.data).toEqualTypeOf<unknown>()
+    }
 
-    // FIXME: useQueries cannot infer error
-    //   expectTypeOf(queries[0].error).toEqualTypeOf<Error | ORPCError<'NOT_FOUND', { id: string }> | null>()
-    //   expectTypeOf(queries[0].error).toEqualTypeOf<null | Error | ORPCError<'TOO_MANY_REQUESTS', { keyword?: string, cursor: number }>>()
+    if (queries.value[0].status === 'success') {
+      expectTypeOf(queries.value[0].data.mapped).toEqualTypeOf<{ output: string }>()
+    }
+
+    if (queries.value[1].status === 'error') {
+      expectTypeOf(queries.value[1].error).toEqualTypeOf<Error>()
+    }
+
+    if (queries.value[1].status === 'success') {
+      expectTypeOf(queries.value[1].data).toEqualTypeOf<unknown>()
+    }
+  })
+
+  it('fetchQuery', async () => {
+    const query = await queryClient.fetchQuery(orpc.ping.queryOptions({
+      input: { input: 123 },
+    }))
+
+    expectTypeOf(query).toEqualTypeOf<{ output: string }>()
+
+    const query2 = await queryClient.fetchQuery(orpc.ping.queryOptions({
+      input: { input: 123 },
+    }))
+
+    expectTypeOf(query2).toEqualTypeOf<{ output: string }>()
+  })
+})
+
+describe('.infiniteOptions', () => {
+  it('useInfiniteQuery', () => {
+    const query = useInfiniteQuery(orpc.nested.ping.infiniteOptions({
+      input: pagePram => computed(() => ({ input: ref(pagePram) })),
+      getNextPageParam: () => 2,
+      initialPageParam: 2,
+      retry(failureCount, error) {
+        if (isDefinedError(error) && error.code === 'BASE') {
+          expectTypeOf(error.data).toEqualTypeOf<{ output: string }>()
+        }
+
+        return false
+      },
+    }))
+
+    if (isDefinedError(query.error.value) && query.error.value.code === 'OVERRIDE') {
+      expectTypeOf(query.error.value.data).toEqualTypeOf<unknown>()
+    }
+
+    expectTypeOf(query.data.value?.pages[0]).toEqualTypeOf<{ output: string } | undefined>()
+
+    // @ts-expect-error --- input is invalid
+    useInfiniteQuery(orpc.nested.ping.infiniteOptions({
+      // @ts-expect-error --- input is invalid
+      input: pagePram => ({
+        input: pagePram,
+      }),
+      getNextPageParam: () => '2',
+      initialPageParam: '2',
+    }))
+
+    // @ts-expect-error --- cache is invalid
+    useInfiniteQuery(orpc.nested.ping.infiniteOptions({
+      input: pagePram => computed(() => ({ input: ref(pagePram) })),
+      context: {
+        // @ts-expect-error --- cache is invalid
+        cache: 123,
+      },
+      getNextPageParam: () => 2,
+      initialPageParam: 1,
+    }))
+  })
+
+  it('fetchInfiniteQuery', async () => {
+    const query = await queryClient.fetchInfiniteQuery(orpc.nested.ping.infiniteOptions({
+      input: pagePram => computed(() => ({ input: ref(pagePram) })),
+      getNextPageParam: () => 2,
+      initialPageParam: 2,
+    }))
+
+    expectTypeOf(query).toEqualTypeOf<InfiniteData<{ output: string }, number>>()
+  })
+})
+
+describe('.mutationOptions', () => {
+  it('useMutation', async () => {
+    const mutation = useMutation(orpc.ping.mutationOptions({
+      onError(error, variables) {
+        if (isDefinedError(error) && error.code === 'BASE') {
+          expectTypeOf(error.data).toEqualTypeOf<{ output: string }>()
+        }
+      },
+    }))
+
+    if (isDefinedError(mutation.error.value) && mutation.error.value.code === 'OVERRIDE') {
+      expectTypeOf(mutation.error.value.data).toEqualTypeOf<unknown>()
+    }
+
+    expectTypeOf(mutation.data.value).toEqualTypeOf<{ output: string } | undefined>()
+
+    mutation.mutate({ input: 123 })
+
+    mutation.mutateAsync({
+    // @ts-expect-error --- input is invalid
+      input: 'INVALID',
+    })
+
+    useMutation(orpc.ping.mutationOptions({
+      context: {
+        // @ts-expect-error --- cache is invalid
+        cache: 123,
+      },
+    }))
   })
 })

@@ -1,6 +1,6 @@
 import { isDefinedError, ORPCError } from '@orpc/contract'
-import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query'
-import { renderHook } from '@testing-library/react'
+import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/vue-query'
+import { computed, ref } from 'vue'
 import { pingHandler } from '../../server/tests/shared'
 import { orpc, queryClient } from './shared'
 
@@ -10,7 +10,9 @@ beforeEach(() => {
 })
 
 it('case: with useQuery', async () => {
-  const { result } = renderHook(() => useQuery(orpc.nested.ping.queryOptions({ input: { input: 123 } }), queryClient))
+  const id = ref(123)
+
+  const query = useQuery(orpc.nested.ping.queryOptions({ input: computed(() => ({ input: id })) }), queryClient)
 
   expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(1)
   expect(queryClient.isFetching({ queryKey: orpc.nested.key() })).toEqual(1)
@@ -24,29 +26,33 @@ it('case: with useQuery', async () => {
   expect(queryClient.isFetching({ queryKey: orpc.ping.key() })).toEqual(0)
   expect(queryClient.isFetching({ queryKey: orpc.pong.key() })).toEqual(0)
 
-  await vi.waitFor(() => expect(result.current.data).toEqual({ output: '123' }))
+  await vi.waitFor(() => expect(query.data.value).toEqual({ output: '123' }))
 
   expect(
     queryClient.getQueryData(orpc.nested.ping.key({ input: { input: 123 }, type: 'query' })),
   ).toEqual({ output: '123' })
 
+  id.value = 456
+
+  await vi.waitFor(() => expect(query.data.value).toEqual({ output: '456' }))
+
   pingHandler.mockRejectedValue(new ORPCError('OVERRIDE'))
 
-  result.current.refetch()
+  query.refetch()
 
   await vi.waitFor(() => {
-    expect((result as any).current.error).toBeInstanceOf(ORPCError)
-    expect((result as any).current.error).toSatisfy(isDefinedError)
-    expect((result as any).current.error.code).toEqual('OVERRIDE')
+    expect((query as any).error.value).toBeInstanceOf(ORPCError)
+    expect((query as any).error.value).toSatisfy(isDefinedError)
+    expect((query as any).error.value.code).toEqual('OVERRIDE')
   })
 })
 
 it('case: with useInfiniteQuery', async () => {
-  const { result } = renderHook(() => useInfiniteQuery(orpc.nested.ping.infiniteOptions({
-    input: pageParam => ({ input: pageParam }),
+  const query = useInfiniteQuery(orpc.nested.ping.infiniteOptions({
+    input: pageParam => computed(() => ({ input: ref(pageParam) })),
     getNextPageParam: lastPage => Number(lastPage.output) + 1,
     initialPageParam: 1,
-  }), queryClient))
+  }), queryClient)
 
   expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(1)
   expect(queryClient.isFetching({ queryKey: orpc.nested.key() })).toEqual(1)
@@ -60,7 +66,7 @@ it('case: with useInfiniteQuery', async () => {
   expect(queryClient.isFetching({ queryKey: orpc.ping.key() })).toEqual(0)
   expect(queryClient.isFetching({ queryKey: orpc.pong.key() })).toEqual(0)
 
-  await vi.waitFor(() => expect(result.current.data).toEqual({
+  await vi.waitFor(() => expect(query.data.value).toEqual({
     pageParams: [1],
     pages: [
       { output: '1' },
@@ -76,9 +82,9 @@ it('case: with useInfiniteQuery', async () => {
     ],
   })
 
-  result.current.fetchNextPage()
+  query.fetchNextPage()
 
-  await vi.waitFor(() => expect(result.current.data).toEqual({
+  await vi.waitFor(() => expect(query.data.value).toEqual({
     pageParams: [1, 2],
     pages: [
       { output: '1' },
@@ -98,19 +104,19 @@ it('case: with useInfiniteQuery', async () => {
 
   pingHandler.mockRejectedValue(new ORPCError('OVERRIDE'))
 
-  result.current.fetchNextPage()
+  query.fetchNextPage()
 
   await vi.waitFor(() => {
-    expect((result as any).current.error).toBeInstanceOf(ORPCError)
-    expect((result as any).current.error).toSatisfy(isDefinedError)
-    expect((result as any).current.error.code).toEqual('OVERRIDE')
+    expect((query as any).error.value).toBeInstanceOf(ORPCError)
+    expect((query as any).error.value).toSatisfy(isDefinedError)
+    expect((query as any).error.value.code).toEqual('OVERRIDE')
   })
 })
 
 it('case: with useMutation', async () => {
-  const { result } = renderHook(() => useMutation(orpc.nested.ping.mutationOptions(), queryClient))
+  const mutation = useMutation(orpc.nested.ping.mutationOptions(), queryClient)
 
-  result.current.mutate({ input: 123 })
+  mutation.mutate({ input: 123 })
 
   expect(queryClient.isMutating({ mutationKey: orpc.key() })).toEqual(1)
   expect(queryClient.isMutating({ mutationKey: orpc.nested.key() })).toEqual(1)
@@ -122,15 +128,15 @@ it('case: with useMutation', async () => {
   expect(queryClient.isMutating({ mutationKey: orpc.ping.key() })).toEqual(0)
   expect(queryClient.isMutating({ mutationKey: orpc.pong.key() })).toEqual(0)
 
-  await vi.waitFor(() => expect(result.current.data).toEqual({ output: '123' }))
+  await vi.waitFor(() => expect(mutation.data.value).toEqual({ output: '123' }))
 
   pingHandler.mockRejectedValue(new ORPCError('OVERRIDE'))
 
-  result.current.mutate({ input: 456 })
+  mutation.mutate({ input: 456 })
 
   await vi.waitFor(() => {
-    expect((result as any).current.error).toBeInstanceOf(ORPCError)
-    expect((result as any).current.error).toSatisfy(isDefinedError)
-    expect((result as any).current.error.code).toEqual('OVERRIDE')
+    expect((mutation as any).error.value).toBeInstanceOf(ORPCError)
+    expect((mutation as any).error.value).toSatisfy(isDefinedError)
+    expect((mutation as any).error.value.code).toEqual('OVERRIDE')
   })
 })

@@ -1,6 +1,6 @@
 import type { StandardBody, StandardHeaders, StandardRequest, StandardResponse } from '../standard'
 import { once } from '@orpc/shared'
-import cd from 'content-disposition'
+import { contentDisposition, parse as parseContentDisposition } from '@tinyhttp/content-disposition'
 
 function fetchHeadersToStandardHeaders(headers: Headers): StandardHeaders {
   const standardHeaders: StandardHeaders = {}
@@ -26,9 +26,9 @@ export async function fetchReToStandardBody(re: Request | Response): Promise<Sta
   }
 
   const contentDisposition = re.headers.get('content-disposition')
-  const fileName = contentDisposition ? cd.parse(contentDisposition).parameters.filename : undefined
+  const fileName = contentDisposition ? parseContentDisposition(contentDisposition).parameters.filename : undefined
 
-  if (fileName) {
+  if (typeof fileName === 'string') {
     const blob = await re.blob()
     return new File([blob], fileName, {
       type: blob.type,
@@ -102,7 +102,7 @@ function standardResponseToFetchHeaders(response: StandardResponse): Headers {
   }
 
   if (response.body instanceof Blob && !fetchHeaders.has('content-disposition')) {
-    fetchHeaders.set('content-disposition', cd(response.body instanceof File ? response.body.name : 'blob'))
+    fetchHeaders.set('content-disposition', contentDisposition(response.body instanceof File ? response.body.name : 'blob'))
   }
   else if (
     !(response.body instanceof Blob)

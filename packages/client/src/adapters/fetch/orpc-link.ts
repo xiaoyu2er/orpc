@@ -6,7 +6,7 @@ import { ORPCError } from '@orpc/contract'
 import { fetchReToStandardBody } from '@orpc/server/fetch'
 import { RPCSerializer } from '@orpc/server/standard'
 import { isPlainObject, trim } from '@orpc/shared'
-import cd from 'content-disposition'
+import { contentDisposition } from '@tinyhttp/content-disposition'
 
 export interface RPCLinkOptions<TClientContext> {
   /**
@@ -74,7 +74,7 @@ export class RPCLink<TClientContext> implements ClientLink<TClientContext> {
     const encoded = await this.encode(path, input, options)
 
     if (encoded.body instanceof Blob && !encoded.headers.has('content-disposition')) {
-      encoded.headers.set('content-disposition', cd(encoded.body instanceof File ? encoded.body.name : 'blob'))
+      encoded.headers.set('content-disposition', contentDisposition(encoded.body instanceof File ? encoded.body.name : 'blob'))
     }
 
     const response = await this.fetch(encoded.url, {

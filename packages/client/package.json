@@ -51,7 +51,7 @@
     "@orpc/contract": "workspace:*",
     "@orpc/server": "workspace:*",
     "@orpc/shared": "workspace:*",
-    "content-disposition": "^0.5.4"
+    "@tinyhttp/content-disposition": "^2.2.2"
   },
   "devDependencies": {
     "@orpc/openapi": "workspace:*",

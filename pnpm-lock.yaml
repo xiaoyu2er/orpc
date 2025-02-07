@@ -330,15 +330,12 @@ importers:
       '@orpc/openapi':
         specifier: workspace:*
         version: link:../openapi
-<<<<<<< HEAD
-      '@standard-schema/spec':
-        specifier: ^1.0.0
-        version: 1.0.0
-=======
       '@orpc/server':
         specifier: workspace:*
         version: link:../server
->>>>>>> main
+      '@standard-schema/spec':
+        specifier: ^1.0.0
+        version: 1.0.0
       json-schema-typed:
         specifier: ^8.0.1
         version: 8.0.1

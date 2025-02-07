@@ -1,7 +1,7 @@
 import type { InferContractRouterInputs, InferContractRouterOutputs } from '@orpc/contract'
 import { oc } from '@orpc/contract'
 import { implement, ORPCError } from '@orpc/server'
-import { oz, ZodCoercer } from '@orpc/zod'
+import { oz, ZodAutoCoercePlugin } from '@orpc/zod'
 import { z } from 'zod'
 
 // Define your contract first
@@ -124,8 +124,8 @@ import { createServer } from 'node:http'
 import { OpenAPIHandler } from '@orpc/openapi/node'
 
 const openAPIHandler = new OpenAPIHandler(router, {
-  schemaCoercers: [
-    new ZodCoercer(),
+  plugins: [
+    new ZodAutoCoercePlugin(),
   ],
 })
 

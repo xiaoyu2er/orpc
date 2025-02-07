@@ -1,7 +1,7 @@
 {
   "name": "@orpc/zod",
   "type": "module",
-  "version": "0.35.1",
+  "version": "0.36.0",
   "license": "MIT",
   "homepage": "https://orpc.unnoq.com",
   "repository": {
@@ -42,7 +42,8 @@
     "type:check": "tsc -b"
   },
   "peerDependencies": {
-    "@orpc/openapi": "workspace:*"
+    "@orpc/openapi": "workspace:*",
+    "@orpc/server": "workspace:*"
   },
   "dependencies": {
     "@standard-schema/spec": "^1.0.0",

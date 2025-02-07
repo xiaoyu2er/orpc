@@ -152,11 +152,11 @@ import { RPCHandler } from '@orpc/server/node'
 import { OpenAPIHandler } from '@orpc/openapi/node'
 import { createServer } from 'node:http'
 import { router } from 'examples/server'
-import { ZodCoercer } from '@orpc/zod'
+import { ZodAutoCoercePlugin } from '@orpc/zod'
 
 const openAPIHandler = new OpenAPIHandler(router, {
-  schemaCoercers: [
-    new ZodCoercer(),
+  plugins: [
+    new ZodAutoCoercePlugin(),
   ],
 })
 

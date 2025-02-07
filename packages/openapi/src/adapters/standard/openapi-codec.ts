@@ -1,23 +1,18 @@
 import type { AnyProcedure } from '@orpc/server'
 import type { StandardBody, StandardCodec, StandardHeaders, StandardParams, StandardRequest, StandardResponse } from '@orpc/server/standard'
 import { fallbackContractConfig, type ORPCError } from '@orpc/contract'
-import { isPlainObject, once } from '@orpc/shared'
+import { isPlainObject } from '@orpc/shared'
 import { OpenAPISerializer } from './openapi-serializer'
-import { CompositeSchemaCoercer, type SchemaCoercer } from './schema-coercer'
 
 export interface OpenAPICodecOptions {
   serializer?: OpenAPISerializer
-  schemaCoercers?: SchemaCoercer[]
 }
 
 export class OpenAPICodec implements StandardCodec {
   private readonly serializer: OpenAPISerializer
-  private readonly compositeSchemaCoercer: SchemaCoercer
 
   constructor(options?: OpenAPICodecOptions) {
     this.serializer = options?.serializer ?? new OpenAPISerializer()
-
-    this.compositeSchemaCoercer = new CompositeSchemaCoercer(options?.schemaCoercers ?? [])
   }
 
   async decode(request: StandardRequest, params: StandardParams | undefined, procedure: AnyProcedure): Promise<unknown> {
@@ -29,31 +24,36 @@ export class OpenAPICodec implements StandardCodec {
         : this.serializer.deserialize(await request.body())
 
       if (data === undefined) {
-        return this.compositeSchemaCoercer.coerce(procedure['~orpc'].inputSchema, params)
+        return params
       }
 
       if (isPlainObject(data)) {
-        return this.compositeSchemaCoercer.coerce(procedure['~orpc'].inputSchema, {
+        return {
           ...params,
           ...data,
-        })
+        }
       }
 
-      return this.compositeSchemaCoercer.coerce(procedure['~orpc'].inputSchema, data)
+      return data
     }
 
-    const query = once(() => {
+    const deserializeSearchParams = () => {
       return this.serializer.deserialize(request.url.searchParams)
-    })
+    }
 
-    return this.compositeSchemaCoercer.coerce(procedure['~orpc'].inputSchema, {
+    return {
       params,
       get query() {
-        return query()
+        const value = deserializeSearchParams()
+        Object.defineProperty(this, 'query', { value, writable: true })
+        return value
+      },
+      set query(value) {
+        Object.defineProperty(this, 'query', { value, writable: true })
       },
       headers: request.headers,
       body: this.serializer.deserialize(await request.body()),
-    })
+    }
   }
 
   encode(output: unknown, procedure: AnyProcedure): StandardResponse {

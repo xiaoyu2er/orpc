@@ -1,7 +1,8 @@
-import type { HTTPPath } from '@orpc/contract'
+import type { ErrorMap, HTTPPath, Meta, Schema } from '@orpc/contract'
 import type { Interceptor } from '@orpc/shared'
 import type { Context } from '../../context'
 import type { Plugin } from '../../plugins'
+import type { CreateProcedureClientOptions } from '../../procedure-client'
 import type { Router } from '../../router'
 import type { StandardCodec, StandardMatcher, StandardRequest, StandardResponse } from './types'
 import { toORPCError } from '@orpc/contract'
@@ -22,6 +23,11 @@ export type StandardHandleRest<T extends Context> =
 export type StandardHandleResult = { matched: true, response: StandardResponse } | { matched: false, response: undefined }
 
 export type StandardHandlerInterceptorOptions<TContext extends Context> = WellStandardHandleOptions<TContext> & { request: StandardRequest }
+
+export type WellCreateProcedureClientOptions<TContext extends Context> =
+  CreateProcedureClientOptions<TContext, Schema, Schema, unknown, ErrorMap, Meta, unknown> & {
+    context: TContext
+  }
 
 export interface StandardHandlerOptions<TContext extends Context> {
   plugins?: Plugin<TContext>[]
@@ -53,21 +59,22 @@ export class StandardHandler<TContext extends Context> {
   }
 
   handle(request: StandardRequest, ...[options]: StandardHandleRest<TContext>): Promise<StandardHandleResult> {
-    const handleOptions = (options ?? {}) as WellStandardHandleOptions<TContext> // options only undefined when all fields are optional so we can safely force it to have a context
-    handleOptions.context ??= {} as TContext // context is optional only when all fields are optional so we can safely force it to have a context
-
     return intercept(
       this.options.interceptorsRoot ?? [],
-      { request, ...handleOptions },
-      async (interceptorRootOptions) => {
+      {
+        request,
+        ...options,
+        context: options?.context ?? {} as TContext, // context is optional only when all fields are optional so we can safely force it to have a context
+      },
+      async (interceptorOptions) => {
         try {
           return await intercept(
             this.options.interceptors ?? [],
-            interceptorRootOptions,
-            async ({ request, context }) => {
-              const method = request.method
-              const url = request.url
-              const pathname = `/${trim(url.pathname.replace(options?.prefix ?? '', ''), '/')}` as const
+            interceptorOptions,
+            async (interceptorOptions) => {
+              const method = interceptorOptions.request.method
+              const url = interceptorOptions.request.url
+              const pathname = `/${trim(url.pathname.replace(interceptorOptions.prefix ?? '', ''), '/')}` as const
 
               const match = await this.matcher.match(method, pathname)
 
@@ -75,10 +82,14 @@ export class StandardHandler<TContext extends Context> {
                 return { matched: false, response: undefined }
               }
 
-              const client = createProcedureClient(match.procedure, {
-                context,
+              const clientOptions: WellCreateProcedureClientOptions<TContext> = {
+                context: interceptorOptions.context,
                 path: match.path,
-              })
+              }
+
+              this.plugin.beforeCreateProcedureClient(clientOptions, interceptorOptions)
+
+              const client = createProcedureClient(match.procedure, clientOptions)
 
               const input = await this.codec.decode(request, match.params, match.procedure)
 

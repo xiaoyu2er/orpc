@@ -74,6 +74,7 @@ export function fetchRequestToStandardRequest(request: Request): StandardRequest
   return {
     raw: { request },
     url,
+    query: url.searchParams,
     signal: request.signal,
     method: request.method,
     body: once(() => {

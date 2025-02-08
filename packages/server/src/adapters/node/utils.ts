@@ -19,6 +19,7 @@ export function nodeHttpToStandardRequest(
     raw: { request: req, response: res },
     method,
     url,
+    query: url.searchParams,
     headers: req.headers,
     body: once(() => {
       return nodeHttpRequestToStandardBody(req)

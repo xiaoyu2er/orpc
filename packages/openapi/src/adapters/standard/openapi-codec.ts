@@ -2,26 +2,15 @@ import type { AnyProcedure } from '@orpc/server'
 import type { StandardBody, StandardCodec, StandardHeaders, StandardParams, StandardRequest, StandardResponse } from '@orpc/server/standard'
 import { fallbackContractConfig, type ORPCError } from '@orpc/contract'
 import { isPlainObject } from '@orpc/shared'
-import { OpenAPISerializer } from './openapi-serializer'
-
-export interface OpenAPICodecOptions {
-  serializer?: OpenAPISerializer
-}
 
 export class OpenAPICodec implements StandardCodec {
-  private readonly serializer: OpenAPISerializer
-
-  constructor(options?: OpenAPICodecOptions) {
-    this.serializer = options?.serializer ?? new OpenAPISerializer()
-  }
-
   async decode(request: StandardRequest, params: StandardParams | undefined, procedure: AnyProcedure): Promise<unknown> {
     const inputStructure = fallbackContractConfig('defaultInputStructure', procedure['~orpc'].route.inputStructure)
 
     if (inputStructure === 'compact') {
       const data = request.method === 'GET'
-        ? this.serializer.deserialize(request.url.searchParams)
-        : this.serializer.deserialize(await request.body())
+        ? request.query
+        : await request.body()
 
       if (data === undefined) {
         return params
@@ -37,22 +26,11 @@ export class OpenAPICodec implements StandardCodec {
       return data
     }
 
-    const deserializeSearchParams = () => {
-      return this.serializer.deserialize(request.url.searchParams)
-    }
-
     return {
       params,
-      get query() {
-        const value = deserializeSearchParams()
-        Object.defineProperty(this, 'query', { value, writable: true })
-        return value
-      },
-      set query(value) {
-        Object.defineProperty(this, 'query', { value, writable: true })
-      },
+      query: request.query,
       headers: request.headers,
-      body: this.serializer.deserialize(await request.body()),
+      body: await request.body(),
     }
   }
 
@@ -64,7 +42,7 @@ export class OpenAPICodec implements StandardCodec {
       return {
         status: successStatus,
         headers: {},
-        body: this.serializer.serialize(output) as StandardBody,
+        body: output as StandardBody,
       }
     }
 
@@ -77,7 +55,7 @@ export class OpenAPICodec implements StandardCodec {
     return {
       status: successStatus,
       headers: output.headers as StandardHeaders ?? {},
-      body: this.serializer.serialize(output.body) as StandardBody,
+      body: output.body as StandardBody,
     }
   }
 
@@ -85,7 +63,7 @@ export class OpenAPICodec implements StandardCodec {
     return {
       status: error.status,
       headers: {},
-      body: this.serializer.serialize(error.toJSON()) as StandardBody,
+      body: error.toJSON() as StandardBody,
     }
   }
 }

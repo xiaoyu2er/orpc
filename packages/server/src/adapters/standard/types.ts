@@ -17,6 +17,13 @@ export interface StandardRequest {
 
   method: string
   url: URL
+
+  /**
+   * It helpful when you want override query before handling.
+   *
+   * @default url.searchParams
+   */
+  query: URLSearchParams | JsonValue
   headers: StandardHeaders
 
   /**
@@ -25,7 +32,7 @@ export interface StandardRequest {
    */
   body(): Promise<StandardBody>
 
-  signal?: AbortSignal
+  signal: AbortSignal | undefined
 }
 
 export interface StandardResponse {

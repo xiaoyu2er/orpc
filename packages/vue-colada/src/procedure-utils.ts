@@ -3,7 +3,7 @@ import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { MutationOptions, MutationOptionsIn, QueryOptions, QueryOptionsIn } from './types'
 import { computed } from 'vue'
 import { buildKey } from './key'
-import { deepUnref } from './utils'
+import { unrefDeep } from './utils'
 
 export interface ProcedureUtils<TClientContext, TInput, TOutput, TError extends Error> {
   queryOptions(
@@ -26,8 +26,8 @@ export function createProcedureUtils<TClientContext, TInput, TOutput, TError ext
   return {
     queryOptions(...[{ input, context, ...rest } = {}]) {
       return {
-        key: computed(() => buildKey(path, { input: deepUnref(input) })),
-        query: ({ signal }) => client(deepUnref(input) as any, { signal, context: deepUnref(context) as any }),
+        key: computed(() => buildKey(path, { input: unrefDeep(input) })),
+        query: ({ signal }) => client(unrefDeep(input) as any, { signal, context: unrefDeep(context) as any }),
         ...(rest as any),
       }
     },
@@ -35,7 +35,7 @@ export function createProcedureUtils<TClientContext, TInput, TOutput, TError ext
     mutationOptions(...[{ context, ...rest } = {}]) {
       return {
         key: input => buildKey(path, { input }),
-        mutation: input => client(input, { context: deepUnref(context) as any }),
+        mutation: input => client(input, { context: unrefDeep(context) as any }),
         ...(rest as any),
       }
     },

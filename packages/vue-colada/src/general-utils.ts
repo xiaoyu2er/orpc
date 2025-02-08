@@ -1,11 +1,11 @@
 import type { EntryKey } from '@pinia/colada'
 import type { BuildKeyOptions } from './key'
-import type { MaybeDeepRef } from './types'
+import type { MaybeRefDeep } from './types'
 import { buildKey } from './key'
-import { deepUnref } from './utils'
+import { unrefDeep } from './utils'
 
 export interface GeneralUtils<TInput> {
-  key(options?: MaybeDeepRef<BuildKeyOptions<TInput>>): EntryKey
+  key(options?: MaybeRefDeep<BuildKeyOptions<TInput>>): EntryKey
 }
 
 export function createGeneralUtils<TInput>(
@@ -13,7 +13,7 @@ export function createGeneralUtils<TInput>(
 ): GeneralUtils<TInput> {
   return {
     key(options) {
-      return buildKey(path, deepUnref(options as any))
+      return buildKey(path, unrefDeep(options))
     },
   }
 }

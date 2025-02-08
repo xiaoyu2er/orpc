@@ -1,9 +1,5 @@
 {
   "extends": "../../tsconfig.lib.json",
-  "compilerOptions": {
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "types": []
-  },
   "references": [
     { "path": "../contract" },
     { "path": "../server" },

@@ -1,5 +1,3 @@
-/// <reference lib="dom" />
-
 import type { JSONSchema } from 'json-schema-typed/draft-2020-12'
 
 import wcmatch from 'wildcard-match'

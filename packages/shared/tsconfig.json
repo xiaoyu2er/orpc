@@ -1,8 +1,5 @@
 {
   "extends": "../../tsconfig.lib.json",
-  "compilerOptions": {
-    "types": []
-  },
   "references": [],
   "include": ["src"],
   "exclude": [

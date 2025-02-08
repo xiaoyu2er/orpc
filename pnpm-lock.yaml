@@ -308,13 +308,13 @@ importers:
       '@orpc/server':
         specifier: workspace:*
         version: link:../server
+      '@pinia/colada':
+        specifier: ^0.13.5
+        version: 0.13.5(pinia@2.3.0(typescript@5.7.2)(vue@3.5.13(typescript@5.7.2)))
       vue:
         specifier: '>=3.3.0'
         version: 3.5.13(typescript@5.7.2)
     devDependencies:
-      '@pinia/colada':
-        specifier: ^0.13.1
-        version: 0.13.1(pinia@2.3.0(typescript@5.7.2)(vue@3.5.13(typescript@5.7.2)))
       '@vue/test-utils':
         specifier: ^2.4.6
         version: 2.4.6
@@ -1804,8 +1804,8 @@ packages:
     resolution: {integrity: sha512-i0GV1yJnm2n3Yq1qw6QrUrd/LI9bE8WEBOTtOkpCXHHdyN3TAGgqAK/DAT05z4fq2x04cARXt2pDmjWjL92iTQ==}
     engines: {node: '>= 10.0.0'}
 
-  '@pinia/colada@0.13.1':
-    resolution: {integrity: sha512-3FVqe7FBl1Y+rPxfarF8VVr2ilEqU12CtsHRGgVtZOv/G8o3F4bfV41RduZojS6v4BrHkJwiZkRV6RAslmbjrg==}
+  '@pinia/colada@0.13.5':
+    resolution: {integrity: sha512-xHeWx6gKjs9hsz2UjH7frhGYg7KvojJ5JSsad1O5ZqfCLv7t0x1JTWbQkBjbyi+BnuyrRondkResU+3D7mWrMA==}
     peerDependencies:
       pinia: ^2.2.6
 
@@ -8478,7 +8478,7 @@ snapshots:
       '@parcel/watcher-win32-ia32': 2.5.0
       '@parcel/watcher-win32-x64': 2.5.0
 
-  '@pinia/colada@0.13.1(pinia@2.3.0(typescript@5.7.2)(vue@3.5.13(typescript@5.7.2)))':
+  '@pinia/colada@0.13.5(pinia@2.3.0(typescript@5.7.2)(vue@3.5.13(typescript@5.7.2)))':
     dependencies:
       pinia: 2.3.0(typescript@5.7.2)(vue@3.5.13(typescript@5.7.2))
 

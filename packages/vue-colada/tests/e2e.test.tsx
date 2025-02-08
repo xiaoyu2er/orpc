@@ -1,129 +1,75 @@
-import { isDefinedError } from '@orpc/contract'
+import { isDefinedError, ORPCError } from '@orpc/contract'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
-import { defineComponent, ref } from 'vue'
-import { mount, orpc } from './helpers'
+import { computed, defineComponent, ref } from 'vue'
+import { pingHandler } from '../../server/tests/shared'
+import { mount, orpc } from './shared'
 
-describe('useQuery', () => {
-  it('on success', async () => {
-    const mounted = mount(defineComponent({
-      setup() {
-        const id = ref('123')
+it('case: with useQuery', async () => {
+  const mounted = mount(defineComponent({
+    setup() {
+      const id = ref(123)
 
-        const queryCache = useQueryCache()
-        const query = useQuery(orpc.post.find.queryOptions({ input: { id } }))
+      const queryCache = useQueryCache()
+      const query = useQuery(orpc.nested.ping.queryOptions({ input: computed(() => ({ input: id })) }))
 
-        const setId = (value: string) => {
-          id.value = value
-        }
+      const setId = (value: number) => {
+        id.value = value
+      }
 
-        return { query, queryCache, setId }
-      },
-      template: '',
-    }))
+      return { query, queryCache, setId }
+    },
+    template: '',
+  }))
 
-    await vi.waitFor(() => expect(mounted.vm.query.data.value).toEqual({ id: '123', title: 'title-123' }))
-    expect(
-      mounted.vm.queryCache.getQueryData(orpc.post.find.key({ input: { id: '123' } })),
-    ).toEqual({ id: '123', title: 'title-123' })
+  await vi.waitFor(() => expect(mounted.vm.query.data.value).toEqual({ output: '123' }))
 
-    mounted.vm.setId('456')
-    await vi.waitFor(() => expect(mounted.vm.query.data.value).toEqual({ id: '456', title: 'title-456' }))
+  expect(
+    mounted.vm.queryCache.getQueryData(orpc.nested.ping.key({ input: { input: 123 } })),
+  ).toEqual({ output: '123' })
 
-    mounted.vm.queryCache.invalidateQueries({ key: orpc.post.create.key() })
-    expect(mounted.vm.query.isLoading.value).toEqual(false)
+  mounted.vm.setId(456)
 
-    mounted.vm.queryCache.invalidateQueries({ key: orpc.post.key() })
-    expect(mounted.vm.query.isLoading.value).toEqual(true)
-  })
+  await vi.waitFor(() => expect(mounted.vm.query.data.value).toEqual({ output: '456' }))
 
-  it('on error', async () => {
-    const mounted = mount(defineComponent({
-      setup() {
-        const query = useQuery(orpc.post.find.queryOptions({ input: { id: 'NOT_FOUND' } }))
+  mounted.vm.queryCache.invalidateQueries({ key: orpc.ping.key() })
+  expect(mounted.vm.query.isLoading.value).toEqual(false)
 
-        return { query }
-      },
-      template: '',
-    }))
+  mounted.vm.queryCache.invalidateQueries({ key: orpc.nested.pong.key() })
+  expect(mounted.vm.query.isLoading.value).toEqual(false)
 
-    await vi.waitFor(
-      () => expect(mounted.vm.query.error.value).toSatisfy((e: any) => isDefinedError(e) && e.code === 'NOT_FOUND'),
-    )
-  })
+  pingHandler.mockRejectedValue(new ORPCError('OVERRIDE'))
 
-  it('with client context', async () => {
-    const mounted = mount(defineComponent({
-      setup() {
-        const query = useQuery(orpc.post.find.queryOptions({ input: { id: '123' }, context: { cache: 'force' } }))
+  mounted.vm.queryCache.invalidateQueries({ key: orpc.nested.key() })
+  expect(mounted.vm.query.isLoading.value).toEqual(true)
 
-        return { query }
-      },
-      template: '',
-    }))
-
-    await vi.waitFor(
-      () => expect(mounted.vm.query.error.value).toSatisfy((e: any) => e.message === 'cache=force is not supported'),
-    )
+  await vi.waitFor(() => {
+    expect((mounted.vm.query as any).error.value).toBeInstanceOf(ORPCError)
+    expect((mounted.vm.query as any).error.value).toSatisfy(isDefinedError)
+    expect((mounted.vm.query as any).error.value.code).toEqual('OVERRIDE')
   })
 })
 
-describe('useMutation', () => {
-  it('on success', async () => {
-    const mounted = mount(defineComponent({
-      setup() {
-        const mutation = useMutation(orpc.post.create.mutationOptions())
+it('case: with useMutation', async () => {
+  const mounted = mount(defineComponent({
+    setup() {
+      const mutation = useMutation(orpc.nested.ping.mutationOptions())
 
-        return { mutation }
-      },
-      template: '',
-    }))
+      return { mutation }
+    },
+    template: '',
+  }))
 
-    // FIXME: problem with jsdom when upload file
-    // mounted.vm.mutation.mutate({ title: 'title', thumbnail: new File(['hello'], 'hello.txt') })
-    mounted.vm.mutation.mutate({ title: 'title' })
+  mounted.vm.mutation.mutate({ input: 123 })
 
-    // FIXME: problem with jsdom when upload file
-    // await vi.waitFor(
-    //   () => expect(mounted.vm.mutation.data.value).toEqual({ id: 'id-title', title: 'title', thumbnail: 'hello.txt' }),
-    // )
-    await vi.waitFor(
-      () => expect(mounted.vm.mutation.data.value).toEqual({ id: 'id-title', title: 'title' }),
-    )
-  })
+  await vi.waitFor(() => expect(mounted.vm.mutation.data.value).toEqual({ output: '123' }))
 
-  it('on error', async () => {
-    const mounted = mount(defineComponent({
-      setup() {
-        const mutation = useMutation(orpc.post.create.mutationOptions())
+  pingHandler.mockRejectedValue(new ORPCError('OVERRIDE'))
 
-        return { mutation }
-      },
-      template: '',
-    }))
+  mounted.vm.mutation.mutate({ input: 456 })
 
-    mounted.vm.mutation.mutate({ title: 'CONFLICT' })
-
-    await vi.waitFor(
-      () => expect(mounted.vm.mutation.error.value).toSatisfy((e: any) => isDefinedError(e) && e.code === 'CONFLICT'),
-    )
-  })
-
-  it('with client context', async () => {
-    const mounted = mount(defineComponent({
-      setup() {
-        const mutation = useMutation(orpc.post.create.mutationOptions({
-          context: { cache: 'force' },
-        }))
-
-        return { mutation }
-      },
-      template: '',
-    }))
-
-    mounted.vm.mutation.mutate({ title: 'title' })
-
-    await vi.waitFor(
-      () => expect(mounted.vm.mutation.error.value).toSatisfy((e: any) => e.message === 'cache=force is not supported'),
-    )
+  await vi.waitFor(() => {
+    expect((mounted.vm.mutation as any).error.value).toBeInstanceOf(ORPCError)
+    expect((mounted.vm.mutation as any).error.value).toSatisfy(isDefinedError)
+    expect((mounted.vm.mutation as any).error.value.code).toEqual('OVERRIDE')
   })
 })

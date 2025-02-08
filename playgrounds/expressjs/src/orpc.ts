@@ -1,34 +1,45 @@
+import type { ResponseHeadersPluginContext } from '@orpc/server/plugins'
 import type { z } from 'zod'
 import type { UserSchema } from './schemas/user'
+import { oo } from '@orpc/openapi'
 import { ORPCError, os } from '@orpc/server'
 
-export interface ORPCContext {
+export interface ORPCContext extends ResponseHeadersPluginContext {
   user?: z.infer<typeof UserSchema>
   db?: any
 }
 
-export const pub = os
-  .$context<ORPCContext>()
-  .use(async ({ context, path, next }, input) => {
-    const start = Date.now()
+export const base = os.$context<ORPCContext>()
 
-    try {
-      return await next({})
-    }
-    finally {
-    // eslint-disable-next-line no-console
-      console.log(`[${path.join('/')}] ${Date.now() - start}ms`)
-    }
-  })
+export const pub = base.use(async ({ context, path, next }, input) => {
+  const start = Date.now()
 
-export const authed = pub.use(({ context, path, next }, input) => {
-  if (!context.user) {
-    throw new ORPCError('UNAUTHORIZED')
+  try {
+    return await next({})
   }
-
-  return next({
-    context: {
-      user: context.user,
-    },
-  })
+  finally {
+    // eslint-disable-next-line no-console
+    console.log(`[${path.join('/')}] ${Date.now() - start}ms`)
+  }
 })
+
+const authMid = oo.spec( // this line is optional, just for customize openapi spec
+  base.middleware(({ context, path, next }, input) => {
+    if (!context.user) {
+      throw new ORPCError('UNAUTHORIZED')
+    }
+
+    return next({
+      context: {
+        user: context.user,
+      },
+    })
+  }),
+  {
+    security: [
+      { bearerAuth: [] },
+    ],
+  },
+)
+
+export const authed = base.use(authMid)

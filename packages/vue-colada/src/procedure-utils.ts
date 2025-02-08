@@ -24,21 +24,19 @@ export function createProcedureUtils<TClientContext, TInput, TOutput, TError ext
   path: string[],
 ): ProcedureUtils<TClientContext, TInput, TOutput, TError> {
   return {
-    queryOptions(...[options]) {
-      const input = options?.input as any
-
+    queryOptions(...[{ input, context, ...rest } = {}]) {
       return {
         key: computed(() => buildKey(path, { input: deepUnref(input) })),
-        query: ({ signal }) => client(deepUnref(input), { signal, context: deepUnref(options?.context) } as any),
-        ...(options as any),
+        query: ({ signal }) => client(deepUnref(input) as any, { signal, context: deepUnref(context) as any }),
+        ...(rest as any),
       }
     },
 
-    mutationOptions(...[options]) {
+    mutationOptions(...[{ context, ...rest } = {}]) {
       return {
         key: input => buildKey(path, { input }),
-        mutation: (input, _) => client(input, { context: deepUnref(options?.context) } as any),
-        ...(options as any),
+        mutation: input => client(input, { context: deepUnref(context) as any }),
+        ...(rest as any),
       }
     },
   }

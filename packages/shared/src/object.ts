@@ -77,3 +77,17 @@ export function findDeepMatches(
 
   return { maps, values }
 }
+
+/**
+ * Check if the value is an object.
+ * Even object created by Object.create(null) is considered an object.
+ */
+export function isObject(value: unknown): value is Record<string, unknown> {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+
+  const proto = Object.getPrototypeOf(value)
+
+  return proto === Object.prototype || proto === null
+}

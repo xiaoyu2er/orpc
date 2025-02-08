@@ -2,11 +2,15 @@ import type { Segment } from '@orpc/shared'
 import { findDeepMatches, isPlainObject, set } from '@orpc/shared'
 
 export type RPCSerializedJsonMeta = ['bigint' | 'date' | 'nan' | 'undefined' | 'set' | 'map' | 'regexp' | 'url', Segment[]][]
-export type RPCSerialized = { json: unknown, meta: RPCSerializedJsonMeta } | FormData | Blob
+export type RPCSerialized = { json: unknown, meta: RPCSerializedJsonMeta } | FormData | Blob | undefined
 export type RPCSerializedFormDataMaps = Segment[][]
 
 export class RPCSerializer {
   serialize(data: unknown): RPCSerialized {
+    if (data === undefined) {
+      return undefined
+    }
+
     if (data instanceof Blob) {
       return data
     }
@@ -31,6 +35,10 @@ export class RPCSerializer {
   }
 
   deserialize(serialized: RPCSerialized): unknown {
+    if (serialized === undefined) {
+      return undefined
+    }
+
     if (serialized instanceof Blob) {
       return serialized
     }

@@ -11,6 +11,10 @@ describe.each(supportedDataTypes)('rpcSerializer: $name', ({ value, expected }) 
       return serializer.deserialize(serialized)
     }
 
+    if (serialized === undefined) {
+      return serializer.deserialize(undefined)
+    }
+
     return serializer.deserialize(JSON.parse(JSON.stringify(serialized))) // like in the real world
   }
 

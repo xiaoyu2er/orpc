@@ -73,7 +73,7 @@ queryClient.invalidateQueries({ queryKey: orpc.posts.getPost.key({ input: { id: 
 
 ## Infinite Queries
 
-Infinite queries require a `cursor` in the input field for pagination.
+Infinite queries require you define input as a function with `pageParam` as the first argument.
 
 ```ts twoslash
 import { os, createRouterClient } from '@orpc/server';
@@ -97,7 +97,7 @@ const orpc = createORPCVueQueryUtils(client);
 
 const query = useInfiniteQuery(
   orpc.user.list.infiniteOptions({
-    input: { limit: 10 },
+    input: (pageParam) => ({ limit: 10, cursor: pageParam }),
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: 0,
   })

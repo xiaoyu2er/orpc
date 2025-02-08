@@ -6,8 +6,9 @@ const query = useQuery(orpc.planet.find.queryOptions({
 }))
 
 const infinite = useInfiniteQuery(orpc.planet.list.infiniteOptions({
-  input: {},
+  input: cursor => ({ cursor }),
   getNextPageParam: lastPage => (lastPage.at(-1)?.id ?? -1) + 1,
+  initialPageParam: 0,
 }))
 
 const queryClient = useQueryClient()

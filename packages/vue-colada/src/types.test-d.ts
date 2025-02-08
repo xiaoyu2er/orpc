@@ -1,16 +1,15 @@
+import type { ComputedGetter, ComputedRef, Ref } from 'vue'
 import type { MaybeRefDeep } from './types'
-import { computed, ref, shallowRef } from 'vue'
 
 it('MaybeDeepRef', () => {
-  expectTypeOf(1).toMatchTypeOf<MaybeRefDeep<number>>()
-  expectTypeOf(ref(1)).toMatchTypeOf<MaybeRefDeep<number>>()
-  expectTypeOf(computed(() => 1)).toMatchTypeOf<MaybeRefDeep<number>>()
-  expectTypeOf(shallowRef(1)).toMatchTypeOf<MaybeRefDeep<number>>()
+  type Expected = MaybeRefDeep<{ nested: { val: string } }>
 
-  expectTypeOf({ val: { val: 'string' } }).toMatchTypeOf<MaybeRefDeep<{ val: { val: string } }>>()
-  expectTypeOf({ val: { val: ref('string') } }).toMatchTypeOf<MaybeRefDeep<{ val: { val: string } }>>()
-  expectTypeOf({ val: ref({ val: ref('string') }) }).toMatchTypeOf<MaybeRefDeep<{ val: { val: string } }>>()
+  expectTypeOf<{ nested: { val: string } }>().toMatchTypeOf<Expected>()
+  expectTypeOf<{ nested: { val: Ref<string> } }>().toMatchTypeOf<Expected>()
+  expectTypeOf<{ nested: ComputedRef<{ val: Ref<string> }> }>().toMatchTypeOf<Expected>()
+  expectTypeOf<Ref<{ nested: ComputedRef<{ val: string }> }>>().toMatchTypeOf<Expected>()
 
-  expectTypeOf(computed(() => ({ val: ref({ val: ref('string') }) }))).toMatchTypeOf<MaybeRefDeep<{ val: { val: string } }>>()
-  expectTypeOf(shallowRef({ val: ref({ val: ref('string') }) })).toMatchTypeOf<MaybeRefDeep<{ val: { val: string } }>>()
+  expectTypeOf<{ nested: { val: number } }>().not.toMatchTypeOf<Expected>()
+  expectTypeOf<{ nested: { val: Ref<number> } }>().not.toMatchTypeOf<Expected>()
+  expectTypeOf<Ref<{ nested: ComputedGetter<{ val: string }> }>>().not.toMatchTypeOf<Expected>()
 })

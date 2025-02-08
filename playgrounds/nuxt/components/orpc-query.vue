@@ -3,8 +3,9 @@ import { useInfiniteQuery } from '@tanstack/vue-query'
 import { orpc } from '~/lib/orpc'
 
 const query = useInfiniteQuery(orpc.planet.list.infiniteOptions({
-  input: {},
+  input: cursor => ({ cursor }),
   getNextPageParam: lastPage => (lastPage.at(-1)?.id ?? -1) + 1,
+  initialPageParam: 0,
 }))
 </script>
 

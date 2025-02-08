@@ -1,4 +1,4 @@
-import type { AnyFunction } from '@orpc/shared'
+import type { AnyFunction, SetOptional } from '@orpc/shared'
 import type { Enabled, MutationObserverOptions, QueryFunctionContext, QueryKey, QueryObserverOptions, UseInfiniteQueryOptions } from '@tanstack/vue-query'
 import type { ComputedRef, MaybeRef, MaybeRefOrGetter } from 'vue'
 
@@ -32,10 +32,7 @@ export interface QueryOptionsBase<TOutput, TError extends Error> {
 export type InfiniteOptionsIn<TClientContext, TInput, TOutput, TError extends Error, TSelectData, TPageParam> =
   & { input: (pageParam: TPageParam) => MaybeDeepRef<TInput> }
   & (undefined extends TClientContext ? { context?: MaybeDeepRef<TClientContext> } : { context: MaybeDeepRef<TClientContext> })
-  & Omit<UseInfiniteQueryOptions<TOutput, TError, TSelectData, TOutput, QueryKey, TPageParam>, 'queryKey'>
-  & {
-    queryKey?: MaybeDeepRef<QueryKey>
-  }
+  & SetOptional<UseInfiniteQueryOptions<TOutput, TError, TSelectData, TOutput, QueryKey, TPageParam>, 'queryKey'>
 
 export interface InfiniteOptionsBase<TOutput, TError extends Error, TPageParam> {
   queryKey: ComputedRef<QueryKey>

@@ -4,7 +4,8 @@ import type { Plugin } from './base'
 import { value, type Value } from '@orpc/shared'
 
 export interface CORSOptions<TContext extends Context> {
-  origin: Value<string | string[] | null | undefined, [origin: string, options: StandardHandlerInterceptorOptions<TContext>]>
+  origin?: Value<string | string[] | null | undefined, [origin: string, options: StandardHandlerInterceptorOptions<TContext>]>
+  timingOrigin?: Value<string | string[] | null | undefined, [origin: string, options: StandardHandlerInterceptorOptions<TContext>]>
   allowMethods?: string[]
   allowHeaders?: string[]
   maxAge?: number
@@ -19,6 +20,10 @@ export class CORSPlugin<TContext extends Context> implements Plugin<TContext> {
     const defaults: CORSOptions<TContext> = {
       origin: '*',
       allowMethods: ['GET', 'HEAD', 'PUT', 'POST', 'DELETE', 'PATCH'],
+    }
+
+    if (options?.credentials) {
+      defaults.origin = origin => origin
     }
 
     this.options = {
@@ -76,15 +81,27 @@ export class CORSPlugin<TContext extends Context> implements Plugin<TContext> {
         : interceptorOptions.request.headers.origin || ''
 
       const allowedOrigin = await value(this.options.origin, origin, interceptorOptions)
-
       const allowedOriginArr = Array.isArray(allowedOrigin) ? allowedOrigin : [allowedOrigin]
 
-      if (allowedOriginArr.includes(origin) || allowedOriginArr.includes('*')) {
-        result.response.headers['access-control-allow-origin'] = origin
+      if (allowedOriginArr.includes('*')) {
+        result.response.headers['access-control-allow-origin'] = '*'
+      }
+      else {
+        if (allowedOriginArr.includes(origin)) {
+          result.response.headers['access-control-allow-origin'] = origin
+        }
+
+        result.response.headers.vary = interceptorOptions.request.headers.vary ?? 'origin'
       }
 
-      if (!allowedOriginArr.includes('*')) {
-        result.response.headers.vary = interceptorOptions.request.headers.vary ?? 'origin'
+      const allowedTimingOrigin = await value(this.options.timingOrigin, origin, interceptorOptions)
+      const allowedTimingOriginArr = Array.isArray(allowedTimingOrigin) ? allowedTimingOrigin : [allowedTimingOrigin]
+
+      if (allowedTimingOriginArr.includes('*')) {
+        result.response.headers['timing-allow-origin'] = '*'
+      }
+      else if (allowedTimingOriginArr.includes(origin)) {
+        result.response.headers['timing-allow-origin'] = origin
       }
 
       if (this.options.credentials) {

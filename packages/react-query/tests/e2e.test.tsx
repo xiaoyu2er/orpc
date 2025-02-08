@@ -30,7 +30,7 @@ it('case: with useQuery', async () => {
     queryClient.getQueryData(orpc.nested.ping.key({ input: { input: 123 }, type: 'query' })),
   ).toEqual({ output: '123' })
 
-  pingHandler.mockRejectedValue(new ORPCError('OVERRIDE'))
+  pingHandler.mockRejectedValueOnce(new ORPCError('OVERRIDE'))
 
   result.current.refetch()
 
@@ -96,7 +96,7 @@ it('case: with useInfiniteQuery', async () => {
     ],
   })
 
-  pingHandler.mockRejectedValue(new ORPCError('OVERRIDE'))
+  pingHandler.mockRejectedValueOnce(new ORPCError('OVERRIDE'))
 
   result.current.fetchNextPage()
 
@@ -124,7 +124,7 @@ it('case: with useMutation', async () => {
 
   await vi.waitFor(() => expect(result.current.data).toEqual({ output: '123' }))
 
-  pingHandler.mockRejectedValue(new ORPCError('OVERRIDE'))
+  pingHandler.mockRejectedValueOnce(new ORPCError('OVERRIDE'))
 
   result.current.mutate({ input: 456 })
 

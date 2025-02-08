@@ -36,7 +36,7 @@ it('case: with useQuery', async () => {
 
   await vi.waitFor(() => expect(query.data.value).toEqual({ output: '456' }))
 
-  pingHandler.mockRejectedValue(new ORPCError('OVERRIDE'))
+  pingHandler.mockRejectedValueOnce(new ORPCError('OVERRIDE'))
 
   query.refetch()
 
@@ -102,7 +102,7 @@ it('case: with useInfiniteQuery', async () => {
     ],
   })
 
-  pingHandler.mockRejectedValue(new ORPCError('OVERRIDE'))
+  pingHandler.mockRejectedValueOnce(new ORPCError('OVERRIDE'))
 
   query.fetchNextPage()
 
@@ -130,7 +130,7 @@ it('case: with useMutation', async () => {
 
   await vi.waitFor(() => expect(mutation.data.value).toEqual({ output: '123' }))
 
-  pingHandler.mockRejectedValue(new ORPCError('OVERRIDE'))
+  pingHandler.mockRejectedValueOnce(new ORPCError('OVERRIDE'))
 
   mutation.mutate({ input: 456 })
 

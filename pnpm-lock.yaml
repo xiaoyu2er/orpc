@@ -26,6 +26,9 @@ importers:
       '@vitest/coverage-v8':
         specifier: ^3.0.4
         version: 3.0.5(vitest@3.0.5(@types/debug@4.1.12)(@types/node@22.13.1)(jiti@2.4.2)(jsdom@25.0.1)(terser@5.38.1)(tsx@4.19.2)(yaml@2.7.0))
+      '@vue/test-utils':
+        specifier: ^2.4.6
+        version: 2.4.6
       eslint:
         specifier: ^9.15.0
         version: 9.20.0(jiti@2.4.2)
@@ -303,9 +306,6 @@ importers:
         specifier: '>=3.3.0'
         version: 3.5.13(typescript@5.7.3)
     devDependencies:
-      '@vue/test-utils':
-        specifier: ^2.4.6
-        version: 2.4.6
       pinia:
         specifier: ^2.3.0
         version: 2.3.1(typescript@5.7.3)(vue@3.5.13(typescript@5.7.3))

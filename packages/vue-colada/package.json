@@ -55,7 +55,6 @@
     "@orpc/server": "workspace:*"
   },
   "devDependencies": {
-    "@vue/test-utils": "^2.4.6",
     "pinia": "^2.3.0"
   }
 }

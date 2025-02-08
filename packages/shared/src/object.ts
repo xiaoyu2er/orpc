@@ -1,5 +1,3 @@
-import { isPlainObject } from 'is-what'
-
 export type Segment = string | number
 
 export function set(
@@ -69,7 +67,7 @@ export function findDeepMatches(
       findDeepMatches(check, v, [...segments, i], maps, values)
     })
   }
-  else if (isPlainObject(payload)) {
+  else if (isObject(payload)) {
     for (const key in payload) {
       findDeepMatches(check, payload[key], [...segments, key], maps, values)
     }
@@ -82,7 +80,7 @@ export function findDeepMatches(
  * Check if the value is an object.
  * Even object created by Object.create(null) is considered an object.
  */
-export function isObject(value: unknown): value is Record<string, unknown> {
+export function isObject(value: unknown): value is Record<PropertyKey, unknown> {
   if (!value || typeof value !== 'object') {
     return false
   }

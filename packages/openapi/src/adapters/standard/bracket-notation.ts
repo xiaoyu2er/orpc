@@ -1,4 +1,4 @@
-import { isPlainObject } from '@orpc/shared'
+import { isObject } from '@orpc/shared'
 
 /**
  * Serialize an object or array into a list of [key, value] pairs.
@@ -26,7 +26,7 @@ export function serialize(
   payload: unknown,
   parentKey = '',
 ): [string, unknown][] {
-  if (!Array.isArray(payload) && !isPlainObject(payload))
+  if (!Array.isArray(payload) && !isObject(payload))
     return [['', payload]]
 
   const result: [string, unknown][] = []
@@ -37,7 +37,7 @@ export function serialize(
         helper(item, [...path, String(index)])
       })
     }
-    else if (isPlainObject(value)) {
+    else if (isObject(value)) {
       for (const [key, val] of Object.entries(value)) {
         helper(val, [...path, key])
       }

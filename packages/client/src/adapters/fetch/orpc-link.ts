@@ -5,7 +5,7 @@ import type { FetchWithContext } from './types'
 import { ORPCError } from '@orpc/contract'
 import { fetchReToStandardBody } from '@orpc/server/fetch'
 import { RPCSerializer } from '@orpc/server/standard'
-import { isPlainObject, trim } from '@orpc/shared'
+import { isObject, trim } from '@orpc/shared'
 import { contentDisposition } from '@tinyhttp/content-disposition'
 
 export interface RPCLinkOptions<TClientContext> {
@@ -128,7 +128,7 @@ export class RPCLink<TClientContext> implements ClientLink<TClientContext> {
 
     const serialized = this.rpcSerializer.serialize(input)
 
-    if (expectMethod === 'GET' && isPlainObject(serialized)) { // isPlainObject mean has no blobs
+    if (expectMethod === 'GET' && isObject(serialized)) { // isObject mean has no blobs
       const tryURL = new URL(url)
 
       tryURL.searchParams.append('data', JSON.stringify(serialized))
@@ -154,7 +154,7 @@ export class RPCLink<TClientContext> implements ClientLink<TClientContext> {
       }
     }
 
-    if (isPlainObject(serialized)) {
+    if (isObject(serialized)) {
       if (!headers.has('content-type')) {
         headers.set('content-type', 'application/json')
       }

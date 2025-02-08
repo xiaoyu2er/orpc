@@ -1,4 +1,4 @@
-import { isPlainObject } from 'is-what'
+import { isObject } from './object'
 
 export function toError(error: unknown): Error {
   if (error instanceof Error) {
@@ -9,7 +9,7 @@ export function toError(error: unknown): Error {
     return new Error(error, { cause: error })
   }
 
-  if (isPlainObject(error)) {
+  if (isObject(error)) {
     if ('message' in error && typeof error.message === 'string') {
       return new Error(error.message, { cause: error })
     }

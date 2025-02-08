@@ -1,7 +1,7 @@
 import type { AnyProcedure } from '@orpc/server'
 import type { StandardBody, StandardCodec, StandardHeaders, StandardParams, StandardRequest, StandardResponse } from '@orpc/server/standard'
 import { fallbackContractConfig, type ORPCError } from '@orpc/contract'
-import { isPlainObject } from '@orpc/shared'
+import { isObject } from '@orpc/shared'
 import { OpenAPISerializer } from './openapi-serializer'
 
 export interface OpenAPICodecOptions {
@@ -27,7 +27,7 @@ export class OpenAPICodec implements StandardCodec {
         return params
       }
 
-      if (isPlainObject(data)) {
+      if (isObject(data)) {
         return {
           ...params,
           ...data,
@@ -68,7 +68,7 @@ export class OpenAPICodec implements StandardCodec {
       }
     }
 
-    if (!isPlainObject(output)) {
+    if (!isObject(output)) {
       throw new Error(
         'Invalid output structure for "detailed" output. Expected format: { body: any, headers?: Record<string, string | string[] | undefined> }',
       )

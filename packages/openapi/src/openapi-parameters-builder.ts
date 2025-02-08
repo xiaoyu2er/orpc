@@ -1,6 +1,6 @@
 import type { OpenAPI } from './openapi'
 import type { JSONSchema } from './schema'
-import { get, isPlainObject, omit } from '@orpc/shared'
+import { get, isObject, omit } from '@orpc/shared'
 
 export class OpenAPIParametersBuilder {
   build(
@@ -15,7 +15,7 @@ export class OpenAPIParametersBuilder {
 
       const paramExamples = jsonSchema.examples
         ?.filter((example) => {
-          return isPlainObject(example) && name in example
+          return isObject(example) && name in example
         })
         .map((example) => {
           return example[name]

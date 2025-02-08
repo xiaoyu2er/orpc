@@ -46,6 +46,7 @@
     "@orpc/server": "workspace:*"
   },
   "dependencies": {
+    "@orpc/shared": "workspace:*",
     "@standard-schema/spec": "^1.0.0",
     "json-schema-typed": "^8.0.1",
     "wildcard-match": "^5.1.3",

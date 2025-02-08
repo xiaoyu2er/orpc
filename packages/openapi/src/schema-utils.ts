@@ -1,4 +1,4 @@
-import { isPlainObject } from '@orpc/shared'
+import { isObject } from '@orpc/shared'
 import { type FileSchema, type JSONSchema, NON_LOGIC_KEYWORDS, type ObjectSchema } from './schema'
 
 export class SchemaUtils {
@@ -40,7 +40,7 @@ export class SchemaUtils {
     matched.required = schema.required?.filter(key => separatedProperties.includes(key))
 
     matched.examples = schema.examples?.map((example) => {
-      if (!isPlainObject(example)) {
+      if (!isObject(example)) {
         return example
       }
 
@@ -63,7 +63,7 @@ export class SchemaUtils {
     rest.required = schema.required?.filter(key => !separatedProperties.includes(key))
 
     rest.examples = schema.examples?.map((example) => {
-      if (!isPlainObject(example)) {
+      if (!isObject(example)) {
         return example
       }
 

@@ -9,7 +9,7 @@ export default antfu({
     'react-refresh/only-export-components': 'off',
     'react/prefer-destructuring-assignment': 'off',
     'react/no-context-provider': 'off',
-    'ts/method-signature-style': ['error', 'method'],
+    'ts/method-signature-style': ['off'],
   },
 }, {
   files: ['**/*.test.ts', '**/*.test.tsx', '**/*.test-d.ts', '**/*.test-d.tsx', 'apps/content/examples/**', 'playgrounds/**'],

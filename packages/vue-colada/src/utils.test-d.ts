@@ -1,17 +1,42 @@
-import { computed, ref, shallowRef } from 'vue'
-import { deepUnref } from './utils'
+import type { ComputedRef, Ref } from 'vue'
+import type { UnrefDeep } from './utils'
 
-it('deepUnref', () => {
-  expectTypeOf(deepUnref(1)).toMatchTypeOf<number>()
-  expectTypeOf(deepUnref('1')).toMatchTypeOf<string>()
-
-  expectTypeOf(deepUnref(ref(1))).toMatchTypeOf<number>()
-  expectTypeOf(deepUnref({ val: ref(1) })).toMatchTypeOf<{ val: number }>()
-  expectTypeOf(deepUnref({ val: { val: ref(1) } })).toMatchTypeOf<{ val: { val: number } }>()
-  expectTypeOf(deepUnref({ val: ref({ val: ref(1) }) })).toMatchTypeOf<{ val: { val: number } }>()
-
-  expectTypeOf(deepUnref({ val: computed(() => ref(1)) })).toMatchTypeOf<{ val: number }>()
-  expectTypeOf(deepUnref(computed(() => ({ val: ref({ val: ref(1) }) })))).toMatchTypeOf<{ val: { val: number } }>()
-  expectTypeOf(deepUnref(computed(() => ({ val: ref({ val: shallowRef(1) }) })))).toMatchTypeOf<{ val: { val: number } }>()
-  expectTypeOf(deepUnref(computed(() => ({ val: shallowRef({ val: ref(1) }) })))).toMatchTypeOf<{ val: { val: number } }>()
+it('UnrefDeep', () => {
+  expectTypeOf<UnrefDeep<{
+    primitive: number
+    nested: ComputedRef<{
+      primitive: number
+      date: Ref<Date>
+      url: URL
+      regex: RegExp
+      set: Set<number>
+      map: Map<string, number>
+      nested: ComputedRef<{
+        primitive: number
+        date: Date
+        url: URL
+        regex: Ref<RegExp>
+        set: Set<number>
+        map: Map<string, number>
+      }>
+    }>
+  }>>().toEqualTypeOf<{
+    primitive: number
+    nested: {
+      primitive: number
+      date: Date
+      url: URL
+      regex: RegExp
+      set: Set<number>
+      map: Map<string, number>
+      nested: {
+        primitive: number
+        date: Date
+        url: URL
+        regex: RegExp
+        set: Set<number>
+        map: Map<string, number>
+      }
+    }
+  }>()
 })

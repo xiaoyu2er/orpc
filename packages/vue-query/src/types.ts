@@ -1,32 +1,30 @@
 import type { AnyFunction, SetOptional } from '@orpc/shared'
-import type { MutationObserverOptions, QueryFunctionContext, QueryKey, QueryObserverOptions, UseInfiniteQueryOptions } from '@tanstack/vue-query'
+import type { Enabled, MutationObserverOptions, QueryFunctionContext, QueryKey, QueryObserverOptions, UseInfiniteQueryOptions } from '@tanstack/vue-query'
 import type { ComputedRef, MaybeRef, MaybeRefOrGetter } from 'vue'
 
-export type MaybeDeepRef<T> = MaybeRef<
+/**
+ * Since `@tanstack/vue-query` is not exporting the type `MaybeRefDeep` we need to copy it from the source code.
+ * https://github.com/TanStack/query/blob/7ff544e12e79388e513b1cd886aeb946f80f0153/packages/vue-query/src/types.ts#L19C1-L27C2
+ */
+export type MaybeRefDeep<T> = MaybeRef<
   T extends AnyFunction
     ? T
     : T extends object
-      ? {
-          [K in keyof T]: MaybeDeepRef<T[K]>
-        }
+      ? { [Property in keyof T]: MaybeRefDeep<T[Property]> }
       : T
 >
 
-export type NonUndefinedGuard<T> = T extends undefined ? never : T
-
-export type InferCursor<T> = T extends { cursor?: any } ? T['cursor'] : never
-
-export type QueryOptionsExtra<TClientContext, TInput, TOutput, TError extends Error, TSelectData> =
-  & (undefined extends TInput ? { input?: MaybeDeepRef<TInput> } : { input: MaybeDeepRef<TInput> })
-  & (undefined extends TClientContext ? { context?: MaybeDeepRef<TClientContext> } : { context: MaybeDeepRef<TClientContext> })
-  & SetOptional<{
-    [P in keyof QueryObserverOptions<TOutput, TError, TSelectData, TOutput, QueryKey>]: P extends 'enabled'
-      ? MaybeRefOrGetter<QueryObserverOptions<TOutput, TError, TSelectData, TOutput, QueryKey>[P]>
-      : MaybeDeepRef<QueryObserverOptions<TOutput, TError, TSelectData, TOutput, QueryKey>[P]>
-  }, 'queryKey'>
+export type QueryOptionsIn<TClientContext, TInput, TOutput, TError extends Error, TSelectData> =
+  & (undefined extends TInput ? { input?: MaybeRefDeep<TInput> } : { input: MaybeRefDeep<TInput> })
+  & (undefined extends TClientContext ? { context?: MaybeRefDeep<TClientContext> } : { context: MaybeRefDeep<TClientContext> })
   & {
-    shallow?: MaybeRef<boolean>
-    initialData?: NonUndefinedGuard<TOutput> | (() => NonUndefinedGuard<TOutput>) | undefined
+    [P in keyof Omit<QueryObserverOptions<TOutput, TError, TSelectData, TOutput>, 'queryKey' | 'enabled'>]:
+    MaybeRefDeep<QueryObserverOptions<TOutput, TError, TSelectData, TOutput>[P]>
+  }
+  & {
+    enabled?: MaybeRefOrGetter<Enabled<TOutput, TError, TSelectData>>
+    queryKey?: MaybeRefDeep<QueryKey>
+    shallow?: boolean
   }
 
 export interface QueryOptionsBase<TOutput, TError extends Error> {
@@ -35,25 +33,21 @@ export interface QueryOptionsBase<TOutput, TError extends Error> {
   retry?(failureCount: number, error: TError): boolean // this help tanstack can infer TError
 }
 
-export type InfiniteOptionsExtra<TClientContext, TInput, TOutput, TError extends Error, TSelectData> =
-  & (undefined extends TInput ? { input?: MaybeDeepRef<Omit<TInput, 'cursor'>> } : { input: MaybeDeepRef<Omit<TInput, 'cursor'>> })
-  & (undefined extends TClientContext ? { context?: MaybeDeepRef<TClientContext> } : { context: MaybeDeepRef<TClientContext> })
-  & SetOptional<
-    UseInfiniteQueryOptions<TOutput, TError, TSelectData, TOutput, QueryKey, InferCursor<TInput>>,
-    'queryKey' | (undefined extends InferCursor<TInput> ? 'initialPageParam' : never)
-  >
+export type InfiniteOptionsIn<TClientContext, TInput, TOutput, TError extends Error, TSelectData, TPageParam> =
+  & { input: (pageParam: TPageParam) => MaybeRefDeep<TInput> }
+  & (undefined extends TClientContext ? { context?: MaybeRefDeep<TClientContext> } : { context: MaybeRefDeep<TClientContext> })
+  & SetOptional<UseInfiniteQueryOptions<TOutput, TError, TSelectData, TOutput, QueryKey, TPageParam>, 'queryKey'>
 
-export interface InfiniteOptionsBase<TInput, TOutput, TError extends Error> {
+export interface InfiniteOptionsBase<TOutput, TError extends Error, TPageParam> {
   queryKey: ComputedRef<QueryKey>
-  queryFn(ctx: QueryFunctionContext<QueryKey, InferCursor<TInput>>): Promise<TOutput>
-  initialPageParam: undefined
+  queryFn(ctx: QueryFunctionContext<QueryKey, TPageParam>): Promise<TOutput>
   retry?(failureCount: number, error: TError): boolean // this help tanstack can infer TError
 }
 
-export type MutationOptionsExtra<TClientContext, TInput, TOutput, TError extends Error> =
-  & (undefined extends TClientContext ? { context?: MaybeDeepRef<TClientContext> } : { context: MaybeDeepRef<TClientContext> })
+export type MutationOptionsIn<TClientContext, TInput, TOutput, TError extends Error> =
+  & (undefined extends TClientContext ? { context?: TClientContext } : { context: TClientContext })
   & {
-    [P in keyof MutationObserverOptions<TOutput, TError, TInput, unknown>]: MaybeDeepRef<MutationObserverOptions<TOutput, TError, TInput, unknown>[P]>
+    [P in keyof MutationObserverOptions<TOutput, TError, TInput>]: MaybeRefDeep<MutationObserverOptions<TOutput, TError, TInput>[P]>
   }
   & {
     shallow?: MaybeRef<boolean>

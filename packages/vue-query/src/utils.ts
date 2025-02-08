@@ -1,27 +1,27 @@
-import type { AnyFunction } from '@orpc/shared'
 import type { Ref } from 'vue'
+import { type AnyFunction, isObject } from '@orpc/shared'
 import { isRef } from 'vue'
 
-export type DeepUnref<T> = T extends Ref<infer U>
-  ? DeepUnref<U>
+export type UnrefDeep<T> = T extends Ref<infer U>
+  ? UnrefDeep<U>
   : T extends AnyFunction ? T
-    : T extends object ? { [K in keyof T]: DeepUnref<T[K]> }
+    : T extends object ? { [K in keyof T]: UnrefDeep<T[K]> }
       : T
 
-export function deepUnref<T>(value: T): DeepUnref<T> {
+export function unrefDeep<T>(value: T): UnrefDeep<T> {
   if (isRef(value)) {
-    return deepUnref(value.value) as any
+    return unrefDeep(value.value) as any
   }
 
   if (Array.isArray(value)) {
-    return value.map(deepUnref) as any
+    return value.map(unrefDeep) as any
   }
 
-  if (value && typeof value === 'object') {
+  if (isObject(value)) {
     return Object.keys(value).reduce((acc, key) => {
-      (acc as any)[key] = deepUnref((value as any)[key])
+      acc[key] = unrefDeep(value[key])
       return acc
-    }, {} as Record<string, any>) as any
+    }, {} as Record<string, unknown>) as any
   }
 
   return value as any

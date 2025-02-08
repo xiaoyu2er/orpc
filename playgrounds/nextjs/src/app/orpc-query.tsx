@@ -6,10 +6,9 @@ import { useInfiniteQuery } from '@tanstack/react-query'
 export function ListPlanetsQuery() {
   const { data, refetch, fetchNextPage, hasNextPage, isLoading, status } = useInfiniteQuery(
     orpc.planet.list.infiniteOptions({
-      input: {},
-      getNextPageParam: (lastPage) => {
-        return 2
-      },
+      input: cursor => ({ cursor }),
+      getNextPageParam: lastPage => (lastPage.at(-1)?.id ?? -1) + 1,
+      initialPageParam: 0,
     }),
   )
 

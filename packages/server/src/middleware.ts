@@ -1,4 +1,4 @@
-import type { AbortSignal, ErrorMap, Meta, ORPCErrorConstructorMap, Schema } from '@orpc/contract'
+import type { ErrorMap, Meta, ORPCErrorConstructorMap, Schema } from '@orpc/contract'
 import type { Promisable } from '@orpc/shared'
 import type { Context } from './context'
 import type { Procedure } from './procedure'

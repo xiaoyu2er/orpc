@@ -1,126 +1,78 @@
-import type { ORPCError } from '@orpc/contract'
-import { useMutation, useQuery } from '@pinia/colada'
-import { ref } from 'vue'
-import { orpc } from './helpers'
+import { isDefinedError } from '@orpc/contract'
+import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
+import { computed, ref } from 'vue'
+import { orpc } from './shared'
 
-describe('useQuery', () => {
-  it('infer input', async () => {
-    useQuery(orpc.post.find.queryOptions({
-      input: { id: '123' },
-    }))
+it('.key', () => {
+  const client = useQueryCache()
 
-    useQuery(orpc.post.find.queryOptions({
-      input: { id: ref('123') },
-    }))
-
-    // @ts-expect-error --- input is required
-    useQuery(orpc.post.find.queryOptions({
-    }))
-
-    useQuery(orpc.post.find.queryOptions({
-      // @ts-expect-error --- input is invalid
-      input: { id: 123 },
-    }))
+  client.invalidateQueries({
+    key: orpc.nested.key(),
   })
 
-  it('infer output', () => {
-    const query = useQuery(orpc.post.find.queryOptions({
-      input: { id: '123' },
+  orpc.ping.key({})
+  orpc.ping.key({ input: computed(() => ({ input: ref(123) })) })
+  // @ts-expect-error --- input is invalid
+  orpc.ping.key({ input: { input: 'INVALID' } })
+})
+
+describe('.queryOptions', () => {
+  it('useQuery', () => {
+    const query = useQuery(orpc.ping.queryOptions({
+      input: computed(() => ({ input: ref(123) })),
     }))
 
-    expectTypeOf(query.data.value).toEqualTypeOf<undefined | { id: string, title: string, thumbnail?: string }>()
-  })
+    if (isDefinedError(query.error.value) && query.error.value.code === 'OVERRIDE') {
+      expectTypeOf(query.error.value.data).toEqualTypeOf<unknown>()
+    }
 
-  it('infer errors', () => {
-    const query = useQuery(orpc.post.find.queryOptions({
-      input: { id: '123' },
+    expectTypeOf(query.data.value).toEqualTypeOf<{ output: string } | undefined>()
+
+    useQuery(orpc.ping.queryOptions({
+      input: {
+        // @ts-expect-error --- input is invalid
+        input: '123',
+      },
     }))
 
-    expectTypeOf(query.error.value).toEqualTypeOf<Error | ORPCError<'NOT_FOUND', { id: string }> | null>()
-  })
-
-  it('infer client context', () => {
-    useQuery(orpc.post.find.queryOptions({
-      input: { id: '123' },
-      context: { cache: 'force' },
-    }))
-
-    useQuery(orpc.post.find.queryOptions({
-      input: { id: '123' },
-      context: { cache: ref('force') },
-    }))
-
-    useQuery(orpc.post.find.queryOptions({
-      input: { id: '123' },
-      context: ref({ cache: ref('force') }),
-    }))
-
-    useQuery(orpc.post.find.queryOptions({
-      input: { id: '123' },
-      // @ts-expect-error --- invalid context
-      context: { cache: 123 },
+    useQuery(orpc.ping.queryOptions({
+      input: { input: 123 },
+      context: {
+        // @ts-expect-error --- cache is invalid
+        cache: 123,
+      },
     }))
   })
 })
 
-describe('useMutation', () => {
-  it('infer input', async () => {
-    const mutation = useMutation(orpc.post.create.mutationOptions({
-      onMutate(input) {
-        expectTypeOf(input).toEqualTypeOf<{ title: string, thumbnail?: File }>()
+describe('.mutationOptions', () => {
+  it('useMutation', async () => {
+    const mutation = useMutation(orpc.ping.mutationOptions({
+      onError(error, variables) {
+        if (isDefinedError(error) && error.code === 'BASE') {
+          expectTypeOf(error.data).toEqualTypeOf<{ output: string }>()
+        }
       },
     }))
 
-    mutation.mutate({ title: 'title' })
-    mutation.mutate({ title: 'title', thumbnail: new File([], 'thumbnail.png') })
+    if (isDefinedError(mutation.error.value) && mutation.error.value.code === 'OVERRIDE') {
+      expectTypeOf(mutation.error.value.data).toEqualTypeOf<unknown>()
+    }
 
-    // @ts-expect-error --- invalid input
-    mutation.mutate({ title: 123 })
-    // @ts-expect-error --- invalid input
-    mutation.mutate({ title: 'title', thumbnail: 124 })
-  })
+    expectTypeOf(mutation.data.value).toEqualTypeOf<{ output: string } | undefined>()
 
-  it('infer output', async () => {
-    const mutation = useMutation(orpc.post.create.mutationOptions({
-      onSuccess(data) {
-        expectTypeOf(data).toEqualTypeOf<{ id: string, title: string, thumbnail?: string }>()
+    mutation.mutate({ input: 123 })
+
+    mutation.mutateAsync({
+      // @ts-expect-error --- input is invalid
+      input: 'INVALID',
+    })
+
+    // @ts-expect-error --- cache is invalid
+    useMutation(orpc.ping.mutationOptions({
+      context: {
+        cache: 123,
       },
-    }))
-
-    expectTypeOf(await mutation.mutateAsync({ title: '123' })).toEqualTypeOf<{ id: string, title: string, thumbnail?: string }>()
-  })
-
-  it('infer errors', () => {
-    const mutation = useMutation(orpc.post.create.mutationOptions({
-      onError(error) {
-        expectTypeOf(error).toEqualTypeOf<
-          | Error
-          | ORPCError<'CONFLICT', { title: string, thumbnail?: File }>
-          | ORPCError<'FORBIDDEN', { title: string, thumbnail?: File }>
-        >()
-      },
-    }))
-
-    expectTypeOf(mutation.error.value).toEqualTypeOf<
-      | null
-      | Error
-      | ORPCError<'CONFLICT', { title: string, thumbnail?: File }>
-      | ORPCError<'FORBIDDEN', { title: string, thumbnail?: File }>
-    >()
-  })
-
-  it('infer client context', () => {
-    useMutation(orpc.post.create.mutationOptions({
-      context: { cache: '1234' },
-    }))
-
-    useMutation(orpc.post.create.mutationOptions({
-      context: { cache: ref('1234') },
-    }))
-
-    // @ts-expect-error --- invalid context
-    useMutation(orpc.post.create.mutationOptions({
-      context: { cache: 1234 },
     }))
   })
 })

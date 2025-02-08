@@ -1,9 +1,9 @@
-import { createRouterUtils } from './utils-router'
+import { createRouterUtils } from './router-utils'
 
+export * from './general-utils'
 export * from './key'
+export * from './procedure-utils'
+export * from './router-utils'
 export * from './types'
-export * from './utils-general'
-export * from './utils-procedure'
-export * from './utils-router'
 
 export const createORPCVueColadaUtils = createRouterUtils

@@ -14,16 +14,11 @@ export function buildKey<TType extends KeyType, TInput>(
   path: string[],
   options?: BuildKeyOptions<TType, TInput>,
 ): QueryKey {
-  const withInput
-        = options?.input !== undefined ? { input: options?.input } : {}
+  const withInput = options?.input !== undefined ? { input: options?.input } : {}
   const withType = options?.type !== undefined ? { type: options?.type } : {}
 
-  return [
-    '__ORPC__',
-    path,
-    {
-      ...withInput,
-      ...withType,
-    },
-  ]
+  return [path, {
+    ...withInput,
+    ...withType,
+  }]
 }

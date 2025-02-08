@@ -2,14 +2,14 @@ import { buildKey } from './key'
 
 describe('buildKey', () => {
   it('works', () => {
-    expect(buildKey(['path'])).toEqual(['__ORPC__', 'path'])
+    expect(buildKey(['path'])).toEqual(['path'])
     expect(buildKey(['path', 'path2'], { input: { a: 1 } }))
-      .toEqual(['__ORPC__', 'path', 'path2', { input: '{"json":{"a":1},"meta":[]}' }])
+      .toEqual(['path', 'path2', { input: '{"json":{"a":1},"meta":[]}' }])
     expect(buildKey(['path'], { input: undefined }))
-      .toEqual(['__ORPC__', 'path'])
+      .toEqual(['path'])
 
     const date = new Date()
     expect(buildKey(['path', 'path2'], { input: { a: date } }))
-      .toEqual(['__ORPC__', 'path', 'path2', { input: `{"json":{"a":"${date.toISOString()}"},"meta":[["date",["a"]]]}` }])
+      .toEqual(['path', 'path2', { input: `{"json":{"a":"${date.toISOString()}"},"meta":[["date",["a"]]]}` }])
   })
 })

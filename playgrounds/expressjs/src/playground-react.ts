@@ -10,8 +10,9 @@ const orpc = createORPCReactQueryUtils(client)
 
 const listQuery = useInfiniteQuery(
   orpc.planet.list.infiniteOptions({
-    input: {},
+    input: cursor => ({ cursor }),
     getNextPageParam: lastPage => (lastPage.at(-1)?.id ?? -1) + 1,
+    initialPageParam: 0,
   }),
 )
 

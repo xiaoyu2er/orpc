@@ -10,7 +10,6 @@ export function buildKey<TInput>(
   options?: BuildKeyOptions<TInput>,
 ): EntryKey {
   return [
-    '__ORPC__',
     ...path,
     ...options?.input !== undefined ? [{ input: JSON.stringify(serializeRPCJson(options.input)) }] : [],
   ]

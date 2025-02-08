@@ -1,5 +1,3 @@
-import type { AbortSignal } from './types'
-
 export type ClientOptions<TClientContext> =
   & { signal?: AbortSignal }
   & (undefined extends TClientContext ? { context?: TClientContext } : { context: TClientContext })

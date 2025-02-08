@@ -1,129 +1,79 @@
-import { isDefinedError } from '@orpc/contract'
+import { isDefinedError, ORPCError } from '@orpc/contract'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
-import { defineComponent, ref } from 'vue'
-import { mount, orpc } from './helpers'
+import { computed, defineComponent, ref } from 'vue'
+import { pingHandler } from '../../server/tests/shared'
+import { mount, orpc } from './shared'
 
-describe('useQuery', () => {
-  it('on success', async () => {
-    const mounted = mount(defineComponent({
-      setup() {
-        const id = ref('123')
-
-        const queryCache = useQueryCache()
-        const query = useQuery(orpc.post.find.queryOptions({ input: { id } }))
-
-        const setId = (value: string) => {
-          id.value = value
-        }
-
-        return { query, queryCache, setId }
-      },
-      template: '',
-    }))
-
-    await vi.waitFor(() => expect(mounted.vm.query.data.value).toEqual({ id: '123', title: 'title-123' }))
-    expect(
-      mounted.vm.queryCache.getQueryData(orpc.post.find.key({ input: { id: '123' } })),
-    ).toEqual({ id: '123', title: 'title-123' })
-
-    mounted.vm.setId('456')
-    await vi.waitFor(() => expect(mounted.vm.query.data.value).toEqual({ id: '456', title: 'title-456' }))
-
-    mounted.vm.queryCache.invalidateQueries({ key: orpc.post.create.key() })
-    expect(mounted.vm.query.isLoading.value).toEqual(false)
-
-    mounted.vm.queryCache.invalidateQueries({ key: orpc.post.key() })
-    expect(mounted.vm.query.isLoading.value).toEqual(true)
-  })
-
-  it('on error', async () => {
-    const mounted = mount(defineComponent({
-      setup() {
-        const query = useQuery(orpc.post.find.queryOptions({ input: { id: 'NOT_FOUND' } }))
-
-        return { query }
-      },
-      template: '',
-    }))
-
-    await vi.waitFor(
-      () => expect(mounted.vm.query.error.value).toSatisfy((e: any) => isDefinedError(e) && e.code === 'NOT_FOUND'),
-    )
-  })
-
-  it('with client context', async () => {
-    const mounted = mount(defineComponent({
-      setup() {
-        const query = useQuery(orpc.post.find.queryOptions({ input: { id: '123' }, context: { cache: 'force' } }))
-
-        return { query }
-      },
-      template: '',
-    }))
-
-    await vi.waitFor(
-      () => expect(mounted.vm.query.error.value).toSatisfy((e: any) => e.message === 'cache=force is not supported'),
-    )
-  })
+beforeEach(() => {
+  vi.clearAllMocks()
 })
 
-describe('useMutation', () => {
-  it('on success', async () => {
-    const mounted = mount(defineComponent({
-      setup() {
-        const mutation = useMutation(orpc.post.create.mutationOptions())
+it('case: with useQuery', async () => {
+  const mounted = mount(defineComponent({
+    setup() {
+      const id = ref(123)
 
-        return { mutation }
-      },
-      template: '',
-    }))
+      const queryCache = useQueryCache()
+      const query = useQuery(orpc.nested.ping.queryOptions({ input: computed(() => ({ input: id })) }))
 
-    // FIXME: problem with jsdom when upload file
-    // mounted.vm.mutation.mutate({ title: 'title', thumbnail: new File(['hello'], 'hello.txt') })
-    mounted.vm.mutation.mutate({ title: 'title' })
+      const setId = (value: number) => {
+        id.value = value
+      }
 
-    // FIXME: problem with jsdom when upload file
-    // await vi.waitFor(
-    //   () => expect(mounted.vm.mutation.data.value).toEqual({ id: 'id-title', title: 'title', thumbnail: 'hello.txt' }),
-    // )
-    await vi.waitFor(
-      () => expect(mounted.vm.mutation.data.value).toEqual({ id: 'id-title', title: 'title' }),
-    )
-  })
+      return { query, queryCache, setId }
+    },
+    template: '',
+  }))
 
-  it('on error', async () => {
-    const mounted = mount(defineComponent({
-      setup() {
-        const mutation = useMutation(orpc.post.create.mutationOptions())
+  // I don't know why but whe should put error case in the top of the test or it will fail by `Unhandled Rejection`
+  pingHandler.mockRejectedValueOnce(new ORPCError('OVERRIDE'))
+  await vi.waitFor(
+    () => expect(mounted.vm.query.error.value).toSatisfy((e: any) => isDefinedError(e) && e.code === 'OVERRIDE'),
+  )
 
-        return { mutation }
-      },
-      template: '',
-    }))
+  pingHandler.mockReset()
 
-    mounted.vm.mutation.mutate({ title: 'CONFLICT' })
+  mounted.vm.queryCache.invalidateQueries({ key: orpc.ping.key() })
+  expect(mounted.vm.query.isLoading.value).toEqual(false)
 
-    await vi.waitFor(
-      () => expect(mounted.vm.mutation.error.value).toSatisfy((e: any) => isDefinedError(e) && e.code === 'CONFLICT'),
-    )
-  })
+  mounted.vm.queryCache.invalidateQueries({ key: orpc.nested.pong.key() })
+  expect(mounted.vm.query.isLoading.value).toEqual(false)
 
-  it('with client context', async () => {
-    const mounted = mount(defineComponent({
-      setup() {
-        const mutation = useMutation(orpc.post.create.mutationOptions({
-          context: { cache: 'force' },
-        }))
+  mounted.vm.queryCache.invalidateQueries({ key: orpc.nested.key() })
+  expect(mounted.vm.query.isLoading.value).toEqual(true)
 
-        return { mutation }
-      },
-      template: '',
-    }))
+  await vi.waitFor(() => expect(mounted.vm.query.data.value).toEqual({ output: '123' }))
 
-    mounted.vm.mutation.mutate({ title: 'title' })
+  expect(
+    mounted.vm.queryCache.getQueryData(orpc.nested.ping.key({ input: { input: 123 } })),
+  ).toEqual({ output: '123' })
 
-    await vi.waitFor(
-      () => expect(mounted.vm.mutation.error.value).toSatisfy((e: any) => e.message === 'cache=force is not supported'),
-    )
+  mounted.vm.setId(456)
+
+  await vi.waitFor(() => expect(mounted.vm.query.data.value).toEqual({ output: '456' }))
+})
+
+it('case: with useMutation', async () => {
+  const mounted = mount(defineComponent({
+    setup() {
+      const mutation = useMutation(orpc.nested.ping.mutationOptions())
+
+      return { mutation }
+    },
+    template: '',
+  }))
+
+  mounted.vm.mutation.mutate({ input: 123 })
+
+  await vi.waitFor(() => expect(mounted.vm.mutation.data.value).toEqual({ output: '123' }))
+
+  pingHandler.mockRejectedValueOnce(new ORPCError('OVERRIDE'))
+
+  mounted.vm.mutation.mutate({ input: 456 })
+
+  await vi.waitFor(() => {
+    expect((mounted.vm.mutation as any).error.value).toBeInstanceOf(ORPCError)
+    expect((mounted.vm.mutation as any).error.value).toSatisfy(isDefinedError)
+    expect((mounted.vm.mutation as any).error.value.code).toEqual('OVERRIDE')
   })
 })

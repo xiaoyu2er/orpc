@@ -7,8 +7,9 @@ import { useInfiniteQuery, useQueries, useQueryClient } from '@tanstack/react-qu
 
 const listQuery = useInfiniteQuery(
   orpc.planet.list.infiniteOptions({
-    input: {},
-    getNextPageParam: lastPage => 1,
+    input: cursor => ({ cursor }),
+    getNextPageParam: lastPage => (lastPage.at(-1)?.id ?? -1) + 1,
+    initialPageParam: 0,
   }),
 )
 

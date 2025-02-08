@@ -33,6 +33,12 @@ it('case: with useQuery', async () => {
 
   pingHandler.mockReset()
 
+  mounted.vm.queryCache.invalidateQueries({ key: orpc.ping.key() })
+  expect(mounted.vm.query.isLoading.value).toEqual(false)
+
+  mounted.vm.queryCache.invalidateQueries({ key: orpc.nested.pong.key() })
+  expect(mounted.vm.query.isLoading.value).toEqual(false)
+
   mounted.vm.queryCache.invalidateQueries({ key: orpc.nested.key() })
   expect(mounted.vm.query.isLoading.value).toEqual(true)
 
@@ -45,15 +51,6 @@ it('case: with useQuery', async () => {
   mounted.vm.setId(456)
 
   await vi.waitFor(() => expect(mounted.vm.query.data.value).toEqual({ output: '456' }))
-
-  mounted.vm.queryCache.invalidateQueries({ key: orpc.ping.key() })
-  expect(mounted.vm.query.isLoading.value).toEqual(false)
-
-  mounted.vm.queryCache.invalidateQueries({ key: orpc.nested.pong.key() })
-  expect(mounted.vm.query.isLoading.value).toEqual(false)
-
-  mounted.vm.queryCache.invalidateQueries({ key: orpc.nested.key() })
-  expect(mounted.vm.query.isLoading.value).toEqual(true)
 })
 
 it('case: with useMutation', async () => {

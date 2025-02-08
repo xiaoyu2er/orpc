@@ -1,9 +1,8 @@
 import type { Context } from '@orpc/server'
 import type { Plugin } from '@orpc/server/plugins'
 import type { WellCreateProcedureClientOptions } from '@orpc/server/standard'
-import { guard } from '@orpc/shared'
+import { guard, isObject } from '@orpc/shared'
 import { getCustomZodType } from '@orpc/zod'
-import { isPlainObject } from 'is-what'
 import {
   type EnumLike,
   type ZodArray,
@@ -194,7 +193,7 @@ function zodCoerceInternal(
       }
 
       if (
-        isPlainObject(value)
+        isObject(value)
         && Object.keys(value).every(k => /^[1-9]\d*$/.test(k) || k === '0')
       ) {
         const indexes = Object.keys(value)
@@ -216,7 +215,7 @@ function zodCoerceInternal(
   else if (typeName === ZodFirstPartyTypeKind.ZodObject) {
     const schema_ = schema as ZodObject<{ [k: string]: ZodTypeAny }>
 
-    if (isPlainObject(value)) {
+    if (isObject(value)) {
       const newObj: Record<string, unknown> = {}
 
       const keys = new Set([
@@ -267,7 +266,7 @@ function zodCoerceInternal(
       }
 
       if (
-        isPlainObject(value)
+        isObject(value)
         && Object.keys(value).every(k => /^[1-9]\d*$/.test(k) || k === '0')
       ) {
         const indexes = Object.keys(value)
@@ -306,11 +305,11 @@ function zodCoerceInternal(
         return new Map()
       }
 
-      if (isPlainObject(value)) {
+      if (isObject(value)) {
         const arr = Array.from({ length: Object.keys(value).length })
           .fill(undefined)
           .map((_, i) =>
-            isPlainObject(value[i])
+            isObject(value[i])
             && Object.keys(value[i]).length === 2
             && '0' in value[i]
             && '1' in value[i]
@@ -334,7 +333,7 @@ function zodCoerceInternal(
   else if (typeName === ZodFirstPartyTypeKind.ZodRecord) {
     const schema_ = schema as ZodRecord
 
-    if (isPlainObject(value)) {
+    if (isObject(value)) {
       const newObj: any = {}
 
       for (const [k, v] of Object.entries(value)) {

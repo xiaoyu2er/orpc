@@ -1,5 +1,5 @@
 import type { Segment } from '@orpc/shared'
-import { findDeepMatches, isPlainObject, set } from '@orpc/shared'
+import { findDeepMatches, isObject, set } from '@orpc/shared'
 
 export type RPCSerializedJsonMeta = ['bigint' | 'date' | 'nan' | 'undefined' | 'set' | 'map' | 'regexp' | 'url', Segment[]][]
 export type RPCSerialized = { json: unknown, meta: RPCSerializedJsonMeta } | FormData | Blob | undefined
@@ -94,7 +94,7 @@ export function serializeRPCJson(
     return { json: value.toString(), meta }
   }
 
-  if (isPlainObject(value)) {
+  if (isObject(value)) {
     const json: Record<string, unknown> = {}
 
     for (const k in value) {

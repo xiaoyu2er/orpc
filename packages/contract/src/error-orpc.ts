@@ -1,6 +1,6 @@
 import type { ErrorMap, ErrorMapItem } from './error-map'
 import type { SchemaOutput } from './schema'
-import { isPlainObject } from '@orpc/shared'
+import { isObject } from '@orpc/shared'
 
 export type ORPCErrorFromErrorMap<TErrorMap extends ErrorMap> = {
   [K in keyof TErrorMap]: K extends string
@@ -147,7 +147,7 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
   }
 
   static isValidJSON(json: unknown): json is ORPCErrorJSON<ORPCErrorCode, unknown> {
-    return isPlainObject(json)
+    return isObject(json)
       && 'defined' in json
       && typeof json.defined === 'boolean'
       && 'code' in json

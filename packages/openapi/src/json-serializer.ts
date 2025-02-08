@@ -1,4 +1,4 @@
-import { isPlainObject } from '@orpc/shared'
+import { isObject } from '@orpc/shared'
 
 export class JSONSerializer {
   serialize(payload: unknown): unknown {
@@ -20,7 +20,7 @@ export class JSONSerializer {
       return payload.toString()
     if (payload instanceof URL)
       return payload.toString()
-    if (!isPlainObject(payload))
+    if (!isObject(payload))
       return payload
     return Object.keys(payload).reduce(
       (carry, key) => {

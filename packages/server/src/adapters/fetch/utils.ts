@@ -26,9 +26,12 @@ export async function fetchReToStandardBody(re: Request | Response): Promise<Sta
   }
 
   const contentDisposition = re.headers.get('content-disposition')
-  const fileName = contentDisposition ? parseContentDisposition(contentDisposition).parameters.filename : undefined
 
-  if (typeof fileName === 'string') {
+  if (typeof contentDisposition === 'string') {
+    const parsedFileName = parseContentDisposition(contentDisposition).parameters.filename
+
+    const fileName = typeof parsedFileName === 'string' ? parsedFileName : 'blob'
+
     const blob = await re.blob()
     return new File([blob], fileName, {
       type: blob.type,

@@ -113,10 +113,13 @@ async function nodeHttpRequestToStandardBody(req: NodeHttpRequest): Promise<Stan
   }
 
   const contentDisposition = req.headers['content-disposition']
-  const fileName = contentDisposition ? parseContentDisposition(contentDisposition).parameters.filename : undefined
   const contentType = req.headers['content-type']
 
-  if (typeof fileName === 'string') {
+  if (typeof contentDisposition === 'string') {
+    const parsedFileName = parseContentDisposition(contentDisposition).parameters.filename
+
+    const fileName = typeof parsedFileName === 'string' ? parsedFileName : 'blob'
+
     return await streamToFile(req, fileName, contentType || 'application/octet-stream') as any // Conflict between types=node and lib=dom so we need to cast it
   }
 

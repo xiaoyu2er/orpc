@@ -26,13 +26,16 @@ export async function fetchReToStandardBody(re: Request | Response): Promise<Sta
   }
 
   const contentDisposition = re.headers.get('content-disposition')
-  const fileName = contentDisposition ? parseContentDisposition(contentDisposition).parameters.filename : undefined
 
-  if (typeof fileName === 'string') {
-    const blob = await re.blob()
-    return new File([blob], fileName, {
-      type: blob.type,
-    })
+  if (contentDisposition) {
+    const fileName = parseContentDisposition(contentDisposition).parameters.filename
+
+    if (typeof fileName === 'string') {
+      const blob = await re.blob()
+      return new File([blob], fileName, {
+        type: blob.type,
+      })
+    }
   }
 
   const contentType = re.headers.get('content-type')
@@ -101,37 +104,39 @@ function standardResponseToFetchHeaders(response: StandardResponse): Headers {
     }
   }
 
-  if (response.body instanceof Blob && !fetchHeaders.has('content-disposition')) {
-    fetchHeaders.set('content-disposition', contentDisposition(response.body instanceof File ? response.body.name : 'blob'))
-  }
-  else if (
-    !(response.body instanceof Blob)
-    && !(response.body instanceof URLSearchParams)
-    && !(response.body instanceof FormData)
-    && response.body !== undefined
-    && !fetchHeaders.has('content-type')
-  ) {
-    fetchHeaders.set('content-type', 'application/json')
-  }
-
   return fetchHeaders
 }
 
-export function standardBodyToFetchBody(body: StandardBody): Blob | FormData | URLSearchParams | string | undefined {
-  if (
-    body instanceof Blob
-    || body instanceof FormData
-    || body instanceof URLSearchParams
-  ) {
-    return body
+export function standardResponseToFetchResponse(response: StandardResponse): Response {
+  const resHeaders = standardResponseToFetchHeaders(response)
+
+  resHeaders.delete('content-type')
+  resHeaders.delete('content-disposition')
+
+  if (response.body === undefined) {
+    return new Response(undefined, { headers: resHeaders, status: response.status })
   }
 
-  return JSON.stringify(body) as string | undefined // stringify can return undefined if the body is undefined
-}
+  if (response.body instanceof Blob) {
+    resHeaders.set('content-type', response.body.type)
+    resHeaders.set('content-length', response.body.size.toString())
+    resHeaders.set(
+      'content-disposition',
+      contentDisposition(response.body instanceof File ? response.body.name : 'blob', { type: 'inline' }),
+    )
 
-export function standardResponseToFetchResponse(response: StandardResponse): Response {
-  return new Response(standardBodyToFetchBody(response.body), {
-    headers: standardResponseToFetchHeaders(response),
-    status: response.status,
-  })
+    return new Response(response.body, { headers: resHeaders, status: response.status })
+  }
+
+  if (response.body instanceof FormData) {
+    return new Response(response.body, { headers: resHeaders, status: response.status })
+  }
+
+  if (response.body instanceof URLSearchParams) {
+    return new Response(response.body, { headers: resHeaders, status: response.status })
+  }
+
+  resHeaders.set('content-type', 'application/json')
+
+  return new Response(JSON.stringify(response.body), { headers: resHeaders, status: response.status })
 }

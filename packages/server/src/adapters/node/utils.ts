@@ -42,6 +42,11 @@ export function nodeHttpResponseSendStandardResponse(
     res.on('error', reject)
     res.on('finish', resolve)
 
+    const resHeaders: StandardHeaders = standardResponse.headers
+
+    delete resHeaders['content-type']
+    delete resHeaders['content-disposition']
+
     if (standardResponse.body === undefined) {
       res.writeHead(standardResponse.status, standardResponse.headers)
       res.end()
@@ -50,18 +55,11 @@ export function nodeHttpResponseSendStandardResponse(
     }
 
     if (standardResponse.body instanceof Blob) {
-      const resHeaders: StandardHeaders = {
-        ...standardResponse.headers,
-        'content-type': standardResponse.body.type,
-        'content-length': standardResponse.body.size.toString(),
-      }
-
-      if (!standardResponse.headers['content-disposition'] && standardResponse.body instanceof Blob) {
-        resHeaders['content-disposition'] = contentDisposition(standardResponse.body instanceof File ? standardResponse.body.name : 'blob')
-      }
+      resHeaders['content-type'] = standardResponse.body.type
+      resHeaders['content-length'] = standardResponse.body.size.toString()
+      resHeaders['content-disposition'] = contentDisposition(standardResponse.body instanceof File ? standardResponse.body.name : 'blob')
 
       res.writeHead(standardResponse.status, resHeaders)
-
       Readable.fromWeb(
         standardResponse.body.stream() as any, // Conflict between types=node and lib=dom so we need to cast it
       ).pipe(res)
@@ -72,11 +70,9 @@ export function nodeHttpResponseSendStandardResponse(
     if (standardResponse.body instanceof FormData) {
       const response = new Response(standardResponse.body)
 
-      res.writeHead(standardResponse.status, {
-        ...standardResponse.headers,
-        'content-type': response.headers.get('content-type')!,
-      })
+      resHeaders['content-type'] = response.headers.get('content-type')!
 
+      res.writeHead(standardResponse.status, resHeaders)
       Readable.fromWeb(
         response.body! as any, // Conflict between types=node and lib=dom so we need to cast it
       ).pipe(res)
@@ -85,24 +81,18 @@ export function nodeHttpResponseSendStandardResponse(
     }
 
     if (standardResponse.body instanceof URLSearchParams) {
-      res.writeHead(standardResponse.status, {
-        ...standardResponse.headers,
-        'content-type': 'application/x-www-form-urlencoded',
-      })
+      resHeaders['content-type'] = 'application/x-www-form-urlencoded'
 
-      const string = standardResponse.body.toString()
-      res.end(string)
+      res.writeHead(standardResponse.status, resHeaders)
+      res.end(standardResponse.body.toString())
 
       return
     }
 
-    res.writeHead(standardResponse.status, {
-      ...standardResponse.headers,
-      'content-type': 'application/json',
-    })
+    resHeaders['content-type'] = 'application/json'
 
-    const string = JSON.stringify(standardResponse.body)
-    res.end(string)
+    res.writeHead(standardResponse.status, resHeaders)
+    res.end(JSON.stringify(standardResponse.body))
   })
 }
 

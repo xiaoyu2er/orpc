@@ -25,6 +25,17 @@ it('case: with useQuery', async () => {
     template: '',
   }))
 
+  // I don't know why but whe should put error case in the top of the test or it will fail by `Unhandled Rejection`
+  pingHandler.mockRejectedValueOnce(new ORPCError('OVERRIDE'))
+  await vi.waitFor(
+    () => expect(mounted.vm.query.error.value).toSatisfy((e: any) => isDefinedError(e) && e.code === 'OVERRIDE'),
+  )
+
+  pingHandler.mockReset()
+
+  mounted.vm.queryCache.invalidateQueries({ key: orpc.nested.key() })
+  expect(mounted.vm.query.isLoading.value).toEqual(true)
+
   await vi.waitFor(() => expect(mounted.vm.query.data.value).toEqual({ output: '123' }))
 
   expect(
@@ -43,18 +54,6 @@ it('case: with useQuery', async () => {
 
   mounted.vm.queryCache.invalidateQueries({ key: orpc.nested.key() })
   expect(mounted.vm.query.isLoading.value).toEqual(true)
-
-  // FIXME: I don't know why but bellow tests will make the test fail by `Unhandled Rejection (Error): OVERRIDE`, while all assertion are passed.
-  // pingHandler.mockRejectedValueOnce(new ORPCError('OVERRIDE'))
-
-  // mounted.vm.queryCache.invalidateQueries({ key: orpc.nested.key() })
-  // expect(mounted.vm.query.isLoading.value).toEqual(true)
-
-  // await vi.waitFor(() => {
-  //   expect((mounted.vm.query as any).error.value).toBeInstanceOf(ORPCError)
-  //   expect((mounted.vm.query as any).error.value).toSatisfy(isDefinedError)
-  //   expect((mounted.vm.query as any).error.value.code).toEqual('OVERRIDE')
-  // })
 })
 
 it('case: with useMutation', async () => {

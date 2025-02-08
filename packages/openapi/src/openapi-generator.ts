@@ -11,6 +11,7 @@ import { type OpenAPI, OpenApiBuilder } from './openapi'
 import { OpenAPIContentBuilder, type PublicOpenAPIContentBuilder } from './openapi-content-builder'
 import { OpenAPIError } from './openapi-error'
 import { OpenAPIInputStructureParser } from './openapi-input-structure-parser'
+import { extendOperation } from './openapi-operation-extender'
 import { OpenAPIOutputStructureParser } from './openapi-output-structure-parser'
 import { OpenAPIParametersBuilder, type PublicOpenAPIParametersBuilder } from './openapi-parameters-builder'
 import { OpenAPIPathParser } from './openapi-path-parser'
@@ -245,8 +246,10 @@ export class OpenAPIGenerator {
           responses,
         }
 
+        const extendedOperation = extendOperation(operation, contract)
+
         builder.addPath(httpPath, {
-          [method.toLocaleLowerCase()]: operation,
+          [method.toLocaleLowerCase()]: extendedOperation,
         })
       }
       catch (e) {

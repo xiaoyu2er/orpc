@@ -145,6 +145,15 @@ export class RPCLink<TClientContext> implements ClientLink<TClientContext> {
 
     const method = expectMethod === 'GET' ? this.fallbackMethod : expectMethod
 
+    if (input === undefined) {
+      return {
+        body: undefined,
+        method,
+        headers,
+        url,
+      }
+    }
+
     if (isPlainObject(serialized)) {
       if (!headers.has('content-type')) {
         headers.set('content-type', 'application/json')

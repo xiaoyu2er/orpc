@@ -1,4 +1,4 @@
-import type { AbortSignal, HTTPPath, ORPCError } from '@orpc/contract'
+import type { HTTPPath, ORPCError } from '@orpc/contract'
 import type { JsonValue } from '@orpc/shared'
 import type { AnyProcedure } from '../../procedure'
 import type { AnyRouter } from '../../router'

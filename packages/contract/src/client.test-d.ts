@@ -1,5 +1,4 @@
 import type { Client } from './client'
-import type { AbortSignal } from './types'
 
 describe('client', () => {
   const fn: Client<unknown, string, number, Error> = async (...[input, options]) => {

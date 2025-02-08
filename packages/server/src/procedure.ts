@@ -1,4 +1,4 @@
-import type { AbortSignal, ContractProcedureDef, ErrorMap, Meta, ORPCErrorConstructorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ContractProcedureDef, ErrorMap, Meta, ORPCErrorConstructorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Promisable } from '@orpc/shared'
 import type { Context, TypeInitialContext } from './context'
 import type { AnyMiddleware } from './middleware'

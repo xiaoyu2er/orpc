@@ -1,11 +1,11 @@
-import type { PartialDeep as Key } from '@orpc/shared'
+import type { PartialDeep } from '@orpc/shared'
 import type { QueryKey } from '@tanstack/react-query'
 
 export type KeyType = 'query' | 'infinite' | 'mutation' | undefined
 
 export interface BuildKeyOptions<TType extends KeyType, TInput> {
   type?: TType
-  input?: TType extends 'mutation' ? never : Key<TInput>
+  input?: TType extends 'mutation' ? never : PartialDeep<TInput>
 }
 
 export function buildKey<TType extends KeyType, TInput>(

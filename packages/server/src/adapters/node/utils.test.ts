@@ -364,7 +364,7 @@ describe('standardResponseToFetchResponse', () => {
     expect(res.headers).toEqual({
       ...headers,
       'content-type': 'text/plain',
-      'content-disposition': 'attachment; filename="blob"',
+      'content-disposition': 'inline; filename="blob"',
       'content-length': '8',
       'connection': expect.any(String),
       'date': expect.any(String),
@@ -388,7 +388,7 @@ describe('standardResponseToFetchResponse', () => {
     expect(res.headers).toEqual({
       ...headers,
       'content-type': 'application/json',
-      'content-disposition': 'attachment; filename="john.txt"',
+      'content-disposition': 'inline; filename="john.txt"',
       'content-length': '8',
       'connection': expect.any(String),
       'date': expect.any(String),

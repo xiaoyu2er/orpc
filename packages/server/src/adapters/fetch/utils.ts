@@ -27,15 +27,15 @@ export async function fetchReToStandardBody(re: Request | Response): Promise<Sta
 
   const contentDisposition = re.headers.get('content-disposition')
 
-  if (typeof contentDisposition === 'string') {
-    const parsedFileName = parseContentDisposition(contentDisposition).parameters.filename
+  if (contentDisposition) {
+    const fileName = parseContentDisposition(contentDisposition).parameters.filename
 
-    const fileName = typeof parsedFileName === 'string' ? parsedFileName : 'blob'
-
-    const blob = await re.blob()
-    return new File([blob], fileName, {
-      type: blob.type,
-    })
+    if (typeof fileName === 'string') {
+      const blob = await re.blob()
+      return new File([blob], fileName, {
+        type: blob.type,
+      })
+    }
   }
 
   const contentType = re.headers.get('content-type')
@@ -120,7 +120,10 @@ export function standardResponseToFetchResponse(response: StandardResponse): Res
   if (response.body instanceof Blob) {
     resHeaders.set('content-type', response.body.type)
     resHeaders.set('content-length', response.body.size.toString())
-    resHeaders.set('content-disposition', contentDisposition(response.body instanceof File ? response.body.name : 'blob'))
+    resHeaders.set(
+      'content-disposition',
+      contentDisposition(response.body instanceof File ? response.body.name : 'blob', { type: 'inline' }),
+    )
 
     return new Response(response.body, { headers: resHeaders, status: response.status })
   }

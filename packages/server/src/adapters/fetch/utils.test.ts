@@ -325,7 +325,7 @@ describe('standardResponseToFetchResponse', () => {
 
     expect(response.status).toEqual(209)
     expect([...response.headers.entries()]).toEqual([
-      ['content-disposition', 'attachment; filename="blob"'],
+      ['content-disposition', 'inline; filename="blob"'],
       ['content-length', '8'],
       ['content-type', 'text/plain'],
       ['set-cookie', 'foo=bar'],
@@ -351,7 +351,7 @@ describe('standardResponseToFetchResponse', () => {
 
     expect(response.status).toEqual(210)
     expect([...response.headers.entries()]).toEqual([
-      ['content-disposition', 'attachment; filename="john.txt"'],
+      ['content-disposition', 'inline; filename="john.txt"'],
       ['content-length', '8'],
       ['content-type', 'application/json'],
       ['set-cookie', 'foo=bar'],

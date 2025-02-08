@@ -57,7 +57,10 @@ export function nodeHttpResponseSendStandardResponse(
     if (standardResponse.body instanceof Blob) {
       resHeaders['content-type'] = standardResponse.body.type
       resHeaders['content-length'] = standardResponse.body.size.toString()
-      resHeaders['content-disposition'] = contentDisposition(standardResponse.body instanceof File ? standardResponse.body.name : 'blob')
+      resHeaders['content-disposition'] = contentDisposition(
+        standardResponse.body instanceof File ? standardResponse.body.name : 'blob',
+        { type: 'inline' },
+      )
 
       res.writeHead(standardResponse.status, resHeaders)
       Readable.fromWeb(
@@ -105,12 +108,12 @@ async function nodeHttpRequestToStandardBody(req: NodeHttpRequest): Promise<Stan
   const contentDisposition = req.headers['content-disposition']
   const contentType = req.headers['content-type']
 
-  if (typeof contentDisposition === 'string') {
-    const parsedFileName = parseContentDisposition(contentDisposition).parameters.filename
+  if (contentDisposition) {
+    const fileName = parseContentDisposition(contentDisposition).parameters.filename
 
-    const fileName = typeof parsedFileName === 'string' ? parsedFileName : 'blob'
-
-    return await streamToFile(req, fileName, contentType || 'application/octet-stream') as any // Conflict between types=node and lib=dom so we need to cast it
+    if (typeof fileName === 'string') {
+      return await streamToFile(req, fileName, contentType || 'application/octet-stream') as any // Conflict between types=node and lib=dom so we need to cast it
+    }
   }
 
   if (!contentType || contentType.startsWith('application/json')) {

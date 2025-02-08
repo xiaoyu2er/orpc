@@ -33,7 +33,7 @@ export function createMiddleware<T extends Context>(handler: FetchHandler<T>, ..
     const { matched, response } = await handler.handle(request, { ...options, context })
 
     if (matched) {
-      return c.body(response.body, response)
+      return c.newResponse(response.body, response)
     }
 
     await next()

@@ -3,7 +3,7 @@ import type { NodeHttpRequest, NodeHttpResponse } from './types'
 import { Buffer, File } from 'node:buffer'
 import { Readable } from 'node:stream'
 import { once } from '@orpc/shared'
-import cd from 'content-disposition'
+import { contentDisposition, parse as parseContentDisposition } from '@tinyhttp/content-disposition'
 
 export function nodeHttpToStandardRequest(
   req: NodeHttpRequest,
@@ -57,7 +57,7 @@ export function nodeHttpResponseSendStandardResponse(
       }
 
       if (!standardResponse.headers['content-disposition'] && standardResponse.body instanceof Blob) {
-        resHeaders['content-disposition'] = cd(standardResponse.body instanceof File ? standardResponse.body.name : 'blob')
+        resHeaders['content-disposition'] = contentDisposition(standardResponse.body instanceof File ? standardResponse.body.name : 'blob')
       }
 
       res.writeHead(standardResponse.status, resHeaders)
@@ -113,10 +113,10 @@ async function nodeHttpRequestToStandardBody(req: NodeHttpRequest): Promise<Stan
   }
 
   const contentDisposition = req.headers['content-disposition']
-  const fileName = contentDisposition ? cd.parse(contentDisposition).parameters.filename : undefined
+  const fileName = contentDisposition ? parseContentDisposition(contentDisposition).parameters.filename : undefined
   const contentType = req.headers['content-type']
 
-  if (fileName) {
+  if (typeof fileName === 'string') {
     return await streamToFile(req, fileName, contentType || 'application/octet-stream') as any // Conflict between types=node and lib=dom so we need to cast it
   }
 

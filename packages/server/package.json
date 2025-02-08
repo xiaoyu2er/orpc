@@ -1,7 +1,7 @@
 {
   "name": "@orpc/server",
   "type": "module",
-  "version": "0.36.0",
+  "version": "0.36.1",
   "license": "MIT",
   "homepage": "https://orpc.unnoq.com",
   "repository": {
@@ -84,7 +84,7 @@
   "dependencies": {
     "@orpc/contract": "workspace:*",
     "@orpc/shared": "workspace:*",
-    "content-disposition": "^0.5.4"
+    "@tinyhttp/content-disposition": "^2.2.2"
   },
   "devDependencies": {
     "light-my-request": "^6.5.1"

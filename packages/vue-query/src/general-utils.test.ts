@@ -13,7 +13,7 @@ describe('createGeneralUtils', () => {
 
   it('.key', () => {
     expect(
-      utils.key({ input: computed(() => ({ search: ref('__search__') })), type: 'infinite' }),
+      utils.key({ input: computed(() => ({ search: ref('__search__') })), type: 'infinite' }).value,
     ).toEqual([['path'], { input: { search: '__search__' }, type: 'infinite' }])
     expect(buildKeySpy).toHaveBeenCalledTimes(1)
     expect(buildKeySpy).toHaveBeenCalledWith(['path'], { input: { search: '__search__' }, type: 'infinite' })

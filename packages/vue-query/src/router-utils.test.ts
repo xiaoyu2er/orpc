@@ -22,7 +22,7 @@ describe('createRouterUtils', () => {
     expect(procedureUtilsSpy).toHaveBeenCalledTimes(1)
     expect(procedureUtilsSpy).toHaveBeenCalledWith(client, ['__base__'])
 
-    expect(utils.key()).toEqual(generalUtilsSpy.mock.results[0]!.value.key())
+    expect(utils.key().value).toEqual(generalUtilsSpy.mock.results[0]!.value.key().value)
     expect(utils.queryOptions().queryKey.value).toEqual(procedureUtilsSpy.mock.results[0]!.value.queryOptions().queryKey.value)
 
     vi.clearAllMocks()
@@ -33,7 +33,7 @@ describe('createRouterUtils', () => {
     expect(procedureUtilsSpy).toHaveBeenCalledTimes(1)
     expect(procedureUtilsSpy).toHaveBeenCalledWith(client.key, ['__base__', 'key'])
 
-    expect(keyUtils.key()).toEqual(generalUtilsSpy.mock.results[0]!.value.key())
+    expect(keyUtils.key().value).toEqual(generalUtilsSpy.mock.results[0]!.value.key().value)
     expect(keyUtils.queryOptions().queryKey.value).toEqual(procedureUtilsSpy.mock.results[0]!.value.queryOptions().queryKey.value)
 
     vi.clearAllMocks()
@@ -47,7 +47,7 @@ describe('createRouterUtils', () => {
     expect(procedureUtilsSpy).toHaveBeenNthCalledWith(1, client.key, ['__base__', 'key'])
     expect(procedureUtilsSpy).toHaveBeenNthCalledWith(2, client.key.pong, ['__base__', 'key', 'pong'])
 
-    expect(pongUtils.key()).toEqual(generalUtilsSpy.mock.results[1]!.value.key())
+    expect(pongUtils.key().value).toEqual(generalUtilsSpy.mock.results[1]!.value.key().value)
     expect(pongUtils.queryOptions().queryKey.value).toEqual(procedureUtilsSpy.mock.results[1]!.value.queryOptions().queryKey.value)
   })
 

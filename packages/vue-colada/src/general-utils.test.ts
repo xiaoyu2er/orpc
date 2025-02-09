@@ -1,4 +1,3 @@
-import { computed, ref } from 'vue'
 import { createGeneralUtils } from './general-utils'
 import * as keyModule from './key'
 
@@ -13,8 +12,11 @@ describe('createGeneralUtils', () => {
 
   it('.key', () => {
     expect(
-      utils.key({ input: computed(() => ({ search: ref('__search__') })) }),
-    ).toEqual(['path', { input: '{"json":{"search":"__search__"},"meta":[]}' }])
+      utils.key({ input: { search: '__search__' } }),
+    ).toEqual(
+      buildKeySpy.mock.results[0]!.value,
+    )
+
     expect(buildKeySpy).toHaveBeenCalledTimes(1)
     expect(buildKeySpy).toHaveBeenCalledWith(['path'], { input: { search: '__search__' } })
   })

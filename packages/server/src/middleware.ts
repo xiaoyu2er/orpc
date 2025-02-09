@@ -46,6 +46,8 @@ export interface Middleware<
   TErrorConstructorMap extends ORPCErrorConstructorMap<any>,
   TMeta extends Meta,
 > {
+  '~attachedErrorMap'?: ErrorMap
+
   (
     options: MiddlewareOptions<TInContext, TOutput, TErrorConstructorMap, TMeta>,
     input: TInput,

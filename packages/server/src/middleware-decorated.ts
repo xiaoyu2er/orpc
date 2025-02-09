@@ -1,6 +1,6 @@
-import type { Meta, ORPCErrorConstructorMap } from '@orpc/contract'
 import type { Context, MergedContext } from './context'
 import type { AnyMiddleware, MapInputMiddleware, Middleware, MiddlewareNextFn } from './middleware'
+import { mergeErrorMap, type Meta, type ORPCErrorConstructorMap } from '@orpc/contract'
 
 export interface DecoratedMiddleware<
   TInContext extends Context,
@@ -90,6 +90,8 @@ export function decorateMiddleware<
 
       return merged
     })
+
+    concatted['~attachedErrorMap'] = mergeErrorMap(middleware['~attachedErrorMap'] ?? {}, mapped['~attachedErrorMap'] ?? {})
 
     return concatted as any
   }

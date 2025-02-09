@@ -1,3 +1,4 @@
+import { baseErrorMap } from '../../contract/tests/shared'
 import { decorateMiddleware } from './middleware-decorated'
 
 describe('decorateMiddleware', () => {
@@ -81,5 +82,18 @@ describe('decorateMiddleware', () => {
 
     expect(fn2).toHaveBeenCalledTimes(1)
     expect(fn2).toHaveBeenCalledWith({ context: { auth: true }, next }, { name: 'input' }, outputFn)
+  })
+
+  it('can concat with attached error map', async () => {
+    const mid1 = vi.fn() as any
+    mid1['~attachedErrorMap'] = baseErrorMap
+
+    const mid2 = vi.fn() as any
+    const errorMap = { BASE: { message: 'base error' }, OVERRIDE: { message: 'this has higher priority' } }
+    mid2['~attachedErrorMap'] = errorMap
+
+    expect(decorateMiddleware(mid1).concat(mid2)['~attachedErrorMap']).toEqual({ ...baseErrorMap, ...errorMap })
+    expect(decorateMiddleware(mid1).concat(vi.fn())['~attachedErrorMap']).toEqual({ ...baseErrorMap })
+    expect(decorateMiddleware(vi.fn()).concat(mid2)['~attachedErrorMap']).toEqual({ ...errorMap })
   })
 })

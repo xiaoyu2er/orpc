@@ -11,6 +11,17 @@ export interface DecoratedMiddleware<
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > extends Middleware<TInContext, TOutContext, TInput, TOutput, TErrorMap, TMeta> {
+  errors<U extends ErrorMap>(
+    errors: U,
+  ): DecoratedMiddleware<
+    TInContext,
+    TOutContext,
+    TInput,
+    TOutput,
+    MergedErrorMap<TErrorMap, U>,
+    TMeta
+  >
+
   concat<UOutContext extends Context, UInput, UErrorMap extends ErrorMap = TErrorMap>(
     middleware: Middleware<
       TInContext & TOutContext,
@@ -69,6 +80,14 @@ export function decorateMiddleware<
   middleware: Middleware<TInContext, TOutContext, TInput, TOutput, TErrorMap, TMeta>,
 ): DecoratedMiddleware<TInContext, TOutContext, TInput, TOutput, TErrorMap, TMeta> {
   const decorated = middleware as DecoratedMiddleware<TInContext, TOutContext, TInput, TOutput, TErrorMap, TMeta>
+
+  decorated.errors = (errors) => {
+    const cloned: Middleware<TInContext, TOutContext, TInput, TOutput, any, TMeta> = (...args) => middleware(...args)
+
+    cloned['~errorMap'] = mergeErrorMap(middleware['~errorMap'] ?? {}, errors)
+
+    return decorateMiddleware(cloned)
+  }
 
   decorated.mapInput = (mapInput) => {
     const mapped = decorateMiddleware(

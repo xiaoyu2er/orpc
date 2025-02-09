@@ -27,6 +27,27 @@ describe('DecoratedMiddleware', () => {
     >()
   })
 
+  it('.errors', () => {
+    const applied = decorated.errors({
+      BAD_GATEWAY: { message: 'BAD_GATEWAY' },
+      OVERRIDE: { message: 'OVERRIDE' },
+    })
+
+    expectTypeOf(applied).toEqualTypeOf<
+      DecoratedMiddleware<
+        CurrentContext,
+        { extra: boolean },
+        { input: string },
+        { output: number },
+        MergedErrorMap<typeof baseErrorMap, { BAD_GATEWAY: { message: string }, OVERRIDE: { message: string } }>,
+        BaseMeta
+      >
+    >()
+
+    // @ts-expect-error - invalid schema
+    decorated.errors({ BAD_GATEWAY: { data: {} } })
+  })
+
   it('.mapInput', () => {
     const mapped = decorated.mapInput((input: 'input') => ({ input }))
 

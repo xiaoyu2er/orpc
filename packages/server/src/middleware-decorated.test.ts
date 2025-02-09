@@ -13,6 +13,31 @@ describe('decorateMiddleware', () => {
     expect(fn).toHaveBeenCalledWith('input')
   })
 
+  it('.errors', () => {
+    const fn = vi.fn()
+    const decorated = decorateMiddleware(fn) as any
+
+    const applied = decorated.errors(baseErrorMap)
+    expect(applied).not.toBe(decorated)
+    expect(decorated['~errorMap']).toEqual(undefined) // ensure not changed
+    expect(applied['~errorMap']).toEqual(baseErrorMap)
+
+    const errors = {
+      BAD_GATEWAY: { message: 'BAD_GATEWAY' },
+      OVERRIDE: { message: 'OVERRIDE' },
+    }
+    const applied2 = applied.errors(errors)
+    expect(applied2).not.toBe(applied)
+    expect(applied['~errorMap']).toEqual(baseErrorMap) // ensure not changed
+    expect(applied2['~errorMap']).toEqual({ ...baseErrorMap, ...errors })
+
+    // ensure it clone correctly
+    fn.mockReturnValueOnce('__mocked__')
+    expect(applied2(1, 2, 3, 4)).toEqual('__mocked__')
+    expect(fn).toHaveBeenCalledTimes(1)
+    expect(fn).toHaveBeenCalledWith(1, 2, 3, 4)
+  })
+
   it('can map input', () => {
     const fn = vi.fn()
     const map = vi.fn()

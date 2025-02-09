@@ -1,5 +1,5 @@
 import type { Client, ErrorFromErrorMap, ErrorMap, Meta, ORPCErrorConstructorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
-import type { Interceptor, Value } from '@orpc/shared'
+import type { Interceptor, MaybeOptionalOptions, Value } from '@orpc/shared'
 import type { Context } from './context'
 import type { Lazyable } from './lazy'
 import type { MiddlewareNextFn } from './middleware'
@@ -61,18 +61,6 @@ export type CreateProcedureClientOptions<
       : { context: Value<TInitialContext, [clientContext: TClientContext]> }
   )
 
-export type CreateProcedureClientRest<
-  TInitialContext extends Context,
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
-  THandlerOutput extends SchemaInput<TOutputSchema>,
-  TErrorMap extends ErrorMap,
-  TMeta extends Meta,
-  TClientContext,
-> =
-  | [options: CreateProcedureClientOptions<TInitialContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta, TClientContext>]
-  | (Record<never, never> extends TInitialContext ? [] : never)
-
 export function createProcedureClient<
   TInitialContext extends Context,
   TInputSchema extends Schema,
@@ -83,14 +71,16 @@ export function createProcedureClient<
   TClientContext,
 >(
   lazyableProcedure: Lazyable<Procedure<TInitialContext, any, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta>>,
-  ...[options]: CreateProcedureClientRest<
-    TInitialContext,
-    TInputSchema,
-    TOutputSchema,
-    THandlerOutput,
-    TErrorMap,
-    TMeta,
-    TClientContext
+  ...[options]: MaybeOptionalOptions<
+    CreateProcedureClientOptions<
+      TInitialContext,
+      TInputSchema,
+      TOutputSchema,
+      THandlerOutput,
+      TErrorMap,
+      TMeta,
+      TClientContext
+    >
   >
 ): ProcedureClient<TClientContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap> {
   return async (...[input, callerOptions]) => {

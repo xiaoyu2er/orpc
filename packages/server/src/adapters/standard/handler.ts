@@ -1,5 +1,5 @@
 import type { ErrorMap, HTTPPath, Meta, Schema } from '@orpc/contract'
-import type { Interceptor } from '@orpc/shared'
+import type { Interceptor, MaybeOptionalOptions } from '@orpc/shared'
 import type { Context } from '../../context'
 import type { Plugin } from '../../plugins'
 import type { CreateProcedureClientOptions } from '../../procedure-client'
@@ -15,10 +15,6 @@ export type StandardHandleOptions<T extends Context> =
   & (Record<never, never> extends T ? { context?: T } : { context: T })
 
 export type WellStandardHandleOptions<T extends Context> = StandardHandleOptions<T> & { context: T }
-
-export type StandardHandleRest<T extends Context> =
-  | [options: StandardHandleOptions<T>]
-  | (Record<never, never> extends T ? [] : never)
 
 export type StandardHandleResult = { matched: true, response: StandardResponse } | { matched: false, response: undefined }
 
@@ -43,14 +39,14 @@ export interface StandardHandlerOptions<TContext extends Context> {
   interceptorsRoot?: Interceptor<StandardHandlerInterceptorOptions<TContext>, StandardHandleResult, unknown>[]
 }
 
-export class StandardHandler<TContext extends Context> {
-  private readonly plugin: CompositePlugin<TContext>
+export class StandardHandler<T extends Context> {
+  private readonly plugin: CompositePlugin<T>
 
   constructor(
-    router: Router<TContext, any>,
+    router: Router<T, any>,
     private readonly matcher: StandardMatcher,
     private readonly codec: StandardCodec,
-    private readonly options: NoInfer<StandardHandlerOptions<TContext>> = {},
+    private readonly options: NoInfer<StandardHandlerOptions<T>> = {},
   ) {
     this.plugin = new CompositePlugin(options?.plugins)
     this.plugin.init(this.options)
@@ -58,13 +54,13 @@ export class StandardHandler<TContext extends Context> {
     this.matcher.init(router)
   }
 
-  handle(request: StandardRequest, ...[options]: StandardHandleRest<TContext>): Promise<StandardHandleResult> {
+  handle(request: StandardRequest, ...[options]: MaybeOptionalOptions<StandardHandleOptions<T>>): Promise<StandardHandleResult> {
     return intercept(
       this.options.interceptorsRoot ?? [],
       {
         request,
         ...options,
-        context: options?.context ?? {} as TContext, // context is optional only when all fields are optional so we can safely force it to have a context
+        context: options?.context ?? {} as T, // context is optional only when all fields are optional so we can safely force it to have a context
       },
       async (interceptorOptions) => {
         try {
@@ -82,7 +78,7 @@ export class StandardHandler<TContext extends Context> {
                 return { matched: false, response: undefined }
               }
 
-              const clientOptions: WellCreateProcedureClientOptions<TContext> = {
+              const clientOptions: WellCreateProcedureClientOptions<T> = {
                 context: interceptorOptions.context,
                 path: match.path,
               }

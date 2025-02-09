@@ -1,8 +1,10 @@
 import type { ClientPromiseResult, ErrorFromErrorMap, ErrorMap, Meta, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { Context } from './context'
 import type { Lazyable } from './lazy'
 import type { Procedure } from './procedure'
-import { createProcedureClient, type CreateProcedureClientRest } from './procedure-client'
+import type { CreateProcedureClientOptions } from './procedure-client'
+import { createProcedureClient } from './procedure-client'
 
 /**
  * Directly call a procedure without creating a client.
@@ -24,7 +26,17 @@ export function call<
 >(
   procedure: Lazyable<Procedure<TInitialContext, any, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta>>,
   input: SchemaInput<TInputSchema>,
-  ...rest: CreateProcedureClientRest<TInitialContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta, unknown>
+  ...rest: MaybeOptionalOptions<
+    CreateProcedureClientOptions<
+      TInitialContext,
+      TInputSchema,
+      TOutputSchema,
+      THandlerOutput,
+      TErrorMap,
+      TMeta,
+      unknown
+    >
+  >
 ): ClientPromiseResult<SchemaOutput<TOutputSchema, THandlerOutput>, ErrorFromErrorMap<TErrorMap>> {
   return createProcedureClient(procedure, ...rest)(input)
 }

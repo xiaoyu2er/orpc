@@ -1,9 +1,10 @@
 import type { ClientRest, ErrorMap, Meta, ORPCErrorConstructorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { BuilderDef } from './builder'
 import type { ConflictContextGuard, Context, MergedContext } from './context'
 import type { MapInputMiddleware, Middleware } from './middleware'
 import type { Procedure, ProcedureHandler } from './procedure'
-import type { CreateProcedureClientRest, ProcedureClient } from './procedure-client'
+import type { CreateProcedureClientOptions, ProcedureClient } from './procedure-client'
 import type { DecoratedProcedure } from './procedure-decorated'
 
 /**
@@ -45,7 +46,17 @@ export interface ImplementedProcedure<
    * Make this procedure callable (works like a function while still being a procedure).
    */
   callable<TClientContext>(
-    ...rest: CreateProcedureClientRest<TInitialContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta, TClientContext>
+    ...rest: MaybeOptionalOptions<
+      CreateProcedureClientOptions<
+        TInitialContext,
+        TInputSchema,
+        TOutputSchema,
+        THandlerOutput,
+        TErrorMap,
+        TMeta,
+        TClientContext
+      >
+    >
   ): Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta>
     & ProcedureClient < TClientContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap >
 
@@ -53,7 +64,17 @@ export interface ImplementedProcedure<
    * Make this procedure compatible with server action (the same as .callable, but the type is compatible with server action).
    */
   actionable<TClientContext>(
-    ...rest: CreateProcedureClientRest<TInitialContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta, TClientContext>
+    ...rest: MaybeOptionalOptions<
+      CreateProcedureClientOptions<
+        TInitialContext,
+        TInputSchema,
+        TOutputSchema,
+        THandlerOutput,
+        TErrorMap,
+        TMeta,
+        TClientContext
+      >
+    >
   ): Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta>
     & ((...rest: ClientRest<TClientContext, SchemaInput<TInputSchema>>) => Promise<SchemaOutput<TOutputSchema, THandlerOutput>>)
 }

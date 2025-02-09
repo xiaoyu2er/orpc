@@ -1,5 +1,5 @@
 import type { ErrorMap, Meta, ORPCErrorConstructorMap, Schema } from '@orpc/contract'
-import type { Promisable } from '@orpc/shared'
+import type { MaybeOptionalOptions, Promisable } from '@orpc/shared'
 import type { Context } from './context'
 import type { Procedure } from './procedure'
 
@@ -12,12 +12,10 @@ export type MiddlewareNextFnOptions<TOutContext extends Context> = Record<never,
   ? { context?: TOutContext }
   : { context: TOutContext }
 
-export type MiddlewareNextFnRest<TOutContext extends Context> =
-  | [options: MiddlewareNextFnOptions<TOutContext>]
-  | (Record<never, never> extends TOutContext ? [] : never)
-
 export interface MiddlewareNextFn<TInContext extends Context, TOutput> {
-  <U extends Context & Partial<TInContext> = Record<never, never>>(...rest: MiddlewareNextFnRest<U>): MiddlewareResult<U, TOutput>
+  <U extends Context & Partial<TInContext> = Record<never, never>>(
+    ...rest: MaybeOptionalOptions<MiddlewareNextFnOptions<U>>
+  ): MiddlewareResult<U, TOutput>
 }
 
 export interface MiddlewareOutputFn<TOutput> {

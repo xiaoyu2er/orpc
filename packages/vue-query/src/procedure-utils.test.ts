@@ -14,6 +14,10 @@ describe('createProcedureUtils', () => {
   const client = vi.fn().mockResolvedValue('__output__')
   const utils = createProcedureUtils(client, ['ping'])
 
+  it('.call', () => {
+    expect(utils.call).toBe(client)
+  })
+
   it('.queryOptions', async () => {
     const options = utils.queryOptions({ input: computed(() => ({ search: ref('__search__') })), context: { batch: '__batch__' } })
 

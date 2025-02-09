@@ -1,6 +1,7 @@
 import type { InfiniteData } from '@tanstack/react-query'
 import { isDefinedError } from '@orpc/contract'
 import { useInfiniteQuery, useMutation, useQueries, useQuery, useSuspenseInfiniteQuery, useSuspenseQuery } from '@tanstack/react-query'
+import { orpc as client } from '../../client/tests/shared'
 import { orpc, queryClient } from './shared'
 
 it('.key', () => {
@@ -12,6 +13,10 @@ it('.key', () => {
   orpc.ping.key({ input: { input: 123 } })
   // @ts-expect-error --- input is invalid
   orpc.ping.key({ input: { input: 'INVALID' } })
+})
+
+it('.call', () => {
+  expectTypeOf(orpc.ping.call).toEqualTypeOf(client.ping)
 })
 
 describe('.queryOptions', () => {

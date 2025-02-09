@@ -9,6 +9,10 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
+it('case: call directly', async () => {
+  expect(await orpc.ping.call({ input: 123 })).toEqual({ output: '123' })
+})
+
 it('case: with useQuery', async () => {
   const { result } = renderHook(() => useQuery(orpc.nested.ping.queryOptions({ input: { input: 123 } }), queryClient))
 

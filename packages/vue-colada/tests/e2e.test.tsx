@@ -8,6 +8,10 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
+it('case: call directly', async () => {
+  expect(await orpc.ping.call({ input: 123 })).toEqual({ output: '123' })
+})
+
 it('case: with useQuery', async () => {
   const mounted = mount(defineComponent({
     setup() {

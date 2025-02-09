@@ -64,8 +64,8 @@ const { mutate: postMutate } = useMutation(orpc.posts.createPost.mutationOptions
 
 // Invalidate queries
 const queryCache = useQueryCache()
-queryCache.invalidateQueries({ key: orpc.key() }) // Invalidate all queries
-queryCache.invalidateQueries({ key: orpc.posts.getPost.key({ input: { id: 'example' } }) }) // Specific queries
+queryCache.invalidateQueries({ key: orpc.key().value }) // Invalidate all queries
+queryCache.invalidateQueries({ key: orpc.posts.getPost.key({ input: { id: 'example' } }).value }) // Specific queries
 ```
 
 > **Note**: This library enhances [Pinia Colada](https://pinia-colada.esm.dev/) by managing keys and functions for you, providing a seamless developer experience.

@@ -91,7 +91,7 @@ export function decorateMiddleware<
       return merged
     })
 
-    concatted['~attachedErrorMap'] = mergeErrorMap(middleware['~attachedErrorMap'] ?? {}, mapped['~attachedErrorMap'] ?? {})
+    concatted['~errorMap'] = mergeErrorMap(middleware['~errorMap'] ?? {}, mapped['~errorMap'] ?? {})
 
     return concatted as any
   }

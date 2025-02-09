@@ -84,8 +84,8 @@ export class DecoratedProcedure<
 
     return new DecoratedProcedure({
       ...this['~orpc'],
-      errorMap: mapped['~attachedErrorMap']
-        ? mergeErrorMap(mapped['~attachedErrorMap'], this['~orpc'].errorMap)
+      errorMap: mapped['~errorMap']
+        ? mergeErrorMap(mapped['~errorMap'], this['~orpc'].errorMap)
         : this['~orpc'].errorMap,
       middlewares: addMiddleware(this['~orpc'].middlewares, mapped),
     })

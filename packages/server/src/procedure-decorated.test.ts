@@ -103,7 +103,7 @@ describe('decoratedProcedure', () => {
         OVERRIDE: { message: 'this is low priority' },
       }
       const mid2 = vi.fn() as any
-      mid2['~attachedErrorMap'] = errorMap
+      mid2['~errorMap'] = errorMap
       const applied = decorated.use(mid2)
 
       expect(applied).not.toBe(decorated)

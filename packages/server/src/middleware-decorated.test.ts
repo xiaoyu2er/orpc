@@ -86,14 +86,14 @@ describe('decorateMiddleware', () => {
 
   it('can concat with attached error map', async () => {
     const mid1 = vi.fn() as any
-    mid1['~attachedErrorMap'] = baseErrorMap
+    mid1['~errorMap'] = baseErrorMap
 
     const mid2 = vi.fn() as any
     const errorMap = { BASE: { message: 'base error' }, OVERRIDE: { message: 'this has higher priority' } }
-    mid2['~attachedErrorMap'] = errorMap
+    mid2['~errorMap'] = errorMap
 
-    expect(decorateMiddleware(mid1).concat(mid2)['~attachedErrorMap']).toEqual({ ...baseErrorMap, ...errorMap })
-    expect(decorateMiddleware(mid1).concat(vi.fn())['~attachedErrorMap']).toEqual({ ...baseErrorMap })
-    expect(decorateMiddleware(vi.fn()).concat(mid2)['~attachedErrorMap']).toEqual({ ...errorMap })
+    expect(decorateMiddleware(mid1).concat(mid2)['~errorMap']).toEqual({ ...baseErrorMap, ...errorMap })
+    expect(decorateMiddleware(mid1).concat(vi.fn())['~errorMap']).toEqual({ ...baseErrorMap })
+    expect(decorateMiddleware(vi.fn()).concat(mid2)['~errorMap']).toEqual({ ...errorMap })
   })
 })

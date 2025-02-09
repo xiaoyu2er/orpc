@@ -100,7 +100,7 @@ export class Builder<
   middleware<UOutContext extends Context, TInput, TOutput = any>( // = any here is important to make middleware can be used in any output by default
     middleware: Middleware<TCurrentContext, UOutContext, TInput, TOutput, ORPCErrorConstructorMap<TErrorMap>, TMeta>,
   ): DecoratedMiddleware<TCurrentContext, UOutContext, TInput, TOutput, any, TMeta> { // any ensures middleware can used in any procedure without matching error requirements
-    middleware['~attachedErrorMap'] = this['~orpc'].errorMap
+    middleware['~errorMap'] = this['~orpc'].errorMap
 
     return decorateMiddleware(middleware)
   }
@@ -149,8 +149,8 @@ export class Builder<
 
     return new Builder({
       ...this['~orpc'],
-      errorMap: mapped['~attachedErrorMap']
-        ? mergeErrorMap(mapped['~attachedErrorMap'], this['~orpc'].errorMap)
+      errorMap: mapped['~errorMap']
+        ? mergeErrorMap(mapped['~errorMap'], this['~orpc'].errorMap)
         : this['~orpc'].errorMap,
       middlewares: addMiddleware(this['~orpc'].middlewares, mapped),
     })

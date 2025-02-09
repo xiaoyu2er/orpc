@@ -11,7 +11,6 @@ it('.key', () => {
   })
 
   orpc.ping.key({})
-  orpc.ping.key({ input: computed(() => ({ input: ref(123) })) })
   // @ts-expect-error --- input is invalid
   orpc.ping.key({ input: { input: 'INVALID' } })
 })

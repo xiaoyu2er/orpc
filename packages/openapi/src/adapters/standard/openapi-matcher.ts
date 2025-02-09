@@ -114,7 +114,7 @@ export class OpenAPIMatcher implements StandardMatcher {
     return {
       path: match.data.path,
       procedure: match.data.procedure,
-      params: match.params ? { ...match.params } : undefined, // normalize params
+      params: match.params,
     }
   }
 }

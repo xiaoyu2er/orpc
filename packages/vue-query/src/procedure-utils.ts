@@ -7,6 +7,8 @@ import { buildKey } from './key'
 import { unrefDeep } from './utils'
 
 export interface ProcedureUtils<TClientContext, TInput, TOutput, TError extends Error> {
+  call: Client<TClientContext, TInput, TOutput, TError>
+
   queryOptions<U, USelectData = TOutput>(
     ...rest: MaybeOptionalOptions<
       U & QueryOptionsIn<TClientContext, TInput, TOutput, TError, USelectData>
@@ -29,6 +31,8 @@ export function createProcedureUtils<TClientContext, TInput, TOutput, TError ext
   path: string[],
 ): ProcedureUtils<TClientContext, TInput, TOutput, TError> {
   return {
+    call: client,
+
     queryOptions(...[{ input, context, ...rest } = {}]) {
       return {
         queryKey: computed(() => buildKey(path, { type: 'query', input: unrefDeep(input) as any })),

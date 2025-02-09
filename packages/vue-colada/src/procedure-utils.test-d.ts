@@ -1,4 +1,4 @@
-import type { ErrorFromErrorMap } from '@orpc/contract'
+import type { Client, ErrorFromErrorMap } from '@orpc/contract'
 import type { baseErrorMap } from '../../contract/tests/shared'
 import type { ProcedureUtils } from './procedure-utils'
 import { useMutation, useQuery } from '@pinia/colada'
@@ -14,6 +14,17 @@ describe('ProcedureUtils', () => {
     UtilsOutput,
     ErrorFromErrorMap<typeof baseErrorMap>
   >
+
+  it('.call', () => {
+    expectTypeOf(utils.call).toEqualTypeOf<
+      Client<
+        { batch?: boolean } | undefined,
+        UtilsInput,
+        UtilsOutput,
+        ErrorFromErrorMap<typeof baseErrorMap>
+      >
+    >()
+  })
 
   describe('.queryOptions', () => {
     it('can optional options', () => {

@@ -13,6 +13,15 @@ beforeEach(() => {
   buildKeySpy.mockReturnValue(['__mocked__'])
 })
 
+it('.call', () => {
+  const client = vi.fn(
+    (...[input]) => Promise.resolve(input?.toString()),
+  )
+  const utils = createProcedureUtils(client, ['ping'])
+
+  expect(utils.call).toBe(client)
+})
+
 describe('queryOptions', () => {
   const client = vi.fn(
     (...[input]) => Promise.resolve(input?.toString()),

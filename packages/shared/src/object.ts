@@ -77,8 +77,7 @@ export function findDeepMatches(
 }
 
 /**
- * Check if the value is an object.
- * Even object created by Object.create(null) is considered an object.
+ * Check if the value is an object even it created by `Object.create(null)` or more tricky way.
  */
 export function isObject(value: unknown): value is Record<PropertyKey, unknown> {
   if (!value || typeof value !== 'object') {
@@ -87,5 +86,5 @@ export function isObject(value: unknown): value is Record<PropertyKey, unknown> 
 
   const proto = Object.getPrototypeOf(value)
 
-  return proto === Object.prototype || proto === null
+  return proto === Object.prototype || !proto || !proto.constructor
 }

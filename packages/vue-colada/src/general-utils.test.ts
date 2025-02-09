@@ -13,7 +13,7 @@ describe('createGeneralUtils', () => {
 
   it('.key', () => {
     expect(
-      utils.key({ input: computed(() => ({ search: ref('__search__') })) }),
+      utils.key({ input: computed(() => ({ search: ref('__search__') })) }).value,
     ).toEqual(['path', { input: '{"json":{"search":"__search__"},"meta":[]}' }])
     expect(buildKeySpy).toHaveBeenCalledTimes(1)
     expect(buildKeySpy).toHaveBeenCalledWith(['path'], { input: { search: '__search__' } })

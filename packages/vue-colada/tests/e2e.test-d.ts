@@ -7,7 +7,7 @@ it('.key', () => {
   const client = useQueryCache()
 
   client.invalidateQueries({
-    key: orpc.nested.key(),
+    key: orpc.nested.key().value,
   })
 
   orpc.ping.key({})

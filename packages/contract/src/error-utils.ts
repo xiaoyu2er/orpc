@@ -1,3 +1,4 @@
+import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { ErrorMap, ErrorMapItem } from './error-map'
 import type { ORPCErrorCode, ORPCErrorOptions } from './error-orpc'
 import type { SchemaInput } from './schema'
@@ -9,12 +10,8 @@ export function isDefinedError<T>(error: T): error is Extract<T, ORPCError<any, 
 
 export type ORPCErrorConstructorMapItemOptions<TData> = Omit<ORPCErrorOptions<TData>, 'defined' | 'status'>
 
-export type ORPCErrorConstructorMapItemRest<TData> =
-  | [options: ORPCErrorConstructorMapItemOptions<TData>]
-  | (undefined extends TData ? [] : never)
-
 export type ORPCErrorConstructorMapItem<TCode extends ORPCErrorCode, TInData> =
-  (...rest: ORPCErrorConstructorMapItemRest<TInData>) => ORPCError<TCode, TInData>
+  (...rest: MaybeOptionalOptions<ORPCErrorConstructorMapItemOptions<TInData>>) => ORPCError<TCode, TInData>
 
 export type ORPCErrorConstructorMap<T extends ErrorMap> = {
   [K in keyof T]: K extends ORPCErrorCode

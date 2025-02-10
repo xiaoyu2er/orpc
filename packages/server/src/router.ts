@@ -24,6 +24,10 @@ export type Router<
 
 export type AnyRouter = Router<any, any>
 
+export type InferRouterInitialContext<T extends AnyRouter> = T extends Router<infer UInitialContext, any>
+  ? UInitialContext
+  : never
+
 export type InferRouterInputs<T extends AnyRouter> =
   T extends Lazy<infer U extends AnyRouter> ? InferRouterInputs<U>
     : T extends Procedure<any, any, infer UInputSchema, any, any, any, any>

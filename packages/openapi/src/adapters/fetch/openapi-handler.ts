@@ -1,6 +1,7 @@
 import type { Context, Router } from '@orpc/server'
 import type { FetchHandler, FetchHandleResult } from '@orpc/server/fetch'
-import type { StandardHandleRest } from '@orpc/server/standard'
+import type { StandardHandleOptions } from '@orpc/server/standard'
+import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { OpenAPIHandlerOptions } from '../standard'
 import { fetchRequestToStandardRequest, standardResponseToFetchResponse } from '@orpc/server/fetch'
 import { StandardHandler } from '@orpc/server/standard'
@@ -16,7 +17,7 @@ export class OpenAPIHandler<T extends Context> implements FetchHandler<T> {
     this.standardHandler = new StandardHandler(router, matcher, codec, options)
   }
 
-  async handle(request: Request, ...rest: StandardHandleRest<T>): Promise<FetchHandleResult> {
+  async handle(request: Request, ...rest: MaybeOptionalOptions<StandardHandleOptions<T>>): Promise<FetchHandleResult> {
     const standardRequest = fetchRequestToStandardRequest(request)
 
     const result = await this.standardHandler.handle(standardRequest, ...rest)

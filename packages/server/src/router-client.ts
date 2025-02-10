@@ -1,8 +1,9 @@
 import type { ErrorMap, Meta } from '@orpc/contract'
+import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { Lazy } from './lazy'
 import type { Procedure } from './procedure'
-import type { CreateProcedureClientRest, ProcedureClient } from './procedure-client'
-import type { AnyRouter, Router } from './router'
+import type { CreateProcedureClientOptions, ProcedureClient } from './procedure-client'
+import type { AnyRouter, InferRouterInitialContext, Router } from './router'
 import { isLazy } from './lazy'
 import { createLazyProcedureFormAnyLazy } from './lazy-utils'
 import { isProcedure } from './procedure'
@@ -17,31 +18,40 @@ export type RouterClient<TRouter extends AnyRouter, TClientContext> = TRouter ex
         [K in keyof TRouter]: TRouter[K] extends AnyRouter ? RouterClient<TRouter[K], TClientContext> : never
       }
 
-export type CreateRouterClientRest<TRouter extends AnyRouter, TClientContext> = CreateProcedureClientRest<
-  TRouter extends Router<infer UContext, any> ? UContext : never,
-  undefined,
-  undefined,
-  unknown,
-  ErrorMap,
-  Meta,
-  TClientContext
+export type CreateRouterClientRest<TRouter extends AnyRouter, TClientContext> = MaybeOptionalOptions<
+  CreateProcedureClientOptions<
+    TRouter extends Router<infer UContext, any> ? UContext : never,
+    undefined,
+    undefined,
+    unknown,
+    ErrorMap,
+    Meta,
+    TClientContext
+  >
 >
 
-export function createRouterClient<
-  TRouter extends AnyRouter,
-  TClientContext,
->(
+export function createRouterClient<TRouter extends AnyRouter, TClientContext>(
   router: TRouter | Lazy<undefined>,
-  ...rest: CreateRouterClientRest<TRouter, TClientContext>
+  ...rest: MaybeOptionalOptions<
+    CreateProcedureClientOptions<
+      InferRouterInitialContext<TRouter>,
+      undefined,
+      undefined,
+      unknown,
+      ErrorMap,
+      Meta,
+      TClientContext
+    >
+  >
 ): RouterClient<TRouter, TClientContext> {
   if (isProcedure(router)) {
-    const caller = createProcedureClient(router, ...rest)
+    const caller = createProcedureClient(router, ...rest as any)
 
     return caller as any
   }
 
   const procedureCaller = isLazy(router)
-    ? createProcedureClient(createLazyProcedureFormAnyLazy(router), ...rest)
+    ? createProcedureClient(createLazyProcedureFormAnyLazy(router), ...rest as any)
     : {}
 
   const recursive = new Proxy(procedureCaller, {

@@ -1,6 +1,7 @@
 import type { Context, Router } from '@orpc/server'
 import type { NodeHttpHandler, NodeHttpHandleResult, NodeHttpRequest, NodeHttpResponse } from '@orpc/server/node'
-import type { StandardHandleRest } from '@orpc/server/standard'
+import type { StandardHandleOptions } from '@orpc/server/standard'
+import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { OpenAPIHandlerOptions } from '../standard'
 import { nodeHttpResponseSendStandardResponse, nodeHttpToStandardRequest } from '@orpc/server/node'
 import { StandardHandler } from '@orpc/server/standard'
@@ -16,7 +17,11 @@ export class OpenAPIHandler<T extends Context> implements NodeHttpHandler<T> {
     this.standardHandler = new StandardHandler(router, matcher, codec, { ...options })
   }
 
-  async handle(req: NodeHttpRequest, res: NodeHttpResponse, ...rest: StandardHandleRest<T>): Promise<NodeHttpHandleResult> {
+  async handle(
+    req: NodeHttpRequest,
+    res: NodeHttpResponse,
+    ...rest: MaybeOptionalOptions<StandardHandleOptions<T>>
+  ): Promise<NodeHttpHandleResult> {
     const standardRequest = nodeHttpToStandardRequest(req, res)
 
     const result = await this.standardHandler.handle(standardRequest, ...rest)

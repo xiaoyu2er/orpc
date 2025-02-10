@@ -1,3 +1,4 @@
+import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { ErrorMap, ErrorMapItem } from './error-map'
 import type { SchemaOutput } from './schema'
 import { isObject } from '@orpc/shared'
@@ -107,17 +108,13 @@ export type ORPCErrorOptions< TData> =
   & { defined?: boolean, status?: number, message?: string }
   & (undefined extends TData ? { data?: TData } : { data: TData })
 
-export type ORPCErrorOptionsRest<TData> =
-  | [options: ORPCErrorOptions<TData>]
-  | (undefined extends TData ? [] : never)
-
 export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
   readonly defined: boolean
   readonly code: TCode
   readonly status: number
   readonly data: TData
 
-  constructor(code: TCode, ...[options]: ORPCErrorOptionsRest<TData>) {
+  constructor(code: TCode, ...[options]: MaybeOptionalOptions<ORPCErrorOptions<TData>>) {
     if (options?.status && (options.status < 400 || options.status >= 600)) {
       throw new Error('[ORPCError] The error status code must be in the 400-599 range.')
     }

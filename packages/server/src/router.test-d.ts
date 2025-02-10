@@ -4,7 +4,7 @@ import type { CurrentContext, InitialContext } from '../tests/shared'
 import type { Context } from './context'
 import type { Lazy } from './lazy'
 import type { Procedure } from './procedure'
-import type { AdaptedRouter, InferRouterInputs, InferRouterOutputs, Router } from './router'
+import type { AdaptedRouter, InferRouterInitialContext, InferRouterInputs, InferRouterOutputs, Router } from './router'
 import { ping, pong, router } from '../tests/shared'
 
 describe('Router', () => {
@@ -15,6 +15,12 @@ describe('Router', () => {
 
     expectTypeOf(ping).not.toMatchTypeOf<Router<Context, any>>()
   })
+})
+
+it('InferRouterInitialContext', () => {
+  expectTypeOf<InferRouterInitialContext<typeof router>>().toEqualTypeOf<InitialContext & Context>()
+  expectTypeOf<InferRouterInitialContext<typeof ping>>().toEqualTypeOf<InitialContext>()
+  expectTypeOf<InferRouterInitialContext<typeof pong>>().toEqualTypeOf<Context>()
 })
 
 it('InferRouterInputs', () => {

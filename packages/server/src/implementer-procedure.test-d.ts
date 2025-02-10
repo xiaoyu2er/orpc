@@ -145,7 +145,7 @@ describe('ImplementedProcedure', () => {
 
   it('.callable', () => {
     const applied = implemented.callable({
-      context: async (clientContext: 'client-context') => ({ db: 'postgres' }),
+      context: async (clientContext: { batch?: boolean }) => ({ db: 'postgres' }),
     })
 
     expectTypeOf(applied).toEqualTypeOf<
@@ -158,13 +158,13 @@ describe('ImplementedProcedure', () => {
           typeof baseErrorMap,
           BaseMeta
       >
-      & Client<'client-context', { input: number }, { output: string }, ErrorFromErrorMap<typeof baseErrorMap>>
+      & Client<{ batch?: boolean }, { input: number }, { output: string }, ErrorFromErrorMap<typeof baseErrorMap>>
     >()
   })
 
   it('.actionable', () => {
     const applied = implemented.actionable({
-      context: async (clientContext: 'client-context') => ({ db: 'postgres' }),
+      context: async (clientContext: { batch?: boolean }) => ({ db: 'postgres' }),
     })
 
     expectTypeOf(applied).toEqualTypeOf<
@@ -177,7 +177,7 @@ describe('ImplementedProcedure', () => {
           typeof baseErrorMap,
           BaseMeta
       >
-      & ((...rest: ClientRest<'client-context', { input: number }>) => Promise<{ output: string }>)
+      & ((...rest: ClientRest<{ batch?: boolean }, { input: number }>) => Promise<{ output: string }>)
     >()
   })
 })

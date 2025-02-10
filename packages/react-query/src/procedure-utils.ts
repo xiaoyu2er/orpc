@@ -1,10 +1,10 @@
-import type { Client } from '@orpc/contract'
+import type { Client, ClientContext } from '@orpc/contract'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { InfiniteData } from '@tanstack/react-query'
 import type { InfiniteOptionsBase, InfiniteOptionsIn, MutationOptionsBase, MutationOptionsIn, QueryOptionsBase, QueryOptionsIn } from './types'
 import { buildKey } from './key'
 
-export interface ProcedureUtils<TClientContext, TInput, TOutput, TError extends Error> {
+export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError extends Error> {
   call: Client<TClientContext, TInput, TOutput, TError>
 
   queryOptions<U, USelectData = TOutput>(
@@ -24,7 +24,7 @@ export interface ProcedureUtils<TClientContext, TInput, TOutput, TError extends 
   ): NoInfer<U & MutationOptionsBase<TInput, TOutput, TError>>
 }
 
-export function createProcedureUtils<TClientContext, TInput, TOutput, TError extends Error>(
+export function createProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError extends Error>(
   client: Client<TClientContext, TInput, TOutput, TError>,
   path: string[],
 ): ProcedureUtils<TClientContext, TInput, TOutput, TError> {

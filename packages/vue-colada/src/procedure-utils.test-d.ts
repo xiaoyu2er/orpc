@@ -9,7 +9,7 @@ describe('ProcedureUtils', () => {
   type UtilsOutput = { title: string }[]
 
   const utils = {} as ProcedureUtils<
-    { batch?: boolean } | undefined,
+    { batch?: boolean },
     UtilsInput,
     UtilsOutput,
     ErrorFromErrorMap<typeof baseErrorMap>
@@ -18,7 +18,7 @@ describe('ProcedureUtils', () => {
   it('.call', () => {
     expectTypeOf(utils.call).toEqualTypeOf<
       Client<
-        { batch?: boolean } | undefined,
+        { batch?: boolean },
         UtilsInput,
         UtilsOutput,
         ErrorFromErrorMap<typeof baseErrorMap>
@@ -77,7 +77,7 @@ describe('ProcedureUtils', () => {
 
   describe('.mutationOptions', () => {
     it('can optional options', () => {
-      const requiredUtils = {} as ProcedureUtils<{ batch?: boolean }, 'input', UtilsOutput, Error>
+      const requiredUtils = {} as ProcedureUtils<{ batch: boolean }, 'input', UtilsOutput, Error>
 
       utils.mutationOptions()
       utils.mutationOptions({})

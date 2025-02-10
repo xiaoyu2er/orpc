@@ -1,4 +1,4 @@
-import type { AnyContractRouter, Client, ContractRouterClient } from '@orpc/contract'
+import type { AnyContractRouter, Client, ClientContext, ContractRouterClient } from '@orpc/contract'
 import type { AnyRouter, RouterClient } from '@orpc/server'
 import type { ClientLink } from './types'
 
@@ -9,7 +9,7 @@ export interface createORPCClientOptions {
   path?: string[]
 }
 
-export function createORPCClient<TRouter extends AnyRouter | AnyContractRouter, TClientContext = unknown>(
+export function createORPCClient<TRouter extends AnyRouter | AnyContractRouter, TClientContext extends ClientContext = Record<never, never>>(
   link: ClientLink<TClientContext>,
   options?: createORPCClientOptions,
 ): TRouter extends AnyRouter // TODO: move this bellow `TRouter extends AnyContractRouter` can help me remove @orpc/server in dependencies

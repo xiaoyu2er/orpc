@@ -451,7 +451,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
 
     await client({ val: '123' })
     expect(context).toBeCalledTimes(1)
-    expect(context).toBeCalledWith(undefined)
+    expect(context).toBeCalledWith({})
 
     context.mockClear()
     await client({ val: '123' }, { context: { cache: true } })

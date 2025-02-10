@@ -1,4 +1,4 @@
-import type { ClientRest, ErrorMap, MergedErrorMap, Meta, ORPCErrorConstructorMap, Route, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ClientContext, ClientRest, ErrorMap, MergedErrorMap, Meta, ORPCErrorConstructorMap, Route, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { ConflictContextGuard, Context, MergedContext } from './context'
 import type { AnyMiddleware, MapInputMiddleware, Middleware } from './middleware'
@@ -92,7 +92,7 @@ export class DecoratedProcedure<
   /**
    * Make this procedure callable (works like a function while still being a procedure).
    */
-  callable<TClientContext>(
+  callable<TClientContext extends ClientContext>(
     ...rest: MaybeOptionalOptions<
       CreateProcedureClientOptions<
         TInitialContext,
@@ -115,7 +115,7 @@ export class DecoratedProcedure<
   /**
    * Make this procedure compatible with server action (the same as .callable, but the type is compatible with server action).
    */
-  actionable<TClientContext>(
+  actionable<TClientContext extends ClientContext>(
     ...rest: MaybeOptionalOptions<
       CreateProcedureClientOptions<
         TInitialContext,

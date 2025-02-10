@@ -1,4 +1,4 @@
-import type { NestedClient } from './client'
+import type { ClientContext, NestedClient } from './client'
 import type { ContractRouterClient } from './router-client'
 import { ping, pong } from '../tests/shared'
 
@@ -13,7 +13,7 @@ const router = {
 
 describe('ContractRouterClient', () => {
   it('is a NestedClient', () => {
-    expectTypeOf<ContractRouterClient<typeof router, unknown>>().toMatchTypeOf<NestedClient<unknown>>()
-    expectTypeOf<ContractRouterClient<typeof router, 'invalid'>>().not.toMatchTypeOf<NestedClient<unknown>>()
+    expectTypeOf<ContractRouterClient<typeof router, ClientContext>>().toMatchTypeOf<NestedClient<ClientContext>>()
+    expectTypeOf<ContractRouterClient<typeof router, { cache?: boolean }>>().not.toMatchTypeOf<NestedClient<{ cache?: string }>>()
   })
 })

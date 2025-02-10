@@ -1,4 +1,4 @@
-import type { Client, ErrorMap, ORPCError, ORPCErrorConstructorMap, Schema } from '@orpc/contract'
+import type { Client, ClientContext, ErrorMap, ORPCError, ORPCErrorConstructorMap, Schema } from '@orpc/contract'
 import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../../contract/tests/shared'
 import type { Context } from './context'
 import type { Procedure } from './procedure'
@@ -8,7 +8,7 @@ import { createProcedureClient, type ProcedureClient } from './procedure-client'
 
 describe('ProcedureClient', () => {
   const client = {} as ProcedureClient<
-    'client-context',
+    { cache: boolean },
     typeof inputSchema,
     typeof outputSchema,
     { output: number },
@@ -18,7 +18,7 @@ describe('ProcedureClient', () => {
   it('is a client', () => {
     expectTypeOf(client).toMatchTypeOf<
       Client<
-        'client-context',
+        { cache: boolean },
         { input: number },
         { output: string },
         Error | ORPCError<'BASE', { output: string }>
@@ -27,7 +27,7 @@ describe('ProcedureClient', () => {
   })
 
   it('works', async () => {
-    const [output, error, isDefined] = await safe(client({ input: 123 }, { context: 'client-context' }))
+    const [output, error, isDefined] = await safe(client({ input: 123 }, { context: { cache: true } }))
 
     if (!error) {
       expectTypeOf(output).toEqualTypeOf<{ output: string }>()
@@ -38,7 +38,7 @@ describe('ProcedureClient', () => {
     }
 
     // @ts-expect-error - invalid input
-    client({ input: 'INVALID' }, { context: 'client-context' })
+    client({ input: 'INVALID' }, { context: { cache: true } })
     // @ts-expect-error - invalid client context
     client({ input: 123 }, { context: 'INVALID' })
     // @ts-expect-error - client context is required
@@ -46,7 +46,7 @@ describe('ProcedureClient', () => {
   })
 
   it('can fallback to handler output', async () => {
-    const client = {} as ProcedureClient<unknown, typeof inputSchema, undefined, { handler: number }, typeof baseErrorMap>
+    const client = {} as ProcedureClient<ClientContext, typeof inputSchema, undefined, { handler: number }, typeof baseErrorMap>
 
     const output = await client({ input: 123 })
 
@@ -68,11 +68,11 @@ describe('createProcedureClient', () => {
   })
 
   it('can type client context', () => {
-    const client = createProcedureClient(ping, { context: (clientContext: 'client-context') => ({ db: 'postgres' }) })
+    const client = createProcedureClient(ping, { context: (clientContext: { cache?: boolean }) => ({ db: 'postgres' }) })
 
     expectTypeOf(client).toEqualTypeOf<
       ProcedureClient<
-        'client-context',
+        { cache?: boolean },
         typeof inputSchema,
         typeof outputSchema,
         { output: number },

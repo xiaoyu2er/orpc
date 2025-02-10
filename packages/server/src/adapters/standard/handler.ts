@@ -21,7 +21,7 @@ export type StandardHandleResult = { matched: true, response: StandardResponse }
 export type StandardHandlerInterceptorOptions<TContext extends Context> = WellStandardHandleOptions<TContext> & { request: StandardRequest }
 
 export type WellCreateProcedureClientOptions<TContext extends Context> =
-  CreateProcedureClientOptions<TContext, Schema, Schema, unknown, ErrorMap, Meta, unknown> & {
+  CreateProcedureClientOptions<TContext, Schema, Schema, unknown, ErrorMap, Meta, Record<never, never>> & {
     context: TContext
   }
 

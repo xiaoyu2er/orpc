@@ -34,7 +34,7 @@ export function call<
       THandlerOutput,
       TErrorMap,
       TMeta,
-      unknown
+      Record<never, never>
     >
   >
 ): ClientPromiseResult<SchemaOutput<TOutputSchema, THandlerOutput>, ErrorFromErrorMap<TErrorMap>> {

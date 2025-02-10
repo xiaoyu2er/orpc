@@ -1,3 +1,4 @@
+import type { ClientContext } from '@orpc/contract'
 import type { ClientLink } from './types'
 import { createORPCClient } from './client'
 
@@ -6,7 +7,7 @@ beforeEach(() => {
 })
 
 describe('createORPCClient', () => {
-  const mockedLink: ClientLink<unknown> = {
+  const mockedLink: ClientLink<ClientContext> = {
     call: vi.fn().mockReturnValue('__mocked__'),
   }
 

@@ -1,11 +1,11 @@
-import type { Client } from '@orpc/contract'
+import type { Client, ClientContext } from '@orpc/contract'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { MutationOptions, MutationOptionsIn, QueryOptions, QueryOptionsIn } from './types'
 import { computed } from 'vue'
 import { buildKey } from './key'
 import { unrefDeep } from './utils'
 
-export interface ProcedureUtils<TClientContext, TInput, TOutput, TError extends Error> {
+export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError extends Error> {
   call: Client<TClientContext, TInput, TOutput, TError>
 
   queryOptions(
@@ -21,7 +21,7 @@ export interface ProcedureUtils<TClientContext, TInput, TOutput, TError extends 
   ): MutationOptions<TInput, TOutput, TError>
 }
 
-export function createProcedureUtils<TClientContext, TInput, TOutput, TError extends Error>(
+export function createProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError extends Error>(
   client: Client<TClientContext, TInput, TOutput, TError>,
   path: string[],
 ): ProcedureUtils<TClientContext, TInput, TOutput, TError> {

@@ -47,8 +47,7 @@ import type { router } from 'examples/server'
 import { createORPCClient, ORPCError } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
 
-type ClientContext = { cache?: RequestCache } | undefined
-// if context is not undefinable, it will require you pass context in every call
+type ClientContext = { cache?: RequestCache }
 
 const rpcLink = new RPCLink<ClientContext>({
   url: 'http://localhost:3000/rpc',

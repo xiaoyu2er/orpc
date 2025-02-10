@@ -1,4 +1,4 @@
-import type { ClientRest, ErrorMap, Meta, ORPCErrorConstructorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ClientContext, ClientRest, ErrorMap, Meta, ORPCErrorConstructorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { BuilderDef } from './builder'
 import type { ConflictContextGuard, Context, MergedContext } from './context'
@@ -45,7 +45,7 @@ export interface ImplementedProcedure<
   /**
    * Make this procedure callable (works like a function while still being a procedure).
    */
-  callable<TClientContext>(
+  callable<TClientContext extends ClientContext>(
     ...rest: MaybeOptionalOptions<
       CreateProcedureClientOptions<
         TInitialContext,
@@ -58,12 +58,12 @@ export interface ImplementedProcedure<
       >
     >
   ): Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta>
-    & ProcedureClient < TClientContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap >
+    & ProcedureClient<TClientContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap >
 
   /**
    * Make this procedure compatible with server action (the same as .callable, but the type is compatible with server action).
    */
-  actionable<TClientContext>(
+  actionable<TClientContext extends ClientContext>(
     ...rest: MaybeOptionalOptions<
       CreateProcedureClientOptions<
         TInitialContext,

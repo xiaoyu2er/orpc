@@ -1,13 +1,13 @@
-import type { Client } from './client'
+import type { Client, ClientContext } from './client'
 
 describe('client', () => {
-  const fn: Client<unknown, string, number, Error> = async (...[input, options]) => {
+  const fn: Client<ClientContext, string, number, Error> = async (...[input, options]) => {
     expectTypeOf(input).toEqualTypeOf<string>()
     expectTypeOf(options).toMatchTypeOf<({ context?: unknown, signal?: AbortSignal }) | undefined>()
     return 123
   }
 
-  const fnWithOptionalInput: Client<unknown, string | undefined, number, Error> = async (...args) => {
+  const fnWithOptionalInput: Client<ClientContext, string | undefined, number, Error> = async (...args) => {
     const [input, options] = args
 
     expectTypeOf(input).toEqualTypeOf<string | undefined>()
@@ -16,8 +16,8 @@ describe('client', () => {
   }
 
   it('just a function', () => {
-    expectTypeOf(fn).toMatchTypeOf<(input: string, options: { context?: unknown, signal?: AbortSignal }) => Promise<number>>()
-    expectTypeOf(fnWithOptionalInput).toMatchTypeOf<(input: string | undefined, options: { context?: unknown, signal?: AbortSignal }) => Promise<number>>()
+    expectTypeOf(fn).toMatchTypeOf<(input: string, options: { context?: ClientContext, signal?: AbortSignal }) => Promise<number>>()
+    expectTypeOf(fnWithOptionalInput).toMatchTypeOf<(input: string | undefined, options: { context?: ClientContext, signal?: AbortSignal }) => Promise<number>>()
   })
 
   it('infer correct input', () => {
@@ -63,16 +63,17 @@ describe('client', () => {
     })
 
     it('optional options when context is optional', () => {
-      const client = {} as Client<undefined | { userId: string }, { val: string }, { val: number }, Error>
+      const client = {} as Client<{ userId?: string }, { val: string }, { val: number }, Error>
 
       client({ val: '123' })
       client({ val: '123' }, { context: { userId: '123' } })
     })
 
     it('can call without args when both input and context are optional', () => {
-      const client = {} as Client<undefined | { userId: string }, undefined | { val: string }, { val: number }, Error>
+      const client = {} as Client<{ userId?: string }, undefined | { val: string }, { val: number }, Error>
 
       client()
+      client({ val: 'string' })
       client({ val: 'string' }, { context: { userId: '123' } })
       // @ts-expect-error - input is invalid
       client({ val: 123 }, { context: { userId: '123' } })

@@ -1,4 +1,4 @@
-import type { ClientOptions } from '@orpc/contract'
+import type { ClientContext, ClientOptions } from '@orpc/contract'
 import type { Promisable } from '@orpc/shared'
 import type { ClientLink } from './types'
 
@@ -6,7 +6,7 @@ import type { ClientLink } from './types'
  * DynamicLink provides a way to dynamically resolve and delegate calls to other ClientLinks
  * based on the request path, input, and context.
  */
-export class DynamicLink<TClientContext> implements ClientLink<TClientContext> {
+export class DynamicLink<TClientContext extends ClientContext> implements ClientLink<TClientContext> {
   constructor(
     private readonly linkResolver: (
       path: readonly string[],
@@ -17,10 +17,11 @@ export class DynamicLink<TClientContext> implements ClientLink<TClientContext> {
   }
 
   async call(path: readonly string[], input: unknown, options: ClientOptions<TClientContext>): Promise<unknown> {
-    // Since the context is only optional when the context is undefinable, we can safely cast it
-    const resolvedLink = await this.linkResolver(path, input, options.context as TClientContext)
+    const clientContext = options.context ?? {} as TClientContext // options.context can be undefined when all field is optional
 
-    const output = await resolvedLink.call(path, input, options)
+    const resolvedLink = await this.linkResolver(path, input, clientContext)
+
+    const output = await resolvedLink.call(path, input, { ...options, context: clientContext })
 
     return output
   }

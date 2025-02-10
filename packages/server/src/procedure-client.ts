@@ -1,4 +1,4 @@
-import type { Client, ErrorFromErrorMap, ErrorMap, Meta, ORPCErrorConstructorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { Client, ClientContext, ErrorFromErrorMap, ErrorMap, Meta, ORPCErrorConstructorMap, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { Interceptor, MaybeOptionalOptions, Value } from '@orpc/shared'
 import type { Context } from './context'
 import type { Lazyable } from './lazy'
@@ -10,12 +10,17 @@ import { unlazy } from './lazy'
 import { middlewareOutputFn } from './middleware'
 
 export type ProcedureClient<
-  TClientContext,
+  TClientContext extends ClientContext,
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   THandlerOutput extends SchemaInput<TOutputSchema>,
   TErrorMap extends ErrorMap,
-> = Client<TClientContext, SchemaInput<TInputSchema>, SchemaOutput<TOutputSchema, THandlerOutput>, ErrorFromErrorMap<TErrorMap>>
+> = Client<
+  TClientContext,
+  SchemaInput<TInputSchema>,
+  SchemaOutput<TOutputSchema, THandlerOutput>,
+  ErrorFromErrorMap<TErrorMap>
+>
 
 export interface ProcedureClientInterceptorOptions<
   TInitialContext extends Context,
@@ -41,7 +46,7 @@ export type CreateProcedureClientOptions<
   THandlerOutput extends SchemaInput<TOutputSchema>,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
-  TClientContext,
+  TClientContext extends ClientContext,
 > =
   & {
     /**
@@ -68,7 +73,7 @@ export function createProcedureClient<
   THandlerOutput extends SchemaInput<TOutputSchema>,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
-  TClientContext,
+  TClientContext extends ClientContext,
 >(
   lazyableProcedure: Lazyable<Procedure<TInitialContext, any, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta>>,
   ...[options]: MaybeOptionalOptions<
@@ -87,7 +92,8 @@ export function createProcedureClient<
     const path = options?.path ?? []
     const { default: procedure } = await unlazy(lazyableProcedure)
 
-    const context = await value(options?.context ?? {}, callerOptions?.context) as TInitialContext
+    const clientContext = callerOptions?.context ?? {} as TClientContext // callerOptions.context can be undefined when all field is optional
+    const context = await value(options?.context ?? {}, clientContext) as TInitialContext
     const errors = createORPCErrorConstructorMap(procedure['~orpc'].errorMap)
 
     try {

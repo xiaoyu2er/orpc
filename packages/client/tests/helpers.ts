@@ -126,7 +126,7 @@ export const router = implement(contract).router({
 
 const rpcHandler = new RPCHandler(router)
 
-export type ClientContext = { cache?: string } | undefined
+export type ClientContext = { cache?: string }
 
 const rpcLink = new RPCLink<ClientContext>({
   url: 'http://localhost:3000',

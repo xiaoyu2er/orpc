@@ -1,4 +1,4 @@
-import type { ClientOptions, HTTPMethod } from '@orpc/contract'
+import type { ClientContext, ClientOptions, HTTPMethod } from '@orpc/contract'
 import type { Promisable } from '@orpc/shared'
 import type { ClientLink } from '../../types'
 import type { FetchWithContext } from './types'
@@ -8,7 +8,7 @@ import { RPCSerializer } from '@orpc/server/standard'
 import { isObject, trim } from '@orpc/shared'
 import { contentDisposition } from '@tinyhttp/content-disposition'
 
-export interface RPCLinkOptions<TClientContext> {
+export interface RPCLinkOptions<TClientContext extends ClientContext> {
   /**
    * Base url for all requests.
    */
@@ -43,7 +43,7 @@ export interface RPCLinkOptions<TClientContext> {
   rpcSerializer?: RPCSerializer
 }
 
-export class RPCLink<TClientContext> implements ClientLink<TClientContext> {
+export class RPCLink<TClientContext extends ClientContext> implements ClientLink<TClientContext> {
   private readonly fetch: FetchWithContext<TClientContext>
   private readonly rpcSerializer: RPCSerializer
   private readonly maxURLLength: number
@@ -69,8 +69,7 @@ export class RPCLink<TClientContext> implements ClientLink<TClientContext> {
   }
 
   async call(path: readonly string[], input: unknown, options: ClientOptions<TClientContext>): Promise<unknown> {
-    // clientContext only undefined when context is undefinable so we can safely cast it
-    const clientContext = options.context as typeof options.context & { context: TClientContext }
+    const clientContext = options.context ?? {} as TClientContext // options.context can be undefined when all field is optional
     const encoded = await this.encode(path, input, options)
 
     if (encoded.body instanceof Blob && !encoded.headers.has('content-disposition')) {

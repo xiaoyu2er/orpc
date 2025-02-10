@@ -1,36 +1,25 @@
-import type { ErrorMap, Meta } from '@orpc/contract'
+import type { ClientContext, ErrorMap, Meta } from '@orpc/contract'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { Lazy } from './lazy'
 import type { Procedure } from './procedure'
 import type { CreateProcedureClientOptions, ProcedureClient } from './procedure-client'
-import type { AnyRouter, InferRouterInitialContext, Router } from './router'
+import type { AnyRouter, InferRouterInitialContext } from './router'
 import { isLazy } from './lazy'
 import { createLazyProcedureFormAnyLazy } from './lazy-utils'
 import { isProcedure } from './procedure'
 import { createProcedureClient } from './procedure-client'
 import { getRouterChild } from './router'
 
-export type RouterClient<TRouter extends AnyRouter, TClientContext> = TRouter extends Lazy<infer U extends AnyRouter>
-  ? RouterClient<U, TClientContext>
-  : TRouter extends Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput, infer UErrorMap, any>
-    ? ProcedureClient<TClientContext, UInputSchema, UOutputSchema, UFuncOutput, UErrorMap>
-    : {
-        [K in keyof TRouter]: TRouter[K] extends AnyRouter ? RouterClient<TRouter[K], TClientContext> : never
-      }
+export type RouterClient<TRouter extends AnyRouter, TClientContext extends ClientContext> =
+  TRouter extends Lazy<infer U extends AnyRouter>
+    ? RouterClient<U, TClientContext>
+    : TRouter extends Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput, infer UErrorMap, any>
+      ? ProcedureClient<TClientContext, UInputSchema, UOutputSchema, UFuncOutput, UErrorMap>
+      : {
+          [K in keyof TRouter]: TRouter[K] extends AnyRouter ? RouterClient<TRouter[K], TClientContext> : never
+        }
 
-export type CreateRouterClientRest<TRouter extends AnyRouter, TClientContext> = MaybeOptionalOptions<
-  CreateProcedureClientOptions<
-    TRouter extends Router<infer UContext, any> ? UContext : never,
-    undefined,
-    undefined,
-    unknown,
-    ErrorMap,
-    Meta,
-    TClientContext
-  >
->
-
-export function createRouterClient<TRouter extends AnyRouter, TClientContext>(
+export function createRouterClient<TRouter extends AnyRouter, TClientContext extends ClientContext>(
   router: TRouter | Lazy<undefined>,
   ...rest: MaybeOptionalOptions<
     CreateProcedureClientOptions<

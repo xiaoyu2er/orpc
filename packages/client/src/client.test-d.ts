@@ -1,4 +1,4 @@
-import type { Client } from '@orpc/contract'
+import type { Client, ClientContext } from '@orpc/contract'
 import { oc } from '@orpc/contract'
 import { implement, os } from '@orpc/server'
 import { z } from 'zod'
@@ -30,15 +30,15 @@ describe('createORPCClient', () => {
   it('build correct types with contract router', () => {
     const client = createORPCClient<typeof contractRouter>({} as any)
 
-    expectTypeOf(client.ping).toEqualTypeOf<Client<unknown, { in: string }, { out: string }, Error>>()
-    expectTypeOf(client.nested.pong).toEqualTypeOf<Client<unknown, number, unknown, Error>>()
+    expectTypeOf(client.ping).toEqualTypeOf<Client<ClientContext, { in: string }, { out: string }, Error>>()
+    expectTypeOf(client.nested.pong).toEqualTypeOf<Client<ClientContext, number, unknown, Error>>()
   })
 
   it('build correct types with router', () => {
     const client = createORPCClient<typeof router>({} as any)
 
-    expectTypeOf(client.ping).toEqualTypeOf<Client<unknown, { in: string }, { out: string }, Error>>()
-    expectTypeOf(client.nested.pong).toEqualTypeOf<Client<unknown, number, string, Error>>()
+    expectTypeOf(client.ping).toEqualTypeOf<Client<ClientContext, { in: string }, { out: string }, Error>>()
+    expectTypeOf(client.nested.pong).toEqualTypeOf<Client<ClientContext, number, string, Error>>()
   })
 
   it('pass correct context', () => {

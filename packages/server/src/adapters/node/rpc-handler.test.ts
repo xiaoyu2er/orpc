@@ -1,12 +1,12 @@
+import { sendStandardResponse, toStandardRequest } from '@orpc/server-standard-node'
 import inject from 'light-my-request'
 import { router } from '../../../tests/shared'
 import { RPCCodec, RPCMatcher, StandardHandler } from '../standard'
 import { RPCHandler } from './rpc-handler'
-import { nodeHttpResponseSendStandardResponse, nodeHttpToStandardRequest } from './utils'
 
-vi.mock('./utils', () => ({
-  nodeHttpToStandardRequest: vi.fn(),
-  nodeHttpResponseSendStandardResponse: vi.fn(),
+vi.mock('@orpc/server-standard-node', () => ({
+  toStandardRequest: vi.fn(),
+  sendStandardResponse: vi.fn(),
 }))
 
 vi.mock('../standard', async origin => ({
@@ -46,10 +46,11 @@ describe('rpcHandler', async () => {
       'content-length': '12',
     },
     body: () => Promise.resolve(JSON.stringify({ name: 'John Doe' })),
+    signal: undefined,
   }
 
   it('on match', async () => {
-    vi.mocked(nodeHttpToStandardRequest).mockReturnValueOnce(standardRequest)
+    vi.mocked(toStandardRequest).mockReturnValueOnce(standardRequest)
     handle.mockReturnValueOnce({
       matched: true,
       response: {
@@ -71,11 +72,11 @@ describe('rpcHandler', async () => {
       { prefix: '/api/v1', context: { db: 'postgres' } },
     )
 
-    expect(nodeHttpToStandardRequest).toHaveBeenCalledOnce()
-    expect(nodeHttpToStandardRequest).toHaveBeenCalledWith(req, res)
+    expect(toStandardRequest).toHaveBeenCalledOnce()
+    expect(toStandardRequest).toHaveBeenCalledWith(req, res)
 
-    expect(nodeHttpResponseSendStandardResponse).toHaveBeenCalledOnce()
-    expect(nodeHttpResponseSendStandardResponse).toHaveBeenCalledWith(res, {
+    expect(sendStandardResponse).toHaveBeenCalledOnce()
+    expect(sendStandardResponse).toHaveBeenCalledWith(res, {
       status: 200,
       headers: {},
       body: '__body__',
@@ -83,7 +84,7 @@ describe('rpcHandler', async () => {
   })
 
   it('on mismatch', async () => {
-    vi.mocked(nodeHttpToStandardRequest).mockReturnValueOnce(standardRequest)
+    vi.mocked(toStandardRequest).mockReturnValueOnce(standardRequest)
     handle.mockReturnValueOnce({
       matched: false,
       response: undefined,
@@ -102,10 +103,10 @@ describe('rpcHandler', async () => {
       { prefix: '/api/v1', context: { db: 'postgres' } },
     )
 
-    expect(nodeHttpToStandardRequest).toHaveBeenCalledOnce()
-    expect(nodeHttpToStandardRequest).toHaveBeenCalledWith(req, res)
+    expect(toStandardRequest).toHaveBeenCalledOnce()
+    expect(toStandardRequest).toHaveBeenCalledWith(req, res)
 
-    expect(nodeHttpResponseSendStandardResponse).not.toHaveBeenCalled()
+    expect(sendStandardResponse).not.toHaveBeenCalled()
   })
 
   it('standardHandler constructor', async () => {

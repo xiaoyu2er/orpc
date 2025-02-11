@@ -31,6 +31,7 @@ describe('openAPICodec', () => {
           url,
           body: vi.fn(),
           headers: {},
+          signal: undefined,
         }, undefined, ping)
 
         expect(input).toEqual('__deserialized__')
@@ -50,6 +51,7 @@ describe('openAPICodec', () => {
           url: new URL('http://localhost/api/v1?data=data'),
           body: vi.fn(async () => serialized),
           headers: {},
+          signal: undefined,
         }, undefined, ping)
 
         expect(input).toEqual('__deserialized__')
@@ -81,6 +83,7 @@ describe('openAPICodec', () => {
           headers: {
             'content-type': 'application/json',
           },
+          signal: undefined,
         }, { name: 'John Doe' }, procedure)
 
         expect(input).toEqual({
@@ -111,6 +114,7 @@ describe('openAPICodec', () => {
           headers: {
             'content-type': 'application/json',
           },
+          signal: undefined,
         }, { name: 'John Doe' }, procedure)
 
         expect(input).toEqual({

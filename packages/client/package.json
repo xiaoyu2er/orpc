@@ -50,6 +50,7 @@
   "dependencies": {
     "@orpc/contract": "workspace:*",
     "@orpc/server": "workspace:*",
+    "@orpc/server-standard-fetch": "^0.0.0",
     "@orpc/shared": "workspace:*",
     "@tinyhttp/content-disposition": "^2.2.2"
   },

@@ -3,7 +3,7 @@ import type { NodeHttpHandler, NodeHttpHandleResult, NodeHttpRequest, NodeHttpRe
 import type { StandardHandleOptions } from '@orpc/server/standard'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { OpenAPIHandlerOptions } from '../standard'
-import { nodeHttpResponseSendStandardResponse, nodeHttpToStandardRequest } from '@orpc/server/node'
+import { sendStandardResponse, toStandardRequest } from '@orpc/server-standard-node'
 import { StandardHandler } from '@orpc/server/standard'
 import { OpenAPICodec, OpenAPIMatcher } from '../standard'
 
@@ -22,7 +22,7 @@ export class OpenAPIHandler<T extends Context> implements NodeHttpHandler<T> {
     res: NodeHttpResponse,
     ...rest: MaybeOptionalOptions<StandardHandleOptions<T>>
   ): Promise<NodeHttpHandleResult> {
-    const standardRequest = nodeHttpToStandardRequest(req, res)
+    const standardRequest = toStandardRequest(req, res)
 
     const result = await this.standardHandler.handle(standardRequest, ...rest)
 
@@ -30,7 +30,7 @@ export class OpenAPIHandler<T extends Context> implements NodeHttpHandler<T> {
       return { matched: false }
     }
 
-    await nodeHttpResponseSendStandardResponse(res, result.response)
+    await sendStandardResponse(res, result.response)
 
     return { matched: true }
   }

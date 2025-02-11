@@ -3,7 +3,7 @@ import type { Promisable } from '@orpc/shared'
 import type { ClientLink } from '../../types'
 import type { FetchWithContext } from './types'
 import { ORPCError } from '@orpc/contract'
-import { fetchReToStandardBody } from '@orpc/server/fetch'
+import { toStandardBody } from '@orpc/server-standard-fetch'
 import { RPCSerializer } from '@orpc/server/standard'
 import { isObject, trim } from '@orpc/shared'
 import { contentDisposition } from '@tinyhttp/content-disposition'
@@ -83,7 +83,7 @@ export class RPCLink<TClientContext extends ClientContext> implements ClientLink
       signal: options.signal,
     }, clientContext)
 
-    const body = await fetchReToStandardBody(response)
+    const body = await toStandardBody(response)
 
     const deserialized = (() => {
       try {

@@ -1,6 +1,7 @@
 import type { ORPCError } from '@orpc/contract'
+import type { StandardBody, StandardRequest, StandardResponse } from '@orpc/server-standard'
 import type { AnyProcedure } from '../../procedure'
-import type { StandardBody, StandardCodec, StandardParams, StandardRequest, StandardResponse } from './types'
+import type { StandardCodec, StandardParams } from './types'
 import { RPCSerializer } from './rpc-serializer'
 
 export interface StandardCodecOptions {

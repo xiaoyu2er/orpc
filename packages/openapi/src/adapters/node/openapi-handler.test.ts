@@ -1,13 +1,13 @@
-import { nodeHttpResponseSendStandardResponse, nodeHttpToStandardRequest } from '@orpc/server/node'
+import { sendStandardResponse, toStandardRequest } from '@orpc/server-standard-node'
 import { StandardHandler } from '@orpc/server/standard'
 import inject from 'light-my-request'
 import { router } from '../../../../server/tests/shared'
 import { OpenAPICodec, OpenAPIMatcher } from '../standard'
 import { OpenAPIHandler } from './openapi-handler'
 
-vi.mock('@orpc/server/node', () => ({
-  nodeHttpToStandardRequest: vi.fn(),
-  nodeHttpResponseSendStandardResponse: vi.fn(),
+vi.mock('@orpc/server-standard-node', () => ({
+  toStandardRequest: vi.fn(),
+  sendStandardResponse: vi.fn(),
 }))
 
 vi.mock('@orpc/server/standard', async origin => ({
@@ -47,10 +47,11 @@ describe('openapiHandler', async () => {
       'content-length': '12',
     },
     body: () => Promise.resolve(JSON.stringify({ name: 'John Doe' })),
+    signal: undefined,
   }
 
   it('on match', async () => {
-    vi.mocked(nodeHttpToStandardRequest).mockReturnValueOnce(standardRequest)
+    vi.mocked(toStandardRequest).mockReturnValueOnce(standardRequest)
     handle.mockReturnValueOnce({
       matched: true,
       response: {
@@ -72,11 +73,11 @@ describe('openapiHandler', async () => {
       { prefix: '/api/v1', context: { db: 'postgres' } },
     )
 
-    expect(nodeHttpToStandardRequest).toHaveBeenCalledOnce()
-    expect(nodeHttpToStandardRequest).toHaveBeenCalledWith(req, res)
+    expect(toStandardRequest).toHaveBeenCalledOnce()
+    expect(toStandardRequest).toHaveBeenCalledWith(req, res)
 
-    expect(nodeHttpResponseSendStandardResponse).toHaveBeenCalledOnce()
-    expect(nodeHttpResponseSendStandardResponse).toHaveBeenCalledWith(res, {
+    expect(sendStandardResponse).toHaveBeenCalledOnce()
+    expect(sendStandardResponse).toHaveBeenCalledWith(res, {
       status: 200,
       headers: {},
       body: '__body__',
@@ -84,7 +85,7 @@ describe('openapiHandler', async () => {
   })
 
   it('on mismatch', async () => {
-    vi.mocked(nodeHttpToStandardRequest).mockReturnValueOnce(standardRequest)
+    vi.mocked(toStandardRequest).mockReturnValueOnce(standardRequest)
     handle.mockReturnValueOnce({
       matched: false,
       response: undefined,
@@ -103,10 +104,10 @@ describe('openapiHandler', async () => {
       { prefix: '/api/v1', context: { db: 'postgres' } },
     )
 
-    expect(nodeHttpToStandardRequest).toHaveBeenCalledOnce()
-    expect(nodeHttpToStandardRequest).toHaveBeenCalledWith(req, res)
+    expect(toStandardRequest).toHaveBeenCalledOnce()
+    expect(toStandardRequest).toHaveBeenCalledWith(req, res)
 
-    expect(nodeHttpResponseSendStandardResponse).not.toHaveBeenCalled()
+    expect(sendStandardResponse).not.toHaveBeenCalled()
   })
 
   it('standardHandler constructor', async () => {

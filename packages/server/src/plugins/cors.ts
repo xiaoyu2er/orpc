@@ -1,4 +1,5 @@
-import type { StandardHandlerInterceptorOptions, StandardHandlerOptions, StandardHeaders } from '../adapters/standard'
+import type { StandardHeaders } from '@orpc/server-standard'
+import type { StandardHandlerInterceptorOptions, StandardHandlerOptions } from '../adapters/standard'
 import type { Context } from '../context'
 import type { Plugin } from './base'
 import { value, type Value } from '@orpc/shared'

@@ -162,6 +162,9 @@ importers:
       '@orpc/server':
         specifier: workspace:*
         version: link:../server
+      '@orpc/server-standard-fetch':
+        specifier: ^0.0.0
+        version: 0.0.0
       '@orpc/shared':
         specifier: workspace:*
         version: link:../shared
@@ -203,6 +206,15 @@ importers:
       '@orpc/server':
         specifier: workspace:*
         version: link:../server
+      '@orpc/server-standard':
+        specifier: ^0.0.0
+        version: 0.0.0
+      '@orpc/server-standard-fetch':
+        specifier: ^0.0.0
+        version: 0.0.0
+      '@orpc/server-standard-node':
+        specifier: ^0.0.0
+        version: 0.0.0
       '@orpc/shared':
         specifier: workspace:*
         version: link:../shared
@@ -259,6 +271,15 @@ importers:
       '@orpc/contract':
         specifier: workspace:*
         version: link:../contract
+      '@orpc/server-standard':
+        specifier: ^0.0.0
+        version: 0.0.0
+      '@orpc/server-standard-fetch':
+        specifier: ^0.0.0
+        version: 0.0.0
+      '@orpc/server-standard-node':
+        specifier: ^0.0.0
+        version: 0.0.0
       '@orpc/shared':
         specifier: workspace:*
         version: link:../shared
@@ -1527,6 +1548,15 @@ packages:
   '@orama/orama@3.0.5':
     resolution: {integrity: sha512-0cQT/yzRrGCYemggH9Hz2gs7spdWJOqbKCdIRY/f4YkLEyodLMs0B9UXkikoFfLX3Gf2Pcduktlolv34cw79Yw==}
     engines: {node: '>= 16.0.0'}
+
+  '@orpc/server-standard-fetch@0.0.0':
+    resolution: {integrity: sha512-/d+J6tOEzTlRiM4pVY+bvc2MvquSzV+yBVba8y/nLzeZEJyvmHNc/wwj2G6yKqkptIcWXVaYvU+PNat4G0wwAg==}
+
+  '@orpc/server-standard-node@0.0.0':
+    resolution: {integrity: sha512-aMJ3Bd7wzUkmUC1zVzrpRCGoaUMjuvY2aS1gTv+4iF54s0ccWfpvMY5NUsgCTj0odj8Hwmgrr7qfMuZ1PFiptw==}
+
+  '@orpc/server-standard@0.0.0':
+    resolution: {integrity: sha512-T/DZdvOsPvghTD++/lJEs3V2Zlchhq2jmrAYYUqgT+Mhpmv5+kTyaFLkyU4wAOhAMCSId60Ckxhjox55i4cG3w==}
 
   '@oxc-transform/binding-darwin-arm64@0.48.2':
     resolution: {integrity: sha512-JzctV+H6IDl+vwTlY/7+2JMqb+94HUHfgHii+hMUM76XNaLAOyKxn3Be26t/FgrscoIR+bO6kMYL/T0sDkP7fA==}
@@ -6445,6 +6475,10 @@ packages:
     resolution: {integrity: sha512-s6zVrxuyKbbAsSAD5ZPTB77q4YIdRctkTbJ2/Dqlinwz+8ooH2gd+YA7VA6Pa93KML9GockVvoxjZ2vHP+mu8g==}
     engines: {node: '>=16'}
 
+  type-fest@4.34.1:
+    resolution: {integrity: sha512-6kSc32kT0rbwxD6QL1CYe8IqdzN/J/ILMrNK+HMQCKH3insCDRY/3ITb0vcBss0a3t72fzh2YSzj8ko1HgwT3g==}
+    engines: {node: '>=16'}
+
   type-is@1.6.18:
     resolution: {integrity: sha512-TkRKr9sUTxEH8MdfuCSP7VizJyzRNMjj2J2do2Jr3Kym598JVdEksuzPQCnlFPW4ky9Q+iA+ma9BGm06XQBy8g==}
     engines: {node: '>= 0.6'}
@@ -8122,6 +8156,19 @@ snapshots:
   '@one-ini/wasm@0.1.1': {}
 
   '@orama/orama@3.0.5': {}
+
+  '@orpc/server-standard-fetch@0.0.0':
+    dependencies:
+      '@orpc/server-standard': 0.0.0
+
+  '@orpc/server-standard-node@0.0.0':
+    dependencies:
+      '@orpc/server-standard': 0.0.0
+
+  '@orpc/server-standard@0.0.0':
+    dependencies:
+      '@tinyhttp/content-disposition': 2.2.2
+      type-fest: 4.34.1
 
   '@oxc-transform/binding-darwin-arm64@0.48.2':
     optional: true
@@ -13982,6 +14029,8 @@ snapshots:
   type-fest@0.8.1: {}
 
   type-fest@4.33.0: {}
+
+  type-fest@4.34.1: {}
 
   type-is@1.6.18:
     dependencies:

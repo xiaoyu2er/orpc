@@ -18,12 +18,8 @@ export class CORSPlugin<TContext extends Context> implements Plugin<TContext> {
 
   constructor(options?: Partial<CORSOptions<TContext>>) {
     const defaults: CORSOptions<TContext> = {
-      origin: '*',
+      origin: origin => origin,
       allowMethods: ['GET', 'HEAD', 'PUT', 'POST', 'DELETE', 'PATCH'],
-    }
-
-    if (options?.credentials) {
-      defaults.origin = origin => origin
     }
 
     this.options = {

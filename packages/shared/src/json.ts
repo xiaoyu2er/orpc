@@ -1,11 +1,9 @@
-export function parseJSONSafely(text: string): unknown {
-  if (text === '')
-    return undefined
+import type { JsonValue } from 'type-fest'
 
-  try {
-    return JSON.parse(text)
+export function parseEmptyableJSON(text: string): JsonValue | undefined {
+  if (text === '') {
+    return undefined
   }
-  catch {
-    return text
-  }
+
+  return JSON.parse(text)
 }

@@ -10,6 +10,22 @@ import {
 } from './planet'
 
 export const router = {
+  stream: pub
+    .route({
+      method: 'GET',
+      path: '/ping',
+    })
+    .handler(async function* () {
+      let count = 1
+      while (count < 5) {
+        count += 1
+        yield { time: new Date() }
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      }
+
+      return 'done'
+    }),
+
   auth: pub.tag('Authentication').prefix('/auth').router({
     signup,
     signin,

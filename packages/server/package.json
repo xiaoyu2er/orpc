@@ -84,7 +84,9 @@
   "dependencies": {
     "@orpc/contract": "workspace:*",
     "@orpc/shared": "workspace:*",
-    "@tinyhttp/content-disposition": "^2.2.2"
+    "@tinyhttp/content-disposition": "^2.2.2",
+    "eventsource-encoder": "^1.0.0",
+    "eventsource-parser": "^3.0.0"
   },
   "devDependencies": {
     "light-my-request": "^6.5.1"

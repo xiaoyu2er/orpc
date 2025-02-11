@@ -1,7 +1,8 @@
 'use client'
 
 import { orpc } from '@/lib/orpc'
-import { useInfiniteQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
+import { useEffect, useMemo, useState } from 'react'
 
 export function ListPlanetsQuery() {
   const { data, refetch, fetchNextPage, hasNextPage, isLoading, status } = useInfiniteQuery(
@@ -69,7 +70,32 @@ export function ListPlanetsQuery() {
           </tr>
         </tfoot>
       </table>
+
+      <SSE />
     </div>
 
+  )
+}
+
+function SSE() {
+  const stream = useMemo(() => orpc.stream.call(), [])
+  const [messages, setMessages] = useState<{ time: Date }[]>([])
+
+  useEffect(() => {
+    stream.then(async (iterator) => {
+      for await (const data of iterator) {
+        setMessages(messages => [...messages, data])
+      }
+    })
+  }, [stream])
+
+  return (
+    <ul>
+      {messages.map((message, i) => (
+        <li key={i}>
+          {message.time.toLocaleString()}
+        </li>
+      ))}
+    </ul>
   )
 }

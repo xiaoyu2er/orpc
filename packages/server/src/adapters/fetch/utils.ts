@@ -1,6 +1,10 @@
-import type { StandardBody, StandardHeaders, StandardRequest, StandardResponse } from '../standard'
-import { once } from '@orpc/shared'
+import type { JsonValue } from '@orpc/shared'
+import type { EventSourceMessage } from 'eventsource-parser/stream'
+import { isAsyncIteratorObject, once, parseEmptyableJSON } from '@orpc/shared'
 import { contentDisposition, parse as parseContentDisposition } from '@tinyhttp/content-disposition'
+import { encode as encodeEventSource } from 'eventsource-encoder'
+import { EventSourceParserStream } from 'eventsource-parser/stream'
+import { SSEErrorEvent, type StandardBody, type StandardHeaders, type StandardRequest, type StandardResponse } from '../standard'
 
 function fetchHeadersToStandardHeaders(headers: Headers): StandardHeaders {
   const standardHeaders: StandardHeaders = {}
@@ -56,6 +60,52 @@ export async function fetchReToStandardBody(re: Request | Response): Promise<Sta
 
   if (contentType.startsWith('application/x-www-form-urlencoded')) {
     return new URLSearchParams(await re.text())
+  }
+
+  if (contentType.startsWith('text/event-stream')) {
+    const eventStream = re.body
+      .pipeThrough(new TextDecoderStream())
+      .pipeThrough(new EventSourceParserStream())
+      .pipeThrough(new TransformStream<EventSourceMessage, { event: 'message' | 'error' | 'done', data: JsonValue | undefined }>({
+        transform(chunk, controller) {
+          const event = chunk.event ?? 'message'
+
+          if (event === 'message' || event === 'error' || event === 'done') {
+            controller.enqueue({
+              event,
+              data: parseEmptyableJSON(chunk.data),
+            })
+          }
+        },
+      }))
+
+    const reader = eventStream.getReader()
+
+    async function* toAsyncGenerator() {
+      try {
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) {
+            break
+          }
+
+          if (value.event === 'message') {
+            yield value.data
+          }
+          else if (value.event === 'error') {
+            throw new SSEErrorEvent(value.data)
+          }
+          else if (value.event === 'done') {
+            return value.data
+          }
+        }
+      }
+      finally {
+        reader.cancel()
+      }
+    }
+
+    return toAsyncGenerator()
   }
 
   if (contentType.startsWith('text/')) {
@@ -134,6 +184,51 @@ export function standardResponseToFetchResponse(response: StandardResponse): Res
 
   if (response.body instanceof URLSearchParams) {
     return new Response(response.body, { headers: resHeaders, status: response.status })
+  }
+
+  if (isAsyncIteratorObject(response.body)) {
+    resHeaders.set('content-type', 'text/event-stream')
+    const generator = response.body
+    const encoder = new TextEncoder()
+
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          while (true) {
+            const { done, value } = await generator.next()
+            if (done) {
+              controller.enqueue(encoder.encode(encodeEventSource({
+                data: JSON.stringify(value),
+                event: 'done',
+              })))
+
+              break
+            }
+
+            controller.enqueue(encoder.encode(encodeEventSource({
+              data: JSON.stringify(value),
+              event: 'message',
+            })))
+          }
+        }
+        catch (error) {
+          const data = error instanceof SSEErrorEvent ? error.data : undefined
+
+          controller.enqueue(encoder.encode(encodeEventSource({
+            data: JSON.stringify(data),
+            event: 'message',
+          })))
+        }
+        finally {
+          controller.close()
+        }
+      },
+    })
+
+    return new Response(stream, {
+      headers: resHeaders,
+      status: response.status,
+    })
   }
 
   resHeaders.set('content-type', 'application/json')

@@ -265,6 +265,12 @@ importers:
       '@tinyhttp/content-disposition':
         specifier: ^2.2.2
         version: 2.2.2
+      eventsource-encoder:
+        specifier: ^1.0.0
+        version: 1.0.0
+      eventsource-parser:
+        specifier: ^3.0.0
+        version: 3.0.0
       hono:
         specifier: '>=4.6.0'
         version: 4.7.0
@@ -3826,6 +3832,14 @@ packages:
   events@3.3.0:
     resolution: {integrity: sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==}
     engines: {node: '>=0.8.x'}
+
+  eventsource-encoder@1.0.0:
+    resolution: {integrity: sha512-5SUEtKDGSCPvwzBSDvWUcmUsCyYPqYkxf83i0SxYCrvL4MEd4f1R/vq/c/C/gvaiAOVCiA6LRltAcc2KOOR3GA==}
+    engines: {node: '>=18.0.0'}
+
+  eventsource-parser@3.0.0:
+    resolution: {integrity: sha512-T1C0XCUimhxVQzW4zFipdx0SficT651NnkR0ZSH3yQwh+mFMdLfgjABVi4YtMTtaL4s168593DaoaRLMqryavA==}
+    engines: {node: '>=18.0.0'}
 
   execa@7.2.0:
     resolution: {integrity: sha512-UduyVP7TLB5IcAQl+OzLyLcS/l32W/GLg+AhHJ+ow40FOk2U3SAllPwR44v4vmdFwIWqpdwxxpQbF1n5ta9seA==}
@@ -10668,6 +10682,10 @@ snapshots:
   eventemitter3@5.0.1: {}
 
   events@3.3.0: {}
+
+  eventsource-encoder@1.0.0: {}
+
+  eventsource-parser@3.0.0: {}
 
   execa@7.2.0:
     dependencies:

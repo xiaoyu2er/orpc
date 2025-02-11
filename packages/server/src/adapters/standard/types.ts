@@ -7,7 +7,13 @@ export interface StandardHeaders {
   [key: string]: string | string[] | undefined
 }
 
-export type StandardBody = undefined | JsonValue | Blob | URLSearchParams | FormData
+export type StandardBody =
+  | undefined
+  | JsonValue
+  | Blob
+  | URLSearchParams
+  | FormData
+  | AsyncIteratorObject<JsonValue | undefined, JsonValue | undefined, undefined>
 
 export interface StandardRequest {
   /**

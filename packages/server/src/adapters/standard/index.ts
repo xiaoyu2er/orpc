@@ -1,3 +1,4 @@
+export * from './error'
 export * from './handler'
 export * from './rpc-codec'
 export * from './rpc-handler'

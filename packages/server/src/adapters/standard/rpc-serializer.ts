@@ -1,8 +1,13 @@
 import type { Segment } from '@orpc/shared'
-import { findDeepMatches, isObject, set } from '@orpc/shared'
+import { findDeepMatches, isAsyncIteratorObject, isObject, mapAsyncIterator, set } from '@orpc/shared'
 
 export type RPCSerializedJsonMeta = ['bigint' | 'date' | 'nan' | 'undefined' | 'set' | 'map' | 'regexp' | 'url', Segment[]][]
-export type RPCSerialized = { json: unknown, meta: RPCSerializedJsonMeta } | FormData | Blob | undefined
+export type RPCSerialized =
+  | { json: unknown, meta: RPCSerializedJsonMeta }
+  | FormData
+  | Blob
+  | undefined
+  | AsyncIteratorObject<{ json: unknown, meta: RPCSerializedJsonMeta }, { json: unknown, meta: RPCSerializedJsonMeta }, undefined>
 export type RPCSerializedFormDataMaps = Segment[][]
 
 export class RPCSerializer {
@@ -13,6 +18,13 @@ export class RPCSerializer {
 
     if (data instanceof Blob) {
       return data
+    }
+
+    if (isAsyncIteratorObject(data)) {
+      return mapAsyncIterator(data, {
+        yield: value => serializeRPCJson(value),
+        return: value => serializeRPCJson(value),
+      })
     }
 
     const serializedJSON = serializeRPCJson(data)
@@ -41,6 +53,13 @@ export class RPCSerializer {
 
     if (serialized instanceof Blob) {
       return serialized
+    }
+
+    if (isAsyncIteratorObject(serialized)) {
+      return mapAsyncIterator(serialized, {
+        yield: value => deserializeRPCJson(value),
+        return: value => deserializeRPCJson(value),
+      })
     }
 
     if (!(serialized instanceof FormData)) {

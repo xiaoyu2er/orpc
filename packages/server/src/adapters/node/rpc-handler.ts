@@ -3,8 +3,8 @@ import type { Context } from '../../context'
 import type { Router } from '../../router'
 import type { RPCHandlerOptions, StandardHandleOptions } from '../standard'
 import type { NodeHttpHandler, NodeHttpHandleResult, NodeHttpRequest, NodeHttpResponse } from './types'
+import { sendStandardResponse, toStandardRequest } from '@orpc/server-standard-node'
 import { RPCCodec, RPCMatcher, StandardHandler } from '../standard'
-import { nodeHttpResponseSendStandardResponse, nodeHttpToStandardRequest } from './utils'
 
 export class RPCHandler<T extends Context> implements NodeHttpHandler<T> {
   private readonly standardHandler: StandardHandler<T>
@@ -21,7 +21,7 @@ export class RPCHandler<T extends Context> implements NodeHttpHandler<T> {
     res: NodeHttpResponse,
     ...rest: MaybeOptionalOptions<StandardHandleOptions<T>>
   ): Promise<NodeHttpHandleResult> {
-    const standardRequest = nodeHttpToStandardRequest(req, res)
+    const standardRequest = toStandardRequest(req, res)
 
     const result = await this.standardHandler.handle(standardRequest, ...rest)
 
@@ -29,7 +29,7 @@ export class RPCHandler<T extends Context> implements NodeHttpHandler<T> {
       return { matched: false }
     }
 
-    await nodeHttpResponseSendStandardResponse(res, result.response)
+    await sendStandardResponse(res, result.response)
 
     return { matched: true }
   }

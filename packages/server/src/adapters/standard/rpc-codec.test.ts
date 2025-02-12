@@ -29,6 +29,7 @@ describe('rpcCodec', () => {
         url,
         body: vi.fn(),
         headers: {},
+        signal: undefined,
       }, undefined, ping)
 
       expect(input).toEqual('__deserialized__')
@@ -51,6 +52,7 @@ describe('rpcCodec', () => {
         url: new URL('http://localhost/api/v1?data=data'),
         body: vi.fn(async () => serialized),
         headers: {},
+        signal: undefined,
       }, undefined, ping)
 
       expect(input).toEqual('__deserialized__')

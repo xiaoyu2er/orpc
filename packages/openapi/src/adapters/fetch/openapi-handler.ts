@@ -3,7 +3,7 @@ import type { FetchHandler, FetchHandleResult } from '@orpc/server/fetch'
 import type { StandardHandleOptions } from '@orpc/server/standard'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { OpenAPIHandlerOptions } from '../standard'
-import { fetchRequestToStandardRequest, standardResponseToFetchResponse } from '@orpc/server/fetch'
+import { toFetchResponse, toStandardRequest } from '@orpc/server-standard-fetch'
 import { StandardHandler } from '@orpc/server/standard'
 import { OpenAPICodec, OpenAPIMatcher } from '../standard'
 
@@ -18,7 +18,7 @@ export class OpenAPIHandler<T extends Context> implements FetchHandler<T> {
   }
 
   async handle(request: Request, ...rest: MaybeOptionalOptions<StandardHandleOptions<T>>): Promise<FetchHandleResult> {
-    const standardRequest = fetchRequestToStandardRequest(request)
+    const standardRequest = toStandardRequest(request)
 
     const result = await this.standardHandler.handle(standardRequest, ...rest)
 
@@ -28,7 +28,7 @@ export class OpenAPIHandler<T extends Context> implements FetchHandler<T> {
 
     return {
       matched: true,
-      response: standardResponseToFetchResponse(result.response),
+      response: toFetchResponse(result.response),
     }
   }
 }

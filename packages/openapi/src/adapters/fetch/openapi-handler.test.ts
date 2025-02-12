@@ -1,16 +1,18 @@
-import * as ServerFetch from '@orpc/server/fetch'
+import { toFetchResponse, toStandardRequest } from '@orpc/server-standard-fetch'
 import { StandardHandler } from '@orpc/server/standard'
 import { describe, expect, it, vi } from 'vitest'
 import { router } from '../../../../server/tests/shared'
 import { OpenAPICodec, OpenAPIMatcher } from '../standard'
 import { OpenAPIHandler } from './openapi-handler'
 
-const fetchRequestToStandardRequestSpy = vi.spyOn(ServerFetch, 'fetchRequestToStandardRequest')
-const standardResponseToFetchResponseSpy = vi.spyOn(ServerFetch, 'standardResponseToFetchResponse')
-
 vi.mock('@orpc/server/standard', async origin => ({
   ...await origin(),
   StandardHandler: vi.fn(),
+}))
+
+vi.mock('@orpc/server-standard-fetch', async origin => ({
+  toStandardRequest: vi.fn((await origin() as any).toStandardRequest),
+  toFetchResponse: vi.fn((await origin() as any).toFetchResponse),
 }))
 
 beforeEach(() => {
@@ -46,20 +48,20 @@ describe('openAPIHandler', () => {
 
     expect(result).toEqual({
       matched: true,
-      response: standardResponseToFetchResponseSpy.mock.results[0]!.value,
+      response: vi.mocked(toFetchResponse).mock.results[0]!.value,
     })
 
     expect(handle).toHaveBeenCalledOnce()
     expect(handle).toHaveBeenCalledWith(
-      fetchRequestToStandardRequestSpy.mock.results[0]!.value,
+      vi.mocked(toStandardRequest).mock.results[0]!.value,
       { prefix: '/api/v1', context: { db: 'postgres' } },
     )
 
-    expect(fetchRequestToStandardRequestSpy).toHaveBeenCalledOnce()
-    expect(fetchRequestToStandardRequestSpy).toHaveBeenCalledWith(request)
+    expect(vi.mocked(toStandardRequest)).toHaveBeenCalledOnce()
+    expect(vi.mocked(toStandardRequest)).toHaveBeenCalledWith(request)
 
-    expect(standardResponseToFetchResponseSpy).toHaveBeenCalledOnce()
-    expect(standardResponseToFetchResponseSpy).toHaveBeenCalledWith({
+    expect(vi.mocked(toFetchResponse)).toHaveBeenCalledOnce()
+    expect(vi.mocked(toFetchResponse)).toHaveBeenCalledWith({
       status: 200,
       headers: {},
       body: '__body__',
@@ -81,14 +83,14 @@ describe('openAPIHandler', () => {
 
     expect(handle).toHaveBeenCalledOnce()
     expect(handle).toHaveBeenCalledWith(
-      fetchRequestToStandardRequestSpy.mock.results[0]!.value,
+      vi.mocked(toStandardRequest).mock.results[0]!.value,
       { prefix: '/api/v1', context: { db: 'postgres' } },
     )
 
-    expect(fetchRequestToStandardRequestSpy).toHaveBeenCalledOnce()
-    expect(fetchRequestToStandardRequestSpy).toHaveBeenCalledWith(request)
+    expect(vi.mocked(toStandardRequest)).toHaveBeenCalledOnce()
+    expect(vi.mocked(toStandardRequest)).toHaveBeenCalledWith(request)
 
-    expect(standardResponseToFetchResponseSpy).not.toHaveBeenCalled()
+    expect(vi.mocked(toFetchResponse)).not.toHaveBeenCalled()
   })
 
   it('standardHandler constructor', async () => {

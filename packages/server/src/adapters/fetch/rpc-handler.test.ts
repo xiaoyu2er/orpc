@@ -1,15 +1,16 @@
-import { describe, expect, it, vi } from 'vitest'
+import { toFetchResponse, toStandardRequest } from '@orpc/server-standard-fetch'
 import { router } from '../../../tests/shared'
 import { RPCCodec, RPCMatcher, StandardHandler } from '../standard'
 import { RPCHandler } from './rpc-handler'
-import * as Utils from './utils'
-
-const fetchRequestToStandardRequestSpy = vi.spyOn(Utils, 'fetchRequestToStandardRequest')
-const standardResponseToFetchResponseSpy = vi.spyOn(Utils, 'standardResponseToFetchResponse')
 
 vi.mock('../standard', async origin => ({
   ...await origin(),
   StandardHandler: vi.fn(),
+}))
+
+vi.mock('@orpc/server-standard-fetch', async origin => ({
+  toStandardRequest: vi.fn((await origin() as any).toStandardRequest),
+  toFetchResponse: vi.fn((await origin() as any).toFetchResponse),
 }))
 
 beforeEach(() => {
@@ -42,20 +43,20 @@ describe('rpcHandler', () => {
 
     expect(result).toEqual({
       matched: true,
-      response: standardResponseToFetchResponseSpy.mock.results[0]!.value,
+      response: vi.mocked(toFetchResponse).mock.results[0]!.value,
     })
 
     expect(handle).toHaveBeenCalledOnce()
     expect(handle).toHaveBeenCalledWith(
-      fetchRequestToStandardRequestSpy.mock.results[0]!.value,
+      vi.mocked(toStandardRequest).mock.results[0]!.value,
       { prefix: '/api/v1', context: { db: 'postgres' } },
     )
 
-    expect(fetchRequestToStandardRequestSpy).toHaveBeenCalledOnce()
-    expect(fetchRequestToStandardRequestSpy).toHaveBeenCalledWith(request)
+    expect(vi.mocked(toStandardRequest)).toHaveBeenCalledOnce()
+    expect(vi.mocked(toStandardRequest)).toHaveBeenCalledWith(request)
 
-    expect(standardResponseToFetchResponseSpy).toHaveBeenCalledOnce()
-    expect(standardResponseToFetchResponseSpy).toHaveBeenCalledWith({
+    expect(vi.mocked(toFetchResponse)).toHaveBeenCalledOnce()
+    expect(vi.mocked(toFetchResponse)).toHaveBeenCalledWith({
       status: 200,
       headers: {},
       body: '__body__',
@@ -77,14 +78,14 @@ describe('rpcHandler', () => {
 
     expect(handle).toHaveBeenCalledOnce()
     expect(handle).toHaveBeenCalledWith(
-      fetchRequestToStandardRequestSpy.mock.results[0]!.value,
+      vi.mocked(toStandardRequest).mock.results[0]!.value,
       { prefix: '/api/v1', context: { db: 'postgres' } },
     )
 
-    expect(fetchRequestToStandardRequestSpy).toHaveBeenCalledOnce()
-    expect(fetchRequestToStandardRequestSpy).toHaveBeenCalledWith(request)
+    expect(vi.mocked(toStandardRequest)).toHaveBeenCalledOnce()
+    expect(vi.mocked(toStandardRequest)).toHaveBeenCalledWith(request)
 
-    expect(standardResponseToFetchResponseSpy).not.toHaveBeenCalled()
+    expect(vi.mocked(toFetchResponse)).not.toHaveBeenCalled()
   })
 
   it('standardHandler constructor', async () => {

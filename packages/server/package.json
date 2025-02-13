@@ -86,8 +86,7 @@
     "@orpc/server-standard": "^0.0.0",
     "@orpc/server-standard-fetch": "^0.0.0",
     "@orpc/server-standard-node": "^0.0.0",
-    "@orpc/shared": "workspace:*",
-    "@tinyhttp/content-disposition": "^2.2.2"
+    "@orpc/shared": "workspace:*"
   },
   "devDependencies": {
     "light-my-request": "^6.5.1"

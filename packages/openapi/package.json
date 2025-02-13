@@ -78,12 +78,9 @@
     "@orpc/server-standard-fetch": "^0.0.0",
     "@orpc/server-standard-node": "^0.0.0",
     "@orpc/shared": "workspace:*",
-    "escape-string-regexp": "^5.0.0",
-    "fast-content-type-parse": "^2.0.0",
     "json-schema-typed": "^8.0.1",
     "openapi3-ts": "^4.4.0",
-    "rou3": "^0.5.1",
-    "wildcard-match": "^5.1.3"
+    "rou3": "^0.5.1"
   },
   "devDependencies": {
     "@readme/openapi-parser": "^2.6.0",

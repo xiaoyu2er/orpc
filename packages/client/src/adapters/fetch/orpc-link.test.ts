@@ -45,7 +45,7 @@ describe('rpcLink', () => {
       {
         method: 'POST',
         headers: expect.any(Headers),
-        body: 'encoded-body',
+        body: '"encoded-body"',
         signal: undefined,
       },
       { auth: 'token' },

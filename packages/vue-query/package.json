@@ -49,5 +49,8 @@
     "@orpc/contract": "workspace:*",
     "@tanstack/vue-query": ">=5.50.0",
     "vue": ">=3.3.0"
+  },
+  "dependencies": {
+    "@orpc/shared": "workspace:*"
   }
 }

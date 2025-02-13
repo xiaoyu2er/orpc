@@ -1,12 +1,12 @@
 import type { ClientContext, ClientOptions, HTTPMethod } from '@orpc/contract'
+import type { StandardBody } from '@orpc/server-standard'
 import type { Promisable } from '@orpc/shared'
 import type { ClientLink } from '../../types'
 import type { FetchWithContext } from './types'
 import { ORPCError } from '@orpc/contract'
-import { toStandardBody } from '@orpc/server-standard-fetch'
+import { toFetchBody, toStandardBody } from '@orpc/server-standard-fetch'
 import { RPCSerializer } from '@orpc/server/standard'
 import { isObject, trim } from '@orpc/shared'
-import { contentDisposition } from '@tinyhttp/content-disposition'
 
 export interface RPCLinkOptions<TClientContext extends ClientContext> {
   /**
@@ -72,14 +72,12 @@ export class RPCLink<TClientContext extends ClientContext> implements ClientLink
     const clientContext = options.context ?? {} as TClientContext // options.context can be undefined when all field is optional
     const encoded = await this.encode(path, input, options)
 
-    if (encoded.body instanceof Blob && !encoded.headers.has('content-disposition')) {
-      encoded.headers.set('content-disposition', contentDisposition(encoded.body instanceof File ? encoded.body.name : 'blob'))
-    }
+    const fetchBody = toFetchBody(encoded.body, encoded.headers)
 
     const response = await this.fetch(encoded.url, {
       method: encoded.method,
       headers: encoded.headers,
-      body: encoded.body,
+      body: fetchBody,
       signal: options.signal,
     }, clientContext)
 
@@ -114,7 +112,7 @@ export class RPCLink<TClientContext extends ClientContext> implements ClientLink
     url: URL
     method: HTTPMethod
     headers: Headers
-    body: FormData | Blob | string | undefined
+    body: StandardBody
   }> {
     // clientContext only undefined when context is undefinable so we can safely cast it
     const clientContext = options.context as typeof options.context & { context: TClientContext }
@@ -153,21 +151,8 @@ export class RPCLink<TClientContext extends ClientContext> implements ClientLink
       }
     }
 
-    if (isObject(serialized)) {
-      if (!headers.has('content-type')) {
-        headers.set('content-type', 'application/json')
-      }
-
-      return {
-        body: JSON.stringify(serialized),
-        method,
-        headers,
-        url,
-      }
-    }
-
     return {
-      body: serialized,
+      body: serialized as StandardBody,
       method,
       headers,
       url,

@@ -1,5 +1,4 @@
 import type { Promisable } from 'type-fest'
-import type { AnyFunction } from './function'
 
 export type InterceptableOptions = Record<string, any>
 
@@ -40,9 +39,6 @@ export function onSuccess<TOptions extends { next(): any }, TRest extends any[]>
     return result
   }
 }
-
-export type InferError<T extends AnyFunction> =
-  T extends Interceptor<any, any, infer TError> ? TError : unknown
 
 /**
  * Can used for interceptors or middlewares

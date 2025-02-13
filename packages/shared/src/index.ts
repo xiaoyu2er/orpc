@@ -1,11 +1,8 @@
 export * from './chain'
-export * from './constants'
 export * from './error'
 export * from './function'
 export * from './interceptor'
-export * from './json'
 export * from './object'
-export * from './proxy'
 export * from './types'
 export * from './value'
 

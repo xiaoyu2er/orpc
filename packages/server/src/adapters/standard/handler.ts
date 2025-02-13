@@ -6,7 +6,7 @@ import type { Plugin } from '../../plugins'
 import type { CreateProcedureClientOptions } from '../../procedure-client'
 import type { Router } from '../../router'
 import type { StandardCodec, StandardMatcher } from './types'
-import { toORPCError } from '@orpc/contract'
+import { ORPCError, toORPCError } from '@orpc/contract'
 import { intercept, trim } from '@orpc/shared'
 import { CompositePlugin } from '../../plugins'
 import { createProcedureClient } from '../../procedure-client'
@@ -64,6 +64,8 @@ export class StandardHandler<T extends Context> {
         context: options?.context ?? {} as T, // context is optional only when all fields are optional so we can safely force it to have a context
       },
       async (interceptorOptions) => {
+        let isDecoding = false
+
         try {
           return await intercept(
             this.options.interceptors ?? [],
@@ -88,7 +90,9 @@ export class StandardHandler<T extends Context> {
 
               const client = createProcedureClient(match.procedure, clientOptions)
 
+              isDecoding = true
               const input = await this.codec.decode(request, match.params, match.procedure)
+              isDecoding = false
 
               const output = await client(input, { signal: request.signal })
 
@@ -102,7 +106,12 @@ export class StandardHandler<T extends Context> {
           )
         }
         catch (e) {
-          const error = toORPCError(e)
+          const error = isDecoding
+            ? new ORPCError('BAD_REQUEST', {
+              message: `Malformed request. Ensure the request body is properly formatted and the 'Content-Type' header is set correctly.`,
+              cause: e,
+            })
+            : toORPCError(e)
 
           const response = this.codec.encodeError(error)
 

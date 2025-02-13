@@ -1,4 +1,5 @@
 import type { PublicJSONSerializer } from '../../json-serializer'
+import { isAsyncIteratorObject } from '@orpc/server-standard'
 import { findDeepMatches } from '@orpc/shared'
 import { JSONSerializer } from '../../json-serializer'
 import * as BracketNotation from './bracket-notation'
@@ -15,7 +16,7 @@ export class OpenAPISerializer {
   }
 
   serialize(data: unknown): unknown {
-    if (data instanceof Blob || data === undefined) {
+    if (data === undefined || data instanceof Blob || isAsyncIteratorObject(data)) {
       return data
     }
 

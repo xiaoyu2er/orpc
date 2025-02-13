@@ -1,8 +1,15 @@
 import type { Segment } from '@orpc/shared'
-import { findDeepMatches, isObject, set } from '@orpc/shared'
+import { getEventSourceMeta, isAsyncIteratorObject, isProxyable, setEventSourceMeta } from '@orpc/server-standard'
+import { findDeepMatches, isObject, mapAsyncIterator, set } from '@orpc/shared'
 
 export type RPCSerializedJsonMeta = ['bigint' | 'date' | 'nan' | 'undefined' | 'set' | 'map' | 'regexp' | 'url', Segment[]][]
-export type RPCSerialized = { json: unknown, meta: RPCSerializedJsonMeta } | FormData | Blob | undefined
+export type RPCSerialized =
+  | { json: unknown, meta: RPCSerializedJsonMeta }
+  | FormData
+  | Blob
+  | undefined
+  | AsyncIteratorObject<{ json: unknown, meta: RPCSerializedJsonMeta }, { json: unknown, meta: RPCSerializedJsonMeta }, undefined>
+
 export type RPCSerializedFormDataMaps = Segment[][]
 
 export class RPCSerializer {
@@ -13,6 +20,20 @@ export class RPCSerializer {
 
     if (data instanceof Blob) {
       return data
+    }
+
+    if (isAsyncIteratorObject(data)) {
+      const map = (value: unknown) => {
+        const serialized = serializeRPCJson(value)
+
+        if (isProxyable(value)) { // meta only contain in proxyable
+          return setEventSourceMeta(serialized, getEventSourceMeta(value))
+        }
+
+        return serialized
+      }
+
+      return mapAsyncIterator(data, { yield: map, return: map })
     }
 
     const serializedJSON = serializeRPCJson(data)
@@ -41,6 +62,20 @@ export class RPCSerializer {
 
     if (serialized instanceof Blob) {
       return serialized
+    }
+
+    if (isAsyncIteratorObject(serialized)) {
+      const map = (value: { json: unknown, meta: RPCSerializedJsonMeta }) => {
+        const deserialized = deserializeRPCJson(value)
+
+        if (isProxyable(deserialized)) { // meta only set in proxyable
+          return setEventSourceMeta(deserialized, getEventSourceMeta(value))
+        }
+
+        return deserialized
+      }
+
+      return mapAsyncIterator(serialized, { yield: map, return: map })
     }
 
     if (!(serialized instanceof FormData)) {

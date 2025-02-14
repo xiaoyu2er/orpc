@@ -6,22 +6,12 @@ export type RPCSerializedJsonMeta = ['bigint' | 'date' | 'nan' | 'undefined' | '
 export type RPCSerialized =
   | { json: unknown, meta: RPCSerializedJsonMeta }
   | FormData
-  | Blob
-  | undefined
   | AsyncIteratorObject<{ json: unknown, meta: RPCSerializedJsonMeta }, { json: unknown, meta: RPCSerializedJsonMeta }, undefined>
 
 export type RPCSerializedFormDataMaps = Segment[][]
 
 export class RPCSerializer {
   serialize(data: unknown): RPCSerialized {
-    if (data === undefined) {
-      return undefined
-    }
-
-    if (data instanceof Blob) {
-      return data
-    }
-
     if (isAsyncIteratorObject(data)) {
       const map = (value: unknown) => {
         const serialized = serializeRPCJson(value)
@@ -56,14 +46,6 @@ export class RPCSerializer {
   }
 
   deserialize(serialized: RPCSerialized): unknown {
-    if (serialized === undefined) {
-      return undefined
-    }
-
-    if (serialized instanceof Blob) {
-      return serialized
-    }
-
     if (isAsyncIteratorObject(serialized)) {
       const map = (value: { json: unknown, meta: RPCSerializedJsonMeta }) => {
         const deserialized = deserializeRPCJson(value)

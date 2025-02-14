@@ -342,7 +342,7 @@ describe('rpcLink', () => {
         fetch: mockFetch,
         method: mockMethod,
         fallbackMethod: 'DELETE',
-        maxURLLength: 100,
+        maxUrlLength: 100,
       })
 
       mockMethod.mockResolvedValueOnce('GET')

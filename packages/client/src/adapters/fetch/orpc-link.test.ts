@@ -423,3 +423,45 @@ describe.each(supportedDataTypes)('rpcLink: $name', ({ value, expected }) => {
     })).toBe(true)
   })
 })
+
+describe('rpcLink - event source', () => {
+  const ping = os.handler(async function * () {
+    yield 1
+    yield 2
+    yield 3
+    return 4
+  })
+
+  const handler = new RPCHandler(ping)
+
+  it('works', async () => {
+    const link = new RPCLink({
+      eventSourceMaxNumberOfRetries: 0,
+      url: 'http://localhost:3000',
+      fetch: async (url, init) => {
+        const request = new Request(url, init)
+        const { matched, response } = await handler.handle(request)
+
+       const boyd = response?.body!.pipeThrough(new TextDecoderStream())
+
+       for await (const v of boyd) {
+         console.log(v)
+       }
+
+        if (!matched) {
+          throw new Error('Not matched')
+        }
+
+        return response
+      },
+    })
+
+    const output = await link.call([], undefined, { }) as any
+
+    expect(await output.next()).toEqual({ done: false, value: 1 })
+    expect(await output.next()).toEqual({ done: false, value: 2 })
+    expect(await output.next()).toEqual({ done: false, value: 3 })
+    expect(await output.next()).toEqual({ done: true, value: 4 })
+    console.log('1', '2')
+  })
+})

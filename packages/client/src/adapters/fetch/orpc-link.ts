@@ -1,13 +1,14 @@
 import type { ClientContext, ClientOptions, HTTPMethod } from '@orpc/contract'
 import type { Promisable } from '@orpc/shared'
 import type { ClientLink } from '../../types'
+import type { EventSourceIteratorReconnectOptions } from '../standard'
 import type { FetchWithContext } from './types'
 import { ORPCError } from '@orpc/contract'
-import { getEventSourceRetry, getTrackId, isAsyncIteratorObject, type StandardBody } from '@orpc/server-standard'
+import { isAsyncIteratorObject, type StandardBody } from '@orpc/server-standard'
 import { toFetchBody, toStandardBody } from '@orpc/server-standard-fetch'
 import { RPCSerializer } from '@orpc/server/standard'
 import { trim } from '@orpc/shared'
-import { changeEventSourceConnectionStatus, listenableEventSource } from '../standard'
+import { createReconnectableEventSourceIterator } from '../standard'
 
 export class InvalidEventSourceRetryResponse extends Error {}
 
@@ -55,18 +56,16 @@ export interface RPCLinkOptions<TClientContext extends ClientContext> {
   /**
    * Delay (in ms) before retrying an EventSource call.
    *
-   * @param retryCount The current retry attempt (starting at 1).
-   * @param lastRetry The last retry delay (if provided by the server).
-   * @default (retryCount, lastRetry) => lastRetry ?? (1000 * 2 ** retryCount)
+   * @default ({retryTimes, lastRetry}) => lastRetry ?? (1000 * 2 ** retryTimes)
    */
-  eventSourceRetryDelay?: (numberOfRetries: number, lastRetry: number | undefined) => number
+  eventSourceRetryDelay?: (reconnectOptions: EventSourceIteratorReconnectOptions) => number
 
   /**
    * Function to determine if an error is retryable.
    *
    * @default () => true
    */
-  eventSourceRetry?: (error: unknown, retryCount: number, path: readonly string[], input: unknown, context: TClientContext) => boolean
+  eventSourceRetry?: (reconnectOptions: EventSourceIteratorReconnectOptions, path: readonly string[], input: unknown, context: TClientContext) => boolean
 }
 
 export class RPCLink<TClientContext extends ClientContext> implements ClientLink<TClientContext> {
@@ -94,10 +93,7 @@ export class RPCLink<TClientContext extends ClientContext> implements ClientLink
     this.eventSourceRetry = options.eventSourceRetry ?? (() => true)
 
     this.eventSourceRetryDelay = options.eventSourceRetryDelay
-      ?? ((retryCount, lastRetry) => lastRetry ?? (1000 * 2 ** retryCount))
-
-    this.eventSourceRetryDelay = options.eventSourceRetryDelay
-      ?? ((numberOfRetries, lastRetry) => lastRetry ?? (1000 * 2 ** numberOfRetries))
+      ?? (({ retryTimes, lastRetry }) => lastRetry ?? (1000 * 2 ** retryTimes))
   }
 
   async call(path: readonly string[], input: unknown, options: ClientOptions<TClientContext>): Promise<unknown> {
@@ -108,76 +104,25 @@ export class RPCLink<TClientContext extends ClientContext> implements ClientLink
       return output
     }
 
-    let syncIteratorOutput = output
+    return createReconnectableEventSourceIterator(output, async (reconnectOptions) => {
+      if (reconnectOptions.retryTimes > this.eventSourceMaxNumberOfRetries) {
+        return null
+      }
 
-    let lastRetry: number | undefined
-    let retryTimes = 0
-    let lastEventId: string | undefined = options.lastEventId
+      if (!this.eventSourceRetry(reconnectOptions, path, input, clientContext)) {
+        return null
+      }
 
-    const iterator: AsyncIteratorObject<unknown, unknown, void> = listenableEventSource({
-      next: async () => {
-        try {
-          changeEventSourceConnectionStatus(iterator, 'connected')
+      await new Promise(resolve => setTimeout(resolve, this.eventSourceRetryDelay(reconnectOptions)))
 
-          const result = await syncIteratorOutput.next()
+      const maybeIterator = await this.performCall(path, input, { ...options, lastEventId: reconnectOptions.lastEventId })
 
-          retryTimes = 0
+      if (!isAsyncIteratorObject(maybeIterator)) {
+        throw new InvalidEventSourceRetryResponse('Invalid EventSource retry response')
+      }
 
-          lastRetry = getEventSourceRetry(result.value)
-          lastEventId = getTrackId(result.value)
-
-          if (result.done) {
-            changeEventSourceConnectionStatus(iterator, 'closed')
-          }
-
-          return result
-        }
-        catch (error) {
-          changeEventSourceConnectionStatus(iterator, 'closed')
-
-          if (retryTimes > this.eventSourceMaxNumberOfRetries) {
-            throw error
-          }
-
-          if (!this.eventSourceRetry(error, retryTimes, path, input, clientContext)) {
-            throw error
-          }
-
-          retryTimes += 1
-          await new Promise(resolve => setTimeout(resolve, this.eventSourceRetryDelay(retryTimes, lastRetry)))
-
-          changeEventSourceConnectionStatus(iterator, 'reconnecting')
-
-          const output = await this.performCall(path, input, { ...options, lastEventId })
-
-          if (!isAsyncIteratorObject(output)) {
-            changeEventSourceConnectionStatus(iterator, 'closed')
-            throw new InvalidEventSourceRetryResponse('Invalid EventSource retry response')
-          }
-
-          syncIteratorOutput = output
-
-          return iterator.next()
-        }
-      },
-      return: async (value) => {
-        changeEventSourceConnectionStatus(iterator, 'closed')
-        await output.return?.()
-
-        return { done: true, value }
-      },
-      throw: async (e) => {
-        changeEventSourceConnectionStatus(iterator, 'closed')
-        await output.throw?.(e)
-
-        throw e
-      },
-      [Symbol.asyncIterator]() {
-        return iterator
-      },
-    })
-
-    return iterator
+      return maybeIterator
+    }, options.lastEventId)
   }
 
   private async performCall(

@@ -7,9 +7,9 @@ type InternalState = {
   listeners: Array<(newStatus: EventSourceConnectionStatus) => void>
 }
 
-export function listenableEventSource<T extends AsyncIteratorObject<unknown, unknown, void>>(iterator: T): T {
+export function createListenableEventSourceIterator<T extends AsyncIteratorObject<unknown, unknown, void>>(iterator: T): T {
   const internalState: InternalState = {
-    status: 'closed',
+    status: 'connected',
     listeners: [],
   }
 
@@ -26,7 +26,7 @@ export function listenableEventSource<T extends AsyncIteratorObject<unknown, unk
   return proxyIterator
 }
 
-export function changeEventSourceConnectionStatus(
+export function setEventSourceIteratorStatus(
   iterator: AsyncIteratorObject<unknown, unknown, void>,
   status: EventSourceConnectionStatus,
 ): void {
@@ -36,13 +36,13 @@ export function changeEventSourceConnectionStatus(
     throw new Error('Iterator is not listenable')
   }
 
-  if (state) {
+  if (state.status !== status) {
     state.status = status
     state.listeners.forEach(cb => cb(status))
   }
 }
 
-export function listenOnEventSourceConnectionStatus(
+export function onEventSourceIteratorStatusChange(
   iterator: AsyncIteratorObject<unknown, unknown, void>,
   callback: (value: EventSourceConnectionStatus) => void,
 ): () => void {

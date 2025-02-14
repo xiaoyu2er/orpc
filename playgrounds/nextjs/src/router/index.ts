@@ -10,6 +10,16 @@ import {
 } from './planet'
 
 export const router = {
+  ping: pub.handler(async function* () {
+    yield 'pong'
+    yield 'pong'
+    yield 'pong'
+    yield 'pong'
+    yield 'pong'
+    yield 'pong'
+    return 'pong'
+  }),
+
   auth: pub.tag('Authentication').prefix('/auth').router({
     signup,
     signin,

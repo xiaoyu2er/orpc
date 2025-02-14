@@ -1,5 +1,6 @@
 import type { Segment } from '@orpc/shared'
-import { getEventSourceMeta, isAsyncIteratorObject, isProxyable, setEventSourceMeta } from '@orpc/server-standard'
+import { ORPCError, toORPCError } from '@orpc/contract'
+import { EventSourceErrorEvent, getEventSourceMeta, isAsyncIteratorObject, isProxyable, setEventSourceMeta } from '@orpc/server-standard'
 import { findDeepMatches, isObject, mapAsyncIterator, set } from '@orpc/shared'
 
 export type RPCSerializedJsonMeta = ['bigint' | 'date' | 'nan' | 'undefined' | 'set' | 'map' | 'regexp' | 'url', Segment[]][]
@@ -13,7 +14,7 @@ export type RPCSerializedFormDataMaps = Segment[][]
 export class RPCSerializer {
   serialize(data: unknown): RPCSerialized {
     if (isAsyncIteratorObject(data)) {
-      const map = (value: unknown) => {
+      const mapValue = (value: unknown) => {
         const serialized = serializeRPCJson(value)
 
         if (isProxyable(value)) { // meta only contain in proxyable
@@ -23,7 +24,17 @@ export class RPCSerializer {
         return serialized
       }
 
-      return mapAsyncIterator(data, { yield: map, return: map })
+      return mapAsyncIterator(data, {
+        yield: mapValue,
+        return: mapValue,
+        error(e) {
+          const error = new EventSourceErrorEvent({
+            data: toORPCError(e).toJSON(),
+          })
+
+          return setEventSourceMeta(error, getEventSourceMeta(e))
+        },
+      })
     }
 
     const serializedJSON = serializeRPCJson(data)
@@ -47,7 +58,11 @@ export class RPCSerializer {
 
   deserialize(serialized: RPCSerialized): unknown {
     if (isAsyncIteratorObject(serialized)) {
-      const map = (value: { json: unknown, meta: RPCSerializedJsonMeta }) => {
+      const mapValue = (value: { json: unknown, meta: RPCSerializedJsonMeta }) => {
+        if (!value) {
+          return value
+        }
+
         const deserialized = deserializeRPCJson(value)
 
         if (isProxyable(deserialized)) { // meta only set in proxyable
@@ -57,7 +72,19 @@ export class RPCSerializer {
         return deserialized
       }
 
-      return mapAsyncIterator(serialized, { yield: map, return: map })
+      return mapAsyncIterator(serialized, {
+        yield: mapValue,
+        return: mapValue,
+        error(e) {
+          if (!(e instanceof EventSourceErrorEvent) || !ORPCError.isValidJSON(e.data)) {
+            return e
+          }
+
+          const error = ORPCError.fromJSON(e.data)
+
+          return setEventSourceMeta(error, getEventSourceMeta(e))
+        },
+      })
     }
 
     if (!(serialized instanceof FormData)) {

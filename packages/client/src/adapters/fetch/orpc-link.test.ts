@@ -1,5 +1,6 @@
 import { ORPCError } from '@orpc/contract'
 import { os } from '@orpc/server'
+import { getEventSourceMeta, isAsyncIteratorObject, setEventSourceMeta } from '@orpc/server-standard'
 import { RPCHandler } from '@orpc/server/fetch'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { supportedDataTypes } from '../../../../server/tests/shared'
@@ -53,7 +54,6 @@ describe('rpcLink', () => {
 
     // Verify headers
     const headers = mockFetch.mock.calls[0]![1].headers
-    expect(headers.get('x-orpc-handler')).toBe('rpc')
 
     // Verify payload codec usage
     expect(mockRPCSerializer.serialize).toHaveBeenCalledWith({ id: 1 })
@@ -87,7 +87,6 @@ describe('rpcLink', () => {
     const headers = mockFetch.mock.calls[0]![1].headers
     expect(headers.get('Authorization')).toBe('Bearer token')
     expect(headers.get('Custom-Header')).toBe('custom-value')
-    expect(headers.get('x-orpc-handler')).toBe('rpc')
 
     // Verify the result matches the decoded data
     expect(result).toEqual(mockResponseData)
@@ -251,7 +250,7 @@ describe('rpcLink', () => {
       expect(mockMethod).toHaveBeenCalledWith(['test'], '__input__', {})
       expect(mockFetch).toHaveBeenCalledOnce()
       expect(mockFetch).toHaveBeenCalledWith(
-        new URL('http://api.example.com/test?data=%7B%22json%22%3A%22__input__%22%2C%22meta%22%3A%5B%5D%7D'),
+        new URL('http://api.example.com/test?input=%7B%22json%22%3A%22__input__%22%2C%22meta%22%3A%5B%5D%7D'),
         { method: 'GET', headers: expect.any(Headers) },
         {},
       )
@@ -289,7 +288,7 @@ describe('rpcLink', () => {
       const mockMethod = vi.fn()
 
       const link = new RPCLink({
-        url: 'http://api.example.com/?data=xin&meta=chao',
+        url: 'http://api.example.com/?input=xin&meta=chao',
         fetch: mockFetch,
         method: mockMethod,
       })
@@ -301,7 +300,7 @@ describe('rpcLink', () => {
 
       expect(mockMethod).toHaveBeenCalledWith(['test'], '__input__', {})
       expect(mockFetch).toHaveBeenCalledWith(
-        new URL('http://api.example.com/?data=xin&meta=chao%2Ftest&data=%7B%22json%22%3A%22__input__%22%2C%22meta%22%3A%5B%5D%7D'),
+        new URL('http://api.example.com/?input=xin&meta=chao%2Ftest&input=%7B%22json%22%3A%22__input__%22%2C%22meta%22%3A%5B%5D%7D'),
         { method: 'GET', headers: expect.any(Headers) },
         {},
       )
@@ -342,7 +341,7 @@ describe('rpcLink', () => {
         fetch: mockFetch,
         method: mockMethod,
         fallbackMethod: 'DELETE',
-        maxURLLength: 100,
+        maxUrlLength: 100,
       })
 
       mockMethod.mockResolvedValueOnce('GET')
@@ -423,5 +422,47 @@ describe.each(supportedDataTypes)('rpcLink: $name', ({ value, expected }) => {
         nested: expected,
       },
     })).toBe(true)
+  })
+})
+
+describe('rpcLink: event-source iterator', () => {
+  const date = new Date()
+
+  const procedure = os.handler(async function* () {
+    yield 1
+    yield { order: 2, date }
+    throw setEventSourceMeta(new ORPCError('BAD_GATEWAY', { data: { order: 3, date } }), { id: '56789' })
+  })
+
+  const handler = new RPCHandler(procedure)
+
+  const link = new RPCLink({
+    url: 'http://api.example.com',
+    fetch: async (url, init) => {
+      const request = new Request(url, init)
+      const { matched, response } = await handler.handle(request)
+
+      if (matched) {
+        return response
+      }
+
+      throw new Error('No procedure match')
+    },
+  })
+
+  it('on success', async () => {
+    const output = await link.call([], undefined, { context: {} }) as any
+
+    expect(output).toSatisfy(isAsyncIteratorObject)
+    expect(await output.next()).toEqual({ done: false, value: 1 })
+    expect(await output.next()).toEqual({ done: false, value: { order: 2, date } })
+    await expect(output.next()).rejects.toSatisfy((e: any) => {
+      expect(e).toBeInstanceOf(ORPCError)
+      expect(e.code).toBe('BAD_GATEWAY')
+      expect(e.data).toEqual({ order: 3, date })
+      expect(getEventSourceMeta(e)).toEqual(expect.objectContaining({ id: '56789' }))
+
+      return true
+    })
   })
 })

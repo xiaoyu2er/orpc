@@ -1,12 +1,12 @@
 import type { ClientContext, ClientOptions, HTTPMethod } from '@orpc/contract'
-import type { StandardBody } from '@orpc/server-standard'
 import type { Promisable } from '@orpc/shared'
 import type { ClientLink } from '../../types'
 import type { FetchWithContext } from './types'
 import { ORPCError } from '@orpc/contract'
+import { isAsyncIteratorObject, type StandardBody } from '@orpc/server-standard'
 import { toFetchBody, toStandardBody } from '@orpc/server-standard-fetch'
 import { RPCSerializer } from '@orpc/server/standard'
-import { isObject, trim } from '@orpc/shared'
+import { trim } from '@orpc/shared'
 
 export interface RPCLinkOptions<TClientContext extends ClientContext> {
   /**
@@ -19,7 +19,7 @@ export interface RPCLinkOptions<TClientContext extends ClientContext> {
    *
    * @default 2083
    */
-  maxURLLength?: number
+  maxUrlLength?: number
 
   /**
    * The method used to make the request.
@@ -46,7 +46,7 @@ export interface RPCLinkOptions<TClientContext extends ClientContext> {
 export class RPCLink<TClientContext extends ClientContext> implements ClientLink<TClientContext> {
   private readonly fetch: FetchWithContext<TClientContext>
   private readonly rpcSerializer: RPCSerializer
-  private readonly maxURLLength: number
+  private readonly maxUrlLength: number
   private readonly fallbackMethod: Exclude<HTTPMethod, 'GET'>
   private readonly getMethod: (path: readonly string[], input: unknown, context: TClientContext) => Promisable<HTTPMethod>
   private readonly getHeaders: (path: readonly string[], input: unknown, context: TClientContext) => Promisable<Headers>
@@ -55,7 +55,7 @@ export class RPCLink<TClientContext extends ClientContext> implements ClientLink
   constructor(options: RPCLinkOptions<TClientContext>) {
     this.fetch = options.fetch ?? globalThis.fetch.bind(globalThis)
     this.rpcSerializer = options.rpcSerializer ?? new RPCSerializer()
-    this.maxURLLength = options.maxURLLength ?? 2083
+    this.maxUrlLength = options.maxUrlLength ?? 2083
     this.fallbackMethod = options.fallbackMethod ?? 'POST'
     this.url = options.url
 
@@ -114,46 +114,36 @@ export class RPCLink<TClientContext extends ClientContext> implements ClientLink
     headers: Headers
     body: StandardBody
   }> {
-    // clientContext only undefined when context is undefinable so we can safely cast it
-    const clientContext = options.context as typeof options.context & { context: TClientContext }
+    const clientContext = options.context ?? {} as TClientContext // options.context can be undefined when all field is optional
     const expectMethod = await this.getMethod(path, input, clientContext)
 
     const headers = await this.getHeaders(path, input, clientContext)
     const url = new URL(`${trim(this.url, '/')}/${path.map(encodeURIComponent).join('/')}`)
 
-    headers.append('x-orpc-handler', 'rpc')
-
     const serialized = this.rpcSerializer.serialize(input)
 
-    if (expectMethod === 'GET' && isObject(serialized)) { // isObject mean has no blobs
-      const tryURL = new URL(url)
+    if (
+      expectMethod === 'GET'
+      && !(serialized instanceof FormData)
+      && !isAsyncIteratorObject(serialized)
+    ) {
+      const getUrl = new URL(url)
 
-      tryURL.searchParams.append('data', JSON.stringify(serialized))
+      getUrl.searchParams.append('input', JSON.stringify(serialized))
 
-      if (tryURL.toString().length <= this.maxURLLength) {
+      if (getUrl.toString().length <= this.maxUrlLength) {
         return {
           body: undefined,
           method: expectMethod,
           headers,
-          url: tryURL,
+          url: getUrl,
         }
-      }
-    }
-
-    const method = expectMethod === 'GET' ? this.fallbackMethod : expectMethod
-
-    if (input === undefined) {
-      return {
-        body: undefined,
-        method,
-        headers,
-        url,
       }
     }
 
     return {
       body: serialized as StandardBody,
-      method,
+      method: expectMethod === 'GET' ? this.fallbackMethod : expectMethod,
       headers,
       url,
     }

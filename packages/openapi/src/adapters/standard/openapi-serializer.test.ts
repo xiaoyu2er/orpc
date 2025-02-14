@@ -1,3 +1,5 @@
+import { ORPCError } from '@orpc/contract'
+import { EventSourceErrorEvent, getEventSourceMeta, isAsyncIteratorObject, setEventSourceMeta } from '@orpc/server-standard'
 import { JSONSerializer } from '../../json-serializer'
 import { OpenAPISerializer } from './openapi-serializer'
 
@@ -64,6 +66,27 @@ describe('openAPISerializer', () => {
 
       expect(serialize).toHaveBeenCalledOnce()
       expect(serialize).toHaveBeenCalledWith(data)
+    })
+
+    it('with event-source iterator', async () => {
+      const date = new Date()
+
+      const serialized = openapiSerializer.serialize((async function* () {
+        yield 1
+        yield { order: 2, date }
+        throw setEventSourceMeta(new Error('test'), { id: '123456' })
+      })()) as any
+
+      expect(serialized).toSatisfy(isAsyncIteratorObject)
+      expect(await serialized.next()).toEqual({ done: false, value: 1 })
+      expect(await serialized.next()).toEqual({ done: false, value: { order: 2, date } })
+      await expect(serialized.next()).rejects.toSatisfy((e: any) => {
+        expect(e).toBeInstanceOf(EventSourceErrorEvent)
+        expect(e.data).toEqual(expect.objectContaining({ code: 'INTERNAL_SERVER_ERROR' }))
+        expect(getEventSourceMeta(e)).toEqual({ id: '123456' })
+
+        return true
+      })
     })
   })
 
@@ -137,6 +160,27 @@ describe('openAPISerializer', () => {
 
       expect(deserialized).toBeInstanceOf(Object)
       expect(deserialized).toEqual(data)
+    })
+
+    it('with event-source iterator', async () => {
+      const date = new Date()
+
+      const serialized = openapiSerializer.deserialize((async function* () {
+        yield { order: 1 }
+        yield { order: 2, date }
+        throw setEventSourceMeta(new EventSourceErrorEvent({ data: new ORPCError('test').toJSON() as any }), { retry: 1000 })
+      })()) as any
+
+      expect(serialized).toSatisfy(isAsyncIteratorObject)
+      expect(await serialized.next()).toEqual({ done: false, value: { order: 1 } })
+      expect(await serialized.next()).toEqual({ done: false, value: { order: 2, date } })
+      await expect(serialized.next()).rejects.toSatisfy((e: any) => {
+        expect(e).toBeInstanceOf(ORPCError)
+        expect(e.code).toBe('test')
+        expect(getEventSourceMeta(e)).toEqual({ retry: 1000 })
+
+        return true
+      })
     })
   })
 

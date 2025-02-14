@@ -1,3 +1,5 @@
+import { ORPCError } from '@orpc/contract'
+import { getEventSourceMeta, isAsyncIteratorObject, setEventSourceMeta } from '@orpc/server-standard'
 import { supportedDataTypes } from '../../../tests/shared'
 import { RPCSerializer } from './rpc-serializer'
 
@@ -7,12 +9,8 @@ describe.each(supportedDataTypes)('rpcSerializer: $name', ({ value, expected }) 
   function serializeAndDeserialize(value: unknown): unknown {
     const serialized = serializer.serialize(value)
 
-    if (serialized instanceof FormData || serialized instanceof Blob) {
+    if (serialized instanceof FormData) {
       return serializer.deserialize(serialized)
-    }
-
-    if (serialized === undefined) {
-      return serializer.deserialize(undefined)
     }
 
     return serializer.deserialize(JSON.parse(JSON.stringify(serialized))) // like in the real world
@@ -58,5 +56,36 @@ describe.each(supportedDataTypes)('rpcSerializer: $name', ({ value, expected }) 
         nested: expected,
       },
     })
+  })
+})
+
+it('rpcSerializer: event-source iterator', async () => {
+  const serializer = new RPCSerializer()
+
+  function serializeAndDeserialize(value: unknown): unknown {
+    const serialized = serializer.serialize(value)
+    return serializer.deserialize(serialized)
+  }
+
+  const date = new Date()
+
+  const iterator = (async function* () {
+    yield 1
+    yield { order: 2, date }
+    throw setEventSourceMeta(new ORPCError('BAD_GATEWAY', { data: { order: 3, date } }), { id: '56789' })
+  })()
+
+  const deserialized = serializeAndDeserialize(iterator) as any
+
+  expect(deserialized).toSatisfy(isAsyncIteratorObject)
+  expect(await deserialized.next()).toEqual({ done: false, value: 1 })
+  expect(await deserialized.next()).toEqual({ done: false, value: { order: 2, date } })
+  await expect(deserialized.next()).rejects.toSatisfy((e: any) => {
+    expect(e).toBeInstanceOf(ORPCError)
+    expect(e.code).toBe('BAD_GATEWAY')
+    expect(e.data).toEqual({ order: 3, date })
+    expect(getEventSourceMeta(e)).toEqual({ id: '56789' })
+
+    return true
   })
 })

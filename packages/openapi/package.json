@@ -74,9 +74,9 @@
   "dependencies": {
     "@orpc/contract": "workspace:*",
     "@orpc/server": "workspace:*",
-    "@orpc/server-standard": "^0.0.0",
-    "@orpc/server-standard-fetch": "^0.0.0",
-    "@orpc/server-standard-node": "^0.0.0",
+    "@orpc/server-standard": "^0.3.0",
+    "@orpc/server-standard-fetch": "^0.3.0",
+    "@orpc/server-standard-node": "^0.3.0",
     "@orpc/shared": "workspace:*",
     "json-schema-typed": "^8.0.1",
     "openapi3-ts": "^4.4.0",

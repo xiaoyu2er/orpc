@@ -33,7 +33,8 @@ export interface ProcedureClientInterceptorOptions<
   errors: ORPCErrorConstructorMap<TErrorMap>
   path: string[]
   procedure: Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, TMeta>
-  signal?: AbortSignal
+  signal: AbortSignal | undefined
+  lastEventId: string | undefined
 }
 
 /**
@@ -106,6 +107,7 @@ export function createProcedureClient<
           path,
           procedure: procedure as AnyProcedure,
           signal: callerOptions?.signal,
+          lastEventId: callerOptions?.lastEventId,
         },
         interceptorOptions => executeProcedureInternal(interceptorOptions.procedure, interceptorOptions),
       )

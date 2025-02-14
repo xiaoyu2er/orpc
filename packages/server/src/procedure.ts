@@ -14,8 +14,9 @@ export interface ProcedureHandlerOptions<
   input: TInput
   path: string[]
   procedure: Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, TMeta>
-  signal?: AbortSignal
+  signal: AbortSignal | undefined
   errors: TErrorConstructorMap
+  lastEventId: string | undefined
 }
 
 export interface ProcedureHandler<

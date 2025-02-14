@@ -1,7 +1,7 @@
 export type ClientContext = Record<string, any>
 
 export type ClientOptions<TClientContext extends ClientContext> =
-  & { signal?: AbortSignal }
+  & { signal?: AbortSignal, lastEventId?: string }
   & (Record<never, never> extends TClientContext ? { context?: TClientContext } : { context: TClientContext })
 
 export type ClientRest<TClientContext extends ClientContext, TInput> =

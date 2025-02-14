@@ -7,7 +7,7 @@ type InternalState = {
   listeners: Array<(newStatus: EventSourceConnectionStatus) => void>
 }
 
-export function listenableEventSource(iterator: AsyncIteratorObject<unknown, unknown, void>) {
+export function listenableEventSource<T extends AsyncIteratorObject<unknown, unknown, void>>(iterator: T): T {
   const internalState: InternalState = {
     status: 'closed',
     listeners: [],
@@ -29,7 +29,7 @@ export function listenableEventSource(iterator: AsyncIteratorObject<unknown, unk
 export function changeEventSourceConnectionStatus(
   iterator: AsyncIteratorObject<unknown, unknown, void>,
   status: EventSourceConnectionStatus,
-) {
+): void {
   const state = Reflect.get(iterator, INTERNAL_STATE_SYMBOL) as InternalState | undefined
 
   if (!state) {
@@ -45,7 +45,7 @@ export function changeEventSourceConnectionStatus(
 export function listenOnEventSourceConnectionStatus(
   iterator: AsyncIteratorObject<unknown, unknown, void>,
   callback: (value: EventSourceConnectionStatus) => void,
-) {
+): () => void {
   const state = Reflect.get(iterator, INTERNAL_STATE_SYMBOL) as InternalState | undefined
 
   if (!state) {
@@ -53,4 +53,12 @@ export function listenOnEventSourceConnectionStatus(
   }
 
   state.listeners.push(callback)
+
+  return () => {
+    const index = state.listeners.indexOf(callback)
+
+    if (index !== -1) {
+      state.listeners.splice(index, 1)
+    }
+  }
 }

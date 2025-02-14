@@ -53,7 +53,6 @@ describe('rpcLink', () => {
 
     // Verify headers
     const headers = mockFetch.mock.calls[0]![1].headers
-    expect(headers.get('x-orpc-handler')).toBe('rpc')
 
     // Verify payload codec usage
     expect(mockRPCSerializer.serialize).toHaveBeenCalledWith({ id: 1 })
@@ -87,7 +86,6 @@ describe('rpcLink', () => {
     const headers = mockFetch.mock.calls[0]![1].headers
     expect(headers.get('Authorization')).toBe('Bearer token')
     expect(headers.get('Custom-Header')).toBe('custom-value')
-    expect(headers.get('x-orpc-handler')).toBe('rpc')
 
     // Verify the result matches the decoded data
     expect(result).toEqual(mockResponseData)

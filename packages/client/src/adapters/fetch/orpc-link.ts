@@ -114,7 +114,7 @@ export class RPCLink<TClientContext extends ClientContext> implements ClientLink
     let retryTimes = 0
     let lastEventId: string | undefined = options.lastEventId
 
-    const iterator = listenableEventSource({
+    const iterator: AsyncIteratorObject<unknown, unknown, void> = listenableEventSource({
       next: async () => {
         try {
           changeEventSourceConnectionStatus(iterator, 'connected')
@@ -125,6 +125,10 @@ export class RPCLink<TClientContext extends ClientContext> implements ClientLink
 
           lastRetry = getEventSourceRetry(result.value)
           lastEventId = getTrackId(result.value)
+
+          if (result.done) {
+            changeEventSourceConnectionStatus(iterator, 'closed')
+          }
 
           return result
         }

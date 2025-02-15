@@ -6,46 +6,42 @@ export function mapEventSourceIterator<TYield, TReturn, TNext, TMap = TYield | T
     value: (value: NoInfer<TYield | TReturn>, done: boolean | undefined) => Promise<TMap>
     error: (error: unknown) => Promise<unknown>
   },
-): AsyncIteratorObject<TMap, TMap, TNext> {
-  const mapped: AsyncIteratorObject<TMap, TMap, TNext> = {
-    async next(...args) {
-      try {
-        const { done, value } = await iterator.next(...args)
+): AsyncGenerator<TMap, TMap, TNext> {
+  return (async function* () {
+    try {
+      while (true) {
+        const { done, value } = await iterator.next()
 
-        const mappedValue = await maps.value(value, done) as any
+        let mappedValue = await maps.value(value, done) as any
 
-        if (mappedValue === value) {
-          return { done, value }
+        if (mappedValue !== value) {
+          const meta = getEventSourceMeta(value)
+          if (meta && isEventSourceMetaContainer(mappedValue)) {
+            mappedValue = setEventSourceMeta(mappedValue, meta)
+          }
         }
 
-        const meta = getEventSourceMeta(value)
-        if (meta && isEventSourceMetaContainer(mappedValue)) {
-          return { done, value: setEventSourceMeta(mappedValue, meta) }
+        if (done) {
+          return mappedValue
         }
 
-        return { done, value: mappedValue }
+        yield mappedValue
       }
-      catch (error) {
-        const mappedError = await maps.error(error)
+    }
+    catch (error) {
+      let mappedError = await maps.error(error)
 
-        if (mappedError === error) {
-          throw mappedError
-        }
-
+      if (mappedError !== error) {
         const meta = getEventSourceMeta(error)
         if (meta && isEventSourceMetaContainer(mappedError)) {
-          throw setEventSourceMeta(mappedError, meta)
+          mappedError = setEventSourceMeta(mappedError, meta)
         }
-
-        throw mappedError
       }
-    },
-    return: iterator.return as any,
-    throw: iterator.throw as any,
-    [Symbol.asyncIterator]() {
-      return mapped
-    },
-  }
 
-  return mapped
+      throw mappedError
+    }
+    finally {
+      await iterator.return?.()
+    }
+  })()
 }

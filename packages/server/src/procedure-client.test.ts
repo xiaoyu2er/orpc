@@ -414,6 +414,29 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     expect(handler).toHaveBeenCalledWith(expect.objectContaining({ signal }))
   })
 
+  it('support lastEventId', async () => {
+    const client = createProcedureClient(procedure, {
+      context: { userId: '123' },
+    })
+
+    await client({ val: '123' }, { lastEventId: '12345' })
+
+    expect(preMid1).toBeCalledTimes(1)
+    expect(preMid1).toHaveBeenCalledWith(expect.objectContaining({ lastEventId: '12345' }), expect.any(Object), expect.any(Function))
+
+    expect(preMid2).toBeCalledTimes(1)
+    expect(preMid2).toHaveBeenCalledWith(expect.objectContaining({ lastEventId: '12345' }), expect.any(Object), expect.any(Function))
+
+    expect(postMid1).toBeCalledTimes(1)
+    expect(postMid1).toHaveBeenCalledWith(expect.objectContaining({ lastEventId: '12345' }), expect.any(Object), expect.any(Function))
+
+    expect(postMid2).toBeCalledTimes(1)
+    expect(postMid2).toHaveBeenCalledWith(expect.objectContaining({ lastEventId: '12345' }), expect.any(Object), expect.any(Function))
+
+    expect(handler).toBeCalledTimes(1)
+    expect(handler).toHaveBeenCalledWith(expect.objectContaining({ lastEventId: '12345' }))
+  })
+
   describe('error validation', () => {
     const client = createProcedureClient(procedure)
 

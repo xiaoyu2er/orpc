@@ -20,7 +20,12 @@ export function createORPCClient<TRouter extends AnyRouter | AnyContractRouter, 
   const path = options?.path ?? []
 
   const procedureClient: Client<TClientContext, unknown, unknown, Error> = async (...[input, options]) => {
-    return await link.call(path, input, (options ?? {}) as Exclude<typeof options, undefined>)
+    const optionsOut = {
+      ...options,
+      context: options?.context ?? {} as TClientContext, // options.context can be undefined when all field is optional
+    }
+
+    return await link.call(path, input, optionsOut)
   }
 
   const recursive = new Proxy(procedureClient, {

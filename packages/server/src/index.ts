@@ -20,4 +20,5 @@ export * from './router-client'
 export * from './utils'
 
 export { isDefinedError, ORPCError, safe, type, ValidationError } from '@orpc/contract'
+export { getEventSourceMeta, setEventSourceMeta } from '@orpc/server-standard'
 export { onError, onFinish, onStart, onSuccess } from '@orpc/shared'

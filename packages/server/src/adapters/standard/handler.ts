@@ -94,7 +94,11 @@ export class StandardHandler<T extends Context> {
               const input = await this.codec.decode(request, match.params, match.procedure)
               isDecoding = false
 
-              const output = await client(input, { signal: request.signal })
+              const lastEventId = Array.isArray(request.headers['last-event-id'])
+                ? request.headers['last-event-id'].at(-1)
+                : request.headers['last-event-id']
+
+              const output = await client(input, { signal: request.signal, lastEventId })
 
               const response = this.codec.encode(output, match.procedure)
 

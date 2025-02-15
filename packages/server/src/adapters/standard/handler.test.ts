@@ -313,11 +313,42 @@ describe('standardHandler', () => {
   })
 
   it('works without options', async () => {
+    matcher.match.mockResolvedValue({
+      path: ['ping'],
+      procedure: ping,
+      params: { id: '__id__' },
+    })
+
     const handler = new StandardHandler(router, matcher, codec)
 
     expect(await handler.handle(request, { context: { db: 'postgres' } })).toEqual({
       matched: true,
       response: undefined,
     })
+  })
+
+  it.each([
+    '123456',
+    ['should-ignore', '123456'],
+  ])('works with lastEventId', async (headerValue) => {
+    matcher.match.mockResolvedValue({
+      path: ['ping'],
+      procedure: ping,
+      params: { id: '__id__' },
+    })
+
+    const handler = new StandardHandler(router, matcher, codec)
+    const client = vi.fn().mockReturnValueOnce('__output__')
+    vi.mocked(createProcedureClient).mockReturnValueOnce(client)
+
+    await handler.handle({
+      ...request,
+      headers: {
+        'last-event-id': headerValue,
+      },
+    }, { context: { db: 'postgres' }, prefix: '/api/v1' })
+
+    expect(client).toHaveBeenCalledOnce()
+    expect(client).toHaveBeenCalledWith(undefined, expect.objectContaining({ lastEventId: '123456' }))
   })
 })

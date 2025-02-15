@@ -3,7 +3,7 @@ import { DynamicLink } from './dynamic-link'
 
 describe('dynamicLink', () => {
   it('pass correct context', () => {
-    void new DynamicLink<{ batch?: boolean }>((path, input, context) => {
+    void new DynamicLink<{ batch?: boolean }>(({ context }, path, input) => {
       expectTypeOf(context).toEqualTypeOf<{ batch?: boolean } >()
 
       return {} as any

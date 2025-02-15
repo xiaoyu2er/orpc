@@ -50,7 +50,7 @@ export interface RPCLinkOptions<TClientContext extends ClientContext> {
     options: ClientOptionsOut<TClientContext>,
     path: readonly string[],
     input: unknown,
-  ): Promisable<HeadersInit>
+  ): Promisable<[string, string][] | Record<string, string> | Headers>
 
   /**
    * Custom fetch implementation.

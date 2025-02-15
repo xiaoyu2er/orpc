@@ -52,11 +52,11 @@ type ClientContext = { cache?: RequestCache }
 const rpcLink = new RPCLink<ClientContext>({
   url: 'http://localhost:3000/rpc',
   // headers: provide additional headers
-  fetch: (input, init, context) => globalThis.fetch(input, {
+  fetch: (url, init, { context }) => globalThis.fetch(url, {
     ...init,
     cache: context?.cache,
   }),
-  method: (path, input, context) => {
+  method: ({ context }, path, input) => {
     // if input contain file, and you return GET, oRPC will change it to POST automatically
 
     if (context?.cache) {
@@ -98,7 +98,7 @@ const rpcLink2 = new RPCLink({
   // headers: provide additional headers
 })
 
-const dynamicLink = new DynamicLink((path, input, context) => { // can be async
+const dynamicLink = new DynamicLink(({ context }, path, input) => { // can be async
   if (path.includes('post')) {
     return rpcLink1
   }

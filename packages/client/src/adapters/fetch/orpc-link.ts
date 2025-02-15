@@ -129,7 +129,7 @@ export class RPCLink<TClientContext extends ClientContext> implements ClientLink
     ) {
       const getUrl = new URL(url)
 
-      getUrl.searchParams.append('input', JSON.stringify(serialized))
+      getUrl.searchParams.append('data', JSON.stringify(serialized))
 
       if (getUrl.toString().length <= this.maxUrlLength) {
         return {

@@ -19,7 +19,7 @@ export class RPCCodec implements StandardCodec {
 
   async decode(request: StandardRequest, _params: StandardParams | undefined, _procedure: AnyProcedure): Promise<unknown> {
     const serialized = request.method === 'GET'
-      ? JSON.parse(request.url.searchParams.getAll('input').at(-1) as any) // this prevent duplicate input params
+      ? JSON.parse(request.url.searchParams.getAll('data').at(-1) as any) // this prevent duplicate data params
       : await request.body() as any
 
     return this.serializer.deserialize(serialized)

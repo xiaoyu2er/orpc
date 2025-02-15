@@ -1,5 +1,5 @@
 import { ORPCError } from '@orpc/contract'
-import { getEventSourceMeta, isAsyncIteratorObject, setEventSourceMeta } from '@orpc/server-standard'
+import { EventSourceErrorEvent, getEventSourceMeta, isAsyncIteratorObject, setEventSourceMeta } from '@orpc/server-standard'
 import { supportedDataTypes } from '../../../tests/shared'
 import { RPCSerializer } from './rpc-serializer'
 
@@ -59,7 +59,7 @@ describe.each(supportedDataTypes)('rpcSerializer: $name', ({ value, expected }) 
   })
 })
 
-it('rpcSerializer: event-source iterator', async () => {
+describe('rpcSerializer: event-source iterator', async () => {
   const serializer = new RPCSerializer()
 
   function serializeAndDeserialize(value: unknown): unknown {
@@ -69,23 +69,147 @@ it('rpcSerializer: event-source iterator', async () => {
 
   const date = new Date()
 
-  const iterator = (async function* () {
-    yield 1
-    yield { order: 2, date }
-    throw setEventSourceMeta(new ORPCError('BAD_GATEWAY', { data: { order: 3, date } }), { id: '56789' })
-  })()
+  it('on success', async () => {
+    const iterator = (async function* () {
+      yield 1
+      yield setEventSourceMeta({ order: 2, date }, { retry: 1000 })
+      return setEventSourceMeta({ order: 3 }, { id: '123456' })
+    })()
 
-  const deserialized = serializeAndDeserialize(iterator) as any
+    const deserialized = serializeAndDeserialize(iterator) as any
 
-  expect(deserialized).toSatisfy(isAsyncIteratorObject)
-  expect(await deserialized.next()).toEqual({ done: false, value: 1 })
-  expect(await deserialized.next()).toEqual({ done: false, value: { order: 2, date } })
-  await expect(deserialized.next()).rejects.toSatisfy((e: any) => {
-    expect(e).toBeInstanceOf(ORPCError)
-    expect(e.code).toBe('BAD_GATEWAY')
-    expect(e.data).toEqual({ order: 3, date })
-    expect(getEventSourceMeta(e)).toEqual({ id: '56789' })
+    expect(deserialized).toSatisfy(isAsyncIteratorObject)
+    await expect(deserialized.next()).resolves.toSatisfy(({ value, done }) => {
+      expect(done).toBe(false)
+      expect(value).toEqual(1)
+      expect(getEventSourceMeta(value)).toEqual(undefined)
 
-    return true
+      return true
+    })
+
+    await expect(deserialized.next()).resolves.toSatisfy(({ value, done }) => {
+      expect(done).toBe(false)
+      expect(value).toEqual({ order: 2, date })
+      expect(getEventSourceMeta(value)).toEqual({ retry: 1000 })
+
+      return true
+    })
+
+    await expect(deserialized.next()).resolves.toSatisfy(({ value, done }) => {
+      expect(done).toBe(true)
+      expect(value).toEqual({ order: 3 })
+      expect(getEventSourceMeta(value)).toEqual({ id: '123456' })
+
+      return true
+    })
+  })
+
+  it('on error with ORPCError', async () => {
+    const error = setEventSourceMeta(new ORPCError('BAD_GATEWAY', { data: { order: 3 } }), { id: '123456' })
+
+    const iterator = (async function* () {
+      yield 1
+      yield setEventSourceMeta({ order: 2, date }, { retry: 1000 })
+      throw error
+    })()
+
+    const deserialized = serializeAndDeserialize(iterator) as any
+
+    expect(deserialized).toSatisfy(isAsyncIteratorObject)
+    await expect(deserialized.next()).resolves.toSatisfy(({ value, done }) => {
+      expect(done).toBe(false)
+      expect(value).toEqual(1)
+      expect(getEventSourceMeta(value)).toEqual(undefined)
+
+      return true
+    })
+
+    await expect(deserialized.next()).resolves.toSatisfy(({ value, done }) => {
+      expect(done).toBe(false)
+      expect(value).toEqual({ order: 2, date })
+      expect(getEventSourceMeta(value)).toEqual({ retry: 1000 })
+
+      return true
+    })
+
+    await expect(deserialized.next()).rejects.toSatisfy((e: any) => {
+      expect(e).toEqual(error)
+      expect(e).toBeInstanceOf(ORPCError)
+      expect(e.cause).toBeInstanceOf(EventSourceErrorEvent)
+
+      return true
+    })
+  })
+
+  it('on error with EventSourceErrorEvent', async () => {
+    const error = setEventSourceMeta(new EventSourceErrorEvent({ data: { order: 3 } }), { id: '123456' })
+
+    const iterator = (async function* () {
+      yield 1
+      yield setEventSourceMeta({ order: 2, date }, { retry: 1000 })
+      throw error
+    })()
+
+    const deserialized = serializeAndDeserialize(iterator) as any
+
+    expect(deserialized).toSatisfy(isAsyncIteratorObject)
+    await expect(deserialized.next()).resolves.toSatisfy(({ value, done }) => {
+      expect(done).toBe(false)
+      expect(value).toEqual(1)
+      expect(getEventSourceMeta(value)).toEqual(undefined)
+
+      return true
+    })
+
+    await expect(deserialized.next()).resolves.toSatisfy(({ value, done }) => {
+      expect(done).toBe(false)
+      expect(value).toEqual({ order: 2, date })
+      expect(getEventSourceMeta(value)).toEqual({ retry: 1000 })
+
+      return true
+    })
+
+    await expect(deserialized.next()).rejects.toSatisfy((e: any) => {
+      expect(e).toEqual(error)
+      expect(e).toBeInstanceOf(EventSourceErrorEvent)
+      expect(e.cause).toBeInstanceOf(EventSourceErrorEvent)
+
+      return true
+    })
+  })
+
+  it('on error with unknown error when deserialize', async () => {
+    const error = setEventSourceMeta(new Error('UNKNOWN'), { id: '123456' })
+
+    const iterator = (async function* () {
+      yield serializer.serialize(1)
+      yield setEventSourceMeta(serializer.serialize({ order: 2, date }), { retry: 1000 })
+      throw error
+    })()
+
+    const deserialized = serializer.deserialize(iterator as any) as any
+
+    expect(deserialized).toSatisfy(isAsyncIteratorObject)
+    await expect(deserialized.next()).resolves.toSatisfy(({ value, done }) => {
+      expect(done).toBe(false)
+      expect(value).toEqual(1)
+      expect(getEventSourceMeta(value)).toEqual(undefined)
+
+      return true
+    })
+
+    await expect(deserialized.next()).resolves.toSatisfy(({ value, done }) => {
+      expect(done).toBe(false)
+      expect(value).toEqual({ order: 2, date })
+      expect(getEventSourceMeta(value)).toEqual({ retry: 1000 })
+
+      return true
+    })
+
+    await expect(deserialized.next()).rejects.toSatisfy((e: any) => {
+      expect(e).toBe(error)
+
+      return true
+    })
   })
 })

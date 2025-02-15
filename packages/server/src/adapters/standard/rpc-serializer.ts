@@ -1,8 +1,8 @@
 import type { JsonValue } from '@orpc/server-standard'
 import type { Segment } from '@orpc/shared'
-import { ORPCError, toORPCError } from '@orpc/contract'
-import { EventSourceErrorEvent, getEventSourceMeta, isAsyncIteratorObject, isEventSourceMetaContainer, setEventSourceMeta } from '@orpc/server-standard'
-import { findDeepMatches, isObject, mapAsyncIterator, set } from '@orpc/shared'
+import { mapEventSourceIterator, ORPCError, toORPCError } from '@orpc/contract'
+import { EventSourceErrorEvent, isAsyncIteratorObject } from '@orpc/server-standard'
+import { findDeepMatches, isObject, set } from '@orpc/shared'
 
 export type RPCSerializedJsonMeta = ['bigint' | 'date' | 'nan' | 'undefined' | 'set' | 'map' | 'regexp' | 'url', Segment[]][]
 export type RPCSerialized =
@@ -15,32 +15,20 @@ export type RPCSerializedFormDataMaps = Segment[][]
 export class RPCSerializer {
   serialize(data: unknown): RPCSerialized {
     if (isAsyncIteratorObject(data)) {
-      const mapValue = (value: unknown) => {
-        const serialized = serializeRPCJson(value)
-        const eventSourceMeta = getEventSourceMeta(value)
-
-        if (eventSourceMeta && isEventSourceMetaContainer(value)) {
-          return setEventSourceMeta(serialized, eventSourceMeta)
-        }
-
-        return serialized
-      }
-
-      return mapAsyncIterator(data, {
-        yield: mapValue,
-        return: mapValue,
-        error(e) {
-          const error = new EventSourceErrorEvent({
-            data: serializeRPCJson(toORPCError(e).toJSON()) as JsonValue,
-          })
-
-          const eventSourceMeta = getEventSourceMeta(e)
-
-          if (eventSourceMeta) {
-            return setEventSourceMeta(error, eventSourceMeta)
+      return mapEventSourceIterator(data, {
+        value: async (value: unknown) => serializeRPCJson(value),
+        error: async (e) => {
+          if (e instanceof EventSourceErrorEvent) {
+            return new EventSourceErrorEvent({
+              data: serializeRPCJson(e.data) as JsonValue,
+              cause: e,
+            })
           }
 
-          return error
+          return new EventSourceErrorEvent({
+            data: serializeRPCJson(toORPCError(e).toJSON()) as JsonValue,
+            cause: e,
+          })
         },
       })
     }
@@ -66,43 +54,23 @@ export class RPCSerializer {
 
   deserialize(serialized: RPCSerialized): unknown {
     if (isAsyncIteratorObject(serialized)) {
-      const mapValue = (value: { json: unknown, meta: RPCSerializedJsonMeta }) => {
-        if (!value) {
-          return value
-        }
-
-        const deserialized = deserializeRPCJson(value)
-        const eventSourceMeta = getEventSourceMeta(value)
-
-        if (eventSourceMeta && isEventSourceMetaContainer(deserialized)) {
-          return setEventSourceMeta(deserialized, eventSourceMeta)
-        }
-
-        return deserialized
-      }
-
-      return mapAsyncIterator(serialized, {
-        yield: mapValue,
-        return: mapValue,
-        error(e) {
+      return mapEventSourceIterator(serialized, {
+        value: async value => deserializeRPCJson(value),
+        error: async (e) => {
           if (!(e instanceof EventSourceErrorEvent)) {
             return e
           }
 
           const deserialized = deserializeRPCJson(e.data as any)
 
-          if (!ORPCError.isValidJSON(deserialized)) {
-            return e
+          if (ORPCError.isValidJSON(deserialized)) {
+            return ORPCError.fromJSON(deserialized, { cause: e })
           }
 
-          const error = ORPCError.fromJSON(deserialized)
-          const eventSourceMeta = getEventSourceMeta(e)
-
-          if (eventSourceMeta) {
-            return setEventSourceMeta(error, eventSourceMeta)
-          }
-
-          return error
+          return new EventSourceErrorEvent({
+            data: deserialized as JsonValue,
+            cause: e,
+          })
         },
       })
     }

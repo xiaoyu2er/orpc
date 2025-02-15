@@ -103,7 +103,7 @@ export function fallbackORPCErrorMessage(code: ORPCErrorCode, message: string | 
   return message || (COMMON_ORPC_ERROR_DEFS as any)[code]?.message || code
 }
 
-export type ORPCErrorOptions< TData> =
+export type ORPCErrorOptions<TData> =
   & ErrorOptions
   & { defined?: boolean, status?: number, message?: string }
   & (undefined extends TData ? { data?: TData } : { data: TData })
@@ -139,13 +139,27 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
     }
   }
 
-  static fromJSON<TCode extends ORPCErrorCode, TData>(json: ORPCErrorJSON<TCode, TData>): ORPCError<TCode, TData> {
-    return new ORPCError(json.code, json)
+  static fromJSON<TCode extends ORPCErrorCode, TData>(
+    json: ORPCErrorJSON<TCode, TData>,
+    options?: ErrorOptions,
+  ): ORPCError<TCode, TData> {
+    return new ORPCError(json.code, {
+      ...options,
+      ...json,
+    })
   }
 
   static isValidJSON(json: unknown): json is ORPCErrorJSON<ORPCErrorCode, unknown> {
-    return isObject(json)
-      && 'defined' in json
+    if (!isObject(json)) {
+      return false
+    }
+
+    const validKeys = ['defined', 'code', 'status', 'message', 'data']
+    if (Object.keys(json).some(k => !validKeys.includes(k))) {
+      return false
+    }
+
+    return 'defined' in json
       && typeof json.defined === 'boolean'
       && 'code' in json
       && typeof json.code === 'string'

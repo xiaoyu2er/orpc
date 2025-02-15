@@ -1,8 +1,8 @@
 import type { JsonValue } from '@orpc/server-standard'
 import type { PublicJSONSerializer } from '../../json-serializer'
-import { ORPCError, toORPCError } from '@orpc/contract'
-import { EventSourceErrorEvent, getEventSourceMeta, isAsyncIteratorObject, isEventSourceMetaContainer, setEventSourceMeta } from '@orpc/server-standard'
-import { findDeepMatches, mapAsyncIterator } from '@orpc/shared'
+import { mapEventSourceIterator, ORPCError, toORPCError } from '@orpc/contract'
+import { EventSourceErrorEvent, isAsyncIteratorObject } from '@orpc/server-standard'
+import { findDeepMatches } from '@orpc/shared'
 import { JSONSerializer } from '../../json-serializer'
 import * as BracketNotation from './bracket-notation'
 
@@ -23,33 +23,20 @@ export class OpenAPISerializer {
     }
 
     if (isAsyncIteratorObject(data)) {
-      const mapValue = (value: unknown) => {
-        const serialized = this.jsonSerializer.serialize(value)
-        const eventSourceMeta = getEventSourceMeta(value)
+      return mapEventSourceIterator(data, {
+        value: async value => this.jsonSerializer.serialize(value),
+        error: async (e) => {
+          if (e instanceof EventSourceErrorEvent) {
+            return new EventSourceErrorEvent({
+              data: this.jsonSerializer.serialize(e.data) as JsonValue,
+              cause: e,
+            })
+          }
 
-        if (eventSourceMeta && isEventSourceMetaContainer(serialized)) {
-          return setEventSourceMeta(serialized, eventSourceMeta)
-        }
-
-        return serialized
-      }
-
-      return mapAsyncIterator(data, {
-        yield: mapValue,
-        return: mapValue,
-        error: (e) => {
-          const error = new EventSourceErrorEvent({
+          return new EventSourceErrorEvent({
             data: this.jsonSerializer.serialize(toORPCError(e).toJSON()) as JsonValue,
             cause: e,
           })
-
-          const eventSourceMeta = getEventSourceMeta(e)
-
-          if (eventSourceMeta) {
-            return setEventSourceMeta(error, eventSourceMeta)
-          }
-
-          return error
         },
       })
     }
@@ -88,22 +75,14 @@ export class OpenAPISerializer {
     }
 
     if (isAsyncIteratorObject(serialized)) {
-      return mapAsyncIterator(serialized, {
-        yield: value => value,
-        return: value => value,
-        error(e) {
-          if (!(e instanceof EventSourceErrorEvent) || !ORPCError.isValidJSON(e.data)) {
-            return e
+      return mapEventSourceIterator(serialized, {
+        value: async value => value,
+        error: async (e) => {
+          if (e instanceof EventSourceErrorEvent && ORPCError.isValidJSON(e.data)) {
+            return ORPCError.fromJSON(e.data, { cause: e })
           }
 
-          const error = ORPCError.fromJSON(e.data)
-          const eventSourceMeta = getEventSourceMeta(e)
-
-          if (eventSourceMeta) {
-            return setEventSourceMeta(error, eventSourceMeta)
-          }
-
-          return error
+          return e
         },
       })
     }

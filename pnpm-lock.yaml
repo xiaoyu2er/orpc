@@ -181,6 +181,9 @@ importers:
 
   packages/contract:
     dependencies:
+      '@orpc/server-standard':
+        specifier: ^0.3.0
+        version: 0.3.0
       '@orpc/shared':
         specifier: workspace:*
         version: link:../shared
@@ -10083,7 +10086,7 @@ snapshots:
 
   dot-prop@9.0.0:
     dependencies:
-      type-fest: 4.33.0
+      type-fest: 4.34.1
 
   dotenv@16.4.7: {}
 
@@ -12758,7 +12761,7 @@ snapshots:
     dependencies:
       '@babel/code-frame': 7.26.2
       index-to-position: 0.1.2
-      type-fest: 4.33.0
+      type-fest: 4.34.1
 
   parse-path@7.0.0:
     dependencies:

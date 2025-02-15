@@ -250,7 +250,7 @@ describe('rpcLink', () => {
       expect(mockMethod).toHaveBeenCalledWith(['test'], '__input__', {})
       expect(mockFetch).toHaveBeenCalledOnce()
       expect(mockFetch).toHaveBeenCalledWith(
-        new URL('http://api.example.com/test?input=%7B%22json%22%3A%22__input__%22%2C%22meta%22%3A%5B%5D%7D'),
+        new URL('http://api.example.com/test?data=%7B%22json%22%3A%22__input__%22%2C%22meta%22%3A%5B%5D%7D'),
         { method: 'GET', headers: expect.any(Headers) },
         {},
       )
@@ -288,7 +288,7 @@ describe('rpcLink', () => {
       const mockMethod = vi.fn()
 
       const link = new RPCLink({
-        url: 'http://api.example.com/?input=xin&meta=chao',
+        url: 'http://api.example.com/?data=xin&meta=chao',
         fetch: mockFetch,
         method: mockMethod,
       })
@@ -300,7 +300,7 @@ describe('rpcLink', () => {
 
       expect(mockMethod).toHaveBeenCalledWith(['test'], '__input__', {})
       expect(mockFetch).toHaveBeenCalledWith(
-        new URL('http://api.example.com/?input=xin&meta=chao%2Ftest&input=%7B%22json%22%3A%22__input__%22%2C%22meta%22%3A%5B%5D%7D'),
+        new URL('http://api.example.com/?data=xin&meta=chao%2Ftest&data=%7B%22json%22%3A%22__input__%22%2C%22meta%22%3A%5B%5D%7D'),
         { method: 'GET', headers: expect.any(Headers) },
         {},
       )

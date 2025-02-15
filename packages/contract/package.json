@@ -42,6 +42,7 @@
     "type:check": "tsc -b"
   },
   "dependencies": {
+    "@orpc/server-standard": "^0.3.0",
     "@orpc/shared": "workspace:*",
     "@standard-schema/spec": "^1.0.0"
   },

@@ -58,7 +58,7 @@ export function eventIterator<TYieldIn, TYieldOut, TReturnIn = unknown, TReturnO
 ): StandardSchemaV1<AsyncIteratorObject<TYieldIn, TReturnIn, void>, AsyncIteratorObject<TYieldOut, TReturnOut, void>> {
   return {
     '~standard': {
-      [EVENT_ITERATOR_SCHEMA_SYMBOL as any]: { yields, returns },
+      [EVENT_ITERATOR_SCHEMA_SYMBOL as any]: { yields, returns } satisfies { yields: Schema, returns: Schema },
       vendor: 'orpc',
       version: 1,
       validate(iterator) {
@@ -97,7 +97,7 @@ export function eventIterator<TYieldIn, TYieldOut, TReturnIn = unknown, TReturnO
   }
 }
 
-export function getEventSourceIteratorSchemaDetails(schema: Schema): undefined | { yields: Schema, returns: Schema } {
+export function getEventIteratorSchemaDetails(schema: Schema): undefined | { yields: Schema, returns: Schema } {
   if (schema === undefined) {
     return undefined
   }

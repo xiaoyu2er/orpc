@@ -2,7 +2,7 @@ import { getEventSourceMeta, setEventSourceMeta } from '@orpc/server-standard'
 import { z } from 'zod'
 import { ValidationError } from './error'
 import { ORPCError } from './error-orpc'
-import { eventIterator, getEventSourceIteratorSchemaDetails, mapEventSourceIterator } from './event-source'
+import { eventIterator, getEventIteratorSchemaDetails, mapEventSourceIterator } from './event-source'
 
 describe('mapEventSourceIterator', () => {
   it('on success', async () => {
@@ -250,12 +250,12 @@ describe('eventIterator', async () => {
   })
 })
 
-it('getEventSourceIteratorSchemaDetails', async () => {
+it('getEventIteratorSchemaDetails', async () => {
   const yieldSchema = z.object({ order: z.number() })
   const returnSchema = z.object({ order: z.number() })
   const schema = eventIterator(yieldSchema, returnSchema)
 
-  expect(getEventSourceIteratorSchemaDetails(schema)).toEqual({ yields: yieldSchema, returns: returnSchema })
-  expect(getEventSourceIteratorSchemaDetails(undefined)).toBeUndefined()
-  expect(getEventSourceIteratorSchemaDetails(z.object({}))).toBeUndefined()
+  expect(getEventIteratorSchemaDetails(schema)).toEqual({ yields: yieldSchema, returns: returnSchema })
+  expect(getEventIteratorSchemaDetails(undefined)).toBeUndefined()
+  expect(getEventIteratorSchemaDetails(z.object({}))).toBeUndefined()
 })

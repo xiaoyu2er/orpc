@@ -8,8 +8,11 @@ import {
   updatePlanet,
   updatePlanetImage,
 } from './planet'
+import { stream } from './stream'
 
 export const router = {
+  stream,
+
   auth: pub.tag('Authentication').prefix('/auth').router({
     signup,
     signin,

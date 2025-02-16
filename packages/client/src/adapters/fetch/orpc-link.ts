@@ -1,12 +1,12 @@
 import type { ClientContext, HTTPMethod } from '@orpc/contract'
-import type { Promisable } from '@orpc/shared'
+import type { Value } from '@orpc/shared'
 import type { ClientLink, ClientOptionsOut } from '../../types'
 import type { FetchWithContext } from './types'
 import { ORPCError } from '@orpc/contract'
 import { isAsyncIteratorObject, type StandardBody } from '@orpc/server-standard'
 import { toFetchBody, toStandardBody } from '@orpc/server-standard-fetch'
 import { RPCSerializer } from '@orpc/server/standard'
-import { trim } from '@orpc/shared'
+import { trim, value } from '@orpc/shared'
 import { createAutoRetryEventIterator, type EventIteratorReconnectOptions } from '../../event-iterator'
 
 export class InvalidEventSourceRetryResponse extends Error { }
@@ -29,11 +29,11 @@ export interface RPCLinkOptions<TClientContext extends ClientContext> {
    *
    * @default 'POST'
    */
-  method?(
+  method?: Value<HTTPMethod, [
     options: ClientOptionsOut<TClientContext>,
     path: readonly string[],
     input: unknown,
-  ): Promisable<HTTPMethod>
+  ]>
 
   /**
    * The method to use when the payload cannot safely pass to the server with method return from method function.
@@ -46,11 +46,11 @@ export interface RPCLinkOptions<TClientContext extends ClientContext> {
   /**
    * Inject headers to the request.
    */
-  headers?(
+  headers?: Value<[string, string][] | Record<string, string> | Headers, [
     options: ClientOptionsOut<TClientContext>,
     path: readonly string[],
     input: unknown,
-  ): Promisable<[string, string][] | Record<string, string> | Headers>
+  ]>
 
   /**
    * Custom fetch implementation.
@@ -73,24 +73,24 @@ export interface RPCLinkOptions<TClientContext extends ClientContext> {
    *
    * @default ({retryTimes, lastRetry}) => lastRetry ?? (1000 * 2 ** retryTimes)
    */
-  eventSourceRetryDelay?: (
+  eventSourceRetryDelay?: Value<number, [
     reconnectOptions: EventIteratorReconnectOptions,
     options: ClientOptionsOut<TClientContext>,
     path: readonly string[],
     input: unknown,
-  ) => number
+  ]>
 
   /**
    * Function to determine if an error is retryable.
    *
-   * @default () => true
+   * @default true
    */
-  eventSourceRetry?: (
+  eventSourceRetry?: Value<boolean, [
     reconnectOptions: EventIteratorReconnectOptions,
     options: ClientOptionsOut<TClientContext>,
     path: readonly string[],
     input: unknown,
-  ) => boolean
+  ]>
 }
 
 export class RPCLink<TClientContext extends ClientContext> implements ClientLink<TClientContext> {
@@ -113,9 +113,9 @@ export class RPCLink<TClientContext extends ClientContext> implements ClientLink
     this.url = options.url
     this.eventSourceMaxNumberOfRetries = options.eventSourceMaxNumberOfRetries ?? 5
 
-    this.method = options.method ?? (() => this.fallbackMethod)
-    this.headers = options.headers ?? (() => ({}))
-    this.eventSourceRetry = options.eventSourceRetry ?? (() => true)
+    this.method = options.method ?? this.fallbackMethod
+    this.headers = options.headers ?? {}
+    this.eventSourceRetry = options.eventSourceRetry ?? true
 
     this.eventSourceRetryDelay = options.eventSourceRetryDelay
       ?? (({ retryTimes, lastRetry }) => lastRetry ?? (1000 * 2 ** retryTimes))
@@ -133,11 +133,13 @@ export class RPCLink<TClientContext extends ClientContext> implements ClientLink
         return null
       }
 
-      if (!this.eventSourceRetry(reconnectOptions, options, path, input)) {
+      if (!(await value(this.eventSourceRetry, reconnectOptions, options, path, input))) {
         return null
       }
 
-      await new Promise(resolve => setTimeout(resolve, this.eventSourceRetryDelay(reconnectOptions, options, path, input)))
+      const delay = await value(this.eventSourceRetryDelay, reconnectOptions, options, path, input)
+
+      await new Promise(resolve => setTimeout(resolve, delay))
 
       const updatedOptions = { ...options, lastEventId: reconnectOptions.lastEventId }
       const maybeIterator = await this.performCall(path, input, updatedOptions)
@@ -209,8 +211,8 @@ export class RPCLink<TClientContext extends ClientContext> implements ClientLink
     input: unknown,
     options: ClientOptionsOut<TClientContext>,
   ): Promise<{ url: URL, method: HTTPMethod, headers: Headers, body: StandardBody }> {
-    const expectedMethod = await this.method(options, path, input)
-    const headers = new Headers(await this.headers(options, path, input))
+    const expectedMethod = await value(this.method, options, path, input)
+    const headers = new Headers(await value(this.headers, options, path, input))
     const url = new URL(`${trim(this.url, '/')}/${path.map(encodeURIComponent).join('/')}`)
 
     const serialized = this.rpcSerializer.serialize(input)

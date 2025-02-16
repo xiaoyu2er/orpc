@@ -1,11 +1,11 @@
 import type {
   EventIteratorState,
-} from './event-source-state'
+} from './event-iterator-state'
 import {
   onEventIteratorStatusChange,
   registerEventIteratorState,
   updateEventIteratorStatus,
-} from './event-source-state'
+} from './event-iterator-state'
 
 describe('eventIterator Status Management', () => {
   // A dummy object to act as our iterator.

@@ -7,7 +7,7 @@ import { isAsyncIteratorObject, type StandardBody } from '@orpc/server-standard'
 import { toFetchBody, toStandardBody } from '@orpc/server-standard-fetch'
 import { RPCSerializer } from '@orpc/server/standard'
 import { trim } from '@orpc/shared'
-import { createAutoRetryEventSourceIterator, type EventSourceIteratorReconnectOptions } from '../../event-source'
+import { createAutoRetryEventIterator, type EventIteratorReconnectOptions } from '../../event-iterator'
 
 export class InvalidEventSourceRetryResponse extends Error { }
 
@@ -74,7 +74,7 @@ export interface RPCLinkOptions<TClientContext extends ClientContext> {
    * @default ({retryTimes, lastRetry}) => lastRetry ?? (1000 * 2 ** retryTimes)
    */
   eventSourceRetryDelay?: (
-    reconnectOptions: EventSourceIteratorReconnectOptions,
+    reconnectOptions: EventIteratorReconnectOptions,
     options: ClientOptionsOut<TClientContext>,
     path: readonly string[],
     input: unknown,
@@ -86,7 +86,7 @@ export interface RPCLinkOptions<TClientContext extends ClientContext> {
    * @default () => true
    */
   eventSourceRetry?: (
-    reconnectOptions: EventSourceIteratorReconnectOptions,
+    reconnectOptions: EventIteratorReconnectOptions,
     options: ClientOptionsOut<TClientContext>,
     path: readonly string[],
     input: unknown,
@@ -128,7 +128,7 @@ export class RPCLink<TClientContext extends ClientContext> implements ClientLink
       return output
     }
 
-    return createAutoRetryEventSourceIterator(output, async (reconnectOptions) => {
+    return createAutoRetryEventIterator(output, async (reconnectOptions) => {
       if (options.signal?.aborted || reconnectOptions.retryTimes > this.eventSourceMaxNumberOfRetries) {
         return null
       }

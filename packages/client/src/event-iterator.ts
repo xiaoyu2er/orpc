@@ -1,9 +1,9 @@
-import type { EventIteratorState } from './event-source-state'
+import type { EventIteratorState } from './event-iterator-state'
 import { getEventMeta } from '@orpc/server-standard'
 import { retry } from '@orpc/shared'
-import { registerEventIteratorState, updateEventIteratorStatus } from './event-source-state'
+import { registerEventIteratorState, updateEventIteratorStatus } from './event-iterator-state'
 
-export interface EventSourceIteratorReconnectOptions {
+export interface EventIteratorReconnectOptions {
   lastRetry: number | undefined
   lastEventId: string | undefined
   retryTimes: number
@@ -12,9 +12,9 @@ export interface EventSourceIteratorReconnectOptions {
 
 const MAX_ALLOWED_RETRY_TIMES = 99
 
-export function createAutoRetryEventSourceIterator<TYield, TReturn>(
+export function createAutoRetryEventIterator<TYield, TReturn>(
   initial: AsyncIterator<TYield, TReturn, void>,
-  reconnect: (options: EventSourceIteratorReconnectOptions) => Promise<AsyncIterator<TYield, TReturn, void> | null>,
+  reconnect: (options: EventIteratorReconnectOptions) => Promise<AsyncIterator<TYield, TReturn, void> | null>,
   initialLastEventId: string | undefined,
 ): AsyncGenerator<TYield, TReturn, void> {
   const state: EventIteratorState = {

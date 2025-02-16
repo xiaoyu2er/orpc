@@ -1,11 +1,11 @@
 import { withEventMeta } from '@orpc/server-standard'
-import { createAutoRetryEventSourceIterator } from './event-source'
-import { onEventIteratorStatusChange } from './event-source-state'
+import { createAutoRetryEventIterator } from './event-iterator'
+import { onEventIteratorStatusChange } from './event-iterator-state'
 
-describe('createAutoRetryEventSourceIterator', () => {
+describe('createAutoRetryEventIterator', () => {
   it('on success', async () => {
     const reconnect = vi.fn()
-    const iterator = createAutoRetryEventSourceIterator((async function* () {
+    const iterator = createAutoRetryEventIterator((async function* () {
       yield 1
       yield 2
       yield 3
@@ -31,7 +31,7 @@ describe('createAutoRetryEventSourceIterator', () => {
   it('on error', async () => {
     const reconnect = vi.fn().mockResolvedValueOnce(null)
     const error = new Error('bad')
-    const iterator = createAutoRetryEventSourceIterator((async function* () {
+    const iterator = createAutoRetryEventIterator((async function* () {
       yield 1
       yield 2
       yield 3
@@ -65,7 +65,7 @@ describe('createAutoRetryEventSourceIterator', () => {
   it('on error with meta', async () => {
     const reconnect = vi.fn().mockResolvedValueOnce(null)
     const error = withEventMeta(new Error('bad'), { id: 'meta-id' })
-    const iterator = createAutoRetryEventSourceIterator((async function* () {
+    const iterator = createAutoRetryEventIterator((async function* () {
       yield 1
       yield 2
       yield withEventMeta({ order: 3 }, { retry: 1000 })
@@ -98,7 +98,7 @@ describe('createAutoRetryEventSourceIterator', () => {
     }) as any
 
     const error = withEventMeta(new Error('bad'), { id: 'meta-id' })
-    const iterator = createAutoRetryEventSourceIterator((async function* () {
+    const iterator = createAutoRetryEventIterator((async function* () {
       yield 1
       yield 2
       yield withEventMeta({ order: 3 }, { retry: 1000 })
@@ -134,7 +134,7 @@ describe('createAutoRetryEventSourceIterator', () => {
     }) as any
 
     const error = withEventMeta(new Error('bad'), { id: 'meta-id' })
-    const iterator = createAutoRetryEventSourceIterator((async function* () {
+    const iterator = createAutoRetryEventIterator((async function* () {
       yield 1
       yield 2
       yield withEventMeta({ order: 3 }, { retry: 1000 })

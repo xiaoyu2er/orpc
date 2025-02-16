@@ -2,9 +2,9 @@ import { getEventMeta, withEventMeta } from '@orpc/server-standard'
 import { z } from 'zod'
 import { ValidationError } from './error'
 import { ORPCError } from './error-orpc'
-import { eventIterator, getEventIteratorSchemaDetails, mapEventSourceIterator } from './event-source'
+import { eventIterator, getEventIteratorSchemaDetails, mapEventIterator } from './event-iterator'
 
-describe('mapEventSourceIterator', () => {
+describe('mapEventIterator', () => {
   it('on success', async () => {
     let finished = false
 
@@ -22,7 +22,7 @@ describe('mapEventSourceIterator', () => {
 
     const map = vi.fn(async v => ({ mapped: v }))
 
-    const mapped = mapEventSourceIterator(iterator, {
+    const mapped = mapEventIterator(iterator, {
       error: map,
       value: map,
     })
@@ -89,7 +89,7 @@ describe('mapEventSourceIterator', () => {
 
     const map = vi.fn(async v => ({ mapped: v }))
 
-    const mapped = mapEventSourceIterator(iterator, {
+    const mapped = mapEventIterator(iterator, {
       error: map,
       value: map,
     })
@@ -122,7 +122,7 @@ describe('mapEventSourceIterator', () => {
 
     const map = vi.fn(async v => ({ mapped: v }))
 
-    const mapped = mapEventSourceIterator(iterator, {
+    const mapped = mapEventIterator(iterator, {
       error: map,
       value: map,
     })
@@ -149,7 +149,7 @@ describe('mapEventSourceIterator', () => {
 
     const map = vi.fn(async v => ({ mapped: v }))
 
-    const mapped = mapEventSourceIterator(iterator, {
+    const mapped = mapEventIterator(iterator, {
       error: map,
       value: map,
     })

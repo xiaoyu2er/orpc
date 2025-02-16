@@ -4,7 +4,7 @@ import { getEventMeta, isAsyncIteratorObject, isEventMetaContainer, withEventMet
 import { ValidationError } from './error'
 import { ORPCError } from './error-orpc'
 
-export function mapEventSourceIterator<TYield, TReturn, TNext, TMap = TYield | TReturn>(
+export function mapEventIterator<TYield, TReturn, TNext, TMap = TYield | TReturn>(
   iterator: AsyncIterator<TYield, TReturn, TNext>,
   maps: {
     value: (value: NoInfer<TYield | TReturn>, done: boolean | undefined) => Promise<TMap>
@@ -66,7 +66,7 @@ export function eventIterator<TYieldIn, TYieldOut, TReturnIn = unknown, TReturnO
           return { issues: [{ message: 'Expect event source iterator', path: [] }] }
         }
 
-        const mapped = mapEventSourceIterator(iterator, {
+        const mapped = mapEventIterator(iterator, {
           async value(value, done) {
             const schema = done ? returns : yields
 

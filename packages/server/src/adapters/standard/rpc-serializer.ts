@@ -1,6 +1,6 @@
 import type { JsonValue } from '@orpc/server-standard'
 import type { Segment } from '@orpc/shared'
-import { mapEventSourceIterator, ORPCError, toORPCError } from '@orpc/contract'
+import { mapEventIterator, ORPCError, toORPCError } from '@orpc/contract'
 import { ErrorEvent, isAsyncIteratorObject } from '@orpc/server-standard'
 import { findDeepMatches, isObject, set } from '@orpc/shared'
 
@@ -15,7 +15,7 @@ export type RPCSerializedFormDataMaps = Segment[][]
 export class RPCSerializer {
   serialize(data: unknown): RPCSerialized {
     if (isAsyncIteratorObject(data)) {
-      return mapEventSourceIterator(data, {
+      return mapEventIterator(data, {
         value: async (value: unknown) => serializeRPCJson(value),
         error: async (e) => {
           if (e instanceof ErrorEvent) {
@@ -54,7 +54,7 @@ export class RPCSerializer {
 
   deserialize(serialized: RPCSerialized): unknown {
     if (isAsyncIteratorObject(serialized)) {
-      return mapEventSourceIterator(serialized, {
+      return mapEventIterator(serialized, {
         value: async value => deserializeRPCJson(value),
         error: async (e) => {
           if (!(e instanceof ErrorEvent)) {

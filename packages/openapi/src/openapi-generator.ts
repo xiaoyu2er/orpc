@@ -3,7 +3,7 @@ import type { PublicOpenAPIOutputStructureParser } from './openapi-output-struct
 import type { PublicOpenAPIPathParser } from './openapi-path-parser'
 import type { JSONSchema } from './schema'
 import type { SchemaConverter } from './schema-converter'
-import { type ContractRouter, fallbackContractConfig, fallbackORPCErrorStatus } from '@orpc/contract'
+import { type ContractRouter, fallbackContractConfig, fallbackORPCErrorStatus, getEventIteratorSchemaDetails } from '@orpc/contract'
 import { type AnyRouter, eachAllContractProcedure } from '@orpc/server'
 import { group } from '@orpc/shared'
 import { JSONSerializer, type PublicJSONSerializer } from './json-serializer'
@@ -116,46 +116,154 @@ export class OpenAPIGenerator {
 
         const method = fallbackContractConfig('defaultMethod', def.route?.method)
         const httpPath = def.route?.path ? standardizeHTTPPath(def.route?.path) : `/${path.map(encodeURIComponent).join('/')}`
-        const inputStructure = fallbackContractConfig('defaultInputStructure', def.route?.inputStructure)
-        const outputStructure = fallbackContractConfig('defaultOutputStructure', def.route?.outputStructure)
 
-        const { paramsSchema, querySchema, headersSchema, bodySchema } = this.inputStructureParser.parse(contract, inputStructure)
-        const { headersSchema: resHeadersSchema, bodySchema: resBodySchema } = this.outputStructureParser.parse(contract, outputStructure)
+        const { parameters, requestBody } = (() => {
+          const eventIteratorSchemaDetails = getEventIteratorSchemaDetails(def.inputSchema)
 
-        const params = paramsSchema
-          ? this.parametersBuilder.build('path', paramsSchema, {
+          if (eventIteratorSchemaDetails) {
+            const requestBody: OpenAPI.RequestBodyObject = {
               required: true,
-            })
-          : []
-
-        const query = querySchema
-          ? this.parametersBuilder.build('query', querySchema)
-          : []
-
-        const headers = headersSchema
-          ? this.parametersBuilder.build('header', headersSchema)
-          : []
-
-        const parameters = [...params, ...query, ...headers]
-
-        const requestBody = bodySchema !== undefined
-          ? {
-              required: this.schemaUtils.isUndefinableSchema(bodySchema),
-              content: this.contentBuilder.build(bodySchema),
+              content: {
+                'text/event-stream': {
+                  schema: {
+                    oneOf: [
+                      {
+                        type: 'object',
+                        properties: {
+                          event: { type: 'string', const: 'message' },
+                          data: this.schemaConverter.convert(eventIteratorSchemaDetails.yields, { strategy: 'input' }) as any,
+                          id: { type: 'string' },
+                          retry: { type: 'number' },
+                        },
+                        required: ['event', 'data'],
+                      },
+                      {
+                        type: 'object',
+                        properties: {
+                          event: { type: 'string', const: 'done' },
+                          data: this.schemaConverter.convert(eventIteratorSchemaDetails.returns, { strategy: 'input' }) as any,
+                          id: { type: 'string' },
+                          retry: { type: 'number' },
+                        },
+                        required: ['event', 'data'],
+                      },
+                      {
+                        type: 'object',
+                        properties: {
+                          event: { type: 'string', const: 'error' },
+                          data: {},
+                          id: { type: 'string' },
+                          retry: { type: 'number' },
+                        },
+                        required: ['event', 'data'],
+                      },
+                    ],
+                  },
+                },
+              },
             }
-          : undefined
 
-        const responses: OpenAPI.ResponsesObject = {}
+            return { requestBody, parameters: [] }
+          }
 
-        responses[fallbackContractConfig('defaultSuccessStatus', def.route?.successStatus)] = {
-          description: fallbackContractConfig('defaultSuccessDescription', def.route?.successDescription),
-          content: resBodySchema !== undefined
-            ? this.contentBuilder.build(resBodySchema)
-            : undefined,
-          headers: resHeadersSchema !== undefined
-            ? this.parametersBuilder.buildHeadersObject(resHeadersSchema)
-            : undefined,
-        }
+          const inputStructure = fallbackContractConfig('defaultInputStructure', def.route?.inputStructure)
+
+          const { paramsSchema, querySchema, headersSchema, bodySchema } = this.inputStructureParser.parse(contract, inputStructure)
+
+          const params = paramsSchema
+            ? this.parametersBuilder.build('path', paramsSchema, {
+                required: true,
+              })
+            : []
+
+          const query = querySchema
+            ? this.parametersBuilder.build('query', querySchema)
+            : []
+
+          const headers = headersSchema
+            ? this.parametersBuilder.build('header', headersSchema)
+            : []
+
+          const parameters = [...params, ...query, ...headers]
+
+          const requestBody = bodySchema !== undefined
+            ? {
+                required: this.schemaUtils.isUndefinableSchema(bodySchema),
+                content: this.contentBuilder.build(bodySchema),
+              }
+            : undefined
+
+          return { parameters, requestBody }
+        })()
+
+        const { responses } = (() => {
+          const eventIteratorSchemaDetails = getEventIteratorSchemaDetails(def.outputSchema)
+
+          if (eventIteratorSchemaDetails) {
+            const responses: OpenAPI.ResponsesObject = {}
+
+            responses[fallbackContractConfig('defaultSuccessStatus', def.route?.successStatus)] = {
+              description: fallbackContractConfig('defaultSuccessDescription', def.route?.successDescription),
+              content: {
+                'text/event-stream': {
+                  schema: {
+                    oneOf: [
+                      {
+                        type: 'object',
+                        properties: {
+                          event: { type: 'string', const: 'message' },
+                          data: this.schemaConverter.convert(eventIteratorSchemaDetails.yields, { strategy: 'input' }) as any,
+                          id: { type: 'string' },
+                          retry: { type: 'number' },
+                        },
+                        required: ['event', 'data'],
+                      },
+                      {
+                        type: 'object',
+                        properties: {
+                          event: { type: 'string', const: 'done' },
+                          data: this.schemaConverter.convert(eventIteratorSchemaDetails.returns, { strategy: 'input' }) as any,
+                          id: { type: 'string' },
+                          retry: { type: 'number' },
+                        },
+                        required: ['event', 'data'],
+                      },
+                      {
+                        type: 'object',
+                        properties: {
+                          event: { type: 'string', const: 'error' },
+                          data: {},
+                          id: { type: 'string' },
+                          retry: { type: 'number' },
+                        },
+                        required: ['event', 'data'],
+                      },
+                    ],
+                  },
+                },
+              },
+            }
+
+            return { responses }
+          }
+
+          const outputStructure = fallbackContractConfig('defaultOutputStructure', def.route?.outputStructure)
+          const { headersSchema: resHeadersSchema, bodySchema: resBodySchema } = this.outputStructureParser.parse(contract, outputStructure)
+
+          const responses: OpenAPI.ResponsesObject = {}
+
+          responses[fallbackContractConfig('defaultSuccessStatus', def.route?.successStatus)] = {
+            description: fallbackContractConfig('defaultSuccessDescription', def.route?.successDescription),
+            content: resBodySchema !== undefined
+              ? this.contentBuilder.build(resBodySchema)
+              : undefined,
+            headers: resHeadersSchema !== undefined
+              ? this.parametersBuilder.buildHeadersObject(resHeadersSchema)
+              : undefined,
+          }
+
+          return { responses }
+        })()
 
         const errors = group(Object.entries(def.errorMap ?? {})
           .filter(([_, config]) => config)

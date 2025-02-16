@@ -19,5 +19,6 @@ export * from './router-accessible-lazy'
 export * from './router-client'
 export * from './utils'
 
-export { isDefinedError, ORPCError, safe, type, ValidationError } from '@orpc/contract'
+export { eventIterator, isDefinedError, ORPCError, safe, type, ValidationError } from '@orpc/contract'
+export { getEventMeta, withEventMeta } from '@orpc/server-standard'
 export { onError, onFinish, onStart, onSuccess } from '@orpc/shared'

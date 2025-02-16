@@ -43,15 +43,15 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup --clean --sourcemap --entry.index=src/index.ts --entry.fetch=src/adapters/fetch/index.ts --format=esm --onSuccess='tsc -b --noCheck'",
+    "build": "tsup --onSuccess='tsc -b --noCheck'",
     "build:watch": "pnpm run build --watch",
     "type:check": "tsc -b"
   },
   "dependencies": {
     "@orpc/contract": "workspace:*",
     "@orpc/server": "workspace:*",
-    "@orpc/server-standard": "^0.0.0",
-    "@orpc/server-standard-fetch": "^0.0.0",
+    "@orpc/server-standard": "^0.4.0",
+    "@orpc/server-standard-fetch": "^0.4.0",
     "@orpc/shared": "workspace:*"
   },
   "devDependencies": {

@@ -16,12 +16,12 @@ describe('createORPCClient', () => {
 
     expect(await client.ping({ value: 'hello' })).toEqual('__mocked__')
     expect(mockedLink.call).toBeCalledTimes(1)
-    expect(mockedLink.call).toBeCalledWith(['ping'], { value: 'hello' }, {})
+    expect(mockedLink.call).toBeCalledWith(['ping'], { value: 'hello' }, { context: {} })
 
     vi.clearAllMocks()
     expect(await client.nested.pong({ value: 'hello' })).toEqual('__mocked__')
     expect(mockedLink.call).toBeCalledTimes(1)
-    expect(mockedLink.call).toBeCalledWith(['nested', 'pong'], { value: 'hello' }, {})
+    expect(mockedLink.call).toBeCalledWith(['nested', 'pong'], { value: 'hello' }, { context: {} })
   })
 
   it('works with signal', async () => {
@@ -31,7 +31,7 @@ describe('createORPCClient', () => {
 
     expect(await client.ping({ value: 'hello' }, { signal })).toEqual('__mocked__')
     expect(mockedLink.call).toBeCalledTimes(1)
-    expect(mockedLink.call).toBeCalledWith(['ping'], { value: 'hello' }, { signal })
+    expect(mockedLink.call).toBeCalledWith(['ping'], { value: 'hello' }, { signal, context: {} })
   })
 
   it('works with context', async () => {

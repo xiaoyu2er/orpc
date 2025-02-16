@@ -9,7 +9,7 @@ type ClientContext = { cache?: string }
 
 const rpcLink = new RPCLink<ClientContext>({
   url: 'http://localhost:3000',
-  fetch: async (url, init, context) => {
+  fetch: async (url, init, { context }) => {
     if (context?.cache) {
       throw new Error(`cache=${context.cache} is not supported`)
     }

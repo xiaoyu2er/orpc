@@ -77,5 +77,6 @@ describe('oRPCError', () => {
     expect(ORPCError.isValidJSON({})).toBe(false)
     expect(ORPCError.isValidJSON({ defined: true })).toBe(false)
     expect(ORPCError.isValidJSON({ defined: true, code: 'BAD_GATEWAY', status: 500, message: 'message', data: 'data' })).toBe(true)
+    expect(ORPCError.isValidJSON({ defined: true, code: 'BAD_GATEWAY', status: 500, message: 'message', data: 'data', extra: true })).toBe(false)
   })
 })

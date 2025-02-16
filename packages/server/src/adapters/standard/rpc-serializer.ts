@@ -1,18 +1,36 @@
+import type { JsonValue } from '@orpc/server-standard'
 import type { Segment } from '@orpc/shared'
+import { mapEventIterator, ORPCError, toORPCError } from '@orpc/contract'
+import { ErrorEvent, isAsyncIteratorObject } from '@orpc/server-standard'
 import { findDeepMatches, isObject, set } from '@orpc/shared'
 
 export type RPCSerializedJsonMeta = ['bigint' | 'date' | 'nan' | 'undefined' | 'set' | 'map' | 'regexp' | 'url', Segment[]][]
-export type RPCSerialized = { json: unknown, meta: RPCSerializedJsonMeta } | FormData | Blob | undefined
+export type RPCSerialized =
+  | { json: unknown, meta: RPCSerializedJsonMeta }
+  | FormData
+  | AsyncIteratorObject<{ json: unknown, meta: RPCSerializedJsonMeta }, { json: unknown, meta: RPCSerializedJsonMeta }, void>
+
 export type RPCSerializedFormDataMaps = Segment[][]
 
 export class RPCSerializer {
   serialize(data: unknown): RPCSerialized {
-    if (data === undefined) {
-      return undefined
-    }
+    if (isAsyncIteratorObject(data)) {
+      return mapEventIterator(data, {
+        value: async (value: unknown) => serializeRPCJson(value),
+        error: async (e) => {
+          if (e instanceof ErrorEvent) {
+            return new ErrorEvent({
+              data: serializeRPCJson(e.data) as JsonValue,
+              cause: e,
+            })
+          }
 
-    if (data instanceof Blob) {
-      return data
+          return new ErrorEvent({
+            data: serializeRPCJson(toORPCError(e).toJSON()) as JsonValue,
+            cause: e,
+          })
+        },
+      })
     }
 
     const serializedJSON = serializeRPCJson(data)
@@ -35,12 +53,26 @@ export class RPCSerializer {
   }
 
   deserialize(serialized: RPCSerialized): unknown {
-    if (serialized === undefined) {
-      return undefined
-    }
+    if (isAsyncIteratorObject(serialized)) {
+      return mapEventIterator(serialized, {
+        value: async value => deserializeRPCJson(value),
+        error: async (e) => {
+          if (!(e instanceof ErrorEvent)) {
+            return e
+          }
 
-    if (serialized instanceof Blob) {
-      return serialized
+          const deserialized = deserializeRPCJson(e.data as any)
+
+          if (ORPCError.isValidJSON(deserialized)) {
+            return ORPCError.fromJSON(deserialized, { cause: e })
+          }
+
+          return new ErrorEvent({
+            data: deserialized as JsonValue,
+            cause: e,
+          })
+        },
+      })
     }
 
     if (!(serialized instanceof FormData)) {

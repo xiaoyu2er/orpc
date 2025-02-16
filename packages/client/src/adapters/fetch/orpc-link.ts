@@ -1,12 +1,15 @@
-import type { ClientContext, ClientOptions, HTTPMethod } from '@orpc/contract'
-import type { StandardBody } from '@orpc/server-standard'
-import type { Promisable } from '@orpc/shared'
-import type { ClientLink } from '../../types'
+import type { ClientContext, HTTPMethod } from '@orpc/contract'
+import type { Value } from '@orpc/shared'
+import type { ClientLink, ClientOptionsOut } from '../../types'
 import type { FetchWithContext } from './types'
 import { ORPCError } from '@orpc/contract'
+import { isAsyncIteratorObject, type StandardBody } from '@orpc/server-standard'
 import { toFetchBody, toStandardBody } from '@orpc/server-standard-fetch'
 import { RPCSerializer } from '@orpc/server/standard'
-import { isObject, trim } from '@orpc/shared'
+import { trim, value } from '@orpc/shared'
+import { createAutoRetryEventIterator, type EventIteratorReconnectOptions } from '../../event-iterator'
+
+export class InvalidEventSourceRetryResponse extends Error { }
 
 export interface RPCLinkOptions<TClientContext extends ClientContext> {
   /**
@@ -19,14 +22,18 @@ export interface RPCLinkOptions<TClientContext extends ClientContext> {
    *
    * @default 2083
    */
-  maxURLLength?: number
+  maxUrlLength?: number
 
   /**
    * The method used to make the request.
    *
    * @default 'POST'
    */
-  method?(path: readonly string[], input: unknown, context: TClientContext): Promisable<HTTPMethod | undefined>
+  method?: Value<HTTPMethod, [
+    options: ClientOptionsOut<TClientContext>,
+    path: readonly string[],
+    input: unknown,
+  ]>
 
   /**
    * The method to use when the payload cannot safely pass to the server with method return from method function.
@@ -36,50 +43,134 @@ export interface RPCLinkOptions<TClientContext extends ClientContext> {
    */
   fallbackMethod?: Exclude<HTTPMethod, 'GET'>
 
-  headers?(path: readonly string[], input: unknown, context: TClientContext): Promisable<Headers | Record<string, string>>
+  /**
+   * Inject headers to the request.
+   */
+  headers?: Value<[string, string][] | Record<string, string> | Headers, [
+    options: ClientOptionsOut<TClientContext>,
+    path: readonly string[],
+    input: unknown,
+  ]>
 
+  /**
+   * Custom fetch implementation.
+   *
+   * @default globalThis.fetch.bind(globalThis)
+   */
   fetch?: FetchWithContext<TClientContext>
 
   rpcSerializer?: RPCSerializer
+
+  /**
+   * Maximum number of retry attempts for EventSource errors before throwing.
+   *
+   * @default 5
+   */
+  eventSourceMaxNumberOfRetries?: number
+
+  /**
+   * Delay (in ms) before retrying an EventSource call.
+   *
+   * @default ({retryTimes, lastRetry}) => lastRetry ?? (1000 * 2 ** retryTimes)
+   */
+  eventSourceRetryDelay?: Value<number, [
+    reconnectOptions: EventIteratorReconnectOptions,
+    options: ClientOptionsOut<TClientContext>,
+    path: readonly string[],
+    input: unknown,
+  ]>
+
+  /**
+   * Function to determine if an error is retryable.
+   *
+   * @default true
+   */
+  eventSourceRetry?: Value<boolean, [
+    reconnectOptions: EventIteratorReconnectOptions,
+    options: ClientOptionsOut<TClientContext>,
+    path: readonly string[],
+    input: unknown,
+  ]>
 }
 
 export class RPCLink<TClientContext extends ClientContext> implements ClientLink<TClientContext> {
-  private readonly fetch: FetchWithContext<TClientContext>
-  private readonly rpcSerializer: RPCSerializer
-  private readonly maxURLLength: number
-  private readonly fallbackMethod: Exclude<HTTPMethod, 'GET'>
-  private readonly getMethod: (path: readonly string[], input: unknown, context: TClientContext) => Promisable<HTTPMethod>
-  private readonly getHeaders: (path: readonly string[], input: unknown, context: TClientContext) => Promisable<Headers>
-  private readonly url: string
+  private readonly fetch: Exclude<RPCLinkOptions<TClientContext>['fetch'], undefined>
+  private readonly rpcSerializer: Exclude<RPCLinkOptions<TClientContext>['rpcSerializer'], undefined>
+  private readonly maxUrlLength: Exclude<RPCLinkOptions<TClientContext>['maxUrlLength'], undefined>
+  private readonly fallbackMethod: Exclude<RPCLinkOptions<TClientContext>['fallbackMethod'], undefined>
+  private readonly method: Exclude<RPCLinkOptions<TClientContext>['method'], undefined>
+  private readonly headers: Exclude<RPCLinkOptions<TClientContext>['headers'], undefined>
+  private readonly url: Exclude<RPCLinkOptions<TClientContext>['url'], undefined>
+  private readonly eventSourceMaxNumberOfRetries: Exclude<RPCLinkOptions<TClientContext>['eventSourceMaxNumberOfRetries'], undefined>
+  private readonly eventSourceRetryDelay: Exclude<RPCLinkOptions<TClientContext>['eventSourceRetryDelay'], undefined>
+  private readonly eventSourceRetry: Exclude<RPCLinkOptions<TClientContext>['eventSourceRetry'], undefined>
 
   constructor(options: RPCLinkOptions<TClientContext>) {
     this.fetch = options.fetch ?? globalThis.fetch.bind(globalThis)
     this.rpcSerializer = options.rpcSerializer ?? new RPCSerializer()
-    this.maxURLLength = options.maxURLLength ?? 2083
+    this.maxUrlLength = options.maxUrlLength ?? 2083
     this.fallbackMethod = options.fallbackMethod ?? 'POST'
     this.url = options.url
+    this.eventSourceMaxNumberOfRetries = options.eventSourceMaxNumberOfRetries ?? 5
 
-    this.getMethod = async (path, input, context) => {
-      return await options.method?.(path, input, context) ?? this.fallbackMethod
-    }
+    this.method = options.method ?? this.fallbackMethod
+    this.headers = options.headers ?? {}
+    this.eventSourceRetry = options.eventSourceRetry ?? true
 
-    this.getHeaders = async (path, input, context) => {
-      return new Headers(await options.headers?.(path, input, context))
-    }
+    this.eventSourceRetryDelay = options.eventSourceRetryDelay
+      ?? (({ retryTimes, lastRetry }) => lastRetry ?? (1000 * 2 ** retryTimes))
   }
 
-  async call(path: readonly string[], input: unknown, options: ClientOptions<TClientContext>): Promise<unknown> {
-    const clientContext = options.context ?? {} as TClientContext // options.context can be undefined when all field is optional
-    const encoded = await this.encode(path, input, options)
+  async call(path: readonly string[], input: unknown, options: ClientOptionsOut<TClientContext>): Promise<unknown> {
+    const output = await this.performCall(path, input, options)
+
+    if (!isAsyncIteratorObject(output)) {
+      return output
+    }
+
+    return createAutoRetryEventIterator(output, async (reconnectOptions) => {
+      if (options.signal?.aborted || reconnectOptions.retryTimes > this.eventSourceMaxNumberOfRetries) {
+        return null
+      }
+
+      if (!(await value(this.eventSourceRetry, reconnectOptions, options, path, input))) {
+        return null
+      }
+
+      const delay = await value(this.eventSourceRetryDelay, reconnectOptions, options, path, input)
+
+      await new Promise(resolve => setTimeout(resolve, delay))
+
+      const updatedOptions = { ...options, lastEventId: reconnectOptions.lastEventId }
+      const maybeIterator = await this.performCall(path, input, updatedOptions)
+
+      if (!isAsyncIteratorObject(maybeIterator)) {
+        throw new InvalidEventSourceRetryResponse('Invalid EventSource retry response')
+      }
+
+      return maybeIterator
+    }, undefined)
+  }
+
+  private async performCall(
+    path: readonly string[],
+    input: unknown,
+    options: ClientOptionsOut<TClientContext>,
+  ): Promise<unknown> {
+    const encoded = await this.encodeRequest(path, input, options)
 
     const fetchBody = toFetchBody(encoded.body, encoded.headers)
+
+    if (options.lastEventId !== undefined) {
+      encoded.headers.set('last-event-id', options.lastEventId)
+    }
 
     const response = await this.fetch(encoded.url, {
       method: encoded.method,
       headers: encoded.headers,
       body: fetchBody,
       signal: options.signal,
-    }, clientContext)
+    }, options, path, input)
 
     const body = await toStandardBody(response)
 
@@ -101,61 +192,55 @@ export class RPCLink<TClientContext extends ClientContext> implements ClientLink
       }
     })()
 
-    if (response.ok) {
-      return deserialized
+    if (!response.ok) {
+      if (ORPCError.isValidJSON(deserialized)) {
+        throw ORPCError.fromJSON(deserialized)
+      }
+
+      throw new ORPCError('INTERNAL_SERVER_ERROR', {
+        message: 'Invalid RPC error response',
+        cause: deserialized,
+      })
     }
 
-    throw ORPCError.fromJSON(deserialized as any)
+    return deserialized
   }
 
-  private async encode(path: readonly string[], input: unknown, options: ClientOptions<TClientContext>): Promise<{
-    url: URL
-    method: HTTPMethod
-    headers: Headers
-    body: StandardBody
-  }> {
-    // clientContext only undefined when context is undefinable so we can safely cast it
-    const clientContext = options.context as typeof options.context & { context: TClientContext }
-    const expectMethod = await this.getMethod(path, input, clientContext)
-
-    const headers = await this.getHeaders(path, input, clientContext)
+  private async encodeRequest(
+    path: readonly string[],
+    input: unknown,
+    options: ClientOptionsOut<TClientContext>,
+  ): Promise<{ url: URL, method: HTTPMethod, headers: Headers, body: StandardBody }> {
+    const expectedMethod = await value(this.method, options, path, input)
+    const headers = new Headers(await value(this.headers, options, path, input))
     const url = new URL(`${trim(this.url, '/')}/${path.map(encodeURIComponent).join('/')}`)
-
-    headers.append('x-orpc-handler', 'rpc')
 
     const serialized = this.rpcSerializer.serialize(input)
 
-    if (expectMethod === 'GET' && isObject(serialized)) { // isObject mean has no blobs
-      const tryURL = new URL(url)
+    if (
+      expectedMethod === 'GET'
+      && !(serialized instanceof FormData)
+      && !isAsyncIteratorObject(serialized)
+    ) {
+      const getUrl = new URL(url)
 
-      tryURL.searchParams.append('data', JSON.stringify(serialized))
+      getUrl.searchParams.append('data', JSON.stringify(serialized))
 
-      if (tryURL.toString().length <= this.maxURLLength) {
+      if (getUrl.toString().length <= this.maxUrlLength) {
         return {
           body: undefined,
-          method: expectMethod,
+          method: expectedMethod,
           headers,
-          url: tryURL,
+          url: getUrl,
         }
       }
     }
 
-    const method = expectMethod === 'GET' ? this.fallbackMethod : expectMethod
-
-    if (input === undefined) {
-      return {
-        body: undefined,
-        method,
-        headers,
-        url,
-      }
-    }
-
     return {
-      body: serialized as StandardBody,
-      method,
-      headers,
       url,
+      method: expectedMethod === 'GET' ? this.fallbackMethod : expectedMethod,
+      headers,
+      body: serialized as StandardBody,
     }
   }
 }

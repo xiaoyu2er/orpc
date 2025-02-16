@@ -1,5 +1,12 @@
 import type { ClientContext } from '@orpc/contract'
+import type { ClientOptionsOut } from '../../types'
 
 export interface FetchWithContext<TClientContext extends ClientContext> {
-  (url: Request | string | URL, init: RequestInit | undefined, context: TClientContext): Promise<Response>
+  (
+    url: URL,
+    init: RequestInit,
+    options: ClientOptionsOut<TClientContext>,
+    path: readonly string[],
+    input: unknown,
+  ): Promise<Response>
 }

@@ -32,6 +32,7 @@ export interface MiddlewareOptions<
   path: string[]
   procedure: Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, TMeta>
   signal?: AbortSignal
+  lastEventId: string | undefined
   next: MiddlewareNextFn<TInContext, TOutput>
   errors: TErrorConstructorMap
 }

@@ -19,4 +19,15 @@ describe('value', () => {
     expectTypeOf(value(() => Number(42))).toEqualTypeOf<Promise<number>>()
     expectTypeOf(value(async () => Number(42))).toEqualTypeOf<Promise<number>>()
   })
+
+  it('args', () => {
+    const v = {} as Value<string, [string, number]>
+    // @ts-expect-error missing args
+    value(v)
+    // @ts-expect-error missing args
+    value(v, 'hello')
+    value(v, 'hello', 123)
+    // @ts-expect-error wrong args
+    value(v, 'hello', '456')
+  })
 })

@@ -1,5 +1,5 @@
 import { ORPCError } from '@orpc/contract'
-import { EventSourceErrorEvent, getEventSourceMeta, setEventSourceMeta } from '@orpc/server-standard'
+import { ErrorEvent, getEventMeta, withEventMeta } from '@orpc/server-standard'
 import { JSONSerializer } from '../../json-serializer'
 import { OpenAPISerializer } from './openapi-serializer'
 
@@ -74,14 +74,14 @@ describe('openAPISerializer', () => {
 
         const serialized = openapiSerializer.serialize((async function* () {
           yield 1
-          yield setEventSourceMeta({ order: 2, date }, { retry: 1000 })
-          return setEventSourceMeta({ order: 3 }, { id: '123456' })
+          yield withEventMeta({ order: 2, date }, { retry: 1000 })
+          return withEventMeta({ order: 3 }, { id: '123456' })
         })()) as any
 
         await expect(serialized.next()).resolves.toSatisfy(({ value, done }) => {
           expect(done).toBe(false)
           expect(value).toBe(serialize.mock.results[0]!.value)
-          expect(getEventSourceMeta(value)).toEqual(undefined)
+          expect(getEventMeta(value)).toEqual(undefined)
 
           return true
         })
@@ -93,7 +93,7 @@ describe('openAPISerializer', () => {
         await expect(serialized.next()).resolves.toSatisfy(({ value, done }) => {
           expect(done).toBe(false)
           expect(value).toEqual(serialize.mock.results[0]!.value)
-          expect(getEventSourceMeta(value)).toEqual({ retry: 1000 })
+          expect(getEventMeta(value)).toEqual({ retry: 1000 })
 
           return true
         })
@@ -105,7 +105,7 @@ describe('openAPISerializer', () => {
         await expect(serialized.next()).resolves.toSatisfy(({ value, done }) => {
           expect(done).toBe(true)
           expect(value).toEqual(serialize.mock.results[0]!.value)
-          expect(getEventSourceMeta(value)).toEqual({ id: '123456' })
+          expect(getEventMeta(value)).toEqual({ id: '123456' })
 
           return true
         })
@@ -117,18 +117,18 @@ describe('openAPISerializer', () => {
 
       it('on error with ORPCError', async () => {
         const date = new Date()
-        const error = setEventSourceMeta(new ORPCError('BAD_GATEWAY', { data: { order: 3 } }), { id: '123456' })
+        const error = withEventMeta(new ORPCError('BAD_GATEWAY', { data: { order: 3 } }), { id: '123456' })
 
         const serialized = openapiSerializer.serialize((async function* () {
           yield 1
-          yield setEventSourceMeta({ order: 2, date }, { retry: 1000 })
+          yield withEventMeta({ order: 2, date }, { retry: 1000 })
           throw error
         })()) as any
 
         await expect(serialized.next()).resolves.toSatisfy(({ value, done }) => {
           expect(done).toBe(false)
           expect(value).toBe(serialize.mock.results[0]!.value)
-          expect(getEventSourceMeta(value)).toEqual(undefined)
+          expect(getEventMeta(value)).toEqual(undefined)
 
           return true
         })
@@ -140,7 +140,7 @@ describe('openAPISerializer', () => {
         await expect(serialized.next()).resolves.toSatisfy(({ value, done }) => {
           expect(done).toBe(false)
           expect(value).toEqual(serialize.mock.results[0]!.value)
-          expect(getEventSourceMeta(value)).toEqual({ retry: 1000 })
+          expect(getEventMeta(value)).toEqual({ retry: 1000 })
 
           return true
         })
@@ -150,10 +150,10 @@ describe('openAPISerializer', () => {
         serialize.mockClear()
 
         await expect(serialized.next()).rejects.toSatisfy((e: any) => {
-          expect(e).toBeInstanceOf(EventSourceErrorEvent)
+          expect(e).toBeInstanceOf(ErrorEvent)
           expect(e.data).toEqual(serialize.mock.results[0]!.value)
           expect(e.cause).toBe(error)
-          expect(getEventSourceMeta(e)).toEqual({ id: '123456' })
+          expect(getEventMeta(e)).toEqual({ id: '123456' })
 
           return true
         })
@@ -163,20 +163,20 @@ describe('openAPISerializer', () => {
         serialize.mockClear()
       })
 
-      it('on error with EventSourceErrorEvent', async () => {
+      it('on error with ErrorEvent', async () => {
         const date = new Date()
-        const error = setEventSourceMeta(new EventSourceErrorEvent({ data: { order: 3 } }), { id: '123456' })
+        const error = withEventMeta(new ErrorEvent({ data: { order: 3 } }), { id: '123456' })
 
         const serialized = openapiSerializer.serialize((async function* () {
           yield 1
-          yield setEventSourceMeta({ order: 2, date }, { retry: 1000 })
+          yield withEventMeta({ order: 2, date }, { retry: 1000 })
           throw error
         })()) as any
 
         await expect(serialized.next()).resolves.toSatisfy(({ value, done }) => {
           expect(done).toBe(false)
           expect(value).toBe(serialize.mock.results[0]!.value)
-          expect(getEventSourceMeta(value)).toEqual(undefined)
+          expect(getEventMeta(value)).toEqual(undefined)
 
           return true
         })
@@ -188,7 +188,7 @@ describe('openAPISerializer', () => {
         await expect(serialized.next()).resolves.toSatisfy(({ value, done }) => {
           expect(done).toBe(false)
           expect(value).toEqual(serialize.mock.results[0]!.value)
-          expect(getEventSourceMeta(value)).toEqual({ retry: 1000 })
+          expect(getEventMeta(value)).toEqual({ retry: 1000 })
 
           return true
         })
@@ -198,10 +198,10 @@ describe('openAPISerializer', () => {
         serialize.mockClear()
 
         await expect(serialized.next()).rejects.toSatisfy((e: any) => {
-          expect(e).toBeInstanceOf(EventSourceErrorEvent)
+          expect(e).toBeInstanceOf(ErrorEvent)
           expect(e.data).toEqual(serialize.mock.results[0]!.value)
           expect(e.cause).toBe(error)
-          expect(getEventSourceMeta(e)).toEqual({ id: '123456' })
+          expect(getEventMeta(e)).toEqual({ id: '123456' })
 
           return true
         })
@@ -291,14 +291,14 @@ describe('openAPISerializer', () => {
 
         const serialized = openapiSerializer.deserialize((async function* () {
           yield 1
-          yield setEventSourceMeta({ order: 2, date }, { retry: 1000 })
-          return setEventSourceMeta({ order: 3 }, { id: '123456' })
+          yield withEventMeta({ order: 2, date }, { retry: 1000 })
+          return withEventMeta({ order: 3 }, { id: '123456' })
         })()) as any
 
         await expect(serialized.next()).resolves.toSatisfy(({ value, done }) => {
           expect(done).toBe(false)
           expect(value).toEqual(1)
-          expect(getEventSourceMeta(value)).toEqual(undefined)
+          expect(getEventMeta(value)).toEqual(undefined)
 
           return true
         })
@@ -306,7 +306,7 @@ describe('openAPISerializer', () => {
         await expect(serialized.next()).resolves.toSatisfy(({ value, done }) => {
           expect(done).toBe(false)
           expect(value).toEqual({ order: 2, date })
-          expect(getEventSourceMeta(value)).toEqual({ retry: 1000 })
+          expect(getEventMeta(value)).toEqual({ retry: 1000 })
 
           return true
         })
@@ -314,7 +314,7 @@ describe('openAPISerializer', () => {
         await expect(serialized.next()).resolves.toSatisfy(({ value, done }) => {
           expect(done).toBe(true)
           expect(value).toEqual({ order: 3 })
-          expect(getEventSourceMeta(value)).toEqual({ id: '123456' })
+          expect(getEventMeta(value)).toEqual({ id: '123456' })
 
           return true
         })
@@ -322,20 +322,20 @@ describe('openAPISerializer', () => {
 
       it('on error has valid ORPCError format', async () => {
         const date = new Date()
-        const error = setEventSourceMeta(new EventSourceErrorEvent({
+        const error = withEventMeta(new ErrorEvent({
           data: new ORPCError('BAD_GATEWAY', { data: { order: 3 } }).toJSON(),
         }), { id: '123456' })
 
         const serialized = openapiSerializer.deserialize((async function* () {
           yield 1
-          yield setEventSourceMeta({ order: 2, date }, { retry: 1000 })
+          yield withEventMeta({ order: 2, date }, { retry: 1000 })
           throw error
         })()) as any
 
         await expect(serialized.next()).resolves.toSatisfy(({ value, done }) => {
           expect(done).toBe(false)
           expect(value).toEqual(1)
-          expect(getEventSourceMeta(value)).toEqual(undefined)
+          expect(getEventMeta(value)).toEqual(undefined)
 
           return true
         })
@@ -343,7 +343,7 @@ describe('openAPISerializer', () => {
         await expect(serialized.next()).resolves.toSatisfy(({ value, done }) => {
           expect(done).toBe(false)
           expect(value).toEqual({ order: 2, date })
-          expect(getEventSourceMeta(value)).toEqual({ retry: 1000 })
+          expect(getEventMeta(value)).toEqual({ retry: 1000 })
 
           return true
         })
@@ -353,7 +353,7 @@ describe('openAPISerializer', () => {
           expect(e.code).toBe('BAD_GATEWAY')
           expect(e.data).toEqual({ order: 3 })
           expect(e.cause).toBe(error)
-          expect(getEventSourceMeta(e)).toEqual({ id: '123456' })
+          expect(getEventMeta(e)).toEqual({ id: '123456' })
 
           return true
         })
@@ -361,20 +361,20 @@ describe('openAPISerializer', () => {
 
       it('on error has invalid ORPCError format', async () => {
         const date = new Date()
-        const error = setEventSourceMeta(new EventSourceErrorEvent({
+        const error = withEventMeta(new ErrorEvent({
           data: { order: 3 },
         }), { id: '123456' })
 
         const serialized = openapiSerializer.deserialize((async function* () {
           yield 1
-          yield setEventSourceMeta({ order: 2, date }, { retry: 1000 })
+          yield withEventMeta({ order: 2, date }, { retry: 1000 })
           throw error
         })()) as any
 
         await expect(serialized.next()).resolves.toSatisfy(({ value, done }) => {
           expect(done).toBe(false)
           expect(value).toEqual(1)
-          expect(getEventSourceMeta(value)).toEqual(undefined)
+          expect(getEventMeta(value)).toEqual(undefined)
 
           return true
         })
@@ -382,7 +382,7 @@ describe('openAPISerializer', () => {
         await expect(serialized.next()).resolves.toSatisfy(({ value, done }) => {
           expect(done).toBe(false)
           expect(value).toEqual({ order: 2, date })
-          expect(getEventSourceMeta(value)).toEqual({ retry: 1000 })
+          expect(getEventMeta(value)).toEqual({ retry: 1000 })
 
           return true
         })

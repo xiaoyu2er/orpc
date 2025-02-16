@@ -163,11 +163,11 @@ importers:
         specifier: workspace:*
         version: link:../server
       '@orpc/server-standard':
-        specifier: ^0.3.0
-        version: 0.3.0
+        specifier: ^0.4.0
+        version: 0.4.0
       '@orpc/server-standard-fetch':
-        specifier: ^0.3.0
-        version: 0.3.0
+        specifier: ^0.4.0
+        version: 0.4.0
       '@orpc/shared':
         specifier: workspace:*
         version: link:../shared
@@ -182,8 +182,8 @@ importers:
   packages/contract:
     dependencies:
       '@orpc/server-standard':
-        specifier: ^0.3.0
-        version: 0.3.0
+        specifier: ^0.4.0
+        version: 0.4.0
       '@orpc/shared':
         specifier: workspace:*
         version: link:../shared
@@ -210,14 +210,14 @@ importers:
         specifier: workspace:*
         version: link:../server
       '@orpc/server-standard':
-        specifier: ^0.3.0
-        version: 0.3.0
+        specifier: ^0.4.0
+        version: 0.4.0
       '@orpc/server-standard-fetch':
-        specifier: ^0.3.0
-        version: 0.3.0
+        specifier: ^0.4.0
+        version: 0.4.0
       '@orpc/server-standard-node':
-        specifier: ^0.3.0
-        version: 0.3.0
+        specifier: ^0.4.0
+        version: 0.4.0
       '@orpc/shared':
         specifier: workspace:*
         version: link:../shared
@@ -266,14 +266,14 @@ importers:
         specifier: workspace:*
         version: link:../contract
       '@orpc/server-standard':
-        specifier: ^0.3.0
-        version: 0.3.0
+        specifier: ^0.4.0
+        version: 0.4.0
       '@orpc/server-standard-fetch':
-        specifier: ^0.3.0
-        version: 0.3.0
+        specifier: ^0.4.0
+        version: 0.4.0
       '@orpc/server-standard-node':
-        specifier: ^0.3.0
-        version: 0.3.0
+        specifier: ^0.4.0
+        version: 0.4.0
       '@orpc/shared':
         specifier: workspace:*
         version: link:../shared
@@ -1546,14 +1546,14 @@ packages:
     resolution: {integrity: sha512-0cQT/yzRrGCYemggH9Hz2gs7spdWJOqbKCdIRY/f4YkLEyodLMs0B9UXkikoFfLX3Gf2Pcduktlolv34cw79Yw==}
     engines: {node: '>= 16.0.0'}
 
-  '@orpc/server-standard-fetch@0.3.0':
-    resolution: {integrity: sha512-l4TawIaHblvDXQMN8mexf+GVLQMkdBqg6rflHEaoaRD61xCIadOvbaRz80+TNopX2+4H73vZoyYsL3OWw3SaUg==}
+  '@orpc/server-standard-fetch@0.4.0':
+    resolution: {integrity: sha512-JbJmWuGSnYhOWziz/9h0ODBBl+lcGTcfBc+zQit9C4MYhMyRy+PU+/PaTiW4C8ptv9GMFEEqDI8bLxL3aIfiWw==}
 
-  '@orpc/server-standard-node@0.3.0':
-    resolution: {integrity: sha512-l3Ang81Pbp4lAbI8Ntkbe1q5ARAdWrJOOKZTo55Fy+S0aqy3CiyI2N4SjfklaoBerlNkmC/rVB47VXdYZne6cQ==}
+  '@orpc/server-standard-node@0.4.0':
+    resolution: {integrity: sha512-fHwR40UU6ZwKOxP/mz21f1A/QP81g9+DxpTVMrASeTUnaXw/JMhzrdZT++bNhTAA6gggZfHglDgFinecz5Uxmw==}
 
-  '@orpc/server-standard@0.3.0':
-    resolution: {integrity: sha512-CRkCEFqU1i79Lw+wn0MzzPkSbxgxXdwKz0xV8zM7PfVXF+0/VldVFSlp/05bV5i94VzpJysWsgt94jEhEbVHtQ==}
+  '@orpc/server-standard@0.4.0':
+    resolution: {integrity: sha512-WqICrEoJ1CdSp30gZdgtNt9rbl9Pz/PgV4MA67IlG5mk4Rblw28PVz6hwfre6S42XXTFq6dtfN9vCivXiNhfyQ==}
 
   '@oxc-transform/binding-darwin-arm64@0.48.2':
     resolution: {integrity: sha512-JzctV+H6IDl+vwTlY/7+2JMqb+94HUHfgHii+hMUM76XNaLAOyKxn3Be26t/FgrscoIR+bO6kMYL/T0sDkP7fA==}
@@ -8151,15 +8151,15 @@ snapshots:
 
   '@orama/orama@3.0.5': {}
 
-  '@orpc/server-standard-fetch@0.3.0':
+  '@orpc/server-standard-fetch@0.4.0':
     dependencies:
-      '@orpc/server-standard': 0.3.0
+      '@orpc/server-standard': 0.4.0
 
-  '@orpc/server-standard-node@0.3.0':
+  '@orpc/server-standard-node@0.4.0':
     dependencies:
-      '@orpc/server-standard': 0.3.0
+      '@orpc/server-standard': 0.4.0
 
-  '@orpc/server-standard@0.3.0':
+  '@orpc/server-standard@0.4.0':
     dependencies:
       '@tinyhttp/content-disposition': 2.2.2
       type-fest: 4.34.1

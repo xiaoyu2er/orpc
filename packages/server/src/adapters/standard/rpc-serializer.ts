@@ -1,7 +1,7 @@
 import type { JsonValue } from '@orpc/server-standard'
 import type { Segment } from '@orpc/shared'
 import { mapEventSourceIterator, ORPCError, toORPCError } from '@orpc/contract'
-import { EventSourceErrorEvent, isAsyncIteratorObject } from '@orpc/server-standard'
+import { ErrorEvent, isAsyncIteratorObject } from '@orpc/server-standard'
 import { findDeepMatches, isObject, set } from '@orpc/shared'
 
 export type RPCSerializedJsonMeta = ['bigint' | 'date' | 'nan' | 'undefined' | 'set' | 'map' | 'regexp' | 'url', Segment[]][]
@@ -18,14 +18,14 @@ export class RPCSerializer {
       return mapEventSourceIterator(data, {
         value: async (value: unknown) => serializeRPCJson(value),
         error: async (e) => {
-          if (e instanceof EventSourceErrorEvent) {
-            return new EventSourceErrorEvent({
+          if (e instanceof ErrorEvent) {
+            return new ErrorEvent({
               data: serializeRPCJson(e.data) as JsonValue,
               cause: e,
             })
           }
 
-          return new EventSourceErrorEvent({
+          return new ErrorEvent({
             data: serializeRPCJson(toORPCError(e).toJSON()) as JsonValue,
             cause: e,
           })
@@ -57,7 +57,7 @@ export class RPCSerializer {
       return mapEventSourceIterator(serialized, {
         value: async value => deserializeRPCJson(value),
         error: async (e) => {
-          if (!(e instanceof EventSourceErrorEvent)) {
+          if (!(e instanceof ErrorEvent)) {
             return e
           }
 
@@ -67,7 +67,7 @@ export class RPCSerializer {
             return ORPCError.fromJSON(deserialized, { cause: e })
           }
 
-          return new EventSourceErrorEvent({
+          return new ErrorEvent({
             data: deserialized as JsonValue,
             cause: e,
           })

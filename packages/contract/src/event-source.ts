@@ -1,6 +1,6 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
 import type { Schema } from './schema'
-import { getEventSourceMeta, isAsyncIteratorObject, isEventSourceMetaContainer, setEventSourceMeta } from '@orpc/server-standard'
+import { getEventMeta, isAsyncIteratorObject, isEventMetaContainer, withEventMeta } from '@orpc/server-standard'
 import { ValidationError } from './error'
 import { ORPCError } from './error-orpc'
 
@@ -19,9 +19,9 @@ export function mapEventSourceIterator<TYield, TReturn, TNext, TMap = TYield | T
         let mappedValue = await maps.value(value, done) as any
 
         if (mappedValue !== value) {
-          const meta = getEventSourceMeta(value)
-          if (meta && isEventSourceMetaContainer(mappedValue)) {
-            mappedValue = setEventSourceMeta(mappedValue, meta)
+          const meta = getEventMeta(value)
+          if (meta && isEventMetaContainer(mappedValue)) {
+            mappedValue = withEventMeta(mappedValue, meta)
           }
         }
 
@@ -36,9 +36,9 @@ export function mapEventSourceIterator<TYield, TReturn, TNext, TMap = TYield | T
       let mappedError = await maps.error(error)
 
       if (mappedError !== error) {
-        const meta = getEventSourceMeta(error)
-        if (meta && isEventSourceMetaContainer(mappedError)) {
-          mappedError = setEventSourceMeta(mappedError, meta)
+        const meta = getEventMeta(error)
+        if (meta && isEventMetaContainer(mappedError)) {
+          mappedError = withEventMeta(mappedError, meta)
         }
       }
 

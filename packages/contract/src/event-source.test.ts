@@ -1,4 +1,4 @@
-import { getEventSourceMeta, setEventSourceMeta } from '@orpc/server-standard'
+import { getEventMeta, withEventMeta } from '@orpc/server-standard'
 import { z } from 'zod'
 import { ValidationError } from './error'
 import { ORPCError } from './error-orpc'
@@ -12,8 +12,8 @@ describe('mapEventSourceIterator', () => {
       try {
         yield 1
         yield { order: 2 }
-        yield setEventSourceMeta({ order: 3 }, { id: 'id-3' })
-        return setEventSourceMeta({ order: 4 }, { retry: 4000 })
+        yield withEventMeta({ order: 3 }, { id: 'id-3' })
+        return withEventMeta({ order: 4 }, { retry: 4000 })
       }
       finally {
         finished = true
@@ -30,7 +30,7 @@ describe('mapEventSourceIterator', () => {
     await expect(mapped.next()).resolves.toSatisfy(({ done, value }) => {
       expect(done).toBe(false)
       expect(value).toEqual({ mapped: 1 })
-      expect(getEventSourceMeta(value)).toEqual(undefined)
+      expect(getEventMeta(value)).toEqual(undefined)
 
       return true
     })
@@ -41,7 +41,7 @@ describe('mapEventSourceIterator', () => {
     await expect(mapped.next()).resolves.toSatisfy(({ done, value }) => {
       expect(done).toBe(false)
       expect(value).toEqual({ mapped: { order: 2 } })
-      expect(getEventSourceMeta(value)).toEqual(undefined)
+      expect(getEventMeta(value)).toEqual(undefined)
 
       return true
     })
@@ -52,7 +52,7 @@ describe('mapEventSourceIterator', () => {
     await expect(mapped.next()).resolves.toSatisfy(({ done, value }) => {
       expect(done).toBe(false)
       expect(value).toEqual({ mapped: { order: 3 } })
-      expect(getEventSourceMeta(value)).toEqual({ id: 'id-3' })
+      expect(getEventMeta(value)).toEqual({ id: 'id-3' })
 
       return true
     })
@@ -63,7 +63,7 @@ describe('mapEventSourceIterator', () => {
     await expect(mapped.next()).resolves.toSatisfy(({ done, value }) => {
       expect(done).toBe(true)
       expect(value).toEqual({ mapped: { order: 4 } })
-      expect(getEventSourceMeta(value)).toEqual({ retry: 4000 })
+      expect(getEventMeta(value)).toEqual({ retry: 4000 })
 
       return true
     })
@@ -76,7 +76,7 @@ describe('mapEventSourceIterator', () => {
 
   it('on error', async () => {
     let finished = false
-    const error = setEventSourceMeta(new Error('TEST'), { id: 'error-1' })
+    const error = withEventMeta(new Error('TEST'), { id: 'error-1' })
 
     const iterator = (async function* () {
       try {
@@ -96,7 +96,7 @@ describe('mapEventSourceIterator', () => {
 
     await expect(mapped.next()).rejects.toSatisfy((e) => {
       expect(e).toEqual({ mapped: error })
-      expect(getEventSourceMeta(e)).toEqual({ id: 'error-1' })
+      expect(getEventMeta(e)).toEqual({ id: 'error-1' })
 
       return true
     })
@@ -176,7 +176,7 @@ describe('eventIterator', async () => {
 
     const result = await schema['~standard'].validate((async function*() {
       yield { order: 1 }
-      yield setEventSourceMeta({ order: 2 }, { id: 'id-2' })
+      yield withEventMeta({ order: 2 }, { id: 'id-2' })
       yield { order: '3' }
     })())
 
@@ -187,7 +187,7 @@ describe('eventIterator', async () => {
     await expect(result.value.next()).resolves.toSatisfy(({ done, value }) => {
       expect(done).toBe(false)
       expect(value).toEqual({ order: 1 })
-      expect(getEventSourceMeta(value)).toEqual(undefined)
+      expect(getEventMeta(value)).toEqual(undefined)
 
       return true
     })
@@ -195,7 +195,7 @@ describe('eventIterator', async () => {
     await expect(result.value.next()).resolves.toSatisfy(({ done, value }) => {
       expect(done).toBe(false)
       expect(value).toEqual({ order: 2 })
-      expect(getEventSourceMeta(value)).toEqual({ id: 'id-2' })
+      expect(getEventMeta(value)).toEqual({ id: 'id-2' })
 
       return true
     })
@@ -224,7 +224,7 @@ describe('eventIterator', async () => {
     await expect(result.value.next()).resolves.toSatisfy(({ done, value }) => {
       expect(done).toBe(true)
       expect(value).toEqual({ order: 1 })
-      expect(getEventSourceMeta(value)).toEqual(undefined)
+      expect(getEventMeta(value)).toEqual(undefined)
 
       return true
     })

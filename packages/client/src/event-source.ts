@@ -1,5 +1,5 @@
 import type { EventIteratorState } from './event-source-state'
-import { getEventSourceMeta } from '@orpc/server-standard'
+import { getEventMeta } from '@orpc/server-standard'
 import { retry } from '@orpc/shared'
 import { registerEventIteratorState, updateEventIteratorStatus } from './event-source-state'
 
@@ -35,7 +35,7 @@ export function createAutoRetryEventSourceIterator<TYield, TReturn>(
 
           const { done, value } = await current.next()
 
-          const meta = getEventSourceMeta(value)
+          const meta = getEventMeta(value)
 
           lastEventId = meta?.id ?? lastEventId
           lastRetry = meta?.retry ?? lastRetry
@@ -50,7 +50,7 @@ export function createAutoRetryEventSourceIterator<TYield, TReturn>(
         catch (e) {
           updateEventIteratorStatus(state, 'reconnecting')
 
-          const meta = getEventSourceMeta(e)
+          const meta = getEventMeta(e)
           lastEventId = meta?.id ?? lastEventId
           lastRetry = meta?.retry ?? lastRetry
 

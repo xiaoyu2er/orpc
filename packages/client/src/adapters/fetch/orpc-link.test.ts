@@ -1,6 +1,6 @@
 import { ORPCError } from '@orpc/contract'
 import { os } from '@orpc/server'
-import { getEventSourceMeta, isAsyncIteratorObject, setEventSourceMeta } from '@orpc/server-standard'
+import { getEventMeta, isAsyncIteratorObject, withEventMeta } from '@orpc/server-standard'
 import { RPCHandler } from '@orpc/server/fetch'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { supportedDataTypes } from '../../../../server/tests/shared'
@@ -447,13 +447,13 @@ describe('rpcLink: event-source iterator', () => {
 
   const handlerFn = vi.fn(async function* () {
     yield 1
-    yield setEventSourceMeta({ order: 2, date }, { retry: 1000 })
+    yield withEventMeta({ order: 2, date }, { retry: 1000 })
 
     if (expected === 'error') {
-      throw setEventSourceMeta(new ORPCError('BAD_GATEWAY', { data: { order: 3, date } }), { id: '56789' })
+      throw withEventMeta(new ORPCError('BAD_GATEWAY', { data: { order: 3, date } }), { id: '56789' })
     }
 
-    return setEventSourceMeta({ order: 3, date }, { id: '56789' })
+    return withEventMeta({ order: 3, date }, { id: '56789' })
   })
 
   const procedure = os.handler(handlerFn)
@@ -487,7 +487,7 @@ describe('rpcLink: event-source iterator', () => {
     await expect(output.next()).resolves.toSatisfy(({ done, value }) => {
       expect(done).toBe(false)
       expect(value).toEqual(1)
-      expect(getEventSourceMeta(value)).toEqual(undefined)
+      expect(getEventMeta(value)).toEqual(undefined)
 
       return true
     })
@@ -495,7 +495,7 @@ describe('rpcLink: event-source iterator', () => {
     await expect(output.next()).resolves.toSatisfy(({ done, value }) => {
       expect(done).toBe(false)
       expect(value).toEqual({ order: 2, date })
-      expect(getEventSourceMeta(value)).toEqual(expect.objectContaining({ retry: 1000 }))
+      expect(getEventMeta(value)).toEqual(expect.objectContaining({ retry: 1000 }))
 
       return true
     })
@@ -503,7 +503,7 @@ describe('rpcLink: event-source iterator', () => {
     await expect(output.next()).resolves.toSatisfy(({ done, value }) => {
       expect(done).toBe(true)
       expect(value).toEqual({ order: 3, date })
-      expect(getEventSourceMeta(value)).toEqual(expect.objectContaining({ id: '56789' }))
+      expect(getEventMeta(value)).toEqual(expect.objectContaining({ id: '56789' }))
 
       return true
     })
@@ -518,7 +518,7 @@ describe('rpcLink: event-source iterator', () => {
     await expect(output.next()).resolves.toSatisfy(({ done, value }) => {
       expect(done).toBe(false)
       expect(value).toEqual(1)
-      expect(getEventSourceMeta(value)).toEqual(undefined)
+      expect(getEventMeta(value)).toEqual(undefined)
 
       return true
     })
@@ -526,7 +526,7 @@ describe('rpcLink: event-source iterator', () => {
     await expect(output.next()).resolves.toSatisfy(({ done, value }) => {
       expect(done).toBe(false)
       expect(value).toEqual({ order: 2, date })
-      expect(getEventSourceMeta(value)).toEqual(expect.objectContaining({ retry: 1000 }))
+      expect(getEventMeta(value)).toEqual(expect.objectContaining({ retry: 1000 }))
 
       return true
     })
@@ -534,7 +534,7 @@ describe('rpcLink: event-source iterator', () => {
     await expect(output.next()).resolves.toSatisfy(({ done, value }) => {
       expect(done).toBe(false)
       expect(value).toEqual(1)
-      expect(getEventSourceMeta(value)).toEqual(undefined)
+      expect(getEventMeta(value)).toEqual(undefined)
 
       return true
     })
@@ -542,7 +542,7 @@ describe('rpcLink: event-source iterator', () => {
     await expect(output.next()).resolves.toSatisfy(({ done, value }) => {
       expect(done).toBe(false)
       expect(value).toEqual({ order: 2, date })
-      expect(getEventSourceMeta(value)).toEqual(expect.objectContaining({ retry: 1000 }))
+      expect(getEventMeta(value)).toEqual(expect.objectContaining({ retry: 1000 }))
 
       return true
     })
@@ -550,7 +550,7 @@ describe('rpcLink: event-source iterator', () => {
     await expect(output.next()).resolves.toSatisfy(({ done, value }) => {
       expect(done).toBe(false)
       expect(value).toEqual(1)
-      expect(getEventSourceMeta(value)).toEqual(undefined)
+      expect(getEventMeta(value)).toEqual(undefined)
 
       return true
     })
@@ -558,7 +558,7 @@ describe('rpcLink: event-source iterator', () => {
     await expect(output.next()).resolves.toSatisfy(({ done, value }) => {
       expect(done).toBe(false)
       expect(value).toEqual({ order: 2, date })
-      expect(getEventSourceMeta(value)).toEqual(expect.objectContaining({ retry: 1000 }))
+      expect(getEventMeta(value)).toEqual(expect.objectContaining({ retry: 1000 }))
 
       return true
     })
@@ -578,7 +578,7 @@ describe('rpcLink: event-source iterator', () => {
     await expect(output.next()).resolves.toSatisfy(({ done, value }) => {
       expect(done).toBe(false)
       expect(value).toEqual(1)
-      expect(getEventSourceMeta(value)).toEqual(undefined)
+      expect(getEventMeta(value)).toEqual(undefined)
 
       return true
     })
@@ -586,7 +586,7 @@ describe('rpcLink: event-source iterator', () => {
     await expect(output.next()).resolves.toSatisfy(({ done, value }) => {
       expect(done).toBe(false)
       expect(value).toEqual({ order: 2, date })
-      expect(getEventSourceMeta(value)).toEqual(expect.objectContaining({ retry: 1000 }))
+      expect(getEventMeta(value)).toEqual(expect.objectContaining({ retry: 1000 }))
 
       return true
     })
@@ -594,7 +594,7 @@ describe('rpcLink: event-source iterator', () => {
     await expect(output.next()).resolves.toSatisfy(({ done, value }) => {
       expect(done).toBe(false)
       expect(value).toEqual(1)
-      expect(getEventSourceMeta(value)).toEqual(undefined)
+      expect(getEventMeta(value)).toEqual(undefined)
 
       return true
     })
@@ -602,7 +602,7 @@ describe('rpcLink: event-source iterator', () => {
     await expect(output.next()).resolves.toSatisfy(({ done, value }) => {
       expect(done).toBe(false)
       expect(value).toEqual({ order: 2, date })
-      expect(getEventSourceMeta(value)).toEqual(expect.objectContaining({ retry: 1000 }))
+      expect(getEventMeta(value)).toEqual(expect.objectContaining({ retry: 1000 }))
 
       return true
     })
@@ -625,7 +625,7 @@ describe('rpcLink: event-source iterator', () => {
     await expect(output.next()).resolves.toSatisfy(({ done, value }) => {
       expect(done).toBe(false)
       expect(value).toEqual(1)
-      expect(getEventSourceMeta(value)).toEqual(undefined)
+      expect(getEventMeta(value)).toEqual(undefined)
 
       return true
     })
@@ -633,7 +633,7 @@ describe('rpcLink: event-source iterator', () => {
     await expect(output.next()).resolves.toSatisfy(({ done, value }) => {
       expect(done).toBe(false)
       expect(value).toEqual({ order: 2, date })
-      expect(getEventSourceMeta(value)).toEqual(expect.objectContaining({ retry: 1000 }))
+      expect(getEventMeta(value)).toEqual(expect.objectContaining({ retry: 1000 }))
 
       return true
     })
@@ -641,7 +641,7 @@ describe('rpcLink: event-source iterator', () => {
     await expect(output.next()).resolves.toSatisfy(({ done, value }) => {
       expect(done).toBe(false)
       expect(value).toEqual(1)
-      expect(getEventSourceMeta(value)).toEqual(undefined)
+      expect(getEventMeta(value)).toEqual(undefined)
 
       return true
     })
@@ -649,7 +649,7 @@ describe('rpcLink: event-source iterator', () => {
     await expect(output.next()).resolves.toSatisfy(({ done, value }) => {
       expect(done).toBe(false)
       expect(value).toEqual({ order: 2, date })
-      expect(getEventSourceMeta(value)).toEqual(expect.objectContaining({ retry: 1000 }))
+      expect(getEventMeta(value)).toEqual(expect.objectContaining({ retry: 1000 }))
 
       return true
     })

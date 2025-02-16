@@ -1,7 +1,7 @@
 import type { JsonValue } from '@orpc/server-standard'
 import type { PublicJSONSerializer } from '../../json-serializer'
 import { mapEventSourceIterator, ORPCError, toORPCError } from '@orpc/contract'
-import { EventSourceErrorEvent, isAsyncIteratorObject } from '@orpc/server-standard'
+import { ErrorEvent, isAsyncIteratorObject } from '@orpc/server-standard'
 import { findDeepMatches } from '@orpc/shared'
 import { JSONSerializer } from '../../json-serializer'
 import * as BracketNotation from './bracket-notation'
@@ -26,14 +26,14 @@ export class OpenAPISerializer {
       return mapEventSourceIterator(data, {
         value: async value => this.jsonSerializer.serialize(value),
         error: async (e) => {
-          if (e instanceof EventSourceErrorEvent) {
-            return new EventSourceErrorEvent({
+          if (e instanceof ErrorEvent) {
+            return new ErrorEvent({
               data: this.jsonSerializer.serialize(e.data) as JsonValue,
               cause: e,
             })
           }
 
-          return new EventSourceErrorEvent({
+          return new ErrorEvent({
             data: this.jsonSerializer.serialize(toORPCError(e).toJSON()) as JsonValue,
             cause: e,
           })
@@ -78,7 +78,7 @@ export class OpenAPISerializer {
       return mapEventSourceIterator(serialized, {
         value: async value => value,
         error: async (e) => {
-          if (e instanceof EventSourceErrorEvent && ORPCError.isValidJSON(e.data)) {
+          if (e instanceof ErrorEvent && ORPCError.isValidJSON(e.data)) {
             return ORPCError.fromJSON(e.data, { cause: e })
           }
 

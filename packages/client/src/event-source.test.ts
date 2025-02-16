@@ -1,4 +1,4 @@
-import { setEventSourceMeta } from '@orpc/server-standard'
+import { withEventMeta } from '@orpc/server-standard'
 import { createAutoRetryEventSourceIterator } from './event-source'
 import { onEventIteratorStatusChange } from './event-source-state'
 
@@ -64,11 +64,11 @@ describe('createAutoRetryEventSourceIterator', () => {
 
   it('on error with meta', async () => {
     const reconnect = vi.fn().mockResolvedValueOnce(null)
-    const error = setEventSourceMeta(new Error('bad'), { id: 'meta-id' })
+    const error = withEventMeta(new Error('bad'), { id: 'meta-id' })
     const iterator = createAutoRetryEventSourceIterator((async function* () {
       yield 1
       yield 2
-      yield setEventSourceMeta({ order: 3 }, { retry: 1000 })
+      yield withEventMeta({ order: 3 }, { retry: 1000 })
       throw error
     })(), reconnect, 'initial-id')
 
@@ -97,11 +97,11 @@ describe('createAutoRetryEventSourceIterator', () => {
       return 6
     }) as any
 
-    const error = setEventSourceMeta(new Error('bad'), { id: 'meta-id' })
+    const error = withEventMeta(new Error('bad'), { id: 'meta-id' })
     const iterator = createAutoRetryEventSourceIterator((async function* () {
       yield 1
       yield 2
-      yield setEventSourceMeta({ order: 3 }, { retry: 1000 })
+      yield withEventMeta({ order: 3 }, { retry: 1000 })
       throw error
     })(), reconnect, 'initial-id')
 
@@ -133,11 +133,11 @@ describe('createAutoRetryEventSourceIterator', () => {
       throw new Error('bad2')
     }) as any
 
-    const error = setEventSourceMeta(new Error('bad'), { id: 'meta-id' })
+    const error = withEventMeta(new Error('bad'), { id: 'meta-id' })
     const iterator = createAutoRetryEventSourceIterator((async function* () {
       yield 1
       yield 2
-      yield setEventSourceMeta({ order: 3 }, { retry: 1000 })
+      yield withEventMeta({ order: 3 }, { retry: 1000 })
       throw error
     })(), reconnect, 'initial-id')
 

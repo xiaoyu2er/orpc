@@ -1,5 +1,5 @@
 import { ORPCError } from '@orpc/contract'
-import { EventSourceErrorEvent, getEventSourceMeta, isAsyncIteratorObject, setEventSourceMeta } from '@orpc/server-standard'
+import { ErrorEvent, getEventMeta, isAsyncIteratorObject, withEventMeta } from '@orpc/server-standard'
 import { supportedDataTypes } from '../../../tests/shared'
 import { RPCSerializer } from './rpc-serializer'
 
@@ -72,8 +72,8 @@ describe('rpcSerializer: event-source iterator', async () => {
   it('on success', async () => {
     const iterator = (async function* () {
       yield 1
-      yield setEventSourceMeta({ order: 2, date }, { retry: 1000 })
-      return setEventSourceMeta({ order: 3 }, { id: '123456' })
+      yield withEventMeta({ order: 2, date }, { retry: 1000 })
+      return withEventMeta({ order: 3 }, { id: '123456' })
     })()
 
     const deserialized = serializeAndDeserialize(iterator) as any
@@ -82,7 +82,7 @@ describe('rpcSerializer: event-source iterator', async () => {
     await expect(deserialized.next()).resolves.toSatisfy(({ value, done }) => {
       expect(done).toBe(false)
       expect(value).toEqual(1)
-      expect(getEventSourceMeta(value)).toEqual(undefined)
+      expect(getEventMeta(value)).toEqual(undefined)
 
       return true
     })
@@ -90,7 +90,7 @@ describe('rpcSerializer: event-source iterator', async () => {
     await expect(deserialized.next()).resolves.toSatisfy(({ value, done }) => {
       expect(done).toBe(false)
       expect(value).toEqual({ order: 2, date })
-      expect(getEventSourceMeta(value)).toEqual({ retry: 1000 })
+      expect(getEventMeta(value)).toEqual({ retry: 1000 })
 
       return true
     })
@@ -98,18 +98,18 @@ describe('rpcSerializer: event-source iterator', async () => {
     await expect(deserialized.next()).resolves.toSatisfy(({ value, done }) => {
       expect(done).toBe(true)
       expect(value).toEqual({ order: 3 })
-      expect(getEventSourceMeta(value)).toEqual({ id: '123456' })
+      expect(getEventMeta(value)).toEqual({ id: '123456' })
 
       return true
     })
   })
 
   it('on error with ORPCError', async () => {
-    const error = setEventSourceMeta(new ORPCError('BAD_GATEWAY', { data: { order: 3 } }), { id: '123456' })
+    const error = withEventMeta(new ORPCError('BAD_GATEWAY', { data: { order: 3 } }), { id: '123456' })
 
     const iterator = (async function* () {
       yield 1
-      yield setEventSourceMeta({ order: 2, date }, { retry: 1000 })
+      yield withEventMeta({ order: 2, date }, { retry: 1000 })
       throw error
     })()
 
@@ -119,7 +119,7 @@ describe('rpcSerializer: event-source iterator', async () => {
     await expect(deserialized.next()).resolves.toSatisfy(({ value, done }) => {
       expect(done).toBe(false)
       expect(value).toEqual(1)
-      expect(getEventSourceMeta(value)).toEqual(undefined)
+      expect(getEventMeta(value)).toEqual(undefined)
 
       return true
     })
@@ -127,7 +127,7 @@ describe('rpcSerializer: event-source iterator', async () => {
     await expect(deserialized.next()).resolves.toSatisfy(({ value, done }) => {
       expect(done).toBe(false)
       expect(value).toEqual({ order: 2, date })
-      expect(getEventSourceMeta(value)).toEqual({ retry: 1000 })
+      expect(getEventMeta(value)).toEqual({ retry: 1000 })
 
       return true
     })
@@ -135,18 +135,18 @@ describe('rpcSerializer: event-source iterator', async () => {
     await expect(deserialized.next()).rejects.toSatisfy((e: any) => {
       expect(e).toEqual(error)
       expect(e).toBeInstanceOf(ORPCError)
-      expect(e.cause).toBeInstanceOf(EventSourceErrorEvent)
+      expect(e.cause).toBeInstanceOf(ErrorEvent)
 
       return true
     })
   })
 
-  it('on error with EventSourceErrorEvent', async () => {
-    const error = setEventSourceMeta(new EventSourceErrorEvent({ data: { order: 3 } }), { id: '123456' })
+  it('on error with ErrorEvent', async () => {
+    const error = withEventMeta(new ErrorEvent({ data: { order: 3 } }), { id: '123456' })
 
     const iterator = (async function* () {
       yield 1
-      yield setEventSourceMeta({ order: 2, date }, { retry: 1000 })
+      yield withEventMeta({ order: 2, date }, { retry: 1000 })
       throw error
     })()
 
@@ -156,7 +156,7 @@ describe('rpcSerializer: event-source iterator', async () => {
     await expect(deserialized.next()).resolves.toSatisfy(({ value, done }) => {
       expect(done).toBe(false)
       expect(value).toEqual(1)
-      expect(getEventSourceMeta(value)).toEqual(undefined)
+      expect(getEventMeta(value)).toEqual(undefined)
 
       return true
     })
@@ -164,26 +164,26 @@ describe('rpcSerializer: event-source iterator', async () => {
     await expect(deserialized.next()).resolves.toSatisfy(({ value, done }) => {
       expect(done).toBe(false)
       expect(value).toEqual({ order: 2, date })
-      expect(getEventSourceMeta(value)).toEqual({ retry: 1000 })
+      expect(getEventMeta(value)).toEqual({ retry: 1000 })
 
       return true
     })
 
     await expect(deserialized.next()).rejects.toSatisfy((e: any) => {
       expect(e).toEqual(error)
-      expect(e).toBeInstanceOf(EventSourceErrorEvent)
-      expect(e.cause).toBeInstanceOf(EventSourceErrorEvent)
+      expect(e).toBeInstanceOf(ErrorEvent)
+      expect(e.cause).toBeInstanceOf(ErrorEvent)
 
       return true
     })
   })
 
   it('on error with unknown error when deserialize', async () => {
-    const error = setEventSourceMeta(new Error('UNKNOWN'), { id: '123456' })
+    const error = withEventMeta(new Error('UNKNOWN'), { id: '123456' })
 
     const iterator = (async function* () {
       yield serializer.serialize(1)
-      yield setEventSourceMeta(serializer.serialize({ order: 2, date }), { retry: 1000 })
+      yield withEventMeta(serializer.serialize({ order: 2, date }), { retry: 1000 })
       throw error
     })()
 
@@ -193,7 +193,7 @@ describe('rpcSerializer: event-source iterator', async () => {
     await expect(deserialized.next()).resolves.toSatisfy(({ value, done }) => {
       expect(done).toBe(false)
       expect(value).toEqual(1)
-      expect(getEventSourceMeta(value)).toEqual(undefined)
+      expect(getEventMeta(value)).toEqual(undefined)
 
       return true
     })
@@ -201,7 +201,7 @@ describe('rpcSerializer: event-source iterator', async () => {
     await expect(deserialized.next()).resolves.toSatisfy(({ value, done }) => {
       expect(done).toBe(false)
       expect(value).toEqual({ order: 2, date })
-      expect(getEventSourceMeta(value)).toEqual({ retry: 1000 })
+      expect(getEventMeta(value)).toEqual({ retry: 1000 })
 
       return true
     })

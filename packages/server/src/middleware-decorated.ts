@@ -1,6 +1,6 @@
 import type { Meta, ORPCErrorConstructorMap } from '@orpc/contract'
 import type { Context, MergedContext } from './context'
-import type { AnyMiddleware, MapInputMiddleware, Middleware, MiddlewareNextFn } from './middleware'
+import type { AnyMiddleware, MapInputMiddleware, Middleware } from './middleware'
 
 export interface DecoratedMiddleware<
   TInContext extends Context,
@@ -82,11 +82,14 @@ export function decorateMiddleware<
       : concatMiddleware
 
     const concatted = decorateMiddleware((options, input, output, ...rest) => {
-      const next: MiddlewareNextFn<any, any> = async (...[nextOptions]) => {
-        return mapped({ ...options, context: { ...nextOptions?.context, ...options.context } }, input, output, ...rest)
-      }
-
-      const merged = middleware({ ...options, next } as any, input as any, output as any, ...rest)
+      const merged = middleware({
+        ...options,
+        next: (...[nextOptions1]: [any]) => mapped({
+          ...options,
+          context: { ...options.context, ...nextOptions1?.context },
+          next: (...[nextOptions2]) => options.next({ context: { ...nextOptions1?.context, ...nextOptions2?.context } }) as any,
+        }, input, output, ...rest),
+      } as any, input as any, output as any, ...rest)
 
       return merged
     })

@@ -1,5 +1,7 @@
+import type { EventIteratorState } from './event-source-state'
 import { getEventSourceMeta } from '@orpc/server-standard'
 import { retry } from '@orpc/shared'
+import { registerEventIteratorState, updateEventIteratorStatus } from './event-source-state'
 
 export interface EventSourceIteratorReconnectOptions {
   lastRetry: number | undefined
@@ -15,7 +17,12 @@ export function createAutoRetryEventSourceIterator<TYield, TReturn>(
   reconnect: (options: EventSourceIteratorReconnectOptions) => Promise<AsyncIterator<TYield, TReturn, void> | null>,
   initialLastEventId: string | undefined,
 ): AsyncGenerator<TYield, TReturn, void> {
-  return (async function* () {
+  const state: EventIteratorState = {
+    status: 'connected',
+    listeners: [],
+  }
+
+  const iterator = (async function* () {
     let current = initial
     let lastEventId = initialLastEventId
     let lastRetry: number | undefined
@@ -24,6 +31,8 @@ export function createAutoRetryEventSourceIterator<TYield, TReturn>(
     try {
       while (true) {
         try {
+          updateEventIteratorStatus(state, 'connected')
+
           const { done, value } = await current.next()
 
           const meta = getEventSourceMeta(value)
@@ -39,6 +48,8 @@ export function createAutoRetryEventSourceIterator<TYield, TReturn>(
           yield value
         }
         catch (e) {
+          updateEventIteratorStatus(state, 'reconnecting')
+
           const meta = getEventSourceMeta(e)
           lastEventId = meta?.id ?? lastEventId
           lastRetry = meta?.retry ?? lastRetry
@@ -81,7 +92,13 @@ export function createAutoRetryEventSourceIterator<TYield, TReturn>(
       }
     }
     finally {
+      updateEventIteratorStatus(state, 'closed')
+
       await current.return?.()
     }
   })()
+
+  registerEventIteratorState(iterator, state)
+
+  return iterator
 }

@@ -1,5 +1,6 @@
 import { setEventSourceMeta } from '@orpc/server-standard'
 import { createAutoRetryEventSourceIterator } from './event-source'
+import { onEventIteratorStatusChange } from './event-source-state'
 
 describe('createAutoRetryEventSourceIterator', () => {
   it('on success', async () => {
@@ -11,11 +12,20 @@ describe('createAutoRetryEventSourceIterator', () => {
       return 4
     })(), reconnect, 'initial-id')
 
+    const listener = vi.fn()
+    onEventIteratorStatusChange(iterator, listener)
+
     expect(await iterator.next()).toEqual({ done: false, value: 1 })
     expect(await iterator.next()).toEqual({ done: false, value: 2 })
     expect(await iterator.next()).toEqual({ done: false, value: 3 })
+    expect(listener).toBeCalledTimes(1)
+    expect(listener).toHaveBeenLastCalledWith('connected')
+
     expect(await iterator.next()).toEqual({ done: true, value: 4 })
     expect(reconnect).toBeCalledTimes(0)
+
+    expect(listener).toBeCalledTimes(2)
+    expect(listener).toHaveBeenLastCalledWith('closed')
   })
 
   it('on error', async () => {
@@ -28,9 +38,16 @@ describe('createAutoRetryEventSourceIterator', () => {
       throw error
     })(), reconnect, 'initial-id')
 
+    const listener = vi.fn()
+    onEventIteratorStatusChange(iterator, listener)
+
     expect(await iterator.next()).toEqual({ done: false, value: 1 })
     expect(await iterator.next()).toEqual({ done: false, value: 2 })
     expect(await iterator.next()).toEqual({ done: false, value: 3 })
+
+    expect(listener).toBeCalledTimes(1)
+    expect(listener).toHaveBeenLastCalledWith('connected')
+
     await expect(iterator.next()).rejects.toThrow('bad')
     expect(reconnect).toBeCalledTimes(1)
     expect(reconnect).toBeCalledWith({
@@ -39,6 +56,10 @@ describe('createAutoRetryEventSourceIterator', () => {
       retryTimes: 1,
       error,
     })
+
+    expect(listener).toBeCalledTimes(3)
+    expect(listener).toHaveBeenNthCalledWith(2, 'reconnecting')
+    expect(listener).toHaveBeenLastCalledWith('closed')
   })
 
   it('on error with meta', async () => {

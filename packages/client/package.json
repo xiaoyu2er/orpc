@@ -20,11 +20,6 @@
         "import": "./dist/index.js",
         "default": "./dist/index.js"
       },
-      "./standard": {
-        "types": "./dist/src/adapters/standard/index.d.ts",
-        "import": "./dist/standard.js",
-        "default": "./dist/standard.js"
-      },
       "./fetch": {
         "types": "./dist/src/adapters/fetch/index.d.ts",
         "import": "./dist/fetch.js",
@@ -37,7 +32,6 @@
   },
   "exports": {
     ".": "./src/index.ts",
-    "./standard": "./src/adapters/standard/index.ts",
     "./fetch": "./src/adapters/fetch/index.ts",
     "./🔒/*": {
       "types": "./src/*.ts"

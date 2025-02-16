@@ -7,7 +7,7 @@ import { isAsyncIteratorObject, type StandardBody } from '@orpc/server-standard'
 import { toFetchBody, toStandardBody } from '@orpc/server-standard-fetch'
 import { RPCSerializer } from '@orpc/server/standard'
 import { trim } from '@orpc/shared'
-import { createAutoRetryEventSourceIterator, type EventSourceIteratorReconnectOptions } from '../standard'
+import { createAutoRetryEventSourceIterator, type EventSourceIteratorReconnectOptions } from '../../event-source'
 
 export class InvalidEventSourceRetryResponse extends Error { }
 

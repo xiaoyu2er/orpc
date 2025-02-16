@@ -36,21 +36,25 @@ describe('decorateMiddleware', () => {
 
     const decorated = decorateMiddleware((options, input, output) => {
       fn(options, input, output)
-      return options.next({ context: { auth: true } })
+      return options.next({ context: { auth: 1, mid1: true } })
     }).concat((options, input, output) => {
       fn2(options, input, output)
-      return options.next({})
+      return options.next({ context: { auth: 2, mid2: true } })
     }) as any
 
     next.mockReturnValueOnce('__mocked__')
     const outputFn = vi.fn()
-    expect((await decorated({ next }, 'input', outputFn))).toBe('__mocked__')
+    const signal = AbortSignal.timeout(100)
+    expect((await decorated({ next, context: { origin: true }, signal }, 'input', outputFn))).toBe('__mocked__')
 
     expect(fn).toHaveBeenCalledTimes(1)
-    expect(fn).toHaveBeenCalledWith({ next: expect.any(Function) }, 'input', outputFn)
+    expect(fn).toHaveBeenCalledWith({ next: expect.any(Function), context: { origin: true }, signal }, 'input', outputFn)
 
     expect(fn2).toHaveBeenCalledTimes(1)
-    expect(fn2).toHaveBeenCalledWith({ next, context: { auth: true } }, 'input', outputFn)
+    expect(fn2).toHaveBeenCalledWith({ next: expect.any(Function), context: { origin: true, auth: 1, mid1: true }, signal }, 'input', outputFn)
+
+    expect(next).toHaveBeenCalledTimes(1)
+    expect(next).toHaveBeenCalledWith({ context: { auth: 2, mid2: true, mid1: true } })
   })
 
   it('can concat with map input', async () => {
@@ -80,6 +84,9 @@ describe('decorateMiddleware', () => {
     expect(map).toHaveBeenCalledWith('input')
 
     expect(fn2).toHaveBeenCalledTimes(1)
-    expect(fn2).toHaveBeenCalledWith({ context: { auth: true }, next }, { name: 'input' }, outputFn)
+    expect(fn2).toHaveBeenCalledWith({ context: { auth: true }, next: expect.any(Function) }, { name: 'input' }, outputFn)
+
+    expect(next).toHaveBeenCalledTimes(1)
+    expect(next).toHaveBeenCalledWith({ context: { auth: true } })
   })
 })

@@ -86,17 +86,20 @@ describe('openapi generator', () => {
     })
 
     it('detailed', async () => {
+      const inputSchema = z.object({ params: z.object({ name: z.string() }) })
+      const outputSchema = z.object({ body: z.object({ message: z.string() }) })
+
       const router = oc
         .route({
           path: '/ping/{name}',
           inputStructure: 'detailed',
           outputStructure: 'detailed',
         })
-        .input('input' as any)
-        .output('output' as any)
+        .input(inputSchema)
+        .output(outputSchema)
 
       mockConverter.convert.mockImplementation((schema) => {
-        if (schema === 'input') {
+        if (schema === inputSchema) {
           return {
             type: 'object',
             properties: {

@@ -6,6 +6,7 @@
     "context",
     "contract",
     "file-upload",
+    "event-iterator",
     "lazy",
     "server-action",
     "client",

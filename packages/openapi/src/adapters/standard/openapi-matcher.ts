@@ -43,7 +43,7 @@ export class OpenAPIMatcher implements StandardMatcher {
 
       const method = fallbackContractConfig('defaultMethod', contract['~orpc'].route.method)
       const httpPath = contract['~orpc'].route.path
-        ? convertOpenAPIPathToRouterPath(contract['~orpc'].route.path)
+        ? toRou3Pattern(contract['~orpc'].route.path)
         : convertPathToHttpPath(path)
 
       if (isProcedure(contract)) {
@@ -114,11 +114,18 @@ export class OpenAPIMatcher implements StandardMatcher {
     return {
       path: match.data.path,
       procedure: match.data.procedure,
-      params: match.params,
+      params: match.params ? decodeParams(match.params) : undefined,
     }
   }
 }
 
-function convertOpenAPIPathToRouterPath(path: HTTPPath): string {
-  return standardizeHTTPPath(path).replace(/\{([^}]+)\}/g, ':$1')
+/**
+ * {@link https://github.com/unjs/rou3}
+ */
+function toRou3Pattern(path: HTTPPath): string {
+  return standardizeHTTPPath(path).replace(/\{\+([^}]+)\}/g, '**:$1').replace(/\{([^}]+)\}/g, ':$1')
+}
+
+function decodeParams(params: Record<string, string>): Record<string, string> {
+  return Object.fromEntries(Object.entries(params).map(([key, value]) => [key, decodeURIComponent(value)]))
 }

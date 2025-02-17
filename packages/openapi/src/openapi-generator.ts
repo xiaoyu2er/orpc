@@ -17,7 +17,7 @@ import { OpenAPIParametersBuilder, type PublicOpenAPIParametersBuilder } from '.
 import { OpenAPIPathParser } from './openapi-path-parser'
 import { CompositeSchemaConverter } from './schema-converter'
 import { type PublicSchemaUtils, SchemaUtils } from './schema-utils'
-import { standardizeHTTPPath } from './utils'
+import { toOpenAPI31RoutePattern } from './utils'
 
 type ErrorHandlerStrategy = 'throw' | 'log' | 'ignore'
 
@@ -115,7 +115,7 @@ export class OpenAPIGenerator {
         }
 
         const method = fallbackContractConfig('defaultMethod', def.route?.method)
-        const httpPath = def.route?.path ? standardizeHTTPPath(def.route?.path) : `/${path.map(encodeURIComponent).join('/')}`
+        const httpPath = def.route?.path ? toOpenAPI31RoutePattern(def.route?.path) : `/${path.map(encodeURIComponent).join('/')}`
 
         const { parameters, requestBody } = (() => {
           const eventIteratorSchemaDetails = getEventIteratorSchemaDetails(def.inputSchema)

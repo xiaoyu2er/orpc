@@ -1,4 +1,4 @@
-import type { Client, ClientContext } from '@orpc/contract'
+import type { Client, ClientContext } from './types'
 import { oc } from '@orpc/contract'
 import { implement, os } from '@orpc/server'
 import { z } from 'zod'

@@ -1,6 +1,5 @@
-import type { ORPCError } from '@orpc/client'
+import type { Client, ORPCError } from '@orpc/client'
 import type { baseErrorMap, inputSchema, outputSchema } from '../tests/shared'
-import type { Client } from './client'
 import type { ContractProcedureClient } from './procedure-client'
 
 describe('ContractProcedureClient', () => {

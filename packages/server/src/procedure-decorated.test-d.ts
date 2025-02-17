@@ -1,4 +1,5 @@
-import type { Client, ClientRest, ErrorFromErrorMap, ErrorMap, MergedErrorMap, Schema } from '@orpc/contract'
+import type { Client, ClientRest } from '@orpc/client'
+import type { ErrorFromErrorMap, ErrorMap, MergedErrorMap, Schema } from '@orpc/contract'
 import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../../contract/tests/shared'
 import type { CurrentContext, InitialContext } from '../tests/shared'
 import type { Context } from './context'

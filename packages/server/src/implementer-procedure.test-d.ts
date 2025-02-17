@@ -1,4 +1,5 @@
-import type { Client, ClientRest, ContractProcedure, ErrorFromErrorMap, ErrorMap, Schema } from '@orpc/contract'
+import type { Client, ClientRest } from '@orpc/client'
+import type { ContractProcedure, ErrorFromErrorMap, ErrorMap, Schema } from '@orpc/contract'
 import type { OmitChainMethodDeep } from '@orpc/shared'
 import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../../contract/tests/shared'
 import type { CurrentContext, InitialContext } from '../tests/shared'

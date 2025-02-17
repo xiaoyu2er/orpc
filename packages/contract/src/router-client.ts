@@ -1,4 +1,4 @@
-import type { ClientContext } from './client'
+import type { ClientContext } from '@orpc/client'
 import type { ContractProcedure } from './procedure'
 import type { ContractProcedureClient } from './procedure-client'
 import type { AnyContractRouter } from './router'

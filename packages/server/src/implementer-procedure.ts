@@ -1,4 +1,5 @@
-import type { ClientContext, ClientRest, ErrorMap, Meta, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ClientContext, ClientRest } from '@orpc/client'
+import type { ErrorMap, Meta, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { BuilderDef } from './builder'
 import type { ConflictContextGuard, Context, MergedContext } from './context'

@@ -1,4 +1,5 @@
-import type { AnyContractRouter, Client, ClientContext, ContractRouterClient } from '@orpc/contract'
+import type { Client, ClientContext } from '@orpc/client'
+import type { AnyContractRouter, ContractRouterClient } from '@orpc/contract'
 import type { AnyRouter, RouterClient } from '@orpc/server'
 import type { ClientLink } from './types'
 

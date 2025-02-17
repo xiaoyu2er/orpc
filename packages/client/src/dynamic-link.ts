@@ -1,6 +1,5 @@
-import type { ClientContext } from '@orpc/contract'
 import type { Promisable } from '@orpc/shared'
-import type { ClientLink, ClientOptionsOut } from './types'
+import type { ClientContext, ClientLink, ClientOptionsOut } from './types'
 
 /**
  * DynamicLink provides a way to dynamically resolve and delegate calls to other ClientLinks

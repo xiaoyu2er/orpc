@@ -6,5 +6,4 @@ export * from './error'
 export * from './event-iterator'
 export * from './event-iterator-state'
 export * from './types'
-
-export { safe } from '@orpc/contract'
+export * from './utils'

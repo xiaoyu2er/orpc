@@ -1,4 +1,5 @@
-import type { ClientContext, ErrorMap, Meta } from '@orpc/contract'
+import type { ClientContext } from '@orpc/client'
+import type { ErrorMap, Meta } from '@orpc/contract'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { Lazy } from './lazy'
 import type { Procedure } from './procedure'

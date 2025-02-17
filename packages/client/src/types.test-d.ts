@@ -1,4 +1,4 @@
-import type { Client, ClientContext } from './client'
+import type { Client, ClientContext } from './types'
 
 describe('client', () => {
   const fn: Client<ClientContext, string, number, Error> = async (...[input, options]) => {

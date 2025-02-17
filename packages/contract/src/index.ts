@@ -2,8 +2,6 @@
 
 export * from './builder'
 export * from './builder-variants'
-export * from './client'
-export * from './client-utils'
 export * from './config'
 export * from './error'
 export * from './event-iterator'

@@ -1,5 +1,4 @@
-import type { ClientContext } from '@orpc/contract'
-import type { ClientOptionsOut } from '../../types'
+import type { ClientContext, ClientOptionsOut } from '../../types'
 
 export interface FetchWithContext<TClientContext extends ClientContext> {
   (

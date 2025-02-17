@@ -30,6 +30,7 @@ const pub = os
 
 const getUser = pub
     .route({ method: 'GET', path: '/{id}' }) // Optional: if you want custom api under OpenAPI Specifications
+    .route({ method: 'GET', path: '/{+filePath}' }) // Optional: reserved expansion support
     .input(z.object({ id: z.string() })) // Optional
     .output(z.object({ id: z.string(), name: z.string() })) // Optional
     .use(async ({ context, path, next }, input) => { // Optional

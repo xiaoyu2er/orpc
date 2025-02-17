@@ -1,6 +1,6 @@
-import type { ORPCError } from '@orpc/client'
+import type { ORPCError } from './error'
 import type { ClientPromiseResult } from './types'
-import { isDefinedError } from '@orpc/client'
+import { isDefinedError } from './error'
 
 export type SafeResult<TOutput, TError extends Error> =
   | [output: TOutput, error: undefined, isDefinedError: false]

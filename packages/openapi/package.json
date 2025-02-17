@@ -84,7 +84,6 @@
     "rou3": "^0.5.1"
   },
   "devDependencies": {
-    "@readme/openapi-parser": "^2.6.0",
     "zod": "^3.24.1"
   }
 }

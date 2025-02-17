@@ -46,7 +46,7 @@
     "type:check": "tsc -b"
   },
   "peerDependencies": {
-    "@pinia/colada": "^0.13.5",
+    "@pinia/colada": ">=0.13.5",
     "vue": ">=3.3.0"
   },
   "dependencies": {

@@ -1,9 +1,9 @@
 import type { JsonValue } from '@orpc/server-standard'
 import type { PublicOpenAPIJsonSerializer } from './json-serializer'
-import { ORPCError, toORPCError } from '@orpc/client'
-import { mapEventIterator } from '@orpc/contract'
 import { ErrorEvent, isAsyncIteratorObject } from '@orpc/server-standard'
 import { findDeepMatches } from '@orpc/shared'
+import { ORPCError, toORPCError } from '../error'
+import { mapEventIterator } from '../event-iterator'
 import * as BracketNotation from './bracket-notation'
 import { OpenAPIJsonSerializer } from './json-serializer'
 

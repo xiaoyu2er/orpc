@@ -1,13 +1,14 @@
-import type { HTTPMethod } from '@orpc/contract'
 import type { Value } from '@orpc/shared'
 import type { ClientContext, ClientLink, ClientOptionsOut } from '../../types'
 import type { FetchWithContext } from './types'
-import { ORPCError } from '@orpc/contract'
 import { isAsyncIteratorObject, type StandardBody } from '@orpc/server-standard'
 import { toFetchBody, toStandardBody } from '@orpc/server-standard-fetch'
 import { trim, value } from '@orpc/shared'
+import { ORPCError } from '../../error'
 import { createAutoRetryEventIterator, type EventIteratorReconnectOptions } from '../../event-iterator'
 import { RPCSerializer } from '../../rpc'
+
+type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
 
 export class InvalidEventSourceRetryResponse extends Error { }
 

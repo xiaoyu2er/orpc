@@ -17,6 +17,7 @@ To create a fully typed client, you need either the type of the [router](/docs/s
 import { createORPCClient, ORPCError } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
 import type { router } from 'examples/server'
+import type { RouterClient } from '@orpc/server'
 
 const rpcLink = new RPCLink({
   url: 'http://localhost:3000/rpc',
@@ -24,7 +25,8 @@ const rpcLink = new RPCLink({
   // headers: provide additional headers
 })
 
-const client = createORPCClient<typeof router /* or contract router */>(rpcLink)
+const client: RouterClient<typeof router> = createORPCClient(rpcLink)
+// const client: ContractRouterClient<typeof contract> = createORPCClient(rpcLink)
  
 //  File upload out of the box
 const output = await client.posts.createPost({
@@ -46,6 +48,7 @@ The `Client Context` feature allows you to pass additional contextual informatio
 import type { router } from 'examples/server'
 import { createORPCClient, ORPCError } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
+import type { RouterClient } from '@orpc/server'
 
 type ClientContext = { cache?: RequestCache }
 
@@ -72,7 +75,7 @@ const rpcLink = new RPCLink<ClientContext>({
   },
 })
 
-const client = createORPCClient<typeof router, ClientContext>(rpcLink)
+const client: RouterClient<typeof router, ClientContext> = createORPCClient(rpcLink)
 
 client.getUser({ id: '123' }, { context: { cache: 'force-cache' } })
 ```
@@ -87,6 +90,7 @@ With the **Dynamic Link** mechanism, you can define custom logic to dynamically 
 import type { router } from 'examples/server'
 import { createORPCClient, DynamicLink, ORPCError } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
+import type { RouterClient } from '@orpc/server'
 
 const rpcLink1 = new RPCLink({
   url: 'http://localhost:3000/rpc',
@@ -106,5 +110,5 @@ const dynamicLink = new DynamicLink(({ context }, path, input) => { // can be as
   return rpcLink2
 })
 
-const client = createORPCClient<typeof router>(dynamicLink)
+const client: RouterClient<typeof router> = createORPCClient(dynamicLink)
 ```

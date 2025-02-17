@@ -11,7 +11,7 @@ import { isProcedure } from './procedure'
 import { createProcedureClient } from './procedure-client'
 import { getRouterChild } from './router'
 
-export type RouterClient<TRouter extends AnyRouter, TClientContext extends ClientContext> =
+export type RouterClient<TRouter extends AnyRouter, TClientContext extends ClientContext = Record<never, never>> =
   TRouter extends Lazy<infer U extends AnyRouter>
     ? RouterClient<U, TClientContext>
     : TRouter extends Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput, infer UErrorMap, any>

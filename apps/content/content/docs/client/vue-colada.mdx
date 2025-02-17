@@ -16,6 +16,7 @@ import { createORPCVueColadaUtils } from '@orpc/vue-colada';
 import { createORPCClient } from '@orpc/client';
 import { RPCLink } from '@orpc/client/fetch';
 import type { router } from 'examples/server';
+import type { RouterClient } from '@orpc/server';
 
 const rpcLink = new RPCLink({
   url: 'http://localhost:3000/rpc',
@@ -24,7 +25,7 @@ const rpcLink = new RPCLink({
 });
 
 // Create an ORPC client
-export const client = createORPCClient<typeof router>(rpcLink);
+export const client: RouterClient<typeof router> = createORPCClient(rpcLink);
 
 // Create Vue Query utilities for ORPC
 export const orpc = createORPCVueColadaUtils(client);

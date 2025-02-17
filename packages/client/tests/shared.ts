@@ -1,3 +1,4 @@
+import type { RouterClient } from '@orpc/server'
 import { RPCHandler } from '@orpc/server/fetch'
 import { router } from '../../server/tests/shared'
 import { createORPCClient } from '../src'
@@ -28,7 +29,7 @@ const rpcLink = new RPCLink<ClientContext>({
   },
 })
 
-export const orpc = createORPCClient<typeof router, ClientContext>(rpcLink)
+export const orpc: RouterClient<typeof router, ClientContext> = createORPCClient(rpcLink)
 
 enum Test {
   A = 1,

@@ -18,10 +18,12 @@ export type NestedClient<TClientContext extends ClientContext> = Client<TClientC
   [k: string]: NestedClient<TClientContext>
 }
 
+export type InferClientContext<T extends NestedClient<any>> = T extends NestedClient<infer U> ? U : never
+
 export type ClientOptionsOut<TClientContext extends ClientContext> = ClientOptions<TClientContext> & {
   context: TClientContext
 }
 
 export interface ClientLink<TClientContext extends ClientContext> {
-  call(path: readonly string[], input: unknown, options: ClientOptionsOut<TClientContext>): Promise<unknown>
+  call: (path: readonly string[], input: unknown, options: ClientOptionsOut<TClientContext>) => Promise<unknown>
 }

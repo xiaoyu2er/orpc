@@ -136,6 +136,7 @@ That's it! The contract definition and implementation are now completely separat
 Create a fully typed client using just the contract definition:
 
 ```ts twoslash
+import { ContractRouterClient } from '@orpc/contract'
 import { createORPCClient, ORPCError } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
 import type { contract } from 'examples/contract'
@@ -146,8 +147,9 @@ const rpcLink = new RPCLink({
   // headers: provide additional headers
 })
 
-const client = createORPCClient<typeof contract /* or server router */>(rpcLink)
- 
+const client: ContractRouterClient<typeof contract> = createORPCClient(rpcLink)
+// const client: RouterClient<typeof router> = createORPCClient(rpcLink)
+
 //  File upload out of the box
 const output = await client.posts.createPost({
   title: 'My Amazing Title',

@@ -1,3 +1,4 @@
+import type { RouterClient } from '@orpc/server'
 import type { router } from '~/server/router'
 import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
@@ -10,6 +11,6 @@ const rpcLink = new RPCLink({
   }),
 })
 
-export const client = createORPCClient<typeof router>(rpcLink)
+export const client: RouterClient<typeof router> = createORPCClient(rpcLink)
 
 export const orpc = createORPCVueQueryUtils(client)

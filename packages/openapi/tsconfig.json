@@ -6,7 +6,7 @@
     { "path": "../server" },
     { "path": "../shared" }
   ],
-  "include": ["src", "../client/src/openapi/json-serializer.ts"],
+  "include": ["src"],
   "exclude": [
     "**/*.bench.*",
     "**/*.test.*",

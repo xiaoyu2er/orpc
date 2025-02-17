@@ -156,12 +156,6 @@ importers:
 
   packages/client:
     dependencies:
-      '@orpc/contract':
-        specifier: workspace:*
-        version: link:../contract
-      '@orpc/server':
-        specifier: workspace:*
-        version: link:../server
       '@orpc/server-standard':
         specifier: ^0.4.0
         version: 0.4.0
@@ -181,6 +175,9 @@ importers:
 
   packages/contract:
     dependencies:
+      '@orpc/client':
+        specifier: workspace:*
+        version: link:../client
       '@orpc/server-standard':
         specifier: ^0.4.0
         version: 0.4.0
@@ -203,6 +200,9 @@ importers:
 
   packages/openapi:
     dependencies:
+      '@orpc/client':
+        specifier: workspace:*
+        version: link:../client
       '@orpc/contract':
         specifier: workspace:*
         version: link:../contract
@@ -262,6 +262,9 @@ importers:
 
   packages/server:
     dependencies:
+      '@orpc/client':
+        specifier: workspace:*
+        version: link:../client
       '@orpc/contract':
         specifier: workspace:*
         version: link:../contract

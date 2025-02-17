@@ -1,6 +1,7 @@
-import type { ErrorMap, Meta, ORPCErrorConstructorMap, Schema } from '@orpc/contract'
+import type { ErrorMap, Meta, Schema } from '@orpc/contract'
 import type { MaybeOptionalOptions, Promisable } from '@orpc/shared'
 import type { Context } from './context'
+import type { ORPCErrorConstructorMap } from './error'
 import type { Procedure } from './procedure'
 
 export type MiddlewareResult<TOutContext extends Context, TOutput> = Promisable<{

@@ -1,6 +1,7 @@
-import type { ClientContext, ClientRest, ErrorMap, MergedErrorMap, Meta, ORPCErrorConstructorMap, Route, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ClientContext, ClientRest, ErrorMap, MergedErrorMap, Meta, Route, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { ConflictContextGuard, Context, MergedContext } from './context'
+import type { ORPCErrorConstructorMap } from './error'
 import type { AnyMiddleware, MapInputMiddleware, Middleware } from './middleware'
 import type { CreateProcedureClientOptions, ProcedureClient } from './procedure-client'
 import { mergeErrorMap, mergeMeta, mergeRoute } from '@orpc/contract'

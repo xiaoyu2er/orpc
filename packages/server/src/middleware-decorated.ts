@@ -1,5 +1,6 @@
-import type { Meta, ORPCErrorConstructorMap } from '@orpc/contract'
+import type { Meta } from '@orpc/contract'
 import type { Context, MergedContext } from './context'
+import type { ORPCErrorConstructorMap } from './error'
 import type { AnyMiddleware, MapInputMiddleware, Middleware } from './middleware'
 
 export interface DecoratedMiddleware<

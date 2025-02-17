@@ -2,7 +2,7 @@ import type { ContractProcedureBuilder, ContractProcedureBuilderWithInput, Contr
 import type { ContractProcedureDef } from './procedure'
 import type { AdaptContractRouterOptions, AdaptedContractRouter, ContractRouter } from './router'
 import type { Schema } from './schema'
-import { type ErrorMap, type MergedErrorMap, mergeErrorMap } from './error-map'
+import { type ErrorMap, type MergedErrorMap, mergeErrorMap } from './error'
 import { mergeMeta, type Meta } from './meta'
 import { ContractProcedure } from './procedure'
 import { type HTTPPath, mergePrefix, mergeRoute, mergeTags, type Route } from './route'

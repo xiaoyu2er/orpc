@@ -60,8 +60,6 @@
     "type:check": "tsc -b"
   },
   "dependencies": {
-    "@orpc/contract": "workspace:*",
-    "@orpc/server": "workspace:*",
     "@orpc/server-standard": "^0.4.0",
     "@orpc/server-standard-fetch": "^0.4.0",
     "@orpc/shared": "workspace:*"

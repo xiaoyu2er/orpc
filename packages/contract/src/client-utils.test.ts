@@ -1,5 +1,5 @@
+import { ORPCError } from '@orpc/client'
 import { safe } from './client-utils'
-import { ORPCError } from './error-orpc'
 
 it('safe', async () => {
   const r1 = await safe(Promise.resolve(1))

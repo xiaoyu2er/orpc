@@ -1,5 +1,6 @@
-import type { AnyContractRouter, ContractProcedure, ContractRouterToErrorMap, ContractRouterToMeta, ORPCErrorConstructorMap } from '@orpc/contract'
+import type { AnyContractRouter, ContractProcedure, ContractRouterToErrorMap, ContractRouterToMeta } from '@orpc/contract'
 import type { ConflictContextGuard, Context, MergedContext } from './context'
+import type { ORPCErrorConstructorMap } from './error'
 import type { ProcedureImplementer } from './implementer-procedure'
 import type { ImplementerInternalWithMiddlewares } from './implementer-variants'
 import type { AnyMiddleware, Middleware } from './middleware'

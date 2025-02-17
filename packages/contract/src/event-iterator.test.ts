@@ -1,7 +1,7 @@
+import { ORPCError } from '@orpc/client'
 import { getEventMeta, withEventMeta } from '@orpc/server-standard'
 import { z } from 'zod'
 import { ValidationError } from './error'
-import { ORPCError } from './error-orpc'
 import { eventIterator, getEventIteratorSchemaDetails, mapEventIterator } from './event-iterator'
 
 describe('mapEventIterator', () => {

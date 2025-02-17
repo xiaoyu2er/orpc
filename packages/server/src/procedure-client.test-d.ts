@@ -1,6 +1,7 @@
-import type { Client, ClientContext, ErrorMap, ORPCError, ORPCErrorConstructorMap, Schema } from '@orpc/contract'
+import type { Client, ClientContext, ErrorMap, ORPCError, Schema } from '@orpc/contract'
 import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../../contract/tests/shared'
 import type { Context } from './context'
+import type { ORPCErrorConstructorMap } from './error'
 import type { Procedure } from './procedure'
 import { safe } from '@orpc/contract'
 import { ping, pong } from '../tests/shared'

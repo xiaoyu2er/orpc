@@ -1,4 +1,4 @@
-import type { ErrorMap } from './error-map'
+import type { ErrorMap } from './error'
 import type { Meta } from './meta'
 import type { Route } from './route'
 import type { Schema } from './schema'

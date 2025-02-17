@@ -1,8 +1,8 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
 import type { Schema } from './schema'
+import { ORPCError } from '@orpc/client'
 import { getEventMeta, isAsyncIteratorObject, isEventMetaContainer, withEventMeta } from '@orpc/server-standard'
 import { ValidationError } from './error'
-import { ORPCError } from './error-orpc'
 
 export function mapEventIterator<TYield, TReturn, TNext, TMap = TYield | TReturn>(
   iterator: AsyncIterator<TYield, TReturn, TNext>,

@@ -1,12 +1,7 @@
+import type { ORPCErrorCode, ORPCErrorOptions } from '@orpc/client'
+import type { ErrorMap, ErrorMapItem, SchemaInput } from '@orpc/contract'
 import type { MaybeOptionalOptions } from '@orpc/shared'
-import type { ErrorMap, ErrorMapItem } from './error-map'
-import type { ORPCErrorCode, ORPCErrorOptions } from './error-orpc'
-import type { SchemaInput } from './schema'
-import { fallbackORPCErrorStatus, ORPCError } from './error-orpc'
-
-export function isDefinedError<T>(error: T): error is Extract<T, ORPCError<any, any>> {
-  return error instanceof ORPCError && error.defined
-}
+import { fallbackORPCErrorStatus, ORPCError } from '@orpc/client'
 
 export type ORPCErrorConstructorMapItemOptions<TData> = Omit<ORPCErrorOptions<TData>, 'defined' | 'status'>
 
@@ -75,13 +70,4 @@ export async function validateORPCError(map: ErrorMap, error: ORPCError<any, any
   }
 
   return new ORPCError(code, { defined: true, status, message, data: validated.value, cause })
-}
-
-export function toORPCError(error: unknown): ORPCError<any, any> {
-  return error instanceof ORPCError
-    ? error
-    : new ORPCError('INTERNAL_SERVER_ERROR', {
-      message: 'Internal server error',
-      cause: error,
-    })
 }

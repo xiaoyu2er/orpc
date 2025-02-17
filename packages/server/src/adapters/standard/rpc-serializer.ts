@@ -1,6 +1,7 @@
 import type { JsonValue } from '@orpc/server-standard'
 import type { Segment } from '@orpc/shared'
-import { mapEventIterator, ORPCError, toORPCError } from '@orpc/contract'
+import { ORPCError, toORPCError } from '@orpc/client'
+import { mapEventIterator } from '@orpc/contract'
 import { ErrorEvent, isAsyncIteratorObject } from '@orpc/server-standard'
 import { findDeepMatches, isObject, set } from '@orpc/shared'
 

@@ -1,6 +1,7 @@
-import type { ErrorMap, ORPCErrorConstructorMap, Schema } from '@orpc/contract'
+import type { ErrorMap, Schema } from '@orpc/contract'
 import type { baseErrorMap, BaseMeta } from '../../contract/tests/shared'
 import type { Context } from './context'
+import type { ORPCErrorConstructorMap } from './error'
 import type { Middleware, MiddlewareNextFn, MiddlewareOutputFn } from './middleware'
 import type { Procedure } from './procedure'
 

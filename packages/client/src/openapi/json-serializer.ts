@@ -1,6 +1,6 @@
 import { isObject } from '@orpc/shared'
 
-export class JSONSerializer {
+export class OpenAPIJsonSerializer {
   serialize(payload: unknown): unknown {
     if (payload instanceof Set)
       return this.serialize([...payload])
@@ -33,4 +33,4 @@ export class JSONSerializer {
   }
 }
 
-export type PublicJSONSerializer = Pick<JSONSerializer, keyof JSONSerializer>
+export type PublicOpenAPIJsonSerializer = Pick<OpenAPIJsonSerializer, keyof OpenAPIJsonSerializer>

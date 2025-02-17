@@ -4,10 +4,10 @@ import type { PublicOpenAPIPathParser } from './openapi-path-parser'
 import type { JSONSchema } from './schema'
 import type { SchemaConverter } from './schema-converter'
 import { fallbackORPCErrorStatus } from '@orpc/client'
+import { OpenAPIJsonSerializer, type PublicOpenAPIJsonSerializer } from '@orpc/client/openapi'
 import { type ContractRouter, fallbackContractConfig, getEventIteratorSchemaDetails } from '@orpc/contract'
 import { type AnyRouter, eachAllContractProcedure } from '@orpc/server'
 import { group } from '@orpc/shared'
-import { JSONSerializer, type PublicJSONSerializer } from './json-serializer'
 import { type OpenAPI, OpenApiBuilder } from './openapi'
 import { OpenAPIContentBuilder, type PublicOpenAPIContentBuilder } from './openapi-content-builder'
 import { OpenAPIError } from './openapi-error'
@@ -27,7 +27,7 @@ export interface OpenAPIGeneratorOptions {
   parametersBuilder?: PublicOpenAPIParametersBuilder
   schemaConverters?: SchemaConverter[]
   schemaUtils?: PublicSchemaUtils
-  jsonSerializer?: PublicJSONSerializer
+  jsonSerializer?: PublicOpenAPIJsonSerializer
   pathParser?: PublicOpenAPIPathParser
   inputStructureParser?: PublicOpenAPIInputStructureParser
   outputStructureParser?: PublicOpenAPIOutputStructureParser
@@ -69,7 +69,7 @@ export class OpenAPIGenerator {
   private readonly parametersBuilder: PublicOpenAPIParametersBuilder
   private readonly schemaConverter: CompositeSchemaConverter
   private readonly schemaUtils: PublicSchemaUtils
-  private readonly jsonSerializer: PublicJSONSerializer
+  private readonly jsonSerializer: PublicOpenAPIJsonSerializer
   private readonly pathParser: PublicOpenAPIPathParser
   private readonly inputStructureParser: PublicOpenAPIInputStructureParser
   private readonly outputStructureParser: PublicOpenAPIOutputStructureParser
@@ -82,7 +82,7 @@ export class OpenAPIGenerator {
     this.parametersBuilder = options?.parametersBuilder ?? new OpenAPIParametersBuilder()
     this.schemaConverter = new CompositeSchemaConverter(options?.schemaConverters ?? [])
     this.schemaUtils = options?.schemaUtils ?? new SchemaUtils()
-    this.jsonSerializer = options?.jsonSerializer ?? new JSONSerializer()
+    this.jsonSerializer = options?.jsonSerializer ?? new OpenAPIJsonSerializer()
     this.contentBuilder = options?.contentBuilder ?? new OpenAPIContentBuilder(this.schemaUtils)
     this.pathParser = new OpenAPIPathParser()
 

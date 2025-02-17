@@ -1,2 +1,2 @@
-export * from './orpc-link'
+export * from './rpc-link'
 export * from './types'

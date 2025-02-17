@@ -5,9 +5,9 @@ import type { FetchWithContext } from './types'
 import { ORPCError } from '@orpc/contract'
 import { isAsyncIteratorObject, type StandardBody } from '@orpc/server-standard'
 import { toFetchBody, toStandardBody } from '@orpc/server-standard-fetch'
-import { RPCSerializer } from '@orpc/server/standard'
 import { trim, value } from '@orpc/shared'
 import { createAutoRetryEventIterator, type EventIteratorReconnectOptions } from '../../event-iterator'
+import { RPCSerializer } from '../../rpc'
 
 export class InvalidEventSourceRetryResponse extends Error { }
 

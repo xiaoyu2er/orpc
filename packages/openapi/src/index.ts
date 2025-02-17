@@ -2,7 +2,6 @@
 
 import { setOperationExtender } from './openapi-operation-extender'
 
-export * from './json-serializer'
 export * from './openapi'
 export * from './openapi-content-builder'
 export * from './openapi-generator'

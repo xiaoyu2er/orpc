@@ -3,8 +3,8 @@ import { os } from '@orpc/server'
 import { getEventMeta, isAsyncIteratorObject, withEventMeta } from '@orpc/server-standard'
 import { RPCHandler } from '@orpc/server/fetch'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { supportedDataTypes } from '../../../../server/tests/shared'
-import { RPCLink } from './orpc-link'
+import { supportedDataTypes } from '../../../tests/shared'
+import { RPCLink } from './rpc-link'
 
 beforeEach(() => {
   vi.clearAllMocks()

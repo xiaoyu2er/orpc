@@ -243,9 +243,6 @@ importers:
       '@orpc/client':
         specifier: workspace:*
         version: link:../client
-      '@orpc/contract':
-        specifier: workspace:*
-        version: link:../contract
       '@orpc/shared':
         specifier: workspace:*
         version: link:../shared
@@ -305,9 +302,6 @@ importers:
       '@orpc/client':
         specifier: workspace:*
         version: link:../client
-      '@orpc/contract':
-        specifier: workspace:*
-        version: link:../contract
       '@orpc/server':
         specifier: workspace:*
         version: link:../server
@@ -330,9 +324,6 @@ importers:
       '@orpc/client':
         specifier: workspace:*
         version: link:../client
-      '@orpc/contract':
-        specifier: workspace:*
-        version: link:../contract
       '@orpc/shared':
         specifier: workspace:*
         version: link:../shared

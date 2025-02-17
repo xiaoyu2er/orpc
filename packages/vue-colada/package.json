@@ -47,7 +47,6 @@
   },
   "peerDependencies": {
     "@orpc/client": "workspace:*",
-    "@orpc/contract": "workspace:*",
     "@pinia/colada": "^0.13.5",
     "vue": ">=3.3.0"
   },

@@ -20,6 +20,16 @@
         "import": "./dist/index.js",
         "default": "./dist/index.js"
       },
+      "./openapi": {
+        "types": "./dist/src/openapi/index.d.ts",
+        "import": "./dist/openapi.js",
+        "default": "./dist/openapi.js"
+      },
+      "./rpc": {
+        "types": "./dist/src/rpc/index.d.ts",
+        "import": "./dist/rpc.js",
+        "default": "./dist/rpc.js"
+      },
       "./fetch": {
         "types": "./dist/src/adapters/fetch/index.d.ts",
         "import": "./dist/fetch.js",
@@ -32,6 +42,8 @@
   },
   "exports": {
     ".": "./src/index.ts",
+    "./openapi": "./src/openapi/index.ts",
+    "./rpc": "./src/rpc/index.ts",
     "./fetch": "./src/adapters/fetch/index.ts",
     "./🔒/*": {
       "types": "./src/*.ts"

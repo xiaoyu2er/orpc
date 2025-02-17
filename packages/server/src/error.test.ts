@@ -1,14 +1,8 @@
-import type { ErrorMap } from './error-map'
+import type { ErrorMap } from '@orpc/contract'
+import { ORPCError } from '@orpc/client'
 import { z } from 'zod'
-import { outputSchema } from '../tests/shared'
-import { ORPCError } from './error-orpc'
-import { createORPCErrorConstructorMap, isDefinedError, toORPCError, validateORPCError } from './error-utils'
-
-it('isDefinedError', () => {
-  expect(isDefinedError(new ORPCError('BAD_GATEWAY'))).toBe(false)
-  expect(isDefinedError(new ORPCError('BAD_GATEWAY', { defined: true }))).toBe(true)
-  expect(isDefinedError({ defined: true, code: 'BAD_GATEWAY' })).toBe(false)
-})
+import { outputSchema } from '../../contract/tests/shared'
+import { createORPCErrorConstructorMap, validateORPCError } from './error'
 
 describe('createORPCErrorConstructorMap', () => {
   const errors = {
@@ -114,23 +108,5 @@ describe('validateORPCError', () => {
     const v1 = await validateORPCError(errors, e1)
     expect(v1).not.toBe(e1)
     expect({ ...v1 }).toEqual({ ...e1, defined: true, data: { value: 123 } })
-  })
-})
-
-it('toORPCError', () => {
-  const orpcError = new ORPCError('BAD_GATEWAY')
-  expect(toORPCError(orpcError)).toBe(orpcError)
-
-  const error = new Error('error')
-  expect(toORPCError(error)).toSatisfy((value: any) => {
-    expect(value).toBeInstanceOf(ORPCError)
-    expect(value.code).toEqual('INTERNAL_SERVER_ERROR')
-    expect(value.status).toBe(500)
-    expect(value.defined).toBe(false)
-    expect(value.message).toBe('Internal server error')
-    expect(value.data).toBe(undefined)
-    expect(value.cause).toBe(error)
-
-    return true
   })
 })

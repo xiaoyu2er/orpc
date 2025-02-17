@@ -1,6 +1,4 @@
-import type { AnyContractRouter, Client, ClientContext, ContractRouterClient } from '@orpc/contract'
-import type { AnyRouter, RouterClient } from '@orpc/server'
-import type { ClientLink } from './types'
+import type { Client, ClientLink, InferClientContext, NestedClient } from './types'
 
 export interface createORPCClientOptions {
   /**
@@ -9,20 +7,16 @@ export interface createORPCClientOptions {
   path?: string[]
 }
 
-export function createORPCClient<TRouter extends AnyRouter | AnyContractRouter, TClientContext extends ClientContext = Record<never, never>>(
-  link: ClientLink<TClientContext>,
+export function createORPCClient<T extends NestedClient<any>>(
+  link: ClientLink<InferClientContext<T>>,
   options?: createORPCClientOptions,
-): TRouter extends AnyRouter // TODO: move this bellow `TRouter extends AnyContractRouter` can help me remove @orpc/server in dependencies
-    ? RouterClient<TRouter, TClientContext>
-    : TRouter extends AnyContractRouter
-      ? ContractRouterClient<TRouter, TClientContext>
-      : never {
+): T {
   const path = options?.path ?? []
 
-  const procedureClient: Client<TClientContext, unknown, unknown, Error> = async (...[input, options]) => {
+  const procedureClient: Client<InferClientContext<T>, unknown, unknown, Error> = async (...[input, options]) => {
     const optionsOut = {
       ...options,
-      context: options?.context ?? {} as TClientContext, // options.context can be undefined when all field is optional
+      context: options?.context ?? {} as InferClientContext<T>, // options.context can be undefined when all field is optional
     }
 
     return await link.call(path, input, optionsOut)

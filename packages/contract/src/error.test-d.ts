@@ -1,4 +1,4 @@
-import type { MergedErrorMap } from './error-map'
+import type { MergedErrorMap } from './error'
 
 it('MergedErrorMap', () => {
   expectTypeOf<

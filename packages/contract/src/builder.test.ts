@@ -1,6 +1,6 @@
 import { baseErrorMap, baseMeta, baseRoute, generalSchema, inputSchema, outputSchema, ping, pong } from '../tests/shared'
 import { ContractBuilder } from './builder'
-import { mergeErrorMap } from './error-map'
+import { mergeErrorMap } from './error'
 import { isContractProcedure } from './procedure'
 import * as Router from './router'
 

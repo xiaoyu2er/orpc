@@ -1,15 +1,4 @@
-import type { MaybeOptionalOptions } from '@orpc/shared'
-import type { ErrorMap, ErrorMapItem } from './error-map'
-import type { SchemaOutput } from './schema'
-import { isObject } from '@orpc/shared'
-
-export type ORPCErrorFromErrorMap<TErrorMap extends ErrorMap> = {
-  [K in keyof TErrorMap]: K extends string
-    ? TErrorMap[K] extends ErrorMapItem<infer TDataSchema>
-      ? ORPCError<K, SchemaOutput<TDataSchema>>
-      : never
-    : never
-}[keyof TErrorMap]
+import { isObject, type MaybeOptionalOptions } from '@orpc/shared'
 
 export const COMMON_ORPC_ERROR_DEFS = {
   BAD_REQUEST: {
@@ -171,3 +160,16 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
 }
 
 export type ORPCErrorJSON<TCode extends string, TData> = Pick<ORPCError<TCode, TData>, 'defined' | 'code' | 'status' | 'message' | 'data'>
+
+export function isDefinedError<T>(error: T): error is Extract<T, ORPCError<any, any>> {
+  return error instanceof ORPCError && error.defined
+}
+
+export function toORPCError(error: unknown): ORPCError<any, any> {
+  return error instanceof ORPCError
+    ? error
+    : new ORPCError('INTERNAL_SERVER_ERROR', {
+      message: 'Internal server error',
+      cause: error,
+    })
+}

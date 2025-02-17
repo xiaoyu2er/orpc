@@ -1,4 +1,4 @@
-import type { ClientContext } from '@orpc/contract'
+import type { ClientContext } from '@orpc/client'
 import type { AnyFunction, SetOptional } from '@orpc/shared'
 import type { UseMutationOptions, UseQueryOptions } from '@pinia/colada'
 import type { MaybeRef } from 'vue'

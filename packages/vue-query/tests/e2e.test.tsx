@@ -1,4 +1,5 @@
-import { isDefinedError, ORPCError } from '@orpc/contract'
+import { isDefinedError } from '@orpc/client'
+import { ORPCError } from '@orpc/contract'
 import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/vue-query'
 import { computed, ref } from 'vue'
 import { pingHandler } from '../../server/tests/shared'

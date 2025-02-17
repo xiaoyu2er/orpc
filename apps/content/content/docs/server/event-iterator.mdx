@@ -14,6 +14,7 @@ import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
 import { eventIterator, os, withEventMeta } from '@orpc/server'
 import { z } from 'zod'
+import type { RouterClient } from '@orpc/server'
 
 // Define a streaming endpoint using the event iterator
 const streaming = os
@@ -38,7 +39,7 @@ const streaming = os
 const router = { streaming }
 
 // Create an ORPC client and configure the SSE behavior
-const client = createORPCClient<typeof router>(
+const client: RouterClient<typeof router> = createORPCClient(
   new RPCLink({
     url: 'http://localhost:3000/rpc',
     eventSourceMaxNumberOfRetries: 0, // Set to 0 to disable automatic retries on connection failure,

@@ -1,4 +1,4 @@
-import type { ErrorMap, MergedErrorMap } from './error-map'
+import type { ErrorMap, MergedErrorMap } from './error'
 import type { Meta } from './meta'
 import type { ContractProcedure } from './procedure'
 import type { HTTPPath, Route } from './route'

@@ -1,6 +1,9 @@
 {
   "extends": "../../tsconfig.lib.json",
-  "references": [{ "path": "../shared" }],
+  "references": [
+    { "path": "../client" },
+    { "path": "../shared" }
+  ],
   "include": ["src"],
   "exclude": [
     "**/*.test.*",

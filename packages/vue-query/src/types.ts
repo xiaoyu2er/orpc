@@ -1,4 +1,4 @@
-import type { ClientContext } from '@orpc/contract'
+import type { ClientContext } from '@orpc/client'
 import type { AnyFunction, SetOptional } from '@orpc/shared'
 import type { Enabled, MutationObserverOptions, QueryFunctionContext, QueryKey, QueryObserverOptions, UseInfiniteQueryOptions } from '@tanstack/vue-query'
 import type { ComputedRef, MaybeRef, MaybeRefOrGetter } from 'vue'

@@ -1,4 +1,5 @@
-import type { Client, ErrorFromErrorMap } from '@orpc/contract'
+import type { Client } from '@orpc/client'
+import type { ErrorFromErrorMap } from '@orpc/contract'
 import type { InfiniteData } from '@tanstack/react-query'
 import type { baseErrorMap } from '../../contract/tests/shared'
 import type { ProcedureUtils } from './procedure-utils'

@@ -1,9 +1,9 @@
-import type { ClientContext } from './client'
+import type { ClientContext } from '@orpc/client'
 import type { ContractProcedure } from './procedure'
 import type { ContractProcedureClient } from './procedure-client'
 import type { AnyContractRouter } from './router'
 
-export type ContractRouterClient<TRouter extends AnyContractRouter, TClientContext extends ClientContext> =
+export type ContractRouterClient<TRouter extends AnyContractRouter, TClientContext extends ClientContext = Record<never, never>> =
   TRouter extends ContractProcedure<infer UInputSchema, infer UOutputSchema, infer UErrorMap, any>
     ? ContractProcedureClient<TClientContext, UInputSchema, UOutputSchema, UErrorMap>
     : {

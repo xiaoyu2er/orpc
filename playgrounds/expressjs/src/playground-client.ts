@@ -2,6 +2,7 @@
  * This file is where you can play with type of oRPC Client.
  */
 
+import type { RouterClient } from '@orpc/server'
 import type { router } from './router'
 import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
@@ -10,7 +11,7 @@ const rpcLink = new RPCLink({
   url: 'http://localhost:3000/rpc',
 })
 
-export const orpc = createORPCClient<typeof router>(rpcLink)
+export const orpc: RouterClient<typeof router> = createORPCClient(rpcLink)
 
 const planets = await orpc.planet.list({})
 

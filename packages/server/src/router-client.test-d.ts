@@ -1,4 +1,5 @@
-import type { Client, ErrorFromErrorMap, NestedClient } from '@orpc/contract'
+import type { Client, NestedClient } from '@orpc/client'
+import type { ErrorFromErrorMap } from '@orpc/contract'
 import type { baseErrorMap } from '../../contract/tests/shared'
 import type { router } from '../tests/shared'
 import type { RouterClient } from './router-client'

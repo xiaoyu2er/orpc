@@ -1,5 +1,5 @@
-import { safe } from './client-utils'
-import { ORPCError } from './error-orpc'
+import { ORPCError } from './error'
+import { safe } from './utils'
 
 it('safe', async () => {
   const r1 = await safe(Promise.resolve(1))

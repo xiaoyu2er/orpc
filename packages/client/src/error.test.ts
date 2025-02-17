@@ -1,4 +1,4 @@
-import { fallbackORPCErrorMessage, fallbackORPCErrorStatus, ORPCError } from './error-orpc'
+import { fallbackORPCErrorMessage, fallbackORPCErrorStatus, isDefinedError, ORPCError, toORPCError } from './error'
 
 it('fallbackORPCErrorStatus', () => {
   expect(fallbackORPCErrorStatus('BAD_GATEWAY', 500)).toBe(500)
@@ -78,5 +78,29 @@ describe('oRPCError', () => {
     expect(ORPCError.isValidJSON({ defined: true })).toBe(false)
     expect(ORPCError.isValidJSON({ defined: true, code: 'BAD_GATEWAY', status: 500, message: 'message', data: 'data' })).toBe(true)
     expect(ORPCError.isValidJSON({ defined: true, code: 'BAD_GATEWAY', status: 500, message: 'message', data: 'data', extra: true })).toBe(false)
+  })
+})
+
+it('isDefinedError', () => {
+  expect(isDefinedError(new ORPCError('BAD_GATEWAY'))).toBe(false)
+  expect(isDefinedError(new ORPCError('BAD_GATEWAY', { defined: true }))).toBe(true)
+  expect(isDefinedError({ defined: true, code: 'BAD_GATEWAY' })).toBe(false)
+})
+
+it('toORPCError', () => {
+  const orpcError = new ORPCError('BAD_GATEWAY')
+  expect(toORPCError(orpcError)).toBe(orpcError)
+
+  const error = new Error('error')
+  expect(toORPCError(error)).toSatisfy((value: any) => {
+    expect(value).toBeInstanceOf(ORPCError)
+    expect(value.code).toEqual('INTERNAL_SERVER_ERROR')
+    expect(value.status).toBe(500)
+    expect(value.defined).toBe(false)
+    expect(value.message).toBe('Internal server error')
+    expect(value.data).toBe(undefined)
+    expect(value.cause).toBe(error)
+
+    return true
   })
 })

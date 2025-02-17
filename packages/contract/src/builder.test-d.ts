@@ -1,7 +1,7 @@
 import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../tests/shared'
 import type { ContractBuilder } from './builder'
 import type { ContractProcedureBuilder, ContractProcedureBuilderWithInput, ContractProcedureBuilderWithOutput, ContractRouterBuilder } from './builder-variants'
-import type { MergedErrorMap } from './error-map'
+import type { MergedErrorMap } from './error'
 import type { ContractProcedure } from './procedure'
 import type { AdaptedContractRouter } from './router'
 import { generalSchema, ping, pong } from '../tests/shared'

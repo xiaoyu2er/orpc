@@ -1,4 +1,5 @@
 import type { router } from '@/router'
+import type { RouterClient } from '@orpc/server'
 import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
 import { createORPCReactQueryUtils } from '@orpc/react-query'
@@ -10,6 +11,6 @@ const rpcLink = new RPCLink({
   }),
 })
 
-export const orpcClient = createORPCClient<typeof router>(rpcLink)
+export const orpcClient: RouterClient<typeof router> = createORPCClient(rpcLink)
 
 export const orpc = createORPCReactQueryUtils(orpcClient)

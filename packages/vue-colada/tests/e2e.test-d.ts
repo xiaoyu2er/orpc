@@ -1,4 +1,4 @@
-import { isDefinedError } from '@orpc/contract'
+import { isDefinedError } from '@orpc/client'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import { computed, ref } from 'vue'
 import { orpc as client } from '../../client/tests/shared'

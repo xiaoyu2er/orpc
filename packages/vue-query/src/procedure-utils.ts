@@ -1,4 +1,4 @@
-import type { Client, ClientContext } from '@orpc/contract'
+import type { Client, ClientContext } from '@orpc/client'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { InfiniteData } from '@tanstack/vue-query'
 import type { InfiniteOptionsBase, InfiniteOptionsIn, MutationOptionsBase, MutationOptionsIn, QueryOptionsBase, QueryOptionsIn } from './types'

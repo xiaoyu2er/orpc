@@ -1,6 +1,5 @@
-import type { Client, ClientContext } from './client'
-import type { ErrorFromErrorMap } from './error'
-import type { ErrorMap } from './error-map'
+import type { Client, ClientContext } from '@orpc/client'
+import type { ErrorFromErrorMap, ErrorMap } from './error'
 import type { Schema, SchemaInput, SchemaOutput } from './schema'
 
 export type ContractProcedureClient<

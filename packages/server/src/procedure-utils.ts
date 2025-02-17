@@ -1,4 +1,5 @@
-import type { ClientPromiseResult, ErrorFromErrorMap, ErrorMap, Meta, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ClientPromiseResult } from '@orpc/client'
+import type { ErrorFromErrorMap, ErrorMap, Meta, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { Context } from './context'
 import type { Lazyable } from './lazy'

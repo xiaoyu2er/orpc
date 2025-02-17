@@ -1,4 +1,5 @@
-import { ORPCError, safe } from '@orpc/contract'
+import { ORPCError } from '@orpc/contract'
+import { safe } from '../src'
 import { orpc } from './helpers'
 
 describe('e2e', () => {

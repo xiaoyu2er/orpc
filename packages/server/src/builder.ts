@@ -1,6 +1,7 @@
-import type { ContractProcedureDef, ContractRouter, ErrorMap, HTTPPath, MergedErrorMap, Meta, ORPCErrorConstructorMap, Route, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ContractProcedureDef, ContractRouter, ErrorMap, HTTPPath, MergedErrorMap, Meta, Route, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { BuilderWithMiddlewares, ProcedureBuilder, ProcedureBuilderWithInput, ProcedureBuilderWithOutput, RouterBuilder } from './builder-variants'
 import type { ConflictContextGuard, Context, MergedContext } from './context'
+import type { ORPCErrorConstructorMap } from './error'
 import type { FlattenLazy } from './lazy-utils'
 import type { AnyMiddleware, MapInputMiddleware, Middleware } from './middleware'
 import type { DecoratedMiddleware } from './middleware-decorated'

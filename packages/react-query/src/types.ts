@@ -1,4 +1,4 @@
-import type { ClientContext } from '@orpc/contract'
+import type { ClientContext } from '@orpc/client'
 import type { SetOptional } from '@orpc/shared'
 import type { QueryFunctionContext, QueryKey, UseInfiniteQueryOptions, UseMutationOptions, UseQueryOptions } from '@tanstack/react-query'
 

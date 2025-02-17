@@ -1,5 +1,5 @@
 import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../tests/shared'
-import type { MergedErrorMap } from './error-map'
+import type { MergedErrorMap } from './error'
 import type { Meta } from './meta'
 import type { ContractProcedure } from './procedure'
 import type { AdaptedContractRouter, ContractRouter, InferContractRouterInputs, InferContractRouterOutputs } from './router'

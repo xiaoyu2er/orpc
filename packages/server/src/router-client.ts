@@ -1,4 +1,5 @@
-import type { ClientContext, ErrorMap, Meta } from '@orpc/contract'
+import type { ClientContext } from '@orpc/client'
+import type { ErrorMap, Meta } from '@orpc/contract'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { Lazy } from './lazy'
 import type { Procedure } from './procedure'
@@ -10,7 +11,7 @@ import { isProcedure } from './procedure'
 import { createProcedureClient } from './procedure-client'
 import { getRouterChild } from './router'
 
-export type RouterClient<TRouter extends AnyRouter, TClientContext extends ClientContext> =
+export type RouterClient<TRouter extends AnyRouter, TClientContext extends ClientContext = Record<never, never>> =
   TRouter extends Lazy<infer U extends AnyRouter>
     ? RouterClient<U, TClientContext>
     : TRouter extends Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput, infer UErrorMap, any>

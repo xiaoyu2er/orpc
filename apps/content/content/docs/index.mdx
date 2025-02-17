@@ -202,6 +202,7 @@ Start the server and visit http://localhost:3000/api/getting?name=yourname to se
 Use the fully typed client in any environment:
 
 ```ts twoslash
+import { RouterClient } from '@orpc/server'
 import { createORPCClient, ORPCError } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
 import type { router } from 'examples/server'
@@ -212,7 +213,8 @@ const rpcLink = new RPCLink({
   // headers: provide additional headers
 })
 
-const client = createORPCClient<typeof router /* or contract router */>(rpcLink)
+const client: RouterClient<typeof router> = createORPCClient(rpcLink)
+// const client: ContractRouterClient<typeof contract> = createORPCClient(rpcLink)
  
 //  File upload out of the box
 const output = await client.posts.createPost({

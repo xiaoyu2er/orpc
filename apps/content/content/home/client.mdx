@@ -1,6 +1,7 @@
 <Tabs items={['Client', 'React', 'React Query', 'Vue Query', 'CURL']}>
 <Tab value="Client">
 ```ts twoslash
+import { RouterClient } from '@orpc/server'
 import { createORPCClient, ORPCError } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
 import type { router } from 'examples/server'
@@ -11,7 +12,8 @@ const rpcLink = new RPCLink({
   // headers: provide additional headers
 })
 
-const client = createORPCClient<typeof router /* or contract router */>(rpcLink)
+const client: RouterClient<typeof router> = createORPCClient(rpcLink)
+// const client: ContractRouterClient<typeof router> = createORPCClient(rpcLink)
  
 //  File upload out of the box
 const output = await client.posts.createPost({

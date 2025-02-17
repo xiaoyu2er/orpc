@@ -1,5 +1,4 @@
-import type { ClientContext } from '@orpc/contract'
-import type { ClientLink } from './types'
+import type { ClientContext, ClientLink } from './types'
 import { createORPCClient } from './client'
 
 beforeEach(() => {

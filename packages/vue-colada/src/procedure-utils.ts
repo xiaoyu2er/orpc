@@ -1,4 +1,4 @@
-import type { Client, ClientContext } from '@orpc/contract'
+import type { Client, ClientContext } from '@orpc/client'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { MutationOptions, MutationOptionsIn, QueryOptions, QueryOptionsIn } from './types'
 import { computed } from 'vue'

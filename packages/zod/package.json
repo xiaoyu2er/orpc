@@ -42,6 +42,7 @@
     "type:check": "tsc -b"
   },
   "peerDependencies": {
+    "@orpc/contract": "workspace:*",
     "@orpc/openapi": "workspace:*",
     "@orpc/server": "workspace:*"
   },

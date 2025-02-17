@@ -82,6 +82,7 @@
     "next": ">=14.0.0"
   },
   "dependencies": {
+    "@orpc/client": "workspace:*",
     "@orpc/contract": "workspace:*",
     "@orpc/server-standard": "^0.4.0",
     "@orpc/server-standard-fetch": "^0.4.0",

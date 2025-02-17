@@ -1,8 +1,9 @@
 import type { JsonValue } from '@orpc/server-standard'
 import type { Segment } from '@orpc/shared'
-import { mapEventIterator, ORPCError, toORPCError } from '@orpc/contract'
 import { ErrorEvent, isAsyncIteratorObject } from '@orpc/server-standard'
 import { findDeepMatches, isObject, set } from '@orpc/shared'
+import { ORPCError, toORPCError } from '../error'
+import { mapEventIterator } from '../event-iterator'
 
 export type RPCSerializedJsonMeta = ['bigint' | 'date' | 'nan' | 'undefined' | 'set' | 'map' | 'regexp' | 'url', Segment[]][]
 export type RPCSerialized =

@@ -1,5 +1,5 @@
 import type { InfiniteData } from '@tanstack/react-query'
-import { isDefinedError } from '@orpc/contract'
+import { isDefinedError } from '@orpc/client'
 import { useInfiniteQuery, useMutation, useQueries, useQuery, useSuspenseInfiniteQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { orpc as client } from '../../client/tests/shared'
 import { orpc, queryClient } from './shared'

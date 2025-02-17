@@ -1,6 +1,6 @@
 import type { Meta } from './meta'
 import type { SchemaInput, SchemaOutput } from './schema'
-import { type ErrorMap, type MergedErrorMap, mergeErrorMap } from './error-map'
+import { type ErrorMap, type MergedErrorMap, mergeErrorMap } from './error'
 import { ContractProcedure, isContractProcedure } from './procedure'
 import { adaptRoute, type HTTPPath } from './route'
 

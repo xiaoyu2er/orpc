@@ -1,5 +1,5 @@
 import type { ORPCError } from '@orpc/contract'
-import { safe } from '@orpc/contract'
+import { safe } from '../src'
 import { orpc } from './helpers'
 
 beforeEach(() => {

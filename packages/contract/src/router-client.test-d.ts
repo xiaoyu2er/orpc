@@ -1,4 +1,4 @@
-import type { ClientContext, NestedClient } from './client'
+import type { ClientContext, NestedClient } from '@orpc/client'
 import type { ContractRouterClient } from './router-client'
 import { ping, pong } from '../tests/shared'
 

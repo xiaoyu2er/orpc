@@ -1,5 +1,5 @@
 import type { ORPCError } from '@orpc/contract'
-import { safe } from '@orpc/contract'
+import { safe } from '@orpc/client'
 import { ping, pong } from '../tests/shared'
 import { call } from './procedure-utils'
 

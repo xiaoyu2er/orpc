@@ -5,6 +5,7 @@
 !.*.example
 !.vscode/
 !.github/
+!.vitepress/
 
 # Common generated folders
 logs/

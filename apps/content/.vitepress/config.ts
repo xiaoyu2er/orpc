@@ -6,7 +6,7 @@ export default withTwoslash(defineConfig({
   lang: 'en-US',
   title: 'oRPC',
   description:
-    'End-to-End Typesafe APIs made easy in a toolkit that helps developers build robust TypeScript APIs with a focus on developer experience, reliability.',
+    'oRPC makes it easy to build APIs that are end-to-end type-safe and adhere to OpenAPI standards, ensuring a smooth and enjoyable developer experience.',
   lastUpdated: true,
   ignoreDeadLinks: true,
   cleanUrls: true,

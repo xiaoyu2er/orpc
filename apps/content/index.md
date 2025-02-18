@@ -9,8 +9,9 @@ hero:
   text: Typesafe APIs Made Simple 🪄
   tagline: Easy to build APIs that are end-to-end type-safe and adhere to OpenAPI standards, ensuring a smooth and enjoyable developer experience.
   image:
-    src: /logo.webp
-    alt: oRPC Logo
+    light: /code-light.png
+    dark: /code-dark.png
+    alt: oRPC Example
   actions:
     - theme: brand
       text: Get Started
@@ -36,7 +37,7 @@ features:
     details: Run your code seamlessly on Cloudflare, Deno, Bun, Node.js, and more.
   - icon: 🧩
     title: Framework Integrations
-    details: Supports React Query, Vue Query, and Vue Colada – simply code and integrate.
+    details: Supports Tanstack Query (React, Vue), Pinia Colada, and more.
   - icon: ⚡
     title: Server Actions
     details: Fully compatible with React Server Actions on Next.js, TanStack Start, and more.

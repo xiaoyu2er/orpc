@@ -17,7 +17,7 @@ hero:
       link: /docs/rpc/getting-started
     - theme: alt
       text: View on GitHub
-      link: https://github.com/unnoq/rpc
+      link: https://github.com/unnoq/orpc
 features:
   - icon: 🔒
     title: End-to-End Type Safety

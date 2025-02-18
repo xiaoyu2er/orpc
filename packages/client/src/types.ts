@@ -4,9 +4,11 @@ export type ClientOptions<TClientContext extends ClientContext> =
   & { signal?: AbortSignal, lastEventId?: string | undefined }
   & (Record<never, never> extends TClientContext ? { context?: TClientContext } : { context: TClientContext })
 
-export type ClientRest<TClientContext extends ClientContext, TInput> =
-  | [input: TInput, options: ClientOptions<TClientContext>]
-  | (Record<never, never> extends TClientContext ? (undefined extends TInput ? [input?: TInput] : [input: TInput]) : never)
+export type ClientRest<TClientContext extends ClientContext, TInput> = Record<never, never> extends TClientContext
+  ? undefined extends TInput
+    ? [input?: TInput, options?: ClientOptions<TClientContext>]
+    : [input: TInput, options?: ClientOptions<TClientContext>]
+  : [input: TInput, options: ClientOptions<TClientContext>]
 
 export type ClientPromiseResult<TOutput, TError extends Error> = Promise<TOutput> & { __error?: { type: TError } }
 

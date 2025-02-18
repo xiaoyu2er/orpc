@@ -37,17 +37,29 @@ export default withTwoslash(defineConfig({
       copyright: 'Copyright © 2024-present Unnoq & oRPC contributors.',
     },
     nav: [
-      { text: 'RPC', link: '/docs/rpc/' },
-      { text: 'OpenAPI', link: '/docs/openapi/' },
-      { text: 'Examples', link: '/examples/' },
+      { text: 'RPC', link: '/docs/rpc/getting-started', activeMatch: '/docs/rpc/' },
+      { text: 'OpenAPI', link: '/docs/openapi/getting-started', activeMatch: '/docs/openapi/' },
+      { text: 'Examples', link: '/examples/', activeMatch: '/examples/' },
+      { text: 'Sponsor', link: '/sponsor' },
       {
-        text: 'Discussions',
-        link: 'https://github.com/unnoq/orpc/discussions',
+        text: 'About',
+        items: [
+          { text: 'Motivation', link: '/motivation' },
+          { text: 'Releases', link: 'https://github.com/unnoq/orpc/releases' },
+        ],
       },
+      { text: 'Discussions', link: 'https://github.com/unnoq/orpc/discussions' },
     ],
     sidebar: {
-      '/docs/rpc/': [],
-      '/docs/openapi/': [],
+      '/docs/rpc/': [
+        { text: 'Getting Started', link: '/docs/rpc/getting-started' },
+      ],
+      '/docs/openapi/': [
+        { text: 'Getting Started', link: '/docs/openapi/getting-started' },
+      ],
+      '/examples/': [
+
+      ],
     },
   },
   head: [

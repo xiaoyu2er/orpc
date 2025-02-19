@@ -1,7 +1,14 @@
+import type { EnhanceAppContext } from 'vitepress'
+import TwoslashFloatingVue from '@shikijs/vitepress-twoslash/client'
 import Theme from 'vitepress/theme'
-import 'virtual:group-icons.css'
-import 'vitepress-plugin-shiki-twoslash/styles.css'
 
+import 'virtual:group-icons.css'
+import '@shikijs/vitepress-twoslash/style.css'
 import './custom.css'
 
-export default Theme
+export default {
+  extends: Theme,
+  enhanceApp({ app }: EnhanceAppContext) {
+    app.use(TwoslashFloatingVue)
+  },
+}

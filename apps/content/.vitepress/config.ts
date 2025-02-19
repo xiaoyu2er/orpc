@@ -1,8 +1,8 @@
+import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
 import { defineConfig } from 'vitepress'
 import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-icons'
-import { withTwoslash } from 'vitepress-plugin-shiki-twoslash'
 
-export default withTwoslash(defineConfig({
+export default defineConfig({
   lang: 'en-US',
   title: 'oRPC',
   description:
@@ -18,6 +18,9 @@ export default withTwoslash(defineConfig({
     config(md) {
       md.use(groupIconMdPlugin)
     },
+    codeTransformers: [
+      transformerTwoslash(),
+    ],
   },
   themeConfig: {
     logo: '/logo.webp',
@@ -180,4 +183,4 @@ export default withTwoslash(defineConfig({
       }),
     ],
   },
-}))
+})

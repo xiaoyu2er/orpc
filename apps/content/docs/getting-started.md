@@ -50,7 +50,6 @@ deno install npm:@orpc/server@latest npm:@orpc/client@latest
 We'll use [Zod](https://github.com/colinhacks/zod) for schema validation (optional, any [standard schema](https://github.com/standard-schema/standard-schema) is supported).
 
 ```ts twoslash
-import type { RouterClient } from '@orpc/server'
 import type { IncomingHttpHeaders } from 'node:http'
 import { ORPCError, os } from '@orpc/server'
 import { z } from 'zod'

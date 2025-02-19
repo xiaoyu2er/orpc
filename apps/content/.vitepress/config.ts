@@ -55,8 +55,8 @@ export default withTwoslash(defineConfig({
         { text: 'Getting Started', link: '/docs/getting-started' },
         { text: 'Procedure', link: '/docs/procedure' },
         { text: 'Router', link: '/docs/router' },
-        { text: 'Context', link: '/docs/context' },
         { text: 'Middleware', link: '/docs/middleware' },
+        { text: 'Context', link: '/docs/context' },
         { text: 'Error Handling', link: '/docs/error-handling' },
         { text: 'File Uploads', link: '/docs/file-uploads' },
         { text: 'Event Iterator', link: '/docs/event-iterator' },
@@ -118,7 +118,15 @@ export default withTwoslash(defineConfig({
           ],
         },
         {
+          text: 'Advanced',
+          collapsed: true,
+          items: [
+            { text: 'Built-in Errors', link: '/docs/advanced/built-in-errors' },
+          ],
+        },
+        {
           text: 'Others',
+          collapsed: true,
           items: [
             { text: 'Pinia Colada', link: '/docs/pinia-colada' },
             { text: 'Playgrounds', link: '/docs/playgrounds' },
@@ -130,6 +138,7 @@ export default withTwoslash(defineConfig({
         { text: 'Getting Started', link: '/docs/openapi/getting-started' },
         { text: 'Routing', link: '/docs/openapi/routing' },
         { text: 'Input/Output Structure', link: '/docs/openapi/input-output-structure' },
+        { text: 'Error Handling', link: '/docs/openapi/error-handling' },
         { text: 'Bracket Notation', link: '/docs/openapi/bracket-notation' },
         { text: 'OpenAPI Handler', link: '/docs/openapi/openapi-handler' },
         { text: 'OpenAPI Specification', link: '/docs/openapi/openapi-specification' },

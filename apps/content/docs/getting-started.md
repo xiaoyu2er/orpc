@@ -113,10 +113,14 @@ import { RPCHandler } from '@orpc/server/node'
 import { CORSPlugin } from '@orpc/server/plugins'
 import { router } from './shared/planet'
 
-const handler = new RPCHandler(router, { plugins: [new CORSPlugin()] })
+const handler = new RPCHandler(router, {
+  plugins: [new CORSPlugin()]
+})
 
 const server = createServer(async (req, res) => {
-  const result = await handler.handle(req, res, { context: { headers: req.headers } })
+  const result = await handler.handle(req, res, {
+    context: { headers: req.headers }
+  })
 
   if (!result.matched) {
     res.statusCode = 404

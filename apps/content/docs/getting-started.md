@@ -84,9 +84,12 @@ export const createPlanet = os
   .$context<{ headers: IncomingHttpHeaders }>()
   .use(({ context, next }) => {
     const user = parseJWT(context.headers.authorization?.split(' ')[1])
-    if (!user)
-      throw new ORPCError('UNAUTHORIZED')
-    return next({ context: { user } })
+
+    if (user) {
+      return next({ context: { user } })
+    }
+
+    throw new ORPCError('UNAUTHORIZED')
   })
   .input(PlanetSchema.omit({ id: true }))
   .handler(async ({ input, context }) => {
@@ -144,7 +147,9 @@ Supports [client-side clients](/docs/client/client-side) and [server-side client
 
 ## Call Procedure
 
-```ts
+End-to-end type-safety and auto-completion out of the box.
+
+```ts twoslash
 import { orpc } from './shared/planet'
 
 const planet = await orpc.planet.find({ id: 1 })
@@ -152,8 +157,6 @@ const planet = await orpc.planet.find({ id: 1 })
 orpc.planet.create
 //          ^|
 ```
-
-Fully type-safe and suggestions.
 
 ## Next Steps
 

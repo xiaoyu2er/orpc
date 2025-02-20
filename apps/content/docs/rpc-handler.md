@@ -29,9 +29,9 @@ the OpenAPI standard. **Do not** manually send requests directly to the `RPCHand
 - **URL**
 - **Set**
 - **Map**
-- **Blob**
-- **File**
-- **AsyncIteratorObject** (root-level only; powers [Event Iterator](/docs/event-iterator))
+- **Blob** (unsupported within an `AsyncIteratorObject`)
+- **File** (unsupported within an `AsyncIteratorObject`)
+- **AsyncIteratorObject** (available only at the root level; powers the [Event Iterator](/docs/event-iterator))
 
 ## Setup and Integration
 

@@ -31,6 +31,7 @@ the OpenAPI standard. **Do not** manually send requests directly to the `RPCHand
 - **Map**
 - **Blob**
 - **File**
+- **AsyncIteratorObject** (root-level only; powers [Event Iterator](/docs/event-iterator))
 
 ## Setup and Integration
 

@@ -5,7 +5,7 @@ description: Understanding procedures in oRPC
 
 # What is a Procedure in oRPC?
 
-In oRPC, a procedure functions like a standard function but comes with built-in support for:
+In oRPC, a procedure like a standard function but comes with built-in support for:
 
 - Input/output validation
 - Middleware

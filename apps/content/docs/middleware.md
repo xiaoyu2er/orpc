@@ -17,7 +17,7 @@ of `next` or modifies the result before returning it.
 
 ```ts twoslash
 import { os } from '@orpc/server'
-
+// ---cut---
 const authMiddleware = os.middleware(async ({ context, next }) => {
   // Execute logic before the handler
 
@@ -39,8 +39,6 @@ const example = os
   })
 ```
 
-Learn more about [context](/docs/context).
-
 ## Inline Middleware
 
 Middleware can be defined inline within `.use`, which is useful for simple middleware functions.
@@ -55,6 +53,43 @@ const example = os
     // Handler logic
   })
 ```
+
+## Middleware Context
+
+Middleware can use to inject or guard the [execution context](/docs/context#execution-context).
+
+```ts twoslash
+import { ORPCError, os } from '@orpc/server'
+// ---cut---
+const setting = os
+  .use(async ({ context, next }) => {
+    return next({
+      context: {
+        auth: await auth() // <-- inject auth payload
+      }
+    })
+  })
+  .use(async ({ context, next }) => {
+    if (!context.auth) { // <-- guard auth
+      throw new ORPCError('UNAUTHORIZED')
+    }
+
+    return next({
+      context: {
+        auth: context.auth // <-- override auth
+      }
+    })
+  })
+  .handler(async ({ context }) => {
+    console.log(context.auth) // <-- access auth
+  })
+// ---cut-after---
+declare function auth(): { userId: number } | null
+```
+
+> When you pass additional context to `next`, it will be merged with the existing context.
+
+Learn more about [context](/docs/context).
 
 ## Middleware Input
 
@@ -110,4 +145,29 @@ Multiple middleware functions can be combined using `.concat`.
 const concatMiddleware = aMiddleware
   .concat(os.middleware(async ({ next }) => next()))
   .concat(anotherMiddleware)
+```
+
+## Built-in Middlewares
+
+oRPC provides some built-in middlewares that can be used to simplify common use cases.
+
+```ts
+import { onError, onFinish, onStart, onSuccess } from '@orpc/server'
+
+const ping = os
+  .use(onStart(() => {
+    // Execute logic before the handler
+  }))
+  .use(onSuccess(() => {
+    // Execute when the handler succeeds
+  }))
+  .use(onError(() => {
+    // Execute when the handler fails
+  }))
+  .use(onFinish(() => {
+    // Execute logic after the handler
+  }))
+  .handler(async ({ context }) => {
+    // Handler logic
+  })
 ```

@@ -24,6 +24,7 @@ export default antfu({
   rules: {
     'no-console': 'off',
     'perfectionist/sort-imports': 'off',
+    'import/first': 'off',
   },
 }, {
   files: ['apps/content/examples/**'],

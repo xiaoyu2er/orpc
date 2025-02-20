@@ -62,7 +62,7 @@ export default defineConfig({
         { text: 'Context', link: '/docs/context' },
         { text: 'Error Handling', link: '/docs/error-handling' },
         { text: 'File Upload/Download', link: '/docs/file-upload-download' },
-        { text: 'Event Iterator', link: '/docs/event-iterator' },
+        { text: 'Event Iterator (SSE)', link: '/docs/event-iterator' },
         { text: 'RPC Handler', link: '/docs/rpc-handler' },
         { text: 'Lifecycle', link: '/docs/lifecycle' },
         {
@@ -109,6 +109,7 @@ export default defineConfig({
             { text: 'Client Side', link: '/docs/client/client-side' },
             { text: 'Client Context', link: '/docs/client/client-context' },
             { text: 'Error Handling', link: '/docs/client/error-handling' },
+            { text: 'Event Iterator', link: '/docs/client/event-iterator' },
             { text: 'RPC Link', link: '/docs/client/rpc-link' },
             { text: 'Dynamic Link', link: '/docs/client/dynamic-link' },
           ],

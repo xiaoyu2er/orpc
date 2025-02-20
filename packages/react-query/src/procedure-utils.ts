@@ -13,7 +13,7 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
     >
   ): NoInfer<U & QueryOptionsBase<TOutput, TError>>
 
-  infiniteOptions<U, UPageParam, USelectData = InfiniteData<TOutput>>(
+  infiniteOptions<U, UPageParam, USelectData = InfiniteData<TOutput, UPageParam>>(
     options: U & InfiniteOptionsIn<TClientContext, TInput, TOutput, TError, USelectData, UPageParam>
   ): NoInfer<U & InfiniteOptionsBase<TOutput, TError, UPageParam>>
 

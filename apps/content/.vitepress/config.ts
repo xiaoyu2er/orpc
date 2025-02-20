@@ -108,6 +108,7 @@ export default defineConfig({
             { text: 'Server Side', link: '/docs/client/server-side' },
             { text: 'Client Side', link: '/docs/client/client-side' },
             { text: 'Client Context', link: '/docs/client/client-context' },
+            { text: 'Error Handling', link: '/docs/client/error-handling' },
             { text: 'RPC Link', link: '/docs/client/rpc-link' },
             { text: 'Dynamic Link', link: '/docs/client/dynamic-link' },
           ],

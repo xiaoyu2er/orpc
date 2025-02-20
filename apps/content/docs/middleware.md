@@ -56,7 +56,7 @@ const example = os
 
 ## Middleware Context
 
-Middleware can use to inject or guard the [execution context](/docs/context#execution-context).
+Middleware can use to inject or guard the [context](/docs/context).
 
 ```ts twoslash
 import { ORPCError, os } from '@orpc/server'
@@ -88,8 +88,6 @@ declare function auth(): { userId: number } | null
 ```
 
 > When you pass additional context to `next`, it will be merged with the existing context.
-
-Learn more about [context](/docs/context).
 
 ## Middleware Input
 

@@ -40,7 +40,6 @@ const getting = base
   })
 
 export const router = { getting }
-
 // ---cut---
 import { RPCHandler } from '@orpc/server/fetch'
 
@@ -99,7 +98,6 @@ const getting = base.handler(async ({ context }) => {
 })
 
 export const router = { getting }
-
 // ---cut---
 import { RPCHandler } from '@orpc/server/fetch'
 
@@ -148,7 +146,6 @@ const getting = base
     console.log(context.db)
     console.log(context.user)
   })
-
 // ---cut-after---
 declare function parseJWT(token: string | undefined): { userId: number } | null
 declare class Client {

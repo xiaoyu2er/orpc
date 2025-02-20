@@ -1,6 +1,6 @@
 import type { Client } from '@orpc/client'
 import type { ErrorFromErrorMap } from '@orpc/contract'
-import type { InfiniteData } from '@tanstack/react-query'
+import type { GetNextPageParamFunction, InfiniteData } from '@tanstack/react-query'
 import type { baseErrorMap } from '../../contract/tests/shared'
 import type { ProcedureUtils } from './procedure-utils'
 import { useInfiniteQuery, useMutation, useQueries, useQuery, useSuspenseInfiniteQuery, useSuspenseQuery } from '@tanstack/react-query'
@@ -119,7 +119,7 @@ describe('ProcedureUtils', () => {
   })
 
   describe('.infiniteOptions', () => {
-    const getNextPageParam = {} as () => number
+    const getNextPageParam = {} as GetNextPageParamFunction<number, UtilsOutput>
     const initialPageParam = 1
 
     it('can optional context', () => {
@@ -157,11 +157,10 @@ describe('ProcedureUtils', () => {
       })
 
       utils.infiniteOptions({
-        input: (pageParam) => {
-          expectTypeOf(pageParam).toEqualTypeOf<number | undefined>()
+        input: (pageParam: number | undefined) => {
           return { cursor: pageParam }
         },
-        getNextPageParam,
+        getNextPageParam: lastPage => 1,
         initialPageParam: undefined,
       })
 

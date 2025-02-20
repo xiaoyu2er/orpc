@@ -112,14 +112,16 @@ declare function parseJWT(token: string | undefined): { userId: number } | null
 
 For handling headers, queries, etc., see [Input/Output Structure](/docs/openapi/input-output-structure).
 For auto-coercion, see [Zod Auto Coerce Plugin](/docs/openapi/plugins/zod-auto-coerce).
+For more `.route()` options, see [Routing](/docs/openapi/routing).
 
 ## Creating a Server
 
 ```ts twoslash
+import { router } from './shared/planet'
+// ---cut---
 import { createServer } from 'node:http'
 import { OpenAPIHandler } from '@orpc/openapi/node'
 import { CORSPlugin } from '@orpc/server/plugins'
-import { router } from './shared/planet'
 
 const handler = new OpenAPIHandler(router, {
   plugins: [new CORSPlugin()]

@@ -20,7 +20,7 @@ export default antfu({
     'no-alert': 'off',
   },
 }, {
-  files: ['apps/content/shared/**', 'playgrounds/**'],
+  files: ['apps/content/shared/**', 'apps/content/docs/**', 'playgrounds/**'],
   rules: {
     'no-console': 'off',
     'perfectionist/sort-imports': 'off',

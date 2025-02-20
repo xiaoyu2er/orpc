@@ -107,10 +107,11 @@ declare function parseJWT(token: string | undefined): { userId: number } | null
 Using [Node.js](/docs/integrations/node) as the server runtime, but oRPC also supports other runtimes like [Bun](/docs/integrations/bun), [Deno](/docs/integrations/deno), [Cloudflare Workers](/docs/integrations/cloudflare-workers), ...
 
 ```ts twoslash
+import { router } from './shared/planet'
+// ---cut---
 import { createServer } from 'node:http'
 import { RPCHandler } from '@orpc/server/node'
 import { CORSPlugin } from '@orpc/server/plugins'
-import { router } from './shared/planet'
 
 const handler = new RPCHandler(router, {
   plugins: [new CORSPlugin()]
@@ -130,11 +131,14 @@ const server = createServer(async (req, res) => {
 server.listen(3000, '127.0.0.1', () => console.log('Listening on 127.0.0.1:3000'))
 ```
 
+Learn more about [RPCHandler](/docs/server/rpc-handler).
+
 ## Create Client
 
 ```ts twoslash
+import { router } from './shared/planet'
+// ---cut---
 import type { RouterClient } from '@orpc/server'
-import type { router } from './shared/planet'
 import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
 
@@ -146,7 +150,7 @@ const link = new RPCLink({
 export const orpc: RouterClient<typeof router> = createORPCClient(link)
 ```
 
-Supports [client-side clients](/docs/client/client-side) and [server-side clients](/docs/client/server-side).
+Supports both [client-side clients](/docs/client/client-side) and [server-side clients](/docs/client/server-side).
 
 ## Call Procedure
 
@@ -154,7 +158,7 @@ End-to-end type-safety and auto-completion out of the box.
 
 ```ts twoslash
 import { orpc } from './shared/planet'
-
+// ---cut---
 const planet = await orpc.planet.find({ id: 1 })
 
 orpc.planet.create

@@ -106,13 +106,13 @@ declare function parseJWT(token: string | undefined): { userId: number } | null
 
 ### Key Enhancements:
 
-- `.route()` defines HTTP methods and paths.
-- `.output()` enables automatic OpenAPI spec generation.
+- `.route` defines HTTP methods and paths.
+- `.output` enables automatic OpenAPI spec generation.
 - `z.coerce` ensures correct parameter parsing.
 
 For handling headers, queries, etc., see [Input/Output Structure](/docs/openapi/input-output-structure).
 For auto-coercion, see [Zod Auto Coerce Plugin](/docs/openapi/plugins/zod-auto-coerce).
-For more `.route()` options, see [Routing](/docs/openapi/routing).
+For more `.route` options, see [Routing](/docs/openapi/routing).
 
 ## Creating a Server
 
@@ -172,7 +172,12 @@ const generator = new OpenAPIGenerator({
   schemaConverters: [new ZodToJsonSchemaConverter()]
 })
 
-const spec = await generator.generate(router, { info: { title: 'Planet API', version: '1.0.0' } })
+const spec = await generator.generate(router, {
+  info: {
+    title: 'Planet API',
+    version: '1.0.0'
+  }
+})
 
 console.log(JSON.stringify(spec, null, 2))
 ```

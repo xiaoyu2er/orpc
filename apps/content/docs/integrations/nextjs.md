@@ -21,7 +21,9 @@ const handler = new RPCHandler(router)
 
 export const { GET, POST, PUT, PATCH, DELETE } = serve(handler, {
   prefix: '/rpc',
-  context: async req => ({}), // Provide initial context if needed
+  context: async (req) => {
+    return {} // Provide initial context if needed
+  },
 })
 ```
 

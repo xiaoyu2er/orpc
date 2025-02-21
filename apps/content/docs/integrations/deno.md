@@ -28,8 +28,9 @@ Deno.serve(async (request) => {
       context: {} // Provide initial context if needed
     })
 
-    if (response)
+    if (response) {
       return response
+    }
   }
 
   return new Response('Not found', { status: 404 })

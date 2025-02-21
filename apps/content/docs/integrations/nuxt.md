@@ -14,10 +14,10 @@ description: Integrate oRPC with Nuxt.js
 ```ts [server/routes/rpc/[...].ts]
 import { RPCHandler } from '@orpc/server/node'
 
-const rpcHandler = new RPCHandler(router)
+const handler = new RPCHandler(router)
 
 export default defineEventHandler(async (event) => {
-  const { matched } = await rpcHandler.handle(
+  const { matched } = await handler.handle(
     event.node.req,
     event.node.res,
     {
@@ -35,8 +35,8 @@ export default defineEventHandler(async (event) => {
 })
 ```
 
-```ts [server/routes/rpc.ts]
-export * from './rpc/[...]'
+```ts [server/routes/rpc/index.ts]
+export * from './[...]'
 ```
 
 :::

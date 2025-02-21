@@ -63,6 +63,7 @@ export default defineConfig({
         { text: 'Error Handling', link: '/docs/error-handling' },
         { text: 'File Upload/Download', link: '/docs/file-upload-download' },
         { text: 'Event Iterator (SSE)', link: '/docs/event-iterator' },
+        { text: 'Server Action', link: '/docs/server-action' },
         { text: 'RPC Handler', link: '/docs/rpc-handler' },
         { text: 'Lifecycle', link: '/docs/lifecycle' },
         {

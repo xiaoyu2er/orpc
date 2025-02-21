@@ -9,17 +9,22 @@ description: Integrate oRPC with Nuxt.js
 
 ## Example
 
-```ts
-// server/routes/rpc/[...].ts and server/routes/rpc.ts
+::: code-group
+
+```ts [server/routes/rpc/[...].ts]
 import { RPCHandler } from '@orpc/server/node'
 
 const rpcHandler = new RPCHandler(router)
 
 export default defineEventHandler(async (event) => {
-  const { matched } = await rpcHandler.handle(event.node.req, event.node.res, {
-    prefix: '/rpc',
-    context: {}, // Provide initial context if needed
-  })
+  const { matched } = await rpcHandler.handle(
+    event.node.req,
+    event.node.res,
+    {
+      prefix: '/rpc',
+      context: {}, // Provide initial context if needed
+    }
+  )
 
   if (matched) {
     return
@@ -30,7 +35,11 @@ export default defineEventHandler(async (event) => {
 })
 ```
 
-> Both the `server/routes/rpc/[...].ts` and `server/routes/rpc.ts` files should use the same implementation logic to ensure consistent behavior.
+```ts [server/routes/rpc.ts]
+export * from './rpc/[...]'
+```
+
+:::
 
 ::: info
 The `handler` can be any supported oRPC handler, such as [RPCHandler](/docs/rpc-handler), [OpenAPIHandler](/docs/openapi/openapi-handler), or another custom handler.

@@ -20,7 +20,7 @@ app.use(cors())
 
 const handler = new RPCHandler(router)
 
-app.use('/rpc/*', async (req, res, next) => {
+app.use('/rpc*', async (req, res, next) => {
   const { matched } = await handler.handle(req, res, {
     prefix: '/rpc',
     context: {},

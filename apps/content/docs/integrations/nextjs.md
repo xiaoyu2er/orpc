@@ -13,8 +13,9 @@ oRPC also supports [Server Action](/docs/server-action) out-of-the-box.
 
 ## App Router
 
-```ts
-// app/rpc/[[...rest]].ts
+::: code-group
+
+```ts [app/rpc/[[...rest]].ts]
 import { RPCHandler, serve } from '@orpc/server/next'
 
 const handler = new RPCHandler(router)
@@ -27,14 +28,17 @@ export const { GET, POST, PUT, PATCH, DELETE } = serve(handler, {
 })
 ```
 
+:::
+
 ::: info
 The `handler` can be any supported oRPC handler, such as [RPCHandler](/docs/rpc-handler), [OpenAPIHandler](/docs/openapi/openapi-handler), or another custom handler.
 :::
 
 ## Pages Router
 
-```ts
-// pages/rpc/[[...rest]].ts
+::: code-group
+
+```ts [pages/rpc/[[...rest]].ts]
 import { RPCHandler } from '@orpc/server/node'
 
 const handler = new RPCHandler(router)
@@ -53,6 +57,8 @@ export default async (req, res) => {
   res.end('Not found')
 }
 ```
+
+:::
 
 ::: info
 The `handler` can be any supported oRPC handler, such as [RPCHandler](/docs/rpc-handler), [OpenAPIHandler](/docs/openapi/openapi-handler), or another custom handler.

@@ -40,12 +40,3 @@ Deno.serve(async (request) => {
 ::: info
 The `handler` can be any supported oRPC handler, such as [RPCHandler](/docs/rpc-handler), [OpenAPIHandler](/docs/openapi/openapi-handler), or another custom handler.
 :::
-
-Below is the revised guide in the style you requested:
-
----
-
-title: Cloudflare Worker Integration
-description: Integrate oRPC with Cloudflare Workers
-
----

@@ -1,11 +1,11 @@
 ---
 title: Server-Side Clients
-description: Use oRPC to call your API procedures as if they were regular functions.
+description: Call your oRPC procedures in the same environment as your server like native functions.
 ---
 
 # Server-Side Clients
 
-Run clients in the same environment as your server, no proxies required. Simply call your procedures like regular functions.
+Call your [procedures](/docs/procedure) in the same environment as your server—no proxies required like native functions.
 
 ## Calling Procedures
 

@@ -7,7 +7,7 @@ description: Integrate oRPC with Elysia
 
 [Elysia](https://elysiajs.com/) is a high-performance web framework for [Bun](https://bun.sh/) that adheres to the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API). For additional context, refer to the [Fetch Server Integration](/docs/integrations/fetch-server) guide.
 
-## Example
+## Basic
 
 ```ts
 import { Elysia } from 'elysia'

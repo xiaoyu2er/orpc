@@ -7,7 +7,7 @@ description: Integrate oRPC with Hono
 
 [Hono](https://honojs.dev/) is a high-performance web framework built on top of [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API). For additional context, refer to the [Fetch Server Integration](/docs/integrations/fetch-server) guide.
 
-## Example
+## Basic
 
 ```ts
 import { Hono } from 'hono'

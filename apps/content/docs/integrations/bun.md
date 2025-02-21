@@ -7,7 +7,7 @@ description: Integrate oRPC with Bun's built-in HTTP server
 
 [Bun](https://bun.sh/) comes with a built-in, high-performance HTTP server that follows the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API). For additional context, refer to the [Fetch Server Integration](/docs/integrations/fetch-server) guide.
 
-## Example
+## Basic
 
 ```ts
 import { RPCHandler } from '@orpc/server/fetch'

@@ -7,7 +7,7 @@ description: Integrate oRPC with the modern Fetch API Server
 
 The Fetch API Server is a lightweight and high-performance server available in modern runtimes such as [Deno](https://deno.land/), [Bun](https://bun.sh/), and [Cloudflare Workers](https://workers.cloudflare.com/).
 
-## Example
+## Basic
 
 ```ts
 import { RPCHandler } from '@orpc/server/fetch'

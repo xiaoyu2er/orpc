@@ -25,6 +25,7 @@ export default antfu({
     'no-console': 'off',
     'perfectionist/sort-imports': 'off',
     'import/first': 'off',
+    'react-hooks/rules-of-hooks': 'off',
   },
 }, {
   files: ['apps/content/examples/**'],

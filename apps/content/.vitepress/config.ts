@@ -118,7 +118,7 @@ export default defineConfig({
           text: 'Tanstack Query',
           collapsed: true,
           items: [
-            { text: 'Overview', link: '/docs/tanstack-query/overview' },
+            { text: 'Basic', link: '/docs/tanstack-query/basic' },
             { text: 'React', link: '/docs/tanstack-query/react' },
             { text: 'Vue', link: '/docs/tanstack-query/vue' },
           ],
@@ -128,6 +128,7 @@ export default defineConfig({
           collapsed: true,
           items: [
             { text: 'Built-in Errors', link: '/docs/advanced/built-in-errors' },
+            { text: 'RPC Protocol', link: '/docs/advanced/rpc-protocol' },
           ],
         },
         {
@@ -145,8 +146,8 @@ export default defineConfig({
         { text: 'Routing', link: '/docs/openapi/routing' },
         { text: 'Input/Output Structure', link: '/docs/openapi/input-output-structure' },
         { text: 'Error Handling', link: '/docs/openapi/error-handling' },
-        { text: 'File Upload/Download', link: '/docs/openapi/file-upload-download' },
         { text: 'Bracket Notation', link: '/docs/openapi/bracket-notation' },
+        { text: 'File Upload/Download', link: '/docs/openapi/file-upload-download' },
         { text: 'OpenAPI Handler', link: '/docs/openapi/openapi-handler' },
         { text: 'OpenAPI Specification', link: '/docs/openapi/openapi-specification' },
         {

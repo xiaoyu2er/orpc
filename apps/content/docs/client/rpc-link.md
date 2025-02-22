@@ -42,7 +42,7 @@ interface ClientContext {
 const link = new RPCLink<ClientContext>({
   url: 'http://localhost:3000/rpc',
   headers: async ({ context }) => ({
-    'x-api-key': context?.something
+    'x-api-key': context?.something ?? ''
   })
 })
 
@@ -72,10 +72,14 @@ interface ClientContext {
 const link = new RPCLink({
   url: 'http://localhost:3000/rpc',
   method: ({ context }, path) => {
-    if (context?.cache)
+    if (context?.cache) {
       return 'GET'
-    if (['get', 'find', 'list', 'search'].includes(path.at(-1)!))
+    }
+
+    if (['get', 'find', 'list', 'search'].includes(path.at(-1)!)) {
       return 'GET'
+    }
+
     return 'POST'
   },
   fetch: (url, init, { context }) =>
@@ -101,6 +105,8 @@ interface ClientContext {
 const link = new RPCLink<ClientContext>({
   url: 'http://localhost:3000/rpc',
   eventSourceRetry(reconnectOptions, options, path, input) {
+    console.log(reconnectOptions.error)
+
     return !options.context?.eventSourceRetry
   }
 })

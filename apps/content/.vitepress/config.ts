@@ -108,7 +108,6 @@ export default defineConfig({
           items: [
             { text: 'Server-Side', link: '/docs/client/server-side' },
             { text: 'Client-Side', link: '/docs/client/client-side' },
-            { text: 'Client Context', link: '/docs/client/client-context' },
             { text: 'Error Handling', link: '/docs/client/error-handling' },
             { text: 'Event Iterator', link: '/docs/client/event-iterator' },
             { text: 'RPC Link', link: '/docs/client/rpc-link' },

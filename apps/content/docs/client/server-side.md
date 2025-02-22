@@ -64,3 +64,35 @@ const client = createRouterClient({ ping, pong }, {
 
 const result = await client.ping()
 ```
+
+### Client Context
+
+You can define a client context to pass additional information when calling procedures. This is useful for modifying procedure behavior dynamically.
+
+```ts twoslash
+import { z } from 'zod'
+import { createRouterClient, os } from '@orpc/server'
+// ---cut---
+interface ClientContext {
+  cache?: boolean
+}
+
+const ping = os.handler(() => 'pong')
+const pong = os.handler(() => 'ping')
+
+const client = createRouterClient({ ping, pong }, {
+  context: ({ cache }: ClientContext) => { // [!code highlight]
+    if (cache) {
+      return {} // <-- context when cache enabled
+    }
+
+    return {} // <-- context when cache disabled
+  }
+})
+
+const result = await client.ping(undefined, { context: { cache: true } })
+```
+
+:::info
+If `ClientContext` contains a required property, oRPC enforces that the client provides it when calling a procedure.
+:::

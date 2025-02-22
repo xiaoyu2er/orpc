@@ -36,7 +36,7 @@ export default defineEventHandler(async (event) => {
 ```
 
 ```ts [server/routes/rpc/index.ts]
-export * from './[...]'
+export { default } from './[...]'
 ```
 
 :::

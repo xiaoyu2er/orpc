@@ -17,7 +17,7 @@ import { RPCHandler } from '@orpc/server/fetch'
 
 const handler = new RPCHandler(router)
 
-async function handler({ request }: APIEvent) {
+async function handle({ request }: APIEvent) {
   const { response } = await handler.handle(request, {
     prefix: '/rpc',
     context: {} // Provide initial context if needed
@@ -26,11 +26,11 @@ async function handler({ request }: APIEvent) {
   return response ?? new Response('Not Found', { status: 404 })
 }
 
-export const GET = handler
-export const POST = handler
-export const PUT = handler
-export const PATCh = handler
-export const DELETE = handler
+export const GET = handle
+export const POST = handle
+export const PUT = handle
+export const PATCh = handle
+export const DELETE = handle
 ```
 
 ```ts [src/routes/rpc/index.ts]

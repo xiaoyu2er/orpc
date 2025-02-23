@@ -25,7 +25,7 @@ Use `.queryOptions` to configure queries. Use it with hooks like `useQuery`, `us
 
 ```ts
 const query = useQuery(orpc.planet.find.queryOptions({
-  input: { id: '123' }, // Specify input if needed
+  input: { id: 123 }, // Specify input if needed
   context: { cache: true }, // Provide client context if needed
   // additional options...
 }))
@@ -83,9 +83,9 @@ queryClient.invalidateQueries({
   queryKey: orpc.planet.key({ type: 'query' })
 })
 
-// Invalidate the planet find query with id '123'
+// Invalidate the planet find query with id 123
 queryClient.invalidateQueries({
-  queryKey: orpc.planet.find.key({ input: { id: '123' } })
+  queryKey: orpc.planet.find.key({ input: { id: 123 } })
 })
 ```
 
@@ -94,7 +94,7 @@ queryClient.invalidateQueries({
 Use `.call` to call a procedure client directly. It's an alias for corresponding procedure client.
 
 ```ts
-const result = orpc.planet.find.call({ id: '123' })
+const result = orpc.planet.find.call({ id: 123 })
 ```
 
 ## Error Handling

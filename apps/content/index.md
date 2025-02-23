@@ -17,8 +17,8 @@ hero:
       text: Get Started
       link: /docs/getting-started
     - theme: alt
-      text: View on GitHub
-      link: https://github.com/unnoq/orpc
+      text: Playgrounds
+      link: /docs/playgrounds
 features:
   - icon: 🔒
     title: End-to-End Type Safety

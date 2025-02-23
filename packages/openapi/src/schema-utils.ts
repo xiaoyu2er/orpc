@@ -3,11 +3,11 @@ import { type FileSchema, type JSONSchema, NON_LOGIC_KEYWORDS, type ObjectSchema
 
 export class SchemaUtils {
   isFileSchema(schema: JSONSchema.JSONSchema): schema is FileSchema {
-    return typeof schema === 'object' && schema.type === 'string' && typeof schema.contentMediaType === 'string'
+    return isObject(schema) && schema.type === 'string' && typeof schema.contentMediaType === 'string'
   }
 
   isObjectSchema(schema: JSONSchema.JSONSchema): schema is ObjectSchema {
-    return typeof schema === 'object' && schema.type === 'object'
+    return isObject(schema) && schema.type === 'object'
   }
 
   isAnySchema(schema: JSONSchema.JSONSchema): boolean {

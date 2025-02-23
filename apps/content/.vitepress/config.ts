@@ -127,7 +127,7 @@ export default defineConfig({
           text: 'Advanced',
           collapsed: true,
           items: [
-            { text: 'Built-in Errors', link: '/docs/advanced/built-in-errors' },
+            { text: 'Validation Errors', link: '/docs/advanced/validation-errors' },
             { text: 'RPC Protocol', link: '/docs/advanced/rpc-protocol' },
           ],
         },

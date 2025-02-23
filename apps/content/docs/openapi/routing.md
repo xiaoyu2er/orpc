@@ -44,7 +44,9 @@ const router = os.prefix('/planets').router({
 })
 ```
 
-> Note: The prefix only applies to procedures that specify a `path`.
+::: warning
+The prefix only applies to procedures that specify a `path`.
+:::
 
 ## Lazy Router
 
@@ -58,4 +60,12 @@ If you follow the [contract-first approach](/docs/contract-first/define-contract
 const router = {
   planet: os.prefix('/planets').lazy(() => import('./planet'))
 }
+```
+
+## Default Configuration
+
+Customize the default oRPC routing settings using `.$route`:
+
+```ts
+const base = os.$route({ method: 'GET' })
 ```

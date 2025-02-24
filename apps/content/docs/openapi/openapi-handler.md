@@ -1,0 +1,88 @@
+---
+title: OpenAPI Handler
+description: Comprehensive Guide to the OpenAPIHandler in oRPC
+---
+
+# OpenAPI Handler
+
+The `OpenAPIHandler` enables communication with clients over RESTful APIs, adhering to the OpenAPI specification. It is fully compatible with [OpenAPILink](/docs/openapi/client/openapi-link) and the [OpenAPI Specification](/docs/openapi/openapi-specification).
+
+## Supported Data Types
+
+`OpenAPIHandler` serializes and deserializes the following JavaScript types:
+
+- **string**
+- **number** (`NaN` → `null`)
+- **boolean**
+- **null**
+- **undefined** (`undefined` in arrays → `null`)
+- **Date** (`Invalid Date` → `null`)
+- **BigInt** (`BigInt` → `string`)
+- **RegExp** (`RegExp` → `string`)
+- **URL** (`URL` → `string`)
+- **Set** (`Set` → `array`)
+- **Map** (`Map` → `array`)
+- **Blob** (unsupported in `AsyncIteratorObject`)
+- **File** (unsupported in `AsyncIteratorObject`)
+- **AsyncIteratorObject** (only at the root level; powers the [Event Iterator](/docs/event-iterator))
+
+::: warning
+If a payload contains `Blob` or `File` outside the root level, it must use `multipart/form-data`. In such cases, oRPC applies [Bracket Notation](/docs/openapi/bracket-notation) and converts other types to strings.
+:::
+
+## Installation
+
+::: code-group
+
+```sh [npm]
+npm install @orpc/openapi@latest
+```
+
+```sh [yarn]
+yarn add @orpc/openapi@latest
+```
+
+```sh [pnpm]
+pnpm add @orpc/openapi@latest
+```
+
+```sh [bun]
+bun add @orpc/openapi@latest
+```
+
+```sh [deno]
+deno install npm:@orpc/openapi@latest
+```
+
+:::
+
+## Setup and Integration
+
+```ts
+import { OpenAPIHandler } from '@orpc/openapi/fetch' // or '@orpc/server/node'
+import { CORSPlugin } from '@orpc/server/plugins'
+import { onError } from '@orpc/server'
+
+const handler = new OpenAPIHandler(router, {
+  plugins: [new CORSPlugin()],
+  interceptors: [
+    onError(error => console.error(error))
+  ],
+})
+
+export default async function fetch(request: Request) {
+  const url = new URL(request.url)
+
+  if (url.pathname.startsWith('/api')) {
+    const result = await handler.handle(request, {
+      prefix: '/api',
+      context: {} // Add initial context if needed
+    })
+
+    if (result.matched)
+      return result.response
+  }
+
+  return new Response('Not Found', { status: 404 })
+}
+```

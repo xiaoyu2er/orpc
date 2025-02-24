@@ -147,7 +147,6 @@ export default defineConfig({
         { text: 'Input/Output Structure', link: '/docs/openapi/input-output-structure' },
         { text: 'Error Handling', link: '/docs/openapi/error-handling' },
         { text: 'Bracket Notation', link: '/docs/openapi/bracket-notation' },
-        { text: 'File Upload/Download', link: '/docs/openapi/file-upload-download' },
         { text: 'OpenAPI Handler', link: '/docs/openapi/openapi-handler' },
         { text: 'OpenAPI Specification', link: '/docs/openapi/openapi-specification' },
         {

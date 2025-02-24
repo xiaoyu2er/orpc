@@ -5,7 +5,7 @@ description: Comprehensive Guide to the RPCHandler in oRPC
 
 # RPC Handler
 
-The `RPCHandler` is the central component of oRPC's server-side API. It handles communication with clients over oRPC's proprietary RPC protocol—which is built on top of HTTP.
+The `RPCHandler` is the central component of oRPC's server-side API. It handles communication with clients over oRPC's proprietary [RPC protocol](/docs/advanced/rpc-protocol), which is built on top of HTTP.
 Although it efficiently transfers native types, its protocol is neither human-friendly nor compatible with the OpenAPI standard.
 If you need an interface that adheres to OpenAPI, please refer to the [OpenAPIHandler](/docs/openapi/openapi-handler).
 

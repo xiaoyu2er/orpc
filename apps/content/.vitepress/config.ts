@@ -153,7 +153,7 @@ export default defineConfig({
           text: 'Plugins',
           collapsed: true,
           items: [
-            { text: 'Zod Auto Coerce', link: '/docs/openapi/plugins/zod-auto-coerce' },
+            { text: 'Zod Smart Coercion', link: '/docs/openapi/plugins/zod-smart-coercion' },
           ],
         },
         {

@@ -11,7 +11,7 @@ Before you begin, please review our [Error Handling](/docs/error-handling) guide
 
 By default, oRPC maps common error codes to standard HTTP status codes:
 
-| Error Code             | HTTP Status Code | Description            |
+| Error Code             | HTTP Status Code | Message                |
 | ---------------------- | ---------------: | ---------------------- |
 | BAD_REQUEST            |              400 | Bad Request            |
 | UNAUTHORIZED           |              401 | Unauthorized           |

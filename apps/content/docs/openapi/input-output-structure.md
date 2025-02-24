@@ -95,3 +95,11 @@ export type DetailedOutput = {
 ```
 
 Make sure your handler’s return value matches this structure when using detailed mode.
+
+## Default Configuration
+
+Customize the default oRPC input/output structure settings using `.$route`:
+
+```ts
+const base = os.$route({ inputStructure: 'detailed' })
+```

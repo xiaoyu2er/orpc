@@ -47,7 +47,6 @@ export default defineConfig({
       {
         text: 'About',
         items: [
-          { text: 'Motivation', link: '/motivation' },
           { text: 'Releases', link: 'https://github.com/unnoq/orpc/releases' },
         ],
       },

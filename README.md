@@ -19,7 +19,7 @@
   </a>
 </div>
 
-<p align="center" style="font-size: 1.5rem; margin-top: 0.5rem;">Typesafe APIs Made Simple 🪄</p>
+<h3 align="center">Typesafe APIs Made Simple 🪄</h3>
 
 **oRPC is a powerful combination of RPC and OpenAPI**, makes it easy to build APIs that are end-to-end type-safe and adhere to OpenAPI standards, ensuring a smooth and enjoyable developer experience.
 

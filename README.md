@@ -5,75 +5,59 @@
 <h1></h1>
 
 <div align="center">
-
-![NPM Downloads](https://img.shields.io/npm/dm/%40orpc/server?logo=npm)
-![GitHub Release](https://img.shields.io/github/v/release/unnoq/orpc?logo=github)
-![GitHub commit activity](https://img.shields.io/github/commit-activity/m/unnoq/orpc?logo=git&logoColor=%23fff)
-![GitHub License](https://img.shields.io/github/license/unnoq/orpc)
-
+  <a href="https://codecov.io/gh/unnoq/orpc">
+    <img alt="codecov" src="https://codecov.io/gh/unnoq/orpc/branch/main/graph/badge.svg">
+  </a>
+  <a href="https://www.npmjs.com/package/@orpc/client">
+    <img alt="weekly downloads" src="https://img.shields.io/npm/dw/%40orpc%2Fclient?logo=npm" />
+  </a>
+  <a href="https://github.com/unnoq/orpc/blob/main/LICENSE">
+    <img alt="MIT License" src="https://img.shields.io/github/license/unnoq/orpc?logo=open-source-initiative" />
+  </a>
+  <a href="https://discord.gg/TXEbwRBvQn">
+    <img alt="Discord" src="https://img.shields.io/discord/1308966753044398161?color=7389D8&label&logo=discord&logoColor=ffffff" />
+  </a>
 </div>
 
-<p align="center">End-to-end typesafe APIs built quicker & easier</p>
+<p align="center">Typesafe APIs Made Simple 🪄</p>
 
-> [!NOTE]
-> This project is still in heavy development, please be mindful of breaking changes.
-
-**oRPC is a powerful combination of RPC and OpenAPI, offering an exceptional developer experience powered by TypeScript. It's designed to be simple and straightforward to use.**
+**oRPC is a powerful combination of RPC and OpenAPI, makes it easy to build APIs that are end-to-end type-safe and adhere to OpenAPI standards, ensuring a smooth and enjoyable developer experience.**
 
 ---
 
-## Features
+## Highlights
 
-- **Type-safe 🔒**: oRPC is built on top of TypeScript, which means you get full type safety out of the box.
-- **Easy to use ✍️**: oRPC is designed to be simple and straightforward to use.
-- **Contract first 📝**: Take advantage of a "contract first" approach to developing your API.
-- **Built-in plugins 🔌**: Easily implement into your favourite frameworks.
+- **End-to-End Type Safety 🔒**: Ensure complete type safety from inputs to outputs and errors, bridging server and client seamlessly.
+- **First-Class OpenAPI 📄**: Adheres to the OpenAPI standard out of the box, ensuring seamless integration and comprehensive API documentation.
+- **Contract-First Development 📜**: (Optional) Define your API contract upfront and implement it with confidence.
+- **Exceptional Developer Experience ✨**: Enjoy a streamlined workflow with robust typing and clear, in-code documentation.
+- **Multi-Runtime Support 🌍**: Run your code seamlessly on Cloudflare, Deno, Bun, Node.js, and more.
+- **Framework Integrations 🧩**: Supports Tanstack Query (React, Vue), Pinia Colada, and more.
+- **Server Actions ⚡️**: Fully compatible with React Server Actions on Next.js, TanStack Start, and more.
+- **Standard Schema Support 🗂️**: Effortlessly work with Zod, Valibot, ArkType, and others right out of the box.
+- **Fast & Lightweight 💨**: Built on native APIs across all runtimes – optimized for speed and efficiency.
+- **Native Types 📦**: Enjoy built-in support for Date, File, Blob, BigInt, URL and more with no extra setup.
+- **Lazy Router ⏱️**: Improve cold start times with our lazy routing feature.
+- **SSE & Streaming 📡**: Provides SSE and streaming features – perfect for real-time notifications and AI-powered streaming responses.
+- **Reusability 🔄**: Write once and reuse your code across multiple purposes effortlessly.
+- **Extendability 🔌**: Easily enhance oRPC with plugins, middleware, and interceptors.
+- **Reliability 🛡️**: Well-tested, fully TypeScript, production-ready, and MIT licensed for peace of mind.
+- **Simplicity 💡**: Enjoy straightforward, clean code with no hidden magic.
 
----
+## Documentation
 
-## Documentation & Examples
-
-You can find the full documentation & examples [here](https://orpc.unnoq.com).
-
----
+You can find the full documentation [here](https://orpc.unnoq.com).
 
 ## Packages
 
-- `@orpc/contract`: Build your API contract.
-- `@orpc/server`: Build your API or implement API contract.
-- `@orpc/client`: Consume your API on the client with type-safety.
-- `@orpc/react-query`: Integration with [React Query](https://tanstack.com/query/latest/docs/framework/react/overview).
-- `@orpc/vue-query`: Integration with [Vue Query](https://tanstack.com/query/latest/docs/framework/vue/overview).
-- `@orpc/vue-colada`: Integration with [Pinia Colada](https://pinia-colada.esm.dev/).
-- `@orpc/openapi`: Generate OpenAPI specs and provide OpenAPI handler for `@orpc/server`.
-- `@orpc/next`: Helpers and hooks for [Next.JS](https://nextjs.org/).
-- `@orpc/zod`: More schemas that [Zod](https://zod.dev/) doesn't support yet.
-
----
-
-## Comparison
-
-This comparison table helps you understand how oRPC differs from other popular TypeScript RPC and REST solutions.
-
-- ✅ First-class, built-in support.
-- 🟡 Lacks features, or requires third-party integrations.
-- 🛑 Not supported or not documented.
-
-| Feature                  | oRPC | tRPC | ts-rest | Description                                                        |
-| ------------------------ | ---- | ---- | ------- | ------------------------------------------------------------------ |
-| End-to-end Type Safety   | ✅   | ✅   | ✅      | Full TypeScript type inference from backend to frontend.           |
-| End-to-end Type Error    | ✅   | 🛑   | ✅      | Full TYpeScript type inference for Error from backend to frontend. |
-| React Query Integration  | ✅   | ✅   | 🟡      | Native support for React Query/TanStack Query.                     |
-| Vue Query Integration    | ✅   | 🛑   | 🟡      | Native support for Vue Query/TanStack Query.                       |
-| Pinia Colada Integration | ✅   | 🛑   | 🛑      | Native support for VPinia Colada.                                  |
-| With Contract-First      | ✅   | 🛑   | ✅      | API definitions before implementation.                             |
-| Without Contract-First   | ✅   | ✅   | 🛑      | API definitions and implementation are combined in same place      |
-| File Operations          | ✅   | 🟡   | 🟡      | Built-in support for file uploads/downloads.                       |
-| OpenAPI Support          | ✅   | 🟡   | 🟡      | Generation and consumption of OpenAPI specs.                       |
-| Server Actions Support   | ✅   | ✅   | 🛑      | React/Next.js Actions compatibility.                               |
-| Server-Sent Event (SSE)  | ✅   | ✅   | 🛑      | Server-Sent Event (SSE) support.                                   |
-| WebSockets               | 🛑   | ✅   | 🛑      | WebSockets support.                                                |
-| Nest.js integration      | 🛑   | 🟡   | ✅      | Integration with Nest.js.                                          |
+- [@orpc/contract](https://www.npmjs.com/package/@orpc/contract): Build your API contract.
+- [@orpc/server](https://www.npmjs.com/package/@orpc/server): Build your API or implement API contract.
+- [@orpc/client](https://www.npmjs.com/package/@orpc/client): Consume your API on the client with type-safety.
+- [@orpc/react-query](https://www.npmjs.com/package/@orpc/react-query): Integration with [React Query](https://tanstack.com/query/latest/docs/framework/react/overview).
+- [@orpc/vue-query](https://www.npmjs.com/package/@orpc/vue-query): Integration with [Vue Query](https://tanstack.com/query/latest/docs/framework/vue/overview).
+- [@orpc/vue-colada](https://www.npmjs.com/package/@orpc/vue-colada): Integration with [Pinia Colada](https://pinia-colada.esm.dev/).
+- [@orpc/openapi](https://www.npmjs.com/package/@orpc/openapi): Generate OpenAPI specs and handle OpenAPI requests.
+- [@orpc/zod](https://www.npmjs.com/package/@orpc/zod): More schemas that [Zod](https://zod.dev/) doesn't support yet.
 
 ## References
 
@@ -84,4 +68,4 @@ oRPC is inspired by existing solutions that prioritize type safety and developer
 
 ## License
 
-Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
+Distributed under the MIT License. See [LICENSE](https://github.com/unnoq/orpc/blob/main/LICENSE) for more information.

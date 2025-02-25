@@ -13,8 +13,6 @@ This guide covers the basics: defining procedures, handling errors, and integrat
 
 ## Prerequisites
 
-Ensure you have:
-
 - Node.js 18+ (20+ recommended) | Bun | Deno | Cloudflare Workers
 - A package manager: npm | pnpm | yarn | bun | deno
 - A TypeScript project (strict mode recommended)

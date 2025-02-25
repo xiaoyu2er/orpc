@@ -27,7 +27,7 @@ The `OpenAPIHandler` enables communication with clients over RESTful APIs, adher
 - **AsyncIteratorObject** (only at the root level; powers the [Event Iterator](/docs/event-iterator))
 
 ::: warning
-If a payload contains `Blob` or `File` outside the root level, it must use `multipart/form-data`. In such cases, oRPC applies [Bracket Notation](/docs/openapi/bracket-notation) and converts other types to strings.
+If a payload contains `Blob` or `File` outside the root level, it must use `multipart/form-data`. In such cases, oRPC applies [Bracket Notation](/docs/openapi/bracket-notation) and converts other types to strings (exclude `null` and `undefined` will not be represented).
 :::
 
 ## Installation

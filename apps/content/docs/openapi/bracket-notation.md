@@ -5,10 +5,20 @@ description: Represent structured data in limited formats such as URL queries an
 
 # Bracket Notation
 
-Bracket Notation allows you to represent structured data in limited formats such as URL queries and form data.
-It is used with [OpenAPIHandler](/docs/openapi/openapi-handler) and [OpenAPILink](/docs/openapi/client/openapi-link).
+Bracket Notation encodes structured data in formats with limited syntax, like URL queries and form data. It is used by [OpenAPIHandler](/docs/openapi/openapi-handler) and [OpenAPILink](/docs/openapi/client/openapi-link).
 
-## Basic Usage
+## Usage
+
+- Append `[]` to denote an array.
+- Append `[number]` to specify an array index (missing indexes are filled with `null`).
+- Append `[key]` to denote an object property.
+
+## Limitations
+
+- **Empty Arrays:** Cannot be represented; arrays must have at least one element.
+- **Empty Objects:** Cannot be represented. Objects with empty or numeric keys may be interpreted as arrays, so ensure objects include at least one non-empty, non-numeric key.
+
+## Examples
 
 ### URL Query
 
@@ -35,7 +45,7 @@ curl -X POST http://example.com/api/example \
   -F 'name[last]=Doe'
 ```
 
-This form is parsed as:
+This form data is parsed as:
 
 ```json
 {
@@ -46,68 +56,7 @@ This form is parsed as:
 }
 ```
 
-## Arrays
-
-Use either empty brackets `[]` or indexed brackets to express arrays. Missing indexes are filled with `null`.
-
-::: warning
-Arrays must contain at least one element.
-:::
-
-```bash
-curl -X POST http://example.com/api/example \
-  -F 'names[]=John' \
-  -F 'names[]=Doe' \
-  -F 'ages[0]=18' \
-  -F 'ages[2]=25'
-```
-
-This query is parsed as:
-
-```json
-{
-  "names": ["John", "Doe"],
-  "ages": [18, null, 25]
-}
-```
-
-## Objects
-
-Wrap keys in brackets to express objects.
-
-::: warning
-
-- Objects must include at least one non-numeric key.
-- Empty objects cannot be represented.
-
-:::
-
-```bash
-curl -X POST http://example.com/api/example \
-  -F 'name[first]=John' \
-  -F 'name[last]=Doe' \
-  -F 'name[nested][first]=John' \
-  -F 'name[nested][last]=Doe'
-```
-
-This query is parsed as:
-
-```json
-{
-  "name": {
-    "first": "John",
-    "last": "Doe",
-    "nested": {
-      "first": "John",
-      "last": "Doe"
-    }
-  }
-}
-```
-
-## Combining Arrays and Objects
-
-You can mix arrays and objects as needed:
+### Complex Example
 
 ```bash
 curl -X POST http://example.com/api/example \
@@ -121,7 +70,7 @@ curl -X POST http://example.com/api/example \
   -F 'data[files][]=@/path/to/file2'
 ```
 
-This query is parsed as:
+This form data is parsed as:
 
 ```json
 {

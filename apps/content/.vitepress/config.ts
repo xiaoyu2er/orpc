@@ -42,7 +42,7 @@ export default defineConfig({
     nav: [
       { text: 'Docs', link: '/docs/getting-started', activeMatch: '/docs/(?!openapi/)' },
       { text: 'OpenAPI', link: '/docs/openapi/getting-started', activeMatch: '/docs/openapi/' },
-      { text: 'Examples', link: '/examples/', activeMatch: '/examples/' },
+      { text: 'Examples', link: '/examples/openai-streaming', activeMatch: '/examples/' },
       { text: 'Sponsor', link: '/sponsor' },
       {
         text: 'About',
@@ -165,7 +165,7 @@ export default defineConfig({
         },
       ],
       '/examples/': [
-
+        { text: 'OpenAI Streaming', link: '/examples/openai-streaming' },
       ],
     },
   },

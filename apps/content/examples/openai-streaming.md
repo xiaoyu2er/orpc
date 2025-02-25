@@ -1,0 +1,57 @@
+---
+title: OpenAI Streaming Example
+description: Combine oRPC with the OpenAI Streaming API to build a chatbot
+---
+
+# OpenAI Streaming Example
+
+This example shows how to integrate oRPC with the OpenAI Streaming API to build a chatbot.
+
+## Basic Example
+
+```ts twoslash
+import { createORPCClient } from '@orpc/client'
+import { RPCLink } from '@orpc/client/fetch'
+import { os, RouterClient } from '@orpc/server'
+import { z } from 'zod'
+// ---cut---
+import OpenAI from 'openai'
+
+const openapi = new OpenAI()
+
+const complete = os
+  .input(z.object({ content: z.string() }))
+  .handler(async function* ({ input }) {
+    const stream = await openapi.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [{ role: 'user', content: input.content }],
+      stream: true,
+    })
+
+    yield * stream
+  })
+
+const router = { complete }
+
+type ClientContext = { disableESRetry?: boolean }
+
+const link = new RPCLink<ClientContext>({
+  url: 'https://example.com/rpc',
+  eventSourceRetry: (_, { context }) => !context?.disableESRetry,
+})
+
+const client: RouterClient<typeof router, ClientContext> = createORPCClient(link)
+
+const stream = await client.complete(
+  { content: 'Hello, world!' },
+  { context: { disableESRetry: true } }
+)
+
+for await (const chunk of stream) {
+  console.log(chunk.choices[0]?.delta?.content || '')
+}
+```
+
+**Note:** Disable event source retries when streaming chatbot responses.
+
+Learn more about [RPCLink](/docs/client/rpc-link) and [Event Iterator](/docs/client/event-iterator).

@@ -1,6 +1,6 @@
 import { OpenAPIHandler } from '@orpc/openapi/node'
 import { onError } from '@orpc/server'
-import { ZodAutoCoercePlugin } from '@orpc/zod'
+import { ZodSmartCoercionPlugin } from '@orpc/zod'
 import { router } from '~/server/router'
 
 const openAPIHandler = new OpenAPIHandler(router, {
@@ -10,7 +10,7 @@ const openAPIHandler = new OpenAPIHandler(router, {
     }),
   ],
   plugins: [
-    new ZodAutoCoercePlugin(),
+    new ZodSmartCoercionPlugin(),
   ],
 })
 

@@ -1,9 +1,9 @@
-import type { ErrorMap, HTTPPath, Meta, Schema } from '@orpc/contract'
+import type { ErrorFromErrorMap, HTTPPath, Meta, Schema, SchemaOutput } from '@orpc/contract'
 import type { StandardRequest, StandardResponse } from '@orpc/server-standard'
 import type { Interceptor, MaybeOptionalOptions } from '@orpc/shared'
 import type { Context } from '../../context'
 import type { Plugin } from '../../plugins'
-import type { CreateProcedureClientOptions } from '../../procedure-client'
+import type { ProcedureClientInterceptorOptions } from '../../procedure-client'
 import type { Router } from '../../router'
 import type { StandardCodec, StandardMatcher } from './types'
 import { ORPCError, toORPCError } from '@orpc/client'
@@ -21,11 +21,6 @@ export type StandardHandleResult = { matched: true, response: StandardResponse }
 
 export type StandardHandlerInterceptorOptions<TContext extends Context> = WellStandardHandleOptions<TContext> & { request: StandardRequest }
 
-export type WellCreateProcedureClientOptions<TContext extends Context> =
-  CreateProcedureClientOptions<TContext, Schema, Schema, unknown, ErrorMap, Meta, Record<never, never>> & {
-    context: TContext
-  }
-
 export interface StandardHandlerOptions<TContext extends Context> {
   plugins?: Plugin<TContext>[]
 
@@ -35,9 +30,19 @@ export interface StandardHandlerOptions<TContext extends Context> {
   interceptors?: Interceptor<StandardHandlerInterceptorOptions<TContext>, StandardHandleResult, unknown>[]
 
   /**
-   * Interceptors at the root level, helpful when you want override the response
+   * Interceptors at the root level, helpful when you want override the request/response
    */
-  interceptorsRoot?: Interceptor<StandardHandlerInterceptorOptions<TContext>, StandardHandleResult, unknown>[]
+  rootInterceptors?: Interceptor<StandardHandlerInterceptorOptions<TContext>, StandardHandleResult, unknown>[]
+
+  /**
+   *
+   * Interceptors for procedure client.
+   */
+  clientInterceptors?: Interceptor<
+    ProcedureClientInterceptorOptions<TContext, Schema, Record<never, never>, Meta>,
+    SchemaOutput<Schema, unknown>,
+    ErrorFromErrorMap<Record<never, never>>
+  >[]
 }
 
 export class StandardHandler<T extends Context> {
@@ -49,15 +54,15 @@ export class StandardHandler<T extends Context> {
     private readonly codec: StandardCodec,
     private readonly options: NoInfer<StandardHandlerOptions<T>> = {},
   ) {
-    this.plugin = new CompositePlugin(options?.plugins)
-    this.plugin.init(this.options)
+    this.plugin = new CompositePlugin(options.plugins)
 
+    this.plugin.init(this.options)
     this.matcher.init(router)
   }
 
   handle(request: StandardRequest, ...[options]: MaybeOptionalOptions<StandardHandleOptions<T>>): Promise<StandardHandleResult> {
     return intercept(
-      this.options.interceptorsRoot ?? [],
+      this.options.rootInterceptors ?? [],
       {
         request,
         ...options,
@@ -81,14 +86,11 @@ export class StandardHandler<T extends Context> {
                 return { matched: false, response: undefined }
               }
 
-              const clientOptions: WellCreateProcedureClientOptions<T> = {
+              const client = createProcedureClient(match.procedure, {
                 context: interceptorOptions.context,
                 path: match.path,
-              }
-
-              this.plugin.beforeCreateProcedureClient(clientOptions, interceptorOptions)
-
-              const client = createProcedureClient(match.procedure, clientOptions)
+                interceptors: this.options.clientInterceptors,
+              })
 
               isDecoding = true
               const input = await this.codec.decode(request, match.params, match.procedure)

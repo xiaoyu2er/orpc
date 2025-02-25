@@ -28,7 +28,7 @@ describe('standardHandler', () => {
 
   const handler = new StandardHandler(router, matcher, codec, {
     interceptors: [interceptor],
-    interceptorsRoot: [interceptorRoot],
+    rootInterceptors: [interceptorRoot],
   })
 
   const controller = new AbortController()

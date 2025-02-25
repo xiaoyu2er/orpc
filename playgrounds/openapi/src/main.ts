@@ -138,6 +138,5 @@ The example OpenAPI Playground for ORPC.
 })
 
 server.listen(3000, () => {
-  // eslint-disable-next-line no-console
   console.log('Playground is available at http://localhost:3000')
 })

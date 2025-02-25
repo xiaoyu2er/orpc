@@ -1,0 +1,67 @@
+---
+title: RPC Handler
+description: Comprehensive Guide to the RPCHandler in oRPC
+---
+
+# RPC Handler
+
+The `RPCHandler` enables communication with clients over oRPC's proprietary [RPC protocol](/docs/advanced/rpc-protocol), built on top of HTTP. While it efficiently transfers native types, the protocol is neither human-readable nor OpenAPI-compatible. For OpenAPI support, use the [OpenAPIHandler](/docs/openapi/openapi-handler).
+
+:::warning
+`RPCHandler` is designed exclusively for [RPCLink](/docs/client/rpc-link) and **does not** support OpenAPI. Avoid sending requests to it manually.
+:::
+
+## Supported Data Types
+
+`RPCHandler` natively serializes and deserializes the following JavaScript types:
+
+- **string**
+- **number** (including `NaN`)
+- **boolean**
+- **null**
+- **undefined**
+- **Date** (including `Invalid Date`)
+- **BigInt**
+- **RegExp**
+- **URL**
+- **Set**
+- **Map**
+- **Blob** (unsupported in `AsyncIteratorObject`)
+- **File** (unsupported in `AsyncIteratorObject`)
+- **AsyncIteratorObject** (only at the root level; powers the [Event Iterator](/docs/event-iterator))
+
+## Setup and Integration
+
+```ts
+import { RPCHandler } from '@orpc/server/fetch' // or '@orpc/server/node'
+import { CORSPlugin } from '@orpc/server/plugins'
+import { onError } from '@orpc/server'
+
+const handler = new RPCHandler(router, {
+  plugins: [
+    new CORSPlugin()
+  ],
+  interceptors: [
+    onError((error) => {
+      console.error(error)
+    })
+  ],
+})
+
+export default async function fetch(request: Request) {
+  const url = new URL(request.url)
+
+  if (url.pathname.startWith('/rpc')) {
+    const result = await handler.handle(request, {
+      prefix: '/rpc',
+      context: {} // Provide initial context if required
+    })
+
+    if (result.matched) {
+      return result.response
+    }
+  }
+
+  return new Response('Not Found', { status: 404 })
+}
+```

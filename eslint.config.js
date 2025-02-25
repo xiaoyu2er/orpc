@@ -12,12 +12,20 @@ export default antfu({
     'ts/method-signature-style': ['off'],
   },
 }, {
-  files: ['**/*.test.ts', '**/*.test.tsx', '**/*.test-d.ts', '**/*.test-d.tsx', 'apps/content/examples/**', 'playgrounds/**'],
+  files: ['**/*.test.ts', '**/*.test.tsx', '**/*.test-d.ts', '**/*.test-d.tsx', 'apps/content/shared/**', 'playgrounds/**'],
   rules: {
     'unused-imports/no-unused-vars': 'off',
     'antfu/no-top-level-await': 'off',
     'react-hooks/rules-of-hooks': 'off',
     'no-alert': 'off',
+  },
+}, {
+  files: ['apps/content/shared/**', 'apps/content/docs/**', 'apps/content/examples/**', 'playgrounds/**'],
+  rules: {
+    'no-console': 'off',
+    'perfectionist/sort-imports': 'off',
+    'import/first': 'off',
+    'react-hooks/rules-of-hooks': 'off',
   },
 }, {
   files: ['apps/content/examples/**'],

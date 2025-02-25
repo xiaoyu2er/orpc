@@ -16,7 +16,6 @@ export const pub = os
       return await next({})
     }
     finally {
-    // eslint-disable-next-line no-console
       console.log(`[${path.join('/')}] ${Date.now() - start}ms`)
     }
   })

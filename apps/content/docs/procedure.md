@@ -1,0 +1,68 @@
+---
+title: Procedure
+description: Understanding procedures in oRPC
+---
+
+# Procedure in oRPC
+
+In oRPC, a procedure like a standard function but comes with built-in support for:
+
+- Input/output validation
+- Middleware
+- Dependency injection
+- Other extensibility features
+
+## Overview
+
+Here’s an example of defining a procedure in oRPC:
+
+```ts
+import { os } from '@orpc/server'
+
+const example = os
+  .use(aMiddleware) // Apply middleware
+  .input(z.object({ name: z.string() })) // Define input validation
+  .use(aMiddlewareWithInput, input => input.name) // Use middleware with typed input
+  .output(z.object({ id: z.number() })) // Define output validation
+  .handler(async ({ input, context }) => { // Define execution logic
+    return { id: 1 }
+  })
+  .callable() // Make the procedure callable like a regular function
+  .actionable() // Like .callable, but compatible with server actions
+```
+
+> The `.handler` method is the only required step. All other chains are optional.
+
+## Input/Output Validation
+
+oRPC supports [Zod](https://github.com/colinhacks/zod), [Valibot](https://github.com/fabian-hiller/valibot), [Arktype](https://github.com/arktypeio/arktype), and any other [Standard Schema](https://github.com/standard-schema/standard-schema?tab=readme-ov-file#what-schema-libraries-implement-the-spec) library for input and output validation.
+
+## Using Middleware
+
+The `.use` method allows you to pass middleware, which must call `next` to continue execution.
+
+```ts
+const aMiddleware = os.middleware(async ({ context, next }) => next())
+
+const example = os
+  .use(aMiddleware) // Apply middleware
+  .use(async ({ context, next }) => next()) // Inline middleware
+  .handler(async ({ context }) => { /* logic */ })
+```
+
+To learn more, see the [Middleware](/docs/middleware) documentation.
+
+## Reusability
+
+Each modification to a builder creates a completely new instance, avoiding reference issues. This makes it easy to reuse and extend procedures efficiently.
+
+```ts
+const pub = os.use(logMiddleware) // Base setup for procedures that publish
+const authed = pub.use(authMiddleware) // Extends 'pub' with authentication
+
+const pubExample = pub.handler(async ({ context }) => { /* logic */ })
+
+const authedExample = pubExample.use(authMiddleware)
+```
+
+This pattern helps prevent duplication while maintaining flexibility.

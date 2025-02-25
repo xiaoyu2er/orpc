@@ -1,0 +1,51 @@
+---
+title: Error Handling in oRPC Clients
+description: Learn how to handle errors in a type-safe way in oRPC clients.
+---
+
+# Error Handling in oRPC Clients
+
+This guide explains how to handle type-safe errors in oRPC clients using [type-safe error handling](/docs/error-handling#type‐safe-error-handling). Both [server-side](/docs/client/server-side) and [client-side](/docs/client/client-side) clients are supported.
+
+## Using `safe` and `isDefinedError`
+
+```ts twoslash
+import { os } from '@orpc/server'
+import { z } from 'zod'
+// ---cut---
+import { isDefinedError, safe } from '@orpc/client'
+
+const doSomething = os
+  .input(z.object({ id: z.string() }))
+  .errors({
+    RATE_LIMIT_EXCEEDED: {
+      data: z.object({ retryAfter: z.number() })
+    }
+  })
+  .handler(async ({ input, errors }) => {
+    throw errors.RATE_LIMIT_EXCEEDED({ data: { retryAfter: 1000 } })
+
+    return { id: input.id }
+  })
+  .callable()
+
+const [data, error] = await safe(doSomething({ id: '123' }))
+
+if (isDefinedError(error)) {
+  // handle known error
+  console.log(error.data.retryAfter)
+}
+else if (error) {
+  // handle unknown error
+}
+else {
+  // handle success
+  console.log(data)
+}
+```
+
+:::info
+
+- `safe` works like `try/catch`, but can infer error types.
+- `isDefinedError` checks if an error originates from `.errors`.
+  :::

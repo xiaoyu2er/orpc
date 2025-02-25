@@ -18,7 +18,6 @@ export const pub = base.use(async ({ context, path, next }, input) => {
     return await next({})
   }
   finally {
-    // eslint-disable-next-line no-console
     console.log(`[${path.join('/')}] ${Date.now() - start}ms`)
   }
 })

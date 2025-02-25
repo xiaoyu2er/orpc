@@ -136,6 +136,5 @@ app.get('/', (req, res) => {
 })
 
 app.listen(3000, () => {
-  // eslint-disable-next-line no-console
   console.log('Playground is available at http://localhost:3000')
 })

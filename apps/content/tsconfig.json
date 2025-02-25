@@ -1,39 +1,13 @@
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "incremental": true,
-    "target": "ESNext",
-    "jsx": "preserve",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "baseUrl": ".",
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "paths": {
-      "@/*": ["./*"]
-    },
-    "resolveJsonModule": true,
-    "allowJs": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true,
-    "skipLibCheck": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ]
+    "types": ["node"]
   },
-  "references": [
-    { "path": "../../packages/contract" },
-    { "path": "../../packages/openapi" },
-    { "path": "../../packages/server" },
-    { "path": "../../packages/client" },
-    { "path": "../../packages/react-query" },
-    { "path": "../../packages/vue-query" },
-    { "path": "../../packages/vue-colada" },
-    { "path": "../../packages/zod" }
-  ],
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "**/*.test.*",
+    "**/*.test-d.ts",
+    "**/__tests__/**",
+    "**/__mocks__/**",
+    "**/__snapshots__/**"
+  ]
 }

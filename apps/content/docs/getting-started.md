@@ -129,7 +129,7 @@ const server = createServer(async (req, res) => {
 server.listen(3000, '127.0.0.1', () => console.log('Listening on 127.0.0.1:3000'))
 ```
 
-Learn more about [RPCHandler](/docs/server/rpc-handler).
+Learn more about [RPCHandler](/docs/rpc-handler).
 
 ## Create Client
 

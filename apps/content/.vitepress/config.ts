@@ -8,7 +8,6 @@ export default defineConfig({
   description:
     'oRPC makes it easy to build APIs that are end-to-end type-safe and adhere to OpenAPI standards, ensuring a smooth and enjoyable developer experience.',
   lastUpdated: true,
-  ignoreDeadLinks: true,
   cleanUrls: true,
   markdown: {
     theme: {

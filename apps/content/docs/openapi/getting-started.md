@@ -109,7 +109,7 @@ declare function parseJWT(token: string | undefined): { userId: number } | null
 - `z.coerce` ensures correct parameter parsing.
 
 For handling headers, queries, etc., see [Input/Output Structure](/docs/openapi/input-output-structure).
-For auto-coercion, see [Zod Auto Coerce Plugin](/docs/openapi/plugins/zod-auto-coerce).
+For auto-coercion, see [Zod Smart Coercion Plugin](/docs/openapi/plugins/zod-smart-coercion).
 For more `.route` options, see [Routing](/docs/openapi/routing).
 
 ## Creating a Server

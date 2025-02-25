@@ -8,9 +8,9 @@ export interface ResponseHeadersPluginContext {
 
 export class ResponseHeadersPlugin<TContext extends ResponseHeadersPluginContext & Context> implements Plugin<TContext> {
   init(options: StandardHandlerOptions<TContext>): void {
-    options.interceptorsRoot ??= []
+    options.rootInterceptors ??= []
 
-    options.interceptorsRoot.push(async (interceptorOptions) => {
+    options.rootInterceptors.push(async (interceptorOptions) => {
       const headers = new Headers()
 
       interceptorOptions.context.resHeaders = headers

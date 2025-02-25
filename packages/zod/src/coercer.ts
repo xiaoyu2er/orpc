@@ -1,6 +1,6 @@
 import type { Context } from '@orpc/server'
 import type { Plugin } from '@orpc/server/plugins'
-import type { WellCreateProcedureClientOptions } from '@orpc/server/standard'
+import type { StandardHandlerOptions } from '@orpc/server/standard'
 import { guard, isObject } from '@orpc/shared'
 import { getCustomZodType } from '@orpc/zod'
 import {
@@ -28,11 +28,11 @@ import {
   type ZodUnion,
 } from 'zod'
 
-export class ZodAutoCoercePlugin<TContext extends Context> implements Plugin<TContext> {
-  beforeCreateProcedureClient(clientOptions: WellCreateProcedureClientOptions<TContext>): void {
-    clientOptions.interceptors ??= []
+export class ZodSmartCoercionPlugin<TContext extends Context> implements Plugin<TContext> {
+  init(options: StandardHandlerOptions<TContext>): void {
+    options.clientInterceptors ??= []
 
-    clientOptions.interceptors.unshift((options) => {
+    options.clientInterceptors.unshift((options) => {
       const inputSchema = options.procedure['~orpc'].inputSchema
 
       if (!inputSchema || inputSchema['~standard'].vendor !== 'zod') {
@@ -44,6 +44,13 @@ export class ZodAutoCoercePlugin<TContext extends Context> implements Plugin<TCo
       return options.next({ ...options, input: coercedInput })
     })
   }
+}
+
+export {
+  /**
+   * @deprecated ZodAutoCoercePlugin has renamed to ZodSmartCoercionPlugin
+   */
+  ZodSmartCoercionPlugin as ZodAutoCoercePlugin,
 }
 
 function zodCoerceInternal(

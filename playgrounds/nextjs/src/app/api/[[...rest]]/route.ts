@@ -2,7 +2,7 @@ import { router } from '@/router'
 import { OpenAPIHandler } from '@orpc/openapi/next'
 import { onError } from '@orpc/server'
 import { serve } from '@orpc/server/next'
-import { ZodAutoCoercePlugin } from '@orpc/zod'
+import { ZodSmartCoercionPlugin } from '@orpc/zod'
 import '../../../polyfill'
 
 const openAPIHandler = new OpenAPIHandler(router, {
@@ -12,7 +12,7 @@ const openAPIHandler = new OpenAPIHandler(router, {
     }),
   ],
   plugins: [
-    new ZodAutoCoercePlugin(),
+    new ZodSmartCoercionPlugin(),
   ],
 })
 

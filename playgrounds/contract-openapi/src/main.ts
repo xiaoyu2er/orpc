@@ -3,7 +3,7 @@ import { OpenAPIGenerator } from '@orpc/openapi'
 import { OpenAPIHandler } from '@orpc/openapi/node'
 import { onError } from '@orpc/server'
 import { RPCHandler } from '@orpc/server/node'
-import { ZodAutoCoercePlugin, ZodToJsonSchemaConverter } from '@orpc/zod'
+import { ZodSmartCoercionPlugin, ZodToJsonSchemaConverter } from '@orpc/zod'
 import { contract } from './contract'
 import { router } from './router'
 import './polyfill'
@@ -15,7 +15,7 @@ const openAPIHandler = new OpenAPIHandler(router, {
     }),
   ],
   plugins: [
-    new ZodAutoCoercePlugin(),
+    new ZodSmartCoercionPlugin(),
   ],
 })
 
@@ -131,6 +131,5 @@ The example OpenAPI Playground for ORPC.
 })
 
 server.listen(3000, () => {
-  // eslint-disable-next-line no-console
   console.log('Playground is available at http://localhost:3000')
 })

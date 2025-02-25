@@ -4,7 +4,7 @@ import { OpenAPIHandler } from '@orpc/openapi/node'
 import { onError } from '@orpc/server'
 import { RPCHandler } from '@orpc/server/node'
 import { CORSPlugin, ResponseHeadersPlugin } from '@orpc/server/plugins'
-import { ZodAutoCoercePlugin, ZodToJsonSchemaConverter } from '@orpc/zod'
+import { ZodSmartCoercionPlugin, ZodToJsonSchemaConverter } from '@orpc/zod'
 import { router } from './router'
 import './polyfill'
 
@@ -19,7 +19,7 @@ const openAPIHandler = new OpenAPIHandler(router, {
       origin: 'http://localhost:3000',
     }),
     new ResponseHeadersPlugin(),
-    new ZodAutoCoercePlugin(),
+    new ZodSmartCoercionPlugin(),
   ],
 })
 

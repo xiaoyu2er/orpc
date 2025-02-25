@@ -1,13 +1,13 @@
 import { OpenAPIHandler } from '@orpc/openapi/fetch'
 import { os } from '@orpc/server'
 import { z } from 'zod'
-import { ZodAutoCoercePlugin } from '../src'
+import { ZodSmartCoercionPlugin } from '../src'
 
 beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe('zodAutoCoercePlugin', () => {
+describe('zodSmartCoercionPlugin', () => {
   it('should coerce input', async () => {
     const fn = vi.fn().mockReturnValue('__mocked__')
 
@@ -25,7 +25,7 @@ describe('zodAutoCoercePlugin', () => {
 
     const handler = new OpenAPIHandler(router, {
       plugins: [
-        new ZodAutoCoercePlugin(),
+        new ZodSmartCoercionPlugin(),
       ],
     })
     const { response } = await handler.handle(new Request('https://example.com/ping/12345', {

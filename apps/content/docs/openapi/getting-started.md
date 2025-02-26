@@ -96,7 +96,13 @@ export const createPlanet = os
     return { id: 1, name: 'name' }
   })
 
-export const router = { planet: { list: listPlanet, find: findPlanet, create: createPlanet } }
+export const router = {
+  planet: {
+    list: listPlanet,
+    find: findPlanet,
+    create: createPlanet
+  }
+}
 // ---cut-after---
 
 declare function parseJWT(token: string | undefined): { userId: number } | null
@@ -136,7 +142,11 @@ const server = createServer(async (req, res) => {
   }
 })
 
-server.listen(3000, '127.0.0.1', () => console.log('Listening on 127.0.0.1:3000'))
+server.listen(
+  3000,
+  '127.0.0.1',
+  () => console.log('Listening on 127.0.0.1:3000')
+)
 ```
 
 ### Important Changes:

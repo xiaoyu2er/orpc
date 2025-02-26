@@ -6,15 +6,10 @@ import { OpenAPISerializer } from '@orpc/client/openapi'
 import { fallbackContractConfig } from '@orpc/contract'
 import { isObject } from '@orpc/shared'
 
-export interface OpenAPICodecOptions {
-  serializer?: OpenAPISerializer
-}
-
 export class OpenAPICodec implements StandardCodec {
-  private readonly serializer: OpenAPISerializer
-
-  constructor(options?: OpenAPICodecOptions) {
-    this.serializer = options?.serializer ?? new OpenAPISerializer()
+  constructor(
+    private readonly serializer: OpenAPISerializer = new OpenAPISerializer(),
+  ) {
   }
 
   async decode(request: StandardRequest, params: StandardParams | undefined, procedure: AnyProcedure): Promise<unknown> {

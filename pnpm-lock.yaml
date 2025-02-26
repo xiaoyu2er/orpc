@@ -218,6 +218,15 @@ importers:
         specifier: ^3.24.1
         version: 3.24.2
 
+  packages/serializer:
+    dependencies:
+      '@orpc/server-standard':
+        specifier: ^0.4.0
+        version: 0.4.0
+      '@orpc/shared':
+        specifier: workspace:^
+        version: link:../shared
+
   packages/server:
     dependencies:
       '@orpc/client':

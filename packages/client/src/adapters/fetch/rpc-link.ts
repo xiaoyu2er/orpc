@@ -221,11 +221,12 @@ export class RPCLink<TClientContext extends ClientContext> implements ClientLink
     if (
       expectedMethod === 'GET'
       && !(serialized instanceof FormData)
+      && !(serialized instanceof Blob)
       && !isAsyncIteratorObject(serialized)
     ) {
       const getUrl = new URL(url)
 
-      getUrl.searchParams.append('data', JSON.stringify(serialized))
+      getUrl.searchParams.append('data', JSON.stringify(serialized) ?? '') // stringify can return undefined
 
       if (getUrl.toString().length <= this.maxUrlLength) {
         return {

@@ -1,36 +1,49 @@
 import { isObject } from '@orpc/shared'
 
+export type OpenAPIJsonSerialized = [json: unknown, hasBlob: boolean]
+
 export class OpenAPIJsonSerializer {
-  serialize(payload: unknown): unknown {
-    if (payload instanceof Set)
-      return this.serialize([...payload])
-    if (payload instanceof Map)
-      return this.serialize([...payload.entries()])
-    if (Array.isArray(payload)) {
-      return payload.map(v => (v === undefined ? 'undefined' : this.serialize(v)))
+  serialize(data: unknown, hasBlobRef: { value: boolean } = { value: false }): OpenAPIJsonSerialized {
+    if (data instanceof Blob) {
+      hasBlobRef.value = true
+      return [data, hasBlobRef.value]
     }
-    if (Number.isNaN(payload))
-      return 'NaN'
-    if (typeof payload === 'bigint')
-      return payload.toString()
-    if (payload instanceof Date && Number.isNaN(payload.getTime())) {
-      return 'Invalid Date'
+
+    if (data instanceof Set) {
+      return this.serialize(Array.from(data), hasBlobRef)
     }
-    if (payload instanceof RegExp)
-      return payload.toString()
-    if (payload instanceof URL)
-      return payload.toString()
-    if (!isObject(payload))
-      return payload
-    return Object.keys(payload).reduce(
-      (carry, key) => {
-        const val = payload[key]
-        carry[key] = this.serialize(val)
-        return carry
-      },
-      {} as Record<string, unknown>,
-    )
+
+    if (data instanceof Map) {
+      return this.serialize(Array.from(data.entries()), hasBlobRef)
+    }
+
+    if (Array.isArray(data)) {
+      const json = data.map(v => v === undefined ? null : this.serialize(v, hasBlobRef)[0])
+      return [json, hasBlobRef.value]
+    }
+
+    if (isObject(data)) {
+      const json: Record<string, unknown> = {}
+
+      for (const k in data) {
+        json[k] = this.serialize(data[k], hasBlobRef)[0]
+      }
+
+      return [json, hasBlobRef.value]
+    }
+
+    if (typeof data === 'bigint' || data instanceof RegExp || data instanceof URL) {
+      return [data.toString(), hasBlobRef.value]
+    }
+
+    if (data instanceof Date) {
+      return [Number.isNaN(data.getTime()) ? null : data.toISOString(), hasBlobRef.value]
+    }
+
+    if (Number.isNaN(data)) {
+      return [null, hasBlobRef.value]
+    }
+
+    return [data, hasBlobRef.value]
   }
 }
-
-export type PublicOpenAPIJsonSerializer = Pick<OpenAPIJsonSerializer, keyof OpenAPIJsonSerializer>

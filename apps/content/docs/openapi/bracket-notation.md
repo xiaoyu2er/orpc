@@ -9,8 +9,8 @@ Bracket Notation encodes structured data in formats with limited syntax, like UR
 
 ## Usage
 
-- Append `[]` to denote an array.
-- Append `[number]` to specify an array index (missing indexes are filled with `null`).
+- Append `[]` **at the end** to denote an array.
+- Append `[number]` to specify an array index (missing indexes create sparse arrays).
 - Append `[key]` to denote an object property.
 
 ## Limitations

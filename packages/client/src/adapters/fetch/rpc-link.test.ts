@@ -156,9 +156,13 @@ describe('rpcLink', () => {
       fetch: mockFetch,
     })
 
-    mockFetch.mockResolvedValueOnce(new Response(JSON.stringify({ json: '__mocked__', meta: [] })))
+    mockFetch.mockResolvedValueOnce(new Response('invalid', {
+      headers: {
+        'content-type': 'application/json',
+      },
+    }))
 
-    expect(link.call(['test'], {}, { context: {} })).rejects.toThrow('Invalid RPC response')
+    expect(link.call(['test'], {}, { context: {} })).rejects.toThrow()
   })
 
   it('should use default fetch when none provided', async () => {
@@ -249,14 +253,18 @@ describe('rpcLink', () => {
       })
 
       mockMethod.mockResolvedValueOnce('GET')
-      mockFetch.mockResolvedValue(new Response(JSON.stringify({ json: '__mocked__', meta: [] })))
+      mockFetch.mockResolvedValue(new Response('invalid', {
+        headers: {
+          'content-type': 'application/json',
+        },
+      }))
 
-      await expect(link.call(['test'], '__input__', { context: {} })).rejects.toThrow('Invalid RPC response')
+      await expect(link.call(['test'], '__input__', { context: {} })).rejects.toThrow()
 
       expect(mockMethod).toHaveBeenCalledWith({ context: {} }, ['test'], '__input__')
       expect(mockFetch).toHaveBeenCalledOnce()
       expect(mockFetch).toHaveBeenCalledWith(
-        new URL('http://api.example.com/test?data=%7B%22json%22%3A%22__input__%22%2C%22meta%22%3A%5B%5D%7D'),
+        new URL('http://api.example.com/test?data=%7B%22json%22%3A%22__input__%22%7D'),
         { method: 'GET', headers: expect.any(Headers) },
         { context: {} },
         ['test'],
@@ -276,9 +284,13 @@ describe('rpcLink', () => {
       })
 
       mockMethod.mockResolvedValueOnce(method)
-      mockFetch.mockResolvedValue(new Response(JSON.stringify({ json: '__mocked__', meta: [] })))
+      mockFetch.mockResolvedValue(new Response('invalid', {
+        headers: {
+          'content-type': 'application/json',
+        },
+      }))
 
-      await expect(link.call(['test'], '__input__', { context: {} })).rejects.toThrow('Invalid RPC response')
+      await expect(link.call(['test'], '__input__', { context: {} })).rejects.toThrow()
 
       expect(mockMethod).toHaveBeenCalledWith({ context: {} }, ['test'], '__input__')
       expect(mockFetch).toHaveBeenCalledWith(
@@ -286,7 +298,7 @@ describe('rpcLink', () => {
         {
           method,
           headers: expect.any(Headers),
-          body: JSON.stringify({ json: '__input__', meta: [] }),
+          body: JSON.stringify({ json: '__input__' }),
         },
         { context: {} },
         ['test'],
@@ -304,13 +316,17 @@ describe('rpcLink', () => {
       })
 
       mockMethod.mockResolvedValueOnce('GET')
-      mockFetch.mockResolvedValue(new Response(JSON.stringify({ json: '__mocked__', meta: [] })))
+      mockFetch.mockResolvedValue(new Response('invalid', {
+        headers: {
+          'content-type': 'application/json',
+        },
+      }))
 
-      await expect(link.call(['test'], '__input__', { context: {} })).rejects.toThrow('Invalid RPC response')
+      await expect(link.call(['test'], '__input__', { context: {} })).rejects.toThrow()
 
       expect(mockMethod).toHaveBeenCalledWith({ context: {} }, ['test'], '__input__')
       expect(mockFetch).toHaveBeenCalledWith(
-        new URL('http://api.example.com/?data=xin&meta=chao%2Ftest&data=%7B%22json%22%3A%22__input__%22%2C%22meta%22%3A%5B%5D%7D'),
+        new URL('http://api.example.com/?data=xin&meta=chao%2Ftest&data=%7B%22json%22%3A%22__input__%22%7D'),
         { method: 'GET', headers: expect.any(Headers) },
         { context: {} },
         ['test'],
@@ -328,11 +344,15 @@ describe('rpcLink', () => {
       })
 
       mockMethod.mockResolvedValueOnce('GET')
-      mockFetch.mockResolvedValue(new Response(JSON.stringify({ json: '__mocked__', meta: [] })))
+      mockFetch.mockResolvedValue(new Response('invalid', {
+        headers: {
+          'content-type': 'application/json',
+        },
+      }))
 
       const file = new File([''], 'file.txt', { type: 'text/plain' })
 
-      await expect(link.call(['test'], { file }, { context: {} })).rejects.toThrow('Invalid RPC response')
+      await expect(link.call(['test'], { file }, { context: {} })).rejects.toThrow()
 
       expect(mockMethod).toHaveBeenCalledWith({ context: {} }, ['test'], { file })
       expect(mockFetch).toHaveBeenCalledWith(
@@ -359,9 +379,13 @@ describe('rpcLink', () => {
       })
 
       mockMethod.mockResolvedValueOnce('GET')
-      mockFetch.mockResolvedValue(new Response(JSON.stringify({ json: '__mocked__', meta: [] })))
+      mockFetch.mockResolvedValue(new Response('invalid', {
+        headers: {
+          'content-type': 'application/json',
+        },
+      }))
 
-      await expect(link.call(['test'], '_'.repeat(100), { context: {} })).rejects.toThrow('Invalid RPC response')
+      await expect(link.call(['test'], '_'.repeat(100), { context: {} })).rejects.toThrow()
 
       expect(mockMethod).toHaveBeenCalledWith({ context: {} }, ['test'], '_'.repeat(100))
       expect(mockFetch).toHaveBeenCalledWith(
@@ -380,64 +404,67 @@ describe('rpcLink', () => {
 })
 
 describe.each(supportedDataTypes)('rpcLink: $name', ({ value, expected }) => {
-  async function assert(value: unknown, expected: unknown): Promise<true> {
-    const handler = vi.fn(({ input }) => input)
+  describe.each(['GET', 'POST'] as const)('method: %s', (method) => {
+    async function assert(value: unknown, expected: unknown): Promise<true> {
+      const handler = vi.fn(({ input }) => input)
 
-    const rpcHandler = new RPCHandler(os.handler(handler))
+      const rpcHandler = new RPCHandler(os.handler(handler))
 
-    const rpcLink = new RPCLink({
-      url: 'http://api.example.com',
-      fetch: async (url, init) => {
-        const request = new Request(url, init)
-        const { matched, response } = await rpcHandler.handle(request)
+      const rpcLink = new RPCLink({
+        url: 'http://api.example.com',
+        method,
+        fetch: async (url, init) => {
+          const request = new Request(url, init)
+          const { matched, response } = await rpcHandler.handle(request)
 
-        if (matched) {
-          return response
-        }
+          if (matched) {
+            return response
+          }
 
-        throw new Error('No procedure match')
-      },
+          throw new Error('No procedure match')
+        },
+      })
+
+      const output = await rpcLink.call([], value, { context: {} })
+
+      expect(output).toEqual(expected)
+      expect(handler).toHaveBeenCalledTimes(1)
+      expect(handler).toHaveBeenCalledWith(expect.objectContaining({ input: expected }))
+
+      return true
+    }
+
+    it('should work on flat', async () => {
+      expect(await assert(value, expected)).toBe(true)
     })
 
-    const output = await rpcLink.call([], value, { context: {} })
+    it('should work on nested object', async () => {
+      expect(await assert({
+        data: value,
+      }, {
+        data: expected,
+      })).toBe(true)
+    })
 
-    expect(output).toEqual(expected)
-    expect(handler).toHaveBeenCalledTimes(1)
-    expect(handler).toHaveBeenCalledWith(expect.objectContaining({ input: expected }))
-
-    return true
-  }
-
-  it('should work on flat', async () => {
-    expect(await assert(value, expected)).toBe(true)
-  })
-
-  it('should work on nested object', async () => {
-    expect(await assert({
-      data: value,
-    }, {
-      data: expected,
-    })).toBe(true)
-  })
-
-  it('should work on complex object', async () => {
-    expect(await assert({
-      '!@#$%^^&()[]>?<~_<:"~+!_': value,
-      'list': [value],
-      'map': new Map([[value, value]]),
-      'set': new Set([value]),
-      'nested': {
-        nested: value,
-      },
-    }, {
-      '!@#$%^^&()[]>?<~_<:"~+!_': expected,
-      'list': [expected],
-      'map': new Map([[expected, expected]]),
-      'set': new Set([expected]),
-      'nested': {
-        nested: expected,
-      },
-    })).toBe(true)
+    it('should work on complex object', async () => {
+      expect(await assert({
+        '!@#$%^^&()[]>?<~_<:"~+!_': value,
+        'list': [value],
+        'map': new Map([[value, value]]),
+        'set': new Set([value]),
+        'nested': {
+          nested: value,
+        },
+      }, {
+        '!@#$%^^&()[]>?<~_<:"~+!_': expected,
+        'list': [expected],
+        'map': new Map([[expected, expected]]),
+        'set': new Set([expected]),
+        'nested': {
+          nested: expected,
+        },
+      })).toBe(true)
+    })
   })
 })
 

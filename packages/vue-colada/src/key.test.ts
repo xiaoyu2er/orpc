@@ -10,6 +10,6 @@ describe('buildKey', () => {
 
     const date = new Date()
     expect(buildKey(['path', 'path2'], { input: { a: date } }))
-      .toEqual(['path', 'path2', { input: `{"json":{"a":"${date.toISOString()}"},"meta":[["date",["a"]]]}` }])
+      .toEqual(['path', 'path2', { input: `{"json":{"a":"${date.toISOString()}"},"meta":[[1,["a"]]]}` }])
   })
 })

@@ -11,8 +11,8 @@ export class OpenAPIHandler<T extends Context> implements NodeHttpHandler<T> {
   private readonly standardHandler: StandardHandler<T>
 
   constructor(router: Router<T, any>, options?: NoInfer<OpenAPIHandlerOptions<T>>) {
-    const matcher = options?.matcher ?? new OpenAPIMatcher(options)
-    const codec = options?.codec ?? new OpenAPICodec(options)
+    const matcher = options?.matcher ?? new OpenAPIMatcher()
+    const codec = options?.codec ?? new OpenAPICodec()
 
     this.standardHandler = new StandardHandler(router, matcher, codec, { ...options })
   }

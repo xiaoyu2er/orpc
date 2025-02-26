@@ -39,7 +39,7 @@ const detailedMode = os.route({
     params: z.object({ name: z.string() }),
     query: z.object({ search: z.string() }),
     body: z.object({ description: z.string() }).optional(),
-    headers: z.object({ 'content-type': z.string() }),
+    headers: z.object({ 'x-custom-header': z.string() }),
   }))
 ```
 
@@ -79,7 +79,7 @@ const detailedMode = os
   .route({ outputStructure: 'detailed' })
   .handler(async ({ input }) => {
     return {
-      headers: { 'content-type': 'text/plain' },
+      headers: { 'x-custom-header': 'value' },
       body: { message: 'Hello, world!' },
     }
   })

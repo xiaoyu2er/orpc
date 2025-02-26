@@ -2,12 +2,13 @@ import type { JsonValue } from '@orpc/server-standard'
 import { ErrorEvent, isAsyncIteratorObject } from '@orpc/server-standard'
 import { ORPCError, toORPCError } from '../error'
 import { mapEventIterator } from '../event-iterator'
-import * as BracketNotation from './bracket-notation'
+import { BracketNotationSerializer } from './bracket-notation'
 import { OpenAPIJsonSerializer } from './json-serializer'
 
 export class OpenAPISerializer {
   constructor(
     private readonly jsonSerializer = new OpenAPIJsonSerializer(),
+    private readonly bracketNotation = new BracketNotationSerializer(),
   ) {
   }
 
@@ -47,7 +48,7 @@ export class OpenAPISerializer {
 
     const form = new FormData()
 
-    for (const [path, value] of BracketNotation.serialize(json)) {
+    for (const [path, value] of this.bracketNotation.serialize(json)) {
       if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
         form.append(path, value.toString())
       }
@@ -61,7 +62,7 @@ export class OpenAPISerializer {
 
   deserialize(data: unknown): unknown {
     if (data instanceof URLSearchParams || data instanceof FormData) {
-      return BracketNotation.deserialize(Array.from(data.entries()))
+      return this.bracketNotation.deserialize(Array.from(data.entries()))
     }
 
     if (isAsyncIteratorObject(data)) {

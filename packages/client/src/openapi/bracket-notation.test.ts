@@ -1,365 +1,183 @@
-import { deserialize, parsePath, serialize, stringifyPath } from './bracket-notation'
+import { BracketNotationSerializer } from './bracket-notation'
 
-describe('stringifyPath', () => {
-  it('should convert simple path segments to bracket notation', () => {
-    expect(stringifyPath(['name'])).toBe('name')
-    expect(stringifyPath(['name', 'pets', '0'])).toBe('name[pets][0]')
+describe('bracketNotation', () => {
+  const serializer = new BracketNotationSerializer()
+
+  it('.stringifyPath', () => {
+    expect(serializer.stringifyPath([])).toBe('')
+    expect(serializer.stringifyPath(['a', 'b', 'c', 1, 2, 3])).toBe('a[b][c][1][2][3]')
+    expect(serializer.stringifyPath(['\\a', '[b]', '\\c[d]'])).toBe('\\\\a[\\[b\\]][\\\\c\\[d\\]]')
   })
 
-  it('should handle empty path segments', () => {
-    // @ts-expect-error: empty segments are not allowed
-    expect(() => stringifyPath([])).toThrow()
-    expect(stringifyPath(['', 'test'])).toBe('[test]')
+  it('.parsePath', () => {
+    expect(serializer.parsePath('')).toEqual([''])
+    expect(serializer.parsePath('a[b][c][1][2][3]')).toEqual(['a', 'b', 'c', '1', '2', '3'])
+    expect(serializer.parsePath('\\\\a[\\[b\\]][\\\\c\\[d\\]]')).toEqual(['\\a', '[b]', '\\c[d]'])
+    expect(serializer.parsePath('a[b]c[d]')).toEqual(['a', 'b]c[d'])
+    expect(serializer.parsePath('a[b]c[d')).toEqual(['a[b]c[d'])
+    expect(serializer.parsePath('a[[b]]')).toEqual(['a', '[b]'])
+    expect(serializer.parsePath('a\\[[b]]')).toEqual(['a[', 'b]'])
+    expect(serializer.parsePath('abc[def')).toEqual(['abc[def'])
+    expect(serializer.parsePath('abc[d][ef')).toEqual(['abc', 'd][ef'])
   })
 
-  it('should escape special characters', () => {
-    expect(stringifyPath(['name[with]brackets'])).toBe('name\\[with\\]brackets')
-    expect(stringifyPath(['[start]', 'middle', '[end]'])).toBe(
-      '\\[start\\][middle][\\[end\\]]',
-    )
-    expect(stringifyPath(['user\\[', 'age'])).toBe('user\\\\\\[[age]')
-    expect(stringifyPath(['user\\\\[', 'age'])).toBe('user\\\\\\\\\\[[age]')
-    expect(stringifyPath(['user\\\\\\', 'age'])).toBe('user\\\\\\\\\\\\[age]')
-  })
-})
-
-describe('parsePath', () => {
-  it('should parse simple bracket notation paths', () => {
-    expect(parsePath('name')).toEqual(['name'])
-    expect(parsePath('name[pets][0]')).toEqual(['name', 'pets', '0'])
+  it.each([
+    [['a', 'b', 'c']],
+    [['\\a', '[b]', '\\c[d]']],
+    [['[]', '[b]]]', '\\c[d\\][]']],
+    [['', '', '']],
+  ])('.stringifyPath + .parsePath', (segments) => {
+    expect(serializer.parsePath(serializer.stringifyPath(segments))).toEqual(segments)
   })
 
-  it('should handle incomplete bracket pairs', () => {
-    expect(parsePath('name[pets[0]')).toEqual(['name', 'pets[0'])
-    expect(parsePath('name[pets]0]')).toEqual(['name', 'pets', '0]'])
-    expect(parsePath('name[pets][0')).toEqual(['name', 'pets', '[0'])
+  describe('.serialize', () => {
+    it('can serialize primitive values', () => {
+      expect(serializer.serialize(1)).toEqual([
+        ['', 1],
+      ])
+    })
+
+    it('can serialize objects', () => {
+      expect(serializer.serialize({ a: 1, b: 2, c: 3 })).toEqual([
+        ['a', 1],
+        ['b', 2],
+        ['c', 3],
+      ])
+    })
+
+    it('can serialize arrays', () => {
+      expect(serializer.serialize([1, 2, 3])).toEqual([
+        ['0', 1],
+        ['1', 2],
+        ['2', 3],
+      ])
+    })
+
+    it('can serialize nested objects', () => {
+      expect(serializer.serialize({ a: { b: { c: 1, d: 2 }, e: 3, f: 4 } })).toEqual([
+        ['a[b][c]', 1],
+        ['a[b][d]', 2],
+        ['a[e]', 3],
+        ['a[f]', 4],
+      ])
+    })
+
+    it('can serialize nested arrays', () => {
+      expect(serializer.serialize({ a: [[1, 2], 3, 4] })).toEqual([
+        ['a[0][0]', 1],
+        ['a[0][1]', 2],
+        ['a[1]', 3],
+        ['a[2]', 4],
+      ])
+    })
+
+    it('can serialize mixed nested structures', () => {
+      expect(serializer.serialize({ a: { b: 1, c: [2, { d: 3, f: 4 }] } })).toEqual([
+        ['a[b]', 1],
+        ['a[c][0]', 2],
+        ['a[c][1][d]', 3],
+        ['a[c][1][f]', 4],
+      ])
+    })
   })
 
-  it('should handle escaped brackets', () => {
-    expect(parsePath('name\\[pets][0]')).toEqual(['name[pets]', '0'])
-    expect(parsePath('\\[name\\][test]')).toEqual(['[name]', 'test'])
-    expect(parsePath('\\\\[name\\][test]')).toEqual(['\\', 'name][test'])
-    expect(parsePath('\\\\\\[name\\][test]')).toEqual(['\\[name]', 'test'])
+  describe('.deserialize', () => {
+    it('can deserialize arrays', () => {
+      expect(serializer.deserialize([
+        ['', 1],
+        ['', 2],
+        ['', 3],
+      ])).toEqual([1, 2, 3])
+
+      expect(serializer.deserialize([
+        ['0', 1],
+        ['1', 2],
+        ['2', 3],
+      ])).toEqual([1, 2, 3])
+    })
+
+    it('can deserialize arrays missing items', () => {
+      expect(serializer.deserialize([
+        ['0', 1],
+        ['2', 2],
+      ])).toEqual([1, undefined, 2])
+    })
+
+    it('can deserialize objects', () => {
+      expect(serializer.deserialize([
+        ['a', 1],
+        ['b', 2],
+        ['c', 3],
+      ])).toEqual({ a: 1, b: 2, c: 3 })
+    })
+
+    it('can deserialize number-key objects', () => {
+      expect(serializer.deserialize([
+        ['0', 1],
+        ['1', 2],
+        ['a', 3],
+      ])).toEqual({ 0: 1, 1: 2, a: 3 })
+
+      expect(serializer.deserialize([
+        ['a', 3],
+        ['0', 1],
+        ['1', 2],
+      ])).toEqual({ 0: 1, 1: 2, a: 3 })
+    })
+
+    it('can deserialize empty-key objects', () => {
+      expect(serializer.deserialize([
+        ['', 1],
+        ['a', 3],
+      ])).toEqual({ '': 1, 'a': 3 })
+
+      expect(serializer.deserialize([
+        ['a', 3],
+        ['', 1],
+      ])).toEqual({ '': 1, 'a': 3 })
+
+      expect(serializer.deserialize([
+        ['[a]', 1],
+        ['[b]', 3],
+      ])).toEqual({ '': { a: 1, b: 3 } })
+    })
+
+    it('can deserialize objects when both number-key and empty-key appear', () => {
+      expect(serializer.deserialize([
+        ['0', 1],
+        ['', 2],
+      ])).toEqual({ '0': 1, '': 2 })
+      expect(serializer.deserialize([
+        ['', 2],
+        ['0', 1],
+      ])).toEqual({ '0': 1, '': 2 })
+    })
+
+    it('can deserialize when conflict keys', () => {
+      expect(serializer.deserialize([
+        ['a', 1],
+        ['a', 2],
+      ])).toEqual({ a: 2 })
+
+      expect(serializer.deserialize([
+        ['0', 1],
+        ['0', 2],
+      ])).toEqual([2])
+    })
+
+    it('can deserialize mixed nested structures', () => {
+      expect(serializer.deserialize([
+        ['a[b]', 1],
+        ['a[c][0]', 2],
+        ['a[c][1][d]', 3],
+        ['a[c][1][f]', 4],
+      ])).toEqual({ a: { b: 1, c: [2, { d: 3, f: 4 }] } })
+    })
   })
 
-  it('should handle empty segments', () => {
-    expect(parsePath('')).toEqual([''])
-    expect(parsePath('[]')).toEqual(['', ''])
-    expect(parsePath('[user]')).toEqual(['', 'user'])
-    expect(parsePath('[0]')).toEqual(['', '0'])
-  })
-
-  it('should handle special characters in segments', () => {
-    expect(parsePath('path[with spaces][and.dots]')).toEqual([
-      'path',
-      'with spaces',
-      'and.dots',
-    ])
-    expect(parsePath('path[with[nested]brackets]')).toEqual([
-      'path',
-      'with[nested',
-      'brackets]',
-    ])
-  })
-})
-
-describe('stringifyPath & parsePath', () => {
-  const segmentsArr = [
-    ['user', 'name'],
-    ['segments\\', 'with\\', 'escaped', 'characters'],
-    ['empty', ''],
-    [''],
-    ['', '0'],
-    ['', '123'],
-    ['', '[1234]'],
-    ['', ']xin '],
-    ['', ']say hi'],
-    ['\\', '\\]say hi'],
-    ['\\', '\\\\]say hi'],
-    ['\\', '\\\\\\\\\\]say hi'],
-  ] as const
-
-  it.each(segmentsArr)('should be reversible: %s', (...segments) => {
-    expect(parsePath(stringifyPath(segments as any))).toEqual(segments)
-  })
-})
-
-describe('serialize', () => {
-  it('should serialize flat objects', () => {
-    const input = { name: 'John', age: 30 }
-    const expected = [
-      ['name', 'John'],
-      ['age', 30],
-    ]
-    expect(serialize(input)).toEqual(expected)
-  })
-
-  it('should serialize nested objects', () => {
-    const input = {
-      user: {
-        name: 'John',
-        address: {
-          city: 'New York',
-        },
-      },
-    }
-    const expected = [
-      ['user[name]', 'John'],
-      ['user[address][city]', 'New York'],
-    ]
-    expect(serialize(input)).toEqual(expected)
-  })
-
-  it('should serialize arrays', () => {
-    const input = ['a', 'b', 'c']
-    const expected = [
-      ['0', 'a'],
-      ['1', 'b'],
-      ['2', 'c'],
-    ]
-    expect(serialize(input)).toEqual(expected)
-
-    const input2 = { '': ['a', 'b', 'c'] }
-    const expected2 = [
-      ['[0]', 'a'],
-      ['[1]', 'b'],
-      ['[2]', 'c'],
-    ]
-    expect(serialize(input2)).toEqual(expected2)
-  })
-
-  it('should serialize mixed nested structures', () => {
-    const input = {
-      name: 'John Doe',
-      pets: ['dog', 'cat'],
-      addresses: [
-        { city: 'New York', type: 'home' },
-        { city: 'Boston', type: 'work' },
-      ],
-    }
-    const expected = [
-      ['name', 'John Doe'],
-      ['pets[0]', 'dog'],
-      ['pets[1]', 'cat'],
-      ['addresses[0][city]', 'New York'],
-      ['addresses[0][type]', 'home'],
-      ['addresses[1][city]', 'Boston'],
-      ['addresses[1][type]', 'work'],
-    ]
-    expect(serialize(input)).toEqual(expected)
-  })
-
-  it('should handle empty objects and arrays', () => {
-    expect(serialize({})).toEqual([])
-    expect(serialize([])).toEqual([])
-    expect(serialize({ empty: {} })).toEqual([])
-    expect(serialize({ emptyArray: [] })).toEqual([])
-  })
-
-  it('should handle null and undefined values', () => {
-    const input = {
-      nullValue: null,
-      undefinedValue: undefined,
-      nested: {
-        nullValue: null,
-      },
-    }
-    const expected = [
-      ['nullValue', null],
-      ['undefinedValue', undefined],
-      ['nested[nullValue]', null],
-    ]
-    expect(serialize(input)).toEqual(expected)
-  })
-})
-
-describe('deserialize', () => {
-  it('should deserialize flat key-value pairs', () => {
-    const input = [
-      ['name', 'John'],
-      ['age', 30],
-    ] as const
-    const expected = {
-      name: 'John',
-      age: 30,
-    }
-    expect(deserialize(input)).toEqual(expected)
-  })
-
-  it('should deserialize nested objects', () => {
-    const input = [
-      ['user[name]', 'John'],
-      ['user[address][city]', 'New York'],
-    ] as const
-    const expected = {
-      user: {
-        name: 'John',
-        address: {
-          city: 'New York',
-        },
-      },
-    }
-    expect(deserialize(input)).toEqual(expected)
-  })
-
-  it('should deserialize object with sequence number keys', () => {
-    const input = [
-      ['0', 'a'],
-      ['1', 'b'],
-      ['2', 'c'],
-    ] as const
-    const expected = { 0: 'a', 1: 'b', 2: 'c' }
-    expect(deserialize(input)).toEqual(expected)
-  })
-
-  it('should deserialize arrays in push style', () => {
-    const input = [
-      ['names[]', 'John'],
-      ['names[]', 'Jane'],
-    ] as const
-    const expected = {
-      names: ['John', 'Jane'],
-    }
-    expect(deserialize(input)).toEqual(expected)
-  })
-
-  it('should handle mixed nested structures', () => {
-    const input = [
-      ['name', 'John Doe'],
-      ['pets[]', 'dog'],
-      ['pets[]', 'cat'],
-      ['addresses[0][city]', 'New York'],
-      ['addresses[0][type]', 'home'],
-      ['addresses[1][city]', 'Boston'],
-      ['addresses[1][type]', 'work'],
-    ] as const
-    const expected = {
-      name: 'John Doe',
-      pets: ['dog', 'cat'],
-      addresses: {
-        0: { city: 'New York', type: 'home' },
-        1: { city: 'Boston', type: 'work' },
-      },
-    }
-    expect(deserialize(input)).toEqual(expected)
-  })
-
-  it('should handle empty input', () => {
-    expect(deserialize([])).toEqual(undefined)
-  })
-
-  it('should handle duplicate keys by using the last value', () => {
-    const input = [
-      ['name', 'John'],
-      ['name', 'Jane'],
-    ] as const
-    const expected = {
-      name: 'Jane',
-    }
-    expect(deserialize(input)).toEqual(expected)
-  })
-
-  it('should handle escaped characters in keys', () => {
-    const input = [
-      ['key\\[with\\]bracket.s', 'value'],
-      ['key[va]lu.e]', 'value'],
-    ] as const
-    const expected = {
-      'key[with]bracket.s': 'value',
-      'key': {
-        va: {
-          'lu.e]': 'value',
-        },
-      },
-    }
-    expect(deserialize(input)).toEqual(expected)
-  })
-
-  it('should deserialize object when both [], and [0] appear', () => {
-    const input = [
-      ['names[]', 'John'],
-      ['names[0]', 'Jane'],
-    ] as const
-    const expected = {
-      names: {
-        '': 'John',
-        '0': 'Jane',
-      },
-    }
-    expect(deserialize(input)).toEqual(expected)
-  })
-
-  it('should deserialize object when both [], and [1] appear', () => {
-    const input = [
-      ['names[]', 'John'],
-      ['names[1]', 'Jane'],
-    ] as const
-    const expected = {
-      names: {
-        '': 'John',
-        '1': 'Jane',
-      },
-    }
-    expect(deserialize(input)).toEqual(expected)
-  })
-
-  it('should deserialize object when both [], and [any_string] appear', () => {
-    const input = [
-      ['names[age]', 'string'],
-      ['names[]', 'empty'],
-    ] as const
-    const expected = {
-      names: {
-        '': 'empty',
-        'age': 'string',
-      },
-    }
-    expect(deserialize(input)).toEqual(expected)
-  })
-
-  it('should deserialize array when only one [] appear', () => {
-    const input = [['name[]', 'onlyValue']] as const
-    const expected = { name: ['onlyValue'] }
-    expect(deserialize(input)).toEqual(expected)
-  })
-
-  it('should handle the case multiple [] appear with a different index', () => {
-    const input = [
-      ['names[]', 'John'],
-      ['names[]', 'John2'],
-      ['names[]', 'John3'],
-      ['names[index]', 'Jane'],
-    ] as const
-    const expected = {
-      names: {
-        '': 'John3',
-        'index': 'Jane',
-      },
-    }
-    expect(deserialize(input)).toEqual(expected)
-  })
-
-  it('should deserialize a root array', () => {
-    const input = [
-      ['', '1'],
-      ['', '2'],
-    ] as const
-    const expected = ['1', '2']
-    expect(deserialize(input)).toEqual(expected)
-  })
-
-  it('should deserialize a root array 2', () => {
-    const input = [
-      ['[]', '1'],
-      ['[]', '2'],
-    ] as const
-    const expected = { '': ['1', '2'] }
-    expect(deserialize(input)).toEqual(expected)
-  })
-
-  it('should return undefined when there are no entities', () => {
-    const input = [] as const
-    const expected = undefined
-    expect(deserialize(input)).toEqual(expected)
+  it.each([
+    [{ a: 1, b: 2, c: [1, 2, { a: 1, b: 2 }, new Date(), new Blob(), new Set([1, 2]), new Map([[1, 2]])] }],
+  ])('.serialize + .deserialize', (value) => {
+    expect(serializer.deserialize(serializer.serialize(value))).toEqual(value)
   })
 })

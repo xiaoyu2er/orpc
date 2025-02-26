@@ -1,373 +1,156 @@
-import { isObject } from '@orpc/shared'
+import { isObject, type Segment } from '@orpc/shared'
 
-/**
- * Serialize an object or array into a list of [key, value] pairs.
- * The key will express by using bracket-notation.
- *
- * Notice: This way cannot express the empty object or array.
- *
- * @example
- * ```ts
- * const payload = {
- *  name: 'John Doe',
- *  pets: ['dog', 'cat'],
- * }
- *
- * const entities = serialize(payload)
- *
- * expect(entities).toEqual([
- *  ['name', 'John Doe'],
- *  ['name[pets][0]', 'dog'],
- *  ['name[pets][1]', 'cat'],
- * ])
- * ```
- */
-export function serialize(
-  payload: unknown,
-  parentKey = '',
-): [string, unknown][] {
-  if (!Array.isArray(payload) && !isObject(payload))
-    return [['', payload]]
+export type BracketNotationSerialized = [string, unknown][]
 
-  const result: [string, unknown][] = []
-
-  function helper(value: unknown, path: string[]) {
-    if (Array.isArray(value)) {
-      value.forEach((item, index) => {
-        helper(item, [...path, String(index)])
+export class BracketNotationSerializer {
+  serialize(data: unknown, segments: Segment[] = [], result: BracketNotationSerialized = []): BracketNotationSerialized {
+    if (Array.isArray(data)) {
+      data.forEach((item, i) => {
+        this.serialize(item, [...segments, i], result)
       })
     }
-    else if (isObject(value)) {
-      for (const [key, val] of Object.entries(value)) {
-        helper(val, [...path, key])
+
+    else if (isObject(data)) {
+      for (const key in data) {
+        this.serialize(data[key], [...segments, key], result)
       }
     }
+
     else {
-      result.push([stringifyPath(path as [string, ...string[]]), value])
+      result.push([this.stringifyPath(segments), data])
     }
+
+    return result
   }
 
-  helper(payload, parentKey ? [parentKey] : [])
-  return result
-}
+  deserialize(serialized: BracketNotationSerialized): unknown {
+    const arrayPushStyles = new WeakSet()
+    const ref = { value: [] }
 
-/**
- * Deserialize a list of [key, value] pairs into an object or array.
- * The key is expressed by using bracket-notation.
- *
- * @example
- * ```ts
- * const entities = [
- *  ['name', 'John Doe'],
- *  ['name[pets][0]', 'dog'],
- *  ['name[pets][1]', 'cat'],
- *  ['name[dogs][]', 'hello'],
- *  ['name[dogs][]', 'kitty'],
- * ]
- *
- * const payload = deserialize(entities)
- *
- * expect(payload).toEqual({
- *  name: 'John Doe',
- *  pets: { 0: 'dog', 1: 'cat' },
- *  dogs: ['hello', 'kitty'],
- * })
- * ```
- */
-export function deserialize(
-  entities: readonly (readonly [string, unknown])[],
-): Record<string, unknown> | unknown[] | undefined {
-  if (entities.length === 0) {
-    return undefined
-  }
+    for (const [path, value] of serialized) {
+      const segments = this.parsePath(path)
 
-  // Only treat empty strings as root array indicators
-  const isRootArray = entities.every(([path]) => path === '')
+      let currentRef: any = ref
+      let nextSegment: string = 'value'
 
-  // Initialize result based on whether we have a root array
-  const result: Record<string, unknown> | unknown[] = isRootArray ? [] : {}
-  const arrayPushPaths = new Set<string>()
-
-  // First pass: identify pure array push paths (only [] notation used)
-  for (const [path, _] of entities) {
-    const segments = parsePath(path)
-    const base = segments.slice(0, -1).join('.')
-    const last = segments[segments.length - 1]
-
-    if (last === '') {
-      arrayPushPaths.add(base)
-    }
-    else {
-      arrayPushPaths.delete(base)
-    }
-  }
-
-  // Helper function to set nested value
-  function setValue(
-    obj: Record<string, unknown> | unknown[],
-    segments: [string, ...string[]],
-    value: unknown,
-    fullPath: string,
-  ): void {
-    const [first, ...rest_] = segments
-
-    // Special handling for root array
-    if (Array.isArray(obj) && first === '') {
-      ;(obj as unknown[]).push(value)
-      return
-    }
-
-    // Cast obj to Record for non-array cases
-    const objAsRecord = obj as Record<string, unknown>
-
-    // Base case - no more segments
-    if (rest_.length === 0) {
-      objAsRecord[first] = value
-      return
-    }
-
-    const rest = rest_ as [string, ...string[]]
-
-    // Handle array push style ([])
-    if (rest[0] === '') {
-      const pathToCheck = segments.slice(0, -1).join('.')
-
-      // Check if this path is only used with [] notation
-      if (rest.length === 1 && arrayPushPaths.has(pathToCheck)) {
-        if (!(first in objAsRecord)) {
-          objAsRecord[first] = []
+      segments.forEach((segment, i) => {
+        if (!Array.isArray(currentRef[nextSegment]) && !isObject(currentRef[nextSegment])) {
+          currentRef[nextSegment] = []
         }
-        if (Array.isArray(objAsRecord[first])) {
-          ;(objAsRecord[first] as unknown[]).push(value)
-          return
-        }
-      }
 
-      // If not a pure array push case, treat it as an object with empty string key
-      if (!(first in objAsRecord)) {
-        objAsRecord[first] = {}
-      }
-      const target = objAsRecord[first] as Record<string, unknown>
-      target[''] = value
-      return
-    }
-
-    // Create nested object if it doesn't exist
-    if (!(first in objAsRecord)) {
-      objAsRecord[first] = {}
-    }
-
-    // Recurse into nested object
-    setValue(
-      objAsRecord[first] as Record<string, unknown>,
-      rest,
-      value,
-      fullPath,
-    )
-  }
-
-  // Process each entity
-  for (const [path, value] of entities) {
-    const segments = parsePath(path)
-    setValue(result, segments, value, path)
-  }
-
-  return result
-}
-
-/**
- * Escape the `[`, `]`, and `\` chars in a path segment.
- *
- * @example
- * ```ts
- * expect(escapeSegment('name[pets')).toEqual('name\\[pets')
- * ```
- */
-export function escapeSegment(segment: string): string {
-  return segment.replace(/[\\[\]]/g, (match) => {
-    switch (match) {
-      case '\\':
-        return '\\\\'
-      case '[':
-        return '\\['
-      case ']':
-        return '\\]'
-      default:
-        return match
-    }
-  })
-}
-
-/**
- * Convert an array of path segments into a path string using bracket-notation.
- *
- * For the special char `[`, `]`, and `\` will be escaped by adding `\` at start.
- *
- * @example
- * ```ts
- * expect(stringifyPath(['name', 'pets', '0'])).toEqual('name[pets][0]')
- * ```
- */
-export function stringifyPath(path: readonly [string, ...string[]]): string {
-  const [first, ...rest] = path
-
-  // Handle first segment (escape brackets if present)
-  const firstSegment = escapeSegment(first)
-
-  // If first segment is empty, start with empty string
-  const base = first === '' ? '' : firstSegment
-
-  // Convert remaining segments to bracket notation
-  // and escape any brackets within the segments
-  return rest.reduce(
-    (result, segment) => `${result}[${escapeSegment(segment)}]`,
-    base,
-  )
-}
-
-/**
- * Convert a path string using bracket-notation into an array of path segments.
- *
- * For the special char `[`, `]`, and `\` you should escape by adding `\` at start.
- * It only treats a pair `[${string}]` as a path segment.
- * If missing or escape it will bypass and treat as normal string.
- *
- * @example
- * ```ts
- * expect(parsePath('name[pets][0]')).toEqual(['name', 'pets', '0'])
- * expect(parsePath('name[pets][0')).toEqual(['name', 'pets', '[0'])
- * expect(parsePath('name[pets[0]')).toEqual(['name', 'pets[0')
- * expect(parsePath('name\\[pets][0]')).toEqual(['name[pets]', '0'])
- * ```
- */
-export function parsePath(path: string): [string, ...string[]] {
-  if (path === '')
-    return ['']
-
-  const result: string[] = []
-  let currentSegment = ''
-  let inBracket = false
-  let bracketContent = ''
-  let backslashCount = 0
-
-  for (let i = 0; i < path.length; i++) {
-    const char = path[i]
-
-    // Count consecutive backslashes
-    if (char === '\\') {
-      backslashCount++
-      continue
-    }
-
-    // Handle the accumulated backslashes when we hit a non-backslash
-    if (backslashCount > 0) {
-      // For even number of backslashes, add half of them as literal backslashes
-      const literalBackslashes = '\\'.repeat(Math.floor(backslashCount / 2))
-
-      if (char === '[' || char === ']') {
-        // If odd number of backslashes, the last one escapes the bracket
-        if (backslashCount % 2 === 1) {
-          if (inBracket) {
-            bracketContent += literalBackslashes + char
-          }
-          else {
-            currentSegment += literalBackslashes + char
+        if (i !== segments.length - 1) {
+          if (Array.isArray(currentRef[nextSegment]) && !isValidArrayIndex(segment)) {
+            currentRef[nextSegment] = { ...currentRef[nextSegment] }
           }
         }
         else {
-          // Even number means the bracket is not escaped
-          if (inBracket) {
-            bracketContent += literalBackslashes
-          }
-          else {
-            currentSegment += literalBackslashes
-          }
-
-          if (char === '[' && !inBracket) {
-            if (currentSegment !== '' || result.length === 0) {
-              result.push(currentSegment)
-            }
-            inBracket = true
-            bracketContent = ''
-            currentSegment = ''
-          }
-          else if (char === ']' && inBracket) {
-            result.push(bracketContent)
-            inBracket = false
-            bracketContent = ''
-          }
-          else {
-            if (inBracket) {
-              bracketContent += char
+          if (Array.isArray(currentRef[nextSegment])) {
+            if (segment === '') {
+              if (currentRef[nextSegment].length && !arrayPushStyles.has(currentRef[nextSegment])) {
+                currentRef[nextSegment] = { ...currentRef[nextSegment] }
+              }
             }
             else {
-              currentSegment += char
+              if (arrayPushStyles.has(currentRef[nextSegment])) {
+                currentRef[nextSegment] = { '': currentRef[nextSegment].at(-1) }
+              }
+
+              else if (!isValidArrayIndex(segment)) {
+                currentRef[nextSegment] = { ...currentRef[nextSegment] }
+              }
             }
           }
+        }
+
+        currentRef = currentRef[nextSegment]
+        nextSegment = segment
+      })
+
+      if (Array.isArray(currentRef)) {
+        if (nextSegment === '') {
+          arrayPushStyles.add(currentRef)
+          currentRef.push(value)
+        }
+        else {
+          currentRef[Number(nextSegment)] = value
         }
       }
       else {
-        // For non-bracket characters, just add all backslashes as literals
-        const allBackslashes = '\\'.repeat(backslashCount)
-        if (inBracket) {
-          bracketContent += allBackslashes + char
-        }
-        else {
-          currentSegment += allBackslashes + char
-        }
+        currentRef[nextSegment] = value
       }
-      backslashCount = 0
-      continue
     }
 
-    // Handle unescaped brackets
-    if (char === '[' && !inBracket) {
-      if (currentSegment !== '' || result.length === 0) {
-        result.push(currentSegment)
+    return ref.value
+  }
+
+  stringifyPath(segments: readonly Segment[]): string {
+    return segments
+      .map((segment) => {
+        return segment.toString().replace(/[\\[\]]/g, (match) => {
+          switch (match) {
+            case '\\':
+              return '\\\\'
+            case '[':
+              return '\\['
+            case ']':
+              return '\\]'
+            /* v8 ignore next 2 */
+            default:
+              return match
+          }
+        })
+      })
+      .reduce((result, segment, i) => {
+        if (i === 0) {
+          return segment
+        }
+
+        return `${result}[${segment}]`
+      }, '')
+  }
+
+  parsePath(path: string): string[] {
+    const segments: string[] = []
+
+    let currentSegment = ''
+    let backslashCount = 0
+
+    for (let i = 0; i < path.length; i++) {
+      const char = path[i]!
+      const nextChar = path[i + 1]
+
+      if (char === ']' && (nextChar === undefined || nextChar === '[') && backslashCount % 2 === 0) {
+        segments.push(currentSegment)
+        currentSegment = ''
+        i++
       }
-      inBracket = true
-      bracketContent = ''
-      currentSegment = ''
-      continue
+
+      else if (segments.length === 0 && char === '[' && backslashCount % 2 === 0) {
+        segments.push(currentSegment)
+        currentSegment = ''
+      }
+
+      else if (char === '\\') {
+        backslashCount++
+      }
+
+      else {
+        currentSegment += '\\'.repeat(backslashCount / 2) + char
+        backslashCount = 0
+      }
     }
 
-    if (char === ']' && inBracket) {
-      result.push(bracketContent)
-      inBracket = false
-      bracketContent = ''
-      continue
+    if (!segments.length) {
+      segments.push(currentSegment)
+    }
+    else if (currentSegment) {
+      segments[segments.length - 1] += segments.length === 1 ? `[${currentSegment}` : `][${currentSegment}`
     }
 
-    // Add normal characters
-    if (inBracket) {
-      bracketContent += char
-    }
-    else {
-      currentSegment += char
-    }
+    return segments
   }
+}
 
-  // Handle any remaining backslashes at the end
-  if (backslashCount > 0) {
-    const remainingBackslashes = '\\'.repeat(backslashCount)
-    if (inBracket) {
-      bracketContent += remainingBackslashes
-    }
-    else {
-      currentSegment += remainingBackslashes
-    }
-  }
-
-  // Handle any remaining content
-  if (inBracket) {
-    if (currentSegment !== '' || result.length === 0) {
-      result.push(currentSegment)
-    }
-    result.push(`[${bracketContent}`)
-  }
-  else if (currentSegment !== '' || result.length === 0) {
-    result.push(currentSegment)
-  }
-
-  return result as [string, ...string[]]
+function isValidArrayIndex(value: string): boolean {
+  return /^0$|^[1-9]\d*$/.test(value)
 }

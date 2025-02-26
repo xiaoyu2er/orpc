@@ -5,15 +5,6 @@ import { convertPathToHttpPath, createContractedProcedure, eachContractProcedure
 import { addRoute, createRouter, findRoute } from 'rou3'
 import { standardizeHTTPPath } from '../../utils'
 
-export interface OpenAPIMatcherOptions {
-  /**
-   * Ignore procedure that does not have a method defined in the contract.
-   *
-   * @default false
-   */
-  ignoreUndefinedMethod?: boolean
-}
-
 export class OpenAPIMatcher implements StandardMatcher {
   private readonly tree = createRouter<{
     path: string[]
@@ -22,14 +13,6 @@ export class OpenAPIMatcher implements StandardMatcher {
     router: AnyRouter
   }>()
 
-  private readonly ignoreUndefinedMethod: boolean
-
-  constructor(
-    options?: OpenAPIMatcherOptions,
-  ) {
-    this.ignoreUndefinedMethod = options?.ignoreUndefinedMethod ?? false
-  }
-
   private pendingRouters: (EachContractProcedureLaziedOptions & { httpPathPrefix: HTTPPath, laziedPrefix: string | undefined }) [] = []
 
   init(router: AnyRouter, path: string[] = []): void {
@@ -37,10 +20,6 @@ export class OpenAPIMatcher implements StandardMatcher {
       router,
       path,
     }, ({ path, contract }) => {
-      if (!contract['~orpc'].route.method && this.ignoreUndefinedMethod) {
-        return
-      }
-
       const method = fallbackContractConfig('defaultMethod', contract['~orpc'].route.method)
       const httpPath = contract['~orpc'].route.path
         ? toRou3Pattern(contract['~orpc'].route.path)

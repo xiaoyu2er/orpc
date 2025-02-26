@@ -13,9 +13,7 @@ describe('openAPICodec', () => {
     deserialize: vi.fn(),
   } as any
 
-  const codec = new OpenAPICodec({
-    serializer,
-  })
+  const codec = new OpenAPICodec(serializer)
 
   describe('.decode', () => {
     describe('with compact structure', () => {

@@ -4,7 +4,7 @@ import type { PublicOpenAPIPathParser } from './openapi-path-parser'
 import type { JSONSchema } from './schema'
 import type { SchemaConverter } from './schema-converter'
 import { fallbackORPCErrorStatus } from '@orpc/client'
-import { OpenAPIJsonSerializer, type PublicOpenAPIJsonSerializer } from '@orpc/client/openapi'
+import { OpenAPIJsonSerializer } from '@orpc/client/openapi'
 import { type ContractRouter, fallbackContractConfig, getEventIteratorSchemaDetails } from '@orpc/contract'
 import { type AnyRouter, eachAllContractProcedure } from '@orpc/server'
 import { group } from '@orpc/shared'
@@ -27,7 +27,7 @@ export interface OpenAPIGeneratorOptions {
   parametersBuilder?: PublicOpenAPIParametersBuilder
   schemaConverters?: SchemaConverter[]
   schemaUtils?: PublicSchemaUtils
-  jsonSerializer?: PublicOpenAPIJsonSerializer
+  jsonSerializer?: OpenAPIJsonSerializer
   pathParser?: PublicOpenAPIPathParser
   inputStructureParser?: PublicOpenAPIInputStructureParser
   outputStructureParser?: PublicOpenAPIOutputStructureParser
@@ -69,7 +69,7 @@ export class OpenAPIGenerator {
   private readonly parametersBuilder: PublicOpenAPIParametersBuilder
   private readonly schemaConverter: CompositeSchemaConverter
   private readonly schemaUtils: PublicSchemaUtils
-  private readonly jsonSerializer: PublicOpenAPIJsonSerializer
+  private readonly jsonSerializer: OpenAPIJsonSerializer
   private readonly pathParser: PublicOpenAPIPathParser
   private readonly inputStructureParser: PublicOpenAPIInputStructureParser
   private readonly outputStructureParser: PublicOpenAPIOutputStructureParser
@@ -382,6 +382,6 @@ export class OpenAPIGenerator {
       }
     })
 
-    return this.jsonSerializer.serialize(builder.getSpec()) as OpenAPI.OpenAPIObject
+    return this.jsonSerializer.serialize(builder.getSpec())[0] as OpenAPI.OpenAPIObject
   }
 }

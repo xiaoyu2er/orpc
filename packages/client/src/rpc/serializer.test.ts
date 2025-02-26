@@ -1,5 +1,5 @@
 import { ORPCError } from '@orpc/contract'
-import { ErrorEvent, getEventMeta, isAsyncIteratorObject, withEventMeta } from '@orpc/server-standard'
+import { ErrorEvent, getEventMeta, isAsyncIteratorObject, parseEmptyableJSON, withEventMeta } from '@orpc/server-standard'
 import { supportedDataTypes } from '../../tests/shared'
 import { RPCSerializer } from './serializer'
 
@@ -9,11 +9,11 @@ describe.each(supportedDataTypes)('rpcSerializer: $name', ({ value, expected }) 
   function serializeAndDeserialize(value: unknown): unknown {
     const serialized = serializer.serialize(value)
 
-    if (serialized instanceof FormData) {
+    if (serialized instanceof FormData || serialized instanceof Blob) {
       return serializer.deserialize(serialized)
     }
 
-    return serializer.deserialize(JSON.parse(JSON.stringify(serialized))) // like in the real world
+    return serializer.deserialize(parseEmptyableJSON(JSON.stringify(serialized) ?? '')) // like in the real world
   }
 
   it('should work on flat', async () => {
@@ -183,7 +183,7 @@ describe('rpcSerializer: event-source iterator', async () => {
 
     const iterator = (async function* () {
       yield serializer.serialize(1)
-      yield withEventMeta(serializer.serialize({ order: 2, date }), { retry: 1000 })
+      yield withEventMeta(serializer.serialize({ order: 2, date }) as any, { retry: 1000 })
       throw error
     })()
 

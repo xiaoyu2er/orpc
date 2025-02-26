@@ -12,10 +12,8 @@ describe('openAPISerializer', () => {
   const serialize = vi.fn(v => jsonSerializer.serialize(v))
 
   const openapiSerializer = new OpenAPISerializer({
-    jsonSerializer: {
-      serialize,
-    },
-  })
+    serialize,
+  } as any)
 
   describe('.serialize', () => {
     it('with undefined', () => {
@@ -37,7 +35,7 @@ describe('openAPISerializer', () => {
       }
 
       expect(openapiSerializer.serialize(data)).toBe(
-        serialize.mock.results[0]!.value,
+        serialize.mock.results[0]!.value[0],
       )
 
       expect(serialize).toHaveBeenCalledOnce()
@@ -80,7 +78,7 @@ describe('openAPISerializer', () => {
 
         await expect(serialized.next()).resolves.toSatisfy(({ value, done }) => {
           expect(done).toBe(false)
-          expect(value).toBe(serialize.mock.results[0]!.value)
+          expect(value).toBe(serialize.mock.results[0]!.value[0])
           expect(getEventMeta(value)).toEqual(undefined)
 
           return true
@@ -92,7 +90,7 @@ describe('openAPISerializer', () => {
 
         await expect(serialized.next()).resolves.toSatisfy(({ value, done }) => {
           expect(done).toBe(false)
-          expect(value).toEqual(serialize.mock.results[0]!.value)
+          expect(value).toEqual(serialize.mock.results[0]!.value[0])
           expect(getEventMeta(value)).toEqual({ retry: 1000 })
 
           return true
@@ -104,7 +102,7 @@ describe('openAPISerializer', () => {
 
         await expect(serialized.next()).resolves.toSatisfy(({ value, done }) => {
           expect(done).toBe(true)
-          expect(value).toEqual(serialize.mock.results[0]!.value)
+          expect(value).toEqual(serialize.mock.results[0]!.value[0])
           expect(getEventMeta(value)).toEqual({ id: '123456' })
 
           return true
@@ -127,7 +125,7 @@ describe('openAPISerializer', () => {
 
         await expect(serialized.next()).resolves.toSatisfy(({ value, done }) => {
           expect(done).toBe(false)
-          expect(value).toBe(serialize.mock.results[0]!.value)
+          expect(value).toBe(serialize.mock.results[0]!.value[0])
           expect(getEventMeta(value)).toEqual(undefined)
 
           return true
@@ -139,7 +137,7 @@ describe('openAPISerializer', () => {
 
         await expect(serialized.next()).resolves.toSatisfy(({ value, done }) => {
           expect(done).toBe(false)
-          expect(value).toEqual(serialize.mock.results[0]!.value)
+          expect(value).toEqual(serialize.mock.results[0]!.value[0])
           expect(getEventMeta(value)).toEqual({ retry: 1000 })
 
           return true
@@ -151,7 +149,7 @@ describe('openAPISerializer', () => {
 
         await expect(serialized.next()).rejects.toSatisfy((e: any) => {
           expect(e).toBeInstanceOf(ErrorEvent)
-          expect(e.data).toEqual(serialize.mock.results[0]!.value)
+          expect(e.data).toEqual(serialize.mock.results[0]!.value[0])
           expect(e.cause).toBe(error)
           expect(getEventMeta(e)).toEqual({ id: '123456' })
 
@@ -175,7 +173,7 @@ describe('openAPISerializer', () => {
 
         await expect(serialized.next()).resolves.toSatisfy(({ value, done }) => {
           expect(done).toBe(false)
-          expect(value).toBe(serialize.mock.results[0]!.value)
+          expect(value).toBe(serialize.mock.results[0]!.value[0])
           expect(getEventMeta(value)).toEqual(undefined)
 
           return true
@@ -187,7 +185,7 @@ describe('openAPISerializer', () => {
 
         await expect(serialized.next()).resolves.toSatisfy(({ value, done }) => {
           expect(done).toBe(false)
-          expect(value).toEqual(serialize.mock.results[0]!.value)
+          expect(value).toEqual(serialize.mock.results[0]!.value[0])
           expect(getEventMeta(value)).toEqual({ retry: 1000 })
 
           return true
@@ -199,7 +197,7 @@ describe('openAPISerializer', () => {
 
         await expect(serialized.next()).rejects.toSatisfy((e: any) => {
           expect(e).toBeInstanceOf(ErrorEvent)
-          expect(e.data).toEqual(serialize.mock.results[0]!.value)
+          expect(e.data).toEqual(serialize.mock.results[0]!.value[0])
           expect(e.cause).toBe(error)
           expect(getEventMeta(e)).toEqual({ id: '123456' })
 

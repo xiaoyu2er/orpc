@@ -185,30 +185,6 @@ describe('openapiMatcher', () => {
     expect(pongLoader).toHaveBeenCalledTimes(4)
   })
 
-  it('with ignoreUndefinedMethod=true', async () => {
-    const rpcMatcher = new OpenAPIMatcher({ ignoreUndefinedMethod: true })
-    rpcMatcher.init(router)
-
-    expect(await rpcMatcher.match('POST', '/base')).toEqual(undefined)
-
-    expect(await rpcMatcher.match('DELETE', '/ping/unnoq')).toEqual({
-      path: ['nested', 'ping'],
-      procedure: routedPing,
-      params: { ping: 'unnoq' },
-    })
-
-    expect(await rpcMatcher.match('GET', '/pong/something')).toEqual({
-      path: ['pong'],
-      procedure: routedPong,
-      params: { pong: 'something' },
-    })
-
-    expect(await rpcMatcher.match('POST', '/nested/pong')).toEqual(undefined)
-
-    expect(await rpcMatcher.match('POST', '/')).toEqual(undefined)
-    expect(await rpcMatcher.match('POST', '/not_found')).toEqual(undefined)
-  })
-
   it('/ in path', async () => {
     const ping1 = new Procedure({
       ...ping['~orpc'],

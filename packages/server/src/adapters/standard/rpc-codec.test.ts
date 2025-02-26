@@ -10,7 +10,7 @@ describe('rpcCodec', () => {
   const serializer = {
     serialize: vi.fn(),
     deserialize: vi.fn(),
-  }
+  } as any
 
   const codec = new RPCCodec({
     serializer,

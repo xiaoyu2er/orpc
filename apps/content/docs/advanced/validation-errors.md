@@ -7,49 +7,81 @@ description: Learn about oRPC's built-in validation errors and how to customize 
 
 oRPC provides built-in validation errors that work well by default. However, you might sometimes want to customize them.
 
+## Customizing with Client Interceptors
+
+[Client Interceptors](/docs/lifecycle) are preferred because they run before error validation, ensuring that your custom errors are properly validated.
+
+```ts twoslash
+import { z } from 'zod'
+import { router } from './shared/planet'
+import { RPCHandler } from '@orpc/server/fetch'
+// ---cut---
+import { onError, ORPCError, ValidationError } from '@orpc/server'
+
+const handler = new RPCHandler(router, {
+  clientInterceptors: [
+    onError((error) => {
+      if (
+        error instanceof ORPCError
+        && error.code === 'BAD_REQUEST'
+        && error.cause instanceof ValidationError
+      ) {
+        throw new ORPCError('INPUT_VALIDATION_FAILED', {
+          status: 422,
+          data: { issues: error.cause.issues },
+          cause: error.cause,
+        })
+      }
+
+      if (
+        error instanceof ORPCError
+        && error.code === 'INTERNAL_SERVER_ERROR'
+        && error.cause instanceof ValidationError
+      ) {
+        throw new ORPCError('OUTPUT_VALIDATION_FAILED', {
+          cause: error.cause,
+        })
+      }
+    })
+  ]
+})
+```
+
 ## Customizing with Middleware
 
 ```ts twoslash
 import { z } from 'zod'
 // ---cut---
-import { ORPCError, os, ValidationError } from '@orpc/server'
+import { onError, ORPCError, os, ValidationError } from '@orpc/server'
 
-const base = os.use(async ({ next }) => {
-  try {
-    return await next()
+const base = os.use(onError((error) => {
+  if (
+    error instanceof ORPCError
+    && error.code === 'BAD_REQUEST'
+    && error.cause instanceof ValidationError
+  ) {
+    throw new ORPCError('INPUT_VALIDATION_FAILED', {
+      status: 422,
+      data: { issues: error.cause.issues },
+      cause: error.cause,
+    })
   }
-  catch (error) {
-    // Customize input validation errors
-    if (
-      error instanceof ORPCError
-      && error.code === 'BAD_REQUEST'
-      && error.cause instanceof ValidationError
-    ) {
-      throw new ORPCError('BAD_REQUEST', { // Customize your error
-        data: { issues: error.cause.issues },
-        cause: error.cause,
-      })
-    }
 
-    // Customize output validation errors
-    if (
-      error instanceof ORPCError
-      && error.code === 'INTERNAL_SERVER_ERROR'
-      && error.cause instanceof ValidationError
-    ) {
-      throw new ORPCError('INTERNAL_SERVER_ERROR', { // Customize your error
-        cause: error.cause,
-      })
-    }
-
-    throw error
+  if (
+    error instanceof ORPCError
+    && error.code === 'INTERNAL_SERVER_ERROR'
+    && error.cause instanceof ValidationError
+  ) {
+    throw new ORPCError('OUTPUT_VALIDATION_FAILED', {
+      cause: error.cause,
+    })
   }
-})
+}))
 
 const getting = base
   .input(z.object({ id: z.string().uuid() }))
   .output(z.object({ id: z.string().uuid(), name: z.string() }))
-  .handler(async ({ input }) => {
+  .handler(async ({ input, context }) => {
     return { id: input.id, name: 'name' }
   })
 ```

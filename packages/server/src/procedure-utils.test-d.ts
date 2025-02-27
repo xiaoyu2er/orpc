@@ -4,10 +4,10 @@ import { ping, pong } from '../tests/shared'
 import { call } from './procedure-utils'
 
 it('call', async () => {
-  const [output, error, isDefined] = await safe(call(ping, { input: 123 }, { context: { db: 'postgres' } }))
+  const [error, data, isDefined] = await safe(call(ping, { input: 123 }, { context: { db: 'postgres' } }))
 
   if (!error) {
-    expectTypeOf(output).toEqualTypeOf<{ output: string }>()
+    expectTypeOf(data).toEqualTypeOf<{ output: string }>()
   }
 
   if (isDefined) {

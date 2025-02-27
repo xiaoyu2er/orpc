@@ -29,9 +29,10 @@ const doSomething = os
   })
   .callable()
 
-const [data, error] = await safe(doSomething({ id: '123' }))
+const [error, data, isDefined] = await safe(doSomething({ id: '123' }))
+// or const { error, data, isDefined } = await safe(doSomething({ id: '123' }))
 
-if (isDefinedError(error)) {
+if (isDefinedError(error)) { // or isDefined
   // handle known error
   console.log(error.data.retryAfter)
 }
@@ -47,5 +48,8 @@ else {
 :::info
 
 - `safe` works like `try/catch`, but can infer error types.
+- `safe` supports both tuple `[error, data, isDefined]` and object `{ error, data, isDefined }` styles.
 - `isDefinedError` checks if an error originates from `.errors`.
-  :::
+- `isDefined` can replace `isDefinedError`
+
+:::

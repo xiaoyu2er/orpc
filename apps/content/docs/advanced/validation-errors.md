@@ -100,7 +100,7 @@ As explained in the [error handling guide](/docs/error-handling#combining-both-a
 import { z } from 'zod'
 import { RPCHandler } from '@orpc/server/fetch'
 // ---cut---
-import { onError, ORPCError, ValidationError } from '@orpc/server'
+import { onError, ORPCError, os, ValidationError } from '@orpc/server'
 
 const base = os.errors({
   INPUT_VALIDATION_FAILED: {

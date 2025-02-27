@@ -66,6 +66,28 @@ const specFromRouter = await openAPIGenerator.generate(router, {
 })
 ```
 
+## Operation Metadata
+
+You can enrich your API documentation by specifying operation metadata using the `.route` or `.tag`:
+
+```ts
+const ping = os
+  .route({
+    summary: 'the summary',
+    description: 'the description',
+    deprecated: false,
+    tags: ['tag'],
+    successDescription: 'the success description',
+  })
+  .handler(() => {})
+
+// or append tag for entire router
+
+const router = os.tag('planets').router({
+  // ...
+})
+```
+
 ## File Schema
 
 In the [File Upload/Download](/docs/file-upload-download) guide, `z.instanceof` is used to describe file/blob schemas. However, this method prevents oRPC from recognizing file/blob schema. Instead, use the enhanced file schema approach:
@@ -81,7 +103,41 @@ const InputSchema = z.object({
 })
 ```
 
-## Extending the Specification
+## Customizing Operation Objects
+
+You can also extend the operation object using the `.spec` helper for an `error` or `middleware`:
+
+```ts
+import { oo } from '@orpc/openapi'
+
+const base = os.errors({
+  UNAUTHORIZED: oo.spec({
+    data: z.any(),
+  }, {
+    security: [{ 'api-key': [] }],
+  })
+})
+
+// OR in middleware
+
+const requireAuth = oo.spec(
+  os.middleware(async ({ next, errors }) => {
+    throw new ORPCError('UNAUTHORIZED')
+    return next()
+  }),
+  {
+    security: [{ 'api-key': [] }]
+  }
+)
+```
+
+Any [procedure](/docs/procedure) that includes the use above `errors` or `middleware` will automatically have the defined `security` property applied
+
+:::info
+The `.spec` helper accepts a callback as its second argument, allowing you to override the entire operation object.
+:::
+
+## JSON Schema Customization
 
 If Zod alone does not cover your JSON Schema requirements, you can extend or override the generated schema:
 

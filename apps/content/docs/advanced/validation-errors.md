@@ -91,3 +91,44 @@ Every [procedure](/docs/procedure) built from `base` now uses these customized v
 :::warning
 Middleware applied before `.input`/`.output` catches validation errors by default, but this behavior can be configured.
 :::
+
+## Type‑Safe Validation Errors
+
+As explained in the [error handling guide](/docs/error-handling#combining-both-approaches), when you throw an `ORPCError` instance, if the `code` and `data` match with the errors defined in the `.errors` method, oRPC will treat it exactly as if you had thrown `errors.[code]` using the type‑safe approach.
+
+```ts twoslash
+import { z } from 'zod'
+import { RPCHandler } from '@orpc/server/fetch'
+// ---cut---
+import { onError, ORPCError, os, ValidationError } from '@orpc/server'
+
+const base = os.errors({
+  INPUT_VALIDATION_FAILED: {
+    data: z.object({
+      issues: z.array(z.object({
+        message: z.string(),
+      })),
+    })
+  },
+})
+
+const ping = base.handler(() => 'ping')
+const pong = base.handler(() => 'pong')
+
+const handler = new RPCHandler({ ping, pong }, {
+  clientInterceptors: [
+    onError((error) => {
+      if (
+        error instanceof ORPCError
+        && error.code === 'BAD_REQUEST'
+        && error.cause instanceof ValidationError
+      ) {
+        throw new ORPCError('INPUT_VALIDATION_FAILED', {
+          data: { issues: error.cause.issues },
+          cause: error.cause,
+        })
+      }
+    })
+  ]
+})
+```

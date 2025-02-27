@@ -66,24 +66,7 @@ const specFromRouter = await openAPIGenerator.generate(router, {
 })
 ```
 
-## File Schema
-
-In the [File Upload/Download](/docs/file-upload-download) guide, `z.instanceof` is used to describe file/blob schemas. However, this method prevents oRPC from recognizing file/blob schema. Instead, use the enhanced file schema approach:
-
-```ts twoslash
-import { z } from 'zod'
-import { oz } from '@orpc/zod'
-
-const InputSchema = z.object({
-  file: oz.file(),
-  image: oz.file().type('image/*'),
-  blob: oz.blob()
-})
-```
-
-## Extending the Specification
-
-### Operation Metadata
+## Operation Metadata
 
 You can enrich your API documentation by specifying operation metadata using the `.route` or `.tag`:
 
@@ -105,7 +88,22 @@ const router = os.tag('planets').router({
 })
 ```
 
-### Customizing Operation Objects
+## File Schema
+
+In the [File Upload/Download](/docs/file-upload-download) guide, `z.instanceof` is used to describe file/blob schemas. However, this method prevents oRPC from recognizing file/blob schema. Instead, use the enhanced file schema approach:
+
+```ts twoslash
+import { z } from 'zod'
+import { oz } from '@orpc/zod'
+
+const InputSchema = z.object({
+  file: oz.file(),
+  image: oz.file().type('image/*'),
+  blob: oz.blob()
+})
+```
+
+## Customizing Operation Objects
 
 You can also extend the operation object using the `.spec` helper for an `error` or `middleware`:
 
@@ -139,7 +137,7 @@ Any [procedure](/docs/procedure) that includes the use above `errors` or `middle
 The `.spec` helper accepts a callback as its second argument, allowing you to override the entire operation object.
 :::
 
-### JSON Schema Customization
+## JSON Schema Customization
 
 If Zod alone does not cover your JSON Schema requirements, you can extend or override the generated schema:
 

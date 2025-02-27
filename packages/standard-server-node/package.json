@@ -1,13 +1,13 @@
 {
-  "name": "@orpc/server-standard-node",
+  "name": "@orpc/standard-server-node",
   "type": "module",
   "version": "0.4.0",
   "license": "MIT",
   "homepage": "https://orpc.unnoq.com",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/uorpc/server-standard.git",
-    "directory": "packages/node"
+    "url": "git+https://github.com/unnoq/orpc.git",
+    "directory": "packages/standard-server-node"
   },
   "keywords": [
     "orpc"
@@ -41,7 +41,7 @@
     "type:check": "tsc -b"
   },
   "dependencies": {
-    "@orpc/server-standard": "workspace:*"
+    "@orpc/standard-server": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.13.1",

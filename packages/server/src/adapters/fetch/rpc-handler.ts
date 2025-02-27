@@ -3,7 +3,7 @@ import type { Context } from '../../context'
 import type { Router } from '../../router'
 import type { RPCHandlerOptions, StandardHandleOptions } from '../standard'
 import type { FetchHandler, FetchHandleResult } from './types'
-import { toFetchResponse, toStandardRequest } from '@orpc/server-standard-fetch'
+import { toFetchResponse, toStandardRequest } from '@orpc/standard-server-fetch'
 import { RPCCodec, RPCMatcher, StandardHandler } from '../standard'
 
 export class RPCHandler<T extends Context> implements FetchHandler<T> {

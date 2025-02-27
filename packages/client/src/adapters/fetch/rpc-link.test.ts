@@ -1,7 +1,7 @@
 import { ORPCError } from '@orpc/contract'
 import { os } from '@orpc/server'
-import { getEventMeta, isAsyncIteratorObject, withEventMeta } from '@orpc/server-standard'
 import { RPCHandler } from '@orpc/server/fetch'
+import { getEventMeta, isAsyncIteratorObject, withEventMeta } from '@orpc/standard-server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { supportedDataTypes } from '../../../tests/shared'
 import { RPCLink } from './rpc-link'

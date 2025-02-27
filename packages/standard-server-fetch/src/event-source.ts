@@ -1,4 +1,4 @@
-import type { JsonValue } from '@orpc/server-standard'
+import type { JsonValue } from '@orpc/standard-server'
 import {
   encodeEventMessage,
   ErrorEvent,
@@ -8,7 +8,7 @@ import {
   parseEmptyableJSON,
   UnknownEvent,
   withEventMeta,
-} from '@orpc/server-standard'
+} from '@orpc/standard-server'
 
 export function toEventIterator(
   stream: ReadableStream<Uint8Array>,

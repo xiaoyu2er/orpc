@@ -1,6 +1,6 @@
 import type { ErrorFromErrorMap, HTTPPath, Meta, Schema, SchemaOutput } from '@orpc/contract'
-import type { StandardRequest, StandardResponse } from '@orpc/server-standard'
 import type { Interceptor, MaybeOptionalOptions } from '@orpc/shared'
+import type { StandardRequest, StandardResponse } from '@orpc/standard-server'
 import type { Context } from '../../context'
 import type { Plugin } from '../../plugins'
 import type { ProcedureClientInterceptorOptions } from '../../procedure-client'

@@ -75,10 +75,10 @@
     "@orpc/client": "workspace:*",
     "@orpc/contract": "workspace:*",
     "@orpc/server": "workspace:*",
-    "@orpc/server-standard": "workspace:*",
-    "@orpc/server-standard-fetch": "workspace:*",
-    "@orpc/server-standard-node": "workspace:*",
     "@orpc/shared": "workspace:*",
+    "@orpc/standard-server": "workspace:*",
+    "@orpc/standard-server-fetch": "workspace:*",
+    "@orpc/standard-server-node": "workspace:*",
     "json-schema-typed": "^8.0.1",
     "openapi3-ts": "^4.4.0",
     "rou3": "^0.5.1"

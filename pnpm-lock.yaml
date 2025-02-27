@@ -123,15 +123,15 @@ importers:
 
   packages/client:
     dependencies:
-      '@orpc/server-standard':
-        specifier: workspace:*
-        version: link:../standard-server
-      '@orpc/server-standard-fetch':
-        specifier: workspace:*
-        version: link:../standard-server-fetch
       '@orpc/shared':
         specifier: workspace:*
         version: link:../shared
+      '@orpc/standard-server':
+        specifier: workspace:*
+        version: link:../standard-server
+      '@orpc/standard-server-fetch':
+        specifier: workspace:*
+        version: link:../standard-server-fetch
     devDependencies:
       zod:
         specifier: ^3.24.1
@@ -142,12 +142,12 @@ importers:
       '@orpc/client':
         specifier: workspace:*
         version: link:../client
-      '@orpc/server-standard':
-        specifier: workspace:*
-        version: link:../standard-server
       '@orpc/shared':
         specifier: workspace:*
         version: link:../shared
+      '@orpc/standard-server':
+        specifier: workspace:*
+        version: link:../standard-server
       '@standard-schema/spec':
         specifier: ^1.0.0
         version: 1.0.0
@@ -173,18 +173,18 @@ importers:
       '@orpc/server':
         specifier: workspace:*
         version: link:../server
-      '@orpc/server-standard':
-        specifier: workspace:*
-        version: link:../standard-server
-      '@orpc/server-standard-fetch':
-        specifier: workspace:*
-        version: link:../standard-server-fetch
-      '@orpc/server-standard-node':
-        specifier: workspace:*
-        version: link:../standard-server-node
       '@orpc/shared':
         specifier: workspace:*
         version: link:../shared
+      '@orpc/standard-server':
+        specifier: workspace:*
+        version: link:../standard-server
+      '@orpc/standard-server-fetch':
+        specifier: workspace:*
+        version: link:../standard-server-fetch
+      '@orpc/standard-server-node':
+        specifier: workspace:*
+        version: link:../standard-server-node
       json-schema-typed:
         specifier: ^8.0.1
         version: 8.0.1
@@ -226,18 +226,18 @@ importers:
       '@orpc/contract':
         specifier: workspace:*
         version: link:../contract
-      '@orpc/server-standard':
-        specifier: workspace:*
-        version: link:../standard-server
-      '@orpc/server-standard-fetch':
-        specifier: workspace:*
-        version: link:../standard-server-fetch
-      '@orpc/server-standard-node':
-        specifier: workspace:*
-        version: link:../standard-server-node
       '@orpc/shared':
         specifier: workspace:*
         version: link:../shared
+      '@orpc/standard-server':
+        specifier: workspace:*
+        version: link:../standard-server
+      '@orpc/standard-server-fetch':
+        specifier: workspace:*
+        version: link:../standard-server-fetch
+      '@orpc/standard-server-node':
+        specifier: workspace:*
+        version: link:../standard-server-node
       hono:
         specifier: '>=4.6.0'
         version: 4.7.1
@@ -269,7 +269,7 @@ importers:
 
   packages/standard-server-fetch:
     dependencies:
-      '@orpc/server-standard':
+      '@orpc/standard-server':
         specifier: workspace:*
         version: link:../standard-server
     devDependencies:
@@ -279,7 +279,7 @@ importers:
 
   packages/standard-server-node:
     dependencies:
-      '@orpc/server-standard':
+      '@orpc/standard-server':
         specifier: workspace:*
         version: link:../standard-server
     devDependencies:

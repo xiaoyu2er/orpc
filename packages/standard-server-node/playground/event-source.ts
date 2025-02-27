@@ -1,5 +1,5 @@
 import { createServer } from 'node:http'
-import { isAsyncIteratorObject } from '@orpc/server-standard'
+import { isAsyncIteratorObject } from '@orpc/standard-server'
 import { toStandardRequest } from '../src/request'
 import { sendStandardResponse } from '../src/response'
 

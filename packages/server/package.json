@@ -84,10 +84,10 @@
   "dependencies": {
     "@orpc/client": "workspace:*",
     "@orpc/contract": "workspace:*",
-    "@orpc/server-standard": "workspace:*",
-    "@orpc/server-standard-fetch": "workspace:*",
-    "@orpc/server-standard-node": "workspace:*",
-    "@orpc/shared": "workspace:*"
+    "@orpc/shared": "workspace:*",
+    "@orpc/standard-server": "workspace:*",
+    "@orpc/standard-server-fetch": "workspace:*",
+    "@orpc/standard-server-node": "workspace:*"
   },
   "devDependencies": {
     "light-my-request": "^6.5.1"

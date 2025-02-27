@@ -1,5 +1,5 @@
-import type { JsonValue } from '@orpc/server-standard'
-import { ErrorEvent, isAsyncIteratorObject } from '@orpc/server-standard'
+import type { JsonValue } from '@orpc/standard-server'
+import { ErrorEvent, isAsyncIteratorObject } from '@orpc/standard-server'
 import { ORPCError, toORPCError } from '../error'
 import { mapEventIterator } from '../event-iterator'
 import { RPCJsonSerializer } from './json-serializer'

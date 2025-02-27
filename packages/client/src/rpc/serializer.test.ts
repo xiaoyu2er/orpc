@@ -1,5 +1,5 @@
 import { ORPCError } from '@orpc/contract'
-import { ErrorEvent, getEventMeta, isAsyncIteratorObject, parseEmptyableJSON, withEventMeta } from '@orpc/server-standard'
+import { ErrorEvent, getEventMeta, isAsyncIteratorObject, parseEmptyableJSON, withEventMeta } from '@orpc/standard-server'
 import { supportedDataTypes } from '../../tests/shared'
 import { RPCSerializer } from './serializer'
 

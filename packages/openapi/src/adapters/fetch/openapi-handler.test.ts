@@ -1,5 +1,5 @@
-import { toFetchResponse, toStandardRequest } from '@orpc/server-standard-fetch'
 import { StandardHandler } from '@orpc/server/standard'
+import { toFetchResponse, toStandardRequest } from '@orpc/standard-server-fetch'
 import { describe, expect, it, vi } from 'vitest'
 import { router } from '../../../../server/tests/shared'
 import { OpenAPICodec, OpenAPIMatcher } from '../standard'
@@ -10,7 +10,7 @@ vi.mock('@orpc/server/standard', async origin => ({
   StandardHandler: vi.fn(),
 }))
 
-vi.mock('@orpc/server-standard-fetch', async origin => ({
+vi.mock('@orpc/standard-server-fetch', async origin => ({
   toStandardRequest: vi.fn((await origin() as any).toStandardRequest),
   toFetchResponse: vi.fn((await origin() as any).toFetchResponse),
 }))

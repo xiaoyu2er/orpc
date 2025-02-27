@@ -21,5 +21,5 @@ export * from './utils'
 
 export { isDefinedError, ORPCError, safe } from '@orpc/client'
 export { eventIterator, type, ValidationError } from '@orpc/contract'
-export { getEventMeta, withEventMeta } from '@orpc/server-standard'
 export { onError, onFinish, onStart, onSuccess } from '@orpc/shared'
+export { getEventMeta, withEventMeta } from '@orpc/standard-server'

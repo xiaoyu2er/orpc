@@ -3,8 +3,8 @@ import type { NodeHttpHandler, NodeHttpHandleResult, NodeHttpRequest, NodeHttpRe
 import type { StandardHandleOptions } from '@orpc/server/standard'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { OpenAPIHandlerOptions } from '../standard'
-import { sendStandardResponse, toStandardRequest } from '@orpc/server-standard-node'
 import { StandardHandler } from '@orpc/server/standard'
+import { sendStandardResponse, toStandardRequest } from '@orpc/standard-server-node'
 import { OpenAPICodec, OpenAPIMatcher } from '../standard'
 
 export class OpenAPIHandler<T extends Context> implements NodeHttpHandler<T> {

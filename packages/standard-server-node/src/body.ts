@@ -1,8 +1,8 @@
-import type { StandardBody, StandardHeaders } from '@orpc/server-standard'
+import type { StandardBody, StandardHeaders } from '@orpc/standard-server'
 import type { Buffer } from 'node:buffer'
 import type { NodeHttpRequest } from './types'
 import { Readable } from 'node:stream'
-import { contentDisposition, isAsyncIteratorObject, parseContentDisposition, parseEmptyableJSON } from '@orpc/server-standard'
+import { contentDisposition, isAsyncIteratorObject, parseContentDisposition, parseEmptyableJSON } from '@orpc/standard-server'
 import { toEventIterator, toEventStream } from './event-source'
 
 export async function toStandardBody(req: NodeHttpRequest): Promise<StandardBody> {

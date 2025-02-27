@@ -1,13 +1,13 @@
 {
-  "name": "@orpc/server-standard",
+  "name": "@orpc/standard-server",
   "type": "module",
   "version": "0.4.0",
   "license": "MIT",
   "homepage": "https://unnoq.com",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/uorpc/server-standard.git",
-    "directory": "packages/base"
+    "url": "git+https://github.com/unnoq/orpc.git",
+    "directory": "packages/standard-server"
   },
   "keywords": [
     "orpc"

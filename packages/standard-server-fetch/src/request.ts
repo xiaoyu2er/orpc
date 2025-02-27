@@ -1,5 +1,5 @@
-import type { StandardRequest } from '@orpc/server-standard'
-import { once } from '@orpc/server-standard'
+import type { StandardRequest } from '@orpc/standard-server'
+import { once } from '@orpc/standard-server'
 import { toStandardBody } from './body'
 import { toStandardHeaders } from './headers'
 

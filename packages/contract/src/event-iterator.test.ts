@@ -1,5 +1,5 @@
 import { ORPCError } from '@orpc/client'
-import { getEventMeta, withEventMeta } from '@orpc/server-standard'
+import { getEventMeta, withEventMeta } from '@orpc/standard-server'
 import { z } from 'zod'
 import { ValidationError } from './error'
 import { eventIterator, getEventIteratorSchemaDetails } from './event-iterator'

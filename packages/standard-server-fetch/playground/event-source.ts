@@ -1,4 +1,4 @@
-import { isAsyncIteratorObject } from '@orpc/server-standard'
+import { isAsyncIteratorObject } from '@orpc/standard-server'
 import { toStandardRequest } from '../src/request'
 import { toFetchResponse } from '../src/response'
 import { serve } from '@hono/node-server'

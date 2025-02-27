@@ -1,4 +1,4 @@
-import type { StandardResponse } from '@orpc/server-standard'
+import type { StandardResponse } from '@orpc/standard-server'
 import * as Body from './body'
 import * as Headers from './headers'
 import { toFetchResponse } from './response'

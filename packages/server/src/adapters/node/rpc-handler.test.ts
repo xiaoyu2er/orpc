@@ -1,10 +1,10 @@
-import { sendStandardResponse, toStandardRequest } from '@orpc/server-standard-node'
+import { sendStandardResponse, toStandardRequest } from '@orpc/standard-server-node'
 import inject from 'light-my-request'
 import { router } from '../../../tests/shared'
 import { RPCCodec, RPCMatcher, StandardHandler } from '../standard'
 import { RPCHandler } from './rpc-handler'
 
-vi.mock('@orpc/server-standard-node', () => ({
+vi.mock('@orpc/standard-server-node', () => ({
   toStandardRequest: vi.fn(),
   sendStandardResponse: vi.fn(),
 }))

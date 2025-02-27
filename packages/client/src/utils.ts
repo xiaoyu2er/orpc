@@ -28,6 +28,9 @@ export async function safe<TOutput, TError extends Error>(promise: ClientPromise
       )
     }
 
-    return Object.assign([error, undefined, false], { error, data: undefined, isDefined: false }) as any
+    return Object.assign(
+      [error as Exclude<TError, ORPCError<any, any>>, undefined, false] satisfies [Exclude<TError, ORPCError<any, any>>, undefined, false],
+      { error: error as Exclude<TError, ORPCError<any, any>>, data: undefined, isDefined: false as const },
+    )
   }
 }

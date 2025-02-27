@@ -14,20 +14,20 @@ describe('e2e', () => {
   })
 
   it('on error', async () => {
-    const [, error, isDefined] = await safe(orpc.post.find({ id: 'NOT_FOUND' }))
+    const [error,, isDefined] = await safe(orpc.post.find({ id: 'NOT_FOUND' }))
 
     expect(isDefined).toBe(true)
     expect(error).toBeInstanceOf(ORPCError)
     expect((error as any).data).toEqual({ id: 'NOT_FOUND' })
 
-    const [, error2, isDefined2] = await safe(orpc.post.create({ title: 'CONFLICT' }))
+    const [error2,, isDefined2] = await safe(orpc.post.create({ title: 'CONFLICT' }))
 
     expect(isDefined2).toBe(true)
     expect(error2).toBeInstanceOf(ORPCError)
     expect((error2 as any).data).toEqual({ title: 'CONFLICT' })
 
     // @ts-expect-error - invalid input
-    const [, error3, isDefined3] = await safe(orpc.post.create({ }))
+    const [error3,, isDefined3] = await safe(orpc.post.create({ }))
 
     expect(isDefined3).toBe(false)
     expect(error3).toBeInstanceOf(ORPCError)

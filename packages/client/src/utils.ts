@@ -3,22 +3,34 @@ import type { ClientPromiseResult } from './types'
 import { isDefinedError } from './error'
 
 export type SafeResult<TOutput, TError extends Error> =
-  | [output: TOutput, error: undefined, isDefinedError: false]
-  | [output: undefined, error: TError, isDefinedError: false]
-  | [output: undefined, error: Extract<TError, ORPCError<any, any>>, isDefinedError: true]
+  | [error: null, data: TOutput, isDefined: false]
+  & { error: null, data: TOutput, isDefined: false }
+  | [error: Exclude<TError, ORPCError<any, any>>, data: undefined, isDefined: false]
+  & { error: Exclude<TError, ORPCError<any, any>>, data: undefined, isDefined: false }
+  | [error: Extract<TError, ORPCError<any, any>>, data: undefined, isDefined: true]
+  & { error: Extract<TError, ORPCError<any, any>>, data: undefined, isDefined: true }
 
 export async function safe<TOutput, TError extends Error>(promise: ClientPromiseResult<TOutput, TError>): Promise<SafeResult<TOutput, TError>> {
   try {
     const output = await promise
-    return [output, undefined, false]
+    return Object.assign(
+      [null, output, false] satisfies [null, TOutput, false],
+      { error: null, data: output, isDefined: false as const },
+    )
   }
   catch (e) {
     const error = e as TError
 
     if (isDefinedError(error)) {
-      return [undefined, error, true]
+      return Object.assign(
+        [error, undefined, true] satisfies [typeof error, undefined, true],
+        { error, data: undefined, isDefined: true as const },
+      )
     }
 
-    return [undefined, error, false]
+    return Object.assign(
+      [error as Exclude<TError, ORPCError<any, any>>, undefined, false] satisfies [Exclude<TError, ORPCError<any, any>>, undefined, false],
+      { error: error as Exclude<TError, ORPCError<any, any>>, data: undefined, isDefined: false as const },
+    )
   }
 }

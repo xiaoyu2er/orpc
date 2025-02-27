@@ -23,18 +23,18 @@ describe('e2e', () => {
   })
 
   it('infer errors', async () => {
-    const [,error] = await safe(orpc.post.find({ id: '123' }))
+    const [error] = await safe(orpc.post.find({ id: '123' }))
 
     expectTypeOf(error).toEqualTypeOf<
-      | undefined
+      | null
       | Error
       | ORPCError<'NOT_FOUND', { id: string }>
     >()
 
-    const [, error2] = await safe(orpc.post.create({ title: 'title' }))
+    const [error2] = await safe(orpc.post.create({ title: 'title' }))
 
     expectTypeOf(error2).toEqualTypeOf<
-      | undefined
+      | null
       | Error
       | ORPCError<'CONFLICT', { title: string, thumbnail?: File }>
       | ORPCError<'FORBIDDEN', { title: string, thumbnail?: File }>

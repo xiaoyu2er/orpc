@@ -29,10 +29,10 @@ describe('ProcedureClient', () => {
   })
 
   it('works', async () => {
-    const [output, error, isDefined] = await safe(client({ input: 123 }, { context: { cache: true } }))
+    const [error, data, isDefined] = await safe(client({ input: 123 }, { context: { cache: true } }))
 
     if (!error) {
-      expectTypeOf(output).toEqualTypeOf<{ output: string }>()
+      expectTypeOf(data).toEqualTypeOf<{ output: string }>()
     }
 
     if (isDefined) {

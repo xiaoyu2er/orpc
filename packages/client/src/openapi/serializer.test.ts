@@ -1,5 +1,5 @@
 import { ORPCError } from '@orpc/contract'
-import { ErrorEvent, getEventMeta, withEventMeta } from '@orpc/server-standard'
+import { ErrorEvent, getEventMeta, withEventMeta } from '@orpc/standard-server'
 import { OpenAPIJsonSerializer } from './json-serializer'
 import { OpenAPISerializer } from './serializer'
 
@@ -21,7 +21,7 @@ describe('openAPISerializer', () => {
     })
 
     it('with blob', () => {
-      const blob = new Blob()
+      const blob = new Blob([])
       expect(openapiSerializer.serialize(blob)).toBe(blob)
     })
 
@@ -217,7 +217,7 @@ describe('openAPISerializer', () => {
     })
 
     it('with blob', () => {
-      const blob = new Blob()
+      const blob = new Blob([])
       expect(openapiSerializer.deserialize(blob)).toBe(blob)
     })
 

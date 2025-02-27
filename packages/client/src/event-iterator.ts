@@ -1,6 +1,6 @@
 import type { EventIteratorState } from './event-iterator-state'
-import { getEventMeta, isEventMetaContainer, withEventMeta } from '@orpc/server-standard'
 import { retry } from '@orpc/shared'
+import { getEventMeta, isEventMetaContainer, withEventMeta } from '@orpc/standard-server'
 import { registerEventIteratorState, updateEventIteratorStatus } from './event-iterator-state'
 
 export function mapEventIterator<TYield, TReturn, TNext, TMap = TYield | TReturn>(

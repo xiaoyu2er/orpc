@@ -1,6 +1,6 @@
 import type { ORPCError } from '@orpc/client'
 import type { HTTPPath } from '@orpc/contract'
-import type { StandardRequest, StandardResponse } from '@orpc/server-standard'
+import type { StandardRequest, StandardResponse } from '@orpc/standard-server'
 import type { AnyProcedure } from '../../procedure'
 import type { AnyRouter } from '../../router'
 

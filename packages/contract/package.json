@@ -43,8 +43,8 @@
   },
   "dependencies": {
     "@orpc/client": "workspace:*",
-    "@orpc/server-standard": "^0.4.0",
     "@orpc/shared": "workspace:*",
+    "@orpc/standard-server": "workspace:*",
     "@standard-schema/spec": "^1.0.0"
   },
   "devDependencies": {

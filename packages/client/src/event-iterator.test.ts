@@ -1,4 +1,4 @@
-import { getEventMeta, withEventMeta } from '@orpc/server-standard'
+import { getEventMeta, withEventMeta } from '@orpc/standard-server'
 import { createAutoRetryEventIterator, mapEventIterator } from './event-iterator'
 import { onEventIteratorStatusChange } from './event-iterator-state'
 

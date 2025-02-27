@@ -3,8 +3,8 @@ import type { FetchHandler, FetchHandleResult } from '@orpc/server/fetch'
 import type { StandardHandleOptions } from '@orpc/server/standard'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { OpenAPIHandlerOptions } from '../standard'
-import { toFetchResponse, toStandardRequest } from '@orpc/server-standard-fetch'
 import { StandardHandler } from '@orpc/server/standard'
+import { toFetchResponse, toStandardRequest } from '@orpc/standard-server-fetch'
 import { OpenAPICodec, OpenAPIMatcher } from '../standard'
 
 export class OpenAPIHandler<T extends Context> implements FetchHandler<T> {

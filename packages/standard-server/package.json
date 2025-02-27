@@ -1,0 +1,47 @@
+{
+  "name": "@orpc/standard-server",
+  "type": "module",
+  "version": "0.4.0",
+  "license": "MIT",
+  "homepage": "https://unnoq.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unnoq/orpc.git",
+    "directory": "packages/standard-server"
+  },
+  "keywords": [
+    "orpc"
+  ],
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./dist/src/index.d.ts",
+        "import": "./dist/index.js",
+        "default": "./dist/index.js"
+      },
+      "./🔒/*": {
+        "types": "./dist/src/*.d.ts"
+      }
+    }
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./🔒/*": {
+      "types": "./src/*.ts"
+    }
+  },
+  "files": [
+    "!**/*.map",
+    "!**/*.tsbuildinfo",
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup --clean --sourcemap --entry.index=src/index.ts --format=esm --onSuccess='tsc -b --noCheck'",
+    "build:watch": "pnpm run build --watch",
+    "type:check": "tsc -b"
+  },
+  "dependencies": {
+    "@tinyhttp/content-disposition": "^2.2.2",
+    "type-fest": "^4.34.1"
+  }
+}

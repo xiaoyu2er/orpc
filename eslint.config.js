@@ -12,7 +12,7 @@ export default antfu({
     'ts/method-signature-style': ['off'],
   },
 }, {
-  files: ['**/*.test.ts', '**/*.test.tsx', '**/*.test-d.ts', '**/*.test-d.tsx', 'apps/content/shared/**', 'playgrounds/**'],
+  files: ['**/*.test.ts', '**/*.test.tsx', '**/*.test-d.ts', '**/*.test-d.tsx', 'apps/content/shared/**', 'playgrounds/**', 'packages/*/playground/**'],
   rules: {
     'unused-imports/no-unused-vars': 'off',
     'antfu/no-top-level-await': 'off',
@@ -20,7 +20,7 @@ export default antfu({
     'no-alert': 'off',
   },
 }, {
-  files: ['apps/content/shared/**', 'apps/content/docs/**', 'apps/content/examples/**', 'playgrounds/**'],
+  files: ['apps/content/shared/**', 'apps/content/docs/**', 'apps/content/examples/**', 'playgrounds/**', 'packages/*/playground/**'],
   rules: {
     'no-console': 'off',
     'perfectionist/sort-imports': 'off',

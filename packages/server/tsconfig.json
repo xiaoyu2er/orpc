@@ -3,6 +3,9 @@
   "references": [
     { "path": "../client" },
     { "path": "../contract" },
+    { "path": "../standard-server" },
+    { "path": "../standard-server-fetch" },
+    { "path": "../standard-server-node" },
     { "path": "../shared" }
   ],
   "include": ["src"],

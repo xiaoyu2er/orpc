@@ -1,11 +1,11 @@
-import { sendStandardResponse, toStandardRequest } from '@orpc/server-standard-node'
 import { StandardHandler } from '@orpc/server/standard'
+import { sendStandardResponse, toStandardRequest } from '@orpc/standard-server-node'
 import inject from 'light-my-request'
 import { router } from '../../../../server/tests/shared'
 import { OpenAPICodec, OpenAPIMatcher } from '../standard'
 import { OpenAPIHandler } from './openapi-handler'
 
-vi.mock('@orpc/server-standard-node', () => ({
+vi.mock('@orpc/standard-server-node', () => ({
   toStandardRequest: vi.fn(),
   sendStandardResponse: vi.fn(),
 }))

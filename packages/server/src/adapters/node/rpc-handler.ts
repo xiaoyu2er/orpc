@@ -3,7 +3,7 @@ import type { Context } from '../../context'
 import type { Router } from '../../router'
 import type { RPCHandlerOptions, StandardHandleOptions } from '../standard'
 import type { NodeHttpHandler, NodeHttpHandleResult, NodeHttpRequest, NodeHttpResponse } from './types'
-import { sendStandardResponse, toStandardRequest } from '@orpc/server-standard-node'
+import { sendStandardResponse, toStandardRequest } from '@orpc/standard-server-node'
 import { RPCCodec, RPCMatcher, StandardHandler } from '../standard'
 
 export class RPCHandler<T extends Context> implements NodeHttpHandler<T> {

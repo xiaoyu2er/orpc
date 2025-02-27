@@ -1,4 +1,4 @@
-import { toFetchResponse, toStandardRequest } from '@orpc/server-standard-fetch'
+import { toFetchResponse, toStandardRequest } from '@orpc/standard-server-fetch'
 import { router } from '../../../tests/shared'
 import { RPCCodec, RPCMatcher, StandardHandler } from '../standard'
 import { RPCHandler } from './rpc-handler'
@@ -8,7 +8,7 @@ vi.mock('../standard', async origin => ({
   StandardHandler: vi.fn(),
 }))
 
-vi.mock('@orpc/server-standard-fetch', async origin => ({
+vi.mock('@orpc/standard-server-fetch', async origin => ({
   toStandardRequest: vi.fn((await origin() as any).toStandardRequest),
   toFetchResponse: vi.fn((await origin() as any).toFetchResponse),
 }))

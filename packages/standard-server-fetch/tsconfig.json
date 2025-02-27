@@ -3,6 +3,9 @@
   "compilerOptions": {
     "lib": ["ES2022", "DOM", "DOM.Iterable"]
   },
+  "references": [
+    { "path": "../standard-server" }
+  ],
   "include": ["src"],
   "exclude": [
     "**/*.test.*",

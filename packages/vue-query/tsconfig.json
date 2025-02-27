@@ -2,9 +2,7 @@
   "extends": "../../tsconfig.lib.json",
   "references": [
     { "path": "../client" },
-    { "path": "../contract" },
-    { "path": "../shared" },
-    { "path": "../server" }
+    { "path": "../shared" }
   ],
   "include": ["src"],
   "exclude": [

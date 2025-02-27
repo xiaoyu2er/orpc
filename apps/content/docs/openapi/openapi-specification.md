@@ -83,6 +83,8 @@ const InputSchema = z.object({
 
 ## Extending the Specification
 
+### JSON Schema Customization
+
 If Zod alone does not cover your JSON Schema requirements, you can extend or override the generated schema:
 
 ```ts twoslash
@@ -102,3 +104,41 @@ const InputSchema = oz.openapi(
   }
 )
 ```
+
+### Customizing Operation Objects
+
+You can also extend the operation object using the `.spec` helper for an `error` or `middleware`:
+
+```ts twoslash
+import { z } from 'zod'
+import { os } from '@orpc/server'
+// ---cut---
+import { oo } from '@orpc/openapi'
+
+const base = os.errors({
+  UNAUTHORIZED: oo.spec({
+    data: z.any(),
+  }, {
+    security: [{ 'api-key': [], },
+    ],
+  })
+})
+
+// OR in middleware
+
+const requireAuth = oo.spec(
+  os.middleware(async ({ next, errors }) => {
+    throw errors.UNAUTHORIZED()
+    return next()
+  }),
+  {
+    security: [{ 'api-key': [], },]
+  }
+)
+```
+
+Any [procedure](/docs/procedure) that includes the use above `errors` or `middleware` will automatically have the defined `security` property applied
+
+:::info
+The `.spec` helper accepts a callback as its second argument, allowing you to override the entire operation object.
+:::

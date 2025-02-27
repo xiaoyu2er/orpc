@@ -13,7 +13,7 @@
     "posttype:check": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest watch",
-    "test:coverage": "vitest run --coverage --coverage.include=packages",
+    "test:coverage": "vitest run --coverage --coverage.include='packages/*/src/**'",
     "lint": "eslint --max-warnings=0 .",
     "lint:fix": "pnpm run lint --fix",
     "sherif": "pnpm dlx sherif",

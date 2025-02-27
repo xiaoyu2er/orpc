@@ -181,7 +181,7 @@ describe('bracketNotation', () => {
   })
 
   it.each([
-    [{ a: 1, b: 2, c: [1, 2, { a: 1, b: 2 }, new Date(), new Blob(), new Set([1, 2]), new Map([[1, 2]])] }],
+    [{ a: 1, b: 2, c: [1, 2, { a: 1, b: 2 }, new Date(), new Blob([]), new Set([1, 2]), new Map([[1, 2]])] }],
   ])('.serialize + .deserialize', (value) => {
     expect(serializer.deserialize(serializer.serialize(value))).toEqual(value)
   })

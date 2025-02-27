@@ -21,7 +21,7 @@ describe('openAPISerializer', () => {
     })
 
     it('with blob', () => {
-      const blob = new Blob()
+      const blob = new Blob([])
       expect(openapiSerializer.serialize(blob)).toBe(blob)
     })
 
@@ -217,7 +217,7 @@ describe('openAPISerializer', () => {
     })
 
     it('with blob', () => {
-      const blob = new Blob()
+      const blob = new Blob([])
       expect(openapiSerializer.deserialize(blob)).toBe(blob)
     })
 

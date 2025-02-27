@@ -84,9 +84,9 @@
   "dependencies": {
     "@orpc/client": "workspace:*",
     "@orpc/contract": "workspace:*",
-    "@orpc/server-standard": "^0.4.0",
-    "@orpc/server-standard-fetch": "^0.4.0",
-    "@orpc/server-standard-node": "^0.4.0",
+    "@orpc/server-standard": "workspace:*",
+    "@orpc/server-standard-fetch": "workspace:*",
+    "@orpc/server-standard-node": "workspace:*",
     "@orpc/shared": "workspace:*"
   },
   "devDependencies": {

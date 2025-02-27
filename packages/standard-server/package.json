@@ -1,16 +1,15 @@
 {
-  "name": "@orpc/contract",
+  "name": "@orpc/server-standard",
   "type": "module",
-  "version": "0.42.0",
+  "version": "0.4.0",
   "license": "MIT",
-  "homepage": "https://orpc.unnoq.com",
+  "homepage": "https://unnoq.com",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/unnoq/orpc.git",
-    "directory": "packages/contract"
+    "url": "git+https://github.com/uorpc/server-standard.git",
+    "directory": "packages/base"
   },
   "keywords": [
-    "unnoq",
     "orpc"
   ],
   "publishConfig": {
@@ -42,14 +41,7 @@
     "type:check": "tsc -b"
   },
   "dependencies": {
-    "@orpc/client": "workspace:*",
-    "@orpc/server-standard": "workspace:*",
-    "@orpc/shared": "workspace:*",
-    "@standard-schema/spec": "^1.0.0"
-  },
-  "devDependencies": {
-    "arktype": "2.0.0-rc.26",
-    "valibot": "1.0.0-beta.9",
-    "zod": "^3.24.1"
+    "@tinyhttp/content-disposition": "^2.2.2",
+    "type-fest": "^4.34.1"
   }
 }

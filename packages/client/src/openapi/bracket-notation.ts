@@ -112,6 +112,7 @@ export class BracketNotationSerializer {
   parsePath(path: string): string[] {
     const segments: string[] = []
 
+    let inBrackets = false
     let currentSegment = ''
     let backslashCount = 0
 
@@ -119,13 +120,18 @@ export class BracketNotationSerializer {
       const char = path[i]!
       const nextChar = path[i + 1]
 
-      if (char === ']' && (nextChar === undefined || nextChar === '[') && backslashCount % 2 === 0) {
+      if (inBrackets && char === ']' && (nextChar === undefined || nextChar === '[') && backslashCount % 2 === 0) {
+        if (nextChar === undefined) {
+          inBrackets = false
+        }
+
         segments.push(currentSegment)
         currentSegment = ''
         i++
       }
 
       else if (segments.length === 0 && char === '[' && backslashCount % 2 === 0) {
+        inBrackets = true
         segments.push(currentSegment)
         currentSegment = ''
       }
@@ -140,14 +146,7 @@ export class BracketNotationSerializer {
       }
     }
 
-    if (!segments.length) {
-      segments.push(currentSegment)
-    }
-    else if (currentSegment) {
-      segments[segments.length - 1] += segments.length === 1 ? `[${currentSegment}` : `][${currentSegment}`
-    }
-
-    return segments
+    return inBrackets || segments.length === 0 ? [path] : segments
   }
 }
 

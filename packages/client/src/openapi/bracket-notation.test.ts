@@ -17,8 +17,13 @@ describe('bracketNotation', () => {
     expect(serializer.parsePath('a[b]c[d')).toEqual(['a[b]c[d'])
     expect(serializer.parsePath('a[[b]]')).toEqual(['a', '[b]'])
     expect(serializer.parsePath('a\\[[b]]')).toEqual(['a[', 'b]'])
+    expect(serializer.parsePath('abc[]')).toEqual(['abc', ''])
+
     expect(serializer.parsePath('abc[def')).toEqual(['abc[def'])
-    expect(serializer.parsePath('abc[d][ef')).toEqual(['abc', 'd][ef'])
+    expect(serializer.parsePath('abc[d][ef')).toEqual(['abc[d][ef'])
+    expect(serializer.parsePath('abc[d][')).toEqual(['abc[d]['])
+    expect(serializer.parsePath('abc[')).toEqual(['abc['])
+    expect(serializer.parsePath('abc]')).toEqual(['abc]'])
   })
 
   it.each([

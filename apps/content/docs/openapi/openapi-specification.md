@@ -111,7 +111,7 @@ You can also extend the operation object using the `.spec` helper for an `error`
 
 ```ts twoslash
 import { z } from 'zod'
-import { os } from '@orpc/server'
+import { ORPCError, os } from '@orpc/server'
 // ---cut---
 import { oo } from '@orpc/openapi'
 
@@ -119,8 +119,7 @@ const base = os.errors({
   UNAUTHORIZED: oo.spec({
     data: z.any(),
   }, {
-    security: [{ 'api-key': [], },
-    ],
+    security: [{ 'api-key': [] }],
   })
 })
 
@@ -128,11 +127,11 @@ const base = os.errors({
 
 const requireAuth = oo.spec(
   os.middleware(async ({ next, errors }) => {
-    throw errors.UNAUTHORIZED()
+    throw new ORPCError('UNAUTHORIZED')
     return next()
   }),
   {
-    security: [{ 'api-key': [], },]
+    security: [{ 'api-key': [] }]
   }
 )
 ```

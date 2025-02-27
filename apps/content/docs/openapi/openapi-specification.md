@@ -83,36 +83,33 @@ const InputSchema = z.object({
 
 ## Extending the Specification
 
-### JSON Schema Customization
+### Operation Metadata
 
-If Zod alone does not cover your JSON Schema requirements, you can extend or override the generated schema:
+You can enrich your API documentation by specifying operation metadata using the `.route` or `.tag`:
 
-```ts twoslash
-import { z } from 'zod'
-import { oz } from '@orpc/zod'
+```ts
+const ping = os
+  .route({
+    summary: 'the summary',
+    description: 'the description',
+    deprecated: false,
+    tags: ['tag'],
+    successDescription: 'the success description',
+  })
+  .handler(() => {})
 
-const InputSchema = oz.openapi(
-  z.object({
-    name: z.string(),
-  }),
-  {
-    examples: [
-      { name: 'Earth' },
-      { name: 'Mars' },
-    ],
-    // additional options...
-  }
-)
+// or append tag for entire router
+
+const router = os.tag('planets').router({
+  // ...
+})
 ```
 
 ### Customizing Operation Objects
 
 You can also extend the operation object using the `.spec` helper for an `error` or `middleware`:
 
-```ts twoslash
-import { z } from 'zod'
-import { ORPCError, os } from '@orpc/server'
-// ---cut---
+```ts
 import { oo } from '@orpc/openapi'
 
 const base = os.errors({
@@ -141,3 +138,25 @@ Any [procedure](/docs/procedure) that includes the use above `errors` or `middle
 :::info
 The `.spec` helper accepts a callback as its second argument, allowing you to override the entire operation object.
 :::
+
+### JSON Schema Customization
+
+If Zod alone does not cover your JSON Schema requirements, you can extend or override the generated schema:
+
+```ts twoslash
+import { z } from 'zod'
+import { oz } from '@orpc/zod'
+
+const InputSchema = oz.openapi(
+  z.object({
+    name: z.string(),
+  }),
+  {
+    examples: [
+      { name: 'Earth' },
+      { name: 'Mars' },
+    ],
+    // additional options...
+  }
+)
+```

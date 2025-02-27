@@ -6,7 +6,7 @@ import { safe } from './utils'
 describe('safe', async () => {
   const client = {} as Client<ClientContext, string, number, Error | ORPCError<'BAD_GATEWAY', { val: string }>>
 
-  it('array style', async () => {
+  it('tuple style', async () => {
     const [error, data, isDefined] = await safe(client('123'))
 
     if (error) {

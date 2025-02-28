@@ -22,7 +22,7 @@ describe('sendStandardResponse', () => {
           'x-custom-header': 'custom-value',
         },
         body: undefined,
-      })
+      }, {})
     }).get('/')
 
     expect(toNodeHttpBodySpy).toBeCalledTimes(1)
@@ -53,7 +53,7 @@ describe('sendStandardResponse', () => {
           'x-custom-header': 'custom-value',
         },
         body: { foo: 'bar' },
-      })
+      }, {})
     }).get('/')
 
     expect(toNodeHttpBodySpy).toBeCalledTimes(1)
@@ -87,7 +87,7 @@ describe('sendStandardResponse', () => {
           'x-custom-header': 'custom-value',
         },
         body: blob,
-      })
+      }, {})
     }).get('/')
 
     expect(toNodeHttpBodySpy).toBeCalledTimes(1)
@@ -123,6 +123,8 @@ describe('sendStandardResponse', () => {
 
     let endSpy: any
 
+    const options = { eventSourcePingEnabled: true }
+
     const res = await request(async (req: IncomingMessage, res: ServerResponse) => {
       endSpy = vi.spyOn(res, 'end')
 
@@ -132,7 +134,7 @@ describe('sendStandardResponse', () => {
           'x-custom-header': 'custom-value',
         },
         body: generator,
-      })
+      }, options)
     }).get('/')
 
     expect(toNodeHttpBodySpy).toBeCalledTimes(1)
@@ -141,7 +143,7 @@ describe('sendStandardResponse', () => {
       'cache-control': 'no-cache',
       'content-type': 'text/event-stream',
       'x-custom-header': 'custom-value',
-    })
+    }, options)
 
     expect(endSpy).toBeCalledTimes(1)
     expect(endSpy).toBeCalledWith()

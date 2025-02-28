@@ -112,3 +112,33 @@ export const contract = {
   },
 }
 ```
+
+## Utilities
+
+### Infer Contract Router Input
+
+```ts twoslash
+import type { contract } from './shared/planet'
+// ---cut---
+import type { InferContractRouterInputs } from '@orpc/contract'
+
+export type Inputs = InferContractRouterInputs<typeof contract>
+
+type FindPlanetInput = Inputs['planet']['find']
+```
+
+This snippet automatically extracts the expected input types for each procedure in the router.
+
+### Infer Contract Router Output
+
+```ts twoslash
+import type { contract } from './shared/planet'
+// ---cut---
+import type { InferContractRouterOutputs } from '@orpc/contract'
+
+export type Outputs = InferContractRouterOutputs<typeof contract>
+
+type FindPlanetOutput = Outputs['planet']['find']
+```
+
+Similarly, this utility infers the output types, ensuring that your application correctly handles the results from each procedure.

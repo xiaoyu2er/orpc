@@ -61,6 +61,8 @@ You can find the full documentation [here](https://orpc.unnoq.com).
 
 ## Overview
 
+This is a quick overview of how to use oRPC. For more details, please refer to the [documentation](https://orpc.unnoq.com).
+
 1. **Define your router:**
 
    ```ts
@@ -169,6 +171,26 @@ You can find the full documentation [here](https://orpc.unnoq.com).
    import { orpc } from './client'
 
    const planets = await orpc.planet.list({ limit: 10 })
+   ```
+
+5. **Generate OpenAPI Spec:**
+
+   ```ts
+   import { OpenAPIGenerator } from '@orpc/openapi'
+   import { ZodToJsonSchemaConverter } from '@orpc/zod'
+
+   const generator = new OpenAPIGenerator({
+     schemaConverters: [new ZodToJsonSchemaConverter()]
+   })
+
+   const spec = await generator.generate(router, {
+     info: {
+       title: 'Planet API',
+       version: '1.0.0'
+     }
+   })
+
+   console.log(JSON.stringify(spec, null, 2))
    ```
 
 ## References

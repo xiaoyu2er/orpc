@@ -19,6 +19,12 @@ export function assertEventRetry(retry: number): void {
   }
 }
 
+export function assertEventComment(comment: string): void {
+  if (comment.includes('\n')) {
+    throw new EventEncoderError('Event-source comment must not contain a newline character')
+  }
+}
+
 export function encodeEventData(data: string | undefined): string {
   const lines = data?.split(/\n/) ?? []
 
@@ -31,8 +37,22 @@ export function encodeEventData(data: string | undefined): string {
   return output
 }
 
+export function encodeEventComments(comments: string[] | undefined): string {
+  let output = ''
+
+  for (const comment of comments ?? []) {
+    assertEventComment(comment)
+
+    output += `: ${comment}\n`
+  }
+
+  return output
+}
+
 export function encodeEventMessage(message: Partial<EventMessage>): string {
   let output = ''
+
+  output += encodeEventComments(message.comments)
 
   if (message.event !== undefined) {
     assertEventName(message.event)

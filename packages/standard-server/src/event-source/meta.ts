@@ -1,10 +1,10 @@
 import type { EventMessage } from './types'
 import { isTypescriptObject } from '@orpc/shared'
-import { assertEventId, assertEventRetry } from './encoder'
+import { assertEventComment, assertEventId, assertEventRetry } from './encoder'
 
 const EVENT_SOURCE_META_SYMBOL = Symbol('ORPC_EVENT_SOURCE_META')
 
-export type EventMeta = Partial<Pick<EventMessage, 'retry' | 'id'>>
+export type EventMeta = Partial<Pick<EventMessage, 'retry' | 'id' | 'comments'>>
 
 export function withEventMeta<T extends object>(container: T, meta: EventMeta): T {
   if (meta.id !== undefined) {
@@ -13,6 +13,12 @@ export function withEventMeta<T extends object>(container: T, meta: EventMeta): 
 
   if (meta.retry !== undefined) {
     assertEventRetry(meta.retry)
+  }
+
+  if (meta.comments !== undefined) {
+    for (const comment of meta.comments) {
+      assertEventComment(comment)
+    }
   }
 
   return new Proxy(container, {

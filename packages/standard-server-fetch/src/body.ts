@@ -1,5 +1,5 @@
 import type { StandardBody } from '@orpc/standard-server'
-import { isAsyncIteratorObject, parseEmptyableJSON } from '@orpc/shared'
+import { isAsyncIteratorObject, parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
 import { contentDisposition, parseContentDisposition } from '@orpc/standard-server'
 import { toEventIterator, toEventStream } from './event-source'
 
@@ -95,5 +95,5 @@ export function toFetchBody(
 
   headers.set('content-type', 'application/json')
 
-  return JSON.stringify(body)
+  return stringifyJSON(body)
 }

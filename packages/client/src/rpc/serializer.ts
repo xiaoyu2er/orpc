@@ -1,4 +1,4 @@
-import { isAsyncIteratorObject } from '@orpc/shared'
+import { isAsyncIteratorObject, stringifyJSON } from '@orpc/shared'
 import { ErrorEvent } from '@orpc/standard-server'
 import { ORPCError, toORPCError } from '../error'
 import { mapEventIterator } from '../event-iterator'
@@ -53,7 +53,7 @@ export class RPCSerializer {
 
     const form = new FormData()
 
-    form.set('data', JSON.stringify({ json, meta, maps }))
+    form.set('data', stringifyJSON({ json, meta, maps }))
 
     blobs.forEach((blob, i) => {
       form.set(i.toString(), blob)

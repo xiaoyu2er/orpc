@@ -7,3 +7,5 @@ export * from './event-iterator'
 export * from './event-iterator-state'
 export * from './types'
 export * from './utils'
+
+export { ErrorEvent } from '@orpc/standard-server'

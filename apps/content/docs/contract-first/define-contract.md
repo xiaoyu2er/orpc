@@ -115,7 +115,7 @@ export const contract = {
 
 ## Utilities
 
-### Infer Router Input
+### Infer Contract Router Input
 
 ```ts twoslash
 import type { contract } from './shared/planet'
@@ -129,7 +129,7 @@ type FindPlanetInput = Inputs['planet']['find']
 
 This snippet automatically extracts the expected input types for each procedure in the router.
 
-### Infer Router Output
+### Infer Contract Router Output
 
 ```ts twoslash
 import type { contract } from './shared/planet'

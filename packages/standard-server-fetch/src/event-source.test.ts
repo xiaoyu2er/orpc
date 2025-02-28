@@ -1,5 +1,5 @@
 import { isAsyncIteratorObject } from '@orpc/shared'
-import { ErrorEvent, getEventMeta, UnknownEvent, withEventMeta } from '@orpc/standard-server'
+import { ErrorEvent, getEventMeta, withEventMeta } from '@orpc/standard-server'
 import { toEventIterator, toEventStream } from './event-source'
 
 describe('toEventIterator', () => {
@@ -111,46 +111,6 @@ describe('toEventIterator', () => {
 
     await expect(generator.next()).rejects.toSatisfy((error: any) => {
       expect(error).toBeInstanceOf(ErrorEvent)
-      expect(error.data).toEqual({ order: 3 })
-      expect(getEventMeta(error)).toEqual(expect.objectContaining({ id: 'id-3', retry: 30000 }))
-
-      return true
-    })
-
-    await expect(stream.getReader().closed).resolves.toBe(undefined)
-  })
-
-  it('with unknown event', async () => {
-    const stream = new ReadableStream<string>({
-      async pull(controller) {
-        controller.enqueue('event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n')
-        controller.enqueue('event: message\ndata: {"order": 2}\nid: id-2\n\n')
-        controller.enqueue('event: unknown\ndata: {"order": 3}\nid: id-3\nretry: 30000\n\n')
-        controller.close()
-      },
-    }).pipeThrough(new TextEncoderStream())
-
-    const generator = toEventIterator(stream)
-    expect(generator).toSatisfy(isAsyncIteratorObject)
-
-    expect(await generator.next()).toSatisfy(({ done, value }) => {
-      expect(done).toEqual(false)
-      expect(value).toEqual({ order: 1 })
-      expect(getEventMeta(value)).toEqual(expect.objectContaining({ id: 'id-1', retry: 10000 }))
-
-      return true
-    })
-
-    expect(await generator.next()).toSatisfy(({ done, value }) => {
-      expect(done).toEqual(false)
-      expect(value).toEqual({ order: 2 })
-      expect(getEventMeta(value)).toEqual(expect.objectContaining({ id: 'id-2', retry: undefined }))
-
-      return true
-    })
-
-    await expect(generator.next()).rejects.toSatisfy((error: any) => {
-      expect(error).toBeInstanceOf(UnknownEvent)
       expect(error.data).toEqual({ order: 3 })
       expect(getEventMeta(error)).toEqual(expect.objectContaining({ id: 'id-3', retry: 30000 }))
 

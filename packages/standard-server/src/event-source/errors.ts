@@ -15,5 +15,3 @@ export class ErrorEvent extends Error {
     this.data = options?.data
   }
 }
-
-export class UnknownEvent extends ErrorEvent {}

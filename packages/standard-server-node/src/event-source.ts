@@ -5,7 +5,6 @@ import {
   ErrorEvent,
   EventDecoderStream,
   getEventMeta,
-  UnknownEvent,
   withEventMeta,
 } from '@orpc/standard-server'
 
@@ -57,17 +56,6 @@ export function toEventIterator(
             }
 
             return done
-          }
-
-          default: {
-            let error = new UnknownEvent({
-              message: `Unknown event: ${value.event}`,
-              data: parseEmptyableJSON(value.data),
-            })
-
-            error = withEventMeta(error, value)
-
-            throw error
           }
         }
       }

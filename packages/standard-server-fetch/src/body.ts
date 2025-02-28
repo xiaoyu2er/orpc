@@ -1,5 +1,6 @@
 import type { StandardBody } from '@orpc/standard-server'
-import { contentDisposition, isAsyncIteratorObject, parseContentDisposition, parseEmptyableJSON } from '@orpc/standard-server'
+import { isAsyncIteratorObject, parseEmptyableJSON } from '@orpc/shared'
+import { contentDisposition, parseContentDisposition } from '@orpc/standard-server'
 import { toEventIterator, toEventStream } from './event-source'
 
 export async function toStandardBody(re: Request | Response): Promise<StandardBody> {

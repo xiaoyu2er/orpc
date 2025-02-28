@@ -1,4 +1,4 @@
-import { isAsyncIteratorObject } from '@orpc/standard-server'
+import { isAsyncIteratorObject } from '@orpc/shared'
 import * as Body from './body'
 import * as Headers from './headers'
 import { toStandardRequest } from './request'

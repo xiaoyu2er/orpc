@@ -1,4 +1,4 @@
-import { isAsyncIteratorObject } from '@orpc/standard-server'
+import { isAsyncIteratorObject } from '@orpc/shared'
 import { toFetchBody, toStandardBody } from './body'
 
 describe('toStandardBody', () => {

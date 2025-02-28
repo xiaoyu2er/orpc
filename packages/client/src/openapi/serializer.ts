@@ -1,4 +1,5 @@
-import { ErrorEvent, isAsyncIteratorObject } from '@orpc/standard-server'
+import { isAsyncIteratorObject } from '@orpc/shared'
+import { ErrorEvent } from '@orpc/standard-server'
 import { ORPCError, toORPCError } from '../error'
 import { mapEventIterator } from '../event-iterator'
 import { BracketNotationSerializer } from './bracket-notation'

@@ -1,10 +1,10 @@
+import { parseEmptyableJSON } from '@orpc/shared'
 import {
   encodeEventMessage,
   ErrorEvent,
   EventDecoderStream,
   getEventMeta,
   isEventMetaContainer,
-  parseEmptyableJSON,
   UnknownEvent,
   withEventMeta,
 } from '@orpc/standard-server'

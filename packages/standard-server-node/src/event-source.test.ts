@@ -1,5 +1,6 @@
 import { Readable } from 'node:stream'
-import { ErrorEvent, getEventMeta, isAsyncIteratorObject, UnknownEvent, withEventMeta } from '@orpc/standard-server'
+import { isAsyncIteratorObject } from '@orpc/shared'
+import { ErrorEvent, getEventMeta, UnknownEvent, withEventMeta } from '@orpc/standard-server'
 import { toEventIterator, toEventStream } from './event-source'
 
 describe('toEventIterator', () => {

@@ -1,19 +1,17 @@
-import type { JsonValue } from '@orpc/standard-server'
 import { Readable } from 'node:stream'
+import { isTypescriptObject, parseEmptyableJSON } from '@orpc/shared'
 import {
   encodeEventMessage,
   ErrorEvent,
   EventDecoderStream,
   getEventMeta,
-  isEventMetaContainer,
-  parseEmptyableJSON,
   UnknownEvent,
   withEventMeta,
 } from '@orpc/standard-server'
 
 export function toEventIterator(
   stream: Readable,
-): AsyncGenerator<JsonValue | void, JsonValue | void, void> {
+): AsyncGenerator<unknown | void, unknown | void, void> {
   const eventStream = Readable.toWeb(stream)
     .pipeThrough(new TextDecoderStream())
     .pipeThrough(new EventDecoderStream())
@@ -33,7 +31,7 @@ export function toEventIterator(
           case 'message': {
             let message = parseEmptyableJSON(value.data)
 
-            if (isEventMetaContainer(message)) {
+            if (isTypescriptObject(message)) {
               message = withEventMeta(message, value)
             }
 
@@ -54,7 +52,7 @@ export function toEventIterator(
           case 'done': {
             let done = parseEmptyableJSON(value.data)
 
-            if (isEventMetaContainer(done)) {
+            if (isTypescriptObject(done)) {
               done = withEventMeta(done, value)
             }
 
@@ -83,7 +81,7 @@ export function toEventIterator(
 }
 
 export function toEventStream(
-  iterator: AsyncIterator<JsonValue | void, JsonValue | void, void>,
+  iterator: AsyncIterator<unknown | void, unknown | void, void>,
 ): Readable {
   const stream = new ReadableStream<string>({
     async pull(controller) {

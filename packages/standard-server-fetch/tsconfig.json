@@ -4,7 +4,8 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"]
   },
   "references": [
-    { "path": "../standard-server" }
+    { "path": "../standard-server" },
+    { "path": "../shared" }
   ],
   "include": ["src"],
   "exclude": [

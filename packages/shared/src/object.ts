@@ -88,3 +88,10 @@ export function isObject(value: unknown): value is Record<PropertyKey, unknown> 
 
   return proto === Object.prototype || !proto || !proto.constructor
 }
+
+/**
+ * Check if the value satisfy a `object` type in typescript
+ */
+export function isTypescriptObject(value: unknown): value is object & Record<PropertyKey, unknown> {
+  return !!value && (typeof value === 'object' || typeof value === 'function')
+}

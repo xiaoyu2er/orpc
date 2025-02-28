@@ -1,4 +1,5 @@
-import { ErrorEvent, getEventMeta, isAsyncIteratorObject, UnknownEvent, withEventMeta } from '@orpc/standard-server'
+import { isAsyncIteratorObject } from '@orpc/shared'
+import { ErrorEvent, getEventMeta, UnknownEvent, withEventMeta } from '@orpc/standard-server'
 import { toEventIterator, toEventStream } from './event-source'
 
 describe('toEventIterator', () => {
@@ -182,7 +183,7 @@ describe('toEventIterator', () => {
       return true
     })
 
-    await generator.return()
+    await generator.return(undefined)
 
     await new Promise(r => setTimeout(r, 10))
     await expect(stream.getReader().closed).resolves.toBe(undefined)

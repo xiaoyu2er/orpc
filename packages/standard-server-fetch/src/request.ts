@@ -1,5 +1,5 @@
 import type { StandardRequest } from '@orpc/standard-server'
-import { once } from '@orpc/standard-server'
+import { once } from '@orpc/shared'
 import { toStandardBody } from './body'
 import { toStandardHeaders } from './headers'
 

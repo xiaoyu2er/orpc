@@ -1,16 +1,4 @@
-import { getEventMeta, isEventMetaContainer, withEventMeta } from './meta'
-
-it('isEventMetaContainer', () => {
-  expect(new Error('hi')).toSatisfy(isEventMetaContainer)
-  expect({}).toSatisfy(isEventMetaContainer)
-  expect(() => { }).toSatisfy(isEventMetaContainer)
-  expect(new Proxy({}, {})).toSatisfy(isEventMetaContainer)
-
-  expect(1).not.toSatisfy(isEventMetaContainer)
-  expect(null).not.toSatisfy(isEventMetaContainer)
-  expect(undefined).not.toSatisfy(isEventMetaContainer)
-  expect(true).not.toSatisfy(isEventMetaContainer)
-})
+import { getEventMeta, withEventMeta } from './meta'
 
 it('get/withEventMeta', () => {
   const data = { value: 123, meta: undefined }

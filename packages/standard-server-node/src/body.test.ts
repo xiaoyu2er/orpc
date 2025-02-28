@@ -2,7 +2,7 @@ import type { StandardBody } from '@orpc/standard-server'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { Buffer } from 'node:buffer'
 import { Readable } from 'node:stream'
-import { isAsyncIteratorObject } from '@orpc/standard-server'
+import { isAsyncIteratorObject } from '@orpc/shared'
 import request from 'supertest'
 import { toNodeHttpBody, toStandardBody } from './body'
 

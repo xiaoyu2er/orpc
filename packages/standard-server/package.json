@@ -41,7 +41,7 @@
     "type:check": "tsc -b"
   },
   "dependencies": {
-    "@tinyhttp/content-disposition": "^2.2.2",
-    "type-fest": "^4.34.1"
+    "@orpc/shared": "workspace:*",
+    "@tinyhttp/content-disposition": "^2.2.2"
   }
 }

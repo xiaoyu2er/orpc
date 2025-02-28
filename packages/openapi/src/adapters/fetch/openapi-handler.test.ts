@@ -44,7 +44,8 @@ describe('openAPIHandler', () => {
       },
     })
 
-    const result = await handler.handle(request, { prefix: '/api/v1', context: { db: 'postgres' } })
+    const options = { prefix: '/api/v1', context: { db: 'postgres' } } as const
+    const result = await handler.handle(request, options)
 
     expect(result).toEqual({
       matched: true,
@@ -54,7 +55,7 @@ describe('openAPIHandler', () => {
     expect(handle).toHaveBeenCalledOnce()
     expect(handle).toHaveBeenCalledWith(
       vi.mocked(toStandardRequest).mock.results[0]!.value,
-      { prefix: '/api/v1', context: { db: 'postgres' } },
+      options,
     )
 
     expect(vi.mocked(toStandardRequest)).toHaveBeenCalledOnce()
@@ -65,7 +66,7 @@ describe('openAPIHandler', () => {
       status: 200,
       headers: {},
       body: '__body__',
-    })
+    }, options)
   })
 
   it('on mismatch', async () => {

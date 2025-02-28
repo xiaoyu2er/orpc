@@ -13,6 +13,7 @@ describe('sendStandardResponse', () => {
   it('works with undefined', async () => {
     let endSpy: any
 
+    const options = { eventSourcePingEnabled: true }
     const res = await request(async (req: IncomingMessage, res: ServerResponse) => {
       endSpy = vi.spyOn(res, 'end')
 
@@ -22,13 +23,13 @@ describe('sendStandardResponse', () => {
           'x-custom-header': 'custom-value',
         },
         body: undefined,
-      }, {})
+      }, options)
     }).get('/')
 
     expect(toNodeHttpBodySpy).toBeCalledTimes(1)
     expect(toNodeHttpBodySpy).toBeCalledWith(undefined, {
       'x-custom-header': 'custom-value',
-    })
+    }, options)
 
     expect(endSpy).toBeCalledTimes(1)
     expect(endSpy).toBeCalledWith(toNodeHttpBodySpy.mock.results[0]!.value)
@@ -44,6 +45,7 @@ describe('sendStandardResponse', () => {
   it('works with json', async () => {
     let endSpy: any
 
+    const options = { eventSourcePingEnabled: true }
     const res = await request(async (req: IncomingMessage, res: ServerResponse) => {
       endSpy = vi.spyOn(res, 'end')
 
@@ -53,14 +55,14 @@ describe('sendStandardResponse', () => {
           'x-custom-header': 'custom-value',
         },
         body: { foo: 'bar' },
-      }, {})
+      }, options)
     }).get('/')
 
     expect(toNodeHttpBodySpy).toBeCalledTimes(1)
     expect(toNodeHttpBodySpy).toBeCalledWith({ foo: 'bar' }, {
       'content-type': 'application/json',
       'x-custom-header': 'custom-value',
-    })
+    }, options)
 
     expect(endSpy).toBeCalledTimes(1)
     expect(endSpy).toBeCalledWith(toNodeHttpBodySpy.mock.results[0]!.value)
@@ -78,6 +80,7 @@ describe('sendStandardResponse', () => {
     const blob = new Blob(['foo'], { type: 'text/plain' })
     let endSpy: any
 
+    const options = { eventSourcePingEnabled: true }
     const res = await request(async (req: IncomingMessage, res: ServerResponse) => {
       endSpy = vi.spyOn(res, 'end')
 
@@ -87,7 +90,7 @@ describe('sendStandardResponse', () => {
           'x-custom-header': 'custom-value',
         },
         body: blob,
-      }, {})
+      }, options)
     }).get('/')
 
     expect(toNodeHttpBodySpy).toBeCalledTimes(1)
@@ -96,7 +99,7 @@ describe('sendStandardResponse', () => {
       'content-length': '3',
       'content-type': 'text/plain',
       'x-custom-header': 'custom-value',
-    })
+    }, options)
 
     expect(endSpy).toBeCalledTimes(1)
     expect(endSpy).toBeCalledWith()

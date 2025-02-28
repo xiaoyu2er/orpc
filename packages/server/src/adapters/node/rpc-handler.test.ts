@@ -60,7 +60,8 @@ describe('rpcHandler', async () => {
       },
     })
 
-    const result = await handler.handle(req, res, { prefix: '/api/v1', context: { db: 'postgres' } })
+    const options = { prefix: '/api/v1', context: { db: 'postgres' } } as const
+    const result = await handler.handle(req, res, options)
 
     expect(result).toEqual({
       matched: true,
@@ -80,7 +81,7 @@ describe('rpcHandler', async () => {
       status: 200,
       headers: {},
       body: '__body__',
-    })
+    }, options)
   })
 
   it('on mismatch', async () => {

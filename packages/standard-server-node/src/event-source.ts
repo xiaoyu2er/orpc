@@ -1,11 +1,10 @@
 import { Readable } from 'node:stream'
-import { parseEmptyableJSON } from '@orpc/shared'
+import { isTypescriptObject, parseEmptyableJSON } from '@orpc/shared'
 import {
   encodeEventMessage,
   ErrorEvent,
   EventDecoderStream,
   getEventMeta,
-  isEventMetaContainer,
   UnknownEvent,
   withEventMeta,
 } from '@orpc/standard-server'
@@ -32,7 +31,7 @@ export function toEventIterator(
           case 'message': {
             let message = parseEmptyableJSON(value.data)
 
-            if (isEventMetaContainer(message)) {
+            if (isTypescriptObject(message)) {
               message = withEventMeta(message, value)
             }
 
@@ -53,7 +52,7 @@ export function toEventIterator(
           case 'done': {
             let done = parseEmptyableJSON(value.data)
 
-            if (isEventMetaContainer(done)) {
+            if (isTypescriptObject(done)) {
               done = withEventMeta(done, value)
             }
 

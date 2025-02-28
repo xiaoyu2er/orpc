@@ -260,12 +260,18 @@ importers:
 
   packages/standard-server:
     dependencies:
+      '@orpc/shared':
+        specifier: workspace:*
+        version: link:../shared
       '@tinyhttp/content-disposition':
         specifier: ^2.2.2
         version: 2.2.2
 
   packages/standard-server-fetch:
     dependencies:
+      '@orpc/shared':
+        specifier: workspace:*
+        version: link:../shared
       '@orpc/standard-server':
         specifier: workspace:*
         version: link:../standard-server
@@ -276,6 +282,9 @@ importers:
 
   packages/standard-server-node:
     dependencies:
+      '@orpc/shared':
+        specifier: workspace:*
+        version: link:../shared
       '@orpc/standard-server':
         specifier: workspace:*
         version: link:../standard-server

@@ -1,6 +1,6 @@
 import type { EventIteratorState } from './event-iterator-state'
-import { retry } from '@orpc/shared'
-import { getEventMeta, isEventMetaContainer, withEventMeta } from '@orpc/standard-server'
+import { isTypescriptObject, retry } from '@orpc/shared'
+import { getEventMeta, withEventMeta } from '@orpc/standard-server'
 import { registerEventIteratorState, updateEventIteratorStatus } from './event-iterator-state'
 
 export function mapEventIterator<TYield, TReturn, TNext, TMap = TYield | TReturn>(
@@ -19,7 +19,7 @@ export function mapEventIterator<TYield, TReturn, TNext, TMap = TYield | TReturn
 
         if (mappedValue !== value) {
           const meta = getEventMeta(value)
-          if (meta && isEventMetaContainer(mappedValue)) {
+          if (meta && isTypescriptObject(mappedValue)) {
             mappedValue = withEventMeta(mappedValue, meta)
           }
         }
@@ -36,7 +36,7 @@ export function mapEventIterator<TYield, TReturn, TNext, TMap = TYield | TReturn
 
       if (mappedError !== error) {
         const meta = getEventMeta(error)
-        if (meta && isEventMetaContainer(mappedError)) {
+        if (meta && isTypescriptObject(mappedError)) {
           mappedError = withEventMeta(mappedError, meta)
         }
       }

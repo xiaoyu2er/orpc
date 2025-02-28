@@ -40,7 +40,7 @@ export async function toStandardBody(req: NodeHttpRequest): Promise<StandardBody
     return toEventIterator(req)
   }
 
-  if (contentType.startsWith('text/')) {
+  if (contentType.startsWith('text/plain')) {
     return _streamToString(req)
   }
 

@@ -40,7 +40,7 @@ export async function toStandardBody(re: Request | Response): Promise<StandardBo
     return toEventIterator(re.body)
   }
 
-  if (contentType.startsWith('text/')) {
+  if (contentType.startsWith('text/plain')) {
     return await re.text()
   }
 

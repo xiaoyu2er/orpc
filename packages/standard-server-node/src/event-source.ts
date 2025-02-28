@@ -1,4 +1,3 @@
-import type { JsonValue } from '@orpc/standard-server'
 import { Readable } from 'node:stream'
 import {
   encodeEventMessage,
@@ -13,7 +12,7 @@ import {
 
 export function toEventIterator(
   stream: Readable,
-): AsyncGenerator<JsonValue | void, JsonValue | void, void> {
+): AsyncGenerator<unknown | void, unknown | void, void> {
   const eventStream = Readable.toWeb(stream)
     .pipeThrough(new TextDecoderStream())
     .pipeThrough(new EventDecoderStream())
@@ -83,7 +82,7 @@ export function toEventIterator(
 }
 
 export function toEventStream(
-  iterator: AsyncIterator<JsonValue | void, JsonValue | void, void>,
+  iterator: AsyncIterator<unknown | void, unknown | void, void>,
 ): Readable {
   const stream = new ReadableStream<string>({
     async pull(controller) {

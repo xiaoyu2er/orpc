@@ -183,7 +183,7 @@ describe('toEventIterator', () => {
       return true
     })
 
-    await generator.return()
+    await generator.return(undefined)
 
     await expect(Readable.toWeb(stream).getReader().closed).resolves.toBe(undefined)
   })

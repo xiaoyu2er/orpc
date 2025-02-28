@@ -1,15 +1,13 @@
-import type { JsonValue } from 'type-fest'
-
 export class EventEncoderError extends TypeError { }
 export class EventDecoderError extends TypeError { }
 
 export interface ErrorEventOptions extends ErrorOptions {
   message?: string
-  data?: undefined | JsonValue
+  data?: unknown
 }
 
 export class ErrorEvent extends Error {
-  public data: undefined | JsonValue
+  public data: unknown
 
   constructor(options?: ErrorEventOptions) {
     super(options?.message ?? 'An error event was received', options)

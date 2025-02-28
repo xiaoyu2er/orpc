@@ -1,4 +1,3 @@
-import type { JsonValue } from '@orpc/standard-server'
 import { ErrorEvent, isAsyncIteratorObject } from '@orpc/standard-server'
 import { ORPCError, toORPCError } from '../error'
 import { mapEventIterator } from '../event-iterator'
@@ -19,13 +18,13 @@ export class OpenAPISerializer {
         error: async (e) => {
           if (e instanceof ErrorEvent) {
             return new ErrorEvent({
-              data: this.#serialize(e.data, false) as JsonValue,
+              data: this.#serialize(e.data, false),
               cause: e,
             })
           }
 
           return new ErrorEvent({
-            data: this.#serialize(toORPCError(e).toJSON(), false) as JsonValue,
+            data: this.#serialize(toORPCError(e).toJSON(), false),
             cause: e,
           })
         },

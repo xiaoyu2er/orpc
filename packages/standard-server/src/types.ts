@@ -1,18 +1,14 @@
-import type { JsonValue } from 'type-fest'
-
-export type { JsonValue }
-
 export interface StandardHeaders {
   [key: string]: string | string[] | undefined
 }
 
 export type StandardBody =
   | undefined
-  | JsonValue
+  | unknown
   | Blob
   | URLSearchParams
   | FormData
-  | AsyncIterator<JsonValue | void, JsonValue | void, undefined>
+  | AsyncIterator<unknown | void, unknown | void, undefined>
 
 export interface StandardRequest {
   /**

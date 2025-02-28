@@ -1,5 +1,3 @@
-import type { JsonValue } from 'type-fest'
-
 export function once<T extends () => any>(fn: T): () => ReturnType<T> {
   let cached: { result: ReturnType<T> } | undefined
 
@@ -15,7 +13,7 @@ export function once<T extends () => any>(fn: T): () => ReturnType<T> {
   }
 }
 
-export function parseEmptyableJSON(text: string): JsonValue | undefined {
+export function parseEmptyableJSON(text: string): unknown {
   if (!text) {
     return undefined
   }

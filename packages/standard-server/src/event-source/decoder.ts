@@ -5,50 +5,46 @@ export function decodeEventMessage(encoded: string): EventMessage {
   const lines = encoded.replace(/\n+$/, '').split(/\n/)
 
   const message: EventMessage = {
-    data: '',
+    data: undefined,
     event: undefined,
     id: undefined,
     retry: undefined,
+    comments: [],
   }
 
   for (const line of lines) {
-    const index = line.indexOf(': ')
+    const index = line.indexOf(':')
 
-    if (index === -1) {
-      throw new EventDecoderError(`Invalid EventSource message line: ${line}`)
+    const key = index === -1 ? line : line.slice(0, index)
+    const value = index === -1 ? '' : line.slice(index + 1).replace(/^\s/, '')
+
+    if (index === 0) {
+      message.comments.push(value)
     }
 
-    const key = line.slice(0, index)
-    const value = line.slice(index + 2)
-
-    if (key !== 'data' && key in message && message[key as keyof EventMessage] !== undefined) {
-      throw new EventDecoderError(`Duplicate EventSource message key: ${key}`)
-    }
-
-    if (key === 'data') {
+    else if (key === 'data') {
+      message.data ??= ''
       message.data += `${value}\n`
     }
+
     else if (key === 'event') {
       message.event = value
     }
+
     else if (key === 'id') {
       message.id = value
     }
+
     else if (key === 'retry') {
       const maybeInteger = Number.parseInt(value)
 
-      if (!Number.isInteger(maybeInteger) || maybeInteger < 0 || maybeInteger.toString() !== value) {
-        throw new EventDecoderError(`Invalid EventSource message retry value: ${value}`)
+      if (Number.isInteger(maybeInteger) && maybeInteger >= 0 && maybeInteger.toString() === value) {
+        message.retry = maybeInteger
       }
-
-      message.retry = maybeInteger
-    }
-    else {
-      throw new EventDecoderError(`Unknown EventSource message key: ${key}`)
     }
   }
 
-  message.data = message.data.replace(/\n$/, '')
+  message.data = message.data?.replace(/\n$/, '')
 
   return message
 }
@@ -72,14 +68,10 @@ export class EventDecoder {
       return
     }
 
-    const completes = this.incomplete.slice(0, lastCompleteIndex + 2).split(/\n{2,}/)
+    const completes = this.incomplete.slice(0, lastCompleteIndex).split(/\n\n/)
     this.incomplete = this.incomplete.slice(lastCompleteIndex + 2)
 
     for (const encoded of completes) {
-      if (!encoded) {
-        continue
-      }
-
       const message = decodeEventMessage(`${encoded}\n\n`)
 
       if (this.options.onEvent) {
@@ -91,7 +83,9 @@ export class EventDecoder {
   }
 
   end(): void {
-    this.feed('\n\n')
+    if (this.incomplete) {
+      throw new EventDecoderError('EventSource ended before complete')
+    }
   }
 }
 

@@ -1,17 +1,17 @@
 import { encodeEventData, encodeEventMessage } from './encoder'
 
 it('encodeEventData', () => {
-  expect(encodeEventData(undefined)).toBe('data: \n')
+  expect(encodeEventData(undefined)).toBe('')
   expect(encodeEventData('hello\nworld')).toBe('data: hello\ndata: world\n')
   expect(encodeEventData('hello\nworld\n')).toBe('data: hello\ndata: world\ndata: \n')
 })
 
 describe('encodeEventMessage', () => {
   it('on success', () => {
-    expect(encodeEventMessage({})).toEqual('data: \n\n')
+    expect(encodeEventMessage({})).toEqual('\n')
     expect(encodeEventMessage({ event: 'message', data: 'hello\nworld' })).toEqual('event: message\ndata: hello\ndata: world\n\n')
     expect(encodeEventMessage({ event: 'message', id: '123', retry: 10000 }))
-      .toEqual('event: message\nretry: 10000\nid: 123\ndata: \n\n')
+      .toEqual('event: message\nretry: 10000\nid: 123\n\n')
   })
 
   it('invalid event', () => {

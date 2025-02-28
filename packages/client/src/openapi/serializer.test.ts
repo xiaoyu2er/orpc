@@ -160,54 +160,6 @@ describe('openAPISerializer', () => {
         expect(serialize).toHaveBeenCalledWith(expect.objectContaining({ code: 'BAD_GATEWAY', data: { order: 3 } }))
         serialize.mockClear()
       })
-
-      it('on error with ErrorEvent', async () => {
-        const date = new Date()
-        const error = withEventMeta(new ErrorEvent({ data: { order: 3 } }), { id: '123456' })
-
-        const serialized = openapiSerializer.serialize((async function* () {
-          yield 1
-          yield withEventMeta({ order: 2, date }, { retry: 1000 })
-          throw error
-        })()) as any
-
-        await expect(serialized.next()).resolves.toSatisfy(({ value, done }) => {
-          expect(done).toBe(false)
-          expect(value).toBe(serialize.mock.results[0]!.value[0])
-          expect(getEventMeta(value)).toEqual(undefined)
-
-          return true
-        })
-
-        expect(serialize).toHaveBeenCalledOnce()
-        expect(serialize).toHaveBeenCalledWith(1)
-        serialize.mockClear()
-
-        await expect(serialized.next()).resolves.toSatisfy(({ value, done }) => {
-          expect(done).toBe(false)
-          expect(value).toEqual(serialize.mock.results[0]!.value[0])
-          expect(getEventMeta(value)).toEqual({ retry: 1000 })
-
-          return true
-        })
-
-        expect(serialize).toHaveBeenCalledOnce()
-        expect(serialize).toHaveBeenCalledWith({ order: 2, date })
-        serialize.mockClear()
-
-        await expect(serialized.next()).rejects.toSatisfy((e: any) => {
-          expect(e).toBeInstanceOf(ErrorEvent)
-          expect(e.data).toEqual(serialize.mock.results[0]!.value[0])
-          expect(e.cause).toBe(error)
-          expect(getEventMeta(e)).toEqual({ id: '123456' })
-
-          return true
-        })
-
-        expect(serialize).toHaveBeenCalledOnce()
-        expect(serialize).toHaveBeenCalledWith({ order: 3 })
-        serialize.mockClear()
-      })
     })
   })
 

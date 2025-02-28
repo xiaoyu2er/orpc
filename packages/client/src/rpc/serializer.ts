@@ -14,13 +14,6 @@ export class RPCSerializer {
       return mapEventIterator(data, {
         value: async (value: unknown) => this.#serialize(value, false),
         error: async (e) => {
-          if (e instanceof ErrorEvent) {
-            return new ErrorEvent({
-              data: this.#serialize(e.data, false),
-              cause: e,
-            })
-          }
-
           return new ErrorEvent({
             data: this.#serialize(toORPCError(e).toJSON(), false),
             cause: e,

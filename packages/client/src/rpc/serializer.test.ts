@@ -142,43 +142,6 @@ describe('rpcSerializer: event-source iterator', async () => {
     })
   })
 
-  it('on error with ErrorEvent', async () => {
-    const error = withEventMeta(new ErrorEvent({ data: { order: 3 } }), { id: '123456' })
-
-    const iterator = (async function* () {
-      yield 1
-      yield withEventMeta({ order: 2, date }, { retry: 1000 })
-      throw error
-    })()
-
-    const deserialized = serializeAndDeserialize(iterator) as any
-
-    expect(deserialized).toSatisfy(isAsyncIteratorObject)
-    await expect(deserialized.next()).resolves.toSatisfy(({ value, done }) => {
-      expect(done).toBe(false)
-      expect(value).toEqual(1)
-      expect(getEventMeta(value)).toEqual(undefined)
-
-      return true
-    })
-
-    await expect(deserialized.next()).resolves.toSatisfy(({ value, done }) => {
-      expect(done).toBe(false)
-      expect(value).toEqual({ order: 2, date })
-      expect(getEventMeta(value)).toEqual({ retry: 1000 })
-
-      return true
-    })
-
-    await expect(deserialized.next()).rejects.toSatisfy((e: any) => {
-      expect(e).toEqual(error)
-      expect(e).toBeInstanceOf(ErrorEvent)
-      expect(e.cause).toBeInstanceOf(ErrorEvent)
-
-      return true
-    })
-  })
-
   it('on error with unknown error when deserialize', async () => {
     const error = withEventMeta(new Error('UNKNOWN'), { id: '123456' })
 
@@ -209,6 +172,21 @@ describe('rpcSerializer: event-source iterator', async () => {
 
     await expect(deserialized.next()).rejects.toSatisfy((e: any) => {
       expect(e).toBe(error)
+
+      return true
+    })
+  })
+
+  it('deserialize an invalid-ORPCError', async () => {
+    const iterator = serializer.deserialize((async function* () {
+      throw new ErrorEvent({
+        data: { json: { value: 1234 } },
+      })
+    })()) as any
+
+    await expect(iterator.next()).rejects.toSatisfy((e: any) => {
+      expect(e).toBeInstanceOf(ErrorEvent)
+      expect(e.data).toEqual({ value: 1234 })
 
       return true
     })

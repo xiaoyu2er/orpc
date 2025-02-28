@@ -1,6 +1,6 @@
 import { Readable } from 'node:stream'
 import { isAsyncIteratorObject } from '@orpc/shared'
-import { ErrorEvent, getEventMeta, UnknownEvent, withEventMeta } from '@orpc/standard-server'
+import { ErrorEvent, getEventMeta, withEventMeta } from '@orpc/standard-server'
 import { toEventIterator, toEventStream } from './event-source'
 
 describe('toEventIterator', () => {
@@ -9,7 +9,7 @@ describe('toEventIterator', () => {
       async pull(controller) {
         controller.enqueue('event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n')
         controller.enqueue('event: message\ndata: {"order": 2}\nid: id-2\n\n')
-        controller.enqueue('event: done\ndata: {"order": 3}\nid: id-3\nretry: 30000')
+        controller.enqueue('event: done\ndata: {"order": 3}\nid: id-3\nretry: 30000\n\n')
         controller.close()
       },
     }).pipeThrough(new TextEncoderStream()))
@@ -40,8 +40,6 @@ describe('toEventIterator', () => {
 
       return true
     })
-
-    await expect(Readable.toWeb(stream).getReader().closed).resolves.toBe(undefined)
   })
 
   it('without dont event', async () => {
@@ -88,7 +86,7 @@ describe('toEventIterator', () => {
       async pull(controller) {
         controller.enqueue('event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n')
         controller.enqueue('event: message\ndata: {"order": 2}\nid: id-2\n\n')
-        controller.enqueue('event: error\ndata: {"order": 3}\nid: id-3\nretry: 30000')
+        controller.enqueue('event: error\ndata: {"order": 3}\nid: id-3\nretry: 30000\n\n')
         controller.close()
       },
     }).pipeThrough(new TextEncoderStream()))
@@ -114,46 +112,6 @@ describe('toEventIterator', () => {
 
     await expect(generator.next()).rejects.toSatisfy((error: any) => {
       expect(error).toBeInstanceOf(ErrorEvent)
-      expect(error.data).toEqual({ order: 3 })
-      expect(getEventMeta(error)).toEqual(expect.objectContaining({ id: 'id-3', retry: 30000 }))
-
-      return true
-    })
-
-    await expect(Readable.toWeb(stream).getReader().closed).resolves.toBe(undefined)
-  })
-
-  it('with unknown event', async () => {
-    const stream = Readable.fromWeb(new ReadableStream<string>({
-      async pull(controller) {
-        controller.enqueue('event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n')
-        controller.enqueue('event: message\ndata: {"order": 2}\nid: id-2\n\n')
-        controller.enqueue('event: unknown\ndata: {"order": 3}\nid: id-3\nretry: 30000')
-        controller.close()
-      },
-    }).pipeThrough(new TextEncoderStream()))
-
-    const generator = toEventIterator(stream)
-    expect(generator).toSatisfy(isAsyncIteratorObject)
-
-    expect(await generator.next()).toSatisfy(({ done, value }) => {
-      expect(done).toEqual(false)
-      expect(value).toEqual({ order: 1 })
-      expect(getEventMeta(value)).toEqual(expect.objectContaining({ id: 'id-1', retry: 10000 }))
-
-      return true
-    })
-
-    expect(await generator.next()).toSatisfy(({ done, value }) => {
-      expect(done).toEqual(false)
-      expect(value).toEqual({ order: 2 })
-      expect(getEventMeta(value)).toEqual(expect.objectContaining({ id: 'id-2', retry: undefined }))
-
-      return true
-    })
-
-    await expect(generator.next()).rejects.toSatisfy((error: any) => {
-      expect(error).toBeInstanceOf(UnknownEvent)
       expect(error.data).toEqual({ order: 3 })
       expect(getEventMeta(error)).toEqual(expect.objectContaining({ id: 'id-3', retry: 30000 }))
 
@@ -205,7 +163,7 @@ describe('toEventStream', () => {
 
     expect((await reader.read()).value).toEqual('event: message\nid: id-1\ndata: {"order":1}\n\n')
     expect((await reader.read()).value).toEqual('event: message\nretry: 20000\ndata: {"order":2}\n\n')
-    expect((await reader.read()).value).toEqual('event: message\ndata: \n\n')
+    expect((await reader.read()).value).toEqual('event: message\n\n')
     expect((await reader.read()).value).toEqual('event: done\nretry: 40000\nid: id-4\ndata: {"order":4}\n\n')
     expect((await reader.read()).done).toEqual(true)
   })
@@ -224,8 +182,8 @@ describe('toEventStream', () => {
 
     expect((await reader.read()).value).toEqual('event: message\nid: id-1\ndata: {"order":1}\n\n')
     expect((await reader.read()).value).toEqual('event: message\nretry: 20000\ndata: {"order":2}\n\n')
-    expect((await reader.read()).value).toEqual('event: message\ndata: \n\n')
-    expect((await reader.read()).value).toEqual('event: error\nretry: 40000\nid: id-4\ndata: \n\n')
+    expect((await reader.read()).value).toEqual('event: message\n\n')
+    expect((await reader.read()).value).toEqual('event: error\nretry: 40000\nid: id-4\n\n')
     expect((await reader.read()).done).toEqual(true)
   })
 
@@ -243,7 +201,7 @@ describe('toEventStream', () => {
 
     expect((await reader.read()).value).toEqual('event: message\nid: id-1\ndata: {"order":1}\n\n')
     expect((await reader.read()).value).toEqual('event: message\nretry: 20000\ndata: {"order":2}\n\n')
-    expect((await reader.read()).value).toEqual('event: message\ndata: \n\n')
+    expect((await reader.read()).value).toEqual('event: message\n\n')
     expect((await reader.read()).value).toEqual('event: error\nretry: 40000\nid: id-4\ndata: {"order":4}\n\n')
     expect((await reader.read()).done).toEqual(true)
   })

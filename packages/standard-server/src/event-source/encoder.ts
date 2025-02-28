@@ -20,7 +20,7 @@ export function assertEventRetry(retry: number): void {
 }
 
 export function encodeEventData(data: string | undefined): string {
-  const lines = data ? data.split(/\n/) : ['']
+  const lines = data?.split(/\n/) ?? []
 
   let output = ''
 

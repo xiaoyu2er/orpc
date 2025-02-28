@@ -190,7 +190,7 @@ This is a quick overview of how to use oRPC. For more details, please refer to t
      }
    })
 
-   console.log(JSON.stringify(spec, null, 2))
+   console.log(spec)
    ```
 
 ## References

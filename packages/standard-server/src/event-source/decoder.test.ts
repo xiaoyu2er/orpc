@@ -65,96 +65,152 @@ describe('decodeEventMessage', () => {
   })
 })
 
-it('eventSourceDecoder', () => {
-  const onEvent = vi.fn()
+describe('eventSourceDecoder', () => {
+  it('on success', () => {
+    const onEvent = vi.fn()
 
-  const decoder = new EventDecoder({ onEvent })
+    const decoder = new EventDecoder({ onEvent })
 
-  decoder.feed('event: message\ndata: hello1\ndata: world\n\n')
-  decoder.feed('event: message\ndata: hello2\ndata: world\nid: 123\nretry: 10000\n\n')
-  decoder.feed('event: message\ndata: hello3\ndata: world\nid: 123\nretry: 10000\n\n')
+    decoder.feed('event: message\ndata: hello1\ndata: world\n\n')
+    decoder.feed('event: message\ndata: hello2\ndata: world\nid: 123\nretry: 10000\n\n')
+    decoder.feed('event: message\ndata: hello3\ndata: world\nid: 123\nretry: 10000\n\n')
 
-  decoder.feed('event: done\n')
-  decoder.feed('data: hello4\n')
-  decoder.feed('data: world\n')
-  decoder.end()
+    decoder.feed('event: done\n')
+    decoder.feed('data: hello4\n')
+    decoder.feed('data: world\n\n')
+    decoder.end()
 
-  expect(onEvent).toHaveBeenCalledTimes(4)
-  expect(onEvent).toHaveBeenNthCalledWith(1, {
-    data: 'hello1\nworld',
-    event: 'message',
-    id: undefined,
-    retry: undefined,
-  })
-  expect(onEvent).toHaveBeenNthCalledWith(2, {
-    data: 'hello2\nworld',
-    event: 'message',
-    id: '123',
-    retry: 10000,
-  })
-  expect(onEvent).toHaveBeenNthCalledWith(3, {
-    data: 'hello3\nworld',
-    event: 'message',
-    id: '123',
-    retry: 10000,
-  })
-  expect(onEvent).toHaveBeenNthCalledWith(4, {
-    data: 'hello4\nworld',
-    event: 'done',
-    id: undefined,
-    retry: undefined,
-  })
-})
-
-it('eventSourceDecoderStream', async () => {
-  const stream = new ReadableStream<string>({
-    start(controller) {
-      controller.enqueue('event: message\ndata: hello1\ndata: world\n\n')
-      controller.enqueue('event: message\ndata: hello2\ndata: world\nid: 123\nretry: 10000\n\n')
-      controller.enqueue('event: message\ndata: hello3\ndata: world\nid: 123\nretry: 10000\n\n')
-      controller.enqueue('event: done\n')
-      controller.enqueue('data: hello4\n')
-      controller.enqueue('data: world\n')
-      controller.close()
-    },
-  }).pipeThrough(new TextEncoderStream())
-
-  const response = new Response(stream)
-
-  const eventSourceStream = response.body!
-    .pipeThrough(new TextDecoderStream())
-    .pipeThrough(new EventDecoderStream())
-
-  const messages: EventMessage[] = []
-
-  for await (const message of eventSourceStream) {
-    messages.push(message)
-  }
-
-  expect(messages).toEqual([
-    {
+    expect(onEvent).toHaveBeenCalledTimes(4)
+    expect(onEvent).toHaveBeenNthCalledWith(1, {
       data: 'hello1\nworld',
       event: 'message',
       id: undefined,
       retry: undefined,
-    },
-    {
+    })
+    expect(onEvent).toHaveBeenNthCalledWith(2, {
       data: 'hello2\nworld',
       event: 'message',
       id: '123',
       retry: 10000,
-    },
-    {
+    })
+    expect(onEvent).toHaveBeenNthCalledWith(3, {
       data: 'hello3\nworld',
       event: 'message',
       id: '123',
       retry: 10000,
-    },
-    {
+    })
+    expect(onEvent).toHaveBeenNthCalledWith(4, {
       data: 'hello4\nworld',
       event: 'done',
       id: undefined,
       retry: undefined,
-    },
-  ])
+    })
+  })
+
+  it('on incomplete message', () => {
+    const onEvent = vi.fn()
+
+    const decoder = new EventDecoder({ onEvent })
+
+    decoder.feed('event: message\ndata: hello1\ndata: world\n\n')
+    decoder.feed('event: message\ndata: hello2\ndata: world\nid: 123\nretry: 10000\n')
+
+    expect(() => decoder.end()).toThrowError('EventSource ended before complete')
+
+    expect(onEvent).toHaveBeenCalledTimes(1)
+    expect(onEvent).toHaveBeenNthCalledWith(1, {
+      data: 'hello1\nworld',
+      event: 'message',
+      id: undefined,
+      retry: undefined,
+    })
+  })
+})
+
+describe('eventSourceDecoderStream', () => {
+  it('on success', async () => {
+    const stream = new ReadableStream<string>({
+      start(controller) {
+        controller.enqueue('event: message\ndata: hello1\ndata: world\n\n')
+        controller.enqueue('event: message\ndata: hello2\ndata: world\nid: 123\nretry: 10000\n\n')
+        controller.enqueue('event: message\ndata: hello3\ndata: world\nid: 123\nretry: 10000\n\n')
+        controller.enqueue('event: done\n')
+        controller.enqueue('data: hello4\n')
+        controller.enqueue('data: world\n\n')
+        controller.close()
+      },
+    }).pipeThrough(new TextEncoderStream())
+
+    const response = new Response(stream)
+
+    const eventSourceStream = response.body!
+      .pipeThrough(new TextDecoderStream())
+      .pipeThrough(new EventDecoderStream())
+
+    const messages: EventMessage[] = []
+
+    for await (const message of eventSourceStream) {
+      messages.push(message)
+    }
+
+    expect(messages).toEqual([
+      {
+        data: 'hello1\nworld',
+        event: 'message',
+        id: undefined,
+        retry: undefined,
+      },
+      {
+        data: 'hello2\nworld',
+        event: 'message',
+        id: '123',
+        retry: 10000,
+      },
+      {
+        data: 'hello3\nworld',
+        event: 'message',
+        id: '123',
+        retry: 10000,
+      },
+      {
+        data: 'hello4\nworld',
+        event: 'done',
+        id: undefined,
+        retry: undefined,
+      },
+    ])
+  })
+
+  it('on incomplete message', async () => {
+    const stream = new ReadableStream<string>({
+      start(controller) {
+        controller.enqueue('event: message\ndata: hello1\ndata: world\n\n')
+        controller.enqueue('event: message\ndata: hello2\ndata: world\nid: 123\nretry: 10000\n')
+        controller.close()
+      },
+    }).pipeThrough(new TextEncoderStream())
+
+    const response = new Response(stream)
+
+    const eventSourceStream = response.body!
+      .pipeThrough(new TextDecoderStream())
+      .pipeThrough(new EventDecoderStream())
+
+    const messages: EventMessage[] = []
+
+    await expect(async () => {
+      for await (const message of eventSourceStream) {
+        messages.push(message)
+      }
+    }).rejects.toThrowError('EventSource ended before complete')
+
+    expect(messages).toEqual([
+      {
+        data: 'hello1\nworld',
+        event: 'message',
+        id: undefined,
+        retry: undefined,
+      },
+    ])
+  })
 })

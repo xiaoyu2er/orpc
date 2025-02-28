@@ -9,7 +9,7 @@ describe('toEventIterator', () => {
       async pull(controller) {
         controller.enqueue('event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n')
         controller.enqueue('event: message\ndata: {"order": 2}\nid: id-2\n\n')
-        controller.enqueue('event: done\ndata: {"order": 3}\nid: id-3\nretry: 30000')
+        controller.enqueue('event: done\ndata: {"order": 3}\nid: id-3\nretry: 30000\n\n')
         controller.close()
       },
     }).pipeThrough(new TextEncoderStream()))
@@ -88,7 +88,7 @@ describe('toEventIterator', () => {
       async pull(controller) {
         controller.enqueue('event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n')
         controller.enqueue('event: message\ndata: {"order": 2}\nid: id-2\n\n')
-        controller.enqueue('event: error\ndata: {"order": 3}\nid: id-3\nretry: 30000')
+        controller.enqueue('event: error\ndata: {"order": 3}\nid: id-3\nretry: 30000\n\n')
         controller.close()
       },
     }).pipeThrough(new TextEncoderStream()))
@@ -128,7 +128,7 @@ describe('toEventIterator', () => {
       async pull(controller) {
         controller.enqueue('event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n')
         controller.enqueue('event: message\ndata: {"order": 2}\nid: id-2\n\n')
-        controller.enqueue('event: unknown\ndata: {"order": 3}\nid: id-3\nretry: 30000')
+        controller.enqueue('event: unknown\ndata: {"order": 3}\nid: id-3\nretry: 30000\n\n')
         controller.close()
       },
     }).pipeThrough(new TextEncoderStream()))

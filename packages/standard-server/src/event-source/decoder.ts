@@ -72,14 +72,10 @@ export class EventDecoder {
       return
     }
 
-    const completes = this.incomplete.slice(0, lastCompleteIndex + 2).split(/\n{2,}/)
+    const completes = this.incomplete.slice(0, lastCompleteIndex).split(/\n\n/)
     this.incomplete = this.incomplete.slice(lastCompleteIndex + 2)
 
     for (const encoded of completes) {
-      if (!encoded) {
-        continue
-      }
-
       const message = decodeEventMessage(`${encoded}\n\n`)
 
       if (this.options.onEvent) {
@@ -91,7 +87,9 @@ export class EventDecoder {
   }
 
   end(): void {
-    this.feed('\n\n')
+    if (this.incomplete) {
+      throw new EventDecoderError('EventSource ended before complete')
+    }
   }
 }
 

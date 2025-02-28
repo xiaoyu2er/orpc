@@ -37,6 +37,19 @@ const example = os
 
 oRPC supports [Zod](https://github.com/colinhacks/zod), [Valibot](https://github.com/fabian-hiller/valibot), [Arktype](https://github.com/arktypeio/arktype), and any other [Standard Schema](https://github.com/standard-schema/standard-schema?tab=readme-ov-file#what-schema-libraries-implement-the-spec) library for input and output validation.
 
+### `type` Utility
+
+For simple use-case without external libraries, use oRPC’s built-in `type` utility. It takes a mapping function as its first argument:
+
+```ts twoslash
+import { os, type } from '@orpc/server'
+
+const example = os
+  .input(type<{ value: number }>())
+  .output(type<{ value: number }, number>(({ value }) => value))
+  .handler(async ({ input }) => input)
+```
+
 ## Using Middleware
 
 The `.use` method allows you to pass middleware, which must call `next` to continue execution.

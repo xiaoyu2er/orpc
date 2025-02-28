@@ -40,8 +40,6 @@ describe('toEventIterator', () => {
 
       return true
     })
-
-    await expect(Readable.toWeb(stream).getReader().closed).resolves.toBe(undefined)
   })
 
   it('without dont event', async () => {

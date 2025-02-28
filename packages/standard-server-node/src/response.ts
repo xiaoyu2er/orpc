@@ -1,14 +1,11 @@
-import type { StandardHeaders, StandardResponse } from '@orpc/standard-server'
-import type { ToNodeHttpBodyOptions } from './body'
+import type { StandardEventSourceOptions, StandardHeaders, StandardResponse } from '@orpc/standard-server'
 import type { NodeHttpResponse } from './types'
 import { toNodeHttpBody } from './body'
-
-export interface SendStandardResponseOptions extends ToNodeHttpBodyOptions {}
 
 export function sendStandardResponse(
   res: NodeHttpResponse,
   standardResponse: StandardResponse,
-  options: SendStandardResponseOptions,
+  options: StandardEventSourceOptions,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     res.on('error', reject)

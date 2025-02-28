@@ -29,7 +29,7 @@ export class RPCHandler<T extends Context> implements NodeHttpHandler<T> {
       return { matched: false }
     }
 
-    await sendStandardResponse(res, result.response)
+    await sendStandardResponse(res, result.response, rest[0] ?? {})
 
     return { matched: true }
   }

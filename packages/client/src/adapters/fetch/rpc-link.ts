@@ -1,5 +1,5 @@
 import type { Value } from '@orpc/shared'
-import type { StandardBody } from '@orpc/standard-server'
+import type { StandardBody, StandardEventSourceOptions } from '@orpc/standard-server'
 import type { ClientContext, ClientLink, ClientOptionsOut } from '../../types'
 import type { FetchWithContext } from './types'
 import { isAsyncIteratorObject, stringifyJSON, trim, value } from '@orpc/shared'
@@ -12,7 +12,7 @@ type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
 
 export class InvalidEventSourceRetryResponse extends Error { }
 
-export interface RPCLinkOptions<TClientContext extends ClientContext> {
+export interface RPCLinkOptions<TClientContext extends ClientContext> extends StandardEventSourceOptions {
   /**
    * Base url for all requests.
    */
@@ -105,6 +105,7 @@ export class RPCLink<TClientContext extends ClientContext> implements ClientLink
   private readonly eventSourceMaxNumberOfRetries: Exclude<RPCLinkOptions<TClientContext>['eventSourceMaxNumberOfRetries'], undefined>
   private readonly eventSourceRetryDelay: Exclude<RPCLinkOptions<TClientContext>['eventSourceRetryDelay'], undefined>
   private readonly eventSourceRetry: Exclude<RPCLinkOptions<TClientContext>['eventSourceRetry'], undefined>
+  private readonly standardEventSourceOptions: StandardEventSourceOptions
 
   constructor(options: RPCLinkOptions<TClientContext>) {
     this.fetch = options.fetch ?? globalThis.fetch.bind(globalThis)
@@ -120,6 +121,8 @@ export class RPCLink<TClientContext extends ClientContext> implements ClientLink
 
     this.eventSourceRetryDelay = options.eventSourceRetryDelay
       ?? (({ retryTimes, lastRetry }) => lastRetry ?? (1000 * 2 ** retryTimes))
+
+    this.standardEventSourceOptions = options
   }
 
   async call(path: readonly string[], input: unknown, options: ClientOptionsOut<TClientContext>): Promise<unknown> {
@@ -160,7 +163,7 @@ export class RPCLink<TClientContext extends ClientContext> implements ClientLink
   ): Promise<unknown> {
     const encoded = await this.encodeRequest(path, input, options)
 
-    const fetchBody = toFetchBody(encoded.body, encoded.headers)
+    const fetchBody = toFetchBody(encoded.body, encoded.headers, this.standardEventSourceOptions)
 
     if (options.lastEventId !== undefined) {
       encoded.headers.set('last-event-id', options.lastEventId)

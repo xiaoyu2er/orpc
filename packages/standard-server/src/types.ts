@@ -34,3 +34,26 @@ export interface StandardResponse {
   headers: StandardHeaders
   body: StandardBody
 }
+
+export interface StandardEventSourceOptions {
+  /**
+   * If true, a ping comment is sent periodically to keep the connection alive.
+   *
+   * @default true
+   */
+  eventSourcePingEnabled?: boolean
+
+  /**
+   * Interval (in milliseconds) between ping comments sent after the last event.
+   *
+   * @default 5000
+   */
+  eventSourcePingInterval?: number
+
+  /**
+   * The content of the ping comment. Must not include newline characters.
+   *
+   * @default ''
+   */
+  eventSourcePingContent?: string
+}

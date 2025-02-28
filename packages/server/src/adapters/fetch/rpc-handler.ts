@@ -26,7 +26,7 @@ export class RPCHandler<T extends Context> implements FetchHandler<T> {
 
     return {
       matched: true,
-      response: toFetchResponse(result.response),
+      response: toFetchResponse(result.response, rest[0] ?? {}),
     }
   }
 }

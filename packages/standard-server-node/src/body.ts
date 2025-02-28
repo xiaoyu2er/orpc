@@ -1,6 +1,5 @@
-import type { StandardBody, StandardHeaders } from '@orpc/standard-server'
+import type { StandardBody, StandardEventSourceOptions, StandardHeaders } from '@orpc/standard-server'
 import type { Buffer } from 'node:buffer'
-import type { ToEventStreamOptions } from './event-source'
 import type { NodeHttpRequest } from './types'
 import { Readable } from 'node:stream'
 import { isAsyncIteratorObject, parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
@@ -49,10 +48,6 @@ export async function toStandardBody(req: NodeHttpRequest): Promise<StandardBody
   return _streamToFile(req, 'blob', contentType)
 }
 
-export interface ToNodeHttpBodyOptions extends ToEventStreamOptions {
-
-}
-
 /**
  * @param body
  * @param headers - WARNING: The headers can be changed by the function and effects on the original headers.
@@ -61,7 +56,7 @@ export interface ToNodeHttpBodyOptions extends ToEventStreamOptions {
 export function toNodeHttpBody(
   body: StandardBody,
   headers: StandardHeaders,
-  options: ToNodeHttpBodyOptions,
+  options: StandardEventSourceOptions,
 ): Readable | undefined | string {
   delete headers['content-type']
   delete headers['content-disposition']

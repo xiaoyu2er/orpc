@@ -1,5 +1,4 @@
-import type { StandardBody } from '@orpc/standard-server'
-import type { ToEventStreamOptions } from './event-source'
+import type { StandardBody, StandardEventSourceOptions } from '@orpc/standard-server'
 import { isAsyncIteratorObject, parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
 import { contentDisposition, parseContentDisposition } from '@orpc/standard-server'
 import { toEventIterator, toEventStream } from './event-source'
@@ -52,8 +51,6 @@ export async function toStandardBody(re: Request | Response): Promise<StandardBo
   })
 }
 
-export interface ToFetchBodyOptions extends ToEventStreamOptions {}
-
 /**
  * @param body
  * @param headers - The headers can be changed by the function and effects on the original headers.
@@ -61,7 +58,7 @@ export interface ToFetchBodyOptions extends ToEventStreamOptions {}
 export function toFetchBody(
   body: StandardBody,
   headers: Headers,
-  options: ToFetchBodyOptions,
+  options: StandardEventSourceOptions,
 ): string | Blob | FormData | URLSearchParams | undefined | ReadableStream<Uint8Array> {
   headers.delete('content-type')
   headers.delete('content-disposition')

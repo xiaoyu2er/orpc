@@ -2,7 +2,7 @@ import type { StandardBody, StandardHeaders } from '@orpc/standard-server'
 import type { Buffer } from 'node:buffer'
 import type { NodeHttpRequest } from './types'
 import { Readable } from 'node:stream'
-import { isAsyncIteratorObject, parseEmptyableJSON } from '@orpc/shared'
+import { isAsyncIteratorObject, parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
 import { contentDisposition, parseContentDisposition } from '@orpc/standard-server'
 import { toEventIterator, toEventStream } from './event-source'
 
@@ -94,7 +94,7 @@ export function toNodeHttpBody(body: StandardBody, headers: StandardHeaders): Re
 
   headers['content-type'] = 'application/json'
 
-  return JSON.stringify(body)
+  return stringifyJSON(body)
 }
 
 function _streamToFormData(stream: Readable, contentType: string): Promise<FormData> {

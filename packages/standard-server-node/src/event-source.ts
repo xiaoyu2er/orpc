@@ -1,5 +1,5 @@
 import { Readable } from 'node:stream'
-import { isTypescriptObject, parseEmptyableJSON } from '@orpc/shared'
+import { isTypescriptObject, parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
 import {
   encodeEventMessage,
   ErrorEvent,
@@ -91,7 +91,7 @@ export function toEventStream(
         controller.enqueue(encodeEventMessage({
           ...getEventMeta(value.value),
           event: value.done ? 'done' : 'message',
-          data: JSON.stringify(value.value),
+          data: stringifyJSON(value.value),
         }))
 
         if (value.done) {
@@ -102,7 +102,7 @@ export function toEventStream(
         controller.enqueue(encodeEventMessage({
           ...getEventMeta(err),
           event: 'error',
-          data: err instanceof ErrorEvent ? JSON.stringify(err.data) : undefined,
+          data: err instanceof ErrorEvent ? stringifyJSON(err.data) : undefined,
         }))
 
         controller.close()

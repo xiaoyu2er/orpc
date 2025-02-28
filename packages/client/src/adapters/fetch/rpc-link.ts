@@ -2,7 +2,7 @@ import type { Value } from '@orpc/shared'
 import type { StandardBody } from '@orpc/standard-server'
 import type { ClientContext, ClientLink, ClientOptionsOut } from '../../types'
 import type { FetchWithContext } from './types'
-import { isAsyncIteratorObject, trim, value } from '@orpc/shared'
+import { isAsyncIteratorObject, stringifyJSON, trim, value } from '@orpc/shared'
 import { toFetchBody, toStandardBody } from '@orpc/standard-server-fetch'
 import { ORPCError } from '../../error'
 import { createAutoRetryEventIterator, type EventIteratorReconnectOptions } from '../../event-iterator'
@@ -226,7 +226,7 @@ export class RPCLink<TClientContext extends ClientContext> implements ClientLink
     ) {
       const getUrl = new URL(url)
 
-      getUrl.searchParams.append('data', JSON.stringify(serialized) ?? '') // stringify can return undefined
+      getUrl.searchParams.append('data', stringifyJSON(serialized) ?? '')
 
       if (getUrl.toString().length <= this.maxUrlLength) {
         return {

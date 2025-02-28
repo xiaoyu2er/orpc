@@ -3,13 +3,25 @@ import { decodeEventMessage, EventDecoder, EventDecoderStream } from './decoder'
 
 describe('decodeEventMessage', () => {
   it('on success', () => {
-    expect(decodeEventMessage('data: \n\n')).toEqual({
-      data: '',
+    expect(decodeEventMessage('\n')).toEqual({
+      comments: [],
+    })
+
+    expect(decodeEventMessage('event: message\n\n')).toEqual({
+      event: 'message',
+      comments: [],
     })
 
     expect(decodeEventMessage('event: message\ndata: hello\ndata: world\n\n')).toEqual({
       event: 'message',
       data: 'hello\nworld',
+      comments: [],
+    })
+
+    expect(decodeEventMessage(': hi\n: hello\nevent: message\ndata: hello\ndata: world\n\n')).toEqual({
+      event: 'message',
+      data: 'hello\nworld',
+      comments: ['hi', 'hello'],
     })
 
     expect(decodeEventMessage('event: message\ndata: hello\ndata: world\nid: 123\nretry: 10000\n\n')).toEqual({
@@ -17,51 +29,57 @@ describe('decodeEventMessage', () => {
       data: 'hello\nworld',
       id: '123',
       retry: 10000,
+      comments: [],
+    })
+  })
+
+  it('on success - spaces', () => {
+    expect(decodeEventMessage(':hi\nevent:message\ndata:hello\ndata:world\n\n')).toEqual({
+      event: 'message',
+      data: 'hello\nworld',
+      comments: ['hi'],
+    })
+
+    expect(decodeEventMessage(':  hi\nevent:  message\ndata:  hello\ndata:  world\n\n')).toEqual({
+      event: ' message',
+      data: ' hello\n world',
+      comments: [' hi'],
     })
   })
 
   it('unknown keys', () => {
-    expect(() => decodeEventMessage('foo: bar\n\n'))
-      .toThrowError('Unknown EventSource message key: foo')
-    expect(() => decodeEventMessage('bar: bar\ndata: hello\n\n'))
-      .toThrowError('Unknown EventSource message key: bar')
+    expect(decodeEventMessage('foo: bar\n\n')).toEqual({
+      comments: [],
+    })
   })
 
   it('duplicate keys', () => {
-    expect(() => decodeEventMessage('id: 123\nid: 456\n\n'))
-      .toThrowError('Duplicate EventSource message key: id')
-
-    expect(() => decodeEventMessage('event: message\nevent: message\ndata: hello\n\n'))
-      .toThrowError('Duplicate EventSource message key: event')
-
-    expect(() => decodeEventMessage('ndata: 123\ndata: 456\n\n'))
-      .not
-      .toThrowError('Duplicate EventSource message key: ndata')
+    expect(decodeEventMessage('id: 123\nid: 456\n\n')).toEqual({
+      id: '456',
+      comments: [],
+    })
   })
 
   it('invalid retry', () => {
-    expect(() => decodeEventMessage('retry: hello\n\n'))
-      .toThrowError('Invalid EventSource message retry value: hello')
+    expect(decodeEventMessage('retry: hello\n\n')).toEqual({
+      comments: [],
+    })
 
-    expect(() => decodeEventMessage('retry: 1.5\n\n'))
-      .toThrowError('Invalid EventSource message retry value: 1.5')
+    expect(decodeEventMessage('retry: 1.5\n\n')).toEqual({
+      comments: [],
+    })
 
-    expect(() => decodeEventMessage('retry: -1\n\n'))
-      .toThrowError('Invalid EventSource message retry value: -1')
+    expect(decodeEventMessage('retry: -1\n\n')).toEqual({
+      comments: [],
+    })
 
-    expect(() => decodeEventMessage('retry: 1abc\n\n'))
-      .toThrowError('Invalid EventSource message retry value: 1abc')
+    expect(decodeEventMessage('retry: 1abc\n\n')).toEqual({
+      comments: [],
+    })
 
-    expect(() => decodeEventMessage('retry: Infinity\n\n'))
-      .toThrowError('Invalid EventSource message retry value: Infinity')
-  })
-
-  it('invalid format', () => {
-    expect(() => decodeEventMessage('data: hello\n\ndata: world\n\n'))
-      .toThrowError('Invalid EventSource message line: ')
-
-    expect(() => decodeEventMessage('hi'))
-      .toThrowError('Invalid EventSource message line: hi')
+    expect(decodeEventMessage('retry: Infinity\n\n')).toEqual({
+      comments: [],
+    })
   })
 })
 
@@ -86,24 +104,28 @@ describe('eventSourceDecoder', () => {
       event: 'message',
       id: undefined,
       retry: undefined,
+      comments: [],
     })
     expect(onEvent).toHaveBeenNthCalledWith(2, {
       data: 'hello2\nworld',
       event: 'message',
       id: '123',
       retry: 10000,
+      comments: [],
     })
     expect(onEvent).toHaveBeenNthCalledWith(3, {
       data: 'hello3\nworld',
       event: 'message',
       id: '123',
       retry: 10000,
+      comments: [],
     })
     expect(onEvent).toHaveBeenNthCalledWith(4, {
       data: 'hello4\nworld',
       event: 'done',
       id: undefined,
       retry: undefined,
+      comments: [],
     })
   })
 
@@ -123,6 +145,7 @@ describe('eventSourceDecoder', () => {
       event: 'message',
       id: undefined,
       retry: undefined,
+      comments: [],
     })
   })
 })
@@ -159,24 +182,28 @@ describe('eventSourceDecoderStream', () => {
         event: 'message',
         id: undefined,
         retry: undefined,
+        comments: [],
       },
       {
         data: 'hello2\nworld',
         event: 'message',
         id: '123',
         retry: 10000,
+        comments: [],
       },
       {
         data: 'hello3\nworld',
         event: 'message',
         id: '123',
         retry: 10000,
+        comments: [],
       },
       {
         data: 'hello4\nworld',
         event: 'done',
         id: undefined,
         retry: undefined,
+        comments: [],
       },
     ])
   })
@@ -210,6 +237,7 @@ describe('eventSourceDecoderStream', () => {
         event: 'message',
         id: undefined,
         retry: undefined,
+        comments: [],
       },
     ])
   })

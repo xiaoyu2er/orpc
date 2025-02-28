@@ -163,7 +163,7 @@ describe('toEventStream', () => {
 
     expect((await reader.read()).value).toEqual('event: message\nid: id-1\ndata: {"order":1}\n\n')
     expect((await reader.read()).value).toEqual('event: message\nretry: 20000\ndata: {"order":2}\n\n')
-    expect((await reader.read()).value).toEqual('event: message\ndata: \n\n')
+    expect((await reader.read()).value).toEqual('event: message\n\n')
     expect((await reader.read()).value).toEqual('event: done\nretry: 40000\nid: id-4\ndata: {"order":4}\n\n')
     expect((await reader.read()).done).toEqual(true)
   })
@@ -182,8 +182,8 @@ describe('toEventStream', () => {
 
     expect((await reader.read()).value).toEqual('event: message\nid: id-1\ndata: {"order":1}\n\n')
     expect((await reader.read()).value).toEqual('event: message\nretry: 20000\ndata: {"order":2}\n\n')
-    expect((await reader.read()).value).toEqual('event: message\ndata: \n\n')
-    expect((await reader.read()).value).toEqual('event: error\nretry: 40000\nid: id-4\ndata: \n\n')
+    expect((await reader.read()).value).toEqual('event: message\n\n')
+    expect((await reader.read()).value).toEqual('event: error\nretry: 40000\nid: id-4\n\n')
     expect((await reader.read()).done).toEqual(true)
   })
 
@@ -201,7 +201,7 @@ describe('toEventStream', () => {
 
     expect((await reader.read()).value).toEqual('event: message\nid: id-1\ndata: {"order":1}\n\n')
     expect((await reader.read()).value).toEqual('event: message\nretry: 20000\ndata: {"order":2}\n\n')
-    expect((await reader.read()).value).toEqual('event: message\ndata: \n\n')
+    expect((await reader.read()).value).toEqual('event: message\n\n')
     expect((await reader.read()).value).toEqual('event: error\nretry: 40000\nid: id-4\ndata: {"order":4}\n\n')
     expect((await reader.read()).done).toEqual(true)
   })

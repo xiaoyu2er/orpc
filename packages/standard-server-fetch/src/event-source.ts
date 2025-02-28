@@ -106,6 +106,8 @@ export function toEventStream(
         }
       }
       catch (err) {
+        clearInterval(timeout)
+
         controller.enqueue(encodeEventMessage({
           ...getEventMeta(err),
           event: 'error',

@@ -8,8 +8,8 @@
   <a href="https://codecov.io/gh/unnoq/orpc">
     <img alt="codecov" src="https://codecov.io/gh/unnoq/orpc/branch/main/graph/badge.svg">
   </a>
-  <a href="https://www.npmjs.com/package/@orpc/client">
-    <img alt="weekly downloads" src="https://img.shields.io/npm/dw/%40orpc%2Fclient?logo=npm" />
+  <a href="https://www.npmjs.com/package/@orpc/standard-server-node">
+    <img alt="weekly downloads" src="https://img.shields.io/npm/dw/%40orpc%2Fstandard-server-node?logo=npm" />
   </a>
   <a href="https://github.com/unnoq/orpc/blob/main/LICENSE">
     <img alt="MIT License" src="https://img.shields.io/github/license/unnoq/orpc?logo=open-source-initiative" />
@@ -59,146 +59,9 @@ You can find the full documentation [here](https://orpc.unnoq.com).
 - [@orpc/openapi](https://www.npmjs.com/package/@orpc/openapi): Generate OpenAPI specs and handle OpenAPI requests.
 - [@orpc/zod](https://www.npmjs.com/package/@orpc/zod): More schemas that [Zod](https://zod.dev/) doesn't support yet.
 
-## Overview
+## `@orpc/standard-server-node`
 
-This is a quick overview of how to use oRPC. For more details, please refer to the [documentation](https://orpc.unnoq.com).
-
-1. **Define your router:**
-
-   ```ts
-   import type { IncomingHttpHeaders } from 'node:http'
-   import { ORPCError, os } from '@orpc/server'
-   import { z } from 'zod'
-
-   const PlanetSchema = z.object({
-     id: z.number().int().min(1),
-     name: z.string(),
-     description: z.string().optional(),
-   })
-
-   export const listPlanet = os
-     .input(
-       z.object({
-         limit: z.number().int().min(1).max(100).optional(),
-         cursor: z.number().int().min(0).default(0),
-       }),
-     )
-     .handler(async ({ input }) => {
-       // your list code here
-       return [{ id: 1, name: 'name' }]
-     })
-
-   export const findPlanet = os
-     .input(PlanetSchema.pick({ id: true }))
-     .handler(async ({ input }) => {
-       // your find code here
-       return { id: 1, name: 'name' }
-     })
-
-   export const createPlanet = os
-     .$context<{ headers: IncomingHttpHeaders }>()
-     .use(({ context, next }) => {
-       const user = parseJWT(context.headers.authorization?.split(' ')[1])
-
-       if (user) {
-         return next({ context: { user } })
-       }
-
-       throw new ORPCError('UNAUTHORIZED')
-     })
-     .input(PlanetSchema.omit({ id: true }))
-     .handler(async ({ input, context }) => {
-       // your create code here
-       return { id: 1, name: 'name' }
-     })
-
-   export const router = {
-     planet: {
-       list: listPlanet,
-       find: findPlanet,
-       create: createPlanet
-     }
-   }
-   ```
-
-2. **Create your server:**
-
-   ```ts
-   import { createServer } from 'node:http'
-   import { RPCHandler } from '@orpc/server/node'
-   import { CORSPlugin } from '@orpc/server/plugins'
-
-   const handler = new RPCHandler(router, {
-     plugins: [new CORSPlugin()]
-   })
-
-   const server = createServer(async (req, res) => {
-     const result = await handler.handle(req, res, {
-       context: { headers: req.headers }
-     })
-
-     if (!result.matched) {
-       res.statusCode = 404
-       res.end('No procedure matched')
-     }
-   })
-
-   server.listen(
-     3000,
-     '127.0.0.1',
-     () => console.log('Listening on 127.0.0.1:3000')
-   )
-   ```
-
-3. **Create your client:**
-
-   ```ts
-   import type { RouterClient } from '@orpc/server'
-   import { createORPCClient } from '@orpc/client'
-   import { RPCLink } from '@orpc/client/fetch'
-
-   const link = new RPCLink({
-     url: 'http://127.0.0.1:3000',
-     headers: { Authorization: 'Bearer token' },
-   })
-
-   export const orpc: RouterClient<typeof router> = createORPCClient(link)
-   ```
-
-4. **Consume your API:**
-
-   ```ts
-   import { orpc } from './client'
-
-   const planets = await orpc.planet.list({ limit: 10 })
-   ```
-
-5. **Generate OpenAPI Spec:**
-
-   ```ts
-   import { OpenAPIGenerator } from '@orpc/openapi'
-   import { ZodToJsonSchemaConverter } from '@orpc/zod'
-
-   const generator = new OpenAPIGenerator({
-     schemaConverters: [new ZodToJsonSchemaConverter()]
-   })
-
-   const spec = await generator.generate(router, {
-     info: {
-       title: 'Planet API',
-       version: '1.0.0'
-     }
-   })
-
-   console.log(JSON.stringify(spec, null, 2))
-   ```
-
-## References
-
-oRPC is inspired by existing solutions that prioritize type safety and developer experience. Special acknowledgments to:
-
-- [tRPC](https://trpc.io): For pioneering the concept of end-to-end type-safe RPC and influencing the development of type-safe APIs.
-- [ts-rest](https://ts-rest.com): For its emphasis on contract-first development and OpenAPI integration, which have greatly inspired oRPC’s feature set.
+[Node.js](https://nodejs.org) server adapter for oRPC.
 
 ## License
 

@@ -1,7 +1,7 @@
 import { ORPCError } from '@orpc/contract'
 import { ErrorEvent, getEventMeta, withEventMeta } from '@orpc/standard-server'
-import { OpenAPIJsonSerializer } from './json-serializer'
-import { OpenAPISerializer } from './serializer'
+import { OpenAPIJsonSerializer } from './openapi-json-serializer'
+import { OpenAPISerializer } from './openapi-serializer'
 
 beforeEach(() => {
   vi.clearAllMocks()

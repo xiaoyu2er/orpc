@@ -19,11 +19,17 @@
         "types": "./dist/index.d.mts",
         "import": "./dist/index.mjs",
         "default": "./dist/index.mjs"
+      },
+      "./standard": {
+        "types": "./dist/adapters/standard/index.d.mts",
+        "import": "./dist/adapters/standard/index.mjs",
+        "default": "./dist/adapters/standard/index.mjs"
       }
     }
   },
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./standard": "./src/adapters/standard/index.ts"
   },
   "files": [
     "dist"
@@ -35,6 +41,7 @@
   },
   "dependencies": {
     "@orpc/client": "workspace:*",
-    "@orpc/shared": "workspace:*"
+    "@orpc/shared": "workspace:*",
+    "@orpc/standard-server": "workspace:*"
   }
 }

@@ -173,6 +173,9 @@ importers:
       '@orpc/contract':
         specifier: workspace:*
         version: link:../contract
+      '@orpc/openapi-client':
+        specifier: workspace:*
+        version: link:../openapi-client
       '@orpc/server':
         specifier: workspace:*
         version: link:../server
@@ -210,6 +213,9 @@ importers:
       '@orpc/shared':
         specifier: workspace:*
         version: link:../shared
+      '@orpc/standard-server':
+        specifier: workspace:*
+        version: link:../standard-server
 
   packages/react-query:
     dependencies:

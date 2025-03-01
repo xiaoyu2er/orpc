@@ -2,7 +2,7 @@ import type { ORPCError } from '@orpc/client'
 import type { StandardBody, StandardRequest, StandardResponse } from '@orpc/standard-server'
 import type { AnyProcedure } from '../../procedure'
 import type { StandardCodec, StandardParams } from './types'
-import { RPCSerializer } from '@orpc/client/rpc'
+import { RPCSerializer } from '@orpc/client/standard'
 import { parseEmptyableJSON } from '@orpc/shared'
 
 export interface StandardCodecOptions {

@@ -1,8 +1,8 @@
 import { ORPCError } from '@orpc/contract'
 import { isAsyncIteratorObject, parseEmptyableJSON } from '@orpc/shared'
 import { ErrorEvent, getEventMeta, withEventMeta } from '@orpc/standard-server'
-import { supportedDataTypes } from '../../tests/shared'
-import { RPCSerializer } from './serializer'
+import { supportedDataTypes } from '../../../tests/shared'
+import { RPCSerializer } from './rpc-serializer'
 
 describe.each(supportedDataTypes)('rpcSerializer: $name', ({ value, expected }) => {
   const serializer = new RPCSerializer()

@@ -20,10 +20,10 @@
         "import": "./dist/index.mjs",
         "default": "./dist/index.mjs"
       },
-      "./rpc": {
-        "types": "./dist/rpc/index.d.mts",
-        "import": "./dist/rpc/index.mjs",
-        "default": "./dist/rpc/index.mjs"
+      "./standard": {
+        "types": "./dist/adapters/standard/index.d.mts",
+        "import": "./dist/adapters/standard/index.mjs",
+        "default": "./dist/adapters/standard/index.mjs"
       },
       "./fetch": {
         "types": "./dist/adapters/fetch/index.d.mts",
@@ -34,7 +34,7 @@
   },
   "exports": {
     ".": "./src/index.ts",
-    "./rpc": "./src/rpc/index.ts",
+    "./standard": "./src/adapters/standard/index.ts",
     "./fetch": "./src/adapters/fetch/index.ts"
   },
   "files": [

@@ -1,13 +1,13 @@
 {
-  "name": "@orpc/client",
+  "name": "@orpc/openapi-client",
   "type": "module",
-  "version": "0.43.0",
+  "version": "0.0.0",
   "license": "MIT",
   "homepage": "https://orpc.unnoq.com",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/unnoq/orpc.git",
-    "directory": "packages/client"
+    "directory": "packages/openapi-client"
   },
   "keywords": [
     "unnoq",
@@ -24,18 +24,12 @@
         "types": "./dist/adapters/standard/index.d.mts",
         "import": "./dist/adapters/standard/index.mjs",
         "default": "./dist/adapters/standard/index.mjs"
-      },
-      "./fetch": {
-        "types": "./dist/adapters/fetch/index.d.mts",
-        "import": "./dist/adapters/fetch/index.mjs",
-        "default": "./dist/adapters/fetch/index.mjs"
       }
     }
   },
   "exports": {
     ".": "./src/index.ts",
-    "./standard": "./src/adapters/standard/index.ts",
-    "./fetch": "./src/adapters/fetch/index.ts"
+    "./standard": "./src/adapters/standard/index.ts"
   },
   "files": [
     "dist"
@@ -46,11 +40,8 @@
     "type:check": "tsc -b"
   },
   "dependencies": {
+    "@orpc/client": "workspace:*",
     "@orpc/shared": "workspace:*",
-    "@orpc/standard-server": "workspace:*",
-    "@orpc/standard-server-fetch": "workspace:*"
-  },
-  "devDependencies": {
-    "zod": "^3.24.1"
+    "@orpc/standard-server": "workspace:*"
   }
 }

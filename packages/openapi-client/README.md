@@ -8,8 +8,8 @@
   <a href="https://codecov.io/gh/unnoq/orpc">
     <img alt="codecov" src="https://codecov.io/gh/unnoq/orpc/branch/main/graph/badge.svg">
   </a>
-  <a href="https://www.npmjs.com/package/@orpc/openapi">
-    <img alt="weekly downloads" src="https://img.shields.io/npm/dw/%40orpc%2Fopenapi?logo=npm" />
+  <a href="https://www.npmjs.com/package/@orpc/openapi-client">
+    <img alt="weekly downloads" src="https://img.shields.io/npm/dw/%40orpc%2Fopenapi-client?logo=npm" />
   </a>
   <a href="https://github.com/unnoq/orpc/blob/main/LICENSE">
     <img alt="MIT License" src="https://img.shields.io/github/license/unnoq/orpc?logo=open-source-initiative" />
@@ -59,32 +59,9 @@ You can find the full documentation [here](https://orpc.unnoq.com).
 - [@orpc/openapi](https://www.npmjs.com/package/@orpc/openapi): Generate OpenAPI specs and handle OpenAPI requests.
 - [@orpc/zod](https://www.npmjs.com/package/@orpc/zod): More schemas that [Zod](https://zod.dev/) doesn't support yet.
 
-## `@orpc/openapi`
+## `@orpc/openapi-client`
 
-Generate OpenAPI specs and handle OpenAPI requests. Read the [documentation](https://orpc.unnoq.com/docs/openapi/getting-started) for more information.
-
-```ts
-import { createServer } from 'node:http'
-import { OpenAPIHandler } from '@orpc/openapi/node'
-import { CORSPlugin } from '@orpc/server/plugins'
-
-const handler = new OpenAPIHandler(router, {
-  plugins: [new CORSPlugin()]
-})
-
-const server = createServer(async (req, res) => {
-  const result = await handler.handle(req, res, {
-    context: { headers: req.headers }
-  })
-
-  if (!result.matched) {
-    res.statusCode = 404
-    res.end('No procedure matched')
-  }
-})
-
-server.listen(3000, '127.0.0.1', () => console.log('Listening on 127.0.0.1:3000'))
-```
+Provides core serializer for OpenAPI requests and responses.
 
 ## License
 

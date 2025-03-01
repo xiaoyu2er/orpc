@@ -1,9 +1,8 @@
+import { mapEventIterator, ORPCError, toORPCError } from '@orpc/client'
 import { isAsyncIteratorObject } from '@orpc/shared'
 import { ErrorEvent } from '@orpc/standard-server'
-import { ORPCError, toORPCError } from '../error'
-import { mapEventIterator } from '../event-iterator'
 import { BracketNotationSerializer } from './bracket-notation'
-import { OpenAPIJsonSerializer } from './json-serializer'
+import { OpenAPIJsonSerializer } from './openapi-json-serializer'
 
 export class OpenAPISerializer {
   constructor(

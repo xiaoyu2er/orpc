@@ -7,7 +7,7 @@ import { isAsyncIteratorObject, stringifyJSON, trim, value } from '@orpc/shared'
 import { toFetchBody, toStandardBody } from '@orpc/standard-server-fetch'
 import { ORPCError } from '../../error'
 import { createAutoRetryEventIterator, type EventIteratorReconnectOptions } from '../../event-iterator'
-import { RPCSerializer } from '../../rpc'
+import { RPCSerializer } from '../standard'
 
 type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
 

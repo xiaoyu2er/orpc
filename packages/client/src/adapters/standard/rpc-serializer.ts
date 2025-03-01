@@ -1,8 +1,8 @@
 import { isAsyncIteratorObject, stringifyJSON } from '@orpc/shared'
 import { ErrorEvent } from '@orpc/standard-server'
-import { ORPCError, toORPCError } from '../error'
-import { mapEventIterator } from '../event-iterator'
-import { RPCJsonSerializer } from './json-serializer'
+import { ORPCError, toORPCError } from '../../error'
+import { mapEventIterator } from '../../event-iterator'
+import { RPCJsonSerializer } from './rpc-json-serializer'
 
 export class RPCSerializer {
   constructor(

@@ -2,18 +2,12 @@
   "extends": "../../tsconfig.lib.json",
   "references": [
     { "path": "../client" },
-    { "path": "../openapi-client" },
-    { "path": "../contract" },
-    { "path": "../server" },
-    { "path": "../standard-server" },
-    { "path": "../standard-server-fetch" },
-    { "path": "../standard-server-node" },
     { "path": "../shared" }
   ],
   "include": ["src"],
   "exclude": [
-    "**/*.bench.*",
     "**/*.test.*",
+    "**/*.bench.*",
     "**/*.test-d.ts",
     "**/__tests__/**",
     "**/__mocks__/**",

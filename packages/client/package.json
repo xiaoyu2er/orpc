@@ -16,27 +16,24 @@
   "publishConfig": {
     "exports": {
       ".": {
-        "types": "./dist/src/index.d.ts",
-        "import": "./dist/index.js",
-        "default": "./dist/index.js"
+        "types": "./dist/index.d.mts",
+        "import": "./dist/index.mjs",
+        "default": "./dist/index.mjs"
       },
       "./openapi": {
-        "types": "./dist/src/openapi/index.d.ts",
-        "import": "./dist/openapi.js",
-        "default": "./dist/openapi.js"
+        "types": "./dist/openapi/index.d.mts",
+        "import": "./dist/openapi/index.mjs",
+        "default": "./dist/openapi/index.mjs"
       },
       "./rpc": {
-        "types": "./dist/src/rpc/index.d.ts",
-        "import": "./dist/rpc.js",
-        "default": "./dist/rpc.js"
+        "types": "./dist/rpc/index.d.mts",
+        "import": "./dist/rpc/index.mjs",
+        "default": "./dist/rpc/index.mjs"
       },
       "./fetch": {
-        "types": "./dist/src/adapters/fetch/index.d.ts",
-        "import": "./dist/fetch.js",
-        "default": "./dist/fetch.js"
-      },
-      "./🔒/*": {
-        "types": "./dist/src/*.d.ts"
+        "types": "./dist/adapters/fetch/index.d.mts",
+        "import": "./dist/adapters/fetch/index.mjs",
+        "default": "./dist/adapters/fetch/index.mjs"
       }
     }
   },
@@ -44,18 +41,13 @@
     ".": "./src/index.ts",
     "./openapi": "./src/openapi/index.ts",
     "./rpc": "./src/rpc/index.ts",
-    "./fetch": "./src/adapters/fetch/index.ts",
-    "./🔒/*": {
-      "types": "./src/*.ts"
-    }
+    "./fetch": "./src/adapters/fetch/index.ts"
   },
   "files": [
-    "!**/*.map",
-    "!**/*.tsbuildinfo",
     "dist"
   ],
   "scripts": {
-    "build": "tsup --onSuccess='tsc -b --noCheck'",
+    "build": "unbuild",
     "build:watch": "pnpm run build --watch",
     "type:check": "tsc -b"
   },

@@ -16,42 +16,39 @@
   "publishConfig": {
     "exports": {
       ".": {
-        "types": "./dist/src/index.d.ts",
-        "import": "./dist/index.js",
-        "default": "./dist/index.js"
+        "types": "./dist/index.d.mts",
+        "import": "./dist/index.mjs",
+        "default": "./dist/index.mjs"
       },
       "./plugins": {
-        "types": "./dist/src/plugins/index.d.ts",
-        "import": "./dist/plugins.js",
-        "default": "./dist/plugins.js"
+        "types": "./dist/plugins/index.d.mts",
+        "import": "./dist/plugins/index.mjs",
+        "default": "./dist/plugins/index.mjs"
       },
       "./standard": {
-        "types": "./dist/src/adapters/standard/index.d.ts",
-        "import": "./dist/standard.js",
-        "default": "./dist/standard.js"
+        "types": "./dist/adapters/standard/index.d.mts",
+        "import": "./dist/adapters/standard/index.mjs",
+        "default": "./dist/adapters/standard/index.mjs"
       },
       "./fetch": {
-        "types": "./dist/src/adapters/fetch/index.d.ts",
-        "import": "./dist/fetch.js",
-        "default": "./dist/fetch.js"
+        "types": "./dist/adapters/fetch/index.d.mts",
+        "import": "./dist/adapters/fetch/index.mjs",
+        "default": "./dist/adapters/fetch/index.mjs"
       },
       "./hono": {
-        "types": "./dist/src/adapters/hono/index.d.ts",
-        "import": "./dist/hono.js",
-        "default": "./dist/hono.js"
+        "types": "./dist/adapters/hono/index.d.mts",
+        "import": "./dist/adapters/hono/index.mjs",
+        "default": "./dist/adapters/hono/index.mjs"
       },
       "./next": {
-        "types": "./dist/src/adapters/next/index.d.ts",
-        "import": "./dist/next.js",
-        "default": "./dist/next.js"
+        "types": "./dist/adapters/next/index.d.mts",
+        "import": "./dist/adapters/next/index.mjs",
+        "default": "./dist/adapters/next/index.mjs"
       },
       "./node": {
-        "types": "./dist/src/adapters/node/index.d.ts",
-        "import": "./dist/node.js",
-        "default": "./dist/node.js"
-      },
-      "./🔒/*": {
-        "types": "./dist/src/*.d.ts"
+        "types": "./dist/adapters/node/index.d.mts",
+        "import": "./dist/adapters/node/index.mjs",
+        "default": "./dist/adapters/node/index.mjs"
       }
     }
   },
@@ -62,18 +59,13 @@
     "./fetch": "./src/adapters/fetch/index.ts",
     "./hono": "./src/adapters/hono/index.ts",
     "./next": "./src/adapters/next/index.ts",
-    "./node": "./src/adapters/node/index.ts",
-    "./🔒/*": {
-      "types": "./src/*.ts"
-    }
+    "./node": "./src/adapters/node/index.ts"
   },
   "files": [
-    "!**/*.map",
-    "!**/*.tsbuildinfo",
     "dist"
   ],
   "scripts": {
-    "build": "tsup --onSuccess='tsc -b --noCheck'",
+    "build": "unbuild",
     "build:watch": "pnpm run build --watch",
     "type:check": "tsc -b"
   },

@@ -1,5 +1,5 @@
 import type {
-  StandardEventSourceOptions,
+  StandardServerEventSourceOptions,
 } from '@orpc/standard-server'
 import { Readable } from 'node:stream'
 import { isTypescriptObject, parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
@@ -73,7 +73,7 @@ export function toEventIterator(
 
 export function toEventStream(
   iterator: AsyncIterator<unknown | void, unknown | void, void>,
-  options: StandardEventSourceOptions,
+  options: StandardServerEventSourceOptions,
 ): Readable {
   const pingEnabled = options.eventSourcePingEnabled ?? true
   const pingInterval = options.eventSourcePingInterval ?? 5_000

@@ -35,7 +35,7 @@ export interface StandardResponse {
   body: StandardBody
 }
 
-export interface StandardEventSourceOptions {
+export interface StandardServerEventSourceOptions {
   /**
    * If true, a ping comment is sent periodically to keep the connection alive.
    *

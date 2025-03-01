@@ -1,5 +1,5 @@
 import type { Value } from '@orpc/shared'
-import type { StandardBody, StandardEventSourceOptions } from '@orpc/standard-server'
+import type { StandardBody, StandardServerEventSourceOptions } from '@orpc/standard-server'
 import type { ClientContext, ClientLink, ClientOptionsOut } from '../../types'
 import type { FetchWithContext } from './types'
 import { isAsyncIteratorObject, stringifyJSON, trim, value } from '@orpc/shared'
@@ -12,7 +12,7 @@ type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
 
 export class InvalidEventSourceRetryResponse extends Error { }
 
-export interface RPCLinkOptions<TClientContext extends ClientContext> extends StandardEventSourceOptions {
+export interface RPCLinkOptions<TClientContext extends ClientContext> extends StandardServerEventSourceOptions {
   /**
    * Base url for all requests.
    */
@@ -105,7 +105,7 @@ export class RPCLink<TClientContext extends ClientContext> implements ClientLink
   private readonly eventSourceMaxNumberOfRetries: Exclude<RPCLinkOptions<TClientContext>['eventSourceMaxNumberOfRetries'], undefined>
   private readonly eventSourceRetryDelay: Exclude<RPCLinkOptions<TClientContext>['eventSourceRetryDelay'], undefined>
   private readonly eventSourceRetry: Exclude<RPCLinkOptions<TClientContext>['eventSourceRetry'], undefined>
-  private readonly standardEventSourceOptions: StandardEventSourceOptions
+  private readonly standardEventSourceOptions: StandardServerEventSourceOptions
 
   constructor(options: RPCLinkOptions<TClientContext>) {
     this.fetch = options.fetch ?? globalThis.fetch.bind(globalThis)

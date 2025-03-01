@@ -1,4 +1,4 @@
-import type { StandardBody, StandardEventSourceOptions, StandardHeaders } from '@orpc/standard-server'
+import type { StandardBody, StandardHeaders, StandardServerEventSourceOptions } from '@orpc/standard-server'
 import type { Buffer } from 'node:buffer'
 import type { NodeHttpRequest } from './types'
 import { Readable } from 'node:stream'
@@ -56,7 +56,7 @@ export async function toStandardBody(req: NodeHttpRequest): Promise<StandardBody
 export function toNodeHttpBody(
   body: StandardBody,
   headers: StandardHeaders,
-  options: StandardEventSourceOptions,
+  options: StandardServerEventSourceOptions,
 ): Readable | undefined | string {
   delete headers['content-type']
   delete headers['content-disposition']

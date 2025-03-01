@@ -41,8 +41,8 @@
     "jsdom": "^25.0.1",
     "lint-staged": "^15.2.10",
     "simple-git-hooks": "^2.11.1",
-    "tsup": "^8.3.0",
     "typescript": "5.7.3",
+    "unbuild": "^3.5.0",
     "vitest": "^3.0.4"
   },
   "simple-git-hooks": {

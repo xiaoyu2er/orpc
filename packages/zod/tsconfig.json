@@ -1,7 +1,13 @@
 {
   "extends": "../../tsconfig.lib.json",
+  "compilerOptions": {
+    "rootDir": "src"
+  },
   "references": [
-    { "path": "../openapi" }
+    { "path": "../openapi" },
+    { "path": "../contract" },
+    { "path": "../server" },
+    { "path": "../shared" }
   ],
   "include": ["src"],
   "exclude": [

@@ -1,6 +1,6 @@
 import type { ErrorFromErrorMap, HTTPPath, Meta, Schema, SchemaOutput } from '@orpc/contract'
 import type { Interceptor, MaybeOptionalOptions } from '@orpc/shared'
-import type { StandardRequest, StandardResponse, StandardServerEventSourceOptions } from '@orpc/standard-server'
+import type { StandardRequest, StandardResponse } from '@orpc/standard-server'
 import type { Context } from '../../context'
 import type { Plugin } from '../../plugins'
 import type { ProcedureClientInterceptorOptions } from '../../procedure-client'
@@ -12,7 +12,6 @@ import { CompositePlugin } from '../../plugins'
 import { createProcedureClient } from '../../procedure-client'
 
 export type StandardHandleOptions<T extends Context> =
-  & StandardServerEventSourceOptions
   & { prefix?: HTTPPath }
   & (Record<never, never> extends T ? { context?: T } : { context: T })
 

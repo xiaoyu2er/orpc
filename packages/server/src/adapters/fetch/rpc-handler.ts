@@ -1,4 +1,5 @@
 import type { MaybeOptionalOptions } from '@orpc/shared'
+import type { ToFetchResponseOptions } from '@orpc/standard-server-fetch'
 import type { Context } from '../../context'
 import type { Router } from '../../router'
 import type { RPCHandlerOptions, StandardHandleOptions } from '../standard'
@@ -15,10 +16,13 @@ export class RPCHandler<T extends Context> implements FetchHandler<T> {
     this.standardHandler = new StandardHandler(router, matcher, codec, options)
   }
 
-  async handle(request: Request, ...rest: MaybeOptionalOptions<StandardHandleOptions<T>>): Promise<FetchHandleResult> {
+  async handle(
+    request: Request,
+    ...[options]: MaybeOptionalOptions<StandardHandleOptions<T> & ToFetchResponseOptions>
+  ): Promise<FetchHandleResult> {
     const standardRequest = toStandardRequest(request)
 
-    const result = await this.standardHandler.handle(standardRequest, ...rest)
+    const result = await this.standardHandler.handle(standardRequest, options as any)
 
     if (!result.matched) {
       return result
@@ -26,7 +30,7 @@ export class RPCHandler<T extends Context> implements FetchHandler<T> {
 
     return {
       matched: true,
-      response: toFetchResponse(result.response, rest[0] ?? {}),
+      response: toFetchResponse(result.response, options),
     }
   }
 }

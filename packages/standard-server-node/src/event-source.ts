@@ -1,6 +1,3 @@
-import type {
-  StandardServerEventSourceOptions,
-} from '@orpc/standard-server'
 import { Readable } from 'node:stream'
 import { isTypescriptObject, parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
 import {
@@ -71,9 +68,32 @@ export function toEventIterator(
   return gen()
 }
 
+export interface ToEventStreamOptions {
+  /**
+   * If true, a ping comment is sent periodically to keep the connection alive.
+   *
+   * @default true
+   */
+  eventSourcePingEnabled?: boolean
+
+  /**
+   * Interval (in milliseconds) between ping comments sent after the last event.
+   *
+   * @default 5000
+   */
+  eventSourcePingInterval?: number
+
+  /**
+   * The content of the ping comment. Must not include newline characters.
+   *
+   * @default ''
+   */
+  eventSourcePingContent?: string
+}
+
 export function toEventStream(
   iterator: AsyncIterator<unknown | void, unknown | void, void>,
-  options: StandardServerEventSourceOptions,
+  options: ToEventStreamOptions = {},
 ): Readable {
   const pingEnabled = options.eventSourcePingEnabled ?? true
   const pingInterval = options.eventSourcePingInterval ?? 5_000

@@ -202,6 +202,15 @@ importers:
         specifier: ^3.24.1
         version: 3.24.2
 
+  packages/openapi-client:
+    dependencies:
+      '@orpc/client':
+        specifier: workspace:*
+        version: link:../client
+      '@orpc/shared':
+        specifier: workspace:*
+        version: link:../shared
+
   packages/react-query:
     dependencies:
       '@orpc/client':

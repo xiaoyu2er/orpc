@@ -5,6 +5,9 @@ import { Readable } from 'node:stream'
 import { isAsyncIteratorObject } from '@orpc/shared'
 import request from 'supertest'
 import { toNodeHttpBody, toStandardBody } from './body'
+import * as EventSource from './event-source'
+
+const toEventStreamSpy = vi.spyOn(EventSource, 'toEventStream')
 
 describe('toStandardBody', () => {
   it('undefined', async () => {
@@ -158,7 +161,7 @@ describe('toNodeHttpBody', () => {
 
   it('undefined', () => {
     const headers = { ...baseHeaders }
-    const body = toNodeHttpBody(undefined, headers)
+    const body = toNodeHttpBody(undefined, headers, {})
 
     expect(body).toBe(undefined)
     expect(headers).toEqual({
@@ -168,7 +171,7 @@ describe('toNodeHttpBody', () => {
 
   it('json', () => {
     const headers = { ...baseHeaders }
-    const body = toNodeHttpBody({ foo: 'bar' }, headers)
+    const body = toNodeHttpBody({ foo: 'bar' }, headers, {})
 
     expect(body).toBe('{"foo":"bar"}')
     expect(headers).toEqual({
@@ -183,7 +186,7 @@ describe('toNodeHttpBody', () => {
     form.append('foo', 'bar')
     form.append('bar', 'baz')
 
-    const body = toNodeHttpBody(form, headers)
+    const body = toNodeHttpBody(form, headers, {})
 
     expect(body).toBeInstanceOf(Readable)
     expect(headers).toEqual({
@@ -204,7 +207,7 @@ describe('toNodeHttpBody', () => {
     const headers = { ...baseHeaders }
     const query = new URLSearchParams('foo=bar&bar=baz')
 
-    const body = toNodeHttpBody(query, headers)
+    const body = toNodeHttpBody(query, headers, {})
 
     expect(body).toBe('foo=bar&bar=baz')
     expect(headers).toEqual({
@@ -217,7 +220,7 @@ describe('toNodeHttpBody', () => {
     const headers = { ...baseHeaders }
     const blob = new Blob(['foo'], { type: 'application/pdf' })
 
-    const body = toNodeHttpBody(blob, headers)
+    const body = toNodeHttpBody(blob, headers, {})
 
     expect(body).toBeInstanceOf(Readable)
     expect(headers).toEqual({
@@ -240,7 +243,7 @@ describe('toNodeHttpBody', () => {
     const headers = { ...baseHeaders }
     const blob = new File(['foo'], 'foo.pdf', { type: 'application/pdf' })
 
-    const body = toNodeHttpBody(blob, headers)
+    const body = toNodeHttpBody(blob, headers, {})
 
     expect(body).instanceOf(Readable)
     expect(headers).toEqual({
@@ -264,9 +267,12 @@ describe('toNodeHttpBody', () => {
       yield 123
       return 456
     }
-
+    const options = { eventSourcePingEnabled: true }
     const headers = { ...baseHeaders }
-    const body = toNodeHttpBody(gen(), headers)
+    const iterator = gen()
+    const body = toNodeHttpBody(iterator, headers, options)
+
+    expect(toEventStreamSpy).toHaveBeenCalledWith(iterator, options)
 
     expect(body).toBeInstanceOf(Readable)
     expect(headers).toEqual({

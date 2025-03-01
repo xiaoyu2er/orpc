@@ -1,4 +1,5 @@
 import type { MaybeOptionalOptions } from '@orpc/shared'
+import type { SendStandardResponseOptions } from '@orpc/standard-server-node'
 import type { Context } from '../../context'
 import type { Router } from '../../router'
 import type { RPCHandlerOptions, StandardHandleOptions } from '../standard'
@@ -19,17 +20,17 @@ export class RPCHandler<T extends Context> implements NodeHttpHandler<T> {
   async handle(
     req: NodeHttpRequest,
     res: NodeHttpResponse,
-    ...rest: MaybeOptionalOptions<StandardHandleOptions<T>>
+    ...[options]: MaybeOptionalOptions<StandardHandleOptions<T> & SendStandardResponseOptions>
   ): Promise<NodeHttpHandleResult> {
     const standardRequest = toStandardRequest(req, res)
 
-    const result = await this.standardHandler.handle(standardRequest, ...rest)
+    const result = await this.standardHandler.handle(standardRequest, options as any)
 
     if (!result.matched) {
       return { matched: false }
     }
 
-    await sendStandardResponse(res, result.response)
+    await sendStandardResponse(res, result.response, options)
 
     return { matched: true }
   }

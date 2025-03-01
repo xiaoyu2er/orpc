@@ -20,7 +20,9 @@ describe('toFetchResponse', () => {
       status: 206,
     }
 
-    const fetchResponse = toFetchResponse(standardResponse)
+    const options = { eventSourcePingEnabled: true }
+
+    const fetchResponse = toFetchResponse(standardResponse, options)
 
     expect(fetchResponse.status).toBe(206)
     expect([...fetchResponse.headers]).toEqual([
@@ -34,7 +36,7 @@ describe('toFetchResponse', () => {
     expect(toFetchHeadersSpy).toBeCalledWith(standardResponse.headers)
 
     expect(toFetchBodySpy).toBeCalledTimes(1)
-    expect(toFetchBodySpy).toBeCalledWith(standardResponse.body, fetchResponse.headers)
+    expect(toFetchBodySpy).toBeCalledWith(standardResponse.body, fetchResponse.headers, options)
   })
 
   it('cancel async generator when client cancels', async () => {
@@ -56,7 +58,7 @@ describe('toFetchResponse', () => {
       body: gen(),
       headers: {},
       status: 209,
-    })
+    }, {})
 
     const reader = response.body!.pipeThrough(new TextDecoderStream()).getReader()
 

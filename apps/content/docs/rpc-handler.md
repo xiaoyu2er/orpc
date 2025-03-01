@@ -65,3 +65,19 @@ export default async function fetch(request: Request) {
   return new Response('Not Found', { status: 404 })
 }
 ```
+
+## Event-Source Ping Interval
+
+To keep EventSource connections alive (the mechanism behind [Event Iterator](/docs/event-iterator)), `RPCHandler` periodically sends a ping comment to the client. You can configure this behavior using the following options:
+
+- `eventSourcePingEnabled` (default: `true`) – Enables or disables pings.
+- `eventSourcePingInterval` (default: `5000`) – Time between pings (in milliseconds).
+- `eventSourcePingContent` (default: `''`) – Custom content for ping messages.
+
+```ts
+const result = await handler.handle(request, {
+  eventSourcePingEnabled: true,
+  eventSourcePingInterval: 5000, // 5 seconds
+  eventSourcePingContent: '',
+})
+```

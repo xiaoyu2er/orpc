@@ -89,7 +89,7 @@ const link = new RPCLink({
 
 ## Event Source Configuration
 
-Customize the retry logic for event sources using these options:
+Customize the retry logic for event sources (the mechanism behind [Event Iterator](/docs/event-iterator)) using these options:
 
 - **eventSourceMaxNumberOfRetries:** Maximum retry attempts.
 - **eventSourceRetryDelay:** Delay between retries.
@@ -114,4 +114,24 @@ const link = new RPCLink<ClientContext>({
 
 :::tip
 You should disable event source retries when streaming results from a chatbot AI.
+:::
+
+## Event-Source Ping Interval
+
+To keep EventSource connections alive (the mechanism behind [Event Iterator](/docs/event-iterator)), `RPCLink` periodically sends a ping comment to the server. You can configure this behavior using the following options:
+
+- `eventSourcePingEnabled` (default: `true`) – Enables or disables pings.
+- `eventSourcePingInterval` (default: `5000`) – Time between pings (in milliseconds).
+- `eventSourcePingContent` (default: `''`) – Custom content for ping messages.
+
+```ts
+const link = new RPCLink({
+  eventSourcePingEnabled: true,
+  eventSourcePingInterval: 5000, // 5 seconds
+  eventSourcePingContent: '',
+})
+```
+
+:::warning
+These options for sending [Event Iterator](/docs/event-iterator) from client to the server, not from the server to client as used in [RPCHandler](/docs/rpc-handler#event-source-ping-interval) or [OpenAPIHandler](/docs/openapi/openapi-handler#event-source-ping-interval).
 :::

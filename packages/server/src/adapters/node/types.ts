@@ -1,6 +1,7 @@
 /// <reference types="node" />
 
 import type { MaybeOptionalOptions } from '@orpc/shared'
+import type { SendStandardResponseOptions } from '@orpc/standard-server-node'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { Http2ServerRequest, Http2ServerResponse } from 'node:http2'
 import type { Context } from '../../context'
@@ -22,6 +23,6 @@ export interface NodeHttpHandler<T extends Context> {
   handle(
     req: NodeHttpRequest,
     res: NodeHttpResponse,
-    ...rest: MaybeOptionalOptions<StandardHandleOptions<T>>
+    ...rest: MaybeOptionalOptions<StandardHandleOptions<T> & SendStandardResponseOptions>
   ): Promise<NodeHttpHandleResult>
 }

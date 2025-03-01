@@ -39,7 +39,7 @@ const server = createServer(async (req, res) => {
     headers: {},
     status: 200,
     body: gen(),
-  })
+  }, {})
 })
 
 server.listen(3000, '127.0.0.1', () => {

@@ -9,6 +9,7 @@ describe('toEventIterator', () => {
       async pull(controller) {
         controller.enqueue('event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n')
         controller.enqueue('event: message\ndata: {"order": 2}\nid: id-2\n\n')
+        controller.enqueue(': ping\n\n')
         controller.enqueue('event: done\ndata: {"order": 3}\nid: id-3\nretry: 30000\n\n')
         controller.close()
       },
@@ -47,6 +48,7 @@ describe('toEventIterator', () => {
       async pull(controller) {
         controller.enqueue('event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n')
         controller.enqueue('event: message\ndata: {"order": 2}\nid: id-2\n\n')
+        controller.enqueue(': ping\n\n')
         controller.close()
       },
     }).pipeThrough(new TextEncoderStream()))
@@ -86,6 +88,7 @@ describe('toEventIterator', () => {
       async pull(controller) {
         controller.enqueue('event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n')
         controller.enqueue('event: message\ndata: {"order": 2}\nid: id-2\n\n')
+        controller.enqueue(': ping\n\n')
         controller.enqueue('event: error\ndata: {"order": 3}\nid: id-3\nretry: 30000\n\n')
         controller.close()
       },
@@ -124,6 +127,7 @@ describe('toEventIterator', () => {
   it('when .return() before finish reading', async () => {
     const stream = Readable.fromWeb(new ReadableStream<string>({
       async pull(controller) {
+        controller.enqueue(': ping\n\n')
         controller.enqueue('event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n')
         controller.enqueue('event: message\ndata: {"order": 2}\nid: id-2\n\n')
         controller.enqueue('event: unknown\ndata: {"order": 3}\nid: id-3\nretry: 30000')
@@ -157,7 +161,7 @@ describe('toEventStream', () => {
       return withEventMeta({ order: 4 }, { id: 'id-4', retry: 40000 })
     }
 
-    const reader = Readable.toWeb(toEventStream(gen()))
+    const reader = Readable.toWeb(toEventStream(gen(), {}))
       .pipeThrough(new TextDecoderStream())
       .getReader()
 
@@ -176,7 +180,7 @@ describe('toEventStream', () => {
       throw withEventMeta(new Error('order-4'), { id: 'id-4', retry: 40000 })
     }
 
-    const reader = Readable.toWeb(toEventStream(gen()))
+    const reader = Readable.toWeb(toEventStream(gen(), {}))
       .pipeThrough(new TextDecoderStream())
       .getReader()
 
@@ -195,7 +199,7 @@ describe('toEventStream', () => {
       throw withEventMeta(new ErrorEvent({ data: { order: 4 } }), { id: 'id-4', retry: 40000 })
     }
 
-    const reader = Readable.toWeb(toEventStream(gen()))
+    const reader = Readable.toWeb(toEventStream(gen(), {}))
       .pipeThrough(new TextDecoderStream())
       .getReader()
 
@@ -224,7 +228,7 @@ describe('toEventStream', () => {
       }
     }
 
-    const stream = toEventStream(gen())
+    const stream = toEventStream(gen(), {})
 
     const reader = Readable.toWeb(stream).getReader()
     await reader.read()
@@ -254,7 +258,7 @@ describe('toEventStream', () => {
       }
     }
 
-    const stream = toEventStream(gen())
+    const stream = toEventStream(gen(), {})
 
     const reason = new Error('reason')
     const reader = Readable.toWeb(stream).getReader()
@@ -266,4 +270,52 @@ describe('toEventStream', () => {
       expect(hasFinally).toBe(true)
     })
   })
+
+  it('ping internal', async () => {
+    async function* gen() {
+      while (true) {
+        await new Promise(resolve => setTimeout(resolve, 100))
+        yield 'hello'
+      }
+    }
+
+    const stream = toEventStream(gen(), {
+      eventSourcePingEnabled: true,
+      eventSourcePingInterval: 40,
+      eventSourcePingContent: 'ping',
+    })
+
+    const reader = Readable.toWeb(stream)
+      .pipeThrough(new TextDecoderStream())
+      .getReader()
+
+    let now = Date.now()
+    await expect(reader.read()).resolves.toEqual({ done: false, value: ': ping\n\n' })
+    await expect(reader.read()).resolves.toEqual({ done: false, value: ': ping\n\n' })
+    await expect(reader.read()).resolves.toEqual({ done: false, value: 'event: message\ndata: "hello"\n\n' })
+    expect(Date.now() - now).toBeGreaterThanOrEqual(80)
+    expect(Date.now() - now).toBeLessThan(120)
+
+    now = Date.now()
+    await expect(reader.read()).resolves.toEqual({ done: false, value: ': ping\n\n' })
+    await expect(reader.read()).resolves.toEqual({ done: false, value: ': ping\n\n' })
+    await expect(reader.read()).resolves.toEqual({ done: false, value: 'event: message\ndata: "hello"\n\n' })
+    expect(Date.now() - now).toBeGreaterThanOrEqual(80)
+    expect(Date.now() - now).toBeLessThan(120)
+  })
+})
+
+it.each([
+  [[1, 2, 3, 4, 5, 6]],
+  [[{ a: 1 }, { b: 2 }, { c: 3 }, { d: 4 }, { e: 5 }, { f: 6 }]],
+])('toEventStream + toEventIterator: %#', async (...values) => {
+  const iterator = toEventIterator(toEventStream((async function*() {
+    for (const value of values) {
+      yield value
+    }
+  })(), { eventSourcePingInterval: 0 }))
+
+  for await (const value of iterator) {
+    expect(value).toEqual(values.shift())
+  }
 })

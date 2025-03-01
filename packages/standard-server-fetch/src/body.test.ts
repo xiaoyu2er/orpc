@@ -1,6 +1,10 @@
 import { isAsyncIteratorObject } from '@orpc/shared'
 import { toFetchBody, toStandardBody } from './body'
 
+import * as EventSource from './event-source'
+
+const toEventStreamSpy = vi.spyOn(EventSource, 'toEventStream')
+
 describe('toStandardBody', () => {
   it('undefined', async () => {
     const request = new Request('https://example.com', {
@@ -137,7 +141,7 @@ describe('toFetchBody', () => {
 
   it('undefined', () => {
     const headers = new Headers(baseHeaders)
-    const body = toFetchBody(undefined, headers)
+    const body = toFetchBody(undefined, headers, {})
 
     expect(body).toBe(undefined)
     expect([...headers]).toEqual([
@@ -147,7 +151,7 @@ describe('toFetchBody', () => {
 
   it('json', () => {
     const headers = new Headers(baseHeaders)
-    const body = toFetchBody({ foo: 'bar' }, headers)
+    const body = toFetchBody({ foo: 'bar' }, headers, {})
 
     expect(body).toBe('{"foo":"bar"}')
     expect([...headers]).toEqual([
@@ -162,7 +166,7 @@ describe('toFetchBody', () => {
     form.append('foo', 'bar')
     form.append('bar', 'baz')
 
-    const body = toFetchBody(form, headers)
+    const body = toFetchBody(form, headers, {})
 
     expect(body).toBe(form)
     expect([...headers]).toEqual([
@@ -174,7 +178,7 @@ describe('toFetchBody', () => {
     const headers = new Headers(baseHeaders)
     const query = new URLSearchParams('foo=bar&bar=baz')
 
-    const body = toFetchBody(query, headers)
+    const body = toFetchBody(query, headers, {})
 
     expect(body).toBe(query)
     expect([...headers]).toEqual([
@@ -186,7 +190,7 @@ describe('toFetchBody', () => {
     const headers = new Headers(baseHeaders)
     const blob = new Blob(['foo'], { type: 'application/pdf' })
 
-    const body = toFetchBody(blob, headers)
+    const body = toFetchBody(blob, headers, {})
 
     expect(body).toBe(blob)
     expect([...headers]).toEqual([
@@ -201,7 +205,7 @@ describe('toFetchBody', () => {
     const headers = new Headers(baseHeaders)
     const blob = new File(['foo'], 'foo.pdf', { type: 'application/pdf' })
 
-    const body = toFetchBody(blob, headers)
+    const body = toFetchBody(blob, headers, {})
 
     expect(body).toBe(blob)
     expect([...headers]).toEqual([
@@ -217,9 +221,11 @@ describe('toFetchBody', () => {
       yield 123
       return 456
     }
-
+    const options = { eventSourcePingEnabled: false }
     const headers = new Headers(baseHeaders)
-    const body = toFetchBody(gen(), headers)
+    const body = toFetchBody(gen(), headers, options)
+
+    expect(toEventStreamSpy).toHaveBeenCalledWith(gen(), options)
 
     expect(body).toBeInstanceOf(ReadableStream)
     expect([...headers]).toEqual([

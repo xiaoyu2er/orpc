@@ -5,7 +5,7 @@ import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { ToFetchResponseOptions } from '@orpc/standard-server-fetch'
 import type { OpenAPIHandlerOptions } from '../standard'
 import { StandardHandler } from '@orpc/server/standard'
-import { toFetchResponse, toStandardRequest } from '@orpc/standard-server-fetch'
+import { toFetchResponse, toLazyStandardRequest } from '@orpc/standard-server-fetch'
 import { OpenAPICodec, OpenAPIMatcher } from '../standard'
 
 export class OpenAPIHandler<T extends Context> implements FetchHandler<T> {
@@ -22,7 +22,7 @@ export class OpenAPIHandler<T extends Context> implements FetchHandler<T> {
     request: Request,
     ...[options]: MaybeOptionalOptions<StandardHandleOptions<T> & ToFetchResponseOptions>
   ): Promise<FetchHandleResult> {
-    const standardRequest = toStandardRequest(request)
+    const standardRequest = toLazyStandardRequest(request)
 
     const result = await this.standardHandler.handle(standardRequest, options as any)
 

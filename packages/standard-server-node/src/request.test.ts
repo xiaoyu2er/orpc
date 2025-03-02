@@ -1,7 +1,7 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import request from 'supertest'
 import * as Body from './body'
-import { toStandardRequest } from './request'
+import { toLazyStandardRequest } from './request'
 import * as Signal from './signal'
 
 const toStandardBodySpy = vi.spyOn(Body, 'toStandardBody')
@@ -16,7 +16,7 @@ describe('toStandardRequest', () => {
     let standardRequest: any
 
     await request(async (req: IncomingMessage, res: ServerResponse) => {
-      standardRequest = toStandardRequest(req, res)
+      standardRequest = toLazyStandardRequest(req, res)
       expect(toStandardBodySpy).not.toBeCalled()
       await standardRequest.body() // ensure body is load before sending response
       expect(standardRequest.headers).toBe(req.headers)

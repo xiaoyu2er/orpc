@@ -1,7 +1,7 @@
 import { isAsyncIteratorObject } from '@orpc/shared'
 import * as Body from './body'
 import * as Headers from './headers'
-import { toStandardRequest } from './request'
+import { toLazyStandardRequest } from './request'
 
 const toStandardBodySpy = vi.spyOn(Body, 'toStandardBody')
 const toStandardHeadersSpy = vi.spyOn(Headers, 'toStandardHeaders')
@@ -20,7 +20,7 @@ describe('toStandardRequest', () => {
       },
     })
 
-    const standardRequest = toStandardRequest(request)
+    const standardRequest = toLazyStandardRequest(request)
 
     expect(toStandardBodySpy).not.toBeCalled()
     expect(toStandardHeadersSpy).not.toBeCalled()
@@ -53,7 +53,7 @@ describe('toStandardRequest', () => {
   it('can override lazy properties', () => {
     const request = new Request('https://example.com')
 
-    const standardRequest = toStandardRequest(request)
+    const standardRequest = toLazyStandardRequest(request)
 
     const overridedHeaders = { 'x-foo': 'bar' }
     const overridedBody = () => Promise.resolve('foo')
@@ -85,7 +85,7 @@ describe('toStandardRequest', () => {
       duplex: 'half',
     })
 
-    const body = await toStandardRequest(request).body() as AsyncGenerator
+    const body = await toLazyStandardRequest(request).body() as AsyncGenerator
 
     expect(body).toSatisfy(isAsyncIteratorObject)
     expect(await body.next()).toEqual({ done: false, value: 'foo' })

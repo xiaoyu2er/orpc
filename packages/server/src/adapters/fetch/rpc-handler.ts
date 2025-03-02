@@ -4,7 +4,7 @@ import type { Context } from '../../context'
 import type { Router } from '../../router'
 import type { RPCHandlerOptions, StandardHandleOptions } from '../standard'
 import type { FetchHandler, FetchHandleResult } from './types'
-import { toFetchResponse, toStandardRequest } from '@orpc/standard-server-fetch'
+import { toFetchResponse, toLazyStandardRequest } from '@orpc/standard-server-fetch'
 import { RPCCodec, RPCMatcher, StandardHandler } from '../standard'
 
 export class RPCHandler<T extends Context> implements FetchHandler<T> {
@@ -20,7 +20,7 @@ export class RPCHandler<T extends Context> implements FetchHandler<T> {
     request: Request,
     ...[options]: MaybeOptionalOptions<StandardHandleOptions<T> & ToFetchResponseOptions>
   ): Promise<FetchHandleResult> {
-    const standardRequest = toStandardRequest(request)
+    const standardRequest = toLazyStandardRequest(request)
 
     const result = await this.standardHandler.handle(standardRequest, options as any)
 

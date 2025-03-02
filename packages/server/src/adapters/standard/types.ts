@@ -1,6 +1,6 @@
 import type { ORPCError } from '@orpc/client'
 import type { HTTPPath } from '@orpc/contract'
-import type { StandardRequest, StandardResponse } from '@orpc/standard-server'
+import type { LazyStandardRequest, StandardResponse } from '@orpc/standard-server'
 import type { AnyProcedure } from '../../procedure'
 import type { AnyRouter } from '../../router'
 
@@ -20,5 +20,5 @@ export interface StandardMatcher {
 export interface StandardCodec {
   encode(output: unknown, procedure: AnyProcedure): StandardResponse
   encodeError(error: ORPCError<any, any>): StandardResponse
-  decode(request: StandardRequest, params: StandardParams | undefined, procedure: AnyProcedure): Promise<unknown>
+  decode(request: LazyStandardRequest, params: StandardParams | undefined, procedure: AnyProcedure): Promise<unknown>
 }

@@ -22,15 +22,33 @@ export interface StandardRequest {
 
   /**
    * The body has been parsed base on the content-type header.
+   */
+  body: StandardBody
+
+  signal: AbortSignal | undefined
+}
+
+export interface LazyStandardRequest extends Omit<StandardRequest, 'body'> {
+  /**
+   * The body has been parsed base on the content-type header.
    * This method can safely call multiple times (cached).
    */
   body: () => Promise<StandardBody>
-
-  signal: AbortSignal | undefined
 }
 
 export interface StandardResponse {
   status: number
   headers: StandardHeaders
+  /**
+   * The body has been parsed base on the content-type header.
+   */
   body: StandardBody
+}
+
+export interface LazyStandardResponse extends Omit<StandardResponse, 'body'> {
+  /**
+   * The body has been parsed base on the content-type header.
+   * This method can safely call multiple times (cached).
+   */
+  body: () => Promise<StandardBody>
 }

@@ -1,5 +1,5 @@
 import { StandardHandler } from '@orpc/server/standard'
-import { toFetchResponse, toStandardRequest } from '@orpc/standard-server-fetch'
+import { toFetchResponse, toLazyStandardRequest } from '@orpc/standard-server-fetch'
 import { describe, expect, it, vi } from 'vitest'
 import { router } from '../../../../server/tests/shared'
 import { OpenAPICodec, OpenAPIMatcher } from '../standard'
@@ -54,12 +54,12 @@ describe('openAPIHandler', () => {
 
     expect(handle).toHaveBeenCalledOnce()
     expect(handle).toHaveBeenCalledWith(
-      vi.mocked(toStandardRequest).mock.results[0]!.value,
+      vi.mocked(toLazyStandardRequest).mock.results[0]!.value,
       options,
     )
 
-    expect(vi.mocked(toStandardRequest)).toHaveBeenCalledOnce()
-    expect(vi.mocked(toStandardRequest)).toHaveBeenCalledWith(request)
+    expect(vi.mocked(toLazyStandardRequest)).toHaveBeenCalledOnce()
+    expect(vi.mocked(toLazyStandardRequest)).toHaveBeenCalledWith(request)
 
     expect(vi.mocked(toFetchResponse)).toHaveBeenCalledOnce()
     expect(vi.mocked(toFetchResponse)).toHaveBeenCalledWith({
@@ -84,12 +84,12 @@ describe('openAPIHandler', () => {
 
     expect(handle).toHaveBeenCalledOnce()
     expect(handle).toHaveBeenCalledWith(
-      vi.mocked(toStandardRequest).mock.results[0]!.value,
+      vi.mocked(toLazyStandardRequest).mock.results[0]!.value,
       { prefix: '/api/v1', context: { db: 'postgres' } },
     )
 
-    expect(vi.mocked(toStandardRequest)).toHaveBeenCalledOnce()
-    expect(vi.mocked(toStandardRequest)).toHaveBeenCalledWith(request)
+    expect(vi.mocked(toLazyStandardRequest)).toHaveBeenCalledOnce()
+    expect(vi.mocked(toLazyStandardRequest)).toHaveBeenCalledWith(request)
 
     expect(vi.mocked(toFetchResponse)).not.toHaveBeenCalled()
   })

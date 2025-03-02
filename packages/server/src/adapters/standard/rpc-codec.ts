@@ -1,5 +1,5 @@
 import type { ORPCError } from '@orpc/client'
-import type { StandardBody, StandardRequest, StandardResponse } from '@orpc/standard-server'
+import type { LazyStandardRequest, StandardBody, StandardResponse } from '@orpc/standard-server'
 import type { AnyProcedure } from '../../procedure'
 import type { StandardCodec, StandardParams } from './types'
 import { RPCSerializer } from '@orpc/client/standard'
@@ -18,7 +18,7 @@ export class RPCCodec implements StandardCodec {
     this.serializer = options.serializer ?? new RPCSerializer()
   }
 
-  async decode(request: StandardRequest, _params: StandardParams | undefined, _procedure: AnyProcedure): Promise<unknown> {
+  async decode(request: LazyStandardRequest, _params: StandardParams | undefined, _procedure: AnyProcedure): Promise<unknown> {
     const serialized = request.method === 'GET'
       ? parseEmptyableJSON(request.url.searchParams.getAll('data').at(-1)) // this prevent duplicate data params
       : await request.body() as any

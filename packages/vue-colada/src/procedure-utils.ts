@@ -1,5 +1,6 @@
 import type { Client, ClientContext } from '@orpc/client'
 import type { MaybeOptionalOptions } from '@orpc/shared'
+import type { _EmptyObject } from '@pinia/colada'
 import type { MutationOptions, MutationOptionsIn, QueryOptions, QueryOptionsIn } from './types'
 import { computed } from 'vue'
 import { buildKey } from './key'
@@ -14,11 +15,11 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
     >
   ): QueryOptions<TOutput, TError>
 
-  mutationOptions(
+  mutationOptions<UMutationContext extends Record<any, any> = _EmptyObject>(
     ...rest: MaybeOptionalOptions<
-      MutationOptionsIn<TClientContext, TInput, TOutput, TError>
+      MutationOptionsIn<TClientContext, TInput, TOutput, TError, UMutationContext>
     >
-  ): MutationOptions<TInput, TOutput, TError>
+  ): MutationOptions<TInput, TOutput, TError, UMutationContext>
 }
 
 export function createProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError extends Error>(

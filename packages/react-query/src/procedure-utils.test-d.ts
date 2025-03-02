@@ -271,15 +271,6 @@ describe('ProcedureUtils', () => {
       utils.mutationOptions({ context: { batch: 'invalid' } })
     })
 
-    it('infer correct mutation context type', () => {
-      utils.mutationOptions({
-        onMutate: () => ({ mutationContext: true }),
-        onError: (e, v, context) => {
-          expectTypeOf(context).toEqualTypeOf<undefined | { mutationContext: boolean }>()
-        },
-      })
-    })
-
     it('works with useMutation', () => {
       const mutation = useMutation(utils.mutationOptions({
         onSuccess: (data, input) => {
@@ -294,6 +285,20 @@ describe('ProcedureUtils', () => {
       expectTypeOf<Parameters<typeof mutation.mutate>[0]>().toEqualTypeOf<UtilsInput>()
       expectTypeOf(mutation.data).toEqualTypeOf<UtilsOutput | undefined>()
       expectTypeOf(mutation.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+    })
+
+    it('infer correct mutation context type', () => {
+      useMutation({
+        ...utils.mutationOptions({
+          onMutate: () => ({ mutationContext: true }),
+          onError: (e, v, context) => {
+            expectTypeOf(context?.mutationContext).toEqualTypeOf<undefined | boolean>()
+          },
+        }),
+        onSettled: (d, e, v, context) => {
+          expectTypeOf(context?.mutationContext).toEqualTypeOf<undefined | boolean>()
+        },
+      })
     })
   })
 })

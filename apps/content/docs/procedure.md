@@ -38,7 +38,7 @@ const example = os
 oRPC supports [Zod](https://github.com/colinhacks/zod), [Valibot](https://github.com/fabian-hiller/valibot), [Arktype](https://github.com/arktypeio/arktype), and any other [Standard Schema](https://github.com/standard-schema/standard-schema?tab=readme-ov-file#what-schema-libraries-implement-the-spec) library for input and output validation.
 
 ::: tip
-Specifying the `.output` or your handler’s return type can significantly improve type-checking and IDE-suggestion speed.
+By explicitly specifying the `.output` or your `handler's return type`, you enable TypeScript to infer the output without parsing the handler's code. This approach can dramatically enhance both type-checking and IDE-suggestion speed.
 :::
 
 ### `type` Utility

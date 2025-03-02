@@ -1,6 +1,6 @@
 import type { ClientContext } from '@orpc/client'
 import type { AnyFunction, SetOptional } from '@orpc/shared'
-import type { Enabled, MutationObserverOptions, QueryFunctionContext, QueryKey, QueryObserverOptions, UseInfiniteQueryOptions } from '@tanstack/vue-query'
+import type { MutationObserverOptions, QueryFunctionContext, QueryKey, QueryObserverOptions, UseInfiniteQueryOptions } from '@tanstack/vue-query'
 import type { ComputedRef, MaybeRef, MaybeRefOrGetter } from 'vue'
 
 /**
@@ -23,9 +23,9 @@ export type QueryOptionsIn<TClientContext extends ClientContext, TInput, TOutput
     MaybeRefDeep<QueryObserverOptions<TOutput, TError, TSelectData, TOutput>[P]>
   }
   & {
-    enabled?: MaybeRefOrGetter<Enabled<TOutput, TError, TSelectData>>
-    queryKey?: MaybeRefDeep<QueryKey>
-    shallow?: boolean
+    enabled?: MaybeRefOrGetter<QueryObserverOptions<TOutput, TError, TSelectData, TOutput>['enabled']>
+    queryKey?: MaybeRefDeep<QueryObserverOptions<TOutput, TError, TSelectData, TOutput>['queryKey']>
+    shallow?: MaybeRef<boolean>
   }
 
 export interface QueryOptionsBase<TOutput, TError extends Error> {

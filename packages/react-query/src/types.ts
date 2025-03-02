@@ -24,9 +24,9 @@ export interface InfiniteOptionsBase<TOutput, TError extends Error, TPageParam> 
   retry?(failureCount: number, error: TError): boolean // this make tanstack can infer the TError type
 }
 
-export type MutationOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError extends Error> =
+export type MutationOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError extends Error, TMutationContext> =
   & (Record<never, never> extends TClientContext ? { context?: TClientContext } : { context: TClientContext })
-  & UseMutationOptions<TOutput, TError, TInput>
+  & UseMutationOptions<TOutput, TError, TInput, TMutationContext>
 
 export interface MutationOptionsBase<TInput, TOutput, TError extends Error> {
   mutationKey: QueryKey

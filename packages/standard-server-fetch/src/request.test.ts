@@ -2,7 +2,7 @@ import type { StandardRequest } from '@orpc/standard-server'
 import { isAsyncIteratorObject } from '@orpc/shared'
 import * as Body from './body'
 import * as Headers from './headers'
-import { toFetchRequest, toLazyStandardRequest } from './request'
+import { toFetchRequest, toStandardLazyRequest } from './request'
 
 const toStandardBodySpy = vi.spyOn(Body, 'toStandardBody')
 const toFetchBodySpy = vi.spyOn(Body, 'toFetchBody')
@@ -13,7 +13,7 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe('toLazyStandardRequest', () => {
+describe('toStandardLazyRequest', () => {
   it('works', () => {
     const request = new Request('https://example.com', {
       method: 'POST',
@@ -23,7 +23,7 @@ describe('toLazyStandardRequest', () => {
       },
     })
 
-    const standardRequest = toLazyStandardRequest(request)
+    const standardRequest = toStandardLazyRequest(request)
 
     expect(standardRequest.url).toEqual(new URL('https://example.com'))
     expect(standardRequest.method).toBe('POST')
@@ -46,14 +46,14 @@ describe('toLazyStandardRequest', () => {
       },
     })
 
-    const lazyResponse = toLazyStandardRequest(response)
+    const lazyResponse = toStandardLazyRequest(response)
 
     expect(toStandardHeadersSpy).toBeCalledTimes(0)
     lazyResponse.headers = { overrided: '1' }
     expect(lazyResponse.headers).toEqual({ overrided: '1' }) // can override before access
     expect(toStandardHeadersSpy).toBeCalledTimes(0)
 
-    const lazyResponse2 = toLazyStandardRequest(response)
+    const lazyResponse2 = toStandardLazyRequest(response)
     expect(lazyResponse2.headers).toEqual(toStandardHeadersSpy.mock.results[0]!.value)
     expect(lazyResponse2.headers).toEqual(toStandardHeadersSpy.mock.results[0]!.value) // ensure cached
     expect(toStandardHeadersSpy).toBeCalledTimes(1)
@@ -65,7 +65,7 @@ describe('toLazyStandardRequest', () => {
   it('lazy body', async () => {
     const response = new Request('https://example.com')
 
-    const lazyResponse = toLazyStandardRequest(response)
+    const lazyResponse = toStandardLazyRequest(response)
 
     expect(toStandardBodySpy).toBeCalledTimes(0)
     const overrideBody = () => Promise.resolve('1')
@@ -73,7 +73,7 @@ describe('toLazyStandardRequest', () => {
     expect(lazyResponse.body).toBe(overrideBody)
     expect(toStandardBodySpy).toBeCalledTimes(0)
 
-    const lazyResponse2 = toLazyStandardRequest(response)
+    const lazyResponse2 = toStandardLazyRequest(response)
     expect(lazyResponse2.body()).toEqual(toStandardBodySpy.mock.results[0]!.value)
     expect(lazyResponse2.body()).toEqual(toStandardBodySpy.mock.results[0]!.value) // ensure cached
     expect(toStandardBodySpy).toBeCalledTimes(1)
@@ -97,7 +97,7 @@ describe('toLazyStandardRequest', () => {
       duplex: 'half',
     })
 
-    const body = await toLazyStandardRequest(request).body() as AsyncGenerator
+    const body = await toStandardLazyRequest(request).body() as AsyncGenerator
 
     expect(body).toSatisfy(isAsyncIteratorObject)
     expect(await body.next()).toEqual({ done: false, value: 'foo' })

@@ -1,4 +1,4 @@
-import type { LazyStandardRequest } from '@orpc/standard-server'
+import type { StandardLazyRequest } from '@orpc/standard-server'
 import type { NodeHttpRequest, NodeHttpResponse } from './types'
 import { once } from '@orpc/shared'
 import { toStandardBody } from './body'
@@ -7,7 +7,7 @@ import { toAbortSignal } from './signal'
 export function toLazyStandardRequest(
   req: NodeHttpRequest,
   res: NodeHttpResponse,
-): LazyStandardRequest {
+): StandardLazyRequest {
   const method = req.method ?? 'GET'
 
   const protocol = ('encrypted' in req.socket && req.socket.encrypted ? 'https:' : 'http:')

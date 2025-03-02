@@ -23,7 +23,7 @@ export interface StandardRequest {
   signal: AbortSignal | undefined
 }
 
-export interface LazyStandardRequest extends Omit<StandardRequest, 'body'> {
+export interface StandardLazyRequest extends Omit<StandardRequest, 'body'> {
   /**
    * Can be { request: Request } or { request: IncomingMessage, response: ServerResponse } based on the adapter.
    */
@@ -45,7 +45,7 @@ export interface StandardResponse {
   body: StandardBody
 }
 
-export interface LazyStandardResponse extends Omit<StandardResponse, 'body'> {
+export interface StandardLazyResponse extends Omit<StandardResponse, 'body'> {
   /**
    * Can be { request: Request } or { request: IncomingMessage, response: ServerResponse } based on the adapter.
    */

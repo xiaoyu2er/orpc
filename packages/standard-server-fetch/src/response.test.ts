@@ -1,7 +1,7 @@
 import type { StandardResponse } from '@orpc/standard-server'
 import * as Body from './body'
 import * as Headers from './headers'
-import { toFetchResponse, toLazyStandardResponse } from './response'
+import { toFetchResponse, toStandardLazyResponse } from './response'
 
 const toFetchBodySpy = vi.spyOn(Body, 'toFetchBody')
 const toStandardBodySpy = vi.spyOn(Body, 'toStandardBody')
@@ -73,7 +73,7 @@ describe('toFetchResponse', () => {
   })
 })
 
-describe('toLazyStandardResponse', () => {
+describe('toStandardLazyResponse', () => {
   it('works', () => {
     const response = new Response(JSON.stringify({ value: 123 }), {
       headers: {
@@ -83,7 +83,7 @@ describe('toLazyStandardResponse', () => {
       status: 206,
     })
 
-    const lazyResponse = toLazyStandardResponse(response)
+    const lazyResponse = toStandardLazyResponse(response)
 
     expect(lazyResponse.status).toBe(206)
 
@@ -103,14 +103,14 @@ describe('toLazyStandardResponse', () => {
       },
     })
 
-    const lazyResponse = toLazyStandardResponse(response)
+    const lazyResponse = toStandardLazyResponse(response)
 
     expect(toStandardHeadersSpy).toBeCalledTimes(0)
     lazyResponse.headers = { overrided: '1' }
     expect(lazyResponse.headers).toEqual({ overrided: '1' }) // can override before access
     expect(toStandardHeadersSpy).toBeCalledTimes(0)
 
-    const lazyResponse2 = toLazyStandardResponse(response)
+    const lazyResponse2 = toStandardLazyResponse(response)
     expect(lazyResponse2.headers).toEqual(toStandardHeadersSpy.mock.results[0]!.value)
     expect(lazyResponse2.headers).toEqual(toStandardHeadersSpy.mock.results[0]!.value) // ensure cached
     expect(toStandardHeadersSpy).toBeCalledTimes(1)
@@ -122,7 +122,7 @@ describe('toLazyStandardResponse', () => {
   it('lazy body', async () => {
     const response = new Response('value')
 
-    const lazyResponse = toLazyStandardResponse(response)
+    const lazyResponse = toStandardLazyResponse(response)
 
     expect(toStandardBodySpy).toBeCalledTimes(0)
     const overrideBody = () => Promise.resolve('1')
@@ -130,7 +130,7 @@ describe('toLazyStandardResponse', () => {
     expect(lazyResponse.body).toBe(overrideBody)
     expect(toStandardBodySpy).toBeCalledTimes(0)
 
-    const lazyResponse2 = toLazyStandardResponse(response)
+    const lazyResponse2 = toStandardLazyResponse(response)
     expect(lazyResponse2.body()).toEqual(toStandardBodySpy.mock.results[0]!.value)
     expect(lazyResponse2.body()).toEqual(toStandardBodySpy.mock.results[0]!.value) // ensure cached
     expect(toStandardBodySpy).toBeCalledTimes(1)

@@ -1,9 +1,9 @@
-import type { LazyStandardRequest, StandardRequest } from '@orpc/standard-server'
+import type { StandardLazyRequest, StandardRequest } from '@orpc/standard-server'
 import { once } from '@orpc/shared'
 import { toFetchBody, toStandardBody } from './body'
 import { toFetchHeaders, toStandardHeaders } from './headers'
 
-export function toLazyStandardRequest(request: Request): LazyStandardRequest {
+export function toStandardLazyRequest(request: Request): StandardLazyRequest {
   return {
     raw: { request },
     url: new URL(request.url),

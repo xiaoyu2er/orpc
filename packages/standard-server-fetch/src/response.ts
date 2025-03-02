@@ -1,4 +1,4 @@
-import type { LazyStandardResponse, StandardResponse } from '@orpc/standard-server'
+import type { StandardLazyResponse, StandardResponse } from '@orpc/standard-server'
 import type { ToFetchBodyOptions } from './body'
 import { once } from '@orpc/shared'
 import { toFetchBody, toStandardBody } from './body'
@@ -15,7 +15,7 @@ export function toFetchResponse(
   return new Response(body, { headers, status: response.status })
 }
 
-export function toLazyStandardResponse(response: Response): LazyStandardResponse {
+export function toStandardLazyResponse(response: Response): StandardLazyResponse {
   return {
     raw: { response },
     body: once(() => toStandardBody(response)),

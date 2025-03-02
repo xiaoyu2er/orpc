@@ -1,11 +1,11 @@
 import { isAsyncIteratorObject } from '@orpc/shared'
-import { toLazyStandardRequest } from '../src/request'
+import { toStandardLazyRequest } from '../src/request'
 import { toFetchResponse } from '../src/response'
 import { serve } from '@hono/node-server'
 
 serve({
   async fetch(request) {
-    const body = await toLazyStandardRequest(request).body()
+    const body = await toStandardLazyRequest(request).body()
 
     if (isAsyncIteratorObject(body)) {
       while (true) {

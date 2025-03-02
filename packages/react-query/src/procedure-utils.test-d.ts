@@ -271,6 +271,15 @@ describe('ProcedureUtils', () => {
       utils.mutationOptions({ context: { batch: 'invalid' } })
     })
 
+    it('infer correct mutation context type', () => {
+      utils.mutationOptions({
+        onMutate: () => ({ mutationContext: true }),
+        onError: (e, v, context) => {
+          expectTypeOf(context).toEqualTypeOf<undefined | { mutationContext: boolean }>()
+        },
+      })
+    })
+
     it('works with useMutation', () => {
       const mutation = useMutation(utils.mutationOptions({
         onSuccess: (data, input) => {

@@ -17,9 +17,9 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
     options: U & InfiniteOptionsIn<TClientContext, TInput, TOutput, TError, USelectData, UPageParam>
   ): NoInfer<U & InfiniteOptionsBase<TOutput, TError, UPageParam>>
 
-  mutationOptions<U>(
+  mutationOptions<U, UMutationContext>(
     ...rest: MaybeOptionalOptions<
-      U & MutationOptionsIn<TClientContext, TInput, TOutput, TError>
+      U & MutationOptionsIn<TClientContext, TInput, TOutput, TError, UMutationContext>
     >
   ): NoInfer<U & MutationOptionsBase<TInput, TOutput, TError>>
 }

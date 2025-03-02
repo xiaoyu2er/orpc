@@ -11,17 +11,17 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
     ...rest: MaybeOptionalOptions<
       U & QueryOptionsIn<TClientContext, TInput, TOutput, TError, USelectData>
     >
-  ): NoInfer<U & QueryOptionsBase<TOutput, TError>>
+  ): NoInfer<U & Omit<QueryOptionsBase<TOutput, TError>, keyof U>>
 
   infiniteOptions<U, UPageParam, USelectData = InfiniteData<TOutput, UPageParam>>(
     options: U & InfiniteOptionsIn<TClientContext, TInput, TOutput, TError, USelectData, UPageParam>
-  ): NoInfer<U & InfiniteOptionsBase<TOutput, TError, UPageParam>>
+  ): NoInfer<U & Omit<InfiniteOptionsBase<TOutput, TError, UPageParam>, keyof U>>
 
   mutationOptions<U, UMutationContext>(
     ...rest: MaybeOptionalOptions<
       U & MutationOptionsIn<TClientContext, TInput, TOutput, TError, UMutationContext>
     >
-  ): NoInfer<U & MutationOptionsBase<TInput, TOutput, TError>>
+  ): NoInfer<U & Omit<MutationOptionsBase<TInput, TOutput, TError>, keyof U>>
 }
 
 export function createProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError extends Error>(

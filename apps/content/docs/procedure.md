@@ -37,6 +37,10 @@ const example = os
 
 oRPC supports [Zod](https://github.com/colinhacks/zod), [Valibot](https://github.com/fabian-hiller/valibot), [Arktype](https://github.com/arktypeio/arktype), and any other [Standard Schema](https://github.com/standard-schema/standard-schema?tab=readme-ov-file#what-schema-libraries-implement-the-spec) library for input and output validation.
 
+::: tip
+Specifying the `.output` type or your handler’s return type significantly improves type-checking and IDE suggestions speed.
+:::
+
 ### `type` Utility
 
 For simple use-case without external libraries, use oRPC’s built-in `type` utility. It takes a mapping function as its first argument:

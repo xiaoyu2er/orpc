@@ -1,7 +1,7 @@
 {
   "name": "@orpc/openapi",
   "type": "module",
-  "version": "0.44.0",
+  "version": "0.45.0",
   "license": "MIT",
   "homepage": "https://orpc.unnoq.com",
   "repository": {

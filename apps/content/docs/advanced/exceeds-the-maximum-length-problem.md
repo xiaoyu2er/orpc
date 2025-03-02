@@ -12,7 +12,7 @@ export const router = {
 }
 ```
 
-Are you seeing this error? If so, congratulations—your project is now complex enough to encounter it!
+Are you seeing this error? If so, congratulations! your project is now complex enough to encounter it!
 
 ## Why It Happens
 

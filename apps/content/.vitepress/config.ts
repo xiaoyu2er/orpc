@@ -135,6 +135,7 @@ export default defineConfig({
           items: [
             { text: 'Validation Errors', link: '/docs/advanced/validation-errors' },
             { text: 'RPC Protocol', link: '/docs/advanced/rpc-protocol' },
+            { text: 'exceeds the maximum length ...', link: '/docs/advanced/exceeds-the-maximum-length-problem' },
           ],
         },
         {

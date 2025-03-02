@@ -11,11 +11,6 @@ export type StandardBody =
   | AsyncIterator<unknown | void, unknown | void, undefined>
 
 export interface StandardRequest {
-  /**
-   * Can be { request: Request } or { request: IncomingMessage, response: ServerResponse } based on the adapter.
-   */
-  raw: Record<string, unknown>
-
   method: string
   url: URL
   headers: StandardHeaders
@@ -29,6 +24,11 @@ export interface StandardRequest {
 }
 
 export interface LazyStandardRequest extends Omit<StandardRequest, 'body'> {
+  /**
+   * Can be { request: Request } or { request: IncomingMessage, response: ServerResponse } based on the adapter.
+   */
+  raw: Record<string, unknown>
+
   /**
    * The body has been parsed base on the content-type header.
    * This method can safely call multiple times (cached).
@@ -46,6 +46,11 @@ export interface StandardResponse {
 }
 
 export interface LazyStandardResponse extends Omit<StandardResponse, 'body'> {
+  /**
+   * Can be { request: Request } or { request: IncomingMessage, response: ServerResponse } based on the adapter.
+   */
+  raw: Record<string, unknown>
+
   /**
    * The body has been parsed base on the content-type header.
    * This method can safely call multiple times (cached).

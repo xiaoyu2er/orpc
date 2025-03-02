@@ -11,7 +11,7 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe('toStandardRequest', () => {
+describe('toLazyStandardRequest', () => {
   it('works', async () => {
     let standardRequest: any
 
@@ -32,5 +32,25 @@ describe('toStandardRequest', () => {
     expect(standardRequest.method).toBe('POST')
     expect(standardRequest.signal.aborted).toBe(true)
     expect(standardRequest.body()).toBe(toStandardBodySpy.mock.results[0]!.value)
+  })
+
+  it('lazy body', async () => {
+    await request(async (req: IncomingMessage, res: ServerResponse) => {
+      const standardRequest = toLazyStandardRequest(req, res)
+      expect(toStandardBodySpy).toBeCalledTimes(0)
+      const overrideBody = () => Promise.resolve('1')
+      standardRequest.body = overrideBody
+      expect(standardRequest.body).toBe(overrideBody)
+      expect(toStandardBodySpy).toBeCalledTimes(0)
+      res.end()
+    }).post('/hello').send({ foo: 'bar' })
+
+    await request(async (req: IncomingMessage, res: ServerResponse) => {
+      const standardRequest = toLazyStandardRequest(req, res)
+      expect(standardRequest.body()).toEqual(toStandardBodySpy.mock.results[0]!.value)
+      expect(standardRequest.body()).toEqual(toStandardBodySpy.mock.results[0]!.value) // ensure cached
+      expect(toStandardBodySpy).toBeCalledTimes(1)
+      res.end()
+    }).post('/hello').send({ foo: 'bar' })
   })
 })

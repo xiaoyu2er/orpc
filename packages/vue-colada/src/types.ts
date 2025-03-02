@@ -20,8 +20,8 @@ export type QueryOptionsIn<TClientContext extends ClientContext, TInput, TOutput
 
 export type QueryOptions<TOutput, TError extends Error> = UseQueryOptions<TOutput, TError>
 
-export type MutationOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError extends Error> =
+export type MutationOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError extends Error, TMutationContext extends Record<any, any>> =
   & (Record<never, never> extends TClientContext ? { context?: MaybeRefDeep<TClientContext> } : { context: MaybeRefDeep<TClientContext> })
-  & SetOptional<UseMutationOptions<TOutput, TInput, TError>, 'mutation'>
+  & SetOptional<UseMutationOptions<TOutput, TInput, TError, TMutationContext>, 'mutation'>
 
-export type MutationOptions<TInput, TOutput, TError extends Error> = UseMutationOptions<TOutput, TInput, TError>
+export type MutationOptions<TInput, TOutput, TError extends Error, TMutationContext extends Record<any, any>> = UseMutationOptions<TOutput, TInput, TError, TMutationContext>

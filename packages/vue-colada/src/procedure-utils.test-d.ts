@@ -113,5 +113,19 @@ describe('ProcedureUtils', () => {
       expectTypeOf(mutation.data.value).toEqualTypeOf<UtilsOutput | undefined>()
       expectTypeOf(mutation.error.value).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
     })
+
+    it('infer correct mutation context type', () => {
+      useMutation({
+        ...utils.mutationOptions({
+          onMutate: () => ({ mutationContext: true }),
+          onError: (e, v, context) => {
+            expectTypeOf(context.mutationContext).toEqualTypeOf<undefined | boolean>()
+          },
+        }),
+        onSettled: (d, e, v, context) => {
+          expectTypeOf(context.mutationContext).toEqualTypeOf<undefined | boolean>()
+        },
+      })
+    })
   })
 })

@@ -1,0 +1,11 @@
+import type { StandardLazyResponse, StandardRequest } from '@orpc/standard-server'
+import type { ClientOptionsOut } from '../../types'
+
+export interface StandardLinkCodec {
+  encode(path: readonly string[], input: unknown, options: ClientOptionsOut<any>): StandardRequest
+  decode(response: StandardLazyResponse): unknown
+}
+
+export interface StandardLinkClient {
+  call(request: StandardRequest): Promise<StandardLazyResponse>
+}

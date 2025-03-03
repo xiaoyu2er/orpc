@@ -21,5 +21,22 @@ export * from './utils'
 
 export { isDefinedError, ORPCError, safe } from '@orpc/client'
 export { eventIterator, type, ValidationError } from '@orpc/contract'
+export type {
+  ContractProcedure,
+  ContractProcedureDef,
+  ContractRouter,
+  ErrorMap,
+  ErrorMapItem,
+  HTTPMethod,
+  HTTPPath,
+  InputStructure,
+  Meta,
+  ORPCErrorFromErrorMap,
+  OutputStructure,
+  Route,
+  Schema,
+  SchemaInput,
+  SchemaOutput,
+} from '@orpc/contract'
 export { onError, onFinish, onStart, onSuccess } from '@orpc/shared'
 export { getEventMeta, withEventMeta } from '@orpc/standard-server'

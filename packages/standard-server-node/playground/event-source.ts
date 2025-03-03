@@ -1,10 +1,10 @@
 import { createServer } from 'node:http'
 import { isAsyncIteratorObject } from '@orpc/shared'
-import { toLazyStandardRequest } from '../src/request'
+import { toStandardLazyRequest } from '../src/request'
 import { sendStandardResponse } from '../src/response'
 
 const server = createServer(async (req, res) => {
-  const body = await toLazyStandardRequest(req, res).body()
+  const body = await toStandardLazyRequest(req, res).body()
 
   if (isAsyncIteratorObject(body)) {
     while (true) {

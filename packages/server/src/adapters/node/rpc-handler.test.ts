@@ -1,11 +1,11 @@
-import { sendStandardResponse, toLazyStandardRequest } from '@orpc/standard-server-node'
+import { sendStandardResponse, toStandardLazyRequest } from '@orpc/standard-server-node'
 import inject from 'light-my-request'
 import { router } from '../../../tests/shared'
 import { RPCCodec, RPCMatcher, StandardHandler } from '../standard'
 import { RPCHandler } from './rpc-handler'
 
 vi.mock('@orpc/standard-server-node', () => ({
-  toStandardRequest: vi.fn(),
+  toStandardLazyRequest: vi.fn(),
   sendStandardResponse: vi.fn(),
 }))
 
@@ -50,7 +50,7 @@ describe('rpcHandler', async () => {
   }
 
   it('on match', async () => {
-    vi.mocked(toLazyStandardRequest).mockReturnValueOnce(standardRequest)
+    vi.mocked(toStandardLazyRequest).mockReturnValueOnce(standardRequest)
     handle.mockReturnValueOnce({
       matched: true,
       response: {
@@ -73,8 +73,8 @@ describe('rpcHandler', async () => {
       { prefix: '/api/v1', context: { db: 'postgres' } },
     )
 
-    expect(toLazyStandardRequest).toHaveBeenCalledOnce()
-    expect(toLazyStandardRequest).toHaveBeenCalledWith(req, res)
+    expect(toStandardLazyRequest).toHaveBeenCalledOnce()
+    expect(toStandardLazyRequest).toHaveBeenCalledWith(req, res)
 
     expect(sendStandardResponse).toHaveBeenCalledOnce()
     expect(sendStandardResponse).toHaveBeenCalledWith(res, {
@@ -85,7 +85,7 @@ describe('rpcHandler', async () => {
   })
 
   it('on mismatch', async () => {
-    vi.mocked(toLazyStandardRequest).mockReturnValueOnce(standardRequest)
+    vi.mocked(toStandardLazyRequest).mockReturnValueOnce(standardRequest)
     handle.mockReturnValueOnce({
       matched: false,
       response: undefined,
@@ -104,8 +104,8 @@ describe('rpcHandler', async () => {
       { prefix: '/api/v1', context: { db: 'postgres' } },
     )
 
-    expect(toLazyStandardRequest).toHaveBeenCalledOnce()
-    expect(toLazyStandardRequest).toHaveBeenCalledWith(req, res)
+    expect(toStandardLazyRequest).toHaveBeenCalledOnce()
+    expect(toStandardLazyRequest).toHaveBeenCalledWith(req, res)
 
     expect(sendStandardResponse).not.toHaveBeenCalled()
   })

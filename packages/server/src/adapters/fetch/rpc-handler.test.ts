@@ -9,7 +9,7 @@ vi.mock('../standard', async origin => ({
 }))
 
 vi.mock('@orpc/standard-server-fetch', async origin => ({
-  toStandardRequest: vi.fn((await origin() as any).toStandardRequest),
+  toStandardLazyRequest: vi.fn((await origin() as any).toStandardLazyRequest),
   toFetchResponse: vi.fn((await origin() as any).toFetchResponse),
 }))
 

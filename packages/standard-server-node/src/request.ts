@@ -4,7 +4,7 @@ import { once } from '@orpc/shared'
 import { toStandardBody } from './body'
 import { toAbortSignal } from './signal'
 
-export function toLazyStandardRequest(
+export function toStandardLazyRequest(
   req: NodeHttpRequest,
   res: NodeHttpResponse,
 ): StandardLazyRequest {

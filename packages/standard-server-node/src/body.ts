@@ -1,11 +1,11 @@
 import type { StandardBody, StandardHeaders } from '@orpc/standard-server'
 import type { Buffer } from 'node:buffer'
-import type { ToEventStreamOptions } from './event-source'
+import type { ToEventStreamOptions } from './event-iterator'
 import type { NodeHttpRequest } from './types'
 import { Readable } from 'node:stream'
 import { isAsyncIteratorObject, parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
 import { contentDisposition, parseContentDisposition } from '@orpc/standard-server'
-import { toEventIterator, toEventStream } from './event-source'
+import { toEventIterator, toEventStream } from './event-iterator'
 
 export async function toStandardBody(req: NodeHttpRequest): Promise<StandardBody> {
   const method = req.method ?? 'GET'
@@ -59,7 +59,7 @@ export interface ToNodeHttpBodyOptions extends ToEventStreamOptions {}
 export function toNodeHttpBody(
   body: StandardBody,
   headers: StandardHeaders,
-  options: ToNodeHttpBodyOptions = {},
+  options: ToNodeHttpBodyOptions,
 ): Readable | undefined | string {
   delete headers['content-type']
   delete headers['content-disposition']

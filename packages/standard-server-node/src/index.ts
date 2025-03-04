@@ -1,5 +1,5 @@
 export * from './body'
-export * from './event-source'
+export * from './event-iterator'
 export * from './request'
 export * from './response'
 export * from './signal'

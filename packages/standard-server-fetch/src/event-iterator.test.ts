@@ -1,11 +1,10 @@
-import { Readable } from 'node:stream'
 import { isAsyncIteratorObject } from '@orpc/shared'
 import { ErrorEvent, getEventMeta, withEventMeta } from '@orpc/standard-server'
-import { toEventIterator, toEventStream } from './event-source'
+import { toEventIterator, toEventStream } from './event-iterator'
 
 describe('toEventIterator', () => {
   it('with done event', async () => {
-    const stream = Readable.fromWeb(new ReadableStream<string>({
+    const stream = new ReadableStream<string>({
       async pull(controller) {
         controller.enqueue('event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n')
         controller.enqueue('event: message\ndata: {"order": 2}\nid: id-2\n\n')
@@ -13,7 +12,7 @@ describe('toEventIterator', () => {
         controller.enqueue('event: done\ndata: {"order": 3}\nid: id-3\nretry: 30000\n\n')
         controller.close()
       },
-    }).pipeThrough(new TextEncoderStream()))
+    }).pipeThrough(new TextEncoderStream())
 
     const generator = toEventIterator(stream)
     expect(generator).toSatisfy(isAsyncIteratorObject)
@@ -44,14 +43,14 @@ describe('toEventIterator', () => {
   })
 
   it('without dont event', async () => {
-    const stream = Readable.fromWeb(new ReadableStream<string>({
+    const stream = new ReadableStream<string>({
       async pull(controller) {
+        controller.enqueue(': ping\n\n')
         controller.enqueue('event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n')
         controller.enqueue('event: message\ndata: {"order": 2}\nid: id-2\n\n')
-        controller.enqueue(': ping\n\n')
         controller.close()
       },
-    }).pipeThrough(new TextEncoderStream()))
+    }).pipeThrough(new TextEncoderStream())
 
     const generator = toEventIterator(stream)
     expect(generator).toSatisfy(isAsyncIteratorObject)
@@ -80,19 +79,19 @@ describe('toEventIterator', () => {
       return true
     })
 
-    await expect(Readable.toWeb(stream).getReader().closed).resolves.toBe(undefined)
+    await expect(stream.getReader().closed).resolves.toBe(undefined)
   })
 
   it('with error event', async () => {
-    const stream = Readable.fromWeb(new ReadableStream<string>({
+    const stream = new ReadableStream<string>({
       async pull(controller) {
         controller.enqueue('event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n')
         controller.enqueue('event: message\ndata: {"order": 2}\nid: id-2\n\n')
-        controller.enqueue(': ping\n\n')
         controller.enqueue('event: error\ndata: {"order": 3}\nid: id-3\nretry: 30000\n\n')
+        controller.enqueue(': ping\n\n')
         controller.close()
       },
-    }).pipeThrough(new TextEncoderStream()))
+    }).pipeThrough(new TextEncoderStream())
 
     const generator = toEventIterator(stream)
     expect(generator).toSatisfy(isAsyncIteratorObject)
@@ -121,19 +120,19 @@ describe('toEventIterator', () => {
       return true
     })
 
-    await expect(Readable.toWeb(stream).getReader().closed).resolves.toBe(undefined)
+    await expect(stream.getReader().closed).resolves.toBe(undefined)
   })
 
   it('when .return() before finish reading', async () => {
-    const stream = Readable.fromWeb(new ReadableStream<string>({
+    const stream = new ReadableStream<string>({
       async pull(controller) {
-        controller.enqueue(': ping\n\n')
         controller.enqueue('event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n')
         controller.enqueue('event: message\ndata: {"order": 2}\nid: id-2\n\n')
+        controller.enqueue(': ping\n\n')
         controller.enqueue('event: unknown\ndata: {"order": 3}\nid: id-3\nretry: 30000')
         controller.close()
       },
-    }).pipeThrough(new TextEncoderStream()))
+    }).pipeThrough(new TextEncoderStream())
 
     const generator = toEventIterator(stream)
     expect(generator).toSatisfy(isAsyncIteratorObject)
@@ -148,7 +147,8 @@ describe('toEventIterator', () => {
 
     await generator.return(undefined)
 
-    await expect(Readable.toWeb(stream).getReader().closed).resolves.toBe(undefined)
+    await new Promise(r => setTimeout(r, 10))
+    await expect(stream.getReader().closed).resolves.toBe(undefined)
   })
 })
 
@@ -161,7 +161,7 @@ describe('toEventStream', () => {
       return withEventMeta({ order: 4 }, { id: 'id-4', retry: 40000 })
     }
 
-    const reader = Readable.toWeb(toEventStream(gen(), {}))
+    const reader = toEventStream(gen(), {})
       .pipeThrough(new TextDecoderStream())
       .getReader()
 
@@ -180,7 +180,7 @@ describe('toEventStream', () => {
       throw withEventMeta(new Error('order-4'), { id: 'id-4', retry: 40000 })
     }
 
-    const reader = Readable.toWeb(toEventStream(gen(), {}))
+    const reader = toEventStream(gen(), {})
       .pipeThrough(new TextDecoderStream())
       .getReader()
 
@@ -199,7 +199,7 @@ describe('toEventStream', () => {
       throw withEventMeta(new ErrorEvent({ data: { order: 4 } }), { id: 'id-4', retry: 40000 })
     }
 
-    const reader = Readable.toWeb(toEventStream(gen(), {}))
+    const reader = toEventStream(gen(), {})
       .pipeThrough(new TextDecoderStream())
       .getReader()
 
@@ -230,9 +230,9 @@ describe('toEventStream', () => {
 
     const stream = toEventStream(gen(), {})
 
-    const reader = Readable.toWeb(stream).getReader()
+    const reader = stream.getReader()
     await reader.read()
-    await stream.destroy() // use stream.destroy() instead of reader.cancel() to improve node compatibility
+    await reader.cancel()
 
     await vi.waitFor(() => {
       expect(hasError).toBe(undefined)
@@ -261,9 +261,9 @@ describe('toEventStream', () => {
     const stream = toEventStream(gen(), {})
 
     const reason = new Error('reason')
-    const reader = Readable.toWeb(stream).getReader()
+    const reader = stream.getReader()
     await reader.read()
-    await stream.destroy(reason) // use stream.destroy() instead of reader.cancel() to improve node compatibility
+    await reader.cancel(reason)
 
     await vi.waitFor(() => {
       expect(hasError).toBe(reason)
@@ -280,12 +280,12 @@ describe('toEventStream', () => {
     }
 
     const stream = toEventStream(gen(), {
-      eventSourcePingEnabled: true,
-      eventSourcePingInterval: 40,
-      eventSourcePingContent: 'ping',
+      eventIteratorPingEnabled: true,
+      eventIteratorPingInterval: 40,
+      eventIteratorPingContent: 'ping',
     })
 
-    const reader = Readable.toWeb(stream)
+    const reader = stream
       .pipeThrough(new TextDecoderStream())
       .getReader()
 
@@ -313,7 +313,7 @@ it.each([
     for (const value of values) {
       yield value
     }
-  })(), { eventSourcePingInterval: 0 }))
+  })(), { eventIteratorPingInterval: 0 }))
 
   for await (const value of iterator) {
     expect(value).toEqual(values.shift())

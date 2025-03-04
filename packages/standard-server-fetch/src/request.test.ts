@@ -119,7 +119,7 @@ describe('toFetchRequest', () => {
       body: { foo: 'bar' },
     }
 
-    const fetchRequest = toFetchRequest(standardRequest)
+    const fetchRequest = toFetchRequest(standardRequest, { eventIteratorPingContent: 'test' })
     expect(fetchRequest.url).toEqual(standardRequest.url.href)
     expect(fetchRequest.method).toEqual(standardRequest.method)
     expect(fetchRequest.headers).toEqual(toFetchHeadersSpy.mock.results[0]!.value)
@@ -128,7 +128,7 @@ describe('toFetchRequest', () => {
     expect(toFetchHeadersSpy).toHaveBeenCalledWith(standardRequest.headers)
 
     expect(toFetchBodySpy).toHaveBeenCalledTimes(1)
-    expect(toFetchBodySpy).toHaveBeenCalledWith(standardRequest.body, toFetchHeadersSpy.mock.results[0]!.value)
+    expect(toFetchBodySpy).toHaveBeenCalledWith(standardRequest.body, toFetchHeadersSpy.mock.results[0]!.value, { eventIteratorPingContent: 'test' })
 
     await expect(fetchRequest.json()).resolves.toEqual(standardRequest.body)
 

@@ -22,7 +22,7 @@ describe('toFetchResponse', () => {
       status: 206,
     }
 
-    const options = { eventSourcePingEnabled: true }
+    const options = { eventIteratorPingEnabled: true }
 
     const fetchResponse = toFetchResponse(standardResponse, options)
 

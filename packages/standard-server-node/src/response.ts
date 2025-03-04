@@ -8,7 +8,7 @@ export interface SendStandardResponseOptions extends ToNodeHttpBodyOptions {}
 export function sendStandardResponse(
   res: NodeHttpResponse,
   standardResponse: StandardResponse,
-  options: SendStandardResponseOptions = {},
+  options: SendStandardResponseOptions,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     res.on('error', reject)

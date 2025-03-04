@@ -98,7 +98,7 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
         const maybeIterator = await this.#call(path, input, updatedOptions)
 
         if (!isAsyncIteratorObject(maybeIterator)) {
-          throw new InvalidEventIteratorRetryResponse('Invalid EventSource retry response')
+          throw new InvalidEventIteratorRetryResponse('Invalid Event Iterator retry response')
         }
 
         return maybeIterator

@@ -83,7 +83,7 @@ describe('decodeEventMessage', () => {
   })
 })
 
-describe('eventSourceDecoder', () => {
+describe('eventDecoder', () => {
   it('on success', () => {
     const onEvent = vi.fn()
 
@@ -137,7 +137,7 @@ describe('eventSourceDecoder', () => {
     decoder.feed('event: message\ndata: hello1\ndata: world\n\n')
     decoder.feed('event: message\ndata: hello2\ndata: world\nid: 123\nretry: 10000\n')
 
-    expect(() => decoder.end()).toThrowError('EventSource ended before complete')
+    expect(() => decoder.end()).toThrowError('Event Iterator ended before complete')
 
     expect(onEvent).toHaveBeenCalledTimes(1)
     expect(onEvent).toHaveBeenNthCalledWith(1, {
@@ -150,7 +150,7 @@ describe('eventSourceDecoder', () => {
   })
 })
 
-describe('eventSourceDecoderStream', () => {
+describe('eventDecoderStream', () => {
   it('on success', async () => {
     const stream = new ReadableStream<string>({
       start(controller) {
@@ -166,13 +166,13 @@ describe('eventSourceDecoderStream', () => {
 
     const response = new Response(stream)
 
-    const eventSourceStream = response.body!
+    const eventStream = response.body!
       .pipeThrough(new TextDecoderStream())
       .pipeThrough(new EventDecoderStream())
 
     const messages: EventMessage[] = []
 
-    for await (const message of eventSourceStream) {
+    for await (const message of eventStream) {
       messages.push(message)
     }
 
@@ -219,17 +219,17 @@ describe('eventSourceDecoderStream', () => {
 
     const response = new Response(stream)
 
-    const eventSourceStream = response.body!
+    const eventStream = response.body!
       .pipeThrough(new TextDecoderStream())
       .pipeThrough(new EventDecoderStream())
 
     const messages: EventMessage[] = []
 
     await expect(async () => {
-      for await (const message of eventSourceStream) {
+      for await (const message of eventStream) {
         messages.push(message)
       }
-    }).rejects.toThrowError('EventSource ended before complete')
+    }).rejects.toThrowError('Event Iterator ended before complete')
 
     expect(messages).toEqual([
       {

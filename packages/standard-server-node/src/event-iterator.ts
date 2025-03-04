@@ -1,3 +1,4 @@
+import { Readable } from 'node:stream'
 import { isTypescriptObject, parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
 import {
   encodeEventMessage,
@@ -8,9 +9,9 @@ import {
 } from '@orpc/standard-server'
 
 export function toEventIterator(
-  stream: ReadableStream<Uint8Array>,
+  stream: Readable,
 ): AsyncGenerator<unknown | void, unknown | void, void> {
-  const eventStream = stream
+  const eventStream = Readable.toWeb(stream)
     .pipeThrough(new TextDecoderStream())
     .pipeThrough(new EventDecoderStream())
 
@@ -73,30 +74,30 @@ export interface ToEventStreamOptions {
    *
    * @default true
    */
-  eventSourcePingEnabled?: boolean
+  eventIteratorPingEnabled?: boolean
 
   /**
    * Interval (in milliseconds) between ping comments sent after the last event.
    *
    * @default 5000
    */
-  eventSourcePingInterval?: number
+  eventIteratorPingInterval?: number
 
   /**
    * The content of the ping comment. Must not include newline characters.
    *
    * @default ''
    */
-  eventSourcePingContent?: string
+  eventIteratorPingContent?: string
 }
 
 export function toEventStream(
   iterator: AsyncIterator<unknown | void, unknown | void, void>,
-  options: ToEventStreamOptions = {},
-): ReadableStream<Uint8Array> {
-  const pingEnabled = options.eventSourcePingEnabled ?? true
-  const pingInterval = options.eventSourcePingInterval ?? 5_000
-  const pingContent = options.eventSourcePingContent ?? ''
+  options: ToEventStreamOptions,
+): Readable {
+  const pingEnabled = options.eventIteratorPingEnabled ?? true
+  const pingInterval = options.eventIteratorPingInterval ?? 5_000
+  const pingContent = options.eventIteratorPingContent ?? ''
 
   let timeout: ReturnType<typeof setInterval> | undefined
 
@@ -145,7 +146,7 @@ export function toEventStream(
         await iterator.return?.()
       }
     },
-  }).pipeThrough(new TextEncoderStream())
+  })
 
-  return stream
+  return Readable.fromWeb(stream)
 }

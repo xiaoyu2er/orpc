@@ -5,9 +5,9 @@ import { Readable } from 'node:stream'
 import { isAsyncIteratorObject } from '@orpc/shared'
 import request from 'supertest'
 import { toNodeHttpBody, toStandardBody } from './body'
-import * as EventSource from './event-source'
+import * as EventIteratorModule from './event-iterator'
 
-const toEventStreamSpy = vi.spyOn(EventSource, 'toEventStream')
+const toEventStreamSpy = vi.spyOn(EventIteratorModule, 'toEventStream')
 
 describe('toStandardBody', () => {
   it('undefined', async () => {
@@ -267,7 +267,7 @@ describe('toNodeHttpBody', () => {
       yield 123
       return 456
     }
-    const options = { eventSourcePingEnabled: true }
+    const options = { eventIteratorPingEnabled: true }
     const headers = { ...baseHeaders }
     const iterator = gen()
     const body = toNodeHttpBody(iterator, headers, options)

@@ -120,17 +120,17 @@ You should disable event iterator retries when streaming results from a chatbot 
 
 ## Event-Source Ping Interval
 
-To keep EventSource connections alive (the mechanism behind [Event Iterator](/docs/event-iterator)), `RPCLink` periodically sends a ping comment to the server. You can configure this behavior using the following options:
+To keep [Event Iterator](/docs/event-iterator) connections alive, `RPCLink` periodically sends a ping comment to the server. You can configure this behavior using the following options:
 
-- `eventSourcePingEnabled` (default: `true`) – Enables or disables pings.
-- `eventSourcePingInterval` (default: `5000`) – Time between pings (in milliseconds).
-- `eventSourcePingContent` (default: `''`) – Custom content for ping messages.
+- `eventIteratorPingEnabled` (default: `true`) – Enables or disables pings.
+- `eventIteratorPingInterval` (default: `5000`) – Time between pings (in milliseconds).
+- `eventIteratorPingContent` (default: `''`) – Custom content for ping messages.
 
 ```ts
 const link = new RPCLink({
-  eventSourcePingEnabled: true,
-  eventSourcePingInterval: 5000, // 5 seconds
-  eventSourcePingContent: '',
+  eventIteratorPingEnabled: true,
+  eventIteratorPingInterval: 5000, // 5 seconds
+  eventIteratorPingContent: '',
 })
 ```
 

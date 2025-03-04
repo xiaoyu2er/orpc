@@ -37,10 +37,10 @@ describe('standardLink', () => {
     expect(codec.encode).toHaveBeenCalledWith(['planet', 'create'], { name: 'Earth' }, { context, signal, lastEventId })
 
     expect(client.call).toHaveBeenCalledTimes(1)
-    expect(client.call).toHaveBeenCalledWith('__standard_request__')
+    expect(client.call).toHaveBeenCalledWith('__standard_request__', { context, signal, lastEventId }, ['planet', 'create'], { name: 'Earth' })
 
     expect(codec.decode).toHaveBeenCalledTimes(1)
-    expect(codec.decode).toHaveBeenCalledWith('__standard_response__')
+    expect(codec.decode).toHaveBeenCalledWith('__standard_response__', { context, signal, lastEventId }, ['planet', 'create'], { name: 'Earth' })
 
     expect(interceptor).toHaveBeenCalledTimes(1)
     expect(interceptor).toHaveBeenCalledWith({

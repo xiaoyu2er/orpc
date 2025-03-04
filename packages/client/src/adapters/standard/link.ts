@@ -59,14 +59,14 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
   constructor(
     public readonly codec: StandardLinkCodec<T>,
     public readonly sender: StandardLinkClient<T>,
-    options?: StandardLinkOptions<T>,
+    options: StandardLinkOptions<T>,
   ) {
-    this.eventIteratorMaxRetries = options?.eventIteratorMaxRetries ?? 5
-    this.eventIteratorRetryDelay = options?.eventIteratorRetryDelay ?? (o => o.lastRetry ?? (1000 * 2 ** o.retryTimes))
-    this.eventIteratorShouldRetry = options?.eventIteratorShouldRetry ?? true
+    this.eventIteratorMaxRetries = options.eventIteratorMaxRetries ?? 5
+    this.eventIteratorRetryDelay = options.eventIteratorRetryDelay ?? (o => o.lastRetry ?? (1000 * 2 ** o.retryTimes))
+    this.eventIteratorShouldRetry = options.eventIteratorShouldRetry ?? true
 
-    this.interceptors = options?.interceptors ?? []
-    this.clientInterceptors = options?.clientInterceptors ?? []
+    this.interceptors = options.interceptors ?? []
+    this.clientInterceptors = options.clientInterceptors ?? []
   }
 
   call(path: readonly string[], input: unknown, options: ClientOptionsOut<T>): Promise<unknown> {

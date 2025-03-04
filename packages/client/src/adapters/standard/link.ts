@@ -57,8 +57,8 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
   private readonly clientInterceptors: Exclude<StandardLinkOptions<T>['clientInterceptors'], undefined>
 
   constructor(
-    public readonly codec: StandardLinkCodec,
-    public readonly sender: StandardLinkClient,
+    public readonly codec: StandardLinkCodec<T>,
+    public readonly sender: StandardLinkClient<T>,
     options?: StandardLinkOptions<T>,
   ) {
     this.eventIteratorMaxRetries = options?.eventIteratorMaxRetries ?? 5
@@ -109,9 +109,13 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
   async #call(path: readonly string[], input: unknown, options: ClientOptionsOut<T>): Promise<unknown> {
     const request = await this.codec.encode(path, input, options)
 
-    const response = await intercept(this.clientInterceptors, { request }, ({ request }) => this.sender.call(request))
+    const response = await intercept(
+      this.clientInterceptors,
+      { request },
+      ({ request }) => this.sender.call(request, options, path, input),
+    )
 
-    const output = await this.codec.decode(response)
+    const output = await this.codec.decode(response, options, path, input)
 
     return output
   }

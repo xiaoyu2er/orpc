@@ -59,7 +59,7 @@ export interface StandardRPCLinkCodecOptions<T extends ClientContext> {
   rpcSerializer?: RPCSerializer
 }
 
-export class StandardRPCLinkCodec<T extends ClientContext> implements StandardLinkCodec {
+export class StandardRPCLinkCodec<T extends ClientContext> implements StandardLinkCodec<T> {
   private readonly baseUrl: Exclude<StandardRPCLinkCodecOptions<T>['url'], undefined>
   private readonly maxUrlLength: Exclude<StandardRPCLinkCodecOptions<T>['maxUrlLength'], undefined>
   private readonly fallbackMethod: Exclude<StandardRPCLinkCodecOptions<T>['fallbackMethod'], undefined>

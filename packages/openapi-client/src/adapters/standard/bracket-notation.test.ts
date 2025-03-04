@@ -87,6 +87,10 @@ describe('bracketNotation', () => {
   })
 
   describe('.deserialize', () => {
+    it('can deserialize empty objects', () => {
+      expect(serializer.deserialize([])).toEqual({})
+    })
+
     it('can deserialize arrays', () => {
       expect(serializer.deserialize([
         ['', 1],
@@ -181,6 +185,7 @@ describe('bracketNotation', () => {
   })
 
   it.each([
+    [{ }],
     [{ a: 1, b: 2, c: [1, 2, { a: 1, b: 2 }, new Date(), new Blob([]), new Set([1, 2]), new Map([[1, 2]])] }],
   ])('.serialize + .deserialize', (value) => {
     expect(serializer.deserialize(serializer.serialize(value))).toEqual(value)

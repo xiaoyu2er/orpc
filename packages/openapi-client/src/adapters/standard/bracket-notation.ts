@@ -23,9 +23,13 @@ export class BracketNotationSerializer {
     return result
   }
 
-  deserialize(serialized: BracketNotationSerialized): unknown {
+  deserialize(serialized: BracketNotationSerialized): Record<string, unknown> | unknown[] {
+    if (serialized.length === 0) {
+      return {}
+    }
+
     const arrayPushStyles = new WeakSet()
-    const ref = { value: [] }
+    const ref: { value: Record<string, unknown> | unknown[] } = { value: [] }
 
     for (const [path, value] of serialized) {
       const segments = this.parsePath(path)

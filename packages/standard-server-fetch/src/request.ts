@@ -1,4 +1,5 @@
 import type { StandardLazyRequest, StandardRequest } from '@orpc/standard-server'
+import type { ToFetchBodyOptions } from './body'
 import { once } from '@orpc/shared'
 import { toFetchBody, toStandardBody } from './body'
 import { toFetchHeaders, toStandardHeaders } from './headers'
@@ -21,9 +22,11 @@ export function toStandardLazyRequest(request: Request): StandardLazyRequest {
   }
 }
 
-export function toFetchRequest(request: StandardRequest): Request {
+export interface ToFetchRequestOptions extends ToFetchBodyOptions {}
+
+export function toFetchRequest(request: StandardRequest, options: ToFetchRequestOptions): Request {
   const headers = toFetchHeaders(request.headers)
-  const body = toFetchBody(request.body, headers)
+  const body = toFetchBody(request.body, headers, options)
 
   return new Request(request.url, {
     signal: request.signal,

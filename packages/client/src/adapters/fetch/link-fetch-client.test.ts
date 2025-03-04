@@ -35,7 +35,7 @@ describe('linkFetchClient', () => {
     expect(toStandardLazyResponseSpy).toBeCalledWith(await fetch.mock.results[0]!.value)
 
     expect(toFetchRequestSpy).toBeCalledTimes(1)
-    expect(toFetchRequestSpy).toBeCalledWith(standardRequest)
+    expect(toFetchRequestSpy).toBeCalledWith(standardRequest, { fetch })
 
     expect(fetch).toBeCalledTimes(1)
     expect(fetch).toBeCalledWith(

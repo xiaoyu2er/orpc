@@ -13,7 +13,7 @@ describe('sendStandardResponse', () => {
   it('works with undefined', async () => {
     let endSpy: any
 
-    const options = { eventSourcePingEnabled: true }
+    const options = { eventIteratorKeepAliveEnabled: true }
     const res = await request(async (req: IncomingMessage, res: ServerResponse) => {
       endSpy = vi.spyOn(res, 'end')
 
@@ -45,7 +45,7 @@ describe('sendStandardResponse', () => {
   it('works with json', async () => {
     let endSpy: any
 
-    const options = { eventSourcePingEnabled: true }
+    const options = { eventIteratorKeepAliveEnabled: true }
     const res = await request(async (req: IncomingMessage, res: ServerResponse) => {
       endSpy = vi.spyOn(res, 'end')
 
@@ -80,7 +80,7 @@ describe('sendStandardResponse', () => {
     const blob = new Blob(['foo'], { type: 'text/plain' })
     let endSpy: any
 
-    const options = { eventSourcePingEnabled: true }
+    const options = { eventIteratorKeepAliveEnabled: true }
     const res = await request(async (req: IncomingMessage, res: ServerResponse) => {
       endSpy = vi.spyOn(res, 'end')
 
@@ -126,7 +126,7 @@ describe('sendStandardResponse', () => {
 
     let endSpy: any
 
-    const options = { eventSourcePingEnabled: true }
+    const options = { eventIteratorKeepAliveEnabled: true }
 
     const res = await request(async (req: IncomingMessage, res: ServerResponse) => {
       endSpy = vi.spyOn(res, 'end')

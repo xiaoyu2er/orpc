@@ -84,7 +84,7 @@ export class EventDecoder {
 
   end(): void {
     if (this.incomplete) {
-      throw new EventDecoderError('EventSource ended before complete')
+      throw new EventDecoderError('Event Iterator ended before complete')
     }
   }
 }

@@ -8,7 +8,7 @@ export interface ToFetchResponseOptions extends ToFetchBodyOptions {}
 
 export function toFetchResponse(
   response: StandardResponse,
-  options: ToFetchResponseOptions = {},
+  options: ToFetchResponseOptions,
 ): Response {
   const headers = toFetchHeaders(response.headers)
   const body = toFetchBody(response.body, headers, options)

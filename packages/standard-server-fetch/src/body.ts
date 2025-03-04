@@ -1,8 +1,8 @@
 import type { StandardBody } from '@orpc/standard-server'
-import type { ToEventStreamOptions } from './event-source'
+import type { ToEventStreamOptions } from './event-iterator'
 import { isAsyncIteratorObject, parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
 import { contentDisposition, parseContentDisposition } from '@orpc/standard-server'
-import { toEventIterator, toEventStream } from './event-source'
+import { toEventIterator, toEventStream } from './event-iterator'
 
 export async function toStandardBody(re: Request | Response): Promise<StandardBody> {
   if (!re.body) {
@@ -61,7 +61,7 @@ export interface ToFetchBodyOptions extends ToEventStreamOptions {}
 export function toFetchBody(
   body: StandardBody,
   headers: Headers,
-  options: ToFetchBodyOptions = {},
+  options: ToFetchBodyOptions,
 ): string | Blob | FormData | URLSearchParams | undefined | ReadableStream<Uint8Array> {
   headers.delete('content-type')
   headers.delete('content-disposition')

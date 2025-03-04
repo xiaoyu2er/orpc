@@ -18,27 +18,27 @@ describe('encodeEventMessage', () => {
 
   it('invalid event', () => {
     expect(() => encodeEventMessage({ event: 'hi\n' }))
-      .toThrowError('Event-source event must not contain a newline character')
+      .toThrowError('Event\'s event must not contain a newline character')
   })
 
   it('invalid id', () => {
     expect(() => encodeEventMessage({ event: 'message', id: 'hi\n' }))
-      .toThrowError('Event-source id must not contain a newline character')
+      .toThrowError('Event\'s id must not contain a newline character')
   })
 
   it('invalid retry', () => {
     expect(() => encodeEventMessage({ event: 'message', retry: Number.NaN }))
-      .toThrowError('Event-source retry must be a integer and >= 0')
+      .toThrowError('Event\'s retry must be a integer and >= 0')
 
     expect(() => encodeEventMessage({ event: 'message', retry: -1 }))
-      .toThrowError('Event-source retry must be a integer and >= 0')
+      .toThrowError('Event\'s retry must be a integer and >= 0')
 
     expect(() => encodeEventMessage({ event: 'message', retry: 1.5 }))
-      .toThrowError('Event-source retry must be a integer and >= 0')
+      .toThrowError('Event\'s retry must be a integer and >= 0')
   })
 
   it('invalid comment', () => {
     expect(() => encodeEventMessage({ event: 'message', comments: ['hi\n'] }))
-      .toThrowError('Event-source comment must not contain a newline character')
+      .toThrowError('Event\'s comment must not contain a newline character')
   })
 })

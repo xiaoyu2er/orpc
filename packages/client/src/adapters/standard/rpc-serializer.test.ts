@@ -60,7 +60,7 @@ describe.each(supportedDataTypes)('rpcSerializer: $name', ({ value, expected }) 
   })
 })
 
-describe('rpcSerializer: event-source iterator', async () => {
+describe('rpcSerializer: event iterator', async () => {
   const serializer = new RPCSerializer()
 
   function serializeAndDeserialize(value: unknown): unknown {

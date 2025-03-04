@@ -87,18 +87,18 @@ export default async function fetch(request: Request) {
 }
 ```
 
-## Event-Source Ping Interval
+## Event Iterator Keep Alive
 
-To keep EventSource connections alive (the mechanism behind [Event Iterator](/docs/event-iterator)), `OpenAPIHandler` periodically sends a ping comment to the client. You can configure this behavior using the following options:
+To keep [Event Iterator](/docs/event-iterator) connections alive, `OpenAPIHandler` periodically sends a ping comment to the client. You can configure this behavior using the following options:
 
-- `eventSourcePingEnabled` (default: `true`) – Enables or disables pings.
-- `eventSourcePingInterval` (default: `5000`) – Time between pings (in milliseconds).
-- `eventSourcePingContent` (default: `''`) – Custom content for ping messages.
+- `eventIteratorKeepAliveEnabled` (default: `true`) – Enables or disables pings.
+- `eventIteratorKeepAliveInterval` (default: `5000`) – Time between pings (in milliseconds).
+- `eventIteratorKeepAliveComment` (default: `''`) – Custom content for ping messages.
 
 ```ts
 const result = await handler.handle(request, {
-  eventSourcePingEnabled: true,
-  eventSourcePingInterval: 5000, // 5 seconds
-  eventSourcePingContent: '',
+  eventIteratorKeepAliveEnabled: true,
+  eventIteratorKeepAliveInterval: 5000, // 5 seconds
+  eventIteratorKeepAliveComment: '',
 })
 ```

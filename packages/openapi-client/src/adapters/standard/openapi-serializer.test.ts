@@ -66,7 +66,7 @@ describe('openAPISerializer', () => {
       expect(serialize).toHaveBeenCalledWith(data)
     })
 
-    describe('with event-source iterator', async () => {
+    describe('with event iterator', async () => {
       it('on success', async () => {
         const date = new Date()
 
@@ -235,7 +235,7 @@ describe('openAPISerializer', () => {
       expect(deserialized).toEqual(data)
     })
 
-    describe('with event-source iterator', async () => {
+    describe('with event iterator', async () => {
       it('on success', async () => {
         const date = new Date()
 

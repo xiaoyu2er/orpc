@@ -4,7 +4,7 @@ export interface EventMessage {
   data: string | undefined
 
   /**
-   * The number of milliseconds to wait before retrying the event source if error occurs.
+   * The number of milliseconds to wait before retrying the event iterator if error occurs.
    */
   retry: number | undefined
 

@@ -18,11 +18,13 @@ export class RPCHandler<T extends Context> implements FetchHandler<T> {
 
   async handle(
     request: Request,
-    ...[options]: MaybeOptionalOptions<StandardHandleOptions<T> & ToFetchResponseOptions>
+    ...[
+      options = {} as StandardHandleOptions<T> & ToFetchResponseOptions,
+    ]: MaybeOptionalOptions<StandardHandleOptions<T> & ToFetchResponseOptions>
   ): Promise<FetchHandleResult> {
     const standardRequest = toStandardLazyRequest(request)
 
-    const result = await this.standardHandler.handle(standardRequest, options as any)
+    const result = await this.standardHandler.handle(standardRequest, options)
 
     if (!result.matched) {
       return result

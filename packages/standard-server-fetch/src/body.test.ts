@@ -1,9 +1,9 @@
 import { isAsyncIteratorObject } from '@orpc/shared'
 import { toFetchBody, toStandardBody } from './body'
 
-import * as EventSource from './event-source'
+import * as EventIteratorModule from './event-iterator'
 
-const toEventStreamSpy = vi.spyOn(EventSource, 'toEventStream')
+const toEventStreamSpy = vi.spyOn(EventIteratorModule, 'toEventStream')
 
 describe('toStandardBody', () => {
   it('undefined', async () => {
@@ -39,7 +39,7 @@ describe('toStandardBody', () => {
     expect(await toStandardBody(request)).toEqual(undefined)
   })
 
-  it('event-source', async () => {
+  it('event iterator', async () => {
     const stream = new ReadableStream<string>({
       async pull(controller) {
         controller.enqueue('event: message\ndata: 123\n\n')
@@ -221,7 +221,7 @@ describe('toFetchBody', () => {
       yield 123
       return 456
     }
-    const options = { eventSourcePingEnabled: false }
+    const options = { eventIteratorKeepAliveEnabled: false }
     const headers = new Headers(baseHeaders)
     const body = toFetchBody(gen(), headers, options)
 

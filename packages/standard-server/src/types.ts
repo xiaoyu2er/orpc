@@ -16,7 +16,7 @@ export interface StandardRequest {
   headers: StandardHeaders
 
   /**
-   * The body has been parsed base on the content-type header.
+   * The body has been parsed based on the content-type header.
    */
   body: StandardBody
 
@@ -30,7 +30,7 @@ export interface StandardLazyRequest extends Omit<StandardRequest, 'body'> {
   raw: Record<string, unknown>
 
   /**
-   * The body has been parsed base on the content-type header.
+   * The body has been parsed based on the content-type header.
    * This method can safely call multiple times (cached).
    */
   body: () => Promise<StandardBody>
@@ -40,7 +40,7 @@ export interface StandardResponse {
   status: number
   headers: StandardHeaders
   /**
-   * The body has been parsed base on the content-type header.
+   * The body has been parsed based on the content-type header.
    */
   body: StandardBody
 }
@@ -52,7 +52,7 @@ export interface StandardLazyResponse extends Omit<StandardResponse, 'body'> {
   raw: Record<string, unknown>
 
   /**
-   * The body has been parsed base on the content-type header.
+   * The body has been parsed based on the content-type header.
    * This method can safely call multiple times (cached).
    */
   body: () => Promise<StandardBody>

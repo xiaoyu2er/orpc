@@ -82,8 +82,8 @@ const link = new RPCLink({
 
     return 'POST'
   },
-  fetch: (request, init, { context }) => globalThis.fetch({
-    ...request,
+  fetch: (request, init, { context }) => globalThis.fetch(request, {
+    ...init,
     cache: context?.cache,
   }),
 })

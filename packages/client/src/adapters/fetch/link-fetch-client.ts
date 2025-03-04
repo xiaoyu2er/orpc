@@ -4,7 +4,13 @@ import type { StandardLinkClient } from '../standard'
 import { toFetchRequest, toStandardLazyResponse } from '@orpc/standard-server-fetch'
 
 export interface LinkFetchClientOptions<T extends ClientContext> {
-  fetch?: (request: Request, init: undefined, options: ClientOptionsOut<T>, path: readonly string[], input: unknown) => Promise<Response>
+  fetch?: (
+    request: Request,
+    init: Record<never, never>,
+    options: ClientOptionsOut<T>,
+    path: readonly string[],
+    input: unknown
+  ) => Promise<Response>
 }
 
 export class LinkFetchClient<T extends ClientContext> implements StandardLinkClient<T> {
@@ -17,7 +23,7 @@ export class LinkFetchClient<T extends ClientContext> implements StandardLinkCli
   async call(request: StandardRequest, options: ClientOptionsOut<T>, path: readonly string[], input: unknown): Promise<StandardLazyResponse> {
     const fetchRequest = toFetchRequest(request)
 
-    const fetchResponse = await this.fetch(fetchRequest, undefined, options, path, input)
+    const fetchResponse = await this.fetch(fetchRequest, {}, options, path, input)
 
     const lazyResponse = toStandardLazyResponse(fetchResponse)
 

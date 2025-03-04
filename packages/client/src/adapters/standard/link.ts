@@ -107,11 +107,11 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
   }
 
   async #call(path: readonly string[], input: unknown, options: ClientOptionsOut<T>): Promise<unknown> {
-    const request = this.codec.encode(path, input, options)
+    const request = await this.codec.encode(path, input, options)
 
     const response = await intercept(this.clientInterceptors, { request }, ({ request }) => this.sender.call(request))
 
-    const output = this.codec.decode(response)
+    const output = await this.codec.decode(response)
 
     return output
   }

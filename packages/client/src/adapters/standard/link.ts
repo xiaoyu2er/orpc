@@ -5,15 +5,15 @@ import type { StandardLinkClient, StandardLinkCodec } from './types'
 import { intercept, isAsyncIteratorObject, value } from '@orpc/shared'
 import { createAutoRetryEventIterator, type EventIteratorReconnectOptions } from '../../event-iterator'
 
-export class InvalidEventSourceRetryResponse extends Error { }
+export class InvalidEventIteratorRetryResponse extends Error { }
 
 export interface StandardLinkOptions<T extends ClientContext> {
   /**
-   * Maximum number of retry attempts for EventSource errors before throwing.
+   * Maximum number of retry attempts for event iterator errors before throwing.
    *
    * @default 5
    */
-  eventSourceMaxRetries?: Value<number, [
+  eventIteratorMaxRetries?: Value<number, [
         reconnectOptions: EventIteratorReconnectOptions,
         options: ClientOptionsOut<T>,
         path: readonly string[],
@@ -21,11 +21,11 @@ export interface StandardLinkOptions<T extends ClientContext> {
   ]>
 
   /**
-   * Delay (in ms) before retrying an EventSource call.
+   * Delay (in ms) before retrying an event iterator call.
    *
    * @default (o) => o.lastRetry ?? (1000 * 2 ** o.retryTimes)
    */
-  eventSourceRetryDelay?: Value<number, [
+  eventIteratorRetryDelay?: Value<number, [
     reconnectOptions: EventIteratorReconnectOptions,
     options: ClientOptionsOut<T>,
     path: readonly string[],
@@ -37,7 +37,7 @@ export interface StandardLinkOptions<T extends ClientContext> {
    *
    * @default true
    */
-  eventSourceShouldRetry?: Value<boolean, [
+  eventIteratorShouldRetry?: Value<boolean, [
     reconnectOptions: EventIteratorReconnectOptions,
     options: ClientOptionsOut<T>,
     path: readonly string[],
@@ -49,9 +49,9 @@ export interface StandardLinkOptions<T extends ClientContext> {
 }
 
 export class StandardLink<T extends ClientContext> implements ClientLink<T> {
-  private readonly eventSourceMaxRetries: Exclude<StandardLinkOptions<T>['eventSourceMaxRetries'], undefined>
-  private readonly eventSourceRetryDelay: Exclude<StandardLinkOptions<T>['eventSourceRetryDelay'], undefined>
-  private readonly eventSourceShouldRetry: Exclude<StandardLinkOptions<T>['eventSourceShouldRetry'], undefined>
+  private readonly eventIteratorMaxRetries: Exclude<StandardLinkOptions<T>['eventIteratorMaxRetries'], undefined>
+  private readonly eventIteratorRetryDelay: Exclude<StandardLinkOptions<T>['eventIteratorRetryDelay'], undefined>
+  private readonly eventIteratorShouldRetry: Exclude<StandardLinkOptions<T>['eventIteratorShouldRetry'], undefined>
 
   private readonly interceptors: Exclude<StandardLinkOptions<T>['interceptors'], undefined>
   private readonly clientInterceptors: Exclude<StandardLinkOptions<T>['clientInterceptors'], undefined>
@@ -59,14 +59,14 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
   constructor(
     public readonly codec: StandardLinkCodec,
     public readonly sender: StandardLinkClient,
-    options: StandardLinkOptions<T>,
+    options?: StandardLinkOptions<T>,
   ) {
-    this.eventSourceMaxRetries = options.eventSourceMaxRetries ?? 5
-    this.eventSourceRetryDelay = options.eventSourceRetryDelay ?? (o => o.lastRetry ?? (1000 * 2 ** o.retryTimes))
-    this.eventSourceShouldRetry = options.eventSourceShouldRetry ?? true
+    this.eventIteratorMaxRetries = options?.eventIteratorMaxRetries ?? 5
+    this.eventIteratorRetryDelay = options?.eventIteratorRetryDelay ?? (o => o.lastRetry ?? (1000 * 2 ** o.retryTimes))
+    this.eventIteratorShouldRetry = options?.eventIteratorShouldRetry ?? true
 
-    this.interceptors = options.interceptors ?? []
-    this.clientInterceptors = options.clientInterceptors ?? []
+    this.interceptors = options?.interceptors ?? []
+    this.clientInterceptors = options?.clientInterceptors ?? []
   }
 
   call(path: readonly string[], input: unknown, options: ClientOptionsOut<T>): Promise<unknown> {
@@ -78,19 +78,19 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
       }
 
       return createAutoRetryEventIterator(output, async (reconnectOptions) => {
-        const maxRetries = await value(this.eventSourceMaxRetries, reconnectOptions, options, path, input)
+        const maxRetries = await value(this.eventIteratorMaxRetries, reconnectOptions, options, path, input)
 
         if (options.signal?.aborted || reconnectOptions.retryTimes > maxRetries) {
           return null
         }
 
-        const shouldRetry = await value(this.eventSourceShouldRetry, reconnectOptions, options, path, input)
+        const shouldRetry = await value(this.eventIteratorShouldRetry, reconnectOptions, options, path, input)
 
         if (!shouldRetry) {
           return null
         }
 
-        const retryDelay = await value(this.eventSourceRetryDelay, reconnectOptions, options, path, input)
+        const retryDelay = await value(this.eventIteratorRetryDelay, reconnectOptions, options, path, input)
 
         await new Promise(resolve => setTimeout(resolve, retryDelay))
 
@@ -98,7 +98,7 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
         const maybeIterator = await this.#call(path, input, updatedOptions)
 
         if (!isAsyncIteratorObject(maybeIterator)) {
-          throw new InvalidEventSourceRetryResponse('Invalid EventSource retry response')
+          throw new InvalidEventIteratorRetryResponse('Invalid EventSource retry response')
         }
 
         return maybeIterator

@@ -17,7 +17,7 @@ export function eventIterator<TYieldIn, TYieldOut, TReturnIn = unknown, TReturnO
       version: 1,
       validate(iterator) {
         if (!isAsyncIteratorObject(iterator)) {
-          return { issues: [{ message: 'Expect event source iterator', path: [] }] }
+          return { issues: [{ message: 'Expect event iterator', path: [] }] }
         }
 
         const mapped = mapEventIterator(iterator, {
@@ -32,10 +32,10 @@ export function eventIterator<TYieldIn, TYieldOut, TReturnIn = unknown, TReturnO
 
             if (result.issues) {
               throw new ORPCError('EVENT_ITERATOR_VALIDATION_FAILED', {
-                message: 'Event source iterator validation failed',
+                message: 'Event iterator validation failed',
                 cause: new ValidationError({
                   issues: result.issues,
-                  message: 'Event source iterator validation failed',
+                  message: 'Event iterator validation failed',
                 }),
               })
             }

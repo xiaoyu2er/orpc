@@ -17,7 +17,7 @@ interface ORPCMetadata {
 }
 
 const base = os
-  .$meta<ORPCMetadata>({}) // [!code highlight]
+  .$meta<ORPCMetadata>({}) // require define initial context [!code highlight]
   .use(async ({ procedure, next }) => {
     const result = await next()
 
@@ -37,6 +37,6 @@ const example = base
   })
 ```
 
-:::warning
-When defining `.$meta`, oRPC requires you to pass an initial metadata.
+:::info
+The `.meta` can be called multiple times; each call [spread merges](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax) the new metadata with the existing metadata or the initial metadata.
 :::

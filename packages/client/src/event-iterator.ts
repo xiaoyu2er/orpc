@@ -107,7 +107,7 @@ export function createAutoRetryEventIterator<TYield, TReturn>(
 
             if (retryTimes > MAX_ALLOWED_RETRY_TIMES) {
               throw exit(new Error(
-                `Exceeded maximum retry attempts (${MAX_ALLOWED_RETRY_TIMES}) for event source. Possible infinite retry loop detected. Please review the retry logic.`,
+                `Exceeded maximum retry attempts (${MAX_ALLOWED_RETRY_TIMES}) for event iterator. Possible infinite retry loop detected. Please review the retry logic.`,
                 { cause: currentError },
               ))
             }

@@ -1,7 +1,7 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import request from 'supertest'
 import * as Body from './body'
-import { toStandardRequest } from './request'
+import { toStandardLazyRequest } from './request'
 import * as Signal from './signal'
 
 const toStandardBodySpy = vi.spyOn(Body, 'toStandardBody')
@@ -11,12 +11,12 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe('toStandardRequest', () => {
+describe('toStandardLazyRequest', () => {
   it('works', async () => {
     let standardRequest: any
 
     await request(async (req: IncomingMessage, res: ServerResponse) => {
-      standardRequest = toStandardRequest(req, res)
+      standardRequest = toStandardLazyRequest(req, res)
       expect(toStandardBodySpy).not.toBeCalled()
       await standardRequest.body() // ensure body is load before sending response
       expect(standardRequest.headers).toBe(req.headers)
@@ -32,5 +32,25 @@ describe('toStandardRequest', () => {
     expect(standardRequest.method).toBe('POST')
     expect(standardRequest.signal.aborted).toBe(true)
     expect(standardRequest.body()).toBe(toStandardBodySpy.mock.results[0]!.value)
+  })
+
+  it('lazy body', async () => {
+    await request(async (req: IncomingMessage, res: ServerResponse) => {
+      const standardRequest = toStandardLazyRequest(req, res)
+      expect(toStandardBodySpy).toBeCalledTimes(0)
+      const overrideBody = () => Promise.resolve('1')
+      standardRequest.body = overrideBody
+      expect(standardRequest.body).toBe(overrideBody)
+      expect(toStandardBodySpy).toBeCalledTimes(0)
+      res.end()
+    }).post('/hello').send({ foo: 'bar' })
+
+    await request(async (req: IncomingMessage, res: ServerResponse) => {
+      const standardRequest = toStandardLazyRequest(req, res)
+      expect(standardRequest.body()).toEqual(toStandardBodySpy.mock.results[0]!.value)
+      expect(standardRequest.body()).toEqual(toStandardBodySpy.mock.results[0]!.value) // ensure cached
+      expect(toStandardBodySpy).toBeCalledTimes(1)
+      res.end()
+    }).post('/hello').send({ foo: 'bar' })
   })
 })

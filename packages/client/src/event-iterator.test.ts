@@ -304,7 +304,7 @@ describe('createAutoRetryEventIterator', () => {
     expect(await iterator.next()).toEqual({ done: false, value: 1 })
     expect(await iterator.next()).toEqual({ done: false, value: 2 })
     expect(await iterator.next()).toEqual({ done: false, value: { order: 3 } })
-    await expect(iterator.next()).rejects.toThrow('Exceeded maximum retry attempts (99) for event source. Possible infinite retry loop detected. Please review the retry logic.')
+    await expect(iterator.next()).rejects.toThrow('Exceeded maximum retry attempts (99) for event iterator. Possible infinite retry loop detected. Please review the retry logic.')
 
     expect(reconnect).toBeCalledTimes(99)
     expect(reconnect).toHaveBeenNthCalledWith(1, {

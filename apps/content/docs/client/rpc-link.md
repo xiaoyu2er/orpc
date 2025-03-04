@@ -82,38 +82,40 @@ const link = new RPCLink({
 
     return 'POST'
   },
-  fetch: (url, init, { context }) =>
-    globalThis.fetch(url, { ...init, cache: context?.cache }),
+  fetch: (request, init, { context }) => globalThis.fetch(request, {
+    ...init,
+    cache: context?.cache,
+  }),
 })
 ```
 
-## Event Source Configuration
+## Event Iterator Configuration
 
-Customize the retry logic for event sources (the mechanism behind [Event Iterator](/docs/event-iterator)) using these options:
+Customize the retry logic for [Event Iterator](/docs/event-iterator) using these options:
 
-- **eventSourceMaxNumberOfRetries:** Maximum retry attempts.
-- **eventSourceRetryDelay:** Delay between retries.
-- **eventSourceRetry:** Function to determine if a retry should occur.
+- **eventIteratorMaxRetries:** Maximum retry attempts.
+- **eventIteratorRetryDelay:** Delay between retries.
+- **eventIteratorShouldRetry:** Function to determine if a retry should occur.
 
 ```ts twoslash
 import { RPCLink } from '@orpc/client/fetch'
 
 interface ClientContext {
-  eventSourceRetry?: boolean
+  eventIteratorShouldRetry?: boolean
 }
 
 const link = new RPCLink<ClientContext>({
   url: 'http://localhost:3000/rpc',
-  eventSourceRetry(reconnectOptions, options, path, input) {
+  eventIteratorShouldRetry(reconnectOptions, options, path, input) {
     console.log(reconnectOptions.error)
 
-    return !options.context?.eventSourceRetry
+    return !options.context?.eventIteratorShouldRetry
   }
 })
 ```
 
 :::tip
-You should disable event source retries when streaming results from a chatbot AI.
+You should disable event iterator retries when streaming results from a chatbot AI.
 :::
 
 ## Event-Source Ping Interval

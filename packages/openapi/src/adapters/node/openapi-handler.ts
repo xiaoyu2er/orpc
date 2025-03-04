@@ -5,7 +5,7 @@ import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { SendStandardResponseOptions } from '@orpc/standard-server-node'
 import type { OpenAPIHandlerOptions } from '../standard'
 import { StandardHandler } from '@orpc/server/standard'
-import { sendStandardResponse, toStandardRequest } from '@orpc/standard-server-node'
+import { sendStandardResponse, toStandardLazyRequest } from '@orpc/standard-server-node'
 import { OpenAPICodec, OpenAPIMatcher } from '../standard'
 
 export class OpenAPIHandler<T extends Context> implements NodeHttpHandler<T> {
@@ -23,7 +23,7 @@ export class OpenAPIHandler<T extends Context> implements NodeHttpHandler<T> {
     res: NodeHttpResponse,
     ...[options]: MaybeOptionalOptions<StandardHandleOptions<T> & SendStandardResponseOptions>
   ): Promise<NodeHttpHandleResult> {
-    const standardRequest = toStandardRequest(req, res)
+    const standardRequest = toStandardLazyRequest(req, res)
 
     const result = await this.standardHandler.handle(standardRequest, options as any)
 

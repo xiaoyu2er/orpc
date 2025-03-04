@@ -1,6 +1,6 @@
 import type { ErrorFromErrorMap, HTTPPath, Meta, Schema, SchemaOutput } from '@orpc/contract'
 import type { Interceptor, MaybeOptionalOptions } from '@orpc/shared'
-import type { StandardRequest, StandardResponse } from '@orpc/standard-server'
+import type { StandardLazyRequest, StandardResponse } from '@orpc/standard-server'
 import type { Context } from '../../context'
 import type { Plugin } from '../../plugins'
 import type { ProcedureClientInterceptorOptions } from '../../procedure-client'
@@ -19,7 +19,7 @@ export type WellStandardHandleOptions<T extends Context> = StandardHandleOptions
 
 export type StandardHandleResult = { matched: true, response: StandardResponse } | { matched: false, response: undefined }
 
-export type StandardHandlerInterceptorOptions<TContext extends Context> = WellStandardHandleOptions<TContext> & { request: StandardRequest }
+export type StandardHandlerInterceptorOptions<TContext extends Context> = WellStandardHandleOptions<TContext> & { request: StandardLazyRequest }
 
 export interface StandardHandlerOptions<TContext extends Context> {
   plugins?: Plugin<TContext>[]
@@ -60,7 +60,7 @@ export class StandardHandler<T extends Context> {
     this.matcher.init(router)
   }
 
-  handle(request: StandardRequest, ...[options]: MaybeOptionalOptions<StandardHandleOptions<T>>): Promise<StandardHandleResult> {
+  handle(request: StandardLazyRequest, ...[options]: MaybeOptionalOptions<StandardHandleOptions<T>>): Promise<StandardHandleResult> {
     return intercept(
       this.options.rootInterceptors ?? [],
       {

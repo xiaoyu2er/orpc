@@ -1,4 +1,4 @@
-import { toFetchResponse, toStandardRequest } from '@orpc/standard-server-fetch'
+import { toFetchResponse, toStandardLazyRequest } from '@orpc/standard-server-fetch'
 import { router } from '../../../tests/shared'
 import { RPCCodec, RPCMatcher, StandardHandler } from '../standard'
 import { RPCHandler } from './rpc-handler'
@@ -9,7 +9,7 @@ vi.mock('../standard', async origin => ({
 }))
 
 vi.mock('@orpc/standard-server-fetch', async origin => ({
-  toStandardRequest: vi.fn((await origin() as any).toStandardRequest),
+  toStandardLazyRequest: vi.fn((await origin() as any).toStandardLazyRequest),
   toFetchResponse: vi.fn((await origin() as any).toFetchResponse),
 }))
 
@@ -49,12 +49,12 @@ describe('rpcHandler', () => {
 
     expect(handle).toHaveBeenCalledOnce()
     expect(handle).toHaveBeenCalledWith(
-      vi.mocked(toStandardRequest).mock.results[0]!.value,
+      vi.mocked(toStandardLazyRequest).mock.results[0]!.value,
       options,
     )
 
-    expect(vi.mocked(toStandardRequest)).toHaveBeenCalledOnce()
-    expect(vi.mocked(toStandardRequest)).toHaveBeenCalledWith(request)
+    expect(vi.mocked(toStandardLazyRequest)).toHaveBeenCalledOnce()
+    expect(vi.mocked(toStandardLazyRequest)).toHaveBeenCalledWith(request)
 
     expect(vi.mocked(toFetchResponse)).toHaveBeenCalledOnce()
     expect(vi.mocked(toFetchResponse)).toHaveBeenCalledWith({
@@ -79,12 +79,12 @@ describe('rpcHandler', () => {
 
     expect(handle).toHaveBeenCalledOnce()
     expect(handle).toHaveBeenCalledWith(
-      vi.mocked(toStandardRequest).mock.results[0]!.value,
+      vi.mocked(toStandardLazyRequest).mock.results[0]!.value,
       { prefix: '/api/v1', context: { db: 'postgres' } },
     )
 
-    expect(vi.mocked(toStandardRequest)).toHaveBeenCalledOnce()
-    expect(vi.mocked(toStandardRequest)).toHaveBeenCalledWith(request)
+    expect(vi.mocked(toStandardLazyRequest)).toHaveBeenCalledOnce()
+    expect(vi.mocked(toStandardLazyRequest)).toHaveBeenCalledWith(request)
 
     expect(vi.mocked(toFetchResponse)).not.toHaveBeenCalled()
   })

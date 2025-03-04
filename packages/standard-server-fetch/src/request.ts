@@ -1,9 +1,9 @@
-import type { StandardRequest } from '@orpc/standard-server'
+import type { StandardLazyRequest, StandardRequest } from '@orpc/standard-server'
 import { once } from '@orpc/shared'
-import { toStandardBody } from './body'
-import { toStandardHeaders } from './headers'
+import { toFetchBody, toStandardBody } from './body'
+import { toFetchHeaders, toStandardHeaders } from './headers'
 
-export function toStandardRequest(request: Request): StandardRequest {
+export function toStandardLazyRequest(request: Request): StandardLazyRequest {
   return {
     raw: { request },
     url: new URL(request.url),
@@ -19,4 +19,16 @@ export function toStandardRequest(request: Request): StandardRequest {
       Object.defineProperty(this, 'headers', { value, writable: true })
     },
   }
+}
+
+export function toFetchRequest(request: StandardRequest): Request {
+  const headers = toFetchHeaders(request.headers)
+  const body = toFetchBody(request.body, headers)
+
+  return new Request(request.url, {
+    signal: request.signal,
+    method: request.method,
+    headers,
+    body,
+  })
 }

@@ -11,6 +11,7 @@ oRPC procedures support metadata, simple key-value pairs that provide extra info
 
 ```ts twoslash
 import { os } from '@orpc/server'
+declare const db: Map<string, unknown>
 // ---cut---
 interface ORPCMetadata {
   cache?: boolean
@@ -18,14 +19,20 @@ interface ORPCMetadata {
 
 const base = os
   .$meta<ORPCMetadata>({}) // require define initial context [!code highlight]
-  .use(async ({ procedure, next }) => {
-    const result = await next()
-
+  .use(async ({ procedure, next, path }, input, output) => {
     if (!procedure['~orpc'].meta.cache) {
-      return result
+      return await next()
     }
 
-    // Process the result when caching is enabled
+    const cacheKey = path.join('/') + JSON.stringify(input)
+
+    if (db.has(cacheKey)) {
+      return output(db.get(cacheKey))
+    }
+
+    const result = await next()
+
+    db.set(cacheKey, result.output)
 
     return result
   })

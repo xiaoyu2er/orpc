@@ -40,7 +40,7 @@ describe('linkFetchClient', () => {
     expect(fetch).toBeCalledTimes(1)
     expect(fetch).toBeCalledWith(
       toFetchRequestSpy.mock.results[0]!.value,
-      undefined,
+      {},
       options,
       ['example'],
       { body: true },

@@ -20,11 +20,13 @@ export class RPCHandler<T extends Context> implements NodeHttpHandler<T> {
   async handle(
     req: NodeHttpRequest,
     res: NodeHttpResponse,
-    ...[options]: MaybeOptionalOptions<StandardHandleOptions<T> & SendStandardResponseOptions>
+    ...[
+      options = {} as StandardHandleOptions<T> & SendStandardResponseOptions,
+    ]: MaybeOptionalOptions<StandardHandleOptions<T> & SendStandardResponseOptions>
   ): Promise<NodeHttpHandleResult> {
     const standardRequest = toStandardLazyRequest(req, res)
 
-    const result = await this.standardHandler.handle(standardRequest, options as any)
+    const result = await this.standardHandler.handle(standardRequest, options)
 
     if (!result.matched) {
       return { matched: false }

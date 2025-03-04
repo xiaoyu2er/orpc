@@ -11,7 +11,7 @@ export class LinkFetchClient<T extends ClientContext> implements StandardLinkCli
   private readonly fetch: Exclude<LinkFetchClientOptions<T>['fetch'], undefined>
 
   constructor(options: LinkFetchClientOptions<T>) {
-    this.fetch = options?.fetch ?? globalThis.fetch
+    this.fetch = options?.fetch ?? globalThis.fetch.bind(globalThis)
   }
 
   async call(request: StandardRequest, options: ClientOptionsOut<T>, path: readonly string[], input: unknown): Promise<StandardLazyResponse> {

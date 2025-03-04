@@ -49,7 +49,7 @@ for await (const event of iterator) {
 If an error occurs during streaming, oRPC will attempt retries based on your configuration. It can retry multiple times until the specified limit is reached, after which the error will be thrown.
 
 ::: info
-If you're using [RPCLink](/docs/client/rpc-link), you can customize the retry behavior [here](/docs/client/rpc-link#event-source-configuration).
+If you're using [RPCLink](/docs/client/rpc-link), you can customize the retry behavior [here](/docs/client/rpc-link#event-iterator-configuration).
 :::
 
 ```ts

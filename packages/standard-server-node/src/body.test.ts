@@ -55,7 +55,7 @@ describe('toStandardBody', () => {
     expect(standardBody).toEqual(undefined)
   })
 
-  it('event-source', async () => {
+  it('event iterator', async () => {
     let standardBody: any
 
     await request(async (req: IncomingMessage, res: ServerResponse) => {
@@ -267,7 +267,7 @@ describe('toNodeHttpBody', () => {
       yield 123
       return 456
     }
-    const options = { eventIteratorPingEnabled: true }
+    const options = { eventIteratorKeepAliveEnabled: true }
     const headers = { ...baseHeaders }
     const iterator = gen()
     const body = toNodeHttpBody(iterator, headers, options)

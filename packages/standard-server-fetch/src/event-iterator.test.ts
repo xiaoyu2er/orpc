@@ -271,7 +271,7 @@ describe('toEventStream', () => {
     })
   })
 
-  it('ping internal', async () => {
+  it('keep alive', async () => {
     async function* gen() {
       while (true) {
         await new Promise(resolve => setTimeout(resolve, 100))
@@ -280,9 +280,9 @@ describe('toEventStream', () => {
     }
 
     const stream = toEventStream(gen(), {
-      eventIteratorPingEnabled: true,
-      eventIteratorPingInterval: 40,
-      eventIteratorPingContent: 'ping',
+      eventIteratorKeepAliveEnabled: true,
+      eventIteratorKeepAliveInterval: 40,
+      eventIteratorKeepAliveComment: 'ping',
     })
 
     const reader = stream
@@ -313,7 +313,7 @@ it.each([
     for (const value of values) {
       yield value
     }
-  })(), { eventIteratorPingInterval: 0 }))
+  })(), { eventIteratorKeepAliveInterval: 0 }))
 
   for await (const value of iterator) {
     expect(value).toEqual(values.shift())

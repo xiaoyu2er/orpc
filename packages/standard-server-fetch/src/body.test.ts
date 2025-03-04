@@ -39,7 +39,7 @@ describe('toStandardBody', () => {
     expect(await toStandardBody(request)).toEqual(undefined)
   })
 
-  it('event-source', async () => {
+  it('event iterator', async () => {
     const stream = new ReadableStream<string>({
       async pull(controller) {
         controller.enqueue('event: message\ndata: 123\n\n')
@@ -221,7 +221,7 @@ describe('toFetchBody', () => {
       yield 123
       return 456
     }
-    const options = { eventIteratorPingEnabled: false }
+    const options = { eventIteratorKeepAliveEnabled: false }
     const headers = new Headers(baseHeaders)
     const body = toFetchBody(gen(), headers, options)
 

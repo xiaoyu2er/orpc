@@ -3,25 +3,25 @@ import { EventEncoderError } from './errors'
 
 export function assertEventId(id: string): void {
   if (id.includes('\n')) {
-    throw new EventEncoderError('Event-source id must not contain a newline character')
+    throw new EventEncoderError('Event\'s id must not contain a newline character')
   }
 }
 
 export function assertEventName(event: string): void {
   if (event.includes('\n')) {
-    throw new EventEncoderError('Event-source event must not contain a newline character')
+    throw new EventEncoderError('Event\'s event must not contain a newline character')
   }
 }
 
 export function assertEventRetry(retry: number): void {
   if (!Number.isInteger(retry) || retry < 0) {
-    throw new EventEncoderError('Event-source retry must be a integer and >= 0')
+    throw new EventEncoderError('Event\'s retry must be a integer and >= 0')
   }
 }
 
 export function assertEventComment(comment: string): void {
   if (comment.includes('\n')) {
-    throw new EventEncoderError('Event-source comment must not contain a newline character')
+    throw new EventEncoderError('Event\'s comment must not contain a newline character')
   }
 }
 

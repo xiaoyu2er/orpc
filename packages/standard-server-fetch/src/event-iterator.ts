@@ -73,42 +73,42 @@ export interface ToEventStreamOptions {
    *
    * @default true
    */
-  eventIteratorPingEnabled?: boolean
+  eventIteratorKeepAliveEnabled?: boolean
 
   /**
    * Interval (in milliseconds) between ping comments sent after the last event.
    *
    * @default 5000
    */
-  eventIteratorPingInterval?: number
+  eventIteratorKeepAliveInterval?: number
 
   /**
    * The content of the ping comment. Must not include newline characters.
    *
    * @default ''
    */
-  eventIteratorPingContent?: string
+  eventIteratorKeepAliveComment?: string
 }
 
 export function toEventStream(
   iterator: AsyncIterator<unknown | void, unknown | void, void>,
   options: ToEventStreamOptions,
 ): ReadableStream<Uint8Array> {
-  const pingEnabled = options.eventIteratorPingEnabled ?? true
-  const pingInterval = options.eventIteratorPingInterval ?? 5_000
-  const pingContent = options.eventIteratorPingContent ?? ''
+  const keepAliveEnabled = options.eventIteratorKeepAliveEnabled ?? true
+  const keepAliveInterval = options.eventIteratorKeepAliveInterval ?? 5000
+  const keepAliveComment = options.eventIteratorKeepAliveComment ?? ''
 
   let timeout: ReturnType<typeof setInterval> | undefined
 
   const stream = new ReadableStream<string>({
     async pull(controller) {
       try {
-        if (pingEnabled) {
+        if (keepAliveEnabled) {
           timeout = setInterval(() => {
             controller.enqueue(encodeEventMessage({
-              comments: [pingContent],
+              comments: [keepAliveComment],
             }))
-          }, pingInterval)
+          }, keepAliveInterval)
         }
 
         const value = await iterator.next()

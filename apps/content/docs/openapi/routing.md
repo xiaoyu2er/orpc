@@ -20,6 +20,10 @@ os.route({ method: 'GET', path: '/example', successStatus: 200 })
 os.route({ method: 'POST', path: '/example', successStatus: 201 })
 ```
 
+:::info
+The `.route` can be called multiple times; each call [spread merges](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax) the new route with the existing route.
+:::
+
 ## Path Parameters
 
 By default, path parameters merge with query/body into a single input object. You can modify this behavior as described in the [Input/Output structure docs](/docs/openapi/input-output-structure).

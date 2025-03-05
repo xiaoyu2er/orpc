@@ -1,6 +1,6 @@
 import type { Client } from '@orpc/client'
 import type { ErrorFromErrorMap } from '@orpc/contract'
-import type { GetNextPageParamFunction, InfiniteData } from '@tanstack/react-query'
+import type { DefinedUseInfiniteQueryResult, DefinedUseQueryResult, GetNextPageParamFunction, InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '@tanstack/react-query'
 import type { baseErrorMap } from '../../contract/tests/shared'
 import type { ProcedureUtils } from './procedure-utils'
 import { useInfiniteQuery, useMutation, useQueries, useQuery, useSuspenseInfiniteQuery, useSuspenseQuery } from '@tanstack/react-query'
@@ -62,17 +62,37 @@ describe('ProcedureUtils', () => {
       utils.queryOptions({ context: { batch: 'invalid' } })
     })
 
-    it('works with useQuery', () => {
-      const query = useQuery(utils.queryOptions({
-        select: data => ({ mapped: data }),
-        throwOnError(error) {
-          expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
-          return false
-        },
-      }))
+    describe('works with useQuery', () => {
+      it('without initial data', () => {
+        const query = useQuery(utils.queryOptions({
+          select: data => ({ mapped: data }),
+          throwOnError(error) {
+            expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
+            return false
+          },
+        }))
 
-      expectTypeOf(query.data).toEqualTypeOf<{ mapped: UtilsOutput } | undefined>()
-      expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+        expectTypeOf(query).toEqualTypeOf<UseQueryResult<{ mapped: UtilsOutput }, ErrorFromErrorMap<typeof baseErrorMap>>>()
+
+        expectTypeOf(query.data).toEqualTypeOf<{ mapped: UtilsOutput } | undefined>()
+        expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+      })
+
+      it('with initial data', () => {
+        const query = useQuery(utils.queryOptions({
+          select: data => ({ mapped: data }),
+          throwOnError(error) {
+            expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
+            return false
+          },
+          initialData: [{ title: 'title' }],
+        }))
+
+        expectTypeOf(query).toEqualTypeOf<DefinedUseQueryResult<{ mapped: UtilsOutput }, ErrorFromErrorMap<typeof baseErrorMap>>>()
+
+        expectTypeOf(query.data).toEqualTypeOf<{ mapped: UtilsOutput }>()
+        expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+      })
     })
 
     it('works with useSuspenseQuery', () => {
@@ -104,9 +124,8 @@ describe('ProcedureUtils', () => {
       expectTypeOf(queries[0].data).toEqualTypeOf<{ mapped: UtilsOutput } | undefined>()
       expectTypeOf(queries[1].data).toEqualTypeOf<UtilsOutput | undefined>()
 
-      // FIXME: useQueries cannot infer error
-      // expectTypeOf(queries[0].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
-      // expectTypeOf(queries[0].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
+      expectTypeOf(queries[0].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
+      expectTypeOf(queries[0].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
     })
 
     it('works with fetchQuery', () => {
@@ -175,14 +194,12 @@ describe('ProcedureUtils', () => {
         initialPageParam,
       })
 
+      // @ts-expect-error invalid input
       utils.infiniteOptions({
-        // @ts-expect-error conflict types
-        input: (pageParam: number) => {
+        input: (pageParam) => {
           return 'input'
         },
-        // @ts-expect-error conflict types
         getNextPageParam,
-        // @ts-expect-error conflict types
         initialPageParam: undefined,
       })
     })
@@ -204,20 +221,43 @@ describe('ProcedureUtils', () => {
       })
     })
 
-    it('works with useInfiniteQuery', () => {
-      const query = useInfiniteQuery(utils.infiniteOptions({
-        input: () => ({}),
-        getNextPageParam,
-        initialPageParam,
-        select: data => ({ mapped: data }),
-        throwOnError(error) {
-          expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
-          return false
-        },
-      }))
+    describe('works with useInfiniteQuery', () => {
+      it('without initial data', () => {
+        const query = useInfiniteQuery(utils.infiniteOptions({
+          input: () => ({}),
+          getNextPageParam,
+          initialPageParam,
+          select: data => ({ mapped: data }),
+          throwOnError(error) {
+            expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
+            return false
+          },
+        }))
 
-      expectTypeOf(query.data).toEqualTypeOf<{ mapped: InfiniteData<UtilsOutput, number> } | undefined>()
-      expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+        expectTypeOf(query).toEqualTypeOf<UseInfiniteQueryResult<{ mapped: InfiniteData<UtilsOutput, number> }, ErrorFromErrorMap<typeof baseErrorMap>>>()
+
+        expectTypeOf(query.data).toEqualTypeOf<{ mapped: InfiniteData<UtilsOutput, number> } | undefined>()
+        expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+      })
+
+      it('with initial data', () => {
+        const query = useInfiniteQuery(utils.infiniteOptions({
+          input: () => ({}),
+          getNextPageParam,
+          initialPageParam,
+          select: data => ({ mapped: data }),
+          throwOnError(error) {
+            expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
+            return false
+          },
+          initialData: { pages: [[{ title: 'title' }]], pageParams: [1] },
+        }))
+
+        expectTypeOf(query).toEqualTypeOf<DefinedUseInfiniteQueryResult<{ mapped: InfiniteData<UtilsOutput, number> }, ErrorFromErrorMap<typeof baseErrorMap>>>()
+
+        expectTypeOf(query.data).toEqualTypeOf<{ mapped: InfiniteData<UtilsOutput, number> }>()
+        expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+      })
     })
 
     it('works with useSuspenseInfiniteQuery', () => {
@@ -290,7 +330,7 @@ describe('ProcedureUtils', () => {
     it('infer correct mutation context type', () => {
       useMutation({
         ...utils.mutationOptions({
-          onMutate: () => ({ mutationContext: true }),
+          onMutate: v => ({ mutationContext: true }),
           onError: (e, v, context) => {
             expectTypeOf(context?.mutationContext).toEqualTypeOf<undefined | boolean>()
           },

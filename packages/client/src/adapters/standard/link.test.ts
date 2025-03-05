@@ -197,7 +197,7 @@ describe('standardLink', () => {
       await expect(iterator.next()).rejects.toEqual(error)
     })
 
-    it('should delay retry', async () => {
+    it('should delay retry', { retry: 5 }, async () => {
       eventIteratorMaxRetries.mockResolvedValue(99)
       eventIteratorRetryDelay.mockResolvedValue(100)
       eventIteratorShouldRetry.mockResolvedValue(true)

@@ -290,7 +290,7 @@ describe('ProcedureUtils', () => {
     it('infer correct mutation context type', () => {
       useMutation({
         ...utils.mutationOptions({
-          onMutate: () => ({ mutationContext: true }),
+          onMutate: v => ({ mutationContext: true }),
           onError: (e, v, context) => {
             expectTypeOf(context?.mutationContext).toEqualTypeOf<undefined | boolean>()
           },

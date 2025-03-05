@@ -1,7 +1,7 @@
 import type { Client, ClientContext } from '@orpc/client'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { InfiniteData } from '@tanstack/vue-query'
-import type { InfiniteOptionsBase, InfiniteOptionsIn, MutationOptionsBase, MutationOptionsIn, QueryOptionsBase, QueryOptionsIn } from './types'
+import type { InfiniteOptionsBase, InfiniteOptionsIn, MutationOptionsBase, MutationOptionsIn, MutationOptionsRest, QueryOptionsBase, QueryOptionsIn } from './types'
 import { computed } from 'vue'
 import { buildKey } from './key'
 import { unrefDeep } from './utils'
@@ -20,9 +20,11 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
   ): NoInfer<U & Omit<InfiniteOptionsBase<TOutput, TError, UPageParam>, keyof U>>
 
   mutationOptions<U, UMutationContext>(
-    ...rest: MaybeOptionalOptions<
-      U & MutationOptionsIn<TClientContext, TInput, TOutput, TError, UMutationContext>
-    >
+    ...rest: MutationOptionsRest<U & MutationOptionsIn<TClientContext, TInput, TOutput, TError, UMutationContext>>
+  ): NoInfer<U & Omit<MutationOptionsBase<TInput, TOutput, TError>, keyof U>>
+
+  mutationOptions<U, UMutationContext>(
+    options: U & MutationOptionsIn<TClientContext, TInput, TOutput, TError, UMutationContext>
   ): NoInfer<U & Omit<MutationOptionsBase<TInput, TOutput, TError>, keyof U>>
 }
 

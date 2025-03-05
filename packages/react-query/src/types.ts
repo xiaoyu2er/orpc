@@ -33,3 +33,5 @@ export interface MutationOptionsBase<TInput, TOutput, TError extends Error> {
   mutationFn(input: TInput): Promise<TOutput>
   retry?(failureCount: number, error: TError): boolean // this make tanstack can infer the TError type
 }
+
+export type MutationOptionsRest<T> = Record<never, never> extends T ? [] : [options: T]

@@ -82,7 +82,9 @@ export default {
 
 ## Utilities
 
-> **Note:** Every [procedure](/docs/procedure) is also a router, so you can apply these utilities to procedures as well.
+::: info
+Every [procedure](/docs/procedure) is also a router, so you can apply these utilities to procedures as well.
+:::
 
 ### Infer Router Inputs
 

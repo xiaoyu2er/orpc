@@ -1,79 +1,11 @@
 import type { Schema } from '@orpc/contract'
-import type { JSONSchema, SchemaConverter, SchemaConvertOptions } from '@orpc/openapi'
-import type { StandardSchemaV1 } from '@standard-schema/spec'
+import type { JSONSchema } from 'json-schema-typed/draft-2020-12'
+import type { EnumLike, KeySchema, ZodAny, ZodArray, ZodBranded, ZodCatch, ZodDefault, ZodDiscriminatedUnion, ZodEffects, ZodEnum, ZodIntersection, ZodLazy, ZodLiteral, ZodMap, ZodNativeEnum, ZodNullable, ZodNumber, ZodObject, ZodOptional, ZodPipeline, ZodRawShape, ZodReadonly, ZodRecord, ZodSet, ZodString, ZodTuple, ZodTypeAny, ZodTypeDef, ZodUnion, ZodUnionOptions } from 'zod'
 import { JSONSchemaFormat } from '@orpc/openapi'
 import escapeStringRegexp from 'escape-string-regexp'
-import {
-  type EnumLike,
-  type KeySchema,
-  type ZodAny,
-  type ZodArray,
-  type ZodBranded,
-  type ZodCatch,
-  type ZodDefault,
-  type ZodDiscriminatedUnion,
-  type ZodEffects,
-  type ZodEnum,
-  ZodFirstPartyTypeKind,
-  type ZodIntersection,
-  type ZodLazy,
-  type ZodLiteral,
-  type ZodMap,
-  type ZodNativeEnum,
-  type ZodNullable,
-  type ZodNumber,
-  type ZodObject,
-  type ZodOptional,
-  type ZodPipeline,
-  type ZodRawShape,
-  type ZodReadonly,
-  type ZodRecord,
-  type ZodSet,
-  type ZodString,
-  type ZodTuple,
-  type ZodTypeAny,
-  type ZodUnion,
-  type ZodUnionOptions,
-} from 'zod'
-import {
-  getCustomJSONSchema,
-  getCustomZodFileMimeType,
-  getCustomZodType,
-} from './schemas'
-
-export const NON_LOGIC_KEYWORDS = [
-  // Core Documentation Keywords
-  '$anchor',
-  '$comment',
-  '$defs',
-  '$id',
-  'title',
-  'description',
-
-  // Value Keywords
-  'default',
-  'deprecated',
-  'examples',
-
-  // Metadata Keywords
-  '$schema',
-  'definitions', // Legacy, but still used
-  'readOnly',
-  'writeOnly',
-
-  // Display and UI Hints
-  'contentMediaType',
-  'contentEncoding',
-  'format',
-
-  // Custom Extensions
-  '$vocabulary',
-  '$dynamicAnchor',
-  '$dynamicRef',
-] satisfies (typeof JSONSchema.keywords)[number][]
-
-export const UNSUPPORTED_JSON_SCHEMA = { not: {} }
-export const UNDEFINED_JSON_SCHEMA = { const: 'undefined' }
+import { ZodFirstPartyTypeKind } from 'zod'
+import { getCustomJsonSchema } from './custom-json-schema'
+import { getCustomZodDef } from './schemas/base'
 
 export interface ZodToJsonSchemaOptions {
   /**
@@ -81,619 +13,548 @@ export interface ZodToJsonSchemaOptions {
    *
    * Used `{}` when reach max depth
    *
-   * @default 5
+   * @default 3
    */
   maxLazyDepth?: number
-
-  /**
-   * The length used to track the depth of lazy type
-   *
-   * @internal
-   */
-  lazyDepth?: number
-
-  /**
-   * The expected json schema for input or output zod schema
-   *
-   * @default input
-   */
-  mode?: 'input' | 'output'
-
-  /**
-   * Track if current level schema is handled custom json schema to prevent recursive
-   *
-   * @internal
-   */
-  isHandledCustomJSONSchema?: boolean
-
-  /**
-   * Track if current level schema is handled zod description to prevent recursive
-   *
-   * @internal
-   */
-  isHandledZodDescription?: boolean
 }
 
-export function zodToJsonSchema(
-  schema: StandardSchemaV1,
-  options?: ZodToJsonSchemaOptions,
-): Exclude<JSONSchema.JSONSchema, boolean> {
-  if (schema['~standard'].vendor !== 'zod') {
-    console.warn(`Generate JSON schema not support ${schema['~standard'].vendor} yet`)
-    return {}
+export class ZodToJsonSchemaConverter {
+  private readonly maxLazyDepth: Exclude<ZodToJsonSchemaOptions['maxLazyDepth'], undefined>
+
+  constructor(options: ZodToJsonSchemaOptions = {}) {
+    this.maxLazyDepth = options.maxLazyDepth ?? 3
   }
 
-  const schema__ = schema as ZodTypeAny
-
-  if (!options?.isHandledZodDescription && 'description' in schema__._def) {
-    const json = zodToJsonSchema(schema__, {
-      ...options,
-      isHandledZodDescription: true,
-    })
-
-    return {
-      description: schema__._def.description,
-      ...json,
-    }
-  }
-
-  if (!options?.isHandledCustomJSONSchema) {
-    const customJSONSchema = getCustomJSONSchema(schema__._def, options)
-
-    if (customJSONSchema) {
-      const json = zodToJsonSchema(schema__, {
-        ...options,
-        isHandledCustomJSONSchema: true,
-      })
-
-      return {
-        ...json,
-        ...customJSONSchema,
-      }
-    }
-  }
-
-  const childOptions = { ...options, isHandledCustomJSONSchema: false, isHandledZodDescription: false }
-
-  const customType = getCustomZodType(schema__._def)
-
-  switch (customType) {
-    case 'Blob': {
-      return { type: 'string', contentMediaType: '*/*' }
-    }
-
-    case 'File': {
-      const mimeType = getCustomZodFileMimeType(schema__._def) ?? '*/*'
-
-      return { type: 'string', contentMediaType: mimeType }
-    }
-
-    case 'Invalid Date': {
-      return { const: 'Invalid Date' }
-    }
-
-    case 'RegExp': {
-      return {
-        type: 'string',
-        pattern: '^\\/(.*)\\/([a-z]*)$',
-      }
-    }
-
-    case 'URL': {
-      return { type: 'string', format: JSONSchemaFormat.URI }
-    }
-  }
-
-  const _expectedCustomType: undefined = customType
-
-  const typeName = schema__._def.typeName as ZodFirstPartyTypeKind | undefined
-
-  switch (typeName) {
-    case ZodFirstPartyTypeKind.ZodString: {
-      const schema_ = schema__ as ZodString
-
-      const json: JSONSchema.JSONSchema = { type: 'string' }
-
-      for (const check of schema_._def.checks) {
-        switch (check.kind) {
-          case 'base64':
-            json.contentEncoding = 'base64'
-            break
-          case 'cuid':
-            json.pattern = '^[0-9A-HJKMNP-TV-Z]{26}$'
-            break
-          case 'email':
-            json.format = JSONSchemaFormat.Email
-            break
-          case 'url':
-            json.format = JSONSchemaFormat.URI
-            break
-          case 'uuid':
-            json.format = JSONSchemaFormat.UUID
-            break
-          case 'regex':
-            json.pattern = check.regex.source
-            break
-          case 'min':
-            json.minLength = check.value
-            break
-          case 'max':
-            json.maxLength = check.value
-            break
-          case 'length':
-            json.minLength = check.value
-            json.maxLength = check.value
-            break
-          case 'includes':
-            json.pattern = escapeStringRegexp(check.value)
-            break
-          case 'startsWith':
-            json.pattern = `^${escapeStringRegexp(check.value)}`
-            break
-          case 'endsWith':
-            json.pattern = `${escapeStringRegexp(check.value)}$`
-            break
-          case 'emoji':
-            json.pattern
-              = '^(\\p{Extended_Pictographic}|\\p{Emoji_Component})+$'
-            break
-          case 'nanoid':
-            json.pattern = '^[a-zA-Z0-9_-]{21}$'
-            break
-          case 'cuid2':
-            json.pattern = '^[0-9a-z]+$'
-            break
-          case 'ulid':
-            json.pattern = '^[0-9A-HJKMNP-TV-Z]{26}$'
-            break
-          case 'datetime':
-            json.format = JSONSchemaFormat.DateTime
-            break
-          case 'date':
-            json.format = JSONSchemaFormat.Date
-            break
-          case 'time':
-            json.format = JSONSchemaFormat.Time
-            break
-          case 'duration':
-            json.format = JSONSchemaFormat.Duration
-            break
-          case 'ip':
-            json.format = JSONSchemaFormat.IPv4
-            break
-          case 'jwt':
-            json.pattern = '^[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]*$'
-            break
-          case 'base64url':
-            json.pattern = '^([0-9a-zA-Z-_]{4})*(([0-9a-zA-Z-_]{2}(==)?)|([0-9a-zA-Z-_]{3}(=)?))?$'
-            break
-          default: {
-            const _expect: 'toLowerCase' | 'toUpperCase' | 'trim' | 'cidr' = check.kind
-          }
-        }
-      }
-
-      return json
-    }
-
-    case ZodFirstPartyTypeKind.ZodNumber: {
-      const schema_ = schema__ as ZodNumber
-
-      const json: JSONSchema.JSONSchema = { type: 'number' }
-
-      for (const check of schema_._def.checks) {
-        switch (check.kind) {
-          case 'int':
-            json.type = 'integer'
-            break
-          case 'min':
-            json.minimum = check.value
-            break
-          case 'max':
-            json.maximum = check.value
-            break
-          case 'multipleOf':
-            json.multipleOf = check.value
-            break
-          default: {
-            const _expect: 'finite' = check.kind
-          }
-        }
-      }
-
-      return json
-    }
-
-    case ZodFirstPartyTypeKind.ZodNaN: {
-      return { const: 'NaN' }
-    }
-
-    case ZodFirstPartyTypeKind.ZodBigInt: {
-      const json: JSONSchema.JSONSchema = { type: 'string', pattern: '^-?[0-9]+$' }
-
-      // WARN: ignore checks
-
-      return json
-    }
-
-    case ZodFirstPartyTypeKind.ZodBoolean: {
-      return { type: 'boolean' }
-    }
-
-    case ZodFirstPartyTypeKind.ZodDate: {
-      const schema: JSONSchema.JSONSchema = { type: 'string', format: JSONSchemaFormat.Date }
-
-      // WARN: ignore checks
-
-      return schema
-    }
-
-    case ZodFirstPartyTypeKind.ZodNull: {
-      return { type: 'null' }
-    }
-
-    case ZodFirstPartyTypeKind.ZodVoid:
-    case ZodFirstPartyTypeKind.ZodUndefined: {
-      return UNDEFINED_JSON_SCHEMA
-    }
-
-    case ZodFirstPartyTypeKind.ZodLiteral: {
-      const schema_ = schema__ as ZodLiteral<unknown>
-      return { const: schema_._def.value }
-    }
-
-    case ZodFirstPartyTypeKind.ZodEnum: {
-      const schema_ = schema__ as ZodEnum<[string, ...string[]]>
-
-      return {
-        enum: schema_._def.values,
-      }
-    }
-
-    case ZodFirstPartyTypeKind.ZodNativeEnum: {
-      const schema_ = schema__ as ZodNativeEnum<EnumLike>
-
-      return {
-        enum: Object.values(schema_._def.values),
-      }
-    }
-
-    case ZodFirstPartyTypeKind.ZodArray: {
-      const schema_ = schema__ as ZodArray<ZodTypeAny>
-      const def = schema_._def
-
-      const json: JSONSchema.JSONSchema = { type: 'array' }
-
-      json.items = zodToJsonSchema(def.type, childOptions)
-
-      if (def.exactLength) {
-        json.maxItems = def.exactLength.value
-        json.minItems = def.exactLength.value
-      }
-
-      if (def.minLength) {
-        json.minItems = def.minLength.value
-      }
-
-      if (def.maxLength) {
-        json.maxItems = def.maxLength.value
-      }
-
-      return json
-    }
-
-    case ZodFirstPartyTypeKind.ZodTuple: {
-      const schema_ = schema__ as ZodTuple<
-        [ZodTypeAny, ...ZodTypeAny[]],
-        ZodTypeAny | null
-      >
-
-      const prefixItems: JSONSchema.JSONSchema[] = []
-      const json: JSONSchema.JSONSchema = { type: 'array' }
-
-      for (const item of schema_._def.items) {
-        prefixItems.push(zodToJsonSchema(item, childOptions))
-      }
-
-      if (prefixItems?.length) {
-        json.prefixItems = prefixItems
-      }
-
-      if (schema_._def.rest) {
-        const items = zodToJsonSchema(schema_._def.rest, childOptions)
-        if (items) {
-          json.items = items
-        }
-      }
-
-      return json
-    }
-
-    case ZodFirstPartyTypeKind.ZodObject: {
-      const schema_ = schema__ as ZodObject<ZodRawShape>
-
-      const json: JSONSchema.JSONSchema = { type: 'object' }
-      const properties: Record<string, JSONSchema.JSONSchema> = {}
-      const required: string[] = []
-
-      for (const [key, value] of Object.entries(schema_.shape)) {
-        const { schema, matches } = extractJSONSchema(
-          zodToJsonSchema(value, childOptions),
-          schema => schema === UNDEFINED_JSON_SCHEMA,
-        )
-
-        if (schema) {
-          properties[key] = schema
-        }
-
-        if (matches.length === 0) {
-          required.push(key)
-        }
-      }
-
-      if (Object.keys(properties).length) {
-        json.properties = properties
-      }
-
-      if (required.length) {
-        json.required = required
-      }
-
-      const additionalProperties = zodToJsonSchema(
-        schema_._def.catchall,
-        childOptions,
-      )
-      if (schema_._def.unknownKeys === 'strict') {
-        json.additionalProperties
-          = additionalProperties === UNSUPPORTED_JSON_SCHEMA
-            ? false
-            : additionalProperties
-      }
-      else {
-        if (
-          additionalProperties
-          && additionalProperties !== UNSUPPORTED_JSON_SCHEMA
-        ) {
-          json.additionalProperties = additionalProperties
-        }
-      }
-
-      return json
-    }
-
-    case ZodFirstPartyTypeKind.ZodRecord: {
-      const schema_ = schema__ as ZodRecord<KeySchema, ZodAny>
-
-      const json: JSONSchema.JSONSchema = { type: 'object' }
-
-      json.additionalProperties = zodToJsonSchema(
-        schema_._def.valueType,
-        childOptions,
-      )
-
-      return json
-    }
-
-    case ZodFirstPartyTypeKind.ZodSet: {
-      const schema_ = schema__ as ZodSet
-
-      return {
-        type: 'array',
-        items: zodToJsonSchema(schema_._def.valueType, childOptions),
-      }
-    }
-
-    case ZodFirstPartyTypeKind.ZodMap: {
-      const schema_ = schema__ as ZodMap
-
-      return {
-        type: 'array',
-        items: {
-          type: 'array',
-          prefixItems: [
-            zodToJsonSchema(schema_._def.keyType, childOptions),
-            zodToJsonSchema(schema_._def.valueType, childOptions),
-          ],
-          maxItems: 2,
-          minItems: 2,
-        },
-      }
-    }
-
-    case ZodFirstPartyTypeKind.ZodUnion:
-    case ZodFirstPartyTypeKind.ZodDiscriminatedUnion: {
-      const schema_ = schema__ as
-        | ZodUnion<ZodUnionOptions>
-        | ZodDiscriminatedUnion<string, [ZodObject<any>, ...ZodObject<any>[]]>
-
-      const anyOf: JSONSchema.JSONSchema[] = []
-
-      for (const s of schema_._def.options) {
-        anyOf.push(zodToJsonSchema(s, childOptions))
-      }
-
-      return { anyOf }
-    }
-
-    case ZodFirstPartyTypeKind.ZodIntersection: {
-      const schema_ = schema__ as ZodIntersection<ZodTypeAny, ZodTypeAny>
-
-      const allOf: JSONSchema.JSONSchema[] = []
-
-      for (const s of [schema_._def.left, schema_._def.right]) {
-        allOf.push(zodToJsonSchema(s, childOptions))
-      }
-
-      return { allOf }
-    }
-
-    case ZodFirstPartyTypeKind.ZodLazy: {
-      const schema_ = schema__ as ZodLazy<ZodTypeAny>
-
-      const maxLazyDepth = childOptions?.maxLazyDepth ?? 5
-      const lazyDepth = childOptions?.lazyDepth ?? 0
-
-      if (lazyDepth > maxLazyDepth) {
-        return {}
-      }
-
-      return zodToJsonSchema(schema_._def.getter(), {
-        ...childOptions,
-        lazyDepth: lazyDepth + 1,
-      })
-    }
-
-    case ZodFirstPartyTypeKind.ZodUnknown:
-    case ZodFirstPartyTypeKind.ZodAny:
-    case undefined: {
-      return {}
-    }
-
-    case ZodFirstPartyTypeKind.ZodOptional: {
-      const schema_ = schema__ as ZodOptional<ZodTypeAny>
-
-      const inner = zodToJsonSchema(schema_._def.innerType, childOptions)
-
-      return {
-        anyOf: [UNDEFINED_JSON_SCHEMA, inner],
-      }
-    }
-
-    case ZodFirstPartyTypeKind.ZodReadonly: {
-      const schema_ = schema__ as ZodReadonly<ZodTypeAny>
-      return zodToJsonSchema(schema_._def.innerType, childOptions)
-    }
-
-    case ZodFirstPartyTypeKind.ZodDefault: {
-      const schema_ = schema__ as ZodDefault<ZodTypeAny>
-      return zodToJsonSchema(schema_._def.innerType, childOptions)
-    }
-
-    case ZodFirstPartyTypeKind.ZodEffects: {
-      const schema_ = schema__ as ZodEffects<ZodTypeAny>
-
-      if (
-        schema_._def.effect.type === 'transform'
-        && childOptions?.mode === 'output'
-      ) {
-        return {}
-      }
-
-      return zodToJsonSchema(schema_._def.schema, childOptions)
-    }
-
-    case ZodFirstPartyTypeKind.ZodCatch: {
-      const schema_ = schema__ as ZodCatch<ZodTypeAny>
-      return zodToJsonSchema(schema_._def.innerType, childOptions)
-    }
-
-    case ZodFirstPartyTypeKind.ZodBranded: {
-      const schema_ = schema__ as ZodBranded<ZodTypeAny, string | number | symbol>
-      return zodToJsonSchema(schema_._def.type, childOptions)
-    }
-
-    case ZodFirstPartyTypeKind.ZodPipeline: {
-      const schema_ = schema__ as ZodPipeline<ZodTypeAny, ZodTypeAny>
-      return zodToJsonSchema(
-        childOptions?.mode === 'output' ? schema_._def.out : schema_._def.in,
-        childOptions,
-      )
-    }
-
-    case ZodFirstPartyTypeKind.ZodNullable: {
-      const schema_ = schema__ as ZodNullable<ZodTypeAny>
-
-      const inner = zodToJsonSchema(schema_._def.innerType, childOptions)
-
-      return {
-        anyOf: [{ type: 'null' }, inner],
-      }
-    }
-  }
-
-  const _expected:
-    | ZodFirstPartyTypeKind.ZodPromise
-    | ZodFirstPartyTypeKind.ZodSymbol
-    | ZodFirstPartyTypeKind.ZodFunction
-    | ZodFirstPartyTypeKind.ZodNever = typeName
-
-  return UNSUPPORTED_JSON_SCHEMA
-}
-
-function extractJSONSchema(
-  schema: JSONSchema.JSONSchema,
-  check: (schema: JSONSchema.JSONSchema) => boolean,
-  matches: JSONSchema.JSONSchema[] = [],
-): { schema: JSONSchema.JSONSchema | undefined, matches: JSONSchema.JSONSchema[] } {
-  if (check(schema)) {
-    matches.push(schema)
-    return { schema: undefined, matches }
-  }
-
-  if (typeof schema === 'boolean') {
-    return { schema, matches }
-  }
-
-  // TODO: $ref
-
-  if (
-    schema.anyOf
-    && Object.keys(schema).every(
-      k => k === 'anyOf' || NON_LOGIC_KEYWORDS.includes(k as any),
-    )
-  ) {
-    const anyOf = schema.anyOf
-      .map(s => extractJSONSchema(s, check, matches).schema)
-      .filter(v => !!v)
-
-    if (anyOf.length === 1 && typeof anyOf[0] === 'object') {
-      return { schema: { ...schema, anyOf: undefined, ...anyOf[0] }, matches }
-    }
-
-    return {
-      schema: {
-        ...schema,
-        anyOf,
-      },
-      matches,
-    }
-  }
-
-  // TODO: $ref
-
-  if (
-    schema.oneOf
-    && Object.keys(schema).every(
-      k => k === 'oneOf' || NON_LOGIC_KEYWORDS.includes(k as any),
-    )
-  ) {
-    const oneOf = schema.oneOf
-      .map(s => extractJSONSchema(s, check, matches).schema)
-      .filter(v => !!v)
-
-    if (oneOf.length === 1 && typeof oneOf[0] === 'object') {
-      return { schema: { ...schema, oneOf: undefined, ...oneOf[0] }, matches }
-    }
-
-    return {
-      schema: {
-        ...schema,
-        oneOf,
-      },
-      matches,
-    }
-  }
-
-  return { schema, matches }
-}
-
-export class ZodToJsonSchemaConverter implements SchemaConverter {
   condition(schema: Schema): boolean {
     return Boolean(schema && schema['~standard'].vendor === 'zod')
   }
 
-  convert(schema: Schema, options: SchemaConvertOptions): JSONSchema.JSONSchema { // TODO
-    const jsonSchema = schema as ZodTypeAny
-    return zodToJsonSchema(jsonSchema, { mode: options.strategy })
+  convert(
+    schema: Schema,
+    strategy: 'input' | 'output',
+    lazyDepth = 0,
+    isHandledCustomJSONSchema = false,
+    isHandledZodDescription = false,
+  ): [required: boolean, jsonSchema: Exclude<JSONSchema, boolean>] {
+    const def = (schema as ZodTypeAny)._def
+
+    if (!isHandledZodDescription && 'description' in def && typeof def.description === 'string') {
+      const [required, json] = this.convert(
+        schema,
+        strategy,
+        lazyDepth,
+        isHandledCustomJSONSchema,
+        true,
+      )
+
+      return [required, json]
+    }
+
+    if (!isHandledCustomJSONSchema) {
+      const customJSONSchema = getCustomJsonSchema(def, strategy)
+
+      const [required, json] = this.convert(
+        schema,
+        strategy,
+        lazyDepth,
+        true,
+        isHandledZodDescription,
+      )
+
+      return [required, { ...json, ...customJSONSchema }]
+    }
+
+    const customSchema = this.handleCustomZodDef(def)
+
+    if (customSchema) {
+      return [true, customSchema]
+    }
+
+    const typeName = def.typeName as ZodFirstPartyTypeKind | undefined
+
+    switch (typeName) {
+      case ZodFirstPartyTypeKind.ZodString: {
+        const schema_ = schema as ZodString
+
+        const json: JSONSchema = { type: 'string' }
+
+        for (const check of schema_._def.checks) {
+          switch (check.kind) {
+            case 'base64':
+              json.contentEncoding = 'base64'
+              break
+            case 'cuid':
+              json.pattern = '^[0-9A-HJKMNP-TV-Z]{26}$'
+              break
+            case 'email':
+              json.format = JSONSchemaFormat.Email
+              break
+            case 'url':
+              json.format = JSONSchemaFormat.URI
+              break
+            case 'uuid':
+              json.format = JSONSchemaFormat.UUID
+              break
+            case 'regex':
+              json.pattern = check.regex.source
+              break
+            case 'min':
+              json.minLength = check.value
+              break
+            case 'max':
+              json.maxLength = check.value
+              break
+            case 'length':
+              json.minLength = check.value
+              json.maxLength = check.value
+              break
+            case 'includes':
+              json.pattern = escapeStringRegexp(check.value)
+              break
+            case 'startsWith':
+              json.pattern = `^${escapeStringRegexp(check.value)}`
+              break
+            case 'endsWith':
+              json.pattern = `${escapeStringRegexp(check.value)}$`
+              break
+            case 'emoji':
+              json.pattern
+                  = '^(\\p{Extended_Pictographic}|\\p{Emoji_Component})+$'
+              break
+            case 'nanoid':
+              json.pattern = '^[a-zA-Z0-9_-]{21}$'
+              break
+            case 'cuid2':
+              json.pattern = '^[0-9a-z]+$'
+              break
+            case 'ulid':
+              json.pattern = '^[0-9A-HJKMNP-TV-Z]{26}$'
+              break
+            case 'datetime':
+              json.format = JSONSchemaFormat.DateTime
+              break
+            case 'date':
+              json.format = JSONSchemaFormat.Date
+              break
+            case 'time':
+              json.format = JSONSchemaFormat.Time
+              break
+            case 'duration':
+              json.format = JSONSchemaFormat.Duration
+              break
+            case 'ip':
+              json.format = JSONSchemaFormat.IPv4
+              break
+            case 'jwt':
+              json.pattern = '^[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]*$'
+              break
+            case 'base64url':
+              json.pattern = '^([0-9a-zA-Z-_]{4})*(([0-9a-zA-Z-_]{2}(==)?)|([0-9a-zA-Z-_]{3}(=)?))?$'
+              break
+            default: {
+              const _expect: 'toLowerCase' | 'toUpperCase' | 'trim' | 'cidr' = check.kind
+            }
+          }
+        }
+
+        return [true, json]
+      }
+
+      case ZodFirstPartyTypeKind.ZodNumber: {
+        const schema_ = schema as ZodNumber
+
+        const json: JSONSchema = { type: 'number' }
+
+        for (const check of schema_._def.checks) {
+          switch (check.kind) {
+            case 'int':
+              json.type = 'integer'
+              break
+            case 'min':
+              json.minimum = check.value
+              break
+            case 'max':
+              json.maximum = check.value
+              break
+            case 'multipleOf':
+              json.multipleOf = check.value
+              break
+            default: {
+              const _expect: 'finite' = check.kind
+            }
+          }
+        }
+
+        return [true, json]
+      }
+
+      case ZodFirstPartyTypeKind.ZodBigInt: {
+        const json: JSONSchema = { type: 'string', pattern: '^-?[0-9]+$' }
+
+        // WARN: ignore checks
+
+        return [true, json]
+      }
+
+      case ZodFirstPartyTypeKind.ZodBoolean: {
+        return [true, { type: 'boolean' }]
+      }
+
+      case ZodFirstPartyTypeKind.ZodDate: {
+        const schema: JSONSchema = { type: 'string', format: JSONSchemaFormat.Date }
+
+        // WARN: ignore checks
+
+        return [true, schema]
+      }
+
+      case ZodFirstPartyTypeKind.ZodNaN:
+      case ZodFirstPartyTypeKind.ZodNull: {
+        return [true, { type: 'null' }]
+      }
+
+      case ZodFirstPartyTypeKind.ZodVoid:
+      case ZodFirstPartyTypeKind.ZodUndefined: {
+        return [false, {}]
+      }
+
+      case ZodFirstPartyTypeKind.ZodLiteral: {
+        const schema_ = schema as ZodLiteral<unknown>
+        return [true, { const: schema_._def.value }]
+      }
+
+      case ZodFirstPartyTypeKind.ZodEnum: {
+        const schema_ = schema as ZodEnum<[string, ...string[]]>
+
+        return [true, { enum: schema_._def.values }]
+      }
+
+      case ZodFirstPartyTypeKind.ZodNativeEnum: {
+        const schema_ = schema as ZodNativeEnum<EnumLike>
+
+        return [true, { enum: Object.values(schema_._def.values) }]
+      }
+
+      case ZodFirstPartyTypeKind.ZodArray: {
+        const schema_ = schema as ZodArray<ZodTypeAny>
+        const def = schema_._def
+
+        const json: JSONSchema = { type: 'array' }
+
+        const [itemRequired, itemJson] = this.convert(def.type, strategy, lazyDepth, false, false)
+
+        json.items = itemRequired
+          ? itemJson
+          : {
+              anyOf: [
+                { type: 'null' },
+                itemJson,
+              ],
+            }
+
+        if (def.exactLength) {
+          json.maxItems = def.exactLength.value
+          json.minItems = def.exactLength.value
+        }
+
+        if (def.minLength) {
+          json.minItems = def.minLength.value
+        }
+
+        if (def.maxLength) {
+          json.maxItems = def.maxLength.value
+        }
+
+        return [true, json]
+      }
+
+      case ZodFirstPartyTypeKind.ZodTuple: {
+        const schema_ = schema as ZodTuple<[ZodTypeAny, ...ZodTypeAny[]], ZodTypeAny | null>
+
+        const prefixItems: JSONSchema[] = []
+        const json: JSONSchema = { type: 'array' }
+
+        for (const item of schema_._def.items) {
+          const [itemRequired, itemJson] = this.convert(item, strategy, lazyDepth, false, false)
+
+          prefixItems.push(
+            itemRequired
+              ? itemJson
+              : {
+                  anyOf: [
+                    { type: 'null' },
+                    itemJson,
+                  ],
+                },
+          )
+        }
+
+        if (prefixItems?.length) {
+          json.prefixItems = prefixItems
+        }
+
+        if (schema_._def.rest) {
+          const [itemRequired, itemJson] = this.convert(schema_._def.rest, strategy, lazyDepth, false, false)
+
+          prefixItems.push(
+            itemRequired
+              ? itemJson
+              : {
+                  anyOf: [
+                    { type: 'null' },
+                    itemJson,
+                  ],
+                },
+          )
+        }
+
+        return [true, json]
+      }
+
+      case ZodFirstPartyTypeKind.ZodObject: {
+        const schema_ = schema as ZodObject<ZodRawShape>
+
+        const json: JSONSchema = { type: 'object' }
+        const properties: Record<string, JSONSchema> = {}
+        const required: string[] = []
+
+        for (const [key, value] of Object.entries(schema_.shape)) {
+          const [itemRequired, itemJson] = this.convert(value, strategy, lazyDepth, false, false)
+
+          properties[key] = itemJson
+
+          if (itemRequired) {
+            required.push(key)
+          }
+        }
+
+        if (Object.keys(properties).length) {
+          json.properties = properties
+        }
+
+        if (required.length) {
+          json.required = required
+        }
+
+        const [addRequired, addJson] = this.convert(schema_._def.catchall, strategy, lazyDepth, false, false)
+
+        if (addRequired) {
+          json.additionalProperties = addJson
+        }
+
+        return [true, json]
+      }
+
+      case ZodFirstPartyTypeKind.ZodRecord: {
+        const schema_ = schema as ZodRecord<KeySchema, ZodAny>
+
+        const json: JSONSchema = { type: 'object' }
+
+        const [_, itemJson] = this.convert(schema_._def.valueType, strategy, lazyDepth, false, false)
+
+        json.additionalProperties = itemJson
+
+        return [true, json]
+      }
+
+      case ZodFirstPartyTypeKind.ZodSet: {
+        const schema_ = schema as ZodSet
+
+        const json: JSONSchema = { type: 'array' }
+
+        const [itemRequired, itemJson] = this.convert(schema_._def.valueType, strategy, lazyDepth, false, false)
+
+        json.items = itemRequired
+          ? itemJson
+          : {
+              anyOf: [
+                { type: 'null' },
+                itemJson,
+              ],
+            }
+
+        return [true, json]
+      }
+
+      case ZodFirstPartyTypeKind.ZodMap: {
+        const schema_ = schema as ZodMap
+
+        const [keyRequired, keyJson] = this.convert(schema_._def.keyType, strategy, lazyDepth, false, false)
+        const [valueRequired, valueJson] = this.convert(schema_._def.valueType, strategy, lazyDepth, false, false)
+
+        return [true, {
+          type: 'array',
+          items: {
+            type: 'array',
+            prefixItems: [
+              keyRequired ? keyJson : { anyOf: [{ type: 'null' }, keyJson] },
+              valueRequired ? valueJson : { anyOf: [{ type: 'null' }, valueJson] },
+            ],
+            maxItems: 2,
+            minItems: 2,
+          },
+        }]
+      }
+
+      case ZodFirstPartyTypeKind.ZodUnion:
+      case ZodFirstPartyTypeKind.ZodDiscriminatedUnion: {
+        const schema_ = schema as
+          | ZodUnion<ZodUnionOptions>
+          | ZodDiscriminatedUnion<string, [ZodObject<any>, ...ZodObject<any>[]]>
+
+        const anyOf: JSONSchema[] = []
+        const required: true[] = []
+
+        for (const item of schema_._def.options) {
+          const [itemRequired, itemJson] = this.convert(item, strategy, lazyDepth, false, false)
+
+          anyOf.push(itemJson)
+
+          if (itemRequired) {
+            required.push(true)
+          }
+        }
+
+        return [required.length !== anyOf.length, { anyOf }]
+      }
+
+      case ZodFirstPartyTypeKind.ZodIntersection: {
+        const schema_ = schema as ZodIntersection<ZodTypeAny, ZodTypeAny>
+
+        const allOf: JSONSchema[] = []
+        const required: true[] = []
+
+        for (const item of [schema_._def.left, schema_._def.right]) {
+          const [itemRequired, itemJson] = this.convert(item, strategy, lazyDepth, false, false)
+
+          allOf.push(itemJson)
+
+          if (itemRequired) {
+            required.push(true)
+          }
+        }
+
+        return [required.length !== allOf.length, { allOf }]
+      }
+
+      case ZodFirstPartyTypeKind.ZodLazy: {
+        if (lazyDepth > this.maxLazyDepth) {
+          return [false, {}]
+        }
+
+        const schema_ = schema as ZodLazy<ZodTypeAny>
+
+        return this.convert(schema_._def.getter(), strategy, lazyDepth + 1, false, false)
+      }
+
+      case ZodFirstPartyTypeKind.ZodUnknown:
+      case ZodFirstPartyTypeKind.ZodAny:
+      case undefined: {
+        return [false, {}]
+      }
+
+      case ZodFirstPartyTypeKind.ZodOptional: {
+        const schema_ = schema as ZodOptional<ZodTypeAny>
+
+        const [_, inner] = this.convert(schema_._def.innerType, strategy, lazyDepth, false, false)
+
+        return [false, inner]
+      }
+
+      case ZodFirstPartyTypeKind.ZodReadonly: {
+        const schema_ = schema as ZodReadonly<ZodTypeAny>
+        return this.convert(schema_._def.innerType, strategy, lazyDepth, false, false)
+      }
+
+      case ZodFirstPartyTypeKind.ZodDefault: {
+        const schema_ = schema as ZodDefault<ZodTypeAny>
+
+        const [_, json] = this.convert(schema_._def.innerType, strategy, lazyDepth, false, false)
+
+        return [false, { default: schema_._def.defaultValue, ...json }]
+      }
+
+      case ZodFirstPartyTypeKind.ZodEffects: {
+        const schema_ = schema as ZodEffects<ZodTypeAny>
+
+        if (schema_._def.effect.type === 'transform' && strategy === 'output') {
+          return [false, {}]
+        }
+
+        return this.convert(schema_._def.schema, strategy, lazyDepth, false, false)
+      }
+
+      case ZodFirstPartyTypeKind.ZodCatch: {
+        const schema_ = schema as ZodCatch<ZodTypeAny>
+        return this.convert(schema_._def.innerType, strategy, lazyDepth, false, false)
+      }
+
+      case ZodFirstPartyTypeKind.ZodBranded: {
+        const schema_ = schema as ZodBranded<ZodTypeAny, string | number | symbol>
+        return this.convert(schema_._def.type, strategy, lazyDepth, false, false)
+      }
+
+      case ZodFirstPartyTypeKind.ZodPipeline: {
+        const schema_ = schema as ZodPipeline<ZodTypeAny, ZodTypeAny>
+
+        return this.convert(
+          strategy === 'input' ? schema_._def.in : schema_._def.out,
+          strategy,
+          lazyDepth,
+          false,
+          false,
+        )
+      }
+
+      case ZodFirstPartyTypeKind.ZodNullable: {
+        const schema_ = schema as ZodNullable<ZodTypeAny>
+
+        const [required, json] = this.convert(schema_._def.innerType, strategy, lazyDepth, false, false)
+
+        return [required, { anyOf: [{ type: 'null' }, json] }]
+      }
+    }
+
+    const _expected:
+      | ZodFirstPartyTypeKind.ZodPromise
+      | ZodFirstPartyTypeKind.ZodSymbol
+      | ZodFirstPartyTypeKind.ZodFunction
+      | ZodFirstPartyTypeKind.ZodNever = typeName
+
+    return [false, {}]
+  }
+
+  private handleCustomZodDef(def: ZodTypeDef): Exclude<JSONSchema, boolean> | undefined {
+    const customZodDef = getCustomZodDef(def)
+
+    if (!customZodDef) {
+      return undefined
+    }
+
+    switch (customZodDef.type) {
+      case 'blob': {
+        return { type: 'string', contentMediaType: '*/*' }
+      }
+
+      case 'file': {
+        return { type: 'string', contentMediaType: customZodDef.mimeType ?? '*/*' }
+      }
+
+      case 'regexp': {
+        return {
+          type: 'string',
+          pattern: '^\\/(.*)\\/([a-z]*)$',
+        }
+      }
+
+      case 'url': {
+        return { type: 'string', format: JSONSchemaFormat.URI }
+      }
+
+      /* v8 ignore next 3 */
+      default: {
+        const _expect: never = customZodDef
+      }
+    }
   }
 }

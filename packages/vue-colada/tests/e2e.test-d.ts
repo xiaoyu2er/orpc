@@ -72,9 +72,9 @@ describe('.mutationOptions', () => {
       input: 'INVALID',
     })
 
-    // @ts-expect-error --- cache is invalid
     useMutation(orpc.ping.mutationOptions({
       context: {
+        // @ts-expect-error --- cache is invalid
         cache: 123,
       },
     }))

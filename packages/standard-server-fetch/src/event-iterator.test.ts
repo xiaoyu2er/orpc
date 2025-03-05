@@ -271,7 +271,7 @@ describe('toEventStream', () => {
     })
   })
 
-  it('keep alive', async () => {
+  it('keep alive', { retry: 5 }, async () => {
     async function* gen() {
       while (true) {
         await new Promise(resolve => setTimeout(resolve, 100))

@@ -1,9 +1,9 @@
 import type { StandardHeaders, StandardLazyResponse, StandardRequest } from '@orpc/standard-server'
 import type { ClientContext, ClientOptionsOut } from '../../types'
+import type { RPCSerializer } from './rpc-serializer'
 import type { StandardLinkCodec } from './types'
 import { isAsyncIteratorObject, stringifyJSON, trim, value, type Value } from '@orpc/shared'
 import { ORPCError } from '../../error'
-import { RPCSerializer } from './rpc-serializer'
 
 type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
 
@@ -55,8 +55,6 @@ export interface StandardRPCLinkCodecOptions<T extends ClientContext> {
     path: readonly string[],
     input: unknown,
   ]>
-
-  rpcSerializer?: RPCSerializer
 }
 
 export class StandardRPCLinkCodec<T extends ClientContext> implements StandardLinkCodec<T> {
@@ -65,15 +63,16 @@ export class StandardRPCLinkCodec<T extends ClientContext> implements StandardLi
   private readonly fallbackMethod: Exclude<StandardRPCLinkCodecOptions<T>['fallbackMethod'], undefined>
   private readonly expectedMethod: Exclude<StandardRPCLinkCodecOptions<T>['method'], undefined>
   private readonly headers: Exclude<StandardRPCLinkCodecOptions<T>['headers'], undefined>
-  private readonly rpcSerializer: Exclude<StandardRPCLinkCodecOptions<T>['rpcSerializer'], undefined>
 
-  constructor(options: StandardRPCLinkCodecOptions<T>) {
+  constructor(
+    private readonly serializer: RPCSerializer,
+    options: StandardRPCLinkCodecOptions<T>,
+  ) {
     this.baseUrl = options.url
     this.maxUrlLength = options.maxUrlLength ?? 2083
     this.fallbackMethod = options.fallbackMethod ?? 'POST'
     this.expectedMethod = options.method ?? this.fallbackMethod
     this.headers = options.headers ?? {}
-    this.rpcSerializer = options.rpcSerializer ?? new RPCSerializer()
   }
 
   async encode(path: readonly string[], input: unknown, options: ClientOptionsOut<any>): Promise<StandardRequest> {
@@ -82,7 +81,7 @@ export class StandardRPCLinkCodec<T extends ClientContext> implements StandardLi
     const baseUrl = await value(this.baseUrl, options, path, input)
     const url = new URL(`${trim(baseUrl.toString(), '/')}/${path.map(encodeURIComponent).join('/')}`)
 
-    const serialized = this.rpcSerializer.serialize(input)
+    const serialized = this.serializer.serialize(input)
 
     if (
       expectedMethod === 'GET'
@@ -126,7 +125,7 @@ export class StandardRPCLinkCodec<T extends ClientContext> implements StandardLi
 
         isBodyOk = true
 
-        return this.rpcSerializer.deserialize(body)
+        return this.serializer.deserialize(body)
       }
       catch (error) {
         if (!isBodyOk) {

@@ -209,8 +209,4 @@ describe('openAPICodec', () => {
     expect(serializer.serialize).toHaveBeenCalledOnce()
     expect(serializer.serialize).toHaveBeenCalledWith(error.toJSON())
   })
-
-  it('work without arguments', async () => {
-    const codec = new OpenAPICodec()
-  })
 })

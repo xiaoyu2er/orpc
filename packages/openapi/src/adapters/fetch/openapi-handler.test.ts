@@ -2,7 +2,6 @@ import { StandardHandler } from '@orpc/server/standard'
 import { toFetchResponse, toStandardLazyRequest } from '@orpc/standard-server-fetch'
 import { describe, expect, it, vi } from 'vitest'
 import { router } from '../../../../server/tests/shared'
-import { OpenAPICodec, OpenAPIMatcher } from '../standard'
 import { OpenAPIHandler } from './openapi-handler'
 
 vi.mock('@orpc/server/standard', async origin => ({
@@ -92,23 +91,5 @@ describe('openAPIHandler', () => {
     expect(vi.mocked(toStandardLazyRequest)).toHaveBeenCalledWith(request)
 
     expect(vi.mocked(toFetchResponse)).not.toHaveBeenCalled()
-  })
-
-  it('standardHandler constructor', async () => {
-    const options = {
-      codec: new OpenAPICodec(),
-      matcher: new OpenAPIMatcher(),
-      interceptors: [vi.fn()],
-    }
-
-    const handler = new OpenAPIHandler(router, options)
-
-    expect(StandardHandler).toHaveBeenCalledOnce()
-    expect(StandardHandler).toHaveBeenCalledWith(
-      router,
-      options.matcher,
-      options.codec,
-      options,
-    )
   })
 })

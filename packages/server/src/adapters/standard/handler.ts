@@ -52,7 +52,7 @@ export class StandardHandler<T extends Context> {
     router: Router<T, any>,
     private readonly matcher: StandardMatcher,
     private readonly codec: StandardCodec,
-    private readonly options: NoInfer<StandardHandlerOptions<T>> = {},
+    private readonly options: NoInfer<StandardHandlerOptions<T>>,
   ) {
     this.plugin = new CompositePlugin(options.plugins)
 

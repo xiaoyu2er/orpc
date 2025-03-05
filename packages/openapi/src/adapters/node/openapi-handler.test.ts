@@ -2,7 +2,6 @@ import { StandardHandler } from '@orpc/server/standard'
 import { sendStandardResponse, toStandardLazyRequest } from '@orpc/standard-server-node'
 import inject from 'light-my-request'
 import { router } from '../../../../server/tests/shared'
-import { OpenAPICodec, OpenAPIMatcher } from '../standard'
 import { OpenAPIHandler } from './openapi-handler'
 
 vi.mock('@orpc/standard-server-node', () => ({
@@ -109,23 +108,5 @@ describe('openapiHandler', async () => {
     expect(toStandardLazyRequest).toHaveBeenCalledWith(req, res)
 
     expect(sendStandardResponse).not.toHaveBeenCalled()
-  })
-
-  it('standardHandler constructor', async () => {
-    const options = {
-      codec: new OpenAPICodec(),
-      matcher: new OpenAPIMatcher(),
-      interceptors: [vi.fn()],
-    }
-
-    const handler = new OpenAPIHandler(router, options)
-
-    expect(StandardHandler).toHaveBeenCalledOnce()
-    expect(StandardHandler).toHaveBeenCalledWith(
-      router,
-      options.matcher,
-      options.codec,
-      options,
-    )
   })
 })

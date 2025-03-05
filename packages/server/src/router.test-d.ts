@@ -4,7 +4,7 @@ import type { CurrentContext, InitialContext } from '../tests/shared'
 import type { Context } from './context'
 import type { Lazy } from './lazy'
 import type { Procedure } from './procedure'
-import type { AdaptedRouter, InferRouterInitialContext, InferRouterInputs, InferRouterOutputs, Router } from './router'
+import type { AdaptedRouter, InferRouterCurrentContexts, InferRouterInitialContext, InferRouterInitialContexts, InferRouterInputs, InferRouterOutputs, Router } from './router'
 import { ping, pong, router } from '../tests/shared'
 
 describe('Router', () => {
@@ -21,6 +21,20 @@ it('InferRouterInitialContext', () => {
   expectTypeOf<InferRouterInitialContext<typeof router>>().toEqualTypeOf<InitialContext & Context>()
   expectTypeOf<InferRouterInitialContext<typeof ping>>().toEqualTypeOf<InitialContext>()
   expectTypeOf<InferRouterInitialContext<typeof pong>>().toEqualTypeOf<Context>()
+})
+
+it('InferRouterInitialContexts', () => {
+  expectTypeOf<InferRouterInitialContexts<typeof router>['ping']>().toEqualTypeOf<InitialContext>()
+  expectTypeOf<InferRouterInitialContexts<typeof router>['nested']['ping']>().toEqualTypeOf<InitialContext>()
+  expectTypeOf<InferRouterInitialContexts<typeof router>['pong']>().toEqualTypeOf<Context>()
+  expectTypeOf<InferRouterInitialContexts<typeof router>['nested']['pong']>().toEqualTypeOf<Context>()
+})
+
+it('InferRouterCurrentContexts', () => {
+  expectTypeOf<InferRouterCurrentContexts<typeof router>['ping']>().toEqualTypeOf<CurrentContext>()
+  expectTypeOf<InferRouterCurrentContexts<typeof router>['nested']['ping']>().toEqualTypeOf<CurrentContext>()
+  expectTypeOf<InferRouterCurrentContexts<typeof router>['pong']>().toEqualTypeOf<Context>()
+  expectTypeOf<InferRouterCurrentContexts<typeof router>['nested']['pong']>().toEqualTypeOf<Context>()
 })
 
 it('InferRouterInputs', () => {

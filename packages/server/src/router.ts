@@ -28,6 +28,22 @@ export type InferRouterInitialContext<T extends AnyRouter> = T extends Router<in
   ? UInitialContext
   : never
 
+export type InferRouterInitialContexts<T extends AnyRouter> =
+  T extends Lazy<infer U extends AnyRouter> ? InferRouterInitialContexts<U>
+    : T extends Procedure<infer UInitialContext, any, any, any, any, any, any>
+      ? UInitialContext
+      : {
+          [K in keyof T]: T[K] extends AnyRouter ? InferRouterInitialContexts<T[K]> : never
+        }
+
+export type InferRouterCurrentContexts<T extends AnyRouter> =
+  T extends Lazy<infer U extends AnyRouter> ? InferRouterCurrentContexts<U>
+    : T extends Procedure<any, infer UCurrentContext, any, any, any, any, any>
+      ? UCurrentContext
+      : {
+          [K in keyof T]: T[K] extends AnyRouter ? InferRouterCurrentContexts<T[K]> : never
+        }
+
 export type InferRouterInputs<T extends AnyRouter> =
   T extends Lazy<infer U extends AnyRouter> ? InferRouterInputs<U>
     : T extends Procedure<any, any, infer UInputSchema, any, any, any, any>

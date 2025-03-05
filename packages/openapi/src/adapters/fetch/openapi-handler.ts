@@ -1,9 +1,9 @@
 import type { Context, Router } from '@orpc/server'
 import type { FetchHandler, FetchHandleResult } from '@orpc/server/fetch'
-import type { StandardHandleOptions } from '@orpc/server/standard'
+import type { StandardHandleOptions, StandardHandlerOptions } from '@orpc/server/standard'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { ToFetchResponseOptions } from '@orpc/standard-server-fetch'
-import type { OpenAPIHandlerOptions } from '../standard'
+import { OpenAPISerializer } from '@orpc/openapi-client/standard'
 import { StandardHandler } from '@orpc/server/standard'
 import { toFetchResponse, toStandardLazyRequest } from '@orpc/standard-server-fetch'
 import { OpenAPICodec, OpenAPIMatcher } from '../standard'
@@ -11,9 +11,10 @@ import { OpenAPICodec, OpenAPIMatcher } from '../standard'
 export class OpenAPIHandler<T extends Context> implements FetchHandler<T> {
   private readonly standardHandler: StandardHandler<T>
 
-  constructor(router: Router<T, any>, options?: NoInfer<OpenAPIHandlerOptions<T>>) {
-    const matcher = options?.matcher ?? new OpenAPIMatcher()
-    const codec = options?.codec ?? new OpenAPICodec()
+  constructor(router: Router<T, any>, options: NoInfer<StandardHandlerOptions<T>> = {}) {
+    const serializer = new OpenAPISerializer()
+    const matcher = new OpenAPIMatcher()
+    const codec = new OpenAPICodec(serializer)
 
     this.standardHandler = new StandardHandler(router, matcher, codec, options)
   }

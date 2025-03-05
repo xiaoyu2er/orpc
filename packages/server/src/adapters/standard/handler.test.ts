@@ -53,7 +53,7 @@ describe('standardHandler', () => {
   }
 
   it('should call matcher.init once', async () => {
-    const handler = new StandardHandler(router, matcher, codec)
+    const handler = new StandardHandler(router, matcher, codec, {})
     expect(matcher.init).toHaveBeenCalledOnce()
     expect(matcher.init).toHaveBeenCalledWith(router)
   })
@@ -319,7 +319,7 @@ describe('standardHandler', () => {
       params: { id: '__id__' },
     })
 
-    const handler = new StandardHandler(router, matcher, codec)
+    const handler = new StandardHandler(router, matcher, codec, {})
 
     expect(await handler.handle(request, { context: { db: 'postgres' } })).toEqual({
       matched: true,
@@ -337,7 +337,7 @@ describe('standardHandler', () => {
       params: { id: '__id__' },
     })
 
-    const handler = new StandardHandler(router, matcher, codec)
+    const handler = new StandardHandler(router, matcher, codec, {})
     const client = vi.fn().mockReturnValueOnce('__output__')
     vi.mocked(createProcedureClient).mockReturnValueOnce(client)
 

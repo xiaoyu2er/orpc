@@ -12,9 +12,7 @@ describe('rpcCodec', () => {
     deserialize: vi.fn(),
   } as any
 
-  const codec = new RPCCodec({
-    serializer,
-  })
+  const codec = new RPCCodec(serializer)
 
   describe('.decode', () => {
     it('with GET method', async () => {
@@ -96,9 +94,5 @@ describe('rpcCodec', () => {
 
     expect(serializer.serialize).toHaveBeenCalledOnce()
     expect(serializer.serialize).toHaveBeenCalledWith(error.toJSON())
-  })
-
-  it('work without arguments', () => {
-    const codec = new RPCCodec()
   })
 })

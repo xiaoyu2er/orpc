@@ -14,9 +14,8 @@ describe('standardRPCLinkCodec', () => {
 
   describe('encode', () => {
     const method = vi.fn()
-    const codec = new StandardRPCLinkCodec({
+    const codec = new StandardRPCLinkCodec(serializer, {
       url: 'http://localhost:3000',
-      rpcSerializer: serializer,
       method,
       headers: () => ({ 'x-custom-header': 'custom-value' }),
     })
@@ -78,9 +77,8 @@ describe('standardRPCLinkCodec', () => {
       ['blob inside', { blob: new Blob(['blob'], { type: 'text/plain' }) }],
       ['event-iterator', (async function* () { })()],
     ])('fallback method when method=GET: %s', async (_, input) => {
-      const codec = new StandardRPCLinkCodec({
+      const codec = new StandardRPCLinkCodec(serializer, {
         url: 'http://localhost:3000',
-        rpcSerializer: serializer,
         method: 'GET',
         maxUrlLength: 100,
         fallbackMethod: 'PATCH',
@@ -101,9 +99,8 @@ describe('standardRPCLinkCodec', () => {
   })
 
   describe('decode', () => {
-    const codec = new StandardRPCLinkCodec({
+    const codec = new StandardRPCLinkCodec(serializer, {
       url: 'http://localhost:3000',
-      rpcSerializer: serializer,
     })
 
     it('should decode output', async () => {

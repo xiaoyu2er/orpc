@@ -1,21 +1,14 @@
 import type { ORPCError } from '@orpc/client'
+import type { RPCSerializer } from '@orpc/client/standard'
 import type { StandardBody, StandardLazyRequest, StandardResponse } from '@orpc/standard-server'
 import type { AnyProcedure } from '../../procedure'
 import type { StandardCodec, StandardParams } from './types'
-import { RPCSerializer } from '@orpc/client/standard'
 import { parseEmptyableJSON } from '@orpc/shared'
 
-export interface StandardCodecOptions {
-  serializer?: RPCSerializer
-}
-
 export class RPCCodec implements StandardCodec {
-  private readonly serializer: RPCSerializer
-
   constructor(
-    options: StandardCodecOptions = {},
+    private readonly serializer: RPCSerializer,
   ) {
-    this.serializer = options.serializer ?? new RPCSerializer()
   }
 
   async decode(request: StandardLazyRequest, _params: StandardParams | undefined, _procedure: AnyProcedure): Promise<unknown> {

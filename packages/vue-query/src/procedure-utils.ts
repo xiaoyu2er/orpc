@@ -1,7 +1,7 @@
 import type { Client, ClientContext } from '@orpc/client'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { InfiniteData } from '@tanstack/vue-query'
-import type { InfiniteOptionsBase, InfiniteOptionsIn, MutationOptionsBase, MutationOptionsIn, MutationOptionsRest, QueryOptionsBase, QueryOptionsIn } from './types'
+import type { InfiniteOptionsBase, InfiniteOptionsIn, MutationOptions, MutationOptionsIn, QueryOptionsBase, QueryOptionsIn } from './types'
 import { computed } from 'vue'
 import { buildKey } from './key'
 import { unrefDeep } from './utils'
@@ -19,13 +19,9 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
     options: U & InfiniteOptionsIn<TClientContext, TInput, TOutput, TError, USelectData, UPageParam>
   ): NoInfer<U & Omit<InfiniteOptionsBase<TOutput, TError, UPageParam>, keyof U>>
 
-  mutationOptions<U, UMutationContext>(
-    ...rest: MutationOptionsRest<U & MutationOptionsIn<TClientContext, TInput, TOutput, TError, UMutationContext>>
-  ): NoInfer<U & Omit<MutationOptionsBase<TInput, TOutput, TError>, keyof U>>
-
-  mutationOptions<U, UMutationContext>(
-    options: U & MutationOptionsIn<TClientContext, TInput, TOutput, TError, UMutationContext>
-  ): NoInfer<U & Omit<MutationOptionsBase<TInput, TOutput, TError>, keyof U>>
+  mutationOptions<UMutationContext>(
+    ...rest: MaybeOptionalOptions<MutationOptionsIn<TClientContext, TInput, TOutput, TError, UMutationContext>>
+  ): MutationOptions<TInput, TOutput, TError, UMutationContext>
 }
 
 export function createProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError extends Error>(
@@ -35,31 +31,31 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
   return {
     call: client,
 
-    queryOptions(...[{ input, context, ...rest } = {}]) {
+    queryOptions(...[options = {} as any]) {
       return {
-        queryKey: computed(() => buildKey(path, { type: 'query', input: unrefDeep(input) as any })),
-        queryFn: ({ signal }) => client(unrefDeep(input) as any, { signal, context: unrefDeep(context) as any }),
-        ...(rest as any),
+        queryKey: computed(() => buildKey(path, { type: 'query', input: unrefDeep(options.input) })),
+        queryFn: ({ signal }) => client(unrefDeep(options.input), { signal, context: unrefDeep(options.context) }),
+        ...options,
       }
     },
 
-    infiniteOptions({ input, context, ...rest }) {
+    infiniteOptions(options) {
       return {
         queryKey: computed(() => {
-          return buildKey(path, { type: 'infinite', input: unrefDeep(input(unrefDeep(rest.initialPageParam) as any) as any) })
+          return buildKey(path, { type: 'infinite', input: unrefDeep(options.input(unrefDeep(options.initialPageParam) as any) as any) })
         }),
         queryFn: ({ pageParam, signal }) => {
-          return client(unrefDeep(input(pageParam as any)) as any, { signal, context: unrefDeep(context) as any })
+          return client(unrefDeep(options.input(pageParam as any)) as any, { signal, context: unrefDeep(options.context) as any })
         },
-        ...(rest as any),
+        ...(options as any),
       }
     },
 
-    mutationOptions(...[{ context, ...rest } = {}]) {
+    mutationOptions(...[options = {} as any]) {
       return {
         mutationKey: buildKey(path, { type: 'mutation' }),
-        mutationFn: input => client(input, { context: unrefDeep(context) as any }),
-        ...(rest as any),
+        mutationFn: input => client(input, { context: unrefDeep(options.context) }),
+        ...(options as any),
       }
     },
   }

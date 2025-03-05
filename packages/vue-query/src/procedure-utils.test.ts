@@ -61,7 +61,7 @@ describe('createProcedureUtils', () => {
     expect(buildKeySpy).toHaveBeenCalledTimes(1)
     expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { type: 'mutation' })
 
-    await expect(options.mutationFn!('__input__')).resolves.toEqual('__output__')
+    await expect((options as any).mutationFn('__input__')).resolves.toEqual('__output__')
     expect(client).toHaveBeenCalledTimes(1)
     expect(client).toBeCalledWith('__input__', { context: { batch: '__batch__' } })
   })

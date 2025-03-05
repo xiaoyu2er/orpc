@@ -124,7 +124,7 @@ export class DecoratedProcedure<
     >
   ): Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta>
     & ProcedureClient<TClientContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap> {
-    return Object.assign(createProcedureClient(this, ...rest), {
+    return Object.assign(createProcedureClient(this, ...rest as any), {
       '~type': 'Procedure' as const,
       '~orpc': this['~orpc'],
     })

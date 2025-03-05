@@ -1,7 +1,7 @@
 import type { Client, ClientContext } from '@orpc/client'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { InfiniteData } from '@tanstack/react-query'
-import type { InfiniteOptionsBase, InfiniteOptionsIn, MutationOptionsBase, MutationOptionsIn, MutationOptionsRest, QueryOptionsBase, QueryOptionsIn } from './types'
+import type { InfiniteOptionsBase, InfiniteOptionsIn, MutationOptions, MutationOptionsIn, QueryOptionsBase, QueryOptionsIn } from './types'
 import { buildKey } from './key'
 
 export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError extends Error> {
@@ -17,13 +17,9 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
     options: U & InfiniteOptionsIn<TClientContext, TInput, TOutput, TError, USelectData, UPageParam>
   ): NoInfer<U & Omit<InfiniteOptionsBase<TOutput, TError, UPageParam>, keyof U>>
 
-  mutationOptions<U, UMutationContext>(
-    ...rest: MutationOptionsRest<U & MutationOptionsIn<TClientContext, TInput, TOutput, TError, UMutationContext>>
-  ): NoInfer<U & Omit<MutationOptionsBase<TInput, TOutput, TError>, keyof U>>
-
-  mutationOptions<U, UMutationContext>(
-    options: U & MutationOptionsIn<TClientContext, TInput, TOutput, TError, UMutationContext>
-  ): NoInfer<U & Omit<MutationOptionsBase<TInput, TOutput, TError>, keyof U>>
+  mutationOptions<UMutationContext>(
+    ...rest: MaybeOptionalOptions<MutationOptionsIn<TClientContext, TInput, TOutput, TError, UMutationContext>>
+  ): MutationOptions<TInput, TOutput, TError, UMutationContext>
 }
 
 export function createProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError extends Error>(
@@ -33,29 +29,29 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
   return {
     call: client,
 
-    queryOptions(...[{ input, context, ...rest } = {}]) {
+    queryOptions(...[options = {} as any]) {
       return {
-        queryKey: buildKey(path, { type: 'query', input: input as any }),
-        queryFn: ({ signal }) => client(input as any, { signal, context: context as any }),
-        ...(rest as any),
+        queryKey: buildKey(path, { type: 'query', input: options.input }),
+        queryFn: ({ signal }) => client(options.input, { signal, context: options.context }),
+        ...options,
       }
     },
 
-    infiniteOptions({ input, context, ...rest }) {
+    infiniteOptions(options) {
       return {
-        queryKey: buildKey(path, { type: 'infinite', input: input(rest.initialPageParam) as any }),
+        queryKey: buildKey(path, { type: 'infinite', input: options.input(options.initialPageParam) as any }),
         queryFn: ({ pageParam, signal }) => {
-          return client(input(pageParam as any), { signal, context: context as any })
+          return client(options.input(pageParam as any), { signal, context: options.context as any })
         },
-        ...(rest as any),
+        ...(options as any),
       }
     },
 
-    mutationOptions(...[{ context, ...rest } = {}]) {
+    mutationOptions(...[options = {} as any]) {
       return {
         mutationKey: buildKey(path, { type: 'mutation' }),
-        mutationFn: input => client(input, { context: context as any }),
-        ...(rest as any),
+        mutationFn: input => client(input, { context: options.context }),
+        ...(options as any),
       }
     },
   }

@@ -47,17 +47,11 @@ export interface InfiniteOptionsBase<TOutput, TError extends Error, TPageParam> 
 
 export type MutationOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError extends Error, TMutationContext> =
   & (Record<never, never> extends TClientContext ? { context?: TClientContext } : { context: TClientContext })
-  & {
+  & MutationOptions<TInput, TOutput, TError, TMutationContext>
+
+export type MutationOptions<TInput, TOutput, TError extends Error, TMutationContext> =
+  {
     [P in keyof MutationObserverOptions<TOutput, TError, TInput, TMutationContext>]: MaybeRefDeep<MutationObserverOptions<TOutput, TError, TInput, TMutationContext>[P]>
-  }
-  & {
+  } & {
     shallow?: MaybeRef<boolean>
   }
-
-export interface MutationOptionsBase<TInput, TOutput, TError extends Error> {
-  mutationKey: QueryKey
-  mutationFn(input: TInput): Promise<TOutput>
-  retry?(failureCount: number, error: TError): boolean // this help tanstack can infer TError
-}
-
-export type MutationOptionsRest<T> = Record<never, never> extends T ? [] : [options: T]

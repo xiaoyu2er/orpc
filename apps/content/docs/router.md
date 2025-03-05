@@ -82,7 +82,9 @@ export default {
 
 ## Utilities
 
-### Infer Router Input
+> **Note:** Every [procedure](/docs/procedure) is also a router, so you can apply these utilities to procedures as well.
+
+### Infer Router Inputs
 
 ```ts twoslash
 import type { router } from './shared/planet'
@@ -94,9 +96,9 @@ export type Inputs = InferRouterInputs<typeof router>
 type FindPlanetInput = Inputs['planet']['find']
 ```
 
-This snippet automatically extracts the expected input types for each procedure in the router.
+Infers the expected input types for each procedure in the router.
 
-### Infer Router Output
+### Infer Router Outputs
 
 ```ts twoslash
 import type { router } from './shared/planet'
@@ -108,4 +110,32 @@ export type Outputs = InferRouterOutputs<typeof router>
 type FindPlanetOutput = Outputs['planet']['find']
 ```
 
-Similarly, this utility infers the output types, ensuring that your application correctly handles the results from each procedure.
+Infers the expected output types for each procedure in the router.
+
+### Infer Router Initial Contexts
+
+```ts twoslash
+import type { router } from './shared/planet'
+// ---cut---
+import type { InferRouterInitialContexts } from '@orpc/server'
+
+export type InitialContexts = InferRouterInitialContexts<typeof router>
+
+type FindPlanetInitialContext = InitialContexts['planet']['find']
+```
+
+Infers the [initial context](/docs/context#initial-context) types defined for each procedure.
+
+### Infer Router Current Contexts
+
+```ts twoslash
+import type { router } from './shared/planet'
+// ---cut---
+import type { InferRouterCurrentContexts } from '@orpc/server'
+
+export type CurrentContexts = InferRouterCurrentContexts<typeof router>
+
+type FindPlanetCurrentContext = CurrentContexts['planet']['find']
+```
+
+Infers the [current context](/docs/context#combining-initial-and-execution-context) types, which combine the initial context with the execution context and pass it to the handler.

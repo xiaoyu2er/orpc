@@ -10,7 +10,7 @@ export interface OpenAPIInputStructureParseResult {
   paramsSchema: ObjectSchema | undefined
   querySchema: ObjectSchema | undefined
   headersSchema: ObjectSchema | undefined
-  bodySchema: JSONSchema.JSONSchema | undefined
+  bodySchema: JSONSchema | undefined
 }
 
 export class OpenAPIInputStructureParser {
@@ -21,7 +21,7 @@ export class OpenAPIInputStructureParser {
   ) { }
 
   parse(contract: AnyContractProcedure, structure: 'compact' | 'detailed'): OpenAPIInputStructureParseResult {
-    const inputSchema = this.schemaConverter.convert(contract['~orpc'].inputSchema, { strategy: 'input' })
+    const [_, inputSchema] = this.schemaConverter.convert(contract['~orpc'].inputSchema, 'input')
     const method = fallbackContractConfig('defaultMethod', contract['~orpc'].route?.method)
     const httpPath = contract['~orpc'].route?.path
 
@@ -42,7 +42,7 @@ export class OpenAPIInputStructureParser {
     }
   }
 
-  private parseDetailedSchema(inputSchema: JSONSchema.JSONSchema): OpenAPIInputStructureParseResult {
+  private parseDetailedSchema(inputSchema: JSONSchema): OpenAPIInputStructureParseResult {
     if (!this.schemaUtils.isObjectSchema(inputSchema)) {
       throw new OpenAPIError(`When input structure is 'detailed', input schema must be an object.`)
     }
@@ -83,12 +83,12 @@ export class OpenAPIInputStructureParser {
     return { paramsSchema, querySchema, headersSchema, bodySchema }
   }
 
-  private parseCompactSchema(inputSchema: JSONSchema.JSONSchema, method: string, httpPath: string | undefined): OpenAPIInputStructureParseResult {
+  private parseCompactSchema(inputSchema: JSONSchema, method: string, httpPath: string | undefined): OpenAPIInputStructureParseResult {
     const dynamic = httpPath ? this.pathParser.parseDynamicParams(httpPath) : []
 
     if (dynamic.length === 0) {
       if (method === 'GET') {
-        let querySchema: JSONSchema.JSONSchema | undefined = inputSchema
+        let querySchema: JSONSchema | undefined = inputSchema
 
         if (querySchema !== undefined && this.schemaUtils.isAnySchema(querySchema)) {
           querySchema = undefined

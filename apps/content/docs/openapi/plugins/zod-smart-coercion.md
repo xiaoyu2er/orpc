@@ -107,7 +107,6 @@ Supported formats:
 
 - Full ISO date-time (e.g., `2024-11-27T00:00:00.000Z`)
 - Date only (e.g., `2024-11-27`)
-- Time only (e.g., `19:00:00`)
 
 #### RegExp
 

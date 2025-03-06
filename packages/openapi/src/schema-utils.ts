@@ -2,19 +2,19 @@ import { isObject } from '@orpc/shared'
 import { type FileSchema, type JSONSchema, NON_LOGIC_KEYWORDS, type ObjectSchema } from './schema'
 
 export class SchemaUtils {
-  isFileSchema(schema: JSONSchema.JSONSchema): schema is FileSchema {
+  isFileSchema(schema: JSONSchema): schema is FileSchema {
     return isObject(schema) && schema.type === 'string' && typeof schema.contentMediaType === 'string'
   }
 
-  isObjectSchema(schema: JSONSchema.JSONSchema): schema is ObjectSchema {
+  isObjectSchema(schema: JSONSchema): schema is ObjectSchema {
     return isObject(schema) && schema.type === 'object'
   }
 
-  isAnySchema(schema: JSONSchema.JSONSchema): boolean {
+  isAnySchema(schema: JSONSchema): boolean {
     return schema === true || Object.keys(schema).filter(key => !NON_LOGIC_KEYWORDS.includes(key)).length === 0
   }
 
-  isUndefinableSchema(schema: JSONSchema.JSONSchema): boolean {
+  isUndefinableSchema(schema: JSONSchema): boolean {
     const [matches] = this.filterSchemaBranches(schema, (schema) => {
       if (typeof schema === 'boolean') {
         return schema
@@ -35,7 +35,7 @@ export class SchemaUtils {
       .reduce((acc, [key, value]) => {
         acc[key] = value
         return acc
-      }, {} as Record<string, JSONSchema.JSONSchema>)
+      }, {} as Record<string, JSONSchema>)
 
     matched.required = schema.required?.filter(key => separatedProperties.includes(key))
 
@@ -58,7 +58,7 @@ export class SchemaUtils {
       .reduce((acc, [key, value]) => {
         acc[key] = value
         return acc
-      }, {} as Record<string, JSONSchema.JSONSchema>)
+      }, {} as Record<string, JSONSchema>)
 
     rest.required = schema.required?.filter(key => !separatedProperties.includes(key))
 
@@ -80,10 +80,10 @@ export class SchemaUtils {
   }
 
   filterSchemaBranches(
-    schema: JSONSchema.JSONSchema,
-    check: (schema: JSONSchema.JSONSchema) => boolean,
-    matches: JSONSchema.JSONSchema[] = [],
-  ): [matches: JSONSchema.JSONSchema[], rest: JSONSchema.JSONSchema | undefined] {
+    schema: JSONSchema,
+    check: (schema: JSONSchema) => boolean,
+    matches: JSONSchema[] = [],
+  ): [matches: JSONSchema[], rest: JSONSchema | undefined] {
     if (check(schema)) {
       matches.push(schema)
       return [matches, undefined]

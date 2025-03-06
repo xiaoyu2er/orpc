@@ -1,10 +1,12 @@
-import * as JSONSchema from 'json-schema-typed/draft-2020-12'
+/* eslint-disable no-restricted-imports */
+import type { JSONSchema } from 'json-schema-typed/draft-2020-12'
+import { Format as JSONSchemaFormat, keywords as JSONSchemaKeywords } from 'json-schema-typed/draft-2020-12'
 
-export { Format as JSONSchemaFormat } from 'json-schema-typed/draft-2020-12'
-export { JSONSchema }
+export { JSONSchemaFormat, JSONSchemaKeywords }
+export type { JSONSchema }
 
-export type ObjectSchema = JSONSchema.JSONSchema & { type: 'object' } & object
-export type FileSchema = JSONSchema.JSONSchema & { type: 'string', contentMediaType: string } & object
+export type ObjectSchema = JSONSchema & { type: 'object' } & object
+export type FileSchema = JSONSchema & { type: 'string', contentMediaType: string } & object
 
 export const NON_LOGIC_KEYWORDS: string[] = [
   // Core Documentation Keywords
@@ -35,4 +37,4 @@ export const NON_LOGIC_KEYWORDS: string[] = [
   '$vocabulary',
   '$dynamicAnchor',
   '$dynamicRef',
-] satisfies (typeof JSONSchema.keywords)[number][]
+] satisfies (typeof JSONSchemaKeywords)[number][]

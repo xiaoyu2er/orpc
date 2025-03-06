@@ -6,7 +6,7 @@ import { OpenAPIError } from './openapi-error'
 
 export interface OpenAPIOutputStructureParseResult {
   headersSchema: ObjectSchema | undefined
-  bodySchema: JSONSchema.JSONSchema | undefined
+  bodySchema: JSONSchema | undefined
 }
 
 export class OpenAPIOutputStructureParser {
@@ -16,7 +16,7 @@ export class OpenAPIOutputStructureParser {
   ) { }
 
   parse(contract: AnyContractProcedure, structure: 'compact' | 'detailed'): OpenAPIOutputStructureParseResult {
-    const outputSchema = this.schemaConverter.convert(contract['~orpc'].outputSchema, { strategy: 'output' })
+    const [_, outputSchema] = this.schemaConverter.convert(contract['~orpc'].outputSchema, 'output')
 
     // TODO: refactor and remove this logic
     if (this.schemaUtils.isAnySchema(outputSchema)) {
@@ -34,7 +34,7 @@ export class OpenAPIOutputStructureParser {
     }
   }
 
-  private parseDetailedSchema(outputSchema: JSONSchema.JSONSchema): OpenAPIOutputStructureParseResult {
+  private parseDetailedSchema(outputSchema: JSONSchema): OpenAPIOutputStructureParseResult {
     if (!this.schemaUtils.isObjectSchema(outputSchema)) {
       throw new OpenAPIError(`When output structure is 'detailed', output schema must be an object.`)
     }
@@ -57,7 +57,7 @@ export class OpenAPIOutputStructureParser {
     return { headersSchema, bodySchema }
   }
 
-  private parseCompactSchema(outputSchema: JSONSchema.JSONSchema): OpenAPIOutputStructureParseResult {
+  private parseCompactSchema(outputSchema: JSONSchema): OpenAPIOutputStructureParseResult {
     return {
       headersSchema: undefined,
       bodySchema: outputSchema,

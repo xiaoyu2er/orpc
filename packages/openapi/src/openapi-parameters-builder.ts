@@ -5,7 +5,7 @@ import { get, isObject, omit } from '@orpc/shared'
 export class OpenAPIParametersBuilder {
   build(
     paramIn: OpenAPI.ParameterObject['in'],
-    jsonSchema: JSONSchema.JSONSchema & { type: 'object' } & object,
+    jsonSchema: JSONSchema & { type: 'object' } & object,
     options?: Pick<OpenAPI.ParameterObject, 'example' | 'style' | 'required'>,
   ): OpenAPI.ParameterObject[] {
     const parameters: OpenAPI.ParameterObject[] = []
@@ -46,7 +46,7 @@ export class OpenAPIParametersBuilder {
   }
 
   buildHeadersObject(
-    jsonSchema: JSONSchema.JSONSchema & { type: 'object' } & object,
+    jsonSchema: JSONSchema & { type: 'object' } & object,
     options?: Pick<OpenAPI.ParameterObject, 'example' | 'style' | 'required'>,
   ): OpenAPI.HeadersObject {
     const parameters = this.build('header', jsonSchema, options)

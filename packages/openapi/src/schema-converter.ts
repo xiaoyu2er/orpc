@@ -3,13 +3,15 @@ import type { JSONSchema } from './schema'
 
 export type SchemaConvertStrategy = 'input' | 'output'
 
-export interface ConditionalSchemaConverter {
-  condition(schema: Schema, strategy: SchemaConvertStrategy): boolean
-
+export interface SchemaConverter {
   convert(schema: Schema, strategy: SchemaConvertStrategy): [required: boolean, jsonSchema: JSONSchema]
 }
 
-export class CompositeSchemaConverter {
+export interface ConditionalSchemaConverter extends SchemaConverter {
+  condition(schema: Schema, strategy: SchemaConvertStrategy): boolean
+}
+
+export class CompositeSchemaConverter implements SchemaConverter {
   private readonly converters: ConditionalSchemaConverter[]
 
   constructor(converters: ConditionalSchemaConverter[]) {

@@ -26,7 +26,7 @@ describe('openapi generator', () => {
         .input(defaultSchema)
         .output(defaultSchema)
 
-      mockConverter.convert.mockReturnValue({
+      mockConverter.convert.mockReturnValue([true, {
         type: 'object',
         properties: {
           name: {
@@ -36,7 +36,7 @@ describe('openapi generator', () => {
             type: 'string',
           },
         },
-      })
+      }])
 
       const spec = await generator.generate(router, defaultDoc)
 
@@ -100,7 +100,7 @@ describe('openapi generator', () => {
 
       mockConverter.convert.mockImplementation((schema) => {
         if (schema === inputSchema) {
-          return {
+          return [true, {
             type: 'object',
             properties: {
               params: {
@@ -147,10 +147,10 @@ describe('openapi generator', () => {
                 },
               },
             },
-          } satisfies JSONSchema.JSONSchema
+          } satisfies JSONSchema]
         }
 
-        return {
+        return [true, {
           type: 'object',
           properties: {
             headers: {
@@ -170,7 +170,7 @@ describe('openapi generator', () => {
               },
             },
           },
-        }
+        }]
       })
 
       const spec = await generator.generate(router, defaultDoc)
@@ -269,7 +269,7 @@ describe('openapi generator', () => {
     }).route({})
 
     it('strictErrorResponses=true', async () => {
-      mockConverter.convert.mockReturnValue({ description: '__mocked__' })
+      mockConverter.convert.mockReturnValue([true, { description: '__mocked__' }])
 
       const spec = await generator.generate(contract, defaultDoc)
 
@@ -324,7 +324,7 @@ describe('openapi generator', () => {
         strictErrorResponses: false,
       })
 
-      mockConverter.convert.mockReturnValue({ description: '__mocked__' })
+      mockConverter.convert.mockReturnValue([true, { description: '__mocked__' }])
 
       const spec = await generator.generate(contract, defaultDoc)
 

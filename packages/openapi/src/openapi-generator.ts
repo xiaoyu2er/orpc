@@ -2,7 +2,7 @@ import type { PublicOpenAPIInputStructureParser } from './openapi-input-structur
 import type { PublicOpenAPIOutputStructureParser } from './openapi-output-structure-parser'
 import type { PublicOpenAPIPathParser } from './openapi-path-parser'
 import type { JSONSchema } from './schema'
-import type { SchemaConverter } from './schema-converter'
+import type { ConditionalSchemaConverter } from './schema-converter'
 import { fallbackORPCErrorStatus } from '@orpc/client'
 import { type ContractRouter, fallbackContractConfig, getEventIteratorSchemaDetails } from '@orpc/contract'
 import { OpenAPIJsonSerializer } from '@orpc/openapi-client/standard'
@@ -25,7 +25,7 @@ type ErrorHandlerStrategy = 'throw' | 'log' | 'ignore'
 export interface OpenAPIGeneratorOptions {
   contentBuilder?: PublicOpenAPIContentBuilder
   parametersBuilder?: PublicOpenAPIParametersBuilder
-  schemaConverters?: SchemaConverter[]
+  schemaConverters?: ConditionalSchemaConverter[]
   schemaUtils?: PublicSchemaUtils
   jsonSerializer?: OpenAPIJsonSerializer
   pathParser?: PublicOpenAPIPathParser
@@ -132,7 +132,7 @@ export class OpenAPIGenerator {
                         type: 'object',
                         properties: {
                           event: { type: 'string', const: 'message' },
-                          data: this.schemaConverter.convert(eventIteratorSchemaDetails.yields, { strategy: 'input' }) as any,
+                          data: this.schemaConverter.convert(eventIteratorSchemaDetails.yields, 'input')[1] as any,
                           id: { type: 'string' },
                           retry: { type: 'number' },
                         },
@@ -142,7 +142,7 @@ export class OpenAPIGenerator {
                         type: 'object',
                         properties: {
                           event: { type: 'string', const: 'done' },
-                          data: this.schemaConverter.convert(eventIteratorSchemaDetails.returns, { strategy: 'input' }) as any,
+                          data: this.schemaConverter.convert(eventIteratorSchemaDetails.returns, 'input')[1] as any,
                           id: { type: 'string' },
                           retry: { type: 'number' },
                         },
@@ -213,7 +213,7 @@ export class OpenAPIGenerator {
                         type: 'object',
                         properties: {
                           event: { type: 'string', const: 'message' },
-                          data: this.schemaConverter.convert(eventIteratorSchemaDetails.yields, { strategy: 'input' }) as any,
+                          data: this.schemaConverter.convert(eventIteratorSchemaDetails.yields, 'input')[1] as any,
                           id: { type: 'string' },
                           retry: { type: 'number' },
                         },
@@ -223,7 +223,7 @@ export class OpenAPIGenerator {
                         type: 'object',
                         properties: {
                           event: { type: 'string', const: 'done' },
-                          data: this.schemaConverter.convert(eventIteratorSchemaDetails.returns, { strategy: 'input' }) as any,
+                          data: this.schemaConverter.convert(eventIteratorSchemaDetails.returns, 'input')[1] as any,
                           id: { type: 'string' },
                           retry: { type: 'number' },
                         },
@@ -281,7 +281,7 @@ export class OpenAPIGenerator {
             continue
           }
 
-          const schemas: JSONSchema.JSONSchema[] = configs
+          const schemas: JSONSchema[] = configs
             .map(({ data, code, message }) => {
               const json = {
                 type: 'object',
@@ -293,10 +293,10 @@ export class OpenAPIGenerator {
                   data: {},
                 },
                 required: ['defined', 'code', 'status', 'message'],
-              } satisfies JSONSchema.JSONSchema
+              } satisfies JSONSchema
 
               if (data) {
-                const dataJson = this.schemaConverter.convert(data, { strategy: 'output' })
+                const dataJson = this.schemaConverter.convert(data, 'output')[1]
 
                 json.properties.data = dataJson
 

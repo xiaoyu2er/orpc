@@ -1,34 +1,28 @@
 import type { Schema } from '@orpc/contract'
 import type { JSONSchema } from './schema'
 
-export interface SchemaConvertOptions {
-  strategy: 'input' | 'output'
+export type SchemaConvertStrategy = 'input' | 'output'
+
+export interface ConditionalSchemaConverter {
+  condition(schema: Schema, strategy: SchemaConvertStrategy): boolean
+
+  convert(schema: Schema, strategy: SchemaConvertStrategy): [required: boolean, jsonSchema: JSONSchema]
 }
 
-export interface SchemaConverter {
-  condition(schema: Schema, options: SchemaConvertOptions): boolean
+export class CompositeSchemaConverter {
+  private readonly converters: ConditionalSchemaConverter[]
 
-  convert(schema: Schema, options: SchemaConvertOptions): JSONSchema.JSONSchema
-}
-
-export class CompositeSchemaConverter implements SchemaConverter {
-  private readonly converters: SchemaConverter[]
-
-  constructor(converters: SchemaConverter[]) {
+  constructor(converters: ConditionalSchemaConverter[]) {
     this.converters = converters
   }
 
-  condition(): boolean {
-    return true
-  }
-
-  convert(schema: Schema, options: SchemaConvertOptions): JSONSchema.JSONSchema {
+  convert(schema: Schema, strategy: SchemaConvertStrategy): [required: boolean, jsonSchema: JSONSchema] {
     for (const converter of this.converters) {
-      if (converter.condition(schema, options)) {
-        return converter.convert(schema, options)
+      if (converter.condition(schema, strategy)) {
+        return converter.convert(schema, strategy)
       }
     }
 
-    return {} // ANY SCHEMA
+    return [false, {}]
   }
 }

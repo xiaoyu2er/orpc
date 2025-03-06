@@ -4,6 +4,7 @@ import { file } from './schemas/file'
 import { regexp } from './schemas/regexp'
 import { url } from './schemas/url'
 
+export * from './coercer'
 export * from './converter'
 export * from './custom-json-schema'
 export * from './schemas/base'

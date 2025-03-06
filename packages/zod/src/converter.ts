@@ -1,6 +1,37 @@
 import type { Schema } from '@orpc/contract'
-import type { JSONSchema } from 'json-schema-typed/draft-2020-12'
-import type { EnumLike, KeySchema, ZodAny, ZodArray, ZodBranded, ZodCatch, ZodDefault, ZodDiscriminatedUnion, ZodEffects, ZodEnum, ZodIntersection, ZodLazy, ZodLiteral, ZodMap, ZodNativeEnum, ZodNullable, ZodNumber, ZodObject, ZodOptional, ZodPipeline, ZodRawShape, ZodReadonly, ZodRecord, ZodSet, ZodString, ZodTuple, ZodTypeAny, ZodTypeDef, ZodUnion, ZodUnionOptions } from 'zod'
+import type { ConditionalSchemaConverter, JSONSchema } from '@orpc/openapi'
+import type {
+  EnumLike,
+  KeySchema,
+  ZodAny,
+  ZodArray,
+  ZodBranded,
+  ZodCatch,
+  ZodDefault,
+  ZodDiscriminatedUnion,
+  ZodEffects,
+  ZodEnum,
+  ZodIntersection,
+  ZodLazy,
+  ZodLiteral,
+  ZodMap,
+  ZodNativeEnum,
+  ZodNullable,
+  ZodNumber,
+  ZodObject,
+  ZodOptional,
+  ZodPipeline,
+  ZodRawShape,
+  ZodReadonly,
+  ZodRecord,
+  ZodSet,
+  ZodString,
+  ZodTuple,
+  ZodTypeAny,
+  ZodTypeDef,
+  ZodUnion,
+  ZodUnionOptions,
+} from 'zod'
 import { JSONSchemaFormat } from '@orpc/openapi'
 import escapeStringRegexp from 'escape-string-regexp'
 import { ZodFirstPartyTypeKind } from 'zod'
@@ -32,7 +63,7 @@ export interface ZodToJsonSchemaOptions {
   anyJsonSchema?: Exclude<JSONSchema, boolean>
 }
 
-export class ZodToJsonSchemaConverter {
+export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
   private readonly maxLazyDepth: Exclude<ZodToJsonSchemaOptions['maxLazyDepth'], undefined>
   private readonly unsupportedJsonSchema: Exclude<ZodToJsonSchemaOptions['unsupportedJsonSchema'], undefined>
   private readonly anyJsonSchema: Exclude<ZodToJsonSchemaOptions['anyJsonSchema'], undefined>

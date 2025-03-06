@@ -1,4 +1,4 @@
-import type { JSONSchema } from 'json-schema-typed/draft-2020-12'
+import type { JSONSchema } from '@orpc/openapi'
 import type { input, output, ZodTypeAny, ZodTypeDef } from 'zod'
 
 const CUSTOM_JSON_SCHEMA_SYMBOL = Symbol('ORPC_CUSTOM_JSON_SCHEMA')

@@ -19,6 +19,12 @@ export default antfu({
         message: 'JSON.stringify can return undefined, use stringifyJSON instead',
       },
     ],
+    'no-restricted-imports': ['error', {
+      patterns: [{
+        group: ['json-schema-typed', 'json-schema-typed/*'],
+        message: 'Please import from @orpc/openapi instead',
+      }],
+    }],
   },
 }, {
   files: ['**/*.test.ts', '**/*.test.tsx', '**/*.test-d.ts', '**/*.test-d.tsx', 'apps/content/shared/**', 'playgrounds/**', 'packages/*/playground/**'],

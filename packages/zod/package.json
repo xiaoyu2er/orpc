@@ -35,14 +35,12 @@
   },
   "peerDependencies": {
     "@orpc/contract": "workspace:*",
-    "@orpc/openapi": "workspace:*",
     "@orpc/server": "workspace:*"
   },
   "dependencies": {
+    "@orpc/openapi": "workspace:*",
     "@orpc/shared": "workspace:*",
-    "@standard-schema/spec": "^1.0.0",
     "escape-string-regexp": "^5.0.0",
-    "json-schema-typed": "^8.0.1",
     "wildcard-match": "^5.1.3",
     "zod": "^3.24.2"
   },

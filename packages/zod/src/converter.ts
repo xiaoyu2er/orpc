@@ -16,13 +16,31 @@ export interface ZodToJsonSchemaOptions {
    * @default 3
    */
   maxLazyDepth?: number
+
+  /**
+   * The schema to be used when the Zod schema is unsupported.
+   *
+   * @default { not: {} }
+   */
+  unsupportedJsonSchema?: Exclude<JSONSchema, boolean>
+
+  /**
+   * The schema to be used to represent the any | unknown type.
+   *
+   * @default { }
+   */
+  anyJsonSchema?: Exclude<JSONSchema, boolean>
 }
 
 export class ZodToJsonSchemaConverter {
   private readonly maxLazyDepth: Exclude<ZodToJsonSchemaOptions['maxLazyDepth'], undefined>
+  private readonly unsupportedJsonSchema: Exclude<ZodToJsonSchemaOptions['unsupportedJsonSchema'], undefined>
+  private readonly anyJsonSchema: Exclude<ZodToJsonSchemaOptions['anyJsonSchema'], undefined>
 
   constructor(options: ZodToJsonSchemaOptions = {}) {
     this.maxLazyDepth = options.maxLazyDepth ?? 3
+    this.unsupportedJsonSchema = options.unsupportedJsonSchema ?? { not: {} }
+    this.anyJsonSchema = options.anyJsonSchema ?? {}
   }
 
   condition(schema: Schema): boolean {
@@ -70,7 +88,7 @@ export class ZodToJsonSchemaConverter {
       return [true, customSchema]
     }
 
-    const typeName = def.typeName as ZodFirstPartyTypeKind | undefined
+    const typeName = this.getZodTypeName(def)
 
     switch (typeName) {
       case ZodFirstPartyTypeKind.ZodString: {
@@ -142,9 +160,22 @@ export class ZodToJsonSchemaConverter {
             case 'duration':
               json.format = JSONSchemaFormat.Duration
               break
-            case 'ip':
-              json.format = JSONSchemaFormat.IPv4
+            case 'ip': {
+              if (check.version === 'v4') {
+                json.format = JSONSchemaFormat.IPv4
+              }
+              else if (check.version === 'v6') {
+                json.format = JSONSchemaFormat.IPv6
+              }
+              else {
+                json.anyOf = [
+                  { format: JSONSchemaFormat.IPv4 },
+                  { format: JSONSchemaFormat.IPv6 },
+                ]
+              }
+
               break
+            }
             case 'jwt':
               json.pattern = '^[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]*$'
               break
@@ -201,7 +232,7 @@ export class ZodToJsonSchemaConverter {
       }
 
       case ZodFirstPartyTypeKind.ZodDate: {
-        const schema: JSONSchema = { type: 'string', format: JSONSchemaFormat.Date }
+        const schema: JSONSchema = { type: 'string', format: JSONSchemaFormat.DateTime }
 
         // WARN: ignore checks
 
@@ -211,11 +242,6 @@ export class ZodToJsonSchemaConverter {
       case ZodFirstPartyTypeKind.ZodNaN:
       case ZodFirstPartyTypeKind.ZodNull: {
         return [true, { type: 'null' }]
-      }
-
-      case ZodFirstPartyTypeKind.ZodVoid:
-      case ZodFirstPartyTypeKind.ZodUndefined: {
-        return [false, {}]
       }
 
       case ZodFirstPartyTypeKind.ZodLiteral: {
@@ -336,9 +362,16 @@ export class ZodToJsonSchemaConverter {
           json.required = required
         }
 
-        const [addRequired, addJson] = this.convert(schema_._def.catchall, strategy, lazyDepth, false, false)
+        const catchAllTypeName = this.getZodTypeName(schema_._def.catchall._def)
 
-        if (addRequired) {
+        if (catchAllTypeName === ZodFirstPartyTypeKind.ZodNever) {
+          if (schema_._def.unknownKeys === 'strict') {
+            json.additionalProperties = false
+          }
+        }
+        else {
+          const [_, addJson] = this.convert(schema_._def.catchall, strategy, lazyDepth, false, false)
+
           json.additionalProperties = addJson
         }
 
@@ -350,6 +383,8 @@ export class ZodToJsonSchemaConverter {
 
         const json: JSONSchema = { type: 'object' }
 
+        // WARN: ignore keyType
+
         const [_, itemJson] = this.convert(schema_._def.valueType, strategy, lazyDepth, false, false)
 
         json.additionalProperties = itemJson
@@ -360,7 +395,7 @@ export class ZodToJsonSchemaConverter {
       case ZodFirstPartyTypeKind.ZodSet: {
         const schema_ = schema as ZodSet
 
-        const json: JSONSchema = { type: 'array' }
+        const json: JSONSchema = { type: 'array', uniqueItems: true }
 
         const [itemRequired, itemJson] = this.convert(schema_._def.valueType, strategy, lazyDepth, false, false)
 
@@ -403,19 +438,24 @@ export class ZodToJsonSchemaConverter {
           | ZodDiscriminatedUnion<string, [ZodObject<any>, ...ZodObject<any>[]]>
 
         const anyOf: JSONSchema[] = []
-        const required: true[] = []
+        let required = true
 
         for (const item of schema_._def.options) {
           const [itemRequired, itemJson] = this.convert(item, strategy, lazyDepth, false, false)
 
-          anyOf.push(itemJson)
+          if (!itemRequired) {
+            required = false
 
-          if (itemRequired) {
-            required.push(true)
+            if (itemJson !== this.unsupportedJsonSchema) {
+              anyOf.push(itemJson)
+            }
+          }
+          else {
+            anyOf.push(itemJson)
           }
         }
 
-        return [required.length !== anyOf.length, { anyOf }]
+        return [required, { anyOf }]
       }
 
       case ZodFirstPartyTypeKind.ZodIntersection: {
@@ -439,7 +479,7 @@ export class ZodToJsonSchemaConverter {
 
       case ZodFirstPartyTypeKind.ZodLazy: {
         if (lazyDepth > this.maxLazyDepth) {
-          return [false, {}]
+          return [false, this.anyJsonSchema]
         }
 
         const schema_ = schema as ZodLazy<ZodTypeAny>
@@ -448,9 +488,8 @@ export class ZodToJsonSchemaConverter {
       }
 
       case ZodFirstPartyTypeKind.ZodUnknown:
-      case ZodFirstPartyTypeKind.ZodAny:
-      case undefined: {
-        return [false, {}]
+      case ZodFirstPartyTypeKind.ZodAny: {
+        return [false, this.anyJsonSchema]
       }
 
       case ZodFirstPartyTypeKind.ZodOptional: {
@@ -478,7 +517,7 @@ export class ZodToJsonSchemaConverter {
         const schema_ = schema as ZodEffects<ZodTypeAny>
 
         if (schema_._def.effect.type === 'transform' && strategy === 'output') {
-          return [false, {}]
+          return [false, this.anyJsonSchema]
         }
 
         return this.convert(schema_._def.schema, strategy, lazyDepth, false, false)
@@ -516,12 +555,15 @@ export class ZodToJsonSchemaConverter {
     }
 
     const _expected:
+      | undefined
+      | ZodFirstPartyTypeKind.ZodVoid
+      | ZodFirstPartyTypeKind.ZodUndefined
       | ZodFirstPartyTypeKind.ZodPromise
       | ZodFirstPartyTypeKind.ZodSymbol
       | ZodFirstPartyTypeKind.ZodFunction
       | ZodFirstPartyTypeKind.ZodNever = typeName
 
-    return [false, {}]
+    return [false, this.unsupportedJsonSchema]
   }
 
   private handleCustomZodDef(def: ZodTypeDef): Exclude<JSONSchema, boolean> | undefined {
@@ -556,5 +598,9 @@ export class ZodToJsonSchemaConverter {
         const _expect: never = customZodDef
       }
     }
+  }
+
+  private getZodTypeName(def: ZodTypeDef): ZodFirstPartyTypeKind | undefined {
+    return (def as any).typeName as ZodFirstPartyTypeKind | undefined
   }
 }

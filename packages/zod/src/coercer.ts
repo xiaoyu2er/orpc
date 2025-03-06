@@ -1,32 +1,33 @@
 import type { Context } from '@orpc/server'
 import type { Plugin } from '@orpc/server/plugins'
 import type { StandardHandlerOptions } from '@orpc/server/standard'
-import { guard, isObject } from '@orpc/shared'
-import { getCustomZodType } from '@orpc/zod'
-import {
-  type EnumLike,
-  type ZodArray,
-  type ZodBranded,
-  type ZodCatch,
-  type ZodDefault,
-  type ZodDiscriminatedUnion,
-  type ZodEffects,
-  ZodFirstPartyTypeKind,
-  type ZodIntersection,
-  type ZodLazy,
-  type ZodLiteral,
-  type ZodMap,
-  type ZodNativeEnum,
-  type ZodNullable,
-  type ZodObject,
-  type ZodOptional,
-  type ZodPipeline,
-  type ZodReadonly,
-  type ZodRecord,
-  type ZodSet,
-  type ZodTypeAny,
-  type ZodUnion,
+import type {
+  EnumLike,
+  ZodArray,
+  ZodBranded,
+  ZodCatch,
+  ZodDefault,
+  ZodDiscriminatedUnion,
+  ZodEffects,
+  ZodIntersection,
+  ZodLazy,
+  ZodLiteral,
+  ZodMap,
+  ZodNativeEnum,
+  ZodNullable,
+  ZodObject,
+  ZodOptional,
+  ZodPipeline,
+  ZodReadonly,
+  ZodRecord,
+  ZodSet,
+  ZodTuple,
+  ZodTypeAny,
+  ZodUnion,
 } from 'zod'
+import { guard, isObject } from '@orpc/shared'
+import { ZodFirstPartyTypeKind } from 'zod'
+import { getCustomZodDef } from './schemas/base'
 
 export class ZodSmartCoercionPlugin<TContext extends Context> implements Plugin<TContext> {
   init(options: StandardHandlerOptions<TContext>): void {
@@ -39,518 +40,370 @@ export class ZodSmartCoercionPlugin<TContext extends Context> implements Plugin<
         return options.next()
       }
 
-      const coercedInput = zodCoerceInternal(inputSchema as ZodTypeAny, options.input, { bracketNotation: true })
+      const coercedInput = zodCoerceInternal(inputSchema as ZodTypeAny, options.input)
 
       return options.next({ ...options, input: coercedInput })
     })
   }
 }
 
-export {
-  /**
-   * @deprecated ZodAutoCoercePlugin has renamed to ZodSmartCoercionPlugin
-   */
-  ZodSmartCoercionPlugin as ZodAutoCoercePlugin,
-}
-
 function zodCoerceInternal(
   schema: ZodTypeAny,
   value: unknown,
-  options?: { isRoot?: boolean, bracketNotation?: boolean },
 ): unknown {
-  const isRoot = options?.isRoot ?? true
-  const options_ = { ...options, isRoot: false }
+  const customZodDef = getCustomZodDef(schema._def)
 
-  if (
-    isRoot
-    && options?.bracketNotation
-    && Array.isArray(value)
-    && value.length === 1
-  ) {
-    const newValue = zodCoerceInternal(schema, value[0], options_)
-    if (schema.safeParse(newValue).success) {
-      return newValue
-    }
-    return zodCoerceInternal(schema, value, options_)
-  }
-
-  const customType = getCustomZodType(schema._def)
-
-  if (customType === 'Invalid Date') {
-    if (
-      typeof value === 'string'
-      && value.toLocaleLowerCase() === 'invalid date'
-    ) {
-      return new Date('Invalid Date')
-    }
-  }
-  else if (customType === 'RegExp') {
-    if (typeof value === 'string' && value.startsWith('/')) {
-      const match = value.match(/^\/(.*)\/([a-z]*)$/)
-
-      if (match) {
-        const [, pattern, flags] = match
-        return new RegExp(pattern!, flags)
-      }
-    }
-  }
-  else if (customType === 'URL') {
-    if (typeof value === 'string') {
-      const url = guard(() => new URL(value))
-      if (url !== undefined) {
-        return url
-      }
-    }
-  }
-
-  if (schema._def.typeName === undefined) {
-    return value
-  }
-
-  const typeName = schema._def.typeName as ZodFirstPartyTypeKind
-
-  if (typeName === ZodFirstPartyTypeKind.ZodNumber) {
-    if (options_?.bracketNotation && typeof value === 'string') {
-      const num = Number(value)
-      if (!Number.isNaN(num)) {
-        return num
-      }
-    }
-  }
-
-  //
-  else if (typeName === ZodFirstPartyTypeKind.ZodNaN) {
-    if (typeof value === 'string' && value.toLocaleLowerCase() === 'nan') {
-      return Number.NaN
-    }
-  }
-
-  //
-  else if (typeName === ZodFirstPartyTypeKind.ZodBoolean) {
-    if (options_?.bracketNotation && typeof value === 'string') {
-      const lower = value.toLowerCase()
-
-      if (lower === 'false' || lower === 'off' || lower === 'f') {
-        return false
+  switch (customZodDef?.type) {
+    case 'regexp': {
+      if (typeof value === 'string') {
+        return safeToRegExp(value)
       }
 
-      if (lower === 'true' || lower === 'on' || lower === 't') {
-        return true
-      }
-    }
-  }
-
-  //
-  else if (typeName === ZodFirstPartyTypeKind.ZodNull) {
-    if (
-      options_?.bracketNotation
-      && typeof value === 'string'
-      && value.toLowerCase() === 'null'
-    ) {
-      return null
-    }
-  }
-
-  //
-  else if (
-    typeName === ZodFirstPartyTypeKind.ZodUndefined
-    || typeName === ZodFirstPartyTypeKind.ZodVoid
-  ) {
-    if (typeof value === 'string' && value.toLowerCase() === 'undefined') {
-      return undefined
-    }
-  }
-
-  //
-  else if (typeName === ZodFirstPartyTypeKind.ZodDate) {
-    if (
-      typeof value === 'string'
-      && (value.includes('-')
-        || value.includes(':')
-        || value.toLocaleLowerCase() === 'invalid date')
-    ) {
-      return new Date(value)
-    }
-  }
-
-  //
-  else if (typeName === ZodFirstPartyTypeKind.ZodBigInt) {
-    if (typeof value === 'string') {
-      const num = guard(() => BigInt(value))
-      if (num !== undefined) {
-        return num
-      }
-    }
-  }
-
-  //
-  else if (
-    typeName === ZodFirstPartyTypeKind.ZodArray
-    || typeName === ZodFirstPartyTypeKind.ZodTuple
-  ) {
-    const schema_ = schema as ZodArray<ZodTypeAny>
-
-    if (Array.isArray(value)) {
-      return value.map(v => zodCoerceInternal(schema_._def.type, v, options_))
+      return value
     }
 
-    if (options_?.bracketNotation) {
-      if (value === undefined) {
-        return []
+    case 'url': {
+      if (typeof value === 'string') {
+        return safeToURL(value)
       }
 
-      if (
-        isObject(value)
-        && Object.keys(value).every(k => /^[1-9]\d*$/.test(k) || k === '0')
-      ) {
-        const indexes = Object.keys(value)
-          .map(k => Number(k))
-          .sort((a, b) => a - b)
+      return value
+    }
+  }
 
-        const arr = Array.from({ length: (indexes.at(-1) ?? -1) + 1 })
+  const typeName = schema._def.typeName as ZodFirstPartyTypeKind | undefined
 
-        for (const i of indexes) {
-          arr[i] = zodCoerceInternal(schema_._def.type, value[i], options_)
+  switch (typeName) {
+    case ZodFirstPartyTypeKind.ZodNumber: {
+      if (typeof value === 'string') {
+        return safeToNumber(value)
+      }
+
+      return value
+    }
+
+    case ZodFirstPartyTypeKind.ZodBigInt: {
+      if (typeof value === 'string') {
+        return safeToBigInt(value)
+      }
+
+      return value
+    }
+
+    case ZodFirstPartyTypeKind.ZodBoolean: {
+      if (typeof value === 'string') {
+        return safeToBoolean(value)
+      }
+
+      return value
+    }
+
+    case ZodFirstPartyTypeKind.ZodDate: {
+      if (typeof value === 'string') {
+        return safeToDate(value)
+      }
+
+      return value
+    }
+
+    case ZodFirstPartyTypeKind.ZodArray: {
+      const schema_ = schema as ZodArray<ZodTypeAny>
+
+      if (Array.isArray(value)) {
+        return value.map(v => zodCoerceInternal(schema_._def.type, v))
+      }
+
+      return value
+    }
+
+    case ZodFirstPartyTypeKind.ZodTuple: {
+      const schema_ = schema as ZodTuple<[ZodTypeAny, ...ZodTypeAny[]], ZodTypeAny | null>
+
+      if (Array.isArray(value)) {
+        return value.map((v, i) => {
+          const s = schema_._def.items[i] ?? schema_._def.rest
+          return s ? zodCoerceInternal(s, v) : v
+        })
+      }
+
+      return value
+    }
+
+    case ZodFirstPartyTypeKind.ZodObject: {
+      const schema_ = schema as ZodObject<{ [k: string]: ZodTypeAny }>
+
+      if (isObject(value)) {
+        const newObj: Record<string, unknown> = {}
+
+        const keys = new Set([
+          ...Object.keys(value),
+          ...Object.keys(schema_.shape),
+        ])
+
+        for (const k of keys) {
+          newObj[k] = zodCoerceInternal(
+            schema_.shape[k] ?? schema_._def.catchall,
+            value[k],
+          )
         }
 
-        return arr
+        return newObj
       }
+
+      return value
     }
-  }
 
-  //
-  else if (typeName === ZodFirstPartyTypeKind.ZodObject) {
-    const schema_ = schema as ZodObject<{ [k: string]: ZodTypeAny }>
+    case ZodFirstPartyTypeKind.ZodSet: {
+      const schema_ = schema as ZodSet
 
-    if (isObject(value)) {
-      const newObj: Record<string, unknown> = {}
-
-      const keys = new Set([
-        ...Object.keys(value),
-        ...Object.keys(schema_.shape),
-      ])
-
-      for (const k of keys) {
-        if (!(k in value))
-          continue
-
-        const v = value[k]
-        newObj[k] = zodCoerceInternal(
-          schema_.shape[k] ?? schema_._def.catchall,
-          v,
-          options_,
+      if (Array.isArray(value)) {
+        return new Set(
+          value.map(v => zodCoerceInternal(schema_._def.valueType, v)),
         )
       }
 
-      return newObj
+      return value
     }
 
-    if (options_?.bracketNotation) {
-      if (value === undefined) {
-        return {}
-      }
-
-      if (Array.isArray(value) && value.length === 1) {
-        const emptySchema = schema_.shape[''] ?? schema_._def.catchall
-        return { '': zodCoerceInternal(emptySchema, value[0], options_) }
-      }
-    }
-  }
-
-  //
-  else if (typeName === ZodFirstPartyTypeKind.ZodSet) {
-    const schema_ = schema as ZodSet
-
-    if (Array.isArray(value)) {
-      return new Set(
-        value.map(v => zodCoerceInternal(schema_._def.valueType, v, options_)),
-      )
-    }
-
-    if (options_?.bracketNotation) {
-      if (value === undefined) {
-        return new Set()
-      }
+    case ZodFirstPartyTypeKind.ZodMap : {
+      const schema_ = schema as ZodMap
 
       if (
-        isObject(value)
-        && Object.keys(value).every(k => /^[1-9]\d*$/.test(k) || k === '0')
+        Array.isArray(value)
+        && value.every(i => Array.isArray(i) && i.length === 2)
       ) {
-        const indexes = Object.keys(value)
-          .map(k => Number(k))
-          .sort((a, b) => a - b)
+        return new Map(
+          value.map(([k, v]) => [
+            zodCoerceInternal(schema_._def.keyType, k),
+            zodCoerceInternal(schema_._def.valueType, v),
+          ]),
+        )
+      }
 
-        const arr = Array.from({ length: (indexes.at(-1) ?? -1) + 1 })
+      return value
+    }
 
-        for (const i of indexes) {
-          arr[i] = zodCoerceInternal(schema_._def.valueType, value[i], options_)
+    case ZodFirstPartyTypeKind.ZodRecord: {
+      const schema_ = schema as ZodRecord
+
+      if (isObject(value)) {
+        const newObj: any = {}
+
+        for (const [k, v] of Object.entries(value)) {
+          const key = zodCoerceInternal(schema_._def.keyType, k)
+          const val = zodCoerceInternal(schema_._def.valueType, v)
+          newObj[key as any] = val
         }
 
-        return new Set(arr)
+        return newObj
       }
+
+      return value
     }
-  }
 
-  //
-  else if (typeName === ZodFirstPartyTypeKind.ZodMap) {
-    const schema_ = schema as ZodMap
+    case ZodFirstPartyTypeKind.ZodUnion:
+    case ZodFirstPartyTypeKind.ZodDiscriminatedUnion: {
+      const schema_ = schema as
+        | ZodUnion<[ZodTypeAny]>
+        | ZodDiscriminatedUnion<any, [ZodObject<any>]>
 
-    if (
-      Array.isArray(value)
-      && value.every(i => Array.isArray(i) && i.length === 2)
-    ) {
-      return new Map(
-        value.map(([k, v]) => [
-          zodCoerceInternal(schema_._def.keyType, k, options_),
-          zodCoerceInternal(schema_._def.valueType, v, options_),
-        ]),
+      if (schema_.safeParse(value).success) {
+        return value
+      }
+
+      const results: [unknown, number][] = []
+      for (const s of schema_._def.options) {
+        const newValue = zodCoerceInternal(s, value)
+
+        if (newValue === value) {
+          continue
+        }
+
+        const result = schema_.safeParse(newValue)
+
+        if (result.success) {
+          return newValue
+        }
+
+        results.push([newValue, result.error.issues.length])
+      }
+
+      if (results.length === 0) {
+        return value
+      }
+
+      return results.sort((a, b) => a[1] - b[1])[0]![0]
+    }
+
+    case ZodFirstPartyTypeKind.ZodIntersection: {
+      const schema_ = schema as ZodIntersection<ZodTypeAny, ZodTypeAny>
+
+      return zodCoerceInternal(
+        schema_._def.right,
+        zodCoerceInternal(schema_._def.left, value),
       )
     }
 
-    if (options_?.bracketNotation) {
+    case ZodFirstPartyTypeKind.ZodReadonly :{
+      const schema_ = schema as ZodReadonly<ZodTypeAny>
+      return zodCoerceInternal(schema_._def.innerType, value)
+    }
+
+    case ZodFirstPartyTypeKind.ZodPipeline: {
+      const schema_ = schema as ZodPipeline<ZodTypeAny, ZodTypeAny>
+      return zodCoerceInternal(schema_._def.in, value)
+    }
+
+    case ZodFirstPartyTypeKind.ZodLazy: {
+      const schema_ = schema as ZodLazy<ZodTypeAny>
+
+      if (value !== undefined) {
+        return zodCoerceInternal(schema_._def.getter(), value)
+      }
+
+      return value
+    }
+
+    case ZodFirstPartyTypeKind.ZodEffects: {
+      const schema_ = schema as ZodEffects<ZodTypeAny>
+      return zodCoerceInternal(schema_._def.schema, value)
+    }
+
+    case ZodFirstPartyTypeKind.ZodBranded: {
+      const schema_ = schema as ZodBranded<ZodTypeAny, any>
+      return zodCoerceInternal(schema_._def.type, value)
+    }
+
+    case ZodFirstPartyTypeKind.ZodCatch: {
+      const schema_ = schema as ZodCatch<ZodTypeAny>
+      return zodCoerceInternal(schema_._def.innerType, value)
+    }
+
+    case ZodFirstPartyTypeKind.ZodDefault: {
+      const schema_ = schema as ZodDefault<ZodTypeAny>
+      return zodCoerceInternal(schema_._def.innerType, value)
+    }
+
+    case ZodFirstPartyTypeKind.ZodNullable: {
+      if (value === null) {
+        return null
+      }
+
+      const schema_ = schema as ZodNullable<ZodTypeAny>
+      return zodCoerceInternal(schema_._def.innerType, value)
+    }
+
+    case ZodFirstPartyTypeKind.ZodOptional: {
       if (value === undefined) {
-        return new Map()
+        return undefined
       }
 
-      if (isObject(value)) {
-        const arr = Array.from({ length: Object.keys(value).length })
-          .fill(undefined)
-          .map((_, i) =>
-            isObject(value[i])
-            && Object.keys(value[i]).length === 2
-            && '0' in value[i]
-            && '1' in value[i]
-              ? ([value[i]['0'], value[i]['1']] as const)
-              : undefined,
-          )
-
-        if (arr.every(v => !!v)) {
-          return new Map(
-            arr.map(([k, v]) => [
-              zodCoerceInternal(schema_._def.keyType, k, options_),
-              zodCoerceInternal(schema_._def.valueType, v, options_),
-            ]),
-          )
-        }
-      }
+      const schema_ = schema as ZodOptional<ZodTypeAny>
+      return zodCoerceInternal(schema_._def.innerType, value)
     }
-  }
 
-  //
-  else if (typeName === ZodFirstPartyTypeKind.ZodRecord) {
-    const schema_ = schema as ZodRecord
+    case ZodFirstPartyTypeKind.ZodNativeEnum: {
+      const schema_ = schema as ZodNativeEnum<EnumLike>
 
-    if (isObject(value)) {
-      const newObj: any = {}
-
-      for (const [k, v] of Object.entries(value)) {
-        const key = zodCoerceInternal(schema_._def.keyType, k, options_) as any
-        const val = zodCoerceInternal(schema_._def.valueType, v, options_)
-        newObj[key] = val
+      if (Object.values(schema_._def.values).includes(value as any)) {
+        return value
       }
 
-      return newObj
-    }
-  }
-
-  //
-  else if (
-    typeName === ZodFirstPartyTypeKind.ZodUnion
-    || typeName === ZodFirstPartyTypeKind.ZodDiscriminatedUnion
-  ) {
-    const schema_ = schema as
-      | ZodUnion<[ZodTypeAny]>
-      | ZodDiscriminatedUnion<any, [ZodObject<any>]>
-
-    if (schema_.safeParse(value).success) {
-      return value
-    }
-
-    const results: [unknown, number][] = []
-    for (const s of schema_._def.options) {
-      const newValue = zodCoerceInternal(s, value, { ...options_, isRoot })
-
-      if (newValue === value)
-        continue
-
-      const result = schema_.safeParse(newValue)
-
-      if (result.success) {
-        return newValue
-      }
-
-      results.push([newValue, result.error.issues.length])
-    }
-
-    if (results.length === 0) {
-      return value
-    }
-
-    return results.sort((a, b) => a[1] - b[1])[0]?.[0]
-  }
-
-  //
-  else if (typeName === ZodFirstPartyTypeKind.ZodIntersection) {
-    const schema_ = schema as ZodIntersection<ZodTypeAny, ZodTypeAny>
-
-    return zodCoerceInternal(
-      schema_._def.right,
-      zodCoerceInternal(schema_._def.left, value, { ...options_, isRoot }),
-      { ...options_, isRoot },
-    )
-  }
-
-  //
-  else if (typeName === ZodFirstPartyTypeKind.ZodReadonly) {
-    const schema_ = schema as ZodReadonly<ZodTypeAny>
-
-    return zodCoerceInternal(schema_._def.innerType, value, { ...options_, isRoot })
-  }
-
-  //
-  else if (typeName === ZodFirstPartyTypeKind.ZodPipeline) {
-    const schema_ = schema as ZodPipeline<ZodTypeAny, ZodTypeAny>
-
-    return zodCoerceInternal(schema_._def.in, value, { ...options_, isRoot })
-  }
-
-  //
-  else if (typeName === ZodFirstPartyTypeKind.ZodLazy) {
-    const schema_ = schema as ZodLazy<ZodTypeAny>
-
-    return zodCoerceInternal(schema_._def.getter(), value, { ...options_, isRoot })
-  }
-
-  //
-  else if (typeName === ZodFirstPartyTypeKind.ZodEffects) {
-    const schema_ = schema as ZodEffects<ZodTypeAny>
-
-    return zodCoerceInternal(schema_._def.schema, value, { ...options_, isRoot })
-  }
-
-  //
-  else if (typeName === ZodFirstPartyTypeKind.ZodBranded) {
-    const schema_ = schema as ZodBranded<ZodTypeAny, any>
-
-    return zodCoerceInternal(schema_._def.type, value, { ...options_, isRoot })
-  }
-
-  //
-  else if (typeName === ZodFirstPartyTypeKind.ZodCatch) {
-    const schema_ = schema as ZodCatch<ZodTypeAny>
-
-    return zodCoerceInternal(schema_._def.innerType, value, { ...options_, isRoot })
-  }
-
-  //
-  else if (typeName === ZodFirstPartyTypeKind.ZodDefault) {
-    const schema_ = schema as ZodDefault<ZodTypeAny>
-
-    return zodCoerceInternal(schema_._def.innerType, value, { ...options_, isRoot })
-  }
-
-  //
-  else if (typeName === ZodFirstPartyTypeKind.ZodNullable) {
-    const schema_ = schema as ZodNullable<ZodTypeAny>
-
-    if (value === null) {
-      return null
-    }
-
-    if (typeof value === 'string' && value.toLowerCase() === 'null') {
-      return schema_.safeParse(value).success ? value : null
-    }
-
-    return zodCoerceInternal(schema_._def.innerType, value, { ...options_, isRoot })
-  }
-
-  //
-  else if (typeName === ZodFirstPartyTypeKind.ZodOptional) {
-    const schema_ = schema as ZodOptional<ZodTypeAny>
-
-    if (value === undefined) {
-      return undefined
-    }
-
-    if (typeof value === 'string' && value.toLowerCase() === 'undefined') {
-      return schema_.safeParse(value).success ? value : undefined
-    }
-
-    return zodCoerceInternal(schema_._def.innerType, value, { ...options_, isRoot })
-  }
-
-  //
-  else if (typeName === ZodFirstPartyTypeKind.ZodNativeEnum) {
-    const schema_ = schema as ZodNativeEnum<EnumLike>
-
-    if (Object.values(schema_._def.values).includes(value as any)) {
-      return value
-    }
-
-    if (options?.bracketNotation && typeof value === 'string') {
-      for (const expectedValue of Object.values(schema_._def.values)) {
-        if (expectedValue.toString() === value) {
-          return expectedValue
-        }
-      }
-    }
-  }
-
-  //
-  else if (typeName === ZodFirstPartyTypeKind.ZodLiteral) {
-    const schema_ = schema as ZodLiteral<unknown>
-    const expectedValue = schema_._def.value
-
-    if (typeof value === 'string' && typeof expectedValue !== 'string') {
-      if (typeof expectedValue === 'bigint') {
-        const num = guard(() => BigInt(value))
-        if (num !== undefined) {
-          return num
-        }
-      }
-      else if (expectedValue === undefined) {
-        if (value.toLocaleLowerCase() === 'undefined') {
-          return undefined
-        }
-      }
-      else if (options?.bracketNotation) {
-        if (typeof expectedValue === 'number') {
-          const num = Number(value)
-          if (!Number.isNaN(num)) {
-            return num
+      if (typeof value === 'string') {
+        for (const expectedValue of Object.values(schema_._def.values)) {
+          if (expectedValue.toString() === value) {
+            return expectedValue
           }
+        }
+      }
+
+      return value
+    }
+
+    case ZodFirstPartyTypeKind.ZodLiteral: {
+      const schema_ = schema as ZodLiteral<unknown>
+      const expectedValue = schema_._def.value
+
+      if (typeof value === 'string' && typeof expectedValue !== 'string') {
+        if (typeof expectedValue === 'bigint') {
+          return safeToBigInt(value)
+        }
+        else if (typeof expectedValue === 'number') {
+          return safeToNumber(value)
         }
         else if (typeof expectedValue === 'boolean') {
-          const lower = value.toLowerCase()
-
-          if (lower === 'false' || lower === 'off' || lower === 'f') {
-            return false
-          }
-
-          if (lower === 'true' || lower === 'on' || lower === 't') {
-            return true
-          }
-        }
-        else if (expectedValue === null) {
-          if (value.toLocaleLowerCase() === 'null') {
-            return null
-          }
+          return safeToBoolean(value)
         }
       }
+
+      return value
     }
   }
 
-  //
-  else {
-    const _expected:
-      | ZodFirstPartyTypeKind.ZodString
-      | ZodFirstPartyTypeKind.ZodEnum
-      | ZodFirstPartyTypeKind.ZodSymbol
-      | ZodFirstPartyTypeKind.ZodPromise
-      | ZodFirstPartyTypeKind.ZodFunction
-      | ZodFirstPartyTypeKind.ZodAny
-      | ZodFirstPartyTypeKind.ZodUnknown
-      | ZodFirstPartyTypeKind.ZodNever = typeName
+  const _unsupported:
+    | undefined
+    | ZodFirstPartyTypeKind.ZodUndefined
+    | ZodFirstPartyTypeKind.ZodVoid
+    | ZodFirstPartyTypeKind.ZodNaN
+    | ZodFirstPartyTypeKind.ZodNull
+    | ZodFirstPartyTypeKind.ZodString
+    | ZodFirstPartyTypeKind.ZodEnum
+    | ZodFirstPartyTypeKind.ZodSymbol
+    | ZodFirstPartyTypeKind.ZodPromise
+    | ZodFirstPartyTypeKind.ZodFunction
+    | ZodFirstPartyTypeKind.ZodAny
+    | ZodFirstPartyTypeKind.ZodUnknown
+    | ZodFirstPartyTypeKind.ZodNever = typeName
+
+  return value
+}
+
+function safeToBigInt(value: string): bigint | string {
+  return guard(() => BigInt(value)) ?? value
+}
+
+function safeToNumber(value: string): number | string {
+  const num = Number(value)
+  return Number.isNaN(num) || num.toString() !== value ? value : num
+}
+
+function safeToBoolean(value: string): boolean | string {
+  const lower = value.toLowerCase()
+
+  if (lower === 'false' || lower === 'off' || lower === 'f') {
+    return false
+  }
+
+  if (lower === 'true' || lower === 'on' || lower === 't') {
+    return true
+  }
+
+  return value
+}
+
+function safeToRegExp(value: string): RegExp | string {
+  if (value.startsWith('/')) {
+    const match = value.match(/^\/(.*)\/([a-z]*)$/)
+
+    if (match) {
+      const [, pattern, flags] = match
+      return new RegExp(pattern!, flags)
+    }
+  }
+
+  return value
+}
+
+function safeToURL(value: string): URL | string {
+  return guard(() => new URL(value)) ?? value
+}
+
+function safeToDate(value: string): Date | string {
+  if (value.includes('-') || value.includes(':')) {
+    const date = new Date(value)
+    if (!Number.isNaN(date.getTime())) {
+      return value
+    }
   }
 
   return value

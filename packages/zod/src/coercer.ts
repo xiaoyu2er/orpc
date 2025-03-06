@@ -106,24 +106,38 @@ function zodCoerceInternal(
       return value
     }
 
-    case ZodFirstPartyTypeKind.ZodArray: {
-      const schema_ = schema as ZodArray<ZodTypeAny>
+    case ZodFirstPartyTypeKind.ZodLiteral: {
+      const schema_ = schema as ZodLiteral<unknown>
+      const expectedValue = schema_._def.value
 
-      if (Array.isArray(value)) {
-        return value.map(v => zodCoerceInternal(schema_._def.type, v))
+      if (typeof value === 'string' && typeof expectedValue !== 'string') {
+        if (typeof expectedValue === 'bigint') {
+          return safeToBigInt(value)
+        }
+        else if (typeof expectedValue === 'number') {
+          return safeToNumber(value)
+        }
+        else if (typeof expectedValue === 'boolean') {
+          return safeToBoolean(value)
+        }
       }
 
       return value
     }
 
-    case ZodFirstPartyTypeKind.ZodTuple: {
-      const schema_ = schema as ZodTuple<[ZodTypeAny, ...ZodTypeAny[]], ZodTypeAny | null>
+    case ZodFirstPartyTypeKind.ZodNativeEnum: {
+      const schema_ = schema as ZodNativeEnum<EnumLike>
 
-      if (Array.isArray(value)) {
-        return value.map((v, i) => {
-          const s = schema_._def.items[i] ?? schema_._def.rest
-          return s ? zodCoerceInternal(s, v) : v
-        })
+      if (Object.values(schema_._def.values).includes(value as any)) {
+        return value
+      }
+
+      if (typeof value === 'string') {
+        for (const expectedValue of Object.values(schema_._def.values)) {
+          if (expectedValue.toString() === value) {
+            return expectedValue
+          }
+        }
       }
 
       return value
@@ -148,6 +162,47 @@ function zodCoerceInternal(
         }
 
         return newObj
+      }
+
+      return value
+    }
+
+    case ZodFirstPartyTypeKind.ZodRecord: {
+      const schema_ = schema as ZodRecord
+
+      if (isObject(value)) {
+        const newObj: any = {}
+
+        for (const [k, v] of Object.entries(value)) {
+          const key = zodCoerceInternal(schema_._def.keyType, k)
+          const val = zodCoerceInternal(schema_._def.valueType, v)
+          newObj[key as any] = val
+        }
+
+        return newObj
+      }
+
+      return value
+    }
+
+    case ZodFirstPartyTypeKind.ZodArray: {
+      const schema_ = schema as ZodArray<ZodTypeAny>
+
+      if (Array.isArray(value)) {
+        return value.map(v => zodCoerceInternal(schema_._def.type, v))
+      }
+
+      return value
+    }
+
+    case ZodFirstPartyTypeKind.ZodTuple: {
+      const schema_ = schema as ZodTuple<[ZodTypeAny, ...ZodTypeAny[]], ZodTypeAny | null>
+
+      if (Array.isArray(value)) {
+        return value.map((v, i) => {
+          const s = schema_._def.items[i] ?? schema_._def.rest
+          return s ? zodCoerceInternal(s, v) : v
+        })
       }
 
       return value
@@ -183,24 +238,6 @@ function zodCoerceInternal(
       return value
     }
 
-    case ZodFirstPartyTypeKind.ZodRecord: {
-      const schema_ = schema as ZodRecord
-
-      if (isObject(value)) {
-        const newObj: any = {}
-
-        for (const [k, v] of Object.entries(value)) {
-          const key = zodCoerceInternal(schema_._def.keyType, k)
-          const val = zodCoerceInternal(schema_._def.valueType, v)
-          newObj[key as any] = val
-        }
-
-        return newObj
-      }
-
-      return value
-    }
-
     case ZodFirstPartyTypeKind.ZodUnion:
     case ZodFirstPartyTypeKind.ZodDiscriminatedUnion: {
       const schema_ = schema as
@@ -214,10 +251,6 @@ function zodCoerceInternal(
       const results: [unknown, number][] = []
       for (const s of schema_._def.options) {
         const newValue = zodCoerceInternal(s, value)
-
-        if (newValue === value) {
-          continue
-        }
 
         const result = schema_.safeParse(newValue)
 
@@ -252,16 +285,6 @@ function zodCoerceInternal(
     case ZodFirstPartyTypeKind.ZodPipeline: {
       const schema_ = schema as ZodPipeline<ZodTypeAny, ZodTypeAny>
       return zodCoerceInternal(schema_._def.in, value)
-    }
-
-    case ZodFirstPartyTypeKind.ZodLazy: {
-      const schema_ = schema as ZodLazy<ZodTypeAny>
-
-      if (value !== undefined) {
-        return zodCoerceInternal(schema_._def.getter(), value)
-      }
-
-      return value
     }
 
     case ZodFirstPartyTypeKind.ZodEffects: {
@@ -302,38 +325,11 @@ function zodCoerceInternal(
       return zodCoerceInternal(schema_._def.innerType, value)
     }
 
-    case ZodFirstPartyTypeKind.ZodNativeEnum: {
-      const schema_ = schema as ZodNativeEnum<EnumLike>
+    case ZodFirstPartyTypeKind.ZodLazy: {
+      const schema_ = schema as ZodLazy<ZodTypeAny>
 
-      if (Object.values(schema_._def.values).includes(value as any)) {
-        return value
-      }
-
-      if (typeof value === 'string') {
-        for (const expectedValue of Object.values(schema_._def.values)) {
-          if (expectedValue.toString() === value) {
-            return expectedValue
-          }
-        }
-      }
-
-      return value
-    }
-
-    case ZodFirstPartyTypeKind.ZodLiteral: {
-      const schema_ = schema as ZodLiteral<unknown>
-      const expectedValue = schema_._def.value
-
-      if (typeof value === 'string' && typeof expectedValue !== 'string') {
-        if (typeof expectedValue === 'bigint') {
-          return safeToBigInt(value)
-        }
-        else if (typeof expectedValue === 'number') {
-          return safeToNumber(value)
-        }
-        else if (typeof expectedValue === 'boolean') {
-          return safeToBoolean(value)
-        }
+      if (value !== undefined) {
+        return zodCoerceInternal(schema_._def.getter(), value)
       }
 
       return value
@@ -344,8 +340,8 @@ function zodCoerceInternal(
     | undefined
     | ZodFirstPartyTypeKind.ZodUndefined
     | ZodFirstPartyTypeKind.ZodVoid
-    | ZodFirstPartyTypeKind.ZodNaN
     | ZodFirstPartyTypeKind.ZodNull
+    | ZodFirstPartyTypeKind.ZodNaN
     | ZodFirstPartyTypeKind.ZodString
     | ZodFirstPartyTypeKind.ZodEnum
     | ZodFirstPartyTypeKind.ZodSymbol
@@ -399,11 +395,10 @@ function safeToURL(value: string): URL | string {
 }
 
 function safeToDate(value: string): Date | string {
-  if (value.includes('-') || value.includes(':')) {
-    const date = new Date(value)
-    if (!Number.isNaN(date.getTime())) {
-      return value
-    }
+  const date = new Date(value)
+
+  if (!Number.isNaN(date.getTime()) && date.toISOString().startsWith(value)) {
+    return date
   }
 
   return value

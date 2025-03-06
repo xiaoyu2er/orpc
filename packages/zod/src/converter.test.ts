@@ -1,4 +1,4 @@
-import type { JSONSchema } from 'json-schema-typed'
+import type { JSONSchema } from '@orpc/openapi'
 import type { ZodTypeAny } from 'zod'
 import { z } from 'zod'
 import { zodToJsonSchema } from 'zod-to-json-schema'

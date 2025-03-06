@@ -3,12 +3,20 @@ import type { ZodTypeAny } from 'zod'
 import { z } from 'zod'
 import { zodToJsonSchema } from 'zod-to-json-schema'
 import { ZodToJsonSchemaConverter } from './converter'
+import { customJsonSchema } from './custom-json-schema'
 import { blob } from './schemas/blob'
 import { file } from './schemas/file'
 import { regexp } from './schemas/regexp'
 import { url } from './schemas/url'
 
-const cases: { schema: ZodTypeAny, input: [boolean, JSONSchema], output?: [boolean, JSONSchema], ignoreZodToJsonSchema?: boolean }[] = [
+type SchemaTestCase = {
+  schema: ZodTypeAny
+  input: [boolean, JSONSchema]
+  output?: [boolean, JSONSchema]
+  ignoreZodToJsonSchema?: boolean
+}
+
+const stringCases: SchemaTestCase[] = [
   {
     schema: z.string(),
     input: [true, { type: 'string' }],
@@ -110,6 +118,9 @@ const cases: { schema: ZodTypeAny, input: [boolean, JSONSchema], output?: [boole
     schema: z.string().trim(),
     input: [true, { type: 'string' }],
   },
+]
+
+const numberCases: SchemaTestCase[] = [
   {
     schema: z.number(),
     input: [true, { type: 'number' }],
@@ -136,6 +147,20 @@ const cases: { schema: ZodTypeAny, input: [boolean, JSONSchema], output?: [boole
     ignoreZodToJsonSchema: true,
   },
   {
+    schema: z.nan(),
+    input: [true, { not: {} }],
+    output: [true, { type: 'null' }],
+    ignoreZodToJsonSchema: true,
+  },
+]
+
+enum ExampleEnum {
+  A = 'a',
+  B = 'b',
+}
+
+const nativeCases: SchemaTestCase[] = [
+  {
     schema: z.boolean(),
     input: [true, { type: 'boolean' }],
   },
@@ -143,15 +168,53 @@ const cases: { schema: ZodTypeAny, input: [boolean, JSONSchema], output?: [boole
     schema: z.date(),
     input: [true, { type: 'string', format: 'date-time' }],
   },
-  // {
-  //   schema: z.nan(),
-  //   input: [true, { type: 'null' }],
-  //   ignoreZodToJsonSchema: true,
-  // },
   {
     schema: z.null(),
     input: [true, { type: 'null' }],
   },
+  {
+    schema: z.any(),
+    input: [false, { }],
+    ignoreZodToJsonSchema: true,
+  },
+  {
+    schema: z.unknown(),
+    input: [false, {}],
+    ignoreZodToJsonSchema: true,
+  },
+  {
+    schema: z.undefined(),
+    input: [false, { not: {} }],
+    ignoreZodToJsonSchema: true,
+  },
+  {
+    schema: z.void(),
+    input: [false, { not: {} }],
+    ignoreZodToJsonSchema: true,
+  },
+  {
+    schema: z.literal(1234),
+    input: [true, { const: 1234 }],
+    ignoreZodToJsonSchema: true,
+  },
+  {
+    schema: z.literal(undefined),
+    input: [false, { not: {} }],
+    ignoreZodToJsonSchema: true,
+  },
+  {
+    schema: z.enum(['a', 'b']),
+    input: [true, { enum: ['a', 'b'] }],
+    ignoreZodToJsonSchema: true,
+  },
+  {
+    schema: z.nativeEnum(ExampleEnum),
+    input: [true, { enum: ['a', 'b'] }],
+    ignoreZodToJsonSchema: true,
+  },
+]
+
+const combinationCases: SchemaTestCase[] = [
   {
     schema: z.union([z.string(), z.number()]),
     input: [true, { anyOf: [{ type: 'string' }, { type: 'number' }] }],
@@ -162,16 +225,39 @@ const cases: { schema: ZodTypeAny, input: [boolean, JSONSchema], output?: [boole
     input: [false, { anyOf: [{ type: 'string' }, { type: 'number' }] }],
     ignoreZodToJsonSchema: true,
   },
-  // {
-  //   schema: z.union([z.string(), z.undefined()]),
-  //   input: [false, { anyOf: [{ type: 'string' }] }],
-  //   ignoreZodToJsonSchema: true,
-  // },
-  // {
-  //   schema: z.string().transform(x => x),
-  //   input: [true, { type: 'string' }],
-  //   output: [false, { }],
-  // },
+  {
+    schema: z.union([z.string(), z.undefined()]),
+    input: [false, { type: 'string' }],
+    ignoreZodToJsonSchema: true,
+  },
+  {
+    schema: z.intersection(z.string(), z.number()),
+    input: [true, { allOf: [{ type: 'string' }, { type: 'number' }] }],
+  },
+  {
+    schema: z.intersection(z.string().optional(), z.number().optional()),
+    input: [false, { allOf: [{ type: 'string' }, { type: 'number' }] }],
+    ignoreZodToJsonSchema: true,
+  },
+]
+
+const processedCases: SchemaTestCase[] = [
+  {
+    schema: z.lazy(() => z.object({ value: z.string() })),
+    input: [true, { type: 'object', properties: { value: { type: 'string' } }, required: ['value'] }],
+    ignoreZodToJsonSchema: true,
+  },
+  {
+    schema: z.lazy(() => z.object({ value: z.lazy(() => z.string()) })),
+    input: [true, { type: 'object', properties: { value: { } } }],
+    ignoreZodToJsonSchema: true,
+  },
+  {
+    schema: z.string().transform(x => x),
+    input: [true, { type: 'string' }],
+    output: [false, {}],
+    ignoreZodToJsonSchema: true,
+  },
   {
     schema: z.string().refine(x => x.length > 0, 'not empty'),
     input: [true, { type: 'string' }],
@@ -203,22 +289,41 @@ const cases: { schema: ZodTypeAny, input: [boolean, JSONSchema], output?: [boole
     input: [true, { anyOf: [{ type: 'null' }, { type: 'string' }] }],
     ignoreZodToJsonSchema: true,
   },
-  // {
-  //   schema: z.undefined(),
-  //   input: [false, { not: {} }],
-  // },
-  // {
-  //   schema: z.symbol(),
-  //   input: [false, { not: {} }],
-  // },
-  // {
-  //   schema: z.function(),
-  //   input: [false, { not: {} }],
-  // },
-  // {
-  //   schema: z.never(),
-  //   input: [false, { not: {} }],
-  // },
+  {
+    schema: z.string().default('a'),
+    input: [false, { default: 'a', type: 'string' }],
+    ignoreZodToJsonSchema: true,
+  },
+  {
+    schema: z.number().readonly(),
+    input: [true, { type: 'number' }],
+  },
+]
+
+const unsupportedCases: SchemaTestCase[] = [
+  {
+    schema: z.promise(z.string()),
+    input: [true, { not: {} }],
+    ignoreZodToJsonSchema: true,
+  },
+  {
+    schema: z.symbol(),
+    input: [true, { not: {} }],
+    ignoreZodToJsonSchema: true,
+  },
+  {
+    schema: z.function(),
+    input: [true, { not: {} }],
+    ignoreZodToJsonSchema: true,
+  },
+  {
+    schema: z.never(),
+    input: [true, { not: {} }],
+    ignoreZodToJsonSchema: true,
+  },
+]
+
+const extendSchemaCases: SchemaTestCase[] = [
   {
     schema: file(),
     input: [true, { type: 'string', contentMediaType: '*/*' }],
@@ -244,26 +349,91 @@ const cases: { schema: ZodTypeAny, input: [boolean, JSONSchema], output?: [boole
     input: [true, { type: 'string', format: 'uri' }],
     ignoreZodToJsonSchema: true,
   },
+  {
+    schema: customJsonSchema(z.string(), { examples: ['a', 'b'] }),
+    input: [true, { type: 'string', examples: ['a', 'b'] }],
+    ignoreZodToJsonSchema: true,
+  },
+  {
+    schema: customJsonSchema(
+      customJsonSchema(
+        customJsonSchema(z.string(), { examples: ['both'] }),
+        { examples: ['input'] },
+        'input',
+      ),
+      { examples: ['output'] },
+      'output',
+    ),
+    input: [true, { type: 'string', examples: ['input'] }],
+    output: [true, { type: 'string', examples: ['output'] }],
+    ignoreZodToJsonSchema: true,
+  },
+  {
+    schema: z.string().describe('description'),
+    input: [true, { type: 'string', description: 'description' }],
+    ignoreZodToJsonSchema: true,
+  },
 ]
 
-describe.each(cases)('zodToJsonSchemaConverter.convert %#', ({ schema, input, output = input, ignoreZodToJsonSchema }) => {
+const edgeCases: SchemaTestCase[] = [
+  {
+    schema: z.array(z.string()).nonempty(),
+    input: [true, { type: 'array', items: { type: 'string' }, minItems: 1 }],
+    ignoreZodToJsonSchema: true,
+  },
+  {
+    schema: z.array(z.string()).min(10).max(20),
+    input: [true, { type: 'array', items: { type: 'string' }, minItems: 10, maxItems: 20 }],
+    ignoreZodToJsonSchema: true,
+  },
+  {
+    schema: z.array(z.string()).length(10),
+    input: [true, { type: 'array', items: { type: 'string' }, minItems: 10, maxItems: 10 }],
+    ignoreZodToJsonSchema: true,
+  },
+  {
+    schema: z.object({ value: z.string() }).strict(),
+    input: [true, { type: 'object', properties: { value: { type: 'string' } }, required: ['value'], additionalProperties: false }],
+  },
+  {
+    schema: z.object({ value: z.string() }).catchall(z.number()),
+    input: [true, { type: 'object', properties: { value: { type: 'string' } }, required: ['value'], additionalProperties: { type: 'number' } }],
+  },
+]
+
+describe.each([
+  ...stringCases,
+  ...numberCases,
+  ...nativeCases,
+  ...combinationCases,
+  ...processedCases,
+  ...extendSchemaCases,
+  ...unsupportedCases,
+  ...edgeCases,
+])('zodToJsonSchemaConverter.convert %#', ({ schema, input, output = input, ignoreZodToJsonSchema }) => {
   describe.each([
     ['input'],
     ['output'],
   ] as const)('strategy: %s', (strategy) => {
-    const converter = new ZodToJsonSchemaConverter()
+    const converter = new ZodToJsonSchemaConverter({ maxLazyDepth: 1 })
+
+    const [expectedRequired, expectedJson] = strategy === 'input' ? input : output
+    const arrayItemJsonSchema = expectedRequired
+      ? expectedJson
+      : strategy === 'input'
+        ? { anyOf: [expectedJson, { not: {} }] }
+        : { anyOf: [expectedJson, { type: 'null' }] }
 
     it('flat', () => {
-      const [expectRequired, expectedJson] = strategy === 'input' ? input : output
       const [required, json] = converter.convert(schema, strategy)
 
-      expect(required).toEqual(expectRequired)
+      expect(required).toEqual(expectedRequired)
       expect(json).toEqual(expectedJson)
 
       if (!ignoreZodToJsonSchema) {
-        if (expectRequired) {
+        if (expectedRequired) {
           expect(expectedJson).toEqual({
-            ...zodToJsonSchema(schema, { target: 'jsonSchema2019-09', pipeStrategy: strategy }),
+            ...zodToJsonSchema(schema, { target: 'jsonSchema2019-09', pipeStrategy: strategy, $refStrategy: 'none' }),
             $schema: undefined,
           })
         }
@@ -271,7 +441,7 @@ describe.each(cases)('zodToJsonSchemaConverter.convert %#', ({ schema, input, ou
           expect({
             anyOf: [{ not: {} }, expectedJson],
           }).toEqual({
-            ...zodToJsonSchema(schema, { target: 'jsonSchema2019-09', pipeStrategy: strategy }),
+            ...zodToJsonSchema(schema, { target: 'jsonSchema2019-09', pipeStrategy: strategy, $refStrategy: 'none' }),
             $schema: undefined,
           })
         }
@@ -280,7 +450,6 @@ describe.each(cases)('zodToJsonSchemaConverter.convert %#', ({ schema, input, ou
 
     it('object', () => {
       const testSchema = z.object({ value: schema })
-      const [expectedRequired, expectedJson] = strategy === 'input' ? input : output
       const [required, json] = converter.convert(testSchema, strategy)
 
       expect(required).toEqual(true)
@@ -294,70 +463,71 @@ describe.each(cases)('zodToJsonSchemaConverter.convert %#', ({ schema, input, ou
 
       if (!ignoreZodToJsonSchema) {
         expect(json).toEqual({
-          ...zodToJsonSchema(testSchema, { target: 'jsonSchema2019-09', pipeStrategy: strategy }),
+          ...zodToJsonSchema(testSchema, { target: 'jsonSchema2019-09', pipeStrategy: strategy, $refStrategy: 'none' }),
           $schema: undefined,
           additionalProperties: undefined,
         })
       }
     })
 
-    it('object with catchall', () => {
-      const testSchema = z.object({ value: schema }).catchall(schema)
-      const [expectedRequired, expectedJson] = strategy === 'input' ? input : output
+    it('array', () => {
+      const testSchema = z.array(schema)
       const [required, json] = converter.convert(testSchema, strategy)
 
       expect(required).toEqual(true)
       expect(json).toEqual({
-        type: 'object',
-        properties: {
-          value: expectedJson,
-        },
-        required: expectedRequired ? ['value'] : undefined,
-        additionalProperties: expectedJson,
+        type: 'array',
+        items: arrayItemJsonSchema,
       })
 
       if (!ignoreZodToJsonSchema) {
         expect(json).toEqual({
-          ...zodToJsonSchema(testSchema, { target: 'jsonSchema2019-09', pipeStrategy: strategy }),
+          ...zodToJsonSchema(testSchema, { target: 'jsonSchema2019-09', pipeStrategy: strategy, $refStrategy: 'none' }),
           $schema: undefined,
-          additionalProperties: expectedJson,
         })
       }
     })
 
-    it('strict object', () => {
-      const testSchema = z.object({ value: schema }).strict()
-      const [expectedRequired, expectedJson] = strategy === 'input' ? input : output
+    it('tuple', () => {
+      const testSchema = z.tuple([schema, schema]).rest(schema)
       const [required, json] = converter.convert(testSchema, strategy)
 
       expect(required).toEqual(true)
       expect(json).toEqual({
-        type: 'object',
-        properties: {
-          value: expectedJson,
-        },
-        required: expectedRequired ? ['value'] : undefined,
-        additionalProperties: false,
+        type: 'array',
+        prefixItems: [
+          arrayItemJsonSchema,
+          arrayItemJsonSchema,
+        ],
+        items: arrayItemJsonSchema,
       })
 
       if (!ignoreZodToJsonSchema) {
-        expect(json).toEqual({
-          ...zodToJsonSchema(testSchema, { target: 'jsonSchema2019-09', pipeStrategy: strategy }),
+        expect({
+          type: 'array',
+          items: [
+            expectedRequired ? expectedJson : { anyOf: [{ not: {} }, expectedJson] },
+            expectedRequired ? expectedJson : { anyOf: [{ not: {} }, expectedJson] },
+          ],
+          additionalItems: expectedRequired ? expectedJson : { anyOf: [{ not: {} }, expectedJson] },
+        }).toEqual({
+          ...zodToJsonSchema(testSchema, { target: 'jsonSchema2019-09', pipeStrategy: strategy, $refStrategy: 'none' }),
           $schema: undefined,
+          maxItems: undefined,
+          minItems: undefined,
         })
       }
     })
 
     it('set', () => {
       const testSchema = z.set(schema)
-      const [expectedRequired, expectedJson] = strategy === 'input' ? input : output
       const [required, json] = converter.convert(testSchema, strategy)
 
       expect(required).toEqual(true)
       expect(json).toEqual({
         type: 'array',
         uniqueItems: true,
-        items: expectedRequired ? expectedJson : { anyOf: [{ type: 'null' }, expectedJson] },
+        items: arrayItemJsonSchema,
       })
 
       if (!ignoreZodToJsonSchema) {
@@ -366,7 +536,7 @@ describe.each(cases)('zodToJsonSchemaConverter.convert %#', ({ schema, input, ou
           uniqueItems: true,
           items: expectedRequired ? expectedJson : { anyOf: [{ not: {} }, expectedJson] },
         }).toEqual({
-          ...zodToJsonSchema(testSchema, { target: 'jsonSchema2019-09', pipeStrategy: strategy }),
+          ...zodToJsonSchema(testSchema, { target: 'jsonSchema2019-09', pipeStrategy: strategy, $refStrategy: 'none' }),
           $schema: undefined,
         })
       }
@@ -374,7 +544,6 @@ describe.each(cases)('zodToJsonSchemaConverter.convert %#', ({ schema, input, ou
 
     it('map', () => {
       const testSchema = z.map(schema, schema.optional())
-      const [expectedRequired, expectedJson] = strategy === 'input' ? input : output
       const [required, json] = converter.convert(testSchema, strategy)
 
       expect(required).toEqual(true)
@@ -385,8 +554,8 @@ describe.each(cases)('zodToJsonSchemaConverter.convert %#', ({ schema, input, ou
           maxItems: 2,
           minItems: 2,
           prefixItems: [
-            expectedRequired ? expectedJson : { anyOf: [{ type: 'null' }, expectedJson] },
-            { anyOf: [{ type: 'null' }, expectedJson] },
+            arrayItemJsonSchema,
+            { anyOf: [expectedJson, strategy === 'input' ? { not: {} } : { type: 'null' }] },
           ],
         },
       })
@@ -413,7 +582,6 @@ describe.each(cases)('zodToJsonSchemaConverter.convert %#', ({ schema, input, ou
 
     it('record', () => {
       const testSchema = z.record(schema)
-      const [expectedRequired, expectedJson] = strategy === 'input' ? input : output
       const [required, json] = converter.convert(testSchema, strategy)
 
       expect(required).toEqual(true)

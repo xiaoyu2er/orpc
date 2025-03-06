@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@shikijs/vitepress-twoslash": "^2.5.0",
-    "@types/node": "^22.10.0",
+    "@types/node": "^22.13.1",
     "vitepress": "1.6.3",
     "vitepress-plugin-group-icons": "^1.3.6",
     "vitepress-plugin-shiki-twoslash": "^0.0.6",

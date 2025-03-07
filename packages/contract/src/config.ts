@@ -1,11 +1,11 @@
-import type { HTTPMethod, InputStructure } from './route'
+import type { HTTPMethod, InputStructure, OutputStructure } from './route'
 
 export interface ContractConfig {
   defaultMethod: HTTPMethod
   defaultSuccessStatus: number
   defaultSuccessDescription: string
   defaultInputStructure: InputStructure
-  defaultOutputStructure: InputStructure
+  defaultOutputStructure: OutputStructure
 }
 
 const DEFAULT_CONFIG: ContractConfig = {

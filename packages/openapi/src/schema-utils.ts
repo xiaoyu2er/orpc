@@ -10,22 +10,6 @@ export class SchemaUtils {
     return isObject(schema) && schema.type === 'object'
   }
 
-  isAnySchema(schema: JSONSchema): boolean {
-    return schema === true || Object.keys(schema).filter(key => !NON_LOGIC_KEYWORDS.includes(key)).length === 0
-  }
-
-  isUndefinableSchema(schema: JSONSchema): boolean {
-    const [matches] = this.filterSchemaBranches(schema, (schema) => {
-      if (typeof schema === 'boolean') {
-        return schema
-      }
-
-      return Object.keys(schema).filter(key => !NON_LOGIC_KEYWORDS.includes(key)).length === 0
-    })
-
-    return matches.length > 0
-  }
-
   separateObjectSchema(schema: ObjectSchema, separatedProperties: string[]): [matched: ObjectSchema, rest: ObjectSchema] {
     const matched = { ...schema }
     const rest = { ...schema }
@@ -134,5 +118,3 @@ export class SchemaUtils {
     return [matches, schema]
   }
 }
-
-export type PublicSchemaUtils = Pick<SchemaUtils, keyof SchemaUtils>

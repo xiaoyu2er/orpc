@@ -191,12 +191,12 @@ importers:
       '@orpc/standard-server-node':
         specifier: workspace:*
         version: link:../standard-server-node
+      '@scalar/openapi-types':
+        specifier: ^0.1.9
+        version: 0.1.9
       json-schema-typed:
         specifier: ^8.0.1
         version: 8.0.1
-      openapi3-ts:
-        specifier: ^4.4.0
-        version: 4.4.0
       rou3:
         specifier: ^0.5.1
         version: 0.5.1
@@ -2335,6 +2335,10 @@ packages:
     resolution: {integrity: sha512-U0FaE5O1BCpZSeE6gBl3c5ObhePQSfk9vDRToMmTkbhCOgW4jqvtS5LGyQ76L1fH8sM0keRp4uDTsbjiUyjk0g==}
     cpu: [x64]
     os: [win32]
+
+  '@scalar/openapi-types@0.1.9':
+    resolution: {integrity: sha512-HQQudOSQBU7ewzfnBW9LhDmBE2XOJgSfwrh5PlUB7zJup/kaRkBGNgV2wMjNz9Af/uztiU/xNrO179FysmUT+g==}
+    engines: {node: '>=18'}
 
   '@shikijs/core@2.4.2':
     resolution: {integrity: sha512-V0kXYB/70xA3CO+b2Pz9kcSThaOUfObOEkGeHsKSFqV6rultaWPfeyZPpBlKHMUXO9Bt1ZGINDCctN90pQvnTg==}
@@ -5273,9 +5277,6 @@ packages:
     hasBin: true
     peerDependencies:
       typescript: ^5.x
-
-  openapi3-ts@4.4.0:
-    resolution: {integrity: sha512-9asTNB9IkKEzWMcHmVZE7Ts3kC9G7AFHfs8i7caD8HbI76gEjdkId4z/AkP83xdZsH7PLAnnbl47qZkXuxpArw==}
 
   optionator@0.9.4:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
@@ -8712,6 +8713,8 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.34.8':
     optional: true
+
+  '@scalar/openapi-types@0.1.9': {}
 
   '@shikijs/core@2.4.2':
     dependencies:
@@ -12567,10 +12570,6 @@ snapshots:
       supports-color: 9.4.0
       typescript: 5.7.3
       yargs-parser: 21.1.1
-
-  openapi3-ts@4.4.0:
-    dependencies:
-      yaml: 2.7.0
 
   optionator@0.9.4:
     dependencies:

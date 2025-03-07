@@ -21,7 +21,7 @@ export default antfu({
     ],
     'no-restricted-imports': ['error', {
       patterns: [{
-        group: ['json-schema-typed', 'json-schema-typed/*'],
+        group: ['json-schema-typed', 'json-schema-typed/*', '@scalar/openapi-types', '@scalar/openapi-types/*'],
         message: 'Please import from @orpc/openapi instead',
       }],
     }],

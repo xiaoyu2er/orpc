@@ -1,14 +1,14 @@
 import type { AnyContractProcedure, AnyContractRouter, ErrorMap } from '@orpc/contract'
 import type { OpenAPI } from './openapi'
-import type { PublicOpenAPIPathParser } from './openapi-path-parser'
-import type { FileSchema, JSONSchema } from './schema'
+import type { JSONSchema } from './schema'
 import { fallbackORPCErrorStatus } from '@orpc/client'
 import { fallbackContractConfig, getEventIteratorSchemaDetails } from '@orpc/contract'
 import { OpenAPISerializer } from '@orpc/openapi-client/standard'
 import { type AnyRouter, eachAllContractProcedure } from '@orpc/server'
-import { clone, findDeepMatches, isObject } from '@orpc/shared'
+import { clone } from '@orpc/shared'
+import { getDynamicParams, toOpenAPIContent, toOpenAPIEventIteratorContent } from './openapi-utils'
 import { CompositeSchemaConverter, type ConditionalSchemaConverter, type SchemaConverter } from './schema-converter'
-import { SchemaUtils } from './schema-utils'
+import { isObjectSchema, separateObjectSchema } from './schema-utils'
 import { toOpenAPI31RoutePattern } from './utils'
 
 class OpenAPIGeneratorError extends Error {}
@@ -20,12 +20,9 @@ export interface OpenAPIGeneratorOptions {
 export class OpenAPIGenerator {
   private readonly serializer: OpenAPISerializer
   private readonly converter: SchemaConverter
-  private readonly schemaUtils: SchemaUtils
-  private readonly pathParser: PublicOpenAPIPathParser
 
   constructor(options: OpenAPIGeneratorOptions = {}) {
     this.serializer = new OpenAPISerializer()
-    this.schemaUtils = new SchemaUtils()
     this.converter = new CompositeSchemaConverter(options.schemaConverters ?? [])
   }
 
@@ -82,7 +79,7 @@ export class OpenAPIGenerator {
     if (details) {
       ref.requestBody = {
         required: true,
-        content: this.#handleEventIteratorContent(
+        content: toOpenAPIEventIteratorContent(
           this.converter.convert(details.yields, 'input'),
           this.converter.convert(details.returns, 'input'),
         ),
@@ -95,16 +92,16 @@ export class OpenAPIGenerator {
     const [required, schema] = this.converter.convert(def.inputSchema, 'input')
 
     if (inputStructure === 'compact') {
-      const dynamic = this.pathParser.parseDynamicParams(def.route.path ?? '')
+      const dynamicParams = getDynamicParams(def.route.path ?? '/')
 
-      if (dynamic.length) {
-        if (!this.schemaUtils.isObjectSchema(schema)) {
+      if (dynamicParams?.length) {
+        if (!isObjectSchema(schema)) {
           throw new OpenAPIGeneratorError(
             'When input structure is "compact" and path has dynamic parameters, input schema must be an object.',
           )
         }
 
-        const [params, body] = this.schemaUtils.separateObjectSchema(schema, dynamic.map(v => v.name))
+        const [params, body] = separateObjectSchema(schema, dynamicParams)
 
         ref.parameters ??= []
         for (const key in params.properties) {
@@ -118,13 +115,13 @@ export class OpenAPIGenerator {
 
         ref.requestBody = {
           required: body.required ? body.required.length !== 0 : false,
-          content: this.#handleContent(body),
+          content: toOpenAPIContent(body),
         }
       }
       else {
         ref.requestBody = {
           required,
-          content: this.#handleContent(schema),
+          content: toOpenAPIContent(schema),
         }
       }
 
@@ -136,14 +133,14 @@ export class OpenAPIGenerator {
       + '{ params?: Record<string, unknown>, query?: Record<string, unknown>, headers?: Record<string, unknown>, body?: unknown }',
     )
 
-    if (!this.schemaUtils.isObjectSchema(schema)) {
+    if (!isObjectSchema(schema)) {
       throw error
     }
 
     for (const from of ['params', 'query', 'headers']) {
       const fromSchema = schema.properties?.[from]
       if (fromSchema !== undefined) {
-        if (!this.schemaUtils.isObjectSchema(fromSchema)) {
+        if (!isObjectSchema(fromSchema)) {
           throw error
         }
 
@@ -163,7 +160,7 @@ export class OpenAPIGenerator {
     if (schema.properties?.body !== undefined) {
       ref.requestBody = {
         required: schema.required?.includes('body'),
-        content: this.#handleContent(schema.properties.body),
+        content: toOpenAPIContent(schema.properties.body),
       }
     }
   }
@@ -179,7 +176,7 @@ export class OpenAPIGenerator {
       ref.responses ??= {}
       ref.responses[status] = {
         description,
-        content: this.#handleEventIteratorContent(
+        content: toOpenAPIEventIteratorContent(
           this.converter.convert(eventIteratorSchemaDetails.yields, 'output'),
           this.converter.convert(eventIteratorSchemaDetails.returns, 'output'),
         ),
@@ -196,7 +193,7 @@ export class OpenAPIGenerator {
     }
 
     if (outputStructure === 'compact') {
-      ref.responses[status].content = this.#handleContent(json)
+      ref.responses[status].content = toOpenAPIContent(json)
 
       return
     }
@@ -206,12 +203,12 @@ export class OpenAPIGenerator {
       + '{ headers?: Record<string, unknown>, body?: unknown }',
     )
 
-    if (!this.schemaUtils.isObjectSchema(json)) {
+    if (!isObjectSchema(json)) {
       throw error
     }
 
     if (json.properties?.headers !== undefined) {
-      if (!this.schemaUtils.isObjectSchema(json.properties.headers)) {
+      if (!isObjectSchema(json.properties.headers)) {
         throw error
       }
 
@@ -225,7 +222,7 @@ export class OpenAPIGenerator {
     }
 
     if (json.properties?.body !== undefined) {
-      ref.responses[status].content = this.#handleContent(json.properties.body)
+      ref.responses[status].content = toOpenAPIContent(json.properties.body)
     }
   }
 
@@ -266,7 +263,7 @@ export class OpenAPIGenerator {
 
       ref.responses[status] = {
         description: status,
-        content: this.#handleContent({
+        content: toOpenAPIContent({
           oneOf: [
             ...schemas,
             {
@@ -285,82 +282,4 @@ export class OpenAPIGenerator {
       }
     }
   }
-
-  // #region helpers
-
-  #handleContent(schema: JSONSchema): Exclude<OpenAPI.ResponseObject['content'] & OpenAPI.RequestBodyObject['content'], undefined> {
-    const content: Exclude<OpenAPI.ResponseObject['content'] & OpenAPI.RequestBodyObject['content'], undefined> = {}
-
-    const isFileSchema = this.schemaUtils.isFileSchema.bind(this.schemaUtils)
-
-    const [matches, restSchema] = this.schemaUtils.filterSchemaBranches(schema, isFileSchema)
-
-    for (const file of matches as FileSchema[]) {
-      content[file.contentMediaType] = {
-        schema: file,
-      }
-    }
-
-    if (restSchema !== undefined) {
-      content['application/json'] = {
-        schema: restSchema,
-      }
-
-      const isStillHasFileSchema = findDeepMatches(v => isObject(v) && isFileSchema(v), restSchema).values.length > 0
-
-      if (isStillHasFileSchema) {
-        content['multipart/form-data'] = {
-          schema: restSchema,
-        }
-      }
-    }
-
-    return content
-  }
-
-  #handleEventIteratorContent(
-    [dataRequired, dataSchema]: [boolean, JSONSchema],
-    [returnsRequired, returnsSchema]: [boolean, JSONSchema],
-  ): Exclude<OpenAPI.ResponseObject['content'] | OpenAPI.RequestBodyObject['content'], undefined> {
-    return {
-      'text/event-stream': {
-        schema: {
-          oneOf: [
-            {
-              type: 'object',
-              properties: {
-                event: { type: 'string', const: 'message' },
-                data: dataSchema,
-                id: { type: 'string' },
-                retry: { type: 'number' },
-              },
-              required: dataRequired ? ['event', 'data'] : ['event'],
-            },
-            {
-              type: 'object',
-              properties: {
-                event: { type: 'string', const: 'done' },
-                data: returnsSchema,
-                id: { type: 'string' },
-                retry: { type: 'number' },
-              },
-              required: returnsRequired ? ['event', 'data'] : ['event'],
-            },
-            {
-              type: 'object',
-              properties: {
-                event: { type: 'string', const: 'error' },
-                data: {},
-                id: { type: 'string' },
-                retry: { type: 'number' },
-              },
-              required: ['event', 'data'],
-            },
-          ],
-        },
-      },
-    }
-  }
-
-  // #endregion
 }

@@ -3,7 +3,7 @@ import type { StandardMatcher, StandardMatchResult } from '@orpc/server/standard
 import { type AnyContractProcedure, fallbackContractConfig, type HTTPPath } from '@orpc/contract'
 import { convertPathToHttpPath, createContractedProcedure, eachContractProcedure, getLazyRouterPrefix, getRouterChild, isProcedure, unlazy } from '@orpc/server'
 import { addRoute, createRouter, findRoute } from 'rou3'
-import { standardizeHTTPPath } from '../../utils'
+import { decodeParams, toRou3Pattern } from './utils'
 
 export class OpenAPIMatcher implements StandardMatcher {
   private readonly tree = createRouter<{
@@ -96,15 +96,4 @@ export class OpenAPIMatcher implements StandardMatcher {
       params: match.params ? decodeParams(match.params) : undefined,
     }
   }
-}
-
-/**
- * {@link https://github.com/unjs/rou3}
- */
-function toRou3Pattern(path: HTTPPath): string {
-  return standardizeHTTPPath(path).replace(/\{\+([^}]+)\}/g, '**:$1').replace(/\{([^}]+)\}/g, ':$1')
-}
-
-function decodeParams(params: Record<string, string>): Record<string, string> {
-  return Object.fromEntries(Object.entries(params).map(([key, value]) => [key, decodeURIComponent(value)]))
 }

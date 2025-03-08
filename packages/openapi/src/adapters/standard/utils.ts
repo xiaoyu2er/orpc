@@ -7,7 +7,7 @@ import { standardizeHTTPPath } from '../../openapi-utils'
  * @internal
  */
 export function toRou3Pattern(path: HTTPPath): string {
-  return standardizeHTTPPath(path).replace(/\{\+([^}]+)\}/g, '**:$1').replace(/\{([^}]+)\}/g, ':$1')
+  return standardizeHTTPPath(path).replace(/\/\{\+([^}]+)\}/g, '/**:$1').replace(/\/\{([^}]+)\}/g, '/:$1')
 }
 
 /**

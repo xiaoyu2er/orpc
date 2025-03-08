@@ -19,15 +19,26 @@ export function isObjectSchema(schema: JSONSchema): schema is ObjectSchema {
 /**
  * @internal
  */
+export function toJSONSchemaObject(schema: JSONSchema): Exclude<JSONSchema, boolean> {
+  return schema === true
+    ? {}
+    : schema === false
+      ? { not: {} }
+      : schema
+}
+
+/**
+ * @internal
+ */
 export function separateObjectSchema(schema: ObjectSchema, separatedProperties: string[]): [matched: ObjectSchema, rest: ObjectSchema] {
   if (Object.keys(schema).some(k => k !== 'type' && k !== 'properties' && k !== 'required' && LOGIC_KEYWORDS.includes(k))) {
     return [{ type: 'object' }, schema]
   }
 
-  const matched = { ...schema }
-  const rest = { ...schema }
+  const matched: ObjectSchema = { ...schema }
+  const rest: ObjectSchema = { ...schema }
 
-  matched.properties = Object.entries(schema.properties ?? {})
+  matched.properties = schema.properties && Object.entries(schema.properties)
     .filter(([key]) => separatedProperties.includes(key))
     .reduce((acc, [key, value]) => {
       acc[key] = value
@@ -50,7 +61,7 @@ export function separateObjectSchema(schema: ObjectSchema, separatedProperties: 
     }, {} as Record<string, unknown>)
   })
 
-  rest.properties = Object.entries(schema.properties ?? {})
+  rest.properties = schema.properties && Object.entries(schema.properties)
     .filter(([key]) => !separatedProperties.includes(key))
     .reduce((acc, [key, value]) => {
       acc[key] = value
@@ -88,53 +99,23 @@ export function filterSchemaBranches(
     matches.push(schema)
     return [matches, undefined]
   }
-
   if (isObject(schema)) {
-    if (
-      schema.anyOf
-      && Object.keys(schema).every(
-        k => k === 'anyOf' || !LOGIC_KEYWORDS.includes(k),
-      )
-    ) {
-      const anyOf = schema.anyOf
-        .map(s => filterSchemaBranches(s, check, matches)[1])
-        .filter(v => !!v)
+    for (const keyword of ['anyOf', 'oneOf'] as const) {
+      if (schema[keyword] && Object.keys(schema).every(
+        k => k === keyword || !LOGIC_KEYWORDS.includes(k),
+      )) {
+        const rest = schema[keyword]
+          .map(s => filterSchemaBranches(s, check, matches)[1])
+          .filter(v => !!v)
 
-      if (anyOf.length === 1 && typeof anyOf[0] === 'object') {
-        return [matches, { ...schema, anyOf: undefined, ...anyOf[0] }]
+        if (rest.length === 1 && typeof rest[0] === 'object') {
+          return [matches, { ...schema, [keyword]: undefined, ...rest[0] }]
+        }
+
+        return [matches, { ...schema, [keyword]: rest }]
       }
-
-      return [matches, { ...schema, anyOf }]
-    }
-
-    if (
-      schema.oneOf
-      && Object.keys(schema).every(
-        k => k === 'oneOf' || !LOGIC_KEYWORDS.includes(k),
-      )
-    ) {
-      const oneOf = schema.oneOf
-        .map(s => filterSchemaBranches(s, check, matches)[1])
-        .filter(v => !!v)
-
-      if (oneOf.length === 1 && typeof oneOf[0] === 'object') {
-        return [matches, { ...schema, oneOf: undefined, ...oneOf[0] }]
-      }
-
-      return [matches, { ...schema, oneOf }]
     }
   }
 
   return [matches, schema]
-}
-
-/**
- * @internal
- */
-export function toJSONSchemaObject(schema: JSONSchema): Exclude<JSONSchema, boolean> {
-  return schema === true
-    ? {}
-    : schema === false
-      ? { not: {} }
-      : schema
 }

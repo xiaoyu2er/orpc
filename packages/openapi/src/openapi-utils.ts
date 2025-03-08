@@ -79,7 +79,7 @@ export function toOpenAPIEventIteratorContent(
           {
             type: 'object',
             properties: {
-              event: { type: 'string', const: 'message' },
+              event: { const: 'message' },
               data: dataSchema,
               id: { type: 'string' },
               retry: { type: 'number' },
@@ -89,7 +89,7 @@ export function toOpenAPIEventIteratorContent(
           {
             type: 'object',
             properties: {
-              event: { type: 'string', const: 'done' },
+              event: { const: 'done' },
               data: returnsSchema,
               id: { type: 'string' },
               retry: { type: 'number' },
@@ -99,12 +99,12 @@ export function toOpenAPIEventIteratorContent(
           {
             type: 'object',
             properties: {
-              event: { type: 'string', const: 'error' },
+              event: { const: 'error' },
               data: {},
               id: { type: 'string' },
               retry: { type: 'number' },
             },
-            required: ['event', 'data'],
+            required: ['event'],
           },
         ],
       },

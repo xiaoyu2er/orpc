@@ -486,6 +486,7 @@ const successResponseTests: TestCase[] = [
     expected: {
       '/': {
         post: {
+          operationId: '',
           responses: {
             200: expect.toSatisfy(v => !v.content && !v.headers),
           },

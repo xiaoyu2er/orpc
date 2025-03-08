@@ -15,7 +15,9 @@ describe('createRouterUtils', () => {
   client.key.pong = vi.fn()
 
   it('works', () => {
-    const utils = createRouterUtils(client, ['__base__']) as any
+    const utils = createRouterUtils(client, {
+      path: ['__base__'],
+    }) as any
 
     expect(generalUtilsSpy).toHaveBeenCalledTimes(1)
     expect(generalUtilsSpy).toHaveBeenCalledWith(['__base__'])
@@ -52,7 +54,9 @@ describe('createRouterUtils', () => {
   })
 
   it('not recursive on symbol', async () => {
-    const utils = createRouterUtils(client, ['__base__']) as any
+    const utils = createRouterUtils(client, {
+      path: ['__base__'],
+    }) as any
 
     expect(utils[Symbol.for('a')]).toBe(undefined)
   })

@@ -7,9 +7,9 @@ import { OpenAPISerializer } from '@orpc/openapi-client/standard'
 import { type AnyRouter, convertPathToHttpPath, eachAllContractProcedure } from '@orpc/server'
 import { clone } from '@orpc/shared'
 import { applyCustomOpenAPIOperation } from './openapi-custom'
-import { getDynamicParams, toOpenAPIContent, toOpenAPIEventIteratorContent, toOpenAPIMethod, toOpenAPIPath } from './openapi-utils'
+import { checkParamsSchema, getDynamicParams, toOpenAPIContent, toOpenAPIEventIteratorContent, toOpenAPIMethod, toOpenAPIParameters, toOpenAPIPath } from './openapi-utils'
 import { CompositeSchemaConverter, type ConditionalSchemaConverter, type SchemaConverter } from './schema-converter'
-import { isObjectSchema, separateObjectSchema } from './schema-utils'
+import { isAnySchema, isObjectSchema, separateObjectSchema } from './schema-utils'
 
 class OpenAPIGeneratorError extends Error {}
 
@@ -36,7 +36,7 @@ export class OpenAPIGenerator {
 
     doc.openapi = '3.1.1'
 
-    let hasGenerationErrors = false
+    const errors: string[] = []
 
     await eachAllContractProcedure({ path: [], router }, ({ contract, path }) => {
       try {
@@ -65,22 +65,23 @@ export class OpenAPIGenerator {
           throw e
         }
 
-        hasGenerationErrors = true
-
-        console.error(
+        errors.push(
           `[OpenAPIGenerator] Error occurred while generating OpenAPI for procedure at path: ${path.join('.')}\n${e.message}`,
         )
       }
     })
 
-    if (hasGenerationErrors) {
-      throw new OpenAPIGeneratorError('Some error occurred during OpenAPI generation, please check the console for more details')
+    if (errors.length) {
+      throw new OpenAPIGeneratorError(
+        `Some error occurred during OpenAPI generation:\n\n${errors.join('\n\n')}`,
+      )
     }
 
     return this.serializer.serialize(doc) as OpenAPI.Document
   }
 
   #request(ref: OpenAPI.OperationObject, def: AnyContractProcedure['~orpc']): void {
+    const method = fallbackContractConfig('defaultMethod', def.route.method)
     const details = getEventIteratorSchemaDetails(def.inputSchema)
 
     if (details) {
@@ -97,43 +98,44 @@ export class OpenAPIGenerator {
 
     const dynamicParams = getDynamicParams(def.route.path)
     const inputStructure = fallbackContractConfig('defaultInputStructure', def.route.inputStructure)
-    const [required, schema] = this.converter.convert(def.inputSchema, 'input')
+    let [required, schema] = this.converter.convert(def.inputSchema, 'input')
+
+    if (isAnySchema(schema) && !dynamicParams?.length) {
+      return
+    }
 
     if (inputStructure === 'compact') {
       if (dynamicParams?.length) {
         const error = new OpenAPIGeneratorError(
-          'When input structure is "compact" and path has dynamic params, input schema must be an object with all dynamic params as required.',
+          'When input structure is "compact", and path has dynamic params, input schema must be an object with all dynamic params as required.',
         )
 
         if (!isObjectSchema(schema)) {
           throw error
         }
 
-        const [params, body] = separateObjectSchema(schema, dynamicParams)
+        const [paramsSchema, rest] = separateObjectSchema(schema, dynamicParams)
 
-        if (!params.properties || Object.keys(params.properties).length !== dynamicParams.length) {
-          throw error
-        }
+        schema = rest
+        required = rest.required ? rest.required.length !== 0 : false
 
-        if (params.required?.length !== dynamicParams.length) {
+        if (!checkParamsSchema(paramsSchema, dynamicParams)) {
           throw error
         }
 
         ref.parameters ??= []
+        ref.parameters.push(...toOpenAPIParameters(paramsSchema, 'path'))
+      }
 
-        for (const key in params.properties) {
-          ref.parameters.push({
-            name: key,
-            in: 'path',
-            required: params.required?.includes(key),
-            schema: params.properties[key],
-          })
+      if (method === 'GET') {
+        if (!isObjectSchema(schema)) {
+          throw new OpenAPIGeneratorError(
+            'When method is "GET", input schema must satisfy: object | any | unknown',
+          )
         }
 
-        ref.requestBody = {
-          required: body.required ? body.required.length !== 0 : false,
-          content: toOpenAPIContent(body),
-        }
+        ref.parameters ??= []
+        ref.parameters.push(...toOpenAPIParameters(schema, 'query'))
       }
       else {
         ref.requestBody = {
@@ -154,22 +156,16 @@ export class OpenAPIGenerator {
       throw error
     }
 
-    if (dynamicParams?.length) {
-      const error = new OpenAPIGeneratorError(
+    if (
+      dynamicParams?.length && (
+        schema.properties?.params === undefined
+        || !isObjectSchema(schema.properties.params)
+        || !checkParamsSchema(schema.properties.params, dynamicParams)
+      )
+    ) {
+      throw new OpenAPIGeneratorError(
         'When input structure is "detailed" and path has dynamic params, the "params" schema must be an object with all dynamic params as required.',
       )
-
-      if (schema.properties?.params === undefined || !isObjectSchema(schema.properties.params)) {
-        throw error
-      }
-
-      if (!schema.properties.params.properties || Object.keys(schema.properties.params.properties).length !== dynamicParams.length) {
-        throw error
-      }
-
-      if (schema.properties.params.required?.length !== dynamicParams.length) {
-        throw error
-      }
     }
 
     for (const from of ['params', 'query', 'headers']) {
@@ -179,23 +175,14 @@ export class OpenAPIGenerator {
           throw error
         }
 
-        const parameterIn = from === 'params'
+        const parameterIn: 'path' | 'query' | 'header' = from === 'params'
           ? 'path'
           : from === 'headers'
             ? 'header'
-            : from
+            : 'query'
 
-        for (const key in fromSchema.properties) {
-          ref.parameters ??= []
-          ref.parameters.push({
-            name: key,
-            in: parameterIn,
-            required: fromSchema.required?.includes(key),
-            style: from === 'query' ? 'deepObject' : undefined,
-            explode: from === 'query' ? true : undefined,
-            schema: fromSchema.properties[key],
-          })
-        }
+        ref.parameters ??= []
+        ref.parameters.push(...toOpenAPIParameters(fromSchema, parameterIn))
       }
     }
 

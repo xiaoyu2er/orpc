@@ -1,6 +1,6 @@
 import type { HTTPMethod, HTTPPath } from '@orpc/contract'
 import type { OpenAPI } from './openapi'
-import type { FileSchema, JSONSchema } from './schema'
+import type { FileSchema, JSONSchema, ObjectSchema } from './schema'
 import { findDeepMatches, isObject } from '@orpc/shared'
 import { filterSchemaBranches, isFileSchema, toJSONSchemaObject } from './schema-utils'
 
@@ -110,4 +110,42 @@ export function toOpenAPIEventIteratorContent(
       },
     },
   }
+}
+
+/**
+ * @internal
+ */
+export function toOpenAPIParameters(schema: ObjectSchema, parameterIn: 'path' | 'query' | 'header' | 'cookie'): OpenAPI.ParameterObject[] {
+  const parameters: OpenAPI.ParameterObject[] = []
+
+  for (const key in schema.properties) {
+    parameters.push({
+      name: key,
+      in: parameterIn,
+      required: schema.required?.includes(key),
+      style: parameterIn === 'query' ? 'deepObject' : undefined,
+      explode: parameterIn === 'query' ? true : undefined,
+      schema: toJSONSchemaObject(schema.properties[key]!),
+    })
+  }
+
+  return parameters
+}
+
+/**
+ * @internal
+ */
+export function checkParamsSchema(schema: ObjectSchema, params: string[]): boolean {
+  const properties = Object.keys(schema.properties ?? {})
+  const required = schema.required ?? []
+
+  if (properties.length !== params.length || properties.some(v => !params.includes(v))) {
+    return false
+  }
+
+  if (required.length !== params.length || required.some(v => !params.includes(v))) {
+    return false
+  }
+
+  return true
 }

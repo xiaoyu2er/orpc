@@ -30,6 +30,21 @@ export function toJSONSchemaObject(schema: JSONSchema): Exclude<JSONSchema, bool
 /**
  * @internal
  */
+export function isAnySchema(schema: JSONSchema): boolean {
+  if (schema === true) {
+    return true
+  }
+
+  if (Object.keys(schema).every(k => !LOGIC_KEYWORDS.includes(k))) {
+    return true
+  }
+
+  return false
+}
+
+/**
+ * @internal
+ */
 export function separateObjectSchema(schema: ObjectSchema, separatedProperties: string[]): [matched: ObjectSchema, rest: ObjectSchema] {
   if (Object.keys(schema).some(k => k !== 'type' && k !== 'properties' && k !== 'required' && LOGIC_KEYWORDS.includes(k))) {
     return [{ type: 'object' }, schema]

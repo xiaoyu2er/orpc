@@ -95,3 +95,21 @@ export function isObject(value: unknown): value is Record<PropertyKey, unknown> 
 export function isTypescriptObject(value: unknown): value is object & Record<PropertyKey, unknown> {
   return !!value && (typeof value === 'object' || typeof value === 'function')
 }
+
+export function clone<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map(clone) as any
+  }
+
+  if (isObject(value)) {
+    const result: Record<PropertyKey, unknown> = {}
+
+    for (const key in value) {
+      result[key] = clone(value[key])
+    }
+
+    return result as any
+  }
+
+  return value
+}

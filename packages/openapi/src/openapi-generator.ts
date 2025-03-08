@@ -1,315 +1,299 @@
-import type { PublicOpenAPIInputStructureParser } from './openapi-input-structure-parser'
-import type { PublicOpenAPIOutputStructureParser } from './openapi-output-structure-parser'
-import type { PublicOpenAPIPathParser } from './openapi-path-parser'
+import type { AnyContractProcedure, AnyContractRouter, ErrorMap } from '@orpc/contract'
+import type { OpenAPI } from './openapi'
 import type { JSONSchema } from './schema'
-import type { ConditionalSchemaConverter } from './schema-converter'
-import { fallbackORPCErrorStatus } from '@orpc/client'
-import { type ContractRouter, fallbackContractConfig, getEventIteratorSchemaDetails } from '@orpc/contract'
-import { OpenAPIJsonSerializer } from '@orpc/openapi-client/standard'
-import { type AnyRouter, eachAllContractProcedure } from '@orpc/server'
-import { group } from '@orpc/shared'
-import { type OpenAPI, OpenApiBuilder } from './openapi'
-import { OpenAPIContentBuilder, type PublicOpenAPIContentBuilder } from './openapi-content-builder'
-import { OpenAPIError } from './openapi-error'
-import { OpenAPIInputStructureParser } from './openapi-input-structure-parser'
-import { extendOperation } from './openapi-operation-extender'
-import { OpenAPIOutputStructureParser } from './openapi-output-structure-parser'
-import { OpenAPIParametersBuilder, type PublicOpenAPIParametersBuilder } from './openapi-parameters-builder'
-import { OpenAPIPathParser } from './openapi-path-parser'
-import { CompositeSchemaConverter } from './schema-converter'
-import { type PublicSchemaUtils, SchemaUtils } from './schema-utils'
-import { toOpenAPI31RoutePattern } from './utils'
+import { fallbackORPCErrorMessage, fallbackORPCErrorStatus } from '@orpc/client'
+import { fallbackContractConfig, getEventIteratorSchemaDetails } from '@orpc/contract'
+import { OpenAPISerializer } from '@orpc/openapi-client/standard'
+import { type AnyRouter, convertPathToHttpPath, eachAllContractProcedure } from '@orpc/server'
+import { clone } from '@orpc/shared'
+import { applyCustomOpenAPIOperation } from './openapi-custom'
+import { checkParamsSchema, getDynamicParams, toOpenAPIContent, toOpenAPIEventIteratorContent, toOpenAPIMethod, toOpenAPIParameters, toOpenAPIPath, toOpenAPISchema } from './openapi-utils'
+import { CompositeSchemaConverter, type ConditionalSchemaConverter, type SchemaConverter } from './schema-converter'
+import { isAnySchema, isObjectSchema, separateObjectSchema } from './schema-utils'
 
-type ErrorHandlerStrategy = 'throw' | 'log' | 'ignore'
+class OpenAPIGeneratorError extends Error {}
 
 export interface OpenAPIGeneratorOptions {
-  contentBuilder?: PublicOpenAPIContentBuilder
-  parametersBuilder?: PublicOpenAPIParametersBuilder
   schemaConverters?: ConditionalSchemaConverter[]
-  schemaUtils?: PublicSchemaUtils
-  jsonSerializer?: OpenAPIJsonSerializer
-  pathParser?: PublicOpenAPIPathParser
-  inputStructureParser?: PublicOpenAPIInputStructureParser
-  outputStructureParser?: PublicOpenAPIOutputStructureParser
-
-  /**
-   * Throw error when you missing define tag definition on OpenAPI root tags
-   *
-   * Example: if procedure has tags ['foo', 'bar'], and OpenAPI root tags is ['foo'], then error will be thrown
-   * Because OpenAPI root tags is missing 'bar' tag
-   *
-   * @default false
-   */
-  considerMissingTagDefinitionAsError?: boolean
-
-  /**
-   * Weather ignore procedures that has no path defined.
-   *
-   * @default false
-   */
-  ignoreUndefinedPathProcedures?: boolean
-
-  /**
-   * What to do when we found an error with our router
-   *
-   * @default 'throw'
-   */
-  errorHandlerStrategy?: ErrorHandlerStrategy
-
-  /**
-   * Strict error response
-   *
-   * @default true
-   */
-  strictErrorResponses?: boolean
 }
 
 export class OpenAPIGenerator {
-  private readonly contentBuilder: PublicOpenAPIContentBuilder
-  private readonly parametersBuilder: PublicOpenAPIParametersBuilder
-  private readonly schemaConverter: CompositeSchemaConverter
-  private readonly schemaUtils: PublicSchemaUtils
-  private readonly jsonSerializer: OpenAPIJsonSerializer
-  private readonly pathParser: PublicOpenAPIPathParser
-  private readonly inputStructureParser: PublicOpenAPIInputStructureParser
-  private readonly outputStructureParser: PublicOpenAPIOutputStructureParser
-  private readonly errorHandlerStrategy: ErrorHandlerStrategy
-  private readonly ignoreUndefinedPathProcedures: boolean
-  private readonly considerMissingTagDefinitionAsError: boolean
-  private readonly strictErrorResponses: boolean
+  private readonly serializer: OpenAPISerializer
+  private readonly converter: SchemaConverter
 
-  constructor(options?: OpenAPIGeneratorOptions) {
-    this.parametersBuilder = options?.parametersBuilder ?? new OpenAPIParametersBuilder()
-    this.schemaConverter = new CompositeSchemaConverter(options?.schemaConverters ?? [])
-    this.schemaUtils = options?.schemaUtils ?? new SchemaUtils()
-    this.jsonSerializer = options?.jsonSerializer ?? new OpenAPIJsonSerializer()
-    this.contentBuilder = options?.contentBuilder ?? new OpenAPIContentBuilder(this.schemaUtils)
-    this.pathParser = new OpenAPIPathParser()
-
-    this.inputStructureParser = options?.inputStructureParser ?? new OpenAPIInputStructureParser(this.schemaConverter, this.schemaUtils, this.pathParser)
-    this.outputStructureParser = options?.outputStructureParser ?? new OpenAPIOutputStructureParser(this.schemaConverter, this.schemaUtils)
-
-    this.errorHandlerStrategy = options?.errorHandlerStrategy ?? 'throw'
-    this.ignoreUndefinedPathProcedures = options?.ignoreUndefinedPathProcedures ?? false
-    this.considerMissingTagDefinitionAsError = options?.considerMissingTagDefinitionAsError ?? false
-    this.strictErrorResponses = options?.strictErrorResponses ?? true
+  constructor(options: OpenAPIGeneratorOptions = {}) {
+    this.serializer = new OpenAPISerializer()
+    this.converter = new CompositeSchemaConverter(options.schemaConverters ?? [])
   }
 
-  async generate(router: ContractRouter<any> | AnyRouter, doc: Omit<OpenAPI.OpenAPIObject, 'openapi'>): Promise<OpenAPI.OpenAPIObject> {
-    const builder = new OpenApiBuilder({
-      ...doc,
-      openapi: '3.1.1',
-    })
+  async generate(router: AnyContractRouter | AnyRouter, base: Omit<OpenAPI.Document, 'openapi'>): Promise<OpenAPI.Document> {
+    const doc: OpenAPI.Document = clone(base) as OpenAPI.Document
+    doc.openapi = '3.1.1'
 
-    const rootTags = doc.tags?.map(tag => tag.name) ?? []
+    const errors: string[] = []
 
-    await eachAllContractProcedure({
-      path: [],
-      router,
-    }, ({ contract, path }) => {
+    await eachAllContractProcedure({ path: [], router }, ({ contract, path }) => {
+      const operationId = path.join('.')
+
       try {
-        // TODO: inputExample and outputExample ???
         const def = contract['~orpc']
 
-        if (this.ignoreUndefinedPathProcedures && def.route?.path === undefined) {
-          return
+        const method = toOpenAPIMethod(fallbackContractConfig('defaultMethod', def.route.method))
+        const httpPath = toOpenAPIPath(def.route.path ?? convertPathToHttpPath(path))
+
+        const operationObjectRef: OpenAPI.OperationObject = {
+          operationId,
+          summary: def.route.summary,
+          description: def.route.description,
+          deprecated: def.route.deprecated,
+          tags: def.route.tags?.map(tag => tag),
         }
 
-        const method = fallbackContractConfig('defaultMethod', def.route?.method)
-        const httpPath = def.route?.path ? toOpenAPI31RoutePattern(def.route?.path) : `/${path.map(encodeURIComponent).join('/')}`
+        this.#request(operationObjectRef, def)
+        this.#successResponse(operationObjectRef, def)
+        this.#errorResponse(operationObjectRef, def)
 
-        const { parameters, requestBody } = (() => {
-          const eventIteratorSchemaDetails = getEventIteratorSchemaDetails(def.inputSchema)
+        doc.paths ??= {}
+        doc.paths[httpPath] ??= {}
+        doc.paths[httpPath][method] = applyCustomOpenAPIOperation(operationObjectRef, contract) as any
+      }
+      catch (e) {
+        if (!(e instanceof OpenAPIGeneratorError)) {
+          throw e
+        }
 
-          if (eventIteratorSchemaDetails) {
-            const requestBody: OpenAPI.RequestBodyObject = {
-              required: true,
-              content: {
-                'text/event-stream': {
-                  schema: {
-                    oneOf: [
-                      {
-                        type: 'object',
-                        properties: {
-                          event: { type: 'string', const: 'message' },
-                          data: this.schemaConverter.convert(eventIteratorSchemaDetails.yields, 'input')[1] as any,
-                          id: { type: 'string' },
-                          retry: { type: 'number' },
-                        },
-                        required: ['event', 'data'],
-                      },
-                      {
-                        type: 'object',
-                        properties: {
-                          event: { type: 'string', const: 'done' },
-                          data: this.schemaConverter.convert(eventIteratorSchemaDetails.returns, 'input')[1] as any,
-                          id: { type: 'string' },
-                          retry: { type: 'number' },
-                        },
-                        required: ['event', 'data'],
-                      },
-                      {
-                        type: 'object',
-                        properties: {
-                          event: { type: 'string', const: 'error' },
-                          data: {},
-                          id: { type: 'string' },
-                          retry: { type: 'number' },
-                        },
-                        required: ['event', 'data'],
-                      },
-                    ],
-                  },
-                },
-              },
-            }
+        errors.push(
+          `[OpenAPIGenerator] Error occurred while generating OpenAPI for procedure at path: ${operationId}\n${e.message}`,
+        )
+      }
+    })
 
-            return { requestBody, parameters: [] }
-          }
+    if (errors.length) {
+      throw new OpenAPIGeneratorError(
+        `Some error occurred during OpenAPI generation:\n\n${errors.join('\n\n')}`,
+      )
+    }
 
-          const inputStructure = fallbackContractConfig('defaultInputStructure', def.route?.inputStructure)
+    return this.serializer.serialize(doc) as OpenAPI.Document
+  }
 
-          const { paramsSchema, querySchema, headersSchema, bodySchema } = this.inputStructureParser.parse(contract, inputStructure)
+  #request(ref: OpenAPI.OperationObject, def: AnyContractProcedure['~orpc']): void {
+    const method = fallbackContractConfig('defaultMethod', def.route.method)
+    const details = getEventIteratorSchemaDetails(def.inputSchema)
 
-          const params = paramsSchema
-            ? this.parametersBuilder.build('path', paramsSchema, {
-                required: true,
-              })
-            : []
+    if (details) {
+      ref.requestBody = {
+        required: true,
+        content: toOpenAPIEventIteratorContent(
+          this.converter.convert(details.yields, 'input'),
+          this.converter.convert(details.returns, 'input'),
+        ),
+      }
 
-          const query = querySchema
-            ? this.parametersBuilder.build('query', querySchema)
-            : []
+      return
+    }
 
-          const headers = headersSchema
-            ? this.parametersBuilder.build('header', headersSchema)
-            : []
+    const dynamicParams = getDynamicParams(def.route.path)
+    const inputStructure = fallbackContractConfig('defaultInputStructure', def.route.inputStructure)
+    let [required, schema] = this.converter.convert(def.inputSchema, 'input')
 
-          const parameters = [...params, ...query, ...headers]
+    if (isAnySchema(schema) && !dynamicParams?.length) {
+      return
+    }
 
-          const requestBody = bodySchema !== undefined
-            ? {
-                required: this.schemaUtils.isUndefinableSchema(bodySchema),
-                content: this.contentBuilder.build(bodySchema),
-              }
-            : undefined
+    if (inputStructure === 'compact') {
+      if (dynamicParams?.length) {
+        const error = new OpenAPIGeneratorError(
+          'When input structure is "compact", and path has dynamic params, input schema must be an object with all dynamic params as required.',
+        )
 
-          return { parameters, requestBody }
-        })()
+        if (!isObjectSchema(schema)) {
+          throw error
+        }
 
-        const { responses } = (() => {
-          const eventIteratorSchemaDetails = getEventIteratorSchemaDetails(def.outputSchema)
+        const [paramsSchema, rest] = separateObjectSchema(schema, dynamicParams)
 
-          if (eventIteratorSchemaDetails) {
-            const responses: OpenAPI.ResponsesObject = {}
+        schema = rest
+        required = rest.required ? rest.required.length !== 0 : false
 
-            responses[fallbackContractConfig('defaultSuccessStatus', def.route?.successStatus)] = {
-              description: fallbackContractConfig('defaultSuccessDescription', def.route?.successDescription),
-              content: {
-                'text/event-stream': {
-                  schema: {
-                    oneOf: [
-                      {
-                        type: 'object',
-                        properties: {
-                          event: { type: 'string', const: 'message' },
-                          data: this.schemaConverter.convert(eventIteratorSchemaDetails.yields, 'input')[1] as any,
-                          id: { type: 'string' },
-                          retry: { type: 'number' },
-                        },
-                        required: ['event', 'data'],
-                      },
-                      {
-                        type: 'object',
-                        properties: {
-                          event: { type: 'string', const: 'done' },
-                          data: this.schemaConverter.convert(eventIteratorSchemaDetails.returns, 'input')[1] as any,
-                          id: { type: 'string' },
-                          retry: { type: 'number' },
-                        },
-                        required: ['event', 'data'],
-                      },
-                      {
-                        type: 'object',
-                        properties: {
-                          event: { type: 'string', const: 'error' },
-                          data: {},
-                          id: { type: 'string' },
-                          retry: { type: 'number' },
-                        },
-                        required: ['event', 'data'],
-                      },
-                    ],
-                  },
-                },
-              },
-            }
+        if (!checkParamsSchema(paramsSchema, dynamicParams)) {
+          throw error
+        }
 
-            return { responses }
-          }
+        ref.parameters ??= []
+        ref.parameters.push(...toOpenAPIParameters(paramsSchema, 'path'))
+      }
 
-          const outputStructure = fallbackContractConfig('defaultOutputStructure', def.route?.outputStructure)
-          const { headersSchema: resHeadersSchema, bodySchema: resBodySchema } = this.outputStructureParser.parse(contract, outputStructure)
+      if (method === 'GET') {
+        if (!isObjectSchema(schema)) {
+          throw new OpenAPIGeneratorError(
+            'When method is "GET", input schema must satisfy: object | any | unknown',
+          )
+        }
 
-          const responses: OpenAPI.ResponsesObject = {}
+        ref.parameters ??= []
+        ref.parameters.push(...toOpenAPIParameters(schema, 'query'))
+      }
+      else {
+        ref.requestBody = {
+          required,
+          content: toOpenAPIContent(schema),
+        }
+      }
 
-          responses[fallbackContractConfig('defaultSuccessStatus', def.route?.successStatus)] = {
-            description: fallbackContractConfig('defaultSuccessDescription', def.route?.successDescription),
-            content: resBodySchema !== undefined
-              ? this.contentBuilder.build(resBodySchema)
-              : undefined,
-            headers: resHeadersSchema !== undefined
-              ? this.parametersBuilder.buildHeadersObject(resHeadersSchema)
-              : undefined,
-          }
+      return
+    }
 
-          return { responses }
-        })()
+    const error = new OpenAPIGeneratorError(
+      'When input structure is "detailed", input schema must satisfy: '
+      + '{ params?: Record<string, unknown>, query?: Record<string, unknown>, headers?: Record<string, unknown>, body?: unknown }',
+    )
 
-        const errors = group(Object.entries(def.errorMap ?? {})
-          .filter(([_, config]) => config)
-          .map(([code, config]: any) => ({
-            ...config,
-            code,
-            status: fallbackORPCErrorStatus(code, config?.status),
-          })), error => error.status)
+    if (!isObjectSchema(schema)) {
+      throw error
+    }
 
-        for (const status in errors) {
-          const configs = errors[status]
+    if (
+      dynamicParams?.length && (
+        schema.properties?.params === undefined
+        || !isObjectSchema(schema.properties.params)
+        || !checkParamsSchema(schema.properties.params, dynamicParams)
+      )
+    ) {
+      throw new OpenAPIGeneratorError(
+        'When input structure is "detailed" and path has dynamic params, the "params" schema must be an object with all dynamic params as required.',
+      )
+    }
 
-          if (!configs || configs.length === 0) {
-            continue
-          }
+    for (const from of ['params', 'query', 'headers']) {
+      const fromSchema = schema.properties?.[from]
+      if (fromSchema !== undefined) {
+        if (!isObjectSchema(fromSchema)) {
+          throw error
+        }
 
-          const schemas: JSONSchema[] = configs
-            .map(({ data, code, message }) => {
-              const json = {
-                type: 'object',
-                properties: {
-                  defined: { const: true },
-                  code: { const: code },
-                  status: { const: Number(status) },
-                  message: { type: 'string', default: message },
-                  data: {},
-                },
-                required: ['defined', 'code', 'status', 'message'],
-              } satisfies JSONSchema
+        const parameterIn: 'path' | 'query' | 'header' = from === 'params'
+          ? 'path'
+          : from === 'headers'
+            ? 'header'
+            : 'query'
 
-              if (data) {
-                const dataJson = this.schemaConverter.convert(data, 'output')[1]
+        ref.parameters ??= []
+        ref.parameters.push(...toOpenAPIParameters(fromSchema, parameterIn))
+      }
+    }
 
-                json.properties.data = dataJson
+    if (schema.properties?.body !== undefined) {
+      ref.requestBody = {
+        required: schema.required?.includes('body'),
+        content: toOpenAPIContent(schema.properties.body),
+      }
+    }
+  }
 
-                if (!this.schemaUtils.isUndefinableSchema(dataJson)) {
-                  json.required.push('data')
-                }
-              }
+  #successResponse(ref: OpenAPI.OperationObject, def: AnyContractProcedure['~orpc']): void {
+    const outputSchema = def.outputSchema
+    const status = fallbackContractConfig('defaultSuccessStatus', def.route.successStatus)
+    const description = fallbackContractConfig('defaultSuccessDescription', def.route?.successDescription)
+    const eventIteratorSchemaDetails = getEventIteratorSchemaDetails(outputSchema)
+    const outputStructure = fallbackContractConfig('defaultOutputStructure', def.route.outputStructure)
 
-              return json
-            })
+    if (eventIteratorSchemaDetails) {
+      ref.responses ??= {}
+      ref.responses[status] = {
+        description,
+        content: toOpenAPIEventIteratorContent(
+          this.converter.convert(eventIteratorSchemaDetails.yields, 'output'),
+          this.converter.convert(eventIteratorSchemaDetails.returns, 'output'),
+        ),
+      }
 
-          if (this.strictErrorResponses) {
-            schemas.push({
+      return
+    }
+
+    const [_, json] = this.converter.convert(outputSchema, 'output')
+
+    ref.responses ??= {}
+    ref.responses[status] = {
+      description,
+    }
+
+    if (outputStructure === 'compact') {
+      ref.responses[status].content = toOpenAPIContent(json)
+
+      return
+    }
+
+    const error = new OpenAPIGeneratorError(
+      'When output structure is "detailed", output schema must satisfy: '
+      + '{ headers?: Record<string, unknown>, body?: unknown }',
+    )
+
+    if (!isObjectSchema(json)) {
+      throw error
+    }
+
+    if (json.properties?.headers !== undefined) {
+      if (!isObjectSchema(json.properties.headers)) {
+        throw error
+      }
+
+      for (const key in json.properties.headers.properties) {
+        ref.responses[status].headers ??= {}
+        ref.responses[status].headers[key] = {
+          schema: toOpenAPISchema(json.properties.headers.properties[key]!) as any,
+          required: json.properties.headers.required?.includes(key),
+        }
+      }
+    }
+
+    if (json.properties?.body !== undefined) {
+      ref.responses[status].content = toOpenAPIContent(json.properties.body)
+    }
+  }
+
+  #errorResponse(ref: OpenAPI.OperationObject, def: AnyContractProcedure['~orpc']): void {
+    const errorMap = def.errorMap as ErrorMap
+
+    const errors: Record<string, JSONSchema[]> = {}
+
+    for (const code in errorMap) {
+      const config = errorMap[code]
+
+      if (!config) {
+        continue
+      }
+
+      const status = fallbackORPCErrorStatus(code, config.status)
+      const message = fallbackORPCErrorMessage(code, config.message)
+
+      const [dataRequired, dataSchema] = this.converter.convert(config.data, 'output')
+
+      errors[status] ??= []
+      errors[status].push({
+        type: 'object',
+        properties: {
+          defined: { const: true },
+          code: { const: code },
+          status: { const: status },
+          message: { type: 'string', default: message },
+          data: dataSchema,
+        },
+        required: dataRequired ? ['defined', 'code', 'status', 'message', 'data'] : ['defined', 'code', 'status', 'message'],
+      })
+    }
+
+    ref.responses ??= {}
+
+    for (const status in errors) {
+      const schemas = errors[status]!
+
+      ref.responses[status] = {
+        description: status,
+        content: toOpenAPIContent({
+          oneOf: [
+            ...schemas,
+            {
               type: 'object',
               properties: {
                 defined: { const: false },
@@ -319,69 +303,10 @@ export class OpenAPIGenerator {
                 data: {},
               },
               required: ['defined', 'code', 'status', 'message'],
-            })
-          }
-
-          const contentSchema = schemas.length === 1
-            ? schemas[0]!
-            : {
-                oneOf: schemas,
-              }
-
-          responses[status] = {
-            description: status,
-            content: this.contentBuilder.build(contentSchema),
-          }
-        }
-
-        if (this.considerMissingTagDefinitionAsError && def.route?.tags) {
-          const missingTag = def.route?.tags.find(tag => !rootTags.includes(tag))
-
-          if (missingTag !== undefined) {
-            throw new OpenAPIError(
-              `Tag "${missingTag}" is missing definition. Please define it in OpenAPI root tags object`,
-            )
-          }
-        }
-
-        const operation: OpenAPI.OperationObject = {
-          summary: def.route?.summary,
-          description: def.route?.description,
-          deprecated: def.route?.deprecated,
-          tags: def.route?.tags ? [...def.route.tags] : undefined,
-          operationId: path.join('.'),
-          parameters: parameters.length ? parameters : undefined,
-          requestBody,
-          responses,
-        }
-
-        const extendedOperation = extendOperation(operation, contract)
-
-        builder.addPath(httpPath, {
-          [method.toLocaleLowerCase()]: extendedOperation,
-        })
+            },
+          ],
+        }),
       }
-      catch (e) {
-        if (e instanceof OpenAPIError) {
-          const error = new OpenAPIError(`
-            Generate OpenAPI Error: ${e.message}
-            Happened at path: ${path.join('.')}
-          `, { cause: e })
-
-          if (this.errorHandlerStrategy === 'throw') {
-            throw error
-          }
-
-          if (this.errorHandlerStrategy === 'log') {
-            console.error(error)
-          }
-        }
-        else {
-          throw e
-        }
-      }
-    })
-
-    return this.jsonSerializer.serialize(builder.getSpec())[0] as OpenAPI.OpenAPIObject
+    }
   }
 }

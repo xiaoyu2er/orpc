@@ -2,6 +2,7 @@ import type { OpenAPI } from './openapi'
 import { type AnyContractProcedure, eventIterator, oc } from '@orpc/contract'
 import { z } from 'zod'
 import { oz, ZodToJsonSchemaConverter } from '../../zod/src'
+import { customOpenAPIOperation } from './openapi-custom'
 import { OpenAPIGenerator } from './openapi-generator'
 
 type TestCase = {
@@ -503,10 +504,163 @@ const successResponseTests: TestCase[] = [
   },
 ]
 
+const errorResponseTests: TestCase[] = [
+  {
+    name: 'without errors',
+    contract: oc,
+    expected: {
+      '/': {
+        post: expect.objectContaining({
+          responses: {
+            200: {
+              description: 'OK',
+              content: {
+                'application/json': {
+                  schema: {},
+                },
+              },
+            },
+          },
+        }),
+      },
+    },
+  },
+  {
+    name: 'with errors',
+    contract: oc.errors({
+      UNAUTHORIZED: {
+        data: z.object({ token: z.string() }),
+      },
+      UNAUTHORIZED_TEST: {
+        status: 401,
+        message: 'Unauthorized test',
+        data: z.object({ token: z.string() }).optional(),
+      },
+      FORBIDDEN: undefined,
+      TEST: {},
+    }),
+    expected: {
+      '/': {
+        post: expect.objectContaining({
+          responses: expect.objectContaining({
+            401: {
+              description: '401',
+              content: {
+                'application/json': {
+                  schema: {
+                    oneOf: [
+                      {
+                        type: 'object',
+                        properties: {
+                          defined: { const: true },
+                          code: { const: 'UNAUTHORIZED' },
+                          status: { const: 401 },
+                          message: { type: 'string', default: 'Unauthorized' },
+                          data: {
+                            type: 'object',
+                            properties: {
+                              token: { type: 'string' },
+                            },
+                            required: ['token'],
+                          },
+                        },
+                        required: ['defined', 'code', 'status', 'message', 'data'],
+                      },
+                      {
+                        type: 'object',
+                        properties: {
+                          defined: { const: true },
+                          code: { const: 'UNAUTHORIZED_TEST' },
+                          status: { const: 401 },
+                          message: { type: 'string', default: 'Unauthorized test' },
+                          data: {
+                            type: 'object',
+                            properties: {
+                              token: { type: 'string' },
+                            },
+                            required: ['token'],
+                          },
+                        },
+                        required: ['defined', 'code', 'status', 'message'],
+                      },
+                      {
+                        type: 'object',
+                        properties: {
+                          defined: { const: false },
+                          code: { type: 'string' },
+                          status: { type: 'number' },
+                          message: { type: 'string' },
+                          data: {},
+                        },
+                        required: ['defined', 'code', 'status', 'message'],
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+            500: {
+              description: '500',
+              content: {
+                'application/json': {
+                  schema: {
+                    oneOf: [
+                      {
+                        type: 'object',
+                        properties: {
+                          defined: { const: true },
+                          code: { const: 'TEST' },
+                          status: { const: 500 },
+                          message: { type: 'string', default: 'TEST' },
+                          data: {},
+                        },
+                        required: ['defined', 'code', 'status', 'message'],
+                      },
+                      {
+                        type: 'object',
+                        properties: {
+                          defined: { const: false },
+                          code: { type: 'string' },
+                          status: { type: 'number' },
+                          message: { type: 'string' },
+                          data: {},
+                        },
+                        required: ['defined', 'code', 'status', 'message'],
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          }),
+        }),
+      },
+    },
+  },
+]
+
+const customOperationTests: TestCase[] = [
+  {
+    name: 'with security custom',
+    contract: oc.errors({
+      TEST: customOpenAPIOperation({ }, () => ({ security: [{ bearerAuth: [] }] })),
+    }).input(z.object({ id: z.string() })).output(z.object({ name: z.string() })),
+    expected: {
+      '/': {
+        post: {
+          security: [{ bearerAuth: [] }],
+        },
+      },
+    },
+  },
+]
+
 it.each([
   ...routeTests,
   ...inputTests,
   ...successResponseTests,
+  ...errorResponseTests,
+  ...customOperationTests,
 ])('openAPIGenerator.generate: %# - $name', async ({ contract, expected, error }) => {
   const openAPIGenerator = new OpenAPIGenerator({
     schemaConverters: [
@@ -534,4 +688,24 @@ it.each([
       paths: expected,
     })
   }
+})
+
+it('openAPIGenerator.generate throw right away if unknown error', async () => {
+  const openAPIGenerator = new OpenAPIGenerator({
+    schemaConverters: [
+      {
+        condition: () => true,
+        convert: () => {
+          throw new Error('unknown error')
+        },
+      },
+    ],
+  })
+
+  await expect(openAPIGenerator.generate(oc, {
+    info: {
+      title: 'test',
+      version: '1.0.0',
+    },
+  })).rejects.toThrow('unknown error')
 })

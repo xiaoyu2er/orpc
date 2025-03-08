@@ -1,7 +1,7 @@
 import type { AnyContractProcedure, AnyContractRouter, ErrorMap } from '@orpc/contract'
 import type { OpenAPI } from './openapi'
 import type { JSONSchema } from './schema'
-import { fallbackORPCErrorStatus } from '@orpc/client'
+import { fallbackORPCErrorMessage, fallbackORPCErrorStatus } from '@orpc/client'
 import { fallbackContractConfig, getEventIteratorSchemaDetails } from '@orpc/contract'
 import { OpenAPISerializer } from '@orpc/openapi-client/standard'
 import { type AnyRouter, convertPathToHttpPath, eachAllContractProcedure } from '@orpc/server'
@@ -268,6 +268,7 @@ export class OpenAPIGenerator {
       }
 
       const status = fallbackORPCErrorStatus(code, config.status)
+      const message = fallbackORPCErrorMessage(code, config.message)
 
       const [dataRequired, dataSchema] = this.converter.convert(config.data, 'output')
 
@@ -278,7 +279,7 @@ export class OpenAPIGenerator {
           defined: { const: true },
           code: { const: code },
           status: { const: status },
-          message: { type: 'string', default: config.message },
+          message: { type: 'string', default: message },
           data: dataSchema,
         },
         required: dataRequired ? ['defined', 'code', 'status', 'message', 'data'] : ['defined', 'code', 'status', 'message'],

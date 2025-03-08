@@ -1,14 +1,16 @@
 import type { Schema } from '@orpc/contract'
 import type { JSONSchema } from './schema'
 
-export type SchemaConvertStrategy = 'input' | 'output'
+export interface SchemaConvertOptions {
+  strategy: 'input' | 'output'
+}
 
 export interface SchemaConverter {
-  convert(schema: Schema, strategy: SchemaConvertStrategy): [required: boolean, jsonSchema: JSONSchema]
+  convert(schema: Schema, options: SchemaConvertOptions): [required: boolean, jsonSchema: JSONSchema]
 }
 
 export interface ConditionalSchemaConverter extends SchemaConverter {
-  condition(schema: Schema, strategy: SchemaConvertStrategy): boolean
+  condition(schema: Schema, options: SchemaConvertOptions): boolean
 }
 
 export class CompositeSchemaConverter implements SchemaConverter {
@@ -18,10 +20,10 @@ export class CompositeSchemaConverter implements SchemaConverter {
     this.converters = converters
   }
 
-  convert(schema: Schema, strategy: SchemaConvertStrategy): [required: boolean, jsonSchema: JSONSchema] {
+  convert(schema: Schema, options: SchemaConvertOptions): [required: boolean, jsonSchema: JSONSchema] {
     for (const converter of this.converters) {
-      if (converter.condition(schema, strategy)) {
-        return converter.convert(schema, strategy)
+      if (converter.condition(schema, options)) {
+        return converter.convert(schema, options)
       }
     }
 

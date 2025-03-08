@@ -27,36 +27,36 @@ describe('customJsonSchema', () => {
   it('input strategy', () => {
     customJsonSchema(z.string(), {
       examples: ['string'],
-    }, 'input')
+    }, { strategy: 'input' })
     customJsonSchema(z.string(), {
       // @ts-expect-error --- must be string
       examples: [123],
-    }, 'input')
+    }, { strategy: 'input' })
 
     customJsonSchema(z.string().transform(v => Number(v)), {
       examples: ['string'],
-    }, 'input')
+    }, { strategy: 'input' })
     customJsonSchema(z.string().transform(v => Number(v)), {
       // @ts-expect-error --- must be string
       examples: [123],
-    }, 'input')
+    }, { strategy: 'input' })
   })
 
   it('output strategy', () => {
     customJsonSchema(z.string(), {
       examples: ['string'],
-    }, 'output')
+    }, { strategy: 'output' })
     customJsonSchema(z.string(), {
       // @ts-expect-error --- must be string
       examples: [123],
-    }, 'output')
+    }, { strategy: 'output' })
 
     customJsonSchema(z.string().transform(v => Number(v)), {
       examples: [123],
-    }, 'output')
+    }, { strategy: 'output' })
     customJsonSchema(z.string().transform(v => Number(v)), {
       // @ts-expect-error --- must be number
       examples: ['string'],
-    }, 'output')
+    }, { strategy: 'output' })
   })
 })

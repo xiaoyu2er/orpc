@@ -24,13 +24,13 @@ describe('compositeSchemaConverter', () => {
   const schema = z.object({})
 
   it('fallback to any if no condition is matched', () => {
-    expect(converter.convert(schema, 'input')).toEqual([false, {}])
+    expect(converter.convert(schema, { strategy: 'input' })).toEqual([false, {}])
 
     expect(converter1.condition).toBeCalledTimes(1)
-    expect(converter1.condition).toBeCalledWith(schema, 'input')
+    expect(converter1.condition).toBeCalledWith(schema, { strategy: 'input' })
     expect(converter1.convert).not.toHaveBeenCalled()
     expect(converter2.condition).toBeCalledTimes(1)
-    expect(converter2.condition).toBeCalledWith(schema, 'input')
+    expect(converter2.condition).toBeCalledWith(schema, { strategy: 'input' })
     expect(converter2.convert).not.toHaveBeenCalled()
   })
 
@@ -38,11 +38,11 @@ describe('compositeSchemaConverter', () => {
     converter1.condition.mockReturnValue(true)
     converter1.convert.mockReturnValue('__MATCHED__')
 
-    expect(converter.convert(schema, 'input')).toEqual('__MATCHED__')
+    expect(converter.convert(schema, { strategy: 'input' })).toEqual('__MATCHED__')
 
     expect(converter1.condition).toBeCalledTimes(1)
     expect(converter1.convert).toHaveBeenCalled()
-    expect(converter1.convert).toBeCalledWith(schema, 'input')
+    expect(converter1.convert).toBeCalledWith(schema, { strategy: 'input' })
 
     expect(converter2.condition).not.toHaveBeenCalled()
     expect(converter2.convert).not.toHaveBeenCalled()

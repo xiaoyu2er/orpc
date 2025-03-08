@@ -359,10 +359,10 @@ const extendSchemaCases: SchemaTestCase[] = [
       customJsonSchema(
         customJsonSchema(z.string(), { examples: ['both'] }),
         { examples: ['input'] },
-        'input',
+        { strategy: 'input' },
       ),
       { examples: ['output'] },
-      'output',
+      { strategy: 'output' },
     ),
     input: [true, { type: 'string', examples: ['input'] }],
     output: [true, { type: 'string', examples: ['output'] }],
@@ -425,7 +425,7 @@ describe.each([
         : { anyOf: [expectedJson, { type: 'null' }] }
 
     it('flat', () => {
-      const [required, json] = converter.convert(schema, strategy)
+      const [required, json] = converter.convert(schema, { strategy })
 
       expect(required).toEqual(expectedRequired)
       expect(json).toEqual(expectedJson)
@@ -450,7 +450,7 @@ describe.each([
 
     it('object', () => {
       const testSchema = z.object({ value: schema })
-      const [required, json] = converter.convert(testSchema, strategy)
+      const [required, json] = converter.convert(testSchema, { strategy })
 
       expect(required).toEqual(true)
       expect(json).toEqual({
@@ -472,7 +472,7 @@ describe.each([
 
     it('array', () => {
       const testSchema = z.array(schema)
-      const [required, json] = converter.convert(testSchema, strategy)
+      const [required, json] = converter.convert(testSchema, { strategy })
 
       expect(required).toEqual(true)
       expect(json).toEqual({
@@ -490,7 +490,7 @@ describe.each([
 
     it('tuple', () => {
       const testSchema = z.tuple([schema, schema]).rest(schema)
-      const [required, json] = converter.convert(testSchema, strategy)
+      const [required, json] = converter.convert(testSchema, { strategy })
 
       expect(required).toEqual(true)
       expect(json).toEqual({
@@ -521,7 +521,7 @@ describe.each([
 
     it('set', () => {
       const testSchema = z.set(schema)
-      const [required, json] = converter.convert(testSchema, strategy)
+      const [required, json] = converter.convert(testSchema, { strategy })
 
       expect(required).toEqual(true)
       expect(json).toEqual({
@@ -544,7 +544,7 @@ describe.each([
 
     it('map', () => {
       const testSchema = z.map(schema, schema.optional())
-      const [required, json] = converter.convert(testSchema, strategy)
+      const [required, json] = converter.convert(testSchema, { strategy })
 
       expect(required).toEqual(true)
       expect(json).toEqual({
@@ -582,7 +582,7 @@ describe.each([
 
     it('record', () => {
       const testSchema = z.record(schema)
-      const [required, json] = converter.convert(testSchema, strategy)
+      const [required, json] = converter.convert(testSchema, { strategy })
 
       expect(required).toEqual(true)
       expect(json).toEqual({

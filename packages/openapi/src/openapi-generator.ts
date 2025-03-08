@@ -85,8 +85,8 @@ export class OpenAPIGenerator {
       ref.requestBody = {
         required: true,
         content: toOpenAPIEventIteratorContent(
-          this.converter.convert(details.yields, 'input'),
-          this.converter.convert(details.returns, 'input'),
+          this.converter.convert(details.yields, { strategy: 'input' }),
+          this.converter.convert(details.returns, { strategy: 'input' }),
         ),
       }
 
@@ -95,7 +95,7 @@ export class OpenAPIGenerator {
 
     const dynamicParams = getDynamicParams(def.route.path)
     const inputStructure = fallbackContractConfig('defaultInputStructure', def.route.inputStructure)
-    let [required, schema] = this.converter.convert(def.inputSchema, 'input')
+    let [required, schema] = this.converter.convert(def.inputSchema, { strategy: 'input' })
 
     if (isAnySchema(schema) && !dynamicParams?.length) {
       return
@@ -203,15 +203,15 @@ export class OpenAPIGenerator {
       ref.responses[status] = {
         description,
         content: toOpenAPIEventIteratorContent(
-          this.converter.convert(eventIteratorSchemaDetails.yields, 'output'),
-          this.converter.convert(eventIteratorSchemaDetails.returns, 'output'),
+          this.converter.convert(eventIteratorSchemaDetails.yields, { strategy: 'output' }),
+          this.converter.convert(eventIteratorSchemaDetails.returns, { strategy: 'output' }),
         ),
       }
 
       return
     }
 
-    const [_, json] = this.converter.convert(outputSchema, 'output')
+    const [_, json] = this.converter.convert(outputSchema, { strategy: 'output' })
 
     ref.responses ??= {}
     ref.responses[status] = {
@@ -267,7 +267,7 @@ export class OpenAPIGenerator {
       const status = fallbackORPCErrorStatus(code, config.status)
       const message = fallbackORPCErrorMessage(code, config.message)
 
-      const [dataRequired, dataSchema] = this.converter.convert(config.data, 'output')
+      const [dataRequired, dataSchema] = this.converter.convert(config.data, { strategy: 'output' })
 
       errors[status] ??= []
       errors[status].push({

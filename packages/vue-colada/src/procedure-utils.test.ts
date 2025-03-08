@@ -17,7 +17,7 @@ it('.call', () => {
   const client = vi.fn(
     (...[input]) => Promise.resolve(input?.toString()),
   )
-  const utils = createProcedureUtils(client, ['ping'])
+  const utils = createProcedureUtils(client, { path: ['ping'] })
 
   expect(utils.call).toBe(client)
 })
@@ -26,7 +26,7 @@ describe('queryOptions', () => {
   const client = vi.fn(
     (...[input]) => Promise.resolve(input?.toString()),
   )
-  const utils = createProcedureUtils(client, ['ping'])
+  const utils = createProcedureUtils(client, { path: ['ping'] })
 
   beforeEach(() => {
     client.mockClear()
@@ -61,7 +61,7 @@ describe('queryOptions', () => {
 
   it('works with client context', async () => {
     const client = vi.fn((...[input]) => Promise.resolve(input?.toString()))
-    const utils = createProcedureUtils(client, ['ping'])
+    const utils = createProcedureUtils(client, { path: ['ping'] })
 
     const options = utils.queryOptions({ context: { batch: ref(true) } }) as any
 
@@ -80,7 +80,7 @@ describe('mutationOptions', () => {
   const client = vi.fn(
     (...[input]) => Promise.resolve(input?.toString()),
   )
-  const utils = createProcedureUtils(client, ['ping'])
+  const utils = createProcedureUtils(client, { path: ['ping'] })
 
   beforeEach(() => {
     client.mockClear()
@@ -103,7 +103,7 @@ describe('mutationOptions', () => {
     const client = vi.fn(
       (...[input]) => Promise.resolve(input?.toString()),
     )
-    const utils = createProcedureUtils(client, ['ping'])
+    const utils = createProcedureUtils(client, { path: ['ping'] })
 
     const options = utils.mutationOptions({ context: { batch: ref(true) } }) as any
 

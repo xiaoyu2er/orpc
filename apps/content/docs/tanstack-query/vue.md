@@ -57,6 +57,10 @@ orpc.planet.find.queryOptions({ input: { id: 123 } })
 Prevent key conflicts by passing a unique base key when creating your utils:
 
 ```ts
-const userORPC = createORPCVueQueryUtils(userClient, ['user'])
-const postORPC = createORPCVueQueryUtils(postClient, ['post'])
+const userORPC = createORPCVueQueryUtils(userClient, {
+  path: ['user']
+})
+const postORPC = createORPCVueQueryUtils(postClient, {
+  path: ['post']
+})
 ```

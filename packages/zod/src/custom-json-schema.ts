@@ -7,13 +7,13 @@ const CUSTOM_JSON_SCHEMA_OUTPUT_SYMBOL = Symbol('ORPC_CUSTOM_JSON_SCHEMA_OUTPUT'
 
 export function getCustomJsonSchema(
   def: ZodTypeDef,
-  strategy: 'input' | 'output' | 'both',
+  options: { strategy: 'input' | 'output' | 'both' },
 ): Exclude<JSONSchema, boolean> | undefined {
-  if (strategy === 'input' && CUSTOM_JSON_SCHEMA_INPUT_SYMBOL in def) {
+  if (options.strategy === 'input' && CUSTOM_JSON_SCHEMA_INPUT_SYMBOL in def) {
     return def[CUSTOM_JSON_SCHEMA_INPUT_SYMBOL] as Exclude<JSONSchema, boolean>
   }
 
-  if (strategy === 'output' && CUSTOM_JSON_SCHEMA_OUTPUT_SYMBOL in def) {
+  if (options.strategy === 'output' && CUSTOM_JSON_SCHEMA_OUTPUT_SYMBOL in def) {
     return def[CUSTOM_JSON_SCHEMA_OUTPUT_SYMBOL] as Exclude<JSONSchema, boolean>
   }
 
@@ -39,11 +39,11 @@ export function customJsonSchema<
     >,
     boolean
   >,
-  strategy?: TStrategy,
+  options: { strategy?: TStrategy } = {},
 ): T {
-  const SYMBOL = strategy === 'input'
+  const SYMBOL = options.strategy === 'input'
     ? CUSTOM_JSON_SCHEMA_INPUT_SYMBOL
-    : strategy === 'output'
+    : options.strategy === 'output'
       ? CUSTOM_JSON_SCHEMA_OUTPUT_SYMBOL
       : CUSTOM_JSON_SCHEMA_SYMBOL
 

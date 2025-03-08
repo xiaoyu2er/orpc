@@ -33,6 +33,8 @@ export class OpenAPIGenerator {
     const errors: string[] = []
 
     await eachAllContractProcedure({ path: [], router }, ({ contract, path }) => {
+      const operationId = path.join('.')
+
       try {
         const def = contract['~orpc']
 
@@ -40,6 +42,7 @@ export class OpenAPIGenerator {
         const httpPath = toOpenAPIPath(def.route.path ?? convertPathToHttpPath(path))
 
         const operationObjectRef: OpenAPI.OperationObject = {
+          operationId,
           summary: def.route.summary,
           description: def.route.description,
           deprecated: def.route.deprecated,
@@ -60,7 +63,7 @@ export class OpenAPIGenerator {
         }
 
         errors.push(
-          `[OpenAPIGenerator] Error occurred while generating OpenAPI for procedure at path: ${path.join('.')}\n${e.message}`,
+          `[OpenAPIGenerator] Error occurred while generating OpenAPI for procedure at path: ${operationId}\n${e.message}`,
         )
       }
     })

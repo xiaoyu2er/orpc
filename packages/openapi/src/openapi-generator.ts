@@ -17,7 +17,10 @@ export interface OpenAPIGeneratorOptions {
   schemaConverters?: ConditionalSchemaConverter[]
 }
 
-export type OpenAPIGenerateBase = Omit<OpenAPI.Document, 'openapi'> & { info: { title: OpenAPI.InfoObject['title'], version: OpenAPI.InfoObject['version'] } }
+export type OpenAPIGenerateBase = OpenAPI.Document & {
+  info: { title: OpenAPI.InfoObject['title'], version: OpenAPI.InfoObject['version'] }
+  openapi?: undefined
+}
 
 export class OpenAPIGenerator {
   private readonly serializer: OpenAPISerializer

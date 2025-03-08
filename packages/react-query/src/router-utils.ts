@@ -9,14 +9,16 @@ export type RouterUtils<T extends NestedClient<any>> =
       [K in keyof T]: T[K] extends NestedClient<any> ? RouterUtils<T[K]> : never
     } & GeneralUtils<unknown>
 
-/**
- * @param client - Any kind of oRPC clients: `createRouterClient`, `createORPCClient`, ...
- * @param path - The base path for query key, when it it will be prefix to all keys
- */
+export interface CreateRouterUtilsOptions {
+  path?: string[]
+}
+
 export function createRouterUtils<T extends NestedClient<any>>(
   client: T,
-  path: string[] = [],
+  options: CreateRouterUtilsOptions = {},
 ): RouterUtils<T> {
+  const path = options.path ?? []
+
   const generalUtils = createGeneralUtils(path)
   const procedureUtils = createProcedureUtils(client as any, path)
 
@@ -31,7 +33,7 @@ export function createRouterUtils<T extends NestedClient<any>>(
         return value
       }
 
-      const nextUtils = createRouterUtils((client as any)[prop], [...path, prop])
+      const nextUtils = createRouterUtils((client as any)[prop], { ...options, path: [...path, prop] })
 
       if (typeof value !== 'function') {
         return nextUtils

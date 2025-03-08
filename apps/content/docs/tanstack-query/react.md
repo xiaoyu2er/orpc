@@ -57,8 +57,12 @@ orpc.planet.find.queryOptions({ input: { id: 123 } })
 Prevent key conflicts by passing a unique base key when creating your utils:
 
 ```ts
-const userORPC = createORPCReactQueryUtils(userClient, ['user'])
-const postORPC = createORPCReactQueryUtils(postClient, ['post'])
+const userORPC = createORPCReactQueryUtils(userClient, {
+  path: ['user']
+})
+const postORPC = createORPCReactQueryUtils(postClient, {
+  path: ['post']
+})
 ```
 
 ## Using React Context

@@ -19,17 +19,6 @@ export function isObjectSchema(schema: JSONSchema): schema is ObjectSchema {
 /**
  * @internal
  */
-export function toJSONSchemaObject(schema: JSONSchema): Exclude<JSONSchema, boolean> {
-  return schema === true
-    ? {}
-    : schema === false
-      ? { not: {} }
-      : schema
-}
-
-/**
- * @internal
- */
 export function isAnySchema(schema: JSONSchema): boolean {
   if (schema === true) {
     return true

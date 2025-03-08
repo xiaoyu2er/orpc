@@ -1,5 +1,5 @@
 import type { FileSchema, JSONSchema, ObjectSchema } from './schema'
-import { checkParamsSchema, getDynamicParams, standardizeHTTPPath, toOpenAPIContent, toOpenAPIEventIteratorContent, toOpenAPIMethod, toOpenAPIParameters, toOpenAPIPath } from './openapi-utils'
+import { checkParamsSchema, getDynamicParams, standardizeHTTPPath, toOpenAPIContent, toOpenAPIEventIteratorContent, toOpenAPIMethod, toOpenAPIParameters, toOpenAPIPath, toOpenAPISchema } from './openapi-utils'
 
 it('standardizeHTTPPath', () => {
   expect(standardizeHTTPPath('/path')).toBe('/path')
@@ -291,4 +291,10 @@ describe('checkParamsSchema', () => {
 
     expect(checkParamsSchema(schema, ['a', 'b'])).toBe(true)
   })
+})
+
+it('toOpenAPISchema', () => {
+  expect(toOpenAPISchema(true)).toEqual({})
+  expect(toOpenAPISchema(false)).toEqual({ not: {} })
+  expect(toOpenAPISchema({ type: 'string' })).toEqual({ type: 'string' })
 })

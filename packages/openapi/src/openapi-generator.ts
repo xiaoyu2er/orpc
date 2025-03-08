@@ -7,7 +7,7 @@ import { OpenAPISerializer } from '@orpc/openapi-client/standard'
 import { type AnyRouter, convertPathToHttpPath, eachAllContractProcedure } from '@orpc/server'
 import { clone } from '@orpc/shared'
 import { applyCustomOpenAPIOperation } from './openapi-custom'
-import { checkParamsSchema, getDynamicParams, toOpenAPIContent, toOpenAPIEventIteratorContent, toOpenAPIMethod, toOpenAPIParameters, toOpenAPIPath } from './openapi-utils'
+import { checkParamsSchema, getDynamicParams, toOpenAPIContent, toOpenAPIEventIteratorContent, toOpenAPIMethod, toOpenAPIParameters, toOpenAPIPath, toOpenAPISchema } from './openapi-utils'
 import { CompositeSchemaConverter, type ConditionalSchemaConverter, type SchemaConverter } from './schema-converter'
 import { isAnySchema, isObjectSchema, separateObjectSchema } from './schema-utils'
 
@@ -15,11 +15,6 @@ class OpenAPIGeneratorError extends Error {}
 
 export interface OpenAPIGeneratorOptions {
   schemaConverters?: ConditionalSchemaConverter[]
-}
-
-export type OpenAPIGenerateBase = OpenAPI.Document & {
-  info: { title: OpenAPI.InfoObject['title'], version: OpenAPI.InfoObject['version'] }
-  openapi?: undefined
 }
 
 export class OpenAPIGenerator {
@@ -31,9 +26,8 @@ export class OpenAPIGenerator {
     this.converter = new CompositeSchemaConverter(options.schemaConverters ?? [])
   }
 
-  async generate(router: AnyContractRouter | AnyRouter, base: OpenAPIGenerateBase): Promise<OpenAPI.Document> {
-    const doc: OpenAPI.Document = clone(base)
-
+  async generate(router: AnyContractRouter | AnyRouter, base: Omit<OpenAPI.Document, 'openapi'>): Promise<OpenAPI.Document> {
+    const doc: OpenAPI.Document = clone(base) as OpenAPI.Document
     doc.openapi = '3.1.1'
 
     const errors: string[] = []
@@ -49,7 +43,7 @@ export class OpenAPIGenerator {
           summary: def.route.summary,
           description: def.route.description,
           deprecated: def.route.deprecated,
-          tags: def.route.tags,
+          tags: def.route.tags?.map(tag => tag),
         }
 
         this.#request(operationObjectRef, def)
@@ -58,7 +52,7 @@ export class OpenAPIGenerator {
 
         doc.paths ??= {}
         doc.paths[httpPath] ??= {}
-        doc.paths[httpPath][method] = applyCustomOpenAPIOperation(operationObjectRef, contract)
+        doc.paths[httpPath][method] = applyCustomOpenAPIOperation(operationObjectRef, contract) as any
       }
       catch (e) {
         if (!(e instanceof OpenAPIGeneratorError)) {
@@ -244,7 +238,7 @@ export class OpenAPIGenerator {
       for (const key in json.properties.headers.properties) {
         ref.responses[status].headers ??= {}
         ref.responses[status].headers[key] = {
-          schema: json.properties.headers.properties[key],
+          schema: toOpenAPISchema(json.properties.headers.properties[key]!) as any,
           required: json.properties.headers.required?.includes(key),
         }
       }

@@ -72,8 +72,8 @@
     "@orpc/standard-server": "workspace:*",
     "@orpc/standard-server-fetch": "workspace:*",
     "@orpc/standard-server-node": "workspace:*",
-    "@scalar/openapi-types": "^0.1.9",
     "json-schema-typed": "^8.0.1",
+    "openapi-types": "^12.1.3",
     "rou3": "^0.5.1"
   },
   "devDependencies": {

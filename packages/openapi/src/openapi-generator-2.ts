@@ -4,12 +4,11 @@ import type { JSONSchema } from './schema'
 import { fallbackORPCErrorStatus } from '@orpc/client'
 import { fallbackContractConfig, getEventIteratorSchemaDetails } from '@orpc/contract'
 import { OpenAPISerializer } from '@orpc/openapi-client/standard'
-import { type AnyRouter, eachAllContractProcedure } from '@orpc/server'
+import { type AnyRouter, convertPathToHttpPath, eachAllContractProcedure } from '@orpc/server'
 import { clone } from '@orpc/shared'
-import { getDynamicParams, toOpenAPIContent, toOpenAPIEventIteratorContent } from './openapi-utils'
+import { getDynamicParams, toOpenAPIContent, toOpenAPIEventIteratorContent, toOpenAPIMethod, toOpenAPIPath } from './openapi-utils'
 import { CompositeSchemaConverter, type ConditionalSchemaConverter, type SchemaConverter } from './schema-converter'
 import { isObjectSchema, separateObjectSchema } from './schema-utils'
-import { toOpenAPI31RoutePattern } from './utils'
 
 class OpenAPIGeneratorError extends Error {}
 
@@ -31,14 +30,14 @@ export class OpenAPIGenerator {
 
     doc.openapi = '3.1.1'
 
-    let hasError = false
+    let hasGenerationErrors = false
 
     await eachAllContractProcedure({ path: [], router }, ({ contract, path }) => {
       try {
         const def = contract['~orpc']
 
-        const method = (def.route.method ?? 'GET').toLocaleLowerCase()
-        const httpPath = def.route.path ? toOpenAPI31RoutePattern(def.route?.path) : `/${path.map(encodeURIComponent).join('/')}`
+        const method = toOpenAPIMethod(fallbackContractConfig('defaultMethod', def.route.method))
+        const httpPath = toOpenAPIPath(def.route.path ?? convertPathToHttpPath(path))
 
         const operationObjectRef: OpenAPI.OperationObject = {
           summary: def.route.summary,
@@ -60,13 +59,15 @@ export class OpenAPIGenerator {
           throw e
         }
 
-        hasError = true
+        hasGenerationErrors = true
 
-        console.error(e.message)
+        console.error(
+          `[OpenAPIGenerator] Error occurred while generating OpenAPI for procedure at path: ${path.join('.')}\n${e.message}`,
+        )
       }
     })
 
-    if (hasError) {
+    if (hasGenerationErrors) {
       throw new OpenAPIGeneratorError('Some error occurred during OpenAPI generation, please check the console for more details')
     }
 
@@ -88,22 +89,32 @@ export class OpenAPIGenerator {
       return
     }
 
+    const dynamicParams = getDynamicParams(def.route.path)
     const inputStructure = fallbackContractConfig('defaultInputStructure', def.route.inputStructure)
     const [required, schema] = this.converter.convert(def.inputSchema, 'input')
 
     if (inputStructure === 'compact') {
-      const dynamicParams = getDynamicParams(def.route.path ?? '/')
-
       if (dynamicParams?.length) {
+        const error = new OpenAPIGeneratorError(
+          'When input structure is "compact" and path has dynamic params, input schema must be an object with all dynamic params as required.',
+        )
+
         if (!isObjectSchema(schema)) {
-          throw new OpenAPIGeneratorError(
-            'When input structure is "compact" and path has dynamic parameters, input schema must be an object.',
-          )
+          throw error
         }
 
         const [params, body] = separateObjectSchema(schema, dynamicParams)
 
+        if (!params.properties || Object.keys(params.properties).length !== dynamicParams.length) {
+          throw error
+        }
+
+        if (params.required?.length !== dynamicParams.length) {
+          throw error
+        }
+
         ref.parameters ??= []
+
         for (const key in params.properties) {
           ref.parameters.push({
             name: key,
@@ -135,6 +146,24 @@ export class OpenAPIGenerator {
 
     if (!isObjectSchema(schema)) {
       throw error
+    }
+
+    if (dynamicParams?.length) {
+      const error = new OpenAPIGeneratorError(
+        'When input structure is "detailed" and path has dynamic params, the "params" schema must be an object with all dynamic params as required.',
+      )
+
+      if (schema.properties?.params === undefined || !isObjectSchema(schema.properties.params)) {
+        throw error
+      }
+
+      if (!schema.properties.params.properties || Object.keys(schema.properties.params.properties).length !== dynamicParams.length) {
+        throw error
+      }
+
+      if (schema.properties.params.required?.length !== dynamicParams.length) {
+        throw error
+      }
     }
 
     for (const from of ['params', 'query', 'headers']) {

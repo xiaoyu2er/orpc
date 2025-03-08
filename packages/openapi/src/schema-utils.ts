@@ -1,16 +1,6 @@
-import type { JSONSchema } from './types'
+import type { FileSchema, JSONSchema, ObjectSchema } from './schema'
 import { isObject } from '@orpc/shared'
-import { NON_LOGIC_KEYWORDS } from './schema'
-
-/**
- * @internal
- */
-export type FileSchema = JSONSchema & { type: 'string', contentMediaType: string } & object
-
-/**
- * @internal
- */
-export type ObjectSchema = JSONSchema & { type: 'object' } & object
+import { LOGIC_KEYWORDS } from './schema'
 
 /**
  *@internal
@@ -30,6 +20,10 @@ export function isObjectSchema(schema: JSONSchema): schema is ObjectSchema {
  * @internal
  */
 export function separateObjectSchema(schema: ObjectSchema, separatedProperties: string[]): [matched: ObjectSchema, rest: ObjectSchema] {
+  if (Object.keys(schema).some(k => k !== 'properties' && k !== 'required' && LOGIC_KEYWORDS.includes(k))) {
+    return [{ type: 'object' }, schema]
+  }
+
   const matched = { ...schema }
   const rest = { ...schema }
 
@@ -95,47 +89,52 @@ export function filterSchemaBranches(
     return [matches, undefined]
   }
 
-  if (typeof schema === 'boolean') {
-    return [matches, schema]
-  }
+  if (isObject(schema)) {
+    if (
+      schema.anyOf
+      && Object.keys(schema).every(
+        k => k === 'anyOf' || !LOGIC_KEYWORDS.includes(k),
+      )
+    ) {
+      const anyOf = schema.anyOf
+        .map(s => filterSchemaBranches(s, check, matches)[1])
+        .filter(v => !!v)
 
-  // TODO: $ref
+      if (anyOf.length === 1 && typeof anyOf[0] === 'object') {
+        return [matches, { ...schema, anyOf: undefined, ...anyOf[0] }]
+      }
 
-  if (
-    schema.anyOf
-    && Object.keys(schema).every(
-      k => k === 'anyOf' || NON_LOGIC_KEYWORDS.includes(k as any),
-    )
-  ) {
-    const anyOf = schema.anyOf
-      .map(s => filterSchemaBranches(s, check, matches)[1])
-      .filter(v => !!v)
-
-    if (anyOf.length === 1 && typeof anyOf[0] === 'object') {
-      return [matches, { ...schema, anyOf: undefined, ...anyOf[0] }]
+      return [matches, { ...schema, anyOf }]
     }
 
-    return [matches, { ...schema, anyOf }]
-  }
+    if (
+      schema.oneOf
+      && Object.keys(schema).every(
+        k => k === 'oneOf' || !LOGIC_KEYWORDS.includes(k),
+      )
+    ) {
+      const oneOf = schema.oneOf
+        .map(s => filterSchemaBranches(s, check, matches)[1])
+        .filter(v => !!v)
 
-  // TODO: $ref
+      if (oneOf.length === 1 && typeof oneOf[0] === 'object') {
+        return [matches, { ...schema, oneOf: undefined, ...oneOf[0] }]
+      }
 
-  if (
-    schema.oneOf
-    && Object.keys(schema).every(
-      k => k === 'oneOf' || NON_LOGIC_KEYWORDS.includes(k as any),
-    )
-  ) {
-    const oneOf = schema.oneOf
-      .map(s => filterSchemaBranches(s, check, matches)[1])
-      .filter(v => !!v)
-
-    if (oneOf.length === 1 && typeof oneOf[0] === 'object') {
-      return [matches, { ...schema, oneOf: undefined, ...oneOf[0] }]
+      return [matches, { ...schema, oneOf }]
     }
-
-    return [matches, { ...schema, oneOf }]
   }
 
   return [matches, schema]
+}
+
+/**
+ * @internal
+ */
+export function toJSONSchemaObject(schema: JSONSchema): Exclude<JSONSchema, boolean> {
+  return schema === true
+    ? {}
+    : schema === false
+      ? { not: {} }
+      : schema
 }

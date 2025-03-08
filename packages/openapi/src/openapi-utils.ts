@@ -1,8 +1,8 @@
-import type { HTTPPath } from '@orpc/contract'
-import type { FileSchema } from './schema-utils'
-import type { JSONSchema, OpenAPI } from './types'
+import type { HTTPMethod, HTTPPath } from '@orpc/contract'
+import type { OpenAPI } from './openapi'
+import type { FileSchema, JSONSchema } from './schema'
 import { findDeepMatches, isObject } from '@orpc/shared'
-import { filterSchemaBranches, isFileSchema } from './schema-utils'
+import { filterSchemaBranches, isFileSchema, toJSONSchemaObject } from './schema-utils'
 
 /**
  * @internal
@@ -21,8 +21,17 @@ export function toOpenAPIPath(path: HTTPPath): string {
 /**
  * @internal
  */
-export function getDynamicParams(path: HTTPPath): string[] | undefined {
-  return standardizeHTTPPath(path).match(/\/\{([^}]+)\}/g)?.map(v => v.match(/\{\+?([^}]+)\}/)![1]!)
+export function toOpenAPIMethod(method: HTTPMethod): string {
+  return method.toLocaleLowerCase()
+}
+
+/**
+ * @internal
+ */
+export function getDynamicParams(path: HTTPPath | undefined): string[] | undefined {
+  return path
+    ? standardizeHTTPPath(path).match(/\/\{([^}]+)\}/g)?.map(v => v.match(/\{\+?([^}]+)\}/)![1]!)
+    : undefined
 }
 
 /**
@@ -41,14 +50,14 @@ export function toOpenAPIContent(schema: JSONSchema): Exclude<OpenAPI.ResponseOb
 
   if (restSchema !== undefined) {
     content['application/json'] = {
-      schema: restSchema,
+      schema: toJSONSchemaObject(restSchema),
     }
 
     const isStillHasFileSchema = findDeepMatches(v => isObject(v) && isFileSchema(v), restSchema).values.length > 0
 
     if (isStillHasFileSchema) {
       content['multipart/form-data'] = {
-        schema: restSchema,
+        schema: toJSONSchemaObject(restSchema),
       }
     }
   }

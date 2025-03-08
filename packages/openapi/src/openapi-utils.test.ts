@@ -1,5 +1,5 @@
-import type { FileSchema, JSONSchema } from './schema'
-import { getDynamicParams, standardizeHTTPPath, toOpenAPIContent, toOpenAPIEventIteratorContent, toOpenAPIMethod, toOpenAPIPath } from './openapi-utils'
+import type { FileSchema, JSONSchema, ObjectSchema } from './schema'
+import { checkParamsSchema, getDynamicParams, standardizeHTTPPath, toOpenAPIContent, toOpenAPIEventIteratorContent, toOpenAPIMethod, toOpenAPIParameters, toOpenAPIPath } from './openapi-utils'
 
 it('standardizeHTTPPath', () => {
   expect(standardizeHTTPPath('/path')).toBe('/path')
@@ -178,5 +178,117 @@ describe('toOpenAPIEventIteratorContent', () => {
         },
       },
     })
+  })
+})
+
+describe('toOpenAPIParameters', () => {
+  const schema: ObjectSchema = {
+    type: 'object',
+    properties: {
+      a: { type: 'string' },
+      b: { type: 'number' },
+    },
+    required: ['a'],
+  }
+
+  it('normal', () => {
+    expect(toOpenAPIParameters(schema, 'path')).toEqual([{
+      name: 'a',
+      in: 'path',
+      required: true,
+      schema: {
+        type: 'string',
+      },
+    }, {
+      name: 'b',
+      in: 'path',
+      required: false,
+      schema: {
+        type: 'number',
+      },
+    }])
+  })
+
+  it('query', () => {
+    expect(toOpenAPIParameters(schema, 'query')).toEqual([{
+      name: 'a',
+      in: 'query',
+      required: true,
+      explode: true,
+      style: 'deepObject',
+      schema: {
+        type: 'string',
+      },
+    }, {
+      name: 'b',
+      in: 'query',
+      required: false,
+      explode: true,
+      style: 'deepObject',
+      schema: {
+        type: 'number',
+      },
+    }])
+  })
+})
+
+describe('checkParamsSchema', () => {
+  it('missing properties', () => {
+    const schema: ObjectSchema = {
+      type: 'object',
+      required: ['a', 'b'],
+    }
+
+    expect(checkParamsSchema(schema, ['a', 'b'])).toBe(false)
+  })
+
+  it('redundant properties', () => {
+    const schema: ObjectSchema = {
+      type: 'object',
+      properties: {
+        a: { type: 'string' },
+        b: { type: 'string' },
+      },
+      required: ['a', 'b'],
+    }
+
+    expect(checkParamsSchema(schema, ['a'])).toBe(false)
+  })
+
+  it('missing required', () => {
+    const schema: ObjectSchema = {
+      type: 'object',
+      properties: {
+        a: { type: 'string' },
+        b: { type: 'string' },
+      },
+    }
+
+    expect(checkParamsSchema(schema, ['a', 'b'])).toBe(false)
+  })
+
+  it('redundant required', () => {
+    const schema: ObjectSchema = {
+      type: 'object',
+      properties: {
+        a: { type: 'string' },
+      },
+      required: ['a', 'b'],
+    }
+
+    expect(checkParamsSchema(schema, ['a'])).toBe(false)
+  })
+
+  it('correct', () => {
+    const schema: ObjectSchema = {
+      type: 'object',
+      properties: {
+        a: { type: 'string' },
+        b: { type: 'string' },
+      },
+      required: ['a', 'b'],
+    }
+
+    expect(checkParamsSchema(schema, ['a', 'b'])).toBe(true)
   })
 })

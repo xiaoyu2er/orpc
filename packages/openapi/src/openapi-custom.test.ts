@@ -33,6 +33,7 @@ describe('applyCustomOpenAPIOperation', () => {
       AUTHENTICATION_FAILED: customOpenAPIOperation({}, {
         security: [{ bearerAuth: [] }],
       }),
+      TEST: undefined, // ensure check undefinable error map item
     })
 
     const operation: OpenAPI.OperationObject = {

@@ -1,6 +1,6 @@
 import type { JSONSchema, ObjectSchema } from './schema'
 import { isObject } from '@orpc/shared'
-import { filterSchemaBranches, isFileSchema, isObjectSchema, separateObjectSchema, toJSONSchemaObject } from './schema-utils'
+import { filterSchemaBranches, isAnySchema, isFileSchema, isObjectSchema, separateObjectSchema, toJSONSchemaObject } from './schema-utils'
 
 it('isFileSchema', () => {
   expect(isFileSchema({ type: 'string', contentMediaType: 'image/png' })).toBe(true)
@@ -24,6 +24,14 @@ it('toJSONSchemaObject', () => {
   expect(toJSONSchemaObject(true)).toEqual({})
   expect(toJSONSchemaObject(false)).toEqual({ not: {} })
   expect(toJSONSchemaObject({ type: 'string' })).toEqual({ type: 'string' })
+})
+
+it('isAnySchema', () => {
+  expect(isAnySchema(true)).toBe(true)
+  expect(isAnySchema(false)).toBe(true)
+  expect(isAnySchema({})).toBe(true)
+  expect(isAnySchema({ type: 'string' })).toBe(false)
+  expect(isAnySchema({ description: 'description' })).toBe(true)
 })
 
 describe('separateObjectSchema', () => {

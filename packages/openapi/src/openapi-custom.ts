@@ -5,7 +5,7 @@ import { isProcedure } from '@orpc/server'
 const OPERATION_EXTENDER_SYMBOL = Symbol('ORPC_OPERATION_EXTENDER')
 
 export type OverrideOperationValue =
-  | OpenAPI.OperationObject
+  | Partial<OpenAPI.OperationObject>
   | ((current: OpenAPI.OperationObject, procedure: AnyContractProcedure) => OpenAPI.OperationObject)
 
 export function customOpenAPIOperation<T extends object>(o: T, extend: OverrideOperationValue): T {

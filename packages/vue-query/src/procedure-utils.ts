@@ -24,38 +24,42 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
   ): MutationOptions<TInput, TOutput, TError, UMutationContext>
 }
 
+export interface CreateProcedureUtilsOptions {
+  path: string[]
+}
+
 export function createProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError extends Error>(
   client: Client<TClientContext, TInput, TOutput, TError>,
-  path: string[],
+  options: CreateProcedureUtilsOptions,
 ): ProcedureUtils<TClientContext, TInput, TOutput, TError> {
   return {
     call: client,
 
-    queryOptions(...[options = {} as any]) {
+    queryOptions(...[optionsIn = {} as any]) {
       return {
-        queryKey: computed(() => buildKey(path, { type: 'query', input: unrefDeep(options.input) })),
-        queryFn: ({ signal }) => client(unrefDeep(options.input), { signal, context: unrefDeep(options.context) }),
-        ...options,
+        queryKey: computed(() => buildKey(options.path, { type: 'query', input: unrefDeep(optionsIn.input) })),
+        queryFn: ({ signal }) => client(unrefDeep(optionsIn.input), { signal, context: unrefDeep(optionsIn.context) }),
+        ...optionsIn,
       }
     },
 
-    infiniteOptions(options) {
+    infiniteOptions(optionsIn) {
       return {
         queryKey: computed(() => {
-          return buildKey(path, { type: 'infinite', input: unrefDeep(options.input(unrefDeep(options.initialPageParam) as any) as any) })
+          return buildKey(options.path, { type: 'infinite', input: unrefDeep(optionsIn.input(unrefDeep(optionsIn.initialPageParam) as any) as any) })
         }),
         queryFn: ({ pageParam, signal }) => {
-          return client(unrefDeep(options.input(pageParam as any)) as any, { signal, context: unrefDeep(options.context) as any })
+          return client(unrefDeep(optionsIn.input(pageParam as any)) as any, { signal, context: unrefDeep(optionsIn.context) as any })
         },
-        ...(options as any),
+        ...(optionsIn as any),
       }
     },
 
-    mutationOptions(...[options = {} as any]) {
+    mutationOptions(...[optionsIn = {} as any]) {
       return {
-        mutationKey: buildKey(path, { type: 'mutation' }),
-        mutationFn: input => client(input, { context: unrefDeep(options.context) }),
-        ...(options as any),
+        mutationKey: buildKey(options.path, { type: 'mutation' }),
+        mutationFn: input => client(input, { context: unrefDeep(optionsIn.context) }),
+        ...(optionsIn as any),
       }
     },
   }

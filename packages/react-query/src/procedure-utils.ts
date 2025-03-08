@@ -22,36 +22,40 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
   ): MutationOptions<TInput, TOutput, TError, UMutationContext>
 }
 
+export interface CreateProcedureUtilsOptions {
+  path: string[]
+}
+
 export function createProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError extends Error>(
   client: Client<TClientContext, TInput, TOutput, TError>,
-  path: string[],
+  options: CreateProcedureUtilsOptions,
 ): ProcedureUtils<TClientContext, TInput, TOutput, TError> {
   return {
     call: client,
 
-    queryOptions(...[options = {} as any]) {
+    queryOptions(...[optionsIn = {} as any]) {
       return {
-        queryKey: buildKey(path, { type: 'query', input: options.input }),
-        queryFn: ({ signal }) => client(options.input, { signal, context: options.context }),
-        ...options,
+        queryKey: buildKey(options.path, { type: 'query', input: optionsIn.input }),
+        queryFn: ({ signal }) => client(optionsIn.input, { signal, context: optionsIn.context }),
+        ...optionsIn,
       }
     },
 
-    infiniteOptions(options) {
+    infiniteOptions(optionsIn) {
       return {
-        queryKey: buildKey(path, { type: 'infinite', input: options.input(options.initialPageParam) as any }),
+        queryKey: buildKey(options.path, { type: 'infinite', input: optionsIn.input(optionsIn.initialPageParam) as any }),
         queryFn: ({ pageParam, signal }) => {
-          return client(options.input(pageParam as any), { signal, context: options.context as any })
+          return client(optionsIn.input(pageParam as any), { signal, context: optionsIn.context as any })
         },
-        ...(options as any),
+        ...(optionsIn as any),
       }
     },
 
-    mutationOptions(...[options = {} as any]) {
+    mutationOptions(...[optionsIn = {} as any]) {
       return {
-        mutationKey: buildKey(path, { type: 'mutation' }),
-        mutationFn: input => client(input, { context: options.context }),
-        ...(options as any),
+        mutationKey: buildKey(options.path, { type: 'mutation' }),
+        mutationFn: input => client(input, { context: optionsIn.context }),
+        ...(optionsIn as any),
       }
     },
   }

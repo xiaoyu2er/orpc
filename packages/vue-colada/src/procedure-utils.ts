@@ -22,16 +22,20 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
   ): MutationOptions<TInput, TOutput, TError, UMutationContext>
 }
 
+export interface CreateProcedureUtilsOptions {
+  path: string[]
+}
+
 export function createProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError extends Error>(
   client: Client<TClientContext, TInput, TOutput, TError>,
-  path: string[],
+  options: CreateProcedureUtilsOptions,
 ): ProcedureUtils<TClientContext, TInput, TOutput, TError> {
   return {
     call: client,
 
     queryOptions(...[{ input, context, ...rest } = {}]) {
       return {
-        key: computed(() => buildKey(path, { input: unrefDeep(input) })),
+        key: computed(() => buildKey(options.path, { input: unrefDeep(input) })),
         query: ({ signal }) => client(unrefDeep(input) as any, { signal, context: unrefDeep(context) as any }),
         ...(rest as any),
       }
@@ -39,7 +43,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
 
     mutationOptions(...[{ context, ...rest } = {}]) {
       return {
-        key: input => buildKey(path, { input }),
+        key: input => buildKey(options.path, { input }),
         mutation: input => client(input, { context: unrefDeep(context) as any }),
         ...(rest as any),
       }

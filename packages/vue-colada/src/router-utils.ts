@@ -20,7 +20,7 @@ export function createRouterUtils<T extends NestedClient<any>>(
   const path = options.path ?? []
 
   const generalUtils = createGeneralUtils(path)
-  const procedureUtils = createProcedureUtils(client as any, path)
+  const procedureUtils = createProcedureUtils(client as any, { path })
 
   const recursive = new Proxy({
     ...generalUtils,

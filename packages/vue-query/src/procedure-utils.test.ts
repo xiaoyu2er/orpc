@@ -12,7 +12,7 @@ describe('createProcedureUtils', () => {
   const controller = new AbortController()
   const signal = controller.signal
   const client = vi.fn().mockResolvedValue('__output__')
-  const utils = createProcedureUtils(client, ['ping'])
+  const utils = createProcedureUtils(client, { path: ['ping'] })
 
   it('.call', () => {
     expect(utils.call).toBe(client)

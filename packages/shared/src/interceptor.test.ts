@@ -79,7 +79,7 @@ describe('intercept', () => {
     })
   })
 
-  it('it ignore conflict the `next` options', async () => {
+  it('ignores conflict in the `next` options', async () => {
     /** Ensure even conflict still can override the `next` options */
     interceptor2.mockImplementationOnce(({ next }) => next({ bar: 'foo', next: 'hello2' }))
 

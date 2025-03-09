@@ -27,8 +27,10 @@ export function updateEventIteratorStatus(
 export function onEventIteratorStatusChange(
   iterator: AsyncIteratorObject<unknown, unknown, void>,
   callback: (status: ConnectionStatus) => void,
-  notifyImmediately = true,
+  options: { notifyImmediately?: boolean } = {},
 ): () => void {
+  const notifyImmediately = options.notifyImmediately ?? true
+
   const state = iteratorStates.get(iterator)
 
   if (!state) {

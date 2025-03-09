@@ -296,7 +296,8 @@ const processedCases: SchemaTestCase[] = [
   },
   {
     schema: z.number().readonly(),
-    input: [true, { type: 'number' }],
+    input: [true, { type: 'number', readOnly: true }],
+    ignoreZodToJsonSchema: true,
   },
 ]
 
@@ -398,6 +399,11 @@ const edgeCases: SchemaTestCase[] = [
   {
     schema: z.object({ value: z.string() }).catchall(z.number()),
     input: [true, { type: 'object', properties: { value: { type: 'string' } }, required: ['value'], additionalProperties: { type: 'number' } }],
+  },
+  {
+    schema: z.record(z.number(), z.string()),
+    input: [true, { type: 'object', additionalProperties: { type: 'string' }, propertyNames: { type: 'number' } }],
+    ignoreZodToJsonSchema: true,
   },
 ]
 

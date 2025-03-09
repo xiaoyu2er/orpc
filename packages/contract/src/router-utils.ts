@@ -44,16 +44,16 @@ export function getContractRouter<T extends Lazyable<AnyContractRouter | undefin
   return current as any
 }
 
-export type AccessibleLazyRouter<T extends Lazyable<AnyContractRouter | undefined>> =
+export type AccessibleLazyContractRouter<T extends Lazyable<AnyContractRouter | undefined>> =
     T extends Lazy<infer U extends AnyContractRouter>
-      ? AccessibleLazyRouter<U>
+      ? AccessibleLazyContractRouter<U>
       : T extends AnyContractProcedure | undefined
         ? Lazy<T>
         : Lazy<T> & {
-          [K in keyof T]: T[K] extends Lazyable<AnyContractRouter> ? AccessibleLazyRouter<T[K]> : never
+          [K in keyof T]: T[K] extends Lazyable<AnyContractRouter> ? AccessibleLazyContractRouter<T[K]> : never
         }
 
-export function createAccessibleLazyRouter<T extends Lazy<AnyContractRouter | undefined>>(lazied: T): AccessibleLazyRouter<T> {
+export function createAccessibleLazyContractRouter<T extends Lazy<AnyContractRouter | undefined>>(lazied: T): AccessibleLazyContractRouter<T> {
   const recursive = new Proxy(lazied, {
     get(target, key) {
       if (typeof key !== 'string') {
@@ -62,7 +62,7 @@ export function createAccessibleLazyRouter<T extends Lazy<AnyContractRouter | un
 
       const next = getContractRouter(lazied, [key])
 
-      return createAccessibleLazyRouter(next)
+      return createAccessibleLazyContractRouter(next)
     },
   })
 
@@ -71,7 +71,7 @@ export function createAccessibleLazyRouter<T extends Lazy<AnyContractRouter | un
 
 export type EnhancedContractRouter<T extends Lazyable<AnyContractRouter>, TErrorMap extends ErrorMap> =
     T extends Lazy<infer U extends AnyContractRouter>
-      ? AccessibleLazyRouter<EnhancedContractRouter<U, TErrorMap>>
+      ? AccessibleLazyContractRouter<EnhancedContractRouter<U, TErrorMap>>
       : T extends ContractProcedure<infer UInputSchema, infer UOutputSchema, infer UErrors, infer UMeta>
         ? ContractProcedure<UInputSchema, UOutputSchema, MergedErrorMap<TErrorMap, UErrors>, UMeta>
         : {
@@ -99,7 +99,7 @@ export function enhanceContractRouter<T extends Lazyable<AnyContractRouter>, TEr
       prefix: enhancedPrefix,
     })
 
-    const accessible = createAccessibleLazyRouter(enhanced)
+    const accessible = createAccessibleLazyContractRouter(enhanced)
 
     return accessible as any
   }

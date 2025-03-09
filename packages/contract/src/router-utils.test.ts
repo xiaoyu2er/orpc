@@ -1,7 +1,7 @@
 import { ping, pong, router } from '../tests/shared'
 import { getLazyMeta, isLazy, lazy, unlazy } from './lazy'
 import { enhanceRoute } from './route'
-import { createAccessibleLazyRouter, enhanceContractRouter, getContractRouter } from './router-utils'
+import { createAccessibleLazyContractRouter, enhanceContractRouter, getContractRouter } from './router-utils'
 
 it('getContractRouter', () => {
   expect(getContractRouter(router, [])).toEqual(router)
@@ -18,8 +18,8 @@ it('getContractRouter', () => {
   expect(unlazy(getContractRouter(router, ['ping', '~orpc']))).resolves.toEqual({ default: undefined })
 })
 
-it('createAccessibleLazyRouter', async () => {
-  const accessible = createAccessibleLazyRouter(lazy(() => Promise.resolve({ default: router }), { prefix: '/prefix' }))
+it('createAccessibleLazyContractRouter', async () => {
+  const accessible = createAccessibleLazyContractRouter(lazy(() => Promise.resolve({ default: router }), { prefix: '/prefix' }))
 
   await expect(unlazy(accessible.ping)).resolves.toEqual({ default: ping })
   await expect(unlazy(accessible.pong)).resolves.toEqual({ default: pong })

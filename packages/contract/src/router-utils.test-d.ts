@@ -3,10 +3,10 @@ import type { MergedErrorMap } from './error'
 import type { Lazy } from './lazy'
 import type { Meta } from './meta'
 import type { ContractProcedure } from './procedure'
-import type { AccessibleLazyRouter, EnhancedContractRouter } from './router-utils'
+import type { AccessibleLazyContractRouter, EnhancedContractRouter } from './router-utils'
 
-it('AccessibleLazyRouter', () => {
-  const accessible = {} as AccessibleLazyRouter<Lazy<typeof router>>
+it('AccessibleLazyContractRouter', () => {
+  const accessible = {} as AccessibleLazyContractRouter<Lazy<typeof router>>
 
   expectTypeOf(accessible.ping).toEqualTypeOf<Lazy<typeof ping>>()
   expectTypeOf(accessible.pong).toEqualTypeOf<Lazy<typeof pong>>()

@@ -296,7 +296,8 @@ const processedCases: SchemaTestCase[] = [
   },
   {
     schema: z.number().readonly(),
-    input: [true, { type: 'number' }],
+    input: [true, { type: 'number', readOnly: true }],
+    ignoreZodToJsonSchema: true,
   },
 ]
 

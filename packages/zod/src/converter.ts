@@ -524,7 +524,9 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
 
       case ZodFirstPartyTypeKind.ZodReadonly: {
         const schema_ = schema as ZodReadonly<ZodTypeAny>
-        return this.convert(schema_._def.innerType, options, lazyDepth, false, false)
+        const [required, json] = this.convert(schema_._def.innerType, options, lazyDepth, false, false)
+
+        return [required, { ...json, readOnly: true }]
       }
 
       case ZodFirstPartyTypeKind.ZodDefault: {

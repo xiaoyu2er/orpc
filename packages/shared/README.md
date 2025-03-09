@@ -1,4 +1,6 @@
-> [!WARNING] > `@orpc/shared` is an internal dependency of oRPC packages. It does not follow semver and may change at any time without notice.
+> [!WARNING]
+>
+> `@orpc/shared` is an internal dependency of oRPC packages. It does not follow semver and may change at any time without notice.
 > Please do not use it in your project.
 
 <div align="center">

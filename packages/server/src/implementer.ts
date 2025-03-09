@@ -1,4 +1,4 @@
-import type { AnyContractRouter, ContractProcedure, ContractRouterToErrorMap, ContractRouterToMeta } from '@orpc/contract'
+import type { AnyContractRouter, ContractProcedure, InterContractRouterErrorMap, InterContractRouterMeta } from '@orpc/contract'
 import type { ConflictContextGuard, Context, MergedContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { ProcedureImplementer } from './implementer-procedure'
@@ -25,10 +25,10 @@ export interface RouterImplementer<
       UOutContext,
       TInput,
       TOutput,
-      ORPCErrorConstructorMap<ContractRouterToErrorMap<TContract>>,
-      ContractRouterToMeta<TContract>
+      ORPCErrorConstructorMap<InterContractRouterErrorMap<TContract>>,
+      InterContractRouterMeta<TContract>
     >,
-  ): DecoratedMiddleware<TCurrentContext, UOutContext, TInput, TOutput, ORPCErrorConstructorMap<any>, ContractRouterToMeta<TContract>> // ORPCErrorConstructorMap<any> ensures middleware can used in any procedure
+  ): DecoratedMiddleware<TCurrentContext, UOutContext, TInput, TOutput, ORPCErrorConstructorMap<any>, InterContractRouterMeta<TContract>> // ORPCErrorConstructorMap<any> ensures middleware can used in any procedure
 
   use<U extends Context>(
     middleware: Middleware<
@@ -36,8 +36,8 @@ export interface RouterImplementer<
       U,
       unknown,
       unknown,
-      ORPCErrorConstructorMap<ContractRouterToErrorMap<TContract>>,
-      ContractRouterToMeta<TContract>
+      ORPCErrorConstructorMap<InterContractRouterErrorMap<TContract>>,
+      InterContractRouterMeta<TContract>
     >,
   ): ConflictContextGuard<MergedContext<TCurrentContext, U>>
     & ImplementerInternalWithMiddlewares<TContract, TInitialContext, MergedContext<TCurrentContext, U>>

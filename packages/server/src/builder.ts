@@ -219,14 +219,14 @@ export class Builder<
     return new Builder({
       ...this['~orpc'],
       prefix: mergePrefix(this['~orpc'].prefix, prefix),
-    }) as any
+    })
   }
 
   tag(...tags: string[]): RouterBuilder<TInitialContext, TCurrentContext, TErrorMap, TMeta> {
     return new Builder({
       ...this['~orpc'],
       tags: mergeTags(this['~orpc'].tags, tags),
-    }) as any
+    })
   }
 
   router<U extends Router<TCurrentContext, ContractRouter<TMeta>>>(router: U): AdaptedRouter<U, TInitialContext, TErrorMap> {

@@ -1,19 +1,25 @@
-import type { ClientContext, NestedClient } from '@orpc/client'
+import type { NestedClient } from '@orpc/client'
+import type { baseErrorMap, inputSchema, outputSchema, router } from '../tests/shared'
+import type { ContractProcedureClient } from './procedure-client'
 import type { ContractRouterClient } from './router-client'
-import { ping, pong } from '../tests/shared'
 
-const router = {
-  ping,
-  pong,
-  nested: {
-    ping,
-    pong,
-  },
-}
+it('ContractRouterClient', () => {
+  const routerClient = {} as ContractRouterClient<typeof router, { cache?: boolean }>
+  expectTypeOf(routerClient).toMatchTypeOf<NestedClient<{ cache?: boolean }>>()
 
-describe('ContractRouterClient', () => {
-  it('is a NestedClient', () => {
-    expectTypeOf<ContractRouterClient<typeof router, ClientContext>>().toMatchTypeOf<NestedClient<ClientContext>>()
-    expectTypeOf<ContractRouterClient<typeof router, { cache?: boolean }>>().not.toMatchTypeOf<NestedClient<{ cache?: string }>>()
-  })
+  expectTypeOf(routerClient.ping).toEqualTypeOf<
+    ContractProcedureClient<{ cache?: boolean }, typeof inputSchema, typeof outputSchema, typeof baseErrorMap>
+  >()
+
+  expectTypeOf(routerClient.pong).toEqualTypeOf<
+    ContractProcedureClient<{ cache?: boolean }, undefined, undefined, Record<never, never>>
+  >()
+
+  expectTypeOf(routerClient.nested.ping).toEqualTypeOf<
+    ContractProcedureClient<{ cache?: boolean }, typeof inputSchema, typeof outputSchema, typeof baseErrorMap>
+  >()
+
+  expectTypeOf(routerClient.nested.pong).toEqualTypeOf<
+    ContractProcedureClient<{ cache?: boolean }, undefined, undefined, Record<never, never>>
+  >()
 })

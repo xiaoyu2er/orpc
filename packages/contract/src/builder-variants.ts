@@ -1,8 +1,10 @@
 import type { ErrorMap, MergedErrorMap } from './error'
+import type { Lazy } from './lazy'
 import type { Meta } from './meta'
 import type { ContractProcedure } from './procedure'
 import type { HTTPPath, Route } from './route'
-import type { AdaptContractRouterOptions, AdaptedContractRouter, ContractRouter } from './router'
+import type { ContractRouter } from './router'
+import type { EnhanceContractRouterOptions, EnhancedContractRouter } from './router-utils'
 import type { Schema } from './schema'
 
 export interface ContractProcedureBuilder<
@@ -101,15 +103,24 @@ export interface ContractRouterBuilder<
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > {
-  '~orpc': AdaptContractRouterOptions<TErrorMap>
+  '~orpc': EnhanceContractRouterOptions<TErrorMap>
 
   'errors'<U extends ErrorMap>(
     errors: U,
   ): ContractRouterBuilder<MergedErrorMap<TErrorMap, U>, TMeta>
 
-  'prefix'(prefix: HTTPPath): ContractRouterBuilder <TErrorMap, TMeta>
+  'prefix'(
+    prefix: HTTPPath): ContractRouterBuilder<TErrorMap, TMeta>
 
-  'tag'(...tags: string[]): ContractRouterBuilder <TErrorMap, TMeta>
+  'tag'(
+    ...tags: string[]
+  ): ContractRouterBuilder<TErrorMap, TMeta>
 
-  'router'<T extends ContractRouter<TMeta>>(router: T): AdaptedContractRouter <T, TErrorMap>
+  'router'<U extends ContractRouter<TMeta>>(
+    router: U
+  ): EnhancedContractRouter<U, TErrorMap>
+
+  'lazy'<U extends ContractRouter<TMeta>>(
+    loader: () => Promise<{ default: U }>,
+  ): EnhancedContractRouter<Lazy<U>, TErrorMap>
 }

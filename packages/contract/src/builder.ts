@@ -1,19 +1,21 @@
 import type { ContractProcedureBuilder, ContractProcedureBuilderWithInput, ContractProcedureBuilderWithOutput, ContractRouterBuilder } from './builder-variants'
+import type { Lazy } from './lazy'
 import type { ContractProcedureDef } from './procedure'
-import type { AdaptContractRouterOptions, AdaptedContractRouter, ContractRouter } from './router'
+import type { ContractRouter } from './router'
 import type { Schema } from './schema'
 import { type ErrorMap, type MergedErrorMap, mergeErrorMap } from './error'
+import { lazy } from './lazy'
 import { mergeMeta, type Meta } from './meta'
 import { ContractProcedure } from './procedure'
 import { type HTTPPath, mergePrefix, mergeRoute, mergeTags, type Route } from './route'
-import { adaptContractRouter } from './router'
+import { enhanceContractRouter, type EnhanceContractRouterOptions, type EnhancedContractRouter } from './router-utils'
 
 export interface ContractBuilderDef<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
-> extends ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>, AdaptContractRouterOptions<TErrorMap> {
+> extends ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>, EnhanceContractRouterOptions<TErrorMap> {
 }
 
 export class ContractBuilder<
@@ -100,22 +102,36 @@ export class ContractBuilder<
     })
   }
 
-  prefix(prefix: HTTPPath): ContractRouterBuilder<TErrorMap, TMeta> {
+  prefix(
+    prefix: HTTPPath,
+  ): ContractRouterBuilder<TErrorMap, TMeta> {
     return new ContractBuilder({
       ...this['~orpc'],
       prefix: mergePrefix(this['~orpc'].prefix, prefix),
-    })
+    }) as any
   }
 
-  tag(...tags: string[]): ContractRouterBuilder<TErrorMap, TMeta> {
+  tag(
+    ...tags: string[]
+  ): ContractRouterBuilder<TErrorMap, TMeta> {
     return new ContractBuilder({
       ...this['~orpc'],
       tags: mergeTags(this['~orpc'].tags, tags),
-    })
+    }) as any
   }
 
-  router<T extends ContractRouter<TMeta>>(router: T): AdaptedContractRouter<T, TErrorMap> {
-    return adaptContractRouter(router, this['~orpc'])
+  router<U extends ContractRouter<TMeta>>(
+    router: U,
+  ): EnhancedContractRouter<U, TErrorMap> {
+    return enhanceContractRouter(router, this['~orpc'])
+  }
+
+  lazy<U extends ContractRouter<TMeta>>(
+    loader: () => Promise<{ default: U }>,
+  ): EnhancedContractRouter<Lazy<U>, TErrorMap> {
+    const lazied = lazy(loader)
+    const adapted = enhanceContractRouter(lazied, this['~orpc'])
+    return adapted
   }
 }
 
@@ -125,4 +141,6 @@ export const oc = new ContractBuilder({
   outputSchema: undefined,
   route: {},
   meta: {},
+  prefix: undefined,
+  tags: undefined,
 })

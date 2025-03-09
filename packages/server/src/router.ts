@@ -3,7 +3,7 @@ import type { Context } from './context'
 import type { Lazy, Lazyable } from './lazy'
 import type { AnyMiddleware } from './middleware'
 import type { AnyProcedure } from './procedure'
-import { adaptRoute, mergeErrorMap, mergePrefix } from '@orpc/contract'
+import { enhanceRoute, mergeErrorMap, mergePrefix } from '@orpc/contract'
 import { deepSetLazyRouterPrefix, getLazyRouterPrefix } from './hidden'
 import { isLazy, lazy, unlazy } from './lazy'
 import { flatLazy } from './lazy-utils'
@@ -128,7 +128,7 @@ export function adaptRouter<
 
     const adapted = new Procedure({
       ...router['~orpc'],
-      route: adaptRoute(router['~orpc'].route, options),
+      route: enhanceRoute(router['~orpc'].route, options),
       errorMap: mergeErrorMap(options.errorMap, router['~orpc'].errorMap),
       middlewares: newMiddlewares,
       inputValidationIndex: router['~orpc'].inputValidationIndex + newMiddlewareAdded,

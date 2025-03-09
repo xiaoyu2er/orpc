@@ -1,6 +1,7 @@
 import type { Meta } from '../src/meta'
 import { z } from 'zod'
 import { ContractProcedure } from '../src'
+import { lazy } from '../src/lazy'
 
 export const inputSchema = z.object({ input: z.number().transform(n => `${n}`) })
 
@@ -50,10 +51,12 @@ export const pong = new ContractProcedure<
 })
 
 export const router = {
-  ping,
+  ping: lazy(() => Promise.resolve({ default: ping })),
   pong,
-  nested: {
-    ping,
-    pong,
-  },
+  nested: lazy(() => Promise.resolve({
+    default: {
+      ping,
+      pong: lazy(() => Promise.resolve({ default: pong })),
+    },
+  })),
 }

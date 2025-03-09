@@ -1,10 +1,12 @@
 import { baseErrorMap, baseMeta, baseRoute, generalSchema, inputSchema, outputSchema, ping, pong } from '../tests/shared'
 import { ContractBuilder } from './builder'
 import { mergeErrorMap } from './error'
+import * as LazyModule from './lazy'
 import { isContractProcedure } from './procedure'
-import * as Router from './router'
+import * as RouterUtilsModule from './router-utils'
 
-const adaptContractRouterSpy = vi.spyOn(Router, 'adaptContractRouter')
+const enhanceContractRouterSpy = vi.spyOn(RouterUtilsModule, 'enhanceContractRouter')
+const lazySpy = vi.spyOn(LazyModule, 'lazy')
 
 const def = {
   errorMap: baseErrorMap,
@@ -126,8 +128,17 @@ describe('contractBuilder', () => {
   it('.router', () => {
     const router = { ping, pong }
     const applied = builder.router(router)
-    expect(applied).toBe(adaptContractRouterSpy.mock.results[0]?.value)
-    expect(adaptContractRouterSpy).toHaveBeenCalledOnce()
-    expect(adaptContractRouterSpy).toHaveBeenCalledWith(router, def)
+    expect(applied).toBe(enhanceContractRouterSpy.mock.results[0]?.value)
+    expect(enhanceContractRouterSpy).toHaveBeenCalledOnce()
+    expect(enhanceContractRouterSpy).toHaveBeenCalledWith(router, def)
+  })
+
+  it('.lazy', () => {
+    const loader = () => Promise.resolve({ default: { ping, pong } })
+    const applied = builder.lazy(loader)
+    expect(applied).toBe(enhanceContractRouterSpy.mock.results[0]?.value)
+    expect(enhanceContractRouterSpy).toHaveBeenCalledOnce()
+    expect(enhanceContractRouterSpy).toHaveBeenCalledWith(lazySpy.mock.results[0]!.value, def)
+    expect(lazySpy).toHaveBeenNthCalledWith(1, loader)
   })
 })

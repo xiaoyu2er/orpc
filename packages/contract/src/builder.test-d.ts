@@ -2,8 +2,9 @@ import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../tests
 import type { ContractBuilder } from './builder'
 import type { ContractProcedureBuilder, ContractProcedureBuilderWithInput, ContractProcedureBuilderWithOutput, ContractRouterBuilder } from './builder-variants'
 import type { MergedErrorMap } from './error'
+import type { Lazy } from './lazy'
 import type { ContractProcedure } from './procedure'
-import type { AdaptedContractRouter } from './router'
+import type { EnhancedContractRouter } from './router-utils'
 import { generalSchema, ping, pong } from '../tests/shared'
 
 const builder = {} as ContractBuilder<typeof inputSchema, typeof outputSchema, typeof baseErrorMap, BaseMeta>
@@ -135,7 +136,7 @@ describe('ContractBuilder', () => {
     }
 
     expectTypeOf(builder.router(router)).toEqualTypeOf<
-      AdaptedContractRouter<typeof router, typeof baseErrorMap>
+      EnhancedContractRouter<typeof router, typeof baseErrorMap>
     >()
 
     // @ts-expect-error - invalid router
@@ -150,5 +151,31 @@ describe('ContractBuilder', () => {
         { mode?: number }
       >,
     })
+  })
+
+  it('.lazy', () => {
+    const router = {
+      ping,
+      pong,
+    }
+
+    expectTypeOf(builder.lazy(() => Promise.resolve({ default: router }))).toEqualTypeOf<
+      EnhancedContractRouter<Lazy<typeof router>, typeof baseErrorMap>
+    >()
+
+    // @ts-expect-error - invalid router
+    builder.lazy(123)
+
+    // @ts-expect-error - conflict meta def
+    builder.lazy(() => Promise.resolve({
+      default: {
+        ping: {} as ContractProcedure<
+          undefined,
+        typeof outputSchema,
+        typeof baseErrorMap,
+        { mode?: number }
+        >,
+      },
+    }))
   })
 })

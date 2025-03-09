@@ -57,7 +57,7 @@ export function onError<TError, TOptions extends { next(): any }, TRest extends 
   }
 }
 
-export type OnFinishState<TResult, TError> = [TResult, undefined, 'success'] | [undefined, TError, 'error']
+export type OnFinishState<TResult, TError> = [TResult, null, 'success'] | [undefined, TError, 'error']
 
 /**
  * Can used for interceptors or middlewares
@@ -69,7 +69,7 @@ export function onFinish<TError, TOptions extends { next(): any }, TRest extends
   return async (options, ...rest) => {
     try {
       const result = await options.next()
-      state = [result, undefined, 'success']
+      state = [result, null, 'success']
       return result
     }
     catch (error) {

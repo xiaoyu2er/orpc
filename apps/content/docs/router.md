@@ -83,45 +83,45 @@ export default {
 ## Utilities
 
 ::: info
-Every [procedure](/docs/procedure) is also a router, so you can apply these utilities to procedures as well.
+These utilities can be used for both procedures and routers.
 :::
 
-### Infer Router Inputs
+### Infer Inputs
 
 ```ts twoslash
 import type { router } from './shared/planet'
 // ---cut---
-import type { InferRouterInputs } from '@orpc/server'
+import type { InferInputs } from '@orpc/server'
 
-export type Inputs = InferRouterInputs<typeof router>
+export type Inputs = InferInputs<typeof router>
 
 type FindPlanetInput = Inputs['planet']['find']
 ```
 
 Infers the expected input types for each procedure in the router.
 
-### Infer Router Outputs
+### Infer Outputs
 
 ```ts twoslash
 import type { router } from './shared/planet'
 // ---cut---
-import type { InferRouterOutputs } from '@orpc/server'
+import type { InferOutputs } from '@orpc/server'
 
-export type Outputs = InferRouterOutputs<typeof router>
+export type Outputs = InferOutputs<typeof router>
 
 type FindPlanetOutput = Outputs['planet']['find']
 ```
 
 Infers the expected output types for each procedure in the router.
 
-### Infer Router Initial Contexts
+### Infer Initial Contexts
 
 ```ts twoslash
 import type { router } from './shared/planet'
 // ---cut---
-import type { InferRouterInitialContexts } from '@orpc/server'
+import type { InferInitialContexts } from '@orpc/server'
 
-export type InitialContexts = InferRouterInitialContexts<typeof router>
+export type InitialContexts = InferInitialContexts<typeof router>
 
 type FindPlanetInitialContext = InitialContexts['planet']['find']
 ```
@@ -133,9 +133,9 @@ Infers the [initial context](/docs/context#initial-context) types defined for ea
 ```ts twoslash
 import type { router } from './shared/planet'
 // ---cut---
-import type { InferRouterCurrentContexts } from '@orpc/server'
+import type { InferCurrentContexts } from '@orpc/server'
 
-export type CurrentContexts = InferRouterCurrentContexts<typeof router>
+export type CurrentContexts = InferCurrentContexts<typeof router>
 
 type FindPlanetCurrentContext = CurrentContexts['planet']['find']
 ```

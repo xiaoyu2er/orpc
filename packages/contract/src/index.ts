@@ -1,5 +1,5 @@
 import type { ClientContext } from '@orpc/client'
-import type { AnyContractRouter } from './router'
+import type { AnyContractRouter, InferContractRouterInputs, InferContractRouterOutputs } from './router'
 import type { ContractRouterClient } from './router-client'
 
 export * from './builder'
@@ -26,3 +26,17 @@ export type RouterClient<
   T extends AnyContractRouter,
   TClientContext extends ClientContext = Record<never, never>,
 > = ContractRouterClient<T, TClientContext>
+
+export type {
+  /**
+   * {@link ContractRouterClient}
+   * The alias of `InferContractRouterInputs`
+   */
+  InferContractRouterInputs as InferInputs,
+
+  /**
+   * {@link InferContractRouterOutputs}
+   * The alias of `InferContractRouterOutputs`
+   */
+  InferContractRouterOutputs as InferOutputs,
+}

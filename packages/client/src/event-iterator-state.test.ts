@@ -23,21 +23,21 @@ describe('eventIterator Status Management', () => {
 
   it('invokes the callback immediately if notifyImmediately is true', () => {
     const callback = vi.fn()
-    onEventIteratorStatusChange(dummyIterator, callback, true)
+    onEventIteratorStatusChange(dummyIterator, callback, { notifyImmediately: true })
     // The callback should be called right away with the current status.
     expect(callback).toHaveBeenCalledWith('connected')
   })
 
   it('does not invoke the callback immediately if notifyImmediately is false', () => {
     const callback = vi.fn()
-    onEventIteratorStatusChange(dummyIterator, callback, false)
+    onEventIteratorStatusChange(dummyIterator, callback, { notifyImmediately: false })
     // Since immediate notification is disabled, the callback should not have been called.
     expect(callback).not.toHaveBeenCalled()
   })
 
   it('calls the callback when the status is updated', () => {
     const callback = vi.fn()
-    onEventIteratorStatusChange(dummyIterator, callback, false)
+    onEventIteratorStatusChange(dummyIterator, callback, { notifyImmediately: false })
     updateEventIteratorStatus(initialState, 'reconnecting')
     // The callback should be called with the new status.
     expect(callback).toHaveBeenCalledWith('reconnecting')
@@ -45,7 +45,7 @@ describe('eventIterator Status Management', () => {
 
   it('does not call the callback if the status is updated to the same value', () => {
     const callback = vi.fn()
-    onEventIteratorStatusChange(dummyIterator, callback, false)
+    onEventIteratorStatusChange(dummyIterator, callback, { notifyImmediately: false })
     // Update with the same status as the initial one.
     updateEventIteratorStatus(initialState, 'connected')
     // The callback should not be triggered.
@@ -54,7 +54,7 @@ describe('eventIterator Status Management', () => {
 
   it('removes the listener when unsubscribed', () => {
     const callback = vi.fn()
-    const unsubscribe = onEventIteratorStatusChange(dummyIterator, callback, false)
+    const unsubscribe = onEventIteratorStatusChange(dummyIterator, callback, { notifyImmediately: false })
     // Update status to trigger the callback.
     updateEventIteratorStatus(initialState, 'reconnecting')
     expect(callback).toHaveBeenCalledTimes(1)

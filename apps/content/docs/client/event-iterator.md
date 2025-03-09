@@ -70,3 +70,34 @@ catch (error) {
 ::: info
 Errors thrown by the server can be instances of `ORPCError`.
 :::
+
+## Event Iterator Connection Status
+
+Combine with `onEventIteratorStatusChange` to track the connection status of the event iterator.
+
+```ts twoslash
+declare const client: { streaming: () => Promise<AsyncGenerator<{ message: string }, void, void>> }
+// ---cut---
+import { onEventIteratorStatusChange } from '@orpc/client'
+
+let status: 'connecting' | 'error' | 'reconnecting' | 'connected' | 'closed' = 'connecting'
+let unsubscribe: (() => void) | undefined
+
+try {
+  const iterator = await client.streaming()
+
+  unsubscribe = onEventIteratorStatusChange(iterator, (newStatus) => {
+    status = newStatus
+  })
+
+  for await (const event of iterator) {
+    console.log(event.message)
+  }
+}
+catch (error) {
+  status = 'error'
+}
+finally {
+  unsubscribe?.()
+}
+```

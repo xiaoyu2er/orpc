@@ -70,7 +70,7 @@ export class ContractBuilder<
     return new ContractBuilder({
       ...this['~orpc'],
       meta: mergeMeta(this['~orpc'].meta, meta),
-    }) as any
+    })
   }
 
   route(

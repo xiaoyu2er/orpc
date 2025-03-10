@@ -4,7 +4,6 @@ import type { ContractProcedureClient } from './procedure-client'
 
 describe('ContractProcedureClient', () => {
   it('is a client', () => {
-    type C = ContractProcedureClient<{ cache?: boolean }, typeof inputSchema, typeof outputSchema, typeof baseErrorMap>
     expectTypeOf<
       ContractProcedureClient<{ cache?: boolean }, typeof inputSchema, typeof outputSchema, typeof baseErrorMap>
     >().toEqualTypeOf<

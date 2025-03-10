@@ -1,14 +1,13 @@
 import type { ORPCError, ORPCErrorCode } from '@orpc/client'
-import type { StandardSchemaV1 } from '@standard-schema/spec'
-import type { AnySchema, InferSchemaOutput, Schema } from './schema'
+import type { AnySchema, InferSchemaOutput, Schema, SchemaIssue } from './schema'
 
 export interface ValidationErrorOptions extends ErrorOptions {
   message: string
-  issues: readonly StandardSchemaV1.Issue[]
+  issues: readonly SchemaIssue[]
 }
 
 export class ValidationError extends Error {
-  readonly issues: readonly StandardSchemaV1.Issue[]
+  readonly issues: readonly SchemaIssue[]
 
   constructor(options: ValidationErrorOptions) {
     super(options.message, options)

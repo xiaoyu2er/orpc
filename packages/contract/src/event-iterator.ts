@@ -1,18 +1,22 @@
-import type { StandardSchemaV1 } from '@standard-schema/spec'
-import type { AnySchema } from './schema'
+import type { AnySchema, Schema } from './schema'
 import { mapEventIterator, ORPCError } from '@orpc/client'
 import { isAsyncIteratorObject } from '@orpc/shared'
 import { ValidationError } from './error'
 
-const EVENT_ITERATOR_SCHEMA_SYMBOL = Symbol('ORPC_EVENT_ITERATOR_SCHEMA')
+const EVENT_ITERATOR_DETAILS_SYMBOL = Symbol('ORPC_EVENT_ITERATOR_DETAILS')
+
+export interface EventIteratorSchemaDetails {
+  yields: AnySchema
+  returns?: AnySchema
+}
 
 export function eventIterator<TYieldIn, TYieldOut, TReturnIn = unknown, TReturnOut = unknown>(
-  yields: StandardSchemaV1<TYieldIn, TYieldOut>,
-  returns?: StandardSchemaV1<TReturnIn, TReturnOut>,
-): StandardSchemaV1<AsyncIteratorObject<TYieldIn, TReturnIn, void>, AsyncIteratorObject<TYieldOut, TReturnOut, void>> {
+  yields: Schema<TYieldIn, TYieldOut>,
+  returns?: Schema<TReturnIn, TReturnOut>,
+): Schema<AsyncIteratorObject<TYieldIn, TReturnIn, void>, AsyncIteratorObject<TYieldOut, TReturnOut, void>> {
   return {
     '~standard': {
-      [EVENT_ITERATOR_SCHEMA_SYMBOL as any]: { yields, returns } satisfies { yields: AnySchema, returns?: AnySchema },
+      [EVENT_ITERATOR_DETAILS_SYMBOL as any]: { yields, returns } satisfies EventIteratorSchemaDetails,
       vendor: 'orpc',
       version: 1,
       validate(iterator) {
@@ -51,10 +55,10 @@ export function eventIterator<TYieldIn, TYieldOut, TReturnIn = unknown, TReturnO
   }
 }
 
-export function getEventIteratorSchemaDetails(schema: AnySchema | undefined): undefined | { yields: AnySchema, returns: AnySchema } {
+export function getEventIteratorSchemaDetails(schema: AnySchema | undefined): undefined | EventIteratorSchemaDetails {
   if (schema === undefined) {
     return undefined
   }
 
-  return (schema['~standard'] as any)[EVENT_ITERATOR_SCHEMA_SYMBOL]
+  return (schema['~standard'] as any)[EVENT_ITERATOR_DETAILS_SYMBOL]
 }

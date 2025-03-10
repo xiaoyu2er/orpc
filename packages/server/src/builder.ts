@@ -155,7 +155,7 @@ export class Builder<
   use(
     middleware: AnyMiddleware,
     mapInput?: MapInputMiddleware<any, any>,
-  ): any {
+  ): BuilderWithMiddlewares<any, any, any, any, any, any> {
     const mapped = mapInput
       ? decorateMiddleware(middleware).mapInput(mapInput)
       : middleware
@@ -163,7 +163,7 @@ export class Builder<
     return new Builder({
       ...this['~orpc'],
       middlewares: addMiddleware(this['~orpc'].middlewares, mapped),
-    })
+    }) as any
   }
 
   meta(

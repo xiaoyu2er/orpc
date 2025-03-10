@@ -79,7 +79,6 @@ export type EnhancedRouter<T extends Lazyable<AnyRouter>, TInitialContext extend
         infer UCurrentContext,
         infer UInputSchema,
         infer UOutputSchema,
-        infer UFuncOutput,
         infer UErrorMap,
         infer UMeta
       >
@@ -88,7 +87,6 @@ export type EnhancedRouter<T extends Lazyable<AnyRouter>, TInitialContext extend
           UCurrentContext,
           UInputSchema,
           UOutputSchema,
-          UFuncOutput,
           MergedErrorMap<TErrorMap, UErrorMap>,
           UMeta
         >

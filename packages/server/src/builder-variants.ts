@@ -1,4 +1,4 @@
-import type { ContractRouter, ErrorMap, HTTPPath, MergedErrorMap, Meta, Route, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { AnySchema, ContractRouter, ErrorMap, HTTPPath, InferSchemaInput, InferSchemaOutput, MergedErrorMap, Meta, Route, Schema } from '@orpc/contract'
 import type { BuilderDef } from './builder'
 import type { ConflictContextGuard, Context, MergedContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
@@ -12,8 +12,8 @@ import type { EnhancedRouter, EnhanceRouterOptions } from './router-utils'
 export interface BuilderWithMiddlewares<
   TInitialContext extends Context,
   TCurrentContext extends Context,
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
+  TInputSchema extends AnySchema,
+  TOutputSchema extends AnySchema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > {
@@ -57,17 +57,17 @@ export interface BuilderWithMiddlewares<
     route: Route,
   ): ProcedureBuilder<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>
 
-  'input'<USchema extends Schema>(
+  'input'<USchema extends AnySchema>(
     schema: USchema,
   ): ProcedureBuilderWithInput<TInitialContext, TCurrentContext, USchema, TOutputSchema, TErrorMap, TMeta>
 
-  'output'<USchema extends Schema>(
+  'output'<USchema extends AnySchema>(
     schema: USchema,
   ): ProcedureBuilderWithOutput<TInitialContext, TCurrentContext, TInputSchema, USchema, TErrorMap, TMeta>
 
   'handler'<UFuncOutput>(
     handler: ProcedureHandler<TCurrentContext, unknown, UFuncOutput, TErrorMap, TMeta>,
-  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, UFuncOutput, TErrorMap, TMeta>
+  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, Schema<UFuncOutput, UFuncOutput>, TErrorMap, TMeta>
 
   'prefix'(prefix: HTTPPath): RouterBuilder<TInitialContext, TCurrentContext, TErrorMap, TMeta>
 
@@ -85,8 +85,8 @@ export interface BuilderWithMiddlewares<
 export interface ProcedureBuilder<
   TInitialContext extends Context,
   TCurrentContext extends Context,
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
+  TInputSchema extends AnySchema,
+  TOutputSchema extends AnySchema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > {
@@ -130,24 +130,24 @@ export interface ProcedureBuilder<
     route: Route,
   ): ProcedureBuilder<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>
 
-  'input'<USchema extends Schema>(
+  'input'<USchema extends AnySchema>(
     schema: USchema,
   ): ProcedureBuilderWithInput<TInitialContext, TCurrentContext, USchema, TOutputSchema, TErrorMap, TMeta>
 
-  'output'<USchema extends Schema>(
+  'output'<USchema extends AnySchema>(
     schema: USchema,
   ): ProcedureBuilderWithOutput<TInitialContext, TCurrentContext, TInputSchema, USchema, TErrorMap, TMeta>
 
   'handler'<UFuncOutput>(
     handler: ProcedureHandler<TCurrentContext, unknown, UFuncOutput, TErrorMap, TMeta>,
-  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, UFuncOutput, TErrorMap, TMeta>
+  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, Schema<UFuncOutput, UFuncOutput>, TErrorMap, TMeta>
 }
 
 export interface ProcedureBuilderWithInput<
   TInitialContext extends Context,
   TCurrentContext extends Context,
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
+  TInputSchema extends AnySchema,
+  TOutputSchema extends AnySchema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > {
@@ -161,7 +161,7 @@ export interface ProcedureBuilderWithInput<
     middleware: Middleware<
       TCurrentContext,
       UOutContext,
-      SchemaOutput<TInputSchema>,
+      InferSchemaOutput<TInputSchema>,
       unknown,
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
@@ -185,7 +185,7 @@ export interface ProcedureBuilderWithInput<
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
-    mapInput: MapInputMiddleware<SchemaOutput<TInputSchema>, UInput>,
+    mapInput: MapInputMiddleware<InferSchemaOutput<TInputSchema>, UInput>,
   ): ConflictContextGuard<MergedContext<TCurrentContext, UOutContext>> &
     ProcedureBuilderWithInput<
       TInitialContext,
@@ -204,20 +204,20 @@ export interface ProcedureBuilderWithInput<
     route: Route,
   ): ProcedureBuilderWithInput<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>
 
-  'output'<USchema extends Schema>(
+  'output'<USchema extends AnySchema>(
     schema: USchema,
   ): ProcedureBuilderWithInputOutput<TInitialContext, TCurrentContext, TInputSchema, USchema, TErrorMap, TMeta>
 
   'handler'<UFuncOutput>(
-    handler: ProcedureHandler<TCurrentContext, SchemaOutput<TInputSchema>, UFuncOutput, TErrorMap, TMeta>,
-  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, UFuncOutput, TErrorMap, TMeta>
+    handler: ProcedureHandler<TCurrentContext, InferSchemaOutput<TInputSchema>, UFuncOutput, TErrorMap, TMeta>,
+  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, Schema<UFuncOutput, UFuncOutput>, TErrorMap, TMeta>
 }
 
 export interface ProcedureBuilderWithOutput<
   TInitialContext extends Context,
   TCurrentContext extends Context,
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
+  TInputSchema extends AnySchema,
+  TOutputSchema extends AnySchema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > {
@@ -239,7 +239,7 @@ export interface ProcedureBuilderWithOutput<
       TCurrentContext,
       UOutContext,
       unknown,
-      SchemaInput<TOutputSchema>,
+      InferSchemaInput<TOutputSchema>,
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
@@ -261,20 +261,20 @@ export interface ProcedureBuilderWithOutput<
     route: Route,
   ): ProcedureBuilderWithOutput<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>
 
-  'input'<USchema extends Schema>(
+  'input'<USchema extends AnySchema>(
     schema: USchema,
   ): ProcedureBuilderWithInputOutput<TInitialContext, TCurrentContext, USchema, TOutputSchema, TErrorMap, TMeta>
 
   'handler'(
-    handler: ProcedureHandler<TCurrentContext, unknown, SchemaInput<TOutputSchema>, TErrorMap, TMeta>,
-  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, unknown, TErrorMap, TMeta>
+    handler: ProcedureHandler<TCurrentContext, unknown, InferSchemaInput<TOutputSchema>, TErrorMap, TMeta>,
+  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>
 }
 
 export interface ProcedureBuilderWithInputOutput<
   TInitialContext extends Context,
   TCurrentContext extends Context,
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
+  TInputSchema extends AnySchema,
+  TOutputSchema extends AnySchema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > {
@@ -288,8 +288,8 @@ export interface ProcedureBuilderWithInputOutput<
     middleware: Middleware<
       TCurrentContext,
       UOutContext,
-      SchemaOutput<TInputSchema>,
-      SchemaInput<TOutputSchema>,
+      InferSchemaOutput<TInputSchema>,
+      InferSchemaInput<TOutputSchema>,
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
@@ -308,11 +308,11 @@ export interface ProcedureBuilderWithInputOutput<
       TCurrentContext,
       UOutContext,
       UInput,
-      SchemaInput<TOutputSchema>,
+      InferSchemaInput<TOutputSchema>,
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
-    mapInput: MapInputMiddleware<SchemaOutput<TInputSchema>, UInput>,
+    mapInput: MapInputMiddleware<InferSchemaOutput<TInputSchema>, UInput>,
   ): ConflictContextGuard<MergedContext<TCurrentContext, UOutContext>> &
     ProcedureBuilderWithInputOutput<
       TInitialContext,
@@ -332,8 +332,8 @@ export interface ProcedureBuilderWithInputOutput<
   ): ProcedureBuilderWithInputOutput<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>
 
   'handler'(
-    handler: ProcedureHandler<TCurrentContext, SchemaOutput<TInputSchema>, SchemaInput<TOutputSchema>, TErrorMap, TMeta>,
-  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, unknown, TErrorMap, TMeta>
+    handler: ProcedureHandler<TCurrentContext, InferSchemaOutput<TInputSchema>, InferSchemaInput<TOutputSchema>, TErrorMap, TMeta>,
+  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>
 }
 
 export interface RouterBuilder<

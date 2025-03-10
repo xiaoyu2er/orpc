@@ -1,5 +1,5 @@
 import type { ClientPromiseResult } from '@orpc/client'
-import type { AnyContractProcedure, ErrorFromErrorMap, ErrorMap, Meta, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { AnyContractProcedure, AnySchema, ErrorFromErrorMap, ErrorMap, InferSchemaInput, InferSchemaOutput, Meta } from '@orpc/contract'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { Context } from './context'
 import type { AnyProcedure } from './procedure'
@@ -50,25 +50,23 @@ export function createContractedProcedure(procedure: AnyProcedure, contract: Any
  */
 export function call<
   TInitialContext extends Context,
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
-  THandlerOutput,
+  TInputSchema extends AnySchema,
+  TOutputSchema extends AnySchema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 >(
-  procedure: Lazyable<Procedure<TInitialContext, any, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta>>,
-  input: SchemaInput<TInputSchema>,
+  procedure: Lazyable<Procedure<TInitialContext, any, TInputSchema, TOutputSchema, TErrorMap, TMeta>>,
+  input: InferSchemaInput<TInputSchema>,
   ...rest: MaybeOptionalOptions<
     CreateProcedureClientOptions<
       TInitialContext,
       TInputSchema,
       TOutputSchema,
-      THandlerOutput,
       TErrorMap,
       TMeta,
       Record<never, never>
     >
   >
-): ClientPromiseResult<SchemaOutput<TOutputSchema, THandlerOutput>, ErrorFromErrorMap<TErrorMap>> {
+): ClientPromiseResult<InferSchemaOutput<TOutputSchema>, ErrorFromErrorMap<TErrorMap>> {
   return createProcedureClient(procedure, ...rest)(input)
 }

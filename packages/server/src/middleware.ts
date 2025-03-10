@@ -1,4 +1,4 @@
-import type { ErrorMap, Meta, Schema } from '@orpc/contract'
+import type { AnySchema, ErrorMap, Meta } from '@orpc/contract'
 import type { MaybeOptionalOptions, Promisable } from '@orpc/shared'
 import type { Context } from './context'
 import type { ORPCErrorConstructorMap } from './error'
@@ -31,7 +31,7 @@ export interface MiddlewareOptions<
 > {
   context: TInContext
   path: readonly string[]
-  procedure: Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, TMeta>
+  procedure: Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, TMeta>
   signal?: AbortSignal
   lastEventId: string | undefined
   next: MiddlewareNextFn<TInContext, TOutput>

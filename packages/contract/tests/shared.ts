@@ -1,3 +1,4 @@
+import type { Schema } from '../src'
 import type { Meta } from '../src/meta'
 import { z } from 'zod'
 import { ContractProcedure } from '../src'
@@ -37,14 +38,12 @@ export const ping = new ContractProcedure<
 })
 
 export const pong = new ContractProcedure<
-  undefined,
-  undefined,
+  Schema<unknown, unknown>,
+  Schema<unknown, unknown>,
   Record<never, never>,
   Meta
 >({
   errorMap: {},
-  inputSchema: undefined,
-  outputSchema: undefined,
   meta: {},
   route: {},
 })

@@ -1,5 +1,5 @@
 import type { Client, ClientRest } from '@orpc/client'
-import type { ContractProcedure, ErrorFromErrorMap, ErrorMap, Schema } from '@orpc/contract'
+import type { AnySchema, ContractProcedure, ErrorFromErrorMap, ErrorMap } from '@orpc/contract'
 import type { OmitChainMethodDeep } from '@orpc/shared'
 import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../../contract/tests/shared'
 import type { CurrentContext, InitialContext } from '../tests/shared'
@@ -25,7 +25,6 @@ const generalDecoratedProcedure = {} as DecoratedProcedure<
   CurrentContext,
     typeof inputSchema,
     typeof outputSchema,
-    { output: number },
     typeof baseErrorMap,
     BaseMeta
 >
@@ -36,7 +35,6 @@ describe('ImplementedProcedure', () => {
     CurrentContext,
     typeof inputSchema,
     typeof outputSchema,
-    { output: number },
     typeof baseErrorMap,
     BaseMeta
   >
@@ -58,7 +56,6 @@ describe('ImplementedProcedure', () => {
         CurrentContext,
         typeof inputSchema,
         typeof outputSchema,
-        { output: number },
         typeof baseErrorMap,
         BaseMeta
       >
@@ -71,7 +68,7 @@ describe('ImplementedProcedure', () => {
         expectTypeOf(input).toEqualTypeOf<{ input: string }>()
         expectTypeOf(context).toEqualTypeOf<CurrentContext>()
         expectTypeOf(path).toEqualTypeOf<readonly string[]>()
-        expectTypeOf(procedure).toEqualTypeOf<Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, BaseMeta>>()
+        expectTypeOf(procedure).toEqualTypeOf<Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta>>()
         expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<{ output: number }>>()
         expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
 
@@ -88,7 +85,6 @@ describe('ImplementedProcedure', () => {
             CurrentContext & { extra: boolean },
             typeof inputSchema,
             typeof outputSchema,
-            { output: number },
             typeof baseErrorMap,
             BaseMeta
         >
@@ -108,7 +104,7 @@ describe('ImplementedProcedure', () => {
       const applied = implemented.use(({ context, next, path, procedure, errors }, input: { mapped: string }, output) => {
         expectTypeOf(context).toEqualTypeOf<CurrentContext>()
         expectTypeOf(path).toEqualTypeOf<readonly string[]>()
-        expectTypeOf(procedure).toEqualTypeOf<Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, BaseMeta>>()
+        expectTypeOf(procedure).toEqualTypeOf<Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta>>()
         expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<{ output: number }>>()
         expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
 
@@ -128,7 +124,6 @@ describe('ImplementedProcedure', () => {
             CurrentContext & { extra: boolean },
             typeof inputSchema,
             typeof outputSchema,
-            { output: number },
             typeof baseErrorMap,
             BaseMeta
         >
@@ -156,7 +151,6 @@ describe('ImplementedProcedure', () => {
         CurrentContext,
           typeof inputSchema,
           typeof outputSchema,
-          { output: number },
           typeof baseErrorMap,
           BaseMeta
       >
@@ -175,7 +169,6 @@ describe('ImplementedProcedure', () => {
         CurrentContext,
           typeof inputSchema,
           typeof outputSchema,
-          { output: number },
           typeof baseErrorMap,
           BaseMeta
       >
@@ -222,7 +215,7 @@ describe('ProcedureImplementer', () => {
         expectTypeOf(context).toEqualTypeOf<CurrentContext>()
         expectTypeOf(path).toEqualTypeOf<readonly string[]>()
         expectTypeOf(procedure).toEqualTypeOf<
-          Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, BaseMeta>
+          Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta>
         >()
         expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<{ output: number }>>()
         expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
@@ -262,7 +255,7 @@ describe('ProcedureImplementer', () => {
         expectTypeOf(context).toEqualTypeOf<CurrentContext>()
         expectTypeOf(path).toEqualTypeOf<readonly string[]>()
         expectTypeOf(procedure).toEqualTypeOf<
-          Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, BaseMeta>
+          Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta>
         >()
         expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<{ output: number }>>()
         expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
@@ -314,7 +307,7 @@ describe('ProcedureImplementer', () => {
       expectTypeOf(path).toEqualTypeOf<readonly string[]>()
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
       expectTypeOf(procedure).toEqualTypeOf<
-        Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, BaseMeta>
+        Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta>
       >()
       expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
@@ -328,7 +321,6 @@ describe('ProcedureImplementer', () => {
         CurrentContext,
         typeof inputSchema,
         typeof outputSchema,
-        unknown,
         typeof baseErrorMap,
         BaseMeta
       >

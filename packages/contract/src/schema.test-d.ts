@@ -1,7 +1,7 @@
 import { type as arktypeType } from 'arktype'
 import * as v from 'valibot'
 import { z } from 'zod'
-import { type Schema, type SchemaInput, type SchemaOutput, type } from './schema'
+import { type AnySchema, type InferSchemaInput, type InferSchemaOutput, type } from './schema'
 
 const zod = z.object({
   value: z.string().transform(() => 123),
@@ -18,28 +18,25 @@ const arktype = arktypeType({
 
 describe('Schema', () => {
   it('assignable', () => {
-    const _undefined: Schema = undefined
-    const _zod: Schema = zod
-    const _valibot: Schema = valibot
-    const _arktype: Schema = arktype
+    const _zod: AnySchema = zod
+    const _valibot: AnySchema = valibot
+    const _arktype: AnySchema = arktype
   })
 })
 
 describe('SchemaInput', () => {
   it('inferable', () => {
-    expectTypeOf<SchemaInput<undefined>>().toEqualTypeOf<unknown>()
-    expectTypeOf<SchemaInput<typeof zod>>().toEqualTypeOf<{ value: string }>()
-    expectTypeOf<SchemaInput<typeof valibot>>().toEqualTypeOf<{ value: string }>()
-    expectTypeOf<SchemaInput<typeof arktype>>().toEqualTypeOf<{ value: string }>()
+    expectTypeOf<InferSchemaInput<typeof zod>>().toEqualTypeOf<{ value: string }>()
+    expectTypeOf<InferSchemaInput<typeof valibot>>().toEqualTypeOf<{ value: string }>()
+    expectTypeOf<InferSchemaInput<typeof arktype>>().toEqualTypeOf<{ value: string }>()
   })
 })
 
 describe('SchemaOutput', () => {
   it('inferable', () => {
-    expectTypeOf<SchemaOutput<undefined>>().toEqualTypeOf<unknown>()
-    expectTypeOf<SchemaOutput<typeof zod>>().toEqualTypeOf<{ value: number }>()
-    expectTypeOf<SchemaOutput<typeof valibot>>().toEqualTypeOf<{ value: number }>()
-    expectTypeOf<SchemaOutput<typeof arktype>>().toEqualTypeOf<{ value: string }>()
+    expectTypeOf<InferSchemaOutput<typeof zod>>().toEqualTypeOf<{ value: number }>()
+    expectTypeOf<InferSchemaOutput<typeof valibot>>().toEqualTypeOf<{ value: number }>()
+    expectTypeOf<InferSchemaOutput<typeof arktype>>().toEqualTypeOf<{ value: string }>()
   })
 })
 
@@ -47,8 +44,8 @@ describe('type', () => {
   it('without map', () => {
     const schema = type<string>()
 
-    expectTypeOf<SchemaInput<typeof schema>>().toEqualTypeOf<string>()
-    expectTypeOf<SchemaOutput<typeof schema>>().toEqualTypeOf<string>()
+    expectTypeOf<InferSchemaInput<typeof schema>>().toEqualTypeOf<string>()
+    expectTypeOf<InferSchemaOutput<typeof schema>>().toEqualTypeOf<string>()
   })
 
   it('with map', () => {
@@ -58,8 +55,8 @@ describe('type', () => {
       return Number(val)
     })
 
-    expectTypeOf<SchemaInput<typeof schema2>>().toEqualTypeOf<string>()
-    expectTypeOf<SchemaOutput<typeof schema2>>().toEqualTypeOf<number>()
+    expectTypeOf<InferSchemaInput<typeof schema2>>().toEqualTypeOf<string>()
+    expectTypeOf<InferSchemaOutput<typeof schema2>>().toEqualTypeOf<number>()
 
     // @ts-expect-error - map is required when TInput !== TOutput
     type<string, number>()

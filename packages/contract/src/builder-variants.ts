@@ -4,11 +4,11 @@ import type { ContractProcedure } from './procedure'
 import type { HTTPPath, Route } from './route'
 import type { ContractRouter } from './router'
 import type { EnhanceContractRouterOptions, EnhancedContractRouter } from './router-utils'
-import type { Schema } from './schema'
+import type { AnySchema } from './schema'
 
 export interface ContractProcedureBuilder<
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
+  TInputSchema extends AnySchema,
+  TOutputSchema extends AnySchema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > extends ContractProcedure<TInputSchema, TOutputSchema, TErrorMap, TMeta> {
@@ -24,18 +24,18 @@ export interface ContractProcedureBuilder<
     route: Route,
   ): ContractProcedureBuilder<TInputSchema, TOutputSchema, TErrorMap, TMeta>
 
-  input<U extends Schema>(
+  input<U extends AnySchema>(
     schema: U,
   ): ContractProcedureBuilderWithInput<U, TOutputSchema, TErrorMap, TMeta>
 
-  output<U extends Schema>(
+  output<U extends AnySchema>(
     schema: U,
   ): ContractProcedureBuilderWithOutput<TInputSchema, U, TErrorMap, TMeta>
 }
 
 export interface ContractProcedureBuilderWithInput<
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
+  TInputSchema extends AnySchema,
+  TOutputSchema extends AnySchema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 >extends ContractProcedure<TInputSchema, TOutputSchema, TErrorMap, TMeta> {
@@ -51,14 +51,14 @@ export interface ContractProcedureBuilderWithInput<
     route: Route,
   ): ContractProcedureBuilderWithInput<TInputSchema, TOutputSchema, TErrorMap, TMeta>
 
-  output<U extends Schema>(
+  output<U extends AnySchema>(
     schema: U,
   ): ContractProcedureBuilderWithInputOutput<TInputSchema, U, TErrorMap, TMeta>
 }
 
 export interface ContractProcedureBuilderWithOutput<
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
+  TInputSchema extends AnySchema,
+  TOutputSchema extends AnySchema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > extends ContractProcedure<TInputSchema, TOutputSchema, TErrorMap, TMeta> {
@@ -74,14 +74,14 @@ export interface ContractProcedureBuilderWithOutput<
     route: Route,
   ): ContractProcedureBuilderWithOutput<TInputSchema, TOutputSchema, TErrorMap, TMeta>
 
-  input<U extends Schema>(
+  input<U extends AnySchema>(
     schema: U,
   ): ContractProcedureBuilderWithInputOutput<U, TOutputSchema, TErrorMap, TMeta>
 }
 
 export interface ContractProcedureBuilderWithInputOutput<
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
+  TInputSchema extends AnySchema,
+  TOutputSchema extends AnySchema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > extends ContractProcedure<TInputSchema, TOutputSchema, TErrorMap, TMeta> {

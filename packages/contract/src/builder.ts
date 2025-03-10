@@ -1,7 +1,7 @@
 import type { ContractProcedureBuilder, ContractProcedureBuilderWithInput, ContractProcedureBuilderWithOutput, ContractRouterBuilder } from './builder-variants'
 import type { ContractProcedureDef } from './procedure'
 import type { ContractRouter } from './router'
-import type { Schema } from './schema'
+import type { AnySchema, Schema } from './schema'
 import { type ErrorMap, type MergedErrorMap, mergeErrorMap } from './error'
 import { mergeMeta, type Meta } from './meta'
 import { ContractProcedure } from './procedure'
@@ -9,16 +9,16 @@ import { type HTTPPath, mergePrefix, mergeRoute, mergeTags, type Route } from '.
 import { enhanceContractRouter, type EnhanceContractRouterOptions, type EnhancedContractRouter } from './router-utils'
 
 export interface ContractBuilderDef<
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
+  TInputSchema extends AnySchema,
+  TOutputSchema extends AnySchema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > extends ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>, EnhanceContractRouterOptions<TErrorMap> {
 }
 
 export class ContractBuilder<
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
+  TInputSchema extends AnySchema,
+  TOutputSchema extends AnySchema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > extends ContractProcedure<TInputSchema, TOutputSchema, TErrorMap, TMeta> {
@@ -70,7 +70,7 @@ export class ContractBuilder<
     return new ContractBuilder({
       ...this['~orpc'],
       meta: mergeMeta(this['~orpc'].meta, meta),
-    }) as any
+    })
   }
 
   route(
@@ -82,7 +82,7 @@ export class ContractBuilder<
     })
   }
 
-  input<U extends Schema>(
+  input<U extends AnySchema>(
     schema: U,
   ): ContractProcedureBuilderWithInput<U, TOutputSchema, TErrorMap, TMeta> {
     return new ContractBuilder({
@@ -91,7 +91,7 @@ export class ContractBuilder<
     })
   }
 
-  output<U extends Schema>(
+  output<U extends AnySchema>(
     schema: U,
   ): ContractProcedureBuilderWithOutput<TInputSchema, U, TErrorMap, TMeta> {
     return new ContractBuilder({
@@ -119,10 +119,13 @@ export class ContractBuilder<
   }
 }
 
-export const oc = new ContractBuilder({
+export const oc = new ContractBuilder<
+  Schema<unknown, unknown>,
+  Schema<unknown, unknown>,
+  Record<never, never>,
+  Record<never, never>
+>({
   errorMap: {},
-  inputSchema: undefined,
-  outputSchema: undefined,
   route: {},
   meta: {},
 })

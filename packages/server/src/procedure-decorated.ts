@@ -1,5 +1,5 @@
 import type { ClientContext, ClientRest } from '@orpc/client'
-import type { ErrorMap, MergedErrorMap, Meta, Route, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { AnySchema, ErrorMap, InferSchemaInput, InferSchemaOutput, MergedErrorMap, Meta, Route } from '@orpc/contract'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { ConflictContextGuard, Context, MergedContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
@@ -14,12 +14,11 @@ import { createProcedureClient } from './procedure-client'
 export class DecoratedProcedure<
   TInitialContext extends Context,
   TCurrentContext extends Context,
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
-  THandlerOutput,
+  TInputSchema extends AnySchema,
+  TOutputSchema extends AnySchema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
-> extends Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta> {
+> extends Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta> {
   errors<U extends ErrorMap>(
     errors: U,
   ): DecoratedProcedure<
@@ -27,7 +26,6 @@ export class DecoratedProcedure<
       TCurrentContext,
       TInputSchema,
       TOutputSchema,
-      THandlerOutput,
       MergedErrorMap<TErrorMap, U>,
       TMeta
     > {
@@ -39,7 +37,7 @@ export class DecoratedProcedure<
 
   meta(
     meta: TMeta,
-  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta> {
+  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta> {
     return new DecoratedProcedure({
       ...this['~orpc'],
       meta: mergeMeta(this['~orpc'].meta, meta),
@@ -48,7 +46,7 @@ export class DecoratedProcedure<
 
   route(
     route: Route,
-  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta> {
+  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta> {
     return new DecoratedProcedure({
       ...this['~orpc'],
       route: mergeRoute(this['~orpc'].route, route),
@@ -59,8 +57,8 @@ export class DecoratedProcedure<
     middleware: Middleware<
       TCurrentContext,
       U,
-      SchemaOutput<TInputSchema>,
-      SchemaInput<TOutputSchema, THandlerOutput>,
+      InferSchemaOutput<TInputSchema>,
+      InferSchemaInput<TOutputSchema>,
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
@@ -70,7 +68,6 @@ export class DecoratedProcedure<
       MergedContext<TCurrentContext, U>,
       TInputSchema,
       TOutputSchema,
-      THandlerOutput,
       TErrorMap,
       TMeta
     >
@@ -80,23 +77,22 @@ export class DecoratedProcedure<
       TCurrentContext,
       UOutContext,
       UInput,
-      SchemaInput<TOutputSchema, THandlerOutput>,
+      InferSchemaInput<TOutputSchema>,
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
-    mapInput: MapInputMiddleware<SchemaOutput<TInputSchema>, UInput>,
+    mapInput: MapInputMiddleware<InferSchemaOutput<TInputSchema>, UInput>,
   ): ConflictContextGuard<MergedContext<TCurrentContext, UOutContext>>
     & DecoratedProcedure<
       TInitialContext,
       MergedContext<TCurrentContext, UOutContext>,
       TInputSchema,
       TOutputSchema,
-      THandlerOutput,
       TErrorMap,
       TMeta
     >
 
-  use(middleware: AnyMiddleware, mapInput?: MapInputMiddleware<any, any>): DecoratedProcedure<any, any, any, any, any, any, any> {
+  use(middleware: AnyMiddleware, mapInput?: MapInputMiddleware<any, any>): DecoratedProcedure<any, any, any, any, any, any> {
     const mapped = mapInput
       ? decorateMiddleware(middleware).mapInput(mapInput)
       : middleware
@@ -116,14 +112,13 @@ export class DecoratedProcedure<
         TInitialContext,
         TInputSchema,
         TOutputSchema,
-        THandlerOutput,
         TErrorMap,
         TMeta,
         TClientContext
       >
     >
-  ): Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta>
-    & ProcedureClient<TClientContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap> {
+  ): Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>
+    & ProcedureClient<TClientContext, TInputSchema, TOutputSchema, TErrorMap> {
     return Object.assign(createProcedureClient(this, ...rest as any), {
       '~type': 'Procedure' as const,
       '~orpc': this['~orpc'],
@@ -139,15 +134,14 @@ export class DecoratedProcedure<
         TInitialContext,
         TInputSchema,
         TOutputSchema,
-        THandlerOutput,
         TErrorMap,
         TMeta,
         TClientContext
       >
     >
   ):
-    & Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta>
-    & ((...rest: ClientRest<TClientContext, SchemaInput<TInputSchema>>) => Promise<SchemaOutput<TOutputSchema, THandlerOutput>>) {
+    & Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>
+    & ((...rest: ClientRest<TClientContext, InferSchemaInput<TInputSchema>>) => Promise<InferSchemaOutput<TOutputSchema>>) {
     return this.callable(...rest)
   }
 }

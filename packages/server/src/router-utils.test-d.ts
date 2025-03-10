@@ -1,4 +1,4 @@
-import type { MergedErrorMap, Meta } from '@orpc/contract'
+import type { MergedErrorMap, Meta, Schema } from '@orpc/contract'
 import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../../contract/tests/shared'
 import type { CurrentContext, InitialContext, ping, pong, router } from '../tests/shared'
 import type { Context } from './context'
@@ -27,7 +27,6 @@ it('EnhancedRouter', () => {
           CurrentContext,
             typeof inputSchema,
             typeof outputSchema,
-            { output: number },
             MergedErrorMap<TErrorMap, typeof baseErrorMap>,
             BaseMeta
         >
@@ -41,7 +40,6 @@ it('EnhancedRouter', () => {
           CurrentContext,
             typeof inputSchema,
             typeof outputSchema,
-            { output: number },
             MergedErrorMap<TErrorMap, typeof baseErrorMap>,
             BaseMeta
         >
@@ -52,9 +50,8 @@ it('EnhancedRouter', () => {
       Procedure<
         InitialContext,
         Context,
-        undefined,
-        undefined,
-        unknown,
+        Schema<unknown, unknown>,
+        Schema<unknown, unknown>,
         MergedErrorMap<TErrorMap, Record<never, never>>,
         Meta
       >
@@ -65,9 +62,8 @@ it('EnhancedRouter', () => {
         Procedure<
           InitialContext,
           Context,
-          undefined,
-          undefined,
-          unknown,
+          Schema<unknown, unknown>,
+          Schema<unknown, unknown>,
           MergedErrorMap<TErrorMap, Record<never, never>>,
           Meta
         >

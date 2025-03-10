@@ -1,14 +1,13 @@
 import type { ORPCError, ORPCErrorCode } from '@orpc/client'
-import type { StandardSchemaV1 } from '@standard-schema/spec'
-import type { Schema, SchemaOutput } from './schema'
+import type { AnySchema, InferSchemaOutput, Schema, SchemaIssue } from './schema'
 
 export interface ValidationErrorOptions extends ErrorOptions {
   message: string
-  issues: readonly StandardSchemaV1.Issue[]
+  issues: readonly SchemaIssue[]
 }
 
 export class ValidationError extends Error {
-  readonly issues: readonly StandardSchemaV1.Issue[]
+  readonly issues: readonly SchemaIssue[]
 
   constructor(options: ValidationErrorOptions) {
     super(options.message, options)
@@ -17,7 +16,7 @@ export class ValidationError extends Error {
   }
 }
 
-export interface ErrorMapItem<TDataSchema extends Schema> {
+export interface ErrorMapItem<TDataSchema extends AnySchema> {
   status?: number
   message?: string
   description?: string
@@ -25,7 +24,7 @@ export interface ErrorMapItem<TDataSchema extends Schema> {
 }
 
 export type ErrorMap = {
-  [key in ORPCErrorCode]?: ErrorMapItem<Schema>
+  [key in ORPCErrorCode]?: ErrorMapItem<AnySchema>
 }
 
 export type MergedErrorMap<T1 extends ErrorMap, T2 extends ErrorMap> = Omit<T1, keyof T2> & T2
@@ -36,8 +35,8 @@ export function mergeErrorMap<T1 extends ErrorMap, T2 extends ErrorMap>(errorMap
 
 export type ORPCErrorFromErrorMap<TErrorMap extends ErrorMap> = {
   [K in keyof TErrorMap]: K extends string
-    ? TErrorMap[K] extends ErrorMapItem<infer TDataSchema>
-      ? ORPCError<K, SchemaOutput<TDataSchema>>
+    ? TErrorMap[K] extends ErrorMapItem<infer TDataSchema extends Schema<unknown, unknown>>
+      ? ORPCError<K, InferSchemaOutput<TDataSchema>>
       : never
     : never
 }[keyof TErrorMap]

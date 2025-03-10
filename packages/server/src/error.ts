@@ -1,5 +1,5 @@
 import type { ORPCErrorCode, ORPCErrorOptions } from '@orpc/client'
-import type { ErrorMap, ErrorMapItem, SchemaInput } from '@orpc/contract'
+import type { ErrorMap, ErrorMapItem, InferSchemaInput } from '@orpc/contract'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import { fallbackORPCErrorStatus, ORPCError } from '@orpc/client'
 
@@ -11,7 +11,7 @@ export type ORPCErrorConstructorMapItem<TCode extends ORPCErrorCode, TInData> =
 export type ORPCErrorConstructorMap<T extends ErrorMap> = {
   [K in keyof T]: K extends ORPCErrorCode
     ? T[K] extends ErrorMapItem<infer UInputSchema>
-      ? ORPCErrorConstructorMapItem<K, SchemaInput<UInputSchema>>
+      ? ORPCErrorConstructorMapItem<K, InferSchemaInput<UInputSchema>>
       : never
     : never
 }

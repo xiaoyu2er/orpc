@@ -4,6 +4,7 @@ import type { ContractProcedureBuilder, ContractProcedureBuilderWithInput, Contr
 import type { MergedErrorMap } from './error'
 import type { ContractProcedure } from './procedure'
 import type { EnhancedContractRouter } from './router-utils'
+import type { Schema } from './schema'
 import { generalSchema, ping, pong } from '../tests/shared'
 
 const builder = {} as ContractBuilder<typeof inputSchema, typeof outputSchema, typeof baseErrorMap, BaseMeta>
@@ -144,7 +145,7 @@ describe('ContractBuilder', () => {
     builder.router({
       // @ts-expect-error - conflict meta def
       ping: {} as ContractProcedure<
-        undefined,
+        Schema<unknown, unknown>,
         typeof outputSchema,
         typeof baseErrorMap,
         { mode?: number }

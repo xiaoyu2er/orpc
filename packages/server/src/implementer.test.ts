@@ -151,6 +151,5 @@ describe('implement', () => {
     expect((implementer.nested as any)[Symbol.for('test')]).toBeUndefined()
     expect((implementer.nested.ping as any)[Symbol.for('test')]).toBeUndefined()
     expect((implementer.use as any)[Symbol.for('test')]).toBeUndefined()
-    expect((implementer.use as any)[Symbol.for('test')]).toBeUndefined()
   })
 })

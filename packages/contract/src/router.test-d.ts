@@ -33,10 +33,6 @@ it('InferContractRouterOutputs', () => {
 })
 
 it('InferContractRouterErrorMap', () => {
-  expectTypeOf < InferContractRouterErrorMap<typeof router>>().toEqualTypeOf<typeof baseErrorMap | Record<never, never>>()
-})
-
-it('InferContractRouterErrorMap', () => {
   expectTypeOf<InferContractRouterErrorMap<typeof router>>().toEqualTypeOf<typeof baseErrorMap | Record<never, never>>()
 })
 

@@ -9,13 +9,13 @@ export interface LazyMeta {
 export interface Lazy<T> {
   [LAZY_SYMBOL]: {
     loader: () => Promise<{ default: T }>
-    meta?: LazyMeta
+    meta: LazyMeta
   }
 }
 
 export type Lazyable<T> = T | Lazy<T>
 
-export function lazy<T>(loader: () => Promise<{ default: T }>, meta?: LazyMeta): Lazy<T> {
+export function lazy<T>(loader: () => Promise<{ default: T }>, meta: LazyMeta): Lazy<T> {
   return {
     [LAZY_SYMBOL]: {
       loader,
@@ -32,7 +32,7 @@ export function isLazy(item: unknown): item is Lazy<any> {
   )
 }
 
-export function getLazyMeta(lazied: Lazy<any>): LazyMeta | undefined {
+export function getLazyMeta(lazied: Lazy<any>): LazyMeta {
   return lazied[LAZY_SYMBOL].meta
 }
 

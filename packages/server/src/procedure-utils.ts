@@ -3,7 +3,7 @@ import type { ErrorFromErrorMap, ErrorMap, Lazy, Lazyable, Meta, Schema, SchemaI
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { Context } from './context'
 import type { CreateProcedureClientOptions } from './procedure-client'
-import { lazy, unlazy } from '@orpc/contract'
+import { getLazyMeta, lazy, unlazy } from '@orpc/contract'
 import { type AnyProcedure, isProcedure, type Procedure } from './procedure'
 import { createProcedureClient } from './procedure-client'
 
@@ -20,7 +20,7 @@ export function createLazyAssertedProcedure(lazied: Lazy<any>): Lazy<AnyProcedur
     }
 
     return { default: maybeProcedure }
-  })
+  }, getLazyMeta(lazied))
 
   return lazyProcedure
 }

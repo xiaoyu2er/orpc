@@ -129,7 +129,7 @@ export class ContractBuilder<
   lazy<U extends ContractRouter<TMeta>>(
     loader: () => Promise<{ default: U }>,
   ): EnhancedContractRouter<Lazy<U>, TErrorMap> {
-    const lazied = lazy(loader)
+    const lazied = lazy(loader, { prefix: undefined })
     const adapted = enhanceContractRouter(lazied, this['~orpc'])
     return adapted
   }
@@ -142,5 +142,5 @@ export const oc = new ContractBuilder({
   route: {},
   meta: {},
   prefix: undefined,
-  tags: undefined,
+  tags: [],
 })

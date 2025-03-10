@@ -1,21 +1,23 @@
-import type { AnyContractRouter, ContractProcedure, ContractRouterToErrorMap, ContractRouterToMeta } from '@orpc/contract'
+import type { AnyContractRouter, ContractProcedure, InferContractRouterErrorMap, InferContractRouterMeta } from '@orpc/contract'
+import type { AnyFunction } from '@orpc/shared'
 import type { ConflictContextGuard, Context, MergedContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { ProcedureImplementer } from './implementer-procedure'
 import type { ImplementerInternalWithMiddlewares } from './implementer-variants'
+import type { Lazy } from './lazy'
 import type { AnyMiddleware, Middleware } from './middleware'
-import { isContractProcedure } from '@orpc/contract'
+import type { AnyRouter, Router } from './router'
+import { getContractRouter, isContractProcedure } from '@orpc/contract'
 import { Builder, type BuilderConfig } from './builder'
 import { fallbackConfig } from './config'
-import { setRouterContract } from './hidden'
 import { lazy } from './lazy'
-import { flatLazy, type FlattenLazy } from './lazy-utils'
 import { type DecoratedMiddleware, decorateMiddleware } from './middleware-decorated'
 import { addMiddleware } from './middleware-utils'
-import { type AdaptedRouter, adaptRouter, type Router } from './router'
+import { setHiddenRouterContract } from './router-hidden'
+import { type EnhancedRouter, enhanceRouter } from './router-utils'
 
 export interface RouterImplementer<
-  TContract extends AnyContractRouter,
+  T extends AnyContractRouter,
   TInitialContext extends Context,
   TCurrentContext extends Context,
 > {
@@ -25,10 +27,10 @@ export interface RouterImplementer<
       UOutContext,
       TInput,
       TOutput,
-      ORPCErrorConstructorMap<ContractRouterToErrorMap<TContract>>,
-      ContractRouterToMeta<TContract>
+      ORPCErrorConstructorMap<InferContractRouterErrorMap<T>>,
+      InferContractRouterMeta<T>
     >,
-  ): DecoratedMiddleware<TCurrentContext, UOutContext, TInput, TOutput, ORPCErrorConstructorMap<any>, ContractRouterToMeta<TContract>> // ORPCErrorConstructorMap<any> ensures middleware can used in any procedure
+  ): DecoratedMiddleware<TCurrentContext, UOutContext, TInput, TOutput, ORPCErrorConstructorMap<any>, InferContractRouterMeta<T>> // ORPCErrorConstructorMap<any> ensures middleware can used in any procedure
 
   use<U extends Context>(
     middleware: Middleware<
@@ -36,17 +38,18 @@ export interface RouterImplementer<
       U,
       unknown,
       unknown,
-      ORPCErrorConstructorMap<ContractRouterToErrorMap<TContract>>,
-      ContractRouterToMeta<TContract>
+      ORPCErrorConstructorMap<InferContractRouterErrorMap<T>>,
+      InferContractRouterMeta<T>
     >,
   ): ConflictContextGuard<MergedContext<TCurrentContext, U>>
-    & ImplementerInternalWithMiddlewares<TContract, TInitialContext, MergedContext<TCurrentContext, U>>
+    & ImplementerInternalWithMiddlewares<T, TInitialContext, MergedContext<TCurrentContext, U>>
 
-  router<U extends Router<TCurrentContext, TContract>>(router: U): AdaptedRouter<U, TInitialContext, Record<never, never>>
+  router<U extends Router<T, TCurrentContext>>(
+    router: U): EnhancedRouter<U, TInitialContext, Record<never, never>>
 
-  lazy<U extends Router<TCurrentContext, TContract>>(
+  lazy<U extends Router<T, TCurrentContext>>(
     loader: () => Promise<{ default: U }>
-  ): AdaptedRouter<FlattenLazy<U>, TInitialContext, Record<never, never>>
+  ): EnhancedRouter<Lazy<U>, TInitialContext, Record<never, never>>
 }
 
 export type ImplementerInternal<
@@ -65,14 +68,14 @@ export type ImplementerInternal<
    )
 
 export function implementerInternal<
-  TContract extends AnyContractRouter,
+  T extends AnyContractRouter,
   TInitialContext extends Context,
   TCurrentContext extends Context,
 >(
-  contract: TContract,
+  contract: T,
   config: BuilderConfig,
   middlewares: AnyMiddleware[],
-): ImplementerInternal<TContract, TInitialContext, TCurrentContext> {
+): ImplementerInternal<T, TInitialContext, TCurrentContext> {
   if (isContractProcedure(contract)) {
     const impl = new Builder({
       ...contract['~orpc'],
@@ -87,7 +90,11 @@ export function implementerInternal<
 
   const impl = new Proxy(contract, {
     get: (target, key) => {
-      let method: any
+      if (typeof key !== 'string') {
+        return Reflect.get(target, key)
+      }
+
+      let method: AnyFunction | undefined
 
       if (key === 'middleware') {
         method = (mid: any) => decorateMiddleware(mid)
@@ -103,32 +110,36 @@ export function implementerInternal<
       }
       else if (key === 'router') {
         method = (router: any) => {
-          const adapted = adaptRouter(router, {
+          const adapted = enhanceRouter(router, {
             middlewares,
             errorMap: {},
+            prefix: undefined,
+            tags: undefined,
           })
 
-          return setRouterContract(adapted, contract)
+          return setHiddenRouterContract(adapted, contract)
         }
       }
       else if (key === 'lazy') {
-        method = (loader: any) => {
-          const adapted = adaptRouter(flatLazy(lazy(loader)) as any, {
+        method = (loader: () => Promise<{ default: AnyRouter }>) => {
+          const adapted = enhanceRouter(lazy(loader) as any, {
             middlewares,
             errorMap: {},
+            prefix: undefined,
+            tags: undefined,
           })
 
-          return setRouterContract(adapted, contract)
+          return setHiddenRouterContract(adapted, contract)
         }
       }
 
-      const next = Reflect.get(target, key)
+      const next = getContractRouter(target, [key])
 
-      if (!next || (typeof next !== 'function' && typeof next !== 'object')) {
+      if (!next) {
         return method ?? next
       }
 
-      const nextImpl = implementerInternal(next as any, config, middlewares)
+      const nextImpl = implementerInternal(next, config, middlewares)
 
       if (method) {
         return new Proxy(method, {
@@ -168,7 +179,7 @@ export function implement<
 
   const impl = new Proxy(implInternal, {
     get: (target, key) => {
-      let method: any
+      let method: AnyFunction | undefined
 
       if (key === '$context') {
         method = () => impl

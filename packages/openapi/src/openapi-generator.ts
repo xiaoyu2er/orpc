@@ -4,7 +4,8 @@ import type { JSONSchema } from './schema'
 import { fallbackORPCErrorMessage, fallbackORPCErrorStatus } from '@orpc/client'
 import { fallbackContractConfig, getEventIteratorSchemaDetails } from '@orpc/contract'
 import { OpenAPISerializer } from '@orpc/openapi-client/standard'
-import { type AnyRouter, convertPathToHttpPath, eachAllContractProcedure } from '@orpc/server'
+import { type AnyRouter, toHttpPath } from '@orpc/server'
+import { resolveContractProcedures } from '@orpc/server'
 import { clone } from '@orpc/shared'
 import { applyCustomOpenAPIOperation } from './openapi-custom'
 import { checkParamsSchema, getDynamicParams, toOpenAPIContent, toOpenAPIEventIteratorContent, toOpenAPIMethod, toOpenAPIParameters, toOpenAPIPath, toOpenAPISchema } from './openapi-utils'
@@ -32,14 +33,14 @@ export class OpenAPIGenerator {
 
     const errors: string[] = []
 
-    await eachAllContractProcedure({ path: [], router }, ({ contract, path }) => {
+    await resolveContractProcedures({ path: [], router }, ({ contract, path }) => {
       const operationId = path.join('.')
 
       try {
         const def = contract['~orpc']
 
         const method = toOpenAPIMethod(fallbackContractConfig('defaultMethod', def.route.method))
-        const httpPath = toOpenAPIPath(def.route.path ?? convertPathToHttpPath(path))
+        const httpPath = toOpenAPIPath(def.route.path ?? toHttpPath(path))
 
         const operationObjectRef: OpenAPI.OperationObject = {
           operationId,

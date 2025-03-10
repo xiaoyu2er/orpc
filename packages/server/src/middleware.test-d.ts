@@ -17,7 +17,7 @@ describe('middleware', () => {
     > = ({ context, path, procedure, signal, next, errors }, input, output) => {
       expectTypeOf(input).toEqualTypeOf<{ input: number }>()
       expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
-      expectTypeOf(path).toEqualTypeOf<string[]>()
+      expectTypeOf(path).toEqualTypeOf<readonly string[]>()
       expectTypeOf(procedure).toEqualTypeOf<
         Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, BaseMeta>
       >()

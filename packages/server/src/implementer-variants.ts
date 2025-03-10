@@ -1,13 +1,14 @@
-import type { AnyContractRouter, ContractProcedure, ContractRouterToErrorMap, ContractRouterToMeta } from '@orpc/contract'
+import type { AnyContractRouter, ContractProcedure, InferContractRouterErrorMap, InferContractRouterMeta } from '@orpc/contract'
 import type { ConflictContextGuard, Context, MergedContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { ProcedureImplementer } from './implementer-procedure'
-import type { FlattenLazy } from './lazy-utils'
+import type { Lazy } from './lazy'
 import type { Middleware } from './middleware'
-import type { AdaptedRouter, Router } from './router'
+import type { Router } from './router'
+import type { EnhancedRouter } from './router-utils'
 
 export interface RouterImplementerWithMiddlewares<
-  TContract extends AnyContractRouter,
+  T extends AnyContractRouter,
   TInitialContext extends Context,
   TCurrentContext extends Context,
 > {
@@ -17,17 +18,18 @@ export interface RouterImplementerWithMiddlewares<
       U,
       unknown,
       unknown,
-      ORPCErrorConstructorMap<ContractRouterToErrorMap<TContract>>,
-      ContractRouterToMeta<TContract>
+      ORPCErrorConstructorMap<InferContractRouterErrorMap<T>>,
+      InferContractRouterMeta<T>
     >,
   ): ConflictContextGuard<MergedContext<TCurrentContext, U>>
-    & ImplementerInternalWithMiddlewares<TContract, TInitialContext, MergedContext<TCurrentContext, U>>
+    & ImplementerInternalWithMiddlewares<T, TInitialContext, MergedContext<TCurrentContext, U>>
 
-  router<U extends Router<TCurrentContext, TContract>>(router: U): AdaptedRouter<U, TInitialContext, Record<never, never>>
+  router<U extends Router<T, TCurrentContext>>(
+    router: U): EnhancedRouter<U, TInitialContext, Record<never, never>>
 
-  lazy<U extends Router<TInitialContext, TContract>>(
+  lazy<U extends Router<T, TInitialContext>>(
     loader: () => Promise<{ default: U }>
-  ): AdaptedRouter<FlattenLazy<U>, TInitialContext, Record<never, never>>
+  ): EnhancedRouter<Lazy<U>, TInitialContext, Record<never, never>>
 }
 
 export type ImplementerInternalWithMiddlewares<

@@ -1,19 +1,19 @@
 import type { ContractProcedureBuilder, ContractProcedureBuilderWithInput, ContractProcedureBuilderWithOutput, ContractRouterBuilder } from './builder-variants'
 import type { ContractProcedureDef } from './procedure'
-import type { AdaptContractRouterOptions, AdaptedContractRouter, ContractRouter } from './router'
+import type { ContractRouter } from './router'
 import type { Schema } from './schema'
 import { type ErrorMap, type MergedErrorMap, mergeErrorMap } from './error'
 import { mergeMeta, type Meta } from './meta'
 import { ContractProcedure } from './procedure'
 import { type HTTPPath, mergePrefix, mergeRoute, mergeTags, type Route } from './route'
-import { adaptContractRouter } from './router'
+import { enhanceContractRouter, type EnhanceContractRouterOptions, type EnhancedContractRouter } from './router-utils'
 
 export interface ContractBuilderDef<
   TInputSchema extends Schema,
   TOutputSchema extends Schema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
-> extends ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>, AdaptContractRouterOptions<TErrorMap> {
+> extends ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>, EnhanceContractRouterOptions<TErrorMap> {
 }
 
 export class ContractBuilder<
@@ -114,8 +114,8 @@ export class ContractBuilder<
     })
   }
 
-  router<T extends ContractRouter<TMeta>>(router: T): AdaptedContractRouter<T, TErrorMap> {
-    return adaptContractRouter(router, this['~orpc'])
+  router<T extends ContractRouter<TMeta>>(router: T): EnhancedContractRouter<T, TErrorMap> {
+    return enhanceContractRouter(router, this['~orpc'])
   }
 }
 

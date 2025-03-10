@@ -11,7 +11,7 @@ import { RPCCodec, RPCMatcher, StandardHandler } from '../standard'
 export class RPCHandler<T extends Context> implements NodeHttpHandler<T> {
   private readonly standardHandler: StandardHandler<T>
 
-  constructor(router: Router<T, any>, options: NoInfer<StandardHandlerOptions<T>> = {}) {
+  constructor(router: Router<any, T>, options: NoInfer<StandardHandlerOptions<T>> = {}) {
     const serializer = new RPCSerializer()
     const matcher = new RPCMatcher()
     const codec = new RPCCodec(serializer)

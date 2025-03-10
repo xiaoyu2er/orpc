@@ -54,3 +54,5 @@ export const router = {
     },
   })),
 }
+
+export { router as contract, ping as pingContract, pong as pongContract } from '../../contract/tests/shared'

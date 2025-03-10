@@ -103,7 +103,7 @@ describe('createProcedureClient', () => {
           expectTypeOf(procedure).toEqualTypeOf<
             Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, BaseMeta>
           >()
-          expectTypeOf(path).toEqualTypeOf<string[]>()
+          expectTypeOf(path).toEqualTypeOf<readonly string[]>()
           expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
           expectTypeOf(context).toEqualTypeOf<{ db: string }>()
           expectTypeOf(input).toEqualTypeOf<{ input: number }>()

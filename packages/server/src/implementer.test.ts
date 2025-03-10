@@ -1,16 +1,15 @@
 import { router as contract } from '../../contract/tests/shared'
 import { router } from '../tests/shared'
 import { Builder } from './builder'
-import { getRouterContract } from './hidden'
-import * as Hidden from './hidden'
 import { implement } from './implementer'
 import { isLazy, unlazy } from './lazy'
 import * as MiddlewareDecorated from './middleware-decorated'
-import * as Router from './router'
+import * as RouterHiddenModule from './router-hidden'
+import * as RouterUtilsModule from './router-utils'
 
-const setRouterContractSpy = vi.spyOn(Hidden, 'setRouterContract')
+const setHiddenRouterContractSpy = vi.spyOn(RouterHiddenModule, 'setHiddenRouterContract')
 const decorateMiddlewareSpy = vi.spyOn(MiddlewareDecorated, 'decorateMiddleware')
-const adaptRouterSpy = vi.spyOn(Router, 'adaptRouter')
+const enhanceRouterSpy = vi.spyOn(RouterUtilsModule, 'enhanceRouter')
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -62,14 +61,14 @@ describe('implement', () => {
     it('.router', () => {
       const applied = implementer.nested.router(router as any)
 
-      expect(getRouterContract(applied)).toBe(contract.nested)
-      expect(applied).toBe(setRouterContractSpy.mock.results[0]?.value)
+      expect(RouterHiddenModule.getHiddenRouterContract(applied)).toBe(contract.nested)
+      expect(applied).toBe(setHiddenRouterContractSpy.mock.results[0]?.value)
 
-      expect(setRouterContractSpy).toHaveBeenCalledOnce()
-      expect(setRouterContractSpy).toHaveBeenCalledWith(adaptRouterSpy.mock.results[0]?.value, contract.nested)
+      expect(setHiddenRouterContractSpy).toHaveBeenCalledOnce()
+      expect(setHiddenRouterContractSpy).toHaveBeenCalledWith(enhanceRouterSpy.mock.results[0]?.value, contract.nested)
 
-      expect(adaptRouterSpy).toHaveBeenCalledOnce()
-      expect(adaptRouterSpy).toHaveBeenCalledWith(router, {
+      expect(enhanceRouterSpy).toHaveBeenCalledOnce()
+      expect(enhanceRouterSpy).toHaveBeenCalledWith(router, {
         middlewares: [mid],
         errorMap: {},
       })
@@ -78,19 +77,19 @@ describe('implement', () => {
     it('.lazy', () => {
       const applied = implementer.nested.lazy(() => Promise.resolve({ default: router as any }))
 
-      expect(getRouterContract(applied)).toBe(contract.nested)
-      expect(applied).toBe(setRouterContractSpy.mock.results[0]?.value)
+      expect(RouterHiddenModule.getHiddenRouterContract(applied)).toBe(contract.nested)
+      expect(applied).toBe(setHiddenRouterContractSpy.mock.results[0]?.value)
 
-      expect(setRouterContractSpy).toHaveBeenCalledOnce()
-      expect(setRouterContractSpy).toHaveBeenCalledWith(adaptRouterSpy.mock.results[0]?.value, contract.nested)
+      expect(setHiddenRouterContractSpy).toHaveBeenCalledOnce()
+      expect(setHiddenRouterContractSpy).toHaveBeenCalledWith(enhanceRouterSpy.mock.results[0]?.value, contract.nested)
 
-      expect(adaptRouterSpy).toHaveBeenCalledOnce()
-      expect(adaptRouterSpy).toHaveBeenCalledWith(expect.any(Object), {
+      expect(enhanceRouterSpy).toHaveBeenCalledOnce()
+      expect(enhanceRouterSpy).toHaveBeenCalledWith(expect.any(Object), {
         middlewares: [mid],
         errorMap: {},
       })
 
-      const lazied = adaptRouterSpy.mock.calls[0]?.[0]
+      const lazied = enhanceRouterSpy.mock.calls[0]?.[0]
 
       expect(lazied).toSatisfy(isLazy)
       expect(unlazy(lazied)).resolves.toEqual({ default: router })
@@ -145,9 +144,12 @@ describe('implement', () => {
 
     expect(implementer.$context.$context.nested.ping).toBeInstanceOf(Builder)
     expect(implementer.use.use.nested.ping).toBeInstanceOf(Builder)
+  })
 
+  it('not recursive if access with a symbol', () => {
     expect((implementer as any)[Symbol.for('test')]).toBeUndefined()
-    expect((implementer.$context as any)[Symbol.for('test')]).toBeUndefined()
+    expect((implementer.nested as any)[Symbol.for('test')]).toBeUndefined()
+    expect((implementer.nested.ping as any)[Symbol.for('test')]).toBeUndefined()
     expect((implementer.use as any)[Symbol.for('test')]).toBeUndefined()
   })
 })

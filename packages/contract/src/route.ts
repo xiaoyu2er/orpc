@@ -101,19 +101,19 @@ export function mergeTags(a: readonly string[] | undefined, b: readonly string[]
   return a ? [...a, ...b] : b
 }
 
-export interface AdaptRouteOptions {
+export interface EnhanceRouteOptions {
   prefix?: HTTPPath
   tags?: readonly string[]
 }
 
-export function adaptRoute(route: Route, options: AdaptRouteOptions): Route {
+export function enhanceRoute(route: Route, options: EnhanceRouteOptions): Route {
   let router = route
 
   if (options.prefix) {
     router = prefixRoute(router, options.prefix)
   }
 
-  if (options.tags) {
+  if (options.tags?.length) {
     router = unshiftTagRoute(router, options.tags)
   }
 

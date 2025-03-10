@@ -71,7 +71,7 @@ catch (error) {
 Errors thrown by the server can be instances of `ORPCError`.
 :::
 
-## Event Iterator Connection Status
+## Connection Status
 
 Combine with `onEventIteratorStatusChange` to track the connection status of the event iterator.
 

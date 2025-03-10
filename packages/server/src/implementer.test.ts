@@ -144,9 +144,13 @@ describe('implement', () => {
 
     expect(implementer.$context.$context.nested.ping).toBeInstanceOf(Builder)
     expect(implementer.use.use.nested.ping).toBeInstanceOf(Builder)
+  })
 
+  it('not recursive if access with a symbol', () => {
     expect((implementer as any)[Symbol.for('test')]).toBeUndefined()
-    expect((implementer.$context as any)[Symbol.for('test')]).toBeUndefined()
+    expect((implementer.nested as any)[Symbol.for('test')]).toBeUndefined()
+    expect((implementer.nested.ping as any)[Symbol.for('test')]).toBeUndefined()
+    expect((implementer.use as any)[Symbol.for('test')]).toBeUndefined()
     expect((implementer.use as any)[Symbol.for('test')]).toBeUndefined()
   })
 })

@@ -47,7 +47,6 @@ it('enhanceRoute', () => {
 
   expect(enhanceRoute(route, {
     prefix: '/adapt',
-    tags: undefined,
   })).toEqual({
     path: '/adapt/api/v1',
     tags: ['tag'],
@@ -55,7 +54,6 @@ it('enhanceRoute', () => {
   })
 
   expect(enhanceRoute(route, {
-    prefix: undefined,
     tags: ['adapt'],
   })).toEqual({
     path: '/api/v1',
@@ -63,8 +61,5 @@ it('enhanceRoute', () => {
     description: 'description',
   })
 
-  expect(enhanceRoute(route, {
-    prefix: undefined,
-    tags: undefined,
-  })).toBe(route)
+  expect(enhanceRoute(route, {})).toBe(route)
 })

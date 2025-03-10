@@ -18,9 +18,7 @@ export class OpenAPIMatcher implements StandardMatcher {
   init(router: AnyRouter, path: readonly string[] = []): void {
     const laziedOptions = traverseContractProcedures({ router, path }, ({ path, contract }) => {
       const method = fallbackContractConfig('defaultMethod', contract['~orpc'].route.method)
-      const httpPath = contract['~orpc'].route.path
-        ? toRou3Pattern(contract['~orpc'].route.path)
-        : toHttpPath(path)
+      const httpPath = toRou3Pattern(contract['~orpc'].route.path ?? toHttpPath(path))
 
       if (isProcedure(contract)) {
         addRoute(this.tree, method, httpPath, {

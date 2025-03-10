@@ -1,4 +1,5 @@
 import type { AnyContractRouter, ContractProcedure, InferContractRouterErrorMap, InferContractRouterMeta } from '@orpc/contract'
+import type { AnyFunction } from '@orpc/shared'
 import type { ConflictContextGuard, Context, MergedContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { ProcedureImplementer } from './implementer-procedure'
@@ -6,7 +7,7 @@ import type { ImplementerInternalWithMiddlewares } from './implementer-variants'
 import type { Lazy } from './lazy'
 import type { AnyMiddleware, Middleware } from './middleware'
 import type { AnyRouter, Router } from './router'
-import { isContractProcedure } from '@orpc/contract'
+import { getContractRouter, isContractProcedure } from '@orpc/contract'
 import { Builder, type BuilderConfig } from './builder'
 import { fallbackConfig } from './config'
 import { lazy } from './lazy'
@@ -67,14 +68,14 @@ export type ImplementerInternal<
    )
 
 export function implementerInternal<
-  TContract extends AnyContractRouter,
+  T extends AnyContractRouter,
   TInitialContext extends Context,
   TCurrentContext extends Context,
 >(
-  contract: TContract,
+  contract: T,
   config: BuilderConfig,
   middlewares: AnyMiddleware[],
-): ImplementerInternal<TContract, TInitialContext, TCurrentContext> {
+): ImplementerInternal<T, TInitialContext, TCurrentContext> {
   if (isContractProcedure(contract)) {
     const impl = new Builder({
       ...contract['~orpc'],
@@ -89,7 +90,11 @@ export function implementerInternal<
 
   const impl = new Proxy(contract, {
     get: (target, key) => {
-      let method: any
+      if (typeof key !== 'string') {
+        return Reflect.get(target, key)
+      }
+
+      let method: AnyFunction | undefined
 
       if (key === 'middleware') {
         method = (mid: any) => decorateMiddleware(mid)
@@ -128,13 +133,13 @@ export function implementerInternal<
         }
       }
 
-      const next = Reflect.get(target, key)
+      const next = getContractRouter(target, [key])
 
-      if (!next || (typeof next !== 'function' && typeof next !== 'object')) {
+      if (!next) {
         return method ?? next
       }
 
-      const nextImpl = implementerInternal(next as any, config, middlewares)
+      const nextImpl = implementerInternal(next, config, middlewares)
 
       if (method) {
         return new Proxy(method, {
@@ -174,7 +179,7 @@ export function implement<
 
   const impl = new Proxy(implInternal, {
     get: (target, key) => {
-      let method: any
+      let method: AnyFunction | undefined
 
       if (key === '$context') {
         method = () => impl

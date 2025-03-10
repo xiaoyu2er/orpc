@@ -1,6 +1,18 @@
 import { ping, pong, router } from '../tests/shared'
 import { enhanceRoute } from './route'
-import { enhanceContractRouter } from './router-utils'
+import { enhanceContractRouter, getContractRouter } from './router-utils'
+
+it('getContractRouter', () => {
+  expect(getContractRouter(router, [])).toEqual(router)
+  expect(getContractRouter(router, ['ping'])).toEqual(router.ping)
+  expect(getContractRouter(router, ['nested', 'pong'])).toEqual(router.nested.pong)
+
+  expect(getContractRouter(router, ['not-exist'])).toBeUndefined()
+  expect(getContractRouter(router, ['nested', 'not-exist', 'not-exist'])).toBeUndefined()
+
+  expect(getContractRouter(router, ['pong', '~orpc'])).toBeUndefined()
+  expect(getContractRouter(router, ['ping', '~orpc'])).toBeUndefined()
+})
 
 it('enhanceContractRouter', async () => {
   const errorMap = {

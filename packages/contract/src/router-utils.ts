@@ -3,6 +3,26 @@ import { type ErrorMap, type MergedErrorMap, mergeErrorMap } from './error'
 import { ContractProcedure, isContractProcedure } from './procedure'
 import { enhanceRoute, type EnhanceRouteOptions } from './route'
 
+export function getContractRouter(router: AnyContractRouter, path: readonly string[]): AnyContractRouter | undefined {
+  let current: AnyContractRouter | undefined = router
+
+  for (let i = 0; i < path.length; i++) {
+    const segment = path[i]!
+
+    if (!current) {
+      return undefined
+    }
+
+    if (isContractProcedure(current)) {
+      return undefined
+    }
+
+    current = current[segment]
+  }
+
+  return current
+}
+
 export type EnhancedContractRouter<T extends AnyContractRouter, TErrorMap extends ErrorMap> =
     T extends ContractProcedure<infer UInputSchema, infer UOutputSchema, infer UErrors, infer UMeta>
       ? ContractProcedure<UInputSchema, UOutputSchema, MergedErrorMap<TErrorMap, UErrors>, UMeta>

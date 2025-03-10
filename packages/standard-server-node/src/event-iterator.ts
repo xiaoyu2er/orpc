@@ -93,7 +93,7 @@ export interface ToEventStreamOptions {
 
 export function toEventStream(
   iterator: AsyncIterator<unknown | void, unknown | void, void>,
-  options: ToEventStreamOptions,
+  options: ToEventStreamOptions = {},
 ): Readable {
   const keepAliveEnabled = options.eventIteratorKeepAliveEnabled ?? true
   const keepAliveInterval = options.eventIteratorKeepAliveInterval ?? 5000

@@ -59,7 +59,7 @@ export interface ToNodeHttpBodyOptions extends ToEventStreamOptions {}
 export function toNodeHttpBody(
   body: StandardBody,
   headers: StandardHeaders,
-  options: ToNodeHttpBodyOptions,
+  options: ToNodeHttpBodyOptions = {},
 ): Readable | undefined | string {
   delete headers['content-type']
   delete headers['content-disposition']

@@ -24,7 +24,7 @@ export function toStandardLazyRequest(request: Request): StandardLazyRequest {
 
 export interface ToFetchRequestOptions extends ToFetchBodyOptions {}
 
-export function toFetchRequest(request: StandardRequest, options: ToFetchRequestOptions): Request {
+export function toFetchRequest(request: StandardRequest, options: ToFetchRequestOptions = {}): Request {
   const headers = toFetchHeaders(request.headers)
   const body = toFetchBody(request.body, headers, options)
 

@@ -39,7 +39,7 @@ serve({
       headers: {},
       status: 200,
       body: gen(),
-    }, {})
+    })
   },
   port: 3000,
 })

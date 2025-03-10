@@ -61,7 +61,7 @@ export interface ToFetchBodyOptions extends ToEventStreamOptions {}
 export function toFetchBody(
   body: StandardBody,
   headers: Headers,
-  options: ToFetchBodyOptions,
+  options: ToFetchBodyOptions = {},
 ): string | Blob | FormData | URLSearchParams | undefined | ReadableStream<Uint8Array> {
   headers.delete('content-type')
   headers.delete('content-disposition')

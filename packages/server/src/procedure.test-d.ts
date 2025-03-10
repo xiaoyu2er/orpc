@@ -8,7 +8,6 @@ const procedure = {} as Procedure<
   CurrentContext,
   typeof inputSchema,
   typeof outputSchema,
-  { output: number },
   typeof baseErrorMap,
   BaseMeta
 >

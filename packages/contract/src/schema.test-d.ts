@@ -18,7 +18,6 @@ const arktype = arktypeType({
 
 describe('Schema', () => {
   it('assignable', () => {
-    const _undefined: AnySchema = undefined
     const _zod: AnySchema = zod
     const _valibot: AnySchema = valibot
     const _arktype: AnySchema = arktype
@@ -27,7 +26,6 @@ describe('Schema', () => {
 
 describe('SchemaInput', () => {
   it('inferable', () => {
-    expectTypeOf<InferSchemaInput<undefined>>().toEqualTypeOf<unknown>()
     expectTypeOf<InferSchemaInput<typeof zod>>().toEqualTypeOf<{ value: string }>()
     expectTypeOf<InferSchemaInput<typeof valibot>>().toEqualTypeOf<{ value: string }>()
     expectTypeOf<InferSchemaInput<typeof arktype>>().toEqualTypeOf<{ value: string }>()
@@ -36,7 +34,6 @@ describe('SchemaInput', () => {
 
 describe('SchemaOutput', () => {
   it('inferable', () => {
-    expectTypeOf<InferSchemaOutput<undefined>>().toEqualTypeOf<unknown>()
     expectTypeOf<InferSchemaOutput<typeof zod>>().toEqualTypeOf<{ value: number }>()
     expectTypeOf<InferSchemaOutput<typeof valibot>>().toEqualTypeOf<{ value: number }>()
     expectTypeOf<InferSchemaOutput<typeof arktype>>().toEqualTypeOf<{ value: string }>()

@@ -1,4 +1,4 @@
-import type { AnySchema, ErrorMap, Meta } from '@orpc/contract'
+import type { AnySchema, ErrorMap, Meta, Schema } from '@orpc/contract'
 import type { baseErrorMap, BaseMeta, inputSchema, outputSchema, router } from '../../contract/tests/shared'
 import type { CurrentContext, InitialContext } from '../tests/shared'
 import type { Context, MergedContext } from './context'
@@ -44,7 +44,7 @@ describe('Implementer', () => {
           expectTypeOf(context).toEqualTypeOf<CurrentContext>()
           expectTypeOf(path).toEqualTypeOf<readonly string[]>()
           expectTypeOf(procedure).toEqualTypeOf<
-            Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, BaseMeta | Meta>
+            Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta | Meta>
           >()
           expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<any>>()
           expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap | Record<never, never>>>()
@@ -94,7 +94,7 @@ describe('Implementer', () => {
         expectTypeOf(context).toEqualTypeOf<CurrentContext>()
         expectTypeOf(path).toEqualTypeOf<readonly string[]>()
         expectTypeOf(procedure).toEqualTypeOf<
-          Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, BaseMeta | Meta>
+          Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta | Meta>
         >()
         expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<unknown>>()
         expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap | Record<never, never>>>()
@@ -128,7 +128,14 @@ describe('Implementer', () => {
 
       implementer.router({
         // @ts-expect-error - initial context is not match
-        ping: {} as Procedure<{ invalid: true }, Context, undefined, undefined, unknown, Record<never, never>, BaseMeta>,
+        ping: {} as Procedure<
+          { invalid: true },
+          Context,
+          AnySchema,
+          AnySchema,
+          Record<never, never>,
+          BaseMeta
+        >,
       })
 
       implementer.router({
@@ -136,9 +143,8 @@ describe('Implementer', () => {
         ping: {} as Procedure<
           Context,
           Context,
-          undefined,
-          undefined,
-          unknown,
+          AnySchema,
+          AnySchema,
           Record<never, never>,
           { invalid: true }
         >,
@@ -158,7 +164,14 @@ describe('Implementer', () => {
       // @ts-expect-error - initial context is not match
       implementer.lazy(() => Promise.resolve({
         default: {
-          ping: {} as Procedure<{ invalid: true }, Context, undefined, undefined, unknown, Record<never, never>, BaseMeta>,
+          ping: {} as Procedure<
+            { invalid: true },
+            Context,
+            AnySchema,
+            AnySchema,
+            Record<never, never>,
+            BaseMeta
+          >,
         },
       }))
 
@@ -168,9 +181,8 @@ describe('Implementer', () => {
           ping: {} as Procedure<
             Context,
             Context,
-            undefined,
-            undefined,
-            unknown,
+            AnySchema,
+            AnySchema,
             Record<never, never>,
             { invalid: true }
           >,
@@ -199,8 +211,8 @@ describe('Implementer', () => {
     type ExpectedPong = ProcedureImplementer<
       InitialContext,
       CurrentContext,
-      undefined,
-      undefined,
+      Schema<unknown, unknown>,
+      Schema<unknown, unknown>,
       Record<never, never>,
       Meta
     >

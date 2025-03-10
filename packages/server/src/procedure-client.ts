@@ -15,12 +15,11 @@ export type ProcedureClient<
   TClientContext extends ClientContext,
   TInputSchema extends AnySchema,
   TOutputSchema extends AnySchema,
-  THandlerOutput,
   TErrorMap extends ErrorMap,
 > = Client<
   TClientContext,
   InferSchemaInput<TInputSchema>,
-  InferSchemaOutput<TOutputSchema, THandlerOutput>,
+  InferSchemaOutput<TOutputSchema>,
   ErrorFromErrorMap<TErrorMap>
 >
 
@@ -34,7 +33,7 @@ export interface ProcedureClientInterceptorOptions<
   input: InferSchemaInput<TInputSchema>
   errors: ORPCErrorConstructorMap<TErrorMap>
   path: readonly string[]
-  procedure: Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, TMeta>
+  procedure: Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, TMeta>
   signal?: AbortSignal
   lastEventId: string | undefined
 }
@@ -46,7 +45,6 @@ export type CreateProcedureClientOptions<
   TInitialContext extends Context,
   TInputSchema extends AnySchema,
   TOutputSchema extends AnySchema,
-  THandlerOutput,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
   TClientContext extends ClientContext,
@@ -59,7 +57,7 @@ export type CreateProcedureClientOptions<
 
     interceptors?: Interceptor<
       ProcedureClientInterceptorOptions<TInitialContext, TInputSchema, TErrorMap, TMeta>,
-      InferSchemaOutput<TOutputSchema, THandlerOutput>,
+      InferSchemaOutput<TOutputSchema>,
       ErrorFromErrorMap<TErrorMap>
     >[]
   }
@@ -73,24 +71,22 @@ export function createProcedureClient<
   TInitialContext extends Context,
   TInputSchema extends AnySchema,
   TOutputSchema extends AnySchema,
-  THandlerOutput,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
   TClientContext extends ClientContext,
 >(
-  lazyableProcedure: Lazyable<Procedure<TInitialContext, any, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta>>,
+  lazyableProcedure: Lazyable<Procedure<TInitialContext, any, TInputSchema, TOutputSchema, TErrorMap, TMeta>>,
   ...[options]: MaybeOptionalOptions<
     CreateProcedureClientOptions<
       TInitialContext,
       TInputSchema,
       TOutputSchema,
-      THandlerOutput,
       TErrorMap,
       TMeta,
       TClientContext
     >
   >
-): ProcedureClient<TClientContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap> {
+): ProcedureClient<TClientContext, TInputSchema, TOutputSchema, TErrorMap> {
   return async (...[input, callerOptions]) => {
     const path = options?.path ?? []
     const { default: procedure } = await unlazy(lazyableProcedure)

@@ -1,4 +1,4 @@
-import type { AnySchema, ContractProcedure, ErrorMap, MergedErrorMap } from '@orpc/contract'
+import type { AnySchema, ContractProcedure, ErrorMap, MergedErrorMap, Schema } from '@orpc/contract'
 import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../../contract/tests/shared'
 import type { CurrentContext, InitialContext } from '../tests/shared'
 import type { Builder } from './builder'
@@ -123,7 +123,7 @@ describe('Builder', () => {
           expectTypeOf(context).toEqualTypeOf<CurrentContext>()
           expectTypeOf(path).toEqualTypeOf<readonly string[]>()
           expectTypeOf(procedure).toEqualTypeOf<
-            Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, BaseMeta>
+            Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta>
           >()
           expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<any>>()
           expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
@@ -180,7 +180,7 @@ describe('Builder', () => {
         expectTypeOf(context).toEqualTypeOf<CurrentContext>()
         expectTypeOf(path).toEqualTypeOf<readonly string[]>()
         expectTypeOf(procedure).toEqualTypeOf<
-          Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, BaseMeta>
+          Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta>
         >()
         expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<unknown>>()
         expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
@@ -220,7 +220,7 @@ describe('Builder', () => {
         expectTypeOf(context).toEqualTypeOf<CurrentContext>()
         expectTypeOf(path).toEqualTypeOf<readonly string[]>()
         expectTypeOf(procedure).toEqualTypeOf<
-          Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, BaseMeta>
+          Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta>
         >()
         expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<unknown>>()
         expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
@@ -336,7 +336,7 @@ describe('Builder', () => {
       expectTypeOf(path).toEqualTypeOf<readonly string[]>()
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
       expectTypeOf(procedure).toEqualTypeOf<
-        Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, BaseMeta>
+        Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta>
       >()
       expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
@@ -349,8 +349,7 @@ describe('Builder', () => {
         InitialContext,
         CurrentContext,
         typeof inputSchema,
-        typeof outputSchema,
-        { output: number },
+        Schema<{ output: number }, { output: number }>,
         typeof baseErrorMap,
         BaseMeta
       >
@@ -404,7 +403,7 @@ describe('Builder', () => {
     // @ts-expect-error - initial context is not match
     builder.lazy(() => Promise.resolve({
       default: {
-        ping: {} as Procedure<{ invalid: true }, Context, undefined, undefined, unknown, Record<never, never>, BaseMeta>,
+        ping: {} as Procedure<{ invalid: true }, Context, AnySchema, AnySchema, Record<never, never>, BaseMeta>,
       },
     }))
 
@@ -414,9 +413,8 @@ describe('Builder', () => {
         ping: {} as Procedure<
           Context,
           Context,
-          undefined,
-          undefined,
-          unknown,
+          AnySchema,
+          AnySchema,
           Record<never, never>,
           { invalid: true }
         >,

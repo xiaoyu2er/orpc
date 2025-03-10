@@ -52,23 +52,21 @@ export function call<
   TInitialContext extends Context,
   TInputSchema extends AnySchema,
   TOutputSchema extends AnySchema,
-  THandlerOutput,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 >(
-  procedure: Lazyable<Procedure<TInitialContext, any, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta>>,
+  procedure: Lazyable<Procedure<TInitialContext, any, TInputSchema, TOutputSchema, TErrorMap, TMeta>>,
   input: InferSchemaInput<TInputSchema>,
   ...rest: MaybeOptionalOptions<
     CreateProcedureClientOptions<
       TInitialContext,
       TInputSchema,
       TOutputSchema,
-      THandlerOutput,
       TErrorMap,
       TMeta,
       Record<never, never>
     >
   >
-): ClientPromiseResult<InferSchemaOutput<TOutputSchema, THandlerOutput>, ErrorFromErrorMap<TErrorMap>> {
+): ClientPromiseResult<InferSchemaOutput<TOutputSchema>, ErrorFromErrorMap<TErrorMap>> {
   return createProcedureClient(procedure, ...rest)(input)
 }

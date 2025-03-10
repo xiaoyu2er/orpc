@@ -16,10 +16,9 @@ export class DecoratedProcedure<
   TCurrentContext extends Context,
   TInputSchema extends AnySchema,
   TOutputSchema extends AnySchema,
-  THandlerOutput,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
-> extends Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta> {
+> extends Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta> {
   errors<U extends ErrorMap>(
     errors: U,
   ): DecoratedProcedure<
@@ -27,7 +26,6 @@ export class DecoratedProcedure<
       TCurrentContext,
       TInputSchema,
       TOutputSchema,
-      THandlerOutput,
       MergedErrorMap<TErrorMap, U>,
       TMeta
     > {
@@ -39,7 +37,7 @@ export class DecoratedProcedure<
 
   meta(
     meta: TMeta,
-  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta> {
+  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta> {
     return new DecoratedProcedure({
       ...this['~orpc'],
       meta: mergeMeta(this['~orpc'].meta, meta),
@@ -48,7 +46,7 @@ export class DecoratedProcedure<
 
   route(
     route: Route,
-  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta> {
+  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta> {
     return new DecoratedProcedure({
       ...this['~orpc'],
       route: mergeRoute(this['~orpc'].route, route),
@@ -60,7 +58,7 @@ export class DecoratedProcedure<
       TCurrentContext,
       U,
       InferSchemaOutput<TInputSchema>,
-      InferSchemaInput<TOutputSchema, THandlerOutput>,
+      InferSchemaInput<TOutputSchema>,
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
@@ -70,7 +68,6 @@ export class DecoratedProcedure<
       MergedContext<TCurrentContext, U>,
       TInputSchema,
       TOutputSchema,
-      THandlerOutput,
       TErrorMap,
       TMeta
     >
@@ -80,7 +77,7 @@ export class DecoratedProcedure<
       TCurrentContext,
       UOutContext,
       UInput,
-      InferSchemaInput<TOutputSchema, THandlerOutput>,
+      InferSchemaInput<TOutputSchema>,
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
@@ -91,12 +88,11 @@ export class DecoratedProcedure<
       MergedContext<TCurrentContext, UOutContext>,
       TInputSchema,
       TOutputSchema,
-      THandlerOutput,
       TErrorMap,
       TMeta
     >
 
-  use(middleware: AnyMiddleware, mapInput?: MapInputMiddleware<any, any>): DecoratedProcedure<any, any, any, any, any, any, any> {
+  use(middleware: AnyMiddleware, mapInput?: MapInputMiddleware<any, any>): DecoratedProcedure<any, any, any, any, any, any> {
     const mapped = mapInput
       ? decorateMiddleware(middleware).mapInput(mapInput)
       : middleware
@@ -116,14 +112,13 @@ export class DecoratedProcedure<
         TInitialContext,
         TInputSchema,
         TOutputSchema,
-        THandlerOutput,
         TErrorMap,
         TMeta,
         TClientContext
       >
     >
-  ): Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta>
-    & ProcedureClient<TClientContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap> {
+  ): Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>
+    & ProcedureClient<TClientContext, TInputSchema, TOutputSchema, TErrorMap> {
     return Object.assign(createProcedureClient(this, ...rest as any), {
       '~type': 'Procedure' as const,
       '~orpc': this['~orpc'],
@@ -139,15 +134,14 @@ export class DecoratedProcedure<
         TInitialContext,
         TInputSchema,
         TOutputSchema,
-        THandlerOutput,
         TErrorMap,
         TMeta,
         TClientContext
       >
     >
   ):
-    & Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta>
-    & ((...rest: ClientRest<TClientContext, InferSchemaInput<TInputSchema>>) => Promise<InferSchemaOutput<TOutputSchema, THandlerOutput>>) {
+    & Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>
+    & ((...rest: ClientRest<TClientContext, InferSchemaInput<TInputSchema>>) => Promise<InferSchemaOutput<TOutputSchema>>) {
     return this.callable(...rest)
   }
 }

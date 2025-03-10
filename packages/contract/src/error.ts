@@ -1,6 +1,6 @@
 import type { ORPCError, ORPCErrorCode } from '@orpc/client'
 import type { StandardSchemaV1 } from '@standard-schema/spec'
-import type { AnySchema, InferSchemaOutput } from './schema'
+import type { AnySchema, InferSchemaOutput, Schema } from './schema'
 
 export interface ValidationErrorOptions extends ErrorOptions {
   message: string
@@ -36,7 +36,7 @@ export function mergeErrorMap<T1 extends ErrorMap, T2 extends ErrorMap>(errorMap
 
 export type ORPCErrorFromErrorMap<TErrorMap extends ErrorMap> = {
   [K in keyof TErrorMap]: K extends string
-    ? TErrorMap[K] extends ErrorMapItem<infer TDataSchema>
+    ? TErrorMap[K] extends ErrorMapItem<infer TDataSchema extends Schema<unknown, unknown>>
       ? ORPCError<K, InferSchemaOutput<TDataSchema>>
       : never
     : never

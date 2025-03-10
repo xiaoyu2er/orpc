@@ -1,4 +1,4 @@
-import type { Client, ClientContext } from '@orpc/client'
+import type { Client } from '@orpc/client'
 import type { AnySchema, ErrorMap, ORPCError } from '@orpc/contract'
 import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../../contract/tests/shared'
 import type { Context } from './context'
@@ -13,7 +13,6 @@ describe('ProcedureClient', () => {
     { cache: boolean },
     typeof inputSchema,
     typeof outputSchema,
-    { output: number },
     typeof baseErrorMap
   >
 
@@ -46,14 +45,6 @@ describe('ProcedureClient', () => {
     // @ts-expect-error - client context is required
     client({ input: 123 })
   })
-
-  it('can fallback to handler output', async () => {
-    const client = {} as ProcedureClient<ClientContext, typeof inputSchema, undefined, { handler: number }, typeof baseErrorMap>
-
-    const output = await client({ input: 123 })
-
-    expectTypeOf(output).toEqualTypeOf<{ handler: number }>()
-  })
 })
 
 describe('createProcedureClient', () => {
@@ -77,7 +68,6 @@ describe('createProcedureClient', () => {
         { cache?: boolean },
         typeof inputSchema,
         typeof outputSchema,
-        { output: number },
         typeof baseErrorMap
       >
     >()
@@ -101,7 +91,7 @@ describe('createProcedureClient', () => {
         async ({ next, signal, procedure, path, errors, context, input }) => {
           expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
           expectTypeOf(procedure).toEqualTypeOf<
-            Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, BaseMeta>
+            Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta>
           >()
           expectTypeOf(path).toEqualTypeOf<readonly string[]>()
           expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()

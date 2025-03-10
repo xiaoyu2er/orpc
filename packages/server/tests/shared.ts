@@ -1,4 +1,4 @@
-import type { Meta } from '@orpc/contract'
+import type { Meta, Schema } from '@orpc/contract'
 import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../../contract/tests/shared'
 import type { Context } from '../src'
 import { ping as pingContract, pong as pongContract } from '../../contract/tests/shared'
@@ -15,7 +15,6 @@ export const ping = new Procedure<
   CurrentContext,
   typeof inputSchema,
   typeof outputSchema,
-  { output: number },
   typeof baseErrorMap,
   BaseMeta
 >({
@@ -31,9 +30,8 @@ export const pongHandler = vi.fn(({ input }) => input)
 export const pong = new Procedure<
   Context,
   Context,
-  undefined,
-  undefined,
-  unknown,
+  Schema<unknown, unknown>,
+  Schema<unknown, unknown>,
   Record<never, never>,
   Meta
 >({

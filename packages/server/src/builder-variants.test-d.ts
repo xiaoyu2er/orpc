@@ -1,4 +1,4 @@
-import type { AnySchema, ContractProcedure, ErrorMap, MergedErrorMap } from '@orpc/contract'
+import type { AnySchema, ContractProcedure, ErrorMap, MergedErrorMap, Schema } from '@orpc/contract'
 import type { OmitChainMethodDeep } from '@orpc/shared'
 import type { Builder } from './builder'
 import type { BuilderWithMiddlewares, ProcedureBuilder, ProcedureBuilderWithInput, ProcedureBuilderWithInputOutput, ProcedureBuilderWithOutput, RouterBuilder } from './builder-variants'
@@ -74,7 +74,7 @@ describe('BuilderWithMiddlewares', () => {
       expectTypeOf(context).toEqualTypeOf<CurrentContext>()
       expectTypeOf(path).toEqualTypeOf<readonly string[]>()
       expectTypeOf(procedure).toEqualTypeOf<
-        Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, BaseMeta>
+        Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta>
       >()
       expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<unknown>>()
       expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
@@ -179,7 +179,7 @@ describe('BuilderWithMiddlewares', () => {
       expectTypeOf(path).toEqualTypeOf<readonly string[]>()
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
       expectTypeOf(procedure).toEqualTypeOf<
-        Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, BaseMeta>
+        Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta>
       >()
       expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
@@ -191,11 +191,10 @@ describe('BuilderWithMiddlewares', () => {
       DecoratedProcedure<
         InitialContext,
         CurrentContext,
-                typeof inputSchema,
-                typeof outputSchema,
-                { output: number },
-                typeof baseErrorMap,
-                BaseMeta
+        typeof inputSchema,
+        Schema<{ output: number }, { output: number }>,
+        typeof baseErrorMap,
+        BaseMeta
       >
     >()
   })
@@ -247,7 +246,7 @@ describe('BuilderWithMiddlewares', () => {
     // @ts-expect-error - initial context is not match
     builder.lazy(() => Promise.resolve({
       default: {
-        ping: {} as Procedure<{ invalid: true }, Context, undefined, undefined, unknown, Record<never, never>, BaseMeta>,
+        ping: {} as Procedure<{ invalid: true }, Context, AnySchema, AnySchema, Record<never, never>, BaseMeta>,
       },
     }))
 
@@ -257,9 +256,8 @@ describe('BuilderWithMiddlewares', () => {
         ping: {} as Procedure<
           Context,
           Context,
-          undefined,
-          undefined,
-          unknown,
+          AnySchema,
+          AnySchema,
           Record<never, never>,
           { invalid: true }
         >,
@@ -321,7 +319,7 @@ describe('ProcedureBuilder', () => {
       expectTypeOf(context).toEqualTypeOf<CurrentContext>()
       expectTypeOf(path).toEqualTypeOf<readonly string[]>()
       expectTypeOf(procedure).toEqualTypeOf<
-        Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, BaseMeta>
+        Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta>
       >()
       expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<unknown>>()
       expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
@@ -426,7 +424,7 @@ describe('ProcedureBuilder', () => {
       expectTypeOf(path).toEqualTypeOf<readonly string[]>()
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
       expectTypeOf(procedure).toEqualTypeOf<
-        Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, BaseMeta>
+        Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta>
       >()
       expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
@@ -439,8 +437,7 @@ describe('ProcedureBuilder', () => {
         InitialContext,
         CurrentContext,
         typeof inputSchema,
-        typeof outputSchema,
-        { output: number },
+        Schema<{ output: number }, { output: number }>,
         typeof baseErrorMap,
         BaseMeta
       >
@@ -502,7 +499,7 @@ describe('ProcedureBuilderWithInput', () => {
         expectTypeOf(context).toEqualTypeOf<CurrentContext>()
         expectTypeOf(path).toEqualTypeOf<readonly string[]>()
         expectTypeOf(procedure).toEqualTypeOf<
-          Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, BaseMeta>
+          Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta>
         >()
         expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<unknown>>()
         expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
@@ -542,7 +539,7 @@ describe('ProcedureBuilderWithInput', () => {
         expectTypeOf(context).toEqualTypeOf<CurrentContext>()
         expectTypeOf(path).toEqualTypeOf<readonly string[]>()
         expectTypeOf(procedure).toEqualTypeOf<
-          Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, BaseMeta>
+          Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta>
         >()
         expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<unknown>>()
         expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
@@ -642,7 +639,7 @@ describe('ProcedureBuilderWithInput', () => {
       expectTypeOf(path).toEqualTypeOf<readonly string[]>()
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
       expectTypeOf(procedure).toEqualTypeOf<
-        Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, BaseMeta>
+        Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta>
       >()
       expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
@@ -655,8 +652,7 @@ describe('ProcedureBuilderWithInput', () => {
         InitialContext,
         CurrentContext,
         typeof inputSchema,
-        typeof outputSchema,
-        { output: number },
+        Schema<{ output: number }, { output: number }>,
         typeof baseErrorMap,
         BaseMeta
       >
@@ -717,7 +713,7 @@ describe('ProcedureBuilderWithOutput', () => {
       expectTypeOf(context).toEqualTypeOf<CurrentContext>()
       expectTypeOf(path).toEqualTypeOf<readonly string[]>()
       expectTypeOf(procedure).toEqualTypeOf<
-        Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, BaseMeta>
+        Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta>
       >()
       expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<{ output: number }>>()
       expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
@@ -806,7 +802,7 @@ describe('ProcedureBuilderWithOutput', () => {
       expectTypeOf(path).toEqualTypeOf<readonly string[]>()
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
       expectTypeOf(procedure).toEqualTypeOf<
-        Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, BaseMeta>
+        Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta>
       >()
       expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
@@ -820,7 +816,6 @@ describe('ProcedureBuilderWithOutput', () => {
         CurrentContext,
         typeof inputSchema,
         typeof outputSchema,
-        unknown,
         typeof baseErrorMap,
         BaseMeta
       >
@@ -885,7 +880,7 @@ describe('ProcedureBuilderWithInputOutput', () => {
         expectTypeOf(context).toEqualTypeOf<CurrentContext>()
         expectTypeOf(path).toEqualTypeOf<readonly string[]>()
         expectTypeOf(procedure).toEqualTypeOf<
-          Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, BaseMeta>
+          Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta>
         >()
         expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<{ output: number }>>()
         expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
@@ -925,7 +920,7 @@ describe('ProcedureBuilderWithInputOutput', () => {
         expectTypeOf(context).toEqualTypeOf<CurrentContext>()
         expectTypeOf(path).toEqualTypeOf<readonly string[]>()
         expectTypeOf(procedure).toEqualTypeOf<
-          Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, BaseMeta>
+          Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta>
         >()
         expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<{ output: number }>>()
         expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
@@ -1009,7 +1004,7 @@ describe('ProcedureBuilderWithInputOutput', () => {
       expectTypeOf(path).toEqualTypeOf<readonly string[]>()
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
       expectTypeOf(procedure).toEqualTypeOf<
-        Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, BaseMeta>
+        Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta>
       >()
       expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
@@ -1023,7 +1018,6 @@ describe('ProcedureBuilderWithInputOutput', () => {
         CurrentContext,
         typeof inputSchema,
         typeof outputSchema,
-        unknown,
         typeof baseErrorMap,
         BaseMeta
       >
@@ -1099,7 +1093,7 @@ describe('RouterBuilder', () => {
     // @ts-expect-error - initial context is not match
     builder.lazy(() => Promise.resolve({
       default: {
-        ping: {} as Procedure<{ invalid: true }, Context, undefined, undefined, unknown, Record<never, never>, BaseMeta>,
+        ping: {} as Procedure<{ invalid: true }, Context, AnySchema, AnySchema, Record<never, never>, BaseMeta>,
       },
     }))
 
@@ -1109,9 +1103,8 @@ describe('RouterBuilder', () => {
         ping: {} as Procedure<
           Context,
           Context,
-          undefined,
-          undefined,
-          unknown,
+          AnySchema,
+          AnySchema,
           Record<never, never>,
           { invalid: true }
         >,

@@ -14,7 +14,7 @@ export interface ProcedureHandlerOptions<
   context: TCurrentContext
   input: TInput
   path: readonly string[]
-  procedure: Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, TMeta>
+  procedure: Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, TMeta>
   signal?: AbortSignal
   lastEventId: string | undefined
   errors: TErrorConstructorMap
@@ -37,7 +37,6 @@ export interface ProcedureDef<
   TCurrentContext extends Context,
   TInputSchema extends AnySchema,
   TOutputSchema extends AnySchema,
-  THandlerOutput,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > extends ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta> {
@@ -45,7 +44,7 @@ export interface ProcedureDef<
   middlewares: AnyMiddleware[]
   inputValidationIndex: number
   outputValidationIndex: number
-  handler: ProcedureHandler<TCurrentContext, any, THandlerOutput, any, any>
+  handler: ProcedureHandler<TCurrentContext, any, any, any, any>
 }
 
 export class Procedure<
@@ -53,18 +52,17 @@ export class Procedure<
   TCurrentContext extends Context,
   TInputSchema extends AnySchema,
   TOutputSchema extends AnySchema,
-  THandlerOutput,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > {
-  '~orpc': ProcedureDef<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta>
+  '~orpc': ProcedureDef<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>
 
-  constructor(def: ProcedureDef<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta>) {
+  constructor(def: ProcedureDef<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>) {
     this['~orpc'] = def
   }
 }
 
-export type AnyProcedure = Procedure<any, any, any, any, any, any, any>
+export type AnyProcedure = Procedure<any, any, any, any, any, any>
 
 export function isProcedure(item: unknown): item is AnyProcedure {
   if (item instanceof Procedure) {

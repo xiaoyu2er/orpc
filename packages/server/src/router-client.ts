@@ -1,5 +1,5 @@
 import type { ClientContext } from '@orpc/client'
-import type { ErrorMap, Meta } from '@orpc/contract'
+import type { ErrorMap, Meta, Schema } from '@orpc/contract'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { Lazyable } from './lazy'
 import type { Procedure } from './procedure'
@@ -12,8 +12,8 @@ import { createAssertedLazyProcedure } from './procedure-utils'
 import { getRouter } from './router-utils'
 
 export type RouterClient<TRouter extends AnyRouter, TClientContext extends ClientContext = Record<never, never>> =
-  TRouter extends Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UFuncOutput, infer UErrorMap, any>
-    ? ProcedureClient<TClientContext, UInputSchema, UOutputSchema, UFuncOutput, UErrorMap>
+  TRouter extends Procedure<any, any, infer UInputSchema, infer UOutputSchema, infer UErrorMap, any>
+    ? ProcedureClient<TClientContext, UInputSchema, UOutputSchema, UErrorMap>
     : {
         [K in keyof TRouter]: TRouter[K] extends Lazyable<infer U extends AnyRouter> ? RouterClient<U, TClientContext> : never
       }
@@ -23,9 +23,8 @@ export function createRouterClient<T extends AnyRouter, TClientContext extends C
   ...[options]: MaybeOptionalOptions<
     CreateProcedureClientOptions<
       InferRouterInitialContext<T>,
-      undefined,
-      undefined,
-      unknown,
+      Schema<unknown, unknown>,
+      Schema<unknown, unknown>,
       ErrorMap,
       Meta,
       TClientContext

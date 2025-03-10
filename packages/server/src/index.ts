@@ -28,14 +28,14 @@ export type {
   ErrorMapItem,
   HTTPMethod,
   HTTPPath,
+  InferSchemaInput,
+  InferSchemaOutput,
   InputStructure,
   Meta,
   ORPCErrorFromErrorMap,
   OutputStructure,
   Route,
-  AnySchema as Schema,
-  InferSchemaInput as SchemaInput,
-  InferSchemaOutput as SchemaOutput,
+  Schema,
 } from '@orpc/contract'
 export { onError, onFinish, onStart, onSuccess } from '@orpc/shared'
 export { getEventMeta, withEventMeta } from '@orpc/standard-server'

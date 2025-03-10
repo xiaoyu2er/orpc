@@ -19,7 +19,7 @@ describe('middleware', () => {
       expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
       expectTypeOf(path).toEqualTypeOf<readonly string[]>()
       expectTypeOf(procedure).toEqualTypeOf<
-        Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, BaseMeta>
+        Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta>
       >()
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
       expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<{ output: string }>>()

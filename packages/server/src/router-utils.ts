@@ -223,3 +223,28 @@ export async function resolveContractProcedures(
     }
   }
 }
+
+export type UnlaziedRouter<T extends AnyRouter> =
+  T extends AnyProcedure
+    ? T
+    : {
+        [K in keyof T]: T[K] extends Lazyable<infer U extends AnyRouter> ? UnlaziedRouter<U> : never
+      }
+
+export async function unlazyRouter<T extends AnyRouter>(router: T): Promise<UnlaziedRouter<T>> {
+  if (isProcedure(router)) {
+    return router as any
+  }
+
+  const unlazied = {} as Record<string, any>
+
+  for (const key in router) {
+    const item: Lazyable<AnyRouter> = router[key]!
+
+    const { default: unlaziedRouter } = await unlazy(item)
+
+    unlazied[key] = await unlazyRouter(unlaziedRouter)
+  }
+
+  return unlazied as any
+}

@@ -102,8 +102,8 @@ export function mergeTags(a: readonly string[] | undefined, b: readonly string[]
 }
 
 export interface EnhanceRouteOptions {
-  prefix?: undefined | HTTPPath
-  tags?: undefined | readonly string[]
+  prefix?: HTTPPath
+  tags?: readonly string[]
 }
 
 export function enhanceRoute(route: Route, options: EnhanceRouteOptions): Route {

@@ -1,14 +1,22 @@
 import { ContractProcedure } from '@orpc/contract'
 import { z } from 'zod'
 import { contract, ping } from '../tests/shared'
+import { lazy, unlazy } from './lazy'
 import { Procedure } from './procedure'
 import { createProcedureClient } from './procedure-client'
-import { call, createContractedProcedure } from './procedure-utils'
+import { call, createAssertedLazyProcedure, createContractedProcedure } from './procedure-utils'
 
 vi.mock('./procedure-client', async original => ({
   ...await original(),
   createProcedureClient: vi.fn(() => vi.fn()),
 }))
+
+it('createAssertedLazyProcedure', () => {
+  const asserted = createAssertedLazyProcedure(lazy(() => Promise.resolve({ default: ping }), { prefix: undefined }))
+  expect(unlazy(asserted)).resolves.toEqual({ default: ping })
+  const asserted2 = createAssertedLazyProcedure(lazy(() => Promise.resolve({ default: 123 }), { prefix: undefined }))
+  expect(unlazy(asserted2)).rejects.toThrowError('Expected a lazy<procedure> but got lazy<unknown>.')
+})
 
 it('createContractedProcedure', () => {
   const mismatchPath = {

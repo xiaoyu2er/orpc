@@ -5,5 +5,5 @@ it('setHiddenRouterContract & getHiddenRouterContract', () => {
   const applied = setHiddenRouterContract(router, contract)
 
   expect(applied).toEqual(router)
-  expect(getHiddenRouterContract(router)).toEqual(contract)
+  expect(getHiddenRouterContract(applied)).toEqual(contract)
 })

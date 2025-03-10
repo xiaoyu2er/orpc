@@ -169,22 +169,22 @@ it('resolveContractProcedures', async () => {
   expect(callback).toHaveBeenCalledTimes(4)
 
   expect(callback).toHaveBeenNthCalledWith(1, {
-    contract: contract.ping,
-    path: ['ping'],
-  })
-
-  expect(callback).toHaveBeenNthCalledWith(2, {
-    contract: contract.pong,
+    contract: router.pong,
     path: ['pong'],
   })
 
+  expect(callback).toHaveBeenNthCalledWith(2, {
+    contract: (await unlazy(router.ping)).default,
+    path: ['ping'],
+  })
+
   expect(callback).toHaveBeenNthCalledWith(3, {
-    contract: contract.nested.ping,
+    contract: (await unlazy(router.nested)).default.ping,
     path: ['nested', 'ping'],
   })
 
   expect(callback).toHaveBeenNthCalledWith(4, {
-    contract: contract.nested.pong,
+    contract: (await unlazy((await unlazy(router.nested)).default.pong)).default,
     path: ['nested', 'pong'],
   })
 })

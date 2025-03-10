@@ -2,7 +2,7 @@ import { enhanceRoute } from '@orpc/contract'
 import { contract, ping, pingMiddleware, pong, router } from '../tests/shared'
 import { getLazyMeta, isLazy, unlazy } from './lazy'
 import { setHiddenRouterContract } from './router-hidden'
-import { enhanceRouter, getRouter, resolveContractProcedures, traverseContractProcedures } from './router-utils'
+import { enhanceRouter, getRouter, resolveContractProcedures, traverseContractProcedures, unlazyRouter } from './router-utils'
 
 it('getRouter', () => {
   expect(getRouter(router, [])).toEqual(router)
@@ -186,5 +186,18 @@ it('resolveContractProcedures', async () => {
   expect(callback).toHaveBeenNthCalledWith(4, {
     contract: (await unlazy((await unlazy(router.nested)).default.pong)).default,
     path: ['nested', 'pong'],
+  })
+})
+
+it('unlazyRouter', async () => {
+  const unlazied = await unlazyRouter(router)
+
+  expect(unlazied).toEqual({
+    ping,
+    pong,
+    nested: {
+      ping,
+      pong,
+    },
   })
 })

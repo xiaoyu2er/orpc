@@ -1,10 +1,11 @@
 import type { MergedErrorMap, Meta, Schema } from '@orpc/contract'
 import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../../contract/tests/shared'
-import type { CurrentContext, InitialContext, ping, pong, router } from '../tests/shared'
+import type { CurrentContext, InitialContext, router } from '../tests/shared'
 import type { Context } from './context'
 import type { Lazy } from './lazy'
 import type { Procedure } from './procedure'
-import type { AccessibleLazyRouter, EnhancedRouter } from './router-utils'
+import type { AccessibleLazyRouter, EnhancedRouter, UnlaziedRouter } from './router-utils'
+import { ping, pong } from '../tests/shared'
 
 it('AccessibleLazyRouter', () => {
     type Accessible = AccessibleLazyRouter<Lazy<typeof router>>
@@ -69,4 +70,17 @@ it('EnhancedRouter', () => {
         >
       >
     >()
+})
+
+it('UnlaziedRouter', () => {
+    type Unlazied = UnlaziedRouter<typeof router>
+
+    expectTypeOf<Unlazied>().toEqualTypeOf({
+      ping,
+      pong,
+      nested: {
+        ping,
+        pong,
+      },
+    })
 })

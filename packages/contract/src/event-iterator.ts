@@ -1,5 +1,5 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
-import type { Schema } from './schema'
+import type { AnySchema } from './schema'
 import { mapEventIterator, ORPCError } from '@orpc/client'
 import { isAsyncIteratorObject } from '@orpc/shared'
 import { ValidationError } from './error'
@@ -12,7 +12,7 @@ export function eventIterator<TYieldIn, TYieldOut, TReturnIn = unknown, TReturnO
 ): StandardSchemaV1<AsyncIteratorObject<TYieldIn, TReturnIn, void>, AsyncIteratorObject<TYieldOut, TReturnOut, void>> {
   return {
     '~standard': {
-      [EVENT_ITERATOR_SCHEMA_SYMBOL as any]: { yields, returns } satisfies { yields: Schema, returns: Schema },
+      [EVENT_ITERATOR_SCHEMA_SYMBOL as any]: { yields, returns } satisfies { yields: AnySchema, returns?: AnySchema },
       vendor: 'orpc',
       version: 1,
       validate(iterator) {
@@ -51,7 +51,7 @@ export function eventIterator<TYieldIn, TYieldOut, TReturnIn = unknown, TReturnO
   }
 }
 
-export function getEventIteratorSchemaDetails(schema: Schema): undefined | { yields: Schema, returns: Schema } {
+export function getEventIteratorSchemaDetails(schema: AnySchema | undefined): undefined | { yields: AnySchema, returns: AnySchema } {
   if (schema === undefined) {
     return undefined
   }

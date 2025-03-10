@@ -1,4 +1,4 @@
-import type { ContractProcedureDef, ContractRouter, ErrorMap, HTTPPath, MergedErrorMap, Meta, Route, Schema } from '@orpc/contract'
+import type { AnySchema, ContractProcedureDef, ContractRouter, ErrorMap, HTTPPath, MergedErrorMap, Meta, Route } from '@orpc/contract'
 import type { BuilderWithMiddlewares, ProcedureBuilder, ProcedureBuilderWithInput, ProcedureBuilderWithOutput, RouterBuilder } from './builder-variants'
 import type { ConflictContextGuard, Context, MergedContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
@@ -22,8 +22,8 @@ export interface BuilderConfig {
 }
 
 export interface BuilderDef<
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
+  TInputSchema extends AnySchema,
+  TOutputSchema extends AnySchema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > extends ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>, EnhanceRouterOptions< TErrorMap> {
@@ -36,8 +36,8 @@ export interface BuilderDef<
 export class Builder<
   TInitialContext extends Context,
   TCurrentContext extends Context,
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
+  TInputSchema extends AnySchema,
+  TOutputSchema extends AnySchema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > {
@@ -184,7 +184,7 @@ export class Builder<
     })
   }
 
-  input<USchema extends Schema>(
+  input<USchema extends AnySchema>(
     schema: USchema,
   ): ProcedureBuilderWithInput<TInitialContext, TCurrentContext, USchema, TOutputSchema, TErrorMap, TMeta> {
     return new Builder({
@@ -194,7 +194,7 @@ export class Builder<
     }) as any
   }
 
-  output<USchema extends Schema>(
+  output<USchema extends AnySchema>(
     schema: USchema,
   ): ProcedureBuilderWithOutput<TInitialContext, TCurrentContext, TInputSchema, USchema, TErrorMap, TMeta> {
     return new Builder({

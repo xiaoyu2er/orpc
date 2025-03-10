@@ -1,4 +1,4 @@
-import type { AnyContractRouter, ContractProcedure, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { AnyContractRouter, ContractProcedure, InferSchemaInput, InferSchemaOutput } from '@orpc/contract'
 import type { Context } from './context'
 import type { Lazyable } from './lazy'
 import type { Procedure } from './procedure'
@@ -32,14 +32,14 @@ export type InferRouterCurrentContexts<T extends AnyRouter> =
 
 export type InferRouterInputs<T extends AnyRouter> =
   T extends Procedure<any, any, infer UInputSchema, any, any, any, any>
-    ? SchemaInput<UInputSchema>
+    ? InferSchemaInput<UInputSchema>
     : {
         [K in keyof T]: T[K] extends Lazyable<infer U extends AnyRouter> ? InferRouterInputs<U> : never
       }
 
 export type InferRouterOutputs<T extends AnyRouter> =
   T extends Procedure<any, any, any, infer UOutputSchema, infer UFuncOutput, any, any>
-    ? SchemaOutput<UOutputSchema, UFuncOutput>
+    ? InferSchemaOutput<UOutputSchema, UFuncOutput>
     : {
         [K in keyof T]: T[K] extends Lazyable<infer U extends AnyRouter> ? InferRouterOutputs<U> : never
       }

@@ -1,4 +1,4 @@
-import type { ErrorMap, Schema } from '@orpc/contract'
+import type { AnySchema, ErrorMap } from '@orpc/contract'
 import type { baseErrorMap, BaseMeta } from '../../contract/tests/shared'
 import type { Context } from './context'
 import type { ORPCErrorConstructorMap } from './error'
@@ -19,7 +19,7 @@ describe('middleware', () => {
       expectTypeOf(context).toEqualTypeOf<{ auth: boolean }>()
       expectTypeOf(path).toEqualTypeOf<readonly string[]>()
       expectTypeOf(procedure).toEqualTypeOf<
-        Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, BaseMeta>
+        Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, BaseMeta>
       >()
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
       expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<{ output: string }>>()

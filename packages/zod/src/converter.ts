@@ -1,4 +1,4 @@
-import type { Schema } from '@orpc/contract'
+import type { AnySchema } from '@orpc/contract'
 import type { ConditionalSchemaConverter, JSONSchema, SchemaConvertOptions } from '@orpc/openapi'
 import type {
   EnumLike,
@@ -74,12 +74,12 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
     this.anyJsonSchema = options.anyJsonSchema ?? {}
   }
 
-  condition(schema: Schema): boolean {
-    return Boolean(schema && schema['~standard'].vendor === 'zod')
+  condition(schema: AnySchema): boolean {
+    return schema['~standard'].vendor === 'zod'
   }
 
   convert(
-    schema: Schema,
+    schema: AnySchema,
     options: SchemaConvertOptions,
     lazyDepth = 0,
     isHandledCustomJSONSchema = false,

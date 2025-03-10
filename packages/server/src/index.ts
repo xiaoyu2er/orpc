@@ -33,9 +33,9 @@ export type {
   ORPCErrorFromErrorMap,
   OutputStructure,
   Route,
-  Schema,
-  SchemaInput,
-  SchemaOutput,
+  AnySchema as Schema,
+  InferSchemaInput as SchemaInput,
+  InferSchemaOutput as SchemaOutput,
 } from '@orpc/contract'
 export { onError, onFinish, onStart, onSuccess } from '@orpc/shared'
 export { getEventMeta, withEventMeta } from '@orpc/standard-server'

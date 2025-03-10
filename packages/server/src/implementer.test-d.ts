@@ -1,4 +1,4 @@
-import type { ErrorMap, Meta, Schema } from '@orpc/contract'
+import type { AnySchema, ErrorMap, Meta } from '@orpc/contract'
 import type { baseErrorMap, BaseMeta, inputSchema, outputSchema, router } from '../../contract/tests/shared'
 import type { CurrentContext, InitialContext } from '../tests/shared'
 import type { Context, MergedContext } from './context'
@@ -44,7 +44,7 @@ describe('Implementer', () => {
           expectTypeOf(context).toEqualTypeOf<CurrentContext>()
           expectTypeOf(path).toEqualTypeOf<readonly string[]>()
           expectTypeOf(procedure).toEqualTypeOf<
-            Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, BaseMeta | Meta>
+            Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, BaseMeta | Meta>
           >()
           expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<any>>()
           expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap | Record<never, never>>>()
@@ -94,7 +94,7 @@ describe('Implementer', () => {
         expectTypeOf(context).toEqualTypeOf<CurrentContext>()
         expectTypeOf(path).toEqualTypeOf<readonly string[]>()
         expectTypeOf(procedure).toEqualTypeOf<
-          Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, BaseMeta | Meta>
+          Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, BaseMeta | Meta>
         >()
         expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<unknown>>()
         expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap | Record<never, never>>>()

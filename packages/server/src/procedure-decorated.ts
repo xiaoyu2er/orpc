@@ -1,5 +1,5 @@
 import type { ClientContext, ClientRest } from '@orpc/client'
-import type { ErrorMap, MergedErrorMap, Meta, Route, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { AnySchema, ErrorMap, InferSchemaInput, InferSchemaOutput, MergedErrorMap, Meta, Route } from '@orpc/contract'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { ConflictContextGuard, Context, MergedContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
@@ -14,8 +14,8 @@ import { createProcedureClient } from './procedure-client'
 export class DecoratedProcedure<
   TInitialContext extends Context,
   TCurrentContext extends Context,
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
+  TInputSchema extends AnySchema,
+  TOutputSchema extends AnySchema,
   THandlerOutput,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
@@ -59,8 +59,8 @@ export class DecoratedProcedure<
     middleware: Middleware<
       TCurrentContext,
       U,
-      SchemaOutput<TInputSchema>,
-      SchemaInput<TOutputSchema, THandlerOutput>,
+      InferSchemaOutput<TInputSchema>,
+      InferSchemaInput<TOutputSchema, THandlerOutput>,
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
@@ -80,11 +80,11 @@ export class DecoratedProcedure<
       TCurrentContext,
       UOutContext,
       UInput,
-      SchemaInput<TOutputSchema, THandlerOutput>,
+      InferSchemaInput<TOutputSchema, THandlerOutput>,
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
-    mapInput: MapInputMiddleware<SchemaOutput<TInputSchema>, UInput>,
+    mapInput: MapInputMiddleware<InferSchemaOutput<TInputSchema>, UInput>,
   ): ConflictContextGuard<MergedContext<TCurrentContext, UOutContext>>
     & DecoratedProcedure<
       TInitialContext,
@@ -147,7 +147,7 @@ export class DecoratedProcedure<
     >
   ):
     & Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, THandlerOutput, TErrorMap, TMeta>
-    & ((...rest: ClientRest<TClientContext, SchemaInput<TInputSchema>>) => Promise<SchemaOutput<TOutputSchema, THandlerOutput>>) {
+    & ((...rest: ClientRest<TClientContext, InferSchemaInput<TInputSchema>>) => Promise<InferSchemaOutput<TOutputSchema, THandlerOutput>>) {
     return this.callable(...rest)
   }
 }

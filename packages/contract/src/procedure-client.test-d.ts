@@ -1,5 +1,6 @@
-import type { Client, ORPCError } from '@orpc/client'
+import type { Client } from '@orpc/client'
 import type { baseErrorMap, inputSchema, outputSchema } from '../tests/shared'
+import type { ErrorFromErrorMap } from './error'
 import type { ContractProcedureClient } from './procedure-client'
 
 describe('ContractProcedureClient', () => {
@@ -11,7 +12,7 @@ describe('ContractProcedureClient', () => {
         { cache?: boolean },
         { input: number },
         { output: string },
-        Error | ORPCError<'BASE', { output: string }> | ORPCError<'OVERRIDE', unknown>
+        ErrorFromErrorMap<typeof baseErrorMap>
       >
     >()
   })

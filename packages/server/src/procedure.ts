@@ -1,4 +1,4 @@
-import type { ContractProcedureDef, ErrorMap, Meta, Schema } from '@orpc/contract'
+import type { AnySchema, ContractProcedureDef, ErrorMap, Meta } from '@orpc/contract'
 import type { Promisable } from '@orpc/shared'
 import type { Context } from './context'
 import type { ORPCErrorConstructorMap } from './error'
@@ -14,7 +14,7 @@ export interface ProcedureHandlerOptions<
   context: TCurrentContext
   input: TInput
   path: readonly string[]
-  procedure: Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, TMeta>
+  procedure: Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, TMeta>
   signal?: AbortSignal
   lastEventId: string | undefined
   errors: TErrorConstructorMap
@@ -35,8 +35,8 @@ export interface ProcedureHandler<
 export interface ProcedureDef<
   TInitialContext extends Context,
   TCurrentContext extends Context,
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
+  TInputSchema extends AnySchema,
+  TOutputSchema extends AnySchema,
   THandlerOutput,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
@@ -51,8 +51,8 @@ export interface ProcedureDef<
 export class Procedure<
   TInitialContext extends Context,
   TCurrentContext extends Context,
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
+  TInputSchema extends AnySchema,
+  TOutputSchema extends AnySchema,
   THandlerOutput,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,

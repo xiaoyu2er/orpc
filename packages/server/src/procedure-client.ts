@@ -5,7 +5,7 @@ import type { Lazyable } from './lazy'
 import type { MiddlewareNextFn } from './middleware'
 import type { AnyProcedure, Procedure, ProcedureHandlerOptions } from './procedure'
 import { ORPCError } from '@orpc/client'
-import { type ErrorFromErrorMap, type ErrorMap, type Meta, type Schema, type SchemaInput, type SchemaOutput, ValidationError } from '@orpc/contract'
+import { type AnySchema, type ErrorFromErrorMap, type ErrorMap, type InferSchemaInput, type InferSchemaOutput, type Meta, ValidationError } from '@orpc/contract'
 import { intercept, toError, value } from '@orpc/shared'
 import { createORPCErrorConstructorMap, type ORPCErrorConstructorMap, validateORPCError } from './error'
 import { unlazy } from './lazy'
@@ -13,28 +13,28 @@ import { middlewareOutputFn } from './middleware'
 
 export type ProcedureClient<
   TClientContext extends ClientContext,
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
+  TInputSchema extends AnySchema,
+  TOutputSchema extends AnySchema,
   THandlerOutput,
   TErrorMap extends ErrorMap,
 > = Client<
   TClientContext,
-  SchemaInput<TInputSchema>,
-  SchemaOutput<TOutputSchema, THandlerOutput>,
+  InferSchemaInput<TInputSchema>,
+  InferSchemaOutput<TOutputSchema, THandlerOutput>,
   ErrorFromErrorMap<TErrorMap>
 >
 
 export interface ProcedureClientInterceptorOptions<
   TInitialContext extends Context,
-  TInputSchema extends Schema,
+  TInputSchema extends AnySchema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > {
   context: TInitialContext
-  input: SchemaInput<TInputSchema>
+  input: InferSchemaInput<TInputSchema>
   errors: ORPCErrorConstructorMap<TErrorMap>
   path: readonly string[]
-  procedure: Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, TMeta>
+  procedure: Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, TMeta>
   signal?: AbortSignal
   lastEventId: string | undefined
 }
@@ -44,8 +44,8 @@ export interface ProcedureClientInterceptorOptions<
  */
 export type CreateProcedureClientOptions<
   TInitialContext extends Context,
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
+  TInputSchema extends AnySchema,
+  TOutputSchema extends AnySchema,
   THandlerOutput,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
@@ -59,7 +59,7 @@ export type CreateProcedureClientOptions<
 
     interceptors?: Interceptor<
       ProcedureClientInterceptorOptions<TInitialContext, TInputSchema, TErrorMap, TMeta>,
-      SchemaOutput<TOutputSchema, THandlerOutput>,
+      InferSchemaOutput<TOutputSchema, THandlerOutput>,
       ErrorFromErrorMap<TErrorMap>
     >[]
   }
@@ -71,8 +71,8 @@ export type CreateProcedureClientOptions<
 
 export function createProcedureClient<
   TInitialContext extends Context,
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
+  TInputSchema extends AnySchema,
+  TOutputSchema extends AnySchema,
   THandlerOutput,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
@@ -104,7 +104,7 @@ export function createProcedureClient<
         options?.interceptors ?? [],
         {
           context,
-          input: input as SchemaInput<TInputSchema>, // input only optional when it undefinable so we can safely cast it
+          input: input as InferSchemaInput<TInputSchema>, // input only optional when it undefinable so we can safely cast it
           errors,
           path,
           procedure: procedure as AnyProcedure,

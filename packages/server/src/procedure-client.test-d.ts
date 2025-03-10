@@ -1,5 +1,5 @@
 import type { Client, ClientContext } from '@orpc/client'
-import type { ErrorMap, ORPCError, Schema } from '@orpc/contract'
+import type { AnySchema, ErrorMap, ORPCError } from '@orpc/contract'
 import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../../contract/tests/shared'
 import type { Context } from './context'
 import type { ORPCErrorConstructorMap } from './error'
@@ -101,7 +101,7 @@ describe('createProcedureClient', () => {
         async ({ next, signal, procedure, path, errors, context, input }) => {
           expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
           expectTypeOf(procedure).toEqualTypeOf<
-            Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, BaseMeta>
+            Procedure<Context, Context, AnySchema, AnySchema, unknown, ErrorMap, BaseMeta>
           >()
           expectTypeOf(path).toEqualTypeOf<readonly string[]>()
           expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()

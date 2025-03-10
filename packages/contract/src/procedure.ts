@@ -1,24 +1,24 @@
 import type { ErrorMap } from './error'
 import type { Meta } from './meta'
 import type { Route } from './route'
-import type { Schema } from './schema'
+import type { AnySchema } from './schema'
 
 export interface ContractProcedureDef<
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
+  TInputSchema extends AnySchema,
+  TOutputSchema extends AnySchema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > {
   meta: TMeta
   route: Route
-  inputSchema: TInputSchema
-  outputSchema: TOutputSchema
+  inputSchema?: TInputSchema
+  outputSchema?: TOutputSchema
   errorMap: TErrorMap
 }
 
 export class ContractProcedure<
-  TInputSchema extends Schema,
-  TOutputSchema extends Schema,
+  TInputSchema extends AnySchema,
+  TOutputSchema extends AnySchema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > {
@@ -50,8 +50,6 @@ export function isContractProcedure(item: unknown): item is AnyContractProcedure
     && '~orpc' in item
     && typeof item['~orpc'] === 'object'
     && item['~orpc'] !== null
-    && 'inputSchema' in item['~orpc']
-    && 'outputSchema' in item['~orpc']
     && 'errorMap' in item['~orpc']
     && 'route' in item['~orpc']
     && 'meta' in item['~orpc']

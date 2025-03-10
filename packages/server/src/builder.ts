@@ -98,6 +98,15 @@ export class Builder<
     })
   }
 
+  $input<U extends AnySchema>(
+    initialInputSchema?: U,
+  ): Builder<TInitialContext, TCurrentContext, U, TOutputSchema, TErrorMap, TMeta> {
+    return new Builder({
+      ...this['~orpc'],
+      inputSchema: initialInputSchema,
+    })
+  }
+
   middleware<UOutContext extends Context, TInput, TOutput = any>( // = any here is important to make middleware can be used in any output by default
     middleware: Middleware<TCurrentContext, UOutContext, TInput, TOutput, ORPCErrorConstructorMap<TErrorMap>, TMeta>,
   ): DecoratedMiddleware<TCurrentContext, UOutContext, TInput, TOutput, ORPCErrorConstructorMap<any>, TMeta> { // ORPCErrorConstructorMap<any> ensures middleware can used in any procedure

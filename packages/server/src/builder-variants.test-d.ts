@@ -34,7 +34,7 @@ describe('BuilderWithMiddlewares', () => {
   it('backward compatibility', () => {
     const expected = {} as OmitChainMethodDeep<
             typeof generalBuilder,
-            '$config' | '$context' | '$meta' | '$route' | 'middleware'
+            '$config' | '$context' | '$meta' | '$route' | '$input' | 'middleware'
     >
 
     // expectTypeOf(builder).toMatchTypeOf(expected)
@@ -279,7 +279,7 @@ describe('ProcedureBuilder', () => {
   it('backward compatibility', () => {
     const expected = {} as OmitChainMethodDeep<
         typeof generalBuilder,
-        '$config' | '$context' | '$meta' | '$route' | 'middleware' | 'prefix' | 'tag' | 'router' | 'lazy'
+        '$config' | '$context' | '$meta' | '$route' | '$input' | 'middleware' | 'prefix' | 'tag' | 'router' | 'lazy'
     >
 
     expectTypeOf(builder).toMatchTypeOf(expected)
@@ -458,7 +458,7 @@ describe('ProcedureBuilderWithInput', () => {
   it('backward compatibility', () => {
     const expected = {} as OmitChainMethodDeep<
       typeof generalBuilder,
-      '$config' | '$context' | '$meta' | '$route' | 'middleware' | 'prefix' | 'tag' | 'router' | 'lazy' | 'input'
+      '$config' | '$context' | '$meta' | '$route' | '$input' | 'middleware' | 'prefix' | 'tag' | 'router' | 'lazy' | 'input'
     >
 
     expectTypeOf(builder).toMatchTypeOf(expected)
@@ -673,7 +673,7 @@ describe('ProcedureBuilderWithOutput', () => {
   it('backward compatibility', () => {
     const expected = {} as OmitChainMethodDeep<
       typeof generalBuilder,
-      '$config' | '$context' | '$meta' | '$route' | 'middleware' | 'prefix' | 'tag' | 'router' | 'lazy' | 'output'
+      '$config' | '$context' | '$meta' | '$route' | '$input' | 'middleware' | 'prefix' | 'tag' | 'router' | 'lazy' | 'output'
     >
 
     // expectTypeOf(builder).toMatchTypeOf(expected)
@@ -839,7 +839,7 @@ describe('ProcedureBuilderWithInputOutput', () => {
   it('backward compatibility', () => {
     const expected = {} as OmitChainMethodDeep<
       typeof generalBuilder,
-      '$config' | '$context' | '$meta' | '$route' | 'middleware' | 'prefix' | 'tag' | 'router' | 'lazy' | 'input' | 'output'
+      '$config' | '$context' | '$meta' | '$route' | '$input' | 'middleware' | 'prefix' | 'tag' | 'router' | 'lazy' | 'input' | 'output'
     >
 
     // expectTypeOf(builder).toMatchTypeOf(expected)
@@ -1039,7 +1039,7 @@ describe('RouterBuilder', () => {
   it('backward compatibility', () => {
     const expected = {} as OmitChainMethodDeep<
       typeof generalBuilder,
-      '$config' | '$context' | '$meta' | '$route' | 'middleware' | 'meta' | 'route' | 'input' | 'output' | 'handler'
+      '$config' | '$context' | '$meta' | '$route' | '$input' | 'middleware' | 'meta' | 'route' | 'input' | 'output' | 'handler'
     >
 
     // expectTypeOf(builder).toMatchTypeOf(expected)

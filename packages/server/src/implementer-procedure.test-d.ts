@@ -190,7 +190,7 @@ describe('ProcedureImplementer', () => {
   it('backward compatibility', () => {
     const expected = {} as OmitChainMethodDeep<
       typeof generalBuilder,
-      '$config' | '$context' | '$meta' | '$route' | 'middleware' | 'prefix' | 'tag' | 'router' | 'lazy' | 'input' | 'output' | 'meta' | 'route' | 'errors'
+      '$config' | '$context' | '$meta' | '$route' | '$input' | 'middleware' | 'prefix' | 'tag' | 'router' | 'lazy' | 'input' | 'output' | 'meta' | 'route' | 'errors'
     >
 
     // expectTypeOf(builder).toMatchTypeOf(expected)

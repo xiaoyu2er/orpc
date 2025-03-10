@@ -66,9 +66,9 @@ const router = {
 }
 ```
 
-## Default Configuration
+## Initial Configuration
 
-Customize the default oRPC routing settings using `.$route`:
+Customize the initial oRPC routing settings using `.$route`:
 
 ```ts
 const base = os.$route({ method: 'GET' })

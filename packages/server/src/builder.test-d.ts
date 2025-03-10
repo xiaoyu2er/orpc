@@ -11,6 +11,7 @@ import type { DecoratedMiddleware } from './middleware-decorated'
 import type { Procedure } from './procedure'
 import type { DecoratedProcedure } from './procedure-decorated'
 import type { EnhancedRouter } from './router-utils'
+import { z } from 'zod'
 import { generalSchema } from '../../contract/tests/shared'
 import { router } from '../tests/shared'
 
@@ -113,6 +114,42 @@ describe('Builder', () => {
 
     // @ts-expect-error - invalid method
     builder.$route({ method: 'INVALID' })
+  })
+
+  describe('.$input', () => {
+    it('with actual schema', () => {
+      const schema = z.void()
+
+      expectTypeOf(builder.$input(schema)).toEqualTypeOf<
+        Builder<
+          InitialContext,
+          CurrentContext,
+          typeof schema,
+          typeof outputSchema,
+          typeof baseErrorMap,
+          BaseMeta
+        >
+      >()
+
+      // @ts-expect-error --- invalid schema
+      builder.$input({})
+    })
+
+    it('with types only', () => {
+      expectTypeOf(builder.$input<Schema<void, unknown>>()).toEqualTypeOf<
+        Builder<
+          InitialContext,
+          CurrentContext,
+          Schema<void, unknown>,
+          typeof outputSchema,
+          typeof baseErrorMap,
+          BaseMeta
+        >
+      >()
+
+      // @ts-expect-error --- invalid schema
+      builder.$input<'invalid'>()
+    })
   })
 
   describe('.middleware', () => {

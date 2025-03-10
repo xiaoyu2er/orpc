@@ -82,8 +82,6 @@ export function implementerInternal<
       middlewares,
       inputValidationIndex: fallbackConfig('initialInputValidationIndex', config?.initialInputValidationIndex) + middlewares.length,
       outputValidationIndex: fallbackConfig('initialOutputValidationIndex', config?.initialOutputValidationIndex) + middlewares.length,
-      prefix: undefined,
-      tags: undefined,
     })
 
     return impl as any

@@ -252,6 +252,4 @@ export const os = new Builder({
   inputValidationIndex: fallbackConfig('initialInputValidationIndex'),
   outputValidationIndex: fallbackConfig('initialOutputValidationIndex'),
   middlewares: [],
-  prefix: undefined,
-  tags: undefined,
 })

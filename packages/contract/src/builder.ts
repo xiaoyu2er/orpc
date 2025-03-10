@@ -125,6 +125,4 @@ export const oc = new ContractBuilder({
   outputSchema: undefined,
   route: {},
   meta: {},
-  prefix: undefined,
-  tags: undefined,
 })

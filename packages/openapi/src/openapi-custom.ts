@@ -1,4 +1,4 @@
-import type { AnyContractProcedure, ErrorMapItem } from '@orpc/contract'
+import type { AnyContractProcedure, ErrorMap } from '@orpc/contract'
 import type { OpenAPI } from './openapi'
 import { isProcedure } from '@orpc/server'
 
@@ -27,7 +27,7 @@ export function getCustomOpenAPIOperation(o: object): OverrideOperationValue | u
 export function applyCustomOpenAPIOperation(operation: OpenAPI.OperationObject, contract: AnyContractProcedure): OpenAPI.OperationObject {
   const operationCustoms: OverrideOperationValue[] = []
 
-  for (const errorItem of Object.values(contract['~orpc'].errorMap) as (ErrorMapItem<any> | undefined)[]) {
+  for (const errorItem of Object.values(contract['~orpc'].errorMap) as ErrorMap[keyof ErrorMap][]) {
     const maybeExtender = errorItem ? getCustomOpenAPIOperation(errorItem) : undefined
 
     if (maybeExtender) {

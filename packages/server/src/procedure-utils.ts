@@ -1,10 +1,10 @@
 import type { ClientPromiseResult } from '@orpc/client'
-import type { ErrorFromErrorMap, ErrorMap, Lazy, Lazyable, Meta, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { AnyContractProcedure, ErrorFromErrorMap, ErrorMap, Lazy, Lazyable, Meta, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { Context } from './context'
 import type { CreateProcedureClientOptions } from './procedure-client'
 import { getLazyMeta, lazy, unlazy } from '@orpc/contract'
-import { type AnyProcedure, isProcedure, type Procedure } from './procedure'
+import { type AnyProcedure, isProcedure, Procedure } from './procedure'
 import { createProcedureClient } from './procedure-client'
 
 export function createLazyAssertedProcedure(lazied: Lazy<any>): Lazy<AnyProcedure> {
@@ -23,6 +23,18 @@ export function createLazyAssertedProcedure(lazied: Lazy<any>): Lazy<AnyProcedur
   }, getLazyMeta(lazied))
 
   return lazyProcedure
+}
+
+/**
+ * Create a new procedure that ensure the contract is applied to the procedure.
+ */
+export function createContractedProcedure(contract: AnyContractProcedure, procedure: AnyProcedure): AnyProcedure {
+  return new Procedure({
+    ...procedure['~orpc'],
+    errorMap: contract['~orpc'].errorMap,
+    route: contract['~orpc'].route,
+    meta: contract['~orpc'].meta,
+  })
 }
 
 /**

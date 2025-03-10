@@ -5,8 +5,9 @@ import type { LazyTraverseContractProceduresOptions } from '../../router-utils'
 import type { StandardMatcher, StandardMatchResult } from './types'
 import { unlazy } from '@orpc/contract'
 import { isProcedure } from '../../procedure'
+import { createContractedProcedure } from '../../procedure-utils'
 import { getRouter, traverseContractProcedures } from '../../router-utils'
-import { convertPathToHttpPath, createContractedProcedure } from '../../utils'
+import { toHttpPath } from '../../utils'
 
 export class RPCMatcher implements StandardMatcher {
   private readonly tree: Record<
@@ -23,7 +24,7 @@ export class RPCMatcher implements StandardMatcher {
 
   init(router: AnyRouter, path: readonly string[] = []): void {
     const laziedOptions = traverseContractProcedures({ router, path }, ({ path, contract }) => {
-      const httpPath = convertPathToHttpPath(path)
+      const httpPath = toHttpPath(path)
 
       if (isProcedure(contract)) {
         this.tree[httpPath] = {
@@ -45,7 +46,7 @@ export class RPCMatcher implements StandardMatcher {
 
     this.lazyTraverseOptions.push(...laziedOptions.map(option => ({
       ...option,
-      httpPathPrefix: convertPathToHttpPath(option.path),
+      httpPathPrefix: toHttpPath(option.path),
     })))
   }
 
@@ -78,7 +79,7 @@ export class RPCMatcher implements StandardMatcher {
 
       if (!isProcedure(maybeProcedure)) {
         throw new Error(`
-          [Contract-First] Missing or invalid implementation for procedure at path: ${convertPathToHttpPath(match.path)}.
+          [Contract-First] Missing or invalid implementation for procedure at path: ${toHttpPath(match.path)}.
           Ensure that the procedure is correctly defined and matches the expected contract.
         `)
       }

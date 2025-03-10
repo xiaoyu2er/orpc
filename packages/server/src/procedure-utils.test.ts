@@ -1,11 +1,41 @@
+import { ContractProcedure } from '@orpc/contract'
+import { z } from 'zod'
+import { ping as pingContract } from '../../contract/tests/shared'
 import { ping } from '../tests/shared'
+import { Procedure } from './procedure'
 import { createProcedureClient } from './procedure-client'
-import { call } from './procedure-utils'
+import { call, createContractedProcedure } from './procedure-utils'
 
 vi.mock('./procedure-client', async original => ({
   ...await original(),
   createProcedureClient: vi.fn(() => vi.fn()),
 }))
+
+it('createContractedProcedure', () => {
+  const mismatchPath = {
+    errorMap: {
+      MISMATCH_HERE: {},
+    },
+    meta: {
+      MISMATCH_HERE: {},
+    },
+    route: {
+      path: '/MISMATCH_HERE',
+    },
+  } as const
+
+  const contracted = createContractedProcedure(new ContractProcedure({
+    ...pingContract['~orpc'],
+    ...mismatchPath,
+    inputSchema: z.object({}), // this will be ignored
+  }), ping)
+
+  expect(contracted).toBeInstanceOf(Procedure)
+  expect(contracted['~orpc']).toEqual({
+    ...ping['~orpc'],
+    ...mismatchPath,
+  })
+})
 
 it('call', async () => {
   const client = vi.fn(async () => '__output__')

@@ -1,7 +1,7 @@
 import type { AnyProcedure, AnyRouter, LazyTraverseContractProceduresOptions } from '@orpc/server'
 import type { StandardMatcher, StandardMatchResult } from '@orpc/server/standard'
 import { type AnyContractProcedure, fallbackContractConfig, getLazyMeta, type HTTPPath, unlazy } from '@orpc/contract'
-import { convertPathToHttpPath, createContractedProcedure, getRouter, isProcedure, traverseContractProcedures } from '@orpc/server'
+import { createContractedProcedure, getRouter, isProcedure, toHttpPath, traverseContractProcedures } from '@orpc/server'
 import { addRoute, createRouter, findRoute } from 'rou3'
 import { decodeParams, toRou3Pattern } from './utils'
 
@@ -18,9 +18,7 @@ export class OpenAPIMatcher implements StandardMatcher {
   init(router: AnyRouter, path: readonly string[] = []): void {
     const laziedOptions = traverseContractProcedures({ router, path }, ({ path, contract }) => {
       const method = fallbackContractConfig('defaultMethod', contract['~orpc'].route.method)
-      const httpPath = contract['~orpc'].route.path
-        ? toRou3Pattern(contract['~orpc'].route.path)
-        : convertPathToHttpPath(path)
+      const httpPath = toRou3Pattern(contract['~orpc'].route.path ?? toHttpPath(path))
 
       if (isProcedure(contract)) {
         addRoute(this.tree, method, httpPath, {
@@ -42,7 +40,7 @@ export class OpenAPIMatcher implements StandardMatcher {
 
     this.lazyTraverseOptions.push(...laziedOptions.map(option => ({
       ...option,
-      httpPathPrefix: convertPathToHttpPath(option.path),
+      httpPathPrefix: toHttpPath(option.path),
       laziedPrefix: getLazyMeta(option.router).prefix,
     })))
   }
@@ -79,7 +77,7 @@ export class OpenAPIMatcher implements StandardMatcher {
 
       if (!isProcedure(maybeProcedure)) {
         throw new Error(`
-          [Contract-First] Missing or invalid implementation for procedure at path: ${convertPathToHttpPath(match.data.path)}.
+          [Contract-First] Missing or invalid implementation for procedure at path: ${toHttpPath(match.data.path)}.
           Ensure that the procedure is correctly defined and matches the expected contract.
         `)
       }

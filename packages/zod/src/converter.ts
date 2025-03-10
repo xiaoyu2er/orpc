@@ -413,10 +413,9 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
 
         const json: JSONSchema = { type: 'object' }
 
-        const keyTypeName = this.#getZodTypeName(schema_._def.keyType._def)
+        const [__, keyJson] = this.convert(schema_._def.keyType, options, lazyDepth, false, false)
 
-        if (keyTypeName !== ZodFirstPartyTypeKind.ZodString) {
-          const [_, keyJson] = this.convert(schema_._def.keyType, options, lazyDepth, false, false)
+        if (Object.entries(keyJson).some(([k, v]) => k !== 'type' || v !== 'string')) {
           json.propertyNames = keyJson
         }
 

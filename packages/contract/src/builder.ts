@@ -123,11 +123,9 @@ export const oc = new ContractBuilder<
   Schema<unknown, unknown>,
   Schema<unknown, unknown>,
   Record<never, never>,
-  Record<string, unknown>
+  Record<never, never>
 >({
   errorMap: {},
-  inputSchema: undefined,
-  outputSchema: undefined,
   route: {},
   meta: {},
 })

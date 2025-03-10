@@ -242,13 +242,18 @@ export class Builder<
   }
 }
 
-export const os = new Builder({
+export const os = new Builder<
+  Record<never, never>,
+  Record<never, never>,
+  Schema<unknown, unknown>,
+  Schema<unknown, unknown>,
+  Record<never, never>,
+  Record<never, never>
+>({
   config: {},
   route: {},
   meta: {},
   errorMap: {},
-  inputSchema: undefined,
-  outputSchema: undefined,
   inputValidationIndex: fallbackConfig('initialInputValidationIndex'),
   outputValidationIndex: fallbackConfig('initialOutputValidationIndex'),
   middlewares: [],

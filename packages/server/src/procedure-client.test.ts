@@ -486,7 +486,6 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
 
 it('still work without InputSchema', async () => {
   const procedure = new Procedure({
-    inputSchema: undefined,
     outputSchema: schema,
     errorMap: {},
     route: {},

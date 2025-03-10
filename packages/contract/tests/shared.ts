@@ -44,8 +44,6 @@ export const pong = new ContractProcedure<
   Meta
 >({
   errorMap: {},
-  inputSchema: undefined,
-  outputSchema: undefined,
   meta: {},
   route: {},
 })

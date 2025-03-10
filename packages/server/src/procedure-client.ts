@@ -32,7 +32,7 @@ export interface ProcedureClientInterceptorOptions<
   context: TInitialContext
   input: SchemaInput<TInputSchema>
   errors: ORPCErrorConstructorMap<TErrorMap>
-  path: string[]
+  path: readonly string[]
   procedure: Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, TMeta>
   signal?: AbortSignal
   lastEventId: string | undefined
@@ -54,7 +54,7 @@ export type CreateProcedureClientOptions<
     /**
      * This is helpful for logging and analytics.
      */
-    path?: string[]
+    path?: readonly string[]
 
     interceptors?: Interceptor<
       ProcedureClientInterceptorOptions<TInitialContext, TInputSchema, TErrorMap, TMeta>,

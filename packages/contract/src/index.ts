@@ -14,6 +14,7 @@ export * from './procedure-client'
 export * from './route'
 export * from './router'
 export * from './router-client'
+export * from './router-hidden'
 export * from './router-utils'
 export * from './schema'
 

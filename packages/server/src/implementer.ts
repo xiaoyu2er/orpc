@@ -4,11 +4,10 @@ import type { ORPCErrorConstructorMap } from './error'
 import type { ProcedureImplementer } from './implementer-procedure'
 import type { ImplementerInternalWithMiddlewares } from './implementer-variants'
 import type { AnyMiddleware, Middleware } from './middleware'
-import type { Router } from './router'
-import { isContractProcedure, lazy } from '@orpc/contract'
+import type { AnyRouter, Router } from './router'
+import { isContractProcedure, lazy, setHiddenRouterContract } from '@orpc/contract'
 import { Builder, type BuilderConfig } from './builder'
 import { fallbackConfig } from './config'
-import { setRouterContract } from './hidden'
 import { type DecoratedMiddleware, decorateMiddleware } from './middleware-decorated'
 import { addMiddleware } from './middleware-utils'
 import { type EnhancedRouter, enhanceRouter } from './router-utils'
@@ -112,19 +111,19 @@ export function implementerInternal<
             tags: [],
           })
 
-          return setRouterContract(enhanced, contract)
+          return setHiddenRouterContract(enhanced, contract)
         }
       }
       else if (key === 'lazy') {
-        method = (loader: any) => {
-          const enhanced = enhanceRouter(lazy(loader) as any, {
+        method = (loader: () => Promise<{ default: AnyRouter }>) => {
+          const enhanced = enhanceRouter(lazy(loader, { prefix: undefined }), {
             middlewares,
             errorMap: {},
             prefix: undefined,
             tags: [],
           })
 
-          return setRouterContract(enhanced, contract)
+          return setHiddenRouterContract(enhanced, contract)
         }
       }
 

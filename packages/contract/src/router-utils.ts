@@ -1,10 +1,12 @@
 import type { ErrorMap, MergedErrorMap } from './error'
+import type { Lazy, Lazyable } from './lazy'
 import type { EnhanceRouteOptions } from './route'
 import type { AnyContractRouter } from './router'
 import { mergeErrorMap } from './error'
-import { getLazyMeta, isLazy, lazy, type Lazy, type Lazyable, unlazy } from './lazy'
+import { getLazyMeta, isLazy, lazy, unlazy } from './lazy'
 import { type AnyContractProcedure, ContractProcedure, isContractProcedure } from './procedure'
 import { enhanceRoute, mergePrefix } from './route'
+import { getHiddenRouterContract } from './router-hidden'
 
 export function getContractRouter<T extends Lazyable<AnyContractRouter | undefined>>(
   router: T,
@@ -121,4 +123,82 @@ export function enhanceContractRouter<T extends Lazyable<AnyContractRouter>, TEr
   }
 
   return enhanced as any
+}
+
+export interface TraverseContractProceduresOptions {
+  router: AnyContractRouter
+  path: readonly string[]
+}
+
+export interface ContractProcedureCallbackOptions {
+  contract: AnyContractProcedure
+  path: readonly string[]
+}
+
+export interface LazyTraverseContractProceduresOptions {
+  router: Lazy<AnyContractRouter>
+  path: readonly string[]
+}
+
+export function traverseContractProcedures(
+  options: TraverseContractProceduresOptions,
+  callback: (options: ContractProcedureCallbackOptions) => void,
+  lazyOptions: LazyTraverseContractProceduresOptions[] = [],
+): LazyTraverseContractProceduresOptions[] {
+  let currentRouter: Lazyable<AnyContractRouter> = options.router
+
+  const hiddenContract = getHiddenRouterContract(options.router)
+
+  if (hiddenContract !== undefined) {
+    currentRouter = hiddenContract
+  }
+
+  if (isLazy(currentRouter)) {
+    lazyOptions.push({
+      router: currentRouter,
+      path: options.path,
+    })
+  }
+
+  else if (isContractProcedure(currentRouter)) {
+    callback({
+      contract: currentRouter,
+      path: options.path,
+    })
+  }
+
+  else {
+    for (const key in currentRouter) {
+      traverseContractProcedures(
+        {
+          router: (currentRouter as any)[key],
+          path: [...options.path, key],
+        },
+        callback,
+        lazyOptions,
+      )
+    }
+  }
+
+  return lazyOptions
+}
+
+export async function resolveContractProcedures(
+  options: TraverseContractProceduresOptions,
+  callback: (options: ContractProcedureCallbackOptions) => void,
+) {
+  const pending: TraverseContractProceduresOptions[] = [options]
+
+  for (const item of pending) {
+    const lazyOptions = traverseContractProcedures(item, callback)
+
+    for (const options of lazyOptions) {
+      const { default: router } = await unlazy(options.router)
+
+      pending.push({
+        router,
+        path: options.path,
+      })
+    }
+  }
 }

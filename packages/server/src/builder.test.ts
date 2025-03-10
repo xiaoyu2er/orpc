@@ -1,4 +1,4 @@
-import { isContractProcedure, unlazy } from '@orpc/contract'
+import * as ContractModule from '@orpc/contract'
 import { baseErrorMap, baseMeta, baseRoute, generalSchema, inputSchema, outputSchema } from '../../contract/tests/shared'
 import { router } from '../tests/shared'
 import { Builder } from './builder'
@@ -8,6 +8,9 @@ import * as RouterUtilsModule from './router-utils'
 
 const decorateMiddlewareSpy = vi.spyOn(MiddlewareDecorated, 'decorateMiddleware')
 const enhanceRouterSpy = vi.spyOn(RouterUtilsModule, 'enhanceRouter')
+const lazySpy = vi.spyOn(ContractModule, 'lazy')
+
+const { getLazyMeta, isContractProcedure } = ContractModule
 
 const mid = vi.fn()
 
@@ -217,11 +220,14 @@ describe('builder', () => {
   })
 
   it('.lazy', () => {
-    const applied = builder.lazy(() => Promise.resolve({ default: router as any }))
+    const loader = () => Promise.resolve({ default: router as any })
+    const applied = builder.lazy(loader)
+
+    expect(getLazyMeta(applied)).toEqual({ prefix: '/adapt' })
 
     expect(applied).toBe(enhanceRouterSpy.mock.results[0]?.value)
     expect(enhanceRouterSpy).toBeCalledTimes(1)
-    expect(enhanceRouterSpy).toBeCalledWith(expect.any(Object), def)
-    expect(unlazy(enhanceRouterSpy.mock.calls[0]![0])).resolves.toEqual({ default: router })
+    expect(enhanceRouterSpy).toBeCalledWith(lazySpy.mock.results[0]!.value, def)
+    expect(lazySpy).toHaveBeenNthCalledWith(1, loader, { prefix: undefined })
   })
 })

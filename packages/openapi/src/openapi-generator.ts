@@ -2,9 +2,9 @@ import type { AnyContractProcedure, AnyContractRouter, ErrorMap } from '@orpc/co
 import type { OpenAPI } from './openapi'
 import type { JSONSchema } from './schema'
 import { fallbackORPCErrorMessage, fallbackORPCErrorStatus } from '@orpc/client'
-import { fallbackContractConfig, getEventIteratorSchemaDetails } from '@orpc/contract'
+import { fallbackContractConfig, getEventIteratorSchemaDetails, resolveContractProcedures } from '@orpc/contract'
 import { OpenAPISerializer } from '@orpc/openapi-client/standard'
-import { type AnyRouter, convertPathToHttpPath, eachAllContractProcedure } from '@orpc/server'
+import { convertPathToHttpPath } from '@orpc/server'
 import { clone } from '@orpc/shared'
 import { applyCustomOpenAPIOperation } from './openapi-custom'
 import { checkParamsSchema, getDynamicParams, toOpenAPIContent, toOpenAPIEventIteratorContent, toOpenAPIMethod, toOpenAPIParameters, toOpenAPIPath, toOpenAPISchema } from './openapi-utils'
@@ -26,13 +26,13 @@ export class OpenAPIGenerator {
     this.converter = new CompositeSchemaConverter(options.schemaConverters ?? [])
   }
 
-  async generate(router: AnyContractRouter | AnyRouter, base: Omit<OpenAPI.Document, 'openapi'>): Promise<OpenAPI.Document> {
+  async generate(router: AnyContractRouter, base: Omit<OpenAPI.Document, 'openapi'>): Promise<OpenAPI.Document> {
     const doc: OpenAPI.Document = clone(base) as OpenAPI.Document
     doc.openapi = '3.1.1'
 
     const errors: string[] = []
 
-    await eachAllContractProcedure({ path: [], router }, ({ contract, path }) => {
+    await resolveContractProcedures({ path: [], router }, ({ contract, path }) => {
       const operationId = path.join('.')
 
       try {

@@ -1,8 +1,19 @@
-import type { EnhanceRouteOptions, ErrorMap, Lazy, Lazyable, MergedErrorMap } from '@orpc/contract'
+import type { ContractProcedureCallbackOptions, EnhanceRouteOptions, ErrorMap, Lazy, Lazyable, MergedErrorMap } from '@orpc/contract'
 import type { Context } from './context'
 import type { AnyMiddleware } from './middleware'
 import type { AnyRouter } from './router'
-import { createAccessibleLazyContractRouter, enhanceRoute, getContractRouter, getLazyMeta, isLazy, lazy, mergeErrorMap, mergePrefix, unlazy } from '@orpc/contract'
+import {
+  createAccessibleLazyContractRouter,
+  enhanceRoute,
+  getContractRouter,
+  getLazyMeta,
+  isLazy,
+  lazy,
+  mergeErrorMap,
+  mergePrefix,
+  traverseContractProcedures as traverseContractProceduresInternal,
+  unlazy,
+} from '@orpc/contract'
 import { mergeMiddlewares } from './middleware-utils'
 import { type AnyProcedure, isProcedure, Procedure } from './procedure'
 
@@ -101,4 +112,22 @@ export function enhanceRouter<T extends Lazyable<AnyRouter>, TInitialContext ext
   }
 
   return enhanced as any
+}
+
+export interface TraverseContractProceduresOptions {
+  router: AnyRouter
+  path: readonly string[]
+}
+
+export interface LazyTraverseContractProceduresOptions {
+  router: Lazy<AnyRouter>
+  path: readonly string[]
+}
+
+export function traverseContractProcedures(
+  options: TraverseContractProceduresOptions,
+  callback: (options: ContractProcedureCallbackOptions) => void,
+  lazyOptions: LazyTraverseContractProceduresOptions[] = [],
+): LazyTraverseContractProceduresOptions[] {
+  return traverseContractProceduresInternal(options, callback, lazyOptions) as LazyTraverseContractProceduresOptions[]
 }

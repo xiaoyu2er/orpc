@@ -136,9 +136,12 @@ describe('contractBuilder', () => {
   it('.lazy', () => {
     const loader = () => Promise.resolve({ default: { ping, pong } })
     const applied = builder.lazy(loader)
+
+    expect(LazyModule.getLazyMeta(applied)).toEqual({ prefix: '/adapt' })
+
     expect(applied).toBe(enhanceContractRouterSpy.mock.results[0]?.value)
     expect(enhanceContractRouterSpy).toHaveBeenCalledOnce()
     expect(enhanceContractRouterSpy).toHaveBeenCalledWith(lazySpy.mock.results[0]!.value, def)
-    expect(lazySpy).toHaveBeenNthCalledWith(1, loader)
+    expect(lazySpy).toHaveBeenNthCalledWith(1, loader, { prefix: undefined })
   })
 })

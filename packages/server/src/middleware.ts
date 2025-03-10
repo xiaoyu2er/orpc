@@ -30,7 +30,7 @@ export interface MiddlewareOptions<
   TMeta extends Meta,
 > {
   context: TInContext
-  path: string[]
+  path: readonly string[]
   procedure: Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, TMeta>
   signal?: AbortSignal
   lastEventId: string | undefined

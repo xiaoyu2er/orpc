@@ -49,7 +49,7 @@ export class StandardHandler<T extends Context> {
   private readonly plugin: CompositePlugin<T>
 
   constructor(
-    router: Router<T, any>,
+    router: Router<any, T>,
     private readonly matcher: StandardMatcher,
     private readonly codec: StandardCodec,
     private readonly options: NoInfer<StandardHandlerOptions<T>>,

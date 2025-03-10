@@ -6,11 +6,9 @@ import type { ORPCErrorConstructorMap } from './error'
 import type { Implementer } from './implementer'
 import type { ProcedureImplementer } from './implementer-procedure'
 import type { ImplementerInternalWithMiddlewares } from './implementer-variants'
-import type { Lazy } from './lazy'
 import type { MiddlewareOutputFn } from './middleware'
 import type { DecoratedMiddleware } from './middleware-decorated'
 import type { Procedure } from './procedure'
-import type { AdaptedRouter } from './router'
 import { router as implRouter } from '../tests/shared'
 
 describe('Implementer', () => {

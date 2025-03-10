@@ -7,7 +7,7 @@ import { getLazyMeta, lazy, unlazy } from '@orpc/contract'
 import { type AnyProcedure, isProcedure, Procedure } from './procedure'
 import { createProcedureClient } from './procedure-client'
 
-export function createLazyAssertedProcedure(lazied: Lazy<any>): Lazy<AnyProcedure> {
+export function createAssertedLazyProcedure(lazied: Lazy<any>): Lazy<AnyProcedure> {
   const lazyProcedure = lazy(async () => {
     const { default: maybeProcedure } = await unlazy(lazied)
 

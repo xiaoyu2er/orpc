@@ -1,16 +1,17 @@
-import type { AnyContractRouter, ContractProcedure, InterContractRouterErrorMap, InterContractRouterMeta, Lazy } from '@orpc/contract'
+import type { AnyContractRouter, ContractProcedure, InterContractRouterErrorMap, InterContractRouterMeta, Lazy, Lazyable } from '@orpc/contract'
 import type { ConflictContextGuard, Context, MergedContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { ProcedureImplementer } from './implementer-procedure'
 import type { ImplementerInternalWithMiddlewares } from './implementer-variants'
 import type { AnyMiddleware, Middleware } from './middleware'
 import type { AnyRouter, Router } from './router'
-import { isContractProcedure, lazy, setHiddenRouterContract } from '@orpc/contract'
+import { createAssertedDefinedLazy, getContractRouter, isContractProcedure, isLazy, lazy, setHiddenRouterContract } from '@orpc/contract'
 import { Builder, type BuilderConfig } from './builder'
 import { fallbackConfig } from './config'
 import { type DecoratedMiddleware, decorateMiddleware } from './middleware-decorated'
 import { addMiddleware } from './middleware-utils'
 import { type EnhancedRouter, enhanceRouter } from './router-utils'
+import { AnyFunction } from '@orpc/shared'
 
 export interface RouterImplementer<
   TContract extends AnyContractRouter,
@@ -48,30 +49,23 @@ export interface RouterImplementer<
   ): EnhancedRouter<Lazy<U>, TInitialContext, Record<never, never>>
 }
 
-export type ImplementerInternal<
-  TContract extends AnyContractRouter,
-  TInitialContext extends Context,
-  TCurrentContext extends Context,
-> =
-  &(
-    TContract extends ContractProcedure<infer UInputSchema, infer UOutputSchema, infer UErrorMap, infer UMeta>
-      ? ProcedureImplementer<TInitialContext, TCurrentContext, UInputSchema, UOutputSchema, UErrorMap, UMeta>
-      : RouterImplementer<TContract, TInitialContext, TCurrentContext> & {
-        [K in keyof TContract]: TContract[K] extends AnyContractRouter
-          ? ImplementerInternal<TContract[K], TInitialContext, TCurrentContext>
-          : never
-      }
-   )
+export type ImplementerInternal<T extends AnyContractRouter, TInitialContext extends Context, TCurrentContext extends Context> =
+T extends ContractProcedure<infer UInputSchema, infer UOutputSchema, infer UErrorMap, infer UMeta>
+  ? ProcedureImplementer<TInitialContext, TCurrentContext, UInputSchema, UOutputSchema, UErrorMap, UMeta>
+  : RouterImplementer<T, TInitialContext, TCurrentContext> & {
+    [K in keyof T]: T[K] extends Lazyable<infer U extends AnyContractRouter>
+      ? ImplementerInternal<U, TInitialContext, TCurrentContext>
+      : never
+  }
 
-export function implementerInternal<
-  TContract extends AnyContractRouter,
+export function implementerInternal<T extends AnyContractRouter,
   TInitialContext extends Context,
   TCurrentContext extends Context,
 >(
-  contract: TContract,
+  contract: Lazyable<T>,
   config: BuilderConfig,
   middlewares: AnyMiddleware[],
-): ImplementerInternal<TContract, TInitialContext, TCurrentContext> {
+): ImplementerInternal<T, TInitialContext, TCurrentContext> {
   if (isContractProcedure(contract)) {
     const impl = new Builder({
       ...contract['~orpc'],
@@ -88,7 +82,11 @@ export function implementerInternal<
 
   const impl = new Proxy(contract, {
     get: (target, key) => {
-      let method: any
+      if (typeof key !== 'string') {
+        return Reflect.get(target, key)
+      }
+
+      let method: AnyFunction | undefined
 
       if (key === 'middleware') {
         method = (mid: any) => decorateMiddleware(mid)
@@ -127,13 +125,15 @@ export function implementerInternal<
         }
       }
 
-      const next = Reflect.get(target, key)
+      const next = getContractRouter(target, [key])
 
-      if (!next || (typeof next !== 'function' && typeof next !== 'object')) {
+      if (!next) {
         return method ?? next
       }
 
-      const nextImpl = implementerInternal(next as any, config, middlewares)
+      const assertedNext = isLazy(next) ? createAssertedDefinedLazy(next)   : next as Exclude<typeof next, Lazy<any>>
+
+      const nextImpl = implementerInternal(assertedNext, config, middlewares)
 
       if (method) {
         return new Proxy(method, {

@@ -6,7 +6,7 @@ import type { AnyRouter, InferRouterInitialContext } from './router'
 import { type ErrorMap, isLazy, type Lazyable, type Meta } from '@orpc/contract'
 import { isProcedure } from './procedure'
 import { createProcedureClient } from './procedure-client'
-import { lazyAssertProcedure } from './procedure-utils'
+import { createLazyAssertedProcedure } from './procedure-utils'
 import { getRouter } from './router-utils'
 
 export type RouterClient<TRouter extends AnyRouter, TClientContext extends ClientContext = Record<never, never>> =
@@ -37,7 +37,7 @@ export function createRouterClient<TRouter extends AnyRouter, TClientContext ext
   }
 
   const procedureCaller = isLazy(router)
-    ? createProcedureClient(lazyAssertProcedure(router), options as any)
+    ? createProcedureClient(createLazyAssertedProcedure(router), options as any)
     : {}
 
   const recursive = new Proxy(procedureCaller, {

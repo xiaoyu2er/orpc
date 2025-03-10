@@ -69,6 +69,17 @@ const example = os
 
 To learn more, see the [Middleware](/docs/middleware) documentation.
 
+## Initial Configuration
+
+Customize the initial input schema using `.$input`:
+
+```ts
+const base = os.$input(z.void())
+const base = os.$input<Schema<void, unknown>>()
+```
+
+Unlike `.input`, the `.$input` method lets you redefine the input schema after its initial configuration. This is useful when you need to enforce a `void` input when no `.input` is specified.
+
 ## Reusability
 
 Each modification to a builder creates a completely new instance, avoiding reference issues. This makes it easy to reuse and extend procedures efficiently.

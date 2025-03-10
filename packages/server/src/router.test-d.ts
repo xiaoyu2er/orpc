@@ -1,18 +1,27 @@
-import type { CurrentContext, InitialContext } from '../tests/shared'
+import type { ContractRouter, Meta } from '@orpc/contract'
+import type { BaseMeta } from '../../contract/tests/shared'
+import type { CurrentContext, InitialContext, pong } from '../tests/shared'
 import type { Context } from './context'
 import type { InferRouterCurrentContexts, InferRouterInitialContext, InferRouterInitialContexts, InferRouterInputs, InferRouterOutputs, Router } from './router'
-import { ping, pong, router } from '../tests/shared'
+import { ping, router } from '../tests/shared'
 
-it('Router', () => {
-  expectTypeOf(ping).toMatchTypeOf<Router<any, InitialContext>>()
-  expectTypeOf(pong).toMatchTypeOf<Router<any, InitialContext>>()
-  expectTypeOf(router).toMatchTypeOf<Router<any, InitialContext>>()
+describe('Router', () => {
+  it('also a contract router', () => {
+    expectTypeOf(ping).toMatchTypeOf<ContractRouter<BaseMeta>>()
+    expectTypeOf(router).toMatchTypeOf<ContractRouter<Meta>>()
+  })
 
-  expectTypeOf(ping).not.toMatchTypeOf<Router<any, Context>>()
+  it('initial context', () => {
+    expectTypeOf(router).toMatchTypeOf<Router<any, InitialContext>>()
+    expectTypeOf(router).toMatchTypeOf<Router<any, InitialContext & { extra?: string }>>()
+
+    expectTypeOf(router).not.toMatchTypeOf<Router<any, Omit<InitialContext, 'db'>>>()
+    expectTypeOf(router).not.toMatchTypeOf<Router<any, { db: number }>>()
+  })
 })
 
 it('InferRouterInitialContext', () => {
-  expectTypeOf<InferRouterInitialContext<typeof router>>().toEqualTypeOf<Context>()
+  expectTypeOf<InferRouterInitialContext<typeof router>>().toEqualTypeOf<InitialContext & Context>()
   expectTypeOf<InferRouterInitialContext<typeof ping>>().toEqualTypeOf<InitialContext>()
   expectTypeOf<InferRouterInitialContext<typeof pong>>().toEqualTypeOf<Context>()
 })

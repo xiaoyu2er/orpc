@@ -1,51 +1,14 @@
-import type { baseErrorMap, BaseMeta, outputSchema } from '../tests/shared'
+import type { baseErrorMap, BaseMeta } from '../tests/shared'
 import type { Meta } from './meta'
-import type { ContractProcedure } from './procedure'
 import type { ContractRouter, InferContractRouterInputs, InferContractRouterOutputs, InterContractRouterErrorMap, InterContractRouterMeta } from './router'
-import { ping, pong, router } from '../tests/shared'
+import { router } from '../tests/shared'
 
 describe('ContractRouter', () => {
-  describe('meta def', () => {
-    it('works', () => {
-      expectTypeOf(ping).toMatchTypeOf<ContractRouter<BaseMeta>>()
-      expectTypeOf(pong).toMatchTypeOf<ContractRouter<BaseMeta>>()
-      expectTypeOf(router).toMatchTypeOf<ContractRouter<BaseMeta>>()
+  it('meta', () => {
+    expectTypeOf(router).toMatchTypeOf<ContractRouter<BaseMeta>>()
+    expectTypeOf(router).toMatchTypeOf<ContractRouter<BaseMeta & { extra?: string }>>()
 
-      expectTypeOf(ping).not.toMatchTypeOf<ContractRouter<{ invalid: true }>>()
-    })
-
-    it('not allow conflict meta def', () => {
-      expectTypeOf({
-        ping: {} as ContractProcedure<
-          undefined,
-          typeof outputSchema,
-          typeof baseErrorMap,
-          { mode?: number }
-        >,
-      }).not.toMatchTypeOf<ContractRouter<BaseMeta>>()
-    })
-
-    it('works when meta def is wider', () => {
-      expectTypeOf({
-        ping: {} as ContractProcedure<
-          undefined,
-          typeof outputSchema,
-          typeof baseErrorMap,
-          BaseMeta & { extra?: string }
-        >,
-      }).toMatchTypeOf<ContractRouter<BaseMeta>>()
-    })
-
-    it('works when meta def is narrower', () => {
-      expectTypeOf({
-        ping: {} as ContractProcedure<
-          undefined,
-          typeof outputSchema,
-          typeof baseErrorMap,
-          Omit<BaseMeta, 'mode'>
-        >,
-      }).toMatchTypeOf<ContractRouter< BaseMeta>>()
-    })
+    expectTypeOf(router).not.toMatchTypeOf<ContractRouter<Omit<BaseMeta, 'mode' > & { mode?: number }>>()
   })
 })
 

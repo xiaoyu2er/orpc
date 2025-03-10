@@ -1,8 +1,8 @@
-import type { Meta } from '@orpc/contract'
 import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../../contract/tests/shared'
 import type { Context } from '../src'
+import { lazy, type Meta } from '@orpc/contract'
 import { ping as pingContract, pong as pongContract } from '../../contract/tests/shared'
-import { lazy, Procedure } from '../src'
+import { Procedure } from '../src'
 
 export type InitialContext = { db: string }
 export type CurrentContext = InitialContext & { auth: boolean }

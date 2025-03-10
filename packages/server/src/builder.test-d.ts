@@ -1,16 +1,15 @@
-import type { ContractProcedure, ErrorMap, MergedErrorMap, Schema } from '@orpc/contract'
+import type { ContractProcedure, ErrorMap, Lazy, MergedErrorMap, Schema } from '@orpc/contract'
 import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../../contract/tests/shared'
 import type { CurrentContext, InitialContext } from '../tests/shared'
 import type { Builder } from './builder'
 import type { BuilderWithMiddlewares, ProcedureBuilder, ProcedureBuilderWithInput, ProcedureBuilderWithOutput, RouterBuilder } from './builder-variants'
 import type { Context } from './context'
 import type { ORPCErrorConstructorMap } from './error'
-import type { Lazy } from './lazy'
 import type { MiddlewareOutputFn } from './middleware'
 import type { DecoratedMiddleware } from './middleware-decorated'
 import type { Procedure } from './procedure'
 import type { DecoratedProcedure } from './procedure-decorated'
-import type { AdaptedRouter } from './router'
+import type { EnhancedRouter } from './router-utils'
 import { generalSchema } from '../../contract/tests/shared'
 import { router } from '../tests/shared'
 
@@ -374,7 +373,7 @@ describe('Builder', () => {
 
   it('.router', () => {
     expectTypeOf(builder.router(router)).toEqualTypeOf<
-      AdaptedRouter<typeof router, InitialContext, typeof baseErrorMap>
+      EnhancedRouter<typeof router, InitialContext, typeof baseErrorMap>
     >()
 
     builder.router({
@@ -398,7 +397,7 @@ describe('Builder', () => {
 
   it('.lazy', () => {
     expectTypeOf(builder.lazy(() => Promise.resolve({ default: router }))).toEqualTypeOf<
-      AdaptedRouter<Lazy<typeof router>, InitialContext, typeof baseErrorMap>
+      EnhancedRouter<Lazy<typeof router>, InitialContext, typeof baseErrorMap>
     >()
 
     // @ts-expect-error - initial context is not match

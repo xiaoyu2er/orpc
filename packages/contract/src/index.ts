@@ -29,14 +29,12 @@ export type RouterClient<
 
 export type {
   /**
-   * {@link ContractRouterClient}
-   * The alias of `InferContractRouterInputs`
+   * The alias of {@link ContractRouterClient}
    */
   InferContractRouterInputs as InferInputs,
 
   /**
-   * {@link InferContractRouterOutputs}
-   * The alias of `InferContractRouterOutputs`
+   * The alias of {@link InferContractRouterOutputs}
    */
   InferContractRouterOutputs as InferOutputs,
 }

@@ -1,14 +1,13 @@
-import { isContractProcedure } from '@orpc/contract'
+import { isContractProcedure, unlazy } from '@orpc/contract'
 import { baseErrorMap, baseMeta, baseRoute, generalSchema, inputSchema, outputSchema } from '../../contract/tests/shared'
 import { router } from '../tests/shared'
 import { Builder } from './builder'
-import { unlazy } from './lazy'
 import * as MiddlewareDecorated from './middleware-decorated'
 import { DecoratedProcedure } from './procedure-decorated'
-import * as Router from './router'
+import * as RouterUtilsModule from './router-utils'
 
 const decorateMiddlewareSpy = vi.spyOn(MiddlewareDecorated, 'decorateMiddleware')
-const adaptRouterSpy = vi.spyOn(Router, 'adaptRouter')
+const enhanceRouterSpy = vi.spyOn(RouterUtilsModule, 'enhanceRouter')
 
 const mid = vi.fn()
 
@@ -212,17 +211,17 @@ describe('builder', () => {
   it('.router', () => {
     const applied = builder.router(router as any)
 
-    expect(applied).toBe(adaptRouterSpy.mock.results[0]?.value)
-    expect(adaptRouterSpy).toBeCalledTimes(1)
-    expect(adaptRouterSpy).toBeCalledWith(router, def)
+    expect(applied).toBe(enhanceRouterSpy.mock.results[0]?.value)
+    expect(enhanceRouterSpy).toBeCalledTimes(1)
+    expect(enhanceRouterSpy).toBeCalledWith(router, def)
   })
 
   it('.lazy', () => {
     const applied = builder.lazy(() => Promise.resolve({ default: router as any }))
 
-    expect(applied).toBe(adaptRouterSpy.mock.results[0]?.value)
-    expect(adaptRouterSpy).toBeCalledTimes(1)
-    expect(adaptRouterSpy).toBeCalledWith(expect.any(Object), def)
-    expect(unlazy(adaptRouterSpy.mock.calls[0]![0])).resolves.toEqual({ default: router })
+    expect(applied).toBe(enhanceRouterSpy.mock.results[0]?.value)
+    expect(enhanceRouterSpy).toBeCalledTimes(1)
+    expect(enhanceRouterSpy).toBeCalledWith(expect.any(Object), def)
+    expect(unlazy(enhanceRouterSpy.mock.calls[0]![0])).resolves.toEqual({ default: router })
   })
 })

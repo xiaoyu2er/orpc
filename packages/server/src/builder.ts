@@ -1,20 +1,17 @@
-import type { ContractProcedureDef, ContractRouter, ErrorMap, HTTPPath, MergedErrorMap, Meta, Route, Schema } from '@orpc/contract'
+import type { ContractProcedureDef, ContractRouter, ErrorMap, HTTPPath, Lazy, MergedErrorMap, Meta, Route, Schema } from '@orpc/contract'
 import type { BuilderWithMiddlewares, ProcedureBuilder, ProcedureBuilderWithInput, ProcedureBuilderWithOutput, RouterBuilder } from './builder-variants'
 import type { ConflictContextGuard, Context, MergedContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
-import type { FlattenLazy } from './lazy-utils'
 import type { AnyMiddleware, MapInputMiddleware, Middleware } from './middleware'
 import type { DecoratedMiddleware } from './middleware-decorated'
 import type { ProcedureHandler } from './procedure'
-import type { AdaptedRouter, AdaptRouterOptions, Router } from './router'
-import { mergeErrorMap, mergeMeta, mergePrefix, mergeRoute, mergeTags } from '@orpc/contract'
+import type { Router } from './router'
+import { lazy, mergeErrorMap, mergeMeta, mergePrefix, mergeRoute, mergeTags } from '@orpc/contract'
 import { fallbackConfig } from './config'
-import { lazy } from './lazy'
-import { flatLazy } from './lazy-utils'
 import { decorateMiddleware } from './middleware-decorated'
 import { addMiddleware } from './middleware-utils'
 import { DecoratedProcedure } from './procedure-decorated'
-import { adaptRouter } from './router'
+import { type EnhancedRouter, enhanceRouter, type EnhanceRouterOptions } from './router-utils'
 
 export interface BuilderConfig {
   initialInputValidationIndex?: number
@@ -26,7 +23,7 @@ export interface BuilderDef<
   TOutputSchema extends Schema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
-> extends ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>, AdaptRouterOptions< TErrorMap> {
+> extends ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>, EnhanceRouterOptions<TErrorMap> {
   middlewares: AnyMiddleware[]
   inputValidationIndex: number
   outputValidationIndex: number
@@ -219,24 +216,26 @@ export class Builder<
     return new Builder({
       ...this['~orpc'],
       prefix: mergePrefix(this['~orpc'].prefix, prefix),
-    })
+    }) as any
   }
 
   tag(...tags: string[]): RouterBuilder<TInitialContext, TCurrentContext, TErrorMap, TMeta> {
     return new Builder({
       ...this['~orpc'],
       tags: mergeTags(this['~orpc'].tags, tags),
-    })
+    }) as any
   }
 
-  router<U extends Router<TCurrentContext, ContractRouter<TMeta>>>(router: U): AdaptedRouter<U, TInitialContext, TErrorMap> {
-    return adaptRouter(router, this['~orpc'])
+  router<U extends Router<ContractRouter<TMeta>, TCurrentContext>>(
+    router: U,
+  ): EnhancedRouter<U, TInitialContext, TErrorMap> {
+    return enhanceRouter(router, this['~orpc'])
   }
 
-  lazy<U extends Router<TCurrentContext, ContractRouter<TMeta>>>(
+  lazy<U extends Router<ContractRouter<TMeta>, TCurrentContext>>(
     loader: () => Promise<{ default: U }>,
-  ): AdaptedRouter<FlattenLazy<U>, TInitialContext, TErrorMap> {
-    return adaptRouter(flatLazy(lazy(loader)), this['~orpc'])
+  ): EnhancedRouter<Lazy<U>, TInitialContext, TErrorMap> {
+    return enhanceRouter(lazy(loader), this['~orpc'])
   }
 }
 
@@ -250,4 +249,6 @@ export const os = new Builder({
   inputValidationIndex: fallbackConfig('initialInputValidationIndex'),
   outputValidationIndex: fallbackConfig('initialOutputValidationIndex'),
   middlewares: [],
+  prefix: undefined,
+  tags: [],
 })

@@ -1,11 +1,29 @@
 import type { ClientPromiseResult } from '@orpc/client'
-import type { ErrorFromErrorMap, ErrorMap, Meta, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
+import type { ErrorFromErrorMap, ErrorMap, Lazy, Lazyable, Meta, Schema, SchemaInput, SchemaOutput } from '@orpc/contract'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { Context } from './context'
-import type { Lazyable } from './lazy'
-import type { Procedure } from './procedure'
 import type { CreateProcedureClientOptions } from './procedure-client'
+import { lazy, unlazy } from '@orpc/contract'
+import { type AnyProcedure, isProcedure, type Procedure } from './procedure'
 import { createProcedureClient } from './procedure-client'
+
+export function lazyAssertProcedure(lazied: Lazy<any>): Lazy<AnyProcedure> {
+  const lazyProcedure = lazy(async () => {
+    const { default: maybeProcedure } = await unlazy(lazied)
+
+    if (!isProcedure(maybeProcedure)) {
+      throw new Error(`
+            Expected a lazy<procedure> but got lazy<unknown>.
+            This should be caught by TypeScript compilation.
+            Please report this issue if this makes you feel uncomfortable.
+        `)
+    }
+
+    return { default: maybeProcedure }
+  })
+
+  return lazyProcedure
+}
 
 /**
  * Directly call a procedure without creating a client.

@@ -38,32 +38,36 @@ describe('enhanceContractRouter', async () => {
       INVALID: { message: 'INVALID' },
       OVERRIDE: { message: 'OVERRIDE' },
     }
+    const options = { errorMap, prefix: '/enhanced', tags: ['enhanced'] } as const
 
-    const enhanced = enhanceContractRouter(router, { errorMap, prefix: '/enhanced', tags: ['enhanced'] })
+    const enhanced = enhanceContractRouter(router, options)
 
     expect((await (unlazy(enhanced.ping))).default['~orpc'].errorMap).toEqual({ ...errorMap, ...ping['~orpc'].errorMap })
-    expect((await (unlazy(enhanced.ping))).default['~orpc'].route).toEqual(enhanceRoute(ping['~orpc'].route, { prefix: '/enhanced', tags: ['enhanced'] }))
+    expect((await (unlazy(enhanced.ping))).default['~orpc'].route).toEqual(enhanceRoute(ping['~orpc'].route, options))
     expect(getLazyMeta(enhanced.ping)).toEqual({ prefix: '/enhanced' })
 
     expect(enhanced.pong['~orpc'].errorMap).toEqual({ ...errorMap, ...pong['~orpc'].errorMap })
-    expect(enhanced.pong['~orpc'].route).toEqual(enhanceRoute(pong['~orpc'].route, { prefix: '/enhanced', tags: ['enhanced'] }))
+    expect(enhanced.pong['~orpc'].route).toEqual(enhanceRoute(pong['~orpc'].route, options))
+
+    expect(getLazyMeta(enhanced.nested)).toEqual({ prefix: '/enhanced' })
 
     expect((await (unlazy(enhanced.nested.ping))).default['~orpc'].errorMap).toEqual({ ...errorMap, ...ping['~orpc'].errorMap })
-    expect((await (unlazy(enhanced.nested.ping))).default['~orpc'].route).toEqual(enhanceRoute(ping['~orpc'].route, { prefix: '/enhanced', tags: ['enhanced'] }))
+    expect((await (unlazy(enhanced.nested.ping))).default['~orpc'].route).toEqual(enhanceRoute(ping['~orpc'].route, options))
     expect(getLazyMeta(enhanced.nested.ping)).toEqual({ prefix: '/enhanced' })
 
     expect((await (unlazy(enhanced.nested.pong))).default['~orpc'].errorMap).toEqual({ ...errorMap, ...pong['~orpc'].errorMap })
-    expect((await (unlazy(enhanced.nested.pong))).default['~orpc'].route).toEqual(enhanceRoute(pong['~orpc'].route, { prefix: '/enhanced', tags: ['enhanced'] }))
+    expect((await (unlazy(enhanced.nested.pong))).default['~orpc'].route).toEqual(enhanceRoute(pong['~orpc'].route, options))
     expect(getLazyMeta(enhanced.nested.pong)).toEqual({ prefix: '/enhanced' })
   })
 
   it('can merge lazy prefix', async () => {
     const enhanced = enhanceContractRouter(
-      enhanceContractRouter(router, { errorMap: {}, prefix: '/enhanced', tags: undefined }),
-      { errorMap: {}, prefix: '/prefix', tags: undefined },
+      enhanceContractRouter(router, { errorMap: {}, prefix: '/enhanced', tags: [] }),
+      { errorMap: {}, prefix: '/prefix', tags: [] },
     )
 
     expect(getLazyMeta(enhanced.ping)).toEqual({ prefix: '/prefix/enhanced' })
+    expect(getLazyMeta(enhanced.nested)).toEqual({ prefix: '/prefix/enhanced' })
     expect(getLazyMeta(enhanced.nested.ping)).toEqual({ prefix: '/prefix/enhanced' })
     expect(getLazyMeta(enhanced.nested.pong)).toEqual({ prefix: '/prefix/enhanced' })
   })

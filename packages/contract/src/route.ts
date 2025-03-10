@@ -103,7 +103,7 @@ export function mergeTags(a: readonly string[] | undefined, b: readonly string[]
 
 export interface EnhanceRouteOptions {
   prefix: undefined | HTTPPath
-  tags: undefined | readonly string[]
+  tags: readonly string[]
 }
 
 export function enhanceRoute(route: Route, options: EnhanceRouteOptions): Route {
@@ -113,7 +113,7 @@ export function enhanceRoute(route: Route, options: EnhanceRouteOptions): Route 
     router = prefixRoute(router, options.prefix)
   }
 
-  if (options.tags) {
+  if (options.tags.length) {
     router = unshiftTagRoute(router, options.tags)
   }
 

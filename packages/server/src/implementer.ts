@@ -1,18 +1,17 @@
-import type { AnyContractRouter, ContractProcedure, InterContractRouterErrorMap, InterContractRouterMeta } from '@orpc/contract'
+import type { AnyContractRouter, ContractProcedure, InterContractRouterErrorMap, InterContractRouterMeta, Lazy } from '@orpc/contract'
 import type { ConflictContextGuard, Context, MergedContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { ProcedureImplementer } from './implementer-procedure'
 import type { ImplementerInternalWithMiddlewares } from './implementer-variants'
 import type { AnyMiddleware, Middleware } from './middleware'
-import { isContractProcedure } from '@orpc/contract'
+import type { Router } from './router'
+import { isContractProcedure, lazy } from '@orpc/contract'
 import { Builder, type BuilderConfig } from './builder'
 import { fallbackConfig } from './config'
 import { setRouterContract } from './hidden'
-import { lazy } from './lazy'
-import { flatLazy, type FlattenLazy } from './lazy-utils'
 import { type DecoratedMiddleware, decorateMiddleware } from './middleware-decorated'
 import { addMiddleware } from './middleware-utils'
-import { type AdaptedRouter, adaptRouter, type Router } from './router'
+import { type EnhancedRouter, enhanceRouter } from './router-utils'
 
 export interface RouterImplementer<
   TContract extends AnyContractRouter,
@@ -42,11 +41,12 @@ export interface RouterImplementer<
   ): ConflictContextGuard<MergedContext<TCurrentContext, U>>
     & ImplementerInternalWithMiddlewares<TContract, TInitialContext, MergedContext<TCurrentContext, U>>
 
-  router<U extends Router<TCurrentContext, TContract>>(router: U): AdaptedRouter<U, TInitialContext, Record<never, never>>
+  router<U extends Router<TContract, TCurrentContext>>(
+    router: U): EnhancedRouter<U, TInitialContext, Record<never, never>>
 
-  lazy<U extends Router<TCurrentContext, TContract>>(
+  lazy<U extends Router<TContract, TCurrentContext>>(
     loader: () => Promise<{ default: U }>
-  ): AdaptedRouter<FlattenLazy<U>, TInitialContext, Record<never, never>>
+  ): EnhancedRouter<Lazy<U>, TInitialContext, Record<never, never>>
 }
 
 export type ImplementerInternal<
@@ -80,6 +80,8 @@ export function implementerInternal<
       middlewares,
       inputValidationIndex: fallbackConfig('initialInputValidationIndex', config?.initialInputValidationIndex) + middlewares.length,
       outputValidationIndex: fallbackConfig('initialOutputValidationIndex', config?.initialOutputValidationIndex) + middlewares.length,
+      tags: [],
+      prefix: undefined,
     })
 
     return impl as any
@@ -103,22 +105,26 @@ export function implementerInternal<
       }
       else if (key === 'router') {
         method = (router: any) => {
-          const adapted = adaptRouter(router, {
+          const enhanced = enhanceRouter(router, {
             middlewares,
             errorMap: {},
+            prefix: undefined,
+            tags: [],
           })
 
-          return setRouterContract(adapted, contract)
+          return setRouterContract(enhanced, contract)
         }
       }
       else if (key === 'lazy') {
         method = (loader: any) => {
-          const adapted = adaptRouter(flatLazy(lazy(loader)) as any, {
+          const enhanced = enhanceRouter(lazy(loader) as any, {
             middlewares,
             errorMap: {},
+            prefix: undefined,
+            tags: [],
           })
 
-          return setRouterContract(adapted, contract)
+          return setRouterContract(enhanced, contract)
         }
       }
 

@@ -1,10 +1,10 @@
-import type { AnyContractRouter, ContractProcedure, InterContractRouterErrorMap, InterContractRouterMeta } from '@orpc/contract'
+import type { AnyContractRouter, ContractProcedure, InterContractRouterErrorMap, InterContractRouterMeta, Lazy } from '@orpc/contract'
 import type { ConflictContextGuard, Context, MergedContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { ProcedureImplementer } from './implementer-procedure'
-import type { FlattenLazy } from './lazy-utils'
 import type { Middleware } from './middleware'
-import type { AdaptedRouter, Router } from './router'
+import type { Router } from './router'
+import type { EnhancedRouter } from './router-utils'
 
 export interface RouterImplementerWithMiddlewares<
   TContract extends AnyContractRouter,
@@ -23,11 +23,13 @@ export interface RouterImplementerWithMiddlewares<
   ): ConflictContextGuard<MergedContext<TCurrentContext, U>>
     & ImplementerInternalWithMiddlewares<TContract, TInitialContext, MergedContext<TCurrentContext, U>>
 
-  router<U extends Router<TCurrentContext, TContract>>(router: U): AdaptedRouter<U, TInitialContext, Record<never, never>>
+  router<U extends Router<TContract, TCurrentContext>>(
+    router: U
+  ): EnhancedRouter<U, TInitialContext, Record<never, never>>
 
-  lazy<U extends Router<TInitialContext, TContract>>(
+  lazy<U extends Router<TContract, TInitialContext>>(
     loader: () => Promise<{ default: U }>
-  ): AdaptedRouter<FlattenLazy<U>, TInitialContext, Record<never, never>>
+  ): EnhancedRouter<Lazy<U>, TInitialContext, Record<never, never>>
 }
 
 export type ImplementerInternalWithMiddlewares<

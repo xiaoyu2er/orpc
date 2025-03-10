@@ -1,29 +1,26 @@
-import type { AnyProcedure, AnyRouter, EachContractProcedureLaziedOptions } from '@orpc/server'
+import type { AnyProcedure, AnyRouter, LazyTraverseContractProceduresOptions } from '@orpc/server'
 import type { StandardMatcher, StandardMatchResult } from '@orpc/server/standard'
 import { type AnyContractProcedure, fallbackContractConfig, type HTTPPath } from '@orpc/contract'
-import { convertPathToHttpPath, createContractedProcedure, eachContractProcedure, getLazyRouterPrefix, getRouterChild, isProcedure, unlazy } from '@orpc/server'
+import { createContractedProcedure, getLazyMeta, getRouter, isProcedure, toHttpPath, traverseContractProcedures, unlazy } from '@orpc/server'
 import { addRoute, createRouter, findRoute } from 'rou3'
 import { decodeParams, toRou3Pattern } from './utils'
 
 export class OpenAPIMatcher implements StandardMatcher {
   private readonly tree = createRouter<{
-    path: string[]
+    path: readonly string[]
     contract: AnyContractProcedure
     procedure: AnyProcedure | undefined
     router: AnyRouter
   }>()
 
-  private pendingRouters: (EachContractProcedureLaziedOptions & { httpPathPrefix: HTTPPath, laziedPrefix: string | undefined }) [] = []
+  private pendingRouters: (LazyTraverseContractProceduresOptions & { httpPathPrefix: HTTPPath, laziedPrefix: string | undefined }) [] = []
 
-  init(router: AnyRouter, path: string[] = []): void {
-    const laziedOptions = eachContractProcedure({
-      router,
-      path,
-    }, ({ path, contract }) => {
+  init(router: AnyRouter, path: readonly string[] = []): void {
+    const laziedOptions = traverseContractProcedures({ router, path }, ({ path, contract }) => {
       const method = fallbackContractConfig('defaultMethod', contract['~orpc'].route.method)
       const httpPath = contract['~orpc'].route.path
         ? toRou3Pattern(contract['~orpc'].route.path)
-        : convertPathToHttpPath(path)
+        : toHttpPath(path)
 
       if (isProcedure(contract)) {
         addRoute(this.tree, method, httpPath, {
@@ -45,8 +42,8 @@ export class OpenAPIMatcher implements StandardMatcher {
 
     this.pendingRouters.push(...laziedOptions.map(option => ({
       ...option,
-      httpPathPrefix: convertPathToHttpPath(option.path),
-      laziedPrefix: getLazyRouterPrefix(option.lazied),
+      httpPathPrefix: toHttpPath(option.path),
+      laziedPrefix: getLazyMeta(option.router).prefix,
     })))
   }
 
@@ -60,7 +57,7 @@ export class OpenAPIMatcher implements StandardMatcher {
           || pathname.startsWith(pendingRouter.laziedPrefix)
           || pathname.startsWith(pendingRouter.httpPathPrefix)
         ) {
-          const { default: router } = await unlazy(pendingRouter.lazied)
+          const { default: router } = await unlazy(pendingRouter.router)
           this.init(router, pendingRouter.path)
         }
         else {
@@ -78,16 +75,16 @@ export class OpenAPIMatcher implements StandardMatcher {
     }
 
     if (!match.data.procedure) {
-      const { default: maybeProcedure } = await unlazy(getRouterChild(match.data.router, ...match.data.path))
+      const { default: maybeProcedure } = await unlazy(getRouter(match.data.router, match.data.path))
 
       if (!isProcedure(maybeProcedure)) {
         throw new Error(`
-          [Contract-First] Missing or invalid implementation for procedure at path: ${convertPathToHttpPath(match.data.path)}.
+          [Contract-First] Missing or invalid implementation for procedure at path: ${toHttpPath(match.data.path)}.
           Ensure that the procedure is correctly defined and matches the expected contract.
         `)
       }
 
-      match.data.procedure = createContractedProcedure(match.data.contract, maybeProcedure)
+      match.data.procedure = createContractedProcedure(maybeProcedure, match.data.contract)
     }
 
     return {

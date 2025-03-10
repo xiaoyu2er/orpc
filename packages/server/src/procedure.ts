@@ -13,7 +13,7 @@ export interface ProcedureHandlerOptions<
 > {
   context: TCurrentContext
   input: TInput
-  path: string[]
+  path: readonly string[]
   procedure: Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, TMeta>
   signal?: AbortSignal
   lastEventId: string | undefined

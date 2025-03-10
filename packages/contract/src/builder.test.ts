@@ -2,9 +2,9 @@ import { baseErrorMap, baseMeta, baseRoute, generalSchema, inputSchema, outputSc
 import { ContractBuilder } from './builder'
 import { mergeErrorMap } from './error'
 import { isContractProcedure } from './procedure'
-import * as Router from './router'
+import * as RouterUtilsModule from './router-utils'
 
-const adaptContractRouterSpy = vi.spyOn(Router, 'adaptContractRouter')
+const enhanceContractRouterSpy = vi.spyOn(RouterUtilsModule, 'enhanceContractRouter')
 
 const def = {
   errorMap: baseErrorMap,
@@ -126,8 +126,8 @@ describe('contractBuilder', () => {
   it('.router', () => {
     const router = { ping, pong }
     const applied = builder.router(router)
-    expect(applied).toBe(adaptContractRouterSpy.mock.results[0]?.value)
-    expect(adaptContractRouterSpy).toHaveBeenCalledOnce()
-    expect(adaptContractRouterSpy).toHaveBeenCalledWith(router, def)
+    expect(applied).toBe(enhanceContractRouterSpy.mock.results[0]?.value)
+    expect(enhanceContractRouterSpy).toHaveBeenCalledOnce()
+    expect(enhanceContractRouterSpy).toHaveBeenCalledWith(router, def)
   })
 })

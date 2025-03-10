@@ -10,7 +10,7 @@ import type { Lazy } from './lazy'
 import type { MiddlewareOutputFn } from './middleware'
 import type { DecoratedMiddleware } from './middleware-decorated'
 import type { Procedure } from './procedure'
-import type { AdaptedRouter } from './router'
+import type { EnhancedRouter } from './router-utils'
 import { router as implRouter } from '../tests/shared'
 
 describe('Implementer', () => {
@@ -42,7 +42,7 @@ describe('Implementer', () => {
         const mid = implementer.nested.middleware(({ context, next, path, procedure, errors, signal }, input, output) => {
           expectTypeOf(input).toEqualTypeOf<unknown>()
           expectTypeOf(context).toEqualTypeOf<CurrentContext>()
-          expectTypeOf(path).toEqualTypeOf<string[]>()
+          expectTypeOf(path).toEqualTypeOf<readonly string[]>()
           expectTypeOf(procedure).toEqualTypeOf<
             Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, BaseMeta | Meta>
           >()
@@ -92,7 +92,7 @@ describe('Implementer', () => {
       const applied = implementer.nested.use(({ context, next, path, procedure, errors, signal }, input, output) => {
         expectTypeOf(input).toEqualTypeOf<unknown>()
         expectTypeOf(context).toEqualTypeOf<CurrentContext>()
-        expectTypeOf(path).toEqualTypeOf<string[]>()
+        expectTypeOf(path).toEqualTypeOf<readonly string[]>()
         expectTypeOf(procedure).toEqualTypeOf<
           Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, BaseMeta | Meta>
         >()
@@ -123,7 +123,7 @@ describe('Implementer', () => {
 
     it('.router', () => {
       expectTypeOf(implementer.router(implRouter)).toEqualTypeOf<
-        AdaptedRouter<typeof implRouter, InitialContext, Record<never, never>>
+        EnhancedRouter<typeof implRouter, InitialContext, Record<never, never>>
       >()
 
       implementer.router({
@@ -152,7 +152,7 @@ describe('Implementer', () => {
 
     it('.lazy', () => {
       expectTypeOf(implementer.lazy(() => Promise.resolve({ default: implRouter }))).toEqualTypeOf<
-        AdaptedRouter<Lazy<typeof implRouter>, InitialContext, Record<never, never>>
+        EnhancedRouter<Lazy<typeof implRouter>, InitialContext, Record<never, never>>
       >()
 
       // @ts-expect-error - initial context is not match

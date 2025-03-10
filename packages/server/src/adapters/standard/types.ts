@@ -7,7 +7,7 @@ import type { AnyRouter } from '../../router'
 export type StandardParams = Record<string, string>
 
 export type StandardMatchResult = {
-  path: string[]
+  path: readonly string[]
   procedure: AnyProcedure
   params?: StandardParams
 } | undefined

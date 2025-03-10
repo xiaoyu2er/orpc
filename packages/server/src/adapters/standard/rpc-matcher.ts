@@ -1,31 +1,30 @@
 import type { AnyContractProcedure, HTTPPath } from '@orpc/contract'
 import type { AnyProcedure } from '../../procedure'
-import type { EachContractProcedureLaziedOptions } from '../../utils'
+import type { AnyRouter } from '../../router'
+import type { LazyTraverseContractProceduresOptions } from '../../router-utils'
 import type { StandardMatcher, StandardMatchResult } from './types'
 import { unlazy } from '../../lazy'
 import { isProcedure } from '../../procedure'
-import { type AnyRouter, getRouterChild } from '../../router'
-import { convertPathToHttpPath, createContractedProcedure, eachContractProcedure } from '../../utils'
+import { createContractedProcedure } from '../../procedure-utils'
+import { getRouter, traverseContractProcedures } from '../../router-utils'
+import { toHttpPath } from '../../utils'
 
 export class RPCMatcher implements StandardMatcher {
   private readonly tree: Record<
     HTTPPath,
     {
-      path: string[]
+      path: readonly string[]
       contract: AnyContractProcedure
       procedure: AnyProcedure | undefined
       router: AnyRouter
     }
   > = {}
 
-  private pendingRouters: (EachContractProcedureLaziedOptions & { httpPathPrefix: HTTPPath }) [] = []
+  private pendingRouters: (LazyTraverseContractProceduresOptions & { httpPathPrefix: HTTPPath }) [] = []
 
-  init(router: AnyRouter, path: string[] = []): void {
-    const laziedOptions = eachContractProcedure({
-      router,
-      path,
-    }, ({ path, contract }) => {
-      const httpPath = convertPathToHttpPath(path)
+  init(router: AnyRouter, path: readonly string[] = []): void {
+    const laziedOptions = traverseContractProcedures({ router, path }, ({ path, contract }) => {
+      const httpPath = toHttpPath(path)
 
       if (isProcedure(contract)) {
         this.tree[httpPath] = {
@@ -47,7 +46,7 @@ export class RPCMatcher implements StandardMatcher {
 
     this.pendingRouters.push(...laziedOptions.map(option => ({
       ...option,
-      httpPathPrefix: convertPathToHttpPath(option.path),
+      httpPathPrefix: toHttpPath(option.path),
     })))
   }
 
@@ -57,7 +56,7 @@ export class RPCMatcher implements StandardMatcher {
 
       for (const pendingRouter of this.pendingRouters) {
         if (pathname.startsWith(pendingRouter.httpPathPrefix)) {
-          const { default: router } = await unlazy(pendingRouter.lazied)
+          const { default: router } = await unlazy(pendingRouter.router)
           this.init(router, pendingRouter.path)
         }
         else {
@@ -75,16 +74,16 @@ export class RPCMatcher implements StandardMatcher {
     }
 
     if (!match.procedure) {
-      const { default: maybeProcedure } = await unlazy(getRouterChild(match.router, ...match.path))
+      const { default: maybeProcedure } = await unlazy(getRouter(match.router, match.path))
 
       if (!isProcedure(maybeProcedure)) {
         throw new Error(`
-          [Contract-First] Missing or invalid implementation for procedure at path: ${convertPathToHttpPath(match.path)}.
+          [Contract-First] Missing or invalid implementation for procedure at path: ${toHttpPath(match.path)}.
           Ensure that the procedure is correctly defined and matches the expected contract.
         `)
       }
 
-      match.procedure = createContractedProcedure(match.contract, maybeProcedure)
+      match.procedure = createContractedProcedure(maybeProcedure, match.contract)
     }
 
     return {

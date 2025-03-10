@@ -2,11 +2,12 @@ import type { ContractRouter, ErrorMap, HTTPPath, MergedErrorMap, Meta, Route, S
 import type { BuilderDef } from './builder'
 import type { ConflictContextGuard, Context, MergedContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
-import type { FlattenLazy } from './lazy-utils'
+import type { Lazy } from './lazy'
 import type { MapInputMiddleware, Middleware } from './middleware'
 import type { ProcedureHandler } from './procedure'
 import type { DecoratedProcedure } from './procedure-decorated'
-import type { AdaptedRouter, AdaptRouterOptions, Router } from './router'
+import type { Router } from './router'
+import type { EnhancedRouter, EnhanceRouterOptions } from './router-utils'
 
 export interface BuilderWithMiddlewares<
   TInitialContext extends Context,
@@ -72,13 +73,13 @@ export interface BuilderWithMiddlewares<
 
   'tag'(...tags: string[]): RouterBuilder<TInitialContext, TCurrentContext, TErrorMap, TMeta>
 
-  'router'<U extends Router<TCurrentContext, ContractRouter<TMeta>>>(
+  'router'<U extends Router<ContractRouter<TMeta>, TCurrentContext>>(
     router: U
-  ): AdaptedRouter<U, TInitialContext, TErrorMap>
+  ): EnhancedRouter<U, TInitialContext, TErrorMap>
 
-  'lazy'<U extends Router<TCurrentContext, ContractRouter<TMeta>>>(
+  'lazy'<U extends Router<ContractRouter<TMeta>, TCurrentContext>>(
     loader: () => Promise<{ default: U }>,
-  ): AdaptedRouter<FlattenLazy<U>, TInitialContext, TErrorMap>
+  ): EnhancedRouter<Lazy<U>, TInitialContext, TErrorMap>
 }
 
 export interface ProcedureBuilder<
@@ -341,7 +342,7 @@ export interface RouterBuilder<
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > {
-  '~orpc': AdaptRouterOptions<TErrorMap>
+  '~orpc': EnhanceRouterOptions<TErrorMap>
 
   'errors'<U extends ErrorMap>(
     errors: U,
@@ -363,11 +364,11 @@ export interface RouterBuilder<
 
   'tag'(...tags: string[]): RouterBuilder<TInitialContext, TCurrentContext, TErrorMap, TMeta>
 
-  'router'<U extends Router<TCurrentContext, ContractRouter<TMeta>>>(
+  'router'<U extends Router<ContractRouter<TMeta>, TCurrentContext>>(
     router: U
-  ): AdaptedRouter<U, TInitialContext, TErrorMap>
+  ): EnhancedRouter<U, TInitialContext, TErrorMap>
 
-  'lazy'<U extends Router<TCurrentContext, ContractRouter<TMeta>>>(
+  'lazy'<U extends Router<ContractRouter<TMeta>, TCurrentContext>>(
     loader: () => Promise<{ default: U }>,
-  ): AdaptedRouter<FlattenLazy<U>, TInitialContext, TErrorMap>
+  ): EnhancedRouter<Lazy<U>, TInitialContext, TErrorMap>
 }

@@ -1,19 +1,31 @@
-import type { MergedErrorMap, Meta } from '@orpc/contract'
-import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../../contract/tests/shared'
+import type { ContractRouter, Meta } from '@orpc/contract'
+import type { BaseMeta } from '../../contract/tests/shared'
 import type { CurrentContext, InitialContext } from '../tests/shared'
 import type { Context } from './context'
-import type { Lazy } from './lazy'
-import type { Procedure } from './procedure'
-import type { AdaptedRouter, InferRouterCurrentContexts, InferRouterInitialContext, InferRouterInitialContexts, InferRouterInputs, InferRouterOutputs, Router } from './router'
+import type { InferRouterCurrentContexts, InferRouterInitialContext, InferRouterInitialContexts, InferRouterInputs, InferRouterOutputs, Router } from './router'
 import { ping, pong, router } from '../tests/shared'
 
 describe('Router', () => {
-  it('context', () => {
-    expectTypeOf(ping).toMatchTypeOf<Router<InitialContext, any>>()
-    expectTypeOf(pong).toMatchTypeOf<Router<InitialContext, any>>()
-    expectTypeOf(router).toMatchTypeOf<Router<InitialContext, any>>()
+  it('also a contract router when not has lazy router', () => {
+    const router = {
+      ping,
+      pong,
+      nested: {
+        ping,
+        pong,
+      },
+    }
 
-    expectTypeOf(ping).not.toMatchTypeOf<Router<Context, any>>()
+    expectTypeOf(ping).toMatchTypeOf<ContractRouter<BaseMeta>>()
+    expectTypeOf(router).toMatchTypeOf<ContractRouter<Meta>>()
+  })
+
+  it('initial context', () => {
+    expectTypeOf(router).toMatchTypeOf<Router<any, InitialContext>>()
+    expectTypeOf(router).toMatchTypeOf<Router<any, InitialContext & { extra?: string }>>()
+
+    expectTypeOf(router).not.toMatchTypeOf<Router<any, Omit<InitialContext, 'db'>>>()
+    expectTypeOf(router).not.toMatchTypeOf<Router<any, { db: number }>>()
   })
 })
 
@@ -38,80 +50,21 @@ it('InferRouterCurrentContexts', () => {
 })
 
 it('InferRouterInputs', () => {
-    type Inferred = InferRouterInputs<typeof router>
+  type Inferred = InferRouterInputs<typeof router>
 
-    expectTypeOf<Inferred['ping']>().toEqualTypeOf<{ input: number }>()
-    expectTypeOf<Inferred['nested']['ping']>().toEqualTypeOf<{ input: number }>()
+  expectTypeOf<Inferred['ping']>().toEqualTypeOf<{ input: number }>()
+  expectTypeOf<Inferred['nested']['ping']>().toEqualTypeOf<{ input: number }>()
 
-    expectTypeOf<Inferred['pong']>().toEqualTypeOf<unknown>()
-    expectTypeOf<Inferred['nested']['pong']>().toEqualTypeOf<unknown>()
+  expectTypeOf<Inferred['pong']>().toEqualTypeOf<unknown>()
+  expectTypeOf<Inferred['nested']['pong']>().toEqualTypeOf<unknown>()
 })
 
 it('InferRouterOutputs', () => {
-    type Inferred = InferRouterOutputs<typeof router>
+  type Inferred = InferRouterOutputs<typeof router>
 
-    expectTypeOf<Inferred['ping']>().toEqualTypeOf<{ output: string }>()
-    expectTypeOf<Inferred['nested']['ping']>().toEqualTypeOf<{ output: string }>()
+  expectTypeOf<Inferred['ping']>().toEqualTypeOf<{ output: string }>()
+  expectTypeOf<Inferred['nested']['ping']>().toEqualTypeOf<{ output: string }>()
 
-    expectTypeOf<Inferred['pong']>().toEqualTypeOf<unknown>()
-    expectTypeOf<Inferred['nested']['pong']>().toEqualTypeOf<unknown>()
-})
-
-it('AdaptedRouter', () => {
-  type TErrorMap = { INVALID: { message: string }, OVERRIDE: { message: string } }
-  type Applied = AdaptedRouter<typeof router, InitialContext, TErrorMap>
-
-  expectTypeOf<Applied['ping']>().toEqualTypeOf<
-    Lazy<
-      Procedure<
-        InitialContext,
-        CurrentContext,
-          typeof inputSchema,
-          typeof outputSchema,
-          { output: number },
-          MergedErrorMap <TErrorMap, typeof baseErrorMap>,
-          BaseMeta
-      >
-    >
-  >()
-
-  expectTypeOf<Applied['nested']['ping']>().toEqualTypeOf<
-    Lazy<
-      Procedure<
-        InitialContext,
-        CurrentContext,
-          typeof inputSchema,
-          typeof outputSchema,
-          { output: number },
-          MergedErrorMap<TErrorMap, typeof baseErrorMap>,
-          BaseMeta
-      >
-    >
-  >()
-
-  expectTypeOf<Applied['pong']>().toEqualTypeOf<
-    Procedure<
-      InitialContext,
-      Context,
-      undefined,
-      undefined,
-      unknown,
-      MergedErrorMap<TErrorMap, Record<never, never>>,
-      Meta
-    >
-  >()
-
-  expectTypeOf<Applied['nested']['pong']>().toEqualTypeOf<
-    Lazy<
-      Procedure<
-        InitialContext,
-        Context,
-        undefined,
-        undefined,
-        unknown,
-        MergedErrorMap<TErrorMap, Record<never, never>>,
-        Meta
-      >
-    >
-  >()
+  expectTypeOf<Inferred['pong']>().toEqualTypeOf<unknown>()
+  expectTypeOf<Inferred['nested']['pong']>().toEqualTypeOf<unknown>()
 })

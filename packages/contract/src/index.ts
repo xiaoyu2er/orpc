@@ -11,6 +11,7 @@ export * from './procedure-client'
 export * from './route'
 export * from './router'
 export * from './router-client'
+export * from './router-utils'
 export * from './schema'
 
 export { ORPCError } from '@orpc/client'

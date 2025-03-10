@@ -3,7 +3,7 @@ import type { ContractBuilder } from './builder'
 import type { ContractProcedureBuilder, ContractProcedureBuilderWithInput, ContractProcedureBuilderWithInputOutput, ContractProcedureBuilderWithOutput, ContractRouterBuilder } from './builder-variants'
 import type { MergedErrorMap } from './error'
 import type { ContractProcedure } from './procedure'
-import type { AdaptedContractRouter } from './router'
+import type { EnhancedContractRouter } from './router-utils'
 import { type baseErrorMap, type BaseMeta, generalSchema, type inputSchema, type outputSchema, ping, pong } from '../tests/shared'
 
 const generalBuilder = {} as ContractBuilder<typeof inputSchema, typeof outputSchema, typeof baseErrorMap, BaseMeta>
@@ -311,7 +311,7 @@ describe('ContractRouterBuilder', () => {
     }
 
     expectTypeOf(builder.router(router)).toEqualTypeOf<
-      AdaptedContractRouter<typeof router, typeof baseErrorMap>
+      EnhancedContractRouter<typeof router, typeof baseErrorMap>
     >()
 
     // @ts-expect-error - invalid router

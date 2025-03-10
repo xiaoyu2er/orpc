@@ -10,7 +10,7 @@ import type { MiddlewareOutputFn } from './middleware'
 import type { DecoratedMiddleware } from './middleware-decorated'
 import type { Procedure } from './procedure'
 import type { DecoratedProcedure } from './procedure-decorated'
-import type { AdaptedRouter } from './router'
+import type { EnhancedRouter } from './router-utils'
 import { generalSchema } from '../../contract/tests/shared'
 import { router } from '../tests/shared'
 
@@ -121,7 +121,7 @@ describe('Builder', () => {
         builder.middleware(({ context, next, path, procedure, errors, signal }, input, output) => {
           expectTypeOf(input).toEqualTypeOf<unknown>()
           expectTypeOf(context).toEqualTypeOf<CurrentContext>()
-          expectTypeOf(path).toEqualTypeOf<string[]>()
+          expectTypeOf(path).toEqualTypeOf<readonly string[]>()
           expectTypeOf(procedure).toEqualTypeOf<
             Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, BaseMeta>
           >()
@@ -178,7 +178,7 @@ describe('Builder', () => {
       const applied = builder.use(({ context, next, path, procedure, errors, signal }, input, output) => {
         expectTypeOf(input).toEqualTypeOf<unknown>()
         expectTypeOf(context).toEqualTypeOf<CurrentContext>()
-        expectTypeOf(path).toEqualTypeOf<string[]>()
+        expectTypeOf(path).toEqualTypeOf<readonly string[]>()
         expectTypeOf(procedure).toEqualTypeOf<
           Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, BaseMeta>
         >()
@@ -218,7 +218,7 @@ describe('Builder', () => {
       const applied = builder.use(({ context, next, path, procedure, errors, signal }, input: { mapped: boolean }, output) => {
         expectTypeOf(input).toEqualTypeOf<{ mapped: boolean }>()
         expectTypeOf(context).toEqualTypeOf<CurrentContext>()
-        expectTypeOf(path).toEqualTypeOf<string[]>()
+        expectTypeOf(path).toEqualTypeOf<readonly string[]>()
         expectTypeOf(procedure).toEqualTypeOf<
           Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, BaseMeta>
         >()
@@ -333,7 +333,7 @@ describe('Builder', () => {
     const procedure = builder.handler(({ input, context, procedure, path, signal, errors }) => {
       expectTypeOf(input).toEqualTypeOf<unknown>()
       expectTypeOf(context).toEqualTypeOf<CurrentContext>()
-      expectTypeOf(path).toEqualTypeOf<string[]>()
+      expectTypeOf(path).toEqualTypeOf<readonly string[]>()
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
       expectTypeOf(procedure).toEqualTypeOf<
         Procedure<Context, Context, Schema, Schema, unknown, ErrorMap, BaseMeta>
@@ -374,7 +374,7 @@ describe('Builder', () => {
 
   it('.router', () => {
     expectTypeOf(builder.router(router)).toEqualTypeOf<
-      AdaptedRouter<typeof router, InitialContext, typeof baseErrorMap>
+      EnhancedRouter<typeof router, InitialContext, typeof baseErrorMap>
     >()
 
     builder.router({
@@ -398,7 +398,7 @@ describe('Builder', () => {
 
   it('.lazy', () => {
     expectTypeOf(builder.lazy(() => Promise.resolve({ default: router }))).toEqualTypeOf<
-      AdaptedRouter<Lazy<typeof router>, InitialContext, typeof baseErrorMap>
+      EnhancedRouter<Lazy<typeof router>, InitialContext, typeof baseErrorMap>
     >()
 
     // @ts-expect-error - initial context is not match

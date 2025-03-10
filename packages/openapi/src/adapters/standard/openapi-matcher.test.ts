@@ -21,13 +21,13 @@ const routedPong = new Procedure({
 
 const router = {
   ping,
-  pong: lazy(() => Promise.resolve({ default: routedPong })),
+  pong: lazy(() => Promise.resolve({ default: routedPong }), { prefix: undefined }),
   nested: lazy(() => Promise.resolve({
     default: {
       ping: routedPing,
-      pong: lazy(() => Promise.resolve({ default: pong })),
+      pong: lazy(() => Promise.resolve({ default: pong }), { prefix: undefined }),
     },
-  })),
+  }), { prefix: undefined }),
 }
 
 describe('openapiMatcher', () => {

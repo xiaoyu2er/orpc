@@ -1,21 +1,22 @@
-import type { AnyContractRouter, ContractProcedure, ContractRouterToErrorMap, ContractRouterToMeta } from '@orpc/contract'
+import type { AnyContractRouter, ContractProcedure, InferContractRouterErrorMap, InferContractRouterMeta } from '@orpc/contract'
 import type { ConflictContextGuard, Context, MergedContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { ProcedureImplementer } from './implementer-procedure'
 import type { ImplementerInternalWithMiddlewares } from './implementer-variants'
+import type { Lazy } from './lazy'
 import type { AnyMiddleware, Middleware } from './middleware'
+import type { AnyRouter, Router } from './router'
 import { isContractProcedure } from '@orpc/contract'
 import { Builder, type BuilderConfig } from './builder'
 import { fallbackConfig } from './config'
-import { setRouterContract } from './hidden'
 import { lazy } from './lazy'
-import { flatLazy, type FlattenLazy } from './lazy-utils'
 import { type DecoratedMiddleware, decorateMiddleware } from './middleware-decorated'
 import { addMiddleware } from './middleware-utils'
-import { type AdaptedRouter, adaptRouter, type Router } from './router'
+import { setHiddenRouterContract } from './router-hidden'
+import { type EnhancedRouter, enhanceRouter } from './router-utils'
 
 export interface RouterImplementer<
-  TContract extends AnyContractRouter,
+  T extends AnyContractRouter,
   TInitialContext extends Context,
   TCurrentContext extends Context,
 > {
@@ -25,10 +26,10 @@ export interface RouterImplementer<
       UOutContext,
       TInput,
       TOutput,
-      ORPCErrorConstructorMap<ContractRouterToErrorMap<TContract>>,
-      ContractRouterToMeta<TContract>
+      ORPCErrorConstructorMap<InferContractRouterErrorMap<T>>,
+      InferContractRouterMeta<T>
     >,
-  ): DecoratedMiddleware<TCurrentContext, UOutContext, TInput, TOutput, ORPCErrorConstructorMap<any>, ContractRouterToMeta<TContract>> // ORPCErrorConstructorMap<any> ensures middleware can used in any procedure
+  ): DecoratedMiddleware<TCurrentContext, UOutContext, TInput, TOutput, ORPCErrorConstructorMap<any>, InferContractRouterMeta<T>> // ORPCErrorConstructorMap<any> ensures middleware can used in any procedure
 
   use<U extends Context>(
     middleware: Middleware<
@@ -36,17 +37,18 @@ export interface RouterImplementer<
       U,
       unknown,
       unknown,
-      ORPCErrorConstructorMap<ContractRouterToErrorMap<TContract>>,
-      ContractRouterToMeta<TContract>
+      ORPCErrorConstructorMap<InferContractRouterErrorMap<T>>,
+      InferContractRouterMeta<T>
     >,
   ): ConflictContextGuard<MergedContext<TCurrentContext, U>>
-    & ImplementerInternalWithMiddlewares<TContract, TInitialContext, MergedContext<TCurrentContext, U>>
+    & ImplementerInternalWithMiddlewares<T, TInitialContext, MergedContext<TCurrentContext, U>>
 
-  router<U extends Router<TCurrentContext, TContract>>(router: U): AdaptedRouter<U, TInitialContext, Record<never, never>>
+  router<U extends Router<T, TCurrentContext>>(
+    router: U): EnhancedRouter<U, TInitialContext, Record<never, never>>
 
-  lazy<U extends Router<TCurrentContext, TContract>>(
+  lazy<U extends Router<T, TCurrentContext>>(
     loader: () => Promise<{ default: U }>
-  ): AdaptedRouter<FlattenLazy<U>, TInitialContext, Record<never, never>>
+  ): EnhancedRouter<Lazy<U>, TInitialContext, Record<never, never>>
 }
 
 export type ImplementerInternal<
@@ -80,6 +82,8 @@ export function implementerInternal<
       middlewares,
       inputValidationIndex: fallbackConfig('initialInputValidationIndex', config?.initialInputValidationIndex) + middlewares.length,
       outputValidationIndex: fallbackConfig('initialOutputValidationIndex', config?.initialOutputValidationIndex) + middlewares.length,
+      prefix: undefined,
+      tags: undefined,
     })
 
     return impl as any
@@ -103,22 +107,26 @@ export function implementerInternal<
       }
       else if (key === 'router') {
         method = (router: any) => {
-          const adapted = adaptRouter(router, {
+          const adapted = enhanceRouter(router, {
             middlewares,
             errorMap: {},
+            prefix: undefined,
+            tags: undefined,
           })
 
-          return setRouterContract(adapted, contract)
+          return setHiddenRouterContract(adapted, contract)
         }
       }
       else if (key === 'lazy') {
-        method = (loader: any) => {
-          const adapted = adaptRouter(flatLazy(lazy(loader)) as any, {
+        method = (loader: () => Promise<{ default: AnyRouter }>) => {
+          const adapted = enhanceRouter(lazy(loader, { prefix: undefined }) as any, {
             middlewares,
             errorMap: {},
+            prefix: undefined,
+            tags: undefined,
           })
 
-          return setRouterContract(adapted, contract)
+          return setHiddenRouterContract(adapted, contract)
         }
       }
 

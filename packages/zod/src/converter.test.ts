@@ -405,6 +405,11 @@ const edgeCases: SchemaTestCase[] = [
     input: [true, { type: 'object', additionalProperties: { type: 'string' }, propertyNames: { type: 'number' } }],
     ignoreZodToJsonSchema: true,
   },
+  {
+    schema: z.record(z.string().date(), z.string()),
+    input: [true, { type: 'object', additionalProperties: { type: 'string' }, propertyNames: { type: 'string', format: 'date' } }],
+    ignoreZodToJsonSchema: true,
+  },
 ]
 
 describe.each([

@@ -3,7 +3,7 @@ import type { HTTPPath } from '@orpc/contract'
 export const LAZY_SYMBOL: unique symbol = Symbol('ORPC_LAZY_SYMBOL')
 
 export interface LazyMeta {
-  prefix: undefined | HTTPPath
+  prefix?: HTTPPath
 }
 
 export interface Lazy<T> {
@@ -15,7 +15,7 @@ export interface Lazy<T> {
 
 export type Lazyable<T> = T | Lazy<T>
 
-export function lazy<T>(loader: () => Promise<{ default: T }>, meta: LazyMeta): Lazy<T> {
+export function lazy<T>(loader: () => Promise<{ default: T }>, meta: LazyMeta = {}): Lazy<T> {
   return {
     [LAZY_SYMBOL]: {
       loader,

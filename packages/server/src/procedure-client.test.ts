@@ -41,7 +41,7 @@ const procedure = new Procedure({
 
 const procedureCases = [
   ['without lazy', procedure],
-  ['with lazy', lazy(() => Promise.resolve({ default: procedure }), { prefix: undefined })],
+  ['with lazy', lazy(() => Promise.resolve({ default: procedure }))],
 ] as const
 
 beforeEach(() => {

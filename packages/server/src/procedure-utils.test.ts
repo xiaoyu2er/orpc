@@ -12,9 +12,9 @@ vi.mock('./procedure-client', async original => ({
 }))
 
 it('createAssertedLazyProcedure', () => {
-  const asserted = createAssertedLazyProcedure(lazy(() => Promise.resolve({ default: ping }), { prefix: undefined }))
+  const asserted = createAssertedLazyProcedure(lazy(() => Promise.resolve({ default: ping })))
   expect(unlazy(asserted)).resolves.toEqual({ default: ping })
-  const asserted2 = createAssertedLazyProcedure(lazy(() => Promise.resolve({ default: 123 }), { prefix: undefined }))
+  const asserted2 = createAssertedLazyProcedure(lazy(() => Promise.resolve({ default: 123 })))
   expect(unlazy(asserted2)).rejects.toThrowError('Expected a lazy<procedure> but got lazy<unknown>.')
 })
 

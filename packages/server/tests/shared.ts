@@ -45,14 +45,14 @@ export const pong = new Procedure<
 })
 
 export const router = {
-  ping: lazy(() => Promise.resolve({ default: ping }), { prefix: undefined }),
+  ping: lazy(() => Promise.resolve({ default: ping })),
   pong,
   nested: lazy(() => Promise.resolve({
     default: {
       ping,
-      pong: lazy(() => Promise.resolve({ default: pong }), { prefix: undefined }),
+      pong: lazy(() => Promise.resolve({ default: pong })),
     },
-  }), { prefix: undefined }),
+  })),
 }
 
 export { router as contract, ping as pingContract, pong as pongContract } from '../../contract/tests/shared'

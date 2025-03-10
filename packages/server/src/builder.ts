@@ -238,7 +238,7 @@ export class Builder<
   lazy<U extends Router<ContractRouter<TMeta>, TCurrentContext>>(
     loader: () => Promise<{ default: U }>,
   ): EnhancedRouter<Lazy<U>, TInitialContext, TErrorMap> {
-    return enhanceRouter(lazy(loader, { prefix: undefined }), this['~orpc'])
+    return enhanceRouter(lazy(loader), this['~orpc'])
   }
 }
 

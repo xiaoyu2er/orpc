@@ -119,7 +119,7 @@ export function implementerInternal<
       }
       else if (key === 'lazy') {
         method = (loader: () => Promise<{ default: AnyRouter }>) => {
-          const adapted = enhanceRouter(lazy(loader, { prefix: undefined }) as any, {
+          const adapted = enhanceRouter(lazy(loader) as any, {
             middlewares,
             errorMap: {},
             prefix: undefined,

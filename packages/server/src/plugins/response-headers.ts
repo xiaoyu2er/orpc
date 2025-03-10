@@ -1,12 +1,12 @@
 import type { StandardHandlerOptions } from '../adapters/standard'
 import type { Context } from '../context'
-import type { Plugin } from './base'
+import type { HandlerPlugin } from './base'
 
 export interface ResponseHeadersPluginContext {
   resHeaders?: Headers
 }
 
-export class ResponseHeadersPlugin<TContext extends ResponseHeadersPluginContext & Context> implements Plugin<TContext> {
+export class ResponseHeadersPlugin<TContext extends ResponseHeadersPluginContext & Context> implements HandlerPlugin<TContext> {
   init(options: StandardHandlerOptions<TContext>): void {
     options.rootInterceptors ??= []
 

@@ -1,4 +1,6 @@
+import type { Schema } from '@orpc/contract'
 import { isContractProcedure } from '@orpc/contract'
+import { z } from 'zod'
 import { baseErrorMap, baseMeta, baseRoute, generalSchema, inputSchema, outputSchema } from '../../contract/tests/shared'
 import { router } from '../tests/shared'
 import { Builder } from './builder'
@@ -91,6 +93,31 @@ describe('builder', () => {
     expect(applied['~orpc']).toEqual({
       ...def,
       route,
+    })
+  })
+
+  describe('.$input', () => {
+    it('with actual schema', () => {
+      const schema = z.void()
+      const applied = builder.$input(schema)
+
+      expect(applied).instanceOf(Builder)
+      expect(applied).not.toBe(builder)
+      expect(applied['~orpc']).toEqual({
+        ...def,
+        inputSchema: schema,
+      })
+    })
+
+    it('with type only', () => {
+      const applied = builder.$input<Schema<void, unknown>>()
+
+      expect(applied).instanceOf(Builder)
+      expect(applied).not.toBe(builder)
+      expect(applied['~orpc']).toEqual({
+        ...def,
+        inputSchema: undefined,
+      })
     })
   })
 

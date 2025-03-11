@@ -126,6 +126,7 @@ describe('builder', () => {
     const applied = builder.middleware(mid)
 
     expect(applied).toBe(decorateMiddlewareSpy.mock.results[0]?.value)
+    expect(applied['~orpcErrorMap']).toBe(def.errorMap)
     expect(decorateMiddlewareSpy).toBeCalledTimes(1)
     expect(decorateMiddlewareSpy).toBeCalledWith(mid)
   })
@@ -143,15 +144,48 @@ describe('builder', () => {
     })
   })
 
-  it('.use', () => {
-    const mid2 = vi.fn()
-    const applied = builder.use(mid2)
+  describe('.use', () => {
+    it('without map input', () => {
+      const mid2 = vi.fn()
+      const applied = builder.use(mid2)
 
-    expect(applied).instanceOf(Builder)
-    expect(applied).not.toBe(builder)
-    expect(applied['~orpc']).toEqual({
-      ...def,
-      middlewares: [mid, mid2],
+      expect(applied).instanceOf(Builder)
+      expect(applied).not.toBe(builder)
+      expect(applied['~orpc']).toEqual({
+        ...def,
+        middlewares: [mid, mid2],
+      })
+    })
+
+    it('with map input', () => {
+      const mid2 = vi.fn()
+      const map2 = vi.fn()
+
+      decorateMiddlewareSpy.mockImplementationOnce(mid => ({
+        mapInput: (map: any) => [mid, map] as any,
+      }) as any)
+
+      const applied = builder.use(mid2, map2)
+
+      expect(applied).instanceOf(Builder)
+      expect(applied).not.toBe(builder)
+      expect(applied['~orpc']).toEqual({
+        ...def,
+        middlewares: [mid, [mid2, map2]],
+      })
+    })
+
+    it('with errors', () => {
+      const mid2 = Object.assign(vi.fn(), { '~orpcErrorMap': { INVALID1: {}, INVALID2: {} } })
+
+      const applied = builder.use(mid2)
+      expect(applied).instanceOf(Builder)
+      expect(applied).not.toBe(builder)
+      expect(applied['~orpc']).toEqual({
+        ...def,
+        errorMap: { ...def.errorMap, INVALID1: {}, INVALID2: {} },
+        middlewares: [mid, mid2],
+      })
     })
   })
 

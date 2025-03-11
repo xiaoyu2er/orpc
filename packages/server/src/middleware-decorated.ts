@@ -70,19 +70,19 @@ export function decorateMiddleware<
 >(
   middleware: Middleware<TInContext, TOutContext, TInput, TOutput, TErrorMap, TMeta>,
 ): DecoratedMiddleware<TInContext, TOutContext, TInput, TOutput, TErrorMap, TMeta> {
-  const decorated = middleware as DecoratedMiddleware<TInContext, TOutContext, TInput, TOutput, TErrorMap, TMeta>
+  const decorated = ((...args) => middleware(...args)) as DecoratedMiddleware<TInContext, TOutContext, TInput, TOutput, TErrorMap, TMeta>
+
+  decorated['~orpcErrorMap'] = middleware['~orpcErrorMap']
 
   decorated.errors = (errors) => {
-    const cloned = decorateMiddleware(
-      (...args) => decorated(...args as [any, any, any]),
-    )
+    const cloned = decorateMiddleware(decorated) as any
 
     cloned['~orpcErrorMap'] = mergeErrorMap(decorated['~orpcErrorMap'] ?? {}, errors)
 
-    return cloned as any
+    return cloned
   }
 
-  decorated.mapInput = (mapInput) => {
+  decorated.mapInput = (mapInput: MapInputMiddleware<any, any>) => {
     const mapped = decorateMiddleware(
       (options, input, ...rest) => middleware(options as any, mapInput(input as any), ...rest as [any]),
     )

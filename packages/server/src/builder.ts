@@ -1,7 +1,6 @@
 import type { AnySchema, ContractProcedureDef, ContractRouter, ErrorMap, HTTPPath, MergedErrorMap, Meta, Route, Schema } from '@orpc/contract'
 import type { BuilderWithMiddlewares, ProcedureBuilder, ProcedureBuilderWithInput, ProcedureBuilderWithOutput, RouterBuilder } from './builder-variants'
 import type { ConflictContextGuard, Context, MergedContext } from './context'
-import type { ORPCErrorConstructorMap } from './error'
 import type { Lazy } from './lazy'
 import type { AnyMiddleware, MapInputMiddleware, Middleware } from './middleware'
 import type { DecoratedMiddleware } from './middleware-decorated'
@@ -108,9 +107,13 @@ export class Builder<
   }
 
   middleware<UOutContext extends Context, TInput, TOutput = any>( // = any here is important to make middleware can be used in any output by default
-    middleware: Middleware<TCurrentContext, UOutContext, TInput, TOutput, ORPCErrorConstructorMap<TErrorMap>, TMeta>,
-  ): DecoratedMiddleware<TCurrentContext, UOutContext, TInput, TOutput, ORPCErrorConstructorMap<any>, TMeta> { // ORPCErrorConstructorMap<any> ensures middleware can used in any procedure
-    return decorateMiddleware(middleware)
+    middleware: Middleware<TCurrentContext, UOutContext, TInput, TOutput, TErrorMap, TMeta>,
+  ): DecoratedMiddleware<TCurrentContext, UOutContext, TInput, TOutput, TErrorMap, TMeta> {
+    const decorated = decorateMiddleware(middleware)
+
+    decorated['~orpcErrorMap'] = this['~orpc'].errorMap
+
+    return decorated
   }
 
   errors<U extends ErrorMap>(
@@ -122,13 +125,13 @@ export class Builder<
     })
   }
 
-  use<UOutContext extends Context>(
+  use<UOutContext extends Context, UErrorMap extends ErrorMap = TErrorMap>(
     middleware: Middleware<
       TCurrentContext,
       UOutContext,
       unknown,
       unknown,
-      ORPCErrorConstructorMap<TErrorMap>,
+      UErrorMap,
       TMeta
     >,
   ): ConflictContextGuard<MergedContext<TCurrentContext, UOutContext>> &
@@ -137,17 +140,17 @@ export class Builder<
       MergedContext<TCurrentContext, UOutContext>,
       TInputSchema,
       TOutputSchema,
-      TErrorMap,
+      MergedErrorMap<TErrorMap, UErrorMap>,
       TMeta
     >
 
-  use<UOutContext extends Context, UInput>(
+  use<UOutContext extends Context, UInput, UErrorMap extends ErrorMap = TErrorMap>(
     middleware: Middleware<
       TCurrentContext,
       UOutContext,
       UInput,
       unknown,
-      ORPCErrorConstructorMap<TErrorMap>,
+      UErrorMap,
       TMeta
     >,
     mapInput: MapInputMiddleware<unknown, UInput>,
@@ -157,7 +160,7 @@ export class Builder<
       MergedContext<TCurrentContext, UOutContext>,
       TInputSchema,
       TOutputSchema,
-      TErrorMap,
+      MergedErrorMap<TErrorMap, UErrorMap>,
       TMeta
     >
 
@@ -171,6 +174,7 @@ export class Builder<
 
     return new Builder({
       ...this['~orpc'],
+      errorMap: mergeErrorMap(this['~orpc'].errorMap, mapped['~orpcErrorMap'] ?? {}),
       middlewares: addMiddleware(this['~orpc'].middlewares, mapped),
     }) as any
   }

@@ -96,6 +96,20 @@ describe('decoratedProcedure', () => {
         middlewares: [...def.middlewares, [mid, map]],
       })
     })
+
+    it('with attached errors', () => {
+      const mid = Object.assign(vi.fn(), { '~orpcErrorMap': { INVALID1: {}, INVALID2: {} } })
+
+      const applied = decorated.use(mid)
+      expect(applied).not.toBe(decorated)
+      expect(applied).toBeInstanceOf(DecoratedProcedure)
+
+      expect(applied['~orpc']).toEqual({
+        ...def,
+        errorMap: { ...def.errorMap, ...mid['~orpcErrorMap'] },
+        middlewares: [...def.middlewares, mid],
+      })
+    })
   })
 
   it('.callable', () => {

@@ -149,7 +149,7 @@ describe('DecoratedMiddleware', () => {
       decorated.concat(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}), input => ({ mapped: true }))
     })
 
-    it('with additional errors', () => {
+    it('with attached errors', () => {
       const errors = { INVALID1: {}, INVALID2: {} }
       const mid = {} as Middleware<Context, Record<never, never>, unknown, any, typeof errors, Meta>
 

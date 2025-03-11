@@ -3,7 +3,6 @@ import type { AnySchema, ErrorMap, InferSchemaInput, InferSchemaOutput, Meta } f
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { BuilderDef } from './builder'
 import type { ConflictContextGuard, Context, MergedContext } from './context'
-import type { ORPCErrorConstructorMap } from './error'
 import type { MapInputMiddleware, Middleware } from './middleware'
 import type { Procedure, ProcedureHandler } from './procedure'
 import type { CreateProcedureClientOptions, ProcedureClient } from './procedure-client'
@@ -26,7 +25,7 @@ export interface ImplementedProcedure<
       U,
       InferSchemaOutput<TInputSchema>,
       InferSchemaInput<TOutputSchema>,
-      ORPCErrorConstructorMap<TErrorMap>,
+      TErrorMap,
       TMeta
     >,
   ): ConflictContextGuard<MergedContext<TCurrentContext, U>>
@@ -45,7 +44,7 @@ export interface ImplementedProcedure<
       UOutContext,
       UInput,
       InferSchemaInput<TOutputSchema>,
-      ORPCErrorConstructorMap<TErrorMap>,
+      TErrorMap,
       TMeta
     >,
     mapInput: MapInputMiddleware<InferSchemaOutput<TInputSchema>, UInput>,
@@ -113,7 +112,7 @@ export interface ProcedureImplementer<
       U,
       InferSchemaOutput<TInputSchema>,
       InferSchemaInput<TOutputSchema>,
-      ORPCErrorConstructorMap<TErrorMap>,
+      TErrorMap,
       TMeta
     >,
   ): ConflictContextGuard<MergedContext<TCurrentContext, U>>
@@ -132,7 +131,7 @@ export interface ProcedureImplementer<
       UOutContext,
       UInput,
       InferSchemaInput<TOutputSchema>,
-      ORPCErrorConstructorMap<TErrorMap>,
+      TErrorMap,
       TMeta
     >,
     mapInput: MapInputMiddleware<InferSchemaOutput<TInputSchema>, UInput>,

@@ -1,6 +1,5 @@
 import type { AnyContractRouter, ContractProcedure, InferContractRouterErrorMap, InferContractRouterMeta } from '@orpc/contract'
 import type { ConflictContextGuard, Context, MergedContext } from './context'
-import type { ORPCErrorConstructorMap } from './error'
 import type { ProcedureImplementer } from './implementer-procedure'
 import type { Lazy } from './lazy'
 import type { Middleware } from './middleware'
@@ -18,7 +17,7 @@ export interface RouterImplementerWithMiddlewares<
       U,
       unknown,
       unknown,
-      ORPCErrorConstructorMap<InferContractRouterErrorMap<T>>,
+      InferContractRouterErrorMap<T>,
       InferContractRouterMeta<T>
     >,
   ): ConflictContextGuard<MergedContext<TCurrentContext, U>>

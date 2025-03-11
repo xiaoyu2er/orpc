@@ -1,7 +1,6 @@
 import type { AnyContractRouter, ContractProcedure, InferContractRouterErrorMap, InferContractRouterMeta } from '@orpc/contract'
 import type { AnyFunction } from '@orpc/shared'
 import type { ConflictContextGuard, Context, MergedContext } from './context'
-import type { ORPCErrorConstructorMap } from './error'
 import type { ProcedureImplementer } from './implementer-procedure'
 import type { ImplementerInternalWithMiddlewares } from './implementer-variants'
 import type { Lazy } from './lazy'
@@ -27,10 +26,10 @@ export interface RouterImplementer<
       UOutContext,
       TInput,
       TOutput,
-      ORPCErrorConstructorMap<InferContractRouterErrorMap<T>>,
+      InferContractRouterErrorMap<T>,
       InferContractRouterMeta<T>
     >,
-  ): DecoratedMiddleware<TCurrentContext, UOutContext, TInput, TOutput, ORPCErrorConstructorMap<any>, InferContractRouterMeta<T>> // ORPCErrorConstructorMap<any> ensures middleware can used in any procedure
+  ): DecoratedMiddleware<TCurrentContext, UOutContext, TInput, TOutput, InferContractRouterErrorMap<T>, InferContractRouterMeta<T>>
 
   use<U extends Context>(
     middleware: Middleware<
@@ -38,7 +37,7 @@ export interface RouterImplementer<
       U,
       unknown,
       unknown,
-      ORPCErrorConstructorMap<InferContractRouterErrorMap<T>>,
+      InferContractRouterErrorMap<T>,
       InferContractRouterMeta<T>
     >,
   ): ConflictContextGuard<MergedContext<TCurrentContext, U>>

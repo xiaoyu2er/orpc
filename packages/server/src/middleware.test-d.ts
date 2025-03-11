@@ -12,7 +12,7 @@ describe('middleware', () => {
       Record<never, never>,
       { input: number },
       { output: string },
-      ORPCErrorConstructorMap<typeof baseErrorMap>,
+      typeof baseErrorMap,
       BaseMeta
     > = ({ context, path, procedure, signal, next, errors }, input, output) => {
       expectTypeOf(input).toEqualTypeOf<{ input: number }>()

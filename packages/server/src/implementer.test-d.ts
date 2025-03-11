@@ -1,4 +1,4 @@
-import type { AnySchema, ErrorMap, Meta, Schema } from '@orpc/contract'
+import type { AnySchema, ErrorMap, InferContractRouterErrorMap, Meta, Schema } from '@orpc/contract'
 import type { baseErrorMap, BaseMeta, inputSchema, outputSchema, router } from '../../contract/tests/shared'
 import type { CurrentContext, InitialContext } from '../tests/shared'
 import type { Context, MergedContext } from './context'
@@ -63,7 +63,7 @@ describe('Implementer', () => {
             { extra: boolean },
             unknown,
             any,
-            ORPCErrorConstructorMap<any>,
+            InferContractRouterErrorMap<typeof router>,
             Meta | BaseMeta
           >
         >()
@@ -81,7 +81,7 @@ describe('Implementer', () => {
             Record<never, never>,
             'input',
             'output',
-            ORPCErrorConstructorMap<any>,
+            InferContractRouterErrorMap<typeof router>,
             Meta | BaseMeta
           >
         >()

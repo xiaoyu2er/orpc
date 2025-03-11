@@ -1,10 +1,10 @@
 import type { Client, ClientRest } from '@orpc/client'
-import type { AnySchema, ErrorFromErrorMap, ErrorMap, MergedErrorMap } from '@orpc/contract'
+import type { AnySchema, ErrorFromErrorMap, ErrorMap, MergedErrorMap, Meta } from '@orpc/contract'
 import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../../contract/tests/shared'
 import type { CurrentContext, InitialContext } from '../tests/shared'
 import type { Context } from './context'
 import type { ORPCErrorConstructorMap } from './error'
-import type { MiddlewareOutputFn } from './middleware'
+import type { Middleware, MiddlewareOutputFn } from './middleware'
 import type { Procedure } from './procedure'
 import type { DecoratedProcedure } from './procedure-decorated'
 
@@ -113,7 +113,7 @@ describe('DecoratedProcedure', () => {
           CurrentContext & { extra: boolean },
           typeof inputSchema,
           typeof outputSchema,
-          typeof baseErrorMap,
+          MergedErrorMap<typeof baseErrorMap, typeof baseErrorMap>,
           BaseMeta
         >
       >()
@@ -152,7 +152,7 @@ describe('DecoratedProcedure', () => {
           CurrentContext & { extra: boolean },
           typeof inputSchema,
           typeof outputSchema,
-          typeof baseErrorMap,
+          MergedErrorMap<typeof baseErrorMap, typeof baseErrorMap>,
           BaseMeta
         >
       >()
@@ -165,6 +165,35 @@ describe('DecoratedProcedure', () => {
       builder.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}), () => {})
       // conflict context but not detected
       expectTypeOf(builder.use(({ next }) => next({ context: { db: undefined } }), () => {})).toEqualTypeOf<never>()
+    })
+
+    it('with attached errors', () => {
+      const errors = { INVALID1: {}, INVALID2: {} }
+      const mid = {} as Middleware<Context, Record<never, never>, unknown, any, typeof errors, Meta>
+
+      // without map input
+      expectTypeOf(builder.use(mid)).toEqualTypeOf<
+        DecoratedProcedure<
+          InitialContext,
+          CurrentContext & Record<never, never>,
+          typeof inputSchema,
+          typeof outputSchema,
+          MergedErrorMap<typeof baseErrorMap, typeof errors>,
+          BaseMeta
+        >
+      >()
+
+      // with map input
+      expectTypeOf(builder.use(mid, () => {})).toEqualTypeOf<
+        DecoratedProcedure<
+          InitialContext,
+          CurrentContext & Record<never, never>,
+          typeof inputSchema,
+          typeof outputSchema,
+          MergedErrorMap<typeof baseErrorMap, typeof errors>,
+          BaseMeta
+        >
+      >()
     })
   })
 

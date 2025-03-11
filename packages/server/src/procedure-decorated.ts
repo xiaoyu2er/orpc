@@ -2,7 +2,6 @@ import type { ClientContext, ClientRest } from '@orpc/client'
 import type { AnySchema, ErrorMap, InferSchemaInput, InferSchemaOutput, MergedErrorMap, Meta, Route } from '@orpc/contract'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { ConflictContextGuard, Context, MergedContext } from './context'
-import type { ORPCErrorConstructorMap } from './error'
 import type { AnyMiddleware, MapInputMiddleware, Middleware } from './middleware'
 import type { CreateProcedureClientOptions, ProcedureClient } from './procedure-client'
 import { mergeErrorMap, mergeMeta, mergeRoute } from '@orpc/contract'
@@ -53,13 +52,13 @@ export class DecoratedProcedure<
     })
   }
 
-  use<U extends Context>(
+  use<U extends Context, UErrorMap extends ErrorMap = TErrorMap>(
     middleware: Middleware<
       TCurrentContext,
       U,
       InferSchemaOutput<TInputSchema>,
       InferSchemaInput<TOutputSchema>,
-      ORPCErrorConstructorMap<TErrorMap>,
+      UErrorMap,
       TMeta
     >,
   ): ConflictContextGuard<MergedContext<TCurrentContext, U>>
@@ -68,17 +67,17 @@ export class DecoratedProcedure<
       MergedContext<TCurrentContext, U>,
       TInputSchema,
       TOutputSchema,
-      TErrorMap,
+      MergedErrorMap<TErrorMap, UErrorMap>,
       TMeta
     >
 
-  use<UOutContext extends Context, UInput>(
+  use<UOutContext extends Context, UInput, UErrorMap extends ErrorMap = TErrorMap>(
     middleware: Middleware<
       TCurrentContext,
       UOutContext,
       UInput,
       InferSchemaInput<TOutputSchema>,
-      ORPCErrorConstructorMap<TErrorMap>,
+      UErrorMap,
       TMeta
     >,
     mapInput: MapInputMiddleware<InferSchemaOutput<TInputSchema>, UInput>,
@@ -88,7 +87,7 @@ export class DecoratedProcedure<
       MergedContext<TCurrentContext, UOutContext>,
       TInputSchema,
       TOutputSchema,
-      TErrorMap,
+      MergedErrorMap<TErrorMap, UErrorMap>,
       TMeta
     >
 
@@ -99,6 +98,7 @@ export class DecoratedProcedure<
 
     return new DecoratedProcedure({
       ...this['~orpc'],
+      errorMap: mergeErrorMap(this['~orpc'].errorMap, mapped['~orpcErrorMap'] ?? {}),
       middlewares: addMiddleware(this['~orpc'].middlewares, mapped),
     })
   }

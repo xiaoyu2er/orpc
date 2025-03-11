@@ -1046,6 +1046,44 @@ describe('RouterBuilder', () => {
     expectTypeOf<keyof typeof builder>().toEqualTypeOf<keyof typeof expected>()
   })
 
+  it('.use', () => {
+    const applied = builder.use(({ context, next, path, procedure, errors, signal }, input, output) => {
+      expectTypeOf(input).toEqualTypeOf<unknown>()
+      expectTypeOf(context).toEqualTypeOf<CurrentContext>()
+      expectTypeOf(path).toEqualTypeOf<readonly string[]>()
+      expectTypeOf(procedure).toEqualTypeOf<
+        Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta>
+      >()
+      expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<unknown>>()
+      expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
+      expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
+
+      return next({
+        context: {
+          extra: true,
+        },
+      })
+    })
+
+    expectTypeOf(applied).toEqualTypeOf<
+      RouterBuilder<
+        InitialContext,
+        CurrentContext & { extra: boolean },
+        typeof baseErrorMap,
+        BaseMeta
+      >
+    >()
+
+    // @ts-expect-error --- conflict context
+    builder.use(({ next }) => next({ context: { db: 123 } }))
+    // conflict but not detected
+    expectTypeOf(builder.use(({ next }) => next({ context: { db: undefined } }))).toMatchTypeOf<never>()
+    // @ts-expect-error --- input is not match
+    builder.use(({ next }, input: 'invalid') => next({}))
+    // @ts-expect-error --- output is not match
+    builder.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}))
+  })
+
   it('.prefix', () => {
     expectTypeOf(builder.prefix('/test')).toEqualTypeOf<
       RouterBuilder<InitialContext, CurrentContext, typeof baseErrorMap, BaseMeta>

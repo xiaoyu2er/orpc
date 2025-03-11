@@ -69,14 +69,15 @@ interface ClientContext {
   cache?: RequestCache
 }
 
-const link = new RPCLink({
+const link = new RPCLink<ClientContext>({
   url: 'http://localhost:3000/rpc',
   method: ({ context }, path) => {
     if (context?.cache) {
       return 'GET'
     }
 
-    if (['get', 'find', 'list', 'search'].includes(path.at(-1)!)) {
+    const lastSegment = path.at(-1)
+    if (lastSegment && /get|find|list|search/i.test(lastSegment)) {
       return 'GET'
     }
 

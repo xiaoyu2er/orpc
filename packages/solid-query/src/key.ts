@@ -1,5 +1,5 @@
 import type { PartialDeep } from '@orpc/shared'
-import type { QueryKey } from '@tanstack/react-query'
+import type { QueryKey } from '@tanstack/solid-query'
 
 export type KeyType = 'query' | 'infinite' | 'mutation' | undefined
 

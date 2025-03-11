@@ -73,7 +73,7 @@ export interface ImplementedProcedure<
         TClientContext
       >
     >
-  ): Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>
+  ): ImplementedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>
     & ProcedureClient<TClientContext, TInputSchema, TOutputSchema, TErrorMap >
 
   /**
@@ -90,7 +90,7 @@ export interface ImplementedProcedure<
         TClientContext
       >
     >
-  ): Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>
+  ): ImplementedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>
     & ((...rest: ClientRest<TClientContext, InferSchemaInput<TInputSchema>>) => Promise<InferSchemaOutput<TOutputSchema>>)
 }
 

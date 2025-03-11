@@ -146,7 +146,7 @@ describe('ImplementedProcedure', () => {
     })
 
     expectTypeOf(applied).toEqualTypeOf<
-      Procedure<
+      ImplementedProcedure<
         InitialContext,
         CurrentContext,
           typeof inputSchema,
@@ -164,7 +164,7 @@ describe('ImplementedProcedure', () => {
     })
 
     expectTypeOf(applied).toEqualTypeOf<
-      Procedure<
+      ImplementedProcedure<
         InitialContext,
         CurrentContext,
           typeof inputSchema,

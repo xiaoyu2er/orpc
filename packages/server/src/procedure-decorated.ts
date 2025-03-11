@@ -117,12 +117,16 @@ export class DecoratedProcedure<
         TClientContext
       >
     >
-  ): Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>
+  ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>
     & ProcedureClient<TClientContext, TInputSchema, TOutputSchema, TErrorMap> {
-    return Object.assign(createProcedureClient(this, ...rest as any), {
-      '~type': 'Procedure' as const,
-      '~orpc': this['~orpc'],
-    })
+    return new Proxy(createProcedureClient(this, ...rest as any), {
+      get: (target, key) => {
+        return Reflect.has(this, key) ? Reflect.get(this, key) : Reflect.get(target, key)
+      },
+      has: (target, key) => {
+        return Reflect.has(this, key) || Reflect.has(target, key)
+      },
+    }) as any
   }
 
   /**
@@ -140,7 +144,7 @@ export class DecoratedProcedure<
       >
     >
   ):
-    & Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>
+    & DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>
     & ((...rest: ClientRest<TClientContext, InferSchemaInput<TInputSchema>>) => Promise<InferSchemaOutput<TOutputSchema>>) {
     return this.callable(...rest)
   }

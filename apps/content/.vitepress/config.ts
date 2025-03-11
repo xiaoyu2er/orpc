@@ -157,6 +157,7 @@ export default defineConfig({
         { text: 'Bracket Notation', link: '/docs/openapi/bracket-notation' },
         { text: 'OpenAPI Handler', link: '/docs/openapi/openapi-handler' },
         { text: 'OpenAPI Specification', link: '/docs/openapi/openapi-specification' },
+        { text: 'Scalar (Swagger)', link: '/docs/openapi/scalar' },
         {
           text: 'Plugins',
           collapsed: true,

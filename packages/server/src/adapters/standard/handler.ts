@@ -15,11 +15,11 @@ export type StandardHandleOptions<T extends Context> =
   & { prefix?: HTTPPath }
   & (Record<never, never> extends T ? { context?: T } : { context: T })
 
-export type WellStandardHandleOptions<T extends Context> = StandardHandleOptions<T> & { context: T }
-
 export type StandardHandleResult = { matched: true, response: StandardResponse } | { matched: false, response: undefined }
 
-export type StandardHandlerInterceptorOptions<TContext extends Context> = WellStandardHandleOptions<TContext> & { request: StandardLazyRequest }
+export type StandardHandlerInterceptorOptions<T extends Context> =
+  & StandardHandleOptions<T>
+  & { context: T, request: StandardLazyRequest }
 
 export interface StandardHandlerOptions<TContext extends Context> {
   plugins?: HandlerPlugin<TContext>[]

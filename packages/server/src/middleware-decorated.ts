@@ -1,23 +1,30 @@
-import type { Meta } from '@orpc/contract'
 import type { Context, MergedContext } from './context'
-import type { ORPCErrorConstructorMap } from './error'
 import type { AnyMiddleware, MapInputMiddleware, Middleware } from './middleware'
+import { type ErrorMap, type MergedErrorMap, mergeErrorMap, type Meta } from '@orpc/contract'
 
 export interface DecoratedMiddleware<
   TInContext extends Context,
   TOutContext extends Context,
   TInput,
   TOutput,
-  TErrorConstructorMap extends ORPCErrorConstructorMap<any>,
+  TErrorMap extends ErrorMap,
   TMeta extends Meta,
-> extends Middleware<TInContext, TOutContext, TInput, TOutput, TErrorConstructorMap, TMeta> {
-  concat<UOutContext extends Context, UInput>(
+> extends Middleware<TInContext, TOutContext, TInput, TOutput, TErrorMap, TMeta> {
+  errors<U extends ErrorMap>(
+    errors: U,
+  ): DecoratedMiddleware<TInContext, TOutContext, TInput, TOutput, MergedErrorMap<TErrorMap, U>, TMeta>
+
+  mapInput<UInput>(
+    map: MapInputMiddleware<UInput, TInput>,
+  ): DecoratedMiddleware<TInContext, TOutContext, UInput, TOutput, TErrorMap, TMeta>
+
+  concat<UOutContext extends Context, UInput, UErrorMap extends ErrorMap = TErrorMap>(
     middleware: Middleware<
       TInContext & TOutContext,
       UOutContext,
       UInput & TInput,
       TOutput,
-      TErrorConstructorMap,
+      UErrorMap,
       TMeta
     >,
   ): DecoratedMiddleware<
@@ -25,36 +32,32 @@ export interface DecoratedMiddleware<
     MergedContext<TOutContext, UOutContext>,
     UInput & TInput,
     TOutput,
-    TErrorConstructorMap,
+    MergedErrorMap<TErrorMap, UErrorMap>,
     TMeta
   >
 
   concat<
     UOutContext extends Context,
-    UInput,
     UMappedInput,
+    UErrorMap extends ErrorMap = TErrorMap,
   >(
     middleware: Middleware<
       TInContext & TOutContext,
       UOutContext,
       UMappedInput,
       TOutput,
-      TErrorConstructorMap,
+      UErrorMap,
       TMeta
     >,
-    mapInput: MapInputMiddleware<UInput & TInput, UMappedInput>,
+    mapInput: MapInputMiddleware<TInput, UMappedInput>,
   ): DecoratedMiddleware<
     TInContext,
-    TOutContext & UOutContext,
-    UInput & TInput,
+    MergedContext<TOutContext, UOutContext>,
+    TInput,
     TOutput,
-    TErrorConstructorMap,
+    MergedErrorMap<TErrorMap, UErrorMap>,
     TMeta
   >
-
-  mapInput<UInput = unknown>(
-    map: MapInputMiddleware<UInput, TInput>,
-  ): DecoratedMiddleware<TInContext, TOutContext, UInput, TOutput, TErrorConstructorMap, TMeta>
 }
 
 export function decorateMiddleware<
@@ -62,17 +65,29 @@ export function decorateMiddleware<
   TOutContext extends Context,
   TInput,
   TOutput,
-  TErrorConstructorMap extends ORPCErrorConstructorMap<any>,
+  TErrorMap extends ErrorMap,
   TMeta extends Meta,
 >(
-  middleware: Middleware<TInContext, TOutContext, TInput, TOutput, TErrorConstructorMap, TMeta>,
-): DecoratedMiddleware<TInContext, TOutContext, TInput, TOutput, TErrorConstructorMap, TMeta> {
-  const decorated = middleware as DecoratedMiddleware<TInContext, TOutContext, TInput, TOutput, TErrorConstructorMap, TMeta>
+  middleware: Middleware<TInContext, TOutContext, TInput, TOutput, TErrorMap, TMeta>,
+): DecoratedMiddleware<TInContext, TOutContext, TInput, TOutput, TErrorMap, TMeta> {
+  const decorated = middleware as DecoratedMiddleware<TInContext, TOutContext, TInput, TOutput, TErrorMap, TMeta>
+
+  decorated.errors = (errors) => {
+    const cloned = decorateMiddleware(
+      (...args) => decorated(...args as [any, any, any]),
+    )
+
+    cloned['~orpcErrorMap'] = mergeErrorMap(decorated['~orpcErrorMap'] ?? {}, errors)
+
+    return cloned as any
+  }
 
   decorated.mapInput = (mapInput) => {
     const mapped = decorateMiddleware(
       (options, input, ...rest) => middleware(options as any, mapInput(input as any), ...rest as [any]),
     )
+
+    mapped['~orpcErrorMap'] = decorated['~orpcErrorMap']
 
     return mapped as any
   }
@@ -94,6 +109,8 @@ export function decorateMiddleware<
 
       return merged
     })
+
+    concatted['~orpcErrorMap'] = mergeErrorMap(decorated['~orpcErrorMap'] ?? {}, mapped['~orpcErrorMap'] ?? {})
 
     return concatted as any
   }

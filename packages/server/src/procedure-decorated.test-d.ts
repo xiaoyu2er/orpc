@@ -174,7 +174,7 @@ describe('DecoratedProcedure', () => {
     })
 
     expectTypeOf(applied).toEqualTypeOf<
-      Procedure<
+      DecoratedProcedure<
         InitialContext,
         CurrentContext,
         typeof inputSchema,
@@ -192,7 +192,7 @@ describe('DecoratedProcedure', () => {
     })
 
     expectTypeOf(applied).toEqualTypeOf<
-      Procedure<
+      DecoratedProcedure<
         InitialContext,
         CurrentContext,
         typeof inputSchema,

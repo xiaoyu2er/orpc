@@ -107,19 +107,42 @@ describe('decoratedProcedure', () => {
 
     expect(createProcedureClient).toBeCalledTimes(1)
     expect(createProcedureClient).toBeCalledWith(decorated, options)
-    expect(applied).not.haveOwnPropertyDescriptor('use')
+
+    // can access to function properties
+    expect('name' in applied).toBe(true)
+    expect(typeof applied.name).toBe('string')
+    expect('length' in applied).toBe(true)
+    expect(typeof applied.length).toBe('number')
+
+    expect('use' in applied).toBe(true)
+    expect('route' in applied).toBe(true)
+    expect('meta' in applied).toBe(true)
+
+    expect(applied.route({})).toBeInstanceOf(DecoratedProcedure)
+    expect(applied.route({})).toEqual(decorated)
   })
 
   it('.actionable', () => {
     const options = { context: { db: 'postgres' } }
 
     const applied = decorated.actionable(options)
-
     expect(applied).toBeInstanceOf(Function)
     expect(applied).toSatisfy(isProcedure)
 
     expect(createProcedureClient).toBeCalledTimes(1)
     expect(createProcedureClient).toBeCalledWith(decorated, options)
-    expect(applied).not.haveOwnPropertyDescriptor('use')
+
+    // can access to function properties
+    expect('name' in applied).toBe(true)
+    expect(typeof applied.name).toBe('string')
+    expect('length' in applied).toBe(true)
+    expect(typeof applied.length).toBe('number')
+
+    expect('use' in applied).toBe(true)
+    expect('route' in applied).toBe(true)
+    expect('meta' in applied).toBe(true)
+
+    expect(applied.route({})).toBeInstanceOf(DecoratedProcedure)
+    expect(applied.route({})).toEqual(decorated)
   })
 })

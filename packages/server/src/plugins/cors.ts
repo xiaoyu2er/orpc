@@ -5,19 +5,19 @@ import type { HandlerPlugin } from './base'
 import { value, type Value } from '@orpc/shared'
 
 export interface CORSOptions<TContext extends Context> {
-  origin?: Value<string | string[] | null | undefined, [origin: string, options: StandardHandlerInterceptorOptions<TContext>]>
-  timingOrigin?: Value<string | string[] | null | undefined, [origin: string, options: StandardHandlerInterceptorOptions<TContext>]>
-  allowMethods?: string[]
-  allowHeaders?: string[]
+  origin?: Value<string | readonly string[] | null | undefined, [origin: string, options: StandardHandlerInterceptorOptions<TContext>]>
+  timingOrigin?: Value<string | readonly string[] | null | undefined, [origin: string, options: StandardHandlerInterceptorOptions<TContext>]>
+  allowMethods?: readonly string[]
+  allowHeaders?: readonly string[]
   maxAge?: number
   credentials?: boolean
-  exposeHeaders?: string[]
+  exposeHeaders?: readonly string[]
 }
 
 export class CORSPlugin<TContext extends Context> implements HandlerPlugin<TContext> {
   private readonly options: CORSOptions<TContext>
 
-  constructor(options?: Partial<CORSOptions<TContext>>) {
+  constructor(options: CORSOptions<TContext> = {}) {
     const defaults: CORSOptions<TContext> = {
       origin: origin => origin,
       allowMethods: ['GET', 'HEAD', 'PUT', 'POST', 'DELETE', 'PATCH'],

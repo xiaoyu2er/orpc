@@ -143,15 +143,35 @@ describe('builder', () => {
     })
   })
 
-  it('.use', () => {
-    const mid2 = vi.fn()
-    const applied = builder.use(mid2)
+  describe('.use', () => {
+    it('without map input', () => {
+      const mid2 = vi.fn()
+      const applied = builder.use(mid2)
 
-    expect(applied).instanceOf(Builder)
-    expect(applied).not.toBe(builder)
-    expect(applied['~orpc']).toEqual({
-      ...def,
-      middlewares: [mid, mid2],
+      expect(applied).instanceOf(Builder)
+      expect(applied).not.toBe(builder)
+      expect(applied['~orpc']).toEqual({
+        ...def,
+        middlewares: [mid, mid2],
+      })
+    })
+
+    it('with map input', () => {
+      const mid2 = vi.fn()
+      const map2 = vi.fn()
+
+      decorateMiddlewareSpy.mockImplementationOnce(mid => ({
+        mapInput: (map: any) => [mid, map] as any,
+      }) as any)
+
+      const applied = builder.use(mid2, map2)
+
+      expect(applied).instanceOf(Builder)
+      expect(applied).not.toBe(builder)
+      expect(applied['~orpc']).toEqual({
+        ...def,
+        middlewares: [mid, [mid2, map2]],
+      })
     })
   })
 

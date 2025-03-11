@@ -33,10 +33,10 @@ describe('enhanceRouter', () => {
     const enhanced = enhanceRouter(router, options)
 
     expect(enhanced.ping).toSatisfy(isLazy)
-    expect((await unlazy(enhanced.ping)).default['~orpc'].middlewares).toEqual([mid, ...ping['~orpc'].middlewares])
+    expect((await unlazy(enhanced.ping)).default['~orpc'].middlewares).toEqual([mid, pingMiddleware, ...ping['~orpc'].middlewares])
     expect((await unlazy(enhanced.ping)).default['~orpc'].route).toEqual(enhanceRoute(ping['~orpc'].route, options))
-    expect((await unlazy(enhanced.ping)).default['~orpc'].inputValidationIndex).toEqual(2)
-    expect((await unlazy(enhanced.ping)).default['~orpc'].outputValidationIndex).toEqual(2)
+    expect((await unlazy(enhanced.ping)).default['~orpc'].inputValidationIndex).toEqual(3)
+    expect((await unlazy(enhanced.ping)).default['~orpc'].outputValidationIndex).toEqual(3)
     expect(getLazyMeta(enhanced.ping)).toEqual({ prefix: '/adapt' })
 
     expect(enhanced.pong['~orpc'].middlewares).toEqual([mid, pingMiddleware, ...pong['~orpc'].middlewares])
@@ -48,10 +48,10 @@ describe('enhanceRouter', () => {
     expect(getLazyMeta(enhanced.nested)).toEqual({ prefix: '/adapt' })
 
     expect(enhanced.nested.ping).toSatisfy(isLazy)
-    expect((await unlazy(enhanced.nested.ping)).default['~orpc'].middlewares).toEqual([mid, ...ping['~orpc'].middlewares])
+    expect((await unlazy(enhanced.nested.ping)).default['~orpc'].middlewares).toEqual([mid, pingMiddleware, ...ping['~orpc'].middlewares])
     expect((await unlazy(enhanced.nested.ping)).default['~orpc'].route).toEqual(enhanceRoute(ping['~orpc'].route, options))
-    expect((await unlazy(enhanced.nested.ping)).default['~orpc'].inputValidationIndex).toEqual(2)
-    expect((await unlazy(enhanced.nested.ping)).default['~orpc'].outputValidationIndex).toEqual(2)
+    expect((await unlazy(enhanced.nested.ping)).default['~orpc'].inputValidationIndex).toEqual(3)
+    expect((await unlazy(enhanced.nested.ping)).default['~orpc'].outputValidationIndex).toEqual(3)
     expect(getLazyMeta(enhanced.nested.ping)).toEqual({ prefix: '/adapt' })
 
     expect(enhanced.nested.pong).toSatisfy(isLazy)

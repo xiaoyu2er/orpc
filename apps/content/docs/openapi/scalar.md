@@ -101,4 +101,4 @@ server.listen(3000, () => {
 })
 ```
 
-Access the playground at [http://localhost:3000](http://localhost:3000) to view your API client.
+Access the playground at `http://localhost:3000` to view your API client.

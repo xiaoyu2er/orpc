@@ -7,7 +7,13 @@
     "start": "vinxi start"
   },
   "dependencies": {
+    "@orpc/client": "next",
+    "@orpc/openapi": "next",
+    "@orpc/server": "next",
+    "@orpc/solid-query": "next",
+    "@orpc/zod": "next",
     "@solidjs/start": "^1.1.0",
+    "@tanstack/solid-query": "^5.66.4",
     "solid-js": "^1.9.5",
     "vinxi": "^0.5.3"
   }

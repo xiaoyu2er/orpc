@@ -76,7 +76,7 @@ describe('.queryOptions', () => {
       ],
     }))
 
-    // FIXME: useQueries cannot infer error
+    // FIXME: createQueries cannot infer error
     // if (queries[0].status === 'error' && isDefinedError(queries[0].error) && queries[0].error.code === 'OVERRIDE') {
     //   expectTypeOf(queries[0].error.data).toEqualTypeOf<unknown>()
     // }
@@ -133,7 +133,7 @@ describe('.infiniteOptions', () => {
     }
 
     // @ts-expect-error --- input is invalid
-    useInfiniteQuery(orpc.nested.ping.infiniteOptions({
+    createInfiniteQuery(orpc.nested.ping.infiniteOptions({
       // @ts-expect-error --- input is invalid
       input: pagePram => ({
         input: pagePram,
@@ -143,7 +143,7 @@ describe('.infiniteOptions', () => {
     }))
 
     // @ts-expect-error --- cache is invalid
-    useInfiniteQuery(orpc.nested.ping.infiniteOptions({
+    createInfiniteQuery(orpc.nested.ping.infiniteOptions({
       input: pagePram => ({ input: pagePram }),
       context: {
         // @ts-expect-error --- cache is invalid

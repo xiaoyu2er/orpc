@@ -1,7 +1,7 @@
 import { isDefinedError } from '@orpc/client'
 import { ORPCError } from '@orpc/contract'
-import { renderHook } from '@sveltejs/testing-library'
 import { createInfiniteQuery, createMutation, createQuery } from '@tanstack/svelte-query'
+import { get } from 'svelte/store'
 import { pingHandler } from '../../server/tests/shared'
 import { orpc, queryClient } from './shared'
 
@@ -15,7 +15,7 @@ it('case: call directly', async () => {
 })
 
 it('case: with createQuery', async () => {
-  const { result: query } = renderHook(() => createQuery(orpc.nested.ping.queryOptions({ input: { input: 123 } }), () => queryClient))
+  const query = createQuery(orpc.nested.ping.queryOptions({ input: { input: 123 } }), queryClient)
 
   expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(1)
   expect(queryClient.isFetching({ queryKey: orpc.nested.key() })).toEqual(1)
@@ -29,7 +29,7 @@ it('case: with createQuery', async () => {
   expect(queryClient.isFetching({ queryKey: orpc.ping.key() })).toEqual(0)
   expect(queryClient.isFetching({ queryKey: orpc.pong.key() })).toEqual(0)
 
-  await vi.waitFor(() => expect(query.data).toEqual({ output: '123' }))
+  await vi.waitFor(() => expect(get(query).data).toEqual({ output: '123' }))
 
   expect(
     queryClient.getQueryData(orpc.nested.ping.key({ input: { input: 123 }, type: 'query' })),
@@ -37,21 +37,21 @@ it('case: with createQuery', async () => {
 
   pingHandler.mockRejectedValueOnce(new ORPCError('OVERRIDE'))
 
-  query.refetch()
+  get(query).refetch()
 
   await vi.waitFor(() => {
-    expect((query as any).error).toBeInstanceOf(ORPCError)
-    expect((query as any).error).toSatisfy(isDefinedError)
-    expect((query as any).error.code).toEqual('OVERRIDE')
+    expect((get(query) as any).error).toBeInstanceOf(ORPCError)
+    expect((get(query) as any).error).toSatisfy(isDefinedError)
+    expect((get(query) as any).error.code).toEqual('OVERRIDE')
   })
 })
 
 it('case: with createInfiniteQuery', async () => {
-  const { result: query } = renderHook(() => createInfiniteQuery(orpc.nested.ping.infiniteOptions({
+  const query = createInfiniteQuery(orpc.nested.ping.infiniteOptions({
     input: pageParam => ({ input: pageParam }),
     getNextPageParam: lastPage => Number(lastPage.output) + 1,
     initialPageParam: 1,
-  }), () => queryClient))
+  }), queryClient)
 
   expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(1)
   expect(queryClient.isFetching({ queryKey: orpc.nested.key() })).toEqual(1)

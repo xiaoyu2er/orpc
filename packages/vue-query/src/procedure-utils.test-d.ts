@@ -70,17 +70,33 @@ describe('ProcedureUtils', () => {
       })
     })
 
-    it('works with useQuery', () => {
-      const query = useQuery(utils.queryOptions({
-        select: data => ({ mapped: data }),
-        throwOnError(error) {
-          expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
-          return false
-        },
-      }))
+    describe('works with useQuery', () => {
+      it('without initial data', () => {
+        const query = useQuery(utils.queryOptions({
+          select: data => ({ mapped: data }),
+          throwOnError(error) {
+            expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
+            return false
+          },
+        }))
 
-      expectTypeOf(query.data.value).toEqualTypeOf<{ mapped: UtilsOutput } | undefined>()
-      expectTypeOf(query.error.value).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+        expectTypeOf(query.data.value).toEqualTypeOf<{ mapped: UtilsOutput } | undefined>()
+        expectTypeOf(query.error.value).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+      })
+
+      it('with initial data', () => {
+        const query = useQuery(utils.queryOptions({
+          select: data => ({ mapped: data }),
+          initialData: [{ title: 'title' }],
+          throwOnError(error) {
+            expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
+            return false
+          },
+        }))
+
+        expectTypeOf(query.data.value).toEqualTypeOf<{ mapped: UtilsOutput }>()
+        expectTypeOf(query.error.value).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+      })
     })
 
     it('works with useQueries', async () => {
@@ -207,20 +223,40 @@ describe('ProcedureUtils', () => {
       })
     })
 
-    it('works with useInfiniteQuery', () => {
-      const query = useInfiniteQuery(utils.infiniteOptions({
-        input: () => ({}),
-        getNextPageParam,
-        initialPageParam,
-        select: data => ({ mapped: data }),
-        throwOnError(error) {
-          expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
-          return false
-        },
-      }))
+    describe('works with useInfiniteQuery', () => {
+      it('without initial data', () => {
+        const query = useInfiniteQuery(utils.infiniteOptions({
+          input: () => ({}),
+          getNextPageParam,
+          initialPageParam,
+          select: data => ({ mapped: data }),
+          throwOnError(error) {
+            expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
+            return false
+          },
+        }))
 
-      expectTypeOf(query.data.value).toEqualTypeOf<{ mapped: InfiniteData<UtilsOutput, number> } | undefined>()
-      expectTypeOf(query.error.value).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+        expectTypeOf(query.data.value).toEqualTypeOf<{ mapped: InfiniteData<UtilsOutput, number> } | undefined>()
+        expectTypeOf(query.error.value).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+      })
+
+      // Don't know why but seem tanstack/vue-query doesn't handle initialData like react-query
+      // it('with initial data', () => {
+      //   const query = useInfiniteQuery(utils.infiniteOptions({
+      //     input: () => ({}),
+      //     initialData: { pageParams: [1], pages: [[{ title: 'title' }]] },
+      //     getNextPageParam,
+      //     initialPageParam,
+      //     select: data => ({ mapped: data }),
+      //     throwOnError(error) {
+      //       expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
+      //       return false
+      //     },
+      //   }))
+
+      //   expectTypeOf(query.data.value).toEqualTypeOf<{ mapped: InfiniteData<UtilsOutput, number> }>()
+      //   expectTypeOf(query.error.value).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+      // })
     })
 
     it('works with fetchInfiniteQuery', () => {

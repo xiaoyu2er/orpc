@@ -62,17 +62,33 @@ describe('ProcedureUtils', () => {
       utils.queryOptions({ context: { batch: 'invalid' } })
     })
 
-    it('works with createQuery', () => {
-      const query = createQuery(() => utils.queryOptions({
-        select: data => ({ mapped: data }),
-        throwOnError(error) {
-          expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
-          return false
-        },
-      }))
+    describe('createQuery', () => {
+      it('without initial data', () => {
+        const query = createQuery(() => utils.queryOptions({
+          select: data => ({ mapped: data }),
+          throwOnError(error) {
+            expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
+            return false
+          },
+        }))
 
-      expectTypeOf(query.data).toEqualTypeOf<{ mapped: UtilsOutput } | undefined>()
-      expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+        expectTypeOf(query.data).toEqualTypeOf<{ mapped: UtilsOutput } | undefined>()
+        expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+      })
+
+      it('with initial data', () => {
+        const query = createQuery(() => utils.queryOptions({
+          select: data => ({ mapped: data }),
+          initialData: [{ title: 'title' }],
+          throwOnError(error) {
+            expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
+            return false
+          },
+        }))
+
+        expectTypeOf(query.data).toEqualTypeOf<{ mapped: UtilsOutput }>()
+        expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+      })
     })
 
     it('works with createQueries', async () => {
@@ -191,20 +207,39 @@ describe('ProcedureUtils', () => {
       })
     })
 
-    it('works with createInfiniteQuery', () => {
-      const query = createInfiniteQuery(() => utils.infiniteOptions({
-        input: () => ({}),
-        getNextPageParam,
-        initialPageParam,
-        select: data => ({ mapped: data }),
-        throwOnError(error) {
-          expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
-          return false
-        },
-      }))
+    describe('works with createInfiniteQuery', () => {
+      it('without initial data', () => {
+        const query = createInfiniteQuery(() => utils.infiniteOptions({
+          input: () => ({}),
+          getNextPageParam,
+          initialPageParam,
+          select: data => ({ mapped: data }),
+          throwOnError(error) {
+            expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
+            return false
+          },
+        }))
 
-      expectTypeOf(query.data).toEqualTypeOf<{ mapped: InfiniteData<UtilsOutput, number> } | undefined>()
-      expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+        expectTypeOf(query.data).toEqualTypeOf<{ mapped: InfiniteData<UtilsOutput, number> } | undefined>()
+        expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+      })
+
+      it('with initial data', () => {
+        const query = createInfiniteQuery(() => utils.infiniteOptions({
+          input: () => ({}),
+          getNextPageParam,
+          initialPageParam,
+          select: data => ({ mapped: data }),
+          throwOnError(error) {
+            expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
+            return false
+          },
+          initialData: { pageParams: [1], pages: [[{ title: 'title' }]] },
+        }))
+
+        expectTypeOf(query.data).toEqualTypeOf<{ mapped: InfiniteData<UtilsOutput, number> }>()
+        expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+      })
     })
 
     it('works with fetchInfiniteQuery', () => {

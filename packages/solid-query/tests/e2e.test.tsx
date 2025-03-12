@@ -46,7 +46,7 @@ it('case: with createQuery', async () => {
   })
 })
 
-it('case: with useInfiniteQuery', async () => {
+it('case: with createInfiniteQuery', async () => {
   const { result: query } = renderHook(() => createInfiniteQuery(() => orpc.nested.ping.infiniteOptions({
     input: pageParam => ({ input: pageParam }),
     getNextPageParam: lastPage => Number(lastPage.output) + 1,

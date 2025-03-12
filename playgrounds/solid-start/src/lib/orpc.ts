@@ -5,7 +5,7 @@ import { RPCLink } from '@orpc/client/fetch'
 import { createORPCSolidQueryUtils } from '@orpc/solid-query'
 
 const rpcLink = new RPCLink({
-  url: 'http://localhost:3000/rpc',
+  url: new URL('/rpc', typeof window !== 'undefined' ? window.location.href : 'http://localhost:3000'),
   headers: () => ({
     Authorization: 'Bearer default-token',
   }),

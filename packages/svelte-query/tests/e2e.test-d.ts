@@ -21,7 +21,7 @@ it('.call', () => {
 
 describe('.queryOptions', () => {
   it('createQuery', () => {
-    const query = createQuery(() => orpc.ping.queryOptions({
+    const query = createQuery(orpc.ping.queryOptions({
       input: { input: 123 },
       retry(failureCount, error) {
         if (isDefinedError(error) && error.code === 'BASE') {
@@ -40,14 +40,14 @@ describe('.queryOptions', () => {
       expectTypeOf(query.data).toEqualTypeOf<{ output: string }>()
     }
 
-    createQuery(() => orpc.ping.queryOptions({
+    createQuery(orpc.ping.queryOptions({
       input: {
         // @ts-expect-error --- input is invalid
         input: '123',
       },
     }))
 
-    createQuery(() => orpc.ping.queryOptions({
+    createQuery(orpc.ping.queryOptions({
       input: { input: 123 },
       context: {
         // @ts-expect-error --- cache is invalid
@@ -57,7 +57,7 @@ describe('.queryOptions', () => {
   })
 
   it('createQueries', async () => {
-    const queries = createQueries(() => ({
+    const queries = createQueries({
       queries: [
         orpc.ping.queryOptions({
           input: { input: 123 },
@@ -74,7 +74,7 @@ describe('.queryOptions', () => {
           context: { cache: '123' },
         }),
       ],
-    }))
+    })
 
     // FIXME: createQueries cannot infer error
     // if (queries[0].status === 'error' && isDefinedError(queries[0].error) && queries[0].error.code === 'OVERRIDE') {
@@ -111,7 +111,7 @@ describe('.queryOptions', () => {
 
 describe('.infiniteOptions', () => {
   it('createInfiniteQuery', () => {
-    const query = createInfiniteQuery(() => orpc.nested.ping.infiniteOptions({
+    const query = createInfiniteQuery(orpc.nested.ping.infiniteOptions({
       input: pagePram => ({ input: pagePram }),
       getNextPageParam: () => 2,
       initialPageParam: 2,
@@ -167,7 +167,7 @@ describe('.infiniteOptions', () => {
 
 describe('.mutationOptions', () => {
   it('createMutation', async () => {
-    const mutation = createMutation(() => orpc.ping.mutationOptions({
+    const mutation = createMutation(orpc.ping.mutationOptions({
       onError(error, variables) {
         if (isDefinedError(error) && error.code === 'BASE') {
           expectTypeOf(error.data).toEqualTypeOf<{ output: string }>()
@@ -190,7 +190,7 @@ describe('.mutationOptions', () => {
       input: 'INVALID',
     })
 
-    createMutation(() => orpc.ping.mutationOptions({
+    createMutation(orpc.ping.mutationOptions({
       context: {
         // @ts-expect-error --- cache is invalid
         cache: 123,

@@ -15,7 +15,7 @@ it('case: call directly', async () => {
 })
 
 it('case: with createQuery', async () => {
-  const { result: query } = renderHook(() => createQuery(() => orpc.nested.ping.queryOptions({ input: { input: 123 } }), () => queryClient))
+  const { result: query } = renderHook(() => createQuery(orpc.nested.ping.queryOptions({ input: { input: 123 } }), () => queryClient))
 
   expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(1)
   expect(queryClient.isFetching({ queryKey: orpc.nested.key() })).toEqual(1)
@@ -47,7 +47,7 @@ it('case: with createQuery', async () => {
 })
 
 it('case: with createInfiniteQuery', async () => {
-  const { result: query } = renderHook(() => createInfiniteQuery(() => orpc.nested.ping.infiniteOptions({
+  const { result: query } = renderHook(() => createInfiniteQuery(orpc.nested.ping.infiniteOptions({
     input: pageParam => ({ input: pageParam }),
     getNextPageParam: lastPage => Number(lastPage.output) + 1,
     initialPageParam: 1,
@@ -113,7 +113,7 @@ it('case: with createInfiniteQuery', async () => {
 })
 
 it('case: with createMutation', async () => {
-  const { result: query } = renderHook(() => createMutation(() => orpc.nested.ping.mutationOptions(), () => queryClient))
+  const { result: query } = renderHook(() => createMutation(orpc.nested.ping.mutationOptions(), () => queryClient))
 
   query.mutate({ input: 123 })
 

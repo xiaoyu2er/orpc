@@ -64,7 +64,7 @@ describe('ProcedureUtils', () => {
 
     describe('createQuery', () => {
       it('without initial data', () => {
-        const query = createQuery(() => utils.queryOptions({
+        const query = createQuery(utils.queryOptions({
           select: data => ({ mapped: data }),
           throwOnError(error) {
             expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
@@ -77,7 +77,7 @@ describe('ProcedureUtils', () => {
       })
 
       it('with initial data', () => {
-        const query = createQuery(() => utils.queryOptions({
+        const query = createQuery(utils.queryOptions({
           select: data => ({ mapped: data }),
           initialData: [{ title: 'title' }],
           throwOnError(error) {
@@ -92,7 +92,7 @@ describe('ProcedureUtils', () => {
     })
 
     it('works with createQueries', async () => {
-      const queries = createQueries(() => ({
+      const queries = createQueries(({
         queries: [
           utils.queryOptions({
             select: data => ({ mapped: data }),
@@ -209,7 +209,7 @@ describe('ProcedureUtils', () => {
 
     describe('works with createInfiniteQuery', () => {
       it('without initial data', () => {
-        const query = createInfiniteQuery(() => utils.infiniteOptions({
+        const query = createInfiniteQuery(utils.infiniteOptions({
           input: () => ({}),
           getNextPageParam,
           initialPageParam,
@@ -225,7 +225,7 @@ describe('ProcedureUtils', () => {
       })
 
       it('with initial data', () => {
-        const query = createInfiniteQuery(() => utils.infiniteOptions({
+        const query = createInfiniteQuery(utils.infiniteOptions({
           input: () => ({}),
           getNextPageParam,
           initialPageParam,
@@ -278,7 +278,7 @@ describe('ProcedureUtils', () => {
     })
 
     it('works with createMutation', () => {
-      const mutation = createMutation(() => utils.mutationOptions({
+      const mutation = createMutation(utils.mutationOptions({
         onSuccess: (data, input) => {
           expectTypeOf(data).toEqualTypeOf<UtilsOutput>()
           expectTypeOf(input).toEqualTypeOf<UtilsInput>()
@@ -294,7 +294,7 @@ describe('ProcedureUtils', () => {
     })
 
     it('infer correct mutation context type', () => {
-      createMutation(() => ({
+      createMutation({
         ...utils.mutationOptions({
           onMutate: v => ({ mutationContext: true }),
           onError: (e, v, context) => {
@@ -304,7 +304,7 @@ describe('ProcedureUtils', () => {
         onSettled: (d, e, v, context) => {
           expectTypeOf(context?.mutationContext).toEqualTypeOf<undefined | boolean>()
         },
-      }))
+      })
     })
   })
 })

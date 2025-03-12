@@ -7,5 +7,5 @@ export * from './router-utils'
 export * from './types'
 
 export {
-  createRouterUtils as createORPCSolidQueryUtils,
+  createRouterUtils as createORPCSvelteQueryUtils,
 }

@@ -1,8 +1,8 @@
 import { QueryClient } from '@tanstack/svelte-query'
 import { orpc as client } from '../../client/tests/shared'
-import { createORPCSolidQueryUtils } from '../src'
+import { createORPCSvelteQueryUtils } from '../src'
 
-export const orpc = createORPCSolidQueryUtils(client)
+export const orpc = createORPCSvelteQueryUtils(client)
 
 export const queryClient = new QueryClient({
   defaultOptions: {

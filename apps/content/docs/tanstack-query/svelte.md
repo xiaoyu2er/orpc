@@ -67,7 +67,7 @@ const postORPC = createORPCSvelteQueryUtils(postClient, {
 
 ## Reactivity
 
-For reactive queries, use the legacy `derived` API from `svelte/store`. The new Runes API also supports reactive queries see [this discussion](https://github.com/TanStack/query/discussions/7413).
+To create reactive queries, use Svelte's legacy `derived` API from `svelte/store`. With the [Tanstack Svelte v5 branch](https://github.com/TanStack/query/discussions/7413), oRPC should work out of the box.
 
 ```ts twoslash
 import type { router } from './shared/planet'

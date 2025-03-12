@@ -1,0 +1,50 @@
+{
+  "name": "@orpc/svelte-query",
+  "type": "module",
+  "version": "0.0.0",
+  "license": "MIT",
+  "homepage": "https://orpc.unnoq.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unnoq/orpc.git",
+    "directory": "packages/svelte-query"
+  },
+  "keywords": [
+    "unnoq",
+    "orpc",
+    "svelte-query",
+    "tanstack query",
+    "svelte"
+  ],
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.mts",
+        "import": "./dist/index.mjs",
+        "default": "./dist/index.mjs"
+      }
+    }
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "unbuild",
+    "build:watch": "pnpm run build --watch",
+    "type:check": "tsc -b"
+  },
+  "peerDependencies": {
+    "@orpc/client": "workspace:*",
+    "@tanstack/svelte-query": ">=5.59.0",
+    "svelte": ">=4.2.0"
+  },
+  "dependencies": {
+    "@orpc/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "zod": "^3.24.2"
+  }
+}

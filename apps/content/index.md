@@ -37,7 +37,7 @@ features:
     details: Run your code seamlessly on Cloudflare, Deno, Bun, Node.js, and more.
   - icon: 🧩
     title: Framework Integrations
-    details: Supports Tanstack Query (React, Vue, Solid), Pinia Colada, and more.
+    details: Supports Tanstack Query (React, Vue, Solid, Svelte), Pinia Colada, and more.
   - icon: ⚡
     title: Server Actions
     details: Fully compatible with React Server Actions on Next.js, TanStack Start, and more.

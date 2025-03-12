@@ -8,8 +8,8 @@
   <a href="https://codecov.io/gh/unnoq/orpc">
     <img alt="codecov" src="https://codecov.io/gh/unnoq/orpc/branch/main/graph/badge.svg">
   </a>
-  <a href="https://www.npmjs.com/package/@orpc/server">
-    <img alt="weekly downloads" src="https://img.shields.io/npm/dw/%40orpc%2Fserver?logo=npm" />
+  <a href="https://www.npmjs.com/package/@orpc/solid-query">
+    <img alt="weekly downloads" src="https://img.shields.io/npm/dw/%40orpc%2Fsolid-query?logo=npm" />
   </a>
   <a href="https://github.com/unnoq/orpc/blob/main/LICENSE">
     <img alt="MIT License" src="https://img.shields.io/github/license/unnoq/orpc?logo=open-source-initiative" />
@@ -60,58 +60,50 @@ You can find the full documentation [here](https://orpc.unnoq.com).
 - [@orpc/openapi](https://www.npmjs.com/package/@orpc/openapi): Generate OpenAPI specs and handle OpenAPI requests.
 - [@orpc/zod](https://www.npmjs.com/package/@orpc/zod): More schemas that [Zod](https://zod.dev/) doesn't support yet.
 
-## `@orpc/server`
+## `@orpc/solid-query`
 
-Build your API or implement API contract. Read the [documentation](https://orpc.unnoq.com/docs/getting-started) for more information.
+Integration with [Solid Query](https://tanstack.com/query/latest/docs/framework/solid/overview). Read the [documentation](https://orpc.unnoq.com/docs/tanstack-query/solid) for more information.
 
 ```ts
-import type { IncomingHttpHeaders } from 'node:http'
-import { ORPCError, os } from '@orpc/server'
-import { z } from 'zod'
+export function Example() {
+  const query = createQuery(() => orpc.planet.find.queryOptions({
+    input: { id: 123 }, // Specify input if needed
+    context: { cache: true }, // Provide client context if needed
+  // additional options...
+  }))
 
-const PlanetSchema = z.object({
-  id: z.number().int().min(1),
-  name: z.string(),
-  description: z.string().optional(),
-})
+  const query = createInfiniteQuery(() => orpc.planet.list.infiniteOptions({
+    input: (pageParam: number | undefined) => ({ limit: 10, offset: pageParam }),
+    context: { cache: true }, // Provide client context if needed
+    initialPageParam: undefined,
+    getNextPageParam: lastPage => lastPage.nextPageParam,
+  // additional options...
+  }))
 
-export const listPlanet = os
-  .input(
-    z.object({
-      limit: z.number().int().min(1).max(100).optional(),
-      cursor: z.number().int().min(0).default(0),
-    }),
-  )
-  .handler(async ({ input }) => {
-    // your list code here
-    return [{ id: 1, name: 'name' }]
+  const mutation = createMutation(() => orpc.planet.create.mutationOptions({
+    context: { cache: true }, // Provide client context if needed
+  // additional options...
+  }))
+
+  mutation.mutate({ name: 'Earth' })
+
+  const queryClient = useQueryClient()
+
+  // Invalidate all planet queries
+  queryClient.invalidateQueries({
+    queryKey: orpc.planet.key(),
   })
 
-export const findPlanet = os
-  .input(PlanetSchema.pick({ id: true }))
-  .handler(async ({ input }) => {
-    // your find code here
-    return { id: 1, name: 'name' }
+  // Invalidate only regular (non-infinite) planet queries
+  queryClient.invalidateQueries({
+    queryKey: orpc.planet.key({ type: 'query' })
   })
 
-export const createPlanet = os
-  .$context<{ headers: IncomingHttpHeaders }>()
-  .use(({ context, next }) => {
-    const user = parseJWT(context.headers.authorization?.split(' ')[1])
-
-    if (user) {
-      return next({ context: { user } })
-    }
-
-    throw new ORPCError('UNAUTHORIZED')
+  // Invalidate the planet find query with id 123
+  queryClient.invalidateQueries({
+    queryKey: orpc.planet.find.key({ input: { id: 123 } })
   })
-  .input(PlanetSchema.omit({ id: true }))
-  .handler(async ({ input, context }) => {
-    // your create code here
-    return { id: 1, name: 'name' }
-  })
-
-export const router = { planet: { list: listPlanet, find: findPlanet, create: createPlanet } }
+}
 ```
 
 ## License

@@ -12,7 +12,7 @@ description: Seamlessly integrate oRPC with Tanstack Query
 | React   | ✅             | ✅                                                    |
 | Vue     | ✅             | ✅                                                    |
 | Angular | ✅             | [Vote here](https://github.com/unnoq/orpc/issues/157) |
-| Solid   | ✅             | [Vote here](https://github.com/unnoq/orpc/issues/135) |
+| Solid   | ✅             | ✅                                                    |
 | Svelte  | ✅             | [Vote here](https://github.com/unnoq/orpc/issues/136) |
 
 ::: warning

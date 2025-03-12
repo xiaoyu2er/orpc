@@ -13,12 +13,12 @@ export type MaybeRefDeep<T> = MaybeRef<
 
 export type UseQueryFnContext = Parameters<UseQueryOptions<any>['query']>[0]
 
-export type QueryOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError extends Error> =
+export type QueryOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError extends Error, TInitialData extends TOutput | undefined> =
   & (undefined extends TInput ? { input?: MaybeRefDeep<TInput> } : { input: MaybeRefDeep<TInput> })
   & (Record<never, never> extends TClientContext ? { context?: MaybeRefDeep<TClientContext> } : { context: MaybeRefDeep<TClientContext> })
-  & SetOptional<UseQueryOptions<TOutput, TError>, 'key' | 'query'>
+  & SetOptional<QueryOptions<TOutput, TError, TInitialData>, 'key' | 'query'>
 
-export type QueryOptions<TOutput, TError extends Error> = UseQueryOptions<TOutput, TError>
+export type QueryOptions<TOutput, TError extends Error, TInitialData extends TOutput | undefined> = UseQueryOptions<TOutput, TError, TInitialData>
 
 export type MutationOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError extends Error, TMutationContext extends Record<any, any>> =
   & (Record<never, never> extends TClientContext ? { context?: MaybeRefDeep<TClientContext> } : { context: MaybeRefDeep<TClientContext> })

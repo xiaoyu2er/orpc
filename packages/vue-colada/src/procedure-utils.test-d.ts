@@ -68,11 +68,22 @@ describe('ProcedureUtils', () => {
       })
     })
 
-    it('works with useQuery', () => {
-      const query = useQuery(utils.queryOptions())
+    describe('works with useQuery', () => {
+      it('without initial data', () => {
+        const query = useQuery(utils.queryOptions())
 
-      expectTypeOf(query.data.value).toEqualTypeOf<UtilsOutput | undefined>()
-      expectTypeOf(query.error.value).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+        expectTypeOf(query.data.value).toEqualTypeOf<UtilsOutput | undefined>()
+        expectTypeOf(query.error.value).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+      })
+
+      it('with initial data', () => {
+        const query = useQuery(utils.queryOptions({
+          initialData: () => [{ title: 'title' }],
+        }))
+
+        expectTypeOf(query.data.value).toEqualTypeOf<UtilsOutput>()
+        expectTypeOf(query.error.value).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+      })
     })
   })
 

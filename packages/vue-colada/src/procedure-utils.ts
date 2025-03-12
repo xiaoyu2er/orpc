@@ -9,11 +9,11 @@ import { unrefDeep } from './utils'
 export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError extends Error> {
   call: Client<TClientContext, TInput, TOutput, TError>
 
-  queryOptions(
+  queryOptions<UInitialData extends TOutput | undefined = TOutput | undefined>(
     ...rest: MaybeOptionalOptions<
-      QueryOptionsIn<TClientContext, TInput, TOutput, TError>
+      QueryOptionsIn<TClientContext, TInput, TOutput, TError, UInitialData>
     >
-  ): QueryOptions<TOutput, TError>
+  ): QueryOptions<TOutput, TError, UInitialData>
 
   mutationOptions<UMutationContext extends Record<any, any> = _EmptyObject>(
     ...rest: MaybeOptionalOptions<

@@ -6,4 +6,6 @@ export * from './procedure-utils'
 export * from './router-utils'
 export * from './types'
 
-export const createORPCVueColadaUtils = createRouterUtils
+export {
+  createRouterUtils as createORPCVueColadaUtils,
+}

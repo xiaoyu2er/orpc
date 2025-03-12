@@ -1,10 +1,9 @@
 import type { Client } from '@orpc/client'
 import type { ErrorFromErrorMap } from '@orpc/contract'
-import type { GetNextPageParamFunction, InfiniteData } from '@tanstack/vue-query'
+import type { GetNextPageParamFunction, InfiniteData } from '@tanstack/solid-query'
 import type { baseErrorMap } from '../../contract/tests/shared'
 import type { ProcedureUtils } from './procedure-utils'
-import { useInfiniteQuery, useMutation, useQueries, useQuery } from '@tanstack/vue-query'
-import { computed, ref } from 'vue'
+import { createInfiniteQuery, createMutation, createQueries, createQuery } from '@tanstack/solid-query'
 import { queryClient } from '../tests/shared'
 
 describe('ProcedureUtils', () => {
@@ -63,16 +62,9 @@ describe('ProcedureUtils', () => {
       utils.queryOptions({ context: { batch: 'invalid' } })
     })
 
-    it('works with ref', () => {
-      utils.queryOptions({
-        input: computed(() => ({ cursor: ref(1) })),
-        context: computed(() => ({ batch: true })),
-      })
-    })
-
-    describe('works with useQuery', () => {
+    describe('createQuery', () => {
       it('without initial data', () => {
-        const query = useQuery(utils.queryOptions({
+        const query = createQuery(() => utils.queryOptions({
           select: data => ({ mapped: data }),
           throwOnError(error) {
             expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
@@ -80,12 +72,12 @@ describe('ProcedureUtils', () => {
           },
         }))
 
-        expectTypeOf(query.data.value).toEqualTypeOf<{ mapped: UtilsOutput } | undefined>()
-        expectTypeOf(query.error.value).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+        expectTypeOf(query.data).toEqualTypeOf<{ mapped: UtilsOutput } | undefined>()
+        expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
       })
 
       it('with initial data', () => {
-        const query = useQuery(utils.queryOptions({
+        const query = createQuery(() => utils.queryOptions({
           select: data => ({ mapped: data }),
           initialData: [{ title: 'title' }],
           throwOnError(error) {
@@ -94,13 +86,13 @@ describe('ProcedureUtils', () => {
           },
         }))
 
-        expectTypeOf(query.data.value).toEqualTypeOf<{ mapped: UtilsOutput }>()
-        expectTypeOf(query.error.value).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+        expectTypeOf(query.data).toEqualTypeOf<{ mapped: UtilsOutput }>()
+        expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
       })
     })
 
-    it('works with useQueries', async () => {
-      const queries = useQueries({
+    it('works with createQueries', async () => {
+      const queries = createQueries(() => ({
         queries: [
           utils.queryOptions({
             select: data => ({ mapped: data }),
@@ -110,13 +102,14 @@ describe('ProcedureUtils', () => {
             context: { batch: true },
           }),
         ],
-      })
+      }))
 
-      expectTypeOf(queries.value[0].data).toEqualTypeOf<{ mapped: UtilsOutput } | undefined>()
-      expectTypeOf(queries.value[1].data).toEqualTypeOf<UtilsOutput | undefined>()
+      expectTypeOf(queries[0].data).toEqualTypeOf<{ mapped: UtilsOutput } | undefined>()
+      expectTypeOf(queries[1].data).toEqualTypeOf<UtilsOutput | undefined>()
 
-      expectTypeOf(queries.value[0].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
-      expectTypeOf(queries.value[0].error).toEqualTypeOf<null | ErrorFromErrorMap < typeof baseErrorMap>>()
+      // FIXME: createQueries cannot infer error
+      // expectTypeOf(queries[0].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
+      // expectTypeOf(queries[0].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
     })
 
     it('works with fetchQuery', () => {
@@ -214,18 +207,9 @@ describe('ProcedureUtils', () => {
       })
     })
 
-    it('works with ref', () => {
-      utils.infiniteOptions({
-        context: computed(() => ({ batch: ref(true) })),
-        input: () => computed(() => ({ search: ref('search') })),
-        getNextPageParam,
-        initialPageParam,
-      })
-    })
-
-    describe('works with useInfiniteQuery', () => {
+    describe('works with createInfiniteQuery', () => {
       it('without initial data', () => {
-        const query = useInfiniteQuery(utils.infiniteOptions({
+        const query = createInfiniteQuery(() => utils.infiniteOptions({
           input: () => ({}),
           getNextPageParam,
           initialPageParam,
@@ -236,27 +220,26 @@ describe('ProcedureUtils', () => {
           },
         }))
 
-        expectTypeOf(query.data.value).toEqualTypeOf<{ mapped: InfiniteData<UtilsOutput, number> } | undefined>()
-        expectTypeOf(query.error.value).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+        expectTypeOf(query.data).toEqualTypeOf<{ mapped: InfiniteData<UtilsOutput, number> } | undefined>()
+        expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
       })
 
-      // Don't know why but seem tanstack/vue-query doesn't handle initialData like react-query
-      // it('with initial data', () => {
-      //   const query = useInfiniteQuery(utils.infiniteOptions({
-      //     input: () => ({}),
-      //     initialData: { pageParams: [1], pages: [[{ title: 'title' }]] },
-      //     getNextPageParam,
-      //     initialPageParam,
-      //     select: data => ({ mapped: data }),
-      //     throwOnError(error) {
-      //       expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
-      //       return false
-      //     },
-      //   }))
+      it('with initial data', () => {
+        const query = createInfiniteQuery(() => utils.infiniteOptions({
+          input: () => ({}),
+          getNextPageParam,
+          initialPageParam,
+          select: data => ({ mapped: data }),
+          throwOnError(error) {
+            expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
+            return false
+          },
+          initialData: { pageParams: [1], pages: [[{ title: 'title' }]] },
+        }))
 
-      //   expectTypeOf(query.data.value).toEqualTypeOf<{ mapped: InfiniteData<UtilsOutput, number> }>()
-      //   expectTypeOf(query.error.value).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
-      // })
+        expectTypeOf(query.data).toEqualTypeOf<{ mapped: InfiniteData<UtilsOutput, number> }>()
+        expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+      })
     })
 
     it('works with fetchInfiniteQuery', () => {
@@ -294,8 +277,8 @@ describe('ProcedureUtils', () => {
       utils.mutationOptions({ context: { batch: 'invalid' } })
     })
 
-    it('works with useMutation', () => {
-      const mutation = useMutation(utils.mutationOptions({
+    it('works with createMutation', () => {
+      const mutation = createMutation(() => utils.mutationOptions({
         onSuccess: (data, input) => {
           expectTypeOf(data).toEqualTypeOf<UtilsOutput>()
           expectTypeOf(input).toEqualTypeOf<UtilsInput>()
@@ -306,12 +289,12 @@ describe('ProcedureUtils', () => {
       }))
 
       expectTypeOf<Parameters<typeof mutation.mutate>[0]>().toEqualTypeOf<UtilsInput>()
-      expectTypeOf(mutation.data.value).toEqualTypeOf<UtilsOutput | undefined>()
-      expectTypeOf(mutation.error.value).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+      expectTypeOf(mutation.data).toEqualTypeOf<UtilsOutput | undefined>()
+      expectTypeOf(mutation.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
     })
 
     it('infer correct mutation context type', () => {
-      useMutation({
+      createMutation(() => ({
         ...utils.mutationOptions({
           onMutate: v => ({ mutationContext: true }),
           onError: (e, v, context) => {
@@ -321,7 +304,7 @@ describe('ProcedureUtils', () => {
         onSettled: (d, e, v, context) => {
           expectTypeOf(context?.mutationContext).toEqualTypeOf<undefined | boolean>()
         },
-      })
+      }))
     })
   })
 })

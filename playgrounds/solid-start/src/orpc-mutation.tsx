@@ -4,7 +4,7 @@ import { createMutation, useQueryClient } from '@tanstack/solid-query'
 export function CreatePlanetMutationForm() {
   const queryClient = useQueryClient()
 
-  const { mutate } = createMutation(
+  const mutation = createMutation(
     () => orpc.planet.create.mutationOptions({
       onSuccess() {
         queryClient.invalidateQueries({
@@ -32,7 +32,7 @@ export function CreatePlanetMutationForm() {
           = (form.get('description') as string | null) ?? undefined
           const image = form.get('image') as File
 
-          mutate({
+          mutation.mutate({
             name,
             description,
             image: image.size > 0 ? image : undefined,

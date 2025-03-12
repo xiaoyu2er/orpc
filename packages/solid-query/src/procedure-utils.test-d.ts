@@ -107,7 +107,7 @@ describe('ProcedureUtils', () => {
       expectTypeOf(queries[0].data).toEqualTypeOf<{ mapped: UtilsOutput } | undefined>()
       expectTypeOf(queries[1].data).toEqualTypeOf<UtilsOutput | undefined>()
 
-      // FIXME: useQueries cannot infer error
+      // FIXME: createQueries cannot infer error
       // expectTypeOf(queries[0].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
       // expectTypeOf(queries[0].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
     })

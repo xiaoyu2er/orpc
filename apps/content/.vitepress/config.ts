@@ -129,6 +129,7 @@ export default defineConfig({
             { text: 'React', link: '/docs/tanstack-query/react' },
             { text: 'Vue', link: '/docs/tanstack-query/vue' },
             { text: 'Solid', link: '/docs/tanstack-query/solid' },
+            { text: 'Svelte', link: '/docs/tanstack-query/svelte' },
           ],
         },
         {

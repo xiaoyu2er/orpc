@@ -13,7 +13,7 @@ description: Seamlessly integrate oRPC with Tanstack Query
 | Vue     | ✅             | ✅                                                    |
 | Angular | ✅             | [Vote here](https://github.com/unnoq/orpc/issues/157) |
 | Solid   | ✅             | ✅                                                    |
-| Svelte  | ✅             | [Vote here](https://github.com/unnoq/orpc/issues/136) |
+| Svelte  | ✅             | ✅                                                    |
 
 ::: warning
 This documentation assumes you are already familiar with [Tanstack Query](https://tanstack.com/query/latest). If you need a refresher, please review the official Tanstack Query documentation before proceeding.

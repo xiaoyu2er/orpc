@@ -1,4 +1,4 @@
-import type { InfiniteData } from '@tanstack/react-query'
+import type { InfiniteData } from '@tanstack/svelte-query'
 import { isDefinedError } from '@orpc/client'
 import { createInfiniteQuery, createMutation, createQueries, createQuery } from '@tanstack/svelte-query'
 import { get } from 'svelte/store'

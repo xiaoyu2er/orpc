@@ -1,26 +1,26 @@
-import { createSignal } from 'solid-js'
-import './app.css'
+import { QueryClient, QueryClientProvider } from '@tanstack/solid-query'
+import { CreatePlanetMutationForm } from './orpc-mutation'
+import { ListPlanetsQuery } from './orpc-query'
+
+const queryClient = new QueryClient()
 
 export default function App() {
-  const [count, setCount] = createSignal(0)
-
   return (
-    <main>
-      <h1>Hello world!</h1>
-      <button class="increment" onClick={() => setCount(count() + 1)} type="button">
-        Clicks:
-        {' '}
-        {count()}
-      </button>
-      <p>
-        Visit
-        {' '}
-        <a href="https://start.solidjs.com" target="_blank" rel="noreferrer noopener">
-          start.solidjs.com
-        </a>
-        {' '}
-        to learn how to build SolidStart apps.
-      </p>
-    </main>
+    <QueryClientProvider client={queryClient}>
+      <div>
+        <h1>ORPC Playground</h1>
+        <p>
+          You can visit the
+          {' '}
+          <a href="/scalar">Scalar API Reference</a>
+          {' '}
+          page.
+        </p>
+        <hr />
+        <CreatePlanetMutationForm />
+        <hr />
+        <ListPlanetsQuery />
+      </div>
+    </QueryClientProvider>
   )
 }

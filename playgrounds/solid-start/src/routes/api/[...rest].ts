@@ -1,13 +1,22 @@
 import type { APIEvent } from '@solidjs/start/server'
 import { OpenAPIHandler } from '@orpc/openapi/fetch'
 import { router } from '~/router'
+import { ZodSmartCoercionPlugin } from '@orpc/zod'
 
-const handler = new OpenAPIHandler(router)
+const handler = new OpenAPIHandler(router, {
+  plugins: [
+    new ZodSmartCoercionPlugin(),
+  ],
+})
 
 async function handle({ request }: APIEvent) {
+  const context = request.headers.get('Authorization')
+    ? { user: { id: 'test', name: 'John Doe', email: 'john@doe.com' } }
+    : {}
+
   const { response } = await handler.handle(request, {
     prefix: '/api',
-    context: {}, // Provide initial context if needed
+    context,
   })
 
   return response ?? new Response('Not Found', { status: 404 })

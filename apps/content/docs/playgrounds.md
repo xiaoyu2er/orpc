@@ -18,6 +18,7 @@ featuring pre-configured examples accessible instantly via StackBlitz or local s
 | OpenAPI with Contract Playground | [Open in StackBlitz](https://stackblitz.com/github/unnoq/orpc/tree/main/playgrounds/contract-openapi?file=src%2Frouter%2Findex.ts) | [View Source](https://github.com/unnoq/orpc/tree/main/playgrounds/contract-openapi/src/router/index.ts) |
 | Express.js Playground            | [Open in StackBlitz](https://stackblitz.com/github/unnoq/orpc/tree/main/playgrounds/expressjs?file=src%2Frouter%2Findex.ts)        | [View Source](https://github.com/unnoq/orpc/tree/main/playgrounds/expressjs/src/router/index.ts)        |
 | Solid Start Playground           | [Open in StackBlitz](https://stackblitz.com/github/unnoq/orpc/tree/main/playgrounds/solid-start?file=src%2Frouter%2Findex.ts)      | [View Source](https://github.com/unnoq/orpc/tree/main/playgrounds/solid-start/src/router/index.ts)      |
+| Svelte Kit Playground            | [Open in StackBlitz](https://stackblitz.com/github/unnoq/orpc/tree/main/playgrounds/svelte-kit?file=src%2Frouter%2Findex.ts)       | [View Source](https://github.com/unnoq/orpc/tree/main/playgrounds/svelte-kit/src/router/index.ts)       |
 
 :::warning
 StackBlitz has own limitations, so some features may not work as expected.
@@ -35,6 +36,7 @@ npx degit unnoq/orpc/playgrounds/openapi orpc-openapi-playground
 npx degit unnoq/orpc/playgrounds/contract-openapi orpc-contract-openapi-playground
 npx degit unnoq/orpc/playgrounds/expressjs orpc-expressjs-playground
 npx degit unnoq/orpc/playgrounds/solid-start orpc-solid-start-playground
+npx degit unnoq/orpc/playgrounds/svelte-kit orpc-svelte-kit-playground
 ```
 
 For each project, set up the development environment:

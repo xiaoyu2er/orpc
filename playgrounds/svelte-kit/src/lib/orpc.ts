@@ -5,7 +5,7 @@ import { RPCLink } from '@orpc/client/fetch'
 import { createORPCSvelteQueryUtils } from '@orpc/svelte-query'
 
 const rpcLink = new RPCLink({
-  url: new URL('/rpc', typeof window !== 'undefined' ? window.location.href : 'http://localhost:5173'),
+  url: new URL('/rpc', typeof window !== 'undefined' ? window.location.href : 'http://localhost:3000'),
   headers: () => ({
     Authorization: 'Bearer default-token',
   }),

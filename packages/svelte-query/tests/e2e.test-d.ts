@@ -1,6 +1,7 @@
 import type { InfiniteData } from '@tanstack/react-query'
 import { isDefinedError } from '@orpc/client'
 import { createInfiniteQuery, createMutation, createQueries, createQuery } from '@tanstack/svelte-query'
+import { get } from 'svelte/store'
 import { orpc as client } from '../../client/tests/shared'
 import { orpc, queryClient } from './shared'
 
@@ -21,7 +22,7 @@ it('.call', () => {
 
 describe('.queryOptions', () => {
   it('createQuery', () => {
-    const query = createQuery(orpc.ping.queryOptions({
+    const queryStore = createQuery(orpc.ping.queryOptions({
       input: { input: 123 },
       retry(failureCount, error) {
         if (isDefinedError(error) && error.code === 'BASE') {
@@ -31,6 +32,8 @@ describe('.queryOptions', () => {
         return false
       },
     }))
+
+    const query = get(queryStore)
 
     if (query.status === 'error' && isDefinedError(query.error) && query.error.code === 'OVERRIDE') {
       expectTypeOf(query.error.data).toEqualTypeOf<unknown>()
@@ -57,7 +60,7 @@ describe('.queryOptions', () => {
   })
 
   it('createQueries', async () => {
-    const queries = createQueries({
+    const queriesStore = createQueries({
       queries: [
         orpc.ping.queryOptions({
           input: { input: 123 },
@@ -75,6 +78,8 @@ describe('.queryOptions', () => {
         }),
       ],
     })
+
+    const queries = get(queriesStore)
 
     // FIXME: createQueries cannot infer error
     // if (queries[0].status === 'error' && isDefinedError(queries[0].error) && queries[0].error.code === 'OVERRIDE') {
@@ -111,7 +116,7 @@ describe('.queryOptions', () => {
 
 describe('.infiniteOptions', () => {
   it('createInfiniteQuery', () => {
-    const query = createInfiniteQuery(orpc.nested.ping.infiniteOptions({
+    const queryStore = createInfiniteQuery(orpc.nested.ping.infiniteOptions({
       input: pagePram => ({ input: pagePram }),
       getNextPageParam: () => 2,
       initialPageParam: 2,
@@ -123,6 +128,8 @@ describe('.infiniteOptions', () => {
         return false
       },
     }))
+
+    const query = get(queryStore)
 
     if (query.status === 'error' && isDefinedError(query.error) && query.error.code === 'OVERRIDE') {
       expectTypeOf(query.error.data).toEqualTypeOf<unknown>()
@@ -167,13 +174,15 @@ describe('.infiniteOptions', () => {
 
 describe('.mutationOptions', () => {
   it('createMutation', async () => {
-    const mutation = createMutation(orpc.ping.mutationOptions({
+    const mutationStore = createMutation(orpc.ping.mutationOptions({
       onError(error, variables) {
         if (isDefinedError(error) && error.code === 'BASE') {
           expectTypeOf(error.data).toEqualTypeOf<{ output: string }>()
         }
       },
     }))
+
+    const mutation = get(mutationStore)
 
     if (mutation.status === 'error' && isDefinedError(mutation.error) && mutation.error.code === 'OVERRIDE') {
       expectTypeOf(mutation.error.data).toEqualTypeOf<unknown>()

@@ -8,7 +8,6 @@ export function ListPlanetsQuery() {
       input: cursor => ({ cursor }),
       getNextPageParam: lastPage => (lastPage.at(-1)?.id ?? -1) + 1,
       initialPageParam: 0,
-      experimental_prefetchInRender: false,
     }),
   )
 

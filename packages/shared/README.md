@@ -37,7 +37,7 @@
 - **Contract-First Development 📜**: (Optional) Define your API contract upfront and implement it with confidence.
 - **Exceptional Developer Experience ✨**: Enjoy a streamlined workflow with robust typing and clear, in-code documentation.
 - **Multi-Runtime Support 🌍**: Run your code seamlessly on Cloudflare, Deno, Bun, Node.js, and more.
-- **Framework Integrations 🧩**: Supports Tanstack Query (React, Vue, Solid), Pinia Colada, and more.
+- **Framework Integrations 🧩**: Supports Tanstack Query (React, Vue, Solid, Svelte), Pinia Colada, and more.
 - **Server Actions ⚡️**: Fully compatible with React Server Actions on Next.js, TanStack Start, and more.
 - **Standard Schema Support 🗂️**: Effortlessly work with Zod, Valibot, ArkType, and others right out of the box.
 - **Fast & Lightweight 💨**: Built on native APIs across all runtimes – optimized for speed and efficiency.
@@ -61,6 +61,7 @@ You can find the full documentation [here](https://orpc.unnoq.com).
 - [@orpc/react-query](https://www.npmjs.com/package/@orpc/react-query): Integration with [React Query](https://tanstack.com/query/latest/docs/framework/react/overview).
 - [@orpc/vue-query](https://www.npmjs.com/package/@orpc/vue-query): Integration with [Vue Query](https://tanstack.com/query/latest/docs/framework/vue/overview).
 - [@orpc/solid-query](https://www.npmjs.com/package/@orpc/solid-query): Integration with [Solid Query](https://tanstack.com/query/latest/docs/framework/solid/overview).
+- [@orpc/svelte-query](https://www.npmjs.com/package/@orpc/svelte-query): Integration with [Svelte Query](https://tanstack.com/query/latest/docs/framework/svelte/overview).
 - [@orpc/vue-colada](https://www.npmjs.com/package/@orpc/vue-colada): Integration with [Pinia Colada](https://pinia-colada.esm.dev/).
 - [@orpc/openapi](https://www.npmjs.com/package/@orpc/openapi): Generate OpenAPI specs and handle OpenAPI requests.
 - [@orpc/zod](https://www.npmjs.com/package/@orpc/zod): More schemas that [Zod](https://zod.dev/) doesn't support yet.

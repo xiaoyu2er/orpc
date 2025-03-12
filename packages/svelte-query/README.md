@@ -32,7 +32,7 @@
 - **Contract-First Development 📜**: (Optional) Define your API contract upfront and implement it with confidence.
 - **Exceptional Developer Experience ✨**: Enjoy a streamlined workflow with robust typing and clear, in-code documentation.
 - **Multi-Runtime Support 🌍**: Run your code seamlessly on Cloudflare, Deno, Bun, Node.js, and more.
-- **Framework Integrations 🧩**: Supports Tanstack Query (React, Vue, Solid), Pinia Colada, and more.
+- **Framework Integrations 🧩**: Supports Tanstack Query (React, Vue, Solid, Svelte), Pinia Colada, and more.
 - **Server Actions ⚡️**: Fully compatible with React Server Actions on Next.js, TanStack Start, and more.
 - **Standard Schema Support 🗂️**: Effortlessly work with Zod, Valibot, ArkType, and others right out of the box.
 - **Fast & Lightweight 💨**: Built on native APIs across all runtimes – optimized for speed and efficiency.
@@ -55,24 +55,25 @@ You can find the full documentation [here](https://orpc.unnoq.com).
 - [@orpc/client](https://www.npmjs.com/package/@orpc/client): Consume your API on the client with type-safety.
 - [@orpc/react-query](https://www.npmjs.com/package/@orpc/react-query): Integration with [React Query](https://tanstack.com/query/latest/docs/framework/react/overview).
 - [@orpc/vue-query](https://www.npmjs.com/package/@orpc/vue-query): Integration with [Vue Query](https://tanstack.com/query/latest/docs/framework/vue/overview).
-- [@orpc/svelte-query](https://www.npmjs.com/package/@orpc/svelte-query): Integration with [Solid Query](https://tanstack.com/query/latest/docs/framework/svelte/overview).
+- [@orpc/solid-query](https://www.npmjs.com/package/@orpc/solid-query): Integration with [Solid Query](https://tanstack.com/query/latest/docs/framework/solid/overview).
+- [@orpc/svelte-query](https://www.npmjs.com/package/@orpc/svelte-query): Integration with [Svelte Query](https://tanstack.com/query/latest/docs/framework/svelte/overview).
 - [@orpc/vue-colada](https://www.npmjs.com/package/@orpc/vue-colada): Integration with [Pinia Colada](https://pinia-colada.esm.dev/).
 - [@orpc/openapi](https://www.npmjs.com/package/@orpc/openapi): Generate OpenAPI specs and handle OpenAPI requests.
 - [@orpc/zod](https://www.npmjs.com/package/@orpc/zod): More schemas that [Zod](https://zod.dev/) doesn't support yet.
 
 ## `@orpc/svelte-query`
 
-Integration with [Solid Query](https://tanstack.com/query/latest/docs/framework/svelte/overview). Read the [documentation](https://orpc.unnoq.com/docs/tanstack-query/svelte) for more information.
+Integration with [Svelte Query](https://tanstack.com/query/latest/docs/framework/svelte/overview). Read the [documentation](https://orpc.unnoq.com/docs/tanstack-query/svelte) for more information.
 
 ```ts
 export function Example() {
-  const query = createQuery(() => orpc.planet.find.queryOptions({
+  const query = createQuery(orpc.planet.find.queryOptions({
     input: { id: 123 }, // Specify input if needed
     context: { cache: true }, // Provide client context if needed
   // additional options...
   }))
 
-  const query = createInfiniteQuery(() => orpc.planet.list.infiniteOptions({
+  const query = createInfiniteQuery(orpc.planet.list.infiniteOptions({
     input: (pageParam: number | undefined) => ({ limit: 10, offset: pageParam }),
     context: { cache: true }, // Provide client context if needed
     initialPageParam: undefined,
@@ -80,7 +81,7 @@ export function Example() {
   // additional options...
   }))
 
-  const mutation = createMutation(() => orpc.planet.create.mutationOptions({
+  const mutation = createMutation(orpc.planet.create.mutationOptions({
     context: { cache: true }, // Provide client context if needed
   // additional options...
   }))

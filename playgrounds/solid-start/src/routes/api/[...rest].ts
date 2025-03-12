@@ -25,5 +25,5 @@ async function handle({ request }: APIEvent) {
 export const GET = handle
 export const POST = handle
 export const PUT = handle
-export const PATCh = handle
+export const PATCH = handle
 export const DELETE = handle

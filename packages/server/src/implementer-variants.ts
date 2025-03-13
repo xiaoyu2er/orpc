@@ -29,11 +29,11 @@ export interface RouterImplementerWithMiddlewares<
     >
 
   router<U extends Router<T, TCurrentContext>>(
-    router: U): EnhancedRouter<U, TInitialContext, Record<never, never>>
+    router: U): EnhancedRouter<U, TInitialContext, TCurrentContext, Record<never, never>>
 
   lazy<U extends Router<T, TInitialContext>>(
     loader: () => Promise<{ default: U }>
-  ): EnhancedRouter<Lazy<U>, TInitialContext, Record<never, never>>
+  ): EnhancedRouter<Lazy<U>, TInitialContext, TCurrentContext, Record<never, never>>
 }
 
 export type ImplementerInternalWithMiddlewares<

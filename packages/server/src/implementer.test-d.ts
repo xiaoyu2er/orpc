@@ -139,7 +139,7 @@ describe('Implementer', () => {
 
     it('.router', () => {
       expectTypeOf(implementer.router(implRouter)).toEqualTypeOf<
-        EnhancedRouter<typeof implRouter, InitialContext, Record<never, never>>
+        EnhancedRouter < typeof implRouter, InitialContext, CurrentContext, Record<never, never>>
       >()
 
       implementer.router({
@@ -174,7 +174,7 @@ describe('Implementer', () => {
 
     it('.lazy', () => {
       expectTypeOf(implementer.lazy(() => Promise.resolve({ default: implRouter }))).toEqualTypeOf<
-        EnhancedRouter<Lazy<typeof implRouter>, InitialContext, Record<never, never>>
+        EnhancedRouter<Lazy<typeof implRouter>, InitialContext, CurrentContext, Record<never, never>>
       >()
 
       // @ts-expect-error - initial context is not match

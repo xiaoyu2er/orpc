@@ -1,6 +1,6 @@
 import type { AnySchema, ContractProcedureDef, ContractRouter, ErrorMap, HTTPPath, MergedErrorMap, Meta, Route, Schema } from '@orpc/contract'
 import type { BuilderWithMiddlewares, ProcedureBuilder, ProcedureBuilderWithInput, ProcedureBuilderWithOutput, RouterBuilder } from './builder-variants'
-import type { ConflictContextGuard, Context, MergedContext } from './context'
+import type { Context, ContextExtendsGuard, MergedCurrentContext, MergedInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { Lazy } from './lazy'
 import type { AnyMiddleware, MapInputMiddleware, Middleware } from './middleware'
@@ -122,26 +122,26 @@ export class Builder<
     })
   }
 
-  use<UOutContext extends Context>(
+  use<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
-      TCurrentContext,
+      UInContext,
       UOutContext,
       unknown,
       unknown,
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
-  ): ConflictContextGuard<MergedContext<TCurrentContext, UOutContext>> &
-    BuilderWithMiddlewares<
-      TInitialContext,
-      MergedContext<TCurrentContext, UOutContext>,
+  ): ContextExtendsGuard<UInContext, TCurrentContext>
+    & BuilderWithMiddlewares<
+      MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
+      MergedCurrentContext<TCurrentContext, UOutContext>,
       TInputSchema,
       TOutputSchema,
       TErrorMap,
       TMeta
     >
 
-  use<UOutContext extends Context, UInput>(
+  use<UOutContext extends Context, UInput, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
       TCurrentContext,
       UOutContext,
@@ -151,10 +151,10 @@ export class Builder<
       TMeta
     >,
     mapInput: MapInputMiddleware<unknown, UInput>,
-  ): ConflictContextGuard<MergedContext<TCurrentContext, UOutContext>> &
-    BuilderWithMiddlewares<
-      TInitialContext,
-      MergedContext<TCurrentContext, UOutContext>,
+  ): ContextExtendsGuard<UInContext, TCurrentContext>
+    & BuilderWithMiddlewares<
+      MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
+      MergedCurrentContext<TCurrentContext, UOutContext>,
       TInputSchema,
       TOutputSchema,
       TErrorMap,

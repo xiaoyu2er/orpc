@@ -13,8 +13,8 @@ export type MiddlewareNextFnOptions<TOutContext extends Context> = Record<never,
   ? { context?: TOutContext }
   : { context: TOutContext }
 
-export interface MiddlewareNextFn<TInContext extends Context, TOutput> {
-  <U extends Context & Partial<TInContext> = Record<never, never>>(
+export interface MiddlewareNextFn<TOutput> {
+  <U extends Context = Record<never, never>>(
     ...rest: MaybeOptionalOptions<MiddlewareNextFnOptions<U>>
   ): MiddlewareResult<U, TOutput>
 }
@@ -34,7 +34,7 @@ export interface MiddlewareOptions<
   procedure: Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, TMeta>
   signal?: AbortSignal
   lastEventId: string | undefined
-  next: MiddlewareNextFn<TInContext, TOutput>
+  next: MiddlewareNextFn<TOutput>
   errors: TErrorConstructorMap
 }
 

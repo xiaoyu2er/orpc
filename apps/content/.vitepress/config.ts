@@ -133,6 +133,13 @@ export default defineConfig({
           ],
         },
         {
+          text: 'Best Practices',
+          collapsed: true,
+          items: [
+            { text: 'Dedupe Middleware', link: '/docs/best-practices/dedupe-middleware' },
+          ],
+        },
+        {
           text: 'Advanced',
           collapsed: true,
           items: [

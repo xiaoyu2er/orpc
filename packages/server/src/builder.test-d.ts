@@ -432,7 +432,7 @@ describe('Builder', () => {
 
   it('.router', () => {
     expectTypeOf(builder.router(router)).toEqualTypeOf<
-      EnhancedRouter<typeof router, InitialContext, typeof baseErrorMap>
+      EnhancedRouter<typeof router, InitialContext, CurrentContext, typeof baseErrorMap>
     >()
 
     builder.router({
@@ -456,7 +456,7 @@ describe('Builder', () => {
 
   it('.lazy', () => {
     expectTypeOf(builder.lazy(() => Promise.resolve({ default: router }))).toEqualTypeOf<
-      EnhancedRouter<Lazy<typeof router>, InitialContext, typeof baseErrorMap>
+      EnhancedRouter<Lazy<typeof router>, InitialContext, CurrentContext, typeof baseErrorMap>
     >()
 
     // @ts-expect-error - initial context is not match

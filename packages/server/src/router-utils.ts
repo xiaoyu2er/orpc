@@ -1,5 +1,5 @@
 import type { AnyContractProcedure, AnyContractRouter, EnhanceRouteOptions, ErrorMap, MergedErrorMap } from '@orpc/contract'
-import type { Context } from './context'
+import type { Context, MergedInitialContext } from './context'
 import type { AnyMiddleware } from './middleware'
 import type { AnyRouter } from './router'
 import { enhanceRoute, isContractProcedure, mergeErrorMap, mergePrefix } from '@orpc/contract'
@@ -71,11 +71,16 @@ export function createAccessibleLazyRouter<T extends Lazy<AnyRouter | undefined>
   return recursive as any
 }
 
-export type EnhancedRouter<T extends Lazyable<AnyRouter>, TInitialContext extends Context, TErrorMap extends ErrorMap> =
+export type EnhancedRouter<
+  T extends Lazyable<AnyRouter>,
+  TInitialContext extends Context,
+  TCurrentContext extends Context,
+  TErrorMap extends ErrorMap,
+> =
     T extends Lazy<infer U extends AnyRouter>
-      ? AccessibleLazyRouter<EnhancedRouter<U, TInitialContext, TErrorMap>>
+      ? AccessibleLazyRouter<EnhancedRouter<U, TInitialContext, TCurrentContext, TErrorMap>>
       : T extends Procedure<
-        any,
+        infer UInitialContext,
         infer UCurrentContext,
         infer UInputSchema,
         infer UOutputSchema,
@@ -83,7 +88,7 @@ export type EnhancedRouter<T extends Lazyable<AnyRouter>, TInitialContext extend
         infer UMeta
       >
         ? Procedure<
-          TInitialContext,
+          MergedInitialContext<TInitialContext, UInitialContext, TCurrentContext>,
           UCurrentContext,
           UInputSchema,
           UOutputSchema,
@@ -91,7 +96,7 @@ export type EnhancedRouter<T extends Lazyable<AnyRouter>, TInitialContext extend
           UMeta
         >
         : {
-            [K in keyof T]: T[K] extends Lazyable<AnyRouter> ? EnhancedRouter<T[K], TInitialContext, TErrorMap> : never
+            [K in keyof T]: T[K] extends Lazyable<AnyRouter> ? EnhancedRouter<T[K], TInitialContext, TCurrentContext, TErrorMap> : never
           }
 
 export interface EnhanceRouterOptions<TErrorMap extends ErrorMap> extends EnhanceRouteOptions {
@@ -99,10 +104,15 @@ export interface EnhanceRouterOptions<TErrorMap extends ErrorMap> extends Enhanc
   errorMap: TErrorMap
 }
 
-export function enhanceRouter<T extends Lazyable<AnyRouter>, TInitialContext extends Context, TErrorMap extends ErrorMap>(
+export function enhanceRouter<
+  T extends Lazyable<AnyRouter>,
+  TInitialContext extends Context,
+  TCurrentContext extends Context,
+  TErrorMap extends ErrorMap,
+>(
   router: T,
   options: EnhanceRouterOptions<TErrorMap>,
-): EnhancedRouter<T, TInitialContext, TErrorMap> {
+): EnhancedRouter<T, TInitialContext, TCurrentContext, TErrorMap> {
   if (isLazy(router)) {
     const laziedMeta = getLazyMeta(router)
     const enhancedPrefix = laziedMeta?.prefix ? mergePrefix(options.prefix, laziedMeta?.prefix) : options.prefix

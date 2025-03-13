@@ -240,14 +240,14 @@ export class Builder<
 
   router<U extends Router<ContractRouter<TMeta>, TCurrentContext>>(
     router: U,
-  ): EnhancedRouter<U, TInitialContext, TErrorMap> {
+  ): EnhancedRouter<U, TInitialContext, TCurrentContext, TErrorMap> {
     return enhanceRouter(router, this['~orpc'])
   }
 
   lazy<U extends Router<ContractRouter<TMeta>, TCurrentContext>>(
     loader: () => Promise<{ default: U }>,
-  ): EnhancedRouter<Lazy<U>, TInitialContext, TErrorMap> {
-    return enhanceRouter(lazy(loader), this['~orpc'])
+  ): EnhancedRouter<Lazy<U>, TInitialContext, TCurrentContext, TErrorMap> {
+    return enhanceRouter(lazy(loader), this['~orpc']) as any
   }
 }
 

@@ -39,7 +39,7 @@ export interface BuilderWithMiddlewares<
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
-  ): ContextExtendsGuard<UInContext, TCurrentContext>
+  ): ContextExtendsGuard<TCurrentContext, UInContext>
     & BuilderWithMiddlewares<
       MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
       MergedCurrentContext<TCurrentContext, UOutContext>,
@@ -112,7 +112,7 @@ export interface ProcedureBuilder<
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
-  ): ContextExtendsGuard<UInContext, TCurrentContext>
+  ): ContextExtendsGuard<TCurrentContext, UInContext>
     & ProcedureBuilder<
       MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
       MergedCurrentContext<TCurrentContext, UOutContext>,
@@ -166,7 +166,7 @@ export interface ProcedureBuilderWithInput<
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
-  ): ContextExtendsGuard<UInContext, TCurrentContext>
+  ): ContextExtendsGuard<TCurrentContext, UInContext>
     & ProcedureBuilderWithInput<
       MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
       MergedCurrentContext<TCurrentContext, UOutContext>,
@@ -186,7 +186,7 @@ export interface ProcedureBuilderWithInput<
       TMeta
     >,
     mapInput: MapInputMiddleware<InferSchemaOutput<TInputSchema>, UInput>,
-  ): ContextExtendsGuard<UInContext, TCurrentContext>
+  ): ContextExtendsGuard<TCurrentContext, UInContext>
     & ProcedureBuilderWithInput<
       MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
       MergedCurrentContext<TCurrentContext, UOutContext>,
@@ -243,7 +243,7 @@ export interface ProcedureBuilderWithOutput<
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
-  ): ContextExtendsGuard<UInContext, TCurrentContext>
+  ): ContextExtendsGuard<TCurrentContext, UInContext>
     & ProcedureBuilderWithOutput<
       MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
       MergedCurrentContext<TCurrentContext, UOutContext>,
@@ -293,7 +293,7 @@ export interface ProcedureBuilderWithInputOutput<
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
-  ): ContextExtendsGuard<UInContext, TCurrentContext>
+  ): ContextExtendsGuard<TCurrentContext, UInContext>
     & ProcedureBuilderWithInputOutput<
       MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
       MergedCurrentContext<TCurrentContext, UOutContext>,
@@ -313,7 +313,7 @@ export interface ProcedureBuilderWithInputOutput<
       TMeta
     >,
     mapInput: MapInputMiddleware<InferSchemaOutput<TInputSchema>, UInput>,
-  ): ContextExtendsGuard<UInContext, TCurrentContext>
+  ): ContextExtendsGuard<TCurrentContext, UInContext>
     & ProcedureBuilderWithInputOutput<
       MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
       MergedCurrentContext<TCurrentContext, UOutContext>,
@@ -357,7 +357,7 @@ export interface RouterBuilder<
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
-  ): ContextExtendsGuard<UInContext, TCurrentContext>
+  ): ContextExtendsGuard<TCurrentContext, UInContext>
     & RouterBuilder<
       MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
       MergedCurrentContext<TCurrentContext, UOutContext>,

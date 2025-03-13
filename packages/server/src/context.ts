@@ -15,5 +15,4 @@ export function mergeCurrentContext<T extends Context, U extends Context>(
   return { ...context, ...other }
 }
 
-export type ContextExtendsGuard<T extends Context, U extends Context> =
-  ((c: T & U) => any) extends ((c: U) => any) ? unknown : never
+export type ContextExtendsGuard<T extends Context, U extends Context> = T extends T & U ? unknown : never

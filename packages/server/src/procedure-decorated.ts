@@ -62,8 +62,8 @@ export class DecoratedProcedure<
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
-  ): ContextExtendsGuard<UInContext, TCurrentContext>
-    & ContextExtendsGuard<TCurrentContext, MergedCurrentContext<TCurrentContext, UOutContext>>
+  ): ContextExtendsGuard<TCurrentContext, UInContext>
+    & ContextExtendsGuard<MergedCurrentContext<TCurrentContext, UOutContext>, TCurrentContext>
     & DecoratedProcedure<
       MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
       MergedCurrentContext<TCurrentContext, UOutContext>,
@@ -83,8 +83,8 @@ export class DecoratedProcedure<
       TMeta
     >,
     mapInput: MapInputMiddleware<InferSchemaOutput<TInputSchema>, UInput>,
-  ): ContextExtendsGuard<UInContext, TCurrentContext>
-    & ContextExtendsGuard<TCurrentContext, MergedCurrentContext<TCurrentContext, UOutContext>>
+  ): ContextExtendsGuard<TCurrentContext, UInContext>
+    & ContextExtendsGuard<MergedCurrentContext<TCurrentContext, UOutContext>, TCurrentContext>
     & DecoratedProcedure<
       MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
       MergedCurrentContext<TCurrentContext, UOutContext>,

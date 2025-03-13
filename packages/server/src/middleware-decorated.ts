@@ -24,7 +24,7 @@ export interface DecoratedMiddleware<
       TErrorConstructorMap,
       TMeta
     >,
-  ): ContextExtendsGuard<UInContext, MergedCurrentContext<TInContext, TOutContext>>
+  ): ContextExtendsGuard<MergedCurrentContext<TInContext, TOutContext>, UInContext>
     & DecoratedMiddleware<
       MergedInitialContext<TInContext, UInContext, MergedCurrentContext<TInContext, TOutContext>>,
       MergedCurrentContext<TOutContext, UOutContext>,
@@ -48,7 +48,7 @@ export interface DecoratedMiddleware<
       TMeta
     >,
     mapInput: MapInputMiddleware<TInput, UMappedInput>,
-  ): ContextExtendsGuard<UInContext, MergedCurrentContext<TInContext, TOutContext>>
+  ): ContextExtendsGuard<MergedCurrentContext<TInContext, TOutContext>, UInContext>
     & DecoratedMiddleware<
       MergedInitialContext<TInContext, UInContext, MergedCurrentContext<TInContext, TOutContext>>,
       MergedCurrentContext<TOutContext, UOutContext>,

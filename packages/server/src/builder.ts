@@ -131,7 +131,7 @@ export class Builder<
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
-  ): ContextExtendsGuard<UInContext, TCurrentContext>
+  ): ContextExtendsGuard<TCurrentContext, UInContext>
     & BuilderWithMiddlewares<
       MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
       MergedCurrentContext<TCurrentContext, UOutContext>,
@@ -151,7 +151,7 @@ export class Builder<
       TMeta
     >,
     mapInput: MapInputMiddleware<unknown, UInput>,
-  ): ContextExtendsGuard<UInContext, TCurrentContext>
+  ): ContextExtendsGuard<TCurrentContext, UInContext>
     & BuilderWithMiddlewares<
       MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
       MergedCurrentContext<TCurrentContext, UOutContext>,

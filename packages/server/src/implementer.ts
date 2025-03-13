@@ -41,7 +41,7 @@ export interface RouterImplementer<
       ORPCErrorConstructorMap<InferContractRouterErrorMap<T>>,
       InferContractRouterMeta<T>
     >,
-  ): ContextExtendsGuard<UInContext, TCurrentContext>
+  ): ContextExtendsGuard<TCurrentContext, UInContext>
     & ImplementerInternalWithMiddlewares<
       T,
       MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,

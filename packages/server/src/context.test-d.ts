@@ -16,13 +16,16 @@ interface Empty {
 }
 
 it('ContextExtendsGuard', () => {
-  expectTypeOf<ContextExtendsGuard<{ a: string }, { a: string, b: string }>>().toEqualTypeOf<unknown>()
+  expectTypeOf < ContextExtendsGuard< { a: string, b: string }, { a: string }>>().toEqualTypeOf<unknown>()
   expectTypeOf<ContextExtendsGuard<{ a: string }, { a: string }>>().toEqualTypeOf<unknown>()
-  expectTypeOf<ContextExtendsGuard<Empty, { a: string, b: string }>>().toEqualTypeOf<unknown>()
-  expectTypeOf<ContextExtendsGuard<Record<never, never>, { a: string, b: string }>>().toEqualTypeOf<unknown>()
-  expectTypeOf<ContextExtendsGuard<{ g?: string }, { a: string, b: string }>>().toEqualTypeOf<unknown>()
+  expectTypeOf < ContextExtendsGuard< { a: string, b: string }, Empty>>().toEqualTypeOf<unknown>()
+  expectTypeOf < ContextExtendsGuard< { a: string, b: string }, Record<never, never>>>().toEqualTypeOf<unknown>()
+  expectTypeOf < ContextExtendsGuard< { a: string, b: string }, { g?: string }>>().toEqualTypeOf<unknown>()
+  expectTypeOf<ContextExtendsGuard<Empty, { a?: string }>>().toEqualTypeOf<unknown>()
+  expectTypeOf<ContextExtendsGuard<{ b: string }, { a?: string }>>().toEqualTypeOf<unknown>()
+  expectTypeOf<ContextExtendsGuard<{ b?: string }, { a?: string }>>().toEqualTypeOf<unknown>()
 
-  expectTypeOf<ContextExtendsGuard<{ a: string, b: string }, { a: string }>>().toEqualTypeOf<never>()
-  expectTypeOf<ContextExtendsGuard<{ a: string }, { a: number }>>().toEqualTypeOf<never>()
-  expectTypeOf<ContextExtendsGuard<{ a: string }, Empty>>().toEqualTypeOf<never>()
+  expectTypeOf < ContextExtendsGuard < { a: string }, { a: string, b: string }>>().toEqualTypeOf<never>()
+  expectTypeOf < ContextExtendsGuard < { a: number }, { a: string }>>().toEqualTypeOf<never>()
+  expectTypeOf<ContextExtendsGuard<Empty, { a: string }>>().toEqualTypeOf<never>()
 })

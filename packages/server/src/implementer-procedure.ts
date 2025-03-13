@@ -28,8 +28,8 @@ export interface ImplementedProcedure<
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
-  ): ContextExtendsGuard<UInContext, TCurrentContext>
-    & ContextExtendsGuard<TCurrentContext, MergedCurrentContext<TCurrentContext, UOutContext>>
+  ): ContextExtendsGuard<TCurrentContext, UInContext>
+    & ContextExtendsGuard<MergedCurrentContext<TCurrentContext, UOutContext>, TCurrentContext>
     & ImplementedProcedure<
       MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
       MergedCurrentContext<TCurrentContext, UOutContext>,
@@ -49,8 +49,8 @@ export interface ImplementedProcedure<
       TMeta
     >,
     mapInput: MapInputMiddleware<InferSchemaOutput<TInputSchema>, UInput>,
-  ): ContextExtendsGuard<UInContext, TCurrentContext>
-    & ContextExtendsGuard<TCurrentContext, MergedCurrentContext<TCurrentContext, UOutContext>>
+  ): ContextExtendsGuard<TCurrentContext, UInContext>
+    & ContextExtendsGuard<MergedCurrentContext<TCurrentContext, UOutContext>, TCurrentContext>
     & ImplementedProcedure<
       MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
       MergedCurrentContext<TCurrentContext, UOutContext>,
@@ -117,7 +117,7 @@ export interface ProcedureImplementer<
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
-  ): ContextExtendsGuard<UInContext, TCurrentContext>
+  ): ContextExtendsGuard<TCurrentContext, UInContext>
     & ProcedureImplementer<
       MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
       MergedCurrentContext<TCurrentContext, UOutContext>,
@@ -137,7 +137,7 @@ export interface ProcedureImplementer<
       TMeta
     >,
     mapInput: MapInputMiddleware<InferSchemaOutput<TInputSchema>, UInput>,
-  ): ContextExtendsGuard<UInContext, TCurrentContext>
+  ): ContextExtendsGuard<TCurrentContext, UInContext>
     & ProcedureImplementer<
       MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
       MergedCurrentContext<TCurrentContext, UOutContext>,

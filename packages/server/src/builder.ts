@@ -143,7 +143,7 @@ export class Builder<
 
   use<UOutContext extends Context, UInput, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
-      TCurrentContext,
+      UInContext,
       UOutContext,
       UInput,
       unknown,

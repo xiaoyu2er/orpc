@@ -50,7 +50,7 @@ export interface DecoratedMiddleware<
     mapInput: MapInputMiddleware<TInput, UMappedInput>,
   ): ContextExtendsGuard<UInContext, MergedCurrentContext<TInContext, TOutContext>>
     & DecoratedMiddleware<
-      MergedInitialContext<TInContext, UInContext, TOutContext>,
+      MergedInitialContext<TInContext, UInContext, MergedCurrentContext<TInContext, TOutContext>>,
       MergedCurrentContext<TOutContext, UOutContext>,
       TInput,
       TOutput,

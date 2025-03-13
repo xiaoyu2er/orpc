@@ -1,13 +1,13 @@
 import type { AnySchema, ErrorMap, Meta, Schema } from '@orpc/contract'
 import type { baseErrorMap, BaseMeta, inputSchema, outputSchema, router } from '../../contract/tests/shared'
 import type { CurrentContext, InitialContext } from '../tests/shared'
-import type { Context, MergedContext } from './context'
+import type { Context, MergedCurrentContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { Implementer } from './implementer'
 import type { ProcedureImplementer } from './implementer-procedure'
 import type { ImplementerInternalWithMiddlewares } from './implementer-variants'
 import type { Lazy } from './lazy'
-import type { MiddlewareOutputFn } from './middleware'
+import type { Middleware, MiddlewareOutputFn } from './middleware'
 import type { DecoratedMiddleware } from './middleware-decorated'
 import type { Procedure } from './procedure'
 import type { EnhancedRouter } from './router-utils'
@@ -88,37 +88,53 @@ describe('Implementer', () => {
       })
     })
 
-    it('.use', () => {
-      const applied = implementer.nested.use(({ context, next, path, procedure, errors, signal }, input, output) => {
-        expectTypeOf(input).toEqualTypeOf<unknown>()
-        expectTypeOf(context).toEqualTypeOf<CurrentContext>()
-        expectTypeOf(path).toEqualTypeOf<readonly string[]>()
-        expectTypeOf(procedure).toEqualTypeOf<
-          Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta | Meta>
-        >()
-        expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<unknown>>()
-        expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap | Record<never, never>>>()
-        expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
+    describe('.use', () => {
+      it('without map input', () => {
+        const applied = implementer.nested.use(({ context, next, path, procedure, errors, signal }, input, output) => {
+          expectTypeOf(input).toEqualTypeOf<unknown>()
+          expectTypeOf(context).toEqualTypeOf<CurrentContext>()
+          expectTypeOf(path).toEqualTypeOf<readonly string[]>()
+          expectTypeOf(procedure).toEqualTypeOf<
+            Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta | Meta>
+          >()
+          expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<unknown>>()
+          expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap | Record<never, never>>>()
+          expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
 
-        return next({
-          context: {
-            extra: true,
-          },
+          return next({
+            context: {
+              extra: true,
+            },
+          })
         })
+
+        expectTypeOf(applied).toEqualTypeOf<
+          ImplementerInternalWithMiddlewares<
+            typeof router['nested'],
+            InitialContext & Record<never, never>,
+            MergedCurrentContext<CurrentContext, { extra: boolean }>
+          >
+        >()
+
+        // invalid TInContext
+        expectTypeOf(implementer.nested.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)).toEqualTypeOf<never>()
+        // @ts-expect-error --- input is not match
+        implementer.use(({ next }, input: 'invalid') => next({}))
+        // @ts-expect-error --- output is not match
+        implementer.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}))
       })
 
-      expectTypeOf(applied).toMatchTypeOf<
-        ImplementerInternalWithMiddlewares<typeof router['nested'], InitialContext, MergedContext<CurrentContext, { extra: boolean }>>
-      >()
+      it('with TInContext', () => {
+        const mid = {} as Middleware<{ cacheable?: boolean }, Record<never, never>, unknown, unknown, ORPCErrorConstructorMap<any>, BaseMeta>
 
-      // @ts-expect-error --- conflict context
-      implementer.use(({ next }) => next({ context: { db: 123 } }))
-      // conflict but not detected
-      expectTypeOf(implementer.use(({ next }) => next({ context: { db: undefined } }))).toMatchTypeOf<never>()
-      // @ts-expect-error --- input is not match
-      implementer.use(({ next }, input: 'invalid') => next({}))
-      // @ts-expect-error --- output is not match
-      implementer.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}))
+        expectTypeOf(implementer.use(mid)).toEqualTypeOf<
+          ImplementerInternalWithMiddlewares<
+            typeof router,
+            InitialContext & { cacheable?: boolean },
+            Omit<CurrentContext, never> & Record<never, never>
+          >
+        >()
+      })
     })
 
     it('.router', () => {

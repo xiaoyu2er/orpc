@@ -7,7 +7,6 @@ import type { ORPCErrorConstructorMap } from './error'
 import type { MapInputMiddleware, Middleware } from './middleware'
 import type { Procedure, ProcedureHandler } from './procedure'
 import type { CreateProcedureClientOptions, ProcedureClient } from './procedure-client'
-import type { DecoratedProcedure } from './procedure-decorated'
 
 /**
  * Like `DecoratedProcedure`, but removed all method that can change the contract.
@@ -31,7 +30,7 @@ export interface ImplementedProcedure<
     >,
   ): ContextExtendsGuard<UInContext, TCurrentContext>
     & ContextExtendsGuard<TCurrentContext, MergedCurrentContext<TCurrentContext, UOutContext>>
-    & DecoratedProcedure<
+    & ImplementedProcedure<
       MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
       MergedCurrentContext<TCurrentContext, UOutContext>,
       TInputSchema,
@@ -52,7 +51,7 @@ export interface ImplementedProcedure<
     mapInput: MapInputMiddleware<InferSchemaOutput<TInputSchema>, UInput>,
   ): ContextExtendsGuard<UInContext, TCurrentContext>
     & ContextExtendsGuard<TCurrentContext, MergedCurrentContext<TCurrentContext, UOutContext>>
-    & DecoratedProcedure<
+    & ImplementedProcedure<
       MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
       MergedCurrentContext<TCurrentContext, UOutContext>,
       TInputSchema,

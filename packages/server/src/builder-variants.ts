@@ -105,7 +105,7 @@ export interface ProcedureBuilder<
 
   'use'<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
-      TCurrentContext,
+      UInContext,
       UOutContext,
       unknown,
       unknown,
@@ -159,7 +159,7 @@ export interface ProcedureBuilderWithInput<
 
   'use'<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
-      TCurrentContext,
+      UInContext,
       UOutContext,
       InferSchemaOutput<TInputSchema>,
       unknown,
@@ -178,7 +178,7 @@ export interface ProcedureBuilderWithInput<
 
   'use'<UOutContext extends Context, UInput, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
-      TCurrentContext,
+      UInContext,
       UOutContext,
       UInput,
       unknown,
@@ -236,7 +236,7 @@ export interface ProcedureBuilderWithOutput<
 
   'use'<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
-      TCurrentContext,
+      UInContext,
       UOutContext,
       unknown,
       InferSchemaInput<TOutputSchema>,
@@ -286,7 +286,7 @@ export interface ProcedureBuilderWithInputOutput<
 
   'use'<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
-      TCurrentContext,
+      UInContext,
       UOutContext,
       InferSchemaOutput<TInputSchema>,
       InferSchemaInput<TOutputSchema>,
@@ -305,7 +305,7 @@ export interface ProcedureBuilderWithInputOutput<
 
   'use'<UOutContext extends Context, UInput, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
-      TCurrentContext,
+      UInContext,
       UOutContext,
       UInput,
       InferSchemaInput<TOutputSchema>,
@@ -350,7 +350,7 @@ export interface RouterBuilder<
 
   'use'<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
-      TCurrentContext,
+      UInContext,
       UOutContext,
       unknown,
       unknown,

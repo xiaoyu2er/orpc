@@ -63,7 +63,7 @@ describe('queryOptions', () => {
     const client = vi.fn((...[input]) => Promise.resolve(input?.toString()))
     const utils = createProcedureUtils(client, { path: ['ping'] })
 
-    const options = utils.queryOptions({ context: { batch: ref(true) } }) as any
+    const options = utils.queryOptions({ context: ref({ batch: true }) }) as any
 
     expect(options.key.value).toEqual(['__mocked__'])
     expect(buildKeySpy).toHaveBeenCalledTimes(1)
@@ -105,7 +105,7 @@ describe('mutationOptions', () => {
     )
     const utils = createProcedureUtils(client, { path: ['ping'] })
 
-    const options = utils.mutationOptions({ context: { batch: ref(true) } }) as any
+    const options = utils.mutationOptions({ context: ref({ batch: true }) }) as any
 
     expect(options.key('__input__')).toEqual(['__mocked__'])
     expect(buildKeySpy).toHaveBeenCalledTimes(1)

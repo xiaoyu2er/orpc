@@ -18,7 +18,7 @@ it('case: with useQuery', async () => {
       const id = ref(123)
 
       const queryCache = useQueryCache()
-      const query = useQuery(orpc.nested.ping.queryOptions({ input: computed(() => ({ input: id })) }))
+      const query = useQuery(orpc.nested.ping.queryOptions({ input: computed(() => ({ input: id.value })) }))
 
       const setId = (value: number) => {
         id.value = value

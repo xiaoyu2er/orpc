@@ -2,9 +2,8 @@ import type { Client, ClientContext } from '@orpc/client'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { _EmptyObject } from '@pinia/colada'
 import type { MutationOptions, MutationOptionsIn, QueryOptions, QueryOptionsIn } from './types'
-import { computed } from 'vue'
+import { computed, toValue } from 'vue'
 import { buildKey } from './key'
-import { unrefDeep } from './utils'
 
 export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError extends Error> {
   call: Client<TClientContext, TInput, TOutput, TError>
@@ -35,8 +34,8 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
 
     queryOptions(...[{ input, context, ...rest } = {}]) {
       return {
-        key: computed(() => buildKey(options.path, { input: unrefDeep(input) })),
-        query: ({ signal }) => client(unrefDeep(input) as any, { signal, context: unrefDeep(context) as any }),
+        key: computed(() => buildKey(options.path, { input: toValue(input) })),
+        query: ({ signal }) => client(toValue(input) as any, { signal, context: toValue(context) as any }),
         ...(rest as any),
       }
     },
@@ -44,7 +43,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
     mutationOptions(...[{ context, ...rest } = {}]) {
       return {
         key: input => buildKey(options.path, { input }),
-        mutation: input => client(input, { context: unrefDeep(context) as any }),
+        mutation: input => client(input, { context: toValue(context) as any }),
         ...(rest as any),
       }
     },

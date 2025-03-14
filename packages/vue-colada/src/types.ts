@@ -1,27 +1,19 @@
 import type { ClientContext } from '@orpc/client'
-import type { AnyFunction, SetOptional } from '@orpc/shared'
+import type { SetOptional } from '@orpc/shared'
 import type { UseMutationOptions, UseQueryOptions } from '@pinia/colada'
-import type { MaybeRef } from 'vue'
-
-export type MaybeRefDeep<T> = MaybeRef<
-  T extends AnyFunction
-    ? T
-    : T extends object
-      ? { [K in keyof T]: MaybeRefDeep<T[K]> }
-      : T
->
+import type { MaybeRefOrGetter } from 'vue'
 
 export type UseQueryFnContext = Parameters<UseQueryOptions<any>['query']>[0]
 
 export type QueryOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError extends Error, TInitialData extends TOutput | undefined> =
-  & (undefined extends TInput ? { input?: MaybeRefDeep<TInput> } : { input: MaybeRefDeep<TInput> })
-  & (Record<never, never> extends TClientContext ? { context?: MaybeRefDeep<TClientContext> } : { context: MaybeRefDeep<TClientContext> })
+  & (undefined extends TInput ? { input?: MaybeRefOrGetter<TInput> } : { input: MaybeRefOrGetter<TInput> })
+  & (Record<never, never> extends TClientContext ? { context?: MaybeRefOrGetter<TClientContext> } : { context: MaybeRefOrGetter<TClientContext> })
   & SetOptional<QueryOptions<TOutput, TError, TInitialData>, 'key' | 'query'>
 
 export type QueryOptions<TOutput, TError extends Error, TInitialData extends TOutput | undefined> = UseQueryOptions<TOutput, TError, TInitialData>
 
 export type MutationOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError extends Error, TMutationContext extends Record<any, any>> =
-  & (Record<never, never> extends TClientContext ? { context?: MaybeRefDeep<TClientContext> } : { context: MaybeRefDeep<TClientContext> })
+  & (Record<never, never> extends TClientContext ? { context?: MaybeRefOrGetter<TClientContext> } : { context: MaybeRefOrGetter<TClientContext> })
   & SetOptional<UseMutationOptions<TOutput, TInput, TError, TMutationContext>, 'mutation'>
 
 export type MutationOptions<TInput, TOutput, TError extends Error, TMutationContext extends Record<any, any>> = UseMutationOptions<TOutput, TInput, TError, TMutationContext>

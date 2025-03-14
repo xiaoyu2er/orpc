@@ -1,6 +1,6 @@
 import { isDefinedError } from '@orpc/client'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { orpc as client } from '../../client/tests/shared'
 import { orpc } from './shared'
 
@@ -23,7 +23,7 @@ it('.call', () => {
 describe('.queryOptions', () => {
   it('useQuery', () => {
     const query = useQuery(orpc.ping.queryOptions({
-      input: computed(() => ({ input: ref(123) })),
+      input: computed(() => ({ input: 123 })),
     }))
 
     if (isDefinedError(query.error.value) && query.error.value.code === 'OVERRIDE') {

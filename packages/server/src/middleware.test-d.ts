@@ -23,7 +23,7 @@ describe('middleware', () => {
       >()
       expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
       expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<{ output: string }>>()
-      expectTypeOf(next).toEqualTypeOf<MiddlewareNextFn<{ auth: boolean }, { output: string }>>()
+      expectTypeOf(next).toEqualTypeOf<MiddlewareNextFn<{ output: string }>>()
       expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
 
       return next()

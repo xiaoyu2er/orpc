@@ -1,17 +1,18 @@
-import type { IsNever } from '@orpc/shared'
-
 export type Context = Record<string, any>
 
-export type MergedContext<T extends Context, U extends Context> = T & U
+export type MergedInitialContext<
+  TInitial extends Context,
+  TAdditional extends Context,
+  TCurrent extends Context,
+> = TInitial & Omit<TAdditional, keyof TCurrent>
 
-export function mergeContext<T extends Context, U extends Context>(
+export type MergedCurrentContext<T extends Context, U extends Context> = Omit<T, keyof U> & U
+
+export function mergeCurrentContext<T extends Context, U extends Context>(
   context: T,
   other: U,
-): MergedContext<T, U> {
+): MergedCurrentContext<T, U> {
   return { ...context, ...other }
 }
 
-export type ConflictContextGuard<T extends Context> =
-    true extends IsNever<T> | { [K in keyof T]: IsNever<T[K]> }[keyof T]
-      ? never // 'Conflict context detected: Please ensure your middlewares do not return conflicting context'
-      : unknown
+export type ContextExtendsGuard<T extends Context, U extends Context> = T extends T & U ? unknown : never

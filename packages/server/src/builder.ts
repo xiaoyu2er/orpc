@@ -1,6 +1,6 @@
 import type { AnySchema, ContractProcedureDef, ContractRouter, ErrorMap, HTTPPath, MergedErrorMap, Meta, Route, Schema } from '@orpc/contract'
 import type { BuilderWithMiddlewares, ProcedureBuilder, ProcedureBuilderWithInput, ProcedureBuilderWithOutput, RouterBuilder } from './builder-variants'
-import type { ConflictContextGuard, Context, MergedContext } from './context'
+import type { Context, ContextExtendsGuard, MergedCurrentContext, MergedInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { Lazy } from './lazy'
 import type { AnyMiddleware, MapInputMiddleware, Middleware } from './middleware'
@@ -122,28 +122,28 @@ export class Builder<
     })
   }
 
-  use<UOutContext extends Context>(
+  use<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
-      TCurrentContext,
+      UInContext,
       UOutContext,
       unknown,
       unknown,
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
-  ): ConflictContextGuard<MergedContext<TCurrentContext, UOutContext>> &
-    BuilderWithMiddlewares<
-      TInitialContext,
-      MergedContext<TCurrentContext, UOutContext>,
+  ): ContextExtendsGuard<TCurrentContext, UInContext>
+    & BuilderWithMiddlewares<
+      MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
+      MergedCurrentContext<TCurrentContext, UOutContext>,
       TInputSchema,
       TOutputSchema,
       TErrorMap,
       TMeta
     >
 
-  use<UOutContext extends Context, UInput>(
+  use<UOutContext extends Context, UInput, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
-      TCurrentContext,
+      UInContext,
       UOutContext,
       UInput,
       unknown,
@@ -151,10 +151,10 @@ export class Builder<
       TMeta
     >,
     mapInput: MapInputMiddleware<unknown, UInput>,
-  ): ConflictContextGuard<MergedContext<TCurrentContext, UOutContext>> &
-    BuilderWithMiddlewares<
-      TInitialContext,
-      MergedContext<TCurrentContext, UOutContext>,
+  ): ContextExtendsGuard<TCurrentContext, UInContext>
+    & BuilderWithMiddlewares<
+      MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
+      MergedCurrentContext<TCurrentContext, UOutContext>,
       TInputSchema,
       TOutputSchema,
       TErrorMap,
@@ -240,14 +240,14 @@ export class Builder<
 
   router<U extends Router<ContractRouter<TMeta>, TCurrentContext>>(
     router: U,
-  ): EnhancedRouter<U, TInitialContext, TErrorMap> {
+  ): EnhancedRouter<U, TInitialContext, TCurrentContext, TErrorMap> {
     return enhanceRouter(router, this['~orpc'])
   }
 
   lazy<U extends Router<ContractRouter<TMeta>, TCurrentContext>>(
     loader: () => Promise<{ default: U }>,
-  ): EnhancedRouter<Lazy<U>, TInitialContext, TErrorMap> {
-    return enhanceRouter(lazy(loader), this['~orpc'])
+  ): EnhancedRouter<Lazy<U>, TInitialContext, TCurrentContext, TErrorMap> {
+    return enhanceRouter(lazy(loader), this['~orpc']) as any
   }
 }
 

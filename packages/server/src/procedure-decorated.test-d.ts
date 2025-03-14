@@ -4,7 +4,7 @@ import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../../co
 import type { CurrentContext, InitialContext } from '../tests/shared'
 import type { Context } from './context'
 import type { ORPCErrorConstructorMap } from './error'
-import type { MiddlewareOutputFn } from './middleware'
+import type { Middleware, MiddlewareOutputFn } from './middleware'
 import type { Procedure } from './procedure'
 import type { DecoratedProcedure } from './procedure-decorated'
 
@@ -109,8 +109,8 @@ describe('DecoratedProcedure', () => {
 
       expectTypeOf(applied).toEqualTypeOf<
         DecoratedProcedure<
-          InitialContext,
-          CurrentContext & { extra: boolean },
+          InitialContext & Record<never, never>,
+          Omit<CurrentContext, 'extra'> & { extra: boolean },
           typeof inputSchema,
           typeof outputSchema,
           typeof baseErrorMap,
@@ -118,8 +118,8 @@ describe('DecoratedProcedure', () => {
         >
       >()
 
-      // @ts-expect-error --- conflict context
-      builder.use(({ next }) => next({ context: { db: 123 } }))
+      // invalid TInContext
+      expectTypeOf(builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)).toEqualTypeOf<never>()
       // @ts-expect-error --- input is not match
       builder.use(({ next }, input: 'invalid') => next({}))
       // @ts-expect-error --- output is not match
@@ -148,8 +148,8 @@ describe('DecoratedProcedure', () => {
 
       expectTypeOf(applied).toEqualTypeOf<
         DecoratedProcedure<
-          InitialContext,
-          CurrentContext & { extra: boolean },
+          InitialContext & Record<never, never>,
+          Omit<CurrentContext, 'extra'> & { extra: boolean },
           typeof inputSchema,
           typeof outputSchema,
           typeof baseErrorMap,
@@ -157,14 +157,40 @@ describe('DecoratedProcedure', () => {
         >
       >()
 
-      // @ts-expect-error --- conflict context
-      builder.use(({ next }) => ({ context: { db: 123 } }), () => {})
+      // invalid TInContext
+      expectTypeOf(builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>, () => { })).toEqualTypeOf<never>()
       // @ts-expect-error --- input is not match
       builder.use(({ next }, input: 'invalid') => next({}), () => {})
       // @ts-expect-error --- output is not match
       builder.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}), () => {})
       // conflict context but not detected
       expectTypeOf(builder.use(({ next }) => next({ context: { db: undefined } }), () => {})).toEqualTypeOf<never>()
+    })
+
+    it('with TInContext', () => {
+      const mid = {} as Middleware<{ cacheable?: boolean }, Record<never, never>, unknown, any, ORPCErrorConstructorMap<any>, BaseMeta>
+
+      expectTypeOf(builder.use(mid)).toEqualTypeOf<
+        DecoratedProcedure<
+          InitialContext & { cacheable?: boolean },
+          Omit<CurrentContext, never> & Record<never, never>,
+          typeof inputSchema,
+          typeof outputSchema,
+          typeof baseErrorMap,
+          BaseMeta
+        >
+      >()
+
+      expectTypeOf(builder.use(mid, () => { })).toEqualTypeOf<
+        DecoratedProcedure<
+          InitialContext & { cacheable?: boolean },
+          Omit<CurrentContext, never> & Record<never, never>,
+          typeof inputSchema,
+          typeof outputSchema,
+          typeof baseErrorMap,
+          BaseMeta
+        >
+      >()
     })
   })
 

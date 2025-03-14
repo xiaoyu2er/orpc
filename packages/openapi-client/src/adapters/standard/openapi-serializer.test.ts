@@ -1,5 +1,6 @@
 import { ORPCError } from '@orpc/contract'
 import { ErrorEvent, getEventMeta, withEventMeta } from '@orpc/standard-server'
+import { BracketNotationSerializer } from './bracket-notation'
 import { OpenAPIJsonSerializer } from './openapi-json-serializer'
 import { OpenAPISerializer } from './openapi-serializer'
 
@@ -13,7 +14,7 @@ describe('openAPISerializer', () => {
 
   const openapiSerializer = new OpenAPISerializer({
     serialize,
-  } as any)
+  } as any, new BracketNotationSerializer())
 
   describe('.serialize', () => {
     it('with undefined', () => {
@@ -344,9 +345,5 @@ describe('openAPISerializer', () => {
         })
       })
     })
-  })
-
-  it('fallback to JSONSerializer', async () => {
-    const openapiSerializer = new OpenAPISerializer()
   })
 })

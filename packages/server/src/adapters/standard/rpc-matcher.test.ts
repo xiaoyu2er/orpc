@@ -4,11 +4,11 @@ import { os } from '../../builder'
 import { implement } from '../../implementer'
 import { unlazy } from '../../lazy'
 import { Procedure } from '../../procedure'
-import { RPCMatcher } from './rpc-matcher'
+import { StandardRPCMatcher } from './rpc-matcher'
 
-describe('rpcMatcher', () => {
+describe('standardRPCMatcher', () => {
   it('with router', async () => {
-    const rpcMatcher = new RPCMatcher()
+    const rpcMatcher = new StandardRPCMatcher()
     rpcMatcher.init(router)
 
     expect(await rpcMatcher.match('ANYTHING', '/ping')).toEqual({
@@ -36,7 +36,7 @@ describe('rpcMatcher', () => {
   })
 
   it('with implemented router', async () => {
-    const rpcMatcher = new RPCMatcher()
+    const rpcMatcher = new StandardRPCMatcher()
     rpcMatcher.init(implement(contract).$context<any>().router({
       ...router,
       pong: new Procedure({
@@ -78,7 +78,7 @@ describe('rpcMatcher', () => {
   })
 
   it('with missing implementation', async () => {
-    const rpcMatcher = new RPCMatcher()
+    const rpcMatcher = new StandardRPCMatcher()
     rpcMatcher.init(implement(contract).$context<any>().router({
       ...router,
       pong: undefined as any, // missing here
@@ -110,7 +110,7 @@ describe('rpcMatcher', () => {
     const pingLoader = vi.fn(() => Promise.resolve({ default: ping }))
     const pongLoader = vi.fn(() => Promise.resolve({ default: pong }))
 
-    const rpcMatcher = new RPCMatcher()
+    const rpcMatcher = new StandardRPCMatcher()
 
     const base = os.$context<any>()
 

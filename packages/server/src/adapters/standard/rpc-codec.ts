@@ -5,7 +5,7 @@ import type { AnyProcedure } from '../../procedure'
 import type { StandardCodec, StandardParams } from './types'
 import { parseEmptyableJSON } from '@orpc/shared'
 
-export class RPCCodec implements StandardCodec {
+export class StandardRPCCodec implements StandardCodec {
   constructor(
     private readonly serializer: RPCSerializer,
   ) {

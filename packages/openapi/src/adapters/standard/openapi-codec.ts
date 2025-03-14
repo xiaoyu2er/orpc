@@ -6,7 +6,7 @@ import type { StandardBody, StandardHeaders, StandardLazyRequest, StandardRespon
 import { fallbackContractConfig } from '@orpc/contract'
 import { isObject } from '@orpc/shared'
 
-export class OpenAPICodec implements StandardCodec {
+export class StandardOpenAPICodec implements StandardCodec {
   constructor(
     private readonly serializer: OpenAPISerializer,
   ) {

@@ -1,19 +1,19 @@
 import { ORPCError } from '@orpc/contract'
 import { Procedure } from '@orpc/server'
 import { ping } from '../../../../server/tests/shared'
-import { OpenAPICodec } from './openapi-codec'
+import { StandardOpenAPICodec } from './openapi-codec'
 
 beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe('openAPICodec', () => {
+describe('standardOpenAPICodec', () => {
   const serializer = {
     serialize: vi.fn(),
     deserialize: vi.fn(),
   } as any
 
-  const codec = new OpenAPICodec(serializer)
+  const codec = new StandardOpenAPICodec(serializer)
 
   describe('.decode', () => {
     describe('with compact structure', () => {

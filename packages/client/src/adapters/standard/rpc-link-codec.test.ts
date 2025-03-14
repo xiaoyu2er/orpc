@@ -1,4 +1,5 @@
 import { ORPCError } from '../../error'
+import { RPCJsonSerializer } from './rpc-json-serializer'
 import { StandardRPCLinkCodec } from './rpc-link-codec'
 import { RPCSerializer } from './rpc-serializer'
 
@@ -7,7 +8,7 @@ beforeEach(() => {
 })
 
 describe('standardRPCLinkCodec', () => {
-  const serializer = new RPCSerializer()
+  const serializer = new RPCSerializer(new RPCJsonSerializer())
 
   const serializeSpy = vi.spyOn(serializer, 'serialize')
   const deserializeSpy = vi.spyOn(serializer, 'deserialize')

@@ -1,5 +1,6 @@
 export * from './link'
 export * from './rpc-json-serializer'
+export * from './rpc-link'
 export * from './rpc-link-codec'
 export * from './rpc-serializer'
 export * from './types'

@@ -1,12 +1,12 @@
+import type { RPCJsonSerializer } from './rpc-json-serializer'
 import { isAsyncIteratorObject, stringifyJSON } from '@orpc/shared'
 import { ErrorEvent } from '@orpc/standard-server'
 import { ORPCError, toORPCError } from '../../error'
 import { mapEventIterator } from '../../event-iterator'
-import { RPCJsonSerializer } from './rpc-json-serializer'
 
 export class RPCSerializer {
   constructor(
-    private readonly jsonSerializer: RPCJsonSerializer = new RPCJsonSerializer(),
+    private readonly jsonSerializer: RPCJsonSerializer,
   ) {}
 
   serialize(data: unknown): unknown {

@@ -2,19 +2,20 @@ import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { SendStandardResponseOptions } from '@orpc/standard-server-node'
 import type { Context } from '../../context'
 import type { Router } from '../../router'
-import type { StandardHandleOptions, StandardHandlerOptions } from '../standard'
+import type { StandardHandleOptions, StandardRPCHandlerOptions } from '../standard'
 import type { NodeHttpHandler, NodeHttpHandleResult, NodeHttpRequest, NodeHttpResponse } from './types'
-import { RPCSerializer } from '@orpc/client/standard'
+import { RPCJsonSerializer, RPCSerializer } from '@orpc/client/standard'
 import { sendStandardResponse, toStandardLazyRequest } from '@orpc/standard-server-node'
-import { RPCCodec, RPCMatcher, StandardHandler } from '../standard'
+import { StandardHandler, StandardRPCCodec, StandardRPCMatcher } from '../standard'
 
 export class RPCHandler<T extends Context> implements NodeHttpHandler<T> {
   private readonly standardHandler: StandardHandler<T>
 
-  constructor(router: Router<any, T>, options: NoInfer<StandardHandlerOptions<T>> = {}) {
-    const serializer = new RPCSerializer()
-    const matcher = new RPCMatcher()
-    const codec = new RPCCodec(serializer)
+  constructor(router: Router<any, T>, options: NoInfer<StandardRPCHandlerOptions<T>> = {}) {
+    const jsonSerializer = new RPCJsonSerializer(options)
+    const serializer = new RPCSerializer(jsonSerializer)
+    const matcher = new StandardRPCMatcher()
+    const codec = new StandardRPCCodec(serializer)
 
     this.standardHandler = new StandardHandler(router, matcher, codec, options)
   }

@@ -3,7 +3,7 @@ import type { OpenAPI } from './openapi'
 import type { JSONSchema } from './schema'
 import { fallbackORPCErrorMessage, fallbackORPCErrorStatus } from '@orpc/client'
 import { fallbackContractConfig, getEventIteratorSchemaDetails } from '@orpc/contract'
-import { OpenAPISerializer } from '@orpc/openapi-client/standard'
+import { OpenAPIJsonSerializer } from '@orpc/openapi-client/standard'
 import { type AnyRouter, toHttpPath } from '@orpc/server'
 import { resolveContractProcedures } from '@orpc/server'
 import { clone } from '@orpc/shared'
@@ -19,11 +19,11 @@ export interface OpenAPIGeneratorOptions {
 }
 
 export class OpenAPIGenerator {
-  private readonly serializer: OpenAPISerializer
+  private readonly serializer: OpenAPIJsonSerializer
   private readonly converter: SchemaConverter
 
   constructor(options: OpenAPIGeneratorOptions = {}) {
-    this.serializer = new OpenAPISerializer()
+    this.serializer = new OpenAPIJsonSerializer()
     this.converter = new CompositeSchemaConverter(options.schemaConverters ?? [])
   }
 
@@ -75,7 +75,7 @@ export class OpenAPIGenerator {
       )
     }
 
-    return this.serializer.serialize(doc) as OpenAPI.Document
+    return this.serializer.serialize(doc)[0] as OpenAPI.Document
   }
 
   #request(ref: OpenAPI.OperationObject, def: AnyContractProcedure['~orpc']): void {

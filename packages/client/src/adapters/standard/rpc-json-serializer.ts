@@ -14,7 +14,7 @@ export const STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES = {
 export type StandardRPCJsonSerializedMeta = [number, Segment[]][]
 export type StandardRPCJsonSerialized = [json: unknown, meta: StandardRPCJsonSerializedMeta, maps: Segment[][], blobs: Blob[]]
 
-export interface StandardRPCJsonCustomSerializer {
+export interface StandardRPCCustomJsonSerializer {
   type: number
   condition(data: unknown): boolean
   serialize(data: any): unknown
@@ -22,11 +22,11 @@ export interface StandardRPCJsonCustomSerializer {
 }
 
 export interface StandardRPCJsonSerializerOptions {
-  customJsonSerializers?: readonly StandardRPCJsonCustomSerializer[]
+  customJsonSerializers?: readonly StandardRPCCustomJsonSerializer[]
 }
 
 export class StandardRPCJsonSerializer {
-  private readonly customSerializers: readonly StandardRPCJsonCustomSerializer[]
+  private readonly customSerializers: readonly StandardRPCCustomJsonSerializer[]
 
   constructor(options: StandardRPCJsonSerializerOptions = {}) {
     this.customSerializers = options.customJsonSerializers ?? []

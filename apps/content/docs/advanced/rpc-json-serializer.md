@@ -9,12 +9,12 @@ This serializer handles JSON payloads for the [RPC Protocol](/docs/advanced/rpc-
 
 ## Extending Native Data Types
 
-Extend native types by creating your own `StandardRPCJsonCustomSerializer` and adding it to the `customJsonSerializers` option.
+Extend native types by creating your own `StandardRPCCustomJsonSerializer` and adding it to the `customJsonSerializers` option.
 
 1. **Define Your Custom Serializer**
 
    ```ts twoslash
-   import type { StandardRPCJsonCustomSerializer } from '@orpc/client/standard'
+   import type { StandardRPCCustomJsonSerializer } from '@orpc/client/standard'
 
    export class User {
      constructor(
@@ -34,7 +34,7 @@ Extend native types by creating your own `StandardRPCJsonCustomSerializer` and a
      }
    }
 
-   export const userSerializer: StandardRPCJsonCustomSerializer = {
+   export const userSerializer: StandardRPCCustomJsonSerializer = {
      type: 21,
      condition: data => data instanceof User,
      serialize: data => data.toJSON(),
@@ -49,11 +49,11 @@ Extend native types by creating your own `StandardRPCJsonCustomSerializer` and a
 2. **Use Your Custom Serializer**
 
    ```ts twoslash
-   import type { StandardRPCJsonCustomSerializer } from '@orpc/client/standard'
+   import type { StandardRPCCustomJsonSerializer } from '@orpc/client/standard'
    import { RPCHandler } from '@orpc/server/fetch'
    import { RPCLink } from '@orpc/client/fetch'
    declare const router: Record<never, never>
-   declare const userSerializer: StandardRPCJsonCustomSerializer
+   declare const userSerializer: StandardRPCCustomJsonSerializer
    // ---cut---
    const handler = new RPCHandler(router, {
      customJsonSerializers: [userSerializer], // [!code highlight]
@@ -72,9 +72,9 @@ You can override built-in types by matching their `type` with the [built-in type
 For example, oRPC represents `undefined` only in array items and ignores it in objects. To override this behavior:
 
 ```ts twoslash
-import { StandardRPCJsonCustomSerializer } from '@orpc/client/standard'
+import { StandardRPCCustomJsonSerializer } from '@orpc/client/standard'
 
-export const undefinedSerializer: StandardRPCJsonCustomSerializer = {
+export const undefinedSerializer: StandardRPCCustomJsonSerializer = {
   type: 3, // Match the built-in undefined type. [!code highlight]
   condition: data => data === undefined,
   serialize: data => null, // JSON cannot represent undefined, so use null.

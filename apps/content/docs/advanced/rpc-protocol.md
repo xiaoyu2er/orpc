@@ -39,7 +39,7 @@ url.searchParams.append('data', JSON.stringify({
     name: 'Earth',
     detached_at: '2022-01-01T00:00:00.000Z'
   },
-  meta: [[1, ['detached_at']]]
+  meta: [[1, 'detached_at']]
 }))
 
 const response = await fetch(url)
@@ -59,7 +59,7 @@ curl -X POST https://example.com/rpc/planet/create \
       "name": "Earth",
       "detached_at": "2022-01-01T00:00:00.000Z"
     },
-    "meta": [[1, ["detached_at"]]]
+    "meta": [[1, "detached_at"]]
   }'
 ```
 
@@ -78,7 +78,7 @@ form.set('data', JSON.stringify({
     thumbnail: {},
     images: [{}, {}]
   },
-  meta: [[1, ['detached_at']]],
+  meta: [[1, 'detached_at']],
   maps: [['images', 0], ['images', 1]]
 }))
 
@@ -107,7 +107,7 @@ Content-Type: application/json
     "name": "Earth",
     "detached_at": "2022-01-01T00:00:00.000Z"
   },
-  "meta": [[0, ["id"]], [1, ["detached_at"]]]
+  "meta": [[0, "id"], [1, "detached_at"]]
 }
 ```
 
@@ -139,7 +139,7 @@ An error response has an HTTP status code between `400-599` and returns an `ORPC
 
 ## Meta
 
-The `meta` field describes native data in the format `[type: number, path: (string | number)[]]`.
+The `meta` field describes native data in the format `[type: number, ...path: (string | number)[]]`.
 
 - **type**: Data type (see [Supported Types](#supported-types)).
 - **path**: Path to the data inside `json`.

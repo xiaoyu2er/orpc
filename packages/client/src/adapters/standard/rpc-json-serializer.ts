@@ -1,13 +1,15 @@
 import { isObject, type Segment } from '@orpc/shared'
 
-const TYPE_BIGINT = 0
-const TYPE_DATE = 1
-const TYPE_NAN = 2
-const TYPE_UNDEFINED = 3
-const TYPE_URL = 4
-const TYPE_REGEXP = 5
-const TYPE_SET = 6
-const TYPE_MAP = 7
+export const STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES = {
+  BIGINT: 0,
+  DATE: 1,
+  NAN: 2,
+  UNDEFINED: 3,
+  URL: 4,
+  REGEXP: 5,
+  SET: 6,
+  MAP: 7,
+} as const
 
 export type StandardRPCJsonSerializedMeta = [number, Segment[]][]
 export type StandardRPCJsonSerialized = [json: unknown, meta: StandardRPCJsonSerializedMeta, maps: Segment[][], blobs: Blob[]]
@@ -52,12 +54,12 @@ export class StandardRPCJsonSerializer {
     }
 
     if (typeof data === 'bigint') {
-      meta.push([TYPE_BIGINT, segments])
+      meta.push([STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.BIGINT, segments])
       return [data.toString(), meta, maps, blobs]
     }
 
     if (data instanceof Date) {
-      meta.push([TYPE_DATE, segments])
+      meta.push([STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.DATE, segments])
 
       if (Number.isNaN(data.getTime())) {
         return [null, meta, maps, blobs]
@@ -67,36 +69,36 @@ export class StandardRPCJsonSerializer {
     }
 
     if (Number.isNaN(data)) {
-      meta.push([TYPE_NAN, segments])
+      meta.push([STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.NAN, segments])
       return [null, meta, maps, blobs]
     }
 
     if (data instanceof URL) {
-      meta.push([TYPE_URL, segments])
+      meta.push([STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.URL, segments])
       return [data.toString(), meta, maps, blobs]
     }
 
     if (data instanceof RegExp) {
-      meta.push([TYPE_REGEXP, segments])
+      meta.push([STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.REGEXP, segments])
       return [data.toString(), meta, maps, blobs]
     }
 
     if (data instanceof Set) {
       const result = this.serialize(Array.from(data), segments, meta, maps, blobs)
-      meta.push([TYPE_SET, segments])
+      meta.push([STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.SET, segments])
       return result
     }
 
     if (data instanceof Map) {
       const result = this.serialize(Array.from(data.entries()), segments, meta, maps, blobs)
-      meta.push([TYPE_MAP, segments])
+      meta.push([STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.MAP, segments])
       return result
     }
 
     if (Array.isArray(data)) {
       const json = data.map((v, i) => {
         if (v === undefined) {
-          meta.push([TYPE_UNDEFINED, [...segments, i]])
+          meta.push([STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.UNDEFINED, [...segments, i]])
           return v
         }
 
@@ -157,27 +159,27 @@ export class StandardRPCJsonSerializer {
       }
 
       switch (type) {
-        case TYPE_BIGINT:
+        case STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.BIGINT:
           currentRef[preSegment] = BigInt(currentRef[preSegment])
           break
 
-        case TYPE_DATE:
+        case STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.DATE:
           currentRef[preSegment] = new Date(currentRef[preSegment] ?? 'Invalid Date')
           break
 
-        case TYPE_NAN:
+        case STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.NAN:
           currentRef[preSegment] = Number.NaN
           break
 
-        case TYPE_UNDEFINED:
+        case STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.UNDEFINED:
           currentRef[preSegment] = undefined
           break
 
-        case TYPE_URL:
+        case STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.URL:
           currentRef[preSegment] = new URL(currentRef[preSegment])
           break
 
-        case TYPE_REGEXP: {
+        case STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.REGEXP: {
           const [, pattern, flags] = currentRef[preSegment].match(/^\/(.*)\/([a-z]*)$/)
 
           currentRef[preSegment] = new RegExp(pattern!, flags)
@@ -185,11 +187,11 @@ export class StandardRPCJsonSerializer {
           break
         }
 
-        case TYPE_SET:
+        case STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.SET:
           currentRef[preSegment] = new Set(currentRef[preSegment])
           break
 
-        case TYPE_MAP:
+        case STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.MAP:
           currentRef[preSegment] = new Map(currentRef[preSegment])
           break
       }

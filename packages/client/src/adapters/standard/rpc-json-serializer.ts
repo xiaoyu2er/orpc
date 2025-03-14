@@ -1,26 +1,52 @@
 import { isObject, type Segment } from '@orpc/shared'
 
-export type RPCJsonSerializedMeta = [
-  | 0 // bigint
-  | 1 // date
-  | 2 // nan
-  | 3 // undefined
-  | 4 // url
-  | 5 // regexp
-  | 6 // set
-  | 7 // map
-  , Segment[],
-][]
-export type RPCJsonSerialized = [json: unknown, meta: RPCJsonSerializedMeta, maps: Segment[][], blobs: Blob[]]
+export const STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES = {
+  BIGINT: 0,
+  DATE: 1,
+  NAN: 2,
+  UNDEFINED: 3,
+  URL: 4,
+  REGEXP: 5,
+  SET: 6,
+  MAP: 7,
+} as const
+
+export type StandardRPCJsonSerializedMeta = [number, Segment[]][]
+export type StandardRPCJsonSerialized = [json: unknown, meta: StandardRPCJsonSerializedMeta, maps: Segment[][], blobs: Blob[]]
+
+export interface StandardRPCCustomJsonSerializer {
+  type: number
+  condition(data: unknown): boolean
+  serialize(data: any): unknown
+  deserialize(serialized: any): unknown
+}
 
 export interface StandardRPCJsonSerializerOptions {
-
+  customJsonSerializers?: readonly StandardRPCCustomJsonSerializer[]
 }
 
 export class StandardRPCJsonSerializer {
-  constructor(_options: StandardRPCJsonSerializerOptions = {}) {}
+  private readonly customSerializers: readonly StandardRPCCustomJsonSerializer[]
 
-  serialize(data: unknown, segments: Segment[] = [], meta: RPCJsonSerializedMeta = [], maps: Segment[][] = [], blobs: Blob[] = []): RPCJsonSerialized {
+  constructor(options: StandardRPCJsonSerializerOptions = {}) {
+    this.customSerializers = options.customJsonSerializers ?? []
+
+    if (this.customSerializers.length !== new Set(this.customSerializers.map(custom => custom.type)).size) {
+      throw new Error('Custom serializer type must be unique.')
+    }
+  }
+
+  serialize(data: unknown, segments: Segment[] = [], meta: StandardRPCJsonSerializedMeta = [], maps: Segment[][] = [], blobs: Blob[] = []): StandardRPCJsonSerialized {
+    for (const custom of this.customSerializers) {
+      if (custom.condition(data)) {
+        const result = this.serialize(custom.serialize(data), segments, meta, maps, blobs)
+
+        meta.push([custom.type, segments])
+
+        return result
+      }
+    }
+
     if (data instanceof Blob) {
       maps.push(segments)
       blobs.push(data)
@@ -28,12 +54,12 @@ export class StandardRPCJsonSerializer {
     }
 
     if (typeof data === 'bigint') {
-      meta.push([0, segments])
+      meta.push([STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.BIGINT, segments])
       return [data.toString(), meta, maps, blobs]
     }
 
     if (data instanceof Date) {
-      meta.push([1, segments])
+      meta.push([STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.DATE, segments])
 
       if (Number.isNaN(data.getTime())) {
         return [null, meta, maps, blobs]
@@ -43,36 +69,36 @@ export class StandardRPCJsonSerializer {
     }
 
     if (Number.isNaN(data)) {
-      meta.push([2, segments])
+      meta.push([STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.NAN, segments])
       return [null, meta, maps, blobs]
     }
 
     if (data instanceof URL) {
-      meta.push([4, segments])
+      meta.push([STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.URL, segments])
       return [data.toString(), meta, maps, blobs]
     }
 
     if (data instanceof RegExp) {
-      meta.push([5, segments])
+      meta.push([STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.REGEXP, segments])
       return [data.toString(), meta, maps, blobs]
     }
 
     if (data instanceof Set) {
       const result = this.serialize(Array.from(data), segments, meta, maps, blobs)
-      meta.push([6, segments])
+      meta.push([STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.SET, segments])
       return result
     }
 
     if (data instanceof Map) {
       const result = this.serialize(Array.from(data.entries()), segments, meta, maps, blobs)
-      meta.push([7, segments])
+      meta.push([STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.MAP, segments])
       return result
     }
 
     if (Array.isArray(data)) {
       const json = data.map((v, i) => {
         if (v === undefined) {
-          meta.push([3, [...segments, i]])
+          meta.push([STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.UNDEFINED, [...segments, i]])
           return v
         }
 
@@ -95,10 +121,10 @@ export class StandardRPCJsonSerializer {
     return [data, meta, maps, blobs]
   }
 
-  deserialize(json: unknown, meta: RPCJsonSerializedMeta): unknown
-  deserialize(json: unknown, meta: RPCJsonSerializedMeta, maps: Segment[][], getBlob: (index: number) => Blob): unknown
+  deserialize(json: unknown, meta: StandardRPCJsonSerializedMeta): unknown
+  deserialize(json: unknown, meta: StandardRPCJsonSerializedMeta, maps: Segment[][], getBlob: (index: number) => Blob): unknown
 
-  deserialize(json: unknown, meta: RPCJsonSerializedMeta, maps?: Segment[][], getBlob?: (index: number) => Blob): unknown {
+  deserialize(json: unknown, meta: StandardRPCJsonSerializedMeta, maps?: Segment[][], getBlob?: (index: number) => Blob): unknown {
     const ref = { data: json }
 
     if (maps && getBlob) {
@@ -124,28 +150,36 @@ export class StandardRPCJsonSerializer {
         preSegment = segment
       })
 
+      for (const custom of this.customSerializers) {
+        if (custom.type === type) {
+          currentRef[preSegment] = custom.deserialize(currentRef[preSegment])
+
+          break
+        }
+      }
+
       switch (type) {
-        case 0:
+        case STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.BIGINT:
           currentRef[preSegment] = BigInt(currentRef[preSegment])
           break
 
-        case 1:
+        case STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.DATE:
           currentRef[preSegment] = new Date(currentRef[preSegment] ?? 'Invalid Date')
           break
 
-        case 2:
+        case STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.NAN:
           currentRef[preSegment] = Number.NaN
           break
 
-        case 3:
+        case STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.UNDEFINED:
           currentRef[preSegment] = undefined
           break
 
-        case 4:
+        case STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.URL:
           currentRef[preSegment] = new URL(currentRef[preSegment])
           break
 
-        case 5: {
+        case STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.REGEXP: {
           const [, pattern, flags] = currentRef[preSegment].match(/^\/(.*)\/([a-z]*)$/)
 
           currentRef[preSegment] = new RegExp(pattern!, flags)
@@ -153,18 +187,13 @@ export class StandardRPCJsonSerializer {
           break
         }
 
-        case 6:
+        case STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.SET:
           currentRef[preSegment] = new Set(currentRef[preSegment])
           break
 
-        case 7:
+        case STANDARD_RPC_JSON_SERIALIZER_BUILT_IN_TYPES.MAP:
           currentRef[preSegment] = new Map(currentRef[preSegment])
           break
-
-        /* v8 ignore next 3 */
-        default: {
-          const _expected: never = type
-        }
       }
     }
 

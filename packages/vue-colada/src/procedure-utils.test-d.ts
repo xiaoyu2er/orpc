@@ -3,7 +3,7 @@ import type { ErrorFromErrorMap } from '@orpc/contract'
 import type { baseErrorMap } from '../../contract/tests/shared'
 import type { ProcedureUtils } from './procedure-utils'
 import { useMutation, useQuery } from '@pinia/colada'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 
 describe('ProcedureUtils', () => {
   type UtilsInput = { search?: string, cursor?: number } | undefined
@@ -63,8 +63,13 @@ describe('ProcedureUtils', () => {
 
     it('works with ref', () => {
       utils.queryOptions({
-        input: computed(() => ({ cursor: ref(1) })),
+        input: computed(() => ({ cursor: 1 })),
         context: computed(() => ({ batch: true })),
+      })
+
+      utils.queryOptions({
+        input: () => ({ cursor: 1 }),
+        context: () => ({ batch: true }),
       })
     })
 
@@ -107,6 +112,16 @@ describe('ProcedureUtils', () => {
       utils.mutationOptions({ context: { batch: true } })
       // @ts-expect-error invalid context
       utils.mutationOptions({ context: { batch: 'invalid' } })
+    })
+
+    it('works with ref', () => {
+      utils.mutationOptions({
+        context: computed(() => ({ batch: true })),
+      })
+
+      utils.mutationOptions({
+        context: () => ({ batch: true }),
+      })
     })
 
     it('works with useMutation', () => {

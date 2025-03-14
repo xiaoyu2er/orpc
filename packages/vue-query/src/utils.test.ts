@@ -18,14 +18,32 @@ it('unrefDeep', () => {
         regex: ref(regex),
         set: ref(set),
         map: ref(map),
-        nested: computed(() => ({
-          primitive: 1,
-          date: ref(date),
-          url: ref(url),
-          regex: ref(regex),
-          set: ref(set),
-          map: ref(map),
-        })),
+        nested: ref([
+          computed(() => ({
+            primitive: 1,
+            date: ref(date),
+            url: ref(url),
+            regex: ref(regex),
+            set: ref(set),
+            map: ref(map),
+          })),
+          ref(ref(ref(computed(() => ({
+            primitive: 1,
+            date: ref(date),
+            url: ref(url),
+            regex: ref(regex),
+            set: ref(set),
+            map: ref(map),
+            arr: [[computed(() => ({
+              primitive: 1,
+              date: ref(date),
+              url: ref(url),
+              regex: ref(regex),
+              set: ref(set),
+              map: ref(map),
+            }))]],
+          }))))),
+        ]),
       })),
     }),
   ).toEqual({
@@ -37,14 +55,34 @@ it('unrefDeep', () => {
       regex,
       set,
       map,
-      nested: {
-        primitive: 1,
-        date,
-        url,
-        regex,
-        set,
-        map,
-      },
+      nested: [
+        {
+          primitive: 1,
+          date,
+          url,
+          regex,
+          set,
+          map,
+        },
+        {
+          primitive: 1,
+          date,
+          url,
+          regex,
+          set,
+          map,
+          arr: [[
+            {
+              primitive: 1,
+              date,
+              url,
+              regex,
+              set,
+              map,
+            },
+          ]],
+        },
+      ],
     },
   })
 })

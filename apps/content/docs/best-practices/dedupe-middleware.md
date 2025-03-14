@@ -1,11 +1,11 @@
 ---
 Title: Dedupe Middleware
-Description: Improve performance and ensure safety when running oRPC middleware multiple times.
+Description: Enhance oRPC middleware performance by avoiding redundant executions.
 ---
 
 # Dedupe Middleware
 
-This guide explains how to optimize your [middleware](/docs/middleware) so it remains fast, efficient, and safe even when executed multiple times.
+This guide explains how to optimize your [middleware](/docs/middleware) for fast and efficient repeated execution.
 
 ## Problem
 
@@ -14,12 +14,12 @@ When a procedure [calls](/docs/client/server-side#using-the-call-utility) anothe
 Similarly, when using `.use(auth).router(router)`, some procedures inside `router` might already include the `auth` middleware.
 
 :::warning
-This duplication can lead to repeated execution of middleware, causing unexpected behaviors or performance issues, especially if the middleware is resource-intensive.
+Redundant middleware execution can hurt performance, especially if the middleware is resource-intensive.
 :::
 
 ## Solution
 
-The solution is to use the `context` to track which middleware has already run. For example:
+Use the `context` to track middleware execution and prevent duplication. For example:
 
 ```ts twoslash
 import { os } from '@orpc/server'
@@ -32,14 +32,11 @@ const dbProvider = os
       return next({ context: { db: context.db } })
     }
 
-    const db = await connectDb()
-    return next({ context: { db } })
+    return next({ context: { db: await connectDb() } })
   })
 ```
 
-In this example, the `dbProvider` middleware checks if a database connection already exists in the `context`. If it does, it simply passes the context along; if not, it establishes a connection and saves it in the `context`.
-
-This middleware can now be safely applied multiple times:
+Now `dbProvider` middleware can be safely applied multiple times without duplicating the database connection:
 
 ```ts twoslash
 import { call, os } from '@orpc/server'
@@ -51,14 +48,16 @@ const dbProvider = os
     if (context.db) {
       return next({ context: { db: context.db } })
     }
-
     const db = await connectDb()
     return next({ context: { db } })
   })
 // ---cut---
 const foo = os.use(dbProvider).handler(({ context }) => 'Hello World')
 
-const bar = os.use(dbProvider).handler(({ context }) => call(foo, { context }))
+const bar = os.use(dbProvider).handler(({ context }) => {
+  const result = call(foo, 'input', { context })
+  return 'Hello World'
+})
 
 const router = os
   .use(dbProvider)
@@ -72,8 +71,46 @@ const router = os
   })
 ```
 
-Even when `dbProvider` is used multiple times, the middleware efficiently ensures that the database connection is established only once, preserving both correctness and performance.
+## Built-in Dedupe Middleware
 
-## Conclusion
+oRPC can automatically dedupe some middleware under specific conditions.
 
-This recommended pattern leverages the context to prevent duplicate middleware execution, ensuring both efficiency and safety. We believe this approach is highly effective, and when writing middleware, you should keep this pattern in mind to avoid unnecessary overhead and potential performance issues.
+::: info
+Deduplication occurs only if the router middlewares is a **subset** of the **leading** procedure middlewares and appears in the **same order**.
+:::
+
+```ts
+const router = os.use(logging).use(dbProvider).router({
+  ping: os.use(logging).use(dbProvider).use(auth).handler(({ context }) => 'ping'),
+  pong: os.use(logging).use(dbProvider).handler(({ context }) => 'pong'),
+
+  // ⛔ Deduplication does not occur:
+  diff_subset: os.use(logging).handler(({ context }) => 'ping'),
+  diff_order: os.use(dbProvider).use(logging).handler(({ context }) => 'pong'),
+  diff_leading: os.use(monitor).use(logging).use(dbProvider).handler(({ context }) => 'bar'),
+})
+
+// --- equivalent to ---
+
+const router = {
+  ping: os.use(logging).use(dbProvider).use(auth).handler(({ context }) => 'ping'),
+  pong: os.use(logging).use(dbProvider).handler(({ context }) => 'pong'),
+
+  // ⛔ Deduplication does not occur:
+  diff_subset: os.use(logging).use(dbProvider).use(logging).handler(({ context }) => 'ping'),
+  diff_order: os.use(logging).use(dbProvider).use(dbProvider).use(logging).handler(({ context }) => 'pong'),
+  diff_leading: os.use(logging).use(dbProvider).use(monitor).use(logging).use(dbProvider).handler(({ context }) => 'bar'),
+}
+```
+
+### Configuration
+
+Disable middleware deduplication by setting `dedupeLeadingMiddlewares` to `false` in `.$config`:
+
+```ts
+const base = os.$config({ dedupeLeadingMiddlewares: false })
+```
+
+:::warning
+The deduplication behavior is safe unless you want to apply middleware multiple times.
+:::

@@ -39,6 +39,10 @@ const router = os.use(requiredAuth).router({
 })
 ```
 
+::: warning
+If you apply middleware using `.use` at both the router and procedure levels, it may execute multiple times. This duplication can lead to performance issues. For guidance on avoiding redundant middleware execution, please see our [best practices for middleware deduplication](/docs/best-practices/dedupe-middleware).
+:::
+
 ## Lazy Router
 
 In oRPC, routers can be lazy-loaded, making them ideal for code splitting and enhancing cold start performance. Lazy loading allows you to defer the initialization of routes until they are actually needed, which reduces the initial load time and improves resource management.

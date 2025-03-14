@@ -164,11 +164,11 @@ describe('standardRPCLinkCodec', () => {
         status: 200,
         raw: {},
         headers: {},
-        body: () => Promise.resolve({ meta: 'invalid' }),
+        body: () => Promise.resolve({ meta: 123 }),
       })).rejects.toThrow('Invalid RPC response format.')
 
       expect(deserializeSpy).toBeCalledTimes(1)
-      expect(deserializeSpy).toBeCalledWith({ meta: 'invalid' })
+      expect(deserializeSpy).toBeCalledWith({ meta: 123 })
     })
 
     it('error: Invalid RPC error response format.', async () => {

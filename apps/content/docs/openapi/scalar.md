@@ -3,7 +3,7 @@ title: Scalar (Swagger)
 description: Create a beautiful API client for your oRPC effortlessly.
 ---
 
-# Scalar
+# Scalar (Swagger)
 
 Leverage the [OpenAPI Specification](/docs/openapi/openapi-specification) to generate a stunning API client for your oRPC using [Scalar](https://github.com/scalar/scalar).
 

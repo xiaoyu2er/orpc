@@ -20,11 +20,11 @@ export interface StandardRPCJsonCustomSerializer {
 }
 
 export interface StandardRPCJsonSerializerOptions {
-  customJsonSerializers?: StandardRPCJsonCustomSerializer[]
+  customJsonSerializers?: readonly StandardRPCJsonCustomSerializer[]
 }
 
 export class StandardRPCJsonSerializer {
-  private readonly customSerializers: StandardRPCJsonCustomSerializer[]
+  private readonly customSerializers: readonly StandardRPCJsonCustomSerializer[]
 
   constructor(options: StandardRPCJsonSerializerOptions = {}) {
     this.customSerializers = options.customJsonSerializers ?? []

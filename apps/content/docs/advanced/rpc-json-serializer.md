@@ -43,7 +43,7 @@ Extend native types by creating your own `StandardRPCJsonCustomSerializer` and a
    ```
 
    ::: warning
-   Ensure the `type` is unique and greater than `20` to avoid conflicts with [built-in types](/docs/advanced/rpc-protocol#supported-types).
+   Ensure the `type` is unique and greater than `20` to avoid conflicts with [built-in types](/docs/advanced/rpc-protocol#supported-types) in the future.
    :::
 
 2. **Use Your Custom Serializer**

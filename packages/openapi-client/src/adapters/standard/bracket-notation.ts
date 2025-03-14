@@ -1,9 +1,9 @@
 import { isObject, type Segment } from '@orpc/shared'
 
-export type BracketNotationSerialized = [string, unknown][]
+export type StandardBracketNotationSerialized = [string, unknown][]
 
-export class BracketNotationSerializer {
-  serialize(data: unknown, segments: Segment[] = [], result: BracketNotationSerialized = []): BracketNotationSerialized {
+export class StandardBracketNotationSerializer {
+  serialize(data: unknown, segments: Segment[] = [], result: StandardBracketNotationSerialized = []): StandardBracketNotationSerialized {
     if (Array.isArray(data)) {
       data.forEach((item, i) => {
         this.serialize(item, [...segments, i], result)
@@ -23,7 +23,7 @@ export class BracketNotationSerializer {
     return result
   }
 
-  deserialize(serialized: BracketNotationSerialized): Record<string, unknown> | unknown[] {
+  deserialize(serialized: StandardBracketNotationSerialized): Record<string, unknown> | unknown[] {
     if (serialized.length === 0) {
       return {}
     }

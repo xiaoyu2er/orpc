@@ -1,7 +1,7 @@
-import { RPCSerializer } from '@orpc/client/standard'
+import { StandardRPCJsonSerializer, StandardRPCSerializer } from '@orpc/client/standard'
 import { toFetchResponse, toStandardLazyRequest } from '@orpc/standard-server-fetch'
 import { router } from '../../../tests/shared'
-import { RPCCodec, RPCMatcher, StandardHandler } from '../standard'
+import { StandardHandler, StandardRPCCodec, StandardRPCMatcher } from '../standard'
 import { RPCHandler } from './rpc-handler'
 
 vi.mock('../standard', async origin => ({
@@ -92,8 +92,8 @@ describe('rpcHandler', () => {
 
   it('standardHandler constructor', async () => {
     const options = {
-      codec: new RPCCodec(new RPCSerializer()),
-      matcher: new RPCMatcher(),
+      codec: new StandardRPCCodec(new StandardRPCSerializer(new StandardRPCJsonSerializer())),
+      matcher: new StandardRPCMatcher(),
       interceptors: [vi.fn()],
     }
 

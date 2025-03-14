@@ -2,10 +2,11 @@ import { ORPCError } from '@orpc/contract'
 import { isAsyncIteratorObject, parseEmptyableJSON } from '@orpc/shared'
 import { ErrorEvent, getEventMeta, withEventMeta } from '@orpc/standard-server'
 import { supportedDataTypes } from '../../../tests/shared'
-import { RPCSerializer } from './rpc-serializer'
+import { StandardRPCJsonSerializer } from './rpc-json-serializer'
+import { StandardRPCSerializer } from './rpc-serializer'
 
-describe.each(supportedDataTypes)('rpcSerializer: $name', ({ value, expected }) => {
-  const serializer = new RPCSerializer()
+describe.each(supportedDataTypes)('standardRPCSerializer: $name', ({ value, expected }) => {
+  const serializer = new StandardRPCSerializer(new StandardRPCJsonSerializer())
 
   function serializeAndDeserialize(value: unknown): unknown {
     const serialized = serializer.serialize(value)
@@ -60,8 +61,8 @@ describe.each(supportedDataTypes)('rpcSerializer: $name', ({ value, expected }) 
   })
 })
 
-describe('rpcSerializer: event iterator', async () => {
-  const serializer = new RPCSerializer()
+describe('standardRPCSerializer: event iterator', async () => {
+  const serializer = new StandardRPCSerializer(new StandardRPCJsonSerializer())
 
   function serializeAndDeserialize(value: unknown): unknown {
     const serialized = serializer.serialize(value)

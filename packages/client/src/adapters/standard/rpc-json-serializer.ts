@@ -13,7 +13,13 @@ export type RPCJsonSerializedMeta = [
 ][]
 export type RPCJsonSerialized = [json: unknown, meta: RPCJsonSerializedMeta, maps: Segment[][], blobs: Blob[]]
 
-export class RPCJsonSerializer {
+export interface StandardRPCJsonSerializerOptions {
+
+}
+
+export class StandardRPCJsonSerializer {
+  constructor(_options: StandardRPCJsonSerializerOptions = {}) {}
+
   serialize(data: unknown, segments: Segment[] = [], meta: RPCJsonSerializedMeta = [], maps: Segment[][] = [], blobs: Blob[] = []): RPCJsonSerialized {
     if (data instanceof Blob) {
       maps.push(segments)

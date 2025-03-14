@@ -9,7 +9,7 @@ import { createContractedProcedure } from '../../procedure-utils'
 import { getRouter, traverseContractProcedures } from '../../router-utils'
 import { toHttpPath } from '../../utils'
 
-export class RPCMatcher implements StandardMatcher {
+export class StandardRPCMatcher implements StandardMatcher {
   private readonly tree: Record<
     HTTPPath,
     {

@@ -5,7 +5,7 @@ import { createContractedProcedure, getLazyMeta, getRouter, isProcedure, toHttpP
 import { addRoute, createRouter, findRoute } from 'rou3'
 import { decodeParams, toRou3Pattern } from './utils'
 
-export class OpenAPIMatcher implements StandardMatcher {
+export class StandardOpenAPIMatcher implements StandardMatcher {
   private readonly tree = createRouter<{
     path: readonly string[]
     contract: AnyContractProcedure

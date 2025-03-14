@@ -1,13 +1,13 @@
+import type { StandardBracketNotationSerializer } from './bracket-notation'
+import type { StandardOpenAPIJsonSerializer } from './openapi-json-serializer'
 import { mapEventIterator, ORPCError, toORPCError } from '@orpc/client'
 import { isAsyncIteratorObject } from '@orpc/shared'
 import { ErrorEvent } from '@orpc/standard-server'
-import { BracketNotationSerializer } from './bracket-notation'
-import { OpenAPIJsonSerializer } from './openapi-json-serializer'
 
-export class OpenAPISerializer {
+export class StandardOpenAPISerializer {
   constructor(
-    private readonly jsonSerializer = new OpenAPIJsonSerializer(),
-    private readonly bracketNotation = new BracketNotationSerializer(),
+    private readonly jsonSerializer: StandardOpenAPIJsonSerializer,
+    private readonly bracketNotation: StandardBracketNotationSerializer,
   ) {
   }
 

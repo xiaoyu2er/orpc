@@ -1,9 +1,9 @@
 import { isObject } from '@orpc/shared'
 
-export type OpenAPIJsonSerialized = [json: unknown, hasBlob: boolean]
+export type StandardOpenAPIJsonSerialized = [json: unknown, hasBlob: boolean]
 
-export class OpenAPIJsonSerializer {
-  serialize(data: unknown, hasBlobRef: { value: boolean } = { value: false }): OpenAPIJsonSerialized {
+export class StandardOpenAPIJsonSerializer {
+  serialize(data: unknown, hasBlobRef: { value: boolean } = { value: false }): StandardOpenAPIJsonSerialized {
     if (data instanceof Blob) {
       hasBlobRef.value = true
       return [data, hasBlobRef.value]

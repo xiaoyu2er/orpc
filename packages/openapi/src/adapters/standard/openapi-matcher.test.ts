@@ -1,7 +1,7 @@
 import { implement, lazy, os, Procedure, unlazy } from '@orpc/server'
 import { router as contract } from '../../../../contract/tests/shared'
 import { ping, pong } from '../../../../server/tests/shared'
-import { OpenAPIMatcher } from './openapi-matcher'
+import { StandardOpenAPIMatcher } from './openapi-matcher'
 
 const routedPing = new Procedure({
   ...ping['~orpc'],
@@ -30,9 +30,9 @@ const router = {
   })),
 }
 
-describe('openapiMatcher', () => {
+describe('standardOpenAPIMatcher', () => {
   it('with router', async () => {
-    const rpcMatcher = new OpenAPIMatcher()
+    const rpcMatcher = new StandardOpenAPIMatcher()
     rpcMatcher.init(router)
 
     expect(await rpcMatcher.match('POST', '/base')).toEqual({
@@ -62,7 +62,7 @@ describe('openapiMatcher', () => {
   })
 
   it('with implemented router', async () => {
-    const rpcMatcher = new OpenAPIMatcher()
+    const rpcMatcher = new StandardOpenAPIMatcher()
     rpcMatcher.init(implement(contract).$context<any>().router({
       ...router,
       pong: new Procedure({
@@ -99,7 +99,7 @@ describe('openapiMatcher', () => {
   })
 
   it('with missing implementation', async () => {
-    const rpcMatcher = new OpenAPIMatcher()
+    const rpcMatcher = new StandardOpenAPIMatcher()
     rpcMatcher.init(implement(contract).$context<any>().router({
       ...router,
       pong: undefined as any, // missing here
@@ -126,7 +126,7 @@ describe('openapiMatcher', () => {
     const pingLoader = vi.fn(() => Promise.resolve({ default: ping }))
     const pongLoader = vi.fn(() => Promise.resolve({ default: pong }))
 
-    const rpcMatcher = new OpenAPIMatcher()
+    const rpcMatcher = new StandardOpenAPIMatcher()
 
     const base = os.$context<any>()
 
@@ -210,7 +210,7 @@ describe('openapiMatcher', () => {
       },
     })
 
-    const rpcMatcher = new OpenAPIMatcher()
+    const rpcMatcher = new StandardOpenAPIMatcher()
     rpcMatcher.init({ ping1, ping2, ping3 })
 
     expect(await rpcMatcher.match('GET', '/ping/unnoq%2F')).toEqual({

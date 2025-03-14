@@ -1,18 +1,18 @@
 import { ORPCError } from '@orpc/contract'
 import { ping } from '../../../tests/shared'
-import { RPCCodec } from './rpc-codec'
+import { StandardRPCCodec } from './rpc-codec'
 
 beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe('rpcCodec', () => {
+describe('standardRPCCodec', () => {
   const serializer = {
     serialize: vi.fn(),
     deserialize: vi.fn(),
   } as any
 
-  const codec = new RPCCodec(serializer)
+  const codec = new StandardRPCCodec(serializer)
 
   describe('.decode', () => {
     it('with GET method', async () => {

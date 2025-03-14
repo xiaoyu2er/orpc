@@ -1,13 +1,14 @@
 import { ORPCError } from '../../error'
+import { StandardRPCJsonSerializer } from './rpc-json-serializer'
 import { StandardRPCLinkCodec } from './rpc-link-codec'
-import { RPCSerializer } from './rpc-serializer'
+import { StandardRPCSerializer } from './rpc-serializer'
 
 beforeEach(() => {
   vi.clearAllMocks()
 })
 
 describe('standardRPCLinkCodec', () => {
-  const serializer = new RPCSerializer()
+  const serializer = new StandardRPCSerializer(new StandardRPCJsonSerializer())
 
   const serializeSpy = vi.spyOn(serializer, 'serialize')
   const deserializeSpy = vi.spyOn(serializer, 'deserialize')

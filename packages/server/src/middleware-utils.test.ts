@@ -34,6 +34,10 @@ describe('mergeMiddlewares', () => {
     expect(mergeMiddlewares([mid1], [mid1, mid2], { dedupeLeading: true })).toEqual([mid1, mid2])
     expect(mergeMiddlewares([mid1], [mid1, mid3], { dedupeLeading: true })).toEqual([mid1, mid3])
     expect(mergeMiddlewares([mid1, mid1, mid3], [mid1, mid1, mid3, mid1], { dedupeLeading: true })).toEqual([mid1, mid1, mid3, mid1])
+
+    expect(mergeMiddlewares([mid1], [mid3, mid1], { dedupeLeading: true })).toEqual([mid1, mid3, mid1])
+    expect(mergeMiddlewares([mid1, mid3], [mid1], { dedupeLeading: true })).toEqual([mid1, mid3, mid1])
+    expect(mergeMiddlewares([mid1, mid2], [mid3], { dedupeLeading: true })).toEqual([mid1, mid2, mid3])
   })
 })
 

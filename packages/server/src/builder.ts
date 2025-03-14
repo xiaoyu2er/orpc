@@ -27,8 +27,8 @@ export interface BuilderDef<
   TOutputSchema extends AnySchema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
-> extends ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>, EnhanceRouterOptions< TErrorMap> {
-  middlewares: AnyMiddleware[]
+> extends ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>, EnhanceRouterOptions<TErrorMap> {
+  middlewares: readonly AnyMiddleware[]
   inputValidationIndex: number
   outputValidationIndex: number
   config: BuilderConfig

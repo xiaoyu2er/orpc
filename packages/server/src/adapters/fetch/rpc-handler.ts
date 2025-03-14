@@ -4,7 +4,7 @@ import type { Context } from '../../context'
 import type { Router } from '../../router'
 import type { StandardHandleOptions, StandardRPCHandlerOptions } from '../standard'
 import type { FetchHandler, FetchHandleResult } from './types'
-import { RPCJsonSerializer, RPCSerializer } from '@orpc/client/standard'
+import { StandardRPCJsonSerializer, StandardRPCSerializer } from '@orpc/client/standard'
 import { toFetchResponse, toStandardLazyRequest } from '@orpc/standard-server-fetch'
 import { StandardHandler, StandardRPCCodec, StandardRPCMatcher } from '../standard'
 
@@ -12,8 +12,8 @@ export class RPCHandler<T extends Context> implements FetchHandler<T> {
   private readonly standardHandler: StandardHandler<T>
 
   constructor(router: Router<any, T>, options: NoInfer<StandardRPCHandlerOptions<T>> = {}) {
-    const jsonSerializer = new RPCJsonSerializer(options)
-    const serializer = new RPCSerializer(jsonSerializer)
+    const jsonSerializer = new StandardRPCJsonSerializer(options)
+    const serializer = new StandardRPCSerializer(jsonSerializer)
     const matcher = new StandardRPCMatcher()
     const codec = new StandardRPCCodec(serializer)
 

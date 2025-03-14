@@ -1,7 +1,7 @@
-import { BracketNotationSerializer } from './bracket-notation'
+import { StandardBracketNotationSerializer } from './bracket-notation'
 
-describe('bracketNotation', () => {
-  const serializer = new BracketNotationSerializer()
+describe('standardBracketNotationSerializer', () => {
+  const serializer = new StandardBracketNotationSerializer()
 
   it('.stringifyPath', () => {
     expect(serializer.stringifyPath([])).toBe('')

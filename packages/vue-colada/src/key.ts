@@ -1,5 +1,5 @@
 import type { EntryKey } from '@pinia/colada'
-import { RPCJsonSerializer } from '@orpc/client/standard'
+import { StandardRPCJsonSerializer } from '@orpc/client/standard'
 import { stringifyJSON } from '@orpc/shared'
 
 export interface BuildKeyOptions<TInput> {
@@ -14,7 +14,7 @@ export function buildKey<TInput>(
     return path
   }
 
-  const [json, meta] = new RPCJsonSerializer().serialize(options.input)
+  const [json, meta] = new StandardRPCJsonSerializer().serialize(options.input)
 
   return [
     ...path,

@@ -1,20 +1,20 @@
 import { ORPCError } from '@orpc/contract'
 import { ErrorEvent, getEventMeta, withEventMeta } from '@orpc/standard-server'
-import { BracketNotationSerializer } from './bracket-notation'
-import { OpenAPIJsonSerializer } from './openapi-json-serializer'
-import { OpenAPISerializer } from './openapi-serializer'
+import { StandardBracketNotationSerializer } from './bracket-notation'
+import { StandardOpenAPIJsonSerializer } from './openapi-json-serializer'
+import { StandardOpenAPISerializer } from './openapi-serializer'
 
 beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe('openAPISerializer', () => {
-  const jsonSerializer = new OpenAPIJsonSerializer()
+describe('standardOpenAPIJsonSerializer', () => {
+  const jsonSerializer = new StandardOpenAPIJsonSerializer()
   const serialize = vi.fn(v => jsonSerializer.serialize(v))
 
-  const openapiSerializer = new OpenAPISerializer({
+  const openapiSerializer = new StandardOpenAPISerializer({
     serialize,
-  } as any, new BracketNotationSerializer())
+  } as any, new StandardBracketNotationSerializer())
 
   describe('.serialize', () => {
     it('with undefined', () => {

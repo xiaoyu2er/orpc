@@ -1,4 +1,4 @@
-import { RPCJsonSerializer, RPCSerializer } from '@orpc/client/standard'
+import { StandardRPCJsonSerializer, StandardRPCSerializer } from '@orpc/client/standard'
 import { sendStandardResponse, toStandardLazyRequest } from '@orpc/standard-server-node'
 import inject from 'light-my-request'
 import { router } from '../../../tests/shared'
@@ -113,7 +113,7 @@ describe('rpcHandler', async () => {
 
   it('standardHandler constructor', async () => {
     const options = {
-      codec: new StandardRPCCodec(new RPCSerializer(new RPCJsonSerializer())),
+      codec: new StandardRPCCodec(new StandardRPCSerializer(new StandardRPCJsonSerializer())),
       matcher: new StandardRPCMatcher(),
       interceptors: [vi.fn()],
     }

@@ -1,5 +1,5 @@
 import type { ORPCError } from '@orpc/client'
-import type { OpenAPISerializer } from '@orpc/openapi-client/standard'
+import type { StandardOpenAPISerializer } from '@orpc/openapi-client/standard'
 import type { AnyProcedure } from '@orpc/server'
 import type { StandardCodec, StandardParams } from '@orpc/server/standard'
 import type { StandardBody, StandardHeaders, StandardLazyRequest, StandardResponse } from '@orpc/standard-server'
@@ -8,7 +8,7 @@ import { isObject } from '@orpc/shared'
 
 export class StandardOpenAPICodec implements StandardCodec {
   constructor(
-    private readonly serializer: OpenAPISerializer,
+    private readonly serializer: StandardOpenAPISerializer,
   ) {
   }
 

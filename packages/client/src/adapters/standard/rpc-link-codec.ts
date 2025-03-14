@@ -1,6 +1,6 @@
 import type { StandardHeaders, StandardLazyResponse, StandardRequest } from '@orpc/standard-server'
 import type { ClientContext, ClientOptionsOut } from '../../types'
-import type { RPCSerializer } from './rpc-serializer'
+import type { StandardRPCSerializer } from './rpc-serializer'
 import type { StandardLinkCodec } from './types'
 import { isAsyncIteratorObject, stringifyJSON, trim, value, type Value } from '@orpc/shared'
 import { ORPCError } from '../../error'
@@ -65,7 +65,7 @@ export class StandardRPCLinkCodec<T extends ClientContext> implements StandardLi
   private readonly headers: Exclude<StandardRPCLinkCodecOptions<T>['headers'], undefined>
 
   constructor(
-    private readonly serializer: RPCSerializer,
+    private readonly serializer: StandardRPCSerializer,
     options: StandardRPCLinkCodecOptions<T>,
   ) {
     this.baseUrl = options.url

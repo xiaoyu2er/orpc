@@ -1,7 +1,7 @@
 import type { ClientContext, ClientLink, ClientOptionsOut } from '../../types'
 import type { StandardRPCLinkOptions } from '../standard'
 import type { LinkFetchClientOptions } from './link-fetch-client'
-import { RPCJsonSerializer, RPCSerializer, StandardLink, StandardRPCLinkCodec } from '../standard'
+import { StandardLink, StandardRPCJsonSerializer, StandardRPCLinkCodec, StandardRPCSerializer } from '../standard'
 import { LinkFetchClient } from './link-fetch-client'
 
 export interface RPCLinkOptions<T extends ClientContext>
@@ -11,8 +11,8 @@ export class RPCLink<T extends ClientContext> implements ClientLink<T> {
   private readonly standardLink: StandardLink<T>
 
   constructor(options: RPCLinkOptions<T>) {
-    const jsonSerializer = new RPCJsonSerializer(options)
-    const serializer = new RPCSerializer(jsonSerializer)
+    const jsonSerializer = new StandardRPCJsonSerializer(options)
+    const serializer = new StandardRPCSerializer(jsonSerializer)
     const linkCodec = new StandardRPCLinkCodec(serializer, options)
     const linkClient = new LinkFetchClient(options)
 

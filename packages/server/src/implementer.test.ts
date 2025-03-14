@@ -35,6 +35,7 @@ describe('implement', () => {
     it('.$config', () => {
       const config = {
         initialInputValidationIndex: Number.NEGATIVE_INFINITY,
+        dedupeLeadingMiddlewares: false,
       }
       const applied = rawImplementer.$config(config)
 
@@ -71,6 +72,7 @@ describe('implement', () => {
       expect(enhanceRouterSpy).toHaveBeenCalledWith(router, {
         middlewares: [mid],
         errorMap: {},
+        dedupeLeadingMiddlewares: true,
       })
     })
 
@@ -87,6 +89,7 @@ describe('implement', () => {
       expect(enhanceRouterSpy).toHaveBeenCalledWith(expect.any(Object), {
         middlewares: [mid],
         errorMap: {},
+        dedupeLeadingMiddlewares: true,
       })
 
       const lazied = enhanceRouterSpy.mock.calls[0]?.[0]
@@ -105,6 +108,7 @@ describe('implement', () => {
         middlewares: [mid],
         inputValidationIndex: Number.POSITIVE_INFINITY,
         outputValidationIndex: 1,
+        dedupeLeadingMiddlewares: true,
       })
 
       return true
@@ -118,6 +122,7 @@ describe('implement', () => {
         middlewares: [mid],
         inputValidationIndex: Number.POSITIVE_INFINITY,
         outputValidationIndex: 1,
+        dedupeLeadingMiddlewares: true,
       })
 
       return true

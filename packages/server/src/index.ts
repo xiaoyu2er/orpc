@@ -2,12 +2,14 @@ export * from './builder'
 export * from './builder-variants'
 export * from './config'
 export * from './context'
+export * from './error'
 export * from './implementer'
 export * from './implementer-procedure'
 export * from './implementer-variants'
 export * from './lazy'
 export * from './middleware'
 export * from './middleware-decorated'
+export * from './middleware-utils'
 export * from './procedure'
 export * from './procedure-client'
 export * from './procedure-decorated'
@@ -32,7 +34,6 @@ export type {
   InferSchemaOutput,
   InputStructure,
   Meta,
-  ORPCErrorFromErrorMap,
   OutputStructure,
   Route,
   Schema,

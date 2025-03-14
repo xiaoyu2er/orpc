@@ -28,6 +28,7 @@ describe('enhanceRouter', () => {
       middlewares: [mid, pingMiddleware],
       prefix: '/adapt',
       tags: ['adapt'],
+      dedupeLeadingMiddlewares: false,
     } as const
 
     const enhanced = enhanceRouter(router, options)
@@ -64,14 +65,32 @@ describe('enhanceRouter', () => {
 
   it('can merge lazy prefix', async () => {
     const enhanced = enhanceRouter(
-      enhanceRouter(router, { errorMap: {}, prefix: '/enhanced', tags: [], middlewares: [] }),
-      { errorMap: {}, prefix: '/prefix', tags: [], middlewares: [] },
+      enhanceRouter(router, { errorMap: {}, prefix: '/enhanced', tags: [], middlewares: [], dedupeLeadingMiddlewares: false }),
+      { errorMap: {}, prefix: '/prefix', tags: [], middlewares: [], dedupeLeadingMiddlewares: false },
     )
 
     expect(getLazyMeta(enhanced.ping)).toEqual({ prefix: '/prefix/enhanced' })
     expect(getLazyMeta(enhanced.nested)).toEqual({ prefix: '/prefix/enhanced' })
     expect(getLazyMeta(enhanced.nested.ping)).toEqual({ prefix: '/prefix/enhanced' })
     expect(getLazyMeta(enhanced.nested.pong)).toEqual({ prefix: '/prefix/enhanced' })
+  })
+
+  it('can dedupeLeadingMiddlewares', async () => {
+    const mid = vi.fn()
+    const extraErrorMap = { EXTRA: {} }
+    const options = {
+      errorMap: extraErrorMap,
+      middlewares: [pingMiddleware],
+      dedupeLeadingMiddlewares: true,
+    } as const
+
+    const enhanced = enhanceRouter(router, options)
+
+    expect(enhanced.ping).toSatisfy(isLazy)
+    expect((await unlazy(enhanced.ping)).default['~orpc'].middlewares).toEqual(ping['~orpc'].middlewares)
+    expect((await unlazy(enhanced.ping)).default['~orpc'].route).toEqual(ping['~orpc'].route)
+    expect((await unlazy(enhanced.ping)).default['~orpc'].inputValidationIndex).toEqual(1)
+    expect((await unlazy(enhanced.ping)).default['~orpc'].outputValidationIndex).toEqual(1)
   })
 })
 

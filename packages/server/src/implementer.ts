@@ -87,6 +87,7 @@ export function implementerInternal<
       middlewares,
       inputValidationIndex: fallbackConfig('initialInputValidationIndex', config?.initialInputValidationIndex) + middlewares.length,
       outputValidationIndex: fallbackConfig('initialOutputValidationIndex', config?.initialOutputValidationIndex) + middlewares.length,
+      dedupeLeadingMiddlewares: fallbackConfig('dedupeLeadingMiddlewares', config.dedupeLeadingMiddlewares),
     })
 
     return impl as any
@@ -119,6 +120,7 @@ export function implementerInternal<
             errorMap: {},
             prefix: undefined,
             tags: undefined,
+            dedupeLeadingMiddlewares: fallbackConfig('dedupeLeadingMiddlewares', config.dedupeLeadingMiddlewares),
           })
 
           return setHiddenRouterContract(adapted, contract)
@@ -131,6 +133,7 @@ export function implementerInternal<
             errorMap: {},
             prefix: undefined,
             tags: undefined,
+            dedupeLeadingMiddlewares: fallbackConfig('dedupeLeadingMiddlewares', config.dedupeLeadingMiddlewares),
           })
 
           return setHiddenRouterContract(adapted, contract)
@@ -194,19 +197,15 @@ export function implement<
 
       const next = Reflect.get(target, key)
 
-      if (!next || (typeof next !== 'function' && typeof next !== 'object')) {
-        return method ?? next
+      if (!method || !next || (typeof next !== 'function' && typeof next !== 'object')) {
+        return method || next
       }
 
-      if (method) {
-        return new Proxy(method, {
-          get(_, key) {
-            return Reflect.get(next, key)
-          },
-        })
-      }
-
-      return next
+      return new Proxy(method, {
+        get(_, key) {
+          return Reflect.get(next, key)
+        },
+      })
     },
   })
 

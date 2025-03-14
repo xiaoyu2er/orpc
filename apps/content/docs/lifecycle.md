@@ -1,6 +1,6 @@
 ---
-Title: Lifecycle
-Description: Master the oRPC lifecycle to confidently implement and customize your procedures.
+title: Lifecycle
+description: Master the oRPC lifecycle to confidently implement and customize your procedures.
 ---
 
 # Lifecycle

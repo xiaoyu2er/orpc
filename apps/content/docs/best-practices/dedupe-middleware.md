@@ -1,6 +1,6 @@
 ---
-Title: Dedupe Middleware
-Description: Enhance oRPC middleware performance by avoiding redundant executions.
+title: Dedupe Middleware
+description: Enhance oRPC middleware performance by avoiding redundant executions.
 ---
 
 # Dedupe Middleware

@@ -1,6 +1,6 @@
 ---
-Title: Metadata
-Description: Enhance your procedures with metadata.
+title: Metadata
+description: Enhance your procedures with metadata.
 ---
 
 # Metadata

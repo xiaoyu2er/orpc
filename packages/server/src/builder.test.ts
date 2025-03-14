@@ -29,6 +29,7 @@ const def = {
   route: baseRoute,
   prefix: '/adapt' as const,
   tags: ['adapt'],
+  dedupeLeadingMiddlewares: true,
 }
 
 const builder = new Builder(def)
@@ -46,6 +47,7 @@ describe('builder', () => {
     const config = {
       initialInputValidationIndex: Number.NEGATIVE_INFINITY,
       initialOutputValidationIndex: Number.POSITIVE_INFINITY,
+      dedupeLeadingMiddlewares: false,
     }
     const applied = builder.$config(config)
 
@@ -54,6 +56,7 @@ describe('builder', () => {
     expect(applied['~orpc']).toEqual({
       ...def,
       config,
+      dedupeLeadingMiddlewares: false,
       inputValidationIndex: Number.NEGATIVE_INFINITY,
       outputValidationIndex: Number.POSITIVE_INFINITY,
     })

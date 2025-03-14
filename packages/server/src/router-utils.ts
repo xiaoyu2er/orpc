@@ -102,6 +102,7 @@ export type EnhancedRouter<
 export interface EnhanceRouterOptions<TErrorMap extends ErrorMap> extends EnhanceRouteOptions {
   middlewares: readonly AnyMiddleware[]
   errorMap: TErrorMap
+  dedupeLeadingMiddlewares: boolean
 }
 
 export function enhanceRouter<
@@ -132,7 +133,7 @@ export function enhanceRouter<
   }
 
   if (isProcedure(router)) {
-    const newMiddlewares = mergeMiddlewares(options.middlewares, router['~orpc'].middlewares)
+    const newMiddlewares = mergeMiddlewares(options.middlewares, router['~orpc'].middlewares, { dedupeLeading: options.dedupeLeadingMiddlewares })
     const newMiddlewareAdded = newMiddlewares.length - router['~orpc'].middlewares.length
 
     const enhanced = new Procedure({

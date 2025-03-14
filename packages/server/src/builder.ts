@@ -19,6 +19,7 @@ import { enhanceRouter } from './router-utils'
 export interface BuilderConfig {
   initialInputValidationIndex?: number
   initialOutputValidationIndex?: number
+  dedupeLeadingMiddlewares?: boolean
 }
 
 export interface BuilderDef<
@@ -57,6 +58,7 @@ export class Builder<
     return new Builder({
       ...this['~orpc'],
       config,
+      dedupeLeadingMiddlewares: fallbackConfig('dedupeLeadingMiddlewares', config.dedupeLeadingMiddlewares),
       inputValidationIndex: fallbackConfig('initialInputValidationIndex', config.initialInputValidationIndex) + inputValidationCount,
       outputValidationIndex: fallbackConfig('initialOutputValidationIndex', config.initialOutputValidationIndex) + outputValidationCount,
     })
@@ -266,4 +268,5 @@ export const os = new Builder<
   inputValidationIndex: fallbackConfig('initialInputValidationIndex'),
   outputValidationIndex: fallbackConfig('initialOutputValidationIndex'),
   middlewares: [],
+  dedupeLeadingMiddlewares: true,
 })

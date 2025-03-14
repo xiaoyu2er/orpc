@@ -41,7 +41,7 @@ export interface ProcedureDef<
   TMeta extends Meta,
 > extends ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta> {
   __initialContext?: (type: TInitialContext) => unknown
-  middlewares: AnyMiddleware[]
+  middlewares: readonly AnyMiddleware[]
   inputValidationIndex: number
   outputValidationIndex: number
   handler: ProcedureHandler<TCurrentContext, any, any, any, any>

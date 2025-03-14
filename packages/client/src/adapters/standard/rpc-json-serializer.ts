@@ -12,14 +12,39 @@ const TYPE_MAP = 7
 export type StandardRPCJsonSerializedMeta = [number, Segment[]][]
 export type StandardRPCJsonSerialized = [json: unknown, meta: StandardRPCJsonSerializedMeta, maps: Segment[][], blobs: Blob[]]
 
-export interface StandardRPCJsonSerializerOptions {
+export interface StandardRPCJsonCustomSerializer {
+  type: number
+  condition(data: unknown): boolean
+  serialize(data: any): unknown
+  deserialize(serialized: any): unknown
+}
 
+export interface StandardRPCJsonSerializerOptions {
+  customJsonSerializers?: StandardRPCJsonCustomSerializer[]
 }
 
 export class StandardRPCJsonSerializer {
-  constructor(_options: StandardRPCJsonSerializerOptions = {}) {}
+  private readonly customSerializers: StandardRPCJsonCustomSerializer[]
+
+  constructor(options: StandardRPCJsonSerializerOptions = {}) {
+    this.customSerializers = options.customJsonSerializers ?? []
+
+    if (this.customSerializers.length !== new Set(this.customSerializers.map(custom => custom.type)).size) {
+      throw new Error('Custom serializer type must be unique.')
+    }
+  }
 
   serialize(data: unknown, segments: Segment[] = [], meta: StandardRPCJsonSerializedMeta = [], maps: Segment[][] = [], blobs: Blob[] = []): StandardRPCJsonSerialized {
+    for (const custom of this.customSerializers) {
+      if (custom.condition(data)) {
+        const result = this.serialize(custom.serialize(data), segments, meta, maps, blobs)
+
+        meta.push([custom.type, segments])
+
+        return result
+      }
+    }
+
     if (data instanceof Blob) {
       maps.push(segments)
       blobs.push(data)
@@ -122,6 +147,14 @@ export class StandardRPCJsonSerializer {
         currentRef = currentRef[preSegment]
         preSegment = segment
       })
+
+      for (const custom of this.customSerializers) {
+        if (custom.type === type) {
+          currentRef[preSegment] = custom.deserialize(currentRef[preSegment])
+
+          break
+        }
+      }
 
       switch (type) {
         case TYPE_BIGINT:

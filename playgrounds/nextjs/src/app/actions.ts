@@ -1,14 +1,14 @@
 'use server'
 
-import { os } from '@orpc/server'
+import { pub } from '@/orpc'
 import { z } from 'zod'
 
-export const getting = os
+export const getting = pub
   .input(z.object({
     name: z.string(),
   }))
   .output(z.string())
   .handler(async ({ input }) => {
-    return `Hello ${input.name}`
+    return `Hello ${input.name}!`
   })
   .actionable()

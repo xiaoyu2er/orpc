@@ -1,5 +1,5 @@
 {
-  "name": "orpc-nextjs-playground",
+  "name": "@orpc/nextjs-playground",
   "version": "0.47.0",
   "private": true,
   "scripts": {

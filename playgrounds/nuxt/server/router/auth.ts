@@ -5,8 +5,9 @@ import { NewUserSchema, UserSchema } from '../schemas/user'
 export const signup = pub
   .route({
     method: 'POST',
-    path: '/signup',
+    path: '/auth/signup',
     summary: 'Sign up a new user',
+    tags: ['Authentication'],
   })
   .input(NewUserSchema)
   .output(UserSchema)
@@ -21,46 +22,22 @@ export const signup = pub
 export const signin = pub
   .route({
     method: 'POST',
-    path: '/signin',
+    path: '/auth/signin',
     summary: 'Sign in a user',
+    tags: ['Authentication'],
   })
   .input(CredentialSchema)
   .output(TokenSchema)
   .handler(async ({ input, context }) => {
-    return {
-      token: 'token',
-    }
-  })
-
-export const refresh = authed
-  .route({
-    method: 'POST',
-    path: '/refresh',
-    summary: 'Refresh a token',
-  })
-  .output(TokenSchema)
-  .handler(async ({ input, context }) => {
-    return {
-      token: 'new-token',
-    }
-  })
-
-export const revoke = authed
-  .route({
-    method: 'DELETE',
-    path: '/revoke',
-    summary: 'Revoke a token',
-  })
-  .input(TokenSchema)
-  .handler(async ({ input, context }) => {
-    // Do something
+    return { token: 'token' }
   })
 
 export const me = authed
   .route({
     method: 'GET',
-    path: '/me',
+    path: '/auth/me',
     summary: 'Get the current user',
+    tags: ['Authentication'],
   })
   .output(UserSchema)
   .handler(async ({ input, context }) => {

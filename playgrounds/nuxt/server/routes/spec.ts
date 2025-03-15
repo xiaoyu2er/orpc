@@ -13,14 +13,6 @@ export default defineEventHandler(async (event) => {
     info: {
       title: 'ORPC Playground',
       version: '1.0.0',
-      description: `
-The example OpenAPI Playground for ORPC.
-
-## Resources
-
-* [Github](https://github.com/unnoq/orpc)
-* [Documentation](https://orpc.unnoq.com)
-          `,
     },
     servers: [{ url: '/api' /** Should use absolute URLs in production */ }],
     security: [{ bearerAuth: [] }],

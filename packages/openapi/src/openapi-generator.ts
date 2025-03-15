@@ -1,4 +1,5 @@
 import type { AnyContractProcedure, AnyContractRouter, ErrorMap } from '@orpc/contract'
+import type { StandardOpenAPIJsonSerializerOptions } from '@orpc/openapi-client/standard'
 import type { OpenAPI } from './openapi'
 import type { JSONSchema } from './schema'
 import { fallbackORPCErrorMessage, fallbackORPCErrorStatus } from '@orpc/client'
@@ -14,7 +15,7 @@ import { isAnySchema, isObjectSchema, separateObjectSchema } from './schema-util
 
 class OpenAPIGeneratorError extends Error {}
 
-export interface OpenAPIGeneratorOptions {
+export interface OpenAPIGeneratorOptions extends StandardOpenAPIJsonSerializerOptions {
   schemaConverters?: ConditionalSchemaConverter[]
 }
 
@@ -23,7 +24,7 @@ export class OpenAPIGenerator {
   private readonly converter: SchemaConverter
 
   constructor(options: OpenAPIGeneratorOptions = {}) {
-    this.serializer = new StandardOpenAPIJsonSerializer()
+    this.serializer = new StandardOpenAPIJsonSerializer(options)
     this.converter = new CompositeSchemaConverter(options.schemaConverters ?? [])
   }
 

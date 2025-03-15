@@ -20,6 +20,8 @@ The `OpenAPIHandler` enables communication with clients over RESTful APIs, adher
 - **BigInt** (`BigInt` → `string`)
 - **RegExp** (`RegExp` → `string`)
 - **URL** (`URL` → `string`)
+- **Record (object)**
+- **Array**
 - **Set** (`Set` → `array`)
 - **Map** (`Map` → `array`)
 - **Blob** (unsupported in `AsyncIteratorObject`)
@@ -28,6 +30,10 @@ The `OpenAPIHandler` enables communication with clients over RESTful APIs, adher
 
 ::: warning
 If a payload contains `Blob` or `File` outside the root level, it must use `multipart/form-data`. In such cases, oRPC applies [Bracket Notation](/docs/openapi/bracket-notation) and converts other types to strings (exclude `null` and `undefined` will not be represented).
+:::
+
+:::tip
+You can extend the list of supported types by [creating a custom serializer](/docs/openapi/advanced/openapi-json-serializer#extending-native-data-types).
 :::
 
 ## Installation

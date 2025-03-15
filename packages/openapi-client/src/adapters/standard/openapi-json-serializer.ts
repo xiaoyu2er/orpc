@@ -2,8 +2,31 @@ import { isObject } from '@orpc/shared'
 
 export type StandardOpenAPIJsonSerialized = [json: unknown, hasBlob: boolean]
 
+export interface StandardOpenAPICustomJsonSerializer {
+  condition(data: unknown): boolean
+  serialize(data: any): unknown
+}
+
+export interface StandardOpenAPIJsonSerializerOptions {
+  customJsonSerializers?: readonly StandardOpenAPICustomJsonSerializer[]
+}
+
 export class StandardOpenAPIJsonSerializer {
+  private readonly customSerializers: readonly StandardOpenAPICustomJsonSerializer[]
+
+  constructor(options: StandardOpenAPIJsonSerializerOptions = {}) {
+    this.customSerializers = options.customJsonSerializers ?? []
+  }
+
   serialize(data: unknown, hasBlobRef: { value: boolean } = { value: false }): StandardOpenAPIJsonSerialized {
+    for (const custom of this.customSerializers) {
+      if (custom.condition(data)) {
+        const result = this.serialize(custom.serialize(data), hasBlobRef)
+
+        return result
+      }
+    }
+
     if (data instanceof Blob) {
       hasBlobRef.value = true
       return [data, hasBlobRef.value]

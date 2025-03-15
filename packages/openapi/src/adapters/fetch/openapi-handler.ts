@@ -13,7 +13,7 @@ export class OpenAPIHandler<T extends Context> implements FetchHandler<T> {
   private readonly standardHandler: StandardHandler<T>
 
   constructor(router: Router<any, T>, options: NoInfer<StandardOpenAPIHandlerOptions<T>> = {}) {
-    const jsonSerializer = new StandardOpenAPIJsonSerializer()
+    const jsonSerializer = new StandardOpenAPIJsonSerializer(options)
     const bracketNotationSerializer = new StandardBracketNotationSerializer()
     const serializer = new StandardOpenAPISerializer(jsonSerializer, bracketNotationSerializer)
     const matcher = new StandardOpenAPIMatcher()

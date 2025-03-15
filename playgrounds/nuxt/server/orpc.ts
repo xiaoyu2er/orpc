@@ -5,7 +5,6 @@ import { dbProviderMiddleware } from './middlewares/db'
 
 export interface ORPCContext {
   user?: z.infer<typeof UserSchema>
-  db?: any
 }
 
 export const pub = os

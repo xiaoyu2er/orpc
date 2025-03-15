@@ -1,6 +1,7 @@
 import type { z } from 'zod'
 import type { UserSchema } from './schemas/user'
 import { ORPCError, os } from '@orpc/server'
+import { dbProviderMiddleware } from './middlewares/db'
 
 export interface ORPCContext {
   user?: z.infer<typeof UserSchema>
@@ -9,18 +10,9 @@ export interface ORPCContext {
 
 export const pub = os
   .$context<ORPCContext>()
-  .use(async ({ context, path, next }, input) => {
-    const start = Date.now()
+  .use(dbProviderMiddleware)
 
-    try {
-      return await next({})
-    }
-    finally {
-      console.log(`[${path.join('/')}] ${Date.now() - start}ms`)
-    }
-  })
-
-export const authed = pub.use(({ context, path, next }, input) => {
+export const authed = pub.use(({ context, next }) => {
   if (!context.user) {
     throw new ORPCError('UNAUTHORIZED')
   }

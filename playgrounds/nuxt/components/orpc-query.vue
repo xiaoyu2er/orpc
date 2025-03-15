@@ -3,8 +3,8 @@ import { useInfiniteQuery } from '@tanstack/vue-query'
 import { orpc } from '~/lib/orpc'
 
 const query = useInfiniteQuery(orpc.planet.list.infiniteOptions({
-  input: cursor => ({ cursor }),
-  getNextPageParam: lastPage => (lastPage.at(-1)?.id ?? -1) + 1,
+  input: cursor => ({ cursor, limit: 10 }),
+  getNextPageParam: lastPage => lastPage.length === 10 ? lastPage.at(-1)?.id : null,
   initialPageParam: 0,
 }))
 </script>
@@ -39,7 +39,7 @@ const query = useInfiniteQuery(orpc.planet.list.infiniteOptions({
       <tfoot>
         <tr>
           <td colspan="4">
-            <button type="button" @click="() => query.fetchNextPage()">
+            <button type="button" :disabled="!query.hasNextPage.value" @click="() => query.fetchNextPage()">
               Load more
             </button>
             <button type="button" @click="() => query.refetch()">

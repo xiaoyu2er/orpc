@@ -24,11 +24,17 @@ The `RPCHandler` enables communication with clients over oRPC's proprietary [RPC
 - **BigInt**
 - **RegExp**
 - **URL**
+- **Record (object)**
+- **Array**
 - **Set**
 - **Map**
 - **Blob** (unsupported in `AsyncIteratorObject`)
 - **File** (unsupported in `AsyncIteratorObject`)
 - **AsyncIteratorObject** (only at the root level; powers the [Event Iterator](/docs/event-iterator))
+
+:::tip
+You can extend the list of supported types by [creating a custom serializer](/docs/advanced/rpc-json-serializer#extending-native-data-types).
+:::
 
 ## Setup and Integration
 

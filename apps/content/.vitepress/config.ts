@@ -182,6 +182,13 @@ export default defineConfig({
             { text: 'OpenAPI Link', link: '/docs/openapi/client/openapi-link' },
           ],
         },
+        {
+          text: 'Advanced',
+          collapsed: true,
+          items: [
+            { text: 'OpenAPI JSON Serializer', link: '/docs/openapi/advanced/openapi-json-serializer' },
+          ],
+        },
       ],
       '/examples/': [
         { text: 'OpenAI Streaming', link: '/examples/openai-streaming' },

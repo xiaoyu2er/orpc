@@ -85,7 +85,11 @@ export class Builder<
    */
   $meta<U extends Meta>(
     initialMeta: U,
-  ): Builder<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, U> {
+  ): Builder<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, U & Record<never, never>> {
+    /**
+     * We need `& Record<never, never>` to deal with `has no properties in common with type` error
+     */
+
     return new Builder({
       ...this['~orpc'],
       meta: initialMeta,

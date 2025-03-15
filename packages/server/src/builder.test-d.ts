@@ -90,7 +90,7 @@ describe('Builder', () => {
         typeof inputSchema,
         typeof outputSchema,
         typeof baseErrorMap,
-        { auth?: boolean }
+        { auth?: boolean } & Record<never, never>
       >
     >()
 

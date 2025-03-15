@@ -1,5 +1,5 @@
 {
-  "name": "orpc-solid-start-playground",
+  "name": "@orpc/solid-start-playground",
   "type": "module",
   "scripts": {
     "dev": "vinxi dev",

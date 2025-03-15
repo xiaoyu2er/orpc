@@ -1,5 +1,5 @@
 {
-  "name": "orpc-svelte-kit-playground",
+  "name": "@orpc/svelte-kit-playground",
   "type": "module",
   "version": "0.0.1",
   "private": true,

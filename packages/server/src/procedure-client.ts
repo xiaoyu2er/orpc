@@ -1,12 +1,12 @@
 import type { Client, ClientContext } from '@orpc/client'
 import type { Interceptor, MaybeOptionalOptions, Value } from '@orpc/shared'
-import type { Context } from './context'
 import type { Lazyable } from './lazy'
 import type { MiddlewareNextFn } from './middleware'
 import type { AnyProcedure, Procedure, ProcedureHandlerOptions } from './procedure'
 import { ORPCError } from '@orpc/client'
 import { type AnySchema, type ErrorFromErrorMap, type ErrorMap, type InferSchemaInput, type InferSchemaOutput, type Meta, ValidationError } from '@orpc/contract'
 import { intercept, toError, value } from '@orpc/shared'
+import { type Context, mergeCurrentContext } from './context'
 import { createORPCErrorConstructorMap, type ORPCErrorConstructorMap, validateORPCError } from './error'
 import { unlazy } from './lazy'
 import { middlewareOutputFn } from './middleware'
@@ -171,8 +171,10 @@ async function executeProcedureInternal(procedure: AnyProcedure, options: Proced
 
   const next: MiddlewareNextFn<any> = async (...[nextOptions]) => {
     const index = currentIndex
+    const midContext = nextOptions?.context ?? {} as any
+
     currentIndex += 1
-    currentContext = { ...currentContext, ...nextOptions?.context }
+    currentContext = mergeCurrentContext(currentContext, midContext)
 
     if (index === inputValidationIndex) {
       currentInput = await validateInput(procedure, currentInput)
@@ -181,14 +183,20 @@ async function executeProcedureInternal(procedure: AnyProcedure, options: Proced
     const mid = middlewares[index]
 
     const result = mid
-      ? await mid({ ...options, context: currentContext, next }, currentInput, middlewareOutputFn)
-      : { output: await procedure['~orpc'].handler({ ...options, context: currentContext, input: currentInput }), context: currentContext }
+      ? {
+          context: midContext,
+          output: (await mid({ ...options, context: currentContext, next }, currentInput, middlewareOutputFn)).output,
+        }
+      : {
+          context: midContext,
+          output: await procedure['~orpc'].handler({ ...options, context: currentContext, input: currentInput }),
+        }
 
     if (index === outputValidationIndex) {
       const validatedOutput = await validateOutput(procedure, result.output)
 
       return {
-        ...result,
+        context: result.context,
         output: validatedOutput,
       }
     }
@@ -196,5 +204,5 @@ async function executeProcedureInternal(procedure: AnyProcedure, options: Proced
     return result
   }
 
-  return (await next({})).output
+  return (await next()).output
 }

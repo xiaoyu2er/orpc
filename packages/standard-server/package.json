@@ -1,7 +1,7 @@
 {
   "name": "@orpc/standard-server",
   "type": "module",
-  "version": "0.47.0",
+  "version": "1.0.0-beta.1",
   "license": "MIT",
   "homepage": "https://unnoq.com",
   "repository": {

@@ -178,6 +178,10 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     })
 
     preMid2.mockImplementationOnce(({ next }) => {
+      return next()
+    })
+
+    postMid1.mockImplementationOnce(({ next }) => {
       return next({
         context: {
           extra2: '__extra2__',
@@ -185,18 +189,10 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
       })
     })
 
-    postMid1.mockImplementationOnce(({ next }) => {
-      return next({
-        context: {
-          extra3: '__extra3__',
-        },
-      })
-    })
-
     postMid2.mockImplementationOnce(({ next }) => {
       return next({
         context: {
-          extra4: '__extra4__',
+          extra3: '__extra3__',
         },
       })
     })
@@ -211,33 +207,30 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     expect(preMid2).toHaveBeenCalledWith(expect.objectContaining({
       context: { extra1: '__extra1__' },
     }), expect.any(Object), expect.any(Function))
-    expect(await preMid2.mock.results[0]!.value).toEqual({ output: { val: 123 }, context: { extra2: '__extra2__' } })
+    expect(await preMid2.mock.results[0]!.value).toEqual({ output: { val: 123 }, context: { } })
 
     expect(postMid1).toBeCalledTimes(1)
     expect(postMid1).toHaveBeenCalledWith(expect.objectContaining({
       context: {
         extra1: '__extra1__',
-        extra2: '__extra2__',
       },
     }), expect.any(Object), expect.any(Function))
-    expect(await postMid1.mock.results[0]!.value).toEqual({ output: { val: '123' }, context: { extra3: '__extra3__' } })
+    expect(await postMid1.mock.results[0]!.value).toEqual({ output: { val: '123' }, context: { extra2: '__extra2__' } })
 
     expect(postMid2).toBeCalledTimes(1)
     expect(postMid2).toHaveBeenCalledWith(expect.objectContaining({
       context: {
         extra1: '__extra1__',
         extra2: '__extra2__',
-        extra3: '__extra3__',
       },
     }), expect.any(Object), expect.any(Function))
-    expect(await postMid2.mock.results[0]!.value).toEqual({ output: { val: '123' }, context: { extra4: '__extra4__' } })
+    expect(await postMid2.mock.results[0]!.value).toEqual({ output: { val: '123' }, context: { extra3: '__extra3__' } })
 
     expect(handler).toBeCalledTimes(1)
     expect(handler).toHaveBeenCalledWith(expect.objectContaining({ context: {
       extra1: '__extra1__',
       extra2: '__extra2__',
       extra3: '__extra3__',
-      extra4: '__extra4__',
     } }))
     expect(await handler.mock.results[0]!.value).toEqual({ val: '123' })
   })

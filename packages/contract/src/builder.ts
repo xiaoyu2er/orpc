@@ -36,7 +36,11 @@ export class ContractBuilder<
    */
   $meta<U extends Meta>(
     initialMeta: U,
-  ): ContractBuilder<TInputSchema, TOutputSchema, TErrorMap, U> {
+  ): ContractBuilder<TInputSchema, TOutputSchema, TErrorMap, U & Record<never, never>> {
+    /**
+     * We need `& Record<never, never>` to deal with `has no properties in common with type` error
+     */
+
     return new ContractBuilder({
       ...this['~orpc'],
       meta: initialMeta,

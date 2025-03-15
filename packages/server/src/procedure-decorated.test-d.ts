@@ -168,7 +168,7 @@ describe('DecoratedProcedure', () => {
     })
 
     it('with TInContext', () => {
-      const mid = {} as Middleware<{ cacheable?: boolean }, Record<never, never>, unknown, any, ORPCErrorConstructorMap<any>, BaseMeta>
+      const mid = {} as Middleware<{ cacheable?: boolean } & Record<never, never>, Record<never, never>, unknown, any, ORPCErrorConstructorMap<any>, BaseMeta>
 
       expectTypeOf(builder.use(mid)).toEqualTypeOf<
         DecoratedProcedure<

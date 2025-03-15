@@ -132,11 +132,11 @@ describe('DecoratedMiddleware', () => {
     })
 
     it('with TInContext', () => {
-      const mid = {} as Middleware<{ cacheable?: boolean }, Record<never, never>, unknown, any, ORPCErrorConstructorMap<any>, BaseMeta>
+      const mid = {} as Middleware<{ cacheable?: boolean } & Record<never, never>, Record<never, never>, unknown, any, ORPCErrorConstructorMap<any>, BaseMeta>
 
       expectTypeOf(decorated.concat(mid)).toEqualTypeOf<
         DecoratedMiddleware<
-          CurrentContext & Omit<{ cacheable?: boolean }, 'db' | 'auth' | 'extra'>,
+          CurrentContext & Omit<{ cacheable?: boolean } & Record<never, never>, 'db' | 'auth' | 'extra'>,
           Omit<{ extra: boolean }, never> & Record<never, never>,
           { input: string },
           { output: number },
@@ -147,7 +147,7 @@ describe('DecoratedMiddleware', () => {
 
       expectTypeOf(decorated.concat(mid, () => { })).toEqualTypeOf<
         DecoratedMiddleware<
-          CurrentContext & Omit<{ cacheable?: boolean }, 'db' | 'auth' | 'extra'>,
+          CurrentContext & Omit<{ cacheable?: boolean } & Record<never, never>, 'db' | 'auth' | 'extra'>,
           Omit<{ extra: boolean }, never> & Record<never, never>,
           { input: string },
           { output: number },

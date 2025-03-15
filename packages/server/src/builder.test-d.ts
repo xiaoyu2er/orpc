@@ -62,7 +62,7 @@ describe('Builder', () => {
   it('.$context', () => {
     expectTypeOf(builder.$context()).toEqualTypeOf<
       Builder<
-        Context,
+        Context & Record<never, never>,
         Context,
         typeof inputSchema,
         typeof outputSchema,
@@ -72,7 +72,7 @@ describe('Builder', () => {
     >()
     expectTypeOf(builder.$context<{ anything: string }>()).toEqualTypeOf<
       Builder<
-        { anything: string },
+        { anything: string } & Record<never, never>,
         { anything: string },
         typeof inputSchema,
         typeof outputSchema,
@@ -90,7 +90,7 @@ describe('Builder', () => {
         typeof inputSchema,
         typeof outputSchema,
         typeof baseErrorMap,
-        { auth?: boolean }
+        { auth?: boolean } & Record<never, never>
       >
     >()
 
@@ -298,7 +298,7 @@ describe('Builder', () => {
     })
 
     it('with TInContext', () => {
-      const mid = {} as Middleware<{ cacheable?: boolean }, Record<never, never>, unknown, unknown, ORPCErrorConstructorMap<any>, BaseMeta>
+      const mid = {} as Middleware<{ cacheable?: boolean } & Record<never, never>, Record<never, never>, unknown, unknown, ORPCErrorConstructorMap<any>, BaseMeta>
 
       expectTypeOf(builder.use(mid)).toEqualTypeOf<
         BuilderWithMiddlewares<
@@ -437,18 +437,17 @@ describe('Builder', () => {
 
     builder.router({
       // @ts-expect-error - initial context is not match
-      ping: {} as Procedure<{ invalid: true }, Context, undefined, undefined, unknown, Record<never, never>, BaseMeta>,
+      ping: {} as Procedure<{ invalid: true }, any, any, any, any, any>,
     })
 
     builder.router({
       // @ts-expect-error - meta def is not match
       ping: {} as Procedure<
-        Context,
-        Context,
-        undefined,
-        undefined,
-        unknown,
-        Record<never, never>,
+        any,
+        any,
+        any,
+        any,
+        any,
         { invalid: true }
       >,
     })

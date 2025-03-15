@@ -1,29 +1,21 @@
 import { pub } from '../orpc'
-import { me, refresh, revoke, signin, signup } from './auth'
-import {
-  createPlanet,
-  deletePlanet,
-  findPlanet,
-  listPlanets,
-  updatePlanet,
-  updatePlanetImage,
-} from './planet'
+import { me, signin, signup } from './auth'
+import { createPlanet, findPlanet, listPlanets, updatePlanet } from './planet'
+import { sse } from './sse'
 
 export const router = pub.router({
-  auth: pub.auth.router({
+  auth: {
     signup,
     signin,
-    refresh,
-    revoke,
     me,
-  }),
+  },
 
-  planet: pub.planet.router({
+  planet: {
     list: listPlanets,
     create: createPlanet,
     find: findPlanet,
     update: updatePlanet,
-    updateImage: updatePlanetImage,
-    delete: deletePlanet,
-  }),
+  },
+
+  sse,
 })

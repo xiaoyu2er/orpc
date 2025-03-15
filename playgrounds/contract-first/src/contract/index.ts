@@ -1,29 +1,20 @@
-import { oc } from '@orpc/contract'
-import { me, refresh, revoke, signin, signup } from './auth'
-import {
-  createPlanet,
-  deletePlanet,
-  findPlanet,
-  listPlanets,
-  updatePlanet,
-  updatePlanetImage,
-} from './planet'
+import { me, signin, signup } from './auth'
+import { createPlanet, findPlanet, listPlanets, updatePlanet } from './planet'
+import { sse } from './sse'
 
-export const contract = oc.router({
-  auth: oc.tag('Authentication').prefix('/auth').router({
+export const contract = {
+  auth: {
     signup,
     signin,
-    refresh,
-    revoke,
     me,
-  }),
+  },
 
-  planet: oc.tag('Planets').prefix('/planets').router({
+  planet: {
     list: listPlanets,
     create: createPlanet,
     find: findPlanet,
     update: updatePlanet,
-    updateImage: updatePlanetImage,
-    delete: deletePlanet,
-  }),
-})
+  },
+
+  sse,
+}

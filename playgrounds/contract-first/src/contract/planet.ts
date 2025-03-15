@@ -1,32 +1,28 @@
-import { oc } from '@orpc/contract'
-import { oz } from '@orpc/zod'
 import { z } from 'zod'
-import { planets } from '../data/planet'
-import {
-  NewPlanetSchema,
-  PlanetSchema,
-  UpdatePlanetSchema,
-} from '../schemas/planet'
+import { NewPlanetSchema, PlanetSchema, UpdatePlanetSchema } from '../schemas/planet'
+import { oc } from '@orpc/contract'
 
 export const listPlanets = oc
   .route({
     method: 'GET',
-    path: '/',
+    path: '/planets',
     summary: 'List all planets',
+    tags: ['Planets'],
   })
   .input(
     z.object({
-      limit: z.number().int().min(1).max(100).optional(),
+      limit: z.number().int().min(1).max(100).default(10),
       cursor: z.number().int().min(0).default(0),
     }),
   )
-  .output(oz.openapi(z.array(PlanetSchema), { examples: [planets] }))
+  .output(z.array(PlanetSchema))
 
 export const createPlanet = oc
   .route({
     method: 'POST',
-    path: '/',
+    path: '/planets',
     summary: 'Create a planet',
+    tags: ['Planets'],
   })
   .input(NewPlanetSchema)
   .output(PlanetSchema)
@@ -34,8 +30,9 @@ export const createPlanet = oc
 export const findPlanet = oc
   .route({
     method: 'GET',
-    path: '/{id}',
+    path: '/planets/{id}',
     summary: 'Find a planet',
+    tags: ['Planets'],
   })
   .input(
     z.object({
@@ -47,35 +44,15 @@ export const findPlanet = oc
 export const updatePlanet = oc
   .route({
     method: 'PUT',
-    path: '/{id}',
+    path: '/planets/{id}',
     summary: 'Update a planet',
+    tags: ['Planets'],
+  })
+  .errors({
+    NOT_FOUND: {
+      message: 'Planet not found',
+      data: z.object({ id: UpdatePlanetSchema.shape.id }),
+    },
   })
   .input(UpdatePlanetSchema)
   .output(PlanetSchema)
-
-export const updatePlanetImage = oc
-  .route({
-    method: 'PATCH',
-    path: '/{id}/image',
-    summary: 'Update a planet image',
-  })
-  .input(
-    z.object({
-      id: z.number().int().min(1),
-      image: oz.file().type('image/*').optional(),
-    }),
-  )
-  .output(PlanetSchema)
-
-export const deletePlanet = oc
-  .route({
-    method: 'DELETE',
-    path: '/{id}',
-    summary: 'Delete a planet',
-    deprecated: true,
-  })
-  .input(
-    z.object({
-      id: z.number().int().min(1),
-    }),
-  )

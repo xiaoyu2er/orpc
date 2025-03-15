@@ -5,8 +5,9 @@ import { NewUserSchema, UserSchema } from '../schemas/user'
 export const signup = oc
   .route({
     method: 'POST',
-    path: '/signup',
+    path: '/auth/signup',
     summary: 'Sign up a new user',
+    tags: ['Authentication'],
   })
   .input(NewUserSchema)
   .output(UserSchema)
@@ -14,32 +15,18 @@ export const signup = oc
 export const signin = oc
   .route({
     method: 'POST',
-    path: '/signin',
+    path: '/auth/signin',
     summary: 'Sign in a user',
+    tags: ['Authentication'],
   })
   .input(CredentialSchema)
   .output(TokenSchema)
 
-export const refresh = oc
-  .route({
-    method: 'POST',
-    path: '/refresh',
-    summary: 'Refresh a token',
-  })
-  .output(TokenSchema)
-
-export const revoke = oc
-  .route({
-    method: 'DELETE',
-    path: '/revoke',
-    summary: 'Revoke a token',
-  })
-  .input(TokenSchema)
-
 export const me = oc
   .route({
     method: 'GET',
-    path: '/me',
+    path: '/auth/me',
     summary: 'Get the current user',
+    tags: ['Authentication'],
   })
   .output(UserSchema)

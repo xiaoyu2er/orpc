@@ -67,7 +67,11 @@ export class Builder<
   /**
    * Reset initial context
    */
-  $context<U extends Context>(): Builder<U, U, TInputSchema, TOutputSchema, TErrorMap, TMeta> {
+  $context<U extends Context>(): Builder<U & Record<never, never>, U, TInputSchema, TOutputSchema, TErrorMap, TMeta> {
+    /**
+     * We need `& Record<never, never>` to deal with `has no properties in common with type` error
+     */
+
     return new Builder({
       ...this['~orpc'],
       middlewares: [],

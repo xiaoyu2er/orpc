@@ -236,18 +236,17 @@ describe('BuilderWithMiddlewares', () => {
 
     builder.router({
       // @ts-expect-error - initial context is not match
-      ping: {} as Procedure<{ invalid: true }, Context, undefined, undefined, unknown, Record<never, never>, BaseMeta>,
+      ping: {} as Procedure<{ invalid: true }, any, any, any, any, any>,
     })
 
     builder.router({
       // @ts-expect-error - meta def is not match
       ping: {} as Procedure<
-        Context,
-        Context,
-        undefined,
-        undefined,
-        unknown,
-        Record<never, never>,
+        any,
+        any,
+        any,
+        any,
+        any,
         { invalid: true }
       >,
     })
@@ -261,7 +260,7 @@ describe('BuilderWithMiddlewares', () => {
     // @ts-expect-error - initial context is not match
     builder.lazy(() => Promise.resolve({
       default: {
-        ping: {} as Procedure<{ invalid: true }, Context, AnySchema, AnySchema, Record<never, never>, BaseMeta>,
+        ping: {} as Procedure<{ invalid: true }, any, any, any, any, any>,
       },
     }))
 
@@ -269,11 +268,11 @@ describe('BuilderWithMiddlewares', () => {
     builder.lazy(() => Promise.resolve({
       default: {
         ping: {} as Procedure<
-          Context,
-          Context,
-          AnySchema,
-          AnySchema,
-          Record<never, never>,
+          any,
+          any,
+          any,
+          any,
+          any,
           { invalid: true }
         >,
       },
@@ -1208,18 +1207,17 @@ describe('RouterBuilder', () => {
 
     builder.router({
       // @ts-expect-error - initial context is not match
-      ping: {} as Procedure<{ invalid: true }, Context, undefined, undefined, unknown, Record<never, never>, BaseMeta>,
+      ping: {} as Procedure<{ invalid: true }, any, any, any, any, any>,
     })
 
     builder.router({
       // @ts-expect-error - meta def is not match
       ping: {} as Procedure<
-        Context,
-        Context,
-        undefined,
-        undefined,
-        unknown,
-        Record<never, never>,
+        any,
+        any,
+        any,
+        any,
+        any,
         { invalid: true }
       >,
     })
@@ -1233,7 +1231,7 @@ describe('RouterBuilder', () => {
     // @ts-expect-error - initial context is not match
     builder.lazy(() => Promise.resolve({
       default: {
-        ping: {} as Procedure<{ invalid: true }, Context, AnySchema, AnySchema, Record<never, never>, BaseMeta>,
+        ping: {} as Procedure<{ invalid: true }, any, any, any, any, any>,
       },
     }))
 
@@ -1241,11 +1239,11 @@ describe('RouterBuilder', () => {
     builder.lazy(() => Promise.resolve({
       default: {
         ping: {} as Procedure<
-          Context,
-          Context,
-          AnySchema,
-          AnySchema,
-          Record<never, never>,
+          any,
+          any,
+          any,
+          any,
+          any,
           { invalid: true }
         >,
       },

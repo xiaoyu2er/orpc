@@ -4,8 +4,8 @@
 
   const query = createInfiniteQuery(
     orpc.planet.list.infiniteOptions({
-      input: (cursor) => ({ cursor }),
-      getNextPageParam: (lastPage) => (lastPage.at(-1)?.id ?? -1) + 1,
+      input: cursor => ({ cursor, limit: 10 }),
+      getNextPageParam: lastPage => lastPage.length === 10 ? lastPage.at(-1)?.id : null,
       initialPageParam: 0,
     })
   );

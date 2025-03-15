@@ -1,6 +1,9 @@
 import { oz } from '@orpc/zod'
 import { z } from 'zod'
 
+export type NewUser = z.infer<typeof NewUserSchema>
+export type User = z.infer<typeof UserSchema>
+
 export const NewUserSchema = oz.openapi(
   z.object({
     name: z.string(),

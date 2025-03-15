@@ -1,29 +1,29 @@
-import { createInfiniteQuery, createMutation, createQueries, createQuery, useQueryClient } from '@tanstack/svelte-query'
 import { orpc } from './lib/orpc'
+import { isDefinedError } from '@orpc/client'
+import { createInfiniteQuery, createMutation, useQueryClient } from '@tanstack/svelte-query'
 
-const query = createQuery(orpc.planet.find.queryOptions({
-  input: { id: 1 },
-}))
-
-const infinite = createInfiniteQuery(orpc.planet.list.infiniteOptions({
-  input: cursor => ({ cursor }),
-  getNextPageParam: lastPage => (lastPage.at(-1)?.id ?? -1) + 1,
-  initialPageParam: 0,
-}))
+const query = createInfiniteQuery(
+  orpc.planet.list.infiniteOptions({
+    input: cursor => ({ cursor }),
+    getNextPageParam: lastPage => (lastPage.at(-1)?.id ?? -1) + 1,
+    initialPageParam: 0,
+  }),
+)
 
 const queryClient = useQueryClient()
 
-const mutation = createMutation(orpc.planet.create.mutationOptions({
-  onSuccess: () => {
-    queryClient.invalidateQueries({
-      queryKey: orpc.planet.list.key(),
-    })
-  },
-}))
-
-const queries = createQueries({
-  queries: [
-    orpc.planet.find.queryOptions({ input: { id: 1 } }),
-    orpc.planet.list.queryOptions({ input: {} }),
-  ],
-})
+const mutation = createMutation(
+  orpc.planet.update.mutationOptions({
+    onError(error) {
+      if (isDefinedError(error)) {
+        const id = error.data.id
+        //    ^    type-safe
+      }
+    },
+    onSuccess() {
+      queryClient.invalidateQueries({
+        queryKey: orpc.planet.key(),
+      })
+    },
+  }),
+)

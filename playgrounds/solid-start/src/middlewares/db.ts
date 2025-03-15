@@ -1,5 +1,5 @@
-import type { NewPlanet, Planet, UpdatePlanet } from '@/schemas/planet'
-import type { User } from '@/schemas/user'
+import type { NewPlanet, Planet, UpdatePlanet } from '../schemas/planet'
+import type { User } from '../schemas/user'
 import { os } from '@orpc/server'
 
 export interface DB {

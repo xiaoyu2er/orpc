@@ -23,14 +23,14 @@ export interface RouterImplementer<
 > {
   middleware<UOutContext extends Context, TInput, TOutput = any>( // = any here is important to make middleware can be used in any output by default
     middleware: Middleware<
-      TCurrentContext,
+      TInitialContext,
       UOutContext,
       TInput,
       TOutput,
       ORPCErrorConstructorMap<InferContractRouterErrorMap<T>>,
       InferContractRouterMeta<T>
     >,
-  ): DecoratedMiddleware<TCurrentContext, UOutContext, TInput, TOutput, ORPCErrorConstructorMap<any>, InferContractRouterMeta<T>> // ORPCErrorConstructorMap<any> ensures middleware can used in any procedure
+  ): DecoratedMiddleware<TInitialContext, UOutContext, TInput, TOutput, ORPCErrorConstructorMap<any>, InferContractRouterMeta<T>> // ORPCErrorConstructorMap<any> ensures middleware can used in any procedure
 
   use<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
@@ -169,19 +169,15 @@ export type Implementer<
   TCurrentContext extends Context ,
 > =
   & {
-    $context<U extends Context>(): Implementer<TContract, U, U>
+    $context<U extends Context>(): Implementer<TContract, U & Record<never, never>, U> // We need `& Record<never, never>` to deal with `has no properties in common with type` error
     $config(config: BuilderConfig): Implementer<TContract, TInitialContext, TCurrentContext>
   }
   & ImplementerInternal<TContract, TInitialContext, TCurrentContext>
 
-export function implement<
-  TContract extends AnyContractRouter,
-  TInitialContext extends Context,
-  TCurrentContext extends Context,
->(
-  contract: TContract,
+export function implement<T extends AnyContractRouter, TContext extends Context = Record<never, never>>(
+  contract: T,
   config: BuilderConfig = {},
-): Implementer<TContract, TInitialContext, TCurrentContext> {
+): Implementer<T, TContext, TContext> {
   const implInternal = implementerInternal(contract, config, [])
 
   const impl = new Proxy(implInternal, {

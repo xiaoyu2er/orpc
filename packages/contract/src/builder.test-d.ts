@@ -25,7 +25,7 @@ describe('ContractBuilder', () => {
     type MetaDef = { meta1?: string, meta2?: number }
 
     expectTypeOf(builder.$meta<MetaDef>({ meta1: 'value' })).toEqualTypeOf<
-      ContractBuilder<typeof inputSchema, typeof outputSchema, typeof baseErrorMap, MetaDef>
+      ContractBuilder<typeof inputSchema, typeof outputSchema, typeof baseErrorMap, MetaDef & Record<never, never>>
     >()
 
     // @ts-expect-error - invalid initial meta

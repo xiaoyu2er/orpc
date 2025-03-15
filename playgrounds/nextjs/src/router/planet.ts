@@ -1,60 +1,48 @@
 import { ORPCError } from '@orpc/server'
-import { oz } from '@orpc/zod'
 import { z } from 'zod'
-import { planets } from '../data/planet'
 import { authed, pub } from '../orpc'
-import {
-  NewPlanetSchema,
-  PlanetSchema,
-  UpdatePlanetSchema,
-} from '../schemas/planet'
+import { NewPlanetSchema, PlanetSchema, UpdatePlanetSchema } from '../schemas/planet'
+import { retry } from '@/middlewares/retry'
 
 export const listPlanets = pub
+  .use(retry({ times: 3 }))
   .route({
     method: 'GET',
-    path: '/',
+    path: '/planets',
     summary: 'List all planets',
+    tags: ['Planets'],
   })
   .input(
     z.object({
-      limit: z.number().int().min(1).max(100).optional(),
+      limit: z.number().int().min(1).max(100).default(10),
       cursor: z.number().int().min(0).default(0),
     }),
   )
-  .output(oz.openapi(z.array(PlanetSchema), { examples: [planets] }))
+  .output(z.array(PlanetSchema))
   .handler(async ({ input, context }) => {
-    return planets
+    return context.db.planets.list(input.limit, input.cursor)
   })
 
 export const createPlanet = authed
   .route({
     method: 'POST',
-    path: '/',
+    path: '/planets',
     summary: 'Create a planet',
+    tags: ['Planets'],
   })
   .input(NewPlanetSchema)
   .output(PlanetSchema)
   .handler(async ({ input, context }) => {
-    const id = planets.length + 1
-
-    const planet = {
-      id,
-      name: input.name,
-      description: input.description,
-      imageUrl: input.image ? 'https://picsum.photos/200/300' : undefined,
-      creator: context.user,
-    }
-
-    planets.push(planet)
-
-    return planet
+    return context.db.planets.create(input, context.user)
   })
 
 export const findPlanet = pub
+  .use(retry({ times: 3 }))
   .route({
     method: 'GET',
-    path: '/{id}',
+    path: '/planets/{id}',
     summary: 'Find a planet',
+    tags: ['Planets'],
   })
   .input(
     z.object({
@@ -63,12 +51,10 @@ export const findPlanet = pub
   )
   .output(PlanetSchema)
   .handler(async ({ input, context }) => {
-    const planet = planets.find(planet => planet.id === input.id)
+    const planet = await context.db.planets.find(input.id)
 
     if (!planet) {
-      throw new ORPCError('NOT_FOUND', {
-        message: 'Planet not found',
-      })
+      throw new ORPCError('NOT_FOUND', { message: 'Planet not found' })
     }
 
     return planet
@@ -77,74 +63,36 @@ export const findPlanet = pub
 export const updatePlanet = authed
   .route({
     method: 'PUT',
-    path: '/{id}',
+    path: '/planets/{id}',
     summary: 'Update a planet',
+    tags: ['Planets'],
+  })
+  .errors({
+    NOT_FOUND: {
+      message: 'Planet not found',
+      data: z.object({ id: UpdatePlanetSchema.shape.id }),
+    },
   })
   .input(UpdatePlanetSchema)
   .output(PlanetSchema)
-  .handler(async ({ input, context }) => {
-    const planet = planets.find(planet => planet.id === input.id)
+  .handler(async ({ input, context, errors }) => {
+    const planet = await context.db.planets.find(input.id)
 
     if (!planet) {
-      throw new ORPCError('NOT_FOUND', {
-        message: 'Planet not found',
-      })
+      /**
+       *  1. Type-Safe Error Handling
+       *
+       * {@link https://orpc.unnoq.com/docs/error-handling#type%E2%80%90safe-error-handling}
+       */
+      throw errors.NOT_FOUND({ data: { id: input.id } })
+
+      /**
+       * 2. Normal Approach
+       *
+       * {@link https://orpc.unnoq.com/docs/error-handling#normal-approach}
+       */
+      // throw new ORPCError('NOT_FOUND', { message: 'Planet not found' })
     }
 
-    planet.name = input.name ?? planet.name
-    planet.description = input.description ?? planet.description
-    planet.imageUrl = input.image ? 'https://picsum.photos/200/300' : undefined
-
-    return planet
-  })
-
-export const updatePlanetImage = authed
-  .route({
-    method: 'PATCH',
-    path: '/{id}/image',
-    summary: 'Update a planet image',
-  })
-  .input(
-    z.object({
-      id: z.number().int().min(1),
-      image: oz.file().type('image/*').optional(),
-    }),
-  )
-  .output(PlanetSchema)
-  .handler(async ({ input, context }) => {
-    const planet = planets.find(planet => planet.id === input.id)
-
-    if (!planet) {
-      throw new ORPCError('NOT_FOUND', {
-        message: 'Planet not found',
-      })
-    }
-
-    planet.imageUrl = input.image ? 'https://picsum.photos/200/300' : undefined
-
-    return planet
-  })
-
-export const deletePlanet = authed
-  .route({
-    method: 'DELETE',
-    path: '/{id}',
-    summary: 'Delete a planet',
-    deprecated: true,
-  })
-  .input(
-    z.object({
-      id: z.number().int().min(1),
-    }),
-  )
-  .handler(async ({ input, context }) => {
-    const planet = planets.find(planet => planet.id === input.id)
-
-    if (!planet) {
-      throw new ORPCError('NOT_FOUND', {
-        message: 'Planet not found',
-      })
-    }
-
-    planets.splice(planets.indexOf(planet), 1)
+    return context.db.planets.update(input)
   })

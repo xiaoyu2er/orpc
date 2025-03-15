@@ -2,6 +2,10 @@ import { oz } from '@orpc/zod'
 import { z } from 'zod'
 import { UserSchema } from './user'
 
+export type NewPlanet = z.infer<typeof NewPlanetSchema>
+export type UpdatePlanet = z.infer<typeof UpdatePlanetSchema>
+export type Planet = z.infer<typeof PlanetSchema>
+
 export const NewPlanetSchema = z.object({
   name: z.string(),
   description: z.string().optional(),

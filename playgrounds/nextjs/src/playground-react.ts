@@ -1,11 +1,8 @@
-/**
- * This file is where you can play with type of oRPC React.
- */
-
 import { orpc } from '@/lib/orpc'
-import { useInfiniteQuery, useQueries, useQueryClient } from '@tanstack/react-query'
+import { isDefinedError } from '@orpc/client'
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
-const listQuery = useInfiniteQuery(
+const query = useInfiniteQuery(
   orpc.planet.list.infiniteOptions({
     input: cursor => ({ cursor }),
     getNextPageParam: lastPage => (lastPage.at(-1)?.id ?? -1) + 1,
@@ -15,17 +12,18 @@ const listQuery = useInfiniteQuery(
 
 const queryClient = useQueryClient()
 
-queryClient.invalidateQueries({
-  queryKey: orpc.planet.key(),
-})
-
-const queries = useQueries({
-  queries: [
-    orpc.planet.find.queryOptions({
-      input: { id: 1 },
-    }),
-    orpc.planet.list.queryOptions({
-      input: {},
-    }),
-  ],
-})
+const mutation = useMutation(
+  orpc.planet.update.mutationOptions({
+    onError(error) {
+      if (isDefinedError(error)) {
+        const id = error.data.id
+        //    ^    type-safe
+      }
+    },
+    onSuccess() {
+      queryClient.invalidateQueries({
+        queryKey: orpc.planet.key(),
+      })
+    },
+  }),
+)

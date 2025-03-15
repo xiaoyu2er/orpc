@@ -4,10 +4,10 @@ import { orpc } from '@/lib/orpc'
 import { useInfiniteQuery } from '@tanstack/react-query'
 
 export function ListPlanetsQuery() {
-  const { data, refetch, fetchNextPage, hasNextPage, isLoading, status } = useInfiniteQuery(
+  const { data, refetch, fetchNextPage, hasNextPage, status } = useInfiniteQuery(
     orpc.planet.list.infiniteOptions({
-      input: cursor => ({ cursor }),
-      getNextPageParam: lastPage => (lastPage.at(-1)?.id ?? -1) + 1,
+      input: cursor => ({ cursor, limit: 10 }),
+      getNextPageParam: lastPage => lastPage.length === 10 ? lastPage.at(-1)?.id : null,
       initialPageParam: 0,
     }),
   )

@@ -157,7 +157,7 @@ describe('Builder', () => {
       expectTypeOf(
         builder.middleware(({ context, next, path, procedure, errors, signal }, input, output) => {
           expectTypeOf(input).toEqualTypeOf<unknown>()
-          expectTypeOf(context).toEqualTypeOf<CurrentContext>()
+          expectTypeOf(context).toEqualTypeOf<InitialContext>()
           expectTypeOf(path).toEqualTypeOf<readonly string[]>()
           expectTypeOf(procedure).toEqualTypeOf<
             Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta>
@@ -173,7 +173,7 @@ describe('Builder', () => {
           })
         }),
       ).toEqualTypeOf<
-        DecoratedMiddleware<CurrentContext, { extra: boolean }, unknown, any, ORPCErrorConstructorMap<any>, BaseMeta>
+        DecoratedMiddleware<InitialContext, { extra: boolean }, unknown, any, ORPCErrorConstructorMap<any>, BaseMeta>
       >()
 
       // @ts-expect-error --- conflict context
@@ -184,7 +184,7 @@ describe('Builder', () => {
       expectTypeOf(
         builder.middleware(({ next }, input: 'input', output: MiddlewareOutputFn<'output'>) => next()),
       ).toEqualTypeOf<
-        DecoratedMiddleware<CurrentContext, Record<never, never>, 'input', 'output', ORPCErrorConstructorMap<any>, BaseMeta>
+        DecoratedMiddleware<InitialContext, Record<never, never>, 'input', 'output', ORPCErrorConstructorMap<any>, BaseMeta>
       >()
     })
   })

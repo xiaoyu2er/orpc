@@ -41,7 +41,7 @@ describe('Implementer', () => {
       it('works', () => {
         const mid = implementer.nested.middleware(({ context, next, path, procedure, errors, signal }, input, output) => {
           expectTypeOf(input).toEqualTypeOf<unknown>()
-          expectTypeOf(context).toEqualTypeOf<CurrentContext>()
+          expectTypeOf(context).toEqualTypeOf<InitialContext>()
           expectTypeOf(path).toEqualTypeOf<readonly string[]>()
           expectTypeOf(procedure).toEqualTypeOf<
             Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta | Meta>
@@ -57,9 +57,9 @@ describe('Implementer', () => {
           })
         })
 
-        expectTypeOf(mid).toMatchTypeOf<
+        expectTypeOf(mid).toEqualTypeOf<
           DecoratedMiddleware<
-            CurrentContext,
+            InitialContext,
             { extra: boolean },
             unknown,
             any,
@@ -77,7 +77,7 @@ describe('Implementer', () => {
           implementer.middleware(({ next }, input: 'input', output: MiddlewareOutputFn<'output'>) => next()),
         ).toEqualTypeOf<
           DecoratedMiddleware<
-            CurrentContext,
+            InitialContext,
             Record<never, never>,
             'input',
             'output',

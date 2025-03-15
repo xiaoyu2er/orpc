@@ -108,7 +108,7 @@ describe('BuilderWithMiddlewares', () => {
     })
 
     it('with TInContext', () => {
-      const mid = {} as Middleware<{ cacheable?: boolean }, Record<never, never>, unknown, unknown, ORPCErrorConstructorMap<any>, BaseMeta>
+      const mid = {} as Middleware<{ cacheable?: boolean } & Record<never, never>, Record<never, never>, unknown, unknown, ORPCErrorConstructorMap<any>, BaseMeta>
 
       expectTypeOf(builder.use(mid)).toEqualTypeOf<
         BuilderWithMiddlewares<
@@ -368,7 +368,7 @@ describe('ProcedureBuilder', () => {
     })
 
     it('with TInContext', () => {
-      const mid = {} as Middleware<{ cacheable?: boolean }, Record<never, never>, unknown, unknown, ORPCErrorConstructorMap<any>, BaseMeta>
+      const mid = {} as Middleware<{ cacheable?: boolean } & Record<never, never>, Record<never, never>, unknown, unknown, ORPCErrorConstructorMap<any>, BaseMeta>
 
       expectTypeOf(builder.use(mid)).toEqualTypeOf<
         ProcedureBuilder<
@@ -610,7 +610,7 @@ describe('ProcedureBuilderWithInput', () => {
     })
 
     it('with TInContext', () => {
-      const mid = {} as Middleware<{ cacheable?: boolean }, Record<never, never>, unknown, unknown, ORPCErrorConstructorMap<any>, BaseMeta>
+      const mid = {} as Middleware<{ cacheable?: boolean } & Record<never, never>, Record<never, never>, unknown, unknown, ORPCErrorConstructorMap<any>, BaseMeta>
 
       expectTypeOf(builder.use(mid)).toEqualTypeOf<
         ProcedureBuilderWithInput<
@@ -799,7 +799,7 @@ describe('ProcedureBuilderWithOutput', () => {
     })
 
     it('with TInContext', () => {
-      const mid = {} as Middleware<{ cacheable?: boolean }, Record<never, never>, unknown, any, ORPCErrorConstructorMap<any>, BaseMeta>
+      const mid = {} as Middleware<{ cacheable?: boolean } & Record<never, never>, Record<never, never>, unknown, any, ORPCErrorConstructorMap<any>, BaseMeta>
 
       expectTypeOf(builder.use(mid)).toEqualTypeOf<
         ProcedureBuilderWithOutput<
@@ -1028,7 +1028,7 @@ describe('ProcedureBuilderWithInputOutput', () => {
     })
 
     it('with TInContext', () => {
-      const mid = {} as Middleware<{ cacheable?: boolean }, Record<never, never>, unknown, any, ORPCErrorConstructorMap<any>, BaseMeta>
+      const mid = {} as Middleware<{ cacheable?: boolean } & Record<never, never>, Record<never, never>, unknown, any, ORPCErrorConstructorMap<any>, BaseMeta>
 
       expectTypeOf(builder.use(mid)).toEqualTypeOf<
         ProcedureBuilderWithInputOutput<
@@ -1173,7 +1173,7 @@ describe('RouterBuilder', () => {
     })
 
     it('with TInContext', () => {
-      const mid = {} as Middleware<{ cacheable?: boolean }, Record<never, never>, unknown, unknown, ORPCErrorConstructorMap<any>, BaseMeta>
+      const mid = {} as Middleware<{ cacheable?: boolean } & Record<never, never>, Record<never, never>, unknown, unknown, ORPCErrorConstructorMap<any>, BaseMeta>
 
       expectTypeOf(builder.use(mid)).toEqualTypeOf<
         RouterBuilder<

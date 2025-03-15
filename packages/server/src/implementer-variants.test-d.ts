@@ -56,7 +56,7 @@ describe('ImplementerWithMiddlewares', () => {
       })
 
       it('with TInContext', () => {
-        const mid = {} as Middleware<{ cacheable?: boolean }, Record<never, never>, unknown, unknown, ORPCErrorConstructorMap<any>, BaseMeta>
+        const mid = {} as Middleware<{ cacheable?: boolean } & Record<never, never>, Record<never, never>, unknown, unknown, ORPCErrorConstructorMap<any>, BaseMeta>
 
         expectTypeOf(implementer.use(mid)).toEqualTypeOf<
           ImplementerInternalWithMiddlewares<

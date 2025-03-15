@@ -205,11 +205,13 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
 
     expect(preMid1).toBeCalledTimes(1)
     expect(preMid1).toHaveBeenCalledWith(expect.objectContaining({ context: {} }), expect.any(Object), expect.any(Function))
+    expect(await preMid1.mock.results[0]!.value).toEqual({ output: { val: 123 }, context: { extra1: '__extra1__' } })
 
     expect(preMid2).toBeCalledTimes(1)
     expect(preMid2).toHaveBeenCalledWith(expect.objectContaining({
       context: { extra1: '__extra1__' },
     }), expect.any(Object), expect.any(Function))
+    expect(await preMid2.mock.results[0]!.value).toEqual({ output: { val: 123 }, context: { extra2: '__extra2__' } })
 
     expect(postMid1).toBeCalledTimes(1)
     expect(postMid1).toHaveBeenCalledWith(expect.objectContaining({
@@ -218,6 +220,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
         extra2: '__extra2__',
       },
     }), expect.any(Object), expect.any(Function))
+    expect(await postMid1.mock.results[0]!.value).toEqual({ output: { val: '123' }, context: { extra3: '__extra3__' } })
 
     expect(postMid2).toBeCalledTimes(1)
     expect(postMid2).toHaveBeenCalledWith(expect.objectContaining({
@@ -227,6 +230,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
         extra3: '__extra3__',
       },
     }), expect.any(Object), expect.any(Function))
+    expect(await postMid2.mock.results[0]!.value).toEqual({ output: { val: '123' }, context: { extra4: '__extra4__' } })
 
     expect(handler).toBeCalledTimes(1)
     expect(handler).toHaveBeenCalledWith(expect.objectContaining({ context: {
@@ -235,6 +239,7 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
       extra3: '__extra3__',
       extra4: '__extra4__',
     } }))
+    expect(await handler.mock.results[0]!.value).toEqual({ val: '123' })
   })
 
   it('middleware can override context', async () => {
@@ -280,24 +285,29 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     expect(preMid1).toHaveBeenCalledWith(expect.objectContaining({
       context: expect.objectContaining({ userId: '123' }),
     }), expect.any(Object), expect.any(Function))
+    expect(await preMid1.mock.results[0]!.value).toEqual({ output: { val: 123 }, context: { userId: '__override1__' } })
 
     expect(preMid2).toBeCalledTimes(1)
     expect(preMid2).toHaveBeenCalledWith(expect.objectContaining({
       context: expect.objectContaining({ userId: '__override1__' }),
     }), expect.any(Object), expect.any(Function))
+    expect(await preMid2.mock.results[0]!.value).toEqual({ output: { val: 123 }, context: { userId: '__override2__' } })
 
     expect(postMid1).toBeCalledTimes(1)
     expect(postMid1).toHaveBeenCalledWith(expect.objectContaining({
       context: expect.objectContaining({ userId: '__override2__' }),
     }), expect.any(Object), expect.any(Function))
+    expect(await postMid1.mock.results[0]!.value).toEqual({ output: { val: '123' }, context: { userId: '__override3__' } })
 
     expect(postMid2).toBeCalledTimes(1)
     expect(postMid2).toHaveBeenCalledWith(expect.objectContaining({
       context: expect.objectContaining({ userId: '__override3__' }),
     }), expect.any(Object), expect.any(Function))
+    expect(await postMid2.mock.results[0]!.value).toEqual({ output: { val: '123' }, context: { userId: '__override4__' } })
 
     expect(handler).toBeCalledTimes(1)
     expect(handler).toHaveBeenCalledWith(expect.objectContaining({ context: expect.objectContaining({ userId: '__override4__' }) }))
+    expect(await handler.mock.results[0]!.value).toEqual({ val: '123' })
   })
 
   const contextCases = [

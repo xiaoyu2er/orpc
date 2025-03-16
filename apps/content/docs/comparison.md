@@ -26,9 +26,11 @@ This comparison table helps you understand how oRPC differs from other popular T
 | Without Contract-First Approach     | ✅   | ✅   | 🛑      |
 | OpenAPI Support                     | ✅   | 🟡   | 🟡      |
 | Server Actions Support              | ✅   | 🟡   | 🛑      |
+| Lazy Router                         | ✅   | 🛑   | 🛑      |
 | Streaming response (SSE)            | ✅   | ✅   | 🛑      |
 | Plugins-able (CORS, ...)            | ✅   | 🛑   | 🛑      |
 | Dedicated Zod Schemas               | ✅   | 🛑   | 🛑      |
 | Use Native Modules on each runtime  | ✅   | 🟡   | 🟡      |
+| Batch Request                       | 🛑   | ✅   | 🛑      |
 | WebSockets                          | 🛑   | ✅   | 🛑      |
 | Nest.js integration                 | 🛑   | 🟡   | ✅      |

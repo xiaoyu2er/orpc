@@ -9,7 +9,7 @@ export class InvalidEventIteratorRetryResponse extends Error { }
 
 export interface StandardLinkOptions<T extends ClientContext> {
   /**
-   * Maximum number of retry attempts for event iterator errors before throwing.
+   * Maximum retry attempts for **consecutive failures** before throwing
    *
    * @default 5
    */

@@ -109,7 +109,7 @@ const link = new RPCLink<ClientContext>({
   url: 'http://localhost:3000/rpc',
   eventIteratorShouldRetry(reconnectOptions, options, path, input) {
     console.log(reconnectOptions.error)
-    return retry ?? true
+    return options.context.retry ?? true
   }
 })
 ```

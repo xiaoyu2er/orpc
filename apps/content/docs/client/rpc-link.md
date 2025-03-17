@@ -94,23 +94,22 @@ const link = new RPCLink<ClientContext>({
 
 Customize the retry logic for [Event Iterator](/docs/event-iterator) using these options:
 
-- **eventIteratorMaxRetries:** Maximum retry attempts.
-- **eventIteratorRetryDelay:** Delay between retries.
-- **eventIteratorShouldRetry:** Function to determine if a retry should occur.
+- **eventIteratorMaxRetries:** Maximum retry attempts for **consecutive failures** before throwing (default: `5`).
+- **eventIteratorRetryDelay:** Delay between retries (default: `(o) => o.lastRetry ?? (1000 * 2 ** o.retryTimes)`).
+- **eventIteratorShouldRetry:** Function to determine if a retry should occur (default: `true`).
 
 ```ts twoslash
 import { RPCLink } from '@orpc/client/fetch'
 
 interface ClientContext {
-  eventIteratorShouldRetry?: boolean
+  retry?: boolean
 }
 
 const link = new RPCLink<ClientContext>({
   url: 'http://localhost:3000/rpc',
   eventIteratorShouldRetry(reconnectOptions, options, path, input) {
     console.log(reconnectOptions.error)
-
-    return !options.context?.eventIteratorShouldRetry
+    return options.context.retry ?? true
   }
 })
 ```
@@ -120,6 +119,12 @@ You should disable event iterator retries when streaming results from a chatbot 
 :::
 
 ## Event Iterator Keep Alive
+
+:::warning
+These options for sending [Event Iterator](/docs/event-iterator) from **client to the server**, not from **the server to client** as used in [RPCHandler Event Iterator Keep Alive](/docs/rpc-handler#event-iterator-keep-alive) or [OpenAPIHandler Event Iterator Keep Alive](/docs/openapi/openapi-handler#event-iterator-keep-alive).
+
+**In 99% of cases, you don't need to configure these options.**
+:::
 
 To keep [Event Iterator](/docs/event-iterator) connections alive, `RPCLink` periodically sends a ping comment to the server. You can configure this behavior using the following options:
 
@@ -134,7 +139,3 @@ const link = new RPCLink({
   eventIteratorKeepAliveComment: '',
 })
 ```
-
-:::warning
-These options for sending [Event Iterator](/docs/event-iterator) from client to the server, not from the server to client as used in [RPCHandler](/docs/rpc-handler#event-iterator-keep-alive) or [OpenAPIHandler](/docs/openapi/openapi-handler#event-iterator-keep-alive).
-:::

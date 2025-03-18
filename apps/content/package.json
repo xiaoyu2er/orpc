@@ -8,6 +8,7 @@
     "serve": "vitepress serve"
   },
   "dependencies": {
+    "@orpc/arktype": "workspace:*",
     "@orpc/client": "workspace:*",
     "@orpc/contract": "workspace:*",
     "@orpc/react-query": "workspace:*",

@@ -8,8 +8,8 @@
   <a href="https://codecov.io/gh/unnoq/orpc">
     <img alt="codecov" src="https://codecov.io/gh/unnoq/orpc/branch/main/graph/badge.svg">
   </a>
-  <a href="https://www.npmjs.com/package/@orpc/standard-server-fetch">
-    <img alt="weekly downloads" src="https://img.shields.io/npm/dw/%40orpc%2Fstandard-server-fetch?logo=npm" />
+  <a href="https://www.npmjs.com/package/@orpc/arktype">
+    <img alt="weekly downloads" src="https://img.shields.io/npm/dw/%40orpc%2Farktype?logo=npm" />
   </a>
   <a href="https://github.com/unnoq/orpc/blob/main/LICENSE">
     <img alt="MIT License" src="https://img.shields.io/github/license/unnoq/orpc?logo=open-source-initiative" />
@@ -63,9 +63,36 @@ You can find the full documentation [here](https://orpc.unnoq.com).
 - [@orpc/valibot](https://www.npmjs.com/package/@orpc/valibot): OpenAPI spec generation from [Valibot](https://valibot.dev/).
 - [@orpc/arktype](https://www.npmjs.com/package/@orpc/arktype): OpenAPI spec generation from [ArkType](https://arktype.io/).
 
-## `@orpc/standard-server-fetch`
+## `@orpc/arktype`
 
-[Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) server adapter for oRPC.
+Provides `ArkTypeToJsonSchemaConverter` for generating OpenAPI specs from [ArkType](https://arktype.io/).
+
+### Generate OpenAPI Spec
+
+```ts
+import { OpenAPIGenerator } from '@orpc/openapi'
+import { experimental_ArkTypeToJsonSchemaConverter as ArkTypeToJsonSchemaConverter } from '@orpc/valibot'
+
+const openAPIGenerator = new OpenAPIGenerator({
+  schemaConverters: [
+    new ArkTypeToJsonSchemaConverter()
+  ],
+})
+
+const specFromContract = await openAPIGenerator.generate(contract, {
+  info: {
+    title: 'My App',
+    version: '0.0.0',
+  },
+})
+
+const specFromRouter = await openAPIGenerator.generate(router, {
+  info: {
+    title: 'My App',
+    version: '0.0.0',
+  },
+})
+```
 
 ## License
 

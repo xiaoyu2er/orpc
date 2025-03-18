@@ -80,6 +80,9 @@ importers:
 
   apps/content:
     dependencies:
+      '@orpc/arktype':
+        specifier: workspace:*
+        version: link:../../packages/arktype
       '@orpc/client':
         specifier: workspace:*
         version: link:../../packages/client
@@ -150,6 +153,24 @@ importers:
       vue:
         specifier: 3.5.13
         version: 3.5.13(typescript@5.7.3)
+
+  packages/arktype:
+    dependencies:
+      '@orpc/contract':
+        specifier: workspace:*
+        version: link:../contract
+      '@orpc/openapi':
+        specifier: workspace:*
+        version: link:../openapi
+      '@orpc/server':
+        specifier: workspace:*
+        version: link:../server
+      '@orpc/shared':
+        specifier: workspace:*
+        version: link:../shared
+      arktype:
+        specifier: '*'
+        version: 2.1.9
 
   packages/client:
     dependencies:
@@ -801,8 +822,14 @@ packages:
   '@ark/schema@0.26.0':
     resolution: {integrity: sha512-b6hk1+M0U4jgZK7ZOGsWKSXgjhfPAqqSCczViM/gQ0Hu0awKLx9SpZYsFhl0j67j3hwlY2+mVZQPKy6GlYDCbQ==}
 
+  '@ark/schema@0.44.4':
+    resolution: {integrity: sha512-TsZTX+k5J7xsGABsFjVdRUNgViGDMLv73sikBM8JNxC4STe0suTuMNa1OJ/AFP2N+LpJ1zL9tdWlg28PRqAYhg==}
+
   '@ark/util@0.26.0':
     resolution: {integrity: sha512-6FSqj6xl3jQ9bD9EU25ThMVcsvaeq6c3gecONgPQ+wDYOUEqBBIAkpjA+LEZMiY0AxVhSF3UF6BlVFspXmef2Q==}
+
+  '@ark/util@0.44.4':
+    resolution: {integrity: sha512-zLfNZrsq5Dq+8B0pHJwL/wD3xNBHb8FoP0FuPB455w7HpqVaqO5qPXvn+YoO8v1Y6pNwLVsM9vCIiO221LoODQ==}
 
   '@asamuzakjp/css-color@2.8.3':
     resolution: {integrity: sha512-GIc76d9UI1hCvOATjZPyHFmE5qhRccp3/zGfMPapK3jBi+yocEzp6BBB0UnfRYP9NP4FANqUZYb0hnfs3TM3hw==}
@@ -3350,6 +3377,9 @@ packages:
 
   arktype@2.0.0-rc.26:
     resolution: {integrity: sha512-OdV40SQNY0CFJH+anT0N7Go9Tl+av+hxzMGPccv47sPHdekZuEPd61MfNmwn1J5H2SIrycdwGPD8jYBZSkhKjQ==}
+
+  arktype@2.1.9:
+    resolution: {integrity: sha512-bq46shcLpfop4D9acVQN/+quZ+hIGs4OUzoLq2vCaZLdkITOlWkfamBk9abMuC6fbgxW1fu/2PamcQgggWhTwQ==}
 
   asap@2.0.6:
     resolution: {integrity: sha512-BSHWgDSAiKs50o2Re8ppvp3seVHXSRM44cdSsT9FfNEUUZLOGWVCsiWaRPWM1Znn+mqZ1OfVZ3z3DWEzSp7hRA==}
@@ -7657,7 +7687,13 @@ snapshots:
     dependencies:
       '@ark/util': 0.26.0
 
+  '@ark/schema@0.44.4':
+    dependencies:
+      '@ark/util': 0.44.4
+
   '@ark/util@0.26.0': {}
+
+  '@ark/util@0.44.4': {}
 
   '@asamuzakjp/css-color@2.8.3':
     dependencies:
@@ -10455,6 +10491,11 @@ snapshots:
     dependencies:
       '@ark/schema': 0.26.0
       '@ark/util': 0.26.0
+
+  arktype@2.1.9:
+    dependencies:
+      '@ark/schema': 0.44.4
+      '@ark/util': 0.44.4
 
   asap@2.0.6: {}
 

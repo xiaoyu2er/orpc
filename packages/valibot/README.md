@@ -8,8 +8,8 @@
   <a href="https://codecov.io/gh/unnoq/orpc">
     <img alt="codecov" src="https://codecov.io/gh/unnoq/orpc/branch/main/graph/badge.svg">
   </a>
-  <a href="https://www.npmjs.com/package/@orpc/zod">
-    <img alt="weekly downloads" src="https://img.shields.io/npm/dw/%40orpc%2Fzod?logo=npm" />
+  <a href="https://www.npmjs.com/package/@orpc/valibot">
+    <img alt="weekly downloads" src="https://img.shields.io/npm/dw/%40orpc%2Fvalibot?logo=npm" />
   </a>
   <a href="https://github.com/unnoq/orpc/blob/main/LICENSE">
     <img alt="MIT License" src="https://img.shields.io/github/license/unnoq/orpc?logo=open-source-initiative" />
@@ -60,38 +60,22 @@ You can find the full documentation [here](https://orpc.unnoq.com).
 - [@orpc/vue-colada](https://www.npmjs.com/package/@orpc/vue-colada): Integration with [Pinia Colada](https://pinia-colada.esm.dev/).
 - [@orpc/openapi](https://www.npmjs.com/package/@orpc/openapi): Generate OpenAPI specs and handle OpenAPI requests.
 - [@orpc/zod](https://www.npmjs.com/package/@orpc/zod): More schemas that [Zod](https://zod.dev/) doesn't support yet.
+- [@orpc/valibot](https://www.npmjs.com/package/@orpc/zod): OpenAPI spec generation from [Valibot](https://valibot.dev/).
 
-## `@orpc/zod`
+## `@orpc/valibot`
 
-More schemas that [Zod](https://zod.dev/) doesn't support yet, and provides `ZodToJsonSchemaConverter` for generating OpenAPI specs.
-
-### More Schemas
-
-- `oz.url`: Zod schema for [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) instance.
-- `oz.blob`: Zod schema for [Blob](https://developer.mozilla.org/en-US/docs/Web/API/Blob) instance.
-- `oz.file`: Zod schema for [File](https://developer.mozilla.org/en-US/docs/Web/API/File) instance.
-- `oz.regexp`: Zod schema for [RegExp](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp) instance.
-
-```ts
-import { oz } from '@orpc/zod'
-import { z } from 'zod'
-
-const Example = z.object({
-  url: oz.url(),
-  blob: oz.blob(),
-  file: oz.file().type('image/png'),
-  regexp: oz.regexp(),
-})
-```
+Provides `ValibotToJsonSchemaConverter` for generating OpenAPI specs from [Valibot](https://valibot.dev/).
 
 ### Generate OpenAPI Spec
 
 ```ts
 import { OpenAPIGenerator } from '@orpc/openapi'
-import { ZodToJsonSchemaConverter } from '@orpc/zod'
+import { experimental_ValibotToJsonSchemaConverter as ValibotToJsonSchemaConverter } from '@orpc/valibot'
 
 const openAPIGenerator = new OpenAPIGenerator({
-  schemaConverters: [new ZodToJsonSchemaConverter()],
+  schemaConverters: [
+    new ValibotToJsonSchemaConverter()
+  ],
 })
 
 const specFromContract = await openAPIGenerator.generate(contract, {
@@ -107,26 +91,6 @@ const specFromRouter = await openAPIGenerator.generate(router, {
     version: '0.0.0',
   },
 })
-```
-
-### Extending the Specification
-
-```ts
-import { oz } from '@orpc/zod'
-import { z } from 'zod'
-
-const InputSchema = oz.openapi(
-  z.object({
-    name: z.string(),
-  }),
-  {
-    examples: [
-      { name: 'Earth' },
-      { name: 'Mars' },
-    ],
-    // additional options...
-  }
-)
 ```
 
 ## License

@@ -92,6 +92,9 @@ importers:
       '@orpc/server':
         specifier: workspace:*
         version: link:../../packages/server
+      '@orpc/valibot':
+        specifier: workspace:*
+        version: link:../../packages/valibot
       '@orpc/vue-colada':
         specifier: workspace:*
         version: link:../../packages/vue-colada

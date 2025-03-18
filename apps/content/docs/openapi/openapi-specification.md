@@ -12,33 +12,33 @@ oRPC uses the [OpenAPI Specification](https://spec.openapis.org/oas/v3.1.0) to d
 ::: code-group
 
 ```sh [npm]
-npm install @orpc/openapi@latest @orpc/zod@latest
+npm install @orpc/openapi@latest
 ```
 
 ```sh [yarn]
-yarn add @orpc/openapi@latest @orpc/zod@latest
+yarn add @orpc/openapi@latest
 ```
 
 ```sh [pnpm]
-pnpm add @orpc/openapi@latest @orpc/zod@latest
+pnpm add @orpc/openapi@latest
 ```
 
 ```sh [bun]
-bun add @orpc/openapi@latest @orpc/zod@latest
+bun add @orpc/openapi@latest
 ```
 
 ```sh [deno]
-deno install npm:@orpc/openapi@latest npm:@orpc/zod@latest
+deno install npm:@orpc/openapi@latest
 ```
 
 :::
 
 ## Generating Specifications
 
-oRPC supports only OpenAPI 3.1.1 and uses [Zod](https://github.com/colinhacks/zod) as its sole schema library. You can generate specifications from either a [Router](/docs/router) or a [Contract](/docs/contract-first/define-contract):
+oRPC supports OpenAPI 3.1.1 and integrates seamlessly with popular schema libraries like [Zod](https://github.com/colinhacks/zod), and [Valibot](https://valibot.dev). You can generate specifications from either a [Router](/docs/router) or a [Contract](/docs/contract-first/define-contract):
 
 :::info
-Interested in [Valibot](https://valibot.dev) support? Help us prioritize this feature by casting your vote on [Github](https://github.com/unnoq/orpc/issues/162)
+Interested in support for additional schema libraries? [Let us know](https://github.com/unnoq/orpc/discussions/categories/ideas)!
 :::
 
 ```ts twoslash
@@ -46,9 +46,13 @@ import { contract, router } from './shared/planet'
 // ---cut---
 import { OpenAPIGenerator } from '@orpc/openapi'
 import { ZodToJsonSchemaConverter } from '@orpc/zod'
+import { experimental_ValibotToJsonSchemaConverter as ValibotToJsonSchemaConverter } from '@orpc/valibot'
 
 const openAPIGenerator = new OpenAPIGenerator({
-  schemaConverters: [new ZodToJsonSchemaConverter()],
+  schemaConverters: [
+    new ZodToJsonSchemaConverter(), // <-- if you use Zod
+    new ValibotToJsonSchemaConverter(), // <-- if you use Valibot
+  ],
 })
 
 const specFromContract = await openAPIGenerator.generate(contract, {
@@ -65,6 +69,10 @@ const specFromRouter = await openAPIGenerator.generate(router, {
   },
 })
 ```
+
+:::warning
+Features prefixed with `experimental_` are unstable and may lack some functionality.
+:::
 
 ## Operation Metadata
 

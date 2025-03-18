@@ -12,6 +12,7 @@
     "@orpc/contract": "workspace:*",
     "@orpc/react-query": "workspace:*",
     "@orpc/server": "workspace:*",
+    "@orpc/valibot": "workspace:*",
     "@orpc/vue-colada": "workspace:*",
     "@orpc/vue-query": "workspace:*",
     "@orpc/zod": "workspace:*",

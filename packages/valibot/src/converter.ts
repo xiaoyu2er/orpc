@@ -2,14 +2,14 @@ import type { AnySchema } from '@orpc/contract'
 import type { ConditionalSchemaConverter, JSONSchema, SchemaConvertOptions } from '@orpc/openapi'
 import { type ConversionConfig, toJsonSchema } from '@valibot/to-json-schema'
 
-export interface Experimental_ValibotToJsonSchemaConverterOptions extends Pick<ConversionConfig, 'errorMode'> {
+export interface experimental_ValibotToJsonSchemaConverterOptions extends Pick<ConversionConfig, 'errorMode'> {
 
 }
 
-export class Experimental_ValibotToJsonSchemaConverter implements ConditionalSchemaConverter {
-  private readonly errorMode: Experimental_ValibotToJsonSchemaConverterOptions['errorMode']
+export class experimental_ValibotToJsonSchemaConverter implements ConditionalSchemaConverter {
+  private readonly errorMode: experimental_ValibotToJsonSchemaConverterOptions['errorMode']
 
-  constructor(options: Experimental_ValibotToJsonSchemaConverterOptions = {}) {
+  constructor(options: experimental_ValibotToJsonSchemaConverterOptions = {}) {
     this.errorMode = options.errorMode ?? 'ignore'
   }
 

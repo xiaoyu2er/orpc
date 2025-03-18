@@ -11,22 +11,15 @@ export interface DB {
   }
 }
 
-/**
- * Best practices for dedupe-middlewares
- * {@link https://orpc.unnoq.com/docs/best-practices/dedupe-middleware}
- */
 export const dbProviderMiddleware = os
   .$context<{ db?: DB }>()
   .middleware(async ({ context, next }) => {
-    if (context.db) {
-      return next({
-        context: {
-          db: context.db,
-        },
-      })
-    }
-
-    const db: DB = createFakeDB()
+    /**
+     * Why we should ?? here?
+     * Because it can avoid `createFakeDB` being called when unnecessary.
+     * {@link https://orpc.unnoq.com/docs/best-practices/dedupe-middleware}
+     */
+    const db: DB = context.db ?? createFakeDB()
 
     return next({
       context: {

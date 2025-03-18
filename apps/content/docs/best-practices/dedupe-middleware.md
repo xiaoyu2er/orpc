@@ -28,11 +28,12 @@ declare function connectDb(): Promise<'a_fake_db'>
 const dbProvider = os
   .$context<{ db?: Awaited<ReturnType<typeof connectDb>> }>()
   .middleware(async ({ context, next }) => {
-    if (context.db) {
-      return next({ context: { db: context.db } })
-    }
+    /**
+     * If db already exists, skip the connection.
+     */
+    const db = context.db ?? await connectDb() // [!code highlight]
 
-    return next({ context: { db: await connectDb() } })
+    return next({ context: { db } })
   })
 ```
 
@@ -45,22 +46,27 @@ declare function connectDb(): Promise<'a_fake_db'>
 const dbProvider = os
   .$context<{ db?: Awaited<ReturnType<typeof connectDb>> }>()
   .middleware(async ({ context, next }) => {
-    if (context.db) {
-      return next({ context: { db: context.db } })
-    }
-    const db = await connectDb()
+    const db = context.db ?? await connectDb()
+
     return next({ context: { db } })
   })
 // ---cut---
 const foo = os.use(dbProvider).handler(({ context }) => 'Hello World')
 
 const bar = os.use(dbProvider).handler(({ context }) => {
-  const result = call(foo, 'input', { context })
+  /**
+   * Now when you call foo, the dbProvider middleware no need to connect to the database again.
+   */
+  const result = call(foo, 'input', { context }) // [!code highlight]
+
   return 'Hello World'
 })
 
+/**
+ * Now even when `dbProvider` is applied multiple times, it still only connects to the database once.
+ */
 const router = os
-  .use(dbProvider)
+  .use(dbProvider) // [!code highlight]
   .use(({ next }) => {
     // Additional middleware logic
     return next()

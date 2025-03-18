@@ -80,6 +80,9 @@ importers:
 
   apps/content:
     dependencies:
+      '@orpc/arktype':
+        specifier: workspace:*
+        version: link:../../packages/arktype
       '@orpc/client':
         specifier: workspace:*
         version: link:../../packages/client

@@ -1,6 +1,6 @@
 import { CompositeHandlerPlugin } from './base'
 
-it('compositePlugin', () => {
+it('compositeHandlerPlugin', () => {
   const plugin1 = { init: vi.fn() }
   const plugin2 = {}
   const plugin3 = { init: vi.fn() }

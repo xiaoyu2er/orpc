@@ -45,10 +45,6 @@ url.searchParams.append('data', JSON.stringify({
 const response = await fetch(url)
 ```
 
-::: info
-The payload can be empty (`undefined`).
-:::
-
 ### Input in Request Body
 
 ```bash
@@ -62,10 +58,6 @@ curl -X POST https://example.com/rpc/planet/create \
     "meta": [[1, "detached_at"]]
   }'
 ```
-
-::: info
-The payload can be empty (`undefined`).
-:::
 
 ### Input with File
 
@@ -91,10 +83,6 @@ const response = await fetch('https://example.com/rpc/planet/create', {
 })
 ```
 
-::: info
-The input can be empty (`undefined`) or binary data (`blob/file`).
-:::
-
 ## Success Response
 
 ```http
@@ -112,10 +100,6 @@ Content-Type: application/json
 ```
 
 A success response has an HTTP status code between `200-299` and returns the procedure's output.
-
-::: info
-The payload can be empty (`undefined`) or binary data (`blob/file`).
-:::
 
 ## Error Response
 

@@ -5,14 +5,14 @@ import type { ClientPlugin } from './base'
 import { isAsyncIteratorObject, value } from '@orpc/shared'
 import { getEventMeta } from '@orpc/standard-server'
 
-export interface RetryPluginAttemptOptions {
+export interface ClientRetryPluginAttemptOptions {
   eventIteratorLastRetry: number | undefined
   eventIteratorLastEventId: string | undefined
   attemptIndex: number
   error: unknown
 }
 
-export interface RetryPluginContext {
+export interface ClientRetryPluginContext {
   /**
    * Maximum retry attempts before throwing
    * Use `Number.POSITIVE_INFINITY` for infinite retries (e.g., when handling Server-Sent Events).
@@ -27,8 +27,8 @@ export interface RetryPluginContext {
    * @default (o) => o.eventIteratorLastRetry ?? 2000
    */
   retryDelay?: Value<number, [
-    attemptOptions: RetryPluginAttemptOptions,
-    clientOptions: ClientOptionsOut<RetryPluginContext>,
+    attemptOptions: ClientRetryPluginAttemptOptions,
+    clientOptions: ClientOptionsOut<ClientRetryPluginContext>,
     path: readonly string[],
     input: unknown,
   ]>
@@ -39,8 +39,8 @@ export interface RetryPluginContext {
    * @default true
    */
   shouldRetry?: Value<boolean, [
-    attemptOptions: RetryPluginAttemptOptions,
-    clientOptions: ClientOptionsOut<RetryPluginContext>,
+    attemptOptions: ClientRetryPluginAttemptOptions,
+    clientOptions: ClientOptionsOut<ClientRetryPluginContext>,
     path: readonly string[],
     input: unknown,
   ]>
@@ -49,26 +49,26 @@ export interface RetryPluginContext {
    * The hook called when retrying, and return the unsubscribe function.
    */
   onRetry?: (
-    options: RetryPluginAttemptOptions,
-    clientOptions: ClientOptionsOut<RetryPluginContext>,
+    options: ClientRetryPluginAttemptOptions,
+    clientOptions: ClientOptionsOut<ClientRetryPluginContext>,
     path: readonly string[],
     input: unknown
   ) => undefined | (() => void)
 }
 
-export class RetryPluginInvalidEventIteratorRetryResponse extends Error { }
+export class ClientRetryPluginInvalidEventIteratorRetryResponse extends Error { }
 
-export interface RetryPluginOptions {
-  default?: RetryPluginContext
+export interface ClientRetryPluginOptions {
+  default?: ClientRetryPluginContext
 }
 
-export class RetryPlugin<T extends ClientContext & RetryPluginContext> implements ClientPlugin<T> {
-  private readonly defaultRetry: Exclude<RetryPluginContext['retry'], undefined>
-  private readonly defaultRetryDelay: Exclude<RetryPluginContext['retryDelay'], undefined>
-  private readonly defaultShouldRetry: Exclude<RetryPluginContext['shouldRetry'], undefined>
-  private readonly defaultOnRetry: RetryPluginContext['onRetry']
+export class ClientRetryPlugin<T extends ClientContext & ClientRetryPluginContext> implements ClientPlugin<T> {
+  private readonly defaultRetry: Exclude<ClientRetryPluginContext['retry'], undefined>
+  private readonly defaultRetryDelay: Exclude<ClientRetryPluginContext['retryDelay'], undefined>
+  private readonly defaultShouldRetry: Exclude<ClientRetryPluginContext['shouldRetry'], undefined>
+  private readonly defaultOnRetry: ClientRetryPluginContext['onRetry']
 
-  constructor(options: RetryPluginOptions = {}) {
+  constructor(options: ClientRetryPluginOptions = {}) {
     this.defaultRetry = options.default?.retry ?? 0
     this.defaultRetryDelay = options.default?.retryDelay ?? (o => o.eventIteratorLastRetry ?? 2000)
     this.defaultShouldRetry = options.default?.shouldRetry ?? true
@@ -102,7 +102,7 @@ export class RetryPlugin<T extends ClientContext & RetryPluginContext> implement
               throw current.error
             }
 
-            const attemptOptions: RetryPluginAttemptOptions = {
+            const attemptOptions: ClientRetryPluginAttemptOptions = {
               attemptIndex,
               error: current.error,
               eventIteratorLastEventId,
@@ -197,7 +197,7 @@ export class RetryPlugin<T extends ClientContext & RetryPluginContext> implement
               const maybeEventIterator = await next({ error })
 
               if (!isAsyncIteratorObject(maybeEventIterator)) {
-                throw new RetryPluginInvalidEventIteratorRetryResponse(
+                throw new ClientRetryPluginInvalidEventIteratorRetryResponse(
                   'RetryPlugin: Expected an Event Iterator, got a non-Event Iterator',
                 )
               }

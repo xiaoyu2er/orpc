@@ -1,14 +1,14 @@
 import type { RouterClient } from '../../../server/src/router-client'
-import type { RetryPluginContext } from './retry'
+import type { ClientRetryPluginContext } from './retry'
 import { getEventMeta, withEventMeta } from '@orpc/standard-server'
 import { RPCHandler } from '../../../server/src/adapters/fetch/rpc-handler'
 import { os } from '../../../server/src/builder'
 import { RPCLink } from '../adapters/fetch'
 import { createORPCClient } from '../client'
 import { ORPCError } from '../error'
-import { RetryPlugin } from './retry'
+import { ClientRetryPlugin } from './retry'
 
-interface ORPCClientContext extends RetryPluginContext {
+interface ORPCClientContext extends ClientRetryPluginContext {
 
 }
 
@@ -16,7 +16,7 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe('retryPlugin', () => {
+describe('clientRetryPlugin', () => {
   const handlerFn = vi.fn()
 
   const router = os.handler(handlerFn)
@@ -35,7 +35,7 @@ describe('retryPlugin', () => {
       return response ?? new Response('fail', { status: 500 })
     },
     plugins: [
-      new RetryPlugin(),
+      new ClientRetryPlugin(),
     ],
     eventIteratorMaxRetries: 0, // disable built-in event iterator retry
   })

@@ -42,15 +42,31 @@ export interface RetryPluginContext {
 
 export class RetryPluginInvalidEventIteratorRetryResponse extends Error { }
 
+export interface RetryPluginOptions {
+  default?: RetryPluginContext
+}
+
 export class RetryPlugin<T extends ClientContext & RetryPluginContext> implements ClientPlugin<T> {
+  private readonly defaultRetry: Exclude<RetryPluginContext['retry'], undefined>
+  private readonly defaultRetryDelay: Exclude<RetryPluginContext['retryDelay'], undefined>
+  private readonly defaultShouldRetry: Exclude<RetryPluginContext['shouldRetry'], undefined>
+  private readonly defaultOnRetry: RetryPluginContext['onRetry']
+
+  constructor(options: RetryPluginOptions = {}) {
+    this.defaultRetry = options.default?.retry ?? 0
+    this.defaultRetryDelay = options.default?.retryDelay ?? (o => o.eventIteratorLastRetry ?? 2000)
+    this.defaultShouldRetry = options.default?.shouldRetry ?? true
+    this.defaultOnRetry = options.default?.onRetry
+  }
+
   init(options: StandardLinkOptions<T>): void {
     options.interceptors ??= []
 
     options.interceptors.push(async (interceptorOptions) => {
-      const maxAttempts = interceptorOptions.options.context.retry ?? 0
-      const retryDelay = interceptorOptions.options.context.retryDelay ?? (o => o.eventIteratorLastRetry ?? 2000)
-      const shouldRetry = interceptorOptions.options.context.shouldRetry ?? true
-      const onRetry = interceptorOptions.options.context.onRetry
+      const maxAttempts = interceptorOptions.options.context.retry ?? this.defaultRetry
+      const retryDelay = interceptorOptions.options.context.retryDelay ?? this.defaultRetryDelay
+      const shouldRetry = interceptorOptions.options.context.shouldRetry ?? this.defaultShouldRetry
+      const onRetry = interceptorOptions.options.context.onRetry ?? this.defaultOnRetry
 
       if (maxAttempts <= 0) {
         return interceptorOptions.next()

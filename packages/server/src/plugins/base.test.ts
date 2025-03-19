@@ -1,11 +1,11 @@
-import { CompositePlugin } from './base'
+import { CompositeHandlerPlugin } from './base'
 
-it('compositePlugin', () => {
+it('compositeHandlerPlugin', () => {
   const plugin1 = { init: vi.fn() }
   const plugin2 = {}
   const plugin3 = { init: vi.fn() }
 
-  const composite = new CompositePlugin([plugin1, plugin2, plugin3])
+  const composite = new CompositeHandlerPlugin([plugin1, plugin2, plugin3])
 
   composite.init('__OPTIONS__' as any)
 

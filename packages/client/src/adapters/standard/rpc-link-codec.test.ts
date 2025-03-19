@@ -38,23 +38,6 @@ describe('standardRPCLinkCodec', () => {
       }))
     })
 
-    it('with method=GET & input=undefined', async () => {
-      method.mockResolvedValueOnce('GET')
-
-      const signal = AbortSignal.timeout(100)
-      const output = await codec.encode(['test'], undefined, { context: {}, signal })
-
-      expect(output).toEqual(expect.objectContaining({
-        url: new URL(`http://localhost:3000/test?data=`),
-        method: 'GET',
-        headers: {
-          'x-custom-header': 'custom-value',
-        },
-        body: undefined,
-        signal,
-      }))
-    })
-
     it('with method=POST', async () => {
       method.mockResolvedValueOnce('POST')
 

@@ -4,6 +4,7 @@ import type { ClientContext, ClientLink, ClientOptionsOut } from '../../types'
 import type { StandardLinkClient, StandardLinkCodec } from './types'
 import { intercept, isAsyncIteratorObject, value } from '@orpc/shared'
 import { createAutoRetryEventIterator, type EventIteratorReconnectOptions } from '../../event-iterator'
+import { type ClientPlugin, CompositeClientPlugin } from '../../plugins'
 
 export class InvalidEventIteratorRetryResponse extends Error { }
 
@@ -46,6 +47,7 @@ export interface StandardLinkOptions<T extends ClientContext> {
 
   interceptors?: Interceptor<{ path: readonly string[], input: unknown, options: ClientOptionsOut<T> }, unknown, unknown>[]
   clientInterceptors?: Interceptor<{ request: StandardRequest }, StandardLazyResponse, unknown>[]
+  plugins?: ClientPlugin<T>[]
 }
 
 export class StandardLink<T extends ClientContext> implements ClientLink<T> {
@@ -61,6 +63,10 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
     public readonly sender: StandardLinkClient<T>,
     options: StandardLinkOptions<T>,
   ) {
+    const plugin = new CompositeClientPlugin(options.plugins)
+
+    plugin.init(options)
+
     this.eventIteratorMaxRetries = options.eventIteratorMaxRetries ?? 5
     this.eventIteratorRetryDelay = options.eventIteratorRetryDelay ?? (o => o.lastRetry ?? (1000 * 2 ** o.retryTimes))
     this.eventIteratorShouldRetry = options.eventIteratorShouldRetry ?? true

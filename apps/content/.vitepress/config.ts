@@ -147,6 +147,7 @@ export default defineConfig({
             { text: 'Validation Errors', link: '/docs/advanced/validation-errors' },
             { text: 'RPC Protocol', link: '/docs/advanced/rpc-protocol' },
             { text: 'RPC JSON Serializer', link: '/docs/advanced/rpc-json-serializer' },
+            { text: 'Mocking', link: '/docs/advanced/mocking' },
             { text: 'Exceeds the maximum length ...', link: '/docs/advanced/exceeds-the-maximum-length-problem' },
           ],
         },

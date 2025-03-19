@@ -136,7 +136,7 @@ export class RetryPlugin<T extends ClientContext & RetryPluginContext> implement
 
               if (!isAsyncIteratorObject(maybeEventIterator)) {
                 throw new RetryPluginInvalidEventIteratorRetryResponse(
-                  'RetryPlugin: Invalid Event Iterator retry response',
+                  'RetryPlugin: Expected an Event Iterator, got a non-Event Iterator',
                 )
               }
 

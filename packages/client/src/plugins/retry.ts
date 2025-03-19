@@ -53,7 +53,7 @@ export interface RetryPluginContext {
     clientOptions: ClientOptionsOut<RetryPluginContext>,
     path: readonly string[],
     input: unknown
-  ) => undefined | ((o: { success: boolean }) => void)
+  ) => undefined | (() => void)
 }
 
 export class RetryPluginInvalidEventIteratorRetryResponse extends Error { }
@@ -90,10 +90,10 @@ export class RetryPlugin<T extends ClientContext & RetryPluginContext> implement
 
       let eventIteratorLastEventId = interceptorOptions.options.lastEventId
       let eventIteratorLastRetry: undefined | number
-      let unsubscribe: undefined | ((o: { success: boolean }) => void)
+      let unsubscribe: undefined | (() => void)
       let attemptIndex = 0
 
-      const main = async (initial?: { error: unknown }) => {
+      const next = async (initial?: { error: unknown }) => {
         let current = initial
 
         while (true) {
@@ -149,23 +149,23 @@ export class RetryPlugin<T extends ClientContext & RetryPluginContext> implement
               options: newClientOptions,
             })
 
-            unsubscribe?.({ success: true })
-
             return output
           }
           catch (error) {
-            unsubscribe?.({ success: false })
-
             if (interceptorOptions.options.signal?.aborted === true) {
               throw error
             }
 
             current = { error }
           }
+          finally {
+            unsubscribe?.()
+            unsubscribe = undefined
+          }
         }
       }
 
-      const output = await main()
+      const output = await next()
 
       if (!isAsyncIteratorObject(output)) {
         return output
@@ -194,7 +194,7 @@ export class RetryPlugin<T extends ClientContext & RetryPluginContext> implement
               eventIteratorLastEventId = meta?.id ?? eventIteratorLastEventId
               eventIteratorLastRetry = meta?.retry ?? eventIteratorLastRetry
 
-              const maybeEventIterator = await main({ error })
+              const maybeEventIterator = await next({ error })
 
               if (!isAsyncIteratorObject(maybeEventIterator)) {
                 throw new RetryPluginInvalidEventIteratorRetryResponse(

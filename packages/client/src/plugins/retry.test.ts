@@ -25,12 +25,18 @@ describe('retryPlugin', () => {
   const link = new RPCLink<ORPCClientContext>({
     url: 'http://localhost:3000',
     fetch: async (request) => {
+      if (request.signal?.aborted === true) {
+        // fake real fetch abort behavior
+        throw new Error('AbortError')
+      }
+
       const { response } = await handler.handle(request)
       return response ?? new Response('fail', { status: 500 })
     },
     plugins: [
       new RetryPlugin(),
     ],
+    eventIteratorMaxRetries: 0, // disable built-in event iterator retry
   })
 
   const client: RouterClient<typeof router, ORPCClientContext> = createORPCClient(link)
@@ -128,9 +134,6 @@ describe('retryPlugin', () => {
     )
 
     expect(clean).toHaveBeenCalledTimes(3)
-    expect(clean).toHaveBeenNthCalledWith(1, { success: false })
-    expect(clean).toHaveBeenNthCalledWith(2, { success: false })
-    expect(clean).toHaveBeenNthCalledWith(3, { success: false })
   })
 
   it('should not retry if signal aborted', async () => {
@@ -140,8 +143,160 @@ describe('retryPlugin', () => {
 
     controller.abort()
 
-    await expect(client('hello', { context: { retry: 3, retryDelay: 0 }, signal: controller.signal })).rejects.toThrow('Internal server error')
+    await expect(client('hello', { context: { retry: 3, retryDelay: 0 }, signal: controller.signal })).rejects.toThrow('AbortError')
 
-    expect(handlerFn).toHaveBeenCalledTimes(1)
+    expect(handlerFn).toHaveBeenCalledTimes(0)
+  })
+
+  describe('event iterator', () => {
+    it('should not retry by default', async () => {
+      handlerFn.mockImplementation(async function* () {
+        throw new Error('fail')
+      })
+
+      const iterator = await client('hello')
+
+      await expect(iterator.next()).rejects.toThrow('Internal server error')
+
+      expect(handlerFn).toHaveBeenCalledTimes(1)
+    })
+
+    it('should retry', async () => {
+      handlerFn.mockImplementation(async function* () {
+        throw new Error('fail')
+      })
+
+      const iterator = await client('hello', { context: { retry: 3, retryDelay: 0 } })
+
+      await expect(iterator.next()).rejects.toThrow('Internal server error')
+
+      expect(handlerFn).toHaveBeenCalledTimes(4)
+    })
+
+    it('should retry with delay', { retry: 5 }, async () => {
+      handlerFn.mockImplementation(async function* () {
+        throw new Error('fail')
+      })
+
+      const start = Date.now()
+      const iterator = await client('hello', { context: { retry: 4, retryDelay: 50 } })
+
+      await expect(iterator.next()).rejects.toThrow('Internal server error')
+
+      expect(Date.now() - start).toBeGreaterThanOrEqual(200)
+      expect(Date.now() - start).toBeLessThanOrEqual(249)
+
+      expect(handlerFn).toHaveBeenCalledTimes(5)
+    })
+
+    it('should not retry if shouldRetry=false', { retry: 5 }, async () => {
+      handlerFn.mockImplementation(async function* () {
+        throw new Error('fail')
+      })
+
+      let times = 0
+      const shouldRetry = vi.fn(() => {
+        times++
+
+        return times < 2
+      })
+
+      const iterator = await client('hello', { context: { retry: 3, shouldRetry, retryDelay: 0 } })
+
+      await expect(iterator.next()).rejects.toThrow('Internal server error')
+
+      expect(handlerFn).toHaveBeenCalledTimes(2)
+
+      expect(shouldRetry).toHaveBeenCalledTimes(2)
+      expect(shouldRetry).toHaveBeenNthCalledWith(
+        1,
+        { attemptIndex: 0, error: expect.any(ORPCError) },
+        expect.objectContaining({ context: { retry: 3, shouldRetry, retryDelay: 0 } }),
+        [],
+        'hello',
+      )
+      expect(shouldRetry).toHaveBeenNthCalledWith(
+        2,
+        { attemptIndex: 1, error: expect.any(ORPCError) },
+        expect.objectContaining({ context: { retry: 3, shouldRetry, retryDelay: 0 } }),
+        [],
+        'hello',
+      )
+    })
+
+    it('onRetry', async () => {
+      handlerFn.mockImplementation(async function* () {
+        throw new Error('fail')
+      })
+
+      const clean = vi.fn()
+      const onRetry = vi.fn(() => clean)
+
+      const iterator = await client('hello', { context: { retry: 3, retryDelay: 0, onRetry } })
+
+      await expect(iterator.next()).rejects.toThrow('Internal server error')
+
+      expect(handlerFn).toHaveBeenCalledTimes(4)
+
+      expect(onRetry).toHaveBeenCalledTimes(3)
+      expect(onRetry).toHaveBeenNthCalledWith(
+        1,
+        { attemptIndex: 0, error: expect.any(ORPCError) },
+        expect.objectContaining({ context: { retry: 3, retryDelay: 0, onRetry } }),
+        [],
+        'hello',
+      )
+      expect(onRetry).toHaveBeenNthCalledWith(
+        2,
+        { attemptIndex: 1, error: expect.any(ORPCError) },
+        expect.objectContaining({ context: { retry: 3, retryDelay: 0, onRetry } }),
+        [],
+        'hello',
+      )
+      expect(onRetry).toHaveBeenNthCalledWith(
+        3,
+        { attemptIndex: 2, error: expect.any(ORPCError) },
+        expect.objectContaining({ context: { retry: 3, retryDelay: 0, onRetry } }),
+        [],
+        'hello',
+      )
+
+      expect(clean).toHaveBeenCalledTimes(3)
+    })
+
+    it('should not retry if signal aborted', async () => {
+      handlerFn.mockImplementation(async function* () {
+        throw new Error('fail')
+      })
+
+      const controller = new AbortController()
+
+      controller.abort()
+
+      await expect(client('hello', { context: { retry: 3, retryDelay: 0 }, signal: controller.signal })).rejects.toThrow('AbortError')
+
+      expect(handlerFn).toHaveBeenCalledTimes(0)
+    })
+
+    it('throw right away if retry invalid event iterator response', async () => {
+      let times = 0
+      handlerFn.mockImplementation(async () => {
+        times++
+
+        if (times === 2) {
+          return 'not-an-event-iterator'
+        }
+
+        return (async function* () {
+          throw new Error('fail')
+        })()
+      })
+
+      const iterator = await client('hello', { context: { retry: 3, retryDelay: 0 } })
+
+      await expect(iterator.next()).rejects.toThrow('RetryPlugin: Expected an Event Iterator, got a non-Event Iterator')
+
+      expect(handlerFn).toHaveBeenCalledTimes(2)
+    })
   })
 })

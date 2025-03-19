@@ -14,7 +14,8 @@ export interface RetryPluginAttemptOptions {
 
 export interface RetryPluginContext {
   /**
-   * Maximum retry attempts for **consecutive failures** before throwing
+   * Maximum retry attempts before throwing
+   * Use `Number.POSITIVE_INFINITY` for infinite retries (e.g., when handling Server-Sent Events).
    *
    * @default 0
    */
@@ -87,36 +88,25 @@ export class RetryPlugin<T extends ClientContext & RetryPluginContext> implement
         return interceptorOptions.next()
       }
 
-      let lastEventId = interceptorOptions.options.lastEventId
-      let lastRetry: undefined | number
+      let eventIteratorLastEventId = interceptorOptions.options.lastEventId
+      let eventIteratorLastRetry: undefined | number
+      let unsubscribe: undefined | (() => void)
+      let attemptIndex = 0
 
-      const main = async () => {
-        let attemptIndex = 0
-        let unsubscribe: undefined | (() => void)
+      const main = async (initial?: { error: unknown }) => {
+        let current = initial
 
         while (true) {
-          try {
-            const newClientOptions = { ...interceptorOptions.options, lastEventId }
-
-            const output = await interceptorOptions.next({
-              ...interceptorOptions,
-              options: newClientOptions,
-            })
-
-            unsubscribe?.()
-
-            return output
-          }
-          catch (error) {
-            if (attemptIndex >= maxAttempts || !interceptorOptions.options.signal?.aborted) {
-              throw error
+          if (current) {
+            if (attemptIndex >= maxAttempts) {
+              throw current.error
             }
 
             const attemptOptions: RetryPluginAttemptOptions = {
               attemptIndex,
-              error,
-              eventIteratorLastEventId: lastEventId,
-              eventIteratorLastRetry: lastRetry,
+              error: current.error,
+              eventIteratorLastEventId,
+              eventIteratorLastRetry,
             }
 
             const shouldRetryBool = await value(
@@ -126,8 +116,9 @@ export class RetryPlugin<T extends ClientContext & RetryPluginContext> implement
               interceptorOptions.path,
               interceptorOptions.input,
             )
+
             if (!shouldRetryBool) {
-              throw error
+              throw current.error
             }
 
             unsubscribe = onRetry?.(
@@ -144,9 +135,30 @@ export class RetryPlugin<T extends ClientContext & RetryPluginContext> implement
               interceptorOptions.path,
               interceptorOptions.input,
             )
+
             await new Promise(resolve => setTimeout(resolve, retryDelayMs))
 
             attemptIndex++
+          }
+
+          try {
+            const newClientOptions = { ...interceptorOptions.options, lastEventId: eventIteratorLastEventId }
+
+            const output = await interceptorOptions.next({
+              ...interceptorOptions,
+              options: newClientOptions,
+            })
+
+            unsubscribe?.()
+
+            return output
+          }
+          catch (error) {
+            if (interceptorOptions.options.signal?.aborted === true) {
+              throw error
+            }
+
+            current = { error }
           }
         }
       }
@@ -166,8 +178,8 @@ export class RetryPlugin<T extends ClientContext & RetryPluginContext> implement
               const item = await current.next()
 
               const meta = getEventMeta(item.value)
-              lastEventId = meta?.id ?? lastEventId
-              lastRetry = meta?.retry ?? lastRetry
+              eventIteratorLastEventId = meta?.id ?? eventIteratorLastEventId
+              eventIteratorLastRetry = meta?.retry ?? eventIteratorLastRetry
 
               if (item.done) {
                 return item.value
@@ -177,10 +189,10 @@ export class RetryPlugin<T extends ClientContext & RetryPluginContext> implement
             }
             catch (error) {
               const meta = getEventMeta(error)
-              lastEventId = meta?.id ?? lastEventId
-              lastRetry = meta?.retry ?? lastRetry
+              eventIteratorLastEventId = meta?.id ?? eventIteratorLastEventId
+              eventIteratorLastRetry = meta?.retry ?? eventIteratorLastRetry
 
-              const maybeEventIterator = await main()
+              const maybeEventIterator = await main({ error })
 
               if (!isAsyncIteratorObject(maybeEventIterator)) {
                 throw new RetryPluginInvalidEventIteratorRetryResponse(

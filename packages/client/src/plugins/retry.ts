@@ -1,6 +1,6 @@
 import type { Value } from '@orpc/shared'
 import type { StandardLinkOptions } from '../adapters/standard'
-import type { ClientContext } from '../types'
+import type { ClientContext, ClientOptionsOut } from '../types'
 import type { ClientPlugin } from './base'
 import { isAsyncIteratorObject, value } from '@orpc/shared'
 import { getEventMeta } from '@orpc/standard-server'
@@ -25,19 +25,34 @@ export interface RetryPluginContext {
    *
    * @default (o) => o.eventIteratorLastRetry ?? 2000
    */
-  retryDelay?: Value<number, [options: RetryPluginAttemptOptions]>
+  retryDelay?: Value<number, [
+    attemptOptions: RetryPluginAttemptOptions,
+    clientOptions: ClientOptionsOut<RetryPluginContext>,
+    path: readonly string[],
+    input: unknown,
+  ]>
 
   /**
    * Determine should retry or not.
    *
    * @default true
    */
-  shouldRetry?: Value<boolean, [options: RetryPluginAttemptOptions]>
+  shouldRetry?: Value<boolean, [
+    attemptOptions: RetryPluginAttemptOptions,
+    clientOptions: ClientOptionsOut<RetryPluginContext>,
+    path: readonly string[],
+    input: unknown,
+  ]>
 
   /**
    * The hook called when retrying, and return the unsubscribe function.
    */
-  onRetry?: (options: RetryPluginAttemptOptions) => undefined | (() => void)
+  onRetry?: (
+    options: RetryPluginAttemptOptions,
+    clientOptions: ClientOptionsOut<RetryPluginContext>,
+    path: readonly string[],
+    input: unknown
+  ) => undefined | (() => void)
 }
 
 export class RetryPluginInvalidEventIteratorRetryResponse extends Error { }
@@ -104,14 +119,31 @@ export class RetryPlugin<T extends ClientContext & RetryPluginContext> implement
               eventIteratorLastRetry: lastRetry,
             }
 
-            const shouldRetryBool = await value(shouldRetry, attemptOptions)
+            const shouldRetryBool = await value(
+              shouldRetry,
+              attemptOptions,
+              interceptorOptions.options,
+              interceptorOptions.path,
+              interceptorOptions.input,
+            )
             if (!shouldRetryBool) {
               throw error
             }
 
-            unsubscribe = onRetry?.(attemptOptions)
+            unsubscribe = onRetry?.(
+              attemptOptions,
+              interceptorOptions.options,
+              interceptorOptions.path,
+              interceptorOptions.input,
+            )
 
-            const retryDelayMs = await value(retryDelay, attemptOptions)
+            const retryDelayMs = await value(
+              retryDelay,
+              attemptOptions,
+              interceptorOptions.options,
+              interceptorOptions.path,
+              interceptorOptions.input,
+            )
             await new Promise(resolve => setTimeout(resolve, retryDelayMs))
 
             attemptIndex++

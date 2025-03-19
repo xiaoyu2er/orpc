@@ -107,6 +107,7 @@ export default defineConfig({
           items: [
             { text: 'CORS', link: '/docs/plugins/cors' },
             { text: 'Response Headers', link: '/docs/plugins/response-headers' },
+            { text: 'Client Retry', link: '/docs/plugins/client-retry' },
           ],
         },
         {

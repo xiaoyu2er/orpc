@@ -53,7 +53,7 @@ export interface ClientRetryPluginContext {
     clientOptions: ClientOptionsOut<ClientRetryPluginContext>,
     path: readonly string[],
     input: unknown
-  ) => undefined | (() => void)
+  ) => void | (() => void)
 }
 
 export class ClientRetryPluginInvalidEventIteratorRetryResponse extends Error { }
@@ -90,7 +90,7 @@ export class ClientRetryPlugin<T extends ClientContext & ClientRetryPluginContex
 
       let eventIteratorLastEventId = interceptorOptions.options.lastEventId
       let eventIteratorLastRetry: undefined | number
-      let unsubscribe: undefined | (() => void)
+      let unsubscribe: void | (() => void)
       let attemptIndex = 0
 
       const next = async (initial?: { error: unknown }) => {

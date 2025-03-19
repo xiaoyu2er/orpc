@@ -59,7 +59,7 @@ export class RetryPlugin<T extends ClientContext & RetryPluginContext> implement
       let lastEventId = interceptorOptions.options.lastEventId
       let lastRetry: undefined | number
 
-      const next = async () => {
+      const main = async () => {
         let attemptIndex = 0
         let unsubscribe: undefined | (() => void)
 
@@ -81,7 +81,12 @@ export class RetryPlugin<T extends ClientContext & RetryPluginContext> implement
               throw error
             }
 
-            const attemptOptions: RetryPluginAttemptOptions = { attemptIndex, error, eventIteratorLastEventId: lastEventId, eventIteratorLastRetry: lastRetry }
+            const attemptOptions: RetryPluginAttemptOptions = {
+              attemptIndex,
+              error,
+              eventIteratorLastEventId: lastEventId,
+              eventIteratorLastRetry: lastRetry,
+            }
 
             const shouldRetryBool = await value(shouldRetry, attemptOptions)
             if (!shouldRetryBool) {
@@ -98,7 +103,7 @@ export class RetryPlugin<T extends ClientContext & RetryPluginContext> implement
         }
       }
 
-      const output = await next()
+      const output = await main()
 
       if (!isAsyncIteratorObject(output)) {
         return output
@@ -109,38 +114,34 @@ export class RetryPlugin<T extends ClientContext & RetryPluginContext> implement
 
         try {
           while (true) {
-            const item = await (async () => {
-              try {
-                return await current.next()
+            try {
+              const item = await current.next()
+
+              const meta = getEventMeta(item.value)
+              lastEventId = meta?.id ?? lastEventId
+              lastRetry = meta?.retry ?? lastRetry
+
+              if (item.done) {
+                return item.value
               }
-              catch (error) {
-                const meta = getEventMeta(error)
-                lastEventId = meta?.id ?? lastEventId
-                lastRetry = meta?.retry ?? lastRetry
 
-                const maybeEventIterator = await next()
-
-                if (!isAsyncIteratorObject(maybeEventIterator)) {
-                  throw new RetryPluginInvalidEventIteratorRetryResponse(
-                    'RetryPlugin: Invalid Event Iterator retry response',
-                  )
-                }
-
-                current = maybeEventIterator
-
-                return current.next()
-              }
-            })()
-
-            const meta = getEventMeta(item.value)
-            lastEventId = meta?.id ?? lastEventId
-            lastRetry = meta?.retry ?? lastRetry
-
-            if (item.done) {
-              return item.value
+              yield item.value
             }
+            catch (error) {
+              const meta = getEventMeta(error)
+              lastEventId = meta?.id ?? lastEventId
+              lastRetry = meta?.retry ?? lastRetry
 
-            yield item.value
+              const maybeEventIterator = await main()
+
+              if (!isAsyncIteratorObject(maybeEventIterator)) {
+                throw new RetryPluginInvalidEventIteratorRetryResponse(
+                  'RetryPlugin: Invalid Event Iterator retry response',
+                )
+              }
+
+              current = maybeEventIterator
+            }
           }
         }
         finally {

@@ -92,7 +92,7 @@ const link = new RPCLink<ClientContext>({
 
 ## SSE Like Behavior
 
-Unlike traditional SSE, the [Event Iterator](/docs/event-iterator) does not automatically retry on connection loss. To enable automatic retries, refer to the [Client Retry Plugin](/docs/plugins/client-retry).
+Unlike traditional SSE, the [Event Iterator](/docs/event-iterator) does not automatically retry on error. To enable automatic retries, refer to the [Client Retry Plugin](/docs/plugins/client-retry).
 
 ## Event Iterator Keep Alive
 

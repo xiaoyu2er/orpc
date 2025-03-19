@@ -20,7 +20,7 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
   constructor(
     public readonly codec: StandardLinkCodec<T>,
     public readonly sender: StandardLinkClient<T>,
-    options: StandardLinkOptions<T>,
+    options: StandardLinkOptions<T> = {},
   ) {
     const plugin = new CompositeClientPlugin(options.plugins)
 

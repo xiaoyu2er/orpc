@@ -33,25 +33,17 @@ const complete = os
 
 const router = { complete }
 
-type ClientContext = { disableEIRetry?: boolean }
-
-const link = new RPCLink<ClientContext>({
+const link = new RPCLink({
   url: 'https://example.com/rpc',
-  eventIteratorShouldRetry: (_, { context }) => !context?.disableEIRetry,
 })
 
-const client: RouterClient<typeof router, ClientContext> = createORPCClient(link)
+const client: RouterClient<typeof router> = createORPCClient(link)
 
-const stream = await client.complete(
-  { content: 'Hello, world!' },
-  { context: { disableEIRetry: true } }
-)
+const stream = await client.complete({ content: 'Hello, world!' })
 
 for await (const chunk of stream) {
   console.log(chunk.choices[0]?.delta?.content || '')
 }
 ```
-
-**Note:** Disable event iterator retries when streaming chatbot responses.
 
 Learn more about [RPCLink](/docs/client/rpc-link) and [Event Iterator](/docs/client/event-iterator).

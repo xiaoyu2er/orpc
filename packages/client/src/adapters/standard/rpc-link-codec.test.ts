@@ -97,6 +97,47 @@ describe('standardRPCLinkCodec', () => {
       expect(serializeSpy).toBeCalledTimes(1)
       expect(serializeSpy).toBeCalledWith(input)
     })
+
+    describe('last-event-id', async () => {
+      it('should set', async () => {
+        const codec = new StandardRPCLinkCodec(serializer, {
+          url: 'http://localhost:3000',
+          method,
+          headers: () => ({ 'x-custom-header': 'custom-value' }),
+        })
+
+        const request = await codec.encode(['test'], 'input', { context: {}, lastEventId: '1' })
+
+        expect(request.headers['x-custom-header']).toEqual('custom-value')
+        expect(request.headers['last-event-id']).toEqual('1')
+      })
+
+      it('should merged', async () => {
+        const codec = new StandardRPCLinkCodec(serializer, {
+          url: 'http://localhost:3000',
+          method,
+          headers: () => ({ 'x-custom-header': 'custom-value', 'last-event-id': '2' }),
+        })
+
+        const request = await codec.encode(['test'], 'input', { context: {}, lastEventId: '1' })
+
+        expect(request.headers['x-custom-header']).toEqual('custom-value')
+        expect(request.headers['last-event-id']).toEqual(['2', '1'])
+      })
+
+      it('should merged 2', async () => {
+        const codec = new StandardRPCLinkCodec(serializer, {
+          url: 'http://localhost:3000',
+          method,
+          headers: () => ({ 'x-custom-header': 'custom-value', 'last-event-id': ['2', '3'] }),
+        })
+
+        const request = await codec.encode(['test'], 'input', { context: {}, lastEventId: '1' })
+
+        expect(request.headers['x-custom-header']).toEqual('custom-value')
+        expect(request.headers['last-event-id']).toEqual(['2', '3', '1'])
+      })
+    })
   })
 
   describe('decode', () => {

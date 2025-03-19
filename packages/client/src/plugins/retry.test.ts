@@ -37,7 +37,6 @@ describe('clientRetryPlugin', () => {
     plugins: [
       new ClientRetryPlugin(),
     ],
-    eventIteratorMaxRetries: 0, // disable built-in event iterator retry
   })
 
   const client: RouterClient<typeof router, ORPCClientContext> = createORPCClient(link)

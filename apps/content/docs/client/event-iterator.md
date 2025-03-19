@@ -46,10 +46,8 @@ for await (const event of iterator) {
 
 ## Error Handling
 
-If an error occurs during streaming, oRPC will attempt retries based on your configuration. It can retry multiple times until the specified limit is reached, after which the error will be thrown.
-
 ::: info
-If you're using [RPCLink](/docs/client/rpc-link), you can customize the retry behavior [here](/docs/client/rpc-link#event-iterator-configuration).
+Unlike traditional SSE, the Event Iterator does not automatically retry on error. To enable automatic retries, refer to the [Client Retry Plugin](/docs/plugins/client-retry).
 :::
 
 ```ts
@@ -70,34 +68,3 @@ catch (error) {
 ::: info
 Errors thrown by the server can be instances of `ORPCError`.
 :::
-
-## Connection Status
-
-Combine with `onEventIteratorStatusChange` to track the connection status of the event iterator.
-
-```ts twoslash
-declare const client: { streaming: () => Promise<AsyncGenerator<{ message: string }, void, void>> }
-// ---cut---
-import { onEventIteratorStatusChange } from '@orpc/client'
-
-let status: 'connecting' | 'error' | 'reconnecting' | 'connected' | 'closed' = 'connecting'
-let unsubscribe: (() => void) | undefined
-
-try {
-  const iterator = await client.streaming()
-
-  unsubscribe = onEventIteratorStatusChange(iterator, (newStatus) => {
-    status = newStatus
-  })
-
-  for await (const event of iterator) {
-    console.log(event.message)
-  }
-}
-catch (error) {
-  status = 'error'
-}
-finally {
-  unsubscribe?.()
-}
-```

@@ -90,33 +90,9 @@ const link = new RPCLink<ClientContext>({
 })
 ```
 
-## Event Iterator Configuration
+## SSE Like Behavior
 
-Customize the retry logic for [Event Iterator](/docs/event-iterator) using these options:
-
-- **eventIteratorMaxRetries:** Maximum retry attempts for **consecutive failures** before throwing (default: `5`).
-- **eventIteratorRetryDelay:** Delay between retries (default: `(o) => o.lastRetry ?? (1000 * 2 ** o.retryTimes)`).
-- **eventIteratorShouldRetry:** Function to determine if a retry should occur (default: `true`).
-
-```ts twoslash
-import { RPCLink } from '@orpc/client/fetch'
-
-interface ClientContext {
-  retry?: boolean
-}
-
-const link = new RPCLink<ClientContext>({
-  url: 'http://localhost:3000/rpc',
-  eventIteratorShouldRetry(reconnectOptions, options, path, input) {
-    console.log(reconnectOptions.error)
-    return options.context.retry ?? true
-  }
-})
-```
-
-:::tip
-You should disable event iterator retries when streaming results from a chatbot AI.
-:::
+Unlike traditional SSE, the [Event Iterator](/docs/event-iterator) does not automatically retry on error. To enable automatic retries, refer to the [Client Retry Plugin](/docs/plugins/client-retry).
 
 ## Event Iterator Keep Alive
 

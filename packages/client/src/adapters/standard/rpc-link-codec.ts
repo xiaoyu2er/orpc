@@ -77,9 +77,21 @@ export class StandardRPCLinkCodec<T extends ClientContext> implements StandardLi
 
   async encode(path: readonly string[], input: unknown, options: ClientOptionsOut<any>): Promise<StandardRequest> {
     const expectedMethod = await value(this.expectedMethod, options, path, input)
-    const headers = await value(this.headers, options, path, input)
+    const headers = { ...await value(this.headers, options, path, input) }
     const baseUrl = await value(this.baseUrl, options, path, input)
     const url = new URL(`${trim(baseUrl.toString(), '/')}/${path.map(encodeURIComponent).join('/')}`)
+
+    if (options.lastEventId !== undefined) {
+      if (Array.isArray(headers['last-event-id'])) {
+        headers['last-event-id'] = [...headers['last-event-id'], options.lastEventId]
+      }
+      else if (headers['last-event-id'] !== undefined) {
+        headers['last-event-id'] = [headers['last-event-id'], options.lastEventId]
+      }
+      else {
+        headers['last-event-id'] = options.lastEventId
+      }
+    }
 
     const serialized = this.serializer.serialize(input)
 

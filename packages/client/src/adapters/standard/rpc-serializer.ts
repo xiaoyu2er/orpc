@@ -9,7 +9,7 @@ export class StandardRPCSerializer {
     private readonly jsonSerializer: StandardRPCJsonSerializer,
   ) {}
 
-  serialize(data: unknown): unknown {
+  serialize(data: unknown): object {
     if (isAsyncIteratorObject(data)) {
       return mapEventIterator(data, {
         value: async (value: unknown) => this.#serialize(value, false),
@@ -28,11 +28,7 @@ export class StandardRPCSerializer {
   #serialize(
     data: unknown,
     enableFormData: boolean,
-  ): unknown {
-    if (data === undefined || data instanceof Blob) {
-      return data
-    }
-
+  ): object {
     const [json, meta_, maps, blobs] = this.jsonSerializer.serialize(data)
 
     const meta = meta_.length === 0 ? undefined : meta_
@@ -82,10 +78,6 @@ export class StandardRPCSerializer {
   }
 
   #deserialize(data: unknown): unknown {
-    if (data === undefined || data instanceof Blob) {
-      return data
-    }
-
     if (!(data instanceof FormData)) {
       return this.jsonSerializer.deserialize((data as any).json, (data as any).meta ?? [])
     }

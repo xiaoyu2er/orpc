@@ -98,13 +98,12 @@ export class StandardRPCLinkCodec<T extends ClientContext> implements StandardLi
     if (
       expectedMethod === 'GET'
       && !(serialized instanceof FormData)
-      && !(serialized instanceof Blob)
       && !isAsyncIteratorObject(serialized)
     ) {
       const maxUrlLength = await value(this.maxUrlLength, options, path, input)
       const getUrl = new URL(url)
 
-      getUrl.searchParams.append('data', stringifyJSON(serialized) ?? '')
+      getUrl.searchParams.append('data', stringifyJSON(serialized))
 
       if (getUrl.toString().length <= maxUrlLength) {
         return {

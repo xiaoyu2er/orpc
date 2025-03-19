@@ -5,7 +5,7 @@ export interface HandlerPlugin<TContext extends Context> {
   init?(options: StandardHandlerOptions<TContext>): void
 }
 
-export class CompositePlugin<TContext extends Context> implements HandlerPlugin<TContext> {
+export class CompositeHandlerPlugin<TContext extends Context> implements HandlerPlugin<TContext> {
   constructor(private readonly plugins: HandlerPlugin<TContext>[] = []) {}
 
   init(options: StandardHandlerOptions<TContext>): void {

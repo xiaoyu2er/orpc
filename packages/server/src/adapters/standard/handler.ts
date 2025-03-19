@@ -8,7 +8,7 @@ import type { Router } from '../../router'
 import type { StandardCodec, StandardMatcher } from './types'
 import { ORPCError, toORPCError } from '@orpc/client'
 import { intercept, trim } from '@orpc/shared'
-import { CompositePlugin } from '../../plugins'
+import { CompositeHandlerPlugin } from '../../plugins'
 import { createProcedureClient } from '../../procedure-client'
 
 export type StandardHandleOptions<T extends Context> =
@@ -46,7 +46,7 @@ export interface StandardHandlerOptions<TContext extends Context> {
 }
 
 export class StandardHandler<T extends Context> {
-  private readonly plugin: CompositePlugin<T>
+  private readonly plugin: CompositeHandlerPlugin<T>
 
   constructor(
     router: Router<any, T>,
@@ -54,7 +54,7 @@ export class StandardHandler<T extends Context> {
     private readonly codec: StandardCodec,
     private readonly options: NoInfer<StandardHandlerOptions<T>>,
   ) {
-    this.plugin = new CompositePlugin(options.plugins)
+    this.plugin = new CompositeHandlerPlugin(options.plugins)
 
     this.plugin.init(this.options)
     this.matcher.init(router)

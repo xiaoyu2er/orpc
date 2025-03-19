@@ -207,7 +207,7 @@ export class ClientRetryPlugin<T extends ClientContext & ClientRetryPluginContex
           }
         }
         finally {
-          current.return?.()
+          await current.return?.()
         }
       })()
     })

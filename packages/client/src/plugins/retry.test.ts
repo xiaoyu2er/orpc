@@ -412,5 +412,33 @@ describe('clientRetryPlugin', () => {
 
       expect(handlerFn).toHaveBeenCalledTimes(2)
     })
+
+    it('manually .return still works', async () => {
+      const cleanup = vi.fn()
+
+      handlerFn.mockImplementation(async function* () {
+        try {
+          while (true) {
+            yield 1
+          }
+        }
+        finally {
+          cleanup()
+        }
+      })
+
+      const iterator = await client('hello', { context: { retry: 3, retryDelay: 0 } })
+
+      await iterator.next()
+
+      await iterator.return()
+
+      /**
+       * Don't know why but we need await a bit to make sure the cleanup is called
+       */
+      await new Promise(resolve => setTimeout(resolve, 50))
+
+      expect(cleanup).toHaveBeenCalledTimes(1)
+    })
   })
 })

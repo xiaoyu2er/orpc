@@ -169,10 +169,6 @@ Just a small tweak makes your oRPC API OpenAPI-compliant!
 
 ## Generating OpenAPI Spec
 
-::: info
-oRPC supports a wide range of [Standard Schema](https://github.com/standard-schema/standard-schema) for OpenAPI generation. See the full list [here](/docs/openapi/openapi-specification#generating-specifications)
-:::
-
 ```ts twoslash
 import { OpenAPIGenerator } from '@orpc/openapi'
 import { ZodToJsonSchemaConverter } from '@orpc/zod'
@@ -195,3 +191,7 @@ console.log(JSON.stringify(spec, null, 2))
 ```
 
 Run the script above to generate your OpenAPI spec.
+
+::: info
+oRPC supports a wide range of [Standard Schema](https://github.com/standard-schema/standard-schema) for OpenAPI generation. See the full list [here](/docs/openapi/openapi-specification#generating-specifications)
+:::

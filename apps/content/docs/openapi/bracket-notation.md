@@ -79,8 +79,8 @@ This form data is parsed as:
       { "first": "John1", "last": "Doe1" },
       { "first": "John2", "last": "Doe2" }
     ],
-    "ages": [18, null, 25],
-    "files": ["...binary data...", "...binary data..."]
+    "ages": ["18", "<empty>", "25"],
+    "files": ["<binary data>", "<binary data>"]
   }
 }
 ```

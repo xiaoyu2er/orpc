@@ -1,6 +1,7 @@
 import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
 import { defineConfig } from 'vitepress'
 import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-icons'
+import llmstxt from 'vitepress-plugin-llms'
 
 export default defineConfig({
   lang: 'en-US',
@@ -208,6 +209,7 @@ export default defineConfig({
   titleTemplate: ':title - oRPC',
   vite: {
     plugins: [
+      llmstxt(),
       groupIconVitePlugin({
         customIcon: {
           cloudflare: 'logos:cloudflare-workers-icon',

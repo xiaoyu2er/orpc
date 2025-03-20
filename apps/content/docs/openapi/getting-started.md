@@ -169,7 +169,9 @@ Just a small tweak makes your oRPC API OpenAPI-compliant!
 
 ## Generating OpenAPI Spec
 
-Currently, we support Zod for generating OpenAPI specs, but more options will be added soon.
+::: info
+oRPC supports a wide range of [Standard Schema](https://github.com/standard-schema/standard-schema) for OpenAPI generation. See the full list [here](/docs/openapi/openapi-specification#generating-specifications)
+:::
 
 ```ts twoslash
 import { OpenAPIGenerator } from '@orpc/openapi'
@@ -177,7 +179,9 @@ import { ZodToJsonSchemaConverter } from '@orpc/zod'
 import { router } from './shared/planet'
 
 const generator = new OpenAPIGenerator({
-  schemaConverters: [new ZodToJsonSchemaConverter()]
+  schemaConverters: [
+    new ZodToJsonSchemaConverter()
+  ]
 })
 
 const spec = await generator.generate(router, {

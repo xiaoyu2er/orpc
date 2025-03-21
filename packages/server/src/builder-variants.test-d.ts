@@ -99,8 +99,8 @@ describe('BuilderWithMiddlewares', () => {
         >
       >()
 
-      // invalid TInContext
-      expectTypeOf(builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)).toEqualTypeOf<never>()
+      // @ts-expect-error --- invalid TInContext
+      builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)
       // @ts-expect-error --- input is not match
       builder.use(({ next }, input: 'invalid') => next({}))
       // @ts-expect-error --- output is not match
@@ -358,8 +358,8 @@ describe('ProcedureBuilder', () => {
         >
       >()
 
-      // invalid TInContext
-      expectTypeOf(builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)).toEqualTypeOf<never>()
+      // @ts-expect-error --- invalid TInContext
+      builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)
       // @ts-expect-error --- input is not match
       builder.use(({ next }, input: 'invalid') => next({}))
       // @ts-expect-error --- output is not match
@@ -552,8 +552,8 @@ describe('ProcedureBuilderWithInput', () => {
         >
       >()
 
-      // invalid TInContext
-      expectTypeOf(builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)).toEqualTypeOf<never>()
+      // @ts-expect-error --- invalid TInContext
+      builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)
       // @ts-expect-error --- input is not match
       builder.use(({ next }, input: 'invalid') => next({}))
       // @ts-expect-error --- output is not match
@@ -600,8 +600,8 @@ describe('ProcedureBuilderWithInput', () => {
         input => ({ invalid: true }),
       )
 
-      // invalid TInContext
-      expectTypeOf(builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>, () => { })).toEqualTypeOf<never>()
+      // @ts-expect-error --- invalid TInContext
+      builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>, () => {})
       // @ts-expect-error --- input is not match
       builder.use(({ next }, input: 'invalid') => next({}), input => ({ mapped: true }))
       // @ts-expect-error --- output is not match
@@ -789,8 +789,8 @@ describe('ProcedureBuilderWithOutput', () => {
         >
       >()
 
-      // invalid TInContext
-      expectTypeOf(builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)).toEqualTypeOf<never>()
+      // @ts-expect-error --- invalid TInContext
+      builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)
       // @ts-expect-error --- input is not match
       builder.use(({ next }, input: 'invalid') => next({}))
       // @ts-expect-error --- output is not match
@@ -970,8 +970,8 @@ describe('ProcedureBuilderWithInputOutput', () => {
         >
       >()
 
-      // invalid TInContext
-      expectTypeOf(builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)).toEqualTypeOf<never>()
+      // @ts-expect-error --- invalid TInContext
+      builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)
       // @ts-expect-error --- input is not match
       builder.use(({ next }, input: 'invalid') => next({}))
       // @ts-expect-error --- output is not match
@@ -1018,8 +1018,8 @@ describe('ProcedureBuilderWithInputOutput', () => {
         input => ({ invalid: true }),
       )
 
-      // invalid TInContext
-      expectTypeOf(builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>, () => { })).toEqualTypeOf<never>()
+      // @ts-expect-error --- invalid TInContext
+      builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>, () => {})
       // @ts-expect-error --- input is not match
       builder.use(({ next }, input: 'invalid') => next({}), input => ({ mapped: true }))
       // @ts-expect-error --- output is not match
@@ -1163,8 +1163,8 @@ describe('RouterBuilder', () => {
         >
       >()
 
-      // invalid TInContext
-      expectTypeOf(builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)).toEqualTypeOf<never>()
+      // @ts-expect-error --- invalid TInContext
+      builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)
       // @ts-expect-error --- input is not match
       builder.use(({ next }, input: 'invalid') => next({}))
       // @ts-expect-error --- output is not match

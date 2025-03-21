@@ -1,5 +1,6 @@
 import type { Meta } from '@orpc/contract'
-import type { Context, ContextExtendsGuard, MergedCurrentContext, MergedInitialContext } from './context'
+import type { IntersectPick } from '@orpc/shared'
+import type { Context, MergedCurrentContext, MergedInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { AnyMiddleware, MapInputMiddleware, Middleware } from './middleware'
 
@@ -15,7 +16,10 @@ export interface DecoratedMiddleware<
     map: MapInputMiddleware<UInput, TInput>,
   ): DecoratedMiddleware<TInContext, TOutContext, UInput, TOutput, TErrorConstructorMap, TMeta>
 
-  concat<UOutContext extends Context, UInContext extends Context = MergedCurrentContext<TInContext, TOutContext>>(
+  concat<
+    UOutContext extends Context,
+    UInContext extends IntersectPick<MergedCurrentContext<TInContext, TOutContext>, UInContext> = MergedCurrentContext<TInContext, TOutContext>,
+  >(
     middleware: Middleware<
       UInContext,
       UOutContext,
@@ -24,20 +28,19 @@ export interface DecoratedMiddleware<
       TErrorConstructorMap,
       TMeta
     >,
-  ): ContextExtendsGuard<MergedCurrentContext<TInContext, TOutContext>, UInContext>
-    & DecoratedMiddleware<
-      MergedInitialContext<TInContext, UInContext, MergedCurrentContext<TInContext, TOutContext>>,
-      MergedCurrentContext<TOutContext, UOutContext>,
-      TInput,
-      TOutput,
-      TErrorConstructorMap,
-      TMeta
-    >
+  ): DecoratedMiddleware<
+    MergedInitialContext<TInContext, UInContext, MergedCurrentContext<TInContext, TOutContext>>,
+    MergedCurrentContext<TOutContext, UOutContext>,
+    TInput,
+    TOutput,
+    TErrorConstructorMap,
+    TMeta
+  >
 
   concat<
     UOutContext extends Context,
     UMappedInput,
-    UInContext extends Context = MergedCurrentContext<TInContext, TOutContext>,
+    UInContext extends IntersectPick<MergedCurrentContext<TInContext, TOutContext>, UInContext> = MergedCurrentContext<TInContext, TOutContext>,
   >(
     middleware: Middleware<
       UInContext,
@@ -48,15 +51,14 @@ export interface DecoratedMiddleware<
       TMeta
     >,
     mapInput: MapInputMiddleware<TInput, UMappedInput>,
-  ): ContextExtendsGuard<MergedCurrentContext<TInContext, TOutContext>, UInContext>
-    & DecoratedMiddleware<
-      MergedInitialContext<TInContext, UInContext, MergedCurrentContext<TInContext, TOutContext>>,
-      MergedCurrentContext<TOutContext, UOutContext>,
-      TInput,
-      TOutput,
-      TErrorConstructorMap,
-      TMeta
-    >
+  ): DecoratedMiddleware<
+    MergedInitialContext<TInContext, UInContext, MergedCurrentContext<TInContext, TOutContext>>,
+    MergedCurrentContext<TOutContext, UOutContext>,
+    TInput,
+    TOutput,
+    TErrorConstructorMap,
+    TMeta
+  >
 }
 
 export function decorateMiddleware<

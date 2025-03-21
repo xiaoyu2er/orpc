@@ -118,8 +118,8 @@ describe('DecoratedProcedure', () => {
         >
       >()
 
-      // invalid TInContext
-      expectTypeOf(builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)).toEqualTypeOf<never>()
+      // @ts-expect-error --- invalid TInContext
+      builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)
       // @ts-expect-error --- input is not match
       builder.use(({ next }, input: 'invalid') => next({}))
       // @ts-expect-error --- output is not match
@@ -157,8 +157,8 @@ describe('DecoratedProcedure', () => {
         >
       >()
 
-      // invalid TInContext
-      expectTypeOf(builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>, () => { })).toEqualTypeOf<never>()
+      // @ts-expect-error --- invalid TInContext
+      builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>, () => {})
       // @ts-expect-error --- input is not match
       builder.use(({ next }, input: 'invalid') => next({}), () => {})
       // @ts-expect-error --- output is not match

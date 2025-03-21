@@ -241,77 +241,18 @@ describe('Builder', () => {
         >
       >()
 
-      // invalid TInContext
-      expectTypeOf(builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)).toEqualTypeOf<never>()
+      // @ts-expect-error --- Invalid TInContext
+      builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)
       // @ts-expect-error --- input is not match
       builder.use(({ next }, input: 'invalid') => next({}))
       // @ts-expect-error --- output is not match
       builder.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}))
     })
 
-    it('with map input', () => {
-      const applied = builder.use(({ context, next, path, procedure, errors, signal }, input: { mapped: boolean }, output) => {
-        expectTypeOf(input).toEqualTypeOf<{ mapped: boolean }>()
-        expectTypeOf(context).toEqualTypeOf<CurrentContext>()
-        expectTypeOf(path).toEqualTypeOf<readonly string[]>()
-        expectTypeOf(procedure).toEqualTypeOf<
-          Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, BaseMeta>
-        >()
-        expectTypeOf(output).toEqualTypeOf<MiddlewareOutputFn<unknown>>()
-        expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
-        expectTypeOf(signal).toEqualTypeOf<undefined | InstanceType<typeof AbortSignal>>()
-
-        return next({
-          context: {
-            extra: true,
-          },
-        })
-      }, (input) => {
-        expectTypeOf(input).toEqualTypeOf<unknown>()
-
-        return { mapped: true }
-      })
-
-      expectTypeOf(applied).toEqualTypeOf<
-        BuilderWithMiddlewares<
-          InitialContext & Record<never, never>,
-          Omit<CurrentContext, 'extra'> & { extra: boolean },
-          typeof inputSchema,
-          typeof outputSchema,
-          typeof baseErrorMap,
-          BaseMeta
-        >
-      >()
-
-      builder.use(
-        ({ context, next, path, procedure, errors, signal }, input: { mapped: boolean }, output) => next(),
-        // @ts-expect-error --- invalid map input
-        input => ({ invalid: true }),
-      )
-
-      // invalid TInContext
-      expectTypeOf(builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>, () => { })).toEqualTypeOf<never>()
-      // @ts-expect-error --- input is not match
-      builder.use(({ next }, input: 'invalid') => next({}), input => ({ mapped: true }))
-      // @ts-expect-error --- output is not match
-      builder.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}), input => ({ mapped: true }))
-    })
-
     it('with TInContext', () => {
       const mid = {} as Middleware<{ cacheable?: boolean } & Record<never, never>, Record<never, never>, unknown, unknown, ORPCErrorConstructorMap<any>, BaseMeta>
 
       expectTypeOf(builder.use(mid)).toEqualTypeOf<
-        BuilderWithMiddlewares<
-          InitialContext & { cacheable?: boolean },
-          Omit<CurrentContext, never> & Record<never, never>,
-          typeof inputSchema,
-          typeof outputSchema,
-          typeof baseErrorMap,
-          BaseMeta
-        >
-      >()
-
-      expectTypeOf(builder.use(mid, () => { })).toEqualTypeOf<
         BuilderWithMiddlewares<
           InitialContext & { cacheable?: boolean },
           Omit<CurrentContext, never> & Record<never, never>,

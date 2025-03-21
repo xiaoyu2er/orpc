@@ -90,8 +90,8 @@ describe('ImplementedProcedure', () => {
         >
       >()
 
-      // invalid TInContext
-      expectTypeOf(implemented.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)).toEqualTypeOf<never>()
+      // @ts-expect-error --- invalid TInContext
+      implemented.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)
       // @ts-expect-error --- input is not match
       implemented.use(({ next }, input: 'invalid') => next({}))
       // @ts-expect-error --- output is not match
@@ -129,8 +129,8 @@ describe('ImplementedProcedure', () => {
         >
       >()
 
-      // invalid TInContext
-      expectTypeOf(implemented.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>, () => {})).toEqualTypeOf<never>()
+      // @ts-expect-error --- invalid TInContext
+      implemented.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>, () => { })
       // @ts-expect-error --- input is not match
       implemented.use(({ next }, input: 'invalid') => next({}), () => {})
       // @ts-expect-error --- output is not match
@@ -265,8 +265,8 @@ describe('ProcedureImplementer', () => {
         >
       >()
 
-      // invalid TInContext
-      expectTypeOf(builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)).toEqualTypeOf<never>()
+      // @ts-expect-error --- invalid TInContext
+      builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)
       // @ts-expect-error --- input is not match
       builder.use(({ next }, input: 'invalid') => next({}))
       // @ts-expect-error --- output is not match
@@ -313,8 +313,8 @@ describe('ProcedureImplementer', () => {
         input => ({ invalid: true }),
       )
 
-      // invalid TInContext
-      expectTypeOf(builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>, () => {})).toEqualTypeOf<never>()
+      // @ts-expect-error --- invalid TInContext
+      builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>, () => { })
       // @ts-expect-error --- input is not match
       builder.use(({ next }, input: 'invalid') => next({}), input => ({ mapped: true }))
       // @ts-expect-error --- output is not match

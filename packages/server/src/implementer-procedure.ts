@@ -1,6 +1,6 @@
 import type { ClientContext, ClientRest } from '@orpc/client'
 import type { AnySchema, ErrorMap, InferSchemaInput, InferSchemaOutput, Meta } from '@orpc/contract'
-import type { MaybeOptionalOptions } from '@orpc/shared'
+import type { IntersectPick, MaybeOptionalOptions } from '@orpc/shared'
 import type { BuilderDef } from './builder'
 import type { Context, ContextExtendsGuard, MergedCurrentContext, MergedInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
@@ -19,7 +19,7 @@ export interface ImplementedProcedure<
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > extends Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta> {
-  use<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
+  use<UOutContext extends Context, UInContext extends IntersectPick<TCurrentContext, UInContext> = TCurrentContext>(
     middleware: Middleware<
       UInContext,
       UOutContext,
@@ -28,8 +28,7 @@ export interface ImplementedProcedure<
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
-  ): ContextExtendsGuard<TCurrentContext, UInContext>
-    & ContextExtendsGuard<MergedCurrentContext<TCurrentContext, UOutContext>, TCurrentContext>
+  ): ContextExtendsGuard<MergedCurrentContext<TCurrentContext, UOutContext>, TCurrentContext>
     & ImplementedProcedure<
       MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
       MergedCurrentContext<TCurrentContext, UOutContext>,
@@ -39,7 +38,7 @@ export interface ImplementedProcedure<
       TMeta
     >
 
-  use<UOutContext extends Context, UInput, UInContext extends Context = TCurrentContext>(
+  use<UOutContext extends Context, UInput, UInContext extends IntersectPick<TCurrentContext, UInContext> = TCurrentContext>(
     middleware: Middleware<
       UInContext,
       UOutContext,
@@ -49,8 +48,7 @@ export interface ImplementedProcedure<
       TMeta
     >,
     mapInput: MapInputMiddleware<InferSchemaOutput<TInputSchema>, UInput>,
-  ): ContextExtendsGuard<TCurrentContext, UInContext>
-    & ContextExtendsGuard<MergedCurrentContext<TCurrentContext, UOutContext>, TCurrentContext>
+  ): ContextExtendsGuard<MergedCurrentContext<TCurrentContext, UOutContext>, TCurrentContext>
     & ImplementedProcedure<
       MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
       MergedCurrentContext<TCurrentContext, UOutContext>,
@@ -108,7 +106,7 @@ export interface ProcedureImplementer<
 > {
   '~orpc': BuilderDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>
 
-  'use'<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
+  'use'<UOutContext extends Context, UInContext extends IntersectPick<TCurrentContext, UInContext> = TCurrentContext>(
     middleware: Middleware<
       UInContext,
       UOutContext,
@@ -117,17 +115,16 @@ export interface ProcedureImplementer<
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
-  ): ContextExtendsGuard<TCurrentContext, UInContext>
-    & ProcedureImplementer<
-      MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
-      MergedCurrentContext<TCurrentContext, UOutContext>,
-      TInputSchema,
-      TOutputSchema,
-      TErrorMap,
-      TMeta
-    >
+  ): ProcedureImplementer<
+    MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
+    MergedCurrentContext<TCurrentContext, UOutContext>,
+    TInputSchema,
+    TOutputSchema,
+    TErrorMap,
+    TMeta
+  >
 
-  'use'<UOutContext extends Context, UInput, UInContext extends Context = TCurrentContext>(
+  'use'<UOutContext extends Context, UInput, UInContext extends IntersectPick<TCurrentContext, UInContext> = TCurrentContext>(
     middleware: Middleware<
       UInContext,
       UOutContext,
@@ -137,15 +134,14 @@ export interface ProcedureImplementer<
       TMeta
     >,
     mapInput: MapInputMiddleware<InferSchemaOutput<TInputSchema>, UInput>,
-  ): ContextExtendsGuard<TCurrentContext, UInContext>
-    & ProcedureImplementer<
-      MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
-      MergedCurrentContext<TCurrentContext, UOutContext>,
-      TInputSchema,
-      TOutputSchema,
-      TErrorMap,
-      TMeta
-    >
+  ): ProcedureImplementer<
+    MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
+    MergedCurrentContext<TCurrentContext, UOutContext>,
+    TInputSchema,
+    TOutputSchema,
+    TErrorMap,
+    TMeta
+  >
 
   'handler'(
     handler: ProcedureHandler<TCurrentContext, InferSchemaOutput<TInputSchema>, InferSchemaInput<TOutputSchema>, TErrorMap, TMeta>,

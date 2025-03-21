@@ -1,6 +1,6 @@
 import type { ClientContext, ClientRest } from '@orpc/client'
 import type { AnySchema, ErrorMap, InferSchemaInput, InferSchemaOutput, MergedErrorMap, Meta, Route } from '@orpc/contract'
-import type { MaybeOptionalOptions } from '@orpc/shared'
+import type { IntersectPick, MaybeOptionalOptions } from '@orpc/shared'
 import type { Context, ContextExtendsGuard, MergedCurrentContext, MergedInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { AnyMiddleware, MapInputMiddleware, Middleware } from './middleware'
@@ -53,7 +53,7 @@ export class DecoratedProcedure<
     })
   }
 
-  use<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
+  use<UOutContext extends Context, UInContext extends IntersectPick<TCurrentContext, UInContext> = TCurrentContext>(
     middleware: Middleware<
       UInContext,
       UOutContext,
@@ -62,8 +62,7 @@ export class DecoratedProcedure<
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
-  ): ContextExtendsGuard<TCurrentContext, UInContext>
-    & ContextExtendsGuard<MergedCurrentContext<TCurrentContext, UOutContext>, TCurrentContext>
+  ): ContextExtendsGuard<MergedCurrentContext<TCurrentContext, UOutContext>, TCurrentContext>
     & DecoratedProcedure<
       MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
       MergedCurrentContext<TCurrentContext, UOutContext>,
@@ -73,7 +72,7 @@ export class DecoratedProcedure<
       TMeta
     >
 
-  use<UOutContext extends Context, UInput, UInContext extends Context = TCurrentContext>(
+  use<UOutContext extends Context, UInput, UInContext extends IntersectPick<TCurrentContext, UInContext> = TCurrentContext>(
     middleware: Middleware<
       UInContext,
       UOutContext,
@@ -83,8 +82,7 @@ export class DecoratedProcedure<
       TMeta
     >,
     mapInput: MapInputMiddleware<InferSchemaOutput<TInputSchema>, UInput>,
-  ): ContextExtendsGuard<TCurrentContext, UInContext>
-    & ContextExtendsGuard<MergedCurrentContext<TCurrentContext, UOutContext>, TCurrentContext>
+  ): ContextExtendsGuard<MergedCurrentContext<TCurrentContext, UOutContext>, TCurrentContext>
     & DecoratedProcedure<
       MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
       MergedCurrentContext<TCurrentContext, UOutContext>,

@@ -1,6 +1,7 @@
 import type { AnySchema, ContractProcedureDef, ContractRouter, ErrorMap, HTTPPath, MergedErrorMap, Meta, Route, Schema } from '@orpc/contract'
+import type { IntersectPick } from '@orpc/shared'
 import type { BuilderWithMiddlewares, ProcedureBuilder, ProcedureBuilderWithInput, ProcedureBuilderWithOutput, RouterBuilder } from './builder-variants'
-import type { Context, ContextExtendsGuard, MergedCurrentContext, MergedInitialContext } from './context'
+import type { Context, MergedCurrentContext, MergedInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { Lazy } from './lazy'
 import type { AnyMiddleware, MapInputMiddleware, Middleware } from './middleware'
@@ -132,7 +133,7 @@ export class Builder<
     })
   }
 
-  use<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
+  use<UOutContext extends Context, UInContext extends IntersectPick<TCurrentContext, UInContext> = TCurrentContext>(
     middleware: Middleware<
       UInContext,
       UOutContext,
@@ -141,35 +142,14 @@ export class Builder<
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
-  ): ContextExtendsGuard<TCurrentContext, UInContext>
-    & BuilderWithMiddlewares<
-      MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
-      MergedCurrentContext<TCurrentContext, UOutContext>,
-      TInputSchema,
-      TOutputSchema,
-      TErrorMap,
-      TMeta
-    >
-
-  use<UOutContext extends Context, UInput, UInContext extends Context = TCurrentContext>(
-    middleware: Middleware<
-      UInContext,
-      UOutContext,
-      UInput,
-      unknown,
-      ORPCErrorConstructorMap<TErrorMap>,
-      TMeta
-    >,
-    mapInput: MapInputMiddleware<unknown, UInput>,
-  ): ContextExtendsGuard<TCurrentContext, UInContext>
-    & BuilderWithMiddlewares<
-      MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
-      MergedCurrentContext<TCurrentContext, UOutContext>,
-      TInputSchema,
-      TOutputSchema,
-      TErrorMap,
-      TMeta
-    >
+  ): BuilderWithMiddlewares<
+    MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
+    MergedCurrentContext<TCurrentContext, UOutContext>,
+    TInputSchema,
+    TOutputSchema,
+    TErrorMap,
+    TMeta
+  >
 
   use(
     middleware: AnyMiddleware,
@@ -191,7 +171,7 @@ export class Builder<
     return new Builder({
       ...this['~orpc'],
       meta: mergeMeta(this['~orpc'].meta, meta),
-    })
+    }) as any
   }
 
   route(
@@ -200,7 +180,7 @@ export class Builder<
     return new Builder({
       ...this['~orpc'],
       route: mergeRoute(this['~orpc'].route, route),
-    })
+    }) as any
   }
 
   input<USchema extends AnySchema>(

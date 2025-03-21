@@ -1,5 +1,6 @@
 import type { AnyContractRouter, ContractProcedure, InferContractRouterErrorMap, InferContractRouterMeta } from '@orpc/contract'
-import type { Context, ContextExtendsGuard, MergedCurrentContext, MergedInitialContext } from './context'
+import type { IntersectPick } from '@orpc/shared'
+import type { Context, MergedCurrentContext, MergedInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { ProcedureImplementer } from './implementer-procedure'
 import type { Lazy } from './lazy'
@@ -12,7 +13,7 @@ export interface RouterImplementerWithMiddlewares<
   TInitialContext extends Context,
   TCurrentContext extends Context,
 > {
-  use<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
+  use<UOutContext extends Context, UInContext extends IntersectPick<TCurrentContext, UInContext> = TCurrentContext>(
     middleware: Middleware<
       UInContext,
       UOutContext,
@@ -21,12 +22,11 @@ export interface RouterImplementerWithMiddlewares<
       ORPCErrorConstructorMap<InferContractRouterErrorMap<T>>,
       InferContractRouterMeta<T>
     >,
-  ): ContextExtendsGuard<TCurrentContext, UInContext>
-    & ImplementerInternalWithMiddlewares<
-      T,
-      MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
-      MergedCurrentContext<TCurrentContext, UOutContext>
-    >
+  ): ImplementerInternalWithMiddlewares<
+    T,
+    MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
+    MergedCurrentContext<TCurrentContext, UOutContext>
+  >
 
   router<U extends Router<T, TCurrentContext>>(
     router: U): EnhancedRouter<U, TInitialContext, TCurrentContext, Record<never, never>>

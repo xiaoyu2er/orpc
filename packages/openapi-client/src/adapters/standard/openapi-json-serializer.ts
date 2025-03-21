@@ -49,6 +49,15 @@ export class StandardOpenAPIJsonSerializer {
       const json: Record<string, unknown> = {}
 
       for (const k in data) {
+        /**
+         * Skip custom toJSON methods to avoid JSON.stringify invoking them,
+         * which could cause meta and serialized data mismatches during deserialization.
+         * Instead, rely on custom serializers.
+         */
+        if (k === 'toJSON' && typeof data[k] === 'function') {
+          continue
+        }
+
         json[k] = this.serialize(data[k], hasBlobRef)[0]
       }
 

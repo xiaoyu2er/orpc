@@ -40,6 +40,16 @@ const customSupportedDataTypes: { name: string, value: unknown, expected: unknow
     value: new Person2('unnoq - 2', [{ nested: new Date('2023-01-02') }, /uic/gi]),
     expected: new Person2('unnoq - 2', [{ nested: new Date('2023-01-02') }, /uic/gi]),
   },
+  {
+    name: 'should not resolve toJSON',
+    value: { value: { toJSON: () => 'hello' } },
+    expected: { value: { } },
+  },
+  {
+    name: 'should resolve invalid toJSON',
+    value: { value: { toJSON: 'hello' } },
+    expected: { value: { toJSON: 'hello' } },
+  },
 ]
 
 describe.each([
@@ -66,7 +76,14 @@ describe.each([
   function assert(value: unknown, expected: unknown) {
     const [json, meta, maps, blobs] = serializer.serialize(value)
 
-    const deserialized = serializer.deserialize(json, meta, maps, (i: number) => blobs[i]!)
+    const result = JSON.parse(JSON.stringify({ json, meta, maps }))
+
+    const deserialized = serializer.deserialize(
+      result.json,
+      result.meta,
+      result.maps,
+      (i: number) => blobs[i]!,
+    )
     expect(deserialized).toEqual(expected)
   }
 

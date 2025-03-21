@@ -145,6 +145,14 @@ const customSupportedDataTypes: TestCase[] = [
     data: new Person2('unnoq - 2', [{ nested: new Date('2023-01-02') }, /uic/gi]),
     expected: { name: 'unnoq - 2', data: [{ nested: '2023-01-02T00:00:00.000Z' }, '/uic/gi'] },
   },
+  {
+    data: { value: { toJSON: () => 'hello' } },
+    expected: { value: { } },
+  },
+  {
+    data: { value: { toJSON: 'hello' } },
+    expected: { value: { toJSON: 'hello' } },
+  },
 ]
 
 describe.each<TestCase>([

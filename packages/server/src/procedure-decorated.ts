@@ -53,9 +53,9 @@ export class DecoratedProcedure<
     })
   }
 
-  use<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, UInContext extends IntersectPick<TCurrentContext, UInContext> = TCurrentContext>(
+  use<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
-      UInContext,
+      UInContext | TCurrentContext,
       UOutContext,
       InferSchemaOutput<TInputSchema>,
       InferSchemaInput<TOutputSchema>,
@@ -71,9 +71,9 @@ export class DecoratedProcedure<
     TMeta
   >
 
-  use<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, UInput, UInContext extends IntersectPick<TCurrentContext, UInContext> = TCurrentContext>(
+  use<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, UInput, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
-      UInContext,
+      UInContext | TCurrentContext,
       UOutContext,
       UInput,
       InferSchemaInput<TOutputSchema>,

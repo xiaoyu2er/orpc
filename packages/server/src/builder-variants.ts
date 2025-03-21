@@ -1,5 +1,4 @@
 import type { AnySchema, ContractRouter, ErrorMap, HTTPPath, InferSchemaInput, InferSchemaOutput, MergedErrorMap, Meta, Route, Schema } from '@orpc/contract'
-import type { IntersectPick } from '@orpc/shared'
 import type { BuilderDef } from './builder'
 import type { Context, MergedCurrentContext, MergedInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
@@ -31,9 +30,9 @@ export interface BuilderWithMiddlewares<
     TMeta
   >
 
-  'use'<UOutContext extends Context, UInContext extends IntersectPick<TCurrentContext, UInContext> = TCurrentContext>(
+  'use'<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
-      UInContext,
+      UInContext | TCurrentContext,
       UOutContext,
       unknown,
       unknown,
@@ -103,9 +102,9 @@ export interface ProcedureBuilder<
     TMeta
   >
 
-  'use'<UOutContext extends Context, UInContext extends IntersectPick<TCurrentContext, UInContext> = TCurrentContext>(
+  'use'<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
-      UInContext,
+      UInContext | TCurrentContext,
       UOutContext,
       unknown,
       unknown,
@@ -156,9 +155,9 @@ export interface ProcedureBuilderWithInput<
     errors: U,
   ): ProcedureBuilderWithInput<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, MergedErrorMap<TErrorMap, U>, TMeta>
 
-  'use'<UOutContext extends Context, UInContext extends IntersectPick<TCurrentContext, UInContext> = TCurrentContext>(
+  'use'<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
-      UInContext,
+      UInContext | TCurrentContext,
       UOutContext,
       InferSchemaOutput<TInputSchema>,
       unknown,
@@ -174,9 +173,9 @@ export interface ProcedureBuilderWithInput<
     TMeta
   >
 
-  'use'<UOutContext extends Context, UInput, UInContext extends IntersectPick<TCurrentContext, UInContext> = TCurrentContext>(
+  'use'<UOutContext extends Context, UInput, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
-      UInContext,
+      UInContext | TCurrentContext,
       UOutContext,
       UInput,
       unknown,
@@ -231,9 +230,9 @@ export interface ProcedureBuilderWithOutput<
     TMeta
   >
 
-  'use'<UOutContext extends Context, UInContext extends IntersectPick<TCurrentContext, UInContext> = TCurrentContext>(
+  'use'<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
-      UInContext,
+      UInContext | TCurrentContext,
       UOutContext,
       unknown,
       InferSchemaInput<TOutputSchema>,
@@ -280,9 +279,9 @@ export interface ProcedureBuilderWithInputOutput<
     errors: U,
   ): ProcedureBuilderWithInputOutput<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, MergedErrorMap<TErrorMap, U>, TMeta>
 
-  'use'<UOutContext extends Context, UInContext extends IntersectPick<TCurrentContext, UInContext> = TCurrentContext>(
+  'use'<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
-      UInContext,
+      UInContext | TCurrentContext,
       UOutContext,
       InferSchemaOutput<TInputSchema>,
       InferSchemaInput<TOutputSchema>,
@@ -298,9 +297,9 @@ export interface ProcedureBuilderWithInputOutput<
     TMeta
   >
 
-  'use'<UOutContext extends Context, UInput, UInContext extends IntersectPick<TCurrentContext, UInContext> = TCurrentContext>(
+  'use'<UOutContext extends Context, UInput, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
-      UInContext,
+      UInContext | TCurrentContext,
       UOutContext,
       UInput,
       InferSchemaInput<TOutputSchema>,
@@ -342,9 +341,9 @@ export interface RouterBuilder<
     errors: U,
   ): RouterBuilder<TInitialContext, TCurrentContext, MergedErrorMap<TErrorMap, U>, TMeta>
 
-  'use'<UOutContext extends Context, UInContext extends IntersectPick<TCurrentContext, UInContext> = TCurrentContext>(
+  'use'<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
-      UInContext,
+      UInContext | TCurrentContext,
       UOutContext,
       unknown,
       unknown,

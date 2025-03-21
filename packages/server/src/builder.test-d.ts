@@ -173,18 +173,15 @@ describe('Builder', () => {
           })
         }),
       ).toEqualTypeOf<
-        DecoratedMiddleware<InitialContext, { extra: boolean }, unknown, any, ORPCErrorConstructorMap<any>, BaseMeta>
+        DecoratedMiddleware<InitialContext, { extra: boolean }, unknown, any, any, BaseMeta>
       >()
-
-      // @ts-expect-error --- conflict context
-      builder.middleware(({ next }) => next({ db: 123 }))
     })
 
     it('can type input and output', () => {
       expectTypeOf(
         builder.middleware(({ next }, input: 'input', output: MiddlewareOutputFn<'output'>) => next()),
       ).toEqualTypeOf<
-        DecoratedMiddleware<InitialContext, Record<never, never>, 'input', 'output', ORPCErrorConstructorMap<any>, BaseMeta>
+        DecoratedMiddleware<InitialContext, Record<never, never>, 'input', 'output', any, BaseMeta>
       >()
     })
   })

@@ -1,5 +1,4 @@
 import type { AnyContractRouter, ContractProcedure, InferContractRouterErrorMap, InferContractRouterMeta } from '@orpc/contract'
-import type { IntersectPick } from '@orpc/shared'
 import type { Context, MergedCurrentContext, MergedInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { ProcedureImplementer } from './implementer-procedure'
@@ -13,9 +12,9 @@ export interface RouterImplementerWithMiddlewares<
   TInitialContext extends Context,
   TCurrentContext extends Context,
 > {
-  use<UOutContext extends Context, UInContext extends IntersectPick<TCurrentContext, UInContext> = TCurrentContext>(
+  use<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
-      UInContext,
+      UInContext | TCurrentContext,
       UOutContext,
       unknown,
       unknown,

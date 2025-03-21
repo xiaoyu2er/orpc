@@ -1,7 +1,7 @@
 import type { ClientContext, ClientRest } from '@orpc/client'
 import type { AnySchema, ErrorMap, InferSchemaInput, InferSchemaOutput, MergedErrorMap, Meta, Route } from '@orpc/contract'
 import type { IntersectPick, MaybeOptionalOptions } from '@orpc/shared'
-import type { Context, ContextExtendsGuard, MergedCurrentContext, MergedInitialContext } from './context'
+import type { Context, MergedCurrentContext, MergedInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { AnyMiddleware, MapInputMiddleware, Middleware } from './middleware'
 import type { CreateProcedureClientOptions, ProcedureClient } from './procedure-client'
@@ -53,7 +53,7 @@ export class DecoratedProcedure<
     })
   }
 
-  use<UOutContext extends Context, UInContext extends IntersectPick<TCurrentContext, UInContext> = TCurrentContext>(
+  use<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, UInContext extends IntersectPick<TCurrentContext, UInContext> = TCurrentContext>(
     middleware: Middleware<
       UInContext,
       UOutContext,
@@ -62,17 +62,16 @@ export class DecoratedProcedure<
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
-  ): ContextExtendsGuard<MergedCurrentContext<TCurrentContext, UOutContext>, TCurrentContext>
-    & DecoratedProcedure<
-      MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
-      MergedCurrentContext<TCurrentContext, UOutContext>,
-      TInputSchema,
-      TOutputSchema,
-      TErrorMap,
-      TMeta
-    >
+  ): DecoratedProcedure<
+    MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
+    MergedCurrentContext<TCurrentContext, UOutContext>,
+    TInputSchema,
+    TOutputSchema,
+    TErrorMap,
+    TMeta
+  >
 
-  use<UOutContext extends Context, UInput, UInContext extends IntersectPick<TCurrentContext, UInContext> = TCurrentContext>(
+  use<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, UInput, UInContext extends IntersectPick<TCurrentContext, UInContext> = TCurrentContext>(
     middleware: Middleware<
       UInContext,
       UOutContext,
@@ -82,15 +81,14 @@ export class DecoratedProcedure<
       TMeta
     >,
     mapInput: MapInputMiddleware<InferSchemaOutput<TInputSchema>, UInput>,
-  ): ContextExtendsGuard<MergedCurrentContext<TCurrentContext, UOutContext>, TCurrentContext>
-    & DecoratedProcedure<
-      MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
-      MergedCurrentContext<TCurrentContext, UOutContext>,
-      TInputSchema,
-      TOutputSchema,
-      TErrorMap,
-      TMeta
-    >
+  ): DecoratedProcedure<
+    MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
+    MergedCurrentContext<TCurrentContext, UOutContext>,
+    TInputSchema,
+    TOutputSchema,
+    TErrorMap,
+    TMeta
+  >
 
   use(middleware: AnyMiddleware, mapInput?: MapInputMiddleware<any, any>): DecoratedProcedure<any, any, any, any, any, any> {
     const mapped = mapInput

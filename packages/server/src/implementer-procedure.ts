@@ -2,7 +2,7 @@ import type { ClientContext, ClientRest } from '@orpc/client'
 import type { AnySchema, ErrorMap, InferSchemaInput, InferSchemaOutput, Meta } from '@orpc/contract'
 import type { IntersectPick, MaybeOptionalOptions } from '@orpc/shared'
 import type { BuilderDef } from './builder'
-import type { Context, ContextExtendsGuard, MergedCurrentContext, MergedInitialContext } from './context'
+import type { Context, MergedCurrentContext, MergedInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { MapInputMiddleware, Middleware } from './middleware'
 import type { Procedure, ProcedureHandler } from './procedure'
@@ -19,7 +19,7 @@ export interface ImplementedProcedure<
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > extends Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta> {
-  use<UOutContext extends Context, UInContext extends IntersectPick<TCurrentContext, UInContext> = TCurrentContext>(
+  use<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, UInContext extends IntersectPick<TCurrentContext, UInContext> = TCurrentContext>(
     middleware: Middleware<
       UInContext,
       UOutContext,
@@ -28,17 +28,16 @@ export interface ImplementedProcedure<
       ORPCErrorConstructorMap<TErrorMap>,
       TMeta
     >,
-  ): ContextExtendsGuard<MergedCurrentContext<TCurrentContext, UOutContext>, TCurrentContext>
-    & ImplementedProcedure<
-      MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
-      MergedCurrentContext<TCurrentContext, UOutContext>,
-      TInputSchema,
-      TOutputSchema,
-      TErrorMap,
-      TMeta
-    >
+  ): ImplementedProcedure<
+    MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
+    MergedCurrentContext<TCurrentContext, UOutContext>,
+    TInputSchema,
+    TOutputSchema,
+    TErrorMap,
+    TMeta
+  >
 
-  use<UOutContext extends Context, UInput, UInContext extends IntersectPick<TCurrentContext, UInContext> = TCurrentContext>(
+  use<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, UInput, UInContext extends IntersectPick<TCurrentContext, UInContext> = TCurrentContext>(
     middleware: Middleware<
       UInContext,
       UOutContext,
@@ -48,15 +47,14 @@ export interface ImplementedProcedure<
       TMeta
     >,
     mapInput: MapInputMiddleware<InferSchemaOutput<TInputSchema>, UInput>,
-  ): ContextExtendsGuard<MergedCurrentContext<TCurrentContext, UOutContext>, TCurrentContext>
-    & ImplementedProcedure<
-      MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
-      MergedCurrentContext<TCurrentContext, UOutContext>,
-      TInputSchema,
-      TOutputSchema,
-      TErrorMap,
-      TMeta
-    >
+  ): ImplementedProcedure<
+    MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
+    MergedCurrentContext<TCurrentContext, UOutContext>,
+    TInputSchema,
+    TOutputSchema,
+    TErrorMap,
+    TMeta
+  >
 
   /**
    * Make this procedure callable (works like a function while still being a procedure).

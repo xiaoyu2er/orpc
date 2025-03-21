@@ -96,8 +96,8 @@ describe('ImplementedProcedure', () => {
       implemented.use(({ next }, input: 'invalid') => next({}))
       // @ts-expect-error --- output is not match
       implemented.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}))
-      // conflict context
-      expectTypeOf(implemented.use(({ next }) => next({ context: { db: undefined } }))).toEqualTypeOf<never>()
+      // @ts-expect-error --- conflict context
+      implemented.use(({ next }) => next({ context: { db: undefined } }))
     })
 
     it('with map input', () => {
@@ -135,8 +135,8 @@ describe('ImplementedProcedure', () => {
       implemented.use(({ next }, input: 'invalid') => next({}), () => {})
       // @ts-expect-error --- output is not match
       implemented.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}), () => {})
-      // conflict context but not detected
-      expectTypeOf(implemented.use(({ next }) => next({ context: { db: undefined } }), () => {})).toEqualTypeOf<never>()
+      // @ts-expect-error --- conflict context
+      implemented.use(({ next }) => next({ context: { db: undefined } }), () => { })
     })
 
     it('with TInContext', () => {

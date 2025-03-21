@@ -18,19 +18,21 @@ of `next` or modifies the result before returning it.
 ```ts twoslash
 import { os } from '@orpc/server'
 // ---cut---
-const authMiddleware = os.middleware(async ({ context, next }) => {
-  // Execute logic before the handler
+const authMiddleware = os
+  .$context<{ something?: string }>() // <-- define dependent-context
+  .middleware(async ({ context, next }) => {
+    // Execute logic before the handler
 
-  const result = await next({
-    context: { // Pass additional context
-      user: { id: 1, name: 'John' }
-    }
+    const result = await next({
+      context: { // Pass additional context
+        user: { id: 1, name: 'John' }
+      }
+    })
+
+    // Execute logic after the handler
+
+    return result
   })
-
-  // Execute logic after the handler
-
-  return result
-})
 
 const example = os
   .use(authMiddleware)
@@ -38,6 +40,10 @@ const example = os
     const user = context.user
   })
 ```
+
+## Dependent context
+
+Before `.middleware`, you can `.$context` to specify the dependent context, which must be satisfied when the middleware is used.
 
 ## Inline Middleware
 

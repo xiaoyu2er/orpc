@@ -79,8 +79,8 @@ describe('DecoratedMiddleware', () => {
         >
       >()
 
-      // invalid TInContext
-      expectTypeOf(decorated.concat({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)).toEqualTypeOf<never>()
+      // @ts-expect-error --- invalid TInContext
+      decorated.concat({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)
       // @ts-expect-error --- output is not match
       decorated.concat(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}))
     })
@@ -125,8 +125,8 @@ describe('DecoratedMiddleware', () => {
         input => ({ invalid: true }),
       )
 
-      // invalid TInContext
-      expectTypeOf(decorated.concat({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>, () => { })).toEqualTypeOf<never>()
+      // @ts-expect-error --- invalid TInContext
+      decorated.concat({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>, () => { })
       // @ts-expect-error --- output is not match
       decorated.concat(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}), input => ({ mapped: true }))
     })

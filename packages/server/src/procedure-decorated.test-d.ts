@@ -118,14 +118,14 @@ describe('DecoratedProcedure', () => {
         >
       >()
 
-      // invalid TInContext
-      expectTypeOf(builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)).toEqualTypeOf<never>()
+      // @ts-expect-error --- invalid TInContext
+      builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)
       // @ts-expect-error --- input is not match
       builder.use(({ next }, input: 'invalid') => next({}))
       // @ts-expect-error --- output is not match
       builder.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}))
-      // conflict context but not detected
-      expectTypeOf(builder.use(({ next }) => next({ context: { db: undefined } }))).toEqualTypeOf<never>()
+      // @ts-expect-error --- conflict context
+      builder.use(({ next }) => next({ context: { db: undefined } }))
     })
 
     it('with map input', () => {
@@ -157,14 +157,14 @@ describe('DecoratedProcedure', () => {
         >
       >()
 
-      // invalid TInContext
-      expectTypeOf(builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>, () => { })).toEqualTypeOf<never>()
+      // @ts-expect-error --- invalid TInContext
+      builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>, () => {})
       // @ts-expect-error --- input is not match
       builder.use(({ next }, input: 'invalid') => next({}), () => {})
       // @ts-expect-error --- output is not match
       builder.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}), () => {})
-      // conflict context but not detected
-      expectTypeOf(builder.use(({ next }) => next({ context: { db: undefined } }), () => {})).toEqualTypeOf<never>()
+      // @ts-expect-error --- conflict context
+      builder.use(({ next }) => next({ context: { db: undefined } }), () => { })
     })
 
     it('with TInContext', () => {

@@ -1,5 +1,5 @@
 import type { AnyContractRouter, ContractProcedure, InferContractRouterErrorMap, InferContractRouterMeta } from '@orpc/contract'
-import type { Context, ContextExtendsGuard, MergedCurrentContext, MergedInitialContext } from './context'
+import type { Context, MergedCurrentContext, MergedInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { ProcedureImplementer } from './implementer-procedure'
 import type { Lazy } from './lazy'
@@ -14,19 +14,18 @@ export interface RouterImplementerWithMiddlewares<
 > {
   use<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
-      UInContext,
+      UInContext | TCurrentContext,
       UOutContext,
       unknown,
       unknown,
       ORPCErrorConstructorMap<InferContractRouterErrorMap<T>>,
       InferContractRouterMeta<T>
     >,
-  ): ContextExtendsGuard<TCurrentContext, UInContext>
-    & ImplementerInternalWithMiddlewares<
-      T,
-      MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
-      MergedCurrentContext<TCurrentContext, UOutContext>
-    >
+  ): ImplementerInternalWithMiddlewares<
+    T,
+    MergedInitialContext<TInitialContext, UInContext, TCurrentContext>,
+    MergedCurrentContext<TCurrentContext, UOutContext>
+  >
 
   router<U extends Router<T, TCurrentContext>>(
     router: U): EnhancedRouter<U, TInitialContext, TCurrentContext, Record<never, never>>

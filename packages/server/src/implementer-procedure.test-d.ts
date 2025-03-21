@@ -90,14 +90,14 @@ describe('ImplementedProcedure', () => {
         >
       >()
 
-      // invalid TInContext
-      expectTypeOf(implemented.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)).toEqualTypeOf<never>()
+      // @ts-expect-error --- invalid TInContext
+      implemented.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)
       // @ts-expect-error --- input is not match
       implemented.use(({ next }, input: 'invalid') => next({}))
       // @ts-expect-error --- output is not match
       implemented.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}))
-      // conflict context
-      expectTypeOf(implemented.use(({ next }) => next({ context: { db: undefined } }))).toEqualTypeOf<never>()
+      // @ts-expect-error --- conflict context
+      implemented.use(({ next }) => next({ context: { db: undefined } }))
     })
 
     it('with map input', () => {
@@ -129,14 +129,14 @@ describe('ImplementedProcedure', () => {
         >
       >()
 
-      // invalid TInContext
-      expectTypeOf(implemented.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>, () => {})).toEqualTypeOf<never>()
+      // @ts-expect-error --- invalid TInContext
+      implemented.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>, () => { })
       // @ts-expect-error --- input is not match
       implemented.use(({ next }, input: 'invalid') => next({}), () => {})
       // @ts-expect-error --- output is not match
       implemented.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}), () => {})
-      // conflict context but not detected
-      expectTypeOf(implemented.use(({ next }) => next({ context: { db: undefined } }), () => {})).toEqualTypeOf<never>()
+      // @ts-expect-error --- conflict context
+      implemented.use(({ next }) => next({ context: { db: undefined } }), () => { })
     })
 
     it('with TInContext', () => {
@@ -265,8 +265,8 @@ describe('ProcedureImplementer', () => {
         >
       >()
 
-      // invalid TInContext
-      expectTypeOf(builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)).toEqualTypeOf<never>()
+      // @ts-expect-error --- invalid TInContext
+      builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)
       // @ts-expect-error --- input is not match
       builder.use(({ next }, input: 'invalid') => next({}))
       // @ts-expect-error --- output is not match
@@ -313,8 +313,8 @@ describe('ProcedureImplementer', () => {
         input => ({ invalid: true }),
       )
 
-      // invalid TInContext
-      expectTypeOf(builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>, () => {})).toEqualTypeOf<never>()
+      // @ts-expect-error --- invalid TInContext
+      builder.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>, () => { })
       // @ts-expect-error --- input is not match
       builder.use(({ next }, input: 'invalid') => next({}), input => ({ mapped: true }))
       // @ts-expect-error --- output is not match

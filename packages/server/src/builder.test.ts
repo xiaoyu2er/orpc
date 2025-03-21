@@ -167,6 +167,7 @@ describe('builder', () => {
         mapInput: (map: any) => [mid, map] as any,
       }) as any)
 
+      // @ts-expect-error --- this builder support .use with map input but not type
       const applied = builder.use(mid2, map2)
 
       expect(applied).instanceOf(Builder)

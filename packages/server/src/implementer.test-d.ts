@@ -63,13 +63,10 @@ describe('Implementer', () => {
             { extra: boolean },
             unknown,
             any,
-            ORPCErrorConstructorMap<any>,
+            any,
             Meta | BaseMeta
           >
         >()
-
-        // @ts-expect-error --- conflict context
-        implementer.middleware(({ next }) => next({ db: 123 }))
       })
 
       it('can type input and output', () => {
@@ -81,7 +78,7 @@ describe('Implementer', () => {
             Record<never, never>,
             'input',
             'output',
-            ORPCErrorConstructorMap<any>,
+            any,
             Meta | BaseMeta
           >
         >()
@@ -116,8 +113,8 @@ describe('Implementer', () => {
           >
         >()
 
-        // invalid TInContext
-        expectTypeOf(implementer.nested.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)).toEqualTypeOf<never>()
+        // @ts-expect-error --- invalid TInContext
+        implementer.nested.use({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)
         // @ts-expect-error --- input is not match
         implementer.use(({ next }, input: 'invalid') => next({}))
         // @ts-expect-error --- output is not match

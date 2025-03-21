@@ -55,7 +55,7 @@ const planets = await client.planet.list({ limit: 10 }, {
 By default, retries are disabled unless a `retry` count is explicitly set.
 
 - **retry:** Maximum retry attempts before throwing an error (default: `0`).
-- **retryDelay:** Delay between retries (default: `(o) => o.eventIteratorLastRetry ?? 2000`).
+- **retryDelay:** Delay between retries (default: `(o) => o.lastEventRetry ?? 2000`).
 - **shouldRetry:** Function that determines whether to retry (default: `true`).
   :::
 

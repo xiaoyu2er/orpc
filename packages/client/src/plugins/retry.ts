@@ -6,8 +6,8 @@ import { isAsyncIteratorObject, value } from '@orpc/shared'
 import { getEventMeta } from '@orpc/standard-server'
 
 export interface ClientRetryPluginAttemptOptions {
-  eventIteratorLastRetry: number | undefined
-  eventIteratorLastEventId: string | undefined
+  lastEventRetry: number | undefined
+  lastEventId: string | undefined
   attemptIndex: number
   error: unknown
 }
@@ -24,7 +24,7 @@ export interface ClientRetryPluginContext {
   /**
    * Delay (in ms) before retrying.
    *
-   * @default (o) => o.eventIteratorLastRetry ?? 2000
+   * @default (o) => o.lastEventRetry ?? 2000
    */
   retryDelay?: Value<number, [
     attemptOptions: ClientRetryPluginAttemptOptions,
@@ -70,7 +70,7 @@ export class ClientRetryPlugin<T extends ClientContext & ClientRetryPluginContex
 
   constructor(options: ClientRetryPluginOptions = {}) {
     this.defaultRetry = options.default?.retry ?? 0
-    this.defaultRetryDelay = options.default?.retryDelay ?? (o => o.eventIteratorLastRetry ?? 2000)
+    this.defaultRetryDelay = options.default?.retryDelay ?? (o => o.lastEventRetry ?? 2000)
     this.defaultShouldRetry = options.default?.shouldRetry ?? true
     this.defaultOnRetry = options.default?.onRetry
   }
@@ -88,8 +88,8 @@ export class ClientRetryPlugin<T extends ClientContext & ClientRetryPluginContex
         return interceptorOptions.next()
       }
 
-      let eventIteratorLastEventId = interceptorOptions.options.lastEventId
-      let eventIteratorLastRetry: undefined | number
+      let lastEventId = interceptorOptions.options.lastEventId
+      let lastEventRetry: undefined | number
       let unsubscribe: void | (() => void)
       let attemptIndex = 0
 
@@ -97,6 +97,8 @@ export class ClientRetryPlugin<T extends ClientContext & ClientRetryPluginContex
         let current = initial
 
         while (true) {
+          const newClientOptions = { ...interceptorOptions.options, lastEventId }
+
           if (current) {
             if (attemptIndex >= maxAttempts) {
               throw current.error
@@ -105,14 +107,14 @@ export class ClientRetryPlugin<T extends ClientContext & ClientRetryPluginContex
             const attemptOptions: ClientRetryPluginAttemptOptions = {
               attemptIndex,
               error: current.error,
-              eventIteratorLastEventId,
-              eventIteratorLastRetry,
+              lastEventId,
+              lastEventRetry,
             }
 
             const shouldRetryBool = await value(
               shouldRetry,
               attemptOptions,
-              interceptorOptions.options,
+              newClientOptions,
               interceptorOptions.path,
               interceptorOptions.input,
             )
@@ -123,7 +125,7 @@ export class ClientRetryPlugin<T extends ClientContext & ClientRetryPluginContex
 
             unsubscribe = onRetry?.(
               attemptOptions,
-              interceptorOptions.options,
+              newClientOptions,
               interceptorOptions.path,
               interceptorOptions.input,
             )
@@ -131,7 +133,7 @@ export class ClientRetryPlugin<T extends ClientContext & ClientRetryPluginContex
             const retryDelayMs = await value(
               retryDelay,
               attemptOptions,
-              interceptorOptions.options,
+              newClientOptions,
               interceptorOptions.path,
               interceptorOptions.input,
             )
@@ -142,8 +144,6 @@ export class ClientRetryPlugin<T extends ClientContext & ClientRetryPluginContex
           }
 
           try {
-            const newClientOptions = { ...interceptorOptions.options, lastEventId: eventIteratorLastEventId }
-
             const output = await interceptorOptions.next({
               ...interceptorOptions,
               options: newClientOptions,
@@ -152,7 +152,7 @@ export class ClientRetryPlugin<T extends ClientContext & ClientRetryPluginContex
             return output
           }
           catch (error) {
-            if (interceptorOptions.options.signal?.aborted === true) {
+            if (newClientOptions.signal?.aborted === true) {
               throw error
             }
 
@@ -180,8 +180,8 @@ export class ClientRetryPlugin<T extends ClientContext & ClientRetryPluginContex
               const item = await current.next()
 
               const meta = getEventMeta(item.value)
-              eventIteratorLastEventId = meta?.id ?? eventIteratorLastEventId
-              eventIteratorLastRetry = meta?.retry ?? eventIteratorLastRetry
+              lastEventId = meta?.id ?? lastEventId
+              lastEventRetry = meta?.retry ?? lastEventRetry
 
               if (item.done) {
                 return item.value
@@ -191,8 +191,8 @@ export class ClientRetryPlugin<T extends ClientContext & ClientRetryPluginContex
             }
             catch (error) {
               const meta = getEventMeta(error)
-              eventIteratorLastEventId = meta?.id ?? eventIteratorLastEventId
-              eventIteratorLastRetry = meta?.retry ?? eventIteratorLastRetry
+              lastEventId = meta?.id ?? lastEventId
+              lastEventRetry = meta?.retry ?? lastEventRetry
 
               const maybeEventIterator = await next({ error })
 

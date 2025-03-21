@@ -228,7 +228,9 @@ describe('clientRetryPlugin', () => {
         throw new Error('fail')
       })
 
-      const iterator = await client('hello', { context: { retry: 3, retryDelay: 0 }, lastEventId: '1' })
+      const shouldRetry = vi.fn(() => true)
+
+      const iterator = await client('hello', { context: { retry: 3, retryDelay: 0, shouldRetry }, lastEventId: '1' })
 
       expect(await iterator.next()).toSatisfy(({ done, value }) => {
         expect(done).toEqual(false)
@@ -252,6 +254,15 @@ describe('clientRetryPlugin', () => {
       expect(handlerFn).toHaveBeenCalledTimes(2)
       expect(handlerFn).toHaveBeenNthCalledWith(1, expect.objectContaining({ input: 'hello', lastEventId: '1' }))
       expect(handlerFn).toHaveBeenNthCalledWith(2, expect.objectContaining({ input: 'hello', lastEventId: '5' }))
+
+      expect(shouldRetry).toHaveBeenCalledTimes(1)
+      expect(shouldRetry).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ error: expect.any(Error), lastEventId: '5' }),
+        expect.objectContaining({ lastEventId: '5' }),
+        [],
+        'hello',
+      )
     })
 
     it('should retry with id in error', async () => {
@@ -261,7 +272,9 @@ describe('clientRetryPlugin', () => {
         throw withEventMeta(new Error('fail'), { id: '10' })
       })
 
-      const iterator = await client('hello', { context: { retry: 3, retryDelay: 0 }, lastEventId: '1' })
+      const shouldRetry = vi.fn(() => true)
+
+      const iterator = await client('hello', { context: { retry: 3, retryDelay: 0, shouldRetry }, lastEventId: '1' })
 
       expect(await iterator.next()).toSatisfy(({ done, value }) => {
         expect(done).toEqual(false)
@@ -284,6 +297,15 @@ describe('clientRetryPlugin', () => {
       expect(handlerFn).toHaveBeenCalledTimes(2)
       expect(handlerFn).toHaveBeenNthCalledWith(1, expect.objectContaining({ input: 'hello', lastEventId: '1' }))
       expect(handlerFn).toHaveBeenNthCalledWith(2, expect.objectContaining({ input: 'hello', lastEventId: '10' }))
+
+      expect(shouldRetry).toHaveBeenCalledTimes(1)
+      expect(shouldRetry).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ error: expect.any(Error), lastEventId: '10' }),
+        expect.objectContaining({ lastEventId: '10' }),
+        [],
+        'hello',
+      )
     })
 
     it('should retry with delay', { retry: 5 }, async () => {
@@ -338,8 +360,9 @@ describe('clientRetryPlugin', () => {
     })
 
     it('onRetry', async () => {
+      let time = 0
       handlerFn.mockImplementation(async function* () {
-        throw new Error('fail')
+        throw withEventMeta(new Error('fail'), { id: `${time++}` })
       })
 
       const clean = vi.fn()
@@ -354,21 +377,21 @@ describe('clientRetryPlugin', () => {
       expect(onRetry).toHaveBeenCalledTimes(3)
       expect(onRetry).toHaveBeenNthCalledWith(
         1,
-        { attemptIndex: 0, error: expect.any(ORPCError) },
+        { attemptIndex: 0, error: expect.any(ORPCError), lastEventId: '0' },
         expect.objectContaining({ context: { retry: 3, retryDelay: 0, onRetry } }),
         [],
         'hello',
       )
       expect(onRetry).toHaveBeenNthCalledWith(
         2,
-        { attemptIndex: 1, error: expect.any(ORPCError) },
+        { attemptIndex: 1, error: expect.any(ORPCError), lastEventId: '1' },
         expect.objectContaining({ context: { retry: 3, retryDelay: 0, onRetry } }),
         [],
         'hello',
       )
       expect(onRetry).toHaveBeenNthCalledWith(
         3,
-        { attemptIndex: 2, error: expect.any(ORPCError) },
+        { attemptIndex: 2, error: expect.any(ORPCError), lastEventId: '2' },
         expect.objectContaining({ context: { retry: 3, retryDelay: 0, onRetry } }),
         [],
         'hello',

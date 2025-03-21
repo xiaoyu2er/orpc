@@ -17,7 +17,7 @@ it('MaybeOptionalOptions', () => {
 
   b()
   // @ts-expect-error - options is invalid
-  a({ b: '1' })
+  b({ b: '1' })
   b({ b: 1 })
 })
 

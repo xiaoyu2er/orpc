@@ -221,10 +221,10 @@ describe('clientRetryPlugin', () => {
       expect(handlerFn).toHaveBeenCalledTimes(1)
     })
 
-    it('should retry with id in data', async () => {
+    it('should retry with meta data', async () => {
       handlerFn.mockImplementation(async function* () {
         yield 1
-        yield withEventMeta({ order: 2 }, { id: '5' })
+        yield withEventMeta({ order: 2 }, { id: '5', retry: 5678 })
         throw new Error('fail')
       })
 
@@ -241,7 +241,7 @@ describe('clientRetryPlugin', () => {
       expect(await iterator.next()).toSatisfy(({ done, value }) => {
         expect(done).toEqual(false)
         expect(value).toEqual({ order: 2 })
-        expect(getEventMeta(value)).toMatchObject({ id: '5' })
+        expect(getEventMeta(value)).toMatchObject({ id: '5', retry: 5678 })
         return true
       })
 
@@ -258,23 +258,23 @@ describe('clientRetryPlugin', () => {
       expect(shouldRetry).toHaveBeenCalledTimes(1)
       expect(shouldRetry).toHaveBeenNthCalledWith(
         1,
-        expect.objectContaining({ error: expect.any(Error), lastEventId: '5' }),
+        expect.objectContaining({ error: expect.any(Error), lastEventId: '5', lastEventRetry: 5678 }),
         expect.objectContaining({ lastEventId: '5' }),
         [],
         'hello',
       )
     })
 
-    it('should retry with id in error', async () => {
+    it('should retry with meta in error', async () => {
       handlerFn.mockImplementation(async function* () {
         yield 1
         yield { order: 2 }
-        throw withEventMeta(new Error('fail'), { id: '10' })
+        throw withEventMeta(new Error('fail'), { id: '10', retry: 1234 })
       })
 
       const shouldRetry = vi.fn(() => true)
 
-      const iterator = await client('hello', { context: { retry: 3, retryDelay: 0, shouldRetry }, lastEventId: '1' })
+      const iterator = await client('hello', { context: { retry: 1, retryDelay: 0, shouldRetry }, lastEventId: '1' })
 
       expect(await iterator.next()).toSatisfy(({ done, value }) => {
         expect(done).toEqual(false)
@@ -294,6 +294,18 @@ describe('clientRetryPlugin', () => {
         return true
       })
 
+      expect(await iterator.next()).toSatisfy(({ done, value }) => {
+        expect(done).toEqual(false)
+        expect(value).toEqual({ order: 2 })
+        return true
+      })
+
+      await expect(iterator.next()).rejects.toSatisfy((error) => {
+        expect(error).toBeInstanceOf(ORPCError)
+        expect(getEventMeta(error)).toMatchObject({ id: '10', retry: 1234 })
+        return true
+      })
+
       expect(handlerFn).toHaveBeenCalledTimes(2)
       expect(handlerFn).toHaveBeenNthCalledWith(1, expect.objectContaining({ input: 'hello', lastEventId: '1' }))
       expect(handlerFn).toHaveBeenNthCalledWith(2, expect.objectContaining({ input: 'hello', lastEventId: '10' }))
@@ -301,7 +313,7 @@ describe('clientRetryPlugin', () => {
       expect(shouldRetry).toHaveBeenCalledTimes(1)
       expect(shouldRetry).toHaveBeenNthCalledWith(
         1,
-        expect.objectContaining({ error: expect.any(Error), lastEventId: '10' }),
+        expect.objectContaining({ error: expect.any(Error), lastEventId: '10', lastEventRetry: 1234 }),
         expect.objectContaining({ lastEventId: '10' }),
         [],
         'hello',

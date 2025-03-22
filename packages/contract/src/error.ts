@@ -19,7 +19,6 @@ export class ValidationError extends Error {
 export interface ErrorMapItem<TDataSchema extends AnySchema> {
   status?: number
   message?: string
-  description?: string
   data?: TDataSchema
 }
 

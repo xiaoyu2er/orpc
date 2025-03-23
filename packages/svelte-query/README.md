@@ -109,6 +109,14 @@ export function Example() {
 }
 ```
 
+## Sponsors
+
+<p align="center">
+  <a href="https://cdn.jsdelivr.net/gh/unnoq/unnoq/sponsors.svg">
+    <img src='https://cdn.jsdelivr.net/gh/unnoq/unnoq/sponsors.svg'/>
+  </a>
+</p>
+
 ## License
 
 Distributed under the MIT License. See [LICENSE](https://github.com/unnoq/orpc/blob/main/LICENSE) for more information.

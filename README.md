@@ -197,6 +197,14 @@ This is a quick overview of how to use oRPC. For more details, please refer to t
    console.log(spec)
    ```
 
+## Sponsors
+
+<p align="center">
+  <a href="https://cdn.jsdelivr.net/gh/unnoq/unnoq/sponsors.svg">
+    <img src='https://cdn.jsdelivr.net/gh/unnoq/unnoq/sponsors.svg'/>
+  </a>
+</p>
+
 ## References
 
 oRPC is inspired by existing solutions that prioritize type safety and developer experience. Special acknowledgments to:

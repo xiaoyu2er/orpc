@@ -51,10 +51,10 @@ export default defineConfig({
       { text: 'Docs', link: '/docs/getting-started', activeMatch: '/docs/(?!openapi/)' },
       { text: 'OpenAPI', link: '/docs/openapi/getting-started', activeMatch: '/docs/openapi/' },
       { text: 'Examples', link: '/examples/openai-streaming', activeMatch: '/examples/' },
-      { text: 'Sponsor', link: '/sponsor' },
       {
         text: 'About',
         items: [
+          { text: 'Sponsor', link: 'https://github.com/sponsors/unnoq' },
           { text: 'Releases', link: 'https://github.com/unnoq/orpc/releases' },
         ],
       },

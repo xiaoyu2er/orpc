@@ -33,6 +33,10 @@ export function useSponsors(visible?: Ref<boolean>): { sponsors: Ref<JSONSponsor
         sponsors.value = value
         status.value = 'updated'
       })
+      .catch((error) => {
+        console.error('Error fetching sponsors:', error)
+        status.value = 'idle'
+      })
   })
 
   return {

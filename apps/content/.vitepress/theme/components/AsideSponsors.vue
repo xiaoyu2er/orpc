@@ -14,14 +14,14 @@ const smallAsideSponsors = computed(() => sponsors.value.filter(s => s.aside ===
 
 <template>
   <div ref="container" class="aside-container">
-    <a class="aside-sponsors-title" href="/sponsor/">SPONSORS</a>
+    <a class="aside-sponsors-title" href="https://github.com/sponsors/unnoq" target="_blank" rel="noopener">SPONSORS</a>
 
     <div class="aside-sponsors-list">
       <a v-for="sponsor in asideSponsors" :key="sponsor.login" class="aside-sponsor" target="_blank" :href="sponsor.asideLink">
         <img :src="sponsor.asideLogo" :alt="sponsor.name">
       </a>
 
-      <a v-if="!asideSponsors.length && !smallAsideSponsors.length" class="aside-sponsor" href="/sponsor">
+      <a v-if="!asideSponsors.length && !smallAsideSponsors.length" class="aside-sponsor" href="https://github.com/sponsors/unnoq" target="_blank" rel="noopener">
         Become a sponsor
       </a>
 

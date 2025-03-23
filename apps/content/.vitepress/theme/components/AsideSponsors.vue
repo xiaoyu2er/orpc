@@ -21,7 +21,7 @@ const smallAsideSponsors = computed(() => sponsors.value.filter(s => s.aside ===
         <img :src="sponsor.asideLogo" :alt="sponsor.name">
       </a>
 
-      <a v-if="!asideSponsors.length && !smallAsideSponsors.length" class="aside-sponsor" href="/sponsor/">
+      <a v-if="!asideSponsors.length && !smallAsideSponsors.length" class="aside-sponsor" href="/sponsor">
         Become a sponsor
       </a>
 

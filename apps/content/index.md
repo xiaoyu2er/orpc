@@ -69,3 +69,9 @@ features:
     title: Simplicity
     details: Enjoy straightforward, clean code with no hidden magic.
 ---
+
+<script setup>
+import FullSponsors from './.vitepress/theme/components/FullSponsors.vue'
+</script>
+
+<FullSponsors />

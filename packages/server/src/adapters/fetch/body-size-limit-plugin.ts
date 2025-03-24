@@ -1,4 +1,3 @@
-import type { NodeHttpRequest } from '@orpc/standard-server-node'
 import type { Context } from '../../context'
 import type { HandlerPlugin } from '../../plugins'
 import type { StandardHandlerOptions } from '../standard'
@@ -40,23 +39,47 @@ export class BodySizeLimitPlugin<T extends Context> implements HandlerPlugin<T> 
         request: {
           ...interceptorOptions.request,
           body: once(() => {
-            if (interceptorOptions.request.raw.adapter !== 'node') {
+            if (interceptorOptions.request.raw.adapter !== 'fetch') {
               throw new ORPCError('INTERNAL_SERVER_ERROR', {
-                cause: new Error(`BodySizeLimitPlugin error: expected adapter 'node' but received '${interceptorOptions.request.raw.adapter}'.`),
+                cause: new Error(`BodySizeLimitPlugin error: expected adapter 'fetch' but received '${interceptorOptions.request.raw.adapter}'.`),
               })
             }
 
-            const req = interceptorOptions.request.raw.request as NodeHttpRequest
+            const rawRequest = interceptorOptions.request.raw.request as Request
 
-            let currentBodySize = 0
+            if (rawRequest.body) {
+              let currentBodySize = 0
 
-            req.on('data', (chunk) => {
-              currentBodySize += chunk.length
+              const rawReader = rawRequest.body.getReader()
 
-              if (currentBodySize > this.maxBodySize) {
-                throw new ORPCError('PAYLOAD_TOO_LARGE')
-              }
-            })
+              const reader = new ReadableStream({
+                start: async (controller) => {
+                  try {
+                    while (true) {
+                      const { done, value } = await rawReader.read()
+                      if (done) {
+                        break
+                      }
+
+                      currentBodySize += value.length
+
+                      if (currentBodySize > this.maxBodySize) {
+                        controller.error(new ORPCError('PAYLOAD_TOO_LARGE'))
+                        break
+                      }
+
+                      controller.enqueue(value)
+                    }
+                  }
+                  finally {
+                    controller.close()
+                  }
+                },
+              })
+
+              const requestInit: RequestInit & { duplex: 'half' } = { body: reader, duplex: 'half' }
+              interceptorOptions.request.raw.request = new Request(rawRequest, requestInit as RequestInit)
+            }
 
             return interceptorOptions.request.body()
           }),

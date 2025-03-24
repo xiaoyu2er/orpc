@@ -2,16 +2,16 @@ import type { Ref } from 'vue'
 import { useLocalStorage } from '@vueuse/core'
 import { ref, watchEffect } from 'vue'
 
-interface JSONSponsor {
+export interface JSONSponsor {
   name: string
   login: string
   avatar: string
   amount: number
   link?: string
   org: boolean
-  aside: 'aside' | 'aside-small' | 'none'
-  asideLink?: string
-  asideLogo: string
+  rideSidebarSize: 'normal' | 'small' | 'none'
+  rideSidebarLink?: string
+  rightSidebarLogo: string
 }
 
 type UseSponsorsStatus = 'idle' | 'updating' | 'updated'

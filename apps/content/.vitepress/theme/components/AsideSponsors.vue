@@ -8,8 +8,8 @@ const containerIsVisible = useElementVisibility(container)
 
 const { sponsors } = useSponsors(containerIsVisible)
 
-const asideSponsors = computed(() => sponsors.value.filter(s => s.aside === 'aside'))
-const smallAsideSponsors = computed(() => sponsors.value.filter(s => s.aside === 'aside-small'))
+const normalSponsors = computed(() => sponsors.value.filter(s => s.rideSidebarSize === 'normal'))
+const smallSponsors = computed(() => sponsors.value.filter(s => s.rideSidebarSize === 'small'))
 </script>
 
 <template>
@@ -17,17 +17,17 @@ const smallAsideSponsors = computed(() => sponsors.value.filter(s => s.aside ===
     <a class="aside-sponsors-title" href="https://github.com/sponsors/unnoq" target="_blank" rel="noopener">SPONSORS</a>
 
     <div class="aside-sponsors-list">
-      <a v-for="sponsor in asideSponsors" :key="sponsor.login" class="aside-sponsor" target="_blank" :href="sponsor.asideLink">
-        <img :src="sponsor.asideLogo" :alt="sponsor.name">
+      <a v-for="sponsor in normalSponsors" :key="sponsor.login" class="aside-sponsor" target="_blank" :href="sponsor.rideSidebarLink">
+        <img :src="sponsor.rightSidebarLogo" :alt="sponsor.name">
       </a>
 
-      <a v-if="!asideSponsors.length && !smallAsideSponsors.length" class="aside-sponsor" href="https://github.com/sponsors/unnoq" target="_blank" rel="noopener">
+      <a v-if="!normalSponsors.length && !smallSponsors.length" class="aside-sponsor" href="https://github.com/sponsors/unnoq" target="_blank" rel="noopener">
         Become a sponsor
       </a>
 
       <div class="aside-sponsors-small">
-        <a v-for="sponsor in smallAsideSponsors" :key="sponsor.login" class="aside-sponsor" target="_blank" :href="sponsor.asideLink">
-          <img :src="sponsor.asideLogo" :alt="sponsor.name">
+        <a v-for="sponsor in smallSponsors" :key="sponsor.login" class="aside-sponsor" target="_blank" :href="sponsor.rideSidebarLink">
+          <img :src="sponsor.rightSidebarLogo" :alt="sponsor.name">
         </a>
       </div>
     </div>

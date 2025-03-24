@@ -35,7 +35,7 @@ describe('standardHandler', () => {
   const signal = controller.signal
 
   const request = {
-    raw: {},
+    raw: { adapter: '' },
     method: 'GET',
     headers: {
       Accept: 'application/json',

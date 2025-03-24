@@ -6,6 +6,9 @@ import { ORPCError } from '@orpc/client'
 import { once } from '@orpc/shared'
 
 export interface BodySizeLimitPluginOptions {
+  /**
+   * The maximum size of the body in bytes.
+   */
   maxBodySize: number
 }
 

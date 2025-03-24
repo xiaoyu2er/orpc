@@ -320,6 +320,9 @@ importers:
       light-my-request:
         specifier: ^6.5.1
         version: 6.6.0
+      supertest:
+        specifier: ^7.0.0
+        version: 7.0.0
 
   packages/shared:
     dependencies:

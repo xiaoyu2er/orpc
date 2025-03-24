@@ -82,6 +82,7 @@
     "@orpc/standard-server-node": "workspace:*"
   },
   "devDependencies": {
-    "light-my-request": "^6.5.1"
+    "light-my-request": "^6.5.1",
+    "supertest": "^7.0.0"
   }
 }

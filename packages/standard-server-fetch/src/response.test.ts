@@ -87,6 +87,7 @@ describe('toStandardLazyResponse', () => {
 
     expect(lazyResponse.status).toBe(206)
 
+    expect(lazyResponse.raw).toEqual({ adapter: 'fetch', response })
     expect(lazyResponse.headers).toBe(toStandardHeadersSpy.mock.results[0]!.value)
     expect(toStandardHeadersSpy).toBeCalledTimes(1)
     expect(toStandardHeadersSpy).toBeCalledWith(response.headers)

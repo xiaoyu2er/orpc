@@ -5,14 +5,16 @@ import { toFetchBody, toStandardBody } from './body'
 import { toFetchHeaders, toStandardHeaders } from './headers'
 
 export function toStandardLazyRequest(request: Request): StandardLazyRequest {
+  const raw = { adapter: 'fetch', request }
+
   return {
-    raw: { request },
+    raw,
     url: new URL(request.url),
     signal: request.signal,
     method: request.method,
-    body: once(() => toStandardBody(request)),
+    body: once(() => toStandardBody(raw.request)),
     get headers() {
-      const headers = toStandardHeaders(request.headers)
+      const headers = toStandardHeaders(raw.request.headers)
       Object.defineProperty(this, 'headers', { value: headers, writable: true })
       return headers
     },

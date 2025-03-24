@@ -25,9 +25,9 @@ export interface StandardRequest {
 
 export interface StandardLazyRequest extends Omit<StandardRequest, 'body'> {
   /**
-   * Can be { request: Request } or { request: IncomingMessage, response: ServerResponse } based on the adapter.
+   * Can be { adapter: 'fetch', request: Request } | { adapter: 'node', request: IncomingMessage, response: ServerResponse }
    */
-  raw: Record<string, unknown>
+  raw: Record<string, unknown> & { adapter: string }
 
   /**
    * The body has been parsed based on the content-type header.
@@ -47,9 +47,9 @@ export interface StandardResponse {
 
 export interface StandardLazyResponse extends Omit<StandardResponse, 'body'> {
   /**
-   * Can be { request: Request } or { request: IncomingMessage, response: ServerResponse } based on the adapter.
+   * Can be { adapter: 'fetch', response: Response }
    */
-  raw: Record<string, unknown>
+  raw: Record<string, unknown> & { adapter: string }
 
   /**
    * The body has been parsed based on the content-type header.

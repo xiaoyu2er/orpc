@@ -28,7 +28,7 @@ describe('toStandardLazyRequest', () => {
     expect(standardRequest.url).toEqual(new URL('https://example.com'))
     expect(standardRequest.method).toBe('POST')
     expect(standardRequest.signal).toBe(request.signal)
-    expect(standardRequest.raw).toEqual({ request })
+    expect(standardRequest.raw).toEqual({ adapter: 'fetch', request })
     expect(standardRequest.headers).toEqual(toStandardHeadersSpy.mock.results[0]!.value)
     expect(standardRequest.body()).toBe(toStandardBodySpy.mock.results[0]!.value)
 

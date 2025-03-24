@@ -25,22 +25,6 @@ describe('bodySizeLimitPlugin', () => {
     expect(res.status).toBe(200)
   })
 
-  it('should ignore GET requests', async () => {
-    const res = await request(async (req: IncomingMessage, res: ServerResponse) => {
-      const handler = new RPCHandler(os.handler(() => 'ping'), {
-        plugins: [
-          new BodySizeLimitPlugin({ maxBodySize: 21 }),
-        ],
-      })
-
-      await handler.handle(req, res)
-    })
-      .get('/')
-
-    expect(res.text).not.toContain('PAYLOAD_TOO_LARGE')
-    expect(res.status).not.toBe(413)
-  })
-
   it('check the content-length', async () => {
     const res = await request(async (req: IncomingMessage, res: ServerResponse) => {
       const handler = new RPCHandler(os.handler(() => 'ping'), {

@@ -23,10 +23,6 @@ export class BodySizeLimitPlugin<T extends Context> implements HandlerPlugin<T> 
     options.interceptors ??= []
 
     options.interceptors.unshift((interceptorOptions) => {
-      if (interceptorOptions.request.method === 'GET' || interceptorOptions.request.method === 'HEAD') {
-        return interceptorOptions.next()
-      }
-
       if (interceptorOptions.request.headers['content-length']) {
         const contentLength = Number(interceptorOptions.request.headers['content-length'])
 

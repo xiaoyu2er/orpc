@@ -11,12 +11,14 @@ export interface NodeHttpHandlerPlugin<T extends Context> extends StandardHandle
   initRuntimeAdapter?(options: NodeHttpHandlerOptions<T>): void
 }
 
+export interface NodeHttpHandlerInterceptorOptions<T extends Context> extends StandardHandleOptions<T> {
+  request: NodeHttpRequest
+  response: NodeHttpResponse
+  sendStandardResponseOptions: SendStandardResponseOptions
+}
+
 export interface NodeHttpHandlerOptions<T extends Context> extends SendStandardResponseOptions {
-  adapterInterceptors?: Interceptor<
-    { request: NodeHttpRequest, response: NodeHttpResponse, sendStandardResponseOptions: SendStandardResponseOptions, options: StandardHandleOptions<T> },
-    NodeHttpHandleResult,
-    unknown
-  >[]
+  adapterInterceptors?: Interceptor<NodeHttpHandlerInterceptorOptions<T>, NodeHttpHandleResult, unknown >[]
 
   plugins?: NodeHttpHandlerPlugin<T>[]
 }
@@ -45,12 +47,12 @@ export class NodeHttpHandler<T extends Context> implements NodeHttpHandler<T> {
     return intercept(
       this.adapterInterceptors,
       {
+        ...resolveFriendlyStandardHandleOptions(resolveMaybeOptionalOptions(rest)),
         request,
         response,
         sendStandardResponseOptions: this.sendStandardResponseOptions,
-        options: resolveFriendlyStandardHandleOptions(resolveMaybeOptionalOptions(rest)),
       },
-      async ({ request, response, sendStandardResponseOptions, options }) => {
+      async ({ request, response, sendStandardResponseOptions, ...options }) => {
         const standardRequest = toStandardLazyRequest(request, response)
 
         const result = await this.standardHandler.handle(standardRequest, options)

@@ -1,6 +1,6 @@
 import type { Value } from '@orpc/shared'
 import type { StandardLinkOptions } from '../adapters/standard'
-import type { ClientOptionsOut } from '../types'
+import type { ClientOptions } from '../types'
 import type { ClientPlugin } from './base'
 import { isAsyncIteratorObject, value } from '@orpc/shared'
 import { getEventMeta } from '@orpc/standard-server'
@@ -28,7 +28,7 @@ export interface ClientRetryPluginContext {
    */
   retryDelay?: Value<number, [
     attemptOptions: ClientRetryPluginAttemptOptions,
-    clientOptions: ClientOptionsOut<ClientRetryPluginContext>,
+    clientOptions: ClientOptions<ClientRetryPluginContext>,
     path: readonly string[],
     input: unknown,
   ]>
@@ -40,7 +40,7 @@ export interface ClientRetryPluginContext {
    */
   shouldRetry?: Value<boolean, [
     attemptOptions: ClientRetryPluginAttemptOptions,
-    clientOptions: ClientOptionsOut<ClientRetryPluginContext>,
+    clientOptions: ClientOptions<ClientRetryPluginContext>,
     path: readonly string[],
     input: unknown,
   ]>
@@ -50,7 +50,7 @@ export interface ClientRetryPluginContext {
    */
   onRetry?: (
     options: ClientRetryPluginAttemptOptions,
-    clientOptions: ClientOptionsOut<ClientRetryPluginContext>,
+    clientOptions: ClientOptions<ClientRetryPluginContext>,
     path: readonly string[],
     input: unknown
   ) => void | (() => void)

@@ -1,14 +1,14 @@
 export type ClientContext = Record<string, any>
 
-export type ClientOptions<TClientContext extends ClientContext> =
+export type FriendlyClientOptions<TClientContext extends ClientContext> =
   & { signal?: AbortSignal, lastEventId?: string | undefined }
   & (Record<never, never> extends TClientContext ? { context?: TClientContext } : { context: TClientContext })
 
 export type ClientRest<TClientContext extends ClientContext, TInput> = Record<never, never> extends TClientContext
   ? undefined extends TInput
-    ? [input?: TInput, options?: ClientOptions<TClientContext>]
-    : [input: TInput, options?: ClientOptions<TClientContext>]
-  : [input: TInput, options: ClientOptions<TClientContext>]
+    ? [input?: TInput, options?: FriendlyClientOptions<TClientContext>]
+    : [input: TInput, options?: FriendlyClientOptions<TClientContext>]
+  : [input: TInput, options: FriendlyClientOptions<TClientContext>]
 
 export type ClientPromiseResult<TOutput, TError extends Error> = Promise<TOutput> & { __error?: { type: TError } }
 
@@ -22,10 +22,10 @@ export type NestedClient<TClientContext extends ClientContext> = Client<TClientC
 
 export type InferClientContext<T extends NestedClient<any>> = T extends NestedClient<infer U> ? U : never
 
-export type ClientOptionsOut<TClientContext extends ClientContext> = ClientOptions<TClientContext> & {
+export type ClientOptions<TClientContext extends ClientContext> = FriendlyClientOptions<TClientContext> & {
   context: TClientContext
 }
 
 export interface ClientLink<TClientContext extends ClientContext> {
-  call: (path: readonly string[], input: unknown, options: ClientOptionsOut<TClientContext>) => Promise<unknown>
+  call: (path: readonly string[], input: unknown, options: ClientOptions<TClientContext>) => Promise<unknown>
 }

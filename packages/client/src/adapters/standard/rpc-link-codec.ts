@@ -1,5 +1,5 @@
 import type { StandardHeaders, StandardLazyResponse, StandardRequest } from '@orpc/standard-server'
-import type { ClientContext, ClientOptionsOut } from '../../types'
+import type { ClientContext, ClientOptions } from '../../types'
 import type { StandardRPCSerializer } from './rpc-serializer'
 import type { StandardLinkCodec } from './types'
 import { isAsyncIteratorObject, stringifyJSON, trim, value, type Value } from '@orpc/shared'
@@ -12,7 +12,7 @@ export interface StandardRPCLinkCodecOptions<T extends ClientContext> {
    * Base url for all requests.
    */
   url: Value<string | URL, [
-    options: ClientOptionsOut<T>,
+    options: ClientOptions<T>,
     path: readonly string[],
     input: unknown,
   ]>
@@ -23,7 +23,7 @@ export interface StandardRPCLinkCodecOptions<T extends ClientContext> {
    * @default 2083
    */
   maxUrlLength?: Value<number, [
-    options: ClientOptionsOut<T>,
+    options: ClientOptions<T>,
     path: readonly string[],
     input: unknown,
   ]>
@@ -34,7 +34,7 @@ export interface StandardRPCLinkCodecOptions<T extends ClientContext> {
    * @default 'POST'
    */
   method?: Value<HTTPMethod, [
-    options: ClientOptionsOut<T>,
+    options: ClientOptions<T>,
     path: readonly string[],
     input: unknown,
   ]>
@@ -51,7 +51,7 @@ export interface StandardRPCLinkCodecOptions<T extends ClientContext> {
    * Inject headers to the request.
    */
   headers?: Value<StandardHeaders, [
-    options: ClientOptionsOut<T>,
+    options: ClientOptions<T>,
     path: readonly string[],
     input: unknown,
   ]>
@@ -75,7 +75,7 @@ export class StandardRPCLinkCodec<T extends ClientContext> implements StandardLi
     this.headers = options.headers ?? {}
   }
 
-  async encode(path: readonly string[], input: unknown, options: ClientOptionsOut<any>): Promise<StandardRequest> {
+  async encode(path: readonly string[], input: unknown, options: ClientOptions<any>): Promise<StandardRequest> {
     const expectedMethod = await value(this.expectedMethod, options, path, input)
     const headers = { ...await value(this.headers, options, path, input) }
     const baseUrl = await value(this.baseUrl, options, path, input)

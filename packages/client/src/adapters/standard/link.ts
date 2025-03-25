@@ -1,6 +1,6 @@
 import type { Interceptor } from '@orpc/shared'
 import type { StandardLazyResponse, StandardRequest } from '@orpc/standard-server'
-import type { ClientContext, ClientLink, ClientOptionsOut } from '../../types'
+import type { ClientContext, ClientLink, ClientOptions } from '../../types'
 import type { StandardLinkClient, StandardLinkCodec } from './types'
 import { intercept } from '@orpc/shared'
 import { type ClientPlugin, CompositeClientPlugin } from '../../plugins'
@@ -8,7 +8,7 @@ import { type ClientPlugin, CompositeClientPlugin } from '../../plugins'
 export class InvalidEventIteratorRetryResponse extends Error { }
 
 export interface StandardLinkOptions<T extends ClientContext> {
-  interceptors?: Interceptor<{ path: readonly string[], input: unknown, options: ClientOptionsOut<T> }, unknown, unknown>[]
+  interceptors?: Interceptor<{ path: readonly string[], input: unknown, options: ClientOptions<T> }, unknown, unknown>[]
   clientInterceptors?: Interceptor<{ request: StandardRequest }, StandardLazyResponse, unknown>[]
   plugins?: ClientPlugin<T>[]
 }
@@ -30,7 +30,7 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
     this.clientInterceptors = options.clientInterceptors ?? []
   }
 
-  call(path: readonly string[], input: unknown, options: ClientOptionsOut<T>): Promise<unknown> {
+  call(path: readonly string[], input: unknown, options: ClientOptions<T>): Promise<unknown> {
     return intercept(this.interceptors, { path, input, options }, async ({ path, input, options }) => {
       const output = await this.#call(path, input, options)
 
@@ -38,7 +38,7 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
     })
   }
 
-  async #call(path: readonly string[], input: unknown, options: ClientOptionsOut<T>): Promise<unknown> {
+  async #call(path: readonly string[], input: unknown, options: ClientOptions<T>): Promise<unknown> {
     const request = await this.codec.encode(path, input, options)
 
     const response = await intercept(

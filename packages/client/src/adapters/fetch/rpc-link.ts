@@ -1,4 +1,4 @@
-import type { ClientContext, ClientLink, ClientOptionsOut } from '../../types'
+import type { ClientContext, ClientLink, ClientOptions } from '../../types'
 import type { StandardRPCLinkOptions } from '../standard'
 import type { LinkFetchClientOptions } from './link-fetch-client'
 import { StandardLink, StandardRPCJsonSerializer, StandardRPCLinkCodec, StandardRPCSerializer } from '../standard'
@@ -19,7 +19,7 @@ export class RPCLink<T extends ClientContext> implements ClientLink<T> {
     this.standardLink = new StandardLink(linkCodec, linkClient, options)
   }
 
-  async call(path: readonly string[], input: unknown, options: ClientOptionsOut<T>): Promise<unknown> {
+  async call(path: readonly string[], input: unknown, options: ClientOptions<T>): Promise<unknown> {
     return this.standardLink.call(path, input, options)
   }
 }

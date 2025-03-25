@@ -1,4 +1,4 @@
-import type { ClientOptionsOut } from './types'
+import type { ClientOptions } from './types'
 import { DynamicLink } from './dynamic-link'
 
 it('dynamicLink', async () => {
@@ -8,7 +8,7 @@ it('dynamicLink', async () => {
 
   const path = ['users', 'getProfile']
   const input = { id: 123 }
-  const options: ClientOptionsOut<any> = {
+  const options: ClientOptions<any> = {
     context: {
       batch: true,
     },

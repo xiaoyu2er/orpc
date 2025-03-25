@@ -1,5 +1,5 @@
 import type { ORPCError } from './error'
-import type { ClientPromiseResult } from './types'
+import type { ClientContext, ClientOptions, ClientPromiseResult, FriendlyClientOptions } from './types'
 import { isDefinedError } from './error'
 
 export type SafeResult<TOutput, TError extends Error> =
@@ -32,5 +32,12 @@ export async function safe<TOutput, TError extends Error>(promise: ClientPromise
       [error as Exclude<TError, ORPCError<any, any>>, undefined, false] satisfies [Exclude<TError, ORPCError<any, any>>, undefined, false],
       { error: error as Exclude<TError, ORPCError<any, any>>, data: undefined, isDefined: false as const },
     )
+  }
+}
+
+export function resolveFriendlyClientOptions<T extends ClientContext>(options: FriendlyClientOptions<T>): ClientOptions<T> {
+  return {
+    ...options,
+    context: options?.context ?? {} as T, // Context only optional if all fields are optional
   }
 }

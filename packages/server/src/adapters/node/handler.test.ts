@@ -87,7 +87,7 @@ describe('nodeHttpHandlerOptions', async () => {
       request: req,
       response: res,
       sendStandardResponseOptions: handlerOptions,
-      options,
+      ...options,
       next: expect.any(Function),
     })
     expect(await interceptor.mock.results[0]!.value).toEqual({
@@ -126,7 +126,7 @@ describe('nodeHttpHandlerOptions', async () => {
       request: req,
       response: res,
       sendStandardResponseOptions: handlerOptions,
-      options,
+      ...options,
       next: expect.any(Function),
     })
     expect(await interceptor.mock.results[0]!.value).toEqual({

@@ -6,7 +6,7 @@ import type { ProcedureClientInterceptorOptions } from '../../procedure-client'
 import type { Router } from '../../router'
 import type { StandardCodec, StandardMatcher } from './types'
 import { ORPCError, toORPCError } from '@orpc/client'
-import { intercept, toArray, trim } from '@orpc/shared'
+import { intercept, toArray } from '@orpc/shared'
 import { createProcedureClient } from '../../procedure-client'
 
 export interface StandardHandleOptions<T extends Context> {
@@ -84,9 +84,16 @@ export class StandardHandler<T extends Context> {
             async ({ request, context, prefix }) => {
               const method = request.method
               const url = request.url
-              const pathname = `/${trim(url.pathname.replace(prefix ?? '', ''), '/')}` as const
 
-              const match = await this.matcher.match(method, pathname)
+              if (prefix && !url.pathname.startsWith(prefix)) {
+                return { matched: false, response: undefined }
+              }
+
+              const pathname = prefix
+                ? url.pathname.replace(prefix, '')
+                : url.pathname
+
+              const match = await this.matcher.match(method, `/${pathname.replace(/^\/|\/$/g, '')}`)
 
               if (!match) {
                 return { matched: false, response: undefined }

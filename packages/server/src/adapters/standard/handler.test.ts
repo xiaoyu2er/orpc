@@ -340,4 +340,22 @@ describe('standardHandler', () => {
     expect(init).toHaveBeenCalledOnce()
     expect(init).toHaveBeenCalledWith(options)
   })
+
+  it('should check prefix first', async () => {
+    const result = await handler.handle({
+      raw: { adapter: '' },
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+      },
+      url: new URL('http://localhost/users/1'),
+      body: vi.fn(),
+      signal,
+    }, {
+      context: { db: 'postgres' },
+      prefix: '/invalid',
+    })
+
+    expect(result).toEqual({ matched: false, response: undefined })
+  })
 })

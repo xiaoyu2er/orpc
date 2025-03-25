@@ -1,5 +1,6 @@
+import type { IncomingMessage, ServerResponse } from 'node:http'
 import { sendStandardResponse, toStandardLazyRequest } from '@orpc/standard-server-node'
-import inject from 'light-my-request'
+import request from 'supertest'
 import { NodeHttpHandler } from './handler'
 
 vi.mock('@orpc/standard-server-node', () => ({
@@ -28,13 +29,12 @@ describe('nodeHttpHandlerOptions', async () => {
 
   let req: any, res: any
 
-  await inject((_req, _res) => {
+  await request(async (_req: IncomingMessage, _res: ServerResponse) => {
     req = _req
     res = _res
-    _res.end()
-  }, {
-    url: '/',
-  })
+
+    res.end()
+  }).get('/api/v1')
 
   const standardRequest = {
     raw: { adapter: 'unknown' },
@@ -58,8 +58,8 @@ describe('nodeHttpHandlerOptions', async () => {
         body: '__body__',
       },
     })
-
     const options = { prefix: '/api/v1', context: { db: 'postgres' } } as const
+
     const result = await handler.handle(req, res, options)
 
     expect(result).toEqual({

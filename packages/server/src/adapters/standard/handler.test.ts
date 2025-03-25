@@ -280,38 +280,6 @@ describe('standardHandler', () => {
     })
   })
 
-  it('work without context and prefix', async () => {
-    matcher.match.mockResolvedValue({
-      path: ['ping'],
-      procedure: ping,
-    })
-
-    const client = vi.fn().mockReturnValueOnce('__output__')
-    vi.mocked(createProcedureClient).mockReturnValueOnce(client)
-    codec.encode.mockReturnValueOnce(response)
-
-    const result = await (handler as any).handle(request)
-
-    expect(result).toEqual({ matched: true, response })
-
-    expect(matcher.match).toHaveBeenCalledOnce()
-    expect(matcher.match).toHaveBeenCalledWith('GET', '/api/v1/users/1')
-
-    expect(interceptor).toHaveBeenCalledOnce()
-    expect(interceptor).toHaveBeenCalledWith({
-      request,
-      next: expect.any(Function),
-      context: {},
-    })
-
-    expect(interceptorRoot).toHaveBeenCalledOnce()
-    expect(interceptorRoot).toHaveBeenCalledWith({
-      request,
-      next: expect.any(Function),
-      context: {},
-    })
-  })
-
   it('works without options', async () => {
     matcher.match.mockResolvedValue({
       path: ['ping'],

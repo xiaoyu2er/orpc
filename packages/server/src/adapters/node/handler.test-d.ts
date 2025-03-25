@@ -1,5 +1,13 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import type { NodeHttpHandler } from './types'
+import type { HandlerPlugin } from '../../plugins'
+import type { NodeHttpHandler, NodeHttpHandlerPlugin } from './handler'
+
+describe('NodeHttpHandlerPlugin', () => {
+  it('backward compatibility', () => {
+    expectTypeOf<NodeHttpHandlerPlugin<{ a: string }>>().toMatchTypeOf<HandlerPlugin<{ a: string }>>()
+    expectTypeOf<HandlerPlugin<{ a: string }>>().toMatchTypeOf<NodeHttpHandlerPlugin<{ a: string }>>()
+  })
+})
 
 describe('NodeHttpHandler', () => {
   it('optional context when all context is optional', () => {

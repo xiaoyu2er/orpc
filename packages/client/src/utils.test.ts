@@ -1,5 +1,5 @@
 import { ORPCError } from './error'
-import { safe } from './utils'
+import { resolveFriendlyClientOptions, safe } from './utils'
 
 it('safe', async () => {
   const r1 = await safe(Promise.resolve(1))
@@ -20,4 +20,10 @@ it('safe', async () => {
   const r4 = await safe(Promise.reject(e4))
   expect([...r4]).toEqual([e4, undefined, false])
   expect({ ...r4 }).toEqual(expect.objectContaining({ error: e4, data: undefined, isDefined: false }))
+})
+
+it('resolveFriendlyClientOptions', () => {
+  expect(resolveFriendlyClientOptions({})).toEqual({ context: {} })
+  expect(resolveFriendlyClientOptions({ context: { a: 1 } })).toEqual({ context: { a: 1 } })
+  expect(resolveFriendlyClientOptions({ lastEventId: '123' })).toEqual({ context: {}, lastEventId: '123' })
 })

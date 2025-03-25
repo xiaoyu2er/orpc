@@ -1,4 +1,5 @@
-import type { Client, ClientLink, InferClientContext, NestedClient } from './types'
+import type { Client, ClientLink, FriendlyClientOptions, InferClientContext, NestedClient } from './types'
+import { resolveFriendlyClientOptions } from './utils'
 
 export interface createORPCClientOptions {
   /**
@@ -13,13 +14,10 @@ export function createORPCClient<T extends NestedClient<any>>(
 ): T {
   const path = options?.path ?? []
 
-  const procedureClient: Client<InferClientContext<T>, unknown, unknown, Error> = async (...[input, options]) => {
-    const optionsOut = {
-      ...options,
-      context: options?.context ?? {} as InferClientContext<T>, // options.context can be undefined when all field is optional
-    }
-
-    return await link.call(path, input, optionsOut)
+  const procedureClient: Client<InferClientContext<T>, unknown, unknown, Error> = async (
+    ...[input, options = {} as FriendlyClientOptions<InferClientContext<T>>]
+  ) => {
+    return await link.call(path, input, resolveFriendlyClientOptions(options))
   }
 
   const recursive = new Proxy(procedureClient, {

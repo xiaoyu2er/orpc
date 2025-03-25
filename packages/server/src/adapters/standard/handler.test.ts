@@ -123,6 +123,7 @@ describe('standardHandler', () => {
     expect(createProcedureClient).toHaveBeenCalledOnce()
     expect(createProcedureClient).toHaveBeenCalledWith(ping, {
       context: { db: 'postgres' },
+      interceptors: [],
       path: ['ping'],
     })
 
@@ -182,6 +183,7 @@ describe('standardHandler', () => {
     expect(createProcedureClient).toHaveBeenCalledOnce()
     expect(createProcedureClient).toHaveBeenCalledWith(ping, {
       context: { db: 'postgres' },
+      interceptors: [],
       path: ['ping'],
     })
 
@@ -242,6 +244,7 @@ describe('standardHandler', () => {
     expect(createProcedureClient).toHaveBeenCalledOnce()
     expect(createProcedureClient).toHaveBeenCalledWith(ping, {
       context: { db: 'postgres' },
+      interceptors: [],
       path: ['ping'],
     })
 
@@ -277,38 +280,6 @@ describe('standardHandler', () => {
       next: expect.any(Function),
       context: { db: 'postgres' },
       prefix: '/api/v1',
-    })
-  })
-
-  it('work without context and prefix', async () => {
-    matcher.match.mockResolvedValue({
-      path: ['ping'],
-      procedure: ping,
-    })
-
-    const client = vi.fn().mockReturnValueOnce('__output__')
-    vi.mocked(createProcedureClient).mockReturnValueOnce(client)
-    codec.encode.mockReturnValueOnce(response)
-
-    const result = await (handler as any).handle(request)
-
-    expect(result).toEqual({ matched: true, response })
-
-    expect(matcher.match).toHaveBeenCalledOnce()
-    expect(matcher.match).toHaveBeenCalledWith('GET', '/api/v1/users/1')
-
-    expect(interceptor).toHaveBeenCalledOnce()
-    expect(interceptor).toHaveBeenCalledWith({
-      request,
-      next: expect.any(Function),
-      context: {},
-    })
-
-    expect(interceptorRoot).toHaveBeenCalledOnce()
-    expect(interceptorRoot).toHaveBeenCalledWith({
-      request,
-      next: expect.any(Function),
-      context: {},
     })
   })
 
@@ -350,5 +321,23 @@ describe('standardHandler', () => {
 
     expect(client).toHaveBeenCalledOnce()
     expect(client).toHaveBeenCalledWith(undefined, expect.objectContaining({ lastEventId: '123456' }))
+  })
+
+  it('plugins', () => {
+    const init = vi.fn()
+
+    const options = {
+      plugins: [
+        { init },
+      ],
+      interceptors: [vi.fn()],
+      clientInterceptors: [vi.fn()],
+      rootInterceptors: [vi.fn()],
+    }
+
+    const handler = new StandardHandler(router, matcher, codec, options)
+
+    expect(init).toHaveBeenCalledOnce()
+    expect(init).toHaveBeenCalledWith(options)
   })
 })

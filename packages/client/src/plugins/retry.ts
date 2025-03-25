@@ -1,7 +1,6 @@
 import type { Value } from '@orpc/shared'
-import type { StandardLinkOptions } from '../adapters/standard'
-import type { ClientOptionsOut } from '../types'
-import type { ClientPlugin } from './base'
+import type { StandardLinkOptions, StandardLinkPlugin } from '../adapters/standard'
+import type { ClientOptions } from '../types'
 import { isAsyncIteratorObject, value } from '@orpc/shared'
 import { getEventMeta } from '@orpc/standard-server'
 
@@ -28,7 +27,7 @@ export interface ClientRetryPluginContext {
    */
   retryDelay?: Value<number, [
     attemptOptions: ClientRetryPluginAttemptOptions,
-    clientOptions: ClientOptionsOut<ClientRetryPluginContext>,
+    clientOptions: ClientOptions<ClientRetryPluginContext>,
     path: readonly string[],
     input: unknown,
   ]>
@@ -40,7 +39,7 @@ export interface ClientRetryPluginContext {
    */
   shouldRetry?: Value<boolean, [
     attemptOptions: ClientRetryPluginAttemptOptions,
-    clientOptions: ClientOptionsOut<ClientRetryPluginContext>,
+    clientOptions: ClientOptions<ClientRetryPluginContext>,
     path: readonly string[],
     input: unknown,
   ]>
@@ -50,7 +49,7 @@ export interface ClientRetryPluginContext {
    */
   onRetry?: (
     options: ClientRetryPluginAttemptOptions,
-    clientOptions: ClientOptionsOut<ClientRetryPluginContext>,
+    clientOptions: ClientOptions<ClientRetryPluginContext>,
     path: readonly string[],
     input: unknown
   ) => void | (() => void)
@@ -62,7 +61,7 @@ export interface ClientRetryPluginOptions {
   default?: ClientRetryPluginContext
 }
 
-export class ClientRetryPlugin<T extends ClientRetryPluginContext> implements ClientPlugin<T> {
+export class ClientRetryPlugin<T extends ClientRetryPluginContext> implements StandardLinkPlugin<T> {
   private readonly defaultRetry: Exclude<ClientRetryPluginContext['retry'], undefined>
   private readonly defaultRetryDelay: Exclude<ClientRetryPluginContext['retryDelay'], undefined>
   private readonly defaultShouldRetry: Exclude<ClientRetryPluginContext['shouldRetry'], undefined>

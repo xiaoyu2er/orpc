@@ -1,28 +1,31 @@
 import type { AnySchema, ErrorFromErrorMap, HTTPPath, InferSchemaOutput, Meta } from '@orpc/contract'
-import type { Interceptor, MaybeOptionalOptions } from '@orpc/shared'
+import type { Interceptor } from '@orpc/shared'
 import type { StandardLazyRequest, StandardResponse } from '@orpc/standard-server'
 import type { Context } from '../../context'
-import type { HandlerPlugin } from '../../plugins'
 import type { ProcedureClientInterceptorOptions } from '../../procedure-client'
 import type { Router } from '../../router'
 import type { StandardCodec, StandardMatcher } from './types'
 import { ORPCError, toORPCError } from '@orpc/client'
-import { intercept, trim } from '@orpc/shared'
-import { CompositeHandlerPlugin } from '../../plugins'
+import { intercept, toArray, trim } from '@orpc/shared'
 import { createProcedureClient } from '../../procedure-client'
 
-export type StandardHandleOptions<T extends Context> =
-  & { prefix?: HTTPPath }
-  & (Record<never, never> extends T ? { context?: T } : { context: T })
+export interface StandardHandleOptions<T extends Context> {
+  prefix?: HTTPPath
+  context: T
+}
 
 export type StandardHandleResult = { matched: true, response: StandardResponse } | { matched: false, response: undefined }
 
-export type StandardHandlerInterceptorOptions<T extends Context> =
-  & StandardHandleOptions<T>
-  & { context: T, request: StandardLazyRequest }
+export interface StandardHandlerPlugin<TContext extends Context> {
+  init?(options: StandardHandlerOptions<TContext>): void
+}
+
+export interface StandardHandlerInterceptorOptions<T extends Context> extends StandardHandleOptions<T> {
+  request: StandardLazyRequest
+}
 
 export interface StandardHandlerOptions<TContext extends Context> {
-  plugins?: HandlerPlugin<TContext>[]
+  plugins?: StandardHandlerPlugin<TContext>[]
 
   /**
    * Interceptors at the request level, helpful when you want catch errors
@@ -46,34 +49,37 @@ export interface StandardHandlerOptions<TContext extends Context> {
 }
 
 export class StandardHandler<T extends Context> {
-  private readonly plugin: CompositeHandlerPlugin<T>
+  private readonly interceptors: Exclude<StandardHandlerOptions<T>['interceptors'], undefined>
+  private readonly clientInterceptors: Exclude<StandardHandlerOptions<T>['clientInterceptors'], undefined>
+  private readonly rootInterceptors: Exclude<StandardHandlerOptions<T>['rootInterceptors'], undefined>
 
   constructor(
     router: Router<any, T>,
     private readonly matcher: StandardMatcher,
     private readonly codec: StandardCodec,
-    private readonly options: NoInfer<StandardHandlerOptions<T>>,
+    options: NoInfer<StandardHandlerOptions<T>>,
   ) {
-    this.plugin = new CompositeHandlerPlugin(options.plugins)
+    for (const plugin of toArray(options.plugins)) {
+      plugin.init?.(options)
+    }
 
-    this.plugin.init(this.options)
+    this.interceptors = toArray(options.interceptors)
+    this.clientInterceptors = toArray(options.clientInterceptors)
+    this.rootInterceptors = toArray(options.rootInterceptors)
+
     this.matcher.init(router)
   }
 
-  handle(request: StandardLazyRequest, ...[options]: MaybeOptionalOptions<StandardHandleOptions<T>>): Promise<StandardHandleResult> {
+  handle(request: StandardLazyRequest, options: StandardHandleOptions<T>): Promise<StandardHandleResult> {
     return intercept(
-      this.options.rootInterceptors ?? [],
-      {
-        request,
-        ...options,
-        context: options?.context ?? {} as T, // context is optional only when all fields are optional so we can safely force it to have a context
-      },
+      this.rootInterceptors,
+      { ...options, request },
       async (interceptorOptions) => {
         let isDecoding = false
 
         try {
           return await intercept(
-            this.options.interceptors ?? [],
+            this.interceptors,
             interceptorOptions,
             async ({ request, context, prefix }) => {
               const method = request.method
@@ -89,7 +95,7 @@ export class StandardHandler<T extends Context> {
               const client = createProcedureClient(match.procedure, {
                 context,
                 path: match.path,
-                interceptors: this.options.clientInterceptors,
+                interceptors: this.clientInterceptors,
               })
 
               isDecoding = true

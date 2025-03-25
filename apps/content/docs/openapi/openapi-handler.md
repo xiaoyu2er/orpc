@@ -99,10 +99,10 @@ To keep [Event Iterator](/docs/event-iterator) connections alive, `OpenAPIHandle
 
 - `eventIteratorKeepAliveEnabled` (default: `true`) – Enables or disables pings.
 - `eventIteratorKeepAliveInterval` (default: `5000`) – Time between pings (in milliseconds).
-- `eventIteratorKeepAliveComment` (default: `''`) – Custom content for ping messages.
+- `eventIteratorKeepAliveComment` (default: `''`) – Custom content for ping comments.
 
 ```ts
-const result = await handler.handle(request, {
+const handler = new OpenAPIHandler(router, {
   eventIteratorKeepAliveEnabled: true,
   eventIteratorKeepAliveInterval: 5000, // 5 seconds
   eventIteratorKeepAliveComment: '',

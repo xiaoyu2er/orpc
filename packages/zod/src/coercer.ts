@@ -1,6 +1,5 @@
 import type { Context } from '@orpc/server'
-import type { HandlerPlugin } from '@orpc/server/plugins'
-import type { StandardHandlerOptions } from '@orpc/server/standard'
+import type { StandardHandlerOptions, StandardHandlerPlugin } from '@orpc/server/standard'
 import type {
   EnumLike,
   ZodArray,
@@ -29,7 +28,7 @@ import { guard, isObject } from '@orpc/shared'
 import { ZodFirstPartyTypeKind } from 'zod'
 import { getCustomZodDef } from './schemas/base'
 
-export class ZodSmartCoercionPlugin<TContext extends Context> implements HandlerPlugin<TContext> {
+export class ZodSmartCoercionPlugin<TContext extends Context> implements StandardHandlerPlugin<TContext> {
   init(options: StandardHandlerOptions<TContext>): void {
     options.clientInterceptors ??= []
 

@@ -75,7 +75,7 @@ export class StandardRPCLinkCodec<T extends ClientContext> implements StandardLi
     this.headers = options.headers ?? {}
   }
 
-  async encode(path: readonly string[], input: unknown, options: ClientOptions<any>): Promise<StandardRequest> {
+  async encode(path: readonly string[], input: unknown, options: ClientOptions<T>): Promise<StandardRequest> {
     const expectedMethod = await value(this.expectedMethod, options, path, input)
     const headers = { ...await value(this.headers, options, path, input) }
     const baseUrl = await value(this.baseUrl, options, path, input)

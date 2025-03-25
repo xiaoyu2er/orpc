@@ -37,7 +37,6 @@ describe('nodeHttpHandlerOptions', async () => {
   }).get('/api/v1')
 
   const standardRequest = {
-    raw: { adapter: 'unknown' },
     method: 'POST',
     url: new URL('https://example.com/api/v1/users/1'),
     headers: {

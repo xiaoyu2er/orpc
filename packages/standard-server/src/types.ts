@@ -25,11 +25,6 @@ export interface StandardRequest {
 
 export interface StandardLazyRequest extends Omit<StandardRequest, 'body'> {
   /**
-   * Can be { adapter: 'fetch', request: Request } | { adapter: 'node', request: IncomingMessage, response: ServerResponse }
-   */
-  raw: Record<string, unknown> & { adapter: string }
-
-  /**
    * The body has been parsed based on the content-type header.
    * This method can safely call multiple times (cached).
    */
@@ -46,11 +41,6 @@ export interface StandardResponse {
 }
 
 export interface StandardLazyResponse extends Omit<StandardResponse, 'body'> {
-  /**
-   * Can be { adapter: 'fetch', response: Response }
-   */
-  raw: Record<string, unknown> & { adapter: string }
-
   /**
    * The body has been parsed based on the content-type header.
    * This method can safely call multiple times (cached).

@@ -22,7 +22,6 @@ describe('standardRPCCodec', () => {
       url.searchParams.append('data', JSON.stringify({ json: '__json__', meta: '__meta__' }))
 
       const input = await codec.decode({
-        raw: { adapter: '' },
         method: 'GET',
         url,
         body: vi.fn(),
@@ -45,7 +44,6 @@ describe('standardRPCCodec', () => {
       serializer.deserialize.mockReturnValueOnce('__deserialized__')
 
       const input = await codec.decode({
-        raw: { adapter: '' },
         method: 'POST',
         url: new URL('http://localhost/api/v1?data=data'),
         body: vi.fn(async () => serialized),

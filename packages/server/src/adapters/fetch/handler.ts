@@ -12,12 +12,13 @@ export interface FetchHandlerPlugin<T extends Context> extends HandlerPlugin<T> 
   initRuntimeAdapter?(options: FetchHandlerOptions<T>): void
 }
 
+export interface FetchHandlerInterceptorOptions<T extends Context> extends StandardHandleOptions<T> {
+  request: Request
+  toFetchResponseOptions: ToFetchResponseOptions
+}
+
 export interface FetchHandlerOptions<T extends Context> extends ToFetchResponseOptions {
-  adapterInterceptors?: Interceptor<
-    { request: Request, toFetchResponseOptions: ToFetchResponseOptions, options: StandardHandleOptions<T> },
-    FetchHandleResult,
-    unknown
-  >[]
+  adapterInterceptors?: Interceptor<FetchHandlerInterceptorOptions<T>, FetchHandleResult, unknown >[]
 
   plugins?: FetchHandlerPlugin<T>[]
 }
@@ -45,11 +46,11 @@ export class FetchHandler<T extends Context> {
     return intercept(
       this.adapterInterceptors,
       {
+        ...resolveFriendlyStandardHandleOptions(resolveMaybeOptionalOptions(rest)),
         request,
         toFetchResponseOptions: this.toFetchResponseOptions,
-        options: resolveFriendlyStandardHandleOptions(resolveMaybeOptionalOptions(rest)),
       },
-      async ({ request, toFetchResponseOptions, options }) => {
+      async ({ request, toFetchResponseOptions, ...options }) => {
         const standardRequest = toStandardLazyRequest(request)
 
         const result = await this.standardHandler.handle(standardRequest, options)

@@ -64,9 +64,9 @@ describe('fetchHandler', () => {
 
     expect(interceptor).toHaveBeenCalledOnce()
     expect(interceptor).toHaveBeenCalledWith({
+      ...options,
       request,
       toFetchResponseOptions: handlerOptions,
-      options,
       next: expect.any(Function),
     })
     expect(await interceptor.mock.results[0]!.value).toEqual({
@@ -102,10 +102,10 @@ describe('fetchHandler', () => {
 
     expect(interceptor).toHaveBeenCalledOnce()
     expect(interceptor).toHaveBeenCalledWith({
+      ...options,
       request,
       next: expect.any(Function),
       toFetchResponseOptions: handlerOptions,
-      options,
     })
     expect(await interceptor.mock.results[0]!.value).toEqual({
       matched: false,

@@ -72,7 +72,7 @@ export default async function fetch(request: Request) {
 }
 ```
 
-## Event-Iterator Keep Alive
+## Event Iterator Keep Alive
 
 To keep [Event Iterator](/docs/event-iterator) connections alive, `RPCHandler` periodically sends a ping comment to the client. You can configure this behavior using the following options:
 
@@ -81,7 +81,7 @@ To keep [Event Iterator](/docs/event-iterator) connections alive, `RPCHandler` p
 - `eventIteratorKeepAliveComment` (default: `''`) – Custom content for ping comments.
 
 ```ts
-const result = await handler.handle(request, {
+const handler = new RPCHandler(router, {
   eventIteratorKeepAliveEnabled: true,
   eventIteratorKeepAliveInterval: 5000, // 5 seconds
   eventIteratorKeepAliveComment: '',

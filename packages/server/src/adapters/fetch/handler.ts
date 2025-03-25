@@ -1,6 +1,5 @@
 import type { Context } from '../../context'
-import type { HandlerPlugin } from '../../plugins'
-import type { StandardHandleOptions, StandardHandler } from '../standard'
+import type { StandardHandleOptions, StandardHandler, StandardHandlerPlugin } from '../standard'
 import type { FriendlyStandardHandleOptions } from '../standard/utils'
 import { intercept, type Interceptor, type MaybeOptionalOptions, resolveMaybeOptionalOptions, toArray } from '@orpc/shared'
 import { toFetchResponse, type ToFetchResponseOptions, toStandardLazyRequest } from '@orpc/standard-server-fetch'
@@ -8,7 +7,7 @@ import { resolveFriendlyStandardHandleOptions } from '../standard/utils'
 
 export type FetchHandleResult = { matched: true, response: Response } | { matched: false, response: undefined }
 
-export interface FetchHandlerPlugin<T extends Context> extends HandlerPlugin<T> {
+export interface FetchHandlerPlugin<T extends Context> extends StandardHandlerPlugin<T> {
   initRuntimeAdapter?(options: FetchHandlerOptions<T>): void
 }
 

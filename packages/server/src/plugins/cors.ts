@@ -1,7 +1,6 @@
 import type { StandardHeaders } from '@orpc/standard-server'
-import type { StandardHandlerInterceptorOptions, StandardHandlerOptions } from '../adapters/standard'
+import type { StandardHandlerInterceptorOptions, StandardHandlerOptions, StandardHandlerPlugin } from '../adapters/standard'
 import type { Context } from '../context'
-import type { HandlerPlugin } from './base'
 import { value, type Value } from '@orpc/shared'
 
 export interface CORSOptions<T extends Context> {
@@ -14,7 +13,7 @@ export interface CORSOptions<T extends Context> {
   exposeHeaders?: readonly string[]
 }
 
-export class CORSPlugin<T extends Context> implements HandlerPlugin<T> {
+export class CORSPlugin<T extends Context> implements StandardHandlerPlugin<T> {
   private readonly options: CORSOptions<T>
 
   constructor(options: CORSOptions<T> = {}) {

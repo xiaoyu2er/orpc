@@ -2,15 +2,18 @@ import type { Interceptor } from '@orpc/shared'
 import type { StandardLazyResponse, StandardRequest } from '@orpc/standard-server'
 import type { ClientContext, ClientLink, ClientOptions } from '../../types'
 import type { StandardLinkClient, StandardLinkCodec } from './types'
-import { intercept } from '@orpc/shared'
-import { type ClientPlugin, CompositeClientPlugin } from '../../plugins'
+import { intercept, toArray } from '@orpc/shared'
 
 export class InvalidEventIteratorRetryResponse extends Error { }
+
+export interface StandardLinkPlugin<T extends ClientContext> {
+  init?(options: StandardLinkOptions<T>): void
+}
 
 export interface StandardLinkOptions<T extends ClientContext> {
   interceptors?: Interceptor<{ path: readonly string[], input: unknown, options: ClientOptions<T> }, unknown, unknown>[]
   clientInterceptors?: Interceptor<{ request: StandardRequest }, StandardLazyResponse, unknown>[]
-  plugins?: ClientPlugin<T>[]
+  plugins?: StandardLinkPlugin<T>[]
 }
 
 export class StandardLink<T extends ClientContext> implements ClientLink<T> {
@@ -22,12 +25,12 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
     public readonly sender: StandardLinkClient<T>,
     options: StandardLinkOptions<T> = {},
   ) {
-    const plugin = new CompositeClientPlugin(options.plugins)
+    for (const plugin of toArray(options.plugins)) {
+      plugin.init?.(options)
+    }
 
-    plugin.init(options)
-
-    this.interceptors = options.interceptors ?? []
-    this.clientInterceptors = options.clientInterceptors ?? []
+    this.interceptors = toArray(options.interceptors)
+    this.clientInterceptors = toArray(options.clientInterceptors)
   }
 
   call(path: readonly string[], input: unknown, options: ClientOptions<T>): Promise<unknown> {

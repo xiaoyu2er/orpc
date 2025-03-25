@@ -1,14 +1,13 @@
 import type { NodeHttpRequest, NodeHttpResponse, SendStandardResponseOptions } from '@orpc/standard-server-node'
 import type { Context } from '../../context'
-import type { HandlerPlugin } from '../../plugins'
-import type { StandardHandleOptions, StandardHandler } from '../standard'
+import type { StandardHandleOptions, StandardHandler, StandardHandlerPlugin } from '../standard'
 import { intercept, type Interceptor, type MaybeOptionalOptions, resolveMaybeOptionalOptions, toArray } from '@orpc/shared'
 import { sendStandardResponse, toStandardLazyRequest } from '@orpc/standard-server-node'
 import { type FriendlyStandardHandleOptions, resolveFriendlyStandardHandleOptions } from '../standard/utils'
 
 export type NodeHttpHandleResult = { matched: true } | { matched: false }
 
-export interface NodeHttpHandlerPlugin<T extends Context> extends HandlerPlugin<T> {
+export interface NodeHttpHandlerPlugin<T extends Context> extends StandardHandlerPlugin<T> {
   initRuntimeAdapter?(options: NodeHttpHandlerOptions<T>): void
 }
 

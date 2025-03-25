@@ -52,4 +52,20 @@ describe('standardLink', () => {
       request: '__standard_request__',
     })
   })
+
+  it('plugins', () => {
+    const init = vi.fn()
+
+    const options = {
+      plugins: [
+        { init },
+      ],
+      interceptors: [vi.fn()],
+      clientInterceptors: [vi.fn()],
+    }
+    const link = new StandardLink(codec, client, options)
+
+    expect(init).toHaveBeenCalledOnce()
+    expect(init).toHaveBeenCalledWith(options)
+  })
 })

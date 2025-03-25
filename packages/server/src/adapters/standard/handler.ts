@@ -2,7 +2,6 @@ import type { AnySchema, ErrorFromErrorMap, HTTPPath, InferSchemaOutput, Meta } 
 import type { Interceptor } from '@orpc/shared'
 import type { StandardLazyRequest, StandardResponse } from '@orpc/standard-server'
 import type { Context } from '../../context'
-import type { HandlerPlugin } from '../../plugins'
 import type { ProcedureClientInterceptorOptions } from '../../procedure-client'
 import type { Router } from '../../router'
 import type { StandardCodec, StandardMatcher } from './types'
@@ -17,12 +16,16 @@ export interface StandardHandleOptions<T extends Context> {
 
 export type StandardHandleResult = { matched: true, response: StandardResponse } | { matched: false, response: undefined }
 
+export interface StandardHandlerPlugin<TContext extends Context> {
+  init?(options: StandardHandlerOptions<TContext>): void
+}
+
 export interface StandardHandlerInterceptorOptions<T extends Context> extends StandardHandleOptions<T> {
   request: StandardLazyRequest
 }
 
 export interface StandardHandlerOptions<TContext extends Context> {
-  plugins?: HandlerPlugin<TContext>[]
+  plugins?: StandardHandlerPlugin<TContext>[]
 
   /**
    * Interceptors at the request level, helpful when you want catch errors

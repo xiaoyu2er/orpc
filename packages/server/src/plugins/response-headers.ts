@@ -1,11 +1,10 @@
-import type { StandardHandlerOptions } from '../adapters/standard'
-import type { HandlerPlugin } from './base'
+import type { StandardHandlerOptions, StandardHandlerPlugin } from '../adapters/standard'
 
 export interface ResponseHeadersPluginContext {
   resHeaders?: Headers
 }
 
-export class ResponseHeadersPlugin<T extends ResponseHeadersPluginContext> implements HandlerPlugin<T> {
+export class ResponseHeadersPlugin<T extends ResponseHeadersPluginContext> implements StandardHandlerPlugin<T> {
   init(options: StandardHandlerOptions<T>): void {
     options.rootInterceptors ??= []
 

@@ -123,6 +123,7 @@ describe('standardHandler', () => {
     expect(createProcedureClient).toHaveBeenCalledOnce()
     expect(createProcedureClient).toHaveBeenCalledWith(ping, {
       context: { db: 'postgres' },
+      interceptors: [],
       path: ['ping'],
     })
 
@@ -182,6 +183,7 @@ describe('standardHandler', () => {
     expect(createProcedureClient).toHaveBeenCalledOnce()
     expect(createProcedureClient).toHaveBeenCalledWith(ping, {
       context: { db: 'postgres' },
+      interceptors: [],
       path: ['ping'],
     })
 
@@ -242,6 +244,7 @@ describe('standardHandler', () => {
     expect(createProcedureClient).toHaveBeenCalledOnce()
     expect(createProcedureClient).toHaveBeenCalledWith(ping, {
       context: { db: 'postgres' },
+      interceptors: [],
       path: ['ping'],
     })
 
@@ -318,5 +321,23 @@ describe('standardHandler', () => {
 
     expect(client).toHaveBeenCalledOnce()
     expect(client).toHaveBeenCalledWith(undefined, expect.objectContaining({ lastEventId: '123456' }))
+  })
+
+  it('plugins', () => {
+    const init = vi.fn()
+
+    const options = {
+      plugins: [
+        { init },
+      ],
+      interceptors: [vi.fn()],
+      clientInterceptors: [vi.fn()],
+      rootInterceptors: [vi.fn()],
+    }
+
+    const handler = new StandardHandler(router, matcher, codec, options)
+
+    expect(init).toHaveBeenCalledOnce()
+    expect(init).toHaveBeenCalledWith(options)
   })
 })

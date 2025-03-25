@@ -7,8 +7,7 @@ import type { ProcedureClientInterceptorOptions } from '../../procedure-client'
 import type { Router } from '../../router'
 import type { StandardCodec, StandardMatcher } from './types'
 import { ORPCError, toORPCError } from '@orpc/client'
-import { intercept, trim } from '@orpc/shared'
-import { CompositeHandlerPlugin } from '../../plugins'
+import { intercept, toArray, trim } from '@orpc/shared'
 import { createProcedureClient } from '../../procedure-client'
 
 export interface StandardHandleOptions<T extends Context> {
@@ -47,30 +46,37 @@ export interface StandardHandlerOptions<TContext extends Context> {
 }
 
 export class StandardHandler<T extends Context> {
-  private readonly plugin: CompositeHandlerPlugin<T>
+  private readonly interceptors: Exclude<StandardHandlerOptions<T>['interceptors'], undefined>
+  private readonly clientInterceptors: Exclude<StandardHandlerOptions<T>['clientInterceptors'], undefined>
+  private readonly rootInterceptors: Exclude<StandardHandlerOptions<T>['rootInterceptors'], undefined>
 
   constructor(
     router: Router<any, T>,
     private readonly matcher: StandardMatcher,
     private readonly codec: StandardCodec,
-    private readonly options: NoInfer<StandardHandlerOptions<T>>,
+    options: NoInfer<StandardHandlerOptions<T>>,
   ) {
-    this.plugin = new CompositeHandlerPlugin(options.plugins)
+    for (const plugin of toArray(options.plugins)) {
+      plugin.init?.(options)
+    }
 
-    this.plugin.init(this.options)
+    this.interceptors = toArray(options.interceptors)
+    this.clientInterceptors = toArray(options.clientInterceptors)
+    this.rootInterceptors = toArray(options.rootInterceptors)
+
     this.matcher.init(router)
   }
 
   handle(request: StandardLazyRequest, options: StandardHandleOptions<T>): Promise<StandardHandleResult> {
     return intercept(
-      this.options.rootInterceptors ?? [],
+      this.rootInterceptors,
       { ...options, request },
       async (interceptorOptions) => {
         let isDecoding = false
 
         try {
           return await intercept(
-            this.options.interceptors ?? [],
+            this.interceptors,
             interceptorOptions,
             async ({ request, context, prefix }) => {
               const method = request.method
@@ -86,7 +92,7 @@ export class StandardHandler<T extends Context> {
               const client = createProcedureClient(match.procedure, {
                 context,
                 path: match.path,
-                interceptors: this.options.clientInterceptors,
+                interceptors: this.clientInterceptors,
               })
 
               isDecoding = true

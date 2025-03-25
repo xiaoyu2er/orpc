@@ -1,5 +1,5 @@
 import type { AnySchema, ErrorFromErrorMap, HTTPPath, InferSchemaOutput, Meta } from '@orpc/contract'
-import type { Interceptor, MaybeOptionalOptions } from '@orpc/shared'
+import type { Interceptor } from '@orpc/shared'
 import type { StandardLazyRequest, StandardResponse } from '@orpc/standard-server'
 import type { Context } from '../../context'
 import type { HandlerPlugin } from '../../plugins'
@@ -11,15 +11,16 @@ import { intercept, trim } from '@orpc/shared'
 import { CompositeHandlerPlugin } from '../../plugins'
 import { createProcedureClient } from '../../procedure-client'
 
-export type StandardHandleOptions<T extends Context> =
-  & { prefix?: HTTPPath }
-  & (Record<never, never> extends T ? { context?: T } : { context: T })
+export interface StandardHandleOptions<T extends Context> {
+  prefix?: HTTPPath
+  context: T
+}
 
 export type StandardHandleResult = { matched: true, response: StandardResponse } | { matched: false, response: undefined }
 
-export type StandardHandlerInterceptorOptions<T extends Context> =
-  & StandardHandleOptions<T>
-  & { context: T, request: StandardLazyRequest }
+export interface StandardHandlerInterceptorOptions<T extends Context> extends StandardHandleOptions<T> {
+  request: StandardLazyRequest
+}
 
 export interface StandardHandlerOptions<TContext extends Context> {
   plugins?: HandlerPlugin<TContext>[]
@@ -60,14 +61,10 @@ export class StandardHandler<T extends Context> {
     this.matcher.init(router)
   }
 
-  handle(request: StandardLazyRequest, ...[options]: MaybeOptionalOptions<StandardHandleOptions<T>>): Promise<StandardHandleResult> {
+  handle(request: StandardLazyRequest, options: StandardHandleOptions<T>): Promise<StandardHandleResult> {
     return intercept(
       this.options.rootInterceptors ?? [],
-      {
-        request,
-        ...options,
-        context: options?.context ?? {} as T, // context is optional only when all fields are optional so we can safely force it to have a context
-      },
+      { ...options, request },
       async (interceptorOptions) => {
         let isDecoding = false
 

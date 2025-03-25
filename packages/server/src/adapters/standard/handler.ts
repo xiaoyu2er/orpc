@@ -75,10 +75,10 @@ export class StandardHandler<T extends Context> {
           return await intercept(
             this.options.interceptors ?? [],
             interceptorOptions,
-            async (interceptorOptions) => {
-              const method = interceptorOptions.request.method
-              const url = interceptorOptions.request.url
-              const pathname = `/${trim(url.pathname.replace(interceptorOptions.prefix ?? '', ''), '/')}` as const
+            async ({ request, context, prefix }) => {
+              const method = request.method
+              const url = request.url
+              const pathname = `/${trim(url.pathname.replace(prefix ?? '', ''), '/')}` as const
 
               const match = await this.matcher.match(method, pathname)
 
@@ -87,7 +87,7 @@ export class StandardHandler<T extends Context> {
               }
 
               const client = createProcedureClient(match.procedure, {
-                context: interceptorOptions.context,
+                context,
                 path: match.path,
                 interceptors: this.options.clientInterceptors,
               })
@@ -112,7 +112,7 @@ export class StandardHandler<T extends Context> {
           )
         }
         catch (e) {
-          const error = isDecoding
+          const error = isDecoding && !(e instanceof ORPCError)
             ? new ORPCError('BAD_REQUEST', {
               message: `Malformed request. Ensure the request body is properly formatted and the 'Content-Type' header is set correctly.`,
               cause: e,

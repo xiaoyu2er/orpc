@@ -16,12 +16,14 @@ export function toFetchResponse(
 }
 
 export function toStandardLazyResponse(response: Response): StandardLazyResponse {
+  const raw = { adapter: 'fetch', response }
+
   return {
-    raw: { response },
-    body: once(() => toStandardBody(response)),
+    raw,
+    body: once(() => toStandardBody(raw.response)),
     status: response.status,
     get headers() {
-      const headers = toStandardHeaders(response.headers)
+      const headers = toStandardHeaders(raw.response.headers)
       Object.defineProperty(this, 'headers', { value: headers, writable: true })
       return headers
     },

@@ -1,4 +1,4 @@
-import type { HTTPPath } from '@orpc/client'
+import type { HTTPPath } from '@orpc/client/standard'
 import type { ContractProcedureBuilder, ContractProcedureBuilderWithInput, ContractProcedureBuilderWithOutput, ContractRouterBuilder } from './builder-variants'
 import type { ContractProcedureDef } from './procedure'
 import type { ContractRouter } from './router'

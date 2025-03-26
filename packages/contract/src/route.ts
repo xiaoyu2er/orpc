@@ -1,4 +1,4 @@
-import type { HTTPMethod, HTTPPath } from '@orpc/client'
+import type { HTTPMethod, HTTPPath } from '@orpc/client/standard'
 
 export type InputStructure = 'compact' | 'detailed'
 export type OutputStructure = 'compact' | 'detailed'

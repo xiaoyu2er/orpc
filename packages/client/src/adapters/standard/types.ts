@@ -1,6 +1,9 @@
 import type { StandardLazyResponse, StandardRequest } from '@orpc/standard-server'
 import type { ClientContext, ClientOptions } from '../../types'
 
+export type HTTPPath = `/${string}`
+export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
+
 export interface StandardLinkCodec<T extends ClientContext> {
   encode(path: readonly string[], input: unknown, options: ClientOptions<T>): Promise<StandardRequest>
   decode(response: StandardLazyResponse, options: ClientOptions<T>, path: readonly string[], input: unknown): Promise<unknown>

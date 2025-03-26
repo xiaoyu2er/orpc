@@ -1,7 +1,7 @@
-import type { HTTPMethod, HTTPPath } from '@orpc/client'
+import type { HTTPMethod, HTTPPath } from '@orpc/client/standard'
 import type { OpenAPI } from './openapi'
 import type { FileSchema, JSONSchema, ObjectSchema } from './schema'
-import { standardizeHTTPPath } from '@orpc/openapi-client'
+import { standardizeHTTPPath } from '@orpc/openapi-client/standard'
 import { findDeepMatches, isObject } from '@orpc/shared'
 import { filterSchemaBranches, isFileSchema } from './schema-utils'
 

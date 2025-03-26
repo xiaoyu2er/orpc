@@ -1,4 +1,4 @@
-import type { HTTPMethod } from '@orpc/client'
+import type { HTTPMethod } from '@orpc/client/standard'
 import type { InputStructure, OutputStructure } from './route'
 
 export interface ContractConfig {

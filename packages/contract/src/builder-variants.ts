@@ -1,4 +1,4 @@
-import type { HTTPPath } from '@orpc/client'
+import type { HTTPPath } from '@orpc/client/standard'
 import type { ErrorMap, MergedErrorMap } from './error'
 import type { Meta } from './meta'
 import type { ContractProcedure } from './procedure'

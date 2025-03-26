@@ -1,6 +1,3 @@
-export type HTTPPath = `/${string}`
-export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
-
 export type ClientContext = Record<string, any>
 
 export type FriendlyClientOptions<TClientContext extends ClientContext> =

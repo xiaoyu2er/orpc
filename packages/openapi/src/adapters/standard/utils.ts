@@ -1,5 +1,5 @@
-import type { HTTPPath } from '@orpc/client'
-import { standardizeHTTPPath } from '../../openapi-utils'
+import type { HTTPPath } from '@orpc/client/standard'
+import { standardizeHTTPPath } from '@orpc/openapi-client/standard'
 
 /**
  * {@link https://github.com/unjs/rou3}

@@ -135,7 +135,6 @@ describe('standardRPCLinkCodec', () => {
 
       const output = await codec.decode({
         status: 200,
-        raw: { adapter: 'unknown' },
         headers: {},
         body: () => Promise.resolve(serialized),
       })
@@ -157,7 +156,6 @@ describe('standardRPCLinkCodec', () => {
 
       await expect(codec.decode({
         status: 499,
-        raw: { adapter: 'unknown' },
         headers: {},
         body: () => Promise.resolve(serialized),
       })).rejects.toSatisfy((e) => {
@@ -173,7 +171,6 @@ describe('standardRPCLinkCodec', () => {
     it('error: Cannot parse response body', async () => {
       await expect(codec.decode({
         status: 200,
-        raw: { adapter: 'unknown' },
         headers: {},
         body: () => {
           throw new Error('test')
@@ -186,7 +183,6 @@ describe('standardRPCLinkCodec', () => {
     it('error: Invalid RPC response format.', async () => {
       await expect(codec.decode({
         status: 200,
-        raw: { adapter: 'unknown' },
         headers: {},
         body: () => Promise.resolve({ meta: 123 }),
       })).rejects.toThrow('Invalid RPC response format.')
@@ -209,7 +205,6 @@ describe('standardRPCLinkCodec', () => {
 
       await expect(codec.decode({
         status: 403,
-        raw: { adapter: 'unknown' },
         headers: {},
         body: () => Promise.resolve(serialized),
       })).rejects.toThrow('Invalid RPC error response format.')

@@ -8,7 +8,6 @@ export function toStandardLazyRequest(
   req: NodeHttpRequest,
   res: NodeHttpResponse,
 ): StandardLazyRequest {
-  const raw = { adapter: 'node', request: req, response: res }
   const method = req.method ?? 'GET'
 
   const protocol = ('encrypted' in req.socket && req.socket.encrypted ? 'https:' : 'http:')
@@ -16,11 +15,10 @@ export function toStandardLazyRequest(
   const url = new URL(req.originalUrl ?? req.url ?? '/', `${protocol}//${host}`)
 
   return {
-    raw,
     method,
     url,
     headers: req.headers,
-    body: once(() => toStandardBody(raw.request)),
+    body: once(() => toStandardBody(req)),
     signal: toAbortSignal(res),
   }
 }

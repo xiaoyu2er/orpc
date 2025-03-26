@@ -74,6 +74,7 @@ export default defineConfig({
         { text: 'Metadata', link: '/docs/metadata' },
         { text: 'RPC Handler', link: '/docs/rpc-handler' },
         { text: 'Lifecycle', link: '/docs/lifecycle' },
+        { text: 'OpenAPI', link: '/docs/openapi/getting-started' },
         {
           text: 'Contract First',
           collapsed: true,

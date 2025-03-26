@@ -24,7 +24,6 @@ describe('standardOpenAPICodec', () => {
         url.searchParams.append('data', JSON.stringify('__data__'))
 
         const input = await codec.decode({
-          raw: { adapter: 'unknown' },
           method: 'GET',
           url,
           body: vi.fn(),
@@ -44,7 +43,6 @@ describe('standardOpenAPICodec', () => {
         serializer.deserialize.mockReturnValueOnce('__deserialized__')
 
         const input = await codec.decode({
-          raw: { adapter: 'unknown' },
           method: 'POST',
           url: new URL('http://localhost/api/v1?data=data'),
           body: vi.fn(async () => serialized),
@@ -74,7 +72,6 @@ describe('standardOpenAPICodec', () => {
         url.searchParams.append('data', JSON.stringify('__data__'))
 
         const input = await codec.decode({
-          raw: { adapter: 'unknown' },
           method: 'GET',
           url,
           body: vi.fn(),
@@ -105,7 +102,6 @@ describe('standardOpenAPICodec', () => {
         const url = new URL('http://localhost/api/v1?data=data')
 
         const input = await codec.decode({
-          raw: { adapter: 'unknown' },
           method: 'POST',
           url,
           body: vi.fn(async () => serialized),

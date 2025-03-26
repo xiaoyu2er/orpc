@@ -35,7 +35,6 @@ describe('standardHandler', () => {
   const signal = controller.signal
 
   const request = {
-    raw: { adapter: '' },
     method: 'GET',
     headers: {
       Accept: 'application/json',
@@ -343,7 +342,6 @@ describe('standardHandler', () => {
 
   it('should check prefix first', async () => {
     const result = await handler.handle({
-      raw: { adapter: '' },
       method: 'GET',
       headers: {
         Accept: 'application/json',

@@ -17,7 +17,6 @@ describe('toStandardLazyRequest', () => {
 
     await request(async (req: IncomingMessage, res: ServerResponse) => {
       standardRequest = toStandardLazyRequest(req, res)
-      expect(standardRequest.raw).toEqual({ adapter: 'node', request: req, response: res })
       expect(toStandardBodySpy).not.toBeCalled()
       await standardRequest.body() // ensure body is load before sending response
       expect(standardRequest.headers).toBe(req.headers)

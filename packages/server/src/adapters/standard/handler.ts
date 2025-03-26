@@ -1,4 +1,5 @@
-import type { AnySchema, ErrorFromErrorMap, HTTPPath, InferSchemaOutput, Meta } from '@orpc/contract'
+import type { HTTPPath } from '@orpc/client'
+import type { AnySchema, ErrorFromErrorMap, InferSchemaOutput, Meta } from '@orpc/contract'
 import type { Interceptor } from '@orpc/shared'
 import type { StandardLazyRequest, StandardResponse } from '@orpc/standard-server'
 import type { Context } from '../../context'

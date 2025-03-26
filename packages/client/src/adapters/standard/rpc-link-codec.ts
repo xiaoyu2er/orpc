@@ -1,11 +1,10 @@
 import type { StandardHeaders, StandardLazyResponse, StandardRequest } from '@orpc/standard-server'
-import type { ClientContext, ClientOptions } from '../../types'
+import type { ClientContext, ClientOptions, HTTPMethod } from '../../types'
 import type { StandardRPCSerializer } from './rpc-serializer'
 import type { StandardLinkCodec } from './types'
 import { isAsyncIteratorObject, stringifyJSON, value, type Value } from '@orpc/shared'
 import { ORPCError } from '../../error'
-
-type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
+import { toHttpPath } from '../../utils'
 
 export interface StandardRPCLinkCodecOptions<T extends ClientContext> {
   /**
@@ -79,7 +78,7 @@ export class StandardRPCLinkCodec<T extends ClientContext> implements StandardLi
     const expectedMethod = await value(this.expectedMethod, options, path, input)
     const headers = { ...await value(this.headers, options, path, input) }
     const baseUrl = await value(this.baseUrl, options, path, input)
-    const url = new URL(`${baseUrl.toString().replace(/\/$/, '')}/${path.map(encodeURIComponent).join('/')}`)
+    const url = new URL(`${baseUrl.toString().replace(/\/$/, '')}/${toHttpPath(path)}`)
 
     if (options.lastEventId !== undefined) {
       if (Array.isArray(headers['last-event-id'])) {

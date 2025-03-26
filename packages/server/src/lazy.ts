@@ -1,4 +1,4 @@
-import type { HTTPPath } from '@orpc/contract'
+import type { HTTPPath } from '@orpc/client'
 
 export const LAZY_SYMBOL: unique symbol = Symbol('ORPC_LAZY_SYMBOL')
 

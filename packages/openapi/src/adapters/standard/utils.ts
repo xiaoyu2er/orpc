@@ -1,4 +1,4 @@
-import type { HTTPPath } from '@orpc/contract'
+import type { HTTPPath } from '@orpc/client'
 import { standardizeHTTPPath } from '../../openapi-utils'
 
 /**

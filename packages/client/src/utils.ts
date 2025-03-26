@@ -1,5 +1,5 @@
 import type { ORPCError } from './error'
-import type { ClientContext, ClientOptions, ClientPromiseResult, FriendlyClientOptions } from './types'
+import type { ClientContext, ClientOptions, ClientPromiseResult, FriendlyClientOptions, HTTPPath } from './types'
 import { isDefinedError } from './error'
 
 export type SafeResult<TOutput, TError extends Error> =
@@ -40,4 +40,8 @@ export function resolveFriendlyClientOptions<T extends ClientContext>(options: F
     ...options,
     context: options?.context ?? {} as T, // Context only optional if all fields are optional
   }
+}
+
+export function toHttpPath(path: readonly string[]): HTTPPath {
+  return `/${path.map(encodeURIComponent).join('/')}`
 }

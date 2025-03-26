@@ -1,5 +1,5 @@
 import { ORPCError } from './error'
-import { resolveFriendlyClientOptions, safe } from './utils'
+import { resolveFriendlyClientOptions, safe, toHttpPath } from './utils'
 
 it('safe', async () => {
   const r1 = await safe(Promise.resolve(1))
@@ -26,4 +26,10 @@ it('resolveFriendlyClientOptions', () => {
   expect(resolveFriendlyClientOptions({})).toEqual({ context: {} })
   expect(resolveFriendlyClientOptions({ context: { a: 1 } })).toEqual({ context: { a: 1 } })
   expect(resolveFriendlyClientOptions({ lastEventId: '123' })).toEqual({ context: {}, lastEventId: '123' })
+})
+
+it('convertPathToHttpPath', () => {
+  expect(toHttpPath(['ping'])).toEqual('/ping')
+  expect(toHttpPath(['nested', 'ping'])).toEqual('/nested/ping')
+  expect(toHttpPath(['nested/', 'ping'])).toEqual('/nested%2F/ping')
 })

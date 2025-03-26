@@ -1,13 +1,13 @@
-import type { AnyContractProcedure, HTTPPath } from '@orpc/contract'
+import type { AnyContractProcedure } from '@orpc/contract'
 import type { AnyProcedure } from '../../procedure'
 import type { AnyRouter } from '../../router'
 import type { LazyTraverseContractProceduresOptions } from '../../router-utils'
 import type { StandardMatcher, StandardMatchResult } from './types'
+import { type HTTPPath, toHttpPath } from '@orpc/client'
 import { unlazy } from '../../lazy'
 import { isProcedure } from '../../procedure'
 import { createContractedProcedure } from '../../procedure-utils'
 import { getRouter, traverseContractProcedures } from '../../router-utils'
-import { toHttpPath } from '../../utils'
 
 export class StandardRPCMatcher implements StandardMatcher {
   private readonly tree: Record<

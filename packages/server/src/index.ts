@@ -18,7 +18,6 @@ export * from './router'
 export * from './router-client'
 export * from './router-hidden'
 export * from './router-utils'
-export * from './utils'
 
 export { isDefinedError, ORPCError, safe } from '@orpc/client'
 export { eventIterator, type, ValidationError } from '@orpc/contract'
@@ -28,8 +27,6 @@ export type {
   ContractRouter,
   ErrorMap,
   ErrorMapItem,
-  HTTPMethod,
-  HTTPPath,
   InferSchemaInput,
   InferSchemaOutput,
   InputStructure,

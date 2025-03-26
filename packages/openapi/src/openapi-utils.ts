@@ -1,15 +1,9 @@
 import type { HTTPMethod, HTTPPath } from '@orpc/client'
 import type { OpenAPI } from './openapi'
 import type { FileSchema, JSONSchema, ObjectSchema } from './schema'
+import { standardizeHTTPPath } from '@orpc/openapi-client'
 import { findDeepMatches, isObject } from '@orpc/shared'
 import { filterSchemaBranches, isFileSchema } from './schema-utils'
-
-/**
- * @internal
- */
-export function standardizeHTTPPath(path: HTTPPath): HTTPPath {
-  return `/${path.replace(/\/{2,}/g, '/').replace(/^\/|\/$/g, '')}`
-}
 
 /**
  * @internal
@@ -23,15 +17,6 @@ export function toOpenAPIPath(path: HTTPPath): string {
  */
 export function toOpenAPIMethod(method: HTTPMethod): Lowercase<HTTPMethod> {
   return method.toLocaleLowerCase() as Lowercase<HTTPMethod>
-}
-
-/**
- * @internal
- */
-export function getDynamicParams(path: HTTPPath | undefined): string[] | undefined {
-  return path
-    ? standardizeHTTPPath(path).match(/\/\{([^}]+)\}/g)?.map(v => v.match(/\{\+?([^}]+)\}/)![1]!)
-    : undefined
 }
 
 /**

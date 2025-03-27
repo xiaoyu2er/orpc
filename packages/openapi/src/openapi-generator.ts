@@ -1,15 +1,16 @@
 import type { AnyContractProcedure, AnyContractRouter, ErrorMap } from '@orpc/contract'
 import type { StandardOpenAPIJsonSerializerOptions } from '@orpc/openapi-client/standard'
+import type { AnyRouter } from '@orpc/server'
 import type { OpenAPI } from './openapi'
 import type { JSONSchema } from './schema'
 import { fallbackORPCErrorMessage, fallbackORPCErrorStatus } from '@orpc/client'
+import { toHttpPath } from '@orpc/client/standard'
 import { fallbackContractConfig, getEventIteratorSchemaDetails } from '@orpc/contract'
-import { StandardOpenAPIJsonSerializer } from '@orpc/openapi-client/standard'
-import { type AnyRouter, toHttpPath } from '@orpc/server'
+import { getDynamicParams, StandardOpenAPIJsonSerializer } from '@orpc/openapi-client/standard'
 import { resolveContractProcedures } from '@orpc/server'
 import { clone } from '@orpc/shared'
 import { applyCustomOpenAPIOperation } from './openapi-custom'
-import { checkParamsSchema, getDynamicParams, toOpenAPIContent, toOpenAPIEventIteratorContent, toOpenAPIMethod, toOpenAPIParameters, toOpenAPIPath, toOpenAPISchema } from './openapi-utils'
+import { checkParamsSchema, toOpenAPIContent, toOpenAPIEventIteratorContent, toOpenAPIMethod, toOpenAPIParameters, toOpenAPIPath, toOpenAPISchema } from './openapi-utils'
 import { CompositeSchemaConverter, type ConditionalSchemaConverter, type SchemaConverter } from './schema-converter'
 import { isAnySchema, isObjectSchema, separateObjectSchema } from './schema-utils'
 
@@ -95,7 +96,7 @@ export class OpenAPIGenerator {
       return
     }
 
-    const dynamicParams = getDynamicParams(def.route.path)
+    const dynamicParams = getDynamicParams(def.route.path)?.map(v => v.name)
     const inputStructure = fallbackContractConfig('defaultInputStructure', def.route.inputStructure)
     let [required, schema] = this.converter.convert(def.inputSchema, { strategy: 'input' })
 

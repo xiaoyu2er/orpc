@@ -1,12 +1,5 @@
 import type { FileSchema, JSONSchema, ObjectSchema } from './schema'
-import { checkParamsSchema, getDynamicParams, standardizeHTTPPath, toOpenAPIContent, toOpenAPIEventIteratorContent, toOpenAPIMethod, toOpenAPIParameters, toOpenAPIPath, toOpenAPISchema } from './openapi-utils'
-
-it('standardizeHTTPPath', () => {
-  expect(standardizeHTTPPath('/path')).toBe('/path')
-  expect(standardizeHTTPPath('/path/')).toBe('/path')
-  expect(standardizeHTTPPath('/path//to/something')).toBe('/path/to/something')
-  expect(standardizeHTTPPath('//path//to//something//')).toBe('/path/to/something')
-})
+import { checkParamsSchema, toOpenAPIContent, toOpenAPIEventIteratorContent, toOpenAPIMethod, toOpenAPIParameters, toOpenAPIPath, toOpenAPISchema } from './openapi-utils'
 
 it('toOpenAPIPath', () => {
   expect(toOpenAPIPath('/path')).toBe('/path')
@@ -21,16 +14,6 @@ it('toOpenAPIMethod', () => {
   expect(toOpenAPIMethod('PUT')).toBe('put')
   expect(toOpenAPIMethod('DELETE')).toBe('delete')
   expect(toOpenAPIMethod('PATCH')).toBe('patch')
-})
-
-it('getDynamicParams', () => {
-  expect(getDynamicParams(undefined)).toBe(undefined)
-  expect(getDynamicParams('/path')).toBe(undefined)
-  expect(getDynamicParams('/path/{id}')).toEqual(['id'])
-  expect(getDynamicParams('/path/{id}')).toEqual(['id'])
-  expect(getDynamicParams('/path/{id}/{name}')).toEqual(['id', 'name'])
-  expect(getDynamicParams('/path/{name}/{+id}')).toEqual(['name', 'id'])
-  expect(getDynamicParams('/path//{+id}//something{+name}//')).toEqual(['id'])
 })
 
 describe('toOpenAPIContent', () => {

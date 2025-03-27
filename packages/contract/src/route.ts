@@ -1,5 +1,5 @@
-export type HTTPPath = `/${string}`
-export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
+import type { HTTPMethod, HTTPPath } from '@orpc/client'
+
 export type InputStructure = 'compact' | 'detailed'
 export type OutputStructure = 'compact' | 'detailed'
 

@@ -1,3 +1,4 @@
+import type { HTTPPath } from '@orpc/client'
 import type { ContractProcedureBuilder, ContractProcedureBuilderWithInput, ContractProcedureBuilderWithOutput, ContractRouterBuilder } from './builder-variants'
 import type { ContractProcedureDef } from './procedure'
 import type { ContractRouter } from './router'
@@ -5,7 +6,7 @@ import type { AnySchema, Schema } from './schema'
 import { type ErrorMap, type MergedErrorMap, mergeErrorMap } from './error'
 import { mergeMeta, type Meta } from './meta'
 import { ContractProcedure } from './procedure'
-import { type HTTPPath, mergePrefix, mergeRoute, mergeTags, type Route } from './route'
+import { mergePrefix, mergeRoute, mergeTags, type Route } from './route'
 import { enhanceContractRouter, type EnhanceContractRouterOptions, type EnhancedContractRouter } from './router-utils'
 
 export interface ContractBuilderDef<

@@ -8,12 +8,16 @@ const { height } = useElementSize(container)
 const layoutTopHeight = computed(() => Math.max(0, height.value - y.value))
 
 watchEffect(() => {
+  if (typeof window === 'undefined') {
+    return
+  }
+
   document.documentElement.style.setProperty('--vp-layout-top-height', `${layoutTopHeight.value}px`)
 })
 
 const THREE_DAYS_MS = 1000 * 60 * 60 * 24 * 3
 
-const show = ref(typeof window !== 'undefined' && (Number(window.localStorage.getItem(`banner-dismissed-at`)) || 0) + THREE_DAYS_MS < Date.now())
+const show = ref(typeof window === 'undefined' || (Number(window.localStorage.getItem(`banner-dismissed-at`)) || 0) + THREE_DAYS_MS < Date.now())
 
 function dismissBanner() {
   if (typeof window === 'undefined') {
@@ -49,7 +53,11 @@ function dismissBanner() {
   </div>
 </template>
 
-<style scoped>
+<style>
+html {
+  --vp-layout-top-height: 24px;
+}
+
 .banner-container {
   background: rgba(255, 0, 189, 0.8);
   color: var(--vp-c-white);

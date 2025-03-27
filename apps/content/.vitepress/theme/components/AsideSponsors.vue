@@ -59,24 +59,27 @@ const smallSponsors = computed(() => sponsors.value.filter(s => s.rideSidebarSiz
   align-items: center;
   justify-content: center;
   height: 60px;
-  background-color: var(--vp-c-text-1);
   border-radius: 2px;
 
   font-size: 13px;
   font-weight: 700;
-  color: var(--vp-c-bg-soft);
+  background-color: var(--vp-c-bg-soft);
+}
 
+.dark .aside-sponsor {
   filter: grayscale(1) invert(1);
+  color: var(--vp-c-bg-soft);
+  background-color: var(--vp-c-text-1);
+}
+
+.dark .aside-sponsor:hover {
+  transition: filter 0.2s ease;
+  filter: brightness(1.1);
 }
 
 .aside-sponsor img {
   max-width: 120px;
   max-height: 48px;
-}
-
-.aside-sponsor:hover {
-  transition: filter 0.2s ease;
-  filter: brightness(1.1);
 }
 
 .aside-sponsors-small {

@@ -1,4 +1,4 @@
-import { clone, findDeepMatches, isObject, isTypescriptObject } from './object'
+import { clone, findDeepMatches, get, isObject, isTypescriptObject } from './object'
 
 it('findDeepMatches', () => {
   const { maps, values } = findDeepMatches(v => typeof v === 'string', {
@@ -69,4 +69,13 @@ it('clone', () => {
   expect(cloned).not.toBe(obj)
   expect(cloned.arr).not.toBe(obj.arr)
   expect(cloned.nested.arr).not.toBe(obj.nested.arr)
+})
+
+it('get', () => {
+  expect(get({ a: { b: 1 } }, ['a', 'b'])).toEqual(1)
+  expect(get({ a: { b: 1 } }, ['a', 'b', 'c'])).toEqual(undefined)
+  expect(get({ a: { b: 1 } }, ['a', 'b', 'c', 'd'])).toEqual(undefined)
+  expect(get({ a: { b: () => { } } }, ['a', 'b', 'name'])).toEqual('b')
+  expect(get({ a: { b: () => { } } }, ['a', 'b', 'uuuu'])).toEqual(undefined)
+  expect(get({ a: { b: () => { } } }, ['a', 'b', 'uuuu', 'zzzz'])).toEqual(undefined)
 })

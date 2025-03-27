@@ -4,11 +4,11 @@ import { computed, ref, watchEffect } from 'vue'
 
 const container = ref<HTMLElement>()
 const { y } = useWindowScroll()
-const { height } = useElementSize(container)
+const { height, width } = useElementSize(container)
 const layoutTopHeight = computed(() => Math.max(0, height.value - y.value))
 
 watchEffect(() => {
-  if (typeof window === 'undefined') {
+  if (typeof window === 'undefined' || width.value < 960) {
     return
   }
 
@@ -54,8 +54,10 @@ function dismissBanner() {
 </template>
 
 <style>
-html {
-  --vp-layout-top-height: 26px;
+@media (min-width: 960px) {
+  html {
+    --vp-layout-top-height: 26px;
+  }
 }
 
 .banner-container {

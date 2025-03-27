@@ -15,12 +15,8 @@ const show = ref(false)
 const bannerDismissed = useLocalStorage<string>(`banner-dismissed-at`, '')
 
 watchEffect(() => {
-  if (!bannerDismissed.value) {
+  if (!bannerDismissed.value || Number(bannerDismissed.value) + 60 * 60 * 24 * 3 * 1000 < Date.now()) {
     show.value = true
-  }
-
-  if (Number(bannerDismissed.value) + 60 * 60 * 24 * 3 * 1000 > Date.now()) {
-    show.value = false
   }
 })
 
@@ -35,7 +31,7 @@ function dismissBanner() {
     <div class="banner">
       <div class="banner-content">
         <div class="banner-text">
-          Serverless API Gateway, designed for developers -
+          Serverless API Gateway<span class="banner-helper">, designed for developers</span> -
         </div>
 
         <a class="banner-action" href="https://zuplo.com/" target="_blank" rel="noopener">
@@ -56,11 +52,12 @@ function dismissBanner() {
 
 <style scoped>
 .banner-container {
-  background: linear-gradient(to right, var(--vp-c-brand-2), var(--vp-c-brand-3));
+  background: rgba(255, 0, 189, 0.8);
   color: var(--vp-c-white);
 }
 
 .banner {
+  padding: 0 24px;
   max-width: calc(var(--vp-layout-max-width) - 64px);
   position: relative;
   margin-right: auto;
@@ -83,9 +80,18 @@ function dismissBanner() {
   font-weight: 600;
 }
 
+.banner-helper {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .banner-helper {
+    display: inline;
+  }
+}
+
 .banner-action {
   margin-left: 2px;
-  color: #ff2da0;
   font-weight: 700;
   text-decoration: underline;
 }
@@ -95,16 +101,10 @@ function dismissBanner() {
   filter: brightness(1.1);
 }
 
-.banner-action svg {
-  margin-left: 8px;
-  height: 20px;
-  width: 20px;
-}
-
 .banner-close {
   position: absolute;
   top: 50%;
-  right: 18px;
+  right: 4px;
   transform: translateY(-50%);
 }
 

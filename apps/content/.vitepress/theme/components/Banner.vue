@@ -55,7 +55,7 @@ function dismissBanner() {
 
 <style>
 html {
-  --vp-layout-top-height: 24px;
+  --vp-layout-top-height: 26px;
 }
 
 .banner-container {
@@ -64,7 +64,7 @@ html {
 }
 
 .banner {
-  padding: 0 24px;
+  padding: 1px 24px;
   max-width: calc(var(--vp-layout-max-width) - 64px);
   position: relative;
   margin-right: auto;
@@ -80,10 +80,11 @@ html {
   display: flex;
   justify-content: center;
   align-items: center;
+
+  font-size: 14px;
 }
 
 .banner-text {
-  font-size: 16px;
   font-weight: 600;
 }
 

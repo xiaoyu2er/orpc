@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useElementSize, useLocalStorage, useWindowScroll } from '@vueuse/core'
+import { useElementSize, useWindowScroll } from '@vueuse/core'
 import { computed, ref, watchEffect } from 'vue'
 
 const container = ref<HTMLElement>()
@@ -11,18 +11,17 @@ watchEffect(() => {
   document.documentElement.style.setProperty('--vp-layout-top-height', `${layoutTopHeight.value}px`)
 })
 
-const show = ref(false)
-const bannerDismissed = useLocalStorage<string>(`banner-dismissed-at`, '')
+const THREE_DAYS_MS = 1000 * 60 * 60 * 24 * 3
 
-watchEffect(() => {
-  if (!bannerDismissed.value || Number(bannerDismissed.value) + 60 * 60 * 24 * 3 * 1000 < Date.now()) {
-    show.value = true
-  }
-})
+const show = ref(typeof window !== 'undefined' && (Number(window.localStorage.getItem(`banner-dismissed-at`)) || 0) + THREE_DAYS_MS < Date.now())
 
 function dismissBanner() {
-  bannerDismissed.value = Date.now().toString()
+  if (typeof window === 'undefined') {
+    return
+  }
+
   show.value = false
+  window.localStorage.setItem(`banner-dismissed-at`, Date.now().toString())
 }
 </script>
 

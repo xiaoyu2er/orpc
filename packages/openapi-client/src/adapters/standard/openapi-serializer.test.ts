@@ -164,24 +164,34 @@ describe('standardOpenAPIJsonSerializer', () => {
       })
     })
 
-    it('outputFormat: URLSearchParams', async () => {
-      const data = {
-        a: 1,
-        b: true,
-        nested: {
-          c: [new Date()],
-        },
-      }
+    describe('outputFormat: URLSearchParams', async () => {
+      it('works', () => {
+        const data = {
+          a: 1,
+          b: true,
+          nested: {
+            c: [new Date()],
+          },
+          blob: new Blob(['hi']),
+        }
 
-      const serialized = openapiSerializer.serialize(data, { outputFormat: 'URLSearchParams' }) as URLSearchParams
+        const serialized = openapiSerializer.serialize(data, { outputFormat: 'URLSearchParams' }) as URLSearchParams
 
-      expect(serialized).toBeInstanceOf(URLSearchParams)
-      expect(serialized.get('a')).toBe('1')
-      expect(serialized.get('b')).toBe('true')
-      expect(serialized.get('nested[c][0]')).toBe(data.nested.c[0]!.toISOString())
+        expect(serialized).toBeInstanceOf(URLSearchParams)
+        expect(serialized.get('a')).toBe('1')
+        expect(serialized.get('b')).toBe('true')
+        expect(serialized.get('nested[c][0]')).toBe(data.nested.c[0]!.toISOString())
+        expect(serialized.get('nested[blob]')).toBe(null)
 
-      expect(serialize).toHaveBeenCalledOnce()
-      expect(serialize).toHaveBeenCalledWith(data)
+        expect(serialize).toHaveBeenCalledOnce()
+        expect(serialize).toHaveBeenCalledWith(data)
+      })
+
+      it('with undefined at root', () => {
+        const serialized = openapiSerializer.serialize(undefined, { outputFormat: 'URLSearchParams' }) as URLSearchParams
+
+        expect([...serialized.entries()]).toEqual([])
+      })
     })
 
     it('outputFormat: plain', async () => {

@@ -32,10 +32,6 @@ export class StandardOpenAPISerializer {
   }
 
   #serialize(data: unknown, options: StandardOpenAPISerializeOptions): unknown {
-    if (data instanceof Blob || data === undefined) {
-      return data
-    }
-
     const [json, hasBlob] = this.jsonSerializer.serialize(data)
 
     if (options.outputFormat === 'plain') {
@@ -54,7 +50,7 @@ export class StandardOpenAPISerializer {
       return params
     }
 
-    if (!hasBlob) {
+    if (json instanceof Blob || json === undefined || !hasBlob) {
       return json
     }
 

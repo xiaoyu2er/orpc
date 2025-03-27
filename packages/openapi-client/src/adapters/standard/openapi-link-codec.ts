@@ -52,7 +52,7 @@ export class StandardOpenapiLinkCodec<T extends ClientContext> implements Standa
     const procedure = get(this.contract, path)
 
     if (!isContractProcedure(procedure)) {
-      throw new Error(`Not found contract procedure corresponding to the path: ${path.join('.')}`)
+      throw new Error(`[StandardOpenapiLinkCodec] expect a contract procedure at ${path.join('.')}`)
     }
 
     const inputStructure = fallbackContractConfig('defaultInputStructure', procedure['~orpc'].route.inputStructure)
@@ -77,23 +77,14 @@ export class StandardOpenapiLinkCodec<T extends ClientContext> implements Standa
 
     if (dynamicParams?.length) {
       if (!isObject(input)) {
-        throw new TypeError(`
-           [StandardOpenapiLinkCodec] Unable to encode payload contains dynamic params but input is not an object at path "${path.join('.')}".
-        `)
+        throw new TypeError(`[StandardOpenapiLinkCodec] Invalid input shape for "compact" structure when has dynamic params at ${path.join('.')}.`)
       }
 
       const body = { ...input }
 
       for (const param of dynamicParams) {
         const value = input[param.name]
-
-        if (typeof value !== 'string') {
-          throw new TypeError(`
-            [StandardOpenapiLinkCodec] Unable to encode dynamic path parameter "${param.name}" with value "${value}" at path "${path.join('.')}".
-          `)
-        }
-
-        httpPath = httpPath.replace(param.raw, `/${value}`) as HTTPPath
+        httpPath = httpPath.replace(param.raw, `/${encodeURIComponent(`${this.serializer.serialize(value)}`)}`) as HTTPPath
         delete body[param.name]
       }
 
@@ -136,42 +127,29 @@ export class StandardOpenapiLinkCodec<T extends ClientContext> implements Standa
     baseUrl: string,
     headers: StandardHeaders,
   ): StandardRequest {
-    if (!isObject(input)) {
-      throw new TypeError(`
-        [StandardOpenapiLinkCodec] Unable to encode payload is not an object when input structure is "detailed" at path "${path.join('.')}".
-      `)
-    }
-
     let httpPath = procedure['~orpc'].route.path ?? toHttpPath(path)
     const dynamicParams = getDynamicParams(httpPath)
 
+    if (!isObject(input) && input !== undefined) {
+      throw new TypeError(`[StandardOpenapiLinkCodec] Invalid input shape for "detailed" structure at ${path.join('.')}.`)
+    }
+
     if (dynamicParams?.length) {
-      if (!isObject(input.params)) {
-        throw new TypeError(`
-            [StandardOpenapiLinkCodec] params must be object when has dynamic params in "detailed" input structure at path "${path.join('.')}".
-        `)
+      if (!isObject(input?.params)) {
+        throw new TypeError(`[StandardOpenapiLinkCodec] Invalid input.params shape for "detailed" structure when has dynamic params at ${path.join('.')}.`)
       }
 
       for (const param of dynamicParams) {
         const value = input.params[param.name]
-
-        if (typeof value !== 'string') {
-          throw new TypeError(`
-            [StandardOpenapiLinkCodec] Unable to encode dynamic path parameter "${param.name}" with value "${value}" at path "${path.join('.')}".
-          `)
-        }
-
-        httpPath = httpPath.replace(param.raw, `/${value}`) as HTTPPath
+        httpPath = httpPath.replace(param.raw, `/${encodeURIComponent(`${this.serializer.serialize(value)}`)}`) as HTTPPath
       }
     }
 
     let mergedHeaders = headers
 
-    if (input.headers !== undefined) {
+    if (input?.headers !== undefined) {
       if (!isObject(input.headers)) {
-        throw new TypeError(`
-          [StandardOpenapiLinkCodec] When input structure is "detailed", the input must contains "headers" field which is an object.
-        `)
+        throw new TypeError(`[StandardOpenapiLinkCodec] Invalid input.headers shape for "detailed" structure at ${path.join('.')}.`)
       }
 
       mergedHeaders = mergeStandardHeaders(input.headers as StandardHeaders, headers)
@@ -180,13 +158,7 @@ export class StandardOpenapiLinkCodec<T extends ClientContext> implements Standa
     const method = fallbackContractConfig('defaultMethod', procedure['~orpc'].route.method)
     const url = new URL(`${baseUrl.toString().replace(/\/$/, '')}${httpPath}`)
 
-    if (input.query !== undefined) {
-      if (!isObject(input.query)) {
-        throw new TypeError(`
-            [StandardOpenapiLinkCodec] When input structure is "detailed", the input must contains "query" field which is an object.
-        `)
-      }
-
+    if (input?.query !== undefined) {
       const query = this.serializer.serialize(input.query, { outputFormat: 'URLSearchParams' }) as URLSearchParams
 
       for (const [key, value] of query) {
@@ -208,7 +180,7 @@ export class StandardOpenapiLinkCodec<T extends ClientContext> implements Standa
       url,
       method,
       headers: mergedHeaders,
-      body: this.serializer.serialize(input.body),
+      body: this.serializer.serialize(input?.body),
       signal: options.signal,
     }
   }
@@ -216,42 +188,55 @@ export class StandardOpenapiLinkCodec<T extends ClientContext> implements Standa
   async decode(response: StandardLazyResponse, _options: ClientOptions<T>, path: readonly string[]): Promise<unknown> {
     const isOk = response.status >= 200 && response.status < 300
 
-    const body = await (async () => {
+    const deserialized = await (async () => {
+      let isBodyOk = false
+
       try {
-        return await response.body()
+        const body = await response.body()
+
+        isBodyOk = true
+
+        return this.serializer.deserialize(body)
       }
       catch (error) {
-        throw new Error('Failed to parse response body, please check the response body and content-type.', {
+        if (!isBodyOk) {
+          throw new Error('Cannot parse response body, please check the response body and content-type.', {
+            cause: error,
+          })
+        }
+
+        throw new Error('Invalid OpenAPI response format.', {
           cause: error,
         })
       }
     })()
 
     if (!isOk) {
-      if (ORPCError.isValidJSON(body)) {
-        throw ORPCError.fromJSON(body)
+      if (ORPCError.isValidJSON(deserialized)) {
+        throw ORPCError.fromJSON(deserialized)
       }
 
-      throw new Error('Invalid OpenAPI Error response format.', {
-        cause: body,
+      throw new ORPCError('MALFORMED_ORPC_ERROR_RESPONSE', {
+        status: response.status,
+        data: deserialized,
       })
     }
 
     const procedure = get(this.contract, path)
 
     if (!isContractProcedure(procedure)) {
-      throw new Error(`Not found contract procedure corresponding to the path: ${path.join('.')}`)
+      throw new Error(`[StandardOpenapiLinkCodec] expect a contract procedure at ${path.join('.')}`)
     }
 
     const outputStructure = fallbackContractConfig('defaultOutputStructure', procedure['~orpc'].route.outputStructure)
 
     if (outputStructure === 'compact') {
-      return body
+      return deserialized
     }
 
     return {
       headers: response.headers,
-      body,
+      body: deserialized,
     }
   }
 }

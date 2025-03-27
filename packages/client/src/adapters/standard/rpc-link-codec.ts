@@ -147,8 +147,9 @@ export class StandardRPCLinkCodec<T extends ClientContext> implements StandardLi
         throw ORPCError.fromJSON(deserialized)
       }
 
-      throw new Error('Invalid RPC error response format.', {
-        cause: deserialized,
+      throw new ORPCError('MALFORMED_ORPC_ERROR_RESPONSE', {
+        status: response.status,
+        data: deserialized,
       })
     }
 

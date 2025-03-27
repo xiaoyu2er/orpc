@@ -185,7 +185,7 @@ describe('standardRPCLinkCodec', () => {
         status: 403,
         headers: {},
         body: () => Promise.resolve(serialized),
-      })).rejects.toThrow('Invalid RPC error response format.')
+      })).rejects.toThrow('MALFORMED_ORPC_ERROR_RESPONSE')
 
       expect(deserializeSpy).toBeCalledTimes(1)
       expect(deserializeSpy).toBeCalledWith(serialized)

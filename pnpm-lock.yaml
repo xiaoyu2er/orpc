@@ -92,6 +92,12 @@ importers:
       '@orpc/contract':
         specifier: workspace:*
         version: link:../../packages/contract
+      '@orpc/openapi':
+        specifier: workspace:*
+        version: link:../../packages/openapi
+      '@orpc/openapi-client':
+        specifier: workspace:*
+        version: link:../../packages/openapi-client
       '@orpc/react-query':
         specifier: workspace:*
         version: link:../../packages/react-query

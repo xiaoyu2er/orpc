@@ -7,7 +7,7 @@ import { toFetchRequest, toStandardLazyResponse } from '@orpc/standard-server-fe
 export interface LinkFetchClientOptions<T extends ClientContext> extends ToFetchRequestOptions {
   fetch?: (
     request: Request,
-    init: { redirect?: RequestRedirect },
+    init: { redirect?: Request['redirect'] },
     options: ClientOptions<T>,
     path: readonly string[],
     input: unknown

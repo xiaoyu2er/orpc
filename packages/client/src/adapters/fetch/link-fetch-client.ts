@@ -7,7 +7,7 @@ import { toFetchRequest, toStandardLazyResponse } from '@orpc/standard-server-fe
 export interface LinkFetchClientOptions<T extends ClientContext> extends ToFetchRequestOptions {
   fetch?: (
     request: Request,
-    init: Record<never, never>,
+    init: { redirect?: RequestRedirect },
     options: ClientOptions<T>,
     path: readonly string[],
     input: unknown
@@ -26,7 +26,7 @@ export class LinkFetchClient<T extends ClientContext> implements StandardLinkCli
   async call(request: StandardRequest, options: ClientOptions<T>, path: readonly string[], input: unknown): Promise<StandardLazyResponse> {
     const fetchRequest = toFetchRequest(request, this.toFetchRequestOptions)
 
-    const fetchResponse = await this.fetch(fetchRequest, {}, options, path, input)
+    const fetchResponse = await this.fetch(fetchRequest, { redirect: 'manual' }, options, path, input)
 
     const lazyResponse = toStandardLazyResponse(fetchResponse)
 

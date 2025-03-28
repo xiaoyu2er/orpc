@@ -2,6 +2,7 @@ import type { ErrorMap } from './error'
 import type { Meta } from './meta'
 import type { Route } from './route'
 import type { AnySchema } from './schema'
+import { isORPCErrorStatus } from '@orpc/client'
 
 export interface ContractProcedureDef<
   TInputSchema extends AnySchema,
@@ -25,12 +26,12 @@ export class ContractProcedure<
   '~orpc': ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>
 
   constructor(def: ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>) {
-    if (def.route?.successStatus && (def.route.successStatus < 200 || def.route?.successStatus > 299)) {
-      throw new Error('[ContractProcedure] The successStatus must be between 200 and 299')
+    if (def.route?.successStatus && isORPCErrorStatus(def.route.successStatus)) {
+      throw new Error('[ContractProcedure] Invalid successStatus.')
     }
 
-    if (Object.values(def.errorMap).some(val => val && val.status && (val.status < 400 || val.status > 599))) {
-      throw new Error('[ContractProcedure] The error status code must be in the 400-599 range.')
+    if (Object.values(def.errorMap).some(val => val && val.status && !isORPCErrorStatus(val.status))) {
+      throw new Error('[ContractProcedure] Invalid error status code.')
     }
 
     this['~orpc'] = def

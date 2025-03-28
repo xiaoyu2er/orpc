@@ -104,8 +104,8 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
   readonly data: TData
 
   constructor(code: TCode, ...[options]: MaybeOptionalOptions<ORPCErrorOptions<TData>>) {
-    if (options?.status && (options.status >= 200 && options.status < 300)) {
-      throw new Error('[ORPCError] The error status code must not be in the 200-299 range.')
+    if (options?.status && !isORPCErrorStatus(options.status)) {
+      throw new Error('[ORPCError] Invalid error status code.')
     }
 
     const message = fallbackORPCErrorMessage(code, options?.message)
@@ -172,4 +172,8 @@ export function toORPCError(error: unknown): ORPCError<any, any> {
       message: 'Internal server error',
       cause: error,
     })
+}
+
+export function isORPCErrorStatus(status: number): boolean {
+  return status < 200 || status >= 400
 }

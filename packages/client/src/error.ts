@@ -104,8 +104,8 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
   readonly data: TData
 
   constructor(code: TCode, ...[options]: MaybeOptionalOptions<ORPCErrorOptions<TData>>) {
-    if (options?.status && (options.status < 400 || options.status >= 600)) {
-      throw new Error('[ORPCError] The error status code must be in the 400-599 range.')
+    if (options?.status && (options.status >= 200 && options.status < 300)) {
+      throw new Error('[ORPCError] The error status code must not be in the 200-299 range.')
     }
 
     const message = fallbackORPCErrorMessage(code, options?.message)

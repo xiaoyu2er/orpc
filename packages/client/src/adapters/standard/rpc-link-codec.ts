@@ -1,8 +1,8 @@
-import type { StandardHeaders, StandardLazyResponse, StandardRequest } from '@orpc/standard-server'
 import type { ClientContext, ClientOptions, HTTPMethod } from '../../types'
 import type { StandardRPCSerializer } from './rpc-serializer'
 import type { StandardLinkCodec } from './types'
 import { isAsyncIteratorObject, stringifyJSON, value, type Value } from '@orpc/shared'
+import { mergeStandardHeaders, type StandardHeaders, type StandardLazyResponse, type StandardRequest } from '@orpc/standard-server'
 import { ORPCError } from '../../error'
 import { toHttpPath } from './utils'
 
@@ -76,20 +76,12 @@ export class StandardRPCLinkCodec<T extends ClientContext> implements StandardLi
 
   async encode(path: readonly string[], input: unknown, options: ClientOptions<T>): Promise<StandardRequest> {
     const expectedMethod = await value(this.expectedMethod, options, path, input)
-    const headers = { ...await value(this.headers, options, path, input) }
+    let headers = await value(this.headers, options, path, input)
     const baseUrl = await value(this.baseUrl, options, path, input)
     const url = new URL(`${baseUrl.toString().replace(/\/$/, '')}${toHttpPath(path)}`)
 
     if (options.lastEventId !== undefined) {
-      if (Array.isArray(headers['last-event-id'])) {
-        headers['last-event-id'] = [...headers['last-event-id'], options.lastEventId]
-      }
-      else if (headers['last-event-id'] !== undefined) {
-        headers['last-event-id'] = [headers['last-event-id'], options.lastEventId]
-      }
-      else {
-        headers['last-event-id'] = options.lastEventId
-      }
+      headers = mergeStandardHeaders(headers, { 'last-event-id': options.lastEventId })
     }
 
     const serialized = this.serializer.serialize(input)
@@ -155,8 +147,9 @@ export class StandardRPCLinkCodec<T extends ClientContext> implements StandardLi
         throw ORPCError.fromJSON(deserialized)
       }
 
-      throw new Error('Invalid RPC error response format.', {
-        cause: deserialized,
+      throw new ORPCError('MALFORMED_ORPC_ERROR_RESPONSE', {
+        status: response.status,
+        data: deserialized,
       })
     }
 

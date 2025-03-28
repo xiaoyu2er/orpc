@@ -203,6 +203,6 @@ describe('standardOpenAPICodec', () => {
     })
 
     expect(serializer.serialize).toHaveBeenCalledOnce()
-    expect(serializer.serialize).toHaveBeenCalledWith(error.toJSON())
+    expect(serializer.serialize).toHaveBeenCalledWith(error.toJSON(), { outputFormat: 'plain' })
   })
 })

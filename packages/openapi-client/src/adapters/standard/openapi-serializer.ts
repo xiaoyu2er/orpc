@@ -4,6 +4,10 @@ import { mapEventIterator, ORPCError, toORPCError } from '@orpc/client'
 import { isAsyncIteratorObject } from '@orpc/shared'
 import { ErrorEvent } from '@orpc/standard-server'
 
+export interface StandardOpenAPISerializeOptions {
+  outputFormat?: 'plain' | 'URLSearchParams'
+}
+
 export class StandardOpenAPISerializer {
   constructor(
     private readonly jsonSerializer: StandardOpenAPIJsonSerializer,
@@ -11,30 +15,42 @@ export class StandardOpenAPISerializer {
   ) {
   }
 
-  serialize(data: unknown): unknown {
-    if (isAsyncIteratorObject(data)) {
+  serialize(data: unknown, options: StandardOpenAPISerializeOptions = {}): unknown {
+    if (isAsyncIteratorObject(data) && !options.outputFormat) {
       return mapEventIterator(data, {
-        value: async value => this.#serialize(value, false),
+        value: async value => this.#serialize(value, { outputFormat: 'plain' }),
         error: async (e) => {
           return new ErrorEvent({
-            data: this.#serialize(toORPCError(e).toJSON(), false),
+            data: this.#serialize(toORPCError(e).toJSON(), { outputFormat: 'plain' }),
             cause: e,
           })
         },
       })
     }
 
-    return this.#serialize(data, true)
+    return this.#serialize(data, options)
   }
 
-  #serialize(data: unknown, enableFormData: boolean): unknown {
-    if (data instanceof Blob || data === undefined) {
-      return data
-    }
-
+  #serialize(data: unknown, options: StandardOpenAPISerializeOptions): unknown {
     const [json, hasBlob] = this.jsonSerializer.serialize(data)
 
-    if (!enableFormData || !hasBlob) {
+    if (options.outputFormat === 'plain') {
+      return json
+    }
+
+    if (options.outputFormat === 'URLSearchParams') {
+      const params = new URLSearchParams()
+
+      for (const [path, value] of this.bracketNotation.serialize(json)) {
+        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+          params.append(path, value.toString())
+        }
+      }
+
+      return params
+    }
+
+    if (json instanceof Blob || json === undefined || !hasBlob) {
       return json
     }
 

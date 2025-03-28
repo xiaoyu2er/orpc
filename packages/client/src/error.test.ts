@@ -41,8 +41,11 @@ describe('oRPCError', () => {
   })
 
   it('oRPCError throw when invalid status', () => {
-    expect(() => new ORPCError('BAD_GATEWAY', { status: 100 })).toThrowError()
-    expect(() => new ORPCError('BAD_GATEWAY', { status: -1 })).toThrowError()
+    expect(() => new ORPCError('BAD_GATEWAY', { status: 200 })).toThrowError()
+    expect(() => new ORPCError('BAD_GATEWAY', { status: 299 })).toThrowError()
+
+    expect(() => new ORPCError('BAD_GATEWAY', { status: 300 })).not.toThrowError()
+    expect(() => new ORPCError('BAD_GATEWAY', { status: 199 })).not.toThrowError()
   })
 
   it('toJSON', () => {

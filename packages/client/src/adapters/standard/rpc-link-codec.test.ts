@@ -1,7 +1,10 @@
+import * as StandardServer from '@orpc/standard-server'
 import { ORPCError } from '../../error'
 import { StandardRPCJsonSerializer } from './rpc-json-serializer'
 import { StandardRPCLinkCodec } from './rpc-link-codec'
 import { StandardRPCSerializer } from './rpc-serializer'
+
+const mergeStandardHeadersSpy = vi.spyOn(StandardServer, 'mergeStandardHeaders')
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -81,45 +84,20 @@ describe('standardRPCLinkCodec', () => {
       expect(serializeSpy).toBeCalledWith(input)
     })
 
-    describe('last-event-id', async () => {
-      it('should set', async () => {
-        const codec = new StandardRPCLinkCodec(serializer, {
-          url: 'http://localhost:3000',
-          method,
-          headers: () => ({ 'x-custom-header': 'custom-value' }),
-        })
-
-        const request = await codec.encode(['test'], 'input', { context: {}, lastEventId: '1' })
-
-        expect(request.headers['x-custom-header']).toEqual('custom-value')
-        expect(request.headers['last-event-id']).toEqual('1')
+    it('last-event-id', async () => {
+      const codec = new StandardRPCLinkCodec(serializer, {
+        url: 'http://localhost:3000',
+        method,
+        headers: () => ({ 'x-custom-header': 'custom-value' }),
       })
 
-      it('should merged', async () => {
-        const codec = new StandardRPCLinkCodec(serializer, {
-          url: 'http://localhost:3000',
-          method,
-          headers: () => ({ 'x-custom-header': 'custom-value', 'last-event-id': '2' }),
-        })
+      const request = await codec.encode(['test'], 'input', { context: {}, lastEventId: '1' })
 
-        const request = await codec.encode(['test'], 'input', { context: {}, lastEventId: '1' })
+      expect(request.headers['last-event-id']).toEqual('1')
 
-        expect(request.headers['x-custom-header']).toEqual('custom-value')
-        expect(request.headers['last-event-id']).toEqual(['2', '1'])
-      })
-
-      it('should merged 2', async () => {
-        const codec = new StandardRPCLinkCodec(serializer, {
-          url: 'http://localhost:3000',
-          method,
-          headers: () => ({ 'x-custom-header': 'custom-value', 'last-event-id': ['2', '3'] }),
-        })
-
-        const request = await codec.encode(['test'], 'input', { context: {}, lastEventId: '1' })
-
-        expect(request.headers['x-custom-header']).toEqual('custom-value')
-        expect(request.headers['last-event-id']).toEqual(['2', '3', '1'])
-      })
+      expect(mergeStandardHeadersSpy).toBeCalledWith({ 'x-custom-header': 'custom-value' }, { 'last-event-id': '1' })
+      expect(mergeStandardHeadersSpy).toBeCalledTimes(1)
+      expect(request.headers).toBe(mergeStandardHeadersSpy.mock.results[0]!.value)
     })
   })
 
@@ -207,7 +185,7 @@ describe('standardRPCLinkCodec', () => {
         status: 403,
         headers: {},
         body: () => Promise.resolve(serialized),
-      })).rejects.toThrow('Invalid RPC error response format.')
+      })).rejects.toThrow('MALFORMED_ORPC_ERROR_RESPONSE')
 
       expect(deserializeSpy).toBeCalledTimes(1)
       expect(deserializeSpy).toBeCalledWith(serialized)

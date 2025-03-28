@@ -70,11 +70,12 @@ describe('standardOpenAPIJsonSerializer', () => {
     describe('with event iterator', async () => {
       it('on success', async () => {
         const date = new Date()
+        const blob = new Blob(['hi'])
 
         const serialized = openapiSerializer.serialize((async function* () {
           yield 1
           yield withEventMeta({ order: 2, date }, { retry: 1000 })
-          return withEventMeta({ order: 3 }, { id: '123456' })
+          return withEventMeta({ order: 3, blob }, { id: '123456' })
         })()) as any
 
         await expect(serialized.next()).resolves.toSatisfy(({ value, done }) => {
@@ -110,17 +111,17 @@ describe('standardOpenAPIJsonSerializer', () => {
         })
 
         expect(serialize).toHaveBeenCalledOnce()
-        expect(serialize).toHaveBeenCalledWith({ order: 3 })
+        expect(serialize).toHaveBeenCalledWith({ order: 3, blob })
         serialize.mockClear()
       })
 
       it('on error with ORPCError', async () => {
-        const date = new Date()
+        const blob = new Blob(['hi'])
         const error = withEventMeta(new ORPCError('BAD_GATEWAY', { data: { order: 3 } }), { id: '123456' })
 
         const serialized = openapiSerializer.serialize((async function* () {
           yield 1
-          yield withEventMeta({ order: 2, date }, { retry: 1000 })
+          yield withEventMeta({ order: 2, blob }, { retry: 1000 })
           throw error
         })()) as any
 
@@ -145,7 +146,7 @@ describe('standardOpenAPIJsonSerializer', () => {
         })
 
         expect(serialize).toHaveBeenCalledOnce()
-        expect(serialize).toHaveBeenCalledWith({ order: 2, date })
+        expect(serialize).toHaveBeenCalledWith({ order: 2, blob })
         serialize.mockClear()
 
         await expect(serialized.next()).rejects.toSatisfy((e: any) => {
@@ -161,6 +162,53 @@ describe('standardOpenAPIJsonSerializer', () => {
         expect(serialize).toHaveBeenCalledWith(expect.objectContaining({ code: 'BAD_GATEWAY', data: { order: 3 } }))
         serialize.mockClear()
       })
+    })
+
+    describe('outputFormat: URLSearchParams', async () => {
+      it('works', () => {
+        const data = {
+          a: 1,
+          b: true,
+          nested: {
+            c: [new Date()],
+          },
+          blob: new Blob(['hi']),
+        }
+
+        const serialized = openapiSerializer.serialize(data, { outputFormat: 'URLSearchParams' }) as URLSearchParams
+
+        expect(serialized).toBeInstanceOf(URLSearchParams)
+        expect(serialized.get('a')).toBe('1')
+        expect(serialized.get('b')).toBe('true')
+        expect(serialized.get('nested[c][0]')).toBe(data.nested.c[0]!.toISOString())
+        expect(serialized.get('nested[blob]')).toBe(null)
+
+        expect(serialize).toHaveBeenCalledOnce()
+        expect(serialize).toHaveBeenCalledWith(data)
+      })
+
+      it('with undefined at root', () => {
+        const serialized = openapiSerializer.serialize(undefined, { outputFormat: 'URLSearchParams' }) as URLSearchParams
+
+        expect([...serialized.entries()]).toEqual([])
+      })
+    })
+
+    it('outputFormat: plain', async () => {
+      const data = {
+        a: 1,
+        b: true,
+        nested: {
+          c: [new Date()],
+        },
+      }
+
+      const serialized = openapiSerializer.serialize(data, { outputFormat: 'plain' })
+
+      expect(serialized).toBe(serialize.mock.results[0]!.value[0])
+
+      expect(serialize).toHaveBeenCalledOnce()
+      expect(serialize).toHaveBeenCalledWith(data)
     })
   })
 

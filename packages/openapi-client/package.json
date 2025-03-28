@@ -24,12 +24,18 @@
         "types": "./dist/adapters/standard/index.d.mts",
         "import": "./dist/adapters/standard/index.mjs",
         "default": "./dist/adapters/standard/index.mjs"
+      },
+      "./fetch": {
+        "types": "./dist/adapters/fetch/index.d.mts",
+        "import": "./dist/adapters/fetch/index.mjs",
+        "default": "./dist/adapters/fetch/index.mjs"
       }
     }
   },
   "exports": {
     ".": "./src/index.ts",
-    "./standard": "./src/adapters/standard/index.ts"
+    "./standard": "./src/adapters/standard/index.ts",
+    "./fetch": "./src/adapters/fetch/index.ts"
   },
   "files": [
     "dist"
@@ -44,5 +50,8 @@
     "@orpc/contract": "workspace:*",
     "@orpc/shared": "workspace:*",
     "@orpc/standard-server": "workspace:*"
+  },
+  "devDependencies": {
+    "@orpc/server": "workspace:*"
   }
 }

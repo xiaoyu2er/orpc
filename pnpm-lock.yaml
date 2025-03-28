@@ -267,6 +267,10 @@ importers:
       '@orpc/standard-server':
         specifier: workspace:*
         version: link:../standard-server
+    devDependencies:
+      '@orpc/server':
+        specifier: workspace:*
+        version: link:../server
 
   packages/react-query:
     dependencies:

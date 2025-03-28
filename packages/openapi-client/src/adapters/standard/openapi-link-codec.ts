@@ -1,6 +1,6 @@
 import type { ClientContext, ClientOptions, HTTPPath } from '@orpc/client'
 import type { StandardLinkCodec } from '@orpc/client/standard'
-import type { AnyContractProcedure, ContractRouter } from '@orpc/contract'
+import type { AnyContractProcedure, AnyContractRouter } from '@orpc/contract'
 import type { StandardOpenAPISerializer } from './openapi-serializer'
 import { toHttpPath } from '@orpc/client/standard'
 import { fallbackContractConfig, isContractProcedure, ORPCError } from '@orpc/contract'
@@ -33,7 +33,7 @@ export class StandardOpenapiLinkCodec<T extends ClientContext> implements Standa
   private readonly headers: Exclude<StandardOpenapiLinkCodecOptions<T>['headers'], undefined>
 
   constructor(
-    private readonly contract: ContractRouter<any>,
+    private readonly contract: AnyContractRouter,
     private readonly serializer: StandardOpenAPISerializer,
     options: StandardOpenapiLinkCodecOptions<T>,
   ) {

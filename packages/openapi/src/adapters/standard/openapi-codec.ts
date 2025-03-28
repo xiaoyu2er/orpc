@@ -2,7 +2,7 @@ import type { ORPCError } from '@orpc/client'
 import type { StandardOpenAPISerializer } from '@orpc/openapi-client/standard'
 import type { AnyProcedure } from '@orpc/server'
 import type { StandardCodec, StandardParams } from '@orpc/server/standard'
-import type { StandardBody, StandardHeaders, StandardLazyRequest, StandardResponse } from '@orpc/standard-server'
+import type { StandardHeaders, StandardLazyRequest, StandardResponse } from '@orpc/standard-server'
 import { fallbackContractConfig } from '@orpc/contract'
 import { isObject } from '@orpc/shared'
 
@@ -61,7 +61,7 @@ export class StandardOpenAPICodec implements StandardCodec {
       return {
         status: successStatus,
         headers: {},
-        body: this.serializer.serialize(output) as StandardBody,
+        body: this.serializer.serialize(output),
       }
     }
 
@@ -74,7 +74,7 @@ export class StandardOpenAPICodec implements StandardCodec {
     return {
       status: successStatus,
       headers: output.headers as StandardHeaders ?? {},
-      body: this.serializer.serialize(output.body) as StandardBody,
+      body: this.serializer.serialize(output.body),
     }
   }
 
@@ -82,7 +82,7 @@ export class StandardOpenAPICodec implements StandardCodec {
     return {
       status: error.status,
       headers: {},
-      body: this.serializer.serialize(error.toJSON()) as StandardBody,
+      body: this.serializer.serialize(error.toJSON(), { outputFormat: 'plain' }),
     }
   }
 }

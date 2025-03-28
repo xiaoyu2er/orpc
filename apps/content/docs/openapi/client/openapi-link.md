@@ -68,11 +68,11 @@ Wrap your client with `JsonifiedClient` to ensure it accurately reflects the ser
 
 Unlike [RPCLink](/docs/client/rpc-link), `OpenAPILink` has some constraints:
 
-- Payloads containing a `Blob` or `File` (outside of the root level) must use `multipart/form-data` and serialized using [Bracket Notation](/docs/openapi/bracket-notation).
+- Payloads containing a `Blob` or `File` (outside the root level) must use `multipart/form-data` and serialized using [Bracket Notation](/docs/openapi/bracket-notation).
 - For `GET` requests, the payload must be sent as `URLSearchParams` and serialized using [Bracket Notation](/docs/openapi/bracket-notation).
 
 :::warning
-In these cases, both the request and response are subject to the limitations of [Bracket Notation Limitations](/docs/openapi/bracket-notation#limitations). Additionally, oRPC converts data to strings (exclude `null` and undefined will not be represented).
+In these cases, both the request and response are subject to the limitations of [Bracket Notation Limitations](/docs/openapi/bracket-notation#limitations). Additionally, oRPC converts data to strings (exclude `null` and `undefined` will not be represented).
 :::
 
 ## CORS policy

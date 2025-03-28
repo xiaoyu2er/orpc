@@ -191,6 +191,7 @@ export default defineConfig({
           text: 'Advanced',
           collapsed: true,
           items: [
+            { text: 'Redirect Response', link: '/docs/openapi/advanced/redirect-response' },
             { text: 'OpenAPI JSON Serializer', link: '/docs/openapi/advanced/openapi-json-serializer' },
           ],
         },

@@ -6,7 +6,7 @@ import { toHttpPath } from '@orpc/client/standard'
 import { fallbackContractConfig, isContractProcedure, ORPCError } from '@orpc/contract'
 import { get, isObject, value, type Value } from '@orpc/shared'
 import { mergeStandardHeaders, type StandardHeaders, type StandardLazyResponse, type StandardRequest } from '@orpc/standard-server'
-import { getDynamicParams } from './utils'
+import { getDynamicParams, standardizeHTTPPath } from './utils'
 
 export interface StandardOpenapiLinkCodecOptions<T extends ClientContext> {
   /**
@@ -70,7 +70,7 @@ export class StandardOpenapiLinkCodec<T extends ClientContext> implements Standa
     baseUrl: string,
     headers: StandardHeaders,
   ): StandardRequest {
-    let httpPath = procedure['~orpc'].route.path ?? toHttpPath(path)
+    let httpPath = standardizeHTTPPath(procedure['~orpc'].route.path ?? toHttpPath(path))
     let httpBody = input
 
     const dynamicParams = getDynamicParams(httpPath)
@@ -127,7 +127,7 @@ export class StandardOpenapiLinkCodec<T extends ClientContext> implements Standa
     baseUrl: string,
     headers: StandardHeaders,
   ): StandardRequest {
-    let httpPath = procedure['~orpc'].route.path ?? toHttpPath(path)
+    let httpPath = standardizeHTTPPath(procedure['~orpc'].route.path ?? toHttpPath(path))
     const dynamicParams = getDynamicParams(httpPath)
 
     if (!isObject(input) && input !== undefined) {

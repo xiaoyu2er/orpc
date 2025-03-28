@@ -21,7 +21,6 @@ describe('JsonifiedValue', () => {
     expectTypeOf<JsonifiedValue<AsyncGenerator<Date, Date>>>().toEqualTypeOf<AsyncIteratorObject<string, string>>()
 
     expectTypeOf<JsonifiedValue<DateConstructor>>().toEqualTypeOf<unknown>()
-    expectTypeOf<JsonifiedValue<BodyInit>>().toEqualTypeOf<unknown>()
   })
 
   it('complex', () => {

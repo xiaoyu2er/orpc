@@ -1,34 +1,62 @@
+import * as ClientModule from '@orpc/client'
 import { ping, pong } from '../tests/shared'
 import { ContractProcedure, isContractProcedure } from './procedure'
 
+const isORPCErrorStatusSpy = vi.spyOn(ClientModule, 'isORPCErrorStatus')
+
+beforeEach(() => {
+  vi.clearAllMocks()
+})
+
 describe('contractProcedure', () => {
-  it('throws error when route.successStatus is not between 200 and 299', () => {
+  it('throws error when route.successStatus is invalid', () => {
+    isORPCErrorStatusSpy.mockReturnValueOnce(true)
+
     expect(
-      () => new ContractProcedure({ ...ping['~orpc'], route: { successStatus: 100 } }),
+      () => new ContractProcedure({ ...ping['~orpc'], route: { successStatus: 1999 } }),
     ).toThrowError()
+
+    expect(isORPCErrorStatusSpy).toHaveBeenCalledTimes(1)
+    expect(isORPCErrorStatusSpy).toHaveBeenCalledWith(1999)
+
+    isORPCErrorStatusSpy.mockClear()
+    isORPCErrorStatusSpy.mockReturnValueOnce(false)
+
     expect(
-      () => new ContractProcedure({ ...ping['~orpc'], route: { successStatus: 300 } }),
-    ).toThrowError()
-    expect(
-      () => new ContractProcedure({ ...ping['~orpc'], route: { successStatus: 299 } }),
+      () => new ContractProcedure({ ...ping['~orpc'], route: { successStatus: 2000 } }),
     ).not.toThrowError()
+
+    expect(isORPCErrorStatusSpy).toHaveBeenCalledTimes(1)
+    expect(isORPCErrorStatusSpy).toHaveBeenCalledWith(2000)
   })
 
   it('throws error when errorMap has invalid status code', () => {
+    isORPCErrorStatusSpy.mockReturnValueOnce(false)
+
     expect(
       () => new ContractProcedure({
         ...ping['~orpc'],
-        errorMap: { BAD_GATEWAY: { status: 100 } },
+        errorMap: { BAD_GATEWAY: { status: 200 } },
       }),
     ).toThrowError()
+
+    expect(isORPCErrorStatusSpy).toHaveBeenCalledTimes(1)
+    expect(isORPCErrorStatusSpy).toHaveBeenCalledWith(200)
+
+    isORPCErrorStatusSpy.mockClear()
+    isORPCErrorStatusSpy.mockReturnValueOnce(true)
+
     expect(
       () => new ContractProcedure({
         ...ping['~orpc'],
         errorMap: {
-          BAD_GATEWAY: { status: 600 },
+          BAD_GATEWAY: { status: 500 },
         },
       }),
-    ).toThrowError()
+    ).not.toThrowError()
+
+    expect(isORPCErrorStatusSpy).toHaveBeenCalledTimes(1)
+    expect(isORPCErrorStatusSpy).toHaveBeenCalledWith(500)
   })
 })
 

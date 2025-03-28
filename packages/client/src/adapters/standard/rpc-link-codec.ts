@@ -3,7 +3,7 @@ import type { StandardRPCSerializer } from './rpc-serializer'
 import type { StandardLinkCodec } from './types'
 import { isAsyncIteratorObject, stringifyJSON, value, type Value } from '@orpc/shared'
 import { mergeStandardHeaders, type StandardHeaders, type StandardLazyResponse, type StandardRequest } from '@orpc/standard-server'
-import { ORPCError } from '../../error'
+import { isORPCErrorStatus, ORPCError } from '../../error'
 import { toHttpPath } from './utils'
 
 export interface StandardRPCLinkCodecOptions<T extends ClientContext> {
@@ -117,7 +117,7 @@ export class StandardRPCLinkCodec<T extends ClientContext> implements StandardLi
   }
 
   async decode(response: StandardLazyResponse): Promise<unknown> {
-    const isOk = response.status >= 200 && response.status < 300
+    const isOk = !isORPCErrorStatus(response.status)
 
     const deserialized = await (async () => {
       let isBodyOk = false

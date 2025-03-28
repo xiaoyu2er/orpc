@@ -1,4 +1,4 @@
-import { fallbackORPCErrorMessage, fallbackORPCErrorStatus, isDefinedError, ORPCError, toORPCError } from './error'
+import { fallbackORPCErrorMessage, fallbackORPCErrorStatus, isDefinedError, isORPCErrorStatus, ORPCError, toORPCError } from './error'
 
 it('fallbackORPCErrorStatus', () => {
   expect(fallbackORPCErrorStatus('BAD_GATEWAY', 500)).toBe(500)
@@ -42,9 +42,9 @@ describe('oRPCError', () => {
 
   it('oRPCError throw when invalid status', () => {
     expect(() => new ORPCError('BAD_GATEWAY', { status: 200 })).toThrowError()
-    expect(() => new ORPCError('BAD_GATEWAY', { status: 299 })).toThrowError()
+    expect(() => new ORPCError('BAD_GATEWAY', { status: 399 })).toThrowError()
 
-    expect(() => new ORPCError('BAD_GATEWAY', { status: 300 })).not.toThrowError()
+    expect(() => new ORPCError('BAD_GATEWAY', { status: 400 })).not.toThrowError()
     expect(() => new ORPCError('BAD_GATEWAY', { status: 199 })).not.toThrowError()
   })
 
@@ -106,4 +106,13 @@ it('toORPCError', () => {
 
     return true
   })
+})
+
+it('isORPCErrorStatus', () => {
+  expect(isORPCErrorStatus(200)).toBe(false)
+  expect(isORPCErrorStatus(399)).toBe(false)
+
+  expect(isORPCErrorStatus(400)).toBe(true)
+  expect(isORPCErrorStatus(499)).toBe(true)
+  expect(isORPCErrorStatus(199)).toBe(true)
 })

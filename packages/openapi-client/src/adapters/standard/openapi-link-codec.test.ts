@@ -1,4 +1,4 @@
-import { ORPCError } from '@orpc/client'
+import * as ClientModule from '@orpc/client'
 import * as StandardServer from '@orpc/standard-server'
 import { oc } from '../../../../contract/src/builder'
 import { StandardBracketNotationSerializer } from './bracket-notation'
@@ -6,6 +6,8 @@ import { StandardOpenAPIJsonSerializer } from './openapi-json-serializer'
 import { StandardOpenapiLinkCodec } from './openapi-link-codec'
 import { StandardOpenAPISerializer } from './openapi-serializer'
 
+const ORPCError = ClientModule.ORPCError
+const isORPCErrorStatusSpy = vi.spyOn(ClientModule, 'isORPCErrorStatus')
 const mergeStandardHeadersSpy = vi.spyOn(StandardServer, 'mergeStandardHeaders')
 
 beforeEach(() => {
@@ -282,6 +284,9 @@ describe('standardOpenapiLinkCodecOptions', () => {
 
       expect(deserialize).toHaveBeenCalledTimes(1)
       expect(deserialize).toHaveBeenCalledWith(form)
+
+      expect(isORPCErrorStatusSpy).toHaveBeenCalledTimes(1)
+      expect(isORPCErrorStatusSpy).toHaveBeenCalledWith(201)
     })
 
     it('outputStructure=detailed', async () => {
@@ -300,6 +305,46 @@ describe('standardOpenapiLinkCodecOptions', () => {
 
       expect(deserialize).toHaveBeenCalledTimes(1)
       expect(deserialize).toHaveBeenCalledWith(form)
+
+      expect(isORPCErrorStatusSpy).toHaveBeenCalledTimes(1)
+      expect(isORPCErrorStatusSpy).toHaveBeenCalledWith(201)
+    })
+
+    it('deserialize error', async () => {
+      const codec = new StandardOpenapiLinkCodec({ ping: oc }, serializer, {
+        url: 'http://localhost:3000',
+      })
+
+      await expect(codec.decode({
+        headers: { 'x-custom': 'value' },
+        body: async () => new ORPCError('BAD_GATEWAY', { status: 501, message: 'message', data: 'data' }).toJSON(),
+        status: 501,
+      }, { context: {}, signal }, ['ping'])).rejects.toSatisfy((error: any) => {
+        expect(error).toBeInstanceOf(ORPCError)
+        expect(error.code).toEqual('BAD_GATEWAY')
+        expect(error.status).toBe(501)
+        expect(error.message).toBe('message')
+        expect(error.data).toBe('data')
+
+        return true
+      })
+
+      await expect(codec.decode({
+        headers: { 'x-custom': 'value' },
+        body: async () => ({ something: 'data' }),
+        status: 409,
+      }, { context: {}, signal }, ['ping'])).rejects.toSatisfy((error: any) => {
+        expect(error).toBeInstanceOf(ORPCError)
+        expect(error.code).toEqual('MALFORMED_ORPC_ERROR_RESPONSE')
+        expect(error.status).toBe(409)
+        expect(error.data).toEqual({ something: 'data' })
+
+        return true
+      })
+
+      expect(isORPCErrorStatusSpy).toHaveBeenCalledTimes(2)
+      expect(isORPCErrorStatusSpy).toHaveBeenCalledWith(501)
+      expect(isORPCErrorStatusSpy).toHaveBeenCalledWith(409)
     })
 
     it('throw if not found a procedure', async () => {
@@ -340,39 +385,6 @@ describe('standardOpenapiLinkCodecOptions', () => {
         body: async () => form,
         status: 201,
       }, { context: {}, signal }, ['ping'])).rejects.toThrow('Invalid OpenAPI response format.')
-    })
-
-    it('deserialize error', async () => {
-      const codec = new StandardOpenapiLinkCodec({ ping: oc }, serializer, {
-        url: 'http://localhost:3000',
-      })
-
-      await expect(codec.decode({
-        headers: { 'x-custom': 'value' },
-        body: async () => new ORPCError('BAD_GATEWAY', { status: 501, message: 'message', data: 'data' }).toJSON(),
-        status: 501,
-      }, { context: {}, signal }, ['ping'])).rejects.toSatisfy((error: any) => {
-        expect(error).toBeInstanceOf(ORPCError)
-        expect(error.code).toEqual('BAD_GATEWAY')
-        expect(error.status).toBe(501)
-        expect(error.message).toBe('message')
-        expect(error.data).toBe('data')
-
-        return true
-      })
-
-      await expect(codec.decode({
-        headers: { 'x-custom': 'value' },
-        body: async () => ({ something: 'data' }),
-        status: 409,
-      }, { context: {}, signal }, ['ping'])).rejects.toSatisfy((error: any) => {
-        expect(error).toBeInstanceOf(ORPCError)
-        expect(error.code).toEqual('MALFORMED_ORPC_ERROR_RESPONSE')
-        expect(error.status).toBe(409)
-        expect(error.data).toEqual({ something: 'data' })
-
-        return true
-      })
     })
   })
 })

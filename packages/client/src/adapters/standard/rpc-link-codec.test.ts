@@ -1,9 +1,11 @@
 import * as StandardServer from '@orpc/standard-server'
-import { ORPCError } from '../../error'
+import * as ErrorModule from '../../error'
 import { StandardRPCJsonSerializer } from './rpc-json-serializer'
 import { StandardRPCLinkCodec } from './rpc-link-codec'
 import { StandardRPCSerializer } from './rpc-serializer'
 
+const ORPCError = ErrorModule.ORPCError
+const isORPCErrorStatusSpy = vi.spyOn(ErrorModule, 'isORPCErrorStatus')
 const mergeStandardHeadersSpy = vi.spyOn(StandardServer, 'mergeStandardHeaders')
 
 beforeEach(() => {
@@ -121,6 +123,9 @@ describe('standardRPCLinkCodec', () => {
 
       expect(deserializeSpy).toBeCalledTimes(1)
       expect(deserializeSpy).toBeCalledWith(serialized)
+
+      expect(isORPCErrorStatusSpy).toBeCalledTimes(1)
+      expect(isORPCErrorStatusSpy).toBeCalledWith(200)
     })
 
     it('should decode error', async () => {
@@ -144,6 +149,9 @@ describe('standardRPCLinkCodec', () => {
 
       expect(deserializeSpy).toBeCalledTimes(1)
       expect(deserializeSpy).toBeCalledWith(serialized)
+
+      expect(isORPCErrorStatusSpy).toBeCalledTimes(1)
+      expect(isORPCErrorStatusSpy).toBeCalledWith(499)
     })
 
     it('error: Cannot parse response body', async () => {

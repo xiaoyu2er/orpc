@@ -1,6 +1,6 @@
+import type { AnySchema } from '@orpc/contract'
 import type { Context, CreateProcedureClientOptions, ErrorMap, Lazyable, Meta, Procedure } from '@orpc/server'
 import type { Interceptor, MaybeOptionalOptions } from '@orpc/shared'
-import type { AnySchema } from '../../../contract/src/schema'
 import { ORPCError } from '@orpc/client'
 import { StandardBracketNotationSerializer } from '@orpc/openapi-client/standard'
 import { createProcedureClient } from '@orpc/server'

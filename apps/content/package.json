@@ -13,6 +13,7 @@
     "@orpc/contract": "workspace:*",
     "@orpc/openapi": "workspace:*",
     "@orpc/openapi-client": "workspace:*",
+    "@orpc/react": "workspace:*",
     "@orpc/react-query": "workspace:*",
     "@orpc/server": "workspace:*",
     "@orpc/valibot": "workspace:*",

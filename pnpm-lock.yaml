@@ -283,6 +283,9 @@ importers:
       '@orpc/client':
         specifier: workspace:*
         version: link:../client
+      '@orpc/openapi-client':
+        specifier: workspace:*
+        version: link:../openapi-client
       '@orpc/server':
         specifier: workspace:*
         version: link:../server

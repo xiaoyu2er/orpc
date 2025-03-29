@@ -1,15 +1,31 @@
 import type { ORPCError, ORPCErrorJSON } from '@orpc/client'
 import type { baseErrorMap, inputSchema, outputSchema } from '../../contract/tests/shared'
-import type { ActionableClient, JsonifiedError, ProcedureActionableClient } from './procedure-action'
+import type { ActionableClient, ActionableError, ProcedureActionableClient, UnactionableError } from './procedure-action'
 
-it('JsonifiedError', () => {
+it('ActionableError', () => {
   expectTypeOf<
-    JsonifiedError<Error | ORPCError<'CODE', { foo: string }> | ORPCError<'INTERNAL_SERVER_ERROR', { time: number }>>
-  >().toEqualTypeOf<ORPCErrorJSON<'CODE', { foo: string }> & { defined: true } | ORPCErrorJSON<'INTERNAL_SERVER_ERROR', { time: number }> & { defined: true } | ORPCErrorJSON<string, unknown> & { defined: false }>()
+    ActionableError<Error | ORPCError<'CODE', { foo: string }> | ORPCError<'INTERNAL_SERVER_ERROR', { time: number }>>
+  >().toEqualTypeOf<
+    | ORPCErrorJSON<'CODE', { foo: string }> & { defined: true }
+    | ORPCErrorJSON<'INTERNAL_SERVER_ERROR', { time: number }> & { defined: true }
+    | ORPCErrorJSON<string, unknown> & { defined: false }
+  >()
+})
+
+it('UnactionableError', () => {
+  expectTypeOf<
+    UnactionableError<
+      | ORPCErrorJSON<'CODE', { foo: string }> & { defined: true }
+      | ORPCErrorJSON<'INTERNAL_SERVER_ERROR', { time: number }> & { defined: true }
+      | ORPCErrorJSON<string, unknown> & { defined: false }
+    >
+  >().toEqualTypeOf<
+    Error | ORPCError<'CODE', { foo: string }> | ORPCError<'INTERNAL_SERVER_ERROR', { time: number }>
+  >()
 })
 
 describe('ActionableClient', () => {
-  const action = {} as ActionableClient<{ input: string }, { output: number }, JsonifiedError<Error | ORPCError<'CODE', { foo: string }> | ORPCError<'INTERNAL_SERVER_ERROR', { time: number }>>>
+  const action = {} as ActionableClient<{ input: string }, { output: number }, ActionableError<Error | ORPCError<'CODE', { foo: string }> | ORPCError<'INTERNAL_SERVER_ERROR', { time: number }>>>
 
   it('input', async () => {
     await action({ input: 'input' })
@@ -20,7 +36,7 @@ describe('ActionableClient', () => {
   })
 
   it('optional undefinedable input', async () => {
-    const action = {} as ActionableClient<{ input: string } | undefined, { output: number }, JsonifiedError<Error | ORPCError<'CODE', { foo: string }> | ORPCError<'INTERNAL_SERVER_ERROR', { time: number }>>>
+    const action = {} as ActionableClient<{ input: string } | undefined, { output: number }, ActionableError<Error | ORPCError<'CODE', { foo: string }> | ORPCError<'INTERNAL_SERVER_ERROR', { time: number }>>>
 
     await action({ input: 'input' })
     await action(undefined)

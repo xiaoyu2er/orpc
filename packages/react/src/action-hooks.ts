@@ -104,7 +104,6 @@ export function useServerAction<TInput, TOutput, TError extends ORPCErrorJSON<an
     const executedAt = new Date()
 
     setState({
-      ...state,
       data: undefined,
       error: null,
       isIdle: false,
@@ -129,7 +128,6 @@ export function useServerAction<TInput, TOutput, TError extends ORPCErrorJSON<an
     ))
 
     setState({
-      ...state,
       data: result.data,
       error: result.error as any,
       isIdle: false,

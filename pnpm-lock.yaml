@@ -298,6 +298,9 @@ importers:
       '@orpc/shared':
         specifier: workspace:*
         version: link:../shared
+      react:
+        specifier: '>=18.0.0'
+        version: 19.1.0
     devDependencies:
       zod:
         specifier: ^3.24.2

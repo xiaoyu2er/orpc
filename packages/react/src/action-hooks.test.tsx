@@ -106,4 +106,42 @@ describe('useServerAction', () => {
       expect(result.current.error).toBe(null)
     })
   })
+
+  it('interceptors', async () => {
+    const interceptor = vi.fn(({ next }) => next())
+    const executeInterceptor = vi.fn(({ next }) => next())
+
+    const { result } = renderHook(() => useServerAction(action, {
+      interceptors: [
+        interceptor,
+      ],
+    }))
+
+    act(async () => {
+      expect(interceptor).toHaveBeenCalledTimes(0)
+      expect(executeInterceptor).toHaveBeenCalledTimes(0)
+
+      result.current.execute({ input: 123 }, {
+        interceptors: [
+          executeInterceptor,
+        ],
+      })
+
+      expect(interceptor).toHaveBeenCalledTimes(1)
+      expect(executeInterceptor).toHaveBeenCalledTimes(1)
+
+      expect(interceptor).toHaveBeenCalledWith({
+        input: { input: 123 },
+        next: expect.any(Function),
+      })
+
+      expect(executeInterceptor).toHaveBeenCalledWith({
+        input: { input: 123 },
+        next: expect.any(Function),
+      })
+
+      expect(await interceptor.mock.results[0]!.value).toEqual({ output: '123' })
+      expect(await executeInterceptor.mock.results[0]!.value).toEqual({ output: '123' })
+    })
+  })
 })

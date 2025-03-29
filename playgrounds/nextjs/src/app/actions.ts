@@ -27,7 +27,6 @@ const dosomething = pub
     console.log('An form action was called!')
     console.log(input)
   })
-  .callable()
 
 export const redirectToScalarForm = createFormAction(dosomething, {
   interceptors: [

@@ -1,14 +1,13 @@
-import type { Interceptor } from '@orpc/shared'
-import { type Client, ORPCError } from '@orpc/client'
+import type { Context, CreateProcedureClientOptions, ErrorMap, Lazyable, Meta, Procedure } from '@orpc/server'
+import type { Interceptor, MaybeOptionalOptions } from '@orpc/shared'
+import type { AnySchema } from '../../../contract/src/schema'
+import { ORPCError } from '@orpc/client'
 import { StandardBracketNotationSerializer } from '@orpc/openapi-client/standard'
-import { intercept, onError, toArray } from '@orpc/shared'
+import { createProcedureClient } from '@orpc/server'
+import { onError, resolveMaybeOptionalOptions, toArray } from '@orpc/shared'
 
 export interface FormAction {
   (form: FormData): Promise<void>
-}
-
-export interface CreateFormActionOptions<TOutput, TError extends Error> {
-  interceptors?: Interceptor<{ form: FormData }, TOutput, TError>[]
 }
 
 export const orpcErrorToNextHttpFallbackInterceptor: Interceptor<any, any, any> = onError((error) => {
@@ -22,16 +21,36 @@ export const orpcErrorToNextHttpFallbackInterceptor: Interceptor<any, any, any> 
   }
 })
 
-export function createFormAction<TOutput, TError extends Error>(
-  client: Client<Record<never, never>, any, TOutput, TError>,
-  options: CreateFormActionOptions<TOutput, TError> = {},
+export function createFormAction<
+  TInitialContext extends Context,
+  TInputSchema extends AnySchema,
+  TOutputSchema extends AnySchema,
+  TErrorMap extends ErrorMap,
+  TMeta extends Meta,
+>(
+  lazyableProcedure: Lazyable<Procedure<TInitialContext, any, TInputSchema, TOutputSchema, TErrorMap, TMeta>>,
+  ...rest: MaybeOptionalOptions<
+    CreateProcedureClientOptions<
+      TInitialContext,
+      TInputSchema,
+      TOutputSchema,
+      TErrorMap,
+      TMeta,
+      Record<never, never>
+    >
+  >
 ): FormAction {
+  const options = resolveMaybeOptionalOptions(rest)
+
+  const client = createProcedureClient(lazyableProcedure, {
+    ...options,
+    interceptors: [orpcErrorToNextHttpFallbackInterceptor, ...toArray(options.interceptors)],
+  })
+
   const bracketNotation = new StandardBracketNotationSerializer()
 
   return async (form) => {
-    await intercept([orpcErrorToNextHttpFallbackInterceptor, ...toArray(options.interceptors)], { form }, ({ form }) => {
-      const input = bracketNotation.deserialize([...form])
-      return client(input)
-    })
+    const input = bracketNotation.deserialize([...form])
+    await client(input as any)
   }
 }

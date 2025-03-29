@@ -74,10 +74,10 @@ describe('createFormAction', () => {
     await action(form)
 
     expect(interceptor).toHaveBeenCalledTimes(1)
-    expect(interceptor).toHaveBeenCalledWith({
-      form,
+    expect(interceptor).toHaveBeenCalledWith(expect.objectContaining({
+      input: { user: { age: '18' } },
       next: expect.any(Function),
-    })
+    }))
     expect(await interceptor.mock.results[0]!.value).toEqual({ output: { user: { age: 18 } } })
   })
 })

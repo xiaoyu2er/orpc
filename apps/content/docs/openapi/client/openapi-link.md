@@ -91,7 +91,7 @@ const handler = new OpenAPIHandler(router, {
 
 ## Using Client Context
 
-Client context lets you pass extra information when calling procedures and dynamically modify RPCLink’s behavior.
+Client context lets you pass extra information when calling procedures and dynamically modify OpenAPILink's behavior.
 
 ```ts twoslash
 import { contract } from './shared/planet'
@@ -136,7 +136,7 @@ These options for sending [Event Iterator](/docs/event-iterator) from **client t
 **In 99% of cases, you don't need to configure these options.**
 :::
 
-To keep [Event Iterator](/docs/event-iterator) connections alive, `RPCLink` periodically sends a ping comment to the server. You can configure this behavior using the following options:
+To keep [Event Iterator](/docs/event-iterator) connections alive, `OpenAPILink` periodically sends a ping comment to the server. You can configure this behavior using the following options:
 
 - `eventIteratorKeepAliveEnabled` (default: `true`) – Enables or disables pings.
 - `eventIteratorKeepAliveInterval` (default: `5000`) – Time between pings (in milliseconds).

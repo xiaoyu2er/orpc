@@ -98,6 +98,9 @@ importers:
       '@orpc/openapi-client':
         specifier: workspace:*
         version: link:../../packages/openapi-client
+      '@orpc/react':
+        specifier: workspace:*
+        version: link:../../packages/react
       '@orpc/react-query':
         specifier: workspace:*
         version: link:../../packages/react-query

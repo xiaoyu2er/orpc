@@ -278,7 +278,21 @@ importers:
         specifier: workspace:*
         version: link:../server
 
-  packages/react: {}
+  packages/react:
+    dependencies:
+      '@orpc/client':
+        specifier: workspace:*
+        version: link:../client
+      '@orpc/server':
+        specifier: workspace:*
+        version: link:../server
+      '@orpc/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      zod:
+        specifier: ^3.24.2
+        version: 3.24.2
 
   packages/react-query:
     dependencies:

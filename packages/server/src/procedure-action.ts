@@ -6,11 +6,14 @@ export type ActionableError<T extends Error> = T extends ORPCError<infer U, infe
 
 export type UnactionableError<T> = T extends { defined: true } & ORPCErrorJSON<infer U, infer V> ? ORPCError<U, V> : Error
 
-export interface ActionableClient<TInput, TOutput, TError> {
-  (...rest: undefined extends TInput ? [input?: TInput] : [input: TInput]): Promise<
-    | [error: null, data: TOutput]
-    | [error: TError, data: undefined]
-  >
+export type ActionableClientRest<TInput> =
+  | [input: TInput]
+  | (undefined extends TInput ? [input?: TInput] : [input: TInput])
+
+export type ActionableClientResult<TOutput, TError extends ORPCErrorJSON<any, any>> = [error: null, data: TOutput] | [error: TError, data: undefined]
+
+export interface ActionableClient<TInput, TOutput, TError extends ORPCErrorJSON<any, any>> {
+  (...rest: ActionableClientRest<TInput>): Promise<ActionableClientResult<TOutput, TError>>
 }
 
 export type ProcedureActionableClient<

@@ -25,19 +25,9 @@ it('UnactionableError', () => {
 })
 
 describe('ActionableClient', () => {
-  const action = {} as ActionableClient<{ input: string }, { output: number }, ActionableError<Error | ORPCError<'CODE', { foo: string }> | ORPCError<'INTERNAL_SERVER_ERROR', { time: number }>>>
+  const action = {} as ActionableClient<{ input: string } | undefined, { output: number } | undefined, ActionableError<Error | ORPCError<'CODE', { foo: string }> | ORPCError<'INTERNAL_SERVER_ERROR', { time: number }>>>
 
   it('input', async () => {
-    await action({ input: 'input' })
-    // @ts-expect-error - not allow second argument
-    await action({ input: 'input' }, 'second' as any)
-    // @ts-expect-error - invalid input
-    await action('invalid')
-  })
-
-  it('optional undefinedable input', async () => {
-    const action = {} as ActionableClient<{ input: string } | undefined, { output: number }, ActionableError<Error | ORPCError<'CODE', { foo: string }> | ORPCError<'INTERNAL_SERVER_ERROR', { time: number }>>>
-
     await action({ input: 'input' })
     await action(undefined)
     await action()
@@ -48,11 +38,23 @@ describe('ActionableClient', () => {
     await action('invalid')
   })
 
+  it('require non-undefindable input', async () => {
+    const action = {} as ActionableClient<{ input: string }, { output: number }, ActionableError<Error | ORPCError<'CODE', { foo: string }> | ORPCError<'INTERNAL_SERVER_ERROR', { time: number }>>>
+
+    await action({ input: 'input' })
+    // @ts-expect-error - missing input
+    await action()
+    // @ts-expect-error - not allow second argument
+    await action({ input: 'input' }, 'second' as any)
+    // @ts-expect-error - invalid input
+    await action('invalid')
+  })
+
   it('result', async () => {
     const [error, data] = await action({ input: 'input' })
 
     if (!error) {
-      expectTypeOf(data).toEqualTypeOf<{ output: number }>()
+      expectTypeOf(data).toEqualTypeOf<{ output: number } | undefined>()
     }
 
     if (error) {
@@ -69,6 +71,12 @@ describe('ActionableClient', () => {
         expectTypeOf(error).toEqualTypeOf<ORPCErrorJSON<string, unknown> & { defined: false }>()
       }
     }
+  })
+
+  it('can reverse infer', async () => {
+    expectTypeOf<
+      typeof action extends ActionableClient<infer I, infer O, infer E> ? [I, O, E] : never
+    >().toEqualTypeOf<[{ input: string } | undefined, { output: number } | undefined, ActionableError<Error | ORPCError<'CODE', { foo: string }> | ORPCError<'INTERNAL_SERVER_ERROR', { time: number }>>]>()
   })
 })
 

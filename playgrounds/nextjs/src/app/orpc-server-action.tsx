@@ -5,8 +5,8 @@ import { getting } from './actions'
 export function OrpcServerAction() {
   const action = async (form: FormData) => {
     const name = form.get('name') as string
-    const result = await getting({ name })
-    alert(result)
+    const [, message] = await getting({ name })
+    alert(message)
   }
 
   return (

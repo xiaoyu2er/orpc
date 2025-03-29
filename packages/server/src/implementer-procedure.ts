@@ -1,11 +1,12 @@
-import type { ClientContext, ClientRest } from '@orpc/client'
-import type { AnySchema, ErrorMap, InferSchemaInput, InferSchemaOutput, Meta } from '@orpc/contract'
+import type { ClientContext } from '@orpc/client'
+import type { AnySchema, ErrorFromErrorMap, ErrorMap, InferSchemaInput, InferSchemaOutput, Meta } from '@orpc/contract'
 import type { IntersectPick, MaybeOptionalOptions } from '@orpc/shared'
 import type { BuilderDef } from './builder'
 import type { Context, MergedCurrentContext, MergedInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { MapInputMiddleware, Middleware } from './middleware'
 import type { Procedure, ProcedureHandler } from './procedure'
+import type { ActionableClient } from './procedure-action'
 import type { CreateProcedureClientOptions, ProcedureClient } from './procedure-client'
 
 /**
@@ -74,9 +75,9 @@ export interface ImplementedProcedure<
     & ProcedureClient<TClientContext, TInputSchema, TOutputSchema, TErrorMap >
 
   /**
-   * Make this procedure compatible with server action (the same as .callable, but the type is compatible with server action).
+   * Make this procedure compatible with server action.
    */
-  actionable<TClientContext extends ClientContext>(
+  actionable(
     ...rest: MaybeOptionalOptions<
       CreateProcedureClientOptions<
         TInitialContext,
@@ -84,11 +85,11 @@ export interface ImplementedProcedure<
         TOutputSchema,
         TErrorMap,
         TMeta,
-        TClientContext
+        Record<never, never>
       >
     >
   ): ImplementedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>
-    & ((...rest: ClientRest<TClientContext, InferSchemaInput<TInputSchema>>) => Promise<InferSchemaOutput<TOutputSchema>>)
+    & ActionableClient<InferSchemaInput<TInputSchema>, InferSchemaOutput<TOutputSchema>, ErrorFromErrorMap<TErrorMap>>
 }
 
 /**

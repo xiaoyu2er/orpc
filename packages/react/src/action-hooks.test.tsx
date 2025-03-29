@@ -1,6 +1,5 @@
 import { ORPCError, os } from '@orpc/server'
-import { renderHook } from '@testing-library/react'
-import { act } from 'react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import { baseErrorMap, inputSchema, outputSchema } from '../../contract/tests/shared'
 import { useServerAction } from './action-hooks'
 
@@ -39,7 +38,7 @@ describe('useServerAction', () => {
     expect(result.current.data).toBe(undefined)
     expect(result.current.error).toBe(null)
 
-    await vi.waitUntil(() => result.current.status === 'success')
+    await waitFor(() => expect(result.current.status).toBe('success'))
     expect(result.current.isIdle).toBe(false)
     expect(result.current.isPending).toBe(false)
     expect(result.current.isSuccess).toBe(true)
@@ -88,7 +87,7 @@ describe('useServerAction', () => {
     expect(result.current.data).toBe(undefined)
     expect(result.current.error).toBe(null)
 
-    await vi.waitUntil(() => result.current.status === 'error')
+    await waitFor(() => expect(result.current.status).toBe('error'))
     expect(result.current.isIdle).toBe(false)
     expect(result.current.isPending).toBe(false)
     expect(result.current.isSuccess).toBe(false)
@@ -145,7 +144,10 @@ describe('useServerAction', () => {
       next: expect.any(Function),
     })
 
-    expect(await interceptor.mock.results[0]!.value).toEqual({ output: '123' })
-    expect(await executeInterceptor.mock.results[0]!.value).toEqual({ output: '123' })
+    // Wrap the expectations in act() to properly handle state updates
+    await act(async () => {
+      expect(await interceptor.mock.results[0]!.value).toEqual({ output: '123' })
+      expect(await executeInterceptor.mock.results[0]!.value).toEqual({ output: '123' })
+    })
   })
 })

@@ -1,7 +1,6 @@
 import type { ClientContext } from '@orpc/client'
 import type {
   AnySchema,
-  ErrorFromErrorMap,
   ErrorMap,
   InferSchemaInput,
   InferSchemaOutput,
@@ -13,7 +12,7 @@ import type { IntersectPick, MaybeOptionalOptions } from '@orpc/shared'
 import type { Context, MergedCurrentContext, MergedInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { AnyMiddleware, MapInputMiddleware, Middleware } from './middleware'
-import type { ActionableClient } from './procedure-action'
+import type { ProcedureActionableClient } from './procedure-action'
 import type { CreateProcedureClientOptions, ProcedureClient } from './procedure-client'
 import { mergeErrorMap, mergeMeta, mergeRoute } from '@orpc/contract'
 import { decorateMiddleware } from './middleware-decorated'
@@ -157,8 +156,8 @@ export class DecoratedProcedure<
     >
   ):
     & DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>
-    & ActionableClient<InferSchemaInput<TInputSchema>, InferSchemaOutput<TOutputSchema>, ErrorFromErrorMap<TErrorMap>> {
-    const action: ActionableClient<InferSchemaInput<TInputSchema>, InferSchemaOutput<TOutputSchema>, ErrorFromErrorMap<TErrorMap>>
+    & ProcedureActionableClient<TInputSchema, TOutputSchema, TErrorMap> {
+    const action: ProcedureActionableClient<TInputSchema, TOutputSchema, TErrorMap>
       = createActionableClient(createProcedureClient(this, ...rest as any))
 
     return new Proxy(action, {

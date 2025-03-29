@@ -9,7 +9,7 @@ import type { ORPCErrorConstructorMap } from './error'
 import type { ImplementedProcedure, ProcedureImplementer } from './implementer-procedure'
 import type { Middleware, MiddlewareOutputFn } from './middleware'
 import type { Procedure } from './procedure'
-import type { ActionableClient } from './procedure-action'
+import type { ActionableClient, JsonifiedError } from './procedure-action'
 import type { DecoratedProcedure } from './procedure-decorated'
 
 const generalBuilder = {} as Builder<
@@ -199,7 +199,7 @@ describe('ImplementedProcedure', () => {
           typeof baseErrorMap,
           BaseMeta
       >
-      & ActionableClient<{ input: number }, { output: string }, ErrorFromErrorMap<typeof baseErrorMap>>
+      & ActionableClient<{ input: number }, { output: string }, JsonifiedError<ErrorFromErrorMap<typeof baseErrorMap>>>
     >()
   })
 })

@@ -1,12 +1,12 @@
 import type { ClientContext } from '@orpc/client'
-import type { AnySchema, ErrorFromErrorMap, ErrorMap, InferSchemaInput, InferSchemaOutput, Meta } from '@orpc/contract'
+import type { AnySchema, ErrorMap, InferSchemaInput, InferSchemaOutput, Meta } from '@orpc/contract'
 import type { IntersectPick, MaybeOptionalOptions } from '@orpc/shared'
 import type { BuilderDef } from './builder'
 import type { Context, MergedCurrentContext, MergedInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { MapInputMiddleware, Middleware } from './middleware'
 import type { Procedure, ProcedureHandler } from './procedure'
-import type { ActionableClient } from './procedure-action'
+import type { ProcedureActionableClient } from './procedure-action'
 import type { CreateProcedureClientOptions, ProcedureClient } from './procedure-client'
 
 /**
@@ -89,7 +89,7 @@ export interface ImplementedProcedure<
       >
     >
   ): ImplementedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>
-    & ActionableClient<InferSchemaInput<TInputSchema>, InferSchemaOutput<TOutputSchema>, ErrorFromErrorMap<TErrorMap>>
+    & ProcedureActionableClient<TInputSchema, TOutputSchema, TErrorMap>
 }
 
 /**

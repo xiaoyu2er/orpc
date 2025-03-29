@@ -1,8 +1,15 @@
 import type { ORPCError, ORPCErrorJSON } from '@orpc/client'
-import type { ActionableClient } from './procedure-action'
+import type { baseErrorMap, inputSchema, outputSchema } from '../../contract/tests/shared'
+import type { ActionableClient, JsonifiedError, ProcedureActionableClient } from './procedure-action'
+
+it('JsonifiedError', () => {
+  expectTypeOf<
+    JsonifiedError<Error | ORPCError<'CODE', { foo: string }> | ORPCError<'INTERNAL_SERVER_ERROR', { time: number }>>
+  >().toEqualTypeOf<ORPCErrorJSON<'CODE', { foo: string }> & { defined: true } | ORPCErrorJSON<'INTERNAL_SERVER_ERROR', { time: number }> & { defined: true } | ORPCErrorJSON<string, unknown> & { defined: false }>()
+})
 
 describe('ActionableClient', () => {
-  const action = {} as ActionableClient<{ input: string }, { output: number }, Error | ORPCError<'CODE', { foo: string }> | ORPCError<'INTERNAL_SERVER_ERROR', { time: number }>>
+  const action = {} as ActionableClient<{ input: string }, { output: number }, JsonifiedError<Error | ORPCError<'CODE', { foo: string }> | ORPCError<'INTERNAL_SERVER_ERROR', { time: number }>>>
 
   it('input', async () => {
     await action({ input: 'input' })
@@ -13,7 +20,7 @@ describe('ActionableClient', () => {
   })
 
   it('optional undefinedable input', async () => {
-    const action = {} as ActionableClient<{ input: string } | undefined, { output: number }, Error | ORPCError<'CODE', { foo: string }> | ORPCError<'INTERNAL_SERVER_ERROR', { time: number }>>
+    const action = {} as ActionableClient<{ input: string } | undefined, { output: number }, JsonifiedError<Error | ORPCError<'CODE', { foo: string }> | ORPCError<'INTERNAL_SERVER_ERROR', { time: number }>>>
 
     await action({ input: 'input' })
     await action(undefined)
@@ -43,8 +50,24 @@ describe('ActionableClient', () => {
         }
       }
       else {
-        expectTypeOf(error).toEqualTypeOf<ORPCError<string, unknown> & { defined: false }>()
+        expectTypeOf(error).toEqualTypeOf<ORPCErrorJSON<string, unknown> & { defined: false }>()
       }
     }
   })
+})
+
+it('ProcedureActionableClient', () => {
+  expectTypeOf<
+    ProcedureActionableClient<
+     typeof inputSchema,
+     typeof outputSchema,
+     typeof baseErrorMap
+    >
+  >().toEqualTypeOf<
+    ActionableClient<
+      { input: number },
+      { output: string },
+      ORPCErrorJSON<'BASE', { output: string }> & { defined: true } | ORPCErrorJSON<'OVERRIDE', unknown> & { defined: true } | ORPCErrorJSON<string, unknown> & { defined: false }
+    >
+  >()
 })

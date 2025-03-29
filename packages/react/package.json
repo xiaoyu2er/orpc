@@ -1,0 +1,38 @@
+{
+  "name": "@unnoq/react",
+  "type": "module",
+  "version": "0.0.0",
+  "license": "MIT",
+  "homepage": "https://orpc.unnoq.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unnoq/orpc.git",
+    "directory": "packages/react"
+  },
+  "keywords": [
+    "unnoq",
+    "orpc",
+    "react",
+    "nextjs"
+  ],
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.mts",
+        "import": "./dist/index.mjs",
+        "default": "./dist/index.mjs"
+      }
+    }
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "unbuild",
+    "build:watch": "pnpm run build --watch",
+    "type:check": "tsc -b"
+  }
+}

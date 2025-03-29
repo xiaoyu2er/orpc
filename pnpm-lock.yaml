@@ -278,6 +278,8 @@ importers:
         specifier: workspace:*
         version: link:../server
 
+  packages/react: {}
+
   packages/react-query:
     dependencies:
       '@orpc/client':

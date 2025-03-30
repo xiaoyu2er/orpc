@@ -1,11 +1,12 @@
 import type { Interceptor } from './interceptor'
+import type { PromiseWithError } from './types'
 import { onError, onFinish, onStart, onSuccess } from './interceptor'
 
 it('onStart', () => {
   const interceptor: Interceptor<{ foo: string }, 'success', 'error'> = onStart((options) => {
     expectTypeOf(options.foo).toEqualTypeOf<string>()
     expectTypeOf(options.next).toBeCallableWith<[options?: { foo: string }]>()
-    expectTypeOf(options.next()).toEqualTypeOf<Promise<'success'> & { __error?: { type: 'error' } }>()
+    expectTypeOf(options.next()).toEqualTypeOf<PromiseWithError<'success', 'error'>>()
   })
 })
 
@@ -15,7 +16,7 @@ it('onSuccess', () => {
 
     expectTypeOf(options.foo).toEqualTypeOf<string>()
     expectTypeOf(options.next).toBeCallableWith<[options?: { foo: string }]>()
-    expectTypeOf(options.next()).toEqualTypeOf<Promise<'success'> & { __error?: { type: 'error' } }>()
+    expectTypeOf(options.next()).toEqualTypeOf<PromiseWithError<'success', 'error'>>()
   })
 })
 
@@ -25,7 +26,7 @@ it('onError', () => {
 
     expectTypeOf(options.foo).toEqualTypeOf<string>()
     expectTypeOf(options.next).toBeCallableWith<[options?: { foo: string }]>()
-    expectTypeOf(options.next()).toEqualTypeOf<Promise<'success'> & { __error?: { type: 'error' } }>()
+    expectTypeOf(options.next()).toEqualTypeOf<PromiseWithError<'success', 'error'>>()
   })
 })
 
@@ -35,6 +36,6 @@ it('onFinish', () => {
 
     expectTypeOf(options.foo).toEqualTypeOf<string>()
     expectTypeOf(options.next).toBeCallableWith<[options?: { foo: string }]>()
-    expectTypeOf(options.next()).toEqualTypeOf<Promise<'success'> & { __error?: { type: 'error' } }>()
+    expectTypeOf(options.next()).toEqualTypeOf<PromiseWithError<'success', 'error'>>()
   })
 })

@@ -1,4 +1,5 @@
 import type { Promisable } from 'type-fest'
+import type { PromiseWithError } from './types'
 
 export type InterceptableOptions = Record<string, any>
 
@@ -7,14 +8,14 @@ export type InterceptorOptions<
   TResult,
   TError,
 > = Omit<TOptions, 'next'> & {
-  next(options?: TOptions): Promise<TResult> & { __error?: { type: TError } }
+  next(options?: TOptions): PromiseWithError<TResult, TError>
 }
 
 export type Interceptor<
   TOptions extends InterceptableOptions,
   TResult,
   TError,
-> = (options: InterceptorOptions<TOptions, TResult, TError>) => Promise<TResult> & { __error?: { type: TError } }
+> = (options: InterceptorOptions<TOptions, TResult, TError>) => PromiseWithError<TResult, TError>
 
 /**
  * Can used for interceptors or middlewares
@@ -44,15 +45,19 @@ export function onSuccess<TOptions extends { next(): any }, TRest extends any[]>
 /**
  * Can used for interceptors or middlewares
  */
-export function onError<TError, TOptions extends { next(): any }, TRest extends any[]>(
-  callback: NoInfer<(error: TError, options: TOptions, ...rest: TRest) => Promisable<void>>,
-): (options: TOptions, ...rest: TRest) => Promise<Awaited<ReturnType<TOptions['next']>>> & { __error?: { type: TError } } {
+export function onError<TOptions extends { next(): any }, TRest extends any[]>(
+  callback: NoInfer<(
+    error: ReturnType<TOptions['next']> extends PromiseWithError<any, infer E> ? E : unknown,
+    options: TOptions,
+    ...rest: TRest
+  ) => Promisable<void>>,
+): (options: TOptions, ...rest: TRest) => Promise<Awaited<ReturnType<TOptions['next']>>> {
   return async (options, ...rest) => {
     try {
       return await options.next()
     }
     catch (error) {
-      await callback(error as TError, options, ...rest)
+      await callback(error as any, options, ...rest)
       throw error
     }
   }
@@ -63,10 +68,18 @@ export type OnFinishState<TResult, TError> = [TResult, null, 'success'] | [undef
 /**
  * Can used for interceptors or middlewares
  */
-export function onFinish<TError, TOptions extends { next(): any }, TRest extends any[]>(
-  callback: NoInfer<(state: OnFinishState<Awaited<ReturnType<TOptions['next']>>, TError>, options: TOptions, ...rest: TRest) => Promisable<void>>,
-): (options: TOptions, ...rest: TRest) => Promise<Awaited<ReturnType<TOptions['next']>>> & { __error?: { type: TError } } {
-  let state: OnFinishState<Awaited<ReturnType<TOptions['next']>>, TError> | undefined
+export function onFinish<TOptions extends { next(): any }, TRest extends any[]>(
+  callback: NoInfer<(
+    state: OnFinishState<
+      Awaited<ReturnType<TOptions['next']>>,
+      ReturnType<TOptions['next']> extends PromiseWithError<any, infer E> ? E : unknown
+    >,
+    options: TOptions,
+    ...rest: TRest
+  ) => Promisable<void>>,
+): (options: TOptions, ...rest: TRest) => Promise<Awaited<ReturnType<TOptions['next']>>> {
+  let state: any
+
   return async (options, ...rest) => {
     try {
       const result = await options.next()
@@ -74,11 +87,11 @@ export function onFinish<TError, TOptions extends { next(): any }, TRest extends
       return result
     }
     catch (error) {
-      state = [undefined, error as TError, 'error']
+      state = [undefined, error, 'error']
       throw error
     }
     finally {
-      await callback(state as Exclude<typeof state, undefined>, options, ...rest)
+      await callback(state, options, ...rest)
     }
   }
 }

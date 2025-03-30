@@ -25,12 +25,11 @@ export type ProcedureClient<
 
 export interface ProcedureClientInterceptorOptions<
   TInitialContext extends Context,
-  TInputSchema extends AnySchema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > {
   context: TInitialContext
-  input: InferSchemaInput<TInputSchema>
+  input: unknown
   errors: ORPCErrorConstructorMap<TErrorMap>
   path: readonly string[]
   procedure: Procedure<Context, Context, AnySchema, AnySchema, ErrorMap, TMeta>
@@ -43,7 +42,6 @@ export interface ProcedureClientInterceptorOptions<
  */
 export type CreateProcedureClientOptions<
   TInitialContext extends Context,
-  TInputSchema extends AnySchema,
   TOutputSchema extends AnySchema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
@@ -56,7 +54,7 @@ export type CreateProcedureClientOptions<
     path?: readonly string[]
 
     interceptors?: Interceptor<
-      ProcedureClientInterceptorOptions<TInitialContext, TInputSchema, TErrorMap, TMeta>,
+      ProcedureClientInterceptorOptions<TInitialContext, TErrorMap, TMeta>,
       InferSchemaOutput<TOutputSchema>,
       ErrorFromErrorMap<TErrorMap>
     >[]
@@ -79,7 +77,6 @@ export function createProcedureClient<
   ...[options]: MaybeOptionalOptions<
     CreateProcedureClientOptions<
       TInitialContext,
-      TInputSchema,
       TOutputSchema,
       TErrorMap,
       TMeta,

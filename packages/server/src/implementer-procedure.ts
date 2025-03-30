@@ -64,7 +64,6 @@ export interface ImplementedProcedure<
     ...rest: MaybeOptionalOptions<
       CreateProcedureClientOptions<
         TInitialContext,
-        TInputSchema,
         TOutputSchema,
         TErrorMap,
         TMeta,
@@ -81,7 +80,6 @@ export interface ImplementedProcedure<
     ...rest: MaybeOptionalOptions<
       CreateProcedureClientOptions<
         TInitialContext,
-        TInputSchema,
         TOutputSchema,
         TErrorMap,
         TMeta,

@@ -32,7 +32,6 @@ export function createFormAction<
   ...rest: MaybeOptionalOptions<
     CreateProcedureClientOptions<
       TInitialContext,
-      TInputSchema,
       TOutputSchema,
       TErrorMap,
       TMeta,

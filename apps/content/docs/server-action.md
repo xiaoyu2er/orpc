@@ -149,7 +149,7 @@ export const someAction = os
 // ---cut---
 'use client'
 
-import { useServerAction } from '@orpc/react'
+import { useServerAction } from '@orpc/react/hooks'
 import { isDefinedError, onError } from '@orpc/client'
 
 export function MyComponent() {
@@ -184,7 +184,7 @@ export function MyComponent() {
 The `createFormAction` utility accepts a [procedure](/docs/procedure) and returns a function to handle form submissions. It uses [Bracket Notation](/docs/openapi/bracket-notation) to deserialize form data.
 
 ```tsx
-import { createFormAction } from '@orpc/react/server'
+import { createFormAction } from '@orpc/react'
 
 const dosomething = os
   .input(

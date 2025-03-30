@@ -1,6 +1,6 @@
 'use client'
 
-import { useServerAction } from '@orpc/react'
+import { useServerAction } from '@orpc/react/hooks'
 import { getting } from './actions'
 import { onSuccess } from '@orpc/client'
 

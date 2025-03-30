@@ -1,7 +1,7 @@
 import type { ORPCError } from '@orpc/server'
 import { os, safe } from '@orpc/server'
 import { z } from 'zod'
-import { baseErrorMap, inputSchema, outputSchema } from '../../contract/tests/shared'
+import { baseErrorMap, inputSchema, outputSchema } from '../../../contract/tests/shared'
 import { useServerAction } from './action-hooks'
 
 describe('useServerAction', () => {

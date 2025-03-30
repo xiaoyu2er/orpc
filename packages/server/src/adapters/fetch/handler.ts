@@ -1,7 +1,8 @@
+import type { Interceptor, MaybeOptionalOptions, ThrowableError } from '@orpc/shared'
 import type { Context } from '../../context'
 import type { StandardHandleOptions, StandardHandler, StandardHandlerPlugin } from '../standard'
 import type { FriendlyStandardHandleOptions } from '../standard/utils'
-import { intercept, type Interceptor, type MaybeOptionalOptions, resolveMaybeOptionalOptions, toArray } from '@orpc/shared'
+import { intercept, resolveMaybeOptionalOptions, toArray } from '@orpc/shared'
 import { toFetchResponse, type ToFetchResponseOptions, toStandardLazyRequest } from '@orpc/standard-server-fetch'
 import { resolveFriendlyStandardHandleOptions } from '../standard/utils'
 
@@ -17,7 +18,7 @@ export interface FetchHandlerInterceptorOptions<T extends Context> extends Stand
 }
 
 export interface FetchHandlerOptions<T extends Context> extends ToFetchResponseOptions {
-  adapterInterceptors?: Interceptor<FetchHandlerInterceptorOptions<T>, FetchHandleResult, unknown >[]
+  adapterInterceptors?: Interceptor<FetchHandlerInterceptorOptions<T>, FetchHandleResult, ThrowableError>[]
 
   plugins?: FetchHandlerPlugin<T>[]
 }

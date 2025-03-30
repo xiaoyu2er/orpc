@@ -3,7 +3,7 @@ import type { AnySchema, ErrorFromErrorMap, ErrorMap, InferSchemaInput, InferSch
 import type { ThrowableError } from '@orpc/shared'
 import { toORPCError } from '@orpc/client'
 
-export type ActionableError<T extends Error> = T extends ORPCError<infer U, infer V> ? ORPCErrorJSON<U, V> & { defined: true } : ORPCErrorJSON<string, unknown> & { defined: false }
+export type ActionableError<T> = T extends ORPCError<infer U, infer V> ? ORPCErrorJSON<U, V> & { defined: true } : ORPCErrorJSON<string, unknown> & { defined: false }
 
 export type UnactionableError<T> = T extends { defined: true } & ORPCErrorJSON<infer U, infer V> ? ORPCError<U, V> : ThrowableError
 
@@ -27,7 +27,7 @@ export type ProcedureActionableClient<
   ActionableError<ErrorFromErrorMap<TErrorMap>>
 >
 
-export function createActionableClient<TInput, TOutput, TError extends Error>(
+export function createActionableClient<TInput, TOutput, TError>(
   client: Client<Record<never, never>, TInput, TOutput, TError>,
 ): ActionableClient<TInput, TOutput, ActionableError<TError>> {
   const action = async (input: TInput) => {

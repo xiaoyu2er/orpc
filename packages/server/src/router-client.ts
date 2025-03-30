@@ -24,7 +24,6 @@ export function createRouterClient<T extends AnyRouter, TClientContext extends C
     CreateProcedureClientOptions<
       InferRouterInitialContext<T>,
       Schema<unknown, unknown>,
-      Schema<unknown, unknown>,
       ErrorMap,
       Meta,
       TClientContext

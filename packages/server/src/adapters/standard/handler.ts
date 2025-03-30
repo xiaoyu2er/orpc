@@ -43,7 +43,7 @@ export interface StandardHandlerOptions<TContext extends Context> {
    * Interceptors for procedure client.
    */
   clientInterceptors?: Interceptor<
-    ProcedureClientInterceptorOptions<TContext, AnySchema, Record<never, never>, Meta>,
+    ProcedureClientInterceptorOptions<TContext, Record<never, never>, Meta>,
     InferSchemaOutput<AnySchema>,
     ErrorFromErrorMap<Record<never, never>>
   >[]

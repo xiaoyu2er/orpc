@@ -118,7 +118,6 @@ export class DecoratedProcedure<
     ...rest: MaybeOptionalOptions<
       CreateProcedureClientOptions<
         TInitialContext,
-        TInputSchema,
         TOutputSchema,
         TErrorMap,
         TMeta,
@@ -147,7 +146,6 @@ export class DecoratedProcedure<
     ...rest: MaybeOptionalOptions<
       CreateProcedureClientOptions<
         TInitialContext,
-        TInputSchema,
         TOutputSchema,
         TErrorMap,
         TMeta,

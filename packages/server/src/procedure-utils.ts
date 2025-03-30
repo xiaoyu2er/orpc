@@ -60,7 +60,6 @@ export function call<
   ...rest: MaybeOptionalOptions<
     CreateProcedureClientOptions<
       TInitialContext,
-      TInputSchema,
       TOutputSchema,
       TErrorMap,
       TMeta,

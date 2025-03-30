@@ -96,7 +96,7 @@ describe('createProcedureClient', () => {
           expectTypeOf(path).toEqualTypeOf<readonly string[]>()
           expectTypeOf(errors).toEqualTypeOf<ORPCErrorConstructorMap<typeof baseErrorMap>>()
           expectTypeOf(context).toEqualTypeOf<{ db: string }>()
-          expectTypeOf(input).toEqualTypeOf<{ input: number }>()
+          expectTypeOf(input).toEqualTypeOf<unknown>()
 
           const output = await next()
 

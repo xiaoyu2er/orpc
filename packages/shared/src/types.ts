@@ -9,8 +9,8 @@ export type PromiseWithError<T, TError> = Promise<T> & { __error?: { type: TErro
  *
  * - `throwableError` the error type that represent throwable errors should be `Error` or `null | undefined | {}` if you want more strict.
  */
-export interface TypesConfig {
+export interface Registry {
 
 }
 
-export type ThrowableError = TypesConfig extends { throwableError: infer T } ? T : Error
+export type ThrowableError = Registry extends { throwableError: infer T } ? T : Error

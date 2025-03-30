@@ -15,4 +15,4 @@ export * from './router-utils'
 export * from './schema'
 
 export { ORPCError } from '@orpc/client'
-export type { ThrowableError, TypesConfig } from '@orpc/shared'
+export type { Registry, ThrowableError } from '@orpc/shared'

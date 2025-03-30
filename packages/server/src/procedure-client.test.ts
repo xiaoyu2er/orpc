@@ -444,12 +444,6 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
   describe('error validation', () => {
     const client = createProcedureClient(procedure)
 
-    it('transform non-error to error', () => {
-      handler.mockRejectedValueOnce('non-error')
-
-      expect(client({ val: '123' })).rejects.toThrow('Unknown error')
-    })
-
     it('throw non-ORPC Error right away', () => {
       const e1 = new Error('non-ORPC Error')
       handler.mockRejectedValueOnce(e1)

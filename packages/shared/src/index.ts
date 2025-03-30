@@ -1,7 +1,6 @@
 export * from './args'
 export * from './array'
 export * from './chain'
-export * from './error'
 export * from './function'
 export * from './interceptor'
 export * from './iterator'

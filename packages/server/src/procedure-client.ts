@@ -5,7 +5,7 @@ import type { MiddlewareNextFn } from './middleware'
 import type { AnyProcedure, Procedure, ProcedureHandlerOptions } from './procedure'
 import { ORPCError } from '@orpc/client'
 import { type AnySchema, type ErrorFromErrorMap, type ErrorMap, type InferSchemaInput, type InferSchemaOutput, type Meta, ValidationError } from '@orpc/contract'
-import { intercept, toError, value } from '@orpc/shared'
+import { intercept, value } from '@orpc/shared'
 import { type Context, mergeCurrentContext } from './context'
 import { createORPCErrorConstructorMap, type ORPCErrorConstructorMap, validateORPCError } from './error'
 import { unlazy } from './lazy'
@@ -109,7 +109,7 @@ export function createProcedureClient<
     }
     catch (e) {
       if (!(e instanceof ORPCError)) {
-        throw toError(e)
+        throw e
       }
 
       const validated = await validateORPCError(procedure['~orpc'].errorMap, e)

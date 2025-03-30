@@ -1,3 +1,5 @@
+import type { PromiseWithError } from '@orpc/shared'
+
 export type HTTPPath = `/${string}`
 export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
 
@@ -13,7 +15,7 @@ export type ClientRest<TClientContext extends ClientContext, TInput> = Record<ne
     : [input: TInput, options?: FriendlyClientOptions<TClientContext>]
   : [input: TInput, options: FriendlyClientOptions<TClientContext>]
 
-export type ClientPromiseResult<TOutput, TError extends Error> = Promise<TOutput> & { __error?: { type: TError } }
+export type ClientPromiseResult<TOutput, TError extends Error> = PromiseWithError<TOutput, TError>
 
 export interface Client<TClientContext extends ClientContext, TInput, TOutput, TError extends Error> {
   (...rest: ClientRest<TClientContext, TInput>): ClientPromiseResult<TOutput, TError>

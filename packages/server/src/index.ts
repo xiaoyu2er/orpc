@@ -37,4 +37,5 @@ export type {
   Schema,
 } from '@orpc/contract'
 export { onError, onFinish, onStart, onSuccess } from '@orpc/shared'
+export type { ThrowableError, TypesConfig } from '@orpc/shared'
 export { getEventMeta, withEventMeta } from '@orpc/standard-server'

@@ -21,7 +21,7 @@ By default, oRPC treats thrown instances of `Error` as best practice. This appro
 
 You can customize oRPC's default behavior by setting `throwableError` in the `Registry`:
 
-```ts twoslash
+```ts
 declare module '@orpc/server' { // or '@orpc/contract', or '@orpc/client'
   interface Registry {
     throwableError: Error // [!code highlight]

@@ -1,4 +1,4 @@
-export type Context = Record<string, any>
+export type Context = Record<PropertyKey, any>
 
 export type MergedInitialContext<
   TInitial extends Context,

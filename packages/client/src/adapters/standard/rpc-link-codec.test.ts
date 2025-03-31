@@ -3,10 +3,12 @@ import * as ErrorModule from '../../error'
 import { StandardRPCJsonSerializer } from './rpc-json-serializer'
 import { StandardRPCLinkCodec } from './rpc-link-codec'
 import { StandardRPCSerializer } from './rpc-serializer'
+import * as UtilsModule from './utils'
 
 const ORPCError = ErrorModule.ORPCError
 const isORPCErrorStatusSpy = vi.spyOn(ErrorModule, 'isORPCErrorStatus')
 const mergeStandardHeadersSpy = vi.spyOn(StandardServer, 'mergeStandardHeaders')
+const getMalformedResponseErrorCodeSpy = vi.spyOn(UtilsModule, 'getMalformedResponseErrorCode')
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -177,26 +179,34 @@ describe('standardRPCLinkCodec', () => {
       expect(deserializeSpy).toBeCalledWith({ meta: 123 })
     })
 
-    it('error: Invalid RPC error response format.', async () => {
+    it('error: Malformed Response Error', async () => {
       const error = new ORPCError('TEST', {
         data: {
           message: 'hello world',
         },
       })
 
-      const serialized = serializer.serialize({
-        ...error.toJSON(),
-        code: undefined,
-      }) as any
+      const serialized = serializer.serialize({ something: 'value' }) as any
+
+      getMalformedResponseErrorCodeSpy.mockReturnValueOnce('__MOCKED_CODE__')
 
       await expect(codec.decode({
         status: 403,
         headers: {},
         body: () => Promise.resolve(serialized),
-      })).rejects.toThrow('MALFORMED_ORPC_ERROR_RESPONSE')
+      })).rejects.toSatisfy((e) => {
+        expect(e).toBeInstanceOf(ORPCError)
+        expect(e.code).toEqual('__MOCKED_CODE__')
+        expect(e.data).toEqual({ something: 'value' })
+
+        return true
+      })
 
       expect(deserializeSpy).toBeCalledTimes(1)
       expect(deserializeSpy).toBeCalledWith(serialized)
+
+      expect(getMalformedResponseErrorCodeSpy).toBeCalledTimes(1)
+      expect(getMalformedResponseErrorCodeSpy).toBeCalledWith(403)
     })
   })
 })

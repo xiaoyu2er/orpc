@@ -1,4 +1,5 @@
 import * as ClientModule from '@orpc/client'
+import * as ClientStandardModule from '@orpc/client/standard'
 import * as StandardServer from '@orpc/standard-server'
 import { oc } from '../../../../contract/src/builder'
 import { StandardBracketNotationSerializer } from './bracket-notation'
@@ -9,6 +10,7 @@ import { StandardOpenAPISerializer } from './openapi-serializer'
 const ORPCError = ClientModule.ORPCError
 const isORPCErrorStatusSpy = vi.spyOn(ClientModule, 'isORPCErrorStatus')
 const mergeStandardHeadersSpy = vi.spyOn(StandardServer, 'mergeStandardHeaders')
+const getMalformedResponseErrorCodeSpy = vi.spyOn(ClientStandardModule, 'getMalformedResponseErrorCode')
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -335,7 +337,7 @@ describe('standardOpenapiLinkCodecOptions', () => {
         status: 409,
       }, { context: {}, signal }, ['ping'])).rejects.toSatisfy((error: any) => {
         expect(error).toBeInstanceOf(ORPCError)
-        expect(error.code).toEqual('MALFORMED_ORPC_ERROR_RESPONSE')
+        expect(error.code).toEqual('CONFLICT')
         expect(error.status).toBe(409)
         expect(error.data).toEqual({ something: 'data' })
 
@@ -345,6 +347,9 @@ describe('standardOpenapiLinkCodecOptions', () => {
       expect(isORPCErrorStatusSpy).toHaveBeenCalledTimes(2)
       expect(isORPCErrorStatusSpy).toHaveBeenCalledWith(501)
       expect(isORPCErrorStatusSpy).toHaveBeenCalledWith(409)
+
+      expect(getMalformedResponseErrorCodeSpy).toHaveBeenCalledTimes(1)
+      expect(getMalformedResponseErrorCodeSpy).toHaveBeenCalledWith(409)
     })
 
     it('throw if not found a procedure', async () => {

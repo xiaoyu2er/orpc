@@ -2,21 +2,23 @@ import type { ORPCError } from './error'
 import type { Client, ClientContext } from './types'
 
 describe('client', () => {
-  const client: Client<{ cache?: boolean }, string | undefined, number, Error | ORPCError<'OVERRIDE', unknown>> = async (...args) => {
+  const client: Client<{ cache?: boolean }, string, number, Error | ORPCError<'OVERRIDE', unknown>> = async (...args) => {
     const [input, options] = args
 
-    expectTypeOf(input).toEqualTypeOf<string | undefined>()
+    expectTypeOf(input).toEqualTypeOf<string>()
     expectTypeOf(options).toMatchTypeOf<{ context?: { cache?: boolean }, signal?: AbortSignal } | undefined>()
     return 123
   }
 
   it('just a function', () => {
-    expectTypeOf(client).toMatchTypeOf<(input: string | undefined, options: { context?: ClientContext, signal?: AbortSignal }) => Promise<number>>()
+    expectTypeOf(client).toMatchTypeOf<(input: string, options: { context?: ClientContext, signal?: AbortSignal }) => Promise<number>>()
   })
 
   it('infer correct input', () => {
     client('123')
+    // @ts-expect-error - invalid input
     client(undefined)
+    // @ts-expect-error - missing input
     client()
 
     // @ts-expect-error - invalid input
@@ -25,11 +27,11 @@ describe('client', () => {
     client({})
   })
 
-  it('require non-undefindable input', () => {
-    const client = {} as Client<ClientContext, { val: string }, { val: number }, Error>
+  it('optional undefinedable input', () => {
+    const client = {} as Client<ClientContext, { val: string } | undefined, { val: number }, Error>
 
     client({ val: '123' })
-    // @ts-expect-error - missing input
+    client(undefined)
     client()
     // @ts-expect-error - invalid input
     client({ val: 123 })
@@ -79,6 +81,6 @@ describe('client', () => {
   it('can reverse infer', () => {
     expectTypeOf<
       typeof client extends Client<infer C, infer I, infer O, infer E> ? [C, I, O, E] : never
-    >().toEqualTypeOf<[{ cache?: boolean }, string | undefined, number, Error | ORPCError<'OVERRIDE', unknown>]>()
+    >().toEqualTypeOf<[{ cache?: boolean }, string, number, Error | ORPCError<'OVERRIDE', unknown>]>()
   })
 })

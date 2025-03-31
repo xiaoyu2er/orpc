@@ -1,3 +1,4 @@
+import type { ThrowableError } from '@orpc/shared'
 import type { ORPCError } from './error'
 import type { ClientContext, ClientOptions, ClientPromiseResult, FriendlyClientOptions } from './types'
 import { isDefinedError } from './error'
@@ -10,7 +11,7 @@ export type SafeResult<TOutput, TError> =
   | [error: Extract<TError, ORPCError<any, any>>, data: undefined, isDefined: true, success: false]
   & { error: Extract<TError, ORPCError<any, any>>, data: undefined, isDefined: true, success: false }
 
-export async function safe<TOutput, TError>(promise: ClientPromiseResult<TOutput, TError>): Promise<SafeResult<TOutput, TError>> {
+export async function safe<TOutput, TError = ThrowableError>(promise: ClientPromiseResult<TOutput, TError>): Promise<SafeResult<TOutput, TError>> {
   try {
     const output = await promise
     return Object.assign(

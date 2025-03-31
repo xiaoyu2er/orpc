@@ -331,13 +331,15 @@ describe('standardOpenapiLinkCodecOptions', () => {
         return true
       })
 
+      getMalformedResponseErrorCodeSpy.mockReturnValueOnce('__MOCKED_CODE__')
+
       await expect(codec.decode({
         headers: { 'x-custom': 'value' },
         body: async () => ({ something: 'data' }),
         status: 409,
       }, { context: {}, signal }, ['ping'])).rejects.toSatisfy((error: any) => {
         expect(error).toBeInstanceOf(ORPCError)
-        expect(error.code).toEqual('CONFLICT')
+        expect(error.code).toEqual('__MOCKED_CODE__')
         expect(error.status).toBe(409)
         expect(error.data).toEqual({ something: 'data' })
 

@@ -188,13 +188,15 @@ describe('standardRPCLinkCodec', () => {
 
       const serialized = serializer.serialize({ something: 'value' }) as any
 
+      getMalformedResponseErrorCodeSpy.mockReturnValueOnce('__MOCKED_CODE__')
+
       await expect(codec.decode({
         status: 403,
         headers: {},
         body: () => Promise.resolve(serialized),
       })).rejects.toSatisfy((e) => {
         expect(e).toBeInstanceOf(ORPCError)
-        expect(e.code).toEqual('FORBIDDEN')
+        expect(e.code).toEqual('__MOCKED_CODE__')
         expect(e.data).toEqual({ something: 'value' })
 
         return true

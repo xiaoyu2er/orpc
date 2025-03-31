@@ -5,7 +5,7 @@ description: Always throw `Error` instances instead of literal values.
 
 # No Throw Literal
 
-JavaScript allows you to throw any value, but best practices dictate throwing only `Error` instances rather than literal values.
+In JavaScript, you can throw any value, but it's best to throw only `Error` instances.
 
 ```ts
 // eslint-disable-next-line no-throw-literal
@@ -14,12 +14,12 @@ throw new Error('error') // ✓ recommended
 ```
 
 :::info
-By default, oRPC treats thrown instances of `Error` as best practice. This approach is also recommended by the [JavaScript Standard Style](https://standardjs.com/rules.html#throw-new-error-old-style).
+oRPC treats thrown `Error` instances as best practice by default, as recommended by the [JavaScript Standard Style](https://standardjs.com/rules.html#throw-new-error-old-style).
 :::
 
 ## Configuration
 
-You can customize oRPC's default behavior by setting `throwableError` in the `Registry`:
+Customize oRPC's behavior by setting `throwableError` in the `Registry`:
 
 ```ts
 declare module '@orpc/server' { // or '@orpc/contract', or '@orpc/client'
@@ -30,20 +30,19 @@ declare module '@orpc/server' { // or '@orpc/contract', or '@orpc/client'
 ```
 
 :::info
-Set `throwableError` to either `Error` (the default) or `null | undefined | {}` (which is equivalent to `unknown` and works with [type-safe error handling](/docs/client/error-handling#using-safe-and-isdefinederror)).
+Avoid using `any` or `unknown` for `throwableError` because doing so prevents the client from inferring [type-safe errors](/docs/client/error-handling#using-safe-and-isdefinederror). Instead, use `null | undefined | {}` (equivalent to `unknown`) for stricter error type inference.
 :::
 
 :::tip
-If you configure it as `null | undefined | {}`, you must adjust your code. Instead of simply checking for an error, use the `status` property:
+If you configure `throwableError` as `null | undefined | {}`, adjust your code to check the `success` property:
 
 ```ts
-const { error, data, status } = await safe(client('input'))
+const { error, data, success } = await safe(client('input'))
 
-if (status === 'error') {
+if (!success) {
   if (isDefinedError(error)) {
     // handle type-safe error
   }
-
   // handle other errors
 }
 else {

@@ -53,6 +53,8 @@ describe('ImplementerWithMiddlewares', () => {
         implementer.use(({ next }, input: 'invalid') => next({}))
         // @ts-expect-error --- output is not match
         implementer.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}))
+        // @ts-expect-error --- conflict context
+        implementer.use(({ next }) => next({ context: { db: undefined } }))
       })
 
       it('with TInContext', () => {

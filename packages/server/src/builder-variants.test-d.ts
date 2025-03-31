@@ -105,6 +105,8 @@ describe('BuilderWithMiddlewares', () => {
       builder.use(({ next }, input: 'invalid') => next({}))
       // @ts-expect-error --- output is not match
       builder.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}))
+      // @ts-expect-error --- conflict context
+      builder.use(({ next }) => next({ context: { db: undefined } }))
     })
 
     it('with TInContext', () => {
@@ -364,6 +366,8 @@ describe('ProcedureBuilder', () => {
       builder.use(({ next }, input: 'invalid') => next({}))
       // @ts-expect-error --- output is not match
       builder.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}))
+      // @ts-expect-error --- conflict context
+      builder.use(({ next }) => next({ context: { db: undefined } }))
     })
 
     it('with TInContext', () => {
@@ -558,6 +562,8 @@ describe('ProcedureBuilderWithInput', () => {
       builder.use(({ next }, input: 'invalid') => next({}))
       // @ts-expect-error --- output is not match
       builder.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}))
+      // @ts-expect-error --- conflict context
+      builder.use(({ next }) => next({ context: { db: undefined } }))
     })
 
     it('with map input', () => {
@@ -606,6 +612,8 @@ describe('ProcedureBuilderWithInput', () => {
       builder.use(({ next }, input: 'invalid') => next({}), input => ({ mapped: true }))
       // @ts-expect-error --- output is not match
       builder.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}), input => ({ mapped: true }))
+      // @ts-expect-error --- conflict context
+      builder.use(({ next }) => next({ context: { db: undefined } }), () => { })
     })
 
     it('with TInContext', () => {
@@ -795,6 +803,8 @@ describe('ProcedureBuilderWithOutput', () => {
       builder.use(({ next }, input: 'invalid') => next({}))
       // @ts-expect-error --- output is not match
       builder.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}))
+      // @ts-expect-error --- conflict context
+      builder.use(({ next }) => next({ context: { db: undefined } }))
     })
 
     it('with TInContext', () => {
@@ -976,6 +986,8 @@ describe('ProcedureBuilderWithInputOutput', () => {
       builder.use(({ next }, input: 'invalid') => next({}))
       // @ts-expect-error --- output is not match
       builder.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}))
+      // @ts-expect-error --- conflict context
+      builder.use(({ next }) => next({ context: { db: undefined } }))
     })
 
     it('with map input', () => {
@@ -1024,6 +1036,8 @@ describe('ProcedureBuilderWithInputOutput', () => {
       builder.use(({ next }, input: 'invalid') => next({}), input => ({ mapped: true }))
       // @ts-expect-error --- output is not match
       builder.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}), input => ({ mapped: true }))
+      // @ts-expect-error --- conflict context
+      builder.use(({ next }) => next({ context: { db: undefined } }), input => ({ mapped: true }))
     })
 
     it('with TInContext', () => {
@@ -1169,6 +1183,8 @@ describe('RouterBuilder', () => {
       builder.use(({ next }, input: 'invalid') => next({}))
       // @ts-expect-error --- output is not match
       builder.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}))
+      // @ts-expect-error --- conflict context
+      builder.use(({ next }) => next({ context: { db: undefined } }))
     })
 
     it('with TInContext', () => {

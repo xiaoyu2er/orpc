@@ -103,7 +103,7 @@ export interface ProcedureImplementer<
 > {
   '~orpc': BuilderDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>
 
-  'use'<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
+  'use'<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
       UInContext | TCurrentContext,
       UOutContext,
@@ -121,7 +121,7 @@ export interface ProcedureImplementer<
     TMeta
   >
 
-  'use'<UOutContext extends Context, UInput, UInContext extends Context = TCurrentContext>(
+  'use'<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, UInput, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
       UInContext | TCurrentContext,
       UOutContext,

@@ -1,4 +1,5 @@
 import type { Meta } from '@orpc/contract'
+import type { IntersectPick } from '@orpc/shared'
 import type { Context, MergedCurrentContext, MergedInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { AnyMiddleware, MapInputMiddleware, Middleware } from './middleware'
@@ -16,7 +17,7 @@ export interface DecoratedMiddleware<
   ): DecoratedMiddleware<TInContext, TOutContext, UInput, TOutput, TErrorConstructorMap, TMeta>
 
   concat<
-    UOutContext extends Context,
+    UOutContext extends IntersectPick<MergedCurrentContext<TInContext, TOutContext>, UOutContext>,
     UInContext extends Context = MergedCurrentContext<TInContext, TOutContext>,
   >(
     middleware: Middleware<
@@ -37,7 +38,7 @@ export interface DecoratedMiddleware<
   >
 
   concat<
-    UOutContext extends Context,
+    UOutContext extends IntersectPick<MergedCurrentContext<TInContext, TOutContext>, UOutContext>,
     UMappedInput,
     UInContext extends Context = MergedCurrentContext<TInContext, TOutContext>,
   >(

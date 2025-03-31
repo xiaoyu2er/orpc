@@ -67,6 +67,9 @@ describe('Implementer', () => {
             Meta | BaseMeta
           >
         >()
+
+        // @ts-expect-error --- conflict context
+        implementer.nested.middleware(({ next }) => next({ context: { db: undefined } }))
       })
 
       it('can type input and output', () => {
@@ -119,6 +122,8 @@ describe('Implementer', () => {
         implementer.use(({ next }, input: 'invalid') => next({}))
         // @ts-expect-error --- output is not match
         implementer.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}))
+        // @ts-expect-error --- conflict context
+        implementer.use(({ next }) => next({ context: { db: undefined } }))
       })
 
       it('with TInContext', () => {

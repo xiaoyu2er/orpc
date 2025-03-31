@@ -1,5 +1,6 @@
 import type { HTTPPath } from '@orpc/client'
 import type { AnySchema, ContractRouter, ErrorMap, InferSchemaInput, InferSchemaOutput, MergedErrorMap, Meta, Route, Schema } from '@orpc/contract'
+import type { IntersectPick } from '@orpc/shared'
 import type { BuilderDef } from './builder'
 import type { Context, MergedCurrentContext, MergedInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
@@ -31,7 +32,7 @@ export interface BuilderWithMiddlewares<
     TMeta
   >
 
-  'use'<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
+  'use'<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
       UInContext | TCurrentContext,
       UOutContext,
@@ -103,7 +104,7 @@ export interface ProcedureBuilder<
     TMeta
   >
 
-  'use'<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
+  'use'<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
       UInContext | TCurrentContext,
       UOutContext,
@@ -156,7 +157,7 @@ export interface ProcedureBuilderWithInput<
     errors: U,
   ): ProcedureBuilderWithInput<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, MergedErrorMap<TErrorMap, U>, TMeta>
 
-  'use'<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
+  'use'<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
       UInContext | TCurrentContext,
       UOutContext,
@@ -174,7 +175,7 @@ export interface ProcedureBuilderWithInput<
     TMeta
   >
 
-  'use'<UOutContext extends Context, UInput, UInContext extends Context = TCurrentContext>(
+  'use'<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, UInput, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
       UInContext | TCurrentContext,
       UOutContext,
@@ -231,7 +232,7 @@ export interface ProcedureBuilderWithOutput<
     TMeta
   >
 
-  'use'<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
+  'use'<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
       UInContext | TCurrentContext,
       UOutContext,
@@ -280,7 +281,7 @@ export interface ProcedureBuilderWithInputOutput<
     errors: U,
   ): ProcedureBuilderWithInputOutput<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, MergedErrorMap<TErrorMap, U>, TMeta>
 
-  'use'<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
+  'use'<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
       UInContext | TCurrentContext,
       UOutContext,
@@ -298,7 +299,7 @@ export interface ProcedureBuilderWithInputOutput<
     TMeta
   >
 
-  'use'<UOutContext extends Context, UInput, UInContext extends Context = TCurrentContext>(
+  'use'<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, UInput, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
       UInContext | TCurrentContext,
       UOutContext,
@@ -342,7 +343,7 @@ export interface RouterBuilder<
     errors: U,
   ): RouterBuilder<TInitialContext, TCurrentContext, MergedErrorMap<TErrorMap, U>, TMeta>
 
-  'use'<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
+  'use'<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
       UInContext | TCurrentContext,
       UOutContext,

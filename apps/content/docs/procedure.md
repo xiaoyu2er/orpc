@@ -31,7 +31,9 @@ const example = os
   .actionable() // Server Action compatibility
 ```
 
-> The `.handler` method is the only required step. All other chains are optional.
+:::info
+The `.handler` method is the only required step. All other chains are optional.
+:::
 
 ## Input/Output Validation
 
@@ -56,7 +58,7 @@ const example = os
 
 ## Using Middleware
 
-The `.use` method allows you to pass middleware, which must call `next` to continue execution.
+The `.use` method allows you to pass [middleware](/docs/middleware), which must call `next` to continue execution.
 
 ```ts
 const aMiddleware = os.middleware(async ({ context, next }) => next())
@@ -67,7 +69,9 @@ const example = os
   .handler(async ({ context }) => { /* logic */ })
 ```
 
-To learn more, see the [Middleware](/docs/middleware) documentation.
+::: info
+[Middleware](/docs/middleware) can be applied if the [current context](/docs/context#combining-initial-and-execution-context) meets the [middleware dependent context](/docs/middleware#dependent-context) requirements and does not conflict with the [current context](/docs/context#combining-initial-and-execution-context).
+:::
 
 ## Initial Configuration
 

@@ -175,6 +175,9 @@ describe('Builder', () => {
       ).toEqualTypeOf<
         DecoratedMiddleware<InitialContext, { extra: boolean }, unknown, any, any, BaseMeta>
       >()
+
+      // @ts-expect-error --- conflict context
+      builder.middleware(({ next }) => next({ context: { db: undefined } }))
     })
 
     it('can type input and output', () => {
@@ -244,6 +247,8 @@ describe('Builder', () => {
       builder.use(({ next }, input: 'invalid') => next({}))
       // @ts-expect-error --- output is not match
       builder.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}))
+      // @ts-expect-error --- conflict context
+      builder.use(({ next }) => next({ context: { db: undefined } }))
     })
 
     it('with TInContext', () => {

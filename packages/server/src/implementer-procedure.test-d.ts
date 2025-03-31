@@ -272,6 +272,8 @@ describe('ProcedureImplementer', () => {
       builder.use(({ next }, input: 'invalid') => next({}))
       // @ts-expect-error --- output is not match
       builder.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}))
+      // @ts-expect-error --- conflict context
+      builder.use(({ next }) => next({ context: { db: undefined } }))
     })
 
     it('with map input', () => {
@@ -320,6 +322,8 @@ describe('ProcedureImplementer', () => {
       builder.use(({ next }, input: 'invalid') => next({}), input => ({ mapped: true }))
       // @ts-expect-error --- output is not match
       builder.use(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}), input => ({ mapped: true }))
+      // @ts-expect-error --- conflict context
+      builder.use(({ next }) => next({ context: { db: undefined } }), input => ({ mapped: true }))
     })
 
     it('with TInContext', () => {

@@ -1,5 +1,5 @@
 import type { Promisable } from 'type-fest'
-import type { PromiseWithError } from './types'
+import type { PromiseWithError, ThrowableError } from './types'
 
 export type InterceptableOptions = Record<string, any>
 
@@ -47,7 +47,7 @@ export function onSuccess<TOptions extends { next(): any }, TRest extends any[]>
  */
 export function onError<TOptions extends { next(): any }, TRest extends any[]>(
   callback: NoInfer<(
-    error: ReturnType<TOptions['next']> extends PromiseWithError<any, infer E> ? E : unknown,
+    error: ReturnType<TOptions['next']> extends PromiseWithError<any, infer E> ? E : ThrowableError,
     options: TOptions,
     ...rest: TRest
   ) => Promisable<void>>,
@@ -72,7 +72,7 @@ export function onFinish<TOptions extends { next(): any }, TRest extends any[]>(
   callback: NoInfer<(
     state: OnFinishState<
       Awaited<ReturnType<TOptions['next']>>,
-      ReturnType<TOptions['next']> extends PromiseWithError<any, infer E> ? E : unknown
+      ReturnType<TOptions['next']> extends PromiseWithError<any, infer E> ? E : ThrowableError
     >,
     options: TOptions,
     ...rest: TRest

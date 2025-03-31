@@ -1,4 +1,5 @@
 import type { ORPCError, ORPCErrorCode } from '@orpc/client'
+import type { ThrowableError } from '@orpc/shared'
 import type { AnySchema, InferSchemaOutput, Schema, SchemaIssue } from './schema'
 
 export interface ValidationErrorOptions extends ErrorOptions {
@@ -40,4 +41,4 @@ export type ORPCErrorFromErrorMap<TErrorMap extends ErrorMap> = {
     : never
 }[keyof TErrorMap]
 
-export type ErrorFromErrorMap<TErrorMap extends ErrorMap> = Error | ORPCErrorFromErrorMap<TErrorMap>
+export type ErrorFromErrorMap<TErrorMap extends ErrorMap> = ORPCErrorFromErrorMap<TErrorMap> | ThrowableError

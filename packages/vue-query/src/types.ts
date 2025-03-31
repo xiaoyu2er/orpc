@@ -15,7 +15,7 @@ export type MaybeRefDeep<T> = MaybeRef<
       : T
 >
 
-export type QueryOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError extends Error, TSelectData> =
+export type QueryOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData> =
   & (undefined extends TInput ? { input?: MaybeRefDeep<TInput> } : { input: MaybeRefDeep<TInput> })
   & (Record<never, never> extends TClientContext ? { context?: MaybeRefDeep<TClientContext> } : { context: MaybeRefDeep<TClientContext> })
   & {
@@ -28,28 +28,28 @@ export type QueryOptionsIn<TClientContext extends ClientContext, TInput, TOutput
     shallow?: MaybeRef<boolean>
   }
 
-export interface QueryOptionsBase<TOutput, TError extends Error> {
+export interface QueryOptionsBase<TOutput, TError> {
   queryKey: ComputedRef<QueryKey>
   queryFn(ctx: QueryFunctionContext): Promise<TOutput>
   retry?(failureCount: number, error: TError): boolean // this help tanstack can infer TError
 }
 
-export type InfiniteOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError extends Error, TSelectData, TPageParam> =
+export type InfiniteOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData, TPageParam> =
   & { input: (pageParam: TPageParam) => MaybeRefDeep<TInput> }
   & (Record<never, never> extends TClientContext ? { context?: MaybeRefDeep<TClientContext> } : { context: MaybeRefDeep<TClientContext> })
   & SetOptional<UseInfiniteQueryOptions<TOutput, TError, TSelectData, TOutput, QueryKey, TPageParam>, 'queryKey'>
 
-export interface InfiniteOptionsBase<TOutput, TError extends Error, TPageParam> {
+export interface InfiniteOptionsBase<TOutput, TError, TPageParam> {
   queryKey: ComputedRef<QueryKey>
   queryFn(ctx: QueryFunctionContext<QueryKey, TPageParam>): Promise<TOutput>
   retry?(failureCount: number, error: TError): boolean // this help tanstack can infer TError
 }
 
-export type MutationOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError extends Error, TMutationContext> =
+export type MutationOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TMutationContext> =
   & (Record<never, never> extends TClientContext ? { context?: TClientContext } : { context: TClientContext })
   & MutationOptions<TInput, TOutput, TError, TMutationContext>
 
-export type MutationOptions<TInput, TOutput, TError extends Error, TMutationContext> =
+export type MutationOptions<TInput, TOutput, TError, TMutationContext> =
   {
     [P in keyof MutationObserverOptions<TOutput, TError, TInput, TMutationContext>]: MaybeRefDeep<MutationObserverOptions<TOutput, TError, TInput, TMutationContext>[P]>
   } & {

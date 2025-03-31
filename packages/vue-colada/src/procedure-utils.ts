@@ -5,7 +5,7 @@ import type { MutationOptions, MutationOptionsIn, QueryOptions, QueryOptionsIn }
 import { computed, toValue } from 'vue'
 import { buildKey } from './key'
 
-export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError extends Error> {
+export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError> {
   call: Client<TClientContext, TInput, TOutput, TError>
 
   queryOptions<UInitialData extends TOutput | undefined = TOutput | undefined>(
@@ -25,7 +25,7 @@ export interface CreateProcedureUtilsOptions {
   path: string[]
 }
 
-export function createProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError extends Error>(
+export function createProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError>(
   client: Client<TClientContext, TInput, TOutput, TError>,
   options: CreateProcedureUtilsOptions,
 ): ProcedureUtils<TClientContext, TInput, TOutput, TError> {

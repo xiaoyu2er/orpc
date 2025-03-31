@@ -7,9 +7,9 @@ describe('safe', async () => {
   const client = {} as Client<ClientContext, string, number, Error | ORPCError<'BAD_GATEWAY', { val: string }>>
 
   it('tuple style', async () => {
-    const [error, data, isDefined] = await safe(client('123'))
+    const [error, data, isDefined, success] = await safe(client('123'))
 
-    if (error) {
+    if (error || !success) {
       expectTypeOf(error).toEqualTypeOf<Error | ORPCError<'BAD_GATEWAY', { val: string }>>()
       expectTypeOf(data).toEqualTypeOf<undefined>()
       expectTypeOf(isDefined).toEqualTypeOf<boolean>()
@@ -33,9 +33,9 @@ describe('safe', async () => {
   })
 
   it('object style', async () => {
-    const { error, data, isDefined } = await safe(client('123'))
+    const { error, data, isDefined, success } = await safe(client('123'))
 
-    if (error) {
+    if (error || !success) {
       expectTypeOf(error).toEqualTypeOf<Error | ORPCError<'BAD_GATEWAY', { val: string }>>()
       expectTypeOf(data).toEqualTypeOf<undefined>()
       expectTypeOf(isDefined).toEqualTypeOf<boolean>()
@@ -56,5 +56,12 @@ describe('safe', async () => {
       expectTypeOf(data).toEqualTypeOf<number>()
       expectTypeOf(isDefined).toEqualTypeOf<false>()
     }
+  })
+
+  it('can catch Promise', async () => {
+    const { error, data } = await safe({} as Promise<number>)
+
+    expectTypeOf(error).toEqualTypeOf<Error | null>()
+    expectTypeOf(data).toEqualTypeOf<number | undefined >()
   })
 })

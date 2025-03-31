@@ -15,9 +15,9 @@ export type ClientRest<TClientContext extends ClientContext, TInput> = Record<ne
     : [input: TInput, options?: FriendlyClientOptions<TClientContext>]
   : [input: TInput, options: FriendlyClientOptions<TClientContext>]
 
-export type ClientPromiseResult<TOutput, TError extends Error> = PromiseWithError<TOutput, TError>
+export type ClientPromiseResult<TOutput, TError> = PromiseWithError<TOutput, TError>
 
-export interface Client<TClientContext extends ClientContext, TInput, TOutput, TError extends Error> {
+export interface Client<TClientContext extends ClientContext, TInput, TOutput, TError> {
   (...rest: ClientRest<TClientContext, TInput>): ClientPromiseResult<TOutput, TError>
 }
 

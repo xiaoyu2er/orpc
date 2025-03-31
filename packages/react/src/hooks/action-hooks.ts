@@ -4,24 +4,24 @@ import { ORPCError, safe } from '@orpc/client'
 import { intercept, type Interceptor, toArray } from '@orpc/shared'
 import { useCallback, useMemo, useState } from 'react'
 
-export interface UseServerActionOptions<TInput, TOutput, TError extends Error> {
+export interface UseServerActionOptions<TInput, TOutput, TError> {
   interceptors?: Interceptor<{ input: TInput }, TOutput, TError>[]
 }
 
-export interface UseServerActionExecuteOptions<TInput, TOutput, TError extends Error> extends Pick<UseServerActionOptions<TInput, TOutput, TError>, 'interceptors'> {
+export interface UseServerActionExecuteOptions<TInput, TOutput, TError> extends Pick<UseServerActionOptions<TInput, TOutput, TError>, 'interceptors'> {
 }
 
-export type UseServerActionExecuteRest<TInput, TOutput, TError extends Error> =
+export type UseServerActionExecuteRest<TInput, TOutput, TError> =
   undefined extends TInput
     ? [input?: TInput, options?: UseServerActionExecuteOptions<TInput, TOutput, TError>]
     : [input: TInput, options?: UseServerActionExecuteOptions<TInput, TOutput, TError>]
 
-export interface UseServerActionResultBase<TInput, TOutput, TError extends Error> {
+export interface UseServerActionResultBase<TInput, TOutput, TError> {
   reset: () => void
   execute: (...rest: UseServerActionExecuteRest<TInput, TOutput, TError>) => Promise<SafeResult<TOutput, TError>>
 }
 
-export interface UseServerActionIdleResult<TInput, TOutput, TError extends Error> extends UseServerActionResultBase<TInput, TOutput, TError> {
+export interface UseServerActionIdleResult<TInput, TOutput, TError> extends UseServerActionResultBase<TInput, TOutput, TError> {
   input: undefined
   data: undefined
   error: null
@@ -33,7 +33,7 @@ export interface UseServerActionIdleResult<TInput, TOutput, TError extends Error
   executedAt: undefined
 }
 
-export interface UseServerActionPendingResult<TInput, TOutput, TError extends Error> extends UseServerActionResultBase<TInput, TOutput, TError> {
+export interface UseServerActionPendingResult<TInput, TOutput, TError> extends UseServerActionResultBase<TInput, TOutput, TError> {
   input: TInput
   data: undefined
   error: null
@@ -45,7 +45,7 @@ export interface UseServerActionPendingResult<TInput, TOutput, TError extends Er
   executedAt: Date
 }
 
-export interface UseServerActionSuccessResult<TInput, TOutput, TError extends Error> extends UseServerActionResultBase<TInput, TOutput, TError> {
+export interface UseServerActionSuccessResult<TInput, TOutput, TError> extends UseServerActionResultBase<TInput, TOutput, TError> {
   input: TInput
   data: TOutput
   error: null
@@ -57,7 +57,7 @@ export interface UseServerActionSuccessResult<TInput, TOutput, TError extends Er
   executedAt: Date
 }
 
-export interface UseServerActionErrorResult<TInput, TOutput, TError extends Error> extends UseServerActionResultBase<TInput, TOutput, TError> {
+export interface UseServerActionErrorResult<TInput, TOutput, TError> extends UseServerActionResultBase<TInput, TOutput, TError> {
   input: TInput
   data: undefined
   error: TError

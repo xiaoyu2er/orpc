@@ -1,5 +1,5 @@
 import type { AnyContractRouter, ContractProcedure, InferContractRouterErrorMap, InferContractRouterMeta } from '@orpc/contract'
-import type { AnyFunction } from '@orpc/shared'
+import type { AnyFunction, IntersectPick } from '@orpc/shared'
 import type { Context, MergedCurrentContext, MergedInitialContext } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { ProcedureImplementer } from './implementer-procedure'
@@ -21,7 +21,7 @@ export interface RouterImplementer<
   TInitialContext extends Context,
   TCurrentContext extends Context,
 > {
-  middleware<UOutContext extends Context, TInput, TOutput = any>( // = any here is important to make middleware can be used in any output by default
+  middleware<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, TInput, TOutput = any>( // = any here is important to make middleware can be used in any output by default
     middleware: Middleware<
       TInitialContext,
       UOutContext,
@@ -32,7 +32,7 @@ export interface RouterImplementer<
     >,
   ): DecoratedMiddleware<TInitialContext, UOutContext, TInput, TOutput, any, InferContractRouterMeta<T>> // any ensures middleware can used in any procedure
 
-  use<UOutContext extends Context, UInContext extends Context = TCurrentContext>(
+  use<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
       UInContext | TCurrentContext,
       UOutContext,

@@ -83,6 +83,8 @@ describe('DecoratedMiddleware', () => {
       decorated.concat({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)
       // @ts-expect-error --- output is not match
       decorated.concat(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}))
+      // @ts-expect-error --- conflict context
+      decorated.concat(({ next }) => next({ context: { db: undefined } }))
     })
 
     it('with map input', () => {
@@ -129,6 +131,8 @@ describe('DecoratedMiddleware', () => {
       decorated.concat({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>, () => { })
       // @ts-expect-error --- output is not match
       decorated.concat(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}), input => ({ mapped: true }))
+      // @ts-expect-error --- conflict context
+      decorated.concat(({ next }) => next({ context: { db: undefined } }), () => { })
     })
 
     it('with TInContext', () => {

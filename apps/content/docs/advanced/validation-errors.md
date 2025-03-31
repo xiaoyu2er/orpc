@@ -12,11 +12,11 @@ oRPC provides built-in validation errors that work well by default. However, you
 [Client Interceptors](/docs/lifecycle) are preferred because they run before error validation, ensuring that your custom errors are properly validated.
 
 ```ts twoslash
-import { z } from 'zod'
-import { router } from './shared/planet'
 import { RPCHandler } from '@orpc/server/fetch'
+import { router } from './shared/planet'
 // ---cut---
 import { onError, ORPCError, ValidationError } from '@orpc/server'
+import { ZodError, type ZodIssue } from 'zod'
 
 const handler = new RPCHandler(router, {
   clientInterceptors: [
@@ -26,9 +26,12 @@ const handler = new RPCHandler(router, {
         && error.code === 'BAD_REQUEST'
         && error.cause instanceof ValidationError
       ) {
+        // If you only use Zod you can safely cast to ZodIssue[]
+        const zodError = new ZodError(error.cause.issues as ZodIssue[])
+
         throw new ORPCError('INPUT_VALIDATION_FAILED', {
           status: 422,
-          data: { issues: error.cause.issues },
+          data: zodError.flatten(),
           cause: error.cause,
         })
       }
@@ -42,16 +45,15 @@ const handler = new RPCHandler(router, {
           cause: error.cause,
         })
       }
-    })
-  ]
+    }),
+  ],
 })
 ```
 
 ## Customizing with Middleware
 
 ```ts twoslash
-import { z } from 'zod'
-// ---cut---
+import { z, ZodError, type ZodIssue } from 'zod'
 import { onError, ORPCError, os, ValidationError } from '@orpc/server'
 
 const base = os.use(onError((error) => {
@@ -60,9 +62,12 @@ const base = os.use(onError((error) => {
     && error.code === 'BAD_REQUEST'
     && error.cause instanceof ValidationError
   ) {
+    // If you only use Zod you can safely cast to ZodIssue[]
+    const zodError = new ZodError(error.cause.issues as ZodIssue[])
+
     throw new ORPCError('INPUT_VALIDATION_FAILED', {
       status: 422,
-      data: { issues: error.cause.issues },
+      data: zodError.flatten(),
       cause: error.cause,
     })
   }
@@ -97,25 +102,25 @@ Middleware applied before `.input`/`.output` catches validation errors by defaul
 As explained in the [error handling guide](/docs/error-handling#combining-both-approaches), when you throw an `ORPCError` instance, if the `code` and `data` match with the errors defined in the `.errors` method, oRPC will treat it exactly as if you had thrown `errors.[code]` using the type‑safe approach.
 
 ```ts twoslash
-import { z } from 'zod'
 import { RPCHandler } from '@orpc/server/fetch'
 // ---cut---
 import { onError, ORPCError, os, ValidationError } from '@orpc/server'
+import { z, ZodError, type ZodIssue } from 'zod'
 
 const base = os.errors({
   INPUT_VALIDATION_FAILED: {
     data: z.object({
-      issues: z.array(z.object({
-        message: z.string(),
-      })),
-    })
+      formErrors: z.array(z.string()),
+      fieldErrors: z.record(z.string(), z.array(z.string()).optional()),
+    }),
   },
 })
 
-const ping = base.handler(() => 'ping')
-const pong = base.handler(() => 'pong')
+const example = base
+  .input(z.object({ id: z.string().uuid() }))
+  .handler(() => { /** do something */ })
 
-const handler = new RPCHandler({ ping, pong }, {
+const handler = new RPCHandler({ example }, {
   clientInterceptors: [
     onError((error) => {
       if (
@@ -123,12 +128,16 @@ const handler = new RPCHandler({ ping, pong }, {
         && error.code === 'BAD_REQUEST'
         && error.cause instanceof ValidationError
       ) {
+        // If you only use Zod you can safely cast to ZodIssue[]
+        const zodError = new ZodError(error.cause.issues as ZodIssue[])
+
         throw new ORPCError('INPUT_VALIDATION_FAILED', {
-          data: { issues: error.cause.issues },
+          status: 422,
+          data: zodError.flatten(),
           cause: error.cause,
         })
       }
-    })
-  ]
+    }),
+  ],
 })
 ```

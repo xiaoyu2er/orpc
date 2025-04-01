@@ -18,7 +18,11 @@ export interface ClientRetryPluginContext {
    *
    * @default 0
    */
-  retry?: number
+  retry?: Value<number, [
+    clientOptions: ClientOptions<ClientRetryPluginContext>,
+    path: readonly string[],
+    input: unknown,
+  ]>
 
   /**
    * Delay (in ms) before retrying.
@@ -78,7 +82,13 @@ export class ClientRetryPlugin<T extends ClientRetryPluginContext> implements St
     options.interceptors ??= []
 
     options.interceptors.push(async (interceptorOptions) => {
-      const maxAttempts = interceptorOptions.options.context.retry ?? this.defaultRetry
+      const maxAttempts = await value(
+        interceptorOptions.options.context.retry ?? this.defaultRetry,
+        interceptorOptions.options,
+        interceptorOptions.path,
+        interceptorOptions.input,
+      )
+
       const retryDelay = interceptorOptions.options.context.retryDelay ?? this.defaultRetryDelay
       const shouldRetry = interceptorOptions.options.context.shouldRetry ?? this.defaultShouldRetry
       const onRetry = interceptorOptions.options.context.onRetry ?? this.defaultOnRetry

@@ -123,3 +123,16 @@ export function filterSchemaBranches(
 
   return [matches, schema]
 }
+
+export function applySchemaOptionality(required: boolean, schema: JSONSchema): JSONSchema {
+  if (required) {
+    return schema
+  }
+
+  return {
+    anyOf: [
+      schema,
+      { not: {} },
+    ],
+  }
+}

@@ -504,6 +504,72 @@ const successResponseTests: TestCase[] = [
     contract: oc.route({ outputStructure: 'detailed' }).output(z.object({ headers: z.string() })),
     error: 'When output structure is "detailed", output schema must satisfy',
   },
+  {
+    name: 'outputStructure=compact + output is optional',
+    contract: oc.route({ outputStructure: 'compact' }).output(z.object({ name: z.string() }).optional()),
+    expected: {
+      '/': {
+        post: expect.objectContaining({
+          responses: {
+            200: {
+              description: 'OK',
+              content: {
+                'application/json': {
+                  schema: {
+                    anyOf: [
+                      {
+                        type: 'object',
+                        properties: {
+                          name: { type: 'string' },
+                        },
+                        required: ['name'],
+                      },
+                      {
+                        not: {},
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        }),
+      },
+    },
+  },
+  {
+    name: 'outputStructure=detailed + body is optional',
+    contract: oc.route({ outputStructure: 'detailed' }).output(z.object({ body: z.object({ name: z.string() }).optional() })),
+    expected: {
+      '/': {
+        post: expect.objectContaining({
+          responses: {
+            200: {
+              description: 'OK',
+              content: {
+                'application/json': {
+                  schema: {
+                    anyOf: [
+                      {
+                        type: 'object',
+                        properties: {
+                          name: { type: 'string' },
+                        },
+                        required: ['name'],
+                      },
+                      {
+                        not: {},
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        }),
+      },
+    },
+  },
 ]
 
 const errorResponseTests: TestCase[] = [
@@ -514,14 +580,7 @@ const errorResponseTests: TestCase[] = [
       '/': {
         post: expect.objectContaining({
           responses: {
-            200: {
-              description: 'OK',
-              content: {
-                'application/json': {
-                  schema: {},
-                },
-              },
-            },
+            200: expect.objectContaining({}),
           },
         }),
       },

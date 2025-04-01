@@ -8,11 +8,11 @@ import { toHttpPath } from '@orpc/client/standard'
 import { fallbackContractConfig, getEventIteratorSchemaDetails } from '@orpc/contract'
 import { getDynamicParams, StandardOpenAPIJsonSerializer } from '@orpc/openapi-client/standard'
 import { resolveContractProcedures } from '@orpc/server'
-import { clone } from '@orpc/shared'
+import { clone, toArray } from '@orpc/shared'
 import { applyCustomOpenAPIOperation } from './openapi-custom'
 import { checkParamsSchema, toOpenAPIContent, toOpenAPIEventIteratorContent, toOpenAPIMethod, toOpenAPIParameters, toOpenAPIPath, toOpenAPISchema } from './openapi-utils'
 import { CompositeSchemaConverter, type ConditionalSchemaConverter, type SchemaConverter } from './schema-converter'
-import { isAnySchema, isObjectSchema, separateObjectSchema } from './schema-utils'
+import { applySchemaOptionality, isAnySchema, isObjectSchema, separateObjectSchema } from './schema-utils'
 
 class OpenAPIGeneratorError extends Error {}
 
@@ -26,7 +26,7 @@ export class OpenAPIGenerator {
 
   constructor(options: OpenAPIGeneratorOptions = {}) {
     this.serializer = new StandardOpenAPIJsonSerializer(options)
-    this.converter = new CompositeSchemaConverter(options.schemaConverters ?? [])
+    this.converter = new CompositeSchemaConverter(toArray(options.schemaConverters))
   }
 
   async generate(router: AnyContractRouter | AnyRouter, base: Omit<OpenAPI.Document, 'openapi'>): Promise<OpenAPI.Document> {
@@ -214,7 +214,7 @@ export class OpenAPIGenerator {
       return
     }
 
-    const [_, json] = this.converter.convert(outputSchema, { strategy: 'output' })
+    const [required, json] = this.converter.convert(outputSchema, { strategy: 'output' })
 
     ref.responses ??= {}
     ref.responses[status] = {
@@ -222,7 +222,7 @@ export class OpenAPIGenerator {
     }
 
     if (outputStructure === 'compact') {
-      ref.responses[status].content = toOpenAPIContent(json)
+      ref.responses[status].content = toOpenAPIContent(applySchemaOptionality(required, json))
 
       return
     }
@@ -251,7 +251,9 @@ export class OpenAPIGenerator {
     }
 
     if (json.properties?.body !== undefined) {
-      ref.responses[status].content = toOpenAPIContent(json.properties.body)
+      ref.responses[status].content = toOpenAPIContent(
+        applySchemaOptionality(json.required?.includes('body') ?? false, json.properties.body),
+      )
     }
   }
 

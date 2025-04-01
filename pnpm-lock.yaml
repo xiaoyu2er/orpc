@@ -389,9 +389,6 @@ importers:
       '@orpc/shared':
         specifier: workspace:*
         version: link:../shared
-      '@tinyhttp/content-disposition':
-        specifier: ^2.2.2
-        version: 2.2.2
 
   packages/standard-server-fetch:
     dependencies:
@@ -2879,10 +2876,6 @@ packages:
     engines: {node: '>=12', npm: '>=6'}
     peerDependencies:
       '@testing-library/dom': '>=7.21.4'
-
-  '@tinyhttp/content-disposition@2.2.2':
-    resolution: {integrity: sha512-crXw1txzrS36huQOyQGYFvhTeLeG0Si1xu+/l6kXUVYpE0TjFjEZRqTbuadQLfKGZ0jaI+jJoRyqaWwxOSHW2g==}
-    engines: {node: '>=12.20.0'}
 
   '@trysound/sax@0.2.0':
     resolution: {integrity: sha512-L7z9BgrNEcYyUYtF+HaEfiS5ebkh9jXqbszz7pC0hRBPaatV0XjSD3+eHrpqFemQfgwiFF0QPIarnIihIDn7OA==}
@@ -9936,8 +9929,6 @@ snapshots:
   '@testing-library/user-event@14.6.1(@testing-library/dom@10.4.0)':
     dependencies:
       '@testing-library/dom': 10.4.0
-
-  '@tinyhttp/content-disposition@2.2.2': {}
 
   '@trysound/sax@0.2.0': {}
 

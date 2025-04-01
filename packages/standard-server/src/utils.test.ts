@@ -1,4 +1,30 @@
-import { mergeStandardHeaders } from './utils'
+import { generateContentDisposition, getFilenameFromContentDisposition, mergeStandardHeaders } from './utils'
+
+it('generateContentDisposition', () => {
+  expect(generateContentDisposition('')).toEqual('inline; filename=""; filename*=utf-8\'\'')
+  expect(generateContentDisposition('test.txt')).toEqual('inline; filename="test.txt"; filename*=utf-8\'\'test.txt')
+  expect(generateContentDisposition('!@#$%^%^&*()\'".txt')).toEqual('inline; filename="!@#$%^%^&*()\'\\".txt"; filename*=utf-8\'\'!%40%23%24%25^%25^%26%2A%28%29%27%22.txt')
+})
+
+it('getFilenameFromContentDisposition', () => {
+  expect(getFilenameFromContentDisposition('attachment; filename=""; filename*=utf-8\'\'')).toEqual('')
+  expect(getFilenameFromContentDisposition('attachment; filename="test.txt"; filename*=utf-8\'\'test.txt')).toEqual('test.txt')
+  expect(getFilenameFromContentDisposition('attachment; filename="!@#$%^%^&*()\'".txt"; filename*=utf-8\'\'!%40%23%24%25^%25^%26%2A%28%29%27%22.txt')).toEqual('!@#$%^%^&*()\'".txt')
+
+  expect(getFilenameFromContentDisposition('attachment; filename=""')).toEqual('')
+  expect(getFilenameFromContentDisposition('attachment; filename="test.txt"')).toEqual('test.txt')
+  expect(getFilenameFromContentDisposition('attachment; filename="!@#$%^%^&*()\'\\".txt"')).toEqual('!@#$%^%^&*()\'".txt')
+
+  expect(getFilenameFromContentDisposition('attachment; filename*=utf-8\'\'')).toEqual('')
+  expect(getFilenameFromContentDisposition('attachment; filename*=utf-8\'\'test.txt')).toEqual('test.txt')
+  expect(getFilenameFromContentDisposition('attachment; filename*=utf-8\'\'!%40%23%24%25^%25^%26%2A%28%29%27%22.txt')).toEqual('!@#$%^%^&*()\'".txt')
+
+  expect(getFilenameFromContentDisposition('inline; filename="hello.txt"')).toEqual('hello.txt')
+  expect(getFilenameFromContentDisposition('inline; filename="hello.txt"; size=123')).toEqual('hello.txt')
+  expect(getFilenameFromContentDisposition('inline; filename"hello.txt"; size=123')).toEqual(undefined)
+
+  expect(getFilenameFromContentDisposition('inline; filename*=!%40%23%24%25^%25^%26%2A%28%29%27%22.txt; size=123')).toEqual('!@#$%^%^&*()\'".txt')
+})
 
 it('mergeStandardHeaders', () => {
   expect(mergeStandardHeaders({ a: '1' }, { a: '2' })).toEqual({ a: ['1', '2'] })

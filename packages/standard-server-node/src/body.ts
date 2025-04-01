@@ -1,14 +1,14 @@
-import type { StandardBody, StandardHeaders } from '@orpc/standard-server'
 import type { Buffer } from 'node:buffer'
 import type { ToEventStreamOptions } from './event-iterator'
 import type { NodeHttpRequest } from './types'
 import { Readable } from 'node:stream'
-import { isAsyncIteratorObject, parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
-import { contentDisposition, parseContentDisposition } from '@orpc/standard-server'
+import { isAsyncIteratorObject, parseEmptyableJSON, stringifyJSON, toArray } from '@orpc/shared'
+import { generateContentDisposition, getFilenameFromContentDisposition, type StandardBody, type StandardHeaders } from '@orpc/standard-server'
 import { toEventIterator, toEventStream } from './event-iterator'
 
 export async function toStandardBody(req: NodeHttpRequest): Promise<StandardBody> {
   const method = req.method ?? 'GET'
+
   if (method === 'GET' || method === 'HEAD') {
     return undefined
   }
@@ -16,12 +16,10 @@ export async function toStandardBody(req: NodeHttpRequest): Promise<StandardBody
   const contentDisposition = req.headers['content-disposition']
   const contentType = req.headers['content-type']
 
-  if (contentDisposition) {
-    const fileName = parseContentDisposition(contentDisposition).parameters.filename
+  if (typeof contentDisposition === 'string') {
+    const fileName = getFilenameFromContentDisposition(contentDisposition) ?? 'blob'
 
-    if (typeof fileName === 'string') {
-      return _streamToFile(req, fileName, contentType ?? '')
-    }
+    return _streamToFile(req, fileName, contentType ?? '')
   }
 
   if (!contentType || contentType.startsWith('application/json')) {
@@ -61,6 +59,8 @@ export function toNodeHttpBody(
   headers: StandardHeaders,
   options: ToNodeHttpBodyOptions = {},
 ): Readable | undefined | string {
+  const currentContentDisposition = toArray(headers['content-disposition'])[0]
+
   delete headers['content-type']
   delete headers['content-disposition']
 
@@ -71,10 +71,7 @@ export function toNodeHttpBody(
   if (body instanceof Blob) {
     headers['content-type'] = body.type
     headers['content-length'] = body.size.toString()
-    headers['content-disposition'] = contentDisposition(
-      body instanceof File ? body.name : 'blob',
-      { type: 'inline' },
-    )
+    headers['content-disposition'] = currentContentDisposition ?? generateContentDisposition(body instanceof File ? body.name : 'blob')
 
     return Readable.fromWeb(body.stream())
   }

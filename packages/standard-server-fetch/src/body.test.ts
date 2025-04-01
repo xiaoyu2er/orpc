@@ -1,9 +1,15 @@
 import { isAsyncIteratorObject } from '@orpc/shared'
+import * as StandardServerModule from '@orpc/standard-server'
 import { toFetchBody, toStandardBody } from './body'
-
 import * as EventIteratorModule from './event-iterator'
 
+const generateContentDispositionSpy = vi.spyOn(StandardServerModule, 'generateContentDisposition')
+const getFilenameFromContentDispositionSpy = vi.spyOn(StandardServerModule, 'getFilenameFromContentDisposition')
 const toEventStreamSpy = vi.spyOn(EventIteratorModule, 'toEventStream')
+
+beforeEach(() => {
+  vi.clearAllMocks()
+})
 
 describe('toStandardBody', () => {
   it('undefined', async () => {
@@ -113,29 +119,56 @@ describe('toStandardBody', () => {
     expect(standardBlob.name).toBe('blob')
     expect(standardBlob.type).toBe('application/pdf')
     expect(await standardBlob.text()).toBe('foo')
+
+    expect(getFilenameFromContentDispositionSpy).toHaveBeenCalledTimes(0)
   })
 
   it('file', async () => {
     const request = new Request('https://example.com', {
       method: 'POST',
-      body: new Blob(['foo'], { type: 'application/pdf' }),
+      body: new Blob(['{"value":123}'], { type: 'application/json' }),
       headers: {
         'content-disposition': 'attachment; filename="foo.pdf"',
       },
     })
 
+    getFilenameFromContentDispositionSpy.mockReturnValue('__name__')
+
     const standardFile = await toStandardBody(request) as any
     expect(standardFile).toBeInstanceOf(File)
-    expect(standardFile.name).toBe('foo.pdf')
-    expect(standardFile.type).toBe('application/pdf')
-    expect(await standardFile.text()).toBe('foo')
+    expect(standardFile.name).toBe('__name__')
+    expect(standardFile.type).toBe('application/json')
+    expect(await standardFile.text()).toBe('{"value":123}')
+
+    expect(getFilenameFromContentDispositionSpy).toHaveBeenCalledTimes(1)
+    expect(getFilenameFromContentDispositionSpy).toHaveBeenCalledWith('attachment; filename="foo.pdf"')
+  })
+
+  it('file with content-disposition (no filename)', async () => {
+    const request = new Request('https://example.com', {
+      method: 'POST',
+      body: new Blob(['{"value":123}'], { type: 'application/json' }),
+      headers: {
+        'content-disposition': 'attachment',
+      },
+    })
+
+    getFilenameFromContentDispositionSpy.mockReturnValue(undefined)
+
+    const standardFile = await toStandardBody(request) as any
+    expect(standardFile).toBeInstanceOf(File)
+    expect(standardFile.name).toBe('blob')
+    expect(standardFile.type).toBe('application/json')
+    expect(await standardFile.text()).toBe('{"value":123}')
+
+    expect(getFilenameFromContentDispositionSpy).toHaveBeenCalledTimes(1)
+    expect(getFilenameFromContentDispositionSpy).toHaveBeenCalledWith('attachment')
   })
 })
 
 describe('toFetchBody', () => {
   const baseHeaders = new Headers({
     'content-type': 'application/json',
-    'content-disposition': 'attachment; filename="foo.pdf"',
     'x-custom-header': 'custom-value',
   })
 
@@ -190,30 +223,58 @@ describe('toFetchBody', () => {
     const headers = new Headers(baseHeaders)
     const blob = new Blob(['foo'], { type: 'application/pdf' })
 
+    generateContentDispositionSpy.mockReturnValue('__mocked__')
+
     const body = toFetchBody(blob, headers, {})
 
     expect(body).toBe(blob)
     expect([...headers]).toEqual([
-      ['content-disposition', 'inline; filename="blob"'],
+      ['content-disposition', '__mocked__'],
       ['content-length', '3'],
       ['content-type', 'application/pdf'],
       ['x-custom-header', 'custom-value'],
     ])
+
+    expect(generateContentDispositionSpy).toHaveBeenCalledTimes(1)
+    expect(generateContentDispositionSpy).toHaveBeenCalledWith('blob')
   })
 
   it('file', () => {
     const headers = new Headers(baseHeaders)
     const blob = new File(['foo'], 'foo.pdf', { type: 'application/pdf' })
 
+    generateContentDispositionSpy.mockReturnValue('__mocked__')
+
     const body = toFetchBody(blob, headers, {})
 
     expect(body).toBe(blob)
     expect([...headers]).toEqual([
-      ['content-disposition', 'inline; filename="foo.pdf"'],
+      ['content-disposition', '__mocked__'],
       ['content-length', '3'],
       ['content-type', 'application/pdf'],
       ['x-custom-header', 'custom-value'],
     ])
+
+    expect(generateContentDispositionSpy).toHaveBeenCalledTimes(1)
+    expect(generateContentDispositionSpy).toHaveBeenCalledWith('foo.pdf')
+  })
+
+  it('file with content-disposition', () => {
+    const headers = new Headers(baseHeaders)
+    headers.set('content-disposition', 'attachment; filename="foo.pdf"')
+    const blob = new File(['foo'], 'foo.pdf', { type: 'application/pdf' })
+
+    const body = toFetchBody(blob, headers, {})
+
+    expect(body).toBe(blob)
+    expect([...headers]).toEqual([
+      ['content-disposition', 'attachment; filename="foo.pdf"'],
+      ['content-length', '3'],
+      ['content-type', 'application/pdf'],
+      ['x-custom-header', 'custom-value'],
+    ])
+
+    expect(generateContentDispositionSpy).toHaveBeenCalledTimes(0)
   })
 
   it('async generator', async () => {

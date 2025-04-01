@@ -1,7 +1,6 @@
-import type { StandardBody } from '@orpc/standard-server'
 import type { ToEventStreamOptions } from './event-iterator'
 import { isAsyncIteratorObject, parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
-import { contentDisposition, parseContentDisposition } from '@orpc/standard-server'
+import { generateContentDisposition, getFilenameFromContentDisposition, type StandardBody } from '@orpc/standard-server'
 import { toEventIterator, toEventStream } from './event-iterator'
 
 export async function toStandardBody(re: Request | Response): Promise<StandardBody> {
@@ -11,15 +10,13 @@ export async function toStandardBody(re: Request | Response): Promise<StandardBo
 
   const contentDisposition = re.headers.get('content-disposition')
 
-  if (contentDisposition) {
-    const fileName = parseContentDisposition(contentDisposition).parameters.filename
+  if (typeof contentDisposition === 'string') {
+    const fileName = getFilenameFromContentDisposition(contentDisposition) ?? 'blob'
 
-    if (typeof fileName === 'string') {
-      const blob = await re.blob()
-      return new File([blob], fileName, {
-        type: blob.type,
-      })
-    }
+    const blob = await re.blob()
+    return new File([blob], fileName, {
+      type: blob.type,
+    })
   }
 
   const contentType = re.headers.get('content-type')
@@ -63,6 +60,8 @@ export function toFetchBody(
   headers: Headers,
   options: ToFetchBodyOptions = {},
 ): string | Blob | FormData | URLSearchParams | undefined | ReadableStream<Uint8Array> {
+  const currentContentDisposition = headers.get('content-disposition')
+
   headers.delete('content-type')
   headers.delete('content-disposition')
 
@@ -75,7 +74,7 @@ export function toFetchBody(
     headers.set('content-length', body.size.toString())
     headers.set(
       'content-disposition',
-      contentDisposition(body instanceof File ? body.name : 'blob', { type: 'inline' }),
+      currentContentDisposition ?? generateContentDisposition(body instanceof File ? body.name : 'blob'),
     )
 
     return body

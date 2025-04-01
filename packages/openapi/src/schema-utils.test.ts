@@ -1,6 +1,6 @@
 import type { JSONSchema, ObjectSchema } from './schema'
 import { isObject } from '@orpc/shared'
-import { filterSchemaBranches, isAnySchema, isFileSchema, isObjectSchema, separateObjectSchema } from './schema-utils'
+import { applySchemaOptionality, filterSchemaBranches, isAnySchema, isFileSchema, isObjectSchema, separateObjectSchema } from './schema-utils'
 
 it('isFileSchema', () => {
   expect(isFileSchema({ type: 'string', contentMediaType: 'image/png' })).toBe(true)
@@ -195,4 +195,10 @@ describe('filterSchemaBranches', () => {
       expect(rest).toEqual(schema)
     })
   })
+})
+
+it('applySchemaOptionality', () => {
+  expect(applySchemaOptionality(true, { type: 'string' })).toEqual({ type: 'string' })
+  expect(applySchemaOptionality(false, { type: 'string' })).toEqual({ anyOf: [{ type: 'string' }, { not: {} }] })
+  expect(applySchemaOptionality(false, true)).toEqual({ anyOf: [true, { not: {} }] })
 })

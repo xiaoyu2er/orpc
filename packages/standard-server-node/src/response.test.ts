@@ -95,7 +95,7 @@ describe('sendStandardResponse', () => {
 
     expect(toNodeHttpBodySpy).toBeCalledTimes(1)
     expect(toNodeHttpBodySpy).toBeCalledWith(blob, {
-      'content-disposition': 'inline; filename="blob"',
+      'content-disposition': 'inline; filename="blob"; filename*=utf-8\'\'blob',
       'content-length': '3',
       'content-type': 'text/plain',
       'x-custom-header': 'custom-value',
@@ -106,7 +106,7 @@ describe('sendStandardResponse', () => {
 
     expect(res.status).toBe(207)
     expect(res.headers).toMatchObject({
-      'content-disposition': 'inline; filename="blob"',
+      'content-disposition': 'inline; filename="blob"; filename*=utf-8\'\'blob',
       'content-length': '3',
       'content-type': 'text/plain',
       'x-custom-header': 'custom-value',

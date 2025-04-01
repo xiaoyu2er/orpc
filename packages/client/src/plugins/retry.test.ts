@@ -52,9 +52,13 @@ describe('clientRetryPlugin', () => {
   it('should retry', async () => {
     handlerFn.mockRejectedValue(new Error('fail'))
 
-    await expect(client('hello', { context: { retry: 3, retryDelay: 0 } })).rejects.toThrow('Internal server error')
+    const retry = vi.fn(() => 3)
+
+    await expect(client('hello', { context: { retry, retryDelay: 0 } })).rejects.toThrow('Internal server error')
 
     expect(handlerFn).toHaveBeenCalledTimes(4)
+    expect(retry).toHaveBeenCalledTimes(1)
+    expect(retry).toHaveBeenCalledWith({ context: { retry, retryDelay: 0 } }, [], 'hello')
   })
 
   it('should not retry if success', async () => {

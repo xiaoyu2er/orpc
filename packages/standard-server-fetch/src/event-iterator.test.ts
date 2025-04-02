@@ -165,11 +165,28 @@ describe('toEventStream', () => {
       .pipeThrough(new TextDecoderStream())
       .getReader()
 
-    expect((await reader.read()).value).toEqual('event: message\nid: id-1\ndata: {"order":1}\n\n')
-    expect((await reader.read()).value).toEqual('event: message\nretry: 20000\ndata: {"order":2}\n\n')
-    expect((await reader.read()).value).toEqual('event: message\n\n')
-    expect((await reader.read()).value).toEqual('event: done\nretry: 40000\nid: id-4\ndata: {"order":4}\n\n')
-    expect((await reader.read()).done).toEqual(true)
+    expect((await reader.read())).toEqual({ done: false, value: 'event: message\nid: id-1\ndata: {"order":1}\n\n' })
+    expect((await reader.read())).toEqual({ done: false, value: 'event: message\nretry: 20000\ndata: {"order":2}\n\n' })
+    expect((await reader.read())).toEqual({ done: false, value: 'event: message\n\n' })
+    expect((await reader.read())).toEqual({ done: false, value: 'event: done\nretry: 40000\nid: id-4\ndata: {"order":4}\n\n' })
+    expect((await reader.read())).toEqual({ done: true, value: undefined })
+  })
+
+  it('without return', async () => {
+    async function* gen() {
+      yield withEventMeta({ order: 1 }, { id: 'id-1' })
+      yield withEventMeta({ order: 2 }, { retry: 20000 })
+      yield undefined
+    }
+
+    const reader = toEventStream(gen(), {})
+      .pipeThrough(new TextDecoderStream())
+      .getReader()
+
+    expect((await reader.read())).toEqual({ done: false, value: 'event: message\nid: id-1\ndata: {"order":1}\n\n' })
+    expect((await reader.read())).toEqual({ done: false, value: 'event: message\nretry: 20000\ndata: {"order":2}\n\n' })
+    expect((await reader.read())).toEqual({ done: false, value: 'event: message\n\n' })
+    expect((await reader.read())).toEqual({ done: true, value: undefined })
   })
 
   it('with normal error', async () => {

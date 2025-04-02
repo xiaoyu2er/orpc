@@ -115,11 +115,15 @@ export function toEventStream(
 
         clearInterval(timeout)
 
-        controller.enqueue(encodeEventMessage({
-          ...getEventMeta(value.value),
-          event: value.done ? 'done' : 'message',
-          data: stringifyJSON(value.value),
-        }))
+        const meta = getEventMeta(value.value)
+
+        if (!value.done || value.value !== undefined || meta !== undefined) {
+          controller.enqueue(encodeEventMessage({
+            ...meta,
+            event: value.done ? 'done' : 'message',
+            data: stringifyJSON(value.value),
+          }))
+        }
 
         if (value.done) {
           controller.close()

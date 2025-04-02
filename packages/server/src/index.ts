@@ -21,7 +21,7 @@ export * from './router-hidden'
 export * from './router-utils'
 
 export { isDefinedError, ORPCError, safe } from '@orpc/client'
-export type { HTTPMethod, HTTPPath } from '@orpc/client'
+export type { ClientContext, HTTPMethod, HTTPPath } from '@orpc/client'
 export { eventIterator, type, ValidationError } from '@orpc/contract'
 export type {
   ContractProcedure,
@@ -38,6 +38,7 @@ export type {
   Route,
   Schema,
 } from '@orpc/contract'
+export type { IntersectPick } from '@orpc/shared'
 export { onError, onFinish, onStart, onSuccess } from '@orpc/shared'
 export type { Registry, ThrowableError } from '@orpc/shared'
 export { getEventMeta, withEventMeta } from '@orpc/standard-server'

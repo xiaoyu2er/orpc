@@ -390,6 +390,12 @@ importers:
         specifier: workspace:*
         version: link:../shared
 
+  packages/standard-server-batch:
+    dependencies:
+      '@orpc/standard-server':
+        specifier: workspace:*
+        version: link:../standard-server
+
   packages/standard-server-fetch:
     dependencies:
       '@orpc/shared':

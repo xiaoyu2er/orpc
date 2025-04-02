@@ -71,7 +71,11 @@ export class StandardHandler<T extends Context> {
     this.matcher.init(router)
   }
 
-  handle(request: StandardLazyRequest, options: StandardHandleOptions<T>): Promise<StandardHandleResult> {
+  async handle(request: StandardLazyRequest, options: StandardHandleOptions<T>): Promise<StandardHandleResult> {
+    if (options.prefix && !request.url.pathname.startsWith(options.prefix)) {
+      return { matched: false, response: undefined }
+    }
+
     return intercept(
       this.rootInterceptors,
       { ...options, request },
@@ -85,10 +89,6 @@ export class StandardHandler<T extends Context> {
             async ({ request, context, prefix }) => {
               const method = request.method
               const url = request.url
-
-              if (prefix && !url.pathname.startsWith(prefix)) {
-                return { matched: false, response: undefined }
-              }
 
               const pathname = prefix
                 ? url.pathname.replace(prefix, '')

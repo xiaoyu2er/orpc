@@ -1,35 +1,42 @@
-import type { StandardHeaders, StandardLazyResponse, StandardResponse } from '@orpc/standard-server'
+import type { StandardHeaders, StandardResponse } from '@orpc/standard-server'
 import { isAsyncIteratorObject, isObject } from '@orpc/shared'
+
+export interface BatchResponseBodyItem extends StandardResponse {
+  index: number
+}
 
 export interface ToBatchResponseOptions {
   headers: StandardHeaders
-  body: AsyncIterator<StandardResponse>
+  body: AsyncIterator<BatchResponseBodyItem>
 }
 
 export function toBatchResponse(options: ToBatchResponseOptions): StandardResponse {
   return {
-    status: 200,
+    status: 207,
     headers: options.headers,
     body: options.body,
   }
 }
 
-export function toStandardResponse(response: StandardLazyResponse): AsyncGenerator<StandardResponse> {
+export function parseBatchResponse(response: StandardResponse): AsyncGenerator<BatchResponseBodyItem> {
+  const body = response.body
+
+  if (!isAsyncIteratorObject(body)) {
+    throw new TypeError('Invalid batch response')
+  }
+
   return (async function* () {
-    const body = await response.body()
+    try {
+      for await (const item of body) {
+        if (!isObject(item) || !('index' in item) || !('status' in item) || !('headers' in item)) {
+          throw new TypeError('Invalid batch response')
+        }
 
-    if (!isAsyncIteratorObject(body)) {
-      throw new TypeError('Invalid batch response')
+        yield item as unknown as BatchResponseBodyItem
+      }
     }
-
-    for await (const item of body) {
-      if (!isObject(item)) {
-        throw new TypeError('Invalid batch response')
-      }
-
-      if (!('iterator' in item)) {
-        yield item
-      }
+    finally {
+      await body.return?.()
     }
   })()
 }

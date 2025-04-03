@@ -30,7 +30,7 @@ export function toBatchRequest(options: ToBatchRequestOptions): StandardRequest 
   }
 }
 
-export function toStandardRequests(request: StandardRequest): StandardRequest[] {
+export function parseBatchRequest(request: StandardRequest): StandardRequest[] {
   const items = request.method === 'GET'
     ? parseEmptyableJSON(request.url.searchParams.getAll('batch').at(-1))
     : request.body

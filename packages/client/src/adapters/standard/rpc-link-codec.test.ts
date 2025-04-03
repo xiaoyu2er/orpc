@@ -103,6 +103,41 @@ describe('standardRPCLinkCodec', () => {
       expect(mergeStandardHeadersSpy).toBeCalledTimes(1)
       expect(request.headers).toBe(mergeStandardHeadersSpy.mock.results[0]!.value)
     })
+
+    describe('base url', () => {
+      it('works with /prefix', async () => {
+        const codec = new StandardRPCLinkCodec(serializer, {
+          url: 'http://localhost:3000/prefix',
+          method: 'GET',
+        })
+
+        const request = await codec.encode(['test'], 'input', { context: {} })
+
+        expect(request.url.toString()).toEqual('http://localhost:3000/prefix/test?data=%7B%22json%22%3A%22input%22%7D')
+      })
+
+      it('works with /prefix/', async () => {
+        const codec = new StandardRPCLinkCodec(serializer, {
+          url: 'http://localhost:3000/prefix/',
+          method: 'GET',
+        })
+
+        const request = await codec.encode(['test'], 'input', { context: {} })
+
+        expect(request.url.toString()).toEqual('http://localhost:3000/prefix/test?data=%7B%22json%22%3A%22input%22%7D')
+      })
+
+      it('works with /prefix/?a=5', async () => {
+        const codec = new StandardRPCLinkCodec(serializer, {
+          url: 'http://localhost:3000/prefix/?a=5',
+          method: 'GET',
+        })
+
+        const request = await codec.encode(['test'], 'input', { context: {} })
+
+        expect(request.url.toString()).toEqual('http://localhost:3000/prefix/test?a=5&data=%7B%22json%22%3A%22input%22%7D')
+      })
+    })
   })
 
   describe('decode', () => {

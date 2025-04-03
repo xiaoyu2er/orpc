@@ -1,4 +1,4 @@
-import type { StandardHeaders, StandardRequest } from '@orpc/standard-server'
+import type { StandardHeaders, StandardRequest } from '../types'
 import { parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
 import { toBatchAbortSignal } from './signal'
 

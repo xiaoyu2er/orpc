@@ -1,4 +1,4 @@
-import type { StandardHeaders, StandardResponse } from '@orpc/standard-server'
+import type { StandardHeaders, StandardResponse } from '../types'
 import { isAsyncIteratorObject, isObject } from '@orpc/shared'
 
 export interface BatchResponseBodyItem extends StandardResponse {

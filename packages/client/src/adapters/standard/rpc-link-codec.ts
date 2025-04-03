@@ -78,7 +78,8 @@ export class StandardRPCLinkCodec<T extends ClientContext> implements StandardLi
     const expectedMethod = await value(this.expectedMethod, options, path, input)
     let headers = await value(this.headers, options, path, input)
     const baseUrl = await value(this.baseUrl, options, path, input)
-    const url = new URL(`${baseUrl.toString().replace(/\/$/, '')}${toHttpPath(path)}`)
+    const url = new URL(baseUrl)
+    url.pathname = `${url.pathname.replace(/\/$/, '')}${toHttpPath(path)}`
 
     if (options.lastEventId !== undefined) {
       headers = mergeStandardHeaders(headers, { 'last-event-id': options.lastEventId })

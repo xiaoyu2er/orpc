@@ -413,5 +413,30 @@ describe('standardHandler', () => {
       expect(matcher.match).toHaveBeenCalledOnce()
       expect(matcher.match).toHaveBeenCalledWith('GET', '/')
     })
+
+    it('support prefix ending with slash', async () => {
+      matcher.match.mockResolvedValue({
+        path: ['ping'],
+        procedure: ping,
+        params: { id: '__id__' },
+      })
+
+      const result = await handler.handle({
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+        url: new URL('http://localhost/prefix/something'),
+        body: vi.fn(),
+        signal,
+      }, {
+        context: { db: 'postgres' },
+        prefix: '/prefix/',
+      })
+
+      expect(result.matched).toEqual(true)
+      expect(matcher.match).toHaveBeenCalledOnce()
+      expect(matcher.match).toHaveBeenCalledWith('GET', '/something')
+    })
   })
 })

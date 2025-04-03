@@ -13,12 +13,19 @@ export function toBatchRequest(options: ToBatchRequestOptions): StandardRequest 
   const url = new URL(options.url)
   let body: unknown
 
+  const batchRequestItems = options.requests.map(request => ({
+    body: request.body,
+    headers: request.headers,
+    method: request.method,
+    url: request.url,
+  } satisfies Omit<StandardRequest, 'signal'>))
+
   if (options.method === 'GET') {
-    url.searchParams.append('batch', stringifyJSON(options.requests))
+    url.searchParams.append('batch', stringifyJSON(batchRequestItems))
   }
 
   else if (options.method === 'POST') {
-    body = options.requests
+    body = batchRequestItems
   }
 
   return {

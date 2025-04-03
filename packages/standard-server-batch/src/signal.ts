@@ -5,7 +5,7 @@ export function toBatchAbortSignal(signals: readonly (AbortSignal | undefined)[]
 
   const abortedSignals = realSignals.filter(signal => signal.aborted)
 
-  if (abortedSignals.length === realSignals.length) {
+  if (abortedSignals.length && abortedSignals.length === realSignals.length) {
     controller.abort()
   }
 

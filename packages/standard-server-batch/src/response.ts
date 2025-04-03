@@ -6,13 +6,14 @@ export interface BatchResponseBodyItem extends StandardResponse {
 }
 
 export interface ToBatchResponseOptions {
+  status: number
   headers: StandardHeaders
   body: AsyncIterator<BatchResponseBodyItem>
 }
 
 export function toBatchResponse(options: ToBatchResponseOptions): StandardResponse {
   return {
-    status: 207,
+    status: options.status,
     headers: options.headers,
     body: options.body,
   }

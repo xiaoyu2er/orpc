@@ -58,8 +58,8 @@ export class StandardOpenapiLinkCodec<T extends ClientContext> implements Standa
     const inputStructure = fallbackContractConfig('defaultInputStructure', procedure['~orpc'].route.inputStructure)
 
     return inputStructure === 'compact'
-      ? this.#encodeCompact(procedure, path, input, options, baseUrl.toString(), headers)
-      : this.#encodeDetailed(procedure, path, input, options, baseUrl.toString(), headers)
+      ? this.#encodeCompact(procedure, path, input, options, baseUrl, headers)
+      : this.#encodeDetailed(procedure, path, input, options, baseUrl, headers)
   }
 
   #encodeCompact(
@@ -67,7 +67,7 @@ export class StandardOpenapiLinkCodec<T extends ClientContext> implements Standa
     path: readonly string[],
     input: unknown,
     options: ClientOptions<T>,
-    baseUrl: string,
+    baseUrl: string | URL,
     headers: StandardHeaders,
   ): StandardRequest {
     let httpPath = standardizeHTTPPath(procedure['~orpc'].route.path ?? toHttpPath(path))
@@ -92,7 +92,8 @@ export class StandardOpenapiLinkCodec<T extends ClientContext> implements Standa
     }
 
     const method = fallbackContractConfig('defaultMethod', procedure['~orpc'].route.method)
-    const url = new URL(`${baseUrl.toString().replace(/\/$/, '')}${httpPath}`)
+    const url = new URL(baseUrl)
+    url.pathname = `${url.pathname.replace(/\/$/, '')}${httpPath}`
 
     if (method === 'GET') {
       const serialized = this.serializer.serialize(httpBody, { outputFormat: 'URLSearchParams' }) as URLSearchParams
@@ -124,7 +125,7 @@ export class StandardOpenapiLinkCodec<T extends ClientContext> implements Standa
     path: readonly string[],
     input: unknown,
     options: ClientOptions<T>,
-    baseUrl: string,
+    baseUrl: string | URL,
     headers: StandardHeaders,
   ): StandardRequest {
     let httpPath = standardizeHTTPPath(procedure['~orpc'].route.path ?? toHttpPath(path))
@@ -156,7 +157,8 @@ export class StandardOpenapiLinkCodec<T extends ClientContext> implements Standa
     }
 
     const method = fallbackContractConfig('defaultMethod', procedure['~orpc'].route.method)
-    const url = new URL(`${baseUrl.toString().replace(/\/$/, '')}${httpPath}`)
+    const url = new URL(baseUrl)
+    url.pathname = `${url.pathname.replace(/\/$/, '')}${httpPath}`
 
     if (input?.query !== undefined) {
       const query = this.serializer.serialize(input.query, { outputFormat: 'URLSearchParams' }) as URLSearchParams

@@ -34,12 +34,12 @@ Avoid using `any` or `unknown` for `throwableError` because doing so prevents th
 :::
 
 :::tip
-If you configure `throwableError` as `null | undefined | {}`, adjust your code to check the `success` property:
+If you configure `throwableError` as `null | undefined | {}`, adjust your code to check the `isSuccess` property instead of `error`:
 
 ```ts
-const { error, data, success } = await safe(client('input'))
+const { error, data, isSuccess } = await safe(client('input'))
 
-if (!success) {
+if (!isSuccess) {
   if (isDefinedError(error)) {
     // handle type-safe error
   }

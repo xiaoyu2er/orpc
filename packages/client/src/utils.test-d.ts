@@ -7,9 +7,9 @@ describe('safe', async () => {
   const client = {} as Client<ClientContext, string, number, Error | ORPCError<'BAD_GATEWAY', { val: string }>>
 
   it('tuple style', async () => {
-    const [error, data, isDefined, success] = await safe(client('123'))
+    const [error, data, isDefined, isSuccess] = await safe(client('123'))
 
-    if (error || !success) {
+    if (error || !isSuccess) {
       expectTypeOf(error).toEqualTypeOf<Error | ORPCError<'BAD_GATEWAY', { val: string }>>()
       expectTypeOf(data).toEqualTypeOf<undefined>()
       expectTypeOf(isDefined).toEqualTypeOf<boolean>()
@@ -33,9 +33,9 @@ describe('safe', async () => {
   })
 
   it('object style', async () => {
-    const { error, data, isDefined, success } = await safe(client('123'))
+    const { error, data, isDefined, isSuccess } = await safe(client('123'))
 
-    if (error || !success) {
+    if (error || !isSuccess) {
       expectTypeOf(error).toEqualTypeOf<Error | ORPCError<'BAD_GATEWAY', { val: string }>>()
       expectTypeOf(data).toEqualTypeOf<undefined>()
       expectTypeOf(isDefined).toEqualTypeOf<boolean>()

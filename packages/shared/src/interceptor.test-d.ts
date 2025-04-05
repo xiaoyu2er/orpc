@@ -57,8 +57,15 @@ it('onError', () => {
 })
 
 it('onFinish', () => {
-  const interceptor: Interceptor<{ foo: string }, 'success', 'error'> = onFinish((state, options) => {
-    expectTypeOf(state).toEqualTypeOf<['success', null, 'success'] | [undefined, 'error', 'error']>()
+  const interceptor: Interceptor<{ foo: string }, 'success', 'error'> = onFinish(([error, data, isSuccess], options) => {
+    if (error || !isSuccess) {
+      expectTypeOf(error).toEqualTypeOf<'error'>()
+      expectTypeOf(data).toEqualTypeOf<undefined>()
+    }
+    else {
+      expectTypeOf(error).toEqualTypeOf<null>()
+      expectTypeOf(data).toEqualTypeOf<'success'>()
+    }
 
     expectTypeOf(options.foo).toEqualTypeOf<string>()
     expectTypeOf(options.next).toBeCallableWith<[options?: { foo: string }]>()
@@ -67,8 +74,16 @@ it('onFinish', () => {
 
   os.$context<{ something: string }>().use(onFinish(() => { }))
 
-  os.$context<{ something: string }>().use(onFinish((state, { context, next }) => {
-    expectTypeOf(state).toEqualTypeOf<[Awaited<MiddlewareResult<Context, unknown>>, null, 'success'] | [undefined, Error, 'error']>()
+  os.$context<{ something: string }>().use(onFinish(([error, data, isSuccess], { context, next }) => {
+    if (error || !isSuccess) {
+      expectTypeOf(error).toEqualTypeOf<Error>()
+      expectTypeOf(data).toEqualTypeOf<undefined>()
+    }
+    else {
+      expectTypeOf(error).toEqualTypeOf<null>()
+      expectTypeOf(data).toEqualTypeOf<Awaited<MiddlewareResult<Context, unknown>>>()
+    }
+
     expectTypeOf(context).toEqualTypeOf<{ something: string }>()
     expectTypeOf(next).toEqualTypeOf<MiddlewareNextFn<unknown>>()
   })).handler(({ context }) => {

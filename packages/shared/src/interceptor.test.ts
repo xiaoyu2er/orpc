@@ -156,7 +156,7 @@ describe('onStart / onSuccess / onError / onFinish', () => {
 
     expect(onFinishFn).toHaveBeenCalledTimes(1)
     expect(onFinishFn).toHaveBeenCalledWith(
-      ['__main__', null, 'success'],
+      [null, '__main__', true],
       {
         foo: 'bar',
         next: expect.any(Function),
@@ -197,7 +197,7 @@ describe('onStart / onSuccess / onError / onFinish', () => {
 
     expect(onFinishFn).toHaveBeenCalledTimes(1)
     expect(onFinishFn).toHaveBeenCalledWith(
-      [undefined, new Error('__error__'), 'error'],
+      [new Error('__error__'), undefined, false],
       {
         foo: 'bar',
         next: expect.any(Function),

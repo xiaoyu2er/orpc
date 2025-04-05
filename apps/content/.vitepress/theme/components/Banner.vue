@@ -37,7 +37,7 @@ function dismissBanner() {
           Serverless API Gateway<span class="banner-helper">, designed for developers</span> -
         </div>
 
-        <a class="banner-action" href="https://zuplo.com/" target="_blank" rel="noopener">
+        <a class="banner-action" href="https://zuplo.link/orpc" target="_blank" rel="noopener">
           Try Zuplo
         </a>
       </div>

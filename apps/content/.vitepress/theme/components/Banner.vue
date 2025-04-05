@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { useElementSize, useWindowScroll } from '@vueuse/core'
+import { useElementSize, useWindowScroll, useWindowSize } from '@vueuse/core'
 import { computed, ref, watchEffect } from 'vue'
 
 const container = ref<HTMLElement>()
 const { y } = useWindowScroll()
-const { height, width } = useElementSize(container)
+const { width } = useWindowSize()
+const { height } = useElementSize(container)
 const layoutTopHeight = computed(() => Math.max(0, height.value - y.value))
 
 watchEffect(() => {

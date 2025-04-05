@@ -60,8 +60,10 @@ it('onFinish', () => {
   const interceptor: Interceptor<{ foo: string }, 'success', 'error'> = onFinish(([error, data, isSuccess], options) => {
     if (error || !isSuccess) {
       expectTypeOf(error).toEqualTypeOf<'error'>()
+      expectTypeOf(data).toEqualTypeOf<undefined>()
     }
     else {
+      expectTypeOf(error).toEqualTypeOf<null>()
       expectTypeOf(data).toEqualTypeOf<'success'>()
     }
 
@@ -75,8 +77,10 @@ it('onFinish', () => {
   os.$context<{ something: string }>().use(onFinish(([error, data, isSuccess], { context, next }) => {
     if (error || !isSuccess) {
       expectTypeOf(error).toEqualTypeOf<Error>()
+      expectTypeOf(data).toEqualTypeOf<undefined>()
     }
     else {
+      expectTypeOf(error).toEqualTypeOf<null>()
       expectTypeOf(data).toEqualTypeOf<Awaited<MiddlewareResult<Context, unknown>>>()
     }
 

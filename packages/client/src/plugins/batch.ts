@@ -1,9 +1,10 @@
 import type { InterceptorOptions, ThrowableError, Value } from '@orpc/shared'
 import type { StandardHeaders, StandardLazyResponse, StandardRequest } from '@orpc/standard-server'
-import type { StandardLinkClientInterceptorOptions, StandardLinkOptions, StandardLinkPlugin } from '../adapters/standard'
 import type { ClientContext } from '../types'
 import { isAsyncIteratorObject, splitInHalf, value } from '@orpc/shared'
 import { parseBatchResponse, toBatchRequest } from '@orpc/standard-server/batch'
+import { getMalformedResponseErrorCode, type StandardLinkClientInterceptorOptions, type StandardLinkOptions, type StandardLinkPlugin } from '../adapters/standard'
+import { isORPCErrorStatus, ORPCError } from '../error'
 
 export interface BatchLinkPluginGroup<T extends ClientContext> {
   condition(options: StandardLinkClientInterceptorOptions<T>): boolean
@@ -89,7 +90,7 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
       return headers
     })
 
-    this.mapBatchItem = options.mapBatchItem ?? (({ request, batchUrl, batchHeaders }) => {
+    this.mapBatchItem = options.mapBatchItem ?? (({ request, batchHeaders }) => {
       const headers: StandardHeaders = {}
 
       for (const [key, value] of Object.entries(request.headers)) {
@@ -100,7 +101,7 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
 
       return {
         method: request.method,
-        url: batchUrl,
+        url: request.url,
         headers,
         body: request.body,
         signal: request.signal,
@@ -189,6 +190,7 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
     }
 
     const items = _items as [typeof _items[number], ...typeof _items[number][]]
+
     if (items.length === 1) {
       items[0][0].next().then(items[0][1]).catch(items[0][2])
       return
@@ -234,22 +236,39 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
         path: group.path ?? [],
       })
 
+      const isOk = !isORPCErrorStatus(response.status)
+
+      if (!isOk) {
+        if (ORPCError.isValidJSON(response.body)) {
+          throw ORPCError.fromJSON(response.body)
+        }
+
+        throw new ORPCError(getMalformedResponseErrorCode(response.status), {
+          data: response.body,
+        })
+      }
+
       const parsed = parseBatchResponse({ ...response, body: await response.body() })
 
       for await (const item of parsed) {
         items[item.index]?.[1]({ ...item, body: () => Promise.resolve(item.body) })
       }
-    }
-    catch (error) {
-      for (const value of items) {
-        value[2](error)
-      }
-    }
-    finally {
+
+      /**
+       * JS ignore the second resolve or reject so we don't need to check if has been resolved
+       */
       for (const value of items) {
         value[2](
           new Error('Something went wrong make batch response not contains this response. This is a bug please report it.'),
         )
+      }
+    }
+    catch (error) {
+      /**
+       * JS ignore the second resolve or reject so we don't need to check if has been resolved
+       */
+      for (const value of items) {
+        value[2](error)
       }
     }
   }

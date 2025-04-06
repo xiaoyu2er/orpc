@@ -40,10 +40,11 @@ export class BatchHandlerPlugin<T extends Context> implements StandardHandlerPlu
         isParsing = false
 
         const promises: (Promise<BatchResponseBodyItem> | undefined)[] = parsed
-          .map(request => this.mapBatchItem(request, options))
-          .map(
-            (request, index) => options
-              .next({ request: { ...request, body: () => Promise.resolve(request.body) }, context: options.context })
+          .map((request, index) => {
+            const mapped = this.mapBatchItem(request, options)
+
+            return options
+              .next({ ...options, request: { ...mapped, body: () => Promise.resolve(mapped.body) } })
               .then(({ response, matched }) => {
                 if (matched) {
                   return { ...response, index }
@@ -64,7 +65,8 @@ export class BatchHandlerPlugin<T extends Context> implements StandardHandlerPlu
                 })
 
                 return { index, status: error.status, headers: {}, body: error.toJSON() }
-              }),
+              })
+          },
           )
 
         // wait until at least one request is resolved
@@ -82,8 +84,8 @@ export class BatchHandlerPlugin<T extends Context> implements StandardHandlerPlu
               }
 
               const result = await Promise.race(handling)
-              yield result
               promises[result.index] = undefined
+              yield result
             }
           })(),
         })

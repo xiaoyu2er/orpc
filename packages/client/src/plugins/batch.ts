@@ -112,6 +112,23 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
     options.clientInterceptors ??= []
 
     options.clientInterceptors.push((options) => {
+      if (options.request.headers['x-orpc-batch'] !== '1') {
+        return options.next()
+      }
+
+      return options.next({
+        ...options,
+        request: {
+          ...options.request,
+          headers: {
+            ...options.request.headers,
+            'x-orpc-batch': undefined,
+          },
+        },
+      })
+    })
+
+    options.clientInterceptors.push((options) => {
       if (
         options.request.body instanceof Blob
         || options.request.body instanceof FormData
@@ -210,7 +227,7 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
       }
 
       const response = await options[0].next({
-        request: batchRequest,
+        request: { ...batchRequest, headers: { ...batchRequest.headers, 'x-orpc-batch': '1' } },
         signal: batchRequest.signal,
         context: group.context,
         input: group.input,

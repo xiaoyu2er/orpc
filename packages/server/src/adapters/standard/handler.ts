@@ -72,13 +72,15 @@ export class StandardHandler<T extends Context> {
   }
 
   async handle(request: StandardLazyRequest, options: StandardHandleOptions<T>): Promise<StandardHandleResult> {
-    if (options.prefix && !request.url.pathname.startsWith(options.prefix)) {
+    const prefix = (options.prefix?.replace(/\/$/, '') || undefined) as HTTPPath | undefined
+
+    if (prefix && !request.url.pathname.startsWith(`${prefix}/`) && request.url.pathname !== prefix) {
       return { matched: false, response: undefined }
     }
 
     return intercept(
       this.rootInterceptors,
-      { ...options, request },
+      { ...options, request, prefix },
       async (interceptorOptions) => {
         let isDecoding = false
 

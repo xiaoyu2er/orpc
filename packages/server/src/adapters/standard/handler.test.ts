@@ -340,20 +340,103 @@ describe('standardHandler', () => {
     expect(init).toHaveBeenCalledWith(options)
   })
 
-  it('should check prefix first', async () => {
-    const result = await handler.handle({
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-      },
-      url: new URL('http://localhost/users/1'),
-      body: vi.fn(),
-      signal,
-    }, {
-      context: { db: 'postgres' },
-      prefix: '/invalid',
+  describe('prefix', () => {
+    it('require match prefix', async () => {
+      matcher.match.mockResolvedValue({
+        path: ['ping'],
+        procedure: ping,
+        params: { id: '__id__' },
+      })
+
+      const result = await handler.handle({
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+        url: new URL('http://localhost/users/1'),
+        body: vi.fn(),
+        signal,
+      }, {
+        context: { db: 'postgres' },
+        prefix: '/prefix',
+      })
+
+      expect(result).toEqual({ matched: false, response: undefined })
+      expect(matcher.match).not.toHaveBeenCalled()
     })
 
-    expect(result).toEqual({ matched: false, response: undefined })
+    it('must be separate with slash', async () => {
+      matcher.match.mockResolvedValue({
+        path: ['ping'],
+        procedure: ping,
+        params: { id: '__id__' },
+      })
+
+      const result = await handler.handle({
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+        url: new URL('http://localhost/prefixusers/1'),
+        body: vi.fn(),
+        signal,
+      }, {
+        context: { db: 'postgres' },
+        prefix: '/prefix',
+      })
+
+      expect(result).toEqual({ matched: false, response: undefined })
+      expect(matcher.match).not.toHaveBeenCalled()
+    })
+
+    it('support prefix exact match', async () => {
+      matcher.match.mockResolvedValue({
+        path: ['ping'],
+        procedure: ping,
+        params: { id: '__id__' },
+      })
+
+      const result = await handler.handle({
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+        url: new URL('http://localhost/prefix'),
+        body: vi.fn(),
+        signal,
+      }, {
+        context: { db: 'postgres' },
+        prefix: '/prefix',
+      })
+
+      expect(result.matched).toEqual(true)
+      expect(matcher.match).toHaveBeenCalledOnce()
+      expect(matcher.match).toHaveBeenCalledWith('GET', '/')
+    })
+
+    it('support prefix ending with slash', async () => {
+      matcher.match.mockResolvedValue({
+        path: ['ping'],
+        procedure: ping,
+        params: { id: '__id__' },
+      })
+
+      const result = await handler.handle({
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+        url: new URL('http://localhost/prefix/something'),
+        body: vi.fn(),
+        signal,
+      }, {
+        context: { db: 'postgres' },
+        prefix: '/prefix/',
+      })
+
+      expect(result.matched).toEqual(true)
+      expect(matcher.match).toHaveBeenCalledOnce()
+      expect(matcher.match).toHaveBeenCalledWith('GET', '/something')
+    })
   })
 })

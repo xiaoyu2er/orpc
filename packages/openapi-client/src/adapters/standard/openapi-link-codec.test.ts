@@ -266,6 +266,38 @@ describe('standardOpenapiLinkCodecOptions', () => {
         await expect(codec.encode(['ping'], 'invalid', { context: {}, signal })).rejects.toThrow('Invalid input')
       })
     })
+
+    describe('base url', () => {
+      it('works with /prefix', async () => {
+        const codec = new StandardOpenapiLinkCodec({ test: oc.route({ path: '/test', method: 'GET' }) }, serializer, {
+          url: 'http://localhost:3000/prefix',
+        })
+
+        const request = await codec.encode(['test'], { value: '123' }, { context: {} })
+
+        expect(request.url.toString()).toEqual('http://localhost:3000/prefix/test?value=123')
+      })
+
+      it('works with /prefix/', async () => {
+        const codec = new StandardOpenapiLinkCodec({ test: oc.route({ path: '/test', method: 'GET' }) }, serializer, {
+          url: 'http://localhost:3000/prefix/',
+        })
+
+        const request = await codec.encode(['test'], { value: '123' }, { context: {} })
+
+        expect(request.url.toString()).toEqual('http://localhost:3000/prefix/test?value=123')
+      })
+
+      it('works with /prefix/?a=5', async () => {
+        const codec = new StandardOpenapiLinkCodec({ test: oc.route({ path: '/test', method: 'GET' }) }, serializer, {
+          url: 'http://localhost:3000/prefix/?a=5',
+        })
+
+        const request = await codec.encode(['test'], { value: '123' }, { context: {} })
+
+        expect(request.url.toString()).toEqual('http://localhost:3000/prefix/test?a=5&value=123')
+      })
+    })
   })
 
   describe('.decode', () => {

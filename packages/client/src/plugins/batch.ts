@@ -1,12 +1,12 @@
-import type { Value } from '@orpc/shared'
+import type { InterceptorOptions, ThrowableError, Value } from '@orpc/shared'
 import type { StandardHeaders, StandardLazyResponse, StandardRequest } from '@orpc/standard-server'
-import type { StandardLinkOptions, StandardLinkPlugin } from '../adapters/standard'
-import type { ClientContext, ClientOptions } from '../types'
-import { isAsyncIteratorObject, value } from '@orpc/shared'
+import type { StandardLinkClientInterceptorOptions, StandardLinkOptions, StandardLinkPlugin } from '../adapters/standard'
+import type { ClientContext } from '../types'
+import { isAsyncIteratorObject, splitInHalf, value } from '@orpc/shared'
 import { parseBatchResponse, toBatchRequest } from '@orpc/standard-server/batch'
 
 export interface BatchLinkPluginGroup<T extends ClientContext> {
-  condition(options: ClientOptions<T>, path: readonly string[], input: unknown): boolean
+  condition(options: StandardLinkClientInterceptorOptions<T>): boolean
   context: T
   path?: readonly string[]
   input?: unknown
@@ -16,51 +16,53 @@ export interface BatchLinkPluginOptions<T extends ClientContext> {
   groups: readonly [BatchLinkPluginGroup<T>, ...BatchLinkPluginGroup<T>[]]
 
   /**
+   * The maximum number of requests in the batch.
+   *
+   * @default 10
+   */
+  maxBatchSize?: Value<number, [readonly [StandardLinkClientInterceptorOptions<T>, ...StandardLinkClientInterceptorOptions<T>[]]]>
+
+  /**
    * Defines the URL to use for the batch request.
    *
-   * @default the URL of the first request in the batch
+   * @default the URL of the first request in the batch + '/__batch__'
    */
-  url?: Value<string | URL, [
-    batchItems: readonly [options: ClientOptions<T>, path: readonly string[], input: unknown, request: StandardRequest][],
-  ]>
+  url?: Value<string | URL, [readonly [StandardLinkClientInterceptorOptions<T>, ...StandardLinkClientInterceptorOptions<T>[]]]>
+
+  /**
+   * The maximum length of the URL.
+   *
+   * @default 2083
+   */
+  maxUrlLength?: Value<number, [readonly [StandardLinkClientInterceptorOptions<T>, ...StandardLinkClientInterceptorOptions<T>[]]]>
 
   /**
    * Defines the HTTP headers to use for the batch request.
    *
    * @default The same headers of all requests in the batch
    */
-  headers?: Value<StandardHeaders, [
-    batchItems: readonly [options: ClientOptions<T>, path: readonly string[], input: unknown, request: StandardRequest, batchUrl: URL][],
-  ]>
+  headers?: Value<StandardHeaders, [readonly [StandardLinkClientInterceptorOptions<T>, ...StandardLinkClientInterceptorOptions<T>[]]]>
 
   /**
    * Map the batch request items before sending them.
    *
    * @default Removes headers that are duplicated in the batch headers.
    */
-  mapBatchItem?: (
-    options: ClientOptions<T>,
-    path: readonly string[],
-    input: unknown,
-    request: StandardRequest,
-    batchUrl: URL,
-    batchHeaders: StandardHeaders,
-  ) => StandardRequest
+  mapBatchItem?: (options: StandardLinkClientInterceptorOptions<T> & { batchUrl: URL, batchHeaders: StandardHeaders }) => StandardRequest
 }
 
 export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlugin<T> {
   private readonly groups: Exclude<BatchLinkPluginOptions<T>['groups'], undefined>
+  private readonly maxBatchSize: Exclude<BatchLinkPluginOptions<T>['maxBatchSize'], undefined>
   private readonly batchUrl: Exclude<BatchLinkPluginOptions<T>['url'], undefined>
+  private readonly maxUrlLength: Exclude<BatchLinkPluginOptions<T>['maxUrlLength'], undefined>
   private readonly batchHeaders: Exclude<BatchLinkPluginOptions<T>['headers'], undefined>
   private readonly mapBatchItem: Exclude<BatchLinkPluginOptions<T>['mapBatchItem'], undefined>
 
   private pending: Map<
     BatchLinkPluginGroup<T>,
     [
-      options: ClientOptions<T>,
-      path: readonly string[],
-      input: unknown,
-      request: StandardRequest,
+      options: InterceptorOptions<StandardLinkClientInterceptorOptions<T>, StandardLazyResponse, ThrowableError>,
       resolve: (response: StandardLazyResponse) => void,
       reject: (e: unknown) => void,
     ][]
@@ -69,6 +71,41 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
   constructor(options: BatchLinkPluginOptions<T>) {
     this.groups = options.groups
     this.pending = new Map()
+
+    this.maxBatchSize = options.maxBatchSize ?? 10
+    this.maxUrlLength = options.maxUrlLength ?? 2083
+
+    this.batchUrl = options.url ?? (([options]) => `${options.request.url.origin}${options.request.url.pathname}/__batch__`)
+
+    this.batchHeaders = options.headers ?? (([options, ...rest]) => {
+      const headers: StandardHeaders = {}
+
+      for (const [key, value] of Object.entries(options.request.headers)) {
+        if (rest.every(item => item.request.headers[key] === value)) {
+          headers[key] = value
+        }
+      }
+
+      return headers
+    })
+
+    this.mapBatchItem = options.mapBatchItem ?? (({ request, batchUrl, batchHeaders }) => {
+      const headers: StandardHeaders = {}
+
+      for (const [key, value] of Object.entries(request.headers)) {
+        if (batchHeaders[key] !== value) {
+          headers[key] = value
+        }
+      }
+
+      return {
+        method: request.method,
+        url: batchUrl,
+        headers,
+        body: request.body,
+        signal: request.signal,
+      }
+    })
   }
 
   init(options: StandardLinkOptions<T>): void {
@@ -83,83 +120,120 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
         return options.next()
       }
 
-      const group = this.groups.find(group => group.condition(options.options, options.path, options.input))
+      const group = this.groups.find(group => group.condition(options))
 
       if (!group) {
         return options.next()
       }
 
-      const handleBatch = async () => {
-        const pending = this.pending
-        this.pending = new Map()
-
-        for (const [group, batchItems] of pending) {
-          for (const method of ['GET', 'POST'] as const) {
-            const methodItems = batchItems.filter(
-              item => method === 'GET' ? item[3].method === 'GET' : item[3].method !== 'GET',
-            )
-
-            if (methodItems.length === 0) {
-              continue
-            }
-
-            if (methodItems.length === 1) {
-              const [clientOptions, path, input, request, resolve, reject] = methodItems[0]!
-              options.next({ options: clientOptions, path, input, request })
-                .then(resolve)
-                .catch(reject)
-
-              continue
-            }
-
-            const batchUrl = new URL(await value(this.batchUrl, methodItems.map(([options, path, input, request]) => [options, path, input, request] satisfies [any, any, any, any])))
-            const batchHeaders = await value(this.batchHeaders, methodItems.map(([options, path, input, request]) => [options, path, input, request, batchUrl] satisfies [any, any, any, any, any]))
-            const mappedItems = methodItems.map(([options, path, input, request]) => this.mapBatchItem(options, path, input, request, batchUrl, batchHeaders))
-            const reItems: ({ resolve: any, reject: any } | undefined)[] = methodItems.map(([,,,,resolve, reject]) => ({ resolve, reject }))
-
-            const batchRequest = toBatchRequest({
-              method,
-              url: batchUrl,
-              headers: batchHeaders,
-              requests: mappedItems,
-            })
-
-            try {
-              const response = await options.next({
-                options: { context: group.context, signal: batchRequest.signal },
-                input: group.input,
-                path: group.path ?? [],
-                request: batchRequest,
-              })
-
-              const parsed = parseBatchResponse({ ...response, body: await response.body() })
-
-              for await (const item of parsed) {
-                reItems[item.index]?.resolve?.(item)
-                reItems[item.index] = undefined
-              }
-            }
-            catch (error) {
-              for (const value of reItems) {
-                value?.reject?.(error)
-              }
-            }
-          }
-        }
-      }
-
       return new Promise((resolve, reject) => {
-        const batchItems = this.pending.get(group)
-
-        if (batchItems) {
-          batchItems.push([options.options, options.path, options.input, options.request, resolve, reject])
-        }
-        else {
-          this.pending.set(group, [[options.options, options.path, options.input, options.request, resolve, reject]])
-        }
-
-        setTimeout(handleBatch)
+        this.#push(group, options, resolve, reject)
+        setTimeout(() => this.#resolvePending())
       })
     })
+  }
+
+  #push(
+    group: BatchLinkPluginGroup<T>,
+    options: InterceptorOptions<StandardLinkClientInterceptorOptions<T>, StandardLazyResponse, ThrowableError>,
+    resolve: (response: StandardLazyResponse) => void,
+    reject: (e: unknown) => void,
+  ): void {
+    const items = this.pending.get(group)
+
+    if (items) {
+      items.push([options, resolve, reject])
+    }
+    else {
+      this.pending.set(group, [[options, resolve, reject]])
+    }
+  }
+
+  async #resolvePending(): Promise<void> {
+    const pending = this.pending
+    this.pending = new Map()
+
+    for (const [group, items] of pending) {
+      const getItems = items.filter(([options]) => options.request.method === 'GET')
+      const restItems = items.filter(([options]) => options.request.method !== 'GET')
+
+      this.#handleBatch('GET', group, getItems)
+      this.#handleBatch('POST', group, restItems)
+    }
+  }
+
+  async #handleBatch(
+    method: 'GET' | 'POST',
+    group: BatchLinkPluginGroup<T>,
+    _items: typeof this.pending extends Map<any, infer U> ? U : never,
+  ): Promise<void> {
+    if (!_items.length) {
+      return
+    }
+
+    const items = _items as [typeof _items[number], ...typeof _items[number][]]
+    if (items.length === 1) {
+      items[0][0].next().then(items[0][1]).catch(items[0][2])
+      return
+    }
+
+    try {
+      const options = items.map(([options]) => options) as [InterceptorOptions<StandardLinkClientInterceptorOptions<T>, StandardLazyResponse, ThrowableError>, ...InterceptorOptions<StandardLinkClientInterceptorOptions<T>, StandardLazyResponse, ThrowableError>[]]
+
+      const maxBatchSize = await value(this.maxBatchSize, options)
+
+      if (items.length > maxBatchSize) {
+        const [first, second] = splitInHalf(items)
+        this.#handleBatch(method, group, first)
+        this.#handleBatch(method, group, second)
+        return
+      }
+
+      const batchUrl = new URL(await value(this.batchUrl, options))
+      const batchHeaders = await value(this.batchHeaders, options)
+      const mappedItems = items.map(([options]) => this.mapBatchItem({ ...options, batchUrl, batchHeaders }))
+
+      const batchRequest = toBatchRequest({
+        method,
+        url: batchUrl,
+        headers: batchHeaders,
+        requests: mappedItems,
+      })
+
+      const maxUrlLength = await value(this.maxUrlLength, options)
+
+      if (batchRequest.url.toString().length > maxUrlLength) {
+        const [first, second] = splitInHalf(items)
+        this.#handleBatch(method, group, first)
+        this.#handleBatch(method, group, second)
+        return
+      }
+
+      const response = await options[0].next({
+        request: batchRequest,
+        signal: batchRequest.signal,
+        context: group.context,
+        input: group.input,
+        path: group.path ?? [],
+      })
+
+      const parsed = parseBatchResponse({ ...response, body: await response.body() })
+
+      for await (const item of parsed) {
+        items[item.index]?.[1]({ ...item, body: () => Promise.resolve(item.body) })
+      }
+    }
+    catch (error) {
+      for (const value of items) {
+        value[2](error)
+      }
+    }
+    finally {
+      for (const value of items) {
+        value[2](
+          new Error('Something went wrong make batch response not contains this response. This is a bug please report it.'),
+        )
+      }
+    }
   }
 }

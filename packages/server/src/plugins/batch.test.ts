@@ -248,13 +248,7 @@ describe('batchHandlerPlugin', () => {
     expect(result).toEqual({
       matched: true,
       response: {
-        body: {
-          code: 'BAD_REQUEST',
-          data: undefined,
-          defined: false,
-          message: 'Invalid batch request, this could be caused by a malformed request body or a missing header',
-          status: 400,
-        },
+        body: 'Invalid batch request, this could be caused by a malformed request body or a missing header',
         headers: {},
         status: 400,
       },
@@ -384,12 +378,7 @@ describe('batchHandlerPlugin', () => {
         index: 0,
         status: 500,
         headers: {},
-        body: {
-          code: 'INTERNAL_SERVER_ERROR',
-          defined: false,
-          message: 'Internal server error',
-          status: 500,
-        },
+        body: 'Internal server error',
       },
     })
 
@@ -399,12 +388,7 @@ describe('batchHandlerPlugin', () => {
         index: 2,
         status: 500,
         headers: {},
-        body: {
-          code: 'INTERNAL_SERVER_ERROR',
-          defined: false,
-          message: 'Internal server error',
-          status: 500,
-        },
+        body: 'Internal server error',
       },
     })
 
@@ -414,13 +398,7 @@ describe('batchHandlerPlugin', () => {
         index: 1,
         status: 404,
         headers: {},
-        body: {
-          code: 'NOT_FOUND',
-          data: undefined,
-          defined: false,
-          message: 'No procedure matched',
-          status: 404,
-        },
+        body: 'No procedure matched',
       },
     })
 
@@ -430,13 +408,7 @@ describe('batchHandlerPlugin', () => {
         index: 3,
         status: 404,
         headers: {},
-        body: {
-          code: 'NOT_FOUND',
-          data: undefined,
-          defined: false,
-          message: 'No procedure matched',
-          status: 404,
-        },
+        body: 'No procedure matched',
       },
     })
 

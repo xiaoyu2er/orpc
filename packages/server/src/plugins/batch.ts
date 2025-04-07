@@ -3,7 +3,6 @@ import type { StandardHeaders, StandardRequest } from '@orpc/standard-server'
 import type { BatchResponseBodyItem } from '@orpc/standard-server/batch'
 import type { StandardHandlerInterceptorOptions, StandardHandlerOptions, StandardHandlerPlugin } from '../adapters/standard'
 import type { Context } from '../context'
-import { ORPCError } from '@orpc/client'
 import { value } from '@orpc/shared'
 import { parseBatchRequest, toBatchResponse } from '@orpc/standard-server/batch'
 
@@ -74,21 +73,10 @@ export class BatchHandlerPlugin<T extends Context> implements StandardHandlerPlu
                   return { ...response, index }
                 }
 
-                const error = new ORPCError('NOT_FOUND', {
-                  message: 'No procedure matched',
-                  status: 404,
-                })
-
-                return { index, status: error.status, headers: {}, body: error.toJSON() }
+                return { index, status: 404, headers: {}, body: 'No procedure matched' }
               })
-              .catch((cause) => {
-                const error = new ORPCError('INTERNAL_SERVER_ERROR', {
-                  message: 'Internal server error',
-                  status: 500,
-                  cause,
-                })
-
-                return { index, status: error.status, headers: {}, body: error.toJSON() }
+              .catch(() => {
+                return { index, status: 500, headers: {}, body: 'Internal server error' }
               })
           },
           )
@@ -126,14 +114,9 @@ export class BatchHandlerPlugin<T extends Context> implements StandardHandlerPlu
       }
       catch (cause) {
         if (isParsing) {
-          const error = new ORPCError('BAD_REQUEST', {
-            message: 'Invalid batch request, this could be caused by a malformed request body or a missing header',
-            cause,
-          })
-
           return {
             matched: true,
-            response: { status: error.status, headers: {}, body: error.toJSON() },
+            response: { status: 400, headers: {}, body: 'Invalid batch request, this could be caused by a malformed request body or a missing header' },
           }
         }
 

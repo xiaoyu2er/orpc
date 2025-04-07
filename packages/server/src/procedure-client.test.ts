@@ -45,7 +45,7 @@ const procedureCases = [
 ] as const
 
 beforeEach(() => {
-  vi.clearAllMocks()
+  vi.resetAllMocks()
 })
 
 describe.each(procedureCases)('createProcedureClient - case %s', async (_, procedure) => {
@@ -478,6 +478,37 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     await client({ val: '123' }, { context: { cache: true } })
     expect(context).toBeCalledTimes(1)
     expect(context).toBeCalledWith({ cache: true })
+  })
+
+  it('can multiple .next calls', async () => {
+    const client = createProcedureClient(procedure)
+
+    preMid1.mockImplementationOnce(async ({ next }, input, output) => output([(await next()).output, (await next()).output, (await next()).output, (await next()).output]))
+
+    let index = 0
+
+    preMid2.mockImplementation(({ next }) => next({ context: { preMid2: index++ } }))
+    postMid1.mockImplementation(({ next }) => next({ context: { postMid1: index++ } }))
+
+    await expect(client({ val: '123' })).resolves.toEqual([{ val: 123 }, { val: 123 }, { val: 123 }, { val: 123 }])
+
+    expect(preMid1).toBeCalledTimes(1)
+    expect(preMid2).toBeCalledTimes(4)
+    expect(postMid1).toBeCalledTimes(4)
+    expect(postMid2).toBeCalledTimes(4)
+    expect(handler).toBeCalledTimes(4)
+
+    expect((handler as any).mock.calls[0][0].context.preMid2).toBe(0)
+    expect((handler as any).mock.calls[0][0].context.postMid1).toBe(1)
+
+    expect((handler as any).mock.calls[1][0].context.preMid2).toBe(2)
+    expect((handler as any).mock.calls[1][0].context.postMid1).toBe(3)
+
+    expect((handler as any).mock.calls[2][0].context.preMid2).toBe(4)
+    expect((handler as any).mock.calls[2][0].context.postMid1).toBe(5)
+
+    expect((handler as any).mock.calls[3][0].context.preMid2).toBe(6)
+    expect((handler as any).mock.calls[3][0].context.postMid1).toBe(7)
   })
 })
 

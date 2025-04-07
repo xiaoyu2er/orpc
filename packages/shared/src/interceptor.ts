@@ -103,10 +103,8 @@ export async function intercept<TOptions extends InterceptableOptions, TResult, 
   options: NoInfer<TOptions>,
   main: NoInfer<(options: TOptions) => Promisable<TResult>>,
 ): Promise<TResult> {
-  let index = 0
-
-  const next = async (options: TOptions): Promise<TResult> => {
-    const interceptor = interceptors[index++]
+  const next = async (options: TOptions, index: number): Promise<TResult> => {
+    const interceptor = interceptors[index]
 
     if (!interceptor) {
       return await main(options)
@@ -114,9 +112,9 @@ export async function intercept<TOptions extends InterceptableOptions, TResult, 
 
     return await interceptor({
       ...options,
-      next: (newOptions: TOptions = options) => next(newOptions),
+      next: (newOptions: TOptions = options) => next(newOptions, index + 1),
     })
   }
 
-  return await next(options)
+  return next(options, 0)
 }

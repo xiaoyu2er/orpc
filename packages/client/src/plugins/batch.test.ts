@@ -312,6 +312,37 @@ describe('batchLinkPlugin', () => {
       'x-custom': '1',
     })
   })
+
+  it('can exclude a request from the batch', async () => {
+    const exclude = vi.fn(({ request }) => request.url.pathname.endsWith('bar1'))
+
+    const link = new StandardLink({ encode, decode }, { call: clientCall }, {
+      plugins: [new BatchLinkPlugin({
+        groups: [{
+          condition: groupCondition,
+          context: { group: true } as any,
+          input: '__group__',
+          path: ['__group__'],
+        }],
+        exclude,
+      })],
+    })
+
+    const [output1, output2, output3] = await Promise.all([
+      link.call(['POST', 'foo'], '__foo__', { context: { foo: true }, signal }),
+      link.call(['POST', 'bar1'], '__bar1__', { context: { bar: true } }),
+      link.call(['POST', 'bar2'], '__bar2__', { context: { bar: true } }),
+    ])
+
+    expect(output1).toEqual('yielded1')
+    expect(output3).toEqual('yielded2')
+    expect(output2).toSatisfy(isAsyncIteratorObject)
+
+    expect(toBatchRequestSpy).toHaveBeenCalledTimes(1)
+    expect(clientCall).toHaveBeenCalledTimes(2)
+
+    expect(exclude).toHaveBeenCalledTimes(3)
+  })
 })
 
 describe('batchLinkPlugin + batchHandlerPlugin', () => {

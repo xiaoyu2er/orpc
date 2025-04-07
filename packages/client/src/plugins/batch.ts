@@ -49,6 +49,13 @@ export interface BatchLinkPluginOptions<T extends ClientContext> {
    * @default Removes headers that are duplicated in the batch headers.
    */
   mapRequestItem?: (options: StandardLinkClientInterceptorOptions<T> & { batchUrl: URL, batchHeaders: StandardHeaders }) => StandardRequest
+
+  /**
+   * Exclude a request from the batch.
+   *
+   * @default () => false
+   */
+  exclude?: (options: StandardLinkClientInterceptorOptions<T>) => boolean
 }
 
 export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlugin<T> {
@@ -58,6 +65,7 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
   private readonly maxUrlLength: Exclude<BatchLinkPluginOptions<T>['maxUrlLength'], undefined>
   private readonly batchHeaders: Exclude<BatchLinkPluginOptions<T>['headers'], undefined>
   private readonly mapRequestItem: Exclude<BatchLinkPluginOptions<T>['mapRequestItem'], undefined>
+  private readonly exclude: Exclude<BatchLinkPluginOptions<T>['exclude'], undefined>
 
   private pending: Map<
     BatchLinkPluginGroup<T>,
@@ -106,6 +114,8 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
         signal: request.signal,
       }
     })
+
+    this.exclude = options.exclude ?? (() => false)
   }
 
   init(options: StandardLinkOptions<T>): void {
@@ -130,7 +140,8 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
 
     options.clientInterceptors.push((options) => {
       if (
-        options.request.body instanceof Blob
+        this.exclude(options)
+        || options.request.body instanceof Blob
         || options.request.body instanceof FormData
         || isAsyncIteratorObject(options.request.body)
       ) {

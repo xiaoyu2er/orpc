@@ -20,7 +20,7 @@ export interface BatchLinkPluginOptions<T extends ClientContext> {
    *
    * @default 10
    */
-  maxBatchSize?: Value<number, [readonly [StandardLinkClientInterceptorOptions<T>, ...StandardLinkClientInterceptorOptions<T>[]]]>
+  maxSize?: Value<number, [readonly [StandardLinkClientInterceptorOptions<T>, ...StandardLinkClientInterceptorOptions<T>[]]]>
 
   /**
    * Defines the URL to use for the batch request.
@@ -60,7 +60,7 @@ export interface BatchLinkPluginOptions<T extends ClientContext> {
 
 export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlugin<T> {
   private readonly groups: Exclude<BatchLinkPluginOptions<T>['groups'], undefined>
-  private readonly maxBatchSize: Exclude<BatchLinkPluginOptions<T>['maxBatchSize'], undefined>
+  private readonly maxSize: Exclude<BatchLinkPluginOptions<T>['maxSize'], undefined>
   private readonly batchUrl: Exclude<BatchLinkPluginOptions<T>['url'], undefined>
   private readonly maxUrlLength: Exclude<BatchLinkPluginOptions<T>['maxUrlLength'], undefined>
   private readonly batchHeaders: Exclude<BatchLinkPluginOptions<T>['headers'], undefined>
@@ -80,7 +80,7 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
     this.groups = options.groups
     this.pending = new Map()
 
-    this.maxBatchSize = options.maxBatchSize ?? 10
+    this.maxSize = options.maxSize ?? 10
     this.maxUrlLength = options.maxUrlLength ?? 2083
 
     this.batchUrl = options.url ?? (([options]) => `${options.request.url.origin}${options.request.url.pathname}/__batch__`)
@@ -209,9 +209,9 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
     try {
       const options = batchItems.map(([options]) => options) as [InterceptorOptions<StandardLinkClientInterceptorOptions<T>, StandardLazyResponse, ThrowableError>, ...InterceptorOptions<StandardLinkClientInterceptorOptions<T>, StandardLazyResponse, ThrowableError>[]]
 
-      const maxBatchSize = await value(this.maxBatchSize, options)
+      const maxSize = await value(this.maxSize, options)
 
-      if (batchItems.length > maxBatchSize) {
+      if (batchItems.length > maxSize) {
         const [first, second] = splitInHalf(batchItems)
         this.#executeBatch(method, group, first)
         this.#executeBatch(method, group, second)

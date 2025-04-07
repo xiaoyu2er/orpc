@@ -33,6 +33,6 @@ This comparison table helps you understand how oRPC differs from other popular T
 | Plugins-able (CORS, ...)                 | ✅   | ✅   | 🛑      |
 | Dedicated Zod Schemas                    | ✅   | N/A  | 🛑      |
 | Use Native Modules on each runtime       | ✅   | ✅   | 🟡      |
-| Batch Request                            | 🛑   | ✅   | 🛑      |
+| Batch Request                            | ✅   | ✅   | 🛑      |
 | WebSockets                               | 🛑   | ✅   | 🛑      |
 | Nest.js integration                      | 🛑   | 🟡   | ✅      |

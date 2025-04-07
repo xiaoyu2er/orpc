@@ -243,7 +243,7 @@ describe('batchLinkPlugin', () => {
           input: '__group__',
           path: ['__group__'],
         }],
-        maxBatchSize: 2,
+        maxSize: 2,
       })],
     })
 

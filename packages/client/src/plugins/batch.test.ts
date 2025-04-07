@@ -1,8 +1,15 @@
 import type { StandardRequest } from '@orpc/standard-server'
+import type { RouterClient } from '../../../server/src/router-client'
 import { isAsyncIteratorObject } from '@orpc/shared'
 import { toBatchResponse } from '@orpc/standard-server/batch'
 import * as StandardBatchModule from '@orpc/standard-server/batch'
+import { RPCHandler } from '../../../server/src/adapters/fetch/rpc-handler'
+import { os } from '../../../server/src/builder'
+import { BatchHandlerPlugin } from '../../../server/src/plugins/batch'
+import { RPCLink } from '../adapters/fetch'
 import { StandardLink } from '../adapters/standard'
+import { createORPCClient } from '../client'
+import { ORPCError } from '../error'
 import { BatchLinkPlugin } from './batch'
 
 const toBatchRequestSpy = vi.spyOn(StandardBatchModule, 'toBatchRequest')
@@ -304,5 +311,66 @@ describe('batchLinkPlugin', () => {
     expect(request.headers).toEqual({
       'x-custom': '1',
     })
+  })
+})
+
+describe('batchLinkPlugin + batchHandlerPlugin', () => {
+  const router = {
+    success: os.handler(({ input }) => ({ output: input })),
+    error: os.handler(({ input }) => {
+      throw new ORPCError('TEST', { data: input })
+    }),
+  }
+
+  const handler = new RPCHandler(router, {
+    plugins: [
+      new BatchHandlerPlugin(),
+    ],
+  })
+
+  const fetch = vi.fn(async (request) => {
+    const { response } = await handler.handle(request, {
+      prefix: '/prefix',
+    })
+
+    return response ?? Promise.reject(new Error('No response'))
+  })
+
+  const link = new RPCLink({
+    url: 'http://localhost/prefix',
+    fetch,
+    plugins: [
+      new BatchLinkPlugin({
+        groups: [{
+          condition: () => true,
+          context: {},
+        }],
+      }),
+    ],
+  })
+
+  const client: RouterClient<typeof router> = createORPCClient(link)
+
+  it('on success', async () => {
+    const [output1, output2] = await Promise.all([
+      client.success('success1'),
+      client.success('success2'),
+    ])
+
+    expect(output1).toEqual({ output: 'success1' })
+    expect(output2).toEqual({ output: 'success2' })
+
+    expect(fetch).toHaveBeenCalledTimes(1)
+  })
+
+  it('on error', async () => {
+    await expect(
+      Promise.all([
+        client.error('success1'),
+        client.error('success2'),
+      ]),
+    ).rejects.toThrow('TEST')
+
+    expect(fetch).toHaveBeenCalledTimes(1)
   })
 })

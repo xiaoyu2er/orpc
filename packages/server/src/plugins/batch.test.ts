@@ -414,4 +414,36 @@ describe('batchHandlerPlugin', () => {
 
     await expect(parsed.next()).resolves.toEqual({ done: true })
   })
+
+  it('should response error on exceed max size', async () => {
+    const handler = new StandardHandler({}, new StandardRPCMatcher(), {} as any, {
+      rootInterceptors: [interceptor],
+      plugins: [new BatchHandlerPlugin({ maxSize: 2 })],
+    })
+
+    const request = toBatchRequest({
+      url: new URL('http://localhost/prefix/__batch__'),
+      headers: {
+        'x-orpc-batch': '1',
+      },
+      method: 'POST',
+      requests: [
+        request1,
+        request2,
+        request3,
+      ],
+    })
+
+    const result = await handler.handle({ ...request, body: () => Promise.resolve(request.body) }, { prefix: '/prefix', context: { context: true } })
+
+    expect(interceptor).toHaveBeenCalledTimes(0)
+    expect(result).toEqual({
+      matched: true,
+      response: {
+        body: 'Batch request size exceeds the maximum allowed size',
+        headers: {},
+        status: 413,
+      },
+    })
+  })
 })

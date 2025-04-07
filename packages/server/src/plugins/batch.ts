@@ -8,6 +8,13 @@ import { parseBatchRequest, toBatchResponse } from '@orpc/standard-server/batch'
 
 export interface BatchHandlerOptions<T extends Context> {
   /**
+   * The max size of the batch allowed.
+   *
+   * @default 10
+   */
+  maxSize?: Value<number, [StandardHandlerInterceptorOptions<T>]>
+
+  /**
    * Map the request before processing it.
    *
    * @default merged back batch request headers into the request
@@ -30,11 +37,14 @@ export interface BatchHandlerOptions<T extends Context> {
 }
 
 export class BatchHandlerPlugin<T extends Context> implements StandardHandlerPlugin<T> {
+  private readonly maxSize: Exclude<BatchHandlerOptions<T>['maxSize'], undefined>
   private readonly mapRequestItem: Exclude<BatchHandlerOptions<T>['mapRequestItem'], undefined>
   private readonly successStatus: Exclude<BatchHandlerOptions<T>['successStatus'], undefined>
   private readonly headers: Exclude<BatchHandlerOptions<T>['headers'], undefined>
 
   constructor(options: BatchHandlerOptions<T> = {}) {
+    this.maxSize = options.maxSize ?? 10
+
     this.mapRequestItem = options.mapRequestItem ?? ((request, { request: batchRequest }) => ({
       ...request,
       headers: {
@@ -61,6 +71,19 @@ export class BatchHandlerPlugin<T extends Context> implements StandardHandlerPlu
         isParsing = true
         const parsed = parseBatchRequest({ ...options.request, body: await options.request.body() })
         isParsing = false
+
+        const maxSize = await value(this.maxSize, options)
+
+        if (parsed.length > maxSize) {
+          return {
+            matched: true,
+            response: {
+              status: 413,
+              headers: {},
+              body: 'Batch request size exceeds the maximum allowed size',
+            },
+          }
+        }
 
         const responses: Promise<BatchResponseBodyItem>[] = parsed
           .map((request, index) => {

@@ -16,7 +16,6 @@ const rpcLink = new RPCLink({
         condition: () => true,
         context: {},
       }],
-      maxBatchSize: 2,
     }),
   ],
 })

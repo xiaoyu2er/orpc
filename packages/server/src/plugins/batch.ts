@@ -1,27 +1,51 @@
-import type { StandardRequest } from '@orpc/standard-server'
+import type { Value } from '@orpc/shared'
+import type { StandardHeaders, StandardRequest } from '@orpc/standard-server'
 import type { BatchResponseBodyItem } from '@orpc/standard-server/batch'
 import type { StandardHandlerInterceptorOptions, StandardHandlerOptions, StandardHandlerPlugin } from '../adapters/standard'
 import type { Context } from '../context'
 import { ORPCError } from '@orpc/client'
+import { value } from '@orpc/shared'
 import { parseBatchRequest, toBatchResponse } from '@orpc/standard-server/batch'
 
 export interface BatchHandlerOptions<T extends Context> {
   /**
+   * Map the request before processing it.
+   *
+   * @default merged back batch request headers into the request
    */
-  mapBatchItem?(request: StandardRequest, options: StandardHandlerInterceptorOptions<T>): StandardRequest
+  mapRequest?(request: StandardRequest, batchOptions: StandardHandlerInterceptorOptions<T>): StandardRequest
+
+  /**
+   * Success batch response status code.
+   *
+   * @default 207
+   */
+  successStatus?: Value<number, [responses: Promise<BatchResponseBodyItem>[], batchOptions: StandardHandlerInterceptorOptions<T>]>
+
+  /**
+   * success batch response headers.
+   *
+   * @default {}
+   */
+  headers?: Value<StandardHeaders, [responses: Promise<BatchResponseBodyItem>[], batchOptions: StandardHandlerInterceptorOptions<T>]>
 }
 
 export class BatchHandlerPlugin<T extends Context> implements StandardHandlerPlugin<T> {
-  private readonly mapBatchItem: Exclude<BatchHandlerOptions<T>['mapBatchItem'], undefined>
+  private readonly mapRequest: Exclude<BatchHandlerOptions<T>['mapRequest'], undefined>
+  private readonly successStatus: Exclude<BatchHandlerOptions<T>['successStatus'], undefined>
+  private readonly headers: Exclude<BatchHandlerOptions<T>['headers'], undefined>
 
   constructor(options: BatchHandlerOptions<T> = {}) {
-    this.mapBatchItem = options.mapBatchItem ?? ((request, { request: batchRequest }) => ({
+    this.mapRequest = options.mapRequest ?? ((request, { request: batchRequest }) => ({
       ...request,
       headers: {
         ...batchRequest.headers,
         ...request.headers,
       },
     }))
+
+    this.successStatus = options.successStatus ?? 207
+    this.headers = options.headers ?? {}
   }
 
   init(options: StandardHandlerOptions<T>): void {
@@ -39,9 +63,9 @@ export class BatchHandlerPlugin<T extends Context> implements StandardHandlerPlu
         const parsed = parseBatchRequest({ ...options.request, body: await options.request.body() })
         isParsing = false
 
-        const promises: (Promise<BatchResponseBodyItem> | undefined)[] = parsed
+        const responses: Promise<BatchResponseBodyItem>[] = parsed
           .map((request, index) => {
-            const mapped = this.mapBatchItem(request, options)
+            const mapped = this.mapRequest(request, options)
 
             return options
               .next({ ...options, request: { ...mapped, body: () => Promise.resolve(mapped.body) } })
@@ -70,12 +94,17 @@ export class BatchHandlerPlugin<T extends Context> implements StandardHandlerPlu
           )
 
         // wait until at least one request is resolved
-        await Promise.race(promises)
+        await Promise.race(responses)
+
+        const status = await value(this.successStatus, responses, options)
+        const headers = await value(this.headers, responses, options)
 
         const response = toBatchResponse({
-          status: 207,
-          headers: {},
+          status,
+          headers,
           body: (async function* () {
+            const promises: (Promise<BatchResponseBodyItem> | undefined)[] = [...responses]
+
             while (true) {
               const handling = promises.filter(p => p !== undefined)
 

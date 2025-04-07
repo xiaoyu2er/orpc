@@ -115,6 +115,41 @@ describe('intercept', () => {
       next: 'hello2',
     })
   })
+
+  it('can multiple .next calls', async () => {
+    interceptor2.mockReturnValueOnce(Promise.resolve('__interceptor2__'))
+
+    const result = await intercept(
+      [
+        async ({ next }) => [await next(), await next(), await next()],
+        interceptor1,
+        interceptor2,
+      ],
+      {
+        foo: 'bar',
+      },
+      main,
+    )
+
+    expect(result).toEqual(['__interceptor2__', '__main__', '__main__'])
+
+    expect(interceptor1).toHaveBeenCalledTimes(3)
+    expect(interceptor1).toHaveBeenCalledWith({
+      foo: 'bar',
+      next: expect.any(Function),
+    })
+
+    expect(interceptor2).toHaveBeenCalledTimes(3)
+    expect(interceptor2).toHaveBeenCalledWith({
+      foo: 'bar',
+      next: expect.any(Function),
+    })
+
+    expect(main).toHaveBeenCalledTimes(2)
+    expect(main).toHaveBeenCalledWith({
+      foo: 'bar',
+    })
+  })
 })
 
 describe('onStart / onSuccess / onError / onFinish', () => {

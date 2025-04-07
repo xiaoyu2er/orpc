@@ -1,10 +1,9 @@
 import type { InterceptorOptions, ThrowableError, Value } from '@orpc/shared'
 import type { StandardHeaders, StandardLazyResponse, StandardRequest } from '@orpc/standard-server'
+import type { StandardLinkClientInterceptorOptions, StandardLinkOptions, StandardLinkPlugin } from '../adapters/standard'
 import type { ClientContext } from '../types'
-import { isAsyncIteratorObject, splitInHalf, value } from '@orpc/shared'
+import { isAsyncIteratorObject, splitInHalf, toArray, value } from '@orpc/shared'
 import { parseBatchResponse, toBatchRequest } from '@orpc/standard-server/batch'
-import { getMalformedResponseErrorCode, type StandardLinkClientInterceptorOptions, type StandardLinkOptions, type StandardLinkPlugin } from '../adapters/standard'
-import { isORPCErrorStatus, ORPCError } from '../error'
 
 export interface BatchLinkPluginGroup<T extends ClientContext> {
   condition(options: StandardLinkClientInterceptorOptions<T>): boolean
@@ -145,13 +144,13 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
       }
 
       return new Promise((resolve, reject) => {
-        this.#push(group, options, resolve, reject)
-        setTimeout(() => this.#resolvePending())
+        this.#enqueueRequest(group, options, resolve, reject)
+        setTimeout(() => this.#processPendingBatches())
       })
     })
   }
 
-  #push(
+  #enqueueRequest(
     group: BatchLinkPluginGroup<T>,
     options: InterceptorOptions<StandardLinkClientInterceptorOptions<T>, StandardLazyResponse, ThrowableError>,
     resolve: (response: StandardLazyResponse) => void,
@@ -167,7 +166,7 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
     }
   }
 
-  async #resolvePending(): Promise<void> {
+  async #processPendingBatches(): Promise<void> {
     const pending = this.pending
     this.pending = new Map()
 
@@ -175,42 +174,42 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
       const getItems = items.filter(([options]) => options.request.method === 'GET')
       const restItems = items.filter(([options]) => options.request.method !== 'GET')
 
-      this.#handleBatch('GET', group, getItems)
-      this.#handleBatch('POST', group, restItems)
+      this.#executeBatch('GET', group, getItems)
+      this.#executeBatch('POST', group, restItems)
     }
   }
 
-  async #handleBatch(
+  async #executeBatch(
     method: 'GET' | 'POST',
     group: BatchLinkPluginGroup<T>,
-    _items: typeof this.pending extends Map<any, infer U> ? U : never,
+    groupItems: typeof this.pending extends Map<any, infer U> ? U : never,
   ): Promise<void> {
-    if (!_items.length) {
+    if (!groupItems.length) {
       return
     }
 
-    const items = _items as [typeof _items[number], ...typeof _items[number][]]
+    const batchItems = groupItems as [typeof groupItems[number], ...typeof groupItems[number][]]
 
-    if (items.length === 1) {
-      items[0][0].next().then(items[0][1]).catch(items[0][2])
+    if (batchItems.length === 1) {
+      batchItems[0][0].next().then(batchItems[0][1]).catch(batchItems[0][2])
       return
     }
 
     try {
-      const options = items.map(([options]) => options) as [InterceptorOptions<StandardLinkClientInterceptorOptions<T>, StandardLazyResponse, ThrowableError>, ...InterceptorOptions<StandardLinkClientInterceptorOptions<T>, StandardLazyResponse, ThrowableError>[]]
+      const options = batchItems.map(([options]) => options) as [InterceptorOptions<StandardLinkClientInterceptorOptions<T>, StandardLazyResponse, ThrowableError>, ...InterceptorOptions<StandardLinkClientInterceptorOptions<T>, StandardLazyResponse, ThrowableError>[]]
 
       const maxBatchSize = await value(this.maxBatchSize, options)
 
-      if (items.length > maxBatchSize) {
-        const [first, second] = splitInHalf(items)
-        this.#handleBatch(method, group, first)
-        this.#handleBatch(method, group, second)
+      if (batchItems.length > maxBatchSize) {
+        const [first, second] = splitInHalf(batchItems)
+        this.#executeBatch(method, group, first)
+        this.#executeBatch(method, group, second)
         return
       }
 
       const batchUrl = new URL(await value(this.batchUrl, options))
       const batchHeaders = await value(this.batchHeaders, options)
-      const mappedItems = items.map(([options]) => this.mapRequestItem({ ...options, batchUrl, batchHeaders }))
+      const mappedItems = batchItems.map(([options]) => this.mapRequestItem({ ...options, batchUrl, batchHeaders }))
 
       const batchRequest = toBatchRequest({
         method,
@@ -222,53 +221,37 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
       const maxUrlLength = await value(this.maxUrlLength, options)
 
       if (batchRequest.url.toString().length > maxUrlLength) {
-        const [first, second] = splitInHalf(items)
-        this.#handleBatch(method, group, first)
-        this.#handleBatch(method, group, second)
+        const [first, second] = splitInHalf(batchItems)
+        this.#executeBatch(method, group, first)
+        this.#executeBatch(method, group, second)
         return
       }
 
-      const response = await options[0].next({
+      const lazyResponse = await options[0].next({
         request: { ...batchRequest, headers: { ...batchRequest.headers, 'x-orpc-batch': '1' } },
         signal: batchRequest.signal,
         context: group.context,
         input: group.input,
-        path: group.path ?? [],
+        path: toArray(group.path),
       })
 
-      const isOk = !isORPCErrorStatus(response.status)
-
-      if (!isOk) {
-        if (ORPCError.isValidJSON(response.body)) {
-          throw ORPCError.fromJSON(response.body)
-        }
-
-        throw new ORPCError(getMalformedResponseErrorCode(response.status), {
-          data: response.body,
-        })
-      }
-
-      const parsed = parseBatchResponse({ ...response, body: await response.body() })
+      const parsed = parseBatchResponse({ ...lazyResponse, body: await lazyResponse.body() })
 
       for await (const item of parsed) {
-        items[item.index]?.[1]({ ...item, body: () => Promise.resolve(item.body) })
+        batchItems[item.index]?.[1]({ ...item, body: () => Promise.resolve(item.body) })
       }
 
       /**
        * JS ignore the second resolve or reject so we don't need to check if has been resolved
        */
-      for (const value of items) {
-        value[2](
-          new Error('Something went wrong make batch response not contains this response. This is a bug please report it.'),
-        )
-      }
+      throw new Error('Something went wrong make batch response not contains this response. This is a bug please report it.')
     }
     catch (error) {
       /**
        * JS ignore the second resolve or reject so we don't need to check if has been resolved
        */
-      for (const value of items) {
-        value[2](error)
+      for (const [, , reject] of batchItems) {
+        reject(error)
       }
     }
   }

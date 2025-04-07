@@ -13,7 +13,7 @@ export interface BatchHandlerOptions<T extends Context> {
    *
    * @default merged back batch request headers into the request
    */
-  mapRequest?(request: StandardRequest, batchOptions: StandardHandlerInterceptorOptions<T>): StandardRequest
+  mapRequestItem?(request: StandardRequest, batchOptions: StandardHandlerInterceptorOptions<T>): StandardRequest
 
   /**
    * Success batch response status code.
@@ -31,12 +31,12 @@ export interface BatchHandlerOptions<T extends Context> {
 }
 
 export class BatchHandlerPlugin<T extends Context> implements StandardHandlerPlugin<T> {
-  private readonly mapRequest: Exclude<BatchHandlerOptions<T>['mapRequest'], undefined>
+  private readonly mapRequestItem: Exclude<BatchHandlerOptions<T>['mapRequestItem'], undefined>
   private readonly successStatus: Exclude<BatchHandlerOptions<T>['successStatus'], undefined>
   private readonly headers: Exclude<BatchHandlerOptions<T>['headers'], undefined>
 
   constructor(options: BatchHandlerOptions<T> = {}) {
-    this.mapRequest = options.mapRequest ?? ((request, { request: batchRequest }) => ({
+    this.mapRequestItem = options.mapRequestItem ?? ((request, { request: batchRequest }) => ({
       ...request,
       headers: {
         ...batchRequest.headers,
@@ -65,7 +65,7 @@ export class BatchHandlerPlugin<T extends Context> implements StandardHandlerPlu
 
         const responses: Promise<BatchResponseBodyItem>[] = parsed
           .map((request, index) => {
-            const mapped = this.mapRequest(request, options)
+            const mapped = this.mapRequestItem(request, options)
 
             return options
               .next({ ...options, request: { ...mapped, body: () => Promise.resolve(mapped.body) } })

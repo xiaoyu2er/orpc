@@ -49,7 +49,7 @@ export interface BatchLinkPluginOptions<T extends ClientContext> {
    *
    * @default Removes headers that are duplicated in the batch headers.
    */
-  mapBatchItem?: (options: StandardLinkClientInterceptorOptions<T> & { batchUrl: URL, batchHeaders: StandardHeaders }) => StandardRequest
+  mapRequestItem?: (options: StandardLinkClientInterceptorOptions<T> & { batchUrl: URL, batchHeaders: StandardHeaders }) => StandardRequest
 }
 
 export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlugin<T> {
@@ -58,7 +58,7 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
   private readonly batchUrl: Exclude<BatchLinkPluginOptions<T>['url'], undefined>
   private readonly maxUrlLength: Exclude<BatchLinkPluginOptions<T>['maxUrlLength'], undefined>
   private readonly batchHeaders: Exclude<BatchLinkPluginOptions<T>['headers'], undefined>
-  private readonly mapBatchItem: Exclude<BatchLinkPluginOptions<T>['mapBatchItem'], undefined>
+  private readonly mapRequestItem: Exclude<BatchLinkPluginOptions<T>['mapRequestItem'], undefined>
 
   private pending: Map<
     BatchLinkPluginGroup<T>,
@@ -90,7 +90,7 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
       return headers
     })
 
-    this.mapBatchItem = options.mapBatchItem ?? (({ request, batchHeaders }) => {
+    this.mapRequestItem = options.mapRequestItem ?? (({ request, batchHeaders }) => {
       const headers: StandardHeaders = {}
 
       for (const [key, value] of Object.entries(request.headers)) {
@@ -210,7 +210,7 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
 
       const batchUrl = new URL(await value(this.batchUrl, options))
       const batchHeaders = await value(this.batchHeaders, options)
-      const mappedItems = items.map(([options]) => this.mapBatchItem({ ...options, batchUrl, batchHeaders }))
+      const mappedItems = items.map(([options]) => this.mapRequestItem({ ...options, batchUrl, batchHeaders }))
 
       const batchRequest = toBatchRequest({
         method,

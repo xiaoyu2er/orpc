@@ -168,7 +168,7 @@ describe('batchHandlerPlugin', () => {
   it('can custom success status, headers, mapRequest', async () => {
     const successStatus = vi.fn(() => 201)
     const headers = vi.fn(() => ({ 'x-custom': '1' }))
-    const mapRequest = vi.fn(request => request)
+    const mapRequestItem = vi.fn(request => request)
 
     const handler = new StandardHandler({}, new StandardRPCMatcher(), {} as any, {
       rootInterceptors: [interceptor],
@@ -176,7 +176,7 @@ describe('batchHandlerPlugin', () => {
         new BatchHandlerPlugin({
           successStatus,
           headers,
-          mapRequest,
+          mapRequestItem,
         }),
       ],
     })
@@ -212,8 +212,8 @@ describe('batchHandlerPlugin', () => {
       context: { context: true },
     }))
 
-    expect(mapRequest).toHaveBeenCalledTimes(4)
-    expect(mapRequest).toHaveBeenCalledWith(expect.any(Object), expect.objectContaining({
+    expect(mapRequestItem).toHaveBeenCalledTimes(4)
+    expect(mapRequestItem).toHaveBeenCalledWith(expect.any(Object), expect.objectContaining({
       prefix: '/prefix',
       context: { context: true },
     }))
@@ -264,7 +264,7 @@ describe('batchHandlerPlugin', () => {
   it('should throw on unknown error', async () => {
     const handler = new StandardHandler({}, new StandardRPCMatcher(), {} as any, {
       interceptors: [interceptor],
-      plugins: [new BatchHandlerPlugin({ mapRequest: (request) => {
+      plugins: [new BatchHandlerPlugin({ mapRequestItem: (request) => {
         throw new Error('Unknown error')
       } })],
     })

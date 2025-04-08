@@ -114,6 +114,7 @@ it('createORPCErrorFromJson', () => {
 it('isValidJSON', () => {
   const error = new ORPCError('BAD_GATEWAY', { status: 500, message: 'message', data: 'data', cause: 'cause' })
   expect(isORPCErrorJson(error.toJSON())).toBe(true)
+  expect(isORPCErrorJson(`error`)).toBe(false)
   expect(isORPCErrorJson({})).toBe(false)
   expect(isORPCErrorJson({ defined: true })).toBe(false)
   expect(isORPCErrorJson({ defined: true, code: 'BAD_GATEWAY', status: 500, message: 'message', data: 'data' })).toBe(true)

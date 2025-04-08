@@ -109,7 +109,7 @@ const link = new RPCLink({
 
 ## Response Headers
 
-By default, the response headers is empty. To customize headers, use the `headers` option:
+By default, the response headers are empty. To customize headers, use the `headers` option:
 
 ```ts twoslash
 import { RPCHandler } from '@orpc/server/fetch'

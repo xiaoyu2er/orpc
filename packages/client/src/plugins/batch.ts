@@ -255,7 +255,7 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
       /**
        * JS ignore the second resolve or reject so we don't need to check if has been resolved
        */
-      throw new Error('Something went wrong make batch response not contains this response. This is a bug please report it.')
+      throw new Error('Something went wrong make batch response not contains enough responses. This can be a bug please report it.')
     }
     catch (error) {
       /**

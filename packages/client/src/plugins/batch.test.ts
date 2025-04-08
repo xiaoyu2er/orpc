@@ -350,7 +350,7 @@ describe('batchLinkPlugin', () => {
 
     await expect(
       link.call(['GET', 'bar'], '__bar__', { context: { bar: true } }),
-    ).rejects.toThrow('Something went wrong make batch response not contains this response. This is a bug please report it.')
+    ).rejects.toThrow('Something went wrong make batch response not contains enough responses. This can be a bug please report it.')
 
     expect(toBatchRequestSpy).toHaveBeenCalledTimes(1)
 

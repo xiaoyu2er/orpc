@@ -7,6 +7,10 @@ description: A plugin for oRPC to batch requests and responses.
 
 The **Batch Request/Response Plugin** allows you to combine multiple requests and responses into a single batch, reducing the overhead of sending each one separately.
 
+:::info
+The **Batch Plugin** streams responses asynchronously so that no individual request blocks another, ensuring all responses are handled independently for faster, more efficient batching.
+:::
+
 ## Setup
 
 This plugin requires configuration on both the server and client sides.
@@ -77,7 +81,7 @@ const link = new RPCLink({
 })
 ```
 
-## Custom Request Headers
+## Request Headers
 
 By default, oRPC uses the headers appear in all requests in the batch. To customize headers, use the `headers` option:
 
@@ -100,5 +104,24 @@ const link = new RPCLink({
       })
     }),
   ],
+})
+```
+
+## Response Headers
+
+By default, the response headers is empty. To customize headers, use the `headers` option:
+
+```ts twoslash
+import { RPCHandler } from '@orpc/server/fetch'
+import { router } from './shared/planet'
+// ---cut---
+import { BatchHandlerPlugin } from '@orpc/server/plugins'
+
+const handler = new RPCHandler(router, {
+  plugins: [new BatchHandlerPlugin({
+    headers: responses => ({
+      'some-header': 'some-value',
+    })
+  })],
 })
 ```

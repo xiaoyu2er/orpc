@@ -290,7 +290,7 @@ describe('batchLinkPlugin', () => {
     expect(toBatchRequestSpy).toHaveBeenCalledTimes(3)
   })
 
-  it('silence remove x-orpc-batch header', async () => {
+  it('silence remove x-orpc-batch=1 header', async () => {
     encode.mockResolvedValueOnce({
       body: async () => 'something',
       headers: {
@@ -342,6 +342,20 @@ describe('batchLinkPlugin', () => {
     expect(clientCall).toHaveBeenCalledTimes(2)
 
     expect(exclude).toHaveBeenCalledTimes(3)
+  })
+
+  it('should throw error when the responses is missing', async () => {
+    const first = link.call(['GET', 'foo'], '__foo__', { context: { foo: true }, signal })
+    const second = link.call(['GET', 'foo'], '__foo__', { context: { foo: true }, signal })
+
+    await expect(
+      link.call(['GET', 'bar'], '__bar__', { context: { bar: true } }),
+    ).rejects.toThrow('Something went wrong make batch response not contains this response. This is a bug please report it.')
+
+    expect(toBatchRequestSpy).toHaveBeenCalledTimes(1)
+
+    expect(await first).toEqual('yielded1')
+    expect(await second).toEqual('yielded2')
   })
 })
 

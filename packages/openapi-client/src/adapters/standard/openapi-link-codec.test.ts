@@ -371,9 +371,18 @@ describe('standardOpenapiLinkCodecOptions', () => {
         status: 409,
       }, { context: {}, signal }, ['ping'])).rejects.toSatisfy((error: any) => {
         expect(error).toBeInstanceOf(ORPCError)
+        expect(error.defined).toBe(false)
         expect(error.code).toEqual('__MOCKED_CODE__')
         expect(error.status).toBe(409)
-        expect(error.data).toEqual({ something: 'data' })
+        expect(error.data).toEqual({
+          body: {
+            something: 'data',
+          },
+          headers: {
+            'x-custom': 'value',
+          },
+          status: 409,
+        })
 
         return true
       })

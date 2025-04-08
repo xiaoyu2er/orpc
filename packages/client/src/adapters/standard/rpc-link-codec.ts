@@ -134,7 +134,7 @@ export class StandardRPCLinkCodec<T extends ClientContext> implements StandardLi
 
       throw new ORPCError(getMalformedResponseErrorCode(response.status), {
         status: response.status,
-        data: deserialized,
+        data: { ...response, body: deserialized },
       })
     }
 

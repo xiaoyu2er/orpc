@@ -220,7 +220,7 @@ export class StandardOpenapiLinkCodec<T extends ClientContext> implements Standa
 
       throw new ORPCError(getMalformedResponseErrorCode(response.status), {
         status: response.status,
-        data: deserialized,
+        data: { ...response, body: deserialized },
       })
     }
 

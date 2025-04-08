@@ -1,5 +1,4 @@
 import type { ClientContext, ClientOptions, HTTPMethod } from '../../types'
-import type { StandardLinkInterceptorOptions } from './link'
 import type { StandardRPCSerializer } from './rpc-serializer'
 import type { StandardLinkCodec } from './types'
 import { isAsyncIteratorObject, stringifyJSON, value, type Value } from '@orpc/shared'
@@ -11,21 +10,21 @@ export interface StandardRPCLinkCodecOptions<T extends ClientContext> {
   /**
    * Base url for all requests.
    */
-  url: Value<string | URL, [StandardLinkInterceptorOptions<T>]>
+  url: Value<string | URL, [options: ClientOptions<T>, path: readonly string[], input: unknown]>
 
   /**
    * The maximum length of the URL.
    *
    * @default 2083
    */
-  maxUrlLength?: Value<number, [StandardLinkInterceptorOptions<T>]>
+  maxUrlLength?: Value<number, [options: ClientOptions<T>, path: readonly string[], input: unknown]>
 
   /**
    * The method used to make the request.
    *
    * @default 'POST'
    */
-  method?: Value<HTTPMethod, [StandardLinkInterceptorOptions<T>]>
+  method?: Value<HTTPMethod, [options: ClientOptions<T>, path: readonly string[], input: unknown]>
 
   /**
    * The method to use when the payload cannot safely pass to the server with method return from method function.
@@ -38,7 +37,7 @@ export interface StandardRPCLinkCodecOptions<T extends ClientContext> {
   /**
    * Inject headers to the request.
    */
-  headers?: Value<StandardHeaders, [StandardLinkInterceptorOptions<T>]>
+  headers?: Value<StandardHeaders, [options: ClientOptions<T>, path: readonly string[], input: unknown]>
 }
 
 export class StandardRPCLinkCodec<T extends ClientContext> implements StandardLinkCodec<T> {
@@ -60,11 +59,9 @@ export class StandardRPCLinkCodec<T extends ClientContext> implements StandardLi
   }
 
   async encode(path: readonly string[], input: unknown, options: ClientOptions<T>): Promise<StandardRequest> {
-    const generalOptions = { ...options, path, input }
-
-    const expectedMethod = await value(this.expectedMethod, generalOptions)
-    let headers = await value(this.headers, generalOptions)
-    const baseUrl = await value(this.baseUrl, generalOptions)
+    const expectedMethod = await value(this.expectedMethod, options, path, input)
+    let headers = await value(this.headers, options, path, input)
+    const baseUrl = await value(this.baseUrl, options, path, input)
     const url = new URL(baseUrl)
     url.pathname = `${url.pathname.replace(/\/$/, '')}${toHttpPath(path)}`
 
@@ -79,7 +76,7 @@ export class StandardRPCLinkCodec<T extends ClientContext> implements StandardLi
       && !(serialized instanceof FormData)
       && !isAsyncIteratorObject(serialized)
     ) {
-      const maxUrlLength = await value(this.maxUrlLength, generalOptions)
+      const maxUrlLength = await value(this.maxUrlLength, options, path, input)
       const getUrl = new URL(url)
 
       getUrl.searchParams.append('data', stringifyJSON(serialized))

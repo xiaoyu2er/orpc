@@ -109,6 +109,7 @@ export default defineConfig({
           items: [
             { text: 'CORS', link: '/docs/plugins/cors' },
             { text: 'Response Headers', link: '/docs/plugins/response-headers' },
+            { text: 'Batch Request/Response', link: '/docs/plugins/batch-request-response' },
             { text: 'Client Retry', link: '/docs/plugins/client-retry' },
             { text: 'Body Limit', link: '/docs/plugins/body-limit' },
           ],

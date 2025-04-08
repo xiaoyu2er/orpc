@@ -1,7 +1,7 @@
 import type { StandardRPCJsonSerializer } from './rpc-json-serializer'
 import { isAsyncIteratorObject, stringifyJSON } from '@orpc/shared'
 import { ErrorEvent } from '@orpc/standard-server'
-import { ORPCError, toORPCError } from '../../error'
+import { createORPCErrorFromJson, isORPCErrorJson, toORPCError } from '../../error'
 import { mapEventIterator } from '../../event-iterator'
 
 export class StandardRPCSerializer {
@@ -62,8 +62,8 @@ export class StandardRPCSerializer {
 
           const deserialized = this.#deserialize(e.data)
 
-          if (ORPCError.isValidJSON(deserialized)) {
-            return ORPCError.fromJSON(deserialized, { cause: e })
+          if (isORPCErrorJson(deserialized)) {
+            return createORPCErrorFromJson(deserialized, { cause: e })
           }
 
           return new ErrorEvent({

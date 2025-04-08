@@ -3,7 +3,7 @@ import type { StandardRPCSerializer } from './rpc-serializer'
 import type { StandardLinkCodec } from './types'
 import { isAsyncIteratorObject, stringifyJSON, value, type Value } from '@orpc/shared'
 import { mergeStandardHeaders, type StandardHeaders, type StandardLazyResponse, type StandardRequest } from '@orpc/standard-server'
-import { isORPCErrorStatus, ORPCError } from '../../error'
+import { createORPCErrorFromJson, isORPCErrorJson, isORPCErrorStatus, ORPCError } from '../../error'
 import { getMalformedResponseErrorCode, toHttpPath } from './utils'
 
 export interface StandardRPCLinkCodecOptions<T extends ClientContext> {
@@ -128,8 +128,8 @@ export class StandardRPCLinkCodec<T extends ClientContext> implements StandardLi
     })()
 
     if (!isOk) {
-      if (ORPCError.isValidJSON(deserialized)) {
-        throw ORPCError.fromJSON(deserialized)
+      if (isORPCErrorJson(deserialized)) {
+        throw createORPCErrorFromJson(deserialized)
       }
 
       throw new ORPCError(getMalformedResponseErrorCode(response.status), {

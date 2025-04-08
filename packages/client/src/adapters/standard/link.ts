@@ -3,12 +3,9 @@ import type { StandardLazyResponse, StandardRequest } from '@orpc/standard-serve
 import type { ClientContext, ClientLink, ClientOptions } from '../../types'
 import type { StandardLinkClient, StandardLinkCodec } from './types'
 import { intercept, toArray } from '@orpc/shared'
+import { CompositeStandardLinkPlugin, type StandardLinkPlugin } from './plugin'
 
 export class InvalidEventIteratorRetryResponse extends Error { }
-
-export interface StandardLinkPlugin<T extends ClientContext> {
-  init?(options: StandardLinkOptions<T>): void
-}
 
 export interface StandardLinkInterceptorOptions<T extends ClientContext> extends ClientOptions<T> {
   path: readonly string[]
@@ -34,9 +31,9 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
     public readonly sender: StandardLinkClient<T>,
     options: StandardLinkOptions<T> = {},
   ) {
-    for (const plugin of toArray(options.plugins)) {
-      plugin.init?.(options)
-    }
+    const plugin = new CompositeStandardLinkPlugin(options.plugins)
+
+    plugin.init(options)
 
     this.interceptors = toArray(options.interceptors)
     this.clientInterceptors = toArray(options.clientInterceptors)

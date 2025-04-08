@@ -76,6 +76,8 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
     ][]
   >
 
+  order = 8_000_000
+
   constructor(options: BatchLinkPluginOptions<T>) {
     this.groups = options.groups
     this.pending = new Map()

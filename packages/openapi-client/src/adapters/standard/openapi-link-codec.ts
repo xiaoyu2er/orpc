@@ -1,11 +1,12 @@
 import type { StandardLinkCodec } from '@orpc/client/standard'
 import type { AnyContractProcedure, AnyContractRouter } from '@orpc/contract'
+import type { StandardHeaders, StandardLazyResponse, StandardRequest, StandardResponse } from '@orpc/standard-server'
 import type { StandardOpenAPISerializer } from './openapi-serializer'
 import { type ClientContext, type ClientOptions, createORPCErrorFromJson, type HTTPPath, isORPCErrorJson, isORPCErrorStatus } from '@orpc/client'
 import { getMalformedResponseErrorCode, toHttpPath } from '@orpc/client/standard'
 import { fallbackContractConfig, isContractProcedure, ORPCError } from '@orpc/contract'
 import { get, isObject, value, type Value } from '@orpc/shared'
-import { mergeStandardHeaders, type StandardHeaders, type StandardLazyResponse, type StandardRequest } from '@orpc/standard-server'
+import { mergeStandardHeaders } from '@orpc/standard-server'
 import { getDynamicParams, standardizeHTTPPath } from './utils'
 
 export interface StandardOpenapiLinkCodecOptions<T extends ClientContext> {
@@ -218,7 +219,7 @@ export class StandardOpenapiLinkCodec<T extends ClientContext> implements Standa
         throw createORPCErrorFromJson(deserialized)
       }
 
-      throw new ORPCError(getMalformedResponseErrorCode(response.status), {
+      throw new ORPCError<string, StandardResponse>(getMalformedResponseErrorCode(response.status), {
         status: response.status,
         data: { ...response, body: deserialized },
       })

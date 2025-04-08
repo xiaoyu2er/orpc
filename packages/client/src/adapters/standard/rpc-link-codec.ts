@@ -1,8 +1,9 @@
+import type { StandardHeaders, StandardLazyResponse, StandardRequest, StandardResponse } from '@orpc/standard-server'
 import type { ClientContext, ClientOptions, HTTPMethod } from '../../types'
 import type { StandardRPCSerializer } from './rpc-serializer'
 import type { StandardLinkCodec } from './types'
 import { isAsyncIteratorObject, stringifyJSON, value, type Value } from '@orpc/shared'
-import { mergeStandardHeaders, type StandardHeaders, type StandardLazyResponse, type StandardRequest } from '@orpc/standard-server'
+import { mergeStandardHeaders } from '@orpc/standard-server'
 import { createORPCErrorFromJson, isORPCErrorJson, isORPCErrorStatus, ORPCError } from '../../error'
 import { getMalformedResponseErrorCode, toHttpPath } from './utils'
 
@@ -132,7 +133,7 @@ export class StandardRPCLinkCodec<T extends ClientContext> implements StandardLi
         throw createORPCErrorFromJson(deserialized)
       }
 
-      throw new ORPCError(getMalformedResponseErrorCode(response.status), {
+      throw new ORPCError<string, StandardResponse>(getMalformedResponseErrorCode(response.status), {
         status: response.status,
         data: { ...response, body: deserialized },
       })

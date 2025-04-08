@@ -1,7 +1,7 @@
+import type { ClientContext, ClientOptions, HTTPPath } from '@orpc/client'
 import type { StandardLinkCodec } from '@orpc/client/standard'
 import type { AnyContractProcedure, AnyContractRouter } from '@orpc/contract'
 import type { StandardOpenAPISerializer } from './openapi-serializer'
-import { type ClientContext, type ClientOptions, type HTTPPath, isORPCErrorStatus } from '@orpc/client'
 import { getMalformedResponseErrorCode, toHttpPath } from '@orpc/client/standard'
 import { fallbackContractConfig, isContractProcedure, ORPCError } from '@orpc/contract'
 import { get, isObject, value, type Value } from '@orpc/shared'
@@ -188,7 +188,7 @@ export class StandardOpenapiLinkCodec<T extends ClientContext> implements Standa
   }
 
   async decode(response: StandardLazyResponse, _options: ClientOptions<T>, path: readonly string[]): Promise<unknown> {
-    const isOk = !isORPCErrorStatus(response.status)
+    const isOk = !ORPCError.isValidStatus(response.status)
 
     const deserialized = await (async () => {
       let isBodyOk = false

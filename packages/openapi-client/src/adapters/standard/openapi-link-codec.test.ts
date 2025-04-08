@@ -1,4 +1,4 @@
-import * as ClientModule from '@orpc/client'
+import { ORPCError } from '@orpc/client'
 import * as ClientStandardModule from '@orpc/client/standard'
 import * as StandardServer from '@orpc/standard-server'
 import { oc } from '../../../../contract/src/builder'
@@ -7,8 +7,7 @@ import { StandardOpenAPIJsonSerializer } from './openapi-json-serializer'
 import { StandardOpenapiLinkCodec } from './openapi-link-codec'
 import { StandardOpenAPISerializer } from './openapi-serializer'
 
-const ORPCError = ClientModule.ORPCError
-const isORPCErrorStatusSpy = vi.spyOn(ClientModule, 'isORPCErrorStatus')
+const isORPCErrorStatusSpy = vi.spyOn(ORPCError, 'isValidStatus')
 const mergeStandardHeadersSpy = vi.spyOn(StandardServer, 'mergeStandardHeaders')
 const getMalformedResponseErrorCodeSpy = vi.spyOn(ClientStandardModule, 'getMalformedResponseErrorCode')
 
@@ -378,7 +377,7 @@ describe('standardOpenapiLinkCodecOptions', () => {
         return true
       })
 
-      expect(isORPCErrorStatusSpy).toHaveBeenCalledTimes(2)
+      expect(isORPCErrorStatusSpy).toBeCalled()
       expect(isORPCErrorStatusSpy).toHaveBeenCalledWith(501)
       expect(isORPCErrorStatusSpy).toHaveBeenCalledWith(409)
 

@@ -104,7 +104,7 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
   readonly data: TData
 
   constructor(code: TCode, ...[options]: MaybeOptionalOptions<ORPCErrorOptions<TData>>) {
-    if (options?.status && !isORPCErrorStatus(options.status)) {
+    if (options?.status && !ORPCError.isValidStatus(options.status)) {
       throw new Error('[ORPCError] Invalid error status code.')
     }
 
@@ -126,6 +126,10 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
       message: this.message,
       data: this.data,
     }
+  }
+
+  static isValidStatus(status: number): boolean {
+    return status < 200 || status >= 400
   }
 
   static fromJSON<TCode extends ORPCErrorCode, TData>(
@@ -154,6 +158,7 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
       && typeof json.code === 'string'
       && 'status' in json
       && typeof json.status === 'number'
+      && ORPCError.isValidStatus(json.status)
       && 'message' in json
       && typeof json.message === 'string'
   }
@@ -172,8 +177,4 @@ export function toORPCError(error: unknown): ORPCError<any, any> {
       message: 'Internal server error',
       cause: error,
     })
-}
-
-export function isORPCErrorStatus(status: number): boolean {
-  return status < 200 || status >= 400
 }

@@ -1,4 +1,4 @@
-import { fallbackORPCErrorMessage, fallbackORPCErrorStatus, isDefinedError, isORPCErrorStatus, ORPCError, toORPCError } from './error'
+import { fallbackORPCErrorMessage, fallbackORPCErrorStatus, isDefinedError, ORPCError, toORPCError } from './error'
 
 it('fallbackORPCErrorStatus', () => {
   expect(fallbackORPCErrorStatus('BAD_GATEWAY', 500)).toBe(500)
@@ -80,7 +80,17 @@ describe('oRPCError', () => {
     expect(ORPCError.isValidJSON({})).toBe(false)
     expect(ORPCError.isValidJSON({ defined: true })).toBe(false)
     expect(ORPCError.isValidJSON({ defined: true, code: 'BAD_GATEWAY', status: 500, message: 'message', data: 'data' })).toBe(true)
+    expect(ORPCError.isValidJSON({ defined: true, code: 'BAD_GATEWAY', status: 200, message: 'message', data: 'data' })).toBe(false)
     expect(ORPCError.isValidJSON({ defined: true, code: 'BAD_GATEWAY', status: 500, message: 'message', data: 'data', extra: true })).toBe(false)
+  })
+
+  it('isValidStatus', () => {
+    expect(ORPCError.isValidStatus(200)).toBe(false)
+    expect(ORPCError.isValidStatus(399)).toBe(false)
+
+    expect(ORPCError.isValidStatus(400)).toBe(true)
+    expect(ORPCError.isValidStatus(499)).toBe(true)
+    expect(ORPCError.isValidStatus(199)).toBe(true)
   })
 })
 
@@ -106,13 +116,4 @@ it('toORPCError', () => {
 
     return true
   })
-})
-
-it('isORPCErrorStatus', () => {
-  expect(isORPCErrorStatus(200)).toBe(false)
-  expect(isORPCErrorStatus(399)).toBe(false)
-
-  expect(isORPCErrorStatus(400)).toBe(true)
-  expect(isORPCErrorStatus(499)).toBe(true)
-  expect(isORPCErrorStatus(199)).toBe(true)
 })

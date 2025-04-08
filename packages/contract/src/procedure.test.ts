@@ -1,8 +1,8 @@
-import * as ClientModule from '@orpc/client'
+import { ORPCError } from '@orpc/client'
 import { ping, pong } from '../tests/shared'
 import { ContractProcedure, isContractProcedure } from './procedure'
 
-const isORPCErrorStatusSpy = vi.spyOn(ClientModule, 'isORPCErrorStatus')
+const isORPCErrorStatusSpy = vi.spyOn(ORPCError, 'isValidStatus')
 
 beforeEach(() => {
   vi.clearAllMocks()

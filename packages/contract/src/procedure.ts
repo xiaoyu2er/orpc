@@ -2,7 +2,7 @@ import type { ErrorMap } from './error'
 import type { Meta } from './meta'
 import type { Route } from './route'
 import type { AnySchema } from './schema'
-import { isORPCErrorStatus } from '@orpc/client'
+import { ORPCError } from '@orpc/client'
 
 export interface ContractProcedureDef<
   TInputSchema extends AnySchema,
@@ -26,11 +26,11 @@ export class ContractProcedure<
   '~orpc': ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>
 
   constructor(def: ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>) {
-    if (def.route?.successStatus && isORPCErrorStatus(def.route.successStatus)) {
+    if (def.route?.successStatus && ORPCError.isValidStatus(def.route.successStatus)) {
       throw new Error('[ContractProcedure] Invalid successStatus.')
     }
 
-    if (Object.values(def.errorMap).some(val => val && val.status && !isORPCErrorStatus(val.status))) {
+    if (Object.values(def.errorMap).some(val => val && val.status && !ORPCError.isValidStatus(val.status))) {
       throw new Error('[ContractProcedure] Invalid error status code.')
     }
 

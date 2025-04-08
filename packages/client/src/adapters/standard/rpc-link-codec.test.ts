@@ -1,12 +1,11 @@
 import * as StandardServer from '@orpc/standard-server'
-import * as ErrorModule from '../../error'
+import { ORPCError } from '../../error'
 import { StandardRPCJsonSerializer } from './rpc-json-serializer'
 import { StandardRPCLinkCodec } from './rpc-link-codec'
 import { StandardRPCSerializer } from './rpc-serializer'
 import * as UtilsModule from './utils'
 
-const ORPCError = ErrorModule.ORPCError
-const isORPCErrorStatusSpy = vi.spyOn(ErrorModule, 'isORPCErrorStatus')
+const isORPCErrorStatusSpy = vi.spyOn(ORPCError, 'isValidStatus')
 const mergeStandardHeadersSpy = vi.spyOn(StandardServer, 'mergeStandardHeaders')
 const getMalformedResponseErrorCodeSpy = vi.spyOn(UtilsModule, 'getMalformedResponseErrorCode')
 
@@ -187,7 +186,7 @@ describe('standardRPCLinkCodec', () => {
       expect(deserializeSpy).toBeCalledTimes(1)
       expect(deserializeSpy).toBeCalledWith(serialized)
 
-      expect(isORPCErrorStatusSpy).toBeCalledTimes(1)
+      expect(isORPCErrorStatusSpy).toBeCalled()
       expect(isORPCErrorStatusSpy).toBeCalledWith(499)
     })
 

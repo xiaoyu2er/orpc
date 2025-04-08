@@ -11,7 +11,7 @@ describe('compositeStandardHandlerPlugin', () => {
     } satisfies StandardHandlerPlugin<any>
     const plugin3 = {
       init: vi.fn(),
-      order: 0,
+      order: -1,
     } satisfies StandardHandlerPlugin<any>
 
     const compositePlugin = new CompositeStandardHandlerPlugin([plugin1, plugin2, plugin3])
@@ -30,7 +30,7 @@ describe('compositeStandardHandlerPlugin', () => {
     expect(plugin2.init.mock.calls[0]![0]).toBe(options)
     expect(plugin3.init.mock.calls[0]![0]).toBe(options)
 
-    expect(plugin3.init).toHaveBeenCalledBefore(plugin1.init)
-    expect(plugin1.init).toHaveBeenCalledBefore(plugin2.init)
+    expect(plugin3.init).toHaveBeenCalledBefore(plugin2.init)
+    expect(plugin2.init).toHaveBeenCalledBefore(plugin1.init)
   })
 })

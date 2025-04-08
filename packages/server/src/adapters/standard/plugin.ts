@@ -10,7 +10,7 @@ export class CompositeStandardHandlerPlugin<T extends Context, TPlugin extends S
   protected readonly plugins: TPlugin[]
 
   constructor(plugins: readonly TPlugin[] = []) {
-    this.plugins = [...plugins].sort((a, b) => (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER))
+    this.plugins = [...plugins].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
   }
 
   init(options: StandardHandlerOptions<T>): void {

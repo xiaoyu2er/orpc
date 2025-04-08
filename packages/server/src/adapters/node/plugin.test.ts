@@ -12,7 +12,7 @@ describe('compositeNodeHttpHandlerPlugin', () => {
     } satisfies NodeHttpHandlerPlugin<any>
     const plugin3 = {
       initRuntimeAdapter: vi.fn(),
-      order: 0,
+      order: -1,
     } satisfies NodeHttpHandlerPlugin<any>
 
     const compositePlugin = new CompositeNodeHttpHandlerPlugin([plugin1, plugin2, plugin3])
@@ -31,7 +31,7 @@ describe('compositeNodeHttpHandlerPlugin', () => {
     expect(plugin2.initRuntimeAdapter.mock.calls[0]![0]).toBe(options)
     expect(plugin3.initRuntimeAdapter.mock.calls[0]![0]).toBe(options)
 
-    expect(plugin3.initRuntimeAdapter).toHaveBeenCalledBefore(plugin1.initRuntimeAdapter)
-    expect(plugin1.initRuntimeAdapter).toHaveBeenCalledBefore(plugin2.initRuntimeAdapter)
+    expect(plugin3.initRuntimeAdapter).toHaveBeenCalledBefore(plugin2.initRuntimeAdapter)
+    expect(plugin2.initRuntimeAdapter).toHaveBeenCalledBefore(plugin1.initRuntimeAdapter)
   })
 })

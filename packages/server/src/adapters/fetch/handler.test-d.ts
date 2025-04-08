@@ -1,12 +1,4 @@
-import type { StandardHandlerPlugin } from '../standard'
-import type { FetchHandler, FetchHandlerPlugin } from './handler'
-
-describe('FetchHandlerPlugin', () => {
-  it('backward compatibility', () => {
-    expectTypeOf<FetchHandlerPlugin<{ a: string }>>().toMatchTypeOf<StandardHandlerPlugin<{ a: string }>>()
-    expectTypeOf<StandardHandlerPlugin<{ a: string }>>().toMatchTypeOf<FetchHandlerPlugin<{ a: string }>>()
-  })
-})
+import type { FetchHandler } from './handler'
 
 describe('FetchHandler', () => {
   it('optional context when all context is optional', () => {

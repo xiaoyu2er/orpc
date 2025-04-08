@@ -231,8 +231,15 @@ describe('standardRPCLinkCodec', () => {
         body: () => Promise.resolve(serialized),
       })).rejects.toSatisfy((e) => {
         expect(e).toBeInstanceOf(ORPCError)
+        expect(e.defined).toBe(false)
         expect(e.code).toEqual('__MOCKED_CODE__')
-        expect(e.data).toEqual({ something: 'value' })
+        expect(e.data).toEqual({
+          body: {
+            something: 'value',
+          },
+          headers: {},
+          status: 403,
+        })
 
         return true
       })

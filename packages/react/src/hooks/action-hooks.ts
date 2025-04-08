@@ -1,6 +1,6 @@
 import type { ORPCErrorJSON, SafeResult } from '@orpc/client'
 import type { ActionableClient, UnactionableError } from '@orpc/server'
-import { ORPCError, safe } from '@orpc/client'
+import { createORPCErrorFromJson, safe } from '@orpc/client'
 import { intercept, type Interceptor, toArray } from '@orpc/shared'
 import { useCallback, useMemo, useState } from 'react'
 
@@ -120,7 +120,7 @@ export function useServerAction<TInput, TOutput, TError extends ORPCErrorJSON<an
       { input: input as TInput },
       ({ input }) => action(input).then(([error, data]) => {
         if (error) {
-          throw ORPCError.fromJSON(error as any)
+          throw createORPCErrorFromJson(error as any)
         }
 
         return data as TOutput

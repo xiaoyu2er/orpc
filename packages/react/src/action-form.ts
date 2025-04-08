@@ -1,7 +1,7 @@
 import type { AnySchema } from '@orpc/contract'
 import type { Context, CreateProcedureClientOptions, ErrorMap, Lazyable, Meta, Procedure } from '@orpc/server'
 import type { Interceptor, MaybeOptionalOptions } from '@orpc/shared'
-import { ORPCError } from '@orpc/client'
+import { createORPCErrorFromJson, ORPCError } from '@orpc/client'
 import { StandardBracketNotationSerializer } from '@orpc/openapi-client/standard'
 import { createProcedureClient } from '@orpc/server'
 import { onError, resolveMaybeOptionalOptions, toArray } from '@orpc/shared'
@@ -12,7 +12,7 @@ export interface FormAction {
 
 export const orpcErrorToNextHttpFallbackInterceptor: Interceptor<any, any, any> = onError((error) => {
   if (error instanceof ORPCError && [401, 403, 404].includes(error.status)) {
-    const nextError = ORPCError.fromJSON(error.toJSON()) as any
+    const nextError = createORPCErrorFromJson(error.toJSON()) as any
 
     nextError.cause = error
     nextError.digest = `NEXT_HTTP_ERROR_FALLBACK;${error.status}`

@@ -1,6 +1,6 @@
 import type { StandardBracketNotationSerializer } from './bracket-notation'
 import type { StandardOpenAPIJsonSerializer } from './openapi-json-serializer'
-import { mapEventIterator, ORPCError, toORPCError } from '@orpc/client'
+import { createORPCErrorFromJson, isORPCErrorJson, mapEventIterator, toORPCError } from '@orpc/client'
 import { isAsyncIteratorObject } from '@orpc/shared'
 import { ErrorEvent } from '@orpc/standard-server'
 
@@ -77,8 +77,8 @@ export class StandardOpenAPISerializer {
       return mapEventIterator(data, {
         value: async value => value,
         error: async (e) => {
-          if (e instanceof ErrorEvent && ORPCError.isValidJSON(e.data)) {
-            return ORPCError.fromJSON(e.data, { cause: e })
+          if (e instanceof ErrorEvent && isORPCErrorJson(e.data)) {
+            return createORPCErrorFromJson(e.data, { cause: e })
           }
 
           return e

@@ -127,36 +127,6 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
       data: this.data,
     }
   }
-
-  static fromJSON<TCode extends ORPCErrorCode, TData>(
-    json: ORPCErrorJSON<TCode, TData>,
-    options?: ErrorOptions,
-  ): ORPCError<TCode, TData> {
-    return new ORPCError(json.code, {
-      ...options,
-      ...json,
-    })
-  }
-
-  static isValidJSON(json: unknown): json is ORPCErrorJSON<ORPCErrorCode, unknown> {
-    if (!isObject(json)) {
-      return false
-    }
-
-    const validKeys = ['defined', 'code', 'status', 'message', 'data']
-    if (Object.keys(json).some(k => !validKeys.includes(k))) {
-      return false
-    }
-
-    return 'defined' in json
-      && typeof json.defined === 'boolean'
-      && 'code' in json
-      && typeof json.code === 'string'
-      && 'status' in json
-      && typeof json.status === 'number'
-      && 'message' in json
-      && typeof json.message === 'string'
-  }
 }
 
 export type ORPCErrorJSON<TCode extends string, TData> = Pick<ORPCError<TCode, TData>, 'defined' | 'code' | 'status' | 'message' | 'data'>
@@ -176,4 +146,35 @@ export function toORPCError(error: unknown): ORPCError<any, any> {
 
 export function isORPCErrorStatus(status: number): boolean {
   return status < 200 || status >= 400
+}
+
+export function isORPCErrorJson(json: unknown): json is ORPCErrorJSON<ORPCErrorCode, unknown> {
+  if (!isObject(json)) {
+    return false
+  }
+
+  const validKeys = ['defined', 'code', 'status', 'message', 'data']
+  if (Object.keys(json).some(k => !validKeys.includes(k))) {
+    return false
+  }
+
+  return 'defined' in json
+    && typeof json.defined === 'boolean'
+    && 'code' in json
+    && typeof json.code === 'string'
+    && 'status' in json
+    && typeof json.status === 'number'
+    && isORPCErrorStatus(json.status)
+    && 'message' in json
+    && typeof json.message === 'string'
+}
+
+export function createORPCErrorFromJson<TCode extends ORPCErrorCode, TData>(
+  json: ORPCErrorJSON<TCode, TData>,
+  options: ErrorOptions = {},
+): ORPCError < TCode, TData > {
+  return new ORPCError(json.code, {
+    ...options,
+    ...json,
+  })
 }

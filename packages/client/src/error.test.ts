@@ -1,4 +1,4 @@
-import { fallbackORPCErrorMessage, fallbackORPCErrorStatus, isDefinedError, isORPCErrorStatus, ORPCError, toORPCError } from './error'
+import { createORPCErrorFromJson, fallbackORPCErrorMessage, fallbackORPCErrorStatus, isDefinedError, isORPCErrorJson, isORPCErrorStatus, ORPCError, toORPCError } from './error'
 
 it('fallbackORPCErrorStatus', () => {
   expect(fallbackORPCErrorStatus('BAD_GATEWAY', 500)).toBe(500)
@@ -58,30 +58,6 @@ describe('oRPCError', () => {
       data: 'data',
     })
   })
-
-  it('fromJSON', () => {
-    const error = ORPCError.fromJSON({
-      defined: true,
-      code: 'BAD_GATEWAY',
-      status: 500,
-      message: 'message',
-      data: 'data',
-    })
-    expect(error.defined).toBe(true)
-    expect(error.code).toBe('BAD_GATEWAY')
-    expect(error.status).toBe(500)
-    expect(error.message).toBe('message')
-    expect(error.data).toBe('data')
-  })
-
-  it('isValidJSON', () => {
-    const error = new ORPCError('BAD_GATEWAY', { status: 500, message: 'message', data: 'data', cause: 'cause' })
-    expect(ORPCError.isValidJSON(error.toJSON())).toBe(true)
-    expect(ORPCError.isValidJSON({})).toBe(false)
-    expect(ORPCError.isValidJSON({ defined: true })).toBe(false)
-    expect(ORPCError.isValidJSON({ defined: true, code: 'BAD_GATEWAY', status: 500, message: 'message', data: 'data' })).toBe(true)
-    expect(ORPCError.isValidJSON({ defined: true, code: 'BAD_GATEWAY', status: 500, message: 'message', data: 'data', extra: true })).toBe(false)
-  })
 })
 
 it('isDefinedError', () => {
@@ -115,4 +91,33 @@ it('isORPCErrorStatus', () => {
   expect(isORPCErrorStatus(400)).toBe(true)
   expect(isORPCErrorStatus(499)).toBe(true)
   expect(isORPCErrorStatus(199)).toBe(true)
+})
+
+it('createORPCErrorFromJson', () => {
+  const error = createORPCErrorFromJson({
+    defined: true,
+    code: 'BAD_GATEWAY',
+    status: 500,
+    message: 'message',
+    data: 'data',
+  }, {
+    cause: 'cause',
+  })
+  expect(error.defined).toBe(true)
+  expect(error.code).toBe('BAD_GATEWAY')
+  expect(error.status).toBe(500)
+  expect(error.message).toBe('message')
+  expect(error.data).toBe('data')
+  expect(error.cause).toBe('cause')
+})
+
+it('isValidJSON', () => {
+  const error = new ORPCError('BAD_GATEWAY', { status: 500, message: 'message', data: 'data', cause: 'cause' })
+  expect(isORPCErrorJson(error.toJSON())).toBe(true)
+  expect(isORPCErrorJson(`error`)).toBe(false)
+  expect(isORPCErrorJson({})).toBe(false)
+  expect(isORPCErrorJson({ defined: true })).toBe(false)
+  expect(isORPCErrorJson({ defined: true, code: 'BAD_GATEWAY', status: 500, message: 'message', data: 'data' })).toBe(true)
+  expect(isORPCErrorJson({ defined: true, code: 'BAD_GATEWAY', status: 200, message: 'message', data: 'data' })).toBe(false)
+  expect(isORPCErrorJson({ defined: true, code: 'BAD_GATEWAY', status: 500, message: 'message', data: 'data', extra: true })).toBe(false)
 })

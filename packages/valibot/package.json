@@ -40,7 +40,6 @@
   },
   "dependencies": {
     "@orpc/openapi": "workspace:*",
-    "@orpc/shared": "workspace:*",
     "@valibot/to-json-schema": "1.0.0-rc.0"
   }
 }

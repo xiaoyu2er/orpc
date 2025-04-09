@@ -5,8 +5,6 @@ import type { StandardLinkClient, StandardLinkCodec } from './types'
 import { intercept, toArray } from '@orpc/shared'
 import { CompositeStandardLinkPlugin, type StandardLinkPlugin } from './plugin'
 
-export class InvalidEventIteratorRetryResponse extends Error { }
-
 export interface StandardLinkInterceptorOptions<T extends ClientContext> extends ClientOptions<T> {
   path: readonly string[]
   input: unknown

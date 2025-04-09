@@ -36,7 +36,6 @@
   "dependencies": {
     "@orpc/client": "workspace:*",
     "@orpc/shared": "workspace:*",
-    "@orpc/standard-server": "workspace:*",
     "@standard-schema/spec": "^1.0.0"
   },
   "devDependencies": {

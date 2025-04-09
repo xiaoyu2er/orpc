@@ -42,6 +42,8 @@ export class BatchHandlerPlugin<T extends Context> implements StandardHandlerPlu
   private readonly successStatus: Exclude<BatchHandlerOptions<T>['successStatus'], undefined>
   private readonly headers: Exclude<BatchHandlerOptions<T>['headers'], undefined>
 
+  order = 5_000_000
+
   constructor(options: BatchHandlerOptions<T> = {}) {
     this.maxSize = options.maxSize ?? 10
 

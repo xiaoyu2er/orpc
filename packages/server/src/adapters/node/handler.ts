@@ -1,16 +1,13 @@
 import type { Interceptor, MaybeOptionalOptions, ThrowableError } from '@orpc/shared'
 import type { NodeHttpRequest, NodeHttpResponse, SendStandardResponseOptions } from '@orpc/standard-server-node'
 import type { Context } from '../../context'
-import type { StandardHandleOptions, StandardHandler, StandardHandlerPlugin } from '../standard'
+import type { StandardHandleOptions, StandardHandler } from '../standard'
 import { intercept, resolveMaybeOptionalOptions, toArray } from '@orpc/shared'
 import { sendStandardResponse, toStandardLazyRequest } from '@orpc/standard-server-node'
 import { type FriendlyStandardHandleOptions, resolveFriendlyStandardHandleOptions } from '../standard/utils'
+import { CompositeNodeHttpHandlerPlugin, type NodeHttpHandlerPlugin } from './plugin'
 
 export type NodeHttpHandleResult = { matched: true } | { matched: false }
-
-export interface NodeHttpHandlerPlugin<T extends Context> extends StandardHandlerPlugin<T> {
-  initRuntimeAdapter?(options: NodeHttpHandlerOptions<T>): void
-}
 
 export interface NodeHttpHandlerInterceptorOptions<T extends Context> extends StandardHandleOptions<T> {
   request: NodeHttpRequest
@@ -32,9 +29,9 @@ export class NodeHttpHandler<T extends Context> implements NodeHttpHandler<T> {
     private readonly standardHandler: StandardHandler<T>,
       options: NoInfer<NodeHttpHandlerOptions<T>> = {},
   ) {
-    for (const plugin of toArray(options.plugins)) {
-      plugin.initRuntimeAdapter?.(options)
-    }
+    const plugin = new CompositeNodeHttpHandlerPlugin(options.plugins)
+
+    plugin.initRuntimeAdapter(options)
 
     this.adapterInterceptors = toArray(options.adapterInterceptors)
     this.sendStandardResponseOptions = options

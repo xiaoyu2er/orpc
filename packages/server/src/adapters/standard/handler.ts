@@ -9,6 +9,7 @@ import type { StandardCodec, StandardMatcher } from './types'
 import { ORPCError, toORPCError } from '@orpc/client'
 import { intercept, toArray } from '@orpc/shared'
 import { createProcedureClient } from '../../procedure-client'
+import { CompositeStandardHandlerPlugin, type StandardHandlerPlugin } from './plugin'
 
 export interface StandardHandleOptions<T extends Context> {
   prefix?: HTTPPath
@@ -16,10 +17,6 @@ export interface StandardHandleOptions<T extends Context> {
 }
 
 export type StandardHandleResult = { matched: true, response: StandardResponse } | { matched: false, response: undefined }
-
-export interface StandardHandlerPlugin<TContext extends Context> {
-  init?(options: StandardHandlerOptions<TContext>): void
-}
 
 export interface StandardHandlerInterceptorOptions<T extends Context> extends StandardHandleOptions<T> {
   request: StandardLazyRequest
@@ -60,9 +57,9 @@ export class StandardHandler<T extends Context> {
     private readonly codec: StandardCodec,
     options: NoInfer<StandardHandlerOptions<T>>,
   ) {
-    for (const plugin of toArray(options.plugins)) {
-      plugin.init?.(options)
-    }
+    const plugins = new CompositeStandardHandlerPlugin(options.plugins)
+
+    plugins.init(options)
 
     this.interceptors = toArray(options.interceptors)
     this.clientInterceptors = toArray(options.clientInterceptors)

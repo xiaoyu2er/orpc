@@ -1,5 +1,6 @@
 import type { Context } from '../../context'
-import type { NodeHttpHandlerOptions, NodeHttpHandlerPlugin } from './handler'
+import type { NodeHttpHandlerOptions } from './handler'
+import type { NodeHttpHandlerPlugin } from './plugin'
 import { ORPCError } from '@orpc/client'
 
 export interface BodyLimitPluginOptions {

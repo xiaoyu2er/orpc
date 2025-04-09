@@ -1,5 +1,6 @@
 import type { Context } from '../../context'
-import type { FetchHandlerOptions, FetchHandlerPlugin } from './handler'
+import type { FetchHandlerOptions } from './handler'
+import type { FetchHandlerPlugin } from './plugin'
 import { ORPCError } from '@orpc/client'
 
 export interface BodyLimitPluginOptions {

@@ -16,6 +16,8 @@ export interface CORSOptions<T extends Context> {
 export class CORSPlugin<T extends Context> implements StandardHandlerPlugin<T> {
   private readonly options: CORSOptions<T>
 
+  order = 9_000_000
+
   constructor(options: CORSOptions<T> = {}) {
     const defaults: CORSOptions<T> = {
       origin: origin => origin,

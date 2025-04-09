@@ -1,16 +1,14 @@
 import type { Interceptor, MaybeOptionalOptions, ThrowableError } from '@orpc/shared'
 import type { Context } from '../../context'
-import type { StandardHandleOptions, StandardHandler, StandardHandlerPlugin } from '../standard'
+import type { StandardHandleOptions, StandardHandler } from '../standard'
 import type { FriendlyStandardHandleOptions } from '../standard/utils'
+import type { FetchHandlerPlugin } from './plugin'
 import { intercept, resolveMaybeOptionalOptions, toArray } from '@orpc/shared'
 import { toFetchResponse, type ToFetchResponseOptions, toStandardLazyRequest } from '@orpc/standard-server-fetch'
 import { resolveFriendlyStandardHandleOptions } from '../standard/utils'
+import { CompositeFetchHandlerPlugin } from './plugin'
 
 export type FetchHandleResult = { matched: true, response: Response } | { matched: false, response: undefined }
-
-export interface FetchHandlerPlugin<T extends Context> extends StandardHandlerPlugin<T> {
-  initRuntimeAdapter?(options: FetchHandlerOptions<T>): void
-}
 
 export interface FetchHandlerInterceptorOptions<T extends Context> extends StandardHandleOptions<T> {
   request: Request
@@ -31,9 +29,9 @@ export class FetchHandler<T extends Context> {
     private readonly standardHandler: StandardHandler<T>,
     options: NoInfer<FetchHandlerOptions<T>> = {},
   ) {
-    for (const plugin of toArray(options.plugins)) {
-      plugin.initRuntimeAdapter?.(options)
-    }
+    const plugin = new CompositeFetchHandlerPlugin(options.plugins)
+
+    plugin.initRuntimeAdapter(options)
 
     this.adapterInterceptors = toArray(options.adapterInterceptors)
     this.toFetchResponseOptions = options

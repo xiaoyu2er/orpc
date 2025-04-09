@@ -1,6 +1,6 @@
 {
   "name": "@orpc/nextjs-playground",
-  "version": "1.0.0-beta.5",
+  "version": "0.53.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack --port 3000",

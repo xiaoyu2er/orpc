@@ -2,7 +2,7 @@ import type { StandardHandlerOptions, StandardHandlerPlugin } from '../adapters/
 import type { Context } from '../context'
 import { fallbackContractConfig, ORPCError } from '@orpc/contract'
 
-export interface GetMethodGuardPluginOptions {
+export interface StrictGetMethodPluginOptions {
 
   /**
    * The error thrown when a GET request is made to a procedure that doesn't allow GET.
@@ -12,14 +12,14 @@ export interface GetMethodGuardPluginOptions {
   error?: InstanceType<typeof ORPCError>
 }
 
-const GET_METHOD_GUARD_PLUGIN_IS_GET_METHOD_CONTEXT_SYMBOL = Symbol('GET_METHOD_GUARD_PLUGIN_IS_GET_METHOD_CONTEXT')
+const STRICT_GET_METHOD_PLUGIN_IS_GET_METHOD_CONTEXT_SYMBOL = Symbol('STRICT_GET_METHOD_PLUGIN_IS_GET_METHOD_CONTEXT')
 
-export class GetMethodGuardPlugin<T extends Context> implements StandardHandlerPlugin<T> {
-  private readonly error: Exclude<GetMethodGuardPluginOptions['error'], undefined>
+export class StrictGetMethodPlugin<T extends Context> implements StandardHandlerPlugin<T> {
+  private readonly error: Exclude<StrictGetMethodPluginOptions['error'], undefined>
 
   order = 7_000_000
 
-  constructor(options: GetMethodGuardPluginOptions = {}) {
+  constructor(options: StrictGetMethodPluginOptions = {}) {
     this.error = options.error ?? new ORPCError('METHOD_NOT_SUPPORTED')
   }
 
@@ -34,19 +34,19 @@ export class GetMethodGuardPlugin<T extends Context> implements StandardHandlerP
         ...options,
         context: {
           ...options.context,
-          [GET_METHOD_GUARD_PLUGIN_IS_GET_METHOD_CONTEXT_SYMBOL]: isGetMethod,
+          [STRICT_GET_METHOD_PLUGIN_IS_GET_METHOD_CONTEXT_SYMBOL]: isGetMethod,
         },
       })
     })
 
     options.clientInterceptors.unshift((options) => {
-      if (typeof options.context[GET_METHOD_GUARD_PLUGIN_IS_GET_METHOD_CONTEXT_SYMBOL] !== 'boolean') {
-        throw new TypeError('[GetMethodGuardPlugin] GET method guard context has been corrupted or modified by another plugin or interceptor')
+      if (typeof options.context[STRICT_GET_METHOD_PLUGIN_IS_GET_METHOD_CONTEXT_SYMBOL] !== 'boolean') {
+        throw new TypeError('[StrictGetMethodPlugin] strict GET method context has been corrupted or modified by another plugin or interceptor')
       }
 
       const procedureMethod = fallbackContractConfig('defaultMethod', options.procedure['~orpc'].route.method)
 
-      if (options.context[GET_METHOD_GUARD_PLUGIN_IS_GET_METHOD_CONTEXT_SYMBOL] && procedureMethod !== 'GET') {
+      if (options.context[STRICT_GET_METHOD_PLUGIN_IS_GET_METHOD_CONTEXT_SYMBOL] && procedureMethod !== 'GET') {
         throw this.error
       }
 

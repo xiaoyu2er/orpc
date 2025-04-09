@@ -32,4 +32,31 @@ describe('simpleCsrfProtectionLinkPlugin', () => {
       link.call(['ping'], 'input', { context: {} }),
     ).resolves.toEqual('pong')
   })
+
+  it('can exclude procedure', async () => {
+    const exclude = vi.fn(() => true)
+
+    const link = new RPCLink({
+      url: new URL('http://localhost/prefix'),
+      fetch: async (request) => {
+        const { response } = await handler.handle(request, { prefix: '/prefix' })
+
+        return response ?? new Response(null, {
+          status: 500,
+        })
+      },
+      plugins: [
+        new SimpleCsrfProtectionLinkPlugin({ exclude }),
+      ],
+    })
+
+    await expect(
+      link.call(['ping'], 'input', { context: {} }),
+    ).rejects.toThrowError('Invalid CSRF token')
+
+    expect(exclude).toHaveBeenCalledTimes(1)
+    expect(exclude).toHaveBeenCalledWith(expect.objectContaining({
+      path: ['ping'],
+    }))
+  })
 })

@@ -52,4 +52,28 @@ describe('simpleCsrfProtectionHandlerPlugin', () => {
       })),
     ).resolves.toEqual({ matched: true, response: expect.toSatisfy(response => response.status === 500) })
   })
+
+  it('can exclude procedure', async () => {
+    const exclude = vi.fn(() => true)
+
+    const ping = os.handler(() => 'pong')
+
+    const handler = new RPCHandler({ ping }, {
+      plugins: [
+        new SimpleCsrfProtectionHandlerPlugin({
+          exclude,
+        }),
+      ],
+    })
+
+    await expect(
+      handler.handle(new Request('http://localhost/ping?data=%7B%7D')),
+    ).resolves.toEqual({ matched: true, response: expect.toSatisfy(response => response.status === 200) })
+
+    expect(exclude).toHaveBeenCalledTimes(1)
+    expect(exclude).toHaveBeenCalledWith(expect.objectContaining({
+      path: ['ping'],
+      procedure: ping,
+    }))
+  })
 })

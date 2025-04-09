@@ -29,7 +29,7 @@ const handler = new RPCHandler(router, {
 ```
 
 ::: info
-The `handler` can be any supported oRPC handler, such as [RPCHandler](/docs/rpc-handler) or [OpenAPIHandler](/docs/openapi/openapi-handler). Note that this plugin uses its own protocol for batching requests and responses, which is different from the handler’s native protocol.
+The `handler` can be any supported oRPC handler, such as [RPCHandler](/docs/rpc-handler), [OpenAPIHandler](/docs/openapi/openapi-handler) or custom implementations. Note that this plugin uses its own protocol for batching requests and responses, which is different from the handler’s native protocol.
 :::
 
 ### Client
@@ -38,8 +38,9 @@ To use the `BatchLinkPlugin`, define at least one group. Requests within the sam
 
 ```ts twoslash
 import { RPCLink } from '@orpc/client/fetch'
-import { BatchLinkPlugin } from '@orpc/client/plugins'
 // ---cut---
+import { BatchLinkPlugin } from '@orpc/client/plugins'
+
 const link = new RPCLink({
   url: 'https://api.example.com/rpc',
   plugins: [
@@ -54,6 +55,10 @@ const link = new RPCLink({
   ],
 })
 ```
+
+::: info
+The `link` can be any supported oRPC link, such as [RPCLink](/docs/client/rpc-link), [OpenAPILink](/docs/openapi/client/openapi-link), or custom implementations.
+:::
 
 ## Limitations
 

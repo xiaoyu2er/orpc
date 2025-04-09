@@ -180,9 +180,6 @@ importers:
       '@orpc/server':
         specifier: workspace:*
         version: link:../server
-      '@orpc/shared':
-        specifier: workspace:*
-        version: link:../shared
       arktype:
         specifier: '*'
         version: 2.1.9
@@ -211,9 +208,6 @@ importers:
       '@orpc/shared':
         specifier: workspace:*
         version: link:../shared
-      '@orpc/standard-server':
-        specifier: workspace:*
-        version: link:../standard-server
       '@standard-schema/spec':
         specifier: ^1.0.0
         version: 1.0.0
@@ -452,9 +446,6 @@ importers:
       '@orpc/server':
         specifier: workspace:*
         version: link:../server
-      '@orpc/shared':
-        specifier: workspace:*
-        version: link:../shared
       '@valibot/to-json-schema':
         specifier: 1.0.0-rc.0
         version: 1.0.0-rc.0(valibot@1.0.0(typescript@5.7.3))

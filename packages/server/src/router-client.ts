@@ -20,7 +20,7 @@ export type RouterClient<TRouter extends AnyRouter, TClientContext extends Clien
 
 export function createRouterClient<T extends AnyRouter, TClientContext extends ClientContext>(
   router: Lazyable<T | undefined>,
-  ...[options]: MaybeOptionalOptions<
+  ...rest: MaybeOptionalOptions<
     CreateProcedureClientOptions<
       InferRouterInitialContext<T>,
       Schema<unknown, unknown>,
@@ -31,13 +31,13 @@ export function createRouterClient<T extends AnyRouter, TClientContext extends C
   >
 ): RouterClient<T, TClientContext> {
   if (isProcedure(router)) {
-    const caller = createProcedureClient(router, options as any)
+    const caller = createProcedureClient(router, ...rest)
 
     return caller as any
   }
 
   const procedureCaller = isLazy(router)
-    ? createProcedureClient(createAssertedLazyProcedure(router), options as any)
+    ? createProcedureClient(createAssertedLazyProcedure(router), ...rest)
     : {}
 
   const recursive = new Proxy(procedureCaller, {
@@ -53,8 +53,8 @@ export function createRouterClient<T extends AnyRouter, TClientContext extends C
       }
 
       return createRouterClient(next, {
-        ...options,
-        path: [...(options?.path ?? []), key],
+        ...rest[0],
+        path: [...(rest[0]?.path ?? []), key],
       } as any)
     },
   })

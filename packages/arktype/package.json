@@ -39,7 +39,6 @@
     "arktype": "*"
   },
   "dependencies": {
-    "@orpc/openapi": "workspace:*",
-    "@orpc/shared": "workspace:*"
+    "@orpc/openapi": "workspace:*"
   }
 }

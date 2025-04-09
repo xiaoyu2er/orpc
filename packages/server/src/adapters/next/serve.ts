@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 import type { Context } from '../../context'
 import type { FetchHandler } from '../fetch'
 import type { StandardHandleOptions } from '../standard'
-import { value } from '@orpc/shared'
+import { resolveMaybeOptionalOptions, value } from '@orpc/shared'
 
 export type ServeOptions<T extends Context> =
   & Omit<StandardHandleOptions<T>, 'context'>
@@ -19,10 +19,12 @@ export interface ServeResult {
 
 export function serve<T extends Context>(
   handler: FetchHandler<T>,
-  ...[options]: MaybeOptionalOptions<ServeOptions<T>>
+  ...rest: MaybeOptionalOptions<ServeOptions<T>>
 ): ServeResult {
+  const options = resolveMaybeOptionalOptions(rest)
+
   const main = async (req: NextRequest) => {
-    const context = await value(options?.context ?? {}, req) as any
+    const context = await value(options.context ?? {} as T, req)
 
     const { matched, response } = await handler.handle(req, { ...options, context })
 

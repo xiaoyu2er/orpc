@@ -5,7 +5,9 @@ import { RPCHandler } from './rpc-handler'
 
 describe('rpcHandler', () => {
   it('works', async () => {
-    const handler = new RPCHandler(os.handler(() => 'pong'))
+    const handler = new RPCHandler(os.handler(() => 'pong'), {
+      strictGetMethodPluginEnabled: false,
+    })
 
     const res = await request(async (req: IncomingMessage, res: ServerResponse) => {
       await handler.handle(req, res)

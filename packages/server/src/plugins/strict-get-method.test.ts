@@ -1,8 +1,8 @@
 import { RPCHandler } from '../adapters/fetch'
 import { os } from '../builder'
-import { GetMethodGuardPlugin } from './get-method-guard'
+import { StrictGetMethodPlugin } from './strict-get-method'
 
-describe('getMethodGuardPlugin', () => {
+describe('strictGetMethodPlugin', () => {
   const interceptor = vi.fn(({ next }) => next())
 
   const handler = new RPCHandler({
@@ -10,7 +10,7 @@ describe('getMethodGuardPlugin', () => {
     pong: os.route({ method: 'GET' }).handler(() => 'pong'),
   }, {
     plugins: [
-      new GetMethodGuardPlugin(),
+      new StrictGetMethodPlugin(),
     ],
     rootInterceptors: [interceptor],
   })

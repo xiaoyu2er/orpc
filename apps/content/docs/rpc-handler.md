@@ -83,3 +83,9 @@ const handler = new RPCHandler(router, {
   eventIteratorKeepAliveComment: '',
 })
 ```
+
+## Default Plugins
+
+RPCHandler is pre-configured with plugins that help enforce best practices and enhance security out of the box. By default, the following plugin is enabled:
+
+- [StrictGetMethodPlugin](/docs/plugins/strict-get-method) - Disable by setting `strictGetMethodPluginEnabled` to `false`.

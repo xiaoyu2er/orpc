@@ -12,6 +12,7 @@ describe('simpleCsrfProtectionHandlerPlugin', () => {
   const handler = new RPCHandler({
     ping: os.handler(() => 'pong'),
   }, {
+    strictGetMethodPluginEnabled: false,
     plugins: [
       new SimpleCsrfProtectionHandlerPlugin(),
     ],
@@ -59,6 +60,7 @@ describe('simpleCsrfProtectionHandlerPlugin', () => {
     const ping = os.handler(() => 'pong')
 
     const handler = new RPCHandler({ ping }, {
+      strictGetMethodPluginEnabled: false,
       plugins: [
         new SimpleCsrfProtectionHandlerPlugin({
           exclude,

@@ -7,6 +7,7 @@ describe('bodyLimitPlugin', () => {
 
   it('should ignore for non-body request', async () => {
     const handler = new RPCHandler(os.handler(() => 'ping'), {
+      strictGetMethodPluginEnabled: false,
       plugins: [
         new BodyLimitPlugin({ maxBodySize: 22 }),
       ],

@@ -3,7 +3,9 @@ import { RPCHandler } from './rpc-handler'
 
 describe('rpcHandler', () => {
   it('works', async () => {
-    const handler = new RPCHandler(os.handler(() => 'pong'))
+    const handler = new RPCHandler(os.handler(() => 'pong'), {
+      strictGetMethodPluginEnabled: false,
+    })
 
     const { response } = await handler.handle(new Request('https://example.com/api/v1/?data=%7B%7D'), {
       prefix: '/api/v1',

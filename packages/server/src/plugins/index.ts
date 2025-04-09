@@ -1,5 +1,5 @@
 export * from './batch'
 export * from './cors'
-export * from './get-method-guard'
 export * from './response-headers'
 export * from './simple-csrf-protection'
+export * from './strict-get-method'

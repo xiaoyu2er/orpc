@@ -1,11 +1,15 @@
 ---
-title: GET Method Guard Plugin
-description: Enhance security by restricting GET requests to explicitly allowed procedures, mitigating Cross-Site Request Forgery (CSRF) risks.
+title: Strict GET Method Plugin
+description: Enhance security by ensuring only procedures explicitly marked to accept `GET` requests can be called using the HTTP `GET` method for RPC Protocol. This helps prevent certain types of Cross-Site Request Forgery (CSRF) attacks.
 ---
 
-# GET Method Guard Plugin
+# Strict GET Method Plugin
 
 This plugin enhances security by ensuring only procedures explicitly marked to accept `GET` requests can be called using the HTTP `GET` method for [RPC Protocol](/docs/advanced/rpc-protocol). This helps prevent certain types of [Cross-Site Request Forgery (CSRF)](https://developer.mozilla.org/en-US/docs/Web/Security/Practical_implementation_guides/CSRF_prevention) attacks.
+
+::: info
+[RPCHandler](/docs/rpc-handler) enabled this plugin by default.
+:::
 
 ## When to Use
 
@@ -29,11 +33,11 @@ const ping = os
 import { RPCHandler } from '@orpc/server/fetch'
 import { router } from './shared/planet'
 // ---cut---
-import { GetMethodGuardPlugin } from '@orpc/server/plugins'
+import { StrictGetMethodPlugin } from '@orpc/server/plugins'
 
 const handler = new RPCHandler(router, {
   plugins: [
-    new GetMethodGuardPlugin()
+    new StrictGetMethodPlugin()
   ],
 })
 ```

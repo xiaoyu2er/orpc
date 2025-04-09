@@ -3,7 +3,7 @@ import type { Context as HonoContext, MiddlewareHandler } from 'hono'
 import type { Context } from '../../context'
 import type { FetchHandler } from '../fetch'
 import type { StandardHandleOptions } from '../standard'
-import { value } from '@orpc/shared'
+import { resolveMaybeOptionalOptions, value } from '@orpc/shared'
 
 export type CreateMiddlewareOptions<T extends Context> =
   & Omit<StandardHandleOptions<T>, 'context'>
@@ -11,8 +11,10 @@ export type CreateMiddlewareOptions<T extends Context> =
 
 export function createMiddleware<T extends Context>(
   handler: FetchHandler<T>,
-  ...[options]: MaybeOptionalOptions<CreateMiddlewareOptions<T>>
+  ...rest: MaybeOptionalOptions<CreateMiddlewareOptions<T>>
 ): MiddlewareHandler {
+  const options = resolveMaybeOptionalOptions(rest)
+
   return async (c, next) => {
     const bodyProps = new Set(['arrayBuffer', 'blob', 'formData', 'json', 'text'] as const)
     type BodyProp = typeof bodyProps extends Set<infer T> ? T : never
@@ -28,7 +30,7 @@ export function createMiddleware<T extends Context>(
         },
       })
 
-    const context = await value(options?.context ?? {}, c) as any
+    const context = await value(options.context ?? {} as T, c)
 
     const { matched, response } = await handler.handle(request, { ...options, context })
 

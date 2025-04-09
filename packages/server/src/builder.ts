@@ -172,7 +172,7 @@ export class Builder<
     return new Builder({
       ...this['~orpc'],
       meta: mergeMeta(this['~orpc'].meta, meta),
-    }) as any
+    })
   }
 
   route(
@@ -181,7 +181,7 @@ export class Builder<
     return new Builder({
       ...this['~orpc'],
       route: mergeRoute(this['~orpc'].route, route),
-    }) as any
+    })
   }
 
   input<USchema extends AnySchema>(
@@ -238,7 +238,7 @@ export class Builder<
   lazy<U extends Router<ContractRouter<TMeta>, TCurrentContext>>(
     loader: () => Promise<{ default: U }>,
   ): EnhancedRouter<Lazy<U>, TInitialContext, TCurrentContext, TErrorMap> {
-    return enhanceRouter(lazy(loader), this['~orpc']) as any
+    return enhanceRouter(lazy(loader), this['~orpc'])
   }
 }
 

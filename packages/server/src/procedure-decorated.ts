@@ -126,8 +126,7 @@ export class DecoratedProcedure<
     >
   ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>
     & ProcedureClient<TClientContext, TInputSchema, TOutputSchema, TErrorMap> {
-    const client: ProcedureClient<TClientContext, TInputSchema, TOutputSchema, TErrorMap>
-        = createProcedureClient(this, ...rest as any)
+    const client: ProcedureClient<TClientContext, TInputSchema, TOutputSchema, TErrorMap> = createProcedureClient(this, ...rest)
 
     return new Proxy(client, {
       get: (target, key) => {
@@ -155,8 +154,7 @@ export class DecoratedProcedure<
   ):
     & DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>
     & ProcedureActionableClient<TInputSchema, TOutputSchema, TErrorMap> {
-    const action: ProcedureActionableClient<TInputSchema, TOutputSchema, TErrorMap>
-      = createActionableClient(createProcedureClient(this, ...rest as any))
+    const action: ProcedureActionableClient<TInputSchema, TOutputSchema, TErrorMap> = createActionableClient(createProcedureClient(this, ...rest))
 
     return new Proxy(action, {
       get: (target, key) => {

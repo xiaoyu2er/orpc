@@ -120,7 +120,7 @@ export function useServerAction<TInput, TOutput, TError extends ORPCErrorJSON<an
       { input: input as TInput },
       ({ input }) => action(input).then(([error, data]) => {
         if (error) {
-          throw createORPCErrorFromJson(error as any)
+          throw createORPCErrorFromJson(error)
         }
 
         return data as TOutput

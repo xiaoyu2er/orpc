@@ -13,7 +13,7 @@ export function mapEventIterator<TYield, TReturn, TNext, TMap = TYield | TReturn
       while (true) {
         const { done, value } = await iterator.next()
 
-        let mappedValue = await maps.value(value, done) as any
+        let mappedValue = await maps.value(value, done)
 
         if (mappedValue !== value) {
           const meta = getEventMeta(value)

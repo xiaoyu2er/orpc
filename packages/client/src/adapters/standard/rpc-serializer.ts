@@ -77,9 +77,9 @@ export class StandardRPCSerializer {
     return this.#deserialize(data)
   }
 
-  #deserialize(data: unknown): unknown {
+  #deserialize(data: any): unknown {
     if (!(data instanceof FormData)) {
-      return this.jsonSerializer.deserialize((data as any).json, (data as any).meta ?? [])
+      return this.jsonSerializer.deserialize(data.json, data.meta ?? [])
     }
 
     const serialized = JSON.parse(data.get('data') as string)

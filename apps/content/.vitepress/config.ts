@@ -110,6 +110,7 @@ export default defineConfig({
             { text: 'CORS', link: '/docs/plugins/cors' },
             { text: 'Response Headers', link: '/docs/plugins/response-headers' },
             { text: 'Batch Request/Response', link: '/docs/plugins/batch-request-response' },
+            { text: 'GET method guard', link: '/docs/plugins/get-method-guard' },
             { text: 'Client Retry', link: '/docs/plugins/client-retry' },
             { text: 'Body Limit', link: '/docs/plugins/body-limit' },
             { text: 'Simple CSRF Protection', link: '/docs/plugins/simple-csrf-protection' },

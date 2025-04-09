@@ -29,6 +29,10 @@ const router = {
 
 Any HTTP method can be used. Input can be provided via URL query parameters or the request body.
 
+:::info
+To help prevent [Cross-Site Request Forgery (CSRF)](https://developer.mozilla.org/en-US/docs/Web/Security/Practical_implementation_guides/CSRF_prevention) attacks, you can use the [GET Method Guard Plugin](/docs/plugins/get-method-guard) to restrict the use of the `GET` method.
+:::
+
 ### Input in URL Query
 
 ```ts

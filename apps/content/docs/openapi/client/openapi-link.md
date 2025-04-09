@@ -35,7 +35,7 @@ deno install npm:@orpc/openapi-client@latest
 
 ## Setup
 
-To use `OpenAPILink`, you must have a [contract router](/docs/contract-first/define-contract#contract-router) and a server configured with an [OpenAPIHandler](/docs/openapi/openapi-handler).
+To use `OpenAPILink`, ensure you have a [contract router](/docs/contract-first/define-contract#contract-router) and that your server is set up with [OpenAPIHandler](/docs/openapi/openapi-handler) or any API that follows the [OpenAPI Specification](https://swagger.io/specification/).
 
 ::: info
 A normal [router](/docs/router) works as a contract router as long as it does not include a [lazy router](/docs/router#lazy-router). You can also unlazy a router using the [unlazyRouter](/docs/advanced/mocking#using-the-implementer) utility.

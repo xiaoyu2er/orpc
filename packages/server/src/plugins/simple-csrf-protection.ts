@@ -80,7 +80,7 @@ export class SimpleCsrfProtectionHandlerPlugin<T extends Context> implements Sta
 
     options.clientInterceptors.unshift(async (options) => {
       if (typeof options.context[SIMPLE_CSRF_PROTECTION_CONTEXT_SYMBOL] !== 'boolean') {
-        throw new TypeError('[SimpleCsrfProtectionHandlerPlugin] Some plugin or interceptor is messing with the context')
+        throw new TypeError('[SimpleCsrfProtectionHandlerPlugin] CSRF protection context has been corrupted or modified by another plugin or interceptor')
       }
 
       const excluded = await value(this.exclude, options)

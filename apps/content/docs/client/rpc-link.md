@@ -9,7 +9,7 @@ RPCLink enables communication with an [RPCHandler](/docs/rpc-handler) on your se
 
 ## Overview
 
-Before using RPCLink, ensure your server is running an [RPCHandler](/docs/rpc-handler).
+Before using RPCLink, make sure your server is set up with [RPCHandler](/docs/rpc-handler) or any API that follows the [RPC Protocol](/docs/advanced/rpc-protocol).
 
 ```ts
 import { RPCLink } from '@orpc/client/fetch'

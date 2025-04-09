@@ -35,7 +35,7 @@ deno install npm:@orpc/client@latest
 
 ## Creating a Client
 
-This guide uses [RPCLink](/docs/client/rpc-link), so make sure your server is set up with [RPCHandler](/docs/rpc-handler).
+This guide uses [RPCLink](/docs/client/rpc-link), so make sure your server is set up with [RPCHandler](/docs/rpc-handler) or any API that follows the [RPC Protocol](/docs/advanced/rpc-protocol).
 
 ```ts
 import { createORPCClient } from '@orpc/client'

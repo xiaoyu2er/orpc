@@ -1,11 +1,11 @@
 ---
 title: Simple CSRF Protection Plugin
-description: Simple CSRF Protection plugin for oRPC.
+description: Add basic Cross-Site Request Forgery (CSRF) protection to your oRPC application. It helps ensure that requests to your procedures originate from JavaScript code, not from other sources like standard HTML forms or direct browser navigation.
 ---
 
-# Simple CSRF Protection
+# Simple CSRF Protection Plugin
 
-This plugin adds basic Cross-Site Request Forgery (CSRF) protection to your oRPC application. It helps ensure that requests to your procedures originate from JavaScript code, not from other sources like standard HTML forms or direct browser navigation.
+This plugin adds basic [Cross-Site Request Forgery (CSRF)](https://developer.mozilla.org/en-US/docs/Web/Security/Practical_implementation_guides/CSRF_prevention) protection to your oRPC application. It helps ensure that requests to your procedures originate from JavaScript code, not from other sources like standard HTML forms or direct browser navigation.
 
 ## When to Use
 

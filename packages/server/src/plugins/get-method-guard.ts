@@ -5,7 +5,7 @@ import { fallbackContractConfig, ORPCError } from '@orpc/contract'
 export interface GetMethodGuardPluginOptions {
 
   /**
-   * The error thrown when the CSRF token is invalid.
+   * The error thrown when a GET request is made to a procedure that doesn't allow GET.
    *
    * @default new ORPCError('METHOD_NOT_SUPPORTED')
    */

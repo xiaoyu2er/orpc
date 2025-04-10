@@ -6,7 +6,7 @@
     "build": "vinxi build",
     "start": "vinxi start"
   },
-  "dependencies": {
+  "devDependencies": {
     "@orpc/client": "next",
     "@orpc/openapi": "next",
     "@orpc/server": "next",

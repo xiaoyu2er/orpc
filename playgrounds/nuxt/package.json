@@ -9,7 +9,7 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare"
   },
-  "dependencies": {
+  "devDependencies": {
     "@orpc/client": "next",
     "@orpc/openapi": "next",
     "@orpc/server": "next",

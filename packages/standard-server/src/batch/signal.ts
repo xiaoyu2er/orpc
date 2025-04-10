@@ -1,21 +1,26 @@
-export function toBatchAbortSignal(signals: readonly (AbortSignal | undefined)[]): AbortSignal {
+export function toBatchAbortSignal(signals: readonly (AbortSignal | undefined)[]): AbortSignal | undefined {
   const realSignals = signals.filter(signal => signal !== undefined)
+
+  if (realSignals.length === 0 || realSignals.length !== signals.length) {
+    return undefined
+  }
 
   const controller = new AbortController()
 
-  const abortedSignals = realSignals.filter(signal => signal.aborted)
-
-  if (abortedSignals.length && abortedSignals.length === realSignals.length) {
-    controller.abort()
+  const abortIfAllInputsAborted = () => {
+    if (realSignals.every(signal => signal.aborted)) {
+      controller.abort()
+    }
   }
+
+  abortIfAllInputsAborted()
 
   for (const signal of realSignals) {
     signal.addEventListener('abort', () => {
-      abortedSignals.push(signal)
-
-      if (abortedSignals.length === realSignals.length) {
-        controller.abort()
-      }
+      abortIfAllInputsAborted()
+    }, {
+      once: true,
+      signal: controller.signal,
     })
   }
 

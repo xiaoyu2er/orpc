@@ -15,7 +15,7 @@ describe('toBatchRequest & parseBatchRequest', () => {
   const signal2 = AbortSignal.timeout(102)
 
   const headers1 = { 'x-custom': 'value' }
-  const headers2 = { 'x-custom': 'value' }
+  const headers2 = { }
   const headers3 = { 'x-custom': 'value' }
 
   it('method GET', () => {

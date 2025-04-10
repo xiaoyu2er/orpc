@@ -3,8 +3,8 @@ import { isAsyncIteratorObject } from '@orpc/shared'
 import { parseBatchResponse, toBatchResponse } from './response'
 
 describe('toBatchResponse & parseBatchResponse', () => {
-  const r1: BatchResponseBodyItem = { index: 0, status: 200, headers: { 'x-custom': 'value1' }, body: 'test1' }
-  const r2: BatchResponseBodyItem = { index: 1, status: 205, headers: { 'x-custom': 'value2' }, body: 'test2' }
+  const r1: BatchResponseBodyItem = { index: 0, status: 200, headers: { }, body: 'test1' }
+  const r2: BatchResponseBodyItem = { index: 1, status: 207, headers: { 'x-custom': 'value2' }, body: 'test2' }
 
   it('success', async () => {
     const response = toBatchResponse({
@@ -45,7 +45,7 @@ describe('parseBatchResponse', () => {
       status: 207,
       headers: { 'x-custom': 'value' },
       body: (async function*() {
-        yield 'invalid' as any
+        yield { headers: {} } as any
       })(),
     }))
 

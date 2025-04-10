@@ -1,4 +1,4 @@
-import type { StandardResponse } from '../types'
+import type { StandardHeaders, StandardResponse } from '../types'
 import { isAsyncIteratorObject, isObject } from '@orpc/shared'
 
 export interface BatchResponseBodyItem extends StandardResponse {
@@ -10,7 +10,24 @@ export interface ToBatchResponseOptions extends StandardResponse {
 }
 
 export function toBatchResponse(options: ToBatchResponseOptions): StandardResponse {
-  return options
+  return {
+    ...options,
+    body: (async function* () {
+      try {
+        for await (const item of options.body) {
+          yield {
+            index: item.index,
+            status: item.status === options.status ? undefined : item.status,
+            headers: Object.keys(item.headers).length ? item.headers : undefined,
+            body: item.body,
+          } satisfies Partial<BatchResponseBodyItem>
+        }
+      }
+      finally {
+        options.body.return?.()
+      }
+    })(),
+  }
 }
 
 export function parseBatchResponse(response: StandardResponse): AsyncGenerator<BatchResponseBodyItem> {
@@ -25,13 +42,18 @@ export function parseBatchResponse(response: StandardResponse): AsyncGenerator<B
   return (async function* () {
     try {
       for await (const item of body) {
-        if (!isObject(item) || !('index' in item) || !('status' in item) || !('headers' in item)) {
+        if (!isObject(item) || !('index' in item) || typeof item.index !== 'number') {
           throw new TypeError('Invalid batch response', {
             cause: item,
           })
         }
 
-        yield item as unknown as BatchResponseBodyItem
+        yield {
+          index: item.index as number,
+          status: item.status as undefined | number ?? response.status,
+          headers: item.headers as undefined | StandardHeaders ?? {},
+          body: item.body,
+        } satisfies BatchResponseBodyItem
       }
     }
     finally {

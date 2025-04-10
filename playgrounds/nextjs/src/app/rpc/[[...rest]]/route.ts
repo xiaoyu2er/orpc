@@ -1,8 +1,8 @@
 import { router } from '@/router'
 import { onError } from '@orpc/server'
-import { RPCHandler, serve } from '@orpc/server/next'
-import '../../../polyfill'
 import { BatchHandlerPlugin } from '@orpc/server/plugins'
+import { RPCHandler } from '@orpc/server/fetch'
+import '../../../polyfill'
 
 const rpcHandler = new RPCHandler(router, {
   interceptors: [
@@ -15,9 +15,17 @@ const rpcHandler = new RPCHandler(router, {
   ],
 })
 
-export const { GET, POST, PUT, PATCH, DELETE } = serve(rpcHandler, {
-  prefix: '/rpc',
-  context: async (req) => {
-    return {}
-  },
-})
+async function handleRequest(request: Request) {
+  const { response } = await rpcHandler.handle(request, {
+    prefix: '/rpc',
+    context: {},
+  })
+
+  return response ?? new Response('Not found', { status: 404 })
+}
+
+export const GET = handleRequest
+export const POST = handleRequest
+export const PUT = handleRequest
+export const PATCH = handleRequest
+export const DELETE = handleRequest

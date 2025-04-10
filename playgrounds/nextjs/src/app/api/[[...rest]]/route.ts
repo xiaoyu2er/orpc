@@ -1,7 +1,6 @@
 import { router } from '@/router'
-import { OpenAPIHandler } from '@orpc/openapi/next'
+import { OpenAPIHandler } from '@orpc/openapi/fetch'
 import { onError } from '@orpc/server'
-import { serve } from '@orpc/server/next'
 import { ZodSmartCoercionPlugin } from '@orpc/zod'
 import '../../../polyfill'
 
@@ -16,9 +15,17 @@ const openAPIHandler = new OpenAPIHandler(router, {
   ],
 })
 
-export const { GET, POST, PUT, PATCH, DELETE } = serve(openAPIHandler, {
-  prefix: '/api',
-  context: async (req) => {
-    return {}
-  },
-})
+async function handleRequest(request: Request) {
+  const { response } = await openAPIHandler.handle(request, {
+    prefix: '/api',
+    context: {},
+  })
+
+  return response ?? new Response('Not found', { status: 404 })
+}
+
+export const GET = handleRequest
+export const POST = handleRequest
+export const PUT = handleRequest
+export const PATCH = handleRequest
+export const DELETE = handleRequest

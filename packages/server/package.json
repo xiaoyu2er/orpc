@@ -35,16 +35,6 @@
         "import": "./dist/adapters/fetch/index.mjs",
         "default": "./dist/adapters/fetch/index.mjs"
       },
-      "./hono": {
-        "types": "./dist/adapters/hono/index.d.mts",
-        "import": "./dist/adapters/hono/index.mjs",
-        "default": "./dist/adapters/hono/index.mjs"
-      },
-      "./next": {
-        "types": "./dist/adapters/next/index.d.mts",
-        "import": "./dist/adapters/next/index.mjs",
-        "default": "./dist/adapters/next/index.mjs"
-      },
       "./node": {
         "types": "./dist/adapters/node/index.d.mts",
         "import": "./dist/adapters/node/index.mjs",
@@ -57,8 +47,6 @@
     "./plugins": "./src/plugins/index.ts",
     "./standard": "./src/adapters/standard/index.ts",
     "./fetch": "./src/adapters/fetch/index.ts",
-    "./hono": "./src/adapters/hono/index.ts",
-    "./next": "./src/adapters/next/index.ts",
     "./node": "./src/adapters/node/index.ts"
   },
   "files": [
@@ -68,10 +56,6 @@
     "build": "unbuild",
     "build:watch": "pnpm run build --watch",
     "type:check": "tsc -b"
-  },
-  "peerDependencies": {
-    "hono": ">=4.6.0",
-    "next": ">=14.0.0"
   },
   "dependencies": {
     "@orpc/client": "workspace:*",

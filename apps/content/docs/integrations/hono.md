@@ -11,18 +11,24 @@ description: Integrate oRPC with Hono
 
 ```ts
 import { Hono } from 'hono'
-import { createMiddleware, RPCHandler } from '@orpc/server/hono'
+import { createMiddleware, RPCHandler } from '@orpc/server/fetch'
 
 const app = new Hono()
 
 const handler = new RPCHandler(router)
 
-app.use('/rpc/*', createMiddleware(handler, {
-  prefix: '/rpc',
-  context: async (c) => {
-    return {} // Provide initial context if needed
+app.use('/rpc/*', async (c, next) => {
+  const { matched, response } = await handler.handle(c.req.raw, {
+    prefix: '/rpc',
+    context: {} // Provide initial context if needed
+  })
+
+  if (matched) {
+    return c.newResponse(response.body, response)
   }
-}))
+
+  await next()
+})
 
 export default app
 ```

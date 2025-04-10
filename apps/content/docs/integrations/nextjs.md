@@ -16,16 +16,24 @@ oRPC also supports [Server Action](/docs/server-action) out-of-the-box.
 ::: code-group
 
 ```ts [app/rpc/[[...rest]].ts]
-import { RPCHandler, serve } from '@orpc/server/next'
+import { RPCHandler, serve } from '@orpc/server/fetch'
 
 const handler = new RPCHandler(router)
 
-export const { GET, POST, PUT, PATCH, DELETE } = serve(handler, {
-  prefix: '/rpc',
-  context: async (req) => {
-    return {} // Provide initial context if needed
-  },
-})
+async function handleRequest(request: Request) {
+  const { response } = await handler.handle(request, {
+    prefix: '/rpc',
+    context: {}, // Provide initial context if needed
+  })
+
+  return response ?? new Response('Not found', { status: 404 })
+}
+
+export const GET = handleRequest
+export const POST = handleRequest
+export const PUT = handleRequest
+export const PATCH = handleRequest
+export const DELETE = handleRequest
 ```
 
 :::

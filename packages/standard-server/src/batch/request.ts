@@ -15,10 +15,10 @@ export function toBatchRequest(options: ToBatchRequestOptions): StandardRequest 
 
   const batchRequestItems = options.requests.map(request => ({
     body: request.body,
-    headers: request.headers,
-    method: request.method,
+    headers: Object.keys(request.headers).length ? request.headers : undefined,
+    method: request.method === options.method ? undefined : request.method,
     url: request.url,
-  } satisfies Omit<StandardRequest, 'signal'>))
+  } satisfies Partial<StandardRequest>))
 
   if (options.method === 'GET') {
     url.searchParams.append('batch', stringifyJSON(batchRequestItems))
@@ -48,9 +48,9 @@ export function parseBatchRequest(request: StandardRequest): StandardRequest[] {
 
   return items.map((item) => {
     return {
-      method: item.method,
+      method: item.method ?? request.method,
       url: new URL(item.url),
-      headers: item.headers,
+      headers: item.headers ?? {},
       body: item.body,
       signal: request.signal,
     } satisfies StandardRequest

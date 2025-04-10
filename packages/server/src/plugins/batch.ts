@@ -3,7 +3,7 @@ import type { StandardHeaders, StandardRequest } from '@orpc/standard-server'
 import type { BatchResponseBodyItem } from '@orpc/standard-server/batch'
 import type { StandardHandlerInterceptorOptions, StandardHandlerOptions, StandardHandlerPlugin } from '../adapters/standard'
 import type { Context } from '../context'
-import { value } from '@orpc/shared'
+import { isAsyncIteratorObject, value } from '@orpc/shared'
 import { parseBatchRequest, toBatchResponse } from '@orpc/standard-server/batch'
 
 export interface BatchHandlerOptions<T extends Context> {
@@ -95,6 +95,19 @@ export class BatchHandlerPlugin<T extends Context> implements StandardHandlerPlu
               .next({ ...options, request: { ...mapped, body: () => Promise.resolve(mapped.body) } })
               .then(({ response, matched }) => {
                 if (matched) {
+                  if (
+                    response.body instanceof Blob
+                    || response.body instanceof FormData
+                    || isAsyncIteratorObject(response.body)
+                  ) {
+                    return {
+                      index,
+                      status: 500,
+                      headers: {},
+                      body: 'Batch responses do not support file/blob, or event-iterator. Please call this procedure separately outside of the batch request.',
+                    }
+                  }
+
                   return { ...response, index }
                 }
 

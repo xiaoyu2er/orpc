@@ -446,4 +446,64 @@ describe('batchHandlerPlugin', () => {
       },
     })
   })
+
+  it('should response error on unsupported response', async () => {
+    interceptor.mockImplementation(async ({ request }) => {
+      const body = await request.body()
+
+      return {
+        matched: true,
+        response: { status: 200, headers: {}, body: body === 'blob' ? new Blob(['hello']) : body === 'formdata' ? new FormData() : body },
+      }
+    })
+
+    const request = toBatchRequest({
+      url: new URL('http://localhost/prefix/__batch__'),
+      headers: {
+        'x-orpc-batch': '1',
+      },
+      method: 'POST',
+      requests: [
+        { ...request1, body: 'blob' },
+        { ...request2, body: 'formdata' },
+        { ...request3, body: 'string' },
+      ],
+    })
+
+    const result = await handler.handle({ ...request, body: () => Promise.resolve(request.body) }, { prefix: '/prefix', context: { context: true } })
+
+    const parsed = parseBatchResponse(result.response!)
+
+    await expect(parsed.next()).resolves.toEqual({
+      done: false,
+      value: {
+        index: 0,
+        status: 500,
+        headers: {},
+        body: 'Batch responses do not support file/blob, or event-iterator. Please call this procedure separately outside of the batch request.',
+      },
+    })
+
+    await expect(parsed.next()).resolves.toEqual({
+      done: false,
+      value: {
+        index: 1,
+        status: 500,
+        headers: {},
+        body: 'Batch responses do not support file/blob, or event-iterator. Please call this procedure separately outside of the batch request.',
+      },
+    })
+
+    await expect(parsed.next()).resolves.toEqual({
+      done: false,
+      value: {
+        body: 'string',
+        headers: {},
+        index: 2,
+        status: 200,
+      },
+    })
+
+    await expect(parsed.next()).resolves.toEqual({ done: true })
+  })
 })

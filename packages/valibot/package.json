@@ -36,10 +36,10 @@
   "peerDependencies": {
     "@orpc/contract": "workspace:*",
     "@orpc/server": "workspace:*",
-    "valibot": "*"
+    "valibot": "^1.0.0"
   },
   "dependencies": {
     "@orpc/openapi": "workspace:*",
-    "@valibot/to-json-schema": "1.0.0-rc.0"
+    "@valibot/to-json-schema": "^1.0.0"
   }
 }

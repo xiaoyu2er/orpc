@@ -1,7 +1,8 @@
 import type { ORPCErrorJSON, SafeResult } from '@orpc/client'
 import type { ActionableClient, UnactionableError } from '@orpc/server'
+import type { Interceptor } from '@orpc/shared'
 import { createORPCErrorFromJson, safe } from '@orpc/client'
-import { intercept, type Interceptor, toArray } from '@orpc/shared'
+import { intercept, toArray } from '@orpc/shared'
 import { useCallback, useMemo, useState } from 'react'
 
 export interface UseServerActionOptions<TInput, TOutput, TError> {

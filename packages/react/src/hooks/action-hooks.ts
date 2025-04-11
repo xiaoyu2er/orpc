@@ -141,8 +141,6 @@ export function useServerAction<TInput, TOutput, TError extends ORPCErrorJSON<an
     })
 
     return result
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [action, ...toArray(options.interceptors)])
 
   const result = useMemo(() => ({

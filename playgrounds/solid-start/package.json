@@ -14,9 +14,9 @@
     "@orpc/zod": "next",
     "@solidjs/router": "^0.15.3",
     "@solidjs/start": "^1.1.0",
-    "@tanstack/solid-query": "^5.66.4",
+    "@tanstack/solid-query": "^5.72.2",
     "solid-js": "^1.9.5",
-    "vinxi": "^0.5.3",
+    "vinxi": "^0.5.4",
     "zod": "^3.24.2"
   }
 }

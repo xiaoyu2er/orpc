@@ -37,5 +37,5 @@ export function getLazyMeta(lazied: Lazy<any>): LazyMeta {
 }
 
 export function unlazy<T extends Lazyable<any>>(lazied: T): Promise<{ default: T extends Lazy<infer U> ? U : T }> {
-  return isLazy(lazied) ? lazied[LAZY_SYMBOL].loader() : Promise.resolve({ default: lazied })
+  return isLazy(lazied) ? lazied[LAZY_SYMBOL].loader() : Promise.resolve({ default: lazied as T extends Lazy<infer U> ? U : T })
 }

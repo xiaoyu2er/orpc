@@ -23,7 +23,7 @@
     "@tanstack/svelte-query": "^5.66.4",
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.0",
-    "typescript": "5.7.3",
+    "typescript": "5.8.3",
     "vite": "^6.0.0",
     "zod": "^3.24.2"
   }

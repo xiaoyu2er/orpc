@@ -165,6 +165,7 @@ export default defineConfig({
             { text: 'Pinia Colada', link: '/docs/pinia-colada' },
             { text: 'Playgrounds', link: '/docs/playgrounds' },
             { text: 'Comparison', link: '/docs/comparison' },
+            { text: 'Ecosystem', link: '/docs/ecosystem' },
           ],
         },
       ],

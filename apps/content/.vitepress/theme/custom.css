@@ -1,6 +1,6 @@
 :root {
-  --vp-font-family-base: -apple-system, BlinkMacSystemFont, segoe ui, Helvetica, Arial, sans-serif, apple color emoji,
-    segoe ui emoji;
+  --vp-font-family-base:
+    -apple-system, BlinkMacSystemFont, segoe ui, Helvetica, Arial, sans-serif, apple color emoji, segoe ui emoji;
   --vp-font-family-mono: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
 }
 

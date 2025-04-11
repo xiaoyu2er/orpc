@@ -296,7 +296,7 @@ importers:
         specifier: workspace:*
         version: link:../shared
       '@tanstack/react-query':
-        specifier: '>=5.72.2'
+        specifier: '>=5.55.0'
         version: 5.72.2(react@19.1.0)
     devDependencies:
       '@tanstack/vue-query':
@@ -352,7 +352,7 @@ importers:
         specifier: workspace:*
         version: link:../shared
       '@tanstack/solid-query':
-        specifier: '>=5.72.2'
+        specifier: '>=5.55.0'
         version: 5.72.2(solid-js@1.9.5)
       solid-js:
         specifier: '>=1.9.0'
@@ -412,7 +412,7 @@ importers:
         specifier: workspace:*
         version: link:../shared
       '@tanstack/svelte-query':
-        specifier: '>=5.72.2'
+        specifier: '>=5.55.0'
         version: 5.72.2(svelte@5.25.12)
       svelte:
         specifier: '>=4.2.0'

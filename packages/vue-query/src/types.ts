@@ -1,6 +1,6 @@
 import type { ClientContext } from '@orpc/client'
-import type { AnyFunction, SetOptional } from '@orpc/shared'
-import type { MutationObserverOptions, QueryFunctionContext, QueryKey, QueryObserverOptions, UseInfiniteQueryOptions } from '@tanstack/vue-query'
+import type { AnyFunction } from '@orpc/shared'
+import type { InfiniteQueryObserverOptions, MutationObserverOptions, QueryFunctionContext, QueryKey, QueryObserverOptions } from '@tanstack/vue-query'
 import type { ComputedRef, MaybeRef, MaybeRefOrGetter } from 'vue'
 
 /**
@@ -25,7 +25,7 @@ export type QueryOptionsIn<TClientContext extends ClientContext, TInput, TOutput
   & {
     enabled?: MaybeRefOrGetter<QueryObserverOptions<TOutput, TError, TSelectData, TOutput>['enabled']>
     queryKey?: MaybeRefDeep<QueryObserverOptions<TOutput, TError, TSelectData, TOutput>['queryKey']>
-    shallow?: MaybeRef<boolean>
+    shallow?: boolean
   }
 
 export interface QueryOptionsBase<TOutput, TError> {
@@ -37,7 +37,15 @@ export interface QueryOptionsBase<TOutput, TError> {
 export type InfiniteOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData, TPageParam> =
   & { input: (pageParam: TPageParam) => MaybeRefDeep<TInput> }
   & (Record<never, never> extends TClientContext ? { context?: MaybeRefDeep<TClientContext> } : { context: MaybeRefDeep<TClientContext> })
-  & SetOptional<UseInfiniteQueryOptions<TOutput, TError, TSelectData, TOutput, QueryKey, TPageParam>, 'queryKey'>
+  & {
+    [Property in keyof Omit<InfiniteQueryObserverOptions<TOutput, TError, TSelectData, TOutput, QueryKey, TPageParam>, 'queryKey' | 'enabled'>]:
+    MaybeRefDeep<InfiniteQueryObserverOptions<TOutput, TError, TSelectData, TOutput, QueryKey, TPageParam>[Property]>;
+  }
+  & {
+    enabled?: MaybeRefOrGetter<InfiniteQueryObserverOptions<TOutput, TError, TSelectData, TOutput, QueryKey, TPageParam>['enabled']>
+    queryKey?: MaybeRefDeep<InfiniteQueryObserverOptions<TOutput, TError, TSelectData, TOutput, QueryKey, TPageParam>['queryKey']>
+    shallow?: boolean
+  }
 
 export interface InfiniteOptionsBase<TOutput, TError, TPageParam> {
   queryKey: ComputedRef<QueryKey>

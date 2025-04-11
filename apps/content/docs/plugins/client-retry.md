@@ -54,7 +54,13 @@ const planets = await client.planet.list({ limit: 10 }, {
     retry: 3, // Maximum retry attempts
     retryDelay: 2000, // Delay between retries in ms
     shouldRetry: options => true, // Determines whether to retry based on the error
-    onRetry: (options) => {}, // Hook executed on each retry
+    onRetry: (options) => {
+      // Hook executed on each retry
+
+      return (isSuccess) => {
+        // Execute after the retry is complete
+      }
+    },
   }
 })
 ```

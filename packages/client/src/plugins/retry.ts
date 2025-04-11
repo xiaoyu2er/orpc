@@ -36,7 +36,7 @@ export interface ClientRetryPluginContext {
   /**
    * The hook called when retrying, and return the unsubscribe function.
    */
-  onRetry?: (options: ClientRetryPluginAttemptOptions<ClientRetryPluginContext>) => void | (() => void)
+  onRetry?: (options: ClientRetryPluginAttemptOptions<ClientRetryPluginContext>) => void | ((isSuccess: boolean) => void)
 }
 
 export class ClientRetryPluginInvalidEventIteratorRetryResponse extends Error { }
@@ -77,24 +77,24 @@ export class ClientRetryPlugin<T extends ClientRetryPluginContext> implements St
 
       let lastEventId = interceptorOptions.lastEventId
       let lastEventRetry: undefined | number
-      let unsubscribe: void | (() => void)
+      let callback: void | ((isSuccess: boolean) => void)
       let attemptIndex = 0
 
-      const next = async (initial?: { error: unknown }) => {
-        let current = initial
+      const next = async (initialError?: { error: unknown }) => {
+        let currentError = initialError
 
         while (true) {
           const updatedInterceptorOptions = { ...interceptorOptions, lastEventId }
 
-          if (current) {
+          if (currentError) {
             if (attemptIndex >= maxAttempts) {
-              throw current.error
+              throw currentError.error
             }
 
             const attemptOptions: ClientRetryPluginAttemptOptions<ClientRetryPluginContext> = {
               ...updatedInterceptorOptions,
               attemptIndex,
-              error: current.error,
+              error: currentError.error,
               lastEventRetry,
             }
 
@@ -104,10 +104,10 @@ export class ClientRetryPlugin<T extends ClientRetryPluginContext> implements St
             )
 
             if (!shouldRetryBool) {
-              throw current.error
+              throw currentError.error
             }
 
-            unsubscribe = onRetry?.(attemptOptions)
+            callback = onRetry?.(attemptOptions)
 
             const retryDelayMs = await value(retryDelay, attemptOptions)
 
@@ -117,18 +117,19 @@ export class ClientRetryPlugin<T extends ClientRetryPluginContext> implements St
           }
 
           try {
+            currentError = undefined
             return await interceptorOptions.next(updatedInterceptorOptions)
           }
           catch (error) {
+            currentError = { error }
+
             if (updatedInterceptorOptions.signal?.aborted === true) {
               throw error
             }
-
-            current = { error }
           }
           finally {
-            unsubscribe?.()
-            unsubscribe = undefined
+            callback?.(!currentError)
+            callback = undefined
           }
         }
       }

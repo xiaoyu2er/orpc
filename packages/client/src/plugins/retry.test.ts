@@ -122,12 +122,21 @@ describe('clientRetryPlugin', () => {
   })
 
   it('onRetry', async () => {
-    handlerFn.mockRejectedValue(new Error('fail'))
+    let count = 0
+    handlerFn.mockImplementation(() => {
+      count++
+
+      if (count === 4) {
+        return 'success'
+      }
+
+      throw new Error('fail')
+    })
 
     const clean = vi.fn()
     const onRetry = vi.fn(() => clean)
 
-    await expect(client('hello', { context: { retry: 3, retryDelay: 0, onRetry } })).rejects.toThrow('Internal server error')
+    await expect(client('hello', { context: { retry: 3, retryDelay: 0, onRetry } })).resolves.toEqual('success')
 
     expect(handlerFn).toHaveBeenCalledTimes(4)
 
@@ -164,6 +173,9 @@ describe('clientRetryPlugin', () => {
     )
 
     expect(clean).toHaveBeenCalledTimes(3)
+    expect(clean).toHaveBeenNthCalledWith(1, false)
+    expect(clean).toHaveBeenNthCalledWith(2, false)
+    expect(clean).toHaveBeenNthCalledWith(3, true)
   })
 
   it('should not retry if signal aborted', async () => {

@@ -5,9 +5,8 @@ import llmstxt from 'vitepress-plugin-llms'
 
 export default defineConfig({
   lang: 'en-US',
-  title: 'oRPC',
-  description:
-    'oRPC makes it easy to build APIs that are end-to-end type-safe and adhere to OpenAPI standards, ensuring a smooth and enjoyable developer experience.',
+  title: 'oRPC - Typesafe APIs Made Simple 🪄',
+  description: 'Easy to build APIs that are end-to-end type-safe and adhere to OpenAPI standards',
   lastUpdated: true,
   cleanUrls: true,
   markdown: {
@@ -208,7 +207,6 @@ export default defineConfig({
   },
   head: [
     ['meta', { property: 'og:image', content: 'https://orpc.unnoq.com/og.jpg' }],
-    ['meta', { property: 'og:description', content: 'End-to-end type-safe, first-class OpenAPI support, Contract-First, ...' }],
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'twitter:domain', content: 'orpc.unnoq.com' }],
     ['meta', { property: 'twitter:image', content: 'https://orpc.unnoq.com/og.jpg' }],

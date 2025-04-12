@@ -208,6 +208,7 @@ export default defineConfig({
   },
   head: [
     ['meta', { property: 'og:image', content: 'https://orpc.unnoq.com/og.jpg' }],
+    ['meta', { property: 'og:description', content: 'End-to-end type-safe, first-class OpenAPI support, Contract-First, ...' }],
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'twitter:domain', content: 'orpc.unnoq.com' }],
     ['meta', { property: 'twitter:image', content: 'https://orpc.unnoq.com/og.jpg' }],

@@ -76,3 +76,19 @@ const planet = await client.planet.find({ id: 1 })
 client.planet.create
 //            ^|
 ```
+
+## Merge Clients
+
+In oRPC, a client is a simple object-like structure. To merge multiple clients, you simply assign each client to a property in a new object:
+
+```ts
+const clientA: RouterClient<typeof routerA> = createORPCClient(linkA)
+const clientB: RouterClient<typeof routerB> = createORPCClient(linkB)
+const clientC: RouterClient<typeof routerC> = createORPCClient(linkC)
+
+export const orpc = {
+  a: clientA,
+  b: clientB,
+  c: clientC,
+}
+```

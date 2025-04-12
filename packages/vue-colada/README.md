@@ -21,28 +21,24 @@
 
 <h3 align="center">Typesafe APIs Made Simple 🪄</h3>
 
-**oRPC is a powerful combination of RPC and OpenAPI**, makes it easy to build APIs that are end-to-end type-safe and adhere to OpenAPI standards, ensuring a smooth and enjoyable developer experience.
+**oRPC is a powerful combination of RPC and OpenAPI**, makes it easy to build APIs that are end-to-end type-safe and adhere to OpenAPI standards
 
 ---
 
 ## Highlights
 
-- **End-to-End Type Safety 🔒**: Ensure complete type safety from inputs to outputs and errors, bridging server and client seamlessly.
-- **First-Class OpenAPI 📄**: Adheres to the OpenAPI standard out of the box, ensuring seamless integration and comprehensive API documentation.
-- **Contract-First Development 📜**: (Optional) Define your API contract upfront and implement it with confidence.
-- **Exceptional Developer Experience ✨**: Enjoy a streamlined workflow with robust typing and clear, in-code documentation.
-- **Multi-Runtime Support 🌍**: Run your code seamlessly on Cloudflare, Deno, Bun, Node.js, and more.
-- **Framework Integrations 🧩**: Supports Tanstack Query (React, Vue, Solid, Svelte), Pinia Colada, and more.
-- **Server Actions ⚡️**: Fully compatible with React Server Actions on Next.js, TanStack Start, and more.
-- **Standard Schema Support 🗂️**: Effortlessly work with Zod, Valibot, ArkType, and others right out of the box.
-- **Fast & Lightweight 💨**: Built on native APIs across all runtimes – optimized for speed and efficiency.
-- **Native Types 📦**: Enjoy built-in support for Date, File, Blob, BigInt, URL and more with no extra setup.
-- **Lazy Router ⏱️**: Improve cold start times with our lazy routing feature.
-- **SSE & Streaming 📡**: Provides SSE and streaming features – perfect for real-time notifications and AI-powered streaming responses.
-- **Reusability 🔄**: Write once and reuse your code across multiple purposes effortlessly.
-- **Extendability 🔌**: Easily enhance oRPC with plugins, middleware, and interceptors.
-- **Reliability 🛡️**: Well-tested, fully TypeScript, production-ready, and MIT licensed for peace of mind.
-- **Simplicity 💡**: Enjoy straightforward, clean code with no hidden magic.
+- **🔗 End-to-End Type Safety**: Ensure type-safe inputs, outputs, and errors from client to server.
+- **📘 First-Class OpenAPI**: Built-in support that fully adheres to the OpenAPI standard.
+- **📝 Contract-First Development**: Optionally define your API contract before implementation.
+- **⚙️ Framework Integrations**: Seamlessly integrate with TanStack Query (React, Vue, Solid, Svelte), Pinia Colada, and more.
+- **🚀 Server Actions**: Fully compatible with React Server Actions on Next.js, TanStack Start, and other platforms.
+- **🔠 Standard Schema Support**: Works out of the box with Zod, Valibot, ArkType, and other schema validators.
+- **🗃️ Native Types**: Supports native types like Date, File, Blob, BigInt, URL, and more.
+- **⏱️ Lazy Router**: Enhance cold start times with our lazy routing feature.
+- **📡 SSE & Streaming**: Enjoy full type-safe support for SSE and streaming.
+- **🌍 Multi-Runtime Support**: Fast and lightweight on Cloudflare, Deno, Bun, Node.js, and beyond.
+- **🔌 Extendability**: Easily extend functionality with plugins, middleware, and interceptors.
+- **🛡️ Reliability**: Well-tested, TypeScript-based, production-ready, and MIT licensed.
 
 ## Documentation
 

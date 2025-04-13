@@ -50,6 +50,7 @@ export default defineConfig({
       { text: 'Docs', link: '/docs/getting-started', activeMatch: '/docs/(?!openapi/)' },
       { text: 'OpenAPI', link: '/docs/openapi/getting-started', activeMatch: '/docs/openapi/' },
       { text: 'Examples', link: '/examples/openai-streaming', activeMatch: '/examples/' },
+      { text: 'Blog', link: '/blog/v1-announcement', activeMatch: '/blog/' },
       {
         text: 'About',
         items: [
@@ -202,6 +203,9 @@ export default defineConfig({
       ],
       '/examples/': [
         { text: 'OpenAI Streaming', link: '/examples/openai-streaming' },
+      ],
+      '/blog/': [
+        { text: 'V1 Announcement', link: '/blog/v1-announcement' },
       ],
     },
   },

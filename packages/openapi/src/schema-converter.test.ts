@@ -23,8 +23,8 @@ describe('compositeSchemaConverter', () => {
 
   const schema = z.object({})
 
-  it('fallback to any if no condition is matched', () => {
-    expect(converter.convert(schema, { strategy: 'input' })).toEqual([false, {}])
+  it('fallback to any if no condition is matched', async () => {
+    await expect(converter.convert(schema, { strategy: 'input' })).resolves.toEqual([false, {}])
 
     expect(converter1.condition).toBeCalledTimes(1)
     expect(converter1.condition).toBeCalledWith(schema, { strategy: 'input' })
@@ -34,11 +34,11 @@ describe('compositeSchemaConverter', () => {
     expect(converter2.convert).not.toHaveBeenCalled()
   })
 
-  it('return result of first converter if condition is matched', () => {
+  it('return result of first converter if condition is matched', async () => {
     converter1.condition.mockReturnValue(true)
     converter1.convert.mockReturnValue('__MATCHED__')
 
-    expect(converter.convert(schema, { strategy: 'input' })).toEqual('__MATCHED__')
+    await expect(converter.convert(schema, { strategy: 'input' })).resolves.toEqual('__MATCHED__')
 
     expect(converter1.condition).toBeCalledTimes(1)
     expect(converter1.convert).toHaveBeenCalled()

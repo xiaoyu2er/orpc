@@ -20,3 +20,9 @@ If your project is missing here, please [open a PR](https://github.com/unnoq/orp
 | Name                                                                        | Stars                                                                                                                                        | Description                                                                                                               |
 | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | [orpc-file-based-router](https://github.com/zeeeeby/orpc-file-based-router) | [![Stars](https://img.shields.io/github/stars/zeeeeby/orpc-file-based-router?style=flat)](https://github.com/zeeeeby/orpc-file-based-router) | Automatically creates an oRPC router configuration based on your file structure, similar to Next.js, express-file-routing |
+
+## Libraries
+
+| Name                                  | Stars                                                                                                        | Description                                                               |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| [Permix](https://permix.letstri.dev/) | [![Stars](https://img.shields.io/github/stars/letstri/permix?style=flat)](https://github.com/letstri/permix) | lightweight, framework-agnostic, type-safe permissions management library |

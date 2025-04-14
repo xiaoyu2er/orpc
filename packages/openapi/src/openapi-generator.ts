@@ -34,9 +34,15 @@ export class OpenAPIGenerator {
     const doc: OpenAPI.Document = clone(base) as OpenAPI.Document
     doc.openapi = '3.1.1'
 
-    const errors: string[] = []
+    const contracts: { contract: AnyContractProcedure, path: readonly string[] }[] = []
 
     await resolveContractProcedures({ path: [], router }, ({ contract, path }) => {
+      contracts.push({ contract, path })
+    })
+
+    const errors: string[] = []
+
+    for (const { contract, path } of contracts) {
       const operationId = path.join('.')
 
       try {
@@ -53,9 +59,9 @@ export class OpenAPIGenerator {
           tags: def.route.tags?.map(tag => tag),
         }
 
-        this.#request(operationObjectRef, def)
-        this.#successResponse(operationObjectRef, def)
-        this.#errorResponse(operationObjectRef, def)
+        await this.#request(operationObjectRef, def)
+        await this.#successResponse(operationObjectRef, def)
+        await this.#errorResponse(operationObjectRef, def)
 
         doc.paths ??= {}
         doc.paths[httpPath] ??= {}
@@ -70,7 +76,7 @@ export class OpenAPIGenerator {
           `[OpenAPIGenerator] Error occurred while generating OpenAPI for procedure at path: ${operationId}\n${e.message}`,
         )
       }
-    })
+    }
 
     if (errors.length) {
       throw new OpenAPIGeneratorError(
@@ -81,7 +87,7 @@ export class OpenAPIGenerator {
     return this.serializer.serialize(doc)[0] as OpenAPI.Document
   }
 
-  #request(ref: OpenAPI.OperationObject, def: AnyContractProcedure['~orpc']): void {
+  async #request(ref: OpenAPI.OperationObject, def: AnyContractProcedure['~orpc']): Promise<void> {
     const method = fallbackContractConfig('defaultMethod', def.route.method)
     const details = getEventIteratorSchemaDetails(def.inputSchema)
 
@@ -89,8 +95,8 @@ export class OpenAPIGenerator {
       ref.requestBody = {
         required: true,
         content: toOpenAPIEventIteratorContent(
-          this.converter.convert(details.yields, { strategy: 'input' }),
-          this.converter.convert(details.returns, { strategy: 'input' }),
+          await this.converter.convert(details.yields, { strategy: 'input' }),
+          await this.converter.convert(details.returns, { strategy: 'input' }),
         ),
       }
 
@@ -99,7 +105,7 @@ export class OpenAPIGenerator {
 
     const dynamicParams = getDynamicParams(def.route.path)?.map(v => v.name)
     const inputStructure = fallbackContractConfig('defaultInputStructure', def.route.inputStructure)
-    let [required, schema] = this.converter.convert(def.inputSchema, { strategy: 'input' })
+    let [required, schema] = await this.converter.convert(def.inputSchema, { strategy: 'input' })
 
     if (isAnySchema(schema) && !dynamicParams?.length) {
       return
@@ -195,7 +201,7 @@ export class OpenAPIGenerator {
     }
   }
 
-  #successResponse(ref: OpenAPI.OperationObject, def: AnyContractProcedure['~orpc']): void {
+  async #successResponse(ref: OpenAPI.OperationObject, def: AnyContractProcedure['~orpc']): Promise<void> {
     const outputSchema = def.outputSchema
     const status = fallbackContractConfig('defaultSuccessStatus', def.route.successStatus)
     const description = fallbackContractConfig('defaultSuccessDescription', def.route?.successDescription)
@@ -207,15 +213,15 @@ export class OpenAPIGenerator {
       ref.responses[status] = {
         description,
         content: toOpenAPIEventIteratorContent(
-          this.converter.convert(eventIteratorSchemaDetails.yields, { strategy: 'output' }),
-          this.converter.convert(eventIteratorSchemaDetails.returns, { strategy: 'output' }),
+          await this.converter.convert(eventIteratorSchemaDetails.yields, { strategy: 'output' }),
+          await this.converter.convert(eventIteratorSchemaDetails.returns, { strategy: 'output' }),
         ),
       }
 
       return
     }
 
-    const [required, json] = this.converter.convert(outputSchema, { strategy: 'output' })
+    const [required, json] = await this.converter.convert(outputSchema, { strategy: 'output' })
 
     ref.responses ??= {}
     ref.responses[status] = {
@@ -258,7 +264,7 @@ export class OpenAPIGenerator {
     }
   }
 
-  #errorResponse(ref: OpenAPI.OperationObject, def: AnyContractProcedure['~orpc']): void {
+  async #errorResponse(ref: OpenAPI.OperationObject, def: AnyContractProcedure['~orpc']): Promise<void> {
     const errorMap = def.errorMap as ErrorMap
 
     const errors: Record<string, JSONSchema[]> = {}
@@ -273,7 +279,7 @@ export class OpenAPIGenerator {
       const status = fallbackORPCErrorStatus(code, config.status)
       const message = fallbackORPCErrorMessage(code, config.message)
 
-      const [dataRequired, dataSchema] = this.converter.convert(config.data, { strategy: 'output' })
+      const [dataRequired, dataSchema] = await this.converter.convert(config.data, { strategy: 'output' })
 
       errors[status] ??= []
       errors[status].push({

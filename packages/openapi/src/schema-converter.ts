@@ -1,4 +1,5 @@
 import type { AnySchema } from '@orpc/contract'
+import type { Promisable } from '@orpc/shared'
 import type { JSONSchema } from './schema'
 
 export interface SchemaConvertOptions {
@@ -6,11 +7,11 @@ export interface SchemaConvertOptions {
 }
 
 export interface SchemaConverter {
-  convert(schema: AnySchema | undefined, options: SchemaConvertOptions): [required: boolean, jsonSchema: JSONSchema]
+  convert(schema: AnySchema | undefined, options: SchemaConvertOptions): Promisable<[required: boolean, jsonSchema: JSONSchema]>
 }
 
 export interface ConditionalSchemaConverter extends SchemaConverter {
-  condition(schema: AnySchema | undefined, options: SchemaConvertOptions): boolean
+  condition(schema: AnySchema | undefined, options: SchemaConvertOptions): Promisable<boolean>
 }
 
 export class CompositeSchemaConverter implements SchemaConverter {
@@ -20,9 +21,9 @@ export class CompositeSchemaConverter implements SchemaConverter {
     this.converters = converters
   }
 
-  convert(schema: AnySchema | undefined, options: SchemaConvertOptions): [required: boolean, jsonSchema: JSONSchema] {
+  async convert(schema: AnySchema | undefined, options: SchemaConvertOptions): Promise<[required: boolean, jsonSchema: JSONSchema]> {
     for (const converter of this.converters) {
-      if (converter.condition(schema, options)) {
+      if (await converter.condition(schema, options)) {
         return converter.convert(schema, options)
       }
     }

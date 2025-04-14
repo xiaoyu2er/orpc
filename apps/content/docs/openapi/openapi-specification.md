@@ -50,7 +50,7 @@ import type { ConditionalSchemaConverter, JSONSchema, SchemaConvertOptions } fro
 import type { ConversionConfig } from '@valibot/to-json-schema'
 import { toJsonSchema } from '@valibot/to-json-schema'
 
-export class experimental_ValibotToJsonSchemaConverter implements ConditionalSchemaConverter {
+export class ValibotToJsonSchemaConverter implements ConditionalSchemaConverter {
   condition(schema: AnySchema | undefined): boolean {
     return schema !== undefined && schema['~standard'].vendor === 'valibot'
   }

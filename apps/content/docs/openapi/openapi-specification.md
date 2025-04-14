@@ -41,6 +41,31 @@ oRPC supports OpenAPI 3.1.1 and integrates seamlessly with popular schema librar
 Interested in support for additional schema libraries? [Let us know](https://github.com/unnoq/orpc/discussions/categories/ideas)!
 :::
 
+::: details Want to create your own JSON schema converter?
+You can use any existing `X to JSON Schema` converter to add support for additional schema libraries. For example, if you want to use [Valibot](https://valibot.dev) with oRPC (if not supported), you can create a custom converter to convert Valibot schemas into JSON Schema.
+
+```ts
+import type { AnySchema } from '@orpc/contract'
+import type { ConditionalSchemaConverter, JSONSchema, SchemaConvertOptions } from '@orpc/openapi'
+import type { ConversionConfig } from '@valibot/to-json-schema'
+import { toJsonSchema } from '@valibot/to-json-schema'
+
+export class experimental_ValibotToJsonSchemaConverter implements ConditionalSchemaConverter {
+  condition(schema: AnySchema | undefined): boolean {
+    return schema !== undefined && schema['~standard'].vendor === 'valibot'
+  }
+
+  convert(schema: AnySchema | undefined, _options: SchemaConvertOptions): [required: boolean, jsonSchema: Exclude<JSONSchema, boolean>] {
+    // Most JSON schema converters do not convert the `required` property separately, so returning `true` is acceptable here.
+    return [true, toJsonSchema(schema as any)]
+  }
+}
+```
+
+:::info
+It's recommended to use the built-in converters because the oRPC implementations handle many edge cases and supports every type that oRPC offers.
+:::
+
 ```ts twoslash
 import { contract, router } from './shared/planet'
 // ---cut---

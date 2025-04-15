@@ -77,6 +77,10 @@ Also, setting up tRPC sometimes felt too complicated, especially for smaller pro
 
 So, oRPC is built to be a strong alternative. It doesn't have WebSocket support yet (but we're working on it!). Performance benchmarks show oRPC is **1,6 times typecheck faster** (5.9s vs 9.3s), **2,8 times runtime faster** (295k reqs vs 104k reqs / 20 sec), **1,26 times less max cpu usage** (102% vs 129%), **2,6 times less max ram usage** (103MB vs 268MB) - full benchmark [here](https://github.com/unnoq/orpc-benchmarks).
 
+:::warning
+Benchmark results can vary across environments and depend heavily on factors like your project's size, complexity, and setup. Many conditions can influence the outcome — so treat these numbers as a helpful reference, not a guarantee.
+:::
+
 ## ts-rest alternative
 
 After running into the OpenAPI issues with tRPC, I tried ts-rest. While it helped with OpenAPI, I soon found it was missing features I relied on from tRPC, like flexible middleware and easy handling of certain data types (like Dates or Files). After using it for some APIs, I felt it wasn't the complete solution I wanted. This frustration was a key reason I started building oRPC.

@@ -5,7 +5,7 @@ description: Details on using OpenAPILink in oRPC clients.
 
 # OpenAPILink
 
-OpenAPILink enables communication with an [OpenAPIHandler](/docs/openapi/openapi-handler) on your server using HTTP/Fetch.
+OpenAPILink enables communication with an [OpenAPIHandler](/docs/openapi/openapi-handler) or any API that follows the [OpenAPI Specification](https://swagger.io/specification/) using HTTP/Fetch.
 
 ## Installation
 

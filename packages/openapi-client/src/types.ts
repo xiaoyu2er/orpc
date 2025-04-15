@@ -27,6 +27,11 @@ export type JsonifiedArray<T extends Array<unknown>> = T extends readonly []
       ? Array<JsonifiedValue<U>>
       : unknown
 
+/**
+ * Convert types that JSON not support to corresponding json types
+ *
+ * @see {@link https://orpc.unnoq.com/docs/openapi/client/openapi-link OpenAPI Link Docs}
+ */
 export type JsonifiedClient<T extends NestedClient<any>> =
 T extends Client<infer UClientContext, infer UInput, infer UOutput, infer UError>
   ? Client<UClientContext, UInput, JsonifiedValue<UOutput>, UError extends ORPCError<infer UCode, infer UData> ? ORPCError<UCode, JsonifiedValue<UData>> : UError>

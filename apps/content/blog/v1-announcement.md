@@ -18,11 +18,15 @@ Because I was often frustrated with existing tools, I changed my plan. I thought
 
 That's how oRPC started. I began working hard on it around September 17, 2024. It wasn't easy; I had to rebuild oRPC three times to get the base right. After about three months, I shared an early version on Reddit ([see post](https://www.reddit.com/r/nextjs/comments/1h13upv/new_introducing_orpc_a_dropin_replacement_for/)).
 
-At first, oRPC was just a side project. Then, a turning point came when someone privately offered $100 to support it. I was surprised and really motivated! A month after that, I decided to stop my other projects and work on oRPC full-time, even though I didn't have another job. My life became: code, eat, sleep, repeat.
+At first, oRPC was just a side project. Then, a turning point came when someone privately offered **$100** to support it. I was surprised and really motivated! A month after that, I decided to stop my other projects and work on oRPC full-time, even though I didn't have another job. My life became: code, eat, sleep, repeat.
 
 I had so many ideas for oRPC. I realized it would take all my focus and time, probably until the end of 2025, to make it happen.
 
 But !!! Today is a **big step** on that journey. I'm happy and proud to announce that the core of oRPC is now stable, and Version 1.0 is officially out!
+
+::: info
+V1 means the public API is stable and ready for production use.
+:::
 
 ## The Idea behind oRPC
 
@@ -92,9 +96,17 @@ I did some **simple** benchmarks between oRPC and tRPC, and results show (full r
 Benchmark results can vary across environments and depend heavily on factors like your project's size, complexity, and setup. Many conditions can influence the outcome — so treat these numbers as a helpful reference, not a guarantee.
 :::
 
+::: info
+You can read more about comparion [here](/docs/comparison)
+:::
+
 ## ts-rest alternative
 
 After running into the OpenAPI issues with tRPC, I tried ts-rest. While it helped with OpenAPI, I soon found it was missing features I relied on from tRPC, like flexible middleware and easy handling of certain data types (like Dates or Files). After using it for some APIs, I felt it wasn't the complete solution I wanted. This frustration was a key reason I started building oRPC.
+
+::: info
+You can read more about comparion [here](/docs/comparison)
+:::
 
 ## next-safe-action alternative
 

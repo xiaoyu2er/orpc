@@ -28,7 +28,7 @@ But !!! Today is a **big step** on that journey. I'm happy and proud to announce
 
 oRPC philosophy is **powerful simplicity**. Define your API endpoints almost as easily as writing standard functions, yet automatically gain:
 
-- End-to-end type safety
+- End-to-end type safety (includes **errors**)
 - Server Action compatibility
 - Full OpenAPI specification generation
 - Contract-first workflow support
@@ -45,7 +45,12 @@ const getting = os
   .route({ method: 'GET', path: '/getting/{id}' })
   .input(z.object({ id: z.string() }))
   .use(canGetting, input => input.id)
-  .handler(async ({ input }) => {
+  .errors({
+    SOME_TYPE_SAFE_ERROR: {
+      data: z.object({ something: z.string() })
+    }
+  })
+  .handler(async ({ input, errors, context }) => {
     // do something
   })
   .actionable() // server action compatible
@@ -71,7 +76,7 @@ Beyond built-in features, oRPC [metadata](https://orpc.unnoq.com/docs/metadata) 
 
 ## tRPC alternative
 
-I used tRPC a lot and liked it. But I needed OpenAPI support for my projects. The tool for adding OpenAPI to tRPC didn't work with Edge runtimes and eventually wasn't supported anymore. This was a big problem, so I looked for other options.
+I used tRPC extensively and really liked it. However, I needed OpenAPI support for my projects. Although I found `trpc-openapi` to add OpenAPI to tRPC, it didn't work with Edge runtimes and has since been deprecated. This was very frustrating, prompting me to look for alternatives.
 
 Also, setting up tRPC sometimes felt too complicated, especially for smaller projects like Cloudflare Durable Objects where I just needed a simple API. Another point is that tRPC mostly supports React Query. That was okay for me, but less helpful if you want to use Vue, Solid, or Svelte.
 

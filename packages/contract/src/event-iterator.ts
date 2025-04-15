@@ -10,6 +10,11 @@ export interface EventIteratorSchemaDetails {
   returns?: AnySchema
 }
 
+/**
+ * Define schema for an event iterator.
+ *
+ * @see {@link https://orpc.unnoq.com/docs/event-iterator#validate-event-iterator Validate Event Iterator Docs}
+ */
 export function eventIterator<TYieldIn, TYieldOut, TReturnIn = unknown, TReturnOut = unknown>(
   yields: Schema<TYieldIn, TYieldOut>,
   returns?: Schema<TReturnIn, TReturnOut>,

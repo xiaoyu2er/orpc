@@ -27,6 +27,9 @@ export class ContractBuilder<
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > extends ContractProcedure<TInputSchema, TOutputSchema, TErrorMap, TMeta> {
+  /**
+   * This property holds the defined options for the contract.
+   */
   declare '~orpc': ContractBuilderDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>
 
   constructor(def: ContractBuilderDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>) {
@@ -37,7 +40,9 @@ export class ContractBuilder<
   }
 
   /**
-   * Reset initial meta
+   * Sets or overrides the initial meta.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/metadata Metadata Docs}
    */
   $meta<U extends Meta>(
     initialMeta: U,
@@ -53,7 +58,11 @@ export class ContractBuilder<
   }
 
   /**
-   * Reset initial route
+   * Sets or overrides the initial route.
+   * This option is typically relevant when integrating with OpenAPI.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/openapi/routing OpenAPI Routing Docs}
+   * @see {@link https://orpc.unnoq.com/docs/openapi/input-output-structure OpenAPI Input/Output Structure Docs}
    */
   $route(
     initialRoute: Route,
@@ -64,6 +73,12 @@ export class ContractBuilder<
     })
   }
 
+  /**
+   * Adds type-safe custom errors to the contract.
+   * The provided errors are spared-merged with any existing errors in the contract.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/error-handling#type%E2%80%90safe-error-handling Type-Safe Error Handling Docs}
+   */
   errors<U extends ErrorMap>(
     errors: U,
   ): ContractBuilder<TInputSchema, TOutputSchema, MergedErrorMap<TErrorMap, U>, TMeta> {
@@ -73,6 +88,12 @@ export class ContractBuilder<
     })
   }
 
+  /**
+   * Sets or updates the metadata for the contract.
+   * The provided metadata is spared-merged with any existing metadata in the contract.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/metadata Metadata Docs}
+   */
   meta(
     meta: TMeta,
   ): ContractProcedureBuilder<TInputSchema, TOutputSchema, TErrorMap, TMeta> {
@@ -82,6 +103,14 @@ export class ContractBuilder<
     })
   }
 
+  /**
+   * Sets or updates the route definition for the contract.
+   * The provided route is spared-merged with any existing route in the contract.
+   * This option is typically relevant when integrating with OpenAPI.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/openapi/routing OpenAPI Routing Docs}
+   * @see {@link https://orpc.unnoq.com/docs/openapi/input-output-structure OpenAPI Input/Output Structure Docs}
+   */
   route(
     route: Route,
   ): ContractProcedureBuilder<TInputSchema, TOutputSchema, TErrorMap, TMeta> {
@@ -91,6 +120,11 @@ export class ContractBuilder<
     })
   }
 
+  /**
+   * Defines the input validation schema for the contract.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/procedure#input-output-validation Input Validation Docs}
+   */
   input<U extends AnySchema>(
     schema: U,
   ): ContractProcedureBuilderWithInput<U, TOutputSchema, TErrorMap, TMeta> {
@@ -100,6 +134,11 @@ export class ContractBuilder<
     })
   }
 
+  /**
+   * Defines the output validation schema for the contract.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/procedure#input-output-validation Output Validation Docs}
+   */
   output<U extends AnySchema>(
     schema: U,
   ): ContractProcedureBuilderWithOutput<TInputSchema, U, TErrorMap, TMeta> {
@@ -109,6 +148,14 @@ export class ContractBuilder<
     })
   }
 
+  /**
+   * Prefixes all procedures in the contract router.
+   * The provided prefix is post-appended to any existing router prefix.
+   *
+   * @note This option does not affect procedures that do not define a path in their route definition.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/openapi/routing#route-prefixes OpenAPI Route Prefixes Docs}
+   */
   prefix(prefix: HTTPPath): ContractRouterBuilder<TErrorMap, TMeta> {
     return new ContractBuilder({
       ...this['~orpc'],
@@ -116,6 +163,12 @@ export class ContractBuilder<
     })
   }
 
+  /**
+   * Adds tags to all procedures in the contract router.
+   * This helpful when you want to group procedures together in the OpenAPI specification.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/openapi/openapi-specification#operation-metadata OpenAPI Operation Metadata Docs}
+   */
   tag(...tags: string[]): ContractRouterBuilder<TErrorMap, TMeta> {
     return new ContractBuilder({
       ...this['~orpc'],
@@ -123,6 +176,11 @@ export class ContractBuilder<
     })
   }
 
+  /**
+   * Applies all of the previously defined options to the specified contract router.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/router#extending-router Extending Router Docs}
+   */
   router<T extends ContractRouter<TMeta>>(router: T): EnhancedContractRouter<T, TErrorMap> {
     return enhanceContractRouter(router, this['~orpc'])
   }

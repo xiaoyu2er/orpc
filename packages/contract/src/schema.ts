@@ -16,6 +16,12 @@ export type TypeRest<TInput, TOutput> =
   | [map: (input: TInput) => Promisable<TOutput>]
   | (IsEqual<TInput, TOutput> extends true ? [] : never)
 
+/**
+ * The schema for things can be trust without validation.
+ * If the TInput and TOutput are different, you need pass a map function.
+ *
+ * @see {@link https://orpc.unnoq.com/docs/procedure#type-utility Type Utility Docs}
+ */
 export function type<TInput, TOutput = TInput>(...[map]: TypeRest<TInput, TOutput>): Schema<TInput, TOutput> {
   return {
     '~standard': {

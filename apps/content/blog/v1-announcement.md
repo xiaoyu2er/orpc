@@ -6,7 +6,7 @@ titleTemplate: ':title'
 
 # oRPC v1 Announcement - Typesafe APIs Made Simple 🪄
 
-oRPC is a thing help you build type-safe APIs with TypeScript. It's has own goal but can fairly be compared to other libraries like tRPC, ts-rest, next-safe-action, etc. or even alternative them.
+oRPC is a thing help you build type-safe APIs with TypeScript. It's has own goal but can fairly be compared to other libraries like tRPC, ts-rest, next-safe-action, etc. or even serve as an alternative to them.
 
 ## My Story
 
@@ -125,7 +125,7 @@ In this long journey, I specially thank all my sponsors, they help me to keep go
 - [Robbe95](https://github.com/Robbe95)
 - And my first sponsor (private) to start my story
 
-If you interested in sponsoring oRPC, you can do it [here](https://github.com/sponsors/unnoq).
+If you're interesting in sponsoring oRPC, you can do it [here](https://github.com/sponsors/unnoq).
 
 <p align="center">
   <a href="https://cdn.jsdelivr.net/gh/unnoq/unnoq/sponsors.svg">

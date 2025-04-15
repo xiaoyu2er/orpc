@@ -1,7 +1,7 @@
 {
   "name": "@orpc/monorepo",
   "type": "module",
-  "version": "1.0.0-beta.7",
+  "version": "1.0.3",
   "private": true,
   "packageManager": "pnpm@10.8.0",
   "scripts": {

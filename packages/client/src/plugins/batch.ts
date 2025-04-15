@@ -58,6 +58,12 @@ export interface BatchLinkPluginOptions<T extends ClientContext> {
   exclude?: (options: StandardLinkClientInterceptorOptions<T>) => boolean
 }
 
+/**
+ * The Batch Request/Response Plugin allows you to combine multiple requests and responses into a single batch,
+ * reducing the overhead of sending each one separately.
+ *
+ * @see {@link https://orpc.unnoq.com/docs/plugins/batch-request-response Batch Request/Response Plugin Docs}
+ */
 export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlugin<T> {
   private readonly groups: Exclude<BatchLinkPluginOptions<T>['groups'], undefined>
   private readonly maxSize: Exclude<BatchLinkPluginOptions<T>['maxSize'], undefined>

@@ -13,6 +13,13 @@ export interface RouterImplementerWithMiddlewares<
   TInitialContext extends Context,
   TCurrentContext extends Context,
 > {
+  /**
+   * Uses a middleware to modify the context or improve the pipeline.
+   *
+   * @info Supports both normal middleware and inline middleware implementations.
+   * @note The current context must be satisfy middleware dependent-context
+   * @see {@link https://orpc.unnoq.com/docs/middleware Middleware Docs}
+   */
   use<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
       UInContext | TCurrentContext,
@@ -28,9 +35,22 @@ export interface RouterImplementerWithMiddlewares<
     MergedCurrentContext<TCurrentContext, UOutContext>
   >
 
+  /**
+   * Applies all of the previously defined options to the specified router.
+   * And enforces the router match the contract.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/router#extending-router Extending Router Docs}
+   */
   router<U extends Router<T, TCurrentContext>>(
     router: U): EnhancedRouter<U, TInitialContext, TCurrentContext, Record<never, never>>
 
+  /**
+   * Create a lazy router
+   * And applies all of the previously defined options to the specified router.
+   * And enforces the router match the contract.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/router#extending-router Extending Router Docs}
+   */
   lazy<U extends Router<T, TInitialContext>>(
     loader: () => Promise<{ default: U }>
   ): EnhancedRouter<Lazy<U>, TInitialContext, TCurrentContext, Record<never, never>>

@@ -14,6 +14,11 @@ export interface CORSOptions<T extends Context> {
   exposeHeaders?: readonly string[]
 }
 
+/**
+ * CORSPlugin is a plugin for oRPC that allows you to configure CORS for your API.
+ *
+ * @see {@link https://orpc.unnoq.com/docs/plugins/cors CORS Plugin Docs}
+ */
 export class CORSPlugin<T extends Context> implements StandardHandlerPlugin<T> {
   private readonly options: CORSOptions<T>
 

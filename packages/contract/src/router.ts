@@ -4,8 +4,8 @@ import type { InferSchemaInput, InferSchemaOutput } from './schema'
 
 /**
  * Represents a contract router, which defines a hierarchical structure of contract procedures.
- * A single contract procedure also can be a contract router.
  *
+ * @info A contract procedure is a contract router too.
  * @see {@link https://orpc.unnoq.com/docs/contract-first/define-contract#contract-router Contract Router Docs}
  */
 export type ContractRouter<TMeta extends Meta> =
@@ -19,6 +19,7 @@ export type AnyContractRouter = ContractRouter<any>
 /**
  * Infer all inputs of the contract router.
  *
+ * @info A contract procedure is a contract router too.
  * @see {@link https://orpc.unnoq.com/docs/contract-first/define-contract#utilities Contract Utilities Docs}
  */
 export type InferContractRouterInputs<T extends AnyContractRouter> =
@@ -31,6 +32,7 @@ export type InferContractRouterInputs<T extends AnyContractRouter> =
 /**
  * Infer all outputs of the contract router.
  *
+ * @info A contract procedure is a contract router too.
  * @see {@link https://orpc.unnoq.com/docs/contract-first/define-contract#utilities Contract Utilities Docs}
  */
 export type InferContractRouterOutputs<T extends AnyContractRouter> =
@@ -43,6 +45,7 @@ export type InferContractRouterOutputs<T extends AnyContractRouter> =
 /**
  * Infer all errors of the contract router.
  *
+ * @info A contract procedure is a contract router too.
  * @see {@link https://orpc.unnoq.com/docs/contract-first/define-contract#utilities Contract Utilities Docs}
  */
 export type InferContractRouterErrorMap<T extends AnyContractRouter> =

@@ -20,6 +20,14 @@ export interface ImplementedProcedure<
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > extends Procedure<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta> {
+  /**
+   * Uses a middleware to modify the context or improve the pipeline.
+   *
+   * @info Supports both normal middleware and inline middleware implementations.
+   * @info Pass second argument to map the input.
+   * @note The current context must be satisfy middleware dependent-context
+   * @see {@link https://orpc.unnoq.com/docs/middleware Middleware Docs}
+   */
   use<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
       UInContext | TCurrentContext,
@@ -38,6 +46,14 @@ export interface ImplementedProcedure<
     TMeta
   >
 
+  /**
+   * Uses a middleware to modify the context or improve the pipeline.
+   *
+   * @info Supports both normal middleware and inline middleware implementations.
+   * @info Pass second argument to map the input.
+   * @note The current context must be satisfy middleware dependent-context
+   * @see {@link https://orpc.unnoq.com/docs/middleware Middleware Docs}
+   */
   use<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, UInput, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
       UInContext | TCurrentContext,
@@ -59,6 +75,8 @@ export interface ImplementedProcedure<
 
   /**
    * Make this procedure callable (works like a function while still being a procedure).
+   *
+   * @see {@link https://orpc.unnoq.com/docs/client/server-side Server-side Client Docs}
    */
   callable<TClientContext extends ClientContext>(
     ...rest: MaybeOptionalOptions<
@@ -75,6 +93,8 @@ export interface ImplementedProcedure<
 
   /**
    * Make this procedure compatible with server action.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/server-action Server Action Docs}
    */
   actionable(
     ...rest: MaybeOptionalOptions<
@@ -103,6 +123,14 @@ export interface ProcedureImplementer<
 > {
   '~orpc': BuilderDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>
 
+  /**
+   * Uses a middleware to modify the context or improve the pipeline.
+   *
+   * @info Supports both normal middleware and inline middleware implementations.
+   * @info Pass second argument to map the input.
+   * @note The current context must be satisfy middleware dependent-context
+   * @see {@link https://orpc.unnoq.com/docs/middleware Middleware Docs}
+   */
   'use'<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
       UInContext | TCurrentContext,
@@ -121,6 +149,14 @@ export interface ProcedureImplementer<
     TMeta
   >
 
+  /**
+   * Uses a middleware to modify the context or improve the pipeline.
+   *
+   * @info Supports both normal middleware and inline middleware implementations.
+   * @info Pass second argument to map the input.
+   * @note The current context must be satisfy middleware dependent-context
+   * @see {@link https://orpc.unnoq.com/docs/middleware Middleware Docs}
+   */
   'use'<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, UInput, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
       UInContext | TCurrentContext,
@@ -140,6 +176,11 @@ export interface ProcedureImplementer<
     TMeta
   >
 
+  /**
+   * Defines the handler of the procedure.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/procedure Procedure Docs}
+   */
   'handler'(
     handler: ProcedureHandler<TCurrentContext, InferSchemaOutput<TInputSchema>, InferSchemaInput<TOutputSchema>, TErrorMap, TMeta>,
   ): ImplementedProcedure<

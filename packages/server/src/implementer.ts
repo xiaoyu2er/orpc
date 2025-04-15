@@ -24,6 +24,11 @@ export interface RouterImplementer<
   TInitialContext extends Context,
   TCurrentContext extends Context,
 > {
+  /**
+   * Creates a middleware.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/middleware Middleware Docs}
+   */
   middleware<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, TInput, TOutput = any>( // = any here is important to make middleware can be used in any output by default
     middleware: Middleware<
       TInitialContext,
@@ -35,6 +40,13 @@ export interface RouterImplementer<
     >,
   ): DecoratedMiddleware<TInitialContext, UOutContext, TInput, TOutput, any, InferContractRouterMeta<T>> // any ensures middleware can used in any procedure
 
+  /**
+   * Uses a middleware to modify the context or improve the pipeline.
+   *
+   * @info Supports both normal middleware and inline middleware implementations.
+   * @note The current context must be satisfy middleware dependent-context
+   * @see {@link https://orpc.unnoq.com/docs/middleware Middleware Docs}
+   */
   use<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
       UInContext | TCurrentContext,
@@ -50,9 +62,23 @@ export interface RouterImplementer<
     MergedCurrentContext<TCurrentContext, UOutContext>
   >
 
+  /**
+   * Applies all of the previously defined options to the specified router.
+   * And enforces the router match the contract.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/router#extending-router Extending Router Docs}
+   */
   router<U extends Router<T, TCurrentContext>>(
-    router: U): EnhancedRouter<U, TInitialContext, TCurrentContext, Record<never, never>>
+    router: U
+  ): EnhancedRouter<U, TInitialContext, TCurrentContext, Record<never, never>>
 
+  /**
+   * Create a lazy router
+   * And applies all of the previously defined options to the specified router.
+   * And enforces the router match the contract.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/router#extending-router Extending Router Docs}
+   */
   lazy<U extends Router<T, TCurrentContext>>(
     loader: () => Promise<{ default: U }>
   ): EnhancedRouter<Lazy<U>, TInitialContext, TCurrentContext, Record<never, never>>
@@ -171,7 +197,19 @@ export type Implementer<
   TCurrentContext extends Context,
 > =
   & {
+    /**
+     * Set or override the initial context.
+     *
+     * @see {@link https://orpc.unnoq.com/docs/context Context Docs}
+     */
     $context<U extends Context>(): Implementer<TContract, U & Record<never, never>, U> // We need `& Record<never, never>` to deal with `has no properties in common with type` error
+
+    /**
+     * Sets or overrides the config.
+     *
+     * @see {@link https://orpc.unnoq.com/docs/lifecycle#middlewares-order Middlewares Order Docs}
+     * @see {@link https://orpc.unnoq.com/docs/best-practices/dedupe-middleware#configuration Dedupe Middleware Docs}
+     */
     $config(config: BuilderConfig): Implementer<TContract, TInitialContext, TCurrentContext>
   }
   & ImplementerInternal<TContract, TInitialContext, TCurrentContext>

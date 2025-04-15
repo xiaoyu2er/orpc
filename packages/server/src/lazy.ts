@@ -15,6 +15,9 @@ export interface Lazy<T> {
 
 export type Lazyable<T> = T | Lazy<T>
 
+/**
+ * Create a lazy thing.
+ */
 export function lazy<T>(loader: () => Promise<{ default: T }>, meta: LazyMeta = {}): Lazy<T> {
   return {
     [LAZY_SYMBOL]: {

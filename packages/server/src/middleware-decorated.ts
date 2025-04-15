@@ -12,10 +12,19 @@ export interface DecoratedMiddleware<
   TErrorConstructorMap extends ORPCErrorConstructorMap<any>,
   TMeta extends Meta,
 > extends Middleware<TInContext, TOutContext, TInput, TOutput, TErrorConstructorMap, TMeta> {
+  /**
+   * Change the expected input type by providing a map function.
+   */
   mapInput<UInput>(
     map: MapInputMiddleware<UInput, TInput>,
   ): DecoratedMiddleware<TInContext, TOutContext, UInput, TOutput, TErrorConstructorMap, TMeta>
 
+  /**
+   * Concatenates two middlewares.
+   *
+   * @info Pass second argument to map the input.
+   * @see {@link https://orpc.unnoq.com/docs/middleware#concatenation Middleware Concatenation Docs}
+   */
   concat<
     UOutContext extends IntersectPick<MergedCurrentContext<TInContext, TOutContext>, UOutContext>,
     UInContext extends Context = MergedCurrentContext<TInContext, TOutContext>,
@@ -37,6 +46,12 @@ export interface DecoratedMiddleware<
     TMeta
   >
 
+  /**
+   * Concatenates two middlewares.
+   *
+   * @info Pass second argument to map the input.
+   * @see {@link https://orpc.unnoq.com/docs/middleware#concatenation Middleware Concatenation Docs}
+   */
   concat<
     UOutContext extends IntersectPick<MergedCurrentContext<TInContext, TOutContext>, UOutContext>,
     UMappedInput,

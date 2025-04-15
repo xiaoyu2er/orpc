@@ -15,6 +15,12 @@ export interface CreateRouterUtilsOptions {
   path?: string[]
 }
 
+/**
+ * Create a router utils from a client.
+ *
+ * @info Both client-side and server-side clients are supported.
+ * @see {@link https://orpc.unnoq.com/docs/tanstack-query/react Tanstack Query React Docs}
+ */
 export function createRouterUtils<T extends NestedClient<any>>(
   client: T,
   options: CreateRouterUtilsOptions = {},

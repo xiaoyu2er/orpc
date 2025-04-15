@@ -6,14 +6,29 @@ import { computed, toValue } from 'vue'
 import { buildKey } from './key'
 
 export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError> {
+  /**
+   * Calling corresponding procedure client
+   *
+   * @see {@link https://orpc.unnoq.com/docs/pinia-colada#calling-procedure-clients Pinia Colada Calling Procedure Client Docs}
+   */
   call: Client<TClientContext, TInput, TOutput, TError>
 
+  /**
+   * Generate options used for useQuery/...
+   *
+   * @see {@link https://orpc.unnoq.com/docs/pinia-colada#query-options-utility Pinia Colada Query Options Utility Docs}
+   */
   queryOptions<UInitialData extends TOutput | undefined = TOutput | undefined>(
     ...rest: MaybeOptionalOptions<
       QueryOptionsIn<TClientContext, TInput, TOutput, TError, UInitialData>
     >
   ): QueryOptions<TOutput, TError, UInitialData>
 
+  /**
+   * Generate options used for useMutation/...
+   *
+   * @see {@link https://orpc.unnoq.com/docs/pinia-colada#mutation-options Pinia Colada Mutation Options Docs}
+   */
   mutationOptions<UMutationContext extends Record<any, any> = _EmptyObject>(
     ...rest: MaybeOptionalOptions<
       MutationOptionsIn<TClientContext, TInput, TOutput, TError, UMutationContext>

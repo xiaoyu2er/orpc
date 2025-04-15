@@ -39,9 +39,6 @@ export interface ProcedureClientInterceptorOptions<
   lastEventId: string | undefined
 }
 
-/**
- * Options for creating a procedure caller with comprehensive type safety
- */
 export type CreateProcedureClientOptions<
   TInitialContext extends Context,
   TOutputSchema extends AnySchema,
@@ -67,6 +64,11 @@ export type CreateProcedureClientOptions<
       : { context: Value<TInitialContext, [clientContext: TClientContext]> }
   )
 
+/**
+ * Create Server-side client from a procedure.
+ *
+ * @see {@link https://orpc.unnoq.com/docs/client/server-side Server-side Client Docs}
+ */
 export function createProcedureClient<
   TInitialContext extends Context,
   TInputSchema extends AnySchema,

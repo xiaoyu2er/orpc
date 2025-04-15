@@ -82,6 +82,11 @@ const INITIAL_STATE = {
   input: undefined,
 } as const
 
+/**
+ * Use a Server Action Hook
+ *
+ * @see {@link https://orpc.unnoq.com/docs/server-action#useserveraction-hook Server Action Hook Docs}
+ */
 export function useServerAction<TInput, TOutput, TError extends ORPCErrorJSON<any, any>>(
   action: ActionableClient<TInput, TOutput, TError>,
   options: NoInfer<UseServerActionOptions<TInput, TOutput, UnactionableError<TError>>> = {},

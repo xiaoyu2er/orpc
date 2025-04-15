@@ -6,6 +6,11 @@ import { buildKey } from './key'
  * Utils at any level (procedure or router)
  */
 export interface GeneralUtils<TInput> {
+  /**
+   * Generate a query/mutation key for checking status, invalidate, set, get, etc.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/tanstack-query/basic#query-mutation-key Tanstack Query/Mutation Key Docs}
+   */
   key<UType extends KeyType = undefined>(options?: BuildKeyOptions<UType, TInput>): QueryKey
 }
 

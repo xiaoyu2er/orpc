@@ -27,6 +27,13 @@ export interface SimpleCsrfProtectionLinkPluginOptions<T extends ClientContext> 
   exclude?: Value<boolean, [options: StandardLinkClientInterceptorOptions<T>]>
 }
 
+/**
+ * This plugin adds basic Cross-Site Request Forgery (CSRF) protection to your oRPC application.
+ * It helps ensure that requests to your procedures originate from JavaScript code,
+ * not from other sources like standard HTML forms or direct browser navigation.
+ *
+ * @see {@link https://orpc.unnoq.com/docs/plugins/simple-csrf-protection Simple CSRF Protection Plugin Docs}
+ */
 export class SimpleCsrfProtectionLinkPlugin<T extends ClientContext> implements StandardLinkPlugin<T> {
   private readonly headerName: Exclude<SimpleCsrfProtectionLinkPluginOptions<T>['headerName'], undefined>
   private readonly headerValue: Exclude<SimpleCsrfProtectionLinkPluginOptions<T>['headerValue'], undefined>

@@ -38,6 +38,11 @@ export interface MiddlewareOptions<
   errors: TErrorConstructorMap
 }
 
+/**
+ * A function that represents a middleware.
+ *
+ * @see {@link https://orpc.unnoq.com/docs/middleware Middleware Docs}
+ */
 export interface Middleware<
   TInContext extends Context,
   TOutContext extends Context,

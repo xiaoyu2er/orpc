@@ -47,6 +47,11 @@ export interface ProcedureDef<
   handler: ProcedureHandler<TCurrentContext, any, any, any, any>
 }
 
+/**
+ * This class represents a procedure.
+ *
+ * @see {@link https://orpc.unnoq.com/docs/procedure Procedure Docs}
+ */
 export class Procedure<
   TInitialContext extends Context,
   TCurrentContext extends Context,
@@ -55,6 +60,9 @@ export class Procedure<
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > {
+  /**
+   * This property holds the defined options.
+   */
   '~orpc': ProcedureDef<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>
 
   constructor(def: ProcedureDef<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta>) {

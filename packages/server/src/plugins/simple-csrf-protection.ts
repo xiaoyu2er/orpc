@@ -43,6 +43,13 @@ export interface SimpleCsrfProtectionHandlerPluginOptions<T extends Context> {
 
 const SIMPLE_CSRF_PROTECTION_CONTEXT_SYMBOL = Symbol('SIMPLE_CSRF_PROTECTION_CONTEXT')
 
+/**
+ * This plugin adds basic Cross-Site Request Forgery (CSRF) protection to your oRPC application.
+ * It helps ensure that requests to your procedures originate from JavaScript code,
+ * not from other sources like standard HTML forms or direct browser navigation.
+ *
+ * @see {@link https://orpc.unnoq.com/docs/plugins/simple-csrf-protection Simple CSRF Protection Plugin Docs}
+ */
 export class SimpleCsrfProtectionHandlerPlugin<T extends Context> implements StandardHandlerPlugin<T> {
   private readonly headerName: Exclude<SimpleCsrfProtectionHandlerPluginOptions<T>['headerName'], undefined>
   private readonly headerValue: Exclude<SimpleCsrfProtectionHandlerPluginOptions<T>['headerValue'], undefined>

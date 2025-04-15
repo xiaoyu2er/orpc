@@ -4,23 +4,68 @@ export type InputStructure = 'compact' | 'detailed'
 export type OutputStructure = 'compact' | 'detailed'
 
 export interface Route {
+  /**
+   * The HTTP method of the procedure.
+   * This option is typically relevant when integrating with OpenAPI.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/openapi/routing OpenAPI Routing Docs}
+   */
   method?: HTTPMethod
+
+  /**
+   * The HTTP path of the procedure.
+   * This option is typically relevant when integrating with OpenAPI.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/openapi/routing OpenAPI Routing Docs}
+   */
   path?: HTTPPath
+
+  /**
+   * The summary of the procedure.
+   * This option is typically relevant when integrating with OpenAPI.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/openapi/openapi-specification#operation-metadata OpenAPI Operation Metadata Docs}
+   */
   summary?: string
+
+  /**
+   * The description of the procedure.
+   * This option is typically relevant when integrating with OpenAPI.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/openapi/openapi-specification#operation-metadata OpenAPI Operation Metadata Docs}
+   */
   description?: string
+
+  /**
+   * Marks the procedure as deprecated.
+   * This option is typically relevant when integrating with OpenAPI.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/openapi/openapi-specification#operation-metadata OpenAPI Operation Metadata Docs}
+   */
   deprecated?: boolean
+
+  /**
+   * The tags of the procedure.
+   * This option is typically relevant when integrating with OpenAPI.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/openapi/openapi-specification#operation-metadata OpenAPI Operation Metadata Docs}
+   */
   tags?: readonly string[]
 
   /**
    * The status code of the response when the procedure is successful.
+   * This option is typically relevant when integrating with OpenAPI.
    *
+   * @see {@link https://orpc.unnoq.com/docs/openapi/routing OpenAPI Routing Docs}
    * @default 200
    */
   successStatus?: number
 
   /**
    * The description of the response when the procedure is successful.
+   *  This option is typically relevant when integrating with OpenAPI.
    *
+   * @see {@link https://orpc.unnoq.com/docs/openapi/openapi-specification#operation-metadata OpenAPI Operation Metadata Docs}
    * @default 'OK'
    */
   successDescription?: string
@@ -44,6 +89,7 @@ export interface Route {
    * }
    * ```
    *
+   * @see {@link https://orpc.unnoq.com/docs/openapi/input-output-structure OpenAPI Input/Output Structure Docs}
    * @default 'compact'
    */
   inputStructure?: InputStructure
@@ -67,6 +113,7 @@ export interface Route {
    * };
    * ```
    *
+   * @see {@link https://orpc.unnoq.com/docs/openapi/input-output-structure OpenAPI Input/Output Structure Docs}
    * @default 'compact'
    */
   outputStructure?: OutputStructure

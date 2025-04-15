@@ -14,6 +14,13 @@ export interface StrictGetMethodPluginOptions {
 
 const STRICT_GET_METHOD_PLUGIN_IS_GET_METHOD_CONTEXT_SYMBOL = Symbol('STRICT_GET_METHOD_PLUGIN_IS_GET_METHOD_CONTEXT')
 
+/**
+ * This plugin enhances security by ensuring only procedures explicitly marked to accept GET requests
+ * can be called using the HTTP GET method for RPC Protocol. This helps prevent certain types of
+ * Cross-Site Request Forgery (CSRF) attacks.
+ *
+ * @see {@link https://orpc.unnoq.com/docs/plugins/strict-get-method Strict Get Method Plugin Docs}
+ */
 export class StrictGetMethodPlugin<T extends Context> implements StandardHandlerPlugin<T> {
   private readonly error: Exclude<StrictGetMethodPluginOptions['error'], undefined>
 

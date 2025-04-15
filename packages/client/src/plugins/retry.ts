@@ -45,6 +45,11 @@ export interface ClientRetryPluginOptions {
   default?: ClientRetryPluginContext
 }
 
+/**
+ * The Client Retry Plugin enables retrying client calls when errors occur.
+ *
+ * @see {@link https://orpc.unnoq.com/docs/plugins/client-retry Client Retry Plugin Docs}
+ */
 export class ClientRetryPlugin<T extends ClientRetryPluginContext> implements StandardLinkPlugin<T> {
   private readonly defaultRetry: Exclude<ClientRetryPluginContext['retry'], undefined>
   private readonly defaultRetryDelay: Exclude<ClientRetryPluginContext['retryDelay'], undefined>

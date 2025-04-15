@@ -44,6 +44,9 @@ export class Builder<
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > {
+  /**
+   * This property holds the defined options.
+   */
   '~orpc': BuilderDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>
 
   constructor(def: BuilderDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>) {
@@ -51,7 +54,10 @@ export class Builder<
   }
 
   /**
-   * Reset config
+   * Sets or overrides the config.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/lifecycle#middlewares-order Middlewares Order Docs}
+   * @see {@link https://orpc.unnoq.com/docs/best-practices/dedupe-middleware#configuration Dedupe Middleware Docs}
    */
   $config(config: BuilderConfig): Builder<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta> {
     const inputValidationCount = this['~orpc'].inputValidationIndex - fallbackConfig('initialInputValidationIndex', this['~orpc'].config.initialInputValidationIndex)
@@ -67,7 +73,9 @@ export class Builder<
   }
 
   /**
-   * Reset initial context
+   * Set or override the initial context.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/context Context Docs}
    */
   $context<U extends Context>(): Builder<U & Record<never, never>, U, TInputSchema, TOutputSchema, TErrorMap, TMeta> {
     /**
@@ -83,7 +91,9 @@ export class Builder<
   }
 
   /**
-   * Reset initial meta
+   * Sets or overrides the initial meta.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/metadata Metadata Docs}
    */
   $meta<U extends Meta>(
     initialMeta: U,
@@ -99,7 +109,11 @@ export class Builder<
   }
 
   /**
-   * Reset initial route
+   * Sets or overrides the initial route.
+   * This option is typically relevant when integrating with OpenAPI.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/openapi/routing OpenAPI Routing Docs}
+   * @see {@link https://orpc.unnoq.com/docs/openapi/input-output-structure OpenAPI Input/Output Structure Docs}
    */
   $route(
     initialRoute: Route,
@@ -110,6 +124,11 @@ export class Builder<
     })
   }
 
+  /**
+   * Sets or overrides the initial input schema.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/procedure#initial-configuration Initial Procedure Configuration Docs}
+   */
   $input<U extends AnySchema>(
     initialInputSchema?: U,
   ): Builder<TInitialContext, TCurrentContext, U, TOutputSchema, TErrorMap, TMeta> {
@@ -119,12 +138,23 @@ export class Builder<
     })
   }
 
+  /**
+   * Creates a middleware.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/middleware Middleware Docs}
+   */
   middleware<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, TInput, TOutput = any>( // = any here is important to make middleware can be used in any output by default
     middleware: Middleware<TInitialContext, UOutContext, TInput, TOutput, ORPCErrorConstructorMap<TErrorMap>, TMeta>,
   ): DecoratedMiddleware<TInitialContext, UOutContext, TInput, TOutput, any, TMeta> { // any ensures middleware can used in any procedure
     return decorateMiddleware(middleware)
   }
 
+  /**
+   * Adds type-safe custom errors.
+   * The provided errors are spared-merged with any existing errors.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/error-handling#type%E2%80%90safe-error-handling Type-Safe Error Handling Docs}
+   */
   errors<U extends ErrorMap>(
     errors: U,
   ): Builder<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, MergedErrorMap<TErrorMap, U>, TMeta> {
@@ -134,6 +164,13 @@ export class Builder<
     })
   }
 
+  /**
+   * Uses a middleware to modify the context or improve the pipeline.
+   *
+   * @info Supports both normal middleware and inline middleware implementations.
+   * @note The current context must be satisfy middleware dependent-context
+   * @see {@link https://orpc.unnoq.com/docs/middleware Middleware Docs}
+   */
   use<UOutContext extends IntersectPick<TCurrentContext, UOutContext>, UInContext extends Context = TCurrentContext>(
     middleware: Middleware<
       UInContext | TCurrentContext,
@@ -166,6 +203,12 @@ export class Builder<
     }) as any
   }
 
+  /**
+   * Sets or updates the metadata.
+   * The provided metadata is spared-merged with any existing metadata.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/metadata Metadata Docs}
+   */
   meta(
     meta: TMeta,
   ): ProcedureBuilder<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta> {
@@ -175,6 +218,14 @@ export class Builder<
     })
   }
 
+  /**
+   * Sets or updates the route definition.
+   * The provided route is spared-merged with any existing route.
+   * This option is typically relevant when integrating with OpenAPI.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/openapi/routing OpenAPI Routing Docs}
+   * @see {@link https://orpc.unnoq.com/docs/openapi/input-output-structure OpenAPI Input/Output Structure Docs}
+   */
   route(
     route: Route,
   ): ProcedureBuilder<TInitialContext, TCurrentContext, TInputSchema, TOutputSchema, TErrorMap, TMeta> {
@@ -184,6 +235,11 @@ export class Builder<
     })
   }
 
+  /**
+   * Defines the input validation schema.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/procedure#input-output-validation Input Validation Docs}
+   */
   input<USchema extends AnySchema>(
     schema: USchema,
   ): ProcedureBuilderWithInput<TInitialContext, TCurrentContext, USchema, TOutputSchema, TErrorMap, TMeta> {
@@ -194,6 +250,11 @@ export class Builder<
     }) as any
   }
 
+  /**
+   * Defines the output validation schema.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/procedure#input-output-validation Output Validation Docs}
+   */
   output<USchema extends AnySchema>(
     schema: USchema,
   ): ProcedureBuilderWithOutput<TInitialContext, TCurrentContext, TInputSchema, USchema, TErrorMap, TMeta> {
@@ -204,6 +265,11 @@ export class Builder<
     }) as any
   }
 
+  /**
+   * Defines the handler of the procedure.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/procedure Procedure Docs}
+   */
   handler<UFuncOutput>(
     handler: ProcedureHandler<TCurrentContext, unknown, UFuncOutput, TErrorMap, TMeta>,
   ): DecoratedProcedure<TInitialContext, TCurrentContext, TInputSchema, Schema<UFuncOutput, UFuncOutput>, TErrorMap, TMeta> {
@@ -213,6 +279,14 @@ export class Builder<
     })
   }
 
+  /**
+   * Prefixes all procedures in the router.
+   * The provided prefix is post-appended to any existing router prefix.
+   *
+   * @note This option does not affect procedures that do not define a path in their route definition.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/openapi/routing#route-prefixes OpenAPI Route Prefixes Docs}
+   */
   prefix(
     prefix: HTTPPath,
   ): RouterBuilder<TInitialContext, TCurrentContext, TErrorMap, TMeta> {
@@ -222,6 +296,12 @@ export class Builder<
     }) as any
   }
 
+  /**
+   * Adds tags to all procedures in the router.
+   * This helpful when you want to group procedures together in the OpenAPI specification.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/openapi/openapi-specification#operation-metadata OpenAPI Operation Metadata Docs}
+   */
   tag(...tags: string[]): RouterBuilder<TInitialContext, TCurrentContext, TErrorMap, TMeta> {
     return new Builder({
       ...this['~orpc'],
@@ -229,12 +309,23 @@ export class Builder<
     }) as any
   }
 
+  /**
+   * Applies all of the previously defined options to the specified router.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/router#extending-router Extending Router Docs}
+   */
   router<U extends Router<ContractRouter<TMeta>, TCurrentContext>>(
     router: U,
   ): EnhancedRouter<U, TInitialContext, TCurrentContext, TErrorMap> {
     return enhanceRouter(router, this['~orpc'])
   }
 
+  /**
+   * Create a lazy router
+   * And applies all of the previously defined options to the specified router.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/router#extending-router Extending Router Docs}
+   */
   lazy<U extends Router<ContractRouter<TMeta>, TCurrentContext>>(
     loader: () => Promise<{ default: U }>,
   ): EnhancedRouter<Lazy<U>, TInitialContext, TCurrentContext, TErrorMap> {

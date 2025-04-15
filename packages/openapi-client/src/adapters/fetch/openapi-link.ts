@@ -8,6 +8,12 @@ import { StandardOpenAPILink } from '../standard'
 export interface OpenAPILinkOptions<T extends ClientContext>
   extends StandardOpenAPILinkOptions<T>, LinkFetchClientOptions<T> { }
 
+/**
+ * The OpenAPI Link for fetch runtime communicates with the server that follow the OpenAPI specification.
+ *
+ * @see {@link https://orpc.unnoq.com/docs/openapi/client/openapi-link OpenAPI Link Docs}
+ * @see {@link https://swagger.io/specification/ OpenAPI Specification}
+ */
 export class OpenAPILink<T extends ClientContext> extends StandardOpenAPILink<T> {
   constructor(contract: AnyContractRouter, options: OpenAPILinkOptions<T>) {
     const linkClient = new LinkFetchClient(options)

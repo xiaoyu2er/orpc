@@ -36,6 +36,12 @@ export interface BatchHandlerOptions<T extends Context> {
   headers?: Value<StandardHeaders, [responses: Promise<BatchResponseBodyItem>[], batchOptions: StandardHandlerInterceptorOptions<T>]>
 }
 
+/**
+ * The Batch Request/Response Plugin allows you to combine multiple requests and responses into a single batch,
+ * reducing the overhead of sending each one separately.
+ *
+ * @see {@link https://orpc.unnoq.com/docs/plugins/batch-request-response Batch Request/Response Plugin Docs}
+ */
 export class BatchHandlerPlugin<T extends Context> implements StandardHandlerPlugin<T> {
   private readonly maxSize: Exclude<BatchHandlerOptions<T>['maxSize'], undefined>
   private readonly mapRequestItem: Exclude<BatchHandlerOptions<T>['mapRequestItem'], undefined>

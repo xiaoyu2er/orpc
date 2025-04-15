@@ -7,18 +7,38 @@ import { buildKey } from './key'
 import { unrefDeep } from './utils'
 
 export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError> {
+  /**
+   * Calling corresponding procedure client
+   *
+   * @see {@link https://orpc.unnoq.com/docs/tanstack-query/basic#calling-procedure-clients Tanstack Calling Procedure Client Docs}
+   */
   call: Client<TClientContext, TInput, TOutput, TError>
 
+  /**
+   * Generate options used for useQuery/prefetchQuery/...
+   *
+   * @see {@link https://orpc.unnoq.com/docs/tanstack-query/basic#query-options-utility Tanstack Query Options Utility Docs}
+   */
   queryOptions<U, USelectData = TOutput>(
     ...rest: MaybeOptionalOptions<
       U & QueryOptionsIn<TClientContext, TInput, TOutput, TError, USelectData>
     >
   ): NoInfer<U & Omit<QueryOptionsBase<TOutput, TError>, keyof U>>
 
+  /**
+   * Generate options used for useInfiniteQuery/prefetchInfiniteQuery/...
+   *
+   * @see {@link https://orpc.unnoq.com/docs/tanstack-query/basic#infinite-query-options-utility Tanstack Infinite Query Options Utility Docs}
+   */
   infiniteOptions<U, UPageParam, USelectData = InfiniteData<TOutput, UPageParam>>(
     options: U & InfiniteOptionsIn<TClientContext, TInput, TOutput, TError, USelectData, UPageParam>
   ): NoInfer<U & Omit<InfiniteOptionsBase<TOutput, TError, UPageParam>, keyof U>>
 
+  /**
+   * Generate options used for useMutation/...
+   *
+   * @see {@link https://orpc.unnoq.com/docs/tanstack-query/basic#mutation-options Tanstack Mutation Options Docs}
+   */
   mutationOptions<UMutationContext>(
     ...rest: MaybeOptionalOptions<MutationOptionsIn<TClientContext, TInput, TOutput, TError, UMutationContext>>
   ): MutationOptions<TInput, TOutput, TError, UMutationContext>

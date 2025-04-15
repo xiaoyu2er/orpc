@@ -17,12 +17,20 @@ export interface ContractProcedureDef<
   errorMap: TErrorMap
 }
 
+/**
+ * This class represents a contract procedure.
+ *
+ * @see {@link https://orpc.unnoq.com/docs/contract-first/define-contract#procedure-contract Contract Procedure Docs}
+ */
 export class ContractProcedure<
   TInputSchema extends AnySchema,
   TOutputSchema extends AnySchema,
   TErrorMap extends ErrorMap,
   TMeta extends Meta,
 > {
+  /**
+   * This property holds the defined options for the contract procedure.
+   */
   '~orpc': ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>
 
   constructor(def: ContractProcedureDef<TInputSchema, TOutputSchema, TErrorMap, TMeta>) {

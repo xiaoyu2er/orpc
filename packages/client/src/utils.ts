@@ -11,6 +11,12 @@ export type SafeResult<TOutput, TError> =
   | [error: Extract<TError, ORPCError<any, any>>, data: undefined, isDefined: true, isSuccess: false]
   & { error: Extract<TError, ORPCError<any, any>>, data: undefined, isDefined: true, isSuccess: false }
 
+/**
+ * Works like try/catch, but can infer error types.
+ *
+ * @info support both tuple `[error, data, isDefined, isSuccess]` and object `{ error, data, isDefined, isSuccess }` styles.
+ * @see {@link https://orpc.unnoq.com/docs/client/error-handling Client Error Handling Docs}
+ */
 export async function safe<TOutput, TError = ThrowableError>(promise: ClientPromiseResult<TOutput, TError>): Promise<SafeResult<TOutput, TError>> {
   try {
     const output = await promise

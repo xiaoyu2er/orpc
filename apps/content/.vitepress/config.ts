@@ -145,6 +145,7 @@ export default defineConfig({
           items: [
             { text: 'Dedupe Middleware', link: '/docs/best-practices/dedupe-middleware' },
             { text: 'No Throw Literal', link: '/docs/best-practices/no-throw-literal' },
+            { text: 'Optimize SSR', link: '/docs/best-practices/optimize-ssr' },
           ],
         },
         {
@@ -204,7 +205,6 @@ export default defineConfig({
       ],
       '/examples/': [
         { text: 'OpenAI Streaming', link: '/examples/openai-streaming' },
-        { text: 'Optimize SSR', link: '/examples/optimize-ssr' },
       ],
       '/blog/': [
         { text: 'V1 Announcement', link: '/blog/v1-announcement' },

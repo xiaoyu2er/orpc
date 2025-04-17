@@ -27,12 +27,13 @@ export interface DecoratedMiddleware<
    */
   concat<
     UOutContext extends IntersectPick<MergedCurrentContext<TInContext, TOutContext>, UOutContext>,
+    UInput extends TInput,
     UInContext extends Context = MergedCurrentContext<TInContext, TOutContext>,
   >(
     middleware: Middleware<
       UInContext | MergedCurrentContext<TInContext, TOutContext>,
       UOutContext,
-      TInput,
+      UInput,
       TOutput,
       TErrorConstructorMap,
       TMeta
@@ -40,7 +41,7 @@ export interface DecoratedMiddleware<
   ): DecoratedMiddleware<
     MergedInitialContext<TInContext, UInContext, MergedCurrentContext<TInContext, TOutContext>>,
     MergedCurrentContext<TOutContext, UOutContext>,
-    TInput,
+    UInput,
     TOutput,
     TErrorConstructorMap,
     TMeta
@@ -54,6 +55,7 @@ export interface DecoratedMiddleware<
    */
   concat<
     UOutContext extends IntersectPick<MergedCurrentContext<TInContext, TOutContext>, UOutContext>,
+    UInput extends TInput,
     UMappedInput,
     UInContext extends Context = MergedCurrentContext<TInContext, TOutContext>,
   >(
@@ -65,11 +67,11 @@ export interface DecoratedMiddleware<
       TErrorConstructorMap,
       TMeta
     >,
-    mapInput: MapInputMiddleware<TInput, UMappedInput>,
+    mapInput: MapInputMiddleware<UInput, UMappedInput>,
   ): DecoratedMiddleware<
     MergedInitialContext<TInContext, UInContext, MergedCurrentContext<TInContext, TOutContext>>,
     MergedCurrentContext<TOutContext, UOutContext>,
-    TInput,
+    UInput,
     TOutput,
     TErrorConstructorMap,
     TMeta

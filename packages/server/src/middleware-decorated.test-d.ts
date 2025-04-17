@@ -10,7 +10,7 @@ import type { Procedure } from './procedure'
 const decorated = {} as DecoratedMiddleware<
   CurrentContext,
   { extra: boolean },
-  { input: string },
+  { input1: string, input2: string },
   { output: number },
   ORPCErrorConstructorMap<typeof baseErrorMap>,
   BaseMeta
@@ -22,7 +22,7 @@ describe('DecoratedMiddleware', () => {
       Middleware<
         CurrentContext,
         { extra: boolean },
-        { input: string },
+        { input1: string, input2: string },
         { output: number },
         ORPCErrorConstructorMap<typeof baseErrorMap>,
         BaseMeta
@@ -31,7 +31,7 @@ describe('DecoratedMiddleware', () => {
   })
 
   it('.mapInput', () => {
-    const mapped = decorated.mapInput((input: 'input') => ({ input }))
+    const mapped = decorated.mapInput((input: 'input') => ({ input1: input, input2: input }))
 
     expectTypeOf(mapped).toEqualTypeOf<
       DecoratedMiddleware<
@@ -50,8 +50,7 @@ describe('DecoratedMiddleware', () => {
 
   describe('.concat', () => {
     it('without map input', () => {
-      const applied = decorated.concat(({ context, next, path, procedure, errors, signal }, input, output) => {
-        expectTypeOf(input).toEqualTypeOf<{ input: string }>()
+      const applied = decorated.concat(({ context, next, path, procedure, errors, signal }, input: { input1: string }, output) => {
         expectTypeOf(context).toEqualTypeOf<Omit<CurrentContext, 'extra'> & { extra: boolean }>()
         expectTypeOf(path).toEqualTypeOf<readonly string[]>()
         expectTypeOf(procedure).toEqualTypeOf<
@@ -72,7 +71,7 @@ describe('DecoratedMiddleware', () => {
         DecoratedMiddleware<
           CurrentContext & Record<never, never>,
           Omit<{ extra: boolean }, never> & { extra2: boolean },
-          { input: string },
+          { input1: string, input2: string },
           { output: number },
           ORPCErrorConstructorMap<typeof baseErrorMap>,
           BaseMeta
@@ -81,6 +80,8 @@ describe('DecoratedMiddleware', () => {
 
       // @ts-expect-error --- invalid TInContext
       decorated.concat({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>)
+      // @ts-expect-error --- input is not match
+      decorated.concat(({ next }, input: { invalid: string }) => next({}))
       // @ts-expect-error --- output is not match
       decorated.concat(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}))
       // @ts-expect-error --- conflict context
@@ -104,9 +105,7 @@ describe('DecoratedMiddleware', () => {
             extra2: true,
           },
         })
-      }, (input) => {
-        expectTypeOf(input).toEqualTypeOf<{ input: string }>()
-
+      }, (input: { input1: string }) => {
         return { mapped: true }
       })
 
@@ -114,7 +113,7 @@ describe('DecoratedMiddleware', () => {
         DecoratedMiddleware<
           CurrentContext & Record<never, never>,
           Omit<{ extra: boolean }, never> & { extra2: boolean },
-          { input: string },
+          { input1: string, input2: string },
           { output: number },
           ORPCErrorConstructorMap<typeof baseErrorMap>,
           BaseMeta
@@ -129,6 +128,8 @@ describe('DecoratedMiddleware', () => {
 
       // @ts-expect-error --- invalid TInContext
       decorated.concat({} as Middleware<{ auth: 'invalid' }, any, any, any, any, any>, () => { })
+      // @ts-expect-error --- input is not match
+      decorated.concat(({ next }, input: { mapped: boolean }) => next({}), (input: { invalid: string }) => ({ mapped: true }))
       // @ts-expect-error --- output is not match
       decorated.concat(({ next }, input, output: MiddlewareOutputFn<'invalid'>) => next({}), input => ({ mapped: true }))
       // @ts-expect-error --- conflict context
@@ -142,7 +143,7 @@ describe('DecoratedMiddleware', () => {
         DecoratedMiddleware<
           CurrentContext & Omit<{ cacheable?: boolean } & Record<never, never>, 'db' | 'auth' | 'extra'>,
           Omit<{ extra: boolean }, never> & Record<never, never>,
-          { input: string },
+          { input1: string, input2: string },
           { output: number },
           ORPCErrorConstructorMap<typeof baseErrorMap>,
           BaseMeta
@@ -153,7 +154,7 @@ describe('DecoratedMiddleware', () => {
         DecoratedMiddleware<
           CurrentContext & Omit<{ cacheable?: boolean } & Record<never, never>, 'db' | 'auth' | 'extra'>,
           Omit<{ extra: boolean }, never> & Record<never, never>,
-          { input: string },
+          { input1: string, input2: string },
           { output: number },
           ORPCErrorConstructorMap<typeof baseErrorMap>,
           BaseMeta

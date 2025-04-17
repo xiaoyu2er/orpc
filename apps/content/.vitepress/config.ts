@@ -204,6 +204,7 @@ export default defineConfig({
       ],
       '/examples/': [
         { text: 'OpenAI Streaming', link: '/examples/openai-streaming' },
+        { text: 'SSR for Fullstack Frameworks', link: '/examples/ssr-for-fullstack-frameworks' },
       ],
       '/blog/': [
         { text: 'V1 Announcement', link: '/blog/v1-announcement' },

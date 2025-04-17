@@ -49,6 +49,8 @@ export default antfu({
   files: ['apps/content/examples/**'],
   rules: {
     'import/first': 'off',
+    'no-var': 'off',
+    'vars-on-top': 'off',
   },
 }, {
   files: ['playgrounds/**'],

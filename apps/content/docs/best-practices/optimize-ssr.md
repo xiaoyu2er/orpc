@@ -81,7 +81,7 @@ Now, importing `client` from `lib/orpc.ts` gives you a server-side client during
 
 ## Using the client
 
-The `client` have no special when used, just use it like you would any other client.
+The `client` requires no special handling, just use it like regular clients.
 
 ```tsx
 export default async function PlanetListPage() {
@@ -124,5 +124,5 @@ export default function PlanetListPage() {
 ```
 
 :::warning
-Above example uses suspense hooks, you might need wrap your app within `<Suspense />` (or corresponding APIs) to make it work. In Next.js, maybe you need create `loading.tsx`.
+Above example uses suspense hooks, you might need to wrap your app within `<Suspense />` (or corresponding APIs) to make it work. In Next.js, maybe you need create `loading.tsx`.
 :::

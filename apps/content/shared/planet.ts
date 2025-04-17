@@ -46,7 +46,7 @@ export const contract = {
   planet: { list: listPlanetContract, find: findPlanetContract, create: createPlanetContract },
 }
 
-const os = implement(contract).$context<{ headers: IncomingHttpHeaders }>()
+const os = implement(contract).$context<{ headers?: IncomingHttpHeaders }>()
 
 export const listPlanet = os.planet.list
   .handler(({ input }) => {

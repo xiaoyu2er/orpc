@@ -11,9 +11,10 @@ If your project is missing here, please [open a PR](https://github.com/unnoq/orp
 
 ## Starter Kits
 
-| Name                                          | Stars                                                                                                                        | Description                                                                                     |
-| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| [Zap.ts](https://zap-ts.alexandretrotel.org/) | [![Stars](https://img.shields.io/github/stars/alexandretrotel/zap.ts?style=flat)](https://github.com/alexandretrotel/zap.ts) | Next.js boilerplate designed to help you build applications faster using a modern set of tools. |
+| Name                                                                      | Stars                                                                                                                                                    | Description                                                                                                                    |
+| ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| [Zap.ts](https://zap-ts.alexandretrotel.org/)                             | [![Stars](https://img.shields.io/github/stars/alexandretrotel/zap.ts?style=flat)](https://github.com/alexandretrotel/zap.ts)                             | Next.js boilerplate designed to help you build applications faster using a modern set of tools.                                |
+| [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack) | [![Stars](https://img.shields.io/github/stars/AmanVarshney01/create-better-t-stack?style=flat)](https://github.com/AmanVarshney01/create-better-t-stack) | A modern CLI tool for scaffolding end-to-end type-safe TypeScript projects with best practices and customizable configurations |
 
 ## Tools
 

@@ -44,6 +44,8 @@ export default antfu({
     'perfectionist/sort-imports': 'off',
     'import/first': 'off',
     'ban/ban': 'off',
+    'no-var': 'off',
+    'vars-on-top': 'off',
   },
 }, {
   files: ['apps/content/examples/**'],

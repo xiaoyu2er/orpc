@@ -55,7 +55,7 @@ const link = new RPCLink({
 /**
  * Fallback to client-side client if server-side client is not available.
  */
-export const client: RouterClient<typeof router> = globalThis.$orpc ?? createORPCClient(link)
+export const client: RouterClient<typeof router> = globalThis.$client ?? createORPCClient(link)
 ```
 
 ```ts [lib/orpc.server.ts]
@@ -103,7 +103,7 @@ This example uses Next.js, but you can apply the same pattern in SvelteKit, Nuxt
 
 ## TanStack Query
 
-Combining this oRPC setup with TanStack Query (React Query, Solid Query, etc.) provides a powerful pattern for data fetching, and state management, especially with Suspense hooks. Refer this details in [Tanstack Query Integration Guide](/docs/tanstack-query/basic) and [Tanstack Query SSR Guide](https://tanstack.com/query/latest/docs/framework/react/guides/ssr).
+Combining this oRPC setup with TanStack Query (React Query, Solid Query, etc.) provides a powerful pattern for data fetching, and state management, especially with Suspense hooks. Refer to these details in [Tanstack Query Integration Guide](/docs/tanstack-query/basic) and [Tanstack Query SSR Guide](https://tanstack.com/query/latest/docs/framework/react/guides/ssr).
 
 ```tsx
 export default function PlanetListPage() {
@@ -124,5 +124,5 @@ export default function PlanetListPage() {
 ```
 
 :::warning
-Above example use suspense hooks, you might need wrap your app within `<Suspense />` (or corresponding APIs) to make it work. In Next.js, maybe you need create `loading.tsx`.
+Above example uses suspense hooks, you might need wrap your app within `<Suspense />` (or corresponding APIs) to make it work. In Next.js, maybe you need create `loading.tsx`.
 :::

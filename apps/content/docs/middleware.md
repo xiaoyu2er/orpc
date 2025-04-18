@@ -121,6 +121,20 @@ const pong = os
   })
 ```
 
+::: info
+You can adapt a middleware to accept a different input shape by using `.mapInput`.
+
+```ts
+const canUpdate = os.middleware(async ({ context, next }, input: number) => {
+  return next()
+})
+
+// Transform middleware to accept a new input shape
+const mappedCanUpdate = canUpdate.mapInput((input: { id: number }) => input.id)
+```
+
+:::
+
 ## Middleware Output
 
 Middleware can also modify the output of a handler, such as implementing caching mechanisms.
@@ -150,6 +164,10 @@ const concatMiddleware = aMiddleware
   .concat(os.middleware(async ({ next }) => next()))
   .concat(anotherMiddleware)
 ```
+
+::: info
+If you want to concatenate two middlewares with different input types, you can use `.mapInput` to align their input types before concatenation.
+:::
 
 ## Built-in Middlewares
 

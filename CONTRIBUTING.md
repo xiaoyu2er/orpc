@@ -1,6 +1,6 @@
 # Contributing to oRPC
 
-Thank you for your interest in contributing to oRPC! We welcome all kind of contributions: bug reports, feature requests, documentation improvements, and code enhancements.
+Thank you for your interest in contributing to oRPC! We welcome all kinds of contributions: bug reports, feature requests, documentation improvements, and code enhancements.
 
 If you need help or have questions, please join us on [Discord](https://discord.gg/TXEbwRBvQn).
 

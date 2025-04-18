@@ -34,7 +34,7 @@ The `handler` can be any supported oRPC handler, such as [RPCHandler](/docs/rpc-
 
 ### Client
 
-To use the `BatchLinkPlugin`, define at least one group. Requests within the same group will be batched together, and each group requires a `context` as described in [client context](/docs/client/rpc-link#using-client-context).
+To use the `BatchLinkPlugin`, define at least one group. Requests within the same group will be considered for batching together, and each group requires a `context` as described in [client context](/docs/client/rpc-link#using-client-context).
 
 ```ts twoslash
 import { RPCLink } from '@orpc/client/fetch'
@@ -48,7 +48,7 @@ const link = new RPCLink({
       groups: [
         {
           condition: options => true,
-          context: {}
+          context: {} // This context will represent the batch request and persist throughout the request lifecycle
         }
       ]
     }),
@@ -130,3 +130,51 @@ const handler = new RPCHandler(router, {
   })],
 })
 ```
+
+## Groups
+
+Requests within the same group will be considered for batching together, and each group requires a `context` as described in [client context](/docs/client/rpc-link#using-client-context).
+
+In the example below, I used a group and `context` to batch requests based on the `cache` control:
+
+```ts twoslash
+import { RPCLink } from '@orpc/client/fetch'
+import { BatchLinkPlugin } from '@orpc/client/plugins'
+
+interface ClientContext {
+  cache?: RequestCache
+}
+
+const link = new RPCLink<ClientContext>({
+  url: 'http://localhost:3000/rpc',
+  method: ({ context }) => {
+    if (context?.cache) {
+      return 'GET'
+    }
+
+    return 'POST'
+  },
+  plugins: [
+    new BatchLinkPlugin({
+      groups: [
+        {
+          condition: ({ context }) => context?.cache === 'force-cache',
+          context: { // This context will be passed to the fetch method
+            cache: 'force-cache',
+          },
+        },
+        { // Fallback for all other requests - need put it at the end of list
+          condition: () => true,
+          context: {},
+        },
+      ],
+    }),
+  ],
+  fetch: (request, init, { context }) => globalThis.fetch(request, {
+    ...init,
+    cache: context?.cache,
+  }),
+})
+```
+
+Now, calls with `cache=force-cache` will be sent with `cache=force-cache`, whether they're batched or executed individually.

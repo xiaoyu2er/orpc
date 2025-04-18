@@ -21,7 +21,7 @@ const smallSponsors = computed(() => sponsors.value.filter(s => s.rideSidebarSiz
         <img :src="sponsor.rightSidebarLogo" :alt="sponsor.name">
       </a>
 
-      <a v-if="!normalSponsors.length && !smallSponsors.length" class="aside-sponsor" href="https://github.com/sponsors/unnoq" target="_blank" rel="noopener">
+      <a v-if="normalSponsors.length < 3" class="aside-sponsor" href="https://github.com/sponsors/unnoq" target="_blank" rel="noopener">
         Become a sponsor
       </a>
 
@@ -78,7 +78,7 @@ const smallSponsors = computed(() => sponsors.value.filter(s => s.rideSidebarSiz
 }
 
 .aside-sponsor img {
-  max-width: 120px;
+  max-width: 138px;
   max-height: 48px;
 }
 

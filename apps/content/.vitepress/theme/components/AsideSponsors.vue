@@ -22,7 +22,7 @@ const smallSponsors = computed(() => sponsors.value.filter(s => s.rideSidebarSiz
       </a>
 
       <a v-if="normalSponsors.length < 3" class="aside-sponsor" href="https://github.com/sponsors/unnoq" target="_blank" rel="noopener">
-        Become a sponsor
+        <span class="aside-sponsor-text">Become a sponsor</span>
       </a>
 
       <div class="aside-sponsors-small">
@@ -66,14 +66,21 @@ const smallSponsors = computed(() => sponsors.value.filter(s => s.rideSidebarSiz
   background-color: var(--vp-c-bg-soft);
 }
 
+.aside-sponsor-text {
+  color: var(--vp-c-text-3);
+  opacity: 36%;
+}
+
+.aside-sponsor:hover .aside-sponsor-text {
+  opacity: 100%;
+}
+
 .dark .aside-sponsor {
   filter: grayscale(1) invert(1);
-  color: var(--vp-c-bg-soft);
   background-color: var(--vp-c-text-1);
 }
 
 .dark .aside-sponsor:hover {
-  transition: filter 0.2s ease;
   filter: brightness(1.1);
 }
 

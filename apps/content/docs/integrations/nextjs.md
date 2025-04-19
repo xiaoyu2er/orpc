@@ -51,6 +51,12 @@ import { RPCHandler } from '@orpc/server/node'
 
 const handler = new RPCHandler(router)
 
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+}
+
 export default async (req, res) => {
   const { matched } = await handler.handle(req, res, {
     prefix: '/rpc',
@@ -63,6 +69,19 @@ export default async (req, res) => {
 
   res.statusCode = 404
   res.end('Not found')
+}
+```
+
+:::
+
+::: warning
+Next.js default [body parser](https://nextjs.org/docs/pages/building-your-application/routing/api-routes#custom-config) blocks oRPC raw‑request handling. Ensure `bodyParser` is disabled in your API route:
+
+```ts
+export const config = {
+  api: {
+    bodyParser: false,
+  },
 }
 ```
 

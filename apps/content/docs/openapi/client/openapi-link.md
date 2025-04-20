@@ -124,6 +124,22 @@ const result = await client.planet.list(
 If a property in `ClientContext` is required, oRPC enforces its inclusion when calling procedures.
 :::
 
+## Lazy URL
+
+You can define `url` as a function, ensuring compatibility with environments that may lack certain runtime APIs.
+
+```ts
+const link = new OpenAPILink({
+  url: () => {
+    if (typeof window === 'undefined') {
+      throw new Error('OpenAPILink is not allowed on the server side.')
+    }
+
+    return new URL('/api', window.location.href)
+  },
+})
+```
+
 ## SSE Like Behavior
 
 Unlike traditional SSE, the [Event Iterator](/docs/event-iterator) does not automatically retry on error. To enable automatic retries, refer to the [Client Retry Plugin](/docs/plugins/client-retry).

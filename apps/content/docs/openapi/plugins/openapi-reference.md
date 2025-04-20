@@ -8,7 +8,7 @@ description: A plugin that serves API reference documentation and the OpenAPI sp
 This plugin provides API reference documentation powered by [Scalar](https://github.com/scalar/scalar), along with the OpenAPI specification in JSON format.
 
 ::: info
-This plugin relies on the [OpenAPI Generator](/docs/openapi-generator). Please review its documentation before using this plugin.
+This plugin relies on the [OpenAPI Generator](/docs/openapi/openapi-specification). Please review its documentation before using this plugin.
 :::
 
 ## Setup

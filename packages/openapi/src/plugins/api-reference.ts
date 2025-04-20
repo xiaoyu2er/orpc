@@ -1,11 +1,10 @@
 import type { Context, HTTPPath, Router } from '@orpc/server'
 import type { StandardHandlerOptions, StandardHandlerPlugin } from '@orpc/server/standard'
 import type { OpenAPIGeneratorGenerateOptions, OpenAPIGeneratorOptions } from '../openapi-generator'
-import { standardizeHTTPPath } from '@orpc/openapi-client/standard'
 import { stringifyJSON } from '@orpc/shared'
 import { OpenAPIGenerator } from '../openapi-generator'
 
-export interface ScalarApiReferencePluginOptions extends OpenAPIGeneratorOptions {
+export interface ApiReferencePluginOptions extends OpenAPIGeneratorOptions {
   /**
    * Options to pass to the OpenAPI generate.
    *
@@ -58,18 +57,18 @@ export interface ScalarApiReferencePluginOptions extends OpenAPIGeneratorOptions
   ) => string
 }
 
-export class ScalarApiReferencePlugin<T extends Context> implements StandardHandlerPlugin<T> {
+export class ApiReferencePlugin<T extends Context> implements StandardHandlerPlugin<T> {
   private readonly generator: OpenAPIGenerator
-  private readonly specGenerateOptions: ScalarApiReferencePluginOptions['specGenerateOptions']
-  private readonly specPath: Exclude<ScalarApiReferencePluginOptions['specPath'], undefined>
-  private readonly docsPath: Exclude<ScalarApiReferencePluginOptions['docsPath'], undefined>
-  private readonly docsTitle: Exclude<ScalarApiReferencePluginOptions['docsTitle'], undefined>
-  private readonly docsHead: Exclude<ScalarApiReferencePluginOptions['docsHead'], undefined>
-  private readonly docsScriptUrl: Exclude<ScalarApiReferencePluginOptions['docsScriptUrl'], undefined>
-  private readonly docsConfig?: ScalarApiReferencePluginOptions['docsConfig']
-  private readonly renderDocsHtml: NonNullable<ScalarApiReferencePluginOptions['renderDocsHtml']>
+  private readonly specGenerateOptions: ApiReferencePluginOptions['specGenerateOptions']
+  private readonly specPath: Exclude<ApiReferencePluginOptions['specPath'], undefined>
+  private readonly docsPath: Exclude<ApiReferencePluginOptions['docsPath'], undefined>
+  private readonly docsTitle: Exclude<ApiReferencePluginOptions['docsTitle'], undefined>
+  private readonly docsHead: Exclude<ApiReferencePluginOptions['docsHead'], undefined>
+  private readonly docsScriptUrl: Exclude<ApiReferencePluginOptions['docsScriptUrl'], undefined>
+  private readonly docsConfig?: ApiReferencePluginOptions['docsConfig']
+  private readonly renderDocsHtml: NonNullable<ApiReferencePluginOptions['renderDocsHtml']>
 
-  constructor(options: ScalarApiReferencePluginOptions = {}) {
+  constructor(options: ApiReferencePluginOptions = {}) {
     this.specGenerateOptions = options.specGenerateOptions
     this.docsPath = options.docsPath ?? '/'
     this.docsTitle = options.docsTitle ?? 'API Reference'
@@ -79,7 +78,27 @@ export class ScalarApiReferencePlugin<T extends Context> implements StandardHand
     this.specPath = options.specPath ?? '/spec.json'
     this.generator = new OpenAPIGenerator(options)
 
-    this.renderDocsHtml = options.renderDocsHtml ?? this.defaultRenderHtml.bind(this)
+    const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+    this.renderDocsHtml = options.renderDocsHtml ?? ((specUrl, title, head, scriptUrl, config) => `
+      <!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <title>${esc(title)}</title>
+          ${head}
+        </head>
+        <body>
+          <script 
+              id="api-reference" 
+              data-url="${esc(specUrl)}"
+              ${config ? `data-configuration="${esc(stringifyJSON(config))}"` : ''}
+          ></script>
+          <script src="${esc(scriptUrl)}"></script>
+        </body>
+      </html>
+    `)
   }
 
   init(options: StandardHandlerOptions<T>, router: Router<any, T>): void {
@@ -94,10 +113,11 @@ export class ScalarApiReferencePlugin<T extends Context> implements StandardHand
       }
 
       const prefix = options.prefix ?? ''
-      const docsUrl = new URL(standardizeHTTPPath(`${prefix}${this.docsPath}`), options.request.url.origin)
-      const specUrl = new URL(standardizeHTTPPath(`${prefix}${this.specPath}`), options.request.url.origin)
+      const requestPathname = options.request.url.pathname.replace(/\/$/, '')
+      const docsUrl = new URL(`${prefix}${this.docsPath}`.replace(/\/$/, ''), options.request.url.origin)
+      const specUrl = new URL(`${prefix}${this.specPath}`.replace(/\/$/, ''), options.request.url.origin)
 
-      if (options.request.url.pathname === docsUrl.pathname) {
+      if (requestPathname === docsUrl.pathname) {
         const html = this.renderDocsHtml(
           specUrl.toString(),
           this.docsTitle,
@@ -116,7 +136,7 @@ export class ScalarApiReferencePlugin<T extends Context> implements StandardHand
         }
       }
 
-      if (options.request.url.pathname === specUrl.pathname) {
+      if (requestPathname === specUrl.pathname) {
         spec ??= await this.generator.generate(router, {
           servers: [{ url: new URL(prefix, options.request.url.origin).toString() }],
           ...this.specGenerateOptions,
@@ -134,35 +154,5 @@ export class ScalarApiReferencePlugin<T extends Context> implements StandardHand
 
       return res
     })
-  }
-
-  private defaultRenderHtml(
-    specUrl: string,
-    title: string,
-    head: string,
-    scriptUrl: string,
-    config?: object,
-  ): string {
-    const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-
-    return `
-        <!doctype html>
-        <html>
-            <head>
-                <meta charset="utf-8" />
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
-                <title>${esc(title)}</title>
-                ${head}
-            </head>
-            <body>
-                <script 
-                    id="api-reference" 
-                    data-url="${esc(specUrl)}"
-                    ${config ? ` data-configuration="${esc(stringifyJSON(config))}"` : ''}
-                ></script>
-                <script src="${esc(scriptUrl)}"></script>
-            </body>
-        </html>
-        `
   }
 }

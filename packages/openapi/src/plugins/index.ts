@@ -1,1 +1,1 @@
-export * from './scalar'
+export * from './api-reference'

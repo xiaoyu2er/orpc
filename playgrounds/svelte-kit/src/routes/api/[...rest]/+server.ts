@@ -3,7 +3,7 @@ import { router } from '../../../router'
 import { onError } from '@orpc/server'
 import type { RequestHandler } from '@sveltejs/kit'
 import { ZodSmartCoercionPlugin, ZodToJsonSchemaConverter } from '@orpc/zod'
-import { ScalarApiReferencePlugin } from '@orpc/openapi/plugins'
+import { ApiReferencePlugin } from '@orpc/openapi/plugins'
 import '../../../polyfill'
 
 const handler = new OpenAPIHandler(router, {
@@ -14,7 +14,7 @@ const handler = new OpenAPIHandler(router, {
   ],
   plugins: [
     new ZodSmartCoercionPlugin(),
-    new ScalarApiReferencePlugin({
+    new ApiReferencePlugin({
       schemaConverters: [
         new ZodToJsonSchemaConverter(),
       ],

@@ -53,7 +53,7 @@ export interface OpenAPIReferencePluginOptions extends OpenAPIGeneratorOptions {
     title: string,
     head: string,
     scriptUrl: string,
-    config?: object
+    config: object
   ) => string
 }
 
@@ -65,14 +65,14 @@ export class OpenAPIReferencePlugin<T extends Context> implements StandardHandle
   private readonly docsTitle: Exclude<OpenAPIReferencePluginOptions['docsTitle'], undefined>
   private readonly docsHead: Exclude<OpenAPIReferencePluginOptions['docsHead'], undefined>
   private readonly docsScriptUrl: Exclude<OpenAPIReferencePluginOptions['docsScriptUrl'], undefined>
-  private readonly docsConfig?: OpenAPIReferencePluginOptions['docsConfig']
+  private readonly docsConfig: Exclude<OpenAPIReferencePluginOptions['docsConfig'], undefined>
   private readonly renderDocsHtml: NonNullable<OpenAPIReferencePluginOptions['renderDocsHtml']>
 
   constructor(options: OpenAPIReferencePluginOptions = {}) {
     this.specGenerateOptions = options.specGenerateOptions
     this.docsPath = options.docsPath ?? '/'
     this.docsTitle = options.docsTitle ?? 'API Reference'
-    this.docsConfig = options.docsConfig
+    this.docsConfig = options.docsConfig ?? {}
     this.docsScriptUrl = options.docsScriptUrl ?? 'https://cdn.jsdelivr.net/npm/@scalar/api-reference'
     this.docsHead = options.docsHead ?? ''
     this.specPath = options.specPath ?? '/spec.json'
@@ -93,7 +93,7 @@ export class OpenAPIReferencePlugin<T extends Context> implements StandardHandle
           <script 
               id="api-reference" 
               data-url="${esc(specUrl)}"
-              ${config ? `data-configuration="${esc(stringifyJSON(config))}"` : ''}
+              data-configuration="${esc(stringifyJSON(config))}"
           ></script>
           <script src="${esc(scriptUrl)}"></script>
         </body>
@@ -108,14 +108,30 @@ export class OpenAPIReferencePlugin<T extends Context> implements StandardHandle
     options.interceptors.push(async (options) => {
       const res = await options.next()
 
-      if (res.matched) {
+      if (res.matched || options.request.method !== 'GET') {
         return res
       }
 
       const prefix = options.prefix ?? ''
-      const requestPathname = options.request.url.pathname.replace(/\/$/, '')
+      const requestPathname = options.request.url.pathname.replace(/\/$/, '') || '/'
       const docsUrl = new URL(`${prefix}${this.docsPath}`.replace(/\/$/, ''), options.request.url.origin)
       const specUrl = new URL(`${prefix}${this.specPath}`.replace(/\/$/, ''), options.request.url.origin)
+
+      if (requestPathname === specUrl.pathname) {
+        spec ??= await this.generator.generate(router, {
+          servers: [{ url: new URL(prefix, options.request.url.origin).toString() }],
+          ...this.specGenerateOptions,
+        })
+
+        return {
+          matched: true,
+          response: {
+            status: 200,
+            headers: {},
+            body: new File([stringifyJSON(spec)], 'spec.json', { type: 'application/json' }),
+          },
+        }
+      }
 
       if (requestPathname === docsUrl.pathname) {
         const html = this.renderDocsHtml(
@@ -132,22 +148,6 @@ export class OpenAPIReferencePlugin<T extends Context> implements StandardHandle
             status: 200,
             headers: {},
             body: new File([html], 'api-reference.html', { type: 'text/html' }),
-          },
-        }
-      }
-
-      if (requestPathname === specUrl.pathname) {
-        spec ??= await this.generator.generate(router, {
-          servers: [{ url: new URL(prefix, options.request.url.origin).toString() }],
-          ...this.specGenerateOptions,
-        })
-
-        return {
-          matched: true,
-          response: {
-            status: 200,
-            headers: {},
-            body: new File([stringifyJSON(spec)], 'spec.json', { type: 'application/json' }),
           },
         }
       }

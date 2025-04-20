@@ -184,6 +184,7 @@ export default defineConfig({
           text: 'Plugins',
           collapsed: true,
           items: [
+            { text: 'OpenAPI Reference (Swagger)', link: '/docs/openapi/plugins/openapi-reference' },
             { text: 'Zod Smart Coercion', link: '/docs/openapi/plugins/zod-smart-coercion' },
           ],
         },

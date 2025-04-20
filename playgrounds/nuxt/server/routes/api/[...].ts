@@ -2,7 +2,7 @@ import { OpenAPIHandler } from '@orpc/openapi/node'
 import { onError } from '@orpc/server'
 import { ZodSmartCoercionPlugin, ZodToJsonSchemaConverter } from '@orpc/zod'
 import { router } from '~/server/router'
-import { ApiReferencePlugin } from '@orpc/openapi/plugins'
+import { OpenAPIReferencePlugin } from '@orpc/openapi/plugins'
 
 const openAPIHandler = new OpenAPIHandler(router, {
   interceptors: [
@@ -12,7 +12,7 @@ const openAPIHandler = new OpenAPIHandler(router, {
   ],
   plugins: [
     new ZodSmartCoercionPlugin(),
-    new ApiReferencePlugin({
+    new OpenAPIReferencePlugin({
       schemaConverters: [
         new ZodToJsonSchemaConverter(),
       ],

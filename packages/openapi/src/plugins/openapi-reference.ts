@@ -4,7 +4,7 @@ import type { OpenAPIGeneratorGenerateOptions, OpenAPIGeneratorOptions } from '.
 import { stringifyJSON } from '@orpc/shared'
 import { OpenAPIGenerator } from '../openapi-generator'
 
-export interface ApiReferencePluginOptions extends OpenAPIGeneratorOptions {
+export interface OpenAPIReferencePluginOptions extends OpenAPIGeneratorOptions {
   /**
    * Options to pass to the OpenAPI generate.
    *
@@ -57,18 +57,18 @@ export interface ApiReferencePluginOptions extends OpenAPIGeneratorOptions {
   ) => string
 }
 
-export class ApiReferencePlugin<T extends Context> implements StandardHandlerPlugin<T> {
+export class OpenAPIReferencePlugin<T extends Context> implements StandardHandlerPlugin<T> {
   private readonly generator: OpenAPIGenerator
-  private readonly specGenerateOptions: ApiReferencePluginOptions['specGenerateOptions']
-  private readonly specPath: Exclude<ApiReferencePluginOptions['specPath'], undefined>
-  private readonly docsPath: Exclude<ApiReferencePluginOptions['docsPath'], undefined>
-  private readonly docsTitle: Exclude<ApiReferencePluginOptions['docsTitle'], undefined>
-  private readonly docsHead: Exclude<ApiReferencePluginOptions['docsHead'], undefined>
-  private readonly docsScriptUrl: Exclude<ApiReferencePluginOptions['docsScriptUrl'], undefined>
-  private readonly docsConfig?: ApiReferencePluginOptions['docsConfig']
-  private readonly renderDocsHtml: NonNullable<ApiReferencePluginOptions['renderDocsHtml']>
+  private readonly specGenerateOptions: OpenAPIReferencePluginOptions['specGenerateOptions']
+  private readonly specPath: Exclude<OpenAPIReferencePluginOptions['specPath'], undefined>
+  private readonly docsPath: Exclude<OpenAPIReferencePluginOptions['docsPath'], undefined>
+  private readonly docsTitle: Exclude<OpenAPIReferencePluginOptions['docsTitle'], undefined>
+  private readonly docsHead: Exclude<OpenAPIReferencePluginOptions['docsHead'], undefined>
+  private readonly docsScriptUrl: Exclude<OpenAPIReferencePluginOptions['docsScriptUrl'], undefined>
+  private readonly docsConfig?: OpenAPIReferencePluginOptions['docsConfig']
+  private readonly renderDocsHtml: NonNullable<OpenAPIReferencePluginOptions['renderDocsHtml']>
 
-  constructor(options: ApiReferencePluginOptions = {}) {
+  constructor(options: OpenAPIReferencePluginOptions = {}) {
     this.specGenerateOptions = options.specGenerateOptions
     this.docsPath = options.docsPath ?? '/'
     this.docsTitle = options.docsTitle ?? 'API Reference'

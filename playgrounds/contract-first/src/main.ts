@@ -4,7 +4,7 @@ import { onError } from '@orpc/server'
 import { RPCHandler } from '@orpc/server/node'
 import { ZodSmartCoercionPlugin, ZodToJsonSchemaConverter } from '@orpc/zod'
 import { router } from './router'
-import { ApiReferencePlugin } from '@orpc/openapi/plugins'
+import { OpenAPIReferencePlugin } from '@orpc/openapi/plugins'
 import './polyfill'
 
 const openAPIHandler = new OpenAPIHandler(router, {
@@ -15,7 +15,7 @@ const openAPIHandler = new OpenAPIHandler(router, {
   ],
   plugins: [
     new ZodSmartCoercionPlugin(),
-    new ApiReferencePlugin({
+    new OpenAPIReferencePlugin({
       schemaConverters: [
         new ZodToJsonSchemaConverter(),
       ],

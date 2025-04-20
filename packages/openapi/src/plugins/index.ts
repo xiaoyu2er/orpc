@@ -1,1 +1,1 @@
-export * from './api-reference'
+export * from './openapi-reference'

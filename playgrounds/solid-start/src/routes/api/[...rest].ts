@@ -1,9 +1,10 @@
 import type { APIEvent } from '@solidjs/start/server'
 import { OpenAPIHandler } from '@orpc/openapi/fetch'
 import { router } from '~/router'
-import { ZodSmartCoercionPlugin } from '@orpc/zod'
-import '~/polyfill'
+import { ZodSmartCoercionPlugin, ZodToJsonSchemaConverter } from '@orpc/zod'
 import { onError } from '@orpc/server'
+import { ScalarApiReferencePlugin } from '@orpc/openapi/plugins'
+import '~/polyfill'
 
 const handler = new OpenAPIHandler(router, {
   interceptors: [
@@ -13,6 +14,26 @@ const handler = new OpenAPIHandler(router, {
   ],
   plugins: [
     new ZodSmartCoercionPlugin(),
+    new ScalarApiReferencePlugin({
+      schemaConverters: [
+        new ZodToJsonSchemaConverter(),
+      ],
+      specGenerateOptions: {
+        info: {
+          title: 'ORPC Playground',
+          version: '1.0.0',
+        },
+        security: [{ bearerAuth: [] }],
+        components: {
+          securitySchemes: {
+            bearerAuth: {
+              type: 'http',
+              scheme: 'bearer',
+            },
+          },
+        },
+      },
+    }),
   ],
 })
 

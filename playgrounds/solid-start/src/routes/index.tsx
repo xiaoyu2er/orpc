@@ -8,7 +8,7 @@ export default function Home() {
       <p>
         You can visit the
         {' '}
-        <a href="/scalar">Scalar API Reference</a>
+        <a href="/api">Scalar API Reference</a>
         {' '}
         page.
       </p>

@@ -1,7 +1,8 @@
 import { OpenAPIHandler } from '@orpc/openapi/node'
 import { onError } from '@orpc/server'
-import { ZodSmartCoercionPlugin } from '@orpc/zod'
+import { ZodSmartCoercionPlugin, ZodToJsonSchemaConverter } from '@orpc/zod'
 import { router } from '~/server/router'
+import { ScalarApiReferencePlugin } from '@orpc/openapi/plugins'
 
 const openAPIHandler = new OpenAPIHandler(router, {
   interceptors: [
@@ -11,6 +12,26 @@ const openAPIHandler = new OpenAPIHandler(router, {
   ],
   plugins: [
     new ZodSmartCoercionPlugin(),
+    new ScalarApiReferencePlugin({
+      schemaConverters: [
+        new ZodToJsonSchemaConverter(),
+      ],
+      specGenerateOptions: {
+        info: {
+          title: 'ORPC Playground',
+          version: '1.0.0',
+        },
+        security: [{ bearerAuth: [] }],
+        components: {
+          securitySchemes: {
+            bearerAuth: {
+              type: 'http',
+              scheme: 'bearer',
+            },
+          },
+        },
+      },
+    }),
   ],
 })
 

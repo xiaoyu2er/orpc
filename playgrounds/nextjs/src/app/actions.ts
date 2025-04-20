@@ -31,7 +31,7 @@ const dosomething = pub
 export const redirectToScalarForm = createFormAction(dosomething, {
   interceptors: [
     onSuccess(async () => {
-      redirect('/scalar')
+      redirect('/api')
     }),
   ],
 })

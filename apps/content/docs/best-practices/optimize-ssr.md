@@ -49,7 +49,13 @@ declare global {
 }
 
 const link = new RPCLink({
-  url: new URL('/rpc', typeof window !== 'undefined' ? window.location.href : 'http://localhost:3000'),
+  url: () => {
+    if (typeof window === 'undefined') {
+      throw new Error('RPCLink is not allowed on the server side.')
+    }
+
+    return new URL('/rpc', window.location.href)
+  },
 })
 
 /**

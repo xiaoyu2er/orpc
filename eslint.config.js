@@ -46,6 +46,7 @@ export default antfu({
     'ban/ban': 'off',
     'no-var': 'off',
     'vars-on-top': 'off',
+    'unicorn/prefer-type-error': 'off',
   },
 }, {
   files: ['apps/content/examples/**'],

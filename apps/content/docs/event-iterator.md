@@ -42,7 +42,11 @@ const example = os
 
 ## Last Event ID & Event Metadata
 
-Using the `withEventMeta` helper, you can attach [additional event meta](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#event_stream_format) (such as an event ID or a retry interval) to each event. On reconnect, oRPC passes the last event ID back to the handler so you can resume the stream appropriately.
+Using the `withEventMeta` helper, you can attach [additional event meta](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#event_stream_format) (such as an event ID or a retry interval) to each event.
+
+::: info
+When used with [Client Retry Plugin](/docs/plugins/client-retry) or [EventSource](https://developer.mozilla.org/en-US/docs/Web/API/EventSource), the client will reconnect with the last event ID. This value is made available to your handler as `lastEventId`, allowing you to resume the stream seamlessly.
+:::
 
 ```ts
 import { withEventMeta } from '@orpc/server'
@@ -63,7 +67,11 @@ const example = os
 
 ## Stop Event Iterator
 
-To signal the end of the stream, simply use a `return` statement. When the handler returns, oRPC marks the stream as successfully completed and does not attempt to reconnect.
+To signal the end of the stream, simply use a `return` statement. When the handler returns, oRPC marks the stream as successfully completed.
+
+:::warning
+This behavior is exclusive to oRPC. Standard [SSE](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events) clients, such as those using [EventSource](https://developer.mozilla.org/en-US/docs/Web/API/EventSource) will automatically reconnect when the connection closes.
+:::
 
 ```ts
 const example = os

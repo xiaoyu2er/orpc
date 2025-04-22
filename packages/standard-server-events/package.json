@@ -1,0 +1,39 @@
+{
+  "name": "@orpc/standard-server-events",
+  "type": "module",
+  "version": "1.0.3",
+  "license": "MIT",
+  "homepage": "https://unnoq.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unnoq/orpc.git",
+    "directory": "packages/standard-server-events"
+  },
+  "keywords": [
+    "orpc"
+  ],
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.mts",
+        "import": "./dist/index.mjs",
+        "default": "./dist/index.mjs"
+      }
+    }
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "unbuild",
+    "build:watch": "pnpm run build --watch",
+    "type:check": "tsc -b"
+  },
+  "dependencies": {
+    "@orpc/shared": "workspace:*",
+    "@orpc/standard-server": "workspace:*"
+  }
+}

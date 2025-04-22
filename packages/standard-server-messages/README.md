@@ -8,8 +8,8 @@
   <a href="https://codecov.io/gh/unnoq/orpc">
     <img alt="codecov" src="https://codecov.io/gh/unnoq/orpc/branch/main/graph/badge.svg">
   </a>
-  <a href="https://www.npmjs.com/package/@orpc/standard-server-events">
-    <img alt="weekly downloads" src="https://img.shields.io/npm/dw/%40orpc%2Fstandard-server-events?logo=npm" />
+  <a href="https://www.npmjs.com/package/@orpc/standard-server-messages">
+    <img alt="weekly downloads" src="https://img.shields.io/npm/dw/%40orpc%2Fstandard-server-messages?logo=npm" />
   </a>
   <a href="https://github.com/unnoq/orpc/blob/main/LICENSE">
     <img alt="MIT License" src="https://img.shields.io/github/license/unnoq/orpc?logo=open-source-initiative" />
@@ -62,7 +62,7 @@ You can find the full documentation [here](https://orpc.unnoq.com).
 
 ## `@orpc/standard-server-events`
 
-Event based (Websocket, ...) server adapter for oRPC.
+Message based (Websocket, ...) server adapter for oRPC.
 
 ## Sponsors
 

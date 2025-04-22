@@ -36,9 +36,9 @@ describe('openAPIReferencePlugin', () => {
       servers: [{ url: 'http://localhost:3000/' }],
     })
 
-    const { matched } = await handler.handle(new Request('http://localhost:3000/not_found'))
-
-    expect(matched).toBe(false)
+    expect(
+      await handler.handle(new Request('http://localhost:3000/not_found')),
+    ).toEqual({ matched: false })
   })
 
   it('serve docs and spec endpoints with prefix', async () => {
@@ -69,11 +69,23 @@ describe('openAPIReferencePlugin', () => {
       servers: [{ url: 'http://localhost:3000/api' }],
     })
 
-    const { matched } = await handler.handle(new Request('http://localhost:3000/api/not_found'), {
-      prefix: '/api',
-    })
+    expect(
+      await handler.handle(new Request('http://localhost:3000'), {
+        prefix: '/api',
+      }),
+    ).toEqual({ matched: false })
 
-    expect(matched).toBe(false)
+    expect(
+      await handler.handle(new Request('http://localhost:3000/spec.json'), {
+        prefix: '/api',
+      }),
+    ).toEqual({ matched: false })
+
+    expect(
+      await handler.handle(new Request('http://localhost:3000/api/not_found'), {
+        prefix: '/api',
+      }),
+    ).toEqual({ matched: false })
   })
 
   it('not serve docs and spec endpoints if procedure matched', async () => {
@@ -98,5 +110,22 @@ describe('openAPIReferencePlugin', () => {
 
     const { matched } = await handler.handle(new Request('http://localhost:3000/not_found'))
     expect(matched).toBe(false)
+  })
+
+  it('with config', async () => {
+    const handler = new OpenAPIHandler(router, {
+      plugins: [
+        new OpenAPIReferencePlugin({
+          schemaConverters: [jsonSchemaConverter],
+          docsConfig: async () => ({ foo: '__SOME_VALUE__' }),
+        }),
+      ],
+    })
+
+    const { response } = await handler.handle(new Request('http://localhost:3000'))
+
+    expect(response!.status).toBe(200)
+    expect(response!.headers.get('content-type')).toBe('text/html')
+    expect(await response!.text()).toContain('__SOME_VALUE__')
   })
 })

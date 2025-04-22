@@ -110,7 +110,6 @@ export class OpenAPIReferencePlugin<T extends Context> implements StandardHandle
 
   init(options: StandardHandlerOptions<T>, router: Router<any, T>): void {
     options.interceptors ??= []
-    let spec: Awaited<ReturnType<typeof this.generator.generate>>
 
     options.interceptors.push(async (options) => {
       const res = await options.next()
@@ -125,7 +124,7 @@ export class OpenAPIReferencePlugin<T extends Context> implements StandardHandle
       const specUrl = new URL(`${prefix}${this.specPath}`.replace(/\/$/, ''), options.request.url.origin)
 
       if (requestPathname === specUrl.pathname) {
-        spec ??= await this.generator.generate(router, {
+        const spec = await this.generator.generate(router, {
           servers: [{ url: new URL(prefix, options.request.url.origin).toString() }],
           ...await value(this.specGenerateOptions, options),
         })

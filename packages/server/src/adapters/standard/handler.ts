@@ -60,7 +60,7 @@ export class StandardHandler<T extends Context> {
   ) {
     const plugins = new CompositeStandardHandlerPlugin(options.plugins)
 
-    plugins.init(options)
+    plugins.init(options, router)
 
     this.interceptors = toArray(options.interceptors)
     this.clientInterceptors = toArray(options.clientInterceptors)

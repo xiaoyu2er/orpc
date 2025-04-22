@@ -337,7 +337,7 @@ describe('standardHandler', () => {
     const handler = new StandardHandler(router, matcher, codec, options)
 
     expect(init).toHaveBeenCalledOnce()
-    expect(init).toHaveBeenCalledWith(options)
+    expect(init).toHaveBeenCalledWith(options, router)
   })
 
   describe('prefix', () => {

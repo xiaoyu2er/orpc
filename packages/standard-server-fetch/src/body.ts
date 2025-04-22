@@ -5,7 +5,11 @@ import { generateContentDisposition, getFilenameFromContentDisposition } from '@
 import { toEventIterator, toEventStream } from './event-iterator'
 
 export async function toStandardBody(re: Request | Response): Promise<StandardBody> {
-  if (!re.body) {
+  /**
+   * In native environments like React Native, the body may be `undefined` due to lack of streaming support.
+   * Therefore, we explicitly check for `null` to indicate an intentionally empty body.
+   */
+  if (re.body === null) {
     return undefined
   }
 

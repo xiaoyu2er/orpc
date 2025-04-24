@@ -96,3 +96,21 @@ export const updatePlanet = authed
 
     return context.db.planets.update(input)
   })
+
+export default {
+  nested: {
+    list: listPlanets,
+    create: createPlanet,
+    find: findPlanet,
+    update: updatePlanet,
+    nested: {
+      list: listPlanets,
+      create: createPlanet,
+      find: findPlanet,
+      update: updatePlanet,
+    },
+  },
+  create: createPlanet,
+  find: findPlanet,
+  update: updatePlanet,
+}

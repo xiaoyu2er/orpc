@@ -1,5 +1,5 @@
+import { pub } from '@/orpc'
 import { me, signin, signup } from './auth'
-import { createPlanet, findPlanet, listPlanets, updatePlanet } from './planet'
 import { sse } from './sse'
 
 export const router = {
@@ -9,12 +9,7 @@ export const router = {
     me,
   },
 
-  planet: {
-    list: listPlanets,
-    create: createPlanet,
-    find: findPlanet,
-    update: updatePlanet,
-  },
+  planet: pub.lazy(() => import('./planet')),
 
   sse,
 }

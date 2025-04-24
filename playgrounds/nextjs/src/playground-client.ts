@@ -6,7 +6,7 @@ const token = await orpc.auth.signin({
   password: '123456',
 })
 
-const [error, planet, isDefined] = await safe(orpc.planet.update({ id: 1, name: 'Earth', description: 'The planet Earth' }))
+const [error, planet, isDefined] = await safe(orpc.planet.nested.update({ id: 1, name: 'Earth', description: 'The planet Earth' }))
 
 if (error) {
   if (isDefined) {

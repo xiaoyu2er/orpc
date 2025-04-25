@@ -9,7 +9,7 @@ export enum MessageType {
   ABORT_SIGNAL = 4,
 }
 
-export type RawMessage = string | ArrayBuffer | Blob | ArrayBufferView
+export type RawMessage = string | ArrayBufferLike | Blob
 
 export type EventIteratorEvent = 'message' | 'error' | 'done'
 
@@ -326,11 +326,7 @@ async function decodeRawMessage(raw: RawMessage): Promise<{ json: any, blobData?
     return { json: JSON.parse(raw) }
   }
 
-  const fullBuffer = raw instanceof Blob
-    ? await raw.arrayBuffer()
-    : raw instanceof ArrayBuffer
-      ? raw
-      : raw.buffer.slice(raw.byteOffset, raw.byteOffset + raw.byteLength)
+  const fullBuffer = raw instanceof Blob ? await raw.arrayBuffer() : raw
 
   const jsonLength = bufferToNumber(fullBuffer.slice(0, JSON_LENGTH_PREFIX_BYTES))
   const jsonEndIndex = JSON_LENGTH_PREFIX_BYTES + jsonLength

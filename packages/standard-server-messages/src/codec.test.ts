@@ -214,40 +214,6 @@ describe('encode/decode request message', () => {
       expect(await (payload as any).body.get('file').text()).toBe('foo')
     })
 
-    it('formData with message is ArrayBufferView', async () => {
-      const formData = new FormData()
-      formData.append('a', '1')
-      formData.append('b', '2')
-      formData.append('file', new File(['foo'], 'some-name.pdf', { type: 'application/pdf' }))
-
-      const message = await encodeRequestMessage(198, MessageType.REQUEST, {
-        url,
-        headers,
-        method,
-        body: formData,
-      })
-
-      expect(message).toBeInstanceOf(Blob)
-
-      const [id, type, payload] = await decodeRequestMessage(new DataView(await (message as any).arrayBuffer()))
-
-      expect(id).toBe(198)
-      expect(type).toBe(MessageType.REQUEST)
-      expect(payload).toEqual({
-        url,
-        headers: {
-          ...headers,
-          'content-type': expect.stringContaining('multipart/form-data'),
-        },
-        method,
-        body: formData,
-      })
-
-      expect(await (payload as any).body.get('a')).toBe('1')
-      expect(await (payload as any).body.get('b')).toBe('2')
-      expect(await (payload as any).body.get('file').text()).toBe('foo')
-    })
-
     describe.each([
       ['application/x-www-form-urlencoded'],
       ['application/json'],
@@ -592,38 +558,6 @@ describe('encode/decode response message', () => {
       expect(message).toBeInstanceOf(Blob)
 
       const [id, type, payload] = await decodeResponseMessage(await (message as any).arrayBuffer())
-
-      expect(id).toBe(198)
-      expect(type).toBe(MessageType.RESPONSE)
-      expect(payload).toEqual({
-        status,
-        headers: {
-          ...headers,
-          'content-type': expect.stringContaining('multipart/form-data'),
-        },
-        body: formData,
-      })
-
-      expect(await (payload as any).body.get('a')).toBe('1')
-      expect(await (payload as any).body.get('b')).toBe('2')
-      expect(await (payload as any).body.get('file').text()).toBe('foo')
-    })
-
-    it('formData with message is ArrayBufferView', async () => {
-      const formData = new FormData()
-      formData.append('a', '1')
-      formData.append('b', '2')
-      formData.append('file', new File(['foo'], 'some-name.pdf', { type: 'application/pdf' }))
-
-      const message = await encodeResponseMessage(198, MessageType.RESPONSE, {
-        status,
-        headers,
-        body: formData,
-      })
-
-      expect(message).toBeInstanceOf(Blob)
-
-      const [id, type, payload] = await decodeResponseMessage(new DataView(await (message as any).arrayBuffer()))
 
       expect(id).toBe(198)
       expect(type).toBe(MessageType.RESPONSE)

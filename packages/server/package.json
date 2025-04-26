@@ -66,6 +66,7 @@
     "@orpc/standard-server-node": "workspace:*"
   },
   "devDependencies": {
+    "next": "^15.3.0",
     "supertest": "^7.1.0"
   }
 }

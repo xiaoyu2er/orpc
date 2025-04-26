@@ -16,19 +16,19 @@ export type EventIteratorEvent = 'message' | 'error' | 'done'
 export interface EventIteratorPayload {
   event: EventIteratorEvent
   data: unknown
-  meta: EventMeta
+  meta?: EventMeta
 }
 
 export interface RequestMessageMap {
   [MessageType.REQUEST]: Omit<StandardRequest, 'signal'>
   [MessageType.EVENT_ITERATOR]: EventIteratorPayload
-  [MessageType.ABORT_SIGNAL]: undefined
+  [MessageType.ABORT_SIGNAL]: void
 }
 
 export interface ResponseMessageMap {
   [MessageType.RESPONSE]: StandardResponse
   [MessageType.EVENT_ITERATOR]: EventIteratorPayload
-  [MessageType.ABORT_SIGNAL]: undefined
+  [MessageType.ABORT_SIGNAL]: void
 }
 
 interface BaseMessageFormat<P = unknown> {
@@ -45,7 +45,7 @@ interface BaseMessageFormat<P = unknown> {
 interface SerializedEventIteratorPayload {
   e: EventIteratorEvent
   d: unknown
-  m: EventMeta
+  m?: EventMeta
 }
 
 interface SerializedRequestPayload {

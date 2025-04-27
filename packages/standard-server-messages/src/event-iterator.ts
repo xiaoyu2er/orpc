@@ -63,6 +63,10 @@ export async function sendEventIterator(
         data: value,
         meta: getEventMeta(value),
       })
+
+      if (done) {
+        return
+      }
     }
   }
   catch (err) {

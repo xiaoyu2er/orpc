@@ -16,35 +16,42 @@ export function createAsyncIteratorObject<T, TReturn, TNext>(
   next: () => Promise<IteratorResult<T, TReturn>>,
   options: CreateAsyncIteratorObjectOptions = {},
 ): AsyncIteratorObject<T, TReturn, TNext> & AsyncGenerator<T, TReturn, TNext> {
+  let isExecuteComplete = false
+
   const iterator: AsyncIteratorObject<T, TReturn, TNext> & AsyncGenerator<T, TReturn, TNext> = {
     async next() {
-      let isCompleteCalled = false
+      let isDone = false
 
       try {
         const result = await next()
 
-        if (result.done && !isCompleteCalled) {
-          isCompleteCalled = true
-          await options.onComplete?.('next')
+        if (result.done) {
+          isDone = true
         }
 
         return result
       }
       catch (err) {
-        if (!isCompleteCalled) {
-          isCompleteCalled = true
+        isDone = true
+        throw err
+      }
+      finally {
+        if (isDone && !isExecuteComplete) {
+          isExecuteComplete = true
           await options.onComplete?.('next')
         }
-
-        throw err
       }
     },
     async return(value) {
-      await options.onComplete?.('return')
+      if (!isExecuteComplete) {
+        await options.onComplete?.('return')
+      }
       return { done: true, value } as any
     },
     async throw(err) {
-      await options.onComplete?.('throw')
+      if (!isExecuteComplete) {
+        await options.onComplete?.('throw')
+      }
       throw err
     },
     [Symbol.asyncIterator]() {

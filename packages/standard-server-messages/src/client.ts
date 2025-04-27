@@ -62,7 +62,10 @@ export class MessageClient {
     this.serverResponseQueue.open(id)
 
     signal?.addEventListener('abort', () => {
-      this.clientSignalQueue.push(id)
+      if (this.serverSignalQueue.isOpen(id)) {
+        this.clientSignalQueue.push(id)
+      }
+
       this.close(id, signal.reason)
     }, { once: true })
 
@@ -87,12 +90,12 @@ export class MessageClient {
     const [id, type, payload] = await decodeResponseMessage(raw)
 
     if (type === MessageType.EVENT_ITERATOR) {
-      this.clientEventIteratorQueue.push(id, payload)
+      this.serverEventIterator.push(id, payload)
       return
     }
 
     if (type === MessageType.ABORT_SIGNAL) {
-      this.clientSignalQueue.push(id, payload)
+      this.serverSignalQueue.push(id, payload)
       return
     }
 

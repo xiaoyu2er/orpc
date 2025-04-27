@@ -90,17 +90,17 @@ export class MessageServer {
     if (isAsyncIteratorObject(response.body)) {
       await sendEventIterator(this.serverEventIteratorQueue, id, response.body, {
         onComplete: () => {
-          // this.close(id)
+          this.close(id)
         },
       })
     }
     else {
-      // this.close(id)
+      this.close(id)
     }
   }
 
   close(id?: number, reason?: any): void {
-    if (id) {
+    if (id !== undefined) {
       this.serverResponseQueue.close(id)
       this.serverEventIteratorQueue.close(id)
       this.serverResponseQueue.close(id)

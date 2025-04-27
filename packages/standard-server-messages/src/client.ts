@@ -120,7 +120,7 @@ export class MessageClient {
   }
 
   close(id?: number, reason?: any): void {
-    if (id) {
+    if (id !== undefined) {
       this.clientRequestQueue.close(id)
       this.clientEventIteratorQueue.close(id)
       this.clientSignalQueue.close(id)

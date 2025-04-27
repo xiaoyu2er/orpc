@@ -52,7 +52,7 @@ interface SerializedRequestPayload {
   /**
    * The url of the request
    *
-   * might be relative path if it starts with `orpc://`
+   * might be relative path if it starts with `orpc:/`
    */
   u: string
 
@@ -126,7 +126,6 @@ export async function encodeRequestMessage<T extends keyof RequestMessageMap>(
 
   const baseMessage: BaseMessageFormat<SerializedRequestPayload> = {
     i: id,
-    t: type === MessageType.REQUEST ? undefined : type,
     p: serializedPayload,
   }
 
@@ -191,11 +190,11 @@ export async function encodeResponseMessage<T extends keyof ResponseMessageMap>(
       d: eventPayload.data,
       m: eventPayload.meta,
     }
-    return stringifyJSON({ i: id, t: type, p: serializedPayload })
+    return encodeRawMessage({ i: id, t: type, p: serializedPayload })
   }
 
   if (type === MessageType.ABORT_SIGNAL) {
-    return stringifyJSON({ i: id, t: type, p: undefined })
+    return encodeRawMessage({ i: id, t: type, p: undefined })
   }
 
   const response = payload as StandardResponse
@@ -212,18 +211,14 @@ export async function encodeResponseMessage<T extends keyof ResponseMessageMap>(
 
   const baseMessage: BaseMessageFormat<SerializedResponsePayload> = {
     i: id,
-    t: type === MessageType.RESPONSE ? undefined : type, // Explicitly undefined for default
     p: serializedPayload,
   }
-  const jsonPart = stringifyJSON(baseMessage)
 
   if (processedBody instanceof Blob) {
-    const jsonBuffer = new TextEncoder().encode(jsonPart)
-    const lengthBuffer = numberToBuffer(jsonBuffer.length)
-    return new Blob([lengthBuffer, jsonBuffer, processedBody])
+    return encodeRawMessage(baseMessage, processedBody)
   }
 
-  return jsonPart
+  return encodeRawMessage(baseMessage)
 }
 
 export async function decodeResponseMessage(raw: RawMessage): Promise<DecodedResponseMessage> {
@@ -308,47 +303,65 @@ async function prepareBodyAndHeadersForSerialization(
   return { body, headers }
 }
 
+/**
+ * A 16-byte sentinel of 0xFF values guaranteed never to collide with UTF-8 JSON text,
+ * since TextEncoder.encode never emits 0xFF (it's invalid in UTF-8).
+ * We use this as an unambiguous boundary between the JSON payload and any appended binary data.
+ */
+const JSON_AND_BINARY_DELIMITER = new Uint8Array(16).fill(0xFF)
+
 async function encodeRawMessage(data: object, blobData?: Blob): Promise<RawMessage> {
   const json = stringifyJSON(data)
+
   if (blobData === undefined) {
     return json
   }
 
-  const jsonBuffer = new TextEncoder().encode(json)
-  const lengthBuffer = numberToBuffer(jsonBuffer.length)
-  return new Blob([lengthBuffer, jsonBuffer, blobData])
+  return new Blob([
+    new TextEncoder().encode(json),
+    JSON_AND_BINARY_DELIMITER,
+    blobData,
+  ])
 }
-
-const JSON_LENGTH_PREFIX_BYTES = 8
 
 async function decodeRawMessage(raw: RawMessage): Promise<{ json: any, blobData?: ArrayBuffer }> {
   if (typeof raw === 'string') {
     return { json: JSON.parse(raw) }
   }
 
-  const fullBuffer = raw instanceof Blob ? await raw.arrayBuffer() : raw
+  const buffer = new Uint8Array(raw instanceof Blob ? await raw.arrayBuffer() : raw)
 
-  const jsonLength = bufferToNumber(fullBuffer.slice(0, JSON_LENGTH_PREFIX_BYTES))
-  const jsonEndIndex = JSON_LENGTH_PREFIX_BYTES + jsonLength
+  const delimiterIndex = findDelimiterIndex(buffer, JSON_AND_BINARY_DELIMITER)
 
-  const jsonPart = new TextDecoder().decode(fullBuffer.slice(JSON_LENGTH_PREFIX_BYTES, jsonEndIndex))
-  const blobData = fullBuffer.slice(jsonEndIndex)
+  if (delimiterIndex === -1) {
+    const jsonPart = new TextDecoder().decode(buffer)
+    return { json: JSON.parse(jsonPart) }
+  }
+
+  const jsonPart = new TextDecoder().decode(buffer.slice(0, delimiterIndex))
+  const blobData = buffer.slice(delimiterIndex + JSON_AND_BINARY_DELIMITER.length)
 
   return {
     json: JSON.parse(jsonPart),
-    blobData: blobData.byteLength > 0 ? blobData : undefined,
+    blobData,
   }
 }
 
-function numberToBuffer(num: number): ArrayBuffer {
-  const buffer = new ArrayBuffer(JSON_LENGTH_PREFIX_BYTES)
-  const view = new DataView(buffer)
-  view.setBigUint64(0, BigInt(num))
-  return buffer
-}
+function findDelimiterIndex(buffer: Uint8Array, delimiter: Uint8Array): number {
+  for (let i = 0; i <= buffer.length - delimiter.length; i++) {
+    let found = true
 
-function bufferToNumber(buffer: ArrayBuffer): number {
-  const view = new DataView(buffer)
-  const bigIntValue = view.getBigUint64(0)
-  return Number(bigIntValue)
+    for (let j = 0; j < delimiter.length; j++) {
+      if (buffer[i + j] !== delimiter[j]) {
+        found = false
+        break
+      }
+    }
+
+    if (found) {
+      return i
+    }
+  }
+
+  return -1
 }

@@ -50,6 +50,7 @@ describe('encode/decode request message', () => {
 
   describe.each([
     ['GET', new URL('orpc://example.com/api/v1/users/1?a=1&b=2'), {}],
+    ['GET', new URL('orpc:///example.com/api/v1/users/1?a=1&b=2'), {}],
     ['GET', new URL('orpc:/api/v1/users/1?a=1&b=2'), {}],
     ['GET', new URL('orpc://api/v1/users/1?a=1&b=2'), {}],
     ['GET', new URL('https://example.com/api/v1/users/1?a=1&b=2'), {}],
@@ -89,6 +90,28 @@ describe('encode/decode request message', () => {
       expect(message).toBeTypeOf('string')
 
       const [id, type, payload] = await decodeRequestMessage(message)
+
+      expect(id).toBe(198)
+      expect(type).toBe(MessageType.REQUEST)
+      expect(payload).toEqual({
+        url,
+        headers,
+        method,
+        body: { value: 1 },
+      })
+    })
+
+    it('json buffer', async () => {
+      const message = await encodeRequestMessage(198, MessageType.REQUEST, {
+        url,
+        headers,
+        method,
+        body: { value: 1 },
+      })
+
+      expect(message).toBeTypeOf('string')
+
+      const [id, type, payload] = await decodeRequestMessage(new TextEncoder().encode(message as string))
 
       expect(id).toBe(198)
       expect(type).toBe(MessageType.REQUEST)
@@ -459,6 +482,26 @@ describe('encode/decode response message', () => {
       expect(message).toBeTypeOf('string')
 
       const [id, type, payload] = await decodeResponseMessage(message)
+
+      expect(id).toBe(198)
+      expect(type).toBe(MessageType.RESPONSE)
+      expect(payload).toEqual({
+        status,
+        headers,
+        body: { value: 1 },
+      })
+    })
+
+    it('json buffer', async () => {
+      const message = await encodeResponseMessage(198, MessageType.RESPONSE, {
+        status,
+        headers,
+        body: { value: 1 },
+      })
+
+      expect(message).toBeTypeOf('string')
+
+      const [id, type, payload] = await decodeResponseMessage(new TextEncoder().encode(message as string))
 
       expect(id).toBe(198)
       expect(type).toBe(MessageType.RESPONSE)

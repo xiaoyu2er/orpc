@@ -17,7 +17,6 @@ export class MessageServer {
 
   constructor(
     send: (message: RawMessage) => void,
-    private readonly execute: (request: StandardRequest) => Promise<StandardResponse>,
   ) {
     this.serverSignalQueue = new ConsumableAsyncIdQueue((id, payload) => {
       encodeResponseMessage(id, MessageType.ABORT_SIGNAL, payload)
@@ -44,17 +43,17 @@ export class MessageServer {
     })
   }
 
-  async message(raw: RawMessage): Promise<void> {
+  async message(raw: RawMessage): Promise<[id: number, StandardRequest | undefined]> {
     const [id, type, payload] = await decodeRequestMessage(raw)
 
     if (type === MessageType.ABORT_SIGNAL) {
       this.clientSignalQueue.push(id, payload)
-      return
+      return [id, undefined]
     }
 
     if (type === MessageType.EVENT_ITERATOR) {
       this.clientEventIteratorQueue.push(id, payload)
-      return
+      return [id, undefined]
     }
 
     this.serverSignalQueue.open(id)
@@ -82,29 +81,21 @@ export class MessageServer {
         : payload.body,
     }
 
-    const response = await this.execute(request).catch((err) => {
-      this.serverResponseQueue.push(id, {
-        status: 500,
-        headers: {},
-        body: 'Internal Server Error',
-      })
+    return [id, request]
+  }
 
-      this.close(id, err)
-
-      throw err
-    })
-
+  async response(id: number, response: StandardResponse): Promise<void> {
     this.serverResponseQueue.push(id, response)
 
     if (isAsyncIteratorObject(response.body)) {
-      sendEventIterator(this.serverEventIteratorQueue, id, response.body, {
+      await sendEventIterator(this.serverEventIteratorQueue, id, response.body, {
         onComplete: () => {
-          this.close(id)
+          // this.close(id)
         },
       })
     }
     else {
-      this.close(id)
+      // this.close(id)
     }
   }
 

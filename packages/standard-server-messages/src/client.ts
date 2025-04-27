@@ -114,6 +114,7 @@ export class MessageClient {
       })
     }
     else {
+      this.serverResponseQueue.push(id, payload)
       this.close(id)
     }
   }

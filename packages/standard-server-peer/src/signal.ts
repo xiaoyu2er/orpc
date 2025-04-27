@@ -1,4 +1,4 @@
-import type { PullableAsyncIdQueue } from './queue'
+import type { PullableAsyncIdQueue } from '../../shared/src/queue'
 
 export function toAbortSignal(queue: PullableAsyncIdQueue<void>, id: number): AbortSignal {
   const controller = new AbortController()

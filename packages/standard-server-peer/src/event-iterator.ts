@@ -1,6 +1,6 @@
 import type { CreateAsyncIteratorObjectOptions } from '@orpc/shared'
+import type { AsyncIdQueue, PullableAsyncIdQueue } from '../../shared/src/queue'
 import type { EventIteratorPayload } from './codec'
-import type { AsyncIdQueue, PullableAsyncIdQueue } from './queue'
 import { createAsyncIteratorObject, isTypescriptObject } from '@orpc/shared'
 import { ErrorEvent, getEventMeta, withEventMeta } from '@orpc/standard-server'
 

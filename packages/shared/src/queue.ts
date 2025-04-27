@@ -18,11 +18,12 @@ export abstract class AsyncIdQueue<T> {
   isOpen(id: number): boolean {
     return this.openIds.has(id)
   }
-}
 
-export interface AsyncIdQueuePullOptions {
-  signal?: AbortSignal
-  timeout?: number
+  assertOpen(id: number): void {
+    if (!this.isOpen(id)) {
+      throw new Error(`[AsyncIdQueue] Cannot access queue[${id}] because it is not open.`)
+    }
+  }
 }
 
 export class PullableAsyncIdQueue<T> extends AsyncIdQueue<T> {
@@ -30,9 +31,7 @@ export class PullableAsyncIdQueue<T> extends AsyncIdQueue<T> {
   private readonly pendingPulls = new Map<number, (readonly [resolve: (item: T) => void, reject: (err: Error) => void])[]>()
 
   push(id: number, item: T): void {
-    if (!this.isOpen(id)) {
-      throw new Error(`[PullableAsyncIdQueue] Cannot push to an not opened item[${id}]`)
-    }
+    this.assertOpen(id)
 
     const pending = this.pendingPulls.get(id)
 
@@ -55,14 +54,8 @@ export class PullableAsyncIdQueue<T> extends AsyncIdQueue<T> {
     }
   }
 
-  async pull(id: number, { signal, timeout }: AsyncIdQueuePullOptions = {}): Promise<T> {
-    if (signal?.aborted) {
-      throw signal.reason
-    }
-
-    if (!this.isOpen(id)) {
-      throw new Error(`[AsyncIdQueue] Cannot pull from an not opened item[${id}]`)
-    }
+  async pull(id: number): Promise<T> {
+    this.assertOpen(id)
 
     const items = this.items.get(id)
 
@@ -77,30 +70,9 @@ export class PullableAsyncIdQueue<T> extends AsyncIdQueue<T> {
     }
 
     return new Promise<T>((resolve, reject) => {
-      const abort = () => {
-        reject(signal!.reason)
-      }
-
-      signal?.addEventListener('abort', abort, { once: true })
-
-      const timeoutId = timeout
-        ? setTimeout(() => { reject(new Error('Timeout')) }, timeout)
-        : undefined
-
       const waitingPulls = this.pendingPulls.get(id)
 
-      const pending = [
-        (item: T) => {
-          clearTimeout(timeoutId)
-          signal?.removeEventListener('abort', abort)
-          resolve(item)
-        },
-        (err: Error) => {
-          clearTimeout(timeoutId)
-          signal?.removeEventListener('abort', abort)
-          reject(err)
-        },
-      ] as const
+      const pending = [resolve, reject] as const
 
       if (waitingPulls) {
         waitingPulls.push(pending)
@@ -112,15 +84,18 @@ export class PullableAsyncIdQueue<T> extends AsyncIdQueue<T> {
   }
 
   override close(id: number, reason?: any): void {
-    this.items.delete(id)
+    const pendingPulls = this.pendingPulls.get(id)
 
-    this.pendingPulls.get(id)?.forEach(([,reject]) => {
-      reject(reason ?? new Error(`[AsyncIdQueue] Item[${id}] was closed while waiting for pull.`))
-    })
+    if (pendingPulls) {
+      pendingPulls.forEach(([, reject]) => {
+        reject(reason ?? new Error(`[PullableAsyncIdQueue] Queue[${id}] was closed while waiting for pulling.`))
+      })
 
-    this.pendingPulls.delete(id)
+      this.pendingPulls.delete(id)
+    }
 
     super.close(id)
+    this.items.delete(id)
   }
 }
 
@@ -132,10 +107,7 @@ export class ConsumableAsyncIdQueue<T> extends AsyncIdQueue<T> {
   }
 
   push(id: number, item: T): void {
-    if (!this.isOpen(id)) {
-      throw new Error(`[ConsumableAsyncIdQueue] Cannot push to an not opened item[${id}]`)
-    }
-
+    this.assertOpen(id)
     this.consume(id, item)
   }
 }

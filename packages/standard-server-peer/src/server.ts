@@ -1,9 +1,8 @@
 import type { StandardRequest, StandardResponse } from '@orpc/standard-server'
 import type { EventIteratorPayload, RawMessage } from './codec'
-import { isAsyncIteratorObject, toArray } from '@orpc/shared'
+import { ConsumableAsyncIdQueue, isAsyncIteratorObject, PullableAsyncIdQueue, toArray } from '@orpc/shared'
 import { decodeRequestMessage, encodeResponseMessage, MessageType } from './codec'
 import { sendEventIterator, toEventIterator } from './event-iterator'
-import { ConsumableAsyncIdQueue, PullableAsyncIdQueue } from './queue'
 import { toAbortSignal } from './signal'
 
 export class ServerPeer {

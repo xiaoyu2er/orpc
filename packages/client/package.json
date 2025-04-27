@@ -34,6 +34,11 @@
         "types": "./dist/adapters/fetch/index.d.mts",
         "import": "./dist/adapters/fetch/index.mjs",
         "default": "./dist/adapters/fetch/index.mjs"
+      },
+      "./websocket": {
+        "types": "./dist/adapters/websocket/index.d.mts",
+        "import": "./dist/adapters/websocket/index.mjs",
+        "default": "./dist/adapters/websocket/index.mjs"
       }
     }
   },
@@ -41,7 +46,8 @@
     ".": "./src/index.ts",
     "./plugins": "./src/plugins/index.ts",
     "./standard": "./src/adapters/standard/index.ts",
-    "./fetch": "./src/adapters/fetch/index.ts"
+    "./fetch": "./src/adapters/fetch/index.ts",
+    "./websocket": "./src/adapters/websocket/index.ts"
   },
   "files": [
     "dist"
@@ -54,7 +60,8 @@
   "dependencies": {
     "@orpc/shared": "workspace:*",
     "@orpc/standard-server": "workspace:*",
-    "@orpc/standard-server-fetch": "workspace:*"
+    "@orpc/standard-server-fetch": "workspace:*",
+    "@orpc/standard-server-messages": "workspace:*"
   },
   "devDependencies": {
     "zod": "^3.24.2"

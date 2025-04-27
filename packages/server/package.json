@@ -39,6 +39,11 @@
         "types": "./dist/adapters/node/index.d.mts",
         "import": "./dist/adapters/node/index.mjs",
         "default": "./dist/adapters/node/index.mjs"
+      },
+      "./crossws": {
+        "types": "./dist/adapters/crossws/index.d.mts",
+        "import": "./dist/adapters/crossws/index.mjs",
+        "default": "./dist/adapters/crossws/index.mjs"
       }
     }
   },
@@ -47,7 +52,8 @@
     "./plugins": "./src/plugins/index.ts",
     "./standard": "./src/adapters/standard/index.ts",
     "./fetch": "./src/adapters/fetch/index.ts",
-    "./node": "./src/adapters/node/index.ts"
+    "./node": "./src/adapters/node/index.ts",
+    "./crossws": "./src/adapters/crossws/index.ts"
   },
   "files": [
     "dist"
@@ -57,15 +63,20 @@
     "build:watch": "pnpm run build --watch",
     "type:check": "tsc -b"
   },
+  "peerDependencies": {
+    "crossws": ">=0.3.4"
+  },
   "dependencies": {
     "@orpc/client": "workspace:*",
     "@orpc/contract": "workspace:*",
     "@orpc/shared": "workspace:*",
     "@orpc/standard-server": "workspace:*",
     "@orpc/standard-server-fetch": "workspace:*",
+    "@orpc/standard-server-messages": "workspace:*",
     "@orpc/standard-server-node": "workspace:*"
   },
   "devDependencies": {
+    "crossws": "^0.3.4",
     "supertest": "^7.1.0"
   }
 }

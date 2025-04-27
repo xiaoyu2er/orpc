@@ -15,6 +15,10 @@ React Native includes a [Fetch API](https://reactnative.dev/docs/network), so yo
 However, the Fetch API in React Native has limitations. oRPC features like `File`, `Blob`, and `AsyncIteratorObject` aren't supported. Follow [Support Stream #27741](https://github.com/facebook/react-native/issues/27741) for updates.
 :::
 
+::: tip
+If you're using `RPCHandler/Link`, you can temporarily add support for `File` and `Blob` by extending the [RPC JSON Serializer](/docs/advanced/rpc-json-serializer#extending-native-data-types) to encode these types as Base64.
+:::
+
 ```ts
 import { RPCLink } from '@orpc/client/fetch'
 

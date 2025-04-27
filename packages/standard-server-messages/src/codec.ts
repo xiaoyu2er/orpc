@@ -308,7 +308,7 @@ async function prepareBodyAndHeadersForSerialization(
  * since TextEncoder.encode never emits 0xFF (it's invalid in UTF-8).
  * We use this as an unambiguous boundary between the JSON payload and any appended binary data.
  */
-const JSON_AND_BINARY_DELIMITER = new Uint8Array(16).fill(0xFF)
+const JSON_AND_BINARY_DELIMITER = 0xFF
 
 async function encodeRawMessage(data: object, blobData?: Blob): Promise<RawMessage> {
   const json = stringifyJSON(data)
@@ -319,7 +319,7 @@ async function encodeRawMessage(data: object, blobData?: Blob): Promise<RawMessa
 
   return new Blob([
     new TextEncoder().encode(json),
-    JSON_AND_BINARY_DELIMITER,
+    new Uint8Array([JSON_AND_BINARY_DELIMITER]),
     blobData,
   ])
 }
@@ -331,7 +331,7 @@ async function decodeRawMessage(raw: RawMessage): Promise<{ json: any, blobData?
 
   const buffer = new Uint8Array(raw instanceof Blob ? await raw.arrayBuffer() : raw)
 
-  const delimiterIndex = findDelimiterIndex(buffer, JSON_AND_BINARY_DELIMITER)
+  const delimiterIndex = buffer.indexOf(JSON_AND_BINARY_DELIMITER)
 
   if (delimiterIndex === -1) {
     const jsonPart = new TextDecoder().decode(buffer)
@@ -339,29 +339,10 @@ async function decodeRawMessage(raw: RawMessage): Promise<{ json: any, blobData?
   }
 
   const jsonPart = new TextDecoder().decode(buffer.slice(0, delimiterIndex))
-  const blobData = buffer.slice(delimiterIndex + JSON_AND_BINARY_DELIMITER.length)
+  const blobData = buffer.slice(delimiterIndex + 1)
 
   return {
     json: JSON.parse(jsonPart),
     blobData,
   }
-}
-
-function findDelimiterIndex(buffer: Uint8Array, delimiter: Uint8Array): number {
-  for (let i = 0; i <= buffer.length - delimiter.length; i++) {
-    let found = true
-
-    for (let j = 0; j < delimiter.length; j++) {
-      if (buffer[i + j] !== delimiter[j]) {
-        found = false
-        break
-      }
-    }
-
-    if (found) {
-      return i
-    }
-  }
-
-  return -1
 }

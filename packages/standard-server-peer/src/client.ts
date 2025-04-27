@@ -7,7 +7,7 @@ import { SequentialIdGenerator } from './id'
 import { ConsumableAsyncIdQueue, PullableAsyncIdQueue } from './queue'
 import { toAbortSignal } from './signal'
 
-export class MessageClient {
+export class ClientPeer {
   private readonly idGenerator = new SequentialIdGenerator()
 
   private readonly clientSignalQueue: ConsumableAsyncIdQueue<void>

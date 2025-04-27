@@ -8,8 +8,8 @@
   <a href="https://codecov.io/gh/unnoq/orpc">
     <img alt="codecov" src="https://codecov.io/gh/unnoq/orpc/branch/main/graph/badge.svg">
   </a>
-  <a href="https://www.npmjs.com/package/@orpc/standard-server-messages">
-    <img alt="weekly downloads" src="https://img.shields.io/npm/dw/%40orpc%2Fstandard-server-messages?logo=npm" />
+  <a href="https://www.npmjs.com/package/@orpc/standard-server-peer">
+    <img alt="weekly downloads" src="https://img.shields.io/npm/dw/%40orpc%2Fstandard-server-peer?logo=npm" />
   </a>
   <a href="https://github.com/unnoq/orpc/blob/main/LICENSE">
     <img alt="MIT License" src="https://img.shields.io/github/license/unnoq/orpc?logo=open-source-initiative" />
@@ -60,9 +60,9 @@ You can find the full documentation [here](https://orpc.unnoq.com).
 - [@orpc/valibot](https://www.npmjs.com/package/@orpc/valibot): OpenAPI spec generation from [Valibot](https://valibot.dev/).
 - [@orpc/arktype](https://www.npmjs.com/package/@orpc/arktype): OpenAPI spec generation from [ArkType](https://arktype.io/).
 
-## `@orpc/standard-server-events`
+## `@orpc/standard-server-peer`
 
-Message based (Websocket, ...) server adapter for oRPC.
+Provides a standard interface for oRPC server adapters to interact with connected peers across various transports (e.g., WebSocket, IPC).
 
 ## Sponsors
 

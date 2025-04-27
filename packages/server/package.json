@@ -72,8 +72,8 @@
     "@orpc/shared": "workspace:*",
     "@orpc/standard-server": "workspace:*",
     "@orpc/standard-server-fetch": "workspace:*",
-    "@orpc/standard-server-messages": "workspace:*",
-    "@orpc/standard-server-node": "workspace:*"
+    "@orpc/standard-server-node": "workspace:*",
+    "@orpc/standard-server-peer": "workspace:*"
   },
   "devDependencies": {
     "crossws": "^0.3.4",

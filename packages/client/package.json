@@ -61,7 +61,7 @@
     "@orpc/shared": "workspace:*",
     "@orpc/standard-server": "workspace:*",
     "@orpc/standard-server-fetch": "workspace:*",
-    "@orpc/standard-server-messages": "workspace:*"
+    "@orpc/standard-server-peer": "workspace:*"
   },
   "devDependencies": {
     "zod": "^3.24.2"

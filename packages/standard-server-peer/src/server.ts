@@ -6,7 +6,7 @@ import { sendEventIterator, toEventIterator } from './event-iterator'
 import { ConsumableAsyncIdQueue, PullableAsyncIdQueue } from './queue'
 import { toAbortSignal } from './signal'
 
-export class MessageServer {
+export class ServerPeer {
   private readonly serverSignalQueue: ConsumableAsyncIdQueue<void>
   private readonly serverEventIteratorQueue: ConsumableAsyncIdQueue<EventIteratorPayload>
   private readonly serverResponseQueue: ConsumableAsyncIdQueue<StandardResponse>

@@ -1,5 +1,5 @@
 {
-  "name": "@orpc/standard-server-messages",
+  "name": "@orpc/standard-server-peer",
   "type": "module",
   "version": "1.0.3",
   "license": "MIT",
@@ -7,7 +7,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/unnoq/orpc.git",
-    "directory": "packages/standard-server-messages"
+    "directory": "packages/standard-server-peer"
   },
   "keywords": [
     "orpc"

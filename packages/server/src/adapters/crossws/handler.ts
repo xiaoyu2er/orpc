@@ -4,11 +4,11 @@ import type { Context } from '../../context'
 import type { StandardHandler } from '../standard'
 import type { FriendlyStandardHandleOptions } from '../standard/utils'
 import { resolveMaybeOptionalOptions } from '@orpc/shared'
-import { MessageServer } from '@orpc/standard-server-messages'
+import { ServerPeer } from '@orpc/standard-server-peer'
 import { resolveFriendlyStandardHandleOptions } from '../standard/utils'
 
-export class CrosswsHandler<T extends Context> {
-  private readonly peers: WeakMap<Peer, MessageServer> = new WeakMap()
+export class experimental_CrosswsHandler<T extends Context> {
+  private readonly peers: WeakMap<Peer, ServerPeer> = new WeakMap()
 
   constructor(
     private readonly standardHandler: StandardHandler<T>,
@@ -16,21 +16,21 @@ export class CrosswsHandler<T extends Context> {
   }
 
   async handle(
-    peer: Peer,
+    ws: Peer,
     message: Message,
     ...rest: MaybeOptionalOptions<Omit<FriendlyStandardHandleOptions<T>, 'prefix'>>
   ): Promise<{ matched: boolean }> {
-    let server = this.peers.get(peer)
+    let peer = this.peers.get(ws)
 
-    if (!server) {
-      server = new MessageServer(
-        message => peer.send(message),
+    if (!peer) {
+      peer = new ServerPeer(
+        message => ws.send(message),
       )
 
-      this.peers.set(peer, server)
+      this.peers.set(ws, peer)
     }
 
-    const [id, request] = await server.message(typeof message.rawData === 'string' ? message.rawData : message.uint8Array())
+    const [id, request] = await peer.message(typeof message.rawData === 'string' ? message.rawData : message.uint8Array())
 
     if (!request) {
       return { matched: true }
@@ -40,7 +40,7 @@ export class CrosswsHandler<T extends Context> {
 
     const { response } = await this.standardHandler.handle({ ...request, body: () => Promise.resolve(request.body) }, options)
 
-    await server.response(id, response ?? { status: 404, headers: {}, body: 'No procedure matched' })
+    await peer.response(id, response ?? { status: 404, headers: {}, body: 'No procedure matched' })
 
     return { matched: true }
   }

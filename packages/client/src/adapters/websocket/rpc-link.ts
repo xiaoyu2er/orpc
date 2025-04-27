@@ -1,14 +1,14 @@
 import type { ClientContext } from '../../types'
 import type { StandardRPCLinkOptions } from '../standard'
-import type { LinkWebsocketClientOptions } from './link-websocket-client'
+import type { experimental_LinkWebsocketClientOptions as LinkWebsocketClientOptions } from './link-websocket-client'
 import { StandardRPCLink } from '../standard'
-import { LinkWebsocketClient } from './link-websocket-client'
+import { experimental_LinkWebsocketClient as LinkWebsocketClient } from './link-websocket-client'
 
-export interface RPCLinkOptions<T extends ClientContext>
+export interface experimental_RPCLinkOptions<T extends ClientContext>
   extends Omit<StandardRPCLinkOptions<T>, 'url'>, LinkWebsocketClientOptions {}
 
-export class RPCLink<T extends ClientContext> extends StandardRPCLink<T> {
-  constructor(options: RPCLinkOptions<T>) {
+export class experimental_RPCLink<T extends ClientContext> extends StandardRPCLink<T> {
+  constructor(options: experimental_RPCLinkOptions<T>) {
     const linkClient = new LinkWebsocketClient(options)
 
     super(linkClient, { ...options, url: 'orpc:/' })

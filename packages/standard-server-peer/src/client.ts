@@ -92,12 +92,18 @@ export class ClientPeer {
     const [id, type, payload] = await decodeResponseMessage(raw)
 
     if (type === MessageType.EVENT_ITERATOR) {
-      this.serverEventIterator.push(id, payload)
+      if (this.serverEventIterator.isOpen(id)) {
+        this.serverEventIterator.push(id, payload)
+      }
+
       return
     }
 
     if (type === MessageType.ABORT_SIGNAL) {
-      this.serverSignalQueue.push(id, payload)
+      if (this.serverSignalQueue.isOpen(id)) {
+        this.serverSignalQueue.push(id, payload)
+      }
+
       return
     }
 

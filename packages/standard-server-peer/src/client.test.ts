@@ -238,23 +238,37 @@ describe('clientPeer', () => {
     it('throw if cannot send iterator', async () => {
       let time = 0
       const send = vi.fn(() => {
-        if (time++ === 2) {
+        if (time++ === 1) {
           throw new Error('send error')
         }
       })
       const peer = new ClientPeer(send)
 
+      const yieldFn = vi.fn(v => v)
+      let isFinallyCalled = false
+
       const iterator = (async function* () {
-        yield 'hello'
-        await new Promise(resolve => setTimeout(resolve, 100))
-        yield 'world'
+        try {
+          yield yieldFn('hello')
+          await new Promise(resolve => setTimeout(resolve, 100))
+          yield yieldFn('hello2')
+          yield yieldFn('hello3')
+        }
+        finally {
+          isFinallyCalled = true
+        }
       })()
 
-      expect(peer.request({ ...baseRequest, body: iterator })).rejects.toThrow('send error')
+      const assertPromise = expect(peer.request({ ...baseRequest, body: iterator })).rejects.toThrow('send error')
 
       await new Promise(resolve => setTimeout(resolve, 0))
 
       expect(send).toHaveBeenCalledTimes(2)
+      await assertPromise
+      await new Promise(resolve => setTimeout(resolve, 100))
+      expect(send).toHaveBeenCalledTimes(2)
+      expect(yieldFn).toHaveBeenCalledTimes(2)
+      expect(isFinallyCalled).toBe(true)
     })
   })
 

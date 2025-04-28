@@ -6,20 +6,32 @@ import { sendEventIterator, toEventIterator } from './event-iterator'
 import { toAbortSignal } from './signal'
 
 export class ServerPeer {
-  private readonly serverSignalQueue: ConsumableAsyncIdQueue<void>
-  private readonly serverEventIteratorQueue: ConsumableAsyncIdQueue<EventIteratorPayload>
   private readonly serverResponseQueue: ConsumableAsyncIdQueue<StandardResponse>
+  private readonly serverEventIteratorQueue: ConsumableAsyncIdQueue<EventIteratorPayload>
+  private readonly serverSignalQueue: ConsumableAsyncIdQueue<void>
 
-  private readonly clientSignalQueue = new PullableAsyncIdQueue<void>()
   private readonly clientEventIteratorQueue = new PullableAsyncIdQueue<EventIteratorPayload>()
-  private readonly clientRequestQueue = new PullableAsyncIdQueue<StandardRequest>()
+  private readonly clientSignalQueue = new PullableAsyncIdQueue<void>()
 
   constructor(
     send: (message: RawMessage) => void,
   ) {
-    this.serverSignalQueue = new ConsumableAsyncIdQueue((id, payload) => {
-      encodeResponseMessage(id, MessageType.ABORT_SIGNAL, payload)
-        .then(send)
+    this.serverResponseQueue = new ConsumableAsyncIdQueue((id, response) => {
+      encodeResponseMessage(id, MessageType.RESPONSE, response)
+        .then(async (raw) => {
+          send(raw)
+
+          if (isAsyncIteratorObject(response.body)) {
+            await sendEventIterator(this.serverEventIteratorQueue, id, response.body, {
+              onComplete: () => {
+                this.close(id)
+              },
+            })
+          }
+          else {
+            this.close(id)
+          }
+        })
         .catch((err) => {
           this.close(id, err)
         })
@@ -33,8 +45,8 @@ export class ServerPeer {
         })
     })
 
-    this.serverResponseQueue = new ConsumableAsyncIdQueue((id, response) => {
-      encodeResponseMessage(id, MessageType.RESPONSE, response)
+    this.serverSignalQueue = new ConsumableAsyncIdQueue((id, payload) => {
+      encodeResponseMessage(id, MessageType.ABORT_SIGNAL, payload)
         .then(send)
         .catch((err) => {
           this.close(id, err)
@@ -46,29 +58,35 @@ export class ServerPeer {
     const [id, type, payload] = await decodeRequestMessage(raw)
 
     if (type === MessageType.ABORT_SIGNAL) {
-      this.clientSignalQueue.push(id, payload)
+      if (this.clientSignalQueue.isOpen(id)) {
+        this.clientSignalQueue.push(id, payload)
+      }
+
       return [id, undefined]
     }
 
     if (type === MessageType.EVENT_ITERATOR) {
-      this.clientEventIteratorQueue.push(id, payload)
+      if (this.clientEventIteratorQueue.isOpen(id)) {
+        this.clientEventIteratorQueue.push(id, payload)
+      }
+
       return [id, undefined]
     }
 
-    this.serverSignalQueue.open(id)
-    this.serverEventIteratorQueue.open(id)
-    this.serverResponseQueue.open(id)
-
-    this.clientRequestQueue.open(id)
-    this.clientEventIteratorQueue.open(id)
-    this.clientSignalQueue.open(id)
+    this.open(id)
 
     const isBlob = toArray(payload.headers['content-disposition'])[0] !== undefined
     const isStreaming = toArray(payload.headers['content-type'])[0]?.startsWith('text/event-stream')
 
+    const clientSignal = toAbortSignal(this.clientSignalQueue, id)
+
+    clientSignal.addEventListener('abort', () => {
+      this.close(id, clientSignal.reason)
+    }, { once: true })
+
     const request: StandardRequest = {
       ...payload,
-      signal: toAbortSignal(this.clientSignalQueue, id),
+      signal: clientSignal,
       body: isStreaming && !isBlob
         ? toEventIterator(this.clientEventIteratorQueue, id, {
             onComplete: (reason) => {
@@ -84,18 +102,18 @@ export class ServerPeer {
   }
 
   async response(id: number, response: StandardResponse): Promise<void> {
-    this.serverResponseQueue.push(id, response)
+    if (this.serverResponseQueue.isOpen(id)) {
+      this.serverResponseQueue.push(id, response)
+    }
+  }
 
-    if (isAsyncIteratorObject(response.body)) {
-      await sendEventIterator(this.serverEventIteratorQueue, id, response.body, {
-        onComplete: () => {
-          this.close(id)
-        },
-      })
-    }
-    else {
-      this.close(id)
-    }
+  open(id: number): void {
+    this.serverSignalQueue.open(id)
+    this.serverEventIteratorQueue.open(id)
+    this.serverResponseQueue.open(id)
+
+    this.clientEventIteratorQueue.open(id)
+    this.clientSignalQueue.open(id)
   }
 
   close(id?: number, reason?: any): void {
@@ -104,7 +122,6 @@ export class ServerPeer {
       this.serverEventIteratorQueue.close(id)
       this.serverResponseQueue.close(id)
 
-      this.clientRequestQueue.close(id, reason)
       this.clientEventIteratorQueue.close(id, reason)
       this.clientSignalQueue.close(id, reason)
     }
@@ -113,7 +130,6 @@ export class ServerPeer {
       this.serverEventIteratorQueue.closeAll()
       this.serverResponseQueue.closeAll()
 
-      this.clientRequestQueue.closeAll()
       this.clientEventIteratorQueue.closeAll()
       this.clientSignalQueue.closeAll()
     }

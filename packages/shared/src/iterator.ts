@@ -1,4 +1,5 @@
 import type { Promisable } from 'type-fest'
+import { sequential } from './function'
 
 export function isAsyncIteratorObject(maybe: unknown): maybe is AsyncIteratorObject<any, any, any> {
   if (!maybe || typeof maybe !== 'object') {
@@ -20,7 +21,7 @@ export function createAsyncIteratorObject<T, TReturn, TNext>(
   let isDone = false
 
   const iterator: AsyncIteratorObject<T, TReturn, TNext> & AsyncGenerator<T, TReturn, TNext> = {
-    async next() {
+    next: sequential(async () => {
       if (isDone) {
         return { done: true, value: undefined as any }
       }
@@ -44,10 +45,11 @@ export function createAsyncIteratorObject<T, TReturn, TNext>(
           await options.onComplete?.('next')
         }
       }
-    },
+    }),
     async return(value) {
       isDone = true
       if (!isExecuteComplete) {
+        isExecuteComplete = true
         await options.onComplete?.('return')
       }
 
@@ -56,13 +58,11 @@ export function createAsyncIteratorObject<T, TReturn, TNext>(
     async throw(err) {
       isDone = true
       if (!isExecuteComplete) {
+        isExecuteComplete = true
         await options.onComplete?.('throw')
       }
 
       throw err
-    },
-    [Symbol.asyncIterator]() {
-      return iterator
     },
     /**
      * asyncDispose symbol only available in esnext, we should fallback to Symbol.for('asyncDispose')
@@ -70,8 +70,12 @@ export function createAsyncIteratorObject<T, TReturn, TNext>(
     async [(Symbol as any).asyncDispose as typeof Symbol extends { asyncDispose: infer T } ? T : any ?? Symbol.for('asyncDispose')]() {
       isDone = true
       if (!isExecuteComplete) {
+        isExecuteComplete = true
         await options.onComplete?.('dispose')
       }
+    },
+    [Symbol.asyncIterator]() {
+      return iterator
     },
   }
 

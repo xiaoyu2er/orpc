@@ -53,22 +53,25 @@ describe('createAsyncIteratorObject', () => {
     })
 
     it('should handle multiple calls correctly', async () => {
-      const results = [
-        { done: false, value: 1 },
-        { done: false, value: 2 },
-        { done: true, value: undefined },
-      ]
-      const mockNext = vi.fn()
-        .mockResolvedValueOnce(results[0])
-        .mockResolvedValueOnce(results[1])
-        .mockResolvedValueOnce(results[2])
+      let time = 0
+      const mockNext = vi.fn(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10))
+        return {
+          done: time === 2,
+          value: time++,
+        }
+      })
 
       const iterator = createAsyncIteratorObject(mockNext)
 
-      expect(await iterator.next()).toEqual(results[0])
-      expect(await iterator.next()).toEqual(results[1])
-      expect(await iterator.next()).toEqual(results[2])
-      await assertDoneCorrectly(iterator)
+      await Promise.all([
+        expect(iterator.next()).resolves.toEqual({ done: false, value: 0 }),
+        expect(iterator.next()).resolves.toEqual({ done: false, value: 1 }),
+        expect(iterator.next()).resolves.toEqual({ done: true, value: 2 }),
+        expect(iterator.next()).resolves.toEqual({ done: true, value: undefined }),
+        assertDoneCorrectly(iterator),
+      ])
+
       expect(mockNext).toHaveBeenCalledTimes(3)
     })
 

@@ -14,3 +14,15 @@ export function once<T extends () => any>(fn: T): () => ReturnType<T> {
     return result
   }
 }
+
+export function sequential<A extends any[], R>(
+  fn: (...args: A) => Promise<R>,
+): (...args: A) => Promise<R> {
+  let lastOperationPromise: Promise<any> = Promise.resolve()
+
+  return (...args: A): Promise<R> => {
+    return lastOperationPromise = lastOperationPromise.catch(() => { }).then(() => {
+      return fn(...args)
+    })
+  }
+}

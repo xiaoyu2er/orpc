@@ -85,14 +85,14 @@ describe('serverPeer', () => {
 
       const iterator = request!.body as AsyncGenerator
 
-      await expect(iterator.next()).resolves.toSatisfy(({ done, value }) => {
+      expect(iterator.next()).resolves.toSatisfy(({ done, value }) => {
         expect(done).toBe(false)
         expect(value).toEqual('hello')
 
         return true
       })
 
-      await expect(iterator.next()).resolves.toSatisfy(({ done, value }) => {
+      expect(iterator.next()).resolves.toSatisfy(({ done, value }) => {
         expect(done).toBe(false)
         expect(value).toEqual({ hello2: true })
         expect(getEventMeta(value)).toEqual({ id: 'id-1' })
@@ -100,8 +100,7 @@ describe('serverPeer', () => {
         return true
       })
 
-      // TODO: remove await
-      await expect(iterator.next()).resolves.toSatisfy(({ done, value }) => {
+      expect(iterator.next()).resolves.toSatisfy(({ done, value }) => {
         expect(done).toBe(true)
         expect(value).toEqual('hello3')
 

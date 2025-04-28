@@ -54,9 +54,23 @@ export async function sendEventIterator(
   iterator: AsyncIterator<any>,
   options: { onComplete?: () => void } = {},
 ): Promise<void> {
+  let isInternal = false
+
   try {
     while (true) {
+      isInternal = false
       const { value, done } = await iterator.next()
+      isInternal = true
+
+      if (!queue.isOpen(id)) {
+        if (!done) {
+          isInternal = false
+          await iterator.return?.()
+          isInternal = true
+        }
+
+        return
+      }
 
       queue.push(id, {
         event: done ? 'done' : 'message',
@@ -70,11 +84,24 @@ export async function sendEventIterator(
     }
   }
   catch (err) {
-    queue.push(id, {
-      meta: getEventMeta(err),
-      event: 'error',
-      data: err instanceof ErrorEvent ? err.data : undefined,
-    })
+    let currentError = err
+
+    if (isInternal) {
+      try {
+        await iterator.throw?.(currentError)
+      }
+      catch (err) {
+        currentError = err
+      }
+    }
+
+    if (queue.isOpen(id)) {
+      queue.push(id, {
+        meta: getEventMeta(currentError),
+        event: 'error',
+        data: currentError instanceof ErrorEvent ? currentError.data : undefined,
+      })
+    }
   }
   finally {
     options.onComplete?.()

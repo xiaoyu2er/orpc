@@ -17,11 +17,16 @@ it('isAsyncIteratorObject', () => {
 })
 
 describe('createAsyncIteratorObject', () => {
+  const assertDoneCorrectly = async (iterator: AsyncIterator<any>) => {
+    await expect(iterator.next()).resolves.toEqual({ done: true, value: undefined })
+  }
+
   it('should create an object conforming to AsyncIterator protocol', () => {
     const mockNext = vi.fn()
     const iterator = createAsyncIteratorObject(mockNext)
 
     expect(iterator).toBeDefined()
+    expect(iterator).toSatisfy(isAsyncIteratorObject)
     expect(typeof iterator.next).toBe('function')
     expect(typeof iterator.return).toBe('function')
     expect(typeof iterator.throw).toBe('function')
@@ -63,6 +68,7 @@ describe('createAsyncIteratorObject', () => {
       expect(await iterator.next()).toEqual(results[0])
       expect(await iterator.next()).toEqual(results[1])
       expect(await iterator.next()).toEqual(results[2])
+      await assertDoneCorrectly(iterator)
       expect(mockNext).toHaveBeenCalledTimes(3)
     })
 
@@ -72,6 +78,7 @@ describe('createAsyncIteratorObject', () => {
       const iterator = createAsyncIteratorObject(mockNext)
 
       await expect(iterator.next()).rejects.toThrow(error)
+      await assertDoneCorrectly(iterator)
       expect(mockNext).toHaveBeenCalledTimes(1)
     })
 
@@ -85,6 +92,7 @@ describe('createAsyncIteratorObject', () => {
 
       expect(mockOnComplete).toHaveBeenCalledTimes(1)
       expect(mockOnComplete).toHaveBeenCalledWith('next')
+      await assertDoneCorrectly(iterator)
     })
 
     it('should call onComplete("next") when next() rejects', async () => {
@@ -98,6 +106,7 @@ describe('createAsyncIteratorObject', () => {
 
       expect(mockOnComplete).toHaveBeenCalledTimes(1)
       expect(mockOnComplete).toHaveBeenCalledWith('next')
+      await assertDoneCorrectly(iterator)
     })
   })
 
@@ -107,9 +116,9 @@ describe('createAsyncIteratorObject', () => {
       const iterator = createAsyncIteratorObject(mockNext)
       const returnValue = 'Iterator terminated'
 
-      const result = await iterator.return(returnValue)
-
-      expect(result).toEqual({ done: true, value: returnValue })
+      expect(await iterator.return(returnValue)).toEqual({ done: true, value: returnValue })
+      await assertDoneCorrectly(iterator)
+      expect(mockNext).toHaveBeenCalledTimes(0)
     })
 
     it('should call onComplete("return")', async () => {
@@ -120,9 +129,9 @@ describe('createAsyncIteratorObject', () => {
 
       await iterator.return('done')
 
+      await assertDoneCorrectly(iterator)
       expect(mockOnComplete).toHaveBeenCalledTimes(1)
       expect(mockOnComplete).toHaveBeenCalledWith('return')
-      // Ensure the original next function wasn't called during return
       expect(mockNext).not.toHaveBeenCalled()
     })
   })
@@ -134,6 +143,8 @@ describe('createAsyncIteratorObject', () => {
       const error = new Error('Forced error')
 
       await expect(iterator.throw(error)).rejects.toThrow(error)
+      await assertDoneCorrectly(iterator)
+      expect(mockNext).toHaveBeenCalledTimes(0)
     })
 
     it('should call onComplete("throw")', async () => {
@@ -144,6 +155,7 @@ describe('createAsyncIteratorObject', () => {
       const error = new Error('Forced error')
 
       await expect(iterator.throw(error)).rejects.toThrow(error)
+      await assertDoneCorrectly(iterator)
 
       expect(mockOnComplete).toHaveBeenCalledTimes(1)
       expect(mockOnComplete).toHaveBeenCalledWith('throw')
@@ -188,6 +200,8 @@ describe('createAsyncIteratorObject', () => {
       // Check if the method exists before calling
       await (iterator as any)[Symbol.asyncDispose]()
 
+      await assertDoneCorrectly(iterator)
+
       expect(mockOnComplete).toHaveBeenCalledTimes(1)
       expect(mockOnComplete).toHaveBeenCalledWith('dispose')
       // Ensure the original next function wasn't called during dispose
@@ -216,6 +230,8 @@ describe('createAsyncIteratorObject', () => {
         collectedValues.push(value)
       }
 
+      await assertDoneCorrectly(iterator)
+
       expect(collectedValues).toEqual([0, 1, 2])
       expect(mockNext).toHaveBeenCalledTimes(limit + 1)
       expect(mockOnComplete).toHaveBeenCalledTimes(1)
@@ -236,6 +252,8 @@ describe('createAsyncIteratorObject', () => {
           break // Explicitly break the loop
         }
       }
+
+      await assertDoneCorrectly(iterator)
 
       expect(collectedValues).toEqual([0, 1])
       expect(mockNext).toHaveBeenCalledTimes(2)
@@ -263,6 +281,8 @@ describe('createAsyncIteratorObject', () => {
       catch (e) {
         expect(e).toBe(error) // Ensure the correct error was caught
       }
+
+      await assertDoneCorrectly(iterator)
 
       expect(collectedValues).toEqual([0, 1])
       expect(mockNext).toHaveBeenCalledTimes(2)

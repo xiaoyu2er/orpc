@@ -17,10 +17,13 @@ export function createAsyncIteratorObject<T, TReturn, TNext>(
   options: CreateAsyncIteratorObjectOptions = {},
 ): AsyncIteratorObject<T, TReturn, TNext> & AsyncGenerator<T, TReturn, TNext> {
   let isExecuteComplete = false
+  let isDone = false
 
   const iterator: AsyncIteratorObject<T, TReturn, TNext> & AsyncGenerator<T, TReturn, TNext> = {
     async next() {
-      let isDone = false
+      if (isDone) {
+        return { done: true, value: undefined as any }
+      }
 
       try {
         const result = await next()
@@ -43,15 +46,19 @@ export function createAsyncIteratorObject<T, TReturn, TNext>(
       }
     },
     async return(value) {
+      isDone = true
       if (!isExecuteComplete) {
         await options.onComplete?.('return')
       }
+
       return { done: true, value } as any
     },
     async throw(err) {
+      isDone = true
       if (!isExecuteComplete) {
         await options.onComplete?.('throw')
       }
+
       throw err
     },
     [Symbol.asyncIterator]() {
@@ -61,7 +68,10 @@ export function createAsyncIteratorObject<T, TReturn, TNext>(
      * asyncDispose symbol only available in esnext, we should fallback to Symbol.for('asyncDispose')
      */
     async [(Symbol as any).asyncDispose as typeof Symbol extends { asyncDispose: infer T } ? T : any ?? Symbol.for('asyncDispose')]() {
-      await options.onComplete?.('dispose')
+      isDone = true
+      if (!isExecuteComplete) {
+        await options.onComplete?.('dispose')
+      }
     },
   }
 

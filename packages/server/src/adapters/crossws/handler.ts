@@ -15,7 +15,7 @@ export class experimental_CrosswsHandler<T extends Context> {
   ) {
   }
 
-  async handle(
+  async message(
     ws: Peer,
     message: Message,
     ...rest: MaybeOptionalOptions<Omit<FriendlyStandardHandleOptions<T>, 'prefix'>>

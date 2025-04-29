@@ -28,7 +28,7 @@ const handler = new RPCHandler(router)
 const ws = crossws({
   hooks: {
     message: (peer, message) => {
-      handler.handle(peer, message, {
+      handler.message(peer, message, {
         context: {}, // Optional initial context
       })
     },

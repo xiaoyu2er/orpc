@@ -285,8 +285,8 @@ async function prepareBodyAndHeadersForSerialization(
 
   if (body instanceof FormData) {
     const tempRes = new Response(body)
-    const formDataBlob = await tempRes.blob()
     headers['content-type'] = tempRes.headers.get('content-type')!
+    const formDataBlob = await tempRes.blob()
     return { body: formDataBlob, headers }
   }
 

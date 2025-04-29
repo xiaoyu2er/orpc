@@ -1,5 +1,4 @@
 import type { MaybeOptionalOptions } from '@orpc/shared'
-import type { Message, Peer } from 'crossws'
 import type { Context } from '../../context'
 import type { StandardHandler } from '../standard'
 import type { FriendlyStandardHandleOptions } from '../standard/utils'
@@ -7,8 +6,12 @@ import { resolveMaybeOptionalOptions } from '@orpc/shared'
 import { ServerPeer } from '@orpc/standard-server-peer'
 import { resolveFriendlyStandardHandleOptions } from '../standard/utils'
 
-export class experimental_CrosswsHandler<T extends Context> {
-  private readonly peers: WeakMap<Peer, ServerPeer> = new WeakMap()
+export interface ServerWebSocket {
+  send(message: string | ArrayBufferLike): void
+}
+
+export class experimental_WebsocketHandler<T extends Context> {
+  private readonly peers: WeakMap<ServerWebSocket, ServerPeer> = new WeakMap()
 
   constructor(
     private readonly standardHandler: StandardHandler<T>,
@@ -16,21 +19,17 @@ export class experimental_CrosswsHandler<T extends Context> {
   }
 
   async message(
-    ws: Peer,
-    message: Message,
+    ws: ServerWebSocket,
+    message: string | ArrayBufferLike,
     ...rest: MaybeOptionalOptions<Omit<FriendlyStandardHandleOptions<T>, 'prefix'>>
   ): Promise<{ matched: boolean }> {
     let peer = this.peers.get(ws)
 
     if (!peer) {
-      peer = new ServerPeer(
-        message => ws.send(message),
-      )
-
-      this.peers.set(ws, peer)
+      this.peers.set(ws, peer = new ServerPeer(ws.send.bind(ws)))
     }
 
-    const [id, request] = await peer.message(typeof message.rawData === 'string' ? message.rawData : message.uint8Array())
+    const [id, request] = await peer.message(message)
 
     if (!request) {
       return { matched: true }
@@ -45,12 +44,12 @@ export class experimental_CrosswsHandler<T extends Context> {
     return { matched: true }
   }
 
-  close(peer: Peer): void {
-    const server = this.peers.get(peer)
+  close(ws: ServerWebSocket): void {
+    const server = this.peers.get(ws)
 
     if (server) {
       server.close()
-      this.peers.delete(peer)
+      this.peers.delete(ws)
     }
   }
 }

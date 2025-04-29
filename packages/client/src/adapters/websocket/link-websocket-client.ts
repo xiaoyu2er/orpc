@@ -4,7 +4,7 @@ import type { StandardLinkClient } from '../standard'
 import { ClientPeer } from '@orpc/standard-server-peer'
 
 export interface experimental_LinkWebsocketClientOptions {
-  websocket: WebSocket
+  websocket: Pick<WebSocket, 'addEventListener' | 'send'>
 }
 
 export class experimental_LinkWebsocketClient<T extends ClientContext> implements StandardLinkClient<T> {
@@ -14,7 +14,12 @@ export class experimental_LinkWebsocketClient<T extends ClientContext> implement
     this.peer = new ClientPeer(options.websocket.send.bind(options.websocket))
 
     options.websocket.addEventListener('message', (event) => {
-      this.peer.message(event.data)
+      if (event.data instanceof Blob) {
+        event.data.arrayBuffer().then(this.peer.message)
+      }
+      else {
+        this.peer.message(event.data)
+      }
     })
 
     options.websocket.addEventListener('close', () => {

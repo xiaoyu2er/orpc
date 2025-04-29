@@ -9,7 +9,7 @@ export enum MessageType {
   ABORT_SIGNAL = 4,
 }
 
-export type RawMessage = string | ArrayBufferLike | Blob
+export type RawMessage = string | ArrayBufferLike
 
 export type EventIteratorEvent = 'message' | 'error' | 'done'
 
@@ -321,11 +321,13 @@ async function encodeRawMessage(data: object, blobData?: Blob): Promise<RawMessa
     return json
   }
 
-  return new Blob([
+  const blob = new Blob([
     new TextEncoder().encode(json),
     new Uint8Array([JSON_AND_BINARY_DELIMITER]),
     blobData,
   ])
+
+  return blob.arrayBuffer()
 }
 
 async function decodeRawMessage(raw: RawMessage): Promise<{ json: any, blobData?: ArrayBuffer }> {

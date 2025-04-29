@@ -40,10 +40,20 @@
         "import": "./dist/adapters/node/index.mjs",
         "default": "./dist/adapters/node/index.mjs"
       },
+      "./websocket": {
+        "types": "./dist/adapters/websocket/index.d.mts",
+        "import": "./dist/adapters/websocket/index.mjs",
+        "default": "./dist/adapters/websocket/index.mjs"
+      },
       "./crossws": {
         "types": "./dist/adapters/crossws/index.d.mts",
         "import": "./dist/adapters/crossws/index.mjs",
         "default": "./dist/adapters/crossws/index.mjs"
+      },
+      "./bun-ws": {
+        "types": "./dist/adapters/bun-ws/index.d.mts",
+        "import": "./dist/adapters/bun-ws/index.mjs",
+        "default": "./dist/adapters/bun-ws/index.mjs"
       }
     }
   },
@@ -53,7 +63,9 @@
     "./standard": "./src/adapters/standard/index.ts",
     "./fetch": "./src/adapters/fetch/index.ts",
     "./node": "./src/adapters/node/index.ts",
-    "./crossws": "./src/adapters/crossws/index.ts"
+    "./websocket": "./src/adapters/websocket/index.ts",
+    "./crossws": "./src/adapters/crossws/index.ts",
+    "./bun-ws": "./src/adapters/bun-ws/index.ts"
   },
   "files": [
     "dist"

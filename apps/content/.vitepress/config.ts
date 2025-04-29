@@ -92,6 +92,7 @@ export default defineConfig({
             { text: 'Bun', link: '/docs/integrations/bun' },
             { text: 'Cloudflare Workers', link: '/docs/integrations/cloudflare-workers' },
             { text: 'Deno', link: '/docs/integrations/deno' },
+            { text: 'Websocket', link: '/docs/integrations/websocket' },
             { text: 'Express', link: '/docs/integrations/express' },
             { text: 'Next.js', link: '/docs/integrations/nextjs' },
             { text: 'Nuxt', link: '/docs/integrations/nuxt' },

@@ -5,8 +5,14 @@ import { StandardRPCLink } from '../standard'
 import { experimental_LinkWebsocketClient as LinkWebsocketClient } from './link-websocket-client'
 
 export interface experimental_RPCLinkOptions<T extends ClientContext>
-  extends Omit<StandardRPCLinkOptions<T>, 'url'>, LinkWebsocketClientOptions {}
+  extends Omit<StandardRPCLinkOptions<T>, 'url' | 'headers' | 'method' | 'fallbackMethod' | 'maxUrlLength'>, LinkWebsocketClientOptions {}
 
+/**
+ * The RPC Link communicates with the server using the RPC protocol over WebSocket.
+ *
+ * @see {@link https://orpc.unnoq.com/docs/client/rpc-link RPC Link Docs}
+ * @see {@link https://orpc.unnoq.com/docs/integrations/websocket WebSocket Integration Docs}
+ */
 export class experimental_RPCLink<T extends ClientContext> extends StandardRPCLink<T> {
   constructor(options: experimental_RPCLinkOptions<T>) {
     const linkClient = new LinkWebsocketClient(options)

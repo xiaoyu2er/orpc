@@ -20,7 +20,7 @@ export function createAsyncIteratorObject<T, TReturn, TNext>(
   let isExecuteComplete = false
   let isDone = false
 
-  const iterator: AsyncIteratorObject<T, TReturn, TNext> & AsyncGenerator<T, TReturn, TNext> = {
+  const iterator = {
     next: sequential(async () => {
       if (isDone) {
         return { done: true, value: undefined as any }
@@ -46,16 +46,16 @@ export function createAsyncIteratorObject<T, TReturn, TNext>(
         }
       }
     }),
-    async return(value) {
+    async return(value: any) {
       isDone = true
       if (!isExecuteComplete) {
         isExecuteComplete = true
         await options.onComplete?.('return')
       }
 
-      return { done: true, value } as any
+      return { done: true, value }
     },
-    async throw(err) {
+    async throw(err: any) {
       isDone = true
       if (!isExecuteComplete) {
         isExecuteComplete = true

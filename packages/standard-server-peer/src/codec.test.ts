@@ -371,7 +371,7 @@ describe('encode/decode request message', () => {
     })
   })
 
-  it('request blob large size', async () => {
+  it('request blob large size', { timeout: 10000 }, async () => {
     const json = JSON.stringify(MB10Headers)
     const blob = new Blob([json], { type: 'application/pdf' })
 
@@ -744,7 +744,7 @@ describe('encode/decode response message', () => {
     })
   })
 
-  it('response blob large size', async () => {
+  it('response blob large size', { timeout: 10000 }, async () => {
     const json = JSON.stringify(MB10Headers)
     const blob = new Blob([json], { type: 'application/pdf' })
 

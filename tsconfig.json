@@ -12,7 +12,11 @@
     { "path": "./packages/react-query" },
     { "path": "./packages/vue-query" },
     { "path": "./packages/vue-colada" },
-    { "path": "./packages/zod" }
+    { "path": "./packages/zod" },
+    { "path": "./packages/standard-server" },
+    { "path": "./packages/standard-server-fetch" },
+    { "path": "./packages/standard-server-node" },
+    { "path": "./packages/standard-server-peer" }
   ],
   "include": [
     "playground",

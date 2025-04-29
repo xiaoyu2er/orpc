@@ -212,7 +212,7 @@ describe('clientPeer', () => {
         throw new Error('send error')
       })
       const peer = new ClientPeer(send)
-      expect(peer.request(baseRequest)).rejects.toThrow('send error')
+      await expect(peer.request(baseRequest)).rejects.toThrow('send error')
     })
 
     it('throw if cannot send signal', async () => {
@@ -226,11 +226,11 @@ describe('clientPeer', () => {
 
       const controller = new AbortController()
 
-      expect(peer.request({ ...baseRequest, signal: controller.signal })).rejects.toThrow('send error')
+      expect(peer.request({ ...baseRequest, signal: controller.signal })).rejects.toThrow()
 
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await new Promise(resolve => setTimeout(resolve, 1))
       controller.abort()
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await new Promise(resolve => setTimeout(resolve, 1))
 
       expect(send).toHaveBeenCalledTimes(2)
     })

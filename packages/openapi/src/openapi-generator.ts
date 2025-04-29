@@ -21,6 +21,8 @@ export interface OpenAPIGeneratorOptions extends StandardOpenAPIJsonSerializerOp
   schemaConverters?: ConditionalSchemaConverter[]
 }
 
+export interface OpenAPIGeneratorGenerateOptions extends Partial<Omit<OpenAPI.Document, 'openapi'>> {}
+
 /**
  * The generator that converts oRPC routers/contracts to OpenAPI specifications.
  *
@@ -40,9 +42,12 @@ export class OpenAPIGenerator {
    *
    * @see {@link https://orpc.unnoq.com/docs/openapi/openapi-specification OpenAPI Specification Docs}
    */
-  async generate(router: AnyContractRouter | AnyRouter, base: Omit<OpenAPI.Document, 'openapi'>): Promise<OpenAPI.Document> {
-    const doc: OpenAPI.Document = clone(base) as OpenAPI.Document
-    doc.openapi = '3.1.1'
+  async generate(router: AnyContractRouter | AnyRouter, options: OpenAPIGeneratorGenerateOptions = {}): Promise<OpenAPI.Document> {
+    const doc: OpenAPI.Document = {
+      ...clone(options),
+      info: options.info ?? { title: 'API Reference', version: '0.0.0' },
+      openapi: '3.1.1',
+    } as OpenAPI.Document
 
     const contracts: { contract: AnyContractProcedure, path: readonly string[] }[] = []
 

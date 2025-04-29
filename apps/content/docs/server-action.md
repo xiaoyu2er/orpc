@@ -12,10 +12,12 @@ React [Server Actions](https://react.dev/reference/rsc/server-functions) let cli
 Define your procedure with `.actionable` for Server Action support.
 
 ```ts twoslash
-import { onError, os } from '@orpc/server'
+import { onError, onSuccess, os } from '@orpc/server'
 import { z } from 'zod'
 // ---cut---
 'use server'
+
+import { redirect } from 'next/navigation'
 
 export const ping = os
   .input(z.object({ name: z.string() }))
@@ -23,6 +25,7 @@ export const ping = os
   .actionable({
     context: async () => ({}), // Optional: provide initial context if needed
     interceptors: [
+      onSuccess(output => redirect(`/some-where`)),
       onError(error => console.error(error)),
     ],
   })

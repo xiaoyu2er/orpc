@@ -1,7 +1,8 @@
 import { router } from '@/router'
 import { OpenAPIHandler } from '@orpc/openapi/fetch'
 import { onError } from '@orpc/server'
-import { ZodSmartCoercionPlugin } from '@orpc/zod'
+import { ZodSmartCoercionPlugin, ZodToJsonSchemaConverter } from '@orpc/zod'
+import { OpenAPIReferencePlugin } from '@orpc/openapi/plugins'
 import '../../../polyfill'
 
 const openAPIHandler = new OpenAPIHandler(router, {
@@ -12,6 +13,26 @@ const openAPIHandler = new OpenAPIHandler(router, {
   ],
   plugins: [
     new ZodSmartCoercionPlugin(),
+    new OpenAPIReferencePlugin({
+      schemaConverters: [
+        new ZodToJsonSchemaConverter(),
+      ],
+      specGenerateOptions: {
+        info: {
+          title: 'ORPC Playground',
+          version: '1.0.0',
+        },
+        security: [{ bearerAuth: [] }],
+        components: {
+          securitySchemes: {
+            bearerAuth: {
+              type: 'http',
+              scheme: 'bearer',
+            },
+          },
+        },
+      },
+    }),
   ],
 })
 

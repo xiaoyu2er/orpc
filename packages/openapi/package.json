@@ -1,7 +1,7 @@
 {
   "name": "@orpc/openapi",
   "type": "module",
-  "version": "1.0.3",
+  "version": "1.1.1",
   "license": "MIT",
   "homepage": "https://orpc.unnoq.com",
   "repository": {
@@ -19,6 +19,11 @@
         "types": "./dist/index.d.mts",
         "import": "./dist/index.mjs",
         "default": "./dist/index.mjs"
+      },
+      "./plugins": {
+        "types": "./dist/plugins/index.d.mts",
+        "import": "./dist/plugins/index.mjs",
+        "default": "./dist/plugins/index.mjs"
       },
       "./standard": {
         "types": "./dist/adapters/standard/index.d.mts",
@@ -39,6 +44,7 @@
   },
   "exports": {
     ".": "./src/index.ts",
+    "./plugins": "./src/plugins/index.ts",
     "./standard": "./src/adapters/standard/index.ts",
     "./fetch": "./src/adapters/fetch/index.ts",
     "./node": "./src/adapters/node/index.ts"

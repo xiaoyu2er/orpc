@@ -7,6 +7,10 @@ description: Create a beautiful API client for your oRPC effortlessly.
 
 Leverage the [OpenAPI Specification](/docs/openapi/openapi-specification) to generate a stunning API client for your oRPC using [Scalar](https://github.com/scalar/scalar).
 
+::: info
+This guide covers the basics. For a simpler setup, consider using the [OpenAPI Reference Plugin](/docs/openapi/plugins/openapi-reference), which serves both the API reference UI and the OpenAPI specification.
+:::
+
 ## Basic Example
 
 ```ts

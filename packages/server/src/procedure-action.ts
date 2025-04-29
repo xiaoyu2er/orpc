@@ -35,6 +35,15 @@ export function createActionableClient<TInput, TOutput, TError>(
       return [null, await client(input)]
     }
     catch (error) {
+      if (
+        error instanceof Error
+        && 'digest' in error
+        && typeof error.digest === 'string'
+        && error.digest.startsWith('NEXT_')
+      ) {
+        throw error
+      }
+
       return [toORPCError(error).toJSON(), undefined]
     }
   }

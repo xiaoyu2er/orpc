@@ -1,4 +1,5 @@
 import { ORPCError } from '@orpc/client'
+import { forbidden, notFound, redirect, unauthorized } from 'next/navigation'
 import { createActionableClient } from './procedure-action'
 
 describe('createActionableClient', () => {
@@ -33,5 +34,20 @@ describe('createActionableClient', () => {
     const result = await (action as any)('input', 'second')
     expect(result).toEqual([null, '__mocked__'])
     expect(client).toHaveBeenCalledWith('input')
+  })
+
+  it.each([
+    [() => redirect('/foo')],
+    [() => forbidden()],
+    [() => unauthorized()],
+    [() => notFound()],
+  ])('should rethrow next.js error', async (error) => {
+    (process as any).env.__NEXT_EXPERIMENTAL_AUTH_INTERRUPTS = true
+
+    client.mockImplementationOnce(() => {
+      error()
+    })
+
+    await expect(action('input')).rejects.toThrowError()
   })
 })

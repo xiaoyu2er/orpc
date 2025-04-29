@@ -303,6 +303,10 @@ async function prepareBodyAndHeadersForSerialization(
   return { body, headers }
 }
 
+export function isEventIteratorHeaders(headers: StandardHeaders): boolean {
+  return Boolean(toArray(headers['content-type'])[0]?.startsWith('text/event-stream') && headers['content-disposition'] === undefined)
+}
+
 /**
  * A 16-byte sentinel of 0xFF values guaranteed never to collide with UTF-8 JSON text,
  * since TextEncoder.encode never emits 0xFF (it's invalid in UTF-8).

@@ -1,5 +1,5 @@
 import type { StandardHeaders } from '@orpc/standard-server'
-import { decodeRequestMessage, decodeResponseMessage, encodeRequestMessage, encodeResponseMessage, MessageType } from './codec'
+import { decodeRequestMessage, decodeResponseMessage, encodeRequestMessage, encodeResponseMessage, isEventIteratorHeaders, MessageType } from './codec'
 
 const MB10Headers: StandardHeaders = {}
 
@@ -772,4 +772,23 @@ describe('encode/decode response message', () => {
 
     expect(await (payload as any).body.text()).toBe(json)
   })
+})
+
+it('isEventIteratorHeaders', () => {
+  expect(isEventIteratorHeaders({
+    'content-type': 'text/event-stream',
+  })).toBe(true)
+
+  expect(isEventIteratorHeaders({
+    'content-type': 'text/event-stream',
+    'content-disposition': '',
+  })).toBe(false)
+
+  expect(isEventIteratorHeaders({
+    'content-type': 'text/plain',
+  })).toBe(false)
+
+  expect(isEventIteratorHeaders({
+    'content-disposition': 'attachment; filename="test.pdf"',
+  })).toBe(false)
 })

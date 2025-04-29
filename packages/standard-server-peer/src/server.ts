@@ -1,7 +1,7 @@
 import type { StandardRequest, StandardResponse } from '@orpc/standard-server'
 import type { EventIteratorPayload, RawMessage } from './codec'
-import { ConsumableAsyncIdQueue, isAsyncIteratorObject, PullableAsyncIdQueue, toArray } from '@orpc/shared'
-import { decodeRequestMessage, encodeResponseMessage, MessageType } from './codec'
+import { ConsumableAsyncIdQueue, isAsyncIteratorObject, PullableAsyncIdQueue } from '@orpc/shared'
+import { decodeRequestMessage, encodeResponseMessage, isEventIteratorHeaders, MessageType } from './codec'
 import { sendEventIterator, toEventIterator } from './event-iterator'
 import { toAbortSignal } from './signal'
 
@@ -75,9 +75,6 @@ export class ServerPeer {
 
     this.open(id)
 
-    const isBlob = toArray(payload.headers['content-disposition'])[0] !== undefined
-    const isStreaming = toArray(payload.headers['content-type'])[0]?.startsWith('text/event-stream')
-
     const clientSignal = toAbortSignal(this.clientSignalQueue, id)
 
     clientSignal.addEventListener('abort', () => {
@@ -87,7 +84,7 @@ export class ServerPeer {
     const request: StandardRequest = {
       ...payload,
       signal: clientSignal,
-      body: isStreaming && !isBlob
+      body: isEventIteratorHeaders(payload.headers)
         ? toEventIterator(this.clientEventIteratorQueue, id, {
             onComplete: (reason) => {
               if (reason !== 'next') {

@@ -188,6 +188,9 @@ importers:
       '@orpc/standard-server-fetch':
         specifier: workspace:*
         version: link:../standard-server-fetch
+      '@orpc/standard-server-peer':
+        specifier: workspace:*
+        version: link:../standard-server-peer
     devDependencies:
       zod:
         specifier: ^3.24.2
@@ -335,7 +338,13 @@ importers:
       '@orpc/standard-server-node':
         specifier: workspace:*
         version: link:../standard-server-node
+      '@orpc/standard-server-peer':
+        specifier: workspace:*
+        version: link:../standard-server-peer
     devDependencies:
+      crossws:
+        specifier: ^0.3.4
+        version: 0.3.4
       next:
         specifier: ^15.3.0
         version: 15.3.0(@babel/core@7.26.10)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -393,15 +402,6 @@ importers:
         specifier: ^1.14.1
         version: 1.14.1(hono@4.7.6)
 
-  packages/standard-server-messages:
-    dependencies:
-      '@orpc/shared':
-        specifier: workspace:*
-        version: link:../shared
-      '@orpc/standard-server':
-        specifier: workspace:*
-        version: link:../standard-server
-
   packages/standard-server-node:
     dependencies:
       '@orpc/shared':
@@ -420,6 +420,15 @@ importers:
       supertest:
         specifier: ^7.1.0
         version: 7.1.0
+
+  packages/standard-server-peer:
+    dependencies:
+      '@orpc/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@orpc/standard-server':
+        specifier: workspace:*
+        version: link:../standard-server
 
   packages/svelte-query:
     dependencies:

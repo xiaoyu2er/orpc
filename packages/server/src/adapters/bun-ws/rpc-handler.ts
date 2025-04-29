@@ -17,7 +17,7 @@ export class experimental_RPCHandler<T extends Context> {
     this.wsHandler = new WebsocketRPCHandler(...args)
   }
 
-  message(ws: ServerWebSocket, message: string | { buffer: ArrayBuffer }, ...rest: MaybeOptionalOptions<Omit<FriendlyStandardHandleOptions<T>, 'prefix'>>): Promise<{ matched: boolean }> {
+  message(ws: ServerWebSocket, message: string | { buffer: ArrayBufferLike }, ...rest: MaybeOptionalOptions<Omit<FriendlyStandardHandleOptions<T>, 'prefix'>>): Promise<{ matched: boolean }> {
     return this.wsHandler.message(ws, typeof message === 'string' ? message : message.buffer, ...rest)
   }
 

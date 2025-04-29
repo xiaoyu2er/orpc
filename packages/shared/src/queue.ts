@@ -24,6 +24,10 @@ export abstract class AsyncIdQueue<T> {
       throw new Error(`[AsyncIdQueue] Cannot access queue[${id}] because it is not open.`)
     }
   }
+
+  get length(): number {
+    return this.openIds.size
+  }
 }
 
 export class PullableAsyncIdQueue<T> extends AsyncIdQueue<T> {

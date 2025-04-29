@@ -126,6 +126,22 @@ describe('pullableAsyncIdQueue', () => {
     expect(() => queue.push(queueId1, 'item')).toThrow()
     await expect(queue.pull(queueId1)).rejects.toThrow()
   })
+
+  it('length', async () => {
+    expect(queue.length).toBe(0)
+
+    queue.open(queueId1)
+    expect(queue.length).toBe(1)
+
+    queue.open(queueId2)
+    expect(queue.length).toBe(2)
+
+    queue.close(queueId1)
+    expect(queue.length).toBe(1)
+
+    queue.closeAll()
+    expect(queue.length).toBe(0)
+  })
 })
 
 describe('consumableAsyncIdQueue', () => {
@@ -204,5 +220,21 @@ describe('consumableAsyncIdQueue', () => {
 
     expect(() => queue.push(queueId1, 'item')).toThrow()
     expect(() => queue.push(queueId2, 'item')).toThrow()
+  })
+
+  it('length', async () => {
+    expect(queue.length).toBe(0)
+
+    queue.open(queueId1)
+    expect(queue.length).toBe(1)
+
+    queue.open(queueId2)
+    expect(queue.length).toBe(2)
+
+    queue.close(queueId1)
+    expect(queue.length).toBe(1)
+
+    queue.closeAll()
+    expect(queue.length).toBe(0)
   })
 })

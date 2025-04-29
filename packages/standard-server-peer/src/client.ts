@@ -145,7 +145,7 @@ export class ClientPeer {
 
       this.serverResponseQueue.close(id, reason)
       this.serverEventIterator.close(id, reason)
-      this.serverResponseQueue.close(id, reason)
+      this.serverSignalQueue.close(id, reason)
     }
     else {
       this.clientRequestQueue.closeAll()
@@ -154,7 +154,18 @@ export class ClientPeer {
 
       this.serverResponseQueue.closeAll()
       this.serverEventIterator.closeAll()
-      this.serverResponseQueue.closeAll()
+      this.serverSignalQueue.closeAll()
     }
+  }
+
+  get length(): number {
+    return (
+      this.clientRequestQueue.length
+      + this.clientEventIteratorQueue.length
+      + this.clientSignalQueue.length
+      + this.serverResponseQueue.length
+      + this.serverEventIterator.length
+      + this.serverSignalQueue.length
+    ) / 6
   }
 }

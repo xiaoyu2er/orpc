@@ -4,6 +4,18 @@ import { ClientPeer } from './client'
 import { decodeRequestMessage, encodeResponseMessage, MessageType } from './codec'
 
 describe('clientPeer', () => {
+  const send = vi.fn()
+  let peer: ClientPeer
+
+  beforeEach(() => {
+    send.mockReset()
+    peer = new ClientPeer(send)
+  })
+
+  afterEach(() => {
+    expect(peer.length).toBe(0)
+  })
+
   const baseRequest = {
     url: new URL('https://example.com'),
     method: 'POST',
@@ -23,11 +35,7 @@ describe('clientPeer', () => {
   }
 
   it('simple request/response', async () => {
-    const send = vi.fn()
-
-    const peer = new ClientPeer(send)
-
-    const responsePromise = peer.request(baseRequest)
+    expect(peer.request(baseRequest)).resolves.toEqual(baseResponse)
 
     await new Promise(resolve => setTimeout(resolve, 0))
 
@@ -35,15 +43,24 @@ describe('clientPeer', () => {
     expect(await decodeRequestMessage(send.mock.calls[0]![0])).toEqual([0, MessageType.REQUEST, baseRequest])
 
     peer.message(await encodeResponseMessage(0, MessageType.RESPONSE, baseResponse))
+  })
 
-    expect(await responsePromise).toEqual(baseResponse)
+  it('multiple simple request/response', async () => {
+    expect(peer.request(baseRequest)).resolves.toEqual(baseResponse)
+    expect(peer.request({ ...baseRequest, body: '__SECOND__' })).resolves.toEqual({ ...baseResponse, body: '__SECOND__' })
+
+    await new Promise(resolve => setTimeout(resolve, 0))
+
+    expect(send).toHaveBeenCalledTimes(2)
+    expect(await decodeRequestMessage(send.mock.calls[0]![0])).toEqual([0, MessageType.REQUEST, baseRequest])
+    expect(await decodeRequestMessage(send.mock.calls[1]![0])).toEqual([1, MessageType.REQUEST, { ...baseRequest, body: '__SECOND__' }])
+
+    peer.message(await encodeResponseMessage(0, MessageType.RESPONSE, baseResponse))
+    peer.message(await encodeResponseMessage(1, MessageType.RESPONSE, { ...baseResponse, body: '__SECOND__' }))
   })
 
   describe('request', () => {
     it('aborted signal', async () => {
-      const send = vi.fn()
-      const peer = new ClientPeer(send)
-
       const controller = new AbortController()
       const signal = controller.signal
       controller.abort()
@@ -61,9 +78,6 @@ describe('clientPeer', () => {
     })
 
     it('signal', async () => {
-      const send = vi.fn()
-      const peer = new ClientPeer(send)
-
       const controller = new AbortController()
       const signal = controller.signal
 
@@ -83,9 +97,6 @@ describe('clientPeer', () => {
     })
 
     it('iterator', async () => {
-      const send = vi.fn()
-      const peer = new ClientPeer(send)
-
       const request = {
         ...baseRequest,
         body: (async function* () {
@@ -109,9 +120,6 @@ describe('clientPeer', () => {
     })
 
     it('iterator and server abort while sending', async () => {
-      const send = vi.fn()
-      const peer = new ClientPeer(send)
-
       const yieldFn = vi.fn(v => v)
       let isFinallyCalled = false
 
@@ -151,9 +159,6 @@ describe('clientPeer', () => {
     })
 
     it('file', async () => {
-      const send = vi.fn()
-      const peer = new ClientPeer(send)
-
       const request = {
         ...baseRequest,
         body: new File(['hello'], 'hello.txt', { type: 'text/plain' }),
@@ -178,9 +183,6 @@ describe('clientPeer', () => {
     })
 
     it('form data', async () => {
-      const send = vi.fn()
-      const peer = new ClientPeer(send)
-
       const formData = new FormData()
       formData.append('hello', 'world')
       formData.append('file', new File(['hello'], 'hello.txt', { type: 'text/plain' }))
@@ -208,21 +210,19 @@ describe('clientPeer', () => {
     })
 
     it('throw if can not send', async () => {
-      const send = vi.fn(() => {
+      send.mockImplementation(() => {
         throw new Error('send error')
       })
-      const peer = new ClientPeer(send)
       await expect(peer.request(baseRequest)).rejects.toThrow('send error')
     })
 
     it('throw if cannot send signal', async () => {
       let time = 0
-      const send = vi.fn(() => {
+      send.mockImplementation(() => {
         if (time++ === 1) {
           throw new Error('send error')
         }
       })
-      const peer = new ClientPeer(send)
 
       const controller = new AbortController()
 
@@ -237,12 +237,11 @@ describe('clientPeer', () => {
 
     it('throw if cannot send iterator', async () => {
       let time = 0
-      const send = vi.fn(() => {
+      send.mockImplementation(() => {
         if (time++ === 1) {
           throw new Error('send error')
         }
       })
-      const peer = new ClientPeer(send)
 
       const yieldFn = vi.fn(v => v)
       let isFinallyCalled = false
@@ -274,9 +273,6 @@ describe('clientPeer', () => {
 
   describe('response', () => {
     it('iterator', async () => {
-      const send = vi.fn()
-      const peer = new ClientPeer(send)
-
       const response = {
         ...baseResponse,
         body: (async function* () {})(),
@@ -329,9 +325,6 @@ describe('clientPeer', () => {
     })
 
     it('iterator and client manually .return while sending', async () => {
-      const send = vi.fn()
-      const peer = new ClientPeer(send)
-
       const response = {
         ...baseResponse,
         body: (async function* () { })(),
@@ -371,9 +364,6 @@ describe('clientPeer', () => {
     })
 
     it('file', async () => {
-      const send = vi.fn()
-      const peer = new ClientPeer(send)
-
       const response = {
         ...baseResponse,
         body: new File(['hello'], 'hello.txt', { type: 'text/plain' }),
@@ -392,9 +382,6 @@ describe('clientPeer', () => {
     })
 
     it('form data', async () => {
-      const send = vi.fn()
-      const peer = new ClientPeer(send)
-
       const formData = new FormData()
       formData.append('hello', 'world')
       formData.append('file', new File(['hello'], 'hello.txt', { type: 'text/plain' }))
@@ -417,9 +404,6 @@ describe('clientPeer', () => {
   })
 
   it('close all', async () => {
-    const send = vi.fn()
-    const peer = new ClientPeer(send)
-
     expect(peer.request(baseRequest)).rejects.toThrow('[PullableAsyncIdQueue] Queue[0] was closed while waiting for pulling.')
     expect(peer.request(baseRequest)).rejects.toThrow('[PullableAsyncIdQueue] Queue[1] was closed while waiting for pulling.')
     expect(peer.request(baseRequest)).rejects.toThrow('[PullableAsyncIdQueue] Queue[2] was closed while waiting for pulling.')

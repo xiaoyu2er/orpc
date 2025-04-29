@@ -131,4 +131,14 @@ export class ServerPeer {
       this.clientSignalQueue.closeAll()
     }
   }
+
+  get length(): number {
+    return (
+      this.serverResponseQueue.length
+      + this.serverEventIteratorQueue.length
+      + this.serverResponseQueue.length
+      + this.clientEventIteratorQueue.length
+      + this.clientSignalQueue.length
+    ) / 5
+  }
 }

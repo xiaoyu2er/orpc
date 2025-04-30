@@ -3,7 +3,7 @@ import type { ActionableClient, UnactionableError } from '@orpc/server'
 import type { Interceptor } from '@orpc/shared'
 import { createORPCErrorFromJson, safe } from '@orpc/client'
 import { intercept, toArray } from '@orpc/shared'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState, useTransition } from 'react'
 
 export interface UseServerActionOptions<TInput, TOutput, TError> {
   interceptors?: Interceptor<{ input: TInput }, TOutput, TError>[]
@@ -78,9 +78,17 @@ const INITIAL_STATE = {
   isSuccess: false,
   isError: false,
   status: 'idle',
-  executedAt: undefined,
-  input: undefined,
 } as const
+
+const PENDING_STATE = {
+  data: undefined,
+  error: null,
+  isIdle: false,
+  isPending: true,
+  isSuccess: false,
+  isError: false,
+  status: 'pending',
+}
 
 /**
  * Use a Server Action Hook
@@ -97,62 +105,66 @@ export function useServerAction<TInput, TOutput, TError extends ORPCErrorJSON<an
   const [state, setState] = useState<Omit<
     | UseServerActionIdleResult<TInput, TOutput, UnactionableError<TError>>
     | UseServerActionSuccessResult<TInput, TOutput, UnactionableError<TError>>
-    | UseServerActionErrorResult<TInput, TOutput, UnactionableError<TError>>
-    | UseServerActionPendingResult<TInput, TOutput, UnactionableError<TError>>,
-    keyof UseServerActionResultBase<TInput, TOutput, UnactionableError<TError>>
+    | UseServerActionErrorResult<TInput, TOutput, UnactionableError<TError>>,
+    keyof UseServerActionResultBase<TInput, TOutput, UnactionableError<TError>> | 'executedAt' | 'input'
   >>(INITIAL_STATE)
 
+  const executedAtRef = useRef<Date | undefined>(undefined)
+  const inputRef = useRef<TInput | undefined>(undefined)
+  const [isPending, startTransition] = useTransition()
+
   const reset = useCallback(() => {
+    executedAtRef.current = undefined
+    inputRef.current = undefined
     setState(INITIAL_STATE)
   }, [])
 
   const execute = useCallback(async (input: TInput, executeOptions: UseServerActionExecuteOptions<TInput, TOutput, UnactionableError<TError>> = {}) => {
-    const executedAt = new Date()
+    inputRef.current = input
+    executedAtRef.current = new Date()
 
-    setState({
-      data: undefined,
-      error: null,
-      isIdle: false,
-      isPending: true,
-      isSuccess: false,
-      isError: false,
-      status: 'pending',
-      executedAt,
-      input,
+    return new Promise((resolve) => {
+      startTransition(async () => {
+        const result = await safe(intercept(
+          [...toArray(options.interceptors), ...toArray(executeOptions.interceptors)],
+          { input: input as TInput },
+          ({ input }) => action(input).then(([error, data]) => {
+            if (error) {
+              throw createORPCErrorFromJson(error)
+            }
+
+            return data as TOutput
+          }),
+        ))
+
+        setState({
+          data: result.data,
+          error: result.error as any,
+          isIdle: false,
+          isPending: false,
+          isSuccess: !result.error,
+          isError: !!result.error,
+          status: !result.error ? 'success' : 'error',
+        })
+
+        resolve(result)
+      })
     })
-
-    const result = await safe(intercept(
-      [...toArray(options.interceptors), ...toArray(executeOptions.interceptors)],
-      { input: input as TInput },
-      ({ input }) => action(input).then(([error, data]) => {
-        if (error) {
-          throw createORPCErrorFromJson(error)
-        }
-
-        return data as TOutput
-      }),
-    ))
-
-    setState({
-      data: result.data,
-      error: result.error as any,
-      isIdle: false,
-      isPending: false,
-      isSuccess: !result.error,
-      isError: !!result.error,
-      status: !result.error ? 'success' : 'error',
-      executedAt,
-      input,
-    })
-
-    return result
   }, [action, ...toArray(options.interceptors)])
 
-  const result = useMemo(() => ({
-    ...state,
-    reset,
-    execute,
-  }), [state, reset, execute])
+  const result = useMemo(() => {
+    const currentState = isPending
+      ? PENDING_STATE
+      : state
+
+    return {
+      ...currentState,
+      executedAt: executedAtRef.current,
+      input: inputRef.current,
+      reset,
+      execute,
+    }
+  }, [isPending, state, reset, execute])
 
   return result as any
 }

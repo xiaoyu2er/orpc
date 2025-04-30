@@ -1,5 +1,6 @@
 import type { StandardRequest, StandardResponse } from '@orpc/standard-server'
-import type { EventIteratorPayload, RawMessage } from './codec'
+import type { EventIteratorPayload } from './codec'
+import type { EncodedMessage, EncodedMessageSendFn } from './types'
 import { ConsumableAsyncIdQueue, isAsyncIteratorObject, PullableAsyncIdQueue } from '@orpc/shared'
 import { decodeRequestMessage, encodeResponseMessage, isEventIteratorHeaders, MessageType } from './codec'
 import { sendEventIterator, toEventIterator } from './event-iterator'
@@ -14,13 +15,12 @@ export class ServerPeer {
   private readonly clientSignalQueue = new PullableAsyncIdQueue<void>()
 
   constructor(
-    send: (message: RawMessage) => void,
+    send: EncodedMessageSendFn,
   ) {
     this.serverResponseQueue = new ConsumableAsyncIdQueue((id, response) => {
       encodeResponseMessage(id, MessageType.RESPONSE, response)
-        .then(async (raw) => {
-          send(raw)
-
+        .then(send)
+        .then(async () => {
           if (isAsyncIteratorObject(response.body)) {
             await sendEventIterator(this.serverEventIteratorQueue, id, response.body, {
               onComplete: () => {
@@ -54,7 +54,7 @@ export class ServerPeer {
     })
   }
 
-  async message(raw: RawMessage): Promise<[id: number, StandardRequest | undefined]> {
+  async message(raw: EncodedMessage): Promise<[id: number, StandardRequest | undefined]> {
     const [id, type, payload] = await decodeRequestMessage(raw)
 
     if (type === MessageType.ABORT_SIGNAL) {

@@ -6,50 +6,31 @@ import { resolveMaybeOptionalOptions } from '@orpc/shared'
 import { ServerPeer } from '@orpc/standard-server-peer'
 import { resolveFriendlyStandardHandleOptions } from '../standard/utils'
 
-export interface ServerWebSocket {
-  send(message: string | ArrayBufferLike): void
-}
-
 export class experimental_WebsocketHandler<T extends Context> {
-  private readonly peers: WeakMap<ServerWebSocket, ServerPeer> = new WeakMap()
-
   constructor(
     private readonly standardHandler: StandardHandler<T>,
   ) {
   }
 
-  async message(
-    ws: ServerWebSocket,
-    message: string | ArrayBufferLike,
-    ...rest: MaybeOptionalOptions<Omit<FriendlyStandardHandleOptions<T>, 'prefix'>>
-  ): Promise<{ matched: boolean }> {
-    let peer = this.peers.get(ws)
+  handle(ws: Pick<WebSocket, 'addEventListener' | 'send'>, ...rest: MaybeOptionalOptions<Omit<FriendlyStandardHandleOptions<T>, 'prefix'>>): void {
+    const peer = new ServerPeer(ws.send.bind(ws))
 
-    if (!peer) {
-      this.peers.set(ws, peer = new ServerPeer(ws.send.bind(ws)))
-    }
+    ws.addEventListener('message', async (event) => {
+      const [id, request] = await peer.message(event.data)
 
-    const [id, request] = await peer.message(message)
+      if (!request) {
+        return
+      }
 
-    if (!request) {
-      return { matched: true }
-    }
+      const options = resolveFriendlyStandardHandleOptions(resolveMaybeOptionalOptions(rest))
 
-    const options = resolveFriendlyStandardHandleOptions(resolveMaybeOptionalOptions(rest))
+      const { response } = await this.standardHandler.handle({ ...request, body: () => Promise.resolve(request.body) }, options)
 
-    const { response } = await this.standardHandler.handle({ ...request, body: () => Promise.resolve(request.body) }, options)
+      await peer.response(id, response ?? { status: 404, headers: {}, body: 'No procedure matched' })
+    })
 
-    await peer.response(id, response ?? { status: 404, headers: {}, body: 'No procedure matched' })
-
-    return { matched: true }
-  }
-
-  close(ws: ServerWebSocket): void {
-    const server = this.peers.get(ws)
-
-    if (server) {
-      server.close()
-      this.peers.delete(ws)
-    }
+    ws.addEventListener('close', () => {
+      peer.close()
+    })
   }
 }

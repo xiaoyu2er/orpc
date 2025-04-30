@@ -1,4 +1,5 @@
 import type { EventMeta, StandardBody, StandardHeaders, StandardRequest, StandardResponse } from '@orpc/standard-server'
+import type { EncodedMessage } from './types'
 import { isAsyncIteratorObject, stringifyJSON, toArray } from '@orpc/shared'
 import { generateContentDisposition, getFilenameFromContentDisposition } from '@orpc/standard-server'
 
@@ -8,8 +9,6 @@ export enum MessageType {
   EVENT_ITERATOR = 3,
   ABORT_SIGNAL = 4,
 }
-
-export type RawMessage = string | ArrayBufferLike
 
 export type EventIteratorEvent = 'message' | 'error' | 'done'
 
@@ -94,7 +93,7 @@ export async function encodeRequestMessage<T extends keyof RequestMessageMap>(
   id: number,
   type: T,
   payload: RequestMessageMap[T],
-): Promise<RawMessage> {
+): Promise<EncodedMessage> {
   if (type === MessageType.EVENT_ITERATOR) {
     const eventPayload = payload as EventIteratorPayload
     const serializedPayload: SerializedEventIteratorPayload = {
@@ -136,7 +135,7 @@ export async function encodeRequestMessage<T extends keyof RequestMessageMap>(
   return encodeRawMessage(baseMessage)
 }
 
-export async function decodeRequestMessage(raw: RawMessage): Promise<DecodedRequestMessage> {
+export async function decodeRequestMessage(raw: EncodedMessage): Promise<DecodedRequestMessage> {
   const { json: message, blobData } = await decodeRawMessage(raw)
 
   const id: number = message.i
@@ -182,7 +181,7 @@ export async function encodeResponseMessage<T extends keyof ResponseMessageMap>(
   id: number,
   type: T,
   payload: ResponseMessageMap[T],
-): Promise<RawMessage> {
+): Promise<EncodedMessage> {
   if (type === MessageType.EVENT_ITERATOR) {
     const eventPayload = payload as EventIteratorPayload
     const serializedPayload: SerializedEventIteratorPayload = {
@@ -221,7 +220,7 @@ export async function encodeResponseMessage<T extends keyof ResponseMessageMap>(
   return encodeRawMessage(baseMessage)
 }
 
-export async function decodeResponseMessage(raw: RawMessage): Promise<DecodedResponseMessage> {
+export async function decodeResponseMessage(raw: EncodedMessage): Promise<DecodedResponseMessage> {
   const { json: message, blobData } = await decodeRawMessage(raw)
 
   const id: number = message.i
@@ -314,23 +313,21 @@ export function isEventIteratorHeaders(headers: StandardHeaders): boolean {
  */
 const JSON_AND_BINARY_DELIMITER = 0xFF
 
-async function encodeRawMessage(data: object, blobData?: Blob): Promise<RawMessage> {
+async function encodeRawMessage(data: object, blobData?: Blob): Promise<EncodedMessage> {
   const json = stringifyJSON(data)
 
   if (blobData === undefined) {
     return json
   }
 
-  const blob = new Blob([
+  return new Blob([
     new TextEncoder().encode(json),
     new Uint8Array([JSON_AND_BINARY_DELIMITER]),
     blobData,
   ])
-
-  return blob.arrayBuffer()
 }
 
-async function decodeRawMessage(raw: RawMessage): Promise<{ json: any, blobData?: ArrayBuffer }> {
+async function decodeRawMessage(raw: EncodedMessage): Promise<{ json: any, blobData?: ArrayBuffer }> {
   if (typeof raw === 'string') {
     return { json: JSON.parse(raw) }
   }

@@ -1,27 +1,17 @@
-import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { Context } from '../../context'
-import type { FriendlyStandardHandleOptions } from '../standard/utils'
-import type { ServerWebSocket } from '../websocket'
-import { experimental_RPCHandler as WebsocketRPCHandler } from '../websocket'
+import type { Router } from '../../router'
+import type { StandardRPCHandlerOptions } from '../standard'
+import { StandardRPCHandler } from '../standard'
+import { experimental_BunWsHandler as BunWsHandler } from './handler'
 
 /**
- * RPC Handler for Bun Websocket
+ * RPC Handler for Bun WS adapter
  *
  * @see {@link https://orpc.unnoq.com/docs/rpc-handler RPC Handler Docs}
- * @see {@link https://orpc.unnoq.com/docs/integrations/websocket Websocket Integration Docs}
+ * @see {@link https://orpc.unnoq.com/docs/adapters/websocket Websocket Adapter Docs}
  */
-export class experimental_RPCHandler<T extends Context> {
-  private readonly wsHandler: WebsocketRPCHandler<T>
-
-  constructor(...args: ConstructorParameters<typeof WebsocketRPCHandler<T>>) {
-    this.wsHandler = new WebsocketRPCHandler(...args)
-  }
-
-  message(ws: ServerWebSocket, message: string | { buffer: ArrayBufferLike }, ...rest: MaybeOptionalOptions<Omit<FriendlyStandardHandleOptions<T>, 'prefix'>>): Promise<{ matched: boolean }> {
-    return this.wsHandler.message(ws, typeof message === 'string' ? message : message.buffer, ...rest)
-  }
-
-  close(peer: ServerWebSocket): void {
-    this.wsHandler.close(peer)
+export class experimental_RPCHandler<T extends Context> extends BunWsHandler<T> {
+  constructor(router: Router<any, T>, options: NoInfer<Omit<StandardRPCHandlerOptions<T>, 'strictGetMethodPluginEnabled'>> = {}) {
+    super(new StandardRPCHandler(router, { ...options, strictGetMethodPluginEnabled: false }))
   }
 }

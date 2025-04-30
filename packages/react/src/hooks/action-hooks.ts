@@ -110,18 +110,20 @@ export function useServerAction<TInput, TOutput, TError extends ORPCErrorJSON<an
   >>(INITIAL_STATE)
 
   const executedAtRef = useRef<Date | undefined>(undefined)
-  const inputRef = useRef<TInput | undefined>(undefined)
+  const [input, setInput] = useState<TInput | undefined>(undefined)
   const [isPending, startTransition] = useTransition()
 
   const reset = useCallback(() => {
     executedAtRef.current = undefined
-    inputRef.current = undefined
-    setState(INITIAL_STATE)
+    setInput(undefined)
+    setState({ ...INITIAL_STATE })
   }, [])
 
   const execute = useCallback(async (input: TInput, executeOptions: UseServerActionExecuteOptions<TInput, TOutput, UnactionableError<TError>> = {}) => {
-    inputRef.current = input
-    executedAtRef.current = new Date()
+    const executedAt = new Date()
+    executedAtRef.current = executedAt
+
+    setInput(input)
 
     return new Promise((resolve) => {
       startTransition(async () => {
@@ -137,15 +139,20 @@ export function useServerAction<TInput, TOutput, TError extends ORPCErrorJSON<an
           }),
         ))
 
-        setState({
-          data: result.data,
-          error: result.error as any,
-          isIdle: false,
-          isPending: false,
-          isSuccess: !result.error,
-          isError: !!result.error,
-          status: !result.error ? 'success' : 'error',
-        })
+        /**
+         * If multiple execute calls are made in parallel, only the last one will be effective.
+         */
+        if (executedAtRef.current === executedAt) {
+          setState({
+            data: result.data,
+            error: result.error as any,
+            isIdle: false,
+            isPending: false,
+            isSuccess: !result.error,
+            isError: !!result.error,
+            status: !result.error ? 'success' : 'error',
+          })
+        }
 
         resolve(result)
       })
@@ -153,18 +160,18 @@ export function useServerAction<TInput, TOutput, TError extends ORPCErrorJSON<an
   }, [action, ...toArray(options.interceptors)])
 
   const result = useMemo(() => {
-    const currentState = isPending
+    const currentState = isPending && executedAtRef.current !== undefined
       ? PENDING_STATE
       : state
 
     return {
       ...currentState,
       executedAt: executedAtRef.current,
-      input: inputRef.current,
+      input,
       reset,
       execute,
     }
-  }, [isPending, state, reset, execute])
+  }, [isPending, state, input, reset, execute])
 
   return result as any
 }

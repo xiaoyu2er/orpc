@@ -7,21 +7,43 @@ description: Integrating oRPC with WebSocket
 
 WebSocket is a lightweight, full-duplex protocol that enables real-time communication between a client and a server. oRPC includes first-class support for WebSocket out of the box, giving you low latency and high throughput.
 
-## Server
+## Server Adapters
 
-### Imports
+| Adapter     | Target                                                                                                |
+| ----------- | ----------------------------------------------------------------------------------------------------- |
+| `websocket` | [MDN WebSocket API](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) (Browser, Deno, etc.) |
+| `crossws`   | [Crossws](https://github.com/h3js/crossws) library (Node, Bun, Deno, SSE, etc.)                       |
+| `ws`        | [ws](https://github.com/websockets/ws) library (Node.js)                                              |
+| `bun-ws`    | [Bun Websocket Server](https://bun.sh/docs/api/websockets)                                            |
 
-```ts
-import { experimental_RPCHandler as RPCHandler } from '@orpc/server/crossws'
+::: code-group
+
+```ts [websocket]
+import { experimental_RPCHandler as RPCHandler } from '@orpc/server/websocket'
+
+const handler = new RPCHandler(router)
+
+Deno.serve((req) => {
+  if (req.headers.get('upgrade') !== 'websocket') {
+    return new Response(null, { status: 501 })
+  }
+
+  const { socket, response } = Deno.upgradeWebSocket(req)
+
+  handler.handle(socket, {
+    context: {}, // Provide initial context if needed
+  })
+
+  return response
+})
 ```
 
-oRPC provides an adapter for [Crossws](https://github.com/h3js/crossws), which works in numerous JavaScript environments.
-
-### Example with Bun
-
-```ts
+```ts [crossws]
+import { createServer } from 'node:http'
 import { experimental_RPCHandler as RPCHandler } from '@orpc/server/crossws'
-import crossws from 'crossws/adapters/bun'
+
+// any crossws adapter is supported
+import crossws from 'crossws/adapters/node'
 
 const handler = new RPCHandler(router)
 
@@ -29,7 +51,7 @@ const ws = crossws({
   hooks: {
     message: (peer, message) => {
       handler.message(peer, message, {
-        context: {}, // Optional initial context
+        context: {}, // Provide initial context if needed
       })
     },
     close: (peer) => {
@@ -38,48 +60,85 @@ const ws = crossws({
   },
 })
 
+const server = createServer((req, res) => {
+  res.end(`Hello World`)
+}).listen(3000)
+
+server.on('upgrade', (req, socket, head) => {
+  if (req.headers.upgrade === 'websocket') {
+    ws.handleUpgrade(req, socket, head)
+  }
+})
+```
+
+```ts [ws]
+import { WebSocketServer } from 'ws'
+import { experimental_RPCHandler as RPCHandler } from '@orpc/server/ws'
+
+const handler = new RPCHandler(router)
+
+const wss = new WebSocketServer({ port: 8080 })
+
+wss.on('connection', (ws) => {
+  handler.handle(ws, {
+    context: {}, // Provide initial context if needed
+  })
+})
+```
+
+```ts [bun-ws]
+import { WebSocketServer } from 'ws'
+import { experimental_RPCHandler as RPCHandler } from '@orpc/server/bun-ws'
+
+const handler = new RPCHandler(router)
+
 Bun.serve({
-  port: 3000,
-  websocket: ws.websocket,
-  fetch(request, server) {
-    if (request.headers.get('upgrade') === 'websocket') {
-      return ws.handleUpgrade(request, server)
+  fetch(req, server) {
+    if (server.upgrade(req)) {
+      return
     }
 
-    return new Response('Not Found', { status: 404 })
+    return new Response('Upgrade failed', { status: 500 })
+  },
+  websocket: {
+    message(ws, message) {
+      handler.message(ws, message, {
+        context: {}, // Provide initial context if needed
+      })
+    },
+    close(ws) {
+      handler.close(ws)
+    },
   },
 })
 ```
 
-:::info
-This example uses the [Crossws](https://github.com/h3js/crossws) adapter and Bun, but you can swap in any other supported environment adapter.
 :::
 
-## Client
+## Client Adapters
 
-### Imports
+| Adapter     | Target                                                                                                           |
+| ----------- | ---------------------------------------------------------------------------------------------------------------- |
+| `websocket` | [MDN WebSocket API](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) (Browser, Node, Bun, Deno, etc.) |
 
-```ts
-import { experimental_RPCLink as RPCLink } from '@orpc/client/websocket'
-```
+::: code-group
 
-oRPC provides a standard WebSocket adapter that works everywhere the native [WebSocket](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) API available.
-
-### Basic Setup
-
-```ts
+```ts [websocket]
 import { experimental_RPCLink as RPCLink } from '@orpc/client/websocket'
 
 const websocket = new WebSocket('ws://localhost:3000')
+
 const link = new RPCLink({
   websocket
 })
 ```
 
-:::info
-This snippet only covers setting up the `RPCLink`. For complete client usage, see [Client-Side Clients](/docs/client/client-side).
+:::
+
+::: tip
+Use [partysocket](https://www.npmjs.com/package/partysocket) library for manually/automatically reconnect logic.
 :::
 
 :::info
-For automatic reconnect logic, consider using a library like [partysocket](https://www.npmjs.com/package/partysocket).
+This only shows how to configure the WebSocket link. For full client examples, see [Client-Side Clients](/docs/client/client-side).
 :::

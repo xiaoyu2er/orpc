@@ -87,7 +87,6 @@ wss.on('connection', (ws) => {
 ```
 
 ```ts [bun-ws]
-import { WebSocketServer } from 'ws'
 import { experimental_RPCHandler as RPCHandler } from '@orpc/server/bun-ws'
 
 const handler = new RPCHandler(router)

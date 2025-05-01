@@ -1,11 +1,11 @@
 import type { EventIteratorPayload } from './codec'
-import { ConsumableAsyncIdQueue, PullableAsyncIdQueue } from '@orpc/shared'
+import { AsyncIdQueue } from '@orpc/shared'
 import { ErrorEvent, getEventMeta, withEventMeta } from '@orpc/standard-server'
-import { sendEventIterator, toEventIterator } from './event-iterator'
+import { resolveEventIterator, toEventIterator } from './event-iterator'
 
 describe('toEventIterator', () => {
   it('on success', async () => {
-    const queue = new PullableAsyncIdQueue<EventIteratorPayload>()
+    const queue = new AsyncIdQueue<EventIteratorPayload>()
 
     queue.open(198)
     queue.open(199)
@@ -32,10 +32,8 @@ describe('toEventIterator', () => {
       meta: { id: 'id-2', retry: 2001, comments: ['comment1', 'comment2'] },
     })
 
-    const onComplete = vi.fn()
-    const iterator = toEventIterator(queue, 198, {
-      onComplete,
-    })
+    const cleanup = vi.fn()
+    const iterator = toEventIterator(queue, 198, cleanup)
 
     await expect(iterator.next()).resolves.toSatisfy((value) => {
       expect(value.done).toBe(false)
@@ -52,7 +50,7 @@ describe('toEventIterator', () => {
       return true
     })
 
-    expect(onComplete).toHaveBeenCalledTimes(0)
+    expect(cleanup).toHaveBeenCalledTimes(0)
 
     await expect(iterator.next()).resolves.toSatisfy((value) => {
       expect(value.done).toBe(true)
@@ -61,13 +59,13 @@ describe('toEventIterator', () => {
       return true
     })
 
-    expect(onComplete).toHaveBeenCalledTimes(1)
+    expect(cleanup).toHaveBeenCalledTimes(1)
 
     await expect(iterator.next()).resolves.toEqual({ done: true, value: undefined })
   })
 
   it('on error', async () => {
-    const queue = new PullableAsyncIdQueue<EventIteratorPayload>()
+    const queue = new AsyncIdQueue<EventIteratorPayload>()
 
     queue.open(198)
     queue.open(199)
@@ -94,10 +92,8 @@ describe('toEventIterator', () => {
       meta: { id: 'id-2', retry: 2001, comments: ['comment1', 'comment2'] },
     })
 
-    const onComplete = vi.fn()
-    const iterator = toEventIterator(queue, 198, {
-      onComplete,
-    })
+    const cleanup = vi.fn()
+    const iterator = toEventIterator(queue, 198, cleanup)
 
     await expect(iterator.next()).resolves.toSatisfy((value) => {
       expect(value.done).toBe(false)
@@ -114,7 +110,7 @@ describe('toEventIterator', () => {
       return true
     })
 
-    expect(onComplete).toHaveBeenCalledTimes(0)
+    expect(cleanup).toHaveBeenCalledTimes(0)
 
     await expect(iterator.next()).rejects.toSatisfy((value) => {
       expect(value).toBeInstanceOf(ErrorEvent)
@@ -123,50 +119,41 @@ describe('toEventIterator', () => {
       return true
     })
 
-    expect(onComplete).toHaveBeenCalledTimes(1)
+    expect(cleanup).toHaveBeenCalledTimes(1)
 
     await expect(iterator.next()).resolves.toEqual({ done: true, value: undefined })
   })
 })
 
-describe('sendEventIterator', () => {
+describe('resolveEventIterator', () => {
   it('on success', async () => {
-    const onComplete = vi.fn()
-    const consume = vi.fn()
+    const callback = vi.fn(async () => 'next' as const)
 
-    const queue = new ConsumableAsyncIdQueue<EventIteratorPayload>(consume)
-
-    queue.open(133)
-
-    await sendEventIterator(queue, 133, (async function* () {
+    await resolveEventIterator((async function* () {
       yield 'hello'
       yield withEventMeta({ hello2: true }, { id: 'id-1', retry: 2000, comments: [] })
       yield 'hello3'
       return withEventMeta({ hello4: true }, { id: 'id-2', retry: 2001, comments: ['comment1', 'comment2'] })
-    })(), {
-      onComplete,
-    })
+    })(), callback)
 
-    expect(onComplete).toHaveBeenCalledTimes(1)
-
-    expect(consume).toHaveBeenCalledTimes(4)
-    expect(consume).toHaveBeenNthCalledWith(1, 133, {
+    expect(callback).toHaveBeenCalledTimes(4)
+    expect(callback).toHaveBeenNthCalledWith(1, {
       event: 'message',
       data: 'hello',
     })
 
-    expect(consume).toHaveBeenNthCalledWith(2, 133, {
+    expect(callback).toHaveBeenNthCalledWith(2, {
       event: 'message',
       data: { hello2: true },
       meta: { id: 'id-1', retry: 2000, comments: [] },
     })
 
-    expect(consume).toHaveBeenNthCalledWith(3, 133, {
+    expect(callback).toHaveBeenNthCalledWith(3, {
       event: 'message',
       data: 'hello3',
     })
 
-    expect(consume).toHaveBeenNthCalledWith(4, 133, {
+    expect(callback).toHaveBeenNthCalledWith(4, {
       event: 'done',
       data: { hello4: true },
       meta: { id: 'id-2', retry: 2001, comments: ['comment1', 'comment2'] },
@@ -174,41 +161,33 @@ describe('sendEventIterator', () => {
   })
 
   it('on ErrorEvent', async () => {
-    const onComplete = vi.fn()
-    const consume = vi.fn()
+    const callback = vi.fn(async () => 'next' as const)
 
-    const queue = new ConsumableAsyncIdQueue<EventIteratorPayload>(consume)
-
-    queue.open(133)
-
-    await sendEventIterator(queue, 133, (async function* () {
+    await resolveEventIterator((async function* () {
       yield 'hello'
       yield withEventMeta({ hello2: true }, { id: 'id-1', retry: 2000, comments: [] })
       yield 'hello3'
       throw withEventMeta(new ErrorEvent({ data: { hello4: true } }), { id: 'id-2', retry: 2001, comments: ['comment1', 'comment2'] })
-    })(), {
-      onComplete,
-    })
+    })(), callback)
 
-    expect(onComplete).toHaveBeenCalledTimes(1)
-    expect(consume).toHaveBeenCalledTimes(4)
-    expect(consume).toHaveBeenNthCalledWith(1, 133, {
+    expect(callback).toHaveBeenCalledTimes(4)
+    expect(callback).toHaveBeenNthCalledWith(1, {
       event: 'message',
       data: 'hello',
     })
 
-    expect(consume).toHaveBeenNthCalledWith(2, 133, {
+    expect(callback).toHaveBeenNthCalledWith(2, {
       event: 'message',
       data: { hello2: true },
       meta: { id: 'id-1', retry: 2000, comments: [] },
     })
 
-    expect(consume).toHaveBeenNthCalledWith(3, 133, {
+    expect(callback).toHaveBeenNthCalledWith(3, {
       event: 'message',
       data: 'hello3',
     })
 
-    expect(consume).toHaveBeenNthCalledWith(4, 133, {
+    expect(callback).toHaveBeenNthCalledWith(4, {
       event: 'error',
       data: { hello4: true },
       meta: { id: 'id-2', retry: 2001, comments: ['comment1', 'comment2'] },
@@ -216,178 +195,128 @@ describe('sendEventIterator', () => {
   })
 
   it('on unknown error', async () => {
-    const onComplete = vi.fn()
-    const consume = vi.fn()
+    const callback = vi.fn(async () => 'next' as const)
 
-    const queue = new ConsumableAsyncIdQueue<EventIteratorPayload>(consume)
-
-    queue.open(133)
-
-    await sendEventIterator(queue, 133, (async function* () {
+    await resolveEventIterator((async function* () {
       yield 'hello'
       yield withEventMeta({ hello2: true }, { id: 'id-1', retry: 2000, comments: [] })
       yield 'hello3'
       throw withEventMeta(new Error('hi'), { id: 'id-2', retry: 2001, comments: ['comment1', 'comment2'] })
-    })(), { onComplete })
+    })(), callback)
 
-    expect(onComplete).toHaveBeenCalledTimes(1)
-    expect(consume).toHaveBeenCalledTimes(4)
-    expect(consume).toHaveBeenNthCalledWith(1, 133, {
+    expect(callback).toHaveBeenCalledTimes(4)
+    expect(callback).toHaveBeenNthCalledWith(1, {
       event: 'message',
       data: 'hello',
     })
 
-    expect(consume).toHaveBeenNthCalledWith(2, 133, {
+    expect(callback).toHaveBeenNthCalledWith(2, {
       event: 'message',
       data: { hello2: true },
       meta: { id: 'id-1', retry: 2000, comments: [] },
     })
 
-    expect(consume).toHaveBeenNthCalledWith(3, 133, {
+    expect(callback).toHaveBeenNthCalledWith(3, {
       event: 'message',
       data: 'hello3',
     })
 
-    expect(consume).toHaveBeenNthCalledWith(4, 133, {
+    expect(callback).toHaveBeenNthCalledWith(4, {
       event: 'error',
       data: undefined,
       meta: { id: 'id-2', retry: 2001, comments: ['comment1', 'comment2'] },
     })
   })
 
-  it('on closes', async () => {
-    const onComplete = vi.fn()
-    const consume = vi.fn()
-
-    const queue = new ConsumableAsyncIdQueue<EventIteratorPayload>(consume)
-
-    let cleanupCalled = false
-    let returnCalled = false
-
-    await sendEventIterator(queue, 133, (async function* () {
-      try {
-        yield 'hello'
-        yield withEventMeta({ hello2: true }, { id: 'id-1', retry: 2000, comments: [] })
-        yield 'hello3'
-        returnCalled = true
-        return withEventMeta({ hello4: true }, { id: 'id-2', retry: 2001, comments: ['comment1', 'comment2'] })
-      }
-      finally {
-        cleanupCalled = true
-      }
-    })(), { onComplete })
-
-    expect(onComplete).toHaveBeenCalledTimes(1)
-    expect(consume).toHaveBeenCalledTimes(0)
-    expect(cleanupCalled).toBe(true)
-    expect(returnCalled).toBe(false)
-  })
-
-  it('on queue error', async () => {
-    const onComplete = vi.fn()
-    const consume = vi.fn()
-    const error = new Error('hi')
+  it('on callback return abort', async () => {
     let time = 0
+    const callback = vi.fn(async () => time++ === 1 ? 'abort' : 'next' as const)
 
-    const queue = new Proxy(new ConsumableAsyncIdQueue<EventIteratorPayload>(consume), {
-      get(target, prop) {
-        if (prop === 'push') {
-          if (time++ === 1) {
-            return () => {
-              throw error
-            }
-          }
-        }
+    let cleanupError
+    let isCleanupCalled = false
 
-        return Reflect.get(target, prop)
-      },
-    })
-
-    queue.open(133)
-
-    let cleanupCalled = false
-    let returnCalled = false
-    let throwCalledWith
-
-    await sendEventIterator(queue, 133, (async function* () {
+    await resolveEventIterator((async function* () {
       try {
         yield 'hello'
         yield withEventMeta({ hello2: true }, { id: 'id-1', retry: 2000, comments: [] })
         yield 'hello3'
-        returnCalled = true
         return withEventMeta({ hello4: true }, { id: 'id-2', retry: 2001, comments: ['comment1', 'comment2'] })
       }
       catch (err) {
-        throwCalledWith = err
-        throw withEventMeta(new ErrorEvent({ data: { hello5: true } }), { id: 'id-2', retry: 2001, comments: ['comment1', 'comment2'] })
+        cleanupError = err
+        throw err
       }
       finally {
-        cleanupCalled = true
+        isCleanupCalled = true
+
+        // eslint-disable-next-line no-unsafe-finally
+        throw new Error('this should silence ignored')
       }
-    })(), { onComplete })
+    })(), callback)
 
-    expect(onComplete).toHaveBeenCalledTimes(1)
-    expect(consume).toHaveBeenCalledTimes(2)
-    expect(cleanupCalled).toBe(true)
-    expect(returnCalled).toBe(false)
-    expect(throwCalledWith).toBe(error)
+    expect(cleanupError).toBe(undefined)
+    expect(isCleanupCalled).toBe(true)
 
-    expect(consume).toHaveBeenNthCalledWith(1, 133, {
+    expect(callback).toHaveBeenCalledTimes(2)
+    expect(callback).toHaveBeenNthCalledWith(1, {
       event: 'message',
       data: 'hello',
     })
 
-    expect(consume).toHaveBeenNthCalledWith(2, 133, {
-      event: 'error',
-      data: { hello5: true },
-      meta: { id: 'id-2', retry: 2001, comments: ['comment1', 'comment2'] },
+    expect(callback).toHaveBeenNthCalledWith(2, {
+      event: 'message',
+      data: { hello2: true },
+      meta: { id: 'id-1', retry: 2000, comments: [] },
     })
   })
 
-  it('on queue error with iterator without .throw()', async () => {
-    const onComplete = vi.fn()
-    const consume = vi.fn()
-    const error = withEventMeta(new Error('hi'), { id: 'id-5', retry: 2001, comments: [] })
+  it('on callback throw error', async () => {
+    const callbackError = new Error('callback error')
+
     let time = 0
+    const callback = vi.fn(async () => {
+      if (time++ === 1) {
+        throw callbackError
+      }
 
-    const queue = new Proxy(new ConsumableAsyncIdQueue<EventIteratorPayload>(consume), {
-      get(target, prop) {
-        if (prop === 'push') {
-          if (time++ === 1) {
-            return () => {
-              throw error
-            }
-          }
-        }
-
-        return Reflect.get(target, prop)
-      },
+      return 'next' as const
     })
 
-    queue.open(133)
+    let cleanupError
+    let isCleanupCalled = false
 
-    const iterator = (async function* () {
-      yield 'hello'
-      yield withEventMeta({ hello2: true }, { id: 'id-1', retry: 2000, comments: [] })
-      yield 'hello3'
-      return withEventMeta({ hello4: true }, { id: 'id-2', retry: 2001, comments: ['comment1', 'comment2'] })
-    })()
+    await expect(resolveEventIterator((async function* () {
+      try {
+        yield 'hello'
+        yield withEventMeta({ hello2: true }, { id: 'id-1', retry: 2000, comments: [] })
+        yield 'hello3'
+        return withEventMeta({ hello4: true }, { id: 'id-2', retry: 2001, comments: ['comment1', 'comment2'] })
+      }
+      catch (err) {
+        cleanupError = err
+        throw err
+      }
+      finally {
+        isCleanupCalled = true
 
-    await sendEventIterator(queue, 133, {
-      next: () => iterator.next(),
-    }, { onComplete })
+        // eslint-disable-next-line no-unsafe-finally
+        throw new Error('this should silence ignored')
+      }
+    })(), callback)).rejects.toThrow('callback error')
 
-    expect(onComplete).toHaveBeenCalledTimes(1)
-    expect(consume).toHaveBeenCalledTimes(2)
-    expect(consume).toHaveBeenNthCalledWith(1, 133, {
+    expect(cleanupError).toBe(undefined)
+    expect(isCleanupCalled).toBe(true)
+
+    expect(callback).toHaveBeenCalledTimes(2)
+    expect(callback).toHaveBeenNthCalledWith(1, {
       event: 'message',
       data: 'hello',
     })
 
-    expect(consume).toHaveBeenNthCalledWith(2, 133, {
-      event: 'error',
-      data: undefined,
-      meta: { id: 'id-5', retry: 2001, comments: [] },
+    expect(callback).toHaveBeenNthCalledWith(2, {
+      event: 'message',
+      data: { hello2: true },
+      meta: { id: 'id-1', retry: 2000, comments: [] },
     })
   })
 })

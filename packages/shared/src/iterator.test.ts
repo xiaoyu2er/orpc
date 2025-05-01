@@ -89,7 +89,7 @@ describe('createAsyncIteratorObject', () => {
       expect(next).toHaveBeenCalledTimes(1)
     })
 
-    it('should call onComplete("next") when next() resolves (done: true)', async () => {
+    it('should call cleanup("next") when next() resolves (done: true)', async () => {
       next.mockResolvedValue({ done: true, value: undefined })
       await iterator.next()
       await iterator.next()
@@ -98,7 +98,7 @@ describe('createAsyncIteratorObject', () => {
       expect(cleanup).toHaveBeenCalledWith('next')
     })
 
-    it('should call onComplete("next") when next() rejects', async () => {
+    it('should call cleanup("next") when next() rejects', async () => {
       const error = new Error('Failed')
       next.mockRejectedValue(error)
 
@@ -121,7 +121,7 @@ describe('createAsyncIteratorObject', () => {
       expect(next).toHaveBeenCalledTimes(0)
     })
 
-    it('should call onComplete("return")', async () => {
+    it('should call cleanup("return")', async () => {
       await Promise.all([
         iterator.return('done'),
         iterator.return('done'),
@@ -140,7 +140,7 @@ describe('createAsyncIteratorObject', () => {
       expect(next).toHaveBeenCalledTimes(0)
     })
 
-    it('should call onComplete("throw")', async () => {
+    it('should call cleanup("throw")', async () => {
       const error = new Error('Forced error')
 
       await Promise.all([
@@ -183,7 +183,7 @@ describe('createAsyncIteratorObject', () => {
       await iterator.return(undefined)
     })
 
-    it('should call onComplete("dispose") when disposed', async () => {
+    it('should call cleanup("dispose") when disposed', async () => {
       await Promise.all([
         (iterator as any)[Symbol.asyncDispose](),
         (iterator as any)[Symbol.asyncDispose](),
@@ -219,7 +219,7 @@ describe('createAsyncIteratorObject', () => {
       expect(cleanup).toHaveBeenCalledWith('next')
     })
 
-    it('should call onComplete("return") when breaking a for await...of loop', async () => {
+    it('should call cleanup("return") when breaking a for await...of loop', async () => {
       let counter = 0
       next.mockImplementation(async () => ({ done: false, value: counter++ }))
 
@@ -237,7 +237,7 @@ describe('createAsyncIteratorObject', () => {
       expect(cleanup).toHaveBeenCalledWith('return')
     })
 
-    it('should call onComplete("throw") when throwing inside a for await...of loop', async () => {
+    it('should call cleanup("return") when throwing inside a for await...of loop', async () => {
       let counter = 0
       next.mockImplementation(async () => ({ done: false, value: counter++ }))
       const error = new Error('Loop error')

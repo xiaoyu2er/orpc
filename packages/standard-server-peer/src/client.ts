@@ -1,71 +1,45 @@
+import type { AsyncIdQueueCloseOptions } from '@orpc/shared'
 import type { StandardRequest, StandardResponse } from '@orpc/standard-server'
 import type { EventIteratorPayload } from './codec'
 import type { EncodedMessage, EncodedMessageSendFn } from './types'
-import { isAsyncIteratorObject, SequentialIdGenerator } from '@orpc/shared'
-import { ConsumableAsyncIdQueue, PullableAsyncIdQueue } from '../../shared/src/queue'
+import { AsyncIdQueue, isAsyncIteratorObject, SequentialIdGenerator } from '@orpc/shared'
 import { decodeResponseMessage, encodeRequestMessage, isEventIteratorHeaders, MessageType } from './codec'
-import { sendEventIterator, toEventIterator } from './event-iterator'
-import { toAbortSignal } from './signal'
+import { resolveEventIterator, toEventIterator } from './event-iterator'
+
+export interface ClientPeerCloseOptions extends AsyncIdQueueCloseOptions {
+  /**
+   * Should abort or not?
+   *
+   * @default true
+   */
+  abort?: boolean
+}
 
 export class ClientPeer {
   private readonly idGenerator = new SequentialIdGenerator()
 
-  private readonly clientRequestQueue: ConsumableAsyncIdQueue<StandardRequest>
-  private readonly clientEventIteratorQueue: ConsumableAsyncIdQueue<EventIteratorPayload>
-  private readonly clientSignalQueue: ConsumableAsyncIdQueue<void>
-
-  private readonly serverResponseQueue = new PullableAsyncIdQueue<StandardResponse>()
-  private readonly serverEventIterator = new PullableAsyncIdQueue<EventIteratorPayload>()
-  private readonly serverSignalQueue = new PullableAsyncIdQueue<void>()
+  private readonly responseQueue = new AsyncIdQueue<StandardResponse>()
+  private readonly serverEventIteratorQueue = new AsyncIdQueue<EventIteratorPayload>()
+  private readonly serverControllers = new Map<number, AbortController>()
 
   constructor(
-    send: EncodedMessageSendFn,
-  ) {
-    this.clientRequestQueue = new ConsumableAsyncIdQueue((id, { signal, ...request }) => {
-      encodeRequestMessage(id, MessageType.REQUEST, request)
-        .then(send)
-        .then(() => {
-          if (signal) {
-            if (signal.aborted) {
-              this.clientSignalQueue.push(id)
-              this.close(id, signal.reason)
-            }
+    private readonly send: EncodedMessageSendFn,
+  ) {}
 
-            signal.addEventListener('abort', () => {
-              this.clientSignalQueue.push(id)
-              this.close(id, signal.reason)
-            }, { once: true })
-          }
+  get length(): number {
+    return (
+      +this.responseQueue.length
+      + this.serverEventIteratorQueue.length
+      + this.serverControllers.size
+    ) / 3
+  }
 
-          if (isAsyncIteratorObject(request.body)) {
-            sendEventIterator(this.clientEventIteratorQueue, id, request.body)
-
-            const serverSignal = toAbortSignal(this.serverSignalQueue, id)
-            serverSignal.addEventListener('abort', () => {
-              this.clientEventIteratorQueue.close(id)
-            }, { once: true })
-          }
-        })
-        .catch((err) => {
-          this.close(id, err)
-        })
-    })
-
-    this.clientEventIteratorQueue = new ConsumableAsyncIdQueue((id, payload) => {
-      encodeRequestMessage(id, MessageType.EVENT_ITERATOR, payload)
-        .then(send)
-        .catch((err) => {
-          this.close(id, err)
-        })
-    })
-
-    this.clientSignalQueue = new ConsumableAsyncIdQueue((id, payload) => {
-      encodeRequestMessage(id, MessageType.ABORT_SIGNAL, payload)
-        .then(send)
-        .catch((err) => {
-          this.close(id, err)
-        })
-    })
+  open(id: number): AbortController {
+    this.serverEventIteratorQueue.open(id)
+    this.responseQueue.open(id)
+    const controller = new AbortController()
+    this.serverControllers.set(id, controller)
+    return controller
   }
 
   async request(request: StandardRequest): Promise<StandardResponse> {
@@ -77,12 +51,46 @@ export class ClientPeer {
 
     const id = this.idGenerator.generate()
 
-    this.open(id)
+    const serverController = this.open(id)
 
-    this.clientRequestQueue.push(id, request)
+    signal?.addEventListener('abort', () => {
+      this.close({ id, reason: signal.reason })
+    }, { once: true })
 
     return new Promise((resolve, reject) => {
-      this.serverResponseQueue.pull(id)
+      encodeRequestMessage(id, MessageType.REQUEST, request)
+        .then(this.send)
+        .then(async () => {
+          if (signal?.aborted) {
+            await encodeRequestMessage(id, MessageType.ABORT_SIGNAL, undefined)
+              .then(this.send)
+          }
+          else {
+            signal?.addEventListener('abort', () => {
+              encodeRequestMessage(id, MessageType.ABORT_SIGNAL, undefined)
+                .then(this.send)
+            }, { once: true })
+          }
+
+          if (isAsyncIteratorObject(request.body)) {
+            await resolveEventIterator(request.body, async (payload) => {
+              if (serverController.signal.aborted) {
+                return 'abort'
+              }
+
+              await encodeRequestMessage(id, MessageType.EVENT_ITERATOR, payload)
+                .then(this.send)
+
+              return 'next'
+            })
+          }
+        })
+        .catch((err) => {
+          this.close({ id, reason: err })
+          reject(err)
+        })
+
+      this.responseQueue.pull(id)
         .then(resolve)
         .catch(reject)
     })
@@ -91,81 +99,56 @@ export class ClientPeer {
   async message(raw: EncodedMessage): Promise<void> {
     const [id, type, payload] = await decodeResponseMessage(raw)
 
+    if (type === MessageType.ABORT_SIGNAL) {
+      this.serverControllers.get(id)?.abort()
+      return
+    }
+
     if (type === MessageType.EVENT_ITERATOR) {
-      if (this.serverEventIterator.isOpen(id)) {
-        this.serverEventIterator.push(id, payload)
+      if (this.serverEventIteratorQueue.isOpen(id)) {
+        this.serverEventIteratorQueue.push(id, payload)
       }
 
       return
     }
 
-    if (type === MessageType.ABORT_SIGNAL) {
-      if (this.serverSignalQueue.isOpen(id)) {
-        this.serverSignalQueue.push(id, payload)
-      }
-
+    if (!this.responseQueue.isOpen(id)) {
       return
     }
 
     if (isEventIteratorHeaders(payload.headers)) {
-      this.serverResponseQueue.push(id, {
+      this.responseQueue.push(id, {
         ...payload,
-        body: toEventIterator(this.serverEventIterator, id, {
-          onComplete: (reason) => {
+        body: toEventIterator(this.serverEventIteratorQueue, id, async (reason) => {
+          try {
             if (reason !== 'next') {
-              this.clientSignalQueue.push(id)
+              await encodeRequestMessage(id, MessageType.ABORT_SIGNAL, undefined)
+                .then(this.send)
             }
-
-            this.close(id)
-          },
+          }
+          finally {
+            this.close({ id })
+          }
         }),
       })
     }
     else {
-      this.serverResponseQueue.push(id, payload)
-      this.close(id)
+      this.responseQueue.push(id, payload)
+      this.close({ id })
     }
   }
 
-  open(id: number): void {
-    this.clientSignalQueue.open(id)
-    this.clientEventIteratorQueue.open(id)
-    this.clientRequestQueue.open(id)
-
-    this.serverSignalQueue.open(id)
-    this.serverEventIterator.open(id)
-    this.serverResponseQueue.open(id)
-  }
-
-  close(id?: number, reason?: any): void {
-    if (id !== undefined) {
-      this.clientRequestQueue.close(id)
-      this.clientEventIteratorQueue.close(id)
-      this.clientSignalQueue.close(id)
-
-      this.serverResponseQueue.close(id, reason)
-      this.serverEventIterator.close(id, reason)
-      this.serverSignalQueue.close(id, reason)
+  close(options: AsyncIdQueueCloseOptions = {}): void {
+    if (options.id !== undefined) {
+      this.serverControllers.get(options.id)?.abort(options.reason)
+      this.serverControllers.delete(options.id)
     }
     else {
-      this.clientRequestQueue.closeAll()
-      this.clientEventIteratorQueue.closeAll()
-      this.clientSignalQueue.closeAll()
-
-      this.serverResponseQueue.closeAll()
-      this.serverEventIterator.closeAll()
-      this.serverSignalQueue.closeAll()
+      this.serverControllers.forEach(c => c.abort(options.reason))
+      this.serverControllers.clear()
     }
-  }
 
-  get length(): number {
-    return (
-      this.clientRequestQueue.length
-      + this.clientEventIteratorQueue.length
-      + this.clientSignalQueue.length
-      + this.serverResponseQueue.length
-      + this.serverEventIterator.length
-      + this.serverSignalQueue.length
-    ) / 6
+    this.responseQueue.close(options)
+    this.serverEventIteratorQueue.close(options)
   }
 }

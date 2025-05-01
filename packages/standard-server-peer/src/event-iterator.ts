@@ -50,7 +50,7 @@ export function toEventIterator(
 
 export async function resolveEventIterator(
   iterator: AsyncIterator<any>,
-  send: (payload: EventIteratorPayload) => Promise<'next' | 'abort'>,
+  callback: (payload: EventIteratorPayload) => Promise<'next' | 'abort'>,
 ): Promise<void> {
   while (true) {
     const payload: EventIteratorPayload = await (async () => {
@@ -73,9 +73,9 @@ export async function resolveEventIterator(
     })()
 
     try {
-      const direction = await send(payload)
+      const direction = await callback(payload)
 
-      if (payload.event === 'done') {
+      if (payload.event === 'done' || payload.event === 'error') {
         return
       }
 
@@ -83,14 +83,14 @@ export async function resolveEventIterator(
         try {
           await iterator.return?.()
         }
-        catch {}
+        catch { }
 
         return
       }
     }
     catch (err) {
       try {
-        await iterator.throw?.(err)
+        await iterator.return?.()
       }
       catch { }
 

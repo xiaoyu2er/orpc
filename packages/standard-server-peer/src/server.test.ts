@@ -431,8 +431,8 @@ describe('serverPeer', () => {
       const [, request] = await peer.message(await encodeRequestMessage(REQUEST_ID, MessageType.REQUEST, baseRequest))
 
       const yieldFn = vi.fn(v => v)
-      let isFinallyCalled = false
       let iteratorError
+      let isFinallyCalled = false
 
       await expect(peer.response(REQUEST_ID, {
         ...baseResponse,
@@ -444,15 +444,16 @@ describe('serverPeer', () => {
           }
           catch (e) {
             iteratorError = e
-            throw new Error('iterator error')
           }
           finally {
             isFinallyCalled = true
+            // eslint-disable-next-line no-unsafe-finally
+            throw new Error('should silence ignored')
           }
         })(),
       })).rejects.toThrow('send error')
 
-      expect(iteratorError!.message).toBe('send error')
+      expect(iteratorError).toBe(undefined)
       expect(yieldFn).toHaveBeenCalledTimes(1)
       expect(isFinallyCalled).toBe(true)
 

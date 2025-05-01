@@ -85,6 +85,58 @@ globalThis.$client = createRouterClient(router, {
 
 :::
 
+::: details `OpenAPILink` support?
+When you use [OpenAPILink](/docs/openapi/client/openapi-link), its `JsonifiedClient` turns native values (like Date or URL) into plain JSON, so your client types no longer match the output of `createRouterClient`. To fix this, oRPC offers `createJsonifiedRouterClient`, which builds a router client that matches the output of OpenAPILink.
+
+::: code-group
+
+```ts [lib/orpc.ts]
+import type { RouterClient } from '@orpc/server'
+import type { JsonifiedClient } from '@orpc/openapi-client'
+import { OpenAPILink } from '@orpc/openapi-client/fetch'
+import { createORPCClient } from '@orpc/client'
+
+declare global {
+  var $client: JsonifiedClient<RouterClient<typeof router>> | undefined
+}
+
+const link = new OpenAPILink({
+  url: () => {
+    if (typeof window === 'undefined') {
+      throw new Error('OpenAPILink is not allowed on the server side.')
+    }
+
+    return new URL('/api', window.location.href)
+  },
+})
+
+/**
+ * Fallback to client-side client if server-side client is not available.
+ */
+export const client: JsonifiedClient<RouterClient<typeof router>> = globalThis.$client ?? createORPCClient(link)
+```
+
+```ts [lib/orpc.server.ts]
+'server only'
+
+import { createJsonifiedRouterClient } from '@orpc/openapi-client'
+
+globalThis.$client = createJsonifiedRouterClient(router, {
+  /**
+   * Provide initial context if needed.
+   *
+   * Because this client instance is shared across all requests,
+   * only include context that's safe to reuse globally.
+   * For per-request context, use middleware context or pass a function as the initial context.
+   */
+  context: async () => ({
+    headers: await headers(),
+  }),
+})
+```
+
+:::
+
 Finally, import `lib/orpc.server.ts` before anything else and on the **server only**. For example, in Next.js add it to `app/layout.tsx`:
 
 ```ts

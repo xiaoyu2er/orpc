@@ -1,6 +1,6 @@
 import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
 import { defineConfig } from 'vitepress'
-import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-icons'
+import { groupIconMdPlugin, groupIconVitePlugin, localIconLoader } from 'vitepress-plugin-group-icons'
 import llmstxt from 'vitepress-plugin-llms'
 
 export default defineConfig({
@@ -87,6 +87,7 @@ export default defineConfig({
           text: 'Adapters',
           collapsed: true,
           items: [
+            { text: 'HTTP', link: '/docs/adapters/http' },
             { text: 'Websocket', link: '/docs/adapters/websocket' },
           ],
         },
@@ -94,11 +95,6 @@ export default defineConfig({
           text: 'Integrations',
           collapsed: true,
           items: [
-            { text: 'Fetch server', link: '/docs/integrations/fetch-server' },
-            { text: 'Node', link: '/docs/integrations/node' },
-            { text: 'Bun', link: '/docs/integrations/bun' },
-            { text: 'Cloudflare Workers', link: '/docs/integrations/cloudflare-workers' },
-            { text: 'Deno', link: '/docs/integrations/deno' },
             { text: 'Express', link: '/docs/integrations/express' },
             { text: 'Next.js', link: '/docs/integrations/nextjs' },
             { text: 'Nuxt', link: '/docs/integrations/nuxt' },
@@ -235,6 +231,7 @@ export default defineConfig({
       groupIconVitePlugin({
         customIcon: {
           cloudflare: 'logos:cloudflare-workers-icon',
+          node: localIconLoader(import.meta.url, './assets/nodejs-logo-icon.svg'),
         },
       }),
     ],

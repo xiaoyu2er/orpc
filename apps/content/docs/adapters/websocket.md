@@ -1,11 +1,11 @@
 ---
-title: WebSocket Integration
-description: Integrating oRPC with WebSocket
+title: Websocket
+description: How to use oRPC over WebSocket?
 ---
 
-# WebSocket Integration
+# Websocket
 
-WebSocket is a lightweight, full-duplex protocol that enables real-time communication between a client and a server. oRPC includes first-class support for WebSocket out of the box, giving you low latency and high throughput.
+oRPC provides built-in WebSocket support for low-latency, bidirectional RPC.
 
 ## Server Adapters
 
@@ -121,9 +121,7 @@ Bun.serve({
 | ----------- | ---------------------------------------------------------------------------------------------------------------- |
 | `websocket` | [MDN WebSocket API](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) (Browser, Node, Bun, Deno, etc.) |
 
-::: code-group
-
-```ts [websocket]
+```ts
 import { experimental_RPCLink as RPCLink } from '@orpc/client/websocket'
 
 const websocket = new WebSocket('ws://localhost:3000')
@@ -132,8 +130,6 @@ const link = new RPCLink({
   websocket
 })
 ```
-
-:::
 
 ::: tip
 Use [partysocket](https://www.npmjs.com/package/partysocket) library for manually/automatically reconnect logic.

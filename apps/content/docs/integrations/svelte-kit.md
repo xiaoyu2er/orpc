@@ -5,7 +5,7 @@ description: Integrate oRPC with SvelteKit
 
 # SvelteKit Integration
 
-[SvelteKit](https://svelte.dev/docs/kit/introduction) is a framework for rapidly developing robust, performant web applications using Svelte. For additional context, refer to the [Fetch Server Integration](/docs/integrations/fetch-server) guide.
+[SvelteKit](https://svelte.dev/docs/kit/introduction) is a framework for rapidly developing robust, performant web applications using Svelte. For additional context, refer to the [HTTP Adapter](/docs/adapters/http) guide.
 
 ## Basic
 

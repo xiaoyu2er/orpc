@@ -1,38 +1,24 @@
-export abstract class AsyncIdQueue<T> {
-  private readonly openIds = new Set<number>()
+export interface AsyncIdQueueCloseOptions {
+  id?: number
+  reason?: Error
+}
 
-  abstract push(id: number, item: T): void
+export class AsyncIdQueue<T> {
+  private readonly openIds = new Set<number>()
+  private readonly items = new Map<number, T[]>()
+  private readonly pendingPulls = new Map<number, (readonly [resolve: (item: T) => void, reject: (err: Error) => void])[]>()
+
+  get length(): number {
+    return this.openIds.size
+  }
 
   open(id: number): void {
     this.openIds.add(id)
   }
 
-  close(id: number): void {
-    this.openIds.delete(id)
-  }
-
-  closeAll(): void {
-    this.openIds.forEach(id => this.close(id))
-  }
-
   isOpen(id: number): boolean {
     return this.openIds.has(id)
   }
-
-  assertOpen(id: number): void {
-    if (!this.isOpen(id)) {
-      throw new Error(`[AsyncIdQueue] Cannot access queue[${id}] because it is not open.`)
-    }
-  }
-
-  get length(): number {
-    return this.openIds.size
-  }
-}
-
-export class PullableAsyncIdQueue<T> extends AsyncIdQueue<T> {
-  private readonly items = new Map<number, T[]>()
-  private readonly pendingPulls = new Map<number, (readonly [resolve: (item: T) => void, reject: (err: Error) => void])[]>()
 
   push(id: number, item: T): void {
     this.assertOpen(id)
@@ -87,31 +73,32 @@ export class PullableAsyncIdQueue<T> extends AsyncIdQueue<T> {
     })
   }
 
-  override close(id: number, reason?: any): void {
-    const pendingPulls = this.pendingPulls.get(id)
-
-    if (pendingPulls) {
-      pendingPulls.forEach(([, reject]) => {
-        reject(reason ?? new Error(`[PullableAsyncIdQueue] Queue[${id}] was closed while waiting for pulling.`))
+  close({ id, reason }: AsyncIdQueueCloseOptions = {}): void {
+    if (id === undefined) {
+      this.pendingPulls.forEach((pendingPulls, id) => {
+        pendingPulls.forEach(([, reject]) => {
+          reject(reason ?? new Error(`[AsyncIdQueue] Queue[${id}] was closed or aborted while waiting for pulling.`))
+        })
       })
 
-      this.pendingPulls.delete(id)
+      this.pendingPulls.clear()
+      this.openIds.clear()
+      this.items.clear()
+      return
     }
 
-    super.close(id)
+    this.pendingPulls.get(id)?.forEach(([, reject]) => {
+      reject(reason ?? new Error(`[AsyncIdQueue] Queue[${id}] was closed or aborted while waiting for pulling.`))
+    })
+
+    this.pendingPulls.delete(id)
+    this.openIds.delete(id)
     this.items.delete(id)
   }
-}
 
-export class ConsumableAsyncIdQueue<T> extends AsyncIdQueue<T> {
-  constructor(
-    private readonly consume: (id: number, item: T) => void,
-  ) {
-    super()
-  }
-
-  push(id: number, item: T): void {
-    this.assertOpen(id)
-    this.consume(id, item)
+  assertOpen(id: number): void {
+    if (!this.isOpen(id)) {
+      throw new Error(`[AsyncIdQueue] Cannot access queue[${id}] because it is not open or aborted.`)
+    }
   }
 }

@@ -1,67 +1,48 @@
+import type { AsyncIdQueueCloseOptions } from '@orpc/shared'
 import type { StandardRequest, StandardResponse } from '@orpc/standard-server'
 import type { EventIteratorPayload } from './codec'
 import type { EncodedMessage, EncodedMessageSendFn } from './types'
-import { ConsumableAsyncIdQueue, isAsyncIteratorObject, PullableAsyncIdQueue } from '@orpc/shared'
+import { AsyncIdQueue, isAsyncIteratorObject } from '@orpc/shared'
 import { decodeRequestMessage, encodeResponseMessage, isEventIteratorHeaders, MessageType } from './codec'
-import { sendEventIterator, toEventIterator } from './event-iterator'
-import { toAbortSignal } from './signal'
+import { resolveEventIterator, toEventIterator } from './event-iterator'
+
+export interface ServerPeerCloseOptions extends AsyncIdQueueCloseOptions {
+  /**
+   * Should abort or not?
+   *
+   * @default true
+   */
+  abort?: boolean
+}
 
 export class ServerPeer {
-  private readonly serverResponseQueue: ConsumableAsyncIdQueue<StandardResponse>
-  private readonly serverEventIteratorQueue: ConsumableAsyncIdQueue<EventIteratorPayload>
-  private readonly serverSignalQueue: ConsumableAsyncIdQueue<void>
-
-  private readonly clientEventIteratorQueue = new PullableAsyncIdQueue<EventIteratorPayload>()
-  private readonly clientSignalQueue = new PullableAsyncIdQueue<void>()
+  private readonly clientEventIteratorQueue = new AsyncIdQueue<EventIteratorPayload>()
+  private readonly clientControllers = new Map<number, AbortController>()
 
   constructor(
-    send: EncodedMessageSendFn,
+    private readonly send: EncodedMessageSendFn,
   ) {
-    this.serverResponseQueue = new ConsumableAsyncIdQueue((id, response) => {
-      encodeResponseMessage(id, MessageType.RESPONSE, response)
-        .then(send)
-        .then(async () => {
-          if (isAsyncIteratorObject(response.body)) {
-            await sendEventIterator(this.serverEventIteratorQueue, id, response.body, {
-              onComplete: () => {
-                this.close(id)
-              },
-            })
-          }
-          else {
-            this.close(id)
-          }
-        })
-        .catch((err) => {
-          this.close(id, err)
-        })
-    })
+  }
 
-    this.serverEventIteratorQueue = new ConsumableAsyncIdQueue((id, payload) => {
-      encodeResponseMessage(id, MessageType.EVENT_ITERATOR, payload)
-        .then(send)
-        .catch((err) => {
-          this.close(id, err)
-        })
-    })
+  get length(): number {
+    return (
+      this.clientEventIteratorQueue.length
+      + this.clientControllers.size
+    ) / 2
+  }
 
-    this.serverSignalQueue = new ConsumableAsyncIdQueue((id, payload) => {
-      encodeResponseMessage(id, MessageType.ABORT_SIGNAL, payload)
-        .then(send)
-        .catch((err) => {
-          this.close(id, err)
-        })
-    })
+  open(id: number): AbortController {
+    this.clientEventIteratorQueue.open(id)
+    const controller = new AbortController()
+    this.clientControllers.set(id, controller)
+    return controller
   }
 
   async message(raw: EncodedMessage): Promise<[id: number, StandardRequest | undefined]> {
     const [id, type, payload] = await decodeRequestMessage(raw)
 
     if (type === MessageType.ABORT_SIGNAL) {
-      if (this.clientSignalQueue.isOpen(id)) {
-        this.clientSignalQueue.push(id, payload)
-      }
-
+      this.close({ id })
       return [id, undefined]
     }
 
@@ -69,28 +50,20 @@ export class ServerPeer {
       if (this.clientEventIteratorQueue.isOpen(id)) {
         this.clientEventIteratorQueue.push(id, payload)
       }
-
       return [id, undefined]
     }
 
-    this.open(id)
-
-    const clientSignal = toAbortSignal(this.clientSignalQueue, id)
-
-    clientSignal.addEventListener('abort', () => {
-      this.close(id, clientSignal.reason)
-    }, { once: true })
+    const clientController = this.open(id)
 
     const request: StandardRequest = {
       ...payload,
-      signal: clientSignal,
+      signal: clientController.signal,
       body: isEventIteratorHeaders(payload.headers)
-        ? toEventIterator(this.clientEventIteratorQueue, id, {
-            onComplete: (reason) => {
-              if (reason !== 'next') {
-                this.serverSignalQueue.push(id)
-              }
-            },
+        ? toEventIterator(this.clientEventIteratorQueue, id, async (reason) => {
+            if (reason !== 'next') {
+              await encodeResponseMessage(id, MessageType.ABORT_SIGNAL, undefined)
+                .then(this.send)
+            }
           })
         : payload.body,
     }
@@ -99,46 +72,52 @@ export class ServerPeer {
   }
 
   async response(id: number, response: StandardResponse): Promise<void> {
-    if (this.serverResponseQueue.isOpen(id)) {
-      this.serverResponseQueue.push(id, response)
+    const signal = this.clientControllers.get(id)?.signal
+
+    if (!signal || signal.aborted) {
+      return
     }
+
+    await encodeResponseMessage(id, MessageType.RESPONSE, response)
+      .then(this.send)
+      .then(async () => {
+        if (isAsyncIteratorObject(response.body)) {
+          await resolveEventIterator(response.body, async (payload) => {
+            if (signal.aborted) {
+              return 'abort'
+            }
+
+            await encodeResponseMessage(id, MessageType.EVENT_ITERATOR, payload)
+              .then(this.send)
+
+            return 'next'
+          })
+        }
+
+        this.close({ id, abort: false })
+      })
+      .catch((reason) => {
+        this.close({ id, reason, abort: false })
+        throw reason
+      })
   }
 
-  open(id: number): void {
-    this.serverSignalQueue.open(id)
-    this.serverEventIteratorQueue.open(id)
-    this.serverResponseQueue.open(id)
+  close({ abort = true, ...options }: ServerPeerCloseOptions = {}): void {
+    if (options.id === undefined) {
+      if (abort) {
+        this.clientControllers.forEach(c => c.abort())
+      }
 
-    this.clientEventIteratorQueue.open(id)
-    this.clientSignalQueue.open(id)
-  }
-
-  close(id?: number, reason?: any): void {
-    if (id !== undefined) {
-      this.serverResponseQueue.close(id)
-      this.serverEventIteratorQueue.close(id)
-      this.serverResponseQueue.close(id)
-
-      this.clientEventIteratorQueue.close(id, reason)
-      this.clientSignalQueue.close(id, reason)
+      this.clientControllers.clear()
     }
     else {
-      this.serverResponseQueue.closeAll()
-      this.serverEventIteratorQueue.closeAll()
-      this.serverResponseQueue.closeAll()
+      if (abort) {
+        this.clientControllers.get(options.id)?.abort()
+      }
 
-      this.clientEventIteratorQueue.closeAll()
-      this.clientSignalQueue.closeAll()
+      this.clientControllers.delete(options.id)
     }
-  }
 
-  get length(): number {
-    return (
-      this.serverResponseQueue.length
-      + this.serverEventIteratorQueue.length
-      + this.serverResponseQueue.length
-      + this.clientEventIteratorQueue.length
-      + this.clientSignalQueue.length
-    ) / 5
+    this.clientEventIteratorQueue.close(options)
   }
 }

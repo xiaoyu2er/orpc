@@ -1,13 +1,13 @@
-import type { CreateAsyncIteratorObjectOptions } from '@orpc/shared'
-import type { AsyncIdQueue, PullableAsyncIdQueue } from '../../shared/src/queue'
+import type { CreateAsyncIteratorObjectCleanupFn } from '@orpc/shared'
+import type { AsyncIdQueue } from '../../shared/src/queue'
 import type { EventIteratorPayload } from './codec'
 import { createAsyncIteratorObject, isTypescriptObject } from '@orpc/shared'
 import { ErrorEvent, getEventMeta, withEventMeta } from '@orpc/standard-server'
 
 export function toEventIterator(
-  queue: PullableAsyncIdQueue<EventIteratorPayload>,
+  queue: AsyncIdQueue<EventIteratorPayload>,
   id: number,
-  options: CreateAsyncIteratorObjectOptions = {},
+  cleanup: CreateAsyncIteratorObjectCleanupFn,
 ): AsyncGenerator {
   return createAsyncIteratorObject(async () => {
     const item = await queue.pull(id)
@@ -45,65 +45,56 @@ export function toEventIterator(
         return { value: data, done: true }
       }
     }
-  }, options)
+  }, cleanup)
 }
 
-export async function sendEventIterator(
-  queue: AsyncIdQueue<EventIteratorPayload>,
-  id: number,
+export async function resolveEventIterator(
   iterator: AsyncIterator<any>,
-  options: { onComplete?: () => void } = {},
+  send: (payload: EventIteratorPayload) => Promise<'next' | 'abort'>,
 ): Promise<void> {
-  let isInternal = false
+  while (true) {
+    const payload: EventIteratorPayload = await (async () => {
+      try {
+        const { value, done } = await iterator.next()
 
-  try {
-    while (true) {
-      isInternal = false
-      const { value, done } = await iterator.next()
-      isInternal = true
-
-      if (!queue.isOpen(id)) {
-        if (!done) {
-          isInternal = false
-          await iterator.return?.()
-          isInternal = true
+        if (done) {
+          return { event: 'done', data: value, meta: getEventMeta(value) }
         }
 
-        return
-      }
-
-      queue.push(id, {
-        event: done ? 'done' : 'message',
-        data: value,
-        meta: getEventMeta(value),
-      })
-
-      if (done) {
-        return
-      }
-    }
-  }
-  catch (err) {
-    let currentError = err
-
-    if (isInternal) {
-      try {
-        await iterator.throw?.(currentError)
+        return { event: 'message', data: value, meta: getEventMeta(value) }
       }
       catch (err) {
-        currentError = err
+        return {
+          meta: getEventMeta(err),
+          event: 'error',
+          data: err instanceof ErrorEvent ? err.data : undefined,
+        }
+      }
+    })()
+
+    try {
+      const direction = await send(payload)
+
+      if (payload.event === 'done') {
+        return
+      }
+
+      if (direction === 'abort') {
+        try {
+          await iterator.return?.()
+        }
+        catch {}
+
+        return
       }
     }
+    catch (err) {
+      try {
+        await iterator.throw?.(err)
+      }
+      catch { }
 
-    if (queue.isOpen(id)) {
-      queue.push(id, {
-        meta: getEventMeta(currentError),
-        event: 'error',
-        data: currentError instanceof ErrorEvent ? currentError.data : undefined,
-      })
+      throw err
     }
-  }
-  finally {
-    options.onComplete?.()
   }
 }

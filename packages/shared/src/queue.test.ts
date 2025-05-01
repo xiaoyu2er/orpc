@@ -1,23 +1,23 @@
-import { ConsumableAsyncIdQueue, PullableAsyncIdQueue } from './queue'
+import { AsyncIdQueue } from './queue'
 
-describe('pullableAsyncIdQueue', () => {
-  let queue: PullableAsyncIdQueue<string>
+describe('asyncIdQueue', () => {
+  let queue: AsyncIdQueue<string>
   const queueId1 = 1
   const queueId2 = 2
 
   beforeEach(() => {
-    queue = new PullableAsyncIdQueue<string>()
+    queue = new AsyncIdQueue<string>()
   })
 
   it('should require queue to be opened before push', () => {
     expect(() => queue.push(queueId1, 'item1')).toThrow(
-      `[AsyncIdQueue] Cannot access queue[${queueId1}] because it is not open.`,
+      `[AsyncIdQueue] Cannot access queue[${queueId1}] because it is not open or aborted.`,
     )
   })
 
   it('should require queue to be opened before pull', async () => {
     await expect(queue.pull(queueId1)).rejects.toThrow(
-      `[AsyncIdQueue] Cannot access queue[${queueId1}] because it is not open.`,
+      `[AsyncIdQueue] Cannot access queue[${queueId1}] because it is not open or aborted.`,
     )
   })
 
@@ -56,185 +56,80 @@ describe('pullableAsyncIdQueue', () => {
   it('should close a queue, preventing further pushes/pulls', async () => {
     queue.open(queueId1)
     queue.push(queueId1, 'item1')
-    queue.close(queueId1)
+    queue.close({ id: queueId1 })
 
     expect(queue.isOpen(queueId1)).toBe(false)
     expect(() => queue.push(queueId1, 'item2')).toThrow(
-      `[AsyncIdQueue] Cannot access queue[${queueId1}] because it is not open.`,
+      `[AsyncIdQueue] Cannot access queue[${queueId1}] because it is not open or aborted.`,
     )
     await expect(queue.pull(queueId1)).rejects.toThrow(
-      `[AsyncIdQueue] Cannot access queue[${queueId1}] because it is not open.`,
+      `[AsyncIdQueue] Cannot access queue[${queueId1}] because it is not open or aborted.`,
     )
   })
 
   it('should reject pending pulls when a queue is closed (default reason)', async () => {
     queue.open(queueId1)
-    const pullPromise = queue.pull(queueId1)
+    queue.open(queueId2)
+    const pullPromise1 = queue.pull(queueId1)
+    const pullPromise2 = queue.pull(queueId2)
 
-    queue.close(queueId1)
+    queue.close({ id: queueId1 })
 
-    await expect(pullPromise).rejects.toThrow(
-      `[PullableAsyncIdQueue] Queue[${queueId1}] was closed while waiting for pulling.`,
+    await expect(pullPromise1).rejects.toThrow(
+      `[AsyncIdQueue] Queue[${queueId1}] was closed or aborted while waiting for pulling.`,
+    )
+
+    queue.close()
+
+    await expect(pullPromise2).rejects.toThrow(
+      `[AsyncIdQueue] Queue[${queueId2}] was closed or aborted while waiting for pulling.`,
     )
   })
 
   it('should reject pending pulls with a custom reason when a queue is closed', async () => {
     queue.open(queueId1)
-    const pullPromise = queue.pull(queueId1)
+    queue.open(queueId2)
+    const pullPromise1 = queue.pull(queueId1)
+    const pullPromise2 = queue.pull(queueId1)
     const customError = new Error('Custom closure reason')
 
-    queue.close(queueId1, customError)
+    queue.close({ id: queueId1, reason: customError })
 
-    await expect(pullPromise).rejects.toBe(customError)
+    await expect(pullPromise1).rejects.toBe(customError)
+
+    queue.close({ reason: customError })
+
+    await expect(pullPromise2).rejects.toBe(customError)
   })
 
-  it('should return correct status with isOpen', () => {
-    expect(queue.isOpen(queueId1)).toBe(false)
-    queue.open(queueId1)
-    expect(queue.isOpen(queueId1)).toBe(true)
-    queue.close(queueId1)
-    expect(queue.isOpen(queueId1)).toBe(false)
-  })
+  it('close, isOpen, length', async () => {
+    expect(queue.isOpen(1)).toBe(false)
 
-  it('assertOpen should throw if queue is not open', () => {
-    expect(() => queue.assertOpen(queueId1)).toThrow(
-      `[AsyncIdQueue] Cannot access queue[${queueId1}] because it is not open.`,
-    )
-    queue.open(queueId1)
-    expect(() => queue.assertOpen(queueId1)).not.toThrow()
-  })
-
-  it('closeAll should close all open queues and reject pending pulls', async () => {
-    queue.open(queueId1)
-    queue.open(queueId2)
-
-    const pullPromise1 = queue.pull(queueId1)
-    const pullPromise2 = queue.pull(queueId2)
-    queue.push(queueId2, 'preCloseItem')
-
-    expect(await pullPromise2).toBe('preCloseItem')
-
-    queue.closeAll()
-
-    expect(queue.isOpen(queueId1)).toBe(false)
-    expect(queue.isOpen(queueId2)).toBe(false)
-
-    await expect(pullPromise1).rejects.toThrow(
-      `[PullableAsyncIdQueue] Queue[${queueId1}] was closed while waiting for pulling.`,
-    )
-
-    expect(() => queue.push(queueId1, 'item')).toThrow()
-    await expect(queue.pull(queueId1)).rejects.toThrow()
-  })
-
-  it('length', async () => {
-    expect(queue.length).toBe(0)
-
-    queue.open(queueId1)
+    queue.open(1)
+    expect(queue.isOpen(1)).toBe(true)
     expect(queue.length).toBe(1)
 
-    queue.open(queueId2)
+    queue.open(2)
+    expect(queue.isOpen(2)).toBe(true)
     expect(queue.length).toBe(2)
 
-    queue.close(queueId1)
-    expect(queue.length).toBe(1)
+    queue.open(3)
+    expect(queue.isOpen(3)).toBe(true)
+    expect(queue.length).toBe(3)
 
-    queue.closeAll()
-    expect(queue.length).toBe(0)
-  })
-})
+    expect(queue.isOpen(1)).toBe(true)
+    expect(queue.isOpen(2)).toBe(true)
+    expect(queue.isOpen(3)).toBe(true)
 
-describe('consumableAsyncIdQueue', () => {
-  const consumeMock = vi.fn()
-  let queue: ConsumableAsyncIdQueue<string>
-  const queueId1 = 1
-  const queueId2 = 2
+    queue.close({ id: 1 })
+    expect(queue.isOpen(1)).toBe(false)
+    expect(queue.isOpen(2)).toBe(true)
+    expect(queue.isOpen(3)).toBe(true)
 
-  beforeEach(() => {
-    consumeMock.mockClear()
-    queue = new ConsumableAsyncIdQueue<string>(consumeMock)
-  })
+    queue.close()
 
-  it('should require queue to be opened before push', () => {
-    expect(() => queue.push(queueId1, 'item1')).toThrow(
-      `[AsyncIdQueue] Cannot access queue[${queueId1}] because it is not open.`,
-    )
-    expect(consumeMock).not.toHaveBeenCalled()
-  })
-
-  it('should call the consume function with correct arguments on push', () => {
-    queue.open(queueId1)
-    queue.push(queueId1, 'item1')
-
-    expect(consumeMock).toHaveBeenCalledOnce()
-    expect(consumeMock).toHaveBeenCalledWith(queueId1, 'item1')
-  })
-
-  it('should call the consume function for the correct queue ID', () => {
-    queue.open(queueId1)
-    queue.open(queueId2)
-
-    queue.push(queueId1, 'itemQ1')
-    queue.push(queueId2, 'itemQ2')
-
-    expect(consumeMock).toHaveBeenCalledTimes(2)
-    expect(consumeMock).toHaveBeenCalledWith(queueId1, 'itemQ1')
-    expect(consumeMock).toHaveBeenCalledWith(queueId2, 'itemQ2')
-  })
-
-  it('should close a queue, preventing further pushes', () => {
-    queue.open(queueId1)
-    queue.close(queueId1)
-
-    expect(queue.isOpen(queueId1)).toBe(false)
-    expect(() => queue.push(queueId1, 'item2')).toThrow(
-      `[AsyncIdQueue] Cannot access queue[${queueId1}] because it is not open.`,
-    )
-    expect(consumeMock).not.toHaveBeenCalled()
-  })
-
-  it('should return correct status with isOpen', () => {
-    expect(queue.isOpen(queueId1)).toBe(false)
-    queue.open(queueId1)
-    expect(queue.isOpen(queueId1)).toBe(true)
-    queue.close(queueId1)
-    expect(queue.isOpen(queueId1)).toBe(false)
-  })
-
-  it('assertOpen should throw if queue is not open', () => {
-    expect(() => queue.assertOpen(queueId1)).toThrow(
-      `[AsyncIdQueue] Cannot access queue[${queueId1}] because it is not open.`,
-    )
-    queue.open(queueId1)
-    expect(() => queue.assertOpen(queueId1)).not.toThrow()
-  })
-
-  it('closeAll should close all open queues', () => {
-    queue.open(queueId1)
-    queue.open(queueId2)
-
-    queue.closeAll()
-
-    expect(queue.isOpen(queueId1)).toBe(false)
-    expect(queue.isOpen(queueId2)).toBe(false)
-
-    expect(() => queue.push(queueId1, 'item')).toThrow()
-    expect(() => queue.push(queueId2, 'item')).toThrow()
-  })
-
-  it('length', async () => {
-    expect(queue.length).toBe(0)
-
-    queue.open(queueId1)
-    expect(queue.length).toBe(1)
-
-    queue.open(queueId2)
-    expect(queue.length).toBe(2)
-
-    queue.close(queueId1)
-    expect(queue.length).toBe(1)
-
-    queue.closeAll()
-    expect(queue.length).toBe(0)
+    expect(queue.isOpen(1)).toBe(false)
+    expect(queue.isOpen(2)).toBe(false)
+    expect(queue.isOpen(3)).toBe(false)
   })
 })

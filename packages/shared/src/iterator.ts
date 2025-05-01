@@ -1,4 +1,3 @@
-import type { Promisable } from 'type-fest'
 import { sequential } from './function'
 
 export function isAsyncIteratorObject(maybe: unknown): maybe is AsyncIteratorObject<any, any, any> {
@@ -9,13 +8,13 @@ export function isAsyncIteratorObject(maybe: unknown): maybe is AsyncIteratorObj
   return Symbol.asyncIterator in maybe && typeof maybe[Symbol.asyncIterator] === 'function'
 }
 
-export interface CreateAsyncIteratorObjectOptions {
-  onComplete?: (reason: 'return' | 'throw' | 'next' | 'dispose') => Promisable<void>
+export interface CreateAsyncIteratorObjectCleanupFn {
+  (reason: 'return' | 'throw' | 'next' | 'dispose'): Promise<void>
 }
 
 export function createAsyncIteratorObject<T, TReturn, TNext>(
   next: () => Promise<IteratorResult<T, TReturn>>,
-  options: CreateAsyncIteratorObjectOptions = {},
+  cleanup: CreateAsyncIteratorObjectCleanupFn,
 ): AsyncIteratorObject<T, TReturn, TNext> & AsyncGenerator<T, TReturn, TNext> {
   let isExecuteComplete = false
   let isDone = false
@@ -42,7 +41,7 @@ export function createAsyncIteratorObject<T, TReturn, TNext>(
       finally {
         if (isDone && !isExecuteComplete) {
           isExecuteComplete = true
-          await options.onComplete?.('next')
+          await cleanup('next')
         }
       }
     }),
@@ -50,7 +49,7 @@ export function createAsyncIteratorObject<T, TReturn, TNext>(
       isDone = true
       if (!isExecuteComplete) {
         isExecuteComplete = true
-        await options.onComplete?.('return')
+        await cleanup('return')
       }
 
       return { done: true, value }
@@ -59,7 +58,7 @@ export function createAsyncIteratorObject<T, TReturn, TNext>(
       isDone = true
       if (!isExecuteComplete) {
         isExecuteComplete = true
-        await options.onComplete?.('throw')
+        await cleanup('throw')
       }
 
       throw err
@@ -71,7 +70,7 @@ export function createAsyncIteratorObject<T, TReturn, TNext>(
       isDone = true
       if (!isExecuteComplete) {
         isExecuteComplete = true
-        await options.onComplete?.('dispose')
+        await cleanup('dispose')
       }
     },
     [Symbol.asyncIterator]() {

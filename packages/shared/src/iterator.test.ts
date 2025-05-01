@@ -1,4 +1,3 @@
-import type { CreateAsyncIteratorObjectOptions } from './iterator'
 import { createAsyncIteratorObject, isAsyncIteratorObject } from './iterator'
 
 it('isAsyncIteratorObject', () => {
@@ -17,14 +16,23 @@ it('isAsyncIteratorObject', () => {
 })
 
 describe('createAsyncIteratorObject', () => {
-  const assertDoneCorrectly = async (iterator: AsyncIterator<any>) => {
+  const next = vi.fn()
+  const cleanup = vi.fn()
+  let iterator: AsyncGenerator
+
+  beforeEach(() => {
+    next.mockReset()
+    cleanup.mockReset()
+    iterator = createAsyncIteratorObject(next, cleanup)
+  })
+
+  afterEach(async () => {
+    expect(cleanup).toHaveBeenCalledTimes(1)
     await expect(iterator.next()).resolves.toEqual({ done: true, value: undefined })
-  }
+    expect(cleanup).toHaveBeenCalledTimes(1)
+  })
 
-  it('should create an object conforming to AsyncIterator protocol', () => {
-    const mockNext = vi.fn()
-    const iterator = createAsyncIteratorObject(mockNext)
-
+  it('should create an object conforming to AsyncIterator protocol', async () => {
     expect(iterator).toBeDefined()
     expect(iterator).toSatisfy(isAsyncIteratorObject)
     expect(typeof iterator.next).toBe('function')
@@ -32,29 +40,30 @@ describe('createAsyncIteratorObject', () => {
     expect(typeof iterator.throw).toBe('function')
     expect(typeof iterator[Symbol.asyncIterator]).toBe('function')
     expect(typeof (iterator as any)[Symbol.asyncDispose]).toBe('function')
+
+    await expect(iterator.return(undefined)).resolves.toEqual({ done: true, value: undefined })
   })
 
-  it('should return itself when [Symbol.asyncIterator] is called', () => {
-    const mockNext = vi.fn()
-    const iterator = createAsyncIteratorObject(mockNext)
+  it('should return itself when [Symbol.asyncIterator] is called', async () => {
     expect(iterator[Symbol.asyncIterator]()).toBe(iterator)
+
+    await expect(iterator.return(undefined)).resolves.toEqual({ done: true, value: undefined })
   })
 
   describe('next()', () => {
     it('should call the provided next function and return its result', async () => {
-      const expectedResult = { done: false, value: 42 }
-      const mockNext = vi.fn().mockResolvedValue(expectedResult)
-      const iterator = createAsyncIteratorObject(mockNext)
+      const expectedResult = { done: true, value: 42 }
+      next.mockResolvedValue(expectedResult)
 
       const result = await iterator.next()
 
-      expect(mockNext).toHaveBeenCalledTimes(1)
+      expect(next).toHaveBeenCalledTimes(1)
       expect(result).toEqual(expectedResult)
     })
 
     it('should handle multiple calls correctly', async () => {
       let time = 0
-      const mockNext = vi.fn(async () => {
+      next.mockImplementation(async () => {
         await new Promise(resolve => setTimeout(resolve, 10))
         return {
           done: time === 2,
@@ -62,113 +71,97 @@ describe('createAsyncIteratorObject', () => {
         }
       })
 
-      const iterator = createAsyncIteratorObject(mockNext)
-
       await Promise.all([
         expect(iterator.next()).resolves.toEqual({ done: false, value: 0 }),
         expect(iterator.next()).resolves.toEqual({ done: false, value: 1 }),
         expect(iterator.next()).resolves.toEqual({ done: true, value: 2 }),
         expect(iterator.next()).resolves.toEqual({ done: true, value: undefined }),
-        assertDoneCorrectly(iterator),
       ])
 
-      expect(mockNext).toHaveBeenCalledTimes(3)
+      expect(next).toHaveBeenCalledTimes(3)
     })
 
     it('should propagate errors from the provided next function', async () => {
       const error = new Error('Something went wrong')
-      const mockNext = vi.fn().mockRejectedValue(error)
-      const iterator = createAsyncIteratorObject(mockNext)
+      next.mockRejectedValue(error)
 
       await expect(iterator.next()).rejects.toThrow(error)
-      await assertDoneCorrectly(iterator)
-      expect(mockNext).toHaveBeenCalledTimes(1)
+      expect(next).toHaveBeenCalledTimes(1)
     })
 
     it('should call onComplete("next") when next() resolves (done: true)', async () => {
-      const mockOnComplete = vi.fn()
-      const mockNext = vi.fn().mockResolvedValue({ done: true, value: undefined })
-      const options: CreateAsyncIteratorObjectOptions = { onComplete: mockOnComplete }
-      const iterator = createAsyncIteratorObject(mockNext, options)
-
+      next.mockResolvedValue({ done: true, value: undefined })
       await iterator.next()
-
-      expect(mockOnComplete).toHaveBeenCalledTimes(1)
-      expect(mockOnComplete).toHaveBeenCalledWith('next')
-      await assertDoneCorrectly(iterator)
+      await iterator.next()
+      await iterator.next()
+      expect(cleanup).toHaveBeenCalledTimes(1)
+      expect(cleanup).toHaveBeenCalledWith('next')
     })
 
     it('should call onComplete("next") when next() rejects', async () => {
-      const mockOnComplete = vi.fn()
       const error = new Error('Failed')
-      const mockNext = vi.fn().mockRejectedValue(error)
-      const options: CreateAsyncIteratorObjectOptions = { onComplete: mockOnComplete }
-      const iterator = createAsyncIteratorObject(mockNext, options)
+      next.mockRejectedValue(error)
 
-      await expect(iterator.next()).rejects.toThrow(error)
+      await Promise.all([
+        expect(iterator.next()).rejects.toThrow(error),
+        iterator.next(),
+        iterator.next(),
+        iterator.next(),
+      ])
 
-      expect(mockOnComplete).toHaveBeenCalledTimes(1)
-      expect(mockOnComplete).toHaveBeenCalledWith('next')
-      await assertDoneCorrectly(iterator)
+      expect(cleanup).toHaveBeenCalledTimes(1)
+      expect(cleanup).toHaveBeenCalledWith('next')
     })
   })
 
   describe('return()', () => {
     it('should return { done: true, value } with the provided value', async () => {
-      const mockNext = vi.fn()
-      const iterator = createAsyncIteratorObject(mockNext)
       const returnValue = 'Iterator terminated'
-
       expect(await iterator.return(returnValue)).toEqual({ done: true, value: returnValue })
-      await assertDoneCorrectly(iterator)
-      expect(mockNext).toHaveBeenCalledTimes(0)
+      expect(next).toHaveBeenCalledTimes(0)
     })
 
     it('should call onComplete("return")', async () => {
-      const mockOnComplete = vi.fn()
-      const mockNext = vi.fn()
-      const options: CreateAsyncIteratorObjectOptions = { onComplete: mockOnComplete }
-      const iterator = createAsyncIteratorObject(mockNext, options)
+      await Promise.all([
+        iterator.return('done'),
+        iterator.return('done'),
+        iterator.return('done'),
+      ])
 
-      await iterator.return('done')
-
-      await assertDoneCorrectly(iterator)
-      expect(mockOnComplete).toHaveBeenCalledTimes(1)
-      expect(mockOnComplete).toHaveBeenCalledWith('return')
-      expect(mockNext).not.toHaveBeenCalled()
+      expect(cleanup).toHaveBeenCalledTimes(1)
+      expect(cleanup).toHaveBeenCalledWith('return')
     })
   })
 
   describe('throw()', () => {
     it('should re-throw the provided error', async () => {
-      const mockNext = vi.fn()
-      const iterator = createAsyncIteratorObject(mockNext)
       const error = new Error('Forced error')
-
       await expect(iterator.throw(error)).rejects.toThrow(error)
-      await assertDoneCorrectly(iterator)
-      expect(mockNext).toHaveBeenCalledTimes(0)
+      expect(next).toHaveBeenCalledTimes(0)
     })
 
     it('should call onComplete("throw")', async () => {
-      const mockOnComplete = vi.fn()
-      const mockNext = vi.fn()
-      const options: CreateAsyncIteratorObjectOptions = { onComplete: mockOnComplete }
-      const iterator = createAsyncIteratorObject(mockNext, options)
       const error = new Error('Forced error')
 
-      await expect(iterator.throw(error)).rejects.toThrow(error)
-      await assertDoneCorrectly(iterator)
+      await Promise.all([
+        expect(iterator.throw(error)).rejects.toThrow(error),
+        expect(iterator.throw(error)).rejects.toThrow(error),
+        expect(iterator.throw(error)).rejects.toThrow(error),
+      ])
 
-      expect(mockOnComplete).toHaveBeenCalledTimes(1)
-      expect(mockOnComplete).toHaveBeenCalledWith('throw')
-      // Ensure the original next function wasn't called during throw
-      expect(mockNext).not.toHaveBeenCalled()
+      expect(cleanup).toHaveBeenCalledTimes(1)
+      expect(cleanup).toHaveBeenCalledWith('throw')
     })
   })
 
   describe('dispose()', () => {
-    it('should fallback to random symbol if Symbol.asyncDispose is not available', () => {
+    it('should implement Symbol.asyncDispose', async () => {
+      expect(typeof (iterator as any)[Symbol.asyncDispose]).toBe('function')
+
+      await iterator.return(undefined)
+    })
+
+    it('should fallback to random symbol if Symbol.asyncDispose is not available', async () => {
       const OriginalSymbol = globalThis.Symbol
       const fallbackSymbol = Symbol.for('asyncDispose')
 
@@ -179,36 +172,27 @@ describe('createAsyncIteratorObject', () => {
         },
       } as any
 
-      const iterator = createAsyncIteratorObject(() => {
+      const fallback = createAsyncIteratorObject(() => {
         throw new Error('Should not be called')
-      })
+      }, async () => {})
 
-      expect(typeof (iterator as any)[fallbackSymbol]).toBe('function')
+      expect(typeof (fallback as any)[fallbackSymbol]).toBe('function')
 
       globalThis.Symbol = OriginalSymbol
-    })
 
-    it('should have an async dispose method', () => {
-      const mockNext = vi.fn()
-      const iterator = createAsyncIteratorObject(mockNext)
-      expect(typeof (iterator as any)[Symbol.asyncDispose]).toBe('function')
+      await iterator.return(undefined)
     })
 
     it('should call onComplete("dispose") when disposed', async () => {
-      const mockOnComplete = vi.fn()
-      const mockNext = vi.fn()
-      const options: CreateAsyncIteratorObjectOptions = { onComplete: mockOnComplete }
-      const iterator = createAsyncIteratorObject(mockNext, options)
+      await Promise.all([
+        (iterator as any)[Symbol.asyncDispose](),
+        (iterator as any)[Symbol.asyncDispose](),
+        (iterator as any)[Symbol.asyncDispose](),
+      ])
 
-      // Check if the method exists before calling
-      await (iterator as any)[Symbol.asyncDispose]()
-
-      await assertDoneCorrectly(iterator)
-
-      expect(mockOnComplete).toHaveBeenCalledTimes(1)
-      expect(mockOnComplete).toHaveBeenCalledWith('dispose')
-      // Ensure the original next function wasn't called during dispose
-      expect(mockNext).not.toHaveBeenCalled()
+      expect(next).toHaveBeenCalledTimes(0)
+      expect(cleanup).toHaveBeenCalledTimes(1)
+      expect(cleanup).toHaveBeenCalledWith('dispose')
     })
   })
 
@@ -216,7 +200,7 @@ describe('createAsyncIteratorObject', () => {
     it('should work correctly in a for await...of loop', async () => {
       let counter = 0
       const limit = 3
-      const mockNext = vi.fn(async () => {
+      next.mockImplementation(async () => {
         if (counter < limit) {
           return { done: false, value: counter++ }
         }
@@ -224,31 +208,22 @@ describe('createAsyncIteratorObject', () => {
           return { done: true, value: undefined }
         }
       })
-      const mockOnComplete = vi.fn()
-      const options: CreateAsyncIteratorObjectOptions = { onComplete: mockOnComplete }
-      const iterator = createAsyncIteratorObject(mockNext, options)
-
       const collectedValues: any[] = []
       for await (const value of iterator) {
         collectedValues.push(value)
       }
 
-      await assertDoneCorrectly(iterator)
-
       expect(collectedValues).toEqual([0, 1, 2])
-      expect(mockNext).toHaveBeenCalledTimes(limit + 1)
-      expect(mockOnComplete).toHaveBeenCalledTimes(1)
-      expect(mockOnComplete).toHaveBeenCalledWith('next')
+      expect(next).toHaveBeenCalledTimes(limit + 1)
+      expect(cleanup).toHaveBeenCalledTimes(1)
+      expect(cleanup).toHaveBeenCalledWith('next')
     })
 
     it('should call onComplete("return") when breaking a for await...of loop', async () => {
       let counter = 0
-      const mockNext = vi.fn(async () => ({ done: false, value: counter++ }))
-      const mockOnComplete = vi.fn()
-      const options: CreateAsyncIteratorObjectOptions = { onComplete: mockOnComplete }
-      const iterator = createAsyncIteratorObject(mockNext, options)
+      next.mockImplementation(async () => ({ done: false, value: counter++ }))
 
-      const collectedValues: number[] = []
+      const collectedValues = []
       for await (const value of iterator) {
         collectedValues.push(value)
         if (value === 1) {
@@ -256,41 +231,34 @@ describe('createAsyncIteratorObject', () => {
         }
       }
 
-      await assertDoneCorrectly(iterator)
-
       expect(collectedValues).toEqual([0, 1])
-      expect(mockNext).toHaveBeenCalledTimes(2)
-      expect(mockOnComplete).toHaveBeenCalledTimes(1)
-      expect(mockOnComplete).toHaveBeenCalledWith('return')
+      expect(next).toHaveBeenCalledTimes(2)
+      expect(cleanup).toHaveBeenCalledTimes(1)
+      expect(cleanup).toHaveBeenCalledWith('return')
     })
 
     it('should call onComplete("throw") when throwing inside a for await...of loop', async () => {
       let counter = 0
-      const mockNext = vi.fn(async () => ({ done: false, value: counter++ }))
-      const mockOnComplete = vi.fn()
-      const options: CreateAsyncIteratorObjectOptions = { onComplete: mockOnComplete }
-      const iterator = createAsyncIteratorObject(mockNext, options)
+      next.mockImplementation(async () => ({ done: false, value: counter++ }))
       const error = new Error('Loop error')
 
-      const collectedValues: number[] = []
+      const collectedValues = []
       try {
         for await (const value of iterator) {
           collectedValues.push(value)
           if (value === 1) {
-            throw error // Throw inside the loop
+            throw error
           }
         }
       }
       catch (e) {
-        expect(e).toBe(error) // Ensure the correct error was caught
+        expect(e).toBe(error)
       }
 
-      await assertDoneCorrectly(iterator)
-
       expect(collectedValues).toEqual([0, 1])
-      expect(mockNext).toHaveBeenCalledTimes(2)
-      expect(mockOnComplete).toHaveBeenCalledTimes(1)
-      expect(mockOnComplete).toHaveBeenCalledWith('return')
+      expect(next).toHaveBeenCalledTimes(2)
+      expect(cleanup).toHaveBeenCalledTimes(1)
+      expect(cleanup).toHaveBeenCalledWith('return')
     })
   })
 })

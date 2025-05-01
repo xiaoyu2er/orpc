@@ -8,7 +8,7 @@ import { StandardOpenAPIHandler } from '../standard'
  * OpenAPI Handler for Node Server
  *
  * @see {@link https://orpc.unnoq.com/docs/openapi/openapi-handler OpenAPI Handler Docs}
- * @see {@link https://orpc.unnoq.com/docs/integrations/node Node Integration Docs}
+ * @see {@link https://orpc.unnoq.com/docs/adapters/http HTTP Adapter Docs}
  */
 export class OpenAPIHandler<T extends Context> extends NodeHttpHandler<T> {
   constructor(router: Router<any, T>, options: NoInfer<StandardOpenAPIHandlerOptions<T> & NodeHttpHandlerOptions<T>> = {}) {

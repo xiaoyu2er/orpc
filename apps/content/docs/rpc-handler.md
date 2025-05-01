@@ -11,6 +11,11 @@ The `RPCHandler` enables communication with clients over oRPC's proprietary [RPC
 `RPCHandler` is designed exclusively for [RPCLink](/docs/client/rpc-link) and **does not** support OpenAPI. Avoid sending requests to it manually.
 :::
 
+:::warning
+This documentation is focused on the [HTTP Adapter](/docs/adapters/http).
+Other adapters may remove or change options to keep things simple.
+:::
+
 ## Supported Data Types
 
 `RPCHandler` natively serializes and deserializes the following JavaScript types:

@@ -11,7 +11,7 @@ import { experimental_WebsocketHandler as WebsocketHandler } from './handler'
  * @see {@link https://orpc.unnoq.com/docs/adapters/websocket Websocket Adapter Docs}
  */
 export class experimental_RPCHandler<T extends Context> extends WebsocketHandler<T> {
-  constructor(router: Router<any, T>, options: NoInfer<Omit<StandardRPCHandlerOptions<T>, 'strictGetMethodPluginEnabled'>> = {}) {
-    super(new StandardRPCHandler(router, { ...options, strictGetMethodPluginEnabled: false }))
+  constructor(router: Router<any, T>, options: NoInfer<StandardRPCHandlerOptions<T>> = {}) {
+    super(new StandardRPCHandler(router, options))
   }
 }

@@ -8,7 +8,7 @@ import { ServerPeer } from '@orpc/standard-server-peer'
 import { resolveFriendlyStandardHandleOptions } from '../standard/utils'
 
 export class experimental_CrosswsHandler<T extends Context> {
-  private readonly peers: WeakMap<Peer, ServerPeer> = new WeakMap()
+  private readonly peers: WeakMap<Pick<Peer, 'send'>, ServerPeer> = new WeakMap()
 
   constructor(
     private readonly standardHandler: StandardHandler<T>,
@@ -16,8 +16,8 @@ export class experimental_CrosswsHandler<T extends Context> {
   }
 
   async message(
-    ws: Peer,
-    message: Message,
+    ws: Pick<Peer, 'send'>,
+    message: Pick<Message, 'rawData' | 'uint8Array'>,
     ...rest: MaybeOptionalOptions<Omit<FriendlyStandardHandleOptions<T>, 'prefix'>>
   ): Promise<void> {
     let peer = this.peers.get(ws)
@@ -47,7 +47,7 @@ export class experimental_CrosswsHandler<T extends Context> {
     await peer.response(id, response ?? { status: 404, headers: {}, body: 'No procedure matched' })
   }
 
-  close(ws: Peer): void {
+  close(ws: Pick<Peer, 'send'>): void {
     const server = this.peers.get(ws)
 
     if (server) {

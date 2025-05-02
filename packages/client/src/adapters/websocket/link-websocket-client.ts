@@ -14,12 +14,7 @@ export class experimental_LinkWebsocketClient<T extends ClientContext> implement
     this.peer = new ClientPeer(options.websocket.send.bind(options.websocket))
 
     options.websocket.addEventListener('message', (event) => {
-      if (event.data instanceof Blob) {
-        event.data.arrayBuffer().then(this.peer.message.bind(this.peer))
-      }
-      else {
-        this.peer.message(event.data)
-      }
+      this.peer.message(event.data)
     })
 
     options.websocket.addEventListener('close', () => {

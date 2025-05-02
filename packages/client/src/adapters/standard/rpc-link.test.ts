@@ -13,9 +13,7 @@ describe.each(supportedDataTypes)('standardRPCLink: $name', ({ value, expected }
     async function assertSuccessCase(value: unknown, expected: unknown): Promise<true> {
       const handler = vi.fn(({ input }) => input)
 
-      const rpcHandler = new StandardRPCHandler(os.handler(handler), {
-        strictGetMethodPluginEnabled: false,
-      })
+      const rpcHandler = new StandardRPCHandler(os.handler(handler))
 
       const rpcLink = new StandardRPCLink({
         async call(request, options, path, input) {
@@ -50,9 +48,7 @@ describe.each(supportedDataTypes)('standardRPCLink: $name', ({ value, expected }
         })
       })
 
-      const rpcHandler = new StandardRPCHandler(os.handler(handler), {
-        strictGetMethodPluginEnabled: false,
-      })
+      const rpcHandler = new StandardRPCHandler(os.handler(handler))
 
       const rpcLink = new StandardRPCLink({
         async call(request, options, path, input) {

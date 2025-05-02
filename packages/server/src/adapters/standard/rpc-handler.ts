@@ -11,7 +11,7 @@ export interface StandardRPCHandlerOptions<T extends Context> extends StandardHa
 }
 
 export class StandardRPCHandler<T extends Context> extends StandardHandler<T> {
-  constructor(router: Router<any, T>, options: StandardRPCHandlerOptions<T>) {
+  constructor(router: Router<any, T>, options: StandardRPCHandlerOptions<T> = {}) {
     const jsonSerializer = new StandardRPCJsonSerializer(options)
     const serializer = new StandardRPCSerializer(jsonSerializer)
     const matcher = new StandardRPCMatcher()

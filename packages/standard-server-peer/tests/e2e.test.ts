@@ -12,7 +12,11 @@ describe('client/server peer', () => {
       await client.message(typeof raw === 'string' ? Math.random() < 0.5 ? raw : new TextEncoder().encode(raw) : raw)
     })
 
-    const [id, request] = await server.message(typeof raw === 'string' ? Math.random() < 0.5 ? raw : new TextEncoder().encode(raw) : raw)
+    const [id, request] = await server.message(
+      typeof raw === 'string'
+        ? Math.random() < 0.5 ? raw : new TextEncoder().encode(raw) /** increase coverage  */
+        : raw,
+    )
 
     if (!request) {
       return
@@ -33,10 +37,13 @@ describe('client/server peer', () => {
         method: 'POST',
         signal: undefined,
         url: new URL('http://localhost:3000'),
-        body: serializer.serialize(value),
+        body: value instanceof Blob ? value : serializer.serialize(value),
       })
 
-      const output = await serializer.deserialize(response.body)
+      /**
+       * Because RPCSerializer always convert Blob to FormData, we want blob at root for better test coverage.
+       */
+      const output = await response.body instanceof Blob ? await response.body : serializer.deserialize(response.body)
 
       expect(output).toEqual(expected)
     }

@@ -19,11 +19,17 @@
         "types": "./dist/index.d.mts",
         "import": "./dist/index.mjs",
         "default": "./dist/index.mjs"
+      },
+      "./v4": {
+        "types": "./dist/v4/index.d.mts",
+        "import": "./dist/v4/index.mjs",
+        "default": "./dist/v4/index.mjs"
       }
     }
   },
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./v4": "./src/v4/index.ts"
   },
   "files": [
     "dist"
@@ -36,7 +42,16 @@
   "peerDependencies": {
     "@orpc/contract": "workspace:*",
     "@orpc/server": "workspace:*",
-    "zod": "^3.24.2"
+    "@zod/core": ">=0.10.0",
+    "zod": ">=3.24.2"
+  },
+  "peerDependenciesMeta": {
+    "@zod/core": {
+      "optional": true
+    },
+    "zod": {
+      "optional": true
+    }
   },
   "dependencies": {
     "@orpc/openapi": "workspace:*",
@@ -45,6 +60,10 @@
     "wildcard-match": "^5.1.3"
   },
   "devDependencies": {
-    "zod-to-json-schema": "^3.24.5"
+    "@zod/core": "^0.10.0",
+    "@zod/mini": "^@zod/mini@4.0.0-beta.20250503T014749",
+    "zod": "^3.24.2",
+    "zod-to-json-schema": "^3.24.5",
+    "zod4": "npm:zod@^4.0.0-beta.20250503T014749"
   }
 }

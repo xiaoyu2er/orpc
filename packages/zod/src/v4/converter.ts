@@ -156,8 +156,8 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
             }
 
             // Add a pattern for JWT if it's missing (acts as a polyfill for Zod v4)
-            if (format === 'jwt' && json.contentEncoding && json.format === undefined && json.pattern === undefined) {
-              json.pattern = /^[\w-]+\.[\w-]+\.[\w-]*$/.source
+            if (format === 'jwt' && json.contentEncoding === undefined && json.format === undefined && json.pattern === undefined) {
+              json.pattern = /^[\w-]+\.[\w-]+\.[\w-]+$/.source
             }
 
             return [true, json]

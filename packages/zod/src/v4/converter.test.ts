@@ -1,10 +1,9 @@
 import type { JSONSchema } from '@orpc/openapi'
-import type { $ZodType } from '@zod/core'
 import * as z from 'zod4'
 import { ZodToJsonSchemaConverter } from './converter'
 
 type SchemaTestCase = {
-  schema: $ZodType
+  schema: z.ZodType
   input: [boolean, Exclude<JSONSchema, boolean>]
   output?: [boolean, Exclude<JSONSchema, boolean>]
 }
@@ -102,7 +101,7 @@ const stringCases: SchemaTestCase[] = [
   },
   {
     schema: z.jwt(),
-    input: [true, { type: 'string', pattern: '^[\\w-]+\\.[\\w-]+\\.[\\w-]*$' }],
+    input: [true, { type: 'string', pattern: '^[\\w-]+\\.[\\w-]+\\.[\\w-]+$' }],
   },
   {
     schema: z.base64url(),
@@ -132,7 +131,7 @@ const numberCases: SchemaTestCase[] = [
     input: [true, { type: 'number', multipleOf: 5 }],
   },
   {
-    schema: z.number().finite(),
+    schema: z.number(),
     input: [true, { type: 'number' }],
   },
   {
@@ -379,7 +378,7 @@ const edgeCases: SchemaTestCase[] = [
 
 describe.each([
   ...stringCases,
-  // ...numberCases,
+  ...numberCases,
   // ...nativeCases,
   // ...combinationCases,
   // ...processedCases,
@@ -404,159 +403,88 @@ describe.each([
       expect(json).toEqual(expectedJson)
     })
 
-    // it('object', async () => {
-    //   const testSchema = z.object({ value: schema })
-    //   const [required, json] = await converter.convert(testSchema, { strategy })
+    it('object', async () => {
+      const testSchema = z.object({ value: schema })
+      const [required, json] = await converter.convert(testSchema, { strategy })
 
-    //   expect(required).toEqual(true)
-    //   expect(json).toEqual({
-    //     type: 'object',
-    //     properties: {
-    //       value: expectedJson,
-    //     },
-    //     required: expectedRequired ? ['value'] : undefined,
-    //   })
+      expect(required).toEqual(true)
+      expect(json).toEqual({
+        type: 'object',
+        properties: {
+          value: expectedJson,
+        },
+        required: expectedRequired ? ['value'] : undefined,
+      })
+    })
 
-    //   if (!ignoreZodToJsonSchema) {
-    //     expect(json).toEqual({
-    //       ...zodToJsonSchema(testSchema, { target: 'jsonSchema2019-09', pipeStrategy: strategy, $refStrategy: 'none' }),
-    //       $schema: undefined,
-    //       additionalProperties: undefined,
-    //     })
-    //   }
-    // })
+    it('array', async () => {
+      const testSchema = z.array(schema)
+      const [required, json] = await converter.convert(testSchema, { strategy })
 
-    // it('array', async () => {
-    //   const testSchema = z.array(schema)
-    //   const [required, json] = await converter.convert(testSchema, { strategy })
+      expect(required).toEqual(true)
+      expect(json).toEqual({
+        type: 'array',
+        items: arrayItemJsonSchema,
+      })
+    })
 
-    //   expect(required).toEqual(true)
-    //   expect(json).toEqual({
-    //     type: 'array',
-    //     items: arrayItemJsonSchema,
-    //   })
+    it('tuple', async () => {
+      const testSchema = z.tuple([schema, schema]).rest(schema)
+      const [required, json] = await converter.convert(testSchema, { strategy })
 
-    //   if (!ignoreZodToJsonSchema) {
-    //     expect(json).toEqual({
-    //       ...zodToJsonSchema(testSchema, { target: 'jsonSchema2019-09', pipeStrategy: strategy, $refStrategy: 'none' }),
-    //       $schema: undefined,
-    //     })
-    //   }
-    // })
+      expect(required).toEqual(true)
+      expect(json).toEqual({
+        type: 'array',
+        prefixItems: [
+          arrayItemJsonSchema,
+          arrayItemJsonSchema,
+        ],
+        items: arrayItemJsonSchema,
+      })
+    })
 
-    // it('tuple', async () => {
-    //   const testSchema = z.tuple([schema, schema]).rest(schema)
-    //   const [required, json] = await converter.convert(testSchema, { strategy })
+    it('set', async () => {
+      const testSchema = z.set(schema)
+      const [required, json] = await converter.convert(testSchema, { strategy })
 
-    //   expect(required).toEqual(true)
-    //   expect(json).toEqual({
-    //     type: 'array',
-    //     prefixItems: [
-    //       arrayItemJsonSchema,
-    //       arrayItemJsonSchema,
-    //     ],
-    //     items: arrayItemJsonSchema,
-    //   })
+      expect(required).toEqual(true)
+      expect(json).toEqual({
+        type: 'array',
+        uniqueItems: true,
+        items: arrayItemJsonSchema,
+      })
+    })
 
-    //   if (!ignoreZodToJsonSchema) {
-    //     expect({
-    //       type: 'array',
-    //       items: [
-    //         expectedRequired ? expectedJson : { anyOf: [{ not: {} }, expectedJson] },
-    //         expectedRequired ? expectedJson : { anyOf: [{ not: {} }, expectedJson] },
-    //       ],
-    //       additionalItems: expectedRequired ? expectedJson : { anyOf: [{ not: {} }, expectedJson] },
-    //     }).toEqual({
-    //       ...zodToJsonSchema(testSchema, { target: 'jsonSchema2019-09', pipeStrategy: strategy, $refStrategy: 'none' }),
-    //       $schema: undefined,
-    //       maxItems: undefined,
-    //       minItems: undefined,
-    //     })
-    //   }
-    // })
+    it('map', async () => {
+      const testSchema = z.map(schema, schema.optional())
+      const [required, json] = await converter.convert(testSchema, { strategy })
 
-    // it('set', async () => {
-    //   const testSchema = z.set(schema)
-    //   const [required, json] = await converter.convert(testSchema, { strategy })
+      expect(required).toEqual(true)
+      expect(json).toEqual({
+        type: 'array',
+        items: {
+          type: 'array',
+          maxItems: 2,
+          minItems: 2,
+          prefixItems: [
+            arrayItemJsonSchema,
+            strategy === 'input' ? expectedJson : { anyOf: [expectedJson, { type: 'null' }] },
+          ],
+        },
+      })
+    })
 
-    //   expect(required).toEqual(true)
-    //   expect(json).toEqual({
-    //     type: 'array',
-    //     uniqueItems: true,
-    //     items: arrayItemJsonSchema,
-    //   })
+    it('record', async () => {
+      const testSchema = z.record(z.string().regex(/^\d+$/), schema)
+      const [required, json] = await converter.convert(testSchema, { strategy })
 
-    //   if (!ignoreZodToJsonSchema) {
-    //     expect({
-    //       type: 'array',
-    //       uniqueItems: true,
-    //       items: expectedRequired ? expectedJson : { anyOf: [{ not: {} }, expectedJson] },
-    //     }).toEqual({
-    //       ...zodToJsonSchema(testSchema, { target: 'jsonSchema2019-09', pipeStrategy: strategy, $refStrategy: 'none' }),
-    //       $schema: undefined,
-    //     })
-    //   }
-    // })
-
-    // it('map', async () => {
-    //   const testSchema = z.map(schema, schema.optional())
-    //   const [required, json] = await converter.convert(testSchema, { strategy })
-
-    //   expect(required).toEqual(true)
-    //   expect(json).toEqual({
-    //     type: 'array',
-    //     items: {
-    //       type: 'array',
-    //       maxItems: 2,
-    //       minItems: 2,
-    //       prefixItems: [
-    //         arrayItemJsonSchema,
-    //         { anyOf: [expectedJson, strategy === 'input' ? { not: {} } : { type: 'null' }] },
-    //       ],
-    //     },
-    //   })
-
-    //   if (!ignoreZodToJsonSchema) {
-    //     expect({
-    //       type: 'array',
-    //       items: {
-    //         maxItems: 2,
-    //         minItems: 2,
-    //         items: [
-    //           expectedRequired ? expectedJson : { anyOf: [{ not: {} }, expectedJson] },
-    //           { anyOf: [{ not: {} }, expectedRequired ? expectedJson : { anyOf: [{ not: {} }, expectedJson] }] },
-    //         ],
-    //         type: 'array',
-    //       },
-    //     }).toEqual({
-    //       ...zodToJsonSchema(testSchema, { target: 'jsonSchema2019-09', pipeStrategy: strategy, $refStrategy: 'none' }),
-    //       $schema: undefined,
-    //       maxItems: undefined,
-    //     })
-    //   }
-    // })
-
-    // it('record', async () => {
-    //   const testSchema = z.record(schema)
-    //   const [required, json] = await converter.convert(testSchema, { strategy })
-
-    //   expect(required).toEqual(true)
-    //   expect(json).toEqual({
-    //     type: 'object',
-    //     additionalProperties: expectedJson,
-    //   })
-
-    //   if (!ignoreZodToJsonSchema) {
-    //     expect({
-    //       type: 'object',
-    //       additionalProperties: expectedRequired ? expectedJson : { anyOf: [{ not: {} }, expectedJson] },
-    //     }).toEqual({
-    //       ...zodToJsonSchema(testSchema, { target: 'jsonSchema2019-09', pipeStrategy: strategy, $refStrategy: 'none' }),
-    //       $schema: undefined,
-    //       maxItems: undefined,
-    //     })
-    //   }
-    // })
+      expect(required).toEqual(true)
+      expect(json).toEqual({
+        type: 'object',
+        additionalProperties: expectedJson,
+        propertyNames: { type: 'string', pattern: '^\\d+$' },
+      })
+    })
   })
 })
 

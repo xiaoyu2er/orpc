@@ -29,19 +29,12 @@ import type {
   $ZodType,
   $ZodUnion,
 } from '@zod/core'
-import { JSONSchemaFormat } from '@orpc/openapi'
+import { JSONSchemaContentEncoding, JSONSchemaFormat } from '@orpc/openapi'
 import { intercept } from '@orpc/shared'
 import {
   globalRegistry,
 } from '@zod/core'
 import { JSON_SCHEMA_INPUT_REGISTRY, JSON_SCHEMA_OUTPUT_REGISTRY, JSON_SCHEMA_REGISTRY } from './registries'
-
-const formatMap: Partial<Record<$ZodStringFormats, string>> = {
-  guid: JSONSchemaFormat.UUID,
-  url: JSONSchemaFormat.URI,
-  datetime: JSONSchemaFormat.DateTime,
-  json_string: 'json-string',
-}
 
 export interface ZodToJsonSchemaOptions {
   /**
@@ -100,7 +93,7 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
     return schema !== undefined && schema['~standard'].vendor === 'zod'
   }
 
-  convert(schema: AnySchema | undefined, options: SchemaConvertOptions): Promisable<[required: boolean, jsonSchema: JSONSchema]> {
+  convert(schema: AnySchema | undefined, options: SchemaConvertOptions): Promisable<[required: boolean, jsonSchema: Exclude<JSONSchema, boolean>]> {
     return this.#convert(schema as $ZodType, options, 0)
   }
 
@@ -138,23 +131,33 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
             }
 
             if (minimum !== undefined) {
-              json.minimum = minimum
+              json.minLength = minimum
             }
 
             if (maximum !== undefined) {
-              json.maximum = maximum
-            }
-
-            if (format !== undefined) {
-              json.format = formatMap[format] ?? format
-            }
-
-            if (pattern !== undefined) {
-              json.pattern = pattern.source
+              json.maxLength = maximum
             }
 
             if (contentEncoding !== undefined) {
-              json.contentEncoding = contentEncoding as any
+              json.contentEncoding = this.#handleContentEncoding(contentEncoding)
+            }
+
+            /**
+             * JSON Schema's "regex" format means the string _is_ a regex pattern.
+             * Zod’s regex expects the string _to match_ a pattern.
+             * These differ, so we ignore the "regex" format here.
+             */
+            if (format !== undefined && format !== 'regex' && json.contentEncoding === undefined) {
+              json.format = this.#handleStringFormat(format)
+            }
+
+            if (pattern !== undefined && json.contentEncoding === undefined && json.format === undefined) {
+              json.pattern = pattern.source
+            }
+
+            // Add a pattern for JWT if it's missing (acts as a polyfill for Zod v4)
+            if (format === 'jwt' && json.contentEncoding && json.format === undefined && json.pattern === undefined) {
+              json.pattern = /^[\w-]+\.[\w-]+\.[\w-]*$/.source
             }
 
             return [true, json]
@@ -583,5 +586,33 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
         { type: 'null' },
       ],
     }
+  }
+
+  #handleStringFormat(format: string): string | undefined {
+    if (format === 'guid') {
+      return JSONSchemaFormat.UUID
+    }
+
+    if (format === 'url') {
+      return JSONSchemaFormat.URI
+    }
+
+    if (format === 'datetime') {
+      return JSONSchemaFormat.DateTime
+    }
+
+    if (format === 'json_string') {
+      return 'json-string'
+    }
+
+    return Object.values(JSONSchemaFormat).includes(format as any)
+      ? format
+      : undefined
+  }
+
+  #handleContentEncoding(contentEncoding: string): Exclude<JSONSchema, boolean>['contentEncoding'] | undefined {
+    return Object.values(JSONSchemaContentEncoding).includes(contentEncoding as any)
+      ? contentEncoding as any
+      : undefined
   }
 }

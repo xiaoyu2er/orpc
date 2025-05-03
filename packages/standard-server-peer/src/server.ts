@@ -19,9 +19,12 @@ export class ServerPeer {
   private readonly clientEventIteratorQueue = new AsyncIdQueue<EventIteratorPayload>()
   private readonly clientControllers = new Map<number, AbortController>()
 
+  private readonly send: (...args: Parameters<typeof encodeResponseMessage>) => Promise<void>
+
   constructor(
-    private readonly send: EncodedMessageSendFn,
+    send: EncodedMessageSendFn,
   ) {
+    this.send = (...args) => encodeResponseMessage(...args).then(send)
   }
 
   get length(): number {
@@ -61,8 +64,7 @@ export class ServerPeer {
       body: isEventIteratorHeaders(payload.headers)
         ? toEventIterator(this.clientEventIteratorQueue, id, async (reason) => {
             if (reason !== 'next') {
-              await encodeResponseMessage(id, MessageType.ABORT_SIGNAL, undefined)
-                .then(this.send)
+              await this.send(id, MessageType.ABORT_SIGNAL, undefined)
             }
           })
         : payload.body,
@@ -78,8 +80,7 @@ export class ServerPeer {
       return
     }
 
-    await encodeResponseMessage(id, MessageType.RESPONSE, response)
-      .then(this.send)
+    await this.send(id, MessageType.RESPONSE, response)
       .then(async () => {
         if (isAsyncIteratorObject(response.body)) {
           await resolveEventIterator(response.body, async (payload) => {
@@ -87,8 +88,7 @@ export class ServerPeer {
               return 'abort'
             }
 
-            await encodeResponseMessage(id, MessageType.EVENT_ITERATOR, payload)
-              .then(this.send)
+            await this.send(id, MessageType.EVENT_ITERATOR, payload)
 
             return 'next'
           })

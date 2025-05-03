@@ -22,9 +22,13 @@ export class ClientPeer {
   private readonly serverEventIteratorQueue = new AsyncIdQueue<EventIteratorPayload>()
   private readonly serverControllers = new Map<number, AbortController>()
 
+  private readonly send: (...args: Parameters<typeof encodeRequestMessage>) => Promise<void>
+
   constructor(
-    private readonly send: EncodedMessageSendFn,
-  ) {}
+    send: EncodedMessageSendFn,
+  ) {
+    this.send = async (...args) => encodeRequestMessage(...args).then(send)
+  }
 
   get length(): number {
     return (
@@ -58,17 +62,14 @@ export class ClientPeer {
     }, { once: true })
 
     return new Promise((resolve, reject) => {
-      encodeRequestMessage(id, MessageType.REQUEST, request)
-        .then(this.send)
+      this.send(id, MessageType.REQUEST, request)
         .then(async () => {
           if (signal?.aborted) {
-            await encodeRequestMessage(id, MessageType.ABORT_SIGNAL, undefined)
-              .then(this.send)
+            await this.send(id, MessageType.ABORT_SIGNAL, undefined)
           }
           else {
-            signal?.addEventListener('abort', () => {
-              encodeRequestMessage(id, MessageType.ABORT_SIGNAL, undefined)
-                .then(this.send)
+            signal?.addEventListener('abort', async () => {
+              await this.send(id, MessageType.ABORT_SIGNAL, undefined)
             }, { once: true })
           }
 
@@ -78,8 +79,7 @@ export class ClientPeer {
                 return 'abort'
               }
 
-              await encodeRequestMessage(id, MessageType.EVENT_ITERATOR, payload)
-                .then(this.send)
+              await this.send(id, MessageType.EVENT_ITERATOR, payload)
 
               return 'next'
             })
@@ -122,8 +122,7 @@ export class ClientPeer {
         body: toEventIterator(this.serverEventIteratorQueue, id, async (reason) => {
           try {
             if (reason !== 'next') {
-              await encodeRequestMessage(id, MessageType.ABORT_SIGNAL, undefined)
-                .then(this.send)
+              await this.send(id, MessageType.ABORT_SIGNAL, undefined)
             }
           }
           finally {

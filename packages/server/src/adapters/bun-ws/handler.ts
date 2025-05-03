@@ -7,7 +7,7 @@ import { ServerPeer } from '@orpc/standard-server-peer'
 import { resolveFriendlyStandardHandleOptions } from '../standard/utils'
 
 export interface ServerWebSocket {
-  send(message: string | ArrayBufferLike): void
+  send(message: string | ArrayBufferLike): number
 }
 
 export class experimental_BunWsHandler<T extends Context> {

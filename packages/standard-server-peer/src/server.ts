@@ -24,7 +24,12 @@ export class ServerPeer {
   constructor(
     send: EncodedMessageSendFn,
   ) {
-    this.send = (...args) => encodeResponseMessage(...args).then(send)
+    this.send = (id, ...rest) => encodeResponseMessage(id, ...rest).then(async (raw) => {
+      // only send message if still open
+      if (this.clientControllers.has(id)) {
+        await send(raw)
+      }
+    })
   }
 
   get length(): number {
@@ -76,13 +81,14 @@ export class ServerPeer {
   async response(id: number, response: StandardResponse): Promise<void> {
     const signal = this.clientControllers.get(id)?.signal
 
+    // only send message if still open and not aborted
     if (!signal || signal.aborted) {
       return
     }
 
     await this.send(id, MessageType.RESPONSE, response)
       .then(async () => {
-        if (isAsyncIteratorObject(response.body)) {
+        if (!signal.aborted && isAsyncIteratorObject(response.body)) {
           await resolveEventIterator(response.body, async (payload) => {
             if (signal.aborted) {
               return 'abort'

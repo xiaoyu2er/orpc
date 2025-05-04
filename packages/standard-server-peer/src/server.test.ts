@@ -234,7 +234,7 @@ describe('serverPeer', () => {
         signal: expect.any(AbortSignal),
       })
 
-      peer.response(REQUEST_ID, baseResponse)
+      await peer.response(REQUEST_ID, baseResponse)
     })
 
     it('form data', async () => {
@@ -259,7 +259,7 @@ describe('serverPeer', () => {
         signal: expect.any(AbortSignal),
       })
 
-      peer.response(REQUEST_ID, baseResponse)
+      await peer.response(REQUEST_ID, baseResponse)
     })
   })
 

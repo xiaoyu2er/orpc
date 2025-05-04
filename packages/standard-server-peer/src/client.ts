@@ -27,7 +27,12 @@ export class ClientPeer {
   constructor(
     send: EncodedMessageSendFn,
   ) {
-    this.send = async (...args) => encodeRequestMessage(...args).then(send)
+    this.send = async (id, ...rest) => encodeRequestMessage(id, ...rest).then(async (raw) => {
+      // only send message if still open
+      if (this.serverControllers.has(id)) {
+        await send(raw)
+      }
+    })
   }
 
   get length(): number {
@@ -57,21 +62,19 @@ export class ClientPeer {
 
     const serverController = this.open(id)
 
-    signal?.addEventListener('abort', () => {
-      this.close({ id, reason: signal.reason })
-    }, { once: true })
-
     return new Promise((resolve, reject) => {
       this.send(id, MessageType.REQUEST, request)
         .then(async () => {
           if (signal?.aborted) {
             await this.send(id, MessageType.ABORT_SIGNAL, undefined)
+            this.close({ id, reason: signal.reason })
+            return
           }
-          else {
-            signal?.addEventListener('abort', async () => {
-              await this.send(id, MessageType.ABORT_SIGNAL, undefined)
-            }, { once: true })
-          }
+
+          signal?.addEventListener('abort', async () => {
+            await this.send(id, MessageType.ABORT_SIGNAL, undefined)
+            this.close({ id, reason: signal.reason })
+          }, { once: true })
 
           if (isAsyncIteratorObject(request.body)) {
             await resolveEventIterator(request.body, async (payload) => {

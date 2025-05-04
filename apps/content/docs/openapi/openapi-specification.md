@@ -70,7 +70,9 @@ It's recommended to use the built-in converters because the oRPC implementations
 import { contract, router } from './shared/planet'
 // ---cut---
 import { OpenAPIGenerator } from '@orpc/openapi'
-import { ZodToJsonSchemaConverter } from '@orpc/zod'
+import {
+  ZodToJsonSchemaConverter
+} from '@orpc/zod/v4' // @orpc/zod if you use Zod v3
 import {
   experimental_ValibotToJsonSchemaConverter as ValibotToJsonSchemaConverter
 } from '@orpc/valibot'
@@ -163,7 +165,64 @@ The `.spec` helper accepts a callback as its second argument, allowing you to ov
 
 ## `@orpc/zod`
 
-### File Schema
+### Zod v4
+
+#### File Schema
+
+Zod v4 includes a native `File` schema. oRPC will detect it automatically - no extra setup needed:
+
+```ts
+import * as z from 'zod'
+
+const InputSchema = z.object({
+  file: oz.file(),
+  image: oz.file().mine(['image/png', 'image/jpeg']),
+})
+```
+
+#### JSON Schema Customization
+
+`description` and `examples` metadata are supported out of the box:
+
+```ts
+import * as z from 'zod'
+
+const InputSchema = z.object({
+  name: z.string(),
+}).meta({
+  description: 'User schema',
+  examples: [{ name: 'John' }],
+})
+```
+
+For further customization, you can use the `JSON_SCHEMA_REGISTRY`, `JSON_SCHEMA_INPUT_REGISTRY`, and `JSON_SCHEMA_OUTPUT_REGISTRY`:
+
+```ts
+import * as z from 'zod'
+import { JSON_SCHEMA_REGISTRY } from '@orpc/zod/v4'
+
+export const InputSchema = z.object({
+  name: z.string(),
+})
+
+JSON_SCHEMA_REGISTRY.add(InputSchema, {
+  description: 'User schema',
+  examples: [{ name: 'John' }],
+  // other options...
+})
+
+JSON_SCHEMA_INPUT_REGISTRY.add(InputSchema, {
+  // only for .input
+})
+
+JSON_SCHEMA_OUTPUT_REGISTRY.add(InputSchema, {
+  // only for .output
+})
+```
+
+### Zod v3
+
+#### File Schema
 
 In the [File Upload/Download](/docs/file-upload-download) guide, `z.instanceof` is used to describe file/blob schemas. However, this method prevents oRPC from recognizing file/blob schema. Instead, use the enhanced file schema approach:
 
@@ -178,7 +237,7 @@ const InputSchema = z.object({
 })
 ```
 
-### JSON Schema Customization
+#### JSON Schema Customization
 
 If Zod alone does not cover your JSON Schema requirements, you can extend or override the generated schema:
 

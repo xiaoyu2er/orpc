@@ -291,7 +291,7 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
 
           case 'union': {
             const union = schema as $ZodUnion
-            const json: JSONSchema & { anyOf: Exclude<JSONSchema, boolean>[] } = { anyOf: [] }
+            const anyOf: Exclude<JSONSchema, boolean>[] = []
 
             let required = true
 
@@ -304,17 +304,17 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
 
               if (options.strategy === 'input') {
                 if (itemJson !== this.undefinedJsonSchema && itemJson !== this.unsupportedJsonSchema) {
-                  json.anyOf.push(itemJson)
+                  anyOf.push(itemJson)
                 }
               }
               else {
                 if (itemJson !== this.undefinedJsonSchema) {
-                  json.anyOf.push(itemJson)
+                  anyOf.push(itemJson)
                 }
               }
             }
 
-            return [required, json]
+            return [required, anyOf.length === 1 ? anyOf[0]! : { anyOf }]
           }
 
           case 'intersection': {
@@ -473,9 +473,9 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
 
           case 'default': {
             const default_ = schema as $ZodDefault
-            const [required, json] = await this.#convert(default_._zod.def.innerType, options, lazyDepth)
+            const [, json] = await this.#convert(default_._zod.def.innerType, options, lazyDepth)
 
-            return [required, {
+            return [false, {
               ...json,
               default: default_._zod.def.defaultValue(),
             }]
@@ -483,20 +483,8 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
 
           case 'catch': {
             const catch_ = schema as $ZodCatch
-            const [required, json] = await this.#convert(catch_._zod.def.innerType, options, lazyDepth)
-
-            let defaultValue: Exclude<JSONSchema, boolean> | undefined
-
-            try {
-              defaultValue = { default: catch_._zod.def.catchValue(undefined as any) }
-            }
-            catch {
-            }
-
-            return [required, {
-              ...json,
-              ...defaultValue,
-            }]
+            const [,json] = await this.#convert(catch_._zod.def.innerType, options, lazyDepth)
+            return [false, json]
           }
 
           case 'nan': {
@@ -532,7 +520,7 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
           case 'lazy': {
             const lazy = schema as $ZodLazy
 
-            if (lazyDepth > this.maxLazyDepth) {
+            if (lazyDepth >= this.maxLazyDepth) {
               return [false, this.anyJsonSchema]
             }
 
@@ -599,10 +587,6 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
 
     if (format === 'datetime') {
       return JSONSchemaFormat.DateTime
-    }
-
-    if (format === 'json_string') {
-      return 'json-string'
     }
 
     return Object.values(JSONSchemaFormat).includes(format as any)

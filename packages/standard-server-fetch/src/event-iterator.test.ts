@@ -233,9 +233,10 @@ describe('toEventStream', () => {
 
     async function* gen() {
       try {
+        await new Promise(resolve => setTimeout(resolve, 10))
         yield 1
-        yield undefined
-        return { value: true }
+        await new Promise(resolve => setTimeout(resolve, 10))
+        yield 2
       }
       catch (err) {
         hasError = err
@@ -253,6 +254,32 @@ describe('toEventStream', () => {
 
     await vi.waitFor(() => {
       expect(hasError).toBe(undefined)
+      expect(hasFinally).toBe(true)
+    })
+  })
+
+  it('when canceled from client without region - throw', async () => {
+    let hasFinally = false
+
+    async function* gen() {
+      try {
+        await new Promise(resolve => setTimeout(resolve, 10))
+        yield 1
+        await new Promise(resolve => setTimeout(resolve, 10))
+        throw new Error('something')
+      }
+      finally {
+        hasFinally = true
+      }
+    }
+
+    const stream = toEventStream(gen(), {})
+
+    const reader = stream.getReader()
+    await reader.read()
+    await reader.cancel()
+
+    await vi.waitFor(() => {
       expect(hasFinally).toBe(true)
     })
   })

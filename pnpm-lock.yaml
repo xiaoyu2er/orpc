@@ -511,8 +511,8 @@ importers:
         specifier: ^0.10.1
         version: 0.10.1
       '@zod/mini':
-        specifier: ^@zod/mini@4.0.0-beta.20250503T014749
-        version: link:^@zod/mini@4.0.0-beta.20250503T014749
+        specifier: ^4.0.0-beta.20250503T014749
+        version: 4.0.0-beta.20250503T014749
       zod:
         specifier: ^3.24.2
         version: 3.24.2
@@ -3150,6 +3150,9 @@ packages:
 
   '@zod/core@0.10.1':
     resolution: {integrity: sha512-EmgYiJLMfZ3Dop9Wp7SadkEGYxbjGvrB/qRCT6PhGft9Eh1TbtNQYO9wEBgw4RE9JsmkolZ5Ah+tHu0EwoIy5g==}
+
+  '@zod/mini@4.0.0-beta.20250503T014749':
+    resolution: {integrity: sha512-qKqZWOQiSZZ/tekGTrmMQGI+PURd/wJyK4f/gKTWGXT9xbfIVIb6gHEHHA/+iTKJplK3cPiUn7iBlqLmUwgQcQ==}
 
   abbrev@2.0.0:
     resolution: {integrity: sha512-6/mh1E2u2YgEsCHdY0Yx5oW+61gZU+1vXaoiHHrpKeuRNNgFvS+/jrwHiQhB5apAf5oB7UB7E19ol2R2LKH8hQ==}
@@ -9857,6 +9860,10 @@ snapshots:
       - typescript
 
   '@zod/core@0.10.1': {}
+
+  '@zod/mini@4.0.0-beta.20250503T014749':
+    dependencies:
+      '@zod/core': 0.10.1
 
   abbrev@2.0.0: {}
 

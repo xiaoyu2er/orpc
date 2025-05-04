@@ -61,7 +61,7 @@
   },
   "devDependencies": {
     "@zod/core": "^0.10.1",
-    "@zod/mini": "^@zod/mini@4.0.0-beta.20250503T014749",
+    "@zod/mini": "^4.0.0-beta.20250503T014749",
     "zod": "^3.24.2",
     "zod-to-json-schema": "^3.24.5",
     "zod4": "npm:zod@^4.0.0-beta.20250503T014749"

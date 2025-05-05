@@ -98,6 +98,7 @@ export function toEventStream(
   const keepAliveInterval = options.eventIteratorKeepAliveInterval ?? 5000
   const keepAliveComment = options.eventIteratorKeepAliveComment ?? ''
 
+  let cancelled = false
   let timeout: ReturnType<typeof setInterval> | undefined
 
   const stream = new ReadableStream<string>({
@@ -114,6 +115,10 @@ export function toEventStream(
         const value = await iterator.next()
 
         clearInterval(timeout)
+
+        if (cancelled) {
+          return
+        }
 
         const meta = getEventMeta(value.value)
 
@@ -132,6 +137,10 @@ export function toEventStream(
       catch (err) {
         clearInterval(timeout)
 
+        if (cancelled) {
+          return
+        }
+
         controller.enqueue(encodeEventMessage({
           ...getEventMeta(err),
           event: 'error',
@@ -142,6 +151,9 @@ export function toEventStream(
       }
     },
     async cancel(reason) {
+      cancelled = true
+      clearInterval(timeout)
+
       if (reason) {
         await iterator.throw?.(reason)
       }

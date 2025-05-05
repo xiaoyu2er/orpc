@@ -72,7 +72,7 @@ import { contract, router } from './shared/planet'
 import { OpenAPIGenerator } from '@orpc/openapi'
 import {
   ZodToJsonSchemaConverter
-} from '@orpc/zod/v4' // @orpc/zod if you use Zod v3
+} from '@orpc/zod/zod4' // @orpc/zod if you use Zod v3
 import {
   experimental_ValibotToJsonSchemaConverter as ValibotToJsonSchemaConverter
 } from '@orpc/valibot'
@@ -199,7 +199,7 @@ For further customization, you can use the `JSON_SCHEMA_REGISTRY`, `JSON_SCHEMA_
 
 ```ts
 import * as z from 'zod'
-import { JSON_SCHEMA_REGISTRY } from '@orpc/zod/v4'
+import { JSON_SCHEMA_REGISTRY } from '@orpc/zod/zod4'
 
 export const InputSchema = z.object({
   name: z.string(),

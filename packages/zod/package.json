@@ -20,16 +20,16 @@
         "import": "./dist/index.mjs",
         "default": "./dist/index.mjs"
       },
-      "./v4": {
-        "types": "./dist/v4/index.d.mts",
-        "import": "./dist/v4/index.mjs",
-        "default": "./dist/v4/index.mjs"
+      "./zod4": {
+        "types": "./dist/zod4/index.d.mts",
+        "import": "./dist/zod4/index.mjs",
+        "default": "./dist/zod4/index.mjs"
       }
     }
   },
   "exports": {
     ".": "./src/index.ts",
-    "./v4": "./src/v4/index.ts"
+    "./zod4": "./src/zod4/index.ts"
   },
   "files": [
     "dist"

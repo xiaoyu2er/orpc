@@ -7,7 +7,7 @@ import { registry } from '@zod/core'
  *
  * @example
  * ```ts
- * import { JSON_SCHEMA_REGISTRY } from '@orpc/zod/v4'
+ * import { JSON_SCHEMA_REGISTRY } from '@orpc/zod/zod4'
  *
  * const user = z.object({
  *   name: z.string(),
@@ -26,7 +26,7 @@ export const JSON_SCHEMA_REGISTRY = registry<Exclude<JSONSchema<$input | $output
  *
  * @example
  * ```ts
- * import { JSON_SCHEMA_INPUT_REGISTRY } from '@orpc/zod/v4'
+ * import { JSON_SCHEMA_INPUT_REGISTRY } from '@orpc/zod/zod4'
  *
  * const user = z.object({
  *   name: z.string(),
@@ -45,7 +45,7 @@ export const JSON_SCHEMA_INPUT_REGISTRY = registry<Exclude<JSONSchema<$input>, b
  *
  * @example
  * ```ts
- * import { JSON_SCHEMA_OUTPUT_REGISTRY } from '@orpc/zod/v4'
+ * import { JSON_SCHEMA_OUTPUT_REGISTRY } from '@orpc/zod/zod4'
  *
  * const user = z.object({
  *   name: z.string(),

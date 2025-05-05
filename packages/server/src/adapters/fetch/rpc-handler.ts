@@ -19,7 +19,7 @@ export type RPCHandlerOptions<T extends Context> = FetchHandlerOptions<T> & Stan
  * RPC Handler for Fetch Server
  *
  * @see {@link https://orpc.unnoq.com/docs/rpc-handler RPC Handler Docs}
- * @see {@link https://orpc.unnoq.com/docs/integrations/fetch-server Fetch Server Integration Docs}
+ * @see {@link https://orpc.unnoq.com/docs/adapters/http HTTP Adapter Docs}
  */
 export class RPCHandler<T extends Context> extends FetchHandler<T> {
   constructor(router: Router<any, T>, options: NoInfer<RPCHandlerOptions<T>> = {}) {

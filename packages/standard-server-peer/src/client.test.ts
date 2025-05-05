@@ -338,7 +338,7 @@ describe('clientPeer', () => {
 
       const iterator = result.body as AsyncGenerator
 
-      expect(iterator).satisfy(isAsyncIteratorObject)
+      expect(iterator).toSatisfy(isAsyncIteratorObject)
 
       expect(await iterator.next()).toSatisfy(({ done, value }) => {
         expect(done).toBe(false)
@@ -388,7 +388,7 @@ describe('clientPeer', () => {
 
       const iterator = result.body as AsyncGenerator
 
-      expect(iterator).satisfy(isAsyncIteratorObject)
+      expect(iterator).toSatisfy(isAsyncIteratorObject)
 
       expect(await iterator.next()).toSatisfy(({ done, value }) => {
         expect(done).toBe(false)

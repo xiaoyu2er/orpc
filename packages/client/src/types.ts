@@ -1,7 +1,7 @@
 import type { PromiseWithError } from '@orpc/shared'
 
 export type HTTPPath = `/${string}`
-export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
+export type HTTPMethod = 'HEAD' | 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
 
 export type ClientContext = Record<PropertyKey, any>
 

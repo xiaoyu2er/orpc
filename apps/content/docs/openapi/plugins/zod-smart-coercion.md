@@ -7,6 +7,10 @@ description: A refined alternative to `z.coerce` that automatically converts inp
 
 A Plugin refined alternative to `z.coerce` that automatically converts inputs to the expected type without modifying the input schema.
 
+::: warning
+In Zod v4, this plugin only supports **discriminated unions**. Regular (non-discriminated) unions are **not** coerced automatically.
+:::
+
 ## Installation
 
 ::: code-group
@@ -37,7 +41,8 @@ deno install npm:@orpc/zod@latest
 
 ```ts
 import { OpenAPIHandler } from '@orpc/openapi/fetch'
-import { ZodSmartCoercionPlugin } from '@orpc/zod'
+import { ZodSmartCoercionPlugin } from '@orpc/zod' // <-- zod v3
+import { ZodSmartCoercionPlugin } from '@orpc/zod/zod4' // <-- zod v4
 
 const handler = new OpenAPIHandler(router, {
   plugins: [new ZodSmartCoercionPlugin()]

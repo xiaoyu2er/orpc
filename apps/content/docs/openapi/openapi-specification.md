@@ -72,7 +72,10 @@ import { contract, router } from './shared/planet'
 import { OpenAPIGenerator } from '@orpc/openapi'
 import {
   ZodToJsonSchemaConverter
-} from '@orpc/zod/zod4' // @orpc/zod if you use Zod v3
+} from '@orpc/zod' // <-- zod v3
+import {
+  ZodToJsonSchemaConverter
+} from '@orpc/zod/zod4' // <-- zod v4
 import {
   experimental_ValibotToJsonSchemaConverter as ValibotToJsonSchemaConverter
 } from '@orpc/valibot'

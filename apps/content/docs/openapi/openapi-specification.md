@@ -66,9 +66,7 @@ export class ValibotToJsonSchemaConverter implements ConditionalSchemaConverter 
 It's recommended to use the built-in converters because the oRPC implementations handle many edge cases and supports every type that oRPC offers.
 :::
 
-```ts twoslash
-import { contract, router } from './shared/planet'
-// ---cut---
+```ts
 import { OpenAPIGenerator } from '@orpc/openapi'
 import {
   ZodToJsonSchemaConverter

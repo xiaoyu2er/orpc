@@ -31,7 +31,7 @@ describe('rpcHandler', async () => {
     send: vi.fn(),
   }
 
-  handler.handle(wss)
+  handler.upgrade(wss)
 
   const ping_request_message = {
     data: await encodeRequestMessage(19, MessageType.REQUEST, {

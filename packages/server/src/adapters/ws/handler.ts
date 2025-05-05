@@ -14,7 +14,7 @@ export class experimental_WsHandler<T extends Context> {
   ) {
   }
 
-  async handle(ws: Pick<WebSocket, 'addEventListener' | 'send'>, ...rest: MaybeOptionalOptions<Omit<FriendlyStandardHandleOptions<T>, 'prefix'>>): Promise<void> {
+  async upgrade(ws: Pick<WebSocket, 'addEventListener' | 'send'>, ...rest: MaybeOptionalOptions<Omit<FriendlyStandardHandleOptions<T>, 'prefix'>>): Promise<void> {
     const peer = new ServerPeer(ws.send.bind(ws))
 
     ws.addEventListener('message', async (event) => {

@@ -12,7 +12,7 @@ export class experimental_WebsocketHandler<T extends Context> {
   ) {
   }
 
-  handle(ws: Pick<WebSocket, 'addEventListener' | 'send'>, ...rest: MaybeOptionalOptions<Omit<FriendlyStandardHandleOptions<T>, 'prefix'>>): void {
+  upgrade(ws: Pick<WebSocket, 'addEventListener' | 'send'>, ...rest: MaybeOptionalOptions<Omit<FriendlyStandardHandleOptions<T>, 'prefix'>>): void {
     const peer = new ServerPeer(ws.send.bind(ws))
 
     ws.addEventListener('message', async (event) => {

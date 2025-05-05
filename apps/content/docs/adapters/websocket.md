@@ -30,7 +30,7 @@ Deno.serve((req) => {
 
   const { socket, response } = Deno.upgradeWebSocket(req)
 
-  handler.handle(socket, {
+  handler.upgrade(socket, {
     context: {}, // Provide initial context if needed
   })
 
@@ -80,7 +80,7 @@ const handler = new RPCHandler(router)
 const wss = new WebSocketServer({ port: 8080 })
 
 wss.on('connection', (ws) => {
-  handler.handle(ws, {
+  handler.upgrade(ws, {
     context: {}, // Provide initial context if needed
   })
 })

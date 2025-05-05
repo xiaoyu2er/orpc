@@ -12,7 +12,6 @@ testSchemaSmartCoercion([
     name: 'optional array - undefined',
     schema: z.array(z.boolean()).optional(),
     input: undefined,
-    expected: undefined,
   },
   {
     name: 'array - boolean',
@@ -24,7 +23,6 @@ testSchemaSmartCoercion([
     name: 'array - object',
     schema: z.array(z.boolean()),
     input: { a: 1 },
-    expected: { a: 1 },
   },
   {
     name: 'tuple - undefined',
@@ -36,7 +34,6 @@ testSchemaSmartCoercion([
     name: 'optional tuple - undefined',
     schema: z.tuple([z.number(), z.boolean()]).optional(),
     input: undefined,
-    expected: undefined,
   },
   {
     name: 'tuple - number, boolean',
@@ -48,7 +45,6 @@ testSchemaSmartCoercion([
     name: 'tuple - number',
     schema: z.tuple([z.number(), z.bigint()], z.boolean()),
     input: 123,
-    expected: 123,
   },
   {
     name: 'tuple - without rest',
@@ -66,7 +62,6 @@ testSchemaSmartCoercion([
     name: 'optional set - undefined',
     schema: z.set(z.number()).optional(),
     input: undefined,
-    expected: undefined,
   },
   {
     name: 'set - array boolean',
@@ -84,7 +79,6 @@ testSchemaSmartCoercion([
     name: 'set - map',
     schema: z.set(z.number()),
     input: new Map([[1, 2]]),
-    expected: new Map([[1, 2]]),
   },
   {
     name: 'object - undefined',
@@ -96,7 +90,6 @@ testSchemaSmartCoercion([
     name: 'optional object - undefined',
     schema: z.object({ a: z.boolean() }).optional(),
     input: undefined,
-    expected: undefined,
   },
   {
     name: 'object - boolean',
@@ -120,7 +113,6 @@ testSchemaSmartCoercion([
     name: 'object - array',
     schema: z.object({ a: z.boolean() }),
     input: [3, 2, 1],
-    expected: [3, 2, 1],
   },
   {
     name: 'record - undefined',
@@ -132,7 +124,6 @@ testSchemaSmartCoercion([
     name: 'optional record - undefined',
     schema: z.record(z.string(), z.boolean()).optional(),
     input: undefined,
-    expected: undefined,
   },
   {
     name: 'record - undefined',
@@ -144,7 +135,6 @@ testSchemaSmartCoercion([
     name: 'record - big int',
     schema: z.record(z.string(), z.boolean()),
     input: 123n,
-    expected: 123n,
   },
   {
     name: 'map - undefined',
@@ -156,7 +146,6 @@ testSchemaSmartCoercion([
     name: 'optional map - undefined',
     schema: z.map(z.boolean(), z.number()).optional(),
     input: undefined,
-    expected: undefined,
   },
   {
     name: 'map - array',
@@ -174,6 +163,5 @@ testSchemaSmartCoercion([
     name: 'map - invalid array',
     schema: z.map(z.boolean(), z.number()),
     input: [1, 2, 3],
-    expected: [1, 2, 3],
   },
 ])

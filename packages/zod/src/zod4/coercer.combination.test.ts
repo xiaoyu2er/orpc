@@ -8,13 +8,11 @@ testSchemaSmartCoercion([
     name: 'union - 123 - un-discriminated',
     schema: z.union([z.boolean(), z.number()]),
     input: '123',
-    expected: '123',
   },
   {
     name: 'union - object boolean - un-discriminated',
     schema: z.union([z.object({ a: z.boolean() }), z.object({ b: z.number() })]),
     input: { a: 'true' },
-    expected: { a: 'true' },
   },
   {
     name: 'union - only one option',
@@ -44,19 +42,16 @@ testSchemaSmartCoercion([
     name: 'union - complex discriminated 2',
     schema: z.union([z.object({ a: z.object({ v: z.literal('type1') }), b: z.number() }), z.object({ a: z.literal('type2'), b: z.bigint() })]),
     input: { a: 'type1', b: '123' },
-    expected: { a: 'type1', b: '123' },
   },
   {
     name: 'union - complex discriminated 3',
     schema: z.union([z.object({ a: z.object({ v: z.literal('type1') }), b: z.number() }), z.object({ a: z.literal('type2'), b: z.bigint() })]),
     input: { a: { v: 'type2' }, b: '123' },
-    expected: { a: { v: 'type2' }, b: '123' },
   },
   {
     name: 'union - not coerce discriminated key',
     schema: z.union([z.object({ a: z.literal(true), b: z.number() }), z.object({ a: z.literal(false), b: z.bigint() })]),
     input: { a: 'true', b: '123' },
-    expected: { a: 'true', b: '123' },
   },
   {
     name: 'intersection - 123',
@@ -146,7 +141,6 @@ testSchemaSmartCoercion([
     name: 'lazy - invalid',
     schema: z.lazy(() => z.object({ value: z.lazy(() => z.object({ value: z.boolean() })) })),
     input: { value: { value: 'invalid' } },
-    expected: { value: { value: 'invalid' } },
   },
   {
     name: 'lazy - InfiniteLazySchema',

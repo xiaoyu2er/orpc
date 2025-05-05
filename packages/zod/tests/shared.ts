@@ -28,7 +28,7 @@ export interface SchemaSmartCoercionTestCase {
   name: string
   schema: AnySchema
   input: unknown
-  expected: unknown
+  expected?: unknown
 }
 
 export function testSchemaSmartCoercion(cases: SchemaSmartCoercionTestCase[]) {
@@ -54,7 +54,7 @@ export function testSchemaSmartCoercion(cases: SchemaSmartCoercionTestCase[]) {
     return coerced
   }
 
-  it.each(cases)('$name', ({ schema, input, expected }) => {
+  it.each(cases)('$name', ({ schema, input, expected = input }) => {
     expect(coerce(schema, input)).toEqual(expected)
   })
 }

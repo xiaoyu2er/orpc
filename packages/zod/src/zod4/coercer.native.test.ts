@@ -23,7 +23,6 @@ testSchemaSmartCoercion([
     name: 'number - 12345n',
     schema: z.number(),
     input: '12345n',
-    expected: '12345n',
   },
   {
     name: 'bigint - 12345',
@@ -41,13 +40,11 @@ testSchemaSmartCoercion([
     name: 'bigint - 12345n',
     schema: z.bigint(),
     input: '12345n',
-    expected: '12345n',
   },
   {
     name: 'bigint - true',
     schema: z.bigint(),
     input: true,
-    expected: true,
   },
   {
     name: 'boolean - t',
@@ -131,7 +128,6 @@ testSchemaSmartCoercion([
     name: 'literal - 199',
     schema: z.literal([199, '199', 200n, undefined]),
     input: '199',
-    expected: '199',
   },
   {
     name: 'literal - 200',
@@ -143,7 +139,6 @@ testSchemaSmartCoercion([
     name: 'literal - undefined',
     schema: z.literal([199, '199', 200n, undefined, true]),
     input: undefined,
-    expected: undefined,
   },
   {
     name: 'literal - undefined',
@@ -161,18 +156,15 @@ testSchemaSmartCoercion([
     name: 'nativeEnum - string',
     schema: z.enum(TestEnum),
     input: 'string',
-    expected: 'string',
   },
   {
     name: 'nativeEnum - 123n',
     schema: z.enum(TestEnum),
     input: '123n',
-    expected: '123n',
   },
   {
     name: 'enum - 123',
     schema: z.enum(['123', '456']),
     input: '123',
-    expected: '123',
   },
 ])

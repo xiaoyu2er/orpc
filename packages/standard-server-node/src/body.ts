@@ -3,8 +3,8 @@ import type { Buffer } from 'node:buffer'
 import type { ToEventStreamOptions } from './event-iterator'
 import type { NodeHttpRequest } from './types'
 import { Readable } from 'node:stream'
-import { isAsyncIteratorObject, parseEmptyableJSON, stringifyJSON, toArray } from '@orpc/shared'
-import { generateContentDisposition, getFilenameFromContentDisposition } from '@orpc/standard-server'
+import { isAsyncIteratorObject, parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
+import { flattenHeader, generateContentDisposition, getFilenameFromContentDisposition } from '@orpc/standard-server'
 import { toEventIterator, toEventStream } from './event-iterator'
 
 export async function toStandardBody(req: NodeHttpRequest): Promise<StandardBody> {
@@ -60,7 +60,7 @@ export function toNodeHttpBody(
   headers: StandardHeaders,
   options: ToNodeHttpBodyOptions = {},
 ): Readable | undefined | string {
-  const currentContentDisposition = toArray(headers['content-disposition'])[0]
+  const currentContentDisposition = flattenHeader(headers['content-disposition'])
 
   delete headers['content-type']
   delete headers['content-disposition']

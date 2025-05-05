@@ -38,7 +38,7 @@ describe('corsPlugin', () => {
     expect(response.status).toBe(204)
     expect(response.headers.get('access-control-allow-origin')).toBe('https://example.com')
     expect(response.headers.get('vary')).toBe('origin')
-    expect(response.headers.get('access-control-allow-methods')).toBe('GET,HEAD,PUT,POST,DELETE,PATCH')
+    expect(response.headers.get('access-control-allow-methods')).toBe('GET, HEAD, PUT, POST, DELETE, PATCH')
     expect(response.headers.get('access-control-max-age')).toBeNull()
   })
 
@@ -78,8 +78,8 @@ describe('corsPlugin', () => {
 
     assertResponse(response)
     expect(response.headers.get('access-control-max-age')).toBe('600')
-    expect(response.headers.get('access-control-allow-methods')).toBe('GET,HEAD,PUT,POST,DELETE,PATCH')
-    expect(response.headers.get('access-control-allow-headers')).toBe('Content-Type,Authorization')
+    expect(response.headers.get('access-control-allow-methods')).toBe('GET, HEAD, PUT, POST, DELETE, PATCH')
+    expect(response.headers.get('access-control-allow-headers')).toBe('Content-Type, Authorization')
   })
 
   it('sets allowed origin only when custom origin function approves', async () => {
@@ -167,7 +167,7 @@ describe('corsPlugin', () => {
     }))
     assertResponse(response)
     expect(response.headers.get('access-control-allow-credentials')).toBe('true')
-    expect(response.headers.get('access-control-expose-headers')).toBe('X-Custom-Header,X-Another-Header')
+    expect(response.headers.get('access-control-expose-headers')).toBe('X-Custom-Header, X-Another-Header')
   })
 
   it('returns "*" for access-control-allow-origin when origin function returns "*"', async () => {

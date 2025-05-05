@@ -47,3 +47,15 @@ export function mergeStandardHeaders(a: StandardHeaders, b: StandardHeaders): St
 
   return merged
 }
+
+export function flattenHeader(header: string | readonly string[] | undefined): string | undefined {
+  if (typeof header === 'string' || header === undefined) {
+    return header
+  }
+
+  if (header.length === 0) {
+    return undefined
+  }
+
+  return header.join(', ')
+}

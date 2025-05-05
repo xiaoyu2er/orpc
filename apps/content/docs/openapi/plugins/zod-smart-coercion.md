@@ -42,7 +42,9 @@ deno install npm:@orpc/zod@latest
 ```ts
 import { OpenAPIHandler } from '@orpc/openapi/fetch'
 import { ZodSmartCoercionPlugin } from '@orpc/zod' // <-- zod v3
-import { ZodSmartCoercionPlugin } from '@orpc/zod/zod4' // <-- zod v4
+import {
+  experimental_ZodSmartCoercionPlugin as ZodSmartCoercionPlugin
+} from '@orpc/zod/zod4' // <-- zod v4
 
 const handler = new OpenAPIHandler(router, {
   plugins: [new ZodSmartCoercionPlugin()]

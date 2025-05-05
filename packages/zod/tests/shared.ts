@@ -1,6 +1,9 @@
 import type { AnySchema } from '@orpc/contract'
 import type { JSONSchema } from '@orpc/openapi'
-import { ZodSmartCoercionPlugin, ZodToJsonSchemaConverter } from '../src/zod4'
+import {
+  experimental_ZodSmartCoercionPlugin as ZodSmartCoercionPlugin,
+  experimental_ZodToJsonSchemaConverter as ZodToJsonSchemaConverter,
+} from '../src/zod4'
 
 export interface SchemaConverterTestCase {
   name: string

@@ -1,6 +1,8 @@
 import * as zm from '@zod/mini'
 import * as z from 'zod4'
-import { ZodToJsonSchemaConverter } from './converter'
+import {
+  experimental_ZodToJsonSchemaConverter as ZodToJsonSchemaConverter,
+} from './converter'
 
 describe('zodToJsonSchemaConverter', () => {
   const converter = new ZodToJsonSchemaConverter()

@@ -74,7 +74,7 @@ import {
   ZodToJsonSchemaConverter
 } from '@orpc/zod' // <-- zod v3
 import {
-  ZodToJsonSchemaConverter
+  experimental_ZodToJsonSchemaConverter as ZodToJsonSchemaConverter
 } from '@orpc/zod/zod4' // <-- zod v4
 import {
   experimental_ValibotToJsonSchemaConverter as ValibotToJsonSchemaConverter
@@ -202,7 +202,9 @@ For further customization, you can use the `JSON_SCHEMA_REGISTRY`, `JSON_SCHEMA_
 
 ```ts
 import * as z from 'zod'
-import { JSON_SCHEMA_REGISTRY } from '@orpc/zod/zod4'
+import {
+  experimental_JSON_SCHEMA_REGISTRY as JSON_SCHEMA_REGISTRY,
+} from '@orpc/zod/zod4'
 
 export const InputSchema = z.object({
   name: z.string(),

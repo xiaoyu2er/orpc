@@ -33,9 +33,13 @@ import { intercept } from '@orpc/shared'
 import {
   globalRegistry,
 } from '@zod/core'
-import { JSON_SCHEMA_INPUT_REGISTRY, JSON_SCHEMA_OUTPUT_REGISTRY, JSON_SCHEMA_REGISTRY } from './registries'
+import {
+  experimental_JSON_SCHEMA_INPUT_REGISTRY as JSON_SCHEMA_INPUT_REGISTRY,
+  experimental_JSON_SCHEMA_OUTPUT_REGISTRY as JSON_SCHEMA_OUTPUT_REGISTRY,
+  experimental_JSON_SCHEMA_REGISTRY as JSON_SCHEMA_REGISTRY,
+} from './registries'
 
-export interface ZodToJsonSchemaOptions {
+export interface experimental_ZodToJsonSchemaOptions {
   /**
    * Max depth of lazy type, if it exceeds.
    *
@@ -73,14 +77,14 @@ export interface ZodToJsonSchemaOptions {
   >[]
 }
 
-export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
-  private readonly maxLazyDepth: Exclude<ZodToJsonSchemaOptions['maxLazyDepth'], undefined>
-  private readonly anyJsonSchema: Exclude<ZodToJsonSchemaOptions['anyJsonSchema'], undefined>
-  private readonly unsupportedJsonSchema: Exclude<ZodToJsonSchemaOptions['unsupportedJsonSchema'], undefined>
-  private readonly undefinedJsonSchema: Exclude<ZodToJsonSchemaOptions['undefinedJsonSchema'], undefined>
-  private readonly interceptors: Exclude<ZodToJsonSchemaOptions['interceptors'], undefined>
+export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
+  private readonly maxLazyDepth: Exclude<experimental_ZodToJsonSchemaOptions['maxLazyDepth'], undefined>
+  private readonly anyJsonSchema: Exclude<experimental_ZodToJsonSchemaOptions['anyJsonSchema'], undefined>
+  private readonly unsupportedJsonSchema: Exclude<experimental_ZodToJsonSchemaOptions['unsupportedJsonSchema'], undefined>
+  private readonly undefinedJsonSchema: Exclude<experimental_ZodToJsonSchemaOptions['undefinedJsonSchema'], undefined>
+  private readonly interceptors: Exclude<experimental_ZodToJsonSchemaOptions['interceptors'], undefined>
 
-  constructor(options: ZodToJsonSchemaOptions = {}) {
+  constructor(options: experimental_ZodToJsonSchemaOptions = {}) {
     this.maxLazyDepth = options.maxLazyDepth ?? 2
     this.anyJsonSchema = options.anyJsonSchema ?? {}
     this.unsupportedJsonSchema = options.unsupportedJsonSchema ?? { not: {} }

@@ -1,5 +1,7 @@
 import * as z from 'zod4'
-import { ZodSmartCoercionPlugin } from './coercer'
+import {
+  experimental_ZodSmartCoercionPlugin as ZodSmartCoercionPlugin,
+} from './coercer'
 
 it('zodSmartCoercionPlugin ignore non-zod schemas', async () => {
   const plugin = new ZodSmartCoercionPlugin()

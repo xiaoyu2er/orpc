@@ -26,7 +26,7 @@ export interface StandardRPCLinkCodecOptions<T extends ClientContext> {
    *
    * @default 'POST'
    */
-  method?: Value<HTTPMethod, [options: ClientOptions<T>, path: readonly string[], input: unknown]>
+  method?: Value<Exclude<HTTPMethod, 'HEAD'>, [options: ClientOptions<T>, path: readonly string[], input: unknown]>
 
   /**
    * The method to use when the payload cannot safely pass to the server with method return from method function.
@@ -34,7 +34,7 @@ export interface StandardRPCLinkCodecOptions<T extends ClientContext> {
    *
    * @default 'POST'
    */
-  fallbackMethod?: Exclude<HTTPMethod, 'GET'>
+  fallbackMethod?: Exclude<HTTPMethod, 'HEAD' | 'GET'>
 
   /**
    * Inject headers to the request.

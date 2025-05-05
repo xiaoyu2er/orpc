@@ -144,16 +144,11 @@ export function toEventStream(
         controller.close()
       }
     },
-    async cancel(reason) {
+    async cancel() {
       cancelled = true
       clearInterval(timeout)
 
-      if (reason) {
-        await iterator.throw?.(reason)
-      }
-      else {
-        await iterator.return?.()
-      }
+      await iterator.return?.()
     },
   }).pipeThrough(new TextEncoderStream())
 

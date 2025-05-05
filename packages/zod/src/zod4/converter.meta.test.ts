@@ -1,6 +1,10 @@
 import * as z from 'zod4'
 import { testSchemaConverter } from '../../tests/shared'
-import { JSON_SCHEMA_INPUT_REGISTRY, JSON_SCHEMA_OUTPUT_REGISTRY, JSON_SCHEMA_REGISTRY } from './registries'
+import {
+  experimental_JSON_SCHEMA_INPUT_REGISTRY as JSON_SCHEMA_INPUT_REGISTRY,
+  experimental_JSON_SCHEMA_OUTPUT_REGISTRY as JSON_SCHEMA_OUTPUT_REGISTRY,
+  experimental_JSON_SCHEMA_REGISTRY as JSON_SCHEMA_REGISTRY,
+} from './registries'
 
 const customSchema1 = z.string().meta({
   description: 'description',

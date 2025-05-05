@@ -1,8 +1,9 @@
 import type { Context, HTTPPath, Router } from '@orpc/server'
 import type { StandardHandlerInterceptorOptions, StandardHandlerOptions, StandardHandlerPlugin } from '@orpc/server/standard'
 import type { Value } from '@orpc/shared'
+import type { OpenAPI } from '../openapi'
 import type { OpenAPIGeneratorGenerateOptions, OpenAPIGeneratorOptions } from '../openapi-generator'
-import { stringifyJSON, value } from '@orpc/shared'
+import { once, stringifyJSON, value } from '@orpc/shared'
 import { OpenAPIGenerator } from '../openapi-generator'
 
 export interface OpenAPIReferencePluginOptions<T extends Context> extends OpenAPIGeneratorOptions {
@@ -36,7 +37,7 @@ export interface OpenAPIReferencePluginOptions<T extends Context> extends OpenAP
   /**
    * Arbitrary configuration object for the UI.
    */
-  docsConfig?: Value<object, [StandardHandlerInterceptorOptions<T>]>
+  docsConfig?: Value<Record<string, unknown>, [StandardHandlerInterceptorOptions<T>]>
 
   /**
    * HTML to inject into the <head> of the docs page.
@@ -60,7 +61,8 @@ export interface OpenAPIReferencePluginOptions<T extends Context> extends OpenAP
     title: string,
     head: string,
     scriptUrl: string,
-    config: object | undefined
+    config: Record<string, unknown> | undefined,
+    spec: OpenAPI.Document
   ) => string
 }
 
@@ -87,25 +89,33 @@ export class OpenAPIReferencePlugin<T extends Context> implements StandardHandle
 
     const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
-    this.renderDocsHtml = options.renderDocsHtml ?? ((specUrl, title, head, scriptUrl, config) => `
-      <!doctype html>
-      <html>
-        <head>
-          <meta charset="utf-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <title>${esc(title)}</title>
-          ${head}
-        </head>
-        <body>
-          <script 
-              id="api-reference" 
-              data-url="${esc(specUrl)}"
-              ${config !== undefined ? `data-configuration="${esc(stringifyJSON(config))}"` : ''}
-          ></script>
-          <script src="${esc(scriptUrl)}"></script>
-        </body>
-      </html>
-    `)
+    this.renderDocsHtml = options.renderDocsHtml ?? ((specUrl, title, head, scriptUrl, config, spec) => {
+      const finalConfig = {
+        content: stringifyJSON(spec),
+        ...config,
+      }
+
+      return `
+        <!doctype html>
+        <html>
+          <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <title>${esc(title)}</title>
+            ${head}
+          </head>
+          <body>
+            <div id="app" data-config="${esc(stringifyJSON(finalConfig))}"></div>
+
+            <script src="${esc(scriptUrl)}"></script>
+
+            <script>
+              Scalar.createApiReference('#app', JSON.parse(document.getElementById('app').dataset.config))
+            </script>
+          </body>
+        </html>
+      `
+    })
   }
 
   init(options: StandardHandlerOptions<T>, router: Router<any, T>): void {
@@ -123,11 +133,15 @@ export class OpenAPIReferencePlugin<T extends Context> implements StandardHandle
       const docsUrl = new URL(`${prefix}${this.docsPath}`.replace(/\/$/, ''), options.request.url.origin)
       const specUrl = new URL(`${prefix}${this.specPath}`.replace(/\/$/, ''), options.request.url.origin)
 
-      if (requestPathname === specUrl.pathname) {
-        const spec = await this.generator.generate(router, {
+      const generateSpec = once(async () => {
+        return await this.generator.generate(router, {
           servers: [{ url: new URL(prefix, options.request.url.origin).toString() }],
           ...await value(this.specGenerateOptions, options),
         })
+      })
+
+      if (requestPathname === specUrl.pathname) {
+        const spec = await generateSpec()
 
         return {
           matched: true,
@@ -146,6 +160,7 @@ export class OpenAPIReferencePlugin<T extends Context> implements StandardHandle
           await value(this.docsHead, options),
           await value(this.docsScriptUrl, options),
           await value(this.docsConfig, options),
+          await generateSpec(),
         )
 
         return {

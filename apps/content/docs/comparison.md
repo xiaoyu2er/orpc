@@ -34,5 +34,5 @@ This comparison table helps you understand how oRPC differs from other popular T
 | Standard Schema (Zod, Valibot, ArkType, ...) |                                                                                              | ✅   | ✅   | 🛑      |
 | Built-in Plugins (CORS, CSRF, Retry, ...)    |                                                                                              | ✅   | 🛑   | 🛑      |
 | Batch Request/Response                       | [1](/docs/plugins/batch-request-response)                                                    | ✅   | ✅   | 🛑      |
-| WebSockets                                   | (working)                                                                                    | 🛑   | ✅   | 🛑      |
+| WebSockets                                   | [1](/docs/adapters/websocket)                                                                | ✅   | ✅   | 🛑      |
 | Nest.js integration                          |                                                                                              | 🛑   | 🟡   | ✅      |

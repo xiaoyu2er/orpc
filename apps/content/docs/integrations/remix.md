@@ -5,7 +5,7 @@ description: Integrate oRPC with Remix
 
 # Remix Integration
 
-[Remix](https://remix.run/) is a full stack JavaScript framework for building web applications with React. For additional context, refer to the [Fetch Server Integration](/docs/integrations/fetch-server) guide.
+[Remix](https://remix.run/) is a full stack JavaScript framework for building web applications with React. For additional context, refer to the [HTTP Adapter](/docs/adapters/http) guide.
 
 ## Basic
 

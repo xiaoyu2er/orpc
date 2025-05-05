@@ -8,7 +8,7 @@ description: Enhance security by ensuring only procedures explicitly marked to a
 This plugin enhances security by ensuring only procedures explicitly marked to accept `GET` requests can be called using the HTTP `GET` method for [RPC Protocol](/docs/advanced/rpc-protocol). This helps prevent certain types of [Cross-Site Request Forgery (CSRF)](https://developer.mozilla.org/en-US/docs/Web/Security/Practical_implementation_guides/CSRF_prevention) attacks.
 
 ::: info
-[RPCHandler](/docs/rpc-handler) enabled this plugin by default.
+[RPCHandler](/docs/rpc-handler) enabled this plugin by default for [HTTP Adapter](/docs/adapters/http).
 :::
 
 ## When to Use

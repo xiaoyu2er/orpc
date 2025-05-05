@@ -5,7 +5,7 @@ description: Integrate oRPC with Nuxt.js
 
 # Nuxt.js Integration
 
-[Nuxt.js](https://nuxtjs.org/) is a popular Vue.js framework for building server-side applications. It built on top of [Nitro](https://nitro.build/) server a lightweight, high-performance Node.js runtime. For more details, see the [Node Integration](/docs/integrations/node) guide.
+[Nuxt.js](https://nuxtjs.org/) is a popular Vue.js framework for building server-side applications. It built on top of [Nitro](https://nitro.build/) server a lightweight, high-performance Node.js runtime. For more details, see the [HTTP Adapter](/docs/adapters/http) guide.
 
 ## Basic
 

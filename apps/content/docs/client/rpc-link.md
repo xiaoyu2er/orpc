@@ -7,6 +7,11 @@ description: Details on using RPCLink in oRPC clients.
 
 RPCLink enables communication with an [RPCHandler](/docs/rpc-handler) or any API that follows the [RPC Protocol](/docs/advanced/rpc-protocol) using HTTP/Fetch.
 
+:::warning
+This documentation is focused on the [HTTP Adapter](/docs/adapters/http).
+Other adapters may remove or change options to keep things simple.
+:::
+
 ## Overview
 
 Before using RPCLink, make sure your server is set up with [RPCHandler](/docs/rpc-handler) or any API that follows the [RPC Protocol](/docs/advanced/rpc-protocol).

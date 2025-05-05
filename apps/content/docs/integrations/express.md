@@ -5,7 +5,7 @@ description: Seamlessly integrate oRPC with Express.js
 
 # Express.js Integration
 
-[Express.js](https://expressjs.com/) is a popular Node.js framework for building web applications. For additional context, refer to the [Node Integration](/docs/integrations/node) guide.
+[Express.js](https://expressjs.com/) is a popular Node.js framework for building web applications. For additional context, refer to the [HTTP Adapter](/docs/adapters/http) guide.
 
 ::: warning
 oRPC uses its own request parser. To avoid conflicts, register any body-parsing middleware **after** your oRPC middleware or only on routes that don't use oRPC.

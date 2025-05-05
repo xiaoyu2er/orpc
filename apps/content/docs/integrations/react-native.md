@@ -5,7 +5,7 @@ description: Seamlessly integrate oRPC with React Native
 
 # React Native Integration
 
-[React Native](https://reactnative.dev/) is a framework for building native apps using React.
+[React Native](https://reactnative.dev/) is a framework for building native apps using React. For additional context, refer to the [HTTP Adapter](/docs/adapters/http) guide.
 
 ## Fetch Link
 

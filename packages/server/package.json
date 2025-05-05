@@ -39,6 +39,26 @@
         "types": "./dist/adapters/node/index.d.mts",
         "import": "./dist/adapters/node/index.mjs",
         "default": "./dist/adapters/node/index.mjs"
+      },
+      "./websocket": {
+        "types": "./dist/adapters/websocket/index.d.mts",
+        "import": "./dist/adapters/websocket/index.mjs",
+        "default": "./dist/adapters/websocket/index.mjs"
+      },
+      "./crossws": {
+        "types": "./dist/adapters/crossws/index.d.mts",
+        "import": "./dist/adapters/crossws/index.mjs",
+        "default": "./dist/adapters/crossws/index.mjs"
+      },
+      "./ws": {
+        "types": "./dist/adapters/ws/index.d.mts",
+        "import": "./dist/adapters/ws/index.mjs",
+        "default": "./dist/adapters/ws/index.mjs"
+      },
+      "./bun-ws": {
+        "types": "./dist/adapters/bun-ws/index.d.mts",
+        "import": "./dist/adapters/bun-ws/index.mjs",
+        "default": "./dist/adapters/bun-ws/index.mjs"
       }
     }
   },
@@ -47,7 +67,11 @@
     "./plugins": "./src/plugins/index.ts",
     "./standard": "./src/adapters/standard/index.ts",
     "./fetch": "./src/adapters/fetch/index.ts",
-    "./node": "./src/adapters/node/index.ts"
+    "./node": "./src/adapters/node/index.ts",
+    "./websocket": "./src/adapters/websocket/index.ts",
+    "./crossws": "./src/adapters/crossws/index.ts",
+    "./ws": "./src/adapters/ws/index.ts",
+    "./bun-ws": "./src/adapters/bun-ws/index.ts"
   },
   "files": [
     "dist"
@@ -57,16 +81,24 @@
     "build:watch": "pnpm run build --watch",
     "type:check": "tsc -b"
   },
+  "peerDependencies": {
+    "crossws": ">=0.3.4",
+    "ws": ">=8.18.1"
+  },
   "dependencies": {
     "@orpc/client": "workspace:*",
     "@orpc/contract": "workspace:*",
     "@orpc/shared": "workspace:*",
     "@orpc/standard-server": "workspace:*",
     "@orpc/standard-server-fetch": "workspace:*",
-    "@orpc/standard-server-node": "workspace:*"
+    "@orpc/standard-server-node": "workspace:*",
+    "@orpc/standard-server-peer": "workspace:*"
   },
   "devDependencies": {
+    "@types/ws": "^8.18.1",
+    "crossws": "^0.3.4",
     "next": "^15.3.0",
-    "supertest": "^7.1.0"
+    "supertest": "^7.1.0",
+    "ws": "^8.18.1"
   }
 }

@@ -11,6 +11,11 @@ The `RPCHandler` enables communication with clients over oRPC's proprietary [RPC
 `RPCHandler` is designed exclusively for [RPCLink](/docs/client/rpc-link) and **does not** support OpenAPI. Avoid sending requests to it manually.
 :::
 
+:::warning
+This documentation is focused on the [HTTP Adapter](/docs/adapters/http).
+Other adapters may remove or change options to keep things simple.
+:::
+
 ## Supported Data Types
 
 `RPCHandler` natively serializes and deserializes the following JavaScript types:
@@ -86,6 +91,8 @@ const handler = new RPCHandler(router, {
 
 ## Default Plugins
 
-RPCHandler is pre-configured with plugins that help enforce best practices and enhance security out of the box. By default, the following plugin is enabled:
+`RPCHandler` automatically enables **essential plugins** for security reasons.
 
-- [StrictGetMethodPlugin](/docs/plugins/strict-get-method) - Disable by setting `strictGetMethodPluginEnabled` to `false`.
+| Plugin                                                   | Applies To                          | Toggle Option                  |
+| -------------------------------------------------------- | ----------------------------------- | ------------------------------ |
+| [StrictGetMethodPlugin](/docs/plugins/strict-get-method) | [HTTP Adapter](/docs/adapters/http) | `strictGetMethodPluginEnabled` |

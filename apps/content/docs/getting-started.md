@@ -108,7 +108,7 @@ declare function parseJWT(token: string | undefined): { userId: number } | null
 
 ## Create Server
 
-Using [Node.js](/docs/integrations/node) as the server runtime, but oRPC also supports other runtimes like [Bun](/docs/integrations/bun), [Deno](/docs/integrations/deno), [Cloudflare Workers](/docs/integrations/cloudflare-workers), ...
+Using [Node.js](/docs/adapters/http) as the server runtime, but oRPC also supports other runtimes like Bun, Deno, Cloudflare Workers, etc.
 
 ```ts twoslash
 import { router } from './shared/planet'

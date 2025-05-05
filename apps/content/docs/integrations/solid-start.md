@@ -5,7 +5,7 @@ description: Integrate oRPC with SolidStart
 
 # SolidStart Integration
 
-[SolidStart](https://start.solidjs.com/) is a full stack JavaScript framework for building web applications with SolidJS. For additional context, refer to the [Fetch Server Integration](/docs/integrations/fetch-server) guide.
+[SolidStart](https://start.solidjs.com/) is a full stack JavaScript framework for building web applications with SolidJS. For additional context, refer to the [HTTP Adapter](/docs/adapters/http) guide.
 
 ## Basic
 

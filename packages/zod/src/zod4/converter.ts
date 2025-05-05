@@ -7,7 +7,6 @@ import type {
   $ZodDefault,
   $ZodEnum,
   $ZodFile,
-  $ZodInterface,
   $ZodIntersection,
   $ZodLazy,
   $ZodLiteral,
@@ -259,9 +258,8 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
             return [true, json]
           }
 
-          case 'object':
-          case 'interface': {
-            const object = schema as $ZodObject | $ZodInterface
+          case 'object': {
+            const object = schema as $ZodObject
             const json: JSONSchema & { required?: string[] } = { type: 'object' }
 
             for (const [key, value] of Object.entries(object._zod.def.shape)) {
@@ -528,7 +526,7 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
           }
 
           default: {
-            const _unsupported: 'int' | 'symbol' | 'promise' | 'custom' = schema._zod.def.type
+            const _unsupported: 'interface' | 'int' | 'symbol' | 'promise' | 'custom' = schema._zod.def.type
             return [true, this.unsupportedJsonSchema]
           }
         }

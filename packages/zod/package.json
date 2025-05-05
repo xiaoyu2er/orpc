@@ -42,7 +42,7 @@
   "peerDependencies": {
     "@orpc/contract": "workspace:*",
     "@orpc/server": "workspace:*",
-    "@zod/core": ">=0.10.1",
+    "@zod/core": ">=0.11.4",
     "zod": ">=3.24.2"
   },
   "peerDependenciesMeta": {
@@ -60,10 +60,10 @@
     "wildcard-match": "^5.1.3"
   },
   "devDependencies": {
-    "@zod/core": "^0.10.1",
-    "@zod/mini": "^4.0.0-beta.20250503T014749",
+    "@zod/core": "^0.11.4",
+    "@zod/mini": "^4.0.0-beta.20250505T012514",
     "zod": "^3.24.2",
     "zod-to-json-schema": "^3.24.5",
-    "zod4": "npm:zod@^4.0.0-beta.20250503T014749"
+    "zod4": "npm:zod@^4.0.0-beta.20250505T012514"
   }
 }

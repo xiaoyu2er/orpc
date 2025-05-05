@@ -1,7 +1,7 @@
 import type { EventMeta, StandardBody, StandardHeaders, StandardRequest, StandardResponse } from '@orpc/standard-server'
 import type { EncodedMessage } from './types'
-import { isAsyncIteratorObject, stringifyJSON, toArray } from '@orpc/shared'
-import { generateContentDisposition, getFilenameFromContentDisposition } from '@orpc/standard-server'
+import { isAsyncIteratorObject, stringifyJSON } from '@orpc/shared'
+import { flattenHeader, generateContentDisposition, getFilenameFromContentDisposition } from '@orpc/standard-server'
 
 export enum MessageType {
   REQUEST = 1,
@@ -156,17 +156,18 @@ export async function decodeRequestMessage(raw: EncodedMessage): Promise<Decoded
   const headers = payload.h ?? {}
   let body: StandardBody = payload.b
 
-  const contentType = toArray(headers['content-type'])[0]
+  const contentType = flattenHeader(headers['content-type'])
 
   if (blobData) {
-    const contentDisposition = toArray(headers['content-disposition'])[0]!
+    const contentDisposition = flattenHeader(headers['content-disposition'])
 
     if (contentDisposition === undefined && contentType?.startsWith('multipart/form-data')) {
       const tempRes = new Response(blobData, { headers: { 'content-type': contentType } })
       body = await tempRes.formData()
     }
     else {
-      const filename = getFilenameFromContentDisposition(contentDisposition) ?? 'blob'
+      // if the body is a file, contentDisposition must be defined
+      const filename = getFilenameFromContentDisposition(contentDisposition!) ?? 'blob'
       body = new File([blobData], filename, { type: contentType })
     }
   }
@@ -241,10 +242,10 @@ export async function decodeResponseMessage(raw: EncodedMessage): Promise<Decode
   const headers = payload.h ?? {}
   let body: StandardBody = payload.b
 
-  const contentType = toArray(headers['content-type'])[0]
+  const contentType = flattenHeader(headers['content-type'])
 
   if (blobData) {
-    const contentDisposition = toArray(headers['content-disposition'])[0]!
+    const contentDisposition = flattenHeader(headers['content-disposition'])
 
     // Handle FormData specifically
     if (contentDisposition === undefined && contentType?.startsWith('multipart/form-data')) {
@@ -252,7 +253,8 @@ export async function decodeResponseMessage(raw: EncodedMessage): Promise<Decode
       body = await tempRes.formData()
     }
     else {
-      const filename = getFilenameFromContentDisposition(contentDisposition) ?? 'blob'
+      // if the body is a file, contentDisposition must be defined
+      const filename = getFilenameFromContentDisposition(contentDisposition!) ?? 'blob'
       body = new File([blobData], filename, { type: contentType })
     }
   }
@@ -303,7 +305,7 @@ async function prepareBodyAndHeadersForSerialization(
 }
 
 export function isEventIteratorHeaders(headers: StandardHeaders): boolean {
-  return Boolean(toArray(headers['content-type'])[0]?.startsWith('text/event-stream') && headers['content-disposition'] === undefined)
+  return Boolean(flattenHeader(headers['content-type'])?.startsWith('text/event-stream') && headers['content-disposition'] === undefined)
 }
 
 /**

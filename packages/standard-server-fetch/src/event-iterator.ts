@@ -1,4 +1,4 @@
-import { isTypescriptObject, parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
+import { createAsyncIteratorObject, isTypescriptObject, parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
 import {
   encodeEventMessage,
   ErrorEvent,
@@ -9,62 +9,56 @@ import {
 
 export function toEventIterator(
   stream: ReadableStream<Uint8Array>,
-): AsyncGenerator<unknown | void, unknown | void, void> {
+): AsyncIteratorObject<unknown | void, unknown | void, void> & AsyncGenerator<unknown | void, unknown | void, void> {
   const eventStream = stream
     .pipeThrough(new TextDecoderStream())
     .pipeThrough(new EventDecoderStream())
 
   const reader = eventStream.getReader()
 
-  async function* gen() {
-    try {
-      while (true) {
-        const { done, value } = await reader.read()
+  return createAsyncIteratorObject(async () => {
+    while (true) {
+      const { done, value } = await reader.read()
 
-        if (done) {
-          return
+      if (done) {
+        return { done: true, value: undefined }
+      }
+
+      switch (value.event) {
+        case 'message': {
+          let message = parseEmptyableJSON(value.data)
+
+          if (isTypescriptObject(message)) {
+            message = withEventMeta(message, value)
+          }
+
+          return { done: false, value: message }
         }
 
-        switch (value.event) {
-          case 'message': {
-            let message = parseEmptyableJSON(value.data)
+        case 'error': {
+          let error = new ErrorEvent({
+            data: parseEmptyableJSON(value.data),
+          })
 
-            if (isTypescriptObject(message)) {
-              message = withEventMeta(message, value)
-            }
+          error = withEventMeta(error, value)
 
-            yield message
-            break
+          throw error
+        }
+
+        case 'done': {
+          let done = parseEmptyableJSON(value.data)
+
+          if (isTypescriptObject(done)) {
+            done = withEventMeta(done, value)
           }
 
-          case 'error': {
-            let error = new ErrorEvent({
-              data: parseEmptyableJSON(value.data),
-            })
-
-            error = withEventMeta(error, value)
-
-            throw error
-          }
-
-          case 'done': {
-            let done = parseEmptyableJSON(value.data)
-
-            if (isTypescriptObject(done)) {
-              done = withEventMeta(done, value)
-            }
-
-            return done
-          }
+          return { done: true, value: done }
         }
       }
     }
-    finally {
-      await reader.cancel()
-    }
-  }
-
-  return gen()
+  }, async () => {
+    await reader.cancel()
+  })
 }
 
 export interface ToEventStreamOptions {
@@ -150,16 +144,11 @@ export function toEventStream(
         controller.close()
       }
     },
-    async cancel(reason) {
+    async cancel() {
       cancelled = true
       clearInterval(timeout)
 
-      if (reason) {
-        await iterator.throw?.(reason)
-      }
-      else {
-        await iterator.return?.()
-      }
+      await iterator.return?.()
     },
   }).pipeThrough(new TextEncoderStream())
 

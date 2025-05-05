@@ -14,7 +14,7 @@ export function sendStandardResponse(
     res.on('error', reject)
     res.on('finish', resolve)
 
-    const resHeaders: StandardHeaders = standardResponse.headers
+    const resHeaders: StandardHeaders = { ...standardResponse.headers }
 
     const resBody = toNodeHttpBody(standardResponse.body, resHeaders, options)
 

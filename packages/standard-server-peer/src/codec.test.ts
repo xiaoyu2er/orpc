@@ -238,6 +238,7 @@ describe('encode/decode request message', () => {
     })
 
     describe.each([
+      ['multipart/form-data'],
       ['application/x-www-form-urlencoded'],
       ['application/json'],
       ['application/pdf'],
@@ -619,6 +620,7 @@ describe('encode/decode response message', () => {
     })
 
     describe.each([
+      ['multipart/form-data'],
       ['application/x-www-form-urlencoded'],
       ['application/json'],
       ['application/pdf'],

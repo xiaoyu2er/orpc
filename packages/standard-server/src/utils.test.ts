@@ -1,4 +1,4 @@
-import { generateContentDisposition, getFilenameFromContentDisposition, mergeStandardHeaders } from './utils'
+import { flattenHeader, generateContentDisposition, getFilenameFromContentDisposition, mergeStandardHeaders } from './utils'
 
 it('generateContentDisposition', () => {
   expect(generateContentDisposition('')).toEqual('inline; filename=""; filename*=utf-8\'\'')
@@ -36,4 +36,11 @@ it('mergeStandardHeaders', () => {
   expect(mergeStandardHeaders({ a: '1' }, { b: '2' })).toEqual({ a: '1', b: '2' })
   expect(mergeStandardHeaders({ a: '1', b: undefined }, { b: '2' })).toEqual({ a: '1', b: '2' })
   expect(mergeStandardHeaders({ a: '1' }, { a: undefined, b: '2' })).toEqual({ a: '1', b: '2' })
+})
+
+it('flattenHeader', () => {
+  expect(flattenHeader(['a', 'b'])).toEqual('a, b')
+  expect(flattenHeader([])).toEqual(undefined)
+  expect(flattenHeader('a')).toEqual('a')
+  expect(flattenHeader(undefined)).toEqual(undefined)
 })

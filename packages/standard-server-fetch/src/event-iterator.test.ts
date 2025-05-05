@@ -227,8 +227,7 @@ describe('toEventStream', () => {
     expect((await reader.read()).done).toEqual(true)
   })
 
-  it('when canceled from client without region', async () => {
-    let hasError: any
+  it('when canceled from client - return', async () => {
     let hasFinally = false
 
     async function* gen() {
@@ -237,9 +236,6 @@ describe('toEventStream', () => {
         yield 1
         await new Promise(resolve => setTimeout(resolve, 10))
         yield 2
-      }
-      catch (err) {
-        hasError = err
       }
       finally {
         hasFinally = true
@@ -253,12 +249,11 @@ describe('toEventStream', () => {
     await reader.cancel()
 
     await vi.waitFor(() => {
-      expect(hasError).toBe(undefined)
       expect(hasFinally).toBe(true)
     })
   })
 
-  it('when canceled from client without region - throw', async () => {
+  it('when canceled from client - throw', async () => {
     let hasFinally = false
 
     async function* gen() {
@@ -280,37 +275,6 @@ describe('toEventStream', () => {
     await reader.cancel()
 
     await vi.waitFor(() => {
-      expect(hasFinally).toBe(true)
-    })
-  })
-
-  it('when canceled from client with region', async () => {
-    let hasError: any
-    let hasFinally = false
-
-    async function* gen() {
-      try {
-        yield 1
-        yield undefined
-        return { value: true }
-      }
-      catch (err) {
-        hasError = err
-      }
-      finally {
-        hasFinally = true
-      }
-    }
-
-    const stream = toEventStream(gen(), {})
-
-    const reason = new Error('reason')
-    const reader = stream.getReader()
-    await reader.read()
-    await reader.cancel(reason)
-
-    await vi.waitFor(() => {
-      expect(hasError).toBe(reason)
       expect(hasFinally).toBe(true)
     })
   })

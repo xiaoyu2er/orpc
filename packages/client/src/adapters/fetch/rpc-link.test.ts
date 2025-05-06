@@ -131,7 +131,7 @@ describe('standardRPCLink: event-iterator', async () => {
 
   beforeEach(() => {
     (globalThis as any).Request = class Request extends OriginalRequest {
-      constructor(input: RequestInfo, init?: RequestInit) {
+      constructor(input: any, init: any) {
         super(input, {
           ...init,
           duplex: 'half',

@@ -1,4 +1,4 @@
-import { ORPCError, os } from '@orpc/server'
+import { getEventMeta, ORPCError, os, withEventMeta } from '@orpc/server'
 import { RPCHandler } from '@orpc/server/fetch'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { supportedDataTypes } from '../../../tests/shared'
@@ -123,5 +123,102 @@ describe.each(supportedDataTypes)('rpcLink: $name', ({ value, expected }) => {
         },
       })).toBe(true)
     })
+  })
+})
+
+describe('standardRPCLink: event-iterator', async () => {
+  const OriginalRequest = globalThis.Request
+
+  beforeEach(() => {
+    (globalThis as any).Request = class Request extends OriginalRequest {
+      constructor(input: RequestInfo, init?: RequestInit) {
+        super(input, {
+          ...init,
+          duplex: 'half',
+        } as any)
+      }
+    }
+  })
+
+  afterEach(() => {
+    globalThis.Request = OriginalRequest
+  })
+
+  const handler = vi.fn(({ input }) => input)
+
+  const rpcHandler = new RPCHandler(os.handler(handler), {
+    strictGetMethodPluginEnabled: false,
+  })
+
+  const rpcLink = new RPCLink({
+    url: 'http://api.example.com',
+    fetch: async (request) => {
+      const { matched, response } = await rpcHandler.handle(new Request(request))
+
+      if (matched) {
+        return response
+      }
+
+      throw new Error('No procedure match')
+    },
+  })
+
+  it('on success', async () => {
+    const output = await rpcLink.call([], (async function* () {
+      yield 1
+      yield withEventMeta({ hello: 2 }, { id: '29224', retry: 8393 })
+      return withEventMeta({ hello: 3 }, { id: '391', retry: 28973 })
+    })(), { context: {} }) as any
+
+    expect(await output.next()).toEqual({ value: 1, done: false })
+
+    expect(await output.next()).toSatisfy(({ value, done }) => {
+      expect(done).toBe(false)
+      expect(value).toEqual({ hello: 2 })
+      expect(getEventMeta(value)).toEqual(expect.objectContaining({ id: '29224', retry: 8393 }))
+
+      return true
+    })
+
+    expect(await output.next()).toSatisfy(({ value, done }) => {
+      expect(done).toBe(true)
+      expect(value).toEqual({ hello: 3 })
+      expect(getEventMeta(value)).toEqual(expect.objectContaining({ id: '391', retry: 28973 }))
+
+      return true
+    })
+
+    expect(await output.next()).toEqual(expect.objectContaining({ value: undefined, done: true }))
+  })
+
+  it('on error', async () => {
+    const output = await rpcLink.call([], (async function* () {
+      yield 1
+      yield withEventMeta({ hello: 2 }, { id: '29224', retry: 8393 })
+      throw withEventMeta(new ORPCError('INTERNAL', {
+        data: { hello: 3 },
+      }), { id: '391', retry: 28973 })
+    })(), { context: {} }) as any
+
+    expect(await output.next()).toEqual({ value: 1, done: false })
+
+    expect(await output.next()).toSatisfy(({ value, done }) => {
+      expect(done).toBe(false)
+      expect(value).toEqual({ hello: 2 })
+      expect(getEventMeta(value)).toEqual(expect.objectContaining({ id: '29224', retry: 8393 }))
+
+      return true
+    })
+
+    await expect(output.next()).rejects.toSatisfy((err) => {
+      expect(err).toBeInstanceOf(ORPCError)
+      expect(err.code).toBe('INTERNAL')
+      expect(err.data).toEqual({ hello: 3 })
+      expect(getEventMeta(err)).toEqual(expect.objectContaining({ id: '391', retry: 28973 }))
+
+      return true
+    })
+
+    expect(await output.next()).toEqual(expect.objectContaining({ value: undefined, done: true }))
   })
 })

@@ -9,12 +9,12 @@ oRPC provides built-in WebSocket support for low-latency, bidirectional RPC.
 
 ## Server Adapters
 
-| Adapter     | Target                                                                                                |
-| ----------- | ----------------------------------------------------------------------------------------------------- |
-| `websocket` | [MDN WebSocket API](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) (Browser, Deno, etc.) |
-| `crossws`   | [Crossws](https://github.com/h3js/crossws) library (Node, Bun, Deno, SSE, etc.)                       |
-| `ws`        | [ws](https://github.com/websockets/ws) library (Node.js)                                              |
-| `bun-ws`    | [Bun Websocket Server](https://bun.sh/docs/api/websockets)                                            |
+| Adapter     | Target                                                                                                            |
+| ----------- | ----------------------------------------------------------------------------------------------------------------- |
+| `websocket` | [MDN WebSocket API](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) (Browser, Deno, Cloudflare, etc.) |
+| `crossws`   | [Crossws](https://github.com/h3js/crossws) library (Node, Bun, Deno, SSE, etc.)                                   |
+| `ws`        | [ws](https://github.com/websockets/ws) library (Node.js)                                                          |
+| `bun-ws`    | [Bun Websocket Server](https://bun.sh/docs/api/websockets)                                                        |
 
 ::: code-group
 

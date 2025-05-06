@@ -25,8 +25,8 @@ export const ping = os
   .actionable({
     context: async () => ({}), // Optional: provide initial context if needed
     interceptors: [
-      onSuccess(output => redirect(`/some-where`)),
-      onError(error => console.error(error)),
+      onSuccess(async output => redirect(`/some-where`)),
+      onError(async error => console.error(error)),
     ],
   })
 ```

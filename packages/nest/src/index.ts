@@ -6,6 +6,8 @@ export * from './decorator'
 export * from './interceptor'
 export * from './utils'
 
+export { ORPCError } from '@orpc/server'
+
 export function implement<T extends AnyContractRouter>(
   contract: T,
   config: BuilderConfig = {},

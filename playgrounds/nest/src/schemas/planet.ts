@@ -13,14 +13,14 @@ export const NewPlanetSchema = z.object({
 })
 
 export const UpdatePlanetSchema = z.object({
-  id: z.number().int().min(1),
+  id: z.coerce.number().int().min(1),
   name: z.string(),
   description: z.string().optional(),
   image: oz.file().type('image/*').optional(),
 })
 
 export const PlanetSchema = z.object({
-  id: z.number().int().min(1),
+  id: z.coerce.number().int().min(1),
   name: z.string(),
   description: z.string().optional(),
   imageUrl: z.string().url().optional(),

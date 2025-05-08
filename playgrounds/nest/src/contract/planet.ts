@@ -35,9 +35,7 @@ export const findPlanet = oc
     tags: ['Planets'],
   })
   .input(
-    z.object({
-      id: z.number().int().min(1),
-    }),
+    PlanetSchema.pick({ id: true }),
   )
   .output(PlanetSchema)
 

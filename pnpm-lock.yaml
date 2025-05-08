@@ -664,6 +664,9 @@ importers:
       '@orpc/openapi':
         specifier: next
         version: link:../../packages/openapi
+      '@orpc/openapi-client':
+        specifier: next
+        version: link:../../packages/openapi-client
       '@orpc/react-query':
         specifier: next
         version: link:../../packages/react-query
@@ -676,6 +679,9 @@ importers:
       '@swc/core':
         specifier: ^1.10.7
         version: 1.11.24
+      '@tanstack/react-query':
+        specifier: ^5.72.3
+        version: 5.73.3(react@19.1.0)
       '@types/express':
         specifier: ^5.0.0
         version: 5.0.1

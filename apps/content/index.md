@@ -30,7 +30,7 @@ features:
     details: Optionally define your API contract before implementation.
   - icon: ⚙️
     title: Framework Integrations
-    details: Seamlessly integrate with TanStack Query (React, Vue, Solid, Svelte), Pinia Colada, and more.
+    details: Seamlessly integrate with TanStack Query (React, Vue, Solid, Svelte), Pinia Colada, NestJS, and more.
   - icon: 🚀
     title: Server Actions
     details: Fully compatible with React Server Actions on Next.js, TanStack Start, and other platforms.

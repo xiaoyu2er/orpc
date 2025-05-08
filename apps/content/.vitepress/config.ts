@@ -169,6 +169,7 @@ export default defineConfig({
           text: 'Others',
           collapsed: true,
           items: [
+            { text: 'Contract-First with NestJS', link: '/docs/contract-first-with-nestjs' },
             { text: 'Pinia Colada', link: '/docs/pinia-colada' },
             { text: 'Playgrounds', link: '/docs/playgrounds' },
             { text: 'Comparison', link: '/docs/comparison' },

@@ -652,6 +652,24 @@ importers:
       '@nestjs/schematics':
         specifier: ^11.0.0
         version: 11.0.5(chokidar@4.0.3)(typescript@5.8.3)
+      '@orpc/client':
+        specifier: next
+        version: link:../../packages/client
+      '@orpc/contract':
+        specifier: next
+        version: link:../../packages/contract
+      '@orpc/nest':
+        specifier: next
+        version: link:../../packages/nest
+      '@orpc/openapi':
+        specifier: next
+        version: link:../../packages/openapi
+      '@orpc/react-query':
+        specifier: next
+        version: link:../../packages/react-query
+      '@orpc/zod':
+        specifier: next
+        version: link:../../packages/zod
       '@swc/cli':
         specifier: ^0.6.0
         version: 0.6.0(@swc/core@1.11.24)(chokidar@4.0.3)
@@ -685,6 +703,9 @@ importers:
       tsconfig-paths:
         specifier: ^4.2.0
         version: 4.2.0
+      tsx:
+        specifier: ^4.19.3
+        version: 4.19.3
       typescript:
         specifier: ^5.7.3
         version: 5.8.3

@@ -126,6 +126,14 @@ For a contract to be implementable in NestJS using `@orpc/nest`, each contract *
 You can avoid this by using the `populateContractRouterPaths` utility to automatically fill in any missing paths.
 :::
 
+## Path Parameters
+
+Aside from [oRPC Path Parameters](/docs/openapi/routing#path-parameters), regular NestJS route patterns still work out of the box. However, they are not standard in OpenAPI, so we recommend using oRPC Path Parameters exclusively.
+
+::: warning
+[oRPC Path Parameter matching with slashes (/)](/docs/openapi/routing#path-parameters) does not work on the NestJS Fastify platform, because Fastify does not allow wildcard (`*`) aliasing in path parameters.
+:::
+
 ## Implement Your Contract
 
 ```ts

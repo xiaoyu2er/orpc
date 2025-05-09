@@ -1,5 +1,4 @@
 import type { CallHandler, ExecutionContext, NestInterceptor } from '@nestjs/common'
-import type { AnyProcedure } from '@orpc/server'
 import type { StandardParams } from '@orpc/server/standard'
 import type { StandardResponse } from '@orpc/standard-server'
 import type { NodeHttpRequest, NodeHttpResponse } from '@orpc/standard-server-node'
@@ -8,7 +7,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
 import type { Observable } from 'rxjs'
 import { StandardBracketNotationSerializer, StandardOpenAPIJsonSerializer, StandardOpenAPISerializer } from '@orpc/openapi-client/standard'
 import { StandardOpenAPICodec } from '@orpc/openapi/standard'
-import { call, ORPCError } from '@orpc/server'
+import { call, isProcedure, ORPCError, unlazy } from '@orpc/server'
 import { sendStandardResponse, toStandardLazyRequest } from '@orpc/standard-server-node'
 import { mergeMap } from 'rxjs'
 import { toORPCError } from '../../client/src/error'
@@ -25,7 +24,15 @@ type NestParams = Record<string, string | string[]>
 export class ImplementInterceptor implements NestInterceptor {
   intercept(ctx: ExecutionContext, next: CallHandler<any>): Observable<any> {
     return next.handle().pipe(
-      mergeMap(async (procedure: AnyProcedure) => {
+      mergeMap(async (impl: unknown) => {
+        const { default: procedure } = await unlazy(impl)
+
+        if (!isProcedure(procedure)) {
+          throw new Error(`
+            The return value of the @Implement controller handler must be a corresponding implemented router or procedure.
+          `)
+        }
+
         const req: Request | FastifyRequest = ctx.switchToHttp().getRequest()
         const res: Response | FastifyReply = ctx.switchToHttp().getResponse()
 

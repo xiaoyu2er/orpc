@@ -141,13 +141,45 @@ import { Implement, implement, ORPCError } from '@orpc/nest'
 
 @Controller()
 export class PlanetController {
+  /**
+   * Implement a standalone procedure
+   */
   @Implement(contract.planet.list)
-  listPlanets() {
+  list() {
     return implement(contract.planet.list).handler(({ input }) => {
       // Implement logic here
 
       return []
     })
+  }
+
+  /**
+   * Implement entire a contract
+   */
+  @Implement(contract.planet)
+  planet() {
+    return {
+      list: implement(contract.planet.list).handler(({ input }) => {
+        // Implement logic here
+        return []
+      }),
+      find: implement(contract.planet.find).handler(({ input }) => {
+        // Implement logic here
+        return {
+          id: 1,
+          name: 'Earth',
+          description: 'The planet Earth',
+        }
+      }),
+      create: implement(contract.planet.create).handler(({ input }) => {
+        // Implement logic here
+        return {
+          id: 1,
+          name: 'Earth',
+          description: 'The planet Earth',
+        }
+      }),
+    }
   }
 
   // other handlers...

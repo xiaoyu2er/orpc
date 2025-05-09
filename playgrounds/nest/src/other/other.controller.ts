@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common'
+import { Controller } from '@nestjs/common'
 import { Implement, implement } from '@orpc/nest'
 import { contract } from 'src/contract'
 
@@ -19,10 +19,5 @@ export class OtherController {
         await new Promise(resolve => setTimeout(resolve, 1000))
       }
     })
-  }
-
-  @Get('test')
-  test() {
-    return 'test'
   }
 }

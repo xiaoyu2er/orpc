@@ -31,7 +31,8 @@
   "scripts": {
     "build": "unbuild",
     "build:watch": "pnpm run build --watch",
-    "type:check": "tsc -b"
+    "type:check": "tsc -b",
+    "type:check:test": "tsc -p tsconfig.test.json --noEmit"
   },
   "peerDependencies": {
     "@nestjs/common": ">=11.0.0",
@@ -59,13 +60,17 @@
     "@orpc/standard-server-node": "workspace:*"
   },
   "devDependencies": {
-    "@nestjs/common": "^11.0.0",
+    "@nestjs/common": "^11.1.0",
     "@nestjs/core": "^11.0.0",
-    "@nestjs/platform-express": "^11.0.0",
-    "@nestjs/platform-fastify": "^11.0.0",
+    "@nestjs/platform-express": "^11.1.0",
+    "@nestjs/platform-fastify": "^11.1.0",
+    "@nestjs/testing": "^11.1.0",
+    "@ts-rest/core": "^3.52.1",
     "@types/express": "^5.0.1",
     "express": "^5.0.0",
     "fastify": "^5.0.0",
-    "rxjs": "^7.0.0"
+    "rxjs": "^7.0.0",
+    "supertest": "^7.1.0",
+    "zod": "^3.24.4"
   }
 }

@@ -1,8 +1,7 @@
 {
   "extends": "../../tsconfig.lib.json",
   "compilerOptions": {
-    "experimentalDecorators": true,
-    "rootDir": "src"
+    "experimentalDecorators": true
   },
   "references": [
     { "path": "../openapi" },

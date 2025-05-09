@@ -30,13 +30,15 @@ export interface PopulateContractRouterPathsOptions {
  * @see {@link https://orpc.unnoq.com/docs/openapi/nest/implement-contract#define-your-contract NestJS Implement Contract Docs}
  */
 export function populateContractRouterPaths<T extends AnyContractRouter>(router: T, options: PopulateContractRouterPathsOptions = {}): PopulatedContractRouterPaths<T> {
+  const path = toArray(options.path)
+
   if (isContractProcedure(router)) {
     if (router['~orpc'].route.path === undefined) {
       return new ContractProcedure({
         ...router['~orpc'],
         route: {
           ...router['~orpc'].route,
-          path: toHttpPath(toArray(options.path)),
+          path: toHttpPath(path),
         },
       }) as any
     }
@@ -47,7 +49,7 @@ export function populateContractRouterPaths<T extends AnyContractRouter>(router:
   const populated: Record<string, any> = {}
 
   for (const key in router) {
-    populated[key] = populateContractRouterPaths(router[key]!, options)
+    populated[key] = populateContractRouterPaths(router[key]!, { ...options, path: [...path, key] })
   }
 
   return populated as any

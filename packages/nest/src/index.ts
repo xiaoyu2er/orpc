@@ -1,5 +1,4 @@
-export * from './decorator'
-export * from './interceptor'
+export * from './implement'
 export * from './utils'
 
 export { implement, ORPCError } from '@orpc/server'

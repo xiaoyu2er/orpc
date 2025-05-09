@@ -55,7 +55,7 @@ describe('@Implement', async () => {
   @Controller()
   class ImplProcedureController {
     @Implement(contract.ping)
-    ping(@Req() _req: NodeHttpRequest): Promise<any> {
+    ping(@Req() _req: NodeHttpRequest) {
       req = _req
 
       return implement(contract.ping).handler(ping_handler)

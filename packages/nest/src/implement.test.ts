@@ -55,7 +55,7 @@ describe('@Implement', async () => {
   @Controller()
   class ImplProcedureController {
     @Implement(contract.ping)
-    ping(@Req() _req: NodeHttpRequest) {
+    ping(@Req() _req: NodeHttpRequest): Promise<any> {
       req = _req
 
       return implement(contract.ping).handler(ping_handler)
@@ -76,9 +76,14 @@ describe('@Implement', async () => {
     }
   }
 
+  const AdvanceMeta: MethodDecorator = (target, propertyKey, descriptor) => {
+    Reflect.defineMetadata('orpc:meta', { path: '/advanced' }, target, propertyKey)
+  }
+
   @Controller()
   class ImplRouterController {
     @Implement(contract)
+    @AdvanceMeta
     router(@Req() _req: NodeHttpRequest) {
       req = _req
 
@@ -207,6 +212,15 @@ describe('@Implement', async () => {
     expect(controller.router_ping()).toEqual('router_ping')
     expect(controller.router_ping_0()).toEqual('router_ping_0')
     expect(controller.router_nested_peng()).toEqual('router_nested_peng')
+  })
+
+  it('reflect metadata on new method', async () => {
+    const controller = new ImplRouterController()
+
+    expect(Reflect.getMetadata('orpc:meta', controller, 'router_ping_1')).toEqual({ path: '/advanced' })
+    expect(Reflect.getMetadata('orpc:meta', controller, 'router_pong')).toEqual({ path: '/advanced' })
+    expect(Reflect.getMetadata('orpc:meta', controller, 'router_nested')).toEqual({ path: '/advanced' })
+    expect(Reflect.getMetadata('orpc:meta', controller, 'router_nested_peng_0')).toEqual({ path: '/advanced' })
   })
 
   it('on body parsing error', async () => {

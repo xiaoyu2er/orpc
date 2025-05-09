@@ -7,6 +7,10 @@ description: Seamlessly implement oRPC contracts in your NestJS applications.
 
 This guide explains how to easily implement [oRPC contract](/docs/contract-first/define-contract) within your [NestJS](https://nestjs.com/) application using `@orpc/nest`.
 
+::: warning
+This feature is currently experimental and may be subject to breaking changes.
+:::
+
 ## Installation
 
 ::: code-group

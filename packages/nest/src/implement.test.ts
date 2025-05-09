@@ -1,10 +1,11 @@
 import type { NodeHttpRequest } from '@orpc/standard-server-node'
 import { Controller, Req } from '@nestjs/common'
+import { FastifyAdapter } from '@nestjs/platform-fastify'
 import { Test } from '@nestjs/testing'
 import { oc, ORPCError } from '@orpc/contract'
 import { implement, lazy } from '@orpc/server'
 import supertest from 'supertest'
-import { vi } from 'vitest'
+import { it, vi } from 'vitest'
 import { z } from 'zod'
 import { Implement } from './implement'
 
@@ -178,6 +179,9 @@ describe('@Implement', async () => {
       expect(req!.url).toEqual('/pong/world')
     })
 
+    /**
+     * parameter match slash is not supported on fastify
+     */
     it('case: call peng', async () => {
       const res = await supertest(httpServer).delete('/world/who%3F')
 
@@ -240,7 +244,7 @@ describe('@Implement', async () => {
       controllers: [WrongImplProcedureController],
     }).compile()
 
-    const app = moduleRef.createNestApplication()
+    const app = moduleRef.createNestApplication({ logger: false })
     await app.init()
 
     const httpServer = app.getHttpServer()
@@ -269,5 +273,54 @@ describe('@Implement', async () => {
         }
       }
     }).toThrow('Please define one using \'path\' property on the \'.route\' method.')
+  })
+
+  it('partial working on fastify', async () => {
+    @Controller()
+    class FastifyController {
+      @Implement(contract.ping)
+      pong(@Req() _req: any) {
+        req = _req
+        return implement(contract.ping).handler(ping_handler)
+      }
+    }
+
+    const moduleRef = await Test.createTestingModule({
+      controllers: [FastifyController],
+    }).compile()
+
+    const app = moduleRef.createNestApplication(new FastifyAdapter())
+    await app.init()
+    await app.getHttpAdapter().getInstance().ready()
+
+    const httpServer = app.getHttpServer()
+
+    const res = await supertest(httpServer)
+      .post('/ping?param=value&param2[]=value2&param2[]=value3')
+      .set('x-custom', 'value')
+      .send({ hello: 'world' })
+
+    expect(res.statusCode).toEqual(200)
+    expect(res.body).toEqual('pong')
+    expect(res.headers).toEqual(expect.objectContaining({ 'x-ping': 'pong' }))
+
+    expect(ping_handler).toHaveBeenCalledTimes(1)
+    expect(ping_handler).toHaveBeenCalledWith(expect.objectContaining({
+      input: {
+        headers: expect.objectContaining({
+          'x-custom': 'value',
+        }),
+        body: { hello: 'world' },
+        params: {},
+        query: {
+          param: 'value',
+          param2: ['value2', 'value3'],
+        },
+      },
+    }))
+
+    expect(req).toBeDefined()
+    expect(req!.method).toEqual('POST')
+    expect(req!.url).toEqual('/ping?param=value&param2[]=value2&param2[]=value3')
   })
 })

@@ -38,7 +38,7 @@ describe('@Implement', async () => {
     nested: {
       peng: oc.route({
         path: '/{+path}',
-        method: 'GET',
+        method: 'DELETE',
       }).input(z.object({
         path: z.string(),
       })),
@@ -162,6 +162,7 @@ describe('@Implement', async () => {
 
       expect(res.statusCode).toEqual(408)
       expect(res.body).toEqual(expect.objectContaining({
+        code: 'TEST',
         data: 'pong world',
       }))
 
@@ -178,7 +179,7 @@ describe('@Implement', async () => {
     })
 
     it('case: call peng', async () => {
-      const res = await supertest(httpServer).get('/world/who%3F')
+      const res = await supertest(httpServer).delete('/world/who%3F')
 
       expect(res.statusCode).toEqual(200)
       expect(res.body).toEqual('peng world/who?')
@@ -191,7 +192,7 @@ describe('@Implement', async () => {
       }))
 
       expect(req).toBeDefined()
-      expect(req!.method).toEqual('GET')
+      expect(req!.method).toEqual('DELETE')
       expect(req!.url).toEqual('/world/who%3F')
     })
   })
@@ -202,5 +203,71 @@ describe('@Implement', async () => {
     expect(controller.router_ping()).toEqual('router_ping')
     expect(controller.router_ping_0()).toEqual('router_ping_0')
     expect(controller.router_nested_peng()).toEqual('router_nested_peng')
+  })
+
+  it('on body parsing error', async () => {
+    const moduleRef = await Test.createTestingModule({
+      controllers: [ImplProcedureController],
+    }).compile()
+
+    const app = moduleRef.createNestApplication()
+    await app.init()
+
+    const httpServer = app.getHttpServer()
+
+    const res = await supertest(httpServer)
+      .post('/ping')
+      .set('content-type', 'multipart/form-data')
+      .send('invalid')
+
+    expect(res.statusCode).toEqual(400)
+    expect(res.body).toEqual(expect.objectContaining({
+      code: 'BAD_REQUEST',
+      message: 'Malformed request. Ensure the request body is properly formatted and the \'Content-Type\' header is set correctly.',
+    }))
+  })
+
+  it('can handle wrong implementation on runtime', async () => {
+    @Controller()
+    class WrongImplProcedureController {
+      @Implement(contract.ping)
+      ping() {
+        return 'wrong' as any
+      }
+    }
+
+    const moduleRef = await Test.createTestingModule({
+      controllers: [WrongImplProcedureController],
+    }).compile()
+
+    const app = moduleRef.createNestApplication()
+    await app.init()
+
+    const httpServer = app.getHttpServer()
+
+    const res = await supertest(httpServer)
+      .post('/ping?param=value&param2[]=value2&param2[]=value3')
+      .set('x-custom', 'value')
+      .send({ hello: 'world' })
+
+    expect(res.statusCode).toEqual(500)
+    expect(res.body).toEqual({
+      statusCode: 500,
+      message: 'Internal server error',
+    })
+  })
+
+  it('throw on build if contract is not has a path', async () => {
+    const invalidContract = oc.route({})
+
+    expect(() => {
+      @Controller()
+      class WrongImplProcedureController {
+        @Implement(invalidContract)
+        peng() {
+          return implement(invalidContract).handler(() => {})
+        }
+      }
+    }).toThrow('Please define one using \'path\' property on the \'.route\' method.')
   })
 })

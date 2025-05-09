@@ -19,6 +19,15 @@ import { mergeMap } from 'rxjs'
 import { toORPCError } from '../../client/src/error'
 import { toNestPattern } from './utils'
 
+const MethodDecoratorMap = {
+  HEAD: Head,
+  GET: Get,
+  POST: Post,
+  PUT: Put,
+  PATCH: Patch,
+  DELETE: Delete,
+}
+
 export function Implement<T extends ContractRouter<any>>(
   contract: T,
 ): <U extends Promisable<Router<T, Record<never, never>>>>(
@@ -38,21 +47,9 @@ export function Implement<T extends ContractRouter<any>>(
       `)
     }
 
-    const MethodDecorator = method === 'GET'
-      ? Get
-      : method === 'HEAD'
-        ? Head
-        : method === 'PUT'
-          ? Put
-          : method === 'PATCH'
-            ? Patch
-            : method === 'DELETE'
-              ? Delete
-              : Post
-
     return (target, propertyKey, descriptor) => {
       applyDecorators(
-        MethodDecorator(toNestPattern(path)),
+        MethodDecoratorMap[method](toNestPattern(path)),
         UseInterceptors(ImplementInterceptor),
       )(target, propertyKey, descriptor)
     }

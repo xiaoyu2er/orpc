@@ -20,7 +20,7 @@ const codec = new StandardOpenAPICodec(
   ),
 )
 
-type FastifyParams = Record<string, string | string[]>
+type NestParams = Record<string, string | string[]>
 
 export class ImplementInterceptor implements NestInterceptor {
   intercept(ctx: ExecutionContext, next: CallHandler<any>): Observable<any> {
@@ -34,7 +34,7 @@ export class ImplementInterceptor implements NestInterceptor {
 
         const standardRequest = toStandardLazyRequest(nodeReq, nodeRes)
         const fallbackStandardBody = standardRequest.body.bind(standardRequest)
-        // Prefer fastify parsed body (in nodejs body only allow parse once)
+        // Prefer NestJS parsed body (in nodejs body only allow parse once)
         standardRequest.body = () => Promise.resolve(req.body ?? fallbackStandardBody())
 
         const standardResponse: StandardResponse = await (async () => {
@@ -43,7 +43,7 @@ export class ImplementInterceptor implements NestInterceptor {
           try {
             // TODO: handle fastify params *
             isDecoding = true
-            const input = await codec.decode(standardRequest, flattenParams(req.params as FastifyParams), procedure)
+            const input = await codec.decode(standardRequest, flattenParams(req.params as NestParams), procedure)
             isDecoding = false
 
             const output = await call(procedure, input)
@@ -68,7 +68,7 @@ export class ImplementInterceptor implements NestInterceptor {
   }
 }
 
-function flattenParams(params: FastifyParams): StandardParams {
+function flattenParams(params: NestParams): StandardParams {
   const flatten: StandardParams = {}
 
   for (const [key, value] of Object.entries(params)) {

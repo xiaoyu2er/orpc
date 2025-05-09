@@ -2,7 +2,7 @@ import type { AnyContractProcedure } from '@orpc/contract'
 import { applyDecorators, Delete, Get, Head, Patch, Post, Put, UseInterceptors } from '@nestjs/common'
 import { fallbackContractConfig } from '@orpc/contract'
 import { ImplementInterceptor } from './interceptor'
-import { toFastifyPattern } from './utils'
+import { toNestPattern } from './utils'
 
 export function Implement(contract: AnyContractProcedure): MethodDecorator {
   const method = fallbackContractConfig('defaultMethod', contract['~orpc'].route.method)
@@ -10,7 +10,7 @@ export function Implement(contract: AnyContractProcedure): MethodDecorator {
 
   if (path === undefined) {
     throw new Error(`
-      oRPC Fastify integration requires procedure to have a 'path'.
+      oRPC NestJS integration requires procedure to have a 'path'.
       Please define one using 'path' property on the '.route' method.
     `)
   }
@@ -29,7 +29,7 @@ export function Implement(contract: AnyContractProcedure): MethodDecorator {
               : Post
 
     applyDecorators(
-      MethodDecorator(toFastifyPattern(path)),
+      MethodDecorator(toNestPattern(path)),
       UseInterceptors(ImplementInterceptor),
     )(target, propertyKey, descriptor)
   }

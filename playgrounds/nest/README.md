@@ -7,7 +7,7 @@ This is a playground for [oRPC](https://orpc.unnoq.com) and [NestJS](https://nes
 First, run the development server:
 
 ```bash
-npm run dev
+npm run start:dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to see the Scalar API Client.

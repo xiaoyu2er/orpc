@@ -21,6 +21,14 @@ export interface PopulateContractRouterPathsOptions {
   path?: readonly string[]
 }
 
+/**
+ * populateContractRouterPaths is completely optional,
+ * because the procedure's path is required for NestJS implementation.
+ * This utility automatically populates any missing paths
+ * Using the router's keys + `/`.
+ *
+ * @see {@link https://orpc.unnoq.com/docs/openapi/nest/implement-contract#define-your-contract NestJS Implement Contract Docs}
+ */
 export function populateContractRouterPaths<T extends AnyContractRouter>(router: T, options: PopulateContractRouterPathsOptions = {}): PopulatedContractRouterPaths<T> {
   if (isContractProcedure(router)) {
     if (router['~orpc'].route.path === undefined) {

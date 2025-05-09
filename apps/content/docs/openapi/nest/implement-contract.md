@@ -42,8 +42,9 @@ oRPC is an ESM-only library. Therefore, your NestJS application must be configur
     ```json
     {
       "compilerOptions": {
-        "module": "NodeNext"
-        // ... other options
+        "module": "NodeNext", // <-- this is recommended
+        "strict": true // <-- this is recommended
+        // ... other options,
       }
     }
     ```

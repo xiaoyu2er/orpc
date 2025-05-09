@@ -1,11 +1,11 @@
 ---
-title: Contract-First with NestJS
+title: Implement Contract in NestJS
 description: Seamlessly implement oRPC contracts in your NestJS applications.
 ---
 
-# Contract-First with NestJS
+# Implement Contract in NestJS
 
-This guide explains how to easily implement [oRPC contracts](/docs/contract-first/define-contract) within your [NestJS](https://nestjs.com/) application using `@orpc/nest`.
+This guide explains how to easily implement [oRPC contract](/docs/contract-first/define-contract) within your [NestJS](https://nestjs.com/) application using `@orpc/nest`.
 
 ## Installation
 
@@ -64,6 +64,7 @@ Before implementation, define your oRPC contract. This process is consistent wit
 ::: details Example Contract
 
 ```ts
+import { populateContractRouterPaths } from '@orpc/nest'
 import { oc } from '@orpc/contract'
 import { z } from 'zod'
 
@@ -102,19 +103,26 @@ export const createPlanetContract = oc
   .input(PlanetSchema.omit({ id: true }))
   .output(PlanetSchema)
 
-export const contract = {
+/**
+ * populateContractRouterPaths is completely optional,
+ * because the procedure's path is required for NestJS implementation.
+ * This utility automatically populates any missing paths
+ * Using the router's keys + `/`.
+ */
+export const contract = populateContractRouterPaths({
   planet: {
     list: listPlanetContract,
     find: findPlanetContract,
     create: createPlanetContract,
   },
-}
+})
 ```
 
 :::
 
 ::: warning
 For a contract to be implementable in NestJS using `@orpc/nest`, each contract **must** define a `path` in its `.route`. Omitting it will cause a build‑time error.
+You can avoid this by using the `populateContractRouterPaths` utility to automatically fill in any missing paths.
 :::
 
 ## Implement Your Contract

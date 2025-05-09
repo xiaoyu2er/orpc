@@ -169,7 +169,6 @@ export default defineConfig({
           text: 'Others',
           collapsed: true,
           items: [
-            { text: 'Contract-First with NestJS', link: '/docs/contract-first-with-nestjs' },
             { text: 'Pinia Colada', link: '/docs/pinia-colada' },
             { text: 'Playgrounds', link: '/docs/playgrounds' },
             { text: 'Comparison', link: '/docs/comparison' },
@@ -199,6 +198,13 @@ export default defineConfig({
           collapsed: true,
           items: [
             { text: 'OpenAPI Link', link: '/docs/openapi/client/openapi-link' },
+          ],
+        },
+        {
+          text: 'NestJS',
+          collapsed: true,
+          items: [
+            { text: 'Implement Contract', link: '/docs/openapi/nest/implement-contract' },
           ],
         },
         {

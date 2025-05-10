@@ -194,6 +194,32 @@ export class PlanetController {
 The `@Implement` decorator functions similarly to NestJS built-in HTTP method decorators (e.g., `@Get`, `@Post`). Handlers decorated with `@Implement` are standard NestJS controller handlers and can leverage all NestJS features.
 :::
 
+## Body Parser
+
+By default, NestJS parses request bodies for `application/json` and `application/x-www-form-urlencoded` content types. However:
+
+- NestJS `urlencoded` parser does not support [Bracket Notation](/docs/openapi/bracket-notation) like in standard oRPC parsers.
+- In some edge cases like upload a file with `application/json` content type the NestJS parser not treat it as a file, instead it parser the body as a JSON string.
+
+Therefore, we **recommend** disabling the NestJS body parser:
+
+```ts
+import { NestFactory } from '@nestjs/core'
+import { AppModule } from './app.module'
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule, {
+    bodyParser: false, // [!code highlight]
+  })
+
+  await app.listen(process.env.PORT ?? 3000)
+}
+```
+
+::: info
+oRPC will use NestJS parsed body when it's available, and only use the oRPC parser if the body is not parsed by NestJS.
+:::
+
 ## Create a Type-Safe Client
 
 When you implement oRPC contracts in NestJS using `@orpc/nest`, the resulting API endpoints are OpenAPI compatible. This allows you to use an OpenAPI-compatible client link, such as [OpenAPILink](/docs/openapi/client/openapi-link), to interact with your API in a type-safe way.

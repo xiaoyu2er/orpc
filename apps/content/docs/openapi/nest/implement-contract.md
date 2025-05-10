@@ -199,7 +199,7 @@ The `@Implement` decorator functions similarly to NestJS built-in HTTP method de
 By default, NestJS parses request bodies for `application/json` and `application/x-www-form-urlencoded` content types. However:
 
 - NestJS `urlencoded` parser does not support [Bracket Notation](/docs/openapi/bracket-notation) like in standard oRPC parsers.
-- In some edge cases like upload a file with `application/json` content type the NestJS parser not treat it as a file, instead it parser the body as a JSON string.
+- In some edge cases like uploading a file with `application/json` content type, the NestJS parser does not treat it as a file, instead it parses the body as a JSON string.
 
 Therefore, we **recommend** disabling the NestJS body parser:
 

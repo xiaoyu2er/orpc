@@ -17,6 +17,7 @@ featuring pre-configured examples accessible instantly via StackBlitz or local s
 | Solid Start Playground    | [Open in StackBlitz](https://stackblitz.com/github/unnoq/orpc/tree/main/playgrounds/solid-start)    | [View Source](https://github.com/unnoq/orpc/tree/main/playgrounds/solid-start)    |
 | Svelte Kit Playground     | [Open in StackBlitz](https://stackblitz.com/github/unnoq/orpc/tree/main/playgrounds/svelte-kit)     | [View Source](https://github.com/unnoq/orpc/tree/main/playgrounds/svelte-kit)     |
 | Contract-First Playground | [Open in StackBlitz](https://stackblitz.com/github/unnoq/orpc/tree/main/playgrounds/contract-first) | [View Source](https://github.com/unnoq/orpc/tree/main/playgrounds/contract-first) |
+| NestJS Playground         | [Open in StackBlitz](https://stackblitz.com/github/unnoq/orpc/tree/main/playgrounds/nest)           | [View Source](https://github.com/unnoq/orpc/tree/main/playgrounds/nest)           |
 
 :::warning
 StackBlitz has own limitations, so some features may not work as expected.
@@ -32,6 +33,7 @@ npx degit unnoq/orpc/playgrounds/nuxt orpc-nuxt-playground
 npx degit unnoq/orpc/playgrounds/solid-start orpc-solid-start-playground
 npx degit unnoq/orpc/playgrounds/svelte-kit orpc-svelte-kit-playground
 npx degit unnoq/orpc/playgrounds/contract-first orpc-contract-first-playground
+npx degit unnoq/orpc/playgrounds/nest orpc-nest-playground
 ```
 
 For each project, set up the development environment:

@@ -201,6 +201,13 @@ export default defineConfig({
           ],
         },
         {
+          text: 'NestJS',
+          collapsed: true,
+          items: [
+            { text: 'Implement Contract', link: '/docs/openapi/nest/implement-contract' },
+          ],
+        },
+        {
           text: 'Advanced',
           collapsed: true,
           items: [

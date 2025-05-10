@@ -58,4 +58,10 @@ export default antfu({
   rules: {
     'no-alert': 'off',
   },
+}, {
+  files: ['playgrounds/nest/**'],
+  rules: {
+    'node/prefer-global/process': 'off',
+    '@typescript-eslint/consistent-type-imports': 'off',
+  },
 })

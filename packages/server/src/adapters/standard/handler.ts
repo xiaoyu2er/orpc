@@ -9,6 +9,7 @@ import type { StandardHandlerPlugin } from './plugin'
 import type { StandardCodec, StandardMatcher } from './types'
 import { ORPCError, toORPCError } from '@orpc/client'
 import { intercept, toArray } from '@orpc/shared'
+import { flattenHeader } from '@orpc/standard-server'
 import { createProcedureClient } from '../../procedure-client'
 import { CompositeStandardHandlerPlugin } from './plugin'
 
@@ -110,11 +111,10 @@ export class StandardHandler<T extends Context> {
               const input = await this.codec.decode(request, match.params, match.procedure)
               isDecoding = false
 
-              const lastEventId = Array.isArray(request.headers['last-event-id'])
-                ? request.headers['last-event-id'].at(-1)
-                : request.headers['last-event-id']
-
-              const output = await client(input, { signal: request.signal, lastEventId })
+              const output = await client(input, {
+                signal: request.signal,
+                lastEventId: flattenHeader(request.headers['last-event-id']),
+              })
 
               const response = this.codec.encode(output, match.procedure)
 

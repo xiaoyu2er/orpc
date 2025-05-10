@@ -298,8 +298,8 @@ describe('standardHandler', () => {
   })
 
   it.each([
-    '123456',
-    ['should-ignore', '123456'],
+    '1234, 56',
+    ['1234', '56'],
   ])('works with lastEventId', async (headerValue) => {
     matcher.match.mockResolvedValue({
       path: ['ping'],
@@ -319,7 +319,7 @@ describe('standardHandler', () => {
     }, { context: { db: 'postgres' }, prefix: '/api/v1' })
 
     expect(client).toHaveBeenCalledOnce()
-    expect(client).toHaveBeenCalledWith(undefined, expect.objectContaining({ lastEventId: '123456' }))
+    expect(client).toHaveBeenCalledWith(undefined, expect.objectContaining({ lastEventId: '1234, 56' }))
   })
 
   it('plugins', () => {

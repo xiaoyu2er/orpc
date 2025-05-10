@@ -1,9 +1,10 @@
 {
   "extends": "../../tsconfig.lib.json",
   "references": [
+    { "path": "../shared" },
     { "path": "../standard-server" },
     { "path": "../standard-server-fetch" },
-    { "path": "../shared" }
+    { "path": "../standard-server-peer" }
   ],
   "include": ["src"],
   "exclude": [

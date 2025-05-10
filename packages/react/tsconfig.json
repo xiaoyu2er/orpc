@@ -1,9 +1,12 @@
 {
   "extends": "../../tsconfig.lib.json",
-  "compilerOptions": {
-    "types": []
-  },
-  "references": [],
+  "references": [
+    { "path": "../client" },
+    { "path": "../contract" },
+    { "path": "../openapi-client" },
+    { "path": "../server" },
+    { "path": "../shared" }
+  ],
   "include": ["src"],
   "exclude": [
     "**/*.test.*",

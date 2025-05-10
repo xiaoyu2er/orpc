@@ -6,8 +6,6 @@
     { "path": "../contract" },
     { "path": "../server" },
     { "path": "../standard-server" },
-    { "path": "../standard-server-fetch" },
-    { "path": "../standard-server-node" },
     { "path": "../shared" }
   ],
   "include": ["src"],

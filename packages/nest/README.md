@@ -63,7 +63,61 @@ You can find the full documentation [here](https://orpc.unnoq.com).
 
 ## `@orpc/nest`
 
-Deeply integrate oRPC with [NestJS](https://nestjs.com/).
+Deeply integrate oRPC with [NestJS](https://nestjs.com/). Read the [documentation](https://orpc.unnoq.com/docs/openapi/nest/implement-contract) for more information.
+
+### Implement Contract
+
+An overview of how to implement an [oRPC contract](https://orpc.unnoq.com/docs/contract-first/define-contract) in NestJS.
+
+```ts
+import { Implement, implement, ORPCError } from '@orpc/nest'
+
+@Controller()
+export class PlanetController {
+  /**
+   * Implement a standalone procedure
+   */
+  @Implement(contract.planet.list)
+  list() {
+    return implement(contract.planet.list).handler(({ input }) => {
+      // Implement logic here
+
+      return []
+    })
+  }
+
+  /**
+   * Implement entire a contract
+   */
+  @Implement(contract.planet)
+  planet() {
+    return {
+      list: implement(contract.planet.list).handler(({ input }) => {
+        // Implement logic here
+        return []
+      }),
+      find: implement(contract.planet.find).handler(({ input }) => {
+        // Implement logic here
+        return {
+          id: 1,
+          name: 'Earth',
+          description: 'The planet Earth',
+        }
+      }),
+      create: implement(contract.planet.create).handler(({ input }) => {
+        // Implement logic here
+        return {
+          id: 1,
+          name: 'Earth',
+          description: 'The planet Earth',
+        }
+      }),
+    }
+  }
+
+  // other handlers...
+}
+```
 
 ## Sponsors
 

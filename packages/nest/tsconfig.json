@@ -4,10 +4,14 @@
     "experimentalDecorators": true
   },
   "references": [
-    { "path": "../openapi" },
+    { "path": "../client" },
     { "path": "../contract" },
+    { "path": "../openapi" },
+    { "path": "../openapi-client" },
     { "path": "../server" },
-    { "path": "../shared" }
+    { "path": "../shared" },
+    { "path": "../standard-server" },
+    { "path": "../standard-server-node" }
   ],
   "include": ["src"],
   "exclude": [

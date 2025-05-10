@@ -13,8 +13,9 @@ import { toORPCError } from '@orpc/client'
 import { fallbackContractConfig, isContractProcedure } from '@orpc/contract'
 import { StandardBracketNotationSerializer, StandardOpenAPIJsonSerializer, StandardOpenAPISerializer } from '@orpc/openapi-client/standard'
 import { StandardOpenAPICodec } from '@orpc/openapi/standard'
-import { call, getRouter, isProcedure, ORPCError, unlazy } from '@orpc/server'
+import { createProcedureClient, getRouter, isProcedure, ORPCError, unlazy } from '@orpc/server'
 import { get } from '@orpc/shared'
+import { flattenHeader } from '@orpc/standard-server'
 import { sendStandardResponse, toStandardLazyRequest } from '@orpc/standard-server-node'
 import { mergeMap } from 'rxjs'
 import { toNestPattern } from './utils'
@@ -123,12 +124,16 @@ export class ImplementInterceptor implements NestInterceptor {
           let isDecoding = false
 
           try {
-            // TODO: handle fastify params *
+            const client = createProcedureClient(procedure)
+
             isDecoding = true
             const input = await codec.decode(standardRequest, flattenParams(req.params as NestParams), procedure)
             isDecoding = false
 
-            const output = await call(procedure, input)
+            const output = await client(input, {
+              signal: standardRequest.signal,
+              lastEventId: flattenHeader(standardRequest.headers['last-event-id']),
+            })
 
             return codec.encode(output, procedure)
           }

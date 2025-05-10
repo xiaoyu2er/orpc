@@ -337,4 +337,44 @@ describe('@Implement', async () => {
     expect(req!.method).toEqual('POST')
     expect(req!.url).toEqual('/ping?param=value&param2[]=value2&param2[]=value3')
   })
+
+  it('should pass correct signal and lastEventId', async () => {
+    const states: any[] = []
+
+    @Controller()
+    class ImplProcedureController {
+      @Implement(contract.pong)
+      ping() {
+        return implement(contract.pong).handler(({ signal, lastEventId }) => {
+          states.push(lastEventId)
+
+          states.push(signal!.aborted)
+          signal?.addEventListener('abort', () => {
+            states.push(true)
+          })
+        })
+      }
+    }
+
+    const moduleRef = await Test.createTestingModule({
+      controllers: [ImplProcedureController],
+    }).compile()
+
+    const app = moduleRef.createNestApplication()
+    await app.init()
+
+    const httpServer = app.getHttpServer()
+
+    const res = await supertest(httpServer)
+      .get('/pong/world')
+      .set('last-event-id', '123')
+
+    expect(res.statusCode).toEqual(200)
+
+    expect(states).toEqual([
+      '123',
+      false,
+      true,
+    ])
+  })
 })

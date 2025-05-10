@@ -35,4 +35,4 @@ This comparison table helps you understand how oRPC differs from other popular T
 | Built-in Plugins (CORS, CSRF, Retry, ...)    |                                                                                              | ✅   | 🛑   | 🛑      |
 | Batch Request/Response                       | [1](/docs/plugins/batch-request-response)                                                    | ✅   | ✅   | 🛑      |
 | WebSockets                                   | [1](/docs/adapters/websocket)                                                                | ✅   | ✅   | 🛑      |
-| Nest.js integration                          |                                                                                              | 🛑   | 🟡   | ✅      |
+| Nest.js integration                          | [1](/docs/openapi/nest/implement-contract)                                                   | ✅   | 🟡   | ✅      |

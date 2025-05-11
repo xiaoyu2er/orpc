@@ -1,13 +1,24 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { CreatePlanetMutationForm } from '~/components/orpc-mutation'
+import { ListPlanetsQuery } from '~/components/orpc-query'
 
 export const Route = createFileRoute('/')({
-  component: Home,
+  component: RouteComponent,
 })
 
-function Home() {
+function RouteComponent() {
   return (
-    <div className="p-2">
-      <h3>Welcome Home!!!</h3>
+    <div>
+      <h1>ORPC Playground</h1>
+      You can visit the
+      {' '}
+      <a href="/api/docs">Redirect to Scalar API Reference</a>
+      {' '}
+      page.
+      <hr />
+      <CreatePlanetMutationForm />
+      <hr />
+      <ListPlanetsQuery />
     </div>
   )
 }

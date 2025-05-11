@@ -7,6 +7,15 @@ import { BatchLinkPlugin } from '@orpc/client/plugins'
 import { getHeaders } from '@tanstack/react-start/server'
 import { createIsomorphicFn } from '@tanstack/react-start'
 
+/**
+ * This is part of the Optimize SSR setup.
+ *
+ * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-start#optimize-ssr}
+ */
+declare global {
+  var $client: RouterClient<typeof router> | undefined
+}
+
 const link = new RPCLink({
   url: new URL('/api/rpc', typeof window !== 'undefined' ? window.location.href : 'http://localhost:3000'),
   headers: createIsomorphicFn()
@@ -22,6 +31,6 @@ const link = new RPCLink({
   ],
 })
 
-export const client: RouterClient<typeof router> = createORPCClient(link)
+export const client: RouterClient<typeof router> = globalThis.$client ?? createORPCClient(link)
 
 export const orpc = createORPCReactQueryUtils(client)

@@ -9,7 +9,7 @@ description: Integrate oRPC with TanStack Start
 
 ## Server
 
-You can integrate oRPC handlers with TanStack Start using its [API Routes](https://tanstack.com/start/latest/docs/framework/react/api-routes).
+You can integrate oRPC with TanStack Start using its [API Routes](https://tanstack.com/start/latest/docs/framework/react/api-routes).
 
 ::: code-group
 
@@ -53,7 +53,7 @@ The `handler` can be any supported oRPC handler, including [RPCHandler](/docs/rp
 
 ## Client
 
-In client you can use `createIsomorphicFn` to create a header function that friendly with SSR. now your client can use use both on server and client.
+On the client, use `createIsomorphicFn` to provide a headers function that works seamlessly with SSR. This enables usage in both server and browser environments.
 
 ```ts
 import { getHeaders } from '@tanstack/react-start/server'
@@ -69,4 +69,63 @@ const link = new RPCLink({
 
 :::info
 This only shows how to configure the link. For full client examples, see [Client-Side Clients](/docs/client/client-side).
+:::
+
+## Optimize SSR
+
+To reduce HTTP requests and improve latency during SSR, you can combine this with a [Server-Side Client](/docs/client/server-side) during SSR. Below is a quick setup, see [Optimize SSR](/docs/best-practices/optimize-ssr) for a more details.
+
+::: code-group
+
+```ts [app/lib/orpc.ts]
+import type { RouterClient } from '@orpc/server'
+import { RPCLink } from '@orpc/client/fetch'
+import { createORPCClient } from '@orpc/client'
+
+declare global {
+  var $client: RouterClient<typeof router> | undefined
+}
+
+const link = new RPCLink({
+  url: () => {
+    if (typeof window === 'undefined') {
+      throw new Error('RPCLink is not allowed on the server side.')
+    }
+
+    return new URL('/rpc', window.location.href)
+  },
+})
+
+/**
+ * Fallback to client-side client if server-side client is not available.
+ */
+export const client: RouterClient<typeof router> = globalThis.$client ?? createORPCClient(link)
+```
+
+```ts [app/lib/orpc.server.ts]
+'server only'
+
+import { createRouterClient } from '@orpc/server'
+import { getHeaders } from '@tanstack/react-start/server'
+
+globalThis.$client = createRouterClient(router, {
+  /**
+   * Provide initial context if needed.
+   *
+   * Because this client instance is shared across all requests,
+   * only include context that's safe to reuse globally.
+   * For per-request context, use middleware context or pass a function as the initial context.
+   */
+  context: async () => ({
+    headers: getHeaders(),
+  }),
+})
+```
+
+```ts [app/ssr.tsx]
+import './lib/orpc.server'
+
+// Rest of the code
+```
+
 :::

@@ -9,6 +9,12 @@
     "start": "vinxi start"
   },
   "devDependencies": {
+    "@orpc/client": "next",
+    "@orpc/openapi": "next",
+    "@orpc/react": "next",
+    "@orpc/react-query": "next",
+    "@orpc/server": "next",
+    "@orpc/zod": "next",
     "@tanstack/react-query": "^5.66.0",
     "@tanstack/react-query-devtools": "^5.66.0",
     "@tanstack/react-router": "^1.120.3",
@@ -27,6 +33,7 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.2",
     "vinxi": "0.5.3",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-tsconfig-paths": "^5.1.4",
+    "zod": "^3.24.2"
   }
 }

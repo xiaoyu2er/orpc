@@ -10,4 +10,10 @@ import { createRouter } from './router'
 export default createStartHandler({
   createRouter,
   getRouterManifest,
-})(defaultStreamHandler)
+})((ctx) => {
+  if (import.meta.env.DEV) {
+    console.log(ctx.request.url)
+  }
+
+  return defaultStreamHandler(ctx)
+})

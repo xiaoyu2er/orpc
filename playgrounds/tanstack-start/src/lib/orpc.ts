@@ -1,3 +1,7 @@
+import { setupORPCServerClient } from './orpc.server'
+
+setupORPCServerClient()
+
 import type { router } from '~/router/index'
 import type { RouterClient } from '@orpc/server'
 import { createORPCClient } from '@orpc/client'

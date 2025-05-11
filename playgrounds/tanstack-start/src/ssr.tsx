@@ -1,7 +1,5 @@
 /// <reference types="vinxi/types/server" />
 
-import './lib/orpc.server'
-
 import {
   createStartHandler,
   defaultStreamHandler,

@@ -13,6 +13,7 @@ featuring pre-configured examples accessible instantly via StackBlitz or local s
 | Environment               | StackBlitz                                                                                          | GitHub Source                                                                     |
 | ------------------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
 | Next.js Playground        | [Open in StackBlitz](https://stackblitz.com/github/unnoq/orpc/tree/main/playgrounds/nextjs)         | [View Source](https://github.com/unnoq/orpc/tree/main/playgrounds/nextjs)         |
+| TanStack Start Playground | [Open in StackBlitz](https://stackblitz.com/github/unnoq/orpc/tree/main/playgrounds/tanstack-start) | [View Source](https://github.com/unnoq/orpc/tree/main/playgrounds/tanstack-start) |
 | Nuxt.js Playground        | [Open in StackBlitz](https://stackblitz.com/github/unnoq/orpc/tree/main/playgrounds/nuxt)           | [View Source](https://github.com/unnoq/orpc/tree/main/playgrounds/nuxt)           |
 | Solid Start Playground    | [Open in StackBlitz](https://stackblitz.com/github/unnoq/orpc/tree/main/playgrounds/solid-start)    | [View Source](https://github.com/unnoq/orpc/tree/main/playgrounds/solid-start)    |
 | Svelte Kit Playground     | [Open in StackBlitz](https://stackblitz.com/github/unnoq/orpc/tree/main/playgrounds/svelte-kit)     | [View Source](https://github.com/unnoq/orpc/tree/main/playgrounds/svelte-kit)     |
@@ -29,6 +30,7 @@ If you prefer working locally, you can clone any playground using the following 
 
 ```bash
 npx degit unnoq/orpc/playgrounds/nextjs orpc-nextjs-playground
+npx degit unnoq/orpc/playgrounds/tanstack-start orpc-tanstack-start-playground
 npx degit unnoq/orpc/playgrounds/nuxt orpc-nuxt-playground
 npx degit unnoq/orpc/playgrounds/solid-start orpc-solid-start-playground
 npx degit unnoq/orpc/playgrounds/svelte-kit orpc-svelte-kit-playground

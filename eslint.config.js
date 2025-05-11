@@ -57,6 +57,7 @@ export default antfu({
   files: ['playgrounds/**'],
   rules: {
     'no-alert': 'off',
+    'eslint-comments/no-unlimited-disable': 'off',
   },
 }, {
   files: ['playgrounds/nest/**'],

@@ -1,4 +1,4 @@
-import { orpcClient as orpc } from '~/lib/orpc'
+import { client as orpc } from '~/lib/orpc'
 import { safe } from '@orpc/client'
 
 const token = await orpc.auth.signin({

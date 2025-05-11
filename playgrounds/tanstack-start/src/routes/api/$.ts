@@ -1,3 +1,5 @@
+import '~/polyfill'
+
 import { OpenAPIHandler } from '@orpc/openapi/fetch'
 import { ZodSmartCoercionPlugin, ZodToJsonSchemaConverter } from '@orpc/zod'
 import { createAPIFileRoute } from '@tanstack/react-start/api'

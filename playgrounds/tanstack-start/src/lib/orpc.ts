@@ -1,8 +1,5 @@
-import { setupORPCServerClient } from './orpc.server'
-
-setupORPCServerClient()
-
-import type { router } from '~/router/index'
+import { router } from '~/router/index'
+import { createRouterClient } from '@orpc/server'
 import type { RouterClient } from '@orpc/server'
 import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
@@ -16,25 +13,35 @@ import { createIsomorphicFn } from '@tanstack/react-start'
  *
  * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-start#optimize-ssr}
  */
-declare global {
-  var $client: RouterClient<typeof router> | undefined
-}
-
-const link = new RPCLink({
-  url: new URL('/api/rpc', typeof window !== 'undefined' ? window.location.href : 'http://localhost:3000'),
-  headers: createIsomorphicFn()
-    .client(() => ({}))
-    .server(() => getHeaders()),
-  plugins: [
-    new BatchLinkPlugin({
-      groups: [{
-        condition: () => true,
-        context: {},
-      }],
+const getORPCClient = createIsomorphicFn()
+  .server(() => createRouterClient(router, {
+    /**
+     * Provide initial context if needed.
+     *
+     * Because this client instance is shared across all requests,
+     * only include context that's safe to reuse globally.
+     * For per-request context, use middleware context or pass a function as the initial context.
+     */
+    context: async () => ({
+      headers: getHeaders(),
     }),
-  ],
-})
+  }))
+  .client((): RouterClient<typeof router> => {
+    const link = new RPCLink({
+      url: new URL('/api/rpc', window.location.href),
+      plugins: [
+        new BatchLinkPlugin({
+          groups: [{
+            condition: () => true,
+            context: {},
+          }],
+        }),
+      ],
+    })
 
-export const client: RouterClient<typeof router> = globalThis.$client ?? createORPCClient(link)
+    return createORPCClient(link)
+  })
+
+export const client: RouterClient<typeof router> = getORPCClient()
 
 export const orpc = createORPCReactQueryUtils(client)

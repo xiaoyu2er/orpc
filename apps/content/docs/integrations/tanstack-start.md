@@ -73,59 +73,43 @@ This only shows how to configure the link. For full client examples, see [Client
 
 ## Optimize SSR
 
-To reduce HTTP requests and improve latency during SSR, you can combine this with a [Server-Side Client](/docs/client/server-side) during SSR. Below is a quick setup, see [Optimize SSR](/docs/best-practices/optimize-ssr) for a more details.
+To reduce HTTP requests and improve latency during SSR, you can utilize a [Server-Side Client](/docs/client/server-side) during SSR. Below is a quick setup, see [Optimize SSR](/docs/best-practices/optimize-ssr) for a more details.
 
 ::: code-group
 
 ```ts [app/lib/orpc.ts]
-import { setupORPCServerClient } from './orpc.server'
-
-setupORPCServerClient()
-
-import type { RouterClient } from '@orpc/server'
-import { RPCLink } from '@orpc/client/fetch'
-import { createORPCClient } from '@orpc/client'
-
-declare global {
-  var $client: RouterClient<typeof router> | undefined
-}
-
-const link = new RPCLink({
-  url: () => {
-    if (typeof window === 'undefined') {
-      throw new Error('RPCLink is not allowed on the server side.')
-    }
-
-    return new URL('/api/rpc', window.location.href)
-  },
-})
-
-/**
- * Fallback to client-side client if server-side client is not available.
- */
-export const client: RouterClient<typeof router> = globalThis.$client ?? createORPCClient(link)
-```
-
-```ts [app/lib/orpc.server.ts]
 import { createRouterClient } from '@orpc/server'
+import type { RouterClient } from '@orpc/server'
+import { createORPCClient } from '@orpc/client'
+import { RPCLink } from '@orpc/client/fetch'
+import { createORPCReactQueryUtils } from '@orpc/react-query'
 import { getHeaders } from '@tanstack/react-start/server'
+import { createIsomorphicFn } from '@tanstack/react-start'
 
-export const setupORPCServerClient = createIsomorphicFn()
-  .server(() => {
-    globalThis.$client = createRouterClient(router, {
-      /**
-       * Provide initial context if needed.
-       *
-       * Because this client instance is shared across all requests,
-       * only include context that's safe to reuse globally.
-       * For per-request context, use middleware context or pass a function as the initial context.
-       */
-      context: async () => ({
-        headers: getHeaders(),
-      }),
+const getORPCClient = createIsomorphicFn()
+  .server(() => createRouterClient(router, {
+    /**
+     * Provide initial context if needed.
+     *
+     * Because this client instance is shared across all requests,
+     * only include context that's safe to reuse globally.
+     * For per-request context, use middleware context or pass a function as the initial context.
+     */
+    context: async () => ({
+      headers: getHeaders(),
+    }),
+  }))
+  .client((): RouterClient<typeof router> => {
+    const link = new RPCLink({
+      url: new URL('/api/rpc', window.location.href),
     })
+
+    return createORPCClient(link)
   })
-  .client(() => {})
+
+export const client: RouterClient<typeof router> = getORPCClient()
+
+export const orpc = createORPCReactQueryUtils(client)
 ```
 
 :::

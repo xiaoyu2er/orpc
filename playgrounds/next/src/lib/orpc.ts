@@ -4,12 +4,19 @@ import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
 import { createORPCReactQueryUtils } from '@orpc/react-query'
 import { BatchLinkPlugin } from '@orpc/client/plugins'
+import type { headers } from 'next/headers'
 
-const rpcLink = new RPCLink({
+declare global {
+  var $headers: typeof headers
+}
+
+const link = new RPCLink({
   url: new URL('/rpc', typeof window !== 'undefined' ? window.location.href : 'http://localhost:3000'),
-  headers: () => ({
-    Authorization: 'Bearer default-token',
-  }),
+  headers: async () => {
+    return globalThis.$headers
+      ? Object.fromEntries(await globalThis.$headers())
+      : {}
+  },
   plugins: [
     new BatchLinkPlugin({
       groups: [{
@@ -20,6 +27,6 @@ const rpcLink = new RPCLink({
   ],
 })
 
-export const client: RouterClient<typeof router> = createORPCClient(rpcLink)
+export const client: RouterClient<typeof router> = createORPCClient(link)
 
 export const orpc = createORPCReactQueryUtils(client)

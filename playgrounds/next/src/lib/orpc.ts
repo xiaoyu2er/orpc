@@ -5,11 +5,17 @@ import { RPCLink } from '@orpc/client/fetch'
 import { createORPCReactQueryUtils } from '@orpc/react-query'
 import { BatchLinkPlugin } from '@orpc/client/plugins'
 
-const rpcLink = new RPCLink({
+/**
+ * This is part of the Optimize SSR setup.
+ *
+ * @see {@link https://orpc.unnoq.com/docs/integrations/next#optimize-ssr}
+ */
+declare global {
+  var $client: RouterClient<typeof router> | undefined
+}
+
+const link = new RPCLink({
   url: new URL('/rpc', typeof window !== 'undefined' ? window.location.href : 'http://localhost:3000'),
-  headers: () => ({
-    Authorization: 'Bearer default-token',
-  }),
   plugins: [
     new BatchLinkPlugin({
       groups: [{
@@ -20,6 +26,6 @@ const rpcLink = new RPCLink({
   ],
 })
 
-export const orpcClient: RouterClient<typeof router> = createORPCClient(rpcLink)
+export const client: RouterClient<typeof router> = globalThis.$client ?? createORPCClient(link)
 
-export const orpc = createORPCReactQueryUtils(orpcClient)
+export const orpc = createORPCReactQueryUtils(client)

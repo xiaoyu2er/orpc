@@ -97,7 +97,7 @@ export default defineConfig({
           items: [
             { text: 'Express', link: '/docs/integrations/express' },
             { text: 'Fastify', link: '/docs/integrations/fastify' },
-            { text: 'Next.js', link: '/docs/integrations/nextjs' },
+            { text: 'Next.js', link: '/docs/integrations/next' },
             { text: 'Nuxt', link: '/docs/integrations/nuxt' },
             { text: 'Hono', link: '/docs/integrations/hono' },
             { text: 'Tanstack Start', link: '/docs/integrations/tanstack-start' },

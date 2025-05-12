@@ -24,7 +24,7 @@ We use **Vitest** for testing and **ESLint** with [@antfu/eslint-config](https:/
 5. **Code**: Make your changes.
 6. **Test**: Manually verify in a playground, e.g.:
    ```bash
-   cd playgrounds/nextjs
+   cd playgrounds/next
    pnpm dev
    ```
 7. **Tests**: Add or update tests:

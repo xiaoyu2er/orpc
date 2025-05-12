@@ -731,7 +731,7 @@ importers:
         specifier: ^3.24.4
         version: 3.24.4
 
-  playgrounds/nextjs:
+  playgrounds/next:
     devDependencies:
       '@orpc/client':
         specifier: next

@@ -15,6 +15,8 @@ oRPC also supports [Server Action](/docs/server-action) out-of-the-box without a
 
 You can integrate oRPC with TanStack Start using its [Route Handlers](https://nextjs.org/docs/app/building-your-application/routing/route-handlers).
 
+::: code-group
+
 ```ts [app/rpc/[[...rest]]/route.ts]
 import { RPCHandler } from '@orpc/server/fetch'
 
@@ -36,6 +38,8 @@ export const PUT = handleRequest
 export const PATCH = handleRequest
 export const DELETE = handleRequest
 ```
+
+:::
 
 ::: info
 The `handler` can be any supported oRPC handler, such as [RPCHandler](/docs/rpc-handler), [OpenAPIHandler](/docs/openapi/openapi-handler), or another custom handler.

@@ -8,7 +8,7 @@ description: Seamlessly integrate oRPC with Next.js
 [Next.js](https://nextjs.org/) is a leading React framework for server-rendered apps. oRPC works with both the [App Router](https://nextjs.org/docs/app/getting-started/installation) and [Pages Router](https://nextjs.org/docs/pages/getting-started/installation). For additional context, refer to the [HTTP Adapter](/docs/adapters/http) guide.
 
 ::: info
-oRPC also supports [Server Action](/docs/server-action) out-of-the-box without any extra configuration.
+oRPC also provides out-of-the-box support for [Server Action](/docs/server-action) with no additional configuration required.
 :::
 
 ## Server
@@ -89,7 +89,7 @@ export const config = {
 
 ## Client
 
-On the client, to make client friendly with SSR, because Next.js does not built-in support `Isomorphic Functions` so need need some tricks to achieve it by using `globalThis.$headers` on ssr. Alternative you can use react context like the approach mention in [discussions#330](https://github.com/unnoq/orpc/discussions/330#discussioncomment-12727779)
+Next.js doesn’t natively support isomorphic functions, so you need a workaround to make client-side code compatible with SSR. This example uses `globalThis.$headers` as that workaround. Alternatively, you can use React Context like the approach mentioned in [discussions#330](https://github.com/unnoq/orpc/discussions/330#discussioncomment-12727779).
 
 ::: code-group
 

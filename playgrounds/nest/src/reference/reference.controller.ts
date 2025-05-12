@@ -23,9 +23,10 @@ export class ReferenceController {
             data-url="/spec.json"
             data-configuration="${JSON.stringify({
               authentication: {
-                preferredSecurityScheme: 'bearerAuth',
-                http: {
-                  bearer: { token: 'default-token' },
+                securitySchemes: {
+                  bearerAuth: {
+                    token: 'default-token',
+                  },
                 },
               },
             }).replaceAll('"', '&quot;')}">

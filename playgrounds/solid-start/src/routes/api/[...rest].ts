@@ -33,11 +33,20 @@ const handler = new OpenAPIHandler(router, {
           },
         },
       },
+      docsConfig: {
+        authentication: {
+          securitySchemes: {
+            bearerAuth: {
+              token: 'default-token',
+            },
+          },
+        },
+      },
     }),
   ],
 })
 
-async function handle({ request }: APIEvent) {
+export async function handle({ request }: APIEvent) {
   const context = request.headers.get('Authorization')
     ? { user: { id: 'test', name: 'John Doe', email: 'john@doe.com' } }
     : {}
@@ -50,6 +59,7 @@ async function handle({ request }: APIEvent) {
   return response ?? new Response('Not Found', { status: 404 })
 }
 
+export const HEAD = handle
 export const GET = handle
 export const POST = handle
 export const PUT = handle

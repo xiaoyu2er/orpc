@@ -32,6 +32,15 @@ const openAPIHandler = new OpenAPIHandler(router, {
           },
         },
       },
+      docsConfig: {
+        authentication: {
+          securitySchemes: {
+            bearerAuth: {
+              token: 'default-token',
+            },
+          },
+        },
+      },
     }),
   ],
 })

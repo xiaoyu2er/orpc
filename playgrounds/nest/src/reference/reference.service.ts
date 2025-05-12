@@ -7,6 +7,7 @@ export class ReferenceService {
     schemaConverters: [
       new ZodToJsonSchemaConverter(),
     ],
+
   })
 
   spec() {
@@ -14,6 +15,15 @@ export class ReferenceService {
       info: {
         title: 'ORPC Playground',
         version: '1.0.0',
+      },
+      security: [{ bearerAuth: [] }],
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: 'http',
+            scheme: 'bearer',
+          },
+        },
       },
       servers: [
         { url: 'http://localhost:3000' },

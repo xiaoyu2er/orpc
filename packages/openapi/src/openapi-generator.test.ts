@@ -752,22 +752,39 @@ it.each([
   }
 })
 
-it('openAPIGenerator.generate throw right away if unknown error', async () => {
-  const openAPIGenerator = new OpenAPIGenerator({
-    schemaConverters: [
-      {
-        condition: () => true,
-        convert: () => {
-          throw new Error('unknown error')
+describe('openAPIGenerator', () => {
+  it('openAPIGenerator.generate throw right away if unknown error', async () => {
+    const openAPIGenerator = new OpenAPIGenerator({
+      schemaConverters: [
+        {
+          condition: () => true,
+          convert: () => {
+            throw new Error('unknown error')
+          },
         },
+      ],
+    })
+
+    await expect(openAPIGenerator.generate(oc, {
+      info: {
+        title: 'test',
+        version: '1.0.0',
       },
-    ],
+    })).rejects.toThrow('unknown error')
   })
 
-  await expect(openAPIGenerator.generate(oc, {
-    info: {
-      title: 'test',
-      version: '1.0.0',
-    },
-  })).rejects.toThrow('unknown error')
+  it('openAPIGenerator.generate respect exclude option', async () => {
+    const openAPIGenerator = new OpenAPIGenerator({
+    })
+
+    const exclude = vi.fn(() => true)
+
+    await expect(openAPIGenerator.generate({ ping: oc }, { exclude })).resolves.toEqual({
+      openapi: '3.1.1',
+      info: { title: 'API Reference', version: '0.0.0' },
+    })
+
+    expect(exclude).toHaveBeenCalledTimes(1)
+    expect(exclude).toHaveBeenCalledWith(oc, ['ping'])
+  })
 })

@@ -571,6 +571,93 @@ const successResponseTests: TestCase[] = [
       },
     },
   },
+  {
+    name: 'outputStructure=detailed + multiple status',
+    contract: oc.route({ outputStructure: 'detailed' }).output(z.union([
+      z.object({ body: z.string() }),
+      z.object({ status: z.literal(201).describe('201 description'), body: z.object({ name: z.string() }), headers: z.object({ 'x-custom-header': z.string() }) }),
+    ])),
+    expected: {
+      '/': {
+        post: expect.objectContaining({
+          responses: {
+            200: {
+              description: 'OK',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'string',
+                  },
+                },
+              },
+            },
+            201: {
+              description: '201 description',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      name: { type: 'string' },
+                    },
+                    required: ['name'],
+                  },
+                },
+              },
+              headers: {
+                'x-custom-header': {
+                  required: true,
+                  schema: {
+                    type: 'string',
+                  },
+                },
+              },
+            },
+          },
+        }),
+      },
+    },
+  },
+  {
+    name: 'outputStructure=detailed + duplicate method',
+    contract: oc.route({ outputStructure: 'detailed' }).output(z.union([
+      z.object({ status: z.literal(201), body: z.string() }),
+      z.object({ status: z.literal(201).describe('201 description') }),
+    ])),
+    error: 'When output structure is "detailed", each success status must be unique.',
+  },
+  {
+    name: 'outputStructure=detailed + invalid status - 1',
+    contract: oc.route({ outputStructure: 'detailed' }).output(z.union([
+      z.object({ status: z.number(), body: z.string() }),
+      z.object({ status: z.literal(201).describe('201 description') }),
+    ])),
+    error: ' When output structure is "detailed", output schema must satisfy:',
+  },
+  {
+    name: 'outputStructure=detailed + invalid status - 2',
+    contract: oc.route({ outputStructure: 'detailed' }).output(z.union([
+      z.object({ status: z.literal('200'), body: z.string() }),
+      z.object({ status: z.literal(201).describe('201 description') }),
+    ])),
+    error: ' When output structure is "detailed", output schema must satisfy:',
+  },
+  {
+    name: 'outputStructure=detailed + invalid status - 3',
+    contract: oc.route({ outputStructure: 'detailed' }).output(z.union([
+      z.object({ status: z.literal(201.1), body: z.string() }),
+      z.object({ status: z.literal(201).describe('201 description') }),
+    ])),
+    error: ' When output structure is "detailed", output schema must satisfy:',
+  },
+  {
+    name: 'outputStructure=detailed + invalid status - 4',
+    contract: oc.route({ outputStructure: 'detailed' }).output(z.union([
+      z.object({ status: z.literal(400), body: z.string() }),
+      z.object({ status: z.literal(201).describe('201 description') }),
+    ])),
+    error: ' When output structure is "detailed", output schema must satisfy:',
+  },
 ]
 
 const errorResponseTests: TestCase[] = [
@@ -752,22 +839,37 @@ it.each([
   }
 })
 
-it('openAPIGenerator.generate throw right away if unknown error', async () => {
-  const openAPIGenerator = new OpenAPIGenerator({
-    schemaConverters: [
-      {
-        condition: () => true,
-        convert: () => {
-          throw new Error('unknown error')
-        },
+describe('openAPIGenerator', () => {
+  it('can generate without base docs', async () => {
+    const openAPIGenerator = new OpenAPIGenerator()
+    const spec = await openAPIGenerator.generate({})
+
+    expect(spec).toEqual({
+      openapi: '3.1.1',
+      info: {
+        title: 'API Reference',
+        version: '0.0.0',
       },
-    ],
+    })
   })
 
-  await expect(openAPIGenerator.generate(oc, {
-    info: {
-      title: 'test',
-      version: '1.0.0',
-    },
-  })).rejects.toThrow('unknown error')
+  it('openAPIGenerator.generate throw right away if unknown error', async () => {
+    const openAPIGenerator = new OpenAPIGenerator({
+      schemaConverters: [
+        {
+          condition: () => true,
+          convert: () => {
+            throw new Error('unknown error')
+          },
+        },
+      ],
+    })
+
+    await expect(openAPIGenerator.generate(oc, {
+      info: {
+        title: 'test',
+        version: '1.0.0',
+      },
+    })).rejects.toThrow('unknown error')
+  })
 })

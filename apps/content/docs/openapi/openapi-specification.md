@@ -114,7 +114,7 @@ You can exclude a procedure from the OpenAPI specification using the `exclude` o
 
 ```ts
 const spec = await generator.generate(router, {
-  exclude: procedure => !!procedure['~orpc'].route.tags?.includes('admin'),
+  exclude: (procedure, path) => !!procedure['~orpc'].route.tags?.includes('admin'),
 })
 ```
 

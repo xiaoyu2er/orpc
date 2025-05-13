@@ -777,14 +777,28 @@ describe('openAPIGenerator', () => {
     const openAPIGenerator = new OpenAPIGenerator({
     })
 
-    const exclude = vi.fn(() => true)
+    const exclude = vi.fn(procedure => !!procedure['~orpc'].route.tags?.includes('admin'))
 
-    await expect(openAPIGenerator.generate({ ping: oc }, { exclude })).resolves.toEqual({
-      openapi: '3.1.1',
-      info: { title: 'API Reference', version: '0.0.0' },
+    const ping = oc.route({
+      path: '/ping',
+      tags: ['admin'],
     })
 
-    expect(exclude).toHaveBeenCalledTimes(1)
-    expect(exclude).toHaveBeenCalledWith(oc, ['ping'])
+    const pong = oc.route({
+      path: '/pong',
+      tags: ['user'],
+    })
+
+    await expect(openAPIGenerator.generate({ ping, pong }, { exclude })).resolves.toEqual({
+      openapi: '3.1.1',
+      info: { title: 'API Reference', version: '0.0.0' },
+      paths: {
+        '/pong': expect.any(Object),
+      },
+    })
+
+    expect(exclude).toHaveBeenCalledTimes(2)
+    expect(exclude).toHaveBeenNthCalledWith(1, ping, ['ping'])
+    expect(exclude).toHaveBeenNthCalledWith(2, pong, ['pong'])
   })
 })

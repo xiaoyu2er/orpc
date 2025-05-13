@@ -1,5 +1,5 @@
 {
-  "name": "astro",
+  "name": "@orpc/astro-playground",
   "type": "module",
   "version": "0.0.1",
   "scripts": {
@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",
+    "@astrojs/react": "^4.2.7",
     "@orpc/client": "next",
     "@orpc/openapi": "next",
     "@orpc/react": "next",
@@ -18,7 +19,11 @@
     "@orpc/server": "next",
     "@orpc/zod": "next",
     "@tanstack/react-query": "^5.72.3",
+    "@types/react": "^19.1.4",
+    "@types/react-dom": "^19.1.5",
     "astro": "^5.7.12",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "typescript": "^5.8.3",
     "zod": "^3.24.2"
   }

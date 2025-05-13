@@ -1,5 +1,6 @@
 ---
-
+import { CreatePlanetMutationForm } from "../components/orpc-mutation";
+import { ListPlanetsQuery } from "../components/orpc-query";
 ---
 
 <div>
@@ -8,7 +9,7 @@
     <a href="/api">Scalar API Reference</a>
     page.
     <hr />
-    <!-- <CreatePlanetMutationForm /> -->
+    <CreatePlanetMutationForm client:only />
     <hr />
-    <!-- <ListPlanetsQuery /> -->
+    <ListPlanetsQuery client:only />
 </div>

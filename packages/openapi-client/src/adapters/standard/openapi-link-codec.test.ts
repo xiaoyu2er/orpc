@@ -334,7 +334,12 @@ describe('standardOpenapiLinkCodecOptions', () => {
         status: 201,
       }, { context: {}, signal }, ['ping'])
 
-      expect((output as any).headers).toEqual({ 'x-custom': 'value' })
+      expect(output).toEqual({
+        status: 201,
+        headers: { 'x-custom': 'value' },
+        body: deserialize.mock.results[0]!.value,
+      })
+
       expect((output as any).body).toBe(deserialize.mock.results[0]!.value)
 
       expect(deserialize).toHaveBeenCalledTimes(1)

@@ -51,7 +51,9 @@ export const prerender = false
 export const ALL: APIRoute = async ({ request }) => {
   const { response } = await handler.handle(request, {
     prefix: '/api',
-    context: {},
+    context: {
+      session: { user: { id: 'unique', name: 'unnoq', email: 'contact@unnoq.com' } },
+    },
   })
 
   return response ?? new Response('Not found', { status: 404 })

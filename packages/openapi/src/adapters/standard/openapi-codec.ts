@@ -71,8 +71,8 @@ export class StandardOpenAPICodec implements StandardCodec {
         Invalid "detailed" output structure:
         • Expected an object with optional properties:
           - status (number 200-399)
-          - body (any)
           - headers (Record<string, string | string[]>)
+          - body (any)
         • No extra keys allowed.
 
         Actual value:

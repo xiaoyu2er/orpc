@@ -99,13 +99,13 @@ export interface Route {
    * Determines how the response should be structured based on the output.
    *
    * @option 'compact'
-   * Includes only the body data, encoded directly in the response.
+   * The output data is directly returned as the response body.
    *
    * @option 'detailed'
-   * Separates the output into optional fields:
+   * Return an object with optional properties:
    * - `status`: The response status (must be in 200-399 range) if not set fallback to `successStatus`.
-   * - `headers`: Custom headers to merge with the response headers.
-   * - `body`: The response data.
+   * - `headers`: Custom headers to merge with the response headers (`Record<string, string | string[] | undefined>`)
+   * - `body`: The response body.
    *
    * Example:
    * ```ts

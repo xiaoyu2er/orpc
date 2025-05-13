@@ -9,12 +9,11 @@ oRPC allows you to control the organization of request inputs and response outpu
 
 ## Input Structure
 
-The `inputStructure` option defines how the incoming request data is structured. You can choose between two modes:
+The `inputStructure` option defines how the incoming request data is structured.
 
-- **compact** (default): Merges path parameters with either the query or body data (depending on the HTTP method) into a single object.
-- **detailed**: Separates the request into distinct objects for `params`, `query`, `headers`, and `body`.
+### Compact Mode (default)
 
-### Compact Mode
+Combines path parameters with query or body data (depending on the HTTP method) into a single object.
 
 ```ts
 const compactMode = os.route({
@@ -28,6 +27,13 @@ const compactMode = os.route({
 ```
 
 ### Detailed Mode
+
+Provide an object whose fields correspond to each part of the request:
+
+- `params`: Path parameters (`Record<string, string> | undefined`)
+- `query`: Query string data (`any`)
+- `headers`: Headers (`Record<string, string | string[] | undefined>`)
+- `body`: Body data (`any`)
 
 ```ts
 const detailedMode = os.route({
@@ -43,27 +49,13 @@ const detailedMode = os.route({
   }))
 ```
 
-When using **detailed** mode, the input object adheres to the following structure:
-
-```ts
-export type DetailedInput = {
-  params: Record<string, string> | undefined
-  query: any
-  body: any
-  headers: Record<string, string | string[] | undefined>
-}
-```
-
-Ensure your input schema matches this structure when detailed mode is enabled.
-
 ## Output Structure
 
-The `outputStructure` option determines the format of the response data. There are two modes:
+The `outputStructure` option determines the format of the response based on the output data.
 
-- **compact** (default): Returns only the body data directly.
-- **detailed**: Returns an object with separate `headers` and `body` fields. The headers you provide are merged into the final HTTP response headers.
+### Compact Mode (default)
 
-### Compact Mode
+Returns the output data directly as the response body.
 
 ```ts
 const compactMode = os
@@ -74,27 +66,23 @@ const compactMode = os
 
 ### Detailed Mode
 
+Returns an object with these optional properties:
+
+- `status`: The response status (must be in 200-399 range) if not set fallback to `successStatus`.
+- `headers`: Custom headers to merge with the response headers (`Record<string, string | string[] | undefined>`).
+- `body`: The response body.
+
 ```ts
 const detailedMode = os
   .route({ outputStructure: 'detailed' })
   .handler(async ({ input }) => {
     return {
+      status: 201,
       headers: { 'x-custom-header': 'value' },
       body: { message: 'Hello, world!' },
     }
   })
 ```
-
-When using **detailed** mode, the output object follows this structure:
-
-```ts
-export type DetailedOutput = {
-  headers: Record<string, string | string[] | undefined>
-  body: any
-}
-```
-
-Make sure your handler’s return value matches this structure when using detailed mode.
 
 ## Initial Configuration
 

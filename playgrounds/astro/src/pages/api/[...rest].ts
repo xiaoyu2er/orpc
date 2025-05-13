@@ -1,0 +1,58 @@
+import '../../polyfill'
+import { OpenAPIHandler } from '@orpc/openapi/fetch'
+import { onError } from '@orpc/server'
+import { ZodSmartCoercionPlugin, ZodToJsonSchemaConverter } from '@orpc/zod'
+import { OpenAPIReferencePlugin } from '@orpc/openapi/plugins'
+import { router } from '../../router'
+import type { APIRoute } from 'astro'
+
+const handler = new OpenAPIHandler(router, {
+  interceptors: [
+    onError((error) => {
+      console.error(error)
+    }),
+  ],
+  plugins: [
+    new ZodSmartCoercionPlugin(),
+    new OpenAPIReferencePlugin({
+      schemaConverters: [
+        new ZodToJsonSchemaConverter(),
+      ],
+      specGenerateOptions: {
+        info: {
+          title: 'ORPC Playground',
+          version: '1.0.0',
+        },
+        security: [{ bearerAuth: [] }],
+        components: {
+          securitySchemes: {
+            bearerAuth: {
+              type: 'http',
+              scheme: 'bearer',
+            },
+          },
+        },
+      },
+      docsConfig: {
+        authentication: {
+          securitySchemes: {
+            bearerAuth: {
+              token: 'default-token',
+            },
+          },
+        },
+      },
+    }),
+  ],
+})
+
+export const prerender = false
+
+export const ALL: APIRoute = async ({ request }) => {
+  const { response } = await handler.handle(request, {
+    prefix: '/api',
+    context: {},
+  })
+
+  return response ?? new Response('Not found', { status: 404 })
+}

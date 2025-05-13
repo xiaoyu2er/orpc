@@ -1,0 +1,25 @@
+{
+  "name": "astro",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "type:check": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@orpc/client": "next",
+    "@orpc/openapi": "next",
+    "@orpc/react": "next",
+    "@orpc/react-query": "next",
+    "@orpc/server": "next",
+    "@orpc/zod": "next",
+    "@tanstack/react-query": "^5.72.3",
+    "astro": "^5.7.12",
+    "typescript": "^5.8.3",
+    "zod": "^3.24.2"
+  }
+}

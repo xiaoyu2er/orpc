@@ -77,9 +77,34 @@ const detailedMode = os
   .route({ outputStructure: 'detailed' })
   .handler(async ({ input }) => {
     return {
-      status: 201,
       headers: { 'x-custom-header': 'value' },
       body: { message: 'Hello, world!' },
+    }
+  })
+
+const multipleStatus = os
+  .route({ outputStructure: 'detailed' })
+  .output(z.union([ // for openapi spec generator
+    z.object({
+      status: z.literal(201).describe('record created'),
+      body: z.string()
+    }),
+    z.object({
+      status: z.literal(200).describe('record updated'),
+      body: z.string()
+    }),
+  ]))
+  .handler(async ({ input }) => {
+    if (something) {
+      return {
+        status: 201,
+        body: 'created',
+      }
+    }
+
+    return {
+      status: 200,
+      body: 'updated',
     }
   })
 ```

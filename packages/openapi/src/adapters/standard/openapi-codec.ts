@@ -3,8 +3,9 @@ import type { StandardOpenAPISerializer } from '@orpc/openapi-client/standard'
 import type { AnyProcedure } from '@orpc/server'
 import type { StandardCodec, StandardParams } from '@orpc/server/standard'
 import type { StandardHeaders, StandardLazyRequest, StandardResponse } from '@orpc/standard-server'
+import { isORPCErrorStatus } from '@orpc/client'
 import { fallbackContractConfig } from '@orpc/contract'
-import { isObject } from '@orpc/shared'
+import { isObject, stringifyJSON } from '@orpc/shared'
 
 export class StandardOpenAPICodec implements StandardCodec {
   constructor(
@@ -65,15 +66,23 @@ export class StandardOpenAPICodec implements StandardCodec {
       }
     }
 
-    if (!isObject(output)) {
-      throw new Error(
-        'Invalid output structure for "detailed" output. Expected format: { body: any, headers?: Record<string, string | string[] | undefined> }',
-      )
+    if (!this.#isDetailedOutput(output)) {
+      throw new Error(`
+        Invalid "detailed" output structure:
+        • Expected an object with optional properties:
+          - status (number 200-399)
+          - headers (Record<string, string | string[]>)
+          - body (any)
+        • No extra keys allowed.
+
+        Actual value:
+          ${stringifyJSON(output)}
+      `)
     }
 
     return {
-      status: successStatus,
-      headers: output.headers as StandardHeaders ?? {},
+      status: output.status ?? successStatus,
+      headers: output.headers ?? {},
       body: this.serializer.serialize(output.body),
     }
   }
@@ -84,5 +93,21 @@ export class StandardOpenAPICodec implements StandardCodec {
       headers: {},
       body: this.serializer.serialize(error.toJSON(), { outputFormat: 'plain' }),
     }
+  }
+
+  #isDetailedOutput(output: unknown): output is { status?: number, body?: unknown, headers?: StandardHeaders } {
+    if (!isObject(output)) {
+      return false
+    }
+
+    if (output.headers && !isObject(output.headers)) {
+      return false
+    }
+
+    if (output.status !== undefined && (typeof output.status !== 'number' || !Number.isInteger(output.status) || isORPCErrorStatus(output.status))) {
+      return false
+    }
+
+    return true
   }
 }

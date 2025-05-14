@@ -136,3 +136,22 @@ export function applySchemaOptionality(required: boolean, schema: JSONSchema): J
     ],
   }
 }
+
+/**
+ * Takes a JSON schema and, if it's primarily a union type (anyOf, oneOf),
+ * recursively expands it into an array of its constituent, non-union base schemas.
+ * If the schema is not a simple union or is a base type, it's returned as a single-element array.
+ */
+export function expandUnionSchema(schema: JSONSchema): JSONSchema[] {
+  if (typeof schema === 'object') {
+    for (const keyword of ['anyOf', 'oneOf'] as const) {
+      if (schema[keyword] && Object.keys(schema).every(
+        k => k === keyword || !LOGIC_KEYWORDS.includes(k),
+      )) {
+        return schema[keyword].flatMap(s => expandUnionSchema(s))
+      }
+    }
+  }
+
+  return [schema]
+}

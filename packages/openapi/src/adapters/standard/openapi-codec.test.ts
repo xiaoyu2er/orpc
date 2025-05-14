@@ -18,7 +18,7 @@ describe('standardOpenAPICodec', () => {
   describe('.decode', () => {
     describe('with compact structure', () => {
       it('with GET method', async () => {
-        serializer.deserialize.mockReturnValueOnce('__deserialized__')
+        serializer.deserialize.mockReturnValueOnce(undefined)
 
         const url = new URL('http://localhost/api/v1?data=data')
         url.searchParams.append('data', JSON.stringify('__data__'))
@@ -29,9 +29,9 @@ describe('standardOpenAPICodec', () => {
           body: vi.fn(),
           headers: {},
           signal: undefined,
-        }, undefined, ping)
+        }, { name: 'John Doe' }, ping)
 
-        expect(input).toEqual('__deserialized__')
+        expect(input).toEqual({ name: 'John Doe' })
 
         expect(serializer.deserialize).toHaveBeenCalledOnce()
         expect(serializer.deserialize).toHaveBeenCalledWith(url.searchParams)
@@ -51,6 +51,25 @@ describe('standardOpenAPICodec', () => {
         }, undefined, ping)
 
         expect(input).toEqual('__deserialized__')
+
+        expect(serializer.deserialize).toHaveBeenCalledOnce()
+        expect(serializer.deserialize).toHaveBeenCalledWith(serialized)
+      })
+
+      it('params and body are merged', async () => {
+        const serialized = '__data__'
+
+        serializer.deserialize.mockReturnValueOnce({ v1: 'v1' })
+
+        const input = await codec.decode({
+          method: 'POST',
+          url: new URL('http://localhost/api/v1?data=data'),
+          body: vi.fn(async () => serialized),
+          headers: {},
+          signal: undefined,
+        }, { v2: 'v2' }, ping)
+
+        expect(input).toEqual({ v1: 'v1', v2: 'v2' })
 
         expect(serializer.deserialize).toHaveBeenCalledOnce()
         expect(serializer.deserialize).toHaveBeenCalledWith(serialized)
@@ -124,6 +143,26 @@ describe('standardOpenAPICodec', () => {
         expect(serializer.deserialize).toHaveBeenNthCalledWith(1, serialized)
         expect(serializer.deserialize).toHaveBeenNthCalledWith(2, url.searchParams)
       })
+
+      it('can set query', async () => {
+        const serialized = '__data__'
+
+        serializer.deserialize.mockReturnValue('__deserialized__')
+        const url = new URL('http://localhost/api/v1?data=data')
+
+        const input = await codec.decode({
+          method: 'POST',
+          url,
+          body: vi.fn(async () => serialized),
+          headers: {
+            'content-type': 'application/json',
+          },
+          signal: undefined,
+        }, { name: 'John Doe' }, procedure) as any
+
+        input.query = { name: 'John Doe' }
+        expect(input.query).toEqual({ name: 'John Doe' })
+      })
     })
   })
 
@@ -152,10 +191,6 @@ describe('standardOpenAPICodec', () => {
         },
       })
 
-      it('throw on invalid output', async () => {
-        expect(() => codec.encode('__output__', procedure)).toThrowError()
-      })
-
       it('works', async () => {
         serializer.serialize.mockReturnValue('__serialized__')
 
@@ -175,15 +210,56 @@ describe('standardOpenAPICodec', () => {
           body: '__serialized__',
         })
 
+        expect(serializer.serialize).toHaveBeenCalledTimes(1)
+        expect(serializer.serialize).toHaveBeenCalledWith('__output__')
+      })
+
+      it('works with empty output', async () => {
+        serializer.serialize.mockReturnValue('__serialized__')
+
         expect(codec.encode({}, procedure)).toEqual({
           status: 298,
           headers: {},
           body: '__serialized__',
         })
 
-        expect(serializer.serialize).toHaveBeenCalledTimes(2)
-        expect(serializer.serialize).toHaveBeenNthCalledWith(1, '__output__')
-        expect(serializer.serialize).toHaveBeenNthCalledWith(2, undefined)
+        expect(serializer.serialize).toHaveBeenCalledTimes(1)
+        expect(serializer.serialize).toHaveBeenCalledWith(undefined)
+      })
+
+      it('works with custom status', async () => {
+        serializer.serialize.mockReturnValue('__serialized__')
+
+        const output = {
+          status: 201,
+          body: '__output__',
+          headers: {
+            'x-custom-header': 'custom-value',
+          },
+        }
+        const response = codec.encode(output, procedure)
+
+        expect(response).toEqual({
+          status: 201,
+          headers: {
+            'x-custom-header': 'custom-value',
+          },
+          body: '__serialized__',
+        })
+
+        expect(serializer.serialize).toHaveBeenCalledTimes(1)
+        expect(serializer.serialize).toHaveBeenCalledWith('__output__')
+      })
+
+      it.each([
+        'invalid',
+        { status: 'invalid' },
+        { status: 400 },
+        { status: 200.1 },
+        { status: 'invalid' },
+        { headers: 'invalid' },
+      ])('throw on invalid output: %s', async (output) => {
+        expect(() => codec.encode(output, procedure)).toThrowError()
       })
     })
   })

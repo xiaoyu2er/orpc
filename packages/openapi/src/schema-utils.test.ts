@@ -1,6 +1,6 @@
 import type { JSONSchema, ObjectSchema } from './schema'
 import { isObject } from '@orpc/shared'
-import { applySchemaOptionality, filterSchemaBranches, isAnySchema, isFileSchema, isObjectSchema, separateObjectSchema } from './schema-utils'
+import { applySchemaOptionality, expandUnionSchema, filterSchemaBranches, isAnySchema, isFileSchema, isObjectSchema, separateObjectSchema } from './schema-utils'
 
 it('isFileSchema', () => {
   expect(isFileSchema({ type: 'string', contentMediaType: 'image/png' })).toBe(true)
@@ -201,4 +201,16 @@ it('applySchemaOptionality', () => {
   expect(applySchemaOptionality(true, { type: 'string' })).toEqual({ type: 'string' })
   expect(applySchemaOptionality(false, { type: 'string' })).toEqual({ anyOf: [{ type: 'string' }, { not: {} }] })
   expect(applySchemaOptionality(false, true)).toEqual({ anyOf: [true, { not: {} }] })
+})
+
+it('expandUnionSchema', () => {
+  expect(expandUnionSchema(true)).toEqual([true])
+  expect(expandUnionSchema({ type: 'string' })).toEqual([{ type: 'string' }])
+  expect(expandUnionSchema({ anyOf: [{ type: 'string' }, { type: 'number' }] })).toEqual([{ type: 'string' }, { type: 'number' }])
+  expect(expandUnionSchema({ oneOf: [{ type: 'string' }, { type: 'number' }] })).toEqual([{ type: 'string' }, { type: 'number' }])
+  expect(expandUnionSchema({ description: 'description', anyOf: [{ type: 'string' }, { type: 'number' }] })).toEqual([{ type: 'string' }, { type: 'number' }])
+  expect(expandUnionSchema({ anyOf: [{ type: 'string' }, { oneOf: [{ type: 'boolean' }, { type: 'number' }] }] })).toEqual([{ type: 'string' }, { type: 'boolean' }, { type: 'number' }])
+
+  expect(expandUnionSchema({ allOf: [{ type: 'string' }, { type: 'number' }] })).toEqual([{ allOf: [{ type: 'string' }, { type: 'number' }] }])
+  expect(expandUnionSchema({ type: 'string', anyOf: [{ type: 'string' }, { type: 'number' }] })).toEqual([{ type: 'string', anyOf: [{ type: 'string' }, { type: 'number' }] }])
 })

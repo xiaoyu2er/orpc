@@ -240,6 +240,7 @@ export class StandardOpenapiLinkCodec<T extends ClientContext> implements Standa
     }
 
     return {
+      status: response.status,
       headers: response.headers,
       body: deserialized,
     }

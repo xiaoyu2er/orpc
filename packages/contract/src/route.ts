@@ -54,6 +54,7 @@ export interface Route {
 
   /**
    * The status code of the response when the procedure is successful.
+   * The status code must be in the 200-399 range.
    * This option is typically relevant when integrating with OpenAPI.
    *
    * @see {@link https://orpc.unnoq.com/docs/openapi/routing OpenAPI Routing Docs}
@@ -98,16 +99,18 @@ export interface Route {
    * Determines how the response should be structured based on the output.
    *
    * @option 'compact'
-   * Includes only the body data, encoded directly in the response.
+   * The output data is directly returned as the response body.
    *
    * @option 'detailed'
-   * Separates the output into `headers` and `body` fields.
-   * - `headers`: Custom headers to merge with the response headers.
-   * - `body`: The response data.
+   * Return an object with optional properties:
+   * - `status`: The response status (must be in 200-399 range) if not set fallback to `successStatus`.
+   * - `headers`: Custom headers to merge with the response headers (`Record<string, string | string[] | undefined>`)
+   * - `body`: The response body.
    *
    * Example:
    * ```ts
    * const output = {
+   *   status: 201,
    *   headers: { 'x-custom-header': 'value' },
    *   body: { message: 'Hello, world!' },
    * };

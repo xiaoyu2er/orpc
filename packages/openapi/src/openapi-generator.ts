@@ -4,16 +4,16 @@ import type { AnyProcedure, AnyRouter } from '@orpc/server'
 import type { OpenAPI } from './openapi'
 import type { JSONSchema } from './schema'
 import type { ConditionalSchemaConverter, SchemaConverter } from './schema-converter'
-import { fallbackORPCErrorMessage, fallbackORPCErrorStatus } from '@orpc/client'
+import { fallbackORPCErrorMessage, fallbackORPCErrorStatus, isORPCErrorStatus } from '@orpc/client'
 import { toHttpPath } from '@orpc/client/standard'
 import { fallbackContractConfig, getEventIteratorSchemaDetails } from '@orpc/contract'
 import { getDynamicParams, StandardOpenAPIJsonSerializer } from '@orpc/openapi-client/standard'
 import { resolveContractProcedures } from '@orpc/server'
-import { clone, toArray } from '@orpc/shared'
+import { clone, stringifyJSON, toArray } from '@orpc/shared'
 import { applyCustomOpenAPIOperation } from './openapi-custom'
 import { checkParamsSchema, toOpenAPIContent, toOpenAPIEventIteratorContent, toOpenAPIMethod, toOpenAPIParameters, toOpenAPIPath, toOpenAPISchema } from './openapi-utils'
 import { CompositeSchemaConverter } from './schema-converter'
-import { applySchemaOptionality, isAnySchema, isObjectSchema, separateObjectSchema } from './schema-utils'
+import { applySchemaOptionality, expandUnionSchema, isAnySchema, isObjectSchema, separateObjectSchema } from './schema-utils'
 
 class OpenAPIGeneratorError extends Error {}
 
@@ -250,44 +250,92 @@ export class OpenAPIGenerator {
 
     const [required, json] = await this.converter.convert(outputSchema, { strategy: 'output' })
 
-    ref.responses ??= {}
-    ref.responses[status] = {
-      description,
-    }
-
     if (outputStructure === 'compact') {
+      ref.responses ??= {}
+      ref.responses[status] = {
+        description,
+      }
+
       ref.responses[status].content = toOpenAPIContent(applySchemaOptionality(required, json))
 
       return
     }
 
-    const error = new OpenAPIGeneratorError(
-      'When output structure is "detailed", output schema must satisfy: '
-      + '{ headers?: Record<string, unknown>, body?: unknown }',
-    )
+    const handledStatuses = new Set<number>()
 
-    if (!isObjectSchema(json)) {
-      throw error
-    }
+    for (const item of expandUnionSchema(json)) {
+      const error = new OpenAPIGeneratorError(`
+        When output structure is "detailed", output schema must satisfy:
+        { 
+          status?: number, // must be a literal number and in the range of 200-399
+          headers?: Record<string, unknown>, 
+          body?: unknown 
+        }
+        
+        But got: ${stringifyJSON(item)}
+      `)
 
-    if (json.properties?.headers !== undefined) {
-      if (!isObjectSchema(json.properties.headers)) {
+      if (!isObjectSchema(item)) {
         throw error
       }
 
-      for (const key in json.properties.headers.properties) {
-        ref.responses[status].headers ??= {}
-        ref.responses[status].headers[key] = {
-          schema: toOpenAPISchema(json.properties.headers.properties[key]!) as any,
-          required: json.properties.headers.required?.includes(key),
+      let schemaStatus: number | undefined
+      let schemaDescription: string | undefined
+
+      if (item.properties?.status !== undefined) {
+        if (typeof item.properties.status !== 'object'
+          || item.properties.status.const === undefined
+          || typeof item.properties.status.const !== 'number'
+          || !Number.isInteger(item.properties.status.const)
+          || isORPCErrorStatus(item.properties.status.const)
+        ) {
+          throw error
+        }
+
+        schemaStatus = item.properties.status.const
+        schemaDescription = item.properties.status.description
+      }
+
+      const itemStatus = schemaStatus ?? status
+      const itemDescription = schemaDescription ?? description
+
+      if (handledStatuses.has(itemStatus)) {
+        throw new OpenAPIGeneratorError(`
+          When output structure is "detailed", each success status must be unique.
+          But got status: ${itemStatus} used more than once.
+        `)
+      }
+
+      handledStatuses.add(itemStatus)
+
+      ref.responses ??= {}
+      ref.responses[itemStatus] = {
+        description: itemDescription,
+      }
+
+      if (item.properties?.headers !== undefined) {
+        if (!isObjectSchema(item.properties.headers)) {
+          throw error
+        }
+
+        for (const key in item.properties.headers.properties) {
+          const headerSchema = item.properties.headers.properties[key]
+
+          if (headerSchema !== undefined) {
+            ref.responses[itemStatus].headers ??= {}
+            ref.responses[itemStatus].headers[key] = {
+              schema: toOpenAPISchema(headerSchema) as any,
+              required: item.properties.headers.required?.includes(key),
+            }
+          }
         }
       }
-    }
 
-    if (json.properties?.body !== undefined) {
-      ref.responses[status].content = toOpenAPIContent(
-        applySchemaOptionality(json.required?.includes('body') ?? false, json.properties.body),
-      )
+      if (item.properties?.body !== undefined) {
+        ref.responses[itemStatus].content = toOpenAPIContent(
+          applySchemaOptionality(item.required?.includes('body') ?? false, item.properties.body),
+        )
+      }
     }
   }
 

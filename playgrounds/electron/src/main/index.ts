@@ -1,6 +1,8 @@
 import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { join } from 'node:path'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
+import { experimental_RPCHandler as RPCHandler } from '@orpc/server/electron-ipc'
+import { router } from './router'
 
 function createWindow(): void {
   // Create the browser window.
@@ -34,6 +36,8 @@ function createWindow(): void {
   }
 }
 
+const handler = new RPCHandler(router)
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -59,6 +63,8 @@ app.whenReady().then(() => {
     if (BrowserWindow.getAllWindows().length === 0)
       createWindow()
   })
+
+  handler.upgrade()
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common

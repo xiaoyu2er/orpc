@@ -4,6 +4,7 @@
     "composite": true,
     "jsx": "react-jsx",
     "baseUrl": ".",
+    "moduleResolution": "bundler",
     "paths": {
       "@renderer/*": [
         "src/renderer/src/*"
@@ -11,6 +12,7 @@
     },
     "types": ["vite/client"]
   },
+  "references": [{ "path": "./tsconfig.node.json" }],
   "include": [
     "src/renderer/src/env.d.ts",
     "src/renderer/src/**/*",

@@ -1,5 +1,6 @@
 import { contextBridge } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+import { experimental_exposeORPCHandlerChannel as exposeORPCHandlerChannel } from '@orpc/server/electron-ipc'
 
 // Custom APIs for renderer
 const api = {}
@@ -22,3 +23,5 @@ else {
   // @ts-expect-error (define in dts)
   window.api = api
 }
+
+exposeORPCHandlerChannel()

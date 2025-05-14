@@ -752,22 +752,53 @@ it.each([
   }
 })
 
-it('openAPIGenerator.generate throw right away if unknown error', async () => {
-  const openAPIGenerator = new OpenAPIGenerator({
-    schemaConverters: [
-      {
-        condition: () => true,
-        convert: () => {
-          throw new Error('unknown error')
+describe('openAPIGenerator', () => {
+  it('openAPIGenerator.generate throw right away if unknown error', async () => {
+    const openAPIGenerator = new OpenAPIGenerator({
+      schemaConverters: [
+        {
+          condition: () => true,
+          convert: () => {
+            throw new Error('unknown error')
+          },
         },
+      ],
+    })
+
+    await expect(openAPIGenerator.generate(oc, {
+      info: {
+        title: 'test',
+        version: '1.0.0',
       },
-    ],
+    })).rejects.toThrow('unknown error')
   })
 
-  await expect(openAPIGenerator.generate(oc, {
-    info: {
-      title: 'test',
-      version: '1.0.0',
-    },
-  })).rejects.toThrow('unknown error')
+  it('openAPIGenerator.generate respect exclude option', async () => {
+    const openAPIGenerator = new OpenAPIGenerator({
+    })
+
+    const exclude = vi.fn(procedure => !!procedure['~orpc'].route.tags?.includes('admin'))
+
+    const ping = oc.route({
+      path: '/ping',
+      tags: ['admin'],
+    })
+
+    const pong = oc.route({
+      path: '/pong',
+      tags: ['user'],
+    })
+
+    await expect(openAPIGenerator.generate({ ping, pong }, { exclude })).resolves.toEqual({
+      openapi: '3.1.1',
+      info: { title: 'API Reference', version: '0.0.0' },
+      paths: {
+        '/pong': expect.any(Object),
+      },
+    })
+
+    expect(exclude).toHaveBeenCalledTimes(2)
+    expect(exclude).toHaveBeenNthCalledWith(1, ping, ['ping'])
+    expect(exclude).toHaveBeenNthCalledWith(2, pong, ['pong'])
+  })
 })

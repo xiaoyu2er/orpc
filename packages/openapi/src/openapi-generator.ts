@@ -290,7 +290,7 @@ export class OpenAPIGenerator {
       if (handledStatuses.has(itemStatus)) {
         throw new OpenAPIGeneratorError(`
           When output structure is "detailed", each success status must be unique.
-          But got status: ${status} used more than once.
+          But got status: ${itemStatus} used more than once.
         `)
       }
 
@@ -307,10 +307,14 @@ export class OpenAPIGenerator {
         }
 
         for (const key in item.properties.headers.properties) {
-          ref.responses[itemStatus].headers ??= {}
-          ref.responses[itemStatus].headers[key] = {
-            schema: toOpenAPISchema(item.properties.headers.properties[key]!) as any,
-            required: item.properties.headers.required?.includes(key),
+          const headerSchema = item.properties.headers.properties[key]
+
+          if (headerSchema !== undefined) {
+            ref.responses[itemStatus].headers ??= {}
+            ref.responses[itemStatus].headers[key] = {
+              schema: toOpenAPISchema(headerSchema) as any,
+              required: item.properties.headers.required?.includes(key),
+            }
           }
         }
       }

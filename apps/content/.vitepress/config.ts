@@ -25,11 +25,9 @@ export default defineConfig({
     logo: '/logo.webp',
     siteTitle: '',
     search: {
-      provider: 'algolia',
+      provider: 'local',
       options: {
-        appId: '5J4R00MYLR',
-        apiKey: '18907432ad0cf53d8b33397a85fa98a7',
-        indexName: 'orpc-unnoq',
+        detailedView: true,
       },
     },
     socialLinks: [

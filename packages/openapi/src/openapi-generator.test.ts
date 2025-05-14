@@ -872,4 +872,33 @@ describe('openAPIGenerator', () => {
       },
     })).rejects.toThrow('unknown error')
   })
+
+  it('respect exclude option', async () => {
+    const openAPIGenerator = new OpenAPIGenerator({
+    })
+
+    const exclude = vi.fn(procedure => !!procedure['~orpc'].route.tags?.includes('admin'))
+
+    const ping = oc.route({
+      path: '/ping',
+      tags: ['admin'],
+    })
+
+    const pong = oc.route({
+      path: '/pong',
+      tags: ['user'],
+    })
+
+    await expect(openAPIGenerator.generate({ ping, pong }, { exclude })).resolves.toEqual({
+      openapi: '3.1.1',
+      info: { title: 'API Reference', version: '0.0.0' },
+      paths: {
+        '/pong': expect.any(Object),
+      },
+    })
+
+    expect(exclude).toHaveBeenCalledTimes(2)
+    expect(exclude).toHaveBeenNthCalledWith(1, ping, ['ping'])
+    expect(exclude).toHaveBeenNthCalledWith(2, pong, ['pong'])
+  })
 })

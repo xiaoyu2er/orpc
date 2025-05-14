@@ -1,6 +1,6 @@
 import type { AnyContractProcedure, AnyContractRouter, ErrorMap } from '@orpc/contract'
 import type { StandardOpenAPIJsonSerializerOptions } from '@orpc/openapi-client/standard'
-import type { AnyRouter } from '@orpc/server'
+import type { AnyProcedure, AnyRouter } from '@orpc/server'
 import type { OpenAPI } from './openapi'
 import type { JSONSchema } from './schema'
 import type { ConditionalSchemaConverter, SchemaConverter } from './schema-converter'
@@ -21,7 +21,14 @@ export interface OpenAPIGeneratorOptions extends StandardOpenAPIJsonSerializerOp
   schemaConverters?: ConditionalSchemaConverter[]
 }
 
-export interface OpenAPIGeneratorGenerateOptions extends Partial<Omit<OpenAPI.Document, 'openapi'>> {}
+export interface OpenAPIGeneratorGenerateOptions extends Partial<Omit<OpenAPI.Document, 'openapi'>> {
+  /**
+   * Exclude procedures from the OpenAPI specification.
+   *
+   * @default () => false
+   */
+  exclude?: (procedure: AnyProcedure | AnyContractProcedure, path: readonly string[]) => boolean
+}
 
 /**
  * The generator that converts oRPC routers/contracts to OpenAPI specifications.
@@ -43,16 +50,21 @@ export class OpenAPIGenerator {
    * @see {@link https://orpc.unnoq.com/docs/openapi/openapi-specification OpenAPI Specification Docs}
    */
   async generate(router: AnyContractRouter | AnyRouter, options: OpenAPIGeneratorGenerateOptions = {}): Promise<OpenAPI.Document> {
+    const exclude = options.exclude ?? (() => false)
+
     const doc: OpenAPI.Document = {
       ...clone(options),
       info: options.info ?? { title: 'API Reference', version: '0.0.0' },
       openapi: '3.1.1',
+      exclude: undefined,
     } as OpenAPI.Document
 
     const contracts: { contract: AnyContractProcedure, path: readonly string[] }[] = []
 
     await resolveContractProcedures({ path: [], router }, ({ contract, path }) => {
-      contracts.push({ contract, path })
+      if (!exclude(contract, path)) {
+        contracts.push({ contract, path })
+      }
     })
 
     const errors: string[] = []

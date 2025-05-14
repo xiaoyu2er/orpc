@@ -108,6 +108,16 @@ const specFromRouter = await openAPIGenerator.generate(router, {
 Features prefixed with `experimental_` are unstable and may lack some functionality.
 :::
 
+## Excluding Procedures
+
+You can exclude a procedure from the OpenAPI specification using the `exclude` option:
+
+```ts
+const spec = await generator.generate(router, {
+  exclude: (procedure, path) => !!procedure['~orpc'].route.tags?.includes('admin'),
+})
+```
+
 ## Operation Metadata
 
 You can enrich your API documentation by specifying operation metadata using the `.route` or `.tag`:

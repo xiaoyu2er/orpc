@@ -9,7 +9,7 @@ description: Integrate oRPC with Electron IPC
 
 ## Basic
 
-1. **main script**: Create an ORPC handler and upgrade it.
+1. **main script**: Create and upgrade an oRPC handler.
 
    ```ts
    import { app } from 'electron'
@@ -24,7 +24,7 @@ description: Integrate oRPC with Electron IPC
    })
    ```
 
-2. **preload script**: Expose the ORPC handler channel to the renderer process.
+2. **preload script**: Expose the oRPC handler channel to the renderer process.
 
    ```ts
    import { experimental_exposeORPCHandlerChannel as exposeORPCHandlerChannel } from '@orpc/server/electron-ipc'
@@ -32,7 +32,7 @@ description: Integrate oRPC with Electron IPC
    exposeORPCHandlerChannel()
    ```
 
-3. **renderer script**: Create an ORPC link and use it to create oRPC client.
+3. **renderer script**: Create an oRPC link and use it to initialize the client.
 
    ```ts
    import { experimental_RPCLink as RPCLink } from '@orpc/client/electron-ipc'

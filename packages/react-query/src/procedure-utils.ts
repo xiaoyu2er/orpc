@@ -2,6 +2,7 @@ import type { Client, ClientContext } from '@orpc/client'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { InfiniteData } from '@tanstack/react-query'
 import type { InfiniteOptionsBase, InfiniteOptionsIn, MutationOptions, MutationOptionsIn, QueryOptionsBase, QueryOptionsIn } from './types'
+import { skipToken } from '@tanstack/react-query'
 import { buildKey } from './key'
 
 export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError> {
@@ -57,16 +58,25 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
       return {
         queryKey: buildKey(options.path, { type: 'query', input: optionsIn.input }),
         queryFn: ({ signal }) => client(optionsIn.input, { signal, context: optionsIn.context }),
+        ...(optionsIn.input === skipToken ? { enabled: false } : {}),
         ...optionsIn,
       }
     },
 
     infiniteOptions(optionsIn) {
       return {
-        queryKey: buildKey(options.path, { type: 'infinite', input: optionsIn.input(optionsIn.initialPageParam) as any }),
+        queryKey: buildKey(options.path, {
+          type: 'infinite',
+          input: optionsIn.input === skipToken ? skipToken : optionsIn.input(optionsIn.initialPageParam) as any,
+        }),
         queryFn: ({ pageParam, signal }) => {
-          return client(optionsIn.input(pageParam as any), { signal, context: optionsIn.context as any })
+          if (optionsIn.input === skipToken) {
+            throw new Error('queryFn should not be called with skipToken used as input')
+          }
+
+          return client(optionsIn.input(pageParam as any) as any, { signal, context: optionsIn.context as any })
         },
+        ...(optionsIn.input === skipToken ? { enabled: false } : {}),
         ...(optionsIn as any),
       }
     },

@@ -1,6 +1,27 @@
 import type { Context } from '@orpc/server'
 import type { StandardHandlerOptions, StandardHandlerPlugin } from '@orpc/server/standard'
-import type { $ZodArray, $ZodCatch, $ZodDefault, $ZodEnum, $ZodIntersection, $ZodLazy, $ZodLiteral, $ZodMap, $ZodNonOptional, $ZodNullable, $ZodObject, $ZodOptional, $ZodPipe, $ZodReadonly, $ZodRecord, $ZodSet, $ZodTuple, $ZodType, $ZodUnion, util } from '@zod/core'
+import type {
+  $ZodArray,
+  $ZodCatch,
+  $ZodDefault,
+  $ZodEnum,
+  $ZodIntersection,
+  $ZodLazy,
+  $ZodLiteral,
+  $ZodMap,
+  $ZodNonOptional,
+  $ZodNullable,
+  $ZodObject,
+  $ZodOptional,
+  $ZodPipe,
+  $ZodReadonly,
+  $ZodRecord,
+  $ZodSet,
+  $ZodTuple,
+  $ZodType,
+  $ZodUnion,
+  util,
+} from 'zod/v4/core'
 import { guard, isObject } from '@orpc/shared'
 
 export class experimental_ZodSmartCoercionPlugin<TContext extends Context> implements StandardHandlerPlugin<TContext> {

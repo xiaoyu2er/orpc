@@ -1,5 +1,5 @@
-import * as zm from '@zod/mini'
-import z from 'zod4'
+import z from 'zod/v4'
+import * as zm from 'zod/v4-mini'
 import { testSchemaConverter } from '../../tests/shared'
 
 testSchemaConverter([

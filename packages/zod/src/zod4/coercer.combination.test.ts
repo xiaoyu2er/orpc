@@ -1,4 +1,4 @@
-import z from 'zod4'
+import z from 'zod/v4'
 import { testSchemaSmartCoercion } from '../../tests/shared'
 
 const InfiniteLazySchema = z.lazy(() => z.object({ boolean: z.boolean(), value: z.lazy(() => InfiniteLazySchema) })) as any

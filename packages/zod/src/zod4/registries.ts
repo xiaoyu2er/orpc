@@ -1,6 +1,6 @@
 import type { JSONSchema } from '@orpc/openapi'
-import type { $input, $output } from '@zod/core'
-import { registry } from '@zod/core'
+import type { $input, $output } from 'zod/v4/core'
+import { registry } from 'zod/v4/core'
 
 /**
  * Zod registry for customizing generated JSON schema, can use both for .input and .output

@@ -1,4 +1,4 @@
-import * as z from 'zod4'
+import * as z from 'zod/v4'
 import { testSchemaConverter } from '../../tests/shared'
 import {
   experimental_JSON_SCHEMA_INPUT_REGISTRY as JSON_SCHEMA_INPUT_REGISTRY,

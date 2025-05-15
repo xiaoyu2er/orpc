@@ -1,5 +1,5 @@
-import * as zm from '@zod/mini'
-import * as z from 'zod4'
+import * as z from 'zod/v4'
+import * as zm from 'zod/v4-mini'
 import {
   experimental_ZodToJsonSchemaConverter as ZodToJsonSchemaConverter,
 } from './converter'
@@ -16,7 +16,7 @@ describe('zodToJsonSchemaConverter', () => {
     expect(converter.condition(v.string())).toBe(false)
   })
 
-  it('@zod/mini', async () => {
+  it('zod mini', async () => {
     const schema = zm.object({
       value: zm.string().check(zm.minLength(5), zm.maxLength(10), zm.regex(/^[a-z\\]+$/)),
     })

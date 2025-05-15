@@ -27,12 +27,12 @@ import type {
   $ZodTuple,
   $ZodType,
   $ZodUnion,
-} from '@zod/core'
+} from 'zod/v4/core'
 import { JSONSchemaContentEncoding, JSONSchemaFormat } from '@orpc/openapi'
 import { intercept } from '@orpc/shared'
 import {
   globalRegistry,
-} from '@zod/core'
+} from 'zod/v4/core'
 import {
   experimental_JSON_SCHEMA_INPUT_REGISTRY as JSON_SCHEMA_INPUT_REGISTRY,
   experimental_JSON_SCHEMA_OUTPUT_REGISTRY as JSON_SCHEMA_OUTPUT_REGISTRY,

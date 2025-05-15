@@ -1,15 +1,30 @@
 import type { StandardLazyResponse, StandardRequest } from '@orpc/standard-server'
 import type { ClientContext, ClientOptions } from '../../types'
 import type { StandardLinkClient } from '../standard'
-import type { ExposedORPCHandlerChannel } from './types'
+import type { experimental_ExposedORPCHandlerChannel as ExposedORPCHandlerChannel } from './types'
 import { ClientPeer } from '@orpc/standard-server-peer'
-import { ORPC_HANDLER_CHANNEL } from './consts'
+import { DEFAULT_ORPC_HANDLER_CHANNEL } from './consts'
+
+export interface experimental_LinkElectronIPCClientOptions {
+  /**
+   * The channel name exposed by the Electron IPC handler.
+   *
+   * @default 'orpc:default'
+   */
+  channel?: string
+}
 
 export class experimental_LinkElectronIPCClient<T extends ClientContext> implements StandardLinkClient<T> {
   private readonly peer: ClientPeer
 
-  constructor() {
-    const exposed: ExposedORPCHandlerChannel = (window as any)[ORPC_HANDLER_CHANNEL]
+  constructor(options: experimental_LinkElectronIPCClientOptions = {}) {
+    const channel = options.channel ?? DEFAULT_ORPC_HANDLER_CHANNEL
+
+    const exposed: ExposedORPCHandlerChannel | undefined = (window as any)[channel]
+
+    if (!exposed) {
+      throw new Error(`Cannot find exposed ORPC handler channel [${channel}]`)
+    }
 
     this.peer = new ClientPeer(async (message) => {
       exposed.send(message instanceof Blob ? await message.arrayBuffer() : message)

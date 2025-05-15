@@ -1,1 +1,1 @@
-export const ORPC_HANDLER_CHANNEL = 'orpc:handler'
+export const DEFAULT_ORPC_HANDLER_CHANNEL = 'orpc:default'

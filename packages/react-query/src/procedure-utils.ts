@@ -57,7 +57,13 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
     queryOptions(...[optionsIn = {} as any]) {
       return {
         queryKey: buildKey(options.path, { type: 'query', input: optionsIn.input }),
-        queryFn: ({ signal }) => client(optionsIn.input, { signal, context: optionsIn.context }),
+        queryFn: ({ signal }) => {
+          if (optionsIn.input === skipToken) {
+            throw new Error('queryFn should not be called with skipToken used as input')
+          }
+
+          return client(optionsIn.input, { signal, context: optionsIn.context })
+        },
         ...(optionsIn.input === skipToken ? { enabled: false } : {}),
         ...optionsIn,
       }

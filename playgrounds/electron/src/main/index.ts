@@ -42,6 +42,8 @@ const handler = new RPCHandler(router)
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  handler.upgrade()
+
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
@@ -63,8 +65,6 @@ app.whenReady().then(() => {
     if (BrowserWindow.getAllWindows().length === 0)
       createWindow()
   })
-
-  handler.upgrade()
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common

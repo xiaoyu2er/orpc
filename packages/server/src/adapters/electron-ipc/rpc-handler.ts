@@ -12,7 +12,7 @@ export interface experimental_RPCHandlerOptions<T extends Context>
  * RPC Handler for Electron IPC
  *
  * @see {@link https://orpc.unnoq.com/docs/rpc-handler RPC Handler Docs}
- * @see {@link https://orpc.unnoq.com/docs/adapters/ipc IPC Adapter Docs}
+ * @see {@link https://orpc.unnoq.com/docs/docs/integrations/electron-ipc Electron IPC Integration Docs}
  */
 export class experimental_RPCHandler<T extends Context> extends ElectronIPCHandler<T> {
   constructor(router: Router<any, T>, options: NoInfer<experimental_RPCHandlerOptions<T>> = {}) {

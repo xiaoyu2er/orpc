@@ -6,6 +6,8 @@ import { contextBridge, ipcRenderer } from 'electron'
  * Expose the ORPC handler channel to the renderer process.
  *
  * @param channel The channel name to expose - defaults to `orpc:default`
+ *
+ * @see {@link https://orpc.unnoq.com/docs/docs/integrations/electron-ipc Electron IPC Integration Docs}
  */
 export function experimental_exposeORPCHandlerChannel(
   channel = DEFAULT_ORPC_HANDLER_CHANNEL,

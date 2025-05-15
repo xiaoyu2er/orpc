@@ -11,7 +11,7 @@ export interface experimental_RPCLinkOptions<T extends ClientContext>
  * The RPC Link communicates with the server using the RPC protocol over Electron IPC.
  *
  * @see {@link https://orpc.unnoq.com/docs/client/rpc-link RPC Link Docs}
- * @see {@link https://orpc.unnoq.com/docs/adapters/ipc IPC Adapter Docs}
+ * @see {@link https://orpc.unnoq.com/docs/docs/integrations/electron-ipc Electron IPC Integration Docs}
  */
 export class experimental_RPCLink<T extends ClientContext> extends StandardRPCLink<T> {
   constructor(options: experimental_RPCLinkOptions<T> = {}) {

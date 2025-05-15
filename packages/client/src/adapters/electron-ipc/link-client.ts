@@ -20,10 +20,10 @@ export class experimental_LinkElectronIPCClient<T extends ClientContext> impleme
   constructor(options: experimental_LinkElectronIPCClientOptions = {}) {
     const channel = options.channel ?? DEFAULT_ORPC_HANDLER_CHANNEL
 
-    const exposed: ExposedORPCHandlerChannel | undefined = (window as any)[channel]
+    const exposed: ExposedORPCHandlerChannel | undefined = (globalThis as any)[channel]
 
     if (!exposed) {
-      throw new Error(`Cannot find exposed ORPC handler channel [${channel}]`)
+      throw new Error(`Cannot find exposed ORPC handler channel at globalThis['${channel}']`)
     }
 
     this.peer = new ClientPeer(async (message) => {

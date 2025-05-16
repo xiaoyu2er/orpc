@@ -181,6 +181,16 @@ describe('ProcedureUtils', () => {
       })
 
       utils.infiniteOptions({
+        input: condition
+          ? skipToken
+          : (pageParam: number | undefined) => {
+              return { cursor: pageParam }
+            },
+        getNextPageParam: lastPage => 1,
+        initialPageParam: undefined,
+      })
+
+      utils.infiniteOptions({
         // @ts-expect-error invalid input
         input: (pageParam) => {
           expectTypeOf(pageParam).toEqualTypeOf<number>()
@@ -192,10 +202,25 @@ describe('ProcedureUtils', () => {
       })
 
       utils.infiniteOptions({
+        // @ts-expect-error invalid input
+        input: condition
+          ? skipToken
+          : (pageParam) => {
+              expectTypeOf(pageParam).toEqualTypeOf<number>()
+
+              return 'invalid'
+            },
+        getNextPageParam,
+        initialPageParam,
+      })
+
+      utils.infiniteOptions({
         // @ts-expect-error conflict types
-        input: (pageParam: number) => {
-          return 'input'
-        },
+        input: condition
+          ? skipToken
+          : (pageParam: number) => {
+              return 'input'
+            },
         // @ts-expect-error conflict types
         getNextPageParam,
         // @ts-expect-error conflict types

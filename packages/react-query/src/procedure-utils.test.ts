@@ -92,6 +92,7 @@ describe('createProcedureUtils', () => {
       expect(options.getNextPageParam).toBe(getNextPageParam)
 
       expect(() => options.queryFn!({ signal, pageParam: '__pageParam__' } as any)).toThrow('queryFn should not be called with skipToken used as input')
+      expect(client).toHaveBeenCalledTimes(0)
     })
   })
 

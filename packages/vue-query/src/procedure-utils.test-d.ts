@@ -82,6 +82,11 @@ describe('ProcedureUtils', () => {
       })
 
       utils.queryOptions({
+        input: computed(() => condition ? skipToken : { cursor: 1 }),
+        context: computed(() => ({ batch: true })),
+      })
+
+      utils.queryOptions({
         // @ts-expect-error invalid input
         input: { cursor: ref('invalid') },
         // @ts-expect-error invalid context
@@ -262,6 +267,22 @@ describe('ProcedureUtils', () => {
       utils.infiniteOptions({
         context: computed(() => ({ batch: ref(true) })),
         input: () => computed(() => ({ search: ref('search') })),
+        getNextPageParam,
+        initialPageParam,
+      })
+
+      utils.infiniteOptions({
+        context: computed(() => ({ batch: ref(true) })),
+        input: computed(() => condition ? skipToken : () => ({ search: 'search' })),
+        getNextPageParam,
+        initialPageParam,
+      })
+
+      utils.infiniteOptions({
+        // @ts-expect-error invalid context
+        context: { batch: ref('invalid') },
+        // @ts-expect-error invalid input
+        input: () => ({ search: 123 }),
         getNextPageParam,
         initialPageParam,
       })

@@ -120,3 +120,25 @@ if (mutation.error && isDefinedError(mutation.error)) {
 ```
 
 For more details, see our [type-safe error handling guide](/docs/error-handling#type‐safe-error-handling).
+
+## `skipToken` for Disabling Queries
+
+The `skipToken` symbol offers a type-safe alternative to the `disabled` option when you need to conditionally disable a query by omitting its `input`.
+
+```ts
+const query = useQuery(
+  orpc.planet.list.queryOptions({
+    input: search ? { search } : skipToken, // [!code highlight]
+  })
+)
+
+const query = useInfiniteQuery(
+  orpc.planet.list.infiniteOptions({
+    input: search // [!code highlight]
+      ? (offset: number | undefined) => ({ limit: 10, offset, search }) // [!code highlight]
+      : skipToken, // [!code highlight]
+    initialPageParam: undefined,
+    getNextPageParam: lastPage => lastPage.nextPageParam,
+  })
+)
+```

@@ -158,36 +158,3 @@ export class StandardBracketNotationSerializer {
 function isValidArrayIndex(value: string): boolean {
   return /^0$|^[1-9]\d*$/.test(value)
 }
-
-/**
- * parse a form data with bracket notation
- *
- * @example
- * ```ts
- * const form = new FormData()
- * form.append('a', '1')
- * form.append('user[name]', 'John')
- * form.append('user[age]', '20')
- * form.append('user[friends][]', 'Bob')
- * form.append('user[friends][]', 'Alice')
- * form.append('user[friends][]', 'Charlie')
- * form.append('thumb', new Blob(['hello']), 'thumb.png')
- *
- * parseFormData(form)
- * // {
- * //   a: '1',
- * //   user: {
- * //     name: 'John',
- * //     age: '20',
- * //     friends: ['Bob', 'Alice', 'Charlie'],
- * //   },
- * //   thumb: form.get('thumb'),
- * // }
- * ```
- *
- * @see {@link https://orpc.unnoq.com/docs/openapi/bracket-notation Bracket Notation Docs}
- */
-export function parseFormData(form: FormData): Record<string, unknown> {
-  const serializer = new StandardBracketNotationSerializer()
-  return serializer.deserialize(Array.from(form.entries())) as any
-}

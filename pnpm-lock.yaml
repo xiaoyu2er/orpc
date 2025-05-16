@@ -193,8 +193,8 @@ importers:
         version: link:../standard-server-peer
     devDependencies:
       zod:
-        specifier: next
-        version: 3.25.0-beta.20250515T061408
+        specifier: 3.25.0-beta.20250516T005923
+        version: 3.25.0-beta.20250516T005923
 
   packages/contract:
     dependencies:
@@ -215,8 +215,8 @@ importers:
         specifier: 1.0.0
         version: 1.0.0(typescript@5.8.3)
       zod:
-        specifier: next
-        version: 3.25.0-beta.20250515T061408
+        specifier: 3.25.0-beta.20250516T005923
+        version: 3.25.0-beta.20250516T005923
 
   packages/nest:
     dependencies:
@@ -262,7 +262,7 @@ importers:
         version: 11.1.0(@nestjs/common@11.1.0(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.0)(@nestjs/platform-express@11.1.0)
       '@ts-rest/core':
         specifier: ^3.52.1
-        version: 3.52.1(@types/node@22.15.17)(zod@3.25.0-beta.20250515T061408)
+        version: 3.52.1(@types/node@22.15.17)(zod@3.25.0-beta.20250516T005923)
       '@types/express':
         specifier: ^5.0.1
         version: 5.0.1
@@ -279,8 +279,8 @@ importers:
         specifier: ^7.1.0
         version: 7.1.0
       zod:
-        specifier: next
-        version: 3.25.0-beta.20250515T061408
+        specifier: 3.25.0-beta.20250516T005923
+        version: 3.25.0-beta.20250516T005923
 
   packages/openapi:
     dependencies:
@@ -313,8 +313,8 @@ importers:
         version: 0.6.1
     devDependencies:
       zod:
-        specifier: next
-        version: 3.25.0-beta.20250515T061408
+        specifier: 3.25.0-beta.20250516T005923
+        version: 3.25.0-beta.20250516T005923
 
   packages/openapi-client:
     dependencies:
@@ -357,8 +357,8 @@ importers:
         specifier: ^19.1.0
         version: 19.1.0
       zod:
-        specifier: next
-        version: 3.25.0-beta.20250515T061408
+        specifier: 3.25.0-beta.20250516T005923
+        version: 3.25.0-beta.20250516T005923
 
   packages/react-query:
     dependencies:
@@ -379,8 +379,8 @@ importers:
         specifier: ^19.1.0
         version: 19.1.0
       zod:
-        specifier: next
-        version: 3.25.0-beta.20250515T061408
+        specifier: 3.25.0-beta.20250516T005923
+        version: 3.25.0-beta.20250516T005923
 
   packages/server:
     dependencies:
@@ -450,8 +450,8 @@ importers:
         specifier: ^5.72.3
         version: 5.75.7(vue@3.5.14(typescript@5.8.3))
       zod:
-        specifier: next
-        version: 3.25.0-beta.20250515T061408
+        specifier: 3.25.0-beta.20250516T005923
+        version: 3.25.0-beta.20250516T005923
 
   packages/standard-server:
     dependencies:
@@ -519,8 +519,8 @@ importers:
         specifier: ^5.72.3
         version: 5.75.7(vue@3.5.14(typescript@5.8.3))
       zod:
-        specifier: next
-        version: 3.25.0-beta.20250515T061408
+        specifier: 3.25.0-beta.20250516T005923
+        version: 3.25.0-beta.20250516T005923
 
   packages/valibot:
     dependencies:
@@ -596,11 +596,11 @@ importers:
         version: 5.1.4
     devDependencies:
       zod:
-        specifier: next
-        version: 3.25.0-beta.20250515T020858
+        specifier: 3.25.0-beta.20250516T005923
+        version: 3.25.0-beta.20250516T005923
       zod-to-json-schema:
         specifier: ^3.24.5
-        version: 3.24.5(zod@3.25.0-beta.20250515T020858)
+        version: 3.24.5(zod@3.25.0-beta.20250516T005923)
 
   playgrounds/astro:
     dependencies:
@@ -650,8 +650,8 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
       zod:
-        specifier: next
-        version: 3.25.0-beta.20250515T061408
+        specifier: 3.25.0-beta.20250516T005923
+        version: 3.25.0-beta.20250516T005923
 
   playgrounds/contract-first:
     devDependencies:
@@ -686,8 +686,8 @@ importers:
         specifier: 5.8.3
         version: 5.8.3
       zod:
-        specifier: next
-        version: 3.25.0-beta.20250515T061408
+        specifier: 3.25.0-beta.20250516T005923
+        version: 3.25.0-beta.20250516T005923
 
   playgrounds/nest:
     devDependencies:
@@ -770,8 +770,8 @@ importers:
         specifier: ^5.7.3
         version: 5.8.3
       zod:
-        specifier: next
-        version: 3.25.0-beta.20250515T061408
+        specifier: 3.25.0-beta.20250516T005923
+        version: 3.25.0-beta.20250516T005923
 
   playgrounds/next:
     devDependencies:
@@ -818,8 +818,8 @@ importers:
         specifier: 5.8.3
         version: 5.8.3
       zod:
-        specifier: next
-        version: 3.25.0-beta.20250515T061408
+        specifier: 3.25.0-beta.20250516T005923
+        version: 3.25.0-beta.20250516T005923
 
   playgrounds/nuxt:
     devDependencies:
@@ -851,8 +851,8 @@ importers:
         specifier: latest
         version: 4.5.1(vue@3.5.14(typescript@5.8.3))
       zod:
-        specifier: next
-        version: 3.25.0-beta.20250515T061408
+        specifier: 3.25.0-beta.20250516T005923
+        version: 3.25.0-beta.20250516T005923
 
   playgrounds/solid-start:
     devDependencies:
@@ -887,8 +887,8 @@ importers:
         specifier: ^0.5.4
         version: 0.5.6(@types/node@22.15.17)(db0@0.3.2)(ioredis@5.6.1)(jiti@2.4.2)(terser@5.39.0)(tsx@4.19.4)(yaml@2.7.1)
       zod:
-        specifier: next
-        version: 3.25.0-beta.20250515T061408
+        specifier: 3.25.0-beta.20250516T005923
+        version: 3.25.0-beta.20250516T005923
 
   playgrounds/svelte-kit:
     devDependencies:
@@ -932,8 +932,8 @@ importers:
         specifier: ^6.2.6
         version: 6.3.5(@types/node@22.15.17)(jiti@2.4.2)(terser@5.39.0)(tsx@4.19.4)(yaml@2.7.1)
       zod:
-        specifier: next
-        version: 3.25.0-beta.20250515T061408
+        specifier: 3.25.0-beta.20250516T005923
+        version: 3.25.0-beta.20250516T005923
 
   playgrounds/tanstack-start:
     devDependencies:
@@ -995,8 +995,8 @@ importers:
         specifier: ^5.1.4
         version: 5.1.4(typescript@5.8.3)(vite@6.3.5(@types/node@22.15.17)(jiti@2.4.2)(terser@5.39.0)(tsx@4.19.4)(yaml@2.7.1))
       zod:
-        specifier: next
-        version: 3.25.0-beta.20250515T061408
+        specifier: 3.25.0-beta.20250516T005923
+        version: 3.25.0-beta.20250516T005923
 
 packages:
 
@@ -11137,11 +11137,8 @@ packages:
   zod@3.24.4:
     resolution: {integrity: sha512-OdqJE9UDRPwWsrHjLN2F8bPxvwJBK22EHLWtanu0LSYr5YqzsaaW3RMgmjwr8Rypg5k+meEJdSPXJZXE/yqOMg==}
 
-  zod@3.25.0-beta.20250515T020858:
-    resolution: {integrity: sha512-c4m7YHRilzfy4vR4HC+Hv4ww7fdtP+zZ+S35FnQ4zDVxJGIITWIIJWepkvbhaBjNvgU9tnTWrgdrb1eAcpfvdA==}
-
-  zod@3.25.0-beta.20250515T061408:
-    resolution: {integrity: sha512-YAqrJFda17r64/lzlawJhlSwbkpYIiEc3TvLLklnUwem/X4PJGIW3kme3qwtvEw41WV9o1x2t0EOVAo12XdSQw==}
+  zod@3.25.0-beta.20250516T005923:
+    resolution: {integrity: sha512-pWO2WHnFfmKl9X/AY55DGqiyArXkOSNDyLAotrpQzfsnLOCgzLDk1tZRfFyIqd68UaBk32gIsksYpCHzMXqZqg==}
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
@@ -14801,10 +14798,10 @@ snapshots:
 
   '@trysound/sax@0.2.0': {}
 
-  '@ts-rest/core@3.52.1(@types/node@22.15.17)(zod@3.25.0-beta.20250515T061408)':
+  '@ts-rest/core@3.52.1(@types/node@22.15.17)(zod@3.25.0-beta.20250516T005923)':
     optionalDependencies:
       '@types/node': 22.15.17
-      zod: 3.25.0-beta.20250515T061408
+      zod: 3.25.0-beta.20250516T005923
 
   '@tsconfig/node10@1.0.11': {}
 
@@ -23311,9 +23308,9 @@ snapshots:
     dependencies:
       zod: 3.24.4
 
-  zod-to-json-schema@3.24.5(zod@3.25.0-beta.20250515T020858):
+  zod-to-json-schema@3.24.5(zod@3.25.0-beta.20250516T005923):
     dependencies:
-      zod: 3.25.0-beta.20250515T020858
+      zod: 3.25.0-beta.20250516T005923
 
   zod-to-ts@1.2.0(typescript@5.8.3)(zod@3.24.4):
     dependencies:
@@ -23322,8 +23319,6 @@ snapshots:
 
   zod@3.24.4: {}
 
-  zod@3.25.0-beta.20250515T020858: {}
-
-  zod@3.25.0-beta.20250515T061408: {}
+  zod@3.25.0-beta.20250516T005923: {}
 
   zwitch@2.0.4: {}

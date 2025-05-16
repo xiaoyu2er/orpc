@@ -14,6 +14,7 @@ import type {
   $ZodObject,
   $ZodOptional,
   $ZodPipe,
+  $ZodPrefault,
   $ZodReadonly,
   $ZodRecord,
   $ZodSet,
@@ -294,8 +295,9 @@ export class experimental_ZodSmartCoercionPlugin<TContext extends Context> imple
       }
 
       case 'default':
+      case 'prefault':
       case 'catch': {
-        const default_ = schema as $ZodDefault | $ZodCatch
+        const default_ = schema as $ZodDefault | $ZodPrefault | $ZodCatch
         return this.#coerce(default_._zod.def.innerType, value)
       }
 

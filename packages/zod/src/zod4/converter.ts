@@ -18,6 +18,7 @@ import type {
   $ZodObject,
   $ZodOptional,
   $ZodPipe,
+  $ZodPrefault,
   $ZodReadonly,
   $ZodRecord,
   $ZodSet,
@@ -473,13 +474,14 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
             return [true, { type: 'boolean' }]
           }
 
-          case 'default': {
-            const default_ = schema as $ZodDefault
+          case 'default':
+          case 'prefault': {
+            const default_ = schema as $ZodDefault | $ZodPrefault
             const [, json] = await this.#convert(default_._zod.def.innerType, options, lazyDepth)
 
             return [false, {
               ...json,
-              default: default_._zod.def.defaultValue(),
+              default: default_._zod.def.defaultValue,
             }]
           }
 

@@ -96,6 +96,12 @@ testSchemaSmartCoercion([
     expected: true,
   },
   {
+    name: 'prefault - boolean',
+    schema: z.boolean().prefault(false),
+    input: 'true',
+    expected: true,
+  },
+  {
     name: 'nullable - boolean',
     schema: z.boolean().nullable(),
     input: 'true',

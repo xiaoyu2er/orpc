@@ -65,6 +65,11 @@ testSchemaConverter([
     input: [false, { default: 'a', type: 'string' }],
   },
   {
+    name: 'string.prefault("a")',
+    schema: z.string().prefault('a'),
+    input: [false, { default: 'a', type: 'string' }],
+  },
+  {
     name: 'string.catch("a")',
     schema: z.string().catch('a'),
     input: [false, { type: 'string' }],

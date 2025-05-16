@@ -295,10 +295,19 @@ export class experimental_ZodSmartCoercionPlugin<TContext extends Context> imple
       }
 
       case 'default':
-      case 'prefault':
-      case 'catch': {
-        const default_ = schema as $ZodDefault | $ZodPrefault | $ZodCatch
+      case 'prefault': {
+        const default_ = schema as $ZodDefault | $ZodPrefault
+
+        if (value === undefined) {
+          return value
+        }
+
         return this.#coerce(default_._zod.def.innerType, value)
+      }
+
+      case 'catch': {
+        const catch_ = schema as $ZodCatch
+        return this.#coerce(catch_._zod.def.innerType, value)
       }
 
       case 'lazy': {

@@ -1,4 +1,4 @@
-import { StandardBracketNotationSerializer } from './bracket-notation'
+import { parseFormData, StandardBracketNotationSerializer } from './bracket-notation'
 
 describe('standardBracketNotationSerializer', () => {
   const serializer = new StandardBracketNotationSerializer()
@@ -189,5 +189,28 @@ describe('standardBracketNotationSerializer', () => {
     [{ a: 1, b: 2, c: [1, 2, { a: 1, b: 2 }, new Date(), new Blob([]), new Set([1, 2]), new Map([[1, 2]])] }],
   ])('.serialize + .deserialize', (value) => {
     expect(serializer.deserialize(serializer.serialize(value))).toEqual(value)
+  })
+})
+
+it('parseFormData', () => {
+  expect(parseFormData(new FormData())).toEqual({})
+
+  const form = new FormData()
+  form.append('a', '1')
+  form.append('user[name]', 'John')
+  form.append('user[age]', '20')
+  form.append('user[friends][]', 'Bob')
+  form.append('user[friends][]', 'Alice')
+  form.append('user[friends][]', 'Charlie')
+  form.append('thumb', new Blob(['hello']), 'thumb.png')
+
+  expect(parseFormData(form)).toEqual({
+    a: '1',
+    user: {
+      name: 'John',
+      age: '20',
+      friends: ['Bob', 'Alice', 'Charlie'],
+    },
+    thumb: form.get('thumb'),
   })
 })

@@ -1,4 +1,4 @@
-import z from 'zod4'
+import z from 'zod/v4'
 import { testSchemaSmartCoercion } from '../../tests/shared'
 
 testSchemaSmartCoercion([

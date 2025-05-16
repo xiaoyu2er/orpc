@@ -1,4 +1,4 @@
-import z from 'zod4'
+import z from 'zod/v4'
 import { testSchemaSmartCoercion } from '../../tests/shared'
 
 const InfiniteLazySchema = z.lazy(() => z.object({ boolean: z.boolean(), value: z.lazy(() => InfiniteLazySchema) })) as any
@@ -94,6 +94,22 @@ testSchemaSmartCoercion([
     schema: z.boolean().default(false),
     input: 'true',
     expected: true,
+  },
+  {
+    name: 'default - undefined',
+    schema: z.boolean().default(false),
+    input: undefined,
+  },
+  {
+    name: 'prefault - boolean',
+    schema: z.boolean().prefault(false),
+    input: 'true',
+    expected: true,
+  },
+  {
+    name: 'prefault - undefined',
+    schema: z.boolean().prefault(false),
+    input: undefined,
   },
   {
     name: 'nullable - boolean',

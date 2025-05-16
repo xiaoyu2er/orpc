@@ -1,4 +1,4 @@
-import z from 'zod4'
+import z from 'zod/v4'
 import { testSchemaConverter } from '../../tests/shared'
 
 testSchemaConverter([

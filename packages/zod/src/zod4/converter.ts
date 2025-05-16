@@ -18,6 +18,7 @@ import type {
   $ZodObject,
   $ZodOptional,
   $ZodPipe,
+  $ZodPrefault,
   $ZodReadonly,
   $ZodRecord,
   $ZodSet,
@@ -27,12 +28,12 @@ import type {
   $ZodTuple,
   $ZodType,
   $ZodUnion,
-} from '@zod/core'
+} from 'zod/v4/core'
 import { JSONSchemaContentEncoding, JSONSchemaFormat } from '@orpc/openapi'
 import { intercept } from '@orpc/shared'
 import {
   globalRegistry,
-} from '@zod/core'
+} from 'zod/v4/core'
 import {
   experimental_JSON_SCHEMA_INPUT_REGISTRY as JSON_SCHEMA_INPUT_REGISTRY,
   experimental_JSON_SCHEMA_OUTPUT_REGISTRY as JSON_SCHEMA_OUTPUT_REGISTRY,
@@ -473,20 +474,20 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
             return [true, { type: 'boolean' }]
           }
 
-          case 'default': {
-            const default_ = schema as $ZodDefault
+          case 'default':
+          case 'prefault': {
+            const default_ = schema as $ZodDefault | $ZodPrefault
             const [, json] = await this.#convert(default_._zod.def.innerType, options, lazyDepth)
 
             return [false, {
               ...json,
-              default: default_._zod.def.defaultValue(),
+              default: default_._zod.def.defaultValue,
             }]
           }
 
           case 'catch': {
             const catch_ = schema as $ZodCatch
-            const [,json] = await this.#convert(catch_._zod.def.innerType, options, lazyDepth)
-            return [false, json]
+            return await this.#convert(catch_._zod.def.innerType, options, lazyDepth)
           }
 
           case 'nan': {
@@ -562,7 +563,7 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
   }
 
   #handleArrayItemJsonSchema([required, schema]: [required: boolean, jsonSchema: Exclude<JSONSchema, boolean>], options: SchemaConvertOptions): Exclude<JSONSchema, boolean> {
-    if (required || options.strategy === 'input') {
+    if (required || options.strategy === 'input' || schema.default !== undefined) {
       return schema
     }
 

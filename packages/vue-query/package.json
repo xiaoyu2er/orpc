@@ -43,6 +43,6 @@
   },
   "dependencies": {
     "@orpc/shared": "workspace:*",
-    "@tanstack/vue-query": "^5.72.2"
+    "@tanstack/vue-query": "^5.72.3"
   }
 }

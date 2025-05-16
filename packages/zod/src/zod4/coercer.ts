@@ -1,6 +1,28 @@
 import type { Context } from '@orpc/server'
 import type { StandardHandlerOptions, StandardHandlerPlugin } from '@orpc/server/standard'
-import type { $ZodArray, $ZodCatch, $ZodDefault, $ZodEnum, $ZodIntersection, $ZodLazy, $ZodLiteral, $ZodMap, $ZodNonOptional, $ZodNullable, $ZodObject, $ZodOptional, $ZodPipe, $ZodReadonly, $ZodRecord, $ZodSet, $ZodTuple, $ZodType, $ZodUnion, util } from '@zod/core'
+import type {
+  $ZodArray,
+  $ZodCatch,
+  $ZodDefault,
+  $ZodEnum,
+  $ZodIntersection,
+  $ZodLazy,
+  $ZodLiteral,
+  $ZodMap,
+  $ZodNonOptional,
+  $ZodNullable,
+  $ZodObject,
+  $ZodOptional,
+  $ZodPipe,
+  $ZodPrefault,
+  $ZodReadonly,
+  $ZodRecord,
+  $ZodSet,
+  $ZodTuple,
+  $ZodType,
+  $ZodUnion,
+  util,
+} from 'zod/v4/core'
 import { guard, isObject } from '@orpc/shared'
 
 export class experimental_ZodSmartCoercionPlugin<TContext extends Context> implements StandardHandlerPlugin<TContext> {
@@ -273,9 +295,19 @@ export class experimental_ZodSmartCoercionPlugin<TContext extends Context> imple
       }
 
       case 'default':
-      case 'catch': {
-        const default_ = schema as $ZodDefault | $ZodCatch
+      case 'prefault': {
+        const default_ = schema as $ZodDefault | $ZodPrefault
+
+        if (value === undefined) {
+          return value
+        }
+
         return this.#coerce(default_._zod.def.innerType, value)
+      }
+
+      case 'catch': {
+        const catch_ = schema as $ZodCatch
+        return this.#coerce(catch_._zod.def.innerType, value)
       }
 
       case 'lazy': {

@@ -11,7 +11,7 @@ export interface QueryOptionsBase<TOutput, TError> {
   queryKey: QueryKey
   queryFn(ctx: QueryFunctionContext): Promise<TOutput>
   retry?(failureCount: number, error: TError): boolean // this make tanstack can infer the TError type
-  enabled?: boolean
+  enabled: boolean
 }
 
 export type InfiniteOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData, TPageParam> =
@@ -23,7 +23,7 @@ export interface InfiniteOptionsBase<TOutput, TError, TPageParam> {
   queryKey: QueryKey
   queryFn(ctx: QueryFunctionContext<QueryKey, TPageParam>): Promise<TOutput>
   retry?(failureCount: number, error: TError): boolean // this make tanstack can infer the TError type
-  enabled?: boolean
+  enabled: boolean
 }
 
 export type MutationOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TMutationContext> =

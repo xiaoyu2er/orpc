@@ -64,7 +64,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
 
           return client(optionsIn.input, { signal, context: optionsIn.context })
         },
-        ...(optionsIn.input === skipToken ? { enabled: false } : {}),
+        enabled: optionsIn.input !== skipToken,
         ...optionsIn,
       }
     },
@@ -82,7 +82,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
 
           return client(optionsIn.input(pageParam as any) as any, { signal, context: optionsIn.context as any })
         },
-        ...(optionsIn.input === skipToken ? { enabled: false } : {}),
+        enabled: optionsIn.input !== skipToken,
         ...(optionsIn as any),
       }
     },

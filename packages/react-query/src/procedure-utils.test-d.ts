@@ -32,15 +32,20 @@ describe('ProcedureUtils', () => {
 
   describe('.queryOptions', () => {
     it('can optional options', () => {
-      const requiredUtils = {} as ProcedureUtils<{ batch?: boolean }, 'input', UtilsOutput, Error>
+      const requiredUtils = {} as ProcedureUtils<{ batch: boolean }, 'input', UtilsOutput, Error>
 
       utils.queryOptions()
       utils.queryOptions({ context: { batch: true } })
       utils.queryOptions({ input: { search: 'search' } })
+      utils.queryOptions({ input: condition ? skipToken : { search: 'search' } })
 
       requiredUtils.queryOptions({
         context: { batch: true },
         input: 'input',
+      })
+      requiredUtils.queryOptions({
+        context: { batch: true },
+        input: condition ? skipToken : 'input',
       })
       // @ts-expect-error input and context is required
       requiredUtils.queryOptions()
@@ -49,7 +54,9 @@ describe('ProcedureUtils', () => {
       // @ts-expect-error input is required
       requiredUtils.queryOptions({ context: { batch: true } })
       // @ts-expect-error context is required
-      requiredUtils.queryOptions({ input: { search: 'search' } })
+      requiredUtils.queryOptions({ input: 'input' })
+      // @ts-expect-error context is required
+      requiredUtils.queryOptions({ input: condition ? skipToken : 'input' })
     })
 
     it('infer correct input type', () => {

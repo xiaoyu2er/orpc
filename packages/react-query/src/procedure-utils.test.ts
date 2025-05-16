@@ -43,6 +43,7 @@ describe('createProcedureUtils', () => {
       expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { type: 'query', input: skipToken })
 
       expect(() => options.queryFn!({ signal } as any)).toThrow('queryFn should not be called with skipToken used as input')
+      expect(client).toHaveBeenCalledTimes(0)
     })
   })
 

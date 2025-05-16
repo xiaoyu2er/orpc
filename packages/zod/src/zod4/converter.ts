@@ -487,8 +487,7 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
 
           case 'catch': {
             const catch_ = schema as $ZodCatch
-            const [,json] = await this.#convert(catch_._zod.def.innerType, options, lazyDepth)
-            return [false, json]
+            return await this.#convert(catch_._zod.def.innerType, options, lazyDepth)
           }
 
           case 'nan': {
@@ -564,7 +563,7 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
   }
 
   #handleArrayItemJsonSchema([required, schema]: [required: boolean, jsonSchema: Exclude<JSONSchema, boolean>], options: SchemaConvertOptions): Exclude<JSONSchema, boolean> {
-    if (required || options.strategy === 'input') {
+    if (required || options.strategy === 'input' || schema.default !== undefined) {
       return schema
     }
 

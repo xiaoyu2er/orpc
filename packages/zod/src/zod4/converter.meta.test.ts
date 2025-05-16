@@ -72,7 +72,7 @@ testSchemaConverter([
   {
     name: 'string.catch("a")',
     schema: z.string().catch('a'),
-    input: [false, { type: 'string' }],
+    input: [true, { type: 'string' }],
   },
   {
     name: 'string.readonly()',

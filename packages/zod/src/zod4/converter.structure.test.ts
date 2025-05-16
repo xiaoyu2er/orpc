@@ -30,6 +30,11 @@ testSchemaConverter([
     output: [true, { type: 'array', items: { anyOf: [{ type: 'string' }, { type: 'null' }] } }],
   },
   {
+    name: 'array(z.string().optional())',
+    schema: z.array(z.string().optional().default('a')),
+    input: [true, { type: 'array', items: { type: 'string', default: 'a' } }],
+  },
+  {
     name: 'array(z.undefined())',
     schema: z.array(z.undefined()),
     input: [true, { type: 'array', items: { not: {} } }],

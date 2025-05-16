@@ -603,7 +603,7 @@ importers:
         version: 3.24.5(zod@3.25.0-beta.20250516T005923)
 
   playgrounds/astro:
-    dependencies:
+    devDependencies:
       '@astrojs/check':
         specifier: ^0.9.4
         version: 0.9.4(prettier@3.5.3)(typescript@5.8.3)

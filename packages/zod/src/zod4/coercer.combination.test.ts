@@ -108,7 +108,7 @@ testSchemaSmartCoercion([
   },
   {
     name: 'prefault - undefined',
-    schema: z.boolean().default(false),
+    schema: z.boolean().prefault(false),
     input: undefined,
   },
   {

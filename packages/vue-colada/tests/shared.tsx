@@ -10,7 +10,7 @@ export const mount: typeof baseMount = (component, options) => {
   return baseMount(component, {
     global: {
       plugins: [
-        createPinia(),
+        createPinia() as any,
         PiniaColada,
       ],
     },

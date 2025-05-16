@@ -15,10 +15,10 @@
     "@orpc/react-query": "next",
     "@orpc/server": "next",
     "@orpc/zod": "next",
-    "@tanstack/react-query": "^5.72.3",
-    "@types/node": "^22.14.1",
+    "@tanstack/react-query": "^5.75.7",
+    "@types/node": "^22.15.17",
     "tsx": "^4.19.3",
-    "typescript": "5.8.3",
+    "typescript": "^5.8.3",
     "zod": "3.25.0-beta.20250516T005923"
   }
 }

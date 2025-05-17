@@ -13,6 +13,7 @@ export * from './router'
 export * from './router-client'
 export * from './router-utils'
 export * from './schema'
+export * from './schema-utils'
 
 export { ORPCError } from '@orpc/client'
 export type { HTTPMethod, HTTPPath } from '@orpc/client'

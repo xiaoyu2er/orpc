@@ -212,8 +212,8 @@ importers:
         specifier: 2.1.20
         version: 2.1.20
       valibot:
-        specifier: 1.0.0
-        version: 1.0.0(typescript@5.8.3)
+        specifier: ^1.1.0
+        version: 1.1.0(typescript@5.8.3)
       zod:
         specifier: 3.25.0-beta.20250516T005923
         version: 3.25.0-beta.20250516T005923
@@ -534,11 +534,12 @@ importers:
         specifier: workspace:*
         version: link:../server
       '@valibot/to-json-schema':
-        specifier: ^1.0.0
-        version: 1.1.0(valibot@1.0.0(typescript@5.8.3))
+        specifier: ^1.2.0
+        version: 1.2.0(valibot@1.1.0(typescript@5.8.3))
+    devDependencies:
       valibot:
-        specifier: ^1.0.0
-        version: 1.0.0(typescript@5.8.3)
+        specifier: ^1.1.0
+        version: 1.1.0(typescript@5.8.3)
 
   packages/vue-colada:
     dependencies:
@@ -4532,8 +4533,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@valibot/to-json-schema@1.1.0':
-    resolution: {integrity: sha512-vpF5NKL5MmqbVVFzp3Z6CuoaYXJB75QxmW+tJNnng9UVUx9Yx+FVCyEm1kIWr05EzkuPI0b/EbVWIs25UL9mNQ==}
+  '@valibot/to-json-schema@1.2.0':
+    resolution: {integrity: sha512-vNPg/esuEAUFaJoyNdnKLEIIRL0LndRyFD3eJR2itwLGr3hH3X8q17Yo84dkyDfZBR8WetHto/5K2OYlyQUUYQ==}
     peerDependencies:
       valibot: ^1.1.0
 
@@ -10391,8 +10392,8 @@ packages:
   v8-compile-cache-lib@3.0.1:
     resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
 
-  valibot@1.0.0:
-    resolution: {integrity: sha512-1Hc0ihzWxBar6NGeZv7fPLY0QuxFMyxwYR2sF1Blu7Wq7EnremwY2W02tit2ij2VJT8HcSkHAQqmFfl77f73Yw==}
+  valibot@1.1.0:
+    resolution: {integrity: sha512-Nk8lX30Qhu+9txPYTwM0cFlWLdPFsFr6LblzqIySfbZph9+BFsAHsNvHOymEviUepeIW6KFHzpX8TKhbptBXXw==}
     peerDependencies:
       typescript: '>=5'
     peerDependenciesMeta:
@@ -15174,9 +15175,9 @@ snapshots:
   '@unrs/resolver-binding-win32-x64-msvc@1.7.2':
     optional: true
 
-  '@valibot/to-json-schema@1.1.0(valibot@1.0.0(typescript@5.8.3))':
+  '@valibot/to-json-schema@1.2.0(valibot@1.1.0(typescript@5.8.3))':
     dependencies:
-      valibot: 1.0.0(typescript@5.8.3)
+      valibot: 1.1.0(typescript@5.8.3)
 
   '@vercel/nft@0.27.7(rollup@4.40.2)':
     dependencies:
@@ -22294,7 +22295,7 @@ snapshots:
 
   v8-compile-cache-lib@3.0.1: {}
 
-  valibot@1.0.0(typescript@5.8.3):
+  valibot@1.1.0(typescript@5.8.3):
     optionalDependencies:
       typescript: 5.8.3
 

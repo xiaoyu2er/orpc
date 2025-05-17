@@ -3,15 +3,18 @@ import type { ConditionalSchemaConverter, JSONSchema, SchemaConvertOptions } fro
 import type { ConversionConfig } from '@valibot/to-json-schema'
 import { toJsonSchema } from '@valibot/to-json-schema'
 
-export interface experimental_ValibotToJsonSchemaConverterOptions extends Pick<ConversionConfig, 'errorMode'> {
+export interface experimental_ValibotToJsonSchemaConverterOptions extends ConversionConfig {
 
 }
 
 export class experimental_ValibotToJsonSchemaConverter implements ConditionalSchemaConverter {
-  private readonly errorMode: experimental_ValibotToJsonSchemaConverterOptions['errorMode']
+  private readonly conversionConfig: ConversionConfig
 
   constructor(options: experimental_ValibotToJsonSchemaConverterOptions = {}) {
-    this.errorMode = options.errorMode ?? 'ignore'
+    this.conversionConfig = {
+      errorMode: 'ignore',
+      ...options,
+    }
   }
 
   condition(schema: AnySchema | undefined): boolean {
@@ -19,7 +22,7 @@ export class experimental_ValibotToJsonSchemaConverter implements ConditionalSch
   }
 
   convert(schema: AnySchema | undefined, _options: SchemaConvertOptions): [required: boolean, jsonSchema: Exclude<JSONSchema, boolean>] {
-    const jsonSchema = toJsonSchema(schema as any, { errorMode: this.errorMode })
+    const jsonSchema = toJsonSchema(schema as any, this.conversionConfig)
 
     return [true, jsonSchema as any]
   }

@@ -49,7 +49,7 @@ it('case: with useQuery', async () => {
   await vi.waitFor(() => expect(mounted.vm.query.data.value).toEqual({ output: '123' }))
 
   expect(
-    mounted.vm.queryCache.getQueryData(orpc.nested.ping.key({ input: { input: 123 } })),
+    mounted.vm.queryCache.getQueryData(orpc.nested.ping.key({ type: 'query', input: { input: 123 } })),
   ).toEqual({ output: '123' })
 
   mounted.vm.setId(456)

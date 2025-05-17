@@ -9,10 +9,10 @@ describe('isSchemaIssue', async () => {
     expect(isSchemaIssue({ message: 'hi', path: [] })).toBe(true)
     expect(isSchemaIssue({ message: 'hi', path: ['a', 1] })).toBe(true)
     expect(isSchemaIssue({ message: 'hi', path: [{ key: 'a' }, { key: 1 }] })).toBe(true)
+    expect(isSchemaIssue({ message: 'hi', path: [{ key: 'a' }, 'b'] })).toBe(true)
 
     expect(isSchemaIssue({})).toBe(false)
     expect(isSchemaIssue({ message: 123 })).toBe(false)
-    expect(isSchemaIssue({ message: 'hi', path: [{ key: 'a' }, 'b'] })).toBe(false)
     expect(isSchemaIssue({ message: 'hi', path: 'invalid' })).toBe(false)
   })
 

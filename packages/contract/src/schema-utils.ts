@@ -12,8 +12,7 @@ export function isSchemaIssue(issue: unknown): issue is SchemaIssue {
     }
 
     if (
-      !issue.path.every(segment => isPropertyKey(segment))
-      && !issue.path.every(segment => isTypescriptObject(segment) && isPropertyKey(segment.key))
+      !issue.path.every(segment => isPropertyKey(segment) || (isTypescriptObject(segment) && isPropertyKey(segment.key)))
     ) {
       return false
     }

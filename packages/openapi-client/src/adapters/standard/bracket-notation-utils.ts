@@ -30,7 +30,7 @@ import { StandardBracketNotationSerializer } from './bracket-notation'
  *
  * @see {@link https://orpc.unnoq.com/docs/openapi/bracket-notation Bracket Notation Docs}
  */
-export function parseFormData(form: FormData): Record<string, unknown> {
+export function parseFormData(form: FormData): any {
   const serializer = new StandardBracketNotationSerializer()
   return serializer.deserialize(Array.from(form.entries())) as any
 }

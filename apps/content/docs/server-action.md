@@ -227,3 +227,46 @@ By moving the `redirect('/some-where')` logic into `createFormAction` rather tha
 ::: info
 When using `createFormAction`, any `ORPCError` with a status of `401`, `403`, or `404` is automatically converted into the corresponding Next.js error responses: [unauthorized](https://nextjs.org/docs/app/api-reference/functions/unauthorized), [forbidden](https://nextjs.org/docs/app/api-reference/functions/forbidden), and [not found](https://nextjs.org/docs/app/api-reference/functions/not-found).
 :::
+
+## `parseFormData` and `getIssueMessage` utilities
+
+- `parseFormData` parse a form data with [Bracket Notation](/docs/openapi/bracket-notation)
+- `getIssueMessage` get the [standard schema](https://github.com/standard-schema/standard-schema?tab=readme-ov-file#the-interface) issue message with [Bracket Notation](/docs/openapi/bracket-notation) path
+
+```tsx
+import { getIssueMessage, parseFormData } from '@orpc/react'
+
+export function MyComponent() {
+  const { execute, data, error, status } = useServerAction(someAction)
+
+  return (
+    <form action={form => execute(parseFormData(form))}>
+      <label>
+        Name:
+        <input name="user[name]" type="text" />
+        <span>{getIssueMessage(error, 'user[name]')}</span>
+      </label>
+
+      <label>
+        Age:
+        <input name="user[age]" type="number" />
+        <span>{getIssueMessage(error, 'user[age]')}</span>
+      </label>
+
+      <label>
+        Images:
+        <input name="images[]" type="file" multiple />
+        <span>{getIssueMessage(error, 'images[]')}</span>
+      </label>
+
+      <button disabled={status === 'pending'}>
+        Submit
+      </button>
+    </form>
+  )
+}
+```
+
+::: info
+The `getIssueMessage` utility works with any data type but requires validation errors to follow the [standard schema issue format](https://github.com/standard-schema/standard-schema?tab=readme-ov-file#the-interface). It looks for issues in the `data.issues` property. If you use custom [validation errors](/docs/advanced/validation-errors), store them elsewhere, or modify the issue format, `getIssueMessage` may not work as expected.
+:::

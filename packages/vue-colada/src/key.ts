@@ -11,14 +11,10 @@ export function buildKey<TInput>(
   path: string[],
   options: BuildKeyOptions<TInput> = {},
 ): EntryKey {
-  if (options?.input === undefined) {
-    return path
-  }
-
   const [json] = new StandardRPCJsonSerializer().serialize(options.input)
 
   const withInput = json !== undefined ? { input: json } : {}
-  const withType = options.type ? { type: options.type } : {}
+  const withType = options.type !== undefined ? { type: options.type } : {}
 
   return [
     ...path,

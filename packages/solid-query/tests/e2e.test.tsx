@@ -1,7 +1,7 @@
 import { isDefinedError } from '@orpc/client'
 import { ORPCError } from '@orpc/contract'
 import { renderHook } from '@solidjs/testing-library'
-import { createInfiniteQuery, createMutation, createQuery } from '@tanstack/solid-query'
+import { skipToken, useInfiniteQuery, useMutation, useQuery } from '@tanstack/solid-query'
 import { pingHandler } from '../../server/tests/shared'
 import { orpc, queryClient } from './shared'
 
@@ -14,8 +14,8 @@ it('case: call directly', async () => {
   expect(await orpc.ping.call({ input: 123 })).toEqual({ output: '123' })
 })
 
-it('case: with createQuery', async () => {
-  const { result: query } = renderHook(() => createQuery(() => orpc.nested.ping.queryOptions({ input: { input: 123 } }), () => queryClient))
+it('case: with useQuery', async () => {
+  const { result: query } = renderHook(() => useQuery(() => orpc.nested.ping.queryOptions({ input: { input: 123 } }), () => queryClient))
 
   expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(1)
   expect(queryClient.isFetching({ queryKey: orpc.nested.key() })).toEqual(1)
@@ -46,8 +46,20 @@ it('case: with createQuery', async () => {
   })
 })
 
-it('case: with createInfiniteQuery', async () => {
-  const { result: query } = renderHook(() => createInfiniteQuery(() => orpc.nested.ping.infiniteOptions({
+it('case: with useQuery with skipToken', async () => {
+  const { result: query } = renderHook(() => useQuery(() => orpc.nested.ping.queryOptions({ input: skipToken }), () => queryClient))
+
+  expect(query.status).toEqual('pending')
+  expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(0)
+
+  await new Promise(resolve => setTimeout(resolve, 10))
+
+  expect(query.status).toEqual('pending')
+  expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(0)
+})
+
+it('case: with useInfiniteQuery', async () => {
+  const { result: query } = renderHook(() => useInfiniteQuery(() => orpc.nested.ping.infiniteOptions({
     input: pageParam => ({ input: pageParam }),
     getNextPageParam: lastPage => Number(lastPage.output) + 1,
     initialPageParam: 1,
@@ -112,8 +124,24 @@ it('case: with createInfiniteQuery', async () => {
   })
 })
 
-it('case: with createMutation', async () => {
-  const { result: query } = renderHook(() => createMutation(() => orpc.nested.ping.mutationOptions(), () => queryClient))
+it('case: with useInfiniteQuery with skipToken', async () => {
+  const { result: query } = renderHook(() => useInfiniteQuery(() => orpc.nested.ping.infiniteOptions({
+    input: skipToken,
+    getNextPageParam: lastPage => Number(lastPage.output) + 1,
+    initialPageParam: 1,
+  }), () => queryClient))
+
+  expect(query.status).toEqual('pending')
+  expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(0)
+
+  await new Promise(resolve => setTimeout(resolve, 10))
+
+  expect(query.status).toEqual('pending')
+  expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(0)
+})
+
+it('case: with useMutation', async () => {
+  const { result: query } = renderHook(() => useMutation(() => orpc.nested.ping.mutationOptions(), () => queryClient))
 
   query.mutate({ input: 123 })
 

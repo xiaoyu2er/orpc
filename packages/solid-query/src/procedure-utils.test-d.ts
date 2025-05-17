@@ -3,12 +3,14 @@ import type { ErrorFromErrorMap } from '@orpc/contract'
 import type { GetNextPageParamFunction, InfiniteData } from '@tanstack/solid-query'
 import type { baseErrorMap } from '../../contract/tests/shared'
 import type { ProcedureUtils } from './procedure-utils'
-import { createInfiniteQuery, createMutation, createQueries, createQuery } from '@tanstack/solid-query'
+import { skipToken, useInfiniteQuery, useMutation, useQueries, useQuery } from '@tanstack/solid-query'
 import { queryClient } from '../tests/shared'
 
 describe('ProcedureUtils', () => {
   type UtilsInput = { search?: string, cursor?: number } | undefined
   type UtilsOutput = { title: string }[]
+
+  const condition = {} as boolean
 
   const utils = {} as ProcedureUtils<
     { batch?: boolean },
@@ -30,15 +32,20 @@ describe('ProcedureUtils', () => {
 
   describe('.queryOptions', () => {
     it('can optional options', () => {
-      const requiredUtils = {} as ProcedureUtils<{ batch?: boolean }, 'input', UtilsOutput, Error>
+      const requiredUtils = {} as ProcedureUtils<{ batch: boolean }, 'input', UtilsOutput, Error>
 
       utils.queryOptions()
       utils.queryOptions({ context: { batch: true } })
       utils.queryOptions({ input: { search: 'search' } })
+      utils.queryOptions({ input: condition ? skipToken : { search: 'search' } })
 
       requiredUtils.queryOptions({
         context: { batch: true },
         input: 'input',
+      })
+      requiredUtils.queryOptions({
+        context: { batch: true },
+        input: condition ? skipToken : 'input',
       })
       // @ts-expect-error input and context is required
       requiredUtils.queryOptions()
@@ -47,13 +54,18 @@ describe('ProcedureUtils', () => {
       // @ts-expect-error input is required
       requiredUtils.queryOptions({ context: { batch: true } })
       // @ts-expect-error context is required
-      requiredUtils.queryOptions({ input: { search: 'search' } })
+      requiredUtils.queryOptions({ input: 'input' })
+      // @ts-expect-error context is required
+      requiredUtils.queryOptions({ input: condition ? skipToken : 'input' })
     })
 
     it('infer correct input type', () => {
       utils.queryOptions({ input: { cursor: 1 }, context: { batch: true } })
+      utils.queryOptions({ input: condition ? skipToken : { cursor: 1 }, context: { batch: true } })
       // @ts-expect-error invalid input
       utils.queryOptions({ input: { cursor: 'invalid' }, context: { batch: true } })
+      // @ts-expect-error invalid input
+      utils.queryOptions({ input: condition ? skipToken : { cursor: 'invalid' }, context: { batch: true } })
     })
 
     it('infer correct context type', () => {
@@ -62,9 +74,9 @@ describe('ProcedureUtils', () => {
       utils.queryOptions({ context: { batch: 'invalid' } })
     })
 
-    describe('createQuery', () => {
+    describe('useQuery', () => {
       it('without initial data', () => {
-        const query = createQuery(() => utils.queryOptions({
+        const query = useQuery(() => utils.queryOptions({
           select: data => ({ mapped: data }),
           throwOnError(error) {
             expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
@@ -77,7 +89,7 @@ describe('ProcedureUtils', () => {
       })
 
       it('with initial data', () => {
-        const query = createQuery(() => utils.queryOptions({
+        const query = useQuery(() => utils.queryOptions({
           select: data => ({ mapped: data }),
           initialData: [{ title: 'title' }],
           throwOnError(error) {
@@ -91,8 +103,8 @@ describe('ProcedureUtils', () => {
       })
     })
 
-    it('works with createQueries', async () => {
-      const queries = createQueries(() => ({
+    it('works with useQueries', async () => {
+      const queries = useQueries(() => ({
         queries: [
           utils.queryOptions({
             select: data => ({ mapped: data }),
@@ -107,7 +119,7 @@ describe('ProcedureUtils', () => {
       expectTypeOf(queries[0].data).toEqualTypeOf<{ mapped: UtilsOutput } | undefined>()
       expectTypeOf(queries[1].data).toEqualTypeOf<UtilsOutput | undefined>()
 
-      // FIXME: createQueries cannot infer error
+      // FIXME: useQueries cannot infer error
       // expectTypeOf(queries[0].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
       // expectTypeOf(queries[0].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
     })
@@ -168,6 +180,16 @@ describe('ProcedureUtils', () => {
       })
 
       utils.infiniteOptions({
+        input: condition
+          ? skipToken
+          : (cursor: number | undefined) => {
+              return { cursor }
+            },
+        getNextPageParam: lastPage => 1,
+        initialPageParam: undefined,
+      })
+
+      utils.infiniteOptions({
         // @ts-expect-error invalid input
         input: (pageParam) => {
           expectTypeOf(pageParam).toEqualTypeOf<number>()
@@ -179,10 +201,23 @@ describe('ProcedureUtils', () => {
       })
 
       utils.infiniteOptions({
+        // @ts-expect-error invalid input
+        input: condition
+          ? skipToken
+          : (cursor) => {
+              return 'invalid'
+            },
+        getNextPageParam,
+        initialPageParam,
+      })
+
+      utils.infiniteOptions({
         // @ts-expect-error conflict types
-        input: (pageParam: number) => {
-          return 'input'
-        },
+        input: condition
+          ? skipToken
+          : (pageParam: number) => {
+              return 'input'
+            },
         // @ts-expect-error conflict types
         getNextPageParam,
         // @ts-expect-error conflict types
@@ -207,9 +242,9 @@ describe('ProcedureUtils', () => {
       })
     })
 
-    describe('works with createInfiniteQuery', () => {
+    describe('works with useInfiniteQuery', () => {
       it('without initial data', () => {
-        const query = createInfiniteQuery(() => utils.infiniteOptions({
+        const query = useInfiniteQuery(() => utils.infiniteOptions({
           input: () => ({}),
           getNextPageParam,
           initialPageParam,
@@ -225,7 +260,7 @@ describe('ProcedureUtils', () => {
       })
 
       it('with initial data', () => {
-        const query = createInfiniteQuery(() => utils.infiniteOptions({
+        const query = useInfiniteQuery(() => utils.infiniteOptions({
           input: () => ({}),
           getNextPageParam,
           initialPageParam,
@@ -277,8 +312,8 @@ describe('ProcedureUtils', () => {
       utils.mutationOptions({ context: { batch: 'invalid' } })
     })
 
-    it('works with createMutation', () => {
-      const mutation = createMutation(() => utils.mutationOptions({
+    it('works with useMutation', () => {
+      const mutation = useMutation(() => utils.mutationOptions({
         onSuccess: (data, input) => {
           expectTypeOf(data).toEqualTypeOf<UtilsOutput>()
           expectTypeOf(input).toEqualTypeOf<UtilsInput>()
@@ -294,7 +329,7 @@ describe('ProcedureUtils', () => {
     })
 
     it('infer correct mutation context type', () => {
-      createMutation(() => ({
+      useMutation(() => ({
         ...utils.mutationOptions({
           onMutate: v => ({ mutationContext: true }),
           onError: (e, v, context) => {

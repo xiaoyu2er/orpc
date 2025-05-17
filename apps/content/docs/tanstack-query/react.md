@@ -119,26 +119,3 @@ Integrate oRPC React Query utils into your React app with Context:
 
    const query = useQuery(orpc.planet.find.queryOptions({ input: { id: 123 } }))
    ```
-
-## `skipToken` for Disabling Queries
-
-You can still use [skipToken](https://tanstack.com/query/latest/docs/framework/react/guides/disabling-queries/#typesafe-disabling-of-queries-using-skiptoken) by conditionally overriding the `queryFn` property:
-
-```ts twoslash
-import type { router } from './shared/planet'
-import type { RouterClient } from '@orpc/server'
-import type { RouterUtils } from '@orpc/react-query'
-declare const orpc: RouterUtils<RouterClient<typeof router>>
-declare const condition: boolean
-// ---cut---
-import { skipToken, useQuery } from '@tanstack/react-query'
-
-const options = orpc.planet.find.queryOptions({
-  input: { id: 123 },
-})
-
-const query = useQuery({
-  ...options,
-  queryFn: condition ? skipToken : options.queryFn,
-})
-```

@@ -240,7 +240,7 @@ export function MyComponent() {
   const { execute, data, error, status } = useServerAction(someAction)
 
   return (
-    <form action={form => execute(parseFormData(form))}>
+    <form action={(form) => { execute(parseFormData(form)) }}>
       <label>
         Name:
         <input name="user[name]" type="text" />

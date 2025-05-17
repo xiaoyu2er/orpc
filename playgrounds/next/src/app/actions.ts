@@ -8,7 +8,7 @@ import { onSuccess } from '@orpc/client'
 
 export const getting = pub
   .input(z.object({
-    name: z.string(),
+    name: z.string().min(6),
   }))
   .output(z.string())
   .handler(async ({ input }) => {

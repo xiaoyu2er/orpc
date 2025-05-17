@@ -14,6 +14,7 @@ describe('isSchemaIssue', async () => {
     expect(isSchemaIssue({})).toBe(false)
     expect(isSchemaIssue({ message: 123 })).toBe(false)
     expect(isSchemaIssue({ message: 'hi', path: 'invalid' })).toBe(false)
+    expect(isSchemaIssue({ message: 'hi', path: [{}] })).toBe(false)
   })
 
   it.each([

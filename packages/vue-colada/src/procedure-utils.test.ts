@@ -8,9 +8,7 @@ const controller = new AbortController()
 const signal = controller.signal
 
 beforeEach(() => {
-  buildKeySpy.mockClear()
-
-  buildKeySpy.mockReturnValue(['__mocked__'])
+  vi.clearAllMocks()
 })
 
 it('.call', () => {
@@ -35,9 +33,9 @@ describe('queryOptions', () => {
   it('works', async () => {
     const options = utils.queryOptions({ input: 1 }) as any
 
-    expect(options.key.value).toEqual(['__mocked__'])
+    expect(options.key.value).toBe(buildKeySpy.mock.results[0]!.value)
     expect(buildKeySpy).toHaveBeenCalledTimes(1)
-    expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { input: 1 })
+    expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { input: 1, type: 'query' })
 
     client.mockResolvedValueOnce('__mocked__')
     await expect((options as any).query({ signal })).resolves.toEqual('__mocked__')
@@ -49,9 +47,9 @@ describe('queryOptions', () => {
     const input = ref(1)
     const options = utils.queryOptions({ input }) as any
 
-    expect(options.key.value).toEqual(['__mocked__'])
+    expect(options.key.value).toBe(buildKeySpy.mock.results[0]!.value)
     expect(buildKeySpy).toHaveBeenCalledTimes(1)
-    expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { input: 1 })
+    expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { input: 1, type: 'query' })
 
     client.mockResolvedValueOnce('__mocked__')
     await expect((options as any).query({ signal })).resolves.toEqual('__mocked__')
@@ -65,9 +63,9 @@ describe('queryOptions', () => {
 
     const options = utils.queryOptions({ context: ref({ batch: true }) }) as any
 
-    expect(options.key.value).toEqual(['__mocked__'])
+    expect(options.key.value).toBe(buildKeySpy.mock.results[0]!.value)
     expect(buildKeySpy).toHaveBeenCalledTimes(1)
-    expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { })
+    expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { type: 'query' })
 
     client.mockResolvedValueOnce('__mocked__')
     await expect((options as any).query({ signal })).resolves.toEqual('__mocked__')
@@ -89,9 +87,9 @@ describe('mutationOptions', () => {
   it('works', async () => {
     const options = utils.mutationOptions() as any
 
-    expect(options.key('__input__')).toEqual(['__mocked__'])
+    expect(options.key('__input__')).toBe(buildKeySpy.mock.results[0]!.value)
     expect(buildKeySpy).toHaveBeenCalledTimes(1)
-    expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { input: '__input__' })
+    expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { input: '__input__', type: 'mutation' })
 
     client.mockResolvedValueOnce('__mocked__')
     await expect(options.mutation(1)).resolves.toEqual('__mocked__')
@@ -107,9 +105,9 @@ describe('mutationOptions', () => {
 
     const options = utils.mutationOptions({ context: ref({ batch: true }) }) as any
 
-    expect(options.key('__input__')).toEqual(['__mocked__'])
+    expect(options.key('__input__')).toBe(buildKeySpy.mock.results[0]!.value)
     expect(buildKeySpy).toHaveBeenCalledTimes(1)
-    expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { input: '__input__' })
+    expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { input: '__input__', type: 'mutation' })
 
     client.mockResolvedValueOnce('__mocked__')
     await expect(options.mutation(1)).resolves.toEqual('__mocked__')

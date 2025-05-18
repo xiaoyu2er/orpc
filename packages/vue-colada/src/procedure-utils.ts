@@ -18,7 +18,7 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
    *
    * @see {@link https://orpc.unnoq.com/docs/pinia-colada#query-options-utility Pinia Colada Query Options Utility Docs}
    */
-  queryOptions<UInitialData extends TOutput | undefined = TOutput | undefined>(
+  queryOptions<UInitialData extends TOutput | undefined = undefined>(
     ...rest: MaybeOptionalOptions<
       QueryOptionsIn<TClientContext, TInput, TOutput, TError, UInitialData>
     >

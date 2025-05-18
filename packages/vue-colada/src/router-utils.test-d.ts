@@ -9,23 +9,23 @@ import type { RouterUtils } from './router-utils'
 it('RouterUtils', () => {
   const utils = {} as RouterUtils<RouterClient<typeof router, { batch?: boolean }>>
 
-  expectTypeOf(utils).toMatchTypeOf<GeneralUtils<unknown>>()
-  expectTypeOf(utils.nested).toMatchTypeOf<GeneralUtils<unknown>>()
+  expectTypeOf(utils).toExtend<GeneralUtils<unknown>>()
+  expectTypeOf(utils.nested).toExtend<GeneralUtils<unknown>>()
 
-  expectTypeOf(utils.ping).toMatchTypeOf<GeneralUtils<{ input: number }>>()
-  expectTypeOf(utils.nested.ping).toMatchTypeOf<GeneralUtils<{ input: number }>>()
+  expectTypeOf(utils.ping).toExtend<GeneralUtils<{ input: number }>>()
+  expectTypeOf(utils.nested.ping).toExtend<GeneralUtils<{ input: number }>>()
 
-  expectTypeOf(utils.ping).toMatchTypeOf<
+  expectTypeOf(utils.ping).toExtend<
     ProcedureUtils<{ batch?: boolean }, { input: number }, { output: string }, ErrorFromErrorMap<typeof baseErrorMap>>
   >()
-  expectTypeOf(utils.nested.ping).toMatchTypeOf<
+  expectTypeOf(utils.nested.ping).toExtend<
     ProcedureUtils<{ batch?: boolean }, { input: number }, { output: string }, ErrorFromErrorMap<typeof baseErrorMap>>
   >()
 
-  expectTypeOf(utils.pong).toMatchTypeOf<
+  expectTypeOf(utils.pong).toExtend<
     ProcedureUtils<{ batch?: boolean }, unknown, unknown, Error>
   >()
-  expectTypeOf(utils.nested.pong).toMatchTypeOf<
+  expectTypeOf(utils.nested.pong).toExtend<
     ProcedureUtils<{ batch?: boolean }, unknown, unknown, Error>
   >()
 })

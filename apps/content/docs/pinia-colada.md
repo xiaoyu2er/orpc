@@ -11,6 +11,10 @@ description: Seamlessly integrate oRPC with Pinia Colada
 This documentation assumes you are already familiar with [Pinia Colada](https://pinia-colada.esm.dev/). If you need a refresher, please review the official Pinia Colada documentation before proceeding.
 :::
 
+::: warning
+[Pinia Colada](https://pinia-colada.esm.dev/) is still in an unstable stage. As a result, oRPC's integration with Pinia Colada may introduce breaking changes in the future to keep up with its ongoing development.
+:::
+
 ## Installation
 
 ::: code-group

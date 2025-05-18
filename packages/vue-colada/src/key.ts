@@ -17,7 +17,7 @@ export function buildKey<TInput>(
   const withType = options.type !== undefined ? { type: options.type } : {}
 
   return [
-    ...path,
+    path,
     {
       ...withInput,
       ...withType as any,

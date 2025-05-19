@@ -1,7 +1,7 @@
 import type { PartialDeep } from '@orpc/shared'
 import type { QueryKey } from '@tanstack/svelte-query'
 
-export type KeyType = 'query' | 'infinite' | 'mutation' | undefined
+export type KeyType = 'query' | 'streamed' | 'infinite' | 'mutation' | undefined
 
 export interface BuildKeyOptions<TType extends KeyType, TInput> {
   type?: TType

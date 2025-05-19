@@ -58,6 +58,50 @@ it('case: with useQuery and skipToken', async () => {
   expect(result.current.status).toEqual('pending')
 })
 
+it('case: with streamed/useQuery', async () => {
+  const { result } = renderHook(() => useQuery(orpc.nested.ping.experimental_streamedOptions({ input: { input: 123 } }), queryClient))
+
+  expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(1)
+  expect(queryClient.isFetching({ queryKey: orpc.nested.key() })).toEqual(1)
+  expect(queryClient.isFetching({ queryKey: orpc.nested.ping.key() })).toEqual(1)
+  expect(queryClient.isFetching({ queryKey: orpc.nested.ping.key({ input: { input: 123 } }) })).toEqual(1)
+  expect(queryClient.isFetching({ queryKey: orpc.nested.ping.key({ input: { input: 123 }, type: 'streamed' }) })).toEqual(1)
+
+  expect(queryClient.isFetching({ queryKey: orpc.nested.ping.key({ input: { input: 234 }, type: 'query' }) })).toEqual(0)
+  expect(queryClient.isFetching({ queryKey: orpc.nested.ping.key({ input: { input: 123 }, type: 'infinite' }) })).toEqual(0)
+  expect(queryClient.isFetching({ queryKey: orpc.nested.pong.key() })).toEqual(0)
+  expect(queryClient.isFetching({ queryKey: orpc.ping.key() })).toEqual(0)
+  expect(queryClient.isFetching({ queryKey: orpc.pong.key() })).toEqual(0)
+
+  await vi.waitFor(() => expect(result.current.data).toEqual({ output: '123' }))
+
+  expect(
+    queryClient.getQueryData(orpc.nested.ping.key({ input: { input: 123 }, type: 'query' })),
+  ).toEqual({ output: '123' })
+
+  pingHandler.mockRejectedValueOnce(new ORPCError('OVERRIDE'))
+
+  result.current.refetch()
+
+  await vi.waitFor(() => {
+    expect((result as any).current.error).toBeInstanceOf(ORPCError)
+    expect((result as any).current.error).toSatisfy(isDefinedError)
+    expect((result as any).current.error.code).toEqual('OVERRIDE')
+  })
+})
+
+it('case: with streamed/useQuery and skipToken', async () => {
+  const { result } = renderHook(() => useQuery(orpc.nested.ping.experimental_streamedOptions({ input: skipToken }), queryClient))
+
+  expect(result.current.status).toEqual('pending')
+  expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(0)
+
+  await new Promise(resolve => setTimeout(resolve, 10))
+
+  expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(0)
+  expect(result.current.status).toEqual('pending')
+})
+
 it('case: with useInfiniteQuery', async () => {
   const { result } = renderHook(() => useInfiniteQuery(orpc.nested.ping.infiniteOptions({
     input: pageParam => ({ input: pageParam }),

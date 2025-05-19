@@ -176,6 +176,15 @@ describe('createProcedureUtils', () => {
       expect(client).toHaveBeenCalledTimes(1)
       expect(client).toBeCalledWith({ search: '__search__' }, { signal, context: { batch: '__batch__' } })
     })
+
+    it('with unsupported output', async () => {
+      client.mockResolvedValueOnce('__1__')
+      const options = utils.experimental_streamedOptions({ input: { search: '__search__' }, context: { batch: '__batch__' } })
+
+      await expect(options.queryFn!({ signal, client: queryClient } as any)).rejects.toThrow('streamedQuery requires an event iterator output')
+      expect(client).toHaveBeenCalledTimes(1)
+      expect(client).toBeCalledWith({ search: '__search__' }, { signal, context: { batch: '__batch__' } })
+    })
   })
 
   describe('.infiniteOptions', () => {

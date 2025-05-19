@@ -1,8 +1,19 @@
 import type { Client, ClientContext } from '@orpc/client'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { InfiniteData } from '@tanstack/react-query'
-import type { InfiniteOptionsBase, InfiniteOptionsIn, MutationOptions, MutationOptionsIn, QueryOptionsBase, QueryOptionsIn } from './types'
-import { skipToken } from '@tanstack/react-query'
+import type {
+  InferStreamedOutput,
+  InfiniteOptionsBase,
+  InfiniteOptionsIn,
+  MutationOptions,
+  MutationOptionsIn,
+  QueryOptionsBase,
+  QueryOptionsIn,
+  experimental_StreamedOptionsBase as StreamedOptionsBase,
+  experimental_StreamedOptionsIn as StreamedOptionsIn,
+} from './types'
+import { isAsyncIteratorObject } from '@orpc/shared'
+import { skipToken, experimental_streamedQuery as streamedQuery } from '@tanstack/react-query'
 import { buildKey } from './key'
 
 export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError> {
@@ -23,6 +34,12 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
       U & QueryOptionsIn<TClientContext, TInput, TOutput, TError, USelectData>
     >
   ): NoInfer<U & Omit<QueryOptionsBase<TOutput, TError>, keyof U>>
+
+  experimental_streamedOptions<U, USelectData = InferStreamedOutput<TOutput>>(
+    ...rest: MaybeOptionalOptions<
+      U & StreamedOptionsIn<TClientContext, TInput, InferStreamedOutput<TOutput>, TError, USelectData>
+    >
+  ): NoInfer<U & Omit<StreamedOptionsBase<InferStreamedOutput<TOutput>, TError>, keyof U>>
 
   /**
    * Generate options used for useInfiniteQuery/useSuspenseInfiniteQuery/prefetchInfiniteQuery/...
@@ -65,6 +82,30 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
           return client(optionsIn.input, { signal, context: optionsIn.context })
         },
         enabled: optionsIn.input !== skipToken,
+        ...optionsIn,
+      }
+    },
+
+    experimental_streamedOptions(...[optionsIn = {} as any]) {
+      return {
+        enabled: optionsIn.input !== skipToken,
+        queryKey: buildKey(options.path, { type: 'streamed', input: optionsIn.input }),
+        queryFn: streamedQuery({
+          refetchMode: optionsIn.refetchMode,
+          queryFn: async ({ signal }) => {
+            if (optionsIn.input === skipToken) {
+              throw new Error('queryFn should not be called with skipToken used as input')
+            }
+
+            const output = await client(optionsIn.input, { signal, context: optionsIn.context })
+
+            if (!isAsyncIteratorObject(output)) {
+              throw new Error('streamedQuery requires an event iterator output')
+            }
+
+            return output
+          },
+        }),
         ...optionsIn,
       }
     },

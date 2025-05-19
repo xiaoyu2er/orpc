@@ -1,6 +1,8 @@
 import type { ClientContext } from '@orpc/client'
 import type { SetOptional } from '@orpc/shared'
-import type { QueryFunctionContext, QueryKey, SkipToken, UseInfiniteQueryOptions, UseMutationOptions, UseQueryOptions } from '@tanstack/react-query'
+import type { experimental_streamedQuery, QueryFunctionContext, QueryKey, SkipToken, UseInfiniteQueryOptions, UseMutationOptions, UseQueryOptions } from '@tanstack/react-query'
+
+type StreamedRefetchMode = Exclude<Parameters<typeof experimental_streamedQuery>[0]['refetchMode'], undefined>
 
 export type QueryOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData> =
   & (undefined extends TInput ? { input?: TInput | SkipToken } : { input: TInput | SkipToken })
@@ -12,6 +14,15 @@ export interface QueryOptionsBase<TOutput, TError> {
   queryFn(ctx: QueryFunctionContext): Promise<TOutput>
   retry?(failureCount: number, error: TError): boolean // this make tanstack can infer the TError type
   enabled: boolean
+}
+
+export type InferStreamedOutput<TOutput> = TOutput extends AsyncIterable<infer U> ? U[] : never
+
+export type experimental_StreamedOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData> =
+  & QueryOptionsIn<TClientContext, TInput, TOutput, TError, TSelectData>
+  & { refetchMode?: StreamedRefetchMode }
+
+export interface experimental_StreamedOptionsBase<TOutput, TError> extends QueryOptionsBase<TOutput, TError> {
 }
 
 export type InfiniteOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData, TPageParam> =

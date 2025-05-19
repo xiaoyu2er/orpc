@@ -146,6 +146,96 @@ describe('ProcedureUtils', () => {
     })
   })
 
+  describe('.streamedOptions', () => {
+    const utils = {} as ProcedureUtils<{ batch?: boolean }, UtilsInput, AsyncIterable<UtilsOutput[number]>, ErrorFromErrorMap<typeof baseErrorMap>>
+
+    it('can optional options', () => {
+      const requiredUtils = {} as ProcedureUtils<{ batch: boolean }, 'input', UtilsOutput, Error>
+
+      utils.queryOptions()
+      utils.queryOptions({ context: { batch: true } })
+      utils.queryOptions({ input: { search: 'search' } })
+      utils.queryOptions({ input: condition ? skipToken : { search: 'search' } })
+
+      requiredUtils.queryOptions({
+        context: { batch: true },
+        input: 'input',
+      })
+      requiredUtils.queryOptions({
+        context: { batch: true },
+        input: condition ? skipToken : 'input',
+      })
+      // @ts-expect-error input and context is required
+      requiredUtils.queryOptions()
+      // @ts-expect-error input and context is required
+      requiredUtils.queryOptions({})
+      // @ts-expect-error input is required
+      requiredUtils.queryOptions({ context: { batch: true } })
+      // @ts-expect-error context is required
+      requiredUtils.queryOptions({ input: 'input' })
+      // @ts-expect-error context is required
+      requiredUtils.queryOptions({ input: condition ? skipToken : 'input' })
+    })
+
+    it('infer correct input type', () => {
+      utils.queryOptions({ input: { cursor: 1 }, context: { batch: true } })
+      utils.queryOptions({ input: condition ? { cursor: 2 } : skipToken, context: { batch: true } })
+      // @ts-expect-error invalid input
+      utils.queryOptions({ input: { cursor: 'invalid' }, context: { batch: true } })
+      // @ts-expect-error invalid input
+      utils.queryOptions({ input: condition ? { cursor: 'invalid' } : skipToken, context: { batch: true } })
+    })
+
+    it('infer correct context type', () => {
+      utils.queryOptions({ context: { batch: true } })
+      // @ts-expect-error invalid context
+      utils.queryOptions({ context: { batch: 'invalid' } })
+    })
+
+    it('not usable in non event iterator output', () => {
+      const utils = {} as ProcedureUtils<{ batch?: boolean }, UtilsInput, UtilsOutput, ErrorFromErrorMap<typeof baseErrorMap>>
+      const query = useQuery(utils.experimental_streamedOptions())
+      expectTypeOf(query.data).toExtend<undefined>()
+    })
+
+    describe('works with useQuery', () => {
+      it('without initial data', () => {
+        const query = useQuery(utils.experimental_streamedOptions({
+          select: data => ({ mapped: data }),
+          throwOnError(error) {
+            expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
+            return false
+          },
+        }))
+
+        expectTypeOf(query.data).toEqualTypeOf<{ mapped: UtilsOutput } | undefined>()
+        expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+      })
+
+      it('with initial data', () => {
+        const query = useQuery(utils.experimental_streamedOptions({
+          select: data => ({ mapped: data }),
+          initialData: [{ title: 'title' }],
+          throwOnError(error) {
+            expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
+            return false
+          },
+        }))
+
+        expectTypeOf(query.data).toEqualTypeOf<{ mapped: UtilsOutput }>()
+        expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+      })
+    })
+
+    it('works with fetchQuery', () => {
+      expectTypeOf(
+        queryClient.fetchQuery(utils.experimental_streamedOptions()),
+      ).toEqualTypeOf<
+        Promise<UtilsOutput>
+      >()
+    })
+  })
+
   describe('.infiniteOptions', () => {
     const getNextPageParam = {} as GetNextPageParamFunction<number, UtilsOutput>
     const initialPageParam = 1

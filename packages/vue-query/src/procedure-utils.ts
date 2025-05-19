@@ -99,7 +99,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
               throw new Error('queryFn should not be called with skipToken used as input')
             }
 
-            const output = await client(input, { signal, context: optionsIn.context })
+            const output = await client(input, { signal, context: unrefDeep(optionsIn.context) })
 
             if (!isAsyncIteratorObject(output)) {
               throw new Error('streamedQuery requires an event iterator output')

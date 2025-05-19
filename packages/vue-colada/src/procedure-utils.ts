@@ -22,7 +22,7 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
     ...rest: MaybeOptionalOptions<
       QueryOptionsIn<TClientContext, TInput, TOutput, TError, UInitialData>
     >
-  ): QueryOptions<TOutput, TError, UInitialData>
+  ): NoInfer<QueryOptions<TOutput, TError, UInitialData>>
 
   /**
    * Generate options used for useMutation/...
@@ -33,7 +33,7 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
     ...rest: MaybeOptionalOptions<
       MutationOptionsIn<TClientContext, TInput, TOutput, TError, UMutationContext>
     >
-  ): MutationOptions<TInput, TOutput, TError, UMutationContext>
+  ): NoInfer<MutationOptions<TInput, TOutput, TError, UMutationContext>>
 }
 
 export interface CreateProcedureUtilsOptions {

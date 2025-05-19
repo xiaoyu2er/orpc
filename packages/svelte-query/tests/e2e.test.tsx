@@ -1,6 +1,6 @@
 import { isDefinedError } from '@orpc/client'
 import { ORPCError } from '@orpc/contract'
-import { createInfiniteQuery, createMutation, createQuery } from '@tanstack/svelte-query'
+import { createInfiniteQuery, createMutation, createQuery, skipToken } from '@tanstack/svelte-query'
 import { get } from 'svelte/store'
 import { pingHandler } from '../../server/tests/shared'
 import { orpc, queryClient } from './shared'
@@ -49,6 +49,18 @@ it('case: with createQuery', { todo: true }, async () => {
     expect((get(query) as any).error).toSatisfy(isDefinedError)
     expect((get(query) as any).error.code).toEqual('OVERRIDE')
   })
+})
+
+it('case: with createQuery and skipToken', { todo: true }, async () => {
+  const query = createQuery(orpc.nested.ping.queryOptions({ input: skipToken }), queryClient)
+
+  expect(get(query).status).toEqual('pending')
+  expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(0)
+
+  await new Promise(resolve => setTimeout(resolve, 10))
+
+  expect(get(query).status).toEqual('pending')
+  expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(0)
 })
 
 it('case: with createInfiniteQuery', { todo: true }, async () => {
@@ -115,6 +127,22 @@ it('case: with createInfiniteQuery', { todo: true }, async () => {
     expect((query as any).error).toSatisfy(isDefinedError)
     expect((query as any).error.code).toEqual('OVERRIDE')
   })
+})
+
+it('case: with createInfiniteQuery and skipToken', { todo: true }, async () => {
+  const query = createInfiniteQuery(orpc.nested.ping.infiniteOptions({
+    input: skipToken,
+    getNextPageParam: lastPage => Number(lastPage.output) + 1,
+    initialPageParam: 1,
+  }), queryClient)
+
+  expect(get(query).status).toEqual('pending')
+  expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(0)
+
+  await new Promise(resolve => setTimeout(resolve, 10))
+
+  expect(get(query).status).toEqual('pending')
+  expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(0)
 })
 
 it('case: with createMutation', { todo: true }, async () => {

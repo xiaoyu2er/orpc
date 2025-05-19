@@ -1,6 +1,6 @@
 import type { ClientContext } from '@orpc/client'
 import type { AnyFunction } from '@orpc/shared'
-import type { InfiniteQueryObserverOptions, MutationObserverOptions, QueryFunctionContext, QueryKey, QueryObserverOptions } from '@tanstack/vue-query'
+import type { InfiniteQueryObserverOptions, MutationObserverOptions, QueryFunctionContext, QueryKey, QueryObserverOptions, SkipToken } from '@tanstack/vue-query'
 import type { ComputedRef, MaybeRef, MaybeRefOrGetter } from 'vue'
 
 /**
@@ -16,7 +16,7 @@ export type MaybeRefDeep<T> = MaybeRef<
 >
 
 export type QueryOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData> =
-  & (undefined extends TInput ? { input?: MaybeRefDeep<TInput> } : { input: MaybeRefDeep<TInput> })
+  & (undefined extends TInput ? { input?: MaybeRefDeep<TInput | SkipToken> } : { input: MaybeRefDeep<TInput | SkipToken> })
   & (Record<never, never> extends TClientContext ? { context?: MaybeRefDeep<TClientContext> } : { context: MaybeRefDeep<TClientContext> })
   & {
     [P in keyof Omit<QueryObserverOptions<TOutput, TError, TSelectData, TOutput>, 'queryKey' | 'enabled'>]:
@@ -32,16 +32,17 @@ export interface QueryOptionsBase<TOutput, TError> {
   queryKey: ComputedRef<QueryKey>
   queryFn(ctx: QueryFunctionContext): Promise<TOutput>
   retry?(failureCount: number, error: TError): boolean // this help tanstack can infer TError
+  enabled: ComputedRef<boolean>
 }
 
 export type InfiniteOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData, TPageParam> =
-  & { input: (pageParam: TPageParam) => MaybeRefDeep<TInput> }
   & (Record<never, never> extends TClientContext ? { context?: MaybeRefDeep<TClientContext> } : { context: MaybeRefDeep<TClientContext> })
   & {
     [Property in keyof Omit<InfiniteQueryObserverOptions<TOutput, TError, TSelectData, TOutput, QueryKey, TPageParam>, 'queryKey' | 'enabled'>]:
     MaybeRefDeep<InfiniteQueryObserverOptions<TOutput, TError, TSelectData, TOutput, QueryKey, TPageParam>[Property]>;
   }
   & {
+    input: MaybeRef<((pageParam: TPageParam) => MaybeRefDeep<TInput>) | SkipToken>
     enabled?: MaybeRefOrGetter<InfiniteQueryObserverOptions<TOutput, TError, TSelectData, TOutput, QueryKey, TPageParam>['enabled']>
     queryKey?: MaybeRefDeep<InfiniteQueryObserverOptions<TOutput, TError, TSelectData, TOutput, QueryKey, TPageParam>['queryKey']>
     shallow?: boolean
@@ -51,6 +52,7 @@ export interface InfiniteOptionsBase<TOutput, TError, TPageParam> {
   queryKey: ComputedRef<QueryKey>
   queryFn(ctx: QueryFunctionContext<QueryKey, TPageParam>): Promise<TOutput>
   retry?(failureCount: number, error: TError): boolean // this help tanstack can infer TError
+  enabled: ComputedRef<boolean>
 }
 
 export type MutationOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TMutationContext> =

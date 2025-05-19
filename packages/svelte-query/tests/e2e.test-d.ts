@@ -44,8 +44,8 @@ describe('.queryOptions', () => {
     }
 
     createQuery(orpc.ping.queryOptions({
+      // @ts-expect-error --- input is invalid
       input: {
-        // @ts-expect-error --- input is invalid
         input: '123',
       },
     }))

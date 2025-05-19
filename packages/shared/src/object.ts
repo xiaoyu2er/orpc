@@ -76,3 +76,8 @@ export function get(object: object, path: readonly string[]): unknown {
 
   return current
 }
+
+export function isPropertyKey(value: unknown): value is PropertyKey {
+  const type = typeof value
+  return type === 'string' || type === 'number' || type === 'symbol'
+}

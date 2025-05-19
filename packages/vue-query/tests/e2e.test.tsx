@@ -1,6 +1,6 @@
 import { isDefinedError } from '@orpc/client'
 import { ORPCError } from '@orpc/contract'
-import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/vue-query'
+import { skipToken, useInfiniteQuery, useMutation, useQuery } from '@tanstack/vue-query'
 import { computed, ref } from 'vue'
 import { pingHandler } from '../../server/tests/shared'
 import { orpc, queryClient } from './shared'
@@ -50,6 +50,18 @@ it('case: with useQuery', async () => {
     expect((query as any).error.value).toSatisfy(isDefinedError)
     expect((query as any).error.value.code).toEqual('OVERRIDE')
   })
+})
+
+it('case: with useQuery with skipToken', async () => {
+  const query = useQuery(orpc.nested.ping.queryOptions({ input: computed(() => skipToken) }), queryClient)
+
+  expect(query.status.value).toEqual('pending')
+  expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(0)
+
+  await new Promise(resolve => setTimeout(resolve, 10))
+
+  expect(query.status.value).toEqual('pending')
+  expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(0)
 })
 
 it('case: with useInfiniteQuery', async () => {
@@ -116,6 +128,22 @@ it('case: with useInfiniteQuery', async () => {
     expect((query as any).error.value).toSatisfy(isDefinedError)
     expect((query as any).error.value.code).toEqual('OVERRIDE')
   })
+})
+
+it('case: with useInfiniteQuery with skipToken', async () => {
+  const query = useInfiniteQuery(orpc.nested.ping.infiniteOptions({
+    input: computed(() => skipToken),
+    getNextPageParam: lastPage => Number(lastPage.output) + 1,
+    initialPageParam: 1,
+  }), queryClient)
+
+  expect(query.status.value).toEqual('pending')
+  expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(0)
+
+  await new Promise(resolve => setTimeout(resolve, 10))
+
+  expect(query.status.value).toEqual('pending')
+  expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(0)
 })
 
 it('case: with useMutation', async () => {

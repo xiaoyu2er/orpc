@@ -1,4 +1,4 @@
-import * as z from 'zod4'
+import * as z from 'zod/v4'
 import { testSchemaConverter } from '../../tests/shared'
 import {
   experimental_JSON_SCHEMA_INPUT_REGISTRY as JSON_SCHEMA_INPUT_REGISTRY,
@@ -65,9 +65,14 @@ testSchemaConverter([
     input: [false, { default: 'a', type: 'string' }],
   },
   {
+    name: 'string.prefault("a")',
+    schema: z.string().prefault('a'),
+    input: [false, { default: 'a', type: 'string' }],
+  },
+  {
     name: 'string.catch("a")',
     schema: z.string().catch('a'),
-    input: [false, { type: 'string' }],
+    input: [true, { type: 'string' }],
   },
   {
     name: 'string.readonly()',

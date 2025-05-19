@@ -3,13 +3,15 @@ import type { ErrorFromErrorMap } from '@orpc/contract'
 import type { GetNextPageParamFunction, InfiniteData } from '@tanstack/vue-query'
 import type { baseErrorMap } from '../../contract/tests/shared'
 import type { ProcedureUtils } from './procedure-utils'
-import { useInfiniteQuery, useMutation, useQueries, useQuery } from '@tanstack/vue-query'
+import { skipToken, useInfiniteQuery, useMutation, useQueries, useQuery } from '@tanstack/vue-query'
 import { computed, ref } from 'vue'
 import { queryClient } from '../tests/shared'
 
 describe('ProcedureUtils', () => {
   type UtilsInput = { search?: string, cursor?: number } | undefined
   type UtilsOutput = { title: string }[]
+
+  const condition = {} as boolean
 
   const utils = {} as ProcedureUtils<
     { batch?: boolean },
@@ -31,15 +33,20 @@ describe('ProcedureUtils', () => {
 
   describe('.queryOptions', () => {
     it('can optional options', () => {
-      const requiredUtils = {} as ProcedureUtils<{ batch?: boolean }, 'input', UtilsOutput, Error>
+      const requiredUtils = {} as ProcedureUtils<{ batch: boolean }, 'input', UtilsOutput, Error>
 
       utils.queryOptions()
       utils.queryOptions({ context: { batch: true } })
       utils.queryOptions({ input: { search: 'search' } })
+      utils.queryOptions({ input: condition ? skipToken : { search: 'search' } })
 
       requiredUtils.queryOptions({
         context: { batch: true },
         input: 'input',
+      })
+      requiredUtils.queryOptions({
+        context: { batch: true },
+        input: condition ? skipToken : 'input',
       })
       // @ts-expect-error input and context is required
       requiredUtils.queryOptions()
@@ -48,13 +55,18 @@ describe('ProcedureUtils', () => {
       // @ts-expect-error input is required
       requiredUtils.queryOptions({ context: { batch: true } })
       // @ts-expect-error context is required
-      requiredUtils.queryOptions({ input: { search: 'search' } })
+      requiredUtils.queryOptions({ input: 'input' })
+      // @ts-expect-error context is required
+      requiredUtils.queryOptions({ input: condition ? skipToken : 'input' })
     })
 
     it('infer correct input type', () => {
       utils.queryOptions({ input: { cursor: 1 }, context: { batch: true } })
+      utils.queryOptions({ input: condition ? skipToken : { cursor: 1 }, context: { batch: true } })
       // @ts-expect-error invalid input
       utils.queryOptions({ input: { cursor: 'invalid' }, context: { batch: true } })
+      // @ts-expect-error invalid input
+      utils.queryOptions({ input: condition ? skipToken : { cursor: 'invalid' }, context: { batch: true } })
     })
 
     it('infer correct context type', () => {
@@ -67,6 +79,18 @@ describe('ProcedureUtils', () => {
       utils.queryOptions({
         input: computed(() => ({ cursor: ref(1) })),
         context: computed(() => ({ batch: true })),
+      })
+
+      utils.queryOptions({
+        input: computed(() => condition ? skipToken : { cursor: 1 }),
+        context: computed(() => ({ batch: true })),
+      })
+
+      utils.queryOptions({
+        // @ts-expect-error invalid input
+        input: { cursor: ref('invalid') },
+        // @ts-expect-error invalid context
+        context: { batch: ref('invalid') },
       })
     })
 
@@ -175,6 +199,16 @@ describe('ProcedureUtils', () => {
       })
 
       utils.infiniteOptions({
+        input: condition
+          ? skipToken
+          : (cursor: number | undefined) => {
+              return { cursor }
+            },
+        getNextPageParam: lastPage => 1,
+        initialPageParam: undefined,
+      })
+
+      utils.infiniteOptions({
         // @ts-expect-error invalid input
         input: (pageParam) => {
           expectTypeOf(pageParam).toEqualTypeOf<number>()
@@ -186,10 +220,25 @@ describe('ProcedureUtils', () => {
       })
 
       utils.infiniteOptions({
+        // @ts-expect-error invalid input
+        input: condition
+          ? skipToken
+          : (pageParam) => {
+              expectTypeOf(pageParam).toEqualTypeOf<number>()
+
+              return 'invalid'
+            },
+        getNextPageParam,
+        initialPageParam,
+      })
+
+      utils.infiniteOptions({
         // @ts-expect-error conflict types
-        input: (pageParam: number) => {
-          return 'input'
-        },
+        input: condition
+          ? skipToken
+          : (cursor: number) => {
+              return { cursor }
+            },
         // @ts-expect-error conflict types
         getNextPageParam,
         // @ts-expect-error conflict types
@@ -218,6 +267,22 @@ describe('ProcedureUtils', () => {
       utils.infiniteOptions({
         context: computed(() => ({ batch: ref(true) })),
         input: () => computed(() => ({ search: ref('search') })),
+        getNextPageParam,
+        initialPageParam,
+      })
+
+      utils.infiniteOptions({
+        context: computed(() => ({ batch: ref(true) })),
+        input: computed(() => condition ? skipToken : () => ({ search: 'search' })),
+        getNextPageParam,
+        initialPageParam,
+      })
+
+      utils.infiniteOptions({
+        // @ts-expect-error invalid context
+        context: { batch: ref('invalid') },
+        // @ts-expect-error invalid input
+        input: () => ({ search: 123 }),
         getNextPageParam,
         initialPageParam,
       })

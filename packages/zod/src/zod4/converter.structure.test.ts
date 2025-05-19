@@ -1,5 +1,5 @@
-import * as zm from '@zod/mini'
-import z from 'zod4'
+import z from 'zod/v4'
+import * as zm from 'zod/v4-mini'
 import { testSchemaConverter } from '../../tests/shared'
 
 testSchemaConverter([
@@ -28,6 +28,11 @@ testSchemaConverter([
     schema: z.array(z.string().optional()),
     input: [true, { type: 'array', items: { type: 'string' } }],
     output: [true, { type: 'array', items: { anyOf: [{ type: 'string' }, { type: 'null' }] } }],
+  },
+  {
+    name: 'array(z.string().optional())',
+    schema: z.array(z.string().optional().default('a')),
+    input: [true, { type: 'array', items: { type: 'string', default: 'a' } }],
   },
   {
     name: 'array(z.undefined())',

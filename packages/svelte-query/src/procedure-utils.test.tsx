@@ -1,4 +1,4 @@
-import { skipToken } from '@tanstack/react-query'
+import { skipToken } from '@tanstack/svelte-query'
 import * as Key from './key'
 import { createProcedureUtils } from './procedure-utils'
 

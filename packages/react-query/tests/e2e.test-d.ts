@@ -41,8 +41,8 @@ describe('.queryOptions', () => {
     }
 
     useQuery(orpc.ping.queryOptions({
+      // @ts-expect-error --- input is invalid
       input: {
-        // @ts-expect-error --- input is invalid
         input: '123',
       },
     }))
@@ -77,8 +77,8 @@ describe('.queryOptions', () => {
     }
 
     useSuspenseQuery(orpc.ping.queryOptions({
+      // @ts-expect-error --- input is invalid
       input: {
-        // @ts-expect-error --- input is invalid
         input: '123',
       },
     }))

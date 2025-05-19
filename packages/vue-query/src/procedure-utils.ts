@@ -28,7 +28,7 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
   ): NoInfer<U & Omit<QueryOptionsBase<TOutput, TError>, keyof U>>
 
   /**
-   * Generate [event-iterator](https://orpc.unnoq.com/docs/event-iterator) options used for useQuery/prefetchQuery/...
+   * Generate [Event Iterator](https://orpc.unnoq.com/docs/event-iterator) options used for useQuery/prefetchQuery/...
    * Built on top of [steamedQuery](https://tanstack.com/query/latest/docs/reference/streamedQuery)
    *
    * @see {@link https://orpc.unnoq.com/docs/tanstack-query/basic#streamed-query-options-utility Tanstack Streamed Query Options Utility Docs}

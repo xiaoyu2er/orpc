@@ -59,7 +59,10 @@ it('case: with useQuery and skipToken', async () => {
 })
 
 it('case: with streamed/useQuery', async () => {
-  const { result } = renderHook(() => useQuery(streamedOrpc.streamed.experimental_streamedOptions({ input: { input: 2 } }), queryClient))
+  const { result } = renderHook(() => useQuery(streamedOrpc.streamed.experimental_streamedOptions({
+    refetchMode: 'append',
+    input: { input: 2 },
+  }), queryClient))
 
   expect(queryClient.isFetching({ queryKey: streamedOrpc.key() })).toEqual(1)
   expect(queryClient.isFetching({ queryKey: streamedOrpc.streamed.key() })).toEqual(1)
@@ -76,8 +79,11 @@ it('case: with streamed/useQuery', async () => {
     queryClient.getQueryData(streamedOrpc.streamed.key({ input: { input: 2 }, type: 'streamed' })),
   ).toEqual([{ output: '0' }, { output: '1' }])
 
-  streamedHandler.mockRejectedValueOnce(new ORPCError('OVERRIDE'))
+  // make sure refetch mode works
+  result.current.refetch()
+  await vi.waitFor(() => expect(result.current.data).toEqual([{ output: '0' }, { output: '1' }, { output: '0' }, { output: '1' }]))
 
+  streamedHandler.mockRejectedValueOnce(new ORPCError('OVERRIDE'))
   result.current.refetch()
 
   await vi.waitFor(() => {

@@ -1,6 +1,6 @@
 import type { RouterClient } from '@orpc/server'
 import { RPCHandler } from '@orpc/server/fetch'
-import { router } from '../../server/tests/shared'
+import { router, streamed } from '../../server/tests/shared'
 import { createORPCClient } from '../src'
 import { RPCLink } from '../src/adapters/fetch'
 
@@ -30,6 +30,19 @@ const rpcLink = new RPCLink<ClientContext>({
 })
 
 export const orpc: RouterClient<typeof router, ClientContext> = createORPCClient(rpcLink)
+
+const streamedHandler = new RPCHandler({ streamed })
+
+export const streamedOrpc: RouterClient<{ streamed: typeof streamed }, ClientContext> = createORPCClient(new RPCLink({
+  url: 'http://localhost:3000',
+  fetch: async (url, init) => {
+    const { response } = await streamedHandler.handle(new Request(url, init), {
+      context: { db: 'postgres' },
+    })
+
+    return response ?? new Response('not found', { status: 404 })
+  },
+}))
 
 enum Test {
   A = 1,

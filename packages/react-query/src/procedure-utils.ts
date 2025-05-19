@@ -2,7 +2,7 @@ import type { Client, ClientContext } from '@orpc/client'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { InfiniteData } from '@tanstack/react-query'
 import type {
-  InferStreamedOutput,
+  experimental_InferStreamedOutput,
   InfiniteOptionsBase,
   InfiniteOptionsIn,
   MutationOptions,
@@ -35,11 +35,17 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
     >
   ): NoInfer<U & Omit<QueryOptionsBase<TOutput, TError>, keyof U>>
 
-  experimental_streamedOptions<U, USelectData = InferStreamedOutput<TOutput>>(
+  /**
+   * Generate [event-iterator](https://orpc.unnoq.com/docs/event-iterator) options used for useQuery/useSuspenseQuery/prefetchQuery/...
+   * Built on top of [steamedQuery](https://tanstack.com/query/latest/docs/reference/streamedQuery)
+   *
+   * @see {@link https://orpc.unnoq.com/docs/tanstack-query/basic#streamed-query-options-utility Tanstack Streamed Query Options Utility Docs}
+   */
+  experimental_streamedOptions<U, USelectData = experimental_InferStreamedOutput<TOutput>>(
     ...rest: MaybeOptionalOptions<
-      U & StreamedOptionsIn<TClientContext, TInput, InferStreamedOutput<TOutput>, TError, USelectData>
+      U & StreamedOptionsIn<TClientContext, TInput, experimental_InferStreamedOutput<TOutput>, TError, USelectData>
     >
-  ): NoInfer<U & Omit<StreamedOptionsBase<InferStreamedOutput<TOutput>, TError>, keyof U>>
+  ): NoInfer<U & Omit<StreamedOptionsBase<experimental_InferStreamedOutput<TOutput>, TError>, keyof U>>
 
   /**
    * Generate options used for useInfiniteQuery/useSuspenseInfiniteQuery/prefetchInfiniteQuery/...

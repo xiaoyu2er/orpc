@@ -94,7 +94,7 @@ it('case: with streamed/useQuery', async () => {
 })
 
 it('case: with streamed/useQuery and skipToken', async () => {
-  const { result } = renderHook(() => useQuery(orpc.nested.ping.experimental_streamedOptions({ input: skipToken }), queryClient))
+  const { result } = renderHook(() => useQuery(streamedOrpc.streamed.experimental_streamedOptions({ input: skipToken }), queryClient))
 
   expect(result.current.status).toEqual('pending')
   expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(0)

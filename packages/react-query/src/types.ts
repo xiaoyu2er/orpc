@@ -2,8 +2,6 @@ import type { ClientContext } from '@orpc/client'
 import type { SetOptional } from '@orpc/shared'
 import type { experimental_streamedQuery, QueryFunctionContext, QueryKey, SkipToken, UseInfiniteQueryOptions, UseMutationOptions, UseQueryOptions } from '@tanstack/react-query'
 
-type StreamedRefetchMode = Exclude<Parameters<typeof experimental_streamedQuery>[0]['refetchMode'], undefined>
-
 export type QueryOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData> =
   & (undefined extends TInput ? { input?: TInput | SkipToken } : { input: TInput | SkipToken })
   & (Record<never, never> extends TClientContext ? { context?: TClientContext } : { context: TClientContext })
@@ -16,11 +14,13 @@ export interface QueryOptionsBase<TOutput, TError> {
   enabled: boolean
 }
 
-export type InferStreamedOutput<TOutput> = TOutput extends AsyncIterable<infer U> ? U[] : never
+type experimental_StreamedRefetchMode = Exclude<Parameters<typeof experimental_streamedQuery>[0]['refetchMode'], undefined>
+
+export type experimental_InferStreamedOutput<TOutput> = TOutput extends AsyncIterable<infer U> ? U[] : never
 
 export type experimental_StreamedOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData> =
   & QueryOptionsIn<TClientContext, TInput, TOutput, TError, TSelectData>
-  & { refetchMode?: StreamedRefetchMode }
+  & { refetchMode?: experimental_StreamedRefetchMode }
 
 export interface experimental_StreamedOptionsBase<TOutput, TError> extends QueryOptionsBase<TOutput, TError> {
 }

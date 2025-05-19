@@ -130,14 +130,14 @@ describe('.streamedOptions', () => {
       expectTypeOf(query.data).toEqualTypeOf<{ output: string }[]>()
     }
 
-    useQuery(() => orpc.ping.queryOptions({
+    useQuery(() => orpc.ping.experimental_streamedOptions({
       // @ts-expect-error --- input is invalid
       input: {
         input: '123',
       },
     }))
 
-    useQuery(() => orpc.ping.queryOptions({
+    useQuery(() => orpc.ping.experimental_streamedOptions({
       input: { input: 123 },
       context: {
         // @ts-expect-error --- cache is invalid

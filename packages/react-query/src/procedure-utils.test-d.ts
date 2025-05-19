@@ -152,44 +152,44 @@ describe('ProcedureUtils', () => {
     it('can optional options', () => {
       const requiredUtils = {} as ProcedureUtils<{ batch: boolean }, 'input', UtilsOutput, Error>
 
-      utils.queryOptions()
-      utils.queryOptions({ context: { batch: true } })
-      utils.queryOptions({ input: { search: 'search' } })
-      utils.queryOptions({ input: condition ? skipToken : { search: 'search' } })
+      utils.experimental_streamedOptions()
+      utils.experimental_streamedOptions({ context: { batch: true } })
+      utils.experimental_streamedOptions({ input: { search: 'search' } })
+      utils.experimental_streamedOptions({ input: condition ? skipToken : { search: 'search' } })
 
-      requiredUtils.queryOptions({
+      requiredUtils.experimental_streamedOptions({
         context: { batch: true },
         input: 'input',
       })
-      requiredUtils.queryOptions({
+      requiredUtils.experimental_streamedOptions({
         context: { batch: true },
         input: condition ? skipToken : 'input',
       })
       // @ts-expect-error input and context is required
-      requiredUtils.queryOptions()
+      requiredUtils.experimental_streamedOptions()
       // @ts-expect-error input and context is required
-      requiredUtils.queryOptions({})
+      requiredUtils.experimental_streamedOptions({})
       // @ts-expect-error input is required
-      requiredUtils.queryOptions({ context: { batch: true } })
+      requiredUtils.experimental_streamedOptions({ context: { batch: true } })
       // @ts-expect-error context is required
-      requiredUtils.queryOptions({ input: 'input' })
+      requiredUtils.experimental_streamedOptions({ input: 'input' })
       // @ts-expect-error context is required
-      requiredUtils.queryOptions({ input: condition ? skipToken : 'input' })
+      requiredUtils.experimental_streamedOptions({ input: condition ? skipToken : 'input' })
     })
 
     it('infer correct input type', () => {
-      utils.queryOptions({ input: { cursor: 1 }, context: { batch: true } })
-      utils.queryOptions({ input: condition ? { cursor: 2 } : skipToken, context: { batch: true } })
+      utils.experimental_streamedOptions({ input: { cursor: 1 }, context: { batch: true } })
+      utils.experimental_streamedOptions({ input: condition ? { cursor: 2 } : skipToken, context: { batch: true } })
       // @ts-expect-error invalid input
-      utils.queryOptions({ input: { cursor: 'invalid' }, context: { batch: true } })
+      utils.experimental_streamedOptions({ input: { cursor: 'invalid' }, context: { batch: true } })
       // @ts-expect-error invalid input
-      utils.queryOptions({ input: condition ? { cursor: 'invalid' } : skipToken, context: { batch: true } })
+      utils.experimental_streamedOptions({ input: condition ? { cursor: 'invalid' } : skipToken, context: { batch: true } })
     })
 
     it('infer correct context type', () => {
-      utils.queryOptions({ context: { batch: true } })
+      utils.experimental_streamedOptions({ context: { batch: true } })
       // @ts-expect-error invalid context
-      utils.queryOptions({ context: { batch: 'invalid' } })
+      utils.experimental_streamedOptions({ context: { batch: 'invalid' } })
     })
 
     it('not usable in non event iterator output', () => {

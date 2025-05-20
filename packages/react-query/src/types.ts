@@ -10,7 +10,7 @@ export type QueryOptionsIn<TClientContext extends ClientContext, TInput, TOutput
 export interface QueryOptionsBase<TOutput, TError> {
   queryKey: QueryKey
   queryFn(ctx: QueryFunctionContext): Promise<TOutput>
-  retry?(failureCount: number, error: TError): boolean // this make tanstack can infer the TError type
+  throwOnError?(error: TError): boolean // This make TQ can infer TError
   enabled: boolean
 }
 
@@ -33,7 +33,7 @@ export type InfiniteOptionsIn<TClientContext extends ClientContext, TInput, TOut
 export interface InfiniteOptionsBase<TOutput, TError, TPageParam> {
   queryKey: QueryKey
   queryFn(ctx: QueryFunctionContext<QueryKey, TPageParam>): Promise<TOutput>
-  retry?(failureCount: number, error: TError): boolean // this make tanstack can infer the TError type
+  throwOnError?(error: TError): boolean // This make TQ can infer TError
   enabled: boolean
 }
 

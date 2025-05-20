@@ -1,7 +1,7 @@
 import type { Meta, Schema } from '@orpc/contract'
-import type { baseErrorMap, BaseMeta, inputSchema, outputSchema } from '../../contract/tests/shared'
+import type { baseErrorMap, BaseMeta, inputSchema, outputSchema, streamedOutputSchema } from '../../contract/tests/shared'
 import type { Context } from '../src'
-import { ping as pingContract, pong as pongContract } from '../../contract/tests/shared'
+import { ping as pingContract, pong as pongContract, streamed as streamedContract } from '../../contract/tests/shared'
 import { lazy, Procedure } from '../src'
 
 export type InitialContext = { db: string }
@@ -52,5 +52,28 @@ export const router = {
     },
   })),
 }
+
+export const streamedHandler = vi.fn(async function* ({ input }) {
+  for (let i = 0; i < input.input; i++) {
+    yield { output: i }
+  }
+
+  return 'done'
+})
+
+export const streamed = new Procedure<
+  Context,
+  Context,
+  typeof inputSchema,
+  typeof streamedOutputSchema,
+  typeof baseErrorMap,
+  Meta
+>({
+  ...streamedContract['~orpc'],
+  inputValidationIndex: 0,
+  outputValidationIndex: 0,
+  middlewares: [],
+  handler: streamedHandler,
+})
 
 export { router as contract, ping as pingContract, pong as pongContract } from '../../contract/tests/shared'

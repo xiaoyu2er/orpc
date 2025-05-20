@@ -2,8 +2,8 @@ import { isDefinedError } from '@orpc/client'
 import { ORPCError } from '@orpc/contract'
 import { skipToken, useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query'
 import { renderHook } from '@testing-library/react'
-import { pingHandler } from '../../server/tests/shared'
-import { orpc, queryClient } from './shared'
+import { pingHandler, streamedHandler } from '../../server/tests/shared'
+import { orpc, queryClient, streamedOrpc } from './shared'
 
 beforeEach(() => {
   queryClient.clear()
@@ -48,6 +48,53 @@ it('case: with useQuery', async () => {
 
 it('case: with useQuery and skipToken', async () => {
   const { result } = renderHook(() => useQuery(orpc.nested.ping.queryOptions({ input: skipToken }), queryClient))
+
+  expect(result.current.status).toEqual('pending')
+  expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(0)
+
+  await new Promise(resolve => setTimeout(resolve, 10))
+
+  expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(0)
+  expect(result.current.status).toEqual('pending')
+})
+
+it('case: with streamed/useQuery', async () => {
+  const { result } = renderHook(() => useQuery(streamedOrpc.streamed.experimental_streamedOptions({
+    refetchMode: 'append',
+    input: { input: 2 },
+  }), queryClient))
+
+  expect(queryClient.isFetching({ queryKey: streamedOrpc.key() })).toEqual(1)
+  expect(queryClient.isFetching({ queryKey: streamedOrpc.streamed.key() })).toEqual(1)
+  expect(queryClient.isFetching({ queryKey: streamedOrpc.streamed.key({ input: { input: 2 } }) })).toEqual(1)
+  expect(queryClient.isFetching({ queryKey: streamedOrpc.streamed.key({ input: { input: 2 }, type: 'streamed' }) })).toEqual(1)
+
+  expect(queryClient.isFetching({ queryKey: streamedOrpc.streamed.key({ input: { input: 234 }, type: 'query' }) })).toEqual(0)
+  expect(queryClient.isFetching({ queryKey: streamedOrpc.streamed.key({ input: { input: 2 }, type: 'infinite' }) })).toEqual(0)
+  expect(queryClient.isFetching({ queryKey: streamedOrpc.key({ type: 'infinite' }) })).toEqual(0)
+
+  await vi.waitFor(() => expect(result.current.data).toEqual([{ output: '0' }, { output: '1' }]))
+
+  expect(
+    queryClient.getQueryData(streamedOrpc.streamed.key({ input: { input: 2 }, type: 'streamed' })),
+  ).toEqual([{ output: '0' }, { output: '1' }])
+
+  // make sure refetch mode works
+  result.current.refetch()
+  await vi.waitFor(() => expect(result.current.data).toEqual([{ output: '0' }, { output: '1' }, { output: '0' }, { output: '1' }]))
+
+  streamedHandler.mockRejectedValueOnce(new ORPCError('OVERRIDE'))
+  result.current.refetch()
+
+  await vi.waitFor(() => {
+    expect((result as any).current.error).toBeInstanceOf(ORPCError)
+    expect((result as any).current.error).toSatisfy(isDefinedError)
+    expect((result as any).current.error.code).toEqual('OVERRIDE')
+  })
+})
+
+it('case: with streamed/useQuery and skipToken', async () => {
+  const { result } = renderHook(() => useQuery(streamedOrpc.streamed.experimental_streamedOptions({ input: skipToken }), queryClient))
 
   expect(result.current.status).toEqual('pending')
   expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(0)

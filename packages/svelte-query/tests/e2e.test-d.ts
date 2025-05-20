@@ -3,7 +3,7 @@ import { isDefinedError } from '@orpc/client'
 import { createInfiniteQuery, createMutation, createQueries, createQuery } from '@tanstack/svelte-query'
 import { get } from 'svelte/store'
 import { orpc as client } from '../../client/tests/shared'
-import { orpc, queryClient } from './shared'
+import { orpc, queryClient, streamedOrpc } from './shared'
 
 it('.key', () => {
   queryClient.invalidateQueries({
@@ -111,6 +111,94 @@ describe('.queryOptions', () => {
     }))
 
     expectTypeOf(query2).toEqualTypeOf<{ output: string }>()
+  })
+})
+
+describe('.streamedOptions', () => {
+  it('createQuery', () => {
+    const queryStore = createQuery(streamedOrpc.streamed.experimental_streamedOptions({
+      input: { input: 123 },
+      retry(failureCount, error) {
+        if (isDefinedError(error) && error.code === 'BASE') {
+          expectTypeOf(error.data).toEqualTypeOf<{ output: string }>()
+        }
+
+        return false
+      },
+    }))
+
+    const query = get(queryStore)
+
+    if (query.status === 'error' && isDefinedError(query.error) && query.error.code === 'OVERRIDE') {
+      expectTypeOf(query.error.data).toEqualTypeOf<unknown>()
+    }
+
+    if (query.status === 'success') {
+      expectTypeOf(query.data).toEqualTypeOf<{ output: string }[]>()
+    }
+
+    createQuery(orpc.ping.experimental_streamedOptions({
+      // @ts-expect-error --- input is invalid
+      input: {
+        input: '123',
+      },
+    }))
+
+    createQuery(orpc.ping.experimental_streamedOptions({
+      input: { input: 123 },
+      context: {
+        // @ts-expect-error --- cache is invalid
+        cache: 123,
+      },
+    }))
+  })
+
+  it('createQueries', async () => {
+    const queriesStore = createQueries({
+      queries: [
+        streamedOrpc.streamed.experimental_streamedOptions({
+          input: { input: 123 },
+          select: data => ({ mapped: data }),
+          retry(failureCount, error) {
+            if (isDefinedError(error) && error.code === 'BASE') {
+              expectTypeOf(error.data).toEqualTypeOf<{ output: string }>()
+            }
+
+            return false
+          },
+        }),
+        orpc.nested.pong.queryOptions({
+          context: { cache: '123' },
+        }),
+      ],
+    })
+
+    const queries = get(queriesStore)
+
+    // FIXME: useQueries cannot infer error
+    // if (queries[0].status === 'error' && isDefinedError(queries[0].error) && queries[0].error.code === 'OVERRIDE') {
+    //   expectTypeOf(queries[0].error.data).toEqualTypeOf<unknown>()
+    // }
+
+    if (queries[0].status === 'success') {
+      expectTypeOf(queries[0].data.mapped).toEqualTypeOf<{ output: string }[]>()
+    }
+
+    if (queries[1].status === 'error') {
+      expectTypeOf(queries[1].error).toEqualTypeOf<Error>()
+    }
+
+    if (queries[1].status === 'success') {
+      expectTypeOf(queries[1].data).toEqualTypeOf<unknown>()
+    }
+  })
+
+  it('fetchQuery', async () => {
+    const query = await queryClient.fetchQuery(streamedOrpc.streamed.experimental_streamedOptions({
+      input: { input: 123 },
+    }))
+
+    expectTypeOf(query).toEqualTypeOf<{ output: string }[]>()
   })
 })
 

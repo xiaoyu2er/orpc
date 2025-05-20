@@ -1,8 +1,9 @@
 import type { Client, ClientContext } from '@orpc/client'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { InfiniteData } from '@tanstack/vue-query'
-import type { InfiniteOptionsBase, InfiniteOptionsIn, MutationOptions, MutationOptionsIn, QueryOptionsBase, QueryOptionsIn } from './types'
-import { skipToken } from '@tanstack/vue-query'
+import type { experimental_InferStreamedOutput, experimental_StreamedOptionsBase, experimental_StreamedOptionsIn, InfiniteOptionsBase, InfiniteOptionsIn, MutationOptions, MutationOptionsIn, QueryOptionsBase, QueryOptionsIn } from './types'
+import { isAsyncIteratorObject } from '@orpc/shared'
+import { experimental_streamedQuery, skipToken } from '@tanstack/vue-query'
 import { computed } from 'vue'
 import { buildKey } from './key'
 import { unrefDeep } from './utils'
@@ -25,6 +26,18 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
       U & QueryOptionsIn<TClientContext, TInput, TOutput, TError, USelectData>
     >
   ): NoInfer<U & Omit<QueryOptionsBase<TOutput, TError>, keyof U>>
+
+  /**
+   * Generate [Event Iterator](https://orpc.unnoq.com/docs/event-iterator) options used for useQuery/prefetchQuery/...
+   * Built on top of [steamedQuery](https://tanstack.com/query/latest/docs/reference/streamedQuery)
+   *
+   * @see {@link https://orpc.unnoq.com/docs/tanstack-query/basic#streamed-query-options-utility Tanstack Streamed Query Options Utility Docs}
+   */
+  experimental_streamedOptions<U, USelectData = experimental_InferStreamedOutput<TOutput>>(
+    ...rest: MaybeOptionalOptions<
+      U & experimental_StreamedOptionsIn<TClientContext, TInput, experimental_InferStreamedOutput<TOutput>, TError, USelectData>
+    >
+  ): NoInfer<U & Omit<experimental_StreamedOptionsBase<experimental_InferStreamedOutput<TOutput>, TError>, keyof U>>
 
   /**
    * Generate options used for useInfiniteQuery/prefetchInfiniteQuery/...
@@ -69,6 +82,32 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
           return client(input, { signal, context: unrefDeep(optionsIn.context) })
         },
         enabled: computed(() => unrefDeep(optionsIn.input) !== skipToken),
+        ...optionsIn,
+      }
+    },
+
+    experimental_streamedOptions(...[optionsIn = {} as any]) {
+      return {
+        enabled: computed(() => unrefDeep(optionsIn.input) !== skipToken),
+        queryKey: computed(() => buildKey(options.path, { type: 'streamed', input: unrefDeep(optionsIn.input) })),
+        queryFn: experimental_streamedQuery({
+          ...optionsIn,
+          queryFn: async ({ signal }) => {
+            const input = unrefDeep(optionsIn.input)
+
+            if (input === skipToken) {
+              throw new Error('queryFn should not be called with skipToken used as input')
+            }
+
+            const output = await client(input, { signal, context: unrefDeep(optionsIn.context) })
+
+            if (!isAsyncIteratorObject(output)) {
+              throw new Error('streamedQuery requires an event iterator output')
+            }
+
+            return output
+          },
+        }),
         ...optionsIn,
       }
     },

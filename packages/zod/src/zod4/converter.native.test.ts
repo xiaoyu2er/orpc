@@ -98,7 +98,7 @@ testSchemaConverter([
     input: [true, { enum: ['a', 'b'] }],
   },
   {
-    name: 'file().mime(["*/*"])',
+    name: 'file()',
     schema: z.file(),
     input: [true, { type: 'string', contentMediaType: '*/*' }],
   },

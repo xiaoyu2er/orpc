@@ -4,6 +4,7 @@ import type {
   CreateInfiniteQueryOptions,
   CreateMutationOptions,
   CreateQueryOptions,
+  experimental_streamedQuery,
   QueryFunctionContext,
   QueryKey,
   SkipToken,
@@ -19,6 +20,17 @@ export interface QueryOptionsBase<TOutput, TError> {
   queryFn(ctx: QueryFunctionContext): Promise<TOutput>
   retry?(failureCount: number, error: TError): boolean // this make tanstack can infer the TError type
   enabled: boolean
+}
+
+type experimental_StreamedQueryOptions = Omit<Parameters<typeof experimental_streamedQuery>[0], 'queryFn'>
+
+export type experimental_InferStreamedOutput<TOutput> = TOutput extends AsyncIterable<infer U> ? U[] : never
+
+export type experimental_StreamedOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData> =
+  & QueryOptionsIn<TClientContext, TInput, TOutput, TError, TSelectData>
+  & experimental_StreamedQueryOptions
+
+export interface experimental_StreamedOptionsBase<TOutput, TError> extends QueryOptionsBase<TOutput, TError> {
 }
 
 export type InfiniteOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData, TPageParam> =

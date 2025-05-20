@@ -1,7 +1,7 @@
 import type { Schema } from '../src'
 import type { Meta } from '../src/meta'
 import { z } from 'zod'
-import { ContractProcedure } from '../src'
+import { ContractProcedure, eventIterator } from '../src'
 
 export const inputSchema = z.object({ input: z.number().transform(n => `${n}`) })
 
@@ -56,3 +56,18 @@ export const router = {
     pong,
   },
 }
+
+export const streamedOutputSchema = eventIterator(outputSchema)
+
+export const streamed = new ContractProcedure<
+  typeof inputSchema,
+  typeof streamedOutputSchema,
+  typeof baseErrorMap,
+  Meta
+>({
+  errorMap: baseErrorMap,
+  meta: {},
+  route: {},
+  inputSchema,
+  outputSchema: streamedOutputSchema,
+})

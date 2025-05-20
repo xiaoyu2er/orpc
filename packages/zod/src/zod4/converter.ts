@@ -14,7 +14,6 @@ import type {
   $ZodNonOptional,
   $ZodNullable,
   $ZodNumber,
-  $ZodNumberFormats,
   $ZodObject,
   $ZodOptional,
   $ZodPipe,
@@ -23,7 +22,6 @@ import type {
   $ZodRecord,
   $ZodSet,
   $ZodString,
-  $ZodStringFormats,
   $ZodTemplateLiteral,
   $ZodTuple,
   $ZodType,
@@ -126,23 +124,17 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
             const string = schema as $ZodString
             const json: JSONSchema = { type: 'string' }
 
-            const { minimum, maximum, format, pattern, contentEncoding } = string._zod.computed as {
-              minimum?: number
-              maximum?: number
-              format?: $ZodStringFormats
-              pattern?: RegExp
-              contentEncoding?: string
-            }
+            const { minimum, maximum, format, pattern, contentEncoding } = string._zod.bag
 
-            if (minimum !== undefined) {
+            if (typeof minimum === 'number') {
               json.minLength = minimum
             }
 
-            if (maximum !== undefined) {
+            if (typeof maximum === 'number') {
               json.maxLength = maximum
             }
 
-            if (contentEncoding !== undefined) {
+            if (typeof contentEncoding === 'string') {
               json.contentEncoding = this.#handleContentEncoding(contentEncoding)
             }
 
@@ -151,11 +143,11 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
              * Zod’s regex expects the string _to match_ a pattern.
              * These differ, so we ignore the "regex" format here.
              */
-            if (format !== undefined && format !== 'regex' && json.contentEncoding === undefined) {
+            if (typeof format === 'string' && format !== 'regex' && json.contentEncoding === undefined) {
               json.format = this.#handleStringFormat(format)
             }
 
-            if (pattern !== undefined && json.contentEncoding === undefined && json.format === undefined) {
+            if (pattern instanceof RegExp && json.contentEncoding === undefined && json.format === undefined) {
               json.pattern = pattern.source
             }
 
@@ -171,37 +163,29 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
             const number = schema as $ZodNumber
             const json: JSONSchema = { type: 'number' }
 
-            const { minimum, maximum, format, multipleOf, inclusive } = number._zod.computed as {
-              minimum?: number
-              maximum?: number
-              format?: $ZodNumberFormats
-              multipleOf?: number
-              inclusive?: boolean
-            }
+            const { minimum, maximum, format, multipleOf, exclusiveMaximum, exclusiveMinimum } = number._zod.bag
 
-            if (format?.includes('int')) {
+            if (typeof format === 'string' && format?.includes('int')) {
               json.type = 'integer'
             }
 
-            if (minimum !== undefined) {
-              if (inclusive) {
-                json.minimum = minimum
-              }
-              else {
-                json.exclusiveMinimum = minimum
-              }
+            if (typeof minimum === 'number') {
+              json.minimum = minimum
             }
 
-            if (maximum !== undefined) {
-              if (inclusive) {
-                json.maximum = maximum
-              }
-              else {
-                json.exclusiveMaximum = maximum
-              }
+            if (typeof maximum === 'number') {
+              json.maximum = maximum
             }
 
-            if (multipleOf !== undefined) {
+            if (typeof exclusiveMinimum === 'number') {
+              json.exclusiveMinimum = exclusiveMinimum
+            }
+
+            if (typeof exclusiveMaximum === 'number') {
+              json.exclusiveMaximum = exclusiveMaximum
+            }
+
+            if (typeof multipleOf === 'number') {
               json.multipleOf = multipleOf
             }
 
@@ -245,16 +229,13 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
             const array = schema as $ZodArray
             const json: JSONSchema = { type: 'array' }
 
-            const { minimum, maximum } = array._zod.computed as {
-              minimum?: number
-              maximum?: number
-            }
+            const { minimum, maximum } = array._zod.bag
 
-            if (minimum !== undefined) {
+            if (typeof minimum === 'number') {
               json.minItems = minimum
             }
 
-            if (maximum !== undefined) {
+            if (typeof maximum === 'number') {
               json.maxItems = maximum
             }
 
@@ -351,16 +332,13 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
               json.items = this.#handleArrayItemJsonSchema(await this.#convert(tuple._zod.def.rest, options, lazyDepth), options)
             }
 
-            const { minimum, maximum } = tuple._zod.computed as {
-              minimum?: number
-              maximum?: number
-            }
+            const { minimum, maximum } = tuple._zod.bag
 
-            if (minimum !== undefined) {
+            if (typeof minimum === 'number') {
               json.minItems = minimum
             }
 
-            if (maximum !== undefined) {
+            if (typeof maximum === 'number') {
               json.maxItems = maximum
             }
 
@@ -436,17 +414,15 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
             const file = schema as $ZodFile
             const oneOf: Exclude<JSONSchema, boolean>[] = []
 
-            const { mime } = file._zod.computed as {
-              mime?: string[]
-              minimum?: number // WARN: ignore
-              maximum?: number // WARN: ignore
-            }
+            const { mime } = file._zod.bag
 
-            for (const type of mime ?? ['*/*']) {
-              oneOf.push({
-                type: 'string',
-                contentMediaType: type,
-              })
+            if (mime === undefined || (Array.isArray(mime) && mime.every(m => typeof m === 'string'))) {
+              for (const type of mime ?? ['*/*']) {
+                oneOf.push({
+                  type: 'string',
+                  contentMediaType: type,
+                })
+              }
             }
 
             return [true, oneOf.length === 1 ? oneOf[0]! : { anyOf: oneOf }]

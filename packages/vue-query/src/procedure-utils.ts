@@ -91,7 +91,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
         enabled: computed(() => unrefDeep(optionsIn.input) !== skipToken),
         queryKey: computed(() => buildKey(options.path, { type: 'streamed', input: unrefDeep(optionsIn.input) })),
         queryFn: experimental_streamedQuery({
-          refetchMode: optionsIn.refetchMode,
+          ...optionsIn,
           queryFn: async ({ signal }) => {
             const input = unrefDeep(optionsIn.input)
 

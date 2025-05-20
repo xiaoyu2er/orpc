@@ -87,7 +87,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
         enabled: optionsIn.input !== skipToken,
         queryKey: buildKey(options.path, { type: 'streamed', input: optionsIn.input }),
         queryFn: experimental_streamedQuery({
-          refetchMode: optionsIn.refetchMode,
+          ...optionsIn,
           queryFn: async ({ signal }) => {
             if (optionsIn.input === skipToken) {
               throw new Error('queryFn should not be called with skipToken used as input')

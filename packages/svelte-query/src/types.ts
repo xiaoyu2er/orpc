@@ -22,13 +22,13 @@ export interface QueryOptionsBase<TOutput, TError> {
   enabled: boolean
 }
 
-type experimental_StreamedRefetchMode = Exclude<Parameters<typeof experimental_streamedQuery>[0]['refetchMode'], undefined>
+type experimental_StreamedQueryOptions = Omit<Parameters<typeof experimental_streamedQuery>[0], 'queryFn'>
 
 export type experimental_InferStreamedOutput<TOutput> = TOutput extends AsyncIterable<infer U> ? U[] : never
 
 export type experimental_StreamedOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData> =
   & QueryOptionsIn<TClientContext, TInput, TOutput, TError, TSelectData>
-  & { refetchMode?: experimental_StreamedRefetchMode }
+  & experimental_StreamedQueryOptions
 
 export interface experimental_StreamedOptionsBase<TOutput, TError> extends QueryOptionsBase<TOutput, TError> {
 }

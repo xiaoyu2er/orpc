@@ -80,10 +80,10 @@ describe('createProcedureUtils', () => {
 
       expect(options.queryFn).toBe(vi.mocked(streamedQuery).mock.results[0]!.value)
       expect(streamedQuery).toHaveBeenCalledTimes(1)
-      expect(streamedQuery).toHaveBeenCalledWith({
+      expect(streamedQuery).toHaveBeenCalledWith(expect.objectContaining({
         refetchMode: 'replace',
         queryFn: expect.any(Function),
-      })
+      }))
 
       await expect(options.queryFn!({ signal, client: queryClient, queryKey: options.queryKey } as any)).resolves.toEqual(['__1__', '__2__'])
       expect(queryClient.getQueryData(options.queryKey)).toEqual(['__1__', '__2__'])

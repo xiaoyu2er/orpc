@@ -108,10 +108,10 @@ describe('createProcedureUtils', () => {
 
       expect(options.queryFn).toBe(vi.mocked(experimental_streamedQuery).mock.results[0]!.value)
       expect(experimental_streamedQuery).toHaveBeenCalledTimes(1)
-      expect(experimental_streamedQuery).toHaveBeenCalledWith({
+      expect(experimental_streamedQuery).toHaveBeenCalledWith(expect.objectContaining({
         refetchMode: 'replace',
         queryFn: expect.any(Function),
-      })
+      }))
 
       await expect(options.queryFn!({ signal, client: queryClient, queryKey: options.queryKey } as any)).resolves.toEqual(['__1__', '__2__'])
       expect(queryClient.getQueryData(options.queryKey)).toEqual(['__1__', '__2__'])
@@ -166,9 +166,9 @@ describe('createProcedureUtils', () => {
 
       expect(options.queryFn).toBe(vi.mocked(experimental_streamedQuery).mock.results[0]!.value)
       expect(experimental_streamedQuery).toHaveBeenCalledTimes(1)
-      expect(experimental_streamedQuery).toHaveBeenCalledWith({
+      expect(experimental_streamedQuery).toHaveBeenCalledWith(expect.objectContaining({
         queryFn: expect.any(Function),
-      })
+      }))
 
       await expect(options.queryFn!({ signal, client: queryClient, queryKey: options.queryKey } as any)).resolves.toEqual(['__1__', '__2__'])
       expect(queryClient.getQueryData(options.queryKey)).toEqual(['__1__', '__2__'])

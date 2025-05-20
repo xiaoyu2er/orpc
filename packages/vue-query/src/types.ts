@@ -31,7 +31,7 @@ export type QueryOptionsIn<TClientContext extends ClientContext, TInput, TOutput
 export interface QueryOptionsBase<TOutput, TError> {
   queryKey: ComputedRef<QueryKey>
   queryFn(ctx: QueryFunctionContext): Promise<TOutput>
-  retry?(failureCount: number, error: TError): boolean // this help tanstack can infer TError
+  throwOnError?(error: TError): boolean // Help TQ infer TError
   enabled: ComputedRef<boolean>
 }
 
@@ -62,7 +62,7 @@ export type InfiniteOptionsIn<TClientContext extends ClientContext, TInput, TOut
 export interface InfiniteOptionsBase<TOutput, TError, TPageParam> {
   queryKey: ComputedRef<QueryKey>
   queryFn(ctx: QueryFunctionContext<QueryKey, TPageParam>): Promise<TOutput>
-  retry?(failureCount: number, error: TError): boolean // this help tanstack can infer TError
+  throwOnError?(error: TError): boolean // Help TQ infer TError
   enabled: ComputedRef<boolean>
 }
 

@@ -74,8 +74,8 @@ describe('.queryOptions', () => {
       ],
     })
 
-    if (isDefinedError(queries.value[0].error) && queries.value[0].error.code === 'OVERRIDE') {
-      expectTypeOf(queries.value[0].error.data).toEqualTypeOf<unknown>()
+    if (isDefinedError(queries.value[0].error) && queries.value[0].error.code === 'BASE') {
+      expectTypeOf(queries.value[0].error.data).toEqualTypeOf<{ output: string }>()
     }
 
     if (queries.value[0].status === 'success') {
@@ -161,10 +161,9 @@ describe('.streamedOptions', () => {
       ],
     })
 
-    // FIXME: useQueries cannot infer error
-    // if (queries[0].status === 'error' && isDefinedError(queries[0].error) && queries[0].error.code === 'OVERRIDE') {
-    //   expectTypeOf(queries[0].error.data).toEqualTypeOf<unknown>()
-    // }
+    if (queries.value[0].status === 'error' && isDefinedError(queries.value[0].error) && queries.value[0].error.code === 'BASE') {
+      expectTypeOf(queries.value[0].error.data).toEqualTypeOf<{ output: string }>()
+    }
 
     if (queries.value[0].status === 'success') {
       expectTypeOf(queries.value[0].data.mapped).toEqualTypeOf<{ output: string }[]>()

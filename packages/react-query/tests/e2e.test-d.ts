@@ -1,6 +1,6 @@
 import type { InfiniteData } from '@tanstack/react-query'
 import { isDefinedError } from '@orpc/client'
-import { useInfiniteQuery, useMutation, useQueries, useQuery, useSuspenseInfiniteQuery, useSuspenseQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQueries, useQuery, useSuspenseInfiniteQuery, useSuspenseQueries, useSuspenseQuery } from '@tanstack/react-query'
 import { orpc as client } from '../../client/tests/shared'
 import { orpc, queryClient, streamedOrpc } from './shared'
 
@@ -110,10 +110,9 @@ describe('.queryOptions', () => {
       ],
     })
 
-    // FIXME: useQueries cannot infer error
-    // if (queries[0].status === 'error' && isDefinedError(queries[0].error) && queries[0].error.code === 'OVERRIDE') {
-    //   expectTypeOf(queries[0].error.data).toEqualTypeOf<unknown>()
-    // }
+    if (queries[0].status === 'error' && isDefinedError(queries[0].error) && queries[0].error.code === 'BASE') {
+      expectTypeOf(queries[0].error.data).toEqualTypeOf<{ output: string }>()
+    }
 
     if (queries[0].status === 'success') {
       expectTypeOf(queries[0].data.mapped).toEqualTypeOf<{ output: string }>()
@@ -228,10 +227,9 @@ describe('.streamedOptions', () => {
       ],
     })
 
-    // FIXME: useQueries cannot infer error
-    // if (queries[0].status === 'error' && isDefinedError(queries[0].error) && queries[0].error.code === 'OVERRIDE') {
-    //   expectTypeOf(queries[0].error.data).toEqualTypeOf<unknown>()
-    // }
+    if (queries[0].status === 'error' && isDefinedError(queries[0].error) && queries[0].error.code === 'BASE') {
+      expectTypeOf(queries[0].error.data).toEqualTypeOf<{ output: string }>()
+    }
 
     if (queries[0].status === 'success') {
       expectTypeOf(queries[0].data.mapped).toEqualTypeOf<{ output: string }[]>()
@@ -244,6 +242,39 @@ describe('.streamedOptions', () => {
     if (queries[1].status === 'success') {
       expectTypeOf(queries[1].data).toEqualTypeOf<unknown>()
     }
+  })
+
+  it('useSuspenseQueries', async () => {
+    const queries = useSuspenseQueries({
+      queries: [
+        streamedOrpc.streamed.experimental_streamedOptions({
+          input: { input: 123 },
+          select: data => ({ mapped: data }),
+          retry(failureCount, error) {
+            if (isDefinedError(error) && error.code === 'BASE') {
+              expectTypeOf(error.data).toEqualTypeOf<{ output: string }>()
+            }
+
+            return false
+          },
+        }),
+        orpc.nested.pong.queryOptions({
+          context: { cache: '123' },
+        }),
+      ],
+    })
+
+    if (queries[0].status === 'error' && isDefinedError(queries[0].error) && queries[0].error.code === 'OVERRIDE') {
+      expectTypeOf(queries[0].error.data).toEqualTypeOf<unknown>()
+    }
+
+    expectTypeOf(queries[0].data.mapped).toEqualTypeOf<{ output: string }[]>()
+
+    if (queries[1].status === 'error') {
+      expectTypeOf(queries[1].error).toEqualTypeOf<Error>()
+    }
+
+    expectTypeOf(queries[1].data).toEqualTypeOf<unknown>()
   })
 
   it('fetchQuery', async () => {

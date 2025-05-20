@@ -3,7 +3,7 @@ import type { ErrorFromErrorMap } from '@orpc/contract'
 import type { GetNextPageParamFunction, InfiniteData } from '@tanstack/react-query'
 import type { baseErrorMap } from '../../contract/tests/shared'
 import type { ProcedureUtils } from './procedure-utils'
-import { skipToken, useInfiniteQuery, useMutation, useQueries, useQuery, useSuspenseInfiniteQuery, useSuspenseQuery } from '@tanstack/react-query'
+import { skipToken, useInfiniteQuery, useMutation, useQueries, useQuery, useSuspenseInfiniteQuery, useSuspenseQueries, useSuspenseQuery } from '@tanstack/react-query'
 import { queryClient } from '../tests/shared'
 
 describe('ProcedureUtils', () => {
@@ -92,10 +92,6 @@ describe('ProcedureUtils', () => {
         const query = useQuery(utils.queryOptions({
           select: data => ({ mapped: data }),
           initialData: [{ title: 'title' }],
-          throwOnError(error) {
-            expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
-            return false
-          },
         }))
 
         expectTypeOf(query.data).toEqualTypeOf<{ mapped: UtilsOutput }>()
@@ -132,9 +128,28 @@ describe('ProcedureUtils', () => {
       expectTypeOf(queries[0].data).toEqualTypeOf<{ mapped: UtilsOutput } | undefined>()
       expectTypeOf(queries[1].data).toEqualTypeOf<UtilsOutput | undefined>()
 
-      // FIXME: useQueries cannot infer error
-      // expectTypeOf(queries[0].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
-      // expectTypeOf(queries[0].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
+      expectTypeOf(queries[0].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
+      expectTypeOf(queries[1].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
+    })
+
+    it('works with useSuspenseQueries', () => {
+      const queries = useSuspenseQueries({
+        queries: [
+          utils.queryOptions({
+            select: data => ({ mapped: data }),
+          }),
+          utils.queryOptions({
+            input: { search: 'search' },
+            context: { batch: true },
+          }),
+        ],
+      })
+
+      expectTypeOf(queries[0].data).toEqualTypeOf<{ mapped: UtilsOutput }>()
+      expectTypeOf(queries[1].data).toEqualTypeOf<UtilsOutput>()
+
+      expectTypeOf(queries[0].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
+      expectTypeOf(queries[1].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
     })
 
     it('works with fetchQuery', () => {
@@ -216,15 +231,51 @@ describe('ProcedureUtils', () => {
         const query = useQuery(utils.experimental_streamedOptions({
           select: data => ({ mapped: data }),
           initialData: [{ title: 'title' }],
-          throwOnError(error) {
-            expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
-            return false
-          },
         }))
 
         expectTypeOf(query.data).toEqualTypeOf<{ mapped: UtilsOutput }>()
         expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
       })
+    })
+
+    it('works with useQueries', async () => {
+      const queries = useQueries({
+        queries: [
+          utils.experimental_streamedOptions({
+            select: data => ({ mapped: data }),
+          }),
+          utils.experimental_streamedOptions({
+            input: { search: 'search' },
+            context: { batch: true },
+          }),
+        ],
+      })
+
+      expectTypeOf(queries[0].data).toEqualTypeOf<{ mapped: UtilsOutput } | undefined>()
+      expectTypeOf(queries[1].data).toEqualTypeOf<UtilsOutput | undefined>()
+
+      expectTypeOf(queries[0].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
+      expectTypeOf(queries[1].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
+    })
+
+    it('works with useSuspenseQueries', () => {
+      const queries = useSuspenseQueries({
+        queries: [
+          utils.experimental_streamedOptions({
+            select: data => ({ mapped: data }),
+          }),
+          utils.experimental_streamedOptions({
+            input: { search: 'search' },
+            context: { batch: true },
+          }),
+        ],
+      })
+
+      expectTypeOf(queries[0].data).toEqualTypeOf<{ mapped: UtilsOutput }>()
+      expectTypeOf(queries[1].data).toEqualTypeOf<UtilsOutput>()
+
+      expectTypeOf(queries[0].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
+      expectTypeOf(queries[1].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
     })
 
     it('works with fetchQuery', () => {
@@ -368,10 +419,6 @@ describe('ProcedureUtils', () => {
           getNextPageParam,
           initialPageParam,
           select: data => ({ mapped: data }),
-          throwOnError(error) {
-            expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
-            return false
-          },
           initialData: { pageParams: [1], pages: [[{ title: 'title' }]] },
         }))
 

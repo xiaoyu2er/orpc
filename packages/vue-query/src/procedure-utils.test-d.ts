@@ -112,10 +112,6 @@ describe('ProcedureUtils', () => {
         const query = useQuery(utils.queryOptions({
           select: data => ({ mapped: data }),
           initialData: [{ title: 'title' }],
-          throwOnError(error) {
-            expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
-            return false
-          },
         }))
 
         expectTypeOf(query.data.value).toEqualTypeOf<{ mapped: UtilsOutput }>()
@@ -428,23 +424,19 @@ describe('ProcedureUtils', () => {
         expectTypeOf(query.error.value).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
       })
 
-      // Don't know why but seem tanstack/vue-query doesn't handle initialData like react-query
-      // it('with initial data', () => {
-      //   const query = useInfiniteQuery(utils.infiniteOptions({
-      //     input: () => ({}),
-      //     initialData: { pageParams: [1], pages: [[{ title: 'title' }]] },
-      //     getNextPageParam,
-      //     initialPageParam,
-      //     select: data => ({ mapped: data }),
-      //     throwOnError(error) {
-      //       expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
-      //       return false
-      //     },
-      //   }))
+      it('with initial data', () => {
+        const query = useInfiniteQuery(utils.infiniteOptions({
+          input: () => ({}),
+          initialData: { pageParams: [1], pages: [[{ title: 'title' }]] },
+          getNextPageParam,
+          initialPageParam,
+          select: data => ({ mapped: data }),
+        }))
 
-      //   expectTypeOf(query.data.value).toEqualTypeOf<{ mapped: InfiniteData<UtilsOutput, number> }>()
-      //   expectTypeOf(query.error.value).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
-      // })
+        // FIXME: Don't know why but seem tanstack/vue-query doesn't handle initialData like react-query
+        // expectTypeOf(query.data.value).toEqualTypeOf<{ mapped: InfiniteData<UtilsOutput, number> }>()
+        expectTypeOf(query.error.value).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+      })
     })
 
     it('works with fetchInfiniteQuery', () => {

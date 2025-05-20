@@ -131,7 +131,7 @@ testSchemaConverter([
   {
     name: 'base64url',
     schema: z.base64url(),
-    input: [true, { type: 'string', pattern: '^([0-9a-zA-Z-_]{4})*(([0-9a-zA-Z-_]{2}(==)?)|([0-9a-zA-Z-_]{3}(=)?))?$' }],
+    input: [true, { type: 'string', pattern: '^[A-Za-z0-9_-]*$' }],
   },
   {
     name: 'string.trim()',

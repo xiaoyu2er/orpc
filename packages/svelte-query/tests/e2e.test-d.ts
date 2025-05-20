@@ -81,10 +81,9 @@ describe('.queryOptions', () => {
 
     const queries = get(queriesStore)
 
-    // FIXME: createQueries cannot infer error
-    // if (queries[0].status === 'error' && isDefinedError(queries[0].error) && queries[0].error.code === 'OVERRIDE') {
-    //   expectTypeOf(queries[0].error.data).toEqualTypeOf<unknown>()
-    // }
+    if (queries[0].status === 'error' && isDefinedError(queries[0].error) && queries[0].error.code === 'BASE') {
+      expectTypeOf(queries[0].error.data).toEqualTypeOf<{ output: string }>()
+    }
 
     if (queries[0].status === 'success') {
       expectTypeOf(queries[0].data.mapped).toEqualTypeOf<{ output: string }>()
@@ -175,10 +174,9 @@ describe('.streamedOptions', () => {
 
     const queries = get(queriesStore)
 
-    // FIXME: useQueries cannot infer error
-    // if (queries[0].status === 'error' && isDefinedError(queries[0].error) && queries[0].error.code === 'OVERRIDE') {
-    //   expectTypeOf(queries[0].error.data).toEqualTypeOf<unknown>()
-    // }
+    if (queries[0].status === 'error' && isDefinedError(queries[0].error) && queries[0].error.code === 'BASE') {
+      expectTypeOf(queries[0].error.data).toEqualTypeOf<{ output: string }>()
+    }
 
     if (queries[0].status === 'success') {
       expectTypeOf(queries[0].data.mapped).toEqualTypeOf<{ output: string }[]>()

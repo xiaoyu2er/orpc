@@ -93,10 +93,6 @@ describe('ProcedureUtils', () => {
         const query = createQuery(utils.queryOptions({
           select: data => ({ mapped: data }),
           initialData: [{ title: 'title' }],
-          throwOnError(error) {
-            expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
-            return false
-          },
         }))
 
         expectTypeOf(get(query).data).toEqualTypeOf<{ mapped: UtilsOutput }>()
@@ -120,9 +116,8 @@ describe('ProcedureUtils', () => {
       expectTypeOf(get(queries)[0].data).toEqualTypeOf<{ mapped: UtilsOutput } | undefined>()
       expectTypeOf(get(queries)[1].data).toEqualTypeOf<UtilsOutput | undefined>()
 
-      // FIXME: createQueries cannot infer error
-      // expectTypeOf(queries[0].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
-      // expectTypeOf(queries[0].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
+      expectTypeOf(get(queries)[0].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
+      expectTypeOf(get(queries)[1].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
     })
 
     it('works with fetchQuery', () => {
@@ -204,15 +199,31 @@ describe('ProcedureUtils', () => {
         const query = createQuery(utils.experimental_streamedOptions({
           select: data => ({ mapped: data }),
           initialData: [{ title: 'title' }],
-          throwOnError(error) {
-            expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
-            return false
-          },
         }))
 
         expectTypeOf(get(query).data).toEqualTypeOf<{ mapped: UtilsOutput }>()
         expectTypeOf(get(query).error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
       })
+    })
+
+    it('works with createQueries', async () => {
+      const queries = createQueries(({
+        queries: [
+          utils.experimental_streamedOptions({
+            select: data => ({ mapped: data }),
+          }),
+          utils.experimental_streamedOptions({
+            input: { search: 'search' },
+            context: { batch: true },
+          }),
+        ],
+      }))
+
+      expectTypeOf(get(queries)[0].data).toEqualTypeOf<{ mapped: UtilsOutput } | undefined>()
+      expectTypeOf(get(queries)[1].data).toEqualTypeOf<UtilsOutput | undefined>()
+
+      expectTypeOf(get(queries)[0].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
+      expectTypeOf(get(queries)[1].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
     })
 
     it('works with fetchQuery', () => {
@@ -352,23 +363,19 @@ describe('ProcedureUtils', () => {
         expectTypeOf(get(query).error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
       })
 
-      // Don't know why but seem tanstack/svelte-query doesn't handle initialData like react-query
-      // it('with initial data', () => {
-      //   const query = createInfiniteQuery(utils.infiniteOptions({
-      //     input: () => ({}),
-      //     getNextPageParam,
-      //     initialPageParam,
-      //     select: data => ({ mapped: data }),
-      //     throwOnError(error) {
-      //       expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
-      //       return false
-      //     },
-      //     initialData: { pageParams: [1], pages: [[{ title: 'title' }]] },
-      //   }))
+      it('with initial data', () => {
+        const query = createInfiniteQuery(utils.infiniteOptions({
+          input: () => ({}),
+          getNextPageParam,
+          initialPageParam,
+          select: data => ({ mapped: data }),
+          initialData: { pageParams: [1], pages: [[{ title: 'title' }]] },
+        }))
 
-      //   expectTypeOf(get(query).data).toEqualTypeOf<{ mapped: InfiniteData<UtilsOutput, number> }>()
-      //   expectTypeOf(get(query).error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
-      // })
+        // FIXME: Don't know why but seem tanstack/svelte-query doesn't handle initialData like react-query
+        // expectTypeOf(get(query).data).toEqualTypeOf<{ mapped: InfiniteData<UtilsOutput, number> }>()
+        expectTypeOf(get(query).error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+      })
     })
 
     it('works with fetchInfiniteQuery', () => {

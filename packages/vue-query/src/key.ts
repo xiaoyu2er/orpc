@@ -3,7 +3,7 @@ import type { QueryKey } from '@tanstack/vue-query'
 
 // TODO: this file duplicate with react query
 
-export type KeyType = 'query' | 'infinite' | 'mutation' | undefined
+export type KeyType = 'query' | 'streamed' | 'infinite' | 'mutation' | undefined
 
 export interface BuildKeyOptions<TType extends KeyType, TInput> {
   type?: TType

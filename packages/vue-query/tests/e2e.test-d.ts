@@ -3,7 +3,7 @@ import { isDefinedError } from '@orpc/client'
 import { useInfiniteQuery, useMutation, useQueries, useQuery } from '@tanstack/vue-query'
 import { computed, ref } from 'vue'
 import { orpc as client } from '../../client/tests/shared'
-import { orpc, queryClient } from './shared'
+import { orpc, queryClient, streamedOrpc } from './shared'
 
 it('.key', () => {
   queryClient.invalidateQueries({
@@ -103,6 +103,88 @@ describe('.queryOptions', () => {
     }))
 
     expectTypeOf(query2).toEqualTypeOf<{ output: string }>()
+  })
+})
+
+describe('.streamedOptions', () => {
+  it('useQuery', () => {
+    const query = useQuery(streamedOrpc.streamed.experimental_streamedOptions({
+      input: computed(() => ({ input: 123 })),
+      retry(failureCount, error) {
+        if (isDefinedError(error) && error.code === 'BASE') {
+          expectTypeOf(error.data).toEqualTypeOf<{ output: string }>()
+        }
+
+        return false
+      },
+    }))
+
+    if (query.status.value === 'error' && isDefinedError(query.error.value) && query.error.value.code === 'OVERRIDE') {
+      expectTypeOf(query.error.value.data).toEqualTypeOf<unknown>()
+    }
+
+    expectTypeOf(query.data.value).toEqualTypeOf<{ output: string }[] | undefined>()
+
+    useQuery(orpc.ping.experimental_streamedOptions({
+      // @ts-expect-error --- input is invalid
+      input: {
+        input: '123',
+      },
+    }))
+
+    useQuery(orpc.ping.experimental_streamedOptions({
+      input: { input: 123 },
+      // @ts-expect-error --- cache is invalid
+      context: {
+        cache: 123,
+      },
+    }))
+  })
+
+  it('useQueries', async () => {
+    const queries = useQueries({
+      queries: [
+        streamedOrpc.streamed.experimental_streamedOptions({
+          input: { input: 123 },
+          select: data => ({ mapped: data }),
+          retry(failureCount, error) {
+            if (isDefinedError(error) && error.code === 'BASE') {
+              expectTypeOf(error.data).toEqualTypeOf<{ output: string }>()
+            }
+
+            return false
+          },
+        }),
+        orpc.nested.pong.queryOptions({
+          context: { cache: '123' },
+        }),
+      ],
+    })
+
+    // FIXME: useQueries cannot infer error
+    // if (queries[0].status === 'error' && isDefinedError(queries[0].error) && queries[0].error.code === 'OVERRIDE') {
+    //   expectTypeOf(queries[0].error.data).toEqualTypeOf<unknown>()
+    // }
+
+    if (queries.value[0].status === 'success') {
+      expectTypeOf(queries.value[0].data.mapped).toEqualTypeOf<{ output: string }[]>()
+    }
+
+    if (queries.value[1].status === 'error') {
+      expectTypeOf(queries.value[1].error).toEqualTypeOf<Error>()
+    }
+
+    if (queries.value[1].status === 'success') {
+      expectTypeOf(queries.value[1].data).toEqualTypeOf<unknown>()
+    }
+  })
+
+  it('fetchQuery', async () => {
+    const query = await queryClient.fetchQuery(streamedOrpc.streamed.experimental_streamedOptions({
+      input: { input: 123 },
+    }))
+
+    expectTypeOf(query).toEqualTypeOf<{ output: string }[]>()
   })
 })
 

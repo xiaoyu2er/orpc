@@ -64,6 +64,6 @@
     "@orpc/standard-server-peer": "workspace:*"
   },
   "devDependencies": {
-    "zod": "^3.25.7"
+    "zod": "^3.25.11"
   }
 }

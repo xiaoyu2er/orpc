@@ -46,6 +46,6 @@
   },
   "devDependencies": {
     "@tanstack/vue-query": "^5.72.3",
-    "zod": "^3.25.7"
+    "zod": "^3.25.11"
   }
 }

@@ -1,4 +1,4 @@
-import type { Value } from '@orpc/shared'
+import type { Promisable, Value } from '@orpc/shared'
 import type { StandardHeaders } from '@orpc/standard-server'
 import type { StandardHandlerInterceptorOptions, StandardHandlerOptions, StandardHandlerPlugin } from '../adapters/standard'
 import type { Context } from '../context'
@@ -6,8 +6,8 @@ import { value } from '@orpc/shared'
 import { flattenHeader } from '@orpc/standard-server'
 
 export interface CORSOptions<T extends Context> {
-  origin?: Value<string | readonly string[] | null | undefined, [origin: string, options: StandardHandlerInterceptorOptions<T>]>
-  timingOrigin?: Value<string | readonly string[] | null | undefined, [origin: string, options: StandardHandlerInterceptorOptions<T>]>
+  origin?: Value<Promisable<string | readonly string[] | null | undefined>, [origin: string, options: StandardHandlerInterceptorOptions<T>]>
+  timingOrigin?: Value<Promisable<string | readonly string[] | null | undefined>, [origin: string, options: StandardHandlerInterceptorOptions<T>]>
   allowMethods?: readonly string[]
   allowHeaders?: readonly string[]
   maxAge?: number

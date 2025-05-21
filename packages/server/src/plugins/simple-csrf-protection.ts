@@ -1,5 +1,5 @@
 import type { Meta } from '@orpc/contract'
-import type { Value } from '@orpc/shared'
+import type { Promisable, Value } from '@orpc/shared'
 import type { StandardHandlerInterceptorOptions, StandardHandlerOptions, StandardHandlerPlugin } from '../adapters/standard'
 import type { Context } from '../context'
 import type { ProcedureClientInterceptorOptions } from '../procedure-client'
@@ -12,7 +12,7 @@ export interface SimpleCsrfProtectionHandlerPluginOptions<T extends Context> {
    *
    * @default 'x-csrf-token'
    */
-  headerName?: Value<string, [options: StandardHandlerInterceptorOptions<T>]>
+  headerName?: Value<Promisable<string>, [options: StandardHandlerInterceptorOptions<T>]>
 
   /**
    * The value of the header to check.
@@ -20,7 +20,7 @@ export interface SimpleCsrfProtectionHandlerPluginOptions<T extends Context> {
    * @default 'orpc'
    *
    */
-  headerValue?: Value<string, [options: StandardHandlerInterceptorOptions<T>]>
+  headerValue?: Value<Promisable<string>, [options: StandardHandlerInterceptorOptions<T>]>
 
   /**
    * Exclude a procedure from the plugin.
@@ -28,7 +28,7 @@ export interface SimpleCsrfProtectionHandlerPluginOptions<T extends Context> {
    * @default false
    *
    */
-  exclude?: Value<boolean, [options: ProcedureClientInterceptorOptions<T, Record<never, never>, Meta>]>
+  exclude?: Value<Promisable<boolean>, [options: ProcedureClientInterceptorOptions<T, Record<never, never>, Meta>]>
 
   /**
    * The error thrown when the CSRF token is invalid.

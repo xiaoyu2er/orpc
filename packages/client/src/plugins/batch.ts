@@ -1,4 +1,4 @@
-import type { InterceptorOptions, Value } from '@orpc/shared'
+import type { InterceptorOptions, Promisable, Value } from '@orpc/shared'
 import type { StandardHeaders, StandardLazyResponse, StandardRequest } from '@orpc/standard-server'
 import type { StandardLinkClientInterceptorOptions, StandardLinkOptions, StandardLinkPlugin } from '../adapters/standard'
 import type { ClientContext } from '../types'
@@ -20,28 +20,28 @@ export interface BatchLinkPluginOptions<T extends ClientContext> {
    *
    * @default 10
    */
-  maxSize?: Value<number, [readonly [StandardLinkClientInterceptorOptions<T>, ...StandardLinkClientInterceptorOptions<T>[]]]>
+  maxSize?: Value<Promisable<number>, [readonly [StandardLinkClientInterceptorOptions<T>, ...StandardLinkClientInterceptorOptions<T>[]]]>
 
   /**
    * Defines the URL to use for the batch request.
    *
    * @default the URL of the first request in the batch + '/__batch__'
    */
-  url?: Value<string | URL, [readonly [StandardLinkClientInterceptorOptions<T>, ...StandardLinkClientInterceptorOptions<T>[]]]>
+  url?: Value<Promisable<string | URL>, [readonly [StandardLinkClientInterceptorOptions<T>, ...StandardLinkClientInterceptorOptions<T>[]]]>
 
   /**
    * The maximum length of the URL.
    *
    * @default 2083
    */
-  maxUrlLength?: Value<number, [readonly [StandardLinkClientInterceptorOptions<T>, ...StandardLinkClientInterceptorOptions<T>[]]]>
+  maxUrlLength?: Value<Promisable<number>, [readonly [StandardLinkClientInterceptorOptions<T>, ...StandardLinkClientInterceptorOptions<T>[]]]>
 
   /**
    * Defines the HTTP headers to use for the batch request.
    *
    * @default The same headers of all requests in the batch
    */
-  headers?: Value<StandardHeaders, [readonly [StandardLinkClientInterceptorOptions<T>, ...StandardLinkClientInterceptorOptions<T>[]]]>
+  headers?: Value<Promisable<StandardHeaders>, [readonly [StandardLinkClientInterceptorOptions<T>, ...StandardLinkClientInterceptorOptions<T>[]]]>
 
   /**
    * Map the batch request items before sending them.

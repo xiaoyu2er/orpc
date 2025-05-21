@@ -2,7 +2,7 @@
  * The message port used by electron in main process
  */
 export interface MessagePortMainLike {
-  on: (event: string, callback: (event?: { data: any }) => void) => void
+  on: <T extends string>(event: T, callback: (event?: { data: any }) => void) => void
   postMessage: (data: any) => void
 }
 

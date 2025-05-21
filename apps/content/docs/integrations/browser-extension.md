@@ -1,14 +1,14 @@
 ---
-title: Browser Extension
+title: Browser Extension Integration
 description: Integrate oRPC with Browser Extensions
 ---
 
-# Browser Extension
+# Browser Extension Integration
 
 Easily set up type-safe communication between scripts in your browser extension using [Message Port Adapter](/docs/adapters/message-port). Before you begin, it’s recommended to read the [Message Passing Docs](https://developer.chrome.com/docs/extensions/develop/concepts/messaging#connect)
 
 ::: warning
-The browser [Message Passing API](https://developer.chrome.com/docs/extensions/develop/concepts/messaging) does not support transferring binary data, which means oRPC features like `File`` and Blob` cannot be used natively. However, you can temporarily work around this limitation by extending the [RPC JSON Serializer](/docs/advanced/rpc-json-serializer#extending-native-data-types) to encode `File` and `Blob` as Base64.
+The browser [Message Passing API](https://developer.chrome.com/docs/extensions/develop/concepts/messaging) does not support transferring binary data, which means oRPC features like `File` and `Blob` cannot be used natively. However, you can temporarily work around this limitation by extending the [RPC JSON Serializer](/docs/advanced/rpc-json-serializer#extending-native-data-types) to encode `File` and `Blob` as Base64.
 :::
 
 ## Server

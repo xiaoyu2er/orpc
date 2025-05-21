@@ -1,5 +1,5 @@
-import { useInfiniteQuery } from '@tanstack/react-query'
 import { orpc } from '../lib/orpc'
+import { useInfiniteQuery } from '@tanstack/react-query'
 
 export function ListPlanetsQuery() {
   const { data, refetch, fetchNextPage, hasNextPage, status } = useInfiniteQuery(

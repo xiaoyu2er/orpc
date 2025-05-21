@@ -108,7 +108,7 @@ export default defineConfig({
             { text: 'React Native', link: '/docs/integrations/react-native' },
             { text: 'Electron', link: '/docs/integrations/electron' },
             { text: 'Browser Extension', link: '/docs/integrations/browser-extension' },
-            { text: 'Node.js Worker Threads', link: '/docs/integrations/node-worker-threads' },
+            { text: 'Worker Threads', link: '/docs/integrations/worker-threads' },
           ],
         },
         {

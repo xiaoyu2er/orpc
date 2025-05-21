@@ -87,6 +87,7 @@ export default defineConfig({
           items: [
             { text: 'HTTP', link: '/docs/adapters/http' },
             { text: 'Websocket', link: '/docs/adapters/websocket' },
+            { text: 'Message Port', link: '/docs/adapters/message-port' },
           ],
         },
         {
@@ -105,6 +106,9 @@ export default defineConfig({
             { text: 'SolidStart', link: '/docs/integrations/solid-start' },
             { text: 'Astro', link: '/docs/integrations/astro' },
             { text: 'React Native', link: '/docs/integrations/react-native' },
+            { text: 'Electron', link: '/docs/integrations/electron' },
+            { text: 'Browser Extension', link: '/docs/integrations/browser-extension' },
+            { text: 'Node.js Worker Threads', link: '/docs/integrations/node-worker-threads' },
           ],
         },
         {

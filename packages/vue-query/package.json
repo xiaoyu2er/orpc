@@ -42,7 +42,9 @@
     "vue": ">=3.3.0"
   },
   "dependencies": {
-    "@orpc/shared": "workspace:*",
+    "@orpc/shared": "workspace:*"
+  },
+  "devDependencies": {
     "@tanstack/vue-query": "^5.72.3"
   }
 }

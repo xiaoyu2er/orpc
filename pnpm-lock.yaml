@@ -368,13 +368,10 @@ importers:
       '@orpc/shared':
         specifier: workspace:*
         version: link:../shared
-      '@tanstack/react-query':
-        specifier: '>=5.55.0'
-        version: 5.75.7(react@19.1.0)
     devDependencies:
-      '@tanstack/vue-query':
+      '@tanstack/react-query':
         specifier: ^5.72.3
-        version: 5.75.7(vue@3.5.14(typescript@5.8.3))
+        version: 5.75.7(react@19.1.0)
       react:
         specifier: ^19.1.0
         version: 19.1.0
@@ -439,16 +436,13 @@ importers:
       '@orpc/shared':
         specifier: workspace:*
         version: link:../shared
-      '@tanstack/solid-query':
-        specifier: '>=5.55.0'
-        version: 5.75.7(solid-js@1.9.6)
       solid-js:
         specifier: '>=1.9.0'
         version: 1.9.6
     devDependencies:
-      '@tanstack/vue-query':
+      '@tanstack/solid-query':
         specifier: ^5.72.3
-        version: 5.75.7(vue@3.5.14(typescript@5.8.3))
+        version: 5.75.7(solid-js@1.9.6)
       zod:
         specifier: ^3.25.11
         version: 3.25.11
@@ -508,16 +502,13 @@ importers:
       '@orpc/shared':
         specifier: workspace:*
         version: link:../shared
-      '@tanstack/svelte-query':
-        specifier: '>=5.55.0'
-        version: 5.75.7(svelte@5.28.2)
       svelte:
         specifier: '>=4.2.0'
         version: 5.28.2
     devDependencies:
-      '@tanstack/vue-query':
+      '@tanstack/svelte-query':
         specifier: ^5.72.3
-        version: 5.75.7(vue@3.5.14(typescript@5.8.3))
+        version: 5.75.7(svelte@5.28.2)
       zod:
         specifier: ^3.25.11
         version: 3.25.11
@@ -568,12 +559,13 @@ importers:
       '@orpc/shared':
         specifier: workspace:*
         version: link:../shared
-      '@tanstack/vue-query':
-        specifier: ^5.72.3
-        version: 5.75.7(vue@3.5.14(typescript@5.8.3))
       vue:
         specifier: '>=3.3.0'
         version: 3.5.14(typescript@5.8.3)
+    devDependencies:
+      '@tanstack/vue-query':
+        specifier: ^5.72.3
+        version: 5.75.7(vue@3.5.14(typescript@5.8.3))
 
   packages/zod:
     dependencies:

@@ -1,4 +1,4 @@
-import type { Interceptor, MaybeOptionalOptions, ThrowableError } from '@orpc/shared'
+import type { Interceptor, MaybeOptionalOptions } from '@orpc/shared'
 import type { ToFetchResponseOptions } from '@orpc/standard-server-fetch'
 import type { Context } from '../../context'
 import type { StandardHandleOptions, StandardHandler } from '../standard'
@@ -17,7 +17,7 @@ export interface FetchHandlerInterceptorOptions<T extends Context> extends Stand
 }
 
 export interface FetchHandlerOptions<T extends Context> extends ToFetchResponseOptions {
-  adapterInterceptors?: Interceptor<FetchHandlerInterceptorOptions<T>, FetchHandleResult, ThrowableError>[]
+  adapterInterceptors?: Interceptor<FetchHandlerInterceptorOptions<T>, Promise<FetchHandleResult>>[]
 
   plugins?: FetchHandlerPlugin<T>[]
 }

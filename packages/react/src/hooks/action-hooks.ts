@@ -1,12 +1,12 @@
 import type { ORPCErrorJSON, SafeResult } from '@orpc/client'
 import type { ActionableClient, UnactionableError } from '@orpc/server'
-import type { Interceptor } from '@orpc/shared'
+import type { Interceptor, PromiseWithError } from '@orpc/shared'
 import { createORPCErrorFromJson, safe } from '@orpc/client'
 import { intercept, toArray } from '@orpc/shared'
 import { useCallback, useMemo, useRef, useState, useTransition } from 'react'
 
 export interface UseServerActionOptions<TInput, TOutput, TError> {
-  interceptors?: Interceptor<{ input: TInput }, TOutput, TError>[]
+  interceptors?: Interceptor<{ input: TInput }, PromiseWithError<TOutput, TError>>[]
 }
 
 export interface UseServerActionExecuteOptions<TInput, TOutput, TError> extends Pick<UseServerActionOptions<TInput, TOutput, TError>, 'interceptors'> {
@@ -130,7 +130,7 @@ export function useServerAction<TInput, TOutput, TError extends ORPCErrorJSON<an
         const result = await safe(intercept(
           [...toArray(options.interceptors), ...toArray(executeOptions.interceptors)],
           { input: input as TInput },
-          ({ input }) => action(input).then(([error, data]) => {
+          async ({ input }) => action(input).then(([error, data]) => {
             if (error) {
               throw createORPCErrorFromJson(error)
             }

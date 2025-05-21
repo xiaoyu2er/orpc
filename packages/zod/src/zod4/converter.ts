@@ -1,6 +1,6 @@
 import type { AnySchema } from '@orpc/contract'
 import type { ConditionalSchemaConverter, JSONSchema, SchemaConvertOptions } from '@orpc/openapi'
-import type { Interceptor, Promisable, ThrowableError } from '@orpc/shared'
+import type { Interceptor } from '@orpc/shared'
 import type {
   $ZodArray,
   $ZodCatch,
@@ -71,8 +71,7 @@ export interface experimental_ZodToJsonSchemaOptions {
 
   interceptors?: Interceptor<
     { schema: $ZodType, options: SchemaConvertOptions, lazyDepth: number, isHandledCustomJSONSchema: boolean },
-    [required: boolean, jsonSchema: Exclude<JSONSchema, boolean>],
-    ThrowableError
+    [required: boolean, jsonSchema: Exclude<JSONSchema, boolean>]
   >[]
 }
 
@@ -95,7 +94,7 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
     return schema !== undefined && schema['~standard'].vendor === 'zod'
   }
 
-  convert(schema: AnySchema | undefined, options: SchemaConvertOptions): Promisable<[required: boolean, jsonSchema: Exclude<JSONSchema, boolean>]> {
+  convert(schema: AnySchema | undefined, options: SchemaConvertOptions): [required: boolean, jsonSchema: Exclude<JSONSchema, boolean>] {
     return this.#convert(schema as $ZodType, options, 0)
   }
 
@@ -104,16 +103,16 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
     options: SchemaConvertOptions,
     lazyDepth: number,
     isHandledCustomJSONSchema: boolean = false,
-  ): Promise<[required: boolean, jsonSchema: Exclude<JSONSchema, boolean>]> {
+  ): [required: boolean, jsonSchema: Exclude<JSONSchema, boolean>] {
     return intercept(
       this.interceptors,
       { schema, options, lazyDepth, isHandledCustomJSONSchema },
-      async ({ schema, options, lazyDepth, isHandledCustomJSONSchema }) => {
+      ({ schema, options, lazyDepth, isHandledCustomJSONSchema }) => {
         if (!isHandledCustomJSONSchema) {
           const customJSONSchema = this.#getCustomJsonSchema(schema, options)
 
           if (customJSONSchema) {
-            const [required, json] = await this.#convert(schema, options, lazyDepth, true)
+            const [required, json] = this.#convert(schema, options, lazyDepth, true)
 
             return [required, { ...json, ...customJSONSchema }]
           }
@@ -239,7 +238,7 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
               json.maxItems = maximum
             }
 
-            json.items = this.#handleArrayItemJsonSchema(await this.#convert(array._zod.def.element, options, lazyDepth), options)
+            json.items = this.#handleArrayItemJsonSchema(this.#convert(array._zod.def.element, options, lazyDepth), options)
 
             return [true, json]
           }
@@ -249,7 +248,7 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
             const json: JSONSchema & { required?: string[] } = { type: 'object' }
 
             for (const [key, value] of Object.entries(object._zod.def.shape)) {
-              const [itemRequired, itemJson] = await this.#convert(value, options, lazyDepth)
+              const [itemRequired, itemJson] = this.#convert(value, options, lazyDepth)
 
               json.properties ??= {}
               json.properties[key] = itemJson
@@ -265,7 +264,7 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
                 json.additionalProperties = false
               }
               else {
-                const [_, addJson] = await this.#convert(object._zod.def.catchall, options, lazyDepth)
+                const [_, addJson] = this.#convert(object._zod.def.catchall, options, lazyDepth)
                 json.additionalProperties = addJson
               }
             }
@@ -280,7 +279,7 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
             let required = true
 
             for (const item of union._zod.def.options) {
-              const [itemRequired, itemJson] = await this.#convert(item, options, lazyDepth)
+              const [itemRequired, itemJson] = this.#convert(item, options, lazyDepth)
 
               if (!itemRequired) {
                 required = false
@@ -308,7 +307,7 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
             let required = false
 
             for (const item of [intersection._zod.def.left, intersection._zod.def.right]) {
-              const [itemRequired, itemJson] = await this.#convert(item, options, lazyDepth)
+              const [itemRequired, itemJson] = this.#convert(item, options, lazyDepth)
 
               json.allOf.push(itemJson)
 
@@ -325,11 +324,11 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
             const json: JSONSchema & { prefixItems: JSONSchema[] } = { type: 'array', prefixItems: [] }
 
             for (const item of tuple._zod.def.items) {
-              json.prefixItems.push(this.#handleArrayItemJsonSchema(await this.#convert(item, options, lazyDepth), options))
+              json.prefixItems.push(this.#handleArrayItemJsonSchema(this.#convert(item, options, lazyDepth), options))
             }
 
             if (tuple._zod.def.rest) {
-              json.items = this.#handleArrayItemJsonSchema(await this.#convert(tuple._zod.def.rest, options, lazyDepth), options)
+              json.items = this.#handleArrayItemJsonSchema(this.#convert(tuple._zod.def.rest, options, lazyDepth), options)
             }
 
             const { minimum, maximum } = tuple._zod.bag
@@ -349,8 +348,8 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
             const record = schema as $ZodRecord
             const json: JSONSchema = { type: 'object' }
 
-            json.propertyNames = (await this.#convert(record._zod.def.keyType, options, lazyDepth))[1]
-            json.additionalProperties = (await this.#convert(record._zod.def.valueType, options, lazyDepth))[1]
+            json.propertyNames = (this.#convert(record._zod.def.keyType, options, lazyDepth))[1]
+            json.additionalProperties = (this.#convert(record._zod.def.valueType, options, lazyDepth))[1]
 
             return [true, json]
           }
@@ -363,8 +362,8 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
               items: {
                 type: 'array',
                 prefixItems: [
-                  this.#handleArrayItemJsonSchema(await this.#convert(map._zod.def.keyType, options, lazyDepth), options),
-                  this.#handleArrayItemJsonSchema(await this.#convert(map._zod.def.valueType, options, lazyDepth), options),
+                  this.#handleArrayItemJsonSchema(this.#convert(map._zod.def.keyType, options, lazyDepth), options),
+                  this.#handleArrayItemJsonSchema(this.#convert(map._zod.def.valueType, options, lazyDepth), options),
                 ],
                 maxItems: 2,
                 minItems: 2,
@@ -377,7 +376,7 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
             return [true, {
               type: 'array',
               uniqueItems: true,
-              items: this.#handleArrayItemJsonSchema(await this.#convert(set._zod.def.valueType, options, lazyDepth), options),
+              items: this.#handleArrayItemJsonSchema(this.#convert(set._zod.def.valueType, options, lazyDepth), options),
             }]
           }
 
@@ -435,14 +434,14 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
           case 'nullable': {
             const nullable = schema as $ZodNullable
 
-            const [required, json] = await this.#convert(nullable._zod.def.innerType, options, lazyDepth)
+            const [required, json] = this.#convert(nullable._zod.def.innerType, options, lazyDepth)
 
             return [required, { anyOf: [json, { type: 'null' }] }]
           }
 
           case 'nonoptional': {
             const nonoptional = schema as $ZodNonOptional
-            const [, json] = await this.#convert(nonoptional._zod.def.innerType, options, lazyDepth)
+            const [, json] = this.#convert(nonoptional._zod.def.innerType, options, lazyDepth)
             return [true, json]
           }
 
@@ -453,7 +452,7 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
           case 'default':
           case 'prefault': {
             const default_ = schema as $ZodDefault | $ZodPrefault
-            const [, json] = await this.#convert(default_._zod.def.innerType, options, lazyDepth)
+            const [, json] = this.#convert(default_._zod.def.innerType, options, lazyDepth)
 
             return [false, {
               ...json,
@@ -463,7 +462,7 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
 
           case 'catch': {
             const catch_ = schema as $ZodCatch
-            return await this.#convert(catch_._zod.def.innerType, options, lazyDepth)
+            return this.#convert(catch_._zod.def.innerType, options, lazyDepth)
           }
 
           case 'nan': {
@@ -472,12 +471,12 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
 
           case 'pipe': {
             const pipe = schema as $ZodPipe
-            return await this.#convert(options.strategy === 'input' ? pipe._zod.def.in : pipe._zod.def.out, options, lazyDepth)
+            return this.#convert(options.strategy === 'input' ? pipe._zod.def.in : pipe._zod.def.out, options, lazyDepth)
           }
 
           case 'readonly': {
             const readonly_ = schema as $ZodReadonly
-            const [required, json] = await this.#convert(readonly_._zod.def.innerType, options, lazyDepth)
+            const [required, json] = this.#convert(readonly_._zod.def.innerType, options, lazyDepth)
             return [required, { ...json, readOnly: true }]
           }
 
@@ -492,7 +491,7 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
 
           case 'optional': {
             const optional = schema as $ZodOptional
-            const [, json] = await this.#convert(optional._zod.def.innerType, options, lazyDepth)
+            const [, json] = this.#convert(optional._zod.def.innerType, options, lazyDepth)
             return [false, json]
           }
 
@@ -503,7 +502,7 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
               return [false, this.anyJsonSchema]
             }
 
-            return await this.#convert(lazy._zod.def.getter(), options, lazyDepth + 1)
+            return this.#convert(lazy._zod.def.getter(), options, lazyDepth + 1)
           }
 
           default: {

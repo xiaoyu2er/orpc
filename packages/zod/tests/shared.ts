@@ -15,9 +15,9 @@ export interface SchemaConverterTestCase {
 export function testSchemaConverter(cases: SchemaConverterTestCase[]) {
   const converter = new ZodToJsonSchemaConverter({ maxLazyDepth: 1 })
   describe.each([['input'], ['output']] as const)('ZodToJsonSchemaConverter.converter: strategy = %s', (strategy) => {
-    it.each(cases)('$name', async ({ schema, input, output = input }) => {
+    it.each(cases)('$name', ({ schema, input, output = input }) => {
       const [expectedRequired, expectedJson] = strategy === 'input' ? input : output
-      const [required, json] = await converter.convert(schema, { strategy })
+      const [required, json] = converter.convert(schema, { strategy })
       expect(json).toEqual(expectedJson)
       expect(required).toEqual(expectedRequired)
     })

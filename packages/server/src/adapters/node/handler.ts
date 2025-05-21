@@ -1,4 +1,4 @@
-import type { Interceptor, MaybeOptionalOptions, ThrowableError } from '@orpc/shared'
+import type { Interceptor, MaybeOptionalOptions } from '@orpc/shared'
 import type { NodeHttpRequest, NodeHttpResponse, SendStandardResponseOptions } from '@orpc/standard-server-node'
 import type { Context } from '../../context'
 import type { StandardHandleOptions, StandardHandler } from '../standard'
@@ -18,7 +18,7 @@ export interface NodeHttpHandlerInterceptorOptions<T extends Context> extends St
 }
 
 export interface NodeHttpHandlerOptions<T extends Context> extends SendStandardResponseOptions {
-  adapterInterceptors?: Interceptor<NodeHttpHandlerInterceptorOptions<T>, NodeHttpHandleResult, ThrowableError>[]
+  adapterInterceptors?: Interceptor<NodeHttpHandlerInterceptorOptions<T>, Promise<NodeHttpHandleResult>>[]
 
   plugins?: NodeHttpHandlerPlugin<T>[]
 }

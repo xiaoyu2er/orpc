@@ -1,6 +1,6 @@
 import type { HTTPPath } from '@orpc/client'
-import type { AnySchema, ErrorFromErrorMap, InferSchemaOutput, Meta } from '@orpc/contract'
-import type { Interceptor, ThrowableError } from '@orpc/shared'
+import type { Meta } from '@orpc/contract'
+import type { Interceptor } from '@orpc/shared'
 import type { StandardLazyRequest, StandardResponse } from '@orpc/standard-server'
 import type { Context } from '../../context'
 import type { ProcedureClientInterceptorOptions } from '../../procedure-client'
@@ -30,12 +30,12 @@ export interface StandardHandlerOptions<TContext extends Context> {
   /**
    * Interceptors at the request level, helpful when you want catch errors
    */
-  interceptors?: Interceptor<StandardHandlerInterceptorOptions<TContext>, StandardHandleResult, ThrowableError>[]
+  interceptors?: Interceptor<StandardHandlerInterceptorOptions<TContext>, Promise<StandardHandleResult>>[]
 
   /**
    * Interceptors at the root level, helpful when you want override the request/response
    */
-  rootInterceptors?: Interceptor<StandardHandlerInterceptorOptions<TContext>, StandardHandleResult, ThrowableError>[]
+  rootInterceptors?: Interceptor<StandardHandlerInterceptorOptions<TContext>, Promise<StandardHandleResult>>[]
 
   /**
    *
@@ -43,8 +43,7 @@ export interface StandardHandlerOptions<TContext extends Context> {
    */
   clientInterceptors?: Interceptor<
     ProcedureClientInterceptorOptions<TContext, Record<never, never>, Meta>,
-    InferSchemaOutput<AnySchema>,
-    ErrorFromErrorMap<Record<never, never>>
+    Promise<unknown>
   >[]
 }
 

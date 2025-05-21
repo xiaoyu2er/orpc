@@ -10,7 +10,7 @@ export interface FormAction {
   (form: FormData): Promise<void>
 }
 
-export const orpcErrorToNextHttpFallbackInterceptor: Interceptor<any, any, any> = onError((error) => {
+export const orpcErrorToNextHttpFallbackInterceptor: Interceptor<any, any> = onError((error) => {
   if (error instanceof ORPCError && [401, 403, 404].includes(error.status)) {
     const nextError = createORPCErrorFromJson(error.toJSON()) as any
 

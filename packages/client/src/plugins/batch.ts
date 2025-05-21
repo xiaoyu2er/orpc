@@ -1,4 +1,4 @@
-import type { InterceptorOptions, ThrowableError, Value } from '@orpc/shared'
+import type { InterceptorOptions, Value } from '@orpc/shared'
 import type { StandardHeaders, StandardLazyResponse, StandardRequest } from '@orpc/standard-server'
 import type { StandardLinkClientInterceptorOptions, StandardLinkOptions, StandardLinkPlugin } from '../adapters/standard'
 import type { ClientContext } from '../types'
@@ -76,7 +76,7 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
   private pending: Map<
     BatchLinkPluginGroup<T>,
     [
-      options: InterceptorOptions<StandardLinkClientInterceptorOptions<T>, StandardLazyResponse, ThrowableError>,
+      options: InterceptorOptions<StandardLinkClientInterceptorOptions<T>, Promise<StandardLazyResponse>>,
       resolve: (response: StandardLazyResponse) => void,
       reject: (e: unknown) => void,
     ][]
@@ -171,7 +171,7 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
 
   #enqueueRequest(
     group: BatchLinkPluginGroup<T>,
-    options: InterceptorOptions<StandardLinkClientInterceptorOptions<T>, StandardLazyResponse, ThrowableError>,
+    options: InterceptorOptions<StandardLinkClientInterceptorOptions<T>, Promise<StandardLazyResponse>>,
     resolve: (response: StandardLazyResponse) => void,
     reject: (e: unknown) => void,
   ): void {
@@ -215,7 +215,10 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
     }
 
     try {
-      const options = batchItems.map(([options]) => options) as [InterceptorOptions<StandardLinkClientInterceptorOptions<T>, StandardLazyResponse, ThrowableError>, ...InterceptorOptions<StandardLinkClientInterceptorOptions<T>, StandardLazyResponse, ThrowableError>[]]
+      const options = batchItems.map(([options]) => options) as [
+        InterceptorOptions<StandardLinkClientInterceptorOptions<T>, Promise<StandardLazyResponse>>,
+        ...InterceptorOptions<StandardLinkClientInterceptorOptions<T>, Promise<StandardLazyResponse>>[],
+      ]
 
       const maxSize = await value(this.maxSize, options)
 

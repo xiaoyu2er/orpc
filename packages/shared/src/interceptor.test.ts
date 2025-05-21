@@ -9,7 +9,44 @@ describe('intercept', () => {
   const interceptor2 = vi.fn(({ next }) => next())
   const main = vi.fn(() => Promise.resolve('__main__'))
 
-  it('can intercept', async () => {
+  it('sync', async () => {
+    const main = vi.fn(() => '__main__')
+    interceptor2.mockReturnValueOnce('__interceptor2__')
+
+    const result = await intercept(
+      [
+        interceptor1,
+        interceptor2,
+      ],
+      {
+        foo: 'bar',
+      },
+      main,
+    )
+
+    expect(result).toEqual('__interceptor2__')
+    expect(interceptor1).toHaveBeenCalledTimes(1)
+    expect(interceptor1).toHaveBeenCalledWith({
+      foo: 'bar',
+      next: expect.any(Function),
+    })
+
+    expect(interceptor2).toHaveBeenCalledTimes(1)
+    expect(interceptor2).toHaveBeenCalledWith({
+      foo: 'bar',
+      next: expect.any(Function),
+    })
+
+    expect(main).toHaveBeenCalledTimes(0)
+
+    expect(interceptor2.mock.calls[0]![0].next()).toEqual('__main__')
+    expect(main).toHaveBeenCalledTimes(1)
+    expect(main).toHaveBeenCalledWith({
+      foo: 'bar',
+    })
+  })
+
+  it('async', async () => {
     interceptor2.mockReturnValueOnce(Promise.resolve('__interceptor2__'))
 
     const result = await intercept(

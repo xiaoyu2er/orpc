@@ -5,6 +5,7 @@ import type { Lazyable } from './lazy'
 import type { Procedure } from './procedure'
 import type { CreateProcedureClientOptions, ProcedureClient } from './procedure-client'
 import type { AnyRouter, InferRouterInitialContext } from './router'
+import { resolveMaybeOptionalOptions } from '@orpc/shared'
 import { isLazy } from './lazy'
 import { isProcedure } from './procedure'
 import { createProcedureClient } from './procedure-client'
@@ -36,13 +37,13 @@ export function createRouterClient<T extends AnyRouter, TClientContext extends C
   >
 ): RouterClient<T, TClientContext> {
   if (isProcedure(router)) {
-    const caller = createProcedureClient(router, ...rest)
+    const caller = createProcedureClient(router, resolveMaybeOptionalOptions(rest))
 
     return caller as any
   }
 
   const procedureCaller = isLazy(router)
-    ? createProcedureClient(createAssertedLazyProcedure(router), ...rest)
+    ? createProcedureClient(createAssertedLazyProcedure(router), resolveMaybeOptionalOptions(rest))
     : {}
 
   const recursive = new Proxy(procedureCaller, {

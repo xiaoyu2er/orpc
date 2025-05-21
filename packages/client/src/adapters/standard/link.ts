@@ -1,4 +1,4 @@
-import type { Interceptor, ThrowableError } from '@orpc/shared'
+import type { Interceptor } from '@orpc/shared'
 import type { StandardLazyResponse, StandardRequest } from '@orpc/standard-server'
 import type { ClientContext, ClientLink, ClientOptions } from '../../types'
 import type { StandardLinkPlugin } from './plugin'
@@ -16,8 +16,8 @@ export interface StandardLinkClientInterceptorOptions<T extends ClientContext> e
 }
 
 export interface StandardLinkOptions<T extends ClientContext> {
-  interceptors?: Interceptor<StandardLinkInterceptorOptions<T>, unknown, ThrowableError>[]
-  clientInterceptors?: Interceptor<StandardLinkClientInterceptorOptions<T>, StandardLazyResponse, ThrowableError>[]
+  interceptors?: Interceptor<StandardLinkInterceptorOptions<T>, Promise<unknown>>[]
+  clientInterceptors?: Interceptor<StandardLinkClientInterceptorOptions<T>, Promise<StandardLazyResponse>>[]
   plugins?: StandardLinkPlugin<T>[]
 }
 

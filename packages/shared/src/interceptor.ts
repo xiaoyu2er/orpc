@@ -6,16 +6,14 @@ export type InterceptableOptions = Record<string, any>
 export type InterceptorOptions<
   TOptions extends InterceptableOptions,
   TResult,
-  TError,
 > = Omit<TOptions, 'next'> & {
-  next(options?: TOptions): PromiseWithError<TResult, TError>
+  next(options?: TOptions): TResult
 }
 
 export type Interceptor<
   TOptions extends InterceptableOptions,
   TResult,
-  TError,
-> = (options: InterceptorOptions<TOptions, TResult, TError>) => Promisable<TResult>
+> = (options: InterceptorOptions<TOptions, TResult>) => TResult
 
 /**
  * Can used for interceptors or middlewares
@@ -98,19 +96,19 @@ export function onFinish<T, TOptions extends { next(): any }, TRest extends any[
   }
 }
 
-export async function intercept<TOptions extends InterceptableOptions, TResult, TError>(
-  interceptors: Interceptor<TOptions, TResult, TError>[],
+export function intercept<TOptions extends InterceptableOptions, TResult>(
+  interceptors: Interceptor<TOptions, TResult>[],
   options: NoInfer<TOptions>,
-  main: NoInfer<(options: TOptions) => Promisable<TResult>>,
-): Promise<TResult> {
-  const next = async (options: TOptions, index: number): Promise<TResult> => {
+  main: NoInfer<(options: TOptions) => TResult>,
+): TResult {
+  const next = (options: TOptions, index: number): TResult => {
     const interceptor = interceptors[index]
 
     if (!interceptor) {
-      return await main(options)
+      return main(options)
     }
 
-    return await interceptor({
+    return interceptor({
       ...options,
       next: (newOptions: TOptions = options) => next(newOptions, index + 1),
     })

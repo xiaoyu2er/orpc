@@ -6,7 +6,7 @@ import { os } from '../../server/src/builder'
 import { onError, onFinish, onStart, onSuccess } from './interceptor'
 
 it('onStart', () => {
-  const interceptor: Interceptor<{ foo: string }, 'success', 'error'> = onStart((options) => {
+  const interceptor: Interceptor<{ foo: string }, PromiseWithError<'success', 'error'>> = onStart((options) => {
     expectTypeOf(options.foo).toEqualTypeOf<string>()
     expectTypeOf(options.next).toBeCallableWith<[options?: { foo: string }]>()
     expectTypeOf(options.next()).toEqualTypeOf<PromiseWithError<'success', 'error'>>()
@@ -21,7 +21,7 @@ it('onStart', () => {
 })
 
 it('onSuccess', () => {
-  const interceptor: Interceptor<{ foo: string }, 'success', 'error'> = onSuccess((result, options) => {
+  const interceptor: Interceptor<{ foo: string }, PromiseWithError<'success', 'error'>> = onSuccess((result, options) => {
     expectTypeOf(result).toEqualTypeOf<'success'>()
 
     expectTypeOf(options.foo).toEqualTypeOf<string>()
@@ -39,7 +39,7 @@ it('onSuccess', () => {
 })
 
 it('onError', () => {
-  const interceptor: Interceptor<{ foo: string }, 'success', 'error'> = onError((error, options) => {
+  const interceptor: Interceptor<{ foo: string }, PromiseWithError<'success', 'error'>> = onError((error, options) => {
     expectTypeOf(error).toEqualTypeOf<'error'>()
 
     expectTypeOf(options.foo).toEqualTypeOf<string>()
@@ -57,7 +57,7 @@ it('onError', () => {
 })
 
 it('onFinish', () => {
-  const interceptor: Interceptor<{ foo: string }, 'success', 'error'> = onFinish(([error, data, isSuccess], options) => {
+  const interceptor: Interceptor<{ foo: string }, PromiseWithError<'success', 'error'>> = onFinish(([error, data, isSuccess], options) => {
     if (error || !isSuccess) {
       expectTypeOf(error).toEqualTypeOf<'error'>()
       expectTypeOf(data).toEqualTypeOf<undefined>()

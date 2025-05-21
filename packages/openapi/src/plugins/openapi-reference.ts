@@ -1,6 +1,6 @@
 import type { Context, HTTPPath, Router } from '@orpc/server'
 import type { StandardHandlerInterceptorOptions, StandardHandlerOptions, StandardHandlerPlugin } from '@orpc/server/standard'
-import type { Value } from '@orpc/shared'
+import type { Promisable, Value } from '@orpc/shared'
 import type { OpenAPI } from '../openapi'
 import type { OpenAPIGeneratorGenerateOptions, OpenAPIGeneratorOptions } from '../openapi-generator'
 import { once, stringifyJSON, value } from '@orpc/shared'
@@ -11,7 +11,7 @@ export interface OpenAPIReferencePluginOptions<T extends Context> extends OpenAP
    * Options to pass to the OpenAPI generate.
    *
    */
-  specGenerateOptions?: Value<OpenAPIGeneratorGenerateOptions, [StandardHandlerInterceptorOptions<T>]>
+  specGenerateOptions?: Value<Promisable<OpenAPIGeneratorGenerateOptions>, [StandardHandlerInterceptorOptions<T>]>
 
   /**
    * The URL path at which to serve the OpenAPI JSON.
@@ -32,26 +32,26 @@ export interface OpenAPIReferencePluginOptions<T extends Context> extends OpenAP
    *
    * @default 'API Reference'
    */
-  docsTitle?: Value<string, [StandardHandlerInterceptorOptions<T>]>
+  docsTitle?: Value<Promisable<string>, [StandardHandlerInterceptorOptions<T>]>
 
   /**
    * Arbitrary configuration object for the UI.
    */
-  docsConfig?: Value<Record<string, unknown>, [StandardHandlerInterceptorOptions<T>]>
+  docsConfig?: Value<Promisable<Record<string, unknown>>, [StandardHandlerInterceptorOptions<T>]>
 
   /**
    * HTML to inject into the <head> of the docs page.
    *
    * @default ''
    */
-  docsHead?: Value<string, [StandardHandlerInterceptorOptions<T>]>
+  docsHead?: Value<Promisable<string>, [StandardHandlerInterceptorOptions<T>]>
 
   /**
    * URL of the external script bundle for the reference UI.
    *
    * @default 'https://cdn.jsdelivr.net/npm/@scalar/api-reference'
    */
-  docsScriptUrl?: Value<string, [StandardHandlerInterceptorOptions<T>]>
+  docsScriptUrl?: Value<Promisable<string>, [StandardHandlerInterceptorOptions<T>]>
 
   /**
    * Override function to generate the full HTML for the docs page.

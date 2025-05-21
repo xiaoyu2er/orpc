@@ -1,4 +1,4 @@
-import type { Value } from '@orpc/shared'
+import type { Promisable, Value } from '@orpc/shared'
 import type { StandardLinkInterceptorOptions, StandardLinkOptions, StandardLinkPlugin } from '../adapters/standard'
 import type { ClientContext } from '../types'
 import { isAsyncIteratorObject, value } from '@orpc/shared'
@@ -17,21 +17,21 @@ export interface ClientRetryPluginContext {
    *
    * @default 0
    */
-  retry?: Value<number, [StandardLinkInterceptorOptions<ClientRetryPluginContext>]>
+  retry?: Value<Promisable<number>, [StandardLinkInterceptorOptions<ClientRetryPluginContext>]>
 
   /**
    * Delay (in ms) before retrying.
    *
    * @default (o) => o.lastEventRetry ?? 2000
    */
-  retryDelay?: Value<number, [ClientRetryPluginAttemptOptions<ClientRetryPluginContext>]>
+  retryDelay?: Value<Promisable<number>, [ClientRetryPluginAttemptOptions<ClientRetryPluginContext>]>
 
   /**
    * Determine should retry or not.
    *
    * @default true
    */
-  shouldRetry?: Value<boolean, [ClientRetryPluginAttemptOptions<ClientRetryPluginContext>]>
+  shouldRetry?: Value<Promisable<boolean>, [ClientRetryPluginAttemptOptions<ClientRetryPluginContext>]>
 
   /**
    * The hook called when retrying, and return the unsubscribe function.

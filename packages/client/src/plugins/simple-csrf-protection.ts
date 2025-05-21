@@ -1,4 +1,4 @@
-import type { Value } from '@orpc/shared'
+import type { Promisable, Value } from '@orpc/shared'
 import type { StandardLinkClientInterceptorOptions, StandardLinkOptions, StandardLinkPlugin } from '../adapters/standard'
 import type { ClientContext } from '../types'
 import { value } from '@orpc/shared'
@@ -9,7 +9,7 @@ export interface SimpleCsrfProtectionLinkPluginOptions<T extends ClientContext> 
    *
    * @default 'x-csrf-token'
    */
-  headerName?: Value<string, [options: StandardLinkClientInterceptorOptions<T>]>
+  headerName?: Value<Promisable<string>, [options: StandardLinkClientInterceptorOptions<T>]>
 
   /**
    * The value of the header to check.
@@ -17,14 +17,14 @@ export interface SimpleCsrfProtectionLinkPluginOptions<T extends ClientContext> 
    * @default 'orpc'
    *
    */
-  headerValue?: Value<string, [options: StandardLinkClientInterceptorOptions<T>]>
+  headerValue?: Value<Promisable<string>, [options: StandardLinkClientInterceptorOptions<T>]>
 
   /**
    * Exclude a procedure from the plugin.
    *
    * @default false
    */
-  exclude?: Value<boolean, [options: StandardLinkClientInterceptorOptions<T>]>
+  exclude?: Value<Promisable<boolean>, [options: StandardLinkClientInterceptorOptions<T>]>
 }
 
 /**

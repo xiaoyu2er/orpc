@@ -1,4 +1,4 @@
-import type { Value } from '@orpc/shared'
+import type { Promisable, Value } from '@orpc/shared'
 import type { StandardHeaders, StandardRequest } from '@orpc/standard-server'
 import type { BatchResponseBodyItem } from '@orpc/standard-server/batch'
 import type { StandardHandlerInterceptorOptions, StandardHandlerOptions, StandardHandlerPlugin } from '../adapters/standard'
@@ -12,7 +12,7 @@ export interface BatchHandlerOptions<T extends Context> {
    *
    * @default 10
    */
-  maxSize?: Value<number, [StandardHandlerInterceptorOptions<T>]>
+  maxSize?: Value<Promisable<number>, [StandardHandlerInterceptorOptions<T>]>
 
   /**
    * Map the request before processing it.
@@ -26,14 +26,14 @@ export interface BatchHandlerOptions<T extends Context> {
    *
    * @default 207
    */
-  successStatus?: Value<number, [responses: Promise<BatchResponseBodyItem>[], batchOptions: StandardHandlerInterceptorOptions<T>]>
+  successStatus?: Value<Promisable<number>, [responses: Promise<BatchResponseBodyItem>[], batchOptions: StandardHandlerInterceptorOptions<T>]>
 
   /**
    * success batch response headers.
    *
    * @default {}
    */
-  headers?: Value<StandardHeaders, [responses: Promise<BatchResponseBodyItem>[], batchOptions: StandardHandlerInterceptorOptions<T>]>
+  headers?: Value<Promisable<StandardHeaders>, [responses: Promise<BatchResponseBodyItem>[], batchOptions: StandardHandlerInterceptorOptions<T>]>
 }
 
 /**

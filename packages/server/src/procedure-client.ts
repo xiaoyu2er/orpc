@@ -1,6 +1,6 @@
 import type { Client, ClientContext } from '@orpc/client'
 import type { AnySchema, ErrorFromErrorMap, ErrorMap, InferSchemaInput, InferSchemaOutput, Meta } from '@orpc/contract'
-import type { Interceptor, MaybeOptionalOptions, Value } from '@orpc/shared'
+import type { Interceptor, MaybeOptionalOptions, Promisable, PromiseWithError, Value } from '@orpc/shared'
 import type { Context } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { Lazyable } from './lazy'
@@ -54,14 +54,13 @@ export type CreateProcedureClientOptions<
 
     interceptors?: Interceptor<
       ProcedureClientInterceptorOptions<TInitialContext, TErrorMap, TMeta>,
-      InferSchemaOutput<TOutputSchema>,
-      ErrorFromErrorMap<TErrorMap>
+      PromiseWithError<InferSchemaOutput<TOutputSchema>, ErrorFromErrorMap<TErrorMap>>
     >[]
   }
   & (
     Record<never, never> extends TInitialContext
-      ? { context?: Value<TInitialContext, [clientContext: TClientContext]> }
-      : { context: Value<TInitialContext, [clientContext: TClientContext]> }
+      ? { context?: Value<Promisable<TInitialContext>, [clientContext: TClientContext]> }
+      : { context: Value<Promisable<TInitialContext>, [clientContext: TClientContext]> }
   )
 
 /**

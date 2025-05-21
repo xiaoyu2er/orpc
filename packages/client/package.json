@@ -39,6 +39,11 @@
         "types": "./dist/adapters/websocket/index.d.mts",
         "import": "./dist/adapters/websocket/index.mjs",
         "default": "./dist/adapters/websocket/index.mjs"
+      },
+      "./message-port": {
+        "types": "./dist/adapters/message-port/index.d.mts",
+        "import": "./dist/adapters/message-port/index.mjs",
+        "default": "./dist/adapters/message-port/index.mjs"
       }
     }
   },
@@ -47,7 +52,8 @@
     "./plugins": "./src/plugins/index.ts",
     "./standard": "./src/adapters/standard/index.ts",
     "./fetch": "./src/adapters/fetch/index.ts",
-    "./websocket": "./src/adapters/websocket/index.ts"
+    "./websocket": "./src/adapters/websocket/index.ts",
+    "./message-port": "./src/adapters/message-port/index.ts"
   },
   "files": [
     "dist"

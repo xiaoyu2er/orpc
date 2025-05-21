@@ -59,6 +59,11 @@
         "types": "./dist/adapters/bun-ws/index.d.mts",
         "import": "./dist/adapters/bun-ws/index.mjs",
         "default": "./dist/adapters/bun-ws/index.mjs"
+      },
+      "./message-port": {
+        "types": "./dist/adapters/message-port/index.d.mts",
+        "import": "./dist/adapters/message-port/index.mjs",
+        "default": "./dist/adapters/message-port/index.mjs"
       }
     }
   },
@@ -71,7 +76,8 @@
     "./websocket": "./src/adapters/websocket/index.ts",
     "./crossws": "./src/adapters/crossws/index.ts",
     "./ws": "./src/adapters/ws/index.ts",
-    "./bun-ws": "./src/adapters/bun-ws/index.ts"
+    "./bun-ws": "./src/adapters/bun-ws/index.ts",
+    "./message-port": "./src/adapters/message-port/index.ts"
   },
   "files": [
     "dist"

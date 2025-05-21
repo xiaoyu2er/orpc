@@ -19,18 +19,18 @@ export class experimental_MessagePortHandler<T extends Context> {
       port.postMessage(message instanceof Blob ? await message.arrayBuffer() : message)
     })
 
-    onMessagePortMessage(port, (message) => {
-      peer.message(message).then(async ([id, request]) => {
-        if (!request) {
-          return
-        }
+    onMessagePortMessage(port, async (message) => {
+      const [id, request] = await peer.message(message)
 
-        const options = resolveFriendlyStandardHandleOptions(resolveMaybeOptionalOptions(rest))
+      if (!request) {
+        return
+      }
 
-        const { response } = await this.standardHandler.handle({ ...request, body: () => Promise.resolve(request.body) }, options)
+      const options = resolveFriendlyStandardHandleOptions(resolveMaybeOptionalOptions(rest))
 
-        await peer.response(id, response ?? { status: 404, headers: {}, body: 'No procedure matched' })
-      })
+      const { response } = await this.standardHandler.handle({ ...request, body: () => Promise.resolve(request.body) }, options)
+
+      await peer.response(id, response ?? { status: 404, headers: {}, body: 'No procedure matched' })
     })
 
     onMessagePortClose(port, () => {

@@ -17,8 +17,8 @@ export class experimental_LinkMessagePortClient<T extends ClientContext> impleme
       postMessagePortMessage(options.port, message instanceof Blob ? await message.arrayBuffer() : message)
     })
 
-    onMessagePortMessage(options.port, (message) => {
-      this.peer.message(message)
+    onMessagePortMessage(options.port, async (message) => {
+      await this.peer.message(message)
     })
 
     onMessagePortClose(options.port, () => {

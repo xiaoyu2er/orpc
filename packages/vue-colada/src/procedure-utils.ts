@@ -22,7 +22,7 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
     ...rest: MaybeOptionalOptions<
       QueryOptionsIn<TClientContext, TInput, TOutput, TError, UInitialData>
     >
-  ): QueryOptions<TOutput, TError, UInitialData>
+  ): NoInfer<QueryOptions<TOutput, TError, UInitialData>>
 
   /**
    * Generate options used for useMutation/...
@@ -33,7 +33,7 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
     ...rest: MaybeOptionalOptions<
       MutationOptionsIn<TClientContext, TInput, TOutput, TError, UMutationContext>
     >
-  ): MutationOptions<TInput, TOutput, TError, UMutationContext>
+  ): NoInfer<MutationOptions<TInput, TOutput, TError, UMutationContext>>
 }
 
 export interface CreateProcedureUtilsOptions {
@@ -49,7 +49,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
 
     queryOptions(...[{ input, context, ...rest } = {}]) {
       return {
-        key: computed(() => buildKey(options.path, { input: toValue(input) })),
+        key: computed(() => buildKey(options.path, { type: 'query', input: toValue(input) as any })),
         query: ({ signal }) => client(toValue(input) as any, { signal, context: toValue(context) as any }),
         ...(rest as any),
       }
@@ -57,7 +57,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
 
     mutationOptions(...[{ context, ...rest } = {}]) {
       return {
-        key: input => buildKey(options.path, { input }),
+        key: input => buildKey(options.path, { type: 'mutation', input: input as any }),
         mutation: input => client(input, { context: toValue(context) as any }),
         ...(rest as any),
       }

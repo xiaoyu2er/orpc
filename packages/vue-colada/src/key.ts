@@ -1,23 +1,26 @@
+import type { PartialDeep } from '@orpc/shared'
 import type { EntryKey } from '@pinia/colada'
 import { StandardRPCJsonSerializer } from '@orpc/client/standard'
-import { stringifyJSON } from '@orpc/shared'
 
 export interface BuildKeyOptions<TInput> {
-  input?: TInput
+  type?: 'query' | 'mutation'
+  input?: PartialDeep<TInput>
 }
 
 export function buildKey<TInput>(
   path: string[],
-  options?: BuildKeyOptions<TInput>,
+  options: BuildKeyOptions<TInput> = {},
 ): EntryKey {
-  if (options?.input === undefined) {
-    return path
-  }
+  const [json] = new StandardRPCJsonSerializer().serialize(options.input)
 
-  const [json, meta] = new StandardRPCJsonSerializer().serialize(options.input)
+  const withInput = json !== undefined ? { input: json } : {}
+  const withType = options.type !== undefined ? { type: options.type } : {}
 
   return [
-    ...path,
-    { input: stringifyJSON({ json, meta }) },
+    path,
+    {
+      ...withInput,
+      ...withType as any,
+    },
   ]
 }

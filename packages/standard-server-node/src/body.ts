@@ -8,12 +8,6 @@ import { flattenHeader, generateContentDisposition, getFilenameFromContentDispos
 import { toEventIterator, toEventStream } from './event-iterator'
 
 export async function toStandardBody(req: NodeHttpRequest): Promise<StandardBody> {
-  const method = req.method ?? 'GET'
-
-  if (method === 'GET' || method === 'HEAD') {
-    return undefined
-  }
-
   const contentDisposition = req.headers['content-disposition']
   const contentType = req.headers['content-type']
 

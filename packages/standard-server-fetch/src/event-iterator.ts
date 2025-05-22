@@ -8,16 +8,20 @@ import {
 } from '@orpc/standard-server'
 
 export function toEventIterator(
-  stream: ReadableStream<Uint8Array>,
+  stream: ReadableStream<Uint8Array> | null,
 ): AsyncIteratorObject<unknown | void, unknown | void, void> & AsyncGenerator<unknown | void, unknown | void, void> {
   const eventStream = stream
-    .pipeThrough(new TextDecoderStream())
+    ?.pipeThrough(new TextDecoderStream())
     .pipeThrough(new EventDecoderStream())
 
-  const reader = eventStream.getReader()
+  const reader = eventStream?.getReader()
 
   return createAsyncIteratorObject(async () => {
     while (true) {
+      if (reader === undefined) {
+        return { done: true, value: undefined }
+      }
+
       const { done, value } = await reader.read()
 
       if (done) {
@@ -57,7 +61,7 @@ export function toEventIterator(
       }
     }
   }, async () => {
-    await reader.cancel()
+    await reader?.cancel()
   })
 }
 

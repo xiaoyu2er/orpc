@@ -465,6 +465,9 @@ importers:
       '@types/aws-lambda':
         specifier: ^8.10.149
         version: 8.10.149
+      '@types/node':
+        specifier: ^22.15.17
+        version: 22.15.21
 
   packages/standard-server-fetch:
     dependencies:

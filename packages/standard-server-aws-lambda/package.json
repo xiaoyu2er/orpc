@@ -40,6 +40,7 @@
     "@orpc/standard-server": "workspace:*"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.149"
+    "@types/aws-lambda": "^8.10.149",
+    "@types/node": "^22.15.17"
   }
 }

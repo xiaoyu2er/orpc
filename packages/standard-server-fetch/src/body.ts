@@ -5,14 +5,6 @@ import { generateContentDisposition, getFilenameFromContentDisposition } from '@
 import { toEventIterator, toEventStream } from './event-iterator'
 
 export async function toStandardBody(re: Request | Response): Promise<StandardBody> {
-  /**
-   * In native environments like React Native, the body may be `undefined` due to lack of streaming support.
-   * Therefore, we explicitly check for `null` to indicate an intentionally empty body.
-   */
-  if (re.body === null) {
-    return undefined
-  }
-
   const contentDisposition = re.headers.get('content-disposition')
 
   if (typeof contentDisposition === 'string') {

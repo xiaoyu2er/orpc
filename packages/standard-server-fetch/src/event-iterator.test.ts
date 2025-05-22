@@ -82,6 +82,13 @@ describe('toEventIterator', () => {
     await expect(stream.getReader().closed).resolves.toBe(undefined)
   })
 
+  it('with empty stream', async () => {
+    const generator = toEventIterator(null)
+    expect(generator).toSatisfy(isAsyncIteratorObject)
+    expect(await generator.next()).toEqual({ done: true, value: undefined })
+    expect(await generator.next()).toEqual({ done: true, value: undefined })
+  })
+
   it('with error event', async () => {
     const stream = new ReadableStream<string>({
       async pull(controller) {

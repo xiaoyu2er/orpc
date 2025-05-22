@@ -1,9 +1,11 @@
-import type { StandardBody } from '@orpc/standard-server'
+import type { StandardBody, StandardHeaders } from '@orpc/standard-server'
 import type { APIGatewayEvent } from 'aws-lambda'
+import type { ToEventStreamOptions } from './event-iterator'
 import { Buffer } from 'node:buffer'
-import { parseEmptyableJSON } from '@orpc/shared'
-import { flattenHeader, getFilenameFromContentDisposition } from '@orpc/standard-server'
-import { toEventIterator } from './event-iterator'
+import { Readable } from 'node:stream'
+import { isAsyncIteratorObject, parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
+import { flattenHeader, generateContentDisposition, getFilenameFromContentDisposition } from '@orpc/standard-server'
+import { toEventIterator, toEventStream } from './event-iterator'
 
 export async function toStandardBody(event: APIGatewayEvent): Promise<StandardBody> {
   if (event.httpMethod === 'GET' || event.httpMethod === 'HEAD' || event.body === null) {
@@ -42,6 +44,54 @@ export async function toStandardBody(event: APIGatewayEvent): Promise<StandardBo
   }
 
   return _parseAsFile(event.body, event.isBase64Encoded, 'blob', contentType)
+}
+
+export interface ToLambdaBodyOptions extends ToEventStreamOptions { }
+
+export function toLambdaBody(
+  body: StandardBody,
+  headers: StandardHeaders,
+  options: ToLambdaBodyOptions = {},
+): [body: undefined | string | Readable, headers: StandardHeaders] {
+  const currentContentDisposition = flattenHeader(headers['content-disposition'])
+  headers = { ...headers, 'content-type': undefined, 'content-disposition': undefined }
+
+  if (body === undefined) {
+    return [undefined, headers]
+  }
+
+  if (body instanceof Blob) {
+    headers['content-type'] = body.type
+    headers['content-length'] = body.size.toString()
+    headers['content-disposition'] = currentContentDisposition ?? generateContentDisposition(body instanceof File ? body.name : 'blob')
+
+    return [Readable.fromWeb(body.stream()), headers]
+  }
+
+  if (body instanceof FormData) {
+    const response = new Response(body)
+    headers['content-type'] = response.headers.get('content-type')!
+
+    return [Readable.fromWeb(response.body!), headers]
+  }
+
+  if (body instanceof URLSearchParams) {
+    headers['content-type'] = 'application/x-www-form-urlencoded'
+
+    return [body.toString(), headers]
+  }
+
+  if (isAsyncIteratorObject(body)) {
+    headers['content-type'] = 'text/event-stream'
+    headers['cache-control'] = 'no-cache'
+    headers.connection = 'keep-alive'
+
+    return [toEventStream(body, options), headers]
+  }
+
+  headers['content-type'] = 'application/json'
+
+  return [stringifyJSON(body), headers]
 }
 
 function _parseAsFile(body: string, isBase64Encoded: boolean, fileName: string, contentType: string): File {

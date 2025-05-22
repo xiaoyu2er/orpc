@@ -1,5 +1,7 @@
 import type { StandardHeaders } from '@orpc/standard-server'
 import type { APIGatewayProxyEventHeaders, APIGatewayProxyEventMultiValueHeaders } from 'aws-lambda'
+import { toArray } from '@orpc/shared'
+import { flattenHeader } from '@orpc/standard-server'
 
 export function toStandardHeaders(
   headers: APIGatewayProxyEventHeaders,
@@ -11,18 +13,24 @@ export function toStandardHeaders(
   }
 }
 
-export function toLambdaHeaders(standard: StandardHeaders): [headers: APIGatewayProxyEventHeaders, multiValueHeaders: APIGatewayProxyEventMultiValueHeaders] {
+export function toLambdaHeaders(standard: StandardHeaders): [headers: APIGatewayProxyEventHeaders, setCookies: string[]] {
   const headers: APIGatewayProxyEventHeaders = {}
-  const multiValueHeaders: APIGatewayProxyEventMultiValueHeaders = {}
+  const setCookies: string[] = []
 
-  for (const [key, value] of Object.entries(standard)) {
-    if (Array.isArray(value)) {
-      multiValueHeaders[key] = value
+  for (const key in standard) {
+    const value = standard[key]
+
+    if (value === undefined) {
+      continue
+    }
+
+    if (key === 'set-cookie') {
+      setCookies.push(...toArray(value))
     }
     else {
-      headers[key] = value
+      headers[key] = flattenHeader(value)
     }
   }
 
-  return [headers, multiValueHeaders]
+  return [headers, setCookies]
 }

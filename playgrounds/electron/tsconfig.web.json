@@ -12,8 +12,11 @@
     },
     "types": ["vite/client"],
 
+    "noImplicitReturns": false,
     "noUnusedLocals": false,
-    "noUnusedParameters": false
+    "noUnusedParameters": false,
+    "emitDeclarationOnly": true,
+    "outDir": "${configDir}/dist"
   },
   "references": [{ "path": "./tsconfig.node.json" }],
   "include": [

@@ -4,9 +4,7 @@
   "main": "./out/main/index.js",
   "scripts": {
     "setup": "electron-builder install-app-deps",
-    "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
-    "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
-    "typecheck": "pnpm run typecheck:node && pnpm run typecheck:web",
+    "type:check": "tsc -b",
     "start": "pnpm run setup && electron-vite preview",
     "dev": "pnpm run setup && electron-vite dev",
     "build": "pnpm run setup && electron-vite build",

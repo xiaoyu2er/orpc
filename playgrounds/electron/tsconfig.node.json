@@ -5,8 +5,11 @@
     "moduleResolution": "bundler",
     "types": ["electron-vite/node"],
 
+    "noImplicitReturns": false,
     "noUnusedLocals": false,
-    "noUnusedParameters": false
+    "noUnusedParameters": false,
+    "emitDeclarationOnly": true,
+    "outDir": "${configDir}/dist"
   },
   "include": ["electron.vite.config.*", "src/main/**/*", "src/preload/**/*"]
 }

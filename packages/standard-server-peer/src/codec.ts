@@ -348,6 +348,6 @@ async function decodeRawMessage(raw: EncodedMessage): Promise<{ json: any, blobD
 
   return {
     json: JSON.parse(jsonPart),
-    blobData,
+    blobData: blobData.buffer,
   }
 }

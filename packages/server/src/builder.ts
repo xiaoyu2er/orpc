@@ -317,7 +317,7 @@ export class Builder<
   router<U extends Router<ContractRouter<TMeta>, TCurrentContext>>(
     router: U,
   ): EnhancedRouter<U, TInitialContext, TCurrentContext, TErrorMap> {
-    return enhanceRouter(router, this['~orpc'])
+    return enhanceRouter(router, this['~orpc']) as any // Type instantiation is excessively deep and possibly infinite
   }
 
   /**
@@ -329,7 +329,7 @@ export class Builder<
   lazy<U extends Router<ContractRouter<TMeta>, TCurrentContext>>(
     loader: () => Promise<{ default: U }>,
   ): EnhancedRouter<Lazy<U>, TInitialContext, TCurrentContext, TErrorMap> {
-    return enhanceRouter(lazy(loader), this['~orpc'])
+    return enhanceRouter(lazy(loader), this['~orpc']) as any // Type instantiation is excessively deep and possibly infinite
   }
 }
 

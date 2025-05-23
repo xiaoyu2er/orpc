@@ -523,12 +523,7 @@ describe('clientRetryPlugin', () => {
 
       await iterator.return()
 
-      /**
-       * Don't know why but we need await a bit to make sure the cleanup is called
-       */
-      await new Promise(resolve => setTimeout(resolve, 50))
-
-      expect(cleanup).toHaveBeenCalledTimes(1)
+      await vi.waitFor(() => expect(cleanup).toHaveBeenCalledTimes(1))
     })
   })
 })

@@ -30,7 +30,7 @@ describe('rpcLink', () => {
   it('on success', async () => {
     expect(orpc.ping('input')).resolves.toEqual('pong')
 
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await vi.waitFor(() => expect(sentMessages.length).toBe(1))
 
     const [id, , payload] = (await decodeRequestMessage(sentMessages[0]))
 
@@ -50,7 +50,7 @@ describe('rpcLink', () => {
   it('on success with blob', async () => {
     expect(orpc.ping(new Blob(['input']))).resolves.toEqual('pong')
 
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await vi.waitFor(() => expect(sentMessages.length).toBe(1))
 
     const [id, , payload] = (await decodeRequestMessage(sentMessages[0]))
 

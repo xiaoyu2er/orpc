@@ -154,8 +154,7 @@ describe('toEventIterator', () => {
 
     await generator.return(undefined)
 
-    await new Promise(r => setTimeout(r, 10))
-    await expect(stream.getReader().closed).resolves.toBe(undefined)
+    await vi.waitFor(() => expect(stream.getReader().closed).resolves.toBe(undefined))
   })
 })
 

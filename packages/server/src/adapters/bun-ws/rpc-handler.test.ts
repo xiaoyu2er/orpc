@@ -56,7 +56,7 @@ describe('rpcHandler', async () => {
   it('on success', async () => {
     handler.message(wss, ping_request_message)
 
-    await new Promise(resolve => setTimeout(resolve, 20))
+    await vi.waitFor(() => expect(wss.send).toHaveBeenCalledTimes(1))
 
     const [id,, payload] = (await decodeResponseMessage(wss.send.mock.calls[0]![0]))
 
@@ -71,8 +71,7 @@ describe('rpcHandler', async () => {
   it('on success with buffer data', async () => {
     handler.message(wss, file_request_message)
 
-    await new Promise(resolve => setTimeout(resolve, 20))
-
+    await vi.waitFor(() => expect(wss.send).toHaveBeenCalledTimes(1))
     const [id, , payload] = (await decodeResponseMessage(wss.send.mock.calls[0]![0]))
 
     expect(id).toBeTypeOf('number')
@@ -97,9 +96,7 @@ describe('rpcHandler', async () => {
 
     handler.message(wss, abort_message)
 
-    await new Promise(resolve => setTimeout(resolve, 20))
-
-    expect(signal.aborted).toBe(true)
+    await vi.waitFor(() => expect(signal.aborted).toBe(true))
     expect(wss.send).not.toHaveBeenCalled()
   })
 
@@ -112,9 +109,7 @@ describe('rpcHandler', async () => {
     expect(wss.send).not.toHaveBeenCalled()
 
     handler.close(wss)
-    await new Promise(resolve => setTimeout(resolve, 20))
-
-    expect(signal.aborted).toBe(true)
+    await vi.waitFor(() => expect(signal.aborted).toBe(true))
     expect(wss.send).not.toHaveBeenCalled()
   })
 

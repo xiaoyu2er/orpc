@@ -67,7 +67,7 @@ describe('rpcHandler', async () => {
   it('on success', async () => {
     onMessage(ping_request_message)
 
-    await new Promise(resolve => setTimeout(resolve, 20))
+    await vi.waitFor(() => expect(wss.send).toHaveBeenCalledTimes(1))
 
     const [id,, payload] = (await decodeResponseMessage(wss.send.mock.calls[0]![0]))
 
@@ -82,8 +82,7 @@ describe('rpcHandler', async () => {
   it('on success with array data', async () => {
     onMessage(ping_buffer_request_message)
 
-    await new Promise(resolve => setTimeout(resolve, 20))
-
+    await vi.waitFor(() => expect(wss.send).toHaveBeenCalledTimes(1))
     const [id, , payload] = (await decodeResponseMessage(wss.send.mock.calls[0]![0]))
 
     expect(id).toBeTypeOf('number')
@@ -104,9 +103,7 @@ describe('rpcHandler', async () => {
 
     onMessage(abort_message)
 
-    await new Promise(resolve => setTimeout(resolve, 20))
-
-    expect(signal.aborted).toBe(true)
+    await vi.waitFor(() => expect(signal.aborted).toBe(true))
     expect(wss.send).not.toHaveBeenCalled()
   })
 
@@ -119,17 +116,14 @@ describe('rpcHandler', async () => {
     expect(wss.send).not.toHaveBeenCalled()
 
     onClose()
-    await new Promise(resolve => setTimeout(resolve, 20))
-
-    expect(signal.aborted).toBe(true)
+    await vi.waitFor(() => expect(signal.aborted).toBe(true))
     expect(wss.send).not.toHaveBeenCalled()
   })
 
   it('on no procedure matched', async () => {
     onMessage(not_found_request_message)
 
-    await new Promise(resolve => setTimeout(resolve, 0))
-
+    await vi.waitFor(() => expect(wss.send).toHaveBeenCalledTimes(1))
     const [id,, payload] = (await decodeResponseMessage(wss.send.mock.calls[0]![0]))
 
     expect(id).toBeTypeOf('number')

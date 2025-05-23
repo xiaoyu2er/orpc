@@ -66,7 +66,7 @@ describe('rpcHandler', async () => {
   it('on success', async () => {
     clientPort.postMessage(ping_request_message)
 
-    await new Promise(resolve => setTimeout(resolve, 20))
+    await vi.waitFor(() => expect(sentMessages.length).toBe(1))
 
     const [id,, payload] = (await decodeResponseMessage(sentMessages[0]))
 
@@ -81,7 +81,7 @@ describe('rpcHandler', async () => {
   it('on success with buffer data', async () => {
     clientPort.postMessage(file_request_message)
 
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await vi.waitFor(() => expect(sentMessages.length).toBe(1))
 
     const [id, , payload] = (await decodeResponseMessage(sentMessages[0]))
 
@@ -107,9 +107,7 @@ describe('rpcHandler', async () => {
 
     clientPort.postMessage(abort_message)
 
-    await new Promise(resolve => setTimeout(resolve, 20))
-
-    expect(signal?.aborted).toBe(true)
+    await vi.waitFor(() => expect(signal?.aborted).toBe(true))
     expect(sentMessages).toHaveLength(0)
   })
 
@@ -122,16 +120,14 @@ describe('rpcHandler', async () => {
     expect(sentMessages).toHaveLength(0)
 
     clientPort.close()
-    await new Promise(resolve => setTimeout(resolve, 20))
-
-    expect(signal?.aborted).toBe(true)
+    await vi.waitFor(() => expect(signal?.aborted).toBe(true))
     expect(sentMessages).toHaveLength(0)
   })
 
   it('on no procedure matched', async () => {
     clientPort.postMessage(not_found_request_message)
 
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await vi.waitFor(() => expect(sentMessages).toHaveLength(1))
 
     const [id,, payload] = (await decodeResponseMessage(sentMessages[0]))
 

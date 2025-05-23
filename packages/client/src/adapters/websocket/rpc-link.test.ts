@@ -25,7 +25,7 @@ describe('rpcLink', () => {
   it('on success', async () => {
     expect(orpc.ping('input')).resolves.toEqual('pong')
 
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await vi.waitFor(() => expect(websocket.send).toHaveBeenCalledTimes(1))
 
     const [id,, payload] = (await decodeRequestMessage(websocket.send.mock.calls[0]![0]))
 

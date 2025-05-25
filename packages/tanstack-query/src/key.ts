@@ -1,14 +1,13 @@
 import type { PartialDeep } from '@orpc/shared'
-import type { QueryKey } from '@tanstack/react-query'
+import type { QueryKey } from '@tanstack/query-core'
+import type { OperationType } from './types'
 
-export type KeyType = 'query' | 'streamed' | 'infinite' | 'mutation' | undefined
-
-export interface BuildKeyOptions<TType extends KeyType, TInput> {
+export interface BuildKeyOptions<TType extends OperationType, TInput> {
   type?: TType
   input?: TType extends 'mutation' ? never : PartialDeep<TInput>
 }
 
-export function buildKey<TType extends KeyType, TInput>(
+export function buildKey<TType extends OperationType, TInput>(
   path: string[],
   options: BuildKeyOptions<TType, TInput> = {},
 ): QueryKey {

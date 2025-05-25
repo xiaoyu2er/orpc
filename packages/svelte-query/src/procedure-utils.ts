@@ -3,8 +3,8 @@ import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { InfiniteData } from '@tanstack/svelte-query'
 import type { experimental_InferStreamedOutput, experimental_StreamedOptionsBase, experimental_StreamedOptionsIn, InfiniteOptionsBase, InfiniteOptionsIn, MutationOptions, MutationOptionsIn, QueryOptionsBase, QueryOptionsIn } from './types'
 import { isAsyncIteratorObject } from '@orpc/shared'
+import { buildKey } from '@orpc/tanstack-query'
 import { experimental_streamedQuery, skipToken } from '@tanstack/svelte-query'
-import { buildKey } from './key'
 
 export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError> {
   /**

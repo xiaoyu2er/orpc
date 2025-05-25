@@ -13,8 +13,8 @@ import type {
   experimental_StreamedOptionsIn as StreamedOptionsIn,
 } from './types'
 import { isAsyncIteratorObject } from '@orpc/shared'
+import { buildKey } from '@orpc/tanstack-query'
 import { skipToken, experimental_streamedQuery as streamedQuery } from '@tanstack/react-query'
-import { buildKey } from './key'
 
 export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError> {
   /**

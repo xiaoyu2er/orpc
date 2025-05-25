@@ -1,5 +1,5 @@
+import * as keyModule from '@orpc/tanstack-query'
 import { createGeneralUtils } from './general-utils'
-import * as keyModule from './key'
 
 const buildKeySpy = vi.spyOn(keyModule, 'buildKey')
 

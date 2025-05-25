@@ -2,6 +2,7 @@
   "extends": "../../tsconfig.lib.json",
   "references": [
     { "path": "../client" },
+    { "path": "../tanstack-query" },
     { "path": "../shared" }
   ],
   "include": ["src"],

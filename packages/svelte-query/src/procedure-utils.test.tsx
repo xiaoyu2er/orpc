@@ -1,6 +1,6 @@
+import * as Key from '@orpc/tanstack-query'
 import { experimental_streamedQuery, skipToken } from '@tanstack/svelte-query'
 import { queryClient } from '../tests/shared'
-import * as Key from './key'
 import { createProcedureUtils } from './procedure-utils'
 
 vi.mock('@tanstack/svelte-query', async (origin) => {

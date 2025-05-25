@@ -1,6 +1,6 @@
+import * as TanstackQueryModule from '@orpc/tanstack-query'
 import { skipToken, experimental_streamedQuery as streamedQuery } from '@tanstack/react-query'
 import { queryClient } from '../tests/shared'
-import * as Key from './key'
 import { createProcedureUtils } from './procedure-utils'
 
 vi.mock('@tanstack/react-query', async (origin) => {
@@ -12,7 +12,7 @@ vi.mock('@tanstack/react-query', async (origin) => {
   }
 })
 
-const buildKeySpy = vi.spyOn(Key, 'buildKey')
+const buildKeySpy = vi.spyOn(TanstackQueryModule, 'buildKey')
 
 beforeEach(() => {
   queryClient.clear()

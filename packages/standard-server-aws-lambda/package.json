@@ -35,6 +35,11 @@
   "peerDependencies": {
     "@types/aws-lambda": "*"
   },
+  "peerDependenciesMeta": {
+    "@types/aws-lambda": {
+      "optional": true
+    }
+  },
   "dependencies": {
     "@orpc/shared": "workspace:*",
     "@orpc/standard-server": "workspace:*"

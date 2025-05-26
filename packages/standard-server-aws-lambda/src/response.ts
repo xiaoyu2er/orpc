@@ -21,16 +21,22 @@ export function sendStandardResponse(
       cookies,
     })
 
-    responseStream.on('error', reject)
-    responseStream.on('finish', resolve)
+    responseStream.on('close', () => {
+      if (responseStream.errored) {
+        reject(responseStream.errored)
+      }
+      else {
+        resolve()
+      }
+    })
 
     if (body === undefined || typeof body === 'string') {
       responseStream.end(body)
     }
     else {
-      body.on('close', () => {
-        if (!responseStream.closed) {
-          responseStream.destroy(body.errored ?? undefined)
+      responseStream.on('close', () => {
+        if (!body.closed) {
+          body.destroy(responseStream.errored ?? undefined)
         }
       })
 

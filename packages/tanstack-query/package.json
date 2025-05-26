@@ -1,20 +1,17 @@
 {
-  "name": "@orpc/solid-query",
+  "name": "@orpc/tanstack-query",
   "type": "module",
-  "version": "1.3.0",
+  "version": "0.0.0",
   "license": "MIT",
   "homepage": "https://orpc.unnoq.com",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/unnoq/orpc.git",
-    "directory": "packages/solid-query"
+    "directory": "packages/tanstack-query"
   },
   "keywords": [
-    "unnoq",
     "orpc",
-    "solid-query",
-    "tanstack query",
-    "solid"
+    "tanstack query"
   ],
   "publishConfig": {
     "exports": {
@@ -38,15 +35,13 @@
   },
   "peerDependencies": {
     "@orpc/client": "workspace:*",
-    "@tanstack/solid-query": ">=5.55.0",
-    "solid-js": ">=1.9.0"
+    "@tanstack/query-core": ">=5.55.0"
   },
   "dependencies": {
-    "@orpc/shared": "workspace:*",
-    "@orpc/tanstack-query": "workspace:*"
+    "@orpc/shared": "workspace:*"
   },
   "devDependencies": {
-    "@tanstack/solid-query": "^5.72.3",
+    "@tanstack/query-core": "^5.72.3",
     "zod": "^3.25.11"
   }
 }

@@ -42,7 +42,8 @@
     "svelte": ">=4.2.0"
   },
   "dependencies": {
-    "@orpc/shared": "workspace:*"
+    "@orpc/shared": "workspace:*",
+    "@orpc/tanstack-query": "workspace:*"
   },
   "devDependencies": {
     "@tanstack/svelte-query": "^5.72.3",

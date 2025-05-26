@@ -42,7 +42,8 @@
     "react": ">=18.3.0"
   },
   "dependencies": {
-    "@orpc/shared": "workspace:*"
+    "@orpc/shared": "workspace:*",
+    "@orpc/tanstack-query": "workspace:*"
   },
   "devDependencies": {
     "@tanstack/react-query": "^5.72.3",

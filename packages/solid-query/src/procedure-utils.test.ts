@@ -1,6 +1,6 @@
+import * as Key from '@orpc/tanstack-query'
 import { experimental_streamedQuery, skipToken } from '@tanstack/solid-query'
 import { queryClient } from '../tests/shared'
-import * as Key from './key'
 import { createProcedureUtils } from './procedure-utils'
 
 vi.mock('@tanstack/solid-query', async (origin) => {

@@ -101,11 +101,11 @@ function _parseAsFile(body: string | null, isBase64Encoded: boolean, fileName: s
 }
 
 function _parseAsString(body: string | null, isBase64Encoded: boolean): string | null {
-  return isBase64Encoded && typeof body === 'string' ? Buffer.from(body, 'base64').toString() : body
+  return isBase64Encoded && body !== null ? Buffer.from(body, 'base64').toString() : body
 }
 
-function _parseAsFormData(body: string, isBase64Encoded: boolean, contentType: string): Promise<FormData> {
-  const blobPart = isBase64Encoded ? Buffer.from(body, 'base64') : body
+function _parseAsFormData(body: string | null, isBase64Encoded: boolean, contentType: string): Promise<FormData> {
+  const blobPart = isBase64Encoded && body !== null ? Buffer.from(body, 'base64') : body
   const response = new Response(blobPart, {
     headers: {
       'content-type': contentType,

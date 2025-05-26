@@ -173,6 +173,7 @@ export default defineConfig({
           collapsed: true,
           items: [
             { text: 'Pinia Colada', link: '/docs/pinia-colada' },
+            { text: 'Hey API', link: '/docs/hey-api' },
             { text: 'NestJS', link: '/docs/openapi/nest/implement-contract' },
             { text: 'Playgrounds', link: '/docs/playgrounds' },
             { text: 'Comparison', link: '/docs/comparison' },

@@ -3,11 +3,13 @@ import { createAsyncIteratorObject, isTypescriptObject, parseEmptyableJSON, stri
 import { encodeEventMessage, ErrorEvent, EventDecoderStream, getEventMeta, withEventMeta } from '@orpc/standard-server'
 
 export function toEventIterator(
-  body: string,
+  body: string | null,
 ): AsyncIteratorObject<unknown | void, unknown | void, void> & AsyncGenerator<unknown | void, unknown | void, void> {
   const eventStream = new ReadableStream<string>({
     pull(controller) {
-      controller.enqueue(body)
+      if (typeof body === 'string') {
+        controller.enqueue(body)
+      }
       controller.close()
     },
   }).pipeThrough(new EventDecoderStream())

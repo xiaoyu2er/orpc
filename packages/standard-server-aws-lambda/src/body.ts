@@ -8,10 +8,6 @@ import { flattenHeader, generateContentDisposition, getFilenameFromContentDispos
 import { toEventIterator, toEventStream } from './event-iterator'
 
 export async function toStandardBody(event: APIGatewayEvent): Promise<StandardBody> {
-  if (event.httpMethod === 'GET' || event.httpMethod === 'HEAD' || event.body === null) {
-    return undefined
-  }
-
   const contentType = event.headers['content-type'] ?? flattenHeader(event.multiValueHeaders['content-type'])
   const contentDisposition = event.headers['content-disposition'] ?? flattenHeader(event.multiValueHeaders['content-disposition'])
 
@@ -32,7 +28,7 @@ export async function toStandardBody(event: APIGatewayEvent): Promise<StandardBo
 
   if (contentType.startsWith('application/x-www-form-urlencoded')) {
     const text = _parseAsString(event.body, event.isBase64Encoded)
-    return new URLSearchParams(text)
+    return new URLSearchParams(text ?? undefined)
   }
 
   if (contentType.startsWith('text/event-stream')) {
@@ -94,13 +90,18 @@ export function toLambdaBody(
   return [stringifyJSON(body), headers]
 }
 
-function _parseAsFile(body: string, isBase64Encoded: boolean, fileName: string, contentType: string): File {
-  const blobPart = isBase64Encoded ? Buffer.from(body, 'base64') : body
-  return new File([blobPart], fileName, { type: contentType })
+function _parseAsFile(body: string | null, isBase64Encoded: boolean, fileName: string, contentType: string): File {
+  return new File(
+    body == null
+      ? []
+      : [isBase64Encoded ? Buffer.from(body, 'base64') : body],
+    fileName,
+    { type: contentType },
+  )
 }
 
-function _parseAsString(body: string, isBase64Encoded: boolean): string {
-  return isBase64Encoded ? Buffer.from(body, 'base64').toString() : body
+function _parseAsString(body: string | null, isBase64Encoded: boolean): string | null {
+  return isBase64Encoded && typeof body === 'string' ? Buffer.from(body, 'base64').toString() : body
 }
 
 function _parseAsFormData(body: string, isBase64Encoded: boolean, contentType: string): Promise<FormData> {

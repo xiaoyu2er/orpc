@@ -11,7 +11,8 @@
   },
   "keywords": [
     "unnoq",
-    "orpc"
+    "orpc",
+    "Hey API"
   ],
   "publishConfig": {
     "exports": {

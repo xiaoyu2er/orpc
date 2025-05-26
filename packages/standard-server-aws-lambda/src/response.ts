@@ -12,9 +12,6 @@ export function sendStandardResponse(
   options: SendStandardResponseOptions = {},
 ): Promise<void> {
   return new Promise((resolve, reject) => {
-    responseStream.on('error', reject)
-    responseStream.on('finish', resolve)
-
     const [body, standardHeaders] = toLambdaBody(standardResponse.body, standardResponse.headers, options)
     const [headers, cookies] = toLambdaHeaders(standardHeaders)
 
@@ -24,13 +21,19 @@ export function sendStandardResponse(
       cookies,
     })
 
-    if (body === undefined) {
-      responseStream.end()
-    }
-    else if (typeof body === 'string') {
-      responseStream.write(body)
+    responseStream.on('error', reject)
+    responseStream.on('finish', resolve)
+
+    if (body === undefined || typeof body === 'string') {
+      responseStream.end(body)
     }
     else {
+      body.on('close', () => {
+        if (!responseStream.closed) {
+          responseStream.destroy(body.errored ?? undefined)
+        }
+      })
+
       body.pipe(responseStream)
     }
   })

@@ -3,6 +3,7 @@ import pluginBan from 'eslint-plugin-ban'
 
 export default antfu({
   formatters: true,
+  ignores: ['packages/hey-api/tests/client/**'],
 }, {
   plugins: { ban: pluginBan },
   rules: {

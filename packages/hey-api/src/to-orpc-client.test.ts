@@ -125,6 +125,32 @@ describe('toORPCClient', () => {
       controller2.abort()
       expect(result.request.signal.aborted).toEqual(true)
     })
+
+    it('case 3', async () => {
+      const controller1 = new AbortController()
+      const controller2 = new AbortController()
+      controller1.abort()
+
+      await expect(
+        client.createPlanet({
+          body: { name: 'Bob' },
+          signal: controller1.signal,
+        }, { signal: controller2.signal }),
+      ).rejects.toThrowError('This operation was aborted')
+    })
+
+    it('case 4', async () => {
+      const controller1 = new AbortController()
+      const controller2 = new AbortController()
+      controller2.abort()
+
+      await expect(
+        client.createPlanet({
+          body: { name: 'Bob' },
+          signal: controller1.signal,
+        }, { signal: controller2.signal }),
+      ).rejects.toThrowError('This operation was aborted')
+    })
   })
 
   it('throws on error', async () => {

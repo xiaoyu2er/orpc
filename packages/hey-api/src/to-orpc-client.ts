@@ -19,8 +19,14 @@ export function experimental_toORPCClient<T extends Record<string, any>>(sdk: T)
 
     client[key] = async (input, options) => {
       const controller = new AbortController()
-      input?.signal?.addEventListener('abort', () => controller.abort())
-      options?.signal?.addEventListener('abort', () => controller.abort())
+
+      if (input?.signal?.aborted || options?.signal?.aborted) {
+        controller.abort()
+      }
+      else {
+        input?.signal?.addEventListener('abort', () => controller.abort())
+        options?.signal?.addEventListener('abort', () => controller.abort())
+      }
 
       const result = await fn({
         ...input,

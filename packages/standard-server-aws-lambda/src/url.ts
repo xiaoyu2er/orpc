@@ -1,8 +1,7 @@
 import type { APIGatewayEvent } from 'aws-lambda'
-import { flattenHeader } from '@orpc/standard-server'
 
 export function toStandardUrl(event: APIGatewayEvent): URL {
-  const host = event.requestContext.domainName ?? event.headers.host ?? flattenHeader(event.multiValueHeaders.host) ?? 'localhost'
+  const host = event.requestContext.domainName ?? event.headers.host ?? event.multiValueHeaders.host?.[0] ?? 'localhost'
   const url = new URL(`https://${host}${event.path}`)
 
   if (event.queryStringParameters) {

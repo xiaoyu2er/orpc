@@ -38,6 +38,7 @@
     "@hey-api/client-fetch": "*"
   },
   "dependencies": {
+    "@orpc/client": "workspace:*",
     "@orpc/shared": "workspace:*"
   },
   "devDependencies": {

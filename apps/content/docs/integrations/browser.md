@@ -1,0 +1,150 @@
+---
+title: Browser Integration
+description: Type-safe communication between browser scripts using Message Port Adapter
+---
+
+# Browser Integration
+
+Enable type-safe communication between browser scripts using the [Message Port Adapter](/docs/adapters/message-port).
+
+## Browser Extension Scripts
+
+To set up communication between scripts in a browser extension (e.g. background, content, popup), configure one script to listen for connections and upgrade them, and another to initiate the connection.
+
+::: warning
+The browser extension [Message Passing API](https://developer.chrome.com/docs/extensions/develop/concepts/messaging) does not support transferring binary data, which means oRPC features like `File` and `Blob` cannot be used natively. However, you can temporarily work around this limitation by extending the [RPC JSON Serializer](/docs/advanced/rpc-json-serializer#extending-native-data-types) to encode `File` and `Blob` as Base64.
+:::
+
+::: code-group
+
+```ts [server]
+import { experimental_RPCHandler as RPCHandler } from '@orpc/server/message-port'
+
+const handler = new RPCHandler(router)
+
+browser.runtime.onConnect.addListener((port) => {
+  handler.upgrade(port, {
+    context: {}, // provide initial context if needed
+  })
+})
+```
+
+```ts [client]
+import { experimental_RPCLink as RPCLink } from '@orpc/client/message-port'
+
+const port = browser.runtime.connect()
+
+const link = new RPCLink({
+  port,
+})
+```
+
+:::
+
+:::info
+This only shows how to configure the link. For full client examples, see [Client-Side Clients](/docs/client/client-side).
+:::
+
+## Window ↔ Window Communication
+
+To enable communication between two window contexts (e.g. parent and popup), one must listen and upgrade the port, and the other must initiate the connection.
+
+::: code-group
+
+```ts [opener]
+import { experimental_RPCHandler as RPCHandler } from '@orpc/server/message-port'
+
+const handler = new RPCHandler(router)
+
+window.addEventListener('message', (event) => {
+  if (event.data instanceof MessagePort) {
+    handler.upgrade(event.data, {
+      context: {}, // Optional context
+    })
+
+    event.data.start()
+  }
+})
+
+window.open('/example/popup', 'popup', 'width=680,height=520')
+```
+
+```ts [popup]
+import { experimental_RPCLink as RPCLink } from '@orpc/client/message-port'
+
+const { port1: serverPort, port2: clientPort } = new MessageChannel()
+
+window.opener.postMessage(serverPort, '*', [serverPort])
+
+const link = new RPCLink({
+  port: clientPort,
+})
+
+clientPort.start()
+```
+
+:::
+
+## Advanced: Bridge Pattern
+
+In some advanced cases, direct communication between scripts isn’t possible. For example, a content script running in the ["MAIN" world](https://developer.chrome.com/docs/extensions/reference/manifest/content-scripts#world-timings) cannot directly communicate with the background script using `browser.runtime` or `chrome.runtime` APIs.
+
+To work around this, you can use a **bridge** typically an additional content script running in the default **"ISOLATED" world** to relay messages between the two contexts. This bridge acts as an intermediary, enabling communication where direct access is restricted.
+
+::: code-group
+
+```ts [bridge]
+window.addEventListener('message', (event) => {
+  if (event.data instanceof MessagePort) {
+    const port = browser.runtime.connect()
+
+    // The Message Port Adapter is simple to bridge just relay `message` and `close/disconnect` events.
+
+    event.data.addEventListener('message', (event) => {
+      port.postMessage(event.data)
+    })
+
+    event.data.addEventListener('close', () => {
+      port.disconnect()
+    })
+
+    port.onMessage.addListener((message) => {
+      event.data.postMessage(message)
+    })
+
+    port.onDisconnect.addListener(() => {
+      event.data.close()
+    })
+
+    event.data.start()
+  }
+})
+```
+
+```ts [server]
+import { experimental_RPCHandler as RPCHandler } from '@orpc/server/message-port'
+
+const handler = new RPCHandler(router)
+
+browser.runtime.onConnect.addListener((port) => {
+  handler.upgrade(port, {
+    context: {}, // provide initial context if needed
+  })
+})
+```
+
+```ts [client]
+import { experimental_RPCLink as RPCLink } from '@orpc/client/message-port'
+
+const { port1: serverPort, port2: clientPort } = new MessageChannel()
+
+window.postMessage(serverPort, '*', [serverPort])
+
+const link = new RPCLink({
+  port: clientPort,
+})
+
+clientPort.start()
+```
+
+:::

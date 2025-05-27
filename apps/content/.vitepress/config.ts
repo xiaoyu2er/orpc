@@ -107,7 +107,7 @@ export default defineConfig({
             { text: 'Astro', link: '/docs/integrations/astro' },
             { text: 'React Native', link: '/docs/integrations/react-native' },
             { text: 'Electron', link: '/docs/integrations/electron' },
-            { text: 'Browser Extension', link: '/docs/integrations/browser-extension' },
+            { text: 'Browser', link: '/docs/integrations/browser' },
             { text: 'Worker Threads', link: '/docs/integrations/worker-threads' },
           ],
         },

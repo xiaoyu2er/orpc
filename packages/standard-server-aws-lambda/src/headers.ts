@@ -1,15 +1,15 @@
 import type { StandardHeaders } from '@orpc/standard-server'
-import type { APIGatewayProxyEventHeaders, APIGatewayProxyEventMultiValueHeaders } from './types'
+import type { APIGatewayProxyEventHeaders } from './types'
 import { toArray } from '@orpc/shared'
 import { flattenHeader } from '@orpc/standard-server'
 
 export function toStandardHeaders(
   headers: APIGatewayProxyEventHeaders,
-  multiValueHeaders: APIGatewayProxyEventMultiValueHeaders,
+  cookies: string[] | undefined,
 ): StandardHeaders {
   return {
     ...headers,
-    ...multiValueHeaders,
+    'set-cookie': cookies,
   }
 }
 

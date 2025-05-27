@@ -38,7 +38,7 @@ describe('toAbortSignal', async () => {
 
     await vi.waitFor(() => {
       expect(signal.aborted).toEqual(true)
-      expect(signal.reason).toEqual('Error: test')
+      expect(signal.reason).toEqual(new Error('test'))
     })
   })
 
@@ -57,7 +57,7 @@ describe('toAbortSignal', async () => {
 
     await vi.waitFor(() => {
       expect(signal.aborted).toEqual(true)
-      expect(signal.reason).toEqual('Client connection prematurely closed.')
+      expect(signal.reason).toEqual(new Error('Writable stream closed before it finished writing'))
     })
   })
 })

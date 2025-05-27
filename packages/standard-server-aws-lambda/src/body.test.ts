@@ -16,18 +16,17 @@ beforeEach(() => {
 describe.each([true, false])('toStandardBody: base64=%s', (isBase64Encoded) => {
   it('undefined', async () => {
     const standardBody = await toStandardBody({
-      body: null,
+      body: undefined,
       headers: {},
-      httpMethod: 'POST',
       isBase64Encoded,
-      multiValueHeaders: {},
-      multiValueQueryStringParameters: {},
-      path: '/',
+      rawPath: '/',
       pathParameters: {},
       queryStringParameters: {},
       requestContext: {} as any,
-      resource: '',
       stageVariables: {},
+      rawQueryString: '',
+      routeKey: '$default',
+      version: '2.0',
     })
 
     expect(standardBody).toBe(undefined)
@@ -39,16 +38,15 @@ describe.each([true, false])('toStandardBody: base64=%s', (isBase64Encoded) => {
       headers: {
         'content-type': 'application/json',
       },
-      httpMethod: 'POST',
       isBase64Encoded,
-      multiValueHeaders: {},
-      multiValueQueryStringParameters: {},
-      path: '/',
+      rawPath: '/',
       pathParameters: {},
       queryStringParameters: {},
       requestContext: {} as any,
-      resource: '',
       stageVariables: {},
+      rawQueryString: '',
+      routeKey: '$default',
+      version: '2.0',
     })
 
     expect(standardBody).toEqual({ foo: 'bar' })
@@ -60,16 +58,15 @@ describe.each([true, false])('toStandardBody: base64=%s', (isBase64Encoded) => {
       headers: {
         'content-type': 'application/json',
       },
-      httpMethod: 'POST',
       isBase64Encoded,
-      multiValueHeaders: {},
-      multiValueQueryStringParameters: {},
-      path: '/',
+      rawPath: '/',
       pathParameters: {},
       queryStringParameters: {},
       requestContext: {} as any,
-      resource: '',
       stageVariables: {},
+      rawQueryString: '',
+      routeKey: '$default',
+      version: '2.0',
     })
 
     expect(standardBody).toEqual(undefined)
@@ -81,16 +78,15 @@ describe.each([true, false])('toStandardBody: base64=%s', (isBase64Encoded) => {
       headers: {
         'content-type': 'text/event-stream',
       },
-      httpMethod: 'POST',
       isBase64Encoded,
-      multiValueHeaders: {},
-      multiValueQueryStringParameters: {},
-      path: '/',
+      rawPath: '/',
       pathParameters: {},
       queryStringParameters: {},
       requestContext: {} as any,
-      resource: '',
       stageVariables: {},
+      rawQueryString: '',
+      routeKey: '$default',
+      version: '2.0',
     })
 
     expect(standardBody).toSatisfy(isAsyncIteratorObject)
@@ -105,16 +101,15 @@ describe.each([true, false])('toStandardBody: base64=%s', (isBase64Encoded) => {
       headers: {
         'content-type': 'text/plain',
       },
-      httpMethod: 'POST',
       isBase64Encoded,
-      multiValueHeaders: {},
-      multiValueQueryStringParameters: {},
-      path: '/',
+      rawPath: '/',
       pathParameters: {},
       queryStringParameters: {},
       requestContext: {} as any,
-      resource: '',
       stageVariables: {},
+      rawQueryString: '',
+      routeKey: '$default',
+      version: '2.0',
     })
 
     expect(standardBody).toBe('foo')
@@ -131,16 +126,15 @@ describe.each([true, false])('toStandardBody: base64=%s', (isBase64Encoded) => {
       headers: {
         'content-type': res.headers.get('content-type')!,
       },
-      httpMethod: 'POST',
       isBase64Encoded: true,
-      multiValueHeaders: {},
-      multiValueQueryStringParameters: {},
-      path: '/',
+      rawPath: '/',
       pathParameters: {},
       queryStringParameters: {},
       requestContext: {} as any,
-      resource: '',
       stageVariables: {},
+      rawQueryString: '',
+      routeKey: '$default',
+      version: '2.0',
     })
 
     expect(standardBody).toBeInstanceOf(FormData)
@@ -150,21 +144,20 @@ describe.each([true, false])('toStandardBody: base64=%s', (isBase64Encoded) => {
 
   it('form-data (empty)', async () => {
     await expect(toStandardBody({
-      body: null,
+      body: undefined,
       headers: {
         'content-type': 'multipart/form-data; boundary=foo',
       },
-      httpMethod: 'POST',
-      isBase64Encoded: true,
-      multiValueHeaders: {},
-      multiValueQueryStringParameters: {},
-      path: '/',
+      isBase64Encoded,
+      rawPath: '/',
       pathParameters: {},
       queryStringParameters: {},
       requestContext: {} as any,
-      resource: '',
       stageVariables: {},
-    })).rejects.toThrow('Failed to parse body as FormData')
+      rawQueryString: '',
+      routeKey: '$default',
+      version: '2.0',
+    })).rejects.toThrow('Failed to parse body as FormData.')
   })
 
   it('url-search-params', async () => {
@@ -173,16 +166,15 @@ describe.each([true, false])('toStandardBody: base64=%s', (isBase64Encoded) => {
       headers: {
         'content-type': 'application/x-www-form-urlencoded',
       },
-      httpMethod: 'POST',
       isBase64Encoded,
-      multiValueHeaders: {},
-      multiValueQueryStringParameters: {},
-      path: '/',
+      rawPath: '/',
       pathParameters: {},
       queryStringParameters: {},
       requestContext: {} as any,
-      resource: '',
       stageVariables: {},
+      rawQueryString: '',
+      routeKey: '$default',
+      version: '2.0',
     })
 
     expect(standardBody).toEqual(new URLSearchParams('foo=bar&bar=baz'))
@@ -190,20 +182,19 @@ describe.each([true, false])('toStandardBody: base64=%s', (isBase64Encoded) => {
 
   it('url-search-params (empty)', async () => {
     const standardBody: any = await toStandardBody({
-      body: null,
+      body: undefined,
       headers: {
         'content-type': 'application/x-www-form-urlencoded',
       },
-      httpMethod: 'POST',
       isBase64Encoded,
-      multiValueHeaders: {},
-      multiValueQueryStringParameters: {},
-      path: '/',
+      rawPath: '/',
       pathParameters: {},
       queryStringParameters: {},
       requestContext: {} as any,
-      resource: '',
       stageVariables: {},
+      rawQueryString: '',
+      routeKey: '$default',
+      version: '2.0',
     })
 
     expect(standardBody).toEqual(new URLSearchParams())
@@ -215,16 +206,15 @@ describe.each([true, false])('toStandardBody: base64=%s', (isBase64Encoded) => {
       headers: {
         'content-type': 'application/pdf',
       },
-      httpMethod: 'POST',
       isBase64Encoded,
-      multiValueHeaders: {},
-      multiValueQueryStringParameters: {},
-      path: '/',
+      rawPath: '/',
       pathParameters: {},
       queryStringParameters: {},
       requestContext: {} as any,
-      resource: '',
       stageVariables: {},
+      rawQueryString: '',
+      routeKey: '$default',
+      version: '2.0',
     })
 
     expect(standardBody).toBeInstanceOf(File)
@@ -237,20 +227,19 @@ describe.each([true, false])('toStandardBody: base64=%s', (isBase64Encoded) => {
 
   it('blob (empty)', async () => {
     const standardBody: any = await toStandardBody({
-      body: null,
+      body: undefined,
       headers: {
         'content-type': 'application/pdf',
       },
-      httpMethod: 'POST',
       isBase64Encoded,
-      multiValueHeaders: {},
-      multiValueQueryStringParameters: {},
-      path: '/',
+      rawPath: '/',
       pathParameters: {},
       queryStringParameters: {},
       requestContext: {} as any,
-      resource: '',
       stageVariables: {},
+      rawQueryString: '',
+      routeKey: '$default',
+      version: '2.0',
     })
 
     expect(standardBody).toBeInstanceOf(File)
@@ -270,16 +259,15 @@ describe.each([true, false])('toStandardBody: base64=%s', (isBase64Encoded) => {
         'content-type': 'application/json',
         'content-disposition': 'attachment; filename="foo.pdf"',
       },
-      httpMethod: 'POST',
       isBase64Encoded,
-      multiValueHeaders: {},
-      multiValueQueryStringParameters: {},
-      path: '/',
+      rawPath: '/',
       pathParameters: {},
       queryStringParameters: {},
       requestContext: {} as any,
-      resource: '',
       stageVariables: {},
+      rawQueryString: '',
+      routeKey: '$default',
+      version: '2.0',
     })
 
     expect(standardBody).toBeInstanceOf(File)
@@ -300,16 +288,15 @@ describe.each([true, false])('toStandardBody: base64=%s', (isBase64Encoded) => {
         'content-type': 'application/json',
         'content-disposition': 'attachment',
       },
-      httpMethod: 'POST',
       isBase64Encoded,
-      multiValueHeaders: {},
-      multiValueQueryStringParameters: {},
-      path: '/',
+      rawPath: '/',
       pathParameters: {},
       queryStringParameters: {},
       requestContext: {} as any,
-      resource: '',
       stageVariables: {},
+      rawQueryString: '',
+      routeKey: '$default',
+      version: '2.0',
     })
 
     expect(standardBody).toBeInstanceOf(File)
@@ -329,16 +316,15 @@ describe.each([true, false])('toStandardBody: base64=%s', (isBase64Encoded) => {
       headers: {
         'content-disposition': 'attachment',
       },
-      httpMethod: 'POST',
       isBase64Encoded,
-      multiValueHeaders: {},
-      multiValueQueryStringParameters: {},
-      path: '/',
+      rawPath: '/',
       pathParameters: {},
       queryStringParameters: {},
       requestContext: {} as any,
-      resource: '',
       stageVariables: {},
+      rawQueryString: '',
+      routeKey: '$default',
+      version: '2.0',
     })
 
     expect(standardBody).toBeInstanceOf(File)
@@ -390,7 +376,7 @@ describe('toLambdaBody', () => {
     })
 
     const response = new Response(body, {
-      headers,
+      headers: headers as Record<string, string>,
     })
     const resForm = await response.formData()
 
@@ -426,7 +412,7 @@ describe('toLambdaBody', () => {
     expect(generateContentDispositionSpy).toHaveBeenCalledWith('blob')
 
     const response = new Response(body, {
-      headers,
+      headers: headers as Record<string, string>,
     })
     const resBlob = await response.blob()
 
@@ -452,7 +438,7 @@ describe('toLambdaBody', () => {
     expect(generateContentDispositionSpy).toHaveBeenCalledWith('foo.pdf')
 
     const response = new Response(body, {
-      headers,
+      headers: headers as Record<string, string>,
     })
     const resBlob = await response.blob()
 
@@ -476,7 +462,7 @@ describe('toLambdaBody', () => {
     expect(generateContentDispositionSpy).toHaveBeenCalledTimes(0)
 
     const response = new Response(body, {
-      headers,
+      headers: headers as Record<string, string>,
     })
     const resBlob = await response.blob()
 

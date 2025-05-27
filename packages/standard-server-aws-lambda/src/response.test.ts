@@ -11,20 +11,7 @@ beforeEach(() => {
 
   globalThis.awslambda = {
     HttpResponseStream: {
-      from: vi.fn(() => {
-        const chunkes: any[] = []
-
-        const stream = new Stream.Writable({
-          write: (chunk, encoding, callback) => {
-            chunkes.push(chunk)
-            callback()
-          },
-        })
-
-        ;(stream as any).chunkes = chunkes
-
-        return stream
-      }),
+      from: vi.fn(stream => stream),
     },
   } as any
 })
@@ -40,7 +27,13 @@ describe('sendStandardResponse', () => {
       status: 206,
     }
 
-    const responseStream = new Stream.Writable()
+    const chunks: any[] = []
+    const responseStream = new Stream.Writable({
+      write(chunk, encoding, callback) {
+        chunks.push(chunk)
+        callback()
+      },
+    })
 
     await sendStandardResponse(responseStream, res, { eventIteratorKeepAliveComment: 'test' })
 
@@ -56,8 +49,8 @@ describe('sendStandardResponse', () => {
       cookies: res.headers['set-cookie'],
     })
 
-    expect(vi.mocked(awslambda.HttpResponseStream.from).mock.results[0]!.value.chunkes).toEqual([])
-    expect(vi.mocked(awslambda.HttpResponseStream.from).mock.results[0]!.value.closed).toBe(true)
+    expect(chunks).toEqual([])
+    expect(responseStream.closed).toBe(true)
   })
 
   it('chunked (string)', async () => {
@@ -70,7 +63,13 @@ describe('sendStandardResponse', () => {
       status: 206,
     }
 
-    const responseStream = new Stream.Writable()
+    const chunks: any[] = []
+    const responseStream = new Stream.Writable({
+      write(chunk, encoding, callback) {
+        chunks.push(chunk)
+        callback()
+      },
+    })
 
     await sendStandardResponse(responseStream, res, { eventIteratorKeepAliveComment: 'test' })
 
@@ -87,11 +86,11 @@ describe('sendStandardResponse', () => {
       cookies: res.headers['set-cookie'],
     })
 
-    expect(vi.mocked(awslambda.HttpResponseStream.from).mock.results[0]!.value.chunkes).toEqual([
+    expect(chunks).toEqual([
       Buffer.from(JSON.stringify({ value: 123 })),
     ])
 
-    expect(vi.mocked(awslambda.HttpResponseStream.from).mock.results[0]!.value.closed).toBe(true)
+    expect(responseStream.closed).toBe(true)
   })
 
   it('stream', async () => {
@@ -107,7 +106,13 @@ describe('sendStandardResponse', () => {
       status: 206,
     }
 
-    const responseStream = new Stream.Writable()
+    const chunks: any[] = []
+    const responseStream = new Stream.Writable({
+      write(chunk, encoding, callback) {
+        chunks.push(chunk)
+        callback()
+      },
+    })
 
     await sendStandardResponse(responseStream, res, { eventIteratorKeepAliveComment: 'test' })
 
@@ -126,12 +131,12 @@ describe('sendStandardResponse', () => {
       cookies: res.headers['set-cookie'],
     })
 
-    expect(vi.mocked(awslambda.HttpResponseStream.from).mock.results[0]!.value.chunkes).toEqual([
+    expect(chunks).toEqual([
       Buffer.from('event: message\ndata: "foo"\n\n'),
       Buffer.from('event: message\ndata: "bar"\n\n'),
     ])
 
-    expect(vi.mocked(awslambda.HttpResponseStream.from).mock.results[0]!.value.closed).toBe(true)
+    expect(responseStream.closed).toBe(true)
   })
 
   describe('stream destroy while sending', () => {
@@ -159,26 +164,30 @@ describe('sendStandardResponse', () => {
         status: 206,
       }
 
-      const responseStream = new Stream.Writable()
+      const chunks: any[] = []
+      const responseStream = new Stream.Writable({
+        write(chunk, encoding, callback) {
+          chunks.push(chunk)
+          callback()
+        },
+      })
 
       const sendPromise = expect(sendStandardResponse(responseStream, res, { eventIteratorKeepAliveComment: 'test' })).rejects.toThrow('test')
 
       await new Promise(r => setTimeout(r, 110))
 
-      const stream = vi.mocked(awslambda.HttpResponseStream.from).mock.results[0]!.value
-
-      expect(stream.chunkes).toEqual([
+      expect(chunks).toEqual([
         Buffer.from('event: message\ndata: 1\n\n'),
         Buffer.from('event: message\ndata: 2\n\n'),
       ])
 
-      expect(stream.closed).toBe(false)
+      expect(responseStream.closed).toBe(false)
       expect(clean).toBe(false)
 
-      stream.destroy(new Error('test'))
+      responseStream.destroy(new Error('test'))
 
       await vi.waitFor(() => {
-        expect(vi.mocked(awslambda.HttpResponseStream.from).mock.results[0]!.value.closed).toBe(true)
+        expect(responseStream.closed).toBe(true)
         expect(clean).toBe(true)
       })
 
@@ -209,26 +218,30 @@ describe('sendStandardResponse', () => {
         status: 206,
       }
 
-      const responseStream = new Stream.Writable()
+      const chunks: any[] = []
+      const responseStream = new Stream.Writable({
+        write(chunk, encoding, callback) {
+          chunks.push(chunk)
+          callback()
+        },
+      })
 
       const sendPromise = sendStandardResponse(responseStream, res, { eventIteratorKeepAliveComment: 'test' })
 
       await new Promise(r => setTimeout(r, 110))
 
-      const stream = vi.mocked(awslambda.HttpResponseStream.from).mock.results[0]!.value
-
-      expect(stream.chunkes).toEqual([
+      expect(chunks).toEqual([
         Buffer.from('event: message\ndata: 1\n\n'),
         Buffer.from('event: message\ndata: 2\n\n'),
       ])
 
-      expect(stream.closed).toBe(false)
+      expect(responseStream.closed).toBe(false)
       expect(clean).toBe(false)
 
-      stream.destroy()
+      responseStream.destroy()
 
       await vi.waitFor(() => {
-        expect(vi.mocked(awslambda.HttpResponseStream.from).mock.results[0]!.value.closed).toBe(true)
+        expect(responseStream.closed).toBe(true)
         expect(clean).toBe(true)
       })
 

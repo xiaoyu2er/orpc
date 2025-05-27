@@ -3,7 +3,7 @@ import { createAsyncIteratorObject, isTypescriptObject, parseEmptyableJSON, stri
 import { encodeEventMessage, ErrorEvent, EventDecoderStream, getEventMeta, withEventMeta } from '@orpc/standard-server'
 
 export function toEventIterator(
-  body: string | null,
+  body: string | undefined,
 ): AsyncIteratorObject<unknown | void, unknown | void, void> & AsyncGenerator<unknown | void, unknown | void, void> {
   const eventStream = new ReadableStream<string>({
     pull(controller) {

@@ -4,12 +4,13 @@ it('toStandardHeaders', () => {
   expect(toStandardHeaders({
     'content-type': 'application/json',
     'content-length': '12',
-  }, {
-    'content-length': ['12', '34'],
-    'set-cookie': ['value1', 'value2'],
-  })).toEqual({
+    'set-cookie': 'invalid',
+  }, [
+    'value1',
+    'value2',
+  ])).toEqual({
     'content-type': 'application/json',
-    'content-length': ['12', '34'],
+    'content-length': '12',
     'set-cookie': ['value1', 'value2'],
   })
 })

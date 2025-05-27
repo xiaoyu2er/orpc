@@ -105,8 +105,8 @@ describe('toEventIterator', () => {
     })
   })
 
-  it('with body=null', async () => {
-    const generator = toEventIterator(null)
+  it('with body=undefined', async () => {
+    const generator = toEventIterator(undefined)
     expect(generator).toSatisfy(isAsyncIteratorObject)
 
     expect(await generator.next()).toEqual({ done: true, value: undefined })

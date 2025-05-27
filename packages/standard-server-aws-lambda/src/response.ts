@@ -16,13 +16,13 @@ export function sendStandardResponse(
     responseStream.once('close', resolve)
 
     const [body, standardHeaders] = toLambdaBody(standardResponse.body, standardResponse.headers, options)
-    const [headers, cookies] = toLambdaHeaders(standardHeaders)
+    const [headers, setCookies] = toLambdaHeaders(standardHeaders)
 
     // awslambda is global aws lambda global object
     ;(globalThis as any).awslambda.HttpResponseStream.from(responseStream, {
       statusCode: standardResponse.status,
       headers,
-      cookies,
+      cookies: setCookies,
     })
 
     if (body === undefined) {

@@ -5,16 +5,12 @@ export function toAbortSignal(
 ): AbortSignal {
   const controller = new AbortController()
 
+  responseStream.once('error', error => controller.abort(error))
+
   responseStream.once('close', () => {
-    if (responseStream.errored) {
-      controller.abort(responseStream.errored.toString())
+    if (!responseStream.writableFinished) {
+      controller.abort(new Error('Writable stream closed before it finished writing'))
     }
-
-    else if (!responseStream.writableFinished) {
-      controller.abort('Client connection prematurely closed.')
-    }
-
-    // Not abort if success
   })
 
   return controller.signal

@@ -1,15 +1,15 @@
 import type { StandardBody, StandardHeaders } from '@orpc/standard-server'
 import type { ToEventStreamOptions } from './event-iterator'
-import type { APIGatewayProxyEvent } from './types'
+import type { APIGatewayProxyEventV2 } from './types'
 import { Buffer } from 'node:buffer'
 import { Readable } from 'node:stream'
 import { isAsyncIteratorObject, parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
 import { flattenHeader, generateContentDisposition, getFilenameFromContentDisposition } from '@orpc/standard-server'
 import { toEventIterator, toEventStream } from './event-iterator'
 
-export async function toStandardBody(event: APIGatewayProxyEvent): Promise<StandardBody> {
-  const contentType = event.headers['content-type'] ?? flattenHeader(event.multiValueHeaders['content-type'])
-  const contentDisposition = event.headers['content-disposition'] ?? flattenHeader(event.multiValueHeaders['content-disposition'])
+export async function toStandardBody(event: APIGatewayProxyEventV2): Promise<StandardBody> {
+  const contentType = event.headers['content-type']
+  const contentDisposition = event.headers['content-disposition']
 
   if (typeof contentDisposition === 'string') {
     const fileName = getFilenameFromContentDisposition(contentDisposition) ?? 'blob'
@@ -27,8 +27,7 @@ export async function toStandardBody(event: APIGatewayProxyEvent): Promise<Stand
   }
 
   if (contentType.startsWith('application/x-www-form-urlencoded')) {
-    const text = _parseAsString(event.body, event.isBase64Encoded)
-    return new URLSearchParams(text ?? undefined)
+    return new URLSearchParams(_parseAsString(event.body, event.isBase64Encoded))
   }
 
   if (contentType.startsWith('text/event-stream')) {
@@ -90,9 +89,9 @@ export function toLambdaBody(
   return [stringifyJSON(body), headers]
 }
 
-function _parseAsFile(body: string | null, isBase64Encoded: boolean, fileName: string, contentType: string): File {
+function _parseAsFile(body: string | undefined, isBase64Encoded: boolean, fileName: string, contentType: string): File {
   return new File(
-    body == null
+    body === undefined
       ? []
       : [isBase64Encoded ? Buffer.from(body, 'base64') : body],
     fileName,
@@ -100,12 +99,12 @@ function _parseAsFile(body: string | null, isBase64Encoded: boolean, fileName: s
   )
 }
 
-function _parseAsString(body: string | null, isBase64Encoded: boolean): string | null {
-  return isBase64Encoded && body !== null ? Buffer.from(body, 'base64').toString() : body
+function _parseAsString(body: string | undefined, isBase64Encoded: boolean): string | undefined {
+  return isBase64Encoded && body !== undefined ? Buffer.from(body, 'base64').toString() : body
 }
 
-function _parseAsFormData(body: string | null, isBase64Encoded: boolean, contentType: string): Promise<FormData> {
-  const blobPart = isBase64Encoded && body !== null ? Buffer.from(body, 'base64') : body
+function _parseAsFormData(body: string | undefined, isBase64Encoded: boolean, contentType: string): Promise<FormData> {
+  const blobPart = isBase64Encoded && body !== undefined ? Buffer.from(body, 'base64') : body
   const response = new Response(blobPart, {
     headers: {
       'content-type': contentType,

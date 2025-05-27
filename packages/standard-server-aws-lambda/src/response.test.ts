@@ -104,51 +104,105 @@ describe('sendStandardResponse', () => {
     expect(vi.mocked(awslambda.HttpResponseStream.from).mock.results[0]!.value.closed).toBe(true)
   })
 
-  it('stream error while sending', async () => {
-    let clean = false
-    const res: StandardResponse = {
-      body: (async function* () {
-        try {
-          yield 1
-          await new Promise(r => setTimeout(r, 100))
-          yield 2
-          await new Promise(r => setTimeout(r, 100))
-          yield 3
-          await new Promise(r => setTimeout(r, 100))
-          yield 4
-        }
-        finally {
-          clean = true
-        }
-      })(),
-      headers: {
-        'x-custom-header': 'custom-value',
-        'set-cookie': ['foo=bar', 'bar=baz'],
-      },
-      status: 206,
-    }
+  describe('stream destroy while sending', () => {
+    it('with error', async () => {
+      let clean = false
+      const res: StandardResponse = {
+        body: (async function* () {
+          try {
+            yield 1
+            await new Promise(r => setTimeout(r, 100))
+            yield 2
+            await new Promise(r => setTimeout(r, 100))
+            yield 3
+            await new Promise(r => setTimeout(r, 9999999))
+            yield 4
+          }
+          finally {
+            clean = true
+          }
+        })(),
+        headers: {
+          'x-custom-header': 'custom-value',
+          'set-cookie': ['foo=bar', 'bar=baz'],
+        },
+        status: 206,
+      }
 
-    const responseStream = new Stream.Writable()
+      const responseStream = new Stream.Writable()
 
-    const sendPromise = sendStandardResponse(responseStream, res, { eventIteratorKeepAliveComment: 'test' })
+      const sendPromise = expect(sendStandardResponse(responseStream, res, { eventIteratorKeepAliveComment: 'test' })).rejects.toThrow('test')
 
-    await new Promise(r => setTimeout(r, 110))
+      await new Promise(r => setTimeout(r, 110))
 
-    expect(vi.mocked(awslambda.HttpResponseStream.from).mock.results[0]!.value.chunkes).toEqual([
-      Buffer.from('event: message\ndata: 1\n\n'),
-      Buffer.from('event: message\ndata: 2\n\n'),
-    ])
+      const stream = vi.mocked(awslambda.HttpResponseStream.from).mock.results[0]!.value
 
-    expect(vi.mocked(awslambda.HttpResponseStream.from).mock.results[0]!.value.closed).toBe(false)
-    expect(clean).toBe(false)
+      expect(stream.chunkes).toEqual([
+        Buffer.from('event: message\ndata: 1\n\n'),
+        Buffer.from('event: message\ndata: 2\n\n'),
+      ])
 
-    vi.mocked(awslambda.HttpResponseStream.from).mock.results[0]!.value.destroy(new Error('test'))
+      expect(stream.closed).toBe(false)
+      expect(clean).toBe(false)
 
-    await new Promise(r => setTimeout(r, 110))
+      stream.destroy(new Error('test'))
 
-    expect(vi.mocked(awslambda.HttpResponseStream.from).mock.results[0]!.value.closed).toBe(true)
-    expect(clean).toBe(true)
+      await vi.waitFor(() => {
+        expect(vi.mocked(awslambda.HttpResponseStream.from).mock.results[0]!.value.closed).toBe(true)
+        expect(clean).toBe(true)
+      })
 
-    await expect(sendPromise).rejects.toThrow('test')
+      await sendPromise
+    })
+
+    it('without', async () => {
+      let clean = false
+      const res: StandardResponse = {
+        body: (async function* () {
+          try {
+            yield 1
+            await new Promise(r => setTimeout(r, 100))
+            yield 2
+            await new Promise(r => setTimeout(r, 100))
+            yield 3
+            await new Promise(r => setTimeout(r, 9999999))
+            yield 4
+          }
+          finally {
+            clean = true
+          }
+        })(),
+        headers: {
+          'x-custom-header': 'custom-value',
+          'set-cookie': ['foo=bar', 'bar=baz'],
+        },
+        status: 206,
+      }
+
+      const responseStream = new Stream.Writable()
+
+      const sendPromise = sendStandardResponse(responseStream, res, { eventIteratorKeepAliveComment: 'test' })
+
+      await new Promise(r => setTimeout(r, 110))
+
+      const stream = vi.mocked(awslambda.HttpResponseStream.from).mock.results[0]!.value
+
+      expect(stream.chunkes).toEqual([
+        Buffer.from('event: message\ndata: 1\n\n'),
+        Buffer.from('event: message\ndata: 2\n\n'),
+      ])
+
+      expect(stream.closed).toBe(false)
+      expect(clean).toBe(false)
+
+      stream.destroy()
+
+      await vi.waitFor(() => {
+        expect(vi.mocked(awslambda.HttpResponseStream.from).mock.results[0]!.value.closed).toBe(true)
+        expect(clean).toBe(true)
+      })
+
+      await sendPromise
+    })
   })
 })

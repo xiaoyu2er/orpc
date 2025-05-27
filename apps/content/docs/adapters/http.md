@@ -122,6 +122,7 @@ Deno.serve(async (request) => {
 ```
 
 ```ts [aws-lambda]
+import { APIGatewayProxyEventV2 } from 'aws-lambda'
 import { experimental_RPCHandler as RPCHandler } from '@orpc/server/aws-lambda'
 
 const rpcHandler = new RPCHandler(router)
@@ -130,7 +131,7 @@ const rpcHandler = new RPCHandler(router)
  * oRPC only supports [AWS Lambda response streaming](https://aws.amazon.com/blogs/compute/introducing-aws-lambda-response-streaming/).
  * If you need support chunked responses, use a combination of Hono's `aws-lambda` adapter and oRPC.
  */
-export const handler = awslambda.streamifyResponse(async (event, responseStream, context) => {
+export const handler = awslambda.streamifyResponse<APIGatewayProxyEventV2>(async (event, responseStream, context) => {
   const { matched } = await rpcHandler.handle(event, responseStream, {
     prefix: '/rpc',
     context: {} // Provide initial context if needed

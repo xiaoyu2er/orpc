@@ -49,7 +49,7 @@ describe('rpcHandler', async () => {
     })
 
     expect(toStandardLazyRequest).toHaveBeenCalledOnce()
-    expect(toStandardLazyRequest).toHaveBeenCalledWith(event)
+    expect(toStandardLazyRequest).toHaveBeenCalledWith(event, responseStream)
 
     expect(sendStandardResponse).toHaveBeenCalledOnce()
     expect(sendStandardResponse).toHaveBeenCalledWith(responseStream, {
@@ -76,7 +76,7 @@ describe('rpcHandler', async () => {
     })
 
     expect(toStandardLazyRequest).toHaveBeenCalledOnce()
-    expect(toStandardLazyRequest).toHaveBeenCalledWith(event)
+    expect(toStandardLazyRequest).toHaveBeenCalledWith(event, responseStream)
 
     expect(sendStandardResponse).not.toHaveBeenCalled()
   })
@@ -96,7 +96,7 @@ describe('rpcHandler', async () => {
     })
 
     expect(toStandardLazyRequest).toHaveBeenCalledOnce()
-    expect(toStandardLazyRequest).toHaveBeenCalledWith(event)
+    expect(toStandardLazyRequest).toHaveBeenCalledWith(event, responseStream)
 
     expect(sendStandardResponse).toHaveBeenCalledOnce()
     expect(sendStandardResponse).toHaveBeenCalledWith(responseStream, {

@@ -48,7 +48,7 @@ describe('openAPIHandler', async () => {
     })
 
     expect(toStandardLazyRequest).toHaveBeenCalledOnce()
-    expect(toStandardLazyRequest).toHaveBeenCalledWith(event)
+    expect(toStandardLazyRequest).toHaveBeenCalledWith(event, responseStream)
 
     expect(sendStandardResponse).toHaveBeenCalledOnce()
     expect(sendStandardResponse).toHaveBeenCalledWith(responseStream, {
@@ -73,7 +73,7 @@ describe('openAPIHandler', async () => {
     })
 
     expect(toStandardLazyRequest).toHaveBeenCalledOnce()
-    expect(toStandardLazyRequest).toHaveBeenCalledWith(event)
+    expect(toStandardLazyRequest).toHaveBeenCalledWith(event, responseStream)
 
     expect(sendStandardResponse).not.toHaveBeenCalled()
   })

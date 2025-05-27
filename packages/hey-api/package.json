@@ -1,0 +1,49 @@
+{
+  "name": "@orpc/hey-api",
+  "type": "module",
+  "version": "0.0.0",
+  "license": "MIT",
+  "homepage": "https://orpc.unnoq.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unnoq/orpc.git",
+    "directory": "packages/hey-api"
+  },
+  "keywords": [
+    "unnoq",
+    "orpc",
+    "Hey API"
+  ],
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.mts",
+        "import": "./dist/index.mjs",
+        "default": "./dist/index.mjs"
+      }
+    }
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "unbuild",
+    "build:watch": "pnpm run build --watch",
+    "type:check": "tsc -b",
+    "prepare": "openapi-ts -i ./tests/spec.json -o ./tests/client -c @hey-api/client-fetch"
+  },
+  "peerDependencies": {
+    "@hey-api/client-fetch": "*"
+  },
+  "dependencies": {
+    "@orpc/client": "workspace:*",
+    "@orpc/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@hey-api/client-fetch": "^0.10.1",
+    "@hey-api/openapi-ts": "^0.67.6"
+  }
+}

@@ -1,5 +1,5 @@
 import type { StandardHeaders } from '@orpc/standard-server'
-import type { APIGatewayProxyEventHeaders, APIGatewayProxyEventMultiValueHeaders } from 'aws-lambda'
+import type { APIGatewayProxyEventHeaders, APIGatewayProxyEventMultiValueHeaders } from './types'
 import { toArray } from '@orpc/shared'
 import { flattenHeader } from '@orpc/standard-server'
 

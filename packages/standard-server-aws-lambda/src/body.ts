@@ -1,13 +1,13 @@
 import type { StandardBody, StandardHeaders } from '@orpc/standard-server'
-import type { APIGatewayEvent } from 'aws-lambda'
 import type { ToEventStreamOptions } from './event-iterator'
+import type { APIGatewayProxyEvent } from './types'
 import { Buffer } from 'node:buffer'
 import { Readable } from 'node:stream'
 import { isAsyncIteratorObject, parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
 import { flattenHeader, generateContentDisposition, getFilenameFromContentDisposition } from '@orpc/standard-server'
 import { toEventIterator, toEventStream } from './event-iterator'
 
-export async function toStandardBody(event: APIGatewayEvent): Promise<StandardBody> {
+export async function toStandardBody(event: APIGatewayProxyEvent): Promise<StandardBody> {
   const contentType = event.headers['content-type'] ?? flattenHeader(event.multiValueHeaders['content-type'])
   const contentDisposition = event.headers['content-disposition'] ?? flattenHeader(event.multiValueHeaders['content-disposition'])
 

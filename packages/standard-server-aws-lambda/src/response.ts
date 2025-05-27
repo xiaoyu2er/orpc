@@ -15,7 +15,8 @@ export function sendStandardResponse(
     const [body, standardHeaders] = toLambdaBody(standardResponse.body, standardResponse.headers, options)
     const [headers, cookies] = toLambdaHeaders(standardHeaders)
 
-    responseStream = awslambda.HttpResponseStream.from(responseStream, {
+    // awslambda is global aws lambda global object
+    responseStream = (globalThis as any).awslambda.HttpResponseStream.from(responseStream, {
       statusCode: standardResponse.status,
       headers,
       cookies,

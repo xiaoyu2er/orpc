@@ -1,6 +1,6 @@
-import type { APIGatewayEvent } from 'aws-lambda'
+import type { APIGatewayProxyEvent } from './types'
 
-export function toStandardUrl(event: APIGatewayEvent): URL {
+export function toStandardUrl(event: APIGatewayProxyEvent): URL {
   const host = event.requestContext.domainName ?? event.headers.host ?? event.multiValueHeaders.host?.[0] ?? 'localhost'
   const url = new URL(`https://${host}${event.path}`)
 

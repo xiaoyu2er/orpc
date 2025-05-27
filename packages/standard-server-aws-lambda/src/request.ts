@@ -1,11 +1,11 @@
 import type { StandardLazyRequest } from '@orpc/standard-server'
-import type { APIGatewayEvent } from 'aws-lambda'
+import type { APIGatewayProxyEvent } from './types'
 import { once } from '@orpc/shared'
 import { toStandardBody } from './body'
 import { toStandardHeaders } from './headers'
 import { toStandardUrl } from './url'
 
-export function toStandardLazyRequest(event: APIGatewayEvent): StandardLazyRequest {
+export function toStandardLazyRequest(event: APIGatewayProxyEvent): StandardLazyRequest {
   return {
     url: toStandardUrl(event),
     method: event.httpMethod,

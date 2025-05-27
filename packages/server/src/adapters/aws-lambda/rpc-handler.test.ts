@@ -1,6 +1,6 @@
 import { sendStandardResponse, toStandardLazyRequest } from '@orpc/standard-server-aws-lambda'
 import { os } from '../../builder'
-import { RPCHandler } from './rpc-handler'
+import { experimental_RPCHandler as RPCHandler } from './rpc-handler'
 
 vi.mock('@orpc/standard-server-aws-lambda', () => ({
   toStandardLazyRequest: vi.fn(),

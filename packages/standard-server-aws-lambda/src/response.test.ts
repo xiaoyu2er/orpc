@@ -30,7 +30,37 @@ beforeEach(() => {
 })
 
 describe('sendStandardResponse', () => {
-  it('chunked', async () => {
+  it('chunked (empty)', async () => {
+    const res: StandardResponse = {
+      body: undefined,
+      headers: {
+        'x-custom-header': 'custom-value',
+        'set-cookie': ['foo=bar', 'bar=baz'],
+      },
+      status: 206,
+    }
+
+    const responseStream = new Stream.Writable()
+
+    await sendStandardResponse(responseStream, res, { eventIteratorKeepAliveComment: 'test' })
+
+    expect(toLambdaBodySpy).toBeCalledTimes(1)
+    expect(toLambdaBodySpy).toBeCalledWith(res.body, res.headers, { eventIteratorKeepAliveComment: 'test' })
+
+    expect(awslambda.HttpResponseStream.from).toBeCalledTimes(1)
+    expect(awslambda.HttpResponseStream.from).toBeCalledWith(responseStream, {
+      statusCode: res.status,
+      headers: {
+        'x-custom-header': 'custom-value',
+      },
+      cookies: res.headers['set-cookie'],
+    })
+
+    expect(vi.mocked(awslambda.HttpResponseStream.from).mock.results[0]!.value.chunkes).toEqual([])
+    expect(vi.mocked(awslambda.HttpResponseStream.from).mock.results[0]!.value.closed).toBe(true)
+  })
+
+  it('chunked (string)', async () => {
     const res: StandardResponse = {
       body: { value: 123 },
       headers: {

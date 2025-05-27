@@ -12,21 +12,25 @@ export function sendStandardResponse(
   options: SendStandardResponseOptions = {},
 ): Promise<void> {
   return new Promise((resolve, reject) => {
+    responseStream.once('error', reject)
+    responseStream.once('close', resolve)
+
     const [body, standardHeaders] = toLambdaBody(standardResponse.body, standardResponse.headers, options)
     const [headers, cookies] = toLambdaHeaders(standardHeaders)
 
     // awslambda is global aws lambda global object
-    responseStream = (globalThis as any).awslambda.HttpResponseStream.from(responseStream, {
+    ;(globalThis as any).awslambda.HttpResponseStream.from(responseStream, {
       statusCode: standardResponse.status,
       headers,
       cookies,
     })
 
-    responseStream.once('error', reject)
-    responseStream.once('close', resolve)
-
-    if (body === undefined || typeof body === 'string') {
-      responseStream.end(body)
+    if (body === undefined) {
+      responseStream.end()
+    }
+    else if (typeof body === 'string') {
+      responseStream.write(body)
+      responseStream.end()
     }
     else {
       responseStream.once('close', () => {

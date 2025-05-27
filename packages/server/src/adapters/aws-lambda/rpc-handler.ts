@@ -21,7 +21,7 @@ export type RPCHandlerOptions<T extends Context> = AwsLambdaHandlerOptions & Sta
  * @see {@link https://orpc.unnoq.com/docs/rpc-handler RPC Handler Docs}
  * @see {@link https://orpc.unnoq.com/docs/adapters/http HTTP Adapter Docs}
  */
-export class RPCHandler<T extends Context> extends AwsLambdaHandler<T> {
+export class experimental_RPCHandler<T extends Context> extends AwsLambdaHandler<T> {
   constructor(router: Router<any, T>, options: NoInfer<RPCHandlerOptions<T>> = {}) {
     if (options.strictGetMethodPluginEnabled ?? true) {
       options.plugins ??= []

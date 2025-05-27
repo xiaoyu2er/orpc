@@ -1,6 +1,6 @@
 import { os } from '@orpc/server'
 import { sendStandardResponse, toStandardLazyRequest } from '@orpc/standard-server-aws-lambda'
-import { OpenAPIHandler } from './openapi-handler'
+import { experimental_OpenAPIHandler as OpenAPIHandler } from './openapi-handler'
 
 vi.mock('@orpc/standard-server-aws-lambda', () => ({
   toStandardLazyRequest: vi.fn(),

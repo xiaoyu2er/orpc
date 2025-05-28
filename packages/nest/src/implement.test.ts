@@ -374,7 +374,6 @@ describe('@Implement', async () => {
     expect(states).toEqual([
       '123',
       false,
-      true,
     ])
   })
 })

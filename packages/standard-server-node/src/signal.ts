@@ -1,19 +1,13 @@
-import type { NodeHttpResponse } from './types'
+import type Stream from 'node:stream'
 
-export function toAbortSignal(res: NodeHttpResponse): AbortSignal {
+export function toAbortSignal(stream: Stream.Writable): AbortSignal {
   const controller = new AbortController()
 
-  res.on('close', () => {
-    if (res.errored) {
-      controller.abort(res.errored.toString())
-    }
+  stream.once('error', error => controller.abort(error))
 
-    else if (!res.writableFinished) {
-      controller.abort('Client connection prematurely closed.')
-    }
-
-    else {
-      controller.abort('Server closed the connection.')
+  stream.once('close', () => {
+    if (!stream.writableFinished) {
+      controller.abort(new Error('Writable stream closed before it finished writing'))
     }
   })
 

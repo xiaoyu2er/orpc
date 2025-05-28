@@ -11,8 +11,8 @@ export function sendStandardResponse(
   options: SendStandardResponseOptions = {},
 ): Promise<void> {
   return new Promise((resolve, reject) => {
-    res.on('error', reject)
-    res.on('finish', resolve)
+    res.once('error', reject)
+    res.once('close', resolve)
 
     const resHeaders: StandardHeaders = { ...standardResponse.headers }
 
@@ -21,17 +21,19 @@ export function sendStandardResponse(
     res.writeHead(standardResponse.status, resHeaders)
 
     if (resBody === undefined) {
-      res.end(resBody)
+      res.end()
     }
     else if (typeof resBody === 'string') {
       res.end(resBody)
     }
     else {
-      res.on('close', () => {
+      res.once('close', () => {
         if (!resBody.closed) {
           resBody.destroy(res.errored ?? undefined)
         }
       })
+
+      resBody.once('error', error => res.destroy(error))
 
       resBody.pipe(res)
     }

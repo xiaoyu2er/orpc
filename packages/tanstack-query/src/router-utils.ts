@@ -1,6 +1,7 @@
 import type { Client, NestedClient } from '@orpc/client'
 import type { GeneralUtils } from './general-utils'
 import type { ProcedureUtils } from './procedure-utils'
+import { toArray } from '@orpc/shared'
 import { createGeneralUtils } from './general-utils'
 import { createProcedureUtils } from './procedure-utils'
 
@@ -25,7 +26,7 @@ export function createRouterUtils<T extends NestedClient<any>>(
   client: T,
   options: CreateRouterUtilsOptions = {},
 ): RouterUtils<T> {
-  const path = options.path ?? []
+  const path = toArray(options.path)
 
   const generalUtils = createGeneralUtils(path)
   const procedureUtils = createProcedureUtils(client as any, { path })

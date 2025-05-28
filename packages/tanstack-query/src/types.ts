@@ -3,8 +3,9 @@ import type { PartialDeep, SetOptional } from '@orpc/shared'
 import type {
   experimental_streamedQuery,
   InfiniteQueryObserverOptions,
+  MutationFunction,
   MutationObserverOptions,
-  QueryFunctionContext,
+  QueryFunction,
   QueryKey,
   QueryObserverOptions,
   SkipToken,
@@ -31,7 +32,7 @@ export type QueryOptionsIn<TClientContext extends ClientContext, TInput, TOutput
 
 export interface QueryOptionsBase<TOutput, TError> {
   queryKey: QueryKey
-  queryFn(ctx: QueryFunctionContext): Promise<TOutput>
+  queryFn: QueryFunction<TOutput>
   throwOnError?(error: TError): boolean // Help TQ infer TError
   enabled: boolean
 }
@@ -50,7 +51,7 @@ export type InfiniteOptionsIn<TClientContext extends ClientContext, TInput, TOut
 
 export interface InfiniteOptionsBase<TOutput, TError, TPageParam> {
   queryKey: QueryKey
-  queryFn(ctx: QueryFunctionContext<QueryKey, TPageParam>): Promise<TOutput>
+  queryFn: QueryFunction<TOutput, QueryKey, TPageParam>
   throwOnError?(error: TError): boolean // Help TQ infer TError
   enabled: boolean
 }
@@ -61,6 +62,6 @@ export type MutationOptionsIn<TClientContext extends ClientContext, TInput, TOut
 
 export type MutationOptionsBase<TInput, TOutput, TError, TMutationContext> = {
   mutationKey: QueryKey
-  mutationFn: (variables: TInput) => Promise<TOutput>
+  mutationFn: MutationFunction<TOutput, TInput>
   onError?(error: TError, variables: TInput, context: TMutationContext | undefined): void // Help TQ infer TError and TMutationContext
 }

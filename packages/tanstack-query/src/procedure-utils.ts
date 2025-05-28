@@ -97,7 +97,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
     experimental_streamedOptions(...[optionsIn = {} as any]) {
       return {
         enabled: optionsIn.input !== skipToken,
-        queryKey: generateOperationKey(options.path, { type: 'streamed', input: optionsIn.input }),
+        queryKey: generateOperationKey(options.path, { type: 'streamed', input: optionsIn.input, fnOptions: optionsIn.queryFnOptions }),
         queryFn: experimental_streamedQuery({
           queryFn: async ({ signal }) => {
             if (optionsIn.input === skipToken) {

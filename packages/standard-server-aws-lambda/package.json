@@ -34,7 +34,9 @@
   },
   "dependencies": {
     "@orpc/shared": "workspace:*",
-    "@orpc/standard-server": "workspace:*"
+    "@orpc/standard-server": "workspace:*",
+    "@orpc/standard-server-fetch": "workspace:*",
+    "@orpc/standard-server-node": "workspace:*"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.149",

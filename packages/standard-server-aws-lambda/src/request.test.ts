@@ -1,14 +1,14 @@
 import type { APIGatewayProxyEventV2 } from './types'
 import Stream from 'node:stream'
 import { isAsyncIteratorObject } from '@orpc/shared'
+import * as NodeModule from '@orpc/standard-server-node'
 import * as Body from './body'
 import * as Headers from './headers'
 import { toStandardLazyRequest } from './request'
-import * as Signal from './signal'
 
 const toStandardBodySpy = vi.spyOn(Body, 'toStandardBody')
 const toStandardHeadersSpy = vi.spyOn(Headers, 'toStandardHeaders')
-const toAbortSignalSpy = vi.spyOn(Signal, 'toAbortSignal')
+const toAbortSignalSpy = vi.spyOn(NodeModule, 'toAbortSignal')
 
 beforeEach(() => {
   vi.clearAllMocks()

@@ -10,7 +10,7 @@ oRPC offers built-in support for common Message Port implementations, enabling e
 | Environment                                                                                | Documentation                                          |
 | ------------------------------------------------------------------------------------------ | ------------------------------------------------------ |
 | [Electron Message Port](https://www.electronjs.org/docs/latest/tutorial/message-ports)     | [Integration Guide](/docs/integrations/electron)       |
-| Browser (extension background to popup/content, window to window, ...)                     | [Integration Guide](/docs/integrations/browser)        |
+| Browser (extension background to popup/content, window to window, etc.)                    | [Integration Guide](/docs/integrations/browser)        |
 | [Node.js Worker Threads Port](https://nodejs.org/api/worker_threads.html#workerparentport) | [Integration Guide](/docs/integrations/worker-threads) |
 
 ## Basic Usage

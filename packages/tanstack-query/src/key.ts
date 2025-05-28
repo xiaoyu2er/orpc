@@ -1,21 +1,12 @@
-import type { PartialDeep } from '@orpc/shared'
-import type { QueryKey } from '@tanstack/query-core'
-import type { OperationType } from './types'
+import type { OperationKey, OperationKeyOptions, OperationType } from './types'
 
-export interface BuildKeyOptions<TType extends OperationType, TInput> {
-  type?: TType
-  input?: TType extends 'mutation' ? never : PartialDeep<TInput>
-}
-
-export function buildKey<TType extends OperationType, TInput>(
-  path: string[],
-  options: BuildKeyOptions<TType, TInput> = {},
-): QueryKey {
-  const withInput = options.input !== undefined ? { input: options?.input } : {}
-  const withType = options.type !== undefined ? { type: options?.type } : {}
-
+export function generateOperationKey<TType extends OperationType, TInput>(
+  path: readonly string[],
+  state: OperationKeyOptions<TType, TInput> = {},
+): OperationKey<TType, TInput> {
   return [path, {
-    ...withInput,
-    ...withType,
-  }]
+    ...state.input !== undefined ? { input: state.input } : {},
+    ...state.type !== undefined ? { type: state.type } : {},
+    ...state.fnOptions !== undefined ? { fnOptions: state.fnOptions } : {},
+  } as any]
 }

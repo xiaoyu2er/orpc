@@ -1,10 +1,10 @@
 import { orpc } from '~/lib/orpc'
-import { createMutation, useQueryClient } from '@tanstack/solid-query'
+import { useMutation, useQueryClient } from '@tanstack/solid-query'
 
 export function CreatePlanetMutationForm() {
   const queryClient = useQueryClient()
 
-  const mutation = createMutation(
+  const mutation = useMutation(
     () => orpc.planet.create.mutationOptions({
       onSuccess() {
         queryClient.invalidateQueries({

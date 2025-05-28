@@ -103,7 +103,7 @@ export default defineConfig({
             { text: 'Elysia', link: '/docs/integrations/elysia' },
             { text: 'SvelteKit', link: '/docs/integrations/svelte-kit' },
             { text: 'Remix', link: '/docs/integrations/remix' },
-            { text: 'SolidStart', link: '/docs/integrations/solid-start' },
+            { text: 'Solid Start', link: '/docs/integrations/solid-start' },
             { text: 'Astro', link: '/docs/integrations/astro' },
             { text: 'React Native', link: '/docs/integrations/react-native' },
             { text: 'Electron', link: '/docs/integrations/electron' },

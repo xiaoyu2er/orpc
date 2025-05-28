@@ -85,7 +85,7 @@ clientPort.start()
 
 :::
 
-## Advanced: Relay Pattern
+## Advanced Relay Pattern
 
 In some advanced cases, direct communication between scripts isn’t possible. For example, a content script running in the ["MAIN" world](https://developer.chrome.com/docs/extensions/reference/manifest/content-scripts#world-timings) cannot directly communicate with the background script using `browser.runtime` or `chrome.runtime` APIs.
 

@@ -31,6 +31,8 @@ const handler = new RPCHandler(router)
 handler.upgrade(serverPort, {
   context: {}, // Optionally provide an initial context
 })
+
+serverPort.start()
 ```
 
 ```ts [client]
@@ -39,6 +41,8 @@ import { experimental_RPCLink as RPCLink } from '@orpc/client/message-port'
 const link = new RPCLink({
   port: clientPort,
 })
+
+clientPort.start()
 ```
 
 :::info

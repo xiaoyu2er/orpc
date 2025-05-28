@@ -20,6 +20,8 @@ const handler = new RPCHandler(router)
 parentPort.on('message', (message) => {
   if (message instanceof MessagePort) {
     handler.upgrade(message)
+
+    message.start()
   }
 })
 ```
@@ -41,6 +43,8 @@ worker.postMessage(serverPort, [serverPort])
 const link = new RPCLink({
   port: clientPort
 })
+
+clientPort.start()
 ```
 
 :::info

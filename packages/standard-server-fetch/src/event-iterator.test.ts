@@ -42,7 +42,7 @@ describe('toEventIterator', () => {
     })
   })
 
-  it('without dont event', async () => {
+  it('without done event', async () => {
     const stream = new ReadableStream<string>({
       async pull(controller) {
         controller.enqueue(': ping\n\n')

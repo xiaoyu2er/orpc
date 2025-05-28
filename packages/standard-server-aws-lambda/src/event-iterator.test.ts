@@ -38,7 +38,7 @@ describe('toEventIterator', () => {
     })
   })
 
-  it('without dont event', async () => {
+  it('without done event', async () => {
     const generator = toEventIterator(
       'event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n'
       + 'event: message\ndata: {"order": 2}\nid: id-2\n\n'

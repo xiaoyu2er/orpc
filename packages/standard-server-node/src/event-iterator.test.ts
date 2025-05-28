@@ -43,7 +43,7 @@ describe('toEventIterator', () => {
     })
   })
 
-  it('without dont event', async () => {
+  it('without done event', async () => {
     const stream = Readable.fromWeb(new ReadableStream<string>({
       async pull(controller) {
         controller.enqueue('event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n')

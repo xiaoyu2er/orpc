@@ -94,6 +94,7 @@ Next.js doesn’t natively support isomorphic functions, so you need a workaroun
 ::: code-group
 
 ```ts [lib/orpc.ts]
+import { RPCLink } from '@orpc/client/fetch'
 import type { headers } from 'next/headers'
 
 declare global {

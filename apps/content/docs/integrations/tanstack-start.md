@@ -56,6 +56,7 @@ The `handler` can be any supported oRPC handler, including [RPCHandler](/docs/rp
 On the client, use `createIsomorphicFn` to provide a headers function that works seamlessly with SSR. This enables usage in both server and browser environments.
 
 ```ts
+import { RPCLink } from '@orpc/client/fetch'
 import { getHeaders } from '@tanstack/react-start/server'
 import { createIsomorphicFn } from '@tanstack/react-start'
 

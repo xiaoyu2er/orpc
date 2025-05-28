@@ -1,8 +1,8 @@
 import type { APIEvent } from '@solidjs/start/server'
 import { RPCHandler } from '@orpc/server/fetch'
 import { router } from '~/router'
-import '~/polyfill'
 import { onError } from '@orpc/server'
+import '~/polyfill'
 
 const handler = new RPCHandler(router, {
   interceptors: [
@@ -13,9 +13,7 @@ const handler = new RPCHandler(router, {
 })
 
 async function handle({ request }: APIEvent) {
-  const context = request.headers.get('Authorization')
-    ? { user: { id: 'test', name: 'John Doe', email: 'john@doe.com' } }
-    : {}
+  const context = { user: { id: 'test', name: 'John Doe', email: 'john@doe.com' } }
 
   const { response } = await handler.handle(request, {
     prefix: '/rpc',
@@ -25,6 +23,7 @@ async function handle({ request }: APIEvent) {
   return response ?? new Response('Not Found', { status: 404 })
 }
 
+export const HEAD = handle
 export const GET = handle
 export const POST = handle
 export const PUT = handle

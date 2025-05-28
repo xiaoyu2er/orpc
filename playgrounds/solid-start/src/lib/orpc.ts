@@ -1,16 +1,23 @@
+if (typeof window === 'undefined') {
+  console.log(await import('./orpc.server'))
+}
+
 import type { RouterClient } from '@orpc/server'
 import type { router } from '~/router'
 import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
 import { createORPCSolidQueryUtils } from '@orpc/solid-query'
+import { getRequestEvent } from 'solid-js/web'
 
-const rpcLink = new RPCLink({
+declare global {
+  var $client: RouterClient<typeof router> | undefined
+}
+
+const link = new RPCLink({
   url: new URL('/rpc', typeof window !== 'undefined' ? window.location.href : 'http://localhost:3000'),
-  headers: () => ({
-    Authorization: 'Bearer default-token',
-  }),
+  headers: () => Object.fromEntries(getRequestEvent()?.request.headers ?? []),
 })
 
-export const client: RouterClient<typeof router> = createORPCClient(rpcLink)
+export const client: RouterClient<typeof router> = globalThis.$client ?? createORPCClient(link)
 
 export const orpc = createORPCSolidQueryUtils(client)

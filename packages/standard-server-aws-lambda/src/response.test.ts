@@ -194,7 +194,7 @@ describe('sendStandardResponse', () => {
       await sendPromise
     })
 
-    it('without', async () => {
+    it('without error', async () => {
       let clean = false
       const res: StandardResponse = {
         body: (async function* () {

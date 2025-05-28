@@ -1,11 +1,12 @@
 import type { StandardBody, StandardHeaders } from '@orpc/standard-server'
-import type { ToEventStreamOptions } from './event-iterator'
+import type { ToNodeHttpBodyOptions } from '@orpc/standard-server-node'
+import type { Readable } from 'node:stream'
 import type { APIGatewayProxyEventV2 } from './types'
 import { Buffer } from 'node:buffer'
-import { Readable } from 'node:stream'
-import { isAsyncIteratorObject, parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
-import { flattenHeader, generateContentDisposition, getFilenameFromContentDisposition } from '@orpc/standard-server'
-import { toEventIterator, toEventStream } from './event-iterator'
+import { parseEmptyableJSON } from '@orpc/shared'
+import { getFilenameFromContentDisposition } from '@orpc/standard-server'
+import { toNodeHttpBody } from '@orpc/standard-server-node'
+import { toEventIterator } from './event-iterator'
 
 export async function toStandardBody(event: APIGatewayProxyEventV2): Promise<StandardBody> {
   const contentType = event.headers['content-type']
@@ -41,52 +42,16 @@ export async function toStandardBody(event: APIGatewayProxyEventV2): Promise<Sta
   return _parseAsFile(event.body, event.isBase64Encoded, 'blob', contentType)
 }
 
-export interface ToLambdaBodyOptions extends ToEventStreamOptions { }
+export interface ToLambdaBodyOptions extends ToNodeHttpBodyOptions {}
 
 export function toLambdaBody(
-  body: StandardBody,
-  headers: StandardHeaders,
+  standardBody: StandardBody,
+  standardHeaders: StandardHeaders,
   options: ToLambdaBodyOptions = {},
 ): [body: undefined | string | Readable, headers: StandardHeaders] {
-  const currentContentDisposition = flattenHeader(headers['content-disposition'])
-  headers = { ...headers, 'content-type': undefined, 'content-disposition': undefined }
-
-  if (body === undefined) {
-    return [undefined, headers]
-  }
-
-  if (body instanceof Blob) {
-    headers['content-type'] = body.type
-    headers['content-length'] = body.size.toString()
-    headers['content-disposition'] = currentContentDisposition ?? generateContentDisposition(body instanceof File ? body.name : 'blob')
-
-    return [Readable.fromWeb(body.stream()), headers]
-  }
-
-  if (body instanceof FormData) {
-    const response = new Response(body)
-    headers['content-type'] = response.headers.get('content-type')!
-
-    return [Readable.fromWeb(response.body!), headers]
-  }
-
-  if (body instanceof URLSearchParams) {
-    headers['content-type'] = 'application/x-www-form-urlencoded'
-
-    return [body.toString(), headers]
-  }
-
-  if (isAsyncIteratorObject(body)) {
-    headers['content-type'] = 'text/event-stream'
-    headers['cache-control'] = 'no-cache'
-    headers.connection = 'keep-alive'
-
-    return [toEventStream(body, options), headers]
-  }
-
-  headers['content-type'] = 'application/json'
-
-  return [stringifyJSON(body), headers]
+  standardHeaders = { ...standardHeaders }
+  const body = toNodeHttpBody(standardBody, standardHeaders, options)
+  return [body, standardHeaders]
 }
 
 function _parseAsFile(body: string | undefined, isBase64Encoded: boolean, fileName: string, contentType: string): File {

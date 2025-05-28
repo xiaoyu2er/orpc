@@ -5,7 +5,8 @@
     "types": ["node"]
   },
   "references": [
-    { "path": "../shared" }
+    { "path": "../shared" },
+    { "path": "../standard-server-node" }
   ],
   "include": ["src"],
   "exclude": [

@@ -30,7 +30,7 @@ export function sendStandardResponse(
     }
     else if (typeof body === 'string') {
       responseStream.write(body)
-      responseStream.end()
+      responseStream.end() // awslambda will throw if we call .end with args
     }
     else {
       responseStream.once('close', () => {

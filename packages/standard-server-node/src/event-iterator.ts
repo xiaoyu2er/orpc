@@ -1,4 +1,4 @@
-import type { ToEventStreamOptions } from '@orpc/standard-server-fetch'
+import type { ToEventStreamOptions as BaseToEventStreamOptions } from '@orpc/standard-server-fetch'
 import { Readable } from 'node:stream'
 import {
   toEventIterator as baseToEventIterator,
@@ -11,7 +11,7 @@ export function toEventIterator(
   return baseToEventIterator(Readable.toWeb(stream))
 }
 
-export { ToEventStreamOptions }
+export interface ToEventStreamOptions extends BaseToEventStreamOptions {}
 
 export function toEventStream(
   iterator: AsyncIterator<unknown | void, unknown | void, void>,

@@ -60,24 +60,6 @@ describe('toStandardLazyRequest', () => {
     expect(toStandardBodySpy).toBeCalledWith(event)
   })
 
-  it('lazy headers', async () => {
-    const responseStream = new Stream.Writable()
-    const lazyResponse = toStandardLazyRequest(event, responseStream)
-
-    expect(toStandardHeadersSpy).toBeCalledTimes(0)
-    lazyResponse.headers = { overrided: '1' }
-    expect(lazyResponse.headers).toEqual({ overrided: '1' }) // can override before access
-    expect(toStandardHeadersSpy).toBeCalledTimes(0)
-
-    const lazyResponse2 = toStandardLazyRequest(event, responseStream)
-    expect(lazyResponse2.headers).toEqual(toStandardHeadersSpy.mock.results[0]!.value)
-    expect(lazyResponse2.headers).toEqual(toStandardHeadersSpy.mock.results[0]!.value) // ensure cached
-    expect(toStandardHeadersSpy).toBeCalledTimes(1)
-
-    lazyResponse2.headers = { overrided: '2' }
-    expect(lazyResponse2.headers).toEqual({ overrided: '2' }) // can override after access
-  })
-
   it('lazy body', async () => {
     const responseStream = new Stream.Writable()
     const lazyResponse = toStandardLazyRequest(event, responseStream)

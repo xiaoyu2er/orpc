@@ -11,14 +11,7 @@ export function toStandardLazyRequest(event: APIGatewayProxyEventV2, responseStr
   return {
     url: toStandardUrl(event),
     method: event.requestContext.http.method,
-    get headers() {
-      const headers = toStandardHeaders(event.headers, event.cookies)
-      Object.defineProperty(this, 'headers', { value: headers, writable: true })
-      return headers
-    },
-    set headers(value) {
-      Object.defineProperty(this, 'headers', { value, writable: true })
-    },
+    headers: toStandardHeaders(event.headers, event.cookies),
     signal: toAbortSignal(responseStream),
     body: once(() => toStandardBody(event)),
   }

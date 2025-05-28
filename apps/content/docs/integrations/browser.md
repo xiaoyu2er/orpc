@@ -85,20 +85,20 @@ clientPort.start()
 
 :::
 
-## Advanced: Bridge Pattern
+## Advanced: Relay Pattern
 
 In some advanced cases, direct communication between scripts isn’t possible. For example, a content script running in the ["MAIN" world](https://developer.chrome.com/docs/extensions/reference/manifest/content-scripts#world-timings) cannot directly communicate with the background script using `browser.runtime` or `chrome.runtime` APIs.
 
-To work around this, you can use a **bridge** typically an additional content script running in the default **"ISOLATED" world** to relay messages between the two contexts. This bridge acts as an intermediary, enabling communication where direct access is restricted.
+To work around this, you can use a **relay pattern** typically an additional content script running in the default **"ISOLATED" (default) world** to relay messages between the two contexts. This **relay pattern** acts as an intermediary, enabling communication where direct access is restricted.
 
 ::: code-group
 
-```ts [bridge]
+```ts [relay]
 window.addEventListener('message', (event) => {
   if (event.data instanceof MessagePort) {
     const port = browser.runtime.connect()
 
-    // The Message Port Adapter is simple to bridge just relay `message` and `close/disconnect` events.
+    // Relay `message` and `close/disconnect` events between the MessagePort and runtime.Port
 
     event.data.addEventListener('message', (event) => {
       port.postMessage(event.data)

@@ -7,11 +7,11 @@ description: Using oRPC with Message Ports
 
 oRPC offers built-in support for common Message Port implementations, enabling easy internal communication between different processes.
 
-| Environment                                                                                                                 | Documentation                                             |
-| --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| [Electron Message Port](https://www.electronjs.org/docs/latest/tutorial/message-ports)                                      | [Integration Guide](/docs/integrations/electron)          |
-| [Browser Extension Long-lived Connections](https://developer.chrome.com/docs/extensions/develop/concepts/messaging#connect) | [Integration Guide](/docs/integrations/browser-extension) |
-| [Node.js Worker Threads Port](https://nodejs.org/api/worker_threads.html#workerparentport)                                  | [Integration Guide](/docs/integrations/worker-threads)    |
+| Environment                                                                                | Documentation                                          |
+| ------------------------------------------------------------------------------------------ | ------------------------------------------------------ |
+| [Electron Message Port](https://www.electronjs.org/docs/latest/tutorial/message-ports)     | [Integration Guide](/docs/integrations/electron)       |
+| Browser (extension background to popup/content, window to window, etc.)                    | [Integration Guide](/docs/integrations/browser)        |
+| [Node.js Worker Threads Port](https://nodejs.org/api/worker_threads.html#workerparentport) | [Integration Guide](/docs/integrations/worker-threads) |
 
 ## Basic Usage
 
@@ -31,6 +31,8 @@ const handler = new RPCHandler(router)
 handler.upgrade(serverPort, {
   context: {}, // Optionally provide an initial context
 })
+
+serverPort.start()
 ```
 
 ```ts [client]
@@ -39,6 +41,8 @@ import { experimental_RPCLink as RPCLink } from '@orpc/client/message-port'
 const link = new RPCLink({
   port: clientPort,
 })
+
+clientPort.start()
 ```
 
 :::info

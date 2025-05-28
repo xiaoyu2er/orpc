@@ -7,7 +7,7 @@ description: Type-safe communication between browser scripts using Message Port 
 
 Enable type-safe communication between browser scripts using the [Message Port Adapter](/docs/adapters/message-port).
 
-## Browser Extension Scripts
+## Between Extension Scripts
 
 To set up communication between scripts in a browser extension (e.g. background, content, popup), configure one script to listen for connections and upgrade them, and another to initiate the connection.
 
@@ -45,7 +45,7 @@ const link = new RPCLink({
 This only shows how to configure the link. For full client examples, see [Client-Side Clients](/docs/client/client-side).
 :::
 
-## Window ↔ Window Communication
+## Window to Window
 
 To enable communication between two window contexts (e.g. parent and popup), one must listen and upgrade the port, and the other must initiate the connection.
 

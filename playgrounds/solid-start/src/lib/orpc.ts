@@ -1,5 +1,5 @@
 if (typeof window === 'undefined') {
-  console.log(await import('./orpc.server'))
+  await import('./orpc.server')
 }
 
 import type { RouterClient } from '@orpc/server'

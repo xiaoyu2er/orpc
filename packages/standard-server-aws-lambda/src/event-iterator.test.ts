@@ -5,17 +5,12 @@ import { toEventIterator, toEventStream } from './event-iterator'
 
 describe('toEventIterator', () => {
   it('with done event', async () => {
-    const stream = Readable.fromWeb(new ReadableStream<string>({
-      async pull(controller) {
-        controller.enqueue('event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n')
-        controller.enqueue('event: message\ndata: {"order": 2}\nid: id-2\n\n')
-        controller.enqueue(': ping\n\n')
-        controller.enqueue('event: done\ndata: {"order": 3}\nid: id-3\nretry: 30000\n\n')
-        controller.close()
-      },
-    }).pipeThrough(new TextEncoderStream()))
-
-    const generator = toEventIterator(stream)
+    const generator = toEventIterator(
+      'event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n'
+      + 'event: message\ndata: {"order": 2}\nid: id-2\n\n'
+      + ': ping\n\n'
+      + 'event: done\ndata: {"order": 3}\nid: id-3\nretry: 30000\n\n',
+    )
     expect(generator).toSatisfy(isAsyncIteratorObject)
 
     expect(await generator.next()).toSatisfy(({ done, value }) => {
@@ -44,16 +39,11 @@ describe('toEventIterator', () => {
   })
 
   it('without done event', async () => {
-    const stream = Readable.fromWeb(new ReadableStream<string>({
-      async pull(controller) {
-        controller.enqueue('event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n')
-        controller.enqueue('event: message\ndata: {"order": 2}\nid: id-2\n\n')
-        controller.enqueue(': ping\n\n')
-        controller.close()
-      },
-    }).pipeThrough(new TextEncoderStream()))
-
-    const generator = toEventIterator(stream)
+    const generator = toEventIterator(
+      'event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n'
+      + 'event: message\ndata: {"order": 2}\nid: id-2\n\n'
+      + ': ping\n\n',
+    )
     expect(generator).toSatisfy(isAsyncIteratorObject)
 
     expect(await generator.next()).toSatisfy(({ done, value }) => {
@@ -79,22 +69,15 @@ describe('toEventIterator', () => {
 
       return true
     })
-
-    await expect(Readable.toWeb(stream).getReader().closed).resolves.toBe(undefined)
   })
 
   it('with error event', async () => {
-    const stream = Readable.fromWeb(new ReadableStream<string>({
-      async pull(controller) {
-        controller.enqueue('event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n')
-        controller.enqueue('event: message\ndata: {"order": 2}\nid: id-2\n\n')
-        controller.enqueue(': ping\n\n')
-        controller.enqueue('event: error\ndata: {"order": 3}\nid: id-3\nretry: 30000\n\n')
-        controller.close()
-      },
-    }).pipeThrough(new TextEncoderStream()))
-
-    const generator = toEventIterator(stream)
+    const generator = toEventIterator(
+      'event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n'
+      + 'event: message\ndata: {"order": 2}\nid: id-2\n\n'
+      + ': ping\n\n'
+      + 'event: error\ndata: {"order": 3}\nid: id-3\nretry: 30000\n\n',
+    )
     expect(generator).toSatisfy(isAsyncIteratorObject)
 
     expect(await generator.next()).toSatisfy(({ done, value }) => {
@@ -120,35 +103,13 @@ describe('toEventIterator', () => {
 
       return true
     })
-
-    await expect(Readable.toWeb(stream).getReader().closed).resolves.toBe(undefined)
   })
 
-  it('when .return() before finish reading', async () => {
-    const stream = Readable.fromWeb(new ReadableStream<string>({
-      async pull(controller) {
-        controller.enqueue(': ping\n\n')
-        controller.enqueue('event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n')
-        controller.enqueue('event: message\ndata: {"order": 2}\nid: id-2\n\n')
-        controller.enqueue('event: unknown\ndata: {"order": 3}\nid: id-3\nretry: 30000')
-        controller.close()
-      },
-    }).pipeThrough(new TextEncoderStream()))
-
-    const generator = toEventIterator(stream)
+  it('with body=undefined', async () => {
+    const generator = toEventIterator(undefined)
     expect(generator).toSatisfy(isAsyncIteratorObject)
 
-    expect(await generator.next()).toSatisfy(({ done, value }) => {
-      expect(done).toEqual(false)
-      expect(value).toEqual({ order: 1 })
-      expect(getEventMeta(value)).toEqual(expect.objectContaining({ id: 'id-1', retry: 10000 }))
-
-      return true
-    })
-
-    await generator.return(undefined)
-
-    await expect(Readable.toWeb(stream).getReader().closed).resolves.toBe(undefined)
+    expect(await generator.next()).toEqual({ done: true, value: undefined })
   })
 })
 
@@ -319,11 +280,18 @@ it.each([
   [[1, 2, 3, 4, 5, 6]],
   [[{ a: 1 }, { b: 2 }, { c: 3 }, { d: 4 }, { e: 5 }, { f: 6 }]],
 ])('toEventStream + toEventIterator: %#', async (...values) => {
-  const iterator = toEventIterator(toEventStream((async function* () {
+  const stream = toEventStream((async function* () {
     for (const value of values) {
       yield value
     }
-  })(), { eventIteratorKeepAliveInterval: 0 }))
+  })(), { eventIteratorKeepAliveInterval: 0 })
+
+  let text = ''
+  for await (const value of stream) {
+    text += value.toString()
+  }
+
+  const iterator = toEventIterator(text)
 
   for await (const value of iterator) {
     expect(value).toEqual(values.shift())

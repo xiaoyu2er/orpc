@@ -16,6 +16,7 @@
     { "path": "./packages/standard-server" },
     { "path": "./packages/standard-server-fetch" },
     { "path": "./packages/standard-server-node" },
+    { "path": "./packages/standard-server-aws-lambda" },
     { "path": "./packages/standard-server-peer" }
   ],
   "include": [

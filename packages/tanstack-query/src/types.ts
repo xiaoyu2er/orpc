@@ -2,8 +2,8 @@ import type { ClientContext } from '@orpc/client'
 import type { PartialDeep, SetOptional } from '@orpc/shared'
 import type {
   experimental_streamedQuery,
+  InfiniteData,
   InfiniteQueryObserverOptions,
-  MutationFunction,
   MutationObserverOptions,
   QueryFunction,
   QueryKey,
@@ -33,7 +33,8 @@ export type QueryOptionsIn<TClientContext extends ClientContext, TInput, TOutput
 export interface QueryOptionsBase<TOutput, TError> {
   queryKey: QueryKey
   queryFn: QueryFunction<TOutput>
-  throwOnError?(error: TError): boolean // Help TQ infer TError
+  throwOnError?: (error: TError) => boolean // Help TQ infer TError
+  retryDelay?: (count: number, error: TError) => number // Help TQ infer TError (suspense hooks)
   enabled: boolean
 }
 
@@ -52,16 +53,14 @@ export type InfiniteOptionsIn<TClientContext extends ClientContext, TInput, TOut
 export interface InfiniteOptionsBase<TOutput, TError, TPageParam> {
   queryKey: QueryKey
   queryFn: QueryFunction<TOutput, QueryKey, TPageParam>
-  throwOnError?(error: TError): boolean // Help TQ infer TError
+  select?(): InfiniteData<TOutput, TPageParam> // Help TQ infer TPageParam
+  throwOnError?: (error: TError) => boolean // Help TQ infer TError
+  retryDelay?: (count: number, error: TError) => number // Help TQ infer TError (suspense hooks)
   enabled: boolean
 }
 
 export type MutationOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TMutationContext> =
     & (Record<never, never> extends TClientContext ? { context?: TClientContext } : { context: TClientContext })
-    & MutationObserverOptions<TOutput, TError, TInput, TMutationContext>
+    & MutationOptions<TInput, TOutput, TError, TMutationContext>
 
-export type MutationOptionsBase<TInput, TOutput, TError, TMutationContext> = {
-  mutationKey: QueryKey
-  mutationFn: MutationFunction<TOutput, TInput>
-  onError?(error: TError, variables: TInput, context: TMutationContext | undefined): void // Help TQ infer TError and TMutationContext
-}
+export type MutationOptions<TInput, TOutput, TError, TMutationContext> = MutationObserverOptions<TOutput, TError, TInput, TMutationContext>

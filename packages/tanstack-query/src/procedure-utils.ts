@@ -5,7 +5,7 @@ import type {
   experimental_StreamedQueryOutput,
   InfiniteOptionsBase,
   InfiniteOptionsIn,
-  MutationOptionsBase,
+  MutationOptions,
   MutationOptionsIn,
   QueryOptionsBase,
   QueryOptionsIn,
@@ -61,11 +61,11 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
    *
    * @see {@link https://orpc.unnoq.com/docs/tanstack-query/basic#mutation-options Tanstack Mutation Options Docs}
    */
-  mutationOptions<U, UMutationContext>(
+  mutationOptions<UMutationContext>(
     ...rest: MaybeOptionalOptions<
-      U & MutationOptionsIn<TClientContext, TInput, TOutput, TError, UMutationContext>
+      MutationOptionsIn<TClientContext, TInput, TOutput, TError, UMutationContext>
     >
-  ): NoInfer<U & Omit<MutationOptionsBase<TInput, TOutput, TError, UMutationContext>, keyof U>>
+  ): NoInfer<MutationOptions<TInput, TOutput, TError, UMutationContext>>
 }
 
 export interface CreateProcedureUtilsOptions {

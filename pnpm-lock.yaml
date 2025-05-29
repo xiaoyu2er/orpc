@@ -552,9 +552,12 @@ importers:
         specifier: workspace:*
         version: link:../shared
     devDependencies:
+      '@angular/core':
+        specifier: ^20.0.0
+        version: 20.0.0(rxjs@7.8.2)(zone.js@0.15.1)
       '@tanstack/angular-query-experimental':
         specifier: ^5.77.2
-        version: 5.77.2(@angular/common@19.2.14(@angular/core@19.2.14(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.14(rxjs@7.8.2)(zone.js@0.15.1))
+        version: 5.77.2(@angular/common@19.2.14(@angular/core@20.0.0(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.0.0(rxjs@7.8.2)(zone.js@0.15.1))
       '@tanstack/query-core':
         specifier: ^5.77.2
         version: 5.77.2
@@ -570,6 +573,9 @@ importers:
       '@tanstack/vue-query':
         specifier: ^5.77.2
         version: 5.77.2(vue@3.5.16(typescript@5.8.3))
+      svelte:
+        specifier: ^5.26.2
+        version: 5.33.1
       vue:
         specifier: ^3.5.16
         version: 3.5.16(typescript@5.8.3)
@@ -1304,12 +1310,18 @@ packages:
       '@angular/core': 19.2.14
       rxjs: ^6.5.3 || ^7.4.0
 
-  '@angular/core@19.2.14':
-    resolution: {integrity: sha512-EVErpW9tGqJ/wNcAN3G/ErH8pHCJ8mM1E6bsJ8UJIpDTZkpqqYjBMtZS9YWH5n3KwUd1tAkAB2w8FK125AjDUQ==}
-    engines: {node: ^18.19.1 || ^20.11.1 || >=22.0.0}
+  '@angular/core@20.0.0':
+    resolution: {integrity: sha512-2UjKbTtYSY8omY+LE4G6hQ1/R4PkE6NY7/2u99TxLH/oOnc9broCH1g9ITU+n0eJURcOFeK0/w6RdSrK+di3pg==}
+    engines: {node: ^20.19.0 || ^22.12.0 || >=24.0.0}
     peerDependencies:
+      '@angular/compiler': 20.0.0
       rxjs: ^6.5.3 || ^7.4.0
       zone.js: ~0.15.0
+    peerDependenciesMeta:
+      '@angular/compiler':
+        optional: true
+      zone.js:
+        optional: true
 
   '@antfu/eslint-config@4.13.2':
     resolution: {integrity: sha512-F+IVIQUCfw6eW4H06c9a9USJ3UOnoBx4I0qsTL3kO6GcyJB6mwk+nawFf95DfHKT3fJKv58YPPz0XCmsY/w0XA==}
@@ -8674,6 +8686,7 @@ packages:
   multer@1.4.5-lts.2:
     resolution: {integrity: sha512-VzGiVigcG9zUAoCNU+xShztrlr1auZOlurXynNvO9GiWD1/mTBbUljOKY+qMeazBqXgRnjzeEgJI/wyjJUHg9A==}
     engines: {node: '>= 6.0.0'}
+    deprecated: Multer 1.x is impacted by a number of vulnerabilities, which have been patched in 2.x. You should upgrade to the latest 2.x version.
 
   multimatch@6.0.0:
     resolution: {integrity: sha512-I7tSVxHGPlmPN/enE3mS1aOSo6bWBfls+3HmuEeCUBCE7gWnm3cBXCBkpurzFjVRwC6Kld8lLaZ1Iv5vOcjvcQ==}
@@ -12167,16 +12180,17 @@ snapshots:
     transitivePeerDependencies:
       - chokidar
 
-  '@angular/common@19.2.14(@angular/core@19.2.14(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)':
+  '@angular/common@19.2.14(@angular/core@20.0.0(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)':
     dependencies:
-      '@angular/core': 19.2.14(rxjs@7.8.2)(zone.js@0.15.1)
+      '@angular/core': 20.0.0(rxjs@7.8.2)(zone.js@0.15.1)
       rxjs: 7.8.2
       tslib: 2.8.1
 
-  '@angular/core@19.2.14(rxjs@7.8.2)(zone.js@0.15.1)':
+  '@angular/core@20.0.0(rxjs@7.8.2)(zone.js@0.15.1)':
     dependencies:
       rxjs: 7.8.2
       tslib: 2.8.1
+    optionalDependencies:
       zone.js: 0.15.1
 
   '@antfu/eslint-config@4.13.2(@vue/compiler-sfc@3.5.16)(eslint-plugin-format@1.0.1(eslint@9.27.0(jiti@2.4.2)))(eslint@9.27.0(jiti@2.4.2))(typescript@5.8.3)(vitest@3.1.4)':
@@ -14880,10 +14894,10 @@ snapshots:
     dependencies:
       defer-to-connect: 2.0.1
 
-  '@tanstack/angular-query-experimental@5.77.2(@angular/common@19.2.14(@angular/core@19.2.14(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.14(rxjs@7.8.2)(zone.js@0.15.1))':
+  '@tanstack/angular-query-experimental@5.77.2(@angular/common@19.2.14(@angular/core@20.0.0(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.0.0(rxjs@7.8.2)(zone.js@0.15.1))':
     dependencies:
-      '@angular/common': 19.2.14(@angular/core@19.2.14(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)
-      '@angular/core': 19.2.14(rxjs@7.8.2)(zone.js@0.15.1)
+      '@angular/common': 19.2.14(@angular/core@20.0.0(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)
+      '@angular/core': 20.0.0(rxjs@7.8.2)(zone.js@0.15.1)
       '@tanstack/query-core': 5.77.2
       '@tanstack/query-devtools': 5.76.0
 
@@ -25085,6 +25099,7 @@ snapshots:
 
   zod@3.25.23: {}
 
-  zone.js@0.15.1: {}
+  zone.js@0.15.1:
+    optional: true
 
   zwitch@2.0.4: {}

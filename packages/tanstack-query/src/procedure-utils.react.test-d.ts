@@ -356,6 +356,10 @@ describe('ProcedureUtils', () => {
         const mutation = useMutation(optionalUtils.mutationOptions())
         expectTypeOf(mutation.data).toEqualTypeOf<UtilsOutput | undefined>()
         expectTypeOf(mutation.error).toEqualTypeOf<UtilsError | null>()
+
+        mutation.mutate({ cursor: 1 })
+        // @ts-expect-error - invalid input
+        mutation.mutate({ cursor: 'invalid' })
       })
 
       it('can infer errors & variables & mutation context inside options', () => {
@@ -373,6 +377,10 @@ describe('ProcedureUtils', () => {
 
         expectTypeOf(mutation.data).toEqualTypeOf<UtilsOutput | undefined>()
         expectTypeOf(mutation.error).toEqualTypeOf<UtilsError | null>()
+
+        mutation.mutate({ cursor: 1 })
+        // @ts-expect-error - invalid input
+        mutation.mutate({ cursor: 'invalid' })
       })
     })
   })

@@ -71,17 +71,22 @@ export class StandardBracketNotationSerializer {
         nextSegment = segment
       })
 
-      if (Array.isArray(currentRef)) {
-        if (nextSegment === '') {
-          arrayPushStyles.add(currentRef)
-          currentRef.push(value)
-        }
-        else {
-          currentRef[Number(nextSegment)] = value
-        }
+      if (Array.isArray(currentRef) && nextSegment === '') {
+        arrayPushStyles.add(currentRef)
+        currentRef.push(value)
       }
       else {
-        currentRef[nextSegment] = value
+        if (nextSegment in currentRef) {
+          if (Array.isArray(currentRef[nextSegment])) {
+            currentRef[nextSegment].push(value)
+          }
+          else {
+            currentRef[nextSegment] = [currentRef[nextSegment], value]
+          }
+        }
+        else {
+          currentRef[nextSegment] = value
+        }
       }
     }
 

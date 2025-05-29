@@ -18,6 +18,7 @@ export default defineWorkspace([
       include: [
         './packages/react/**/*.test.tsx',
         './packages/react-query/**/*.test.tsx',
+        './packages/tanstack-query/**/*.test.tsx',
         './packages/vue-colada/**/*.test.tsx',
         './packages/vue-query/**/*.test.tsx',
       ],

@@ -20,7 +20,7 @@ export interface CreateRouterUtilsOptions {
  * Create a router utils from a client.
  *
  * @info Both client-side and server-side clients are supported.
- * @see {@link https://orpc.unnoq.com/docs/tanstack-query/new Tanstack Query Docs}
+ * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query Tanstack Query Integration}
  */
 export function createRouterUtils<T extends NestedClient<any>>(
   client: T,

@@ -107,13 +107,6 @@ export default defineConfig({
           ],
         },
         {
-          text: 'Integrations',
-          collapsed: true,
-          items: [
-
-          ],
-        },
-        {
           text: 'Plugins',
           collapsed: true,
           items: [
@@ -139,15 +132,24 @@ export default defineConfig({
           ],
         },
         {
-          text: 'Tanstack Query',
+          text: 'Integrations',
           collapsed: true,
           items: [
-            { text: 'New', link: '/docs/tanstack-query/new' },
-            { text: 'Basic', link: '/docs/tanstack-query/basic' },
-            { text: 'React', link: '/docs/tanstack-query/react' },
-            { text: 'Vue', link: '/docs/tanstack-query/vue' },
-            { text: 'Solid', link: '/docs/tanstack-query/solid' },
-            { text: 'Svelte', link: '/docs/tanstack-query/svelte' },
+            { text: 'Tanstack Query', link: '/docs/integrations/tanstack-query' },
+            {
+              text: 'Tanstack Query (Old)',
+              collapsed: true,
+              items: [
+                { text: 'Basic', link: '/docs/integrations/tanstack-query-old/basic' },
+                { text: 'React', link: '/docs/integrations/tanstack-query-old/react' },
+                { text: 'Vue', link: '/docs/integrations/tanstack-query-old/vue' },
+                { text: 'Solid', link: '/docs/integrations/tanstack-query-old/solid' },
+                { text: 'Svelte', link: '/docs/integrations/tanstack-query-old/svelte' },
+              ],
+            },
+            { text: 'Pinia Colada', link: '/docs/integrations/pinia-colada' },
+            { text: 'Hey API', link: '/docs/integrations/hey-api' },
+            { text: 'NestJS', link: '/docs/openapi/integrations/implement-contract-in-nest' },
           ],
         },
         {
@@ -175,9 +177,6 @@ export default defineConfig({
           text: 'Others',
           collapsed: true,
           items: [
-            { text: 'Pinia Colada', link: '/docs/pinia-colada' },
-            { text: 'Hey API', link: '/docs/hey-api' },
-            { text: 'NestJS', link: '/docs/openapi/nest/implement-contract' },
             { text: 'Playgrounds', link: '/docs/playgrounds' },
             { text: 'Comparison', link: '/docs/comparison' },
             { text: 'Ecosystem', link: '/docs/ecosystem' },
@@ -209,10 +208,10 @@ export default defineConfig({
           ],
         },
         {
-          text: 'NestJS',
+          text: 'Integrations',
           collapsed: true,
           items: [
-            { text: 'Implement Contract', link: '/docs/openapi/nest/implement-contract' },
+            { text: 'Implement Contract in NestJS', link: '/docs/openapi/integrations/implement-contract-in-nest' },
           ],
         },
         {

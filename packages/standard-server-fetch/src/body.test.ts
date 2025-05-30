@@ -290,8 +290,6 @@ describe('toFetchBody', () => {
 
     expect(body).toBeInstanceOf(ReadableStream)
     expect([...headers]).toEqual([
-      ['cache-control', 'no-cache'],
-      ['connection', 'keep-alive'],
       ['content-type', 'text/event-stream'],
       ['x-custom-header', 'custom-value'],
     ])

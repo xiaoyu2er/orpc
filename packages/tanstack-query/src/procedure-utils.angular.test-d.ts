@@ -170,7 +170,7 @@ describe('ProcedureUtils', () => {
           initialPageParam,
         }))
         expectTypeOf(query.data()).toEqualTypeOf<InfiniteData<UtilsOutput, number> | undefined>()
-        // @ts-expect-error - TODO: fix this, seem svelte-query injectInfiniteQuery cannot infer error
+        // @ts-expect-error - TODO: fix this, seem angular-query injectInfiniteQuery cannot infer error
         expectTypeOf(query.error()).toEqualTypeOf<UtilsError | null>()
       })
 
@@ -186,7 +186,7 @@ describe('ProcedureUtils', () => {
         }))
 
         expectTypeOf(query.data()).toEqualTypeOf<InfiniteData<UtilsOutput, number> | undefined>()
-        // @ts-expect-error - TODO: fix this, seem svelte-query injectInfiniteQuery cannot infer error
+        // @ts-expect-error - TODO: fix this, seem angular-query injectInfiniteQuery cannot infer error
         expectTypeOf(query.error()).toEqualTypeOf<UtilsError | null>()
       })
 
@@ -200,7 +200,7 @@ describe('ProcedureUtils', () => {
         }))
 
         expectTypeOf(query.data()).toEqualTypeOf<{ mapped: InfiniteData<UtilsOutput, number> }>()
-        // @ts-expect-error - TODO: fix this, seem svelte-query injectInfiniteQuery cannot infer error
+        // @ts-expect-error - TODO: fix this, seem angular-query injectInfiniteQuery cannot infer error
         expectTypeOf(query.error()).toEqualTypeOf<UtilsError | null>()
       })
     })

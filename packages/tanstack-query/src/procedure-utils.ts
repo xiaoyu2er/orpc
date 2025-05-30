@@ -17,9 +17,7 @@ import { isAsyncIteratorObject } from '@orpc/shared'
 import { experimental_streamedQuery, skipToken } from '@tanstack/query-core'
 import { generateOperationKey } from './key'
 import {
-
   OPERATION_CONTEXT_SYMBOL,
-
 } from './types'
 
 export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError> {

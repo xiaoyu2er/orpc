@@ -1,5 +1,4 @@
-import type { OperationKeyOptions, OperationType } from '@orpc/tanstack-query'
-import type { QueryKey } from '@tanstack/svelte-query'
+import type { OperationKey, OperationKeyOptions, OperationType } from '@orpc/tanstack-query'
 import { generateOperationKey } from '@orpc/tanstack-query'
 
 /**
@@ -11,12 +10,10 @@ export interface GeneralUtils<TInput> {
    *
    * @see {@link https://orpc.unnoq.com/docs/tanstack-query/basic#query-mutation-key Tanstack Query/Mutation Key Docs}
    */
-  key<UType extends OperationType>(options?: OperationKeyOptions<UType, TInput>): QueryKey
+  key<TType extends OperationType>(options?: OperationKeyOptions<TType, TInput>): OperationKey<TType, TInput>
 }
 
-export function createGeneralUtils<TInput>(
-  path: string[],
-): GeneralUtils<TInput> {
+export function createGeneralUtils<TInput>(path: readonly string[]): GeneralUtils<TInput> {
   return {
     key(options) {
       return generateOperationKey(path, options)

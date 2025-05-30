@@ -1,9 +1,9 @@
-import * as Key from '@orpc/tanstack-query'
-import { experimental_streamedQuery, skipToken } from '@tanstack/svelte-query'
-import { queryClient } from '../tests/shared'
+import { QueryClient, skipToken, experimental_streamedQuery as streamedQuery } from '@tanstack/query-core'
+import * as KeyModule from './key'
 import { createProcedureUtils } from './procedure-utils'
+import { OPERATION_CONTEXT_SYMBOL } from './types'
 
-vi.mock('@tanstack/svelte-query', async (origin) => {
+vi.mock('@tanstack/query-core', async (origin) => {
   const original = await origin() as any
 
   return {
@@ -12,7 +12,9 @@ vi.mock('@tanstack/svelte-query', async (origin) => {
   }
 })
 
-const generateOperationKeySpy = vi.spyOn(Key, 'generateOperationKey')
+const generateOperationKeySpy = vi.spyOn(KeyModule, 'generateOperationKey')
+
+const queryClient = new QueryClient()
 
 beforeEach(() => {
   queryClient.clear()
@@ -20,9 +22,8 @@ beforeEach(() => {
 })
 
 describe('createProcedureUtils', () => {
-  const controller = new AbortController()
-  const signal = controller.signal
-  const client = vi.fn().mockResolvedValue('__output__')
+  const signal = new AbortController().signal
+  const client = vi.fn()
   const utils = createProcedureUtils(client, { path: ['ping'] })
 
   it('.call', () => {
@@ -39,9 +40,16 @@ describe('createProcedureUtils', () => {
       expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
       expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'query', input: { search: '__search__' } })
 
+      client.mockResolvedValueOnce('__output__')
       await expect(options.queryFn!({ signal } as any)).resolves.toEqual('__output__')
       expect(client).toHaveBeenCalledTimes(1)
-      expect(client).toBeCalledWith({ search: '__search__' }, { signal, context: { batch: '__batch__' } })
+      expect(client).toBeCalledWith({ search: '__search__' }, { signal, context: {
+        batch: '__batch__',
+        [OPERATION_CONTEXT_SYMBOL]: {
+          key: options.queryKey,
+          type: 'query',
+        },
+      } })
     })
 
     it('with skipToken', async () => {
@@ -60,16 +68,12 @@ describe('createProcedureUtils', () => {
 
   describe('.streamedOptions', () => {
     it('without skipToken', async () => {
-      client.mockImplementationOnce(async function* (input) {
-        yield '__1__'
-        yield '__2__'
-        return '__3__'
-      })
-
       const options = utils.experimental_streamedOptions({
         input: { search: '__search__' },
         context: { batch: '__batch__' },
-        queryFnOptions: { refetchMode: 'replace' },
+        queryFnOptions: {
+          refetchMode: 'replace',
+        },
       })
 
       expect(options.enabled).toBe(true)
@@ -79,21 +83,37 @@ describe('createProcedureUtils', () => {
       expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], {
         type: 'streamed',
         input: { search: '__search__' },
-        fnOptions: { refetchMode: 'replace' },
+        fnOptions: {
+          refetchMode: 'replace',
+        },
       })
 
-      expect(options.queryFn).toBe(vi.mocked(experimental_streamedQuery).mock.results[0]!.value)
-      expect(experimental_streamedQuery).toHaveBeenCalledTimes(1)
-      expect(experimental_streamedQuery).toHaveBeenCalledWith({
+      expect(options.queryFn).toBe(vi.mocked(streamedQuery).mock.results[0]!.value)
+      expect(streamedQuery).toHaveBeenCalledTimes(1)
+      expect(streamedQuery).toHaveBeenCalledWith({
         refetchMode: 'replace',
         queryFn: expect.any(Function),
       })
 
+      client.mockImplementationOnce(async function* (input) {
+        yield '__1__'
+        yield '__2__'
+        return '__3__'
+      })
       await expect(options.queryFn!({ signal, client: queryClient, queryKey: options.queryKey } as any)).resolves.toEqual(['__1__', '__2__'])
       expect(queryClient.getQueryData(options.queryKey)).toEqual(['__1__', '__2__'])
 
       expect(client).toHaveBeenCalledTimes(1)
-      expect(client).toBeCalledWith({ search: '__search__' }, { signal, context: { batch: '__batch__' } })
+      expect(client).toBeCalledWith({ search: '__search__' }, {
+        signal,
+        context: {
+          batch: '__batch__',
+          [OPERATION_CONTEXT_SYMBOL]: {
+            key: options.queryKey,
+            type: 'streamed',
+          },
+        },
+      })
     })
 
     it('with skipToken', async () => {
@@ -110,12 +130,18 @@ describe('createProcedureUtils', () => {
     })
 
     it('with unsupported output', async () => {
-      client.mockResolvedValueOnce('__1__')
       const options = utils.experimental_streamedOptions({ input: { search: '__search__' }, context: { batch: '__batch__' } })
 
+      client.mockResolvedValueOnce('INVALID')
       await expect(options.queryFn!({ signal, client: queryClient } as any)).rejects.toThrow('streamedQuery requires an event iterator output')
       expect(client).toHaveBeenCalledTimes(1)
-      expect(client).toBeCalledWith({ search: '__search__' }, { signal, context: { batch: '__batch__' } })
+      expect(client).toBeCalledWith({ search: '__search__' }, { signal, context: {
+        batch: '__batch__',
+        [OPERATION_CONTEXT_SYMBOL]: {
+          key: options.queryKey,
+          type: 'streamed',
+        },
+      } })
     })
   })
 
@@ -139,9 +165,22 @@ describe('createProcedureUtils', () => {
       expect(options.initialPageParam).toEqual('__initialPageParam__')
       expect(options.getNextPageParam).toBe(getNextPageParam)
 
+      client.mockResolvedValueOnce('__output__')
       await expect(options.queryFn!({ signal, pageParam: '__pageParam__' } as any)).resolves.toEqual('__output__')
       expect(client).toHaveBeenCalledTimes(1)
-      expect(client).toBeCalledWith({ search: '__search__', pageParam: '__pageParam__' }, { signal, context: { batch: '__batch__' } })
+      expect(client).toBeCalledWith(
+        { search: '__search__', pageParam: '__pageParam__' },
+        {
+          signal,
+          context: {
+            batch: '__batch__',
+            [OPERATION_CONTEXT_SYMBOL]: {
+              key: options.queryKey,
+              type: 'infinite',
+            },
+          },
+        },
+      )
     })
 
     it('with skipToken', async () => {
@@ -177,8 +216,15 @@ describe('createProcedureUtils', () => {
     expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
     expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'mutation' })
 
+    client.mockResolvedValueOnce('__output__')
     await expect(options.mutationFn!('__input__')).resolves.toEqual('__output__')
     expect(client).toHaveBeenCalledTimes(1)
-    expect(client).toBeCalledWith('__input__', { context: { batch: '__batch__' } })
+    expect(client).toBeCalledWith('__input__', { context: {
+      batch: '__batch__',
+      [OPERATION_CONTEXT_SYMBOL]: {
+        key: options.mutationKey,
+        type: 'mutation',
+      },
+    } })
   })
 })

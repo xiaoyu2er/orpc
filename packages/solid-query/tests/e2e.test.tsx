@@ -60,8 +60,10 @@ it('case: with useQuery with skipToken', async () => {
 
 it('case: with streamed/useQuery', async () => {
   const { result } = renderHook(() => useQuery(() => streamedOrpc.streamed.experimental_streamedOptions({
-    refetchMode: 'append',
     input: { input: 2 },
+    queryFnOptions: {
+      refetchMode: 'append',
+    },
   }), () => queryClient))
 
   expect(queryClient.isFetching({ queryKey: streamedOrpc.key() })).toEqual(1)
@@ -76,7 +78,7 @@ it('case: with streamed/useQuery', async () => {
   await vi.waitFor(() => expect(result.data).toEqual([{ output: '0' }, { output: '1' }]))
 
   expect(
-    queryClient.getQueryData(streamedOrpc.streamed.key({ input: { input: 2 }, type: 'streamed' })),
+    queryClient.getQueryData(streamedOrpc.streamed.key({ input: { input: 2 }, type: 'streamed', fnOptions: { refetchMode: 'append' } })),
   ).toEqual([{ output: '0' }, { output: '1' }])
 
   // make sure refetch mode works

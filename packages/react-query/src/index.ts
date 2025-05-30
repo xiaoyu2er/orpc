@@ -9,5 +9,5 @@ export {
   createRouterUtils as createORPCReactQueryUtils,
 }
 
-export type { BuildKeyOptions, OperationType as KeyType } from '@orpc/tanstack-query'
-export { buildKey } from '@orpc/tanstack-query'
+export type { OperationKeyOptions as BuildKeyOptions, OperationType as KeyType } from '@orpc/tanstack-query'
+export { generateOperationKey as buildKey } from '@orpc/tanstack-query'

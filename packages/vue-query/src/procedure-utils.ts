@@ -3,7 +3,7 @@ import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { InfiniteData } from '@tanstack/vue-query'
 import type { experimental_InferStreamedOutput, experimental_StreamedOptionsBase, experimental_StreamedOptionsIn, InfiniteOptionsBase, InfiniteOptionsIn, MutationOptions, MutationOptionsIn, QueryOptionsBase, QueryOptionsIn } from './types'
 import { isAsyncIteratorObject } from '@orpc/shared'
-import { buildKey } from '@orpc/tanstack-query'
+import { generateOperationKey } from '@orpc/tanstack-query'
 import { experimental_streamedQuery, skipToken } from '@tanstack/vue-query'
 import { computed } from 'vue'
 import { unrefDeep } from './utils'
@@ -71,7 +71,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
 
     queryOptions(...[optionsIn = {} as any]) {
       return {
-        queryKey: computed(() => buildKey(options.path, { type: 'query', input: unrefDeep(optionsIn.input) })),
+        queryKey: computed(() => generateOperationKey(options.path, { type: 'query', input: unrefDeep(optionsIn.input) })),
         queryFn: ({ signal }) => {
           const input = unrefDeep(optionsIn.input)
 
@@ -89,9 +89,8 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
     experimental_streamedOptions(...[optionsIn = {} as any]) {
       return {
         enabled: computed(() => unrefDeep(optionsIn.input) !== skipToken),
-        queryKey: computed(() => buildKey(options.path, { type: 'streamed', input: unrefDeep(optionsIn.input) })),
+        queryKey: computed(() => generateOperationKey(options.path, { type: 'streamed', input: unrefDeep(optionsIn.input), fnOptions: optionsIn.queryFnOptions })),
         queryFn: experimental_streamedQuery({
-          ...optionsIn,
           queryFn: async ({ signal }) => {
             const input = unrefDeep(optionsIn.input)
 
@@ -107,6 +106,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
 
             return output
           },
+          ...optionsIn.queryFnOptions,
         }),
         ...optionsIn,
       }
@@ -117,7 +117,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
         queryKey: computed(() => {
           const input = unrefDeep(optionsIn.input)
 
-          return buildKey(options.path, {
+          return generateOperationKey(options.path, {
             type: 'infinite',
             input: input === skipToken ? skipToken : unrefDeep(input(unrefDeep(optionsIn.initialPageParam) as any)) as any,
           })
@@ -138,7 +138,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
 
     mutationOptions(...[optionsIn = {} as any]) {
       return {
-        mutationKey: buildKey(options.path, { type: 'mutation' }),
+        mutationKey: generateOperationKey(options.path, { type: 'mutation' }),
         mutationFn: input => client(input, { context: unrefDeep(optionsIn.context) }),
         ...(optionsIn as any),
       }

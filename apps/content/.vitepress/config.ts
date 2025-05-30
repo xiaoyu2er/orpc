@@ -141,6 +141,7 @@ export default defineConfig({
           text: 'Tanstack Query',
           collapsed: true,
           items: [
+            { text: 'New', link: '/docs/tanstack-query/new' },
             { text: 'Basic', link: '/docs/tanstack-query/basic' },
             { text: 'React', link: '/docs/tanstack-query/react' },
             { text: 'Vue', link: '/docs/tanstack-query/vue' },

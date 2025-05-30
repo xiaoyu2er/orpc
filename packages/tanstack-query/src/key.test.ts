@@ -1,17 +1,11 @@
-import { buildKey } from './key'
+import { generateOperationKey } from './key'
 
-describe('buildKey', () => {
-  it('works', () => {
-    expect(buildKey(['path'])).toEqual([['path'], {}])
-    expect(buildKey(['path'], { type: 'query' })).toEqual([['path'], { type: 'query' }])
-
-    expect(buildKey(['path'], { type: 'query', input: { a: 1 } }))
-      .toEqual([['path'], { type: 'query', input: { a: 1 } }])
-
-    expect(buildKey(['path'], { type: 'query', input: undefined }))
-      .toEqual([['path'], { type: 'query' }])
-
-    expect(buildKey(['path'], { type: undefined, input: undefined }))
-      .toEqual([['path'], { }])
-  })
+it('generateOperationKey', () => {
+  expect(generateOperationKey(['path'])).toEqual([['path'], {}])
+  expect(generateOperationKey(['planet', 'create'], { type: 'mutation' }))
+    .toEqual([['planet', 'create'], { type: 'mutation' }])
+  expect(generateOperationKey(['planet', 'find'], { type: 'query', input: { id: 1 } }))
+    .toEqual([['planet', 'find'], { type: 'query', input: { id: 1 } }])
+  expect(generateOperationKey(['planet', 'stream'], { type: 'streamed', input: { cursor: 0 }, fnOptions: { refetchMode: 'append' } }))
+    .toEqual([['planet', 'stream'], { type: 'streamed', input: { cursor: 0 }, fnOptions: { refetchMode: 'append' } }])
 })

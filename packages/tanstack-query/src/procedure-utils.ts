@@ -1,10 +1,24 @@
 import type { Client, ClientContext } from '@orpc/client'
 import type { MaybeOptionalOptions } from '@orpc/shared'
-import type { InfiniteData } from '@tanstack/svelte-query'
-import type { experimental_InferStreamedOutput, experimental_StreamedOptionsBase, experimental_StreamedOptionsIn, InfiniteOptionsBase, InfiniteOptionsIn, MutationOptions, MutationOptionsIn, QueryOptionsBase, QueryOptionsIn } from './types'
+import type { InfiniteData } from '@tanstack/query-core'
+import type {
+  experimental_StreamedQueryOutput,
+  InfiniteOptionsBase,
+  InfiniteOptionsIn,
+  MutationOptions,
+  MutationOptionsIn,
+  OperationContext,
+  QueryOptionsBase,
+  QueryOptionsIn,
+  experimental_StreamedOptionsBase as StreamedOptionsBase,
+  experimental_StreamedOptionsIn as StreamedOptionsIn,
+} from './types'
 import { isAsyncIteratorObject } from '@orpc/shared'
-import { generateOperationKey } from '@orpc/tanstack-query'
-import { experimental_streamedQuery, skipToken } from '@tanstack/svelte-query'
+import { experimental_streamedQuery, skipToken } from '@tanstack/query-core'
+import { generateOperationKey } from './key'
+import {
+  OPERATION_CONTEXT_SYMBOL,
+} from './types'
 
 export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError> {
   /**
@@ -15,7 +29,7 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
   call: Client<TClientContext, TInput, TOutput, TError>
 
   /**
-   * Generate options used for createQuery/prefetchQuery/...
+   * Generate options used for useQuery/useSuspenseQuery/prefetchQuery/...
    *
    * @see {@link https://orpc.unnoq.com/docs/tanstack-query/basic#query-options-utility Tanstack Query Options Utility Docs}
    */
@@ -26,19 +40,19 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
   ): NoInfer<U & Omit<QueryOptionsBase<TOutput, TError>, keyof U>>
 
   /**
-   * Generate [Event Iterator](https://orpc.unnoq.com/docs/event-iterator) options used for useQuery/prefetchQuery/...
+   * Generate [Event Iterator](https://orpc.unnoq.com/docs/event-iterator) options used for useQuery/useSuspenseQuery/prefetchQuery/...
    * Built on top of [steamedQuery](https://tanstack.com/query/latest/docs/reference/streamedQuery)
    *
    * @see {@link https://orpc.unnoq.com/docs/tanstack-query/basic#streamed-query-options-utility Tanstack Streamed Query Options Utility Docs}
    */
-  experimental_streamedOptions<U, USelectData = experimental_InferStreamedOutput<TOutput>>(
+  experimental_streamedOptions<U, USelectData = experimental_StreamedQueryOutput<TOutput>>(
     ...rest: MaybeOptionalOptions<
-      U & experimental_StreamedOptionsIn<TClientContext, TInput, experimental_InferStreamedOutput<TOutput>, TError, USelectData>
+      U & StreamedOptionsIn<TClientContext, TInput, experimental_StreamedQueryOutput<TOutput>, TError, USelectData>
     >
-  ): NoInfer<U & Omit<experimental_StreamedOptionsBase<experimental_InferStreamedOutput<TOutput>, TError>, keyof U>>
+  ): NoInfer<U & Omit<StreamedOptionsBase<experimental_StreamedQueryOutput<TOutput>, TError>, keyof U>>
 
   /**
-   * Generate options used for createInfiniteQuery/prefetchInfiniteQuery/...
+   * Generate options used for useInfiniteQuery/useSuspenseInfiniteQuery/prefetchInfiniteQuery/...
    *
    * @see {@link https://orpc.unnoq.com/docs/tanstack-query/basic#infinite-query-options-utility Tanstack Infinite Query Options Utility Docs}
    */
@@ -47,17 +61,19 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
   ): NoInfer<U & Omit<InfiniteOptionsBase<TOutput, TError, UPageParam>, keyof U>>
 
   /**
-   * Generate options used for createMutation/...
+   * Generate options used for useMutation/...
    *
    * @see {@link https://orpc.unnoq.com/docs/tanstack-query/basic#mutation-options Tanstack Mutation Options Docs}
    */
   mutationOptions<UMutationContext>(
-    ...rest: MaybeOptionalOptions<MutationOptionsIn<TClientContext, TInput, TOutput, TError, UMutationContext>>
-  ): MutationOptions<TInput, TOutput, TError, UMutationContext>
+    ...rest: MaybeOptionalOptions<
+      MutationOptionsIn<TClientContext, TInput, TOutput, TError, UMutationContext>
+    >
+  ): NoInfer<MutationOptions<TInput, TOutput, TError, UMutationContext>>
 }
 
 export interface CreateProcedureUtilsOptions {
-  path: string[]
+  path: readonly string[]
 }
 
 export function createProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError>(
@@ -68,31 +84,52 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
     call: client,
 
     queryOptions(...[optionsIn = {} as any]) {
+      const queryKey = optionsIn.queryKey ?? generateOperationKey(options.path, { type: 'query', input: optionsIn.input })
+
       return {
-        queryKey: generateOperationKey(options.path, { type: 'query', input: optionsIn.input }),
         queryFn: ({ signal }) => {
           if (optionsIn.input === skipToken) {
             throw new Error('queryFn should not be called with skipToken used as input')
           }
 
-          return client(optionsIn.input, { signal, context: optionsIn.context })
+          return client(optionsIn.input, {
+            signal,
+            context: {
+              [OPERATION_CONTEXT_SYMBOL]: {
+                key: queryKey,
+                type: 'query',
+              },
+              ...optionsIn.context,
+            } satisfies OperationContext,
+          })
         },
         enabled: optionsIn.input !== skipToken,
         ...optionsIn,
+        queryKey,
       }
     },
 
     experimental_streamedOptions(...[optionsIn = {} as any]) {
+      const queryKey = optionsIn.queryKey ?? generateOperationKey(options.path, { type: 'streamed', input: optionsIn.input, fnOptions: optionsIn.queryFnOptions })
+
       return {
         enabled: optionsIn.input !== skipToken,
-        queryKey: generateOperationKey(options.path, { type: 'streamed', input: optionsIn.input, fnOptions: optionsIn.queryFnOptions }),
         queryFn: experimental_streamedQuery({
           queryFn: async ({ signal }) => {
             if (optionsIn.input === skipToken) {
               throw new Error('queryFn should not be called with skipToken used as input')
             }
 
-            const output = await client(optionsIn.input, { signal, context: optionsIn.context })
+            const output = await client(optionsIn.input, {
+              signal,
+              context: {
+                [OPERATION_CONTEXT_SYMBOL]: {
+                  key: queryKey,
+                  type: 'streamed',
+                },
+                ...optionsIn.context,
+              } satisfies OperationContext,
+            })
 
             if (!isAsyncIteratorObject(output)) {
               throw new Error('streamedQuery requires an event iterator output')
@@ -103,32 +140,54 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
           ...optionsIn.queryFnOptions,
         }),
         ...optionsIn,
+        queryKey,
       }
     },
 
     infiniteOptions(optionsIn) {
+      const queryKey = optionsIn.queryKey ?? generateOperationKey(options.path, {
+        type: 'infinite',
+        input: optionsIn.input === skipToken ? skipToken : optionsIn.input(optionsIn.initialPageParam) as any,
+      })
+
       return {
-        queryKey: generateOperationKey(options.path, {
-          type: 'infinite',
-          input: optionsIn.input === skipToken ? skipToken : optionsIn.input(optionsIn.initialPageParam) as any,
-        }),
         queryFn: ({ pageParam, signal }) => {
           if (optionsIn.input === skipToken) {
             throw new Error('queryFn should not be called with skipToken used as input')
           }
 
-          return client(optionsIn.input(pageParam as any), { signal, context: optionsIn.context as any })
+          return client(optionsIn.input(pageParam as any), {
+            signal,
+            context: {
+              [OPERATION_CONTEXT_SYMBOL]: {
+                key: queryKey,
+                type: 'infinite',
+              } satisfies OperationContext[typeof OPERATION_CONTEXT_SYMBOL],
+              ...optionsIn.context,
+            } as any,
+          })
         },
         enabled: optionsIn.input !== skipToken,
         ...(optionsIn as any),
+        queryKey,
       }
     },
 
     mutationOptions(...[optionsIn = {} as any]) {
+      const mutationKey = optionsIn.mutationKey ?? generateOperationKey(options.path, { type: 'mutation' })
+
       return {
-        mutationKey: generateOperationKey(options.path, { type: 'mutation' }),
-        mutationFn: input => client(input, { context: optionsIn.context }),
+        mutationFn: input => client(input, {
+          context: {
+            [OPERATION_CONTEXT_SYMBOL]: {
+              key: mutationKey,
+              type: 'mutation',
+            },
+            ...optionsIn.context,
+          } satisfies OperationContext,
+        }),
         ...(optionsIn as any),
+        mutationKey,
       }
     },
   }

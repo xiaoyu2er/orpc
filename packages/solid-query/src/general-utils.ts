@@ -1,6 +1,6 @@
-import type { BuildKeyOptions, OperationType } from '@orpc/tanstack-query'
+import type { OperationKeyOptions, OperationType } from '@orpc/tanstack-query'
 import type { QueryKey } from '@tanstack/solid-query'
-import { buildKey } from '@orpc/tanstack-query'
+import { generateOperationKey } from '@orpc/tanstack-query'
 
 /**
  * Utils at any level (procedure or router)
@@ -11,7 +11,7 @@ export interface GeneralUtils<TInput> {
    *
    * @see {@link https://orpc.unnoq.com/docs/tanstack-query/basic#query-mutation-key Tanstack Query/Mutation Key Docs}
    */
-  key<UType extends OperationType>(options?: BuildKeyOptions<UType, TInput>): QueryKey
+  key<UType extends OperationType>(options?: OperationKeyOptions<UType, TInput>): QueryKey
 }
 
 export function createGeneralUtils<TInput>(
@@ -19,7 +19,7 @@ export function createGeneralUtils<TInput>(
 ): GeneralUtils<TInput> {
   return {
     key(options) {
-      return buildKey(path, options)
+      return generateOperationKey(path, options)
     },
   }
 }

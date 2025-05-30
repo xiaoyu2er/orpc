@@ -1,9 +1,9 @@
 ---
-title: Fastify Integration
-description: Seamlessly integrate oRPC with Fastify
+title: Fastify Adapter
+description: Use oRPC inside an Fastify project
 ---
 
-# Fastify Integration
+# Fastify Adapter
 
 [Fastify](https://fastify.dev/) is a web framework highly focused on providing the best developer experience with the least overhead and a powerful plugin architecture. For additional context, refer to the [HTTP Adapter](/docs/adapters/http) guide.
 

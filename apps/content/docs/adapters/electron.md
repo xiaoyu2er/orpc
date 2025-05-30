@@ -1,9 +1,9 @@
 ---
-title: Electron Integration
-description: Integrate oRPC with Electron
+title: Electron Adapter
+description: Use oRPC inside an Electron project
 ---
 
-# Electron Integration
+# Electron Adapter
 
 Establish type-safe communication between processes in [Electron](https://www.electronjs.org/) using the [Message Port Adapter](/docs/adapters/message-port). Before you start, we recommend reading the [MessagePorts in Electron](https://www.electronjs.org/docs/latest/tutorial/message-ports) guide.
 

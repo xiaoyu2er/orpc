@@ -1,9 +1,9 @@
 ---
-title: Remix Integration
-description: Integrate oRPC with Remix
+title: Remix Adapter
+description: Use oRPC inside an Remix project
 ---
 
-# Remix Integration
+# Remix Adapter
 
 [Remix](https://remix.run/) is a full stack JavaScript framework for building web applications with React. For additional context, refer to the [HTTP Adapter](/docs/adapters/http) guide.
 

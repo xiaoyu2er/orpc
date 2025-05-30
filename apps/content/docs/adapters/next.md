@@ -1,9 +1,9 @@
 ---
-title: Next.js Integration
-description: Seamlessly integrate oRPC with Next.js
+title: Next.js Adapter
+description: Use oRPC inside an Next.js project
 ---
 
-# Next.js Integration
+# Next.js Adapter
 
 [Next.js](https://nextjs.org/) is a leading React framework for server-rendered apps. oRPC works with both the [App Router](https://nextjs.org/docs/app/getting-started/installation) and [Pages Router](https://nextjs.org/docs/pages/getting-started/installation). For additional context, refer to the [HTTP Adapter](/docs/adapters/http) guide.
 

@@ -1,11 +1,11 @@
 ---
-title: Solid Start Integration
-description: Setup oRPC within a Solid Start application
+title: Solid Start Adapter
+description: Use oRPC inside a Solid Start project
 ---
 
-# SolidStart Integration
+# SolidStart Adapter
 
-[SolidStart](https://start.solidjs.com/) is a full stack JavaScript framework for building web applications with SolidJS. For additional context, refer to the [HTTP Adapter](/docs/adapters/http) guide.
+[Solid Start](https://start.solidjs.com/) is a full stack JavaScript framework for building web applications with SolidJS. For additional context, refer to the [HTTP Adapter](/docs/adapters/http) guide.
 
 ## Server
 

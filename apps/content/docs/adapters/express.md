@@ -1,9 +1,9 @@
 ---
-title: Express.js Integration
-description: Seamlessly integrate oRPC with Express.js
+title: Express.js Adapter
+description: Use oRPC inside an Express.js project
 ---
 
-# Express.js Integration
+# Express.js Adapter
 
 [Express.js](https://expressjs.com/) is a popular Node.js framework for building web applications. For additional context, refer to the [HTTP Adapter](/docs/adapters/http) guide.
 

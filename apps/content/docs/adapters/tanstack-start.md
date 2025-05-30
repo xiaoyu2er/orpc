@@ -1,9 +1,9 @@
 ---
-title: TanStack Start Integration
-description: Integrate oRPC with TanStack Start
+title: TanStack Start Adapter
+description: Use oRPC inside a TanStack Start project
 ---
 
-# TanStack Start Integration
+# TanStack Start Adapter
 
 [TanStack Start](https://tanstack.com/start) is a full-stack React framework built on [Nitro](https://nitro.build/) and the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API). For additional context, see the [HTTP Adapter](/docs/adapters/http) guide.
 

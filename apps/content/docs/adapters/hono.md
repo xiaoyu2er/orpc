@@ -1,9 +1,9 @@
 ---
-title: Hono Integration
-description: Integrate oRPC with Hono
+title: Hono Adapter
+description: Use oRPC inside an Hono project
 ---
 
-# Hono Integration
+# Hono Adapter
 
 [Hono](https://honojs.dev/) is a high-performance web framework built on top of [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API). For additional context, refer to the [HTTP Adapter](/docs/adapters/http) guide.
 

@@ -1,9 +1,9 @@
 ---
-title: Browser Integration
+title: Browser Adapter
 description: Type-safe communication between browser scripts using Message Port Adapter
 ---
 
-# Browser Integration
+# Browser Adapter
 
 Enable type-safe communication between browser scripts using the [Message Port Adapter](/docs/adapters/message-port).
 

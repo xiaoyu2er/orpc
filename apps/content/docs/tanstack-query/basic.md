@@ -39,7 +39,10 @@ Use `.streamedOptions` to configure queries for [Event Iterator](/docs/event-ite
 const query = useQuery(orpc.streamed.experimental_streamedOptions({
   input: { id: 123 }, // Specify input if needed
   context: { cache: true }, // Provide client context if needed
-  refetchMode: 'reset', // Specify refetch mode if needed
+  queryFnOptions: { // Specify streamedQuery options if needed
+    refetchMode: 'reset',
+    maxChunks: 3,
+  }
   // additional options...
 }))
 ```

@@ -87,8 +87,6 @@ export function toFetchBody(
 
   if (isAsyncIteratorObject(body)) {
     headers.set('content-type', 'text/event-stream')
-    headers.set('cache-control', 'no-cache')
-    headers.set('connection', 'keep-alive')
 
     return toEventStream(body, options)
   }

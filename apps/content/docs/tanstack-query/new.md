@@ -244,7 +244,7 @@ const query = useInfiniteQuery(
 
 ## Operation Context
 
-When clients are invoked through the TanStack Query integration, an **operation context** is automatically added to the [client context](/docs/client/rpc-link#using-client-context). This context can be used to config the request behavior like setting the HTTP method.
+When clients are invoked through the TanStack Query integration, an **operation context** is automatically added to the [client context](/docs/client/rpc-link#using-client-context). This context can be used to config the request behavior, like setting the HTTP method.
 
 ```ts
 import {

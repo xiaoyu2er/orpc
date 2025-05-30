@@ -25,6 +25,15 @@ export type OperationKeyOptions<TType extends OperationType, TInput> = {
 
 export type OperationKey<TType extends OperationType, TInput> = [path: readonly string[], options: OperationKeyOptions<TType, TInput>]
 
+export const OPERATION_CONTEXT_SYMBOL: unique symbol = Symbol('ORPC_OPERATION_CONTEXT')
+
+export interface OperationContext {
+  [OPERATION_CONTEXT_SYMBOL]?: {
+    key: QueryKey
+    type: OperationType
+  }
+}
+
 export type QueryOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData> =
     & (undefined extends TInput ? { input?: TInput | SkipToken } : { input: TInput | SkipToken })
     & (Record<never, never> extends TClientContext ? { context?: TClientContext } : { context: TClientContext })

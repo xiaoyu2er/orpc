@@ -30,7 +30,7 @@ describe('toStandardLazyRequest', () => {
     expect(standardRequest.url).toBeInstanceOf(URL)
     expect(standardRequest.url.toString()).toMatch(/http:\/\/.*\/hello/)
     expect(standardRequest.method).toBe('POST')
-    expect(standardRequest.signal.aborted).toBe(true)
+    expect(standardRequest.signal.aborted).toBe(false)
     expect(standardRequest.body()).toBe(toStandardBodySpy.mock.results[0]!.value)
   })
 

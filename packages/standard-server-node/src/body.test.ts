@@ -348,8 +348,6 @@ describe('toNodeHttpBody', () => {
     expect(body).toBeInstanceOf(Readable)
     expect(headers).toEqual({
       'content-type': 'text/event-stream',
-      'cache-control': 'no-cache',
-      'connection': 'keep-alive',
       'x-custom-header': 'custom-value',
     })
 

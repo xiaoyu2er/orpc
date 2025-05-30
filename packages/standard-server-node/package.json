@@ -34,7 +34,8 @@
   },
   "dependencies": {
     "@orpc/shared": "workspace:*",
-    "@orpc/standard-server": "workspace:*"
+    "@orpc/standard-server": "workspace:*",
+    "@orpc/standard-server-fetch": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.15.18",

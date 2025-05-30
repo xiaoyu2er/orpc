@@ -94,6 +94,7 @@ Next.js doesn’t natively support isomorphic functions, so you need a workaroun
 ::: code-group
 
 ```ts [lib/orpc.ts]
+import { RPCLink } from '@orpc/client/fetch'
 import type { headers } from 'next/headers'
 
 declare global {
@@ -132,7 +133,7 @@ This only shows how to configure the link. For full client examples, see [Client
 
 ## Optimize SSR
 
-To reduce HTTP requests and improve latency during SSR, you can utilize a [Server-Side Client](/docs/client/server-side) during SSR. Below is a quick setup, see [Optimize SSR](/docs/best-practices/optimize-ssr) for a more details.
+To reduce HTTP requests and improve latency during SSR, you can utilize a [Server-Side Client](/docs/client/server-side) during SSR. Below is a quick setup, see [Optimize SSR](/docs/best-practices/optimize-ssr) for more details.
 
 ::: code-group
 

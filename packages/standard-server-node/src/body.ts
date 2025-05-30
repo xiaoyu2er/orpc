@@ -86,8 +86,6 @@ export function toNodeHttpBody(
 
   if (isAsyncIteratorObject(body)) {
     headers['content-type'] = 'text/event-stream'
-    headers['cache-control'] = 'no-cache'
-    headers.connection = 'keep-alive'
 
     return toEventStream(body, options)
   }

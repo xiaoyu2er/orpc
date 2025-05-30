@@ -9,10 +9,11 @@ oRPC includes built-in HTTP support, making it easy to expose RPC endpoints in a
 
 ## Server Adapters
 
-| Adapter | Target                                                                                                                     |
-| ------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `fetch` | [MDN Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) (Browser, Bun, Deno, Cloudflare Workers, etc.) |
-| `node`  | Node.js built-in [`http`](https://nodejs.org/api/http.html)/[`http2`](https://nodejs.org/api/http2.html)                   |
+| Adapter      | Target                                                                                                                     |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| `fetch`      | [MDN Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) (Browser, Bun, Deno, Cloudflare Workers, etc.) |
+| `node`       | Node.js built-in [`http`](https://nodejs.org/api/http.html)/[`http2`](https://nodejs.org/api/http2.html)                   |
+| `aws-lambda` | [AWS Lambda](https://aws.amazon.com/lambda/)                                                                               |
 
 ::: code-group
 
@@ -117,6 +118,35 @@ Deno.serve(async (request) => {
   }
 
   return new Response('Not found', { status: 404 })
+})
+```
+
+```ts [aws-lambda]
+import { APIGatewayProxyEventV2 } from 'aws-lambda'
+import { experimental_RPCHandler as RPCHandler } from '@orpc/server/aws-lambda'
+
+const rpcHandler = new RPCHandler(router)
+
+/**
+ * oRPC only supports [AWS Lambda response streaming](https://aws.amazon.com/blogs/compute/introducing-aws-lambda-response-streaming/).
+ * If you need support chunked responses, use a combination of Hono's `aws-lambda` adapter and oRPC.
+ */
+export const handler = awslambda.streamifyResponse<APIGatewayProxyEventV2>(async (event, responseStream, context) => {
+  const { matched } = await rpcHandler.handle(event, responseStream, {
+    prefix: '/rpc',
+    context: {} // Provide initial context if needed
+  })
+
+  if (matched) {
+    return
+  }
+
+  awslambda.HttpResponseStream.from(responseStream, {
+    statusCode: 404,
+  })
+
+  responseStream.write('Not found')
+  responseStream.end()
 })
 ```
 

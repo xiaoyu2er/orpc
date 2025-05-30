@@ -1,4 +1,7 @@
+import type { StandardResponse } from '@orpc/standard-server'
 import type { IncomingMessage, ServerResponse } from 'node:http'
+import { Buffer } from 'node:buffer'
+import Stream from 'node:stream'
 import request from 'supertest'
 import * as Body from './body'
 import { sendStandardResponse } from './response'
@@ -10,7 +13,7 @@ beforeEach(() => {
 })
 
 describe('sendStandardResponse', () => {
-  it('works with undefined', async () => {
+  it('chunked (empty)', async () => {
     let endSpy: any
 
     const options = { eventIteratorKeepAliveEnabled: true }
@@ -32,7 +35,7 @@ describe('sendStandardResponse', () => {
     }, options)
 
     expect(endSpy).toBeCalledTimes(1)
-    expect(endSpy).toBeCalledWith(toNodeHttpBodySpy.mock.results[0]!.value)
+    expect(endSpy).toBeCalledWith()
 
     expect(res.status).toBe(207)
     expect(res.headers).toMatchObject({
@@ -42,7 +45,7 @@ describe('sendStandardResponse', () => {
     expect(res.text).toEqual('')
   })
 
-  it('works with json', async () => {
+  it('chunked', async () => {
     let endSpy: any
 
     const options = { eventIteratorKeepAliveEnabled: true }
@@ -76,7 +79,7 @@ describe('sendStandardResponse', () => {
     expect(res.body).toEqual({ foo: 'bar' })
   })
 
-  it('works with file', async () => {
+  it('stream (file)', async () => {
     const blob = new Blob(['foo'], { type: 'text/plain' })
     let endSpy: any
 
@@ -115,7 +118,7 @@ describe('sendStandardResponse', () => {
     expect(res.text).toEqual('foo')
   })
 
-  it('works with async generator', async () => {
+  it('stream (async generator)', async () => {
     async function* gen() {
       yield 'foo'
       yield 'bar'
@@ -142,8 +145,6 @@ describe('sendStandardResponse', () => {
 
     expect(toNodeHttpBodySpy).toBeCalledTimes(1)
     expect(toNodeHttpBodySpy).toBeCalledWith(generator, {
-      'connection': 'keep-alive',
-      'cache-control': 'no-cache',
       'content-type': 'text/event-stream',
       'x-custom-header': 'custom-value',
     }, options)
@@ -153,12 +154,124 @@ describe('sendStandardResponse', () => {
 
     expect(res.status).toBe(207)
     expect(res.headers).toMatchObject({
-      'connection': 'keep-alive',
-      'cache-control': 'no-cache',
       'content-type': 'text/event-stream',
       'x-custom-header': 'custom-value',
     })
 
     expect(res.text).toEqual('event: message\ndata: "foo"\n\nevent: message\ndata: "bar"\n\nevent: done\ndata: "baz"\n\n')
+  })
+
+  describe('stream destroy while sending', () => {
+    it('with error', async () => {
+      let clean = false
+      const res: StandardResponse = {
+        body: (async function* () {
+          try {
+            yield 1
+            await new Promise(r => setTimeout(r, 100))
+            yield 2
+            await new Promise(r => setTimeout(r, 100))
+            yield 3
+            await new Promise(r => setTimeout(r, 9999999))
+            yield 4
+          }
+          finally {
+            clean = true
+          }
+        })(),
+        headers: {
+          'x-custom-header': 'custom-value',
+          'set-cookie': ['foo=bar', 'bar=baz'],
+        },
+        status: 206,
+      }
+
+      const chunks: any[] = []
+      const responseStream = new Stream.Writable({
+        write(chunk, encoding, callback) {
+          chunks.push(chunk)
+          callback()
+        },
+      })
+
+        ;(responseStream as any).writeHead = vi.fn()
+
+      const sendPromise = expect(sendStandardResponse(responseStream as any, res)).rejects.toThrow('test')
+
+      await new Promise(r => setTimeout(r, 110))
+
+      expect(chunks).toEqual([
+        Buffer.from('event: message\ndata: 1\n\n'),
+        Buffer.from('event: message\ndata: 2\n\n'),
+      ])
+
+      expect(responseStream.closed).toBe(false)
+      expect(clean).toBe(false)
+
+      responseStream.destroy(new Error('test'))
+
+      await vi.waitFor(() => {
+        expect(responseStream.closed).toBe(true)
+        expect(clean).toBe(true)
+      })
+
+      await sendPromise
+    })
+
+    it('without error', async () => {
+      let clean = false
+      const res: StandardResponse = {
+        body: (async function* () {
+          try {
+            yield 1
+            await new Promise(r => setTimeout(r, 100))
+            yield 2
+            await new Promise(r => setTimeout(r, 100))
+            yield 3
+            await new Promise(r => setTimeout(r, 9999999))
+            yield 4
+          }
+          finally {
+            clean = true
+          }
+        })(),
+        headers: {
+          'x-custom-header': 'custom-value',
+          'set-cookie': ['foo=bar', 'bar=baz'],
+        },
+        status: 206,
+      }
+
+      const chunks: any[] = []
+      const responseStream = new Stream.Writable({
+        write(chunk, encoding, callback) {
+          chunks.push(chunk)
+          callback()
+        },
+      })
+
+     ;(responseStream as any).writeHead = vi.fn()
+
+      const sendPromise = sendStandardResponse(responseStream as any, res)
+
+      await new Promise(r => setTimeout(r, 110))
+
+      expect(chunks).toEqual([
+        Buffer.from('event: message\ndata: 1\n\n'),
+        Buffer.from('event: message\ndata: 2\n\n'),
+      ])
+
+      expect(responseStream.closed).toBe(false)
+      expect(clean).toBe(false)
+
+      responseStream.destroy()
+
+      await vi.waitFor(() => {
+        expect(responseStream.closed).toBe(true)
+        expect(clean).toBe(true)
+      })
+
+      await sendPromise
+    })
   })
 })

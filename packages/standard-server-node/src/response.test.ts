@@ -145,8 +145,6 @@ describe('sendStandardResponse', () => {
 
     expect(toNodeHttpBodySpy).toBeCalledTimes(1)
     expect(toNodeHttpBodySpy).toBeCalledWith(generator, {
-      'connection': 'keep-alive',
-      'cache-control': 'no-cache',
       'content-type': 'text/event-stream',
       'x-custom-header': 'custom-value',
     }, options)
@@ -156,8 +154,6 @@ describe('sendStandardResponse', () => {
 
     expect(res.status).toBe(207)
     expect(res.headers).toMatchObject({
-      'connection': 'keep-alive',
-      'cache-control': 'no-cache',
       'content-type': 'text/event-stream',
       'x-custom-header': 'custom-value',
     })

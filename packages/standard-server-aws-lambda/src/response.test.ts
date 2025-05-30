@@ -124,8 +124,6 @@ describe('sendStandardResponse', () => {
       statusCode: res.status,
       headers: {
         'content-type': 'text/event-stream',
-        'cache-control': 'no-cache',
-        'connection': 'keep-alive',
         'x-custom-header': 'custom-value',
       },
       cookies: res.headers['set-cookie'],

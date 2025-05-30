@@ -13,7 +13,7 @@ import type {
   experimental_StreamedOptionsIn as StreamedOptionsIn,
 } from './types'
 import { isAsyncIteratorObject } from '@orpc/shared'
-import { buildKey } from '@orpc/tanstack-query'
+import { generateOperationKey } from '@orpc/tanstack-query'
 import { skipToken, experimental_streamedQuery as streamedQuery } from '@tanstack/react-query'
 
 export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError> {
@@ -79,7 +79,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
 
     queryOptions(...[optionsIn = {} as any]) {
       return {
-        queryKey: buildKey(options.path, { type: 'query', input: optionsIn.input }),
+        queryKey: generateOperationKey(options.path, { type: 'query', input: optionsIn.input }),
         queryFn: ({ signal }) => {
           if (optionsIn.input === skipToken) {
             throw new Error('queryFn should not be called with skipToken used as input')
@@ -95,9 +95,8 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
     experimental_streamedOptions(...[optionsIn = {} as any]) {
       return {
         enabled: optionsIn.input !== skipToken,
-        queryKey: buildKey(options.path, { type: 'streamed', input: optionsIn.input }),
+        queryKey: generateOperationKey(options.path, { type: 'streamed', input: optionsIn.input, fnOptions: optionsIn.queryFnOptions }),
         queryFn: streamedQuery({
-          ...optionsIn,
           queryFn: async ({ signal }) => {
             if (optionsIn.input === skipToken) {
               throw new Error('queryFn should not be called with skipToken used as input')
@@ -111,6 +110,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
 
             return output
           },
+          ...optionsIn.queryFnOptions,
         }),
         ...optionsIn,
       }
@@ -118,7 +118,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
 
     infiniteOptions(optionsIn) {
       return {
-        queryKey: buildKey(options.path, {
+        queryKey: generateOperationKey(options.path, {
           type: 'infinite',
           input: optionsIn.input === skipToken ? skipToken : optionsIn.input(optionsIn.initialPageParam) as any,
         }),
@@ -136,7 +136,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
 
     mutationOptions(...[optionsIn = {} as any]) {
       return {
-        mutationKey: buildKey(options.path, { type: 'mutation' }),
+        mutationKey: generateOperationKey(options.path, { type: 'mutation' }),
         mutationFn: input => client(input, { context: optionsIn.context }),
         ...(optionsIn as any),
       }

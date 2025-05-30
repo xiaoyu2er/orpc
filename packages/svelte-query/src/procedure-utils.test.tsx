@@ -12,7 +12,7 @@ vi.mock('@tanstack/svelte-query', async (origin) => {
   }
 })
 
-const buildKeySpy = vi.spyOn(Key, 'buildKey')
+const generateOperationKeySpy = vi.spyOn(Key, 'generateOperationKey')
 
 beforeEach(() => {
   queryClient.clear()
@@ -35,9 +35,9 @@ describe('createProcedureUtils', () => {
 
       expect(options.enabled).toBe(true)
 
-      expect(options.queryKey).toBe(buildKeySpy.mock.results[0]!.value)
-      expect(buildKeySpy).toHaveBeenCalledTimes(1)
-      expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { type: 'query', input: { search: '__search__' } })
+      expect(options.queryKey).toBe(generateOperationKeySpy.mock.results[0]!.value)
+      expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
+      expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'query', input: { search: '__search__' } })
 
       await expect(options.queryFn!({ signal } as any)).resolves.toEqual('__output__')
       expect(client).toHaveBeenCalledTimes(1)
@@ -49,9 +49,9 @@ describe('createProcedureUtils', () => {
 
       expect(options.enabled).toBe(false)
 
-      expect(options.queryKey).toBe(buildKeySpy.mock.results[0]!.value)
-      expect(buildKeySpy).toHaveBeenCalledTimes(1)
-      expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { type: 'query', input: skipToken })
+      expect(options.queryKey).toBe(generateOperationKeySpy.mock.results[0]!.value)
+      expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
+      expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'query', input: skipToken })
 
       expect(() => options.queryFn!({ signal } as any)).toThrow('queryFn should not be called with skipToken used as input')
       expect(client).toHaveBeenCalledTimes(0)
@@ -69,21 +69,25 @@ describe('createProcedureUtils', () => {
       const options = utils.experimental_streamedOptions({
         input: { search: '__search__' },
         context: { batch: '__batch__' },
-        refetchMode: 'replace',
+        queryFnOptions: { refetchMode: 'replace' },
       })
 
       expect(options.enabled).toBe(true)
 
-      expect(options.queryKey).toBe(buildKeySpy.mock.results[0]!.value)
-      expect(buildKeySpy).toHaveBeenCalledTimes(1)
-      expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { type: 'streamed', input: { search: '__search__' } })
+      expect(options.queryKey).toBe(generateOperationKeySpy.mock.results[0]!.value)
+      expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
+      expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], {
+        type: 'streamed',
+        input: { search: '__search__' },
+        fnOptions: { refetchMode: 'replace' },
+      })
 
       expect(options.queryFn).toBe(vi.mocked(experimental_streamedQuery).mock.results[0]!.value)
       expect(experimental_streamedQuery).toHaveBeenCalledTimes(1)
-      expect(experimental_streamedQuery).toHaveBeenCalledWith(expect.objectContaining({
+      expect(experimental_streamedQuery).toHaveBeenCalledWith({
         refetchMode: 'replace',
         queryFn: expect.any(Function),
-      }))
+      })
 
       await expect(options.queryFn!({ signal, client: queryClient, queryKey: options.queryKey } as any)).resolves.toEqual(['__1__', '__2__'])
       expect(queryClient.getQueryData(options.queryKey)).toEqual(['__1__', '__2__'])
@@ -97,9 +101,9 @@ describe('createProcedureUtils', () => {
 
       expect(options.enabled).toBe(false)
 
-      expect(options.queryKey).toBe(buildKeySpy.mock.results[0]!.value)
-      expect(buildKeySpy).toHaveBeenCalledTimes(1)
-      expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { type: 'streamed', input: skipToken })
+      expect(options.queryKey).toBe(generateOperationKeySpy.mock.results[0]!.value)
+      expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
+      expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'streamed', input: skipToken })
 
       await expect(options.queryFn!({ signal, client: queryClient } as any)).rejects.toThrow('queryFn should not be called with skipToken used as input')
       expect(client).toHaveBeenCalledTimes(0)
@@ -128,9 +132,9 @@ describe('createProcedureUtils', () => {
 
       expect(options.enabled).toBe(true)
 
-      expect(options.queryKey).toBe(buildKeySpy.mock.results[0]!.value)
-      expect(buildKeySpy).toHaveBeenCalledTimes(1)
-      expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { type: 'infinite', input: { search: '__search__', pageParam: '__initialPageParam__' } })
+      expect(options.queryKey).toBe(generateOperationKeySpy.mock.results[0]!.value)
+      expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
+      expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'infinite', input: { search: '__search__', pageParam: '__initialPageParam__' } })
 
       expect(options.initialPageParam).toEqual('__initialPageParam__')
       expect(options.getNextPageParam).toBe(getNextPageParam)
@@ -152,9 +156,9 @@ describe('createProcedureUtils', () => {
 
       expect(options.enabled).toBe(false)
 
-      expect(options.queryKey).toBe(buildKeySpy.mock.results[0]!.value)
-      expect(buildKeySpy).toHaveBeenCalledTimes(1)
-      expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { type: 'infinite', input: skipToken })
+      expect(options.queryKey).toBe(generateOperationKeySpy.mock.results[0]!.value)
+      expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
+      expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'infinite', input: skipToken })
 
       expect(options.initialPageParam).toEqual('__initialPageParam__')
       expect(options.getNextPageParam).toBe(getNextPageParam)
@@ -169,9 +173,9 @@ describe('createProcedureUtils', () => {
       context: { batch: '__batch__' },
     })
 
-    expect(options.mutationKey).toBe(buildKeySpy.mock.results[0]!.value)
-    expect(buildKeySpy).toHaveBeenCalledTimes(1)
-    expect(buildKeySpy).toHaveBeenCalledWith(['ping'], { type: 'mutation' })
+    expect(options.mutationKey).toBe(generateOperationKeySpy.mock.results[0]!.value)
+    expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
+    expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'mutation' })
 
     await expect(options.mutationFn!('__input__')).resolves.toEqual('__output__')
     expect(client).toHaveBeenCalledTimes(1)

@@ -1,7 +1,7 @@
 import * as keyModule from '@orpc/tanstack-query'
 import { createGeneralUtils } from './general-utils'
 
-const buildKeySpy = vi.spyOn(keyModule, 'buildKey')
+const generateOperationKeySpy = vi.spyOn(keyModule, 'generateOperationKey')
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -14,10 +14,10 @@ describe('createGeneralUtils', () => {
     expect(
       utils.key({ input: { search: '__search__' }, type: 'infinite' }),
     ).toEqual(
-      buildKeySpy.mock.results[0]!.value,
+      generateOperationKeySpy.mock.results[0]!.value,
     )
 
-    expect(buildKeySpy).toHaveBeenCalledTimes(1)
-    expect(buildKeySpy).toHaveBeenCalledWith(['path'], { input: { search: '__search__' }, type: 'infinite' })
+    expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
+    expect(generateOperationKeySpy).toHaveBeenCalledWith(['path'], { input: { search: '__search__' }, type: 'infinite' })
   })
 })

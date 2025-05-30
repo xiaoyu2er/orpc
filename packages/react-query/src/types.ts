@@ -11,6 +11,7 @@ export interface QueryOptionsBase<TOutput, TError> {
   queryKey: QueryKey
   queryFn(ctx: QueryFunctionContext): Promise<TOutput>
   throwOnError?(error: TError): boolean // Help TQ infer TError
+  retryDelay?: (count: number, error: TError) => number // Help TQ infer TError (suspense hooks)
   enabled: boolean
 }
 
@@ -20,7 +21,7 @@ export type experimental_InferStreamedOutput<TOutput> = TOutput extends AsyncIte
 
 export type experimental_StreamedOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData> =
   & QueryOptionsIn<TClientContext, TInput, TOutput, TError, TSelectData>
-  & experimental_StreamedQueryOptions
+  & { queryFnOptions?: experimental_StreamedQueryOptions }
 
 export interface experimental_StreamedOptionsBase<TOutput, TError> extends QueryOptionsBase<TOutput, TError> {
 }
@@ -34,6 +35,7 @@ export interface InfiniteOptionsBase<TOutput, TError, TPageParam> {
   queryKey: QueryKey
   queryFn(ctx: QueryFunctionContext<QueryKey, TPageParam>): Promise<TOutput>
   throwOnError?(error: TError): boolean // Help TQ infer TError
+  retryDelay?: (count: number, error: TError) => number // Help TQ infer TError (suspense hooks)
   enabled: boolean
 }
 

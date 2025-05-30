@@ -188,17 +188,48 @@ describe('standardBracketNotationSerializer', () => {
         1: 2,
         user: 3,
       }])
+    })
+
+    it('should be an array if [] conflict keys', () => {
+      expect(serializer.deserialize([
+        ['users[]', 1],
+        ['users[]', 2],
+        ['users[name]', 3],
+      ])).toEqual({
+        users: {
+          '': [1, 2],
+          'name': 3,
+        },
+      })
 
       expect(serializer.deserialize([
         ['users[]', 1],
-        ['users[name]', 2],
-        ['users[name]', 3],
-        ['users[name]', 4],
+        ['users[]', 2],
+        ['users[name][]', 3],
+        ['users[name][]', 4],
         ['users[]', 5],
+        ['users[name][]', 6],
       ])).toEqual({
         users: {
-          '': [1, 5],
-          'name': [2, 3, 4],
+          '': [1, 2, 5],
+          'name': [3, 4, 6],
+        },
+      })
+
+      expect(serializer.deserialize([
+        ['a[]', 1],
+        ['a[b][]', 2],
+        ['a[b][c][]', 3],
+        ['a[]', 4],
+        ['a[b][]', 5],
+        ['a[b][c][]', 6],
+      ])).toEqual({
+        a: {
+          '': [1, 4],
+          'b': {
+            '': [2, 5],
+            'c': [3, 6],
+          },
         },
       })
     })

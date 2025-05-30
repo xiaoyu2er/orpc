@@ -45,7 +45,13 @@ export class StandardBracketNotationSerializer {
 
         if (i !== segments.length - 1) {
           if (Array.isArray(currentRef[nextSegment]) && !isValidArrayIndex(segment)) {
-            currentRef[nextSegment] = { ...currentRef[nextSegment] }
+            if (arrayPushStyles.has(currentRef[nextSegment])) {
+              arrayPushStyles.delete(currentRef[nextSegment])
+              currentRef[nextSegment] = { '': currentRef[nextSegment].length === 1 ? currentRef[nextSegment][0] : currentRef[nextSegment] }
+            }
+            else {
+              currentRef[nextSegment] = { ...currentRef[nextSegment] }
+            }
           }
         }
         else {
@@ -57,7 +63,8 @@ export class StandardBracketNotationSerializer {
             }
             else {
               if (arrayPushStyles.has(currentRef[nextSegment])) {
-                currentRef[nextSegment] = { '': currentRef[nextSegment].at(-1) }
+                arrayPushStyles.delete(currentRef[nextSegment])
+                currentRef[nextSegment] = { '': currentRef[nextSegment].length === 1 ? currentRef[nextSegment][0] : currentRef[nextSegment] }
               }
 
               else if (!isValidArrayIndex(segment)) {

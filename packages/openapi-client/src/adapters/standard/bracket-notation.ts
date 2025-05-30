@@ -47,10 +47,10 @@ export class StandardBracketNotationSerializer {
           if (Array.isArray(currentRef[nextSegment]) && !isValidArrayIndex(segment)) {
             if (arrayPushStyles.has(currentRef[nextSegment])) {
               arrayPushStyles.delete(currentRef[nextSegment])
-              currentRef[nextSegment] = { '': currentRef[nextSegment].length === 1 ? currentRef[nextSegment][0] : currentRef[nextSegment] }
+              currentRef[nextSegment] = pushStyleArrayToObject(currentRef[nextSegment])
             }
             else {
-              currentRef[nextSegment] = { ...currentRef[nextSegment] }
+              currentRef[nextSegment] = arrayToObject(currentRef[nextSegment])
             }
           }
         }
@@ -58,17 +58,17 @@ export class StandardBracketNotationSerializer {
           if (Array.isArray(currentRef[nextSegment])) {
             if (segment === '') {
               if (currentRef[nextSegment].length && !arrayPushStyles.has(currentRef[nextSegment])) {
-                currentRef[nextSegment] = { ...currentRef[nextSegment] }
+                currentRef[nextSegment] = arrayToObject(currentRef[nextSegment])
               }
             }
             else {
               if (arrayPushStyles.has(currentRef[nextSegment])) {
                 arrayPushStyles.delete(currentRef[nextSegment])
-                currentRef[nextSegment] = { '': currentRef[nextSegment].length === 1 ? currentRef[nextSegment][0] : currentRef[nextSegment] }
+                currentRef[nextSegment] = pushStyleArrayToObject(currentRef[nextSegment])
               }
 
               else if (!isValidArrayIndex(segment)) {
-                currentRef[nextSegment] = { ...currentRef[nextSegment] }
+                currentRef[nextSegment] = arrayToObject(currentRef[nextSegment])
               }
             }
           }
@@ -82,18 +82,16 @@ export class StandardBracketNotationSerializer {
         arrayPushStyles.add(currentRef)
         currentRef.push(value)
       }
-      else {
-        if (nextSegment in currentRef) {
-          if (Array.isArray(currentRef[nextSegment])) {
-            currentRef[nextSegment].push(value)
-          }
-          else {
-            currentRef[nextSegment] = [currentRef[nextSegment], value]
-          }
+      else if (nextSegment in currentRef) {
+        if (Array.isArray(currentRef[nextSegment])) {
+          currentRef[nextSegment].push(value)
         }
         else {
-          currentRef[nextSegment] = value
+          currentRef[nextSegment] = [currentRef[nextSegment], value]
         }
+      }
+      else {
+        currentRef[nextSegment] = value
       }
     }
 
@@ -169,4 +167,14 @@ export class StandardBracketNotationSerializer {
 
 function isValidArrayIndex(value: string): boolean {
   return /^0$|^[1-9]\d*$/.test(value)
+}
+
+function arrayToObject(array: any[]): Record<string, unknown> {
+  return { ...array }
+}
+
+function pushStyleArrayToObject(array: any[]): Record<string, unknown> {
+  return {
+    '': array.length === 1 ? array[0] : array,
+  }
 }

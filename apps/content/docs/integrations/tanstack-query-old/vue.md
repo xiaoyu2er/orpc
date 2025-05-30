@@ -5,7 +5,7 @@ description: Seamlessly integrate oRPC with Tanstack Query for Vue
 
 # Tanstack Query Integration For Vue
 
-This guide shows how to integrate oRPC with Tanstack Query for Vue. For an introduction, please review the [Basic Guide](/docs/tanstack-query/basic) first.
+This guide shows how to integrate oRPC with Tanstack Query for Vue. For an introduction, please review the [Basic Guide](/docs/integrations/tanstack-query-old/basic) first.
 
 ## Installation
 

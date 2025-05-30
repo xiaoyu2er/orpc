@@ -5,7 +5,7 @@ description: Seamlessly integrate oRPC with Tanstack Query for Solid
 
 # Tanstack Query Integration For Solid
 
-This guide shows how to integrate oRPC with Tanstack Query for Solid. For an introduction, please review the [Basic Guide](/docs/tanstack-query/basic) first.
+This guide shows how to integrate oRPC with Tanstack Query for Solid. For an introduction, please review the [Basic Guide](/docs/integrations/tanstack-query-old/basic) first.
 
 ## Installation
 

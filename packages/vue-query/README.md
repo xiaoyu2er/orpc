@@ -63,7 +63,7 @@ You can find the full documentation [here](https://orpc.unnoq.com).
 
 ## `@orpc/vue-query`
 
-Integration with [Vue Query](https://tanstack.com/query/latest/docs/framework/vue/overview). Read the [documentation](https://orpc.unnoq.com/docs/tanstack-query/vue) for more information.
+Integration with [Vue Query](https://tanstack.com/query/latest/docs/framework/vue/overview). Read the [documentation](https://orpc.unnoq.com/docs/integrations/tanstack-query-old/vue) for more information.
 
 ```ts
 export function Setup() {

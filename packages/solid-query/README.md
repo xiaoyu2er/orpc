@@ -63,7 +63,7 @@ You can find the full documentation [here](https://orpc.unnoq.com).
 
 ## `@orpc/solid-query`
 
-Integration with [Solid Query](https://tanstack.com/query/latest/docs/framework/solid/overview). Read the [documentation](https://orpc.unnoq.com/docs/tanstack-query/solid) for more information.
+Integration with [Solid Query](https://tanstack.com/query/latest/docs/framework/solid/overview). Read the [documentation](https://orpc.unnoq.com/docs/integrations/tanstack-query-old/solid) for more information.
 
 ```ts
 export function Example() {

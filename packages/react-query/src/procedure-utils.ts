@@ -20,14 +20,14 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
   /**
    * Calling corresponding procedure client
    *
-   * @see {@link https://orpc.unnoq.com/docs/tanstack-query/basic#calling-procedure-clients Tanstack Calling Procedure Client Docs}
+   * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query-old/basic#calling-procedure-clients Tanstack Calling Procedure Client Docs}
    */
   call: Client<TClientContext, TInput, TOutput, TError>
 
   /**
    * Generate options used for useQuery/useSuspenseQuery/prefetchQuery/...
    *
-   * @see {@link https://orpc.unnoq.com/docs/tanstack-query/basic#query-options-utility Tanstack Query Options Utility Docs}
+   * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query-old/basic#query-options-utility Tanstack Query Options Utility Docs}
    */
   queryOptions<U, USelectData = TOutput>(
     ...rest: MaybeOptionalOptions<
@@ -39,7 +39,7 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
    * Generate [Event Iterator](https://orpc.unnoq.com/docs/event-iterator) options used for useQuery/useSuspenseQuery/prefetchQuery/...
    * Built on top of [steamedQuery](https://tanstack.com/query/latest/docs/reference/streamedQuery)
    *
-   * @see {@link https://orpc.unnoq.com/docs/tanstack-query/basic#streamed-query-options-utility Tanstack Streamed Query Options Utility Docs}
+   * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query-old/basic#streamed-query-options-utility Tanstack Streamed Query Options Utility Docs}
    */
   experimental_streamedOptions<U, USelectData = experimental_InferStreamedOutput<TOutput>>(
     ...rest: MaybeOptionalOptions<
@@ -50,7 +50,7 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
   /**
    * Generate options used for useInfiniteQuery/useSuspenseInfiniteQuery/prefetchInfiniteQuery/...
    *
-   * @see {@link https://orpc.unnoq.com/docs/tanstack-query/basic#infinite-query-options-utility Tanstack Infinite Query Options Utility Docs}
+   * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query-old/basic#infinite-query-options-utility Tanstack Infinite Query Options Utility Docs}
    */
   infiniteOptions<U, UPageParam, USelectData = InfiniteData<TOutput, UPageParam>>(
     options: U & InfiniteOptionsIn<TClientContext, TInput, TOutput, TError, USelectData, UPageParam>
@@ -59,7 +59,7 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
   /**
    * Generate options used for useMutation/...
    *
-   * @see {@link https://orpc.unnoq.com/docs/tanstack-query/basic#mutation-options Tanstack Mutation Options Docs}
+   * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query-old/basic#mutation-options Tanstack Mutation Options Docs}
    */
   mutationOptions<UMutationContext>(
     ...rest: MaybeOptionalOptions<MutationOptionsIn<TClientContext, TInput, TOutput, TError, UMutationContext>>

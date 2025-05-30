@@ -63,7 +63,7 @@ You can find the full documentation [here](https://orpc.unnoq.com).
 
 ## `@orpc/nest`
 
-Deeply integrate oRPC with [NestJS](https://nestjs.com/). Read the [documentation](https://orpc.unnoq.com/docs/openapi/nest/implement-contract) for more information.
+Deeply integrate oRPC with [NestJS](https://nestjs.com/). Read the [documentation](https://orpc.unnoq.com/docs/openapi/integrations/implement-contract-in-nest) for more information.
 
 ### Implement Contract
 

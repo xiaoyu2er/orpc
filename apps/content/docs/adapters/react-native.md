@@ -1,9 +1,9 @@
 ---
-title: React Native Adaptor
+title: React Native Adapter
 description: Use oRPC inside a React Native project
 ---
 
-# React Native Adaptor
+# React Native Adapter
 
 [React Native](https://reactnative.dev/) is a framework for building native apps using React. For additional context, refer to the [HTTP Adapter](/docs/adapters/http) guide.
 

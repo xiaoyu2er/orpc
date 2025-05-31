@@ -2,7 +2,7 @@ import type { router } from '../router'
 import type { RouterClient } from '@orpc/server'
 import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
-import { createORPCReactQueryUtils } from '@orpc/react-query'
+import { createTanstackQueryUtils } from '@orpc/tanstack-query'
 import { BatchLinkPlugin } from '@orpc/client/plugins'
 
 const link = new RPCLink({
@@ -19,4 +19,4 @@ const link = new RPCLink({
 
 export const client: RouterClient<typeof router> = createORPCClient(link)
 
-export const orpc = createORPCReactQueryUtils(client)
+export const orpc = createTanstackQueryUtils(client)

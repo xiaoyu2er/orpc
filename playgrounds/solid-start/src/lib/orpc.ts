@@ -6,7 +6,7 @@ import type { RouterClient } from '@orpc/server'
 import type { router } from '~/router'
 import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
-import { createORPCSolidQueryUtils } from '@orpc/solid-query'
+import { createTanstackQueryUtils } from '@orpc/tanstack-query'
 import { getRequestEvent } from 'solid-js/web'
 
 declare global {
@@ -20,4 +20,4 @@ const link = new RPCLink({
 
 export const client: RouterClient<typeof router> = globalThis.$client ?? createORPCClient(link)
 
-export const orpc = createORPCSolidQueryUtils(client)
+export const orpc = createTanstackQueryUtils(client)

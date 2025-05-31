@@ -18,7 +18,7 @@
     "@orpc/nest": "next",
     "@orpc/openapi": "next",
     "@orpc/openapi-client": "next",
-    "@orpc/react-query": "next",
+    "@orpc/tanstack-query": "next",
     "@orpc/zod": "next",
     "@swc/cli": "^0.7.7",
     "@swc/core": "^1.10.7",

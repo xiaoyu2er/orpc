@@ -13,7 +13,7 @@
     "@orpc/client": "next",
     "@orpc/openapi": "next",
     "@orpc/server": "next",
-    "@orpc/vue-query": "next",
+    "@orpc/tanstack-query": "next",
     "@orpc/zod": "next",
     "@tanstack/vue-query": "^5.77.2",
     "nuxt": "^3.16.2",

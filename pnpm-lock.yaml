@@ -711,12 +711,12 @@ importers:
       '@orpc/react':
         specifier: next
         version: link:../../packages/react
-      '@orpc/react-query':
-        specifier: next
-        version: link:../../packages/react-query
       '@orpc/server':
         specifier: next
         version: link:../../packages/server
+      '@orpc/tanstack-query':
+        specifier: next
+        version: link:../../packages/tanstack-query
       '@orpc/zod':
         specifier: next
         version: link:../../packages/zod
@@ -756,12 +756,12 @@ importers:
       '@orpc/react':
         specifier: next
         version: link:../../packages/react
-      '@orpc/react-query':
-        specifier: next
-        version: link:../../packages/react-query
       '@orpc/server':
         specifier: next
         version: link:../../packages/server
+      '@orpc/tanstack-query':
+        specifier: next
+        version: link:../../packages/tanstack-query
       '@orpc/zod':
         specifier: next
         version: link:../../packages/zod
@@ -804,12 +804,12 @@ importers:
       '@orpc/openapi':
         specifier: next
         version: link:../../packages/openapi
-      '@orpc/react-query':
-        specifier: next
-        version: link:../../packages/react-query
       '@orpc/server':
         specifier: next
         version: link:../../packages/server
+      '@orpc/tanstack-query':
+        specifier: next
+        version: link:../../packages/tanstack-query
       '@orpc/zod':
         specifier: next
         version: link:../../packages/zod
@@ -843,12 +843,12 @@ importers:
       '@orpc/client':
         specifier: next
         version: link:../../packages/client
-      '@orpc/react-query':
-        specifier: next
-        version: link:../../packages/react-query
       '@orpc/server':
         specifier: next
         version: link:../../packages/server
+      '@orpc/tanstack-query':
+        specifier: next
+        version: link:../../packages/tanstack-query
       '@orpc/zod':
         specifier: next
         version: link:../../packages/zod
@@ -924,9 +924,9 @@ importers:
       '@orpc/openapi-client':
         specifier: next
         version: link:../../packages/openapi-client
-      '@orpc/react-query':
+      '@orpc/tanstack-query':
         specifier: next
-        version: link:../../packages/react-query
+        version: link:../../packages/tanstack-query
       '@orpc/zod':
         specifier: next
         version: link:../../packages/zod
@@ -987,12 +987,12 @@ importers:
       '@orpc/react':
         specifier: next
         version: link:../../packages/react
-      '@orpc/react-query':
-        specifier: next
-        version: link:../../packages/react-query
       '@orpc/server':
         specifier: next
         version: link:../../packages/server
+      '@orpc/tanstack-query':
+        specifier: next
+        version: link:../../packages/tanstack-query
       '@orpc/zod':
         specifier: next
         version: link:../../packages/zod
@@ -1035,9 +1035,9 @@ importers:
       '@orpc/server':
         specifier: next
         version: link:../../packages/server
-      '@orpc/vue-query':
+      '@orpc/tanstack-query':
         specifier: next
-        version: link:../../packages/vue-query
+        version: link:../../packages/tanstack-query
       '@orpc/zod':
         specifier: next
         version: link:../../packages/zod
@@ -1068,9 +1068,9 @@ importers:
       '@orpc/server':
         specifier: next
         version: link:../../packages/server
-      '@orpc/solid-query':
+      '@orpc/tanstack-query':
         specifier: next
-        version: link:../../packages/solid-query
+        version: link:../../packages/tanstack-query
       '@orpc/zod':
         specifier: next
         version: link:../../packages/zod
@@ -1107,9 +1107,9 @@ importers:
       '@orpc/server':
         specifier: next
         version: link:../../packages/server
-      '@orpc/svelte-query':
+      '@orpc/tanstack-query':
         specifier: next
-        version: link:../../packages/svelte-query
+        version: link:../../packages/tanstack-query
       '@orpc/zod':
         specifier: next
         version: link:../../packages/zod
@@ -1152,12 +1152,12 @@ importers:
       '@orpc/react':
         specifier: next
         version: link:../../packages/react
-      '@orpc/react-query':
-        specifier: next
-        version: link:../../packages/react-query
       '@orpc/server':
         specifier: next
         version: link:../../packages/server
+      '@orpc/tanstack-query':
+        specifier: next
+        version: link:../../packages/tanstack-query
       '@orpc/zod':
         specifier: next
         version: link:../../packages/zod

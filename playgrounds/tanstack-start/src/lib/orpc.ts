@@ -3,7 +3,7 @@ import { createRouterClient } from '@orpc/server'
 import type { RouterClient } from '@orpc/server'
 import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
-import { createORPCReactQueryUtils } from '@orpc/react-query'
+import { createTanstackQueryUtils } from '@orpc/tanstack-query'
 import { BatchLinkPlugin } from '@orpc/client/plugins'
 import { getHeaders } from '@tanstack/react-start/server'
 import { createIsomorphicFn } from '@tanstack/react-start'
@@ -44,4 +44,4 @@ const getORPCClient = createIsomorphicFn()
 
 export const client: RouterClient<typeof router> = getORPCClient()
 
-export const orpc = createORPCReactQueryUtils(client)
+export const orpc = createTanstackQueryUtils(client)

@@ -81,12 +81,18 @@ interface ClientContext {
 const link = new RPCLink<ClientContext>({
   url: 'http://localhost:3000/rpc',
   method: ({ context }, path) => {
+    // Use GET for cached responses
     if (context?.cache) {
       return 'GET'
     }
 
-    const lastSegment = path.at(-1)
-    if (lastSegment && /get|find|list|search/i.test(lastSegment)) {
+    // Use GET for rendering requests
+    if (typeof window === 'undefined') {
+      return 'GET'
+    }
+
+    // Use GET for read-like operations
+    if (path.at(-1)?.match(/^(?:get|find|list|search)(?:[A-Z].*)?$/)) {
       return 'GET'
     }
 
@@ -110,7 +116,7 @@ const link = new RPCLink({
       throw new Error('RPCLink is not allowed on the server side.')
     }
 
-    return new URL('/rpc', window.location.href)
+    return `${window.location.origin}/rpc`
   },
 })
 ```

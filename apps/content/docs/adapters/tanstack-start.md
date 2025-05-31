@@ -61,7 +61,7 @@ import { getHeaders } from '@tanstack/react-start/server'
 import { createIsomorphicFn } from '@tanstack/react-start'
 
 const link = new RPCLink({
-  url: new URL('/api/rpc', typeof window !== 'undefined' ? window.location.href : 'http://localhost:3000'),
+  url: `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/api/rpc`,
   headers: createIsomorphicFn()
     .client(() => ({}))
     .server(() => getHeaders())
@@ -102,7 +102,7 @@ const getORPCClient = createIsomorphicFn()
   }))
   .client((): RouterClient<typeof router> => {
     const link = new RPCLink({
-      url: new URL('/api/rpc', window.location.href),
+      url: `${window.location.origin}/api/rpc`,
     })
 
     return createORPCClient(link)

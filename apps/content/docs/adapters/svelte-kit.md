@@ -1,11 +1,11 @@
 ---
-title: SvelteKit Integration
-description: Integrate oRPC with SvelteKit
+title: Svelte Kit Adapter
+description: Use oRPC inside an Svelte Kit project
 ---
 
-# SvelteKit Integration
+# Svelte Kit Adapter
 
-[SvelteKit](https://svelte.dev/docs/kit/introduction) is a framework for rapidly developing robust, performant web applications using Svelte. For additional context, refer to the [HTTP Adapter](/docs/adapters/http) guide.
+[Svelte Kit](https://svelte.dev/docs/kit/introduction) is a framework for rapidly developing robust, performant web applications using Svelte. For additional context, refer to the [HTTP Adapter](/docs/adapters/http) guide.
 
 ## Basic
 

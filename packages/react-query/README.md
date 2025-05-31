@@ -63,7 +63,7 @@ You can find the full documentation [here](https://orpc.unnoq.com).
 
 ## `@orpc/react-query`
 
-Integration with [React Query](https://tanstack.com/query/latest/docs/framework/react/overview). Read the [documentation](https://orpc.unnoq.com/docs/tanstack-query/react) for more information.
+Integration with [React Query](https://tanstack.com/query/latest/docs/framework/react/overview). Read the [documentation](https://orpc.unnoq.com/docs/integrations/tanstack-query-old/react) for more information.
 
 ```ts
 export function Example() {

@@ -1,9 +1,9 @@
 ---
-title: Worker Threads Integration
+title: Worker Threads Adapter
 description: Enable type-safe communication between Node.js Worker Threads using oRPC.
 ---
 
-# Worker Threads Integration
+# Worker Threads Adapter
 
 Use [Node.js Worker Threads](https://nodejs.org/api/worker_threads.html) with oRPC for type-safe inter-thread communication via the [Message Port Adapter](/docs/adapters/message-port). Before proceeding, we recommend reviewing the [Node.js Worker Thread API](https://nodejs.org/api/worker_threads.html).
 

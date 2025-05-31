@@ -63,7 +63,7 @@ You can find the full documentation [here](https://orpc.unnoq.com).
 
 ## `@orpc/vue-colada`
 
-Integration with [Pinia Colada](https://pinia-colada.esm.dev/). Read the [documentation](https://orpc.unnoq.com/docs/pinia-colada) for more information.
+Integration with [Pinia Colada](https://pinia-colada.esm.dev/). Read the [documentation](https://orpc.unnoq.com/docs/integrations/pinia-colada) for more information.
 
 ```ts
 export function Setup() {

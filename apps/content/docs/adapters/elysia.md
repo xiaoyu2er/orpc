@@ -1,9 +1,9 @@
 ---
-title: Elysia Integration
-description: Integrate oRPC with Elysia
+title: Elysia Adapter
+description: Use oRPC inside an Elysia project
 ---
 
-# Elysia Integration
+# Elysia Adapter
 
 [Elysia](https://elysiajs.com/) is a high-performance web framework for [Bun](https://bun.sh/) that adheres to the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API). For additional context, refer to the [HTTP Adapter](/docs/adapters/http) guide.
 

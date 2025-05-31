@@ -1,6 +1,6 @@
 ---
 title: Implement Contract in NestJS
-description: Seamlessly implement oRPC contracts in your NestJS applications.
+description: Seamlessly implement oRPC contracts in your NestJS projects.
 ---
 
 # Implement Contract in NestJS

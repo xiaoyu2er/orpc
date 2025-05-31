@@ -63,7 +63,7 @@ You can find the full documentation [here](https://orpc.unnoq.com).
 
 ## `@orpc/svelte-query`
 
-Integration with [Svelte Query](https://tanstack.com/query/latest/docs/framework/svelte/overview). Read the [documentation](https://orpc.unnoq.com/docs/tanstack-query/svelte) for more information.
+Integration with [Svelte Query](https://tanstack.com/query/latest/docs/framework/svelte/overview). Read the [documentation](https://orpc.unnoq.com/docs/integrations/tanstack-query-old/svelte) for more information.
 
 ```ts
 export function Example() {

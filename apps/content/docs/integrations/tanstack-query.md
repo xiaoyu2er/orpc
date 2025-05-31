@@ -1,9 +1,9 @@
 ---
-title: Tanstack Query Integration (New)
+title: Tanstack Query Integration
 description: Seamlessly integrate oRPC with Tanstack Query
 ---
 
-# Tanstack Query Integration (New)
+# Tanstack Query Integration
 
 [Tanstack Query](https://tanstack.com/query/latest) is a robust solution for asynchronous state management. oRPC Tanstack Query integration is very lightweight and straightforward - supporting all libraries that Tanstack Query supports (React, Vue, Angular, Solid, Svelte, etc.).
 

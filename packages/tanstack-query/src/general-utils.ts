@@ -8,7 +8,7 @@ export interface GeneralUtils<TInput> {
   /**
    * Generate a query/mutation key for checking status, invalidate, set, get, etc.
    *
-   * @see {@link https://orpc.unnoq.com/docs/tanstack-query/basic#query-mutation-key Tanstack Query/Mutation Key Docs}
+   * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query-old/basic#query-mutation-key Tanstack Query/Mutation Key Docs}
    */
   key<TType extends OperationType>(options?: OperationKeyOptions<TType, TInput>): OperationKey<TType, TInput>
 }

@@ -170,7 +170,7 @@ This example uses Next.js, but you can apply the same pattern in SvelteKit, Nuxt
 
 ## TanStack Query
 
-Combining this oRPC setup with TanStack Query (React Query, Solid Query, etc.) provides a powerful pattern for data fetching, and state management, especially with Suspense hooks. Refer to these details in [Tanstack Query Integration Guide](/docs/tanstack-query/basic) and [Tanstack Query SSR Guide](https://tanstack.com/query/latest/docs/framework/react/guides/ssr).
+Combining this oRPC setup with TanStack Query (React Query, Solid Query, etc.) provides a powerful pattern for data fetching, and state management, especially with Suspense hooks. Refer to these details in [Tanstack Query Integration Guide](/docs/integrations/tanstack-query-old/basic) and [Tanstack Query SSR Guide](https://tanstack.com/query/latest/docs/framework/react/guides/ssr).
 
 ```tsx
 export default function PlanetListPage() {

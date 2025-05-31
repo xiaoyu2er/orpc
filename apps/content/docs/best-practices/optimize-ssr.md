@@ -54,7 +54,7 @@ const link = new RPCLink({
       throw new Error('RPCLink is not allowed on the server side.')
     }
 
-    return new URL('/rpc', window.location.href)
+    return `${window.location.origin}/rpc`
   },
 })
 
@@ -106,7 +106,7 @@ const link = new OpenAPILink({
       throw new Error('OpenAPILink is not allowed on the server side.')
     }
 
-    return new URL('/api', window.location.href)
+    return `${window.location.origin}/api`
   },
 })
 

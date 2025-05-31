@@ -6,7 +6,7 @@ import { createORPCReactQueryUtils } from '@orpc/react-query'
 import { BatchLinkPlugin } from '@orpc/client/plugins'
 
 const link = new RPCLink({
-  url: new URL('/rpc', typeof window !== 'undefined' ? window.location.href : 'http://localhost:3000'),
+  url: `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/rpc`,
   plugins: [
     new BatchLinkPlugin({
       groups: [{

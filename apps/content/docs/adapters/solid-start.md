@@ -53,7 +53,7 @@ import { RPCLink } from '@orpc/client/fetch'
 import { getRequestEvent } from 'solid-js/web'
 
 const link = new RPCLink({
-  url: new URL('/api/rpc', typeof window !== 'undefined' ? window.location.href : 'http://localhost:3000'),
+  url: `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/rpc`,
   headers: () => Object.fromEntries(getRequestEvent()?.request.headers ?? []),
 })
 ```
@@ -87,7 +87,7 @@ const link = new RPCLink({
       throw new Error('RPCLink is not allowed on the server side.')
     }
 
-    return new URL('/rpc', window.location.href)
+    return `${window.location.origin}/rpc`
   },
 })
 

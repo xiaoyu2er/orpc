@@ -71,7 +71,6 @@
     "@orpc/shared": "workspace:*",
     "@orpc/standard-server": "workspace:*",
     "json-schema-typed": "^8.0.1",
-    "openapi-types": "^12.1.3",
     "rou3": "^0.6.0"
   },
   "devDependencies": {

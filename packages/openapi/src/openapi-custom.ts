@@ -1,5 +1,4 @@
-import type { AnyContractProcedure, ErrorMap } from '@orpc/contract'
-import type { OpenAPI } from './openapi'
+import type { AnyContractProcedure, ErrorMap, OpenAPI } from '@orpc/contract'
 import { isProcedure } from '@orpc/server'
 
 const OPERATION_EXTENDER_SYMBOL = Symbol('ORPC_OPERATION_EXTENDER')

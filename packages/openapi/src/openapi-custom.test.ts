@@ -1,4 +1,4 @@
-import type { OpenAPI } from './openapi'
+import type { OpenAPI } from '@orpc/contract'
 import { oc } from '@orpc/contract'
 import { os } from '@orpc/server'
 import { applyCustomOpenAPIOperation, customOpenAPIOperation, getCustomOpenAPIOperation } from './openapi-custom'

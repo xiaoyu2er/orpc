@@ -1,6 +1,5 @@
-import type { AnyContractProcedure } from '@orpc/contract'
+import type { AnyContractProcedure, OpenAPI } from '@orpc/contract'
 import type { PartialDeep } from '@orpc/shared'
-import type { OpenAPI } from './openapi'
 import { eventIterator, oc } from '@orpc/contract'
 import { z } from 'zod'
 import { oz, ZodToJsonSchemaConverter } from '../../zod/src'
@@ -845,6 +844,32 @@ const customOperationTests: TestCase[] = [
     expected: {
       '/': {
         post: {
+          security: [{ bearerAuth: [] }],
+        },
+      },
+    },
+  },
+  {
+    name: 'override entire operation object',
+    contract: oc
+      .route({
+        spec: {
+          operationId: 'customOperationId',
+          tags: ['tag'],
+          summary: '__OVERRIDE__',
+        },
+      })
+      .errors({
+        TEST: customOpenAPIOperation({}, { security: [{ bearerAuth: [] }] }),
+      })
+      .input(z.object({ id: z.string() }))
+      .output(z.object({ name: z.string() })),
+    expected: {
+      '/': {
+        post: {
+          operationId: 'customOperationId',
+          tags: ['tag'],
+          summary: '__OVERRIDE__',
           security: [{ bearerAuth: [] }],
         },
       },

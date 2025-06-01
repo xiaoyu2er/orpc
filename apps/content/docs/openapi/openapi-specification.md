@@ -130,6 +130,25 @@ const ping = os
     deprecated: false,
     tags: ['tag'],
     successDescription: 'the success description',
+    spec: { // override entire auto-generated operation object
+      operationId: 'customOperationId',
+      tags: ['tag'],
+      summary: 'the summary',
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {},
+        }
+      },
+      responses: {
+        200: {
+          description: 'customSuccessDescription',
+          content: {
+            'application/json': {},
+          },
+        }
+      },
+    }
   })
   .handler(() => {})
 

@@ -1,7 +1,7 @@
+import type { OpenAPI } from '@orpc/contract'
 import type { Context, HTTPPath, Router } from '@orpc/server'
 import type { StandardHandlerInterceptorOptions, StandardHandlerOptions, StandardHandlerPlugin } from '@orpc/server/standard'
 import type { Promisable, Value } from '@orpc/shared'
-import type { OpenAPI } from '../openapi'
 import type { OpenAPIGeneratorGenerateOptions, OpenAPIGeneratorOptions } from '../openapi-generator'
 import { once, stringifyJSON, value } from '@orpc/shared'
 import { OpenAPIGenerator } from '../openapi-generator'

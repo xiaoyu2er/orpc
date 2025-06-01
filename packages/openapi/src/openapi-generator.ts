@@ -1,7 +1,6 @@
-import type { AnyContractProcedure, AnyContractRouter, ErrorMap } from '@orpc/contract'
+import type { AnyContractProcedure, AnyContractRouter, ErrorMap, OpenAPI } from '@orpc/contract'
 import type { StandardOpenAPIJsonSerializerOptions } from '@orpc/openapi-client/standard'
 import type { AnyProcedure, AnyRouter } from '@orpc/server'
-import type { OpenAPI } from './openapi'
 import type { JSONSchema } from './schema'
 import type { ConditionalSchemaConverter, SchemaConverter } from './schema-converter'
 import { fallbackORPCErrorMessage, fallbackORPCErrorStatus, isORPCErrorStatus } from '@orpc/client'
@@ -78,17 +77,24 @@ export class OpenAPIGenerator {
         const method = toOpenAPIMethod(fallbackContractConfig('defaultMethod', def.route.method))
         const httpPath = toOpenAPIPath(def.route.path ?? toHttpPath(path))
 
-        const operationObjectRef: OpenAPI.OperationObject = {
-          operationId,
-          summary: def.route.summary,
-          description: def.route.description,
-          deprecated: def.route.deprecated,
-          tags: def.route.tags?.map(tag => tag),
-        }
+        let operationObjectRef: OpenAPI.OperationObject
 
-        await this.#request(operationObjectRef, def)
-        await this.#successResponse(operationObjectRef, def)
-        await this.#errorResponse(operationObjectRef, def)
+        if (def.route.spec !== undefined) {
+          operationObjectRef = def.route.spec
+        }
+        else {
+          operationObjectRef = {
+            operationId,
+            summary: def.route.summary,
+            description: def.route.description,
+            deprecated: def.route.deprecated,
+            tags: def.route.tags?.map(tag => tag),
+          }
+
+          await this.#request(operationObjectRef, def)
+          await this.#successResponse(operationObjectRef, def)
+          await this.#errorResponse(operationObjectRef, def)
+        }
 
         doc.paths ??= {}
         doc.paths[httpPath] ??= {}

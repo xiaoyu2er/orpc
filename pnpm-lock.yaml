@@ -327,9 +327,6 @@ importers:
       json-schema-typed:
         specifier: ^8.0.1
         version: 8.0.1
-      openapi-types:
-        specifier: ^12.1.3
-        version: 12.1.3
       rou3:
         specifier: ^0.6.0
         version: 0.6.1

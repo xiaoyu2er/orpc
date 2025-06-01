@@ -105,6 +105,23 @@ const link = new RPCLink<ClientContext>({
 })
 ```
 
+::: details Automatically use method specified in contract?
+
+By using `inferRPCMethodFromContractRouter`, the `RPCLink` automatically uses the method specified in the contract when sending requests.
+
+```ts
+import { inferRPCMethodFromContractRouter } from '@orpc/contract'
+
+const link = new RPCLink({
+  url: 'http://localhost:3000/rpc',
+  method: inferRPCMethodFromContractRouter(contract),
+})
+```
+
+::: info
+A normal [router](/docs/router) works as a contract router as long as it does not include a [lazy router](/docs/router#lazy-router). For more advanced use cases, refer to the [Router to Contract](/docs/contract-first/router-to-contract) guide.
+:::
+
 ## Lazy URL
 
 You can define `url` as a function, ensuring compatibility with environments that may lack certain runtime APIs.

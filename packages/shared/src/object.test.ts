@@ -1,4 +1,7 @@
-import { clone, findDeepMatches, get, isObject, isPropertyKey, isTypescriptObject } from './object'
+import { type } from 'arktype'
+import * as v from 'valibot'
+import * as z from 'zod/v4'
+import { clone, findDeepMatches, get, isObject, isPropertyKey, isTypescriptObject, NullProtoObj } from './object'
 
 it('findDeepMatches', () => {
   const { maps, values } = findDeepMatches(v => typeof v === 'string', {
@@ -88,4 +91,29 @@ it('isPropertyKey', () => {
   expect(isPropertyKey({})).toBe(false)
   expect(isPropertyKey([])).toBe(false)
   expect(isPropertyKey(null)).toBe(false)
+})
+
+it('nullProtoObj', () => {
+  const obj = new NullProtoObj()
+
+  obj.a = 1
+  // eslint-disable-next-line no-restricted-properties, no-proto
+  obj.__proto__ = 2
+
+  expect(obj).toSatisfy(isObject)
+
+  expect(obj.a).toBe(1)
+  // eslint-disable-next-line no-restricted-properties, no-proto
+  expect(obj.__proto__).toBe(2)
+
+  // compatible with common validation libs
+  expect(z.object({ a: z.number() }).parse(obj)).toEqual(expect.objectContaining({ a: 1 }))
+  expect(v.parse(v.object({ a: v.number() }), obj)).toEqual(expect.objectContaining({ a: 1 }))
+  expect(type({ a: 'number' })(obj)).toEqual(expect.objectContaining({ a: 1 }))
+
+  const clone = { ...obj }
+  expect(Object.getPrototypeOf(clone).constructor).toBe(Object)
+  // eslint-disable-next-line no-restricted-properties, no-proto
+  expect(clone.__proto__).toBe(2)
+  expect(clone.a).toBe(1)
 })

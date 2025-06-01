@@ -1,4 +1,5 @@
 import { ORPCError } from '@orpc/contract'
+import { isObject } from '@orpc/shared'
 import { ErrorEvent, getEventMeta, withEventMeta } from '@orpc/standard-server'
 import { StandardBracketNotationSerializer } from './bracket-notation'
 import { StandardOpenAPIJsonSerializer } from './openapi-json-serializer'
@@ -251,7 +252,7 @@ describe('standardOpenAPIJsonSerializer', () => {
 
       const deserialized = openapiSerializer.deserialize(serialized)
 
-      expect(deserialized).toBeInstanceOf(Object)
+      expect(deserialized).toSatisfy(isObject)
       expect(deserialized).toEqual({
         date: data.date.toString(),
         number: data.number.toString(),
@@ -280,7 +281,7 @@ describe('standardOpenAPIJsonSerializer', () => {
 
       const deserialized = openapiSerializer.deserialize(serialized)
 
-      expect(deserialized).toBeInstanceOf(Object)
+      expect(deserialized).toSatisfy(isObject)
       expect(deserialized).toEqual(data)
     })
 

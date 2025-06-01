@@ -452,6 +452,16 @@ importers:
       type-fest:
         specifier: ^4.39.1
         version: 4.41.0
+    devDependencies:
+      arktype:
+        specifier: 2.1.20
+        version: 2.1.20
+      valibot:
+        specifier: ^1.1.0
+        version: 1.1.0(typescript@5.8.3)
+      zod:
+        specifier: ^3.25.23
+        version: 3.25.23
 
   packages/solid-query:
     dependencies:

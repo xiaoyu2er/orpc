@@ -1,5 +1,5 @@
 import type { Segment } from '@orpc/shared'
-import { isObject } from '@orpc/shared'
+import { isObject, NullProtoObj } from '@orpc/shared'
 
 export type StandardBracketNotationSerialized = [string, unknown][]
 
@@ -170,11 +170,19 @@ function isValidArrayIndex(value: string): boolean {
 }
 
 function arrayToObject(array: any[]): Record<string, unknown> {
-  return { ...array }
+  const obj = new NullProtoObj()
+
+  array.forEach((item, i) => {
+    obj[i] = item
+  })
+
+  return obj
 }
 
 function pushStyleArrayToObject(array: any[]): Record<string, unknown> {
-  return {
-    '': array.length === 1 ? array[0] : array,
-  }
+  const obj = new NullProtoObj()
+
+  obj[''] = array.length === 1 ? array[0] : array
+
+  return obj
 }

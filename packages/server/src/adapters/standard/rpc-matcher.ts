@@ -5,6 +5,7 @@ import type { AnyRouter } from '../../router'
 import type { LazyTraverseContractProceduresOptions } from '../../router-utils'
 import type { StandardMatcher, StandardMatchResult } from './types'
 import { toHttpPath } from '@orpc/client/standard'
+import { NullProtoObj } from '@orpc/shared'
 import { unlazy } from '../../lazy'
 import { isProcedure } from '../../procedure'
 import { createContractedProcedure } from '../../procedure-utils'
@@ -19,7 +20,7 @@ export class StandardRPCMatcher implements StandardMatcher {
       procedure: AnyProcedure | undefined
       router: AnyRouter
     }
-  > = {}
+  > = new NullProtoObj()
 
   private pendingRouters: (LazyTraverseContractProceduresOptions & { httpPathPrefix: HTTPPath }) [] = []
 

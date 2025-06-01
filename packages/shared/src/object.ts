@@ -81,3 +81,10 @@ export function isPropertyKey(value: unknown): value is PropertyKey {
   const type = typeof value
   return type === 'string' || type === 'number' || type === 'symbol'
 }
+
+export const NullProtoObj = /* @__PURE__ */ (() => {
+  const e = function () { }
+  e.prototype = Object.create(null)
+  Object.freeze(e.prototype)
+  return e
+})() as unknown as ({ new<T extends Record<PropertyKey, unknown>>(): T })

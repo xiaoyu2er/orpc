@@ -3,8 +3,7 @@ import type { ConditionalSchemaConverter, JSONSchema, SchemaConvertOptions } fro
 import type { ConversionConfig } from '@valibot/to-json-schema'
 import { toJsonSchema } from '@valibot/to-json-schema'
 
-export interface experimental_ValibotToJsonSchemaConverterOptions extends ConversionConfig {
-
+export interface experimental_ValibotToJsonSchemaConverterOptions extends Omit<ConversionConfig, 'typeMode'> {
 }
 
 export class experimental_ValibotToJsonSchemaConverter implements ConditionalSchemaConverter {
@@ -21,8 +20,11 @@ export class experimental_ValibotToJsonSchemaConverter implements ConditionalSch
     return schema !== undefined && schema['~standard'].vendor === 'valibot'
   }
 
-  convert(schema: AnySchema | undefined, _options: SchemaConvertOptions): [required: boolean, jsonSchema: Exclude<JSONSchema, boolean>] {
-    const jsonSchema = toJsonSchema(schema as any, this.conversionConfig)
+  convert(schema: AnySchema | undefined, options: SchemaConvertOptions): [required: boolean, jsonSchema: Exclude<JSONSchema, boolean>] {
+    const jsonSchema = toJsonSchema(schema as any, {
+      ...this.conversionConfig,
+      typeMode: options.strategy,
+    })
 
     return [true, jsonSchema as any]
   }

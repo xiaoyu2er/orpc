@@ -4,12 +4,21 @@ import { experimental_ValibotToJsonSchemaConverter as ValibotToJsonSchemaConvert
 
 it('valibotToJsonSchemaConverter.convert', async () => {
   const converter = new ValibotToJsonSchemaConverter()
-  expect(converter.convert(v.string(), { strategy: 'input' })).toEqual(
+
+  expect(converter.convert(v.pipe(v.number(), v.transform(n => n.toString()), v.string()), { strategy: 'input' })).toEqual(
+    [true, {
+      $schema: 'http://json-schema.org/draft-07/schema#',
+      type: 'number',
+    }],
+  )
+
+  expect(converter.convert(v.pipe(v.number(), v.transform(n => n.toString()), v.string()), { strategy: 'output' })).toEqual(
     [true, {
       $schema: 'http://json-schema.org/draft-07/schema#',
       type: 'string',
     }],
   )
+
   expect(converter.convert(v.object({ a: v.string() }), { strategy: 'input' })).toEqual(
     [true, {
       $schema: 'http://json-schema.org/draft-07/schema#',

@@ -9,12 +9,12 @@ A normal [router](/docs/router) works as a contract router as long as it does no
 
 ## Unlazy the Router
 
-If your router include a [lazy router](/docs/router#lazy-router), you need to fully resolve it to make it compatible with contract.
+If your router includes a [lazy router](/docs/router#lazy-router), you need to fully resolve it to make it compatible with contract.
 
 ```ts
 import { unlazyRouter } from '@orpc/server'
 
-const unlaziedRouter = await unlazyRouter(router)
+const resolvedRouter = await unlazyRouter(router)
 ```
 
 ## Minify & Export the Contract Router for the Client

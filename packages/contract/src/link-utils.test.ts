@@ -19,5 +19,5 @@ it('inferRPCMethodFromContractRouter', () => {
   expect(method({}, ['nested', 'get'])).toBe('GET')
   expect(method({}, ['nested', 'delete'])).toBe('DELETE')
 
-  expect(() => method({}, ['nested', 'not-exist'])).toThrow()
+  expect(() => method({}, ['nested', 'not-exist'])).toThrow(/No valid procedure found at path/)
 })

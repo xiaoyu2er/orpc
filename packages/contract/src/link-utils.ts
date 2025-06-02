@@ -14,10 +14,10 @@ export function inferRPCMethodFromContractRouter(contract: AnyContractRouter): (
     const procedure = get(contract, path)
 
     if (!isContractProcedure(procedure)) {
-      throw new Error(`
-        [inferRPCMethodFromContractRouter] No valid procedure found at path "${path.join('.')}".
-        This may happen when the contract router is not properly configured.
-      `)
+      throw new Error(
+        `[inferRPCMethodFromContractRouter] No valid procedure found at path "${path.join('.')}". `
+        + `This may happen when the contract router is not properly configured.`,
+      )
     }
 
     const method = fallbackContractConfig('defaultMethod', procedure['~orpc'].route.method)

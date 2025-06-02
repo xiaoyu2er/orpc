@@ -79,6 +79,7 @@ export default defineConfig({
           items: [
             { text: 'Define Contract', link: '/docs/contract-first/define-contract' },
             { text: 'Implement Contract', link: '/docs/contract-first/implement-contract' },
+            { text: 'Router to Contract', link: '/docs/contract-first/router-to-contract' },
           ],
         },
         {

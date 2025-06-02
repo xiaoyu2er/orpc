@@ -1,4 +1,5 @@
 import type { ErrorMap, MergedErrorMap } from './error'
+import type { AnyContractProcedure } from './procedure'
 import type { EnhanceRouteOptions } from './route'
 import type { AnyContractRouter } from './router'
 import { mergeErrorMap } from './error'
@@ -57,4 +58,34 @@ export function enhanceContractRouter<T extends AnyContractRouter, TErrorMap ext
   }
 
   return enhanced as any
+}
+
+/**
+ * Minify a contract router into a smaller object.
+ *
+ * You should export the result to a JSON file. On the client side, you can import this JSON file and use it as a contract router.
+ * This reduces the size of the contract and helps prevent leaking internal details of the router to the client.
+ *
+ * @see {@link https://orpc.unnoq.com/docs/contract-first/router-to-contract#minify-export-the-contract-router-for-the-client Router to Contract Docs}
+ */
+export function minifyContractRouter(router: AnyContractRouter): AnyContractRouter {
+  if (isContractProcedure(router)) {
+    const procedure: AnyContractProcedure = {
+      '~orpc': {
+        errorMap: {},
+        meta: router['~orpc'].meta,
+        route: router['~orpc'].route,
+      },
+    }
+
+    return procedure
+  }
+
+  const json: Record<string, AnyContractRouter> = {}
+
+  for (const key in router) {
+    json[key] = minifyContractRouter(router[key]!)
+  }
+
+  return json
 }

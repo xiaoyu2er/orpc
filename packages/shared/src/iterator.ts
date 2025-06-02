@@ -124,7 +124,7 @@ export function replicateAsyncIterator<T, TReturn, TNext>(
             .then(resolve)
             .catch(reject)
 
-          setTimeout(() => {
+          new Promise(r => r(undefined)).then(() => {
             if (error) {
               reject(error.value)
             }

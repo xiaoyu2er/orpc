@@ -1,4 +1,12 @@
-import { flattenHeader, generateContentDisposition, getFilenameFromContentDisposition, mergeStandardHeaders } from './utils'
+import type { StandardLazyResponse } from './types'
+import * as SharedModule from '@orpc/shared'
+import { flattenHeader, generateContentDisposition, getFilenameFromContentDisposition, mergeStandardHeaders, replicateStandardLazyResponse } from './utils'
+
+const replicateAsyncIteratorSpy = vi.spyOn(SharedModule, 'replicateAsyncIterator')
+
+beforeEach(() => {
+  vi.clearAllMocks()
+})
 
 it('generateContentDisposition', () => {
   expect(generateContentDisposition('')).toEqual('inline; filename=""; filename*=utf-8\'\'')
@@ -43,4 +51,74 @@ it('flattenHeader', () => {
   expect(flattenHeader([])).toEqual(undefined)
   expect(flattenHeader('a')).toEqual('a')
   expect(flattenHeader(undefined)).toEqual(undefined)
+})
+
+describe('replicateStandardLazyResponse', () => {
+  it('without async iterator', async () => {
+    const response: StandardLazyResponse = {
+      headers: {
+        'x-test': 'test',
+      },
+      body: vi.fn(async () => 'test'),
+      status: 200,
+    }
+
+    const replicated = replicateStandardLazyResponse(response, 3)
+
+    expect(replicated.length).toBe(3)
+
+    expect(await replicated[0]!.body()).toBe('test')
+    expect(await replicated[1]!.body()).toBe('test')
+    expect(await replicated[2]!.body()).toBe('test')
+
+    expect(replicated[0]!.headers).toEqual({ 'x-test': 'test' })
+    expect(replicated[1]!.headers).toEqual({ 'x-test': 'test' })
+    expect(replicated[2]!.headers).toEqual({ 'x-test': 'test' })
+
+    expect(replicated[0]!.status).toBe(200)
+    expect(replicated[1]!.status).toBe(200)
+    expect(replicated[2]!.status).toBe(200)
+
+    expect(response.body).toHaveBeenCalledTimes(1)
+    expect(replicateAsyncIteratorSpy).toHaveBeenCalledTimes(0)
+  })
+
+  it('with async iterator', async () => {
+    const iterator = (async function* () {
+      yield 'test'
+      yield 'test'
+    }())
+
+    const response: StandardLazyResponse = {
+      headers: {
+        'x-test': 'test',
+      },
+      body: async () => iterator,
+      status: 200,
+    }
+
+    expect(replicateAsyncIteratorSpy).toHaveBeenCalledTimes(0)
+    const replicated = replicateStandardLazyResponse(response, 3)
+    expect(replicated.length).toBe(3)
+
+    expect(replicated[0]!.headers).toEqual({ 'x-test': 'test' })
+    expect(replicated[1]!.headers).toEqual({ 'x-test': 'test' })
+    expect(replicated[2]!.headers).toEqual({ 'x-test': 'test' })
+
+    expect(replicated[0]!.status).toBe(200)
+    expect(replicated[1]!.status).toBe(200)
+    expect(replicated[2]!.status).toBe(200)
+
+    replicateAsyncIteratorSpy.mockReturnValueOnce([1, 2, 3] as any)
+
+    expect(await replicated[0]!.body()).toBe(1)
+    expect(await replicated[0]!.body()).toBe(1) // make sure cached
+    expect(await replicated[1]!.body()).toBe(2)
+    expect(await replicated[1]!.body()).toBe(2) // make sure cached
+    expect(await replicated[2]!.body()).toBe(3)
+    expect(await replicated[2]!.body()).toBe(3) // make sure cached
+
+    expect(replicateAsyncIteratorSpy).toHaveBeenCalledTimes(1)
+    expect(replicateAsyncIteratorSpy).toHaveBeenCalledWith(iterator, 3)
+  })
 })

@@ -48,7 +48,7 @@ const link = new RPCLink({
       groups: [
         {
           condition: options => true,
-          context: {} // This context will represent the batch request and persist throughout the request lifecycle
+          context: {} // Context used for the rest of the request lifecycle
         }
       ]
     }),

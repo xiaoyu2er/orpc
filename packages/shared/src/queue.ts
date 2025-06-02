@@ -1,12 +1,12 @@
 export interface AsyncIdQueueCloseOptions {
   id?: number
-  reason?: Error
+  reason?: unknown
 }
 
 export class AsyncIdQueue<T> {
   private readonly openIds = new Set<number>()
   private readonly items = new Map<number, T[]>()
-  private readonly pendingPulls = new Map<number, (readonly [resolve: (item: T) => void, reject: (err: Error) => void])[]>()
+  private readonly pendingPulls = new Map<number, (readonly [resolve: (item: T) => void, reject: (err: unknown) => void])[]>()
 
   get length(): number {
     return this.openIds.size

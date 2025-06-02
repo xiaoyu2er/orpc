@@ -96,3 +96,7 @@ const handler = new RPCHandler(router, {
 | Plugin                                                   | Applies To                          | Toggle Option                  |
 | -------------------------------------------------------- | ----------------------------------- | ------------------------------ |
 | [StrictGetMethodPlugin](/docs/plugins/strict-get-method) | [HTTP Adapter](/docs/adapters/http) | `strictGetMethodPluginEnabled` |
+
+::: info
+You can safely disable default plugins if they don't provide any meaningful benefit for your use case.
+:::

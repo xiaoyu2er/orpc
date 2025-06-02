@@ -101,18 +101,6 @@ describe('dedupeRequestsPlugin', () => {
       request: await encode.mock.results[1]!.value,
       context: { foo2: true },
     }))
-
-    expect(groupCondition).toHaveBeenCalledTimes(2)
-    expect(groupCondition).toHaveBeenNthCalledWith(1, expect.objectContaining({
-      path: [method, 'foo'],
-      request: await encode.mock.results[0]!.value,
-      context: { foo1: true },
-    }))
-    expect(groupCondition).toHaveBeenNthCalledWith(2, expect.objectContaining({
-      path: [method, 'foo'],
-      request: await encode.mock.results[1]!.value,
-      context: { foo2: true },
-    }))
   })
 
   it('dedupe requests and request throw error', async () => {

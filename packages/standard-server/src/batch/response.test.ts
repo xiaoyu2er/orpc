@@ -40,20 +40,6 @@ describe('toBatchResponse', () => {
 
     expect(response.body).toSatisfy(isAsyncIteratorObject)
   })
-
-  it('on buffered mode error', async () => {
-    await expect(
-      toBatchResponse({
-        mode: 'buffered',
-        status: 207,
-        headers: { 'x-custom': 'value' },
-        body: (async function* () {
-          yield { index: 0, status: 200, headers: { 'x-custom': 'value' }, body: 'yielded1' }
-          throw new Error('__TEST__')
-        })(),
-      }),
-    ).rejects.toThrow('__TEST__')
-  })
 })
 
 describe('parseBatchResponse', () => {

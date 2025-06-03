@@ -28,8 +28,7 @@ export function toBatchResponse(options: ToBatchResponseOptions): Promisable<Sta
   }
 
   if (mode === 'buffered') {
-    // eslint-disable-next-line no-async-promise-executor
-    return new Promise(async (resolve, reject) => {
+    return (async () => {
       try {
         const body: Partial<BatchResponseBodyItem>[] = []
 
@@ -37,19 +36,16 @@ export function toBatchResponse(options: ToBatchResponseOptions): Promisable<Sta
           body.push(minifyResponseItem(item))
         }
 
-        resolve({
+        return {
           headers: options.headers,
           status: options.status,
           body,
-        })
-      }
-      catch (e) {
-        reject(e)
+        }
       }
       finally {
         await options.body.return?.()
       }
-    })
+    })()
   }
 
   return {

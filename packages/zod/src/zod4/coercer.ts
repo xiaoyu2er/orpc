@@ -21,7 +21,6 @@ import type {
   $ZodTuple,
   $ZodType,
   $ZodUnion,
-  util,
 } from 'zod/v4/core'
 import { guard, isObject } from '@orpc/shared'
 
@@ -154,8 +153,7 @@ export class experimental_ZodSmartCoercionPlugin<TContext extends Context> imple
         return value
       }
 
-      case 'object':
-      case 'interface': {
+      case 'object':{
         const object = schema as $ZodObject
 
         if (value === undefined) {
@@ -238,11 +236,27 @@ export class experimental_ZodSmartCoercionPlugin<TContext extends Context> imple
           return this.#coerce(union._zod.def.options[0]!, value)
         }
 
-        // support discriminated unions
         if (isObject(value)) {
+          const discriminator = 'discriminator' in union._zod.def && typeof union._zod.def.discriminator === 'string'
+            ? union._zod.def.discriminator
+            : undefined
+
           for (const option of union._zod.def.options) {
-            if (option._zod.disc && this.#matchDiscriminators(value, option._zod.disc)) {
-              return this.#coerce(option, value)
+            if (!option._zod.propValues) {
+              continue
+            }
+
+            if (discriminator !== undefined) {
+              if (option._zod.propValues[discriminator]?.has(value[discriminator] as any)) {
+                return this.#coerce(option, value)
+              }
+            }
+            else {
+              for (const key in option._zod.propValues) {
+                if (option._zod.propValues[key]?.has(value[key] as any)) {
+                  return this.#coerce(option, value)
+                }
+              }
             }
           }
         }
@@ -376,35 +390,5 @@ export class experimental_ZodSmartCoercionPlugin<TContext extends Context> imple
     }
 
     return value
-  }
-
-  /**
-   * This function is inspired from Zod, because it's not exported
-   * https://github.com/colinhacks/zod/blob/v4/packages/core/src/schemas.ts#L1903C1-L1921C2
-   */
-  #matchDiscriminators(input: Record<PropertyKey, unknown>, discs: util.DiscriminatorMap): boolean {
-    for (const [key, value] of discs) {
-      const data = input[key]
-
-      if (value.values.size && !value.values.has(data as any)) {
-        return false
-      }
-
-      if (value.maps.length === 0) {
-        continue
-      }
-
-      if (!isObject(data)) {
-        return false
-      }
-
-      for (const m of value.maps) {
-        if (!this.#matchDiscriminators(data, m)) {
-          return false
-        }
-      }
-    }
-
-    return true
   }
 }

@@ -11,6 +11,15 @@ const customSchema1 = z.string().meta({
   examples: ['a', 'b'],
 })
 
+const customSchema1_unsupported_examples = z.string().meta({
+  description: 'description',
+  examples: {
+    a: {
+      value: 'a',
+    },
+  },
+})
+
 const customSchema2 = z.object({
   value: z.string(),
 })
@@ -41,6 +50,11 @@ testSchemaConverter([
     name: 'customSchema1',
     schema: customSchema1,
     input: [true, { type: 'string', description: 'description', examples: ['a', 'b'] }],
+  },
+  {
+    name: 'customSchema1_unsupported_examples',
+    schema: customSchema1_unsupported_examples,
+    input: [true, { type: 'string', description: 'description' }],
   },
   {
     name: 'customSchema2',

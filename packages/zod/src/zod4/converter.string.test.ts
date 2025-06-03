@@ -13,6 +13,11 @@ testSchemaConverter([
     input: [true, { type: 'string', maxLength: 10, minLength: 5, pattern: '^[a-z\\\\]+$' }],
   },
   {
+    name: 'string.min(5).max(10).regex(/^[a-z\\]+$/).regex(/^[bcd\\]+$/)',
+    schema: z.string().min(5).max(10).regex(/^[a-z\\]+$/).regex(/^[bcd\\]+$/),
+    input: [true, { type: 'string', maxLength: 10, minLength: 5, pattern: '^[a-z\\\\]+$', allOf: [{ pattern: '^[bcd\\\\]+$' }] }],
+  },
+  {
     name: 'base64',
     schema: z.base64(),
     input: [true, { type: 'string', contentEncoding: 'base64' }],

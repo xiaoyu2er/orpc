@@ -97,7 +97,7 @@ export default defineNuxtPlugin(() => {
 })
 ```
 
-```ts [lib/orpc.server.ts]
+```ts [plugins/orpc.server.ts]
 export default defineNuxtPlugin((nuxt) => {
   const event = useRequestEvent()
 

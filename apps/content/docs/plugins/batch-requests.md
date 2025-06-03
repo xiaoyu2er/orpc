@@ -1,11 +1,11 @@
 ---
-title: Batch Request/Response Plugin
+title: Batch Requests Plugin
 description: A plugin for oRPC to batch requests and responses.
 ---
 
-# Batch Request/Response Plugin
+# Batch Requests Plugin
 
-The **Batch Request/Response Plugin** allows you to combine multiple requests and responses into a single batch, reducing the overhead of sending each one separately.
+The **Batch Requests Plugin** allows you to combine multiple requests and responses into a single batch, reducing the overhead of sending each one separately.
 
 :::info
 The **Batch Plugin** streams responses asynchronously so that no individual request blocks another, ensuring all responses are handled independently for faster, more efficient batching.

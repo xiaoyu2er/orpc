@@ -38,10 +38,10 @@ export interface BatchHandlerOptions<T extends Context> {
 }
 
 /**
- * The Batch Request/Response Plugin allows you to combine multiple requests and responses into a single batch,
+ * The Batch Requests Plugin allows you to combine multiple requests and responses into a single batch,
  * reducing the overhead of sending each one separately.
  *
- * @see {@link https://orpc.unnoq.com/docs/plugins/batch-request-response Batch Request/Response Plugin Docs}
+ * @see {@link https://orpc.unnoq.com/docs/plugins/batch-requests Batch Requests Plugin Docs}
  */
 export class BatchHandlerPlugin<T extends Context> implements StandardHandlerPlugin<T> {
   private readonly maxSize: Exclude<BatchHandlerOptions<T>['maxSize'], undefined>

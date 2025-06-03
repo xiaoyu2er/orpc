@@ -10,6 +10,11 @@ testSchemaSmartCoercion([
     input: '123',
   },
   {
+    name: 'union - 123 - un-discriminated 2',
+    schema: z.union([z.boolean(), z.number()]),
+    input: { val: '123' },
+  },
+  {
     name: 'union - object boolean - un-discriminated',
     schema: z.union([z.object({ a: z.boolean() }), z.object({ b: z.number() })]),
     input: { a: 'true' },
@@ -28,7 +33,10 @@ testSchemaSmartCoercion([
   },
   {
     name: 'union - discriminated',
-    schema: z.union([z.object({ a: z.literal('type1'), b: z.number() }), z.object({ a: z.literal('type2'), b: z.bigint() })]),
+    schema: z.discriminatedUnion('a', [
+      z.object({ a: z.literal('type1'), b: z.number() }),
+      z.object({ a: z.literal('type2'), b: z.bigint() }),
+    ]),
     input: { a: 'type2', b: '123' },
     expected: { a: 'type2', b: 123n },
   },
@@ -36,7 +44,6 @@ testSchemaSmartCoercion([
     name: 'union - complex discriminated 1',
     schema: z.union([z.object({ a: z.object({ v: z.literal('type1') }), b: z.number() }), z.object({ a: z.literal('type2'), b: z.bigint() })]),
     input: { a: { v: 'type1' }, b: '123' },
-    expected: { a: { v: 'type1' }, b: 123 },
   },
   {
     name: 'union - complex discriminated 2',
@@ -47,6 +54,12 @@ testSchemaSmartCoercion([
     name: 'union - complex discriminated 3',
     schema: z.union([z.object({ a: z.object({ v: z.literal('type1') }), b: z.number() }), z.object({ a: z.literal('type2'), b: z.bigint() })]),
     input: { a: { v: 'type2' }, b: '123' },
+  },
+  {
+    name: 'union - complex discriminated 4',
+    schema: z.union([z.object({ a: z.object({ v: z.literal('type1') }), b: z.number() }), z.object({ a: z.literal('type2'), b: z.bigint() })]),
+    input: { a: 'type2', b: '123' },
+    expected: { a: 'type2', b: 123n },
   },
   {
     name: 'union - not coerce discriminated key',

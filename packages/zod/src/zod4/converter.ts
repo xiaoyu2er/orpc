@@ -121,9 +121,9 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
         switch (schema._zod.def.type) {
           case 'string': {
             const string = schema as $ZodString
-            const json: JSONSchema = { type: 'string' }
+            const json: JSONSchema & { allOf?: JSONSchema[] } = { type: 'string' }
 
-            const { minimum, maximum, format, pattern, contentEncoding } = string._zod.bag
+            const { minimum, maximum, format, patterns, contentEncoding } = string._zod.bag
 
             if (typeof minimum === 'number') {
               json.minLength = minimum
@@ -146,8 +146,16 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
               json.format = this.#handleStringFormat(format)
             }
 
-            if (pattern instanceof RegExp && json.contentEncoding === undefined && json.format === undefined) {
-              json.pattern = pattern.source
+            if (patterns instanceof Set && json.contentEncoding === undefined && json.format === undefined) {
+              for (const pattern of patterns) {
+                if (json.pattern === undefined) {
+                  json.pattern = pattern.source
+                }
+                else {
+                  json.allOf ??= []
+                  json.allOf.push({ pattern: pattern.source })
+                }
+              }
             }
 
             // Add a pattern for JWT if it's missing (acts as a polyfill for Zod v4)
@@ -532,7 +540,7 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
     if (global) {
       return {
         description: global.description,
-        examples: global.examples,
+        examples: Array.isArray(global.examples) ? global.examples : undefined,
       }
     }
   }

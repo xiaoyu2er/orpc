@@ -1,4 +1,5 @@
 import type { StandardLazyRequest, StandardRequest } from '@orpc/standard-server'
+import { isAsyncIteratorObject } from '@orpc/shared'
 import { parseBatchResponse, toBatchRequest } from '@orpc/standard-server/batch'
 import { StandardHandler, StandardRPCMatcher } from '../adapters/standard'
 import { BatchHandlerPlugin } from './batch'
@@ -28,7 +29,7 @@ describe('batchHandlerPlugin', () => {
   const lazyRequest2: StandardLazyRequest = { ...request2, body: () => Promise.resolve(request2.body) }
   const lazyRequest3: StandardLazyRequest = { ...request3, body: () => Promise.resolve(request3.body) }
 
-  it('works', async () => {
+  it('works (mode=streaming)', async () => {
     interceptor.mockImplementation(async ({ request, ...rest }) => {
       return {
         matched: true as const,
@@ -120,6 +121,7 @@ describe('batchHandlerPlugin', () => {
     expect(result.response?.status).toBe(207)
     expect(result.response?.headers).toEqual({})
 
+    expect(result.response!.body).toSatisfy(isAsyncIteratorObject)
     const parsed = parseBatchResponse(result.response!)
 
     await expect(parsed.next()).resolves.toEqual({
@@ -165,7 +167,7 @@ describe('batchHandlerPlugin', () => {
     await expect(parsed.next()).resolves.toEqual({ done: true })
   })
 
-  it('should chunked responses if mode is buffered', async () => {
+  it('works (mode=buffered)', async () => {
     interceptor.mockImplementation(async ({ request, ...rest }) => {
       return {
         matched: true as const,
@@ -257,6 +259,7 @@ describe('batchHandlerPlugin', () => {
     expect(result.response?.status).toBe(207)
     expect(result.response?.headers).toEqual({})
 
+    expect(result.response!.body).toSatisfy(Array.isArray)
     const parsed = parseBatchResponse(result.response!)
 
     await expect(parsed.next()).resolves.toEqual({

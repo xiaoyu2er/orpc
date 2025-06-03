@@ -2,7 +2,7 @@ import type { InterceptorOptions } from '@orpc/shared'
 import type { StandardLazyResponse, StandardRequest } from '@orpc/standard-server'
 import type { StandardLinkClientInterceptorOptions, StandardLinkOptions, StandardLinkPlugin } from '../adapters/standard'
 import type { ClientContext } from '../types'
-import { isAsyncIteratorObject, stringifyJSON } from '@orpc/shared'
+import { defer, isAsyncIteratorObject, stringifyJSON } from '@orpc/shared'
 import { replicateStandardLazyResponse } from '@orpc/standard-server'
 import { toBatchAbortSignal } from '@orpc/standard-server/batch'
 
@@ -80,7 +80,7 @@ export class DedupeRequestsPlugin<T extends ClientContext> implements StandardLi
 
       return new Promise((resolve, reject) => {
         this.#enqueue(group, options, resolve, reject)
-        setTimeout(() => this.#dequeue())
+        defer(() => this.#dequeue())
       })
     })
   }

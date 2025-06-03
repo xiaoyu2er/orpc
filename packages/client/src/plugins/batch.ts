@@ -1,5 +1,6 @@
 import type { InterceptorOptions, Promisable, Value } from '@orpc/shared'
 import type { StandardHeaders, StandardLazyResponse, StandardRequest } from '@orpc/standard-server'
+import type { BatchResponseMode } from '@orpc/standard-server/batch'
 import type { StandardLinkClientInterceptorOptions, StandardLinkOptions, StandardLinkPlugin } from '../adapters/standard'
 import type { ClientContext } from '../types'
 import { isAsyncIteratorObject, splitInHalf, toArray, value } from '@orpc/shared'
@@ -27,7 +28,7 @@ export interface BatchLinkPluginOptions<T extends ClientContext> {
    *
    * @default 'streaming'
    */
-  mode?: Value<'streaming' | 'buffered', [readonly [StandardLinkClientInterceptorOptions<T>, ...StandardLinkClientInterceptorOptions<T>[]]]>
+  mode?: Value<BatchResponseMode, [readonly [StandardLinkClientInterceptorOptions<T>, ...StandardLinkClientInterceptorOptions<T>[]]]>
 
   /**
    * Defines the URL to use for the batch request.

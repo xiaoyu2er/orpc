@@ -2,6 +2,8 @@ import type { Promisable } from '@orpc/shared'
 import type { StandardHeaders, StandardResponse } from '../types'
 import { isAsyncIteratorObject, isObject } from '@orpc/shared'
 
+export type BatchResponseMode = 'streaming' | 'buffered'
+
 export interface BatchResponseBodyItem extends StandardResponse {
   index: number
 }
@@ -12,7 +14,7 @@ export interface ToBatchResponseOptions extends StandardResponse {
   /**
    * @default 'streaming'
    */
-  mode?: 'streaming' | 'buffered'
+  mode?: BatchResponseMode
 }
 
 export function toBatchResponse(options: ToBatchResponseOptions): Promisable<StandardResponse> {

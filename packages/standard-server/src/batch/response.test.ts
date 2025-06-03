@@ -2,12 +2,13 @@ import type { BatchResponseBodyItem } from './response'
 import { isAsyncIteratorObject } from '@orpc/shared'
 import { parseBatchResponse, toBatchResponse } from './response'
 
-describe('toBatchResponse & parseBatchResponse', () => {
+describe.each(['streaming', 'buffered'] as const)('toBatchResponse & parseBatchResponse with %s mode', (mode) => {
   const r1: BatchResponseBodyItem = { index: 0, status: 200, headers: { }, body: 'test1' }
   const r2: BatchResponseBodyItem = { index: 1, status: 207, headers: { 'x-custom': 'value2' }, body: 'test2' }
 
   it('success', async () => {
-    const response = toBatchResponse({
+    const response = await toBatchResponse({
+      mode,
       status: 207,
       headers: { 'x-custom': 'value' },
       body: (async function* () {
@@ -40,8 +41,9 @@ describe('parseBatchResponse', () => {
     ).toThrow('Invalid batch response')
   })
 
-  it('throw on invalid batch item', async () => {
-    const parsed = parseBatchResponse(toBatchResponse({
+  it.each(['streaming', 'buffered'] as const)('throw on invalid batch body with %s mode', async (mode) => {
+    const parsed = parseBatchResponse(await toBatchResponse({
+      mode,
       status: 207,
       headers: { 'x-custom': 'value' },
       body: (async function* () {

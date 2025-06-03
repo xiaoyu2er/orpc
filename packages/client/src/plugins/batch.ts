@@ -23,6 +23,13 @@ export interface BatchLinkPluginOptions<T extends ClientContext> {
   maxSize?: Value<Promisable<number>, [readonly [StandardLinkClientInterceptorOptions<T>, ...StandardLinkClientInterceptorOptions<T>[]]]>
 
   /**
+   * The batch response mode.
+   *
+   * @default 'streaming'
+   */
+  mode?: Value<'streaming' | 'buffered', [readonly [StandardLinkClientInterceptorOptions<T>, ...StandardLinkClientInterceptorOptions<T>[]]]>
+
+  /**
    * Defines the URL to use for the batch request.
    *
    * @default the URL of the first request in the batch + '/__batch__'
@@ -72,6 +79,7 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
   private readonly batchHeaders: Exclude<BatchLinkPluginOptions<T>['headers'], undefined>
   private readonly mapRequestItem: Exclude<BatchLinkPluginOptions<T>['mapRequestItem'], undefined>
   private readonly exclude: Exclude<BatchLinkPluginOptions<T>['exclude'], undefined>
+  private readonly mode: Exclude<BatchLinkPluginOptions<T>['mode'], undefined>
 
   private pending: Map<
     BatchLinkPluginGroup<T>,
@@ -91,6 +99,7 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
     this.maxSize = options.maxSize ?? 10
     this.maxUrlLength = options.maxUrlLength ?? 2083
 
+    this.mode = options.mode ?? 'streaming'
     this.batchUrl = options.url ?? (([options]) => `${options.request.url.origin}${options.request.url.pathname}/__batch__`)
 
     this.batchHeaders = options.headers ?? (([options, ...rest]) => {
@@ -249,8 +258,10 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
         return
       }
 
+      const mode = value(this.mode, options)
+
       const lazyResponse = await options[0].next({
-        request: { ...batchRequest, headers: { ...batchRequest.headers, 'x-orpc-batch': '1' } },
+        request: { ...batchRequest, headers: { ...batchRequest.headers, 'x-orpc-batch': mode } },
         signal: batchRequest.signal,
         context: group.context,
         input: group.input,

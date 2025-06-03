@@ -4,6 +4,7 @@ import type { BatchResponseBodyItem } from '@orpc/standard-server/batch'
 import type { StandardHandlerInterceptorOptions, StandardHandlerOptions, StandardHandlerPlugin } from '../adapters/standard'
 import type { Context } from '../context'
 import { isAsyncIteratorObject, value } from '@orpc/shared'
+import { flattenHeader } from '@orpc/standard-server'
 import { parseBatchRequest, toBatchResponse } from '@orpc/standard-server/batch'
 
 export interface BatchHandlerOptions<T extends Context> {
@@ -69,7 +70,9 @@ export class BatchHandlerPlugin<T extends Context> implements StandardHandlerPlu
     options.rootInterceptors ??= []
 
     options.rootInterceptors.unshift(async (options) => {
-      if (options.request.headers['x-orpc-batch'] !== '1') {
+      const xHeader = flattenHeader(options.request.headers['x-orpc-batch'])
+
+      if (xHeader === undefined) {
         return options.next()
       }
 
@@ -131,9 +134,10 @@ export class BatchHandlerPlugin<T extends Context> implements StandardHandlerPlu
         const status = await value(this.successStatus, responses, options)
         const headers = await value(this.headers, responses, options)
 
-        const response = toBatchResponse({
+        const response = await toBatchResponse({
           status,
           headers,
+          mode: xHeader === 'buffered' ? 'buffered' : 'streaming',
           body: (async function* () {
             const promises: (Promise<BatchResponseBodyItem> | undefined)[] = [...responses]
 

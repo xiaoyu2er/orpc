@@ -1,5 +1,6 @@
 import type { InterceptorOptions, Promisable, Value } from '@orpc/shared'
 import type { StandardHeaders, StandardLazyResponse, StandardRequest } from '@orpc/standard-server'
+import type { BatchResponseMode } from '@orpc/standard-server/batch'
 import type { StandardLinkClientInterceptorOptions, StandardLinkOptions, StandardLinkPlugin } from '../adapters/standard'
 import type { ClientContext } from '../types'
 import { isAsyncIteratorObject, splitInHalf, toArray, value } from '@orpc/shared'
@@ -21,6 +22,13 @@ export interface BatchLinkPluginOptions<T extends ClientContext> {
    * @default 10
    */
   maxSize?: Value<Promisable<number>, [readonly [StandardLinkClientInterceptorOptions<T>, ...StandardLinkClientInterceptorOptions<T>[]]]>
+
+  /**
+   * The batch response mode.
+   *
+   * @default 'streaming'
+   */
+  mode?: Value<BatchResponseMode, [readonly [StandardLinkClientInterceptorOptions<T>, ...StandardLinkClientInterceptorOptions<T>[]]]>
 
   /**
    * Defines the URL to use for the batch request.
@@ -59,10 +67,10 @@ export interface BatchLinkPluginOptions<T extends ClientContext> {
 }
 
 /**
- * The Batch Request/Response Plugin allows you to combine multiple requests and responses into a single batch,
+ * The Batch Requests Plugin allows you to combine multiple requests and responses into a single batch,
  * reducing the overhead of sending each one separately.
  *
- * @see {@link https://orpc.unnoq.com/docs/plugins/batch-request-response Batch Request/Response Plugin Docs}
+ * @see {@link https://orpc.unnoq.com/docs/plugins/batch-requests Batch Requests Plugin Docs}
  */
 export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlugin<T> {
   private readonly groups: Exclude<BatchLinkPluginOptions<T>['groups'], undefined>
@@ -72,6 +80,7 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
   private readonly batchHeaders: Exclude<BatchLinkPluginOptions<T>['headers'], undefined>
   private readonly mapRequestItem: Exclude<BatchLinkPluginOptions<T>['mapRequestItem'], undefined>
   private readonly exclude: Exclude<BatchLinkPluginOptions<T>['exclude'], undefined>
+  private readonly mode: Exclude<BatchLinkPluginOptions<T>['mode'], undefined>
 
   private pending: Map<
     BatchLinkPluginGroup<T>,
@@ -91,6 +100,7 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
     this.maxSize = options.maxSize ?? 10
     this.maxUrlLength = options.maxUrlLength ?? 2083
 
+    this.mode = options.mode ?? 'streaming'
     this.batchUrl = options.url ?? (([options]) => `${options.request.url.origin}${options.request.url.pathname}/__batch__`)
 
     this.batchHeaders = options.headers ?? (([options, ...rest]) => {
@@ -249,8 +259,10 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
         return
       }
 
+      const mode = value(this.mode, options)
+
       const lazyResponse = await options[0].next({
-        request: { ...batchRequest, headers: { ...batchRequest.headers, 'x-orpc-batch': '1' } },
+        request: { ...batchRequest, headers: { ...batchRequest.headers, 'x-orpc-batch': mode } },
         signal: batchRequest.signal,
         context: group.context,
         input: group.input,

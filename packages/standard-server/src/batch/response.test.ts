@@ -2,12 +2,13 @@ import type { BatchResponseBodyItem } from './response'
 import { isAsyncIteratorObject } from '@orpc/shared'
 import { parseBatchResponse, toBatchResponse } from './response'
 
-describe('toBatchResponse & parseBatchResponse', () => {
+describe.each(['streaming', 'buffered'] as const)('toBatchResponse & parseBatchResponse with %s mode', (mode) => {
   const r1: BatchResponseBodyItem = { index: 0, status: 200, headers: { }, body: 'test1' }
   const r2: BatchResponseBodyItem = { index: 1, status: 207, headers: { 'x-custom': 'value2' }, body: 'test2' }
 
   it('success', async () => {
-    const response = toBatchResponse({
+    const response = await toBatchResponse({
+      mode,
       status: 207,
       headers: { 'x-custom': 'value' },
       body: (async function* () {
@@ -29,6 +30,35 @@ describe('toBatchResponse & parseBatchResponse', () => {
   })
 })
 
+describe('toBatchResponse', () => {
+  it('use streaming mode by default', async () => {
+    const response = await toBatchResponse({
+      status: 207,
+      headers: { 'x-custom': 'value' },
+      body: (async function* () {})(),
+    })
+
+    expect(response.body).toSatisfy(isAsyncIteratorObject)
+  })
+
+  it('body is array if mode is buffered', async () => {
+    const response = await toBatchResponse({
+      mode: 'buffered',
+      status: 207,
+      headers: { 'x-custom': 'value' },
+      body: (async function* () {
+        yield { index: 0, status: 200, headers: {}, body: 'test1' }
+        yield { index: 1, status: 207, headers: { 'x-custom': 'value2' }, body: 'test2' }
+      })(),
+    })
+
+    expect(response.body).toEqual([
+      { index: 0, status: 200, body: 'test1' },
+      { index: 1, headers: { 'x-custom': 'value2' }, body: 'test2' },
+    ])
+  })
+})
+
 describe('parseBatchResponse', () => {
   it('throw on invalid batch body', () => {
     expect(
@@ -40,8 +70,9 @@ describe('parseBatchResponse', () => {
     ).toThrow('Invalid batch response')
   })
 
-  it('throw on invalid batch item', async () => {
-    const parsed = parseBatchResponse(toBatchResponse({
+  it.each(['streaming', 'buffered'] as const)('throw on invalid batch body with %s mode', async (mode) => {
+    const parsed = parseBatchResponse(await toBatchResponse({
+      mode,
       status: 207,
       headers: { 'x-custom': 'value' },
       body: (async function* () {

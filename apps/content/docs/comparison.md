@@ -34,7 +34,7 @@ This comparison table helps you understand how oRPC differs from other popular T
 | Streaming response (SSE)                       | [1](/docs/event-iterator)                                                                    | ✅   | ✅   | 🛑      |
 | Standard Schema (Zod, Valibot, ArkType, ...)   |                                                                                              | ✅   | ✅   | 🛑      |
 | Built-in Plugins (CORS, CSRF, Retry, ...)      |                                                                                              | ✅   | 🛑   | 🛑      |
-| Batch Request/Response                         | [1](/docs/plugins/batch-request-response)                                                    | ✅   | ✅   | 🛑      |
+| Batch Requests                                 | [1](/docs/plugins/batch-requests)                                                            | ✅   | ✅   | 🛑      |
 | WebSockets                                     | [1](/docs/adapters/websocket)                                                                | ✅   | ✅   | 🛑      |
 | Nest.js integration                            | [1](/docs/openapi/integrations/implement-contract-in-nest)                                   | ✅   | 🟡   | ✅      |
 | Message Port (Electron, Browser, Workers, ...) | [1](/docs/adapters/message-port)                                                             | ✅   | 🟡   | 🛑      |

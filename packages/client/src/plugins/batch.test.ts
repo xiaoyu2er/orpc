@@ -22,7 +22,7 @@ describe('batchLinkPlugin', () => {
   const signal = AbortSignal.timeout(1000)
 
   const clientCall = vi.fn(async (request) => {
-    const response = toBatchResponse({
+    const response = await toBatchResponse({
       status: 200,
       headers: {},
       body: (async function* () {
@@ -106,7 +106,87 @@ describe('batchLinkPlugin', () => {
         ...toBatchRequestSpy.mock.results[0]!.value,
         headers: {
           ...toBatchRequestSpy.mock.results[0]!.value.headers,
-          'x-orpc-batch': '1',
+          'x-orpc-batch': 'streaming',
+        },
+      },
+      { context: { group: true }, signal: toBatchRequestSpy.mock.results[0]!.value.signal },
+      ['__group__'],
+      '__group__',
+    )
+  })
+
+  it.each(['POST', 'GET'])('batch on buffered mode with %s method', async (method) => {
+    const clientCall = vi.fn(async (request) => {
+      const response = await toBatchResponse({
+        status: 200,
+        headers: {},
+        body: (async function* () {
+          yield { index: 0, status: 200, headers: { 'x-custom': '1' }, body: 'yielded1' }
+          yield { index: 1, status: 201, headers: { 'x-custom': '2' }, body: 'yielded2' }
+        })(),
+        mode: 'buffered',
+      })
+
+      return { ...response, body: () => Promise.resolve(response.body) }
+    })
+
+    const link = new StandardLink({ encode, decode }, { call: clientCall }, {
+      plugins: [new BatchLinkPlugin({
+        mode: 'buffered',
+        groups: [{
+          condition: groupCondition,
+          context: { group: true } as any,
+          input: '__group__',
+          path: ['__group__'],
+        }],
+      })],
+    })
+
+    const [output1, output2] = await Promise.all([
+      link.call([method, 'foo'], '__foo__', { context: { foo: true }, signal }),
+      link.call([method, 'bar'], '__bar__', { context: { bar: true } }),
+    ])
+
+    expect(output1).toEqual('yielded1')
+    expect(output2).toEqual('yielded2')
+
+    expect(encode).toHaveBeenCalledTimes(2)
+
+    const request1 = await encode.mock.results[0]!.value
+    const request2 = await encode.mock.results[1]!.value
+
+    expect(toBatchRequestSpy).toHaveBeenCalledTimes(1)
+    expect(toBatchRequestSpy).toHaveBeenCalledWith({
+      url: new URL(`http://localhost/prefix/${method}/foo/__batch__`),
+      method,
+      headers: {
+        bearer: '123',
+      },
+      requests: [
+        {
+          ...request1,
+          headers: {
+            ...request1.headers,
+            bearer: undefined,
+          },
+        },
+        {
+          ...request2,
+          headers: {
+            ...request2.headers,
+            bearer: undefined,
+          },
+        },
+      ],
+    })
+
+    expect(clientCall).toHaveBeenCalledTimes(1)
+    expect(clientCall).toHaveBeenCalledWith(
+      {
+        ...toBatchRequestSpy.mock.results[0]!.value,
+        headers: {
+          ...toBatchRequestSpy.mock.results[0]!.value.headers,
+          'x-orpc-batch': 'buffered',
         },
       },
       { context: { group: true }, signal: toBatchRequestSpy.mock.results[0]!.value.signal },

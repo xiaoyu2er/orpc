@@ -1,4 +1,5 @@
 import type { StandardLazyRequest, StandardRequest } from '@orpc/standard-server'
+import { isAsyncIteratorObject } from '@orpc/shared'
 import { parseBatchResponse, toBatchRequest } from '@orpc/standard-server/batch'
 import { StandardHandler, StandardRPCMatcher } from '../adapters/standard'
 import { BatchHandlerPlugin } from './batch'
@@ -28,7 +29,7 @@ describe('batchHandlerPlugin', () => {
   const lazyRequest2: StandardLazyRequest = { ...request2, body: () => Promise.resolve(request2.body) }
   const lazyRequest3: StandardLazyRequest = { ...request3, body: () => Promise.resolve(request3.body) }
 
-  it('works', async () => {
+  it('works (mode=streaming)', async () => {
     interceptor.mockImplementation(async ({ request, ...rest }) => {
       return {
         matched: true as const,
@@ -39,7 +40,7 @@ describe('batchHandlerPlugin', () => {
     const request = toBatchRequest({
       url: new URL('http://localhost/prefix/__batch__'),
       headers: {
-        'x-orpc-batch': '1',
+        'x-orpc-batch': 'streaming',
       },
       method: 'POST',
       requests: [
@@ -69,7 +70,7 @@ describe('batchHandlerPlugin', () => {
         ...lazyRequest1,
         headers: {
           ...lazyRequest1.headers,
-          'x-orpc-batch': '1',
+          'x-orpc-batch': 'streaming',
         },
         body: expect.any(Function),
         signal: request.signal,
@@ -82,7 +83,7 @@ describe('batchHandlerPlugin', () => {
         ...lazyRequest2,
         headers: {
           ...lazyRequest2.headers,
-          'x-orpc-batch': '1',
+          'x-orpc-batch': 'streaming',
         },
         body: expect.any(Function),
         signal: request.signal,
@@ -95,7 +96,7 @@ describe('batchHandlerPlugin', () => {
         ...lazyRequest3,
         headers: {
           ...lazyRequest3.headers,
-          'x-orpc-batch': '1',
+          'x-orpc-batch': 'streaming',
         },
         body: expect.any(Function),
         signal: request.signal,
@@ -108,7 +109,7 @@ describe('batchHandlerPlugin', () => {
         ...lazyRequest1,
         headers: {
           ...lazyRequest1.headers,
-          'x-orpc-batch': '1',
+          'x-orpc-batch': 'streaming',
         },
         body: expect.any(Function),
         signal: request.signal,
@@ -120,6 +121,145 @@ describe('batchHandlerPlugin', () => {
     expect(result.response?.status).toBe(207)
     expect(result.response?.headers).toEqual({})
 
+    expect(result.response!.body).toSatisfy(isAsyncIteratorObject)
+    const parsed = parseBatchResponse(result.response!)
+
+    await expect(parsed.next()).resolves.toEqual({
+      done: false,
+      value: {
+        index: 0,
+        status: 200,
+        headers: {},
+        body: request1.body,
+      },
+    })
+
+    await expect(parsed.next()).resolves.toEqual({
+      done: false,
+      value: {
+        index: 2,
+        status: 200,
+        headers: {},
+        body: request3.body,
+      },
+    })
+
+    await expect(parsed.next()).resolves.toEqual({
+      done: false,
+      value: {
+        index: 1,
+        status: 200,
+        headers: {},
+        body: request2.body,
+      },
+    })
+
+    await expect(parsed.next()).resolves.toEqual({
+      done: false,
+      value: {
+        index: 3,
+        status: 200,
+        headers: {},
+        body: request1.body,
+      },
+    })
+
+    await expect(parsed.next()).resolves.toEqual({ done: true })
+  })
+
+  it('works (mode=buffered)', async () => {
+    interceptor.mockImplementation(async ({ request, ...rest }) => {
+      return {
+        matched: true as const,
+        response: { status: 200, headers: {}, body: await request.body() },
+      }
+    })
+
+    const request = toBatchRequest({
+      url: new URL('http://localhost/prefix/__batch__'),
+      headers: {
+        'x-orpc-batch': 'buffered',
+      },
+      method: 'POST',
+      requests: [
+        request1,
+        request2,
+        request3,
+        request1,
+      ],
+    })
+
+    const sleeps = [0, 100, 50, 120]
+
+    interceptor.mockImplementation(async ({ request }) => {
+      await new Promise(resolve => setTimeout(resolve, sleeps.shift()!))
+
+      return {
+        matched: true as const,
+        response: { status: 200, headers: {}, body: await request.body() },
+      }
+    })
+
+    const result = await handler.handle({ ...request, body: () => Promise.resolve(request.body) }, { prefix: '/prefix', context: { context: true } })
+
+    expect(interceptor).toHaveBeenCalledTimes(4)
+    expect(interceptor).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      request: {
+        ...lazyRequest1,
+        headers: {
+          ...lazyRequest1.headers,
+          'x-orpc-batch': 'buffered',
+        },
+        body: expect.any(Function),
+        signal: request.signal,
+      },
+      prefix: '/prefix',
+      context: { context: true },
+    }))
+    expect(interceptor).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      request: {
+        ...lazyRequest2,
+        headers: {
+          ...lazyRequest2.headers,
+          'x-orpc-batch': 'buffered',
+        },
+        body: expect.any(Function),
+        signal: request.signal,
+      },
+      prefix: '/prefix',
+      context: { context: true },
+    }))
+    expect(interceptor).toHaveBeenNthCalledWith(3, expect.objectContaining({
+      request: {
+        ...lazyRequest3,
+        headers: {
+          ...lazyRequest3.headers,
+          'x-orpc-batch': 'buffered',
+        },
+        body: expect.any(Function),
+        signal: request.signal,
+      },
+      prefix: '/prefix',
+      context: { context: true },
+    }))
+    expect(interceptor).toHaveBeenNthCalledWith(4, expect.objectContaining({
+      request: {
+        ...lazyRequest1,
+        headers: {
+          ...lazyRequest1.headers,
+          'x-orpc-batch': 'buffered',
+        },
+        body: expect.any(Function),
+        signal: request.signal,
+      },
+      prefix: '/prefix',
+      context: { context: true },
+    }))
+
+    expect(result.response?.status).toBe(207)
+    expect(result.response?.headers).toEqual({})
+
+    expect(result.response!.body).toSatisfy(Array.isArray)
     const parsed = parseBatchResponse(result.response!)
 
     await expect(parsed.next()).resolves.toEqual({
@@ -184,7 +324,7 @@ describe('batchHandlerPlugin', () => {
     const request = toBatchRequest({
       url: new URL('http://localhost/prefix/__batch__'),
       headers: {
-        'x-orpc-batch': '1',
+        'x-orpc-batch': 'streaming',
       },
       method: 'POST',
       requests: [
@@ -236,7 +376,7 @@ describe('batchHandlerPlugin', () => {
       method: 'GET',
       url: new URL('http://localhost/prefix/foo'),
       headers: {
-        'x-orpc-batch': '1',
+        'x-orpc-batch': 'streaming',
       },
       body: () => Promise.resolve(''),
       signal: undefined,
@@ -266,7 +406,7 @@ describe('batchHandlerPlugin', () => {
     const request = toBatchRequest({
       url: new URL('http://localhost/prefix/__batch__'),
       headers: {
-        'x-orpc-batch': '1',
+        'x-orpc-batch': 'streaming',
       },
       method: 'POST',
       requests: [
@@ -286,7 +426,7 @@ describe('batchHandlerPlugin', () => {
     const request = toBatchRequest({
       url: new URL('http://localhost/prefix/__batch__'),
       headers: {
-        'x-orpc-batch': '1',
+        'x-orpc-batch': 'streaming',
       },
       method: 'POST',
       requests: [
@@ -322,7 +462,7 @@ describe('batchHandlerPlugin', () => {
         ...lazyRequest1,
         headers: {
           ...lazyRequest1.headers,
-          'x-orpc-batch': '1',
+          'x-orpc-batch': 'streaming',
         },
         body: expect.any(Function),
         signal: request.signal,
@@ -335,7 +475,7 @@ describe('batchHandlerPlugin', () => {
         ...lazyRequest2,
         headers: {
           ...lazyRequest2.headers,
-          'x-orpc-batch': '1',
+          'x-orpc-batch': 'streaming',
         },
         body: expect.any(Function),
         signal: request.signal,
@@ -348,7 +488,7 @@ describe('batchHandlerPlugin', () => {
         ...lazyRequest3,
         headers: {
           ...lazyRequest3.headers,
-          'x-orpc-batch': '1',
+          'x-orpc-batch': 'streaming',
         },
         body: expect.any(Function),
         signal: request.signal,
@@ -361,7 +501,7 @@ describe('batchHandlerPlugin', () => {
         ...lazyRequest1,
         headers: {
           ...lazyRequest1.headers,
-          'x-orpc-batch': '1',
+          'x-orpc-batch': 'streaming',
         },
         body: expect.any(Function),
         signal: request.signal,
@@ -424,7 +564,7 @@ describe('batchHandlerPlugin', () => {
     const request = toBatchRequest({
       url: new URL('http://localhost/prefix/__batch__'),
       headers: {
-        'x-orpc-batch': '1',
+        'x-orpc-batch': 'streaming',
       },
       method: 'POST',
       requests: [
@@ -460,7 +600,7 @@ describe('batchHandlerPlugin', () => {
     const request = toBatchRequest({
       url: new URL('http://localhost/prefix/__batch__'),
       headers: {
-        'x-orpc-batch': '1',
+        'x-orpc-batch': 'streaming',
       },
       method: 'POST',
       requests: [

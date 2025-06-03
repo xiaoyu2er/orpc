@@ -1,5 +1,5 @@
-import type { StandardHeaders } from './types'
-import { toArray } from '@orpc/shared'
+import type { StandardHeaders, StandardLazyResponse } from './types'
+import { isAsyncIteratorObject, once, replicateAsyncIterator, toArray } from '@orpc/shared'
 
 export function generateContentDisposition(filename: string): string {
   const escapedFileName = filename.replace(/"/g, '\\"')
@@ -58,4 +58,36 @@ export function flattenHeader(header: string | readonly string[] | undefined): s
   }
 
   return header.join(', ')
+}
+
+export function replicateStandardLazyResponse(
+  response: StandardLazyResponse,
+  count: number,
+): StandardLazyResponse[] {
+  const replicated: StandardLazyResponse[] = []
+
+  let bodyPromise: Promise<unknown> | undefined
+  let replicatedAsyncIteratorObjects: AsyncIteratorObject<any, any, any>[] | undefined
+
+  for (let i = 0; i < count; i++) {
+    replicated.push({
+      ...response,
+      body: once(async () => {
+        if (replicatedAsyncIteratorObjects) {
+          return replicatedAsyncIteratorObjects.shift()
+        }
+
+        const body = await (bodyPromise ??= response.body())
+
+        if (!isAsyncIteratorObject(body)) {
+          return body
+        }
+
+        replicatedAsyncIteratorObjects = replicateAsyncIterator(body, count)
+        return replicatedAsyncIteratorObjects.shift()
+      }),
+    })
+  }
+
+  return replicated
 }

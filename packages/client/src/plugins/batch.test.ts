@@ -61,7 +61,7 @@ describe('batchLinkPlugin', () => {
     })],
   })
 
-  it.each(['POST', 'GET'])('batch request with POST', async (method) => {
+  it.each(['POST', 'GET'])('batch request with %s method', async (method) => {
     const [output1, output2] = await Promise.all([
       link.call([method, 'foo'], '__foo__', { context: { foo: true }, signal }),
       link.call([method, 'bar'], '__bar__', { context: { bar: true } }),

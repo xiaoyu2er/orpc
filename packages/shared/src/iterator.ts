@@ -1,4 +1,5 @@
-import { sequential } from './function'
+import { once, sequential } from './function'
+import { AsyncIdQueue } from './queue'
 
 export function isAsyncIteratorObject(maybe: unknown): maybe is AsyncIteratorObject<any, any, any> {
   if (!maybe || typeof maybe !== 'object') {
@@ -79,4 +80,68 @@ export function createAsyncIteratorObject<T, TReturn, TNext>(
   }
 
   return iterator
+}
+
+export function replicateAsyncIterator<T, TReturn, TNext>(
+  source: AsyncIterator<T, TReturn, TNext>,
+  count: number,
+): (AsyncIteratorObject<T, TReturn, TNext> & AsyncGenerator<T, TReturn, TNext>)[] {
+  const queue = new AsyncIdQueue<IteratorResult<T, TReturn>>()
+
+  const replicated: (AsyncIteratorObject<T, TReturn, TNext> & AsyncGenerator<T, TReturn, TNext>)[] = []
+
+  let error: undefined | { value: unknown }
+
+  const start = once(async () => {
+    try {
+      while (true) {
+        const item = await source.next()
+
+        for (let id = 0; id < count; id++) {
+          if (queue.isOpen(id)) {
+            queue.push(id, item)
+          }
+        }
+
+        if (item.done) {
+          break
+        }
+      }
+    }
+    catch (e) {
+      error = { value: e }
+    }
+  })
+
+  for (let id = 0; id < count; id++) {
+    queue.open(id)
+    replicated.push(createAsyncIteratorObject(
+      () => {
+        start()
+
+        return new Promise((resolve, reject) => {
+          queue.pull(id)
+            .then(resolve)
+            .catch(reject)
+
+          new Promise(r => r(undefined)).then(() => {
+            if (error) {
+              reject(error.value)
+            }
+          })
+        })
+      },
+      async (reason) => {
+        queue.close({ id })
+
+        if (reason !== 'next') {
+          if (replicated.every((_, id) => !queue.isOpen(id))) {
+            await source?.return?.()
+          }
+        }
+      },
+    ))
+  }
+
+  return replicated
 }

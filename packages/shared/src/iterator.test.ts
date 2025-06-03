@@ -1,4 +1,4 @@
-import { createAsyncIteratorObject, isAsyncIteratorObject } from './iterator'
+import { createAsyncIteratorObject, isAsyncIteratorObject, replicateAsyncIterator } from './iterator'
 
 it('isAsyncIteratorObject', () => {
   expect(isAsyncIteratorObject(null)).toBe(false)
@@ -260,5 +260,124 @@ describe('createAsyncIteratorObject', () => {
       expect(cleanup).toHaveBeenCalledTimes(1)
       expect(cleanup).toHaveBeenCalledWith('return')
     })
+  })
+})
+
+describe('replicateAsyncIterator', async () => {
+  it('on success', async () => {
+    const gen = async function* () {
+      yield 1
+      await new Promise(resolve => setTimeout(resolve, 10))
+      yield 2
+      yield 3
+      return 4
+    }
+
+    const iterators = replicateAsyncIterator(gen(), 3)
+
+    expect(iterators.length).toBe(3)
+
+    expect(await iterators[0]!.next()).toEqual({ done: false, value: 1 })
+    expect(await iterators[1]!.next()).toEqual({ done: false, value: 1 })
+
+    expect(await iterators[0]!.next()).toEqual({ done: false, value: 2 })
+    expect(await iterators[1]!.next()).toEqual({ done: false, value: 2 })
+
+    expect(await iterators[0]!.next()).toEqual({ done: false, value: 3 })
+    expect(await iterators[1]!.next()).toEqual({ done: false, value: 3 })
+    expect(await iterators[2]!.next()).toEqual({ done: false, value: 1 })
+
+    expect(await iterators[0]!.next()).toEqual({ done: true, value: 4 })
+    expect(await iterators[1]!.next()).toEqual({ done: true, value: 4 })
+    expect(await iterators[2]!.next()).toEqual({ done: false, value: 2 })
+
+    expect(await iterators[0]!.next()).toEqual({ done: true, value: undefined })
+    expect(await iterators[1]!.next()).toEqual({ done: true, value: undefined })
+    expect(await iterators[2]!.next()).toEqual({ done: false, value: 3 })
+
+    expect(await iterators[0]!.next()).toEqual({ done: true, value: undefined })
+    expect(await iterators[1]!.next()).toEqual({ done: true, value: undefined })
+    expect(await iterators[2]!.next()).toEqual({ done: true, value: 4 })
+
+    expect(await iterators[0]!.next()).toEqual({ done: true, value: undefined })
+    expect(await iterators[1]!.next()).toEqual({ done: true, value: undefined })
+    expect(await iterators[2]!.next()).toEqual({ done: true, value: undefined })
+  })
+
+  it('on error', { repeats: 10 }, async () => {
+    const error = new Error('Something went wrong')
+
+    const gen = async function* () {
+      yield 1
+      await new Promise(resolve => setTimeout(resolve, 1))
+      yield 2
+      yield 3
+      throw error
+    }
+
+    const iterators = replicateAsyncIterator(gen(), 3)
+
+    expect(iterators.length).toBe(3)
+
+    expect(await iterators[0]!.next()).toEqual({ done: false, value: 1 })
+    expect(await iterators[1]!.next()).toEqual({ done: false, value: 1 })
+
+    expect(await iterators[0]!.next()).toEqual({ done: false, value: 2 })
+    expect(await iterators[1]!.next()).toEqual({ done: false, value: 2 })
+
+    expect(await iterators[0]!.next()).toEqual({ done: false, value: 3 })
+    expect(await iterators[1]!.next()).toEqual({ done: false, value: 3 })
+    expect(await iterators[2]!.next()).toEqual({ done: false, value: 1 })
+
+    await expect(iterators[0]!.next()).rejects.toThrow(error)
+    await expect(iterators[1]!.next()).rejects.toThrow(error)
+    expect(await iterators[2]!.next()).toEqual({ done: false, value: 2 })
+
+    expect(await iterators[0]!.next()).toEqual({ done: true, value: undefined })
+    expect(await iterators[1]!.next()).toEqual({ done: true, value: undefined })
+    expect(await iterators[2]!.next()).toEqual({ done: false, value: 3 })
+
+    expect(await iterators[0]!.next()).toEqual({ done: true, value: undefined })
+    expect(await iterators[1]!.next()).toEqual({ done: true, value: undefined })
+    await expect(iterators[2]!.next()).rejects.toThrow(error)
+
+    expect(await iterators[0]!.next()).toEqual({ done: true, value: undefined })
+    expect(await iterators[1]!.next()).toEqual({ done: true, value: undefined })
+    expect(await iterators[2]!.next()).toEqual({ done: true, value: undefined })
+  })
+
+  it('on manual close', async () => {
+    let cleanup = false
+
+    const gen = async function* () {
+      try {
+        yield 1
+        await new Promise(resolve => setTimeout(resolve, 10))
+        yield 2
+        await new Promise(resolve => setTimeout(resolve, 10))
+        yield 3
+        await new Promise(resolve => setTimeout(resolve, Number.MIN_SAFE_INTEGER))
+        return 4
+      }
+      finally {
+        cleanup = true
+      }
+    }
+
+    const iterators = replicateAsyncIterator(gen(), 3)
+
+    expect(iterators.length).toBe(3)
+    expect(await iterators[0]!.next()).toEqual({ done: false, value: 1 })
+
+    expect(await iterators[0]!.return()).toEqual({ done: true, value: undefined })
+    expect(cleanup).toBe(false)
+
+    expect(await iterators[0]!.next()).toEqual({ done: true, value: undefined })
+    expect(await iterators[1]!.next()).toEqual({ done: false, value: 1 })
+
+    expect(await iterators[1]!.return()).toEqual({ done: true, value: undefined })
+    expect(cleanup).toBe(false)
+    expect(await iterators[2]!.return()).toEqual({ done: true, value: undefined })
+    expect(cleanup).toBe(true)
   })
 })

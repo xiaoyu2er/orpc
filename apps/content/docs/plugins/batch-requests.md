@@ -7,10 +7,6 @@ description: A plugin for oRPC to batch requests and responses.
 
 The **Batch Requests Plugin** allows you to combine multiple requests and responses into a single batch, reducing the overhead of sending each one separately.
 
-:::info
-The **Batch Plugin** streams responses asynchronously so that no individual request blocks another, ensuring all responses are handled independently for faster, more efficient batching.
-:::
-
 ## Setup
 
 This plugin requires configuration on both the server and client sides.
@@ -59,6 +55,29 @@ const link = new RPCLink({
 ::: info
 The `link` can be any supported oRPC link, such as [RPCLink](/docs/client/rpc-link), [OpenAPILink](/docs/openapi/client/openapi-link), or custom implementations.
 :::
+
+## Batch Mode
+
+By default, the plugin uses `streaming` mode, which sends responses asynchronously as they arrive. This ensures that no single request blocks others, allowing for faster and more efficient batching.
+
+If your environment does not support streaming responses such as some serverless platforms or older browsers you can switch to `buffered` mode. In this mode, all responses are collected before being sent together.
+
+```ts
+const link = new RPCLink({
+  url: 'https://api.example.com/rpc',
+  plugins: [
+    new BatchLinkPlugin({
+      mode: typeof window === 'undefined' ? 'buffered' : 'streaming', // [!code highlight]
+      groups: [
+        {
+          condition: options => true,
+          context: {}
+        }
+      ]
+    }),
+  ],
+})
+```
 
 ## Limitations
 

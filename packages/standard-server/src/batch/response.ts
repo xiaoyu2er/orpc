@@ -30,23 +30,23 @@ export function toBatchResponse(options: ToBatchResponseOptions): Promisable<Sta
   if (mode === 'buffered') {
     // eslint-disable-next-line no-async-promise-executor
     return new Promise(async (resolve, reject) => {
-      const body: Partial<BatchResponseBodyItem>[] = []
-
       try {
+        const body: Partial<BatchResponseBodyItem>[] = []
+
         for await (const item of options.body) {
           body.push(minifyResponseItem(item))
         }
-      }
-      catch (e) {
-        reject(e)
-      }
-      finally {
+
         resolve({
           headers: options.headers,
           status: options.status,
           body,
         })
-
+      }
+      catch (e) {
+        reject(e)
+      }
+      finally {
         await options.body.return?.()
       }
     })

@@ -49,7 +49,7 @@ The `handler` can be any supported oRPC handler, such as [RPCHandler](/docs/rpc-
 
 ## Client
 
-To make oRPC client compatible with SSR, you need setup client inside [Nuxt Plugin](https://nuxt.com/docs/guide/directory-structure/plugins).
+To make the oRPC client compatible with SSR, set it up inside a [Nuxt Plugin](https://nuxt.com/docs/guide/directory-structure/plugins).
 
 ```ts [plugins/orpc.ts]
 export default defineNuxtPlugin(() => {

@@ -26,3 +26,18 @@ export function sequential<A extends any[], R>(
     })
   }
 }
+
+/**
+ * Executes the callback function after the current call stack has been cleared.
+ */
+export function defer(callback: () => void): void {
+  if (typeof setTimeout === 'function') {
+    setTimeout(callback, 0)
+  }
+  else {
+    Promise.resolve()
+      .then(() => Promise.resolve()
+        .then(() => Promise.resolve()
+          .then(callback)))
+  }
+}

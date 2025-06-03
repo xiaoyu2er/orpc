@@ -1,4 +1,4 @@
-import { once, sequential } from './function'
+import { defer, once, sequential } from './function'
 
 it('once', () => {
   const fn = vi.fn(() => ({}))
@@ -49,5 +49,41 @@ describe('sequential', () => {
     expect(sequentialFn()).rejects.toThrow('Forced error')
     expect(sequentialFn()).resolves.toBe(2)
     expect(sequentialFn()).resolves.toBe(3)
+  })
+})
+
+describe('defer', () => {
+  it('with setTimeout', async () => {
+    const callback1 = vi.fn()
+    const callback2 = vi.fn()
+
+    defer(callback1)
+    callback2()
+
+    expect(callback1).toHaveBeenCalledTimes(0)
+
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    expect(callback1).toHaveBeenCalledTimes(1)
+    expect(callback2).toHaveBeenCalledBefore(callback1)
+  })
+
+  it('without setTimeout', async () => {
+    const originalSetTimeout = globalThis.setTimeout
+    ;(globalThis as any).setTimeout = undefined
+
+    const callback1 = vi.fn()
+    const callback2 = vi.fn()
+
+    defer(callback1)
+    globalThis.setTimeout = originalSetTimeout
+    callback2()
+
+    expect(callback1).toHaveBeenCalledTimes(0)
+
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    expect(callback1).toHaveBeenCalledTimes(1)
+    expect(callback2).toHaveBeenCalledBefore(callback1)
   })
 })

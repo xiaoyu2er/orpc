@@ -3,7 +3,7 @@ import type { StandardHeaders, StandardLazyResponse, StandardRequest } from '@or
 import type { BatchResponseMode } from '@orpc/standard-server/batch'
 import type { StandardLinkClientInterceptorOptions, StandardLinkOptions, StandardLinkPlugin } from '../adapters/standard'
 import type { ClientContext } from '../types'
-import { isAsyncIteratorObject, splitInHalf, toArray, value } from '@orpc/shared'
+import { defer, isAsyncIteratorObject, splitInHalf, toArray, value } from '@orpc/shared'
 import { parseBatchResponse, toBatchRequest } from '@orpc/standard-server/batch'
 
 export interface BatchLinkPluginGroup<T extends ClientContext> {
@@ -174,7 +174,7 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
 
       return new Promise((resolve, reject) => {
         this.#enqueueRequest(group, options, resolve, reject)
-        setTimeout(() => this.#processPendingBatches())
+        defer(() => this.#processPendingBatches())
       })
     })
   }

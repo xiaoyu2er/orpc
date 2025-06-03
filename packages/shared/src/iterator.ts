@@ -1,4 +1,4 @@
-import { once, sequential } from './function'
+import { defer, once, sequential } from './function'
 import { AsyncIdQueue } from './queue'
 
 export function isAsyncIteratorObject(maybe: unknown): maybe is AsyncIteratorObject<any, any, any> {
@@ -124,7 +124,7 @@ export function replicateAsyncIterator<T, TReturn, TNext>(
             .then(resolve)
             .catch(reject)
 
-          new Promise(r => r(undefined)).then(() => {
+          defer(() => {
             if (error) {
               reject(error.value)
             }

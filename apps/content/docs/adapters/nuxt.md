@@ -9,7 +9,7 @@ description: Use oRPC inside an Nuxt.js project
 
 ## Server
 
-You setup oRPC server inside Nuxt using its [Server Routes](https://nuxt.com/docs/guide/directory-structure/server#server-routes).
+You set up an oRPC server inside Nuxt using its [Server Routes](https://nuxt.com/docs/guide/directory-structure/server#server-routes).
 
 ::: code-group
 

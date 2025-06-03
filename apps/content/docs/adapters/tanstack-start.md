@@ -9,7 +9,7 @@ description: Use oRPC inside a TanStack Start project
 
 ## Server
 
-You setup oRPC server inside TanStack Start using its [API Routes](https://tanstack.com/start/latest/docs/framework/react/api-routes).
+You set up an oRPC server inside TanStack Start using its [API Routes](https://tanstack.com/start/latest/docs/framework/react/api-routes).
 
 ::: code-group
 

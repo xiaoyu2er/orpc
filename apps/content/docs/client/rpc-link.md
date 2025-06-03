@@ -24,7 +24,11 @@ const link = new RPCLink({
   headers: () => ({
     'x-api-key': 'my-api-key'
   }),
-  // fetch: <-- polyfill fetch if needed
+  fetch: (request, init) => // Override fetch if needed
+    globalThis.fetch(request, {
+      ...init,
+      credentials: 'include', // Include cookies for cross-origin requests
+    }),
 })
 
 export const client: RouterClient<typeof router> = createORPCClient(link)

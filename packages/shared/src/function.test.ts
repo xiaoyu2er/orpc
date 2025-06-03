@@ -69,12 +69,11 @@ describe('defer', () => {
   })
 
   it('without setTimeout', async () => {
-    const originalSetTimeout = globalThis.setTimeout
-    ;(globalThis as any).setTimeout = undefined
-
     const callback1 = vi.fn()
     const callback2 = vi.fn()
 
+    const originalSetTimeout = globalThis.setTimeout
+    ;(globalThis as any).setTimeout = undefined
     defer(callback1)
     globalThis.setTimeout = originalSetTimeout
     callback2()

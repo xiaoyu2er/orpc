@@ -83,7 +83,7 @@ export function parseBatchResponse(response: StandardResponse): AsyncGenerator<B
           }
 
           yield {
-            index: item.index as number,
+            index: item.index,
             status: item.status as undefined | number ?? response.status,
             headers: item.headers as undefined | StandardHeaders ?? {},
             body: item.body,

@@ -60,7 +60,7 @@ The `link` can be any supported oRPC link, such as [RPCLink](/docs/client/rpc-li
 
 By default, the plugin uses `streaming` mode, which sends responses asynchronously as they arrive. This ensures that no single request blocks others, allowing for faster and more efficient batching.
 
-If your environment does not support streaming responses such as some serverless platforms or older browsers you can switch to `buffered` mode. In this mode, all responses are collected before being sent together.
+If your environment does not support streaming responses, such as some serverless platforms or older browsers you can switch to `buffered` mode. In this mode, all responses are collected before being sent together.
 
 ```ts
 const link = new RPCLink({

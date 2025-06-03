@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { useInfiniteQuery } from '@tanstack/vue-query'
-import { orpc } from '~/lib/orpc'
 
-const query = useInfiniteQuery(orpc.planet.list.infiniteOptions({
+const { $orpc } = useNuxtApp()
+
+const query = useInfiniteQuery($orpc.planet.list.infiniteOptions({
   input: cursor => ({ cursor, limit: 10 }),
   getNextPageParam: lastPage => lastPage.length === 10 ? lastPage.at(-1)?.id : null,
   initialPageParam: 0,
 }))
+
+await query.suspense()
 </script>
 
 <template>

@@ -9,7 +9,7 @@ description: Use oRPC inside a TanStack Start project
 
 ## Server
 
-You can integrate oRPC with TanStack Start using its [API Routes](https://tanstack.com/start/latest/docs/framework/react/api-routes).
+You setup oRPC server inside TanStack Start using its [API Routes](https://tanstack.com/start/latest/docs/framework/react/api-routes).
 
 ::: code-group
 
@@ -97,7 +97,7 @@ const getORPCClient = createIsomorphicFn()
      * For per-request context, use middleware context or pass a function as the initial context.
      */
     context: async () => ({
-      headers: getHeaders(),
+      headers: getHeaders(), // provide headers if initial context required
     }),
   }))
   .client((): RouterClient<typeof router> => {

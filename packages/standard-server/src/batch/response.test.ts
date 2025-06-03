@@ -40,6 +40,23 @@ describe('toBatchResponse', () => {
 
     expect(response.body).toSatisfy(isAsyncIteratorObject)
   })
+
+  it('body is array if mode is buffered', async () => {
+    const response = await toBatchResponse({
+      mode: 'buffered',
+      status: 207,
+      headers: { 'x-custom': 'value' },
+      body: (async function* () {
+        yield { index: 0, status: 200, headers: {}, body: 'test1' }
+        yield { index: 1, status: 207, headers: { 'x-custom': 'value2' }, body: 'test2' }
+      })(),
+    })
+
+    expect(response.body).toEqual([
+      { index: 0, status: 200, body: 'test1' },
+      { index: 1, headers: { 'x-custom': 'value2' }, body: 'test2' },
+    ])
+  })
 })
 
 describe('parseBatchResponse', () => {

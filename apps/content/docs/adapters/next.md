@@ -13,7 +13,7 @@ oRPC also provides out-of-the-box support for [Server Action](/docs/server-actio
 
 ## Server
 
-You can integrate oRPC with Next.js using its [Route Handlers](https://nextjs.org/docs/app/building-your-application/routing/route-handlers).
+You set up an oRPC server inside Next.js using its [Route Handlers](https://nextjs.org/docs/app/building-your-application/routing/route-handlers).
 
 ::: code-group
 
@@ -89,7 +89,7 @@ export const config = {
 
 ## Client
 
-Next.js doesn’t natively support isomorphic functions, so you need a workaround to make client-side code compatible with SSR. This example uses `globalThis.$headers` as that workaround. Alternatively, you can use React Context like the approach mentioned in [discussions#330](https://github.com/unnoq/orpc/discussions/330#discussioncomment-12727779).
+Next.js doesn't natively support isomorphic functions, so you need a workaround to make client-side code compatible with SSR. This example uses `globalThis.$headers` as that workaround. Alternatively, you can use React Context like the approach mentioned in [discussions#330](https://github.com/unnoq/orpc/discussions/330#discussioncomment-12727779).
 
 ::: code-group
 
@@ -177,7 +177,7 @@ globalThis.$client = createRouterClient(router, {
    * For per-request context, use middleware context or pass a function as the initial context.
    */
   context: async () => ({
-    headers: await headers(),
+    headers: await headers(), // provide headers if initial context required
   }),
 })
 ```

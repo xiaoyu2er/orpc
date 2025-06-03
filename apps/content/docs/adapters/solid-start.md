@@ -117,7 +117,7 @@ globalThis.$client = createRouterClient(router, {
     const headers = getRequestEvent()?.request.headers
 
     return {
-      headers,
+      headers, // provide headers if initial context required
     }
   },
 })

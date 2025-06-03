@@ -11,10 +11,7 @@ const rpcHandler = new RPCHandler(router, {
 })
 
 export default defineEventHandler(async (event) => {
-  const authorization = getHeader(event, 'authorization')
-  const context = authorization
-    ? { user: { id: 'test', name: 'John Doe', email: 'john@doe.com' } }
-    : {}
+  const context = { user: { id: 'test', name: 'John Doe', email: 'john@doe.com' } }
 
   const { matched } = await rpcHandler.handle(event.node.req, event.node.res, {
     prefix: '/rpc',

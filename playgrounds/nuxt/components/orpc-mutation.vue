@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
-import { orpc } from '~/lib/orpc'
+
+const { $orpc } = useNuxtApp()
 
 const queryClient = useQueryClient()
 
-const { mutate } = useMutation(orpc.planet.create.mutationOptions({
+const { mutate } = useMutation($orpc.planet.create.mutationOptions({
   onSuccess() {
     queryClient.invalidateQueries({
-      queryKey: orpc.planet.list.key(),
+      queryKey: $orpc.planet.list.key(),
     })
   },
   onError(error) {

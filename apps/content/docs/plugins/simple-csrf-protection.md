@@ -24,6 +24,7 @@ import { router } from './shared/planet'
 import { SimpleCsrfProtectionHandlerPlugin } from '@orpc/server/plugins'
 
 const handler = new RPCHandler(router, {
+  strictGetMethodPluginEnabled: false, // Replace Strict Get Method Plugin
   plugins: [
     new SimpleCsrfProtectionHandlerPlugin()
   ],

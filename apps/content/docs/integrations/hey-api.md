@@ -7,6 +7,10 @@ description: Easily convert a Hey API generated client into an oRPC client to ta
 
 Easily convert a [Hey API](https://heyapi.dev/) generated client into an oRPC client to take full advantage of the oRPC ecosystem.
 
+::: warning
+[Hey API](https://heyapi.dev/) is still in an unstable stage. As a result, this integration may introduce breaking changes in the future to keep up with its ongoing development.
+:::
+
 ## Installation
 
 ::: code-group

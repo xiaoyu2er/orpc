@@ -7,6 +7,10 @@ updates:
       interval: daily
     versioning-strategy: increase
     groups:
+      eslint:
+        dependency-type: development
+        patterns:
+          - '*eslint*'
       hey-api:
         patterns:
           - '@hey-api/*'

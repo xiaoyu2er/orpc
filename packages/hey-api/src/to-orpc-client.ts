@@ -1,12 +1,11 @@
-import type { RequestResult } from '@hey-api/client-fetch'
 import type { Client, ThrowableError } from '@orpc/client'
 
 export type experimental_ToORPCClientResult<T extends Record<string, any>> = {
   [K in keyof T]:
   T[K] extends (options: infer UInput extends Record<any, any> | undefined)
-  => RequestResult<infer USuccessResponse extends Record<number, any> | undefined, any, any>
+  => Promise<infer UResult>
     ? Client<Record<never, never>, UInput, {
-      body: Exclude<USuccessResponse, undefined>[keyof Exclude<USuccessResponse, undefined>]
+      body: UResult extends { data: infer USuccess } ? Exclude<USuccess, undefined> : never
       request: Request
       response: Response
     }, ThrowableError>

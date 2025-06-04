@@ -35,15 +35,12 @@
     "type:check": "tsc -b",
     "prepare": "openapi-ts -i ./tests/spec.json -o ./tests/client -c @hey-api/client-fetch"
   },
-  "peerDependencies": {
-    "@hey-api/client-fetch": "*"
-  },
   "dependencies": {
     "@orpc/client": "workspace:*",
     "@orpc/shared": "workspace:*"
   },
   "devDependencies": {
-    "@hey-api/client-fetch": "^0.10.1",
+    "@hey-api/client-fetch": "^0.11.0",
     "@hey-api/openapi-ts": "^0.69.2"
   }
 }

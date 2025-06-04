@@ -7,6 +7,9 @@ updates:
       interval: daily
     versioning-strategy: increase
     groups:
+      hey-api:
+        patterns:
+          - '@hey-api/*'
       dev-dependencies-minor-patch:
         dependency-type: development
         update-types:

@@ -12,7 +12,7 @@ This documentation assumes you are already familiar with [Pinia Colada](https://
 :::
 
 ::: warning
-[Pinia Colada](https://pinia-colada.esm.dev/) is still in an unstable stage. As a result, oRPC's integration with Pinia Colada may introduce breaking changes in the future to keep up with its ongoing development.
+[Pinia Colada](https://pinia-colada.esm.dev/) is still in an unstable stage. As a result, this integration may introduce breaking changes in the future to keep up with its ongoing development.
 :::
 
 ## Installation

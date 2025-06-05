@@ -104,13 +104,13 @@ export class EventPublisher<T extends Record<PropertyKey, any>> {
     const maxBufferedEvents = listenerOrOptions?.maxBufferedEvents ?? this.#maxBufferedEvents
 
     const bufferedEvents: T[K][] = []
-    const pullResolvers: ((result: IteratorResult<T[K]>) => void)[] = []
+    const pullResolvers: [(result: IteratorResult<T[K]>) => void, (error: Error) => void][] = []
 
     const unsubscribe = this.subscribe(event, (payload) => {
       const resolver = pullResolvers.shift()
 
       if (resolver) {
-        resolver({ done: false, value: payload })
+        resolver[0]({ done: false, value: payload })
       }
       else {
         bufferedEvents.push(payload)
@@ -120,6 +120,15 @@ export class EventPublisher<T extends Record<PropertyKey, any>> {
         }
       }
     })
+
+    const abortListener = (event: any) => {
+      unsubscribe()
+      pullResolvers.forEach(resolver => resolver[1](event.target.reason))
+      pullResolvers.length = 0
+      bufferedEvents.length = 0
+    }
+
+    signal?.addEventListener('abort', abortListener, { once: true })
 
     return createAsyncIteratorObject(async () => {
       if (signal?.aborted) {
@@ -131,20 +140,12 @@ export class EventPublisher<T extends Record<PropertyKey, any>> {
       }
 
       return new Promise((resolve, reject) => {
-        const abortListener = (event: Event) => {
-          reject((event.target as AbortSignal).reason)
-        }
-
-        signal?.addEventListener('abort', abortListener, { once: true })
-
-        pullResolvers.push((result) => {
-          resolve(result)
-          signal?.removeEventListener('abort', abortListener)
-        })
+        pullResolvers.push([resolve, reject])
       })
     }, async () => {
       unsubscribe()
-      pullResolvers.forEach(r => r({ done: true, value: undefined }))
+      signal?.removeEventListener('abort', abortListener)
+      pullResolvers.forEach(resolver => resolver[0]({ done: true, value: undefined }))
       pullResolvers.length = 0
       bufferedEvents.length = 0
     })

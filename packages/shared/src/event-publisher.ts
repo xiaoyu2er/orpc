@@ -1,6 +1,6 @@
 import { createAsyncIteratorObject } from './iterator'
 
-export interface EventEmitterOptions {
+export interface EventPublisherOptions {
   /**
    * Maximum number of events to buffer for async iterator subscribers.
    *
@@ -17,7 +17,10 @@ export interface EventEmitterOptions {
   maxBufferedEvents?: number
 }
 
-export interface EventPublisherSubscribeIteratorOptions extends EventEmitterOptions {
+export interface EventPublisherSubscribeIteratorOptions extends EventPublisherOptions {
+  /**
+   * Aborts the async iterator. Throws if aborted before or during pulling.
+   */
   signal?: AbortSignal
 }
 
@@ -25,7 +28,7 @@ export class EventPublisher<T extends Record<PropertyKey, any>> {
   #listenersMap = new Map<keyof T, Set<(payload: any) => void>>()
   #maxBufferedEvents: number
 
-  constructor(options: EventEmitterOptions = {}) {
+  constructor(options: EventPublisherOptions = {}) {
     this.#maxBufferedEvents = options.maxBufferedEvents ?? 100
   }
 
@@ -33,6 +36,9 @@ export class EventPublisher<T extends Record<PropertyKey, any>> {
     return this.#listenersMap.size
   }
 
+  /**
+   * Emits an event and delivers the payload to all subscribed listeners.
+   */
   publish<K extends keyof T>(event: K, payload: T[K]): void {
     const listeners = this.#listenersMap.get(event)
 
@@ -45,7 +51,32 @@ export class EventPublisher<T extends Record<PropertyKey, any>> {
     }
   }
 
+  /**
+   * Subscribes to a specific event using a callback function.
+   * Returns an unsubscribe function to remove the listener.
+   *
+   * @example
+   * ```ts
+   * const unsubscribe = publisher.subscribe('event', (payload) => {
+   *   console.log(payload)
+   * })
+   *
+   * // Later
+   * unsubscribe()
+   * ```
+   */
   subscribe<K extends keyof T>(event: K, listener: (payload: T[K]) => void): () => void
+  /**
+   * Subscribes to a specific event using an async iterator.
+   * Useful for `for await...of` loops with optional buffering and abort support.
+   *
+   * @example
+   * ```ts
+   * for await (const payload of publisher.subscribe('event', { signal })) {
+   *   console.log(payload)
+   * }
+   * ```
+   */
   subscribe<K extends keyof T>(event: K, options?: EventPublisherSubscribeIteratorOptions): AsyncGenerator<T[K]> & AsyncIteratorObject<T[K]>
   subscribe<K extends keyof T>(
     event: K,
@@ -106,8 +137,8 @@ export class EventPublisher<T extends Record<PropertyKey, any>> {
 
         signal?.addEventListener('abort', abortListener, { once: true })
 
-        pullResolvers.push((payload) => {
-          resolve(payload)
+        pullResolvers.push((result) => {
+          resolve(result)
           signal?.removeEventListener('abort', abortListener)
         })
       })

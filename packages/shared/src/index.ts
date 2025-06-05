@@ -1,6 +1,7 @@
 export * from './args'
 export * from './array'
 export * from './chain'
+export * from './event-publisher'
 export * from './function'
 export * from './id'
 export * from './interceptor'

@@ -4,9 +4,6 @@
     "lib": ["ES2022"],
     "types": ["node"]
   },
-  "references": [
-    { "path": "../shared" }
-  ],
   "include": ["src"],
   "exclude": [
     "**/*.test.*",

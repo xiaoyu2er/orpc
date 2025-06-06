@@ -45,6 +45,6 @@ export async function safe<TOutput, TError = ThrowableError>(promise: ClientProm
 export function resolveFriendlyClientOptions<T extends ClientContext>(options: FriendlyClientOptions<T>): ClientOptions<T> {
   return {
     ...options,
-    context: options?.context ?? {} as T, // Context only optional if all fields are optional
+    context: options.context ?? {} as T, // Context only optional if all fields are optional
   }
 }

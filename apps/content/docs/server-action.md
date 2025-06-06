@@ -228,7 +228,7 @@ By moving the `redirect('/some-where')` logic into `createFormAction` rather tha
 When using `createFormAction`, any `ORPCError` with a status of `401`, `403`, or `404` is automatically converted into the corresponding Next.js error responses: [unauthorized](https://nextjs.org/docs/app/api-reference/functions/unauthorized), [forbidden](https://nextjs.org/docs/app/api-reference/functions/forbidden), and [not found](https://nextjs.org/docs/app/api-reference/functions/not-found).
 :::
 
-## `parseFormData` and `getIssueMessage` utilities
+### `parseFormData` and `getIssueMessage` utilities
 
 - `parseFormData` parse a form data with [Bracket Notation](/docs/openapi/bracket-notation)
 - `getIssueMessage` get the [standard schema](https://github.com/standard-schema/standard-schema?tab=readme-ov-file#the-interface) issue message with [Bracket Notation](/docs/openapi/bracket-notation) path

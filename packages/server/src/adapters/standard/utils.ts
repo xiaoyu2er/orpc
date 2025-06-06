@@ -8,6 +8,6 @@ export type FriendlyStandardHandleOptions<T extends Context> =
 export function resolveFriendlyStandardHandleOptions<T extends Context>(options: FriendlyStandardHandleOptions<T>): StandardHandleOptions<T> {
   return {
     ...options,
-    context: options?.context ?? {} as T, // Context only optional if all fields are optional
+    context: options.context ?? {} as T, // Context only optional if all fields are optional
   }
 }

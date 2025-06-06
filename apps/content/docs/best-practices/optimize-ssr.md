@@ -78,7 +78,7 @@ globalThis.$client = createRouterClient(router, {
    * For per-request context, use middleware context or pass a function as the initial context.
    */
   context: async () => ({
-    headers: await headers(),
+    headers: await headers(), // provide headers if initial context required
   }),
 })
 ```
@@ -130,9 +130,50 @@ globalThis.$client = createJsonifiedRouterClient(router, {
    * For per-request context, use middleware context or pass a function as the initial context.
    */
   context: async () => ({
-    headers: await headers(),
+    headers: await headers(), // provide headers if initial context required
   }),
 })
+```
+
+:::
+
+::: details Plugins support?
+`createRouterClient` doesn’t support plugins, so we need an alternative for server-side plugin support. Fortunately, with the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), we can easily implement a full client-server setup.
+
+```ts [lib/orpc.server.ts]
+'server only'
+
+import { createORPCClient } from '@orpc/client'
+import { RPCLink } from '@orpc/client/fetch'
+import type { RouterClient } from '@orpc/server'
+import { inferRPCMethodFromRouter } from '@orpc/server'
+import { RPCHandler } from '@orpc/server/fetch'
+
+const handler = new RPCHandler(router)
+
+const link = new RPCLink({
+  url: 'http://placeholder',
+  method: inferRPCMethodFromRouter(router),
+  plugins: [
+    new DedupeRequestsPlugin({
+      groups: [{
+        condition: () => true,
+        context: {},
+      }],
+    }),
+  ],
+  fetch: async (request, init) => {
+    const { response } = await handler.handle(request, {
+      context: {
+        headers: await headers(), // provide headers if initial context required
+      },
+    })
+
+    return response ?? new Response('Not Found', { status: 404 })
+  },
+})
+
+globalThis.$client = createORPCClient<RouterClient<typeof router>>(link)
 ```
 
 :::

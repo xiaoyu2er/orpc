@@ -130,7 +130,7 @@ const livePlanet = os
 
 const update = os
   .input(z.object({ id: z.string() }))
-  .handler(async function* ({ input }) {
+  .handler(({ input }) => {
     publisher.publish('something-updated', { id: input.id }) // [!code highlight]
   })
 ```
@@ -150,7 +150,7 @@ const onMessage = os
 
 const sendMessage = os
   .input(z.object({ channel: z.string(), message: z.string() }))
-  .handler(async function* ({ input }) {
+  .handler(({ input }) => {
     publisher.publish(input.channel, { message: input.message }) // [!code highlight]
   })
 ```

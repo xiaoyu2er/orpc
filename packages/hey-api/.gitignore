@@ -24,3 +24,6 @@ vitest.config.ts.timestamp-*
 # Common manual ignore files
 *.local
 *.pem
+
+## Hey API Code gen
+/tests/client/

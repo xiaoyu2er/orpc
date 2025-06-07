@@ -2,14 +2,16 @@ import type { Client, ThrowableError } from '@orpc/client'
 
 export type experimental_ToORPCClientResult<T extends Record<string, any>> = {
   [K in keyof T]:
-  T[K] extends (options: infer UInput extends Record<any, any> | undefined)
+  T[K] extends (options: infer UInput)
   => Promise<infer UResult>
     ? Client<Record<never, never>, UInput, {
       body: UResult extends { data: infer USuccess } ? Exclude<USuccess, undefined> : never
       request: Request
       response: Response
     }, ThrowableError>
-    : never
+    : T[K] extends Record<string, any>
+      ? experimental_ToORPCClientResult<T[K]>
+      : never
 }
 
 /**

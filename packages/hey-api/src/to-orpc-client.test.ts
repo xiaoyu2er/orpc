@@ -47,7 +47,7 @@ describe('toORPCClient', () => {
   })
 
   it('works', async () => {
-    const result = await client.listPlanets()
+    const result = await client.planetList()
     expect(result).toEqual({
       body: [{ id: 'earth', name: 'Earth' }],
       request: expect.any(Request),
@@ -56,7 +56,7 @@ describe('toORPCClient', () => {
   })
 
   it('with lastEventId', async () => {
-    const result = await client.listPlanets({
+    const result = await client.planetList({
       headers: {
         'x-something': 'value',
         'last-event-id': '123',
@@ -69,7 +69,7 @@ describe('toORPCClient', () => {
   })
 
   it('with query', async () => {
-    const result = await client.listPlanets({
+    const result = await client.planetList({
       query: {
         limit: 10,
         offset: 0,
@@ -90,7 +90,7 @@ describe('toORPCClient', () => {
   })
 
   it('with body', async () => {
-    const result = await client.createPlanet({
+    const result = await client.planetCreate({
       body: { name: 'Bob' },
     })
 
@@ -102,7 +102,7 @@ describe('toORPCClient', () => {
       const controller1 = new AbortController()
       const controller2 = new AbortController()
 
-      const result = await client.createPlanet({
+      const result = await client.planetCreate({
         body: { name: 'Bob' },
         signal: controller1.signal,
       }, { signal: controller2.signal })
@@ -116,7 +116,7 @@ describe('toORPCClient', () => {
       const controller1 = new AbortController()
       const controller2 = new AbortController()
 
-      const result = await client.createPlanet({
+      const result = await client.planetCreate({
         body: { name: 'Bob' },
         signal: controller1.signal,
       }, { signal: controller2.signal })
@@ -132,7 +132,7 @@ describe('toORPCClient', () => {
       controller1.abort()
 
       await expect(
-        client.createPlanet({
+        client.planetCreate({
           body: { name: 'Bob' },
           signal: controller1.signal,
         }, { signal: controller2.signal }),
@@ -145,7 +145,7 @@ describe('toORPCClient', () => {
       controller2.abort()
 
       await expect(
-        client.createPlanet({
+        client.planetCreate({
           body: { name: 'Bob' },
           signal: controller1.signal,
         }, { signal: controller2.signal }),
@@ -154,6 +154,6 @@ describe('toORPCClient', () => {
   })
 
   it('throws on error', async () => {
-    await expect(client.listPlanets({ query: { throwOnError: 1 } as any })).rejects.toThrowError()
+    await expect(client.planetList({ query: { throwOnError: 1 } as any })).rejects.toThrowError()
   })
 })

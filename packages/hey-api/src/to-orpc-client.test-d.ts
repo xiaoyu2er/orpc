@@ -9,23 +9,23 @@ describe('toORPCClient', () => {
     somethingElse: 123,
   })
 
-  const c = sdk.listPlanets()
+  const c = sdk.planetList()
 
   it('satisfies nested client', () => {
     const _b: NestedClient<Record<never, never>> = client
   })
 
   it('inputs', async () => {
-    client.listPlanets()
+    client.planetList()
 
-    client.listPlanets({
+    client.planetList({
       query: {
         limit: 10,
         offset: 0,
       },
     })
 
-    client.listPlanets({
+    client.planetList({
       query: {
         // @ts-expect-error - invalid type
         limit: 'invalid',
@@ -40,8 +40,8 @@ describe('toORPCClient', () => {
   })
 
   it('outputs', async () => {
-    expectTypeOf(await client.listPlanets()).toEqualTypeOf<{ body: Planet[], request: Request, response: Response }>()
+    expectTypeOf(await client.planetList()).toEqualTypeOf<{ body: Planet[], request: Request, response: Response }>()
     expectTypeOf(await client.getPlanet({ path: { planetId: 'earth' } })).toEqualTypeOf<{ body: Planet, request: Request, response: Response }>()
-    expectTypeOf(await client.createPlanet({ body: { name: 'Earth' } })).toEqualTypeOf<{ body: Planet, request: Request, response: Response }>()
+    expectTypeOf(await client.planetCreate({ body: { name: 'Earth' } })).toEqualTypeOf<{ body: Planet | { id: string }, request: Request, response: Response }>()
   })
 })

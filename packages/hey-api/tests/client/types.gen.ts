@@ -9,7 +9,11 @@ export type NewPlanet = {
     name: string;
 };
 
-export type ListPlanetsData = {
+export type UpdatedPlanet = {
+    id: string;
+};
+
+export type PlanetListData = {
     body?: never;
     path?: never;
     query?: {
@@ -19,30 +23,34 @@ export type ListPlanetsData = {
     url: '/planets';
 };
 
-export type ListPlanetsResponses = {
+export type PlanetListResponses = {
     /**
      * A list of planets
      */
     200: Array<Planet>;
 };
 
-export type ListPlanetsResponse = ListPlanetsResponses[keyof ListPlanetsResponses];
+export type PlanetListResponse = PlanetListResponses[keyof PlanetListResponses];
 
-export type CreatePlanetData = {
+export type PlanetCreateData = {
     body: NewPlanet;
     path?: never;
     query?: never;
     url: '/planets';
 };
 
-export type CreatePlanetResponses = {
+export type PlanetCreateResponses = {
+    /**
+     * A updated planet
+     */
+    200: UpdatedPlanet;
     /**
      * A created planet
      */
     201: Planet;
 };
 
-export type CreatePlanetResponse = CreatePlanetResponses[keyof CreatePlanetResponses];
+export type PlanetCreateResponse = PlanetCreateResponses[keyof PlanetCreateResponses];
 
 export type GetPlanetData = {
     body?: never;

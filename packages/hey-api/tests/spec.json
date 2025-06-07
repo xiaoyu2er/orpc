@@ -75,7 +75,7 @@
             }
           },
           "200": {
-            "description": "A updated planet",
+            "description": "An updated planet",
             "content": {
               "application/json": {
                 "schema": {

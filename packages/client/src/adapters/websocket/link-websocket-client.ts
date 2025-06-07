@@ -4,14 +4,28 @@ import type { StandardLinkClient } from '../standard'
 import { ClientPeer } from '@orpc/standard-server-peer'
 
 export interface experimental_LinkWebsocketClientOptions {
-  websocket: Pick<WebSocket, 'addEventListener' | 'send'>
+  websocket: Pick<WebSocket, 'addEventListener' | 'send' | 'readyState'>
 }
 
 export class experimental_LinkWebsocketClient<T extends ClientContext> implements StandardLinkClient<T> {
   private readonly peer: ClientPeer
 
   constructor(options: experimental_LinkWebsocketClientOptions) {
-    this.peer = new ClientPeer(options.websocket.send.bind(options.websocket))
+    const untilOpen = new Promise<void>((resolve) => {
+      if (options.websocket.readyState === 1) {
+        resolve()
+      }
+      else {
+        options.websocket.addEventListener('open', () => {
+          resolve()
+        })
+      }
+    })
+
+    this.peer = new ClientPeer(async (message) => {
+      await untilOpen
+      return options.websocket.send(message)
+    })
 
     options.websocket.addEventListener('message', (event) => {
       this.peer.message(event.data)

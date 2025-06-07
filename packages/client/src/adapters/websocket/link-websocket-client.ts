@@ -12,13 +12,13 @@ export class experimental_LinkWebsocketClient<T extends ClientContext> implement
 
   constructor(options: experimental_LinkWebsocketClientOptions) {
     const untilOpen = new Promise<void>((resolve) => {
-      if (options.websocket.readyState === 1) {
-        resolve()
-      }
-      else {
+      if (options.websocket.readyState === 0) { // CONNECTING
         options.websocket.addEventListener('open', () => {
           resolve()
         })
+      }
+      else {
+        resolve()
       }
     })
 

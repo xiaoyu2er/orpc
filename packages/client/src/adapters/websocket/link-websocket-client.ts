@@ -15,7 +15,7 @@ export class experimental_LinkWebsocketClient<T extends ClientContext> implement
       if (options.websocket.readyState === 0) { // CONNECTING
         options.websocket.addEventListener('open', () => {
           resolve()
-        })
+        }, { once: true })
       }
       else {
         resolve()

@@ -1,6 +1,6 @@
 {
   "name": "@orpc/nest-playground",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "private": true,
   "scripts": {
     "preview": "nest build && tsx dist/main.js",

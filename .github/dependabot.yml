@@ -8,9 +8,10 @@ updates:
     versioning-strategy: increase
     groups:
       eslint:
-        dependency-type: development
         patterns:
-          - '*eslint*'
+          - eslint
+          - '@antfu/eslint-config'
+          - 'eslint-plugin-*'
       hey-api:
         patterns:
           - '@hey-api/*'

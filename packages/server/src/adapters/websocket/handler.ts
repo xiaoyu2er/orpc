@@ -16,7 +16,11 @@ export class experimental_WebsocketHandler<T extends Context> {
     const peer = new ServerPeer(ws.send.bind(ws))
 
     ws.addEventListener('message', async (event) => {
-      const [id, request] = await peer.message(event.data)
+      const message = event.data instanceof Blob
+        ? await event.data.arrayBuffer()
+        : event.data
+
+      const [id, request] = await peer.message(message)
 
       if (!request) {
         return

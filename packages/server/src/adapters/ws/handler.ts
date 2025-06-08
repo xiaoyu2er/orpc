@@ -18,7 +18,11 @@ export class experimental_WsHandler<T extends Context> {
     const peer = new ServerPeer(ws.send.bind(ws))
 
     ws.addEventListener('message', async (event) => {
-      const [id, request] = await peer.message(new Blob(Array.isArray(event.data) ? event.data : [event.data]))
+      const message = Array.isArray(event.data)
+        ? await (new Blob(event.data)).arrayBuffer()
+        : event.data
+
+      const [id, request] = await peer.message(message)
 
       if (!request) {
         return

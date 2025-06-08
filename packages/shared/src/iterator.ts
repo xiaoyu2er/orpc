@@ -1,7 +1,7 @@
 import { defer, once, sequential } from './function'
 import { AsyncIdQueue } from './queue'
 
-export function isAsyncIteratorObject(maybe: unknown): maybe is AsyncIteratorClass<any, any, any> {
+export function isAsyncIteratorObject(maybe: unknown): maybe is AsyncIteratorObject<any, any, any> {
   if (!maybe || typeof maybe !== 'object') {
     return false
   }

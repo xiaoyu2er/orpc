@@ -26,14 +26,8 @@ export class experimental_BunWsHandler<T extends Context> {
     let peer = this.peers.get(ws)
 
     if (!peer) {
-      this.peers.set(ws, peer = new ServerPeer(async (raw) => {
-        if (raw instanceof Blob) {
-          const buffer = await raw.arrayBuffer()
-          ws.send(buffer)
-        }
-        else {
-          ws.send(raw)
-        }
+      this.peers.set(ws, peer = new ServerPeer((message) => {
+        ws.send(message)
       }))
     }
 

@@ -27,8 +27,12 @@ export class experimental_LinkWebsocketClient<T extends ClientContext> implement
       return options.websocket.send(message)
     })
 
-    options.websocket.addEventListener('message', (event) => {
-      this.peer.message(event.data)
+    options.websocket.addEventListener('message', async (event) => {
+      const message = event.data instanceof Blob
+        ? await event.data.arrayBuffer()
+        : event.data
+
+      this.peer.message(message)
     })
 
     options.websocket.addEventListener('close', () => {

@@ -182,7 +182,7 @@ describe('encode/decode request message', () => {
         body: formData,
       })
 
-      expect(message).toBeInstanceOf(Blob)
+      expect(message).toBeInstanceOf(ArrayBuffer)
 
       const [id, type, payload] = await decodeRequestMessage(message)
 
@@ -216,9 +216,9 @@ describe('encode/decode request message', () => {
         body: formData,
       })
 
-      expect(message).toBeInstanceOf(Blob)
+      expect(message).toBeInstanceOf(ArrayBuffer)
 
-      const [id, type, payload] = await decodeRequestMessage(await (message as any).arrayBuffer())
+      const [id, type, payload] = await decodeRequestMessage(message)
 
       expect(id).toBe(198)
       expect(type).toBe(MessageType.REQUEST)
@@ -254,7 +254,7 @@ describe('encode/decode request message', () => {
           body: blob,
         })
 
-        expect(message).toBeInstanceOf(Blob)
+        expect(message).toBeInstanceOf(ArrayBuffer)
 
         const [id, type, payload] = await decodeRequestMessage(message)
 
@@ -287,7 +287,7 @@ describe('encode/decode request message', () => {
           body: blob,
         })
 
-        expect(message).toBeInstanceOf(Blob)
+        expect(message).toBeInstanceOf(ArrayBuffer)
 
         const [id, type, payload] = await decodeRequestMessage(message)
 
@@ -317,7 +317,7 @@ describe('encode/decode request message', () => {
           body: file,
         })
 
-        expect(message).toBeInstanceOf(Blob)
+        expect(message).toBeInstanceOf(ArrayBuffer)
 
         const [id, type, payload] = await decodeRequestMessage(message)
 
@@ -350,7 +350,7 @@ describe('encode/decode request message', () => {
           body: file,
         })
 
-        expect(message).toBeInstanceOf(Blob)
+        expect(message).toBeInstanceOf(ArrayBuffer)
 
         const [id, type, payload] = await decodeRequestMessage(message)
 
@@ -386,7 +386,7 @@ describe('encode/decode request message', () => {
       body: blob,
     })
 
-    expect(message).toBeInstanceOf(Blob)
+    expect(message).toBeInstanceOf(ArrayBuffer)
 
     const [id, type, payload] = await decodeRequestMessage(message)
 
@@ -567,7 +567,7 @@ describe('encode/decode response message', () => {
         body: formData,
       })
 
-      expect(message).toBeInstanceOf(Blob)
+      expect(message).toBeInstanceOf(ArrayBuffer)
 
       const [id, type, payload] = await decodeResponseMessage(message)
 
@@ -599,9 +599,9 @@ describe('encode/decode response message', () => {
         body: formData,
       })
 
-      expect(message).toBeInstanceOf(Blob)
+      expect(message).toBeInstanceOf(ArrayBuffer)
 
-      const [id, type, payload] = await decodeResponseMessage(await (message as any).arrayBuffer())
+      const [id, type, payload] = await decodeResponseMessage(message)
 
       expect(id).toBe(198)
       expect(type).toBe(MessageType.RESPONSE)
@@ -635,7 +635,7 @@ describe('encode/decode response message', () => {
           body: blob,
         })
 
-        expect(message).toBeInstanceOf(Blob)
+        expect(message).toBeInstanceOf(ArrayBuffer)
 
         const [id, type, payload] = await decodeResponseMessage(message)
 
@@ -666,7 +666,7 @@ describe('encode/decode response message', () => {
           body: blob,
         })
 
-        expect(message).toBeInstanceOf(Blob)
+        expect(message).toBeInstanceOf(ArrayBuffer)
 
         const [id, type, payload] = await decodeResponseMessage(message)
 
@@ -694,7 +694,7 @@ describe('encode/decode response message', () => {
           body: file,
         })
 
-        expect(message).toBeInstanceOf(Blob)
+        expect(message).toBeInstanceOf(ArrayBuffer)
 
         const [id, type, payload] = await decodeResponseMessage(message)
 
@@ -725,7 +725,7 @@ describe('encode/decode response message', () => {
           body: file,
         })
 
-        expect(message).toBeInstanceOf(Blob)
+        expect(message).toBeInstanceOf(ArrayBuffer)
 
         const [id, type, payload] = await decodeResponseMessage(message)
 
@@ -756,7 +756,7 @@ describe('encode/decode response message', () => {
       body: blob,
     })
 
-    expect(message).toBeInstanceOf(Blob)
+    expect(message).toBeInstanceOf(ArrayBuffer)
 
     const [id, type, payload] = await decodeResponseMessage(message)
 

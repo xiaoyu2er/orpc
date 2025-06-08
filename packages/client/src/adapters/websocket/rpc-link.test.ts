@@ -2,6 +2,10 @@ import { decodeRequestMessage, encodeResponseMessage, MessageType } from '@orpc/
 import { createORPCClient } from '../../client'
 import { experimental_RPCLink as RPCLink } from './rpc-link'
 
+beforeEach(() => {
+  vi.clearAllMocks()
+})
+
 describe('rpcLink', () => {
   let onMessage: any
   let onClose: any
@@ -39,6 +43,26 @@ describe('rpcLink', () => {
     })
 
     onMessage({ data: await encodeResponseMessage(id, MessageType.RESPONSE, { body: { json: 'pong' }, status: 200, headers: {} }) })
+
+    await promise
+  })
+
+  it('on success - blob', async () => {
+    const promise = expect(orpc.ping('input')).resolves.toEqual('pong')
+
+    await vi.waitFor(() => expect(websocket.send).toHaveBeenCalledTimes(1))
+
+    const [id, , payload] = (await decodeRequestMessage(websocket.send.mock.calls[0]![0]))
+
+    expect(id).toBeTypeOf('number')
+    expect(payload).toEqual({
+      url: new URL('orpc:/ping'),
+      body: { json: 'input' },
+      headers: {},
+      method: 'POST',
+    })
+
+    onMessage({ data: new Blob([await encodeResponseMessage(id, MessageType.RESPONSE, { body: { json: 'pong' }, status: 200, headers: {} })]) })
 
     await promise
   })

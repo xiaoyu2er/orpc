@@ -3,7 +3,7 @@ import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { Context } from '../../context'
 import type { StandardHandler } from '../standard'
 import type { FriendlyStandardHandleOptions } from '../standard/utils'
-import { onMessagePortClose, onMessagePortMessage } from '@orpc/client/message-port'
+import { onMessagePortClose, onMessagePortMessage, postMessagePortMessage } from '@orpc/client/message-port'
 import { resolveMaybeOptionalOptions } from '@orpc/shared'
 import { ServerPeer } from '@orpc/standard-server-peer'
 import { resolveFriendlyStandardHandleOptions } from '../standard/utils'
@@ -15,8 +15,8 @@ export class experimental_MessagePortHandler<T extends Context> {
   }
 
   upgrade(port: SupportedMessagePort, ...rest: MaybeOptionalOptions<Omit<FriendlyStandardHandleOptions<T>, 'prefix'>>): void {
-    const peer = new ServerPeer(async (message) => {
-      port.postMessage(message instanceof Blob ? await message.arrayBuffer() : message)
+    const peer = new ServerPeer((message) => {
+      return postMessagePortMessage(port, message)
     })
 
     onMessagePortMessage(port, async (message) => {

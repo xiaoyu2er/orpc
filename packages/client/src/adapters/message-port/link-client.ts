@@ -13,8 +13,8 @@ export class experimental_LinkMessagePortClient<T extends ClientContext> impleme
   private readonly peer: ClientPeer
 
   constructor(options: experimental_LinkMessagePortClientOptions) {
-    this.peer = new ClientPeer(async (message) => {
-      postMessagePortMessage(options.port, message instanceof Blob ? await message.arrayBuffer() : message)
+    this.peer = new ClientPeer((message) => {
+      return postMessagePortMessage(options.port, message)
     })
 
     onMessagePortMessage(options.port, async (message) => {

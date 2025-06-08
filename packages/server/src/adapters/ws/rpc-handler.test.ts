@@ -43,12 +43,12 @@ describe('rpcHandler', async () => {
   }
 
   const ping_buffer_request_message = {
-    data: await encodeRequestMessage(19, MessageType.REQUEST, {
+    data: [new TextEncoder().encode(await encodeRequestMessage(19, MessageType.REQUEST, {
       url: new URL('orpc:/ping'),
       body: { json: 'input' },
       headers: {},
       method: 'POST',
-    }),
+    }) as string)],
   }
 
   const abort_message = {

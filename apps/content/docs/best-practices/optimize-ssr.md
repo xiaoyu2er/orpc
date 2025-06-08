@@ -100,7 +100,7 @@ declare global {
   var $client: JsonifiedClient<RouterClient<typeof router>> | undefined
 }
 
-const link = new OpenAPILink({
+const link = new OpenAPILink(contract, {
   url: () => {
     if (typeof window === 'undefined') {
       throw new Error('OpenAPILink is not allowed on the server side.')

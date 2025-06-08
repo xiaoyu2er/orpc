@@ -1,4 +1,4 @@
-import { createAsyncIteratorObject, isTypescriptObject, parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
+import { AsyncIteratorClass, isTypescriptObject, parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
 import {
   encodeEventMessage,
   ErrorEvent,
@@ -9,14 +9,14 @@ import {
 
 export function toEventIterator(
   stream: ReadableStream<Uint8Array> | null,
-): AsyncIteratorObject<unknown | void, unknown | void, void> & AsyncGenerator<unknown | void, unknown | void, void> {
+): AsyncIteratorClass<unknown> {
   const eventStream = stream
     ?.pipeThrough(new TextDecoderStream())
     .pipeThrough(new EventDecoderStream())
 
   const reader = eventStream?.getReader()
 
-  return createAsyncIteratorObject(async () => {
+  return new AsyncIteratorClass(async () => {
     while (true) {
       if (reader === undefined) {
         return { done: true, value: undefined }

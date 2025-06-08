@@ -1,15 +1,15 @@
-import type { CreateAsyncIteratorObjectCleanupFn } from '@orpc/shared'
+import type { AsyncIteratorClassCleanupFn } from '@orpc/shared'
 import type { AsyncIdQueue } from '../../shared/src/queue'
 import type { EventIteratorPayload } from './codec'
-import { createAsyncIteratorObject, isTypescriptObject } from '@orpc/shared'
+import { AsyncIteratorClass, isTypescriptObject } from '@orpc/shared'
 import { ErrorEvent, getEventMeta, withEventMeta } from '@orpc/standard-server'
 
 export function toEventIterator(
   queue: AsyncIdQueue<EventIteratorPayload>,
   id: number,
-  cleanup: CreateAsyncIteratorObjectCleanupFn,
-): AsyncGenerator {
-  return createAsyncIteratorObject(async () => {
+  cleanup: AsyncIteratorClassCleanupFn,
+): AsyncIteratorClass<unknown> {
+  return new AsyncIteratorClass(async () => {
     const item = await queue.pull(id)
 
     switch (item.event) {

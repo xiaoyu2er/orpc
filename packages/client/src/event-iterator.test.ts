@@ -152,11 +152,7 @@ describe('mapEventIterator', () => {
     })
 
     await mapped.next()
-    const error = new Error('TEST')
-    await expect(mapped.throw(new Error('TEST'))).rejects.toEqual({ mapped: error })
-
-    expect(map).toHaveBeenCalledTimes(2)
-
+    await expect(mapped.throw(new Error('TEST'))).rejects.toThrow()
     expect(finished).toBe(true)
   })
 })

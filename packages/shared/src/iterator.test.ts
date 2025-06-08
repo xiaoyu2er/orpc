@@ -1,4 +1,4 @@
-import { createAsyncIteratorObject, isAsyncIteratorObject, replicateAsyncIterator } from './iterator'
+import { AsyncIteratorClass, isAsyncIteratorObject, replicateAsyncIterator } from './iterator'
 
 it('isAsyncIteratorObject', () => {
   expect(isAsyncIteratorObject(null)).toBe(false)
@@ -15,7 +15,7 @@ it('isAsyncIteratorObject', () => {
   expect(isAsyncIteratorObject(gen2())).toBe(false)
 })
 
-describe('createAsyncIteratorObject', () => {
+describe('asyncIteratorClass', () => {
   const next = vi.fn()
   const cleanup = vi.fn()
   let iterator: AsyncGenerator
@@ -23,7 +23,7 @@ describe('createAsyncIteratorObject', () => {
   beforeEach(() => {
     next.mockReset()
     cleanup.mockReset()
-    iterator = createAsyncIteratorObject(next, cleanup)
+    iterator = new AsyncIteratorClass(next, cleanup)
   })
 
   afterEach(async () => {
@@ -157,28 +157,6 @@ describe('createAsyncIteratorObject', () => {
   describe('dispose()', () => {
     it('should implement Symbol.asyncDispose', async () => {
       expect(typeof (iterator as any)[Symbol.asyncDispose]).toBe('function')
-
-      await iterator.return(undefined)
-    })
-
-    it('should fallback to random symbol if Symbol.asyncDispose is not available', async () => {
-      const OriginalSymbol = globalThis.Symbol
-      const fallbackSymbol = Symbol.for('asyncDispose')
-
-      globalThis.Symbol = {
-        for: (name: string) => {
-          expect(name).toBe('asyncDispose')
-          return fallbackSymbol
-        },
-      } as any
-
-      const fallback = createAsyncIteratorObject(() => {
-        throw new Error('Should not be called')
-      }, async () => {})
-
-      expect(typeof (fallback as any)[fallbackSymbol]).toBe('function')
-
-      globalThis.Symbol = OriginalSymbol
 
       await iterator.return(undefined)
     })

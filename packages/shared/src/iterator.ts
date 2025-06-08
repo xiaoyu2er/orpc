@@ -1,7 +1,7 @@
 import { defer, once, sequential } from './function'
 import { AsyncIdQueue } from './queue'
 
-export function isAsyncIteratorObject(maybe: unknown): maybe is AsyncIteratorObject<any, any, any> {
+export function isAsyncIteratorObject(maybe: unknown): maybe is AsyncIteratorClass<any, any, any> {
   if (!maybe || typeof maybe !== 'object') {
     return false
   }
@@ -9,20 +9,27 @@ export function isAsyncIteratorObject(maybe: unknown): maybe is AsyncIteratorObj
   return Symbol.asyncIterator in maybe && typeof maybe[Symbol.asyncIterator] === 'function'
 }
 
-export interface CreateAsyncIteratorObjectCleanupFn {
+export interface AsyncIteratorClassNextFn<T, TReturn> {
+  (): Promise<IteratorResult<T, TReturn>>
+}
+
+export interface AsyncIteratorClassCleanupFn {
   (reason: 'return' | 'throw' | 'next' | 'dispose'): Promise<void>
 }
 
-export function createAsyncIteratorObject<T, TReturn, TNext>(
-  next: () => Promise<IteratorResult<T, TReturn>>,
-  cleanup: CreateAsyncIteratorObjectCleanupFn,
-): AsyncIteratorObject<T, TReturn, TNext> & AsyncGenerator<T, TReturn, TNext> {
-  let isExecuteComplete = false
-  let isDone = false
+const fallbackAsyncDisposeSymbol: unique symbol = Symbol.for('asyncDispose')
+const asyncDisposeSymbol: typeof Symbol extends { asyncDispose: infer T } ? T : typeof fallbackAsyncDisposeSymbol = (Symbol as any).asyncDispose ?? fallbackAsyncDisposeSymbol
 
-  const iterator = {
-    next: sequential(async () => {
-      if (isDone) {
+export class AsyncIteratorClass<T, TReturn = unknown, TNext = unknown> implements AsyncIteratorObject<T, TReturn, TNext>, AsyncGenerator<T, TReturn, TNext> {
+  #isDone = false
+  #isExecuteComplete = false
+  #cleanup: AsyncIteratorClassCleanupFn
+  #next: AsyncIteratorClassNextFn<T, TReturn>
+
+  constructor(next: AsyncIteratorClassNextFn<T, TReturn>, cleanup: AsyncIteratorClassCleanupFn) {
+    this.#cleanup = cleanup
+    this.#next = sequential(async () => {
+      if (this.#isDone) {
         return { done: true, value: undefined as any }
       }
 
@@ -30,65 +37,71 @@ export function createAsyncIteratorObject<T, TReturn, TNext>(
         const result = await next()
 
         if (result.done) {
-          isDone = true
+          this.#isDone = true
         }
 
         return result
       }
       catch (err) {
-        isDone = true
+        this.#isDone = true
         throw err
       }
       finally {
-        if (isDone && !isExecuteComplete) {
-          isExecuteComplete = true
-          await cleanup('next')
+        if (this.#isDone && !this.#isExecuteComplete) {
+          this.#isExecuteComplete = true
+          await this.#cleanup('next')
         }
       }
-    }),
-    async return(value: any) {
-      isDone = true
-      if (!isExecuteComplete) {
-        isExecuteComplete = true
-        await cleanup('return')
-      }
-
-      return { done: true, value }
-    },
-    async throw(err: any) {
-      isDone = true
-      if (!isExecuteComplete) {
-        isExecuteComplete = true
-        await cleanup('throw')
-      }
-
-      throw err
-    },
-    /**
-     * asyncDispose symbol only available in esnext, we should fallback to Symbol.for('asyncDispose')
-     */
-    async [(Symbol as any).asyncDispose as typeof Symbol extends { asyncDispose: infer T } ? T : any ?? Symbol.for('asyncDispose')]() {
-      isDone = true
-      if (!isExecuteComplete) {
-        isExecuteComplete = true
-        await cleanup('dispose')
-      }
-    },
-    [Symbol.asyncIterator]() {
-      return iterator
-    },
+    })
   }
 
-  return iterator
+  next(): Promise<IteratorResult<T, TReturn>> {
+    return this.#next()
+  }
+
+  async return(value?: any): Promise<IteratorResult<T, TReturn>> {
+    this.#isDone = true
+    if (!this.#isExecuteComplete) {
+      this.#isExecuteComplete = true
+      await this.#cleanup('return')
+    }
+
+    return { done: true, value }
+  }
+
+  async throw(err: any): Promise<IteratorResult<T, TReturn>> {
+    this.#isDone = true
+    if (!this.#isExecuteComplete) {
+      this.#isExecuteComplete = true
+      await this.#cleanup('throw')
+    }
+
+    throw err
+  }
+
+  /**
+   * asyncDispose symbol only available in esnext, we should fallback to Symbol.for('asyncDispose')
+   */
+  async [asyncDisposeSymbol](): Promise<void> {
+    this.#isDone = true
+    if (!this.#isExecuteComplete) {
+      this.#isExecuteComplete = true
+      await this.#cleanup('dispose')
+    }
+  }
+
+  [Symbol.asyncIterator](): this {
+    return this
+  }
 }
 
 export function replicateAsyncIterator<T, TReturn, TNext>(
   source: AsyncIterator<T, TReturn, TNext>,
   count: number,
-): (AsyncIteratorObject<T, TReturn, TNext> & AsyncGenerator<T, TReturn, TNext>)[] {
+): (AsyncIteratorClass<T, TReturn, TNext>)[] {
   const queue = new AsyncIdQueue<IteratorResult<T, TReturn>>()
 
-  const replicated: (AsyncIteratorObject<T, TReturn, TNext> & AsyncGenerator<T, TReturn, TNext>)[] = []
+  const replicated: AsyncIteratorClass<T, TReturn, TNext>[] = []
 
   let error: undefined | { value: unknown }
 
@@ -115,7 +128,7 @@ export function replicateAsyncIterator<T, TReturn, TNext>(
 
   for (let id = 0; id < count; id++) {
     queue.open(id)
-    replicated.push(createAsyncIteratorObject(
+    replicated.push(new AsyncIteratorClass(
       () => {
         start()
 

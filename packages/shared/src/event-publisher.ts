@@ -1,4 +1,4 @@
-import { createAsyncIteratorObject } from './iterator'
+import { AsyncIteratorClass } from './iterator'
 
 export interface EventPublisherOptions {
   /**
@@ -130,7 +130,7 @@ export class EventPublisher<T extends Record<PropertyKey, any>> {
 
     signal?.addEventListener('abort', abortListener, { once: true })
 
-    return createAsyncIteratorObject(async () => {
+    return new AsyncIteratorClass(async () => {
       if (signal?.aborted) {
         throw signal.reason
       }

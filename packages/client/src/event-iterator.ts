@@ -1,4 +1,4 @@
-import { isTypescriptObject } from '@orpc/shared'
+import { AsyncIteratorClass, isTypescriptObject } from '@orpc/shared'
 import { getEventMeta, withEventMeta } from '@orpc/standard-server'
 
 export function mapEventIterator<TYield, TReturn, TNext, TMap = TYield | TReturn>(
@@ -7,27 +7,21 @@ export function mapEventIterator<TYield, TReturn, TNext, TMap = TYield | TReturn
     value: (value: NoInfer<TYield | TReturn>, done: boolean | undefined) => Promise<TMap>
     error: (error: unknown) => Promise<unknown>
   },
-): AsyncGenerator<TMap, TMap, TNext> {
-  return (async function* () {
+): AsyncIteratorClass<TMap, TMap, TNext> {
+  return new AsyncIteratorClass(async () => {
     try {
-      while (true) {
-        const { done, value } = await iterator.next()
+      const { done, value } = await iterator.next()
 
-        let mappedValue = await maps.value(value, done)
+      let mappedValue = await maps.value(value, done)
 
-        if (mappedValue !== value) {
-          const meta = getEventMeta(value)
-          if (meta && isTypescriptObject(mappedValue)) {
-            mappedValue = withEventMeta(mappedValue, meta)
-          }
+      if (mappedValue !== value) {
+        const meta = getEventMeta(value)
+        if (meta && isTypescriptObject(mappedValue)) {
+          mappedValue = withEventMeta(mappedValue, meta)
         }
-
-        if (done) {
-          return mappedValue
-        }
-
-        yield mappedValue
       }
+
+      return { done, value: mappedValue }
     }
     catch (error) {
       let mappedError = await maps.error(error)
@@ -41,8 +35,7 @@ export function mapEventIterator<TYield, TReturn, TNext, TMap = TYield | TReturn
 
       throw mappedError
     }
-    finally {
-      await iterator.return?.()
-    }
-  })()
+  }, async () => {
+    await iterator.return?.()
+  })
 }

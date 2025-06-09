@@ -31,7 +31,9 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
   call: Client<TClientContext, TInput, TOutput, TError>
 
   /**
-   * Generate the key used for query options
+   * Generate a **full matching** key for [Query Options](https://orpc.unnoq.com/docs/integrations/tanstack-query#query-options).
+   *
+   * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query#query-mutation-key Tanstack Query/Mutation Key Docs}
    */
   queryKey(
     ...rest: MaybeOptionalOptions<
@@ -51,7 +53,9 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
   ): NoInfer<U & Omit<QueryOptionsBase<TOutput, TError>, keyof U>>
 
   /**
-   * Generate the key used for streamed options
+   * Generate a **full matching** key for [Streamed Query Options](https://orpc.unnoq.com/docs/integrations/tanstack-query#streamed-query-options).
+   *
+   * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query#query-mutation-key Tanstack Query/Mutation Key Docs}
    */
   experimental_streamedKey(
     ...rest: MaybeOptionalOptions<
@@ -72,7 +76,9 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
   ): NoInfer<U & Omit<StreamedOptionsBase<experimental_StreamedQueryOutput<TOutput>, TError>, keyof U>>
 
   /**
-   * Generate the key used for infinite options
+   * Generate a **full matching** key for [Infinite Query Options](https://orpc.unnoq.com/docs/integrations/tanstack-query#infinite-query-options).
+   *
+   * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query#query-mutation-key Tanstack Query/Mutation Key Docs}
    */
   infiniteKey<UPageParam>(
     options: Pick<
@@ -91,7 +97,9 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
   ): NoInfer<U & Omit<InfiniteOptionsBase<TOutput, TError, UPageParam>, keyof U>>
 
   /**
-   * Generate the key used for mutation options
+   * Generate a **full matching** key for [Mutation Options](https://orpc.unnoq.com/docs/integrations/tanstack-query#mutation-options).
+   *
+   * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query#query-mutation-key Tanstack Query/Mutation Key Docs}
    */
   mutationKey(
     options?: Pick<

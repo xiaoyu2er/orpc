@@ -139,7 +139,7 @@ mutation.mutate({ name: 'Earth' })
 
 oRPC provides a set of helper methods to generate keys for queries and mutations:
 
-- `.key`: Generate a **partial matching** key for action like revalidating queries, checking mutation status, etc.
+- `.key`: Generate a **partial matching** key for actions like revalidating queries, checking mutation status, etc.
 - `.queryKey`: Generate a **full matching** key for [Query Options](#query-options).
 - `.streamedKey`: Generate a **full matching** key for [Streamed Query Options](#streamed-query-options).
 - `.infiniteKey`: Generate a **full matching** key for [Infinite Query Options](#infinite-query-options).

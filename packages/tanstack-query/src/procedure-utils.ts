@@ -1,13 +1,15 @@
 import type { Client, ClientContext } from '@orpc/client'
 import type { MaybeOptionalOptions } from '@orpc/shared'
-import type { InfiniteData } from '@tanstack/query-core'
+import type { DataTag, InfiniteData, QueryKey } from '@tanstack/query-core'
 import type {
+  experimental_StreamedKeyOptions,
   experimental_StreamedQueryOutput,
   InfiniteOptionsBase,
   InfiniteOptionsIn,
   MutationOptions,
   MutationOptionsIn,
   OperationContext,
+  QueryKeyOptions,
   QueryOptionsBase,
   QueryOptionsIn,
   experimental_StreamedOptionsBase as StreamedOptionsBase,
@@ -24,14 +26,23 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
   /**
    * Calling corresponding procedure client
    *
-   * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query-old/basic#calling-procedure-clients Tanstack Calling Procedure Client Docs}
+   * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query#calling-clients Tanstack Calling Procedure Client Docs}
    */
   call: Client<TClientContext, TInput, TOutput, TError>
 
   /**
+   * Generate the key used for query options
+   */
+  queryKey(
+    ...rest: MaybeOptionalOptions<
+      QueryKeyOptions<TInput>
+    >
+  ): DataTag<QueryKey, TOutput, TError>
+
+  /**
    * Generate options used for useQuery/useSuspenseQuery/prefetchQuery/...
    *
-   * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query-old/basic#query-options-utility Tanstack Query Options Utility Docs}
+   * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query#query-options Tanstack Query Options Utility Docs}
    */
   queryOptions<U, USelectData = TOutput>(
     ...rest: MaybeOptionalOptions<
@@ -40,10 +51,19 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
   ): NoInfer<U & Omit<QueryOptionsBase<TOutput, TError>, keyof U>>
 
   /**
+   * Generate the key used for streamed options
+   */
+  experimental_streamedKey(
+    ...rest: MaybeOptionalOptions<
+      experimental_StreamedKeyOptions<TInput>
+    >
+  ): DataTag<QueryKey, experimental_StreamedQueryOutput<TOutput>, TError>
+
+  /**
    * Generate [Event Iterator](https://orpc.unnoq.com/docs/event-iterator) options used for useQuery/useSuspenseQuery/prefetchQuery/...
    * Built on top of [steamedQuery](https://tanstack.com/query/latest/docs/reference/streamedQuery)
    *
-   * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query-old/basic#streamed-query-options-utility Tanstack Streamed Query Options Utility Docs}
+   * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query#streamed-query-options Tanstack Streamed Query Options Utility Docs}
    */
   experimental_streamedOptions<U, USelectData = experimental_StreamedQueryOutput<TOutput>>(
     ...rest: MaybeOptionalOptions<
@@ -52,18 +72,38 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
   ): NoInfer<U & Omit<StreamedOptionsBase<experimental_StreamedQueryOutput<TOutput>, TError>, keyof U>>
 
   /**
+   * Generate the key used for infinite options
+   */
+  infiniteKey<UPageParam>(
+    options: Pick<
+      InfiniteOptionsIn<TClientContext, TInput, TOutput, TError, InfiniteData<TOutput, UPageParam>, UPageParam>,
+      'input' | 'initialPageParam' | 'queryKey'
+    >
+  ): DataTag<QueryKey, InfiniteData<TOutput, UPageParam>, TError>
+
+  /**
    * Generate options used for useInfiniteQuery/useSuspenseInfiniteQuery/prefetchInfiniteQuery/...
    *
-   * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query-old/basic#infinite-query-options-utility Tanstack Infinite Query Options Utility Docs}
+   * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query#infinite-query-options Tanstack Infinite Query Options Utility Docs}
    */
   infiniteOptions<U, UPageParam, USelectData = InfiniteData<TOutput, UPageParam>>(
     options: U & InfiniteOptionsIn<TClientContext, TInput, TOutput, TError, USelectData, UPageParam>
   ): NoInfer<U & Omit<InfiniteOptionsBase<TOutput, TError, UPageParam>, keyof U>>
 
   /**
+   * Generate the key used for mutation options
+   */
+  mutationKey(
+    options?: Pick<
+      MutationOptionsIn<TClientContext, TInput, TOutput, TError, any>,
+      'mutationKey'
+    >
+  ): DataTag<QueryKey, TOutput, TError>
+
+  /**
    * Generate options used for useMutation/...
    *
-   * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query-old/basic#mutation-options Tanstack Mutation Options Docs}
+   * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query#mutation-options Tanstack Mutation Options Docs}
    */
   mutationOptions<UMutationContext>(
     ...rest: MaybeOptionalOptions<
@@ -80,11 +120,17 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
   client: Client<TClientContext, TInput, TOutput, TError>,
   options: CreateProcedureUtilsOptions,
 ): ProcedureUtils<TClientContext, TInput, TOutput, TError> {
-  return {
+  const utils: ProcedureUtils<TClientContext, TInput, TOutput, TError> = {
     call: client,
 
-    queryOptions(...[optionsIn = {} as any]) {
+    queryKey(...[optionsIn = {} as any]) {
       const queryKey = optionsIn.queryKey ?? generateOperationKey(options.path, { type: 'query', input: optionsIn.input })
+
+      return queryKey
+    },
+
+    queryOptions(...[optionsIn = {} as any]) {
+      const queryKey = utils.queryKey(optionsIn)
 
       return {
         queryFn: ({ signal }) => {
@@ -109,8 +155,14 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
       }
     },
 
-    experimental_streamedOptions(...[optionsIn = {} as any]) {
+    experimental_streamedKey(...[optionsIn = {} as any]) {
       const queryKey = optionsIn.queryKey ?? generateOperationKey(options.path, { type: 'streamed', input: optionsIn.input, fnOptions: optionsIn.queryFnOptions })
+
+      return queryKey
+    },
+
+    experimental_streamedOptions(...[optionsIn = {} as any]) {
+      const queryKey = utils.experimental_streamedKey(optionsIn)
 
       return {
         enabled: optionsIn.input !== skipToken,
@@ -144,11 +196,17 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
       }
     },
 
-    infiniteOptions(optionsIn) {
+    infiniteKey(optionsIn) {
       const queryKey = optionsIn.queryKey ?? generateOperationKey(options.path, {
         type: 'infinite',
         input: optionsIn.input === skipToken ? skipToken : optionsIn.input(optionsIn.initialPageParam) as any,
       })
+
+      return queryKey as any
+    },
+
+    infiniteOptions(optionsIn) {
+      const queryKey = utils.infiniteKey(optionsIn as any)
 
       return {
         queryFn: ({ pageParam, signal }) => {
@@ -173,8 +231,14 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
       }
     },
 
-    mutationOptions(...[optionsIn = {} as any]) {
+    mutationKey(...[optionsIn = {} as any]) {
       const mutationKey = optionsIn.mutationKey ?? generateOperationKey(options.path, { type: 'mutation' })
+
+      return mutationKey
+    },
+
+    mutationOptions(...[optionsIn = {} as any]) {
+      const mutationKey = utils.mutationKey(optionsIn)
 
       return {
         mutationFn: input => client(input, {
@@ -191,4 +255,6 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
       }
     },
   }
+
+  return utils
 }

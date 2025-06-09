@@ -34,10 +34,14 @@ export interface OperationContext {
   }
 }
 
+export type QueryKeyOptions<TInput> =
+  & (undefined extends TInput ? { input?: TInput | SkipToken } : { input: TInput | SkipToken })
+  & { queryKey?: QueryKey }
+
 export type QueryOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData> =
-    & (undefined extends TInput ? { input?: TInput | SkipToken } : { input: TInput | SkipToken })
-    & (Record<never, never> extends TClientContext ? { context?: TClientContext } : { context: TClientContext })
-    & SetOptional<QueryObserverOptions<TOutput, TError, TSelectData>, 'queryKey'>
+  & QueryKeyOptions<TInput>
+  & (Record<never, never> extends TClientContext ? { context?: TClientContext } : { context: TClientContext })
+  & Omit<QueryObserverOptions<TOutput, TError, TSelectData>, 'queryKey'>
 
 export interface QueryOptionsBase<TOutput, TError> {
   queryKey: QueryKey
@@ -46,6 +50,10 @@ export interface QueryOptionsBase<TOutput, TError> {
   retryDelay?: (count: number, error: TError) => number // Help TQ infer TError (suspense hooks)
   enabled: boolean
 }
+
+export type experimental_StreamedKeyOptions<TInput> =
+  & QueryKeyOptions<TInput>
+  & { queryFnOptions?: experimental_StreamedQueryOptions }
 
 export type experimental_StreamedOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData> =
   & QueryOptionsIn<TClientContext, TInput, TOutput, TError, TSelectData>

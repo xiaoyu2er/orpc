@@ -19,6 +19,16 @@ it('.call', () => {
   expectTypeOf(orpc.ping.call).toEqualTypeOf(client.ping)
 })
 
+it('.queryKey', () => {
+  const state = queryClient.getQueryState(orpc.ping.queryKey({ input: { input: 123 } }))
+
+  expectTypeOf(state?.data).toEqualTypeOf<{ output: string } | undefined>()
+
+  if (isDefinedError(state?.error) && state.error.code === 'BASE') {
+    expectTypeOf(state.error.data).toEqualTypeOf<{ output: string }>()
+  }
+})
+
 describe('.queryOptions', () => {
   it('useQuery', () => {
     const query = useQuery(orpc.ping.queryOptions({
@@ -169,6 +179,16 @@ describe('.queryOptions', () => {
   })
 })
 
+it('.streamedKey', () => {
+  const state = queryClient.getQueryState(streamedOrpc.streamed.experimental_streamedKey({ input: { input: 123 } }))
+
+  expectTypeOf(state?.data).toEqualTypeOf<{ output: string }[] | undefined>()
+
+  if (isDefinedError(state?.error) && state.error.code === 'OVERRIDE') {
+    expectTypeOf(state.error.data).toEqualTypeOf<unknown>()
+  }
+})
+
 describe('.streamedOptions', () => {
   it('useQuery', () => {
     const query = useQuery(streamedOrpc.streamed.experimental_streamedOptions({
@@ -317,6 +337,16 @@ describe('.streamedOptions', () => {
 
     expectTypeOf(query).toEqualTypeOf<{ output: string }[]>()
   })
+})
+
+it('.infiniteKey', () => {
+  const state = queryClient.getQueryState(orpc.nested.ping.infiniteKey({ input: input => ({ input }), initialPageParam: 1 }))
+
+  expectTypeOf(state?.data).toEqualTypeOf<InfiniteData<{ output: string }, number> | undefined>()
+
+  if (isDefinedError(state?.error) && state.error.code === 'OVERRIDE') {
+    expectTypeOf(state.error.data).toEqualTypeOf<unknown>()
+  }
 })
 
 describe('.infiniteOptions', () => {

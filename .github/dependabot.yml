@@ -17,6 +17,11 @@ updates:
           - '@hey-api/*'
       dev-dependencies-minor-patch:
         dependency-type: development
+        exclude-patterns:
+          - eslint
+          - '@antfu/eslint-config'
+          - 'eslint-plugin-*'
+          - '@hey-api/*'
         update-types:
           - minor
           - patch

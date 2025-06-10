@@ -157,6 +157,12 @@ describe('ProcedureUtils', () => {
         select: mapped => ({ mapped }),
       })).toExtend<QueryObserverOptions<UtilsOutput, UtilsError, { mapped: UtilsOutput }>>()
     })
+
+    it('.getQueryState is typed correctly', () => {
+      const state = queryClient.getQueryState(optionalUtils.queryOptions().queryKey)
+      expectTypeOf(state?.data).toEqualTypeOf<UtilsOutput | undefined>()
+      expectTypeOf(state?.error).toEqualTypeOf<UtilsError | null | undefined>()
+    })
   })
 
   describe('.streamedKey', () => {
@@ -283,6 +289,12 @@ describe('ProcedureUtils', () => {
       expectTypeOf(streamUtils.experimental_streamedOptions({
         select: mapped => ({ mapped }),
       })).toExtend<QueryObserverOptions<UtilsOutput, UtilsError, { mapped: UtilsOutput }>>()
+    })
+
+    it('.getQueryState is typed correctly', () => {
+      const state = queryClient.getQueryState(streamUtils.experimental_streamedOptions().queryKey)
+      expectTypeOf(state?.data).toEqualTypeOf<UtilsOutput | undefined>()
+      expectTypeOf(state?.error).toEqualTypeOf<UtilsError | null | undefined>()
     })
   })
 
@@ -531,6 +543,17 @@ describe('ProcedureUtils', () => {
         initialPageParam,
         select: mapped => ({ mapped }),
       })).toExtend<InfiniteQueryObserverOptions<UtilsOutput, UtilsError, { mapped: InfiniteData<UtilsOutput, number> }, QueryKey, number>>()
+    })
+
+    it('.getQueryState is typed correctly', () => {
+      const state = queryClient.getQueryState(optionalUtils.infiniteOptions({
+        input: () => ({}),
+        getNextPageParam,
+        initialPageParam,
+      }).queryKey)
+
+      expectTypeOf(state?.data).toEqualTypeOf<InfiniteData<UtilsOutput, number> | undefined>()
+      expectTypeOf(state?.error).toEqualTypeOf<UtilsError | null | undefined>()
     })
   })
 

@@ -34,7 +34,7 @@ it('case: with useQuery', async () => {
   })
 
   expect(
-    queryClient.getQueryData(orpc.nested.ping.key({ input: { input: 123 }, type: 'query' })),
+    queryClient.getQueryData(orpc.nested.ping.queryKey({ input: { input: 123 } })),
   ).toEqual({ output: '123' })
 
   pingHandler.mockRejectedValueOnce(new ORPCError('OVERRIDE'))
@@ -87,7 +87,7 @@ it('case: with streamed/useQuery', async () => {
   })
 
   expect(
-    queryClient.getQueryData(streamedOrpc.streamed.key({ input: { input: 2 }, type: 'streamed', fnOptions: { refetchMode: 'append', maxChunks: 3 } })),
+    queryClient.getQueryData(streamedOrpc.streamed.experimental_streamedKey({ input: { input: 2 }, queryFnOptions: { refetchMode: 'append', maxChunks: 3 } })),
   ).toEqual([{ output: '0' }, { output: '1' }])
 
   // make sure refetch mode works
@@ -150,7 +150,7 @@ it('case: with useInfiniteQuery', async () => {
   }))
 
   expect(
-    queryClient.getQueryData(orpc.nested.ping.key({ input: { input: 1 }, type: 'infinite' })),
+    queryClient.getQueryData(orpc.nested.ping.infiniteKey({ input: input => ({ input }), initialPageParam: 1 })),
   ).toEqual({
     pageParams: [1],
     pages: [

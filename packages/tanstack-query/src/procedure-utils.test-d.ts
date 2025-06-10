@@ -3,12 +3,14 @@ import type { ErrorFromErrorMap } from '@orpc/contract'
 import type { GetNextPageParamFunction, InfiniteData, InfiniteQueryObserverOptions, MutationObserverOptions, QueryFunction, QueryKey, QueryObserverOptions } from '@tanstack/query-core'
 import type { baseErrorMap } from '../../contract/tests/shared'
 import type { ProcedureUtils } from './procedure-utils'
-import { skipToken } from '@tanstack/query-core'
+import { QueryClient, skipToken } from '@tanstack/query-core'
 
 describe('ProcedureUtils', () => {
   type UtilsInput = { search?: string, cursor?: number } | undefined
   type UtilsOutput = { title: string }[]
   type UtilsError = ErrorFromErrorMap<typeof baseErrorMap>
+
+  const queryClient = new QueryClient()
 
   const condition = {} as boolean
 
@@ -37,6 +39,56 @@ describe('ProcedureUtils', () => {
     expectTypeOf(optionalUtils.call).toEqualTypeOf<
       Client<{ batch?: boolean }, UtilsInput, UtilsOutput, UtilsError>
     >()
+  })
+
+  describe('.queryKey', () => {
+    it('should handle optional `input` correctly', () => {
+      optionalUtils.queryKey()
+      optionalUtils.queryKey({ })
+      optionalUtils.queryKey({ input: { search: 'search' } })
+    })
+
+    it('should handle required `input` correctly', () => {
+      // @ts-expect-error - `input` is required
+      requiredUtils.queryKey()
+    })
+
+    it('should infer types for `input` correctly', () => {
+      optionalUtils.queryKey({ input: { cursor: 1 } })
+      // @ts-expect-error - Should error on invalid input type
+      optionalUtils.queryKey({ input: { cursor: 'invalid' } })
+
+      requiredUtils.queryKey({ input: 'input' })
+      // @ts-expect-error - Should error on invalid input type
+      requiredUtils.queryKey({ input: 123 })
+    })
+
+    it('allow use skipToken as input', () => {
+      optionalUtils.queryKey({ input: condition ? skipToken : { search: 'search' } })
+      // @ts-expect-error - invalid input type
+      optionalUtils.queryKey({ input: condition ? skipToken : { cursor: 'invalid' } })
+
+      requiredUtils.queryKey({ input: condition ? skipToken : 'input' })
+      // @ts-expect-error - invalid input type
+      requiredUtils.queryKey({ input: condition ? skipToken : 123 })
+    })
+
+    it('allow override query key', () => {
+      optionalUtils.queryKey({ queryKey: ['1'] })
+      // @ts-expect-error - invalid query key type
+      optionalUtils.queryKey({ queryKey: 1 })
+    })
+
+    it('return valid query key', () => {
+      expectTypeOf(optionalUtils.queryKey()).toExtend<QueryKey>()
+      expectTypeOf(optionalUtils.queryKey({ input: { search: 'search' } })).toExtend<QueryKey>()
+    })
+
+    it('.getQueryState is typed correctly', () => {
+      const state = queryClient.getQueryState(optionalUtils.queryKey())
+      expectTypeOf(state?.data).toEqualTypeOf<UtilsOutput | undefined>()
+      expectTypeOf(state?.error).toEqualTypeOf<UtilsError | null | undefined>()
+    })
   })
 
   describe('.queryOptions', () => {
@@ -104,6 +156,68 @@ describe('ProcedureUtils', () => {
       expectTypeOf(optionalUtils.queryOptions({
         select: mapped => ({ mapped }),
       })).toExtend<QueryObserverOptions<UtilsOutput, UtilsError, { mapped: UtilsOutput }>>()
+    })
+
+    it('.getQueryState is typed correctly', () => {
+      const state = queryClient.getQueryState(optionalUtils.queryOptions().queryKey)
+      expectTypeOf(state?.data).toEqualTypeOf<UtilsOutput | undefined>()
+      expectTypeOf(state?.error).toEqualTypeOf<UtilsError | null | undefined>()
+    })
+  })
+
+  describe('.streamedKey', () => {
+    it('should handle optional `input` correctly', () => {
+      optionalUtils.experimental_streamedKey()
+      optionalUtils.experimental_streamedKey({})
+      optionalUtils.experimental_streamedKey({ input: { search: 'search' } })
+    })
+
+    it('should handle required `input` correctly', () => {
+      // @ts-expect-error - `input` is required
+      requiredUtils.experimental_streamedKey()
+    })
+
+    it('should infer types for `input` correctly', () => {
+      optionalUtils.experimental_streamedKey({ input: { cursor: 1 } })
+      // @ts-expect-error - Should error on invalid input type
+      optionalUtils.experimental_streamedKey({ input: { cursor: 'invalid' } })
+
+      requiredUtils.experimental_streamedKey({ input: 'input' })
+      // @ts-expect-error - Should error on invalid input type
+      requiredUtils.experimental_streamedKey({ input: 123 })
+    })
+
+    it('allow use skipToken as input', () => {
+      optionalUtils.experimental_streamedKey({ input: condition ? skipToken : { search: 'search' } })
+      // @ts-expect-error - invalid input type
+      optionalUtils.experimental_streamedKey({ input: condition ? skipToken : { cursor: 'invalid' } })
+
+      requiredUtils.experimental_streamedKey({ input: condition ? skipToken : 'input' })
+      // @ts-expect-error - invalid input type
+      requiredUtils.experimental_streamedKey({ input: condition ? skipToken : 123 })
+    })
+
+    it('allow override query key', () => {
+      optionalUtils.experimental_streamedKey({ queryKey: ['1'] })
+      // @ts-expect-error - invalid query key type
+      optionalUtils.experimental_streamedKey({ queryKey: 1 })
+    })
+
+    it('return valid query key', () => {
+      expectTypeOf(optionalUtils.experimental_streamedKey()).toExtend<QueryKey>()
+      expectTypeOf(optionalUtils.experimental_streamedKey({
+        input: { search: 'search' },
+        queryFnOptions: {
+          maxChunks: 1,
+          refetchMode: 'replace',
+        },
+      })).toExtend<QueryKey>()
+    })
+
+    it('.getQueryState is typed correctly', () => {
+      const state = queryClient.getQueryState(streamUtils.experimental_streamedKey())
+      expectTypeOf(state?.data).toEqualTypeOf<UtilsOutput | undefined>()
+      expectTypeOf(state?.error).toEqualTypeOf<UtilsError | null | undefined>()
     })
   })
 
@@ -175,6 +289,110 @@ describe('ProcedureUtils', () => {
       expectTypeOf(streamUtils.experimental_streamedOptions({
         select: mapped => ({ mapped }),
       })).toExtend<QueryObserverOptions<UtilsOutput, UtilsError, { mapped: UtilsOutput }>>()
+    })
+
+    it('.getQueryState is typed correctly', () => {
+      const state = queryClient.getQueryState(streamUtils.experimental_streamedOptions().queryKey)
+      expectTypeOf(state?.data).toEqualTypeOf<UtilsOutput | undefined>()
+      expectTypeOf(state?.error).toEqualTypeOf<UtilsError | null | undefined>()
+    })
+  })
+
+  describe('.infiniteKey', () => {
+    const initialPageParam = 1
+
+    it('should infer types for `input` correctly', () => {
+      optionalUtils.infiniteKey({
+        input: () => ({}),
+        initialPageParam,
+      })
+      optionalUtils.infiniteKey({
+        // @ts-expect-error - Should error on invalid input type
+        input: () => ({ cursor: 'invalid' }),
+        initialPageParam,
+      })
+    })
+
+    it('allow use skipToken as input', () => {
+      optionalUtils.infiniteKey({
+        input: condition ? skipToken : () => ({}),
+        initialPageParam,
+      })
+      optionalUtils.infiniteKey({
+        // @ts-expect-error - invalid input type
+        input: condition ? skipToken : () => ({ cursor: 'invalid' }),
+        initialPageParam,
+      })
+    })
+
+    it('should infer `pageParam` type correctly', () => {
+      optionalUtils.infiniteKey({
+        input: (pageParam) => {
+          expectTypeOf(pageParam).toEqualTypeOf<number>()
+          return { cursor: pageParam }
+        },
+        initialPageParam,
+      })
+
+      optionalUtils.infiniteKey({
+        input: condition
+          ? skipToken
+          : (pageParam) => {
+              expectTypeOf(pageParam).toEqualTypeOf<number>()
+              return { cursor: pageParam }
+            },
+        initialPageParam,
+      })
+    })
+
+    it('should error on conflicting `pageParam` types', () => {
+      optionalUtils.infiniteKey({
+        input: (pageParam: number | undefined) => {
+          return { cursor: pageParam }
+        },
+        initialPageParam,
+      })
+
+      optionalUtils.infiniteKey({
+        input: condition
+          ? skipToken
+          : (pageParam: number) => {
+              return { cursor: pageParam }
+            },
+        // @ts-expect-error - conflict pageParam type
+        initialPageParam: undefined,
+      })
+    })
+
+    it('allow override query key', () => {
+      optionalUtils.infiniteKey({
+        input: () => ({}),
+        initialPageParam,
+        queryKey: ['1'],
+      })
+      optionalUtils.infiniteKey({
+        input: () => ({}),
+        initialPageParam,
+        // @ts-expect-error - invalid query key type
+        queryKey: 1,
+      })
+    })
+
+    it('return valid query key', () => {
+      expectTypeOf(optionalUtils.infiniteKey({
+        input: () => ({}),
+        initialPageParam,
+      })).toExtend<QueryKey>()
+    })
+
+    it('.getQueryState is typed correctly', () => {
+      const state = queryClient.getQueryState(optionalUtils.infiniteKey({
+        input: () => ({}),
+        initialPageParam,
+      }))
+
+      expectTypeOf(state?.data).toEqualTypeOf<InfiniteData<UtilsOutput, number> | undefined>()
+      expectTypeOf(state?.error).toEqualTypeOf<UtilsError | null | undefined>()
     })
   })
 
@@ -325,6 +543,37 @@ describe('ProcedureUtils', () => {
         initialPageParam,
         select: mapped => ({ mapped }),
       })).toExtend<InfiniteQueryObserverOptions<UtilsOutput, UtilsError, { mapped: InfiniteData<UtilsOutput, number> }, QueryKey, number>>()
+    })
+
+    it('.getQueryState is typed correctly', () => {
+      const state = queryClient.getQueryState(optionalUtils.infiniteOptions({
+        input: () => ({}),
+        getNextPageParam,
+        initialPageParam,
+      }).queryKey)
+
+      expectTypeOf(state?.data).toEqualTypeOf<InfiniteData<UtilsOutput, number> | undefined>()
+      expectTypeOf(state?.error).toEqualTypeOf<UtilsError | null | undefined>()
+    })
+  })
+
+  describe('.mutationKey', () => {
+    it('should optional arguments', () => {
+      optionalUtils.mutationKey()
+    })
+
+    it('allow override query key', () => {
+      optionalUtils.mutationKey({
+        mutationKey: ['1'],
+      })
+      optionalUtils.mutationKey({
+        // @ts-expect-error - invalid query key type
+        mutationKey: 1,
+      })
+    })
+
+    it('return valid query key', () => {
+      expectTypeOf(optionalUtils.mutationKey()).toExtend<QueryKey>()
     })
   })
 

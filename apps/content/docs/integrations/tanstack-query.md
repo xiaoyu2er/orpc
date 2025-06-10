@@ -137,11 +137,13 @@ mutation.mutate({ name: 'Earth' })
 
 ## Query/Mutation Key
 
-Use `.key` to generate a `QueryKey` or `MutationKey`. This is useful for tasks such as revalidating queries, checking mutation status, etc.
+oRPC provides a set of helper methods to generate keys for queries and mutations:
 
-::: warning
-For exact key matching (e.g. setting or updating specific query data), you should use methods like `.queryOptions(...).queryKey`, `.infiniteOptions(...).queryKey`, etc.
-:::
+- `.key`: Generate a **partial matching** key for actions like revalidating queries, checking mutation status, etc.
+- `.queryKey`: Generate a **full matching** key for [Query Options](#query-options).
+- `.streamedKey`: Generate a **full matching** key for [Streamed Query Options](#streamed-query-options).
+- `.infiniteKey`: Generate a **full matching** key for [Infinite Query Options](#infinite-query-options).
+- `.mutationKey`: Generate a **full matching** key for [Mutation Options](#mutation-options).
 
 ```ts
 const queryClient = useQueryClient()
@@ -159,6 +161,11 @@ queryClient.invalidateQueries({
 // Invalidate the planet find query with id 123
 queryClient.invalidateQueries({
   queryKey: orpc.planet.find.key({ input: { id: 123 } })
+})
+
+// Update the planet find query with id 123
+queryClient.setQueryData(orpc.planet.find.queryKey({ input: { id: 123 } }), (old) => {
+  return { ...old, id: 123, name: 'Earth' }
 })
 ```
 

@@ -30,6 +30,15 @@ describe('createProcedureUtils', () => {
     expect(utils.call).toBe(client)
   })
 
+  it('.queryKey', () => {
+    expect(utils.queryKey({ input: { search: '__search__' } })).toBe(generateOperationKeySpy.mock.results[0]!.value)
+    expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
+    expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'query', input: { search: '__search__' } })
+
+    expect(utils.queryKey({ queryKey: ['1'] })).toEqual(['1'])
+    expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
+  })
+
   describe('.queryOptions', () => {
     it('without skipToken', async () => {
       const options = utils.queryOptions({ input: { search: '__search__' }, context: { batch: '__batch__' } })
@@ -64,6 +73,15 @@ describe('createProcedureUtils', () => {
       expect(() => options.queryFn!({ signal } as any)).toThrow('queryFn should not be called with skipToken used as input')
       expect(client).toHaveBeenCalledTimes(0)
     })
+  })
+
+  it('.streamedKey', () => {
+    expect(utils.experimental_streamedKey({ input: { search: '__search__' } })).toBe(generateOperationKeySpy.mock.results[0]!.value)
+    expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
+    expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'streamed', input: { search: '__search__' } })
+
+    expect(utils.experimental_streamedKey({ queryKey: ['1'] })).toEqual(['1'])
+    expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
   })
 
   describe('.streamedOptions', () => {
@@ -145,6 +163,15 @@ describe('createProcedureUtils', () => {
     })
   })
 
+  it('.infiniteKey', () => {
+    expect(utils.infiniteKey({ input: pageParam => ({ search: '__search__', pageParam }), initialPageParam: '__initialPageParam__' })).toBe(generateOperationKeySpy.mock.results[0]!.value)
+    expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
+    expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'infinite', input: { search: '__search__', pageParam: '__initialPageParam__' } })
+
+    expect(utils.infiniteKey({ input: () => ({}), initialPageParam: 0, queryKey: ['1'] })).toEqual(['1'])
+    expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
+  })
+
   describe('.infiniteOptions', () => {
     it('without skipToken', async () => {
       const getNextPageParam = vi.fn()
@@ -205,6 +232,15 @@ describe('createProcedureUtils', () => {
       expect(() => options.queryFn!({ signal, pageParam: '__pageParam__' } as any)).toThrow('queryFn should not be called with skipToken used as input')
       expect(client).toHaveBeenCalledTimes(0)
     })
+  })
+
+  it('.mutationKey', () => {
+    expect(utils.mutationKey()).toBe(generateOperationKeySpy.mock.results[0]!.value)
+    expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
+    expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'mutation' })
+
+    expect(utils.mutationKey({ mutationKey: ['1'] })).toEqual(['1'])
+    expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
   })
 
   it('.mutationOptions', async () => {

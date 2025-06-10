@@ -1,6 +1,7 @@
 import type { ClientContext } from '@orpc/client'
 import type { PartialDeep, SetOptional } from '@orpc/shared'
 import type {
+  DataTag,
   experimental_streamedQuery,
   InfiniteData,
   InfiniteQueryObserverOptions,
@@ -34,18 +35,26 @@ export interface OperationContext {
   }
 }
 
+export type QueryKeyOptions<TInput> =
+  & (undefined extends TInput ? { input?: TInput | SkipToken } : { input: TInput | SkipToken })
+  & { queryKey?: QueryKey }
+
 export type QueryOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData> =
-    & (undefined extends TInput ? { input?: TInput | SkipToken } : { input: TInput | SkipToken })
-    & (Record<never, never> extends TClientContext ? { context?: TClientContext } : { context: TClientContext })
-    & SetOptional<QueryObserverOptions<TOutput, TError, TSelectData>, 'queryKey'>
+  & QueryKeyOptions<TInput>
+  & (Record<never, never> extends TClientContext ? { context?: TClientContext } : { context: TClientContext })
+  & Omit<QueryObserverOptions<TOutput, TError, TSelectData>, 'queryKey'>
 
 export interface QueryOptionsBase<TOutput, TError> {
-  queryKey: QueryKey
+  queryKey: DataTag<QueryKey, TOutput, TError>
   queryFn: QueryFunction<TOutput>
   throwOnError?: (error: TError) => boolean // Help TQ infer TError
   retryDelay?: (count: number, error: TError) => number // Help TQ infer TError (suspense hooks)
   enabled: boolean
 }
+
+export type experimental_StreamedKeyOptions<TInput> =
+  & QueryKeyOptions<TInput>
+  & { queryFnOptions?: experimental_StreamedQueryOptions }
 
 export type experimental_StreamedOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData> =
   & QueryOptionsIn<TClientContext, TInput, TOutput, TError, TSelectData>
@@ -60,7 +69,7 @@ export type InfiniteOptionsIn<TClientContext extends ClientContext, TInput, TOut
   & SetOptional<InfiniteQueryObserverOptions<TOutput, TError, TSelectData, QueryKey, TPageParam>, 'queryKey'>
 
 export interface InfiniteOptionsBase<TOutput, TError, TPageParam> {
-  queryKey: QueryKey
+  queryKey: DataTag<QueryKey, InfiniteData<TOutput, TPageParam>, TError>
   queryFn: QueryFunction<TOutput, QueryKey, TPageParam>
   select?(): InfiniteData<TOutput, TPageParam> // Help TQ infer TPageParam
   throwOnError?: (error: TError) => boolean // Help TQ infer TError

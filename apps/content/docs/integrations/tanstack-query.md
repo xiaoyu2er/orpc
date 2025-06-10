@@ -351,7 +351,6 @@ export function createQueryClient() {
 
 ```tsx [lib/query/hydration.tsx]
 import { createQueryClient } from './client'
-import type { OperationKey, OperationType, ProcedureUtils } from '@orpc/tanstack-query'
 import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query'
 import { cache } from 'react'
 

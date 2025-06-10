@@ -1,5 +1,5 @@
 import { isAsyncIteratorObject } from '@orpc/shared'
-import { getEventMeta, withEventMeta } from '@orpc/standard-server'
+import { getEventMeta, experimental_HibernationEventIterator as HibernationEventIterator, withEventMeta } from '@orpc/standard-server'
 import { decodeResponseMessage, encodeRequestMessage, MessageType } from './codec'
 import { ServerPeer } from './server'
 
@@ -337,6 +337,27 @@ describe('serverPeer', () => {
 
       expect(yieldFn).toHaveBeenCalledTimes(2)
       expect(isFinallyCalled).toBe(true)
+    })
+
+    it('hibernation event iterator', async () => {
+      await peer.message(await encodeRequestMessage(REQUEST_ID, MessageType.REQUEST, baseRequest))
+
+      const callback = vi.fn()
+
+      await peer.response(REQUEST_ID, {
+        ...baseResponse,
+        body: new HibernationEventIterator(callback),
+      })
+
+      expect(send).toHaveBeenCalledTimes(1)
+      expect(await decodeResponseMessage(send.mock.calls[0]![0])).toEqual([REQUEST_ID, MessageType.RESPONSE, {
+        ...baseResponse,
+        headers: {
+          ...baseResponse.headers,
+          'content-type': 'text/event-stream',
+        },
+        body: undefined,
+      }])
     })
 
     it('file', async () => {

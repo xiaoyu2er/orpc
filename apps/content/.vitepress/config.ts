@@ -113,6 +113,7 @@ export default defineConfig({
           items: [
             { text: 'CORS', link: '/docs/plugins/cors' },
             { text: 'Response Headers', link: '/docs/plugins/response-headers' },
+            { text: 'Hibernation', link: '/docs/plugins/hibernation' },
             { text: 'Dedupe Requests', link: '/docs/plugins/dedupe-requests' },
             { text: 'Batch Requests', link: '/docs/plugins/batch-requests' },
             { text: 'Client Retry', link: '/docs/plugins/client-retry' },

@@ -9,16 +9,16 @@ oRPC provides built-in WebSocket support for low-latency, bidirectional RPC.
 
 ## Server Adapters
 
-| Adapter     | Target                                                                                                            |
-| ----------- | ----------------------------------------------------------------------------------------------------------------- |
-| `websocket` | [MDN WebSocket API](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) (Browser, Deno, Cloudflare, etc.) |
-| `crossws`   | [Crossws](https://github.com/h3js/crossws) library (Node, Bun, Deno, SSE, etc.)                                   |
-| `ws`        | [ws](https://github.com/websockets/ws) library (Node.js)                                                          |
-| `bun-ws`    | [Bun Websocket Server](https://bun.sh/docs/api/websockets)                                                        |
+| Adapter     | Target                                                                                                                   |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `websocket` | [MDN WebSocket API](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) (Browser, Deno, Cloudflare Worker, etc.) |
+| `crossws`   | [Crossws](https://github.com/h3js/crossws) library (Node, Bun, Deno, SSE, etc.)                                          |
+| `ws`        | [ws](https://github.com/websockets/ws) library (Node.js)                                                                 |
+| `bun-ws`    | [Bun Websocket Server](https://bun.sh/docs/api/websockets)                                                               |
 
 ::: code-group
 
-```ts [websocket]
+```ts [Websocket]
 import { experimental_RPCHandler as RPCHandler } from '@orpc/server/websocket'
 
 const handler = new RPCHandler(router)
@@ -38,7 +38,7 @@ Deno.serve((req) => {
 })
 ```
 
-```ts [crossws]
+```ts [CrossWS]
 import { createServer } from 'node:http'
 import { experimental_RPCHandler as RPCHandler } from '@orpc/server/crossws'
 
@@ -71,7 +71,7 @@ server.on('upgrade', (req, socket, head) => {
 })
 ```
 
-```ts [ws]
+```ts [WS]
 import { WebSocketServer } from 'ws'
 import { experimental_RPCHandler as RPCHandler } from '@orpc/server/ws'
 
@@ -86,7 +86,7 @@ wss.on('connection', (ws) => {
 })
 ```
 
-```ts [bun-ws]
+```ts [Bun WebSocket]
 import { experimental_RPCHandler as RPCHandler } from '@orpc/server/bun-ws'
 
 const handler = new RPCHandler(router)
@@ -112,6 +112,39 @@ Bun.serve({
 })
 ```
 
+```ts [Websocket Hibernation]
+import { experimental_RPCHandler as RPCHandler } from '@orpc/server/websocket'
+
+const handler = new RPCHandler(router)
+
+export class ChatRoom extends DurableObject {
+  async fetch(): Promise<Response> {
+    const { '0': client, '1': server } = new WebSocketPair()
+
+    this.ctx.acceptWebSocket(server)
+
+    return new Response(null, {
+      status: 101,
+      webSocket: client,
+    })
+  }
+
+  async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer): Promise<void> {
+    await handler.message(ws, message, {
+      context: {}, // Provide initial context if needed
+    })
+  }
+
+  async webSocketClose(ws: WebSocket): Promise<void> {
+    handler.close(ws)
+  }
+}
+```
+
+:::
+
+::: info
+[Hibernation Plugin](/docs/plugins/hibernation) helps you fully leverage Hibernation APIs, making it especially useful for adapters like [Cloudflare Websocket Hibernation](https://developers.cloudflare.com/durable-objects/examples/websocket-hibernation-server/).
 :::
 
 ## Client Adapters

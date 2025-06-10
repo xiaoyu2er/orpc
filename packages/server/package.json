@@ -25,6 +25,11 @@
         "import": "./dist/plugins/index.mjs",
         "default": "./dist/plugins/index.mjs"
       },
+      "./hibernation": {
+        "types": "./dist/hibernation/index.d.mts",
+        "import": "./dist/hibernation/index.mjs",
+        "default": "./dist/hibernation/index.mjs"
+      },
       "./standard": {
         "types": "./dist/adapters/standard/index.d.mts",
         "import": "./dist/adapters/standard/index.mjs",
@@ -75,6 +80,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./plugins": "./src/plugins/index.ts",
+    "./hibernation": "./src/hibernation/index.ts",
     "./standard": "./src/adapters/standard/index.ts",
     "./fetch": "./src/adapters/fetch/index.ts",
     "./node": "./src/adapters/node/index.ts",

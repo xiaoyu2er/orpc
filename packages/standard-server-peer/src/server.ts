@@ -3,6 +3,7 @@ import type { StandardRequest, StandardResponse } from '@orpc/standard-server'
 import type { EventIteratorPayload } from './codec'
 import type { EncodedMessage, EncodedMessageSendFn } from './types'
 import { AsyncIdQueue, isAsyncIteratorObject } from '@orpc/shared'
+import { experimental_HibernationEventIterator } from '@orpc/standard-server'
 import { decodeRequestMessage, encodeResponseMessage, isEventIteratorHeaders, MessageType } from './codec'
 import { resolveEventIterator, toEventIterator } from './event-iterator'
 
@@ -89,15 +90,20 @@ export class ServerPeer {
     await this.send(id, MessageType.RESPONSE, response)
       .then(async () => {
         if (!signal.aborted && isAsyncIteratorObject(response.body)) {
-          await resolveEventIterator(response.body, async (payload) => {
-            if (signal.aborted) {
-              return 'abort'
-            }
+          if (response.body instanceof experimental_HibernationEventIterator) {
+            response.body.hibernationCallback?.(id)
+          }
+          else {
+            await resolveEventIterator(response.body, async (payload) => {
+              if (signal.aborted) {
+                return 'abort'
+              }
 
-            await this.send(id, MessageType.EVENT_ITERATOR, payload)
+              await this.send(id, MessageType.EVENT_ITERATOR, payload)
 
-            return 'next'
-          })
+              return 'next'
+            })
+          }
         }
 
         this.close({ id, abort: false })

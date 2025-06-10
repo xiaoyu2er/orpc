@@ -239,16 +239,11 @@ describe('eventPublisher', () => {
       expect(pub.size).toEqual(2) // iterator1 was unsubscribed
     })
 
-    it('throw right away if signal aborted', async () => {
+    it('throw immediately if signal aborted', () => {
       controller3.abort()
       const payloads: any[] = []
 
-      await expect(async () => {
-        for await (const payload of iterator3) {
-          payloads.push(payload)
-        }
-      },
-      ).rejects.toThrow(controller3.signal.reason)
+      expect(() => pub.subscribe('event3', { signal: controller3.signal })).toThrow(controller3.signal.reason)
     })
 
     it('throw if signal aborted while awaiting next', async () => {

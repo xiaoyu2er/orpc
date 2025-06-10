@@ -91,7 +91,7 @@ export class ServerPeer {
       .then(async () => {
         if (!signal.aborted && isAsyncIteratorObject(response.body)) {
           if (response.body instanceof experimental_HibernationEventIterator) {
-            response.body.hibernationCallback(id)
+            response.body.hibernationCallback?.(id)
           }
           else {
             await resolveEventIterator(response.body, async (payload) => {

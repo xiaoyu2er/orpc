@@ -15,6 +15,8 @@ export interface experimental_HibernationContext {
 export class experimental_HibernationPlugin<T extends Context> implements StandardHandlerPlugin<T> {
   readonly HIBERNATION_CONTEXT_SYMBOL = Symbol('HIBERNATION_CONTEXT')
 
+  order = 2_000_000 // make sure execute after the batch plugin
+
   init(options: StandardHandlerOptions<T>, _router: Router<any, T>): void {
     options.interceptors ??= []
     options.clientInterceptors ??= []

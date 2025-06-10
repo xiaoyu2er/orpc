@@ -103,6 +103,8 @@ export class EventPublisher<T extends Record<PropertyKey, any>> {
     const signal = listenerOrOptions?.signal
     const maxBufferedEvents = listenerOrOptions?.maxBufferedEvents ?? this.#maxBufferedEvents
 
+    signal?.throwIfAborted()
+
     const bufferedEvents: T[K][] = []
     const pullResolvers: [(result: IteratorResult<T[K]>) => void, (error: Error) => void][] = []
 

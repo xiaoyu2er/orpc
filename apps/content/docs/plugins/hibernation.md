@@ -65,6 +65,8 @@ The plugin provide `HibernationEventIterator` and `encodeHibernationRPCEvent` to
 
 This example demonstrates how to set up a chat room using [Cloudflare Durable Objects](https://developers.cloudflare.com/durable-objects/) and [Websocket Hibernation](https://developers.cloudflare.com/durable-objects/examples/websocket-hibernation-server/). Everyone connected to the same Durable Object can send messages to each other.
 
+::: code-group
+
 ```ts [Durable Object]
 import { experimental_RPCHandler as RPCHandler } from '@orpc/server/websocket'
 import {

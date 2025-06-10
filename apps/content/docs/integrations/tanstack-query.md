@@ -268,3 +268,162 @@ const link = new RPCLink<ClientContext>({
   },
 })
 ```
+
+## Hydration
+
+To avoid issues like refetching on mount or waterfall issues, your app may need to use [TanStack Query Hydration](https://tanstack.com/query/latest/docs/framework/react/guides/ssr). For seamless integration with oRPC, extend the default serializer using the [RPC JSON Serializer](/docs/advanced/rpc-json-serializer) to support all oRPC types.
+
+::: info
+You can use any custom serializers, but if you're using oRPC, you should use its built-in serializers.
+:::
+
+```ts
+import { StandardRPCJsonSerializer } from '@orpc/client/standard'
+
+const serializer = new StandardRPCJsonSerializer({
+  customJsonSerializers: [
+    // put custom serializers here
+  ]
+})
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60 * 1000, // >= 0 to prevent immediate refetching on mount
+    },
+    dehydrate: {
+      serializeData(data) {
+        const [json, meta] = serializer.serialize(data)
+        return { json, meta }
+      }
+    },
+    hydrate: {
+      deserializeData(data) {
+        return serializer.deserialize(data.json, data.meta)
+      }
+    },
+  }
+})
+```
+
+::: details Next.js Example?
+
+This feature is not limited to React or Next.js. You can use it with any library that supports TanStack Query hydration.
+
+::: code-group
+
+```ts [lib/serializer.ts]
+import { StandardRPCJsonSerializer } from '@orpc/client/standard'
+
+export const serializer = new StandardRPCJsonSerializer({
+  customJsonSerializers: [
+    // put custom serializers here
+  ]
+})
+```
+
+```ts [lib/query/client.ts]
+import { defaultShouldDehydrateQuery, QueryClient } from '@tanstack/react-query'
+import { serializer } from '../serializer'
+
+export function createQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 60 * 1000, // >= 0 to prevent immediate refetching on mount
+      },
+      dehydrate: {
+        shouldDehydrateQuery: query => defaultShouldDehydrateQuery(query) || query.state.status === 'pending',
+        serializeData(data) {
+          const [json, meta] = serializer.serialize(data)
+          return { json, meta }
+        },
+      },
+      hydrate: {
+        deserializeData(data) {
+          return serializer.deserialize(data.json, data.meta)
+        }
+      },
+    }
+  })
+}
+```
+
+```tsx [lib/query/hydration.tsx]
+import { createQueryClient } from './client'
+import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query'
+import { cache } from 'react'
+
+export const getQueryClient = cache(createQueryClient)
+
+export function HydrateClient(props: { children: React.ReactNode, client: QueryClient }) {
+  return (
+    <HydrationBoundary state={dehydrate(props.client)}>
+      {props.children}
+    </HydrationBoundary>
+  )
+}
+```
+
+```tsx [app/providers.tsx]
+'use client'
+
+import { useState } from 'react'
+import { createQueryClient } from '../lib/query/client'
+import { QueryClientProvider } from '@tanstack/react-query'
+
+export function Providers(props: { children: React.ReactNode }) {
+  const [queryClient] = useState(() => createQueryClient())
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      {props.children}
+    </QueryClientProvider>
+  )
+}
+```
+
+```tsx [app/page.tsx]
+import { getQueryClient, HydrateClient } from '../lib/query/hydration'
+import { ListPlanets } from '../components/list-planets'
+
+export default function Page() {
+  const queryClient = getQueryClient()
+
+  queryClient.prefetchQuery(
+    orpc.planet.list.queryOptions(),
+  )
+
+  return (
+    <HydrateClient client={queryClient}>
+      <ListPlanets />
+    </HydrateClient>
+  )
+}
+```
+
+```tsx [components/list-planets.tsx]
+'use client'
+
+import { useSuspenseQuery } from '@tanstack/react-query'
+
+export function ListPlanets() {
+  const { data, isError } = useSuspenseQuery(orpc.planet.list.queryOptions())
+
+  if (isError) {
+    return (
+      <p>Something went wrong</p>
+    )
+  }
+
+  return (
+    <ul>
+      {data.map(planet => (
+        <li key={planet.id}>{planet.name}</li>
+      ))}
+    </ul>
+  )
+}
+```
+
+:::

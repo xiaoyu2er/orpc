@@ -25,6 +25,7 @@ If your project is missing here, please [open a PR](https://github.com/unnoq/orp
 
 ## Libraries
 
-| Name                                  | Stars                                                                                                        | Description                                                               |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
-| [Permix](https://permix.letstri.dev/) | [![Stars](https://img.shields.io/github/stars/letstri/permix?style=flat)](https://github.com/letstri/permix) | lightweight, framework-agnostic, type-safe permissions management library |
+| Name                                                                  | Stars                                                                                                        | Description                                                               |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| [Permix](https://permix.letstri.dev/)                                 | [![Stars](https://img.shields.io/github/stars/letstri/permix?style=flat)](https://github.com/letstri/permix) | lightweight, framework-agnostic, type-safe permissions management library |
+| [trpc-cli](https://github.com/mmkal/trpc-cli?tab=readme-ov-file#orpc) | [![Stars](https://img.shields.io/github/stars/mmkal/trpc-cli?style=flat)](https://github.com/mmkal/trpc-cli) | Turn a oRPC router into a type-safe, fully-functional, documented CLI     |

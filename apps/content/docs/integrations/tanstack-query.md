@@ -296,7 +296,7 @@ const serializer = new StandardRPCJsonSerializer({
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 60 * 1000, // >= 0 to prevent immediate refetching on mount
+      staleTime: 60 * 1000, // > 0 to prevent immediate refetching on mount
     },
     dehydrate: {
       serializeData(data) {
@@ -337,7 +337,7 @@ export function createQueryClient() {
   return new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 60 * 1000, // >= 0 to prevent immediate refetching on mount
+        staleTime: 60 * 1000, // > 0 to prevent immediate refetching on mount
       },
       dehydrate: {
         shouldDehydrateQuery: query => defaultShouldDehydrateQuery(query) || query.state.status === 'pending',

@@ -5,17 +5,17 @@ description: Use oRPC inside a TanStack Start project
 
 # TanStack Start Adapter
 
-[TanStack Start](https://tanstack.com/start) is a full-stack React framework built on [Nitro](https://nitro.build/) and the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API). For additional context, see the [HTTP Adapter](/docs/adapters/http) guide.
+[TanStack Start](https://tanstack.com/start) is a full-stack React framework built on [Vite](https://vitejs.dev/) and the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API). For additional context, see the [HTTP Adapter](/docs/adapters/http) guide.
 
 ## Server
 
-You set up an oRPC server inside TanStack Start using its [API Routes](https://tanstack.com/start/latest/docs/framework/react/api-routes).
+You set up an oRPC server inside TanStack Start using its [Server Routes](https://tanstack.com/start/latest/docs/framework/react/server-routes).
 
 ::: code-group
 
-```ts [app/routes/api/rpc.$.ts]
+```ts [src/routes/api/rpc.$.ts]
 import { RPCHandler } from '@orpc/server/fetch'
-import { createAPIFileRoute } from '@tanstack/react-start/api'
+import { createServerFileRoute } from '@tanstack/react-start/server'
 
 const handler = new RPCHandler(router)
 
@@ -28,7 +28,7 @@ async function handle({ request }: { request: Request }) {
   return response ?? new Response('Not Found', { status: 404 })
 }
 
-export const APIRoute = createAPIFileRoute('/api/rpc/$')({
+export const ServerRoute = createServerFileRoute('/api/rpc/$').methods({
   HEAD: handle,
   GET: handle,
   POST: handle,
@@ -36,13 +36,6 @@ export const APIRoute = createAPIFileRoute('/api/rpc/$')({
   PATCH: handle,
   DELETE: handle,
 })
-```
-
-```ts [app/routes/api/rpc.ts]
-import { createAPIFileRoute } from '@tanstack/react-start/api'
-import { APIRoute as BaseAPIRoute } from './rpc.$'
-
-export const APIRoute = createAPIFileRoute('/api/rpc')(BaseAPIRoute.methods)
 ```
 
 :::
@@ -53,19 +46,21 @@ The `handler` can be any supported oRPC handler, including [RPCHandler](/docs/rp
 
 ## Client
 
-On the client, use `createIsomorphicFn` to provide a headers function that works seamlessly with SSR. This enables usage in both server and browser environments.
+Use `createIsomorphicFn` to configure the RPC link with environment-specific settings for both browser and SSR environments:
 
 ```ts
 import { RPCLink } from '@orpc/client/fetch'
-import { getHeaders } from '@tanstack/react-start/server'
 import { createIsomorphicFn } from '@tanstack/react-start'
+import { getHeaders } from '@tanstack/react-start/server'
 
-const link = new RPCLink({
-  url: `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/api/rpc`,
-  headers: createIsomorphicFn()
-    .client(() => ({}))
-    .server(() => getHeaders())
-})
+const getClientLink = createIsomorphicFn()
+  .client(() => new RPCLink({
+    url: `${window.location.origin}/api/rpc`,
+  }))
+  .server(() => new RPCLink({
+    url: 'http://localhost:3000/api/rpc',
+    headers: () => getHeaders(),
+  }))
 ```
 
 :::info
@@ -78,12 +73,11 @@ To reduce HTTP requests and improve latency during SSR, you can utilize a [Serve
 
 ::: code-group
 
-```ts [app/lib/orpc.ts]
+```ts [src/lib/orpc.ts]
 import { createRouterClient } from '@orpc/server'
 import type { RouterClient } from '@orpc/server'
 import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
-import { createORPCReactQueryUtils } from '@orpc/react-query'
 import { getHeaders } from '@tanstack/react-start/server'
 import { createIsomorphicFn } from '@tanstack/react-start'
 
@@ -109,8 +103,6 @@ const getORPCClient = createIsomorphicFn()
   })
 
 export const client: RouterClient<typeof router> = getORPCClient()
-
-export const orpc = createORPCReactQueryUtils(client)
 ```
 
 :::

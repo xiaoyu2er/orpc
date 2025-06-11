@@ -1,6 +1,6 @@
 import type { StandardRPCCustomJsonSerializer } from '@orpc/client/standard'
 import { ORPCError } from '@orpc/client'
-import { StandardRPCJsonSerializer } from '@orpc/client/standard'
+import { StandardRPCJsonSerializer, StandardRPCSerializer } from '@orpc/client/standard'
 import { withEventMeta } from '@orpc/standard-server'
 import { encodeResponseMessage, MessageType } from '@orpc/standard-server-peer'
 import { experimental_encodeHibernationRPCEvent as encodeHibernationRPCEvent } from './event-iterator'
@@ -16,17 +16,24 @@ const planetSerializer: StandardRPCCustomJsonSerializer = {
   deserialize: ([name, diameter]) => new Planet(name, diameter),
 }
 
-const serializer = new StandardRPCJsonSerializer({
+const serializer = new StandardRPCSerializer(new StandardRPCJsonSerializer({
   customJsonSerializers: [planetSerializer],
-})
-
-function serialize(value: unknown) {
-  const [json, meta] = serializer.serialize(value)
-  return { json, meta }
-}
+}))
 
 describe('encodeHibernationRPCEvent', () => {
-  it('message', async () => {
+  it('message without meta', async () => {
+    const id = 39483
+    const planet = 'hello world'
+    const encoded = encodeHibernationRPCEvent(id, planet, {
+      customJsonSerializers: [planetSerializer],
+    })
+
+    expect(encoded).toEqual(
+      await encodeResponseMessage(id, MessageType.EVENT_ITERATOR, { event: 'message', data: serializer.serialize('hello world') }),
+    )
+  })
+
+  it('message with meta', async () => {
     const id = 39483
     const planet = withEventMeta(new Planet('Earth', 12345), { retry: 400 })
     const encoded = encodeHibernationRPCEvent(id, planet, {
@@ -34,7 +41,7 @@ describe('encodeHibernationRPCEvent', () => {
     })
 
     expect(encoded).toEqual(
-      await encodeResponseMessage(id, MessageType.EVENT_ITERATOR, { event: 'message', data: serialize(planet), meta: { retry: 400 } }),
+      await encodeResponseMessage(id, MessageType.EVENT_ITERATOR, { event: 'message', data: serializer.serialize(planet), meta: { retry: 400 } }),
     )
   })
 
@@ -47,7 +54,7 @@ describe('encodeHibernationRPCEvent', () => {
     })
 
     expect(encoded).toEqual(
-      await encodeResponseMessage(id, MessageType.EVENT_ITERATOR, { event: 'done', data: serialize(planet), meta: { retry: 400 } }),
+      await encodeResponseMessage(id, MessageType.EVENT_ITERATOR, { event: 'done', data: serializer.serialize(planet), meta: { retry: 400 } }),
     )
   })
 
@@ -60,7 +67,7 @@ describe('encodeHibernationRPCEvent', () => {
     })
 
     expect(encoded).toEqual(
-      await encodeResponseMessage(id, MessageType.EVENT_ITERATOR, { event: 'error', data: serialize(planet.toJSON()), meta: { retry: 400 } }),
+      await encodeResponseMessage(id, MessageType.EVENT_ITERATOR, { event: 'error', data: serializer.serialize(planet.toJSON()), meta: { retry: 400 } }),
     )
   })
 })

@@ -41,7 +41,7 @@ export function experimental_encodeHibernationRPCEvent(
     t: MessageType.EVENT_ITERATOR,
     p: {
       e: event,
-      d: { json, meta },
+      d: { json, meta: meta.length > 0 ? meta : undefined },
       m: getEventMeta(payload),
     },
   })

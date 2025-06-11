@@ -13,7 +13,7 @@ You set up an oRPC server inside TanStack Start using its [Server Routes](https:
 
 ::: code-group
 
-```ts [app/routes/api/rpc.$.ts]
+```ts [src/routes/api/rpc.$.ts]
 import { RPCHandler } from '@orpc/server/fetch'
 import { createServerFileRoute } from '@tanstack/react-start/server'
 
@@ -73,7 +73,7 @@ To reduce HTTP requests and improve latency during SSR, you can utilize a [Serve
 
 ::: code-group
 
-```ts [app/lib/orpc.ts]
+```ts [src/lib/orpc.ts]
 import { createRouterClient } from '@orpc/server'
 import type { RouterClient } from '@orpc/server'
 import { createORPCClient } from '@orpc/client'

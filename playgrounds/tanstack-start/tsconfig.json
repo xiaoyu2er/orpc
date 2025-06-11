@@ -10,13 +10,10 @@
       "~/*": ["./src/*"]
     },
     "resolveJsonModule": true,
-    "allowJs": true,
     "strict": true,
     "noEmit": true,
-    "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true,
     "skipLibCheck": true
   },
-  "include": ["**/*.ts", "**/*.tsx"]
+  "include": ["src"]
 }

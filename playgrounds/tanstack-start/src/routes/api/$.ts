@@ -2,7 +2,7 @@ import '~/polyfill'
 
 import { OpenAPIHandler } from '@orpc/openapi/fetch'
 import { ZodSmartCoercionPlugin, ZodToJsonSchemaConverter } from '@orpc/zod'
-import { createAPIFileRoute } from '@tanstack/react-start/api'
+import { createServerFileRoute } from '@tanstack/react-start/server'
 import { router } from '~/router/index'
 import { onError } from '@orpc/server'
 import { OpenAPIReferencePlugin } from '@orpc/openapi/plugins'
@@ -16,7 +16,6 @@ const handler = new OpenAPIHandler(router, {
   plugins: [
     new ZodSmartCoercionPlugin(),
     new OpenAPIReferencePlugin({
-      docsPath: '/docs',
       schemaConverters: [
         new ZodToJsonSchemaConverter(),
       ],
@@ -57,7 +56,7 @@ async function handle({ request }: { request: Request }) {
   return response ?? new Response('Not Found', { status: 404 })
 }
 
-export const APIRoute = createAPIFileRoute('/api/$')({
+export const ServerRoute = createServerFileRoute('/api/$').methods({
   HEAD: handle,
   GET: handle,
   POST: handle,

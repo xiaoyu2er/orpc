@@ -12,7 +12,7 @@ function RouteComponent() {
       <h1>ORPC Playground</h1>
       You can visit the
       {' '}
-      <a href="/api/docs">Redirect to Scalar API Reference</a>
+      <a href="/api">Redirect to Scalar API Reference</a>
       {' '}
       page.
       <hr />

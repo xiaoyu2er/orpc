@@ -12,6 +12,10 @@ export function ChatRoom() {
         setMessages(messages => [...messages, message])
       }
     })()
+
+    return () => {
+      controller.abort()
+    }
   }, [])
 
   const sendMessage = async (e: React.FormEvent<HTMLFormElement>) => {

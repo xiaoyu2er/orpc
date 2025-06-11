@@ -3,7 +3,7 @@ import { createORPCClient } from '@orpc/client'
 import type { router } from '../../worker/dos/chat-room'
 import type { RouterClient } from '@orpc/server'
 
-const websocket = new WebSocket(`ws://${window.location.host}/chat-room`)
+const websocket = new WebSocket(`${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/chat-room`)
 
 websocket.addEventListener('error', (event) => {
   console.error(event)

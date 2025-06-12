@@ -624,3 +624,32 @@ it('zodToJsonSchemaConverter.condition', async () => {
 
   expect(converter.condition(v.string())).toBe(false)
 })
+
+it('works with recursive schemas', () => {
+  function createSchema(depth: number): ZodTypeAny {
+    if (depth <= 0) {
+      return z.string()
+    }
+    return z.object({
+      id: z.string(),
+      name: z.string(),
+      children: z.array(createSchema(depth - 1)).optional(),
+    })
+  }
+  const converter = new ZodToJsonSchemaConverter()
+
+  const [required, json] = converter.convert(createSchema(100), { strategy: 'input' })
+  expect(required).toBe(true)
+  expect(json).toEqual({
+    type: 'object',
+    properties: {
+      id: { type: 'string' },
+      name: { type: 'string' },
+      children: {
+        type: 'array',
+        items: expect.objectContaining({ type: 'object' }),
+      },
+    },
+    required: ['id', 'name'],
+  })
+})

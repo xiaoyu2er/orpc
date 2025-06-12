@@ -994,6 +994,10 @@ describe('openAPIGenerator', () => {
       id: z4.string().transform(v => Number(v)).pipe(z4.number().min(0).max(100)),
     })
 
+    const Cat = z4.object({
+      name: z4.string(),
+    })
+
     const DetailedStructure = z4.object({
       params: z4.object({
         pet: Pet,
@@ -1010,7 +1014,7 @@ describe('openAPIGenerator', () => {
     const spec = await generator.generate({
       user: oc.input(User).errors({ TEST: { data: User } }).output(User),
       pet: oc.input(Pet).errors({ TEST: { data: Pet } }).output(Pet),
-      iterator: oc.input(eventIterator(User, Pet)).output(eventIterator(User, Pet)),
+      iterator: oc.input(eventIterator(User, Pet)).output(eventIterator(Cat, Pet)),
       dynamicParams: oc.route({ path: '/user/{id}', method: 'POST' }).input(User),
       detailedStructure: oc.route({ path: '/detailed/{pet}', inputStructure: 'detailed', outputStructure: 'detailed' })
         .input(DetailedStructure)
@@ -1023,6 +1027,10 @@ describe('openAPIGenerator', () => {
         Pet: {
           strategy: 'output',
           schema: Pet,
+        },
+        Cat: {
+          strategy: 'output',
+          schema: Cat,
         },
         DetailedStructure: {
           strategy: 'output',
@@ -1047,6 +1055,13 @@ describe('openAPIGenerator', () => {
             id: { type: 'number', minimum: 0, maximum: 100 },
           },
           required: ['id'],
+        },
+        Cat: {
+          type: 'object',
+          properties: {
+            name: { type: 'string' },
+          },
+          required: ['name'],
         },
         DetailedStructure: {
           type: 'object',
@@ -1260,7 +1275,7 @@ describe('openAPIGenerator', () => {
                       type: 'object',
                       properties: {
                         event: { const: 'message' },
-                        data: { $ref: '#/components/schemas/User' },
+                        data: { $ref: '#/components/schemas/Cat' },
                         id: { type: 'string' },
                         retry: { type: 'number' },
                       },

@@ -40,18 +40,18 @@ import {
 
 export interface experimental_ZodToJsonSchemaOptions {
   /**
-   * Max depth of lazy type, if it exceeds.
+   * Max depth of lazy type.
    *
-   * Used anyJsonSchema (`{}`) when reach max depth
+   * Used anyJsonSchema (`{}`) when exceed max depth
    *
    * @default 2
    */
   maxLazyDepth?: number
 
   /**
-   * Max depth of nested types, if it exceeds.
+   * Max depth of nested types.
    *
-   * Used anyJsonSchema (`{}`) when reach max depth
+   * Used anyJsonSchema (`{}`) when exceed max depth
    *
    * @default 10
    */
@@ -535,11 +535,13 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
           case 'lazy': {
             const lazy = schema as $ZodLazy
 
-            if (lazyDepth >= this.maxLazyDepth) {
+            const currentLazyDepth = lazyDepth + 1
+
+            if (currentLazyDepth > this.maxLazyDepth) {
               return [false, this.anyJsonSchema]
             }
 
-            return this.#convert(lazy._zod.def.getter(), options, lazyDepth + 1, structureDepth)
+            return this.#convert(lazy._zod.def.getter(), options, currentLazyDepth, structureDepth)
           }
 
           default: {

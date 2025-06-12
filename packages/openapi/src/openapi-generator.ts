@@ -230,7 +230,15 @@ export class OpenAPIGenerator {
 
     const dynamicParams = getDynamicParams(def.route.path)?.map(v => v.name)
     const inputStructure = fallbackContractConfig('defaultInputStructure', def.route.inputStructure)
-    let [required, schema] = await this.converter.convert(def.inputSchema, { ...baseSchemaConvertOptions, strategy: 'input' })
+
+    let [required, schema] = await this.converter.convert(
+      def.inputSchema,
+      {
+        ...baseSchemaConvertOptions,
+        strategy: 'input',
+        minStructureDepthForRef: dynamicParams?.length || inputStructure === 'detailed' ? 1 : 0,
+      },
+    )
 
     if (isAnySchema(schema) && !dynamicParams?.length) {
       return
@@ -350,7 +358,14 @@ export class OpenAPIGenerator {
       return
     }
 
-    const [required, json] = await this.converter.convert(outputSchema, { ...baseSchemaConvertOptions, strategy: 'output' })
+    const [required, json] = await this.converter.convert(
+      outputSchema,
+      {
+        ...baseSchemaConvertOptions,
+        strategy: 'output',
+        minStructureDepthForRef: outputStructure === 'detailed' ? 1 : 0,
+      },
+    )
 
     if (outputStructure === 'compact') {
       ref.responses ??= {}

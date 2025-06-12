@@ -1,8 +1,8 @@
-import type { AnyContractProcedure, AnyContractRouter, ErrorMap, OpenAPI } from '@orpc/contract'
+import type { AnyContractProcedure, AnyContractRouter, AnySchema, ErrorMap, OpenAPI } from '@orpc/contract'
 import type { StandardOpenAPIJsonSerializerOptions } from '@orpc/openapi-client/standard'
 import type { AnyProcedure, AnyRouter } from '@orpc/server'
 import type { JSONSchema } from './schema'
-import type { ConditionalSchemaConverter, SchemaConverter } from './schema-converter'
+import type { ConditionalSchemaConverter, SchemaConverter, SchemaConvertOptions } from './schema-converter'
 import { fallbackORPCErrorMessage, fallbackORPCErrorStatus, isORPCErrorStatus } from '@orpc/client'
 import { toHttpPath } from '@orpc/client/standard'
 import { fallbackContractConfig, getEventIteratorSchemaDetails } from '@orpc/contract'
@@ -27,6 +27,35 @@ export interface OpenAPIGeneratorGenerateOptions extends Partial<Omit<OpenAPI.Do
    * @default () => false
    */
   exclude?: (procedure: AnyProcedure | AnyContractProcedure, path: readonly string[]) => boolean
+
+  /**
+   * Common schemas to be used for $ref resolution.
+   */
+  commonSchemas?: Record<string, {
+    /**
+     * Determines which schema definition to use when input and output schemas differ.
+     * This is needed because some schemas transform data differently between input and output,
+     * making it impossible to use a single $ref for both cases.
+     *
+     * @example
+     * ```ts
+     * // This schema transforms a string input into a number output
+     * const Schema = z.string()
+     *   .transform(v => Number(v))
+     *   .pipe(z.number())
+     *
+     * // Input schema:  { type: 'string' }
+     * // Output schema: { type: 'number' }
+     * ```
+     *
+     * When schemas differ between input and output, you must explicitly choose
+     * which version to use for the OpenAPI specification.
+     *
+     * @default 'input' - Uses the input schema definition by default
+     */
+    strategy?: SchemaConvertOptions['strategy']
+    schema: AnySchema
+  }>
 }
 
 /**
@@ -56,7 +85,10 @@ export class OpenAPIGenerator {
       info: options.info ?? { title: 'API Reference', version: '0.0.0' },
       openapi: '3.1.1',
       exclude: undefined,
+      commonSchemas: undefined,
     } as OpenAPI.Document
+
+    const baseSchemaConvertOptions = await this.#resolveCommonSchemas(doc, options.commonSchemas)
 
     const contracts: { contract: AnyContractProcedure, path: readonly string[] }[] = []
 
@@ -91,9 +123,9 @@ export class OpenAPIGenerator {
             tags: def.route.tags?.map(tag => tag),
           }
 
-          await this.#request(operationObjectRef, def)
-          await this.#successResponse(operationObjectRef, def)
-          await this.#errorResponse(operationObjectRef, def)
+          await this.#request(operationObjectRef, def, baseSchemaConvertOptions)
+          await this.#successResponse(operationObjectRef, def, baseSchemaConvertOptions)
+          await this.#errorResponse(operationObjectRef, def, baseSchemaConvertOptions)
         }
 
         doc.paths ??= {}
@@ -120,7 +152,67 @@ export class OpenAPIGenerator {
     return this.serializer.serialize(doc)[0] as OpenAPI.Document
   }
 
-  async #request(ref: OpenAPI.OperationObject, def: AnyContractProcedure['~orpc']): Promise<void> {
+  async #resolveCommonSchemas(doc: OpenAPI.Document, commonSchemas: OpenAPIGeneratorGenerateOptions['commonSchemas']): Promise<Pick<SchemaConvertOptions, 'components'>> {
+    const baseOptions: Pick<SchemaConvertOptions, 'components'> = {}
+
+    if (commonSchemas) {
+      baseOptions.components = []
+
+      for (const key in commonSchemas) {
+        const { schema, strategy = 'input' } = commonSchemas[key]!
+
+        const [required, json] = await this.converter.convert(schema, { strategy })
+
+        const allowedStrategies: SchemaConvertOptions['strategy'][] = [strategy]
+
+        if (strategy === 'input') {
+          const [outputRequired, outputJson] = await this.converter.convert(schema, { strategy: 'output' })
+
+          if (outputRequired === required && stringifyJSON(outputJson) === stringifyJSON(json)) {
+            allowedStrategies.push('output')
+          }
+        }
+        else if (strategy === 'output') {
+          const [inputRequired, inputJson] = await this.converter.convert(schema, { strategy: 'input' })
+
+          if (inputRequired === required && stringifyJSON(inputJson) === stringifyJSON(json)) {
+            allowedStrategies.push('input')
+          }
+        }
+
+        baseOptions.components.push({
+          schema,
+          required,
+          ref: `#/components/schemas/${key}`,
+          allowedStrategies,
+        })
+      }
+
+      doc.components ??= {}
+      doc.components.schemas ??= {}
+
+      for (const key in commonSchemas) {
+        const { schema, strategy = 'input' } = commonSchemas[key]!
+        const [, json] = await this.converter.convert(
+          schema,
+          {
+            ...baseOptions,
+            strategy,
+            minStructureDepthForRef: 1, // not allow use $ref for root schemas
+          },
+        )
+        doc.components.schemas[key] = toOpenAPISchema(json)
+      }
+    }
+
+    return baseOptions
+  }
+
+  async #request(
+    ref: OpenAPI.OperationObject,
+    def: AnyContractProcedure['~orpc'],
+    baseSchemaConvertOptions: Pick<SchemaConvertOptions, 'components'>,
+  ): Promise<void> {
     const method = fallbackContractConfig('defaultMethod', def.route.method)
     const details = getEventIteratorSchemaDetails(def.inputSchema)
 
@@ -128,8 +220,8 @@ export class OpenAPIGenerator {
       ref.requestBody = {
         required: true,
         content: toOpenAPIEventIteratorContent(
-          await this.converter.convert(details.yields, { strategy: 'input' }),
-          await this.converter.convert(details.returns, { strategy: 'input' }),
+          await this.converter.convert(details.yields, { ...baseSchemaConvertOptions, strategy: 'input' }),
+          await this.converter.convert(details.returns, { ...baseSchemaConvertOptions, strategy: 'input' }),
         ),
       }
 
@@ -138,7 +230,7 @@ export class OpenAPIGenerator {
 
     const dynamicParams = getDynamicParams(def.route.path)?.map(v => v.name)
     const inputStructure = fallbackContractConfig('defaultInputStructure', def.route.inputStructure)
-    let [required, schema] = await this.converter.convert(def.inputSchema, { strategy: 'input' })
+    let [required, schema] = await this.converter.convert(def.inputSchema, { ...baseSchemaConvertOptions, strategy: 'input' })
 
     if (isAnySchema(schema) && !dynamicParams?.length) {
       return
@@ -234,7 +326,11 @@ export class OpenAPIGenerator {
     }
   }
 
-  async #successResponse(ref: OpenAPI.OperationObject, def: AnyContractProcedure['~orpc']): Promise<void> {
+  async #successResponse(
+    ref: OpenAPI.OperationObject,
+    def: AnyContractProcedure['~orpc'],
+    baseSchemaConvertOptions: Pick<SchemaConvertOptions, 'components'>,
+  ): Promise<void> {
     const outputSchema = def.outputSchema
     const status = fallbackContractConfig('defaultSuccessStatus', def.route.successStatus)
     const description = fallbackContractConfig('defaultSuccessDescription', def.route?.successDescription)
@@ -246,15 +342,15 @@ export class OpenAPIGenerator {
       ref.responses[status] = {
         description,
         content: toOpenAPIEventIteratorContent(
-          await this.converter.convert(eventIteratorSchemaDetails.yields, { strategy: 'output' }),
-          await this.converter.convert(eventIteratorSchemaDetails.returns, { strategy: 'output' }),
+          await this.converter.convert(eventIteratorSchemaDetails.yields, { ...baseSchemaConvertOptions, strategy: 'output' }),
+          await this.converter.convert(eventIteratorSchemaDetails.returns, { ...baseSchemaConvertOptions, strategy: 'output' }),
         ),
       }
 
       return
     }
 
-    const [required, json] = await this.converter.convert(outputSchema, { strategy: 'output' })
+    const [required, json] = await this.converter.convert(outputSchema, { ...baseSchemaConvertOptions, strategy: 'output' })
 
     if (outputStructure === 'compact') {
       ref.responses ??= {}
@@ -345,7 +441,11 @@ export class OpenAPIGenerator {
     }
   }
 
-  async #errorResponse(ref: OpenAPI.OperationObject, def: AnyContractProcedure['~orpc']): Promise<void> {
+  async #errorResponse(
+    ref: OpenAPI.OperationObject,
+    def: AnyContractProcedure['~orpc'],
+    baseSchemaConvertOptions: Pick<SchemaConvertOptions, 'components'>,
+  ): Promise<void> {
     const errorMap = def.errorMap as ErrorMap
 
     const errors: Record<string, JSONSchema[]> = {}
@@ -360,7 +460,7 @@ export class OpenAPIGenerator {
       const status = fallbackORPCErrorStatus(code, config.status)
       const message = fallbackORPCErrorMessage(code, config.message)
 
-      const [dataRequired, dataSchema] = await this.converter.convert(config.data, { strategy: 'output' })
+      const [dataRequired, dataSchema] = await this.converter.convert(config.data, { ...baseSchemaConvertOptions, strategy: 'output' })
 
       errors[status] ??= []
       errors[status].push({

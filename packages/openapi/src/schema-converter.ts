@@ -2,8 +2,29 @@ import type { AnySchema } from '@orpc/contract'
 import type { Promisable } from '@orpc/shared'
 import type { JSONSchema } from './schema'
 
+export interface SchemaConverterComponent {
+  allowedStrategies: SchemaConvertOptions['strategy'][]
+  schema: AnySchema
+  required: boolean
+  ref: string
+}
+
 export interface SchemaConvertOptions {
   strategy: 'input' | 'output'
+
+  /**
+   * Common components should use `$ref` to represent themselves if matched.
+   */
+  components?: SchemaConverterComponent[]
+
+  /**
+   * Minimum schema structure depth required before using `$ref` for components.
+   *
+   * For example, if set to 2, `$ref` will only be used for schemas nested at depth 2 or greater.
+   *
+   * @default 0 - No depth limit;
+   */
+  minStructureDepthForRef?: number
 }
 
 export interface SchemaConverter {

@@ -1,7 +1,9 @@
 import type { AnyContractProcedure } from '@orpc/contract'
 import { eventIterator, oc } from '@orpc/contract'
 import { z } from 'zod'
+import * as z4 from 'zod/v4'
 import { oz, ZodToJsonSchemaConverter } from '../../zod/src'
+import { experimental_ZodToJsonSchemaConverter as ZodToJsonSchemaConverterV4 } from '../../zod/src/zod4'
 import { customOpenAPIOperation } from './openapi-custom'
 import { OpenAPIGenerator } from './openapi-generator'
 
@@ -972,5 +974,276 @@ describe('openAPIGenerator', () => {
     expect(exclude).toHaveBeenCalledTimes(2)
     expect(exclude).toHaveBeenNthCalledWith(1, ping, ['ping'])
     expect(exclude).toHaveBeenNthCalledWith(2, pong, ['pong'])
+  })
+
+  it('generator - refSchemas', async () => {
+    const generator = new OpenAPIGenerator({
+      schemaConverters: [
+        new ZodToJsonSchemaConverterV4(),
+      ],
+    })
+
+    const User = z4.object({
+      id: z4.string(),
+      get parent() {
+        return User.optional()
+      },
+    })
+
+    const Pet = z4.object({
+      id: z4.string().transform(v => Number(v)).pipe(z4.number().min(0).max(100)),
+    })
+
+    const spec = await generator.generate({
+      user: oc.input(User).errors({ TEST: { data: User } }).output(User),
+      pet: oc.input(Pet).errors({ TEST: { data: Pet } }).output(Pet),
+      iterator: oc.input(eventIterator(User, Pet)).output(eventIterator(User, Pet)),
+    }, {
+      commonSchemas: {
+        User: {
+          schema: User,
+        },
+        Pet: {
+          strategy: 'output',
+          schema: Pet,
+        },
+      },
+    })
+
+    expect(spec.components).toEqual({
+      schemas: {
+        User: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            parent: { $ref: '#/components/schemas/User' },
+          },
+          required: ['id'],
+        },
+        Pet: {
+          type: 'object',
+          properties: {
+            id: { type: 'number', minimum: 0, maximum: 100 },
+          },
+          required: ['id'],
+        },
+      },
+    })
+
+    expect(spec.paths!['/user']).toEqual({
+      post: {
+        requestBody: {
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/User' },
+            },
+          },
+          required: true,
+        },
+        responses: {
+          200: {
+            description: 'OK',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/User' },
+              },
+            },
+          },
+          500: {
+            description: '500',
+            content: {
+              'application/json': {
+                schema: {
+                  oneOf: [
+                    {
+                      type: 'object',
+                      properties: {
+                        defined: { const: true },
+                        code: { const: 'TEST' },
+                        status: { const: 500 },
+                        message: { type: 'string', default: 'TEST' },
+                        data: { $ref: '#/components/schemas/User' },
+                      },
+                      required: ['defined', 'code', 'status', 'message', 'data'],
+                    },
+                    {
+                      type: 'object',
+                      properties: {
+                        defined: { const: false },
+                        code: { type: 'string' },
+                        status: { type: 'number' },
+                        message: { type: 'string' },
+                        data: {},
+                      },
+                      required: ['defined', 'code', 'status', 'message'],
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+        operationId: 'user',
+      },
+    })
+
+    expect(spec.paths!['/pet']).toEqual({
+      post: {
+        operationId: 'pet',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string' },
+                },
+                required: ['id'],
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'OK',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Pet' },
+              },
+            },
+          },
+          500: {
+            description: '500',
+            content: {
+              'application/json': {
+                schema: {
+                  oneOf: [
+                    {
+                      type: 'object',
+                      properties: {
+                        defined: { const: true },
+                        code: { const: 'TEST' },
+                        status: { const: 500 },
+                        message: { type: 'string', default: 'TEST' },
+                        data: { $ref: '#/components/schemas/Pet' },
+                      },
+                      required: ['defined', 'code', 'status', 'message', 'data'],
+                    },
+                    {
+                      type: 'object',
+                      properties: {
+                        defined: { const: false },
+                        code: { type: 'string' },
+                        status: { type: 'number' },
+                        message: { type: 'string' },
+                        data: {},
+                      },
+                      required: ['defined', 'code', 'status', 'message'],
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      },
+    })
+
+    expect(spec.paths!['/iterator']).toEqual({
+      post: {
+        operationId: 'iterator',
+        requestBody: {
+          required: true,
+          content: {
+            'text/event-stream': {
+              schema: {
+                oneOf: [
+                  {
+                    type: 'object',
+                    properties: {
+                      event: { const: 'message' },
+                      data: { $ref: '#/components/schemas/User' },
+                      id: { type: 'string' },
+                      retry: { type: 'number' },
+                    },
+                    required: ['event', 'data'],
+                  },
+                  {
+                    type: 'object',
+                    properties: {
+                      event: { const: 'done' },
+                      data: {
+                        type: 'object',
+                        properties: {
+                          id: { type: 'string' },
+                        },
+                        required: ['id'],
+                      },
+                      id: { type: 'string' },
+                      retry: { type: 'number' },
+                    },
+                    required: ['event', 'data'],
+                  },
+                  {
+                    type: 'object',
+                    properties: {
+                      event: { const: 'error' },
+                      data: {},
+                      id: { type: 'string' },
+                      retry: { type: 'number' },
+                    },
+                    required: ['event'],
+                  },
+                ],
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'OK',
+            content: {
+              'text/event-stream': {
+                schema: {
+                  oneOf: [
+                    {
+                      type: 'object',
+                      properties: {
+                        event: { const: 'message' },
+                        data: { $ref: '#/components/schemas/User' },
+                        id: { type: 'string' },
+                        retry: { type: 'number' },
+                      },
+                      required: ['event', 'data'],
+                    },
+                    {
+                      type: 'object',
+                      properties: {
+                        event: { const: 'done' },
+                        data: { $ref: '#/components/schemas/Pet' },
+                        id: { type: 'string' },
+                        retry: { type: 'number' },
+                      },
+                      required: ['event', 'data'],
+                    },
+                    {
+                      type: 'object',
+                      properties: {
+                        event: { const: 'error' },
+                        data: {},
+                        id: { type: 'string' },
+                        retry: { type: 'number' },
+                      },
+                      required: ['event'],
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      },
+    })
   })
 })

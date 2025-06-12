@@ -108,6 +108,42 @@ const specFromRouter = await openAPIGenerator.generate(router, {
 Features prefixed with `experimental_` are unstable and may lack some functionality.
 :::
 
+## Common Schemas
+
+Define reusable schema components that can be referenced across your OpenAPI specification:
+
+```ts
+const UserSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string().email(),
+})
+
+const PetSchema = z.object({
+  id: z.string().transform(id => Number(id)).pipe(z.number()),
+})
+
+const spec = await generator.generate(router, {
+  commonSchemas: {
+    User: {
+      schema: UserSchema,
+    },
+    InputPet: {
+      strategy: 'input',
+      schema: PetSchema,
+    },
+    OutputPet: {
+      strategy: 'output',
+      schema: PetSchema,
+    },
+  },
+})
+```
+
+:::info
+The `strategy` option determines which schema definition to use when input and output types differ (defaults to `input`). This is needed because we cannot use the same `$ref` for both input and output in this case.
+:::
+
 ## Excluding Procedures
 
 You can exclude a procedure from the OpenAPI specification using the `exclude` option:

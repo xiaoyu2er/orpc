@@ -7,6 +7,31 @@ import {
 describe('zodToJsonSchemaConverter', () => {
   const converter = new ZodToJsonSchemaConverter()
 
+  it('works with recursive schemas', () => {
+    const Schema = z.object({
+      id: z.string(),
+      name: z.string(),
+      get parents() {
+        return z.array(Schema).optional()
+      },
+    })
+
+    const [required, json] = converter.convert(Schema, { strategy: 'input' })
+    expect(required).toBe(true)
+    expect(json).toEqual({
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+        name: { type: 'string' },
+        parents: {
+          type: 'array',
+          items: expect.objectContaining({ type: 'object' }),
+        },
+      },
+      required: ['id', 'name'],
+    })
+  })
+
   it('.condition', async () => {
     expect(converter.condition(z.string())).toBe(true)
     expect(converter.condition(z.string().optional())).toBe(true)

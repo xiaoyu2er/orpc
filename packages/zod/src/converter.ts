@@ -75,7 +75,7 @@ export interface ZodToJsonSchemaOptions {
 
 export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
   private readonly maxLazyDepth: Exclude<ZodToJsonSchemaOptions['maxLazyDepth'], undefined>
-  private readonly maxStructureDepth: Exclude<ZodToJsonSchemaOptions['maxStructureDepth'], undefined> = 100
+  private readonly maxStructureDepth: Exclude<ZodToJsonSchemaOptions['maxStructureDepth'], undefined>
   private readonly unsupportedJsonSchema: Exclude<ZodToJsonSchemaOptions['unsupportedJsonSchema'], undefined>
   private readonly anyJsonSchema: Exclude<ZodToJsonSchemaOptions['anyJsonSchema'], undefined>
 

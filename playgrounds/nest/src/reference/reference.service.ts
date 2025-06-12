@@ -31,7 +31,7 @@ export class ReferenceService {
         NewUser: { schema: NewUserSchema },
         User: { schema: UserSchema },
         Credential: { schema: CredentialSchema },
-        TokenSchema: { schema: TokenSchema },
+        Token: { schema: TokenSchema },
         NewPlanet: { schema: NewPlanetSchema },
         UpdatePlanet: { schema: UpdatePlanetSchema },
         Planet: { schema: PlanetSchema },

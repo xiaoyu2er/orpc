@@ -54,7 +54,7 @@ export interface ZodToJsonSchemaOptions {
    *
    * Used anyJsonSchema (`{}`) when reach max depth
    *
-   * @default 100
+   * @default 10
    */
   maxStructureDepth?: number
 
@@ -81,7 +81,7 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
 
   constructor(options: ZodToJsonSchemaOptions = {}) {
     this.maxLazyDepth = options.maxLazyDepth ?? 3
-    this.maxStructureDepth = options.maxStructureDepth ?? 100
+    this.maxStructureDepth = options.maxStructureDepth ?? 10
     this.unsupportedJsonSchema = options.unsupportedJsonSchema ?? { not: {} }
     this.anyJsonSchema = options.anyJsonSchema ?? {}
   }

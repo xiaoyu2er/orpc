@@ -5,6 +5,9 @@ import { ZodSmartCoercionPlugin, ZodToJsonSchemaConverter } from '@orpc/zod'
 import { OpenAPIReferencePlugin } from '@orpc/openapi/plugins'
 import { router } from '../../router'
 import type { APIRoute } from 'astro'
+import { NewUserSchema, UserSchema } from '../../schemas/user'
+import { CredentialSchema, TokenSchema } from '../../schemas/auth'
+import { NewPlanetSchema, PlanetSchema, UpdatePlanetSchema } from '../../schemas/planet'
 
 const handler = new OpenAPIHandler(router, {
   interceptors: [
@@ -22,6 +25,15 @@ const handler = new OpenAPIHandler(router, {
         info: {
           title: 'ORPC Playground',
           version: '1.0.0',
+        },
+        commonSchemas: {
+          NewUser: { schema: NewUserSchema },
+          User: { schema: UserSchema },
+          Credential: { schema: CredentialSchema },
+          TokenSchema: { schema: TokenSchema },
+          NewPlanet: { schema: NewPlanetSchema },
+          UpdatePlanet: { schema: UpdatePlanetSchema },
+          Planet: { schema: PlanetSchema },
         },
         security: [{ bearerAuth: [] }],
         components: {

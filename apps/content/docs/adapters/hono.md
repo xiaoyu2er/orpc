@@ -44,11 +44,11 @@ type BodyParserMethod = typeof BODY_PARSER_METHODS extends Set<infer T> ? T : ne
 
 app.use('/rpc/*', async (c, next) => {
   const request = new Proxy(c.req.raw, {
-    get(target, prop, receiver) {
+    get(target, prop) {
       if (BODY_PARSER_METHODS.has(prop as BodyParserMethod)) {
         return () => c.req[prop as BodyParserMethod]()
       }
-      return Reflect.get(target, prop, receiver)
+      return Reflect.get(target, prop, target)
     }
   })
 

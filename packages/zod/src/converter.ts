@@ -33,6 +33,7 @@ import type {
   ZodUnionOptions,
 } from 'zod'
 import { JSONSchemaFormat } from '@orpc/openapi'
+import { toArray } from '@orpc/shared'
 import escapeStringRegexp from 'escape-string-regexp'
 import { ZodFirstPartyTypeKind } from 'zod'
 import { getCustomJsonSchema } from './custom-json-schema'
@@ -40,20 +41,22 @@ import { getCustomZodDef } from './schemas/base'
 
 export interface ZodToJsonSchemaOptions {
   /**
-   * Max depth of lazy type, if it exceeds.
+   * Max depth of lazy type
    *
-   * Used `{}` when reach max depth
+   * Used `{}` when exceed max depth
    *
    * @default 3
    */
   maxLazyDepth?: number
 
   /**
-   * The schema to be used when the Zod schema is unsupported.
+   * Max depth of nested types
    *
-   * @default { not: {} }
+   * Used anyJsonSchema (`{}`) when exceed max depth
+   *
+   * @default 10
    */
-  unsupportedJsonSchema?: Exclude<JSONSchema, boolean>
+  maxStructureDepth?: number
 
   /**
    * The schema to be used to represent the any | unknown type.
@@ -61,15 +64,24 @@ export interface ZodToJsonSchemaOptions {
    * @default { }
    */
   anyJsonSchema?: Exclude<JSONSchema, boolean>
+
+  /**
+   * The schema to be used when the Zod schema is unsupported.
+   *
+   * @default { not: {} }
+   */
+  unsupportedJsonSchema?: Exclude<JSONSchema, boolean>
 }
 
 export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
   private readonly maxLazyDepth: Exclude<ZodToJsonSchemaOptions['maxLazyDepth'], undefined>
+  private readonly maxStructureDepth: Exclude<ZodToJsonSchemaOptions['maxStructureDepth'], undefined>
   private readonly unsupportedJsonSchema: Exclude<ZodToJsonSchemaOptions['unsupportedJsonSchema'], undefined>
   private readonly anyJsonSchema: Exclude<ZodToJsonSchemaOptions['anyJsonSchema'], undefined>
 
   constructor(options: ZodToJsonSchemaOptions = {}) {
     this.maxLazyDepth = options.maxLazyDepth ?? 3
+    this.maxStructureDepth = options.maxStructureDepth ?? 10
     this.unsupportedJsonSchema = options.unsupportedJsonSchema ?? { not: {} }
     this.anyJsonSchema = options.anyJsonSchema ?? {}
   }
@@ -84,8 +96,23 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
     lazyDepth = 0,
     isHandledCustomJSONSchema = false,
     isHandledZodDescription = false,
+    structureDepth = 0,
   ): [required: boolean, jsonSchema: Exclude<JSONSchema, boolean>] {
     const def = (schema as ZodTypeAny)._def
+
+    if (structureDepth > this.maxStructureDepth) {
+      return [false, this.anyJsonSchema]
+    }
+
+    if (!options.minStructureDepthForRef || options.minStructureDepthForRef <= structureDepth) {
+      const components = toArray(options.components)
+
+      for (const component of components) {
+        if (component.schema === schema && component.allowedStrategies.includes(options.strategy)) {
+          return [component.required, { $ref: component.ref }]
+        }
+      }
+    }
 
     if (!isHandledZodDescription && 'description' in def && typeof def.description === 'string') {
       const [required, json] = this.convert(
@@ -94,6 +121,7 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
         lazyDepth,
         isHandledCustomJSONSchema,
         true,
+        structureDepth,
       )
 
       return [required, { ...json, description: def.description }]
@@ -109,6 +137,7 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
           lazyDepth,
           true,
           isHandledZodDescription,
+          structureDepth,
         )
 
         return [required, { ...json, ...customJSONSchema }]
@@ -320,7 +349,7 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
 
         const json: JSONSchema = { type: 'array' }
 
-        const [itemRequired, itemJson] = this.convert(def.type, options, lazyDepth, false, false)
+        const [itemRequired, itemJson] = this.convert(def.type, options, lazyDepth, false, false, structureDepth + 1)
 
         json.items = this.#toArrayItemJsonSchema(itemRequired, itemJson, options.strategy)
 
@@ -347,7 +376,7 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
         const json: JSONSchema = { type: 'array' }
 
         for (const item of schema_._def.items) {
-          const [itemRequired, itemJson] = this.convert(item, options, lazyDepth, false, false)
+          const [itemRequired, itemJson] = this.convert(item, options, lazyDepth, false, false, structureDepth + 1)
 
           prefixItems.push(
             this.#toArrayItemJsonSchema(itemRequired, itemJson, options.strategy),
@@ -359,7 +388,7 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
         }
 
         if (schema_._def.rest) {
-          const [itemRequired, itemJson] = this.convert(schema_._def.rest, options, lazyDepth, false, false)
+          const [itemRequired, itemJson] = this.convert(schema_._def.rest, options, lazyDepth, false, false, structureDepth + 1)
 
           json.items = this.#toArrayItemJsonSchema(itemRequired, itemJson, options.strategy)
         }
@@ -375,7 +404,7 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
         const required: string[] = []
 
         for (const [key, value] of Object.entries(schema_.shape)) {
-          const [itemRequired, itemJson] = this.convert(value, options, lazyDepth, false, false)
+          const [itemRequired, itemJson] = this.convert(value, options, lazyDepth, false, false, structureDepth + 1)
 
           properties[key] = itemJson
 
@@ -400,7 +429,7 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
           }
         }
         else {
-          const [_, addJson] = this.convert(schema_._def.catchall, options, lazyDepth, false, false)
+          const [_, addJson] = this.convert(schema_._def.catchall, options, lazyDepth, false, false, structureDepth + 1)
 
           json.additionalProperties = addJson
         }
@@ -413,13 +442,13 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
 
         const json: JSONSchema = { type: 'object' }
 
-        const [__, keyJson] = this.convert(schema_._def.keyType, options, lazyDepth, false, false)
+        const [__, keyJson] = this.convert(schema_._def.keyType, options, lazyDepth, false, false, structureDepth + 1)
 
         if (Object.entries(keyJson).some(([k, v]) => k !== 'type' || v !== 'string')) {
           json.propertyNames = keyJson
         }
 
-        const [_, itemJson] = this.convert(schema_._def.valueType, options, lazyDepth, false, false)
+        const [_, itemJson] = this.convert(schema_._def.valueType, options, lazyDepth, false, false, structureDepth + 1)
 
         json.additionalProperties = itemJson
 
@@ -431,7 +460,7 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
 
         const json: JSONSchema = { type: 'array', uniqueItems: true }
 
-        const [itemRequired, itemJson] = this.convert(schema_._def.valueType, options, lazyDepth, false, false)
+        const [itemRequired, itemJson] = this.convert(schema_._def.valueType, options, lazyDepth, false, false, structureDepth + 1)
 
         json.items = this.#toArrayItemJsonSchema(itemRequired, itemJson, options.strategy)
 
@@ -441,8 +470,8 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
       case ZodFirstPartyTypeKind.ZodMap: {
         const schema_ = schema as ZodMap
 
-        const [keyRequired, keyJson] = this.convert(schema_._def.keyType, options, lazyDepth, false, false)
-        const [valueRequired, valueJson] = this.convert(schema_._def.valueType, options, lazyDepth, false, false)
+        const [keyRequired, keyJson] = this.convert(schema_._def.keyType, options, lazyDepth, false, false, structureDepth + 1)
+        const [valueRequired, valueJson] = this.convert(schema_._def.valueType, options, lazyDepth, false, false, structureDepth + 1)
 
         return [true, {
           type: 'array',
@@ -468,7 +497,7 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
         let required = true
 
         for (const item of schema_._def.options) {
-          const [itemRequired, itemJson] = this.convert(item, options, lazyDepth, false, false)
+          const [itemRequired, itemJson] = this.convert(item, options, lazyDepth, false, false, structureDepth)
 
           if (!itemRequired) {
             required = false
@@ -496,7 +525,7 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
         let required: boolean = false
 
         for (const item of [schema_._def.left, schema_._def.right]) {
-          const [itemRequired, itemJson] = this.convert(item, options, lazyDepth, false, false)
+          const [itemRequired, itemJson] = this.convert(item, options, lazyDepth, false, false, structureDepth)
 
           allOf.push(itemJson)
 
@@ -509,26 +538,28 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
       }
 
       case ZodFirstPartyTypeKind.ZodLazy: {
-        if (lazyDepth >= this.maxLazyDepth) {
+        const currentLazyDepth = lazyDepth + 1
+
+        if (currentLazyDepth > this.maxLazyDepth) {
           return [false, this.anyJsonSchema]
         }
 
         const schema_ = schema as ZodLazy<ZodTypeAny>
 
-        return this.convert(schema_._def.getter(), options, lazyDepth + 1, false, false)
+        return this.convert(schema_._def.getter(), options, currentLazyDepth, false, false, structureDepth)
       }
 
       case ZodFirstPartyTypeKind.ZodOptional: {
         const schema_ = schema as ZodOptional<ZodTypeAny>
 
-        const [_, inner] = this.convert(schema_._def.innerType, options, lazyDepth, false, false)
+        const [_, inner] = this.convert(schema_._def.innerType, options, lazyDepth, false, false, structureDepth)
 
         return [false, inner]
       }
 
       case ZodFirstPartyTypeKind.ZodReadonly: {
         const schema_ = schema as ZodReadonly<ZodTypeAny>
-        const [required, json] = this.convert(schema_._def.innerType, options, lazyDepth, false, false)
+        const [required, json] = this.convert(schema_._def.innerType, options, lazyDepth, false, false, structureDepth)
 
         return [required, { ...json, readOnly: true }]
       }
@@ -536,7 +567,7 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
       case ZodFirstPartyTypeKind.ZodDefault: {
         const schema_ = schema as ZodDefault<ZodTypeAny>
 
-        const [_, json] = this.convert(schema_._def.innerType, options, lazyDepth, false, false)
+        const [_, json] = this.convert(schema_._def.innerType, options, lazyDepth, false, false, structureDepth)
 
         return [false, { default: schema_._def.defaultValue(), ...json }]
       }
@@ -548,17 +579,17 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
           return [false, this.anyJsonSchema]
         }
 
-        return this.convert(schema_._def.schema, options, lazyDepth, false, false)
+        return this.convert(schema_._def.schema, options, lazyDepth, false, false, structureDepth)
       }
 
       case ZodFirstPartyTypeKind.ZodCatch: {
         const schema_ = schema as ZodCatch<ZodTypeAny>
-        return this.convert(schema_._def.innerType, options, lazyDepth, false, false)
+        return this.convert(schema_._def.innerType, options, lazyDepth, false, false, structureDepth)
       }
 
       case ZodFirstPartyTypeKind.ZodBranded: {
         const schema_ = schema as ZodBranded<ZodTypeAny, string | number | symbol>
-        return this.convert(schema_._def.type, options, lazyDepth, false, false)
+        return this.convert(schema_._def.type, options, lazyDepth, false, false, structureDepth)
       }
 
       case ZodFirstPartyTypeKind.ZodPipeline: {
@@ -570,13 +601,14 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
           lazyDepth,
           false,
           false,
+          structureDepth,
         )
       }
 
       case ZodFirstPartyTypeKind.ZodNullable: {
         const schema_ = schema as ZodNullable<ZodTypeAny>
 
-        const [required, json] = this.convert(schema_._def.innerType, options, lazyDepth, false, false)
+        const [required, json] = this.convert(schema_._def.innerType, options, lazyDepth, false, false, structureDepth)
 
         return [required, { anyOf: [{ type: 'null' }, json] }]
       }

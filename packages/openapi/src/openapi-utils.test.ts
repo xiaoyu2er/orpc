@@ -1,5 +1,6 @@
+import type { OpenAPI } from '@orpc/contract'
 import type { FileSchema, JSONSchema, ObjectSchema } from './schema'
-import { checkParamsSchema, toOpenAPIContent, toOpenAPIEventIteratorContent, toOpenAPIMethod, toOpenAPIParameters, toOpenAPIPath, toOpenAPISchema } from './openapi-utils'
+import { checkParamsSchema, resolveOpenAPIJsonSchemaRef, toOpenAPIContent, toOpenAPIEventIteratorContent, toOpenAPIMethod, toOpenAPIParameters, toOpenAPIPath, toOpenAPISchema } from './openapi-utils'
 
 it('toOpenAPIPath', () => {
   expect(toOpenAPIPath('/path')).toBe('/path')
@@ -327,4 +328,48 @@ it('toOpenAPISchema', () => {
   expect(toOpenAPISchema(true)).toEqual({})
   expect(toOpenAPISchema(false)).toEqual({ not: {} })
   expect(toOpenAPISchema({ type: 'string' })).toEqual({ type: 'string' })
+})
+
+describe('resolveOpenAPIJsonSchemaRef', () => {
+  const doc = {
+    components: {
+      schemas: {
+        'a': { type: 'string' },
+        'b': { type: 'number' },
+        'c/c': { type: 'object' },
+      },
+    },
+  } as any
+
+  it('works', () => {
+    expect(resolveOpenAPIJsonSchemaRef(doc, { $ref: '#/components/schemas/a' })).toEqual({ type: 'string' })
+    expect(resolveOpenAPIJsonSchemaRef(doc, { $ref: '#/components/schemas/b' })).toEqual({ type: 'number' })
+    expect(resolveOpenAPIJsonSchemaRef(doc, { $ref: '#/components/schemas/c/c' })).toEqual({ type: 'object' })
+  })
+
+  it('do nothing if schema is not $ref', () => {
+    expect(resolveOpenAPIJsonSchemaRef(doc, true)).toEqual(true)
+    expect(resolveOpenAPIJsonSchemaRef(doc, false)).toEqual(false)
+    expect(resolveOpenAPIJsonSchemaRef(doc, {})).toEqual({})
+    expect(resolveOpenAPIJsonSchemaRef(doc, { type: 'object' })).toEqual({ type: 'object' })
+  })
+
+  it('it do nothing if have no components.schemas', () => {
+    const doc = {} as OpenAPI.Document
+    const doc2 = {
+      components: {},
+    } as OpenAPI.Document
+
+    expect(resolveOpenAPIJsonSchemaRef(doc, { type: 'string' })).toEqual({ type: 'string' })
+    expect(resolveOpenAPIJsonSchemaRef(doc, { $ref: '#/components/schemas/a' })).toEqual({ $ref: '#/components/schemas/a' })
+    expect(resolveOpenAPIJsonSchemaRef(doc2, { $ref: '#/components/schemas/a' })).toEqual({ $ref: '#/components/schemas/a' })
+  })
+
+  it('not resolve if $ref is not a components.schemas', () => {
+    expect(resolveOpenAPIJsonSchemaRef(doc, { $ref: '#/$defs/a' })).toEqual({ $ref: '#/$defs/a' })
+  })
+
+  it('not resolve if $ref not found', () => {
+    expect(resolveOpenAPIJsonSchemaRef(doc, { $ref: '#/components/schemas/not-found' })).toEqual({ $ref: '#/components/schemas/not-found' })
+  })
 })

@@ -165,3 +165,15 @@ export function toOpenAPISchema(schema: JSONSchema): OpenAPI.SchemaObject & obje
       ? { not: {} }
       : schema as OpenAPI.SchemaObject
 }
+
+const OPENAPI_JSON_SCHEMA_REF_PREFIX = /* @__PURE__ */ '#/components/schemas/'
+
+export function resolveOpenAPIJsonSchemaRef(doc: OpenAPI.Document, schema: JSONSchema): JSONSchema {
+  if (typeof schema !== 'object' || !schema.$ref?.startsWith(OPENAPI_JSON_SCHEMA_REF_PREFIX)) {
+    return schema
+  }
+
+  const name = schema.$ref.slice(OPENAPI_JSON_SCHEMA_REF_PREFIX.length)
+  const resolved = doc.components?.schemas?.[name]
+  return resolved as JSONSchema ?? schema
+}

@@ -1,13 +1,15 @@
 import { OpenAPIGenerator } from '@orpc/openapi'
 import { ZodToJsonSchemaConverter } from '@orpc/zod'
 import { contract } from 'src/contract'
+import { CredentialSchema, TokenSchema } from 'src/schemas/auth'
+import { NewPlanetSchema, PlanetSchema, UpdatePlanetSchema } from 'src/schemas/planet'
+import { NewUserSchema, UserSchema } from 'src/schemas/user'
 
 export class ReferenceService {
   private readonly openapiGenerator = new OpenAPIGenerator({
     schemaConverters: [
       new ZodToJsonSchemaConverter(),
     ],
-
   })
 
   spec() {
@@ -24,6 +26,15 @@ export class ReferenceService {
             scheme: 'bearer',
           },
         },
+      },
+      commonSchemas: {
+        NewUser: { schema: NewUserSchema },
+        User: { schema: UserSchema },
+        Credential: { schema: CredentialSchema },
+        Token: { schema: TokenSchema },
+        NewPlanet: { schema: NewPlanetSchema },
+        UpdatePlanet: { schema: UpdatePlanetSchema },
+        Planet: { schema: PlanetSchema },
       },
       servers: [
         { url: 'http://localhost:3000' },

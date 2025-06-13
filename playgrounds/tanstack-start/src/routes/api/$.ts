@@ -6,6 +6,9 @@ import { createServerFileRoute } from '@tanstack/react-start/server'
 import { router } from '~/router/index'
 import { onError } from '@orpc/server'
 import { OpenAPIReferencePlugin } from '@orpc/openapi/plugins'
+import { NewUserSchema, UserSchema } from '~/schemas/user'
+import { CredentialSchema, TokenSchema } from '~/schemas/auth'
+import { NewPlanetSchema, PlanetSchema, UpdatePlanetSchema } from '~/schemas/planet'
 
 const handler = new OpenAPIHandler(router, {
   interceptors: [
@@ -23,6 +26,15 @@ const handler = new OpenAPIHandler(router, {
         info: {
           title: 'ORPC Playground',
           version: '1.0.0',
+        },
+        commonSchemas: {
+          NewUser: { schema: NewUserSchema },
+          User: { schema: UserSchema },
+          Credential: { schema: CredentialSchema },
+          Token: { schema: TokenSchema },
+          NewPlanet: { schema: NewPlanetSchema },
+          UpdatePlanet: { schema: UpdatePlanetSchema },
+          Planet: { schema: PlanetSchema },
         },
         security: [{ bearerAuth: [] }],
         components: {

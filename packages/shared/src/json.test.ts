@@ -10,6 +10,7 @@ it('parseEmptyableJSON', () => {
 
 it('stringifyJSON', () => {
   expect(stringifyJSON(undefined)).toBeUndefined()
+  expect(stringifyJSON({ toJSON: () => undefined })).toBeUndefined()
   expect(stringifyJSON({})).toEqual('{}')
   expect(stringifyJSON({ foo: 'bar' })).toEqual('{"foo":"bar"}')
 })

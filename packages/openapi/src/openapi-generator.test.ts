@@ -976,7 +976,7 @@ describe('openAPIGenerator', () => {
     expect(exclude).toHaveBeenNthCalledWith(2, pong, ['pong'])
   })
 
-  it('generator - commonSchemas', async () => {
+  describe('generator - commonSchemas', async () => {
     const generator = new OpenAPIGenerator({
       schemaConverters: [
         new ZodToJsonSchemaConverterV4(),
@@ -994,31 +994,45 @@ describe('openAPIGenerator', () => {
       id: z4.string().transform(v => Number(v)).pipe(z4.number().min(0).max(100)),
     })
 
-    const Cat = z4.object({
-      name: z4.string(),
+    const Params = z4.object({
+      pet: Pet,
     })
 
-    const DetailedStructure = z4.object({
-      params: z4.object({
-        pet: Pet,
-      }),
-      query: z4.object({
-        user: User,
-      }),
-      headers: z4.object({
-        'x-custom-header': z4.string(),
-      }),
+    const Query = z4.object({
+      user: User,
+    })
+
+    const Headers = z4.object({
+      user: User,
+    })
+
+    const InputDetailedStructure = z4.object({
+      params: Params,
+      query: Query,
+      headers: Headers,
       body: User,
     })
+
+    const OutputDetailedStructure = z4.union([
+      z4.object({
+        status: z4.literal(200),
+        headers: Headers,
+        body: User,
+      }),
+      z4.object({
+        status: z4.literal(201),
+        body: User,
+      }),
+    ])
 
     const spec = await generator.generate({
       user: oc.input(User).errors({ TEST: { data: User } }).output(User),
       pet: oc.input(Pet).errors({ TEST: { data: Pet } }).output(Pet),
-      iterator: oc.input(eventIterator(User, Pet)).output(eventIterator(Cat, Pet)),
+      iterator: oc.input(eventIterator(User, Pet)).output(eventIterator(User, Pet)),
       dynamicParams: oc.route({ path: '/user/{id}', method: 'POST' }).input(User),
       detailedStructure: oc.route({ path: '/detailed/{pet}', inputStructure: 'detailed', outputStructure: 'detailed' })
-        .input(DetailedStructure)
-        .output(DetailedStructure),
+        .input(InputDetailedStructure)
+        .output(OutputDetailedStructure),
     }, {
       commonSchemas: {
         User: {
@@ -1028,245 +1042,231 @@ describe('openAPIGenerator', () => {
           strategy: 'output',
           schema: Pet,
         },
-        Cat: {
-          strategy: 'output',
-          schema: Cat,
-        },
         DetailedStructure: {
           strategy: 'output',
-          schema: DetailedStructure,
+          schema: InputDetailedStructure,
+        },
+        Params: {
+          strategy: 'output',
+          schema: Params,
+        },
+        Query: {
+          schema: Query,
+        },
+        Headers: {
+          strategy: 'output',
+          schema: Headers,
+        },
+        OutputDetailedStructure: {
+          schema: OutputDetailedStructure,
         },
       },
     })
 
-    expect(spec.components).toEqual({
-      schemas: {
-        User: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-            parent: { $ref: '#/components/schemas/User' },
-          },
-          required: ['id'],
-        },
-        Pet: {
-          type: 'object',
-          properties: {
-            id: { type: 'number', minimum: 0, maximum: 100 },
-          },
-          required: ['id'],
-        },
-        Cat: {
-          type: 'object',
-          properties: {
-            name: { type: 'string' },
-          },
-          required: ['name'],
-        },
-        DetailedStructure: {
-          type: 'object',
-          properties: {
-            params: {
-              type: 'object',
-              properties: {
-                pet: { $ref: '#/components/schemas/Pet' },
-              },
-              required: ['pet'],
+    it('fill correct components.schemas', async () => {
+      expect(spec.components).toEqual({
+        schemas: {
+          User: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              parent: { $ref: '#/components/schemas/User' },
             },
-            query: {
-              type: 'object',
-              properties: {
-                user: { $ref: '#/components/schemas/User' },
-              },
-              required: ['user'],
-            },
-            headers: {
-              type: 'object',
-              properties: {
-                'x-custom-header': { type: 'string' },
-              },
-              required: ['x-custom-header'],
-            },
-            body: { $ref: '#/components/schemas/User' },
+            required: ['id'],
           },
-          required: ['params', 'query', 'headers', 'body'],
+          Pet: {
+            type: 'object',
+            properties: {
+              id: { type: 'number', minimum: 0, maximum: 100 },
+            },
+            required: ['id'],
+          },
+          Params: {
+            type: 'object',
+            properties: {
+              pet: { $ref: '#/components/schemas/Pet' },
+            },
+            required: ['pet'],
+          },
+          Query: {
+            type: 'object',
+            properties: {
+              user: { $ref: '#/components/schemas/User' },
+            },
+            required: ['user'],
+          },
+          Headers: {
+            type: 'object',
+            properties: {
+              user: { $ref: '#/components/schemas/User' },
+            },
+            required: ['user'],
+          },
+          DetailedStructure: {
+            type: 'object',
+            properties: {
+              params: { $ref: '#/components/schemas/Params' },
+              query: { $ref: '#/components/schemas/Query' },
+              headers: { $ref: '#/components/schemas/Headers' },
+              body: { $ref: '#/components/schemas/User' },
+            },
+            required: ['params', 'query', 'headers', 'body'],
+          },
+          OutputDetailedStructure: {
+            anyOf: [
+              {
+                type: 'object',
+                properties: {
+                  status: { const: 200 },
+                  headers: { $ref: '#/components/schemas/Headers' },
+                  body: { $ref: '#/components/schemas/User' },
+                },
+                required: ['status', 'headers', 'body'],
+              },
+              {
+                type: 'object',
+                properties: {
+                  status: { const: 201 },
+                  body: { $ref: '#/components/schemas/User' },
+                },
+                required: ['status', 'body'],
+              },
+            ],
+          },
         },
-      },
+      })
     })
 
-    expect(spec.paths!['/user']).toEqual({
-      post: {
-        requestBody: {
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/User' },
-            },
-          },
-          required: true,
-        },
-        responses: {
-          200: {
-            description: 'OK',
+    it('works with schema that input & output is same', async () => {
+      expect(spec.paths!['/user']).toEqual({
+        post: {
+          requestBody: {
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/User' },
               },
             },
+            required: true,
           },
-          500: {
-            description: '500',
-            content: {
-              'application/json': {
-                schema: {
-                  oneOf: [
-                    {
-                      type: 'object',
-                      properties: {
-                        defined: { const: true },
-                        code: { const: 'TEST' },
-                        status: { const: 500 },
-                        message: { type: 'string', default: 'TEST' },
-                        data: { $ref: '#/components/schemas/User' },
-                      },
-                      required: ['defined', 'code', 'status', 'message', 'data'],
-                    },
-                    {
-                      type: 'object',
-                      properties: {
-                        defined: { const: false },
-                        code: { type: 'string' },
-                        status: { type: 'number' },
-                        message: { type: 'string' },
-                        data: {},
-                      },
-                      required: ['defined', 'code', 'status', 'message'],
-                    },
-                  ],
+          responses: {
+            200: {
+              description: 'OK',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/User' },
                 },
               },
             },
-          },
-        },
-        operationId: 'user',
-      },
-    })
-
-    expect(spec.paths!['/pet']).toEqual({
-      post: {
-        operationId: 'pet',
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                properties: {
-                  id: { type: 'string' },
-                },
-                required: ['id'],
-              },
-            },
-          },
-        },
-        responses: {
-          200: {
-            description: 'OK',
-            content: {
-              'application/json': {
-                schema: { $ref: '#/components/schemas/Pet' },
-              },
-            },
-          },
-          500: {
-            description: '500',
-            content: {
-              'application/json': {
-                schema: {
-                  oneOf: [
-                    {
-                      type: 'object',
-                      properties: {
-                        defined: { const: true },
-                        code: { const: 'TEST' },
-                        status: { const: 500 },
-                        message: { type: 'string', default: 'TEST' },
-                        data: { $ref: '#/components/schemas/Pet' },
-                      },
-                      required: ['defined', 'code', 'status', 'message', 'data'],
-                    },
-                    {
-                      type: 'object',
-                      properties: {
-                        defined: { const: false },
-                        code: { type: 'string' },
-                        status: { type: 'number' },
-                        message: { type: 'string' },
-                        data: {},
-                      },
-                      required: ['defined', 'code', 'status', 'message'],
-                    },
-                  ],
-                },
-              },
-            },
-          },
-        },
-      },
-    })
-
-    expect(spec.paths!['/iterator']).toEqual({
-      post: {
-        operationId: 'iterator',
-        requestBody: {
-          required: true,
-          content: {
-            'text/event-stream': {
-              schema: {
-                oneOf: [
-                  {
-                    type: 'object',
-                    properties: {
-                      event: { const: 'message' },
-                      data: { $ref: '#/components/schemas/User' },
-                      id: { type: 'string' },
-                      retry: { type: 'number' },
-                    },
-                    required: ['event', 'data'],
-                  },
-                  {
-                    type: 'object',
-                    properties: {
-                      event: { const: 'done' },
-                      data: {
+            500: {
+              description: '500',
+              content: {
+                'application/json': {
+                  schema: {
+                    oneOf: [
+                      {
                         type: 'object',
                         properties: {
-                          id: { type: 'string' },
+                          defined: { const: true },
+                          code: { const: 'TEST' },
+                          status: { const: 500 },
+                          message: { type: 'string', default: 'TEST' },
+                          data: { $ref: '#/components/schemas/User' },
                         },
-                        required: ['id'],
+                        required: ['defined', 'code', 'status', 'message', 'data'],
                       },
-                      id: { type: 'string' },
-                      retry: { type: 'number' },
-                    },
-                    required: ['event', 'data'],
+                      {
+                        type: 'object',
+                        properties: {
+                          defined: { const: false },
+                          code: { type: 'string' },
+                          status: { type: 'number' },
+                          message: { type: 'string' },
+                          data: {},
+                        },
+                        required: ['defined', 'code', 'status', 'message'],
+                      },
+                    ],
                   },
-                  {
-                    type: 'object',
-                    properties: {
-                      event: { const: 'error' },
-                      data: {},
-                      id: { type: 'string' },
-                      retry: { type: 'number' },
-                    },
-                    required: ['event'],
+                },
+              },
+            },
+          },
+          operationId: 'user',
+        },
+      })
+    })
+
+    it('works with schema that input & output is different', async () => {
+      expect(spec.paths!['/pet']).toEqual({
+        post: {
+          operationId: 'pet',
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string' },
                   },
-                ],
+                  required: ['id'],
+                },
+              },
+            },
+          },
+          responses: {
+            200: {
+              description: 'OK',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Pet' },
+                },
+              },
+            },
+            500: {
+              description: '500',
+              content: {
+                'application/json': {
+                  schema: {
+                    oneOf: [
+                      {
+                        type: 'object',
+                        properties: {
+                          defined: { const: true },
+                          code: { const: 'TEST' },
+                          status: { const: 500 },
+                          message: { type: 'string', default: 'TEST' },
+                          data: { $ref: '#/components/schemas/Pet' },
+                        },
+                        required: ['defined', 'code', 'status', 'message', 'data'],
+                      },
+                      {
+                        type: 'object',
+                        properties: {
+                          defined: { const: false },
+                          code: { type: 'string' },
+                          status: { type: 'number' },
+                          message: { type: 'string' },
+                          data: {},
+                        },
+                        required: ['defined', 'code', 'status', 'message'],
+                      },
+                    ],
+                  },
+                },
               },
             },
           },
         },
-        responses: {
-          200: {
-            description: 'OK',
+      })
+    })
+
+    it('works with event iterator', async () => {
+      expect(spec.paths!['/iterator']).toEqual({
+        post: {
+          operationId: 'iterator',
+          requestBody: {
+            required: true,
             content: {
               'text/event-stream': {
                 schema: {
@@ -1275,7 +1275,7 @@ describe('openAPIGenerator', () => {
                       type: 'object',
                       properties: {
                         event: { const: 'message' },
-                        data: { $ref: '#/components/schemas/Cat' },
+                        data: { $ref: '#/components/schemas/User' },
                         id: { type: 'string' },
                         retry: { type: 'number' },
                       },
@@ -1285,7 +1285,13 @@ describe('openAPIGenerator', () => {
                       type: 'object',
                       properties: {
                         event: { const: 'done' },
-                        data: { $ref: '#/components/schemas/Pet' },
+                        data: {
+                          type: 'object',
+                          properties: {
+                            id: { type: 'string' },
+                          },
+                          required: ['id'],
+                        },
                         id: { type: 'string' },
                         retry: { type: 'number' },
                       },
@@ -1301,91 +1307,125 @@ describe('openAPIGenerator', () => {
                       },
                       required: ['event'],
                     },
-
                   ],
                 },
               },
             },
           },
+          responses: {
+            200: {
+              description: 'OK',
+              content: {
+                'text/event-stream': {
+                  schema: {
+                    oneOf: [
+                      {
+                        type: 'object',
+                        properties: {
+                          event: { const: 'message' },
+                          data: { $ref: '#/components/schemas/User' },
+                          id: { type: 'string' },
+                          retry: { type: 'number' },
+                        },
+                        required: ['event', 'data'],
+                      },
+                      {
+                        type: 'object',
+                        properties: {
+                          event: { const: 'done' },
+                          data: { $ref: '#/components/schemas/Pet' },
+                          id: { type: 'string' },
+                          retry: { type: 'number' },
+                        },
+                        required: ['event', 'data'],
+                      },
+                      {
+                        type: 'object',
+                        properties: {
+                          event: { const: 'error' },
+                          data: {},
+                          id: { type: 'string' },
+                          retry: { type: 'number' },
+                        },
+                        required: ['event'],
+                      },
+
+                    ],
+                  },
+                },
+              },
+            },
+          },
         },
-      },
+      })
     })
 
-    expect(spec.paths!['/user/{id}']).toEqual({
-      post: {
-        operationId: 'dynamicParams',
-        parameters: [
-          {
-            name: 'id',
-            in: 'path',
-            required: true,
-            schema: { type: 'string' },
+    it('works with compact + dynamic params', async () => {
+      expect(spec.paths!['/user/{id}']).toEqual({
+        post: {
+          operationId: 'dynamicParams',
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              schema: { type: 'string' },
+            },
+          ],
+          requestBody: {
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    parent: { $ref: '#/components/schemas/User' },
+                  },
+                  required: [],
+                },
+              },
+            },
+            required: false,
           },
-        ],
-        requestBody: {
-          content: {
-            'application/json': {
+          responses: expect.any(Object),
+        },
+      })
+    })
+
+    it('works with complex detailed structure', async () => {
+      expect(spec.paths!['/detailed/{pet}']).toEqual({
+        post: {
+          operationId: 'detailedStructure',
+          parameters: [
+            {
+              name: 'pet',
+              in: 'path',
+              required: true,
               schema: {
                 type: 'object',
                 properties: {
-                  parent: { $ref: '#/components/schemas/User' },
+                  id: { type: 'string' },
                 },
-                required: [],
+                required: ['id'],
               },
             },
-          },
-          required: false,
-        },
-        responses: expect.any(Object),
-      },
-    })
-
-    expect(spec.paths!['/detailed/{pet}']).toEqual({
-      post: {
-        operationId: 'detailedStructure',
-        parameters: [
-          {
-            name: 'pet',
-            in: 'path',
-            required: true,
-            schema: {
-              type: 'object',
-              properties: {
-                id: { type: 'string' },
-              },
-              required: ['id'],
+            {
+              name: 'user',
+              in: 'query',
+              required: true,
+              schema: { $ref: '#/components/schemas/User' },
+              style: 'deepObject',
+              allowEmptyValue: true,
+              allowReserved: true,
+              explode: true,
             },
-          },
-          {
-            name: 'user',
-            in: 'query',
-            required: true,
-            schema: { $ref: '#/components/schemas/User' },
-            style: 'deepObject',
-            allowEmptyValue: true,
-            allowReserved: true,
-            explode: true,
-          },
-          {
-            name: 'x-custom-header',
-            in: 'header',
-            required: true,
-            schema: { type: 'string' },
-          },
-        ],
-        requestBody: {
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/User',
-              },
+            {
+              name: 'user',
+              in: 'header',
+              required: true,
+              schema: { $ref: '#/components/schemas/User' },
             },
-          },
-          required: true,
-        },
-        responses: {
-          200: {
-            description: 'OK',
+          ],
+          requestBody: {
             content: {
               'application/json': {
                 schema: {
@@ -1393,17 +1433,40 @@ describe('openAPIGenerator', () => {
                 },
               },
             },
-            headers: {
-              'x-custom-header': {
-                required: true,
-                schema: {
-                  type: 'string',
+            required: true,
+          },
+          responses: {
+            200: {
+              description: 'OK',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/User',
+                  },
+                },
+              },
+              headers: {
+                user: {
+                  required: true,
+                  schema: {
+                    $ref: '#/components/schemas/User',
+                  },
+                },
+              },
+            },
+            201: {
+              description: 'OK',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/User',
+                  },
                 },
               },
             },
           },
         },
-      },
+      })
     })
   })
 })

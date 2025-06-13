@@ -10,7 +10,7 @@ import { getDynamicParams, StandardOpenAPIJsonSerializer } from '@orpc/openapi-c
 import { resolveContractProcedures } from '@orpc/server'
 import { clone, stringifyJSON, toArray } from '@orpc/shared'
 import { applyCustomOpenAPIOperation } from './openapi-custom'
-import { checkParamsSchema, toOpenAPIContent, toOpenAPIEventIteratorContent, toOpenAPIMethod, toOpenAPIParameters, toOpenAPIPath, toOpenAPISchema } from './openapi-utils'
+import { checkParamsSchema, resolveOpenAPIJsonSchemaRef, toOpenAPIContent, toOpenAPIEventIteratorContent, toOpenAPIMethod, toOpenAPIParameters, toOpenAPIPath, toOpenAPISchema } from './openapi-utils'
 import { CompositeSchemaConverter } from './schema-converter'
 import { applySchemaOptionality, expandUnionSchema, isAnySchema, isObjectSchema, separateObjectSchema } from './schema-utils'
 
@@ -123,8 +123,8 @@ export class OpenAPIGenerator {
             tags: def.route.tags?.map(tag => tag),
           }
 
-          await this.#request(operationObjectRef, def, baseSchemaConvertOptions)
-          await this.#successResponse(operationObjectRef, def, baseSchemaConvertOptions)
+          await this.#request(doc, operationObjectRef, def, baseSchemaConvertOptions)
+          await this.#successResponse(doc, operationObjectRef, def, baseSchemaConvertOptions)
           await this.#errorResponse(operationObjectRef, def, baseSchemaConvertOptions)
         }
 
@@ -209,6 +209,7 @@ export class OpenAPIGenerator {
   }
 
   async #request(
+    doc: OpenAPI.Document,
     ref: OpenAPI.OperationObject,
     def: AnyContractProcedure['~orpc'],
     baseSchemaConvertOptions: Pick<SchemaConvertOptions, 'components'>,
@@ -296,11 +297,15 @@ export class OpenAPIGenerator {
       throw error
     }
 
+    const resolvedParamSchema = schema.properties?.params !== undefined
+      ? resolveOpenAPIJsonSchemaRef(doc, schema.properties.params)
+      : undefined
+
     if (
       dynamicParams?.length && (
-        schema.properties?.params === undefined
-        || !isObjectSchema(schema.properties.params)
-        || !checkParamsSchema(schema.properties.params, dynamicParams)
+        resolvedParamSchema === undefined
+        || !isObjectSchema(resolvedParamSchema)
+        || !checkParamsSchema(resolvedParamSchema, dynamicParams)
       )
     ) {
       throw new OpenAPIGeneratorError(
@@ -311,7 +316,9 @@ export class OpenAPIGenerator {
     for (const from of ['params', 'query', 'headers']) {
       const fromSchema = schema.properties?.[from]
       if (fromSchema !== undefined) {
-        if (!isObjectSchema(fromSchema)) {
+        const resolvedSchema = resolveOpenAPIJsonSchemaRef(doc, fromSchema)
+
+        if (!isObjectSchema(resolvedSchema)) {
           throw error
         }
 
@@ -322,7 +329,7 @@ export class OpenAPIGenerator {
             : 'query'
 
         ref.parameters ??= []
-        ref.parameters.push(...toOpenAPIParameters(fromSchema, parameterIn))
+        ref.parameters.push(...toOpenAPIParameters(resolvedSchema, parameterIn))
       }
     }
 
@@ -335,6 +342,7 @@ export class OpenAPIGenerator {
   }
 
   async #successResponse(
+    doc: OpenAPI.Document,
     ref: OpenAPI.OperationObject,
     def: AnyContractProcedure['~orpc'],
     baseSchemaConvertOptions: Pick<SchemaConvertOptions, 'components'>,
@@ -400,17 +408,19 @@ export class OpenAPIGenerator {
       let schemaDescription: string | undefined
 
       if (item.properties?.status !== undefined) {
-        if (typeof item.properties.status !== 'object'
-          || item.properties.status.const === undefined
-          || typeof item.properties.status.const !== 'number'
-          || !Number.isInteger(item.properties.status.const)
-          || isORPCErrorStatus(item.properties.status.const)
+        const statusSchema = resolveOpenAPIJsonSchemaRef(doc, item.properties.status)
+
+        if (typeof statusSchema !== 'object'
+          || statusSchema.const === undefined
+          || typeof statusSchema.const !== 'number'
+          || !Number.isInteger(statusSchema.const)
+          || isORPCErrorStatus(statusSchema.const)
         ) {
           throw error
         }
 
-        schemaStatus = item.properties.status.const
-        schemaDescription = item.properties.status.description
+        schemaStatus = statusSchema.const
+        schemaDescription = statusSchema.description
       }
 
       const itemStatus = schemaStatus ?? status
@@ -431,18 +441,20 @@ export class OpenAPIGenerator {
       }
 
       if (item.properties?.headers !== undefined) {
-        if (!isObjectSchema(item.properties.headers)) {
+        const headersSchema = resolveOpenAPIJsonSchemaRef(doc, item.properties.headers)
+
+        if (!isObjectSchema(headersSchema)) {
           throw error
         }
 
-        for (const key in item.properties.headers.properties) {
-          const headerSchema = item.properties.headers.properties[key]
+        for (const key in headersSchema.properties) {
+          const headerSchema = headersSchema.properties[key]
 
           if (headerSchema !== undefined) {
             ref.responses[itemStatus].headers ??= {}
             ref.responses[itemStatus].headers[key] = {
               schema: toOpenAPISchema(headerSchema) as any,
-              required: item.properties.headers.required?.includes(key),
+              required: headersSchema.required?.includes(key),
             }
           }
         }

@@ -57,7 +57,7 @@ The prefix only applies to procedures that specify a `path`.
 When combining a [Lazy Router](/docs/router#lazy-router) with [OpenAPIHandler](/docs/openapi/openapi-handler), a prefix is required for lazy loading. Without it, the router behaves like a regular router.
 
 :::info
-If you follow the [contract-first approach](/docs/contract-first/define-contract), you can ignore this requirement—oRPC knows the full contract and loads the router lazily properly.
+If you follow the [contract-first approach](/docs/contract-first/define-contract), you can ignore this requirement - oRPC knows the full contract and loads the router lazily properly.
 :::
 
 ```ts

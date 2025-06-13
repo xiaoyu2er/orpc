@@ -454,7 +454,7 @@ export class OpenAPIGenerator {
             ref.responses[itemStatus].headers ??= {}
             ref.responses[itemStatus].headers[key] = {
               schema: toOpenAPISchema(headerSchema) as any,
-              required: headersSchema.required?.includes(key),
+              required: item.required?.includes('headers') && headersSchema.required?.includes(key),
             }
           }
         }

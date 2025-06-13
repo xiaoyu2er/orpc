@@ -620,6 +620,28 @@ const successResponseTests: TestCase[] = [
     },
   },
   {
+    name: 'outputStructure=detailed + headers is optional',
+    contract: oc.route({ outputStructure: 'detailed' }).output(z.object({ headers: z.object({ 'x-custom': z.string() }).optional() })),
+    expected: {
+      '/': {
+        post: expect.objectContaining({
+          responses: {
+            200: expect.objectContaining({
+              headers: {
+                'x-custom': {
+                  required: undefined,
+                  schema: {
+                    type: 'string',
+                  },
+                },
+              },
+            }),
+          },
+        }),
+      },
+    },
+  },
+  {
     name: 'outputStructure=detailed + multiple status',
     contract: oc.route({ outputStructure: 'detailed' }).output(z.union([
       z.object({ body: z.string() }),

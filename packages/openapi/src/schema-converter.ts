@@ -3,7 +3,7 @@ import type { Promisable } from '@orpc/shared'
 import type { JSONSchema } from './schema'
 
 export interface SchemaConverterComponent {
-  allowedStrategies: SchemaConvertOptions['strategy'][]
+  allowedStrategies: readonly SchemaConvertOptions['strategy'][]
   schema: AnySchema
   required: boolean
   ref: string
@@ -15,7 +15,7 @@ export interface SchemaConvertOptions {
   /**
    * Common components should use `$ref` to represent themselves if matched.
    */
-  components?: SchemaConverterComponent[]
+  components?: readonly SchemaConverterComponent[]
 
   /**
    * Minimum schema structure depth required before using `$ref` for components.

@@ -2,7 +2,7 @@ import type { AnyContractProcedure, AnyContractRouter, AnySchema, ErrorMap, Open
 import type { StandardOpenAPIJsonSerializerOptions } from '@orpc/openapi-client/standard'
 import type { AnyProcedure, AnyRouter } from '@orpc/server'
 import type { JSONSchema } from './schema'
-import type { ConditionalSchemaConverter, SchemaConverter, SchemaConvertOptions } from './schema-converter'
+import type { ConditionalSchemaConverter, SchemaConverter, SchemaConverterComponent, SchemaConvertOptions } from './schema-converter'
 import { fallbackORPCErrorMessage, fallbackORPCErrorStatus, isORPCErrorStatus } from '@orpc/client'
 import { toHttpPath } from '@orpc/client/standard'
 import { fallbackContractConfig, getEventIteratorSchemaDetails } from '@orpc/contract'
@@ -153,7 +153,7 @@ export class OpenAPIGenerator {
   }
 
   async #resolveCommonSchemas(doc: OpenAPI.Document, commonSchemas: OpenAPIGeneratorGenerateOptions['commonSchemas']): Promise<Pick<SchemaConvertOptions, 'components'>> {
-    const baseOptions: Pick<SchemaConvertOptions, 'components'> = {}
+    const baseOptions: { components?: SchemaConverterComponent[] } = {}
 
     if (commonSchemas) {
       baseOptions.components = []

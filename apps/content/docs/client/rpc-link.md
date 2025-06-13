@@ -72,7 +72,7 @@ If a property in `ClientContext` is required, oRPC enforces its inclusion when c
 By default, RPCLink sends requests via `POST`. You can override this to use methods like `GET` (for browser or CDN caching) based on your requirements.
 
 ::: warning
-By default, [RPCHandler](/docs/rpc-handler) enabled [StrictGetMethodPlugin](/docs/rpc-handler#default-plugins) which blocks GET requests except for procedures explicitly allowed. please refer to [StrictGetMethodPlugin](/docs/plugins/strict-get-method) for more details.
+By default, [RPCHandler](/docs/rpc-handler) in the [HTTP Adapter](/docs/adapters/http) enabled [StrictGetMethodPlugin](/docs/rpc-handler#default-plugins) which blocks GET requests except for procedures explicitly allowed. Please refer to [StrictGetMethodPlugin](/docs/plugins/strict-get-method) for more details.
 :::
 
 ```ts twoslash

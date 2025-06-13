@@ -89,31 +89,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/$': {
-      id: '/api/$'
-      path: ''
-      fullPath: '/api/$'
-      preLoaderRoute: unknown
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/rpc/$': {
-      id: '/api/rpc/$'
-      path: ''
-      fullPath: '/api/rpc/$'
-      preLoaderRoute: unknown
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 declare module '@tanstack/react-start/server' {
   interface ServerFileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: unknown
-      parentRoute: typeof rootServerRouteImport
-    }
     '/api/$': {
       id: '/api/$'
       path: '/api/$'

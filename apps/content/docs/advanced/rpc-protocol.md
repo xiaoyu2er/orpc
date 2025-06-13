@@ -12,10 +12,10 @@ The RPC protocol enables remote procedure calls over HTTP using JSON, supporting
 The procedure to call is determined by the `pathname`.
 
 ```bash
-curl https://example.com/rpc/planet/create
+curl https://example.com/rpc/planet/create?data={}
 ```
 
-This example calls the `planet.create` procedure, with `/rpc` as the prefix.
+This example calls the `planet.create` procedure, with `/rpc` as the prefix. `?data={}` is the minimum required to indicate a valid GET RPC request with `undefined` input.
 
 ```ts
 const router = {
@@ -27,10 +27,10 @@ const router = {
 
 ## Input
 
-Any HTTP method can be used. Input can be provided via URL query parameters or the request body.
+Any HTTP method can be used. Input can be provided via URL query parameters or the request body, based on the HTTP method.
 
-:::info
-You can use any method, but by default, [RPCHandler](/docs/rpc-handler) enabled [StrictGetMethodPlugin](/docs/rpc-handler#default-plugins) which blocks GET requests except for procedures explicitly allowed.
+::: warning
+By default, [RPCHandler](/docs/rpc-handler) in the [HTTP Adapter](/docs/adapters/http) enabled [StrictGetMethodPlugin](/docs/rpc-handler#default-plugins) which blocks GET requests except for procedures explicitly allowed. Please refer to [StrictGetMethodPlugin](/docs/plugins/strict-get-method) for more details.
 :::
 
 ### Input in URL Query

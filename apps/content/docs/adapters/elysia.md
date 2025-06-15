@@ -22,6 +22,8 @@ const app = new Elysia()
     })
 
     return response ?? new Response('Not Found', { status: 404 })
+  }, {
+    parse: 'none' // Disable Elysia body parser to prevent "body already used" error
   })
   .listen(3000)
 

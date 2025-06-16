@@ -14,7 +14,7 @@ import { checkParamsSchema, resolveOpenAPIJsonSchemaRef, toOpenAPIContent, toOpe
 import { CompositeSchemaConverter } from './schema-converter'
 import { applySchemaOptionality, expandUnionSchema, isAnySchema, isObjectSchema, separateObjectSchema } from './schema-utils'
 
-class OpenAPIGeneratorError extends Error {}
+class OpenAPIGeneratorError extends Error { }
 
 export interface OpenAPIGeneratorOptions extends StandardOpenAPIJsonSerializerOptions {
   schemaConverters?: ConditionalSchemaConverter[]
@@ -55,6 +55,9 @@ export interface OpenAPIGeneratorGenerateOptions extends Partial<Omit<OpenAPI.Do
      */
     strategy?: SchemaConvertOptions['strategy']
     schema: AnySchema
+  } | {
+    error: 'UndefinedError'
+    schema?: never
   }>
 }
 
@@ -88,7 +91,7 @@ export class OpenAPIGenerator {
       commonSchemas: undefined,
     } as OpenAPI.Document
 
-    const baseSchemaConvertOptions = await this.#resolveCommonSchemas(doc, options.commonSchemas)
+    const { baseSchemaConvertOptions, undefinedErrorJsonSchema } = await this.#resolveCommonSchemas(doc, options.commonSchemas)
 
     const contracts: { contract: AnyContractProcedure, path: readonly string[] }[] = []
 
@@ -125,7 +128,7 @@ export class OpenAPIGenerator {
 
           await this.#request(doc, operationObjectRef, def, baseSchemaConvertOptions)
           await this.#successResponse(doc, operationObjectRef, def, baseSchemaConvertOptions)
-          await this.#errorResponse(operationObjectRef, def, baseSchemaConvertOptions)
+          await this.#errorResponse(operationObjectRef, def, baseSchemaConvertOptions, undefinedErrorJsonSchema)
         }
 
         doc.paths ??= {}
@@ -152,14 +155,34 @@ export class OpenAPIGenerator {
     return this.serializer.serialize(doc)[0] as OpenAPI.Document
   }
 
-  async #resolveCommonSchemas(doc: OpenAPI.Document, commonSchemas: OpenAPIGeneratorGenerateOptions['commonSchemas']): Promise<Pick<SchemaConvertOptions, 'components'>> {
-    const baseOptions: { components?: SchemaConverterComponent[] } = {}
+  async #resolveCommonSchemas(doc: OpenAPI.Document, commonSchemas: OpenAPIGeneratorGenerateOptions['commonSchemas']): Promise<{
+    baseSchemaConvertOptions: Pick<SchemaConvertOptions, 'components'>
+    undefinedErrorJsonSchema: JSONSchema
+  }> {
+    let undefinedErrorJsonSchema: JSONSchema = {
+      type: 'object',
+      properties: {
+        defined: { const: false },
+        code: { type: 'string' },
+        status: { type: 'number' },
+        message: { type: 'string' },
+        data: {},
+      },
+      required: ['defined', 'code', 'status', 'message'],
+    }
+    const baseSchemaConvertOptions: { components?: SchemaConverterComponent[] } = {}
 
     if (commonSchemas) {
-      baseOptions.components = []
+      baseSchemaConvertOptions.components = []
 
       for (const key in commonSchemas) {
-        const { schema, strategy = 'input' } = commonSchemas[key]!
+        const options = commonSchemas[key]!
+
+        if (options.schema === undefined) {
+          continue
+        }
+
+        const { schema, strategy = 'input' } = options
 
         const [required, json] = await this.converter.convert(schema, { strategy })
 
@@ -180,7 +203,7 @@ export class OpenAPIGenerator {
           }
         }
 
-        baseOptions.components.push({
+        baseSchemaConvertOptions.components.push({
           schema,
           required,
           ref: `#/components/schemas/${key}`,
@@ -192,11 +215,23 @@ export class OpenAPIGenerator {
       doc.components.schemas ??= {}
 
       for (const key in commonSchemas) {
-        const { schema, strategy = 'input' } = commonSchemas[key]!
+        const options = commonSchemas[key]!
+
+        if (options.schema === undefined) {
+          if (options.error === 'UndefinedError') {
+            doc.components.schemas[key] = toOpenAPISchema(undefinedErrorJsonSchema)
+            undefinedErrorJsonSchema = { $ref: `#/components/schemas/${key}` }
+          }
+
+          continue
+        }
+
+        const { schema, strategy = 'input' } = options
+
         const [, json] = await this.converter.convert(
           schema,
           {
-            ...baseOptions,
+            ...baseSchemaConvertOptions,
             strategy,
             minStructureDepthForRef: 1, // not allow use $ref for root schemas
           },
@@ -205,7 +240,7 @@ export class OpenAPIGenerator {
       }
     }
 
-    return baseOptions
+    return { baseSchemaConvertOptions, undefinedErrorJsonSchema }
   }
 
   async #request(
@@ -472,6 +507,7 @@ export class OpenAPIGenerator {
     ref: OpenAPI.OperationObject,
     def: AnyContractProcedure['~orpc'],
     baseSchemaConvertOptions: Pick<SchemaConvertOptions, 'components'>,
+    undefinedErrorSchema: JSONSchema,
   ): Promise<void> {
     const errorMap = def.errorMap as ErrorMap
 
@@ -513,17 +549,7 @@ export class OpenAPIGenerator {
         content: toOpenAPIContent({
           oneOf: [
             ...schemas,
-            {
-              type: 'object',
-              properties: {
-                defined: { const: false },
-                code: { type: 'string' },
-                status: { type: 'number' },
-                message: { type: 'string' },
-                data: {},
-              },
-              required: ['defined', 'code', 'status', 'message'],
-            },
+            undefinedErrorSchema,
           ],
         }),
       }

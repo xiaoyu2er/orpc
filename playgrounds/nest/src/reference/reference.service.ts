@@ -35,6 +35,7 @@ export class ReferenceService {
         NewPlanet: { schema: NewPlanetSchema },
         UpdatePlanet: { schema: UpdatePlanetSchema },
         Planet: { schema: PlanetSchema },
+        UndefinedError: { error: 'UndefinedError' },
       },
       servers: [
         { url: 'http://localhost:3000' },

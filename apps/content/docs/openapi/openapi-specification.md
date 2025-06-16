@@ -136,12 +136,19 @@ const spec = await generator.generate(router, {
       strategy: 'output',
       schema: PetSchema,
     },
+    UndefinedError: {
+      error: 'UndefinedError'
+    }
   },
 })
 ```
 
 :::info
-The `strategy` option determines which schema definition to use when input and output types differ (defaults to `input`). This is needed because we cannot use the same `$ref` for both input and output in this case.
+
+- The `strategy` option determines which schema definition to use when input and output types differ (defaults to `input`). This is needed because we cannot use the same `$ref` for both input and output in this case.
+
+- `UndefinedError` is used for undefined errors, which is very useful when using [Type-Safe Error Handling](/docs/error-handling#type‐safe-error-handling)
+
 :::
 
 ## Excluding Procedures

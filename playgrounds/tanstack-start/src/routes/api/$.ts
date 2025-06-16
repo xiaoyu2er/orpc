@@ -35,6 +35,7 @@ const handler = new OpenAPIHandler(router, {
           NewPlanet: { schema: NewPlanetSchema },
           UpdatePlanet: { schema: UpdatePlanetSchema },
           Planet: { schema: PlanetSchema },
+          UndefinedError: { error: 'UndefinedError' },
         },
         security: [{ bearerAuth: [] }],
         components: {

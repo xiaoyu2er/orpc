@@ -1082,6 +1082,9 @@ describe('openAPIGenerator', () => {
         OutputDetailedStructure: {
           schema: OutputDetailedStructure,
         },
+        UndefinedError2: {
+          error: 'UndefinedError',
+        },
       },
     })
 
@@ -1155,11 +1158,22 @@ describe('openAPIGenerator', () => {
               },
             ],
           },
+          UndefinedError2: {
+            type: 'object',
+            properties: {
+              defined: { const: false },
+              code: { type: 'string' },
+              status: { type: 'number' },
+              message: { type: 'string' },
+              data: {},
+            },
+            required: ['defined', 'code', 'status', 'message'],
+          },
         },
       })
     })
 
-    it('works with schema that input & output is same', async () => {
+    it('works with schema that input & output is same + error', async () => {
       expect(spec.paths!['/user']).toEqual({
         post: {
           requestBody: {
@@ -1197,15 +1211,7 @@ describe('openAPIGenerator', () => {
                         required: ['defined', 'code', 'status', 'message', 'data'],
                       },
                       {
-                        type: 'object',
-                        properties: {
-                          defined: { const: false },
-                          code: { type: 'string' },
-                          status: { type: 'number' },
-                          message: { type: 'string' },
-                          data: {},
-                        },
-                        required: ['defined', 'code', 'status', 'message'],
+                        $ref: '#/components/schemas/UndefinedError2',
                       },
                     ],
                   },
@@ -1218,7 +1224,7 @@ describe('openAPIGenerator', () => {
       })
     })
 
-    it('works with schema that input & output is different', async () => {
+    it('works with schema that input & output is different + error', async () => {
       expect(spec.paths!['/pet']).toEqual({
         post: {
           operationId: 'pet',
@@ -1263,15 +1269,7 @@ describe('openAPIGenerator', () => {
                         required: ['defined', 'code', 'status', 'message', 'data'],
                       },
                       {
-                        type: 'object',
-                        properties: {
-                          defined: { const: false },
-                          code: { type: 'string' },
-                          status: { type: 'number' },
-                          message: { type: 'string' },
-                          data: {},
-                        },
-                        required: ['defined', 'code', 'status', 'message'],
+                        $ref: '#/components/schemas/UndefinedError2',
                       },
                     ],
                   },

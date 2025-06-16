@@ -178,7 +178,7 @@ export class OpenAPIGenerator {
       for (const key in commonSchemas) {
         const options = commonSchemas[key]!
 
-        if (!('schema' in options)) {
+        if (options.schema === undefined) {
           continue
         }
 
@@ -217,7 +217,7 @@ export class OpenAPIGenerator {
       for (const key in commonSchemas) {
         const options = commonSchemas[key]!
 
-        if (!('schema' in options)) {
+        if (options.schema === undefined) {
           if (options.error === 'UndefinedError') {
             doc.components.schemas[key] = toOpenAPISchema(undefinedErrorJsonSchema)
             undefinedErrorJsonSchema = { $ref: `#/components/schemas/${key}` }

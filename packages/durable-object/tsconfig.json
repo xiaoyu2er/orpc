@@ -1,5 +1,8 @@
 {
   "extends": "../../tsconfig.lib.json",
+  "compilerOptions": {
+    "types": ["node", "@cloudflare/workers-types"]
+  },
   "references": [
     { "path": "../client" },
     { "path": "../server" },

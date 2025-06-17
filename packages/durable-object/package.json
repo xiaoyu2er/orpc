@@ -37,5 +37,9 @@
     "@orpc/client": "workspace:*",
     "@orpc/server": "workspace:*",
     "@orpc/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250617.0",
+    "@types/node": "^22.15.30"
   }
 }

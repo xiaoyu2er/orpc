@@ -3,8 +3,8 @@ import { decodeRequestMessage, decodeResponseMessage, encodeRequestMessage, enco
 
 const MB10Headers: StandardHeaders = {}
 
-for (let i = 0; i < 400000; i++) {
-  MB10Headers[`header-${i}`] = `value-${i}`
+for (let i = 0; i < 300000; i++) {
+  MB10Headers[`header-${i}`] = Array.from({ length: 10 }, () => String.fromCharCode(Math.floor(Math.random() * 256))).join('')
 }
 
 describe('encode/decode request message', () => {
@@ -307,6 +307,36 @@ describe('encode/decode request message', () => {
         expect(await (payload as any).body.text()).toBe('foo')
       })
 
+      it('empty blob', async () => {
+        const blob = new Blob([], { type: contentType })
+
+        const message = await encodeRequestMessage(198, MessageType.REQUEST, {
+          url,
+          headers,
+          method,
+          body: blob,
+        })
+
+        expect(message).toBeInstanceOf(ArrayBuffer)
+
+        const [id, type, payload] = await decodeRequestMessage(message)
+
+        expect(id).toBe(198)
+        expect(type).toBe(MessageType.REQUEST)
+        expect(payload).toEqual({
+          url,
+          headers: {
+            ...headers,
+            'content-type': contentType,
+            'content-disposition': expect.any(String),
+          },
+          method,
+          body: expect.toSatisfy(blob => blob instanceof Blob),
+        })
+
+        expect(await (payload as any).body.text()).toBe('')
+      })
+
       it('file', async () => {
         const file = new File(['foo'], 'some-name.pdf', { type: contentType })
 
@@ -368,6 +398,36 @@ describe('encode/decode request message', () => {
         })
 
         expect(await (payload as any).body.text()).toBe('foo')
+      })
+
+      it('empty file', async () => {
+        const file = new File([], 'some-name.pdf', { type: contentType })
+
+        const message = await encodeRequestMessage(198, MessageType.REQUEST, {
+          url,
+          headers,
+          method,
+          body: file,
+        })
+
+        expect(message).toBeInstanceOf(ArrayBuffer)
+
+        const [id, type, payload] = await decodeRequestMessage(message)
+
+        expect(id).toBe(198)
+        expect(type).toBe(MessageType.REQUEST)
+        expect(payload).toEqual({
+          url,
+          headers: {
+            ...headers,
+            'content-type': contentType,
+            'content-disposition': expect.any(String),
+          },
+          method,
+          body: expect.toSatisfy(blob => blob instanceof Blob),
+        })
+
+        expect(await (payload as any).body.text()).toBe('')
       })
     })
   })

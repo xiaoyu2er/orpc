@@ -224,6 +224,18 @@ importers:
         specifier: ^3.25.67
         version: 3.25.67
 
+  packages/durable-object:
+    dependencies:
+      '@orpc/client':
+        specifier: workspace:*
+        version: link:../client
+      '@orpc/server':
+        specifier: workspace:*
+        version: link:../server
+      '@orpc/shared':
+        specifier: workspace:*
+        version: link:../shared
+
   packages/hey-api:
     dependencies:
       '@orpc/client':

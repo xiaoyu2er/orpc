@@ -12,16 +12,16 @@ const HIBERNATION_EVENT_ITERATOR_ID_KEY = 'orpc_heii' as const
 
 const base = os.$context<{ ws: WebSocket, ctx: DurableObjectState }>()
 
-const router = {
+export const durableEventIteratorObjectRouter = {
   subscribe: base.handler(({ context }) => {
-    return new HibernationEventIterator((id) => {
+    return new HibernationEventIterator<any>((id) => {
       const attachment = context.ws.deserializeAttachment()
       context.ws.serializeAttachment({ ...attachment, [HIBERNATION_EVENT_ITERATOR_ID_KEY]: id })
     })
   }),
 }
 
-const handler = new RPCHandler(router, {
+const handler = new RPCHandler(durableEventIteratorObjectRouter, {
   plugins: [
     new HibernationPlugin(),
   ],

@@ -1,40 +1,42 @@
-import type { AsyncIteratorClassCleanupFn, AsyncIteratorClassNextFn } from '@orpc/shared'
 import type { experimental_DurableEventIteratorObject as DurableEventIteratorObject } from '../object'
 import { AsyncIteratorClass } from '@orpc/shared'
 
 const DURABLE_EVENT_ITERATOR_CLIENT_JWT_SYMBOL = Symbol('ORPC_DURABLE_EVENT_ITERATOR_CLIENT_JWT')
 
-export interface experimental_DurableEventIteratorClient<
+export interface experimental_ClientDurableEventIterator<
   T extends DurableEventIteratorObject<TEventPayload, any, any>,
   TEventPayload = unknown,
 > extends AsyncIteratorClass<TEventPayload> {
 
 }
 
+export interface experimental_CreateClientDurableEventIteratorOptions {
+  jwt: string
+}
+
 export function experimental_createClientDurableEventIterator<
   T extends DurableEventIteratorObject<any, any, any>,
 >(
-  jwt: string,
-  next: AsyncIteratorClassNextFn<T, unknown>,
-  cleanup: AsyncIteratorClassCleanupFn,
-): experimental_DurableEventIteratorClient<T> {
-  return new Proxy(new AsyncIteratorClass(
-    next,
-    cleanup,
-  ), {
+  iterator: AsyncIteratorClass<T>,
+  options: experimental_CreateClientDurableEventIteratorOptions,
+): experimental_ClientDurableEventIterator<T> {
+  return new Proxy(iterator, {
     get(target, prop, receiver) {
       if (prop === DURABLE_EVENT_ITERATOR_CLIENT_JWT_SYMBOL) {
-        return jwt
+        return options.jwt
       }
       return Reflect.get(target, prop, receiver)
     },
   })
 }
 
-export function getJwtIfEventIteratorClient(
+/**
+ * If return a JWT if the client is a Client Durable Event Iterator.
+ */
+export function getJwtIfClientDurableEventIterator(
   client: unknown,
 ): string | undefined {
   if (client instanceof AsyncIteratorClass) {
-    return (client as any)[DURABLE_EVENT_ITERATOR_CLIENT_JWT_SYMBOL] as string | undefined
+    return Reflect.get(client, DURABLE_EVENT_ITERATOR_CLIENT_JWT_SYMBOL) as string | undefined
   }
 }

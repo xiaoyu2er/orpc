@@ -2,7 +2,7 @@ import type {
   experimental_DurableEventIteratorObject as DurableEventIteratorObject,
 } from './object'
 import {
-  experimental_DurableEventIteratorServer as DurableEventIteratorServer,
+  experimental_ServerDurableEventIterator as DurableEventIteratorServer,
 } from './event-iterator'
 
 export interface experimental_DurableEventIteratorBuilderOptions {

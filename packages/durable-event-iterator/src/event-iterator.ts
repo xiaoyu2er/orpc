@@ -4,15 +4,17 @@ import type {
 import type {
   experimental_DurableEventIteratorClient as DurableEventIteratorClient,
 } from './client/event-iterator'
-import type { experimental_DurableEventIteratorObject } from './object'
+import type {
+  experimental_DurableEventIteratorObject as DurableEventIteratorObject,
+} from './object'
 import {
-  experimental_createDurableEventIteratorClient as createDurableEventIteratorClient,
+  experimental_createClientDurableEventIterator as createDurableEventIteratorClient,
 } from './client/event-iterator'
 
 export interface experimental_DurableEventIteratorOptions extends DurableEventIteratorBuilderOptions {}
 
-export class experimental_DurableEventIteratorServer<
-  T extends experimental_DurableEventIteratorObject<any, any, any>,
+export class experimental_ServerDurableEventIterator<
+  T extends DurableEventIteratorObject<any, any, any>,
 > implements PromiseLike<DurableEventIteratorClient<T>> {
   constructor(
     private readonly channel: string,

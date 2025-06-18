@@ -35,7 +35,7 @@
 - **🔗 End-to-End Type Safety**: Ensure type-safe inputs, outputs, and errors from client to server.
 - **📘 First-Class OpenAPI**: Built-in support that fully adheres to the OpenAPI standard.
 - **📝 Contract-First Development**: Optionally define your API contract before implementation.
-- **⚙️ Framework Integrations**: Seamlessly integrate with TanStack Query (React, Vue, Solid, Svelte), Pinia Colada, and more.
+- **⚙️ Framework Integrations**: Seamlessly integrate with TanStack Query (React, Vue, Solid, Svelte, Angular), Pinia Colada, and more.
 - **🚀 Server Actions**: Fully compatible with React Server Actions on Next.js, TanStack Start, and other platforms.
 - **🔠 Standard Schema Support**: Works out of the box with Zod, Valibot, ArkType, and other schema validators.
 - **🗃️ Native Types**: Supports native types like Date, File, Blob, BigInt, URL, and more.

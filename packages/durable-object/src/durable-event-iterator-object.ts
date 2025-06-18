@@ -27,11 +27,11 @@ const handler = new RPCHandler(router, {
   ],
 })
 
-export interface experimental_ORPCDurableObjectOptions extends StandardRPCJsonSerializerOptions {
+export interface experimental_DurableEventIteratorObjectOptions extends StandardRPCJsonSerializerOptions {
 
 }
 
-export interface experimental_ORPCDurableObjectPublishEventOptions {
+export interface experimental_DurableEventIteratorObjectPublishEventOptions {
   /**
    * A filter function to determine which WebSocket connections should receive the event.
    * If not provided, all connected WebSockets will receive the event.
@@ -39,33 +39,33 @@ export interface experimental_ORPCDurableObjectPublishEventOptions {
   filter?: (ws: WebSocket) => boolean
 }
 
-export type experimental_ORPCDurableObjectWsAttachment = Record<string | number, unknown> & {
+export type experimental_DurableEventIteratorObjectWsAttachment = Record<string | number, unknown> & {
   /**
    * Internal Hibernation Event Iterator ID.
    */
   [HIBERNATION_EVENT_ITERATOR_ID_KEY]?: number
 }
 
-export type experimental_ORPCDurableObjectAllowedWsAttachment = experimental_ORPCDurableObjectWsAttachment & {
+export type experimental_DurableEventIteratorObjectAllowedWsAttachment = experimental_DurableEventIteratorObjectWsAttachment & {
   /**
    * Internal Hibernation Event Iterator ID.
    */
   [HIBERNATION_EVENT_ITERATOR_ID_KEY]?: never
 }
 
-export class experimental_ORPCDurableObject<
+export class experimental_DurableEventIteratorObject<
   T,
-  TAttachment extends experimental_ORPCDurableObjectWsAttachment = experimental_ORPCDurableObjectWsAttachment,
+  TAttachment extends experimental_DurableEventIteratorObjectAllowedWsAttachment = experimental_DurableEventIteratorObjectAllowedWsAttachment,
   TEnv = unknown,
 > extends DurableObject<TEnv> {
-  protected readonly orpc_options: experimental_ORPCDurableObjectOptions
+  protected readonly orpc_options: experimental_DurableEventIteratorObjectOptions
 
-  constructor(ctx: DurableObjectState, env: TEnv, options: experimental_ORPCDurableObjectOptions = {}) {
+  constructor(ctx: DurableObjectState, env: TEnv, options: experimental_DurableEventIteratorObjectOptions = {}) {
     super(ctx, env)
     this.orpc_options = options
   }
 
-  publishEvent(payload: T, options: experimental_ORPCDurableObjectPublishEventOptions = {}): void {
+  publishEvent(payload: T, options: experimental_DurableEventIteratorObjectPublishEventOptions = {}): void {
     for (const ws of this.ctx.getWebSockets()) {
       if (options.filter && !options.filter(ws)) {
         continue
@@ -83,7 +83,7 @@ export class experimental_ORPCDurableObject<
     }
   }
 
-  protected deserializeWsAttachment(ws: WebSocket): (TAttachment & experimental_ORPCDurableObjectWsAttachment) | null {
+  protected deserializeWsAttachment(ws: WebSocket): (TAttachment & experimental_DurableEventIteratorObjectWsAttachment) | null {
     return ws.deserializeAttachment()
   }
 

@@ -1,5 +1,5 @@
 import type { AsyncIteratorClassCleanupFn, AsyncIteratorClassNextFn } from '@orpc/shared'
-import type { experimental_DurableEventIteratorObject } from './durable-event-iterator/object'
+import type { experimental_DurableEventIteratorObject } from '../object'
 import { AsyncIteratorClass } from '@orpc/shared'
 
 const DURABLE_EVENT_ITERATOR_CLIENT_JWT_SYMBOL = Symbol('ORPC_DURABLE_EVENT_ITERATOR_CLIENT_JWT')

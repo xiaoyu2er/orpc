@@ -1,9 +1,9 @@
 import type {
   experimental_DurableEventIteratorObject as DurableEventIteratorObject,
-} from './durable-event-iterator/object'
+} from './object'
 import {
   experimental_DurableEventIteratorServer as DurableEventIteratorServer,
-} from './server'
+} from './event-iterator'
 
 export interface experimental_DurableEventIteratorBuilderOptions {
   secret: string

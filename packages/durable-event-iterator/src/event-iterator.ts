@@ -3,11 +3,11 @@ import type {
 } from './builder'
 import type {
   experimental_DurableEventIteratorClient as DurableEventIteratorClient,
-} from './client'
-import type { experimental_DurableEventIteratorObject } from './durable-event-iterator/object'
+} from './client/event-iterator'
+import type { experimental_DurableEventIteratorObject } from './object'
 import {
   experimental_createDurableEventIteratorClient as createDurableEventIteratorClient,
-} from './client'
+} from './client/event-iterator'
 
 export interface experimental_DurableEventIteratorOptions extends DurableEventIteratorBuilderOptions {}
 
@@ -21,6 +21,7 @@ export class experimental_DurableEventIteratorServer<
 
   then<TResult1 = DurableEventIteratorClient<T, unknown>, TResult2 = never>(onfulfilled?: ((value: DurableEventIteratorClient<T, unknown>) => TResult1 | PromiseLike<TResult1>) | null | undefined, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null | undefined): PromiseLike<TResult1 | TResult2> {
     return Promise.resolve(createDurableEventIteratorClient(
+      'jwt',
       () => Promise.reject(new Error('[DurableEventIteratorServer] cannot be iterated directly.')),
       () => Promise.reject(new Error('[DurableEventIteratorServer] cannot be cleaned up directly.')),
     )).then(onfulfilled, onrejected)

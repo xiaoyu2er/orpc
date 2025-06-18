@@ -224,7 +224,7 @@ importers:
         specifier: ^3.25.67
         version: 3.25.67
 
-  packages/durable-object:
+  packages/durable-event-iterator:
     dependencies:
       '@orpc/client':
         specifier: workspace:*

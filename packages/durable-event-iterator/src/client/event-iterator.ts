@@ -3,11 +3,9 @@ import { AsyncIteratorClass } from '@orpc/shared'
 
 const DURABLE_EVENT_ITERATOR_CLIENT_JWT_SYMBOL = Symbol('ORPC_DURABLE_EVENT_ITERATOR_CLIENT_JWT')
 
-export interface experimental_ClientDurableEventIterator<
-  T extends DurableEventIteratorObject<TEventPayload, any, any>,
-  TEventPayload = unknown,
-> extends AsyncIteratorClass<TEventPayload> {
-
+export type experimental_ClientDurableEventIterator<
+  T extends DurableEventIteratorObject<any, any, any>,
+> = AsyncIteratorClass<T extends DurableEventIteratorObject<infer TPayload, any, any> ? TPayload : never> & {
 }
 
 export interface experimental_CreateClientDurableEventIteratorOptions {
@@ -20,14 +18,17 @@ export function experimental_createClientDurableEventIterator<
   iterator: AsyncIteratorClass<T>,
   options: experimental_CreateClientDurableEventIteratorOptions,
 ): experimental_ClientDurableEventIterator<T> {
-  return new Proxy(iterator, {
+  const proxy = new Proxy(iterator, {
     get(target, prop, receiver) {
       if (prop === DURABLE_EVENT_ITERATOR_CLIENT_JWT_SYMBOL) {
         return options.jwt
       }
+
       return Reflect.get(target, prop, receiver)
     },
   })
+
+  return proxy as any
 }
 
 /**

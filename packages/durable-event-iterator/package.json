@@ -42,7 +42,9 @@
   "dependencies": {
     "@orpc/client": "workspace:*",
     "@orpc/server": "workspace:*",
-    "@orpc/shared": "workspace:*"
+    "@orpc/shared": "workspace:*",
+    "jose": "^6.0.11",
+    "valibot": "^1.1.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250617.0",

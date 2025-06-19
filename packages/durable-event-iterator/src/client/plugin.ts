@@ -5,6 +5,7 @@ import type { durableEventIteratorObjectRouter } from '../object'
 import { type ClientContext, createORPCClient } from '@orpc/client'
 import { ClientRetryPlugin } from '@orpc/client/plugins'
 import { experimental_RPCLink as RPCLink } from '@orpc/client/websocket'
+import { WebSocket as ReconnectableWebSocket } from 'partysocket'
 import { experimental_createClientDurableEventIterator as crateClientDurableEventIterator } from './event-iterator'
 
 export interface experimental_DurableEventIteratorLinkPluginContext {
@@ -16,6 +17,11 @@ export interface experimental_DurableEventIteratorLinkPluginOptions {
    * The WebSocket URL to connect to the Durable Event Iterator Object.
    */
   url: string | URL
+
+  /**
+   * Polyfill for WebSocket construction.
+   */
+  WebSocket?: typeof WebSocket
 }
 
 /**
@@ -27,9 +33,11 @@ export class experimental_DurableEventIteratorLinkPlugin<T extends ClientContext
   order = 2_100_000 // make sure execute after the batch plugin
 
   readonly #url: experimental_DurableEventIteratorLinkPluginOptions['url']
+  readonly #WebSocket: experimental_DurableEventIteratorLinkPluginOptions['WebSocket']
 
   constructor(options: experimental_DurableEventIteratorLinkPluginOptions) {
     this.#url = options.url
+    this.#WebSocket = options.WebSocket
   }
 
   init(options: StandardLinkOptions<T>): void {
@@ -56,7 +64,9 @@ export class experimental_DurableEventIteratorLinkPlugin<T extends ClientContext
       url.searchParams.append('jwt', jwt)
 
       const durableLink = new RPCLink<ClientRetryPluginContext>({
-        websocket: new WebSocket(url),
+        websocket: new ReconnectableWebSocket(url.toString(), undefined, {
+          WebSocket: this.#WebSocket,
+        }),
         plugins: [
           new ClientRetryPlugin(),
         ],

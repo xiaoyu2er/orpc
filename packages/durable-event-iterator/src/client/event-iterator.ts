@@ -19,12 +19,19 @@ export function experimental_createClientDurableEventIterator<
   options: experimental_CreateClientDurableEventIteratorOptions,
 ): experimental_ClientDurableEventIterator<T> {
   const proxy = new Proxy(iterator, {
-    get(target, prop, receiver) {
+    get(target, prop) {
       if (prop === DURABLE_EVENT_ITERATOR_CLIENT_JWT_SYMBOL) {
         return options.jwt
       }
 
-      return Reflect.get(target, prop, receiver)
+      const value = Reflect.get(target, prop, target)
+
+      if (typeof value === 'function') {
+        // async iterators require this
+        return value.bind(target)
+      }
+
+      return value
     },
   })
 

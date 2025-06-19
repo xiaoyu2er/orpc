@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { chatRoomClient } from '../lib/chat-room'
+import { client } from '../lib/orpc'
 
 export function ChatRoom() {
   const [messages, setMessages] = useState<string[]>([])
@@ -8,7 +8,8 @@ export function ChatRoom() {
     const controller = new AbortController()
 
     void (async () => {
-      for await (const message of await chatRoomClient.onMessage(undefined, { signal: controller.signal })) {
+      for await (const message of await client.onMessage(undefined, { signal: controller.signal })) {
+        console.log({ message })
         setMessages(messages => [...messages, message])
       }
     })()
@@ -24,7 +25,7 @@ export function ChatRoom() {
     const form = new FormData(e.target as HTMLFormElement)
     const message = form.get('message') as string
 
-    await chatRoomClient.send({ message })
+    await client.sendMessage({ message })
   }
 
   return (

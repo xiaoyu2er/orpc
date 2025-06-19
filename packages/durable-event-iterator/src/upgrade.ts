@@ -1,0 +1,69 @@
+import type { Interceptor } from '@orpc/shared'
+import type {
+  experimental_DurableEventIteratorObject as DurableEventIteratorObject,
+} from './object'
+import type {
+  experimental_DurableEventIteratorJWTPayload as DurableEventIteratorJWTPayload,
+} from './schemas'
+import { intercept, stringifyJSON, toArray } from '@orpc/shared'
+import { jwtVerify } from 'jose'
+import * as v from 'valibot'
+import {
+  experimental_DurableEventIteratorJWTPayloadSchema as DurableEventIteratorJWTPayloadSchema,
+} from './schemas'
+
+export interface experimental_UpgradeDurableEventIteratorRequestOptions {
+  namespace: DurableObjectNamespace<DurableEventIteratorObject<any, any, any>>
+  secret: string
+  interceptors?: Interceptor<{ jwtPayload: DurableEventIteratorJWTPayload }, Promise<Response>>[]
+}
+
+/**
+ * Verifies and upgrades a durable event iterator request.
+ */
+export async function experimental_upgradeDurableEventIteratorRequest(
+  request: Request,
+  options: experimental_UpgradeDurableEventIteratorRequestOptions,
+): Promise<Response> {
+  if (request.headers.get('upgrade') !== 'websocket') {
+    return new Response('Expected WebSocket upgrade', {
+      status: 426,
+    })
+  }
+
+  const url = new URL(request.url)
+  const jwt = url.searchParams.getAll('jwt').at(-1)
+
+  if (!jwt) {
+    return new Response('JWT is required', {
+      status: 401,
+    })
+  }
+
+  let jwtPayload
+
+  try {
+    const { payload } = await jwtVerify(jwt, new TextEncoder().encode(options.secret))
+    jwtPayload = v.parse(DurableEventIteratorJWTPayloadSchema, payload)
+  }
+  catch {
+    return new Response('Invalid JWT', {
+      status: 401,
+    })
+  }
+
+  return intercept(
+    toArray(options.interceptors),
+    { jwtPayload },
+    async ({ jwtPayload }) => {
+      const id = options.namespace.idFromName(jwtPayload.channel)
+      const stub = options.namespace.get(id)
+
+      const upgradeUrl = new URL(url.origin + url.pathname)
+
+      upgradeUrl.searchParams.set('jwtPayload', stringifyJSON(jwtPayload))
+
+      return stub.fetch(upgradeUrl, request)
+    },
+  )
+}

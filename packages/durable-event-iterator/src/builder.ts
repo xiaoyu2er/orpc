@@ -17,7 +17,7 @@ export class experimental_DurableEventIteratorBuilder<
   ) {
   }
 
-  channel(
+  subscribe(
     channel: string,
   ): DurableEventIteratorServer<T> {
     return new DurableEventIteratorServer<T>(channel, this.options)

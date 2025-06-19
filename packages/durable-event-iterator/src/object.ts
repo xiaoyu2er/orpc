@@ -1,4 +1,7 @@
 import type { StandardRPCJsonSerializerOptions } from '@orpc/client/standard'
+import type {
+  experimental_DurableEventIteratorJWTPayload as DurableEventIteratorJWTPayload,
+} from './schemas'
 import { os } from '@orpc/server'
 import {
   experimental_encodeHibernationRPCEvent as encodeHibernationRPCEvent,
@@ -9,6 +12,7 @@ import { experimental_RPCHandler as RPCHandler } from '@orpc/server/websocket'
 import { DurableObject } from 'cloudflare:workers'
 
 const HIBERNATION_EVENT_ITERATOR_ID_KEY = 'orpc_heii' as const
+const JWT_PAYLOAD_KEY = 'orpc_jwtp' as const
 
 const base = os.$context<{ ws: WebSocket, ctx: DurableObjectState }>()
 
@@ -39,23 +43,25 @@ export interface experimental_DurableEventIteratorObjectPublishEventOptions {
   filter?: (ws: WebSocket) => boolean
 }
 
-export type experimental_DurableEventIteratorObjectWsAttachment = Record<string | number, unknown> & {
+export type experimental_DurableEventIteratorObjectInternalWsAttachment = {
   /**
    * Internal Hibernation Event Iterator ID.
    */
   [HIBERNATION_EVENT_ITERATOR_ID_KEY]?: number
+
+  /**
+   * The payload of the JWT used to authenticate the WebSocket connection.
+   */
+  [JWT_PAYLOAD_KEY]: DurableEventIteratorJWTPayload
 }
 
-export type experimental_DurableEventIteratorObjectAllowedWsAttachment = experimental_DurableEventIteratorObjectWsAttachment & {
-  /**
-   * Internal Hibernation Event Iterator ID.
-   */
-  [HIBERNATION_EVENT_ITERATOR_ID_KEY]?: never
-}
+export type experimental_DurableEventIteratorObjectWsAttachment
+  = Record<string | number, unknown>
+    & Record<keyof experimental_DurableEventIteratorObjectInternalWsAttachment, never>
 
 export class experimental_DurableEventIteratorObject<
   T,
-  TAttachment extends experimental_DurableEventIteratorObjectAllowedWsAttachment = experimental_DurableEventIteratorObjectAllowedWsAttachment,
+  TAttachment extends experimental_DurableEventIteratorObjectWsAttachment = experimental_DurableEventIteratorObjectWsAttachment,
   TEnv = unknown,
 > extends DurableObject<TEnv> {
   protected readonly orpc_options: experimental_DurableEventIteratorObjectOptions
@@ -83,7 +89,7 @@ export class experimental_DurableEventIteratorObject<
     }
   }
 
-  protected deserializeWsAttachment(ws: WebSocket): (TAttachment & experimental_DurableEventIteratorObjectWsAttachment) | null {
+  protected deserializeWsAttachment(ws: WebSocket): TAttachment & experimental_DurableEventIteratorObjectInternalWsAttachment {
     return ws.deserializeAttachment()
   }
 
@@ -92,23 +98,29 @@ export class experimental_DurableEventIteratorObject<
 
     ws.serializeAttachment({
       ...attachment,
-      [HIBERNATION_EVENT_ITERATOR_ID_KEY]: old?.[HIBERNATION_EVENT_ITERATOR_ID_KEY],
+      [HIBERNATION_EVENT_ITERATOR_ID_KEY]: old[HIBERNATION_EVENT_ITERATOR_ID_KEY],
+      [JWT_PAYLOAD_KEY]: old[JWT_PAYLOAD_KEY],
     })
   }
 
-  override fetch(request: Request): Response | Promise<Response> {
-    if (request.headers.get('upgrade') === 'websocket') {
-      const { '0': client, '1': server } = new WebSocketPair()
+  /**
+   * Internally used to upgrade the WebSocket connection
+   *
+   * @warning No verification is done here, you should verify the JWT payload before calling this method.
+   */
+  override async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url)
+    const jwtPayload = JSON.parse(url.searchParams.get('jwtPayload')!) as DurableEventIteratorJWTPayload
 
-      this.ctx.acceptWebSocket(server)
+    const { '0': client, '1': server } = new WebSocketPair()
 
-      return new Response(null, {
-        status: 101,
-        webSocket: client,
-      })
-    }
+    this.ctx.acceptWebSocket(server)
+    server.serializeAttachment({ jwtPayload })
 
-    return new Response('Not Found', { status: 404 })
+    return new Response(null, {
+      status: 101,
+      webSocket: client,
+    })
   }
 
   override async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer): Promise<void> {

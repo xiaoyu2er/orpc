@@ -6,7 +6,7 @@ import {
 } from './event-iterator'
 
 export interface experimental_DurableEventIteratorBuilderOptions {
-  secret: string
+  signingKey: string
 }
 
 export class experimental_DurableEventIteratorBuilder<

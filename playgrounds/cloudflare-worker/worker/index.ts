@@ -15,7 +15,7 @@ const base = os.$context<{
 export const router = {
   onMessage: base.handler(({ context }) => {
     const builder = new DurableEventIteratorBuilder<ChatRoom>({
-      secret: 'secret',
+      signingKey: 'key',
     })
 
     return builder.subscribe('chat-room')
@@ -42,7 +42,7 @@ export default {
 
     if (url.pathname === '/chat-room') {
       return upgradeDurableEventIteratorRequest(request, {
-        secret: 'secret',
+        signingKey: 'key',
         namespace: env.CHAT_ROOM,
       })
     }

@@ -16,25 +16,41 @@ import {
   experimental_createClientDurableEventIterator as createClientDurableEventIterator,
 } from './client'
 
-export interface experimental_ServerDurableEventIteratorOptions extends DurableEventIteratorBuilderOptions {}
+export interface experimental_ServerDurableEventIteratorOptions extends DurableEventIteratorBuilderOptions {
+  /**
+   * Time to live for the JWT in seconds.
+   *
+   * @default 24 hours (60 * 60 * 24)
+   */
+  tokenLifetime?: number
+}
 
 export class experimental_ServerDurableEventIterator<
   T extends DurableEventIteratorObject<any, any, any>,
 > implements PromiseLike<ClientDurableEventIterator<T>> {
+  readonly #channel: string
+  readonly #signingKey: string
+  readonly #tokenLifetime: number
+
   constructor(
-    private readonly channel: string,
-    private readonly options: experimental_ServerDurableEventIteratorOptions,
-  ) {}
+    channel: string,
+    options: experimental_ServerDurableEventIteratorOptions,
+  ) {
+    this.#channel = channel
+    this.#signingKey = options.signingKey
+    this.#tokenLifetime = options.tokenLifetime ?? 60 * 60 * 24 // 24 hours
+  }
 
   then<TResult1 = ClientDurableEventIterator<T>, TResult2 = never>(onfulfilled?: ((value: ClientDurableEventIterator<T>) => TResult1 | PromiseLike<TResult1>) | null | undefined, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null | undefined): PromiseLike<TResult1 | TResult2> {
     const payload: DurableEventIteratorJWTPayload = {
-      channel: this.channel,
+      chn: this.#channel,
     }
 
     return (async () => {
       const jwt = await new SignJWT(payload)
         .setProtectedHeader({ alg: 'HS256' })
-        .sign(new TextEncoder().encode(this.options.secret))
+        .setExpirationTime(new Date(Date.now() + this.#tokenLifetime * 1000))
+        .sign(new TextEncoder().encode(this.#signingKey))
 
       const iterator = new AsyncIteratorClass<any>(
         () => Promise.reject(new Error('[DurableEventIteratorServer] cannot be iterated directly.')),

@@ -14,7 +14,7 @@ import {
 
 export interface experimental_UpgradeDurableEventIteratorRequestOptions {
   namespace: DurableObjectNamespace<DurableEventIteratorObject<any, any, any>>
-  secret: string
+  signingKey: string
   interceptors?: Interceptor<{ jwtPayload: DurableEventIteratorJWTPayload }, Promise<Response>>[]
 }
 
@@ -43,7 +43,7 @@ export async function experimental_upgradeDurableEventIteratorRequest(
   let jwtPayload
 
   try {
-    const { payload } = await jwtVerify(jwt, new TextEncoder().encode(options.secret))
+    const { payload } = await jwtVerify(jwt, new TextEncoder().encode(options.signingKey))
     jwtPayload = v.parse(DurableEventIteratorJWTPayloadSchema, payload)
   }
   catch {
@@ -56,7 +56,7 @@ export async function experimental_upgradeDurableEventIteratorRequest(
     toArray(options.interceptors),
     { jwtPayload },
     async ({ jwtPayload }) => {
-      const id = options.namespace.idFromName(jwtPayload.channel)
+      const id = options.namespace.idFromName(jwtPayload.chn)
       const stub = options.namespace.get(id)
 
       const upgradeUrl = new URL(url.origin + url.pathname)

@@ -1,11 +1,17 @@
 import type { ClientRetryPluginContext } from '@orpc/client/plugins'
 import type { StandardLinkOptions, StandardLinkPlugin } from '@orpc/client/standard'
 import type { RouterClient } from '@orpc/server'
-import type { durableEventIteratorObjectRouter } from '../object'
+import type {
+  experimental_durableEventIteratorObjectRouter as durableEventIteratorObjectRouter,
+} from '../object'
 import { type ClientContext, createORPCClient } from '@orpc/client'
 import { ClientRetryPlugin } from '@orpc/client/plugins'
 import { experimental_RPCLink as RPCLink } from '@orpc/client/websocket'
 import { WebSocket as ReconnectableWebSocket } from 'partysocket'
+import {
+  experimental_HIBERNATION_EVENT_ITERATOR_HEADER_KEY as HIBERNATION_EVENT_ITERATOR_HEADER_KEY,
+  experimental_HIBERNATION_EVENT_ITERATOR_HEADER_VALUE as HIBERNATION_EVENT_ITERATOR_HEADER_VALUE,
+} from '../consts'
 import { experimental_createClientDurableEventIterator as crateClientDurableEventIterator } from './event-iterator'
 
 export interface experimental_DurableEventIteratorLinkPluginContext {
@@ -96,7 +102,7 @@ export class experimental_DurableEventIteratorLinkPlugin<T extends ClientContext
 
       const response = await options.next()
 
-      pluginContext.isDurableEventIteratorResponse = response.headers['x-orpc-durable-event-iterator'] === '1'
+      pluginContext.isDurableEventIteratorResponse = response.headers[HIBERNATION_EVENT_ITERATOR_HEADER_KEY] === HIBERNATION_EVENT_ITERATOR_HEADER_VALUE
 
       return response
     })

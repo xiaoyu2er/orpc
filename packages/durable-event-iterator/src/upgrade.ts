@@ -9,6 +9,9 @@ import { intercept, stringifyJSON, toArray } from '@orpc/shared'
 import { jwtVerify } from 'jose'
 import * as v from 'valibot'
 import {
+  experimental_HIBERNATION_EVENT_ITERATOR_JWT_PAYLOAD_KEY as HIBERNATION_EVENT_ITERATOR_JWT_PAYLOAD_KEY,
+} from './consts'
+import {
   experimental_DurableEventIteratorJWTPayloadSchema as DurableEventIteratorJWTPayloadSchema,
 } from './schemas'
 
@@ -61,7 +64,7 @@ export async function experimental_upgradeDurableEventIteratorRequest(
 
       const upgradeUrl = new URL(url.origin + url.pathname)
 
-      upgradeUrl.searchParams.set('jwtPayload', stringifyJSON(jwtPayload))
+      upgradeUrl.searchParams.set(HIBERNATION_EVENT_ITERATOR_JWT_PAYLOAD_KEY, stringifyJSON(jwtPayload))
 
       return stub.fetch(upgradeUrl, request)
     },

@@ -41,7 +41,7 @@ export function experimental_createClientDurableEventIterator<
 /**
  * If return a JWT if the client is a Client Durable Event Iterator.
  */
-export function getJwtIfClientDurableEventIterator(
+export function experimental_getJwtIfClientDurableEventIterator(
   client: unknown,
 ): string | undefined {
   if (client instanceof AsyncIteratorClass) {

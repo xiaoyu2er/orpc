@@ -10,13 +10,14 @@ import {
 } from '@orpc/server/hibernation'
 import { experimental_RPCHandler as RPCHandler } from '@orpc/server/websocket'
 import { DurableObject } from 'cloudflare:workers'
-
-const HIBERNATION_EVENT_ITERATOR_ID_KEY = 'orpc_heii' as const
-const JWT_PAYLOAD_KEY = 'orpc_jwtp' as const
+import {
+  experimental_HIBERNATION_EVENT_ITERATOR_ID_KEY as HIBERNATION_EVENT_ITERATOR_ID_KEY,
+  experimental_HIBERNATION_EVENT_ITERATOR_JWT_PAYLOAD_KEY as HIBERNATION_EVENT_ITERATOR_JWT_PAYLOAD_KEY,
+} from './consts'
 
 const base = os.$context<{ ws: WebSocket, ctx: DurableObjectState }>()
 
-export const durableEventIteratorObjectRouter = {
+export const experimental_durableEventIteratorObjectRouter = {
   subscribe: base.handler(({ context }) => {
     return new HibernationEventIterator<any>((id) => {
       const attachment = context.ws.deserializeAttachment()
@@ -25,7 +26,7 @@ export const durableEventIteratorObjectRouter = {
   }),
 }
 
-const handler = new RPCHandler(durableEventIteratorObjectRouter, {
+const handler = new RPCHandler(experimental_durableEventIteratorObjectRouter, {
   plugins: [
     new HibernationPlugin(),
   ],
@@ -52,7 +53,7 @@ export type experimental_DurableEventIteratorObjectInternalWsAttachment = {
   /**
    * The payload of the JWT used to authenticate the WebSocket connection.
    */
-  [JWT_PAYLOAD_KEY]: DurableEventIteratorJWTPayload
+  [HIBERNATION_EVENT_ITERATOR_JWT_PAYLOAD_KEY]: DurableEventIteratorJWTPayload
 }
 
 export type experimental_DurableEventIteratorObjectWsAttachment
@@ -99,7 +100,7 @@ export class experimental_DurableEventIteratorObject<
     ws.serializeAttachment({
       ...attachment,
       [HIBERNATION_EVENT_ITERATOR_ID_KEY]: old[HIBERNATION_EVENT_ITERATOR_ID_KEY],
-      [JWT_PAYLOAD_KEY]: old[JWT_PAYLOAD_KEY],
+      [HIBERNATION_EVENT_ITERATOR_JWT_PAYLOAD_KEY]: old[HIBERNATION_EVENT_ITERATOR_JWT_PAYLOAD_KEY],
     })
   }
 
@@ -110,12 +111,12 @@ export class experimental_DurableEventIteratorObject<
    */
   override async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url)
-    const jwtPayload = JSON.parse(url.searchParams.get('jwtPayload')!) as DurableEventIteratorJWTPayload
+    const payload = JSON.parse(url.searchParams.get(HIBERNATION_EVENT_ITERATOR_JWT_PAYLOAD_KEY)!) as DurableEventIteratorJWTPayload
 
     const { '0': client, '1': server } = new WebSocketPair()
 
     this.ctx.acceptWebSocket(server)
-    server.serializeAttachment({ jwtPayload })
+    server.serializeAttachment({ [HIBERNATION_EVENT_ITERATOR_JWT_PAYLOAD_KEY]: payload })
 
     return new Response(null, {
       status: 101,

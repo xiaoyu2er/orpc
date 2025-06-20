@@ -839,7 +839,7 @@ importers:
       '@orpc/client':
         specifier: next
         version: link:../../packages/client
-      '@orpc/durable-event-iterator':
+      '@orpc/experimental-durable-event-iterator':
         specifier: next
         version: link:../../packages/durable-event-iterator
       '@orpc/server':

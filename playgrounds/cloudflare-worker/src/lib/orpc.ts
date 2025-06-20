@@ -1,8 +1,6 @@
 import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
-import {
-  experimental_DurableEventIteratorLinkPlugin as DurableEventIteratorLinkPlugin,
-} from '@orpc/durable-event-iterator/client'
+import { DurableEventIteratorLinkPlugin } from '@orpc/experimental-durable-event-iterator/client'
 import type { RouterClient } from '@orpc/server'
 import type { router } from '../../worker'
 

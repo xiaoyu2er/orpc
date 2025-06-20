@@ -1,19 +1,17 @@
-import type {
-  experimental_DurableEventIteratorObject as DurableEventIteratorObject,
-} from './object'
+import type { DurableEventIteratorObject } from './durable-object'
 import {
-  experimental_ServerDurableEventIterator as DurableEventIteratorServer,
+  ServerDurableEventIterator as DurableEventIteratorServer,
 } from './event-iterator'
 
-export interface experimental_DurableEventIteratorBuilderOptions {
+export interface DurableEventIteratorBuilderOptions {
   signingKey: string
 }
 
-export class experimental_DurableEventIteratorBuilder<
+export class DurableEventIteratorBuilder<
   T extends DurableEventIteratorObject<any, any, any>,
 > {
   constructor(
-    private readonly options: experimental_DurableEventIteratorBuilderOptions,
+    private readonly options: DurableEventIteratorBuilderOptions,
   ) {
   }
 

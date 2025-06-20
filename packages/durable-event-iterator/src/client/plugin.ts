@@ -1,25 +1,19 @@
 import type { ClientRetryPluginContext } from '@orpc/client/plugins'
 import type { StandardLinkOptions, StandardLinkPlugin } from '@orpc/client/standard'
 import type { RouterClient } from '@orpc/server'
-import type {
-  experimental_durableEventIteratorObjectRouter as durableEventIteratorObjectRouter,
-} from '../object'
+import type { durableEventIteratorObjectRouter } from '../durable-object'
 import { type ClientContext, createORPCClient } from '@orpc/client'
 import { ClientRetryPlugin } from '@orpc/client/plugins'
 import { experimental_RPCLink as RPCLink } from '@orpc/client/websocket'
 import { WebSocket as ReconnectableWebSocket } from 'partysocket'
-import {
-  experimental_DURABLE_EVENT_ITERATOR_HEADER_KEY as DURABLE_EVENT_ITERATOR_HEADER_KEY,
-  experimental_DURABLE_EVENT_ITERATOR_HEADER_VALUE as DURABLE_EVENT_ITERATOR_HEADER_VALUE,
-  experimental_DURABLE_EVENT_ITERATOR_JWT_PARAM as DURABLE_EVENT_ITERATOR_JWT_PARAM,
-} from '../consts'
-import { experimental_createClientDurableEventIterator as crateClientDurableEventIterator } from './event-iterator'
+import { DURABLE_EVENT_ITERATOR_HEADER_KEY, DURABLE_EVENT_ITERATOR_HEADER_VALUE, DURABLE_EVENT_ITERATOR_JWT_PARAM } from '../consts'
+import { createClientDurableEventIterator as crateClientDurableEventIterator } from './event-iterator'
 
-export interface experimental_DurableEventIteratorLinkPluginContext {
+export interface DurableEventIteratorLinkPluginContext {
   isDurableEventIteratorResponse?: boolean
 }
 
-export interface experimental_DurableEventIteratorLinkPluginOptions {
+export interface DurableEventIteratorLinkPluginOptions {
   /**
    * The WebSocket URL to connect to the Durable Event Iterator Object.
    */
@@ -34,15 +28,15 @@ export interface experimental_DurableEventIteratorLinkPluginOptions {
 /**
  * @see {@link https://orpc.unnoq.com/docs/integrations/durable-event-iterator Durable Event Iterator Integration}
  */
-export class experimental_DurableEventIteratorLinkPlugin<T extends ClientContext> implements StandardLinkPlugin<T> {
+export class DurableEventIteratorLinkPlugin<T extends ClientContext> implements StandardLinkPlugin<T> {
   readonly CONTEXT_SYMBOL = Symbol('ORPC_DURABLE_EVENT_ITERATOR_LINK_PLUGIN_CONTEXT')
 
   order = 2_100_000 // make sure execute after the batch plugin
 
-  readonly #url: experimental_DurableEventIteratorLinkPluginOptions['url']
-  readonly #WebSocket: experimental_DurableEventIteratorLinkPluginOptions['WebSocket']
+  readonly #url: DurableEventIteratorLinkPluginOptions['url']
+  readonly #WebSocket: DurableEventIteratorLinkPluginOptions['WebSocket']
 
-  constructor(options: experimental_DurableEventIteratorLinkPluginOptions) {
+  constructor(options: DurableEventIteratorLinkPluginOptions) {
     this.#url = options.url
     this.#WebSocket = options.WebSocket
   }
@@ -52,7 +46,7 @@ export class experimental_DurableEventIteratorLinkPlugin<T extends ClientContext
     options.clientInterceptors ??= []
 
     options.interceptors.unshift(async (options) => {
-      const pluginContext: experimental_DurableEventIteratorLinkPluginContext = {}
+      const pluginContext: DurableEventIteratorLinkPluginContext = {}
 
       const output = await options.next({
         ...options,
@@ -95,7 +89,7 @@ export class experimental_DurableEventIteratorLinkPlugin<T extends ClientContext
     })
 
     options.clientInterceptors.unshift(async (options) => {
-      const pluginContext = options.context[this.CONTEXT_SYMBOL] as experimental_DurableEventIteratorLinkPluginContext | undefined
+      const pluginContext = options.context[this.CONTEXT_SYMBOL] as DurableEventIteratorLinkPluginContext | undefined
 
       if (!pluginContext) {
         throw new TypeError('[DurableEventIteratorLinkPlugin] Plugin context has been corrupted or modified by another plugin or interceptor')

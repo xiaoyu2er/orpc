@@ -1,22 +1,22 @@
 import type { Interceptor } from '@orpc/shared'
 import type {
-  experimental_DurableEventIteratorObject as DurableEventIteratorObject,
-} from './object'
+  DurableEventIteratorObject,
+} from '.'
 import type {
-  experimental_DurableEventIteratorJWTPayload as DurableEventIteratorJWTPayload,
-} from './schemas'
+  DurableEventIteratorJWTPayload,
+} from '../schemas'
 import { intercept, stringifyJSON, toArray } from '@orpc/shared'
 import { jwtVerify } from 'jose'
 import * as v from 'valibot'
 import {
-  experimental_DURABLE_EVENT_ITERATOR_JWT_PARAM as DURABLE_EVENT_ITERATOR_JWT_PARAM,
-  experimental_DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY as DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY,
-} from './consts'
+  DURABLE_EVENT_ITERATOR_JWT_PARAM,
+  DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY,
+} from '../consts'
 import {
-  experimental_DurableEventIteratorJWTPayloadSchema as DurableEventIteratorJWTPayloadSchema,
-} from './schemas'
+  DurableEventIteratorJWTPayloadSchema,
+} from '../schemas'
 
-export interface experimental_UpgradeDurableEventIteratorRequestOptions {
+export interface UpgradeDurableEventIteratorRequestOptions {
   namespace: DurableObjectNamespace<DurableEventIteratorObject<any, any, any>>
   signingKey: string
   interceptors?: Interceptor<{ jwtPayload: DurableEventIteratorJWTPayload }, Promise<Response>>[]
@@ -25,9 +25,9 @@ export interface experimental_UpgradeDurableEventIteratorRequestOptions {
 /**
  * Verifies and upgrades a durable event iterator request.
  */
-export async function experimental_upgradeDurableEventIteratorRequest(
+export async function upgradeDurableEventIteratorRequest(
   request: Request,
-  options: experimental_UpgradeDurableEventIteratorRequestOptions,
+  options: UpgradeDurableEventIteratorRequestOptions,
 ): Promise<Response> {
   if (request.headers.get('upgrade') !== 'websocket') {
     return new Response('Expected WebSocket upgrade', {

@@ -1,21 +1,21 @@
 import type { Context, Router } from '@orpc/server'
 import type { StandardHandlerOptions, StandardHandlerPlugin } from '@orpc/server/standard'
 import {
-  experimental_getJwtIfClientDurableEventIterator as getJwtIfClientDurableEventIterator,
+  getJwtIfClientDurableEventIterator,
 } from './client'
 import {
-  experimental_DURABLE_EVENT_ITERATOR_HEADER_KEY as DURABLE_EVENT_ITERATOR_HEADER_KEY,
-  experimental_DURABLE_EVENT_ITERATOR_HEADER_VALUE as DURABLE_EVENT_ITERATOR_HEADER_VALUE,
+  DURABLE_EVENT_ITERATOR_HEADER_KEY,
+  DURABLE_EVENT_ITERATOR_HEADER_VALUE,
 } from './consts'
 
-export interface experimental_DurableEventIteratorHandlerPluginContext {
+export interface DurableEventIteratorHandlerPluginContext {
   isClientDurableEventIteratorOutput?: boolean
 }
 
 /**
  * @see {@link https://orpc.unnoq.com/docs/integrations/durable-event-iterator Durable Event Iterator Integration}
  */
-export class experimental_DurableEventIteratorHandlerPlugin<T extends Context> implements StandardHandlerPlugin<T> {
+export class DurableEventIteratorHandlerPlugin<T extends Context> implements StandardHandlerPlugin<T> {
   readonly CONTEXT_SYMBOL = Symbol('ORPC_DURABLE_EVENT_ITERATOR_HANDLER_PLUGIN_CONTEXT')
 
   order = 2_100_000 // make sure execute after the batch plugin
@@ -25,7 +25,7 @@ export class experimental_DurableEventIteratorHandlerPlugin<T extends Context> i
     options.clientInterceptors ??= []
 
     options.interceptors.unshift(async (options) => {
-      const pluginContext: experimental_DurableEventIteratorHandlerPluginContext = {}
+      const pluginContext: DurableEventIteratorHandlerPluginContext = {}
 
       const result = await options.next({
         ...options,
@@ -54,7 +54,7 @@ export class experimental_DurableEventIteratorHandlerPlugin<T extends Context> i
     })
 
     options.clientInterceptors.unshift(async (options) => {
-      const pluginContext = options.context[this.CONTEXT_SYMBOL] as experimental_DurableEventIteratorHandlerPluginContext | undefined
+      const pluginContext = options.context[this.CONTEXT_SYMBOL] as DurableEventIteratorHandlerPluginContext | undefined
 
       if (!pluginContext) {
         throw new TypeError('[DurableEventIteratorHandlerPlugin] Plugin context has been corrupted or modified by another plugin or interceptor')

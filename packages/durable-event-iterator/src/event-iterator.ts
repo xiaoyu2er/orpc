@@ -1,22 +1,22 @@
 import type {
-  experimental_DurableEventIteratorBuilderOptions as DurableEventIteratorBuilderOptions,
+  DurableEventIteratorBuilderOptions,
 } from './builder'
 import type {
-  experimental_ClientDurableEventIterator as ClientDurableEventIterator,
+  ClientDurableEventIterator,
 } from './client'
 import type {
-  experimental_DurableEventIteratorObject as DurableEventIteratorObject,
-} from './object'
+  DurableEventIteratorObject,
+} from './durable-object'
 import type {
-  experimental_DurableEventIteratorJWTPayload as DurableEventIteratorJWTPayload,
+  DurableEventIteratorJWTPayload,
 } from './schemas'
 import { AsyncIteratorClass } from '@orpc/shared'
 import { SignJWT } from 'jose'
 import {
-  experimental_createClientDurableEventIterator as createClientDurableEventIterator,
+  createClientDurableEventIterator,
 } from './client'
 
-export interface experimental_ServerDurableEventIteratorOptions extends DurableEventIteratorBuilderOptions {
+export interface ServerDurableEventIteratorOptions extends DurableEventIteratorBuilderOptions {
   /**
    * Time to live for the JWT in seconds.
    *
@@ -25,7 +25,7 @@ export interface experimental_ServerDurableEventIteratorOptions extends DurableE
   tokenLifetime?: number
 }
 
-export class experimental_ServerDurableEventIterator<
+export class ServerDurableEventIterator<
   T extends DurableEventIteratorObject<any, any, any>,
 > implements PromiseLike<ClientDurableEventIterator<T>> {
   readonly #channel: string
@@ -34,7 +34,7 @@ export class experimental_ServerDurableEventIterator<
 
   constructor(
     channel: string,
-    options: experimental_ServerDurableEventIteratorOptions,
+    options: ServerDurableEventIteratorOptions,
   ) {
     this.#channel = channel
     this.#signingKey = options.signingKey

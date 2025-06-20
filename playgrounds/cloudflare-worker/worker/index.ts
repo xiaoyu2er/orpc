@@ -1,10 +1,7 @@
 import { os } from '@orpc/server'
 import { RPCHandler } from '@orpc/server/fetch'
-import {
-  experimental_DurableEventIteratorBuilder as DurableEventIteratorBuilder,
-  experimental_DurableEventIteratorHandlerPlugin as DurableEventIteratorHandlerPlugin,
-  experimental_upgradeDurableEventIteratorRequest as upgradeDurableEventIteratorRequest,
-} from '@orpc/durable-event-iterator'
+import { DurableEventIteratorBuilder, DurableEventIteratorHandlerPlugin } from '@orpc/experimental-durable-event-iterator'
+import { upgradeDurableEventIteratorRequest } from '@orpc/experimental-durable-event-iterator/durable-object'
 import type { ChatRoom } from './dos/chat-room'
 import * as z from 'zod'
 

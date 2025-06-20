@@ -1,12 +1,12 @@
 import type {
-  experimental_DurableEventIteratorObjectWebsocketManager as DurableEventIteratorObjectWebsocketManager,
+  DurableEventIteratorObjectWebsocketManager,
 } from './websocket-manager'
 import { os } from '@orpc/server'
 import {
   experimental_HibernationEventIterator as HibernationEventIterator,
 } from '@orpc/server/hibernation'
 import {
-  experimental_DURABLE_EVENT_ITERATOR_ID_KEY as DURABLE_EVENT_ITERATOR_ID_KEY,
+  DURABLE_EVENT_ITERATOR_ID_KEY,
 } from '../consts'
 
 const base = os.$context<{
@@ -15,7 +15,7 @@ const base = os.$context<{
   wsManager: DurableEventIteratorObjectWebsocketManager<any, any>
 }>()
 
-export const experimental_durableEventIteratorObjectRouter = {
+export const durableEventIteratorObjectRouter = {
   subscribe: base.handler(({ context }) => {
     return new HibernationEventIterator<any>((id) => {
       context.wsManager.serializeInternalAttachment(context.ws, {

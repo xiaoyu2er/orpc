@@ -1,21 +1,16 @@
-import type {
-  experimental_DurableEventIteratorJWTPayload as DurableEventIteratorJWTPayload,
-} from '../schemas'
-import type {
-  experimental_DurableEventIteratorObjectWebsocketManagerAttachment as DurableEventIteratorObjectWebsocketManagerAttachment,
-  experimental_DurableEventIteratorObjectWebsocketManagerOptions as DurableEventIteratorObjectWebsocketManagerOptions,
-} from './websocket-manager'
+import type { DurableEventIteratorJWTPayload } from '../schemas'
+import type { DurableEventIteratorObjectWebsocketManagerAttachment, DurableEventIteratorObjectWebsocketManagerOptions } from './websocket-manager'
 import {
   experimental_HibernationPlugin as HibernationPlugin,
 } from '@orpc/server/hibernation'
 import { experimental_RPCHandler as RPCHandler } from '@orpc/server/websocket'
 import { DurableObject } from 'cloudflare:workers'
-import { experimental_DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY as DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY } from '../consts'
+import { DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY } from '../consts'
 import {
-  experimental_durableEventIteratorObjectRouter as durableEventIteratorObjectRouter,
+  durableEventIteratorObjectRouter,
 } from './router'
 import {
-  experimental_DurableEventIteratorObjectWebsocketManager as DurableEventIteratorObjectWebsocketManager,
+  DurableEventIteratorObjectWebsocketManager,
 } from './websocket-manager'
 
 const handler = new RPCHandler(durableEventIteratorObjectRouter, {
@@ -24,18 +19,18 @@ const handler = new RPCHandler(durableEventIteratorObjectRouter, {
   ],
 })
 
-export interface experimental_DurableEventIteratorObjectOptions extends DurableEventIteratorObjectWebsocketManagerOptions {
+export interface DurableEventIteratorObjectOptions extends DurableEventIteratorObjectWebsocketManagerOptions {
 
 }
 
-export class experimental_DurableEventIteratorObject<
+export class DurableEventIteratorObject<
   T extends object,
   TAttachment extends DurableEventIteratorObjectWebsocketManagerAttachment = DurableEventIteratorObjectWebsocketManagerAttachment,
   TEnv = unknown,
 > extends DurableObject<TEnv> {
   protected readonly orpcWebsocketManager: DurableEventIteratorObjectWebsocketManager<T, TAttachment>
 
-  constructor(ctx: DurableObjectState, env: TEnv, options: experimental_DurableEventIteratorObjectOptions = {}) {
+  constructor(ctx: DurableObjectState, env: TEnv, options: DurableEventIteratorObjectOptions = {}) {
     super(ctx, env)
 
     this.orpcWebsocketManager = new DurableEventIteratorObjectWebsocketManager<T, TAttachment>(ctx, options)

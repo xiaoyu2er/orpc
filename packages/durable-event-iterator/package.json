@@ -1,5 +1,5 @@
 {
-  "name": "@orpc/durable-event-iterator",
+  "name": "@orpc/experimental-durable-event-iterator",
   "type": "module",
   "version": "1.5.2",
   "license": "MIT",
@@ -20,22 +20,22 @@
         "import": "./dist/index.mjs",
         "default": "./dist/index.mjs"
       },
-      "./object": {
-        "types": "./dist/object/index.d.mts",
-        "import": "./dist/object/index.mjs",
-        "default": "./dist/object/index.mjs"
-      },
       "./client": {
         "types": "./dist/client/index.d.mts",
         "import": "./dist/client/index.mjs",
         "default": "./dist/client/index.mjs"
+      },
+      "./durable-object": {
+        "types": "./dist/durable-object/index.d.mts",
+        "import": "./dist/durable-object/index.mjs",
+        "default": "./dist/durable-object/index.mjs"
       }
     }
   },
   "exports": {
     ".": "./src/index.ts",
-    "./object": "./src/object/index.ts",
-    "./client": "./src/client/index.ts"
+    "./client": "./src/client/index.ts",
+    "./durable-object": "./src/durable-object/index.ts"
   },
   "files": [
     "dist"

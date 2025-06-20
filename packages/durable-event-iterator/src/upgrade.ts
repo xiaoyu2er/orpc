@@ -9,6 +9,7 @@ import { intercept, stringifyJSON, toArray } from '@orpc/shared'
 import { jwtVerify } from 'jose'
 import * as v from 'valibot'
 import {
+  experimental_HIBERNATION_EVENT_ITERATOR_JWT_PARAM as HIBERNATION_EVENT_ITERATOR_JWT_PARAM,
   experimental_HIBERNATION_EVENT_ITERATOR_JWT_PAYLOAD_KEY as HIBERNATION_EVENT_ITERATOR_JWT_PAYLOAD_KEY,
 } from './consts'
 import {
@@ -35,7 +36,7 @@ export async function experimental_upgradeDurableEventIteratorRequest(
   }
 
   const url = new URL(request.url)
-  const jwt = url.searchParams.getAll('jwt').at(-1)
+  const jwt = url.searchParams.getAll(HIBERNATION_EVENT_ITERATOR_JWT_PARAM).at(-1)
 
   if (!jwt) {
     return new Response('JWT is required', {

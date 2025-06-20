@@ -89,43 +89,23 @@ export const config = {
 
 ## Client
 
-Next.js doesn't natively support isomorphic functions, so you need a workaround to make client-side code compatible with SSR. This example uses `globalThis.$headers` as that workaround. Alternatively, you can use React Context like the approach mentioned in [discussions#330](https://github.com/unnoq/orpc/discussions/330#discussioncomment-12727779).
-
-::: code-group
+By leveraging `headers` from `next/headers`, you can configure the RPC link to work seamlessly in both browser and server environments:
 
 ```ts [lib/orpc.ts]
 import { RPCLink } from '@orpc/client/fetch'
-import type { headers } from 'next/headers'
-
-declare global {
-  var $headers: typeof headers
-}
 
 const link = new RPCLink({
   url: `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/rpc`,
   headers: async () => {
-    return globalThis.$headers
-      ? Object.fromEntries(await globalThis.$headers()) // use this on ssr
-      : {} // use this on browser
+    if (typeof window !== 'undefined') {
+      return {}
+    }
+
+    const { headers } = await import('next/headers')
+    return Object.fromEntries(await headers())
   },
 })
 ```
-
-```ts [lib/orpc.server.ts]
-'server only'
-
-import { headers } from 'next/headers'
-
-globalThis.$headers = headers
-```
-
-```ts [app/layout.tsx]
-import '../lib/orpc.server'
-
-// Rest of the code
-```
-
-:::
 
 :::info
 This only shows how to configure the link. For full client examples, see [Client-Side Clients](/docs/client/client-side).

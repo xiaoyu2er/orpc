@@ -9,9 +9,9 @@ import { ClientRetryPlugin } from '@orpc/client/plugins'
 import { experimental_RPCLink as RPCLink } from '@orpc/client/websocket'
 import { WebSocket as ReconnectableWebSocket } from 'partysocket'
 import {
-  experimental_HIBERNATION_EVENT_ITERATOR_HEADER_KEY as HIBERNATION_EVENT_ITERATOR_HEADER_KEY,
-  experimental_HIBERNATION_EVENT_ITERATOR_HEADER_VALUE as HIBERNATION_EVENT_ITERATOR_HEADER_VALUE,
-  experimental_HIBERNATION_EVENT_ITERATOR_JWT_PARAM as HIBERNATION_EVENT_ITERATOR_JWT_PARAM,
+  experimental_DURABLE_EVENT_ITERATOR_HEADER_KEY as DURABLE_EVENT_ITERATOR_HEADER_KEY,
+  experimental_DURABLE_EVENT_ITERATOR_HEADER_VALUE as DURABLE_EVENT_ITERATOR_HEADER_VALUE,
+  experimental_DURABLE_EVENT_ITERATOR_JWT_PARAM as DURABLE_EVENT_ITERATOR_JWT_PARAM,
 } from '../consts'
 import { experimental_createClientDurableEventIterator as crateClientDurableEventIterator } from './event-iterator'
 
@@ -68,7 +68,7 @@ export class experimental_DurableEventIteratorLinkPlugin<T extends ClientContext
 
       const jwt = output as string
       const url = new URL(this.#url)
-      url.searchParams.append(HIBERNATION_EVENT_ITERATOR_JWT_PARAM, jwt)
+      url.searchParams.append(DURABLE_EVENT_ITERATOR_JWT_PARAM, jwt)
 
       const durableLink = new RPCLink<ClientRetryPluginContext>({
         websocket: new ReconnectableWebSocket(url.toString(), undefined, {
@@ -103,7 +103,7 @@ export class experimental_DurableEventIteratorLinkPlugin<T extends ClientContext
 
       const response = await options.next()
 
-      pluginContext.isDurableEventIteratorResponse = response.headers[HIBERNATION_EVENT_ITERATOR_HEADER_KEY] === HIBERNATION_EVENT_ITERATOR_HEADER_VALUE
+      pluginContext.isDurableEventIteratorResponse = response.headers[DURABLE_EVENT_ITERATOR_HEADER_KEY] === DURABLE_EVENT_ITERATOR_HEADER_VALUE
 
       return response
     })

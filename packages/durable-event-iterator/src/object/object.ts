@@ -9,8 +9,8 @@ import {
 import { experimental_RPCHandler as RPCHandler } from '@orpc/server/websocket'
 import { DurableObject } from 'cloudflare:workers'
 import {
-  experimental_HIBERNATION_EVENT_ITERATOR_ID_KEY as HIBERNATION_EVENT_ITERATOR_ID_KEY,
-  experimental_HIBERNATION_EVENT_ITERATOR_JWT_PAYLOAD_KEY as HIBERNATION_EVENT_ITERATOR_JWT_PAYLOAD_KEY,
+  experimental_DURABLE_EVENT_ITERATOR_ID_KEY as DURABLE_EVENT_ITERATOR_ID_KEY,
+  experimental_DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY as DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY,
 } from '../consts'
 import {
   experimental_durableEventIteratorObjectRouter as durableEventIteratorObjectRouter,
@@ -38,12 +38,12 @@ export type experimental_DurableEventIteratorObjectInternalWsAttachment = {
   /**
    * Internal Hibernation Event Iterator ID.
    */
-  [HIBERNATION_EVENT_ITERATOR_ID_KEY]?: number
+  [DURABLE_EVENT_ITERATOR_ID_KEY]?: number
 
   /**
    * The payload of the JWT used to authenticate the WebSocket connection.
    */
-  [HIBERNATION_EVENT_ITERATOR_JWT_PAYLOAD_KEY]: DurableEventIteratorJWTPayload
+  [DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY]: DurableEventIteratorJWTPayload
 }
 
 export type experimental_DurableEventIteratorObjectWsAttachment
@@ -69,7 +69,7 @@ export class experimental_DurableEventIteratorObject<
       }
 
       const attachment = this.deserializeWsAttachment(ws)
-      const hibernationEventIteratorId = attachment?.[HIBERNATION_EVENT_ITERATOR_ID_KEY]
+      const hibernationEventIteratorId = attachment?.[DURABLE_EVENT_ITERATOR_ID_KEY]
 
       if (hibernationEventIteratorId === undefined) {
         // Maybe the connection not finished the subscription process yet
@@ -89,8 +89,8 @@ export class experimental_DurableEventIteratorObject<
 
     ws.serializeAttachment({
       ...attachment,
-      [HIBERNATION_EVENT_ITERATOR_ID_KEY]: old[HIBERNATION_EVENT_ITERATOR_ID_KEY],
-      [HIBERNATION_EVENT_ITERATOR_JWT_PAYLOAD_KEY]: old[HIBERNATION_EVENT_ITERATOR_JWT_PAYLOAD_KEY],
+      [DURABLE_EVENT_ITERATOR_ID_KEY]: old[DURABLE_EVENT_ITERATOR_ID_KEY],
+      [DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY]: old[DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY],
     })
   }
 
@@ -101,12 +101,12 @@ export class experimental_DurableEventIteratorObject<
    */
   override async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url)
-    const payload = JSON.parse(url.searchParams.get(HIBERNATION_EVENT_ITERATOR_JWT_PAYLOAD_KEY)!) as DurableEventIteratorJWTPayload
+    const payload = JSON.parse(url.searchParams.get(DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY)!) as DurableEventIteratorJWTPayload
 
     const { '0': client, '1': server } = new WebSocketPair()
 
     this.ctx.acceptWebSocket(server)
-    server.serializeAttachment({ [HIBERNATION_EVENT_ITERATOR_JWT_PAYLOAD_KEY]: payload })
+    server.serializeAttachment({ [DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY]: payload })
 
     return new Response(null, {
       status: 101,

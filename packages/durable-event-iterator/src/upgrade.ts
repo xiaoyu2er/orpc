@@ -9,8 +9,8 @@ import { intercept, stringifyJSON, toArray } from '@orpc/shared'
 import { jwtVerify } from 'jose'
 import * as v from 'valibot'
 import {
-  experimental_HIBERNATION_EVENT_ITERATOR_JWT_PARAM as HIBERNATION_EVENT_ITERATOR_JWT_PARAM,
-  experimental_HIBERNATION_EVENT_ITERATOR_JWT_PAYLOAD_KEY as HIBERNATION_EVENT_ITERATOR_JWT_PAYLOAD_KEY,
+  experimental_DURABLE_EVENT_ITERATOR_JWT_PARAM as DURABLE_EVENT_ITERATOR_JWT_PARAM,
+  experimental_DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY as DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY,
 } from './consts'
 import {
   experimental_DurableEventIteratorJWTPayloadSchema as DurableEventIteratorJWTPayloadSchema,
@@ -36,7 +36,7 @@ export async function experimental_upgradeDurableEventIteratorRequest(
   }
 
   const url = new URL(request.url)
-  const jwt = url.searchParams.getAll(HIBERNATION_EVENT_ITERATOR_JWT_PARAM).at(-1)
+  const jwt = url.searchParams.getAll(DURABLE_EVENT_ITERATOR_JWT_PARAM).at(-1)
 
   if (!jwt) {
     return new Response('JWT is required', {
@@ -65,7 +65,7 @@ export async function experimental_upgradeDurableEventIteratorRequest(
 
       const upgradeUrl = new URL(url.origin + url.pathname)
 
-      upgradeUrl.searchParams.set(HIBERNATION_EVENT_ITERATOR_JWT_PAYLOAD_KEY, stringifyJSON(jwtPayload))
+      upgradeUrl.searchParams.set(DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY, stringifyJSON(jwtPayload))
 
       return stub.fetch(upgradeUrl, request)
     },

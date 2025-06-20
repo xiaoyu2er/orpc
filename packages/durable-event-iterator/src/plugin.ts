@@ -4,8 +4,8 @@ import {
   experimental_getJwtIfClientDurableEventIterator as getJwtIfClientDurableEventIterator,
 } from './client'
 import {
-  experimental_HIBERNATION_EVENT_ITERATOR_HEADER_KEY as HIBERNATION_EVENT_ITERATOR_HEADER_KEY,
-  experimental_HIBERNATION_EVENT_ITERATOR_HEADER_VALUE as HIBERNATION_EVENT_ITERATOR_HEADER_VALUE,
+  experimental_DURABLE_EVENT_ITERATOR_HEADER_KEY as DURABLE_EVENT_ITERATOR_HEADER_KEY,
+  experimental_DURABLE_EVENT_ITERATOR_HEADER_VALUE as DURABLE_EVENT_ITERATOR_HEADER_VALUE,
 } from './consts'
 
 export interface experimental_DurableEventIteratorHandlerPluginContext {
@@ -45,8 +45,8 @@ export class experimental_DurableEventIteratorHandlerPlugin<T extends Context> i
           ...result.response,
           headers: {
             ...result.response.headers,
-            [HIBERNATION_EVENT_ITERATOR_HEADER_KEY]: pluginContext.isClientDurableEventIteratorOutput
-              ? HIBERNATION_EVENT_ITERATOR_HEADER_VALUE
+            [DURABLE_EVENT_ITERATOR_HEADER_KEY]: pluginContext.isClientDurableEventIteratorOutput
+              ? DURABLE_EVENT_ITERATOR_HEADER_VALUE
               : undefined,
           },
         },

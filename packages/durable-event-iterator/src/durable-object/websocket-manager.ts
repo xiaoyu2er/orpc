@@ -1,12 +1,7 @@
 import type { StandardRPCJsonSerializerOptions } from '@orpc/client/standard'
 import type { DurableEventIteratorJWTPayload } from '../schemas'
-import {
-  experimental_encodeHibernationRPCEvent as encodeHibernationRPCEvent,
-} from '@orpc/server/hibernation'
-import {
-  DURABLE_EVENT_ITERATOR_ID_KEY,
-  DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY,
-} from '../consts'
+import { experimental_encodeHibernationRPCEvent as encodeHibernationRPCEvent } from '@orpc/server/hibernation'
+import { DURABLE_EVENT_ITERATOR_ID_KEY, DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY } from './consts'
 
 export interface DurableEventIteratorObjectWebsocketManagerOptions extends StandardRPCJsonSerializerOptions {
 

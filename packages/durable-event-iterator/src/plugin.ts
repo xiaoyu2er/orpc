@@ -1,12 +1,7 @@
 import type { Context, Router } from '@orpc/server'
 import type { StandardHandlerOptions, StandardHandlerPlugin } from '@orpc/server/standard'
-import {
-  getJwtIfClientDurableEventIterator,
-} from './client'
-import {
-  DURABLE_EVENT_ITERATOR_HEADER_KEY,
-  DURABLE_EVENT_ITERATOR_HEADER_VALUE,
-} from './consts'
+import { getJwtIfClientDurableEventIterator } from './client'
+import { DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_KEY, DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_VALUE } from './consts'
 
 export interface DurableEventIteratorHandlerPluginContext {
   isClientDurableEventIteratorOutput?: boolean
@@ -45,8 +40,8 @@ export class DurableEventIteratorHandlerPlugin<T extends Context> implements Sta
           ...result.response,
           headers: {
             ...result.response.headers,
-            [DURABLE_EVENT_ITERATOR_HEADER_KEY]: pluginContext.isClientDurableEventIteratorOutput
-              ? DURABLE_EVENT_ITERATOR_HEADER_VALUE
+            [DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_KEY]: pluginContext.isClientDurableEventIteratorOutput
+              ? DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_VALUE
               : undefined,
           },
         },

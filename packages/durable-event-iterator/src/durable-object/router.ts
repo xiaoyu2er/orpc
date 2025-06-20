@@ -1,13 +1,7 @@
-import type {
-  DurableEventIteratorObjectWebsocketManager,
-} from './websocket-manager'
+import type { DurableEventIteratorObjectWebsocketManager } from './websocket-manager'
 import { os } from '@orpc/server'
-import {
-  experimental_HibernationEventIterator as HibernationEventIterator,
-} from '@orpc/server/hibernation'
-import {
-  DURABLE_EVENT_ITERATOR_ID_KEY,
-} from '../consts'
+import { experimental_HibernationEventIterator as HibernationEventIterator } from '@orpc/server/hibernation'
+import { DURABLE_EVENT_ITERATOR_ID_KEY } from './consts'
 
 const base = os.$context<{
   ws: WebSocket

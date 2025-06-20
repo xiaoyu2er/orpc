@@ -1,22 +1,16 @@
-import type {
-  DurableEventIteratorBuilderOptions,
-} from './builder'
-import type {
-  ClientDurableEventIterator,
-} from './client'
-import type {
-  DurableEventIteratorObject,
-} from './durable-object'
-import type {
-  DurableEventIteratorJWTPayload,
-} from './schemas'
+import type { ClientDurableEventIterator } from './client'
+import type { DurableEventIteratorObject } from './durable-object'
+import type { DurableEventIteratorJWTPayload } from './schemas'
 import { AsyncIteratorClass } from '@orpc/shared'
 import { SignJWT } from 'jose'
-import {
-  createClientDurableEventIterator,
-} from './client'
+import { createClientDurableEventIterator } from './client'
 
-export interface ServerDurableEventIteratorOptions extends DurableEventIteratorBuilderOptions {
+export interface ServerDurableEventIteratorOptions {
+  /**
+   * Signing key for the JWT.
+   */
+  signingKey: string
+
   /**
    * Time to live for the JWT in seconds.
    *

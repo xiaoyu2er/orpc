@@ -1,20 +1,11 @@
 import type { Interceptor } from '@orpc/shared'
-import type {
-  DurableEventIteratorObject,
-} from '.'
-import type {
-  DurableEventIteratorJWTPayload,
-} from '../schemas'
+import type { DurableEventIteratorObject } from '.'
+import type { DurableEventIteratorJWTPayload } from '../schemas'
 import { intercept, stringifyJSON, toArray } from '@orpc/shared'
 import { jwtVerify } from 'jose'
 import * as v from 'valibot'
-import {
-  DURABLE_EVENT_ITERATOR_JWT_PARAM,
-  DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY,
-} from '../consts'
-import {
-  DurableEventIteratorJWTPayloadSchema,
-} from '../schemas'
+import { DurableEventIteratorJWTPayloadSchema } from '../schemas'
+import { DURABLE_EVENT_ITERATOR_JWT_PARAM, DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY } from './consts'
 
 export interface UpgradeDurableEventIteratorRequestOptions {
   namespace: DurableObjectNamespace<DurableEventIteratorObject<any, any, any>>

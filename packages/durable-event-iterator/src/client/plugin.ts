@@ -6,7 +6,7 @@ import { type ClientContext, createORPCClient } from '@orpc/client'
 import { ClientRetryPlugin } from '@orpc/client/plugins'
 import { experimental_RPCLink as RPCLink } from '@orpc/client/websocket'
 import { WebSocket as ReconnectableWebSocket } from 'partysocket'
-import { DURABLE_EVENT_ITERATOR_HEADER_KEY, DURABLE_EVENT_ITERATOR_HEADER_VALUE, DURABLE_EVENT_ITERATOR_JWT_PARAM } from '../consts'
+import { DURABLE_EVENT_ITERATOR_JWT_PARAM, DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_KEY, DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_VALUE } from '../consts'
 import { createClientDurableEventIterator as crateClientDurableEventIterator } from './event-iterator'
 
 export interface DurableEventIteratorLinkPluginContext {
@@ -97,7 +97,7 @@ export class DurableEventIteratorLinkPlugin<T extends ClientContext> implements 
 
       const response = await options.next()
 
-      pluginContext.isDurableEventIteratorResponse = response.headers[DURABLE_EVENT_ITERATOR_HEADER_KEY] === DURABLE_EVENT_ITERATOR_HEADER_VALUE
+      pluginContext.isDurableEventIteratorResponse = response.headers[DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_KEY] === DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_VALUE
 
       return response
     })

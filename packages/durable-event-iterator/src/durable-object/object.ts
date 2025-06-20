@@ -1,17 +1,11 @@
 import type { DurableEventIteratorJWTPayload } from '../schemas'
 import type { DurableEventIteratorObjectWebsocketManagerAttachment, DurableEventIteratorObjectWebsocketManagerOptions } from './websocket-manager'
-import {
-  experimental_HibernationPlugin as HibernationPlugin,
-} from '@orpc/server/hibernation'
+import { experimental_HibernationPlugin as HibernationPlugin } from '@orpc/server/hibernation'
 import { experimental_RPCHandler as RPCHandler } from '@orpc/server/websocket'
 import { DurableObject } from 'cloudflare:workers'
-import { DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY } from '../consts'
-import {
-  durableEventIteratorObjectRouter,
-} from './router'
-import {
-  DurableEventIteratorObjectWebsocketManager,
-} from './websocket-manager'
+import { DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY } from './consts'
+import { durableEventIteratorObjectRouter } from './router'
+import { DurableEventIteratorObjectWebsocketManager } from './websocket-manager'
 
 const handler = new RPCHandler(durableEventIteratorObjectRouter, {
   plugins: [

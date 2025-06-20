@@ -1,10 +1,13 @@
 import type { DurableEventIteratorObject } from './durable-object'
+import type {
+  ServerDurableEventIteratorOptions,
+} from './event-iterator'
 import {
   ServerDurableEventIterator as DurableEventIteratorServer,
 } from './event-iterator'
 
-export interface DurableEventIteratorBuilderOptions {
-  signingKey: string
+export interface DurableEventIteratorBuilderOptions extends ServerDurableEventIteratorOptions {
+
 }
 
 export class DurableEventIteratorBuilder<
@@ -17,7 +20,11 @@ export class DurableEventIteratorBuilder<
 
   subscribe(
     channel: string,
+    options: Partial<ServerDurableEventIteratorOptions> = {},
   ): DurableEventIteratorServer<T> {
-    return new DurableEventIteratorServer<T>(channel, this.options)
+    return new DurableEventIteratorServer<T>(channel, {
+      ...this.options,
+      ...options,
+    })
   }
 }

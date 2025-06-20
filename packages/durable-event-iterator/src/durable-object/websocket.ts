@@ -3,11 +3,11 @@ import type { DurableEventIteratorJWTPayload } from '../schemas'
 import { experimental_encodeHibernationRPCEvent as encodeHibernationRPCEvent } from '@orpc/server/hibernation'
 import { DURABLE_EVENT_ITERATOR_ID_KEY, DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY } from './consts'
 
-export interface DurableEventIteratorObjectWebsocketManagerOptions extends StandardRPCJsonSerializerOptions {
+export interface DurableEventIteratorObjectWebsocketOptions extends StandardRPCJsonSerializerOptions {
 
 }
 
-export interface DurableEventIteratorObjectWebsocketManagerPublishEventOptions {
+export interface DurableEventIteratorObjectWebsocketPublishEventOptions {
   /**
    * A filter function to determine which WebSocket connections should receive the event.
    * If not provided, all connected WebSockets will receive the event.
@@ -15,7 +15,9 @@ export interface DurableEventIteratorObjectWebsocketManagerPublishEventOptions {
   filter?: (ws: WebSocket) => boolean
 }
 
-export type DurableEventIteratorObjectWebsocketManagerInternalAttachment = {
+export type DurableEventIteratorObjectWebsocketInternalAttachment<
+  TJwtAttachment,
+> = {
   /**
    * Internal Hibernation Event Iterator ID.
    */
@@ -24,23 +26,26 @@ export type DurableEventIteratorObjectWebsocketManagerInternalAttachment = {
   /**
    * The payload of the JWT used to authenticate the WebSocket connection.
    */
-  [DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY]: DurableEventIteratorJWTPayload
+  [DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY]: DurableEventIteratorJWTPayload & {
+    att: TJwtAttachment
+  }
 }
 
-export type DurableEventIteratorObjectWebsocketManagerAttachment
+export type DurableEventIteratorObjectWebsocketAttachment
   = Record<string | number, unknown>
-    & Record<keyof DurableEventIteratorObjectWebsocketManagerInternalAttachment, never>
+    & Record<keyof DurableEventIteratorObjectWebsocketInternalAttachment<any>, never>
 
-export class DurableEventIteratorObjectWebsocketManager<
-  T extends object,
-  TAttachment extends DurableEventIteratorObjectWebsocketManagerAttachment,
+export class DurableEventIteratorObjectWebsocket<
+  TEventPayload extends object,
+  TJwtAttachment,
+  TWsAttachment extends DurableEventIteratorObjectWebsocketAttachment,
 > {
   constructor(
     private readonly ctx: DurableObjectState,
-    private readonly options: DurableEventIteratorObjectWebsocketManagerOptions,
+    private readonly options: DurableEventIteratorObjectWebsocketOptions,
   ) {}
 
-  publishEvent(payload: T, options: DurableEventIteratorObjectWebsocketManagerPublishEventOptions = {}): void {
+  publishEvent(payload: TEventPayload, options: DurableEventIteratorObjectWebsocketPublishEventOptions = {}): void {
     for (const ws of this.ctx.getWebSockets()) {
       if (options.filter && !options.filter(ws)) {
         continue
@@ -58,7 +63,7 @@ export class DurableEventIteratorObjectWebsocketManager<
     }
   }
 
-  serializeAttachment(ws: WebSocket, attachment: TAttachment): void {
+  serializeAttachment(ws: WebSocket, attachment: TWsAttachment): void {
     const old = this.deserializeAttachment(ws)
 
     ws.serializeAttachment({
@@ -68,7 +73,7 @@ export class DurableEventIteratorObjectWebsocketManager<
     })
   }
 
-  serializeInternalAttachment(ws: WebSocket, attachment: Partial<DurableEventIteratorObjectWebsocketManagerInternalAttachment>): void {
+  serializeInternalAttachment(ws: WebSocket, attachment: Partial<DurableEventIteratorObjectWebsocketInternalAttachment<TJwtAttachment>>): void {
     const old = this.deserializeAttachment(ws)
 
     ws.serializeAttachment({
@@ -78,7 +83,7 @@ export class DurableEventIteratorObjectWebsocketManager<
     })
   }
 
-  deserializeAttachment(ws: WebSocket): TAttachment & DurableEventIteratorObjectWebsocketManagerInternalAttachment {
+  deserializeAttachment(ws: WebSocket): TWsAttachment & DurableEventIteratorObjectWebsocketInternalAttachment<TJwtAttachment> {
     return ws.deserializeAttachment()
   }
 }

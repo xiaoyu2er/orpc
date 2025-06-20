@@ -47,6 +47,7 @@
   },
   "dependencies": {
     "@orpc/client": "workspace:*",
+    "@orpc/contract": "workspace:*",
     "@orpc/server": "workspace:*",
     "@orpc/shared": "workspace:*",
     "jose": "^6.0.11",

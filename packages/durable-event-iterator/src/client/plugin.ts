@@ -1,7 +1,7 @@
 import type { ClientRetryPluginContext } from '@orpc/client/plugins'
 import type { StandardLinkOptions, StandardLinkPlugin } from '@orpc/client/standard'
-import type { RouterClient } from '@orpc/server'
-import type { durableEventIteratorObjectRouter } from '../durable-object'
+import type { ContractRouterClient } from '@orpc/contract'
+import type { durableEventIteratorContract } from './contract'
 import { type ClientContext, createORPCClient } from '@orpc/client'
 import { ClientRetryPlugin } from '@orpc/client/plugins'
 import { experimental_RPCLink as RPCLink } from '@orpc/client/websocket'
@@ -73,7 +73,7 @@ export class DurableEventIteratorLinkPlugin<T extends ClientContext> implements 
         ],
       })
 
-      const durableClient: RouterClient<typeof durableEventIteratorObjectRouter, ClientRetryPluginContext> = createORPCClient(durableLink)
+      const durableClient: ContractRouterClient<typeof durableEventIteratorContract, ClientRetryPluginContext> = createORPCClient(durableLink)
 
       const iterator = await durableClient.subscribe(undefined, {
         context: {

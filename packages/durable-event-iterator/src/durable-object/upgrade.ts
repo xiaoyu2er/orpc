@@ -4,13 +4,14 @@ import type { DurableEventIteratorJWTPayload } from '../schemas'
 import { intercept, stringifyJSON, toArray } from '@orpc/shared'
 import { jwtVerify } from 'jose'
 import * as v from 'valibot'
+import { DURABLE_EVENT_ITERATOR_JWT_PARAM } from '../consts'
 import { DurableEventIteratorJWTPayloadSchema } from '../schemas'
-import { DURABLE_EVENT_ITERATOR_JWT_PARAM, DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY } from './consts'
+import { DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY } from './consts'
 
 export interface UpgradeDurableEventIteratorRequestOptions {
   namespace: DurableObjectNamespace<DurableEventIteratorObject<any, any, any>>
   signingKey: string
-  interceptors?: Interceptor<{ jwtPayload: DurableEventIteratorJWTPayload }, Promise<Response>>[]
+  interceptors?: Interceptor<{ payload: DurableEventIteratorJWTPayload }, Promise<Response>>[]
 }
 
 /**
@@ -35,11 +36,11 @@ export async function upgradeDurableEventIteratorRequest(
     })
   }
 
-  let jwtPayload
+  let payload
 
   try {
-    const { payload } = await jwtVerify(jwt, new TextEncoder().encode(options.signingKey))
-    jwtPayload = v.parse(DurableEventIteratorJWTPayloadSchema, payload)
+    const result = await jwtVerify(jwt, new TextEncoder().encode(options.signingKey))
+    payload = v.parse(DurableEventIteratorJWTPayloadSchema, result.payload)
   }
   catch {
     return new Response('Invalid JWT', {
@@ -49,14 +50,14 @@ export async function upgradeDurableEventIteratorRequest(
 
   return intercept(
     toArray(options.interceptors),
-    { jwtPayload },
-    async ({ jwtPayload }) => {
-      const id = options.namespace.idFromName(jwtPayload.chn)
+    { payload },
+    async ({ payload }) => {
+      const id = options.namespace.idFromName(payload.chn)
       const stub = options.namespace.get(id)
 
       const upgradeUrl = new URL(url.origin + url.pathname)
 
-      upgradeUrl.searchParams.set(DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY, stringifyJSON(jwtPayload))
+      upgradeUrl.searchParams.set(DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY, stringifyJSON(payload))
 
       return stub.fetch(upgradeUrl, request)
     },

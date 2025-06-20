@@ -1,5 +1,5 @@
 import type { ClientDurableEventIterator } from './client'
-import type { DurableEventIteratorObject } from './durable-object'
+import type { DurableEventIteratorObject } from './object'
 import type { DurableEventIteratorJWTPayload } from './schemas'
 import { AsyncIteratorClass } from '@orpc/shared'
 import { SignJWT } from 'jose'
@@ -20,7 +20,7 @@ export interface ServerDurableEventIteratorOptions {
 }
 
 export class ServerDurableEventIterator<
-  T extends DurableEventIteratorObject<any, any, any>,
+  T extends DurableEventIteratorObject<any, any>,
 > implements PromiseLike<ClientDurableEventIterator<T>> {
   readonly #channel: string
   readonly #signingKey: string

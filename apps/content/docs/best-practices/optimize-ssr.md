@@ -137,12 +137,23 @@ globalThis.$client = createJsonifiedRouterClient(router, {
 
 :::
 
-Finally, import `lib/orpc.server.ts` before anything else and on the **server only**. For example, in Next.js add it to `app/layout.tsx`:
+Finally, import `lib/orpc.server.ts` before anything else and on the **server only**. For example, in Next.js add it to `instrumentation.ts` and `app/layout.tsx`:
 
-```ts
-import '@/lib/orpc.server'
+::: code-group
+
+```ts [instrumentation.ts]
+export async function register() {
+  await import('./lib/orpc.server')
+}
+```
+
+```ts [app/layout.tsx]
+import '../lib/orpc.server' // for pre-rendering
+
 // Rest of the code
 ```
+
+:::
 
 Now, importing `client` from `lib/orpc.ts` gives you a server-side client during SSR and a client-side client on the client without leaking your router logic.
 

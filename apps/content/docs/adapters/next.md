@@ -162,8 +162,14 @@ globalThis.$client = createRouterClient(router, {
 })
 ```
 
+```ts [instrumentation.ts]
+export async function register() {
+  await import('./lib/orpc.server')
+}
+```
+
 ```ts [app/layout.tsx]
-import '../lib/orpc.server'
+import '../lib/orpc.server' // for pre-rendering
 
 // Rest of the code
 ```

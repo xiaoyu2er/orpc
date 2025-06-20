@@ -1,6 +1,6 @@
 import {
   experimental_DurableEventIteratorObject as DurableEventIteratorObject,
-} from '@orpc/durable-event-iterator'
+} from '@orpc/durable-event-iterator/object'
 
 export class ChatRoom extends DurableEventIteratorObject<string> {
 

@@ -1,11 +1,9 @@
 import type { StandardRPCJsonSerializerOptions } from '@orpc/client/standard'
 import type {
   experimental_DurableEventIteratorJWTPayload as DurableEventIteratorJWTPayload,
-} from './schemas'
-import { os } from '@orpc/server'
+} from '../schemas'
 import {
   experimental_encodeHibernationRPCEvent as encodeHibernationRPCEvent,
-  experimental_HibernationEventIterator as HibernationEventIterator,
   experimental_HibernationPlugin as HibernationPlugin,
 } from '@orpc/server/hibernation'
 import { experimental_RPCHandler as RPCHandler } from '@orpc/server/websocket'
@@ -13,20 +11,12 @@ import { DurableObject } from 'cloudflare:workers'
 import {
   experimental_HIBERNATION_EVENT_ITERATOR_ID_KEY as HIBERNATION_EVENT_ITERATOR_ID_KEY,
   experimental_HIBERNATION_EVENT_ITERATOR_JWT_PAYLOAD_KEY as HIBERNATION_EVENT_ITERATOR_JWT_PAYLOAD_KEY,
-} from './consts'
+} from '../consts'
+import {
+  experimental_durableEventIteratorObjectRouter as durableEventIteratorObjectRouter,
+} from './router'
 
-const base = os.$context<{ ws: WebSocket, ctx: DurableObjectState }>()
-
-export const experimental_durableEventIteratorObjectRouter = {
-  subscribe: base.handler(({ context }) => {
-    return new HibernationEventIterator<any>((id) => {
-      const attachment = context.ws.deserializeAttachment()
-      context.ws.serializeAttachment({ ...attachment, [HIBERNATION_EVENT_ITERATOR_ID_KEY]: id })
-    })
-  }),
-}
-
-const handler = new RPCHandler(experimental_durableEventIteratorObjectRouter, {
+const handler = new RPCHandler(durableEventIteratorObjectRouter, {
   plugins: [
     new HibernationPlugin(),
   ],

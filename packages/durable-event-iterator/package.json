@@ -20,6 +20,11 @@
         "import": "./dist/index.mjs",
         "default": "./dist/index.mjs"
       },
+      "./object": {
+        "types": "./dist/object/index.d.mts",
+        "import": "./dist/object/index.mjs",
+        "default": "./dist/object/index.mjs"
+      },
       "./client": {
         "types": "./dist/client/index.d.mts",
         "import": "./dist/client/index.mjs",
@@ -29,6 +34,7 @@
   },
   "exports": {
     ".": "./src/index.ts",
+    "./object": "./src/object/index.ts",
     "./client": "./src/client/index.ts"
   },
   "files": [

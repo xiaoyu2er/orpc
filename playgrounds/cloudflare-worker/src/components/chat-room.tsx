@@ -9,8 +9,7 @@ export function ChatRoom() {
 
     void (async () => {
       for await (const message of await client.onMessage(undefined, { signal: controller.signal })) {
-        console.log({ message })
-        setMessages(messages => [...messages, message])
+        setMessages(messages => [...messages, message.message])
       }
     })()
 

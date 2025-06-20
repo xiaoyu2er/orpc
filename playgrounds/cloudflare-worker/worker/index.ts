@@ -26,7 +26,7 @@ export const router = {
       const id = context.env.CHAT_ROOM.idFromName('chat-room')
       const stub = context.env.CHAT_ROOM.get(id)
 
-      await stub.publishEvent(input.message)
+      await stub.publishMessage(input.message)
     }),
 }
 

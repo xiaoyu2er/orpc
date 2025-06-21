@@ -1,13 +1,17 @@
 import type { DurableEventIteratorObject as BaseDurableEventIteratorObject, JwtAttachment } from '../object'
 import type { DurableEventIteratorJwtPayload } from '../schemas'
+import type { DurableEventIteratorObjectRecoveryOptions } from './recovery'
 import type { DurableEventIteratorObjectWebsocketAttachment, DurableEventIteratorObjectWebsocketOptions } from './websocket'
 import { DurableObject } from 'cloudflare:workers'
 import { DURABLE_EVENT_ITERATOR_OBJECT_SYMBOL } from '../object'
 import { DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY } from './consts'
 import { durableEventIteratorHandler } from './handler'
+import { DurableEventIteratorObjectRecovery } from './recovery'
 import { DurableEventIteratorObjectWebsocket } from './websocket'
 
-export interface DurableEventIteratorObjectOptions extends DurableEventIteratorObjectWebsocketOptions {
+export interface DurableEventIteratorObjectOptions<TEventPayload extends object>
+  extends Omit<DurableEventIteratorObjectWebsocketOptions<TEventPayload>, 'recovery'>,
+  DurableEventIteratorObjectRecoveryOptions {
 
 }
 
@@ -23,14 +27,21 @@ export class DurableEventIteratorObject<
   }
 
   protected readonly dei: {
+    recovery: DurableEventIteratorObjectRecovery<TEventPayload>
     ws: DurableEventIteratorObjectWebsocket<TEventPayload, TJwtAttachment, TWsAttachment>
   }
 
-  constructor(ctx: DurableObjectState, env: TEnv, options: DurableEventIteratorObjectOptions = {}) {
+  constructor(ctx: DurableObjectState, env: TEnv, options: DurableEventIteratorObjectOptions<TEventPayload> = {}) {
     super(ctx, env)
 
+    const recovery = new DurableEventIteratorObjectRecovery<TEventPayload>(ctx, options)
+
     this.dei = {
-      ws: new DurableEventIteratorObjectWebsocket(ctx, options),
+      recovery,
+      ws: new DurableEventIteratorObjectWebsocket(ctx, {
+        ...options,
+        recovery,
+      }),
     }
   }
 

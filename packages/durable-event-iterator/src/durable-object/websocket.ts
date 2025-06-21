@@ -1,19 +1,12 @@
 import type { StandardRPCJsonSerializerOptions } from '@orpc/client/standard'
 import type { JwtAttachment } from '../object'
 import type { DurableEventIteratorJwtPayload } from '../schemas'
+import type { DurableEventIteratorObjectRecovery } from './recovery'
 import { experimental_encodeHibernationRPCEvent as encodeHibernationRPCEvent } from '@orpc/server/hibernation'
 import { DURABLE_EVENT_ITERATOR_ID_KEY, DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY } from './consts'
 
-export interface DurableEventIteratorObjectWebsocketOptions extends StandardRPCJsonSerializerOptions {
-
-}
-
-export interface DurableEventIteratorObjectWebsocketPublishEventOptions {
-  /**
-   * A filter function to determine which WebSocket connections should receive the event.
-   * If not provided, all connected WebSockets will receive the event.
-   */
-  filter?: (ws: WebSocket) => boolean
+export interface DurableEventIteratorObjectWebsocketOptions<TEventPayload extends object> extends StandardRPCJsonSerializerOptions {
+  recovery: DurableEventIteratorObjectRecovery<TEventPayload>
 }
 
 export type DurableEventIteratorObjectWebsocketInternalAttachment<
@@ -43,15 +36,13 @@ export class DurableEventIteratorObjectWebsocket<
 > {
   constructor(
     private readonly ctx: DurableObjectState,
-    private readonly options: DurableEventIteratorObjectWebsocketOptions,
+    private readonly options: DurableEventIteratorObjectWebsocketOptions<TEventPayload>,
   ) {}
 
-  publishEvent(payload: TEventPayload, options: DurableEventIteratorObjectWebsocketPublishEventOptions = {}): void {
-    for (const ws of this.ctx.getWebSockets()) {
-      if (options.filter && !options.filter(ws)) {
-        continue
-      }
+  publishEvent(wss: readonly WebSocket[], payload: TEventPayload): void {
+    payload = this.options.recovery.handleRecovery(payload)
 
+    for (const ws of wss) {
       const attachment = this.deserializeAttachment(ws)
       const hibernationEventIteratorId = attachment?.[DURABLE_EVENT_ITERATOR_ID_KEY]
 
@@ -61,6 +52,17 @@ export class DurableEventIteratorObjectWebsocket<
       }
 
       ws.send(encodeHibernationRPCEvent(hibernationEventIteratorId, payload, this.options))
+    }
+  }
+
+  recoveryEvents(
+    ws: WebSocket,
+    lastEventId: string,
+    id: number,
+  ): void {
+    const events = this.options.recovery.selectItems(lastEventId)
+    for (const event of events) {
+      ws.send(encodeHibernationRPCEvent(id, event, this.options))
     }
   }
 

@@ -1,3 +1,4 @@
+import type { DurableEventIteratorObjectRecovery } from './recovery'
 import type { DurableEventIteratorObjectWebsocket } from './websocket'
 import { implement } from '@orpc/server'
 import { experimental_HibernationEventIterator as HibernationEventIterator } from '@orpc/server/hibernation'
@@ -12,16 +13,21 @@ const base = os.$context<{
   ws: WebSocket
   ctx: DurableObjectState
   dei: {
+    recovery: DurableEventIteratorObjectRecovery<any>
     ws: DurableEventIteratorObjectWebsocket<any, any, any>
   }
 }>()
 
 const durableEventIteratorRouter = base.router({
-  subscribe: base.subscribe.handler(({ context }) => {
+  subscribe: base.subscribe.handler(({ context, lastEventId }) => {
     return new HibernationEventIterator<any>((id) => {
       context.dei.ws.serializeInternalAttachment(context.ws, {
         [DURABLE_EVENT_ITERATOR_ID_KEY]: id,
       })
+
+      if (lastEventId !== undefined) {
+        context.dei.ws.recoveryEvents(context.ws, lastEventId, id)
+      }
     })
   }),
 })

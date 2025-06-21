@@ -64,10 +64,12 @@ export class DurableEventIteratorLinkPlugin<T extends ClientContext> implements 
       const url = new URL(this.#url)
       url.searchParams.append(DURABLE_EVENT_ITERATOR_JWT_PARAM, jwt)
 
+      const durableWs = new ReconnectableWebSocket(url.toString(), undefined, {
+        WebSocket: this.#WebSocket,
+      })
+
       const durableLink = new RPCLink<ClientRetryPluginContext>({
-        websocket: new ReconnectableWebSocket(url.toString(), undefined, {
-          WebSocket: this.#WebSocket,
-        }),
+        websocket: durableWs,
         plugins: [
           new ClientRetryPlugin(),
         ],

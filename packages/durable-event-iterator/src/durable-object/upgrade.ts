@@ -1,17 +1,17 @@
 import type { Interceptor } from '@orpc/shared'
 import type { DurableEventIteratorObject } from '.'
-import type { DurableEventIteratorJWTPayload } from '../schemas'
+import type { DurableEventIteratorJwtPayload } from '../schemas'
 import { intercept, stringifyJSON, toArray } from '@orpc/shared'
 import { jwtVerify } from 'jose'
 import * as v from 'valibot'
 import { DURABLE_EVENT_ITERATOR_JWT_PARAM } from '../consts'
-import { DurableEventIteratorJWTPayloadSchema } from '../schemas'
+import { DurableEventIteratorJwtPayloadSchema } from '../schemas'
 import { DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY } from './consts'
 
 export interface UpgradeDurableEventIteratorRequestOptions {
-  namespace: DurableObjectNamespace<DurableEventIteratorObject<any, any, any>>
+  namespace: DurableObjectNamespace<any>
   signingKey: string
-  interceptors?: Interceptor<{ payload: DurableEventIteratorJWTPayload }, Promise<Response>>[]
+  interceptors?: Interceptor<{ payload: DurableEventIteratorJwtPayload }, Promise<Response>>[]
 }
 
 /**
@@ -40,7 +40,7 @@ export async function upgradeDurableEventIteratorRequest(
 
   try {
     const result = await jwtVerify(jwt, new TextEncoder().encode(options.signingKey))
-    payload = v.parse(DurableEventIteratorJWTPayloadSchema, result.payload)
+    payload = v.parse(DurableEventIteratorJwtPayloadSchema, result.payload)
   }
   catch {
     return new Response('Invalid JWT', {
@@ -52,8 +52,9 @@ export async function upgradeDurableEventIteratorRequest(
     toArray(options.interceptors),
     { payload },
     async ({ payload }) => {
-      const id = options.namespace.idFromName(payload.chn)
-      const stub = options.namespace.get(id)
+      const namespace = options.namespace as DurableObjectNamespace<DurableEventIteratorObject<any, any, any>>
+      const id = namespace.idFromName(payload.chn)
+      const stub = namespace.get(id)
 
       const upgradeUrl = new URL(url.origin + url.pathname)
 

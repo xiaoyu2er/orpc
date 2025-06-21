@@ -1,8 +1,8 @@
 import * as v from 'valibot'
 
-export type DurableEventIteratorJWTPayload = v.InferOutput<typeof DurableEventIteratorJWTPayloadSchema>
+export type DurableEventIteratorJwtPayload = v.InferOutput<typeof DurableEventIteratorJwtPayloadSchema>
 
-export const DurableEventIteratorJWTPayloadSchema = v.pipe(
+export const DurableEventIteratorJwtPayloadSchema = v.pipe(
   v.object({
     chn: v.string(), // Channel name
     att: v.optional(v.any()), // Attachment, if any

@@ -15,7 +15,8 @@ export const router = {
       signingKey: 'key',
     })
 
-    return builder.subscribe('chat-room')
+    return builder.subscribe('chat-room', {
+    })
   }),
   sendMessage: base
     .input(z.object({ message: z.string() }))

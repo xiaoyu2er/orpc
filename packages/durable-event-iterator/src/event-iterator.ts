@@ -1,11 +1,11 @@
 import type { ClientDurableEventIterator } from './client'
 import type { DurableEventIteratorObject } from './object'
-import type { DurableEventIteratorJWTPayload } from './schemas'
+import type { DurableEventIteratorJwtPayload } from './schemas'
 import { AsyncIteratorClass } from '@orpc/shared'
 import { SignJWT } from 'jose'
 import { createClientDurableEventIterator } from './client'
 
-export interface ServerDurableEventIteratorOptions {
+export interface ServerDurableEventIteratorOptions<TJwtAttachment> {
   /**
    * Signing key for the JWT.
    */
@@ -17,27 +17,36 @@ export interface ServerDurableEventIteratorOptions {
    * @default 24 hours (60 * 60 * 24)
    */
   tokenLifetime?: number
+
+  /**
+   * attachment for the JWT.
+   */
+  attachment?: TJwtAttachment
 }
 
 export class ServerDurableEventIterator<
   T extends DurableEventIteratorObject<any, any>,
+  TJwtAttachment = T extends DurableEventIteratorObject<any, infer U> ? U : never,
 > implements PromiseLike<ClientDurableEventIterator<T>> {
   readonly #channel: string
   readonly #signingKey: string
   readonly #tokenLifetime: number
+  readonly #attachment?: TJwtAttachment
 
   constructor(
     channel: string,
-    options: ServerDurableEventIteratorOptions,
+    options: ServerDurableEventIteratorOptions<TJwtAttachment>,
   ) {
     this.#channel = channel
     this.#signingKey = options.signingKey
     this.#tokenLifetime = options.tokenLifetime ?? 60 * 60 * 24 // 24 hours
+    this.#attachment = options.attachment
   }
 
   then<TResult1 = ClientDurableEventIterator<T>, TResult2 = never>(onfulfilled?: ((value: ClientDurableEventIterator<T>) => TResult1 | PromiseLike<TResult1>) | null | undefined, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null | undefined): PromiseLike<TResult1 | TResult2> {
-    const payload: DurableEventIteratorJWTPayload = {
+    const payload: DurableEventIteratorJwtPayload = {
       chn: this.#channel,
+      att: this.#attachment,
     }
 
     return (async () => {

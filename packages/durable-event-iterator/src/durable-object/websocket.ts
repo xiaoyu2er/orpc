@@ -1,5 +1,5 @@
 import type { StandardRPCJsonSerializerOptions } from '@orpc/client/standard'
-import type { DurableEventIteratorJWTPayload } from '../schemas'
+import type { DurableEventIteratorJwtPayload } from '../schemas'
 import { experimental_encodeHibernationRPCEvent as encodeHibernationRPCEvent } from '@orpc/server/hibernation'
 import { DURABLE_EVENT_ITERATOR_ID_KEY, DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY } from './consts'
 
@@ -26,7 +26,7 @@ export type DurableEventIteratorObjectWebsocketInternalAttachment<
   /**
    * The payload of the JWT used to authenticate the WebSocket connection.
    */
-  [DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY]: DurableEventIteratorJWTPayload & {
+  [DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY]: DurableEventIteratorJwtPayload & {
     att: TJwtAttachment
   }
 }

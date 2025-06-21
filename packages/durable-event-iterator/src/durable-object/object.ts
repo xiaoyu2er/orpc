@@ -1,5 +1,5 @@
-import type { DurableEventIteratorObject as BaseDurableEventIteratorObject } from '../object'
-import type { DurableEventIteratorJWTPayload } from '../schemas'
+import type { DurableEventIteratorObject as BaseDurableEventIteratorObject, JwtAttachment } from '../object'
+import type { DurableEventIteratorJwtPayload } from '../schemas'
 import type { DurableEventIteratorObjectWebsocketAttachment, DurableEventIteratorObjectWebsocketOptions } from './websocket'
 import { DurableObject } from 'cloudflare:workers'
 import { DURABLE_EVENT_ITERATOR_OBJECT_SYMBOL } from '../object'
@@ -13,7 +13,7 @@ export interface DurableEventIteratorObjectOptions extends DurableEventIteratorO
 
 export class DurableEventIteratorObject<
   TEventPayload extends object,
-  TJwtAttachment = unknown,
+  TJwtAttachment extends JwtAttachment = JwtAttachment,
   TWsAttachment extends DurableEventIteratorObjectWebsocketAttachment = DurableEventIteratorObjectWebsocketAttachment,
   TEnv = unknown,
 > extends DurableObject<TEnv> implements BaseDurableEventIteratorObject<TEventPayload, TJwtAttachment> {
@@ -41,7 +41,7 @@ export class DurableEventIteratorObject<
    */
   override async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url)
-    const payload = JSON.parse(url.searchParams.get(DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY)!) as DurableEventIteratorJWTPayload
+    const payload = JSON.parse(url.searchParams.get(DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY)!) as DurableEventIteratorJwtPayload
 
     const { '0': client, '1': server } = new WebSocketPair()
 

@@ -1,17 +1,15 @@
-import type { DurableEventIteratorObject } from './durable-object'
-import type {
-  ServerDurableEventIteratorOptions,
-} from './event-iterator'
-import {
-  ServerDurableEventIterator as DurableEventIteratorServer,
-} from './event-iterator'
+import type { MaybeOptionalOptions } from '@orpc/shared'
+import type { ServerDurableEventIteratorOptions } from './event-iterator'
+import type { DurableEventIteratorObject } from './object'
+import { resolveMaybeOptionalOptions } from '@orpc/shared'
+import { ServerDurableEventIterator } from './event-iterator'
 
-export interface DurableEventIteratorBuilderOptions extends ServerDurableEventIteratorOptions {
+export interface DurableEventIteratorBuilderOptions extends Pick<ServerDurableEventIteratorOptions<any>, 'signingKey' | 'tokenLifetime'> {
 
 }
 
 export class DurableEventIteratorBuilder<
-  T extends DurableEventIteratorObject<any, any, any>,
+  T extends DurableEventIteratorObject<any, any>,
 > {
   constructor(
     private readonly options: DurableEventIteratorBuilderOptions,
@@ -20,9 +18,20 @@ export class DurableEventIteratorBuilder<
 
   subscribe(
     channel: string,
-    options: Partial<ServerDurableEventIteratorOptions> = {},
-  ): DurableEventIteratorServer<T> {
-    return new DurableEventIteratorServer<T>(channel, {
+    ...rest: MaybeOptionalOptions<
+      Partial<ServerDurableEventIteratorOptions<unknown>>
+      & (
+        T extends DurableEventIteratorObject<any, infer U>
+          ? undefined extends U
+            ? { attachment?: U }
+            : { attachment: U }
+          : never
+      )
+    >
+  ): ServerDurableEventIterator<T> {
+    const options = resolveMaybeOptionalOptions(rest)
+
+    return new ServerDurableEventIterator<T>(channel, {
       ...this.options,
       ...options,
     })

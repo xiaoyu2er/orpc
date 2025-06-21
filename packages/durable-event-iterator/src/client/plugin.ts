@@ -1,19 +1,16 @@
+import type { ClientLink } from '@orpc/client'
 import type { ClientRetryPluginContext } from '@orpc/client/plugins'
 import type { StandardLinkOptions, StandardLinkPlugin } from '@orpc/client/standard'
-import type {
-  experimental_RPCLinkOptions as RPCLinkOptions,
-} from '@orpc/client/websocket'
+import type { experimental_RPCLinkOptions as RPCLinkOptions } from '@orpc/client/websocket'
 import type { ContractRouterClient } from '@orpc/contract'
 import type { durableEventIteratorContract } from './contract'
 import { type ClientContext, createORPCClient } from '@orpc/client'
 import { ClientRetryPlugin } from '@orpc/client/plugins'
-import {
-  experimental_RPCLink as RPCLink,
-} from '@orpc/client/websocket'
+import { experimental_RPCLink as RPCLink } from '@orpc/client/websocket'
 import { toArray } from '@orpc/shared'
 import { WebSocket as ReconnectableWebSocket } from 'partysocket'
 import { DURABLE_EVENT_ITERATOR_JWT_PARAM, DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_KEY, DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_VALUE } from '../consts'
-import { createClientDurableEventIterator as crateClientDurableEventIterator } from './event-iterator'
+import { createClientDurableEventIterator } from './event-iterator'
 
 export interface DurableEventIteratorLinkPluginContext {
   isDurableEventIteratorResponse?: boolean
@@ -93,7 +90,16 @@ export class DurableEventIteratorLinkPlugin<T extends ClientContext> implements 
         },
       })
 
-      const durableIterator = crateClientDurableEventIterator(iterator, {
+      const link: ClientLink<object> = {
+        call(path, input, options) {
+          return durableClient.call({
+            path: path as [string, ...string[]], // server-side will ensure this is a valid path
+            input,
+          }, options)
+        },
+      }
+
+      const durableIterator = createClientDurableEventIterator(iterator, link, {
         jwt,
       })
 

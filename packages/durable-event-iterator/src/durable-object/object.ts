@@ -94,6 +94,7 @@ export class DurableEventIteratorObject<
   override async webSocketMessage(websocket: WebSocket, message: string | ArrayBuffer): Promise<void> {
     await this.dei.handler.message(websocket, message, {
       context: {
+        object: this,
         currentWebsocket: websocket,
         websocketManager: this.dei.websocketManager,
       },

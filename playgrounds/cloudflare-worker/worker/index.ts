@@ -15,8 +15,7 @@ export const router = {
       signingKey: 'key',
     })
 
-    return builder.subscribe('chat-room', {
-    })
+    return builder.subscribe('chat-room').allow(['publishMessage'])
   }),
   sendMessage: base
     .input(z.object({ message: z.string() }))
@@ -24,7 +23,7 @@ export const router = {
       const id = context.env.CHAT_ROOM.idFromName('chat-room')
       const stub = context.env.CHAT_ROOM.get(id)
 
-      await stub.publishMessage(input.message)
+      // await stub.publishMessage(input.message)
     }),
 }
 

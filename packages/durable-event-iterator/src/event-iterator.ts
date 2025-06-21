@@ -1,3 +1,4 @@
+import type { ClientLink } from '@orpc/client'
 import type { ClientDurableEventIterator } from './client'
 import type { DurableEventIteratorObject } from './object'
 import type { DurableEventIteratorJwtPayload } from './schemas'
@@ -21,31 +22,48 @@ export interface ServerDurableEventIteratorOptions<TJwtAttachment> {
   /**
    * attachment for the JWT.
    */
-  attachment?: TJwtAttachment
+  attachment: TJwtAttachment
+
+  /**
+   * The methods allowed to be remote called.
+   */
+  allowMethods?: readonly string[]
 }
 
 export class ServerDurableEventIterator<
   T extends DurableEventIteratorObject<any, any>,
-  TJwtAttachment = T extends DurableEventIteratorObject<any, infer U> ? U : never,
-> implements PromiseLike<ClientDurableEventIterator<T>> {
+  TAllowMethods extends string,
+> implements PromiseLike<ClientDurableEventIterator<T, TAllowMethods>> {
   readonly #channel: string
   readonly #signingKey: string
   readonly #tokenLifetime: number
-  readonly #attachment?: TJwtAttachment
+  readonly #attachment: T extends DurableEventIteratorObject<any, infer U> ? U : never
+  readonly #allowMethods: readonly string[] | undefined
 
   constructor(
     channel: string,
-    options: ServerDurableEventIteratorOptions<TJwtAttachment>,
+    options: ServerDurableEventIteratorOptions<T extends DurableEventIteratorObject<any, infer U> ? U : never>,
   ) {
     this.#channel = channel
     this.#signingKey = options.signingKey
     this.#tokenLifetime = options.tokenLifetime ?? 60 * 60 * 24 // 24 hours
     this.#attachment = options.attachment
+    this.#allowMethods = options.allowMethods
   }
 
-  then<TResult1 = ClientDurableEventIterator<T>, TResult2 = never>(onfulfilled?: ((value: ClientDurableEventIterator<T>) => TResult1 | PromiseLike<TResult1>) | null | undefined, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null | undefined): PromiseLike<TResult1 | TResult2> {
+  allow<U extends keyof T & string>(methods: readonly U[]): Omit<ServerDurableEventIterator<T, U>, 'allow'> {
+    return new ServerDurableEventIterator(this.#channel, {
+      attachment: this.#attachment,
+      signingKey: this.#signingKey,
+      tokenLifetime: this.#tokenLifetime,
+      allowMethods: methods,
+    })
+  }
+
+  then<TResult1 = ClientDurableEventIterator<T, TAllowMethods>, TResult2 = never>(onfulfilled?: ((value: ClientDurableEventIterator<T, TAllowMethods>) => TResult1 | PromiseLike<TResult1>) | null | undefined, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null | undefined): PromiseLike<TResult1 | TResult2> {
     const payload: DurableEventIteratorJwtPayload = {
       chn: this.#channel,
+      alm: this.#allowMethods,
       att: this.#attachment,
     }
 
@@ -60,11 +78,17 @@ export class ServerDurableEventIterator<
         () => Promise.reject(new Error('[DurableEventIteratorServer] cannot be cleaned up directly.')),
       )
 
-      const durableIterator = createClientDurableEventIterator(iterator, {
+      const link: ClientLink<object> = {
+        call() {
+          throw new Error('[DurableEventIteratorServer] cannot call methods directly.')
+        },
+      }
+
+      const durableIterator = createClientDurableEventIterator(iterator, link, {
         jwt,
       })
 
-      return durableIterator as ClientDurableEventIterator<T>
+      return durableIterator as ClientDurableEventIterator<T, TAllowMethods>
     })().then(onfulfilled, onrejected)
   }
 }

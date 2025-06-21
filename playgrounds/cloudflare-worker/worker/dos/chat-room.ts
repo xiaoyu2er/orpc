@@ -2,6 +2,6 @@ import { DurableEventIteratorObject } from '@orpc/durable-event-iterator/durable
 
 export class ChatRoom extends DurableEventIteratorObject<{ message: string }> {
   publishMessage(message: string): void {
-    this.dei.ws.publishEvent(this.ctx.getWebSockets(), { message })
+    this.dei.websocketManager.publishEvent(this.ctx.getWebSockets(), { message })
   }
 }

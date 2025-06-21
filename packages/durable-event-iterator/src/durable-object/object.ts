@@ -1,17 +1,27 @@
+import type { StandardRPCHandlerOptions } from '@orpc/server/standard'
 import type { DurableEventIteratorObject as BaseDurableEventIteratorObject, JwtAttachment } from '../object'
 import type { DurableEventIteratorJwtPayload } from '../schemas'
-import type { DurableEventIteratorObjectRecoveryOptions } from './recovery'
-import type { DurableEventIteratorObjectWebsocketAttachment, DurableEventIteratorObjectWebsocketOptions } from './websocket'
+import type { DurableEventIteratorObjectEventStorageOptions } from './event-storage'
+import type { DurableEventIteratorObjectRouterContext } from './router'
+import type { DurableEventIteratorObjectWebsocketAttachment, DurableEventIteratorObjectWebsocketManagerOptions } from './websocket-manager'
+import { experimental_HibernationPlugin as HibernationPlugin } from '@orpc/server/hibernation'
+import { experimental_RPCHandler as RPCHandler } from '@orpc/server/websocket'
+import { toArray } from '@orpc/shared'
 import { DurableObject } from 'cloudflare:workers'
 import { DURABLE_EVENT_ITERATOR_OBJECT_SYMBOL } from '../object'
 import { DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY } from './consts'
-import { durableEventIteratorHandler } from './handler'
-import { DurableEventIteratorObjectRecovery } from './recovery'
-import { DurableEventIteratorObjectWebsocket } from './websocket'
+import { DurableEventIteratorObjectEventStorage } from './event-storage'
+import { durableEventIteratorRouter } from './router'
+import { DurableEventIteratorObjectWebsocketManager } from './websocket-manager'
 
-export interface DurableEventIteratorObjectOptions<TEventPayload extends object>
-  extends Omit<DurableEventIteratorObjectWebsocketOptions<TEventPayload>, 'recovery'>,
-  DurableEventIteratorObjectRecoveryOptions {
+export interface DurableEventIteratorObjectOptions<
+  TEventPayload extends object,
+  TJwtAttachment extends JwtAttachment,
+  TWsAttachment extends DurableEventIteratorObjectWebsocketAttachment,
+>
+  extends Omit<DurableEventIteratorObjectWebsocketManagerOptions<TEventPayload>, 'eventStorage'>,
+  DurableEventIteratorObjectEventStorageOptions,
+  StandardRPCHandlerOptions<DurableEventIteratorObjectRouterContext<TEventPayload, TJwtAttachment, TWsAttachment>> {
 
 }
 
@@ -27,20 +37,34 @@ export class DurableEventIteratorObject<
   }
 
   protected readonly dei: {
-    recovery: DurableEventIteratorObjectRecovery<TEventPayload>
-    ws: DurableEventIteratorObjectWebsocket<TEventPayload, TJwtAttachment, TWsAttachment>
+    handler: RPCHandler<DurableEventIteratorObjectRouterContext<TEventPayload, TJwtAttachment, TWsAttachment>>
+    eventStorage: DurableEventIteratorObjectEventStorage<TEventPayload>
+    websocketManager: DurableEventIteratorObjectWebsocketManager<TEventPayload, TJwtAttachment, TWsAttachment>
   }
 
-  constructor(ctx: DurableObjectState, env: TEnv, options: DurableEventIteratorObjectOptions<TEventPayload> = {}) {
+  constructor(
+    ctx: DurableObjectState,
+    env: TEnv,
+    options: DurableEventIteratorObjectOptions<TEventPayload, TJwtAttachment, TWsAttachment> = {},
+  ) {
     super(ctx, env)
 
-    const recovery = new DurableEventIteratorObjectRecovery<TEventPayload>(ctx, options)
+    const handler = new RPCHandler(durableEventIteratorRouter, {
+      ...options,
+      plugins: [
+        ...toArray(options.plugins),
+        new HibernationPlugin(),
+      ],
+    })
+
+    const eventStorage = new DurableEventIteratorObjectEventStorage<TEventPayload>(ctx, options)
 
     this.dei = {
-      recovery,
-      ws: new DurableEventIteratorObjectWebsocket(ctx, {
+      handler,
+      eventStorage,
+      websocketManager: new DurableEventIteratorObjectWebsocketManager(ctx, {
         ...options,
-        recovery,
+        eventStorage,
       }),
     }
   }
@@ -57,7 +81,7 @@ export class DurableEventIteratorObject<
     const { '0': client, '1': server } = new WebSocketPair()
 
     this.ctx.acceptWebSocket(server)
-    this.dei.ws.serializeInternalAttachment(server, {
+    this.dei.websocketManager.serializeInternalAttachment(server, {
       [DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY]: payload,
     })
 
@@ -67,17 +91,16 @@ export class DurableEventIteratorObject<
     })
   }
 
-  override async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer): Promise<void> {
-    await durableEventIteratorHandler.message(ws, message, {
+  override async webSocketMessage(websocket: WebSocket, message: string | ArrayBuffer): Promise<void> {
+    await this.dei.handler.message(websocket, message, {
       context: {
-        ws,
-        ctx: this.ctx,
-        dei: this.dei,
+        currentWebsocket: websocket,
+        websocketManager: this.dei.websocketManager,
       },
     })
   }
 
-  override webSocketClose(ws: WebSocket, _code: number, _reason: string, _wasClean: boolean): void | Promise<void> {
-    durableEventIteratorHandler.close(ws)
+  override webSocketClose(websocket: WebSocket, _code: number, _reason: string, _wasClean: boolean): void | Promise<void> {
+    this.dei.handler.close(websocket)
   }
 }

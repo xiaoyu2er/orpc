@@ -9,7 +9,7 @@ import { ClientRetryPlugin } from '@orpc/client/plugins'
 import { experimental_RPCLink as RPCLink } from '@orpc/client/websocket'
 import { toArray } from '@orpc/shared'
 import { WebSocket as ReconnectableWebSocket } from 'partysocket'
-import { DURABLE_EVENT_ITERATOR_JWT_PARAM, DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_KEY, DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_VALUE } from '../consts'
+import { DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_KEY, DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_VALUE, DURABLE_EVENT_ITERATOR_TOKEN_PARAM } from '../consts'
 import { createClientDurableEventIterator } from './event-iterator'
 
 export interface DurableEventIteratorLinkPluginContext {
@@ -65,9 +65,9 @@ export class DurableEventIteratorLinkPlugin<T extends ClientContext> implements 
         return output
       }
 
-      const jwt = output as string
+      const token = output as string
       const url = new URL(this.url)
-      url.searchParams.append(DURABLE_EVENT_ITERATOR_JWT_PARAM, jwt)
+      url.searchParams.append(DURABLE_EVENT_ITERATOR_TOKEN_PARAM, token)
 
       const durableWs = new ReconnectableWebSocket(url.toString(), undefined, {
         WebSocket: this.WebSocket,
@@ -100,7 +100,7 @@ export class DurableEventIteratorLinkPlugin<T extends ClientContext> implements 
       }
 
       const durableIterator = createClientDurableEventIterator(iterator, link, {
-        jwt,
+        token,
       })
 
       return durableIterator

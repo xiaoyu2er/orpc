@@ -1,7 +1,7 @@
 import type { ClientLink } from '@orpc/client'
 import type { ClientDurableEventIterator } from './client'
 import type { DurableEventIteratorObject } from './object'
-import type { DurableEventIteratorJwtPayload } from './schemas'
+import type { DurableEventIteratorTokenPayload } from './schemas'
 import { AsyncIteratorClass, toArray } from '@orpc/shared'
 import { SignJWT } from 'jose'
 import { createClientDurableEventIterator } from './client'
@@ -11,17 +11,18 @@ export type DurableEventIteratorOptions<
   RPC extends keyof T & string,
 > = {
   /**
-   * Signing key for the JWT.
+   * Signing key for the token.
+   *
    */
   signingKey: string
 
   /**
-   * Time to live for the JWT in seconds.
-   * After expiration, the JWT will no longer be valid.
+   * Time to live for the token in seconds.
+   * After expiration, the token will no longer be valid.
    *
    * @default 24 hours (60 * 60 * 24)
    */
-  jwtTTLSeconds?: number
+  tokenTTLSeconds?: number
 
   /**
    * The methods that are allowed to be called remotely.
@@ -34,12 +35,12 @@ export type DurableEventIteratorOptions<
     T extends DurableEventIteratorObject<any, infer U>
       ? undefined extends U ? {
         /**
-         * attachment for the JWT.
+         * attachment to the token.
          */
         att?: U
       } : {
         /**
-         * attachment for the JWT.
+         * attachment to the token.
          */
         att: U
       }
@@ -69,18 +70,17 @@ export class DurableEventIterator<
   ): PromiseLike<TResult1 | TResult2> {
     return (async () => {
       const signingKey = new TextEncoder().encode(this.options.signingKey)
-      const jwtTTLSeconds = this.options.jwtTTLSeconds ?? 60 * 60 * 24 // 24 hours
-      const jwtAlg = 'HS256'
+      const tokenTTLSeconds = this.options.tokenTTLSeconds ?? 60 * 60 * 24 // 24 hours
 
-      const jwtPayload: DurableEventIteratorJwtPayload = {
+      const tokenPayload: DurableEventIteratorTokenPayload = {
         chn: this.chn,
         rpc: toArray(this.options.rpc),
         att: this.options.att,
       }
 
-      const jwt = await new SignJWT(jwtPayload)
-        .setProtectedHeader({ alg: jwtAlg })
-        .setExpirationTime(new Date(Date.now() + jwtTTLSeconds * 1000))
+      const token = await new SignJWT(tokenPayload)
+        .setProtectedHeader({ alg: 'HS256' })
+        .setExpirationTime(new Date(Date.now() + tokenTTLSeconds * 1000))
         .sign(signingKey)
 
       const iterator = new AsyncIteratorClass<any>(
@@ -95,7 +95,7 @@ export class DurableEventIterator<
       }
 
       const durableIterator = createClientDurableEventIterator(iterator, link, {
-        jwt,
+        token,
       })
 
       return durableIterator as ClientDurableEventIterator<T, RPC>

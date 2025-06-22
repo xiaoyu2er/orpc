@@ -1,16 +1,16 @@
 import type { StandardRPCJsonSerializerOptions } from '@orpc/client/standard'
-import type { JwtAttachment } from '../object'
-import type { DurableEventIteratorJwtPayload } from '../schemas'
+import type { TokenAttachment } from '../object'
+import type { DurableEventIteratorTokenPayload } from '../schemas'
 import type { DurableEventIteratorObjectEventStorage } from './event-storage'
 import { experimental_encodeHibernationRPCEvent as encodeHibernationRPCEvent } from '@orpc/server/hibernation'
-import { DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY, DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY } from './consts'
+import { DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY, DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY } from './consts'
 
 export interface DurableEventIteratorObjectWebsocketManagerOptions<TEventPayload extends object> extends StandardRPCJsonSerializerOptions {
   eventStorage: DurableEventIteratorObjectEventStorage<TEventPayload>
 }
 
 export type DurableEventIteratorObjectWebsocketInternalAttachment<
-  TJwtAttachment,
+  TTokenAttachment,
 > = {
   /**
    * Internal Hibernation Event Iterator ID.
@@ -18,10 +18,10 @@ export type DurableEventIteratorObjectWebsocketInternalAttachment<
   [DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY]?: number
 
   /**
-   * The payload of the JWT used to authenticate the WebSocket connection.
+   * The payload of the Token used to authenticate the WebSocket connection.
    */
-  [DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY]: Omit<DurableEventIteratorJwtPayload, 'att'> & {
-    att: TJwtAttachment
+  [DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY]: Omit<DurableEventIteratorTokenPayload, 'att'> & {
+    att: TTokenAttachment
   }
 }
 
@@ -31,7 +31,7 @@ export type DurableEventIteratorObjectWebsocketAttachment
 
 export class DurableEventIteratorObjectWebsocketManager<
   TEventPayload extends object,
-  TJwtAttachment extends JwtAttachment,
+  TTokenAttachment extends TokenAttachment,
   TWsAttachment extends DurableEventIteratorObjectWebsocketAttachment,
 > {
   constructor(
@@ -73,21 +73,21 @@ export class DurableEventIteratorObjectWebsocketManager<
     ws.serializeAttachment({
       ...attachment,
       [DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY]: old[DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY],
-      [DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY]: old[DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY],
+      [DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY]: old[DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY],
     })
   }
 
-  serializeInternalAttachment(ws: WebSocket, attachment: Partial<DurableEventIteratorObjectWebsocketInternalAttachment<TJwtAttachment>>): void {
+  serializeInternalAttachment(ws: WebSocket, attachment: Partial<DurableEventIteratorObjectWebsocketInternalAttachment<TTokenAttachment>>): void {
     const old = this.deserializeAttachment(ws)
 
     ws.serializeAttachment({
       ...old,
       [DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY]: attachment[DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY] ?? old?.[DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY],
-      [DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY]: attachment[DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY] ?? old?.[DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY],
+      [DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY]: attachment[DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY] ?? old?.[DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY],
     })
   }
 
-  deserializeAttachment(ws: WebSocket): DurableEventIteratorObjectWebsocketInternalAttachment<TJwtAttachment> & Omit<TWsAttachment, keyof DurableEventIteratorObjectWebsocketInternalAttachment<TJwtAttachment>> {
+  deserializeAttachment(ws: WebSocket): DurableEventIteratorObjectWebsocketInternalAttachment<TTokenAttachment> & Omit<TWsAttachment, keyof DurableEventIteratorObjectWebsocketInternalAttachment<TTokenAttachment>> {
     return ws.deserializeAttachment()
   }
 }

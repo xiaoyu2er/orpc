@@ -5,9 +5,9 @@ import { createORPCClient } from '@orpc/client'
 import { AsyncIteratorClass } from '@orpc/shared'
 import { decodeJwt } from 'jose'
 import * as v from 'valibot'
-import { DurableEventIteratorJwtPayloadSchema } from '../schemas'
+import { DurableEventIteratorTokenPayloadSchema } from '../schemas'
 
-const DURABLE_EVENT_ITERATOR_CLIENT_JWT_SYMBOL = Symbol('ORPC_DURABLE_EVENT_ITERATOR_CLIENT_JWT')
+const DURABLE_EVENT_ITERATOR_CLIENT_TOKEN_SYMBOL = Symbol('ORPC_DURABLE_EVENT_ITERATOR_CLIENT_TOKEN')
 
 export interface ClientDurableEventIteratorRpcContext extends ClientRetryPluginContext {
 }
@@ -31,7 +31,7 @@ export type ClientDurableEventIterator<
 }
 
 export interface CreateClientDurableEventIteratorOptions {
-  jwt: string
+  token: string
 }
 
 export function createClientDurableEventIterator<
@@ -42,12 +42,12 @@ export function createClientDurableEventIterator<
   link: ClientLink<object>,
   options: CreateClientDurableEventIteratorOptions,
 ): ClientDurableEventIterator<T, RPC> {
-  const { rpc: allowMethods } = v.parse(DurableEventIteratorJwtPayloadSchema, decodeJwt(options.jwt))
+  const { rpc: allowMethods } = v.parse(DurableEventIteratorTokenPayloadSchema, decodeJwt(options.token))
 
   const proxy = new Proxy(iterator, {
     get(target, prop) {
-      if (prop === DURABLE_EVENT_ITERATOR_CLIENT_JWT_SYMBOL) {
-        return options.jwt
+      if (prop === DURABLE_EVENT_ITERATOR_CLIENT_TOKEN_SYMBOL) {
+        return options.token
       }
 
       if (typeof prop === 'string' && allowMethods?.includes(prop)) {
@@ -69,12 +69,12 @@ export function createClientDurableEventIterator<
 }
 
 /**
- * If return a JWT if the client is a Client Durable Event Iterator.
+ * If return a token if the client is a Client Durable Event Iterator.
  */
-export function getJwtIfClientDurableEventIterator(
+export function getTokenIfClientDurableEventIterator(
   client: unknown,
 ): string | undefined {
   if (client instanceof AsyncIteratorClass) {
-    return Reflect.get(client, DURABLE_EVENT_ITERATOR_CLIENT_JWT_SYMBOL) as string | undefined
+    return Reflect.get(client, DURABLE_EVENT_ITERATOR_CLIENT_TOKEN_SYMBOL) as string | undefined
   }
 }

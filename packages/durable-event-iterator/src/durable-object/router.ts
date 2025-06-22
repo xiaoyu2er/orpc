@@ -1,24 +1,24 @@
 import type { Client } from '@orpc/client'
 import type { DurableObject } from 'cloudflare:workers'
-import type { JwtAttachment } from '../object'
+import type { TokenAttachment } from '../object'
 import type { DurableEventIteratorObjectWebsocketAttachment, DurableEventIteratorObjectWebsocketManager } from './websocket-manager'
 import { implement, ORPCError } from '@orpc/server'
 import { experimental_HibernationEventIterator as HibernationEventIterator } from '@orpc/server/hibernation'
 import { get } from '@orpc/shared'
 import { durableEventIteratorContract } from '../client/contract'
-import { DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY } from './consts'
+import { DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY, DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY } from './consts'
 
 const os = implement(durableEventIteratorContract)
 
 export interface DurableEventIteratorObjectRouterContext<
   TEventPayload extends object,
-  TJwtAttachment extends JwtAttachment,
+  TTokenAttachment extends TokenAttachment,
   TWsAttachment extends DurableEventIteratorObjectWebsocketAttachment,
   TEnv = unknown,
 > {
   object: DurableObject<TEnv>
   currentWebsocket: WebSocket
-  websocketManager: DurableEventIteratorObjectWebsocketManager<TEventPayload, TJwtAttachment, TWsAttachment>
+  websocketManager: DurableEventIteratorObjectWebsocketManager<TEventPayload, TTokenAttachment, TWsAttachment>
 }
 
 const base = os.$context<DurableEventIteratorObjectRouterContext<any, any, any>>()
@@ -37,7 +37,7 @@ export const durableEventIteratorRouter = base.router({
   }),
 
   call: base.call.handler(({ context, input, signal, lastEventId }) => {
-    const allowMethods = context.websocketManager.deserializeAttachment(context.currentWebsocket)['dei:jwtp'].rpc
+    const allowMethods = context.websocketManager.deserializeAttachment(context.currentWebsocket)[DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY].rpc
     const [method, ...path] = input.path
 
     if (!allowMethods?.includes(method)) {

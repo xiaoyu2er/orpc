@@ -1,6 +1,6 @@
 import type { Context, Router } from '@orpc/server'
 import type { StandardHandlerOptions, StandardHandlerPlugin } from '@orpc/server/standard'
-import { getJwtIfClientDurableEventIterator } from './client'
+import { getTokenIfClientDurableEventIterator } from './client'
 import { DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_KEY, DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_VALUE } from './consts'
 
 export interface DurableEventIteratorHandlerPluginContext {
@@ -57,11 +57,11 @@ export class DurableEventIteratorHandlerPlugin<T extends Context> implements Sta
 
       const output = await options.next()
 
-      const jwt = getJwtIfClientDurableEventIterator(output)
+      const token = getTokenIfClientDurableEventIterator(output)
 
-      if (typeof jwt === 'string') {
+      if (typeof token === 'string') {
         pluginContext.isClientDurableEventIteratorOutput = true
-        return jwt
+        return token
       }
 
       return output

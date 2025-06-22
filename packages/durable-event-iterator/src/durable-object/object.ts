@@ -1,6 +1,6 @@
 import type { StandardRPCHandlerOptions } from '@orpc/server/standard'
-import type { DurableEventIteratorObject as BaseDurableEventIteratorObject, JwtAttachment } from '../object'
-import type { DurableEventIteratorJwtPayload } from '../schemas'
+import type { DurableEventIteratorObject as BaseDurableEventIteratorObject, TokenAttachment } from '../object'
+import type { DurableEventIteratorTokenPayload } from '../schemas'
 import type { DurableEventIteratorObjectEventStorageOptions } from './event-storage'
 import type { DurableEventIteratorObjectRouterContext } from './router'
 import type { DurableEventIteratorObjectWebsocketAttachment, DurableEventIteratorObjectWebsocketManagerOptions } from './websocket-manager'
@@ -9,43 +9,43 @@ import { experimental_RPCHandler as RPCHandler } from '@orpc/server/websocket'
 import { toArray } from '@orpc/shared'
 import { DurableObject } from 'cloudflare:workers'
 import { DURABLE_EVENT_ITERATOR_OBJECT_SYMBOL } from '../object'
-import { DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY } from './consts'
+import { DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY } from './consts'
 import { DurableEventIteratorObjectEventStorage } from './event-storage'
 import { durableEventIteratorRouter } from './router'
 import { DurableEventIteratorObjectWebsocketManager } from './websocket-manager'
 
 export interface DurableEventIteratorObjectOptions<
   TEventPayload extends object,
-  TJwtAttachment extends JwtAttachment,
+  TTokenAttachment extends TokenAttachment,
   TWsAttachment extends DurableEventIteratorObjectWebsocketAttachment,
 >
   extends Omit<DurableEventIteratorObjectWebsocketManagerOptions<TEventPayload>, 'eventStorage'>,
   DurableEventIteratorObjectEventStorageOptions,
-  StandardRPCHandlerOptions<DurableEventIteratorObjectRouterContext<TEventPayload, TJwtAttachment, TWsAttachment>> {
+  StandardRPCHandlerOptions<DurableEventIteratorObjectRouterContext<TEventPayload, TTokenAttachment, TWsAttachment>> {
 
 }
 
 export class DurableEventIteratorObject<
   TEventPayload extends object,
-  TJwtAttachment extends JwtAttachment = JwtAttachment,
+  TTokenAttachment extends TokenAttachment = TokenAttachment,
   TWsAttachment extends DurableEventIteratorObjectWebsocketAttachment = DurableEventIteratorObjectWebsocketAttachment,
   TEnv = unknown,
-> extends DurableObject<TEnv> implements BaseDurableEventIteratorObject<TEventPayload, TJwtAttachment> {
+> extends DurableObject<TEnv> implements BaseDurableEventIteratorObject<TEventPayload, TTokenAttachment> {
   [DURABLE_EVENT_ITERATOR_OBJECT_SYMBOL]?: {
     eventPayload: TEventPayload
-    jwtAttachment: TJwtAttachment
+    tokenAttachment: TTokenAttachment
   }
 
   protected readonly dei: {
-    handler: RPCHandler<DurableEventIteratorObjectRouterContext<TEventPayload, TJwtAttachment, TWsAttachment>>
+    handler: RPCHandler<DurableEventIteratorObjectRouterContext<TEventPayload, TTokenAttachment, TWsAttachment>>
     eventStorage: DurableEventIteratorObjectEventStorage<TEventPayload>
-    websocketManager: DurableEventIteratorObjectWebsocketManager<TEventPayload, TJwtAttachment, TWsAttachment>
+    websocketManager: DurableEventIteratorObjectWebsocketManager<TEventPayload, TTokenAttachment, TWsAttachment>
   }
 
   constructor(
     ctx: DurableObjectState,
     env: TEnv,
-    options: DurableEventIteratorObjectOptions<TEventPayload, TJwtAttachment, TWsAttachment> = {},
+    options: DurableEventIteratorObjectOptions<TEventPayload, TTokenAttachment, TWsAttachment> = {},
   ) {
     super(ctx, env)
 
@@ -72,17 +72,17 @@ export class DurableEventIteratorObject<
   /**
    * Internally used to upgrade the WebSocket connection
    *
-   * @warning No verification is done here, you should verify the JWT payload before calling this method.
+   * @warning No verification is done here, you should verify the token payload before calling this method.
    */
   override async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url)
-    const payload = JSON.parse(url.searchParams.get(DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY)!) as DurableEventIteratorJwtPayload
+    const payload = JSON.parse(url.searchParams.get(DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY)!) as DurableEventIteratorTokenPayload
 
     const { '0': client, '1': server } = new WebSocketPair()
 
     this.ctx.acceptWebSocket(server)
     this.dei.websocketManager.serializeInternalAttachment(server, {
-      [DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY]: payload,
+      [DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY]: payload,
     })
 
     return new Response(null, {

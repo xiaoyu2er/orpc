@@ -1,17 +1,17 @@
 import type { Interceptor } from '@orpc/shared'
 import type { DurableEventIteratorObject } from '.'
-import type { DurableEventIteratorJwtPayload } from '../schemas'
+import type { DurableEventIteratorTokenPayload } from '../schemas'
 import { intercept, stringifyJSON, toArray } from '@orpc/shared'
 import { jwtVerify } from 'jose'
 import * as v from 'valibot'
-import { DURABLE_EVENT_ITERATOR_JWT_PARAM } from '../consts'
-import { DurableEventIteratorJwtPayloadSchema } from '../schemas'
-import { DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY } from './consts'
+import { DURABLE_EVENT_ITERATOR_TOKEN_PARAM } from '../consts'
+import { DurableEventIteratorTokenPayloadSchema } from '../schemas'
+import { DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY } from './consts'
 
 export interface UpgradeDurableEventIteratorRequestOptions {
   signingKey: string
   namespace: DurableObjectNamespace<any>
-  interceptors?: Interceptor<{ payload: DurableEventIteratorJwtPayload }, Promise<Response>>[]
+  interceptors?: Interceptor<{ payload: DurableEventIteratorTokenPayload }, Promise<Response>>[]
 }
 
 /**
@@ -28,10 +28,10 @@ export async function upgradeDurableEventIteratorRequest(
   }
 
   const url = new URL(request.url)
-  const jwt = url.searchParams.getAll(DURABLE_EVENT_ITERATOR_JWT_PARAM).at(-1)
+  const token = url.searchParams.getAll(DURABLE_EVENT_ITERATOR_TOKEN_PARAM).at(-1)
 
-  if (!jwt) {
-    return new Response('JWT is required', {
+  if (!token) {
+    return new Response('Token is required', {
       status: 401,
     })
   }
@@ -39,11 +39,11 @@ export async function upgradeDurableEventIteratorRequest(
   let payload
 
   try {
-    const result = await jwtVerify(jwt, new TextEncoder().encode(options.signingKey))
-    payload = v.parse(DurableEventIteratorJwtPayloadSchema, result.payload)
+    const result = await jwtVerify(token, new TextEncoder().encode(options.signingKey))
+    payload = v.parse(DurableEventIteratorTokenPayloadSchema, result.payload)
   }
   catch {
-    return new Response('Invalid JWT', {
+    return new Response('Invalid Token', {
       status: 401,
     })
   }
@@ -58,7 +58,7 @@ export async function upgradeDurableEventIteratorRequest(
 
       const upgradeUrl = new URL(url.origin + url.pathname)
 
-      upgradeUrl.searchParams.set(DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY, stringifyJSON(payload))
+      upgradeUrl.searchParams.set(DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY, stringifyJSON(payload))
 
       return stub.fetch(upgradeUrl, request)
     },

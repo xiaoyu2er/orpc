@@ -13,7 +13,7 @@ export const router = {
   onMessage: base.handler(({ context }) => {
     return new DurableEventIterator<ChatRoom>('some-room', {
       signingKey: 'key',
-      jwtTTLSeconds: 60 * 60 * 24, // 24 hours
+      tokenTTLSeconds: 60 * 60 * 24, // 24 hours
       att: { some: 'attachment' },
     }).rpc('publishMessage')
   }),

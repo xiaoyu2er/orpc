@@ -1,6 +1,6 @@
 import { os } from '@orpc/server'
 import { RPCHandler } from '@orpc/server/fetch'
-import { DurableEventIteratorBuilder, DurableEventIteratorHandlerPlugin } from '@orpc/experimental-durable-event-iterator'
+import { DurableEventIterator, DurableEventIteratorHandlerPlugin } from '@orpc/experimental-durable-event-iterator'
 import { upgradeDurableEventIteratorRequest } from '@orpc/experimental-durable-event-iterator/durable-object'
 import type { ChatRoom } from './dos/chat-room'
 import * as z from 'zod'
@@ -11,11 +11,11 @@ const base = os.$context<{
 
 export const router = {
   onMessage: base.handler(({ context }) => {
-    const builder = new DurableEventIteratorBuilder<ChatRoom>({
+    return new DurableEventIterator<ChatRoom>('some-room', {
       signingKey: 'key',
-    })
-
-    return builder.subscribe('chat-room').allow(['publishMessage'])
+      jwtTTLSeconds: 60 * 60 * 24, // 24 hours
+      att: { some: 'attachment' },
+    }).rpc('publishMessage')
   }),
   sendMessage: base
     .input(z.object({ message: z.string() }))

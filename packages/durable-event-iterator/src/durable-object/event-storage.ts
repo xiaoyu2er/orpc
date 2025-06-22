@@ -5,7 +5,8 @@ import { stringifyJSON } from '@orpc/shared'
 
 export interface DurableEventIteratorObjectEventStorageOptions extends StandardRPCJsonSerializerOptions {
   /**
-   * The retention period for event in seconds.
+   * The number of seconds to retain events in the storage.
+   * Used for sending missing events when client reconnects.
    *
    * @default 300 (5 minutes)
    */

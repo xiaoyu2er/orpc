@@ -9,8 +9,8 @@ import { DurableEventIteratorJwtPayloadSchema } from '../schemas'
 import { DURABLE_EVENT_ITERATOR_JWT_PAYLOAD_KEY } from './consts'
 
 export interface UpgradeDurableEventIteratorRequestOptions {
-  namespace: DurableObjectNamespace<any>
   signingKey: string
+  namespace: DurableObjectNamespace<any>
   interceptors?: Interceptor<{ payload: DurableEventIteratorJwtPayload }, Promise<Response>>[]
 }
 

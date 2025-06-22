@@ -9,25 +9,24 @@ import { DurableEventIteratorJwtPayloadSchema } from '../schemas'
 
 const DURABLE_EVENT_ITERATOR_CLIENT_JWT_SYMBOL = Symbol('ORPC_DURABLE_EVENT_ITERATOR_CLIENT_JWT')
 
-export interface ClientDurableEventIteratorNestedClientContext extends ClientRetryPluginContext {
-
+export interface ClientDurableEventIteratorRpcContext extends ClientRetryPluginContext {
 }
 
-export type ClientDurableEventIteratorNestedClient<T extends NestedClient<object>>
+export type ClientDurableEventIteratorRpc<T extends NestedClient<object>>
   = T extends Client<any, infer UInput, infer UOutput, any>
-    ? Client<ClientDurableEventIteratorNestedClientContext, UInput, UOutput, ThrowableError>
+    ? Client<ClientDurableEventIteratorRpcContext, UInput, UOutput, ThrowableError>
     : {
         [K in keyof T]: T[K] extends NestedClient<object>
-          ? ClientDurableEventIteratorNestedClient<T[K]>
+          ? ClientDurableEventIteratorRpc<T[K]>
           : never
       }
 
 export type ClientDurableEventIterator<
   T extends DurableEventIteratorObject<any, any>,
-  TAllowMethods extends string,
+  RPC extends string & keyof T,
 > = AsyncIteratorClass<T extends DurableEventIteratorObject<infer TPayload, any> ? TPayload : never> & {
-  [K in TAllowMethods & keyof T]: T[K] extends (...args: any[]) => (infer R extends NestedClient<object>)
-    ? ClientDurableEventIteratorNestedClient<R>
+  [K in RPC]: T[K] extends (...args: any[]) => (infer R extends NestedClient<object>)
+    ? ClientDurableEventIteratorRpc<R>
     : never
 }
 
@@ -37,13 +36,13 @@ export interface CreateClientDurableEventIteratorOptions {
 
 export function createClientDurableEventIterator<
   T extends DurableEventIteratorObject<any, any>,
-  TAllowMethods extends string,
+  RPC extends keyof T & string,
 >(
   iterator: AsyncIteratorClass<T>,
   link: ClientLink<object>,
   options: CreateClientDurableEventIteratorOptions,
-): ClientDurableEventIterator<T, TAllowMethods> {
-  const { alm: allowMethods } = v.parse(DurableEventIteratorJwtPayloadSchema, decodeJwt(options.jwt))
+): ClientDurableEventIterator<T, RPC> {
+  const { rpc: allowMethods } = v.parse(DurableEventIteratorJwtPayloadSchema, decodeJwt(options.jwt))
 
   const proxy = new Proxy(iterator, {
     get(target, prop) {

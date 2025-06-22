@@ -2,11 +2,14 @@ import type { ClientLink } from '@orpc/client'
 import type { ClientDurableEventIterator } from './client'
 import type { DurableEventIteratorObject } from './object'
 import type { DurableEventIteratorJwtPayload } from './schemas'
-import { AsyncIteratorClass } from '@orpc/shared'
+import { AsyncIteratorClass, toArray } from '@orpc/shared'
 import { SignJWT } from 'jose'
 import { createClientDurableEventIterator } from './client'
 
-export interface ServerDurableEventIteratorOptions<TJwtAttachment> {
+export type DurableEventIteratorOptions<
+  T extends DurableEventIteratorObject<any, any>,
+  RPC extends keyof T & string,
+> = {
   /**
    * Signing key for the JWT.
    */
@@ -14,64 +17,71 @@ export interface ServerDurableEventIteratorOptions<TJwtAttachment> {
 
   /**
    * Time to live for the JWT in seconds.
+   * After expiration, the JWT will no longer be valid.
    *
    * @default 24 hours (60 * 60 * 24)
    */
-  tokenLifetime?: number
+  jwtTTLSeconds?: number
 
   /**
-   * attachment for the JWT.
+   * The methods that are allowed to be called remotely.
+   * You can use the `rmc` method if you cannot fill this field.
+   *
+   * @default []
    */
-  attachment: TJwtAttachment
+  rpc?: readonly RPC[]
+} & (
+    T extends DurableEventIteratorObject<any, infer U>
+      ? undefined extends U ? {
+        /**
+         * attachment for the JWT.
+         */
+        att?: U
+      } : {
+        /**
+         * attachment for the JWT.
+         */
+        att: U
+      }
+      : never
+)
 
-  /**
-   * The methods allowed to be remote called.
-   */
-  allowMethods?: readonly string[]
-}
-
-export class ServerDurableEventIterator<
+export class DurableEventIterator<
   T extends DurableEventIteratorObject<any, any>,
-  TAllowMethods extends string,
-> implements PromiseLike<ClientDurableEventIterator<T, TAllowMethods>> {
-  readonly #channel: string
-  readonly #signingKey: string
-  readonly #tokenLifetime: number
-  readonly #attachment: T extends DurableEventIteratorObject<any, infer U> ? U : never
-  readonly #allowMethods: readonly string[] | undefined
-
+  RPC extends keyof T & string = never,
+> implements PromiseLike<ClientDurableEventIterator<T, RPC>> {
   constructor(
-    channel: string,
-    options: ServerDurableEventIteratorOptions<T extends DurableEventIteratorObject<any, infer U> ? U : never>,
+    private readonly chn: string,
+    private readonly options: DurableEventIteratorOptions<T, RPC>,
   ) {
-    this.#channel = channel
-    this.#signingKey = options.signingKey
-    this.#tokenLifetime = options.tokenLifetime ?? 60 * 60 * 24 // 24 hours
-    this.#attachment = options.attachment
-    this.#allowMethods = options.allowMethods
   }
 
-  allow<U extends keyof T & string>(methods: readonly U[]): Omit<ServerDurableEventIterator<T, U>, 'allow'> {
-    return new ServerDurableEventIterator(this.#channel, {
-      attachment: this.#attachment,
-      signingKey: this.#signingKey,
-      tokenLifetime: this.#tokenLifetime,
-      allowMethods: methods,
+  rpc<U extends keyof T & string>(...rpc: U[]): DurableEventIterator<T, U> {
+    return new DurableEventIterator<T, U>(this.chn, {
+      ...this.options,
+      rpc,
     })
   }
 
-  then<TResult1 = ClientDurableEventIterator<T, TAllowMethods>, TResult2 = never>(onfulfilled?: ((value: ClientDurableEventIterator<T, TAllowMethods>) => TResult1 | PromiseLike<TResult1>) | null | undefined, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null | undefined): PromiseLike<TResult1 | TResult2> {
-    const payload: DurableEventIteratorJwtPayload = {
-      chn: this.#channel,
-      alm: this.#allowMethods,
-      att: this.#attachment,
-    }
-
+  then<TResult1 = ClientDurableEventIterator<T, RPC>, TResult2 = never>(
+    onfulfilled?: ((value: ClientDurableEventIterator<T, RPC>) => TResult1 | PromiseLike<TResult1>) | null | undefined,
+    onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null | undefined,
+  ): PromiseLike<TResult1 | TResult2> {
     return (async () => {
-      const jwt = await new SignJWT(payload)
-        .setProtectedHeader({ alg: 'HS256' })
-        .setExpirationTime(new Date(Date.now() + this.#tokenLifetime * 1000))
-        .sign(new TextEncoder().encode(this.#signingKey))
+      const signingKey = new TextEncoder().encode(this.options.signingKey)
+      const jwtTTLSeconds = this.options.jwtTTLSeconds ?? 60 * 60 * 24 // 24 hours
+      const jwtAlg = 'HS256'
+
+      const jwtPayload: DurableEventIteratorJwtPayload = {
+        chn: this.chn,
+        rpc: toArray(this.options.rpc),
+        att: this.options.att,
+      }
+
+      const jwt = await new SignJWT(jwtPayload)
+        .setProtectedHeader({ alg: jwtAlg })
+        .setExpirationTime(new Date(Date.now() + jwtTTLSeconds * 1000))
+        .sign(signingKey)
 
       const iterator = new AsyncIteratorClass<any>(
         () => Promise.reject(new Error('[DurableEventIteratorServer] cannot be iterated directly.')),
@@ -88,7 +98,7 @@ export class ServerDurableEventIterator<
         jwt,
       })
 
-      return durableIterator as ClientDurableEventIterator<T, TAllowMethods>
+      return durableIterator as ClientDurableEventIterator<T, RPC>
     })().then(onfulfilled, onrejected)
   }
 }

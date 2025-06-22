@@ -37,7 +37,7 @@ export const durableEventIteratorRouter = base.router({
   }),
 
   call: base.call.handler(({ context, input, signal, lastEventId }) => {
-    const allowMethods = context.websocketManager.deserializeAttachment(context.currentWebsocket)['dei:jwtp'].alm
+    const allowMethods = context.websocketManager.deserializeAttachment(context.currentWebsocket)['dei:jwtp'].rpc
     const [method, ...path] = input.path
 
     if (!allowMethods?.includes(method)) {

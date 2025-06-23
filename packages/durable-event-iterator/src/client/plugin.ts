@@ -50,7 +50,7 @@ export class DurableEventIteratorLinkPlugin<T extends ClientContext> implements 
     options.interceptors ??= []
     options.clientInterceptors ??= []
 
-    options.interceptors.unshift(async (options) => {
+    options.interceptors.push(async (options) => {
       const pluginContext: DurableEventIteratorLinkPluginContext = {}
 
       const output = await options.next({
@@ -106,7 +106,7 @@ export class DurableEventIteratorLinkPlugin<T extends ClientContext> implements 
       return durableIterator
     })
 
-    options.clientInterceptors.unshift(async (options) => {
+    options.clientInterceptors.push(async (options) => {
       const pluginContext = options.context[this.CONTEXT_SYMBOL] as DurableEventIteratorLinkPluginContext | undefined
 
       if (!pluginContext) {

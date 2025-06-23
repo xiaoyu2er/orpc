@@ -1,6 +1,6 @@
 import type { ClientLink } from '@orpc/client'
 import type { ClientDurableEventIterator } from './client'
-import type { DurableEventIteratorObject } from './object'
+import type { DurableEventIteratorObject, InferDurableEventIteratorObjectRPC } from './object'
 import type { DurableEventIteratorTokenPayload } from './schemas'
 import { AsyncIteratorClass, toArray } from '@orpc/shared'
 import { SignJWT } from 'jose'
@@ -8,7 +8,7 @@ import { createClientDurableEventIterator } from './client'
 
 export type DurableEventIteratorOptions<
   T extends DurableEventIteratorObject<any, any>,
-  RPC extends keyof T & string,
+  RPC extends InferDurableEventIteratorObjectRPC<T>,
 > = {
   /**
    * Signing key for the token.
@@ -49,7 +49,7 @@ export type DurableEventIteratorOptions<
 
 export class DurableEventIterator<
   T extends DurableEventIteratorObject<any, any>,
-  RPC extends keyof T & string = never,
+  RPC extends InferDurableEventIteratorObjectRPC<T> = never,
 > implements PromiseLike<ClientDurableEventIterator<T, RPC>> {
   constructor(
     private readonly chn: string,
@@ -57,7 +57,7 @@ export class DurableEventIterator<
   ) {
   }
 
-  rpc<U extends keyof T & string>(...rpc: U[]): Omit<DurableEventIterator<T, U>, 'rpc'> {
+  rpc<U extends InferDurableEventIteratorObjectRPC<T>>(...rpc: U[]): Omit<DurableEventIterator<T, U>, 'rpc'> {
     return new DurableEventIterator<T, U>(this.chn, {
       ...this.options,
       rpc,

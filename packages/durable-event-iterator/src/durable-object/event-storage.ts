@@ -18,7 +18,7 @@ export class DurableEventIteratorObjectEventStorage<TEventPayload extends object
   private readonly eventRetentionSeconds: number
 
   constructor(
-    private readonly durableObjectState: DurableObjectState,
+    private readonly ctx: DurableObjectState,
     options: DurableEventIteratorObjectEventStorageOptions = {},
   ) {
     this.eventRetentionSeconds = options.eventRetentionSeconds ?? 60 * 5 // 5 minutes
@@ -28,7 +28,7 @@ export class DurableEventIteratorObjectEventStorage<TEventPayload extends object
   }
 
   private initSchema(): void {
-    this.durableObjectState.storage.sql.exec(`
+    this.ctx.storage.sql.exec(`
       CREATE TABLE IF NOT EXISTS "dei:events" (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         event TEXT NOT NULL,
@@ -36,17 +36,17 @@ export class DurableEventIteratorObjectEventStorage<TEventPayload extends object
       )
     `)
 
-    this.durableObjectState.storage.sql.exec(`
+    this.ctx.storage.sql.exec(`
       CREATE INDEX IF NOT EXISTS "dei:idx_event_id" ON "dei:events" (id)
     `)
 
-    this.durableObjectState.storage.sql.exec(`
+    this.ctx.storage.sql.exec(`
       CREATE INDEX IF NOT EXISTS "dei:idx_event_time" ON "dei:events" (time)
     `)
   }
 
   private resetSchema(): void {
-    this.durableObjectState.storage.sql.exec(`
+    this.ctx.storage.sql.exec(`
       DROP TABLE IF EXISTS "dei:events"
     `)
 
@@ -65,6 +65,7 @@ export class DurableEventIteratorObjectEventStorage<TEventPayload extends object
       payload: TEventPayload
       meta: ReturnType<typeof getEventMeta>
     }
+
     return eventMeta ? withEventMeta(payload, eventMeta) : payload
   }
 
@@ -74,17 +75,17 @@ export class DurableEventIteratorObjectEventStorage<TEventPayload extends object
     const serialized = this.serializeEvent(payload)
     const now = Math.floor(Date.now() / 1000)
 
-    const insertEvent = () => {
-      this.durableObjectState.storage.sql.exec(`
-        DELETE FROM "dei:events" WHERE time < ?1
-      `, now - this.eventRetentionSeconds)
+    this.ctx.storage.sql.exec(`
+      DELETE FROM "dei:events" WHERE time < ?
+    `, now - this.eventRetentionSeconds)
 
+    const insertEvent = () => {
       /**
        * Sqlite INTEGER can be out of safe range for JavaScript,
        * so we use TEXT to store the ID.
        */
-      const result = this.durableObjectState.storage.sql.exec(`
-        INSERT INTO "dei:events" (event, time) VALUES (?1, ?2) 
+      const result = this.ctx.storage.sql.exec(`
+        INSERT INTO "dei:events" (event, time) VALUES (?, ?) 
         RETURNING CAST(id AS TEXT) as id
       `, serialized, now)
 
@@ -120,10 +121,10 @@ export class DurableEventIteratorObjectEventStorage<TEventPayload extends object
      * Sqlite INTEGER can be out of safe range for JavaScript,
      * so we use TEXT to store the ID.
      */
-    const result = this.durableObjectState.storage.sql.exec(`
+    const result = this.ctx.storage.sql.exec(`
       SELECT CAST(id AS TEXT) as id, event
       FROM "dei:events"
-      WHERE ${typeof after === 'string' ? 'id' : 'time'} > ?1
+      WHERE ${typeof after === 'string' ? 'id' : 'time'} > ?
       ORDER BY id ASC
     `, typeof after === 'string' ? after : Math.floor(after.getTime() / 1000))
 

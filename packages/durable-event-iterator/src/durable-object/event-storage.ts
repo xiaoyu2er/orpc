@@ -116,6 +116,10 @@ export class DurableEventIteratorObjectEventStorage<TEventPayload extends object
   getEventsAfter(
     after: string | Date,
   ): TEventPayload[] {
+    /**
+     * Sqlite INTEGER can be out of safe range for JavaScript,
+     * so we use TEXT to store the ID.
+     */
     const result = this.durableObjectState.storage.sql.exec(`
       SELECT CAST(id AS TEXT) as id, event
       FROM "dei:events"

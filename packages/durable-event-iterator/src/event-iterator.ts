@@ -57,6 +57,9 @@ export class DurableEventIterator<
   ) {
   }
 
+  /**
+   * List of methods that can be called remotely.
+   */
   rpc<U extends InferDurableEventIteratorObjectRPC<T>>(...rpc: U[]): Omit<DurableEventIterator<T, U>, 'rpc'> {
     return new DurableEventIterator<T, U>(this.chn, {
       ...this.options,

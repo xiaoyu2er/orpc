@@ -55,12 +55,20 @@ export class DurableEventIteratorObjectWebsocketManager<
     }
   }
 
-  sendMissingEvents(
+  /**
+   * This useful when the client connects/reconnects, we need to send all events
+   * that happened while the connection is estimated.
+   *
+   * @param ws
+   * @param hibernationId
+   * @param after - The last event id or date after which to send events.
+   */
+  sendEventsAfter(
     ws: WebSocket,
     hibernationId: number,
-    lastEventId: string,
+    after: string | Date,
   ): void {
-    const events = this.options.eventStorage.getEventsAfter(lastEventId)
+    const events = this.options.eventStorage.getEventsAfter(after)
 
     for (const event of events) {
       ws.send(encodeHibernationRPCEvent(hibernationId, event, this.options))

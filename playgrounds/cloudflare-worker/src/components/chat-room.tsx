@@ -28,7 +28,7 @@ export function ChatRoom() {
     const form = new FormData(e.target as HTMLFormElement)
     const message = form.get('message') as string
 
-    await iterator?.publishMessage({ message })
+    await client.sendMessage({ message })
   }
 
   return (

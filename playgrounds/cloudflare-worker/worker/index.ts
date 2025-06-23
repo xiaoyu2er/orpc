@@ -20,10 +20,10 @@ export const router = {
   sendMessage: base
     .input(z.object({ message: z.string() }))
     .handler(async ({ context, input }) => {
-      const id = context.env.CHAT_ROOM.idFromName('chat-room')
+      const id = context.env.CHAT_ROOM.idFromName('some-room')
       const stub = context.env.CHAT_ROOM.get(id)
 
-      // await stub.publishMessage(input.message)
+      await stub.publishMessage2(input.message)
     }),
 }
 

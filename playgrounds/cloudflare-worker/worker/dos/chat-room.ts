@@ -11,4 +11,8 @@ export class ChatRoom extends DurableEventIteratorObject<{ message: string }> {
       })
       .callable()
   }
+
+  publishMessage2(message: string) {
+    return this.dei.websocketManager.publishEvent(this.ctx.getWebSockets(), { message })
+  }
 }

@@ -6,7 +6,7 @@ import { stringifyJSON } from '@orpc/shared'
 export interface DurableEventIteratorObjectEventStorageOptions extends StandardRPCJsonSerializerOptions {
   /**
    * The number of seconds to retain events in the storage.
-   * Used for sending missing events when client reconnects.
+   * Used for sending missing events while the client connects/reconnects connection estimated.
    *
    * @default 300 (5 minutes)
    */
@@ -110,15 +110,18 @@ export class DurableEventIteratorObjectEventStorage<TEventPayload extends object
     }
   }
 
+  /**
+   * Retrieves all events after a specific event id or stored date.
+   */
   getEventsAfter(
-    lastEventId: string,
+    after: string | Date,
   ): TEventPayload[] {
     const result = this.durableObjectState.storage.sql.exec(`
       SELECT CAST(id AS TEXT) as id, event
       FROM "dei:events"
-      WHERE id > ?1
+      WHERE ${typeof after === 'string' ? 'id' : 'time'} > ?1
       ORDER BY id ASC
-    `, lastEventId)
+    `, typeof after === 'string' ? after : Math.floor(after.getTime() / 1000))
 
     return result.toArray().map((row: Record<string, any>) => {
       const event = this.deserializeEvent(row.event)

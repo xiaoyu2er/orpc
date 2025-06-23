@@ -30,9 +30,13 @@ export const durableEventIteratorRouter = base.router({
         [DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY]: hibernationId,
       })
 
-      if (lastEventId !== undefined) {
-        context.websocketManager.sendMissingEvents(context.currentWebsocket, hibernationId, lastEventId)
-      }
+      const payload = context.websocketManager.deserializeAttachment(context.currentWebsocket)[DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY]
+
+      context.websocketManager.sendEventsAfter(
+        context.currentWebsocket,
+        hibernationId,
+        lastEventId !== undefined ? lastEventId : new Date((payload.iat - 1) * 1000),
+      )
     })
   }),
 

@@ -26,7 +26,7 @@ export type DurableEventIteratorOptions<
 
   /**
    * The methods that are allowed to be called remotely.
-   * You can use the `rmc` method if you cannot fill this field.
+   * You can use the `rpc` method if you cannot fill this field.
    *
    * @default []
    */
@@ -57,7 +57,7 @@ export class DurableEventIterator<
   ) {
   }
 
-  rpc<U extends keyof T & string>(...rpc: U[]): DurableEventIterator<T, U> {
+  rpc<U extends keyof T & string>(...rpc: U[]): Omit<DurableEventIterator<T, U>, 'rpc'> {
     return new DurableEventIterator<T, U>(this.chn, {
       ...this.options,
       rpc,
@@ -72,7 +72,7 @@ export class DurableEventIterator<
       const signingKey = new TextEncoder().encode(this.options.signingKey)
       const tokenTTLSeconds = this.options.tokenTTLSeconds ?? 60 * 60 * 24 // 24 hours
 
-      const tokenPayload: DurableEventIteratorTokenPayload = {
+      const tokenPayload: Omit<DurableEventIteratorTokenPayload, 'iat' | 'exp'> = {
         chn: this.chn,
         rpc: toArray(this.options.rpc),
         att: this.options.att,
@@ -80,6 +80,7 @@ export class DurableEventIterator<
 
       const token = await new SignJWT(tokenPayload)
         .setProtectedHeader({ alg: 'HS256' })
+        .setIssuedAt()
         .setExpirationTime(new Date(Date.now() + tokenTTLSeconds * 1000))
         .sign(signingKey)
 

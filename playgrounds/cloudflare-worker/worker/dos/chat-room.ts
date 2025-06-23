@@ -1,4 +1,4 @@
-import { DurableEventIteratorObject } from '@orpc/durable-event-iterator/durable-object'
+import { DurableEventIteratorObject } from '@orpc/experimental-durable-event-iterator/durable-object'
 import { os } from '@orpc/server'
 import { z } from 'zod'
 

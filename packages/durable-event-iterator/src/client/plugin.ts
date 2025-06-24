@@ -35,7 +35,7 @@ export interface DurableEventIteratorLinkPluginOptions extends Omit<RPCLinkOptio
 export class DurableEventIteratorLinkPlugin<T extends ClientContext> implements StandardLinkPlugin<T> {
   readonly CONTEXT_SYMBOL = Symbol('ORPC_DURABLE_EVENT_ITERATOR_LINK_PLUGIN_CONTEXT')
 
-  order = 2_100_000 // make sure execute after the batch plugin
+  order = 2_100_000 // make sure execute before the batch plugin
 
   private readonly url: DurableEventIteratorLinkPluginOptions['url']
   private readonly WebSocket: DurableEventIteratorLinkPluginOptions['WebSocket']

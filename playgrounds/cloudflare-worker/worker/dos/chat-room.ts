@@ -3,7 +3,7 @@ import { os } from '@orpc/server'
 import { z } from 'zod'
 
 export class ChatRoom extends DurableEventIteratorObject<{ message: string }> {
-  publishMessage() {
+  publishMessageRPC() {
     return os
       .input(z.object({ message: z.string() }))
       .handler(({ input }) => {
@@ -12,7 +12,7 @@ export class ChatRoom extends DurableEventIteratorObject<{ message: string }> {
       .callable()
   }
 
-  publishMessage2(message: string) {
+  publishMessage(message: string) {
     return this.dei.websocketManager.publishEvent(this.ctx.getWebSockets(), { message })
   }
 }

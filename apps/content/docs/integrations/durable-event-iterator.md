@@ -176,7 +176,7 @@ You can use `eventRetentionSeconds` option to change the retention duration.
 
 ## Durable Objects RPC
 
-Unlike the [Cloudflare Durable Objects RPC](https://developers.cloudflare.com/durable-objects/best-practices/create-durable-object-stubs-and-send-requests/), this RPC utilizes oRPC built-in RPC system, allowing clients to easily interact with Durable Objects directly. To use it, you need to define methods that accepts a `WebSocket` instance as the first argument and returns an [oRPC Router](/docs/server/router).
+Unlike the [Cloudflare Durable Objects RPC](https://developers.cloudflare.com/durable-objects/best-practices/create-durable-object-stubs-and-send-requests/), this RPC utilizes oRPC built-in RPC system, allowing clients to easily interact with Durable Objects directly. To use it, you need to define methods that accepts a `WebSocket` instance as the first argument and returns an [oRPC Client](/docs/client/server-side).
 
 ```ts
 import { DurableEventIteratorObject } from '@orpc/experimental-durable-event-iterator/durable-object'

@@ -11,11 +11,19 @@ export interface DurableEventIteratorObjectEventStorageOptions extends StandardR
    * @default 300 (5 minutes)
    */
   eventRetentionSeconds?: number
+
+  /**
+   * Prefix for the event retention schema.
+   * This is used to avoid conflicts with other schemas in the same Durable Object.
+   * @default 'dei:'
+   */
+  eventRetentionSchemaPrefix?: string
 }
 
 export class DurableEventIteratorObjectEventStorage<TEventPayload extends object> {
   private readonly serializer: StandardRPCJsonSerializer
   private readonly eventRetentionSeconds: number
+  private readonly eventRetentionSchemaPrefix: string = 'dei:'
 
   constructor(
     private readonly ctx: DurableObjectState,
@@ -29,7 +37,7 @@ export class DurableEventIteratorObjectEventStorage<TEventPayload extends object
 
   private initSchema(): void {
     this.ctx.storage.sql.exec(`
-      CREATE TABLE IF NOT EXISTS "dei:events" (
+      CREATE TABLE IF NOT EXISTS "${this.eventRetentionSchemaPrefix}events" (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         event TEXT NOT NULL,
         time INTEGER NOT NULL
@@ -37,17 +45,17 @@ export class DurableEventIteratorObjectEventStorage<TEventPayload extends object
     `)
 
     this.ctx.storage.sql.exec(`
-      CREATE INDEX IF NOT EXISTS "dei:idx_event_id" ON "dei:events" (id)
+      CREATE INDEX IF NOT EXISTS "${this.eventRetentionSchemaPrefix}idx_event_id" ON "${this.eventRetentionSchemaPrefix}events" (id)
     `)
 
     this.ctx.storage.sql.exec(`
-      CREATE INDEX IF NOT EXISTS "dei:idx_event_time" ON "dei:events" (time)
+      CREATE INDEX IF NOT EXISTS "${this.eventRetentionSchemaPrefix}idx_event_time" ON "${this.eventRetentionSchemaPrefix}events" (time)
     `)
   }
 
   private resetSchema(): void {
     this.ctx.storage.sql.exec(`
-      DROP TABLE IF EXISTS "dei:events"
+      DROP TABLE IF EXISTS "${this.eventRetentionSchemaPrefix}events"
     `)
 
     this.initSchema()
@@ -76,7 +84,7 @@ export class DurableEventIteratorObjectEventStorage<TEventPayload extends object
     const now = Math.floor(Date.now() / 1000)
 
     this.ctx.storage.sql.exec(`
-      DELETE FROM "dei:events" WHERE time < ?
+      DELETE FROM "${this.eventRetentionSchemaPrefix}events" WHERE time < ?
     `, now - this.eventRetentionSeconds)
 
     const insertEvent = () => {
@@ -85,7 +93,7 @@ export class DurableEventIteratorObjectEventStorage<TEventPayload extends object
        * so we use TEXT to store the ID.
        */
       const result = this.ctx.storage.sql.exec(`
-        INSERT INTO "dei:events" (event, time) VALUES (?, ?) 
+        INSERT INTO "${this.eventRetentionSchemaPrefix}events" (event, time) VALUES (?, ?) 
         RETURNING CAST(id AS TEXT) as id
       `, serialized, now)
 
@@ -123,7 +131,7 @@ export class DurableEventIteratorObjectEventStorage<TEventPayload extends object
      */
     const result = this.ctx.storage.sql.exec(`
       SELECT CAST(id AS TEXT) as id, event
-      FROM "dei:events"
+      FROM "${this.eventRetentionSchemaPrefix}events"
       WHERE ${typeof after === 'string' ? 'id' : 'time'} > ?
       ORDER BY id ASC
     `, typeof after === 'string' ? after : Math.floor(after.getTime() / 1000))

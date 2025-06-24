@@ -15,7 +15,7 @@ export const router = {
       signingKey: 'key',
       tokenTTLSeconds: 60 * 60 * 24, // 24 hours
       att: { some: 'attachment' },
-    }).rpc('publishMessage')
+    }).rpc('publishMessageRPC')
   }),
   sendMessage: base
     .input(z.object({ message: z.string() }))
@@ -23,7 +23,7 @@ export const router = {
       const id = context.env.CHAT_ROOM.idFromName('some-room')
       const stub = context.env.CHAT_ROOM.get(id)
 
-      await stub.publishMessage2(input.message)
+      await stub.publishMessage(input.message)
     }),
 }
 

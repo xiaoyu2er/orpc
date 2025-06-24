@@ -2,7 +2,7 @@ import type { StandardRPCHandlerOptions } from '@orpc/server/standard'
 import type { DurableEventIteratorObject as BaseDurableEventIteratorObject, TokenAttachment } from '../object'
 import type { DurableEventIteratorTokenPayload } from '../schemas'
 import type { DurableEventIteratorObjectEventStorageOptions } from './event-storage'
-import type { DurableEventIteratorObjectRouterContext } from './router'
+import type { DurableEventIteratorObjectRouterContext } from './handler'
 import type { DurableEventIteratorObjectWebsocketAttachment, DurableEventIteratorObjectWebsocketManagerOptions } from './websocket-manager'
 import { experimental_HibernationPlugin as HibernationPlugin } from '@orpc/server/hibernation'
 import { experimental_RPCHandler as RPCHandler } from '@orpc/server/websocket'
@@ -11,7 +11,7 @@ import { DurableObject } from 'cloudflare:workers'
 import { DURABLE_EVENT_ITERATOR_OBJECT_SYMBOL } from '../object'
 import { DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY } from './consts'
 import { DurableEventIteratorObjectEventStorage } from './event-storage'
-import { durableEventIteratorRouter } from './router'
+import { durableEventIteratorRouter } from './handler'
 import { DurableEventIteratorObjectWebsocketManager } from './websocket-manager'
 
 export interface DurableEventIteratorObjectOptions<
@@ -19,7 +19,7 @@ export interface DurableEventIteratorObjectOptions<
   TTokenAttachment extends TokenAttachment,
   TWsAttachment extends DurableEventIteratorObjectWebsocketAttachment,
 >
-  extends Omit<DurableEventIteratorObjectWebsocketManagerOptions<TEventPayload>, 'eventStorage'>,
+  extends DurableEventIteratorObjectWebsocketManagerOptions,
   DurableEventIteratorObjectEventStorageOptions,
   StandardRPCHandlerOptions<DurableEventIteratorObjectRouterContext<TEventPayload, TTokenAttachment, TWsAttachment>> {
 
@@ -62,10 +62,7 @@ export class DurableEventIteratorObject<
     this.dei = {
       handler,
       eventStorage,
-      websocketManager: new DurableEventIteratorObjectWebsocketManager(ctx, {
-        ...options,
-        eventStorage,
-      }),
+      websocketManager: new DurableEventIteratorObjectWebsocketManager(ctx, eventStorage, options),
     }
   }
 

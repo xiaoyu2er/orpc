@@ -5,8 +5,7 @@ import type { DurableEventIteratorObjectEventStorage } from './event-storage'
 import { experimental_encodeHibernationRPCEvent as encodeHibernationRPCEvent } from '@orpc/server/hibernation'
 import { DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY, DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY } from './consts'
 
-export interface DurableEventIteratorObjectWebsocketManagerOptions<TEventPayload extends object> extends StandardRPCJsonSerializerOptions {
-  eventStorage: DurableEventIteratorObjectEventStorage<TEventPayload>
+export interface DurableEventIteratorObjectWebsocketManagerOptions extends StandardRPCJsonSerializerOptions {
 }
 
 export type DurableEventIteratorObjectWebsocketInternalAttachment<
@@ -36,11 +35,12 @@ export class DurableEventIteratorObjectWebsocketManager<
 > {
   constructor(
     private readonly ctx: DurableObjectState,
-    private readonly options: DurableEventIteratorObjectWebsocketManagerOptions<TEventPayload>,
+    private readonly eventStorage: DurableEventIteratorObjectEventStorage<TEventPayload>,
+    private readonly options: DurableEventIteratorObjectWebsocketManagerOptions = {},
   ) {}
 
   publishEvent(wss: readonly WebSocket[], payload: TEventPayload): void {
-    payload = this.options.eventStorage.storeEvent(payload)
+    payload = this.eventStorage.storeEvent(payload)
 
     for (const ws of wss) {
       const attachment = this.deserializeAttachment(ws)
@@ -68,7 +68,7 @@ export class DurableEventIteratorObjectWebsocketManager<
     hibernationId: number,
     after: string | Date,
   ): void {
-    const events = this.options.eventStorage.getEventsAfter(after)
+    const events = this.eventStorage.getEventsAfter(after)
 
     for (const event of events) {
       ws.send(encodeHibernationRPCEvent(hibernationId, event, this.options))

@@ -21,3 +21,13 @@ export function createDurableObjectState(): any {
     },
   }
 }
+
+export function createCloudflareWebsocket(): any {
+  let attachment: any = null
+
+  return {
+    send: vi.fn(),
+    serializeAttachment: vi.fn((newAttachment) => { attachment = newAttachment }),
+    deserializeAttachment: vi.fn(() => attachment),
+  }
+}

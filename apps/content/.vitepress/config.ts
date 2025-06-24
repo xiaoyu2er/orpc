@@ -30,6 +30,10 @@ export default defineConfig({
         detailedView: true,
       },
     },
+    carbonAds: {
+      code: 'CW7IE53J',
+      placement: 'orpcunnoqcom',
+    },
     socialLinks: [
       { icon: 'github', link: 'https://github.com/unnoq/orpc' },
       { icon: 'discord', link: 'https://discord.gg/TXEbwRBvQn' },

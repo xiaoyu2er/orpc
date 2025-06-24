@@ -44,12 +44,10 @@ To generate a Hey API client, run the following command:
 ```sh
 npx @hey-api/openapi-ts \
   -i https://get.heyapi.dev/hey-api/backend \
-  -o src/client \
-  -c @hey-api/client-fetch
+  -o src/client
 ```
 
 This command uses the OpenAPI spec at `https://get.heyapi.dev/hey-api/backend` and outputs the generated client into the `src/client` directory.
-And make sure you have `@hey-api/client-fetch` installed.
 
 ::: info
 For more information on Hey API, please refer to the [official documentation](https://heyapi.dev/).

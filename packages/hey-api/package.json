@@ -33,14 +33,13 @@
     "build": "unbuild",
     "build:watch": "pnpm run build --watch",
     "type:check": "tsc -b",
-    "prepare": "openapi-ts -i ./tests/spec.json -o ./tests/client -c @hey-api/client-fetch"
+    "prepare": "openapi-ts -i ./tests/spec.json -o ./tests/client"
   },
   "dependencies": {
     "@orpc/client": "workspace:*",
     "@orpc/shared": "workspace:*"
   },
   "devDependencies": {
-    "@hey-api/client-fetch": "^0.13.1",
-    "@hey-api/openapi-ts": "^0.72.2"
+    "@hey-api/openapi-ts": "^0.75.0"
   }
 }

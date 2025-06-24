@@ -137,8 +137,33 @@ globalThis.$client = createJsonifiedRouterClient(router, {
 
 :::
 
-::: details Plugins support?
-`createRouterClient` doesn’t support plugins, so we need an alternative for server-side plugin support. Fortunately, with the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), we can easily implement a full client-server setup.
+Finally, import `lib/orpc.server.ts` before anything else and on the **server only**. For example, in Next.js add it to `instrumentation.ts` and `app/layout.tsx`:
+
+::: code-group
+
+```ts [instrumentation.ts]
+export async function register() {
+  await import('./lib/orpc.server')
+}
+```
+
+```ts [app/layout.tsx]
+import '../lib/orpc.server' // for pre-rendering
+
+// Rest of the code
+```
+
+:::
+
+Now, importing `client` from `lib/orpc.ts` gives you a server-side client during SSR and a client-side client on the client without leaking your router logic.
+
+## Alternative Approach
+
+The above approach is the most straightforward and performant, but you can also use a `fetch` adapter approach that enables plugins like `DedupeRequestsPlugin` and works with any `handler/link` pair that supports the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
+
+::: info
+oRPC doesn't restrict you to any specific approach for optimizing SSR - you can choose whatever approach works best for your framework or requirements.
+:::
 
 ```ts [lib/orpc.server.ts]
 'server only'
@@ -146,10 +171,7 @@ globalThis.$client = createJsonifiedRouterClient(router, {
 import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
 import type { RouterClient } from '@orpc/server'
-import { inferRPCMethodFromRouter } from '@orpc/server'
-import { RPCHandler } from '@orpc/server/fetch'
-
-const handler = new RPCHandler(router)
+import { handler } from '@/app/rpc/[[...rest]]/route'
 
 const link = new RPCLink({
   url: 'http://placeholder',
@@ -162,10 +184,10 @@ const link = new RPCLink({
       }],
     }),
   ],
-  fetch: async (request, init) => {
+  fetch: async (request) => {
     const { response } = await handler.handle(request, {
       context: {
-        headers: await headers(), // provide headers if initial context required
+        headers: await headers(), // Provide headers if needed
       },
     })
 
@@ -175,17 +197,6 @@ const link = new RPCLink({
 
 globalThis.$client = createORPCClient<RouterClient<typeof router>>(link)
 ```
-
-:::
-
-Finally, import `lib/orpc.server.ts` before anything else and on the **server only**. For example, in Next.js add it to `app/layout.tsx`:
-
-```ts
-import '@/lib/orpc.server'
-// Rest of the code
-```
-
-Now, importing `client` from `lib/orpc.ts` gives you a server-side client during SSR and a client-side client on the client without leaking your router logic.
 
 ## Using the client
 

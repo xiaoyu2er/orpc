@@ -23,13 +23,14 @@ export interface DurableEventIteratorObjectEventStorageOptions extends StandardR
 export class DurableEventIteratorObjectEventStorage<TEventPayload extends object> {
   private readonly serializer: StandardRPCJsonSerializer
   private readonly eventRetentionSeconds: number
-  private readonly eventRetentionSchemaPrefix: string = 'dei:'
+  private readonly eventRetentionSchemaPrefix: string
 
   constructor(
     private readonly ctx: DurableObjectState,
     options: DurableEventIteratorObjectEventStorageOptions = {},
   ) {
     this.eventRetentionSeconds = options.eventRetentionSeconds ?? 60 * 5 // 5 minutes
+    this.eventRetentionSchemaPrefix = options.eventRetentionSchemaPrefix ?? 'dei:'
     this.serializer = new StandardRPCJsonSerializer(options)
 
     this.initSchema()

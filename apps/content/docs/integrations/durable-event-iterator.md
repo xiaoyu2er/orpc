@@ -172,11 +172,11 @@ await client.sendMessage({ message: 'Hello, world!' })
 ## Recovery of Missing Events
 
 The Durable Event Iterator automatically persists events for 5 minutes and recovers missed events when clients connect/reconnect, ensuring reliable message delivery even during network interruptions.
-You can use `eventRetentionSeconds` option to change the retention duration.
+You can use the `eventRetentionSeconds` option to change the retention duration.
 
 ## Durable Objects RPC
 
-Unlike the [Cloudflare Durable Objects RPC](https://developers.cloudflare.com/durable-objects/best-practices/create-durable-object-stubs-and-send-requests/), this RPC utilizes oRPC built-in RPC system, allowing clients to easily interact with Durable Objects directly. To use it, you need to define methods that accepts a `WebSocket` instance as the first argument and returns an [oRPC Client](/docs/client/server-side).
+Unlike the [Cloudflare Durable Objects RPC](https://developers.cloudflare.com/durable-objects/best-practices/create-durable-object-stubs-and-send-requests/), this RPC utilizes oRPC built-in RPC system, allowing clients to easily interact with Durable Objects directly. To use it, you need to define methods that accept a `WebSocket` instance as the first argument and return an [oRPC Client](/docs/client/server-side).
 
 ```ts
 import { DurableEventIteratorObject } from '@orpc/experimental-durable-event-iterator/durable-object'
@@ -210,7 +210,7 @@ export class ChatRoom extends DurableEventIteratorObject<
   }
 
   /**
-   * Nested Router
+   * Nested Client
    */
   router(ws: WebSocket) {
     return {

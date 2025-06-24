@@ -3,11 +3,12 @@ import type { ClientRetryPluginContext } from '@orpc/client/plugins'
 import type { StandardLinkOptions, StandardLinkPlugin } from '@orpc/client/standard'
 import type { experimental_RPCLinkOptions as RPCLinkOptions } from '@orpc/client/websocket'
 import type { ContractRouterClient } from '@orpc/contract'
+import type { Promisable, Value } from '@orpc/shared'
 import type { durableEventIteratorContract } from './contract'
 import { type ClientContext, createORPCClient } from '@orpc/client'
 import { ClientRetryPlugin } from '@orpc/client/plugins'
 import { experimental_RPCLink as RPCLink } from '@orpc/client/websocket'
-import { toArray } from '@orpc/shared'
+import { toArray, value } from '@orpc/shared'
 import { WebSocket as ReconnectableWebSocket } from 'partysocket'
 import { DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_KEY, DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_VALUE, DURABLE_EVENT_ITERATOR_TOKEN_PARAM } from '../consts'
 import { createClientDurableEventIterator } from './event-iterator'
@@ -20,7 +21,7 @@ export interface DurableEventIteratorLinkPluginOptions extends Omit<RPCLinkOptio
   /**
    * The WebSocket URL to connect to the Durable Event Iterator Object.
    */
-  url: string | URL
+  url: Value<Promisable<string | URL>>
 
   /**
    * Polyfill for WebSocket construction.
@@ -66,7 +67,7 @@ export class DurableEventIteratorLinkPlugin<T extends ClientContext> implements 
       }
 
       const token = output as string
-      const url = new URL(this.url)
+      const url = new URL(await value(this.url))
       url.searchParams.append(DURABLE_EVENT_ITERATOR_TOKEN_PARAM, token)
 
       const durableWs = new ReconnectableWebSocket(url.toString(), undefined, {

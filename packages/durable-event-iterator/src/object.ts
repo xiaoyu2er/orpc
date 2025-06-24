@@ -7,7 +7,7 @@ export type TokenAttachment = JsonValue | undefined
 
 export interface DurableEventIteratorObject<
   TEventPayload extends object,
-  TTokenAttachment extends TokenAttachment,
+  TTokenAttachment extends TokenAttachment = TokenAttachment,
 > {
   [DURABLE_EVENT_ITERATOR_OBJECT_SYMBOL]?: {
     eventPayload: TEventPayload

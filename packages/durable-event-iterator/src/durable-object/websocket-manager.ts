@@ -26,7 +26,9 @@ export type DurableEventIteratorObjectWebsocketInternalAttachment<
 
 export type DurableEventIteratorObjectWebsocketAttachment
   = Record<string | number, unknown>
-    & Record<keyof DurableEventIteratorObjectWebsocketInternalAttachment<any>, never>
+    & {
+      [K in keyof DurableEventIteratorObjectWebsocketInternalAttachment<any>]?: never
+    }
 
 export class DurableEventIteratorObjectWebsocketManager<
   TEventPayload extends object,

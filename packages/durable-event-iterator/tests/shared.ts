@@ -19,6 +19,7 @@ export function createDurableObjectState(): any {
         },
       },
     },
+    acceptWebSocket: vi.fn(),
   }
 }
 

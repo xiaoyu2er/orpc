@@ -38,6 +38,7 @@
   ],
   "exclude": [
     "packages/nest/**",
+    "packages/durable-event-iterator/**",
     "playgrounds/**"
   ]
 }

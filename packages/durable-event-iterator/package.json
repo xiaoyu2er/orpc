@@ -43,7 +43,8 @@
   "scripts": {
     "build": "unbuild",
     "build:watch": "pnpm run build --watch",
-    "type:check": "tsc -b"
+    "type:check": "tsc -b",
+    "type:check:test": "tsc -p tsconfig.test.json --noEmit"
   },
   "dependencies": {
     "@orpc/client": "workspace:*",

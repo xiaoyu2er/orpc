@@ -155,6 +155,7 @@ export default defineConfig({
               ],
             },
             { text: 'Pinia Colada', link: '/docs/integrations/pinia-colada' },
+            { text: 'Durable Event Iterator', link: '/docs/integrations/durable-event-iterator' },
             { text: 'Hey API', link: '/docs/integrations/hey-api' },
             { text: 'NestJS', link: '/docs/openapi/integrations/implement-contract-in-nest' },
           ],

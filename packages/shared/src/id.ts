@@ -1,12 +1,9 @@
 export class SequentialIdGenerator {
-  private nextId = 0
+  private index = BigInt(0)
 
-  generate(): number {
-    if (this.nextId === Number.MAX_SAFE_INTEGER) {
-      this.nextId = 0
-      return Number.MAX_SAFE_INTEGER
-    }
-
-    return this.nextId++
+  generate(): string {
+    const id = this.index.toString(32)
+    this.index++
+    return id
   }
 }

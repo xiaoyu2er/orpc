@@ -38,9 +38,9 @@ describe('clientPeer', () => {
     expect(peer.request(baseRequest)).resolves.toEqual(baseResponse)
 
     await vi.waitFor(() => expect(send).toHaveBeenCalledTimes(1))
-    expect(await decodeRequestMessage(send.mock.calls[0]![0])).toEqual([0, MessageType.REQUEST, baseRequest])
+    expect(await decodeRequestMessage(send.mock.calls[0]![0])).toEqual(['0', MessageType.REQUEST, baseRequest])
 
-    peer.message(await encodeResponseMessage(0, MessageType.RESPONSE, baseResponse))
+    peer.message(await encodeResponseMessage('0', MessageType.RESPONSE, baseResponse))
   })
 
   it('multiple simple request/response', async () => {
@@ -48,11 +48,11 @@ describe('clientPeer', () => {
     expect(peer.request({ ...baseRequest, body: '__SECOND__' })).resolves.toEqual({ ...baseResponse, body: '__SECOND__' })
 
     await vi.waitFor(() => expect(send).toHaveBeenCalledTimes(2))
-    expect(await decodeRequestMessage(send.mock.calls[0]![0])).toEqual([0, MessageType.REQUEST, baseRequest])
-    expect(await decodeRequestMessage(send.mock.calls[1]![0])).toEqual([1, MessageType.REQUEST, { ...baseRequest, body: '__SECOND__' }])
+    expect(await decodeRequestMessage(send.mock.calls[0]![0])).toEqual(['0', MessageType.REQUEST, baseRequest])
+    expect(await decodeRequestMessage(send.mock.calls[1]![0])).toEqual(['1', MessageType.REQUEST, { ...baseRequest, body: '__SECOND__' }])
 
-    peer.message(await encodeResponseMessage(0, MessageType.RESPONSE, baseResponse))
-    peer.message(await encodeResponseMessage(1, MessageType.RESPONSE, { ...baseResponse, body: '__SECOND__' }))
+    peer.message(await encodeResponseMessage('0', MessageType.RESPONSE, baseResponse))
+    peer.message(await encodeResponseMessage('1', MessageType.RESPONSE, { ...baseResponse, body: '__SECOND__' }))
   })
 
   describe('request', () => {
@@ -69,7 +69,7 @@ describe('clientPeer', () => {
       await expect(peer.request(request)).rejects.toThrow('This operation was aborted')
       expect(send).toHaveBeenCalledTimes(0)
 
-      await peer.message(await encodeResponseMessage(0, MessageType.RESPONSE, baseResponse))
+      await peer.message(await encodeResponseMessage('0', MessageType.RESPONSE, baseResponse))
     })
 
     it('signal', async () => {
@@ -90,10 +90,10 @@ describe('clientPeer', () => {
       controller.abort()
 
       await vi.waitFor(() => expect(send).toHaveBeenCalledTimes(2))
-      expect(await decodeRequestMessage(send.mock.calls[0]![0])).toEqual([0, MessageType.REQUEST, baseRequest])
-      expect(await decodeRequestMessage(send.mock.calls[1]![0])).toEqual([0, MessageType.ABORT_SIGNAL, undefined])
+      expect(await decodeRequestMessage(send.mock.calls[0]![0])).toEqual(['0', MessageType.REQUEST, baseRequest])
+      expect(await decodeRequestMessage(send.mock.calls[1]![0])).toEqual(['0', MessageType.ABORT_SIGNAL, undefined])
 
-      await peer.message(await encodeResponseMessage(0, MessageType.RESPONSE, baseResponse))
+      await peer.message(await encodeResponseMessage('0', MessageType.RESPONSE, baseResponse))
     })
 
     it('signal 2', async () => {
@@ -112,13 +112,13 @@ describe('clientPeer', () => {
       expect(peer.request(request)).rejects.toThrow('This operation was aborted')
 
       await vi.waitFor(() => expect(send).toHaveBeenCalledTimes(1))
-      expect(await decodeRequestMessage(send.mock.calls[0]![0])).toEqual([0, MessageType.REQUEST, baseRequest])
+      expect(await decodeRequestMessage(send.mock.calls[0]![0])).toEqual(['0', MessageType.REQUEST, baseRequest])
 
       controller.abort()
       await vi.waitFor(() => expect(send).toHaveBeenCalledTimes(2))
-      expect(await decodeRequestMessage(send.mock.calls[1]![0])).toEqual([0, MessageType.ABORT_SIGNAL, undefined])
+      expect(await decodeRequestMessage(send.mock.calls[1]![0])).toEqual(['0', MessageType.ABORT_SIGNAL, undefined])
 
-      await peer.message(await encodeResponseMessage(0, MessageType.RESPONSE, baseResponse))
+      await peer.message(await encodeResponseMessage('0', MessageType.RESPONSE, baseResponse))
     })
 
     it('iterator', async () => {
@@ -134,12 +134,12 @@ describe('clientPeer', () => {
 
       await vi.waitFor(() => expect(send).toHaveBeenCalledTimes(4))
       expect(await decodeRequestMessage(send.mock.calls[0]![0]))
-        .toEqual([0, MessageType.REQUEST, { ...request, body: undefined, headers: { ...request.headers, 'content-type': 'text/event-stream' } }])
-      expect(await decodeRequestMessage(send.mock.calls[1]![0])).toEqual([0, MessageType.EVENT_ITERATOR, { event: 'message', data: 'hello' }])
-      expect(await decodeRequestMessage(send.mock.calls[2]![0])).toEqual([0, MessageType.EVENT_ITERATOR, { event: 'message', data: { hello2: true }, meta: { id: 'id-1' } }])
-      expect(await decodeRequestMessage(send.mock.calls[3]![0])).toEqual([0, MessageType.EVENT_ITERATOR, { event: 'done' }])
+        .toEqual(['0', MessageType.REQUEST, { ...request, body: undefined, headers: { ...request.headers, 'content-type': 'text/event-stream' } }])
+      expect(await decodeRequestMessage(send.mock.calls[1]![0])).toEqual(['0', MessageType.EVENT_ITERATOR, { event: 'message', data: 'hello' }])
+      expect(await decodeRequestMessage(send.mock.calls[2]![0])).toEqual(['0', MessageType.EVENT_ITERATOR, { event: 'message', data: { hello2: true }, meta: { id: 'id-1' } }])
+      expect(await decodeRequestMessage(send.mock.calls[3]![0])).toEqual(['0', MessageType.EVENT_ITERATOR, { event: 'done' }])
 
-      peer.message(await encodeResponseMessage(0, MessageType.RESPONSE, baseResponse))
+      peer.message(await encodeResponseMessage('0', MessageType.RESPONSE, baseResponse))
     })
 
     it('iterator and server abort while sending', async () => {
@@ -169,14 +169,14 @@ describe('clientPeer', () => {
       expect(yieldFn).toHaveBeenCalledTimes(1)
       expect(isFinallyCalled).toBe(false)
 
-      await peer.message(await encodeResponseMessage(0, MessageType.ABORT_SIGNAL, undefined))
+      await peer.message(await encodeResponseMessage('0', MessageType.ABORT_SIGNAL, undefined))
       await new Promise(resolve => setTimeout(resolve, 20))
 
       expect(send).toHaveBeenCalledTimes(2)
       expect(yieldFn).toHaveBeenCalledTimes(2)
       expect(isFinallyCalled).toBe(true)
 
-      await peer.message(await encodeResponseMessage(0, MessageType.RESPONSE, baseResponse))
+      await peer.message(await encodeResponseMessage('0', MessageType.RESPONSE, baseResponse))
       await new Promise(resolve => setTimeout(resolve, 20))
 
       expect(send).toHaveBeenCalledTimes(2)
@@ -194,7 +194,7 @@ describe('clientPeer', () => {
 
       await vi.waitFor(() => expect(send).toHaveBeenCalledTimes(1))
       expect(await decodeRequestMessage(send.mock.calls[0]![0]))
-        .toEqual([0, MessageType.REQUEST, {
+        .toEqual(['0', MessageType.REQUEST, {
           ...request,
           headers: {
             ...request.headers,
@@ -203,7 +203,7 @@ describe('clientPeer', () => {
           },
         }])
 
-      peer.message(await encodeResponseMessage(0, MessageType.RESPONSE, baseResponse))
+      peer.message(await encodeResponseMessage('0', MessageType.RESPONSE, baseResponse))
     })
 
     it('form data', async () => {
@@ -220,7 +220,7 @@ describe('clientPeer', () => {
 
       await vi.waitFor(() => expect(send).toHaveBeenCalledTimes(1))
       expect(await decodeRequestMessage(send.mock.calls[0]![0]))
-        .toEqual([0, MessageType.REQUEST, {
+        .toEqual(['0', MessageType.REQUEST, {
           ...request,
           headers: {
             ...request.headers,
@@ -228,7 +228,7 @@ describe('clientPeer', () => {
           },
         }])
 
-      peer.message(await encodeResponseMessage(0, MessageType.RESPONSE, baseResponse))
+      peer.message(await encodeResponseMessage('0', MessageType.RESPONSE, baseResponse))
     })
 
     it('throw if can not send', async () => {
@@ -307,10 +307,10 @@ describe('clientPeer', () => {
 
       await new Promise(resolve => setTimeout(resolve, 0))
 
-      peer.message(await encodeResponseMessage(0, MessageType.RESPONSE, response))
-      peer.message(await encodeResponseMessage(0, MessageType.EVENT_ITERATOR, { event: 'message', data: 'hello' }))
-      peer.message(await encodeResponseMessage(0, MessageType.EVENT_ITERATOR, { event: 'message', data: { hello2: true }, meta: { id: 'id-1' } }))
-      peer.message(await encodeResponseMessage(0, MessageType.EVENT_ITERATOR, { event: 'done', data: 'hello3' }))
+      peer.message(await encodeResponseMessage('0', MessageType.RESPONSE, response))
+      peer.message(await encodeResponseMessage('0', MessageType.EVENT_ITERATOR, { event: 'message', data: 'hello' }))
+      peer.message(await encodeResponseMessage('0', MessageType.EVENT_ITERATOR, { event: 'message', data: { hello2: true }, meta: { id: 'id-1' } }))
+      peer.message(await encodeResponseMessage('0', MessageType.EVENT_ITERATOR, { event: 'done', data: 'hello3' }))
 
       const result = await responsePromise
 
@@ -359,8 +359,8 @@ describe('clientPeer', () => {
 
       await new Promise(resolve => setTimeout(resolve, 0))
 
-      peer.message(await encodeResponseMessage(0, MessageType.RESPONSE, response))
-      peer.message(await encodeResponseMessage(0, MessageType.EVENT_ITERATOR, { event: 'message', data: 'hello' }))
+      peer.message(await encodeResponseMessage('0', MessageType.RESPONSE, response))
+      peer.message(await encodeResponseMessage('0', MessageType.EVENT_ITERATOR, { event: 'message', data: 'hello' }))
 
       const result = await responsePromise
 
@@ -385,7 +385,7 @@ describe('clientPeer', () => {
       expect(await iterator.next()).toEqual({ done: true, value: undefined })
 
       expect(send).toHaveBeenCalledTimes(2)
-      expect(await decodeRequestMessage(send.mock.calls[1]![0])).toEqual([0, MessageType.ABORT_SIGNAL, undefined])
+      expect(await decodeRequestMessage(send.mock.calls[1]![0])).toEqual(['0', MessageType.ABORT_SIGNAL, undefined])
     })
 
     it('iterator and server success response while sending', async () => {
@@ -415,7 +415,7 @@ describe('clientPeer', () => {
       expect(yieldFn).toHaveBeenCalledTimes(1)
       expect(isFinallyCalled).toBe(false)
 
-      await peer.message(await encodeResponseMessage(0, MessageType.RESPONSE, baseResponse))
+      await peer.message(await encodeResponseMessage('0', MessageType.RESPONSE, baseResponse))
       await new Promise(resolve => setTimeout(resolve, 20))
 
       expect(send).toHaveBeenCalledTimes(2)
@@ -451,7 +451,7 @@ describe('clientPeer', () => {
       const [response] = await Promise.all([
         peer.request(request),
         new Promise(resolve => setTimeout(resolve, 0))
-          .then(async () => peer.message(await encodeResponseMessage(0, MessageType.RESPONSE, { ...baseResponse, body: (async function* () { })() }))),
+          .then(async () => peer.message(await encodeResponseMessage('0', MessageType.RESPONSE, { ...baseResponse, body: (async function* () { })() }))),
       ])
 
       const iterator = response.body as AsyncGenerator
@@ -466,7 +466,7 @@ describe('clientPeer', () => {
       expect(yieldFn).toHaveBeenCalledTimes(2)
       expect(isFinallyCalled).toBe(false)
 
-      await peer.message(await encodeResponseMessage(0, MessageType.EVENT_ITERATOR, { event: 'done', data: 'hello' }))
+      await peer.message(await encodeResponseMessage('0', MessageType.EVENT_ITERATOR, { event: 'done', data: 'hello' }))
       await iterator.next()
       await new Promise(resolve => setTimeout(resolve, 10))
 
@@ -496,7 +496,7 @@ describe('clientPeer', () => {
         },
       })
 
-      peer.message(await encodeResponseMessage(0, MessageType.RESPONSE, response))
+      peer.message(await encodeResponseMessage('0', MessageType.RESPONSE, response))
     })
 
     it('form data', async () => {
@@ -517,7 +517,7 @@ describe('clientPeer', () => {
         },
       })
 
-      peer.message(await encodeResponseMessage(0, MessageType.RESPONSE, response))
+      peer.message(await encodeResponseMessage('0', MessageType.RESPONSE, response))
     })
   })
 

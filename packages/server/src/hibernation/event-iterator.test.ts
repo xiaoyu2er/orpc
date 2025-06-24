@@ -22,7 +22,7 @@ const serializer = new StandardRPCSerializer(new StandardRPCJsonSerializer({
 
 describe('encodeHibernationRPCEvent', () => {
   it('message without meta', async () => {
-    const id = 39483
+    const id = '39483'
     const planet = 'hello world'
     const encoded = encodeHibernationRPCEvent(id, planet, {
       customJsonSerializers: [planetSerializer],
@@ -34,7 +34,7 @@ describe('encodeHibernationRPCEvent', () => {
   })
 
   it('message with meta', async () => {
-    const id = 39483
+    const id = '39483'
     const planet = withEventMeta(new Planet('Earth', 12345), { retry: 400 })
     const encoded = encodeHibernationRPCEvent(id, planet, {
       customJsonSerializers: [planetSerializer],
@@ -46,7 +46,7 @@ describe('encodeHibernationRPCEvent', () => {
   })
 
   it('done', async () => {
-    const id = 39483
+    const id = '39483'
     const planet = withEventMeta(new Planet('Earth', 12345), { retry: 400 })
     const encoded = encodeHibernationRPCEvent(id, planet, {
       customJsonSerializers: [planetSerializer],
@@ -59,7 +59,7 @@ describe('encodeHibernationRPCEvent', () => {
   })
 
   it('error', async () => {
-    const id = 39483
+    const id = '39483'
     const planet = withEventMeta(new ORPCError('BAD_GATEWAY', { data: '__TEST__' }), { retry: 400 })
     const encoded = encodeHibernationRPCEvent(id, planet, {
       customJsonSerializers: [planetSerializer],

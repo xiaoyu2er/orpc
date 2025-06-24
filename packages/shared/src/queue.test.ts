@@ -2,8 +2,8 @@ import { AsyncIdQueue } from './queue'
 
 describe('asyncIdQueue', () => {
   let queue: AsyncIdQueue<string>
-  const queueId1 = 1
-  const queueId2 = 2
+  const queueId1 = '1'
+  const queueId2 = '2'
 
   beforeEach(() => {
     queue = new AsyncIdQueue<string>()
@@ -103,33 +103,33 @@ describe('asyncIdQueue', () => {
   })
 
   it('close, isOpen, length', async () => {
-    expect(queue.isOpen(1)).toBe(false)
+    expect(queue.isOpen('1')).toBe(false)
 
-    queue.open(1)
-    expect(queue.isOpen(1)).toBe(true)
+    queue.open('1')
+    expect(queue.isOpen('1')).toBe(true)
     expect(queue.length).toBe(1)
 
-    queue.open(2)
-    expect(queue.isOpen(2)).toBe(true)
+    queue.open('2')
+    expect(queue.isOpen('2')).toBe(true)
     expect(queue.length).toBe(2)
 
-    queue.open(3)
-    expect(queue.isOpen(3)).toBe(true)
+    queue.open('3')
+    expect(queue.isOpen('3')).toBe(true)
     expect(queue.length).toBe(3)
 
-    expect(queue.isOpen(1)).toBe(true)
-    expect(queue.isOpen(2)).toBe(true)
-    expect(queue.isOpen(3)).toBe(true)
+    expect(queue.isOpen('1')).toBe(true)
+    expect(queue.isOpen('2')).toBe(true)
+    expect(queue.isOpen('3')).toBe(true)
 
-    queue.close({ id: 1 })
-    expect(queue.isOpen(1)).toBe(false)
-    expect(queue.isOpen(2)).toBe(true)
-    expect(queue.isOpen(3)).toBe(true)
+    queue.close({ id: '1' })
+    expect(queue.isOpen('1')).toBe(false)
+    expect(queue.isOpen('2')).toBe(true)
+    expect(queue.isOpen('3')).toBe(true)
 
     queue.close()
 
-    expect(queue.isOpen(1)).toBe(false)
-    expect(queue.isOpen(2)).toBe(false)
-    expect(queue.isOpen(3)).toBe(false)
+    expect(queue.isOpen('1')).toBe(false)
+    expect(queue.isOpen('2')).toBe(false)
+    expect(queue.isOpen('3')).toBe(false)
   })
 })

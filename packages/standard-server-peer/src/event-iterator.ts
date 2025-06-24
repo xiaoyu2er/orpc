@@ -6,7 +6,7 @@ import { ErrorEvent, getEventMeta, withEventMeta } from '@orpc/standard-server'
 
 export function toEventIterator(
   queue: AsyncIdQueue<EventIteratorPayload>,
-  id: number,
+  id: string,
   cleanup: AsyncIteratorClassCleanupFn,
 ): AsyncIteratorClass<unknown> {
   return new AsyncIteratorClass(async () => {

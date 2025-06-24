@@ -40,15 +40,15 @@ describe('durableEventIteratorRouter', async () => {
 
       expect(output).toBeInstanceOf(HibernationEventIterator)
 
-      output.hibernationCallback?.(123)
+      output.hibernationCallback?.('123')
 
       expect(serializeInternalAttachmentSpy).toHaveBeenCalledWith(currentWebsocket, {
-        [DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY]: 123,
+        [DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY]: '123',
       })
 
       expect(sendEventsAfterSpy).toHaveBeenCalledWith(
         currentWebsocket,
-        123,
+        '123',
         new Date((date - 1) * 1000),
       )
     })
@@ -77,15 +77,15 @@ describe('durableEventIteratorRouter', async () => {
 
       expect(output).toBeInstanceOf(HibernationEventIterator)
 
-      output.hibernationCallback?.(123)
+      output.hibernationCallback?.('123')
 
       expect(serializeInternalAttachmentSpy).toHaveBeenCalledWith(currentWebsocket, {
-        [DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY]: 123,
+        [DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY]: '123',
       })
 
       expect(sendEventsAfterSpy).toHaveBeenCalledWith(
         currentWebsocket,
-        123,
+        '123',
         '3',
       )
     })

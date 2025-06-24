@@ -84,7 +84,7 @@ describe('durableEventIteratorObject', () => {
     const object = new DurableEventIteratorObject(ctx, {})
     const currentWebsocket = createCloudflareWebsocket()
 
-    const request = await encodeRequestMessage(123, MessageType.REQUEST, {
+    const request = await encodeRequestMessage('123', MessageType.REQUEST, {
       url: new URL('https://example.com'),
       headers: {
         'content-type': 'text/event-stream',

@@ -31,7 +31,10 @@ export interface ResponseMessageMap {
 }
 
 interface BaseMessageFormat<P = unknown> {
-  i: number
+  /**
+   * Id that unique in client-side
+   */
+  i: string
 
   /**
    * @default REQUEST | RESPONSE
@@ -83,14 +86,14 @@ interface SerializedResponsePayload {
 }
 
 type DecodedMessageUnion<TMap extends RequestMessageMap | ResponseMessageMap> = {
-  [K in keyof TMap]: [id: number, type: K, payload: TMap[K]]
+  [K in keyof TMap]: [id: string, type: K, payload: TMap[K]]
 }[keyof TMap]
 
 export type DecodedRequestMessage = DecodedMessageUnion<RequestMessageMap>
 export type DecodedResponseMessage = DecodedMessageUnion<ResponseMessageMap>
 
 export async function encodeRequestMessage<T extends keyof RequestMessageMap>(
-  id: number,
+  id: string,
   type: T,
   payload: RequestMessageMap[T],
 ): Promise<EncodedMessage> {
@@ -138,7 +141,7 @@ export async function encodeRequestMessage<T extends keyof RequestMessageMap>(
 export async function decodeRequestMessage(raw: EncodedMessage): Promise<DecodedRequestMessage> {
   const { json: message, blobData } = await decodeRawMessage(raw)
 
-  const id: number = message.i
+  const id: string = message.i
   const type: MessageType = message.t
 
   if (type === MessageType.EVENT_ITERATOR) {
@@ -179,7 +182,7 @@ export async function decodeRequestMessage(raw: EncodedMessage): Promise<Decoded
 }
 
 export async function encodeResponseMessage<T extends keyof ResponseMessageMap>(
-  id: number,
+  id: string,
   type: T,
   payload: ResponseMessageMap[T],
 ): Promise<EncodedMessage> {
@@ -224,7 +227,7 @@ export async function encodeResponseMessage<T extends keyof ResponseMessageMap>(
 export async function decodeResponseMessage(raw: EncodedMessage): Promise<DecodedResponseMessage> {
   const { json: message, blobData } = await decodeRawMessage(raw)
 
-  const id: number = message.i
+  const id: string = message.i
   const type: MessageType | undefined = message.t
 
   if (type === MessageType.EVENT_ITERATOR) {

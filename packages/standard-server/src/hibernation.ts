@@ -1,4 +1,4 @@
-import { AsyncIteratorClass } from '@orpc/shared'
+import { AsyncIteratorClass, proxyOmit } from '@orpc/shared'
 
 export interface experimental_HibernationEventIteratorCallback {
   (id: string): void
@@ -23,6 +23,7 @@ export class experimental_HibernationEventIterator<T, TReturn = unknown, TNext =
     onfulfilled?: ((value: AsyncIteratorClass<T, TReturn, TNext>) => TResult1 | PromiseLike<TResult1>) | null | undefined,
     onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null | undefined,
   ): PromiseLike<TResult1 | TResult2> {
-    return Promise.resolve(this).then(onfulfilled, onrejected)
+    // Prevent recursively .then invoke by proxy omit
+    return Promise.resolve(proxyOmit(this, 'then') as unknown as AsyncIteratorClass<T, TReturn, TNext>).then(onfulfilled, onrejected)
   }
 }

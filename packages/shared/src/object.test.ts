@@ -1,7 +1,8 @@
 import { type } from 'arktype'
 import * as v from 'valibot'
 import * as z from 'zod/v4'
-import { clone, findDeepMatches, get, isObject, isPropertyKey, isTypescriptObject, NullProtoObj } from './object'
+import { AsyncIteratorClass } from './iterator'
+import { clone, findDeepMatches, get, isObject, isPropertyKey, isTypescriptObject, NullProtoObj, proxyOmit } from './object'
 
 it('findDeepMatches', () => {
   const { maps, values } = findDeepMatches(v => typeof v === 'string', {
@@ -116,4 +117,31 @@ it('nullProtoObj', () => {
   // eslint-disable-next-line no-restricted-properties, no-proto
   expect(clone.__proto__).toBe(2)
   expect(clone.a).toBe(1)
+})
+
+describe('proxyOmit', () => {
+  it('normal object', () => {
+    const object = { a: 1, b: 2, c: 3 }
+
+    expect(proxyOmit(object, 'b')).toEqual({ a: 1, c: 3 })
+  })
+
+  it('async iterator', async () => {
+    const object = new AsyncIteratorClass(() => Promise.resolve({ done: false, value: 1 }), async () => { })
+
+    const omitted = proxyOmit(object, 'throw')
+
+    // without losing type information
+    expect(omitted).toBeInstanceOf(AsyncIteratorClass)
+
+    expect(omitted).not.toHaveProperty('throw')
+    expect((omitted as any).throw).not.toBeDefined()
+
+    expect(omitted).toHaveProperty('next')
+    expect(omitted).toHaveProperty('return')
+
+    // proxying working
+    await expect(omitted.next()).resolves.toEqual({ done: false, value: 1 })
+    await expect(omitted.return()).resolves.toEqual({ done: true, value: undefined })
+  })
 })

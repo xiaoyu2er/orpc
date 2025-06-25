@@ -88,3 +88,37 @@ export const NullProtoObj = /* @__PURE__ */ (() => {
   Object.freeze(e.prototype)
   return e
 })() as unknown as ({ new<T extends Record<PropertyKey, unknown>>(): T })
+
+/**
+ * Temporary omit properties from an object using a proxy.
+ */
+export function proxyOmit<T extends object, K extends PropertyKey>(
+  obj: T,
+  ...keys: K[]
+): Omit<T, K> {
+  return new Proxy(obj, {
+    get(target, prop) {
+      if (keys.includes(prop as K)) {
+        return undefined
+      }
+
+      const val = Reflect.get(target, prop)
+
+      /**
+       * This is needed for proxy async iterators to work correctly.
+       */
+      if (typeof val === 'function') {
+        return val.bind(target)
+      }
+
+      return val
+    },
+    has(target, prop) {
+      if (keys.includes(prop as K)) {
+        return false
+      }
+
+      return Reflect.has(target, prop)
+    },
+  })
+}

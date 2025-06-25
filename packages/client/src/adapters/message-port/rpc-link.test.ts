@@ -34,7 +34,7 @@ describe('rpcLink', () => {
 
     const [id, , payload] = (await decodeRequestMessage(sentMessages[0]))
 
-    expect(id).toBeTypeOf('number')
+    expect(id).toBeTypeOf('string')
     expect(payload).toEqual({
       url: new URL('orpc:/ping'),
       body: { json: 'input' },
@@ -54,7 +54,7 @@ describe('rpcLink', () => {
 
     const [id, , payload] = (await decodeRequestMessage(sentMessages[0]))
 
-    expect(id).toBeTypeOf('number')
+    expect(id).toBeTypeOf('string')
     expect(payload).toEqual({
       url: new URL('orpc:/ping'),
       body: expect.any(FormData),

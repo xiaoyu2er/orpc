@@ -28,7 +28,7 @@ describe('rpcHandler', async () => {
     send: vi.fn(),
   }
 
-  const ping_request_message = await encodeRequestMessage(19, MessageType.REQUEST, {
+  const ping_request_message = await encodeRequestMessage('19', MessageType.REQUEST, {
     url: new URL('orpc:/ping'),
     body: { json: 'input' },
     headers: {},
@@ -36,7 +36,7 @@ describe('rpcHandler', async () => {
   }) as string
 
   const file_request_message = {
-    buffer: new TextEncoder().encode(await encodeRequestMessage(19, MessageType.REQUEST, {
+    buffer: new TextEncoder().encode(await encodeRequestMessage('19', MessageType.REQUEST, {
       url: new URL('orpc:/file'),
       body: { json: 'input' },
       headers: {},
@@ -44,14 +44,14 @@ describe('rpcHandler', async () => {
     }) as string),
   }
 
-  const not_found_request_message = await encodeRequestMessage(19, MessageType.REQUEST, {
+  const not_found_request_message = await encodeRequestMessage('19', MessageType.REQUEST, {
     url: new URL('orpc:/not-found'),
     body: { json: 'input' },
     headers: {},
     method: 'POST',
   }) as string
 
-  const abort_message = await encodeRequestMessage(19, MessageType.ABORT_SIGNAL, undefined) as string
+  const abort_message = await encodeRequestMessage('19', MessageType.ABORT_SIGNAL, undefined) as string
 
   it('on success', async () => {
     handler.message(wss, ping_request_message)
@@ -60,7 +60,7 @@ describe('rpcHandler', async () => {
 
     const [id,, payload] = (await decodeResponseMessage(wss.send.mock.calls[0]![0]))
 
-    expect(id).toBeTypeOf('number')
+    expect(id).toBeTypeOf('string')
     expect(payload).toEqual({
       status: 200,
       headers: {},
@@ -74,7 +74,7 @@ describe('rpcHandler', async () => {
     await vi.waitFor(() => expect(wss.send).toHaveBeenCalledTimes(1))
     const [id, , payload] = (await decodeResponseMessage(wss.send.mock.calls[0]![0]))
 
-    expect(id).toBeTypeOf('number')
+    expect(id).toBeTypeOf('string')
     expect(payload).toEqual({
       status: 200,
       headers: {
@@ -120,7 +120,7 @@ describe('rpcHandler', async () => {
 
     const [id,, payload] = (await decodeResponseMessage(wss.send.mock.calls[0]![0]))
 
-    expect(id).toBeTypeOf('number')
+    expect(id).toBeTypeOf('string')
     expect(payload).toEqual({
       status: 404,
       headers: {},

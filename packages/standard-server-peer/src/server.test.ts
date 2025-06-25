@@ -4,7 +4,7 @@ import { decodeResponseMessage, encodeRequestMessage, MessageType } from './code
 import { ServerPeer } from './server'
 
 describe('serverPeer', () => {
-  const REQUEST_ID = 1953
+  const REQUEST_ID = '1953'
 
   const send = vi.fn()
   let peer: ServerPeer

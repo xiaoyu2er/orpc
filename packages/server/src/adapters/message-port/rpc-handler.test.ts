@@ -40,28 +40,28 @@ describe('rpcHandler', async () => {
     handler.upgrade(serverPort)
   })
 
-  const ping_request_message = await encodeRequestMessage(19, MessageType.REQUEST, {
+  const ping_request_message = await encodeRequestMessage('19', MessageType.REQUEST, {
     url: new URL('orpc:/ping'),
     body: { json: 'input' },
     headers: {},
     method: 'POST',
   })
 
-  const file_request_message = new TextEncoder().encode(await encodeRequestMessage(19, MessageType.REQUEST, {
+  const file_request_message = new TextEncoder().encode(await encodeRequestMessage('19', MessageType.REQUEST, {
     url: new URL('orpc:/file'),
     body: { json: 'input' },
     headers: {},
     method: 'POST',
   }) as string)
 
-  const not_found_request_message = await encodeRequestMessage(19, MessageType.REQUEST, {
+  const not_found_request_message = await encodeRequestMessage('19', MessageType.REQUEST, {
     url: new URL('orpc:/not-found'),
     body: { json: 'input' },
     headers: {},
     method: 'POST',
   })
 
-  const abort_message = await encodeRequestMessage(19, MessageType.ABORT_SIGNAL, undefined)
+  const abort_message = await encodeRequestMessage('19', MessageType.ABORT_SIGNAL, undefined)
 
   it('on success', async () => {
     clientPort.postMessage(ping_request_message)
@@ -70,7 +70,7 @@ describe('rpcHandler', async () => {
 
     const [id,, payload] = (await decodeResponseMessage(sentMessages[0]))
 
-    expect(id).toBeTypeOf('number')
+    expect(id).toBeTypeOf('string')
     expect(payload).toEqual({
       status: 200,
       headers: {},
@@ -85,7 +85,7 @@ describe('rpcHandler', async () => {
 
     const [id, , payload] = (await decodeResponseMessage(sentMessages[0]))
 
-    expect(id).toBeTypeOf('number')
+    expect(id).toBeTypeOf('string')
     expect(payload).toEqual({
       status: 200,
       headers: {
@@ -131,7 +131,7 @@ describe('rpcHandler', async () => {
 
     const [id,, payload] = (await decodeResponseMessage(sentMessages[0]))
 
-    expect(id).toBeTypeOf('number')
+    expect(id).toBeTypeOf('string')
     expect(payload).toEqual({
       status: 404,
       headers: {},

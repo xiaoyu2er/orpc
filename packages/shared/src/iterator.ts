@@ -111,8 +111,8 @@ export function replicateAsyncIterator<T, TReturn, TNext>(
         const item = await source.next()
 
         for (let id = 0; id < count; id++) {
-          if (queue.isOpen(id)) {
-            queue.push(id, item)
+          if (queue.isOpen(id.toString())) {
+            queue.push(id.toString(), item)
           }
         }
 
@@ -127,13 +127,13 @@ export function replicateAsyncIterator<T, TReturn, TNext>(
   })
 
   for (let id = 0; id < count; id++) {
-    queue.open(id)
+    queue.open(id.toString())
     replicated.push(new AsyncIteratorClass(
       () => {
         start()
 
         return new Promise((resolve, reject) => {
-          queue.pull(id)
+          queue.pull(id.toString())
             .then(resolve)
             .catch(reject)
 
@@ -145,10 +145,10 @@ export function replicateAsyncIterator<T, TReturn, TNext>(
         })
       },
       async (reason) => {
-        queue.close({ id })
+        queue.close({ id: id.toString() })
 
         if (reason !== 'next') {
-          if (replicated.every((_, id) => !queue.isOpen(id))) {
+          if (replicated.every((_, id) => !queue.isOpen(id.toString()))) {
             await source?.return?.()
           }
         }

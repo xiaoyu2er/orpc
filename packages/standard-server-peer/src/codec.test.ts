@@ -9,19 +9,19 @@ for (let i = 0; i < 300000; i++) {
 
 describe('encode/decode request message', () => {
   it('abort signal', async () => {
-    const message = await encodeRequestMessage(198, MessageType.ABORT_SIGNAL, undefined)
+    const message = await encodeRequestMessage('198', MessageType.ABORT_SIGNAL, undefined)
 
     expect(message).toBeTypeOf('string')
 
     const [id, type, payload] = await decodeRequestMessage(message)
 
-    expect(id).toBe(198)
+    expect(id).toBe('198')
     expect(type).toBe(MessageType.ABORT_SIGNAL)
     expect(payload).toBeUndefined()
   })
 
   it('event iterator', async () => {
-    const message = await encodeRequestMessage(198, MessageType.EVENT_ITERATOR, {
+    const message = await encodeRequestMessage('198', MessageType.EVENT_ITERATOR, {
       event: 'message',
       data: 'hello',
       meta: {
@@ -35,7 +35,7 @@ describe('encode/decode request message', () => {
 
     const [id, type, payload] = await decodeRequestMessage(message)
 
-    expect(id).toBe(198)
+    expect(id).toBe('198')
     expect(type).toBe(MessageType.EVENT_ITERATOR)
     expect(payload).toEqual({
       event: 'message',
@@ -58,7 +58,7 @@ describe('encode/decode request message', () => {
     ['DELETE', new URL('https://example.com/api/v1/users/1'), { }],
   ] as const)('request %s', (method, url, headers) => {
     it('undefined', async () => {
-      const message = await encodeRequestMessage(198, MessageType.REQUEST, {
+      const message = await encodeRequestMessage('198', MessageType.REQUEST, {
         url,
         headers,
         method,
@@ -69,7 +69,7 @@ describe('encode/decode request message', () => {
 
       const [id, type, payload] = await decodeRequestMessage(message)
 
-      expect(id).toBe(198)
+      expect(id).toBe('198')
       expect(type).toBe(MessageType.REQUEST)
       expect(payload).toEqual({
         url,
@@ -80,7 +80,7 @@ describe('encode/decode request message', () => {
     })
 
     it('json', async () => {
-      const message = await encodeRequestMessage(198, MessageType.REQUEST, {
+      const message = await encodeRequestMessage('198', MessageType.REQUEST, {
         url,
         headers,
         method,
@@ -91,7 +91,7 @@ describe('encode/decode request message', () => {
 
       const [id, type, payload] = await decodeRequestMessage(message)
 
-      expect(id).toBe(198)
+      expect(id).toBe('198')
       expect(type).toBe(MessageType.REQUEST)
       expect(payload).toEqual({
         url,
@@ -102,7 +102,7 @@ describe('encode/decode request message', () => {
     })
 
     it('json buffer', async () => {
-      const message = await encodeRequestMessage(198, MessageType.REQUEST, {
+      const message = await encodeRequestMessage('198', MessageType.REQUEST, {
         url,
         headers,
         method,
@@ -113,7 +113,7 @@ describe('encode/decode request message', () => {
 
       const [id, type, payload] = await decodeRequestMessage(new TextEncoder().encode(message as string))
 
-      expect(id).toBe(198)
+      expect(id).toBe('198')
       expect(type).toBe(MessageType.REQUEST)
       expect(payload).toEqual({
         url,
@@ -126,7 +126,7 @@ describe('encode/decode request message', () => {
     it('urlSearchParams', async () => {
       const query = new URLSearchParams('a=1&b=2')
 
-      const message = await encodeRequestMessage(198, MessageType.REQUEST, {
+      const message = await encodeRequestMessage('198', MessageType.REQUEST, {
         url,
         headers,
         method,
@@ -137,7 +137,7 @@ describe('encode/decode request message', () => {
 
       const [id, type, payload] = await decodeRequestMessage(message)
 
-      expect(id).toBe(198)
+      expect(id).toBe('198')
       expect(type).toBe(MessageType.REQUEST)
       expect(payload).toEqual({
         url,
@@ -148,7 +148,7 @@ describe('encode/decode request message', () => {
     })
 
     it('event iterator', async () => {
-      const message = await encodeRequestMessage(198, MessageType.REQUEST, {
+      const message = await encodeRequestMessage('198', MessageType.REQUEST, {
         url,
         method,
         headers,
@@ -159,7 +159,7 @@ describe('encode/decode request message', () => {
 
       const [id, type, payload] = await decodeRequestMessage(message)
 
-      expect(id).toBe(198)
+      expect(id).toBe('198')
       expect(type).toBe(MessageType.REQUEST)
       expect(payload).toEqual({
         url,
@@ -175,7 +175,7 @@ describe('encode/decode request message', () => {
       formData.append('b', '2')
       formData.append('file', new File(['foo'], 'some-name.pdf', { type: 'application/pdf' }))
 
-      const message = await encodeRequestMessage(198, MessageType.REQUEST, {
+      const message = await encodeRequestMessage('198', MessageType.REQUEST, {
         url,
         headers,
         method,
@@ -186,7 +186,7 @@ describe('encode/decode request message', () => {
 
       const [id, type, payload] = await decodeRequestMessage(message)
 
-      expect(id).toBe(198)
+      expect(id).toBe('198')
       expect(type).toBe(MessageType.REQUEST)
       expect(payload).toEqual({
         url,
@@ -209,7 +209,7 @@ describe('encode/decode request message', () => {
       formData.append('b', '2')
       formData.append('file', new File(['foo'], 'some-name.pdf', { type: 'application/pdf' }))
 
-      const message = await encodeRequestMessage(198, MessageType.REQUEST, {
+      const message = await encodeRequestMessage('198', MessageType.REQUEST, {
         url,
         headers,
         method,
@@ -220,7 +220,7 @@ describe('encode/decode request message', () => {
 
       const [id, type, payload] = await decodeRequestMessage(message)
 
-      expect(id).toBe(198)
+      expect(id).toBe('198')
       expect(type).toBe(MessageType.REQUEST)
       expect(payload).toEqual({
         url,
@@ -247,7 +247,7 @@ describe('encode/decode request message', () => {
       it('blob', async () => {
         const blob = new Blob(['foo'], { type: contentType })
 
-        const message = await encodeRequestMessage(198, MessageType.REQUEST, {
+        const message = await encodeRequestMessage('198', MessageType.REQUEST, {
           url,
           headers,
           method,
@@ -258,7 +258,7 @@ describe('encode/decode request message', () => {
 
         const [id, type, payload] = await decodeRequestMessage(message)
 
-        expect(id).toBe(198)
+        expect(id).toBe('198')
         expect(type).toBe(MessageType.REQUEST)
         expect(payload).toEqual({
           url,
@@ -277,7 +277,7 @@ describe('encode/decode request message', () => {
       it('blob with custom content-disposition', async () => {
         const blob = new Blob(['foo'], { type: contentType })
 
-        const message = await encodeRequestMessage(198, MessageType.REQUEST, {
+        const message = await encodeRequestMessage('198', MessageType.REQUEST, {
           url,
           headers: {
             ...headers,
@@ -291,7 +291,7 @@ describe('encode/decode request message', () => {
 
         const [id, type, payload] = await decodeRequestMessage(message)
 
-        expect(id).toBe(198)
+        expect(id).toBe('198')
         expect(type).toBe(MessageType.REQUEST)
         expect(payload).toEqual({
           url,
@@ -310,7 +310,7 @@ describe('encode/decode request message', () => {
       it('empty blob', async () => {
         const blob = new Blob([], { type: contentType })
 
-        const message = await encodeRequestMessage(198, MessageType.REQUEST, {
+        const message = await encodeRequestMessage('198', MessageType.REQUEST, {
           url,
           headers,
           method,
@@ -321,7 +321,7 @@ describe('encode/decode request message', () => {
 
         const [id, type, payload] = await decodeRequestMessage(message)
 
-        expect(id).toBe(198)
+        expect(id).toBe('198')
         expect(type).toBe(MessageType.REQUEST)
         expect(payload).toEqual({
           url,
@@ -340,7 +340,7 @@ describe('encode/decode request message', () => {
       it('file', async () => {
         const file = new File(['foo'], 'some-name.pdf', { type: contentType })
 
-        const message = await encodeRequestMessage(198, MessageType.REQUEST, {
+        const message = await encodeRequestMessage('198', MessageType.REQUEST, {
           url,
           headers,
           method,
@@ -351,7 +351,7 @@ describe('encode/decode request message', () => {
 
         const [id, type, payload] = await decodeRequestMessage(message)
 
-        expect(id).toBe(198)
+        expect(id).toBe('198')
         expect(type).toBe(MessageType.REQUEST)
         expect(payload).toEqual({
           url,
@@ -370,7 +370,7 @@ describe('encode/decode request message', () => {
       it('file with custom content-disposition', async () => {
         const file = new File(['foo'], 'some-name.pdf', { type: contentType })
 
-        const message = await encodeRequestMessage(198, MessageType.REQUEST, {
+        const message = await encodeRequestMessage('198', MessageType.REQUEST, {
           url,
           headers: {
             ...headers,
@@ -384,7 +384,7 @@ describe('encode/decode request message', () => {
 
         const [id, type, payload] = await decodeRequestMessage(message)
 
-        expect(id).toBe(198)
+        expect(id).toBe('198')
         expect(type).toBe(MessageType.REQUEST)
         expect(payload).toEqual({
           url,
@@ -403,7 +403,7 @@ describe('encode/decode request message', () => {
       it('empty file', async () => {
         const file = new File([], 'some-name.pdf', { type: contentType })
 
-        const message = await encodeRequestMessage(198, MessageType.REQUEST, {
+        const message = await encodeRequestMessage('198', MessageType.REQUEST, {
           url,
           headers,
           method,
@@ -414,7 +414,7 @@ describe('encode/decode request message', () => {
 
         const [id, type, payload] = await decodeRequestMessage(message)
 
-        expect(id).toBe(198)
+        expect(id).toBe('198')
         expect(type).toBe(MessageType.REQUEST)
         expect(payload).toEqual({
           url,
@@ -439,7 +439,7 @@ describe('encode/decode request message', () => {
     const url = new URL('https://example.com/api/v1/users/1')
     const method = 'DELETE'
 
-    const message = await encodeRequestMessage(198, MessageType.REQUEST, {
+    const message = await encodeRequestMessage('198', MessageType.REQUEST, {
       url,
       method,
       headers: MB10Headers,
@@ -450,7 +450,7 @@ describe('encode/decode request message', () => {
 
     const [id, type, payload] = await decodeRequestMessage(message)
 
-    expect(id).toBe(198)
+    expect(id).toBe('198')
     expect(type).toBe(MessageType.REQUEST)
     expect(payload).toEqual({
       url,
@@ -469,19 +469,19 @@ describe('encode/decode request message', () => {
 
 describe('encode/decode response message', () => {
   it('abort signal', async () => {
-    const message = await encodeResponseMessage(198, MessageType.ABORT_SIGNAL, undefined)
+    const message = await encodeResponseMessage('198', MessageType.ABORT_SIGNAL, undefined)
 
     expect(message).toBeTypeOf('string')
 
     const [id, type, payload] = await decodeResponseMessage(message)
 
-    expect(id).toBe(198)
+    expect(id).toBe('198')
     expect(type).toBe(MessageType.ABORT_SIGNAL)
     expect(payload).toBeUndefined()
   })
 
   it('event iterator', async () => {
-    const message = await encodeResponseMessage(198, MessageType.EVENT_ITERATOR, {
+    const message = await encodeResponseMessage('198', MessageType.EVENT_ITERATOR, {
       event: 'message',
       data: 'hello',
       meta: {
@@ -495,7 +495,7 @@ describe('encode/decode response message', () => {
 
     const [id, type, payload] = await decodeResponseMessage(message)
 
-    expect(id).toBe(198)
+    expect(id).toBe('198')
     expect(type).toBe(MessageType.EVENT_ITERATOR)
     expect(payload).toEqual({
       event: 'message',
@@ -514,7 +514,7 @@ describe('encode/decode response message', () => {
     [400, {}],
   ] as const)('response %s', (status, headers) => {
     it('undefined', async () => {
-      const message = await encodeResponseMessage(198, MessageType.RESPONSE, {
+      const message = await encodeResponseMessage('198', MessageType.RESPONSE, {
         status,
         headers,
         body: undefined,
@@ -524,7 +524,7 @@ describe('encode/decode response message', () => {
 
       const [id, type, payload] = await decodeResponseMessage(message)
 
-      expect(id).toBe(198)
+      expect(id).toBe('198')
       expect(type).toBe(MessageType.RESPONSE)
       expect(payload).toEqual({
         status,
@@ -534,7 +534,7 @@ describe('encode/decode response message', () => {
     })
 
     it('json', async () => {
-      const message = await encodeResponseMessage(198, MessageType.RESPONSE, {
+      const message = await encodeResponseMessage('198', MessageType.RESPONSE, {
         status,
         headers,
         body: { value: 1 },
@@ -544,7 +544,7 @@ describe('encode/decode response message', () => {
 
       const [id, type, payload] = await decodeResponseMessage(message)
 
-      expect(id).toBe(198)
+      expect(id).toBe('198')
       expect(type).toBe(MessageType.RESPONSE)
       expect(payload).toEqual({
         status,
@@ -554,7 +554,7 @@ describe('encode/decode response message', () => {
     })
 
     it('json buffer', async () => {
-      const message = await encodeResponseMessage(198, MessageType.RESPONSE, {
+      const message = await encodeResponseMessage('198', MessageType.RESPONSE, {
         status,
         headers,
         body: { value: 1 },
@@ -564,7 +564,7 @@ describe('encode/decode response message', () => {
 
       const [id, type, payload] = await decodeResponseMessage(new TextEncoder().encode(message as string))
 
-      expect(id).toBe(198)
+      expect(id).toBe('198')
       expect(type).toBe(MessageType.RESPONSE)
       expect(payload).toEqual({
         status,
@@ -576,7 +576,7 @@ describe('encode/decode response message', () => {
     it('urlSearchParams', async () => {
       const query = new URLSearchParams('a=1&b=2')
 
-      const message = await encodeResponseMessage(198, MessageType.RESPONSE, {
+      const message = await encodeResponseMessage('198', MessageType.RESPONSE, {
         status,
         headers,
         body: query,
@@ -586,7 +586,7 @@ describe('encode/decode response message', () => {
 
       const [id, type, payload] = await decodeResponseMessage(message)
 
-      expect(id).toBe(198)
+      expect(id).toBe('198')
       expect(type).toBe(MessageType.RESPONSE)
       expect(payload).toEqual({
         status,
@@ -596,7 +596,7 @@ describe('encode/decode response message', () => {
     })
 
     it('event iterator', async () => {
-      const message = await encodeResponseMessage(198, MessageType.RESPONSE, {
+      const message = await encodeResponseMessage('198', MessageType.RESPONSE, {
         status,
         headers,
         body: (async function* () {})(),
@@ -606,7 +606,7 @@ describe('encode/decode response message', () => {
 
       const [id, type, payload] = await decodeResponseMessage(message)
 
-      expect(id).toBe(198)
+      expect(id).toBe('198')
       expect(type).toBe(MessageType.RESPONSE)
       expect(payload).toEqual({
         status,
@@ -621,7 +621,7 @@ describe('encode/decode response message', () => {
       formData.append('b', '2')
       formData.append('file', new File(['foo'], 'some-name.pdf', { type: 'application/pdf' }))
 
-      const message = await encodeResponseMessage(198, MessageType.RESPONSE, {
+      const message = await encodeResponseMessage('198', MessageType.RESPONSE, {
         status,
         headers,
         body: formData,
@@ -631,7 +631,7 @@ describe('encode/decode response message', () => {
 
       const [id, type, payload] = await decodeResponseMessage(message)
 
-      expect(id).toBe(198)
+      expect(id).toBe('198')
       expect(type).toBe(MessageType.RESPONSE)
       expect(payload).toEqual({
         status,
@@ -653,7 +653,7 @@ describe('encode/decode response message', () => {
       formData.append('b', '2')
       formData.append('file', new File(['foo'], 'some-name.pdf', { type: 'application/pdf' }))
 
-      const message = await encodeResponseMessage(198, MessageType.RESPONSE, {
+      const message = await encodeResponseMessage('198', MessageType.RESPONSE, {
         status,
         headers,
         body: formData,
@@ -663,7 +663,7 @@ describe('encode/decode response message', () => {
 
       const [id, type, payload] = await decodeResponseMessage(message)
 
-      expect(id).toBe(198)
+      expect(id).toBe('198')
       expect(type).toBe(MessageType.RESPONSE)
       expect(payload).toEqual({
         status,
@@ -689,7 +689,7 @@ describe('encode/decode response message', () => {
       it('blob', async () => {
         const blob = new Blob(['foo'], { type: contentType })
 
-        const message = await encodeResponseMessage(198, MessageType.RESPONSE, {
+        const message = await encodeResponseMessage('198', MessageType.RESPONSE, {
           status,
           headers,
           body: blob,
@@ -699,7 +699,7 @@ describe('encode/decode response message', () => {
 
         const [id, type, payload] = await decodeResponseMessage(message)
 
-        expect(id).toBe(198)
+        expect(id).toBe('198')
         expect(type).toBe(MessageType.RESPONSE)
         expect(payload).toEqual({
           status,
@@ -717,7 +717,7 @@ describe('encode/decode response message', () => {
       it('blob with custom content-disposition', async () => {
         const blob = new Blob(['foo'], { type: contentType })
 
-        const message = await encodeResponseMessage(198, MessageType.RESPONSE, {
+        const message = await encodeResponseMessage('198', MessageType.RESPONSE, {
           status,
           headers: {
             ...headers,
@@ -730,7 +730,7 @@ describe('encode/decode response message', () => {
 
         const [id, type, payload] = await decodeResponseMessage(message)
 
-        expect(id).toBe(198)
+        expect(id).toBe('198')
         expect(type).toBe(MessageType.RESPONSE)
         expect(payload).toEqual({
           status,
@@ -748,7 +748,7 @@ describe('encode/decode response message', () => {
       it('file', async () => {
         const file = new File(['foo'], 'some-name.pdf', { type: contentType })
 
-        const message = await encodeResponseMessage(198, MessageType.RESPONSE, {
+        const message = await encodeResponseMessage('198', MessageType.RESPONSE, {
           status,
           headers,
           body: file,
@@ -758,7 +758,7 @@ describe('encode/decode response message', () => {
 
         const [id, type, payload] = await decodeResponseMessage(message)
 
-        expect(id).toBe(198)
+        expect(id).toBe('198')
         expect(type).toBe(MessageType.RESPONSE)
         expect(payload).toEqual({
           status,
@@ -776,7 +776,7 @@ describe('encode/decode response message', () => {
       it('file with custom content-disposition', async () => {
         const file = new File(['foo'], 'some-name.pdf', { type: contentType })
 
-        const message = await encodeResponseMessage(198, MessageType.RESPONSE, {
+        const message = await encodeResponseMessage('198', MessageType.RESPONSE, {
           status,
           headers: {
             ...headers,
@@ -789,7 +789,7 @@ describe('encode/decode response message', () => {
 
         const [id, type, payload] = await decodeResponseMessage(message)
 
-        expect(id).toBe(198)
+        expect(id).toBe('198')
         expect(type).toBe(MessageType.RESPONSE)
         expect(payload).toEqual({
           status,
@@ -810,7 +810,7 @@ describe('encode/decode response message', () => {
     const json = JSON.stringify(MB10Headers)
     const blob = new Blob([json], { type: 'application/pdf' })
 
-    const message = await encodeResponseMessage(198, MessageType.RESPONSE, {
+    const message = await encodeResponseMessage('198', MessageType.RESPONSE, {
       status: 203,
       headers: MB10Headers,
       body: blob,
@@ -820,7 +820,7 @@ describe('encode/decode response message', () => {
 
     const [id, type, payload] = await decodeResponseMessage(message)
 
-    expect(id).toBe(198)
+    expect(id).toBe('198')
     expect(type).toBe(MessageType.RESPONSE)
     expect(payload).toEqual({
       status: 203,

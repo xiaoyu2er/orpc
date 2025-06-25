@@ -25,7 +25,7 @@ describe('durableEventIteratorObjectWebsocketManager', () => {
      * Usually set hibernation happen after token payload, but this for test coverage
      */
     manager.serializeInternalAttachment(websocket, {
-      [DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY]: 0,
+      [DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY]: '0',
     })
     /**
      * Initial attachment, executed internally
@@ -41,7 +41,7 @@ describe('durableEventIteratorObjectWebsocketManager', () => {
     })
     // safely override the hibernation id
     manager.serializeInternalAttachment(websocket, {
-      [DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY]: 123,
+      [DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY]: '123',
     })
 
     manager.serializeAttachment(websocket, {
@@ -58,7 +58,7 @@ describe('durableEventIteratorObjectWebsocketManager', () => {
         iat: 1923456780,
         rpc: ['test'],
       },
-      [DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY]: 123,
+      [DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY]: '123',
       some: 'data',
     })
   })
@@ -89,7 +89,7 @@ describe('durableEventIteratorObjectWebsocketManager', () => {
         iat: 1923456780,
         rpc: ['test'],
       },
-      [DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY]: 123,
+      [DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY]: '123',
     })
 
     manager.serializeInternalAttachment(websocket2, {
@@ -107,8 +107,8 @@ describe('durableEventIteratorObjectWebsocketManager', () => {
     manager.publishEvent(wss, { test: 'event2' })
 
     expect(encodeHibernationRPCEventSpy).toHaveBeenCalledTimes(2)
-    expect(encodeHibernationRPCEventSpy).toHaveBeenNthCalledWith(1, 123, withEventMeta({ test: 'event1' }, { id: '1' }), options)
-    expect(encodeHibernationRPCEventSpy).toHaveBeenNthCalledWith(2, 123, withEventMeta({ test: 'event2' }, { id: '2' }), options)
+    expect(encodeHibernationRPCEventSpy).toHaveBeenNthCalledWith(1, '123', withEventMeta({ test: 'event1' }, { id: '1' }), options)
+    expect(encodeHibernationRPCEventSpy).toHaveBeenNthCalledWith(2, '123', withEventMeta({ test: 'event2' }, { id: '2' }), options)
 
     expect(storage.getEventsAfter('0')).toHaveLength(2)
 
@@ -138,11 +138,11 @@ describe('durableEventIteratorObjectWebsocketManager', () => {
     storage.storeEvent({ test: 'event2' })
     storage.storeEvent({ test: 'event3' })
 
-    manager.sendEventsAfter(websocket, 123, '1')
+    manager.sendEventsAfter(websocket, '123', '1')
 
     expect(encodeHibernationRPCEventSpy).toHaveBeenCalledTimes(2)
-    expect(encodeHibernationRPCEventSpy).toHaveBeenNthCalledWith(1, 123, withEventMeta({ test: 'event2' }, { id: '2' }), options)
-    expect(encodeHibernationRPCEventSpy).toHaveBeenNthCalledWith(2, 123, withEventMeta({ test: 'event3' }, { id: '3' }), options)
+    expect(encodeHibernationRPCEventSpy).toHaveBeenNthCalledWith(1, '123', withEventMeta({ test: 'event2' }, { id: '2' }), options)
+    expect(encodeHibernationRPCEventSpy).toHaveBeenNthCalledWith(2, '123', withEventMeta({ test: 'event3' }, { id: '3' }), options)
 
     expect(websocket.send).toHaveBeenCalledTimes(2)
     expect(websocket.send).toHaveBeenNthCalledWith(1, encodeHibernationRPCEventSpy.mock.results[0]!.value)

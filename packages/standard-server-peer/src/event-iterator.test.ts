@@ -7,33 +7,33 @@ describe('toEventIterator', () => {
   it('on success', async () => {
     const queue = new AsyncIdQueue<EventIteratorPayload>()
 
-    queue.open(198)
-    queue.open(199)
+    queue.open('198')
+    queue.open('199')
 
-    queue.push(198, {
+    queue.push('198', {
       event: 'message',
       data: 'hello',
     })
 
-    queue.push(199, {
+    queue.push('199', {
       event: 'message',
       data: 'hello2',
     })
 
-    queue.push(198, {
+    queue.push('198', {
       event: 'message',
       data: { hello3: true },
       meta: { id: 'id-1', retry: 2000, comments: [] },
     })
 
-    queue.push(198, {
+    queue.push('198', {
       event: 'done',
       data: { hello4: true },
       meta: { id: 'id-2', retry: 2001, comments: ['comment1', 'comment2'] },
     })
 
     const cleanup = vi.fn()
-    const iterator = toEventIterator(queue, 198, cleanup)
+    const iterator = toEventIterator(queue, '198', cleanup)
 
     await expect(iterator.next()).resolves.toSatisfy((value) => {
       expect(value.done).toBe(false)
@@ -67,33 +67,33 @@ describe('toEventIterator', () => {
   it('on error', async () => {
     const queue = new AsyncIdQueue<EventIteratorPayload>()
 
-    queue.open(198)
-    queue.open(199)
+    queue.open('198')
+    queue.open('199')
 
-    queue.push(198, {
+    queue.push('198', {
       event: 'message',
       data: 'hello',
     })
 
-    queue.push(199, {
+    queue.push('199', {
       event: 'message',
       data: 'hello2',
     })
 
-    queue.push(198, {
+    queue.push('198', {
       event: 'message',
       data: { hello3: true },
       meta: { id: 'id-1', retry: 2000, comments: [] },
     })
 
-    queue.push(198, {
+    queue.push('198', {
       event: 'error',
       data: { hello4: true },
       meta: { id: 'id-2', retry: 2001, comments: ['comment1', 'comment2'] },
     })
 
     const cleanup = vi.fn()
-    const iterator = toEventIterator(queue, 198, cleanup)
+    const iterator = toEventIterator(queue, '198', cleanup)
 
     await expect(iterator.next()).resolves.toSatisfy((value) => {
       expect(value.done).toBe(false)

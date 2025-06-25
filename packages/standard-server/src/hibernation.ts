@@ -1,7 +1,7 @@
 import { AsyncIteratorClass } from '@orpc/shared'
 
 export interface experimental_HibernationEventIteratorCallback {
-  (id: number): void
+  (id: string): void
 }
 
 export class experimental_HibernationEventIterator<T, TReturn = unknown, TNext = unknown>

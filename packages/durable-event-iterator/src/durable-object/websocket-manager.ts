@@ -14,7 +14,7 @@ export type DurableEventIteratorObjectWebsocketInternalAttachment<
   /**
    * Internal Hibernation Event Iterator ID.
    */
-  [DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY]?: number
+  [DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY]?: string
 
   /**
    * The payload of the Token used to authenticate the WebSocket connection.
@@ -67,7 +67,7 @@ export class DurableEventIteratorObjectWebsocketManager<
    */
   sendEventsAfter(
     ws: WebSocket,
-    hibernationId: number,
+    hibernationId: string,
     after: string | Date,
   ): void {
     const events = this.eventStorage.getEventsAfter(after)

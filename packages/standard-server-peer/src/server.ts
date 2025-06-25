@@ -18,7 +18,7 @@ export interface ServerPeerCloseOptions extends AsyncIdQueueCloseOptions {
 
 export class ServerPeer {
   private readonly clientEventIteratorQueue = new AsyncIdQueue<EventIteratorPayload>()
-  private readonly clientControllers = new Map<number, AbortController>()
+  private readonly clientControllers = new Map<string, AbortController>()
 
   private readonly send: (...args: Parameters<typeof encodeResponseMessage>) => Promise<void>
 
@@ -40,14 +40,14 @@ export class ServerPeer {
     ) / 2
   }
 
-  open(id: number): AbortController {
+  open(id: string): AbortController {
     this.clientEventIteratorQueue.open(id)
     const controller = new AbortController()
     this.clientControllers.set(id, controller)
     return controller
   }
 
-  async message(raw: EncodedMessage): Promise<[id: number, StandardRequest | undefined]> {
+  async message(raw: EncodedMessage): Promise<[id: string, StandardRequest | undefined]> {
     const [id, type, payload] = await decodeRequestMessage(raw)
 
     if (type === MessageType.ABORT_SIGNAL) {
@@ -79,7 +79,7 @@ export class ServerPeer {
     return [id, request]
   }
 
-  async response(id: number, response: StandardResponse): Promise<void> {
+  async response(id: string, response: StandardResponse): Promise<void> {
     const signal = this.clientControllers.get(id)?.signal
 
     // only send message if still open and not aborted

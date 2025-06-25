@@ -34,7 +34,7 @@ describe('rpcHandler', async () => {
   handler.upgrade(wss)
 
   const ping_request_message = {
-    data: await encodeRequestMessage(19, MessageType.REQUEST, {
+    data: await encodeRequestMessage('19', MessageType.REQUEST, {
       url: new URL('orpc:/ping'),
       body: { json: 'input' },
       headers: {},
@@ -47,7 +47,7 @@ describe('rpcHandler', async () => {
   }
 
   const not_found_request_message = {
-    data: await encodeRequestMessage(19, MessageType.REQUEST, {
+    data: await encodeRequestMessage('19', MessageType.REQUEST, {
       url: new URL('orpc:/not-found'),
       body: { json: 'input' },
       headers: {},
@@ -56,7 +56,7 @@ describe('rpcHandler', async () => {
   }
 
   const abort_message = {
-    data: await encodeRequestMessage(19, MessageType.ABORT_SIGNAL, undefined),
+    data: await encodeRequestMessage('19', MessageType.ABORT_SIGNAL, undefined),
   }
 
   it('on success', async () => {
@@ -66,7 +66,7 @@ describe('rpcHandler', async () => {
 
     const [id,, payload] = (await decodeResponseMessage(wss.send.mock.calls[0]![0]))
 
-    expect(id).toBeTypeOf('number')
+    expect(id).toBeTypeOf('string')
     expect(payload).toEqual({
       status: 200,
       headers: {},
@@ -81,7 +81,7 @@ describe('rpcHandler', async () => {
 
     const [id, , payload] = (await decodeResponseMessage(wss.send.mock.calls[0]![0]))
 
-    expect(id).toBeTypeOf('number')
+    expect(id).toBeTypeOf('string')
     expect(payload).toEqual({
       status: 200,
       headers: {},
@@ -91,7 +91,7 @@ describe('rpcHandler', async () => {
 
   it('on abort signal', async () => {
     onMessage({
-      data: await encodeRequestMessage(19, MessageType.REQUEST, {
+      data: await encodeRequestMessage('19', MessageType.REQUEST, {
         url: new URL('orpc:/ping'),
         body: { json: 'input' },
         headers: {},
@@ -129,7 +129,7 @@ describe('rpcHandler', async () => {
     await vi.waitFor(() => expect(wss.send).toHaveBeenCalledTimes(1))
     const [id,, payload] = (await decodeResponseMessage(wss.send.mock.calls[0]![0]))
 
-    expect(id).toBeTypeOf('number')
+    expect(id).toBeTypeOf('string')
     expect(payload).toEqual({
       status: 404,
       headers: {},

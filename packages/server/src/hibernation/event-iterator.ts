@@ -24,7 +24,7 @@ export interface experimental_EncodeHibernationRPCEventOptions extends StandardR
  * @see {@link https://orpc.unnoq.com/docs/plugins/hibernation Hibernation Plugin}
  */
 export function experimental_encodeHibernationRPCEvent(
-  id: number,
+  id: string,
   payload: unknown,
   options: experimental_EncodeHibernationRPCEventOptions = {},
 ): string {

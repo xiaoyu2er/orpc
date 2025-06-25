@@ -1,26 +1,26 @@
 export interface AsyncIdQueueCloseOptions {
-  id?: number
+  id?: string
   reason?: unknown
 }
 
 export class AsyncIdQueue<T> {
-  private readonly openIds = new Set<number>()
-  private readonly items = new Map<number, T[]>()
-  private readonly pendingPulls = new Map<number, (readonly [resolve: (item: T) => void, reject: (err: unknown) => void])[]>()
+  private readonly openIds = new Set<string>()
+  private readonly items = new Map<string, T[]>()
+  private readonly pendingPulls = new Map<string, (readonly [resolve: (item: T) => void, reject: (err: unknown) => void])[]>()
 
   get length(): number {
     return this.openIds.size
   }
 
-  open(id: number): void {
+  open(id: string): void {
     this.openIds.add(id)
   }
 
-  isOpen(id: number): boolean {
+  isOpen(id: string): boolean {
     return this.openIds.has(id)
   }
 
-  push(id: number, item: T): void {
+  push(id: string, item: T): void {
     this.assertOpen(id)
 
     const pending = this.pendingPulls.get(id)
@@ -44,7 +44,7 @@ export class AsyncIdQueue<T> {
     }
   }
 
-  async pull(id: number): Promise<T> {
+  async pull(id: string): Promise<T> {
     this.assertOpen(id)
 
     const items = this.items.get(id)
@@ -96,7 +96,7 @@ export class AsyncIdQueue<T> {
     this.items.delete(id)
   }
 
-  assertOpen(id: number): void {
+  assertOpen(id: string): void {
     if (!this.isOpen(id)) {
       throw new Error(`[AsyncIdQueue] Cannot access queue[${id}] because it is not open or aborted.`)
     }

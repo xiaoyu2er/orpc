@@ -20,7 +20,7 @@ export class ClientPeer {
 
   private readonly responseQueue = new AsyncIdQueue<StandardResponse>()
   private readonly serverEventIteratorQueue = new AsyncIdQueue<EventIteratorPayload>()
-  private readonly serverControllers = new Map<number, AbortController>()
+  private readonly serverControllers = new Map<string, AbortController>()
 
   private readonly send: (...args: Parameters<typeof encodeRequestMessage>) => Promise<void>
 
@@ -43,7 +43,7 @@ export class ClientPeer {
     ) / 3
   }
 
-  open(id: number): AbortController {
+  open(id: string): AbortController {
     this.serverEventIteratorQueue.open(id)
     this.responseQueue.open(id)
     const controller = new AbortController()

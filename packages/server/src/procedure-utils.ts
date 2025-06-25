@@ -1,10 +1,10 @@
-import type { ClientPromiseResult } from '@orpc/client'
+import type { ClientOptions, ClientPromiseResult } from '@orpc/client'
 import type { AnyContractProcedure, AnySchema, ErrorFromErrorMap, ErrorMap, InferSchemaInput, InferSchemaOutput, Meta } from '@orpc/contract'
-import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { Context } from './context'
 import type { Lazy, Lazyable } from './lazy'
 import type { AnyProcedure } from './procedure'
 import type { CreateProcedureClientOptions } from './procedure-client'
+import { type MaybeOptionalOptions, resolveMaybeOptionalOptions } from '@orpc/shared'
 import { getLazyMeta, lazy, unlazy } from './lazy'
 import { isProcedure, Procedure } from './procedure'
 import { createProcedureClient } from './procedure-client'
@@ -65,8 +65,9 @@ export function call<
       TErrorMap,
       TMeta,
       Record<never, never>
-    >
+    > & Omit<ClientOptions<Record<never, never>>, 'context'>
   >
 ): ClientPromiseResult<InferSchemaOutput<TOutputSchema>, ErrorFromErrorMap<TErrorMap>> {
-  return createProcedureClient(procedure, ...rest)(input)
+  const options = resolveMaybeOptionalOptions(rest)
+  return createProcedureClient(procedure, options)(input, options)
 }

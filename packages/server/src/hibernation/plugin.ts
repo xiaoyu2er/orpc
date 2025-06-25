@@ -3,7 +3,7 @@ import type { Context } from '../context'
 import type { Router } from '../router'
 import { experimental_HibernationEventIterator } from '@orpc/standard-server'
 
-export interface experimental_HibernationContext {
+export interface experimental_HibernationPluginContext {
   iterator?: experimental_HibernationEventIterator<any>
 }
 
@@ -13,7 +13,7 @@ export interface experimental_HibernationContext {
  * @see {@link https://orpc.unnoq.com/docs/plugins/hibernation Hibernation Plugin}
  */
 export class experimental_HibernationPlugin<T extends Context> implements StandardHandlerPlugin<T> {
-  readonly HIBERNATION_CONTEXT_SYMBOL = Symbol('HIBERNATION_CONTEXT')
+  readonly CONTEXT_SYMBOL = Symbol('ORPC_HIBERNATION_CONTEXT')
 
   order = 2_000_000 // make sure execute after the batch plugin
 
@@ -22,12 +22,12 @@ export class experimental_HibernationPlugin<T extends Context> implements Standa
     options.clientInterceptors ??= []
 
     options.interceptors.unshift(async (options) => {
-      const hibernationContext: experimental_HibernationContext = {}
+      const hibernationContext: experimental_HibernationPluginContext = {}
 
       const result = await options.next({
         ...options,
         context: {
-          [this.HIBERNATION_CONTEXT_SYMBOL]: hibernationContext,
+          [this.CONTEXT_SYMBOL]: hibernationContext,
           ...options.context,
         },
       })
@@ -46,7 +46,7 @@ export class experimental_HibernationPlugin<T extends Context> implements Standa
     })
 
     options.clientInterceptors.unshift(async (options) => {
-      const hibernationContext = options.context[this.HIBERNATION_CONTEXT_SYMBOL] as experimental_HibernationContext | undefined
+      const hibernationContext = options.context[this.CONTEXT_SYMBOL] as experimental_HibernationPluginContext | undefined
 
       if (!hibernationContext) {
         throw new TypeError('[HibernationPlugin] Hibernation context has been corrupted or modified by another plugin or interceptor')

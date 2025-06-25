@@ -48,12 +48,12 @@ it('call', async () => {
   const client = vi.fn(async () => '__output__')
   vi.mocked(createProcedureClient).mockReturnValueOnce(client)
 
-  const options = { context: { db: 'postgres' } }
+  const options = { context: { db: 'postgres' }, signal: AbortSignal.timeout(1000), lastEventId: '123' }
   const output = await call(ping, { input: 123 }, options)
 
   expect(output).toBe('__output__')
   expect(createProcedureClient).toBeCalledTimes(1)
   expect(createProcedureClient).toBeCalledWith(ping, options)
   expect(client).toBeCalledTimes(1)
-  expect(client).toBeCalledWith({ input: 123 })
+  expect(client).toBeCalledWith({ input: 123 }, options)
 })

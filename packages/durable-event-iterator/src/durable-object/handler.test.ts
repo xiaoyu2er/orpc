@@ -40,7 +40,7 @@ describe('durableEventIteratorRouter', async () => {
 
       expect(output).toBeInstanceOf(HibernationEventIterator)
 
-      output.hibernationCallback?.(123)
+      output.hibernationCallback(123)
 
       expect(serializeInternalAttachmentSpy).toHaveBeenCalledWith(currentWebsocket, {
         [DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY]: 123,
@@ -77,7 +77,7 @@ describe('durableEventIteratorRouter', async () => {
 
       expect(output).toBeInstanceOf(HibernationEventIterator)
 
-      output.hibernationCallback?.(123)
+      output.hibernationCallback(123)
 
       expect(serializeInternalAttachmentSpy).toHaveBeenCalledWith(currentWebsocket, {
         [DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY]: 123,

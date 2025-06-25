@@ -4,14 +4,11 @@ export interface experimental_HibernationEventIteratorCallback {
   (id: number): void
 }
 
-export class experimental_HibernationEventIterator<T, TReturn = unknown, TNext = unknown> extends AsyncIteratorClass<T, TReturn, TNext> {
-  /**
-   * this property is not transferred to the client, so it should be optional for type safety
-   */
-  public readonly hibernationCallback?: experimental_HibernationEventIteratorCallback
-
+export class experimental_HibernationEventIterator<T, TReturn = unknown, TNext = unknown>
+  extends AsyncIteratorClass<T, TReturn, TNext>
+  implements PromiseLike<AsyncIteratorClass<T, TReturn, TNext>> {
   constructor(
-    hibernationCallback: experimental_HibernationEventIteratorCallback,
+    public readonly hibernationCallback: experimental_HibernationEventIteratorCallback,
   ) {
     super(async () => {
       throw new Error('Cannot iterate over hibernating iterator directly')
@@ -20,7 +17,12 @@ export class experimental_HibernationEventIterator<T, TReturn = unknown, TNext =
         throw new Error('Cannot cleanup hibernating iterator directly')
       }
     })
+  }
 
-    this.hibernationCallback = hibernationCallback
+  then<TResult1 = AsyncIteratorClass<T, TReturn, TNext>, TResult2 = never>(
+    onfulfilled?: ((value: AsyncIteratorClass<T, TReturn, TNext>) => TResult1 | PromiseLike<TResult1>) | null | undefined,
+    onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null | undefined,
+  ): PromiseLike<TResult1 | TResult2> {
+    return Promise.resolve(this).then(onfulfilled, onrejected)
   }
 }

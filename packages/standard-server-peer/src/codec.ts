@@ -32,7 +32,7 @@ export interface ResponseMessageMap {
 
 interface BaseMessageFormat<P = unknown> {
   /**
-   * Id that unique in client-side
+   * Client-guaranteed unique identifier
    */
   i: string
 

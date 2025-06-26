@@ -29,5 +29,5 @@ const example = os
 ```
 
 :::info
-If you are using Node.js 18, you can import the `File` class from the `buffer` module.
+For handling large files more efficiently, especially streaming downloads, consider using [lazy-file](https://www.npmjs.com/package/@mjackson/lazy-file) or similar libraries that allow you to work with files in a streaming manner.
 :::

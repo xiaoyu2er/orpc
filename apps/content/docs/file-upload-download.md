@@ -8,7 +8,7 @@ description: Learn how to upload and download files using oRPC.
 oRPC natively supports file uploads and downloads using standard [File](https://developer.mozilla.org/en-US/docs/Web/API/File) and [Blob](https://developer.mozilla.org/en-US/docs/Web/API/Blob) objects, requiring no additional configuration.
 
 :::tip
-For files larger than 100MB, we recommend using a dedicated upload solution or [extend body parser](/docs/advanced/extend-body-parser) for better performance and reliability, since oRPC does not support chunked or resumable uploads.
+For files larger than 100 MB, we recommend using a dedicated upload solution or [extending the body parser](/docs/advanced/extend-body-parser) for better performance and reliability, because oRPC does not support chunked or resumable uploads.
 :::
 
 ## Validation

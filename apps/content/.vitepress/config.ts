@@ -178,8 +178,8 @@ export default defineConfig({
             { text: 'RPC JSON Serializer', link: '/docs/advanced/rpc-json-serializer' },
             { text: 'Mocking', link: '/docs/advanced/mocking' },
             { text: 'Exceeds the maximum length ...', link: '/docs/advanced/exceeds-the-maximum-length-problem' },
-            { text: 'SuperJson', link: '/docs/advanced/superjson' },
             { text: 'Extend Body Parser', link: '/docs/advanced/extend-body-parser' },
+            { text: 'SuperJson', link: '/docs/advanced/superjson' },
           ],
         },
         {

@@ -179,6 +179,7 @@ export default defineConfig({
             { text: 'Mocking', link: '/docs/advanced/mocking' },
             { text: 'Exceeds the maximum length ...', link: '/docs/advanced/exceeds-the-maximum-length-problem' },
             { text: 'SuperJson', link: '/docs/advanced/superjson' },
+            { text: 'Extend Body Parser', link: '/docs/advanced/extend-body-parser' },
           ],
         },
         {

@@ -1,4 +1,5 @@
 import type { StandardHandlerOptions, StandardHandlerPlugin } from '../adapters/standard'
+import { clone } from '@orpc/shared'
 
 export interface ResponseHeadersPluginContext {
   resHeaders?: Headers
@@ -29,7 +30,7 @@ export class ResponseHeadersPlugin<T extends ResponseHeadersPluginContext> imple
         return result
       }
 
-      const responseHeaders = result.response.headers
+      const responseHeaders = clone(result.response.headers)
 
       for (const [key, value] of resHeaders) {
         if (Array.isArray(responseHeaders[key])) {
@@ -43,7 +44,13 @@ export class ResponseHeadersPlugin<T extends ResponseHeadersPluginContext> imple
         }
       }
 
-      return result
+      return {
+        ...result,
+        response: {
+          ...result.response,
+          headers: responseHeaders,
+        },
+      }
     })
   }
 }

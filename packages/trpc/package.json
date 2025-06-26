@@ -1,0 +1,45 @@
+{
+  "name": "@orpc/trpc",
+  "type": "module",
+  "version": "1.5.2",
+  "license": "MIT",
+  "homepage": "https://orpc.unnoq.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unnoq/orpc.git",
+    "directory": "packages/trpc"
+  },
+  "keywords": [
+    "unnoq",
+    "orpc",
+    "trpc"
+  ],
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.mts",
+        "import": "./dist/index.mjs",
+        "default": "./dist/index.mjs"
+      }
+    }
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "unbuild",
+    "build:watch": "pnpm run build --watch",
+    "type:check": "tsc -b"
+  },
+  "dependencies": {
+    "@orpc/contract": "workspace:*",
+    "@orpc/server": "workspace:*",
+    "@orpc/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "zod": "^3.25.67"
+  }
+}

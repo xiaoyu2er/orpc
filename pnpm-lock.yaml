@@ -656,6 +656,22 @@ importers:
         specifier: ^3.25.67
         version: 3.25.67
 
+  packages/trpc:
+    dependencies:
+      '@orpc/contract':
+        specifier: workspace:*
+        version: link:../contract
+      '@orpc/server':
+        specifier: workspace:*
+        version: link:../server
+      '@orpc/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      zod:
+        specifier: ^3.25.67
+        version: 3.25.67
+
   packages/valibot:
     dependencies:
       '@orpc/contract':

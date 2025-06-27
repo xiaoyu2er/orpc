@@ -1,7 +1,7 @@
 import type { ORPCErrorCode, ORPCErrorOptions } from '@orpc/client'
 import type { ErrorMap, ErrorMapItem, InferSchemaInput } from '@orpc/contract'
 import type { MaybeOptionalOptions } from '@orpc/shared'
-import { fallbackORPCErrorStatus, ORPCError } from '@orpc/client'
+import { ORPCError } from '@orpc/client'
 
 export type ORPCErrorConstructorMapItemOptions<TData> = Omit<ORPCErrorOptions<TData>, 'defined' | 'status'>
 
@@ -49,7 +49,7 @@ export async function validateORPCError(map: ErrorMap, error: ORPCError<any, any
   const { code, status, message, data, cause, defined } = error
   const config = map?.[error.code]
 
-  if (!config || fallbackORPCErrorStatus(error.code, config.status) !== error.status) {
+  if (!config) {
     return defined
       ? new ORPCError(code, { defined: false, status, message, data, cause })
       : error

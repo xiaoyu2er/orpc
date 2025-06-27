@@ -112,6 +112,7 @@ import type { ZodIssue } from 'zod'
 
 const base = os.errors({
   INPUT_VALIDATION_FAILED: {
+    status: 422,
     data: z.object({
       formErrors: z.array(z.string()),
       fieldErrors: z.record(z.string(), z.array(z.string()).optional()),
@@ -135,7 +136,6 @@ const handler = new RPCHandler({ example }, {
         const zodError = new ZodError(error.cause.issues as ZodIssue[])
 
         throw new ORPCError('INPUT_VALIDATION_FAILED', {
-          status: 422,
           data: zodError.flatten(),
           cause: error.cause,
         })

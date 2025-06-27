@@ -91,7 +91,7 @@ Learn more about [Client Error Handling](/docs/client/error-handling).
 
 ## Combining Both Approaches
 
-You can combine both strategies seamlessly. When you throw an `ORPCError` instance, if the `code` and `data` match with the errors defined in the `.errors` method, oRPC will treat it exactly as if you had thrown `errors.[code]` using the type‑safe approach.
+You can combine both strategies seamlessly. When you throw an `ORPCError` instance, if the `code`, `status` and `data` match with the errors defined in the `.errors` method, oRPC will treat it exactly as if you had thrown `errors.[code]` using the type‑safe approach.
 
 ```ts
 const base = os.errors({ // <-- common errors

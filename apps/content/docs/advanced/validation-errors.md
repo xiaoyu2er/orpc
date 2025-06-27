@@ -101,7 +101,7 @@ Middleware applied before `.input`/`.output` catches validation errors by defaul
 
 ## Type‑Safe Validation Errors
 
-As explained in the [error handling guide](/docs/error-handling#combining-both-approaches), when you throw an `ORPCError` instance, if the `code` and `data` match with the errors defined in the `.errors` method, oRPC will treat it exactly as if you had thrown `errors.[code]` using the type‑safe approach.
+As explained in the [error handling guide](/docs/error-handling#combining-both-approaches), when you throw an `ORPCError` instance, if the `code`, `status` and `data` match with the errors defined in the `.errors` method, oRPC will treat it exactly as if you had thrown `errors.[code]` using the type‑safe approach.
 
 ```ts twoslash
 import { RPCHandler } from '@orpc/server/fetch'
@@ -112,6 +112,7 @@ import type { ZodIssue } from 'zod'
 
 const base = os.errors({
   INPUT_VALIDATION_FAILED: {
+    status: 422,
     data: z.object({
       formErrors: z.array(z.string()),
       fieldErrors: z.record(z.string(), z.array(z.string()).optional()),

@@ -72,7 +72,7 @@ const spec = await openAPIGenerator.generate(orpcRouter, {
 ```
 
 ::: info
-Learn more about [oRPC OpenAPI Specification Generation](/docs/openapi/openapi-specification-generation).
+Learn more about [oRPC OpenAPI Specification Generation](/docs/openapi/openapi-specification).
 :::
 
 ### Request Handling

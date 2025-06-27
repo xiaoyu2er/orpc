@@ -1,45 +1,65 @@
-import { initTRPC, lazy } from "@trpc/server"
-import { z } from "zod/v4"
+import type { experimental_ORPCMeta as ORPCMeta } from '../src/to-orpc-router'
+import { initTRPC, lazy, TRPCError } from '@trpc/server'
+import { z } from 'zod/v4'
+import { inputSchema, outputSchema } from '../../contract/tests/shared'
 
 export type TRPCContext = { a: string }
-export type TRPCMeta = { meta1?: string, meta2?: number }
+export interface TRPCMeta extends ORPCMeta {
+  meta1?: string
+  meta2?: number
+}
+
 export const t = initTRPC.context<(req: Request) => (TRPCContext)>().meta<TRPCMeta>().create()
 
 export const trpcRouter = t.router({
+  ping: t.procedure
+    .meta({ meta1: 'test' })
+    .input(inputSchema)
+    .output(outputSchema)
+    .query(({ input }) => {
+      return { output: Number(input.input) }
+    }),
+
+  throw: t.procedure
+    .meta({ meta2: 42 })
+    .input(z.object({ b: z.number(), c: z.string() }))
+    .query(() => {
+      throw new TRPCError({
+        code: 'PARSE_ERROR',
+        message: 'throw',
+      })
+    }),
+
+  subscribe: t.procedure
+    .input(z.object({ u: z.string() }))
+    .subscription(async function* () {
+      yield 'pong'
+    }),
+
+  nested: {
     ping: t.procedure
-      .meta({ meta1: 'test' })
+      .meta({ path: '/nested/ping', description: 'Nested ping procedure' })
       .input(z.object({ a: z.string() }))
       .output(z.string().transform(val => Number(val)))
       .query(({ input }) => {
         return `1234${input.a}`
       }),
+  },
 
-    pong: t.procedure
-      .meta({ meta2: 42 })
-      .input(z.object({ b: z.number() }))
-      .input(z.object({ b: z.number(), c: z.string() }))
-      .query(({ input }) => {
-        return `ping ${input.b}`
-      }),
-
+  lazy: lazy(() => Promise.resolve({ default: t.router({
     subscribe: t.procedure
-    .input(z.object({ u: z.string() }))
       .subscription(async function* () {
         yield 'pong'
       }),
 
-    nested: lazy(() => Promise.resolve({ default: t.router({
-      subscribe: t.procedure
-        .subscription(async function* () {
-          yield 'pong'
+    lazy: lazy(() => Promise.resolve({ default: t.router({
+      throw: t.procedure
+        .meta({ meta1: 'nested' })
+        .input(inputSchema)
+        .output(outputSchema)
+        .query(() => {
+          throw new Error('lazy.lazy.throw')
         }),
-
-      nested: lazy(() => Promise.resolve({ default: t.router({
-        pong: t.procedure
-          .meta({ meta1: 'nested' })
-          .input(z.object({ d: z.boolean() }))
-          .output(z.string())
-          .query(() => 'nested nested pong'),
-      }) })),
     }) })),
-  })
+  }) })),
+})

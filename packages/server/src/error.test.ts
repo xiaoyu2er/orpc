@@ -60,11 +60,12 @@ describe('validateORPCError', () => {
       }),
     },
     CONFLICT: {
+      status: 483,
     },
   }
 
   it('ignore not-match errors when defined=false', async () => {
-    const e1 = new ORPCError('BAD_GATEWAY', { status: 501 })
+    const e1 = new ORPCError('BAD_GATEWAY', { status: 501, data: { value: '123' } })
     expect(await validateORPCError(errors, e1)).toBe(e1)
 
     const e2 = new ORPCError('NOT_FOUND')
@@ -72,6 +73,9 @@ describe('validateORPCError', () => {
 
     const e3 = new ORPCError('BAD_GATEWAY', { data: 'invalid' })
     expect(await validateORPCError(errors, e3)).toBe(e3)
+
+    const e4 = new ORPCError('CONFLICT')
+    expect(await validateORPCError(errors, e4)).toBe(e4)
   })
 
   it('modify not-match errors when defined=true', async () => {
@@ -89,15 +93,20 @@ describe('validateORPCError', () => {
     const v3 = await validateORPCError(errors, e3)
     expect(v3).not.toBe(e3)
     expect({ ...v3 }).toEqual({ ...e3, defined: false })
+
+    const e4 = new ORPCError('CONFLICT', { defined: true })
+    const v4 = await validateORPCError(errors, e4)
+    expect(v4).not.toBe(e4)
+    expect({ ...v4 }).toEqual({ ...e4, defined: false })
   })
 
   it('ignore match errors when defined=true and data schema is undefined', async () => {
-    const e1 = new ORPCError('CONFLICT', { defined: true })
+    const e1 = new ORPCError('CONFLICT', { defined: true, status: 483 })
     expect(await validateORPCError(errors, e1)).toBe(e1)
   })
 
   it('return new error when defined=true and data schema is undefined with match error', async () => {
-    const e1 = new ORPCError('CONFLICT')
+    const e1 = new ORPCError('CONFLICT', { status: 483 })
     const v1 = await validateORPCError(errors, e1)
     expect(v1).not.toBe(e1)
     expect({ ...v1 }).toEqual({ ...e1, defined: true })

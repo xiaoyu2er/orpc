@@ -25,6 +25,11 @@ export type experimental_ToORPCRouterResult<TContext extends ORPC.Context, TMeta
           : never
     }
 
+/**
+ * Convert a tRPC router to an oRPC router.
+ *
+ * @warning You should set the `meta` type to `ORPCMeta` when creating your tRPC builder, to ensure OpenAPI features work correctly.
+ */
 export function experimental_toORPCRouter<T extends AnyRouter>(
   router: T,
 ): experimental_ToORPCRouterResult<
@@ -108,6 +113,10 @@ function toORPCProcedure(procedure: AnyProcedure) {
   })
 }
 
+/**
+ * Wraps a TRPC schema to disable validation in the ORPC context.
+ * This is necessary because tRPC procedure calling already validates the input/output,
+ */
 function toDisabledStandardSchema(schema: undefined | Parser): undefined | ORPC.Schema<unknown, unknown> {
   if (!isTypescriptObject(schema) || !('~standard' in schema) || !isTypescriptObject(schema['~standard'])) {
     return undefined

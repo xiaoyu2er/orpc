@@ -105,3 +105,7 @@ const handler = new OpenAPIHandler(router, {
   eventIteratorKeepAliveComment: '',
 })
 ```
+
+## Lifecycle
+
+The `OpenAPIHandler` follows the same lifecycle as the [RPCHandler Lifecycle](/docs/rpc-handler#lifecycle), ensuring consistent behavior across different handler types.

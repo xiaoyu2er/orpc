@@ -100,3 +100,42 @@ const handler = new RPCHandler(router, {
 ::: info
 You can safely disable default plugins if they don't provide any meaningful benefit for your use case.
 :::
+
+## Lifecycle
+
+```mermaid
+sequenceDiagram
+  actor A1 as Client
+  participant P3 as Request/Response encoder
+  participant P4 as Router + Input/Output encoder
+  participant P5 as Server-Side Procedure Client
+
+  Note over A1: adaptorInterceptors
+  A1 ->> P3: request
+  Note over P3: rootInterceptors
+  P3 ->> P4: standard request
+  Note over P4: interceptors
+  P4 ->> P4: Find procedure
+  P4 ->> A1: If not matched
+  P4 ->> P4: Load body + decode request
+  P4 ->> P3: if invalid request
+  P3 ->> A1: response
+  P4 ->> P5: Input, Signal, LastEventId,...
+  Note over P5: clientInterceptors
+  P5 ->> P5: Handle
+  P5 ->> P4: Error/Output
+  P4 ->> P4: Encode Error/Output
+  P4 ->> P3: standard response
+  P3 ->> A1: response
+```
+
+::: tip
+Interceptors can be used to intercept and modify the lifecycle at various stages.
+:::
+
+:::info
+
+- The Server-side Procedure Client is a [Server-Side Client](/docs/client/server-side), and `clientInterceptors` are the same as [Server-Side Client Interceptors](/docs/client/server-side#lifecycle).
+- Some `RPCHandler` implementations may omit the `Request/Response encoder` when it's not required.
+
+:::

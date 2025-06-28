@@ -169,3 +169,7 @@ const link = new OpenAPILink({
   eventIteratorKeepAliveComment: '',
 })
 ```
+
+## Lifecycle
+
+The `OpenAPILink` follows the same lifecycle as the [RPCLink Lifecycle](/docs/client/rpc-link#lifecycle), ensuring consistent behavior across different link types.

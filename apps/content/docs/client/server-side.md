@@ -125,7 +125,7 @@ sequenceDiagram
 
 ### Middlewares Order
 
-To ensure that all middlewares run after input validation and before output validation apply the following configuration:
+To ensure that all middlewares run after input validation and before output validation, apply the following configuration:
 
 ```ts
 const base = os.$config({

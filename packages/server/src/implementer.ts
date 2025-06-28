@@ -204,7 +204,7 @@ export type Implementer<
     /**
      * Sets or overrides the config.
      *
-     * @see {@link https://orpc.unnoq.com/docs/lifecycle#middlewares-order Middlewares Order Docs}
+     * @see {@link https://orpc.unnoq.com/docs/client/server-side#middlewares-order Middlewares Order Docs}
      * @see {@link https://orpc.unnoq.com/docs/best-practices/dedupe-middleware#configuration Dedupe Middleware Docs}
      */
     $config(config: BuilderConfig): Implementer<TContract, TInitialContext, TCurrentContext>

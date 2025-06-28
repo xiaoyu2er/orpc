@@ -2,8 +2,9 @@ import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
 import { defineConfig } from 'vitepress'
 import { groupIconMdPlugin, groupIconVitePlugin, localIconLoader } from 'vitepress-plugin-group-icons'
 import llmstxt from 'vitepress-plugin-llms'
+import { withMermaid } from 'vitepress-plugin-mermaid'
 
-export default defineConfig({
+export default withMermaid(defineConfig({
   lang: 'en-US',
   title: 'oRPC - Typesafe APIs Made Simple 🪄',
   description: 'Easy to build APIs that are end-to-end type-safe and adhere to OpenAPI standards',
@@ -75,7 +76,6 @@ export default defineConfig({
         { text: 'Server Action', link: '/docs/server-action' },
         { text: 'Metadata', link: '/docs/metadata' },
         { text: 'RPC Handler', link: '/docs/rpc-handler' },
-        { text: 'Lifecycle', link: '/docs/lifecycle' },
         { text: 'OpenAPI', link: '/docs/openapi/getting-started' },
         {
           text: 'Contract First',
@@ -269,4 +269,4 @@ export default defineConfig({
       }),
     ],
   },
-})
+}))

@@ -9,7 +9,7 @@ oRPC provides built-in validation errors that work well by default. However, you
 
 ## Customizing with Client Interceptors
 
-[Client Interceptors](/docs/lifecycle) are preferred because they run before error validation, ensuring that your custom errors are properly validated.
+[Client Interceptors](/docs/rpc-handler#lifecycle) are preferred because they run before error validation, ensuring that your custom errors are properly validated.
 
 ```ts twoslash
 import { RPCHandler } from '@orpc/server/fetch'

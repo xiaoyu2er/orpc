@@ -96,3 +96,44 @@ const result = await client.ping(undefined, { context: { cache: true } })
 :::info
 If `ClientContext` contains a required property, oRPC enforces that the client provides it when calling a procedure.
 :::
+
+## Lifecycle
+
+```mermaid
+sequenceDiagram
+  actor A1 as Client
+  participant P1 as Error Validator
+  participant P2 as Input/Output Validator
+  participant P3 as Handler
+
+  A1 ->> P2: input, signal, lastEventId, ...
+  Note over P2: interceptors
+  Note over P2: middlewares before .input
+  P2 ->> P2: Validate Input
+  P2 ->> P1: if invalid input
+  P1 ->> P1: validate error
+  P1 ->> A1: invalid input error
+  Note over P2: middlewares after .input
+  P2 ->> P3: validated input, signal, lastEventId, ...
+  P3 ->> P3: handle
+  P3 ->> P2: error/output
+  P2 ->> P2: validate output
+  P2 ->> P1: error/validated output
+  P1 ->> P1: validate error
+  P1 ->> A1: validated error/output
+```
+
+### Middlewares Order
+
+To ensure that all middlewares run after input validation and before output validation, apply the following configuration:
+
+```ts
+const base = os.$config({
+  initialInputValidationIndex: Number.NEGATIVE_INFINITY,
+  initialOutputValidationIndex: Number.NEGATIVE_INFINITY,
+})
+```
+
+:::info
+By default, oRPC executes middlewares based on their registration order relative to validation steps. Middlewares registered before `.input` run before input validation, and those registered after `.output` run before output validation.
+:::

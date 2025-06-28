@@ -158,6 +158,7 @@ export default defineConfig({
             { text: 'Durable Event Iterator', link: '/docs/integrations/durable-event-iterator' },
             { text: 'Hey API', link: '/docs/integrations/hey-api' },
             { text: 'NestJS', link: '/docs/openapi/integrations/implement-contract-in-nest' },
+            { text: 'tRPC', link: '/docs/openapi/integrations/trpc' },
           ],
         },
         {
@@ -221,6 +222,7 @@ export default defineConfig({
           collapsed: true,
           items: [
             { text: 'Implement Contract in NestJS', link: '/docs/openapi/integrations/implement-contract-in-nest' },
+            { text: 'tRPC', link: '/docs/openapi/integrations/trpc' },
           ],
         },
         {

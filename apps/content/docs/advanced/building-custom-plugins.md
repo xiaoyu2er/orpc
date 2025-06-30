@@ -69,9 +69,9 @@ Check out the [built-in handler plugins](https://github.com/unnoq/orpc/tree/main
 
 ### Link Plugins
 
-Link plugins enhance your client-side communication. They work with [RPCLink](/docs/link/rpc-link), [OpenAPILink](/docs/openapi/link/openapi-link), or custom links you've implemented.
+Link plugins enhance your client-side communication. They work with [RPCLink](/docs/client/rpc-link), [OpenAPILink](/docs/openapi/client/openapi-link), or custom links you've implemented.
 
-Link plugins use interceptors from the [Link Lifecycle](/docs/link/rpc-link#lifecycle) to modify requests before they're sent or responses after they're received. This is perfect for adding authentication, logging, retry logic, or request/response transformations.
+Link plugins use interceptors from the [Link Lifecycle](/docs/client/rpc-link#lifecycle) to modify requests before they're sent or responses after they're received. This is perfect for adding authentication, logging, retry logic, or request/response transformations.
 
 Browse the [built-in link plugins](https://github.com/unnoq/orpc/tree/main/packages/client/src/plugins) for inspiration on handling common client-side scenarios.
 
@@ -102,7 +102,7 @@ export class ExamplePlugin<T extends Context> implements StandardHandlerPlugin<T
 }
 ```
 
-The `order` property controls plugin loading order, not interceptor execution order. To ensure your interceptor runs first, set a higher order value and use `.unshift` to add your interceptor, or use `.push` if you want your interceptor to run last.
+The `order` property controls plugin loading order, not interceptor execution order. To ensure your interceptor runs earlier, set a higher order value and use `.unshift` to add your interceptor, or use `.push` if you want your interceptor to run later.
 
 ::: warning
 In most cases, you **should not** define the `order` property unless you need your interceptors to always run before or after other interceptors. The `order` value should be less than `1_000_000` to avoid conflicts with built-in plugins.

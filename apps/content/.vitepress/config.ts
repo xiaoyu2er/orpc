@@ -174,6 +174,7 @@ export default withMermaid(defineConfig({
           text: 'Advanced',
           collapsed: true,
           items: [
+            { text: 'Building Custom Plugins', link: '/docs/advanced/building-custom-plugins' },
             { text: 'Validation Errors', link: '/docs/advanced/validation-errors' },
             { text: 'RPC Protocol', link: '/docs/advanced/rpc-protocol' },
             { text: 'RPC JSON Serializer', link: '/docs/advanced/rpc-json-serializer' },

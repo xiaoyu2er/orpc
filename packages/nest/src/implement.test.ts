@@ -4,10 +4,14 @@ import { FastifyAdapter } from '@nestjs/platform-fastify'
 import { Test } from '@nestjs/testing'
 import { oc, ORPCError } from '@orpc/contract'
 import { implement, lazy } from '@orpc/server'
+import * as StandardServerNode from '@orpc/standard-server-node'
 import supertest from 'supertest'
-import { it, vi } from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { z } from 'zod'
 import { Implement } from './implement'
+import { ORPCModule } from './module'
+
+const sendStandardResponseSpy = vi.spyOn(StandardServerNode, 'sendStandardResponse')
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -375,5 +379,37 @@ describe('@Implement', async () => {
       '123',
       false,
     ])
+  })
+
+  it('works with ORPCModule.forRoot', async () => {
+    const interceptor = vi.fn(({ next }) => next())
+    const moduleRef = await Test.createTestingModule({
+      imports: [
+        ORPCModule.forRoot({
+          interceptors: [interceptor],
+          eventIteratorKeepAliveComment: '__TEST__',
+        }),
+      ],
+      controllers: [ImplProcedureController],
+    }).compile()
+
+    const app = moduleRef.createNestApplication()
+    await app.init()
+
+    const httpServer = app.getHttpServer()
+
+    const res = await supertest(httpServer)
+      .post('/ping?param=value&param2[]=value2&param2[]=value3')
+      .set('x-custom', 'value')
+      .send({ hello: 'world' })
+
+    expect(res.statusCode).toEqual(200)
+    expect(res.body).toEqual('pong')
+
+    expect(interceptor).toHaveBeenCalledTimes(1)
+    expect(sendStandardResponseSpy).toHaveBeenCalledTimes(1)
+    expect(sendStandardResponseSpy).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.objectContaining({
+      eventIteratorKeepAliveComment: '__TEST__',
+    }))
   })
 })

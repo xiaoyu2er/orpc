@@ -8,7 +8,8 @@ import type { NodeHttpRequest, NodeHttpResponse } from '@orpc/standard-server-no
 import type { Request, Response } from 'express'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import type { Observable } from 'rxjs'
-import { applyDecorators, Delete, Get, Head, Patch, Post, Put, UseInterceptors } from '@nestjs/common'
+import type { ORPCModuleConfig } from './module'
+import { applyDecorators, Delete, Get, Head, Inject, Injectable, Optional, Patch, Post, Put, UseInterceptors } from '@nestjs/common'
 import { toORPCError } from '@orpc/client'
 import { fallbackContractConfig, isContractProcedure } from '@orpc/contract'
 import { StandardBracketNotationSerializer, StandardOpenAPIJsonSerializer, StandardOpenAPISerializer } from '@orpc/openapi-client/standard'
@@ -18,6 +19,7 @@ import { get } from '@orpc/shared'
 import { flattenHeader } from '@orpc/standard-server'
 import { sendStandardResponse, toStandardLazyRequest } from '@orpc/standard-server-node'
 import { mergeMap } from 'rxjs'
+import { ORPC_MODULE_CONFIG_SYMBOL } from './module'
 import { toNestPattern } from './utils'
 
 const MethodDecoratorMap = {
@@ -97,7 +99,13 @@ const codec = new StandardOpenAPICodec(
 
 type NestParams = Record<string, string | string[]>
 
+@Injectable()
 export class ImplementInterceptor implements NestInterceptor {
+  constructor(
+    @Inject(ORPC_MODULE_CONFIG_SYMBOL) @Optional() private readonly config: ORPCModuleConfig | undefined,
+  ) {
+  }
+
   intercept(ctx: ExecutionContext, next: CallHandler<any>): Observable<any> {
     return next.handle().pipe(
       mergeMap(async (impl: unknown) => {
@@ -124,7 +132,7 @@ export class ImplementInterceptor implements NestInterceptor {
           let isDecoding = false
 
           try {
-            const client = createProcedureClient(procedure)
+            const client = createProcedureClient(procedure, this.config)
 
             isDecoding = true
             const input = await codec.decode(standardRequest, flattenParams(req.params as NestParams), procedure)
@@ -149,7 +157,7 @@ export class ImplementInterceptor implements NestInterceptor {
           }
         })()
 
-        await sendStandardResponse(nodeRes, standardResponse)
+        await sendStandardResponse(nodeRes, standardResponse, this.config)
       }),
     )
   }

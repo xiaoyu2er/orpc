@@ -220,6 +220,35 @@ async function bootstrap() {
 oRPC will use NestJS parsed body when it's available, and only use the oRPC parser if the body is not parsed by NestJS.
 :::
 
+## Configuration
+
+Configure the `@orpc/nest` module by importing `ORPCModule` in your NestJS application:
+
+```ts
+import { onError, ORPCModule } from '@orpc/nest'
+
+@Module({
+  imports: [
+    ORPCModule.forRoot({
+      interceptors: [
+        onError((error) => {
+          console.error(error)
+        }),
+      ],
+      eventIteratorKeepAliveInterval: 5000, // 5 seconds
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+::: info
+
+- **`interceptors`** - [Server-side client interceptors](/docs/client/server-side#lifecycle) for intercepting input, output, and errors.
+- **`eventIteratorKeepAliveInterval`** - Keep-alive interval for event streams (see [Event Iterator Keep Alive](/docs/rpc-handler#event-iterator-keep-alive))
+
+:::
+
 ## Create a Type-Safe Client
 
 When you implement oRPC contracts in NestJS using `@orpc/nest`, the resulting API endpoints are OpenAPI compatible. This allows you to use an OpenAPI-compatible client link, such as [OpenAPILink](/docs/openapi/client/openapi-link), to interact with your API in a type-safe way.

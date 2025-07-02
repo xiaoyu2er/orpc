@@ -3,7 +3,7 @@
   "version": "1.6.0",
   "private": true,
   "scripts": {
-    "preview": "nest build && tsx dist/main.js",
+    "preview": "nest build && unbuild --stub && node dist/main.mjs",
     "start:dev": "nest start --watch",
     "type:check": "tsc --noEmit"
   },
@@ -32,8 +32,8 @@
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "tsx": "^4.20.3",
     "typescript": "^5.8.3",
+    "unbuild": "^3.5.0",
     "zod": "^3.25.67"
   }
 }

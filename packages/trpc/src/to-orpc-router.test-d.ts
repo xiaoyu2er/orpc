@@ -1,6 +1,6 @@
 import type { ContractRouter, InferRouterInitialContext, Procedure, Router, Schema } from '@orpc/server'
 import type { inferRouterContext } from '@trpc/server'
-import type { inferRouterMeta } from '@trpc/server/unstable-core-do-not-import'
+import type { inferRouterMeta, TrackedData } from '@trpc/server/unstable-core-do-not-import'
 import type { TRPCContext, TRPCMeta, trpcRouter } from '../tests/shared'
 import type { experimental_ToORPCRouterResult as ToORPCRouterResult } from './to-orpc-router'
 
@@ -24,7 +24,7 @@ it('ToORPCRouterResult', () => {
   >()
 
   expectTypeOf(orpcRouter.subscribe).toEqualTypeOf<
-    Procedure<TRPCContext, object, Schema<{ u: string }, unknown>, Schema<unknown, AsyncIterable<string, void, any>>, object, TRPCMeta>
+    Procedure<TRPCContext, object, Schema<{ u: string }, unknown>, Schema<unknown, AsyncIteratorObject<'pong' | TrackedData<{ order: number }>, void, any>>, object, TRPCMeta>
   >()
 
   expectTypeOf(orpcRouter.nested).toEqualTypeOf<
@@ -35,7 +35,7 @@ it('ToORPCRouterResult', () => {
 
   expectTypeOf(orpcRouter.lazy).toEqualTypeOf<
     {
-      subscribe: Procedure<TRPCContext, object, Schema<void, unknown>, Schema<unknown, AsyncIterable<string, void, any>>, object, TRPCMeta>
+      subscribe: Procedure<TRPCContext, object, Schema<void, unknown>, Schema<unknown, AsyncIteratorObject<string, void, any>>, object, TRPCMeta>
       lazy: {
         throw: Procedure<TRPCContext, object, Schema<{ input: number }, unknown>, Schema<unknown, { output: string }>, object, TRPCMeta>
       }

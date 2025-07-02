@@ -1,4 +1,4 @@
-import { call, createRouterClient, isProcedure, ORPCError, unlazy } from '@orpc/server'
+import { call, createRouterClient, getEventMeta, isProcedure, ORPCError, unlazy } from '@orpc/server'
 import { isAsyncIteratorObject } from '@orpc/shared'
 import { tracked } from '@trpc/server'
 import { z } from 'zod'
@@ -81,24 +81,41 @@ describe('toORPCRouter', async () => {
   })
 
   describe('event iterators', () => {
-    const trackedSubscription = vi.fn(async function* () {
-      yield { order: 1 }
-      yield tracked('id-2', { order: 2 })
-    })
+    it('subscribe & tracked', async () => {
+      const output = await call(orpcRouter.subscribe, { u: '2' }, { lastEventId: 'id-1', context: { a: 'test' } }) as any
+      expect(output).toSatisfy(isAsyncIteratorObject)
+      await expect(output.next()).resolves.toEqual({ done: false, value: 'pong' })
+      await expect(output.next()).resolves.toSatisfy((result) => {
+        expect(result.done).toEqual(false)
+        expect(result.value).toEqual({ id: 'id-1', data: { order: 1 } })
+        expect(getEventMeta(result.value)).toEqual({ id: 'id-1' })
 
-    const trpcRouter = t.router({
-      tracked: t.procedure
-        .input(z.any())
-        .subscription(trackedSubscription),
-      unsupportedTracked: t.procedure
-        .subscription(async function* () {
-          yield tracked('id-1', 1)
-        }),
-    })
+        return true
+      })
+      await expect(output.next()).resolves.toSatisfy((result) => {
+        expect(result.done).toEqual(false)
+        expect(result.value).toEqual({ id: 'id-2', data: { order: 2 } })
+        expect(getEventMeta(result.value)).toEqual({ id: 'id-2' })
 
-    const orpcRouter = toORPCRouter(trpcRouter)
+        return true
+      })
+      await expect(output.next()).resolves.toEqual({ done: true, value: undefined })
+    })
 
     it('lastEventId', async () => {
+      const trackedSubscription = vi.fn(async function* () {
+        yield { order: 1 }
+        yield tracked('id-2', { order: 2 })
+      })
+
+      const trpcRouter = t.router({
+        tracked: t.procedure
+          .input(z.any())
+          .subscription(trackedSubscription),
+      })
+
+      const orpcRouter = toORPCRouter(trpcRouter)
+
       await call(orpcRouter.tracked, { u: 'u' }, { lastEventId: 'id-1', context: { a: 'test' } })
       expect(trackedSubscription).toHaveBeenNthCalledWith(1, expect.objectContaining({
         input: { u: 'u', lastEventId: 'id-1' },
@@ -113,6 +130,38 @@ describe('toORPCRouter', async () => {
       expect(trackedSubscription).toHaveBeenNthCalledWith(3, expect.objectContaining({
         input: 1234,
       }))
+    })
+
+    it('works with AsyncIterable & cleanup', async () => {
+      let cleanupCalled = false
+
+      const trackedSubscription = vi.fn(async () => {
+        return {
+          async* [Symbol.asyncIterator]() {
+            try {
+              yield { order: 1 }
+              yield tracked('id-2', { order: 2 })
+            }
+            finally {
+              cleanupCalled = true
+            }
+          },
+        }
+      })
+
+      const trpcRouter = t.router({
+        tracked: t.procedure
+          .input(z.any())
+          .subscription(trackedSubscription),
+      })
+
+      const orpcRouter = toORPCRouter(trpcRouter)
+
+      const output = await call(orpcRouter.tracked, { u: 'u' }, { lastEventId: 'id-1', context: { a: 'test' } })
+
+      await expect(output.next()).resolves.toEqual({ done: false, value: { order: 1 } })
+      await expect(output.return?.()).resolves.toEqual({ done: true, value: undefined })
+      expect(cleanupCalled).toBe(true)
     })
   })
 })

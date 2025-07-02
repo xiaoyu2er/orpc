@@ -6,7 +6,7 @@ it('isAsyncIteratorObject', () => {
   expect(isAsyncIteratorObject(() => {})).toBe(false)
   expect(isAsyncIteratorObject({ [Symbol.asyncIterator]: 123 })).toBe(false)
 
-  expect(isAsyncIteratorObject({ [Symbol.asyncIterator]: () => { } })).toBe(true)
+  expect(isAsyncIteratorObject({ [Symbol.asyncIterator]: () => { } })).toBe(false)
 
   async function* gen() { }
   expect(isAsyncIteratorObject(gen())).toBe(true)

@@ -6,7 +6,7 @@ export function isAsyncIteratorObject(maybe: unknown): maybe is AsyncIteratorObj
     return false
   }
 
-  return Symbol.asyncIterator in maybe && typeof maybe[Symbol.asyncIterator] === 'function'
+  return 'next' in maybe && typeof maybe.next === 'function' && Symbol.asyncIterator in maybe && typeof maybe[Symbol.asyncIterator] === 'function'
 }
 
 export interface AsyncIteratorClassNextFn<T, TReturn> {

@@ -35,9 +35,7 @@ export function mapEventIterator<TYield, TReturn, TNext, TMap = TYield | TReturn
 
       throw mappedError
     }
-  }, async (reason) => {
-    if (reason !== 'next') {
-      await iterator.return?.()
-    }
+  }, async () => {
+    await iterator.return?.()
   })
 }

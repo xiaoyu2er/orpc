@@ -88,6 +88,26 @@ describe('eventIterator', async () => {
       return true
     })
   })
+
+  it('cleanup origin when validation fails', async () => {
+    let cleanupCalled = false
+    const schema = eventIterator(z.object({ order: z.number() }))
+
+    const result = await schema['~standard'].validate((async function* () {
+      try {
+        yield { order: 1 }
+        yield { order: '2' }
+        yield { order: 3 }
+      }
+      finally {
+        cleanupCalled = true
+      }
+    })())
+
+    await expect((result as any).value.next()).resolves.toEqual({ done: false, value: { order: 1 } })
+    await expect((result as any).value.next()).rejects.toThrow('Event iterator validation failed')
+    expect(cleanupCalled).toBe(true)
+  })
 })
 
 it('getEventIteratorSchemaDetails', async () => {

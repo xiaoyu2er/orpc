@@ -155,4 +155,35 @@ describe('mapEventIterator', () => {
     await expect(mapped.throw(new Error('TEST'))).rejects.toThrow()
     expect(finished).toBe(true)
   })
+
+  it('cancel original when error is thrown in value map', async () => {
+    let finished = false
+
+    const iterator = (async function* () {
+      try {
+        yield 1
+        yield 2
+      }
+      finally {
+        finished = true
+      }
+    })()
+
+    const map = vi.fn(async (v) => {
+      if (v === 2) {
+        throw new Error('TEST')
+      }
+      return { mapped: v }
+    })
+
+    const mapped = mapEventIterator(iterator, {
+      value: map,
+      error: async error => error,
+    })
+
+    await expect(mapped.next()).resolves.toEqual({ done: false, value: { mapped: 1 } })
+    await expect(mapped.next()).rejects.toThrow('TEST')
+
+    expect(finished).toBe(true)
+  })
 })

@@ -1,7 +1,7 @@
 import type { AnyProcedure, AnyRouter, inferRouterContext } from '@trpc/server'
 import type { inferRouterMeta, Parser } from '@trpc/server/unstable-core-do-not-import'
 import * as ORPC from '@orpc/server'
-import { isTypescriptObject } from '@orpc/shared'
+import { isObject, isTypescriptObject } from '@orpc/shared'
 import { TRPCError } from '@trpc/server'
 import { getHTTPStatusCodeFromError } from '@trpc/server/unstable-core-do-not-import'
 
@@ -88,15 +88,19 @@ function toORPCProcedure(procedure: AnyProcedure) {
     middlewares: [],
     inputSchema: toDisabledStandardSchema(procedure._def.inputs.at(-1)),
     outputSchema: toDisabledStandardSchema((procedure as any)._def.output),
-    handler: async ({ context, signal, path, input }) => {
+    handler: async ({ context, signal, path, input, lastEventId }) => {
       try {
+        const trpcInput = lastEventId !== undefined && (input === undefined || isObject(input))
+          ? { ...input, lastEventId }
+          : input
+
         return await procedure({
           ctx: context,
           signal,
           path: path.join('.'),
           type: procedure._def.type,
-          input,
-          getRawInput: () => input,
+          input: trpcInput,
+          getRawInput: () => trpcInput,
         })
       }
       catch (cause) {

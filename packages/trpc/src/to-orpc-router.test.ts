@@ -1,8 +1,14 @@
 import { call, createRouterClient, isProcedure, ORPCError, unlazy } from '@orpc/server'
 import { isAsyncIteratorObject } from '@orpc/shared'
+import { tracked } from '@trpc/server'
+import { z } from 'zod'
 import { inputSchema, outputSchema } from '../../contract/tests/shared'
-import { trpcRouter } from '../tests/shared'
+import { t, trpcRouter } from '../tests/shared'
 import { experimental_toORPCRouter as toORPCRouter } from './to-orpc-router'
+
+beforeEach(() => {
+  vi.clearAllMocks()
+})
 
 describe('toORPCRouter', async () => {
   const orpcRouter = toORPCRouter(trpcRouter)
@@ -71,6 +77,42 @@ describe('toORPCRouter', async () => {
       ).rejects.toSatisfy((err: any) => {
         return err instanceof ORPCError && err.message === 'lazy.lazy.throw'
       })
+    })
+  })
+
+  describe('event iterators', () => {
+    const trackedSubscription = vi.fn(async function* () {
+      yield { order: 1 }
+      yield tracked('id-2', { order: 2 })
+    })
+
+    const trpcRouter = t.router({
+      tracked: t.procedure
+        .input(z.any())
+        .subscription(trackedSubscription),
+      unsupportedTracked: t.procedure
+        .subscription(async function* () {
+          yield tracked('id-1', 1)
+        }),
+    })
+
+    const orpcRouter = toORPCRouter(trpcRouter)
+
+    it('lastEventId', async () => {
+      await call(orpcRouter.tracked, { u: 'u' }, { lastEventId: 'id-1', context: { a: 'test' } })
+      expect(trackedSubscription).toHaveBeenNthCalledWith(1, expect.objectContaining({
+        input: { u: 'u', lastEventId: 'id-1' },
+      }))
+
+      await call(orpcRouter.tracked, undefined, { lastEventId: 'id-2', context: { a: 'test' } })
+      expect(trackedSubscription).toHaveBeenNthCalledWith(2, expect.objectContaining({
+        input: { lastEventId: 'id-2' },
+      }))
+
+      await call(orpcRouter.tracked, 1234, { lastEventId: 'id-3', context: { a: 'test' } })
+      expect(trackedSubscription).toHaveBeenNthCalledWith(3, expect.objectContaining({
+        input: 1234,
+      }))
     })
   })
 })

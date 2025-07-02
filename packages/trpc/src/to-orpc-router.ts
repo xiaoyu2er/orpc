@@ -1,3 +1,4 @@
+import type { AsyncIteratorClass } from '@orpc/shared'
 import type { AnyProcedure, AnyRouter, inferRouterContext } from '@trpc/server'
 import type { inferRouterMeta, Parser, TrackedData } from '@trpc/server/unstable-core-do-not-import'
 import { mapEventIterator } from '@orpc/client'
@@ -12,7 +13,7 @@ export interface experimental_ORPCMeta extends ORPC.Route {
 
 export type experimental_ToORPCOutput<T>
   = T extends AsyncIterable<infer TData, infer TReturn, infer TNext>
-    ? AsyncIteratorObject<TData, TReturn, TNext>
+    ? AsyncIteratorClass<TData, TReturn, TNext>
     : T
 
 export type experimental_ToORPCRouterResult<TContext extends ORPC.Context, TMeta extends ORPC.Meta, TRecord extends Record<string, any>>

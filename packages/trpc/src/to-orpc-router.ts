@@ -120,7 +120,7 @@ function toORPCProcedure(procedure: AnyProcedure) {
                 return ORPC.withEventMeta({
                   id,
                   data,
-                } as TrackedData<unknown>, {
+                } satisfies TrackedData<unknown>, {
                   id,
                 })
               }

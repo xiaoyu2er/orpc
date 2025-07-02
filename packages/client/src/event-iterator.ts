@@ -9,32 +9,34 @@ export function mapEventIterator<TYield, TReturn, TNext, TMap = TYield | TReturn
   },
 ): AsyncIteratorClass<TMap, TMap, TNext> {
   return new AsyncIteratorClass(async () => {
-    try {
-      const { done, value } = await iterator.next()
-
-      let mappedValue = await maps.value(value, done)
-
-      if (mappedValue !== value) {
-        const meta = getEventMeta(value)
-        if (meta && isTypescriptObject(mappedValue)) {
-          mappedValue = withEventMeta(mappedValue, meta)
-        }
+    const { done, value } = await (async () => {
+      try {
+        return await iterator.next()
       }
+      catch (error) {
+        let mappedError = await maps.error(error)
 
-      return { done, value: mappedValue }
-    }
-    catch (error) {
-      let mappedError = await maps.error(error)
-
-      if (mappedError !== error) {
-        const meta = getEventMeta(error)
-        if (meta && isTypescriptObject(mappedError)) {
-          mappedError = withEventMeta(mappedError, meta)
+        if (mappedError !== error) {
+          const meta = getEventMeta(error)
+          if (meta && isTypescriptObject(mappedError)) {
+            mappedError = withEventMeta(mappedError, meta)
+          }
         }
-      }
 
-      throw mappedError
+        throw mappedError
+      }
+    })()
+
+    let mappedValue = await maps.value(value, done)
+
+    if (mappedValue !== value) {
+      const meta = getEventMeta(value)
+      if (meta && isTypescriptObject(mappedValue)) {
+        mappedValue = withEventMeta(mappedValue, meta)
+      }
     }
+
+    return { done, value: mappedValue }
   }, async () => {
     await iterator.return?.()
   })

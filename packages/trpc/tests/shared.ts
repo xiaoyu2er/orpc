@@ -1,5 +1,5 @@
 import type { experimental_ORPCMeta as ORPCMeta } from '../src/to-orpc-router'
-import { initTRPC, lazy, TRPCError } from '@trpc/server'
+import { initTRPC, lazy, tracked, TRPCError } from '@trpc/server'
 import { z } from 'zod/v4'
 import { inputSchema, outputSchema } from '../../contract/tests/shared'
 
@@ -34,6 +34,8 @@ export const trpcRouter = t.router({
     .input(z.object({ u: z.string() }))
     .subscription(async function* () {
       yield 'pong'
+      yield tracked('id-1', { order: 1 })
+      yield tracked('id-2', { order: 2 })
     }),
 
   nested: {

@@ -1,13 +1,20 @@
+import type { AsyncIteratorClass } from '@orpc/shared'
 import type { AnyProcedure, AnyRouter, inferRouterContext } from '@trpc/server'
-import type { inferRouterMeta, Parser } from '@trpc/server/unstable-core-do-not-import'
+import type { inferRouterMeta, Parser, TrackedData } from '@trpc/server/unstable-core-do-not-import'
+import { mapEventIterator } from '@orpc/client'
 import * as ORPC from '@orpc/server'
-import { isTypescriptObject } from '@orpc/shared'
-import { TRPCError } from '@trpc/server'
-import { getHTTPStatusCodeFromError } from '@trpc/server/unstable-core-do-not-import'
+import { isObject, isTypescriptObject } from '@orpc/shared'
+import { isTrackedEnvelope, TRPCError } from '@trpc/server'
+import { getHTTPStatusCodeFromError, isAsyncIterable } from '@trpc/server/unstable-core-do-not-import'
 
 export interface experimental_ORPCMeta extends ORPC.Route {
 
 }
+
+export type experimental_ToORPCOutput<T>
+  = T extends AsyncIterable<infer TData, infer TReturn, infer TNext>
+    ? AsyncIteratorClass<TData, TReturn, TNext>
+    : T
 
 export type experimental_ToORPCRouterResult<TContext extends ORPC.Context, TMeta extends ORPC.Meta, TRecord extends Record<string, any>>
     = {
@@ -17,7 +24,7 @@ export type experimental_ToORPCRouterResult<TContext extends ORPC.Context, TMeta
           TContext,
           object,
           ORPC.Schema<TRecord[K]['_def']['$types']['input'], unknown>,
-          ORPC.Schema<unknown, TRecord[K]['_def']['$types']['output']>,
+          ORPC.Schema<unknown, experimental_ToORPCOutput<TRecord[K]['_def']['$types']['output']>>,
           object,
           TMeta
         >
@@ -88,16 +95,42 @@ function toORPCProcedure(procedure: AnyProcedure) {
     middlewares: [],
     inputSchema: toDisabledStandardSchema(procedure._def.inputs.at(-1)),
     outputSchema: toDisabledStandardSchema((procedure as any)._def.output),
-    handler: async ({ context, signal, path, input }) => {
+    handler: async ({ context, signal, path, input, lastEventId }) => {
       try {
-        return await procedure({
+        const trpcInput = lastEventId !== undefined && (input === undefined || isObject(input))
+          ? { ...input, lastEventId }
+          : input
+
+        const output = await procedure({
           ctx: context,
           signal,
           path: path.join('.'),
           type: procedure._def.type,
-          input,
-          getRawInput: () => input,
+          input: trpcInput,
+          getRawInput: () => trpcInput,
         })
+
+        if (isAsyncIterable(output)) {
+          return mapEventIterator(output[Symbol.asyncIterator](), {
+            error: async error => error,
+            value: (value) => {
+              if (isTrackedEnvelope(value)) {
+                const [id, data] = value
+
+                return ORPC.withEventMeta({
+                  id,
+                  data,
+                } satisfies TrackedData<unknown>, {
+                  id,
+                })
+              }
+
+              return value
+            },
+          })
+        }
+
+        return output
       }
       catch (cause) {
         if (cause instanceof TRPCError) {

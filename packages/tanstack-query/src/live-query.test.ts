@@ -67,4 +67,18 @@ describe('liveQuery', async () => {
     await resultPromise
     expect(cleanupCalled).toBe(true)
   })
+
+  it('throw if no data yielded', async () => {
+    const queryFn = liveQuery(async function* () {
+      // No yield
+    })
+
+    await expect(queryFn({
+      queryKey: ['live-query'],
+      signal: new AbortController().signal,
+      client: queryClient,
+    } as any)).rejects.toThrowError(
+      'Live query for ["live-query"] did not yield any data. Ensure the query function returns an AsyncIterable with at least one chunk.',
+    )
+  })
 })

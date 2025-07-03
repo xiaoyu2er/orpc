@@ -396,12 +396,12 @@ describe('ProcedureUtils', () => {
       expectTypeOf(streamUtils.experimental_liveOptions()).toExtend<QueryObserverOptions<UtilsOutput[number], UtilsError>>()
     })
 
-    it('return invalid streamed options if output is not an async iterable', () => {
+    it('return invalid streamed live if output is not an async iterable', () => {
       expectTypeOf(optionalUtils.experimental_liveOptions().queryFn)
         .toEqualTypeOf<QueryFunction<never>>()
     })
 
-    it('allow extend and override streamed options', () => {
+    it('allow extend and override live options', () => {
       expectTypeOf(streamUtils.experimental_liveOptions({
         queryKey: ['1'], // override
         maxPages: 1, // extend
@@ -414,7 +414,7 @@ describe('ProcedureUtils', () => {
       }>()
     })
 
-    it('can change streamed data by define select', () => {
+    it('can change live data by define select', () => {
       expectTypeOf(streamUtils.experimental_liveOptions({
         select: mapped => ({ mapped }),
       })).toExtend<QueryObserverOptions<UtilsOutput[number], UtilsError, { mapped: UtilsOutput[number] }>>()

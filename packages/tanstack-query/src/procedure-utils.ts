@@ -2,6 +2,7 @@ import type { Client, ClientContext } from '@orpc/client'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { DataTag, InfiniteData, QueryKey } from '@tanstack/query-core'
 import type {
+  experimental_LiveQueryOutput,
   experimental_StreamedKeyOptions,
   experimental_StreamedQueryOutput,
   InfiniteOptionsBase,
@@ -18,6 +19,7 @@ import type {
 import { isAsyncIteratorObject } from '@orpc/shared'
 import { experimental_streamedQuery, skipToken } from '@tanstack/query-core'
 import { generateOperationKey } from './key'
+import { experimental_liveQuery } from './live-query'
 import {
   OPERATION_CONTEXT_SYMBOL,
 } from './types'
@@ -74,6 +76,29 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
       U & StreamedOptionsIn<TClientContext, TInput, experimental_StreamedQueryOutput<TOutput>, TError, USelectData>
     >
   ): NoInfer<U & Omit<StreamedOptionsBase<experimental_StreamedQueryOutput<TOutput>, TError>, keyof U>>
+
+  /**
+   * Generate a **full matching** key for Live Query Options.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query#query-mutation-key Tanstack Query/Mutation Key Docs}
+   */
+  experimental_liveKey(
+    ...rest: MaybeOptionalOptions<
+      QueryKeyOptions<TInput>
+    >
+  ): DataTag<QueryKey, experimental_LiveQueryOutput<TOutput>, TError>
+
+  /**
+   * Generate live options used for useQuery/useSuspenseQuery/prefetchQuery/...
+   * The procedure must return an [Event Iterator](https://orpc.unnoq.com/docs/event-iterator).
+   *
+   * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query#live-options Tanstack Live Query Options Utility Docs}
+   */
+  experimental_liveOptions<U, USelectData = experimental_LiveQueryOutput<TOutput>>(
+    ...rest: MaybeOptionalOptions<
+      U & QueryOptionsIn<TClientContext, TInput, experimental_LiveQueryOutput<TOutput>, TError, USelectData>
+    >
+  ): NoInfer<U & Omit<QueryOptionsBase<experimental_LiveQueryOutput<TOutput>, TError>, keyof U>>
 
   /**
    * Generate a **full matching** key for [Infinite Query Options](https://orpc.unnoq.com/docs/integrations/tanstack-query#infinite-query-options).
@@ -198,6 +223,44 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
             return output
           },
           ...optionsIn.queryFnOptions,
+        }),
+        ...optionsIn,
+        queryKey,
+      }
+    },
+
+    experimental_liveKey(...[optionsIn = {} as any]) {
+      const queryKey = optionsIn.queryKey ?? generateOperationKey(options.path, { type: 'live', input: optionsIn.input })
+
+      return queryKey
+    },
+
+    experimental_liveOptions(...[optionsIn = {} as any]) {
+      const queryKey = utils.experimental_liveKey(optionsIn)
+
+      return {
+        enabled: optionsIn.input !== skipToken,
+        queryFn: experimental_liveQuery(async ({ signal }) => {
+          if (optionsIn.input === skipToken) {
+            throw new Error('queryFn should not be called with skipToken used as input')
+          }
+
+          const output = await client(optionsIn.input, {
+            signal,
+            context: {
+              [OPERATION_CONTEXT_SYMBOL]: {
+                key: queryKey,
+                type: 'live',
+              },
+              ...optionsIn.context,
+            } satisfies OperationContext,
+          })
+
+          if (!isAsyncIteratorObject(output)) {
+            throw new Error('liveQuery requires an event iterator output')
+          }
+
+          return output
         }),
         ...optionsIn,
         queryKey,

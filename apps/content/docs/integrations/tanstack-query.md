@@ -263,12 +263,14 @@ import {
 interface ClientContext extends TanstackQueryOperationContext {
 }
 
+const GET_OPERATION_TYPE = new Set(['query', 'streamed', 'live', 'infinite'])
+
 const link = new RPCLink<ClientContext>({
   url: 'http://localhost:3000/rpc',
   method: ({ context }, path) => {
     const operationType = context[TANSTACK_QUERY_OPERATION_CONTEXT_SYMBOL]?.type
 
-    if (operationType === 'query' || operationType === 'streamed' || operationType === 'infinite') {
+    if (operationType && GET_OPERATION_TYPE.has(operationType)) {
       return 'GET'
     }
 

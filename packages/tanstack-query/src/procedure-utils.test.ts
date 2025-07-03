@@ -1,5 +1,6 @@
 import { QueryClient, skipToken, experimental_streamedQuery as streamedQuery } from '@tanstack/query-core'
 import * as KeyModule from './key'
+import * as LiveQuery from './live-query'
 import { createProcedureUtils } from './procedure-utils'
 import { OPERATION_CONTEXT_SYMBOL } from './types'
 
@@ -11,6 +12,8 @@ vi.mock('@tanstack/query-core', async (origin) => {
     experimental_streamedQuery: vi.fn(original.experimental_streamedQuery),
   }
 })
+
+const liveQuerySpy = vi.spyOn(LiveQuery, 'experimental_liveQuery')
 
 const generateOperationKeySpy = vi.spyOn(KeyModule, 'generateOperationKey')
 
@@ -160,6 +163,88 @@ describe('createProcedureUtils', () => {
           type: 'streamed',
         },
       } })
+    })
+  })
+
+  it('.liveKey', () => {
+    expect(utils.experimental_liveKey({ input: { search: '__search__' } })).toBe(generateOperationKeySpy.mock.results[0]!.value)
+    expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
+    expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'live', input: { search: '__search__' } })
+
+    expect(utils.experimental_liveKey({ queryKey: ['1'] })).toEqual(['1'])
+    expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
+  })
+
+  describe('.liveOptions', () => {
+    it('without skipToken', async () => {
+      const options = utils.experimental_liveOptions({
+        input: { search: '__search__' },
+        context: { batch: '__batch__' },
+      })
+
+      expect(options.enabled).toBe(true)
+
+      expect(options.queryKey).toBe(generateOperationKeySpy.mock.results[0]!.value)
+      expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
+      expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], {
+        type: 'live',
+        input: { search: '__search__' },
+      })
+
+      expect(options.queryFn).toBe(vi.mocked(liveQuerySpy).mock.results[0]!.value)
+      expect(liveQuerySpy).toHaveBeenCalledTimes(1)
+      expect(liveQuerySpy).toHaveBeenCalledWith(expect.any(Function))
+
+      client.mockImplementationOnce(async function* (input) {
+        yield '__1__'
+        yield '__2__'
+        return '__3__'
+      })
+      await expect(options.queryFn!({ signal, client: queryClient, queryKey: options.queryKey } as any)).resolves.toEqual('__2__')
+      expect(queryClient.getQueryData(options.queryKey)).toEqual('__2__')
+
+      expect(client).toHaveBeenCalledTimes(1)
+      expect(client).toBeCalledWith({ search: '__search__' }, {
+        signal,
+        context: {
+          batch: '__batch__',
+          [OPERATION_CONTEXT_SYMBOL]: {
+            key: options.queryKey,
+            type: 'live',
+          },
+        },
+      })
+    })
+
+    it('with skipToken', async () => {
+      const options = utils.experimental_liveOptions({ input: skipToken, context: { batch: '__batch__' } })
+
+      expect(options.enabled).toBe(false)
+
+      expect(options.queryKey).toBe(generateOperationKeySpy.mock.results[0]!.value)
+      expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
+      expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'live', input: skipToken })
+
+      await expect(options.queryFn!({ signal, client: queryClient } as any)).rejects.toThrow('queryFn should not be called with skipToken used as input')
+      expect(client).toHaveBeenCalledTimes(0)
+    })
+
+    it('with unsupported output', async () => {
+      const options = utils.experimental_liveOptions({ input: { search: '__search__' }, context: { batch: '__batch__' } })
+
+      client.mockResolvedValueOnce('INVALID')
+      await expect(options.queryFn!({ signal, client: queryClient } as any)).rejects.toThrow('liveQuery requires an event iterator output')
+      expect(client).toHaveBeenCalledTimes(1)
+      expect(client).toBeCalledWith({ search: '__search__' }, {
+        signal,
+        context: {
+          batch: '__batch__',
+          [OPERATION_CONTEXT_SYMBOL]: {
+            key: options.queryKey,
+            type: 'live',
+          },
+        },
+      })
     })
   })
 

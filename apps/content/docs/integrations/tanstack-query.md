@@ -59,6 +59,12 @@ orpc.planet.find.queryOptions({ input: { id: 123 } })
 //
 
 //
+
+//
+
+//
+
+//
 ```
 
 ::: details Avoiding Query/Mutation Key Conflicts?
@@ -91,19 +97,39 @@ const query = useQuery(orpc.planet.find.queryOptions({
 
 ## Streamed Query Options
 
-Use `.streamedOptions` to configure queries for [Event Iterator](/docs/event-iterator), which is built on top of [streamedQuery](https://tanstack.com/query/latest/docs/reference/streamedQuery). Use it with hooks like `useQuery`, `useSuspenseQuery`, or `prefetchQuery`.
+Use `.streamedOptions` to configure queries for [Event Iterator](/docs/event-iterator). This is built on [TanStack Query streamedQuery](https://tanstack.com/query/latest/docs/reference/streamedQuery) and works with hooks like `useQuery`, `useSuspenseQuery`, or `prefetchQuery`.
 
 ```ts
 const query = useQuery(orpc.streamed.experimental_streamedOptions({
   input: { id: 123 }, // Specify input if needed
   context: { cache: true }, // Provide client context if needed
-  queryFnOptions: { // Specify streamedQuery options if needed
+  queryFnOptions: { // Configure streamedQuery behavior
     refetchMode: 'reset',
     maxChunks: 3,
   }
   // additional options...
 }))
 ```
+
+::: info
+Combine with [Client Retry](/docs/plugins/client-retry#event-iterator-sse) for more reliable streaming queries.
+:::
+
+## Live Query Options
+
+Use `.liveOptions` to configure live queries for [Event Iterator](/docs/event-iterator). Unlike `.streamedOptions` which accumulates chunks, live queries replace the entire result with each new chunk received. Works with hooks like `useQuery`, `useSuspenseQuery`, or `prefetchQuery`.
+
+```ts
+const query = useQuery(orpc.live.experimental_liveOptions({
+  input: { id: 123 }, // Specify input if needed
+  context: { cache: true }, // Provide client context if needed
+  // additional options...
+}))
+```
+
+::: info
+Combine with [Client Retry](/docs/plugins/client-retry#event-iterator-sse) for more reliable live queries.
+:::
 
 ## Infinite Query Options
 

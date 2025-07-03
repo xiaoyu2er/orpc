@@ -66,8 +66,9 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
   ): DataTag<QueryKey, experimental_StreamedQueryOutput<TOutput>, TError>
 
   /**
-   * Generate [Event Iterator](https://orpc.unnoq.com/docs/event-iterator) options used for useQuery/useSuspenseQuery/prefetchQuery/...
-   * Built on top of [steamedQuery](https://tanstack.com/query/latest/docs/reference/streamedQuery)
+   * Configure queries for [Event Iterator](https://orpc.unnoq.com/docs/event-iterator).
+   * This is built on [TanStack Query streamedQuery](https://tanstack.com/query/latest/docs/reference/streamedQuery)
+   * and works with hooks like `useQuery`, `useSuspenseQuery`, or `prefetchQuery`.
    *
    * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query#streamed-query-options Tanstack Streamed Query Options Utility Docs}
    */
@@ -78,7 +79,7 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
   ): NoInfer<U & Omit<StreamedOptionsBase<experimental_StreamedQueryOutput<TOutput>, TError>, keyof U>>
 
   /**
-   * Generate a **full matching** key for Live Query Options.
+   * Generate a **full matching** key for [Live Query Options](https://orpc.unnoq.com/docs/integrations/tanstack-query#live-query-options).
    *
    * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query#query-mutation-key Tanstack Query/Mutation Key Docs}
    */
@@ -89,10 +90,11 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
   ): DataTag<QueryKey, experimental_LiveQueryOutput<TOutput>, TError>
 
   /**
-   * Generate live options used for useQuery/useSuspenseQuery/prefetchQuery/...
-   * The procedure must return an [Event Iterator](https://orpc.unnoq.com/docs/event-iterator).
+   * Configure live queries for [Event Iterator](https://orpc.unnoq.com/docs/event-iterator).
+   * Unlike `.streamedOptions` which accumulates chunks, live queries replace the entire result with each new chunk received.
+   * Works with hooks like `useQuery`, `useSuspenseQuery`, or `prefetchQuery`.
    *
-   * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query#live-options Tanstack Live Query Options Utility Docs}
+   * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query#live-query-options Tanstack Live Query Options Utility Docs}
    */
   experimental_liveOptions<U, USelectData = experimental_LiveQueryOutput<TOutput>>(
     ...rest: MaybeOptionalOptions<

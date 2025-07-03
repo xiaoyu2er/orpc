@@ -298,6 +298,135 @@ describe('ProcedureUtils', () => {
     })
   })
 
+  describe('.liveKey', () => {
+    it('should handle optional `input` correctly', () => {
+      optionalUtils.experimental_liveKey()
+      optionalUtils.experimental_liveKey({})
+      optionalUtils.experimental_liveKey({ input: { search: 'search' } })
+    })
+
+    it('should handle required `input` correctly', () => {
+      // @ts-expect-error - `input` is required
+      requiredUtils.experimental_liveKey()
+    })
+
+    it('should infer types for `input` correctly', () => {
+      optionalUtils.experimental_liveKey({ input: { cursor: 1 } })
+      // @ts-expect-error - Should error on invalid input type
+      optionalUtils.experimental_liveKey({ input: { cursor: 'invalid' } })
+
+      requiredUtils.experimental_liveKey({ input: 'input' })
+      // @ts-expect-error - Should error on invalid input type
+      requiredUtils.experimental_liveKey({ input: 123 })
+    })
+
+    it('allow use skipToken as input', () => {
+      optionalUtils.experimental_liveKey({ input: condition ? skipToken : { search: 'search' } })
+      // @ts-expect-error - invalid input type
+      optionalUtils.experimental_liveKey({ input: condition ? skipToken : { cursor: 'invalid' } })
+
+      requiredUtils.experimental_liveKey({ input: condition ? skipToken : 'input' })
+      // @ts-expect-error - invalid input type
+      requiredUtils.experimental_liveKey({ input: condition ? skipToken : 123 })
+    })
+
+    it('allow override query key', () => {
+      optionalUtils.experimental_liveKey({ queryKey: ['1'] })
+      // @ts-expect-error - invalid query key type
+      optionalUtils.experimental_liveKey({ queryKey: 1 })
+    })
+
+    it('return valid query key', () => {
+      expectTypeOf(optionalUtils.experimental_liveKey()).toExtend<QueryKey>()
+      expectTypeOf(optionalUtils.experimental_liveKey({
+        input: { search: 'search' },
+      })).toExtend<QueryKey>()
+    })
+
+    it('.getQueryState is typed correctly', () => {
+      const state = queryClient.getQueryState(streamUtils.experimental_liveKey())
+      expectTypeOf(state?.data).toEqualTypeOf<UtilsOutput[number] | undefined>()
+      expectTypeOf(state?.error).toEqualTypeOf<UtilsError | null | undefined>()
+    })
+  })
+
+  describe('.liveOptions', () => {
+    it('should handle optional `context` and `input` correctly', () => {
+      streamUtils.experimental_liveOptions()
+      streamUtils.experimental_liveOptions({ context: { batch: true } })
+      streamUtils.experimental_liveOptions({ input: { search: 'search' } })
+    })
+
+    it('should handle required `context` and `input` correctly', () => {
+      // @ts-expect-error - `input` and `context` are required
+      requiredUtils.experimental_liveOptions()
+      // @ts-expect-error - `input` is required
+      requiredUtils.experimental_liveOptions({ context: { batch: true } })
+      // @ts-expect-error - `context` is required
+      requiredUtils.experimental_liveOptions({ input: 'input' })
+    })
+
+    it('should infer types for `input` and `context` correctly', () => {
+      streamUtils.experimental_liveOptions({ input: { cursor: 1 } })
+      // @ts-expect-error - Should error on invalid input type
+      streamUtils.experimental_liveOptions({ input: { cursor: 'invalid' } })
+
+      streamUtils.experimental_liveOptions({ context: { batch: true } })
+      // @ts-expect-error - Should error on invalid context type
+      streamUtils.experimental_liveOptions({ context: { batch: 'invalid' } })
+
+      requiredUtils.experimental_liveOptions({ input: 'input', context: { batch: true } })
+      // @ts-expect-error - Should error on invalid input type
+      requiredUtils.experimental_liveOptions({ input: 123, context: { batch: true } })
+      // @ts-expect-error - Should error on invalid context type
+      requiredUtils.experimental_liveOptions({ input: 'input', context: { batch: 'invalid' } })
+    })
+
+    it('allow use skipToken as input', () => {
+      streamUtils.experimental_liveOptions({ input: condition ? skipToken : { search: 'search' } })
+      // @ts-expect-error - invalid input type
+      streamUtils.experimental_liveOptions({ input: condition ? skipToken : { cursor: 'invalid' } })
+
+      requiredUtils.experimental_liveOptions({ input: condition ? skipToken : 'input', context: { batch: true } })
+      // @ts-expect-error - invalid input type
+      requiredUtils.experimental_liveOptions({ input: condition ? skipToken : 123, context: { batch: true } })
+    })
+
+    it('return valid streamed options', () => {
+      expectTypeOf(streamUtils.experimental_liveOptions()).toExtend<QueryObserverOptions<UtilsOutput[number], UtilsError>>()
+    })
+
+    it('return invalid streamed live if output is not an async iterable', () => {
+      expectTypeOf(optionalUtils.experimental_liveOptions().queryFn)
+        .toEqualTypeOf<QueryFunction<never>>()
+    })
+
+    it('allow extend and override live options', () => {
+      expectTypeOf(streamUtils.experimental_liveOptions({
+        queryKey: ['1'], // override
+        maxPages: 1, // extend
+      })).toExtend<{
+        queryKey: string[]
+        maxPages: number
+        queryFn: QueryFunction<UtilsOutput[number]>
+        throwOnError?(error: UtilsError): boolean
+        enabled: boolean
+      }>()
+    })
+
+    it('can change live data by define select', () => {
+      expectTypeOf(streamUtils.experimental_liveOptions({
+        select: mapped => ({ mapped }),
+      })).toExtend<QueryObserverOptions<UtilsOutput[number], UtilsError, { mapped: UtilsOutput[number] }>>()
+    })
+
+    it('.getQueryState is typed correctly', () => {
+      const state = queryClient.getQueryState(streamUtils.experimental_liveOptions().queryKey)
+      expectTypeOf(state?.data).toEqualTypeOf<UtilsOutput[number] | undefined>()
+      expectTypeOf(state?.error).toEqualTypeOf<UtilsError | null | undefined>()
+    })
+  })
+
   describe('.infiniteKey', () => {
     const initialPageParam = 1
 

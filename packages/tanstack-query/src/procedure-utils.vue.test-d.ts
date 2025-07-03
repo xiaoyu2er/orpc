@@ -158,6 +158,72 @@ describe('ProcedureUtils', () => {
     })
   })
 
+  describe('.liveOptions', () => {
+    describe('useQuery', () => {
+      it('without args', () => {
+        const query = useQuery(computed(() => streamUtils.experimental_liveOptions()))
+
+        expectTypeOf(query.data.value).toEqualTypeOf<UtilsOutput[number] | undefined>()
+        expectTypeOf(query.error.value).toEqualTypeOf<UtilsError | null>()
+      })
+
+      it('can infer errors inside options', () => {
+        const query = useQuery(computed(() => streamUtils.experimental_liveOptions({
+          throwOnError(error) {
+            expectTypeOf(error).toEqualTypeOf<UtilsError>()
+            return false
+          },
+        })))
+
+        expectTypeOf(query.data.value).toEqualTypeOf<UtilsOutput[number] | undefined>()
+        expectTypeOf(query.error.value).toEqualTypeOf<UtilsError | null>()
+      })
+
+      it('with initial data & select', () => {
+        const query = useQuery(computed(() => streamUtils.experimental_liveOptions({
+          select: data => ({ mapped: data }),
+          initialData: { title: 'title' },
+        })))
+
+        // @ts-expect-error - TODO: fix this, seem vue-query do not understand initialData
+        expectTypeOf(query.data.value).toEqualTypeOf<{ mapped: UtilsOutput[number] }>()
+        expectTypeOf(query.error.value).toEqualTypeOf<UtilsError | null>()
+      })
+    })
+
+    it('useQueries', () => {
+      const queries = useQueries({
+        queries: [
+          computed(() => streamUtils.experimental_liveOptions()),
+          computed(() => streamUtils.experimental_liveOptions({
+            input: { search: 'search' },
+            context: { batch: true },
+          })),
+          // @ts-expect-error - TODO: fix this, cannot define select inside computed
+          computed(() => streamUtils.experimental_liveOptions({
+            select: data => ({ mapped: data }),
+          })),
+        ],
+      })
+
+      expectTypeOf(queries.value[0].data).toEqualTypeOf<UtilsOutput[number] | undefined>()
+      expectTypeOf(queries.value[1].data).toEqualTypeOf<UtilsOutput[number] | undefined>()
+      expectTypeOf(queries.value[2].data).toEqualTypeOf<{ mapped: UtilsOutput[number] } | undefined>()
+
+      expectTypeOf(queries.value[0].error).toEqualTypeOf<null | UtilsError>()
+      expectTypeOf(queries.value[1].error).toEqualTypeOf<null | UtilsError>()
+      expectTypeOf(queries.value[2].error).toEqualTypeOf<null | UtilsError>()
+    })
+
+    it('fetchQuery', () => {
+      expectTypeOf(
+        queryClient.fetchQuery(streamUtils.experimental_liveOptions()),
+      ).toEqualTypeOf<
+        Promise<UtilsOutput[number]>
+      >()
+    })
+  })
+
   describe('.infiniteOptions', () => {
     const getNextPageParam: GetNextPageParamFunction<number, UtilsOutput> = () => 1
     const initialPageParam = 1

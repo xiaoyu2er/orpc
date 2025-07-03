@@ -149,6 +149,68 @@ describe('ProcedureUtils', () => {
     })
   })
 
+  describe('.liveOptions', () => {
+    describe('useQuery', () => {
+      it('without args', () => {
+        const query = useQuery(() => streamUtils.experimental_liveOptions())
+        expectTypeOf(query.data).toEqualTypeOf<UtilsOutput[number] | undefined>()
+        expectTypeOf(query.error).toEqualTypeOf<UtilsError | null>()
+      })
+
+      it('can infer errors inside options', () => {
+        const query = useQuery(() => streamUtils.experimental_liveOptions({
+          throwOnError(error) {
+            expectTypeOf(error).toEqualTypeOf<UtilsError>()
+            return false
+          },
+        }))
+        expectTypeOf(query.data).toEqualTypeOf<UtilsOutput[number] | undefined>()
+        expectTypeOf(query.error).toEqualTypeOf<UtilsError | null>()
+      })
+
+      it('with initial data & select', () => {
+        const query = useQuery(() => streamUtils.experimental_liveOptions({
+          select: data => ({ mapped: data }),
+          initialData: { title: 'title' },
+        }))
+
+        expectTypeOf(query.data).toEqualTypeOf<{ mapped: UtilsOutput[number] }>()
+        expectTypeOf(query.error).toEqualTypeOf<UtilsError | null>()
+      })
+    })
+
+    it('useQueries', () => {
+      const queries = useQueries(() => ({
+        queries: [
+          streamUtils.experimental_liveOptions(),
+          streamUtils.experimental_liveOptions({
+            input: { search: 'search' },
+            context: { batch: true },
+          }),
+          streamUtils.experimental_liveOptions({
+            select: data => ({ mapped: data }),
+          }),
+        ],
+      }))
+
+      expectTypeOf(queries[0].data).toEqualTypeOf<UtilsOutput[number] | undefined>()
+      expectTypeOf(queries[1].data).toEqualTypeOf<UtilsOutput[number] | undefined>()
+      expectTypeOf(queries[2].data).toEqualTypeOf<{ mapped: UtilsOutput[number] } | undefined>()
+
+      expectTypeOf(queries[0].error).toEqualTypeOf<null | UtilsError>()
+      expectTypeOf(queries[1].error).toEqualTypeOf<null | UtilsError>()
+      expectTypeOf(queries[2].error).toEqualTypeOf<null | UtilsError>()
+    })
+
+    it('fetchQuery', () => {
+      expectTypeOf(
+        queryClient.fetchQuery(streamUtils.experimental_liveOptions()),
+      ).toEqualTypeOf<
+        Promise<UtilsOutput[number]>
+      >()
+    })
+  })
+
   describe('.infiniteOptions', () => {
     const getNextPageParam: GetNextPageParamFunction<number, UtilsOutput> = () => 1
     const initialPageParam = 1

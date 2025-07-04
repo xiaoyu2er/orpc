@@ -18,7 +18,7 @@ describe('onStartDeferred/onSuccessDeferred/onErrorDeferred/onFinishDeferred', a
     expect(output).toBe('test')
     expect(callback).toHaveBeenCalledTimes(0)
 
-    await new Promise(resolve => setTimeout(resolve, 10))
+    await new Promise(resolve => setTimeout(resolve, 6))
     expect(callback).toHaveBeenCalledTimes(3)
     expect(callback).toHaveBeenNthCalledWith(1, expect.objectContaining({
       context: true,
@@ -30,6 +30,7 @@ describe('onStartDeferred/onSuccessDeferred/onErrorDeferred/onFinishDeferred', a
       context: true,
     }))
   })
+
   it('on error', async () => {
     const callback = vi.fn()
     await expect(intercept([
@@ -45,7 +46,7 @@ describe('onStartDeferred/onSuccessDeferred/onErrorDeferred/onFinishDeferred', a
 
     expect(callback).toHaveBeenCalledTimes(0)
 
-    await new Promise(resolve => setTimeout(resolve, 4))
+    await new Promise(resolve => setTimeout(resolve, 6))
     expect(callback).toHaveBeenCalledTimes(3)
     expect(callback).toHaveBeenNthCalledWith(1, expect.objectContaining({
       context: true,

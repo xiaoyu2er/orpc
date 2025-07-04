@@ -7,7 +7,7 @@ export const onStartDeferred: typeof onStart = (callback, ...rest) => {
   return onStart((...args) => {
     setTimeout(() => {
       callback(...args)
-    }, 4)
+    }, 6)
   }, ...rest)
 }
 
@@ -18,7 +18,7 @@ export const onSuccessDeferred: typeof onSuccess = (callback, ...rest) => {
   return onSuccess((...args) => {
     setTimeout(() => {
       callback(...args)
-    }, 4)
+    }, 6)
   }, ...rest)
 }
 
@@ -29,7 +29,7 @@ export const onErrorDeferred: typeof onError = (callback, ...rest) => {
   return onError((...args) => {
     setTimeout(() => {
       callback(...args)
-    }, 4)
+    }, 6)
   }, ...rest)
 }
 
@@ -40,6 +40,6 @@ export const onFinishDeferred: typeof onFinish = (callback, ...rest) => {
   return onFinish((...args) => {
     setTimeout(() => {
       callback(...args)
-    }, 4)
+    }, 6)
   }, ...rest)
 }

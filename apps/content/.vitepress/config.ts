@@ -230,8 +230,9 @@ export default withMermaid(defineConfig({
           text: 'Advanced',
           collapsed: true,
           items: [
-            { text: 'Redirect Response', link: '/docs/openapi/advanced/redirect-response' },
+            { text: 'Customizing Error Response', link: '/docs/openapi/advanced/customizing-error-response' },
             { text: 'OpenAPI JSON Serializer', link: '/docs/openapi/advanced/openapi-json-serializer' },
+            { text: 'Redirect Response', link: '/docs/openapi/advanced/redirect-response' },
           ],
         },
       ],

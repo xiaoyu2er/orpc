@@ -70,6 +70,12 @@ export interface UseServerActionErrorResult<TInput, TOutput, TError> extends Use
   executedAt: Date
 }
 
+export type UseServerActionResult<TInput, TOutput, TError>
+  = | UseServerActionIdleResult<TInput, TOutput, TError>
+    | UseServerActionSuccessResult<TInput, TOutput, TError>
+    | UseServerActionErrorResult<TInput, TOutput, TError>
+    | UseServerActionPendingResult<TInput, TOutput, TError>
+
 const INITIAL_STATE = {
   data: undefined,
   error: null,
@@ -97,11 +103,8 @@ const PENDING_STATE = {
  */
 export function useServerAction<TInput, TOutput, TError extends ORPCErrorJSON<any, any>>(
   action: ActionableClient<TInput, TOutput, TError>,
-  options: NoInfer<UseServerActionOptions<TInput, TOutput, UnactionableError<TError>>> = {},
-): UseServerActionIdleResult<TInput, TOutput, UnactionableError<TError>>
-  | UseServerActionSuccessResult<TInput, TOutput, UnactionableError<TError>>
-  | UseServerActionErrorResult<TInput, TOutput, UnactionableError<TError>>
-  | UseServerActionPendingResult<TInput, TOutput, UnactionableError<TError>> {
+  options: UseServerActionOptions<TInput, TOutput, UnactionableError<TError>> = {},
+): UseServerActionResult<TInput, TOutput, UnactionableError<TError>> {
   const [state, setState] = useState<Omit<
     | UseServerActionIdleResult<TInput, TOutput, UnactionableError<TError>>
     | UseServerActionSuccessResult<TInput, TOutput, UnactionableError<TError>>

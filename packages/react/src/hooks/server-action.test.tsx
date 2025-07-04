@@ -1,7 +1,7 @@
 import { ORPCError, os } from '@orpc/server'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { baseErrorMap, inputSchema, outputSchema } from '../../../contract/tests/shared'
-import { useServerAction } from './action-hooks'
+import { useServerAction } from './server-action'
 
 beforeEach(() => {
   vi.clearAllMocks()

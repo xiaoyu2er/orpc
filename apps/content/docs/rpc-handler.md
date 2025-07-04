@@ -112,6 +112,7 @@ sequenceDiagram
 
   Note over A1: adaptorInterceptors
   A1 ->> P3: request
+  P3 ->> P3: Convert
   Note over P3: rootInterceptors
   P3 ->> P4: standard request
   Note over P4: interceptors
@@ -123,8 +124,11 @@ sequenceDiagram
   P4 ->> P5: Input, Signal, LastEventId,...
   Note over P5: clientInterceptors
   P5 ->> P5: Handle
-  P5 ->> P4: Error/Output
-  P4 ->> P4: Encode Error/Output
+  P5 ->> P4: if success
+  P4 ->> P4: Encode output
+  P5 ->> P4: if failed
+  Note over P4: end interceptors
+  P4 ->> P4: Encode error
   P4 ->> P3: standard response
   P3 ->> A1: response
 ```

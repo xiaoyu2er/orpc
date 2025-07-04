@@ -224,7 +224,7 @@ export function MyComponent() {
 ```
 
 :::info
-The `onSuccessDeferred` interceptor defers execution until after React's optimistic update transaction completes. This pattern ensures the UI updates correctly when the server response arrives.
+The `onSuccessDeferred` interceptor defers execution, useful for updating states.
 :::
 
 ### `createFormAction` Utility

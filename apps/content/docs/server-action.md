@@ -211,7 +211,7 @@ export function MyComponent() {
     <div>
       <ul>
         {optimisticState.map(todo => (
-          <li key={todo.id}>{todo.todo}</li>
+          <li key={todo.todo}>{todo.todo}</li>
         ))}
       </ul>
       <form action={handleSubmit}>

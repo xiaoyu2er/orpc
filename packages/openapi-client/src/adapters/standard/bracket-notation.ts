@@ -14,6 +14,7 @@ export interface StandardBracketNotationSerializerOptions {
    * downstream code might inadvertently convert these sparse arrays to dense arrays,
    * potentially creating millions of undefined elements and causing memory issues.
    *
+   * @note Only applies to deserialization.
    * @default 9_999 (array with 10,000 elements)
    */
   maxBracketNotationArrayIndex?: number

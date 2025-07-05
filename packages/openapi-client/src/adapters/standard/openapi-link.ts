@@ -15,7 +15,7 @@ export interface StandardOpenAPILinkOptions<T extends ClientContext>
 export class StandardOpenAPILink<T extends ClientContext> extends StandardLink<T> {
   constructor(contract: AnyContractRouter, linkClient: StandardLinkClient<T>, options: StandardOpenAPILinkOptions<T>) {
     const jsonSerializer = new StandardOpenAPIJsonSerializer(options)
-    // Server response is trustable, so we can use the maximum possible array index.
+    // Server response is trusted, so we can use the maximum possible array index.
     const bracketNotationSerializer = new StandardBracketNotationSerializer({ maxBracketNotationArrayIndex: 4_294_967_294 })
     const serializer = new StandardOpenAPISerializer(jsonSerializer, bracketNotationSerializer)
     const linkCodec = new StandardOpenapiLinkCodec(contract, serializer, options)

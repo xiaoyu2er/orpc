@@ -242,6 +242,39 @@ describe('standardBracketNotationSerializer', () => {
         ['a[c][1][f]', 4],
       ])).toEqual({ a: { b: 1, c: [2, { d: 3, f: 4 }] } })
     })
+
+    it('limits array indices to maxArrayIndex', () => {
+      expect(serializer.deserialize([
+        ['arr[1]', 1],
+        ['arr[9999]', 2],
+        ['arr[10000]', 3],
+      ])).toEqual({ arr: { 1: 1, 9999: 2, 10000: 3 } })
+
+      expect(serializer.deserialize([
+        ['arr[9999]', 3],
+      ])).toEqual({ arr: (() => {
+        const arr = []
+        arr[9999] = 3
+        return arr
+      })() })
+
+      expect(serializer.deserialize([
+        ['arr[10000]', 3],
+      ])).toEqual({ arr: { 10000: 3 } })
+
+      // if not use index, we still can exceed maxArrayIndex
+      expect(serializer.deserialize([
+        ['arr[9999]', 3],
+        ['arr', 4],
+      ])).toEqual({
+        arr: (() => {
+          const arr = []
+          arr[9999] = 3
+          arr[10000] = 4
+          return arr
+        })(),
+      })
+    })
   })
 
   it.each([

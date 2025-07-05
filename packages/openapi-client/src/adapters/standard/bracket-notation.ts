@@ -14,7 +14,7 @@ export interface StandardBracketNotationSerializerOptions {
    * downstream code might inadvertently convert these sparse arrays to dense arrays,
    * potentially creating millions of undefined elements and causing memory issues.
    *
-   * @default 10_000
+   * @default 9_999 (array with 10,000 elements)
    */
   maxBracketNotationArrayIndex?: number
 }
@@ -23,7 +23,7 @@ export class StandardBracketNotationSerializer {
   private readonly maxArrayIndex: number
 
   constructor(options: StandardBracketNotationSerializerOptions = {}) {
-    this.maxArrayIndex = options.maxBracketNotationArrayIndex ?? 10_000
+    this.maxArrayIndex = options.maxBracketNotationArrayIndex ?? 9_999
   }
 
   serialize(data: unknown, segments: Segment[] = [], result: StandardBracketNotationSerialized = []): StandardBracketNotationSerialized {

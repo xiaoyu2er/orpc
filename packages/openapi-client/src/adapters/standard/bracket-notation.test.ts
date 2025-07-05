@@ -246,31 +246,31 @@ describe('standardBracketNotationSerializer', () => {
     it('limits array indices to maxArrayIndex', () => {
       expect(serializer.deserialize([
         ['arr[1]', 1],
-        ['arr[10000]', 2],
-        ['arr[10001]', 3],
-      ])).toEqual({ arr: { 1: 1, 10000: 2, 10001: 3 } })
+        ['arr[9999]', 2],
+        ['arr[10000]', 3],
+      ])).toEqual({ arr: { 1: 1, 9999: 2, 10000: 3 } })
 
       expect(serializer.deserialize([
-        ['arr[10000]', 3],
+        ['arr[9999]', 3],
       ])).toEqual({ arr: (() => {
         const arr = []
-        arr[10000] = 3
+        arr[9999] = 3
         return arr
       })() })
 
       expect(serializer.deserialize([
-        ['arr[10001]', 3],
-      ])).toEqual({ arr: { 10001: 3 } })
+        ['arr[10000]', 3],
+      ])).toEqual({ arr: { 10000: 3 } })
 
       // if not use index, we still can exceed maxArrayIndex
       expect(serializer.deserialize([
-        ['arr[10000]', 3],
+        ['arr[9999]', 3],
         ['arr', 4],
       ])).toEqual({
         arr: (() => {
           const arr = []
-          arr[10000] = 3
-          arr[10001] = 4
+          arr[9999] = 3
+          arr[10000] = 4
           return arr
         })(),
       })

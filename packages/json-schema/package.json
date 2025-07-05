@@ -34,6 +34,7 @@
     "type:check": "tsc -b"
   },
   "dependencies": {
+    "@orpc/shared": "workspace:*",
     "json-schema-typed": "^8.0.1"
   }
 }

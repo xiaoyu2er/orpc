@@ -182,6 +182,51 @@ export function MyComponent() {
 }
 ```
 
+### `useOptimisticServerAction` Hook
+
+The `useOptimisticServerAction` hook enables optimistic UI updates while a server action executes. This provides immediate visual feedback to users before the server responds.
+
+```tsx
+import { useOptimisticServerAction } from '@orpc/react/hooks'
+import { onSuccessDeferred } from '@orpc/react'
+
+export function MyComponent() {
+  const [todos, setTodos] = useState<Todo[]>([])
+  const { execute, optimisticState } = useOptimisticServerAction(someAction, {
+    optimisticPassthrough: todos,
+    optimisticReducer: (currentState, newTodo) => [...currentState, newTodo],
+    interceptors: [
+      onSuccessDeferred(({ data }) => {
+        setTodos(prevTodos => [...prevTodos, data])
+      }),
+    ],
+  })
+
+  const handleSubmit = (form: FormData) => {
+    const todo = form.get('todo') as string
+    execute({ todo })
+  }
+
+  return (
+    <div>
+      <ul>
+        {optimisticState.map(todo => (
+          <li key={todo.todo}>{todo.todo}</li>
+        ))}
+      </ul>
+      <form action={handleSubmit}>
+        <input type="text" name="todo" required />
+        <button type="submit">Add Todo</button>
+      </form>
+    </div>
+  )
+}
+```
+
+:::info
+The `onSuccessDeferred` interceptor defers execution, useful for updating states.
+:::
+
 ### `createFormAction` Utility
 
 The `createFormAction` utility accepts a [procedure](/docs/procedure) and returns a function to handle form submissions. It uses [Bracket Notation](/docs/openapi/bracket-notation) to deserialize form data.

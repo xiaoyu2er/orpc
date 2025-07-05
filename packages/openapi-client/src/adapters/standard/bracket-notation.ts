@@ -3,7 +3,29 @@ import { isObject, NullProtoObj } from '@orpc/shared'
 
 export type StandardBracketNotationSerialized = [string, unknown][]
 
+export interface StandardBracketNotationSerializerOptions {
+  /**
+   * Maximum allowed array index for bracket notation deserialization.
+   *
+   * This helps protect against memory exhaustion attacks where malicious input
+   * uses extremely large array indices (e.g., `?arr[4294967296]=value`).
+   *
+   * While bracket notation creates sparse arrays that handle large indices efficiently,
+   * downstream code might inadvertently convert these sparse arrays to dense arrays,
+   * potentially creating millions of undefined elements and causing memory issues.
+   *
+   * @default 10_000
+   */
+  maxBracketNotationArrayIndex?: number
+}
+
 export class StandardBracketNotationSerializer {
+  private readonly maxArrayIndex: number
+
+  constructor(options: StandardBracketNotationSerializerOptions = {}) {
+    this.maxArrayIndex = options.maxBracketNotationArrayIndex ?? 10_000
+  }
+
   serialize(data: unknown, segments: Segment[] = [], result: StandardBracketNotationSerialized = []): StandardBracketNotationSerialized {
     if (Array.isArray(data)) {
       data.forEach((item, i) => {
@@ -44,7 +66,7 @@ export class StandardBracketNotationSerializer {
         }
 
         if (i !== segments.length - 1) {
-          if (Array.isArray(currentRef[nextSegment]) && !isValidArrayIndex(segment)) {
+          if (Array.isArray(currentRef[nextSegment]) && !isValidArrayIndex(segment, this.maxArrayIndex)) {
             if (arrayPushStyles.has(currentRef[nextSegment])) {
               arrayPushStyles.delete(currentRef[nextSegment])
               currentRef[nextSegment] = pushStyleArrayToObject(currentRef[nextSegment])
@@ -67,7 +89,7 @@ export class StandardBracketNotationSerializer {
                 currentRef[nextSegment] = pushStyleArrayToObject(currentRef[nextSegment])
               }
 
-              else if (!isValidArrayIndex(segment)) {
+              else if (!isValidArrayIndex(segment, this.maxArrayIndex)) {
                 currentRef[nextSegment] = arrayToObject(currentRef[nextSegment])
               }
             }
@@ -165,8 +187,8 @@ export class StandardBracketNotationSerializer {
   }
 }
 
-function isValidArrayIndex(value: string): boolean {
-  return /^0$|^[1-9]\d*$/.test(value)
+function isValidArrayIndex(value: string, maxIndex: number): boolean {
+  return /^0$|^[1-9]\d*$/.test(value) && Number(value) <= maxIndex
 }
 
 function arrayToObject(array: any[]): Record<string, unknown> {

@@ -1,2 +1,2 @@
-export * from './link-websocket-client'
+export * from './link-client'
 export * from './rpc-link'

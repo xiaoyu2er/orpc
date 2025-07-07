@@ -91,3 +91,7 @@ export function replicateStandardLazyResponse(
 
   return replicated
 }
+
+export function isEventIteratorHeaders(headers: StandardHeaders): boolean {
+  return Boolean(flattenHeader(headers['content-type'])?.startsWith('text/event-stream') && flattenHeader(headers['content-disposition']) === undefined)
+}

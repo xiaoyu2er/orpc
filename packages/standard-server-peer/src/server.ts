@@ -3,8 +3,8 @@ import type { StandardRequest, StandardResponse } from '@orpc/standard-server'
 import type { EventIteratorPayload } from './codec'
 import type { EncodedMessage, EncodedMessageSendFn } from './types'
 import { AsyncIdQueue, isAsyncIteratorObject } from '@orpc/shared'
-import { experimental_HibernationEventIterator } from '@orpc/standard-server'
-import { decodeRequestMessage, encodeResponseMessage, isEventIteratorHeaders, MessageType } from './codec'
+import { experimental_HibernationEventIterator, isEventIteratorHeaders } from '@orpc/standard-server'
+import { decodeRequestMessage, encodeResponseMessage, MessageType } from './codec'
 import { resolveEventIterator, toEventIterator } from './event-iterator'
 
 export interface ServerPeerCloseOptions extends AsyncIdQueueCloseOptions {

@@ -337,9 +337,7 @@ async function decodeRawMessage(raw: EncodedMessage): Promise<{ json: any, blobD
     return { json: JSON.parse(raw) }
   }
 
-  const buffer = raw instanceof Blob
-    ? await raw.bytes()
-    : new Uint8Array(raw)
+  const buffer = raw instanceof Uint8Array ? raw : new Uint8Array(raw)
 
   const delimiterIndex = buffer.indexOf(JSON_AND_BINARY_DELIMITER)
 

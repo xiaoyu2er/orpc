@@ -2,11 +2,14 @@ import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { WebSocket } from 'ws'
 import type { Context } from '../../context'
 import type { StandardHandler } from '../standard'
-import type { FriendlyStandardHandleOptions } from '../standard/utils'
+import type {
+  experimental_HandleStandardServerPeerMessageOptions as HandleStandardServerPeerMessageOptions,
+} from '../standard-peer'
 import { resolveMaybeOptionalOptions } from '@orpc/shared'
 import { ServerPeer } from '@orpc/standard-server-peer'
-
-import { resolveFriendlyStandardHandleOptions } from '../standard/utils'
+import {
+  experimental_handleStandardServerPeerMessage as handleStandardServerPeerMessage,
+} from '../standard-peer'
 
 export class experimental_WsHandler<T extends Context> {
   constructor(
@@ -14,7 +17,10 @@ export class experimental_WsHandler<T extends Context> {
   ) {
   }
 
-  async upgrade(ws: Pick<WebSocket, 'addEventListener' | 'send'>, ...rest: MaybeOptionalOptions<Omit<FriendlyStandardHandleOptions<T>, 'prefix'>>): Promise<void> {
+  async upgrade(
+    ws: Pick<WebSocket, 'addEventListener' | 'send'>,
+    ...rest: MaybeOptionalOptions<HandleStandardServerPeerMessageOptions<T>>
+  ): Promise<void> {
     const peer = new ServerPeer(ws.send.bind(ws))
 
     ws.addEventListener('message', async (event) => {
@@ -22,17 +28,12 @@ export class experimental_WsHandler<T extends Context> {
         ? await (new Blob(event.data)).arrayBuffer()
         : event.data
 
-      const [id, request] = await peer.message(message)
-
-      if (!request) {
-        return
-      }
-
-      const options = resolveFriendlyStandardHandleOptions(resolveMaybeOptionalOptions(rest))
-
-      const { response } = await this.standardHandler.handle({ ...request, body: () => Promise.resolve(request.body) }, options)
-
-      await peer.response(id, response ?? { status: 404, headers: {}, body: 'No procedure matched' })
+      await handleStandardServerPeerMessage(
+        this.standardHandler,
+        peer,
+        message,
+        resolveMaybeOptionalOptions(rest),
+      )
     })
 
     ws.addEventListener('close', () => {

@@ -332,12 +332,14 @@ async function encodeRawMessage(data: object, blobData?: Blob): Promise<EncodedM
   ]).arrayBuffer()
 }
 
-async function decodeRawMessage(raw: EncodedMessage): Promise<{ json: any, blobData?: ArrayBuffer }> {
+async function decodeRawMessage(raw: EncodedMessage): Promise<{ json: any, blobData?: Uint8Array }> {
   if (typeof raw === 'string') {
     return { json: JSON.parse(raw) }
   }
 
-  const buffer = new Uint8Array(raw instanceof Blob ? await raw.arrayBuffer() : raw)
+  const buffer = raw instanceof Blob
+    ? await raw.bytes()
+    : new Uint8Array(raw)
 
   const delimiterIndex = buffer.indexOf(JSON_AND_BINARY_DELIMITER)
 
@@ -346,11 +348,11 @@ async function decodeRawMessage(raw: EncodedMessage): Promise<{ json: any, blobD
     return { json: JSON.parse(jsonPart) }
   }
 
-  const jsonPart = new TextDecoder().decode(buffer.slice(0, delimiterIndex))
-  const blobData = buffer.slice(delimiterIndex + 1)
+  const jsonPart = new TextDecoder().decode(buffer.subarray(0, delimiterIndex))
+  const blobData = buffer.subarray(delimiterIndex + 1)
 
   return {
     json: JSON.parse(jsonPart),
-    blobData: blobData.buffer,
+    blobData,
   }
 }

@@ -20,7 +20,7 @@ export class experimental_BunWsHandler<T extends Context> {
 
   async message(
     ws: ServerWebSocket,
-    message: string | { buffer: ArrayBufferLike },
+    message: string | ArrayBufferView,
     ...rest: MaybeOptionalOptions<Omit<FriendlyStandardHandleOptions<T>, 'prefix'>>
   ): Promise<void> {
     let peer = this.peers.get(ws)
@@ -31,7 +31,7 @@ export class experimental_BunWsHandler<T extends Context> {
       }))
     }
 
-    const [id, request] = await peer.message(typeof message === 'string' ? message : message.buffer)
+    const [id, request] = await peer.message(typeof message === 'string' ? message : new Uint8Array(message.buffer, message.byteOffset, message.byteLength))
 
     if (!request) {
       return

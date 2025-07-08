@@ -182,7 +182,7 @@ describe('encode/decode request message', () => {
         body: formData,
       })
 
-      expect(message).toBeInstanceOf(ArrayBuffer)
+      expect(message).toBeInstanceOf(Uint8Array)
 
       const [id, type, payload] = await decodeRequestMessage(message)
 
@@ -203,7 +203,7 @@ describe('encode/decode request message', () => {
       expect(await (payload as any).body.get('file').text()).toBe('foo')
     })
 
-    it('formData with message is ArrayBuffer', async () => {
+    it('formData with message is Uint8Array', async () => {
       const formData = new FormData()
       formData.append('a', '1')
       formData.append('b', '2')
@@ -216,7 +216,7 @@ describe('encode/decode request message', () => {
         body: formData,
       })
 
-      expect(message).toBeInstanceOf(ArrayBuffer)
+      expect(message).toBeInstanceOf(Uint8Array)
 
       const [id, type, payload] = await decodeRequestMessage(message)
 
@@ -254,7 +254,7 @@ describe('encode/decode request message', () => {
           body: blob,
         })
 
-        expect(message).toBeInstanceOf(ArrayBuffer)
+        expect(message).toBeInstanceOf(Uint8Array)
 
         const [id, type, payload] = await decodeRequestMessage(message)
 
@@ -287,7 +287,7 @@ describe('encode/decode request message', () => {
           body: blob,
         })
 
-        expect(message).toBeInstanceOf(ArrayBuffer)
+        expect(message).toBeInstanceOf(Uint8Array)
 
         const [id, type, payload] = await decodeRequestMessage(message)
 
@@ -347,7 +347,7 @@ describe('encode/decode request message', () => {
           body: file,
         })
 
-        expect(message).toBeInstanceOf(ArrayBuffer)
+        expect(message).toBeInstanceOf(Uint8Array)
 
         const [id, type, payload] = await decodeRequestMessage(message)
 
@@ -380,7 +380,7 @@ describe('encode/decode request message', () => {
           body: file,
         })
 
-        expect(message).toBeInstanceOf(ArrayBuffer)
+        expect(message).toBeInstanceOf(Uint8Array)
 
         const [id, type, payload] = await decodeRequestMessage(message)
 
@@ -446,7 +446,7 @@ describe('encode/decode request message', () => {
       body: blob,
     })
 
-    expect(message).toBeInstanceOf(ArrayBuffer)
+    expect(message).toBeInstanceOf(Uint8Array)
 
     const [id, type, payload] = await decodeRequestMessage(message)
 
@@ -627,7 +627,7 @@ describe('encode/decode response message', () => {
         body: formData,
       })
 
-      expect(message).toBeInstanceOf(ArrayBuffer)
+      expect(message).toBeInstanceOf(Uint8Array)
 
       const [id, type, payload] = await decodeResponseMessage(message)
 
@@ -647,7 +647,7 @@ describe('encode/decode response message', () => {
       expect(await (payload as any).body.get('file').text()).toBe('foo')
     })
 
-    it('formData with message is ArrayBuffer', async () => {
+    it('formData with message is Uint8Array', async () => {
       const formData = new FormData()
       formData.append('a', '1')
       formData.append('b', '2')
@@ -659,7 +659,7 @@ describe('encode/decode response message', () => {
         body: formData,
       })
 
-      expect(message).toBeInstanceOf(ArrayBuffer)
+      expect(message).toBeInstanceOf(Uint8Array)
 
       const [id, type, payload] = await decodeResponseMessage(message)
 
@@ -695,7 +695,7 @@ describe('encode/decode response message', () => {
           body: blob,
         })
 
-        expect(message).toBeInstanceOf(ArrayBuffer)
+        expect(message).toBeInstanceOf(Uint8Array)
 
         const [id, type, payload] = await decodeResponseMessage(message)
 
@@ -726,7 +726,7 @@ describe('encode/decode response message', () => {
           body: blob,
         })
 
-        expect(message).toBeInstanceOf(ArrayBuffer)
+        expect(message).toBeInstanceOf(Uint8Array)
 
         const [id, type, payload] = await decodeResponseMessage(message)
 
@@ -754,7 +754,7 @@ describe('encode/decode response message', () => {
           body: file,
         })
 
-        expect(message).toBeInstanceOf(ArrayBuffer)
+        expect(message).toBeInstanceOf(Uint8Array)
 
         const [id, type, payload] = await decodeResponseMessage(message)
 
@@ -785,7 +785,7 @@ describe('encode/decode response message', () => {
           body: file,
         })
 
-        expect(message).toBeInstanceOf(ArrayBuffer)
+        expect(message).toBeInstanceOf(Uint8Array)
 
         const [id, type, payload] = await decodeResponseMessage(message)
 
@@ -816,7 +816,7 @@ describe('encode/decode response message', () => {
       body: blob,
     })
 
-    expect(message).toBeInstanceOf(ArrayBuffer)
+    expect(message).toBeInstanceOf(Uint8Array)
 
     const [id, type, payload] = await decodeResponseMessage(message)
 

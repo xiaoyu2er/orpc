@@ -1,5 +1,3 @@
-import type { EncodedMessage } from '@orpc/standard-server-peer'
-
 /**
  * The message port used by electron in main process
  */
@@ -26,7 +24,7 @@ export type SupportedMessagePort = Pick<MessagePort, 'addEventListener' | 'postM
 /**
  *  Message port can support [The structured clone algorithm](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm)
  */
-export type SupportedMessagePortData = EncodedMessage
+export type SupportedMessagePortData = string | ArrayBufferLike | Uint8Array
 
 export function postMessagePortMessage(port: SupportedMessagePort, data: SupportedMessagePortData): void {
   port.postMessage(data)

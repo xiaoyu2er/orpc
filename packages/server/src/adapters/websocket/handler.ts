@@ -57,7 +57,7 @@ export class experimental_WebsocketHandler<T extends Context> {
     }
 
     const message = data instanceof Blob
-      ? await data.arrayBuffer()
+      ? await data.bytes()
       : data
 
     await handleStandardServerPeerMessage(

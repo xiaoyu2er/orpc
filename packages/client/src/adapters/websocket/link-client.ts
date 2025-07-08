@@ -29,7 +29,7 @@ export class experimental_LinkWebsocketClient<T extends ClientContext> implement
 
     options.websocket.addEventListener('message', async (event) => {
       const message = event.data instanceof Blob
-        ? await event.data.arrayBuffer()
+        ? await event.data.bytes()
         : event.data
 
       this.peer.message(message)

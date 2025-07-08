@@ -25,7 +25,7 @@ export class experimental_WsHandler<T extends Context> {
 
     ws.addEventListener('message', async (event) => {
       const message = Array.isArray(event.data)
-        ? await (new Blob(event.data)).arrayBuffer()
+        ? await (new Blob(event.data)).bytes()
         : event.data
 
       await handleStandardServerPeerMessage(

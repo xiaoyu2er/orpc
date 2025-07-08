@@ -311,7 +311,7 @@ async function encodeRawMessage(data: object, blob?: Blob): Promise<EncodedMessa
     new TextEncoder().encode(json),
     new Uint8Array([JSON_AND_BINARY_DELIMITER]),
     blob,
-  ]).arrayBuffer()
+  ]).bytes()
 }
 
 async function decodeRawMessage(raw: EncodedMessage): Promise<{ json: any, buffer?: Uint8Array }> {

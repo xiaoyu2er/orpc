@@ -1,5 +1,4 @@
 import type { MaybeOptionalOptions } from '@orpc/shared'
-import type { EncodedMessage } from '@orpc/standard-server-peer'
 import type { Context } from '../../context'
 import type { StandardHandler } from '../standard'
 import type {
@@ -12,7 +11,7 @@ import {
 } from '../standard-peer'
 
 export interface ServerWebSocket {
-  send(message: EncodedMessage): number
+  send(message: string | ArrayBufferLike | Uint8Array): number
 }
 
 export class experimental_BunWsHandler<T extends Context> {

@@ -1,10 +1,17 @@
-import { blobToBuffer } from './blob'
+import { readAsBuffer } from './blob'
 
-it('blobToBuffer', async () => {
+it('readAsBuffer', async () => {
   const blob = new Blob(['test'], { type: 'text/plain' })
 
-  expect(new TextDecoder().decode(await blobToBuffer(blob))).toBe('test')
-  expect(new TextDecoder().decode(await blobToBuffer(new Proxy(blob, {
-    has: (target, prop) => Reflect.has(target, prop) && prop !== 'bytes',
+  expect(new TextDecoder().decode(await readAsBuffer(blob))).toBe('test')
+  expect(new TextDecoder().decode(await readAsBuffer(new Proxy(blob, {
+    get: (target, prop) => {
+      if (prop === 'bytes') {
+        return undefined
+      }
+      return Reflect.get(target, prop)
+    },
   })))).toBe('test')
+
+  expect(new TextDecoder().decode(await readAsBuffer(new Response(blob)))).toBe('test')
 })

@@ -17,7 +17,7 @@ export default antfu({
       },
       {
         name: ['*', 'bytes'],
-        message: 'Blob.bytes is not widely supported, use blobToBuffer instead',
+        message: 'Request/Blob/Response/... .bytes is not widely supported, use readAsBuffer instead',
       },
     ],
     'no-restricted-imports': ['error', {

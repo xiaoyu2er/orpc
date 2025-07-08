@@ -1,6 +1,6 @@
 import type { EventMeta, StandardBody, StandardHeaders, StandardRequest, StandardResponse } from '@orpc/standard-server'
 import type { EncodedMessage } from './types'
-import { blobToBuffer, isAsyncIteratorObject, stringifyJSON } from '@orpc/shared'
+import { isAsyncIteratorObject, readAsBuffer, stringifyJSON } from '@orpc/shared'
 import { flattenHeader, generateContentDisposition, getFilenameFromContentDisposition } from '@orpc/standard-server'
 
 export enum MessageType {
@@ -307,7 +307,7 @@ async function encodeRawMessage(data: object, blob?: Blob): Promise<EncodedMessa
     return json
   }
 
-  return blobToBuffer(new Blob([
+  return readAsBuffer(new Blob([
     new TextEncoder().encode(json),
     new Uint8Array([JSON_AND_BINARY_DELIMITER]),
     blob,

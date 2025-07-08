@@ -1,13 +1,13 @@
 /**
- * Converts a Blob to a buffer (ArrayBuffer or Uint8Array).
+ * Converts Request/Response/Blob/File/.. to a buffer (ArrayBuffer or Uint8Array).
  *
  * Prefers the newer `.bytes` method when available as it more efficient but not widely supported yet.
  */
-export function blobToBuffer(blob: Blob): Promise<ArrayBuffer | Uint8Array> {
-  if ('bytes' in blob) {
+export function readAsBuffer(source: Pick<Blob, 'arrayBuffer' | 'bytes'>): Promise<ArrayBuffer | Uint8Array> {
+  if (typeof source.bytes === 'function') {
     // eslint-disable-next-line ban/ban
-    return blob.bytes()
+    return source.bytes()
   }
 
-  return (blob as Blob).arrayBuffer()
+  return (source as Pick<Blob, 'arrayBuffer'>).arrayBuffer()
 }

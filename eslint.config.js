@@ -15,6 +15,10 @@ export default antfu({
         name: ['JSON', 'stringify'],
         message: 'JSON.stringify can return undefined, use stringifyJSON instead',
       },
+      {
+        name: ['*', 'bytes'],
+        message: 'Request/Blob/Response/... .bytes is not widely supported, use readAsBuffer instead',
+      },
     ],
     'no-restricted-imports': ['error', {
       patterns: [{

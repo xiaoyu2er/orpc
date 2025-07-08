@@ -1,8 +1,8 @@
 import type { ClientContext } from '../../types'
 import type { StandardRPCLinkOptions } from '../standard'
-import type { experimental_LinkWebsocketClientOptions as LinkWebsocketClientOptions } from './link-websocket-client'
+import type { experimental_LinkWebsocketClientOptions as LinkWebsocketClientOptions } from './link-client'
 import { StandardRPCLink } from '../standard'
-import { experimental_LinkWebsocketClient as LinkWebsocketClient } from './link-websocket-client'
+import { experimental_LinkWebsocketClient as LinkWebsocketClient } from './link-client'
 
 export interface experimental_RPCLinkOptions<T extends ClientContext>
   extends Omit<StandardRPCLinkOptions<T>, 'url' | 'headers' | 'method' | 'fallbackMethod' | 'maxUrlLength'>, LinkWebsocketClientOptions {}

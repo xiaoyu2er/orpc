@@ -24,7 +24,7 @@ export type SupportedMessagePort = Pick<MessagePort, 'addEventListener' | 'postM
 /**
  *  Message port can support [The structured clone algorithm](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm)
  */
-export type SupportedMessagePortData = string | ArrayBufferLike
+export type SupportedMessagePortData = string | ArrayBufferLike | Uint8Array
 
 export function postMessagePortMessage(port: SupportedMessagePort, data: SupportedMessagePortData): void {
   port.postMessage(data)

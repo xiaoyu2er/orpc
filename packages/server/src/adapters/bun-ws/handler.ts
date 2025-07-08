@@ -1,13 +1,17 @@
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { Context } from '../../context'
 import type { StandardHandler } from '../standard'
-import type { FriendlyStandardHandleOptions } from '../standard/utils'
+import type {
+  experimental_HandleStandardServerPeerMessageOptions as HandleStandardServerPeerMessageOptions,
+} from '../standard-peer'
 import { resolveMaybeOptionalOptions } from '@orpc/shared'
 import { ServerPeer } from '@orpc/standard-server-peer'
-import { resolveFriendlyStandardHandleOptions } from '../standard/utils'
+import {
+  experimental_handleStandardServerPeerMessage as handleStandardServerPeerMessage,
+} from '../standard-peer'
 
 export interface ServerWebSocket {
-  send(message: string | ArrayBufferLike): number
+  send(message: string | ArrayBufferLike | Uint8Array): number
 }
 
 export class experimental_BunWsHandler<T extends Context> {
@@ -20,8 +24,8 @@ export class experimental_BunWsHandler<T extends Context> {
 
   async message(
     ws: ServerWebSocket,
-    message: string | { buffer: ArrayBufferLike },
-    ...rest: MaybeOptionalOptions<Omit<FriendlyStandardHandleOptions<T>, 'prefix'>>
+    message: string | ArrayBufferView,
+    ...rest: MaybeOptionalOptions<HandleStandardServerPeerMessageOptions<T>>
   ): Promise<void> {
     let peer = this.peers.get(ws)
 
@@ -31,17 +35,16 @@ export class experimental_BunWsHandler<T extends Context> {
       }))
     }
 
-    const [id, request] = await peer.message(typeof message === 'string' ? message : message.buffer)
+    const encodedMessage = typeof message === 'string'
+      ? message
+      : new Uint8Array(message.buffer, message.byteOffset, message.byteLength)
 
-    if (!request) {
-      return
-    }
-
-    const options = resolveFriendlyStandardHandleOptions(resolveMaybeOptionalOptions(rest))
-
-    const { response } = await this.standardHandler.handle({ ...request, body: () => Promise.resolve(request.body) }, options)
-
-    await peer.response(id, response ?? { status: 404, headers: {}, body: 'No procedure matched' })
+    await handleStandardServerPeerMessage(
+      this.standardHandler,
+      peer,
+      encodedMessage,
+      resolveMaybeOptionalOptions(rest),
+    )
   }
 
   close(ws: ServerWebSocket): void {

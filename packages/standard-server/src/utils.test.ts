@@ -1,6 +1,6 @@
 import type { StandardLazyResponse } from './types'
 import * as SharedModule from '@orpc/shared'
-import { flattenHeader, generateContentDisposition, getFilenameFromContentDisposition, mergeStandardHeaders, replicateStandardLazyResponse } from './utils'
+import { flattenHeader, generateContentDisposition, getFilenameFromContentDisposition, isEventIteratorHeaders, mergeStandardHeaders, replicateStandardLazyResponse } from './utils'
 
 const replicateAsyncIteratorSpy = vi.spyOn(SharedModule, 'replicateAsyncIterator')
 
@@ -121,4 +121,23 @@ describe('replicateStandardLazyResponse', () => {
     expect(replicateAsyncIteratorSpy).toHaveBeenCalledTimes(1)
     expect(replicateAsyncIteratorSpy).toHaveBeenCalledWith(iterator, 3)
   })
+})
+
+it('isEventIteratorHeaders', () => {
+  expect(isEventIteratorHeaders({
+    'content-type': 'text/event-stream',
+  })).toBe(true)
+
+  expect(isEventIteratorHeaders({
+    'content-type': 'text/event-stream',
+    'content-disposition': '',
+  })).toBe(false)
+
+  expect(isEventIteratorHeaders({
+    'content-type': 'text/plain',
+  })).toBe(false)
+
+  expect(isEventIteratorHeaders({
+    'content-disposition': 'attachment; filename="test.pdf"',
+  })).toBe(false)
 })

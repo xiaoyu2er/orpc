@@ -1,6 +1,7 @@
 import type { StandardLazyResponse, StandardRequest } from '@orpc/standard-server'
 import type { ClientContext, ClientOptions } from '../../types'
 import type { StandardLinkClient } from '../standard'
+import { readAsBuffer } from '@orpc/shared'
 import { ClientPeer } from '@orpc/standard-server-peer'
 
 export interface experimental_LinkWebsocketClientOptions {
@@ -29,7 +30,7 @@ export class experimental_LinkWebsocketClient<T extends ClientContext> implement
 
     options.websocket.addEventListener('message', async (event) => {
       const message = event.data instanceof Blob
-        ? await event.data.arrayBuffer()
+        ? await readAsBuffer(event.data)
         : event.data
 
       this.peer.message(message)

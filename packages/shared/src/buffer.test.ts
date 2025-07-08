@@ -1,4 +1,4 @@
-import { readAsBuffer } from './blob'
+import { readAsBuffer } from './buffer'
 
 it('readAsBuffer', async () => {
   const blob = new Blob(['test'], { type: 'text/plain' })
@@ -13,5 +13,5 @@ it('readAsBuffer', async () => {
     },
   })))).toBe('test')
 
-  expect(new TextDecoder().decode(await readAsBuffer(new Response(blob)))).toBe('test')
+  expect(new TextDecoder().decode(await readAsBuffer((new Response(blob) as any)))).toBe('test')
 })

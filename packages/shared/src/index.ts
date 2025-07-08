@@ -1,6 +1,6 @@
 export * from './args'
 export * from './array'
-export * from './blob'
+export * from './buffer'
 export * from './chain'
 export * from './event-publisher'
 export * from './function'

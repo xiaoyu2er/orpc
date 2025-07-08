@@ -5,6 +5,7 @@
  */
 export function blobToBuffer(blob: Blob): Promise<ArrayBuffer | Uint8Array> {
   if ('bytes' in blob) {
+    // eslint-disable-next-line ban/ban
     return blob.bytes()
   }
 

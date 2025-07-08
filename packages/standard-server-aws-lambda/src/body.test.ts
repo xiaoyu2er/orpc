@@ -118,7 +118,7 @@ describe.each([true, false])('toStandardBody: base64=%s', (isBase64Encoded) => {
     const res = new Response(form)
 
     const standardBody: any = await toStandardBody({
-      body: Buffer.from(await res.bytes()).toString('base64'),
+      body: Buffer.from(await res.arrayBuffer()).toString('base64'),
       headers: {
         'content-type': res.headers.get('content-type')!,
       },

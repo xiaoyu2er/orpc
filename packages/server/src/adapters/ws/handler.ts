@@ -5,7 +5,7 @@ import type { StandardHandler } from '../standard'
 import type {
   experimental_HandleStandardServerPeerMessageOptions as HandleStandardServerPeerMessageOptions,
 } from '../standard-peer'
-import { resolveMaybeOptionalOptions } from '@orpc/shared'
+import { blobToBuffer, resolveMaybeOptionalOptions } from '@orpc/shared'
 import { ServerPeer } from '@orpc/standard-server-peer'
 import {
   experimental_handleStandardServerPeerMessage as handleStandardServerPeerMessage,
@@ -25,7 +25,7 @@ export class experimental_WsHandler<T extends Context> {
 
     ws.addEventListener('message', async (event) => {
       const message = Array.isArray(event.data)
-        ? await (new Blob(event.data)).bytes()
+        ? await blobToBuffer(new Blob(event.data))
         : event.data
 
       await handleStandardServerPeerMessage(

@@ -4,7 +4,7 @@ import type { StandardHandler } from '../standard'
 import type {
   experimental_HandleStandardServerPeerMessageOptions as HandleStandardServerPeerMessageOptions,
 } from '../standard-peer'
-import { resolveMaybeOptionalOptions } from '@orpc/shared'
+import { blobToBuffer, resolveMaybeOptionalOptions } from '@orpc/shared'
 import { ServerPeer } from '@orpc/standard-server-peer'
 import {
   experimental_handleStandardServerPeerMessage as handleStandardServerPeerMessage,
@@ -57,7 +57,7 @@ export class experimental_WebsocketHandler<T extends Context> {
     }
 
     const message = data instanceof Blob
-      ? await data.bytes()
+      ? await blobToBuffer(data)
       : data
 
     await handleStandardServerPeerMessage(

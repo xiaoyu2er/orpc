@@ -35,7 +35,9 @@ export class experimental_BunWsHandler<T extends Context> {
       }))
     }
 
-    const encodedMessage = typeof message === 'string' ? message : new Uint8Array(message.buffer, message.byteOffset, message.byteLength)
+    const encodedMessage = typeof message === 'string'
+      ? message
+      : new Uint8Array(message.buffer, message.byteOffset, message.byteLength)
 
     await handleStandardServerPeerMessage(
       this.standardHandler,

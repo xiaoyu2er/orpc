@@ -41,9 +41,6 @@ export class experimental_JsonSchemaCoercer {
           }
         }
       }
-      else if (typeof coerced === 'undefined' && enumValues.includes(null)) {
-        coerced = null
-      }
       else {
         satisfied = false
       }
@@ -74,22 +71,7 @@ export class experimental_JsonSchemaCoercer {
 
           break
         }
-        case 'null': {
-          if (typeof coerced === 'undefined') {
-            coerced = null
-          }
-
-          if (coerced !== null) {
-            satisfied = false
-          }
-
-          break
-        }
         case 'array': {
-          if (typeof coerced === 'undefined') {
-            coerced = []
-          }
-
           if (Array.isArray(coerced)) {
             const prefixItemSchemas: readonly JsonSchema[] = 'prefixItems' in schema
               ? toArray(schema.prefixItems)
@@ -132,26 +114,22 @@ export class experimental_JsonSchemaCoercer {
           break
         }
         case 'object': {
-          if (typeof coerced === 'undefined') {
-            coerced = {}
-          }
-
           if (Array.isArray(coerced)) {
             coerced = { ...coerced }
           }
 
           if (isObject(coerced)) {
-            const keys = new Set([
-              ...Object.keys(coerced),
-              ...Object.keys(schema.properties ?? {}),
-            ])
-
             let shouldUseCoercedItems = false
             const coercedItems: Record<string, unknown> = {}
 
-            for (const key of keys) {
+            const patternProperties = Object.entries(schema.patternProperties ?? {})
+              .map(([key, value]) => [new RegExp(key), value] as const)
+
+            for (const key in coerced) {
               const value = coerced[key]
-              const subSchema = schema.properties?.[key] ?? schema.additionalProperties
+              const subSchema = schema.properties?.[key]
+                ?? patternProperties.find(([pattern]) => pattern.test(key))?.[1]
+                ?? schema.additionalProperties
 
               if (subSchema === undefined || (value === undefined && !schema.required?.includes(key))) {
                 coercedItems[key] = value
@@ -261,7 +239,7 @@ export class experimental_JsonSchemaCoercer {
         coerced = subCoerced
 
         if (!subSatisfied) {
-          satisfied = false
+          satisfied = subSatisfied
         }
       }
     }

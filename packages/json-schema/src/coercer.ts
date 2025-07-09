@@ -1,28 +1,42 @@
 import type { JsonSchema } from './types'
 import { guard, isObject, toArray } from '@orpc/shared'
 
+export interface JsonSchemaCoerceOptions {
+  components?: Record<string, JsonSchema>
+}
+
 export class experimental_JsonSchemaCoercer {
-  coerce(schema: JsonSchema, value: unknown): unknown {
-    const [, coerced] = this.#coerce(schema, value)
+  coerce(schema: JsonSchema, value: unknown, options: JsonSchemaCoerceOptions = {}): unknown {
+    const [, coerced] = this.#coerce(schema, value, options)
     return coerced
   }
 
-  #coerce(schema: JsonSchema, value: unknown): [satisfied: boolean, coerced: unknown] {
+  #coerce(schema: JsonSchema, originalValue: unknown, options: JsonSchemaCoerceOptions): [satisfied: boolean, coerced: unknown] {
     if (typeof schema === 'boolean') {
-      return [schema, value]
+      return [schema, originalValue]
     }
 
     if (Array.isArray(schema.type)) {
       return this.#coerce({
         anyOf: schema.type.map(type => ({ ...schema, type })),
-      }, value)
+      }, originalValue, options)
     }
 
-    let coerced = value
+    let coerced = originalValue
     let satisfied = true
 
-    const enumValues = schema.enum ?? (schema.const !== undefined ? [schema.const] : undefined)
+    if (typeof schema.$ref === 'string') {
+      const refSchema = options.components?.[schema.$ref]
 
+      if (refSchema) {
+        const [subSatisfied, subCoerced] = this.#coerce(refSchema, coerced, options)
+
+        coerced = subCoerced
+        satisfied = subSatisfied
+      }
+    }
+
+    const enumValues = schema.enum ?? (schema.const !== undefined ? [schema.const] : undefined)
     if (enumValues !== undefined && !enumValues.includes(coerced)) {
       if (typeof coerced === 'string') {
         const numberValue = this.#stringToNumber(coerced)
@@ -50,8 +64,8 @@ export class experimental_JsonSchemaCoercer {
       switch (schema.type) {
         case 'number':
         case 'integer': {
-          if (typeof value === 'string') {
-            coerced = this.#stringToNumber(value)
+          if (typeof coerced === 'string') {
+            coerced = this.#stringToNumber(coerced)
           }
 
           if (typeof coerced !== 'number') {
@@ -91,7 +105,7 @@ export class experimental_JsonSchemaCoercer {
                 return item
               }
 
-              const [subSatisfied, subCoerced] = this.#coerce(subSchema, item)
+              const [subSatisfied, subCoerced] = this.#coerce(subSchema, item, options)
 
               if (!subSatisfied) {
                 satisfied = subSatisfied
@@ -135,7 +149,7 @@ export class experimental_JsonSchemaCoercer {
                 coercedItems[key] = value
               }
               else {
-                const [subSatisfied, subCoerced] = this.#coerce(subSchema, value)
+                const [subSatisfied, subCoerced] = this.#coerce(subSchema, value, options)
                 coercedItems[key] = subCoerced
 
                 if (!subSatisfied) {
@@ -234,7 +248,7 @@ export class experimental_JsonSchemaCoercer {
 
     if (schema.allOf) {
       for (const subSchema of schema.allOf) {
-        const [subSatisfied, subCoerced] = this.#coerce(subSchema, coerced)
+        const [subSatisfied, subCoerced] = this.#coerce(subSchema, coerced, options)
 
         coerced = subCoerced
 
@@ -249,7 +263,7 @@ export class experimental_JsonSchemaCoercer {
         let bestOptions: { coerced: unknown, satisfied: boolean } | undefined
 
         for (const subSchema of schema[key]) {
-          const [subSatisfied, subCoerced] = this.#coerce(subSchema, coerced)
+          const [subSatisfied, subCoerced] = this.#coerce(subSchema, coerced, options)
 
           if (subSatisfied) {
             if (!bestOptions || subCoerced === coerced) {
@@ -277,11 +291,11 @@ export class experimental_JsonSchemaCoercer {
   #stringToBoolean(value: string): boolean | string {
     const lower = value.toLowerCase()
 
-    if (lower === 'false' || lower === 'off' || lower === 'f') {
+    if (lower === 'false' || lower === 'off') {
       return false
     }
 
-    if (lower === 'true' || lower === 'on' || lower === 't') {
+    if (lower === 'true' || lower === 'on') {
       return true
     }
 
@@ -293,7 +307,7 @@ export class experimental_JsonSchemaCoercer {
   }
 
   #stringToDate(value: string): Date | string {
-    return guard(() => new Date(value)) ?? value
+    return new Date(value)
   }
 
   #stringToRegExp(value: string): RegExp | string {
@@ -312,7 +326,7 @@ export class experimental_JsonSchemaCoercer {
   }
 
   #arrayToSet(value: unknown[]): Set<unknown> | unknown[] {
-    return guard(() => new Set(value)) ?? value
+    return new Set(value)
   }
 
   #arrayToMap(value: unknown[]): Map<unknown, unknown> | unknown[] {

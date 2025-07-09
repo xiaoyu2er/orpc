@@ -145,13 +145,9 @@ describe('jsonSchemaCoercer', () => {
       type: 'object',
       properties: {
         a: { type: 'boolean' },
-        b: {
-          anyOf: [
-            { 'type': 'string', 'x-native-type': 'url' },
-            { $ref: '#/components/schema/Test' },
-          ],
-        },
+        b: { $ref: '#/components/schema/Test' },
       },
+      required: ['a'],
     } as any
 
     expect(coercer.coerce(schema, {
@@ -160,7 +156,7 @@ describe('jsonSchemaCoercer', () => {
         a: 'off',
         b: {
           a: 'invalid',
-          b: 'https://example.com',
+          b: 'invalid',
         },
       },
     }, {
@@ -173,7 +169,7 @@ describe('jsonSchemaCoercer', () => {
         a: false,
         b: {
           a: 'invalid',
-          b: new URL('https://example.com'),
+          b: 'invalid',
         },
       },
     })

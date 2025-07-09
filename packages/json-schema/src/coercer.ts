@@ -1,5 +1,5 @@
 import type { JsonSchema } from './types'
-import { isObject, toArray } from '@orpc/shared'
+import { guard, isObject, toArray } from '@orpc/shared'
 
 export class experimental_JsonSchemaCoercer {
   coerce(schema: JsonSchema, value: unknown): unknown {
@@ -91,9 +91,6 @@ export class experimental_JsonSchemaCoercer {
           }
 
           if (Array.isArray(coerced)) {
-            const coercedItems: unknown[] = []
-            let shouldUseCoercedItems = false
-
             const prefixItemSchemas: readonly JsonSchema[] = 'prefixItems' in schema
               ? toArray(schema.prefixItems)
               : Array.isArray(schema.items)
@@ -104,31 +101,26 @@ export class experimental_JsonSchemaCoercer {
               ? schema.additionalItems
               : schema.items as JsonSchema | undefined
 
-            const arrLength = Math.max(
-              coerced.length,
-              prefixItemSchemas.length,
-            )
+            let shouldUseCoercedItems = false
 
-            for (let i = 0; i < arrLength; i++) {
-              const value = coerced[i]
+            const coercedItems = coerced.map((item, i) => {
               const subSchema = prefixItemSchemas[i] ?? itemSchema
-
               if (subSchema === undefined) {
-                coercedItems.push(value)
+                return item
               }
-              else {
-                const [subSatisfied, subCoerced] = this.#coerce(subSchema, value)
-                coercedItems.push(subCoerced)
 
-                if (!subSatisfied) {
-                  satisfied = subSatisfied
-                }
+              const [subSatisfied, subCoerced] = this.#coerce(subSchema, item)
 
-                if (subCoerced !== value) {
-                  shouldUseCoercedItems = true
-                }
+              if (!subSatisfied) {
+                satisfied = subSatisfied
               }
-            }
+
+              if (subCoerced !== item) {
+                shouldUseCoercedItems = true
+              }
+
+              return subCoerced
+            })
 
             if (shouldUseCoercedItems) {
               coerced = coercedItems
@@ -191,11 +183,74 @@ export class experimental_JsonSchemaCoercer {
       }
     }
 
-    if (schema.not !== undefined) {
-      const [notSatisfied] = this.#coerce(schema.not, coerced)
+    if ('x-native-type' in schema && typeof schema['x-native-type'] === 'string') {
+      switch (schema['x-native-type']) {
+        case 'date': {
+          if (typeof coerced === 'string') {
+            coerced = this.#stringToDate(coerced)
+          }
 
-      if (notSatisfied) {
-        satisfied = false
+          if (!(coerced instanceof Date)) {
+            satisfied = false
+          }
+
+          break
+        }
+        case 'bigint': {
+          if (typeof coerced === 'string') {
+            coerced = this.#stringToBigInt(coerced)
+          }
+
+          if (typeof coerced !== 'bigint') {
+            satisfied = false
+          }
+
+          break
+        }
+        case 'regexp': {
+          if (typeof coerced === 'string') {
+            coerced = this.#stringToRegExp(coerced)
+          }
+
+          if (!(coerced instanceof RegExp)) {
+            satisfied = false
+          }
+
+          break
+        }
+        case 'url': {
+          if (typeof coerced === 'string') {
+            coerced = this.#stringToURL(coerced)
+          }
+
+          if (!(coerced instanceof URL)) {
+            satisfied = false
+          }
+
+          break
+        }
+        case 'set': {
+          if (Array.isArray(coerced)) {
+            coerced = this.#arrayToSet(coerced)
+          }
+
+          if (!(coerced instanceof Set)) {
+            satisfied = false
+          }
+
+          break
+        }
+        case 'map': {
+          if (Array.isArray(coerced)) {
+            coerced = this.#arrayToMap(coerced)
+          }
+
+          if (!(coerced instanceof Map)) {
+            satisfied = false
+          }
+
+          break
+        }
       }
     }
 
@@ -219,7 +274,7 @@ export class experimental_JsonSchemaCoercer {
           const [subSatisfied, subCoerced] = this.#coerce(subSchema, coerced)
 
           if (subSatisfied) {
-            if (!bestOptions) {
+            if (!bestOptions || subCoerced === coerced) {
               bestOptions = { coerced: subCoerced, satisfied: subSatisfied }
             }
 
@@ -238,8 +293,7 @@ export class experimental_JsonSchemaCoercer {
   }
 
   #stringToNumber(value: string): number | string {
-    const num = Number(value)
-    return Number.isNaN(num) || num.toString() !== value ? value : num
+    return guard(() => Number(value)) ?? value
   }
 
   #stringToBoolean(value: string): boolean | string {
@@ -254,5 +308,36 @@ export class experimental_JsonSchemaCoercer {
     }
 
     return value
+  }
+
+  #stringToBigInt(value: string): bigint | string {
+    return guard(() => BigInt(value)) ?? value
+  }
+
+  #stringToDate(value: string): Date | string {
+    return guard(() => new Date(value)) ?? value
+  }
+
+  #stringToRegExp(value: string): RegExp | string {
+    const match = value.match(/^\/(.*)\/([a-z]*)$/)
+
+    if (match) {
+      const [, pattern, flags] = match
+      return guard(() => new RegExp(pattern!, flags)) ?? value
+    }
+
+    return value
+  }
+
+  #stringToURL(value: string): URL | string {
+    return guard(() => new URL(value)) ?? value
+  }
+
+  #arrayToSet(value: unknown[]): Set<unknown> | unknown[] {
+    return guard(() => new Set(value)) ?? value
+  }
+
+  #arrayToMap(value: unknown[]): Map<unknown, unknown> | unknown[] {
+    return guard(() => new Map(value as [unknown, unknown][])) ?? value
   }
 }

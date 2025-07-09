@@ -4,6 +4,13 @@ import { experimental_JsonSchemaCoercer as JsonSchemaCoercer } from './coercer'
 describe('jsonSchemaCoercer', () => {
   const coercer = new JsonSchemaCoercer()
 
+  it('do no thing with boolean/any schema', () => {
+    expect(coercer.coerce(true, '123')).toEqual('123')
+    expect(coercer.coerce(false, '123')).toEqual('123')
+    expect(coercer.coerce({}, '123')).toEqual('123')
+    expect(coercer.coerce({ not: {} }, '123')).toEqual('123')
+  })
+
   it('can coerce primitive types', () => {
     expect(coercer.coerce({ type: 'boolean' }, 'true')).toEqual(true)
     expect(coercer.coerce({ type: 'boolean' }, 'false')).toEqual(false)
@@ -54,6 +61,19 @@ describe('jsonSchemaCoercer', () => {
       { 'type': 'array', 'items': { type: 'array', prefixItems: [{ type: 'number' }, { type: 'boolean' }] }, 'x-native-type': 'map' } as any,
       ['1'],
     )).toEqual(['1'])
+  })
+
+  it('can coerce enum/const values', () => {
+    expect(coercer.coerce({ enum: [123, '234', true] }, 123)).toEqual(123)
+    expect(coercer.coerce({ enum: [123, '234', true] }, '234')).toEqual('234')
+    expect(coercer.coerce({ enum: [123, '234', true] }, '123')).toEqual(123)
+    expect(coercer.coerce({ enum: [123, '234', true] }, 'off')).toEqual('off')
+    expect(coercer.coerce({ enum: [123, '234', true] }, 'on')).toEqual(true)
+    expect(coercer.coerce({ enum: [123, '234', true] }, ['on'])).toEqual(['on'])
+
+    expect(coercer.coerce({ const: true }, 'off')).toEqual('off')
+    expect(coercer.coerce({ const: true }, 'on')).toEqual(true)
+    expect(coercer.coerce({ const: true }, ['on'])).toEqual(['on'])
   })
 
   it('can coerce complex structures', () => {
@@ -138,6 +158,7 @@ describe('jsonSchemaCoercer', () => {
     expect(coercer.coerce(schema, { a: '123', b: '456', c: '789' })).toEqual({ a: 123, b: 456, c: '789' })
     expect(coercer.coerce(schema, { a: '123' })).toEqual({ a: 123 })
     expect(coercer.coerce(schema, { b: '456' })).toEqual({ b: 456 })
+    expect(coercer.coerce(schema, 'invalid')).toEqual('invalid')
   })
 
   it('can coerce recursive types', () => {

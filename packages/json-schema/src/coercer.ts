@@ -285,7 +285,7 @@ export class experimental_JsonSchemaCoercer {
   }
 
   #stringToNumber(value: string): number | string {
-    return guard(() => Number(value)) ?? value
+    return Number(value)
   }
 
   #stringToBoolean(value: string): boolean | string {

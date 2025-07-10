@@ -28,7 +28,7 @@ export class experimental_JsonSchemaCoercer {
     if (typeof schema.$ref === 'string') {
       const refSchema = options?.components?.[schema.$ref]
 
-      if (refSchema) {
+      if (refSchema !== undefined) {
         const [subSatisfied, subCoerced] = this.#coerce(refSchema, coerced, options)
 
         coerced = subCoerced
@@ -36,7 +36,7 @@ export class experimental_JsonSchemaCoercer {
       }
     }
 
-    const enumValues = schema.enum ?? (schema.const !== undefined ? [schema.const] : undefined)
+    const enumValues = schema.const !== undefined ? [schema.const] : schema.enum
     if (enumValues !== undefined && !enumValues.includes(coerced)) {
       if (typeof coerced === 'string') {
         const numberValue = this.#stringToNumber(coerced)

@@ -13,6 +13,7 @@
     "@astrojs/check": "^0.9.4",
     "@astrojs/react": "^4.2.7",
     "@orpc/client": "next",
+    "@orpc/json-schema": "next",
     "@orpc/openapi": "next",
     "@orpc/react": "next",
     "@orpc/server": "next",

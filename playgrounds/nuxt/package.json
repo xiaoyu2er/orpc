@@ -11,6 +11,7 @@
   },
   "devDependencies": {
     "@orpc/client": "next",
+    "@orpc/json-schema": "next",
     "@orpc/openapi": "next",
     "@orpc/server": "next",
     "@orpc/tanstack-query": "next",

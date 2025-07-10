@@ -285,12 +285,25 @@ importers:
 
   packages/json-schema:
     dependencies:
+      '@orpc/contract':
+        specifier: workspace:*
+        version: link:../contract
+      '@orpc/openapi':
+        specifier: workspace:*
+        version: link:../openapi
+      '@orpc/server':
+        specifier: workspace:*
+        version: link:../server
       '@orpc/shared':
         specifier: workspace:*
         version: link:../shared
       json-schema-typed:
         specifier: ^8.0.1
         version: 8.0.1
+    devDependencies:
+      zod:
+        specifier: ^3.25.74
+        version: 3.25.74
 
   packages/nest:
     dependencies:

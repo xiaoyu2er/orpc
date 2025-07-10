@@ -1,7 +1,10 @@
 {
   "extends": "../../tsconfig.lib.json",
   "references": [
-    { "path": "../shared" }
+    { "path": "../shared" },
+    { "path": "../server" },
+    { "path": "../openapi" },
+    { "path": "../contract" }
   ],
   "include": ["src"],
   "exclude": [

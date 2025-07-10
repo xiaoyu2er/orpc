@@ -1,23 +1,17 @@
 import type { JsonSchema } from './types'
 import { guard, isObject, toArray } from '@orpc/shared'
 
-export interface experimental_JsonSchemaCoercerOptions {
+export interface experimental_JsonSchemaCoerceOptions {
   components?: Record<string, JsonSchema>
 }
 
 export class experimental_JsonSchemaCoercer {
-  private readonly components: Exclude<experimental_JsonSchemaCoercerOptions['components'], undefined>
-
-  constructor(readonly options: experimental_JsonSchemaCoercerOptions = {}) {
-    this.components = options.components ?? {}
-  }
-
-  coerce(schema: JsonSchema, value: unknown): unknown {
-    const [, coerced] = this.#coerce(schema, value)
+  coerce(schema: JsonSchema, value: unknown, options: experimental_JsonSchemaCoerceOptions = {}): unknown {
+    const [, coerced] = this.#coerce(schema, value, options)
     return coerced
   }
 
-  #coerce(schema: JsonSchema, originalValue: unknown): [satisfied: boolean, coerced: unknown] {
+  #coerce(schema: JsonSchema, originalValue: unknown, options: experimental_JsonSchemaCoerceOptions): [satisfied: boolean, coerced: unknown] {
     if (typeof schema === 'boolean') {
       return [schema, originalValue]
     }
@@ -25,17 +19,17 @@ export class experimental_JsonSchemaCoercer {
     if (Array.isArray(schema.type)) {
       return this.#coerce({
         anyOf: schema.type.map(type => ({ ...schema, type })),
-      }, originalValue)
+      }, originalValue, options)
     }
 
     let coerced = originalValue
     let satisfied = true
 
     if (typeof schema.$ref === 'string') {
-      const refSchema = this.components?.[schema.$ref]
+      const refSchema = options?.components?.[schema.$ref]
 
       if (refSchema) {
-        const [subSatisfied, subCoerced] = this.#coerce(refSchema, coerced)
+        const [subSatisfied, subCoerced] = this.#coerce(refSchema, coerced, options)
 
         coerced = subCoerced
         satisfied = subSatisfied
@@ -135,7 +129,7 @@ export class experimental_JsonSchemaCoercer {
                 return item
               }
 
-              const [subSatisfied, subCoerced] = this.#coerce(subSchema, item)
+              const [subSatisfied, subCoerced] = this.#coerce(subSchema, item, options)
 
               if (!subSatisfied) {
                 satisfied = false
@@ -183,7 +177,7 @@ export class experimental_JsonSchemaCoercer {
                 satisfied = false
               }
               else {
-                const [subSatisfied, subCoerced] = this.#coerce(subSchema, value)
+                const [subSatisfied, subCoerced] = this.#coerce(subSchema, value, options)
                 coercedItems[key] = subCoerced
 
                 if (!subSatisfied) {
@@ -287,7 +281,7 @@ export class experimental_JsonSchemaCoercer {
 
     if (schema.allOf) {
       for (const subSchema of schema.allOf) {
-        const [subSatisfied, subCoerced] = this.#coerce(subSchema, coerced)
+        const [subSatisfied, subCoerced] = this.#coerce(subSchema, coerced, options)
 
         coerced = subCoerced
 
@@ -302,7 +296,7 @@ export class experimental_JsonSchemaCoercer {
         let bestOptions: { coerced: unknown, satisfied: boolean } | undefined
 
         for (const subSchema of schema[key]) {
-          const [subSatisfied, subCoerced] = this.#coerce(subSchema, coerced)
+          const [subSatisfied, subCoerced] = this.#coerce(subSchema, coerced, options)
 
           if (subSatisfied) {
             if (!bestOptions || subCoerced === coerced) {
@@ -321,7 +315,7 @@ export class experimental_JsonSchemaCoercer {
     }
 
     if (typeof schema.not !== 'undefined') {
-      const [notSatisfied] = this.#coerce(schema.not, coerced)
+      const [notSatisfied] = this.#coerce(schema.not, coerced, options)
 
       if (notSatisfied) {
         satisfied = false

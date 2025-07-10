@@ -2,9 +2,6 @@ import type { AnySchema } from '@orpc/contract'
 import type { ConditionalSchemaConverter, SchemaConverter } from '@orpc/openapi'
 import type { Context } from '@orpc/server'
 import type { StandardHandlerOptions, StandardHandlerPlugin } from '@orpc/server/standard'
-import type {
-  experimental_JsonSchemaCoercerOptions as JsonSchemaCoercerOptions,
-} from './coercer'
 import type { JsonSchema } from './types'
 import { CompositeSchemaConverter } from '@orpc/openapi'
 import { toArray } from '@orpc/shared'
@@ -12,7 +9,7 @@ import {
   experimental_JsonSchemaCoercer as JsonSchemaCoercer,
 } from './coercer'
 
-export interface experimental_SmartCoercionPluginOptions extends JsonSchemaCoercerOptions {
+export interface experimental_SmartCoercionPluginOptions {
   schemaConverters?: readonly ConditionalSchemaConverter[]
 }
 
@@ -23,7 +20,7 @@ export class experimental_SmartCoercionPlugin<T extends Context> implements Stan
 
   constructor(options: experimental_SmartCoercionPluginOptions = {}) {
     this.converter = new CompositeSchemaConverter(toArray(options.schemaConverters))
-    this.coercer = new JsonSchemaCoercer(options)
+    this.coercer = new JsonSchemaCoercer()
   }
 
   init(options: StandardHandlerOptions<T>): void {

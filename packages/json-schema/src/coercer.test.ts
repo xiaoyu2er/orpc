@@ -172,6 +172,26 @@ describe('jsonSchemaCoercer', () => {
     expect(coercer.coerce(schema, { a: '123', b: undefined })).toEqual({ a: 123, b: undefined })
     expect(coercer.coerce(schema, { a: '123', b: '456' })).toEqual({ a: 123, b: 456 })
     expect(coercer.coerce(schema, 'invalid')).toEqual('invalid')
+
+    const schema2 = {
+      anyOf: [
+        { type: 'object', properties: { a: { type: 'boolean' }, b: { type: 'number' } }, required: ['a', 'b'] },
+        { type: 'object', properties: { a: { type: 'number' }, b: { type: 'number' } } },
+      ],
+    } as any
+
+    expect(coercer.coerce(schema2, { a: 'true', b: '123' })).toEqual({ a: true, b: 123 })
+    expect(coercer.coerce(schema2, { a: '123' })).toEqual({ a: 123 })
+
+    const schema3 = {
+      anyOf: [
+        { type: 'array', prefixItems: [{ type: 'number' }, { type: 'boolean' }, { type: 'boolean' }], items: { type: 'number' } },
+        { type: 'array', prefixItems: [{ type: 'number' }], items: { type: 'number' } },
+      ],
+    } as any
+
+    expect(coercer.coerce(schema3, ['1', 'true', 'true', '2'])).toEqual([1, true, true, 2])
+    expect(coercer.coerce(schema3, ['1', '2'])).toEqual([1, 2])
   })
 
   it('can handle discriminated union types', () => {

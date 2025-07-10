@@ -126,6 +126,7 @@ export class experimental_JsonSchemaCoercer {
             const coercedItems = coerced.map((item, i) => {
               const subSchema = prefixItemSchemas[i] ?? itemSchema
               if (subSchema === undefined) {
+                satisfied = false
                 return item
               }
 
@@ -141,6 +142,10 @@ export class experimental_JsonSchemaCoercer {
 
               return subCoerced
             })
+
+            if (coercedItems.length < prefixItemSchemas.length) {
+              satisfied = false
+            }
 
             if (shouldUseCoercedItems) {
               coerced = coercedItems
@@ -188,6 +193,10 @@ export class experimental_JsonSchemaCoercer {
                   shouldUseCoercedItems = true
                 }
               }
+            }
+
+            if (schema.required?.some(key => !Object.hasOwn(coercedItems, key))) {
+              satisfied = false
             }
 
             if (shouldUseCoercedItems) {

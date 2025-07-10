@@ -16,11 +16,16 @@ describe('jsonSchemaCoercer', () => {
     expect(coercer.coerce({ type: 'boolean' }, 'false')).toEqual(false)
     expect(coercer.coerce({ type: 'boolean' }, 'invalid')).toEqual('invalid')
 
-    expect(coercer.coerce({ type: 'number' }, '123')).toEqual(123)
-    expect(coercer.coerce({ type: 'number' }, 'invalid')).toEqual(Number.NaN)
+    expect(coercer.coerce({ type: 'number' }, '123.4')).toEqual(123.4)
+    expect(coercer.coerce({ type: 'number' }, 'invalid')).toEqual('invalid')
+
+    expect(coercer.coerce({ type: 'integer' }, '123')).toEqual(123)
+    expect(coercer.coerce({ type: 'integer' }, '123.4')).toEqual('123.4')
+    expect(coercer.coerce({ type: 'integer' }, 'invalid')).toEqual('invalid')
 
     // -- no coercion
     expect(coercer.coerce({ type: 'null' }, null)).toEqual(null)
+    expect(coercer.coerce({ type: 'null' }, undefined)).toEqual(undefined)
     expect(coercer.coerce({ type: 'number' }, undefined)).toEqual(undefined)
     expect(coercer.coerce({ type: 'boolean' }, undefined)).toEqual(undefined)
   })
@@ -35,9 +40,10 @@ describe('jsonSchemaCoercer', () => {
     const date = new Date()
     expect(coercer.coerce({ 'type': 'string', 'x-native-type': 'date' } as any, date.toISOString())).toEqual(date)
     expect(coercer.coerce({ 'type': 'string', 'x-native-type': 'date' } as any, '1972-01-01')).toEqual(new Date('1972-01-01'))
-    expect(coercer.coerce({ 'type': 'string', 'x-native-type': 'date' } as any, 'Invalid Date')).toEqual(new Date('Invalid Date'))
+    expect(coercer.coerce({ 'type': 'string', 'x-native-type': 'date' } as any, 'Invalid Date')).toEqual('Invalid Date')
 
     expect(coercer.coerce({ 'type': 'string', 'x-native-type': 'bigint' } as any, '123')).toEqual(123n)
+    expect(coercer.coerce({ 'type': 'string', 'x-native-type': 'bigint' } as any, 123)).toEqual(123n)
     expect(coercer.coerce({ 'type': 'string', 'x-native-type': 'bigint' } as any, 'invalid')).toEqual('invalid')
 
     expect(coercer.coerce({ 'type': 'string', 'x-native-type': 'url' } as any, 'https://example.com')).toEqual(new URL('https://example.com'))
@@ -53,9 +59,14 @@ describe('jsonSchemaCoercer', () => {
     )).toEqual(new Set([1, 2, 3, 4]))
 
     expect(coercer.coerce(
+      { 'type': 'array', 'items': { type: 'number' }, 'x-native-type': 'set' } as any,
+      ['1', '2', '3', '4', '4'],
+    )).toEqual([1, 2, 3, 4, 4])
+
+    expect(coercer.coerce(
       { 'type': 'array', 'items': { type: 'array', prefixItems: [{ type: 'number' }, { type: 'boolean' }] }, 'x-native-type': 'map' } as any,
       [['1', 'true'], ['2', 'false'], ['invalid', 'invalid']],
-    )).toEqual(new Map([[1, true], [2, false], [Number.NaN, 'invalid']] as any))
+    )).toEqual(new Map([[1, true], [2, false], ['invalid', 'invalid']] as any))
 
     expect(coercer.coerce(
       { 'type': 'array', 'items': { type: 'array', prefixItems: [{ type: 'number' }, { type: 'boolean' }] }, 'x-native-type': 'map' } as any,
@@ -76,45 +87,71 @@ describe('jsonSchemaCoercer', () => {
     expect(coercer.coerce({ const: true }, ['on'])).toEqual(['on'])
   })
 
-  it('can coerce complex structures', () => {
-    const schema = {
-      type: 'object',
-      properties: {
-        a: { type: 'boolean' },
-        b: { type: 'number' },
-        c: {
-          type: 'array',
-          items: { 'type': 'string', 'x-native-type': 'date' },
-        },
-        d: {
-          type: 'object',
-          properties: {
-            e: {
-              'type': 'array',
-              'items': { 'type': 'string', 'x-native-type': 'url' },
-              'x-native-type': 'set',
-            },
-          },
-        },
-      },
-      required: ['a'],
-    }
+  it('can coerce arrays/tuples', () => {
+    expect(
+      coercer.coerce({ type: 'array', items: { type: 'number' } }, ['1', '2', '3']),
+    ).toEqual([1, 2, 3])
+    expect(
+      coercer.coerce({ type: 'array', items: { type: 'string' } }, ['1', '2', '3']),
+    ).toEqual(['1', '2', '3'])
 
-    expect(coercer.coerce(schema, {
-      a: 'true',
-      b: '123',
-      c: ['2020-01-01', '2020-01-02'],
-      d: {
-        e: ['https://example.com', 'https://example.org'],
-      },
-    })).toEqual({
-      a: true,
-      b: 123,
-      c: [new Date('2020-01-01'), new Date('2020-01-02')],
-      d: {
-        e: new Set([new URL('https://example.com'), new URL('https://example.org')]),
-      },
-    })
+    // draft-07
+    expect(
+      coercer.coerce(
+        { type: 'array', items: [{ type: 'number' }, { type: 'boolean' }], additionalItems: { type: 'number' } },
+        ['1', 'true', '2', 'false'],
+      ),
+    ).toEqual([1, true, 2, 'false'])
+
+    // draft-2020
+    expect(
+      coercer.coerce(
+        { type: 'array', prefixItems: [{ type: 'number' }, { type: 'boolean' }], items: { type: 'number' } },
+        ['1', 'true', '2', 'false'],
+      ),
+    ).toEqual([1, true, 2, 'false'])
+
+    expect(
+      coercer.coerce(
+        { type: 'array', prefixItems: [{ type: 'number' }, { type: 'boolean' }] },
+        ['1', 'true', '2', 'false'],
+      ),
+    ).toEqual([1, true, '2', 'false'])
+  })
+
+  it('can coerce objects', () => {
+    expect(
+      coercer.coerce(
+        { type: 'object', properties: { a: { type: 'number' }, b: { type: 'boolean' } } },
+        { a: '123', b: 'true' },
+      ),
+    ).toEqual({ a: 123, b: true })
+
+    expect(
+      coercer.coerce(
+        { type: 'object', properties: { a: { type: 'number' }, b: { type: 'boolean' } }, required: ['a'] },
+        { a: undefined, b: 'true' },
+      ),
+    ).toEqual({ a: undefined, b: true })
+
+    expect(
+      coercer.coerce(
+        {
+          type: 'object',
+          properties: { a: { type: 'number' } },
+          patternProperties: { '^b': { 'type': 'string', 'x-native-type': 'bigint' } as any },
+          additionalProperties: { type: 'boolean' },
+        },
+        { a: '123', b: '123', b1: '123', c: 'false' },
+      ),
+    ).toEqual({ a: 123, b: 123n, b1: 123n, c: false })
+
+    expect(
+      coercer.coerce(
+        { type: 'object', properties: { 0: { type: 'number' }, 1: { type: 'boolean' } } },
+        ['123', 'true'],
+      ),
+    ).toEqual({ 0: 123, 1: true })
   })
 
   it('can handle union types', () => {
@@ -127,12 +164,14 @@ describe('jsonSchemaCoercer', () => {
       ],
     } as any
 
+    expect(coercer.coerce(schema, 123)).toEqual(123)
     expect(coercer.coerce(schema, '123')).toEqual(123)
-    // TODO
-    //   expect(coercer.coerce(schema, 'true')).toEqual(true)
+    expect(coercer.coerce(schema, true)).toEqual(true)
+    expect(coercer.coerce(schema, 'true')).toEqual(true)
     expect(coercer.coerce(schema, { a: '123' })).toEqual({ a: 123 })
-    // TODO
-    // expect(coercer.coerce(schema, { a: '123', b: '456' })).toEqual({ a: 123, b: 456 })
+    expect(coercer.coerce(schema, { a: '123', b: undefined })).toEqual({ a: 123, b: undefined })
+    expect(coercer.coerce(schema, { a: '123', b: '456' })).toEqual({ a: 123, b: 456 })
+    expect(coercer.coerce(schema, 'invalid')).toEqual('invalid')
   })
 
   it('can handle discriminated union types', () => {
@@ -192,6 +231,47 @@ describe('jsonSchemaCoercer', () => {
           a: 'invalid',
           b: 'invalid',
         },
+      },
+    })
+  })
+
+  it('can coerce complex structures', () => {
+    const schema = {
+      type: 'object',
+      properties: {
+        a: { type: 'boolean' },
+        b: { type: 'number' },
+        c: {
+          type: 'array',
+          items: { 'type': 'string', 'x-native-type': 'date' },
+        },
+        d: {
+          type: 'object',
+          properties: {
+            e: {
+              'type': 'array',
+              'items': { 'type': 'string', 'x-native-type': 'url' },
+              'x-native-type': 'set',
+            },
+          },
+        },
+      },
+      required: ['a'],
+    }
+
+    expect(coercer.coerce(schema, {
+      a: 'true',
+      b: '123',
+      c: ['2020-01-01', '2020-01-02'],
+      d: {
+        e: ['https://example.com', 'https://example.org'],
+      },
+    })).toEqual({
+      a: true,
+      b: 123,
+      c: [new Date('2020-01-01'), new Date('2020-01-02')],
+      d: {
+        e: new Set([new URL('https://example.com'), new URL('https://example.org')]),
       },
     })
   })

@@ -62,13 +62,37 @@ export class experimental_JsonSchemaCoercer {
 
     if (typeof schema.type === 'string') {
       switch (schema.type) {
-        case 'number':
-        case 'integer': {
+        case 'null': {
+          if (coerced !== null) {
+            satisfied = false
+          }
+
+          break
+        }
+        case 'string': {
+          if (typeof coerced !== 'string') {
+            satisfied = false
+          }
+
+          break
+        }
+        case 'number': {
           if (typeof coerced === 'string') {
             coerced = this.#stringToNumber(coerced)
           }
 
           if (typeof coerced !== 'number') {
+            satisfied = false
+          }
+
+          break
+        }
+        case 'integer': {
+          if (typeof coerced === 'string') {
+            coerced = this.#stringToInteger(coerced)
+          }
+
+          if (typeof coerced !== 'number' || !Number.isInteger(coerced)) {
             satisfied = false
           }
 
@@ -108,7 +132,7 @@ export class experimental_JsonSchemaCoercer {
               const [subSatisfied, subCoerced] = this.#coerce(subSchema, item, options)
 
               if (!subSatisfied) {
-                satisfied = subSatisfied
+                satisfied = false
               }
 
               if (subCoerced !== item) {
@@ -145,15 +169,19 @@ export class experimental_JsonSchemaCoercer {
                 ?? patternProperties.find(([pattern]) => pattern.test(key))?.[1]
                 ?? schema.additionalProperties
 
-              if (subSchema === undefined || (value === undefined && !schema.required?.includes(key))) {
+              if (value === undefined && !schema.required?.includes(key)) {
                 coercedItems[key] = value
+              }
+              else if (subSchema === undefined) {
+                coercedItems[key] = value
+                satisfied = false
               }
               else {
                 const [subSatisfied, subCoerced] = this.#coerce(subSchema, value, options)
                 coercedItems[key] = subCoerced
 
                 if (!subSatisfied) {
-                  satisfied = subSatisfied
+                  satisfied = false
                 }
 
                 if (subCoerced !== value) {
@@ -189,8 +217,13 @@ export class experimental_JsonSchemaCoercer {
           break
         }
         case 'bigint': {
-          if (typeof coerced === 'string') {
-            coerced = this.#stringToBigInt(coerced)
+          switch (typeof coerced) {
+            case 'string':
+              coerced = this.#stringToBigInt(coerced)
+              break
+            case 'number':
+              coerced = this.#numberToBigInt(coerced)
+              break
           }
 
           if (typeof coerced !== 'bigint') {
@@ -253,7 +286,7 @@ export class experimental_JsonSchemaCoercer {
         coerced = subCoerced
 
         if (!subSatisfied) {
-          satisfied = subSatisfied
+          satisfied = false
         }
       }
     }
@@ -281,11 +314,35 @@ export class experimental_JsonSchemaCoercer {
       }
     }
 
+    if (typeof schema.not !== 'undefined') {
+      const [notSatisfied] = this.#coerce(schema.not, coerced, options)
+
+      if (notSatisfied) {
+        satisfied = false
+      }
+    }
+
     return [satisfied, coerced]
   }
 
   #stringToNumber(value: string): number | string {
-    return Number(value)
+    const num = Number.parseFloat(value)
+
+    if (Number.isNaN(num) || num.toString() !== value) {
+      return value
+    }
+
+    return num
+  }
+
+  #stringToInteger(value: string): number | string {
+    const num = Number.parseInt(value)
+
+    if (Number.isNaN(num) || num.toString() !== value) {
+      return value
+    }
+
+    return num
   }
 
   #stringToBoolean(value: string): boolean | string {
@@ -307,7 +364,13 @@ export class experimental_JsonSchemaCoercer {
   }
 
   #stringToDate(value: string): Date | string {
-    return new Date(value)
+    const date = new Date(value)
+
+    if (Number.isNaN(date.getTime()) || !value.startsWith(date.toISOString().slice(0, 10))) {
+      return value
+    }
+
+    return date
   }
 
   #stringToRegExp(value: string): RegExp | string {
@@ -325,11 +388,25 @@ export class experimental_JsonSchemaCoercer {
     return guard(() => new URL(value)) ?? value
   }
 
+  #numberToBigInt(value: number): bigint | number {
+    return BigInt(value)
+  }
+
   #arrayToSet(value: unknown[]): Set<unknown> | unknown[] {
-    return new Set(value)
+    const set = new Set(value)
+
+    if (set.size !== value.length) {
+      return value
+    }
+
+    return set
   }
 
   #arrayToMap(value: unknown[]): Map<unknown, unknown> | unknown[] {
-    return guard(() => new Map(value as [unknown, unknown][])) ?? value
+    if (value.some(item => !Array.isArray(item) || item.length !== 2)) {
+      return value
+    }
+
+    return new Map(value as [unknown, unknown][])
   }
 }

@@ -937,6 +937,9 @@ importers:
       '@orpc/contract':
         specifier: next
         version: link:../../packages/contract
+      '@orpc/json-schema':
+        specifier: next
+        version: link:../../packages/json-schema
       '@orpc/openapi':
         specifier: next
         version: link:../../packages/openapi

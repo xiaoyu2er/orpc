@@ -2,7 +2,8 @@ import { createServer } from 'node:http'
 import { OpenAPIHandler } from '@orpc/openapi/node'
 import { onError } from '@orpc/server'
 import { RPCHandler } from '@orpc/server/node'
-import { ZodSmartCoercionPlugin, ZodToJsonSchemaConverter } from '@orpc/zod'
+import { ZodToJsonSchemaConverter } from '@orpc/zod'
+import { experimental_SmartCoercionPlugin as SmartCoercionPlugin } from '@orpc/json-schema'
 import { router } from './router'
 import { OpenAPIReferencePlugin } from '@orpc/openapi/plugins'
 import './polyfill'
@@ -17,7 +18,11 @@ const openAPIHandler = new OpenAPIHandler(router, {
     }),
   ],
   plugins: [
-    new ZodSmartCoercionPlugin(),
+    new SmartCoercionPlugin({
+      schemaConverters: [
+        new ZodToJsonSchemaConverter(),
+      ],
+    }),
     new OpenAPIReferencePlugin({
       schemaConverters: [
         new ZodToJsonSchemaConverter(),

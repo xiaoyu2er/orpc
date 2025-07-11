@@ -1,5 +1,7 @@
+import type { ClientContext, ClientLink } from './types'
+import { createORPCClient } from './client'
 import { ORPCError } from './error'
-import { resolveFriendlyClientOptions, safe } from './utils'
+import { createSafeClient, resolveFriendlyClientOptions, safe } from './utils'
 
 it('safe', async () => {
   const r1 = await safe(Promise.resolve(1))
@@ -26,4 +28,105 @@ it('resolveFriendlyClientOptions', () => {
   expect(resolveFriendlyClientOptions({})).toEqual({ context: {} })
   expect(resolveFriendlyClientOptions({ context: { a: 1 } })).toEqual({ context: { a: 1 } })
   expect(resolveFriendlyClientOptions({ lastEventId: '123' })).toEqual({ context: {}, lastEventId: '123' })
+})
+
+describe('createSafeClient', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('should wrap procedure calls with safe function', async () => {
+    const mockSuccessValue = { result: 'success' }
+    const mockedLink: ClientLink<ClientContext> = {
+      call: vi.fn().mockResolvedValue(mockSuccessValue),
+    }
+
+    const client = createORPCClient(mockedLink) as any
+    const safeClient = createSafeClient(client)
+
+    const result = await safeClient.ping({ value: 'hello' })
+
+    expect(result.error).toBeNull()
+    expect(result.data).toEqual(mockSuccessValue)
+    expect(result.isDefined).toBe(false)
+    expect(result.isSuccess).toBe(true)
+    expect([...result]).toEqual([null, mockSuccessValue, false, true])
+    expect(mockedLink.call).toBeCalledTimes(1)
+    expect(mockedLink.call).toBeCalledWith(['ping'], { value: 'hello' }, { context: {} })
+  })
+
+  it('should handle errors with safe function for undefined errors', async () => {
+    const mockError = new Error('test error')
+    const mockedLink: ClientLink<ClientContext> = {
+      call: vi.fn().mockRejectedValue(mockError),
+    }
+
+    const client = createORPCClient(mockedLink) as any
+    const safeClient = createSafeClient(client)
+
+    const result = await safeClient.ping({ value: 'hello' })
+
+    expect(result.error).toBe(mockError)
+    expect(result.data).toBeUndefined()
+    expect(result.isDefined).toBe(false)
+    expect(result.isSuccess).toBe(false)
+    expect([...result]).toEqual([mockError, undefined, false, false])
+  })
+
+  it('should handle defined ORPCError with safe function', async () => {
+    const mockError = new ORPCError('BAD_GATEWAY', { defined: true })
+    const mockedLink: ClientLink<ClientContext> = {
+      call: vi.fn().mockRejectedValue(mockError),
+    }
+
+    const client = createORPCClient(mockedLink) as any
+    const safeClient = createSafeClient(client)
+
+    const result = await safeClient.ping({ value: 'hello' })
+
+    expect(result.error).toBe(mockError)
+    expect(result.data).toBeUndefined()
+    expect(result.isDefined).toBe(true)
+    expect(result.isSuccess).toBe(false)
+    expect([...result]).toEqual([mockError, undefined, true, false])
+  })
+
+  it('should work with nested procedure calls', async () => {
+    const mockSuccessValue = { result: 'nested success' }
+    const mockedLink: ClientLink<ClientContext> = {
+      call: vi.fn().mockResolvedValue(mockSuccessValue),
+    }
+
+    const client = createORPCClient(mockedLink) as any
+    const safeClient = createSafeClient(client)
+
+    const result = await safeClient.nested.pong({ value: 'hello' })
+
+    expect(result.error).toBeNull()
+    expect(result.data).toEqual(mockSuccessValue)
+    expect(result.isDefined).toBe(false)
+    expect(result.isSuccess).toBe(true)
+    expect(mockedLink.call).toBeCalledTimes(1)
+    expect(mockedLink.call).toBeCalledWith(['nested', 'pong'], { value: 'hello' }, { context: {} })
+  })
+
+  it('should work with client options (signal, context)', async () => {
+    const mockSuccessValue = { result: 'success with context' }
+    const mockedLink: ClientLink<ClientContext> = {
+      call: vi.fn().mockResolvedValue(mockSuccessValue),
+    }
+
+    const client = createORPCClient(mockedLink) as any
+    const safeClient = createSafeClient(client)
+
+    const controller = new AbortController()
+    const signal = controller.signal
+
+    const result = await safeClient.ping({ value: 'hello' }, { signal, context: { userId: '123' } })
+
+    expect(result.error).toBeNull()
+    expect(result.data).toEqual(mockSuccessValue)
+    expect(mockedLink.call).toBeCalledTimes(1)
+    expect(mockedLink.call).toBeCalledWith(['ping'], { value: 'hello' }, { signal, context: { userId: '123' } })
+  })
 })

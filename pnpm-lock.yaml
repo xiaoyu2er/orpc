@@ -765,6 +765,9 @@ importers:
       '@orpc/contract':
         specifier: workspace:*
         version: link:../contract
+      '@orpc/json-schema':
+        specifier: workspace:*
+        version: link:../json-schema
       '@orpc/openapi':
         specifier: workspace:*
         version: link:../openapi
@@ -799,6 +802,9 @@ importers:
       '@orpc/client':
         specifier: next
         version: link:../../packages/client
+      '@orpc/json-schema':
+        specifier: next
+        version: link:../../packages/json-schema
       '@orpc/openapi':
         specifier: next
         version: link:../../packages/openapi
@@ -1120,6 +1126,9 @@ importers:
       '@orpc/client':
         specifier: next
         version: link:../../packages/client
+      '@orpc/json-schema':
+        specifier: next
+        version: link:../../packages/json-schema
       '@orpc/openapi':
         specifier: next
         version: link:../../packages/openapi
@@ -1168,6 +1177,9 @@ importers:
       '@orpc/client':
         specifier: next
         version: link:../../packages/client
+      '@orpc/json-schema':
+        specifier: next
+        version: link:../../packages/json-schema
       '@orpc/openapi':
         specifier: next
         version: link:../../packages/openapi
@@ -1201,6 +1213,9 @@ importers:
       '@orpc/client':
         specifier: next
         version: link:../../packages/client
+      '@orpc/json-schema':
+        specifier: next
+        version: link:../../packages/json-schema
       '@orpc/openapi':
         specifier: next
         version: link:../../packages/openapi
@@ -1240,6 +1255,9 @@ importers:
       '@orpc/client':
         specifier: next
         version: link:../../packages/client
+      '@orpc/json-schema':
+        specifier: next
+        version: link:../../packages/json-schema
       '@orpc/openapi':
         specifier: next
         version: link:../../packages/openapi
@@ -1285,6 +1303,9 @@ importers:
       '@orpc/client':
         specifier: next
         version: link:../../packages/client
+      '@orpc/json-schema':
+        specifier: next
+        version: link:../../packages/json-schema
       '@orpc/openapi':
         specifier: next
         version: link:../../packages/openapi

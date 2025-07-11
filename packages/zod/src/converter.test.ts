@@ -11,8 +11,8 @@ import { url } from './schemas/url'
 
 type SchemaTestCase = {
   schema: ZodTypeAny
-  input: [boolean, JSONSchema]
-  output?: [boolean, JSONSchema]
+  input: [boolean, JSONSchema & Record<string, unknown>]
+  output?: [boolean, JSONSchema & Record<string, unknown>]
   ignoreZodToJsonSchema?: boolean
 }
 
@@ -143,7 +143,7 @@ const numberCases: SchemaTestCase[] = [
   },
   {
     schema: z.bigint(),
-    input: [true, { type: 'string', pattern: '^-?[0-9]+$' }],
+    input: [true, { 'type': 'string', 'pattern': '^-?[0-9]+$', 'x-native-type': 'bigint' }],
     ignoreZodToJsonSchema: true,
   },
   {
@@ -166,7 +166,8 @@ const nativeCases: SchemaTestCase[] = [
   },
   {
     schema: z.date(),
-    input: [true, { type: 'string', format: 'date-time' }],
+    input: [true, { 'type': 'string', 'format': 'date-time', 'x-native-type': 'date' }],
+    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.null(),
@@ -342,12 +343,12 @@ const extendSchemaCases: SchemaTestCase[] = [
   },
   {
     schema: regexp(),
-    input: [true, { type: 'string', pattern: '^\\/(.*)\\/([a-z]*)$' }],
+    input: [true, { 'type': 'string', 'pattern': '^\\/(.*)\\/([a-z]*)$', 'x-native-type': 'regexp' }],
     ignoreZodToJsonSchema: true,
   },
   {
     schema: url(),
-    input: [true, { type: 'string', format: 'uri' }],
+    input: [true, { 'type': 'string', 'format': 'uri', 'x-native-type': 'url' }],
     ignoreZodToJsonSchema: true,
   },
   {
@@ -536,9 +537,10 @@ describe.each([
 
       expect(required).toEqual(true)
       expect(json).toEqual({
-        type: 'array',
-        uniqueItems: true,
-        items: arrayItemJsonSchema,
+        'type': 'array',
+        'uniqueItems': true,
+        'items': arrayItemJsonSchema,
+        'x-native-type': 'set',
       })
 
       if (!ignoreZodToJsonSchema) {
@@ -548,7 +550,8 @@ describe.each([
           items: expectedRequired ? expectedJson : { anyOf: [{ not: {} }, expectedJson] },
         }).toEqual({
           ...zodToJsonSchema(testSchema, { target: 'jsonSchema2019-09', pipeStrategy: strategy, $refStrategy: 'none' }),
-          $schema: undefined,
+          '$schema': undefined,
+          'x-native-type': undefined,
         })
       }
     })
@@ -559,8 +562,8 @@ describe.each([
 
       expect(required).toEqual(true)
       expect(json).toEqual({
-        type: 'array',
-        items: {
+        'type': 'array',
+        'items': {
           type: 'array',
           maxItems: 2,
           minItems: 2,
@@ -569,6 +572,7 @@ describe.each([
             { anyOf: [expectedJson, strategy === 'input' ? { not: {} } : { type: 'null' }] },
           ],
         },
+        'x-native-type': 'map',
       })
 
       if (!ignoreZodToJsonSchema) {
@@ -585,8 +589,9 @@ describe.each([
           },
         }).toEqual({
           ...zodToJsonSchema(testSchema, { target: 'jsonSchema2019-09', pipeStrategy: strategy, $refStrategy: 'none' }),
-          $schema: undefined,
-          maxItems: undefined,
+          '$schema': undefined,
+          'maxItems': undefined,
+          'x-native-type': undefined,
         })
       }
     })

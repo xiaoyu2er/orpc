@@ -1,5 +1,6 @@
 import type { JsonSchema } from './types'
 import { guard, isObject, toArray } from '@orpc/shared'
+import { JsonSchemaXNativeType } from './types'
 
 export interface experimental_JsonSchemaCoerceOptions {
   components?: Record<string, JsonSchema>
@@ -214,7 +215,7 @@ export class experimental_JsonSchemaCoercer {
 
     if ('x-native-type' in schema && typeof schema['x-native-type'] === 'string') {
       switch (schema['x-native-type']) {
-        case 'date': {
+        case JsonSchemaXNativeType.Date: {
           if (typeof coerced === 'string') {
             coerced = this.#stringToDate(coerced)
           }
@@ -225,7 +226,7 @@ export class experimental_JsonSchemaCoercer {
 
           break
         }
-        case 'bigint': {
+        case JsonSchemaXNativeType.BigInt: {
           switch (typeof coerced) {
             case 'string':
               coerced = this.#stringToBigInt(coerced)
@@ -241,7 +242,7 @@ export class experimental_JsonSchemaCoercer {
 
           break
         }
-        case 'regexp': {
+        case JsonSchemaXNativeType.RegExp: {
           if (typeof coerced === 'string') {
             coerced = this.#stringToRegExp(coerced)
           }
@@ -252,7 +253,7 @@ export class experimental_JsonSchemaCoercer {
 
           break
         }
-        case 'url': {
+        case JsonSchemaXNativeType.Url: {
           if (typeof coerced === 'string') {
             coerced = this.#stringToURL(coerced)
           }
@@ -263,7 +264,7 @@ export class experimental_JsonSchemaCoercer {
 
           break
         }
-        case 'set': {
+        case JsonSchemaXNativeType.Set: {
           if (Array.isArray(coerced)) {
             coerced = this.#arrayToSet(coerced)
           }
@@ -274,7 +275,7 @@ export class experimental_JsonSchemaCoercer {
 
           break
         }
-        case 'map': {
+        case JsonSchemaXNativeType.Map: {
           if (Array.isArray(coerced)) {
             coerced = this.#arrayToMap(coerced)
           }

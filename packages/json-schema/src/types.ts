@@ -7,3 +7,12 @@ export type JsonSchema
   = | Draft2020.JSONSchema
     | Draft2019.JSONSchema
     | Draft07.JSONSchema
+
+export enum JsonSchemaXNativeType {
+  BigInt = 'bigint',
+  RegExp = 'regexp',
+  Date = 'date',
+  Url = 'url',
+  Set = 'set',
+  Map = 'map',
+}

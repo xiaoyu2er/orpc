@@ -114,6 +114,7 @@ Support valid numeric strings or numbers:
 Support ISO date/datetime strings:
 
 - `'2023-10-01'` → `new Date('2023-10-01')`
+- `'2020-01-01T06:15'` → `new Date('2020-01-01T06:15')`
 - `'2020-01-01T06:15Z'` → `new Date('2020-01-01T06:15Z')`
 - `'2020-01-01T06:15:00Z'` → `new Date('2020-01-01T06:15:00Z')`
 - `'2020-01-01T06:15:00.123Z'` → `new Date('2020-01-01T06:15:00.123Z')`

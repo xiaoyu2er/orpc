@@ -40,6 +40,8 @@ describe('jsonSchemaCoercer', () => {
     const date = new Date()
     expect(coercer.coerce({ 'type': 'string', 'x-native-type': 'date' } as any, date.toISOString())).toEqual(date)
     expect(coercer.coerce({ 'type': 'string', 'x-native-type': 'date' } as any, '1972-01-01')).toEqual(new Date('1972-01-01'))
+    expect(coercer.coerce({ 'type': 'string', 'x-native-type': 'date' } as any, '2018-06-12T19:30')).toEqual(new Date('2018-06-12T19:30'))
+    expect(coercer.coerce({ 'type': 'string', 'x-native-type': 'date' } as any, '2018-06-')).toEqual('2018-06-')
     expect(coercer.coerce({ 'type': 'string', 'x-native-type': 'date' } as any, 'Invalid Date')).toEqual('Invalid Date')
 
     expect(coercer.coerce({ 'type': 'string', 'x-native-type': 'bigint' } as any, '123')).toEqual(123n)

@@ -2,6 +2,8 @@ import type { JsonSchema } from './types'
 import { guard, isObject, toArray } from '@orpc/shared'
 import { JsonSchemaXNativeType } from './types'
 
+const FLEXIBLE_DATE_FORMAT_REGEX = /^[^-]+-[^-]+-[^-]+$/
+
 export interface experimental_JsonSchemaCoerceOptions {
   components?: Record<string, JsonSchema>
 }
@@ -380,7 +382,7 @@ export class experimental_JsonSchemaCoercer {
   #stringToDate(value: string): Date | string {
     const date = new Date(value)
 
-    if (Number.isNaN(date.getTime()) || !value.startsWith(date.toISOString().slice(0, 10))) {
+    if (Number.isNaN(date.getTime()) || !FLEXIBLE_DATE_FORMAT_REGEX.test(value)) {
       return value
     }
 

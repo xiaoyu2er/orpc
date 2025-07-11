@@ -54,7 +54,6 @@ oRPC is an ESM-only library. Therefore, your NestJS application must be configur
     ```
 
 2.  **Node.js Environment**:
-
     - **Node.js 22+**: Recommended, as it allows `require()` of ESM modules natively.
     - **Older Node.js versions**: Alternatively, use a bundler to compile ESM modules (including `@orpc/nest`) to CommonJS.
 

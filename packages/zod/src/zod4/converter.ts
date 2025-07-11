@@ -27,6 +27,7 @@ import type {
   $ZodType,
   $ZodUnion,
 } from 'zod/v4/core'
+import { JsonSchemaXNativeType } from '@orpc/json-schema'
 import { JSONSchemaContentEncoding, JSONSchemaFormat } from '@orpc/openapi'
 import { intercept, toArray } from '@orpc/shared'
 import {
@@ -233,11 +234,19 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
           }
 
           case 'bigint': {
-            return [true, { type: 'string', pattern: '^-?[0-9]+$' }]
+            return [true, {
+              'type': 'string',
+              'pattern': '^-?[0-9]+$',
+              'x-native-type': JsonSchemaXNativeType.BigInt,
+            }]
           }
 
           case 'date': {
-            return [true, { type: 'string', format: JSONSchemaFormat.DateTime }]
+            return [true, {
+              'type': 'string',
+              'format': JSONSchemaFormat.DateTime,
+              'x-native-type': JsonSchemaXNativeType.Date,
+            }]
           }
 
           case 'null': {
@@ -395,8 +404,8 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
             const map = schema as $ZodMap
 
             return [true, {
-              type: 'array',
-              items: {
+              'type': 'array',
+              'items': {
                 type: 'array',
                 prefixItems: [
                   this.#handleArrayItemJsonSchema(this.#convert(map._zod.def.keyType, options, lazyDepth, structureDepth + 1), options),
@@ -405,15 +414,17 @@ export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaC
                 maxItems: 2,
                 minItems: 2,
               },
+              'x-native-type': JsonSchemaXNativeType.Map,
             }]
           }
 
           case 'set': {
             const set = schema as $ZodSet
             return [true, {
-              type: 'array',
-              uniqueItems: true,
-              items: this.#handleArrayItemJsonSchema(this.#convert(set._zod.def.valueType, options, lazyDepth, structureDepth + 1), options),
+              'type': 'array',
+              'uniqueItems': true,
+              'items': this.#handleArrayItemJsonSchema(this.#convert(set._zod.def.valueType, options, lazyDepth, structureDepth + 1), options),
+              'x-native-type': JsonSchemaXNativeType.Set,
             }]
           }
 

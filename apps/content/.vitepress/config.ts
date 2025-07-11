@@ -208,7 +208,8 @@ export default withMermaid(defineConfig({
           collapsed: true,
           items: [
             { text: 'OpenAPI Reference (Swagger)', link: '/docs/openapi/plugins/openapi-reference' },
-            { text: 'Zod Smart Coercion', link: '/docs/openapi/plugins/zod-smart-coercion' },
+            { text: 'Smart Coercion', link: '/docs/openapi/plugins/smart-coercion' },
+            { text: 'Zod Smart Coercion (old)', link: '/docs/openapi/plugins/zod-smart-coercion' },
           ],
         },
         {

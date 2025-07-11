@@ -24,6 +24,9 @@ import type {
 } from 'zod/v4/core'
 import { guard, isObject } from '@orpc/shared'
 
+/**
+ * @deprecated Use [Smart Coercion Plugin](https://orpc.unnoq.com/docs/openapi/plugins/smart-coercion) instead.
+ */
 export class experimental_ZodSmartCoercionPlugin<TContext extends Context> implements StandardHandlerPlugin<TContext> {
   init(options: StandardHandlerOptions<TContext>): void {
     options.clientInterceptors ??= []

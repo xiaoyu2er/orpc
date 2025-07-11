@@ -1,7 +1,8 @@
 import type { APIEvent } from '@solidjs/start/server'
 import { OpenAPIHandler } from '@orpc/openapi/fetch'
 import { router } from '~/router'
-import { ZodSmartCoercionPlugin, ZodToJsonSchemaConverter } from '@orpc/zod'
+import { ZodToJsonSchemaConverter } from '@orpc/zod'
+import { experimental_SmartCoercionPlugin as SmartCoercionPlugin } from '@orpc/json-schema'
 import { onError } from '@orpc/server'
 import { OpenAPIReferencePlugin } from '@orpc/openapi/plugins'
 import '~/polyfill'
@@ -16,7 +17,11 @@ const handler = new OpenAPIHandler(router, {
     }),
   ],
   plugins: [
-    new ZodSmartCoercionPlugin(),
+    new SmartCoercionPlugin({
+      schemaConverters: [
+        new ZodToJsonSchemaConverter(),
+      ],
+    }),
     new OpenAPIReferencePlugin({
       schemaConverters: [
         new ZodToJsonSchemaConverter(),

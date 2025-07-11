@@ -58,13 +58,13 @@ testSchemaConverter([
   {
     name: 'set(z.string())',
     schema: z.set(z.string()),
-    input: [true, { type: 'array', uniqueItems: true, items: { type: 'string' } }],
+    input: [true, { 'type': 'array', 'uniqueItems': true, 'items': { type: 'string' }, 'x-native-type': 'set' }],
   },
   {
     name: 'set(z.string().optional())',
     schema: z.set(z.string().optional()),
-    input: [true, { type: 'array', uniqueItems: true, items: { type: 'string' } }],
-    output: [true, { type: 'array', uniqueItems: true, items: { anyOf: [{ type: 'string' }, { type: 'null' }] } }],
+    input: [true, { 'type': 'array', 'uniqueItems': true, 'items': { type: 'string' }, 'x-native-type': 'set' }],
+    output: [true, { 'type': 'array', 'uniqueItems': true, 'items': { anyOf: [{ type: 'string' }, { type: 'null' }] }, 'x-native-type': 'set' }],
   },
   {
     name: 'object({ value: z.string() })',
@@ -109,12 +109,12 @@ testSchemaConverter([
   {
     name: 'map(z.string(), z.number())',
     schema: z.map(z.string(), z.number()),
-    input: [true, { type: 'array', items: { type: 'array', prefixItems: [{ type: 'string' }, { type: 'number' }], maxItems: 2, minItems: 2 } }],
+    input: [true, { 'type': 'array', 'items': { type: 'array', prefixItems: [{ type: 'string' }, { type: 'number' }], maxItems: 2, minItems: 2 }, 'x-native-type': 'map' }],
   },
   {
     name: 'map(z.string().optional(), z.number().optional())',
     schema: z.map(z.string().optional(), z.number().optional()),
-    input: [true, { type: 'array', items: { type: 'array', prefixItems: [{ type: 'string' }, { type: 'number' }], maxItems: 2, minItems: 2 } }],
-    output: [true, { type: 'array', items: { type: 'array', prefixItems: [{ anyOf: [{ type: 'string' }, { type: 'null' }] }, { anyOf: [{ type: 'number' }, { type: 'null' }] }], maxItems: 2, minItems: 2 } }],
+    input: [true, { 'type': 'array', 'items': { type: 'array', prefixItems: [{ type: 'string' }, { type: 'number' }], maxItems: 2, minItems: 2 }, 'x-native-type': 'map' }],
+    output: [true, { 'type': 'array', 'items': { type: 'array', prefixItems: [{ anyOf: [{ type: 'string' }, { type: 'null' }] }, { anyOf: [{ type: 'number' }, { type: 'null' }] }], maxItems: 2, minItems: 2 }, 'x-native-type': 'map' }],
   },
 ])

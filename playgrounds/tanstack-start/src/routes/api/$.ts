@@ -1,7 +1,8 @@
 import '~/polyfill'
 
 import { OpenAPIHandler } from '@orpc/openapi/fetch'
-import { ZodSmartCoercionPlugin, ZodToJsonSchemaConverter } from '@orpc/zod'
+import { ZodToJsonSchemaConverter } from '@orpc/zod'
+import { experimental_SmartCoercionPlugin as SmartCoercionPlugin } from '@orpc/json-schema'
 import { createServerFileRoute } from '@tanstack/react-start/server'
 import { router } from '~/router/index'
 import { onError } from '@orpc/server'
@@ -17,7 +18,11 @@ const handler = new OpenAPIHandler(router, {
     }),
   ],
   plugins: [
-    new ZodSmartCoercionPlugin(),
+    new SmartCoercionPlugin({
+      schemaConverters: [
+        new ZodToJsonSchemaConverter(),
+      ],
+    }),
     new OpenAPIReferencePlugin({
       schemaConverters: [
         new ZodToJsonSchemaConverter(),

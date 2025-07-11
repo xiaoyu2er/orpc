@@ -35,7 +35,7 @@ testSchemaConverter([
   {
     name: 'bigint',
     schema: z.bigint(),
-    input: [true, { type: 'string', pattern: '^-?[0-9]+$' }],
+    input: [true, { 'type': 'string', 'pattern': '^-?[0-9]+$', 'x-native-type': 'bigint' }],
   },
   {
     name: 'nan',

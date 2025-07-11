@@ -20,7 +20,7 @@ testSchemaConverter([
   {
     name: 'date',
     schema: z.date(),
-    input: [true, { type: 'string', format: 'date-time' }],
+    input: [true, { 'type': 'string', 'format': 'date-time', 'x-native-type': 'date' }],
   },
   {
     name: 'null',

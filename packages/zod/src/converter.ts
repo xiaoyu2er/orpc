@@ -32,6 +32,7 @@ import type {
   ZodUnion,
   ZodUnionOptions,
 } from 'zod'
+import { JsonSchemaXNativeType } from '@orpc/json-schema'
 import { JSONSchemaFormat } from '@orpc/openapi'
 import { toArray } from '@orpc/shared'
 import escapeStringRegexp from 'escape-string-regexp'
@@ -282,7 +283,11 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
       }
 
       case ZodFirstPartyTypeKind.ZodBigInt: {
-        const json: JSONSchema = { type: 'string', pattern: '^-?[0-9]+$' }
+        const json: JSONSchema & { 'x-native-type': JsonSchemaXNativeType.BigInt } = {
+          'type': 'string',
+          'pattern': '^-?[0-9]+$',
+          'x-native-type': JsonSchemaXNativeType.BigInt,
+        }
 
         // WARN: ignore checks
 
@@ -300,7 +305,11 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
       }
 
       case ZodFirstPartyTypeKind.ZodDate: {
-        const schema: JSONSchema = { type: 'string', format: JSONSchemaFormat.DateTime }
+        const schema: JSONSchema & { 'x-native-type': JsonSchemaXNativeType.Date } = {
+          'type': 'string',
+          'format': JSONSchemaFormat.DateTime,
+          'x-native-type': JsonSchemaXNativeType.Date,
+        }
 
         // WARN: ignore checks
 
@@ -458,7 +467,11 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
       case ZodFirstPartyTypeKind.ZodSet: {
         const schema_ = schema as ZodSet
 
-        const json: JSONSchema = { type: 'array', uniqueItems: true }
+        const json: JSONSchema & { 'x-native-type': JsonSchemaXNativeType.Set } = {
+          'type': 'array',
+          'uniqueItems': true,
+          'x-native-type': JsonSchemaXNativeType.Set,
+        }
 
         const [itemRequired, itemJson] = this.convert(schema_._def.valueType, options, lazyDepth, false, false, structureDepth + 1)
 
@@ -473,9 +486,9 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
         const [keyRequired, keyJson] = this.convert(schema_._def.keyType, options, lazyDepth, false, false, structureDepth + 1)
         const [valueRequired, valueJson] = this.convert(schema_._def.valueType, options, lazyDepth, false, false, structureDepth + 1)
 
-        return [true, {
-          type: 'array',
-          items: {
+        const json: JSONSchema & { 'x-native-type': JsonSchemaXNativeType.Map } = {
+          'type': 'array',
+          'items': {
             type: 'array',
             prefixItems: [
               this.#toArrayItemJsonSchema(keyRequired, keyJson, options.strategy),
@@ -484,7 +497,10 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
             maxItems: 2,
             minItems: 2,
           },
-        }]
+          'x-native-type': JsonSchemaXNativeType.Map,
+        }
+
+        return [true, json]
       }
 
       case ZodFirstPartyTypeKind.ZodUnion:
@@ -624,7 +640,7 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
     return [true, this.unsupportedJsonSchema]
   }
 
-  #handleCustomZodDef(def: ZodTypeDef): Exclude<JSONSchema, boolean> | undefined {
+  #handleCustomZodDef(def: ZodTypeDef): Exclude<JSONSchema & Record<string, unknown>, boolean> | undefined {
     const customZodDef = getCustomZodDef(def)
 
     if (!customZodDef) {
@@ -642,13 +658,18 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
 
       case 'regexp': {
         return {
-          type: 'string',
-          pattern: '^\\/(.*)\\/([a-z]*)$',
+          'type': 'string',
+          'pattern': '^\\/(.*)\\/([a-z]*)$',
+          'x-native-type': JsonSchemaXNativeType.RegExp,
         }
       }
 
       case 'url': {
-        return { type: 'string', format: JSONSchemaFormat.URI }
+        return {
+          'type': 'string',
+          'format': JSONSchemaFormat.URI,
+          'x-native-type': JsonSchemaXNativeType.Url,
+        }
       }
 
       /* v8 ignore next 3 */

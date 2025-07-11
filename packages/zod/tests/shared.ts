@@ -8,8 +8,8 @@ import {
 export interface SchemaConverterTestCase {
   name: string
   schema: AnySchema
-  input: [boolean, JSONSchema]
-  output?: [boolean, JSONSchema]
+  input: [boolean, JSONSchema & Record<string, unknown>]
+  output?: [boolean, JSONSchema & Record<string, unknown>]
 }
 
 export function testSchemaConverter(cases: SchemaConverterTestCase[]) {

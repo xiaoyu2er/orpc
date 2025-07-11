@@ -36,9 +36,9 @@ export interface ConditionalSchemaConverter extends SchemaConverter {
 }
 
 export class CompositeSchemaConverter implements SchemaConverter {
-  private readonly converters: ConditionalSchemaConverter[]
+  private readonly converters: readonly ConditionalSchemaConverter[]
 
-  constructor(converters: ConditionalSchemaConverter[]) {
+  constructor(converters: readonly ConditionalSchemaConverter[]) {
     this.converters = converters
   }
 

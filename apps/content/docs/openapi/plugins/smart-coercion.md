@@ -79,7 +79,7 @@ JavaScript native types such as BigInt, Date, RegExp, URL, Set, and Map are not 
 - `x-native-type: 'set'` for Set
 - `x-native-type: 'map'` for Map
 
-The built-in [JSON Schema Converters](/docs/openapi/openapi-specification#generating-specifications) handle these cases (with the exception of some experimental converters). Since this approach is not part of the official JSON Schema specification, if you use a custom converter, you may need to add the appropriate `x-native-type` metadata to your schemas to ensure proper coercion.
+The built-in [JSON Schema Converters](/docs/openapi/openapi-specification#generating-specifications) handle these cases (except for some experimental converters). Since this approach is not part of the official JSON Schema specification, if you use a custom converter, you may need to add the appropriate `x-native-type` metadata to your schemas to ensure proper coercion.
 :::
 
 ## Conversion Rules

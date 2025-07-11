@@ -44,6 +44,7 @@ describe('jsonSchemaCoercer', () => {
 
     expect(coercer.coerce({ 'type': 'string', 'x-native-type': 'bigint' } as any, '123')).toEqual(123n)
     expect(coercer.coerce({ 'type': 'string', 'x-native-type': 'bigint' } as any, 123)).toEqual(123n)
+    expect(coercer.coerce({ 'type': 'string', 'x-native-type': 'bigint' } as any, Infinity)).toEqual(Infinity)
     expect(coercer.coerce({ 'type': 'string', 'x-native-type': 'bigint' } as any, 'invalid')).toEqual('invalid')
 
     expect(coercer.coerce({ 'type': 'string', 'x-native-type': 'url' } as any, 'https://example.com')).toEqual(new URL('https://example.com'))

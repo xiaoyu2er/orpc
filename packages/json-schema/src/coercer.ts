@@ -373,6 +373,10 @@ export class experimental_JsonSchemaCoercer {
     return guard(() => BigInt(value)) ?? value
   }
 
+  #numberToBigInt(value: number): bigint | number {
+    return guard(() => BigInt(value)) ?? value
+  }
+
   #stringToDate(value: string): Date | string {
     const date = new Date(value)
 
@@ -396,10 +400,6 @@ export class experimental_JsonSchemaCoercer {
 
   #stringToURL(value: string): URL | string {
     return guard(() => new URL(value)) ?? value
-  }
-
-  #numberToBigInt(value: number): bigint | number {
-    return BigInt(value)
   }
 
   #arrayToSet(value: unknown[]): Set<unknown> | unknown[] {

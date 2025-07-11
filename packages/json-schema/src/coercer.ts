@@ -338,7 +338,7 @@ export class experimental_JsonSchemaCoercer {
   #stringToNumber(value: string): number | string {
     const num = Number.parseFloat(value)
 
-    if (Number.isNaN(num) || num.toString() !== value) {
+    if (Number.isNaN(num) || num !== Number(value)) {
       return value
     }
 
@@ -348,7 +348,7 @@ export class experimental_JsonSchemaCoercer {
   #stringToInteger(value: string): number | string {
     const num = Number.parseInt(value)
 
-    if (Number.isNaN(num) || num.toString() !== value) {
+    if (Number.isNaN(num) || num !== Number(value)) {
       return value
     }
 

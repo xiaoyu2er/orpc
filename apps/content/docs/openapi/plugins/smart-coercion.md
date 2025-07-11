@@ -101,7 +101,6 @@ Support valid numeric strings:
 
 - `'123'` → `123`
 - `'3.14'` → `3.14`
-- `'123.0'` → `123`
 
 ### String/Number → BigInt
 

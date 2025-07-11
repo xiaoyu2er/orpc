@@ -2,10 +2,14 @@ import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { Message, Peer } from 'crossws'
 import type { Context } from '../../context'
 import type { StandardHandler } from '../standard'
-import type { FriendlyStandardHandleOptions } from '../standard/utils'
+import type {
+  experimental_HandleStandardServerPeerMessageOptions as HandleStandardServerPeerMessageOptions,
+} from '../standard-peer'
 import { resolveMaybeOptionalOptions } from '@orpc/shared'
 import { ServerPeer } from '@orpc/standard-server-peer'
-import { resolveFriendlyStandardHandleOptions } from '../standard/utils'
+import {
+  experimental_handleStandardServerPeerMessage as handleStandardServerPeerMessage,
+} from '../standard-peer'
 
 export class experimental_CrosswsHandler<T extends Context> {
   private readonly peers: WeakMap<Pick<Peer, 'send'>, ServerPeer> = new WeakMap()
@@ -18,7 +22,7 @@ export class experimental_CrosswsHandler<T extends Context> {
   async message(
     ws: Pick<Peer, 'send'>,
     message: Pick<Message, 'rawData' | 'uint8Array'>,
-    ...rest: MaybeOptionalOptions<Omit<FriendlyStandardHandleOptions<T>, 'prefix'>>
+    ...rest: MaybeOptionalOptions<HandleStandardServerPeerMessageOptions<T>>
   ): Promise<void> {
     let peer = this.peers.get(ws)
 
@@ -28,17 +32,14 @@ export class experimental_CrosswsHandler<T extends Context> {
       }))
     }
 
-    const [id, request] = await peer.message(typeof message.rawData === 'string' ? message.rawData : message.uint8Array())
+    const encodedMessage = typeof message.rawData === 'string' ? message.rawData : message.uint8Array()
 
-    if (!request) {
-      return
-    }
-
-    const options = resolveFriendlyStandardHandleOptions(resolveMaybeOptionalOptions(rest))
-
-    const { response } = await this.standardHandler.handle({ ...request, body: () => Promise.resolve(request.body) }, options)
-
-    await peer.response(id, response ?? { status: 404, headers: {}, body: 'No procedure matched' })
+    await handleStandardServerPeerMessage(
+      this.standardHandler,
+      peer,
+      encodedMessage,
+      resolveMaybeOptionalOptions(rest),
+    )
   }
 
   close(ws: Pick<Peer, 'send'>): void {

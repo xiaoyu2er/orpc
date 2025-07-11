@@ -1,7 +1,7 @@
 {
   "name": "@orpc/server",
   "type": "module",
-  "version": "1.6.5",
+  "version": "1.6.6",
   "license": "MIT",
   "homepage": "https://orpc.unnoq.com",
   "repository": {
@@ -34,6 +34,11 @@
         "types": "./dist/adapters/standard/index.d.mts",
         "import": "./dist/adapters/standard/index.mjs",
         "default": "./dist/adapters/standard/index.mjs"
+      },
+      "./standard-peer": {
+        "types": "./dist/adapters/standard-peer/index.d.mts",
+        "import": "./dist/adapters/standard-peer/index.mjs",
+        "default": "./dist/adapters/standard-peer/index.mjs"
       },
       "./fetch": {
         "types": "./dist/adapters/fetch/index.d.mts",
@@ -82,6 +87,7 @@
     "./plugins": "./src/plugins/index.ts",
     "./hibernation": "./src/hibernation/index.ts",
     "./standard": "./src/adapters/standard/index.ts",
+    "./standard-peer": "./src/adapters/standard-peer/index.ts",
     "./fetch": "./src/adapters/fetch/index.ts",
     "./node": "./src/adapters/node/index.ts",
     "./aws-lambda": "./src/adapters/aws-lambda/index.ts",
@@ -125,7 +131,7 @@
     "@types/ws": "^8.18.1",
     "crossws": "^0.4.1",
     "next": "^15.3.5",
-    "supertest": "^7.1.0",
+    "supertest": "^7.1.3",
     "ws": "^8.18.3"
   }
 }

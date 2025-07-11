@@ -1,10 +1,14 @@
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { Context } from '../../context'
 import type { StandardHandler } from '../standard'
-import type { FriendlyStandardHandleOptions } from '../standard/utils'
-import { resolveMaybeOptionalOptions } from '@orpc/shared'
+import type {
+  experimental_HandleStandardServerPeerMessageOptions as HandleStandardServerPeerMessageOptions,
+} from '../standard-peer'
+import { readAsBuffer, resolveMaybeOptionalOptions } from '@orpc/shared'
 import { ServerPeer } from '@orpc/standard-server-peer'
-import { resolveFriendlyStandardHandleOptions } from '../standard/utils'
+import {
+  experimental_handleStandardServerPeerMessage as handleStandardServerPeerMessage,
+} from '../standard-peer'
 
 export type experimental_MinimalWebsocket = Pick<WebSocket, 'addEventListener' | 'send'>
 
@@ -25,7 +29,10 @@ export class experimental_WebsocketHandler<T extends Context> {
    *
    * @warning Do not use this method if you're using `.message()` or `.close()`
    */
-  upgrade(ws: experimental_MinimalWebsocket, ...rest: MaybeOptionalOptions<Omit<FriendlyStandardHandleOptions<T>, 'prefix'>>): void {
+  upgrade(
+    ws: experimental_MinimalWebsocket,
+    ...rest: MaybeOptionalOptions<HandleStandardServerPeerMessageOptions<T>>
+  ): void {
     ws.addEventListener('message', event => this.message(ws, event.data, ...rest))
     ws.addEventListener('close', () => this.close(ws))
   }
@@ -38,7 +45,11 @@ export class experimental_WebsocketHandler<T extends Context> {
    * @param ws The WebSocket instance
    * @param data The message payload, usually place in `event.data`
    */
-  async message(ws: experimental_MinimalWebsocket, data: string | ArrayBuffer | Blob, ...rest: MaybeOptionalOptions<Omit<FriendlyStandardHandleOptions<T>, 'prefix'>>): Promise<void> {
+  async message(
+    ws: experimental_MinimalWebsocket,
+    data: string | ArrayBuffer | Blob,
+    ...rest: MaybeOptionalOptions<HandleStandardServerPeerMessageOptions<T>>
+  ): Promise<void> {
     let peer = this.#peers.get(ws)
 
     if (!peer) {
@@ -46,20 +57,15 @@ export class experimental_WebsocketHandler<T extends Context> {
     }
 
     const message = data instanceof Blob
-      ? await data.arrayBuffer()
+      ? await readAsBuffer(data)
       : data
 
-    const [id, request] = await peer.message(message)
-
-    if (!request) {
-      return
-    }
-
-    const options = resolveFriendlyStandardHandleOptions(resolveMaybeOptionalOptions(rest))
-
-    const { response } = await this.#handler.handle({ ...request, body: () => Promise.resolve(request.body) }, options)
-
-    await peer.response(id, response ?? { status: 404, headers: {}, body: 'No procedure matched' })
+    await handleStandardServerPeerMessage(
+      this.#handler,
+      peer,
+      message,
+      resolveMaybeOptionalOptions(rest),
+    )
   }
 
   /**

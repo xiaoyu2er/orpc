@@ -1,5 +1,5 @@
 import type { StandardHeaders } from '@orpc/standard-server'
-import { decodeRequestMessage, decodeResponseMessage, encodeRequestMessage, encodeResponseMessage, isEventIteratorHeaders, MessageType } from './codec'
+import { decodeRequestMessage, decodeResponseMessage, encodeRequestMessage, encodeResponseMessage, MessageType } from './codec'
 
 const MB10Headers: StandardHeaders = {}
 
@@ -182,7 +182,7 @@ describe('encode/decode request message', () => {
         body: formData,
       })
 
-      expect(message).toBeInstanceOf(ArrayBuffer)
+      expect(message).toBeInstanceOf(Uint8Array)
 
       const [id, type, payload] = await decodeRequestMessage(message)
 
@@ -203,7 +203,7 @@ describe('encode/decode request message', () => {
       expect(await (payload as any).body.get('file').text()).toBe('foo')
     })
 
-    it('formData with message is ArrayBuffer', async () => {
+    it('formData with message is Uint8Array', async () => {
       const formData = new FormData()
       formData.append('a', '1')
       formData.append('b', '2')
@@ -216,7 +216,7 @@ describe('encode/decode request message', () => {
         body: formData,
       })
 
-      expect(message).toBeInstanceOf(ArrayBuffer)
+      expect(message).toBeInstanceOf(Uint8Array)
 
       const [id, type, payload] = await decodeRequestMessage(message)
 
@@ -254,7 +254,7 @@ describe('encode/decode request message', () => {
           body: blob,
         })
 
-        expect(message).toBeInstanceOf(ArrayBuffer)
+        expect(message).toBeInstanceOf(Uint8Array)
 
         const [id, type, payload] = await decodeRequestMessage(message)
 
@@ -287,7 +287,7 @@ describe('encode/decode request message', () => {
           body: blob,
         })
 
-        expect(message).toBeInstanceOf(ArrayBuffer)
+        expect(message).toBeInstanceOf(Uint8Array)
 
         const [id, type, payload] = await decodeRequestMessage(message)
 
@@ -317,7 +317,7 @@ describe('encode/decode request message', () => {
           body: blob,
         })
 
-        expect(message).toBeInstanceOf(ArrayBuffer)
+        expect(message).toBeTypeOf('string')
 
         const [id, type, payload] = await decodeRequestMessage(message)
 
@@ -347,7 +347,7 @@ describe('encode/decode request message', () => {
           body: file,
         })
 
-        expect(message).toBeInstanceOf(ArrayBuffer)
+        expect(message).toBeInstanceOf(Uint8Array)
 
         const [id, type, payload] = await decodeRequestMessage(message)
 
@@ -380,7 +380,7 @@ describe('encode/decode request message', () => {
           body: file,
         })
 
-        expect(message).toBeInstanceOf(ArrayBuffer)
+        expect(message).toBeInstanceOf(Uint8Array)
 
         const [id, type, payload] = await decodeRequestMessage(message)
 
@@ -410,7 +410,7 @@ describe('encode/decode request message', () => {
           body: file,
         })
 
-        expect(message).toBeInstanceOf(ArrayBuffer)
+        expect(message).toBeTypeOf('string')
 
         const [id, type, payload] = await decodeRequestMessage(message)
 
@@ -446,7 +446,7 @@ describe('encode/decode request message', () => {
       body: blob,
     })
 
-    expect(message).toBeInstanceOf(ArrayBuffer)
+    expect(message).toBeInstanceOf(Uint8Array)
 
     const [id, type, payload] = await decodeRequestMessage(message)
 
@@ -627,7 +627,7 @@ describe('encode/decode response message', () => {
         body: formData,
       })
 
-      expect(message).toBeInstanceOf(ArrayBuffer)
+      expect(message).toBeInstanceOf(Uint8Array)
 
       const [id, type, payload] = await decodeResponseMessage(message)
 
@@ -647,7 +647,7 @@ describe('encode/decode response message', () => {
       expect(await (payload as any).body.get('file').text()).toBe('foo')
     })
 
-    it('formData with message is ArrayBuffer', async () => {
+    it('formData with message is Uint8Array', async () => {
       const formData = new FormData()
       formData.append('a', '1')
       formData.append('b', '2')
@@ -659,7 +659,7 @@ describe('encode/decode response message', () => {
         body: formData,
       })
 
-      expect(message).toBeInstanceOf(ArrayBuffer)
+      expect(message).toBeInstanceOf(Uint8Array)
 
       const [id, type, payload] = await decodeResponseMessage(message)
 
@@ -695,7 +695,7 @@ describe('encode/decode response message', () => {
           body: blob,
         })
 
-        expect(message).toBeInstanceOf(ArrayBuffer)
+        expect(message).toBeInstanceOf(Uint8Array)
 
         const [id, type, payload] = await decodeResponseMessage(message)
 
@@ -726,7 +726,7 @@ describe('encode/decode response message', () => {
           body: blob,
         })
 
-        expect(message).toBeInstanceOf(ArrayBuffer)
+        expect(message).toBeInstanceOf(Uint8Array)
 
         const [id, type, payload] = await decodeResponseMessage(message)
 
@@ -754,7 +754,7 @@ describe('encode/decode response message', () => {
           body: file,
         })
 
-        expect(message).toBeInstanceOf(ArrayBuffer)
+        expect(message).toBeInstanceOf(Uint8Array)
 
         const [id, type, payload] = await decodeResponseMessage(message)
 
@@ -785,7 +785,7 @@ describe('encode/decode response message', () => {
           body: file,
         })
 
-        expect(message).toBeInstanceOf(ArrayBuffer)
+        expect(message).toBeInstanceOf(Uint8Array)
 
         const [id, type, payload] = await decodeResponseMessage(message)
 
@@ -816,7 +816,7 @@ describe('encode/decode response message', () => {
       body: blob,
     })
 
-    expect(message).toBeInstanceOf(ArrayBuffer)
+    expect(message).toBeInstanceOf(Uint8Array)
 
     const [id, type, payload] = await decodeResponseMessage(message)
 
@@ -834,23 +834,4 @@ describe('encode/decode response message', () => {
 
     expect(await (payload as any).body.text()).toBe(json)
   })
-})
-
-it('isEventIteratorHeaders', () => {
-  expect(isEventIteratorHeaders({
-    'content-type': 'text/event-stream',
-  })).toBe(true)
-
-  expect(isEventIteratorHeaders({
-    'content-type': 'text/event-stream',
-    'content-disposition': '',
-  })).toBe(false)
-
-  expect(isEventIteratorHeaders({
-    'content-type': 'text/plain',
-  })).toBe(false)
-
-  expect(isEventIteratorHeaders({
-    'content-disposition': 'attachment; filename="test.pdf"',
-  })).toBe(false)
 })

@@ -1,7 +1,7 @@
 {
   "name": "@orpc/solid-query",
   "type": "module",
-  "version": "1.6.5",
+  "version": "1.6.6",
   "license": "MIT",
   "homepage": "https://orpc.unnoq.com",
   "repository": {
@@ -47,6 +47,6 @@
   },
   "devDependencies": {
     "@tanstack/solid-query": "^5.81.5",
-    "zod": "^3.25.74"
+    "zod": "^3.25.76"
   }
 }

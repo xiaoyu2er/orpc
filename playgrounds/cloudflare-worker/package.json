@@ -1,7 +1,7 @@
 {
   "name": "@orpc/cloudflare-worker-playground",
   "type": "module",
-  "version": "1.6.5",
+  "version": "1.6.6",
   "private": true,
   "scripts": {
     "dev": "vite",
@@ -24,6 +24,6 @@
     "typescript": "~5.8.3",
     "vite": "^6.3.5",
     "wrangler": "^4.23.0",
-    "zod": "^3.25.74"
+    "zod": "^3.25.76"
   }
 }

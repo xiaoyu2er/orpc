@@ -27,6 +27,10 @@ Bracket Notation encodes structured data in formats with limited syntax, like UR
    color[0]=red&color[2]=blue → { color: ["red", <empty>, "blue"] }
    ```
 
+   ::: info
+   Array indexes must be less than 10,000 by default to prevent memory exhaustion attacks from large indices. Configure with `maxBracketNotationArrayIndex` in `OpenAPIHandler`.
+   :::
+
 4. **Append `[key]` to denote an object property.**
 
    ```
@@ -103,4 +107,15 @@ This form data is parsed as:
     "files": ["<binary data>", "<binary data>"]
   }
 }
+```
+
+    "files": ["<binary data>", "<binary data>"]
+
+}
+}
+}
+}
+
+```
+
 ```

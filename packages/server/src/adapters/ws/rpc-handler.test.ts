@@ -1,4 +1,4 @@
-import { decodeResponseMessage, encodeRequestMessage, MessageType } from '@orpc/standard-server-peer'
+import { encodeRequestMessage, MessageType } from '@orpc/standard-server-peer'
 import { os } from '../../builder'
 import { experimental_RPCHandler as RPCHandler } from './rpc-handler'
 
@@ -33,82 +33,33 @@ describe('rpcHandler', async () => {
 
   handler.upgrade(wss)
 
-  const ping_request_message = {
+  const string_request_message = {
     data: await encodeRequestMessage('19', MessageType.REQUEST, {
       url: new URL('orpc:/ping'),
       body: { json: 'input' },
       headers: {},
       method: 'POST',
-    }),
+    }) as string,
   }
 
-  const ping_buffer_request_message = {
-    data: [new TextEncoder().encode(await encodeRequestMessage('19', MessageType.REQUEST, {
-      url: new URL('orpc:/ping'),
-      body: { json: 'input' },
-      headers: {},
-      method: 'POST',
-    }) as string)],
+  const buffer_request_message = {
+    data: [new TextEncoder().encode(string_request_message.data)],
   }
 
-  const abort_message = {
-    data: await encodeRequestMessage('19', MessageType.ABORT_SIGNAL, undefined),
-  }
-
-  const not_found_request_message = {
-    data: await encodeRequestMessage('19', MessageType.REQUEST, {
-      url: new URL('orpc:/not-found'),
-      body: { json: 'input' },
-      headers: {},
-      method: 'POST',
-    }),
-  }
-
-  it('on success', async () => {
-    onMessage(ping_request_message)
+  it('works with string event', async () => {
+    onMessage(string_request_message)
 
     await vi.waitFor(() => expect(wss.send).toHaveBeenCalledTimes(1))
-
-    const [id,, payload] = (await decodeResponseMessage(wss.send.mock.calls[0]![0]))
-
-    expect(id).toBeTypeOf('string')
-    expect(payload).toEqual({
-      status: 200,
-      headers: {},
-      body: { json: 'pong' },
-    })
   })
 
-  it('on success with array data', async () => {
-    onMessage(ping_buffer_request_message)
+  it('work with buffer[] event', async () => {
+    onMessage(buffer_request_message)
 
     await vi.waitFor(() => expect(wss.send).toHaveBeenCalledTimes(1))
-    const [id, , payload] = (await decodeResponseMessage(wss.send.mock.calls[0]![0]))
-
-    expect(id).toBeTypeOf('string')
-    expect(payload).toEqual({
-      status: 200,
-      headers: {},
-      body: { json: 'pong' },
-    })
   })
 
-  it('on abort signal', async () => {
-    onMessage(ping_request_message)
-
-    await new Promise(resolve => setTimeout(resolve, 0))
-
-    expect(signal.aborted).toBe(false)
-    expect(wss.send).not.toHaveBeenCalled()
-
-    onMessage(abort_message)
-
-    await vi.waitFor(() => expect(signal.aborted).toBe(true))
-    expect(wss.send).not.toHaveBeenCalled()
-  })
-
-  it('on close', async () => {
-    onMessage(ping_request_message)
+  it('abort on close', async () => {
+    onMessage(string_request_message)
 
     await new Promise(resolve => setTimeout(resolve, 0))
 
@@ -118,19 +69,5 @@ describe('rpcHandler', async () => {
     onClose()
     await vi.waitFor(() => expect(signal.aborted).toBe(true))
     expect(wss.send).not.toHaveBeenCalled()
-  })
-
-  it('on no procedure matched', async () => {
-    onMessage(not_found_request_message)
-
-    await vi.waitFor(() => expect(wss.send).toHaveBeenCalledTimes(1))
-    const [id,, payload] = (await decodeResponseMessage(wss.send.mock.calls[0]![0]))
-
-    expect(id).toBeTypeOf('string')
-    expect(payload).toEqual({
-      status: 404,
-      headers: {},
-      body: 'No procedure matched',
-    })
   })
 })

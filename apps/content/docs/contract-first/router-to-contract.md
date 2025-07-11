@@ -45,7 +45,11 @@ However, if you're deriving the contract from a [router](/docs/router), importin
     ```ts
     import contract from './contract.json' // [!code highlight]
 
-    const link = new OpenAPILink(contract as any, {
+    const link = new OpenAPILink(contract as typeof router, {
       url: 'http://localhost:3000/api',
     })
     ```
+
+    ::: warning
+    Cast `contract` to `typeof router` to ensure type safety, since standard schema types cannot be serialized to JSON so we must manually cast them.
+    :::

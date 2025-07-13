@@ -1,4 +1,4 @@
-import { call, createRouterClient, getEventMeta, isProcedure, ORPCError, unlazy } from '@orpc/server'
+import { call, createRouterClient, getEventMeta, isLazy, isProcedure, ORPCError, unlazy } from '@orpc/server'
 import { isAsyncIteratorObject } from '@orpc/shared'
 import { tracked, TRPCError } from '@trpc/server'
 import { z } from 'zod'
@@ -19,11 +19,16 @@ describe('toORPCRouter', async () => {
     expect(orpcRouter.nested.ping).toSatisfy(isProcedure)
 
     const unlazy1 = await unlazy(orpcRouter.lazy)
-    expect(unlazy1.default.subscribe).toSatisfy(isProcedure)
-
     const unlazy2 = await unlazy(unlazy1.default.lazy)
 
+    expect(orpcRouter.lazy).toSatisfy(isLazy)
+    expect(unlazy1.default.subscribe).toSatisfy(isProcedure)
+    expect(unlazy1.default.lazy).toSatisfy(isLazy)
     expect(unlazy2.default.throw).toSatisfy(isProcedure)
+
+    // accessible lazy router
+    expect(await unlazy(orpcRouter.lazy.subscribe)).toEqual({ default: expect.toSatisfy(isProcedure) })
+    expect(await unlazy(orpcRouter.lazy.lazy.throw)).toEqual({ default: expect.toSatisfy(isProcedure) })
   })
 
   it('with disabled input/output', async () => {

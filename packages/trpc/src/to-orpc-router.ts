@@ -59,10 +59,10 @@ function lazyToORPCRouter(lazies: AnyRouter['_def']['lazy']) {
   for (const key in lazies) {
     const item = lazies[key]!
 
-    orpcRouter[key] = ORPC.lazy(async () => {
+    orpcRouter[key] = ORPC.createAccessibleLazyRouter(ORPC.lazy(async () => {
       const router = await item.ref()
       return { default: experimental_toORPCRouter(router) }
-    })
+    }))
   }
 
   return orpcRouter

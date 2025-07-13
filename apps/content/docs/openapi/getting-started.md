@@ -171,7 +171,9 @@ Just a small tweak makes your oRPC API OpenAPI-compliant!
 
 ```ts twoslash
 import { OpenAPIGenerator } from '@orpc/openapi'
-import { ZodToJsonSchemaConverter } from '@orpc/zod'
+import {
+  experimental_ZodToJsonSchemaConverter as ZodToJsonSchemaConverter
+} from '@orpc/zod/zod4'
 import { router } from './shared/planet'
 
 const generator = new OpenAPIGenerator({

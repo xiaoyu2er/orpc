@@ -1,5 +1,5 @@
 import * as z from 'zod'
-import { ZodToJsonSchemaConverter } from '../../zod/src'
+import { experimental_ZodToJsonSchemaConverter as ZodToJsonSchemaConverter } from '../../zod/src/zod4'
 import { experimental_SmartCoercionPlugin as SmartCoercionPlugin } from './smart-coercion-plugin'
 
 describe('smartCoercionPlugin', () => {

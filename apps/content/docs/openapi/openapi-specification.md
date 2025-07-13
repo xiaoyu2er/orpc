@@ -302,7 +302,7 @@ JSON_SCHEMA_OUTPUT_REGISTRY.add(InputSchema, {
 In the [File Upload/Download](/docs/file-upload-download) guide, `z.instanceof` is used to describe file/blob schemas. However, this method prevents oRPC from recognizing file/blob schema. Instead, use the enhanced file schema approach:
 
 ```ts
-import { z } from 'zod'
+import { z } from 'zod/v3'
 import { oz } from '@orpc/zod'
 
 const InputSchema = z.object({
@@ -317,7 +317,7 @@ const InputSchema = z.object({
 If Zod alone does not cover your JSON Schema requirements, you can extend or override the generated schema:
 
 ```ts
-import { z } from 'zod'
+import { z } from 'zod/v3'
 import { oz } from '@orpc/zod'
 
 const InputSchema = oz.openapi(

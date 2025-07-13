@@ -72,7 +72,7 @@ More schemas that [Zod](https://zod.dev/) doesn't support yet, and provides `Zod
 
 ```ts
 import { oz } from '@orpc/zod'
-import * as z from 'zod'
+import { z } from 'zod/v3'
 
 const Example = z.object({
   url: oz.url(),

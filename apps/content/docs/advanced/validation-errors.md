@@ -16,8 +16,7 @@ import { RPCHandler } from '@orpc/server/fetch'
 import { router } from './shared/planet'
 // ---cut---
 import { onError, ORPCError, ValidationError } from '@orpc/server'
-import { ZodError } from 'zod'
-import type { ZodIssue } from 'zod'
+import * as z from 'zod'
 
 const handler = new RPCHandler(router, {
   clientInterceptors: [
@@ -28,11 +27,12 @@ const handler = new RPCHandler(router, {
         && error.cause instanceof ValidationError
       ) {
         // If you only use Zod you can safely cast to ZodIssue[]
-        const zodError = new ZodError(error.cause.issues as ZodIssue[])
+        const zodError = new z.ZodError(error.cause.issues as z.core.$ZodIssue[])
 
         throw new ORPCError('INPUT_VALIDATION_FAILED', {
           status: 422,
-          data: zodError.flatten(),
+          message: z.prettifyError(zodError),
+          data: z.flattenError(zodError),
           cause: error.cause,
         })
       }
@@ -54,9 +54,8 @@ const handler = new RPCHandler(router, {
 ## Customizing with Middleware
 
 ```ts twoslash
-import * as z from 'zod'
-import type { ZodIssue } from 'zod'
 import { onError, ORPCError, os, ValidationError } from '@orpc/server'
+import * as z from 'zod'
 
 const base = os.use(onError((error) => {
   if (
@@ -65,11 +64,12 @@ const base = os.use(onError((error) => {
     && error.cause instanceof ValidationError
   ) {
     // If you only use Zod you can safely cast to ZodIssue[]
-    const zodError = new z.ZodError(error.cause.issues as z.ZodIssue[])
+    const zodError = new z.ZodError(error.cause.issues as z.core.$ZodIssue[])
 
     throw new ORPCError('INPUT_VALIDATION_FAILED', {
       status: 422,
-      data: zodError.flatten(),
+      message: z.prettifyError(zodError),
+      data: z.flattenError(zodError),
       cause: error.cause,
     })
   }
@@ -132,11 +132,12 @@ const handler = new RPCHandler({ example }, {
         && error.cause instanceof ValidationError
       ) {
         // If you only use Zod you can safely cast to ZodIssue[]
-        const zodError = new z.ZodError(error.cause.issues as z.ZodIssue[])
+        const zodError = new z.ZodError(error.cause.issues as z.core.$ZodIssue[])
 
         throw new ORPCError('INPUT_VALIDATION_FAILED', {
           status: 422,
-          data: zodError.flatten(),
+          message: z.prettifyError(zodError),
+          data: z.flattenError(zodError),
           cause: error.cause,
         })
       }

@@ -1,4 +1,4 @@
-import type { CustomErrorParams, ZodTypeDef } from 'zod'
+import type { CustomErrorParams, ZodTypeDef } from 'zod/v3'
 
 export type CustomParams = CustomErrorParams & {
   fatal?: boolean

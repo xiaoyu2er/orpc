@@ -1,6 +1,6 @@
 import type { AnyContractProcedure } from '@orpc/contract'
 import { eventIterator, oc } from '@orpc/contract'
-import { z } from 'zod'
+import * as z from 'zod'
 import * as z4 from 'zod/v4'
 import { oz, ZodToJsonSchemaConverter } from '../../zod/src'
 import { experimental_ZodToJsonSchemaConverter as ZodToJsonSchemaConverterV4 } from '../../zod/src/zod4'

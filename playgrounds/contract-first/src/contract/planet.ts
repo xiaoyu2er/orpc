@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import * as z from 'zod'
 import { NewPlanetSchema, PlanetSchema, UpdatePlanetSchema } from '../schemas/planet'
 import { oc } from '@orpc/contract'
 

@@ -12,7 +12,7 @@ Simply iterate over it and await each event.
 
 ```ts twoslash
 import { ContractRouterClient, eventIterator, oc } from '@orpc/contract'
-import { z } from 'zod'
+import * as z from 'zod'
 
 const contract = {
   streaming: oc.output(eventIterator(z.object({ message: z.string() })))

@@ -31,12 +31,12 @@ import type {
   ZodTypeDef,
   ZodUnion,
   ZodUnionOptions,
-} from 'zod'
+} from 'zod/v3'
 import { JsonSchemaXNativeType } from '@orpc/json-schema'
 import { JSONSchemaFormat } from '@orpc/openapi'
 import { toArray } from '@orpc/shared'
 import escapeStringRegexp from 'escape-string-regexp'
-import { ZodFirstPartyTypeKind } from 'zod'
+import { ZodFirstPartyTypeKind } from 'zod/v3'
 import { getCustomJsonSchema } from './custom-json-schema'
 import { getCustomZodDef } from './schemas/base'
 

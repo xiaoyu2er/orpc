@@ -11,7 +11,7 @@ This guide explains how to handle type-safe errors in oRPC clients using [type-s
 
 ```ts twoslash
 import { os } from '@orpc/server'
-import { z } from 'zod'
+import * as z from 'zod'
 // ---cut---
 import { isDefinedError, safe } from '@orpc/client'
 

@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import * as z from 'zod'
 import { ZodToJsonSchemaConverter } from '../../zod/src'
 import { experimental_SmartCoercionPlugin as SmartCoercionPlugin } from './smart-coercion-plugin'
 

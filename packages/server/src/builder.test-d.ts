@@ -11,7 +11,7 @@ import type { DecoratedMiddleware } from './middleware-decorated'
 import type { Procedure } from './procedure'
 import type { DecoratedProcedure } from './procedure-decorated'
 import type { EnhancedRouter } from './router-utils'
-import { z } from 'zod'
+import * as z from 'zod'
 import { generalSchema } from '../../contract/tests/shared'
 import { router } from '../tests/shared'
 

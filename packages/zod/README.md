@@ -72,7 +72,7 @@ More schemas that [Zod](https://zod.dev/) doesn't support yet, and provides `Zod
 
 ```ts
 import { oz } from '@orpc/zod'
-import { z } from 'zod'
+import * as z from 'zod'
 
 const Example = z.object({
   url: oz.url(),
@@ -111,7 +111,7 @@ const specFromRouter = await openAPIGenerator.generate(router, {
 
 ```ts
 import { oz } from '@orpc/zod'
-import { z } from 'zod'
+import * as z from 'zod'
 
 const InputSchema = oz.openapi(
   z.object({

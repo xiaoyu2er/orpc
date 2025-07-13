@@ -116,7 +116,7 @@ Define reusable schema components that can be referenced across your OpenAPI spe
 const UserSchema = z.object({
   id: z.string(),
   name: z.string(),
-  email: z.string().email(),
+  email: z.email(),
 })
 
 const PetSchema = z.object({
@@ -248,8 +248,8 @@ Zod v4 includes a native `File` schema. oRPC will detect it automatically - no e
 import * as z from 'zod'
 
 const InputSchema = z.object({
-  file: oz.file(),
-  image: oz.file().mime(['image/png', 'image/jpeg']),
+  file: z.file(),
+  image: z.file().mime(['image/png', 'image/jpeg']),
 })
 ```
 
@@ -301,7 +301,7 @@ JSON_SCHEMA_OUTPUT_REGISTRY.add(InputSchema, {
 
 In the [File Upload/Download](/docs/file-upload-download) guide, `z.instanceof` is used to describe file/blob schemas. However, this method prevents oRPC from recognizing file/blob schema. Instead, use the enhanced file schema approach:
 
-```ts twoslash
+```ts
 import { z } from 'zod'
 import { oz } from '@orpc/zod'
 
@@ -316,7 +316,7 @@ const InputSchema = z.object({
 
 If Zod alone does not cover your JSON Schema requirements, you can extend or override the generated schema:
 
-```ts twoslash
+```ts
 import { z } from 'zod'
 import { oz } from '@orpc/zod'
 

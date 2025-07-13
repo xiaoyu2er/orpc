@@ -1,7 +1,7 @@
-import { z } from 'zod'
+import * as z from 'zod'
 
 export const CredentialSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   password: z.string(),
 })
 

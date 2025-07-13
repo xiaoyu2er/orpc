@@ -1,5 +1,5 @@
 import { ContractProcedure } from '@orpc/contract'
-import { z } from 'zod'
+import * as z from 'zod'
 import { contract, ping } from '../tests/shared'
 import { lazy, unlazy } from './lazy'
 import { Procedure } from './procedure'

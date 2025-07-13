@@ -1,39 +1,37 @@
-import { oz } from '@orpc/zod'
-import { z } from 'zod'
+import { experimental_JSON_SCHEMA_REGISTRY as JSON_SCHEMA_REGISTRY } from '@orpc/zod/zod4'
+import * as z from 'zod'
 
 export type NewUser = z.infer<typeof NewUserSchema>
 export type User = z.infer<typeof UserSchema>
 
-export const NewUserSchema = oz.openapi(
-  z.object({
-    name: z.string(),
-    email: z.string().email(),
-    password: z.string(),
-  }),
-  {
-    examples: [
-      {
-        name: 'John Doe',
-        email: 'john@doe.com',
-        password: '123456',
-      },
-    ],
-  },
-)
+export const NewUserSchema = z.object({
+  name: z.string(),
+  email: z.email(),
+  password: z.string(),
+})
 
-export const UserSchema = oz.openapi(
-  z.object({
-    id: z.string(),
-    name: z.string(),
-    email: z.string().email(),
-  }),
-  {
-    examples: [
-      {
-        id: '1',
-        name: 'John Doe',
-        email: 'john@doe.com',
-      },
-    ],
-  },
-)
+JSON_SCHEMA_REGISTRY.add(NewUserSchema, {
+  examples: [
+    {
+      name: 'John Doe',
+      email: 'john@doe.com',
+      password: '123456',
+    },
+  ],
+})
+
+export const UserSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.email(),
+})
+
+JSON_SCHEMA_REGISTRY.add(UserSchema, {
+  examples: [
+    {
+      id: '1',
+      name: 'John Doe',
+      email: 'john@doe.com',
+    },
+  ],
+})

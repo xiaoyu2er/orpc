@@ -1,6 +1,6 @@
 import { DurableEventIteratorObject } from '@orpc/experimental-durable-event-iterator/durable-object'
 import { os } from '@orpc/server'
-import { z } from 'zod'
+import * as z from 'zod'
 
 export class ChatRoom extends DurableEventIteratorObject<{ message: string }> {
   publishMessageRPC() {

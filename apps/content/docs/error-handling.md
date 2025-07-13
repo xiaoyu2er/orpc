@@ -52,7 +52,7 @@ For a fully type‑safe error management experience, define your error types usi
 
 ```ts twoslash
 import { os } from '@orpc/server'
-import { z } from 'zod'
+import * as z from 'zod'
 // ---cut---
 const base = os.errors({ // <-- common errors
   RATE_LIMITED: {

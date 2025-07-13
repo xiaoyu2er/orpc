@@ -13,7 +13,7 @@ Define your procedure with `.actionable` for Server Action support.
 
 ```ts twoslash
 import { onError, onSuccess, os } from '@orpc/server'
-import { z } from 'zod'
+import * as z from 'zod'
 // ---cut---
 'use server'
 
@@ -70,7 +70,7 @@ The `.actionable` modifier supports type-safe error handling with a JSON-like er
 
 ```ts twoslash
 import { os } from '@orpc/server'
-import { z } from 'zod'
+import * as z from 'zod'
 
 export const someAction = os
   .input(z.object({ name: z.string() }))
@@ -137,7 +137,7 @@ The `useServerAction` hook simplifies invoking server actions in React.
 ```tsx twoslash
 import * as React from 'react'
 import { os } from '@orpc/server'
-import { z } from 'zod'
+import * as z from 'zod'
 
 export const someAction = os
   .input(z.object({ name: z.string() }))

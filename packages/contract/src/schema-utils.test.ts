@@ -1,6 +1,6 @@
 import { type } from 'arktype'
 import * as v from 'valibot'
-import { z } from 'zod'
+import * as z from 'zod'
 import { isSchemaIssue } from './schema-utils'
 
 describe('isSchemaIssue', async () => {

@@ -1,6 +1,6 @@
 import type { Schema } from '../src'
 import type { Meta } from '../src/meta'
-import { z } from 'zod'
+import * as z from 'zod'
 import { ContractProcedure, eventIterator } from '../src'
 
 export const inputSchema = z.object({ input: z.number().transform(n => `${n}`) })

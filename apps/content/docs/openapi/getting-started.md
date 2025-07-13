@@ -48,7 +48,7 @@ This snippet is based on the [Getting Started](/docs/getting-started) guide. Ple
 ```ts twoslash
 import type { IncomingHttpHeaders } from 'node:http'
 import { ORPCError, os } from '@orpc/server'
-import { z } from 'zod'
+import * as z from 'zod'
 
 const PlanetSchema = z.object({
   id: z.number().int().min(1),

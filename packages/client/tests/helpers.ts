@@ -2,8 +2,7 @@ import type { RouterClient } from '@orpc/server'
 import { oc } from '@orpc/contract'
 import { implement, os } from '@orpc/server'
 import { RPCHandler } from '@orpc/server/fetch'
-import { z } from 'zod'
-import { oz } from '../../zod/src'
+import * as z from 'zod'
 import { createORPCClient } from '../src'
 import { RPCLink } from '../src/adapters/fetch'
 
@@ -29,7 +28,7 @@ export const PostListOutput = z.object({
 
 export const PostCreateInput = z.object({
   title: z.string(),
-  thumbnail: oz.file().optional(),
+  thumbnail: z.file().optional(),
 })
 
 export const PostCreateOutput = PostFindOutput

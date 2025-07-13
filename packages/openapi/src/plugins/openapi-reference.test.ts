@@ -1,5 +1,5 @@
 import { os } from '@orpc/server'
-import { z } from 'zod'
+import * as z from 'zod'
 import { ZodToJsonSchemaConverter } from '../../../zod/src'
 import { OpenAPIHandler } from '../adapters/fetch/openapi-handler'
 import { OpenAPIGenerator } from '../openapi-generator'

@@ -40,7 +40,7 @@ deno install npm:@orpc/contract@latest
 A procedure contract in oRPC is similar to a standard [procedure](/docs/procedure) definition, but with extraneous APIs removed to better support contract-first development.
 
 ```ts twoslash
-import { z } from 'zod'
+import * as z from 'zod'
 // ---cut---
 import { oc } from '@orpc/contract'
 
@@ -78,7 +78,7 @@ export const routerContract = {
 Below is a complete example demonstrating how to define a contract for a simple "Planet" service. This example extracted from our [Getting Started](/docs/getting-started) guide.
 
 ```ts twoslash
-import { z } from 'zod'
+import * as z from 'zod'
 import { oc } from '@orpc/contract'
 // ---cut---
 export const PlanetSchema = z.object({

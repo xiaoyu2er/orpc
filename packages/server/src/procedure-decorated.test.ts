@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import * as z from 'zod'
 import { ping } from '../tests/shared'
 import { isProcedure } from './procedure'
 import { createActionableClient } from './procedure-action'

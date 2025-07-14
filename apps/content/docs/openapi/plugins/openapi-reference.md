@@ -14,9 +14,7 @@ This plugin relies on the [OpenAPI Generator](/docs/openapi/openapi-specificatio
 ## Setup
 
 ```ts
-import {
-  experimental_ZodToJsonSchemaConverter as ZodToJsonSchemaConverter
-} from '@orpc/zod/zod4'
+import { ZodToJsonSchemaConverter } from '@orpc/zod/zod4'
 import { OpenAPIReferencePlugin } from '@orpc/openapi/plugins'
 
 const handler = new OpenAPIHandler(router, {

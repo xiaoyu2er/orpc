@@ -72,7 +72,7 @@ import {
   ZodToJsonSchemaConverter
 } from '@orpc/zod' // <-- zod v3
 import {
-  experimental_ZodToJsonSchemaConverter as ZodToJsonSchemaConverter
+  ZodToJsonSchemaConverter
 } from '@orpc/zod/zod4' // <-- zod v4
 import {
   experimental_ValibotToJsonSchemaConverter as ValibotToJsonSchemaConverter

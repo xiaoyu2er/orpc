@@ -86,7 +86,7 @@ const Example = z.object({
 
 ```ts
 import { OpenAPIGenerator } from '@orpc/openapi'
-import { experimental_ZodToJsonSchemaConverter as ZodToJsonSchemaConverter } from '@orpc/zod/zod4'
+import { ZodToJsonSchemaConverter } from '@orpc/zod/zod4'
 
 const openAPIGenerator = new OpenAPIGenerator({
   schemaConverters: [new ZodToJsonSchemaConverter()],

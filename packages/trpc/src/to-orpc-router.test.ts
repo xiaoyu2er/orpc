@@ -1,7 +1,7 @@
 import { call, createRouterClient, getEventMeta, isProcedure, ORPCError, unlazy } from '@orpc/server'
 import { isAsyncIteratorObject } from '@orpc/shared'
 import { tracked } from '@trpc/server'
-import { z } from 'zod'
+import * as z from 'zod'
 import { inputSchema, outputSchema } from '../../contract/tests/shared'
 import { t, trpcRouter } from '../tests/shared'
 import { experimental_toORPCRouter as toORPCRouter } from './to-orpc-router'

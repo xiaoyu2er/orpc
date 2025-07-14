@@ -1,5 +1,5 @@
 import { ORPCError } from '@orpc/client'
-import { z } from 'zod'
+import * as z from 'zod'
 import { createORPCErrorConstructorMap, validateORPCError } from './error'
 import { isLazy, lazy, unlazy } from './lazy'
 import { Procedure } from './procedure'

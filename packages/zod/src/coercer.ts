@@ -23,9 +23,9 @@ import type {
   ZodTuple,
   ZodTypeAny,
   ZodUnion,
-} from 'zod'
+} from 'zod/v3'
 import { guard, isObject } from '@orpc/shared'
-import { ZodFirstPartyTypeKind } from 'zod'
+import { ZodFirstPartyTypeKind } from 'zod/v3'
 import { getCustomZodDef } from './schemas/base'
 
 export class ZodSmartCoercionPlugin<TContext extends Context> implements StandardHandlerPlugin<TContext> {

@@ -1,5 +1,5 @@
-import type { ZodTypeAny } from 'zod'
-import { z } from 'zod'
+import type { ZodTypeAny } from 'zod/v3'
+import { z } from 'zod/v3'
 import { ZodSmartCoercionPlugin } from './coercer'
 import { regexp } from './schemas/regexp'
 import { url } from './schemas/url'

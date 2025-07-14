@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import * as z from 'zod'
 import { oc } from '@orpc/contract'
 import type { RouterClient } from '@orpc/server'
 import { implement } from '@orpc/server'

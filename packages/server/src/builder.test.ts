@@ -1,6 +1,6 @@
 import type { Schema } from '@orpc/contract'
 import { isContractProcedure } from '@orpc/contract'
-import { z } from 'zod'
+import * as z from 'zod'
 import { baseErrorMap, baseMeta, baseRoute, generalSchema, inputSchema, outputSchema } from '../../contract/tests/shared'
 import { router } from '../tests/shared'
 import { Builder } from './builder'

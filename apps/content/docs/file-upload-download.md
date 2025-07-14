@@ -13,14 +13,14 @@ For files larger than 100 MB, we recommend using a dedicated upload solution or 
 
 ## Validation
 
-oRPC uses the standard [File](https://developer.mozilla.org/en-US/docs/Web/API/File) and [Blob](https://developer.mozilla.org/en-US/docs/Web/API/Blob) objects to handle file operations. To validate file uploads and downloads, you can use the `z.instanceof(File)` and `z.instanceof(Blob)` validators, or equivalent schemas in libraries like Valibot or Arktype.
+oRPC uses standard [File](https://developer.mozilla.org/en-US/docs/Web/API/File) and [Blob](https://developer.mozilla.org/en-US/docs/Web/API/Blob) objects for file operations.
 
 ```ts twoslash
 import { os } from '@orpc/server'
-import { z } from 'zod'
+import * as z from 'zod'
 // ---cut---
 const example = os
-  .input(z.object({ file: z.instanceof(File) }))
+  .input(z.object({ file: z.file() }))
   .output(z.object({ file: z.instanceof(File) }))
   .handler(async ({ input }) => {
     console.log(input.file.name)

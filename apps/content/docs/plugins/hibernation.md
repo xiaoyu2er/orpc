@@ -76,7 +76,7 @@ import {
 } from '@orpc/server/hibernation'
 import { onError, os } from '@orpc/server'
 import { DurableObject } from 'cloudflare:workers'
-import { z } from 'zod'
+import * as z from 'zod'
 
 const base = os.$context<{
   handler: RPCHandler<any>

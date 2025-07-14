@@ -1,9 +1,7 @@
 import type { AnyContractProcedure } from '@orpc/contract'
 import { eventIterator, oc } from '@orpc/contract'
-import { z } from 'zod'
-import * as z4 from 'zod/v4'
-import { oz, ZodToJsonSchemaConverter } from '../../zod/src'
-import { experimental_ZodToJsonSchemaConverter as ZodToJsonSchemaConverterV4 } from '../../zod/src/zod4'
+import * as z from 'zod'
+import { experimental_ZodToJsonSchemaConverter as ZodToJsonSchemaConverter } from '../../zod/src/zod4'
 import { customOpenAPIOperation } from './openapi-custom'
 import { OpenAPIGenerator } from './openapi-generator'
 
@@ -241,7 +239,7 @@ const inputTests: TestCase[] = [
   },
   {
     name: 'file',
-    contract: oc.input(oz.file().type('image/png')),
+    contract: oc.input(z.file().mime(['image/png'])),
     expected: {
       '/': {
         post: expect.objectContaining({
@@ -1001,48 +999,48 @@ describe('openAPIGenerator', () => {
   describe('generator - commonSchemas', async () => {
     const generator = new OpenAPIGenerator({
       schemaConverters: [
-        new ZodToJsonSchemaConverterV4(),
+        new ZodToJsonSchemaConverter(),
       ],
     })
 
-    const User = z4.object({
-      id: z4.string(),
+    const User = z.object({
+      id: z.string(),
       get parent() {
         return User.optional()
       },
     })
 
-    const Pet = z4.object({
-      id: z4.string().transform(v => Number(v)).pipe(z4.number().min(0).max(100)),
+    const Pet = z.object({
+      id: z.string().transform(v => Number(v)).pipe(z.number().min(0).max(100)),
     })
 
-    const Params = z4.object({
+    const Params = z.object({
       pet: Pet,
     })
 
-    const Query = z4.object({
+    const Query = z.object({
       user: User,
     })
 
-    const Headers = z4.object({
+    const Headers = z.object({
       user: User,
     })
 
-    const InputDetailedStructure = z4.object({
+    const InputDetailedStructure = z.object({
       params: Params,
       query: Query,
       headers: Headers,
       body: User,
     })
 
-    const OutputDetailedStructure = z4.union([
-      z4.object({
-        status: z4.literal(200),
+    const OutputDetailedStructure = z.union([
+      z.object({
+        status: z.literal(200),
         headers: Headers,
         body: User,
       }),
-      z4.object({
-        status: z4.literal(201),
+      z.object({
+        status: z.literal(201),
         body: User,
       }),
     ])

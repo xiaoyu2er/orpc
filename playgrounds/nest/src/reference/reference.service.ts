@@ -1,5 +1,5 @@
 import { OpenAPIGenerator } from '@orpc/openapi'
-import { ZodToJsonSchemaConverter } from '@orpc/zod'
+import { experimental_ZodToJsonSchemaConverter as ZodToJsonSchemaConverter } from '@orpc/zod/zod4'
 import { contract } from 'src/contract'
 import { CredentialSchema, TokenSchema } from 'src/schemas/auth'
 import { NewPlanetSchema, PlanetSchema, UpdatePlanetSchema } from 'src/schemas/planet'

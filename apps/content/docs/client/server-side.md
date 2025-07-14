@@ -17,7 +17,7 @@ Define your procedure and turn it into a callable procedure:
 
 ```ts twoslash
 import { os } from '@orpc/server'
-import { z } from 'zod'
+import * as z from 'zod'
 
 const getProcedure = os
   .input(z.object({ id: z.string() }))
@@ -34,7 +34,7 @@ const result = await getProcedure({ id: '123' })
 Alternatively, call your procedure using the `call` helper:
 
 ```ts twoslash
-import { z } from 'zod'
+import * as z from 'zod'
 import { call, os } from '@orpc/server'
 
 const getProcedure = os
@@ -51,7 +51,7 @@ const result = await call(getProcedure, { id: '123' }, {
 Create a [router](/docs/router) based client to access multiple procedures:
 
 ```ts twoslash
-import { z } from 'zod'
+import * as z from 'zod'
 // ---cut---
 import { createRouterClient, os } from '@orpc/server'
 
@@ -70,7 +70,7 @@ const result = await client.ping()
 You can define a client context to pass additional information when calling procedures. This is useful for modifying procedure behavior dynamically.
 
 ```ts twoslash
-import { z } from 'zod'
+import * as z from 'zod'
 import { createRouterClient, os } from '@orpc/server'
 // ---cut---
 interface ClientContext {

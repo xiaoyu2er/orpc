@@ -66,11 +66,10 @@ Provides `ArkTypeToJsonSchemaConverter` for generating OpenAPI specs from [ArkTy
 ### Generate OpenAPI Spec
 
 ```ts
-import { OpenAPIGenerator } from '@orpc/openapi'
-import {
 import {
   experimental_ArkTypeToJsonSchemaConverter as ArkTypeToJsonSchemaConverter
 } from '@orpc/arktype'
+import { OpenAPIGenerator } from '@orpc/openapi'
 
 const openAPIGenerator = new OpenAPIGenerator({
   schemaConverters: [

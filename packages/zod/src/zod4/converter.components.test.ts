@@ -1,5 +1,5 @@
 import { z } from 'zod/v4'
-import { experimental_ZodToJsonSchemaConverter as ZodToJsonSchemaConverter } from './converter'
+import { ZodToJsonSchemaConverter } from './converter'
 
 const User = z.object({
   id: z.string(),

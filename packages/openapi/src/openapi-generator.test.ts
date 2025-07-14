@@ -1,7 +1,7 @@
 import type { AnyContractProcedure } from '@orpc/contract'
 import { eventIterator, oc } from '@orpc/contract'
 import * as z from 'zod'
-import { experimental_ZodToJsonSchemaConverter as ZodToJsonSchemaConverter } from '../../zod/src/zod4'
+import { ZodToJsonSchemaConverter } from '../../zod/src/zod4'
 import { customOpenAPIOperation } from './openapi-custom'
 import { OpenAPIGenerator } from './openapi-generator'
 

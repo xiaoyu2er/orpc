@@ -177,7 +177,7 @@ This is a quick overview of how to use oRPC. For more details, please refer to t
 
    ```ts
    import { OpenAPIGenerator } from '@orpc/openapi'
-   import { experimental_ZodToJsonSchemaConverter as ZodToJsonSchemaConverter } from '@orpc/zod/zod4'
+   import { ZodToJsonSchemaConverter } from '@orpc/zod/zod4'
 
    const generator = new OpenAPIGenerator({
      schemaConverters: [new ZodToJsonSchemaConverter()]

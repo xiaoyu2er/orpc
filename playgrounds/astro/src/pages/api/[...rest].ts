@@ -1,7 +1,7 @@
 import '../../polyfill'
 import { OpenAPIHandler } from '@orpc/openapi/fetch'
 import { onError } from '@orpc/server'
-import { experimental_ZodToJsonSchemaConverter as ZodToJsonSchemaConverter } from '@orpc/zod/zod4'
+import { ZodToJsonSchemaConverter } from '@orpc/zod/zod4'
 import { experimental_SmartCoercionPlugin as SmartCoercionPlugin } from '@orpc/json-schema'
 import { OpenAPIReferencePlugin } from '@orpc/openapi/plugins'
 import { router } from '../../router'

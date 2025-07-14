@@ -1,4 +1,4 @@
-import { experimental_RPCHandler as RPCHandler } from '@orpc/server/message-port'
+import { RPCHandler } from '@orpc/server/message-port'
 import { router } from './router'
 
 const handler = new RPCHandler(router)

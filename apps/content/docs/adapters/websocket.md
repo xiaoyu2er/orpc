@@ -19,7 +19,7 @@ oRPC provides built-in WebSocket support for low-latency, bidirectional RPC.
 ::: code-group
 
 ```ts [Websocket]
-import { experimental_RPCHandler as RPCHandler } from '@orpc/server/websocket'
+import { RPCHandler } from '@orpc/server/websocket'
 
 const handler = new RPCHandler(router)
 
@@ -73,7 +73,7 @@ server.on('upgrade', (req, socket, head) => {
 
 ```ts [WS]
 import { WebSocketServer } from 'ws'
-import { experimental_RPCHandler as RPCHandler } from '@orpc/server/ws'
+import { RPCHandler } from '@orpc/server/ws'
 
 const handler = new RPCHandler(router)
 
@@ -87,7 +87,7 @@ wss.on('connection', (ws) => {
 ```
 
 ```ts [Bun WebSocket]
-import { experimental_RPCHandler as RPCHandler } from '@orpc/server/bun-ws'
+import { RPCHandler } from '@orpc/server/bun-ws'
 
 const handler = new RPCHandler(router)
 
@@ -113,7 +113,7 @@ Bun.serve({
 ```
 
 ```ts [Websocket Hibernation]
-import { experimental_RPCHandler as RPCHandler } from '@orpc/server/websocket'
+import { RPCHandler } from '@orpc/server/websocket'
 
 const handler = new RPCHandler(router)
 
@@ -154,7 +154,7 @@ export class ChatRoom extends DurableObject {
 | `websocket` | [MDN WebSocket API](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) (Browser, Node, Bun, Deno, etc.) |
 
 ```ts
-import { experimental_RPCLink as RPCLink } from '@orpc/client/websocket'
+import { RPCLink } from '@orpc/client/websocket'
 
 const websocket = new WebSocket('ws://localhost:3000')
 

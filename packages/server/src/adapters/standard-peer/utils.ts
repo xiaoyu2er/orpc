@@ -3,14 +3,14 @@ import type { Context } from '../../context'
 import type { FriendlyStandardHandleOptions, StandardHandler } from '../standard'
 import { resolveFriendlyStandardHandleOptions } from '../standard'
 
-export type experimental_HandleStandardServerPeerMessageOptions<T extends Context>
+export type HandleStandardServerPeerMessageOptions<T extends Context>
   = Omit<FriendlyStandardHandleOptions<T>, 'prefix'>
 
-export async function experimental_handleStandardServerPeerMessage<T extends Context>(
+export async function handleStandardServerPeerMessage<T extends Context>(
   handler: StandardHandler<T>,
   peer: ServerPeer,
   message: EncodedMessage,
-  options: experimental_HandleStandardServerPeerMessageOptions<T>,
+  options: HandleStandardServerPeerMessageOptions<T>,
 ): Promise<void> {
   const [id, request] = await peer.message(message)
 

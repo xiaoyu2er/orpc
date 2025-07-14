@@ -68,7 +68,7 @@ This example demonstrates how to set up a chat room using [Cloudflare Durable Ob
 ::: code-group
 
 ```ts [Durable Object]
-import { experimental_RPCHandler as RPCHandler } from '@orpc/server/websocket'
+import { RPCHandler } from '@orpc/server/websocket'
 import {
   experimental_encodeHibernationRPCEvent as encodeHibernationRPCEvent,
   experimental_HibernationEventIterator as HibernationEventIterator,
@@ -146,7 +146,7 @@ export class ChatRoom extends DurableObject {
 ```
 
 ```ts [Client]
-import { experimental_RPCLink as RPCLink } from '@orpc/client/websocket'
+import { RPCLink } from '@orpc/client/websocket'
 import { createORPCClient } from '@orpc/client'
 import type { router } from '../../worker/dos/chat-room'
 import type { RouterClient } from '@orpc/server'

@@ -39,7 +39,7 @@ import {
   experimental_JSON_SCHEMA_REGISTRY as JSON_SCHEMA_REGISTRY,
 } from './registries'
 
-export interface experimental_ZodToJsonSchemaOptions {
+export interface experimental_ZodToJsonSchemaConverterOptions {
   /**
    * Max depth of lazy type.
    *
@@ -86,14 +86,14 @@ export interface experimental_ZodToJsonSchemaOptions {
 }
 
 export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
-  private readonly maxLazyDepth: Exclude<experimental_ZodToJsonSchemaOptions['maxLazyDepth'], undefined>
-  private readonly maxStructureDepth: Exclude<experimental_ZodToJsonSchemaOptions['maxStructureDepth'], undefined>
-  private readonly anyJsonSchema: Exclude<experimental_ZodToJsonSchemaOptions['anyJsonSchema'], undefined>
-  private readonly unsupportedJsonSchema: Exclude<experimental_ZodToJsonSchemaOptions['unsupportedJsonSchema'], undefined>
-  private readonly undefinedJsonSchema: Exclude<experimental_ZodToJsonSchemaOptions['undefinedJsonSchema'], undefined>
-  private readonly interceptors: Exclude<experimental_ZodToJsonSchemaOptions['interceptors'], undefined>
+  private readonly maxLazyDepth: Exclude<experimental_ZodToJsonSchemaConverterOptions['maxLazyDepth'], undefined>
+  private readonly maxStructureDepth: Exclude<experimental_ZodToJsonSchemaConverterOptions['maxStructureDepth'], undefined>
+  private readonly anyJsonSchema: Exclude<experimental_ZodToJsonSchemaConverterOptions['anyJsonSchema'], undefined>
+  private readonly unsupportedJsonSchema: Exclude<experimental_ZodToJsonSchemaConverterOptions['unsupportedJsonSchema'], undefined>
+  private readonly undefinedJsonSchema: Exclude<experimental_ZodToJsonSchemaConverterOptions['undefinedJsonSchema'], undefined>
+  private readonly interceptors: Exclude<experimental_ZodToJsonSchemaConverterOptions['interceptors'], undefined>
 
-  constructor(options: experimental_ZodToJsonSchemaOptions = {}) {
+  constructor(options: experimental_ZodToJsonSchemaConverterOptions = {}) {
     this.maxLazyDepth = options.maxLazyDepth ?? 2
     this.maxStructureDepth = options.maxStructureDepth ?? 10
     this.anyJsonSchema = options.anyJsonSchema ?? {}

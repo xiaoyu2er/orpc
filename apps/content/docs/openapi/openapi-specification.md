@@ -273,7 +273,7 @@ For further customization, you can use the `JSON_SCHEMA_REGISTRY`, `JSON_SCHEMA_
 ```ts
 import * as z from 'zod'
 import {
-  experimental_JSON_SCHEMA_REGISTRY as JSON_SCHEMA_REGISTRY,
+  JSON_SCHEMA_REGISTRY,
 } from '@orpc/zod/zod4'
 
 export const InputSchema = z.object({

@@ -1,4 +1,4 @@
-import { experimental_JSON_SCHEMA_REGISTRY as JSON_SCHEMA_REGISTRY } from '@orpc/zod/zod4'
+import { JSON_SCHEMA_REGISTRY } from '@orpc/zod/zod4'
 import * as z from 'zod'
 
 export type NewUser = z.infer<typeof NewUserSchema>

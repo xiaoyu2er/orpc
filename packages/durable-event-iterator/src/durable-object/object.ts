@@ -5,7 +5,7 @@ import type { DurableEventIteratorObjectEventStorageOptions } from './event-stor
 import type { DurableEventIteratorObjectRouterContext } from './handler'
 import type { DurableEventIteratorObjectWebsocketAttachment, DurableEventIteratorObjectWebsocketManagerOptions } from './websocket-manager'
 import { experimental_HibernationPlugin as HibernationPlugin } from '@orpc/server/hibernation'
-import { experimental_RPCHandler as RPCHandler } from '@orpc/server/websocket'
+import { RPCHandler } from '@orpc/server/websocket'
 import { toArray } from '@orpc/shared'
 import { DurableObject } from 'cloudflare:workers'
 import { DURABLE_EVENT_ITERATOR_OBJECT_SYMBOL } from '../object'

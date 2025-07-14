@@ -1,7 +1,7 @@
 import { MessageChannel } from 'node:worker_threads'
 import { decodeRequestMessage, encodeResponseMessage, MessageType } from '@orpc/standard-server-peer'
 import { createORPCClient } from '../../client'
-import { experimental_RPCLink as RPCLink } from './rpc-link'
+import { RPCLink } from './rpc-link'
 
 describe('rpcLink', () => {
   let orpc: any

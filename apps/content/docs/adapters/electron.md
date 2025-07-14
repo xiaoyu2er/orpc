@@ -12,7 +12,7 @@ Establish type-safe communication between processes in [Electron](https://www.el
 Listen for a port sent from the renderer, then upgrade it:
 
 ```ts
-import { experimental_RPCHandler as RPCHandler } from '@orpc/server/message-port'
+import { RPCHandler } from '@orpc/server/message-port'
 import { router } from './router'
 
 const handler = new RPCHandler(router)

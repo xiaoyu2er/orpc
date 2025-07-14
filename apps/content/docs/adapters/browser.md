@@ -18,7 +18,7 @@ The browser extension [Message Passing API](https://developer.chrome.com/docs/ex
 ::: code-group
 
 ```ts [server]
-import { experimental_RPCHandler as RPCHandler } from '@orpc/server/message-port'
+import { RPCHandler } from '@orpc/server/message-port'
 
 const handler = new RPCHandler(router)
 
@@ -30,7 +30,7 @@ browser.runtime.onConnect.addListener((port) => {
 ```
 
 ```ts [client]
-import { experimental_RPCLink as RPCLink } from '@orpc/client/message-port'
+import { RPCLink } from '@orpc/client/message-port'
 
 const port = browser.runtime.connect()
 
@@ -52,7 +52,7 @@ To enable communication between two window contexts (e.g. parent and popup), one
 ::: code-group
 
 ```ts [opener]
-import { experimental_RPCHandler as RPCHandler } from '@orpc/server/message-port'
+import { RPCHandler } from '@orpc/server/message-port'
 
 const handler = new RPCHandler(router)
 
@@ -70,7 +70,7 @@ window.open('/example/popup', 'popup', 'width=680,height=520')
 ```
 
 ```ts [popup]
-import { experimental_RPCLink as RPCLink } from '@orpc/client/message-port'
+import { RPCLink } from '@orpc/client/message-port'
 
 const { port1: serverPort, port2: clientPort } = new MessageChannel()
 
@@ -122,7 +122,7 @@ window.addEventListener('message', (event) => {
 ```
 
 ```ts [server]
-import { experimental_RPCHandler as RPCHandler } from '@orpc/server/message-port'
+import { RPCHandler } from '@orpc/server/message-port'
 
 const handler = new RPCHandler(router)
 
@@ -134,7 +134,7 @@ browser.runtime.onConnect.addListener((port) => {
 ```
 
 ```ts [client]
-import { experimental_RPCLink as RPCLink } from '@orpc/client/message-port'
+import { RPCLink } from '@orpc/client/message-port'
 
 const { port1: serverPort, port2: clientPort } = new MessageChannel()
 

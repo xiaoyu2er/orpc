@@ -3,15 +3,15 @@ import type { WebSocket } from 'ws'
 import type { Context } from '../../context'
 import type { StandardHandler } from '../standard'
 import type {
-  experimental_HandleStandardServerPeerMessageOptions as HandleStandardServerPeerMessageOptions,
+  HandleStandardServerPeerMessageOptions,
 } from '../standard-peer'
 import { readAsBuffer, resolveMaybeOptionalOptions } from '@orpc/shared'
 import { ServerPeer } from '@orpc/standard-server-peer'
 import {
-  experimental_handleStandardServerPeerMessage as handleStandardServerPeerMessage,
+  handleStandardServerPeerMessage,
 } from '../standard-peer'
 
-export class experimental_WsHandler<T extends Context> {
+export class WsHandler<T extends Context> {
   constructor(
     private readonly standardHandler: StandardHandler<T>,
   ) {

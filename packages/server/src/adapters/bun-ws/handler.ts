@@ -2,19 +2,19 @@ import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { Context } from '../../context'
 import type { StandardHandler } from '../standard'
 import type {
-  experimental_HandleStandardServerPeerMessageOptions as HandleStandardServerPeerMessageOptions,
+  HandleStandardServerPeerMessageOptions,
 } from '../standard-peer'
 import { resolveMaybeOptionalOptions } from '@orpc/shared'
 import { ServerPeer } from '@orpc/standard-server-peer'
 import {
-  experimental_handleStandardServerPeerMessage as handleStandardServerPeerMessage,
+  handleStandardServerPeerMessage,
 } from '../standard-peer'
 
 export interface ServerWebSocket {
   send(message: string | ArrayBufferLike | Uint8Array): number
 }
 
-export class experimental_BunWsHandler<T extends Context> {
+export class BunWsHandler<T extends Context> {
   private readonly peers: WeakMap<ServerWebSocket, ServerPeer> = new WeakMap()
 
   constructor(

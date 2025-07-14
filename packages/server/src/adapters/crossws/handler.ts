@@ -2,14 +2,10 @@ import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { Message, Peer } from 'crossws'
 import type { Context } from '../../context'
 import type { StandardHandler } from '../standard'
-import type {
-  experimental_HandleStandardServerPeerMessageOptions as HandleStandardServerPeerMessageOptions,
-} from '../standard-peer'
+import type { HandleStandardServerPeerMessageOptions } from '../standard-peer'
 import { resolveMaybeOptionalOptions } from '@orpc/shared'
 import { ServerPeer } from '@orpc/standard-server-peer'
-import {
-  experimental_handleStandardServerPeerMessage as handleStandardServerPeerMessage,
-} from '../standard-peer'
+import { handleStandardServerPeerMessage } from '../standard-peer'
 
 export class experimental_CrosswsHandler<T extends Context> {
   private readonly peers: WeakMap<Pick<Peer, 'send'>, ServerPeer> = new WeakMap()

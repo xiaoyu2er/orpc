@@ -1,9 +1,9 @@
 import type { RouterClient } from '../src'
 import { createORPCClient } from '@orpc/client'
-import { experimental_RPCLink as RPCLink } from '@orpc/client/message-port'
+import { RPCLink } from '@orpc/client/message-port'
 import { supportedDataTypes } from '../../client/tests/shared'
 import { os } from '../src'
-import { experimental_RPCHandler as RPCHandler } from '../src/adapters/message-port'
+import { RPCHandler } from '../src/adapters/message-port'
 
 describe('message port adapter', () => {
   const { port1, port2 } = new MessageChannel()

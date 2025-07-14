@@ -1,6 +1,6 @@
 import { encodeRequestMessage, MessageType } from '@orpc/standard-server-peer'
 import { os } from '../../builder'
-import { experimental_RPCHandler as RPCHandler } from './rpc-handler'
+import { RPCHandler } from './rpc-handler'
 
 beforeEach(() => {
   vi.clearAllMocks()

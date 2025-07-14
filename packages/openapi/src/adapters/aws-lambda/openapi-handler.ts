@@ -10,7 +10,7 @@ import { StandardOpenAPIHandler } from '../standard'
  * @see {@link https://orpc.unnoq.com/docs/openapi/openapi-handler OpenAPI Handler Docs}
  * @see {@link https://orpc.unnoq.com/docs/adapters/http HTTP Adapter Docs}
  */
-export class experimental_OpenAPIHandler<T extends Context> extends AwsLambdaHandler<T> {
+export class OpenAPIHandler<T extends Context> extends AwsLambdaHandler<T> {
   constructor(router: Router<any, T>, options: NoInfer<StandardOpenAPIHandlerOptions<T> & AwsLambdaHandlerOptions> = {}) {
     super(new StandardOpenAPIHandler(router, options), options)
   }

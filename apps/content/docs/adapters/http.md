@@ -123,7 +123,7 @@ Deno.serve(async (request) => {
 
 ```ts [aws-lambda]
 import { APIGatewayProxyEventV2 } from 'aws-lambda'
-import { experimental_RPCHandler as RPCHandler } from '@orpc/server/aws-lambda'
+import { RPCHandler } from '@orpc/server/aws-lambda'
 
 const rpcHandler = new RPCHandler(router)
 

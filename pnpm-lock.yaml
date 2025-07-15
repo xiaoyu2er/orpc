@@ -83,6 +83,12 @@ importers:
 
   apps/content:
     devDependencies:
+      '@ai-sdk/google':
+        specifier: 2.0.0-beta.9
+        version: 2.0.0-beta.9(zod@4.0.5)
+      '@ai-sdk/react':
+        specifier: 2.0.0-beta.18
+        version: 2.0.0-beta.18(react@19.1.0)(zod@4.0.5)
       '@orpc/arktype':
         specifier: workspace:*
         version: link:../../packages/arktype
@@ -143,6 +149,9 @@ importers:
       '@types/node':
         specifier: ^22.15.18
         version: 22.16.3
+      ai:
+        specifier: 5.0.0-beta.18
+        version: 5.0.0-beta.18(zod@4.0.5)
       mermaid:
         specifier: ^11.8.1
         version: 11.8.1
@@ -179,19 +188,6 @@ importers:
       zod:
         specifier: ^4.0.5
         version: 4.0.5
-
-  packages/ai-sdk:
-    dependencies:
-      '@orpc/client':
-        specifier: workspace:*
-        version: link:../client
-    devDependencies:
-      '@ai-sdk/react':
-        specifier: 2.0.0-beta.18
-        version: 2.0.0-beta.18(react@19.1.0)(zod@4.0.5)
-      ai:
-        specifier: 5.0.0-beta.18
-        version: 5.0.0-beta.18(zod@4.0.5)
 
   packages/arktype:
     dependencies:
@@ -1390,6 +1386,12 @@ packages:
 
   '@ai-sdk/gateway@1.0.0-beta.7':
     resolution: {integrity: sha512-0TOWFetxYximugqdmA/uxk+NRkz51Lyo+anntc3hPzm2OnsbE/Q2wWkKJ14YzoCAfWZ9ZhvxsJRp8xzvvQREsA==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.25.49
+
+  '@ai-sdk/google@2.0.0-beta.9':
+    resolution: {integrity: sha512-NewapUWwN8Tq/f03hiL18KDmX7EpnCUELO53eWEUCZCFtRFrrjArBVAUtxulzwjvQ8qDreYLvFVWGfdw0aoe7w==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.49
@@ -12803,6 +12805,12 @@ snapshots:
   '@adobe/css-tools@4.4.3': {}
 
   '@ai-sdk/gateway@1.0.0-beta.7(zod@4.0.5)':
+    dependencies:
+      '@ai-sdk/provider': 2.0.0-beta.1
+      '@ai-sdk/provider-utils': 3.0.0-beta.2(zod@4.0.5)
+      zod: 4.0.5
+
+  '@ai-sdk/google@2.0.0-beta.9(zod@4.0.5)':
     dependencies:
       '@ai-sdk/provider': 2.0.0-beta.1
       '@ai-sdk/provider-utils': 3.0.0-beta.2(zod@4.0.5)

@@ -165,7 +165,7 @@ export interface TraverseContractProceduresOptions {
 }
 
 export interface ContractProcedureCallbackOptions {
-  contract: AnyContractProcedure
+  contract: AnyContractProcedure | AnyProcedure
   path: readonly string[]
 }
 

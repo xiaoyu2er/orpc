@@ -1,14 +1,27 @@
 import type { HTTPPath } from '@orpc/client'
 import type { AnyContractProcedure } from '@orpc/contract'
-import type { AnyProcedure, AnyRouter, LazyTraverseContractProceduresOptions } from '@orpc/server'
+import type { AnyProcedure, AnyRouter, ContractProcedureCallbackOptions, LazyTraverseContractProceduresOptions } from '@orpc/server'
 import type { StandardMatcher, StandardMatchResult } from '@orpc/server/standard'
+import type { Value } from '@orpc/shared'
 import { toHttpPath } from '@orpc/client/standard'
 import { fallbackContractConfig } from '@orpc/contract'
 import { createContractedProcedure, getLazyMeta, getRouter, isProcedure, traverseContractProcedures, unlazy } from '@orpc/server'
+import { value } from '@orpc/shared'
 import { addRoute, createRouter, findRoute } from 'rou3'
 import { decodeParams, toRou3Pattern } from './utils'
 
+export interface StandardOpenAPIMatcherOptions {
+  /**
+   * Filter procedures. Return `false` to exclude a procedure from matching.
+   *
+   * @default true
+   */
+  filter?: Value<boolean, [options: ContractProcedureCallbackOptions]>
+}
+
 export class StandardOpenAPIMatcher implements StandardMatcher {
+  private readonly filter: Exclude<StandardOpenAPIMatcherOptions['filter'], undefined>
+
   private readonly tree = createRouter<{
     path: readonly string[]
     contract: AnyContractProcedure
@@ -18,8 +31,18 @@ export class StandardOpenAPIMatcher implements StandardMatcher {
 
   private pendingRouters: (LazyTraverseContractProceduresOptions & { httpPathPrefix: HTTPPath, laziedPrefix: string | undefined }) [] = []
 
+  constructor(options: StandardOpenAPIMatcherOptions = {}) {
+    this.filter = options.filter ?? true
+  }
+
   init(router: AnyRouter, path: readonly string[] = []): void {
-    const laziedOptions = traverseContractProcedures({ router, path }, ({ path, contract }) => {
+    const laziedOptions = traverseContractProcedures({ router, path }, (traverseOptions) => {
+      if (!value(this.filter, traverseOptions)) {
+        return
+      }
+
+      const { path, contract } = traverseOptions
+
       const method = fallbackContractConfig('defaultMethod', contract['~orpc'].route.method)
       const httpPath = toRou3Pattern(contract['~orpc'].route.path ?? toHttpPath(path))
 

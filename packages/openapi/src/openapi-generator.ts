@@ -1,6 +1,7 @@
 import type { AnyContractProcedure, AnyContractRouter, AnySchema, ErrorMap, OpenAPI } from '@orpc/contract'
 import type { StandardOpenAPIJsonSerializerOptions } from '@orpc/openapi-client/standard'
-import type { AnyProcedure, AnyRouter } from '@orpc/server'
+import type { AnyProcedure, AnyRouter, ContractProcedureCallbackOptions } from '@orpc/server'
+import type { Value } from '@orpc/shared'
 import type { JSONSchema } from './schema'
 import type { ConditionalSchemaConverter, SchemaConverter, SchemaConverterComponent, SchemaConvertOptions } from './schema-converter'
 import { fallbackORPCErrorMessage, fallbackORPCErrorStatus, isORPCErrorStatus } from '@orpc/client'
@@ -8,7 +9,7 @@ import { toHttpPath } from '@orpc/client/standard'
 import { fallbackContractConfig, getEventIteratorSchemaDetails } from '@orpc/contract'
 import { getDynamicParams, StandardOpenAPIJsonSerializer } from '@orpc/openapi-client/standard'
 import { resolveContractProcedures } from '@orpc/server'
-import { clone, stringifyJSON, toArray } from '@orpc/shared'
+import { clone, stringifyJSON, toArray, value } from '@orpc/shared'
 import { applyCustomOpenAPIOperation } from './openapi-custom'
 import { checkParamsSchema, resolveOpenAPIJsonSchemaRef, toOpenAPIContent, toOpenAPIEventIteratorContent, toOpenAPIMethod, toOpenAPIParameters, toOpenAPIPath, toOpenAPISchema } from './openapi-utils'
 import { CompositeSchemaConverter } from './schema-converter'
@@ -24,9 +25,17 @@ export interface OpenAPIGeneratorGenerateOptions extends Partial<Omit<OpenAPI.Do
   /**
    * Exclude procedures from the OpenAPI specification.
    *
+   * @deprecated Use `filter` option instead.
    * @default () => false
    */
   exclude?: (procedure: AnyProcedure | AnyContractProcedure, path: readonly string[]) => boolean
+
+  /**
+   * Filter procedures. Return `false` to exclude a procedure from the OpenAPI specification.
+   *
+   * @default true
+   */
+  filter?: Value<boolean, [options: ContractProcedureCallbackOptions]>
 
   /**
    * Common schemas to be used for $ref resolution.
@@ -81,7 +90,10 @@ export class OpenAPIGenerator {
    * @see {@link https://orpc.unnoq.com/docs/openapi/openapi-specification OpenAPI Specification Docs}
    */
   async generate(router: AnyContractRouter | AnyRouter, options: OpenAPIGeneratorGenerateOptions = {}): Promise<OpenAPI.Document> {
-    const exclude = options.exclude ?? (() => false)
+    const filter = options.filter
+      ?? (({ contract, path }: ContractProcedureCallbackOptions) => {
+        return !(options.exclude?.(contract, path) ?? false)
+      })
 
     const doc: OpenAPI.Document = {
       ...clone(options),
@@ -93,12 +105,14 @@ export class OpenAPIGenerator {
 
     const { baseSchemaConvertOptions, undefinedErrorJsonSchema } = await this.#resolveCommonSchemas(doc, options.commonSchemas)
 
-    const contracts: { contract: AnyContractProcedure, path: readonly string[] }[] = []
+    const contracts: ContractProcedureCallbackOptions[] = []
 
-    await resolveContractProcedures({ path: [], router }, ({ contract, path }) => {
-      if (!exclude(contract, path)) {
-        contracts.push({ contract, path })
+    await resolveContractProcedures({ path: [], router }, (traverseOptions) => {
+      if (!value(filter, traverseOptions)) {
+        return
       }
+
+      contracts.push(traverseOptions)
     })
 
     const errors: string[] = []

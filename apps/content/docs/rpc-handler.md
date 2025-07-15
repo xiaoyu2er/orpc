@@ -73,6 +73,16 @@ export default async function fetch(request: Request) {
 }
 ```
 
+## Filtering Procedures
+
+You can filter a procedure from matching by using the `filter` option:
+
+```ts
+const handler = new RPCHandler(router, {
+  filter: ({ contract, path }) => !contract['~orpc'].route.tags?.includes('internal'),
+})
+```
+
 ## Event Iterator Keep Alive
 
 To keep [Event Iterator](/docs/event-iterator) connections alive, `RPCHandler` periodically sends a ping comment to the client. You can configure this behavior using the following options:

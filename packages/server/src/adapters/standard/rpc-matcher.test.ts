@@ -168,4 +168,25 @@ describe('standardRPCMatcher', () => {
     expect(pingLoader).toHaveBeenCalledTimes(4)
     expect(pongLoader).toHaveBeenCalledTimes(4)
   })
+
+  it('filter procedures', async () => {
+    const rpcMatcher = new StandardRPCMatcher({
+      filter: (options) => {
+        if (options.path.includes('ping')) {
+          return false
+        }
+
+        return true
+      },
+    })
+    rpcMatcher.init(router)
+
+    expect(await rpcMatcher.match('ANYTHING', '/ping')).toEqual(undefined)
+    expect(await rpcMatcher.match('ANYTHING', '/nested/ping')).toEqual(undefined)
+
+    expect(await rpcMatcher.match('ANYTHING', '/pong')).toEqual({
+      path: ['pong'],
+      procedure: pong,
+    })
+  })
 })

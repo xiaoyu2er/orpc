@@ -1,17 +1,29 @@
 import type { HTTPPath } from '@orpc/client'
 import type { AnyContractProcedure } from '@orpc/contract'
+import type { Value } from '@orpc/shared'
 import type { AnyProcedure } from '../../procedure'
 import type { AnyRouter } from '../../router'
-import type { LazyTraverseContractProceduresOptions } from '../../router-utils'
+import type { ContractProcedureCallbackOptions, LazyTraverseContractProceduresOptions } from '../../router-utils'
 import type { StandardMatcher, StandardMatchResult } from './types'
 import { toHttpPath } from '@orpc/client/standard'
-import { NullProtoObj } from '@orpc/shared'
+import { NullProtoObj, value } from '@orpc/shared'
 import { unlazy } from '../../lazy'
 import { isProcedure } from '../../procedure'
 import { createContractedProcedure } from '../../procedure-utils'
 import { getRouter, traverseContractProcedures } from '../../router-utils'
 
+export interface StandardRPCMatcherOptions {
+  /**
+   * Filter procedures. Return `false` to exclude a procedure from matching.
+   *
+   * @default true
+   */
+  filter?: Value<boolean, [options: ContractProcedureCallbackOptions]>
+}
+
 export class StandardRPCMatcher implements StandardMatcher {
+  private readonly filter: Exclude<StandardRPCMatcherOptions['filter'], undefined>
+
   private readonly tree: Record<
     HTTPPath,
     {
@@ -24,8 +36,18 @@ export class StandardRPCMatcher implements StandardMatcher {
 
   private pendingRouters: (LazyTraverseContractProceduresOptions & { httpPathPrefix: HTTPPath }) [] = []
 
+  constructor(options: StandardRPCMatcherOptions = {}) {
+    this.filter = options.filter ?? true
+  }
+
   init(router: AnyRouter, path: readonly string[] = []): void {
-    const laziedOptions = traverseContractProcedures({ router, path }, ({ path, contract }) => {
+    const laziedOptions = traverseContractProcedures({ router, path }, (traverseOptions) => {
+      if (!value(this.filter, traverseOptions)) {
+        return
+      }
+
+      const { path, contract } = traverseOptions
+
       const httpPath = toHttpPath(path)
 
       if (isProcedure(contract)) {

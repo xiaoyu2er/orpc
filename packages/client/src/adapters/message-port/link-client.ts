@@ -5,14 +5,14 @@ import type { SupportedMessagePort } from './message-port'
 import { ClientPeer } from '@orpc/standard-server-peer'
 import { onMessagePortClose, onMessagePortMessage, postMessagePortMessage } from './message-port'
 
-export interface experimental_LinkMessagePortClientOptions {
+export interface LinkMessagePortClientOptions {
   port: SupportedMessagePort
 }
 
-export class experimental_LinkMessagePortClient<T extends ClientContext> implements StandardLinkClient<T> {
+export class LinkMessagePortClient<T extends ClientContext> implements StandardLinkClient<T> {
   private readonly peer: ClientPeer
 
-  constructor(options: experimental_LinkMessagePortClientOptions) {
+  constructor(options: LinkMessagePortClientOptions) {
     this.peer = new ClientPeer((message) => {
       return postMessagePortMessage(options.port, message)
     })

@@ -68,7 +68,7 @@ This is a quick overview of how to use oRPC. For more details, please refer to t
    ```ts
    import type { IncomingHttpHeaders } from 'node:http'
    import { ORPCError, os } from '@orpc/server'
-   import { z } from 'zod'
+   import * as z from 'zod'
 
    const PlanetSchema = z.object({
      id: z.number().int().min(1),
@@ -177,7 +177,7 @@ This is a quick overview of how to use oRPC. For more details, please refer to t
 
    ```ts
    import { OpenAPIGenerator } from '@orpc/openapi'
-   import { ZodToJsonSchemaConverter } from '@orpc/zod'
+   import { ZodToJsonSchemaConverter } from '@orpc/zod/zod4'
 
    const generator = new OpenAPIGenerator({
      schemaConverters: [new ZodToJsonSchemaConverter()]

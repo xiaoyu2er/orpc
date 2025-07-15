@@ -13,7 +13,7 @@ This example shows how to integrate oRPC with the OpenAI Streaming API to build 
 import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
 import { os, RouterClient } from '@orpc/server'
-import { z } from 'zod'
+import * as z from 'zod'
 // ---cut---
 import OpenAI from 'openai'
 

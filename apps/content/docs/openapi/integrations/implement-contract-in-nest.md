@@ -70,7 +70,7 @@ Before implementation, define your oRPC contract. This process is consistent wit
 ```ts
 import { populateContractRouterPaths } from '@orpc/nest'
 import { oc } from '@orpc/contract'
-import { z } from 'zod'
+import * as z from 'zod'
 
 export const PlanetSchema = z.object({
   id: z.number().int().min(1),

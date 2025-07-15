@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/v3'
 import { customJsonSchema, getCustomJsonSchema } from './custom-json-schema'
 
 describe('custom json schema', () => {

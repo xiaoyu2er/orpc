@@ -1,6 +1,6 @@
 import { encodeRequestMessage, encodeResponseMessage, MessageType, ServerPeer } from '@orpc/standard-server-peer'
 import {
-  experimental_handleStandardServerPeerMessage as handleStandardServerPeerMessage,
+  handleStandardServerPeerMessage,
 } from './utils'
 
 beforeEach(() => {

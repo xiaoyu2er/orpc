@@ -1,7 +1,7 @@
 'use server'
 
 import { pub } from '@/orpc'
-import { z } from 'zod'
+import * as z from 'zod'
 import { createFormAction } from '@orpc/react'
 import { redirect } from 'next/navigation'
 import { onSuccess } from '@orpc/client'

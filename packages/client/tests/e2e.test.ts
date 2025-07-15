@@ -33,13 +33,10 @@ describe('e2e', () => {
     expect(error3).toBeInstanceOf(ORPCError)
     expect((error3 as any).code).toEqual('BAD_REQUEST')
     expect((error3 as any).data).toEqual({
-      issues: [{
-        code: 'invalid_type',
-        expected: 'string',
-        message: 'Required',
+      issues: [expect.objectContaining({
+        message: expect.any(String),
         path: ['title'],
-        received: 'undefined',
-      }],
+      })],
     })
   })
 

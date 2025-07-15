@@ -1,5 +1,5 @@
 import { ORPCError, os } from '@orpc/server'
-import { z } from 'zod'
+import * as z from 'zod'
 import { createFormAction } from './action-form'
 
 beforeEach(() => {

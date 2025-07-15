@@ -1,7 +1,6 @@
 import type { JSONSchema } from '@orpc/openapi'
-import type { ZodTypeAny } from 'zod'
-import { z } from 'zod'
-import { zodToJsonSchema } from 'zod-to-json-schema'
+import type { ZodTypeAny } from 'zod/v3'
+import { z } from 'zod/v3'
 import { ZodToJsonSchemaConverter } from './converter'
 import { customJsonSchema } from './custom-json-schema'
 import { blob } from './schemas/blob'
@@ -13,7 +12,6 @@ type SchemaTestCase = {
   schema: ZodTypeAny
   input: [boolean, JSONSchema & Record<string, unknown>]
   output?: [boolean, JSONSchema & Record<string, unknown>]
-  ignoreZodToJsonSchema?: boolean
 }
 
 const stringCases: SchemaTestCase[] = [
@@ -32,7 +30,6 @@ const stringCases: SchemaTestCase[] = [
   {
     schema: z.string().cuid(),
     input: [true, { type: 'string', pattern: '^[0-9A-HJKMNP-TV-Z]{26}$' }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.string().email(),
@@ -144,13 +141,11 @@ const numberCases: SchemaTestCase[] = [
   {
     schema: z.bigint(),
     input: [true, { 'type': 'string', 'pattern': '^-?[0-9]+$', 'x-native-type': 'bigint' }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.nan(),
     input: [true, { not: {} }],
     output: [true, { type: 'null' }],
-    ignoreZodToJsonSchema: true,
   },
 ]
 
@@ -167,7 +162,6 @@ const nativeCases: SchemaTestCase[] = [
   {
     schema: z.date(),
     input: [true, { 'type': 'string', 'format': 'date-time', 'x-native-type': 'date' }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.null(),
@@ -176,42 +170,34 @@ const nativeCases: SchemaTestCase[] = [
   {
     schema: z.any(),
     input: [false, { }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.unknown(),
     input: [false, {}],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.undefined(),
     input: [false, { not: {} }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.void(),
     input: [false, { not: {} }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.literal(1234),
     input: [true, { const: 1234 }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.literal(undefined),
     input: [false, { not: {} }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.enum(['a', 'b']),
     input: [true, { enum: ['a', 'b'] }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.nativeEnum(ExampleEnum),
     input: [true, { enum: ['a', 'b'] }],
-    ignoreZodToJsonSchema: true,
   },
 ]
 
@@ -219,17 +205,14 @@ const combinationCases: SchemaTestCase[] = [
   {
     schema: z.union([z.string(), z.number()]),
     input: [true, { anyOf: [{ type: 'string' }, { type: 'number' }] }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.union([z.string(), z.number().optional()]),
     input: [false, { anyOf: [{ type: 'string' }, { type: 'number' }] }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.union([z.string(), z.undefined()]),
     input: [false, { type: 'string' }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.intersection(z.string(), z.number()),
@@ -238,7 +221,6 @@ const combinationCases: SchemaTestCase[] = [
   {
     schema: z.intersection(z.string().optional(), z.number().optional()),
     input: [false, { allOf: [{ type: 'string' }, { type: 'number' }] }],
-    ignoreZodToJsonSchema: true,
   },
 ]
 
@@ -246,18 +228,15 @@ const processedCases: SchemaTestCase[] = [
   {
     schema: z.lazy(() => z.object({ value: z.string() })),
     input: [true, { type: 'object', properties: { value: { type: 'string' } }, required: ['value'] }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.lazy(() => z.object({ value: z.lazy(() => z.string()) })),
     input: [true, { type: 'object', properties: { value: { } } }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.string().transform(x => x),
     input: [true, { type: 'string' }],
     output: [false, {}],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.string().refine(x => x.length > 0, 'not empty'),
@@ -270,7 +249,6 @@ const processedCases: SchemaTestCase[] = [
   {
     schema: z.number().catch(1),
     input: [true, { type: 'number' }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.number().brand<'CAT'>(),
@@ -288,17 +266,14 @@ const processedCases: SchemaTestCase[] = [
   {
     schema: z.string().nullable(),
     input: [true, { anyOf: [{ type: 'string' }, { type: 'null' }] }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.string().default('a'),
     input: [false, { default: 'a', type: 'string' }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.number().readonly(),
     input: [true, { type: 'number', readOnly: true }],
-    ignoreZodToJsonSchema: true,
   },
 ]
 
@@ -306,22 +281,18 @@ const unsupportedCases: SchemaTestCase[] = [
   {
     schema: z.promise(z.string()),
     input: [true, { not: {} }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.symbol(),
     input: [true, { not: {} }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.function(),
     input: [true, { not: {} }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.never(),
     input: [true, { not: {} }],
-    ignoreZodToJsonSchema: true,
   },
 ]
 
@@ -329,32 +300,26 @@ const extendSchemaCases: SchemaTestCase[] = [
   {
     schema: file(),
     input: [true, { type: 'string', contentMediaType: '*/*' }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: file().type('image/png'),
     input: [true, { type: 'string', contentMediaType: 'image/png' }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: blob(),
     input: [true, { type: 'string', contentMediaType: '*/*' }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: regexp(),
     input: [true, { 'type': 'string', 'pattern': '^\\/(.*)\\/([a-z]*)$', 'x-native-type': 'regexp' }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: url(),
     input: [true, { 'type': 'string', 'format': 'uri', 'x-native-type': 'url' }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: customJsonSchema(z.string(), { examples: ['a', 'b'] }),
     input: [true, { type: 'string', examples: ['a', 'b'] }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: customJsonSchema(
@@ -368,12 +333,10 @@ const extendSchemaCases: SchemaTestCase[] = [
     ),
     input: [true, { type: 'string', examples: ['input'] }],
     output: [true, { type: 'string', examples: ['output'] }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.string().describe('description'),
     input: [true, { type: 'string', description: 'description' }],
-    ignoreZodToJsonSchema: true,
   },
 ]
 
@@ -381,17 +344,14 @@ const edgeCases: SchemaTestCase[] = [
   {
     schema: z.array(z.string()).nonempty(),
     input: [true, { type: 'array', items: { type: 'string' }, minItems: 1 }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.array(z.string()).min(10).max(20),
     input: [true, { type: 'array', items: { type: 'string' }, minItems: 10, maxItems: 20 }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.array(z.string()).length(10),
     input: [true, { type: 'array', items: { type: 'string' }, minItems: 10, maxItems: 10 }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.object({ value: z.string() }).strict(),
@@ -404,12 +364,10 @@ const edgeCases: SchemaTestCase[] = [
   {
     schema: z.record(z.number(), z.string()),
     input: [true, { type: 'object', additionalProperties: { type: 'string' }, propertyNames: { type: 'number' } }],
-    ignoreZodToJsonSchema: true,
   },
   {
     schema: z.record(z.string().date(), z.string()),
     input: [true, { type: 'object', additionalProperties: { type: 'string' }, propertyNames: { type: 'string', format: 'date' } }],
-    ignoreZodToJsonSchema: true,
   },
 ]
 
@@ -422,7 +380,7 @@ describe.each([
   ...extendSchemaCases,
   ...unsupportedCases,
   ...edgeCases,
-])('zodToJsonSchemaConverter.convert %#', ({ schema, input, output = input, ignoreZodToJsonSchema }) => {
+])('zodToJsonSchemaConverter.convert %#', ({ schema, input, output = input }) => {
   describe.each([
     ['input'],
     ['output'],
@@ -441,23 +399,6 @@ describe.each([
 
       expect(required).toEqual(expectedRequired)
       expect(json).toEqual(expectedJson)
-
-      if (!ignoreZodToJsonSchema) {
-        if (expectedRequired) {
-          expect(expectedJson).toEqual({
-            ...zodToJsonSchema(schema, { target: 'jsonSchema2019-09', pipeStrategy: strategy, $refStrategy: 'none' }),
-            $schema: undefined,
-          })
-        }
-        else {
-          expect({
-            anyOf: [{ not: {} }, expectedJson],
-          }).toEqual({
-            ...zodToJsonSchema(schema, { target: 'jsonSchema2019-09', pipeStrategy: strategy, $refStrategy: 'none' }),
-            $schema: undefined,
-          })
-        }
-      }
     })
 
     it('object', () => {
@@ -472,14 +413,6 @@ describe.each([
         },
         required: expectedRequired ? ['value'] : undefined,
       })
-
-      if (!ignoreZodToJsonSchema) {
-        expect(json).toEqual({
-          ...zodToJsonSchema(testSchema, { target: 'jsonSchema2019-09', pipeStrategy: strategy, $refStrategy: 'none' }),
-          $schema: undefined,
-          additionalProperties: undefined,
-        })
-      }
     })
 
     it('array', () => {
@@ -491,13 +424,6 @@ describe.each([
         type: 'array',
         items: arrayItemJsonSchema,
       })
-
-      if (!ignoreZodToJsonSchema) {
-        expect(json).toEqual({
-          ...zodToJsonSchema(testSchema, { target: 'jsonSchema2019-09', pipeStrategy: strategy, $refStrategy: 'none' }),
-          $schema: undefined,
-        })
-      }
     })
 
     it('tuple', () => {
@@ -513,22 +439,6 @@ describe.each([
         ],
         items: arrayItemJsonSchema,
       })
-
-      if (!ignoreZodToJsonSchema) {
-        expect({
-          type: 'array',
-          items: [
-            expectedRequired ? expectedJson : { anyOf: [{ not: {} }, expectedJson] },
-            expectedRequired ? expectedJson : { anyOf: [{ not: {} }, expectedJson] },
-          ],
-          additionalItems: expectedRequired ? expectedJson : { anyOf: [{ not: {} }, expectedJson] },
-        }).toEqual({
-          ...zodToJsonSchema(testSchema, { target: 'jsonSchema2019-09', pipeStrategy: strategy, $refStrategy: 'none' }),
-          $schema: undefined,
-          maxItems: undefined,
-          minItems: undefined,
-        })
-      }
     })
 
     it('set', () => {
@@ -542,18 +452,6 @@ describe.each([
         'items': arrayItemJsonSchema,
         'x-native-type': 'set',
       })
-
-      if (!ignoreZodToJsonSchema) {
-        expect({
-          type: 'array',
-          uniqueItems: true,
-          items: expectedRequired ? expectedJson : { anyOf: [{ not: {} }, expectedJson] },
-        }).toEqual({
-          ...zodToJsonSchema(testSchema, { target: 'jsonSchema2019-09', pipeStrategy: strategy, $refStrategy: 'none' }),
-          '$schema': undefined,
-          'x-native-type': undefined,
-        })
-      }
     })
 
     it('map', () => {
@@ -574,26 +472,6 @@ describe.each([
         },
         'x-native-type': 'map',
       })
-
-      if (!ignoreZodToJsonSchema) {
-        expect({
-          type: 'array',
-          items: {
-            maxItems: 2,
-            minItems: 2,
-            items: [
-              expectedRequired ? expectedJson : { anyOf: [{ not: {} }, expectedJson] },
-              { anyOf: [{ not: {} }, expectedRequired ? expectedJson : { anyOf: [{ not: {} }, expectedJson] }] },
-            ],
-            type: 'array',
-          },
-        }).toEqual({
-          ...zodToJsonSchema(testSchema, { target: 'jsonSchema2019-09', pipeStrategy: strategy, $refStrategy: 'none' }),
-          '$schema': undefined,
-          'maxItems': undefined,
-          'x-native-type': undefined,
-        })
-      }
     })
 
     it('record', () => {
@@ -605,17 +483,6 @@ describe.each([
         type: 'object',
         additionalProperties: expectedJson,
       })
-
-      if (!ignoreZodToJsonSchema) {
-        expect({
-          type: 'object',
-          additionalProperties: expectedRequired ? expectedJson : { anyOf: [{ not: {} }, expectedJson] },
-        }).toEqual({
-          ...zodToJsonSchema(testSchema, { target: 'jsonSchema2019-09', pipeStrategy: strategy, $refStrategy: 'none' }),
-          $schema: undefined,
-          maxItems: undefined,
-        })
-      }
     })
   })
 })

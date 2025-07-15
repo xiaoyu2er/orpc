@@ -72,7 +72,7 @@ import {
   ZodToJsonSchemaConverter
 } from '@orpc/zod' // <-- zod v3
 import {
-  experimental_ZodToJsonSchemaConverter as ZodToJsonSchemaConverter
+  ZodToJsonSchemaConverter
 } from '@orpc/zod/zod4' // <-- zod v4
 import {
   experimental_ValibotToJsonSchemaConverter as ValibotToJsonSchemaConverter
@@ -116,7 +116,7 @@ Define reusable schema components that can be referenced across your OpenAPI spe
 const UserSchema = z.object({
   id: z.string(),
   name: z.string(),
-  email: z.string().email(),
+  email: z.email(),
 })
 
 const PetSchema = z.object({
@@ -248,8 +248,8 @@ Zod v4 includes a native `File` schema. oRPC will detect it automatically - no e
 import * as z from 'zod'
 
 const InputSchema = z.object({
-  file: oz.file(),
-  image: oz.file().mime(['image/png', 'image/jpeg']),
+  file: z.file(),
+  image: z.file().mime(['image/png', 'image/jpeg']),
 })
 ```
 
@@ -273,7 +273,7 @@ For further customization, you can use the `JSON_SCHEMA_REGISTRY`, `JSON_SCHEMA_
 ```ts
 import * as z from 'zod'
 import {
-  experimental_JSON_SCHEMA_REGISTRY as JSON_SCHEMA_REGISTRY,
+  JSON_SCHEMA_REGISTRY,
 } from '@orpc/zod/zod4'
 
 export const InputSchema = z.object({
@@ -301,8 +301,8 @@ JSON_SCHEMA_OUTPUT_REGISTRY.add(InputSchema, {
 
 In the [File Upload/Download](/docs/file-upload-download) guide, `z.instanceof` is used to describe file/blob schemas. However, this method prevents oRPC from recognizing file/blob schema. Instead, use the enhanced file schema approach:
 
-```ts twoslash
-import { z } from 'zod'
+```ts
+import { z } from 'zod/v3'
 import { oz } from '@orpc/zod'
 
 const InputSchema = z.object({
@@ -316,8 +316,8 @@ const InputSchema = z.object({
 
 If Zod alone does not cover your JSON Schema requirements, you can extend or override the generated schema:
 
-```ts twoslash
-import { z } from 'zod'
+```ts
+import { z } from 'zod/v3'
 import { oz } from '@orpc/zod'
 
 const InputSchema = oz.openapi(

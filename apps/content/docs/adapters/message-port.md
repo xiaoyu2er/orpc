@@ -24,7 +24,7 @@ const clientPort = channel.port2
 ```
 
 ```ts [server]
-import { experimental_RPCHandler as RPCHandler } from '@orpc/server/message-port'
+import { RPCHandler } from '@orpc/server/message-port'
 
 const handler = new RPCHandler(router)
 
@@ -36,7 +36,7 @@ serverPort.start()
 ```
 
 ```ts [client]
-import { experimental_RPCLink as RPCLink } from '@orpc/client/message-port'
+import { RPCLink } from '@orpc/client/message-port'
 
 const link = new RPCLink({
   port: clientPort,

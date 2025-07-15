@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import * as z from 'zod'
 import { oc } from '../src'
 
 export const NewPlanetSchema = z.object({

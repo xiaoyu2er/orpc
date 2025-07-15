@@ -1,5 +1,5 @@
 import { eventIterator, oc } from '@orpc/contract'
-import { z } from 'zod'
+import * as z from 'zod'
 
 export const sse = oc
   .route({

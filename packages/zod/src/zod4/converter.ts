@@ -34,12 +34,12 @@ import {
   globalRegistry,
 } from 'zod/v4/core'
 import {
-  experimental_JSON_SCHEMA_INPUT_REGISTRY as JSON_SCHEMA_INPUT_REGISTRY,
-  experimental_JSON_SCHEMA_OUTPUT_REGISTRY as JSON_SCHEMA_OUTPUT_REGISTRY,
-  experimental_JSON_SCHEMA_REGISTRY as JSON_SCHEMA_REGISTRY,
+  JSON_SCHEMA_INPUT_REGISTRY,
+  JSON_SCHEMA_OUTPUT_REGISTRY,
+  JSON_SCHEMA_REGISTRY,
 } from './registries'
 
-export interface experimental_ZodToJsonSchemaOptions {
+export interface ZodToJsonSchemaConverterOptions {
   /**
    * Max depth of lazy type.
    *
@@ -85,15 +85,15 @@ export interface experimental_ZodToJsonSchemaOptions {
   >[]
 }
 
-export class experimental_ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
-  private readonly maxLazyDepth: Exclude<experimental_ZodToJsonSchemaOptions['maxLazyDepth'], undefined>
-  private readonly maxStructureDepth: Exclude<experimental_ZodToJsonSchemaOptions['maxStructureDepth'], undefined>
-  private readonly anyJsonSchema: Exclude<experimental_ZodToJsonSchemaOptions['anyJsonSchema'], undefined>
-  private readonly unsupportedJsonSchema: Exclude<experimental_ZodToJsonSchemaOptions['unsupportedJsonSchema'], undefined>
-  private readonly undefinedJsonSchema: Exclude<experimental_ZodToJsonSchemaOptions['undefinedJsonSchema'], undefined>
-  private readonly interceptors: Exclude<experimental_ZodToJsonSchemaOptions['interceptors'], undefined>
+export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
+  private readonly maxLazyDepth: Exclude<ZodToJsonSchemaConverterOptions['maxLazyDepth'], undefined>
+  private readonly maxStructureDepth: Exclude<ZodToJsonSchemaConverterOptions['maxStructureDepth'], undefined>
+  private readonly anyJsonSchema: Exclude<ZodToJsonSchemaConverterOptions['anyJsonSchema'], undefined>
+  private readonly unsupportedJsonSchema: Exclude<ZodToJsonSchemaConverterOptions['unsupportedJsonSchema'], undefined>
+  private readonly undefinedJsonSchema: Exclude<ZodToJsonSchemaConverterOptions['undefinedJsonSchema'], undefined>
+  private readonly interceptors: Exclude<ZodToJsonSchemaConverterOptions['interceptors'], undefined>
 
-  constructor(options: experimental_ZodToJsonSchemaOptions = {}) {
+  constructor(options: ZodToJsonSchemaConverterOptions = {}) {
     this.maxLazyDepth = options.maxLazyDepth ?? 2
     this.maxStructureDepth = options.maxStructureDepth ?? 10
     this.anyJsonSchema = options.anyJsonSchema ?? {}

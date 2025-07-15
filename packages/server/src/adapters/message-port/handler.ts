@@ -3,16 +3,16 @@ import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { Context } from '../../context'
 import type { StandardHandler } from '../standard'
 import type {
-  experimental_HandleStandardServerPeerMessageOptions as HandleStandardServerPeerMessageOptions,
+  HandleStandardServerPeerMessageOptions,
 } from '../standard-peer'
 import { onMessagePortClose, onMessagePortMessage, postMessagePortMessage } from '@orpc/client/message-port'
 import { resolveMaybeOptionalOptions } from '@orpc/shared'
 import { ServerPeer } from '@orpc/standard-server-peer'
 import {
-  experimental_handleStandardServerPeerMessage as handleStandardServerPeerMessage,
+  handleStandardServerPeerMessage,
 } from '../standard-peer'
 
-export class experimental_MessagePortHandler<T extends Context> {
+export class MessagePortHandler<T extends Context> {
   constructor(
     private readonly standardHandler: StandardHandler<T>,
   ) {

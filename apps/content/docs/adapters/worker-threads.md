@@ -13,7 +13,7 @@ Listen for a `MessagePort` sent from the main thread and upgrade it:
 
 ```ts
 import { parentPort } from 'node:worker_threads'
-import { experimental_RPCHandler as RPCHandler } from '@orpc/server/message-port'
+import { RPCHandler } from '@orpc/server/message-port'
 
 const handler = new RPCHandler(router)
 
@@ -32,7 +32,7 @@ Create a `MessageChannel`, send one port to the thread worker, and use the other
 
 ```ts
 import { MessageChannel, Worker } from 'node:worker_threads'
-import { experimental_RPCLink as RPCLink } from '@orpc/client/message-port'
+import { RPCLink } from '@orpc/client/message-port'
 
 const { port1: clientPort, port2: serverPort } = new MessageChannel()
 

@@ -16,8 +16,7 @@ import { RPCHandler } from '@orpc/server/fetch'
 import { router } from './shared/planet'
 // ---cut---
 import { onError, ORPCError, ValidationError } from '@orpc/server'
-import { ZodError } from 'zod'
-import type { ZodIssue } from 'zod'
+import * as z from 'zod'
 
 const handler = new RPCHandler(router, {
   clientInterceptors: [
@@ -28,11 +27,12 @@ const handler = new RPCHandler(router, {
         && error.cause instanceof ValidationError
       ) {
         // If you only use Zod you can safely cast to ZodIssue[]
-        const zodError = new ZodError(error.cause.issues as ZodIssue[])
+        const zodError = new z.ZodError(error.cause.issues as z.core.$ZodIssue[])
 
         throw new ORPCError('INPUT_VALIDATION_FAILED', {
           status: 422,
-          data: zodError.flatten(),
+          message: z.prettifyError(zodError),
+          data: z.flattenError(zodError),
           cause: error.cause,
         })
       }
@@ -54,9 +54,8 @@ const handler = new RPCHandler(router, {
 ## Customizing with Middleware
 
 ```ts twoslash
-import { z, ZodError } from 'zod'
-import type { ZodIssue } from 'zod'
 import { onError, ORPCError, os, ValidationError } from '@orpc/server'
+import * as z from 'zod'
 
 const base = os.use(onError((error) => {
   if (
@@ -65,11 +64,12 @@ const base = os.use(onError((error) => {
     && error.cause instanceof ValidationError
   ) {
     // If you only use Zod you can safely cast to ZodIssue[]
-    const zodError = new ZodError(error.cause.issues as ZodIssue[])
+    const zodError = new z.ZodError(error.cause.issues as z.core.$ZodIssue[])
 
     throw new ORPCError('INPUT_VALIDATION_FAILED', {
       status: 422,
-      data: zodError.flatten(),
+      message: z.prettifyError(zodError),
+      data: z.flattenError(zodError),
       cause: error.cause,
     })
   }
@@ -86,8 +86,8 @@ const base = os.use(onError((error) => {
 }))
 
 const getting = base
-  .input(z.object({ id: z.string().uuid() }))
-  .output(z.object({ id: z.string().uuid(), name: z.string() }))
+  .input(z.object({ id: z.uuid() }))
+  .output(z.object({ id: z.uuid(), name: z.string() }))
   .handler(async ({ input, context }) => {
     return { id: input.id, name: 'name' }
   })
@@ -107,8 +107,7 @@ As explained in the [error handling guide](/docs/error-handling#combining-both-a
 import { RPCHandler } from '@orpc/server/fetch'
 // ---cut---
 import { onError, ORPCError, os, ValidationError } from '@orpc/server'
-import { z, ZodError } from 'zod'
-import type { ZodIssue } from 'zod'
+import * as z from 'zod'
 
 const base = os.errors({
   INPUT_VALIDATION_FAILED: {
@@ -121,7 +120,7 @@ const base = os.errors({
 })
 
 const example = base
-  .input(z.object({ id: z.string().uuid() }))
+  .input(z.object({ id: z.uuid() }))
   .handler(() => { /** do something */ })
 
 const handler = new RPCHandler({ example }, {
@@ -133,11 +132,12 @@ const handler = new RPCHandler({ example }, {
         && error.cause instanceof ValidationError
       ) {
         // If you only use Zod you can safely cast to ZodIssue[]
-        const zodError = new ZodError(error.cause.issues as ZodIssue[])
+        const zodError = new z.ZodError(error.cause.issues as z.core.$ZodIssue[])
 
         throw new ORPCError('INPUT_VALIDATION_FAILED', {
           status: 422,
-          data: zodError.flatten(),
+          message: z.prettifyError(zodError),
+          data: z.flattenError(zodError),
           cause: error.cause,
         })
       }

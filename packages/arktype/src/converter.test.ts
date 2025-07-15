@@ -1,5 +1,5 @@
 import { type } from 'arktype'
-import { z } from 'zod'
+import * as z from 'zod'
 import { experimental_ArkTypeToJsonSchemaConverter as ArkTypeToJsonSchemaConverter } from './converter'
 
 it('arkTypeToJsonSchemaConverter.convert', async () => {

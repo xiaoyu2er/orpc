@@ -1,19 +1,15 @@
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { Context } from '../../context'
 import type { StandardHandler } from '../standard'
-import type {
-  experimental_HandleStandardServerPeerMessageOptions as HandleStandardServerPeerMessageOptions,
-} from '../standard-peer'
+import type { HandleStandardServerPeerMessageOptions } from '../standard-peer'
 import { readAsBuffer, resolveMaybeOptionalOptions } from '@orpc/shared'
 import { ServerPeer } from '@orpc/standard-server-peer'
-import {
-  experimental_handleStandardServerPeerMessage as handleStandardServerPeerMessage,
-} from '../standard-peer'
+import { handleStandardServerPeerMessage } from '../standard-peer'
 
-export type experimental_MinimalWebsocket = Pick<WebSocket, 'addEventListener' | 'send'>
+export type MinimalWebsocket = Pick<WebSocket, 'addEventListener' | 'send'>
 
-export class experimental_WebsocketHandler<T extends Context> {
-  readonly #peers = new WeakMap<experimental_MinimalWebsocket, ServerPeer>()
+export class WebsocketHandler<T extends Context> {
+  readonly #peers = new WeakMap<MinimalWebsocket, ServerPeer>()
   readonly #handler: StandardHandler<T>
 
   constructor(
@@ -30,7 +26,7 @@ export class experimental_WebsocketHandler<T extends Context> {
    * @warning Do not use this method if you're using `.message()` or `.close()`
    */
   upgrade(
-    ws: experimental_MinimalWebsocket,
+    ws: MinimalWebsocket,
     ...rest: MaybeOptionalOptions<HandleStandardServerPeerMessageOptions<T>>
   ): void {
     ws.addEventListener('message', event => this.message(ws, event.data, ...rest))
@@ -46,7 +42,7 @@ export class experimental_WebsocketHandler<T extends Context> {
    * @param data The message payload, usually place in `event.data`
    */
   async message(
-    ws: experimental_MinimalWebsocket,
+    ws: MinimalWebsocket,
     data: string | ArrayBuffer | Blob,
     ...rest: MaybeOptionalOptions<HandleStandardServerPeerMessageOptions<T>>
   ): Promise<void> {
@@ -73,7 +69,7 @@ export class experimental_WebsocketHandler<T extends Context> {
    *
    * @warning Avoid calling this directly if `.upgrade()` is used.
    */
-  close(ws: experimental_MinimalWebsocket): void {
+  close(ws: MinimalWebsocket): void {
     const peer = this.#peers.get(ws)
 
     if (peer) {

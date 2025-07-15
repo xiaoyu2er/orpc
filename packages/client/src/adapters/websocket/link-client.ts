@@ -4,14 +4,14 @@ import type { StandardLinkClient } from '../standard'
 import { readAsBuffer } from '@orpc/shared'
 import { ClientPeer } from '@orpc/standard-server-peer'
 
-export interface experimental_LinkWebsocketClientOptions {
+export interface LinkWebsocketClientOptions {
   websocket: Pick<WebSocket, 'addEventListener' | 'send' | 'readyState'>
 }
 
-export class experimental_LinkWebsocketClient<T extends ClientContext> implements StandardLinkClient<T> {
+export class LinkWebsocketClient<T extends ClientContext> implements StandardLinkClient<T> {
   private readonly peer: ClientPeer
 
-  constructor(options: experimental_LinkWebsocketClientOptions) {
+  constructor(options: LinkWebsocketClientOptions) {
     const untilOpen = new Promise<void>((resolve) => {
       if (options.websocket.readyState === 0) { // CONNECTING
         options.websocket.addEventListener('open', () => {

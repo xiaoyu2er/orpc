@@ -19,7 +19,7 @@ import { registry } from 'zod/v4/core'
  * })
  * ```
  */
-export const experimental_JSON_SCHEMA_REGISTRY = registry<Exclude<JSONSchema<$input | $output>, boolean>>()
+export const JSON_SCHEMA_REGISTRY = registry<Exclude<JSONSchema<$input | $output>, boolean>>()
 
 /**
  * Zod registry for customizing generated JSON schema, only useful for .input
@@ -38,7 +38,7 @@ export const experimental_JSON_SCHEMA_REGISTRY = registry<Exclude<JSONSchema<$in
  * })
  * ```
  */
-export const experimental_JSON_SCHEMA_INPUT_REGISTRY = registry<Exclude<JSONSchema<$input>, boolean>>()
+export const JSON_SCHEMA_INPUT_REGISTRY = registry<Exclude<JSONSchema<$input>, boolean>>()
 
 /**
  * Zod registry for customizing generated JSON schema, only useful for .input
@@ -57,4 +57,4 @@ export const experimental_JSON_SCHEMA_INPUT_REGISTRY = registry<Exclude<JSONSche
  * })
  * ```
  */
-export const experimental_JSON_SCHEMA_OUTPUT_REGISTRY = registry<Exclude<JSONSchema<$output>, boolean>>()
+export const JSON_SCHEMA_OUTPUT_REGISTRY = registry<Exclude<JSONSchema<$output>, boolean>>()

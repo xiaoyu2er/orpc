@@ -1,7 +1,7 @@
 import type { router } from '../.../../../background/router'
 import type { RouterClient } from '@orpc/server'
 import { createORPCClient } from '@orpc/client'
-import { experimental_RPCLink as RPCLink } from '@orpc/client/message-port'
+import { RPCLink } from '@orpc/client/message-port'
 import { createTanstackQueryUtils } from '@orpc/tanstack-query'
 
 const port = browser.runtime.connect()

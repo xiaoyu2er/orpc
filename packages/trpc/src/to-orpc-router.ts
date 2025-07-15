@@ -3,12 +3,12 @@ import type { AnyProcedure, AnyRouter, inferRouterContext } from '@trpc/server'
 import type { inferRouterMeta, Parser, TrackedData } from '@trpc/server/unstable-core-do-not-import'
 import { mapEventIterator } from '@orpc/client'
 import * as ORPC from '@orpc/server'
-import { isObject, isTypescriptObject } from '@orpc/shared'
+import { get, isObject, isTypescriptObject } from '@orpc/shared'
 import { isTrackedEnvelope, TRPCError } from '@trpc/server'
 import { getHTTPStatusCodeFromError, isAsyncIterable } from '@trpc/server/unstable-core-do-not-import'
 
-export interface experimental_ORPCMeta extends ORPC.Route {
-
+export interface experimental_ORPCMeta {
+  route?: ORPC.Route
 }
 
 export type experimental_ToORPCOutput<T>
@@ -59,10 +59,10 @@ function lazyToORPCRouter(lazies: AnyRouter['_def']['lazy']) {
   for (const key in lazies) {
     const item = lazies[key]!
 
-    orpcRouter[key] = ORPC.lazy(async () => {
+    orpcRouter[key] = ORPC.createAccessibleLazyRouter(ORPC.lazy(async () => {
       const router = await item.ref()
       return { default: experimental_toORPCRouter(router) }
-    })
+    }))
   }
 
   return orpcRouter
@@ -91,7 +91,7 @@ function toORPCProcedure(procedure: AnyProcedure) {
     meta: procedure._def.meta ?? {},
     inputValidationIndex: 0,
     outputValidationIndex: 0,
-    route: procedure._def.meta ?? {},
+    route: get(procedure._def.meta, ['route']) ?? {},
     middlewares: [],
     inputSchema: toDisabledStandardSchema(procedure._def.inputs.at(-1)),
     outputSchema: toDisabledStandardSchema((procedure as any)._def.output),

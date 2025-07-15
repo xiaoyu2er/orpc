@@ -1,6 +1,6 @@
-import { call, createRouterClient, getEventMeta, isProcedure, ORPCError, unlazy } from '@orpc/server'
+import { call, createRouterClient, getEventMeta, isLazy, isProcedure, ORPCError, unlazy } from '@orpc/server'
 import { isAsyncIteratorObject } from '@orpc/shared'
-import { tracked } from '@trpc/server'
+import { tracked, TRPCError } from '@trpc/server'
 import * as z from 'zod'
 import { inputSchema, outputSchema } from '../../contract/tests/shared'
 import { t, trpcRouter } from '../tests/shared'
@@ -19,11 +19,16 @@ describe('toORPCRouter', async () => {
     expect(orpcRouter.nested.ping).toSatisfy(isProcedure)
 
     const unlazy1 = await unlazy(orpcRouter.lazy)
-    expect(unlazy1.default.subscribe).toSatisfy(isProcedure)
-
     const unlazy2 = await unlazy(unlazy1.default.lazy)
 
+    expect(orpcRouter.lazy).toSatisfy(isLazy)
+    expect(unlazy1.default.subscribe).toSatisfy(isProcedure)
+    expect(unlazy1.default.lazy).toSatisfy(isLazy)
     expect(unlazy2.default.throw).toSatisfy(isProcedure)
+
+    // accessible lazy router
+    expect(await unlazy(orpcRouter.lazy.subscribe)).toEqual({ default: expect.toSatisfy(isProcedure) })
+    expect(await unlazy(orpcRouter.lazy.lazy.throw)).toEqual({ default: expect.toSatisfy(isProcedure) })
   })
 
   it('with disabled input/output', async () => {
@@ -40,7 +45,7 @@ describe('toORPCRouter', async () => {
   it('meta/route', async () => {
     expect(orpcRouter.ping['~orpc'].meta).toEqual({ meta1: 'test' })
     expect(orpcRouter.nested.ping['~orpc'].route).toEqual({ path: '/nested/ping', description: 'Nested ping procedure' })
-    expect(orpcRouter.nested.ping['~orpc'].meta).toEqual({ path: '/nested/ping', description: 'Nested ping procedure' })
+    expect(orpcRouter.nested.ping['~orpc'].meta).toEqual({ route: { path: '/nested/ping', description: 'Nested ping procedure' } })
   })
 
   describe('calls', () => {
@@ -60,6 +65,16 @@ describe('toORPCRouter', async () => {
         call(orpcRouter.throw, { b: 42, c: 'test' }, { context: { a: 'test' } }),
       ).rejects.toSatisfy((err: any) => {
         return err instanceof ORPCError && err.code === 'PARSE_ERROR' && err.message === 'throw'
+      })
+
+      await expect(
+        call(orpcRouter.ping, { input: 'invalid' } as any, { context: { a: 'test' } }),
+      ).rejects.toSatisfy((err: any) => {
+        expect(err).toBeInstanceOf(ORPCError)
+        expect(err.cause).toBeInstanceOf(TRPCError)
+        expect(err.cause.cause).toBeInstanceOf(z.ZodError)
+
+        return true
       })
     })
 

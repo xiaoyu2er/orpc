@@ -100,6 +100,7 @@ export class OpenAPIGenerator {
       info: options.info ?? { title: 'API Reference', version: '0.0.0' },
       openapi: '3.1.1',
       exclude: undefined,
+      filter: undefined,
       commonSchemas: undefined,
     } as OpenAPI.Document
 

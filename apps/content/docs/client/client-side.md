@@ -38,7 +38,7 @@ deno install npm:@orpc/client@latest
 This guide uses [RPCLink](/docs/client/rpc-link), so make sure your server is set up with [RPCHandler](/docs/rpc-handler) or any API that follows the [RPC Protocol](/docs/advanced/rpc-protocol).
 
 ```ts
-import { createORPCClient } from '@orpc/client'
+import { createORPCClient, onError } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
 import { RouterClient } from '@orpc/server'
 import { ContractRouterClient } from '@orpc/contract'
@@ -49,6 +49,11 @@ const link = new RPCLink({
     authorization: 'Bearer token',
   }),
   // fetch: <-- provide fetch polyfill fetch if needed
+  interceptors: [
+    onError((error) => {
+      console.error(error)
+    })
+  ],
 })
 
 // Create a client for your router

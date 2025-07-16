@@ -17,6 +17,7 @@ Other adapters may remove or change options to keep things simple.
 Before using RPCLink, make sure your server is set up with [RPCHandler](/docs/rpc-handler) or any API that follows the [RPC Protocol](/docs/advanced/rpc-protocol).
 
 ```ts
+import { onError } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
 
 const link = new RPCLink({
@@ -24,11 +25,17 @@ const link = new RPCLink({
   headers: () => ({
     'x-api-key': 'my-api-key'
   }),
-  fetch: (request, init) => // Override fetch if needed
-    globalThis.fetch(request, {
+  fetch: (request, init) => {
+    return globalThis.fetch(request, {
       ...init,
       credentials: 'include', // Include cookies for cross-origin requests
-    }),
+    })
+  },
+  interceptors: [
+    onError((error) => {
+      console.error(error)
+    })
+  ],
 })
 
 export const client: RouterClient<typeof router> = createORPCClient(link)

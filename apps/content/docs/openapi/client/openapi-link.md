@@ -46,7 +46,7 @@ import { contract } from './shared/planet'
 // ---cut---
 import type { JsonifiedClient } from '@orpc/openapi-client'
 import type { ContractRouterClient } from '@orpc/contract'
-import { createORPCClient } from '@orpc/client'
+import { createORPCClient, onError } from '@orpc/client'
 import { OpenAPILink } from '@orpc/openapi-client/fetch'
 
 const link = new OpenAPILink(contract, {
@@ -54,11 +54,17 @@ const link = new OpenAPILink(contract, {
   headers: () => ({
     'x-api-key': 'my-api-key',
   }),
-  fetch: (request, init) => // Override fetch if needed
-    globalThis.fetch(request, {
+  fetch: (request, init) => {
+    return globalThis.fetch(request, {
       ...init,
       credentials: 'include', // Include cookies for cross-origin requests
-    }),
+    })
+  },
+  interceptors: [
+    onError((error) => {
+      console.error(error)
+    })
+  ],
 })
 
 const client: JsonifiedClient<ContractRouterClient<typeof contract>> = createORPCClient(link)

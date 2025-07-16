@@ -151,13 +151,13 @@ const spec = await generator.generate(router, {
 
 :::
 
-## Excluding Procedures
+## Filtering Procedures
 
-You can exclude a procedure from the OpenAPI specification using the `exclude` option:
+You can filter a procedure from the OpenAPI specification using the `filter` option:
 
 ```ts
 const spec = await generator.generate(router, {
-  exclude: (procedure, path) => !!procedure['~orpc'].route.tags?.includes('admin'),
+  filter: ({ contract, path }) => !contract['~orpc'].route.tags?.includes('internal'),
 })
 ```
 

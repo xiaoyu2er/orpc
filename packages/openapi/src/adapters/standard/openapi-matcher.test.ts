@@ -237,4 +237,26 @@ describe('standardOpenAPIMatcher', () => {
       params: undefined,
     })
   })
+
+  it('filter procedures', async () => {
+    const rpcMatcher = new StandardOpenAPIMatcher({
+      filter: (options) => {
+        if (options.path.includes('ping')) {
+          return false
+        }
+
+        return true
+      },
+    })
+    rpcMatcher.init(router)
+
+    expect(await rpcMatcher.match('POST', '/base')).toEqual(undefined)
+    expect(await rpcMatcher.match('DELETE', '/ping/unnoq')).toEqual(undefined)
+
+    expect(await rpcMatcher.match('GET', '/pong/something')).toEqual({
+      path: ['pong'],
+      procedure: routedPong,
+      params: { pong: 'something' },
+    })
+  })
 })

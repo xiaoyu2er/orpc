@@ -3,7 +3,7 @@ import type { AnyContractProcedure } from '@orpc/contract'
 import type { Value } from '@orpc/shared'
 import type { AnyProcedure } from '../../procedure'
 import type { AnyRouter } from '../../router'
-import type { ContractProcedureCallbackOptions, LazyTraverseContractProceduresOptions } from '../../router-utils'
+import type { LazyTraverseContractProceduresOptions, TraverseContractProcedureCallbackOptions } from '../../router-utils'
 import type { StandardMatcher, StandardMatchResult } from './types'
 import { toHttpPath } from '@orpc/client/standard'
 import { NullProtoObj, value } from '@orpc/shared'
@@ -18,7 +18,7 @@ export interface StandardRPCMatcherOptions {
    *
    * @default true
    */
-  filter?: Value<boolean, [options: ContractProcedureCallbackOptions]>
+  filter?: Value<boolean, [options: TraverseContractProcedureCallbackOptions]>
 }
 
 export class StandardRPCMatcher implements StandardMatcher {

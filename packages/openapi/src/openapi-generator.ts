@@ -1,6 +1,6 @@
 import type { AnyContractProcedure, AnyContractRouter, AnySchema, ErrorMap, OpenAPI } from '@orpc/contract'
 import type { StandardOpenAPIJsonSerializerOptions } from '@orpc/openapi-client/standard'
-import type { AnyProcedure, AnyRouter, ContractProcedureCallbackOptions } from '@orpc/server'
+import type { AnyProcedure, AnyRouter, TraverseContractProcedureCallbackOptions } from '@orpc/server'
 import type { Value } from '@orpc/shared'
 import type { JSONSchema } from './schema'
 import type { ConditionalSchemaConverter, SchemaConverter, SchemaConverterComponent, SchemaConvertOptions } from './schema-converter'
@@ -35,7 +35,7 @@ export interface OpenAPIGeneratorGenerateOptions extends Partial<Omit<OpenAPI.Do
    *
    * @default true
    */
-  filter?: Value<boolean, [options: ContractProcedureCallbackOptions]>
+  filter?: Value<boolean, [options: TraverseContractProcedureCallbackOptions]>
 
   /**
    * Common schemas to be used for $ref resolution.
@@ -91,7 +91,7 @@ export class OpenAPIGenerator {
    */
   async generate(router: AnyContractRouter | AnyRouter, options: OpenAPIGeneratorGenerateOptions = {}): Promise<OpenAPI.Document> {
     const filter = options.filter
-      ?? (({ contract, path }: ContractProcedureCallbackOptions) => {
+      ?? (({ contract, path }: TraverseContractProcedureCallbackOptions) => {
         return !(options.exclude?.(contract, path) ?? false)
       })
 
@@ -106,7 +106,7 @@ export class OpenAPIGenerator {
 
     const { baseSchemaConvertOptions, undefinedErrorJsonSchema } = await this.#resolveCommonSchemas(doc, options.commonSchemas)
 
-    const contracts: ContractProcedureCallbackOptions[] = []
+    const contracts: TraverseContractProcedureCallbackOptions[] = []
 
     await resolveContractProcedures({ path: [], router }, (traverseOptions) => {
       if (!value(filter, traverseOptions)) {

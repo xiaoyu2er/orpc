@@ -164,10 +164,15 @@ export interface TraverseContractProceduresOptions {
   path: readonly string[]
 }
 
-export interface ContractProcedureCallbackOptions {
+export interface TraverseContractProcedureCallbackOptions {
   contract: AnyContractProcedure | AnyProcedure
   path: readonly string[]
 }
+
+/**
+ * @deprecated Use `TraverseContractProcedureCallbackOptions` instead.
+ */
+export type ContractProcedureCallbackOptions = TraverseContractProcedureCallbackOptions
 
 export interface LazyTraverseContractProceduresOptions {
   router: Lazy<AnyRouter>
@@ -176,7 +181,7 @@ export interface LazyTraverseContractProceduresOptions {
 
 export function traverseContractProcedures(
   options: TraverseContractProceduresOptions,
-  callback: (options: ContractProcedureCallbackOptions) => void,
+  callback: (options: TraverseContractProcedureCallbackOptions) => void,
   lazyOptions: LazyTraverseContractProceduresOptions[] = [],
 ): LazyTraverseContractProceduresOptions[] {
   let currentRouter: AnyContractRouter | Lazyable<AnyRouter> = options.router
@@ -219,7 +224,7 @@ export function traverseContractProcedures(
 
 export async function resolveContractProcedures(
   options: TraverseContractProceduresOptions,
-  callback: (options: ContractProcedureCallbackOptions) => void,
+  callback: (options: TraverseContractProcedureCallbackOptions) => void,
 ) {
   const pending: TraverseContractProceduresOptions[] = [options]
 

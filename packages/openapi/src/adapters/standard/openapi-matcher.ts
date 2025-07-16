@@ -1,6 +1,6 @@
 import type { HTTPPath } from '@orpc/client'
 import type { AnyContractProcedure } from '@orpc/contract'
-import type { AnyProcedure, AnyRouter, ContractProcedureCallbackOptions, LazyTraverseContractProceduresOptions } from '@orpc/server'
+import type { AnyProcedure, AnyRouter, LazyTraverseContractProceduresOptions, TraverseContractProcedureCallbackOptions } from '@orpc/server'
 import type { StandardMatcher, StandardMatchResult } from '@orpc/server/standard'
 import type { Value } from '@orpc/shared'
 import { toHttpPath } from '@orpc/client/standard'
@@ -16,7 +16,7 @@ export interface StandardOpenAPIMatcherOptions {
    *
    * @default true
    */
-  filter?: Value<boolean, [options: ContractProcedureCallbackOptions]>
+  filter?: Value<boolean, [options: TraverseContractProcedureCallbackOptions]>
 }
 
 export class StandardOpenAPIMatcher implements StandardMatcher {

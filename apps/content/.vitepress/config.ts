@@ -142,6 +142,7 @@ export default withMermaid(defineConfig({
           text: 'Integrations',
           collapsed: true,
           items: [
+            { text: 'AI SDK', link: '/docs/integrations/ai-sdk' },
             { text: 'Tanstack Query', link: '/docs/integrations/tanstack-query' },
             {
               text: 'Tanstack Query (Old)',

@@ -10,6 +10,7 @@ export * from './iterator'
 export * from './json'
 export * from './object'
 export * from './queue'
+export * from './stream'
 export * from './types'
 export * from './value'
 

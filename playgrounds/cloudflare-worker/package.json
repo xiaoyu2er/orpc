@@ -17,11 +17,11 @@
     "@orpc/experimental-durable-event-iterator": "next",
     "@orpc/server": "next",
     "@types/react": "^19.1.8",
-    "@types/react-dom": "^19.1.2",
+    "@types/react-dom": "^19.1.5",
     "@vitejs/plugin-react": "^4.6.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "typescript": "~5.8.3",
+    "typescript": "^5.8.3",
     "vite": "^6.3.5",
     "wrangler": "^4.23.0",
     "zod": "^4.0.5"

@@ -29,7 +29,7 @@
     "@tanstack/solid-query": "^5.83.0",
     "@tanstack/svelte-query": "^5.83.0",
     "@tanstack/vue-query": "^5.83.0",
-    "@types/node": "^22.15.18",
+    "@types/node": "^22.15.30",
     "ai": "5.0.0-beta.18",
     "mermaid": "^11.8.1",
     "openai": "^5.9.2",

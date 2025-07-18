@@ -15,9 +15,10 @@ This documentation requires AI SDK v5.0.0 or later. For a refresher, review the 
 
 Use `streamToEventIterator` to convert AI SDK streams to [oRPC Event Iterators](/docs/event-iterator).
 
-```ts
+```ts twoslash
 import { os, streamToEventIterator, type } from '@orpc/server'
 import { convertToModelMessages, streamText, UIMessage } from 'ai'
+import { google } from '@ai-sdk/google'
 
 export const chat = os
   .input(type<{ chatId: string, messages: UIMessage[] }>())
@@ -36,7 +37,27 @@ export const chat = os
 
 On the client side, convert the event iterator back to a stream using `eventIteratorToStream`.
 
-```tsx
+```tsx twoslash
+import React, { useState } from 'react'
+import { os, streamToEventIterator, type } from '@orpc/server'
+import { convertToModelMessages, streamText, UIMessage } from 'ai'
+import { google } from '@ai-sdk/google'
+
+export const chat = os
+  .input(type<{ chatId: string, messages: UIMessage[] }>())
+  .handler(({ input }) => {
+    const result = streamText({
+      model: google('gemini-1.5-flash'),
+      system: 'You are a helpful assistant.',
+      messages: convertToModelMessages(input.messages),
+    })
+
+    return streamToEventIterator(result.toUIMessageStream())
+  })
+  .callable()
+
+const client = { chat }
+// ---cut---
 import { useChat } from '@ai-sdk/react'
 import { eventIteratorToStream } from '@orpc/client'
 

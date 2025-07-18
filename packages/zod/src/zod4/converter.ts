@@ -103,7 +103,7 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
   }
 
   condition(schema: AnySchema | undefined): boolean {
-    return schema !== undefined && schema['~standard'].vendor === 'zod'
+    return schema !== undefined && schema['~standard'].vendor === 'zod' && '_zod' in schema // >= zod4
   }
 
   convert(

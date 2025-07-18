@@ -100,6 +100,7 @@ export default withMermaid(defineConfig({
             { text: 'Elysia', link: '/docs/adapters/elysia' },
             { text: 'Express', link: '/docs/adapters/express' },
             { text: 'Fastify', link: '/docs/adapters/fastify' },
+            { text: 'H3', link: '/docs/adapters/h3' },
             { text: 'Hono', link: '/docs/adapters/hono' },
             { text: 'Next.js', link: '/docs/adapters/next' },
             { text: 'Nuxt', link: '/docs/adapters/nuxt' },

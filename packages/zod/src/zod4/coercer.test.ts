@@ -31,7 +31,9 @@ it('zodSmartCoercionPlugin ignore non-zod schemas', async () => {
   expect(coerce(z.object({}), val)).toEqual(val)
   expect(coerce(z.object({}), val)).not.toBe(val)
 
-  const v = await import('valibot')
+  const z3 = await import('zod/v3')
+  expect(coerce(z3.object({}), val)).toBe(val)
 
+  const v = await import('valibot')
   expect(coerce(v.object({}), val)).toBe(val)
 })

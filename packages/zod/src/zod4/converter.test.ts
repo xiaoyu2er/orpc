@@ -36,8 +36,10 @@ describe('zodToJsonSchemaConverter', () => {
     expect(converter.condition(z.string())).toBe(true)
     expect(converter.condition(z.string().optional())).toBe(true)
 
-    const v = await import('valibot')
+    const z3 = await import('zod/v3')
+    expect(converter.condition(z3.string())).toBe(false)
 
+    const v = await import('valibot')
     expect(converter.condition(v.string())).toBe(false)
   })
 

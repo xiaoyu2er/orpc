@@ -35,7 +35,7 @@ export class ZodSmartCoercionPlugin<TContext extends Context> implements Standar
     options.clientInterceptors.unshift((options) => {
       const inputSchema = options.procedure['~orpc'].inputSchema
 
-      if (!inputSchema || inputSchema['~standard'].vendor !== 'zod') {
+      if (!inputSchema || inputSchema['~standard'].vendor !== 'zod' || '_zod' in inputSchema /** < zod4 */) {
         return options.next()
       }
 

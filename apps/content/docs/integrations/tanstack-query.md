@@ -106,14 +106,11 @@ const query = useQuery(orpc.streamed.experimental_streamedOptions({
   queryFnOptions: { // Configure streamedQuery behavior
     refetchMode: 'reset',
     maxChunks: 3,
-  }
+  },
+  retry: true, // Infinite retry for more reliable streaming
   // additional options...
 }))
 ```
-
-::: info
-Combine with [Client Retry](/docs/plugins/client-retry#event-iterator-sse) for more reliable streaming queries.
-:::
 
 ## Live Query Options
 
@@ -123,13 +120,10 @@ Use `.liveOptions` to configure live queries for [Event Iterator](/docs/event-it
 const query = useQuery(orpc.live.experimental_liveOptions({
   input: { id: 123 }, // Specify input if needed
   context: { cache: true }, // Provide client context if needed
+  retry: true, // Infinite retry for more reliable streaming
   // additional options...
 }))
 ```
-
-::: info
-Combine with [Client Retry](/docs/plugins/client-retry#event-iterator-sse) for more reliable live queries.
-:::
 
 ## Infinite Query Options
 
@@ -224,6 +218,22 @@ const query = useQuery(computed(
     input: { id: id.value },
   })
 ))
+```
+
+:::
+
+## Client Context
+
+::: warning
+oRPC excludes [client context](/docs/client/rpc-link#using-client-context) from query keys. Manually override query keys if needed to prevent unwanted query deduplication. Use built-in `retry` option instead of the [oRPC Client Retry Plugin](/docs/plugins/client-retry).
+
+```ts
+const query = useQuery(orpc.planet.find.queryOptions({
+  context: { cache: true },
+  queryKey: [['planet', 'find'], { context: { cache: true } }],
+  retry: true, // Prefer using built-in retry option
+  // additional options...
+}))
 ```
 
 :::

@@ -29,6 +29,17 @@ export default withMermaid(defineConfig({
       provider: 'local',
       options: {
         detailedView: true,
+        miniSearch: {
+          searchOptions: {
+            boostDocument(docId: string) {
+              if (docId.startsWith('/learn-and-contribute/')) {
+                return 0.5
+              }
+
+              return 1
+            },
+          },
+        },
       },
     },
     carbonAds: {
@@ -53,15 +64,16 @@ export default withMermaid(defineConfig({
       { text: 'Docs', link: '/docs/getting-started', activeMatch: '/docs/(?!openapi/)' },
       { text: 'OpenAPI', link: '/docs/openapi/getting-started', activeMatch: '/docs/openapi/' },
       { text: 'Examples', link: '/examples/openai-streaming', activeMatch: '/examples/' },
-      { text: 'Blog', link: '/blog/v1-announcement', activeMatch: '/blog/' },
+      { text: 'Learn & Contribute', link: '/learn-and-contribute/overview', activeMatch: '/learn-and-contribute/' },
       {
         text: 'About',
         items: [
+          { text: 'Blog', link: '/blog/v1-announcement' },
+          { text: 'Discussions', link: 'https://github.com/unnoq/orpc/discussions' },
           { text: 'Sponsor', link: 'https://github.com/sponsors/unnoq' },
           { text: 'Releases', link: 'https://github.com/unnoq/orpc/releases' },
         ],
       },
-      { text: 'Discussions', link: 'https://github.com/unnoq/orpc/discussions' },
     ],
     sidebar: {
       '/docs/': [
@@ -245,6 +257,9 @@ export default withMermaid(defineConfig({
       '/blog/': [
         { text: 'V1 Announcement', link: '/blog/v1-announcement' },
       ],
+      '/learn-and-contribute/': [
+        { text: 'Overview', link: '/learn-and-contribute/overview' },
+      ],
     },
   },
   head: [
@@ -265,7 +280,12 @@ export default withMermaid(defineConfig({
   titleTemplate: ':title - oRPC',
   vite: {
     plugins: [
-      llmstxt(),
+      llmstxt({
+        ignoreFiles: [
+          'blog/*',
+          'learn-and-contribute/*',
+        ],
+      }),
       groupIconVitePlugin({
         customIcon: {
           cloudflare: 'logos:cloudflare-workers-icon',

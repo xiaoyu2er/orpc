@@ -50,7 +50,7 @@ describe('createProcedureUtils', () => {
 
       expect(options.queryKey).toBe(generateOperationKeySpy.mock.results[0]!.value)
       expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
-      expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'query', input: { search: '__search__' } })
+      expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'query', context: { batch: '__batch__' }, input: { search: '__search__' } })
 
       client.mockResolvedValueOnce('__output__')
       await expect(options.queryFn!({ signal } as any)).resolves.toEqual('__output__')
@@ -71,7 +71,7 @@ describe('createProcedureUtils', () => {
 
       expect(options.queryKey).toBe(generateOperationKeySpy.mock.results[0]!.value)
       expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
-      expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'query', input: skipToken })
+      expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'query', context: { batch: '__batch__' }, input: skipToken })
 
       expect(() => options.queryFn!({ signal } as any)).toThrow('queryFn should not be called with skipToken used as input')
       expect(client).toHaveBeenCalledTimes(0)
@@ -103,6 +103,7 @@ describe('createProcedureUtils', () => {
       expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
       expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], {
         type: 'streamed',
+        context: { batch: '__batch__' },
         input: { search: '__search__' },
         fnOptions: {
           refetchMode: 'replace',
@@ -144,7 +145,7 @@ describe('createProcedureUtils', () => {
 
       expect(options.queryKey).toBe(generateOperationKeySpy.mock.results[0]!.value)
       expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
-      expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'streamed', input: skipToken })
+      expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'streamed', context: { batch: '__batch__' }, input: skipToken })
 
       await expect(options.queryFn!({ signal, client: queryClient } as any)).rejects.toThrow('queryFn should not be called with skipToken used as input')
       expect(client).toHaveBeenCalledTimes(0)
@@ -188,6 +189,7 @@ describe('createProcedureUtils', () => {
       expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
       expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], {
         type: 'live',
+        context: { batch: '__batch__' },
         input: { search: '__search__' },
       })
 
@@ -223,7 +225,7 @@ describe('createProcedureUtils', () => {
 
       expect(options.queryKey).toBe(generateOperationKeySpy.mock.results[0]!.value)
       expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
-      expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'live', input: skipToken })
+      expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'live', context: { batch: '__batch__' }, input: skipToken })
 
       await expect(options.queryFn!({ signal, client: queryClient } as any)).rejects.toThrow('queryFn should not be called with skipToken used as input')
       expect(client).toHaveBeenCalledTimes(0)
@@ -272,7 +274,7 @@ describe('createProcedureUtils', () => {
 
       expect(options.queryKey).toBe(generateOperationKeySpy.mock.results[0]!.value)
       expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
-      expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'infinite', input: { search: '__search__', pageParam: '__initialPageParam__' } })
+      expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'infinite', context: { batch: '__batch__' }, input: { search: '__search__', pageParam: '__initialPageParam__' } })
 
       expect(options.initialPageParam).toEqual('__initialPageParam__')
       expect(options.getNextPageParam).toBe(getNextPageParam)
@@ -309,7 +311,7 @@ describe('createProcedureUtils', () => {
 
       expect(options.queryKey).toBe(generateOperationKeySpy.mock.results[0]!.value)
       expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
-      expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'infinite', input: skipToken })
+      expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'infinite', context: { batch: '__batch__' }, input: skipToken })
 
       expect(options.initialPageParam).toEqual('__initialPageParam__')
       expect(options.getNextPageParam).toBe(getNextPageParam)
@@ -335,7 +337,7 @@ describe('createProcedureUtils', () => {
 
     expect(options.mutationKey).toBe(generateOperationKeySpy.mock.results[0]!.value)
     expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
-    expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'mutation' })
+    expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'mutation', context: { batch: '__batch__' } })
 
     client.mockResolvedValueOnce('__output__')
     await expect(options.mutationFn!('__input__')).resolves.toEqual('__output__')

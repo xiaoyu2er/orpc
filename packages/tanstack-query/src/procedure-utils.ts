@@ -7,6 +7,7 @@ import type {
   experimental_StreamedQueryOutput,
   InfiniteOptionsBase,
   InfiniteOptionsIn,
+  MutationKeyOptions,
   MutationOptions,
   MutationOptionsIn,
   OperationContext,
@@ -39,7 +40,7 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
    */
   queryKey(
     ...rest: MaybeOptionalOptions<
-      QueryKeyOptions<TInput>
+      QueryKeyOptions<TInput, TClientContext>
     >
   ): DataTag<QueryKey, TOutput, TError>
 
@@ -61,7 +62,7 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
    */
   experimental_streamedKey(
     ...rest: MaybeOptionalOptions<
-      experimental_StreamedKeyOptions<TInput>
+      experimental_StreamedKeyOptions<TInput, TClientContext>
     >
   ): DataTag<QueryKey, experimental_StreamedQueryOutput<TOutput>, TError>
 
@@ -85,7 +86,7 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
    */
   experimental_liveKey(
     ...rest: MaybeOptionalOptions<
-      QueryKeyOptions<TInput>
+      QueryKeyOptions<TInput, TClientContext>
     >
   ): DataTag<QueryKey, experimental_LiveQueryOutput<TOutput>, TError>
 
@@ -110,7 +111,7 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
   infiniteKey<UPageParam>(
     options: Pick<
       InfiniteOptionsIn<TClientContext, TInput, TOutput, TError, InfiniteData<TOutput, UPageParam>, UPageParam>,
-      'input' | 'initialPageParam' | 'queryKey'
+      'context' | 'initialPageParam' | 'input' | 'queryKey'
     >
   ): DataTag<QueryKey, InfiniteData<TOutput, UPageParam>, TError>
 
@@ -129,9 +130,8 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
    * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query#query-mutation-key Tanstack Query/Mutation Key Docs}
    */
   mutationKey(
-    options?: Pick<
-      MutationOptionsIn<TClientContext, TInput, TOutput, TError, any>,
-      'mutationKey'
+    ...rest: MaybeOptionalOptions<
+      MutationKeyOptions<TClientContext>
     >
   ): DataTag<QueryKey, TOutput, TError>
 
@@ -159,7 +159,10 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
     call: client,
 
     queryKey(...[optionsIn = {} as any]) {
-      const queryKey = optionsIn.queryKey ?? generateOperationKey(options.path, { type: 'query', input: optionsIn.input })
+      const queryKey = optionsIn.queryKey ?? generateOperationKey(
+        options.path,
+        { type: 'query', input: optionsIn.input, context: optionsIn.context },
+      )
 
       return queryKey
     },
@@ -191,7 +194,10 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
     },
 
     experimental_streamedKey(...[optionsIn = {} as any]) {
-      const queryKey = optionsIn.queryKey ?? generateOperationKey(options.path, { type: 'streamed', input: optionsIn.input, fnOptions: optionsIn.queryFnOptions })
+      const queryKey = optionsIn.queryKey ?? generateOperationKey(
+        options.path,
+        { type: 'streamed', input: optionsIn.input, fnOptions: optionsIn.queryFnOptions, context: optionsIn.context },
+      )
 
       return queryKey
     },
@@ -232,7 +238,10 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
     },
 
     experimental_liveKey(...[optionsIn = {} as any]) {
-      const queryKey = optionsIn.queryKey ?? generateOperationKey(options.path, { type: 'live', input: optionsIn.input })
+      const queryKey = optionsIn.queryKey ?? generateOperationKey(
+        options.path,
+        { type: 'live', input: optionsIn.input, context: optionsIn.context },
+      )
 
       return queryKey
     },
@@ -273,6 +282,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
       const queryKey = optionsIn.queryKey ?? generateOperationKey(options.path, {
         type: 'infinite',
         input: optionsIn.input === skipToken ? skipToken : optionsIn.input(optionsIn.initialPageParam) as any,
+        context: optionsIn.context,
       })
 
       return queryKey as any
@@ -305,7 +315,10 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
     },
 
     mutationKey(...[optionsIn = {} as any]) {
-      const mutationKey = optionsIn.mutationKey ?? generateOperationKey(options.path, { type: 'mutation' })
+      const mutationKey = optionsIn.mutationKey ?? generateOperationKey(
+        options.path,
+        { type: 'mutation', context: optionsIn.context },
+      )
 
       return mutationKey
     },

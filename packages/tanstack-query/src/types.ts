@@ -5,6 +5,7 @@ import type {
   experimental_streamedQuery,
   InfiniteData,
   InfiniteQueryObserverOptions,
+  MutationKey,
   MutationObserverOptions,
   QueryFunction,
   QueryKey,
@@ -19,30 +20,40 @@ type experimental_StreamedQueryOptions = Omit<Parameters<typeof experimental_str
 
 export type OperationType = 'query' | 'streamed' | 'live' | 'infinite' | 'mutation'
 
-export type OperationKeyOptions<TType extends OperationType, TInput> = {
+/**
+ * @todo move TClientContext to second position + remove default in next major version
+ */
+export type OperationKeyOptions<TType extends OperationType, TInput, TClientContext extends ClientContext = ClientContext> = {
   type?: TType
-  input?: TType extends 'mutation' ? never : PartialDeep<TInput>
+  context?: TClientContext
   fnOptions?: TType extends 'streamed' ? experimental_StreamedQueryOptions : never
+  input?: TType extends 'mutation' ? never : PartialDeep<TInput>
 }
 
-export type OperationKey<TType extends OperationType, TInput> = [path: readonly string[], options: OperationKeyOptions<TType, TInput>]
+/**
+ * @todo move TClientContext to second position + remove default in next major version
+ */
+export type OperationKey<TType extends OperationType, TInput, TClientContext extends ClientContext = ClientContext> = [path: readonly string[], options: OperationKeyOptions<TType, TInput, TClientContext>]
 
 export const OPERATION_CONTEXT_SYMBOL: unique symbol = Symbol('ORPC_OPERATION_CONTEXT')
 
 export interface OperationContext {
   [OPERATION_CONTEXT_SYMBOL]?: {
-    key: QueryKey
     type: OperationType
+    key: QueryKey
   }
 }
 
-export type QueryKeyOptions<TInput>
+/**
+ * @todo move TClientContext to first position + remove default in next major version
+ */
+export type QueryKeyOptions<TInput, TClientContext extends ClientContext = ClientContext>
   = & (undefined extends TInput ? { input?: TInput | SkipToken } : { input: TInput | SkipToken })
+    & (Record<never, never> extends TClientContext ? { context?: TClientContext } : { context: TClientContext })
     & { queryKey?: QueryKey }
 
 export type QueryOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData>
-  = & QueryKeyOptions<TInput>
-    & (Record<never, never> extends TClientContext ? { context?: TClientContext } : { context: TClientContext })
+  = & QueryKeyOptions<TInput, TClientContext>
     & Omit<QueryObserverOptions<TOutput, TError, TSelectData>, 'queryKey'>
 
 export interface QueryOptionsBase<TOutput, TError> {
@@ -53,8 +64,11 @@ export interface QueryOptionsBase<TOutput, TError> {
   enabled: boolean
 }
 
-export type experimental_StreamedKeyOptions<TInput>
-  = & QueryKeyOptions<TInput>
+/**
+ * @todo move TClientContext to first position + remove default in next major version
+ */
+export type experimental_StreamedKeyOptions<TInput, TClientContext extends ClientContext = ClientContext>
+  = & QueryKeyOptions<TInput, TClientContext>
     & { queryFnOptions?: experimental_StreamedQueryOptions }
 
 export type experimental_StreamedOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData>
@@ -77,6 +91,10 @@ export interface InfiniteOptionsBase<TOutput, TError, TPageParam> {
   retryDelay?: (count: number, error: TError) => number // Help TQ infer TError (suspense hooks)
   enabled: boolean
 }
+
+export type MutationKeyOptions<TClientContext extends ClientContext>
+    = & (Record<never, never> extends TClientContext ? { context?: TClientContext } : { context: TClientContext })
+      & { mutationKey?: MutationKey }
 
 export type MutationOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TMutationContext>
     = & (Record<never, never> extends TClientContext ? { context?: TClientContext } : { context: TClientContext })

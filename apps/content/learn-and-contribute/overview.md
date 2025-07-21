@@ -43,9 +43,10 @@ Implements the [RPC Protocol](/docs/advanced/rpc-protocol) for **the most effici
 - [client/src/adapters/standard/rpc-link.ts](https://github.com/unnoq/orpc/blob/main/packages/client/src/adapters/standard/rpc-link.ts)
 - [server/src/adapters/standard/rpc-handler.ts](https://github.com/unnoq/orpc/blob/main/packages/server/src/adapters/standard/rpc-handler.ts)
 
-### OpenAPI Handler/Link
+### OpenAPI Handler/Link/Generator
 
 Implements OpenAPI support for standards-compliant remote procedure invocation following the [OpenAPI Specification](https://swagger.io/specification/).
 
 - [openapi-client/src/adapters/standard/openapi-link.ts](https://github.com/unnoq/orpc/blob/main/packages/openapi-client/src/adapters/standard/openapi-link.ts)
 - [openapi/src/adapters/standard/openapi-handler.ts](https://github.com/unnoq/orpc/blob/main/packages/openapi/src/adapters/standard/openapi-handler.ts)
+- [openapi/src/openapi-generator.ts](https://github.com/unnoq/orpc/blob/main/packages/openapi/src/openapi-generator.ts)

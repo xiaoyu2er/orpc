@@ -50,3 +50,7 @@ Implements OpenAPI support for standards-compliant remote procedure invocation f
 - [openapi-client/src/adapters/standard/openapi-link.ts](https://github.com/unnoq/orpc/blob/main/packages/openapi-client/src/adapters/standard/openapi-link.ts)
 - [openapi/src/adapters/standard/openapi-handler.ts](https://github.com/unnoq/orpc/blob/main/packages/openapi/src/adapters/standard/openapi-handler.ts)
 - [openapi/src/openapi-generator.ts](https://github.com/unnoq/orpc/blob/main/packages/openapi/src/openapi-generator.ts)
+
+## Contributing
+
+We welcome contributions to oRPC! To get started, please take a look at our [contributing guidelines](https://github.com/unnoq/orpc/blob/main/CONTRIBUTING.md).

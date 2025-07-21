@@ -38,7 +38,7 @@ Abstracts runtime environments, allowing oRPC adapters to run seamlessly across 
 
 ### RPC Handler/Link
 
-Implements the [RPC Protocol](/docs/advanced/rpc-protocol) for **the most efficient and lightweight** remote procedure invocation. Supports native types like `Date`, `Map`, `Set`, `BigInt`, and more.
+Implements the [RPC Protocol](/docs/advanced/rpc-protocol) for efficient and lightweight remote procedure invocation. Supports native types like `Date`, `Map`, `Set`, `BigInt`, and more.
 
 - [client/src/adapters/standard/rpc-link.ts](https://github.com/unnoq/orpc/blob/main/packages/client/src/adapters/standard/rpc-link.ts)
 - [server/src/adapters/standard/rpc-handler.ts](https://github.com/unnoq/orpc/blob/main/packages/server/src/adapters/standard/rpc-handler.ts)
@@ -53,4 +53,4 @@ Implements OpenAPI support for standards-compliant remote procedure invocation f
 
 ## Contributing
 
-We welcome contributions to oRPC! To get started, please take a look at our [contributing guidelines](https://github.com/unnoq/orpc/blob/main/CONTRIBUTING.md).
+We welcome contributions to oRPC! To get started, please review our [contributing guidelines](https://github.com/unnoq/orpc/blob/main/CONTRIBUTING.md).

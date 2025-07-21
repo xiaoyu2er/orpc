@@ -64,16 +64,16 @@ export default withMermaid(defineConfig({
       { text: 'Docs', link: '/docs/getting-started', activeMatch: '/docs/(?!openapi/)' },
       { text: 'OpenAPI', link: '/docs/openapi/getting-started', activeMatch: '/docs/openapi/' },
       { text: 'Examples', link: '/examples/openai-streaming', activeMatch: '/examples/' },
-      { text: 'Blog', link: '/blog/v1-announcement', activeMatch: '/blog/' },
       { text: 'Learn & Contribute', link: '/learn-and-contribute/overview', activeMatch: '/learn-and-contribute/' },
       {
         text: 'About',
         items: [
+          { text: 'Blog', link: '/blog/v1-announcement' },
+          { text: 'Discussions', link: 'https://github.com/unnoq/orpc/discussions' },
           { text: 'Sponsor', link: 'https://github.com/sponsors/unnoq' },
           { text: 'Releases', link: 'https://github.com/unnoq/orpc/releases' },
         ],
       },
-      { text: 'Discussions', link: 'https://github.com/unnoq/orpc/discussions' },
     ],
     sidebar: {
       '/docs/': [

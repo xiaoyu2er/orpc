@@ -259,6 +259,16 @@ export default withMermaid(defineConfig({
       ],
       '/learn-and-contribute/': [
         { text: 'Overview', link: '/learn-and-contribute/overview' },
+        {
+          text: 'Mini oRPC',
+          collapsed: true,
+          items: [
+            { text: '0. Overview', link: '/learn-and-contribute/mini-orpc/overview' },
+            { text: '1. Procedure Builder', link: '/learn-and-contribute/mini-orpc/procedure-builder' },
+            { text: '2. Server-side Client', link: '/learn-and-contribute/mini-orpc/server-side-client' },
+            { text: '3. Client-side Client', link: '/learn-and-contribute/mini-orpc/client-side-client' },
+          ],
+        },
       ],
     },
   },

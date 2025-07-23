@@ -13,7 +13,7 @@ The complete Mini oRPC implementation is available in our GitHub repository: [Mi
 
 ## Implementation
 
-Here is the complete procedure builder system implementation over the basic [procedure](https://orpc.unnoq.com/docs/procedure), [middleware](https://orpc.unnoq.com/docs/middleware), and [context](https://orpc.unnoq.com/docs/context) systems in oRPC:
+Here is the complete procedure builder system implementation over the basic [procedure](https://orpc.unnoq.com/docs/procedure), [middleware](https://orpc.unnoq.com/docs/middleware), and [context](https://orpc.unnoq.com/docs/context) systems in Mini oRPC:
 
 ::: code-group
 
@@ -308,6 +308,42 @@ export type AnyMiddleware = Middleware<any, any>
 
 :::
 
+## Router System
+
+The router is another essential component of oRPC that organizes procedures into logical groups and handles routing based on procedure paths. It provides a hierarchical structure for your API endpoints.
+
+::: code-group
+
+```ts [server/src/router.ts]
+import type { Procedure } from './procedure'
+import type { Context } from './types'
+
+/**
+ * Router can be either a single procedure or a nested object of routers.
+ * This recursive structure allows for unlimited nesting depth.
+ */
+export type Router<T extends Context>
+  = | Procedure<T, any, any, any>
+    | { [k: string]: Router<T> }
+
+export type AnyRouter = Router<any>
+
+/**
+ * Utility type that extracts the initial context types
+ * from all procedures within a router.
+ */
+export type InferRouterInitialContexts<T extends AnyRouter>
+  = T extends Procedure<infer UInitialContext, any, any, any>
+    ? UInitialContext
+    : {
+        [K in keyof T]: T[K] extends AnyRouter
+          ? InferRouterInitialContexts<T[K]>
+          : never;
+      }
+```
+
+:::
+
 ## Usage
 
 This implementation covers 60-70% of oRPC procedure building. Here are practical examples:
@@ -350,4 +386,9 @@ export const createPlanet = os
     // Create new planet (user is guaranteed to exist via middleware)
     return { id: 2, name: input.name }
   })
+
+export const router = {
+  listPlanet,
+  createPlanet,
+}
 ```

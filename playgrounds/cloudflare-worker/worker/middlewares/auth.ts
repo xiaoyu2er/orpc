@@ -1,5 +1,5 @@
 import type { User } from '../schemas/user'
-import { os } from '@orpc/server'
+import { ORPCError, os } from '@orpc/server'
 
 export const requiredAuthMiddleware = os
   .$context<{ session?: { user?: User } }>()
@@ -12,7 +12,7 @@ export const requiredAuthMiddleware = os
     const session = context.session ?? await getSession()
 
     if (!session.user) {
-      throw new Error('UNAUTHORIZED')
+      throw new ORPCError('UNAUTHORIZED')
     }
 
     return next({

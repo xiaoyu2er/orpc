@@ -43,7 +43,15 @@ export default antfu({
     'ban/ban': 'off',
   },
 }, {
-  files: ['apps/content/shared/**', 'apps/content/docs/**', 'apps/content/examples/**', 'playgrounds/**', 'packages/*/playground/**'],
+  files: [
+    'apps/content/shared/**',
+    'apps/content/blog/**',
+    'apps/content/docs/**',
+    'apps/content/examples/**',
+    'apps/content/learn-and-contribute/**',
+    'playgrounds/**',
+    'packages/*/playground/**',
+  ],
   rules: {
     'no-console': 'off',
     'perfectionist/sort-imports': 'off',

@@ -1,4 +1,5 @@
 import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
+import markdownItTaskLists from 'markdown-it-task-lists'
 import { defineConfig } from 'vitepress'
 import { groupIconMdPlugin, groupIconVitePlugin, localIconLoader } from 'vitepress-plugin-group-icons'
 import llmstxt from 'vitepress-plugin-llms'
@@ -17,6 +18,7 @@ export default withMermaid(defineConfig({
     },
     config(md) {
       md.use(groupIconMdPlugin)
+      md.use(markdownItTaskLists)
     },
     codeTransformers: [
       transformerTwoslash(),
@@ -261,12 +263,12 @@ export default withMermaid(defineConfig({
         { text: 'Overview', link: '/learn-and-contribute/overview' },
         {
           text: 'Mini oRPC',
-          collapsed: true,
           items: [
             { text: '0. Overview', link: '/learn-and-contribute/mini-orpc/overview' },
             { text: '1. Procedure Builder', link: '/learn-and-contribute/mini-orpc/procedure-builder' },
             { text: '2. Server-side Client', link: '/learn-and-contribute/mini-orpc/server-side-client' },
             { text: '3. Client-side Client', link: '/learn-and-contribute/mini-orpc/client-side-client' },
+            { text: '4. Beyond the Basics', link: '/learn-and-contribute/mini-orpc/beyond-the-basics' },
           ],
         },
       ],

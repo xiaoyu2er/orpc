@@ -3,13 +3,13 @@ import { client } from '../lib/orpc'
 
 export function ChatRoom() {
   const [messages, setMessages] = useState<string[]>([])
-  const [iterator, setIterator] = useState<Awaited<ReturnType<typeof client.onMessage>> | null>(null)
+  const [iterator, setIterator] = useState<Awaited<ReturnType<typeof client.message.on>> | null>(null)
 
   useEffect(() => {
     const controller = new AbortController()
 
     void (async () => {
-      const iterator = await client.onMessage(undefined, { signal: controller.signal })
+      const iterator = await client.message.on(undefined, { signal: controller.signal })
       setIterator(iterator)
 
       for await (const message of iterator) {
@@ -28,7 +28,9 @@ export function ChatRoom() {
     const form = new FormData(e.target as HTMLFormElement)
     const message = form.get('message') as string
 
-    await client.sendMessage({ message })
+    await client.message.send({ message })
+    // or ---
+    // await iterator?.publishMessageRPC({ message })
   }
 
   return (

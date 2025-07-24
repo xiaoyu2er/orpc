@@ -1,5 +1,5 @@
 import type { MaybeOptionalOptions } from '@orpc/shared'
-import { isObject } from '@orpc/shared'
+import { isObject, resolveMaybeOptionalOptions } from '@orpc/shared'
 
 export const COMMON_ORPC_ERROR_DEFS = {
   BAD_REQUEST: {
@@ -104,19 +104,21 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
   readonly status: number
   readonly data: TData
 
-  constructor(code: TCode, ...[options]: MaybeOptionalOptions<ORPCErrorOptions<TData>>) {
-    if (options?.status && !isORPCErrorStatus(options.status)) {
+  constructor(code: TCode, ...rest: MaybeOptionalOptions<ORPCErrorOptions<TData>>) {
+    const options = resolveMaybeOptionalOptions(rest)
+
+    if (options.status !== undefined && !isORPCErrorStatus(options.status)) {
       throw new Error('[ORPCError] Invalid error status code.')
     }
 
-    const message = fallbackORPCErrorMessage(code, options?.message)
+    const message = fallbackORPCErrorMessage(code, options.message)
 
     super(message, options)
 
     this.code = code
-    this.status = fallbackORPCErrorStatus(code, options?.status)
-    this.defined = options?.defined ?? false
-    this.data = options?.data as TData // data only optional when TData is undefinable so can safely cast here
+    this.status = fallbackORPCErrorStatus(code, options.status)
+    this.defined = options.defined ?? false
+    this.data = options.data as TData // data only optional when TData is undefinable so can safely cast here
   }
 
   toJSON(): ORPCErrorJSON<TCode, TData> {

@@ -36,14 +36,16 @@ export function createRouterClient<T extends AnyRouter, TClientContext extends C
     >
   >
 ): RouterClient<T, TClientContext> {
+  const options = resolveMaybeOptionalOptions(rest)
+
   if (isProcedure(router)) {
-    const caller = createProcedureClient(router, resolveMaybeOptionalOptions(rest))
+    const caller = createProcedureClient(router, options)
 
     return caller as any
   }
 
   const procedureCaller = isLazy(router)
-    ? createProcedureClient(createAssertedLazyProcedure(router), resolveMaybeOptionalOptions(rest))
+    ? createProcedureClient(createAssertedLazyProcedure(router), options)
     : {}
 
   const recursive = new Proxy(procedureCaller, {

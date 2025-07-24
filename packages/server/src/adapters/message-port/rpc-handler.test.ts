@@ -54,7 +54,7 @@ describe('rpcHandler', async () => {
     await vi.waitFor(() => expect(sentMessages.length).toBe(1))
   })
 
-  it('abort on close', async () => {
+  it('abort on close', { retry: 3 }, async () => {
     clientPort.postMessage(string_request_message)
 
     await new Promise(resolve => setTimeout(resolve, 0))

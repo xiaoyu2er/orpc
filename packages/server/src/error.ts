@@ -2,6 +2,7 @@ import type { ORPCErrorCode, ORPCErrorOptions } from '@orpc/client'
 import type { ErrorMap, ErrorMapItem, InferSchemaInput } from '@orpc/contract'
 import type { MaybeOptionalOptions } from '@orpc/shared'
 import { fallbackORPCErrorStatus, ORPCError } from '@orpc/client'
+import { resolveMaybeOptionalOptions } from '@orpc/shared'
 
 export type ORPCErrorConstructorMapItemOptions<TData> = Omit<ORPCErrorOptions<TData>, 'defined' | 'status'>
 
@@ -26,15 +27,16 @@ export function createORPCErrorConstructorMap<T extends ErrorMap>(errors: T): OR
         return Reflect.get(target, code)
       }
 
-      const item: ORPCErrorConstructorMapItem<string, unknown> = (...[options]) => {
+      const item: ORPCErrorConstructorMapItem<string, unknown> = (...rest) => {
+        const options = resolveMaybeOptionalOptions(rest)
         const config = errors[code]
 
         return new ORPCError(code, {
           defined: Boolean(config),
           status: config?.status,
-          message: options?.message ?? config?.message,
-          data: options?.data,
-          cause: options?.cause,
+          message: options.message ?? config?.message,
+          data: options.data,
+          cause: options.cause,
         })
       }
 

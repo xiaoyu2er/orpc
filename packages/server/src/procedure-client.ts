@@ -7,7 +7,7 @@ import type { Lazyable } from './lazy'
 import type { AnyProcedure, Procedure, ProcedureHandlerOptions } from './procedure'
 import { ORPCError } from '@orpc/client'
 import { ValidationError } from '@orpc/contract'
-import { intercept, value } from '@orpc/shared'
+import { intercept, resolveMaybeOptionalOptions, toArray, value } from '@orpc/shared'
 import { mergeCurrentContext } from './context'
 import { createORPCErrorConstructorMap, validateORPCError } from './error'
 import { unlazy } from './lazy'
@@ -77,7 +77,7 @@ export function createProcedureClient<
   TClientContext extends ClientContext,
 >(
   lazyableProcedure: Lazyable<Procedure<TInitialContext, any, TInputSchema, TOutputSchema, TErrorMap, TMeta>>,
-  ...[options]: MaybeOptionalOptions<
+  ...rest: MaybeOptionalOptions<
     CreateProcedureClientOptions<
       TInitialContext,
       TOutputSchema,
@@ -87,17 +87,19 @@ export function createProcedureClient<
     >
   >
 ): ProcedureClient<TClientContext, TInputSchema, TOutputSchema, TErrorMap> {
+  const options = resolveMaybeOptionalOptions(rest)
+
   return async (...[input, callerOptions]) => {
-    const path = options?.path ?? []
+    const path = toArray(options.path)
     const { default: procedure } = await unlazy(lazyableProcedure)
 
     const clientContext = callerOptions?.context ?? {} as TClientContext // callerOptions.context can be undefined when all field is optional
-    const context = await value(options?.context ?? {}, clientContext) as TInitialContext
+    const context = await value(options.context ?? {} as TInitialContext, clientContext)
     const errors = createORPCErrorConstructorMap(procedure['~orpc'].errorMap)
 
     try {
       return await intercept(
-        options?.interceptors ?? [],
+        toArray(options.interceptors),
         {
           context,
           input: input as InferSchemaInput<TInputSchema>, // input only optional when it undefinable so we can safely cast it

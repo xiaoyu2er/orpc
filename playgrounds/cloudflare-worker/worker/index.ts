@@ -1,35 +1,80 @@
-import { os } from '@orpc/server'
 import { RPCHandler } from '@orpc/server/fetch'
-import { DurableEventIterator, DurableEventIteratorHandlerPlugin } from '@orpc/experimental-durable-event-iterator'
+import { OpenAPIHandler } from '@orpc/openapi/fetch'
+import { OpenAPIReferencePlugin } from '@orpc/openapi/plugins'
+import { experimental_SmartCoercionPlugin as SmartCoercionPlugin } from '@orpc/json-schema'
 import { upgradeDurableEventIteratorRequest } from '@orpc/experimental-durable-event-iterator/durable-object'
-import type { ChatRoom } from './dos/chat-room'
-import * as z from 'zod'
+import { BatchHandlerPlugin } from '@orpc/server/plugins'
+import { router } from './router'
+import { onError } from '@orpc/client'
+import { ZodToJsonSchemaConverter } from '@orpc/zod/zod4'
+import { NewUserSchema, UserSchema } from './schemas/user'
+import { CredentialSchema, TokenSchema } from './schemas/auth'
+import { NewPlanetSchema, PlanetSchema, UpdatePlanetSchema } from './schemas/planet'
+import { DurableEventIteratorHandlerPlugin } from '@orpc/experimental-durable-event-iterator'
 
-const base = os.$context<{
-  env: Env
-}>()
-
-export const router = {
-  onMessage: base.handler(({ context }) => {
-    return new DurableEventIterator<ChatRoom>('some-room', {
-      signingKey: 'key',
-      tokenTTLSeconds: 60 * 60 * 24, // 24 hours
-      att: { some: 'attachment' },
-    }).rpc('publishMessageRPC')
-  }),
-  sendMessage: base
-    .input(z.object({ message: z.string() }))
-    .handler(async ({ context, input }) => {
-      const id = context.env.CHAT_ROOM.idFromName('some-room')
-      const stub = context.env.CHAT_ROOM.get(id)
-
-      await stub.publishMessage(input.message)
+const rpcHandler = new RPCHandler(router, {
+  interceptors: [
+    onError((error) => {
+      console.error(error)
     }),
-}
-
-const handler = new RPCHandler(router, {
+  ],
   plugins: [
+    new BatchHandlerPlugin(),
     new DurableEventIteratorHandlerPlugin(),
+  ],
+})
+
+const openAPIHandler = new OpenAPIHandler(router, {
+  interceptors: [
+    onError((error) => {
+      console.error(error)
+    }),
+  ],
+  plugins: [
+    new SmartCoercionPlugin({
+      schemaConverters: [
+        new ZodToJsonSchemaConverter(),
+      ],
+    }),
+    new OpenAPIReferencePlugin({
+      schemaConverters: [
+        new ZodToJsonSchemaConverter(),
+      ],
+      specGenerateOptions: {
+        info: {
+          title: 'ORPC Playground',
+          version: '1.0.0',
+        },
+        commonSchemas: {
+          NewUser: { schema: NewUserSchema },
+          User: { schema: UserSchema },
+          Credential: { schema: CredentialSchema },
+          Token: { schema: TokenSchema },
+          NewPlanet: { schema: NewPlanetSchema },
+          UpdatePlanet: { schema: UpdatePlanetSchema },
+          Planet: { schema: PlanetSchema },
+          UndefinedError: { error: 'UndefinedError' },
+        },
+        security: [{ bearerAuth: [] }],
+        components: {
+          securitySchemes: {
+            bearerAuth: {
+              type: 'http',
+              scheme: 'bearer',
+            },
+          },
+        },
+      },
+      docsConfig: {
+        authentication: {
+          securitySchemes: {
+            bearerAuth: {
+              token: 'default-token',
+            },
+          },
+        },
+      },
+    }),
   ],
 })
 
@@ -44,13 +89,29 @@ export default {
       })
     }
 
-    const { response } = await handler.handle(request, {
+    const rpcResult = await rpcHandler.handle(request, {
+      prefix: '/rpc',
       context: {
         env,
       },
     })
 
-    return response ?? new Response('Not Found', { status: 404 })
+    if (rpcResult.matched) {
+      return rpcResult.response
+    }
+
+    const apiResult = await openAPIHandler.handle(request, {
+      prefix: '/api',
+      context: {
+        env,
+      },
+    })
+
+    if (apiResult.matched) {
+      return apiResult.response
+    }
+
+    return new Response('Not Found', { status: 404 })
   },
 } satisfies ExportedHandler<Env>
 

@@ -1,8 +1,3 @@
-> [!WARNING]
->
-> `@orpc/shared` is an internal dependency of oRPC packages. It does not follow semver and may change at any time without notice.
-> Please do not use it in your project.
-
 <div align="center">
   <image align="center" src="https://orpc.unnoq.com/logo.webp" width=280 alt="oRPC logo" />
 </div>

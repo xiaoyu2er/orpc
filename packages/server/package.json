@@ -20,6 +20,11 @@
         "import": "./dist/index.mjs",
         "default": "./dist/index.mjs"
       },
+      "./helpers": {
+        "types": "./dist/helpers/index.d.mts",
+        "import": "./dist/helpers/index.mjs",
+        "default": "./dist/helpers/index.mjs"
+      },
       "./plugins": {
         "types": "./dist/plugins/index.d.mts",
         "import": "./dist/plugins/index.mjs",
@@ -84,6 +89,7 @@
   },
   "exports": {
     ".": "./src/index.ts",
+    "./helpers": "./src/helpers/index.ts",
     "./plugins": "./src/plugins/index.ts",
     "./hibernation": "./src/hibernation/index.ts",
     "./standard": "./src/adapters/standard/index.ts",
@@ -125,7 +131,9 @@
     "@orpc/standard-server-aws-lambda": "workspace:*",
     "@orpc/standard-server-fetch": "workspace:*",
     "@orpc/standard-server-node": "workspace:*",
-    "@orpc/standard-server-peer": "workspace:*"
+    "@orpc/standard-server-peer": "workspace:*",
+    "@types/cookie": "^1.0.0",
+    "cookie": "^1.0.2"
   },
   "devDependencies": {
     "@types/ws": "^8.18.1",

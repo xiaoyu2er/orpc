@@ -4,10 +4,16 @@ Thank you for your interest in contributing to oRPC! We welcome all kinds of con
 
 If you need help or have questions, please join us on [Discord](https://discord.gg/TXEbwRBvQn).
 
+> [!TIP]
+> [Mini-oRPC](https://github.com/unnoq/mini-orpc) is a simplified implementation of oRPC that includes essential features to help you understand the core concepts. It's designed to be straightforward and easy to follow, making it an ideal starting point for learning about oRPC.
+
 ## Setup
 
-This repository uses **pnpm** and **pnpm workspaces** to manage dependencies.
-We use **Vitest** for testing and **ESLint** with [@antfu/eslint-config](https://github.com/antfu/eslint-config) for linting and formatting.
+This repository uses:
+
+- **pnpm** and **pnpm workspaces** for dependency management
+- **Vitest** for testing
+- **ESLint** with [@antfu/eslint-config](https://github.com/antfu/eslint-config) for linting and formatting
 
 ## Workflow
 

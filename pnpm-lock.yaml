@@ -522,6 +522,9 @@ importers:
       '@orpc/standard-server-peer':
         specifier: workspace:*
         version: link:../standard-server-peer
+      cookie:
+        specifier: ^1.0.2
+        version: 1.0.2
     devDependencies:
       '@types/ws':
         specifier: ^8.18.1

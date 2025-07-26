@@ -11,7 +11,15 @@
  * ```
  */
 export function encodeBase64url(data: Uint8Array): string {
-  const base64 = btoa(String.fromCharCode(...data))
+  const chunkSize = 8192 // 8KB chunks to stay well below call stack limits
+  let binaryString = ''
+
+  for (let i = 0; i < data.length; i += chunkSize) {
+    const chunk = data.subarray(i, i + chunkSize)
+    binaryString += String.fromCharCode(...chunk)
+  }
+
+  const base64 = btoa(binaryString)
   return base64
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
@@ -42,9 +50,14 @@ export function decodeBase64url(base64url: string | undefined | null): Uint8Arra
       base64 += '='
     }
 
-    return new Uint8Array(
-      atob(base64).split('').map(char => char.charCodeAt(0)),
-    )
+    const binaryString = atob(base64)
+
+    const bytes = new Uint8Array(binaryString.length)
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i)
+    }
+
+    return bytes
   }
   catch {
     return undefined

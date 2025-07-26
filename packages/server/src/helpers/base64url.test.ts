@@ -33,4 +33,24 @@ describe('encodeBase64url / decodeBase64url', () => {
 
     expect(new TextDecoder().decode(decoded)).toEqual(text)
   })
+
+  it('should handle large data without call stack overflow', () => {
+    // Create a large Uint8Array (100KB)
+    const largeData = new Uint8Array(100 * 1024)
+    for (let i = 0; i < largeData.length; i++) {
+      largeData[i] = i % 256
+    }
+
+    const encoded = encodeBase64url(largeData)
+    const decoded = decodeBase64url(encoded)
+
+    expect(decoded).toEqual(largeData)
+    expect(encoded).not.toMatch(/[+/=]/) // Should still be URL-safe
+  })
+
+  it('should handle invalid input gracefully', () => {
+    expect(decodeBase64url(null)).toBeUndefined()
+    expect(decodeBase64url(undefined)).toBeUndefined()
+    expect(decodeBase64url('invalid base64!')).toBeUndefined()
+  })
 })

@@ -13,7 +13,6 @@ import { getCookie, setCookie } from '@orpc/server/helpers'
 const headers = new Headers()
 
 setCookie(headers, 'sessionId', 'abc123', {
-  httpOnly: true,
   secure: true,
   maxAge: 3600
 })

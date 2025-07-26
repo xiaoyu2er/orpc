@@ -12,6 +12,7 @@ The Response Headers Plugin allows you to set response headers in oRPC. It injec
 ```ts twoslash
 import { os } from '@orpc/server'
 // ---cut---
+import { setCookie } from '@orpc/server/helpers'
 import { ResponseHeadersPluginContext } from '@orpc/server/plugins'
 
 interface ORPCContext extends ResponseHeadersPluginContext {}
@@ -24,13 +25,20 @@ const example = base
     return next()
   })
   .handler(({ context }) => {
-    context.resHeaders?.set('x-custom-header', 'value')
+    setCookie(context.resHeaders, 'session_id', 'abc123', {
+      secure: true,
+      maxAge: 3600
+    })
   })
 ```
 
 ::: info
 **Why can `resHeaders` be `undefined`?**
 This allows procedures to run safely even when `ResponseHeadersPlugin` is not used, such as in direct calls.
+:::
+
+::: tip
+Combine with [Cookie Helpers](/docs/helpers/cookie) for streamlined cookie management.
 :::
 
 ## Handler Setup

@@ -103,4 +103,11 @@ describe('getCookie', () => {
       decode: (val: string) => val.replace(/^"|"$/g, ''),
     })).toBe('quoted value')
   })
+
+  it('should handle invalid cookie formats gracefully', () => {
+    const headers = new Headers()
+    headers.set('Cookie', 'invalid-cookie-format=%XX')
+
+    expect(getCookie(headers, 'invalid-cookie-format')).toEqual('%XX')
+  })
 })

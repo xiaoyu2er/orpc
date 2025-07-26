@@ -67,9 +67,11 @@ describe('getCookie', () => {
   it('should work with Headers object', () => {
     const headers = new Headers()
     headers.set('Cookie', 'test=value; session=abc123')
+    headers.append('Cookie', 'another=value2')
 
     expect(getCookie(headers, 'test')).toBe('value')
     expect(getCookie(headers, 'session')).toBe('abc123')
+    expect(getCookie(headers, 'another')).toBe('value2')
     expect(getCookie(headers, 'nonexistent')).toBeUndefined()
   })
 

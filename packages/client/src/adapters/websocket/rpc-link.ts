@@ -5,7 +5,7 @@ import { StandardRPCLink } from '../standard'
 import { LinkWebsocketClient } from './link-client'
 
 export interface RPCLinkOptions<T extends ClientContext>
-  extends Omit<StandardRPCLinkOptions<T>, 'url' | 'headers' | 'method' | 'fallbackMethod' | 'maxUrlLength'>, LinkWebsocketClientOptions {}
+  extends Omit<StandardRPCLinkOptions<T>, 'url' | 'method' | 'fallbackMethod' | 'maxUrlLength'>, LinkWebsocketClientOptions {}
 
 /**
  * The RPC Link communicates with the server using the RPC protocol over WebSocket.

@@ -5,7 +5,7 @@ import { StandardRPCLink } from '../standard'
 import { LinkMessagePortClient } from './link-client'
 
 export interface RPCLinkOptions<T extends ClientContext>
-  extends Omit<StandardRPCLinkOptions<T>, 'url' | 'headers' | 'method' | 'fallbackMethod' | 'maxUrlLength'>, LinkMessagePortClientOptions {}
+  extends Omit<StandardRPCLinkOptions<T>, 'url' | 'method' | 'fallbackMethod' | 'maxUrlLength'>, LinkMessagePortClientOptions {}
 
 /**
  * The RPC Link for common message port implementations.

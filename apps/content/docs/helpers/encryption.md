@@ -7,8 +7,8 @@ description: Functions to encrypt and decrypt sensitive data using AES-GCM.
 
 Encryption helpers provide functions to encrypt and decrypt sensitive data using AES-GCM with PBKDF2 key derivation.
 
-::: info
-Encryption prevents users from reading data content but is slower than [signing](/docs/helpers/signing).
+::: warning
+Encryption secures data content but has performance trade-offs compared to [signing](/docs/helpers/signing). It requires more CPU resources and processing time. For edge runtimes like [Cloudflare Workers](https://developers.cloudflare.com/workers/), ensure you have sufficient CPU time budget (recommend >200ms per request) for encryption operations.
 :::
 
 ```ts twoslash

@@ -1,11 +1,11 @@
 ---
 title: Encryption Helpers
-description: Functions to encrypt and decrypt sensitive data using AES-GCM, preventing users from reading data content but with slower performance compared to signing.
+description: Functions to encrypt and decrypt sensitive data using AES-GCM.
 ---
 
 # Encryption Helpers
 
-The Encryption helpers provide functions to encrypt and decrypt sensitive data using AES-GCM with PBKDF2 key derivation.
+Encryption helpers provide functions to encrypt and decrypt sensitive data using AES-GCM with PBKDF2 key derivation.
 
 ::: info
 Encryption prevents users from reading data content but is slower than [signing](/docs/helpers/signing).
@@ -25,5 +25,5 @@ const decryptedData = await decrypt(encryptedData, secret)
 ```
 
 ::: info
-The `decrypt` helper accepts `undefined` or `null` as input and returns `undefined` for invalid inputs, enabling seamless integration with optional data handling patterns.
+The `decrypt` helper accepts `undefined` or `null` as encrypted value and returns `undefined` for invalid inputs, enabling seamless handling of optional data.
 :::

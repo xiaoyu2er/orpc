@@ -1,10 +1,20 @@
 import { decodeBase64url, encodeBase64url } from './base64url'
 
-const ALGORITHM = {
+const PBKDF2_CONFIG = {
   name: 'PBKDF2',
-  iterations: 60_000, // OWASP PBKDF2-HMAC-SHA256 minimum for 2025
+  iterations: 60_000, // Recommended minimum iterations per current OWASP guidelines
   hash: 'SHA-256',
-}
+} as const
+
+const AES_GCM_CONFIG = {
+  name: 'AES-GCM',
+  length: 256,
+} as const
+
+const CRYPTO_CONSTANTS = {
+  SALT_LENGTH: 16,
+  IV_LENGTH: 12,
+} as const
 
 /**
  * Encrypts a string using AES-GCM with a secret key.
@@ -21,30 +31,27 @@ export async function encrypt(value: string, secret: string): Promise<string> {
   const encoder = new TextEncoder()
   const data = encoder.encode(value)
 
-  const salt = crypto.getRandomValues(new Uint8Array(16))
+  const salt = crypto.getRandomValues(new Uint8Array(CRYPTO_CONSTANTS.SALT_LENGTH))
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
     encoder.encode(secret),
-    'PBKDF2',
+    PBKDF2_CONFIG.name,
     false,
     ['deriveKey'],
   )
 
   const key = await crypto.subtle.deriveKey(
-    {
-      ...ALGORITHM,
-      salt,
-    },
+    { ...PBKDF2_CONFIG, salt },
     keyMaterial,
-    { name: 'AES-GCM', length: 256 },
+    AES_GCM_CONFIG,
     false,
     ['encrypt'],
   )
 
-  const iv = crypto.getRandomValues(new Uint8Array(12))
+  const iv = crypto.getRandomValues(new Uint8Array(CRYPTO_CONSTANTS.IV_LENGTH))
 
   const encrypted = await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv },
+    { name: AES_GCM_CONFIG.name, iv },
     key,
     data,
   )
@@ -79,31 +86,28 @@ export async function decrypt(encrypted: string | undefined | null, secret: stri
     const encoder = new TextEncoder()
     const decoder = new TextDecoder()
 
-    const salt = data.slice(0, 16)
-    const iv = data.slice(16, 28)
-    const encryptedData = data.slice(28)
+    const salt = data.slice(0, CRYPTO_CONSTANTS.SALT_LENGTH)
+    const iv = data.slice(CRYPTO_CONSTANTS.SALT_LENGTH, CRYPTO_CONSTANTS.SALT_LENGTH + CRYPTO_CONSTANTS.IV_LENGTH)
+    const encryptedData = data.slice(CRYPTO_CONSTANTS.SALT_LENGTH + CRYPTO_CONSTANTS.IV_LENGTH)
 
     const keyMaterial = await crypto.subtle.importKey(
       'raw',
       encoder.encode(secret),
-      'PBKDF2',
+      PBKDF2_CONFIG.name,
       false,
       ['deriveKey'],
     )
 
     const key = await crypto.subtle.deriveKey(
-      {
-        ...ALGORITHM,
-        salt,
-      },
+      { ...PBKDF2_CONFIG, salt },
       keyMaterial,
-      { name: 'AES-GCM', length: 256 },
+      AES_GCM_CONFIG,
       false,
       ['decrypt'],
     )
 
     const decrypted = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv },
+      { name: AES_GCM_CONFIG.name, iv },
       key,
       encryptedData,
     )

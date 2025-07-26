@@ -1,14 +1,14 @@
 ---
 title: Signing Helpers
-description: Functions to cryptographically sign and verify data using HMAC-SHA256. Faster than encryption but end users can read the data content.
+description: Functions to cryptographically sign and verify data using HMAC-SHA256.
 ---
 
 # Signing Helpers
 
-The Signing helpers provide functions to cryptographically sign and verify data using HMAC-SHA256.
+Signing helpers provide functions to cryptographically sign and verify data using HMAC-SHA256.
 
 ::: info
-Signing is faster than [encryption](/docs/helpers/encryption) but end users can read the data content.
+Signing is faster than [encryption](/docs/helpers/encryption) but users can view the original data.
 :::
 
 ```ts twoslash
@@ -25,5 +25,5 @@ const verifiedValue = await unsign(signedValue, secret) // 'user123'
 ```
 
 ::: info
-The `unsign` helper accepts `undefined` or `null` as input and returns `undefined` for invalid inputs, enabling seamless integration with optional data handling patterns.
+The `unsign` helper accepts `undefined` or `null` as signed value and returns `undefined` for invalid inputs, enabling seamless handling of optional data.
 :::

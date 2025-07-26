@@ -1,11 +1,11 @@
 ---
 title: Base64Url Helpers
-description: Functions to encode and decode base64url strings, which are URL-safe variants of base64 encoding commonly used in web applications for tokens, data serialization, and API communication.
+description: Functions to encode and decode base64url strings, a URL-safe variant of base64 encoding.
 ---
 
 # Base64Url Helpers
 
-The Base64Url helpers provide functions to encode and decode base64url strings, which are URL-safe variants of base64 encoding commonly used in web applications for tokens, data serialization, and API communication.
+Base64Url helpers provide functions to encode and decode base64url strings, a URL-safe variant of base64 encoding used in web tokens, data serialization, and APIs.
 
 ```ts twoslash
 import { decodeBase64url, encodeBase64url } from '@orpc/server/helpers'
@@ -18,5 +18,5 @@ const decodedText = new TextDecoder().decode(decodedBytes) // 'Hello World'
 ```
 
 ::: info
-The `decodeBase64url` helper accepts `undefined` or `null` as input and returns `undefined` for invalid inputs, enabling seamless integration with optional data handling patterns.
+The `decodeBase64url` accepts `undefined` or `null` as encoded value and returns `undefined` for invalid inputs, enabling seamless handling of optional data.
 :::

@@ -1,5 +1,11 @@
 import { decodeBase64url, encodeBase64url } from './base64url'
 
+const ALGORITHM = {
+  name: 'PBKDF2',
+  iterations: 60_000, // OWASP PBKDF2-HMAC-SHA256 minimum for 2025
+  hash: 'SHA-256',
+}
+
 /**
  * Encrypts a string using AES-GCM with a secret key.
  * The output is base64url encoded to be URL-safe.
@@ -26,10 +32,8 @@ export async function encrypt(value: string, secret: string): Promise<string> {
 
   const key = await crypto.subtle.deriveKey(
     {
-      name: 'PBKDF2',
+      ...ALGORITHM,
       salt,
-      iterations: 100000,
-      hash: 'SHA-256',
     },
     keyMaterial,
     { name: 'AES-GCM', length: 256 },
@@ -89,10 +93,8 @@ export async function decrypt(encrypted: string | undefined | null, secret: stri
 
     const key = await crypto.subtle.deriveKey(
       {
-        name: 'PBKDF2',
+        ...ALGORITHM,
         salt,
-        iterations: 100000,
-        hash: 'SHA-256',
       },
       keyMaterial,
       { name: 'AES-GCM', length: 256 },

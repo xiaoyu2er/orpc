@@ -12,6 +12,7 @@ export * from './object'
 export * from './queue'
 export * from './stream'
 export * from './types'
+export * from './uri'
 export * from './value'
 
 export { group, guard, mapEntries, mapValues, omit } from 'radash'

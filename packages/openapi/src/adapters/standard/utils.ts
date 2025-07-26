@@ -1,5 +1,6 @@
 import type { HTTPPath } from '@orpc/client'
 import { standardizeHTTPPath } from '@orpc/openapi-client/standard'
+import { tryDecodeURIComponent } from '@orpc/shared'
 
 /**
  * {@link https://github.com/unjs/rou3}
@@ -14,5 +15,5 @@ export function toRou3Pattern(path: HTTPPath): string {
  * @internal
  */
 export function decodeParams(params: Record<string, string>): Record<string, string> {
-  return Object.fromEntries(Object.entries(params).map(([key, value]) => [key, decodeURIComponent(value)]))
+  return Object.fromEntries(Object.entries(params).map(([key, value]) => [key, tryDecodeURIComponent(value)]))
 }

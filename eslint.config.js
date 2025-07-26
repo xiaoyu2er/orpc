@@ -19,6 +19,10 @@ export default antfu({
         name: ['*', 'bytes'],
         message: 'Request/Blob/Response/... .bytes is not widely supported, use readAsBuffer instead',
       },
+      {
+        name: 'decodeURIComponent',
+        message: 'decodeURIComponent can throw an error, use tryDecodeURIComponent instead',
+      },
     ],
     'no-restricted-imports': ['error', {
       patterns: [{

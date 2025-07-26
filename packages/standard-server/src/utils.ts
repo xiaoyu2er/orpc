@@ -1,5 +1,5 @@
 import type { StandardHeaders, StandardLazyResponse } from './types'
-import { isAsyncIteratorObject, once, replicateAsyncIterator, toArray } from '@orpc/shared'
+import { isAsyncIteratorObject, once, replicateAsyncIterator, toArray, tryDecodeURIComponent } from '@orpc/shared'
 
 export function generateContentDisposition(filename: string): string {
   const escapedFileName = filename.replace(/"/g, '\\"')
@@ -16,7 +16,7 @@ export function getFilenameFromContentDisposition(contentDisposition: string): s
   const encodedFilenameStarMatch = contentDisposition.match(/filename\*=(UTF-8'')?([^;]*)/i)
 
   if (encodedFilenameStarMatch && typeof encodedFilenameStarMatch[2] === 'string') {
-    return decodeURIComponent(encodedFilenameStarMatch[2])
+    return tryDecodeURIComponent(encodedFilenameStarMatch[2])
   }
 
   const encodedFilenameMatch = contentDisposition.match(/filename="((?:\\"|[^"])*)"/i)

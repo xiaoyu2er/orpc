@@ -84,6 +84,21 @@ export default {
 
 :::
 
+::: tip
+Alternatively, you can use the standalone `lazy` helper from `@orpc/server`. This helper is faster for type inference, and doesn't require matching the [Initial Context](/docs/context#initial-context).
+
+```ts [router.ts]
+import { lazy } from '@orpc/server'
+
+const router = {
+  ping,
+  pong,
+  planet: lazy(() => import('./planet'))
+}
+```
+
+:::
+
 ## Utilities
 
 ::: info

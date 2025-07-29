@@ -16,7 +16,9 @@ export interface Lazy<T> {
 export type Lazyable<T> = T | Lazy<T>
 
 /**
- * Create a lazy thing.
+ * Creates a lazy-loaded item.
+ *
+ * @warning The `prefix` in `meta` only holds metadata and does not apply the prefix to the lazy router, use `os.prefix(...).lazy(...)` instead.
  */
 export function lazy<T>(loader: () => Promise<{ default: T }>, meta: LazyMeta = {}): Lazy<T> {
   return {

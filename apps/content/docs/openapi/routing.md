@@ -66,6 +66,10 @@ const router = {
 }
 ```
 
+:::warning
+Do not use the `lazy` helper from `@orpc/server` here, as it cannot apply route prefixes.
+:::
+
 ## Initial Configuration
 
 Customize the initial oRPC routing settings using `.$route`:

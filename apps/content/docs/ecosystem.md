@@ -15,6 +15,7 @@ If your project is missing here, please [open a PR](https://github.com/unnoq/orp
 | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | [Zap.ts](https://zap-ts.alexandretrotel.org/)                             | [![Stars](https://img.shields.io/github/stars/alexandretrotel/zap.ts?style=flat)](https://github.com/alexandretrotel/zap.ts)                             | Next.js boilerplate designed to help you build applications faster using a modern set of tools.                                |
 | [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack) | [![Stars](https://img.shields.io/github/stars/AmanVarshney01/create-better-t-stack?style=flat)](https://github.com/AmanVarshney01/create-better-t-stack) | A modern CLI tool for scaffolding end-to-end type-safe TypeScript projects with best practices and customizable configurations |
+| [create-start-app](https://www.npmjs.com/package/create-start-app)        | [![Stars](https://img.shields.io/github/stars/TanStack/create-tsrouter-app?style=flat)](https://github.com/TanStack/create-tsrouter-app)                 | Quickly scaffold a new React project with TanStack Router and oRPC                                                             |
 
 ## Tools
 

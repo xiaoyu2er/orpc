@@ -419,6 +419,12 @@ export class experimental_JsonSchemaCoercer {
       return value
     }
 
-    return new Map(value as [unknown, unknown][])
+    const result = new Map(value as [unknown, unknown][])
+
+    if (result.size !== value.length) {
+      return value
+    }
+
+    return result
   }
 }

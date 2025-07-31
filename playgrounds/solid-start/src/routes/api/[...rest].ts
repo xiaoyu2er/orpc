@@ -64,7 +64,7 @@ const handler = new OpenAPIHandler(router, {
   ],
 })
 
-export async function handle({ request }: APIEvent) {
+async function handle({ request }: APIEvent) {
   const context = request.headers.get('Authorization')
     ? { user: { id: 'test', name: 'John Doe', email: 'john@doe.com' } }
     : {}

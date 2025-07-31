@@ -75,6 +75,11 @@ describe('jsonSchemaCoercer', () => {
       { 'type': 'array', 'items': { type: 'array', prefixItems: [{ type: 'number' }, { type: 'boolean' }] }, 'x-native-type': 'map' } as any,
       ['1'],
     )).toEqual(['1'])
+
+    expect(coercer.coerce(
+      { 'type': 'array', 'items': { type: 'array', prefixItems: [{ type: 'number' }, { type: 'boolean' }] }, 'x-native-type': 'map' } as any,
+      [['1', 'true'], ['duplicate', 'false'], ['duplicate', 'true']],
+    )).toEqual([[1, true], ['duplicate', false], ['duplicate', true]])
   })
 
   it('can coerce enum/const values', () => {

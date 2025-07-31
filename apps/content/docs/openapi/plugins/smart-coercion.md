@@ -150,6 +150,6 @@ This is particularly useful for [Bracket Notation](/docs/openapi/bracket-notatio
 
 ### Array → Map
 
-Support arrays of key-value pairs:
+Support arrays of key-value pairs with **unique keys**:
 
 - `[['key1', 'value1'], ['key2', 'value2']]` → `new Map([['key1', 'value1'], ['key2', 'value2']])`

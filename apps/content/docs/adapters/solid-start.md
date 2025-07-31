@@ -35,7 +35,14 @@ export const DELETE = handle
 ```
 
 ```ts [src/routes/rpc/index.ts]
-export * from './[...rest]'
+import { POST as handle } from './[...rest]'
+
+export const HEAD = handle
+export const GET = handle
+export const POST = handle
+export const PUT = handle
+export const PATCH = handle
+export const DELETE = handle
 ```
 
 :::

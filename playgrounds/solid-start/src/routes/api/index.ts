@@ -1,4 +1,4 @@
-import { handle } from './[...rest]'
+import { POST as handle } from './[...rest]'
 
 export const HEAD = handle
 export const GET = handle

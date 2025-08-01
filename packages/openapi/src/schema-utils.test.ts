@@ -44,6 +44,8 @@ describe('separateObjectSchema', () => {
         { a: 'a' },
         'INVALID',
       ],
+      anyOf: undefined, // allowed any key with undefined value
+      enum: undefined, // allowed any key with undefined value
     }
 
     const [matched, rest] = separateObjectSchema(schema, ['a'])
@@ -78,6 +80,42 @@ describe('separateObjectSchema', () => {
     })
   })
 
+  it('can separate if contains additionalProperties', () => {
+    const schema: ObjectSchema = {
+      type: 'object',
+      description: 'description',
+      properties: {
+        a: { type: 'string' },
+        b: { type: 'string' },
+      },
+      required: ['a'],
+      additionalProperties: true,
+    }
+
+    const [matched, rest] = separateObjectSchema(schema, ['a', 'd', 'e'])
+
+    expect(matched).toEqual({
+      type: 'object',
+      description: 'description',
+      properties: {
+        a: { type: 'string' },
+        d: true,
+        e: true,
+      },
+      required: ['a'],
+      additionalProperties: true,
+    })
+    expect(rest).toEqual({
+      type: 'object',
+      description: 'description',
+      properties: {
+        b: { type: 'string' },
+      },
+      required: [],
+      additionalProperties: true,
+    })
+  })
+
   it('not separate when contain not allow keyword', () => {
     const schema: ObjectSchema = {
       type: 'object',
@@ -104,7 +142,10 @@ describe('separateObjectSchema', () => {
 
     const [matched, rest] = separateObjectSchema(schema, ['a'])
 
-    expect(matched).toEqual(schema)
+    expect(matched).toEqual({
+      ...schema,
+      properties: {},
+    })
     expect(rest).toEqual(schema)
   })
 })

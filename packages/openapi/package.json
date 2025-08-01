@@ -1,7 +1,7 @@
 {
   "name": "@orpc/openapi",
   "type": "module",
-  "version": "1.7.6",
+  "version": "1.7.7",
   "license": "MIT",
   "homepage": "https://orpc.unnoq.com",
   "repository": {
@@ -74,6 +74,6 @@
     "rou3": "^0.7.3"
   },
   "devDependencies": {
-    "zod": "^4.0.5"
+    "zod": "^4.0.14"
   }
 }

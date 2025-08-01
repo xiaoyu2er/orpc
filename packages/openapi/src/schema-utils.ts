@@ -35,19 +35,27 @@ export function isAnySchema(schema: JSONSchema): boolean {
  * @internal
  */
 export function separateObjectSchema(schema: ObjectSchema, separatedProperties: string[]): [matched: ObjectSchema, rest: ObjectSchema] {
-  if (Object.keys(schema).some(k => k !== 'type' && k !== 'properties' && k !== 'required' && LOGIC_KEYWORDS.includes(k))) {
+  if (Object.keys(schema).some(
+    k => !['type', 'properties', 'required', 'additionalProperties'].includes(k)
+      && LOGIC_KEYWORDS.includes(k)
+      && (schema as any)[k] !== undefined,
+  )) {
     return [{ type: 'object' }, schema]
   }
 
   const matched: ObjectSchema = { ...schema }
   const rest: ObjectSchema = { ...schema }
 
-  matched.properties = schema.properties && Object.entries(schema.properties)
-    .filter(([key]) => separatedProperties.includes(key))
-    .reduce((acc, [key, value]) => {
-      acc[key] = value
+  matched.properties = separatedProperties
+    .reduce((acc: Record<string, JSONSchema>, key) => {
+      const keySchema = schema.properties?.[key] ?? schema.additionalProperties
+
+      if (keySchema !== undefined) {
+        acc[key] = keySchema
+      }
+
       return acc
-    }, {} as Record<string, JSONSchema>)
+    }, {})
 
   matched.required = schema.required?.filter(key => separatedProperties.includes(key))
 

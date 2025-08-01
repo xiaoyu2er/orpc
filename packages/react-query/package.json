@@ -1,7 +1,7 @@
 {
   "name": "@orpc/react-query",
   "type": "module",
-  "version": "1.7.6",
+  "version": "1.7.7",
   "license": "MIT",
   "homepage": "https://orpc.unnoq.com",
   "repository": {
@@ -47,7 +47,7 @@
   },
   "devDependencies": {
     "@tanstack/react-query": "^5.83.0",
-    "react": "^19.1.0",
-    "zod": "^4.0.5"
+    "react": "^19.1.1",
+    "zod": "^4.0.14"
   }
 }

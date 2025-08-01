@@ -1,9 +1,10 @@
-import { getTracer, runWithSpan, setTracer, startSpan, toOtelException, toSpanAttributeValue } from './tracing'
+import { getTracer, runWithSpan, setSpanAttribute, setSpanError, setTracer, startSpan, toOtelException, toSpanAttributeValue } from './tracing'
 
 function createMockSpan(name = 'test-span') {
   return {
     name,
     end: vi.fn(),
+    setAttribute: vi.fn(),
     recordException: vi.fn(),
     setStatus: vi.fn(),
   }
@@ -184,6 +185,45 @@ describe('tracing', () => {
         code: 'CUSTOM_ERROR',
         stack: error.stack,
       })
+    })
+  })
+
+  describe('setSpanError', () => {
+    it('does nothing if span is undefined', () => {
+      setSpanError(undefined, new Error('Test error'))
+    })
+
+    it('records exception and sets error status on span', () => {
+      const mockSpan = createMockSpan() as any
+      const error = new Error('Test error')
+
+      setSpanError(mockSpan, error)
+
+      expect(mockSpan.recordException).toHaveBeenCalledWith({
+        message: 'Test error',
+        name: 'Error',
+        stack: error.stack,
+      })
+      expect(mockSpan.setStatus).toHaveBeenCalledWith({
+        code: 2, // SPAN_ERROR_STATUS
+        message: 'Test error',
+      })
+    })
+  })
+
+  describe('setSpanAttribute', () => {
+    const mockSpan = createMockSpan() as any
+
+    it('does nothing if span is undefined or value is undefined', () => {
+      setSpanAttribute(undefined, 'key', 'value')
+      setSpanAttribute(mockSpan, 'key', undefined)
+
+      expect(mockSpan.setAttribute).not.toHaveBeenCalled()
+    })
+
+    it('sets attribute on span when value is defined', () => {
+      setSpanAttribute(mockSpan, 'key', 'value')
+      expect(mockSpan.setAttribute).toHaveBeenCalledWith('key', 'value')
     })
   })
 

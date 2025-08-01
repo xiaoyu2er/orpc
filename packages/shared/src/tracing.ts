@@ -1,9 +1,11 @@
 /**
  * Only import types from @opentelemetry/api to avoid runtime dependencies.
  */
-import type { Exception, Span, SpanOptions, SpanStatusCode, Tracer } from '@opentelemetry/api'
+import type { AttributeValue, Exception, Span, SpanOptions, SpanStatusCode, Tracer } from '@opentelemetry/api'
 import type { Promisable } from 'type-fest'
 import { ORPC_SHARED_PACKAGE_NAME, ORPC_SHARED_PACKAGE_VERSION } from './consts'
+
+const SPAN_ERROR_STATUS = 2 satisfies SpanStatusCode.ERROR // avoid runtime dependency on @opentelemetry/api
 
 /**
  * We should use globalThis + a unique key to store global state.
@@ -57,20 +59,38 @@ export async function runWithSpan<T>(
       return await fn(span)
     }
     catch (e) {
-      const exception = toOtelException(e)
-
-      span.recordException(exception)
-      span.setStatus({
-        code: 2 satisfies SpanStatusCode.ERROR, // avoid runtime dependency on @opentelemetry/api
-        message: exception.message,
-      })
-
+      setSpanError(span, e)
       throw e
     }
     finally {
       span.end()
     }
   })
+}
+
+/**
+ * Records and sets the error status on the given span.
+ * If the span is `undefined`, it does nothing.
+ */
+export function setSpanError(span: Span | undefined, error: unknown): void {
+  if (!span) {
+    return
+  }
+
+  const exception = toOtelException(error)
+  span.recordException(exception)
+  span.setStatus({
+    code: SPAN_ERROR_STATUS,
+    message: exception.message,
+  })
+}
+
+export function setSpanAttribute(span: Span | undefined, key: string, value: AttributeValue | undefined): void {
+  if (!span || value === undefined) {
+    return
+  }
+
+  span.setAttribute(key, value)
 }
 
 /**

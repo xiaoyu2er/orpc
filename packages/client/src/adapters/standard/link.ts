@@ -3,7 +3,7 @@ import type { StandardLazyResponse, StandardRequest } from '@orpc/standard-serve
 import type { ClientContext, ClientLink, ClientOptions } from '../../types'
 import type { StandardLinkPlugin } from './plugin'
 import type { StandardLinkClient, StandardLinkCodec } from './types'
-import { intercept, toArray } from '@orpc/shared'
+import { intercept, ORPC_NAME, runWithSpan, toArray } from '@orpc/shared'
 import { CompositeStandardLinkPlugin } from './plugin'
 
 export interface StandardLinkInterceptorOptions<T extends ClientContext> extends ClientOptions<T> {
@@ -39,23 +39,45 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
   }
 
   call(path: readonly string[], input: unknown, options: ClientOptions<T>): Promise<unknown> {
-    return intercept(this.interceptors, { ...options, path, input }, async ({ path, input, ...options }) => {
-      const output = await this.#call(path, input, options)
+    /**
+     * [Semantic conventions for RPC spans](https://opentelemetry.io/docs/specs/semconv/rpc/rpc-spans/)
+     */
+    return runWithSpan(
+      `${ORPC_NAME}.${path.join('/')}`,
+      (span) => {
+        span?.setAttribute('rpc.system', ORPC_NAME)
+        span?.setAttribute('rpc.method', path.join('.'))
 
-      return output
-    })
+        return intercept(this.interceptors, { ...options, path, input }, async ({ path, input, ...options }) => {
+          const output = await this.#call(path, input, options)
+
+          return output
+        })
+      },
+    )
   }
 
   async #call(path: readonly string[], input: unknown, options: ClientOptions<T>): Promise<unknown> {
-    const request = await this.codec.encode(path, input, options)
+    const request = await runWithSpan(
+      'encode_request',
+      () => this.codec.encode(path, input, options),
+    )
 
     const response = await intercept(
       this.clientInterceptors,
       { ...options, input, path, request },
-      ({ input, path, request, ...options }) => this.sender.call(request, options, path, input),
+      ({ input, path, request, ...options }) => {
+        return runWithSpan(
+          'send_request',
+          () => this.sender.call(request, options, path, input),
+        )
+      },
     )
 
-    const output = await this.codec.decode(response, options, path, input)
+    const output = await runWithSpan(
+      'decode_output',
+      () => this.codec.decode(response, options, path, input),
+    )
 
     return output
   }

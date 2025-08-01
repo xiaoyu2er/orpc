@@ -8,7 +8,7 @@ import type { Router } from '../../router'
 import type { StandardHandlerPlugin } from './plugin'
 import type { StandardCodec, StandardMatcher } from './types'
 import { ORPCError, toORPCError } from '@orpc/client'
-import { intercept, toArray } from '@orpc/shared'
+import { intercept, ORPC_NAME, runWithSpan, setSpanAttribute, setSpanError, toArray } from '@orpc/shared'
 import { flattenHeader } from '@orpc/standard-server'
 import { createProcedureClient } from '../../procedure-client'
 import { CompositeStandardHandlerPlugin } from './plugin'
@@ -76,70 +76,107 @@ export class StandardHandler<T extends Context> {
       return { matched: false, response: undefined }
     }
 
-    return intercept(
-      this.rootInterceptors,
-      { ...options, request, prefix },
-      async (interceptorOptions) => {
-        let isDecoding = false
+    return runWithSpan(`${request.method} ${request.url.pathname}`, async (span) => {
+      /**
+       * [Semantic conventions for HTTP spans](https://opentelemetry.io/docs/specs/semconv/http/http-spans/)
+       */
+      span?.setAttribute('http.request.method', request.method)
+      span?.setAttribute('url.full', request.url.toString())
 
-        try {
-          return await intercept(
-            this.interceptors,
-            interceptorOptions,
-            async ({ request, context, prefix }) => {
-              const method = request.method
-              const url = request.url
+      setSpanAttribute(span, 'http.request.header.accept', request.headers.accept)
+      setSpanAttribute(span, 'http.request.header.content-type', request.headers['content-type'])
+      setSpanAttribute(span, 'http.request.header.content-disposition', request.headers['content-disposition'])
 
-              const pathname = prefix
-                ? url.pathname.replace(prefix, '')
-                : url.pathname
+      return intercept(
+        this.rootInterceptors,
+        { ...options, request, prefix },
+        async (interceptorOptions) => {
+          let step: 'decode_input' | 'call_procedure' | undefined
 
-              const match = await this.matcher.match(method, `/${pathname.replace(/^\/|\/$/g, '')}`)
+          try {
+            return await intercept(
+              this.interceptors,
+              interceptorOptions,
+              async ({ request, context, prefix }) => {
+                const method = request.method
+                const url = request.url
 
-              if (!match) {
-                return { matched: false, response: undefined }
-              }
+                const pathname = prefix
+                  ? url.pathname.replace(prefix, '')
+                  : url.pathname
 
-              const client = createProcedureClient(match.procedure, {
-                context,
-                path: match.path,
-                interceptors: this.clientInterceptors,
-              })
+                const match = await runWithSpan(
+                  'find_procedure',
+                  () => this.matcher.match(method, `/${pathname.replace(/^\/|\/$/g, '')}`),
+                )
 
-              isDecoding = true
-              const input = await this.codec.decode(request, match.params, match.procedure)
-              isDecoding = false
+                if (!match) {
+                  return { matched: false as const, response: undefined }
+                }
 
-              const output = await client(input, {
-                signal: request.signal,
-                lastEventId: flattenHeader(request.headers['last-event-id']),
-              })
+                /**
+                 * [Semantic conventions for RPC spans](https://opentelemetry.io/docs/specs/semconv/rpc/rpc-spans/)
+                 */
+                span?.updateName(`${ORPC_NAME}.${match.path.join('/')}`)
+                span?.setAttribute('rpc.system', ORPC_NAME)
+                span?.setAttribute('rpc.method', match.path.join('.'))
 
-              const response = this.codec.encode(output, match.procedure)
+                const client = createProcedureClient(match.procedure, {
+                  context,
+                  path: match.path,
+                  interceptors: this.clientInterceptors,
+                })
 
-              return {
-                matched: true,
-                response,
-              }
-            },
-          )
-        }
-        catch (e) {
-          const error = isDecoding && !(e instanceof ORPCError)
-            ? new ORPCError('BAD_REQUEST', {
-              message: `Malformed request. Ensure the request body is properly formatted and the 'Content-Type' header is set correctly.`,
-              cause: e,
-            })
-            : toORPCError(e)
+                step = 'decode_input'
+                const input = await runWithSpan(
+                  'decode_input',
+                  () => this.codec.decode(request, match.params, match.procedure),
+                )
 
-          const response = this.codec.encodeError(error)
+                step = 'call_procedure'
+                /**
+                 * No need to use runWithSpan here, because the client already has its own span.
+                 */
+                const output = await client(input, {
+                  signal: request.signal,
+                  lastEventId: flattenHeader(request.headers['last-event-id']),
+                })
+                step = undefined
 
-          return {
-            matched: true,
-            response,
+                const response = this.codec.encode(output, match.procedure)
+
+                return {
+                  matched: true,
+                  response,
+                }
+              },
+            )
           }
-        }
-      },
-    )
+          catch (e) {
+            /**
+             * Only errors that happen outside of the `call_procedure` step should be set as an error.
+             * Because a business logic error should not be considered as a protocol-level error.
+             */
+            if (step !== 'call_procedure') {
+              setSpanError(span, e)
+            }
+
+            const error = step === 'decode_input' && !(e instanceof ORPCError)
+              ? new ORPCError('BAD_REQUEST', {
+                message: `Malformed request. Ensure the request body is properly formatted and the 'Content-Type' header is set correctly.`,
+                cause: e,
+              })
+              : toORPCError(e)
+
+            const response = this.codec.encodeError(error)
+
+            return {
+              matched: true,
+              response,
+            }
+          }
+        },
+      )
+    })
   }
 }

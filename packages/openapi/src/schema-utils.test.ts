@@ -44,6 +44,8 @@ describe('separateObjectSchema', () => {
         { a: 'a' },
         'INVALID',
       ],
+      anyOf: undefined, // allowed any key with undefined value
+      enum: undefined, // allowed any key with undefined value
     }
 
     const [matched, rest] = separateObjectSchema(schema, ['a'])
@@ -90,13 +92,15 @@ describe('separateObjectSchema', () => {
       additionalProperties: true,
     }
 
-    const [matched, rest] = separateObjectSchema(schema, ['a'])
+    const [matched, rest] = separateObjectSchema(schema, ['a', 'd', 'e'])
 
     expect(matched).toEqual({
       type: 'object',
       description: 'description',
       properties: {
         a: { type: 'string' },
+        d: true,
+        e: true,
       },
       required: ['a'],
       additionalProperties: true,
@@ -138,7 +142,10 @@ describe('separateObjectSchema', () => {
 
     const [matched, rest] = separateObjectSchema(schema, ['a'])
 
-    expect(matched).toEqual(schema)
+    expect(matched).toEqual({
+      ...schema,
+      properties: {},
+    })
     expect(rest).toEqual(schema)
   })
 })

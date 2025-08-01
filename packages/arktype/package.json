@@ -1,7 +1,7 @@
 {
   "name": "@orpc/arktype",
   "type": "module",
-  "version": "1.7.6",
+  "version": "1.7.7",
   "license": "MIT",
   "homepage": "https://orpc.unnoq.com",
   "repository": {

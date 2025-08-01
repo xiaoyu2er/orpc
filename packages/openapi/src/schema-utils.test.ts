@@ -78,6 +78,40 @@ describe('separateObjectSchema', () => {
     })
   })
 
+  it('can separate if contains additionalProperties', () => {
+    const schema: ObjectSchema = {
+      type: 'object',
+      description: 'description',
+      properties: {
+        a: { type: 'string' },
+        b: { type: 'string' },
+      },
+      required: ['a'],
+      additionalProperties: true,
+    }
+
+    const [matched, rest] = separateObjectSchema(schema, ['a'])
+
+    expect(matched).toEqual({
+      type: 'object',
+      description: 'description',
+      properties: {
+        a: { type: 'string' },
+      },
+      required: ['a'],
+      additionalProperties: true,
+    })
+    expect(rest).toEqual({
+      type: 'object',
+      description: 'description',
+      properties: {
+        b: { type: 'string' },
+      },
+      required: [],
+      additionalProperties: true,
+    })
+  })
+
   it('not separate when contain not allow keyword', () => {
     const schema: ObjectSchema = {
       type: 'object',

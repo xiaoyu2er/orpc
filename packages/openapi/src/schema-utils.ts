@@ -35,7 +35,7 @@ export function isAnySchema(schema: JSONSchema): boolean {
  * @internal
  */
 export function separateObjectSchema(schema: ObjectSchema, separatedProperties: string[]): [matched: ObjectSchema, rest: ObjectSchema] {
-  if (Object.keys(schema).some(k => k !== 'type' && k !== 'properties' && k !== 'required' && LOGIC_KEYWORDS.includes(k))) {
+  if (Object.keys(schema).some(k => k !== 'type' && k !== 'properties' && k !== 'required' && k !== 'additionalProperties' && LOGIC_KEYWORDS.includes(k))) {
     return [{ type: 'object' }, schema]
   }
 

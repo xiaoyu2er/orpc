@@ -1,4 +1,4 @@
-import { getTracer, runWithSpan, setSpanAttribute, setSpanError, setTracer, startSpan, toOtelException, toSpanAttributeValue } from './tracing'
+import { getGlobalOtelConfig, runInSpanContext, runWithSpan, setGlobalOtelConfig, setSpanAttribute, setSpanError, startSpan, toOtelException, toSpanAttributeValue } from './tracing'
 
 function createMockSpan(name = 'test-span') {
   return {
@@ -17,13 +17,27 @@ function createMockTracer() {
   }
 }
 
-beforeEach(() => {
-  const originalTracer = getTracer()
+function createMockOtelConfig() {
+  const mockTracer = createMockTracer()
+  return {
+    tracer: mockTracer,
+    trace: {
+      setSpan: vi.fn(),
+    },
+    context: {
+      active: vi.fn().mockReturnValue({}),
+      with: vi.fn(),
+    },
+  }
+}
 
-  setTracer(undefined)
+beforeEach(() => {
+  const originalConfig = getGlobalOtelConfig()
+
+  setGlobalOtelConfig(undefined)
 
   afterEach(() => {
-    setTracer(originalTracer)
+    setGlobalOtelConfig(originalConfig)
   })
 })
 
@@ -35,15 +49,15 @@ describe('tracing', () => {
 
     it('creates and returns a span when global tracer is set', () => {
       const mockSpan = createMockSpan()
-      const mockTracer = createMockTracer()
-      mockTracer.startSpan.mockReturnValue(mockSpan)
+      const mockConfig = createMockOtelConfig()
+      mockConfig.tracer.startSpan.mockReturnValue(mockSpan)
 
-      setTracer(mockTracer as any)
+      setGlobalOtelConfig(mockConfig as any)
 
       const result = startSpan('test-span', { attributes: { key: 'value' } })
 
       expect(result).toBe(mockSpan)
-      expect(mockTracer.startSpan).toHaveBeenCalledWith('test-span', { attributes: { key: 'value' } })
+      expect(mockConfig.tracer.startSpan).toHaveBeenCalledWith('test-span', { attributes: { key: 'value' } })
     })
   })
 
@@ -59,29 +73,29 @@ describe('tracing', () => {
 
     it('executes function with active span when global tracer is set', async () => {
       const mockSpan = createMockSpan()
-      const mockTracer = createMockTracer()
-      mockTracer.startActiveSpan.mockImplementation((name, options, callback) =>
+      const mockConfig = createMockOtelConfig()
+      mockConfig.tracer.startActiveSpan.mockImplementation((name, options, callback) =>
         callback(mockSpan),
       )
-      setTracer(mockTracer as any)
+      setGlobalOtelConfig(mockConfig as any)
 
       const fn = vi.fn().mockResolvedValue(456)
 
       const result = await runWithSpan('test-span', fn)
 
       expect(result).toBe(456)
-      expect(mockTracer.startActiveSpan).toHaveBeenCalledWith('test-span', {}, expect.any(Function))
+      expect(mockConfig.tracer.startActiveSpan).toHaveBeenCalledWith('test-span', {}, expect.any(Function))
       expect(fn).toHaveBeenCalledWith(mockSpan)
       expect(mockSpan.end).toHaveBeenCalled()
     })
 
     it('records and re-throws Error exceptions', async () => {
       const mockSpan = createMockSpan()
-      const mockTracer = createMockTracer()
-      mockTracer.startActiveSpan.mockImplementation((name, options, callback) =>
+      const mockConfig = createMockOtelConfig()
+      mockConfig.tracer.startActiveSpan.mockImplementation((name, options, callback) =>
         callback(mockSpan),
       )
-      setTracer(mockTracer as any)
+      setGlobalOtelConfig(mockConfig as any)
 
       const error = new Error('Test error')
       const fn = vi.fn().mockRejectedValue(error)
@@ -90,6 +104,72 @@ describe('tracing', () => {
 
       expect(mockSpan.recordException).toHaveBeenCalledWith({ message: 'Test error', name: 'Error', stack: error.stack })
       expect(mockSpan.end).toHaveBeenCalled()
+    })
+  })
+
+  describe('runInSpanContext', () => {
+    it('executes function normally when span is undefined', async () => {
+      const fn = vi.fn().mockResolvedValue('result')
+
+      const result = await runInSpanContext(undefined, fn)
+
+      expect(result).toBe('result')
+      expect(fn).toHaveBeenCalledWith()
+    })
+
+    it('executes function normally when no global otel config is set', async () => {
+      const mockSpan = createMockSpan()
+      const fn = vi.fn().mockResolvedValue('result')
+
+      // Ensure no global config is set
+      setGlobalOtelConfig(undefined)
+
+      const result = await runInSpanContext(mockSpan as any, fn)
+
+      expect(result).toBe('result')
+      expect(fn).toHaveBeenCalledWith()
+    })
+
+    it('executes function within span context when span and config are provided', async () => {
+      const mockSpan = createMockSpan()
+      const mockConfig = createMockOtelConfig()
+      const mockContext = { spanContext: 'test' }
+
+      mockConfig.context.active.mockReturnValue({ active: 'context' })
+      mockConfig.trace.setSpan.mockReturnValue(mockContext)
+      mockConfig.context.with.mockImplementation((ctx, callback) => {
+        expect(ctx).toBe(mockContext)
+        return callback()
+      })
+
+      setGlobalOtelConfig(mockConfig as any)
+
+      const fn = vi.fn().mockResolvedValue('context-result')
+
+      const result = await runInSpanContext(mockSpan as any, fn)
+
+      expect(result).toBe('context-result')
+      expect(mockConfig.context.active).toHaveBeenCalled()
+      expect(mockConfig.trace.setSpan).toHaveBeenCalledWith({ active: 'context' }, mockSpan)
+      expect(mockConfig.context.with).toHaveBeenCalledWith(mockContext, fn)
+    })
+
+    it('propagates errors from the function', async () => {
+      const mockSpan = createMockSpan()
+      const mockConfig = createMockOtelConfig()
+      const mockContext = { spanContext: 'error-test' }
+
+      mockConfig.context.active.mockReturnValue({ active: 'context' })
+      mockConfig.trace.setSpan.mockReturnValue(mockContext)
+      mockConfig.context.with.mockImplementation((ctx, callback) => callback())
+
+      setGlobalOtelConfig(mockConfig as any)
+
+      const error = new Error('Function error')
+      const fn = vi.fn().mockRejectedValue(error)
+
+      await expect(runInSpanContext(mockSpan as any, fn)).rejects.toThrow('Function error')
+      expect(fn).toHaveBeenCalledWith()
     })
   })
 

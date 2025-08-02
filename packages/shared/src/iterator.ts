@@ -1,5 +1,6 @@
 import { defer, once, sequential } from './function'
 import { AsyncIdQueue } from './queue'
+import { runInSpanContext, setSpanError, startSpan } from './tracing'
 
 export function isAsyncIteratorObject(maybe: unknown): maybe is AsyncIteratorObject<any, any, any> {
   if (!maybe || typeof maybe !== 'object') {
@@ -157,4 +158,40 @@ export function replicateAsyncIterator<T, TReturn, TNext>(
   }
 
   return replicated
+}
+
+export function asyncIteratorWithSpan<T, TReturn, TNext>(
+  iterator: AsyncIterator<T, TReturn, TNext>,
+): AsyncIteratorClass<T, TReturn, TNext> {
+  let span: ReturnType<typeof startSpan> | undefined
+
+  return new AsyncIteratorClass(
+    async () => {
+      span ??= startSpan('consume_async_iterator')
+
+      try {
+        const result = await runInSpanContext(span, () => iterator.next())
+        span?.addEvent(result.done ? 'returned' : 'yielded')
+        return result
+      }
+      catch (err) {
+        setSpanError(span, err)
+        throw err
+      }
+    },
+    async (reason) => {
+      try {
+        if (reason !== 'next') {
+          await runInSpanContext(span, () => iterator.return?.())
+        }
+      }
+      catch (err) {
+        setSpanError(span, err)
+        throw err
+      }
+      finally {
+        span?.end()
+      }
+    },
+  )
 }

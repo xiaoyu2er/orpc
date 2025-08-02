@@ -1,7 +1,7 @@
 /**
  * Only import types from @opentelemetry/api to avoid runtime dependencies.
  */
-import type { AttributeValue, Exception, Span, SpanOptions, SpanStatusCode, Tracer } from '@opentelemetry/api'
+import type { AttributeValue, ContextAPI, Exception, Span, SpanOptions, SpanStatusCode, TraceAPI, Tracer } from '@opentelemetry/api'
 import type { Promisable } from 'type-fest'
 import { ORPC_SHARED_PACKAGE_NAME, ORPC_SHARED_PACKAGE_VERSION } from './consts'
 
@@ -11,22 +11,28 @@ const SPAN_ERROR_STATUS = 2 satisfies SpanStatusCode.ERROR // avoid runtime depe
  * We should use globalThis + a unique key to store global state.
  * If use a global variable/symbol, it can create multiple instances in different contexts.
  */
-const TRACER_KEY = `__${ORPC_SHARED_PACKAGE_NAME}@${ORPC_SHARED_PACKAGE_VERSION}/tracer__`
+const GLOBAL_OTEL_CONFIG_KEY = `__${ORPC_SHARED_PACKAGE_NAME}@${ORPC_SHARED_PACKAGE_VERSION}/otel/config__`
 
-/**
- * Sets the global OpenTelemetry tracer.
- * Call this once at app startup. Use `undefined` to disable tracing.
- */
-export function setTracer(tracer: Tracer | undefined): void {
-  (globalThis as any)[TRACER_KEY] = tracer
+export interface OtelConfig {
+  tracer: Tracer
+  trace: TraceAPI
+  context: ContextAPI
 }
 
 /**
- * Gets the global OpenTelemetry tracer.
+ * Sets the global OpenTelemetry config.
+ * Call this once at app startup. Use `undefined` to disable tracing.
+ */
+export function setGlobalOtelConfig(config: OtelConfig | undefined): void {
+  (globalThis as any)[GLOBAL_OTEL_CONFIG_KEY] = config
+}
+
+/**
+ * Gets the global OpenTelemetry config.
  * Returns `undefined` if tracing is not enabled.
  */
-export function getTracer(): Tracer | undefined {
-  return (globalThis as any)[TRACER_KEY]
+export function getGlobalOtelConfig(): OtelConfig | undefined {
+  return (globalThis as any)[GLOBAL_OTEL_CONFIG_KEY]
 }
 
 /**
@@ -35,7 +41,7 @@ export function getTracer(): Tracer | undefined {
  * @returns The new span, or `undefined` if no tracer is set.
  */
 export function startSpan(name: string, options: SpanOptions = {}): Span | undefined {
-  const tracer = getTracer()
+  const tracer = getGlobalOtelConfig()?.tracer
   return tracer?.startSpan(name, options)
 }
 
@@ -48,7 +54,7 @@ export async function runWithSpan<T>(
   fn: (span?: Span) => Promisable<T>,
   options: SpanOptions = {},
 ): Promise<T> {
-  const tracer = getTracer()
+  const tracer = getGlobalOtelConfig()?.tracer
 
   if (!tracer) {
     return fn()
@@ -66,6 +72,23 @@ export async function runWithSpan<T>(
       span.end()
     }
   })
+}
+
+/**
+ * Runs a function within the context of an existing OpenTelemetry span.
+ */
+export async function runInSpanContext<T>(
+  span: Span | undefined,
+  fn: () => Promisable<T>,
+): Promise<T> {
+  const otelConfig = getGlobalOtelConfig()
+
+  if (!span || !otelConfig) {
+    return fn()
+  }
+
+  const ctx = otelConfig.trace.setSpan(otelConfig.context.active(), span)
+  return otelConfig.context.with(ctx, fn)
 }
 
 /**

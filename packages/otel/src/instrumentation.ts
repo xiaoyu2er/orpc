@@ -1,7 +1,7 @@
 import type { InstrumentationConfig, InstrumentationModuleDefinition } from '@opentelemetry/instrumentation'
-import { trace } from '@opentelemetry/api'
+import { context, trace } from '@opentelemetry/api'
 import { InstrumentationBase } from '@opentelemetry/instrumentation'
-import { setTracer } from '@orpc/shared'
+import { setGlobalOtelConfig } from '@orpc/shared'
 import { ORPC_OTEL_PACKAGE_NAME, ORPC_OTEL_PACKAGE_VERSION } from './consts'
 
 export interface ORPCInstrumentationConfig extends InstrumentationConfig {}
@@ -15,6 +15,10 @@ export class ORPCInstrumentation extends InstrumentationBase {
   }
 
   override enable(): void {
-    setTracer(trace.getTracer(ORPC_OTEL_PACKAGE_NAME, ORPC_OTEL_PACKAGE_VERSION))
+    setGlobalOtelConfig({
+      tracer: trace.getTracer(ORPC_OTEL_PACKAGE_NAME, ORPC_OTEL_PACKAGE_VERSION),
+      trace,
+      context,
+    })
   }
 }

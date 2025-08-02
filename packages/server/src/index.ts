@@ -41,6 +41,7 @@ export type {
 } from '@orpc/contract'
 export type { IntersectPick } from '@orpc/shared'
 export {
+  AsyncIteratorClass,
   asyncIteratorToStream as eventIteratorToStream,
   EventPublisher,
   onError,

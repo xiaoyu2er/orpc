@@ -168,12 +168,13 @@ You can enrich your API documentation by specifying operation metadata using the
 ```ts
 const ping = os
   .route({
+    operationId: 'ping', // override auto-generated operationId
     summary: 'the summary',
     description: 'the description',
     deprecated: false,
     tags: ['tag'],
     successDescription: 'the success description',
-    spec: { // override entire auto-generated operation object
+    spec: { // override entire auto-generated operation object, can also be a callback for extending
       operationId: 'customOperationId',
       tags: ['tag'],
       summary: 'the summary',
@@ -204,11 +205,22 @@ const router = os.tag('planets').router({
 
 ### Customizing Operation Objects
 
-You can also extend the operation object using the `.spec` helper for an `error` or `middleware`:
+You can also extend the operation object by defining `route.spec` as a callback, or by using `oo.spec` in errors or middleware:
 
 ```ts
 import { oo } from '@orpc/openapi'
 
+// Using `route.spec` as a callback
+const procedure = os
+  .route({
+    spec: spec => ({
+      ...spec,
+      security: [{ 'api-key': [] }],
+    }),
+  })
+  .handler(() => 'Hello, World!')
+
+// With errors
 const base = os.errors({
   UNAUTHORIZED: oo.spec({
     data: z.any(),
@@ -217,15 +229,14 @@ const base = os.errors({
   })
 })
 
-// OR in middleware
-
+// With middleware
 const requireAuth = oo.spec(
   os.middleware(async ({ next, errors }) => {
     throw new ORPCError('UNAUTHORIZED')
     return next()
   }),
   {
-    security: [{ 'api-key': [] }]
+    security: [{ 'api-key': [] }],
   }
 )
 ```

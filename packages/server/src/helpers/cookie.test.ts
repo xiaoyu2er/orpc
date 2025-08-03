@@ -1,4 +1,4 @@
-import { getCookie, setCookie } from './cookie'
+import { deleteCookie, getCookie, setCookie } from './cookie'
 
 describe('setCookie', () => {
   it('should work with Headers object', () => {
@@ -111,5 +111,28 @@ describe('getCookie', () => {
     headers.set('Cookie', 'invalid-cookie-format=%XX')
 
     expect(getCookie(headers, 'invalid-cookie-format')).toEqual('%XX')
+  })
+})
+
+describe('deleteCookie', () => {
+  it('should delete a cookie by setting maxAge to 0', () => {
+    const headers = new Headers()
+    setCookie(headers, 'test', 'value')
+    deleteCookie(headers, 'test')
+
+    expect(headers.get('Set-Cookie')).toContain('test=; Max-Age=0; Path=/')
+  })
+
+  it('should handle deleting cookies with options', () => {
+    const headers = new Headers()
+    setCookie(headers, 'test', 'value', { path: '/api' })
+    // @ts-expect-error: maxAge should be ignored in deleteCookie
+    deleteCookie(headers, 'test', { path: '/api', maxAge: 10 })
+
+    expect(headers.get('Set-Cookie')).toContain('test=; Max-Age=0; Path=/api')
+  })
+
+  it('should do nothing when headers is undefined', () => {
+    expect(() => deleteCookie(undefined, 'test')).not.toThrow()
   })
 })

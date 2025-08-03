@@ -8,16 +8,19 @@ description: Functions for managing HTTP cookies in web applications.
 The Cookie helpers provide functions to set and get HTTP cookies.
 
 ```ts twoslash
-import { getCookie, setCookie } from '@orpc/server/helpers'
+import { deleteCookie, getCookie, setCookie } from '@orpc/server/helpers'
 
-const headers = new Headers()
+const reqHeaders = new Headers()
+const resHeaders = new Headers()
 
-setCookie(headers, 'sessionId', 'abc123', {
+setCookie(resHeaders, 'sessionId', 'abc123', {
   secure: true,
   maxAge: 3600
 })
 
-const sessionId = getCookie(headers, 'sessionId') // 'abc123'
+deleteCookie(resHeaders, 'sessionId')
+
+const sessionId = getCookie(reqHeaders, 'sessionId')
 ```
 
 ::: info
@@ -33,14 +36,14 @@ import { getCookie, setCookie, sign, unsign } from '@orpc/server/helpers'
 
 const secret = 'your-secret-key'
 
-const headers = new Headers()
+const reqHeaders = new Headers()
+const resHeaders = new Headers()
 
-setCookie(headers, 'sessionId', await sign('abc123', secret), {
+setCookie(resHeaders, 'sessionId', await sign('abc123', secret), {
   httpOnly: true,
   secure: true,
   maxAge: 3600
 })
 
-const signedSessionId = await unsign(getCookie(headers, 'sessionId'), secret)
-// 'abc123'
+const signedSessionId = await unsign(getCookie(reqHeaders, 'sessionId'), secret)
 ```

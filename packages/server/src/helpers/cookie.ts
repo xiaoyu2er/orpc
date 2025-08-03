@@ -76,3 +76,17 @@ export function getCookie(
 
   return parse(cookieHeader, options)[name]
 }
+
+/**
+ * Deletes a cookie by marking it expired.
+ */
+export function deleteCookie(
+  headers: Headers | undefined,
+  name: string,
+  options: Omit<SetCookieOptions, 'maxAge'> = {},
+): void {
+  return setCookie(headers, name, '', {
+    ...options,
+    maxAge: 0,
+  })
+}

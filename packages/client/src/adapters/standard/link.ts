@@ -3,7 +3,7 @@ import type { StandardLazyResponse, StandardRequest } from '@orpc/standard-serve
 import type { ClientContext, ClientLink, ClientOptions } from '../../types'
 import type { StandardLinkPlugin } from './plugin'
 import type { StandardLinkClient, StandardLinkCodec } from './types'
-import { intercept, ORPC_NAME, runWithSpan, toArray } from '@orpc/shared'
+import { asyncIteratorWithSpan, intercept, isAsyncIteratorObject, ORPC_NAME, runWithSpan, toArray } from '@orpc/shared'
 import { CompositeStandardLinkPlugin } from './plugin'
 
 export interface StandardLinkInterceptorOptions<T extends ClientContext> extends ClientOptions<T> {
@@ -78,6 +78,10 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
       'decode_output',
       () => this.codec.decode(response, options, path, input),
     )
+
+    if (isAsyncIteratorObject(output)) {
+      return asyncIteratorWithSpan(output)
+    }
 
     return output
   }

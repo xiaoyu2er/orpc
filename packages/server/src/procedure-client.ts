@@ -7,7 +7,7 @@ import type { Lazyable } from './lazy'
 import type { AnyProcedure, Procedure, ProcedureHandlerOptions } from './procedure'
 import { ORPCError } from '@orpc/client'
 import { ValidationError } from '@orpc/contract'
-import { intercept, resolveMaybeOptionalOptions, runWithSpan, toArray, value } from '@orpc/shared'
+import { asyncIteratorWithSpan, intercept, isAsyncIteratorObject, resolveMaybeOptionalOptions, runWithSpan, toArray, value } from '@orpc/shared'
 import { mergeCurrentContext } from './context'
 import { createORPCErrorConstructorMap, validateORPCError } from './error'
 import { unlazy } from './lazy'
@@ -98,7 +98,7 @@ export function createProcedureClient<
     const errors = createORPCErrorConstructorMap(procedure['~orpc'].errorMap)
 
     try {
-      return await runWithSpan(
+      const output = await runWithSpan(
         'call_procedure',
         (span) => {
           span?.setAttribute('procedure.path', [...path])
@@ -118,6 +118,20 @@ export function createProcedureClient<
           )
         },
       )
+
+      if (isAsyncIteratorObject(output)) {
+        /**
+         * asyncIteratorWithSpan return AsyncIteratorClass
+         * which is backwards compatible with Event Iterator & almost async iterator.
+         *
+         * @warning
+         * If remove this return, can be breaking change
+         * because AsyncIteratorClass convert `.throw` to `.return` (rarely used)
+         */
+        return asyncIteratorWithSpan(output) as typeof output
+      }
+
+      return output
     }
     catch (e) {
       if (!(e instanceof ORPCError)) {

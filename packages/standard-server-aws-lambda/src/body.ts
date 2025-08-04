@@ -9,7 +9,7 @@ import { toNodeHttpBody } from '@orpc/standard-server-node'
 import { toEventIterator } from './event-iterator'
 
 export function toStandardBody(event: APIGatewayProxyEventV2): Promise<StandardBody> {
-  return runWithSpan('parse_standard_body', async () => {
+  return runWithSpan({ name: 'parse_standard_body' }, async () => {
     const contentType = event.headers['content-type']
     const contentDisposition = event.headers['content-disposition']
 

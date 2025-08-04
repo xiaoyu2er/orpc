@@ -1,7 +1,7 @@
 /**
  * Only import types from @opentelemetry/api to avoid runtime dependencies.
  */
-import type { AttributeValue, ContextAPI, Exception, Span, SpanOptions, SpanStatusCode, TraceAPI, Tracer } from '@opentelemetry/api'
+import type { AttributeValue, ContextAPI, Exception, PropagationAPI, Span, SpanOptions, SpanStatusCode, TraceAPI, Tracer } from '@opentelemetry/api'
 import type { Promisable } from 'type-fest'
 import { ORPC_SHARED_PACKAGE_NAME, ORPC_SHARED_PACKAGE_VERSION } from './consts'
 
@@ -17,6 +17,7 @@ export interface OtelConfig {
   tracer: Tracer
   trace: TraceAPI
   context: ContextAPI
+  propagation: PropagationAPI
 }
 
 /**
@@ -45,67 +46,31 @@ export function startSpan(name: string, options: SpanOptions = {}): Span | undef
   return tracer?.startSpan(name, options)
 }
 
-/**
- * Runs a function within the context of a new OpenTelemetry span.
- * The span is ended automatically, and errors are recorded to the span.
- */
-export async function runWithSpan<T>(
-  name: string,
-  fn: (span?: Span) => Promisable<T>,
-  options: SpanOptions = {},
-): Promise<T> {
-  const tracer = getGlobalOtelConfig()?.tracer
-
-  if (!tracer) {
-    return fn()
-  }
-
-  return tracer.startActiveSpan(name, options, async (span) => {
-    try {
-      return await fn(span)
-    }
-    catch (e) {
-      setSpanError(span, e)
-      throw e
-    }
-    finally {
-      span.end()
-    }
-  })
-}
-
-/**
- * Runs a function within the context of an existing OpenTelemetry span.
- */
-export async function runInSpanContext<T>(
-  span: Span | undefined,
-  fn: () => Promisable<T>,
-): Promise<T> {
-  const otelConfig = getGlobalOtelConfig()
-
-  if (!span || !otelConfig) {
-    return fn()
-  }
-
-  const ctx = otelConfig.trace.setSpan(otelConfig.context.active(), span)
-  return otelConfig.context.with(ctx, fn)
+export interface SetSpanErrorOptions {
+  /**
+   * Span error status is not set if error is due to cancellation by the signal.
+   */
+  signal?: AbortSignal
 }
 
 /**
  * Records and sets the error status on the given span.
  * If the span is `undefined`, it does nothing.
  */
-export function setSpanError(span: Span | undefined, error: unknown): void {
+export function setSpanError(span: Span | undefined, error: unknown, options: SetSpanErrorOptions = {}): void {
   if (!span) {
     return
   }
 
   const exception = toOtelException(error)
   span.recordException(exception)
-  span.setStatus({
-    code: SPAN_ERROR_STATUS,
-    message: exception.message,
-  })
+
+  if (!options.signal?.aborted || options.signal.reason !== error) {
+    span.setStatus({
+      code: SPAN_ERROR_STATUS,
+      message: exception.message,
+    })
+  }
 }
 
 export function setSpanAttribute(span: Span | undefined, key: string, value: AttributeValue | undefined): void {
@@ -162,4 +127,56 @@ export function toSpanAttributeValue(data: unknown): string {
   catch {
     return String(data)
   }
+}
+
+export interface RunWithSpanOptions extends SpanOptions, SetSpanErrorOptions {
+  /**
+   * The name of the span to create.
+   */
+  name: string
+}
+
+/**
+ * Runs a function within the context of a new OpenTelemetry span.
+ * The span is ended automatically, and errors are recorded to the span.
+ */
+export async function runWithSpan<T>(
+  { name, ...options }: RunWithSpanOptions,
+  fn: (span?: Span) => Promisable<T>,
+): Promise<T> {
+  const tracer = getGlobalOtelConfig()?.tracer
+
+  if (!tracer) {
+    return fn()
+  }
+
+  return tracer.startActiveSpan(name, options, async (span) => {
+    try {
+      return await fn(span)
+    }
+    catch (e) {
+      setSpanError(span, e, options)
+      throw e
+    }
+    finally {
+      span.end()
+    }
+  })
+}
+
+/**
+ * Runs a function within the context of an existing OpenTelemetry span.
+ */
+export async function runInSpanContext<T>(
+  span: Span | undefined,
+  fn: () => Promisable<T>,
+): Promise<T> {
+  const otelConfig = getGlobalOtelConfig()
+
+  if (!span || !otelConfig) {
+    return fn()
+  }
+
+  const ctx = otelConfig.trace.setSpan(otelConfig.context.active(), span)
+  return otelConfig.context.with(ctx, fn)
 }

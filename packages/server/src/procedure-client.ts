@@ -100,7 +100,7 @@ export function createProcedureClient<
 
     try {
       const output = await runWithSpan(
-        'call_procedure',
+        { name: 'call_procedure', signal: callerOptions?.signal },
         (span) => {
           span?.setAttribute('procedure.path', [...path])
 
@@ -136,7 +136,10 @@ export function createProcedureClient<
          * If remove this return, can be breaking change
          * because AsyncIteratorClass convert `.throw` to `.return` (rarely used)
          */
-        return asyncIteratorWithSpan(output) as typeof output
+        return asyncIteratorWithSpan(
+          { name: 'consume_event_iterator', signal: callerOptions?.signal },
+          output,
+        ) as typeof output
       }
 
       return output
@@ -161,7 +164,7 @@ async function validateInput(procedure: AnyProcedure, input: unknown): Promise<a
   }
 
   return runWithSpan(
-    'validate_input',
+    { name: 'validate_input' },
     async () => {
       const result = await schema['~standard'].validate(input)
 
@@ -188,7 +191,7 @@ async function validateOutput(procedure: AnyProcedure, output: unknown): Promise
   }
 
   return runWithSpan(
-    'validate_output',
+    { name: 'validate_output' },
     async () => {
       const result = await schema['~standard'].validate(output)
 
@@ -220,7 +223,7 @@ async function executeProcedureInternal(procedure: AnyProcedure, options: Proced
 
     const output = mid
       ? await runWithSpan(
-          'middleware',
+          { name: 'middleware', signal: options.signal },
           async (span) => {
             span?.setAttribute('middleware.index', index)
             span?.setAttribute('middleware.name', mid.name)
@@ -242,7 +245,7 @@ async function executeProcedureInternal(procedure: AnyProcedure, options: Proced
           },
         )
       : await runWithSpan(
-          'handler',
+          { name: 'handler', signal: options.signal },
           () => procedure['~orpc'].handler({ ...options, context, input: currentInput }),
         )
 

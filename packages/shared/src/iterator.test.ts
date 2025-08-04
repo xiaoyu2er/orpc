@@ -1,5 +1,5 @@
 import { AsyncIteratorClass, asyncIteratorWithSpan, isAsyncIteratorObject, replicateAsyncIterator } from './iterator'
-import * as trace from './tracing'
+import * as trace from './otel'
 
 const runInSpanContextSpy = vi.spyOn(trace, 'runInSpanContext')
 
@@ -375,7 +375,7 @@ describe('asyncIteratorWithSpan', () => {
       yield 2
     }())
 
-    const withSpan = asyncIteratorWithSpan(iterator)
+    const withSpan = asyncIteratorWithSpan({ name: 'name' }, iterator)
 
     expect(await withSpan.next()).toEqual({ done: false, value: 1 })
     expect(await withSpan.next()).toEqual({ done: false, value: 2 })
@@ -396,7 +396,7 @@ describe('asyncIteratorWithSpan', () => {
       }
     }())
 
-    const withSpan = asyncIteratorWithSpan(iterator)
+    const withSpan = asyncIteratorWithSpan({ name: 'name' }, iterator)
 
     expect(await withSpan.next()).toEqual({ done: false, value: 1 })
     expect(await withSpan.return()).toEqual({ done: true, value: undefined })
@@ -409,7 +409,7 @@ describe('asyncIteratorWithSpan', () => {
       throw new Error('Forced error')
     }())
 
-    const withSpan = asyncIteratorWithSpan(iterator)
+    const withSpan = asyncIteratorWithSpan({ name: 'name' }, iterator)
 
     await expect(withSpan.next()).rejects.toThrow('Forced error')
     expect(runInSpanContextSpy).toHaveBeenCalledTimes(1)
@@ -426,7 +426,7 @@ describe('asyncIteratorWithSpan', () => {
       }
     }())
 
-    const withSpan = asyncIteratorWithSpan(iterator)
+    const withSpan = asyncIteratorWithSpan({ name: 'name' }, iterator)
 
     await expect(withSpan.next()).resolves.toEqual({ done: false, value: 1 })
     await expect(withSpan.return()).rejects.toThrow('Forced error')

@@ -76,107 +76,114 @@ export class StandardHandler<T extends Context> {
       return { matched: false, response: undefined }
     }
 
-    return runWithSpan(`${request.method} ${request.url.pathname}`, async (span) => {
-      /**
-       * [Semantic conventions for HTTP spans](https://opentelemetry.io/docs/specs/semconv/http/http-spans/)
-       */
-      span?.setAttribute('http.request.method', request.method)
-      span?.setAttribute('url.full', request.url.toString())
+    return runWithSpan(
+      { name: `${request.method} ${request.url.pathname}` },
+      async (span) => {
+        /**
+         * [Semantic conventions for HTTP spans](https://opentelemetry.io/docs/specs/semconv/http/http-spans/)
+         */
+        span?.setAttribute('http.request.method', request.method)
+        span?.setAttribute('url.full', request.url.toString())
 
-      setSpanAttribute(span, 'http.request.header.accept', request.headers.accept)
-      setSpanAttribute(span, 'http.request.header.content-type', request.headers['content-type'])
-      setSpanAttribute(span, 'http.request.header.content-disposition', request.headers['content-disposition'])
+        request.signal?.addEventListener('abort', () => {
+          span?.setAttribute('http.request.abort', true)
+        })
 
-      return intercept(
-        this.rootInterceptors,
-        { ...options, request, prefix },
-        async (interceptorOptions) => {
-          let step: 'decode_input' | 'call_procedure' | undefined
+        setSpanAttribute(span, 'http.request.header.accept', request.headers.accept)
+        setSpanAttribute(span, 'http.request.header.content-type', request.headers['content-type'])
+        setSpanAttribute(span, 'http.request.header.content-disposition', request.headers['content-disposition'])
 
-          try {
-            return await intercept(
-              this.interceptors,
-              interceptorOptions,
-              async ({ request, context, prefix }) => {
-                const method = request.method
-                const url = request.url
+        return intercept(
+          this.rootInterceptors,
+          { ...options, request, prefix },
+          async (interceptorOptions) => {
+            let step: 'decode_input' | 'call_procedure' | undefined
 
-                const pathname = prefix
-                  ? url.pathname.replace(prefix, '')
-                  : url.pathname
+            try {
+              return await intercept(
+                this.interceptors,
+                interceptorOptions,
+                async ({ request, context, prefix }) => {
+                  const method = request.method
+                  const url = request.url
 
-                const match = await runWithSpan(
-                  'find_procedure',
-                  () => this.matcher.match(method, `/${pathname.replace(/^\/|\/$/g, '')}`),
-                )
+                  const pathname = prefix
+                    ? url.pathname.replace(prefix, '')
+                    : url.pathname
 
-                if (!match) {
-                  return { matched: false as const, response: undefined }
-                }
+                  const match = await runWithSpan(
+                    { name: 'find_procedure', signal: request.signal },
+                    () => this.matcher.match(method, `/${pathname.replace(/^\/|\/$/g, '')}`),
+                  )
 
-                /**
-                 * [Semantic conventions for RPC spans](https://opentelemetry.io/docs/specs/semconv/rpc/rpc-spans/)
-                 */
-                span?.updateName(`${ORPC_NAME}.${match.path.join('/')}`)
-                span?.setAttribute('rpc.system', ORPC_NAME)
-                span?.setAttribute('rpc.method', match.path.join('.'))
+                  if (!match) {
+                    return { matched: false as const, response: undefined }
+                  }
 
-                const client = createProcedureClient(match.procedure, {
-                  context,
-                  path: match.path,
-                  interceptors: this.clientInterceptors,
-                })
+                  /**
+                   * [Semantic conventions for RPC spans](https://opentelemetry.io/docs/specs/semconv/rpc/rpc-spans/)
+                   */
+                  span?.updateName(`${ORPC_NAME}.${match.path.join('/')}`)
+                  span?.setAttribute('rpc.system', ORPC_NAME)
+                  span?.setAttribute('rpc.method', match.path.join('.'))
 
-                step = 'decode_input'
-                const input = await runWithSpan(
-                  'decode_input',
-                  () => this.codec.decode(request, match.params, match.procedure),
-                )
+                  const client = createProcedureClient(match.procedure, {
+                    context,
+                    path: match.path,
+                    interceptors: this.clientInterceptors,
+                  })
 
-                step = 'call_procedure'
-                /**
-                 * No need to use runWithSpan here, because the client already has its own span.
-                 */
-                const output = await client(input, {
-                  signal: request.signal,
-                  lastEventId: flattenHeader(request.headers['last-event-id']),
-                })
-                step = undefined
+                  step = 'decode_input'
+                  const input = await runWithSpan(
+                    { name: 'decode_input', signal: request.signal },
+                    () => this.codec.decode(request, match.params, match.procedure),
+                  )
 
-                const response = this.codec.encode(output, match.procedure)
+                  step = 'call_procedure'
+                  /**
+                   * No need to use runWithSpan here, because the client already has its own span.
+                   */
+                  const output = await client(input, {
+                    signal: request.signal,
+                    lastEventId: flattenHeader(request.headers['last-event-id']),
+                  })
+                  step = undefined
 
-                return {
-                  matched: true,
-                  response,
-                }
-              },
-            )
-          }
-          catch (e) {
+                  const response = this.codec.encode(output, match.procedure)
+
+                  return {
+                    matched: true,
+                    response,
+                  }
+                },
+              )
+            }
+            catch (e) {
             /**
              * Only errors that happen outside of the `call_procedure` step should be set as an error.
              * Because a business logic error should not be considered as a protocol-level error.
              */
-            if (step !== 'call_procedure') {
-              setSpanError(span, e)
+              if (step !== 'call_procedure') {
+                setSpanError(span, e, { signal: request.signal })
+              }
+
+              const error = step === 'decode_input' && !(e instanceof ORPCError)
+                ? new ORPCError('BAD_REQUEST', {
+                  message: `Malformed request. Ensure the request body is properly formatted and the 'Content-Type' header is set correctly.`,
+                  cause: e,
+                })
+                : toORPCError(e)
+
+              const response = this.codec.encodeError(error)
+
+              return {
+                matched: true,
+                response,
+              }
             }
-
-            const error = step === 'decode_input' && !(e instanceof ORPCError)
-              ? new ORPCError('BAD_REQUEST', {
-                message: `Malformed request. Ensure the request body is properly formatted and the 'Content-Type' header is set correctly.`,
-                cause: e,
-              })
-              : toORPCError(e)
-
-            const response = this.codec.encodeError(error)
-
-            return {
-              matched: true,
-              response,
-            }
-          }
-        },
-      )
-    })
+          },
+        )
+      },
+    )
   }
 }

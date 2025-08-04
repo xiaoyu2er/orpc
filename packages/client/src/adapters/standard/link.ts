@@ -43,7 +43,7 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
      * [Semantic conventions for RPC spans](https://opentelemetry.io/docs/specs/semconv/rpc/rpc-spans/)
      */
     return runWithSpan(
-      `${ORPC_NAME}.${path.join('/')}`,
+      { name: `${ORPC_NAME}.${path.join('/')}`, signal: options.signal },
       (span) => {
         span?.setAttribute('rpc.system', ORPC_NAME)
         span?.setAttribute('rpc.method', path.join('.'))
@@ -59,7 +59,7 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
 
   async #call(path: readonly string[], input: unknown, options: ClientOptions<T>): Promise<unknown> {
     const request = await runWithSpan(
-      'encode_request',
+      { name: 'encode_request' },
       () => this.codec.encode(path, input, options),
     )
 
@@ -68,19 +68,22 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
       { ...options, input, path, request },
       ({ input, path, request, ...options }) => {
         return runWithSpan(
-          'send_request',
+          { name: 'send_request', signal: options.signal },
           () => this.sender.call(request, options, path, input),
         )
       },
     )
 
     const output = await runWithSpan(
-      'decode_output',
+      { name: 'decode_response' },
       () => this.codec.decode(response, options, path, input),
     )
 
     if (isAsyncIteratorObject(output)) {
-      return asyncIteratorWithSpan(output)
+      return asyncIteratorWithSpan(
+        { name: 'consume_event_iterator', signal: options.signal },
+        output,
+      )
     }
 
     return output

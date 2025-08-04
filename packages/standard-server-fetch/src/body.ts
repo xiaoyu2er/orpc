@@ -5,47 +5,50 @@ import { generateContentDisposition, getFilenameFromContentDisposition } from '@
 import { toEventIterator, toEventStream } from './event-iterator'
 
 export function toStandardBody(re: Request | Response): Promise<StandardBody> {
-  return runWithSpan('parse_standard_body', async () => {
-    const contentDisposition = re.headers.get('content-disposition')
+  return runWithSpan(
+    { name: 'parse_standard_body' },
+    async () => {
+      const contentDisposition = re.headers.get('content-disposition')
 
-    if (typeof contentDisposition === 'string') {
-      const fileName = getFilenameFromContentDisposition(contentDisposition) ?? 'blob'
+      if (typeof contentDisposition === 'string') {
+        const fileName = getFilenameFromContentDisposition(contentDisposition) ?? 'blob'
+
+        const blob = await re.blob()
+        return new File([blob], fileName, {
+          type: blob.type,
+        })
+      }
+
+      const contentType = re.headers.get('content-type')
+
+      if (!contentType || contentType.startsWith('application/json')) {
+        const text = await re.text()
+        return parseEmptyableJSON(text)
+      }
+
+      if (contentType.startsWith('multipart/form-data')) {
+        return await re.formData()
+      }
+
+      if (contentType.startsWith('application/x-www-form-urlencoded')) {
+        const text = await re.text()
+        return new URLSearchParams(text)
+      }
+
+      if (contentType.startsWith('text/event-stream')) {
+        return toEventIterator(re.body)
+      }
+
+      if (contentType.startsWith('text/plain')) {
+        return await re.text()
+      }
 
       const blob = await re.blob()
-      return new File([blob], fileName, {
+      return new File([blob], 'blob', {
         type: blob.type,
       })
-    }
-
-    const contentType = re.headers.get('content-type')
-
-    if (!contentType || contentType.startsWith('application/json')) {
-      const text = await re.text()
-      return parseEmptyableJSON(text)
-    }
-
-    if (contentType.startsWith('multipart/form-data')) {
-      return await re.formData()
-    }
-
-    if (contentType.startsWith('application/x-www-form-urlencoded')) {
-      const text = await re.text()
-      return new URLSearchParams(text)
-    }
-
-    if (contentType.startsWith('text/event-stream')) {
-      return toEventIterator(re.body)
-    }
-
-    if (contentType.startsWith('text/plain')) {
-      return await re.text()
-    }
-
-    const blob = await re.blob()
-    return new File([blob], 'blob', {
-      type: blob.type,
-    })
-  })
+    },
+  )
 }
 
 export interface ToFetchBodyOptions extends ToEventStreamOptions {}

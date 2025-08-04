@@ -7,6 +7,7 @@ export * from './types'
 export * from './utils'
 
 export {
+  AsyncIteratorClass,
   asyncIteratorToStream as eventIteratorToStream,
   EventPublisher,
   onError,

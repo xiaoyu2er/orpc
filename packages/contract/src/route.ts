@@ -22,6 +22,14 @@ export interface Route {
   path?: HTTPPath
 
   /**
+   * The operation ID of the endpoint.
+   * This option is typically relevant when integrating with OpenAPI.
+   *
+   * @default Concatenation of router segments
+   */
+  operationId?: string
+
+  /**
    * The summary of the procedure.
    * This option is typically relevant when integrating with OpenAPI.
    *
@@ -127,7 +135,7 @@ export interface Route {
    *
    * @see {@link https://orpc.unnoq.com/docs/openapi/openapi-specification#operation-metadata Operation Metadata Docs}
    */
-  spec?: OpenAPI.OperationObject
+  spec?: OpenAPI.OperationObject | ((current: OpenAPI.OperationObject) => OpenAPI.OperationObject)
 }
 
 export function mergeRoute(a: Route, b: Route): Route {

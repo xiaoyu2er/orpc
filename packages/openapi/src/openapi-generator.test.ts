@@ -57,6 +57,7 @@ const routeTests: TestCase[] = [
   {
     name: 'metadata',
     contract: oc.route({
+      operationId: 'customOperationId',
       tags: ['planets'],
       summary: 'the summary',
       description: 'the description',
@@ -67,6 +68,7 @@ const routeTests: TestCase[] = [
     expected: {
       '/': {
         post: expect.objectContaining({
+          operationId: 'customOperationId',
           tags: ['planets'],
           summary: 'the summary',
           description: 'the description',
@@ -892,6 +894,33 @@ const customOperationTests: TestCase[] = [
           tags: ['tag'],
           summary: '__OVERRIDE__',
           security: [{ bearerAuth: [] }],
+        },
+      },
+    },
+  },
+  {
+    name: 'extend operation object',
+    contract: oc
+      .route({
+        spec: spec => ({
+          ...spec,
+          operationId: 'customOperationId',
+          summary: '__OVERRIDE__',
+        }),
+      })
+      .errors({
+        TEST: customOpenAPIOperation({}, { security: [{ bearerAuth: [] }] }),
+      })
+      .input(z.object({ id: z.string() }))
+      .output(z.object({ name: z.string() })),
+    expected: {
+      '/': {
+        post: {
+          operationId: 'customOperationId',
+          summary: '__OVERRIDE__',
+          security: [{ bearerAuth: [] }],
+          requestBody: expect.any(Object),
+          responses: expect.any(Object),
         },
       },
     },

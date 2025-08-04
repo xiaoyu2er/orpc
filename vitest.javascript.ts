@@ -1,4 +1,4 @@
-import { context, trace } from '@opentelemetry/api'
+import { context, propagation, trace } from '@opentelemetry/api'
 import { setGlobalOtelConfig } from './packages/shared/src'
 
 beforeAll(() => {
@@ -6,5 +6,6 @@ beforeAll(() => {
     tracer: trace.getTracer('orpc-test'),
     trace,
     context,
+    propagation,
   })
 })

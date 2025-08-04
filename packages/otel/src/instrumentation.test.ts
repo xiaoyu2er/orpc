@@ -1,7 +1,7 @@
 import * as shared from '@orpc/shared'
 import { ORPCInstrumentation } from './instrumentation'
 
-const setTracerSpy = vi.spyOn(shared, 'setTracer')
+const setGlobalOtelConfigSpy = vi.spyOn(shared, 'setGlobalOtelConfig')
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -9,20 +9,20 @@ beforeEach(() => {
 
 describe('oRPCInstrumentation', () => {
   it('should initialize the instrumentation', () => {
-    const originalTracer = shared.getTracer()
+    const originalConfig = shared.getGlobalOtelConfig()
 
     const instrumentation = new ORPCInstrumentation()
-    expect(setTracerSpy).toHaveBeenCalledWith(expect.any(Object))
+    expect(setGlobalOtelConfigSpy).toHaveBeenCalledWith(expect.any(Object))
 
-    shared.setTracer(originalTracer)
+    shared.setGlobalOtelConfig(originalConfig)
   })
 
   it('should not set a tracer if enabled=false', () => {
-    const originalTracer = shared.getTracer()
+    const originalConfig = shared.getGlobalOtelConfig()
 
     const instrumentation = new ORPCInstrumentation({ enabled: false })
-    expect(setTracerSpy).not.toHaveBeenCalled()
+    expect(setGlobalOtelConfigSpy).not.toHaveBeenCalled()
 
-    shared.setTracer(originalTracer)
+    shared.setGlobalOtelConfig(originalConfig)
   })
 })

@@ -8,6 +8,7 @@ import type { AnyProcedure, Procedure, ProcedureHandlerOptions } from './procedu
 import { ORPCError } from '@orpc/client'
 import { ValidationError } from '@orpc/contract'
 import { asyncIteratorWithSpan, intercept, isAsyncIteratorObject, resolveMaybeOptionalOptions, runWithSpan, toArray, value } from '@orpc/shared'
+import { experimental_HibernationEventIterator as HibernationEventIterator } from '@orpc/standard-server'
 import { mergeCurrentContext } from './context'
 import { createORPCErrorConstructorMap, validateORPCError } from './error'
 import { unlazy } from './lazy'
@@ -120,6 +121,13 @@ export function createProcedureClient<
       )
 
       if (isAsyncIteratorObject(output)) {
+        /**
+         * HibernationEventIterator is a special case - do not transform or track it.
+         */
+        if ((output as AsyncIteratorObject<any>) instanceof HibernationEventIterator) {
+          return output
+        }
+
         /**
          * asyncIteratorWithSpan return AsyncIteratorClass
          * which is backwards compatible with Event Iterator & almost async iterator.

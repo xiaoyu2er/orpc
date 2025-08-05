@@ -62,7 +62,7 @@ const example = os
 
 ## Middleware Context
 
-Middleware can use to inject or guard the [context](/docs/context).
+Middleware can be used to inject or guard the [context](/docs/context).
 
 ```ts twoslash
 import { ORPCError, os } from '@orpc/server'

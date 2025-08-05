@@ -100,12 +100,6 @@ export class ServerPeer {
       await runWithSpan(
         { name: 'receive_peer_request', signal, context },
         async (span) => {
-          /**
-           * [Semantic conventions for HTTP spans](https://opentelemetry.io/docs/specs/semconv/http/http-spans/)
-           */
-          span?.setAttribute('http.request.method', request.method)
-          span?.setAttribute('url.full', request.url.toString())
-
           request.signal?.addEventListener('abort', () => {
             span?.addEvent('abort', { reason: String(request.signal?.reason) })
           })

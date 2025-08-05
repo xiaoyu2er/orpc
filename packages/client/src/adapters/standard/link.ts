@@ -80,15 +80,7 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
       ({ input, path, request, ...options }) => {
         return runWithSpan(
           { name: 'send_request', signal: options.signal },
-          (span) => {
-            /**
-             * [Semantic conventions for HTTP spans](https://opentelemetry.io/docs/specs/semconv/http/http-spans/)
-             */
-            span?.setAttribute('http.request.method', request.method)
-            span?.setAttribute('url.full', request.url.toString())
-
-            return this.sender.call(request, options, path, input)
-          },
+          () => this.sender.call(request, options, path, input),
         )
       },
     )

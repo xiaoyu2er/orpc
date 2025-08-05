@@ -8,7 +8,7 @@ import type { Router } from '../../router'
 import type { StandardHandlerPlugin } from './plugin'
 import type { StandardCodec, StandardMatcher } from './types'
 import { ORPCError, toORPCError } from '@orpc/client'
-import { asyncIteratorWithSpan, intercept, isAsyncIteratorObject, ORPC_NAME, runWithSpan, setSpanAttribute, setSpanError, toArray } from '@orpc/shared'
+import { asyncIteratorWithSpan, intercept, isAsyncIteratorObject, ORPC_NAME, runWithSpan, setSpanError, toArray } from '@orpc/shared'
 import { flattenHeader } from '@orpc/standard-server'
 import { createProcedureClient } from '../../procedure-client'
 import { CompositeStandardHandlerPlugin } from './plugin'
@@ -79,19 +79,9 @@ export class StandardHandler<T extends Context> {
     return runWithSpan(
       { name: `${request.method} ${request.url.pathname}`, signal: request.signal },
       async (span) => {
-        /**
-         * [Semantic conventions for HTTP spans](https://opentelemetry.io/docs/specs/semconv/http/http-spans/)
-         */
-        span?.setAttribute('http.request.method', request.method)
-        span?.setAttribute('url.full', request.url.toString())
-
         request.signal?.addEventListener('abort', () => {
           span?.addEvent('abort', { reason: String(request.signal?.reason) })
         })
-
-        setSpanAttribute(span, 'http.request.header.accept', request.headers.accept)
-        setSpanAttribute(span, 'http.request.header.content-type', request.headers['content-type'])
-        setSpanAttribute(span, 'http.request.header.content-disposition', request.headers['content-disposition'])
 
         return intercept(
           this.rootInterceptors,

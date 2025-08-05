@@ -8,7 +8,7 @@ import type { Router } from '../../router'
 import type { StandardHandlerPlugin } from './plugin'
 import type { StandardCodec, StandardMatcher } from './types'
 import { ORPCError, toORPCError } from '@orpc/client'
-import { intercept, ORPC_NAME, runWithSpan, setSpanAttribute, setSpanError, toArray } from '@orpc/shared'
+import { asyncIteratorWithSpan, intercept, isAsyncIteratorObject, ORPC_NAME, runWithSpan, setSpanAttribute, setSpanError, toArray } from '@orpc/shared'
 import { flattenHeader } from '@orpc/standard-server'
 import { createProcedureClient } from '../../procedure-client'
 import { CompositeStandardHandlerPlugin } from './plugin'
@@ -77,7 +77,7 @@ export class StandardHandler<T extends Context> {
     }
 
     return runWithSpan(
-      { name: `${request.method} ${request.url.pathname}` },
+      { name: `${request.method} ${request.url.pathname}`, signal: request.signal },
       async (span) => {
         /**
          * [Semantic conventions for HTTP spans](https://opentelemetry.io/docs/specs/semconv/http/http-spans/)
@@ -86,7 +86,7 @@ export class StandardHandler<T extends Context> {
         span?.setAttribute('url.full', request.url.toString())
 
         request.signal?.addEventListener('abort', () => {
-          span?.setAttribute('http.request.abort', true)
+          span?.addEvent('abort', { reason: String(request.signal?.reason) })
         })
 
         setSpanAttribute(span, 'http.request.header.accept', request.headers.accept)
@@ -134,10 +134,17 @@ export class StandardHandler<T extends Context> {
                   })
 
                   step = 'decode_input'
-                  const input = await runWithSpan(
+                  let input = await runWithSpan(
                     { name: 'decode_input', signal: request.signal },
                     () => this.codec.decode(request, match.params, match.procedure),
                   )
+
+                  if (isAsyncIteratorObject(input)) {
+                    input = asyncIteratorWithSpan(
+                      { name: 'consume_event_iterator', signal: request.signal },
+                      input,
+                    )
+                  }
 
                   step = 'call_procedure'
                   /**

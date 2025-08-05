@@ -64,13 +64,23 @@ export async function resolveEventIterator(
         return { event: 'message', data: value, meta: getEventMeta(value) }
       }
       catch (err) {
-        return {
-          meta: getEventMeta(err),
-          event: 'error',
-          data: err instanceof ErrorEvent ? err.data : undefined,
+        /**
+         * Shouldn't treat an error event as an error.
+         */
+        if (err instanceof ErrorEvent) {
+          return {
+            event: 'error',
+            data: err.data,
+            meta: getEventMeta(err),
+          }
+        }
+        else {
+          throw err
         }
       }
     })()
+
+    let isInvokeCleanupFn = false
 
     try {
       const direction = await callback(payload)
@@ -80,20 +90,15 @@ export async function resolveEventIterator(
       }
 
       if (direction === 'abort') {
-        try {
-          await iterator.return?.()
-        }
-        catch { }
-
+        isInvokeCleanupFn = true
+        await iterator.return?.()
         return
       }
     }
     catch (err) {
-      try {
+      if (!isInvokeCleanupFn) {
         await iterator.return?.()
       }
-      catch { }
-
       throw err
     }
   }

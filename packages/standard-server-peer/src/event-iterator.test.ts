@@ -197,14 +197,14 @@ describe('resolveEventIterator', () => {
   it('on unknown error', async () => {
     const callback = vi.fn(async () => 'next' as const)
 
-    await resolveEventIterator((async function* () {
+    await expect(resolveEventIterator((async function* () {
       yield 'hello'
       yield withEventMeta({ hello2: true }, { id: 'id-1', retry: 2000, comments: [] })
       yield 'hello3'
-      throw withEventMeta(new Error('hi'), { id: 'id-2', retry: 2001, comments: ['comment1', 'comment2'] })
-    })(), callback)
+      throw new Error('test')
+    })(), callback)).rejects.toThrow('test')
 
-    expect(callback).toHaveBeenCalledTimes(4)
+    expect(callback).toHaveBeenCalledTimes(3)
     expect(callback).toHaveBeenNthCalledWith(1, {
       event: 'message',
       data: 'hello',
@@ -220,17 +220,13 @@ describe('resolveEventIterator', () => {
       event: 'message',
       data: 'hello3',
     })
-
-    expect(callback).toHaveBeenNthCalledWith(4, {
-      event: 'error',
-      data: undefined,
-      meta: { id: 'id-2', retry: 2001, comments: ['comment1', 'comment2'] },
-    })
   })
 
   it('on callback return abort', async () => {
     let time = 0
-    const callback = vi.fn(async () => time++ === 1 ? 'abort' : 'next' as const)
+    const callback = vi.fn(async (...args) => {
+      return time++ === 1 ? 'abort' : 'next' as const
+    })
 
     let cleanupError
     let isCleanupCalled = false
@@ -248,9 +244,6 @@ describe('resolveEventIterator', () => {
       }
       finally {
         isCleanupCalled = true
-
-        // eslint-disable-next-line no-unsafe-finally
-        throw new Error('this should silence ignored')
       }
     })(), callback)
 
@@ -298,9 +291,6 @@ describe('resolveEventIterator', () => {
       }
       finally {
         isCleanupCalled = true
-
-        // eslint-disable-next-line no-unsafe-finally
-        throw new Error('this should silence ignored')
       }
     })(), callback)).rejects.toThrow('callback error')
 

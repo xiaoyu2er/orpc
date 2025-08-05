@@ -48,6 +48,17 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
         span?.setAttribute('rpc.system', ORPC_NAME)
         span?.setAttribute('rpc.method', path.join('.'))
 
+        options.signal?.addEventListener('abort', () => {
+          span?.addEvent('abort', { reason: String(options.signal?.reason) })
+        })
+
+        if (isAsyncIteratorObject(input)) {
+          input = asyncIteratorWithSpan(
+            { name: 'consume_event_iterator', signal: options.signal },
+            input,
+          )
+        }
+
         return intercept(this.interceptors, { ...options, path, input }, async ({ path, input, ...options }) => {
           const output = await this.#call(path, input, options)
 
@@ -69,7 +80,15 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
       ({ input, path, request, ...options }) => {
         return runWithSpan(
           { name: 'send_request', signal: options.signal },
-          () => this.sender.call(request, options, path, input),
+          (span) => {
+            /**
+             * [Semantic conventions for HTTP spans](https://opentelemetry.io/docs/specs/semconv/http/http-spans/)
+             */
+            span?.setAttribute('http.request.method', request.method)
+            span?.setAttribute('url.full', request.url.toString())
+
+            return this.sender.call(request, options, path, input)
+          },
         )
       },
     )

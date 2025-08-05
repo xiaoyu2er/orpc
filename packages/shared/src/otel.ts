@@ -1,7 +1,7 @@
 /**
  * Only import types from @opentelemetry/api to avoid runtime dependencies.
  */
-import type { AttributeValue, ContextAPI, Exception, PropagationAPI, Span, SpanOptions, SpanStatusCode, TraceAPI, Tracer } from '@opentelemetry/api'
+import type { AttributeValue, Context, ContextAPI, Exception, PropagationAPI, Span, SpanOptions, SpanStatusCode, TraceAPI, Tracer } from '@opentelemetry/api'
 import type { Promisable } from 'type-fest'
 import { ORPC_SHARED_PACKAGE_NAME, ORPC_SHARED_PACKAGE_VERSION } from './consts'
 
@@ -41,9 +41,9 @@ export function getGlobalOtelConfig(): OtelConfig | undefined {
  *
  * @returns The new span, or `undefined` if no tracer is set.
  */
-export function startSpan(name: string, options: SpanOptions = {}): Span | undefined {
+export function startSpan(name: string, options: SpanOptions = {}, context?: Context): Span | undefined {
   const tracer = getGlobalOtelConfig()?.tracer
-  return tracer?.startSpan(name, options)
+  return tracer?.startSpan(name, options, context)
 }
 
 export interface SetSpanErrorOptions {
@@ -134,6 +134,11 @@ export interface RunWithSpanOptions extends SpanOptions, SetSpanErrorOptions {
    * The name of the span to create.
    */
   name: string
+
+  /**
+   * Context to use for the span.
+   */
+  context?: Context
 }
 
 /**
@@ -141,7 +146,7 @@ export interface RunWithSpanOptions extends SpanOptions, SetSpanErrorOptions {
  * The span is ended automatically, and errors are recorded to the span.
  */
 export async function runWithSpan<T>(
-  { name, ...options }: RunWithSpanOptions,
+  { name, context, ...options }: RunWithSpanOptions,
   fn: (span?: Span) => Promisable<T>,
 ): Promise<T> {
   const tracer = getGlobalOtelConfig()?.tracer
@@ -150,7 +155,9 @@ export async function runWithSpan<T>(
     return fn()
   }
 
-  return tracer.startActiveSpan(name, options, async (span) => {
+  const withContext: [context?: any] = context ? [context] as const : [] as const
+
+  return tracer.startActiveSpan(name, options, ...withContext, async (span) => {
     try {
       return await fn(span)
     }

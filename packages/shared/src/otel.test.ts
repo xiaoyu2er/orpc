@@ -57,7 +57,7 @@ describe('tracing', () => {
       const result = startSpan('test-span', { attributes: { key: 'value' } })
 
       expect(result).toBe(mockSpan)
-      expect(mockConfig.tracer.startSpan).toHaveBeenCalledWith('test-span', { attributes: { key: 'value' } })
+      expect(mockConfig.tracer.startSpan).toHaveBeenCalledWith('test-span', { attributes: { key: 'value' } }, undefined)
     })
   })
 
@@ -275,6 +275,24 @@ describe('tracing', () => {
 
       expect(mockSpan.recordException).toHaveBeenCalledWith({ message: 'Test error', name: 'Error', stack: error.stack })
       expect(mockSpan.end).toHaveBeenCalled()
+    })
+
+    it('can pass context to the span', async () => {
+      const mockSpan = createMockSpan()
+      const mockConfig = createMockOtelConfig()
+      mockConfig.tracer.startActiveSpan.mockImplementation((name, options, context, callback) =>
+        callback(mockSpan),
+      )
+      setGlobalOtelConfig(mockConfig as any)
+
+      const context = { user: 'test-user' } as any
+      const fn = vi.fn().mockResolvedValue('result')
+
+      const result = await runWithSpan({ name: 'test-span', context }, fn)
+
+      expect(result).toBe('result')
+      expect(mockConfig.tracer.startActiveSpan).toHaveBeenCalledWith('test-span', {}, context, expect.any(Function))
+      expect(fn).toHaveBeenCalledWith(mockSpan)
     })
   })
 

@@ -2,7 +2,7 @@ import type { AsyncIdQueueCloseOptions } from '@orpc/shared'
 import type { StandardRequest, StandardResponse } from '@orpc/standard-server'
 import type { EventIteratorPayload } from './codec'
 import type { EncodedMessage, EncodedMessageSendFn } from './types'
-import { AsyncIdQueue, isAsyncIteratorObject, SequentialIdGenerator } from '@orpc/shared'
+import { AsyncIdQueue, asyncIteratorWithSpan, clone, getGlobalOtelConfig, isAsyncIteratorObject, runWithSpan, SequentialIdGenerator, setSpanError } from '@orpc/shared'
 import { isEventIteratorHeaders } from '@orpc/standard-server'
 import { decodeResponseMessage, encodeRequestMessage, MessageType } from './codec'
 import { resolveEventIterator, toEventIterator } from './event-iterator'
@@ -55,53 +55,141 @@ export class ClientPeer {
   async request(request: StandardRequest): Promise<StandardResponse> {
     const signal = request.signal
 
-    if (signal?.aborted) {
-      throw signal.reason
-    }
+    return runWithSpan(
+      { name: 'send_peer_request', signal },
+      async (span) => {
+        /**
+         * [Semantic conventions for HTTP spans](https://opentelemetry.io/docs/specs/semconv/http/http-spans/)
+         */
+        span?.setAttribute('http.request.method', request.method)
+        span?.setAttribute('url.full', request.url.toString())
 
-    const id = this.idGenerator.generate()
+        if (signal?.aborted) {
+          span?.addEvent('abort', { reason: String(signal.reason) })
+          throw signal.reason
+        }
 
-    const serverController = this.open(id)
+        signal?.addEventListener('abort', () => {
+          span?.addEvent('abort', { reason: String(signal.reason) })
+        })
 
-    return new Promise((resolve, reject) => {
-      this.send(id, MessageType.REQUEST, request)
-        .then(async () => {
-          if (signal?.aborted) {
-            await this.send(id, MessageType.ABORT_SIGNAL, undefined)
-            this.close({ id, reason: signal.reason })
-            return
-          }
+        const id = this.idGenerator.generate()
+        const serverController = this.open(id)
 
-          signal?.addEventListener('abort', async () => {
-            await this.send(id, MessageType.ABORT_SIGNAL, undefined)
-            this.close({ id, reason: signal.reason })
-          }, { once: true })
+        let carrierRequest: typeof request = request
+        const otelConfig = getGlobalOtelConfig()
 
-          if (isAsyncIteratorObject(request.body)) {
-            await resolveEventIterator(request.body, async (payload) => {
-              if (serverController.signal.aborted) {
-                return 'abort'
+        if (otelConfig) {
+          carrierRequest = { ...carrierRequest, headers: clone(request.headers) }
+          otelConfig.propagation.inject(otelConfig.context.active(), carrierRequest.headers)
+        }
+
+        return await new Promise((resolve, reject) => {
+          this.send(id, MessageType.REQUEST, carrierRequest)
+            .then(async () => {
+              if (signal?.aborted) {
+                await this.send(id, MessageType.ABORT_SIGNAL, undefined)
+                this.close({ id, reason: signal.reason })
+                return
               }
 
-              await this.send(id, MessageType.EVENT_ITERATOR, payload)
+              signal?.addEventListener('abort', async () => {
+                await this.send(id, MessageType.ABORT_SIGNAL, undefined)
+                this.close({ id, reason: signal.reason })
+              }, { once: true })
 
-              return 'next'
+              if (isAsyncIteratorObject(request.body)) {
+                const iterator = request.body
+
+                await runWithSpan(
+                  { name: 'stream_event_iterator', signal },
+                  async (span) => {
+                    let sending = false
+                    try {
+                      await resolveEventIterator(iterator, async (payload) => {
+                        if (serverController.signal.aborted) {
+                          return 'abort'
+                        }
+
+                        sending = true
+                        await this.send(id, MessageType.EVENT_ITERATOR, payload)
+                        sending = false
+
+                        span?.addEvent(payload.event)
+
+                        return 'next'
+                      })
+                    }
+                    catch (e) {
+                      /**
+                       * Only rethrow errors that occur while sending.
+                       * For other errors, we can still wait for the server response,
+                       * so we don't want to close the id prematurely.
+                       */
+                      if (sending) {
+                        throw e
+                      }
+
+                      /**
+                       * Send an error event if an unexpected error occurs (not error event).
+                       * Without this, the server event iterator may hang waiting for the next event.
+                       * Unlike HTTP/fetch streams (throw on unexpected end of steam),
+                       * we must manually signal errors in this custom implementation (long-live connection).
+                       */
+                      await this.send(id, MessageType.EVENT_ITERATOR, { event: 'error', data: undefined })
+                      setSpanError(span, e, { signal })
+                    }
+                  },
+                )
+              }
             })
-          }
-        })
-        .catch((err) => {
-          this.close({ id, reason: err })
-          reject(err)
-        })
+            .catch((err) => {
+              this.close({ id, reason: err })
+              reject(err)
+            })
 
-      this.responseQueue.pull(id)
-        .then(resolve)
-        .catch(reject)
-    })
+          this.responseQueue.pull(id)
+            .then((response) => {
+              if (isEventIteratorHeaders(response.headers)) {
+                const iterator = asyncIteratorWithSpan(
+                  { name: 'consume_event_iterator_stream', signal },
+                  toEventIterator(this.serverEventIteratorQueue, id, async (reason) => {
+                    try {
+                      if (reason !== 'next') {
+                        await this.send(id, MessageType.ABORT_SIGNAL, undefined)
+                      }
+                    }
+                    finally {
+                      this.close({ id })
+                    }
+                  }),
+                )
+
+                resolve({
+                  ...response,
+                  body: iterator,
+                })
+              }
+              else {
+                resolve(response)
+                this.close({ id })
+              }
+            })
+            .catch((err) => {
+              this.close({ id, reason: err })
+              reject(err)
+            })
+        })
+      },
+    )
   }
 
   async message(raw: EncodedMessage): Promise<void> {
     const [id, type, payload] = await decodeResponseMessage(raw)
+
+    if (!this.responseQueue.isOpen(id)) {
+      return
+    }
 
     if (type === MessageType.ABORT_SIGNAL) {
       this.serverControllers.get(id)?.abort()
@@ -109,36 +197,11 @@ export class ClientPeer {
     }
 
     if (type === MessageType.EVENT_ITERATOR) {
-      if (this.serverEventIteratorQueue.isOpen(id)) {
-        this.serverEventIteratorQueue.push(id, payload)
-      }
-
+      this.serverEventIteratorQueue.push(id, payload)
       return
     }
 
-    if (!this.responseQueue.isOpen(id)) {
-      return
-    }
-
-    if (isEventIteratorHeaders(payload.headers)) {
-      this.responseQueue.push(id, {
-        ...payload,
-        body: toEventIterator(this.serverEventIteratorQueue, id, async (reason) => {
-          try {
-            if (reason !== 'next') {
-              await this.send(id, MessageType.ABORT_SIGNAL, undefined)
-            }
-          }
-          finally {
-            this.close({ id })
-          }
-        }),
-      })
-    }
-    else {
-      this.responseQueue.push(id, payload)
-      this.close({ id })
-    }
+    this.responseQueue.push(id, payload)
   }
 
   close(options: AsyncIdQueueCloseOptions = {}): void {

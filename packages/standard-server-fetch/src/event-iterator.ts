@@ -12,7 +12,7 @@ export function toEventIterator(
   let span: ReturnType<typeof startSpan> | undefined
 
   return new AsyncIteratorClass(async () => {
-    span ??= startSpan('consume_event_stream')
+    span ??= startSpan('consume_event_iterator_stream')
 
     try {
       while (true) {

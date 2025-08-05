@@ -2,10 +2,14 @@ import type { AsyncIdQueueCloseOptions } from '@orpc/shared'
 import type { StandardRequest, StandardResponse } from '@orpc/standard-server'
 import type { EventIteratorPayload } from './codec'
 import type { EncodedMessage, EncodedMessageSendFn } from './types'
-import { AsyncIdQueue, isAsyncIteratorObject } from '@orpc/shared'
+import { AsyncIdQueue, asyncIteratorWithSpan, getGlobalOtelConfig, isAsyncIteratorObject, runWithSpan, setSpanError } from '@orpc/shared'
 import { experimental_HibernationEventIterator, isEventIteratorHeaders } from '@orpc/standard-server'
 import { decodeRequestMessage, encodeResponseMessage, MessageType } from './codec'
 import { resolveEventIterator, toEventIterator } from './event-iterator'
+
+export interface ServerPeerHandleRequestFn {
+  (request: StandardRequest): Promise<StandardResponse>
+}
 
 export interface ServerPeerCloseOptions extends AsyncIdQueueCloseOptions {
   /**
@@ -47,7 +51,13 @@ export class ServerPeer {
     return controller
   }
 
-  async message(raw: EncodedMessage): Promise<[id: string, StandardRequest | undefined]> {
+  /**
+   * @todo This method will return Promise<void> in the next major version.
+   */
+  async message(
+    raw: EncodedMessage,
+    handleRequest?: ServerPeerHandleRequestFn,
+  ): Promise<[id: string, StandardRequest | undefined]> {
     const [id, type, payload] = await decodeRequestMessage(raw)
 
     if (type === MessageType.ABORT_SIGNAL) {
@@ -63,22 +73,62 @@ export class ServerPeer {
     }
 
     const clientController = this.open(id)
+    const signal = clientController.signal
 
     const request: StandardRequest = {
       ...payload,
-      signal: clientController.signal,
+      signal,
       body: isEventIteratorHeaders(payload.headers)
-        ? toEventIterator(this.clientEventIteratorQueue, id, async (reason) => {
-            if (reason !== 'next') {
-              await this.send(id, MessageType.ABORT_SIGNAL, undefined)
-            }
-          })
+        ? asyncIteratorWithSpan(
+            { name: 'consume_event_iterator_stream', signal },
+            toEventIterator(this.clientEventIteratorQueue, id, async (reason) => {
+              if (reason !== 'next') {
+                await this.send(id, MessageType.ABORT_SIGNAL, undefined)
+              }
+            }),
+          )
         : payload.body,
+    }
+
+    if (handleRequest) {
+      let context
+      const otelConfig = getGlobalOtelConfig()
+      if (otelConfig) {
+        context = otelConfig.propagation.extract(otelConfig.context.active(), request.headers)
+      }
+
+      await runWithSpan(
+        { name: 'receive_peer_request', signal, context },
+        async (span) => {
+          /**
+           * [Semantic conventions for HTTP spans](https://opentelemetry.io/docs/specs/semconv/http/http-spans/)
+           */
+          span?.setAttribute('http.request.method', request.method)
+          span?.setAttribute('url.full', request.url.toString())
+
+          request.signal?.addEventListener('abort', () => {
+            span?.addEvent('abort', { reason: String(request.signal?.reason) })
+          })
+
+          const response = await runWithSpan(
+            { name: 'handle_request', signal },
+            () => handleRequest(request),
+          )
+
+          await runWithSpan(
+            { name: 'send_peer_response', signal },
+            () => this.response(id, response),
+          )
+        },
+      )
     }
 
     return [id, request]
   }
 
+  /**
+   * @deprecated Please pass the `handleRequest` (second arg) function to the `message` method instead.
+   */
   async response(id: string, response: StandardResponse): Promise<void> {
     const signal = this.clientControllers.get(id)?.signal
 
@@ -94,15 +144,49 @@ export class ServerPeer {
             response.body.hibernationCallback?.(id)
           }
           else {
-            await resolveEventIterator(response.body, async (payload) => {
-              if (signal.aborted) {
-                return 'abort'
-              }
+            const iterator = response.body
 
-              await this.send(id, MessageType.EVENT_ITERATOR, payload)
+            await runWithSpan(
+              { name: 'stream_event_iterator', signal },
+              async (span) => {
+                let sending = false
 
-              return 'next'
-            })
+                try {
+                  await resolveEventIterator(iterator, async (payload) => {
+                    if (signal.aborted) {
+                      return 'abort'
+                    }
+
+                    sending = true
+                    await this.send(id, MessageType.EVENT_ITERATOR, payload)
+                    sending = false
+
+                    span?.addEvent(payload.event)
+
+                    return 'next'
+                  })
+                }
+                catch (e) {
+                  /**
+                   * Only rethrow errors that occur while sending.
+                   * For other errors, we can still wait for the server response,
+                   * so we don't want to close the id prematurely.
+                   */
+                  if (sending) {
+                    throw e
+                  }
+
+                  /**
+                   * Send an error event if an unexpected error occurs (not error event).
+                   * Without this, the client event iterator may hang waiting for the next event.
+                   * Unlike HTTP/fetch streams (throw on unexpected end of steam),
+                   * we must manually signal errors in this custom implementation (long-live connection).
+                   */
+                  await this.send(id, MessageType.EVENT_ITERATOR, { event: 'error', data: undefined })
+                  setSpanError(span, e, { signal })
+                }
+              },
+            )
           }
         }
 
@@ -117,14 +201,14 @@ export class ServerPeer {
   close({ abort = true, ...options }: ServerPeerCloseOptions = {}): void {
     if (options.id === undefined) {
       if (abort) {
-        this.clientControllers.forEach(c => c.abort())
+        this.clientControllers.forEach(c => c.abort(options.reason))
       }
 
       this.clientControllers.clear()
     }
     else {
       if (abort) {
-        this.clientControllers.get(options.id)?.abort()
+        this.clientControllers.get(options.id)?.abort(options.reason)
       }
 
       this.clientControllers.delete(options.id)

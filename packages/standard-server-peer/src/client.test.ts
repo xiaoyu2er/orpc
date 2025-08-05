@@ -184,6 +184,29 @@ describe('clientPeer', () => {
       expect(isFinallyCalled).toBe(true)
     })
 
+    it('iterator throw un-ErrorEvent while consume', async () => {
+      const request = {
+        ...baseRequest,
+        body: (async function* () {
+          yield 'hello'
+          throw new Error('something went wrong')
+        })(),
+      }
+
+      expect(peer.request(request)).resolves.toEqual(baseResponse)
+
+      await vi.waitFor(() => expect(send).toHaveBeenCalledTimes(3))
+      expect(await decodeRequestMessage(send.mock.calls[0]![0]))
+        .toEqual(['0', MessageType.REQUEST, { ...request, body: undefined, headers: { ...request.headers, 'content-type': 'text/event-stream' } }])
+      expect(await decodeRequestMessage(send.mock.calls[1]![0])).toEqual(['0', MessageType.EVENT_ITERATOR, { event: 'message', data: 'hello' }])
+      /**
+       * Should send an error event even when the error is not an instance of ErrorEvent.
+       */
+      expect(await decodeRequestMessage(send.mock.calls[2]![0])).toEqual(['0', MessageType.EVENT_ITERATOR, { event: 'error' }])
+
+      peer.message(await encodeResponseMessage('0', MessageType.RESPONSE, baseResponse))
+    })
+
     it('file', async () => {
       const request = {
         ...baseRequest,
@@ -255,7 +278,7 @@ describe('clientPeer', () => {
 
     it('throw if cannot send iterator', async () => {
       let time = 0
-      send.mockImplementation(() => {
+      send.mockImplementation((...args) => {
         if (time++ === 1) {
           throw new Error('send error')
         }
@@ -278,11 +301,11 @@ describe('clientPeer', () => {
         finally {
           isFinallyCalled = true
           // eslint-disable-next-line no-unsafe-finally
-          throw new Error('should silence ignored')
+          throw new Error('cleanup error')
         }
       })()
 
-      const assertPromise = expect(peer.request({ ...baseRequest, body: iterator })).rejects.toThrow('send error')
+      const assertPromise = expect(peer.request({ ...baseRequest, body: iterator })).rejects.toThrow('cleanup error')
 
       await new Promise(resolve => setTimeout(resolve, 0))
 

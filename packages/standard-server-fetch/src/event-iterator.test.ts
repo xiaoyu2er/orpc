@@ -3,6 +3,7 @@ import { ErrorEvent, getEventMeta, withEventMeta } from '@orpc/standard-server'
 import { toEventIterator, toEventStream } from './event-iterator'
 
 const isAsyncIteratorObject = shared.isAsyncIteratorObject
+const startSpanSpy = vi.spyOn(shared, 'startSpan')
 const runInSpanContextSpy = vi.spyOn(shared, 'runInSpanContext')
 
 beforeEach(() => {
@@ -48,6 +49,7 @@ describe('toEventIterator', () => {
       return true
     })
 
+    expect(startSpanSpy).toHaveBeenCalledTimes(1)
     expect(runInSpanContextSpy).toHaveBeenCalledTimes(5)
   })
 
@@ -90,6 +92,7 @@ describe('toEventIterator', () => {
 
     await expect(stream.getReader().closed).resolves.toBe(undefined)
 
+    expect(startSpanSpy).toHaveBeenCalledTimes(1)
     expect(runInSpanContextSpy).toHaveBeenCalledTimes(5)
   })
 
@@ -99,6 +102,7 @@ describe('toEventIterator', () => {
     expect(await generator.next()).toEqual({ done: true, value: undefined })
     expect(await generator.next()).toEqual({ done: true, value: undefined })
 
+    expect(startSpanSpy).toHaveBeenCalledTimes(1)
     expect(runInSpanContextSpy).toHaveBeenCalledTimes(1)
   })
 
@@ -141,6 +145,8 @@ describe('toEventIterator', () => {
     })
 
     await expect(stream.getReader().closed).resolves.toBe(undefined)
+
+    expect(startSpanSpy).toHaveBeenCalledTimes(1)
     expect(runInSpanContextSpy).toHaveBeenCalledTimes(4)
   })
 
@@ -169,6 +175,8 @@ describe('toEventIterator', () => {
     await generator.return(undefined)
 
     await vi.waitFor(() => expect(stream.getReader().closed).resolves.toBe(undefined))
+
+    expect(startSpanSpy).toHaveBeenCalledTimes(1)
     expect(runInSpanContextSpy).toHaveBeenCalledTimes(2)
   })
 
@@ -193,6 +201,7 @@ describe('toEventIterator', () => {
 
     await expect(generator.next()).rejects.toThrow('Test error')
 
+    expect(startSpanSpy).toHaveBeenCalledTimes(1)
     expect(runInSpanContextSpy).toHaveBeenCalledTimes(3)
   })
 })
@@ -216,6 +225,7 @@ describe('toEventStream', () => {
     expect((await reader.read())).toEqual({ done: false, value: 'event: done\nretry: 40000\nid: id-4\ndata: {"order":4}\n\n' })
     expect((await reader.read())).toEqual({ done: true, value: undefined })
 
+    expect(startSpanSpy).toHaveBeenCalledTimes(1)
     expect(runInSpanContextSpy).toHaveBeenCalledTimes(4)
   })
 
@@ -235,6 +245,7 @@ describe('toEventStream', () => {
     expect((await reader.read())).toEqual({ done: false, value: 'event: message\n\n' })
     expect((await reader.read())).toEqual({ done: true, value: undefined })
 
+    expect(startSpanSpy).toHaveBeenCalledTimes(1)
     expect(runInSpanContextSpy).toHaveBeenCalledTimes(4)
   })
 
@@ -255,6 +266,7 @@ describe('toEventStream', () => {
     expect((await reader.read()).value).toEqual('event: message\n\n')
     await expect(reader.read()).rejects.toThrow('order-4')
 
+    expect(startSpanSpy).toHaveBeenCalledTimes(1)
     expect(runInSpanContextSpy).toHaveBeenCalledTimes(4)
   })
 
@@ -276,6 +288,7 @@ describe('toEventStream', () => {
     expect((await reader.read()).value).toEqual('event: error\nretry: 40000\nid: id-4\ndata: {"order":4}\n\n')
     expect((await reader.read()).done).toEqual(true)
 
+    expect(startSpanSpy).toHaveBeenCalledTimes(1)
     expect(runInSpanContextSpy).toHaveBeenCalledTimes(4)
   })
 
@@ -304,6 +317,7 @@ describe('toEventStream', () => {
       expect(hasFinally).toBe(true)
     })
 
+    expect(startSpanSpy).toHaveBeenCalledTimes(1)
     expect(runInSpanContextSpy).toHaveBeenCalledTimes(3)
   })
 
@@ -332,6 +346,7 @@ describe('toEventStream', () => {
       expect(hasFinally).toBe(true)
     })
 
+    expect(startSpanSpy).toHaveBeenCalledTimes(1)
     expect(runInSpanContextSpy).toHaveBeenCalledTimes(3)
   })
 
@@ -364,6 +379,7 @@ describe('toEventStream', () => {
       expect(hasFinally).toBe(true)
     })
 
+    expect(startSpanSpy).toHaveBeenCalledTimes(1)
     expect(runInSpanContextSpy).toHaveBeenCalledTimes(3)
   })
 
@@ -399,6 +415,7 @@ describe('toEventStream', () => {
     expect(Date.now() - now).toBeGreaterThanOrEqual(80)
     expect(Date.now() - now).toBeLessThan(120)
 
+    expect(startSpanSpy).toHaveBeenCalledTimes(1)
     expect(runInSpanContextSpy).toHaveBeenCalledTimes(3)
   })
 })

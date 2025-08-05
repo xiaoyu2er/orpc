@@ -117,12 +117,6 @@ export class StandardHandler<T extends Context> {
                   span?.setAttribute('rpc.system', ORPC_NAME)
                   span?.setAttribute('rpc.method', match.path.join('.'))
 
-                  const client = createProcedureClient(match.procedure, {
-                    context,
-                    path: match.path,
-                    interceptors: this.clientInterceptors,
-                  })
-
                   step = 'decode_input'
                   let input = await runWithSpan(
                     { name: 'decode_input', signal: request.signal },
@@ -131,12 +125,17 @@ export class StandardHandler<T extends Context> {
 
                   if (isAsyncIteratorObject(input)) {
                     input = asyncIteratorWithSpan(
-                      { name: 'consume_event_iterator', signal: request.signal },
+                      { name: 'consume_event_iterator_input', signal: request.signal },
                       input,
                     )
                   }
 
                   step = 'call_procedure'
+                  const client = createProcedureClient(match.procedure, {
+                    context,
+                    path: match.path,
+                    interceptors: this.clientInterceptors,
+                  })
                   /**
                    * No need to use runWithSpan here, because the client already has its own span.
                    */

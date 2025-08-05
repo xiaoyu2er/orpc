@@ -137,7 +137,7 @@ export function createProcedureClient<
          * because AsyncIteratorClass convert `.throw` to `.return` (rarely used)
          */
         return asyncIteratorWithSpan(
-          { name: 'consume_event_iterator', signal: callerOptions?.signal },
+          { name: 'consume_event_iterator_output', signal: callerOptions?.signal },
           output,
         ) as typeof output
       }

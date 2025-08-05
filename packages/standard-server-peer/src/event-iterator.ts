@@ -1,49 +1,72 @@
-import type { AsyncIteratorClassCleanupFn } from '@orpc/shared'
+import type { AsyncIteratorClassCleanupFn, SetSpanErrorOptions } from '@orpc/shared'
 import type { AsyncIdQueue } from '../../shared/src/queue'
 import type { EventIteratorPayload } from './codec'
-import { AsyncIteratorClass, isTypescriptObject } from '@orpc/shared'
+import { AsyncIteratorClass, isTypescriptObject, runInSpanContext, setSpanError, startSpan } from '@orpc/shared'
 import { ErrorEvent, getEventMeta, withEventMeta } from '@orpc/standard-server'
 
 export function toEventIterator(
   queue: AsyncIdQueue<EventIteratorPayload>,
   id: string,
   cleanup: AsyncIteratorClassCleanupFn,
+  options: SetSpanErrorOptions = {},
 ): AsyncIteratorClass<unknown> {
+  let span: ReturnType<typeof startSpan> | undefined
+
   return new AsyncIteratorClass(async () => {
-    const item = await queue.pull(id)
+    span ??= startSpan('consume_event_iterator_stream')
 
-    switch (item.event) {
-      case 'message': {
-        let data = item.data
+    try {
+      const item = await runInSpanContext(span, () => queue.pull(id))
 
-        if (item.meta && isTypescriptObject(data)) {
-          data = withEventMeta(data, item.meta)
+      switch (item.event) {
+        case 'message': {
+          let data = item.data
+
+          if (item.meta && isTypescriptObject(data)) {
+            data = withEventMeta(data, item.meta)
+          }
+
+          span?.addEvent('message')
+
+          return { value: data, done: false }
         }
 
-        return { value: data, done: false }
-      }
+        case 'error': {
+          let error = new ErrorEvent({
+            data: item.data,
+          })
 
-      case 'error': {
-        let error = new ErrorEvent({
-          data: item.data,
-        })
+          if (item.meta) {
+            error = withEventMeta(error, item.meta)
+          }
 
-        if (item.meta) {
-          error = withEventMeta(error, item.meta)
+          span?.addEvent('error')
+
+          throw error
         }
 
-        throw error
-      }
+        case 'done': {
+          let data = item.data
 
-      case 'done': {
-        let data = item.data
+          if (item.meta && isTypescriptObject(data)) {
+            data = withEventMeta(data, item.meta)
+          }
 
-        if (item.meta && isTypescriptObject(data)) {
-          data = withEventMeta(data, item.meta)
+          span?.addEvent('done')
+
+          return { value: data, done: true }
         }
-
-        return { value: data, done: true }
       }
+    }
+    catch (e) {
+      /**
+       * Shouldn't treat an error event as an error.
+       */
+      if (!(e instanceof ErrorEvent)) {
+        setSpanError(span, e, options)
+      }
+
+      throw e
     }
   }, cleanup)
 }

@@ -2,7 +2,7 @@ import type { AsyncIdQueueCloseOptions } from '@orpc/shared'
 import type { StandardRequest, StandardResponse } from '@orpc/standard-server'
 import type { EventIteratorPayload } from './codec'
 import type { EncodedMessage, EncodedMessageSendFn } from './types'
-import { AsyncIdQueue, asyncIteratorWithSpan, clone, getGlobalOtelConfig, isAsyncIteratorObject, runWithSpan, SequentialIdGenerator, setSpanError } from '@orpc/shared'
+import { AsyncIdQueue, clone, getGlobalOtelConfig, isAsyncIteratorObject, runWithSpan, SequentialIdGenerator, setSpanError } from '@orpc/shared'
 import { isEventIteratorHeaders } from '@orpc/standard-server'
 import { decodeResponseMessage, encodeRequestMessage, MessageType } from './codec'
 import { resolveEventIterator, toEventIterator } from './event-iterator'
@@ -145,9 +145,10 @@ export class ClientPeer {
           this.responseQueue.pull(id)
             .then((response) => {
               if (isEventIteratorHeaders(response.headers)) {
-                const iterator = asyncIteratorWithSpan(
-                  { name: 'consume_event_iterator_stream', signal },
-                  toEventIterator(this.serverEventIteratorQueue, id, async (reason) => {
+                const iterator = toEventIterator(
+                  this.serverEventIteratorQueue,
+                  id,
+                  async (reason) => {
                     try {
                       if (reason !== 'next') {
                         await this.send(id, MessageType.ABORT_SIGNAL, undefined)
@@ -156,7 +157,8 @@ export class ClientPeer {
                     finally {
                       this.close({ id })
                     }
-                  }),
+                  },
+                  { signal },
                 )
 
                 resolve({

@@ -2,7 +2,7 @@ import type { AsyncIdQueueCloseOptions } from '@orpc/shared'
 import type { StandardRequest, StandardResponse } from '@orpc/standard-server'
 import type { EventIteratorPayload } from './codec'
 import type { EncodedMessage, EncodedMessageSendFn } from './types'
-import { AsyncIdQueue, asyncIteratorWithSpan, getGlobalOtelConfig, isAsyncIteratorObject, runWithSpan, setSpanError } from '@orpc/shared'
+import { AsyncIdQueue, getGlobalOtelConfig, isAsyncIteratorObject, runWithSpan, setSpanError } from '@orpc/shared'
 import { experimental_HibernationEventIterator, isEventIteratorHeaders } from '@orpc/standard-server'
 import { decodeRequestMessage, encodeResponseMessage, MessageType } from './codec'
 import { resolveEventIterator, toEventIterator } from './event-iterator'
@@ -79,13 +79,15 @@ export class ServerPeer {
       ...payload,
       signal,
       body: isEventIteratorHeaders(payload.headers)
-        ? asyncIteratorWithSpan(
-            { name: 'consume_event_iterator_stream', signal },
-            toEventIterator(this.clientEventIteratorQueue, id, async (reason) => {
+        ? toEventIterator(
+            this.clientEventIteratorQueue,
+            id,
+            async (reason) => {
               if (reason !== 'next') {
                 await this.send(id, MessageType.ABORT_SIGNAL, undefined)
               }
-            }),
+            },
+            { signal },
           )
         : payload.body,
     }

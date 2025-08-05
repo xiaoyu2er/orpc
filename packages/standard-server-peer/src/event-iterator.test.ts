@@ -1,7 +1,15 @@
 import type { EventIteratorPayload } from './codec'
-import { AsyncIdQueue } from '@orpc/shared'
+import * as shared from '@orpc/shared'
 import { ErrorEvent, getEventMeta, withEventMeta } from '@orpc/standard-server'
 import { resolveEventIterator, toEventIterator } from './event-iterator'
+
+const AsyncIdQueue = shared.AsyncIdQueue
+const startSpanSpy = vi.spyOn(shared, 'startSpan')
+const runInSpanContextSpy = vi.spyOn(shared, 'runInSpanContext')
+
+beforeEach(() => {
+  vi.clearAllMocks()
+})
 
 describe('toEventIterator', () => {
   it('on success', async () => {
@@ -62,6 +70,9 @@ describe('toEventIterator', () => {
     expect(cleanup).toHaveBeenCalledTimes(1)
 
     await expect(iterator.next()).resolves.toEqual({ done: true, value: undefined })
+
+    expect(startSpanSpy).toHaveBeenCalledTimes(1)
+    expect(runInSpanContextSpy).toHaveBeenCalledTimes(3)
   })
 
   it('on error', async () => {
@@ -122,6 +133,9 @@ describe('toEventIterator', () => {
     expect(cleanup).toHaveBeenCalledTimes(1)
 
     await expect(iterator.next()).resolves.toEqual({ done: true, value: undefined })
+
+    expect(startSpanSpy).toHaveBeenCalledTimes(1)
+    expect(runInSpanContextSpy).toHaveBeenCalledTimes(3)
   })
 })
 

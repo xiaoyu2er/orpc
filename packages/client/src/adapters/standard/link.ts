@@ -3,7 +3,7 @@ import type { StandardLazyResponse, StandardRequest } from '@orpc/standard-serve
 import type { ClientContext, ClientLink, ClientOptions } from '../../types'
 import type { StandardLinkPlugin } from './plugin'
 import type { StandardLinkClient, StandardLinkCodec } from './types'
-import { asyncIteratorWithSpan, intercept, isAsyncIteratorObject, ORPC_NAME, runWithSpan, toArray } from '@orpc/shared'
+import { asyncIteratorWithSpan, getGlobalOtelConfig, intercept, isAsyncIteratorObject, ORPC_NAME, runWithSpan, toArray } from '@orpc/shared'
 import { CompositeStandardLinkPlugin } from './plugin'
 
 export interface StandardLinkInterceptorOptions<T extends ClientContext> extends ClientOptions<T> {
@@ -45,6 +45,16 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
     return runWithSpan(
       { name: `${ORPC_NAME}.${path.join('/')}`, signal: options.signal },
       (span) => {
+        /**
+         * In browsers, the OpenTelemetry context manager may not work reliably with async functions,
+         * so we manually manage the context here.
+         */
+        const otelConfig = getGlobalOtelConfig()
+        let otelContext: ReturnType<Exclude<typeof otelConfig, undefined>['context']['active']> | undefined
+        if (span && otelConfig) {
+          otelContext = otelConfig?.trace.setSpan(otelConfig.context.active(), span)
+        }
+
         span?.setAttribute('rpc.system', ORPC_NAME)
         span?.setAttribute('rpc.method', path.join('.'))
 
@@ -60,43 +70,40 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
         }
 
         return intercept(this.interceptors, { ...options, path, input }, async ({ path, input, ...options }) => {
-          const output = await this.#call(path, input, options)
+          const request = await runWithSpan(
+            { name: 'encode_request', signal: options.signal, context: otelContext },
+            () => this.codec.encode(path, input, options),
+          )
+
+          const response = await intercept(
+            this.clientInterceptors,
+            { ...options, input, path, request },
+            ({ input, path, request, ...options }) => {
+              return runWithSpan(
+                { name: 'send_request', signal: options.signal, context: otelContext },
+                () => this.sender.call(request, options, path, input),
+              )
+            },
+          )
+
+          const output = await runWithSpan(
+            { name: 'decode_response', signal: options.signal, context: otelContext },
+            () => this.codec.decode(response, options, path, input),
+          )
+
+          if (isAsyncIteratorObject(output)) {
+            /**
+             * Do not use otelContext here, as it is a lazy span.
+             */
+            return asyncIteratorWithSpan(
+              { name: 'consume_event_iterator_output', signal: options.signal },
+              output,
+            )
+          }
 
           return output
         })
       },
     )
-  }
-
-  async #call(path: readonly string[], input: unknown, options: ClientOptions<T>): Promise<unknown> {
-    const request = await runWithSpan(
-      { name: 'encode_request' },
-      () => this.codec.encode(path, input, options),
-    )
-
-    const response = await intercept(
-      this.clientInterceptors,
-      { ...options, input, path, request },
-      ({ input, path, request, ...options }) => {
-        return runWithSpan(
-          { name: 'send_request', signal: options.signal },
-          () => this.sender.call(request, options, path, input),
-        )
-      },
-    )
-
-    const output = await runWithSpan(
-      { name: 'decode_response' },
-      () => this.codec.decode(response, options, path, input),
-    )
-
-    if (isAsyncIteratorObject(output)) {
-      return asyncIteratorWithSpan(
-        { name: 'consume_event_iterator_output', signal: options.signal },
-        output,
-      )
-    }
-
-    return output
   }
 }

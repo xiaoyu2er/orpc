@@ -10,13 +10,9 @@
     "type:check": "tsc --noEmit"
   },
   "devDependencies": {
-    "@opentelemetry/api-logs": "^0.203.0",
-    "@opentelemetry/instrumentation": "^0.203.0",
-    "@opentelemetry/sdk-logs": "^0.203.0",
     "@orpc/client": "next",
     "@orpc/json-schema": "next",
     "@orpc/openapi": "next",
-    "@orpc/otel": "next",
     "@orpc/react": "next",
     "@orpc/server": "next",
     "@orpc/tanstack-query": "next",
@@ -25,7 +21,6 @@
     "@types/node": "^22.15.30",
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",
-    "@vercel/otel": "^1.13.0",
     "next": "^15.4.5",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

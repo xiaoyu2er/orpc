@@ -94,6 +94,12 @@ export class ClientPeer {
             await this.send(id, MessageType.ABORT_SIGNAL, undefined)
             this.close({ id, reason: signal.reason })
           }, { once: true })
+          /**
+           * Make sure to remove the abort listener when the request/response is closed.
+           * Since a signal can be reused for multiple requests, if each request
+           * adds listeners without removing them, it can lead to excessive memory usage
+           * until the signal is garbage collected.
+           */
           this.cleanupFns.get(id)?.push(() => {
             signal?.removeEventListener('abort', abortListener)
           })

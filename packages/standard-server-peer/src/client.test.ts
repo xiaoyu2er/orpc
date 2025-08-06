@@ -121,6 +121,22 @@ describe('clientPeer', () => {
       await peer.message(await encodeResponseMessage('0', MessageType.RESPONSE, baseResponse))
     })
 
+    it('signal - remove abort listener before signal is garbage collected', async () => {
+      const controller = new AbortController()
+      const signal = controller.signal
+      const removeEventListenerSpy = vi.spyOn(signal, 'removeEventListener')
+
+      const promise = expect(
+        peer.request({ ...baseRequest, signal }),
+      ).rejects.toThrow('This operation was aborted')
+
+      await new Promise(resolve => setTimeout(resolve, 1))
+      controller.abort()
+      await promise
+
+      expect(removeEventListenerSpy).toHaveBeenCalledTimes(1)
+    })
+
     it('iterator', async () => {
       const request = {
         ...baseRequest,

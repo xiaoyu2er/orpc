@@ -22,4 +22,8 @@ export class ORPCInstrumentation extends InstrumentationBase {
       propagation,
     })
   }
+
+  override disable(): void {
+    setGlobalOtelConfig(undefined)
+  }
 }

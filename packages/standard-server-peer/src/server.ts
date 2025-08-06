@@ -160,9 +160,8 @@ export class ServerPeer {
                 }
                 catch (e) {
                   /**
-                   * Only rethrow errors that occur while sending.
-                   * For other errors, we can still wait for the server response,
-                   * so we don't want to close the id prematurely.
+                   * Because error while sending event iterator
+                   * we can't any better than just throw it.
                    */
                   if (sending) {
                     throw e

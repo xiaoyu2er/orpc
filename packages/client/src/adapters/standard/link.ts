@@ -45,6 +45,9 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
     return runWithSpan(
       { name: `${ORPC_NAME}.${path.join('/')}`, signal: options.signal },
       (span) => {
+        /**
+         * [Semantic conventions for RPC spans](https://opentelemetry.io/docs/specs/semconv/rpc/rpc-spans/)
+         */
         span?.setAttribute('rpc.system', ORPC_NAME)
         span?.setAttribute('rpc.method', path.join('.'))
 

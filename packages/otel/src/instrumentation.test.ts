@@ -25,4 +25,14 @@ describe('oRPCInstrumentation', () => {
 
     shared.setGlobalOtelConfig(originalConfig)
   })
+
+  it('can disable the instrumentation', () => {
+    const originalConfig = shared.getGlobalOtelConfig()
+
+    const instrumentation = new ORPCInstrumentation()
+    instrumentation.disable()
+    expect(setGlobalOtelConfigSpy).toHaveBeenCalledWith(undefined)
+
+    shared.setGlobalOtelConfig(originalConfig)
+  })
 })

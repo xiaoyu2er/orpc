@@ -118,6 +118,7 @@ export class StandardHandler<T extends Context> {
                     { name: 'decode_input', signal: request.signal },
                     () => this.codec.decode(request, match.params, match.procedure),
                   )
+                  step = undefined
 
                   if (isAsyncIteratorObject(input)) {
                     input = asyncIteratorWithSpan(
@@ -126,15 +127,16 @@ export class StandardHandler<T extends Context> {
                     )
                   }
 
-                  step = 'call_procedure'
                   const client = createProcedureClient(match.procedure, {
                     context,
                     path: match.path,
                     interceptors: this.clientInterceptors,
                   })
+
                   /**
                    * No need to use runWithSpan here, because the client already has its own span.
                    */
+                  step = 'call_procedure'
                   const output = await client(input, {
                     signal: request.signal,
                     lastEventId: flattenHeader(request.headers['last-event-id']),

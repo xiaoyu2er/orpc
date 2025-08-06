@@ -45,22 +45,8 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
     return runWithSpan(
       { name: `${ORPC_NAME}.${path.join('/')}`, signal: options.signal },
       (span) => {
-        /**
-         * In browsers, the OpenTelemetry context manager may not work reliably with async functions,
-         * so we manually manage the context here.
-         */
-        const otelConfig = getGlobalOtelConfig()
-        let otelContext: ReturnType<Exclude<typeof otelConfig, undefined>['context']['active']> | undefined
-        if (span && otelConfig) {
-          otelContext = otelConfig?.trace.setSpan(otelConfig.context.active(), span)
-        }
-
         span?.setAttribute('rpc.system', ORPC_NAME)
         span?.setAttribute('rpc.method', path.join('.'))
-
-        options.signal?.addEventListener('abort', () => {
-          span?.addEvent('abort', { reason: String(options.signal?.reason) })
-        })
 
         if (isAsyncIteratorObject(input)) {
           input = asyncIteratorWithSpan(
@@ -70,6 +56,17 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
         }
 
         return intercept(this.interceptors, { ...options, path, input }, async ({ path, input, ...options }) => {
+        /**
+         * In browsers, the OpenTelemetry context manager may not work reliably with async functions,
+         * so we manually manage the context here.
+         */
+          const otelConfig = getGlobalOtelConfig()
+          let otelContext: ReturnType<Exclude<typeof otelConfig, undefined>['context']['active']> | undefined
+          const currentSpan = otelConfig?.trace.getActiveSpan() ?? span
+          if (currentSpan && otelConfig) {
+            otelContext = otelConfig?.trace.setSpan(otelConfig.context.active(), currentSpan)
+          }
+
           const request = await runWithSpan(
             { name: 'encode_request', signal: options.signal, context: otelContext },
             () => this.codec.encode(path, input, options),

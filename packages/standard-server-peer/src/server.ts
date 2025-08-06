@@ -101,11 +101,7 @@ export class ServerPeer {
 
       await runWithSpan(
         { name: 'receive_peer_request', signal, context },
-        async (span) => {
-          request.signal?.addEventListener('abort', () => {
-            span?.addEvent('abort', { reason: String(request.signal?.reason) })
-          })
-
+        async () => {
           const response = await runWithSpan(
             { name: 'handle_request', signal },
             () => handleRequest(request),

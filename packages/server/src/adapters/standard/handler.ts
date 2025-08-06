@@ -79,10 +79,6 @@ export class StandardHandler<T extends Context> {
     return runWithSpan(
       { name: `${request.method} ${request.url.pathname}`, signal: request.signal },
       async (span) => {
-        request.signal?.addEventListener('abort', () => {
-          span?.addEvent('abort', { reason: String(request.signal?.reason) })
-        })
-
         return intercept(
           this.rootInterceptors,
           { ...options, request, prefix },

@@ -277,6 +277,13 @@ describe('clientPeer', () => {
     })
 
     it('throw if cannot send iterator', async () => {
+      const unhandledRejectionHandler = vi.fn()
+      process.on('unhandledRejection', unhandledRejectionHandler)
+
+      afterEach(() => {
+        process.off('unhandledRejection', unhandledRejectionHandler)
+      })
+
       let time = 0
       send.mockImplementation((...args) => {
         if (time++ === 1) {
@@ -305,17 +312,20 @@ describe('clientPeer', () => {
         }
       })()
 
-      const assertPromise = expect(peer.request({ ...baseRequest, body: iterator })).rejects.toThrow('cleanup error')
+      const promise = peer.request({ ...baseRequest, body: iterator })
 
       await new Promise(resolve => setTimeout(resolve, 0))
 
       expect(send).toHaveBeenCalledTimes(2)
-      await assertPromise
+      peer.message(await encodeResponseMessage('0', MessageType.RESPONSE, baseResponse))
+      await promise
       await new Promise(resolve => setTimeout(resolve, 100))
       expect(send).toHaveBeenCalledTimes(2)
       expect(yieldFn).toHaveBeenCalledTimes(1)
       expect(isFinallyCalled).toBe(true)
       expect(iteratorError).toBe(undefined)
+
+      expect(unhandledRejectionHandler).toHaveBeenCalledTimes(1)
     })
   })
 
@@ -545,10 +555,16 @@ describe('clientPeer', () => {
   })
 
   it('close all', async () => {
-    expect(peer.request(baseRequest)).rejects.toThrow('[AsyncIdQueue] Queue[0] was closed or aborted while waiting for pulling.')
-    expect(peer.request(baseRequest)).rejects.toThrow('[AsyncIdQueue] Queue[1] was closed or aborted while waiting for pulling.')
-    expect(peer.request(baseRequest)).rejects.toThrow('[AsyncIdQueue] Queue[2] was closed or aborted while waiting for pulling.')
+    const promise = Promise.all([
+      expect(peer.request(baseRequest)).rejects.toThrow('[AsyncIdQueue] Queue[0] was closed or aborted while waiting for pulling.'),
+      expect(peer.request(baseRequest)).rejects.toThrow('[AsyncIdQueue] Queue[1] was closed or aborted while waiting for pulling.'),
+      expect(peer.request(baseRequest)).rejects.toThrow('[AsyncIdQueue] Queue[2] was closed or aborted while waiting for pulling.'),
+    ])
+
+    await new Promise(resolve => setTimeout(resolve, 1))
 
     peer.close()
+
+    await promise
   })
 })

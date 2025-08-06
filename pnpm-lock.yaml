@@ -104,6 +104,15 @@ importers:
       '@ai-sdk/react':
         specifier: 2.0.0
         version: 2.0.0(react@19.1.1)(zod@4.0.14)
+      '@opentelemetry/instrumentation':
+        specifier: ^0.203.0
+        version: 0.203.0(@opentelemetry/api@1.9.0)
+      '@opentelemetry/sdk-node':
+        specifier: ^0.203.0
+        version: 0.203.0(@opentelemetry/api@1.9.0)
+      '@opentelemetry/sdk-trace-web':
+        specifier: ^2.0.1
+        version: 2.0.1(@opentelemetry/api@1.9.0)
       '@orpc/arktype':
         specifier: workspace:*
         version: link:../../packages/arktype
@@ -119,6 +128,9 @@ importers:
       '@orpc/openapi-client':
         specifier: workspace:*
         version: link:../../packages/openapi-client
+      '@orpc/otel':
+        specifier: workspace:*
+        version: link:../../packages/otel
       '@orpc/react':
         specifier: workspace:*
         version: link:../../packages/react
@@ -941,6 +953,9 @@ importers:
 
   playgrounds/bun-websocket-otel:
     devDependencies:
+      '@opentelemetry/api':
+        specifier: ^1.9.0
+        version: 1.9.0
       '@opentelemetry/auto-instrumentations-node':
         specifier: ^0.62.0
         version: 0.62.0(@opentelemetry/api@1.9.0)(@opentelemetry/core@2.0.1(@opentelemetry/api@1.9.0))(encoding@0.1.13)

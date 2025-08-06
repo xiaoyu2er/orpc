@@ -169,6 +169,10 @@ export default withMermaid(defineConfig({
           collapsed: true,
           items: [
             { text: 'AI SDK', link: '/docs/integrations/ai-sdk' },
+            { text: 'Durable Event Iterator', link: '/docs/integrations/durable-event-iterator' },
+            { text: 'Hey API', link: '/docs/integrations/hey-api' },
+            { text: 'OpenTelemetry', link: '/docs/integrations/opentelemetry' },
+            { text: 'Pinia Colada', link: '/docs/integrations/pinia-colada' },
             { text: 'Tanstack Query', link: '/docs/integrations/tanstack-query' },
             {
               text: 'Tanstack Query (Old)',
@@ -181,9 +185,6 @@ export default withMermaid(defineConfig({
                 { text: 'Svelte', link: '/docs/integrations/tanstack-query-old/svelte' },
               ],
             },
-            { text: 'Pinia Colada', link: '/docs/integrations/pinia-colada' },
-            { text: 'Durable Event Iterator', link: '/docs/integrations/durable-event-iterator' },
-            { text: 'Hey API', link: '/docs/integrations/hey-api' },
             { text: 'NestJS', link: '/docs/openapi/integrations/implement-contract-in-nest' },
             { text: 'tRPC', link: '/docs/openapi/integrations/trpc' },
           ],

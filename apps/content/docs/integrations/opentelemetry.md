@@ -84,7 +84,7 @@ While OpenTelemetry can be used on both server and client sides, using it on the
 
 ## Handling Uncaught Exceptions
 
-oRPC may throw errors before they reach the error handling layer, such as invalid WebSocket messages or `rootInterceptor` errors. We recommend capturing these errors:
+oRPC may throw errors before they reach the error handling layer, such as invalid WebSocket messages or adapter interceptor errors. We recommend capturing these errors:
 
 ```ts
 import { SpanStatusCode, trace } from '@opentelemetry/api'

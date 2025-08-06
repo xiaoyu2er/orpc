@@ -5,8 +5,21 @@ import index from './index.html'
 import { router } from './router'
 import { RPCHandler } from '@orpc/server/bun-ws'
 import { OTEL_TRACE_EXPORTER_URL } from './consts'
+import { trace } from '@opentelemetry/api'
 
-const handler = new RPCHandler(router)
+const handler = new RPCHandler(router, {
+  interceptors: [
+    ({ request, next }) => {
+      const span = trace.getActiveSpan()
+
+      request.signal?.addEventListener('abort', async () => {
+        span?.addEvent('aborted', { reason: String(request.signal?.reason) })
+      })
+
+      return next()
+    },
+  ],
+})
 
 const server = serve({
   routes: {

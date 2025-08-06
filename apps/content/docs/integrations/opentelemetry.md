@@ -114,3 +114,25 @@ process.on('unhandledRejection', (reason) => {
   recordError('unhandledRejection', reason)
 })
 ```
+
+## Capture Abort Signals
+
+If your application heavily uses [Event Iterator](/docs/event-iterator) or similar streaming patterns, we recommend capturing an event when the `signal` is aborted to properly detach infinite streams and prevent memory leaks:
+
+```ts
+import { trace } from '@opentelemetry/api'
+
+const handler = new RPCHandler(router, {
+  interceptors: [
+    ({ request, next }) => {
+      const span = trace.getActiveSpan()
+
+      request.signal?.addEventListener('abort', async () => {
+        span?.addEvent('aborted', { reason: String(request.signal?.reason) })
+      })
+
+      return next()
+    },
+  ],
+})
+```

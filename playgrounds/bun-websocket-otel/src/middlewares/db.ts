@@ -28,6 +28,13 @@ export const dbProviderMiddleware = os
     })
   })
 
+/**
+ * Define the name of the middleware for better span naming and debugging.
+ */
+Object.defineProperty(dbProviderMiddleware, 'name', {
+  value: 'db_provider',
+})
+
 const planets: Planet[] = [
   {
     id: 1,

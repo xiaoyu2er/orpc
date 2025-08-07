@@ -82,6 +82,31 @@ registerInstrumentations({
 While OpenTelemetry can be used on both server and client sides, using it on the server only is sufficient in most cases.
 :::
 
+## Middleware Span
+
+oRPC automatically creates spans for each [middleware](/docs/middleware) execution. You can access the active span to customize attributes, events, and other span data:
+
+```ts
+import { trace } from '@opentelemetry/api'
+
+export const someMiddleware = os.middleware(async (ctx, next) => {
+  const span = trace.getActiveSpan()
+
+  span?.setAttribute('someAttribute', 'someValue')
+  span?.addEvent('someEvent')
+
+  return next()
+})
+
+Object.defineProperty(someMiddleware, 'name', {
+  value: 'someName',
+})
+```
+
+::: tip
+Define the `name` property on your middleware to improve span naming and make traces easier to read.
+:::
+
 ## Handling Uncaught Exceptions
 
 oRPC may throw errors before they reach the error handling layer, such as invalid WebSocket messages or adapter interceptor errors. We recommend capturing these errors:

@@ -223,7 +223,7 @@ async function executeProcedureInternal(procedure: AnyProcedure, options: Proced
 
     const output = mid
       ? await runWithSpan(
-          { name: 'middleware', signal: options.signal },
+          { name: `middleware.${mid.name}`, signal: options.signal },
           async (span) => {
             span?.setAttribute('middleware.index', index)
             span?.setAttribute('middleware.name', mid.name)

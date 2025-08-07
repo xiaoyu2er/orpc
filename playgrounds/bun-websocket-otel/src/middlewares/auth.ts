@@ -20,6 +20,13 @@ export const requiredAuthMiddleware = os
     })
   })
 
+/**
+ * Define the name of the middleware for better span naming and debugging.
+ */
+Object.defineProperty(requiredAuthMiddleware, 'name', {
+  value: 'required_auth',
+})
+
 async function getSession() {
   return { user: { id: 'unique', name: 'unnoq', email: 'contact@unnoq.com' } }
 }

@@ -161,3 +161,11 @@ const handler = new RPCHandler(router, {
   ],
 })
 ```
+
+## Context Propagation
+
+When using oRPC with HTTP/fetch adapters, you should set up proper HTTP instrumentation for [context propagation](https://opentelemetry.io/docs/concepts/context-propagation/) on both client and server. This ensures trace context propagates between services, maintaining distributed tracing integrity.
+
+::: info
+Common libraries for HTTP instrumentation include [@hono/otel](https://www.npmjs.com/package/@hono/otel), [@opentelemetry/instrumentation-http](https://www.npmjs.com/package/@opentelemetry/instrumentation-http), [@opentelemetry/instrumentation-fetch](https://www.npmjs.com/package/@opentelemetry/instrumentation-fetch), etc.
+:::

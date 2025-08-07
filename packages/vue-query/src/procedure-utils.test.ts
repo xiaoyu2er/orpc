@@ -34,7 +34,7 @@ describe('createProcedureUtils', () => {
     it('without skipToken', async () => {
       const options = utils.queryOptions({ input: computed(() => ({ search: ref('__search__') })), context: { batch: '__batch__' } })
 
-      expect(options.enabled.value).toBe(true)
+      expect(options.enabled.value).toBe(undefined)
 
       expect(options.queryKey.value).toBe(generateOperationKeySpy.mock.results[0]!.value)
       expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
@@ -74,7 +74,7 @@ describe('createProcedureUtils', () => {
 
       input.value = computed(() => ({ search: ref('__search__') }))
 
-      expect(options.enabled.value).toBe(true)
+      expect(options.enabled.value).toBe(undefined)
 
       expect(options.queryKey.value).toBe(generateOperationKeySpy.mock.results[1]!.value)
       expect(generateOperationKeySpy).toHaveBeenCalledTimes(2)
@@ -102,7 +102,7 @@ describe('createProcedureUtils', () => {
         },
       })
 
-      expect(options.enabled.value).toBe(true)
+      expect(options.enabled.value).toBe(undefined)
 
       expect(options.queryKey.value).toBe(generateOperationKeySpy.mock.results[0]!.value)
       expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
@@ -166,7 +166,7 @@ describe('createProcedureUtils', () => {
 
       input.value = computed(() => ({ search: ref('__search__') }))
 
-      expect(options.enabled.value).toBe(true)
+      expect(options.enabled.value).toBe(undefined)
 
       expect(options.queryKey.value).toBe(generateOperationKeySpy.mock.results[1]!.value)
       expect(generateOperationKeySpy).toHaveBeenCalledTimes(2)
@@ -206,7 +206,7 @@ describe('createProcedureUtils', () => {
         initialPageParam: '__initialPageParam__',
       })
 
-      expect(options.enabled.value).toBe(true)
+      expect(options.enabled.value).toBe(undefined)
 
       expect(options.queryKey.value).toBe(generateOperationKeySpy.mock.results[0]!.value)
       expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
@@ -268,7 +268,7 @@ describe('createProcedureUtils', () => {
 
       input.value = (pageParam: any) => (computed(() => ({ search: '__search__', pageParam })))
 
-      expect(options.enabled.value).toBe(true)
+      expect(options.enabled.value).toBe(undefined)
 
       expect(options.queryKey.value).toBe(generateOperationKeySpy.mock.results[1]!.value)
       expect(generateOperationKeySpy).toHaveBeenCalledTimes(2)

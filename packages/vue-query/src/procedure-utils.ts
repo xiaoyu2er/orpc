@@ -81,14 +81,14 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
 
           return client(input, { signal, context: unrefDeep(optionsIn.context) })
         },
-        enabled: computed(() => unrefDeep(optionsIn.input) !== skipToken),
+        enabled: computed(() => unrefDeep(optionsIn.input) === skipToken ? false : undefined),
         ...optionsIn,
       }
     },
 
     experimental_streamedOptions(...[optionsIn = {} as any]) {
       return {
-        enabled: computed(() => unrefDeep(optionsIn.input) !== skipToken),
+        enabled: computed(() => unrefDeep(optionsIn.input) === skipToken ? false : undefined),
         queryKey: computed(() => generateOperationKey(options.path, { type: 'streamed', input: unrefDeep(optionsIn.input), fnOptions: optionsIn.queryFnOptions })),
         queryFn: experimental_streamedQuery({
           queryFn: async ({ signal }) => {
@@ -131,7 +131,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
 
           return client(unrefDeep(input(pageParam as any) as any), { signal, context: unrefDeep(optionsIn.context) as any })
         },
-        enabled: computed(() => unrefDeep(optionsIn.input) !== skipToken),
+        enabled: computed(() => unrefDeep(optionsIn.input) === skipToken ? false : undefined),
         ...(optionsIn as any),
       }
     },

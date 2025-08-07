@@ -50,7 +50,7 @@ export interface QueryOptionsBase<TOutput, TError> {
   queryFn: QueryFunction<TOutput>
   throwOnError?: (error: TError) => boolean // Help TQ infer TError
   retryDelay?: (count: number, error: TError) => number // Help TQ infer TError (suspense hooks)
-  enabled: boolean
+  enabled: boolean | undefined
 }
 
 export type experimental_StreamedKeyOptions<TInput>
@@ -75,7 +75,7 @@ export interface InfiniteOptionsBase<TOutput, TError, TPageParam> {
   select?(): InfiniteData<TOutput, TPageParam> // Help TQ infer TPageParam
   throwOnError?: (error: TError) => boolean // Help TQ infer TError
   retryDelay?: (count: number, error: TError) => number // Help TQ infer TError (suspense hooks)
-  enabled: boolean
+  enabled: boolean | undefined
 }
 
 export type MutationOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TMutationContext>

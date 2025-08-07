@@ -127,7 +127,7 @@ const handler = new RPCHandler(router, {
     ({ request, next }) => {
       const span = trace.getActiveSpan()
 
-      request.signal?.addEventListener('abort', async () => {
+      request.signal?.addEventListener('abort', () => {
         span?.addEvent('aborted', { reason: String(request.signal?.reason) })
       })
 

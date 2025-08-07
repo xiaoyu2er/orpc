@@ -72,9 +72,16 @@ npm install @orpc/otel @opentelemetry/api
 ### Usage
 
 ```ts
-import { initializeORPCOtel } from '@orpc/otel'
+import { NodeSDK } from '@opentelemetry/sdk-node'
+import { ORPCInstrumentation } from '@orpc/otel'
 
-void initializeORPCOtel()
+const sdk = new NodeSDK({
+  instrumentations: [
+    new ORPCInstrumentation(),
+  ],
+})
+
+sdk.start()
 ```
 
 ## Sponsors

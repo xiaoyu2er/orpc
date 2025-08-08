@@ -1,12 +1,5 @@
 {
   "extends": "../../tsconfig.lib.json",
-  "references": [
-    { "path": "../shared" },
-    { "path": "../server" },
-    { "path": "../openapi" },
-    { "path": "../contract" },
-    { "path": "../json-schema-typed" }
-  ],
   "include": ["src"],
   "exclude": [
     "**/*.test.*",

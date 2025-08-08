@@ -6,6 +6,7 @@
     { "path": "../contract" },
     { "path": "../server" },
     { "path": "../standard-server" },
+    { "path": "../json-schema-typed" },
     { "path": "../shared" }
   ],
   "include": ["src"],

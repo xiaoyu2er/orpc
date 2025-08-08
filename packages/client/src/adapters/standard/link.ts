@@ -53,7 +53,7 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
 
         if (isAsyncIteratorObject(input)) {
           input = asyncIteratorWithSpan(
-            { name: 'consume_event_iterator_input', signal: options.signal },
+            { name: 'consume_event_iterator_input' },
             input,
           )
         }
@@ -71,7 +71,7 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
           }
 
           const request = await runWithSpan(
-            { name: 'encode_request', signal: options.signal, context: otelContext },
+            { name: 'encode_request', context: otelContext },
             () => this.codec.encode(path, input, options),
           )
 
@@ -87,7 +87,7 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
           )
 
           const output = await runWithSpan(
-            { name: 'decode_response', signal: options.signal, context: otelContext },
+            { name: 'decode_response', context: otelContext },
             () => this.codec.decode(response, options, path, input),
           )
 
@@ -96,7 +96,7 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
              * Do not use otelContext here, as it is a lazy span.
              */
             return asyncIteratorWithSpan(
-              { name: 'consume_event_iterator_output', signal: options.signal },
+              { name: 'consume_event_iterator_output' },
               output,
             )
           }

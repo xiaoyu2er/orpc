@@ -66,11 +66,11 @@
   "dependencies": {
     "@orpc/client": "workspace:*",
     "@orpc/contract": "workspace:*",
+    "@orpc/json-schema-typed": "workspace:*",
     "@orpc/openapi-client": "workspace:*",
     "@orpc/server": "workspace:*",
     "@orpc/shared": "workspace:*",
     "@orpc/standard-server": "workspace:*",
-    "json-schema-typed": "^8.0.1",
     "rou3": "^0.7.3"
   },
   "devDependencies": {

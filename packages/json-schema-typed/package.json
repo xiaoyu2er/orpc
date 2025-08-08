@@ -1,0 +1,57 @@
+{
+  "name": "@orpc/json-schema-typed",
+  "type": "module",
+  "version": "0.0.0",
+  "license": "MIT",
+  "homepage": "https://orpc.unnoq.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unnoq/orpc.git",
+    "directory": "packages/json-schema-typed"
+  },
+  "keywords": [
+    "unnoq",
+    "orpc"
+  ],
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.mts",
+        "import": "./dist/index.mjs",
+        "default": "./dist/index.mjs"
+      },
+      "./draft-07": {
+        "types": "./dist/draft-07.d.mts",
+        "import": "./dist/draft-07.mjs",
+        "default": "./dist/draft-07.mjs"
+      },
+      "./draft-2019-09": {
+        "types": "./dist/draft-2019-09.d.mts",
+        "import": "./dist/draft-2019-09.mjs",
+        "default": "./dist/draft-2019-09.mjs"
+      },
+      "./draft-2020-12": {
+        "types": "./dist/draft-2020-12.d.mts",
+        "import": "./dist/draft-2020-12.mjs",
+        "default": "./dist/draft-2020-12.mjs"
+      }
+    }
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./draft-07": "./src/draft-07.ts",
+    "./draft-2019-09": "./src/draft-2019-09.ts",
+    "./draft-2020-12": "./src/draft-2020-12.ts"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "unbuild",
+    "build:watch": "pnpm run build --watch",
+    "type:check": "tsc -b"
+  },
+  "devDependencies": {
+    "json-schema-typed": "^8.0.1"
+  }
+}

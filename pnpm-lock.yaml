@@ -318,6 +318,9 @@ importers:
       '@orpc/contract':
         specifier: workspace:*
         version: link:../contract
+      '@orpc/json-schema-typed':
+        specifier: workspace:*
+        version: link:../json-schema-typed
       '@orpc/openapi':
         specifier: workspace:*
         version: link:../openapi
@@ -327,13 +330,16 @@ importers:
       '@orpc/shared':
         specifier: workspace:*
         version: link:../shared
-      json-schema-typed:
-        specifier: ^8.0.1
-        version: 8.0.1
     devDependencies:
       zod:
         specifier: ^4.0.14
         version: 4.0.14
+
+  packages/json-schema-typed:
+    devDependencies:
+      json-schema-typed:
+        specifier: ^8.0.1
+        version: 8.0.1
 
   packages/nest:
     dependencies:
@@ -407,6 +413,9 @@ importers:
       '@orpc/contract':
         specifier: workspace:*
         version: link:../contract
+      '@orpc/json-schema-typed':
+        specifier: workspace:*
+        version: link:../json-schema-typed
       '@orpc/openapi-client':
         specifier: workspace:*
         version: link:../openapi-client
@@ -419,9 +428,6 @@ importers:
       '@orpc/standard-server':
         specifier: workspace:*
         version: link:../standard-server
-      json-schema-typed:
-        specifier: ^8.0.1
-        version: 8.0.1
       rou3:
         specifier: ^0.7.3
         version: 0.7.3

@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-imports */
-import type { JSONSchema, keywords } from 'json-schema-typed/draft-2020-12'
-import { ContentEncoding as JSONSchemaContentEncoding, Format as JSONSchemaFormat, TypeName as JSONSchemaTypeName } from 'json-schema-typed/draft-2020-12'
+import type { JSONSchema, keywords } from '@orpc/json-schema-typed/draft-2020-12'
+import { ContentEncoding as JSONSchemaContentEncoding, Format as JSONSchemaFormat, TypeName as JSONSchemaTypeName } from '@orpc/json-schema-typed/draft-2020-12'
 
 export { JSONSchemaContentEncoding, JSONSchemaFormat, JSONSchemaTypeName }
 export type { JSONSchema }

@@ -72,7 +72,7 @@ describe('toEventIterator', () => {
     await expect(iterator.next()).resolves.toEqual({ done: true, value: undefined })
 
     expect(startSpanSpy).toHaveBeenCalledTimes(1)
-    expect(runInSpanContextSpy).toHaveBeenCalledTimes(3)
+    expect(runInSpanContextSpy).toHaveBeenCalledTimes(4)
   })
 
   it('on error', async () => {
@@ -135,7 +135,7 @@ describe('toEventIterator', () => {
     await expect(iterator.next()).resolves.toEqual({ done: true, value: undefined })
 
     expect(startSpanSpy).toHaveBeenCalledTimes(1)
-    expect(runInSpanContextSpy).toHaveBeenCalledTimes(3)
+    expect(runInSpanContextSpy).toHaveBeenCalledTimes(4)
   })
 
   it('on queue close before finish', async () => {
@@ -149,6 +149,22 @@ describe('toEventIterator', () => {
     await new Promise(resolve => setTimeout(resolve, 1))
     queue.close({ id: '198' })
     await promise
+
+    expect(cleanup).toHaveBeenCalledTimes(1)
+  })
+
+  it('on cleanup error', async () => {
+    const queue = new AsyncIdQueue<EventIteratorPayload>()
+    queue.open('198')
+
+    const cleanupError = new Error('cleanup error')
+    const cleanup = vi.fn(() => {
+      throw cleanupError
+    })
+
+    const iterator = toEventIterator(queue, '198', cleanup)
+
+    await expect(iterator.return()).rejects.toThrow(cleanupError)
 
     expect(cleanup).toHaveBeenCalledTimes(1)
   })

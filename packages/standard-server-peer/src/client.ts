@@ -113,7 +113,7 @@ export class ClientPeer {
              * Even if sending event iterator to the server fails,
              * the server can still send back a response.
              */
-            resolveEventIterator(iterator, async (payload) => {
+            void resolveEventIterator(iterator, async (payload) => {
               if (serverController.signal.aborted) {
                 return 'abort'
               }
@@ -163,17 +163,19 @@ export class ClientPeer {
   async message(raw: EncodedMessage): Promise<void> {
     const [id, type, payload] = await decodeResponseMessage(raw)
 
-    if (!this.responseQueue.isOpen(id)) {
-      return
-    }
-
     if (type === MessageType.ABORT_SIGNAL) {
       this.serverControllers.get(id)?.abort()
       return
     }
 
     if (type === MessageType.EVENT_ITERATOR) {
-      this.serverEventIteratorQueue.push(id, payload)
+      if (this.serverEventIteratorQueue.isOpen(id)) {
+        this.serverEventIteratorQueue.push(id, payload)
+      }
+      return
+    }
+
+    if (!this.responseQueue.isOpen(id)) {
       return
     }
 

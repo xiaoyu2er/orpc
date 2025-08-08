@@ -68,7 +68,22 @@ export function toEventIterator(
 
       throw e
     }
-  }, cleanup)
+  }, async (reason) => {
+    try {
+      if (reason !== 'next') {
+        span?.addEvent('cancelled')
+      }
+
+      await runInSpanContext(span, () => cleanup(reason))
+    }
+    catch (e) {
+      setSpanError(span, e, options)
+      throw e
+    }
+    finally {
+      span?.end()
+    }
+  })
 }
 
 export function resolveEventIterator(

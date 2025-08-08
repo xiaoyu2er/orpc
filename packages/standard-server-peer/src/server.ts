@@ -2,7 +2,7 @@ import type { AsyncIdQueueCloseOptions } from '@orpc/shared'
 import type { StandardRequest, StandardResponse } from '@orpc/standard-server'
 import type { EventIteratorPayload } from './codec'
 import type { EncodedMessage, EncodedMessageSendFn } from './types'
-import { AsyncIdQueue, getGlobalOtelConfig, isAsyncIteratorObject, runWithSpan, setSpanError } from '@orpc/shared'
+import { AsyncIdQueue, getGlobalOtelConfig, isAsyncIteratorObject, runWithSpan } from '@orpc/shared'
 import { experimental_HibernationEventIterator, isEventIteratorHeaders } from '@orpc/standard-server'
 import { decodeRequestMessage, encodeResponseMessage, MessageType } from './codec'
 import { resolveEventIterator, toEventIterator } from './event-iterator'
@@ -100,15 +100,15 @@ export class ServerPeer {
       }
 
       await runWithSpan(
-        { name: 'receive_peer_request', signal, context },
+        { name: 'receive_peer_request', context },
         async () => {
           const response = await runWithSpan(
-            { name: 'handle_request', signal },
+            { name: 'handle_request' },
             () => handleRequest(request),
           )
 
           await runWithSpan(
-            { name: 'send_peer_response', signal },
+            { name: 'send_peer_response' },
             () => this.response(id, response),
           )
         },
@@ -138,46 +138,15 @@ export class ServerPeer {
           else {
             const iterator = response.body
 
-            await runWithSpan(
-              { name: 'stream_event_iterator', signal },
-              async (span) => {
-                let sending = false
+            await resolveEventIterator(iterator, async (payload) => {
+              if (signal.aborted) {
+                return 'abort'
+              }
 
-                try {
-                  await resolveEventIterator(iterator, async (payload) => {
-                    if (signal.aborted) {
-                      return 'abort'
-                    }
+              await this.send(id, MessageType.EVENT_ITERATOR, payload)
 
-                    sending = true
-                    await this.send(id, MessageType.EVENT_ITERATOR, payload)
-                    sending = false
-
-                    span?.addEvent(payload.event)
-
-                    return 'next'
-                  })
-                }
-                catch (e) {
-                  /**
-                   * Because error while sending event iterator
-                   * we can't any better than just throw it.
-                   */
-                  if (sending) {
-                    throw e
-                  }
-
-                  /**
-                   * Send an error event if an unexpected error occurs (not error event).
-                   * Without this, the client event iterator may hang waiting for the next event.
-                   * Unlike HTTP/fetch streams (throw on unexpected end of steam),
-                   * we must manually signal errors in this custom implementation (long-live connection).
-                   */
-                  await this.send(id, MessageType.EVENT_ITERATOR, { event: 'error', data: undefined })
-                  setSpanError(span, e, { signal })
-                }
-              },
-            )
+              return 'next'
+            })
           }
         }
 

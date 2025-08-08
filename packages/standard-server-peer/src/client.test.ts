@@ -200,7 +200,14 @@ describe('clientPeer', () => {
       expect(isFinallyCalled).toBe(true)
     })
 
-    it('iterator throw un-ErrorEvent while consume', async () => {
+    it('iterator throw non-ErrorEvent while consume', async () => {
+      const unhandledRejectionHandler = vi.fn()
+      process.on('unhandledRejection', unhandledRejectionHandler)
+
+      afterEach(() => {
+        process.off('unhandledRejection', unhandledRejectionHandler)
+      })
+
       const request = {
         ...baseRequest,
         body: (async function* () {
@@ -209,7 +216,7 @@ describe('clientPeer', () => {
         })(),
       }
 
-      expect(peer.request(request)).resolves.toEqual(baseResponse)
+      const promise = expect(peer.request(request)).resolves.toEqual(baseResponse)
 
       await vi.waitFor(() => expect(send).toHaveBeenCalledTimes(3))
       expect(await decodeRequestMessage(send.mock.calls[0]![0]))
@@ -221,6 +228,10 @@ describe('clientPeer', () => {
       expect(await decodeRequestMessage(send.mock.calls[2]![0])).toEqual(['0', MessageType.EVENT_ITERATOR, { event: 'error' }])
 
       peer.message(await encodeResponseMessage('0', MessageType.RESPONSE, baseResponse))
+
+      await promise
+
+      expect(unhandledRejectionHandler).toHaveBeenCalledTimes(1)
     })
 
     it('file', async () => {
@@ -308,24 +319,12 @@ describe('clientPeer', () => {
       })
 
       const yieldFn = vi.fn(v => v)
-      let iteratorError
-      let isFinallyCalled = false
 
       const iterator = (async function* () {
-        try {
-          yield yieldFn('hello')
-          await new Promise(resolve => setTimeout(resolve, 100))
-          yield yieldFn('hello2')
-          yield yieldFn('hello3')
-        }
-        catch (e) {
-          iteratorError = e
-        }
-        finally {
-          isFinallyCalled = true
-          // eslint-disable-next-line no-unsafe-finally
-          throw new Error('cleanup error')
-        }
+        yield yieldFn('hello')
+        await new Promise(resolve => setTimeout(resolve, 100))
+        yield yieldFn('hello2')
+        yield yieldFn('hello3')
       })()
 
       const promise = peer.request({ ...baseRequest, body: iterator })
@@ -338,10 +337,9 @@ describe('clientPeer', () => {
       await new Promise(resolve => setTimeout(resolve, 100))
       expect(send).toHaveBeenCalledTimes(2)
       expect(yieldFn).toHaveBeenCalledTimes(1)
-      expect(isFinallyCalled).toBe(true)
-      expect(iteratorError).toBe(undefined)
 
       expect(unhandledRejectionHandler).toHaveBeenCalledTimes(1)
+      expect(unhandledRejectionHandler.mock.calls[0]![0]).toEqual(new Error('send error'))
     })
   })
 

@@ -186,7 +186,7 @@ export function toEventStream(
         }
         else {
           /**
-           * Shouldn't treat an error event as an error.
+           * Should treat a non-ErrorEvent as an error.
            */
           setSpanError(span, err)
           controller.error(err)

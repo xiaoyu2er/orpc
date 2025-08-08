@@ -405,7 +405,7 @@ describe('serverPeer', () => {
       expect(handle).toHaveBeenCalledTimes(1)
     })
 
-    it('iterator throw un-ErrorEvent while consume', async () => {
+    it('iterator throw non-ErrorEvent while consume', async () => {
       handle.mockResolvedValueOnce({
         ...baseResponse,
         body: (async function* () {
@@ -414,10 +414,12 @@ describe('serverPeer', () => {
         })(),
       })
 
-      await peer.message(
-        await encodeRequestMessage(REQUEST_ID, MessageType.REQUEST, baseRequest),
-        handle,
-      )
+      await expect(
+        peer.message(
+          await encodeRequestMessage(REQUEST_ID, MessageType.REQUEST, baseRequest),
+          handle,
+        ),
+      ).rejects.toThrow('some error')
 
       expect(handle).toHaveBeenCalledTimes(1)
 
@@ -565,7 +567,7 @@ describe('serverPeer', () => {
     it('throw and close if cannot send iterator', async () => {
       let time = 0
       send.mockImplementation(() => {
-        if (time++ === 1) {
+        if (++time === 2) {
           throw new Error('send error')
         }
       })

@@ -1,7 +1,7 @@
 import type { AsyncIteratorClassCleanupFn, SetSpanErrorOptions } from '@orpc/shared'
 import type { AsyncIdQueue } from '../../shared/src/queue'
 import type { EventIteratorPayload } from './codec'
-import { AsyncIteratorClass, isTypescriptObject, runInSpanContext, setSpanError, startSpan } from '@orpc/shared'
+import { AsyncIteratorClass, isTypescriptObject, runInSpanContext, runWithSpan, setSpanError, startSpan } from '@orpc/shared'
 import { ErrorEvent, getEventMeta, withEventMeta } from '@orpc/standard-server'
 
 export function toEventIterator(
@@ -71,58 +71,87 @@ export function toEventIterator(
   }, cleanup)
 }
 
-export async function resolveEventIterator(
+export function resolveEventIterator(
   iterator: AsyncIterator<any>,
   callback: (payload: EventIteratorPayload) => Promise<'next' | 'abort'>,
 ): Promise<void> {
-  while (true) {
-    const payload: EventIteratorPayload = await (async () => {
-      try {
-        const { value, done } = await iterator.next()
+  return runWithSpan(
+    { name: 'stream_event_iterator' },
+    async (span) => {
+      while (true) {
+        const payload: EventIteratorPayload = await (async () => {
+          try {
+            const { value, done } = await iterator.next()
 
-        if (done) {
-          return { event: 'done', data: value, meta: getEventMeta(value) }
-        }
+            if (done) {
+              span?.addEvent('done')
+              return { event: 'done', data: value, meta: getEventMeta(value) }
+            }
 
-        return { event: 'message', data: value, meta: getEventMeta(value) }
-      }
-      catch (err) {
-        /**
-         * Shouldn't treat an error event as an error.
-         */
-        if (err instanceof ErrorEvent) {
-          return {
-            event: 'error',
-            data: err.data,
-            meta: getEventMeta(err),
+            span?.addEvent('message')
+            return { event: 'message', data: value, meta: getEventMeta(value) }
+          }
+          catch (err) {
+            /**
+             * Shouldn't treat an error event as an error.
+             */
+            if (err instanceof ErrorEvent) {
+              span?.addEvent('error')
+              return {
+                event: 'error',
+                data: err.data,
+                meta: getEventMeta(err),
+              }
+            }
+            else {
+              /**
+               * Unlike HTTP/fetch streams where the server/client can detect unexpected stream termination,
+               * in this custom implementation (long-lived connection), we must manually send error messages
+               * to indicate that the iterator has ended with an error, even for non-ErrorEvent errors.
+               * This prevents the server/client from hanging while waiting for the next event.
+               *
+               * @todo we should have a dedicated event for unexpected errors
+               * to prevent deserialize errors (because data is always undefined)
+               */
+              try {
+                await callback({ event: 'error', data: undefined })
+              }
+              catch (err2) {
+                /**
+                 * Record error in the span
+                 * err2 will be captured later after throw
+                 */
+                setSpanError(span, err)
+                throw err2
+              }
+
+              throw err
+            }
+          }
+        })()
+
+        let isInvokeCleanupFn = false
+
+        try {
+          const direction = await callback(payload)
+
+          if (payload.event === 'done' || payload.event === 'error') {
+            return
+          }
+
+          if (direction === 'abort') {
+            isInvokeCleanupFn = true
+            await iterator.return?.()
+            return
           }
         }
-        else {
+        catch (err) {
+          if (!isInvokeCleanupFn) {
+            await iterator.return?.()
+          }
           throw err
         }
       }
-    })()
-
-    let isInvokeCleanupFn = false
-
-    try {
-      const direction = await callback(payload)
-
-      if (payload.event === 'done' || payload.event === 'error') {
-        return
-      }
-
-      if (direction === 'abort') {
-        isInvokeCleanupFn = true
-        await iterator.return?.()
-        return
-      }
-    }
-    catch (err) {
-      if (!isInvokeCleanupFn) {
-        await iterator.return?.()
-      }
-      throw err
-    }
-  }
+    },
+  )
 }

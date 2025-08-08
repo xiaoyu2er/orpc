@@ -2,7 +2,7 @@ import type { AsyncIdQueueCloseOptions } from '@orpc/shared'
 import type { StandardRequest, StandardResponse } from '@orpc/standard-server'
 import type { EventIteratorPayload } from './codec'
 import type { EncodedMessage, EncodedMessageSendFn } from './types'
-import { AsyncIdQueue, clone, getGlobalOtelConfig, isAsyncIteratorObject, runWithSpan, SequentialIdGenerator, setSpanError } from '@orpc/shared'
+import { AsyncIdQueue, clone, getGlobalOtelConfig, isAsyncIteratorObject, runWithSpan, SequentialIdGenerator } from '@orpc/shared'
 import { isEventIteratorHeaders } from '@orpc/standard-server'
 import { decodeResponseMessage, encodeRequestMessage, MessageType } from './codec'
 import { resolveEventIterator, toEventIterator } from './event-iterator'
@@ -113,45 +113,15 @@ export class ClientPeer {
              * Even if sending event iterator to the server fails,
              * the server can still send back a response.
              */
-            runWithSpan(
-              { name: 'stream_event_iterator', signal },
-              async (span) => {
-                let sending = false
-                try {
-                  await resolveEventIterator(iterator, async (payload) => {
-                    if (serverController.signal.aborted) {
-                      return 'abort'
-                    }
+            resolveEventIterator(iterator, async (payload) => {
+              if (serverController.signal.aborted) {
+                return 'abort'
+              }
 
-                    sending = true
-                    await this.send(id, MessageType.EVENT_ITERATOR, payload)
-                    sending = false
+              await this.send(id, MessageType.EVENT_ITERATOR, payload)
 
-                    span?.addEvent(payload.event)
-
-                    return 'next'
-                  })
-                }
-                catch (e) {
-                  /**
-                   * Because error while sending event iterator
-                   * we can't any better than just throw it.
-                   */
-                  if (sending) {
-                    throw e
-                  }
-
-                  /**
-                   * Send an error event if an unexpected error occurs (not error event).
-                   * Without this, the server event iterator may hang waiting for the next event.
-                   * Unlike HTTP/fetch streams (throw on unexpected end of steam),
-                   * we must manually signal errors in this custom implementation (long-live connection).
-                   */
-                  await this.send(id, MessageType.EVENT_ITERATOR, { event: 'error', data: undefined })
-                  setSpanError(span, e, { signal })
-                }
-              },
-            )
+              return 'next'
+            })
           }
 
           const response = await this.responseQueue.pull(id)

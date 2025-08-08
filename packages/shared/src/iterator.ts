@@ -180,7 +180,7 @@ export function asyncIteratorWithSpan<T, TReturn, TNext>(
 
       try {
         const result = await runInSpanContext(span, () => iterator.next())
-        span?.addEvent(result.done ? 'returned' : 'yielded')
+        span?.addEvent(result.done ? 'completed' : 'yielded')
         return result
       }
       catch (err) {

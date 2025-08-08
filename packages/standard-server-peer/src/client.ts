@@ -140,7 +140,6 @@ export class ClientPeer {
                   this.close({ id })
                 }
               },
-              { signal },
             )
 
             return {

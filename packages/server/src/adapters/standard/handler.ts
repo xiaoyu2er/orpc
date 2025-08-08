@@ -77,7 +77,7 @@ export class StandardHandler<T extends Context> {
     }
 
     return runWithSpan(
-      { name: `${request.method} ${request.url.pathname}`, signal: request.signal },
+      { name: `${request.method} ${request.url.pathname}` },
       async (span) => {
         return intercept(
           this.rootInterceptors,
@@ -98,7 +98,7 @@ export class StandardHandler<T extends Context> {
                     : url.pathname
 
                   const match = await runWithSpan(
-                    { name: 'find_procedure', signal: request.signal },
+                    { name: 'find_procedure' },
                     () => this.matcher.match(method, `/${pathname.replace(/^\/|\/$/g, '')}`),
                   )
 
@@ -115,14 +115,14 @@ export class StandardHandler<T extends Context> {
 
                   step = 'decode_input'
                   let input = await runWithSpan(
-                    { name: 'decode_input', signal: request.signal },
+                    { name: 'decode_input' },
                     () => this.codec.decode(request, match.params, match.procedure),
                   )
                   step = undefined
 
                   if (isAsyncIteratorObject(input)) {
                     input = asyncIteratorWithSpan(
-                      { name: 'consume_event_iterator_input', signal: request.signal },
+                      { name: 'consume_event_iterator_input' },
                       input,
                     )
                   }
@@ -158,7 +158,7 @@ export class StandardHandler<T extends Context> {
              * Because a business logic error should not be considered as a protocol-level error.
              */
               if (step !== 'call_procedure') {
-                setSpanError(span, e, { signal: request.signal })
+                setSpanError(span, e)
               }
 
               const error = step === 'decode_input' && !(e instanceof ORPCError)

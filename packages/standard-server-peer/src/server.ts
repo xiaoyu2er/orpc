@@ -87,7 +87,6 @@ export class ServerPeer {
                 await this.send(id, MessageType.ABORT_SIGNAL, undefined)
               }
             },
-            { signal },
           )
         : payload.body,
     }

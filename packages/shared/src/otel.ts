@@ -30,7 +30,7 @@ export function setGlobalOtelConfig(config: OtelConfig | undefined): void {
 
 /**
  * Gets the global OpenTelemetry config.
- * Returns `undefined` if tracing is not enabled.
+ * Returns `undefined` if OpenTelemetry is not configured, initialized, or enabled.
  */
 export function getGlobalOtelConfig(): OtelConfig | undefined {
   return (globalThis as any)[GLOBAL_OTEL_CONFIG_KEY]

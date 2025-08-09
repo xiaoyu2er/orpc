@@ -155,9 +155,7 @@ export async function runWithSpan<T>(
     return fn()
   }
 
-  const withContext: [context?: any] = context ? [context] as const : [] as const
-
-  return tracer.startActiveSpan(name, options, ...withContext, async (span) => {
+  const callback = async (span: Span) => {
     try {
       return await fn(span)
     }
@@ -168,7 +166,14 @@ export async function runWithSpan<T>(
     finally {
       span.end()
     }
-  })
+  }
+
+  if (context) {
+    return tracer.startActiveSpan(name, options, context, callback)
+  }
+  else {
+    return tracer.startActiveSpan(name, options, callback)
+  }
 }
 
 /**

@@ -4,11 +4,11 @@ import { isAsyncIteratorObject, parseEmptyableJSON, runWithSpan, stringifyJSON }
 import { generateContentDisposition, getFilenameFromContentDisposition } from '@orpc/standard-server'
 import { toEventIterator, toEventStream } from './event-iterator'
 
-export interface toStandardBodyOptions extends ToEventIteratorOptions {}
+export interface ToStandardBodyOptions extends ToEventIteratorOptions {}
 
 export function toStandardBody(
   re: Request | Response,
-  options: toStandardBodyOptions = {},
+  options: ToStandardBodyOptions = {},
 ): Promise<StandardBody> {
   return runWithSpan(
     { name: 'parse_standard_body', signal: options.signal },

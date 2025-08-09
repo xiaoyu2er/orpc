@@ -465,6 +465,9 @@ describe('serverPeer', () => {
         },
         body: undefined,
       }])
+
+      expect(callback).toHaveBeenCalledTimes(1)
+      expect(callback).toHaveBeenCalledWith(REQUEST_ID)
     })
 
     it('file', async () => {

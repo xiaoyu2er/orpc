@@ -60,9 +60,8 @@ export class ClientPeer {
 
     return runWithSpan(
       { name: 'send_peer_request', signal },
-      async (span) => {
+      async () => {
         if (signal?.aborted) {
-          span?.addEvent('abort', { reason: String(signal.reason) })
           throw signal.reason
         }
 
@@ -73,8 +72,9 @@ export class ClientPeer {
           const otelConfig = getGlobalOtelConfig()
 
           if (otelConfig) {
-            request = { ...request, headers: clone(request.headers) }
-            otelConfig.propagation.inject(otelConfig.context.active(), request.headers)
+            const headers = clone(request.headers)
+            otelConfig.propagation.inject(otelConfig.context.active(), headers)
+            request = { ...request, headers }
           }
 
           /**

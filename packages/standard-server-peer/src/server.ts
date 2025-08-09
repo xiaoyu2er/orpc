@@ -128,33 +128,38 @@ export class ServerPeer {
       return
     }
 
-    await this.send(id, MessageType.RESPONSE, response)
-      .then(async () => {
-        if (!signal.aborted && isAsyncIteratorObject(response.body)) {
-          if (response.body instanceof experimental_HibernationEventIterator) {
-            response.body.hibernationCallback?.(id)
-          }
-          else {
-            const iterator = response.body
+    try {
+      /**
+       * We should send response message before event iterator messages,
+       * so the server can recognize them as part of the response.
+       */
+      await this.send(id, MessageType.RESPONSE, response)
 
-            await resolveEventIterator(iterator, async (payload) => {
-              if (signal.aborted) {
-                return 'abort'
-              }
-
-              await this.send(id, MessageType.EVENT_ITERATOR, payload)
-
-              return 'next'
-            })
-          }
+      if (!signal.aborted && isAsyncIteratorObject(response.body)) {
+        if (response.body instanceof experimental_HibernationEventIterator) {
+          response.body.hibernationCallback?.(id)
         }
+        else {
+          const iterator = response.body
 
-        this.close({ id, abort: false })
-      })
-      .catch((reason) => {
-        this.close({ id, reason, abort: false })
-        throw reason
-      })
+          await resolveEventIterator(iterator, async (payload) => {
+            if (signal.aborted) {
+              return 'abort'
+            }
+
+            await this.send(id, MessageType.EVENT_ITERATOR, payload)
+
+            return 'next'
+          })
+        }
+      }
+
+      this.close({ id, abort: false })
+    }
+    catch (reason) {
+      this.close({ id, reason, abort: false })
+      throw reason
+    }
   }
 
   close({ abort = true, ...options }: ServerPeerCloseOptions = {}): void {

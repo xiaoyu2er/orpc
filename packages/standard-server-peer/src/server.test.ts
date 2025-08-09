@@ -316,6 +316,22 @@ describe('serverPeer', () => {
 
       expect(handle).toHaveBeenCalledTimes(1)
     })
+
+    it('handle throw error', async () => {
+      handle.mockImplementationOnce(async () => {
+        throw new Error('some error')
+      })
+
+      await expect(
+        peer.message(
+          await encodeRequestMessage(REQUEST_ID, MessageType.REQUEST, baseRequest),
+          handle,
+        ),
+      ).rejects.toThrow('some error')
+
+      expect(handle).toHaveBeenCalledTimes(1)
+      expect(send).toHaveBeenCalledTimes(0)
+    })
   })
 
   describe('response', () => {

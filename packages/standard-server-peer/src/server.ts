@@ -103,9 +103,25 @@ export class ServerPeer {
         async () => {
           const response = await runWithSpan(
             { name: 'handle_request' },
-            () => handleRequest(request),
+            async () => {
+              try {
+                return await handleRequest(request)
+              }
+              catch (reason) {
+                /**
+                 * Always close the id if the request handler throws an error
+                 * to prevent memory leaks.
+                 */
+                this.close({ id, reason, abort: false })
+                throw reason
+              }
+            },
           )
 
+          /**
+           * No need to manually close the id on send failure;
+           * the underlying send/response logic handles cleanup.
+           */
           await runWithSpan(
             { name: 'send_peer_response' },
             () => this.response(id, response),

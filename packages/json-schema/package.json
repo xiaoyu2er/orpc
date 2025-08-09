@@ -1,7 +1,7 @@
 {
   "name": "@orpc/json-schema",
   "type": "module",
-  "version": "1.7.9",
+  "version": "1.7.11",
   "license": "MIT",
   "homepage": "https://orpc.unnoq.com",
   "repository": {
@@ -35,10 +35,10 @@
   },
   "dependencies": {
     "@orpc/contract": "workspace:*",
+    "@orpc/json-schema-typed": "workspace:*",
     "@orpc/openapi": "workspace:*",
     "@orpc/server": "workspace:*",
-    "@orpc/shared": "workspace:*",
-    "json-schema-typed": "^8.0.1"
+    "@orpc/shared": "workspace:*"
   },
   "devDependencies": {
     "zod": "^4.0.14"

@@ -1,8 +1,12 @@
+import type { SetSpanErrorOptions } from '@orpc/shared'
 import { AsyncIteratorClass, isTypescriptObject, parseEmptyableJSON, runInSpanContext, setSpanError, startSpan, stringifyJSON } from '@orpc/shared'
 import { encodeEventMessage, ErrorEvent, EventDecoderStream, getEventMeta, withEventMeta } from '@orpc/standard-server'
 
+export interface ToEventIteratorOptions extends SetSpanErrorOptions {}
+
 export function toEventIterator(
   stream: ReadableStream<Uint8Array> | null,
+  options: ToEventIteratorOptions = {},
 ): AsyncIteratorClass<unknown> {
   const eventStream = stream
     ?.pipeThrough(new TextDecoderStream())
@@ -70,7 +74,7 @@ export function toEventIterator(
        * Shouldn't treat an error event as an error.
        */
       if (!(e instanceof ErrorEvent)) {
-        setSpanError(span, e)
+        setSpanError(span, e, options)
       }
 
       throw e
@@ -84,7 +88,7 @@ export function toEventIterator(
       await runInSpanContext(span, () => reader?.cancel())
     }
     catch (e) {
-      setSpanError(span, e)
+      setSpanError(span, e, options)
       throw e
     }
     finally {

@@ -2,7 +2,7 @@ import type { AsyncIdQueueCloseOptions } from '@orpc/shared'
 import type { StandardRequest, StandardResponse } from '@orpc/standard-server'
 import type { EventIteratorPayload } from './codec'
 import type { EncodedMessage, EncodedMessageSendFn } from './types'
-import { AsyncIdQueue, getGlobalOtelConfig, isAsyncIteratorObject, runWithSpan } from '@orpc/shared'
+import { AbortError, AsyncIdQueue, getGlobalOtelConfig, isAsyncIteratorObject, runWithSpan } from '@orpc/shared'
 import { experimental_HibernationEventIterator, isEventIteratorHeaders } from '@orpc/standard-server'
 import { decodeRequestMessage, encodeResponseMessage, MessageType } from './codec'
 import { resolveEventIterator, toEventIterator } from './event-iterator'
@@ -21,7 +21,13 @@ export interface ServerPeerCloseOptions extends AsyncIdQueueCloseOptions {
 }
 
 export class ServerPeer {
+  /**
+   * Queue of event iterator messages sent from client, awaiting consumption
+   */
   private readonly clientEventIteratorQueue = new AsyncIdQueue<EventIteratorPayload>()
+  /**
+   * Map of active client request controllers, should be synced to request signal
+   */
   private readonly clientControllers = new Map<string, AbortController>()
 
   private readonly send: (...args: Parameters<typeof encodeResponseMessage>) => Promise<void>
@@ -61,7 +67,7 @@ export class ServerPeer {
     const [id, type, payload] = await decodeRequestMessage(raw)
 
     if (type === MessageType.ABORT_SIGNAL) {
-      this.close({ id })
+      this.close({ id, reason: new AbortError('Client aborted the request') })
       return [id, undefined]
     }
 
@@ -87,6 +93,7 @@ export class ServerPeer {
                 await this.send(id, MessageType.ABORT_SIGNAL, undefined)
               }
             },
+            { signal },
           )
         : payload.body,
     }

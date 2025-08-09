@@ -1,13 +1,16 @@
-import type { AsyncIteratorClassCleanupFn } from '@orpc/shared'
+import type { AsyncIteratorClassCleanupFn, SetSpanErrorOptions } from '@orpc/shared'
 import type { AsyncIdQueue } from '../../shared/src/queue'
 import type { EventIteratorPayload } from './codec'
 import { AsyncIteratorClass, isTypescriptObject, runInSpanContext, runWithSpan, setSpanError, startSpan } from '@orpc/shared'
 import { ErrorEvent, getEventMeta, withEventMeta } from '@orpc/standard-server'
 
+export interface ToEventIteratorOptions extends SetSpanErrorOptions {}
+
 export function toEventIterator(
   queue: AsyncIdQueue<EventIteratorPayload>,
   id: string,
   cleanup: AsyncIteratorClassCleanupFn,
+  options: ToEventIteratorOptions = {},
 ): AsyncIteratorClass<unknown> {
   let span: ReturnType<typeof startSpan> | undefined
 
@@ -62,7 +65,7 @@ export function toEventIterator(
        * Shouldn't treat an error event as an error.
        */
       if (!(e instanceof ErrorEvent)) {
-        setSpanError(span, e)
+        setSpanError(span, e, options)
       }
 
       throw e
@@ -76,7 +79,7 @@ export function toEventIterator(
       await runInSpanContext(span, () => cleanup(reason))
     }
     catch (e) {
-      setSpanError(span, e)
+      setSpanError(span, e, options)
       throw e
     }
     finally {

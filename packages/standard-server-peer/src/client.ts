@@ -19,9 +19,24 @@ export interface ClientPeerCloseOptions extends AsyncIdQueueCloseOptions {
 export class ClientPeer {
   private readonly idGenerator = new SequentialIdGenerator()
 
+  /**
+   * Queue of responses sent from server, awaiting consumption
+   */
   private readonly responseQueue = new AsyncIdQueue<StandardResponse>()
+
+  /**
+   * Queue of event iterator messages sent from server, awaiting consumption
+   */
   private readonly serverEventIteratorQueue = new AsyncIdQueue<EventIteratorPayload>()
+
+  /**
+   * Controllers used to signal that the client should stop sending event iterator messages
+   */
   private readonly serverControllers = new Map<string, AbortController>()
+
+  /**
+   * Cleanup functions invoked when the request/response is closed
+   */
   private readonly cleanupFns = new Map<string, (() => void)[]>()
 
   private readonly send: (...args: Parameters<typeof encodeRequestMessage>) => Promise<void>
@@ -140,6 +155,7 @@ export class ClientPeer {
                   this.close({ id })
                 }
               },
+              { signal },
             )
 
             return {

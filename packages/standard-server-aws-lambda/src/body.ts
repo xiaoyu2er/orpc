@@ -1,6 +1,7 @@
 import type { StandardBody, StandardHeaders } from '@orpc/standard-server'
 import type { ToNodeHttpBodyOptions } from '@orpc/standard-server-node'
 import type { Readable } from 'node:stream'
+import type { ToEventIteratorOptions } from './event-iterator'
 import type { APIGatewayProxyEventV2 } from './types'
 import { Buffer } from 'node:buffer'
 import { parseEmptyableJSON, runWithSpan } from '@orpc/shared'
@@ -8,8 +9,13 @@ import { getFilenameFromContentDisposition } from '@orpc/standard-server'
 import { toNodeHttpBody } from '@orpc/standard-server-node'
 import { toEventIterator } from './event-iterator'
 
-export function toStandardBody(event: APIGatewayProxyEventV2): Promise<StandardBody> {
-  return runWithSpan({ name: 'parse_standard_body' }, async () => {
+export interface ToStandardBodyOptions extends ToEventIteratorOptions {}
+
+export function toStandardBody(
+  event: APIGatewayProxyEventV2,
+  options: ToStandardBodyOptions = {},
+): Promise<StandardBody> {
+  return runWithSpan({ name: 'parse_standard_body', signal: options.signal }, async () => {
     const contentType = event.headers['content-type']
     const contentDisposition = event.headers['content-disposition']
 
@@ -33,7 +39,7 @@ export function toStandardBody(event: APIGatewayProxyEventV2): Promise<StandardB
     }
 
     if (contentType.startsWith('text/event-stream')) {
-      return toEventIterator(_parseAsString(event.body, event.isBase64Encoded))
+      return toEventIterator(_parseAsString(event.body, event.isBase64Encoded), options)
     }
 
     if (contentType.startsWith('text/plain')) {

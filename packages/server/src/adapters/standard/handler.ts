@@ -122,7 +122,7 @@ export class StandardHandler<T extends Context> {
 
                   if (isAsyncIteratorObject(input)) {
                     input = asyncIteratorWithSpan(
-                      { name: 'consume_event_iterator_input' },
+                      { name: 'consume_event_iterator_input', signal: request.signal },
                       input,
                     )
                   }

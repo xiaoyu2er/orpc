@@ -1,14 +1,16 @@
 import type { StandardBody, StandardHeaders } from '@orpc/standard-server'
 import type { Buffer } from 'node:buffer'
-import type { ToEventStreamOptions } from './event-iterator'
+import type { ToEventIteratorOptions, ToEventStreamOptions } from './event-iterator'
 import type { NodeHttpRequest } from './types'
 import { Readable } from 'node:stream'
 import { isAsyncIteratorObject, parseEmptyableJSON, runWithSpan, stringifyJSON } from '@orpc/shared'
 import { flattenHeader, generateContentDisposition, getFilenameFromContentDisposition } from '@orpc/standard-server'
 import { toEventIterator, toEventStream } from './event-iterator'
 
-export function toStandardBody(req: NodeHttpRequest): Promise<StandardBody> {
-  return runWithSpan({ name: 'parse_standard_body' }, async () => {
+export interface ToStandardBodyOptions extends ToEventIteratorOptions {}
+
+export function toStandardBody(req: NodeHttpRequest, options: ToStandardBodyOptions = {}): Promise<StandardBody> {
+  return runWithSpan({ name: 'parse_standard_body', signal: options.signal }, async () => {
     const contentDisposition = req.headers['content-disposition']
     const contentType = req.headers['content-type']
 
@@ -33,7 +35,7 @@ export function toStandardBody(req: NodeHttpRequest): Promise<StandardBody> {
     }
 
     if (contentType.startsWith('text/event-stream')) {
-      return toEventIterator(req)
+      return toEventIterator(req, options)
     }
 
     if (contentType.startsWith('text/plain')) {

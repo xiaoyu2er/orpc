@@ -53,7 +53,7 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
 
         if (isAsyncIteratorObject(input)) {
           input = asyncIteratorWithSpan(
-            { name: 'consume_event_iterator_input' },
+            { name: 'consume_event_iterator_input', signal: options.signal },
             input,
           )
         }
@@ -96,7 +96,7 @@ export class StandardLink<T extends ClientContext> implements ClientLink<T> {
              * Do not use otelContext here, as it is a lazy span.
              */
             return asyncIteratorWithSpan(
-              { name: 'consume_event_iterator_output' },
+              { name: 'consume_event_iterator_output', signal: options.signal },
               output,
             )
           }

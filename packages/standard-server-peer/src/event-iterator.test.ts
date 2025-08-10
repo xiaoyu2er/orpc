@@ -409,4 +409,37 @@ describe('resolveEventIterator', () => {
       data: undefined,
     })
   })
+
+  it('on callback throw error and cleanup throw error', async () => {
+    let time = 0
+    const callback = vi.fn(async () => {
+      if (++time === 2) {
+        throw new Error('callback error')
+      }
+
+      return 'next' as const
+    })
+
+    await expect(resolveEventIterator((async function* () {
+      try {
+        yield 'hello'
+        yield 'hello2'
+      }
+      finally {
+        // eslint-disable-next-line no-unsafe-finally
+        throw new Error('cleanup error')
+      }
+    })(), callback)).rejects.toThrow('cleanup error')
+
+    expect(callback).toHaveBeenCalledTimes(2)
+    expect(callback).toHaveBeenNthCalledWith(1, {
+      event: 'message',
+      data: 'hello',
+    })
+
+    expect(callback).toHaveBeenNthCalledWith(2, {
+      event: 'message',
+      data: 'hello2',
+    })
+  })
 })

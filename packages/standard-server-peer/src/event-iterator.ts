@@ -164,7 +164,17 @@ export function resolveEventIterator(
         }
         catch (err) {
           if (!isInvokeCleanupFn) {
-            await iterator.return?.()
+            try {
+              await iterator.return?.()
+            }
+            catch (err2) {
+              /**
+               * Record original error in the span
+               * err2 will be captured later after throw
+               */
+              setSpanError(span, err)
+              throw err2
+            }
           }
           throw err
         }

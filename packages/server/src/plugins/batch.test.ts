@@ -423,6 +423,13 @@ describe('batchHandlerPlugin', () => {
   })
 
   it('should response error instead of throw on request error and matched=false', async () => {
+    const unhandledRejectionHandler = vi.fn()
+    process.on('unhandledRejection', unhandledRejectionHandler)
+
+    afterEach(() => {
+      process.off('unhandledRejection', unhandledRejectionHandler)
+    })
+
     const request = toBatchRequest({
       url: new URL('http://localhost/prefix/__batch__'),
       headers: {
@@ -553,6 +560,8 @@ describe('batchHandlerPlugin', () => {
     })
 
     await expect(parsed.next()).resolves.toEqual({ done: true })
+
+    expect(unhandledRejectionHandler).toHaveBeenCalledTimes(2)
   })
 
   it('should response error on exceed max size', async () => {

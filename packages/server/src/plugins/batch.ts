@@ -80,10 +80,13 @@ export class BatchHandlerPlugin<T extends Context> implements StandardHandlerPlu
 
       try {
         return await runWithSpan({ name: 'handle_batch_request' }, async (span) => {
+          const mode = xHeader === 'buffered' ? 'buffered' : 'streaming'
+
           isParsing = true
           const parsed = parseBatchRequest({ ...options.request, body: await options.request.body() })
           isParsing = false
 
+          span?.setAttribute('batch.mode', mode)
           span?.setAttribute('batch.size', parsed.length)
 
           const maxSize = await value(this.maxSize, options)
@@ -130,7 +133,12 @@ export class BatchHandlerPlugin<T extends Context> implements StandardHandlerPlu
 
                   return { index, status: 404, headers: {}, body: 'No procedure matched' }
                 })
-                .catch(() => {
+                .catch((err) => {
+                  /**
+                   * send error into `unhandledRejection` handler
+                   * so it can be logged or handled globally
+                   */
+                  Promise.reject(err)
                   return { index, status: 500, headers: {}, body: 'Internal server error' }
                 })
             },
@@ -145,7 +153,7 @@ export class BatchHandlerPlugin<T extends Context> implements StandardHandlerPlu
           const response = await toBatchResponse({
             status,
             headers,
-            mode: xHeader === 'buffered' ? 'buffered' : 'streaming',
+            mode,
             body: (async function* () {
               const promises: (Promise<BatchResponseBodyItem> | undefined)[] = [...responses]
 

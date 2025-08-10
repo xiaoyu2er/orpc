@@ -3,7 +3,7 @@ import type { StandardHeaders, StandardRequest } from '@orpc/standard-server'
 import type { BatchResponseBodyItem } from '@orpc/standard-server/batch'
 import type { StandardHandlerInterceptorOptions, StandardHandlerOptions, StandardHandlerPlugin } from '../adapters/standard'
 import type { Context } from '../context'
-import { isAsyncIteratorObject, value } from '@orpc/shared'
+import { isAsyncIteratorObject, runWithSpan, setSpanError, value } from '@orpc/shared'
 import { flattenHeader } from '@orpc/standard-server'
 import { parseBatchRequest, toBatchResponse } from '@orpc/standard-server/batch'
 
@@ -79,86 +79,95 @@ export class BatchHandlerPlugin<T extends Context> implements StandardHandlerPlu
       let isParsing = false
 
       try {
-        isParsing = true
-        const parsed = parseBatchRequest({ ...options.request, body: await options.request.body() })
-        isParsing = false
+        return await runWithSpan({ name: 'handle_batch_request' }, async (span) => {
+          isParsing = true
+          const parsed = parseBatchRequest({ ...options.request, body: await options.request.body() })
+          isParsing = false
 
-        const maxSize = await value(this.maxSize, options)
+          span?.setAttribute('batch.size', parsed.length)
 
-        if (parsed.length > maxSize) {
-          return {
-            matched: true,
-            response: {
-              status: 413,
-              headers: {},
-              body: 'Batch request size exceeds the maximum allowed size',
-            },
+          const maxSize = await value(this.maxSize, options)
+
+          if (parsed.length > maxSize) {
+            const message = 'Batch request size exceeds the maximum allowed size'
+            setSpanError(span, message)
+
+            return {
+              matched: true,
+              response: {
+                status: 413,
+                headers: {},
+                body: message,
+              },
+            }
           }
-        }
 
-        const responses: Promise<BatchResponseBodyItem>[] = parsed
-          .map((request, index) => {
-            const mapped = this.mapRequestItem(request, options)
+          const responses: Promise<BatchResponseBodyItem>[] = parsed
+            .map((request, index) => {
+              const mapped = this.mapRequestItem(request, options)
 
-            return options
-              .next({ ...options, request: { ...mapped, body: () => Promise.resolve(mapped.body) } })
-              .then(({ response, matched }) => {
-                if (matched) {
-                  if (
-                    response.body instanceof Blob
-                    || response.body instanceof FormData
-                    || isAsyncIteratorObject(response.body)
-                  ) {
-                    return {
-                      index,
-                      status: 500,
-                      headers: {},
-                      body: 'Batch responses do not support file/blob, or event-iterator. Please call this procedure separately outside of the batch request.',
+              return options
+                .next({ ...options, request: { ...mapped, body: () => Promise.resolve(mapped.body) } })
+                .then(({ response, matched }) => {
+                  span?.addEvent(`response.${index}.${matched ? 'success' : 'not_matched'}`)
+
+                  if (matched) {
+                    if (
+                      response.body instanceof Blob
+                      || response.body instanceof FormData
+                      || isAsyncIteratorObject(response.body)
+                    ) {
+                      return {
+                        index,
+                        status: 500,
+                        headers: {},
+                        body: 'Batch responses do not support file/blob, or event-iterator. Please call this procedure separately outside of the batch request.',
+                      }
                     }
+
+                    return { ...response, index }
                   }
 
-                  return { ...response, index }
+                  return { index, status: 404, headers: {}, body: 'No procedure matched' }
+                })
+                .catch(() => {
+                  return { index, status: 500, headers: {}, body: 'Internal server error' }
+                })
+            },
+            )
+
+          // wait until at least one request is resolved
+          await Promise.race(responses)
+
+          const status = await value(this.successStatus, responses, options)
+          const headers = await value(this.headers, responses, options)
+
+          const response = await toBatchResponse({
+            status,
+            headers,
+            mode: xHeader === 'buffered' ? 'buffered' : 'streaming',
+            body: (async function* () {
+              const promises: (Promise<BatchResponseBodyItem> | undefined)[] = [...responses]
+
+              while (true) {
+                const handling = promises.filter(p => p !== undefined)
+
+                if (handling.length === 0) {
+                  return
                 }
 
-                return { index, status: 404, headers: {}, body: 'No procedure matched' }
-              })
-              .catch(() => {
-                return { index, status: 500, headers: {}, body: 'Internal server error' }
-              })
-          },
-          )
-
-        // wait until at least one request is resolved
-        await Promise.race(responses)
-
-        const status = await value(this.successStatus, responses, options)
-        const headers = await value(this.headers, responses, options)
-
-        const response = await toBatchResponse({
-          status,
-          headers,
-          mode: xHeader === 'buffered' ? 'buffered' : 'streaming',
-          body: (async function* () {
-            const promises: (Promise<BatchResponseBodyItem> | undefined)[] = [...responses]
-
-            while (true) {
-              const handling = promises.filter(p => p !== undefined)
-
-              if (handling.length === 0) {
-                return
+                const result = await Promise.race(handling)
+                promises[result.index] = undefined
+                yield result
               }
+            })(),
+          })
 
-              const result = await Promise.race(handling)
-              promises[result.index] = undefined
-              yield result
-            }
-          })(),
+          return {
+            matched: true,
+            response,
+          }
         })
-
-        return {
-          matched: true,
-          response,
-        }
       }
       catch (cause) {
         if (isParsing) {

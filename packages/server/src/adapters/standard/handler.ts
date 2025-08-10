@@ -76,13 +76,13 @@ export class StandardHandler<T extends Context> {
       return { matched: false, response: undefined }
     }
 
-    return runWithSpan(
-      { name: `${request.method} ${request.url.pathname}` },
-      async (span) => {
-        return intercept(
-          this.rootInterceptors,
-          { ...options, request, prefix },
-          async (interceptorOptions) => {
+    return intercept(
+      this.rootInterceptors,
+      { ...options, request, prefix },
+      async (interceptorOptions) => {
+        return runWithSpan(
+          { name: `${request.method} ${request.url.pathname}` },
+          async (span) => {
             let step: 'decode_input' | 'call_procedure' | undefined
 
             try {

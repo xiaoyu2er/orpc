@@ -215,6 +215,19 @@ describe('batchLinkPlugin', () => {
     )
   })
 
+  it('not batch on aborted request', async () => {
+    const controller = new AbortController()
+    controller.abort()
+
+    await Promise.all([
+      link.call(['POST', 'foo'], '__foo__', { context: { foo: true }, signal }),
+      link.call(['POST', 'bar'], '__bar__', { context: { bar: true }, signal: controller.signal }),
+    ])
+
+    expect(toBatchRequestSpy).toHaveBeenCalledTimes(0)
+    expect(clientCall).toHaveBeenCalledTimes(2)
+  })
+
   it.each([new FormData(), (async function* () {})()])('not batch on un-supported body', async (body) => {
     encode.mockResolvedValueOnce({
       body,
@@ -436,6 +449,34 @@ describe('batchLinkPlugin', () => {
 
     expect(await first).toEqual('yielded1')
     expect(await second).toEqual('yielded2')
+  })
+
+  it('should throw individual request abort reasons when requests are aborted during batch processing', async () => {
+    clientCall.mockImplementationOnce(async ({ signal }) => {
+      await new Promise(r => setTimeout(r, 100))
+      throw signal.reason
+    })
+
+    const controller1 = new AbortController()
+    const controller2 = new AbortController()
+
+    const promise = Promise.all([
+      expect(
+        link.call(['POST', 'foo'], '__foo__', { context: { foo: true }, signal: controller1.signal }),
+      ).rejects.toSatisfy(err => err === controller1.signal.reason),
+      expect(
+        link.call(['POST', 'bar'], '__bar__', { context: { bar: true }, signal: controller2.signal }),
+      ).rejects.toSatisfy(err => err === controller2.signal.reason),
+    ])
+
+    await new Promise(resolve => setTimeout(resolve, 1))
+    controller1.abort()
+    controller2.abort()
+
+    await promise
+
+    expect(toBatchRequestSpy).toHaveBeenCalledTimes(1)
+    expect(clientCall).toHaveBeenCalledTimes(1)
   })
 })
 

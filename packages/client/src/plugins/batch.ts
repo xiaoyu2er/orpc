@@ -162,6 +162,7 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
         || options.request.body instanceof Blob
         || options.request.body instanceof FormData
         || isAsyncIteratorObject(options.request.body)
+        || options.request.signal?.aborted
       ) {
         return options.next()
       }
@@ -261,18 +262,35 @@ export class BatchLinkPlugin<T extends ClientContext> implements StandardLinkPlu
 
       const mode = value(this.mode, options)
 
-      const lazyResponse = await options[0].next({
-        request: { ...batchRequest, headers: { ...batchRequest.headers, 'x-orpc-batch': mode } },
-        signal: batchRequest.signal,
-        context: group.context,
-        input: group.input,
-        path: toArray(group.path),
-      })
+      try {
+        const lazyResponse = await options[0].next({
+          request: { ...batchRequest, headers: { ...batchRequest.headers, 'x-orpc-batch': mode } },
+          signal: batchRequest.signal,
+          context: group.context,
+          input: group.input,
+          path: toArray(group.path),
+        })
 
-      const parsed = parseBatchResponse({ ...lazyResponse, body: await lazyResponse.body() })
+        const parsed = parseBatchResponse({ ...lazyResponse, body: await lazyResponse.body() })
 
-      for await (const item of parsed) {
-        batchItems[item.index]?.[1]({ ...item, body: () => Promise.resolve(item.body) })
+        for await (const item of parsed) {
+          batchItems[item.index]?.[1]({ ...item, body: () => Promise.resolve(item.body) })
+        }
+      }
+      catch (err) {
+        /**
+         * Throw individual request abort reasons when requests are aborted during batch processing.
+         * This allows users to check for aborted requests by comparing `error === signal.reason`.
+         */
+        if (batchRequest.signal?.aborted && batchRequest.signal.reason === err) {
+          for (const [{ signal }, , reject] of batchItems) {
+            if (signal?.aborted) {
+              reject(signal.reason)
+            }
+          }
+        }
+
+        throw err
       }
 
       /**

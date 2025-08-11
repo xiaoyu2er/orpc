@@ -12,10 +12,10 @@ The RPC protocol enables remote procedure calls over HTTP using JSON, supporting
 The procedure to call is determined by the `pathname`.
 
 ```bash
-curl https://example.com/rpc/planet/create?data={}
+curl https://example.com/rpc/planet/create
 ```
 
-This example calls the `planet.create` procedure, with `/rpc` as the prefix. `?data={}` is the minimum required to indicate a valid GET RPC request with `undefined` input.
+This example calls the `planet.create` procedure, with `/rpc` as the prefix:
 
 ```ts
 const router = {

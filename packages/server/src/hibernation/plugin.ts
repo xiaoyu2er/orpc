@@ -1,10 +1,10 @@
 import type { StandardHandlerOptions, StandardHandlerPlugin } from '../adapters/standard'
 import type { Context } from '../context'
 import type { Router } from '../router'
-import { experimental_HibernationEventIterator } from '@orpc/standard-server'
+import { HibernationEventIterator } from '@orpc/standard-server'
 
-export interface experimental_HibernationPluginContext {
-  iterator?: experimental_HibernationEventIterator<any>
+export interface HibernationPluginContext {
+  iterator?: HibernationEventIterator<any>
 }
 
 /**
@@ -12,7 +12,7 @@ export interface experimental_HibernationPluginContext {
  *
  * @see {@link https://orpc.unnoq.com/docs/plugins/hibernation Hibernation Plugin}
  */
-export class experimental_HibernationPlugin<T extends Context> implements StandardHandlerPlugin<T> {
+export class HibernationPlugin<T extends Context> implements StandardHandlerPlugin<T> {
   readonly CONTEXT_SYMBOL = Symbol('ORPC_HIBERNATION_CONTEXT')
 
   order = 2_000_000 // make sure execute after the batch plugin
@@ -22,13 +22,13 @@ export class experimental_HibernationPlugin<T extends Context> implements Standa
     options.clientInterceptors ??= []
 
     options.interceptors.unshift(async (options) => {
-      const hibernationContext: experimental_HibernationPluginContext = {}
+      const hibernationContext: HibernationPluginContext = {}
 
       const result = await options.next({
         ...options,
         context: {
-          [this.CONTEXT_SYMBOL]: hibernationContext,
           ...options.context,
+          [this.CONTEXT_SYMBOL]: hibernationContext,
         },
       })
 
@@ -46,7 +46,7 @@ export class experimental_HibernationPlugin<T extends Context> implements Standa
     })
 
     options.clientInterceptors.unshift(async (options) => {
-      const hibernationContext = options.context[this.CONTEXT_SYMBOL] as experimental_HibernationPluginContext | undefined
+      const hibernationContext = options.context[this.CONTEXT_SYMBOL] as HibernationPluginContext | undefined
 
       if (!hibernationContext) {
         throw new TypeError('[HibernationPlugin] Hibernation context has been corrupted or modified by another plugin or interceptor')
@@ -54,7 +54,7 @@ export class experimental_HibernationPlugin<T extends Context> implements Standa
 
       const output = await options.next()
 
-      if (output instanceof experimental_HibernationEventIterator) {
+      if (output instanceof HibernationEventIterator) {
         hibernationContext.iterator = output
       }
 

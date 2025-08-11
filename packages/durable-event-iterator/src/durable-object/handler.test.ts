@@ -1,5 +1,5 @@
 import { call, createProcedureClient } from '@orpc/server'
-import { experimental_HibernationEventIterator as HibernationEventIterator } from '@orpc/server/hibernation'
+import { HibernationEventIterator } from '@orpc/server/hibernation'
 import { createCloudflareWebsocket, createDurableObjectState } from '../../tests/shared'
 import { DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY, DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY } from './consts'
 import { DurableEventIteratorObjectEventStorage } from './event-storage'

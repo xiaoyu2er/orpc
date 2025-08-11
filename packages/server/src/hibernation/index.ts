@@ -1,3 +1,3 @@
 export * from './event-iterator'
 export * from './plugin'
-export { experimental_HibernationEventIterator, type experimental_HibernationEventIteratorCallback } from '@orpc/standard-server'
+export { HibernationEventIterator, type HibernationEventIteratorCallback } from '@orpc/standard-server'

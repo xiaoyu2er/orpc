@@ -8,7 +8,7 @@ import type { AnyProcedure, Procedure, ProcedureHandlerOptions } from './procedu
 import { ORPCError } from '@orpc/client'
 import { ValidationError } from '@orpc/contract'
 import { asyncIteratorWithSpan, intercept, isAsyncIteratorObject, resolveMaybeOptionalOptions, runWithSpan, toArray, value } from '@orpc/shared'
-import { experimental_HibernationEventIterator as HibernationEventIterator } from '@orpc/standard-server'
+import { HibernationEventIterator } from '@orpc/standard-server'
 import { mergeCurrentContext } from './context'
 import { createORPCErrorConstructorMap, validateORPCError } from './error'
 import { unlazy } from './lazy'

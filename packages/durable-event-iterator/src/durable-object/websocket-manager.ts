@@ -2,7 +2,7 @@ import type { StandardRPCJsonSerializerOptions } from '@orpc/client/standard'
 import type { TokenAttachment } from '../object'
 import type { DurableEventIteratorTokenPayload } from '../schemas'
 import type { DurableEventIteratorObjectEventStorage } from './event-storage'
-import { experimental_encodeHibernationRPCEvent as encodeHibernationRPCEvent } from '@orpc/server/hibernation'
+import { encodeHibernationRPCEvent } from '@orpc/server/hibernation'
 import { DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY, DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY } from './consts'
 
 export interface DurableEventIteratorObjectWebsocketManagerOptions extends StandardRPCJsonSerializerOptions {

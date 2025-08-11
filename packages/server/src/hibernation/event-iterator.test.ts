@@ -3,7 +3,7 @@ import { ORPCError } from '@orpc/client'
 import { StandardRPCJsonSerializer, StandardRPCSerializer } from '@orpc/client/standard'
 import { withEventMeta } from '@orpc/standard-server'
 import { encodeResponseMessage, MessageType } from '@orpc/standard-server-peer'
-import { experimental_encodeHibernationRPCEvent as encodeHibernationRPCEvent } from './event-iterator'
+import { encodeHibernationRPCEvent } from './event-iterator'
 
 class Planet {
   constructor(public readonly name: string, public readonly diameter: number) {}

@@ -1,7 +1,7 @@
-import { experimental_HibernationEventIterator as HibernationEventIterator } from '@orpc/standard-server'
+import { HibernationEventIterator } from '@orpc/standard-server'
 import { StandardRPCHandler } from '../adapters/standard'
 import { os } from '../builder'
-import { experimental_HibernationPlugin as HibernationPlugin } from './plugin'
+import { HibernationPlugin } from './plugin'
 
 beforeEach(() => {
   vi.resetAllMocks()

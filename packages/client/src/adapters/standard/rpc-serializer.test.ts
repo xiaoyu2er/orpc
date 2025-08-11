@@ -193,3 +193,8 @@ describe('standardRPCSerializer: event iterator', async () => {
     })
   })
 })
+
+it('standardRPCSerializer support deserialize undefined data', () => {
+  const serializer = new StandardRPCSerializer(new StandardRPCJsonSerializer())
+  expect(serializer.deserialize(undefined)).toEqual(undefined)
+})

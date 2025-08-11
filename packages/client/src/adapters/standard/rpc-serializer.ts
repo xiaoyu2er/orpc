@@ -78,6 +78,16 @@ export class StandardRPCSerializer {
   }
 
   #deserialize(data: any): unknown {
+    /**
+     * Only deserializing undefined is supported, while the return of serialize(undefined) is always an object.
+     * This is for supporting calling RPC endpoints without arguments.
+     *
+     * @todo Consider supporting serialize(undefined) -> undefined in the future
+     */
+    if (data === undefined) {
+      return undefined
+    }
+
     if (!(data instanceof FormData)) {
       return this.jsonSerializer.deserialize(data.json, data.meta ?? [])
     }

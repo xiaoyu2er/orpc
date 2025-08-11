@@ -177,6 +177,7 @@ export default withMermaid(defineConfig({
             { text: 'Hey API', link: '/docs/integrations/hey-api' },
             { text: 'OpenTelemetry', link: '/docs/integrations/opentelemetry' },
             { text: 'Pinia Colada', link: '/docs/integrations/pinia-colada' },
+            { text: 'Sentry', link: '/docs/integrations/sentry' },
             { text: 'Tanstack Query', link: '/docs/integrations/tanstack-query' },
             {
               text: 'Tanstack Query (Old)',

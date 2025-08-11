@@ -8,22 +8,26 @@ export function mapEventIterator<TYield, TReturn, TNext, TMap = TYield | TReturn
     error: (error: unknown) => Promise<unknown>
   },
 ): AsyncIteratorClass<TMap, TMap, TNext> {
+  const mapError = async (error: unknown) => {
+    let mappedError = await maps.error(error)
+
+    if (mappedError !== error) {
+      const meta = getEventMeta(error)
+      if (meta && isTypescriptObject(mappedError)) {
+        mappedError = withEventMeta(mappedError, meta)
+      }
+    }
+
+    return mappedError
+  }
+
   return new AsyncIteratorClass(async () => {
     const { done, value } = await (async () => {
       try {
         return await iterator.next()
       }
       catch (error) {
-        let mappedError = await maps.error(error)
-
-        if (mappedError !== error) {
-          const meta = getEventMeta(error)
-          if (meta && isTypescriptObject(mappedError)) {
-            mappedError = withEventMeta(mappedError, meta)
-          }
-        }
-
-        throw mappedError
+        throw await mapError(error)
       }
     })()
 
@@ -38,6 +42,11 @@ export function mapEventIterator<TYield, TReturn, TNext, TMap = TYield | TReturn
 
     return { done, value: mappedValue }
   }, async () => {
-    await iterator.return?.()
+    try {
+      await iterator.return?.()
+    }
+    catch (error) {
+      throw await mapError(error)
+    }
   })
 }

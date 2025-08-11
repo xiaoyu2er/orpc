@@ -186,4 +186,37 @@ describe('mapEventIterator', () => {
 
     expect(finished).toBe(true)
   })
+
+  it('cancel original + throw on cleanup', async () => {
+    const error = new Error('TEST')
+
+    const iterator = (async function* () {
+      try {
+        yield 1
+        yield 2
+      }
+      finally {
+        // eslint-disable-next-line no-unsafe-finally
+        throw error
+      }
+    })()
+
+    const map = vi.fn(async v => ({ mapped: v }))
+
+    const mapped = mapEventIterator(iterator, {
+      error: map,
+      value: map,
+    })
+
+    await expect(mapped.next()).resolves.toEqual({ done: false, value: { mapped: 1 } })
+    await expect(mapped.return()).rejects.toSatisfy((e) => {
+      expect(e).toEqual({ mapped: error })
+
+      return true
+    })
+
+    expect(map).toHaveBeenCalledTimes(2)
+    expect(map).toHaveBeenNthCalledWith(1, 1, false)
+    expect(map).toHaveBeenNthCalledWith(2, error)
+  })
 })

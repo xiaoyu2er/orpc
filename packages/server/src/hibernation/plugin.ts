@@ -27,8 +27,8 @@ export class HibernationPlugin<T extends Context> implements StandardHandlerPlug
       const result = await options.next({
         ...options,
         context: {
-          [this.CONTEXT_SYMBOL]: hibernationContext,
           ...options.context,
+          [this.CONTEXT_SYMBOL]: hibernationContext,
         },
       })
 

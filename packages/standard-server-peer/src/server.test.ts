@@ -1,5 +1,5 @@
 import { isAsyncIteratorObject } from '@orpc/shared'
-import { getEventMeta, experimental_HibernationEventIterator as HibernationEventIterator, withEventMeta } from '@orpc/standard-server'
+import { getEventMeta, HibernationEventIterator, withEventMeta } from '@orpc/standard-server'
 import { decodeResponseMessage, encodeRequestMessage, MessageType } from './codec'
 import { ServerPeer } from './server'
 

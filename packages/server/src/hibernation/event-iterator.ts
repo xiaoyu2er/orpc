@@ -5,7 +5,7 @@ import { stringifyJSON } from '@orpc/shared'
 import { getEventMeta } from '@orpc/standard-server'
 import { MessageType } from '@orpc/standard-server-peer'
 
-export interface experimental_EncodeHibernationRPCEventOptions extends StandardRPCJsonSerializerOptions {
+export interface EncodeHibernationRPCEventOptions extends StandardRPCJsonSerializerOptions {
   /**
    * The type of event, each type corresponds a different operation
    *
@@ -23,10 +23,10 @@ export interface experimental_EncodeHibernationRPCEventOptions extends StandardR
  *
  * @see {@link https://orpc.unnoq.com/docs/plugins/hibernation Hibernation Plugin}
  */
-export function experimental_encodeHibernationRPCEvent(
+export function encodeHibernationRPCEvent(
   id: string,
   payload: unknown,
-  options: experimental_EncodeHibernationRPCEventOptions = {},
+  options: EncodeHibernationRPCEventOptions = {},
 ): string {
   const { event = 'message', ...rest } = options
 

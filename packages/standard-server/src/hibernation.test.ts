@@ -1,4 +1,4 @@
-import { experimental_HibernationEventIterator as HibernationEventIterator } from './hibernation'
+import { HibernationEventIterator } from './hibernation'
 
 it('hibernationEventIterator', async () => {
   const callback = vi.fn()

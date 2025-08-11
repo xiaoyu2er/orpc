@@ -10,7 +10,7 @@ The Hibernation Plugin helps you fully leverage Hibernation APIs, making it espe
 ## Setup
 
 ```ts
-import { experimental_HibernationPlugin as HibernationPlugin } from '@orpc/server/hibernation'
+import { HibernationPlugin } from '@orpc/server/hibernation'
 
 const handler = new RPCHandler(router, {
   plugins: [
@@ -26,7 +26,7 @@ The plugin provide `HibernationEventIterator` and `encodeHibernationRPCEvent` to
 1. Return an `HibernationEventIterator` from your handler
 
    ```ts
-   import { experimental_HibernationEventIterator as HibernationEventIterator } from '@orpc/server/hibernation'
+   import { HibernationEventIterator } from '@orpc/server/hibernation'
 
    export const onMessage = os.handler(async ({ context }) => {
      return new HibernationEventIterator<{ message: string }>((id) => {
@@ -39,7 +39,7 @@ The plugin provide `HibernationEventIterator` and `encodeHibernationRPCEvent` to
 2. Send events to clients with `encodeHibernationRPCEvent`
 
    ```ts
-   import { experimental_encodeHibernationRPCEvent as encodeHibernationRPCEvent } from '@orpc/server/hibernation'
+   import { encodeHibernationRPCEvent } from '@orpc/server/hibernation'
 
    export const sendMessage = os.handler(async ({ input, context }) => {
      const websockets = context.getWebSockets()
@@ -70,9 +70,9 @@ This example demonstrates how to set up a chat room using [Cloudflare Durable Ob
 ```ts [Durable Object]
 import { RPCHandler } from '@orpc/server/websocket'
 import {
-  experimental_encodeHibernationRPCEvent as encodeHibernationRPCEvent,
-  experimental_HibernationEventIterator as HibernationEventIterator,
-  experimental_HibernationPlugin as HibernationPlugin,
+  encodeHibernationRPCEvent,
+  HibernationEventIterator,
+  HibernationPlugin,
 } from '@orpc/server/hibernation'
 import { onError, os } from '@orpc/server'
 import { DurableObject } from 'cloudflare:workers'

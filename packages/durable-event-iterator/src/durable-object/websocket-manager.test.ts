@@ -5,7 +5,7 @@ import { DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY, DURABLE_EVENT_ITERATOR_TOKEN
 import { DurableEventIteratorObjectEventStorage } from './event-storage'
 import { DurableEventIteratorObjectWebsocketManager } from './websocket-manager'
 
-const encodeHibernationRPCEventSpy = vi.spyOn(Hibernation, 'experimental_encodeHibernationRPCEvent')
+const encodeHibernationRPCEventSpy = vi.spyOn(Hibernation, 'encodeHibernationRPCEvent')
 
 beforeEach(() => {
   vi.clearAllMocks()

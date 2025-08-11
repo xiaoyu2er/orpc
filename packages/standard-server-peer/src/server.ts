@@ -3,7 +3,7 @@ import type { StandardRequest, StandardResponse } from '@orpc/standard-server'
 import type { EventIteratorPayload } from './codec'
 import type { EncodedMessage, EncodedMessageSendFn } from './types'
 import { AbortError, AsyncIdQueue, getGlobalOtelConfig, isAsyncIteratorObject, runWithSpan } from '@orpc/shared'
-import { experimental_HibernationEventIterator, isEventIteratorHeaders } from '@orpc/standard-server'
+import { HibernationEventIterator, isEventIteratorHeaders } from '@orpc/standard-server'
 import { decodeRequestMessage, encodeResponseMessage, MessageType } from './codec'
 import { resolveEventIterator, toEventIterator } from './event-iterator'
 
@@ -159,7 +159,7 @@ export class ServerPeer {
       await this.send(id, MessageType.RESPONSE, response)
 
       if (!signal.aborted && isAsyncIteratorObject(response.body)) {
-        if (response.body instanceof experimental_HibernationEventIterator) {
+        if (response.body instanceof HibernationEventIterator) {
           response.body.hibernationCallback?.(id)
         }
         else {

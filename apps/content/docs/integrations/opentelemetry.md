@@ -142,7 +142,7 @@ process.on('unhandledRejection', (reason) => {
 
 ## Capture Abort Signals
 
-If your application heavily uses [Event Iterator](/docs/event-iterator) or similar streaming patterns, we recommend capturing an event when the `signal` is aborted to properly detach infinite streams and prevent memory leaks:
+If your application heavily uses [Event Iterator](/docs/event-iterator) or similar streaming patterns, we recommend capturing an event when the `signal` is aborted to properly track and detach unexpected long-running operations:
 
 ```ts
 import { trace } from '@opentelemetry/api'

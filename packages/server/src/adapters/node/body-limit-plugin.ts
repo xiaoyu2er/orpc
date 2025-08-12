@@ -2,6 +2,7 @@ import type { Context } from '../../context'
 import type { NodeHttpHandlerOptions } from './handler'
 import type { NodeHttpHandlerPlugin } from './plugin'
 import { ORPCError } from '@orpc/client'
+import { once } from '@orpc/shared'
 
 export interface BodyLimitPluginOptions {
   /**
@@ -26,17 +27,14 @@ export class BodyLimitPlugin<T extends Context> implements NodeHttpHandlerPlugin
     options.adapterInterceptors ??= []
 
     options.adapterInterceptors.push(async (options) => {
-      let isHeaderChecked = false
-
-      const checkHeader = () => {
-        if (!isHeaderChecked && Number(options.request.headers['content-length']) > this.maxBodySize) {
+      const checkHeader = once(() => {
+        if (Number(options.request.headers['content-length']) > this.maxBodySize) {
           throw new ORPCError('PAYLOAD_TOO_LARGE')
         }
+      })
 
-        isHeaderChecked = true
-      }
-
-      const originalEmit = options.request.emit.bind(options.request)
+      const originalEmit = options.request.emit
+      const bindedEmit = originalEmit.bind(options.request)
 
       let currentBodySize = 0
 
@@ -51,10 +49,14 @@ export class BodyLimitPlugin<T extends Context> implements NodeHttpHandlerPlugin
           }
         }
 
-        return originalEmit(event, ...args)
+        return bindedEmit(event, ...args)
       }
 
-      return options.next()
+      const result = await options.next()
+
+      options.request.emit = originalEmit
+
+      return result
     })
   }
 }

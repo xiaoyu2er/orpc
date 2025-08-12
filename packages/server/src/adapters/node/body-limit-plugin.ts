@@ -54,7 +54,8 @@ export class BodyLimitPlugin<T extends Context> implements NodeHttpHandlerPlugin
 
       try {
         return await options.next(options)
-      } finally {
+      }
+      finally {
         options.request.emit = originalEmit
       }
     })

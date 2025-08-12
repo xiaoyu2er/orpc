@@ -52,11 +52,11 @@ export class BodyLimitPlugin<T extends Context> implements NodeHttpHandlerPlugin
         return bindedEmit(event, ...args)
       }
 
-      const result = await options.next()
-
-      options.request.emit = originalEmit
-
-      return result
+      try {
+        return await options.next(options)
+      } finally {
+        options.request.emit = originalEmit
+      }
     })
   }
 }

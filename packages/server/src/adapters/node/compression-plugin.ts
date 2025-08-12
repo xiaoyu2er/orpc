@@ -31,6 +31,7 @@ export class CompressionPlugin<T extends Context> implements NodeHttpHandlerPlug
        * These methods are proxied by the compression handler, so we need to
        * store the original methods to call them after compression is done
        * to prevent side effects to other code outside of this plugin.
+       * https://github.com/expressjs/compression/blob/master/index.js#L97-L153
        */
       const originalWrite = options.response.write
       const originalEnd = options.response.end

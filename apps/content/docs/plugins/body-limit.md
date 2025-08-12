@@ -29,3 +29,7 @@ const handler = new RPCHandler(router, {
   ],
 })
 ```
+
+::: info
+The `handler` can be any supported oRPC handler, such as [RPCHandler](/docs/rpc-handler), [OpenAPIHandler](/docs/openapi/openapi-handler), or another custom handler.
+:::

@@ -16,7 +16,7 @@ However, the Fetch API in React Native has limitations. oRPC features like `File
 :::
 
 ::: tip
-If you're using `RPCHandler/Link`, you can temporarily add support for `File` and `Blob` by extending the [RPC JSON Serializer](/docs/advanced/rpc-json-serializer#extending-native-data-types) to encode these types as Base64.
+If you're using `RPCHandler/Link`, you can temporarily add support for binary data by extending the [RPC JSON Serializer](/docs/advanced/rpc-json-serializer#extending-native-data-types) to encode these types as Base64.
 :::
 
 ```ts

@@ -12,7 +12,7 @@ Enable type-safe communication between browser scripts using the [Message Port A
 To set up communication between scripts in a browser extension (e.g. background, content, popup), configure one script to listen for connections and upgrade them, and another to initiate the connection.
 
 ::: warning
-The browser extension [Message Passing API](https://developer.chrome.com/docs/extensions/develop/concepts/messaging) does not support transferring binary data, which means oRPC features like `File` and `Blob` cannot be used natively. However, you can temporarily work around this limitation by extending the [RPC JSON Serializer](/docs/advanced/rpc-json-serializer#extending-native-data-types) to encode `File` and `Blob` as Base64.
+The browser extension [Message Passing API](https://developer.chrome.com/docs/extensions/develop/concepts/messaging) does not support transferring binary data, which means oRPC features like `File` and `Blob` cannot be used natively. However, you can temporarily work around this limitation by extending the [RPC JSON Serializer](/docs/advanced/rpc-json-serializer#extending-native-data-types) to encode binary data as Base64.
 :::
 
 ::: code-group

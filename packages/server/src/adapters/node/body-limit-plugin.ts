@@ -34,7 +34,6 @@ export class BodyLimitPlugin<T extends Context> implements NodeHttpHandlerPlugin
       })
 
       const originalEmit = options.request.emit
-      const bindedEmit = originalEmit.bind(options.request)
 
       let currentBodySize = 0
 
@@ -49,7 +48,7 @@ export class BodyLimitPlugin<T extends Context> implements NodeHttpHandlerPlugin
           }
         }
 
-        return bindedEmit(event, ...args)
+        return originalEmit.call(options.request, event, ...args)
       }
 
       try {

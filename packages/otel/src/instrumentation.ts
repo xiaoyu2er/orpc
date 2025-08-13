@@ -1,4 +1,5 @@
 import type { InstrumentationConfig, InstrumentationModuleDefinition } from '@opentelemetry/instrumentation'
+// eslint-disable-next-line no-restricted-imports
 import { context, propagation, trace } from '@opentelemetry/api'
 import { InstrumentationBase } from '@opentelemetry/instrumentation'
 import { setGlobalOtelConfig } from '@orpc/shared'

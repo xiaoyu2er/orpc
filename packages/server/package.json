@@ -126,6 +126,7 @@
   "dependencies": {
     "@orpc/client": "workspace:*",
     "@orpc/contract": "workspace:*",
+    "@orpc/interop": "workspace:*",
     "@orpc/shared": "workspace:*",
     "@orpc/standard-server": "workspace:*",
     "@orpc/standard-server-aws-lambda": "workspace:*",
@@ -135,9 +136,7 @@
     "cookie": "^1.0.2"
   },
   "devDependencies": {
-    "@types/compression": "^1.8.1",
     "@types/ws": "^8.18.1",
-    "compression": "^1.8.1",
     "crossws": "^0.4.1",
     "next": "^15.4.5",
     "supertest": "^7.1.4",

@@ -1,7 +1,6 @@
-/* eslint-disable no-restricted-imports */
-import type * as Draft07 from '@orpc/json-schema-typed/draft-07'
-import type * as Draft2019 from '@orpc/json-schema-typed/draft-2019-09'
-import type * as Draft2020 from '@orpc/json-schema-typed/draft-2020-12'
+import type * as Draft07 from '@orpc/interop/json-schema-typed/draft-07'
+import type * as Draft2019 from '@orpc/interop/json-schema-typed/draft-2019-09'
+import type * as Draft2020 from '@orpc/interop/json-schema-typed/draft-2020-12'
 
 export type JsonSchema
   = | Draft2020.JSONSchema

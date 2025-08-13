@@ -27,15 +27,31 @@ export default antfu({
     'no-restricted-imports': ['error', {
       patterns: [{
         group: [
-          'json-schema-typed',
-          'json-schema-typed/*',
-          'openapi-types',
-          'openapi-types/*',
-          '@standard-schema/spec',
-          '@standard-schema/spec/*',
+          '/json-schema-typed',
+          '/openapi-types',
+          '/@standard-schema/spec',
+          '/compression',
         ],
         message: 'Please import from @orpc/* instead',
       }],
+      paths: [
+        {
+          name: '@opentelemetry/api',
+          allowImportNames: [
+            'AttributeValue',
+            'Context',
+            'ContextAPI',
+            'Exception',
+            'PropagationAPI',
+            'Span',
+            'SpanOptions',
+            'SpanStatusCode',
+            'TraceAPI',
+            'Tracer',
+          ],
+          message: 'Require explicit runtime import from @orpc/opentelemetry',
+        },
+      ],
     }],
   },
 }, {
@@ -57,6 +73,7 @@ export default antfu({
     'packages/*/playground/**',
   ],
   rules: {
+    'no-restricted-imports': 'off',
     'no-console': 'off',
     'perfectionist/sort-imports': 'off',
     'import/first': 'off',

@@ -22,7 +22,8 @@ updates:
           - '@antfu/eslint-config'
           - 'eslint-plugin-*'
           - '@hey-api/*'
-          - compression # inline dependency
+          - json-schema-typed # inline
+          - compression # inline
         update-types:
           - minor
           - patch

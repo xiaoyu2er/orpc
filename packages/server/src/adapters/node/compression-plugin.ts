@@ -19,7 +19,11 @@ export class CompressionPlugin<T extends Context> implements NodeHttpHandlerPlug
 
   initRuntimeAdapter(options: NodeHttpHandlerOptions<T>): void {
     options.adapterInterceptors ??= []
-    options.adapterInterceptors.push(async (options) => {
+
+    /**
+     * use `unshift` to ensure this runs before user-defined adapter interceptors
+     */
+    options.adapterInterceptors.unshift(async (options) => {
       let resolve: (value: Awaited<ReturnType<typeof options.next>>) => void
       let reject: (reason?: any) => void
       const promise = new Promise<Awaited<ReturnType<typeof options.next>>>((res, rej) => {

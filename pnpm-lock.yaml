@@ -559,19 +559,19 @@ importers:
       '@orpc/standard-server-peer':
         specifier: workspace:*
         version: link:../standard-server-peer
-      '@types/compression':
-        specifier: ^1.8.1
-        version: 1.8.1
-      compression:
-        specifier: ^1.8.1
-        version: 1.8.1
       cookie:
         specifier: ^1.0.2
         version: 1.0.2
     devDependencies:
+      '@types/compression':
+        specifier: ^1.8.1
+        version: 1.8.1
       '@types/ws':
         specifier: ^8.18.1
         version: 8.18.1
+      compression:
+        specifier: ^1.8.1
+        version: 1.8.1
       crossws:
         specifier: ^0.4.1
         version: 0.4.1

@@ -13,6 +13,7 @@ Depending on your adapter, import the corresponding plugin:
 
 ```ts
 import { CompressionPlugin } from '@orpc/server/node'
+import { CompressionPlugin } from '@orpc/server/fetch'
 ```
 
 ## Setup

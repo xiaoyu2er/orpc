@@ -87,17 +87,15 @@ describe('compressionPlugin', () => {
 
   it('should throw if rootInterceptor throws', async () => {
     const res = await request(async (req: IncomingMessage, res: ServerResponse) => {
-      const rootInterceptors: any[] = []
       const handler = new RPCHandler(os.handler(() => output), {
         plugins: [
           new CompressionPlugin(),
         ],
-        rootInterceptors,
-      })
-
-      // ensure rootInterceptor run after CompressionPlugin
-      rootInterceptors.push(async () => {
-        throw new Error('Test error')
+        rootInterceptors: [
+          async () => {
+            throw new Error('Test error')
+          },
+        ],
       })
 
       await expect(handler.handle(req, res)).rejects.toThrow('Test error')

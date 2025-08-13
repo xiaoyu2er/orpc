@@ -132,12 +132,12 @@
     "@orpc/standard-server-fetch": "workspace:*",
     "@orpc/standard-server-node": "workspace:*",
     "@orpc/standard-server-peer": "workspace:*",
-    "@types/compression": "^1.8.1",
-    "compression": "^1.8.1",
     "cookie": "^1.0.2"
   },
   "devDependencies": {
+    "@types/compression": "^1.8.1",
     "@types/ws": "^8.18.1",
+    "compression": "^1.8.1",
     "crossws": "^0.4.1",
     "next": "^15.4.5",
     "supertest": "^7.1.4",

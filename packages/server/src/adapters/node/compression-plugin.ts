@@ -1,9 +1,16 @@
+import type { NodeHttpRequest, NodeHttpResponse } from '@orpc/standard-server-node'
 import type { Context } from '../../context'
 import type { NodeHttpHandlerOptions } from './handler'
 import type { NodeHttpHandlerPlugin } from './plugin'
 import compression from '@orpc/interop/compression'
 
 export interface CompressionPluginOptions extends compression.CompressionOptions {
+  /**
+   * A filter function to determine if a response should be compressed.
+   * This function is called in addition to the default compression checks
+   * and allows for custom compression logic based on the request and response.
+   */
+  filter?: (req: NodeHttpRequest, res: NodeHttpResponse) => boolean
 }
 /**
  * The Compression Plugin adds response compression to the Node.js HTTP Server.
@@ -14,7 +21,22 @@ export class CompressionPlugin<T extends Context> implements NodeHttpHandlerPlug
   private readonly compressionHandler: ReturnType<typeof compression>
 
   constructor(options: CompressionPluginOptions = {}) {
-    this.compressionHandler = compression(options)
+    this.compressionHandler = compression({
+      ...options,
+      filter: (req, res) => {
+        if (res.getHeader('content-type')?.toString().startsWith('text/event-stream')) {
+          return false
+        }
+
+        if (!compression.filter(req, res)) {
+          return false
+        }
+
+        return options.filter
+          ? options.filter(req, res)
+          : true
+      },
+    })
   }
 
   initRuntimeAdapter(options: NodeHttpHandlerOptions<T>): void {

@@ -150,4 +150,27 @@ describe('compressionPlugin', () => {
     expect(res.status).toBe(500)
     expect(res.headers['content-encoding']).toBeUndefined()
   })
+
+  it('should not compress event iterator responses', async () => {
+    const res = await request(async (req: IncomingMessage, res: ServerResponse) => {
+      const handler = new RPCHandler(os.handler(async function* () {
+        yield 'yield1'
+        yield 'yield2'
+      }), {
+        plugins: [
+          new CompressionPlugin(),
+        ],
+      })
+
+      await handler.handle(req, res)
+    })
+      .post('/')
+      .set('accept-encoding', 'gzip, deflate')
+      .send({ input: 'test' })
+
+    expect(res.status).toBe(200)
+    expect(res.headers['content-encoding']).toBeUndefined()
+    expect(res.text).toContain('yield1')
+    expect(res.text).toContain('yield2')
+  })
 })

@@ -517,4 +517,31 @@ describe('compressionPlugin', () => {
 
     expect(filter).toHaveBeenCalledWith(expect.any(Request), response)
   })
+
+  it('should not compress event iterator responses', async () => {
+    const handler = new RPCHandler(os.handler(async function* () {
+      yield 'event1'
+      yield 'event2'
+    }), {
+      plugins: [
+        new CompressionPlugin(),
+      ],
+    })
+
+    const { response } = await handler.handle(new Request('https://example.com/', {
+      method: 'POST',
+      headers: {
+        'content-type': 'text/event-stream',
+        'accept-encoding': 'gzip',
+      },
+      body: JSON.stringify({}),
+    }))
+
+    expect(response?.headers.get('content-encoding')).toBeNull()
+    expect(response?.status).toBe(200)
+
+    const text = await response?.text()
+    expect(text).toContain('event1')
+    expect(text).toContain('event2')
+  })
 })

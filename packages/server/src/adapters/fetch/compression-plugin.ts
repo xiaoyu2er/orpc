@@ -82,7 +82,11 @@ export class CompressionPlugin<T extends Context> implements FetchHandlerPlugin<
         return result
       }
 
-      const acceptEncoding = options.request.headers.get('accept-encoding')
+      const acceptEncoding = options.request.headers
+        .get('accept-encoding')
+        ?.split(',')
+        .map(enc => enc.trim().split(';')[0]!)
+
       const encoding = this.encodings.find(enc => acceptEncoding?.includes(enc))
 
       if (!response.body || encoding === undefined) {

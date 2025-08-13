@@ -5,11 +5,9 @@ import { CompressionPlugin } from './compression-plugin'
 import { RPCHandler } from './rpc-handler'
 
 describe('compressionPlugin', () => {
-  const output = 'x'.repeat(1024) // Large enough to trigger compression
-
   it('should compress response when accept-encoding includes gzip', async () => {
     const res = await request(async (req: IncomingMessage, res: ServerResponse) => {
-      const handler = new RPCHandler(os.handler(() => output), {
+      const handler = new RPCHandler(os.handler(() => 'output'), {
         plugins: [
           new CompressionPlugin(),
         ],
@@ -29,7 +27,7 @@ describe('compressionPlugin', () => {
 
   it('should not compress response when accept-encoding does not include compression', async () => {
     const res = await request(async (req: IncomingMessage, res: ServerResponse) => {
-      const handler = new RPCHandler(os.handler(() => output), {
+      const handler = new RPCHandler(os.handler(() => 'output'), {
         plugins: [
           new CompressionPlugin(),
         ],
@@ -43,16 +41,33 @@ describe('compressionPlugin', () => {
 
     expect(res.status).toBe(200)
     expect(res.headers['content-encoding']).toBeUndefined()
-    expect(res.text).toContain(output)
+    expect(res.text).toContain('output')
   })
 
-  it('should not compress responses if not satisfying filter', async () => {
+  it('should not compress responses if below threshold', async () => {
     const res = await request(async (req: IncomingMessage, res: ServerResponse) => {
-      const handler = new RPCHandler(os.handler(() => output), {
+      const handler = new RPCHandler(os.handler(() => 'output'), {
         plugins: [
           new CompressionPlugin({
-            filter: () => false, // Disable compression entirely for this test
+            threshold: 1000, // Set a high threshold
           }),
+        ],
+        interceptors: [
+          async (options) => {
+            const result = await options.next()
+
+            if (!result.matched) {
+              return result
+            }
+
+            return {
+              ...result,
+              response: {
+                ...result.response,
+                body: new Blob(['small'], { type: 'text/plain' }),
+              },
+            }
+          },
         ],
       })
 
@@ -64,12 +79,12 @@ describe('compressionPlugin', () => {
 
     expect(res.status).toBe(200)
     expect(res.headers['content-encoding']).toBeUndefined()
-    expect(res.text).toContain(output)
+    expect(res.text).toContain('small')
   })
 
   it('should work with deflate compression', async () => {
     const res = await request(async (req: IncomingMessage, res: ServerResponse) => {
-      const handler = new RPCHandler(os.handler(() => output), {
+      const handler = new RPCHandler(os.handler(() => 'output'), {
         plugins: [
           new CompressionPlugin(),
         ],
@@ -87,7 +102,7 @@ describe('compressionPlugin', () => {
 
   it('should throw if rootInterceptor throws', async () => {
     const res = await request(async (req: IncomingMessage, res: ServerResponse) => {
-      const handler = new RPCHandler(os.handler(() => output), {
+      const handler = new RPCHandler(os.handler(() => 'output'), {
         plugins: [
           new CompressionPlugin(),
         ],
@@ -113,7 +128,7 @@ describe('compressionPlugin', () => {
 
   it('should throw if compression options throw', async () => {
     const res = await request(async (req: IncomingMessage, res: ServerResponse) => {
-      const handler = new RPCHandler(os.handler(() => output), {
+      const handler = new RPCHandler(os.handler(() => 'output'), {
         plugins: [
           new CompressionPlugin({
             filter: () => {

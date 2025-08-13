@@ -32,7 +32,7 @@ export interface CompressionPluginOptions {
    * This function is called in addition to the default compression checks
    * and allows for custom compression logic based on the request and response.
    */
-  filter?: (response: Response, request: Request) => boolean
+  filter?: (request: Request, response: Response) => boolean
 }
 
 /**
@@ -93,7 +93,7 @@ export class CompressionPlugin<T extends Context> implements FetchHandlerPlugin<
         return result
       }
 
-      if (this.filter && !this.filter(response, options.request)) {
+      if (this.filter && !this.filter(options.request, response)) {
         return result
       }
 

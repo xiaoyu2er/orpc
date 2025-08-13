@@ -515,6 +515,6 @@ describe('compressionPlugin', () => {
     await expect(response?.text()).resolves.toContain(largeText)
     expect(response?.headers.has('content-encoding')).toBe(false)
 
-    expect(filter).toHaveBeenCalledWith(response, expect.any(Request))
+    expect(filter).toHaveBeenCalledWith(expect.any(Request), response)
   })
 })

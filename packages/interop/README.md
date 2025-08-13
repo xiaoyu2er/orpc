@@ -1,3 +1,6 @@
+> [!WARNING]
+> This is an internal package. Breaking changes may be introduced without notice - use at your own risk.
+
 <div align="center">
   <image align="center" src="https://orpc.unnoq.com/logo.webp" width=280 alt="oRPC logo" />
 </div>
@@ -8,8 +11,8 @@
   <a href="https://codecov.io/gh/unnoq/orpc">
     <img alt="codecov" src="https://codecov.io/gh/unnoq/orpc/branch/main/graph/badge.svg">
   </a>
-  <a href="https://www.npmjs.com/package/@orpc/json-schema-typed">
-    <img alt="weekly downloads" src="https://img.shields.io/npm/dw/%40orpc%2Fjson-schema-typed?logo=npm" />
+  <a href="https://www.npmjs.com/package/@orpc/interop">
+    <img alt="weekly downloads" src="https://img.shields.io/npm/dw/%40orpc%2Finterop?logo=npm" />
   </a>
   <a href="https://github.com/unnoq/orpc/blob/main/LICENSE">
     <img alt="MIT License" src="https://img.shields.io/github/license/unnoq/orpc?logo=open-source-initiative" />
@@ -60,9 +63,15 @@ You can find the full documentation [here](https://orpc.unnoq.com).
 - [@orpc/valibot](https://www.npmjs.com/package/@orpc/valibot): OpenAPI spec generation from [Valibot](https://valibot.dev/).
 - [@orpc/arktype](https://www.npmjs.com/package/@orpc/arktype): OpenAPI spec generation from [ArkType](https://arktype.io/).
 
-## `@orpc/json-schema-typed`
+## `@orpc/interop`
 
-Re-export of [json-schema-typed](https://www.npmjs.com/package/json-schema-typed) due to the upstream issue [RemyRylan/json-schema-typed#116](https://github.com/RemyRylan/json-schema-typed/issues/116).
+A compatibility layer that builds & re-exports upstream packages that don't yet meet oRPC's requirements.
+
+**Included packages:**
+
+- [json-schema-typed](https://www.npmjs.com/package/json-schema-typed) to address issue [RemyRylan/json-schema-typed#116](https://github.com/RemyRylan/json-schema-typed/issues/116)
+
+- [compression](https://www.npmjs.com/package/compression) for esm compatibility
 
 ## Sponsors
 

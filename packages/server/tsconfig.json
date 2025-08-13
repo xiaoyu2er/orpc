@@ -8,7 +8,8 @@
     { "path": "../standard-server-node" },
     { "path": "../standard-server-aws-lambda" },
     { "path": "../standard-server-peer" },
-    { "path": "../shared" }
+    { "path": "../shared" },
+    { "path": "../interop" }
   ],
   "include": ["src"],
   "exclude": [

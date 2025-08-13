@@ -5,7 +5,7 @@
     { "path": "../server" },
     { "path": "../openapi" },
     { "path": "../contract" },
-    { "path": "../json-schema-typed" }
+    { "path": "../interop" }
   ],
   "include": ["src"],
   "exclude": [

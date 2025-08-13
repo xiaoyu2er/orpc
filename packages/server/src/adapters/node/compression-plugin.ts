@@ -1,7 +1,7 @@
 import type { Context } from '../../context'
 import type { NodeHttpHandlerOptions } from './handler'
 import type { NodeHttpHandlerPlugin } from './plugin'
-import compression from 'compression'
+import compression from '@orpc/interop/compression'
 
 export interface CompressionPluginOptions extends compression.CompressionOptions {
 }

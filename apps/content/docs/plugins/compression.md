@@ -1,6 +1,6 @@
 ---
 title: Compression Plugin
-description: A plugin for oRPC that compresses request and response bodies.
+description: A plugin for oRPC that compresses response bodies.
 ---
 
 # Compression Plugin

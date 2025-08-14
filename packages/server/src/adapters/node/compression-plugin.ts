@@ -6,9 +6,10 @@ import compression from '@orpc/interop/compression'
 
 export interface CompressionPluginOptions extends compression.CompressionOptions {
   /**
-   * A filter function to determine if a response should be compressed.
-   * This function is called in addition to the default compression checks
-   * and allows for custom compression logic based on the request and response.
+   * Override the default content-type filter used to determine which responses should be compressed.
+   *
+   * @warning [Event Iterator](https://orpc.unnoq.com/docs/event-iterator) responses are never compressed, regardless of this filter's return value.
+   * @default only responses with compressible content types are compressed.
    */
   filter?: (req: NodeHttpRequest, res: NodeHttpResponse) => boolean
 }
@@ -24,17 +25,19 @@ export class CompressionPlugin<T extends Context> implements NodeHttpHandlerPlug
     this.compressionHandler = compression({
       ...options,
       filter: (req, res) => {
-        if (res.getHeader('content-type')?.toString().startsWith('text/event-stream')) {
-          return false
-        }
+        const hasContentDisposition = res.hasHeader('content-disposition')
+        const contentType = res.getHeader('content-type')?.toString()
 
-        if (!compression.filter(req, res)) {
+        /**
+         * Never compress Event Iterator responses.
+         */
+        if (!hasContentDisposition && contentType?.startsWith('text/event-stream')) {
           return false
         }
 
         return options.filter
           ? options.filter(req, res)
-          : true
+          : compression.filter(req, res)
       },
     })
   }

@@ -313,6 +313,36 @@ describe('compressionPlugin', () => {
     expect(response?.status).toBe(204)
   })
 
+  it('should not compress when response has no content-type', async () => {
+    const handler = new RPCHandler(os.handler(() => 'output'), {
+      strictGetMethodPluginEnabled: false,
+      plugins: [
+        new CompressionPlugin(),
+      ],
+      adapterInterceptors: [
+        async (options) => {
+          const result = await options.next()
+          result.response?.headers.delete('content-type') // Simulate no content-type
+          return result
+        },
+      ],
+    })
+
+    const { response } = await handler.handle(new Request('https://example.com/', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'accept-encoding': 'gzip',
+      },
+      body: JSON.stringify({}),
+    }))
+
+    expect(response?.headers.has('content-encoding')).toBe(false)
+    expect(response?.headers.has('content-type')).toBe(false)
+    expect(response?.status).toBe(200)
+    await expect(response?.text()).resolves.toContain('output')
+  })
+
   it('should not compress non-compressible content types', async () => {
     const handler = new RPCHandler(os.handler(() => 'output'), {
       plugins: [
@@ -492,7 +522,50 @@ describe('compressionPlugin', () => {
     expect(response).toBeUndefined()
   })
 
-  it('should not compress when custom filter returns false', async () => {
+  it('should override filter and compress if filter return true', async () => {
+    const filter = vi.fn(() => true)
+
+    const handler = new RPCHandler(os.handler(() => largeText), {
+      plugins: [
+        new CompressionPlugin({
+          filter,
+        }),
+      ],
+      interceptors: [
+        async (options) => {
+          const result = await options.next()
+
+          if (!result.matched) {
+            return result
+          }
+
+          return {
+            ...result,
+            response: {
+              ...result.response,
+              // image/jpeg is not compressible by default
+              body: new Blob([largeText], { type: 'image/jpeg' }),
+            },
+          }
+        },
+      ],
+    })
+
+    const { response } = await handler.handle(new Request('https://example.com/', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'accept-encoding': 'gzip',
+      },
+      body: JSON.stringify({}),
+    }))
+
+    expect(response?.headers.get('content-encoding')).toBe('gzip')
+
+    expect(filter).toHaveBeenCalledWith(expect.any(Request), expect.any(Response))
+  })
+
+  it('should not compress when filter returns false', async () => {
     const filter = vi.fn(() => false)
 
     const handler = new RPCHandler(os.handler(() => largeText), {
@@ -524,7 +597,7 @@ describe('compressionPlugin', () => {
       yield 'event2'
     }), {
       plugins: [
-        new CompressionPlugin(),
+        new CompressionPlugin({ filter: () => true }),
       ],
     })
 

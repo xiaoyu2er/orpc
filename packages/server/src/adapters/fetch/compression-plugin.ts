@@ -28,9 +28,10 @@ export interface CompressionPluginOptions {
   threshold?: number
 
   /**
-   * A filter function to determine if a response should be compressed.
-   * This function is called in addition to the default compression checks
-   * and allows for custom compression logic based on the request and response.
+   * Override the default content-type filter used to determine which responses should be compressed.
+   *
+   * @warning [Event Iterator](https://orpc.unnoq.com/docs/event-iterator) responses are never compressed, regardless of this filter's return value.
+   * @default only responses with compressible content types are compressed.
    */
   filter?: (request: Request, response: Response) => boolean
 }
@@ -45,12 +46,26 @@ export interface CompressionPluginOptions {
 export class CompressionPlugin<T extends Context> implements FetchHandlerPlugin<T> {
   private readonly encodings: Exclude<CompressionPluginOptions['encodings'], undefined>
   private readonly threshold: Exclude<CompressionPluginOptions['threshold'], undefined>
-  private readonly filter: CompressionPluginOptions['filter']
+  private readonly filter: Exclude<CompressionPluginOptions['filter'], undefined>
 
   constructor(options: CompressionPluginOptions = {}) {
     this.encodings = options.encodings ?? ORDERED_SUPPORTED_ENCODINGS
     this.threshold = options.threshold ?? 1024
-    this.filter = options.filter
+    this.filter = (request, response) => {
+      const hasContentDisposition = response.headers.has('content-disposition')
+      const contentType = response.headers.get('content-type')
+
+      /**
+       * Never compress Event Iterator responses.
+       */
+      if (!hasContentDisposition && contentType?.startsWith('text/event-stream')) {
+        return false
+      }
+
+      return options.filter
+        ? options.filter(request, response)
+        : isCompressibleContentType(contentType)
+    }
   }
 
   initRuntimeAdapter(options: FetchHandlerOptions<T>): void {
@@ -71,7 +86,6 @@ export class CompressionPlugin<T extends Context> implements FetchHandlerPlugin<
       if (
         response.headers.has('content-encoding') // already encoded
         || response.headers.has('transfer-encoding') // already encoded or chunked
-        || !isCompressibleContentType(response.headers.get('content-type')) // not compressible
         || isNoTransformCacheControl(response.headers.get('cache-control')) // no-transform directive
       ) {
         return result
@@ -93,7 +107,7 @@ export class CompressionPlugin<T extends Context> implements FetchHandlerPlugin<
         return result
       }
 
-      if (this.filter && !this.filter(options.request, response)) {
+      if (!this.filter(options.request, response)) {
         return result
       }
 

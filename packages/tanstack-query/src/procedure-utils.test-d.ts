@@ -148,7 +148,7 @@ describe('ProcedureUtils', () => {
         maxPages: number
         queryFn: QueryFunction<UtilsOutput>
         throwOnError?(error: UtilsError): boolean
-        enabled: boolean | undefined
+        enabled?: boolean
       }>()
     })
 
@@ -281,7 +281,7 @@ describe('ProcedureUtils', () => {
         maxPages: number
         queryFn: QueryFunction<UtilsOutput>
         throwOnError?(error: UtilsError): boolean
-        enabled: boolean | undefined
+        enabled?: boolean
       }>()
     })
 
@@ -410,7 +410,7 @@ describe('ProcedureUtils', () => {
         maxPages: number
         queryFn: QueryFunction<UtilsOutput[number]>
         throwOnError?(error: UtilsError): boolean
-        enabled: boolean | undefined
+        enabled?: boolean
       }>()
     })
 
@@ -661,7 +661,7 @@ describe('ProcedureUtils', () => {
         maxPages: number
         queryFn: QueryFunction<UtilsOutput>
         throwOnError?(error: UtilsError): boolean
-        enabled: boolean | undefined
+        enabled?: boolean
       }>()
     })
 

@@ -33,6 +33,7 @@ describe('createProcedureUtils', () => {
     it('without skipToken', async () => {
       const options = utils.queryOptions({ input: { search: '__search__' }, context: { batch: '__batch__' } })
 
+      expect('enabled' in options).toBe(false)
       expect(options.enabled).toBe(undefined)
 
       expect(options.queryKey).toBe(generateOperationKeySpy.mock.results[0]!.value)
@@ -72,6 +73,7 @@ describe('createProcedureUtils', () => {
         queryFnOptions: { refetchMode: 'replace' },
       })
 
+      expect('enabled' in options).toBe(false)
       expect(options.enabled).toBe(undefined)
 
       expect(options.queryKey).toBe(generateOperationKeySpy.mock.results[0]!.value)
@@ -130,6 +132,7 @@ describe('createProcedureUtils', () => {
         initialPageParam: '__initialPageParam__',
       })
 
+      expect('enabled' in options).toBe(false)
       expect(options.enabled).toBe(undefined)
 
       expect(options.queryKey).toBe(generateOperationKeySpy.mock.results[0]!.value)

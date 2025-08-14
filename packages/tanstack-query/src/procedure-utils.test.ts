@@ -46,7 +46,8 @@ describe('createProcedureUtils', () => {
     it('without skipToken', async () => {
       const options = utils.queryOptions({ input: { search: '__search__' }, context: { batch: '__batch__' } })
 
-      expect(options.enabled).toBe(undefined)
+      expect('enabled' in options).toBe(false)
+      expect(options.enabled).toBeUndefined()
 
       expect(options.queryKey).toBe(generateOperationKeySpy.mock.results[0]!.value)
       expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
@@ -97,7 +98,8 @@ describe('createProcedureUtils', () => {
         },
       })
 
-      expect(options.enabled).toBe(undefined)
+      expect('enabled' in options).toBe(false)
+      expect(options.enabled).toBeUndefined()
 
       expect(options.queryKey).toBe(generateOperationKeySpy.mock.results[0]!.value)
       expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
@@ -182,7 +184,8 @@ describe('createProcedureUtils', () => {
         context: { batch: '__batch__' },
       })
 
-      expect(options.enabled).toBe(undefined)
+      expect('enabled' in options).toBe(false)
+      expect(options.enabled).toBeUndefined()
 
       expect(options.queryKey).toBe(generateOperationKeySpy.mock.results[0]!.value)
       expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
@@ -268,7 +271,8 @@ describe('createProcedureUtils', () => {
         initialPageParam: '__initialPageParam__',
       })
 
-      expect(options.enabled).toBe(undefined)
+      expect('enabled' in options).toBe(false)
+      expect(options.enabled).toBeUndefined()
 
       expect(options.queryKey).toBe(generateOperationKeySpy.mock.results[0]!.value)
       expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)

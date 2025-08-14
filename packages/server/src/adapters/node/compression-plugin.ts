@@ -25,7 +25,7 @@ export class CompressionPlugin<T extends Context> implements NodeHttpHandlerPlug
     this.compressionHandler = compression({
       ...options,
       filter: (req, res) => {
-        const hasContentDisposition = res.getHeader('content-disposition') !== undefined
+        const hasContentDisposition = res.hasHeader('content-disposition')
         const contentType = res.getHeader('content-type')?.toString()
 
         /**

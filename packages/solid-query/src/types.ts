@@ -20,10 +20,10 @@ export interface QueryOptionsBase<TOutput, TError> {
   queryFn(ctx: QueryFunctionContext): Promise<TOutput>
   throwOnError?(error: TError): boolean // Help TQ infer TError
   retryDelay?: (count: number, error: TError) => number // Help TQ infer TError (suspense hooks)
-  enabled: boolean | undefined
+  enabled?: boolean
 }
 
-type experimental_StreamedQueryOptions = Omit<Parameters<typeof streamedQuery>[0]['refetchMode'], 'queryFn'>
+type experimental_StreamedQueryOptions = Omit<Parameters<typeof streamedQuery>[0], 'queryFn'>
 
 export type experimental_InferStreamedOutput<TOutput> = TOutput extends AsyncIterable<infer U> ? U[] : never
 
@@ -44,7 +44,7 @@ export interface InfiniteOptionsBase<TOutput, TError, TPageParam> {
   queryFn(ctx: QueryFunctionContext<QueryKey, TPageParam>): Promise<TOutput>
   throwOnError?(error: TError): boolean // Help TQ infer TError
   retryDelay?: (count: number, error: TError) => number // Help TQ infer TError (suspense hooks)
-  enabled: boolean | undefined
+  enabled?: boolean
 }
 
 export type MutationOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TMutationContext>

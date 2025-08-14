@@ -184,7 +184,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
             } satisfies OperationContext,
           })
         },
-        enabled: optionsIn.input === skipToken ? false : undefined,
+        ...optionsIn.input === skipToken ? { enabled: false } : {},
         ...optionsIn,
         queryKey,
       }
@@ -200,7 +200,6 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
       const queryKey = utils.experimental_streamedKey(optionsIn)
 
       return {
-        enabled: optionsIn.input === skipToken ? false : undefined,
         queryFn: experimental_streamedQuery({
           queryFn: async ({ signal }) => {
             if (optionsIn.input === skipToken) {
@@ -226,6 +225,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
           },
           ...optionsIn.queryFnOptions,
         }),
+        ...optionsIn.input === skipToken ? { enabled: false } : {},
         ...optionsIn,
         queryKey,
       }
@@ -241,7 +241,6 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
       const queryKey = utils.experimental_liveKey(optionsIn)
 
       return {
-        enabled: optionsIn.input === skipToken ? false : undefined,
         queryFn: experimental_liveQuery(async ({ signal }) => {
           if (optionsIn.input === skipToken) {
             throw new Error('queryFn should not be called with skipToken used as input')
@@ -264,6 +263,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
 
           return output
         }),
+        ...optionsIn.input === skipToken ? { enabled: false } : {},
         ...optionsIn,
         queryKey,
       }
@@ -298,7 +298,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
             } as any,
           })
         },
-        enabled: optionsIn.input === skipToken ? false : undefined,
+        ...optionsIn.input === skipToken ? { enabled: false } : {},
         ...(optionsIn as any),
         queryKey,
       }

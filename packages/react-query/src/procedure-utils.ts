@@ -87,14 +87,13 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
 
           return client(optionsIn.input, { signal, context: optionsIn.context })
         },
-        enabled: optionsIn.input === skipToken ? false : undefined,
+        ...optionsIn.input === skipToken ? { enabled: false } : {},
         ...optionsIn,
       }
     },
 
     experimental_streamedOptions(...[optionsIn = {} as any]) {
       return {
-        enabled: optionsIn.input === skipToken ? false : undefined,
         queryKey: generateOperationKey(options.path, { type: 'streamed', input: optionsIn.input, fnOptions: optionsIn.queryFnOptions }),
         queryFn: streamedQuery({
           queryFn: async ({ signal }) => {
@@ -112,6 +111,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
           },
           ...optionsIn.queryFnOptions,
         }),
+        ...optionsIn.input === skipToken ? { enabled: false } : {},
         ...optionsIn,
       }
     },
@@ -129,7 +129,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
 
           return client(optionsIn.input(pageParam as any), { signal, context: optionsIn.context as any })
         },
-        enabled: optionsIn.input === skipToken ? false : undefined,
+        ...optionsIn.input === skipToken ? { enabled: false } : {},
         ...(optionsIn as any),
       }
     },

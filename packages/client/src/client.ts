@@ -1,4 +1,5 @@
 import type { Client, ClientLink, FriendlyClientOptions, InferClientContext, NestedClient } from './types'
+import { preventNativeAwait } from '@orpc/shared'
 import { resolveFriendlyClientOptions } from './utils'
 
 export interface createORPCClientOptions {
@@ -38,5 +39,5 @@ export function createORPCClient<T extends NestedClient<any>>(
     },
   })
 
-  return recursive as any
+  return preventNativeAwait(recursive) as any
 }

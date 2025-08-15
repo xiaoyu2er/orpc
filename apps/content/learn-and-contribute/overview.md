@@ -7,6 +7,10 @@ description: Discover how to learn and contribute to the oRPC project, including
 
 Welcome to the **Learn & Contribute** section! Here you can explore advanced guides and resources to deepen your understanding of oRPC and contribute to its development.
 
+::: info
+[oRPC DeepWiki](https://deepwiki.com/unnoq/orpc) provides an excellent overview of the oRPC project, where you can interact with an AI assistant to learn more about the codebase and get detailed insights.
+:::
+
 ## Architecture Overview
 
 Each part of oRPC serves a specific purpose in the overall system. The source files linked below provide detailed implementation insights for contributors.

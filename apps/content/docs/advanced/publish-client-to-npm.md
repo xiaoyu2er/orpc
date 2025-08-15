@@ -51,6 +51,9 @@ Next, configure your `package.json` with the necessary fields for publishing to 
   "name": "<package-name>", // [!code highlight]
   "type": "module",
   "version": "0.0.0", // [!code highlight]
+  "publishConfig": {
+    "access": "public" // [!code highlight]
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts", // [!code highlight]
@@ -63,7 +66,7 @@ Next, configure your `package.json` with the necessary fields for publishing to 
   ],
   "scripts": {
     "build": "tsdown --dts src/index.ts", // [!code highlight]
-    "publish": "pnpm publish --access public" // [!code highlight]
+    "release": "pnpm publish" // [!code highlight]
   },
   "dependencies": {
     "@orpc/client": "...", // [!code highlight]
@@ -84,7 +87,7 @@ After completing the necessary setup, commit your changes and run the following 
 ```bash
 pnpm login # if you haven't logged in yet
 pnpm run build
-pnpm run publish
+pnpm run release
 ```
 
 ## Install & Use

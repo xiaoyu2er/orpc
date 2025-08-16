@@ -84,4 +84,19 @@ describe('preventNativeAwait', () => {
     expect(result3_2.then(1, 2, 3)).toEqual({ args: [1, 2, 3] })
     expect(result3_2.catch(4, 5, 6)).toEqual({ args: [4, 5, 6] })
   })
+
+  it('resolves via Promise.resolve without triggering thenable assimilation', async () => {
+    const obj = { value: 42 }
+    const proxy = preventNativeAwait(obj)
+    await expect(Promise.resolve(proxy)).resolves.toEqual(obj)
+
+    const obj2 = { then: 123 }
+    const proxy2 = preventNativeAwait(obj2)
+    await expect(Promise.resolve(proxy2)).resolves.toEqual(obj2)
+
+    const obj3 = { then: (...args: any[]) => ({ args }) }
+    const proxy3 = preventNativeAwait(obj3)
+    const resolved = await Promise.resolve(proxy3 as any)
+    expect(resolved.then(1, 2, 3)).toEqual({ args: [1, 2, 3] })
+  })
 })

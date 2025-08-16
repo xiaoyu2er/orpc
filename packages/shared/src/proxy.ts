@@ -1,4 +1,4 @@
-const NATIVE_FUNCTION_REGEX = /^\s*function\s*\(\)\s*\{\s*\[native code\]\s*\}\s*$/
+import type { AnyFunction } from './function'
 
 /**
  * Prevents objects from being awaitable by intercepting the `then` method
@@ -19,10 +19,7 @@ export function preventNativeAwait<T extends object>(target: T): T {
           /**
            * Do nothing if .then not triggered by `await`
            */
-          if (
-            args.length !== 2
-            || args.some(arg => typeof arg !== 'function' || !NATIVE_FUNCTION_REGEX.test(arg.toString()))
-          ) {
+          if (args.length !== 2 || args.some(arg => !isNativeFunction(arg))) {
             return Reflect.apply(targetFn, thisArg, args)
           }
 
@@ -44,4 +41,9 @@ export function preventNativeAwait<T extends object>(target: T): T {
       })
     },
   })
+}
+
+const NATIVE_FUNCTION_REGEX = /^\s*function\s*\(\)\s*\{\s*\[native code\]\s*\}\s*$/
+function isNativeFunction(fn: unknown): fn is AnyFunction {
+  return typeof fn === 'function' && NATIVE_FUNCTION_REGEX.test(fn.toString())
 }

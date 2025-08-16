@@ -45,4 +45,20 @@ describe('createORPCClient', () => {
     const client = createORPCClient(mockedLink) as any
     expect(client[Symbol('test')]).toBeUndefined()
   })
+
+  it('prevent native await', async () => {
+    const client = createORPCClient(mockedLink) as any
+
+    const client2 = await client
+    expect(await client2.then({ value: 'client2' })).toEqual('__mocked__')
+    expect(mockedLink.call).toHaveBeenNthCalledWith(1, ['then'], { value: 'client2' }, { context: {} })
+
+    const client3 = await client2.then
+    expect(await client3.something({ value: 'client3' })).toEqual('__mocked__')
+    expect(mockedLink.call).toHaveBeenNthCalledWith(2, ['then', 'something'], { value: 'client3' }, { context: {} })
+
+    const client4 = await client3.something
+    expect(await client4.then({ value: 'client4' })).toEqual('__mocked__')
+    expect(mockedLink.call).toHaveBeenNthCalledWith(3, ['then', 'something', 'then'], { value: 'client4' }, { context: {} })
+  })
 })

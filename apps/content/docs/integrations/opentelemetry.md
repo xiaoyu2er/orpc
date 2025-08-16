@@ -11,6 +11,8 @@ description: Seamlessly integrate oRPC with OpenTelemetry for distributed tracin
 This guide assumes familiarity with [OpenTelemetry](https://opentelemetry.io/). Review the official documentation if needed.
 :::
 
+![oRPC OpenTelemetry Integration Preview](/images/opentelemetry-integration-preview.png)
+
 ::: info
 See the complete example in our [Bun WebSocket + OpenTelemetry Playground](/docs/playgrounds).
 :::

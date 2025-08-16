@@ -93,7 +93,9 @@ const setting = os
 declare function auth(): { userId: number } | null
 ```
 
-> When you pass additional context to `next`, it will be merged with the existing context.
+::: info
+When you pass additional context to `next`, it will be merged with the existing context.
+:::
 
 ## Middleware Input
 

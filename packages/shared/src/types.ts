@@ -14,3 +14,5 @@ export interface Registry {
 }
 
 export type ThrowableError = Registry extends { throwableError: infer T } ? T : Error
+
+export type InferAsyncIterableYield<T> = T extends AsyncIterable<infer U> ? U : never

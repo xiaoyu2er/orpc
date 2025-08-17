@@ -70,4 +70,4 @@ export type CreateSubscriberOptions<TClientContext extends ClientContext> = Crea
 export type Subscriber<TInput, TOutput, TError> = (
   key: Key<TInput>,
   options: SWRSubscriptionOptions<TOutput, TError>,
-) => Promise<(() => void)>
+) => (() => void)

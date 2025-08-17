@@ -60,16 +60,17 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
     subscriber(...rest) {
       const { context, maxChunks } = resolveCreateFetcherOptions(resolveMaybeOptionalOptions(rest))
 
-      return async ([,{ input }], { next }) => {
+      return ([,{ input }], { next }) => {
         const controller = new AbortController()
-        const iterator = await client(input, { context, signal: controller.signal })
-
-        if (!isAsyncIteratorObject(iterator)) {
-          throw new Error('.subscriber requires an event iterator output')
-        }
 
         void (async () => {
           try {
+            const iterator = await client(input, { context, signal: controller.signal })
+
+            if (!isAsyncIteratorObject(iterator)) {
+              throw new Error('.subscriber requires an event iterator output')
+            }
+
             for await (const event of iterator) {
               next(undefined, (old) => {
                 const newData = Array.isArray(old) ? [...old, event] : [event]
@@ -83,7 +84,12 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
             }
           }
           catch (error) {
-            next(error as ThrowableError)
+            /**
+             * Only report the error if the controller is not aborted.
+             */
+            if (!controller.signal.aborted) {
+              next(error as ThrowableError)
+            }
           }
         })()
 
@@ -96,22 +102,28 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
     liveSubscriber(...rest) {
       const { context } = resolveCreateFetcherOptions(resolveMaybeOptionalOptions(rest))
 
-      return async ([,{ input }], { next }) => {
+      return ([,{ input }], { next }) => {
         const controller = new AbortController()
-        const iterator = await client(input, { context, signal: controller.signal })
-
-        if (!isAsyncIteratorObject(iterator)) {
-          throw new Error('.liveSubscriber requires an event iterator output')
-        }
 
         void (async () => {
           try {
+            const iterator = await client(input, { context, signal: controller.signal })
+
+            if (!isAsyncIteratorObject(iterator)) {
+              throw new Error('.liveSubscriber requires an event iterator output')
+            }
+
             for await (const event of iterator) {
               next(undefined, event)
             }
           }
           catch (error) {
-            next(error as ThrowableError)
+            /**
+             * Only report the error if the controller is not aborted.
+             */
+            if (!controller.signal.aborted) {
+              next(error as ThrowableError)
+            }
           }
         })()
 

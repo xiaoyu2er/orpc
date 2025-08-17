@@ -29,7 +29,7 @@ describe('createProcedureUtils', () => {
   describe('.subscriber', async () => {
     it('on success', async () => {
       client.mockImplementationOnce(async function* () {
-        await new Promise(resolve => setTimeout(resolve, 100))
+        await new Promise(resolve => setTimeout(resolve, 10))
         yield '__event__1'
         yield '__event__2'
         yield '__event__3'
@@ -37,13 +37,13 @@ describe('createProcedureUtils', () => {
       const subscriber = utils.subscriber({ context: { batch: true }, maxChunks: 2 })
 
       const next = vi.fn()
-      const unsubscribe = await subscriber([['ping'], { input: { search: '__search__' } }], { next })
+      const unsubscribe = subscriber([['ping'], { input: { search: '__search__' } }], { next })
 
       expect(unsubscribe).toBeInstanceOf(Function)
       expect(client).toHaveBeenCalledTimes(1)
       expect(client).toHaveBeenCalledWith({ search: '__search__' }, { context: { batch: true }, signal: expect.any(AbortSignal) })
 
-      await new Promise(resolve => setTimeout(resolve, 100))
+      await new Promise(resolve => setTimeout(resolve, 20))
 
       expect(next).toHaveBeenCalledTimes(3)
       expect(next).toHaveBeenCalledWith(undefined, expect.any(Function))
@@ -64,7 +64,7 @@ describe('createProcedureUtils', () => {
       const subscriber = utils.subscriber({ context: { batch: true }, maxChunks: 2 })
 
       const next = vi.fn()
-      const unsubscribe = await subscriber([['ping'], { input: { search: '__search__' } }], { next })
+      const unsubscribe = subscriber([['ping'], { input: { search: '__search__' } }], { next })
       await new Promise(resolve => setTimeout(resolve, 10))
       unsubscribe()
 
@@ -75,22 +75,36 @@ describe('createProcedureUtils', () => {
 
     it('on error while yielding', async () => {
       client.mockImplementationOnce(async function* () {
-        await new Promise(resolve => setTimeout(resolve, 100))
+        await new Promise(resolve => setTimeout(resolve, 10))
         throw new Error('__error__')
       })
       const subscriber = utils.subscriber({ context: { batch: true }, maxChunks: 2 })
 
       const next = vi.fn()
-      const unsubscribe = await subscriber([['ping'], { input: { search: '__search__' } }], { next })
+      const unsubscribe = subscriber([['ping'], { input: { search: '__search__' } }], { next })
 
       expect(unsubscribe).toBeInstanceOf(Function)
       expect(client).toHaveBeenCalledTimes(1)
       expect(client).toHaveBeenCalledWith({ search: '__search__' }, { context: { batch: true }, signal: expect.any(AbortSignal) })
 
-      await new Promise(resolve => setTimeout(resolve, 100))
+      await new Promise(resolve => setTimeout(resolve, 20))
 
       expect(next).toHaveBeenCalledTimes(1)
       expect(next).toHaveBeenCalledWith(new Error('__error__'))
+    })
+
+    it('on error after unsubscribe', async () => {
+      client.mockImplementationOnce(async function* () {
+        await new Promise(resolve => setTimeout(resolve, 10))
+        throw new Error('__error__')
+      })
+      const subscriber = utils.subscriber({ context: { batch: true }, maxChunks: 2 })
+
+      const next = vi.fn()
+      const unsubscribe = subscriber([['ping'], { input: { search: '__search__' } }], { next })
+      unsubscribe()
+      await new Promise(resolve => setTimeout(resolve, 20))
+      expect(next).toHaveBeenCalledTimes(0)
     })
 
     it('on non-AsyncIteratorObject output', async () => {
@@ -98,7 +112,12 @@ describe('createProcedureUtils', () => {
       const subscriber = utils.subscriber({ context: { batch: true } })
 
       const next = vi.fn()
-      await expect(subscriber([['ping'], { input: { search: '__search__' } }], { next })).rejects.toThrow('.subscriber requires an event iterator output')
+      const unsubscribe = subscriber([['ping'], { input: { search: '__search__' } }], { next })
+
+      await new Promise(resolve => setTimeout(resolve, 10))
+
+      expect(next).toHaveBeenCalledTimes(1)
+      expect(next).toHaveBeenCalledWith(new Error('.subscriber requires an event iterator output'))
     })
   })
 
@@ -129,7 +148,7 @@ describe('createProcedureUtils', () => {
 
     it('on unsubscribe', async () => {
       client.mockImplementationOnce(async function* () {
-        await new Promise(resolve => setTimeout(resolve, 100))
+        await new Promise(resolve => setTimeout(resolve, 10))
         yield '__event__1'
         yield '__event__2'
         yield '__event__3'
@@ -137,8 +156,8 @@ describe('createProcedureUtils', () => {
       const subscriber = utils.liveSubscriber({ context: { batch: true } })
 
       const next = vi.fn()
-      const unsubscribe = await subscriber([['ping'], { input: { search: '__search__' } }], { next })
-      await new Promise(resolve => setTimeout(resolve, 10))
+      const unsubscribe = subscriber([['ping'], { input: { search: '__search__' } }], { next })
+      await new Promise(resolve => setTimeout(resolve, 20))
       unsubscribe()
 
       expect(client).toHaveBeenCalledTimes(1)
@@ -148,22 +167,36 @@ describe('createProcedureUtils', () => {
 
     it('on error while yielding', async () => {
       client.mockImplementationOnce(async function* () {
-        await new Promise(resolve => setTimeout(resolve, 100))
+        await new Promise(resolve => setTimeout(resolve, 10))
         throw new Error('__error__')
       })
       const subscriber = utils.liveSubscriber({ context: { batch: true } })
 
       const next = vi.fn()
-      const unsubscribe = await subscriber([['ping'], { input: { search: '__search__' } }], { next })
+      const unsubscribe = subscriber([['ping'], { input: { search: '__search__' } }], { next })
 
       expect(unsubscribe).toBeInstanceOf(Function)
       expect(client).toHaveBeenCalledTimes(1)
       expect(client).toHaveBeenCalledWith({ search: '__search__' }, { context: { batch: true }, signal: expect.any(AbortSignal) })
 
-      await new Promise(resolve => setTimeout(resolve, 100))
+      await new Promise(resolve => setTimeout(resolve, 20))
 
       expect(next).toHaveBeenCalledTimes(1)
       expect(next).toHaveBeenCalledWith(new Error('__error__'))
+    })
+
+    it('on error after unsubscribe', async () => {
+      client.mockImplementationOnce(async function* () {
+        await new Promise(resolve => setTimeout(resolve, 10))
+        throw new Error('__error__')
+      })
+      const subscriber = utils.liveSubscriber({ context: { batch: true } })
+
+      const next = vi.fn()
+      const unsubscribe = subscriber([['ping'], { input: { search: '__search__' } }], { next })
+      unsubscribe()
+      await new Promise(resolve => setTimeout(resolve, 20))
+      expect(next).toHaveBeenCalledTimes(0)
     })
 
     it('on non-AsyncIteratorObject output', async () => {
@@ -171,7 +204,10 @@ describe('createProcedureUtils', () => {
       const subscriber = utils.liveSubscriber({ context: { batch: true } })
 
       const next = vi.fn()
-      await expect(subscriber([['ping'], { input: { search: '__search__' } }], { next })).rejects.toThrow('.liveSubscriber requires an event iterator output')
+      const unsubscribe = subscriber([['ping'], { input: { search: '__search__' } }], { next })
+      await new Promise(resolve => setTimeout(resolve, 10))
+      expect(next).toHaveBeenCalledTimes(1)
+      expect(next).toHaveBeenCalledWith(new Error('.liveSubscriber requires an event iterator output'))
     })
   })
 

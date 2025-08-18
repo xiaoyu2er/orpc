@@ -5,7 +5,7 @@ import type { Context } from './context'
 import type { ORPCErrorConstructorMap } from './error'
 import type { Lazyable } from './lazy'
 import type { AnyProcedure, Procedure, ProcedureHandlerOptions } from './procedure'
-import { ORPCError } from '@orpc/client'
+import { mapEventIterator, ORPCError } from '@orpc/client'
 import { ValidationError } from '@orpc/contract'
 import { asyncIteratorWithSpan, intercept, isAsyncIteratorObject, resolveMaybeOptionalOptions, runWithSpan, toArray, value } from '@orpc/shared'
 import { HibernationEventIterator } from '@orpc/standard-server'
@@ -98,6 +98,16 @@ export function createProcedureClient<
     const context = await value(options.context ?? {} as TInitialContext, clientContext)
     const errors = createORPCErrorConstructorMap(procedure['~orpc'].errorMap)
 
+    const validateError = async (e: unknown) => {
+      if (!(e instanceof ORPCError)) {
+        return e
+      }
+
+      const validated = await validateORPCError(procedure['~orpc'].errorMap, e)
+
+      return validated
+    }
+
     try {
       const output = await runWithSpan(
         { name: 'call_procedure', signal: callerOptions?.signal },
@@ -136,22 +146,22 @@ export function createProcedureClient<
          * If remove this return, can be breaking change
          * because AsyncIteratorClass convert `.throw` to `.return` (rarely used)
          */
-        return asyncIteratorWithSpan(
-          { name: 'consume_event_iterator_output', signal: callerOptions?.signal },
-          output,
+        return mapEventIterator(
+          asyncIteratorWithSpan(
+            { name: 'consume_event_iterator_output', signal: callerOptions?.signal },
+            output,
+          ),
+          {
+            value: v => v,
+            error: e => validateError(e),
+          },
         ) as typeof output
       }
 
       return output
     }
     catch (e) {
-      if (!(e instanceof ORPCError)) {
-        throw e
-      }
-
-      const validated = await validateORPCError(procedure['~orpc'].errorMap, e)
-
-      throw validated
+      throw await validateError(e)
     }
   }
 }

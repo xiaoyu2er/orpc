@@ -1,8 +1,8 @@
 import type { Client, ClientContext } from '@orpc/client'
 import type { InferAsyncIterableYield, MaybeOptionalOptions, ThrowableError } from '@orpc/shared'
-import type { CreateFetcherOptions, CreateKeyOptions, CreateSubscriberOptions, Fetcher, Key, Mutator, Subscriber } from './types'
+import type { CreateFetcherOptions, CreateKeyOptions, CreateSubscriberOptions, Fetcher, Key, Mutator, Subscriber, SWROperationContext } from './types'
 import { isAsyncIteratorObject, resolveMaybeOptionalOptions } from '@orpc/shared'
-import { resolveCreateFetcherOptions, resolveCreateKeyOptions } from './types'
+import { resolveCreateFetcherOptions, resolveCreateKeyOptions, SWR_OPERATION_CONTEXT_SYMBOL } from './types'
 
 export interface ProcedureUtilsOptions {
   path: readonly string[]
@@ -54,7 +54,12 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
     fetcher(...rest) {
       const { context } = resolveCreateFetcherOptions(resolveMaybeOptionalOptions(rest))
 
-      return async ([, { input }]) => client(input, { context })
+      return async ([, { input }]) => client(input, {
+        context: {
+          [SWR_OPERATION_CONTEXT_SYMBOL]: { type: 'fetcher' },
+          ...context,
+        } satisfies SWROperationContext,
+      })
     },
 
     subscriber(...rest) {
@@ -65,7 +70,13 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
 
         void (async () => {
           try {
-            const iterator = await client(input, { context, signal: controller.signal })
+            const iterator = await client(input, {
+              context: {
+                [SWR_OPERATION_CONTEXT_SYMBOL]: { type: 'subscriber' },
+                ...context,
+              } satisfies SWROperationContext,
+              signal: controller.signal,
+            })
 
             if (!isAsyncIteratorObject(iterator)) {
               throw new Error('.subscriber requires an event iterator output')
@@ -107,7 +118,13 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
 
         void (async () => {
           try {
-            const iterator = await client(input, { context, signal: controller.signal })
+            const iterator = await client(input, {
+              context: {
+                [SWR_OPERATION_CONTEXT_SYMBOL]: { type: 'liveSubscriber' },
+                ...context,
+              } satisfies SWROperationContext,
+              signal: controller.signal,
+            })
 
             if (!isAsyncIteratorObject(iterator)) {
               throw new Error('.liveSubscriber requires an event iterator output')
@@ -136,7 +153,12 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
     mutator(...rest) {
       const { context } = resolveCreateFetcherOptions(resolveMaybeOptionalOptions(rest))
 
-      return (_key, { arg }) => client(arg, { context })
+      return (_key, { arg }) => client(arg, {
+        context: {
+          [SWR_OPERATION_CONTEXT_SYMBOL]: { type: 'mutator' },
+          ...context,
+        } satisfies SWROperationContext,
+      })
     },
   }
 }

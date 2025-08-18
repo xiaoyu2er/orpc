@@ -125,6 +125,9 @@ importers:
       '@orpc/contract':
         specifier: workspace:*
         version: link:../../packages/contract
+      '@orpc/experimental-react-swr':
+        specifier: workspace:*
+        version: link:../../packages/react-swr
       '@orpc/openapi':
         specifier: workspace:*
         version: link:../../packages/openapi

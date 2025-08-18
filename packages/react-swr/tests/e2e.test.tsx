@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import useSWR, { mutate } from 'swr'
+import useSWRInfinite from 'swr/infinite'
 import useSWRMutation from 'swr/mutation'
 import useSWRSubscription from 'swr/subscription'
 import { orpc, streamedOrpc } from './shared'
@@ -51,6 +52,34 @@ it('case: useSWR & mutate & useSWRMutation', async () => {
   })
   // not matched - no invalidate happens
   expect(fetcher).toHaveBeenCalledTimes(4)
+})
+
+it('case: useSWRInfinite', async () => {
+  const { result } = renderHook(() => {
+    const swr = useSWRInfinite(
+      index => orpc.nested.ping.key({ input: { input: index + 1 } }),
+      orpc.ping.fetcher(),
+    )
+
+    return { swr }
+  })
+
+  expect(result.current.swr.isLoading).toBe(true)
+
+  await act(async () => {
+    await vi.waitFor(() => expect(result.current.swr.data).toEqual([{ output: '1' }]))
+    result.current.swr.setSize(2)
+  })
+
+  await act(async () => {
+    await vi.waitFor(() => expect(result.current.swr.data).toEqual([{ output: '1' }, { output: '2' }]))
+    result.current.swr.setSize(3)
+  })
+
+  await act(async () => {
+    await vi.waitFor(() => expect(result.current.swr.data).toEqual([{ output: '1' }, { output: '2' }, { output: '3' }]))
+    result.current.swr.setSize(3)
+  })
 })
 
 it('case: useSubscription & .subscriber', async () => {

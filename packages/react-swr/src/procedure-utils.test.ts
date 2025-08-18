@@ -1,4 +1,5 @@
 import { createProcedureUtils } from './procedure-utils'
+import { SWR_OPERATION_CONTEXT_SYMBOL } from './types'
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -23,7 +24,7 @@ describe('createProcedureUtils', () => {
 
     await expect(fetcher([['ping'], { input: { search: '__search__' } }])).resolves.toEqual('__output__')
     expect(client).toHaveBeenCalledTimes(1)
-    expect(client).toHaveBeenCalledWith({ search: '__search__' }, { context: { batch: true } })
+    expect(client).toHaveBeenCalledWith({ search: '__search__' }, { context: { batch: true, [SWR_OPERATION_CONTEXT_SYMBOL]: { type: 'fetcher' } } })
   })
 
   describe('.subscriber', async () => {
@@ -41,7 +42,7 @@ describe('createProcedureUtils', () => {
 
       expect(unsubscribe).toBeInstanceOf(Function)
       expect(client).toHaveBeenCalledTimes(1)
-      expect(client).toHaveBeenCalledWith({ search: '__search__' }, { context: { batch: true }, signal: expect.any(AbortSignal) })
+      expect(client).toHaveBeenCalledWith({ search: '__search__' }, { context: { batch: true, [SWR_OPERATION_CONTEXT_SYMBOL]: { type: 'subscriber' } }, signal: expect.any(AbortSignal) })
 
       await new Promise(resolve => setTimeout(resolve, 20))
 
@@ -69,7 +70,7 @@ describe('createProcedureUtils', () => {
       unsubscribe()
 
       expect(client).toHaveBeenCalledTimes(1)
-      expect(client).toHaveBeenCalledWith({ search: '__search__' }, { context: { batch: true }, signal: expect.any(AbortSignal) })
+      expect(client).toHaveBeenCalledWith({ search: '__search__' }, { context: { batch: true, [SWR_OPERATION_CONTEXT_SYMBOL]: { type: 'subscriber' } }, signal: expect.any(AbortSignal) })
       expect(client.mock.calls[0]![1].signal.aborted).toBe(true)
     })
 
@@ -85,7 +86,7 @@ describe('createProcedureUtils', () => {
 
       expect(unsubscribe).toBeInstanceOf(Function)
       expect(client).toHaveBeenCalledTimes(1)
-      expect(client).toHaveBeenCalledWith({ search: '__search__' }, { context: { batch: true }, signal: expect.any(AbortSignal) })
+      expect(client).toHaveBeenCalledWith({ search: '__search__' }, { context: { batch: true, [SWR_OPERATION_CONTEXT_SYMBOL]: { type: 'subscriber' } }, signal: expect.any(AbortSignal) })
 
       await new Promise(resolve => setTimeout(resolve, 20))
 
@@ -136,7 +137,7 @@ describe('createProcedureUtils', () => {
 
       expect(unsubscribe).toBeInstanceOf(Function)
       expect(client).toHaveBeenCalledTimes(1)
-      expect(client).toHaveBeenCalledWith({ search: '__search__' }, { context: { batch: true }, signal: expect.any(AbortSignal) })
+      expect(client).toHaveBeenCalledWith({ search: '__search__' }, { context: { batch: true, [SWR_OPERATION_CONTEXT_SYMBOL]: { type: 'liveSubscriber' } }, signal: expect.any(AbortSignal) })
 
       await new Promise(resolve => setTimeout(resolve, 100))
 
@@ -161,7 +162,7 @@ describe('createProcedureUtils', () => {
       unsubscribe()
 
       expect(client).toHaveBeenCalledTimes(1)
-      expect(client).toHaveBeenCalledWith({ search: '__search__' }, { context: { batch: true }, signal: expect.any(AbortSignal) })
+      expect(client).toHaveBeenCalledWith({ search: '__search__' }, { context: { batch: true, [SWR_OPERATION_CONTEXT_SYMBOL]: { type: 'liveSubscriber' } }, signal: expect.any(AbortSignal) })
       expect(client.mock.calls[0]![1].signal.aborted).toBe(true)
     })
 
@@ -177,7 +178,7 @@ describe('createProcedureUtils', () => {
 
       expect(unsubscribe).toBeInstanceOf(Function)
       expect(client).toHaveBeenCalledTimes(1)
-      expect(client).toHaveBeenCalledWith({ search: '__search__' }, { context: { batch: true }, signal: expect.any(AbortSignal) })
+      expect(client).toHaveBeenCalledWith({ search: '__search__' }, { context: { batch: true, [SWR_OPERATION_CONTEXT_SYMBOL]: { type: 'liveSubscriber' } }, signal: expect.any(AbortSignal) })
 
       await new Promise(resolve => setTimeout(resolve, 20))
 
@@ -217,6 +218,6 @@ describe('createProcedureUtils', () => {
 
     await expect(mutator('key', { arg: { search: '__search__' } })).resolves.toEqual('__output__')
     expect(client).toHaveBeenCalledTimes(1)
-    expect(client).toHaveBeenCalledWith({ search: '__search__' }, { context: { batch: true } })
+    expect(client).toHaveBeenCalledWith({ search: '__search__' }, { context: { batch: true, [SWR_OPERATION_CONTEXT_SYMBOL]: { type: 'mutator' } } })
   })
 })

@@ -2,6 +2,14 @@ import type { ClientContext } from '@orpc/client'
 import type { PartialDeep } from '@orpc/shared'
 import type { SWRSubscriptionOptions } from 'swr/subscription'
 
+export const SWR_OPERATION_CONTEXT_SYMBOL: unique symbol = Symbol('ORPC_SWR_OPERATION_CONTEXT')
+
+export interface SWROperationContext {
+  [SWR_OPERATION_CONTEXT_SYMBOL]: {
+    type: 'fetcher' | 'mutator' | 'subscriber' | 'liveSubscriber'
+  }
+}
+
 export type CreateKeyOptions<TInput>
   = undefined extends TInput ? { input?: TInput } : { input: TInput }
 

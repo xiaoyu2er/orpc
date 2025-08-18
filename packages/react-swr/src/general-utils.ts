@@ -4,7 +4,7 @@ import { resolveMaybeOptionalOptions } from '@orpc/shared'
 import { isSubsetOf } from './utils'
 
 export interface GeneralUtils<TInput> {
-  matcher<TStrategy extends MatcherStrategy = 'partial'>(
+  matcher<TStrategy extends MatcherStrategy>(
     ...rest: MaybeOptionalOptions<CreateMatcherOptions<TStrategy, TInput>>
   ): Matcher
 }

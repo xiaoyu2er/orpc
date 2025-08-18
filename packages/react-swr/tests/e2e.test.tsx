@@ -102,7 +102,7 @@ it('case: useSubscription & .subscriber', async () => {
 it('case: useSubscription & .liveSubscriber', async () => {
   const { result } = renderHook(() => {
     const subscription = useSWRSubscription(
-      streamedOrpc.streamed.key({ input: { input: 3 } }),
+      streamedOrpc.streamed.key({ input: { input: 4 } }),
       streamedOrpc.streamed.liveSubscriber(),
     )
 
@@ -112,6 +112,6 @@ it('case: useSubscription & .liveSubscriber', async () => {
   expect(result.current.subscription.data).toBeUndefined()
 
   await act(async () => {
-    await vi.waitFor(() => expect(result.current.subscription.data).toEqual({ output: '2' }))
+    await vi.waitFor(() => expect(result.current.subscription.data).toEqual({ output: '3' }))
   })
 })

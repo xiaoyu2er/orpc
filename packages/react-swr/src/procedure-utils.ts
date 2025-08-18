@@ -9,30 +9,58 @@ export interface ProcedureUtilsOptions {
 }
 
 export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError> {
+  /**
+   * Calling corresponding procedure client
+   *
+   * @see {@link https://orpc.unnoq.com/docs/integrations/react-swr#calling-clients React SWR Calling Procedure Client Docs}
+   */
   call: Client<TClientContext, TInput, TOutput, TError>
 
+  /**
+   * Generate a **full matching** key for SWR operations.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/integrations/react-swr#data-fetching React SWR Key Docs}
+   */
   key(
     ...rest: MaybeOptionalOptions<CreateKeyOptions<TInput>>
   ): Key<TInput>
 
+  /**
+   * Generate a fetcher function for use with useSWR, useSWRInfinite, and other SWR hooks.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/integrations/react-swr#data-fetching React SWR Data Fetching Docs}
+   */
   fetcher(
     ...rest: MaybeOptionalOptions<CreateFetcherOptions<TClientContext>>
   ): Fetcher<TInput, TOutput>
 
   /**
+   * Generate a subscriber function that subscribes to an [Event Iterator](https://orpc.unnoq.com/docs/event-iterator) for use with useSWRSubscription, etc.
+   *
    * @remarks Uses ThrowableError instead of TError because TError only applies to the initial request. Streaming errors are not validated, so type safety cannot be guaranteed for error types.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/integrations/react-swr#subscriptions React SWR Subscriptions Docs}
    */
   subscriber(
     ...rest: MaybeOptionalOptions<CreateSubscriberOptions<TClientContext>>
   ): Subscriber<TInput, InferAsyncIterableYield<TOutput>[], ThrowableError>
 
   /**
+   * Generate a live subscriber that subscribes to the latest events from an [Event Iterator](https://orpc.unnoq.com/docs/event-iterator) for use with useSWRSubscription, etc.
+   *
    * @remarks Uses ThrowableError instead of TError because TError only applies to the initial request. Streaming errors are not validated, so type safety cannot be guaranteed for error types.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/integrations/react-swr#subscriptions React SWR Subscriptions Docs}
    */
   liveSubscriber(
     ...rest: MaybeOptionalOptions<CreateFetcherOptions<TClientContext>>
   ): Subscriber<TInput, InferAsyncIterableYield<TOutput>, ThrowableError>
 
+  /**
+   * Generate a mutator function for use with useSWRMutation, etc.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/integrations/react-swr#mutations React SWR Mutations Docs}
+   */
   mutator(
     ...rest: MaybeOptionalOptions<CreateFetcherOptions<TClientContext>>
   ): Mutator<TInput, TOutput>

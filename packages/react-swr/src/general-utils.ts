@@ -4,6 +4,11 @@ import { resolveMaybeOptionalOptions } from '@orpc/shared'
 import { isSubsetOf } from './utils'
 
 export interface GeneralUtils<TInput> {
+  /**
+   * Generate a matcher function that returns `true` if the key matches the specified conditions.
+   *
+   * @see {@link https://orpc.unnoq.com/docs/integrations/react-swr#manual-revalidation React SWR Manual Revalidation Docs}
+   */
   matcher<TStrategy extends MatcherStrategy>(
     ...rest: MaybeOptionalOptions<CreateMatcherOptions<TStrategy, TInput>>
   ): Matcher

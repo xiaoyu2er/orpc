@@ -117,13 +117,13 @@ const { data, error, isLoading, size, setSize } = useSWRInfinite(
 
 ## Subscriptions
 
-Use `.key` and `.subscriber` methods to configure `useSWRSubscription` for [Event Iterator](/docs/event-iterator):
+Use `.key` and `.subscriber` methods to configure `useSWRSubscription` to subscribe to an [Event Iterator](/docs/event-iterator):
 
 ```ts
 import useSWRSubscription from 'swr/subscription'
 
 const { data, error } = useSWRSubscription(
-  orpc.streamed.key({ input: { input: 3 } }),
+  orpc.streamed.key({ input: { id: 3 } }),
   orpc.streamed.subscriber({ context: { cache: true }, maxChunks: 10 }), // Provide client context if needed
 )
 ```
@@ -134,7 +134,7 @@ Use `.liveSubscriber` to subscribe to the latest events without chunking:
 import useSWRSubscription from 'swr/subscription'
 
 const { data, error } = useSWRSubscription(
-  orpc.streamed.key({ input: { input: 3 } }),
+  orpc.streamed.key({ input: { id: 3 } }),
   orpc.streamed.liveSubscriber({ context: { cache: true } }), // Provide client context if needed
 )
 ```

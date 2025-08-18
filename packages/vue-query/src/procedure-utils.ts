@@ -1,6 +1,6 @@
 import type { Client, ClientContext } from '@orpc/client'
 import type { MaybeOptionalOptions } from '@orpc/shared'
-import type { InfiniteData } from '@tanstack/vue-query'
+import type { DefaultError, InfiniteData } from '@tanstack/vue-query'
 import type { experimental_InferStreamedOutput, experimental_StreamedOptionsBase, experimental_StreamedOptionsIn, InfiniteOptionsBase, InfiniteOptionsIn, MutationOptions, MutationOptionsIn, QueryOptionsBase, QueryOptionsIn } from './types'
 import { isAsyncIteratorObject } from '@orpc/shared'
 import { generateOperationKey } from '@orpc/tanstack-query'
@@ -32,12 +32,13 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
    * Built on top of [steamedQuery](https://tanstack.com/query/latest/docs/reference/streamedQuery)
    *
    * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query-old/basic#streamed-query-options-utility Tanstack Streamed Query Options Utility Docs}
+   * @remarks Uses DefaultError instead of TError because TError only applies to the initial request. Streaming errors are not validated, so type safety cannot be guaranteed for error types.
    */
   experimental_streamedOptions<U, USelectData = experimental_InferStreamedOutput<TOutput>>(
     ...rest: MaybeOptionalOptions<
-      U & experimental_StreamedOptionsIn<TClientContext, TInput, experimental_InferStreamedOutput<TOutput>, TError, USelectData>
+      U & experimental_StreamedOptionsIn<TClientContext, TInput, experimental_InferStreamedOutput<TOutput>, DefaultError, USelectData>
     >
-  ): NoInfer<U & Omit<experimental_StreamedOptionsBase<experimental_InferStreamedOutput<TOutput>, TError>, keyof U>>
+  ): NoInfer<U & Omit<experimental_StreamedOptionsBase<experimental_InferStreamedOutput<TOutput>, DefaultError>, keyof U>>
 
   /**
    * Generate options used for useInfiniteQuery/prefetchInfiniteQuery/...

@@ -92,18 +92,18 @@ describe('ProcedureUtils', () => {
       it('without args', () => {
         const query = useQuery(() => streamUtils.experimental_streamedOptions())
         expectTypeOf(query.data).toEqualTypeOf<UtilsOutput | undefined>()
-        expectTypeOf(query.error).toEqualTypeOf<UtilsError | null>()
+        expectTypeOf(query.error).toEqualTypeOf<Error | null>()
       })
 
       it('can infer errors inside options', () => {
         const query = useQuery(() => streamUtils.experimental_streamedOptions({
           throwOnError(error) {
-            expectTypeOf(error).toEqualTypeOf<UtilsError>()
+            expectTypeOf(error).toEqualTypeOf<Error>()
             return false
           },
         }))
         expectTypeOf(query.data).toEqualTypeOf<UtilsOutput | undefined>()
-        expectTypeOf(query.error).toEqualTypeOf<UtilsError | null>()
+        expectTypeOf(query.error).toEqualTypeOf<Error | null>()
       })
 
       it('with initial data & select', () => {
@@ -113,7 +113,7 @@ describe('ProcedureUtils', () => {
         }))
 
         expectTypeOf(query.data).toEqualTypeOf<{ mapped: UtilsOutput }>()
-        expectTypeOf(query.error).toEqualTypeOf<UtilsError | null>()
+        expectTypeOf(query.error).toEqualTypeOf<Error | null>()
       })
     })
 
@@ -135,9 +135,9 @@ describe('ProcedureUtils', () => {
       expectTypeOf(queries[1].data).toEqualTypeOf<UtilsOutput | undefined>()
       expectTypeOf(queries[2].data).toEqualTypeOf<{ mapped: UtilsOutput } | undefined>()
 
-      expectTypeOf(queries[0].error).toEqualTypeOf<null | UtilsError>()
-      expectTypeOf(queries[1].error).toEqualTypeOf<null | UtilsError>()
-      expectTypeOf(queries[2].error).toEqualTypeOf<null | UtilsError>()
+      expectTypeOf(queries[0].error).toEqualTypeOf<null | Error>()
+      expectTypeOf(queries[1].error).toEqualTypeOf<null | Error>()
+      expectTypeOf(queries[2].error).toEqualTypeOf<null | Error>()
     })
 
     it('fetchQuery', () => {
@@ -154,18 +154,18 @@ describe('ProcedureUtils', () => {
       it('without args', () => {
         const query = useQuery(() => streamUtils.experimental_liveOptions())
         expectTypeOf(query.data).toEqualTypeOf<UtilsOutput[number] | undefined>()
-        expectTypeOf(query.error).toEqualTypeOf<UtilsError | null>()
+        expectTypeOf(query.error).toEqualTypeOf<Error | null>()
       })
 
       it('can infer errors inside options', () => {
         const query = useQuery(() => streamUtils.experimental_liveOptions({
           throwOnError(error) {
-            expectTypeOf(error).toEqualTypeOf<UtilsError>()
+            expectTypeOf(error).toEqualTypeOf<Error>()
             return false
           },
         }))
         expectTypeOf(query.data).toEqualTypeOf<UtilsOutput[number] | undefined>()
-        expectTypeOf(query.error).toEqualTypeOf<UtilsError | null>()
+        expectTypeOf(query.error).toEqualTypeOf<Error | null>()
       })
 
       it('with initial data & select', () => {
@@ -175,7 +175,7 @@ describe('ProcedureUtils', () => {
         }))
 
         expectTypeOf(query.data).toEqualTypeOf<{ mapped: UtilsOutput[number] }>()
-        expectTypeOf(query.error).toEqualTypeOf<UtilsError | null>()
+        expectTypeOf(query.error).toEqualTypeOf<Error | null>()
       })
     })
 
@@ -197,9 +197,9 @@ describe('ProcedureUtils', () => {
       expectTypeOf(queries[1].data).toEqualTypeOf<UtilsOutput[number] | undefined>()
       expectTypeOf(queries[2].data).toEqualTypeOf<{ mapped: UtilsOutput[number] } | undefined>()
 
-      expectTypeOf(queries[0].error).toEqualTypeOf<null | UtilsError>()
-      expectTypeOf(queries[1].error).toEqualTypeOf<null | UtilsError>()
-      expectTypeOf(queries[2].error).toEqualTypeOf<null | UtilsError>()
+      expectTypeOf(queries[0].error).toEqualTypeOf<null | Error>()
+      expectTypeOf(queries[1].error).toEqualTypeOf<null | Error>()
+      expectTypeOf(queries[2].error).toEqualTypeOf<null | Error>()
     })
 
     it('fetchQuery', () => {

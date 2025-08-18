@@ -218,13 +218,13 @@ describe('ProcedureUtils', () => {
         const query = useQuery(utils.experimental_streamedOptions({
           select: data => ({ mapped: data }),
           throwOnError(error) {
-            expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
+            expectTypeOf(error).toEqualTypeOf<Error>()
             return false
           },
         }))
 
         expectTypeOf(query.data.value).toEqualTypeOf<{ mapped: UtilsOutput } | undefined>()
-        expectTypeOf(query.error.value).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+        expectTypeOf(query.error.value).toEqualTypeOf<Error | null>()
       })
 
       it('with initial data', () => {
@@ -232,13 +232,13 @@ describe('ProcedureUtils', () => {
           select: data => ({ mapped: data }),
           initialData: [{ title: 'title' }],
           throwOnError(error) {
-            expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
+            expectTypeOf(error).toEqualTypeOf<Error>()
             return false
           },
         }))
 
         expectTypeOf(query.data.value).toEqualTypeOf<{ mapped: UtilsOutput }>()
-        expectTypeOf(query.error.value).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+        expectTypeOf(query.error.value).toEqualTypeOf<Error | null>()
       })
     })
 
@@ -258,8 +258,8 @@ describe('ProcedureUtils', () => {
       expectTypeOf(queries.value[0].data).toEqualTypeOf<{ mapped: UtilsOutput } | undefined>()
       expectTypeOf(queries.value[1].data).toEqualTypeOf<UtilsOutput | undefined>()
 
-      expectTypeOf(queries.value[0].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
-      expectTypeOf(queries.value[0].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
+      expectTypeOf(queries.value[0].error).toEqualTypeOf<null | Error>()
+      expectTypeOf(queries.value[0].error).toEqualTypeOf<null | Error>()
     })
 
     it('works with fetchQuery', () => {

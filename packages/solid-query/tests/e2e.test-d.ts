@@ -113,16 +113,14 @@ describe('.streamedOptions', () => {
     const query = useQuery(() => streamedOrpc.streamed.experimental_streamedOptions({
       input: { input: 123 },
       retry(failureCount, error) {
-        if (isDefinedError(error) && error.code === 'BASE') {
-          expectTypeOf(error.data).toEqualTypeOf<{ output: string }>()
-        }
+        expectTypeOf(error).toEqualTypeOf<Error>()
 
         return false
       },
     }))
 
-    if (query.status === 'error' && isDefinedError(query.error) && query.error.code === 'OVERRIDE') {
-      expectTypeOf(query.error.data).toEqualTypeOf<unknown>()
+    if (query.status === 'error') {
+      expectTypeOf(query.error).toEqualTypeOf<Error>()
     }
 
     if (query.status === 'success') {
@@ -152,9 +150,7 @@ describe('.streamedOptions', () => {
           input: { input: 123 },
           select: data => ({ mapped: data }),
           retry(failureCount, error) {
-            if (isDefinedError(error) && error.code === 'BASE') {
-              expectTypeOf(error.data).toEqualTypeOf<{ output: string }>()
-            }
+            expectTypeOf(error).toEqualTypeOf<Error>()
 
             return false
           },
@@ -165,8 +161,8 @@ describe('.streamedOptions', () => {
       ],
     }))
 
-    if (queries[0].status === 'error' && isDefinedError(queries[0].error) && queries[0].error.code === 'BASE') {
-      expectTypeOf(queries[0].error.data).toEqualTypeOf<{ output: string }>()
+    if (queries[0].status === 'error') {
+      expectTypeOf(queries[0].error).toEqualTypeOf<Error>()
     }
 
     if (queries[0].status === 'success') {

@@ -218,13 +218,13 @@ describe('ProcedureUtils', () => {
         const query = useQuery(utils.experimental_streamedOptions({
           select: data => ({ mapped: data }),
           throwOnError(error) {
-            expectTypeOf(error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap>>()
+            expectTypeOf(error).toEqualTypeOf<Error>()
             return false
           },
         }))
 
         expectTypeOf(query.data).toEqualTypeOf<{ mapped: UtilsOutput } | undefined>()
-        expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+        expectTypeOf(query.error).toEqualTypeOf<Error | null>()
       })
 
       it('with initial data', () => {
@@ -234,7 +234,7 @@ describe('ProcedureUtils', () => {
         }))
 
         expectTypeOf(query.data).toEqualTypeOf<{ mapped: UtilsOutput }>()
-        expectTypeOf(query.error).toEqualTypeOf<ErrorFromErrorMap<typeof baseErrorMap> | null>()
+        expectTypeOf(query.error).toEqualTypeOf<Error | null>()
       })
     })
 
@@ -254,8 +254,8 @@ describe('ProcedureUtils', () => {
       expectTypeOf(queries[0].data).toEqualTypeOf<{ mapped: UtilsOutput } | undefined>()
       expectTypeOf(queries[1].data).toEqualTypeOf<UtilsOutput | undefined>()
 
-      expectTypeOf(queries[0].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
-      expectTypeOf(queries[1].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
+      expectTypeOf(queries[0].error).toEqualTypeOf<null | Error>()
+      expectTypeOf(queries[1].error).toEqualTypeOf<null | Error>()
     })
 
     it('works with useSuspenseQueries', () => {
@@ -274,8 +274,8 @@ describe('ProcedureUtils', () => {
       expectTypeOf(queries[0].data).toEqualTypeOf<{ mapped: UtilsOutput }>()
       expectTypeOf(queries[1].data).toEqualTypeOf<UtilsOutput>()
 
-      expectTypeOf(queries[0].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
-      expectTypeOf(queries[1].error).toEqualTypeOf<null | ErrorFromErrorMap<typeof baseErrorMap>>()
+      expectTypeOf(queries[0].error).toEqualTypeOf<null | Error>()
+      expectTypeOf(queries[1].error).toEqualTypeOf<null | Error>()
     })
 
     it('works with fetchQuery', () => {

@@ -98,19 +98,19 @@ describe('ProcedureUtils', () => {
         const query = useQuery(computed(() => streamUtils.experimental_streamedOptions()))
 
         expectTypeOf(query.data.value).toEqualTypeOf<UtilsOutput | undefined>()
-        expectTypeOf(query.error.value).toEqualTypeOf<UtilsError | null>()
+        expectTypeOf(query.error.value).toEqualTypeOf<Error | null>()
       })
 
       it('can infer errors inside options', () => {
         const query = useQuery(computed(() => streamUtils.experimental_streamedOptions({
           throwOnError(error) {
-            expectTypeOf(error).toEqualTypeOf<UtilsError>()
+            expectTypeOf(error).toEqualTypeOf<Error>()
             return false
           },
         })))
 
         expectTypeOf(query.data.value).toEqualTypeOf<UtilsOutput | undefined>()
-        expectTypeOf(query.error.value).toEqualTypeOf<UtilsError | null>()
+        expectTypeOf(query.error.value).toEqualTypeOf<Error | null>()
       })
 
       it('with initial data & select', () => {
@@ -121,7 +121,7 @@ describe('ProcedureUtils', () => {
 
         // @ts-expect-error - TODO: fix this, seem vue-query do not understand initialData
         expectTypeOf(query.data.value).toEqualTypeOf<{ mapped: UtilsOutput }>()
-        expectTypeOf(query.error.value).toEqualTypeOf<UtilsError | null>()
+        expectTypeOf(query.error.value).toEqualTypeOf<Error | null>()
       })
     })
 
@@ -144,9 +144,9 @@ describe('ProcedureUtils', () => {
       expectTypeOf(queries.value[1].data).toEqualTypeOf<UtilsOutput | undefined>()
       expectTypeOf(queries.value[2].data).toEqualTypeOf<{ mapped: UtilsOutput } | undefined>()
 
-      expectTypeOf(queries.value[0].error).toEqualTypeOf<null | UtilsError>()
-      expectTypeOf(queries.value[1].error).toEqualTypeOf<null | UtilsError>()
-      expectTypeOf(queries.value[2].error).toEqualTypeOf<null | UtilsError>()
+      expectTypeOf(queries.value[0].error).toEqualTypeOf<null | Error>()
+      expectTypeOf(queries.value[1].error).toEqualTypeOf<null | Error>()
+      expectTypeOf(queries.value[2].error).toEqualTypeOf<null | Error>()
     })
 
     it('fetchQuery', () => {
@@ -164,19 +164,19 @@ describe('ProcedureUtils', () => {
         const query = useQuery(computed(() => streamUtils.experimental_liveOptions()))
 
         expectTypeOf(query.data.value).toEqualTypeOf<UtilsOutput[number] | undefined>()
-        expectTypeOf(query.error.value).toEqualTypeOf<UtilsError | null>()
+        expectTypeOf(query.error.value).toEqualTypeOf<Error | null>()
       })
 
       it('can infer errors inside options', () => {
         const query = useQuery(computed(() => streamUtils.experimental_liveOptions({
           throwOnError(error) {
-            expectTypeOf(error).toEqualTypeOf<UtilsError>()
+            expectTypeOf(error).toEqualTypeOf<Error>()
             return false
           },
         })))
 
         expectTypeOf(query.data.value).toEqualTypeOf<UtilsOutput[number] | undefined>()
-        expectTypeOf(query.error.value).toEqualTypeOf<UtilsError | null>()
+        expectTypeOf(query.error.value).toEqualTypeOf<Error | null>()
       })
 
       it('with initial data & select', () => {
@@ -187,7 +187,7 @@ describe('ProcedureUtils', () => {
 
         // @ts-expect-error - TODO: fix this, seem vue-query do not understand initialData
         expectTypeOf(query.data.value).toEqualTypeOf<{ mapped: UtilsOutput[number] }>()
-        expectTypeOf(query.error.value).toEqualTypeOf<UtilsError | null>()
+        expectTypeOf(query.error.value).toEqualTypeOf<Error | null>()
       })
     })
 
@@ -210,9 +210,9 @@ describe('ProcedureUtils', () => {
       expectTypeOf(queries.value[1].data).toEqualTypeOf<UtilsOutput[number] | undefined>()
       expectTypeOf(queries.value[2].data).toEqualTypeOf<{ mapped: UtilsOutput[number] } | undefined>()
 
-      expectTypeOf(queries.value[0].error).toEqualTypeOf<null | UtilsError>()
-      expectTypeOf(queries.value[1].error).toEqualTypeOf<null | UtilsError>()
-      expectTypeOf(queries.value[2].error).toEqualTypeOf<null | UtilsError>()
+      expectTypeOf(queries.value[0].error).toEqualTypeOf<null | Error>()
+      expectTypeOf(queries.value[1].error).toEqualTypeOf<null | Error>()
+      expectTypeOf(queries.value[2].error).toEqualTypeOf<null | Error>()
     })
 
     it('fetchQuery', () => {

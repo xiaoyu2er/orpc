@@ -1,6 +1,6 @@
 import type { Client, ClientContext } from '@orpc/client'
 import type { MaybeOptionalOptions } from '@orpc/shared'
-import type { DataTag, InfiniteData, QueryKey } from '@tanstack/query-core'
+import type { DataTag, DefaultError, InfiniteData, QueryKey } from '@tanstack/query-core'
 import type {
   experimental_LiveQueryOutput,
   experimental_StreamedKeyOptions,
@@ -58,12 +58,13 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
    * Generate a **full matching** key for [Streamed Query Options](https://orpc.unnoq.com/docs/integrations/tanstack-query#streamed-query-options).
    *
    * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query#query-mutation-key Tanstack Query/Mutation Key Docs}
+   * @remarks Uses DefaultError instead of TError because TError only applies to the initial request. Streaming errors are not validated, so type safety cannot be guaranteed for error types.
    */
   experimental_streamedKey(
     ...rest: MaybeOptionalOptions<
       experimental_StreamedKeyOptions<TInput>
     >
-  ): DataTag<QueryKey, experimental_StreamedQueryOutput<TOutput>, TError>
+  ): DataTag<QueryKey, experimental_StreamedQueryOutput<TOutput>, DefaultError>
 
   /**
    * Configure queries for [Event Iterator](https://orpc.unnoq.com/docs/event-iterator).
@@ -71,23 +72,25 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
    * and works with hooks like `useQuery`, `useSuspenseQuery`, or `prefetchQuery`.
    *
    * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query#streamed-query-options Tanstack Streamed Query Options Utility Docs}
+   * @remarks Uses DefaultError instead of TError because TError only applies to the initial request. Streaming errors are not validated, so type safety cannot be guaranteed for error types.
    */
   experimental_streamedOptions<U, USelectData = experimental_StreamedQueryOutput<TOutput>>(
     ...rest: MaybeOptionalOptions<
-      U & StreamedOptionsIn<TClientContext, TInput, experimental_StreamedQueryOutput<TOutput>, TError, USelectData>
+      U & StreamedOptionsIn<TClientContext, TInput, experimental_StreamedQueryOutput<TOutput>, DefaultError, USelectData>
     >
-  ): NoInfer<U & Omit<StreamedOptionsBase<experimental_StreamedQueryOutput<TOutput>, TError>, keyof U>>
+  ): NoInfer<U & Omit<StreamedOptionsBase<experimental_StreamedQueryOutput<TOutput>, DefaultError>, keyof U>>
 
   /**
    * Generate a **full matching** key for [Live Query Options](https://orpc.unnoq.com/docs/integrations/tanstack-query#live-query-options).
    *
    * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query#query-mutation-key Tanstack Query/Mutation Key Docs}
+   * @remarks Uses DefaultError instead of TError because TError only applies to the initial request. Streaming errors are not validated, so type safety cannot be guaranteed for error types.
    */
   experimental_liveKey(
     ...rest: MaybeOptionalOptions<
       QueryKeyOptions<TInput>
     >
-  ): DataTag<QueryKey, experimental_LiveQueryOutput<TOutput>, TError>
+  ): DataTag<QueryKey, experimental_LiveQueryOutput<TOutput>, DefaultError>
 
   /**
    * Configure live queries for [Event Iterator](https://orpc.unnoq.com/docs/event-iterator).
@@ -95,12 +98,13 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
    * Works with hooks like `useQuery`, `useSuspenseQuery`, or `prefetchQuery`.
    *
    * @see {@link https://orpc.unnoq.com/docs/integrations/tanstack-query#live-query-options Tanstack Live Query Options Utility Docs}
+   * @remarks Uses DefaultError instead of TError because TError only applies to the initial request. Streaming errors are not validated, so type safety cannot be guaranteed for error types.
    */
   experimental_liveOptions<U, USelectData = experimental_LiveQueryOutput<TOutput>>(
     ...rest: MaybeOptionalOptions<
-      U & QueryOptionsIn<TClientContext, TInput, experimental_LiveQueryOutput<TOutput>, TError, USelectData>
+      U & QueryOptionsIn<TClientContext, TInput, experimental_LiveQueryOutput<TOutput>, DefaultError, USelectData>
     >
-  ): NoInfer<U & Omit<QueryOptionsBase<experimental_LiveQueryOutput<TOutput>, TError>, keyof U>>
+  ): NoInfer<U & Omit<QueryOptionsBase<experimental_LiveQueryOutput<TOutput>, DefaultError>, keyof U>>
 
   /**
    * Generate a **full matching** key for [Infinite Query Options](https://orpc.unnoq.com/docs/integrations/tanstack-query#infinite-query-options).

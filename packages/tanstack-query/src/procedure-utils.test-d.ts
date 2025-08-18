@@ -217,7 +217,7 @@ describe('ProcedureUtils', () => {
     it('.getQueryState is typed correctly', () => {
       const state = queryClient.getQueryState(streamUtils.experimental_streamedKey())
       expectTypeOf(state?.data).toEqualTypeOf<UtilsOutput | undefined>()
-      expectTypeOf(state?.error).toEqualTypeOf<UtilsError | null | undefined>()
+      expectTypeOf(state?.error).toEqualTypeOf<Error | null | undefined>()
     })
   })
 
@@ -294,7 +294,7 @@ describe('ProcedureUtils', () => {
     it('.getQueryState is typed correctly', () => {
       const state = queryClient.getQueryState(streamUtils.experimental_streamedOptions().queryKey)
       expectTypeOf(state?.data).toEqualTypeOf<UtilsOutput | undefined>()
-      expectTypeOf(state?.error).toEqualTypeOf<UtilsError | null | undefined>()
+      expectTypeOf(state?.error).toEqualTypeOf<Error | null | undefined>()
     })
   })
 
@@ -346,7 +346,7 @@ describe('ProcedureUtils', () => {
     it('.getQueryState is typed correctly', () => {
       const state = queryClient.getQueryState(streamUtils.experimental_liveKey())
       expectTypeOf(state?.data).toEqualTypeOf<UtilsOutput[number] | undefined>()
-      expectTypeOf(state?.error).toEqualTypeOf<UtilsError | null | undefined>()
+      expectTypeOf(state?.error).toEqualTypeOf<Error | null | undefined>()
     })
   })
 
@@ -423,7 +423,7 @@ describe('ProcedureUtils', () => {
     it('.getQueryState is typed correctly', () => {
       const state = queryClient.getQueryState(streamUtils.experimental_liveOptions().queryKey)
       expectTypeOf(state?.data).toEqualTypeOf<UtilsOutput[number] | undefined>()
-      expectTypeOf(state?.error).toEqualTypeOf<UtilsError | null | undefined>()
+      expectTypeOf(state?.error).toEqualTypeOf<Error | null | undefined>()
     })
   })
 

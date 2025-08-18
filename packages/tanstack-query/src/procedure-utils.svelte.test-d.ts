@@ -93,18 +93,18 @@ describe('ProcedureUtils', () => {
       it('without args', () => {
         const query = createQuery(streamUtils.experimental_streamedOptions())
         expectTypeOf(get(query).data).toEqualTypeOf<UtilsOutput | undefined>()
-        expectTypeOf(get(query).error).toEqualTypeOf<UtilsError | null>()
+        expectTypeOf(get(query).error).toEqualTypeOf<Error | null>()
       })
 
       it('can infer errors inside options', () => {
         const query = createQuery(streamUtils.experimental_streamedOptions({
           throwOnError(error) {
-            expectTypeOf(error).toEqualTypeOf<UtilsError>()
+            expectTypeOf(error).toEqualTypeOf<Error>()
             return false
           },
         }))
         expectTypeOf(get(query).data).toEqualTypeOf<UtilsOutput | undefined>()
-        expectTypeOf(get(query).error).toEqualTypeOf<UtilsError | null>()
+        expectTypeOf(get(query).error).toEqualTypeOf<Error | null>()
       })
 
       it('with initial data & select', () => {
@@ -114,7 +114,7 @@ describe('ProcedureUtils', () => {
         }))
 
         expectTypeOf(get(query).data).toEqualTypeOf<{ mapped: UtilsOutput }>()
-        expectTypeOf(get(query).error).toEqualTypeOf<UtilsError | null>()
+        expectTypeOf(get(query).error).toEqualTypeOf<Error | null>()
       })
     })
 
@@ -136,9 +136,9 @@ describe('ProcedureUtils', () => {
       expectTypeOf(get(queries)[1].data).toEqualTypeOf<UtilsOutput | undefined>()
       expectTypeOf(get(queries)[2].data).toEqualTypeOf<{ mapped: UtilsOutput } | undefined>()
 
-      expectTypeOf(get(queries)[0].error).toEqualTypeOf<null | UtilsError>()
-      expectTypeOf(get(queries)[1].error).toEqualTypeOf<null | UtilsError>()
-      expectTypeOf(get(queries)[2].error).toEqualTypeOf<null | UtilsError>()
+      expectTypeOf(get(queries)[0].error).toEqualTypeOf<null | Error>()
+      expectTypeOf(get(queries)[1].error).toEqualTypeOf<null | Error>()
+      expectTypeOf(get(queries)[2].error).toEqualTypeOf<null | Error>()
     })
 
     it('fetchQuery', () => {
@@ -155,18 +155,18 @@ describe('ProcedureUtils', () => {
       it('without args', () => {
         const query = createQuery(streamUtils.experimental_liveOptions())
         expectTypeOf(get(query).data).toEqualTypeOf<UtilsOutput[number] | undefined>()
-        expectTypeOf(get(query).error).toEqualTypeOf<UtilsError | null>()
+        expectTypeOf(get(query).error).toEqualTypeOf<Error | null>()
       })
 
       it('can infer errors inside options', () => {
         const query = createQuery(streamUtils.experimental_liveOptions({
           throwOnError(error) {
-            expectTypeOf(error).toEqualTypeOf<UtilsError>()
+            expectTypeOf(error).toEqualTypeOf<Error>()
             return false
           },
         }))
         expectTypeOf(get(query).data).toEqualTypeOf<UtilsOutput[number] | undefined>()
-        expectTypeOf(get(query).error).toEqualTypeOf<UtilsError | null>()
+        expectTypeOf(get(query).error).toEqualTypeOf<Error | null>()
       })
 
       it('with initial data & select', () => {
@@ -176,7 +176,7 @@ describe('ProcedureUtils', () => {
         }))
 
         expectTypeOf(get(query).data).toEqualTypeOf<{ mapped: UtilsOutput[number] }>()
-        expectTypeOf(get(query).error).toEqualTypeOf<UtilsError | null>()
+        expectTypeOf(get(query).error).toEqualTypeOf<Error | null>()
       })
     })
 
@@ -198,9 +198,9 @@ describe('ProcedureUtils', () => {
       expectTypeOf(get(queries)[1].data).toEqualTypeOf<UtilsOutput[number] | undefined>()
       expectTypeOf(get(queries)[2].data).toEqualTypeOf<{ mapped: UtilsOutput[number] } | undefined>()
 
-      expectTypeOf(get(queries)[0].error).toEqualTypeOf<null | UtilsError>()
-      expectTypeOf(get(queries)[1].error).toEqualTypeOf<null | UtilsError>()
-      expectTypeOf(get(queries)[2].error).toEqualTypeOf<null | UtilsError>()
+      expectTypeOf(get(queries)[0].error).toEqualTypeOf<null | Error>()
+      expectTypeOf(get(queries)[1].error).toEqualTypeOf<null | Error>()
+      expectTypeOf(get(queries)[2].error).toEqualTypeOf<null | Error>()
     })
 
     it('fetchQuery', () => {

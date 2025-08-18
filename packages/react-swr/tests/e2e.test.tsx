@@ -5,8 +5,10 @@ import useSWRMutation from 'swr/mutation'
 import useSWRSubscription from 'swr/subscription'
 import { orpc, streamedOrpc } from './shared'
 
-beforeEach(() => {
+beforeEach(async () => {
   vi.clearAllMocks()
+  // Clear SWR's global cache to avoid carrying data between tests
+  await mutate(() => true, undefined, { revalidate: false })
 })
 
 it('case: useSWR & mutate & useSWRMutation', async () => {

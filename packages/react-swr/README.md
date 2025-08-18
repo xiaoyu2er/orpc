@@ -8,8 +8,8 @@
   <a href="https://codecov.io/gh/unnoq/orpc">
     <img alt="codecov" src="https://codecov.io/gh/unnoq/orpc/branch/main/graph/badge.svg">
   </a>
-  <a href="https://www.npmjs.com/package/@orpc/react-swr">
-    <img alt="weekly downloads" src="https://img.shields.io/npm/dw/%40orpc%2Freact-swr?logo=npm" />
+  <a href="https://www.npmjs.com/package/@orpc/experimental-react-swr">
+    <img alt="weekly downloads" src="https://img.shields.io/npm/dw/%40orpc%2Fexperimental-react-swr?logo=npm" />
   </a>
   <a href="https://github.com/unnoq/orpc/blob/main/LICENSE">
     <img alt="MIT License" src="https://img.shields.io/github/license/unnoq/orpc?logo=open-source-initiative" />
@@ -31,7 +31,7 @@
 - **📘 First-Class OpenAPI**: Built-in support that fully adheres to the OpenAPI standard.
 - **📝 Contract-First Development**: Optionally define your API contract before implementation.
 - **🔍 First-Class OpenTelemetry**: Seamlessly integrate with OpenTelemetry for observability.
-- **⚙️ Framework Integrations**: Seamlessly integrate with TanStack Query (React, Vue, Solid, Svelte, Angular), Pinia Colada, and more.
+- **⚙️ Framework Integrations**: Seamlessly integrate with TanStack Query (React, Vue, Solid, Svelte, Angular), SWR, Pinia Colada, and more.
 - **🚀 Server Actions**: Fully compatible with React Server Actions on Next.js, TanStack Start, and other platforms.
 - **🔠 Standard Schema Support**: Works out of the box with Zod, Valibot, ArkType, and other schema validators.
 - **🗃️ Native Types**: Supports native types like Date, File, Blob, BigInt, URL, and more.
@@ -54,13 +54,14 @@ You can find the full documentation [here](https://orpc.unnoq.com).
 - [@orpc/nest](https://www.npmjs.com/package/@orpc/nest): Deeply integrate oRPC with [NestJS](https://nestjs.com/).
 - [@orpc/react](https://www.npmjs.com/package/@orpc/react): Utilities for integrating oRPC with React and React Server Actions.
 - [@orpc/tanstack-query](https://www.npmjs.com/package/@orpc/tanstack-query): [TanStack Query](https://tanstack.com/query/latest) integration.
+- [@orpc/experimental-react-swr](https://www.npmjs.com/package/@orpc/experimental-react-swr): [SWR](https://swr.vercel.app/) integration.
 - [@orpc/vue-colada](https://www.npmjs.com/package/@orpc/vue-colada): Integration with [Pinia Colada](https://pinia-colada.esm.dev/).
 - [@orpc/hey-api](https://www.npmjs.com/package/@orpc/hey-api): [Hey API](https://heyapi.dev/) integration.
 - [@orpc/zod](https://www.npmjs.com/package/@orpc/zod): More schemas that [Zod](https://zod.dev/) doesn't support yet.
 - [@orpc/valibot](https://www.npmjs.com/package/@orpc/valibot): OpenAPI spec generation from [Valibot](https://valibot.dev/).
 - [@orpc/arktype](https://www.npmjs.com/package/@orpc/arktype): OpenAPI spec generation from [ArkType](https://arktype.io/).
 
-## `@orpc/react-swr`
+## `@orpc/experimental-react-swr`
 
 [SWR](https://swr.vercel.app/) integration for oRPC, providing a simple way to fetch data using oRPC endpoints with SWR's caching and revalidation features.
 

@@ -69,6 +69,15 @@ export type Mutator<TInput, TOutput> = (key: unknown, options: Readonly<{ arg: T
 
 export type CreateSubscriberOptions<TClientContext extends ClientContext> = CreateFetcherOptions<TClientContext> & {
   /**
+   * Determines how data is handled when the subscription refetches.
+   * - `reset`: Replace existing data with new data
+   * - `append`: Add new data to existing data
+   *
+   * @default 'reset'
+   */
+  refetchMode?: 'reset' | 'append'
+
+  /**
    * Maximum number of chunks to store.
    * When exceeded, the oldest chunks will be removed.
    */

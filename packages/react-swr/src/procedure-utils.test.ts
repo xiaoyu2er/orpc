@@ -46,6 +46,34 @@ describe('createProcedureUtils', () => {
 
       await new Promise(resolve => setTimeout(resolve, 20))
 
+      expect(next).toHaveBeenCalledTimes(4)
+      expect(next).toHaveBeenCalledWith(undefined, expect.any(Function))
+
+      expect(next).toHaveBeenNthCalledWith(1, undefined, undefined) // reset mode
+      expect(next.mock.calls[1]![1](undefined)).toEqual(['__event__1'])
+      expect(next.mock.calls[2]![1](['1'])).toEqual(['1', '__event__2'])
+      // exceeds maxChunks, so it should only return the last 2 events
+      expect(next.mock.calls[3]![1](['1', '2'])).toEqual(['2', '__event__3'])
+    })
+
+    it('on success refetchMode=append', async () => {
+      client.mockImplementationOnce(async function* () {
+        await new Promise(resolve => setTimeout(resolve, 10))
+        yield '__event__1'
+        yield '__event__2'
+        yield '__event__3'
+      })
+      const subscriber = utils.subscriber({ context: { batch: true }, maxChunks: 2, refetchMode: 'append' })
+
+      const next = vi.fn()
+      const unsubscribe = subscriber([['ping'], { input: { search: '__search__' } }], { next })
+
+      expect(unsubscribe).toBeInstanceOf(Function)
+      expect(client).toHaveBeenCalledTimes(1)
+      expect(client).toHaveBeenCalledWith({ search: '__search__' }, { context: { batch: true, [SWR_OPERATION_CONTEXT_SYMBOL]: { type: 'subscriber' } }, signal: expect.any(AbortSignal) })
+
+      await new Promise(resolve => setTimeout(resolve, 20))
+
       expect(next).toHaveBeenCalledTimes(3)
       expect(next).toHaveBeenCalledWith(undefined, expect.any(Function))
 
@@ -90,7 +118,7 @@ describe('createProcedureUtils', () => {
 
       await new Promise(resolve => setTimeout(resolve, 20))
 
-      expect(next).toHaveBeenCalledTimes(1)
+      expect(next).toHaveBeenCalledTimes(2)
       expect(next).toHaveBeenCalledWith(new Error('__error__'))
     })
 
@@ -105,7 +133,7 @@ describe('createProcedureUtils', () => {
       const unsubscribe = subscriber([['ping'], { input: { search: '__search__' } }], { next })
       unsubscribe()
       await new Promise(resolve => setTimeout(resolve, 20))
-      expect(next).toHaveBeenCalledTimes(0)
+      expect(next).toHaveBeenCalledTimes(1)
     })
 
     it('on non-AsyncIteratorObject output', async () => {

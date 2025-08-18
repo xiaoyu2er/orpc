@@ -63,7 +63,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
     },
 
     subscriber(...rest) {
-      const { context, maxChunks } = resolveCreateFetcherOptions(resolveMaybeOptionalOptions(rest))
+      const { context, maxChunks, refetchMode = 'reset' } = resolveCreateFetcherOptions(resolveMaybeOptionalOptions(rest))
 
       return ([,{ input }], { next }) => {
         const controller = new AbortController()
@@ -80,6 +80,10 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
 
             if (!isAsyncIteratorObject(iterator)) {
               throw new Error('.subscriber requires an event iterator output')
+            }
+
+            if (refetchMode === 'reset') {
+              next(undefined, undefined)
             }
 
             for await (const event of iterator) {

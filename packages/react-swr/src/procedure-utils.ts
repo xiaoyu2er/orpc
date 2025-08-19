@@ -1,5 +1,5 @@
 import type { Client, ClientContext } from '@orpc/client'
-import type { InferAsyncIterableYield, MaybeOptionalOptions, ThrowableError } from '@orpc/shared'
+import type { InferAsyncIterableYield, MaybeOptionalOptions } from '@orpc/shared'
 import type { CreateFetcherOptions, CreateKeyOptions, CreateSubscriberOptions, Fetcher, Key, Mutator, Subscriber, SWROperationContext } from './types'
 import { isAsyncIteratorObject, resolveMaybeOptionalOptions } from '@orpc/shared'
 import { resolveCreateFetcherOptions, resolveCreateKeyOptions, SWR_OPERATION_CONTEXT_SYMBOL } from './types'
@@ -37,24 +37,20 @@ export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TO
   /**
    * Generate a subscriber function that subscribes to an [Event Iterator](https://orpc.unnoq.com/docs/event-iterator) for use with useSWRSubscription, etc.
    *
-   * @remarks Uses ThrowableError instead of TError because TError only applies to the initial request. Streaming errors are not validated, so type safety cannot be guaranteed for error types.
-   *
    * @see {@link https://orpc.unnoq.com/docs/integrations/react-swr#subscriptions React SWR Subscriptions Docs}
    */
   subscriber(
     ...rest: MaybeOptionalOptions<CreateSubscriberOptions<TClientContext>>
-  ): Subscriber<TInput, InferAsyncIterableYield<TOutput>[], ThrowableError>
+  ): Subscriber<TInput, InferAsyncIterableYield<TOutput>[], TError>
 
   /**
    * Generate a live subscriber that subscribes to the latest events from an [Event Iterator](https://orpc.unnoq.com/docs/event-iterator) for use with useSWRSubscription, etc.
-   *
-   * @remarks Uses ThrowableError instead of TError because TError only applies to the initial request. Streaming errors are not validated, so type safety cannot be guaranteed for error types.
    *
    * @see {@link https://orpc.unnoq.com/docs/integrations/react-swr#subscriptions React SWR Subscriptions Docs}
    */
   liveSubscriber(
     ...rest: MaybeOptionalOptions<CreateFetcherOptions<TClientContext>>
-  ): Subscriber<TInput, InferAsyncIterableYield<TOutput>, ThrowableError>
+  ): Subscriber<TInput, InferAsyncIterableYield<TOutput>, TError>
 
   /**
    * Generate a mutator function for use with useSWRMutation, etc.
@@ -131,7 +127,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
              * Only report the error if the controller is not aborted.
              */
             if (!controller.signal.aborted) {
-              next(error as ThrowableError)
+              next(error as TError)
             }
           }
         })()
@@ -171,7 +167,7 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
              * Only report the error if the controller is not aborted.
              */
             if (!controller.signal.aborted) {
-              next(error as ThrowableError)
+              next(error as TError)
             }
           }
         })()

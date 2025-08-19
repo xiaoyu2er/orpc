@@ -3,6 +3,7 @@ import type { ErrorFromErrorMap } from '@orpc/contract'
 import type { baseErrorMap } from '../../contract/tests/shared'
 import type { ProcedureUtils } from './procedure-utils'
 import useSWR from 'swr'
+import useSWRInfinite from 'swr/infinite'
 import useSWRMutation from 'swr/mutation'
 import useSWRSubscription from 'swr/subscription'
 
@@ -10,6 +11,7 @@ describe('ProcedureUtils', () => {
   type UtilsInput = { search?: string, cursor?: number } | undefined
   type UtilsOutput = { title: string }[]
   type UtilsError = ErrorFromErrorMap<typeof baseErrorMap>
+  const condition = {} as boolean
 
   const optionalUtils = {} as ProcedureUtils<
     { batch?: boolean },
@@ -68,11 +70,25 @@ describe('ProcedureUtils', () => {
     })
   })
 
-  describe('.fetcher & useSWR', () => {
+  describe('.fetcher & useSWR & useSWRInfinite', () => {
     it('require matching key', () => {
       useSWR(optionalUtils.key(), optionalUtils.fetcher())
       // FIXME: This should be an error, but SWR does not enforce key type
       useSWR('invalid', optionalUtils.fetcher())
+
+      useSWRInfinite((index, previousPage) => {
+        // FIXME: This should be typed
+        // expectTypeOf(previousPage).toEqualTypeOf<UtilsOutput | undefined>()
+
+        return optionalUtils.key()
+      }, optionalUtils.fetcher())
+      // FIXME: This should be an error, but SWR does not enforce key type
+      useSWRInfinite(() => 'invalid', optionalUtils.fetcher())
+    })
+
+    it('allow use `null` as key', () => {
+      useSWR(condition ? null : optionalUtils.key(), optionalUtils.fetcher())
+      useSWRInfinite(() => condition ? null : optionalUtils.key(), optionalUtils.fetcher())
     })
 
     it('should infer types for `context` correctly', () => {
@@ -92,9 +108,16 @@ describe('ProcedureUtils', () => {
       requiredUtils.fetcher({ context: { batch: 'invalid' } })
     })
 
-    it('should infer types for `output` correctly', () => {
+    it('should infer types for `output` and `error` correctly', () => {
       const swr = useSWR(optionalUtils.key(), optionalUtils.fetcher())
       expectTypeOf(swr.data).toEqualTypeOf<UtilsOutput | undefined>()
+      // FIXME: this should be typed
+      // expectTypeOf(swr.error).toEqualTypeOf<UtilsError | undefined>()
+
+      const infinite = useSWRInfinite((index, previousPage) => optionalUtils.key(), optionalUtils.fetcher())
+      expectTypeOf(infinite.data).toEqualTypeOf<UtilsOutput[] | undefined>()
+      // FIXME: this should be typed
+      // expectTypeOf(infinite.error).toEqualTypeOf<UtilsError | undefined>()
     })
   })
 
@@ -103,6 +126,10 @@ describe('ProcedureUtils', () => {
       useSWRSubscription(optionalUtils.key(), optionalUtils.subscriber())
       // @ts-expect-error - Should error on invalid key type
       useSWRSubscription('invalid', optionalUtils.subscriber())
+    })
+
+    it('allow use `null` as key', () => {
+      useSWRSubscription(condition ? null : optionalUtils.key(), optionalUtils.subscriber())
     })
 
     it('should infer types for `context` correctly', () => {
@@ -122,9 +149,10 @@ describe('ProcedureUtils', () => {
       requiredUtils.subscriber({ context: { batch: 'invalid' } })
     })
 
-    it('should infer types for `output` correctly', () => {
+    it('should infer types for `output` and `error` correctly', () => {
       const subscription = useSWRSubscription(streamUtils.key(), streamUtils.subscriber({ maxChunks: 5 }))
       expectTypeOf(subscription.data).toEqualTypeOf<UtilsOutput | undefined>()
+      expectTypeOf(subscription.error).toEqualTypeOf<UtilsError | undefined>()
     })
   })
 
@@ -133,6 +161,10 @@ describe('ProcedureUtils', () => {
       useSWRSubscription(optionalUtils.key(), optionalUtils.liveSubscriber())
       // @ts-expect-error - Should error on invalid key type
       useSWRSubscription('invalid', optionalUtils.liveSubscriber())
+    })
+
+    it('allow use `null` as key', () => {
+      useSWRSubscription(condition ? null : optionalUtils.key(), optionalUtils.liveSubscriber())
     })
 
     it('should infer types for `context` correctly', () => {
@@ -152,9 +184,10 @@ describe('ProcedureUtils', () => {
       requiredUtils.liveSubscriber({ context: { batch: 'invalid' } })
     })
 
-    it('should infer types for `output` correctly', () => {
+    it('should infer types for `output` and `error` correctly', () => {
       const subscription = useSWRSubscription(streamUtils.key(), streamUtils.liveSubscriber())
       expectTypeOf(subscription.data).toEqualTypeOf<UtilsOutput[number] | undefined>()
+      expectTypeOf(subscription.error).toEqualTypeOf<UtilsError | undefined>()
     })
   })
 
@@ -176,11 +209,13 @@ describe('ProcedureUtils', () => {
       requiredUtils.mutator({ context: { batch: 'invalid' } })
     })
 
-    it('should infer types for `output` & `input` correctly', () => {
+    it('should infer types for `output` & `input` & `error` correctly', () => {
       const mutation = useSWRMutation('some-key', optionalUtils.mutator())
 
       expectTypeOf<Parameters<typeof mutation.trigger>[0]>().toEqualTypeOf<UtilsInput | undefined>()
       expectTypeOf(mutation.data).toEqualTypeOf<UtilsOutput | undefined>()
+      // FIXME: this should be typed
+      // expectTypeOf(mutation.error).toEqualTypeOf<UtilsError | undefined>()
     })
   })
 })

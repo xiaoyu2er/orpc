@@ -1,3 +1,4 @@
+import { isDefinedError } from '@orpc/client'
 import useSWR from 'swr'
 import useSWRInfinite from 'swr/infinite'
 import useSWRMutation from 'swr/mutation'
@@ -21,6 +22,11 @@ it('useSWR', async () => {
 
   expectTypeOf(swr.data).toEqualTypeOf<{ output: string } | undefined>()
 
+  if (swr.error && isDefinedError(swr.error) && swr.error.code === 'BASE') {
+    // FIXME: this should be typed
+    // expectTypeOf(swr.error.data).toEqualTypeOf<{ output: string }>()
+  }
+
   // FIXME: this should error because invalid key
   useSWR(
     'invalid',
@@ -36,6 +42,11 @@ it('useSWRMutation', async () => {
 
   expectTypeOf<Parameters<typeof mutation.trigger>[0]>().toEqualTypeOf<{ input: number }>()
   expectTypeOf(mutation.data).toEqualTypeOf<{ output: string } | undefined>()
+
+  if (mutation.error && isDefinedError(mutation.error) && mutation.error.code === 'BASE') {
+    // FIXME: this should be typed
+    // expectTypeOf(mutation.error.data).toEqualTypeOf<{ output: string }>()
+  }
 })
 
 it('useSWRInfinite', async () => {
@@ -49,6 +60,11 @@ it('useSWRInfinite', async () => {
     orpc.ping.fetcher(),
   )
 
+  if (swr.error && isDefinedError(swr.error) && swr.error.code === 'BASE') {
+    // FIXME: this should be typed
+    // expectTypeOf(swr.error.data).toEqualTypeOf<{ output: string }>()
+  }
+
   expectTypeOf(swr.data).toEqualTypeOf<Array<{ output: string }> | undefined>()
 })
 
@@ -59,6 +75,10 @@ it('useSWRSubscription with subscriber', async () => {
   )
 
   expectTypeOf(subscription.data).toEqualTypeOf<Array<{ output: string }> | undefined>()
+
+  if (subscription.error && isDefinedError(subscription.error) && subscription.error.code === 'BASE') {
+    expectTypeOf(subscription.error.data).toEqualTypeOf<{ output: string }>()
+  }
 
   useSWRSubscription(
     'invalid',
@@ -74,6 +94,10 @@ it('useSWRSubscription with liveSubscriber', async () => {
   )
 
   expectTypeOf(subscription.data).toEqualTypeOf<{ output: string } | undefined>()
+
+  if (subscription.error && isDefinedError(subscription.error) && subscription.error.code === 'BASE') {
+    expectTypeOf(subscription.error.data).toEqualTypeOf<{ output: string }>()
+  }
 
   useSWRSubscription(
     'invalid',

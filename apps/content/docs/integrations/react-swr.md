@@ -187,12 +187,14 @@ import {
 interface ClientContext extends SWROperationContext {
 }
 
+const GET_OPERATION_TYPE = new Set(['fetcher', 'subscriber', 'liveSubscriber'])
+
 const link = new RPCLink<ClientContext>({
   url: 'http://localhost:3000/rpc',
   method: ({ context }, path) => {
     const operationType = context[SWR_OPERATION_CONTEXT_SYMBOL]?.type
 
-    if (operationType === 'fetcher') {
+    if (operationType && GET_OPERATION_TYPE.has(operationType)) {
       return 'GET'
     }
 

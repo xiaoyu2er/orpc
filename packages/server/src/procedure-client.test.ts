@@ -1,4 +1,5 @@
 import { ORPCError } from '@orpc/client'
+import { HibernationEventIterator } from '@orpc/standard-server'
 import * as z from 'zod'
 import { createORPCErrorConstructorMap, validateORPCError } from './error'
 import { isLazy, lazy, unlazy } from './lazy'
@@ -30,6 +31,16 @@ const baseErrors = {
 const procedure = new Procedure({
   inputSchema: schema,
   outputSchema: schema,
+  errorMap: baseErrors,
+  route: {},
+  handler,
+  middlewares: [preMid1, preMid2, postMid1, postMid2],
+  inputValidationIndex: 2,
+  outputValidationIndex: 2,
+  meta: {},
+})
+
+const unvalidatedProcedure = new Procedure({
   errorMap: baseErrors,
   route: {},
   handler,
@@ -462,6 +473,39 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
       expect(validateORPCError).toBeCalledTimes(1)
       expect(validateORPCError).toBeCalledWith(baseErrors, e1)
     })
+
+    describe('event iterator', async () => {
+      const client = createProcedureClient(unvalidatedProcedure)
+
+      it('throw non-ORPCError right away', async () => {
+        const e1 = new Error('non-ORPC Error')
+        handler.mockImplementationOnce(async function* () {
+          throw e1
+        } as any)
+
+        const iterator = await client({ val: '123' }) as any
+
+        await expect(iterator.next()).rejects.toBe(e1)
+      })
+
+      it('validate ORPC Error', async () => {
+        const e1 = new ORPCError('BAD_REQUEST')
+        const e2 = new ORPCError('BAD_REQUEST', { defined: true })
+
+        handler.mockImplementationOnce(async function* () {
+          throw e1
+        } as any)
+        vi.mocked(validateORPCError).mockReturnValueOnce(Promise.resolve(e2))
+
+        // signal here for test coverage
+        const iterator = await client({ val: '123' }, { signal: AbortSignal.timeout(10) }) as any
+
+        await expect(iterator.next()).rejects.toBe(e2)
+
+        expect(validateORPCError).toBeCalledTimes(1)
+        expect(validateORPCError).toBeCalledWith(baseErrors, e1)
+      })
+    })
   })
 
   it('with client context', async () => {
@@ -509,6 +553,13 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
 
     expect((handler as any).mock.calls[3][0].context.preMid2).toBe(6)
     expect((handler as any).mock.calls[3][0].context.postMid1).toBe(7)
+  })
+
+  it('not modify HibernationEventIterator', async () => {
+    const client = createProcedureClient(unvalidatedProcedure)
+    const iterator = new HibernationEventIterator(() => {})
+    handler.mockResolvedValueOnce(iterator as any)
+    await expect(client({ val: '123' })).resolves.toBe(iterator)
   })
 })
 

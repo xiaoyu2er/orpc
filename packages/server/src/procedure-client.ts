@@ -99,13 +99,11 @@ export function createProcedureClient<
     const errors = createORPCErrorConstructorMap(procedure['~orpc'].errorMap)
 
     const validateError = async (e: unknown) => {
-      if (!(e instanceof ORPCError)) {
-        return e
+      if (e instanceof ORPCError) {
+        return await validateORPCError(procedure['~orpc'].errorMap, e)
       }
 
-      const validated = await validateORPCError(procedure['~orpc'].errorMap, e)
-
-      return validated
+      return e
     }
 
     try {
@@ -139,7 +137,7 @@ export function createProcedureClient<
         }
 
         /**
-         * asyncIteratorWithSpan return AsyncIteratorClass
+         * asyncIteratorWithSpan/mapEventIterator return AsyncIteratorClass
          * which is backwards compatible with Event Iterator & almost async iterator.
          *
          * @warning

@@ -128,4 +128,98 @@ describe('openAPIReferencePlugin', () => {
     expect(response!.headers.get('content-type')).toBe('text/html')
     expect(await response!.text()).toContain('__SOME_VALUE__')
   })
+
+  it('should serve swagger UI when uiType is swagger', async () => {
+    const handler = new OpenAPIHandler(router, {
+      plugins: [
+        new OpenAPIReferencePlugin({
+          schemaConverters: [jsonSchemaConverter],
+          uiType: 'swagger',
+        }),
+      ],
+    })
+
+    const { response } = await handler.handle(new Request('http://localhost:3000'))
+
+    expect(response!.status).toBe(200)
+    expect(response!.headers.get('content-type')).toBe('text/html')
+
+    const html = await response!.text()
+    expect(html).toContain('<title>API Reference</title>')
+    expect(html).toContain('swagger-ui-dist')
+    expect(html).toContain('swagger-ui.css')
+    expect(html).toContain('SwaggerUIBundle')
+    expect(html).not.toContain('Scalar')
+  })
+
+  it('should serve scalar UI when uiType is scalar (default)', async () => {
+    const handler = new OpenAPIHandler(router, {
+      plugins: [
+        new OpenAPIReferencePlugin({
+          schemaConverters: [jsonSchemaConverter],
+          uiType: 'scalar',
+        }),
+      ],
+    })
+
+    const { response } = await handler.handle(new Request('http://localhost:3000'))
+
+    expect(response!.status).toBe(200)
+    expect(response!.headers.get('content-type')).toBe('text/html')
+
+    const html = await response!.text()
+    expect(html).toContain('<title>API Reference</title>')
+    expect(html).toContain('@scalar/api-reference')
+    expect(html).toContain('Scalar.createApiReference')
+    expect(html).not.toContain('SwaggerUIBundle')
+  })
+
+  it('should use custom docsScriptUrl and docsCssUrl for swagger', async () => {
+    const customScriptUrl = 'https://custom.example.com/swagger-ui-bundle.js'
+    const customCssUrl = 'https://custom.example.com/swagger-ui.css'
+
+    const handler = new OpenAPIHandler(router, {
+      plugins: [
+        new OpenAPIReferencePlugin({
+          schemaConverters: [jsonSchemaConverter],
+          uiType: 'swagger',
+          docsScriptUrl: customScriptUrl,
+          docsCssUrl: customCssUrl,
+        }),
+      ],
+    })
+
+    const { response } = await handler.handle(new Request('http://localhost:3000'))
+
+    expect(response!.status).toBe(200)
+    expect(response!.headers.get('content-type')).toBe('text/html')
+
+    const html = await response!.text()
+    expect(html).toContain(customScriptUrl)
+    expect(html).toContain(customCssUrl)
+  })
+
+  it('should work with swagger UI config', async () => {
+    const handler = new OpenAPIHandler(router, {
+      plugins: [
+        new OpenAPIReferencePlugin({
+          schemaConverters: [jsonSchemaConverter],
+          uiType: 'swagger',
+          docsConfig: async () => ({
+            tryItOutEnabled: true,
+            customOption: '__SWAGGER_CONFIG__',
+          }),
+        }),
+      ],
+    })
+
+    const { response } = await handler.handle(new Request('http://localhost:3000'))
+
+    expect(response!.status).toBe(200)
+    expect(response!.headers.get('content-type')).toBe('text/html')
+
+    const html = await response!.text()
+    expect(html).toContain('__SWAGGER_CONFIG__')
+    expect(html).toContain('tryItOutEnabled')
+  })
 })

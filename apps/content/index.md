@@ -33,7 +33,7 @@ features:
     details: Seamlessly integrate with OpenTelemetry for observability.
   - icon: ⚙️
     title: Framework Integrations
-    details: Seamlessly integrate with TanStack Query (React, Vue, Solid, Svelte, Angular, etc.), Pinia Colada, NestJS, and more.
+    details: Seamlessly integrate with TanStack Query (React, Vue, Solid, Svelte, Angular, etc.), SWR, Pinia Colada, NestJS, and more.
   - icon: 🚀
     title: Server Actions
     details: Fully compatible with React Server Actions on Next.js, TanStack Start, and other platforms.

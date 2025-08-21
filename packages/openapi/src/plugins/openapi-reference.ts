@@ -64,7 +64,7 @@ export interface OpenAPIReferencePluginOptions<T extends Context> extends OpenAP
   /**
    * URL of the external CSS bundle for the reference UI (used by Swagger UI).
    *
-   * @default 'https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui.css' (for Swagger UI)
+   * @default 'https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui.css' (if swagger)
    */
   docsCssUrl?: Value<Promisable<string>, [StandardHandlerInterceptorOptions<T>]>
 
@@ -79,7 +79,7 @@ export interface OpenAPIReferencePluginOptions<T extends Context> extends OpenAP
     config: Record<string, unknown> | undefined,
     spec: OpenAPI.Document,
     docsProvider: 'scalar' | 'swagger',
-    cssUrl?: string
+    cssUrl: string | undefined
   ) => string
 }
 
@@ -106,14 +106,14 @@ export class OpenAPIReferencePlugin<T extends Context> implements StandardHandle
     // Set default script URL based on UI type
     this.docsScriptUrl = options.docsScriptUrl ?? (
       this.docsProvider === 'swagger'
-        ? 'https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-bundle.js'
+        ? 'https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js'
         : 'https://cdn.jsdelivr.net/npm/@scalar/api-reference'
     )
 
     // Set CSS URL for Swagger UI
     this.docsCssUrl = options.docsCssUrl ?? (
       this.docsProvider === 'swagger'
-        ? 'https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui.css'
+        ? 'https://unpkg.com/swagger-ui-dist/swagger-ui.css'
         : undefined
     )
 
@@ -124,8 +124,9 @@ export class OpenAPIReferencePlugin<T extends Context> implements StandardHandle
     const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
     this.renderDocsHtml = options.renderDocsHtml ?? ((specUrl, title, head, scriptUrl, config, spec, docsProvider, cssUrl) => {
+      let body: string
+
       if (docsProvider === 'swagger') {
-        // Swagger UI configuration
         const swaggerConfig = {
           dom_id: '#app',
           spec,
@@ -137,11 +138,43 @@ export class OpenAPIReferencePlugin<T extends Context> implements StandardHandle
           plugins: [
             'SwaggerUIBundle.plugins.DownloadUrl',
           ],
-          layout: 'StandaloneLayout',
           ...config,
         }
 
-        return `
+        body = `
+        <body>
+          <div id="app"></div>
+
+          <script src="${esc(scriptUrl)}"></script>
+
+          <script>
+            window.onload = () => {
+              window.ui = SwaggerUIBundle(${stringifyJSON(swaggerConfig).replace(/"(SwaggerUIBundle\.[^"]+)"/g, '$1')})
+            }
+          </script>
+        </body>
+        `
+      }
+      else {
+        const scalarConfig = {
+          content: stringifyJSON(spec),
+          ...config,
+        }
+
+        body = `
+        <body>
+          <div id="app" data-config="${esc(stringifyJSON(scalarConfig))}"></div>
+
+          <script src="${esc(scriptUrl)}"></script>
+
+          <script>
+            Scalar.createApiReference('#app', JSON.parse(document.getElementById('app').dataset.config))
+          </script>
+        </body>
+        `
+      }
+
+      return `
         <!doctype html>
         <html>
           <head>
@@ -151,46 +184,9 @@ export class OpenAPIReferencePlugin<T extends Context> implements StandardHandle
             ${cssUrl ? `<link rel="stylesheet" type="text/css" href="${esc(cssUrl)}" />` : ''}
             ${head}
           </head>
-          <body>
-            <div id="app"></div>
-
-            <script src="${esc(scriptUrl)}"></script>
-
-            <script>
-              SwaggerUIBundle(${stringifyJSON(swaggerConfig).replace(/"(SwaggerUIBundle\.[^"]+)"/g, '$1')})
-            </script>
-          </body>
+          ${body}
         </html>
         `
-      }
-      else {
-        // Scalar configuration (default)
-        const finalConfig = {
-          content: stringifyJSON(spec),
-          ...config,
-        }
-
-        return `
-        <!doctype html>
-        <html>
-          <head>
-            <meta charset="utf-8" />
-            <meta name="viewport" content="width=device-width, initial-scale=1" />
-            <title>${esc(title)}</title>
-            ${head}
-          </head>
-          <body>
-            <div id="app" data-config="${esc(stringifyJSON(finalConfig))}"></div>
-
-            <script src="${esc(scriptUrl)}"></script>
-
-            <script>
-              Scalar.createApiReference('#app', JSON.parse(document.getElementById('app').dataset.config))
-            </script>
-          </body>
-        </html>
-        `
-      }
     })
   }
 
@@ -238,7 +234,7 @@ export class OpenAPIReferencePlugin<T extends Context> implements StandardHandle
           await value(this.docsConfig, options),
           await generateSpec(),
           this.docsProvider,
-          this.docsCssUrl ? await value(this.docsCssUrl, options) : undefined,
+          await value(this.docsCssUrl, options),
         )
 
         return {

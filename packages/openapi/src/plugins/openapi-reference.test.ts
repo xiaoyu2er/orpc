@@ -219,6 +219,9 @@ describe('openAPIReferencePlugin', () => {
     expect(response!.headers.get('content-type')).toBe('text/html')
 
     const html = await response!.text()
+    expect(html).toContain('swagger-ui-bundle.js')
+    expect(html).toContain('swagger-ui.css')
+    expect(html).toContain('SwaggerUIBundle')
     expect(html).toContain('__SWAGGER_CONFIG__')
     expect(html).toContain('tryItOutEnabled')
   })

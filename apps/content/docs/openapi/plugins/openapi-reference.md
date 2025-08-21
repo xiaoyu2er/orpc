@@ -20,6 +20,7 @@ import { OpenAPIReferencePlugin } from '@orpc/openapi/plugins'
 const handler = new OpenAPIHandler(router, {
   plugins: [
     new OpenAPIReferencePlugin({
+      docsProvider: 'swagger', // default: 'scalar'
       schemaConverters: [
         new ZodToJsonSchemaConverter(),
       ],
@@ -37,30 +38,3 @@ const handler = new OpenAPIHandler(router, {
 ::: info
 By default, the API reference client is served at the root path (`/`), and the OpenAPI specification is available at `/spec.json`. You can customize these paths by providing the `docsPath` and `specPath` options.
 :::
-
-## Using Swagger UI
-
-To use Swagger UI instead of the default Scalar interface:
-
-```ts
-import { OpenAPIReferencePlugin } from '@orpc/openapi/plugins'
-
-const plugin = new OpenAPIReferencePlugin({
-  docsProvider: 'swagger', // Use Swagger UI instead of Scalar
-  schemaConverters: [
-    new ZodToJsonSchemaConverter(),
-  ],
-  specGenerateOptions: {
-    info: {
-      title: 'ORPC Playground',
-      version: '1.0.0',
-    },
-  },
-})
-
-const handler = new OpenAPIHandler(router, {
-  plugins: [plugin]
-})
-```
-
-

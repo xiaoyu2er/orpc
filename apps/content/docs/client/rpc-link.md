@@ -182,13 +182,17 @@ sequenceDiagram
   actor A1 as Client
   participant P1 as Input/Output/Error Encoder
   participant P2 as Client Sender
+  participant P3 as Adapter
 
   A1 ->> P1: input, signal, lastEventId, ...
   Note over P1: interceptors
   P1 ->> P1: encode request
   P1 ->> P2: standard request
   Note over P2: clientInterceptors
-  P2 ->> P2: send
+  P2 ->> P3: adapter request
+  Note over P3: adapterInterceptors
+  P3 ->> P3: send
+  P3 ->> P2: adapter response
   P2 ->> P1: standard response
   P1 ->> P1: decode response
   P1 ->> A1: error/output

@@ -39,7 +39,7 @@ export interface OpenAPIReferencePluginOptions<T extends Context> extends OpenAP
    *
    * @default 'scalar'
    */
-  uiType?: 'scalar' | 'swagger'
+  docsProvider?: 'scalar' | 'swagger'
 
   /**
    * Arbitrary configuration object for the UI.
@@ -78,7 +78,7 @@ export interface OpenAPIReferencePluginOptions<T extends Context> extends OpenAP
     scriptUrl: string,
     config: Record<string, unknown> | undefined,
     spec: OpenAPI.Document,
-    uiType: 'scalar' | 'swagger',
+    docsProvider: 'scalar' | 'swagger',
     cssUrl?: string
   ) => string
 }
@@ -90,7 +90,7 @@ export class OpenAPIReferencePlugin<T extends Context> implements StandardHandle
   private readonly docsPath: Exclude<OpenAPIReferencePluginOptions<T>['docsPath'], undefined>
   private readonly docsTitle: Exclude<OpenAPIReferencePluginOptions<T>['docsTitle'], undefined>
   private readonly docsHead: Exclude<OpenAPIReferencePluginOptions<T>['docsHead'], undefined>
-  private readonly uiType: Exclude<OpenAPIReferencePluginOptions<T>['uiType'], undefined>
+  private readonly docsProvider: Exclude<OpenAPIReferencePluginOptions<T>['docsProvider'], undefined>
   private readonly docsScriptUrl: Exclude<OpenAPIReferencePluginOptions<T>['docsScriptUrl'], undefined>
   private readonly docsCssUrl: OpenAPIReferencePluginOptions<T>['docsCssUrl']
   private readonly docsConfig: OpenAPIReferencePluginOptions<T>['docsConfig']
@@ -101,18 +101,18 @@ export class OpenAPIReferencePlugin<T extends Context> implements StandardHandle
     this.docsPath = options.docsPath ?? '/'
     this.docsTitle = options.docsTitle ?? 'API Reference'
     this.docsConfig = options.docsConfig ?? undefined
-    this.uiType = options.uiType ?? 'scalar'
+    this.docsProvider = options.docsProvider ?? 'scalar'
 
     // Set default script URL based on UI type
     this.docsScriptUrl = options.docsScriptUrl ?? (
-      this.uiType === 'swagger'
+      this.docsProvider === 'swagger'
         ? 'https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-bundle.js'
         : 'https://cdn.jsdelivr.net/npm/@scalar/api-reference'
     )
 
     // Set CSS URL for Swagger UI
     this.docsCssUrl = options.docsCssUrl ?? (
-      this.uiType === 'swagger'
+      this.docsProvider === 'swagger'
         ? 'https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui.css'
         : undefined
     )
@@ -123,8 +123,8 @@ export class OpenAPIReferencePlugin<T extends Context> implements StandardHandle
 
     const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
-    this.renderDocsHtml = options.renderDocsHtml ?? ((specUrl, title, head, scriptUrl, config, spec, uiType, cssUrl) => {
-      if (uiType === 'swagger') {
+    this.renderDocsHtml = options.renderDocsHtml ?? ((specUrl, title, head, scriptUrl, config, spec, docsProvider, cssUrl) => {
+      if (docsProvider === 'swagger') {
         // Swagger UI configuration
         const swaggerConfig = {
           dom_id: '#app',
@@ -237,7 +237,7 @@ export class OpenAPIReferencePlugin<T extends Context> implements StandardHandle
           await value(this.docsScriptUrl, options),
           await value(this.docsConfig, options),
           await generateSpec(),
-          this.uiType,
+          this.docsProvider,
           this.docsCssUrl ? await value(this.docsCssUrl, options) : undefined,
         )
 

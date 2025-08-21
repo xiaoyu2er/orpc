@@ -46,7 +46,7 @@ To use Swagger UI instead of the default Scalar interface:
 import { OpenAPIReferencePlugin } from '@orpc/openapi/plugins'
 
 const plugin = new OpenAPIReferencePlugin({
-  uiType: 'swagger', // Use Swagger UI instead of Scalar
+  docsProvider: 'swagger', // Use Swagger UI instead of Scalar
   schemaConverters: [
     new ZodToJsonSchemaConverter(),
   ],
@@ -63,52 +63,4 @@ const handler = new OpenAPIHandler(router, {
 })
 ```
 
-## Configuration Options
 
-### `uiType`
-
-- **Type:** `'scalar' | 'swagger'`
-- **Default:** `'scalar'`
-
-Choose which UI library to use for rendering the API reference documentation.
-
-### `docsConfig`
-
-Pass additional configuration to the UI library:
-
-```ts
-const swaggerPlugin = new OpenAPIReferencePlugin({
-  uiType: 'swagger',
-  docsConfig: {
-    // Swagger UI specific options
-    tryItOutEnabled: true,
-    deepLinking: true,
-    // ... other Swagger UI options
-  }
-})
-```
-
-For Scalar:
-
-```ts
-const scalarPlugin = new OpenAPIReferencePlugin({
-  uiType: 'scalar', // or omit (default)
-  docsConfig: {
-    // Scalar specific options
-    hideDownloadButton: true,
-    // ... other Scalar options
-  }
-})
-```
-
-### Custom CDN URLs
-
-You can customize the CDN URLs for the UI libraries:
-
-```ts
-const plugin = new OpenAPIReferencePlugin({
-  uiType: 'swagger',
-  docsScriptUrl: 'https://your-cdn.com/swagger-ui-bundle.js',
-  docsCssUrl: 'https://your-cdn.com/swagger-ui.css',
-})
-```

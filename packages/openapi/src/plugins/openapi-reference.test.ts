@@ -129,12 +129,12 @@ describe('openAPIReferencePlugin', () => {
     expect(await response!.text()).toContain('__SOME_VALUE__')
   })
 
-  it('should serve swagger UI when uiType is swagger', async () => {
+  it('should serve swagger UI when docsProvider is swagger', async () => {
     const handler = new OpenAPIHandler(router, {
       plugins: [
         new OpenAPIReferencePlugin({
           schemaConverters: [jsonSchemaConverter],
-          uiType: 'swagger',
+          docsProvider: 'swagger',
         }),
       ],
     })
@@ -152,12 +152,12 @@ describe('openAPIReferencePlugin', () => {
     expect(html).not.toContain('Scalar')
   })
 
-  it('should serve scalar UI when uiType is scalar (default)', async () => {
+  it('should serve scalar UI when docsProvider is scalar (default)', async () => {
     const handler = new OpenAPIHandler(router, {
       plugins: [
         new OpenAPIReferencePlugin({
           schemaConverters: [jsonSchemaConverter],
-          uiType: 'scalar',
+          docsProvider: 'scalar',
         }),
       ],
     })
@@ -182,7 +182,7 @@ describe('openAPIReferencePlugin', () => {
       plugins: [
         new OpenAPIReferencePlugin({
           schemaConverters: [jsonSchemaConverter],
-          uiType: 'swagger',
+          docsProvider: 'swagger',
           docsScriptUrl: customScriptUrl,
           docsCssUrl: customCssUrl,
         }),
@@ -204,7 +204,7 @@ describe('openAPIReferencePlugin', () => {
       plugins: [
         new OpenAPIReferencePlugin({
           schemaConverters: [jsonSchemaConverter],
-          uiType: 'swagger',
+          docsProvider: 'swagger',
           docsConfig: async () => ({
             tryItOutEnabled: true,
             customOption: '__SWAGGER_CONFIG__',

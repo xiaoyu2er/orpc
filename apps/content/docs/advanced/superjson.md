@@ -83,7 +83,8 @@ import { StrictGetMethodPlugin } from '@orpc/server/plugins'
 import type { StandardHandlerOptions } from '@orpc/server/standard'
 import { StandardHandler, StandardRPCCodec, StandardRPCMatcher } from '@orpc/server/standard'
 
-export interface SuperJSONHandlerOptions<T extends Context> extends StandardHandlerOptions<T> {
+export interface SuperJSONHandlerOptions<T extends Context>
+  extends FetchHandlerOptions<T>, Omit<StandardHandlerOptions<T>, 'plugins'> {
   /**
    * Enable or disable the StrictGetMethodPlugin.
    *
@@ -93,7 +94,7 @@ export interface SuperJSONHandlerOptions<T extends Context> extends StandardHand
 }
 
 export class SuperJSONHandler<T extends Context> extends FetchHandler<T> {
-  constructor(router: Router<any, T>, options: NoInfer<FetchHandlerOptions<T> & SuperJSONHandlerOptions<T>> = {}) {
+  constructor(router: Router<any, T>, options: NoInfer<SuperJSONHandlerOptions<T>> = {}) {
     options.plugins ??= []
 
     const strictGetMethodPluginEnabled = options.strictGetMethodPluginEnabled ?? true
@@ -126,7 +127,9 @@ import type { LinkFetchClientOptions } from '@orpc/client/fetch'
 import { LinkFetchClient } from '@orpc/client/fetch'
 
 export interface SuperJSONLinkOptions<T extends ClientContext>
-  extends StandardLinkOptions<T>, StandardRPCLinkCodecOptions<T>, LinkFetchClientOptions<T> { }
+  extends LinkFetchClientOptions<T>,
+  Omit<StandardLinkOptions<T>, 'plugins'>,
+  StandardRPCLinkCodecOptions<T> { }
 
 export class SuperJSONLink<T extends ClientContext> extends StandardLink<T> {
   constructor(options: SuperJSONLinkOptions<T>) {

@@ -6,7 +6,7 @@ import { StrictGetMethodPlugin } from '../../plugins'
 import { StandardRPCHandler } from '../standard'
 import { NodeHttpHandler } from './handler'
 
-export type RPCHandlerOptions<T extends Context> = NodeHttpHandlerOptions<T> & StandardRPCHandlerOptions<T> & {
+export interface RPCHandlerOptions<T extends Context> extends NodeHttpHandlerOptions<T>, Omit<StandardRPCHandlerOptions<T>, 'plugins'> {
   /**
    * Enables or disables the StrictGetMethodPlugin.
    *

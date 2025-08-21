@@ -6,7 +6,7 @@ import { LinkFetchClient } from '@orpc/client/fetch'
 import { StandardOpenAPILink } from '../standard'
 
 export interface OpenAPILinkOptions<T extends ClientContext>
-  extends StandardOpenAPILinkOptions<T>, LinkFetchClientOptions<T> { }
+  extends LinkFetchClientOptions<T>, Omit<StandardOpenAPILinkOptions<T>, 'plugins'> { }
 
 /**
  * The OpenAPI Link for fetch runtime communicates with the server that follow the OpenAPI specification.

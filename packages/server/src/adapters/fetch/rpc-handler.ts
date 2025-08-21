@@ -6,7 +6,7 @@ import { StrictGetMethodPlugin } from '../../plugins'
 import { StandardRPCHandler } from '../standard'
 import { FetchHandler } from './handler'
 
-export type RPCHandlerOptions<T extends Context> = FetchHandlerOptions<T> & StandardRPCHandlerOptions<T> & {
+export interface RPCHandlerOptions<T extends Context> extends FetchHandlerOptions<T>, Omit<StandardRPCHandlerOptions<T>, 'plugins'> {
   /**
    * Enables or disables the StrictGetMethodPlugin.
    *

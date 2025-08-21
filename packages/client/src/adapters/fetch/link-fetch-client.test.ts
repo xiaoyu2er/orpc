@@ -8,9 +8,15 @@ const toStandardLazyResponseSpy = vi.spyOn(StandardServerFetch, 'toStandardLazyR
 describe('linkFetchClient', () => {
   it('call', async () => {
     const fetch = vi.fn().mockResolvedValueOnce(new Response('body'))
-    const client = new LinkFetchClient({
+    const interceptor1 = vi.fn(({ next }) => next())
+    const interceptor2 = vi.fn(({ next }) => next())
+
+    const linkOptions = {
       fetch,
-    })
+      adapterInterceptors: [interceptor1, interceptor2],
+    }
+
+    const client = new LinkFetchClient(linkOptions)
 
     const standardRequest: StandardRequest = {
       url: new URL('http://localhost:300/example'),
@@ -31,7 +37,7 @@ describe('linkFetchClient', () => {
     const response = await client.call(standardRequest, options, ['example'], { body: true })
 
     expect(toFetchRequestSpy).toBeCalledTimes(1)
-    expect(toFetchRequestSpy).toBeCalledWith(standardRequest, { fetch })
+    expect(toFetchRequestSpy).toBeCalledWith(standardRequest, linkOptions)
 
     expect(response).toBe(toStandardLazyResponseSpy.mock.results[0]!.value)
     expect(toStandardLazyResponseSpy).toBeCalledTimes(1)
@@ -48,5 +54,39 @@ describe('linkFetchClient', () => {
       ['example'],
       { body: true },
     )
+
+    expect(interceptor1).toBeCalledTimes(1)
+    expect(interceptor2).toBeCalledTimes(1)
+    expect(interceptor1).toBeCalledWith(expect.objectContaining({
+      request: toFetchRequestSpy.mock.results[0]!.value,
+      ...options,
+      init: { redirect: 'manual' },
+      input: { body: true },
+      path: ['example'],
+    }))
+    expect(interceptor2).toBeCalledWith(expect.objectContaining({
+      request: toFetchRequestSpy.mock.results[0]!.value,
+      ...options,
+      init: { redirect: 'manual' },
+      input: { body: true },
+      path: ['example'],
+    }))
+  })
+
+  it('plugins', () => {
+    const initRuntimeAdapter = vi.fn()
+    const interceptor = vi.fn()
+
+    const linkOptions = {
+      plugins: [
+        { initRuntimeAdapter },
+      ],
+      adapterInterceptors: [interceptor],
+    }
+
+    const link = new LinkFetchClient(linkOptions)
+
+    expect(initRuntimeAdapter).toHaveBeenCalledOnce()
+    expect(initRuntimeAdapter).toHaveBeenCalledWith(linkOptions)
   })
 })

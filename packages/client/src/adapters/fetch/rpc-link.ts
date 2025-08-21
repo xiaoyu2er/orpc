@@ -5,7 +5,7 @@ import { StandardRPCLink } from '../standard'
 import { LinkFetchClient } from './link-fetch-client'
 
 export interface RPCLinkOptions<T extends ClientContext>
-  extends StandardRPCLinkOptions<T>, LinkFetchClientOptions<T> {}
+  extends LinkFetchClientOptions<T>, Omit<StandardRPCLinkOptions<T>, 'plugins'> {}
 
 /**
  * The RPC Link communicates with the server using the RPC protocol.

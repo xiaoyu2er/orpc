@@ -28,4 +28,25 @@ export class ORPCModule {
       global: true,
     }
   }
+
+  static forRootAsync(options: {
+    imports?: any[]
+    useFactory: (...args: any[]) => Promise<ORPCModuleConfig> | ORPCModuleConfig
+    inject?: any[]
+  }): DynamicModule {
+    return {
+      module: ORPCModule,
+      imports: options.imports,
+      providers: [
+        {
+          provide: ORPC_MODULE_CONFIG_SYMBOL,
+          useFactory: options.useFactory,
+          inject: options.inject,
+        },
+        ImplementInterceptor,
+      ],
+      exports: [ORPC_MODULE_CONFIG_SYMBOL, ImplementInterceptor],
+      global: true,
+    }
+  }
 }

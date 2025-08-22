@@ -224,17 +224,23 @@ oRPC will use NestJS parsed body when it's available, and only use the oRPC pars
 Configure the `@orpc/nest` module by importing `ORPCModule` in your NestJS application:
 
 ```ts
+import { REQUEST } from '@nestjs/core'
 import { onError, ORPCModule } from '@orpc/nest'
+import { Request } from 'express' // if you use express adapter
 
 @Module({
   imports: [
-    ORPCModule.forRoot({
-      interceptors: [
-        onError((error) => {
-          console.error(error)
-        }),
-      ],
-      eventIteratorKeepAliveInterval: 5000, // 5 seconds
+    ORPCModule.forRootAsync({ // or .forRoot
+      useFactory: (request: Request) => ({
+        interceptors: [
+          onError((error) => {
+            console.error(error)
+          }),
+        ],
+        context: { request }, // oRPC context, accessible from middlewares, etc.
+        eventIteratorKeepAliveInterval: 5000, // 5 seconds
+      }),
+      inject: [REQUEST],
     }),
   ],
 })

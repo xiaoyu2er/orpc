@@ -1,5 +1,7 @@
 import type { NodeHttpRequest } from '@orpc/standard-server-node'
+import type { Request } from 'express'
 import { Controller, Req } from '@nestjs/common'
+import { REQUEST } from '@nestjs/core'
 import { FastifyAdapter } from '@nestjs/platform-fastify'
 import { Test } from '@nestjs/testing'
 import { oc, ORPCError } from '@orpc/contract'
@@ -407,6 +409,54 @@ describe('@Implement', async () => {
     expect(res.body).toEqual('pong')
 
     expect(interceptor).toHaveBeenCalledTimes(1)
+    expect(sendStandardResponseSpy).toHaveBeenCalledTimes(1)
+    expect(sendStandardResponseSpy).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.objectContaining({
+      eventIteratorKeepAliveComment: '__TEST__',
+    }))
+  })
+
+  it('works with ORPCModule.forRootAsync', async () => {
+    const interceptor = vi.fn(({ next }) => next())
+    const moduleRef = await Test.createTestingModule({
+      imports: [
+        ORPCModule.forRootAsync({
+          useFactory: async (request: Request) => ({
+            interceptors: [interceptor],
+            eventIteratorKeepAliveComment: '__TEST__',
+            context: {
+              request,
+            },
+          }),
+          inject: [REQUEST],
+        }),
+      ],
+      controllers: [ImplProcedureController],
+    }).compile()
+
+    const app = moduleRef.createNestApplication()
+    await app.init()
+
+    const httpServer = app.getHttpServer()
+
+    const res = await supertest(httpServer)
+      .post('/ping?param=value&param2[]=value2&param2[]=value3')
+      .set('x-custom', 'value')
+      .send({ hello: 'world' })
+
+    expect(res.statusCode).toEqual(200)
+    expect(res.body).toEqual('pong')
+
+    expect(interceptor).toHaveBeenCalledTimes(1)
+    expect(interceptor).toHaveBeenCalledWith(expect.objectContaining({
+      context: expect.objectContaining({
+        request: expect.objectContaining({
+          url: '/ping?param=value&param2[]=value2&param2[]=value3',
+          headers: expect.objectContaining({
+            'x-custom': 'value',
+          }),
+        }),
+      }),
+    }))
     expect(sendStandardResponseSpy).toHaveBeenCalledTimes(1)
     expect(sendStandardResponseSpy).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.objectContaining({
       eventIteratorKeepAliveComment: '__TEST__',

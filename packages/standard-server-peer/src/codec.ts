@@ -1,6 +1,6 @@
 import type { EventMeta, StandardBody, StandardHeaders, StandardRequest, StandardResponse } from '@orpc/standard-server'
 import type { EncodedMessage } from './types'
-import { isAsyncIteratorObject, readAsBuffer, stringifyJSON } from '@orpc/shared'
+import { ensureArrayBufferBackedUint8Array, isAsyncIteratorObject, readAsBuffer, stringifyJSON } from '@orpc/shared'
 import { flattenHeader, generateContentDisposition, getFilenameFromContentDisposition } from '@orpc/standard-server'
 
 export enum MessageType {
@@ -276,13 +276,15 @@ async function deserializeBody(headers: StandardHeaders, body: unknown, buffer: 
   const contentType = flattenHeader(headers['content-type'])
   const contentDisposition = flattenHeader(headers['content-disposition'])
 
+  const bufferBacked = buffer === undefined ? undefined : ensureArrayBufferBackedUint8Array(buffer)
+
   if (typeof contentDisposition === 'string') {
     const filename = getFilenameFromContentDisposition(contentDisposition) ?? 'blob'
-    return new File(buffer === undefined ? [] : [buffer], filename, { type: contentType })
+    return new File(bufferBacked === undefined ? [] : [bufferBacked], filename, { type: contentType })
   }
 
   if (contentType?.startsWith('multipart/form-data')) {
-    const tempRes = new Response(buffer, { headers: { 'content-type': contentType } })
+    const tempRes = new Response(bufferBacked, { headers: { 'content-type': contentType } })
     return tempRes.formData()
   }
 

@@ -5,7 +5,7 @@ import { encodeEventMessage, ErrorEvent, EventDecoderStream, getEventMeta, withE
 export interface ToEventIteratorOptions extends SetSpanErrorOptions {}
 
 export function toEventIterator(
-  stream: ReadableStream<Uint8Array> | null,
+  stream: Response['body'],
   options: ToEventIteratorOptions = {},
 ): AsyncIteratorClass<unknown> {
   const eventStream = stream

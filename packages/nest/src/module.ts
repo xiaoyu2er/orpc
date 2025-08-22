@@ -3,7 +3,6 @@ import type { AnySchema } from '@orpc/contract'
 import type { CreateProcedureClientOptions } from '@orpc/server'
 import type { SendStandardResponseOptions } from '@orpc/standard-server-node'
 import { Module } from '@nestjs/common'
-import { toArray } from '@orpc/shared'
 import { ImplementInterceptor } from './implement'
 
 export const ORPC_MODULE_CONFIG_SYMBOL = Symbol('ORPC_MODULE_CONFIG')
@@ -31,16 +30,18 @@ export class ORPCModule {
   }
 
   static forRootAsync(options: {
+    imports?: any[]
     useFactory: (...args: any[]) => Promise<ORPCModuleConfig> | ORPCModuleConfig
     inject?: any[]
   }): DynamicModule {
     return {
       module: ORPCModule,
+      imports: options.imports,
       providers: [
         {
           provide: ORPC_MODULE_CONFIG_SYMBOL,
           useFactory: options.useFactory,
-          inject: toArray(options.inject),
+          inject: options.inject,
         },
         ImplementInterceptor,
       ],

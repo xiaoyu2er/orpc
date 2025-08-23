@@ -323,14 +323,16 @@ export class OpenAPIGenerator {
       }
 
       if (method === 'GET') {
-        if (!isObjectSchema(schema)) {
+        const resolvedSchema = resolveOpenAPIJsonSchemaRef(doc, schema)
+
+        if (!isObjectSchema(resolvedSchema)) {
           throw new OpenAPIGeneratorError(
             'When method is "GET", input schema must satisfy: object | any | unknown',
           )
         }
 
         ref.parameters ??= []
-        ref.parameters.push(...toOpenAPIParameters(schema, 'query'))
+        ref.parameters.push(...toOpenAPIParameters(resolvedSchema, 'query'))
       }
       else {
         ref.requestBody = {

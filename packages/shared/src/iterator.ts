@@ -1,5 +1,5 @@
 import type { SetSpanErrorOptions } from './otel'
-import { defer, once, sequential } from './function'
+import { once, sequential } from './function'
 import { runInSpanContext, setSpanError, startSpan } from './otel'
 import { AsyncIdQueue } from './queue'
 
@@ -112,9 +112,11 @@ export function replicateAsyncIterator<T, TReturn, TNext>(
       while (true) {
         const item = await source.next()
 
-        for (let id = 0; id < count; id++) {
-          if (queue.isOpen(id.toString())) {
-            queue.push(id.toString(), item)
+        for (let i = 0; i < count; i++) {
+          const id = i.toString()
+
+          if (queue.isOpen(id)) {
+            queue.push(id, item)
           }
         }
 
@@ -123,34 +125,39 @@ export function replicateAsyncIterator<T, TReturn, TNext>(
         }
       }
     }
-    catch (e) {
-      error = { value: e }
+    catch (reason) {
+      error = { value: reason }
+
+      queue.waiterIds.forEach((id) => {
+        queue.close({ id, reason })
+      })
     }
   })
 
-  for (let id = 0; id < count; id++) {
-    queue.open(id.toString())
+  for (let i = 0; i < count; i++) {
+    const id = i.toString()
+
+    queue.open(id)
     replicated.push(new AsyncIteratorClass(
       () => {
         start()
 
         return new Promise((resolve, reject) => {
-          queue.pull(id.toString())
-            .then(resolve)
-            .catch(reject)
-
-          defer(() => {
-            if (error) {
-              reject(error.value)
-            }
-          })
+          if (!error || queue.hasBufferedItems(id)) {
+            queue.pull(id)
+              .then(resolve)
+              .catch(reject)
+          }
+          else {
+            reject(error.value)
+          }
         })
       },
       async (reason) => {
-        queue.close({ id: id.toString() })
+        queue.close({ id })
 
         if (reason !== 'next') {
-          if (replicated.every((_, id) => !queue.isOpen(id.toString()))) {
+          if (!queue.length) {
             await source?.return?.()
           }
         }

@@ -1,7 +1,7 @@
 {
   "name": "@orpc/otel",
   "type": "module",
-  "version": "1.8.3",
+  "version": "1.8.4",
   "license": "MIT",
   "homepage": "https://orpc.unnoq.com",
   "repository": {

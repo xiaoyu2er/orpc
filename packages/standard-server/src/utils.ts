@@ -73,17 +73,13 @@ export function replicateStandardLazyResponse(
     replicated.push({
       ...response,
       body: once(async () => {
-        if (replicatedAsyncIteratorObjects) {
-          return replicatedAsyncIteratorObjects.shift()
-        }
-
         const body = await (bodyPromise ??= response.body())
 
         if (!isAsyncIteratorObject(body)) {
           return body
         }
 
-        replicatedAsyncIteratorObjects = replicateAsyncIterator(body, count)
+        replicatedAsyncIteratorObjects ??= replicateAsyncIterator(body, count)
         return replicatedAsyncIteratorObjects.shift()
       }),
     })

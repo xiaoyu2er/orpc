@@ -263,8 +263,10 @@ describe('replicateAsyncIterator', async () => {
 
     expect(iterators.length).toBe(3)
 
-    expect(await iterators[0]!.next()).toEqual({ done: false, value: 1 })
-    expect(await iterators[1]!.next()).toEqual({ done: false, value: 1 })
+    await Promise.all([
+      expect(iterators[0]!.next()).resolves.toEqual({ done: false, value: 1 }),
+      expect(iterators[1]!.next()).resolves.toEqual({ done: false, value: 1 }),
+    ])
 
     expect(await iterators[0]!.next()).toEqual({ done: false, value: 2 })
     expect(await iterators[1]!.next()).toEqual({ done: false, value: 2 })
@@ -315,8 +317,10 @@ describe('replicateAsyncIterator', async () => {
     expect(await iterators[1]!.next()).toEqual({ done: false, value: 3 })
     expect(await iterators[2]!.next()).toEqual({ done: false, value: 1 })
 
-    await expect(iterators[0]!.next()).rejects.toThrow(error)
-    await expect(iterators[1]!.next()).rejects.toThrow(error)
+    await Promise.all([
+      expect(iterators[0]!.next()).rejects.toThrow(error),
+      expect(iterators[1]!.next()).rejects.toThrow(error),
+    ])
     expect(await iterators[2]!.next()).toEqual({ done: false, value: 2 })
 
     expect(await iterators[0]!.next()).toEqual({ done: true, value: undefined })

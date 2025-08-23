@@ -111,10 +111,15 @@ describe('replicateStandardLazyResponse', () => {
 
     replicateAsyncIteratorSpy.mockReturnValueOnce([1, 2, 3] as any)
 
-    expect(await replicated[0]!.body()).toBe(1)
+    // parallel test is important
+    await Promise.all([
+      expect(replicated[0]!.body()).resolves.toEqual(1),
+      expect(replicated[1]!.body()).resolves.toEqual(2),
+    ])
+
     expect(await replicated[0]!.body()).toBe(1) // make sure cached
-    expect(await replicated[1]!.body()).toBe(2)
     expect(await replicated[1]!.body()).toBe(2) // make sure cached
+
     expect(await replicated[2]!.body()).toBe(3)
     expect(await replicated[2]!.body()).toBe(3) // make sure cached
 

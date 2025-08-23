@@ -132,4 +132,44 @@ describe('asyncIdQueue', () => {
     expect(queue.isOpen('2')).toBe(false)
     expect(queue.isOpen('3')).toBe(false)
   })
+
+  it('waiterIds', async () => {
+    queue.open('1')
+    queue.open('2')
+
+    const p1 = queue.pull('1')
+    const p2 = queue.pull('2')
+
+    expect(queue.waiterIds).toEqual(['1', '2'])
+
+    queue.push('1', 'item1')
+    queue.push('2', 'item2')
+
+    await expect(p1).resolves.toBe('item1')
+    await expect(p2).resolves.toBe('item2')
+
+    expect(queue.waiterIds).toEqual([])
+  })
+
+  it('hasBufferedItems', async () => {
+    queue.open('1')
+    queue.open('2')
+
+    expect(queue.hasBufferedItems('1')).toBe(false)
+    expect(queue.hasBufferedItems('2')).toBe(false)
+
+    queue.push('1', 'item1')
+    queue.push('2', 'item2')
+
+    expect(queue.hasBufferedItems('1')).toBe(true)
+    expect(queue.hasBufferedItems('2')).toBe(true)
+
+    await queue.pull('1')
+    expect(queue.hasBufferedItems('1')).toBe(false)
+    expect(queue.hasBufferedItems('2')).toBe(true)
+
+    await queue.pull('2')
+    expect(queue.hasBufferedItems('1')).toBe(false)
+    expect(queue.hasBufferedItems('2')).toBe(false)
+  })
 })

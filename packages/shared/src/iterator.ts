@@ -1,5 +1,5 @@
 import type { SetSpanErrorOptions } from './otel'
-import { defer, once, sequential } from './function'
+import { once, sequential } from './function'
 import { runInSpanContext, setSpanError, startSpan } from './otel'
 import { AsyncIdQueue } from './queue'
 
@@ -125,8 +125,12 @@ export function replicateAsyncIterator<T, TReturn, TNext>(
         }
       }
     }
-    catch (e) {
-      error = { value: e }
+    catch (reason) {
+      error = { value: reason }
+
+      queue.waiterIds.forEach((id) => {
+        queue.close({ id, reason })
+      })
     }
   })
 
@@ -139,15 +143,14 @@ export function replicateAsyncIterator<T, TReturn, TNext>(
         start()
 
         return new Promise((resolve, reject) => {
-          queue.pull(id)
-            .then(resolve)
-            .catch(reject)
-
-          defer(() => {
-            if (error) {
-              reject(error.value)
-            }
-          })
+          if (!error || queue.hasBufferedItems(id)) {
+            queue.pull(id)
+              .then(resolve)
+              .catch(reject)
+          }
+          else {
+            reject(error.value)
+          }
         })
       },
       async (reason) => {

@@ -157,7 +157,7 @@ export function replicateAsyncIterator<T, TReturn, TNext>(
         queue.close({ id })
 
         if (reason !== 'next') {
-          if (replicated.every((_, id) => !queue.isOpen(id.toString()))) {
+          if (!queue.length) {
             await source?.return?.()
           }
         }

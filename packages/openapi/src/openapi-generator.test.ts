@@ -1082,6 +1082,7 @@ describe('openAPIGenerator', () => {
       detailedStructure: oc.route({ path: '/detailed/{pet}', inputStructure: 'detailed', outputStructure: 'detailed' })
         .input(InputDetailedStructure)
         .output(OutputDetailedStructure),
+      getWithoutParams: oc.route({ method: 'GET' }).input(Query),
     }, {
       commonSchemas: {
         User: {
@@ -1507,6 +1508,43 @@ describe('openAPIGenerator', () => {
                 'application/json': {
                   schema: {
                     $ref: '#/components/schemas/User',
+                  },
+                },
+              },
+            },
+          },
+        },
+      })
+    })
+
+    it('work with method=GET, inputStructure=compact, and without params', async () => {
+      expect(spec.paths!['/getWithoutParams']).toEqual({
+        get: {
+          operationId: 'getWithoutParams',
+          parameters: [
+            {
+              allowEmptyValue: true,
+              allowReserved: true,
+              name: 'user',
+              in: 'query',
+              explode: true,
+              required: true,
+              schema: {
+                $ref: '#/components/schemas/User',
+              },
+              style: 'deepObject',
+            },
+          ],
+          responses: {
+            200: {
+              description: 'OK',
+              content: {
+                'application/json': {
+                  schema: {
+                    anyOf: [
+                      {},
+                      { not: {} },
+                    ],
                   },
                 },
               },

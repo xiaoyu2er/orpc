@@ -148,4 +148,14 @@ testSchemaConverter([
     schema: z.templateLiteral([z.number(), z.enum(['px', 'em', 'rem', '%'])]) as any,
     input: [true, { type: 'string', pattern: '^-?\\d+(?:\\.\\d+)?(px|em|rem|%)$' }],
   },
+  {
+    name: 'z.hash("md5")',
+    schema: z.hash('md5'),
+    input: [true, { type: 'string', pattern: '^[0-9a-fA-F]{32}$' }],
+  },
+  {
+    name: 'z.hash("sha256", { enc: "base64" })',
+    schema: z.hash('sha256', { enc: 'base64' }),
+    input: [true, { type: 'string', pattern: '^[A-Za-z0-9+/]{43}=$' }],
+  },
 ])

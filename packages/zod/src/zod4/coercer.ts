@@ -354,6 +354,7 @@ export class experimental_ZodSmartCoercionPlugin<TContext extends Context> imple
           | 'int'
           | 'symbol'
           | 'promise'
+          | 'function'
           | 'custom'
           = schema._zod.def.type
 

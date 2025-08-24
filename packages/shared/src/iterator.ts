@@ -101,7 +101,9 @@ export function replicateAsyncIterator<T, TReturn, TNext>(
   source: AsyncIterator<T, TReturn, TNext>,
   count: number,
 ): (AsyncIteratorClass<T, TReturn, TNext>)[] {
-  const queue = new AsyncIdQueue<{ next: IteratorResult<T, TReturn> } | { error: unknown }>()
+  const queue = new AsyncIdQueue<
+    { next: IteratorResult<T, TReturn> } | { next?: never, error: unknown }
+  >()
 
   const ids = Array.from({ length: count }, (_, i) => i.toString())
   let isSourceFinished = false
@@ -138,21 +140,16 @@ export function replicateAsyncIterator<T, TReturn, TNext>(
     queue.open(id)
 
     return new AsyncIteratorClass(
-      () => {
+      async () => {
         start()
 
-        return new Promise((resolve, reject) => {
-          queue.pull(id)
-            .then((item) => {
-              if ('next' in item) {
-                resolve(item.next)
-              }
-              else {
-                reject(item.error)
-              }
-            })
-            .catch(reject)
-        })
+        const item = await queue.pull(id)
+
+        if (item.next) {
+          return item.next
+        }
+
+        throw item.error
       },
       async (reason) => {
         queue.close({ id })

@@ -103,10 +103,10 @@ importers:
     devDependencies:
       '@ai-sdk/google':
         specifier: 2.0.7
-        version: 2.0.7(zod@4.0.17)
+        version: 2.0.7(zod@4.1.1)
       '@ai-sdk/react':
         specifier: 2.0.18
-        version: 2.0.18(react@19.1.1)(zod@4.0.17)
+        version: 2.0.18(react@19.1.1)(zod@4.1.1)
       '@opentelemetry/instrumentation':
         specifier: ^0.203.0
         version: 0.203.0(@opentelemetry/api@1.9.0)
@@ -187,7 +187,7 @@ importers:
         version: 22.17.0
       ai:
         specifier: 5.0.18
-        version: 5.0.18(zod@4.0.17)
+        version: 5.0.18(zod@4.1.1)
       markdown-it-task-lists:
         specifier: ^2.1.1
         version: 2.1.1
@@ -196,7 +196,7 @@ importers:
         version: 11.10.0
       openai:
         specifier: ^5.13.1
-        version: 5.13.1(ws@8.18.3)(zod@4.0.17)
+        version: 5.13.1(ws@8.18.3)(zod@4.1.1)
       pinia:
         specifier: ^3.0.2
         version: 3.0.3(typescript@5.9.2)(vue@3.5.18(typescript@5.9.2))
@@ -225,8 +225,8 @@ importers:
         specifier: ^3.5.18
         version: 3.5.18(typescript@5.9.2)
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: ^4.1.1
+        version: 4.1.1
 
   packages/arktype:
     dependencies:
@@ -259,8 +259,8 @@ importers:
         version: link:../standard-server-peer
     devDependencies:
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: ^4.1.1
+        version: 4.1.1
 
   packages/contract:
     dependencies:
@@ -284,8 +284,8 @@ importers:
         specifier: ^1.1.0
         version: 1.1.0(typescript@5.8.3)
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: ^4.1.1
+        version: 4.1.1
 
   packages/durable-event-iterator:
     dependencies:
@@ -365,8 +365,8 @@ importers:
         version: link:../shared
     devDependencies:
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: ^4.1.1
+        version: 4.1.1
 
   packages/nest:
     dependencies:
@@ -412,7 +412,7 @@ importers:
         version: 11.1.6(@nestjs/common@11.1.6(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.6)(@nestjs/platform-express@11.1.6)
       '@ts-rest/core':
         specifier: ^3.52.1
-        version: 3.52.1(@types/node@24.3.0)(zod@4.0.17)
+        version: 3.52.1(@types/node@24.3.0)(zod@4.1.1)
       '@types/express':
         specifier: ^5.0.3
         version: 5.0.3
@@ -429,8 +429,8 @@ importers:
         specifier: ^7.1.4
         version: 7.1.4
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: ^4.1.1
+        version: 4.1.1
 
   packages/openapi:
     dependencies:
@@ -460,8 +460,8 @@ importers:
         version: 0.7.3
     devDependencies:
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: ^4.1.1
+        version: 4.1.1
 
   packages/openapi-client:
     dependencies:
@@ -517,8 +517,8 @@ importers:
         specifier: ^19.1.1
         version: 19.1.1
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: ^4.1.1
+        version: 4.1.1
 
   packages/react-query:
     dependencies:
@@ -539,8 +539,8 @@ importers:
         specifier: ^19.1.1
         version: 19.1.1
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: ^4.1.1
+        version: 4.1.1
 
   packages/react-swr:
     dependencies:
@@ -623,8 +623,8 @@ importers:
         specifier: ^1.1.0
         version: 1.1.0(typescript@5.8.3)
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: ^4.1.1
+        version: 4.1.1
 
   packages/solid-query:
     dependencies:
@@ -645,8 +645,8 @@ importers:
         specifier: ^5.85.5
         version: 5.85.5(solid-js@1.9.9)
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: ^4.1.1
+        version: 4.1.1
 
   packages/standard-server:
     dependencies:
@@ -739,8 +739,8 @@ importers:
         specifier: ^5.85.5
         version: 5.85.5(svelte@5.38.2)
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: ^4.1.1
+        version: 4.1.1
 
   packages/tanstack-query:
     dependencies:
@@ -779,8 +779,8 @@ importers:
         specifier: ^3.5.18
         version: 3.5.18(typescript@5.8.3)
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: ^4.1.1
+        version: 4.1.1
 
   packages/trpc:
     dependencies:
@@ -798,8 +798,8 @@ importers:
         specifier: ^11.4.3
         version: 11.4.4(typescript@5.9.2)
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: ^4.1.1
+        version: 4.1.1
 
   packages/valibot:
     dependencies:
@@ -883,8 +883,8 @@ importers:
         version: 5.1.4
     devDependencies:
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: ^4.1.1
+        version: 4.1.1
 
   playgrounds/astro:
     devDependencies:
@@ -937,8 +937,8 @@ importers:
         specifier: ~5.8.3
         version: 5.8.3
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: ^4.1.1
+        version: 4.1.1
 
   playgrounds/browser-extension:
     devDependencies:
@@ -985,8 +985,8 @@ importers:
         specifier: ^0.20.8
         version: 0.20.8(@types/node@24.3.0)(jiti@2.5.1)(rollup@4.46.2)(terser@5.43.1)(tsx@4.20.4)(yaml@2.8.1)
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: ^4.1.1
+        version: 4.1.1
 
   playgrounds/bun-websocket-otel:
     devDependencies:
@@ -1048,8 +1048,8 @@ importers:
         specifier: ^19.1.1
         version: 19.1.1(react@19.1.1)
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: ^4.1.1
+        version: 4.1.1
 
   playgrounds/cloudflare-worker:
     devDependencies:
@@ -1108,8 +1108,8 @@ importers:
         specifier: ^4.31.0
         version: 4.31.0(@cloudflare/workers-types@4.20250820.0)
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: ^4.1.1
+        version: 4.1.1
 
   playgrounds/contract-first:
     devDependencies:
@@ -1147,8 +1147,8 @@ importers:
         specifier: ~5.8.3
         version: 5.8.3
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: ^4.1.1
+        version: 4.1.1
 
   playgrounds/electron:
     devDependencies:
@@ -1210,8 +1210,8 @@ importers:
         specifier: ^6.3.5
         version: 6.3.5(@types/node@22.17.0)(jiti@2.5.1)(terser@5.43.1)(tsx@4.20.4)(yaml@2.8.1)
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: ^4.1.1
+        version: 4.1.1
 
   playgrounds/nest:
     devDependencies:
@@ -1294,8 +1294,8 @@ importers:
         specifier: ^3.6.1
         version: 3.6.1(typescript@5.8.3)(vue@3.5.18(typescript@5.8.3))
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: ^4.1.1
+        version: 4.1.1
 
   playgrounds/next:
     devDependencies:
@@ -1348,8 +1348,8 @@ importers:
         specifier: ~5.8.3
         version: 5.8.3
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: ^4.1.1
+        version: 4.1.1
 
   playgrounds/nuxt:
     devDependencies:
@@ -1384,8 +1384,8 @@ importers:
         specifier: latest
         version: 4.5.1(vue@3.5.18(typescript@5.8.3))
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: ^4.1.1
+        version: 4.1.1
 
   playgrounds/solid-start:
     devDependencies:
@@ -1426,8 +1426,8 @@ importers:
         specifier: ^1.6.0
         version: 1.6.0(@swc/helpers@0.5.17)(rollup@4.46.2)(vite@7.1.1(@types/node@24.3.0)(jiti@2.5.1)(terser@5.43.1)(tsx@4.20.4)(yaml@2.8.1))
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: ^4.1.1
+        version: 4.1.1
 
   playgrounds/svelte-kit:
     devDependencies:
@@ -1474,8 +1474,8 @@ importers:
         specifier: ^6.3.5
         version: 6.3.5(@types/node@24.3.0)(jiti@2.5.1)(terser@5.43.1)(tsx@4.20.4)(yaml@2.8.1)
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: ^4.1.1
+        version: 4.1.1
 
   playgrounds/tanstack-start:
     devDependencies:
@@ -1540,8 +1540,8 @@ importers:
         specifier: ^5.1.4
         version: 5.1.4(typescript@5.8.3)(vite@6.3.5(@types/node@22.17.0)(jiti@2.5.1)(terser@5.43.1)(tsx@4.20.4)(yaml@2.8.1))
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: ^4.1.1
+        version: 4.1.1
 
 packages:
 
@@ -14885,8 +14885,8 @@ packages:
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
-  zod@4.0.17:
-    resolution: {integrity: sha512-1PHjlYRevNxxdy2JZ8JcNAw7rX8V9P1AKkP+x/xZfxB0K5FYfuV+Ug6P/6NVSR2jHQ+FzDDoDHS04nYUsOIyLQ==}
+  zod@4.1.1:
+    resolution: {integrity: sha512-SgMZK/h8Tigt9nnKkfJMvB/mKjiJXaX26xegP4sa+0wHIFVFWVlsQGdhklDmuargBD3Hsi3rsQRIzwJIhTPJHA==}
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
@@ -14902,39 +14902,39 @@ snapshots:
 
   '@adobe/css-tools@4.4.3': {}
 
-  '@ai-sdk/gateway@1.0.9(zod@4.0.17)':
+  '@ai-sdk/gateway@1.0.9(zod@4.1.1)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.4(zod@4.0.17)
-      zod: 4.0.17
+      '@ai-sdk/provider-utils': 3.0.4(zod@4.1.1)
+      zod: 4.1.1
 
-  '@ai-sdk/google@2.0.7(zod@4.0.17)':
+  '@ai-sdk/google@2.0.7(zod@4.1.1)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.4(zod@4.0.17)
-      zod: 4.0.17
+      '@ai-sdk/provider-utils': 3.0.4(zod@4.1.1)
+      zod: 4.1.1
 
-  '@ai-sdk/provider-utils@3.0.4(zod@4.0.17)':
+  '@ai-sdk/provider-utils@3.0.4(zod@4.1.1)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
       '@standard-schema/spec': 1.0.0
       eventsource-parser: 3.0.5
-      zod: 4.0.17
-      zod-to-json-schema: 3.24.6(zod@4.0.17)
+      zod: 4.1.1
+      zod-to-json-schema: 3.24.6(zod@4.1.1)
 
   '@ai-sdk/provider@2.0.0':
     dependencies:
       json-schema: 0.4.0
 
-  '@ai-sdk/react@2.0.18(react@19.1.1)(zod@4.0.17)':
+  '@ai-sdk/react@2.0.18(react@19.1.1)(zod@4.1.1)':
     dependencies:
-      '@ai-sdk/provider-utils': 3.0.4(zod@4.0.17)
-      ai: 5.0.18(zod@4.0.17)
+      '@ai-sdk/provider-utils': 3.0.4(zod@4.1.1)
+      ai: 5.0.18(zod@4.1.1)
       react: 19.1.1
       swr: 2.3.6(react@19.1.1)
       throttleit: 2.1.0
     optionalDependencies:
-      zod: 4.0.17
+      zod: 4.1.1
 
   '@aklinker1/rollup-plugin-visualizer@5.12.0(rollup@4.46.2)':
     dependencies:
@@ -20369,10 +20369,10 @@ snapshots:
     dependencies:
       typescript: 5.9.2
 
-  '@ts-rest/core@3.52.1(@types/node@24.3.0)(zod@4.0.17)':
+  '@ts-rest/core@3.52.1(@types/node@24.3.0)(zod@4.1.1)':
     optionalDependencies:
       '@types/node': 24.3.0
-      zod: 4.0.17
+      zod: 4.1.1
 
   '@tsconfig/node10@1.0.11': {}
 
@@ -21738,13 +21738,13 @@ snapshots:
       clean-stack: 2.2.0
       indent-string: 4.0.0
 
-  ai@5.0.18(zod@4.0.17):
+  ai@5.0.18(zod@4.1.1):
     dependencies:
-      '@ai-sdk/gateway': 1.0.9(zod@4.0.17)
+      '@ai-sdk/gateway': 1.0.9(zod@4.1.1)
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.4(zod@4.0.17)
+      '@ai-sdk/provider-utils': 3.0.4(zod@4.1.1)
       '@opentelemetry/api': 1.9.0
-      zod: 4.0.17
+      zod: 4.1.1
 
   ajv-draft-04@1.0.0(ajv@8.17.1):
     optionalDependencies:
@@ -27219,10 +27219,10 @@ snapshots:
       is-inside-container: 1.0.0
       is-wsl: 2.2.0
 
-  openai@5.13.1(ws@8.18.3)(zod@4.0.17):
+  openai@5.13.1(ws@8.18.3)(zod@4.1.1):
     optionalDependencies:
       ws: 8.18.3
-      zod: 4.0.17
+      zod: 4.1.1
 
   openapi-types@12.1.3: {}
 
@@ -31227,9 +31227,9 @@ snapshots:
     dependencies:
       zod: 3.25.76
 
-  zod-to-json-schema@3.24.6(zod@4.0.17):
+  zod-to-json-schema@3.24.6(zod@4.1.1):
     dependencies:
-      zod: 4.0.17
+      zod: 4.1.1
 
   zod-to-ts@1.2.0(typescript@5.8.3)(zod@3.25.76):
     dependencies:
@@ -31246,6 +31246,6 @@ snapshots:
 
   zod@3.25.76: {}
 
-  zod@4.0.17: {}
+  zod@4.1.1: {}
 
   zwitch@2.0.4: {}

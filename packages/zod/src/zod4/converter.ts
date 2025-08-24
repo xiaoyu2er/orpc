@@ -556,7 +556,7 @@ export class ZodToJsonSchemaConverter implements ConditionalSchemaConverter {
           }
 
           default: {
-            const _unsupported: 'int' | 'symbol' | 'promise' | 'custom' = schema._zod.def.type
+            const _unsupported: 'function' | 'int' | 'symbol' | 'promise' | 'custom' = schema._zod.def.type
             return [true, this.unsupportedJsonSchema]
           }
         }

@@ -101,69 +101,69 @@ export function replicateAsyncIterator<T, TReturn, TNext>(
   source: AsyncIterator<T, TReturn, TNext>,
   count: number,
 ): (AsyncIteratorClass<T, TReturn, TNext>)[] {
-  const queue = new AsyncIdQueue<IteratorResult<T, TReturn>>()
+  const queue = new AsyncIdQueue<{ next: IteratorResult<T, TReturn> } | { error: unknown }>()
 
-  const replicated: AsyncIteratorClass<T, TReturn, TNext>[] = []
-
-  let error: undefined | { value: unknown }
+  const ids = Array.from({ length: count }, (_, i) => i.toString())
+  let isSourceFinished = false
 
   const start = once(async () => {
     try {
       while (true) {
         const item = await source.next()
 
-        for (let i = 0; i < count; i++) {
-          const id = i.toString()
-
+        ids.forEach((id) => {
           if (queue.isOpen(id)) {
-            queue.push(id, item)
+            queue.push(id, { next: item })
           }
-        }
+        })
 
         if (item.done) {
           break
         }
       }
     }
-    catch (reason) {
-      error = { value: reason }
-
-      queue.waiterIds.forEach((id) => {
-        queue.close({ id, reason })
+    catch (error) {
+      ids.forEach((id) => {
+        if (queue.isOpen(id)) {
+          queue.push(id, { error })
+        }
       })
+    }
+    finally {
+      isSourceFinished = true
     }
   })
 
-  for (let i = 0; i < count; i++) {
-    const id = i.toString()
-
+  const replicated: AsyncIteratorClass<T, TReturn, TNext>[] = ids.map((id) => {
     queue.open(id)
-    replicated.push(new AsyncIteratorClass(
+
+    return new AsyncIteratorClass(
       () => {
         start()
 
         return new Promise((resolve, reject) => {
-          if (!error || queue.hasBufferedItems(id)) {
-            queue.pull(id)
-              .then(resolve)
-              .catch(reject)
-          }
-          else {
-            reject(error.value)
-          }
+          queue.pull(id)
+            .then((item) => {
+              if ('next' in item) {
+                resolve(item.next)
+              }
+              else {
+                reject(item.error)
+              }
+            })
+            .catch(reject)
         })
       },
       async (reason) => {
         queue.close({ id })
 
-        if (reason !== 'next') {
-          if (!queue.length) {
-            await source?.return?.()
-          }
+        if (reason !== 'next' && !queue.length && !isSourceFinished) {
+          isSourceFinished = true
+          await source?.return?.()
         }
       },
-    ))
-  }
+    )
+  })
 
   return replicated
 }

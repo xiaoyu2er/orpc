@@ -119,7 +119,8 @@ export class CompressionPlugin<T extends Context> implements FetchHandlerPlugin<
       return {
         ...result,
         response: new Response(compressedBody, {
-          ...response,
+          status: response.status,
+          statusText: response.statusText,
           headers: compressedHeaders,
         }),
       }

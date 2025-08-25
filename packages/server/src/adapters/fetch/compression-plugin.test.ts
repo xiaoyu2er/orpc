@@ -1,3 +1,4 @@
+import { ORPCError } from '@orpc/client'
 import { os } from '../../builder'
 import { CompressionPlugin } from './compression-plugin'
 import { RPCHandler } from './rpc-handler'
@@ -616,5 +617,32 @@ describe('compressionPlugin', () => {
     const text = await response?.text()
     expect(text).toContain('event1')
     expect(text).toContain('event2')
+  })
+
+  it('can compress error response', async () => {
+    const error = new ORPCError('UNAUTHORIZED')
+
+    const handler = new RPCHandler(os.handler(() => {
+      throw error
+    }), {
+      plugins: [
+        new CompressionPlugin(),
+      ],
+    })
+
+    const { response } = await handler.handle(new Request('https://example.com/', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'accept-encoding': 'gzip',
+      },
+      body: JSON.stringify({}),
+    }))
+
+    const decompressed = response?.body?.pipeThrough(new DecompressionStream('gzip'))
+    const text = await new Response(decompressed).text()
+    expect(text).toContain(error.code)
+    expect(response?.headers.get('content-encoding')).toBe('gzip')
+    expect(response?.status).toBe(error.status)
   })
 })

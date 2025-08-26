@@ -32,7 +32,7 @@ bun add @orpc/hey-api@latest
 ```
 
 ```sh [deno]
-deno install npm:@orpc/hey-api@latest
+deno add npm:@orpc/hey-api@latest
 ```
 
 :::

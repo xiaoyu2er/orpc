@@ -28,7 +28,7 @@ bun add @orpc/server@latest
 ```
 
 ```sh [deno]
-deno install npm:@orpc/server@latest
+deno add npm:@orpc/server@latest
 ```
 
 :::

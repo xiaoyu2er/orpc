@@ -28,7 +28,7 @@ bun add @orpc/trpc@latest
 ```
 
 ```sh [deno]
-deno install npm:@orpc/trpc@latest
+deno add npm:@orpc/trpc@latest
 ```
 
 :::

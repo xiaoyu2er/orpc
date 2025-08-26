@@ -32,7 +32,7 @@ bun add @orpc/tanstack-query@latest
 ```
 
 ```sh [deno]
-deno install npm:@orpc/tanstack-query@latest
+deno add npm:@orpc/tanstack-query@latest
 ```
 
 :::

@@ -28,7 +28,7 @@ bun add @orpc/solid-query@latest @tanstack/solid-query@latest
 ```
 
 ```sh [deno]
-deno install npm:@orpc/solid-query@latest npm:@tanstack/solid-query@latest
+deno add npm:@orpc/solid-query@latest npm:@tanstack/solid-query@latest
 ```
 
 :::

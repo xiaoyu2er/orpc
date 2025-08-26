@@ -36,7 +36,7 @@ bun add @orpc/vue-colada@latest @pinia/colada@latest
 ```
 
 ```sh [deno]
-deno install npm:@orpc/vue-colada@latest npm:@pinia/colada@latest
+deno add npm:@orpc/vue-colada@latest npm:@pinia/colada@latest
 ```
 
 :::

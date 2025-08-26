@@ -28,7 +28,7 @@ bun add @orpc/react-query@latest @tanstack/react-query@latest
 ```
 
 ```sh [deno]
-deno install npm:@orpc/react-query@latest npm:@tanstack/react-query@latest
+deno add npm:@orpc/react-query@latest npm:@tanstack/react-query@latest
 ```
 
 :::

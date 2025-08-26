@@ -59,7 +59,7 @@ bun add @orpc/server@latest @orpc/client@latest @orpc/tanstack-query@latest
 
 ```sh [deno]
 deno remove npm:@trpc/server npm:@trpc/client npm:@trpc/tanstack-react-query
-deno install npm:@orpc/server@latest npm:@orpc/client@latest npm:@orpc/tanstack-query@latest
+deno add npm:@orpc/server@latest npm:@orpc/client@latest npm:@orpc/tanstack-query@latest
 ```
 
 :::

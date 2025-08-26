@@ -230,7 +230,7 @@ export const planetRouter = createTRPCRouter({
 :::
 
 ::: info
-Learn more about oRPC [Procedures](/docs/procedures).
+Learn more about oRPC [Procedures](/docs/procedure).
 :::
 
 ### 4. App Router

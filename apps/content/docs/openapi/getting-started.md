@@ -36,7 +36,7 @@ bun add @orpc/server@latest @orpc/client@latest @orpc/openapi@latest
 ```
 
 ```sh [deno]
-deno add npm:@orpc/server@latest npm:@orpc/client@latest @orpc/openapi@latest
+deno add npm:@orpc/server@latest npm:@orpc/client@latest npm:@orpc/openapi@latest
 ```
 
 :::

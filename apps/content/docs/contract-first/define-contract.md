@@ -30,7 +30,7 @@ bun add @orpc/contract@latest
 ```
 
 ```sh [deno]
-deno install npm:@orpc/contract@latest
+deno add npm:@orpc/contract@latest
 ```
 
 :::

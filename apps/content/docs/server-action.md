@@ -125,7 +125,7 @@ bun add @orpc/react@latest
 ```
 
 ```sh [deno]
-deno install npm:@orpc/react@latest
+deno add npm:@orpc/react@latest
 ```
 
 :::

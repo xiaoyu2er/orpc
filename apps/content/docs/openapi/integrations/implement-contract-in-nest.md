@@ -32,7 +32,7 @@ bun add @orpc/nest@latest
 ```
 
 ```sh [deno]
-deno install npm:@orpc/nest@latest
+deno add npm:@orpc/nest@latest
 ```
 
 :::

@@ -28,7 +28,7 @@ bun add @orpc/openapi@latest
 ```
 
 ```sh [deno]
-deno install npm:@orpc/openapi@latest
+deno add npm:@orpc/openapi@latest
 ```
 
 :::

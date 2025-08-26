@@ -32,7 +32,7 @@ bun add @orpc/json-schema@latest
 ```
 
 ```sh [deno]
-deno install npm:@orpc/json-schema@latest
+deno add npm:@orpc/json-schema@latest
 ```
 
 :::

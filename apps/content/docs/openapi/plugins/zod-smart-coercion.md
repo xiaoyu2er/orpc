@@ -32,7 +32,7 @@ bun add @orpc/zod@latest
 ```
 
 ```sh [deno]
-deno install npm:@orpc/zod@latest
+deno add npm:@orpc/zod@latest
 ```
 
 :::

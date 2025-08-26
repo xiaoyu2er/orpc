@@ -28,7 +28,7 @@ bun add @orpc/vue-query@latest @tanstack/vue-query@latest
 ```
 
 ```sh [deno]
-deno install npm:@orpc/vue-query@latest npm:@tanstack/vue-query@latest
+deno add npm:@orpc/vue-query@latest npm:@tanstack/vue-query@latest
 ```
 
 :::

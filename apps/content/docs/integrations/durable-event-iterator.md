@@ -32,7 +32,7 @@ bun add @orpc/experimental-durable-event-iterator@latest
 ```
 
 ```sh [deno]
-deno install npm:@orpc/experimental-durable-event-iterator@latest
+deno add npm:@orpc/experimental-durable-event-iterator@latest
 ```
 
 :::

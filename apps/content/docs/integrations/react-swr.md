@@ -32,7 +32,7 @@ bun add @orpc/experimental-react-swr@latest
 ```
 
 ```sh [deno]
-deno install npm:@orpc/experimental-react-swr@latest
+deno add npm:@orpc/experimental-react-swr@latest
 ```
 
 :::

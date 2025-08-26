@@ -38,7 +38,7 @@ bun add @orpc/otel@latest
 ```
 
 ```sh [deno]
-deno install npm:@orpc/otel@latest
+deno add npm:@orpc/otel@latest
 ```
 
 :::

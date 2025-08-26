@@ -28,7 +28,7 @@ bun add @orpc/svelte-query@latest @tanstack/svelte-query@latest
 ```
 
 ```sh [deno]
-deno install npm:@orpc/svelte-query@latest npm:@tanstack/svelte-query@latest
+deno add npm:@orpc/svelte-query@latest npm:@tanstack/svelte-query@latest
 ```
 
 :::

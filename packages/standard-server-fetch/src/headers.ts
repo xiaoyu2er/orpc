@@ -5,7 +5,7 @@ import type { StandardHeaders } from '@orpc/standard-server'
  * @param standardHeaders - The base headers can be changed by the function and effects on the original headers.
  */
 export function toStandardHeaders(headers: Headers, standardHeaders: StandardHeaders = {}): StandardHeaders {
-  for (const [key, value] of headers) {
+  headers.forEach((value, key) => {
     if (Array.isArray(standardHeaders[key])) {
       standardHeaders[key].push(value)
     }
@@ -15,7 +15,7 @@ export function toStandardHeaders(headers: Headers, standardHeaders: StandardHea
     else {
       standardHeaders[key] = value
     }
-  }
+  })
 
   return standardHeaders
 }

@@ -1,9 +1,15 @@
-import { getMalformedResponseErrorCode, toHttpPath } from './utils'
+import { getMalformedResponseErrorCode, toHttpPath, toStandardHeaders } from './utils'
 
 it('convertPathToHttpPath', () => {
   expect(toHttpPath(['ping'])).toEqual('/ping')
   expect(toHttpPath(['nested', 'ping'])).toEqual('/nested/ping')
   expect(toHttpPath(['nested/', 'ping'])).toEqual('/nested%2F/ping')
+})
+
+it('toStandardHeaders', () => {
+  expect(toStandardHeaders({})).toEqual({})
+  expect(toStandardHeaders(new Headers())).toEqual({})
+  expect(toStandardHeaders(new Headers({ 'content-type': 'application/json' }))).toEqual({ 'content-type': 'application/json' })
 })
 
 it('getMalformedResponseErrorCode', () => {

@@ -61,7 +61,7 @@ import { getRequestEvent } from 'solid-js/web'
 
 const link = new RPCLink({
   url: `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/rpc`,
-  headers: () => Object.fromEntries(getRequestEvent()?.request.headers ?? []),
+  headers: () => getRequestEvent()?.request.headers ?? {},
 })
 ```
 

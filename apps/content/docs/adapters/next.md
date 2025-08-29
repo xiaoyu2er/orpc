@@ -102,7 +102,7 @@ const link = new RPCLink({
     }
 
     const { headers } = await import('next/headers')
-    return Object.fromEntries(await headers())
+    return await headers()
   },
 })
 ```

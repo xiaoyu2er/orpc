@@ -5,7 +5,7 @@ import type { Promisable, Value } from '@orpc/shared'
 import type { StandardHeaders, StandardLazyResponse, StandardRequest, StandardResponse } from '@orpc/standard-server'
 import type { StandardOpenAPISerializer } from './openapi-serializer'
 import { createORPCErrorFromJson, isORPCErrorJson, isORPCErrorStatus } from '@orpc/client'
-import { getMalformedResponseErrorCode, toHttpPath } from '@orpc/client/standard'
+import { getMalformedResponseErrorCode, toHttpPath, toStandardHeaders } from '@orpc/client/standard'
 import { fallbackContractConfig, isContractProcedure, ORPCError } from '@orpc/contract'
 import { get, isObject, value } from '@orpc/shared'
 import { mergeStandardHeaders } from '@orpc/standard-server'
@@ -24,7 +24,7 @@ export interface StandardOpenapiLinkCodecOptions<T extends ClientContext> {
   /**
    * Inject headers to the request.
    */
-  headers?: Value<Promisable<StandardHeaders>, [
+  headers?: Value<Promisable<StandardHeaders | Headers>, [
         options: ClientOptions<T>,
         path: readonly string[],
         input: unknown,
@@ -45,13 +45,12 @@ export class StandardOpenapiLinkCodec<T extends ClientContext> implements Standa
   }
 
   async encode(path: readonly string[], input: unknown, options: ClientOptions<T>): Promise<StandardRequest> {
-    const baseUrl = await value(this.baseUrl, options, path, input)
-    let headers = await value(this.headers, options, path, input)
-
+    let headers = toStandardHeaders(await value(this.headers, options, path, input))
     if (options.lastEventId !== undefined) {
       headers = mergeStandardHeaders(headers, { 'last-event-id': options.lastEventId })
     }
 
+    const baseUrl = await value(this.baseUrl, options, path, input)
     const procedure = get(this.contract, path)
 
     if (!isContractProcedure(procedure)) {

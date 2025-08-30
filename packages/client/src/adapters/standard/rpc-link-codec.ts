@@ -6,7 +6,7 @@ import type { StandardLinkCodec } from './types'
 import { isAsyncIteratorObject, stringifyJSON, value } from '@orpc/shared'
 import { mergeStandardHeaders } from '@orpc/standard-server'
 import { createORPCErrorFromJson, isORPCErrorJson, isORPCErrorStatus, ORPCError } from '../../error'
-import { getMalformedResponseErrorCode, toHttpPath } from './utils'
+import { getMalformedResponseErrorCode, toHttpPath, toStandardHeaders } from './utils'
 
 export interface StandardRPCLinkCodecOptions<T extends ClientContext> {
   /**
@@ -39,7 +39,7 @@ export interface StandardRPCLinkCodecOptions<T extends ClientContext> {
   /**
    * Inject headers to the request.
    */
-  headers?: Value<Promisable<StandardHeaders>, [options: ClientOptions<T>, path: readonly string[], input: unknown]>
+  headers?: Value<Promisable<StandardHeaders | Headers>, [options: ClientOptions<T>, path: readonly string[], input: unknown]>
 }
 
 export class StandardRPCLinkCodec<T extends ClientContext> implements StandardLinkCodec<T> {
@@ -61,15 +61,15 @@ export class StandardRPCLinkCodec<T extends ClientContext> implements StandardLi
   }
 
   async encode(path: readonly string[], input: unknown, options: ClientOptions<T>): Promise<StandardRequest> {
-    const expectedMethod = await value(this.expectedMethod, options, path, input)
-    let headers = await value(this.headers, options, path, input)
-    const baseUrl = await value(this.baseUrl, options, path, input)
-    const url = new URL(baseUrl)
-    url.pathname = `${url.pathname.replace(/\/$/, '')}${toHttpPath(path)}`
-
+    let headers = toStandardHeaders(await value(this.headers, options, path, input))
     if (options.lastEventId !== undefined) {
       headers = mergeStandardHeaders(headers, { 'last-event-id': options.lastEventId })
     }
+
+    const expectedMethod = await value(this.expectedMethod, options, path, input)
+    const baseUrl = await value(this.baseUrl, options, path, input)
+    const url = new URL(baseUrl)
+    url.pathname = `${url.pathname.replace(/\/$/, '')}${toHttpPath(path)}`
 
     const serialized = this.serializer.serialize(input)
 

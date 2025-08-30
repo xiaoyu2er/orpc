@@ -104,6 +104,26 @@ describe('standardRPCLinkCodec', () => {
       expect(request.headers).toBe(mergeStandardHeadersSpy.mock.results[0]!.value)
     })
 
+    it('support fetch headers', async () => {
+      const headers = new Headers()
+      headers.append('cookie', 'a=1')
+      headers.append('cookie', 'b=2')
+      headers.append('set-cookie', 'a1=1')
+      headers.append('set-cookie', 'b1=2')
+
+      const codec = new StandardRPCLinkCodec(serializer, {
+        url: 'http://localhost:3000',
+        headers,
+      })
+
+      const request = await codec.encode(['test'], 'input', { context: {} })
+
+      expect(request.headers).toEqual({
+        'cookie': 'a=1; b=2',
+        'set-cookie': ['a1=1', 'b1=2'],
+      })
+    })
+
     describe('base url', () => {
       it('works with /prefix', async () => {
         const codec = new StandardRPCLinkCodec(serializer, {

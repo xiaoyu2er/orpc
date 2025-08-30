@@ -50,6 +50,26 @@ describe('standardOpenapiLinkCodecOptions', () => {
       expect(request.headers['x-custom']).toEqual('value')
     })
 
+    it('support fetch headers', async () => {
+      const headers = new Headers()
+      headers.append('cookie', 'a=1')
+      headers.append('cookie', 'b=2')
+      headers.append('set-cookie', 'a1=1')
+      headers.append('set-cookie', 'b1=2')
+
+      const codec = new StandardOpenapiLinkCodec({ ping: oc }, serializer, {
+        url: 'http://localhost:3000',
+        headers,
+      })
+
+      const request = await codec.encode(['ping'], 'input', { context: {} })
+
+      expect(request.headers).toEqual({
+        'cookie': 'a=1; b=2',
+        'set-cookie': ['a1=1', 'b1=2'],
+      })
+    })
+
     describe('inputStructure=compact', () => {
       describe('with dynamic params', () => {
         const codec = new StandardOpenapiLinkCodec({ ping: oc.route({ path: '/ping/{date}' }) }, serializer, {

@@ -57,7 +57,7 @@ export default defineNuxtPlugin(() => {
 
   const link = new RPCLink({
     url: `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/rpc`,
-    headers: () => Object.fromEntries(event?.headers ?? []),
+    headers: event?.headers,
   })
 
   const client: RouterClient<typeof router> = createORPCClient(link)

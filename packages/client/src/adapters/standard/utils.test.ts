@@ -8,8 +8,12 @@ it('convertPathToHttpPath', () => {
 
 it('toStandardHeaders', () => {
   expect(toStandardHeaders({})).toEqual({})
+  expect(toStandardHeaders({ 'content-type': 'application/json' })).toEqual({ 'content-type': 'application/json' })
+
   expect(toStandardHeaders(new Headers())).toEqual({})
-  expect(toStandardHeaders(new Headers({ 'content-type': 'application/json' }))).toEqual({ 'content-type': 'application/json' })
+  const headers = new Headers({ 'content-type': 'application/json' })
+  expect(toStandardHeaders(headers)).toEqual({ 'content-type': 'application/json' })
+  expect(toStandardHeaders({ forEach: headers.forEach.bind(headers) } as any)).toEqual({ 'content-type': 'application/json' })
 })
 
 it('getMalformedResponseErrorCode', () => {

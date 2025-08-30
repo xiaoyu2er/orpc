@@ -9,10 +9,11 @@ export function toHttpPath(path: readonly string[]): HTTPPath {
 
 export function toStandardHeaders(headers: Headers | StandardHeaders): StandardHeaders {
   /**
-   * The Headers constructor might not be available in all environments since these are standard APIs.
+   * Determines if the provided `headers` is a headers-like object.
+   * Avoids `instanceof` checks as this is intended for standard APIs where the Headers constructor may not be available.
    */
-  if (typeof Headers !== 'undefined' && headers instanceof Headers) {
-    return fetchHeadersToStandardHeaders(headers)
+  if (typeof headers.forEach === 'function') {
+    return fetchHeadersToStandardHeaders(headers as Headers)
   }
 
   return headers as StandardHeaders

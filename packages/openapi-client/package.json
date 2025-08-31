@@ -20,6 +20,11 @@
         "import": "./dist/index.mjs",
         "default": "./dist/index.mjs"
       },
+      "./helpers": {
+        "types": "./dist/helpers/index.d.mts",
+        "import": "./dist/helpers/index.mjs",
+        "default": "./dist/helpers/index.mjs"
+      },
       "./standard": {
         "types": "./dist/adapters/standard/index.d.mts",
         "import": "./dist/adapters/standard/index.mjs",
@@ -34,6 +39,7 @@
   },
   "exports": {
     ".": "./src/index.ts",
+    "./helpers": "./src/helpers/index.ts",
     "./standard": "./src/adapters/standard/index.ts",
     "./fetch": "./src/adapters/fetch/index.ts"
   },

@@ -108,14 +108,3 @@ This form data is parsed as:
   }
 }
 ```
-
-    "files": ["<binary data>", "<binary data>"]
-
-}
-}
-}
-}
-
-```
-
-```

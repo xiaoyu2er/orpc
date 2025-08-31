@@ -1,6 +1,7 @@
-import type { ORPCError, ORPCErrorCode } from '@orpc/client'
+import type { ORPCErrorCode } from '@orpc/client'
 import type { ThrowableError } from '@orpc/shared'
 import type { AnySchema, InferSchemaOutput, Schema, SchemaIssue } from './schema'
+import { fallbackORPCErrorStatus, ORPCError } from '@orpc/client'
 
 export interface ValidationErrorOptions extends ErrorOptions {
   message: string
@@ -53,3 +54,30 @@ export type ORPCErrorFromErrorMap<TErrorMap extends ErrorMap> = {
 }[keyof TErrorMap]
 
 export type ErrorFromErrorMap<TErrorMap extends ErrorMap> = ORPCErrorFromErrorMap<TErrorMap> | ThrowableError
+
+export async function validateORPCError(map: ErrorMap, error: ORPCError<any, any>): Promise<ORPCError<string, unknown>> {
+  const { code, status, message, data, cause, defined } = error
+  const config = map?.[error.code]
+
+  if (!config || fallbackORPCErrorStatus(error.code, config.status) !== error.status) {
+    return defined
+      ? new ORPCError(code, { defined: false, status, message, data, cause })
+      : error
+  }
+
+  if (!config.data) {
+    return defined
+      ? error
+      : new ORPCError(code, { defined: true, status, message, data, cause })
+  }
+
+  const validated = await config.data['~standard'].validate(error.data)
+
+  if (validated.issues) {
+    return defined
+      ? new ORPCError(code, { defined: false, status, message, data, cause })
+      : error
+  }
+
+  return new ORPCError(code, { defined: true, status, message, data: validated.value, cause })
+}

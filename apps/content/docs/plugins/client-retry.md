@@ -41,6 +41,10 @@ const link = new RPCLink<ORPCClientContext>({
 const client: RouterClient<typeof router, ORPCClientContext> = createORPCClient(link)
 ```
 
+::: info
+The `link` can be any supported oRPC link, such as [RPCLink](/docs/client/rpc-link), [OpenAPILink](/docs/openapi/client/openapi-link), or custom implementations.
+:::
+
 ## Usage
 
 ```ts twoslash

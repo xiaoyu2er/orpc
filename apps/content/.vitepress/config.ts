@@ -137,6 +137,7 @@ export default withMermaid(defineConfig({
             { text: 'CORS', link: '/docs/plugins/cors' },
             { text: 'Request Headers', link: '/docs/plugins/request-headers' },
             { text: 'Response Headers', link: '/docs/plugins/response-headers' },
+            { text: 'Response Validation', link: '/docs/plugins/response-validation' },
             { text: 'Hibernation', link: '/docs/plugins/hibernation' },
             { text: 'Dedupe Requests', link: '/docs/plugins/dedupe-requests' },
             { text: 'Batch Requests', link: '/docs/plugins/batch-requests' },

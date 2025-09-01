@@ -47,6 +47,6 @@ const unsupported = z.number().transform(value => value.toString())
 
 When the server validates output, it transforms the `number` into a `string`. The client receives a `string`, but the `string` no longer matches the original schema, causing validation to fail.
 
-::: info
-However, when used correctly, this behavior can enable special use cases. You can read more about this here: TODO
-:::
+## Advanced Usage
+
+Beyond response validation, this plugin also serves special purposes such as [Expanding Type Support for OpenAPI Link](/docs/openapi/advanced/expanding-type-support-for-openapi-link).

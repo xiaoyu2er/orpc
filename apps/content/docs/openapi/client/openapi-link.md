@@ -71,7 +71,7 @@ const client: JsonifiedClient<ContractRouterClient<typeof contract>> = createORP
 ```
 
 :::warning
-Wrap your client with `JsonifiedClient` to ensure it accurately reflects the server responses.
+Due to JSON limitations, you must wrap your client with `JsonifiedClient` to ensure type safety. Alternatively, follow the [Expanding Type Support for OpenAPI Link](/docs/openapi/advanced/expanding-type-support-for-openapi-link) guide to preserve original types without the wrapper.
 :::
 
 ## Limitations

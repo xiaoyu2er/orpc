@@ -20,7 +20,7 @@ export class ResponseValidationPlugin<T extends ClientContext> implements Standa
     private readonly contract: AnyContractRouter,
   ) {}
 
-  order = 1_500_000 // make sure run after DurableEventIteratorLinkPlugin
+  order = 1_500_000 // make sure run before DurableEventIteratorLinkPlugin
 
   init(options: StandardLinkOptions<T>): void {
     options.interceptors ??= []

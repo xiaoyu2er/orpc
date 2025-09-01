@@ -19,11 +19,17 @@
         "types": "./dist/index.d.mts",
         "import": "./dist/index.mjs",
         "default": "./dist/index.mjs"
+      },
+      "./plugins": {
+        "types": "./dist/plugins/index.d.mts",
+        "import": "./dist/plugins/index.mjs",
+        "default": "./dist/plugins/index.mjs"
       }
     }
   },
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./plugins": "./src/plugins/index.ts"
   },
   "files": [
     "dist"

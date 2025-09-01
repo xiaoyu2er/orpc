@@ -23,7 +23,7 @@ export * from './router-utils'
 
 export { isDefinedError, ORPCError, safe } from '@orpc/client'
 export type { ClientContext, HTTPMethod, HTTPPath } from '@orpc/client'
-export { eventIterator, type, ValidationError } from '@orpc/contract'
+export { eventIterator, type, validateORPCError, ValidationError } from '@orpc/contract'
 export type {
   ContractProcedure,
   ContractProcedureDef,

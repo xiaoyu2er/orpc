@@ -9,9 +9,9 @@ This guide will show you how to extend [OpenAPILink](/docs/openapi/client/openap
 
 ## How It Works
 
-To enable this functionality, you need to customize your output schema with proper coercion logic.
+To enable this functionality, you need to extend your [output](/docs/procedure#input-output-validation) and [error](/docs/error-handling#type%E2%80%90safe-error-handling) schemas with proper coercion logic.
 
-**Why?** OpenAPI response data only represents JSON's native capabilities. We use schema coercion logic in output schemas to convert the data to the desired type.
+**Why?** OpenAPI response data only represents JSON's native capabilities. We use schema coercion logic in contract's schemas to convert the data to the desired type.
 
 ::: warning
 Beyond JSON limitations, outputs containing `Blob` or `File` types (outside the root level) also face [Bracket Notation](/docs/openapi/bracket-notation#limitations) limitations.

@@ -34,12 +34,12 @@ Call `.return()` on the iterator to gracefully end the stream.
 ```ts
 const iterator = await client.streaming()
 
-for await (const event of iterator) {
-  if (wantToStop) {
-    await iterator.return()
-    break
-  }
+setTimeout(async () => {
+  // Stop the stream after 1 second
+  await iterator.return()
+}, 1000)
 
+for await (const event of iterator) {
   console.log(event.message)
 }
 ```

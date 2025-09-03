@@ -53,7 +53,7 @@ To support more types than those in [OpenAPI Handler](/docs/openapi/openapi-hand
 
 ## Setup
 
-After understanding how it works and expanding output schemas with coercion logic, you only need to set up the [Response Validation Plugin](/docs/plugins/response-validation) and remove the `JsonifiedClient` wrapper.
+After understanding how it works and expanding schemas with coercion logic, you only need to set up the [Response Validation Plugin](/docs/plugins/response-validation) and remove the `JsonifiedClient` wrapper.
 
 ```diff
  import type { ContractRouterClient } from '@orpc/contract'

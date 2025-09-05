@@ -87,10 +87,6 @@ export function parseBatchResponse(response: StandardResponse): AsyncGenerator<B
     const iterator = (async function* () {
       for await (const item of body) {
         if (!isObject(item) || !('index' in item) || typeof item.index !== 'number') {
-          if (isAsyncIteratorObject(body)) {
-            await body.return?.()
-          }
-
           throw new TypeError('Invalid batch response', {
             cause: item,
           })

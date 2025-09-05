@@ -128,7 +128,7 @@ export class ClientRetryPlugin<T extends ClientRetryPluginContext> implements St
           catch (error) {
             currentError = { error }
 
-            if (updatedInterceptorOptions.signal?.aborted === true) {
+            if (updatedInterceptorOptions.signal?.aborted) {
               throw error
             }
           }
@@ -146,6 +146,7 @@ export class ClientRetryPlugin<T extends ClientRetryPluginContext> implements St
       }
 
       let current = output
+      let isIteratorAborted = false
 
       return new AsyncIteratorClass(
         async () => {
@@ -173,10 +174,19 @@ export class ClientRetryPlugin<T extends ClientRetryPluginContext> implements St
               }
 
               current = maybeEventIterator
+
+              /**
+               * If iterator is aborted while retrying, we should cleanup right away
+               */
+              if (isIteratorAborted) {
+                await current.return?.()
+                throw error
+              }
             }
           }
         },
         async (reason) => {
+          isIteratorAborted = true
           if (reason !== 'next') {
             await current.return?.()
           }

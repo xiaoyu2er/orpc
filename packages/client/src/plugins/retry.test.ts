@@ -525,5 +525,26 @@ describe('clientRetryPlugin', () => {
 
       await vi.waitFor(() => expect(cleanup).toHaveBeenCalledTimes(1))
     })
+
+    it('cleanup correctly if throw and retry after .return', async () => {
+      const cleanup = vi.fn()
+
+      handlerFn.mockImplementation(async function* () {
+        try {
+          throw new Error('fail')
+        }
+        finally {
+          cleanup()
+        }
+      })
+
+      const iterator = await client('hello', { context: { retry: 1, retryDelay: 0 } })
+
+      const promise = expect(iterator.next()).rejects.toThrow('Internal server error')
+      await new Promise(r => setTimeout(r, 1))
+      await iterator.return()
+      await promise
+      expect(cleanup).toHaveBeenCalledTimes(2)
+    })
   })
 })

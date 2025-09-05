@@ -3,7 +3,7 @@ import type { StandardHeaders, StandardRequest } from '@orpc/standard-server'
 import type { BatchResponseBodyItem } from '@orpc/standard-server/batch'
 import type { StandardHandlerInterceptorOptions, StandardHandlerOptions, StandardHandlerPlugin } from '../adapters/standard'
 import type { Context } from '../context'
-import { isAsyncIteratorObject, runWithSpan, setSpanError, value } from '@orpc/shared'
+import { AsyncIteratorClass, isAsyncIteratorObject, runWithSpan, setSpanError, value } from '@orpc/shared'
 import { flattenHeader } from '@orpc/standard-server'
 import { parseBatchRequest, toBatchResponse } from '@orpc/standard-server/batch'
 
@@ -149,26 +149,28 @@ export class BatchHandlerPlugin<T extends Context> implements StandardHandlerPlu
 
           const status = await value(this.successStatus, responses, options)
           const headers = await value(this.headers, responses, options)
+          const promises: (Promise<BatchResponseBodyItem> | undefined)[] = [...responses]
 
           const response = await toBatchResponse({
             status,
             headers,
             mode,
-            body: (async function* () {
-              const promises: (Promise<BatchResponseBodyItem> | undefined)[] = [...responses]
-
-              while (true) {
+            body: new AsyncIteratorClass<BatchResponseBodyItem>(
+              async () => {
                 const handling = promises.filter(p => p !== undefined)
 
-                if (handling.length === 0) {
-                  return
+                if (handling.length <= 0) {
+                  return { done: true, value: undefined }
                 }
 
-                const result = await Promise.race(handling)
-                promises[result.index] = undefined
-                yield result
-              }
-            })(),
+                const value = await Promise.race(handling)
+                promises[value.index] = undefined
+                return { done: false, value }
+              },
+              async () => {
+                // do nothing on cleanup
+              },
+            ),
           })
 
           return {

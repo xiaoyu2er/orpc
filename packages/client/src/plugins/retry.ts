@@ -1,7 +1,7 @@
 import type { Promisable, Value } from '@orpc/shared'
 import type { StandardLinkInterceptorOptions, StandardLinkOptions, StandardLinkPlugin } from '../adapters/standard'
 import type { ClientContext } from '../types'
-import { isAsyncIteratorObject, value } from '@orpc/shared'
+import { AsyncIteratorClass, isAsyncIteratorObject, value } from '@orpc/shared'
 import { getEventMeta } from '@orpc/standard-server'
 
 export interface ClientRetryPluginAttemptOptions<T extends ClientContext> extends StandardLinkInterceptorOptions<T> {
@@ -145,10 +145,10 @@ export class ClientRetryPlugin<T extends ClientRetryPluginContext> implements St
         return output
       }
 
-      return (async function* () {
-        let current = output
+      let current = output
 
-        try {
+      return new AsyncIteratorClass(
+        async () => {
           while (true) {
             try {
               const item = await current.next()
@@ -157,11 +157,7 @@ export class ClientRetryPlugin<T extends ClientRetryPluginContext> implements St
               lastEventId = meta?.id ?? lastEventId
               lastEventRetry = meta?.retry ?? lastEventRetry
 
-              if (item.done) {
-                return item.value
-              }
-
-              yield item.value
+              return item
             }
             catch (error) {
               const meta = getEventMeta(error)
@@ -179,11 +175,13 @@ export class ClientRetryPlugin<T extends ClientRetryPluginContext> implements St
               current = maybeEventIterator
             }
           }
-        }
-        finally {
-          await current.return?.()
-        }
-      })()
+        },
+        async (reason) => {
+          if (reason !== 'next') {
+            await current.return?.()
+          }
+        },
+      )
     })
   }
 }

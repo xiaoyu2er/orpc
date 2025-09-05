@@ -1,3 +1,4 @@
+import type { AsyncIteratorClass } from '@orpc/shared'
 import type { AnySchema, Schema } from './schema'
 import { mapEventIterator, ORPCError } from '@orpc/client'
 import { isAsyncIteratorObject } from '@orpc/shared'
@@ -18,7 +19,7 @@ export interface EventIteratorSchemaDetails {
 export function eventIterator<TYieldIn, TYieldOut, TReturnIn = unknown, TReturnOut = unknown>(
   yields: Schema<TYieldIn, TYieldOut>,
   returns?: Schema<TReturnIn, TReturnOut>,
-): Schema<AsyncIteratorObject<TYieldIn, TReturnIn, void>, AsyncIteratorObject<TYieldOut, TReturnOut, void>> {
+): Schema<AsyncIteratorObject<TYieldIn, TReturnIn, void>, AsyncIteratorClass<TYieldOut, TReturnOut, void>> {
   return {
     '~standard': {
       [EVENT_ITERATOR_DETAILS_SYMBOL as any]: { yields, returns } satisfies EventIteratorSchemaDetails,

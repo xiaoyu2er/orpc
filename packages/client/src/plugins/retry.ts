@@ -1,7 +1,7 @@
 import type { Promisable, Value } from '@orpc/shared'
 import type { StandardLinkInterceptorOptions, StandardLinkOptions, StandardLinkPlugin } from '../adapters/standard'
 import type { ClientContext } from '../types'
-import { isAsyncIteratorObject, value } from '@orpc/shared'
+import { AsyncIteratorClass, isAsyncIteratorObject, value } from '@orpc/shared'
 import { getEventMeta } from '@orpc/standard-server'
 
 export interface ClientRetryPluginAttemptOptions<T extends ClientContext> extends StandardLinkInterceptorOptions<T> {
@@ -128,7 +128,7 @@ export class ClientRetryPlugin<T extends ClientRetryPluginContext> implements St
           catch (error) {
             currentError = { error }
 
-            if (updatedInterceptorOptions.signal?.aborted === true) {
+            if (updatedInterceptorOptions.signal?.aborted) {
               throw error
             }
           }
@@ -145,10 +145,11 @@ export class ClientRetryPlugin<T extends ClientRetryPluginContext> implements St
         return output
       }
 
-      return (async function* () {
-        let current = output
+      let current = output
+      let isIteratorAborted = false
 
-        try {
+      return new AsyncIteratorClass(
+        async () => {
           while (true) {
             try {
               const item = await current.next()
@@ -157,11 +158,7 @@ export class ClientRetryPlugin<T extends ClientRetryPluginContext> implements St
               lastEventId = meta?.id ?? lastEventId
               lastEventRetry = meta?.retry ?? lastEventRetry
 
-              if (item.done) {
-                return item.value
-              }
-
-              yield item.value
+              return item
             }
             catch (error) {
               const meta = getEventMeta(error)
@@ -177,13 +174,24 @@ export class ClientRetryPlugin<T extends ClientRetryPluginContext> implements St
               }
 
               current = maybeEventIterator
+
+              /**
+               * If iterator is aborted while retrying, we should cleanup right away
+               */
+              if (isIteratorAborted) {
+                await current.return?.()
+                throw error
+              }
             }
           }
-        }
-        finally {
-          await current.return?.()
-        }
-      })()
+        },
+        async (reason) => {
+          isIteratorAborted = true
+          if (reason !== 'next') {
+            await current.return?.()
+          }
+        },
+      )
     })
   }
 }

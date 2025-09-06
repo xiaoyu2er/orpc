@@ -60,7 +60,7 @@ describe('toBatchResponse', () => {
 })
 
 describe('parseBatchResponse', () => {
-  it('throw on invalid batch body', () => {
+  it('throw on invalid batch body', async () => {
     expect(
       () => parseBatchResponse({ status: 207, headers: { 'x-custom': 'value' }, body: undefined }),
     ).toThrow('Invalid batch response')
@@ -68,6 +68,25 @@ describe('parseBatchResponse', () => {
     expect(
       () => parseBatchResponse({ status: 207, headers: { 'x-custom': 'value' }, body: '123' }),
     ).toThrow('Invalid batch response')
+
+    let cleanup = false
+
+    const asyncIterator = (async function* () {
+      try {
+        yield 'invalid 1'
+        yield 'invalid 2'
+        yield 'invalid 3'
+      }
+      finally {
+        cleanup = true
+      }
+    })()
+
+    const parsed = parseBatchResponse({ status: 207, headers: { 'x-custom': 'value' }, body: asyncIterator })
+
+    await expect(parsed.next()).rejects.toThrow('Invalid batch response')
+
+    expect(cleanup).toBe(true)
   })
 
   it.each(['streaming', 'buffered'] as const)('throw on invalid batch body with %s mode', async (mode) => {
@@ -81,5 +100,27 @@ describe('parseBatchResponse', () => {
     }))
 
     await expect(parsed.next()).rejects.toThrow('Invalid batch response')
+  })
+
+  it('cleanup original async iterator if .return is called', async () => {
+    let cleanup = false
+
+    const asyncIterator = (async function* () {
+      try {
+        yield { index: 0, status: 200, headers: {}, body: 'test1' }
+        yield { index: 1, status: 207, headers: { 'x-custom': 'value2' }, body: 'test2' }
+        yield { index: 2, status: 207, headers: { 'x-custom': 'value3' }, body: 'test3' }
+      }
+      finally {
+        cleanup = true
+      }
+    })()
+
+    const parsed = parseBatchResponse({ status: 207, headers: { 'x-custom': 'value' }, body: asyncIterator })
+
+    await parsed.next()
+    await parsed.return?.(undefined)
+
+    expect(cleanup).toBe(true)
   })
 })

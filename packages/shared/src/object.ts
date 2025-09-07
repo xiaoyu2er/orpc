@@ -1,3 +1,5 @@
+import type { AnyFunction } from './function'
+
 export type Segment = string | number
 
 export function findDeepMatches(
@@ -23,6 +25,18 @@ export function findDeepMatches(
   }
 
   return { maps, values }
+}
+
+/**
+ * Get constructor of the value
+ */
+export function getConstructor(value: unknown): AnyFunction | null | undefined {
+  // Object.getPrototypeOf require object in node.js
+  if (!isTypescriptObject(value)) {
+    return null
+  }
+
+  return Object.getPrototypeOf(value)?.constructor
 }
 
 /**

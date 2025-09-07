@@ -1,5 +1,6 @@
 export * from './client'
 export * from './client-safe'
+export * from './consts'
 export * from './dynamic-link'
 export * from './error'
 export * from './event-iterator'

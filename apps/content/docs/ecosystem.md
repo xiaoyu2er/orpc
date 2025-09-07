@@ -26,6 +26,7 @@ If your project is missing here, please [open a PR](https://github.com/unnoq/orp
 | [orpc-file-based-router](https://github.com/zeeeeby/orpc-file-based-router)    | [![Stars](https://img.shields.io/github/stars/zeeeeby/orpc-file-based-router?style=flat)](https://github.com/zeeeeby/orpc-file-based-router)         | Automatically creates an oRPC router configuration based on your file structure, similar to Next.js, express-file-routing |
 | [Vertrag](https://github.com/Quatton/vertrag)                                  | [![Stars](https://img.shields.io/github/stars/Quatton/vertrag?style=flat)](https://github.com/Quatton/vertrag)                                       | A spec-first API development tool (oRPC contract + any backend language)                                                  |
 | [Prisma oRPC Generator](https://github.com/omar-dulaimi/prisma-orpc-generator) | [![Stars](https://img.shields.io/github/stars/omar-dulaimi/prisma-orpc-generator?style=flat)](https://github.com/omar-dulaimi/prisma-orpc-generator) | Prisma generator that creates fully-featured ORPC routers                                                                 |
+| [Drizzle oRPC Generator](https://github.com/use-drzl/drzl)                     | [![Stars](https://img.shields.io/github/stars/use-drzl/drzl?style=flat)](https://github.com/use-drzl/drzl)                                           | Drizzle generator that creates fully-featured ORPC routers                                                                |
 
 ## Libraries
 

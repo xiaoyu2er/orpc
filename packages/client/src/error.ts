@@ -162,7 +162,7 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
       return true
     }
 
-    // fallback to default instanceof check if this is extended from ORPCError
+    // fallback to default instanceof check
     return super[Symbol.hasInstance](instance)
   }
 }

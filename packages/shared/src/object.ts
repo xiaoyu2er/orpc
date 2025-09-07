@@ -1,5 +1,3 @@
-import type { AnyFunction } from './function'
-
 export type Segment = string | number
 
 export function findDeepMatches(
@@ -29,8 +27,9 @@ export function findDeepMatches(
 
 /**
  * Get constructor of the value
+ *
  */
-export function getConstructor(value: unknown): AnyFunction | null | undefined {
+export function getConstructor(value: unknown): Function | null | undefined { // eslint-disable-line ts/no-unsafe-function-type
   // Object.getPrototypeOf require object in node.js
   if (!isTypescriptObject(value)) {
     return null

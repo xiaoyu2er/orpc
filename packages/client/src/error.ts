@@ -105,9 +105,9 @@ export type ORPCErrorOptions<TData>
  *
  * @info `Symbol.for` is global symbol registry and shared across different dependency graphs
  */
-const GlobalORPCErrorConstructorsSymbol = Symbol.for(`__${ORPC_CLIENT_PACKAGE_NAME}@${ORPC_CLIENT_PACKAGE_VERSION}/error/ORPCErrorConstructors__`)
-void ((globalThis as any)[GlobalORPCErrorConstructorsSymbol] ??= [])
-const GlobalORPCErrorConstructors: unknown[] = (globalThis as any)[GlobalORPCErrorConstructorsSymbol]
+const GLOBAL_ORPC_ERROR_CONSTRUCTORS_SYMBOL = Symbol.for(`__${ORPC_CLIENT_PACKAGE_NAME}@${ORPC_CLIENT_PACKAGE_VERSION}/error/ORPC_ERROR_CONSTRUCTORS__`)
+void ((globalThis as any)[GLOBAL_ORPC_ERROR_CONSTRUCTORS_SYMBOL] ??= new WeakSet())
+const globalORPCErrorConstructors: WeakSet<object> = (globalThis as any)[GLOBAL_ORPC_ERROR_CONSTRUCTORS_SYMBOL]
 
 export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
   readonly defined: boolean
@@ -155,11 +155,12 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
    * @todo Remove this and related code if Next.js resolves the multiple dependency graph issue.
    */
   static override[Symbol.hasInstance](instance: unknown): boolean {
-    if (
-      GlobalORPCErrorConstructors.includes(this) // not applicable to extended classes
-      && GlobalORPCErrorConstructors.includes(getConstructor(instance))
-    ) {
-      return true
+    // not applicable to extended classes
+    if (globalORPCErrorConstructors.has(this)) {
+      const constructor = getConstructor(instance)
+      if (constructor && globalORPCErrorConstructors.has(constructor)) {
+        return true
+      }
     }
 
     // fallback to default instanceof check
@@ -170,7 +171,7 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
  * Store ORPCError constructor
  * for workaround of instanceof check in case multiple dependency graphs exist
  */
-GlobalORPCErrorConstructors.push(ORPCError)
+globalORPCErrorConstructors.add(ORPCError)
 
 export type ORPCErrorJSON<TCode extends string, TData> = Pick<ORPCError<TCode, TData>, 'defined' | 'code' | 'status' | 'message' | 'data'>
 

@@ -180,6 +180,30 @@ describe('toEventIterator', () => {
     expect(runInSpanContextSpy).toHaveBeenCalledTimes(2)
   })
 
+  it('should throw if .return() while waiting for .next()', async () => {
+    const stream = new ReadableStream<string>({
+      async pull(controller) {
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        controller.enqueue('event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n')
+        controller.close()
+      },
+    }).pipeThrough(new TextEncoderStream())
+
+    const generator = toEventIterator(stream)
+    expect(generator).toSatisfy(isAsyncIteratorObject)
+
+    const promise = expect(generator.next()).rejects.toThrow('Stream was cancelled')
+
+    await new Promise(resolve => setTimeout(resolve, 1))
+    await generator.return(undefined)
+    await promise
+
+    await vi.waitFor(() => expect(stream.getReader().closed).resolves.toBe(undefined))
+
+    expect(startSpanSpy).toHaveBeenCalledTimes(1)
+    expect(runInSpanContextSpy).toHaveBeenCalledTimes(2)
+  })
+
   it('error while reading', async () => {
     const stream = new ReadableStream<string>({
       async pull(controller) {

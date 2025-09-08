@@ -1,5 +1,5 @@
 import type { SetSpanErrorOptions } from '@orpc/shared'
-import { AsyncIteratorClass, isTypescriptObject, parseEmptyableJSON, runInSpanContext, setSpanError, startSpan, stringifyJSON } from '@orpc/shared'
+import { AbortError, AsyncIteratorClass, isTypescriptObject, parseEmptyableJSON, runInSpanContext, setSpanError, startSpan, stringifyJSON } from '@orpc/shared'
 import { encodeEventMessage, ErrorEvent, EventDecoderStream, getEventMeta, withEventMeta } from '@orpc/standard-server'
 
 export interface ToEventIteratorOptions extends SetSpanErrorOptions {}
@@ -41,7 +41,7 @@ export function toEventIterator(
          */
         if (done) {
           if (isCancelled) {
-            throw new Error('Stream was cancelled')
+            throw new AbortError('Stream was cancelled')
           }
 
           return { done: true, value: undefined }

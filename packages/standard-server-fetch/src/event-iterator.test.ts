@@ -183,7 +183,7 @@ describe('toEventIterator', () => {
   it('should throw if .return() while waiting for .next()', async () => {
     const stream = new ReadableStream<string>({
       async pull(controller) {
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        await new Promise(resolve => setTimeout(resolve, 25))
         controller.enqueue('event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n')
         controller.close()
       },
@@ -192,9 +192,9 @@ describe('toEventIterator', () => {
     const generator = toEventIterator(stream)
     expect(generator).toSatisfy(isAsyncIteratorObject)
 
-    const promise = expect(generator.next()).rejects.toThrow('Stream was cancelled')
+    const promise = expect(generator.next()).rejects.toBeInstanceOf(shared.AbortError)
 
-    await new Promise(resolve => setTimeout(resolve, 1))
+    await new Promise(resolve => setTimeout(resolve, 0))
     await generator.return(undefined)
     await promise
 

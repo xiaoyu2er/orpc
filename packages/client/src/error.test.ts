@@ -1,3 +1,4 @@
+import { NullProtoObj } from '@orpc/shared'
 import { createORPCErrorFromJson, fallbackORPCErrorMessage, fallbackORPCErrorStatus, isDefinedError, isORPCErrorJson, isORPCErrorStatus, ORPCError, toORPCError } from './error'
 
 it('fallbackORPCErrorStatus', () => {
@@ -23,6 +24,42 @@ describe('oRPCError', () => {
     expect(error.message).toBe('message')
     expect(error.data).toBe('data')
     expect(error.cause).toBe('cause')
+    expect(Object.getPrototypeOf(error).constructor.name).toBe('ORPCError')
+  })
+
+  it('instanceof should behave as normal', () => {
+    class ExtendedORPCError extends ORPCError<any, any> {}
+    class NotRelated {}
+
+    const orpcError = new ORPCError('test')
+    const extendedError = new ExtendedORPCError('test')
+    const pureError = new Error('test')
+    const notRelated = new NotRelated()
+    const nullProtoObj = new NullProtoObj()
+
+    expect(orpcError instanceof ORPCError).toBe(true)
+    expect(extendedError instanceof ORPCError).toBe(true)
+    expect(pureError instanceof ORPCError).toBe(false)
+    expect(notRelated instanceof ORPCError).toBe(false)
+    expect(nullProtoObj instanceof ORPCError).toBe(false)
+
+    expect(orpcError instanceof ExtendedORPCError).toBe(false)
+    expect(extendedError instanceof ExtendedORPCError).toBe(true)
+    expect(pureError instanceof ExtendedORPCError).toBe(false)
+    expect(notRelated instanceof ExtendedORPCError).toBe(false)
+    expect(nullProtoObj instanceof ExtendedORPCError).toBe(false)
+
+    expect(orpcError instanceof Error).toBe(true)
+    expect(extendedError instanceof Error).toBe(true)
+    expect(pureError instanceof Error).toBe(true)
+    expect(notRelated instanceof Error).toBe(false)
+    expect(nullProtoObj instanceof Error).toBe(false)
+
+    expect(orpcError instanceof NotRelated).toBe(false)
+    expect(extendedError instanceof NotRelated).toBe(false)
+    expect(pureError instanceof NotRelated).toBe(false)
+    expect(notRelated instanceof NotRelated).toBe(true)
+    expect(nullProtoObj instanceof NotRelated).toBe(false)
   })
 
   it('default defined=false', () => {

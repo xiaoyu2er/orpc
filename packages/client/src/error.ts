@@ -1,5 +1,6 @@
 import type { MaybeOptionalOptions } from '@orpc/shared'
-import { isObject, resolveMaybeOptionalOptions } from '@orpc/shared'
+import { getConstructor, isObject, resolveMaybeOptionalOptions } from '@orpc/shared'
+import { ORPC_CLIENT_PACKAGE_NAME, ORPC_CLIENT_PACKAGE_VERSION } from './consts'
 
 export const COMMON_ORPC_ERROR_DEFS = {
   BAD_REQUEST: {
@@ -98,6 +99,16 @@ export type ORPCErrorOptions<TData>
     & { defined?: boolean, status?: number, message?: string }
     & (undefined extends TData ? { data?: TData } : { data: TData })
 
+/**
+ * Store all ORPCError constructors
+ * for workaround of instanceof check in case multiple dependency graphs exist
+ *
+ * @info `Symbol.for` is global symbol registry and shared across different dependency graphs
+ */
+const GLOBAL_ORPC_ERROR_CONSTRUCTORS_SYMBOL = Symbol.for(`__${ORPC_CLIENT_PACKAGE_NAME}@${ORPC_CLIENT_PACKAGE_VERSION}/error/ORPC_ERROR_CONSTRUCTORS__`)
+void ((globalThis as any)[GLOBAL_ORPC_ERROR_CONSTRUCTORS_SYMBOL] ??= new WeakSet())
+const globalORPCErrorConstructors: WeakSet<object> = (globalThis as any)[GLOBAL_ORPC_ERROR_CONSTRUCTORS_SYMBOL]
+
 export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
   readonly defined: boolean
   readonly code: TCode
@@ -130,7 +141,37 @@ export class ORPCError<TCode extends ORPCErrorCode, TData> extends Error {
       data: this.data,
     }
   }
+
+  /**
+   * Workaround for Next.js where different contexts use separate
+   * dependency graphs, causing multiple ORPCError constructors existing and breaking
+   * `instanceof` checks across contexts.
+   *
+   * This is particularly problematic with "Optimized SSR", where orpc-client
+   * executes in one context but is invoked from another. When an error is thrown
+   * in the execution context, `instanceof ORPCError` checks fail in the
+   * invocation context due to separate class constructors.
+   *
+   * @todo Remove this and related code if Next.js resolves the multiple dependency graph issue.
+   */
+  static override[Symbol.hasInstance](instance: unknown): boolean {
+    // not applicable to extended classes
+    if (globalORPCErrorConstructors.has(this)) {
+      const constructor = getConstructor(instance)
+      if (constructor && globalORPCErrorConstructors.has(constructor)) {
+        return true
+      }
+    }
+
+    // fallback to default instanceof check
+    return super[Symbol.hasInstance](instance)
+  }
 }
+/**
+ * Store ORPCError constructor
+ * for workaround of instanceof check in case multiple dependency graphs exist
+ */
+globalORPCErrorConstructors.add(ORPCError)
 
 export type ORPCErrorJSON<TCode extends string, TData> = Pick<ORPCError<TCode, TData>, 'defined' | 'code' | 'status' | 'message' | 'data'>
 

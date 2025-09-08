@@ -1,7 +1,7 @@
 import { type } from 'arktype'
 import * as v from 'valibot'
 import * as z from 'zod/v4'
-import { clone, findDeepMatches, get, isObject, isPropertyKey, isTypescriptObject, NullProtoObj } from './object'
+import { clone, findDeepMatches, get, getConstructor, isObject, isPropertyKey, isTypescriptObject, NullProtoObj } from './object'
 
 it('findDeepMatches', () => {
   const { maps, values } = findDeepMatches(v => typeof v === 'string', {
@@ -31,6 +31,17 @@ it('findDeepMatches', () => {
     'v3',
     'v4',
   ])
+})
+
+it('getConstructor', () => {
+  expect(getConstructor(null)).toBeNull()
+  expect(getConstructor(undefined)).toBeNull()
+  expect(getConstructor(true)).toBeNull()
+
+  expect(getConstructor({})).toBe(Object)
+  expect(getConstructor(new Error('hi'))).toBe(Error)
+  expect(getConstructor(new NullProtoObj())).toBeUndefined()
+  expect(getConstructor(() => { })).toBe(Function)
 })
 
 it('isObject', () => {

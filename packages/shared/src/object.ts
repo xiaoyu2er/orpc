@@ -26,6 +26,19 @@ export function findDeepMatches(
 }
 
 /**
+ * Get constructor of the value
+ *
+ */
+export function getConstructor(value: unknown): Function | null | undefined { // eslint-disable-line ts/no-unsafe-function-type
+  // Object.getPrototypeOf require object in node.js
+  if (!isTypescriptObject(value)) {
+    return null
+  }
+
+  return Object.getPrototypeOf(value)?.constructor
+}
+
+/**
  * Check if the value is an object even it created by `Object.create(null)` or more tricky way.
  */
 export function isObject(value: unknown): value is Record<PropertyKey, unknown> {

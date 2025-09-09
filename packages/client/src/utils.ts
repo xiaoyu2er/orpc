@@ -78,7 +78,7 @@ export interface ConsumeEventIteratorOptions<T, TReturn, TError> {
  * @warning If no `onError` or `onFinish` is provided, unhandled rejections will be thrown
  * @return unsubscribe callback
  */
-export function consumeEventIterator<T, TReturn, TError>(
+export function consumeEventIterator<T, TReturn, TError = ThrowableError>(
   iterator: AsyncIterator<T, TReturn> | ClientPromiseResult<AsyncIterator<T, TReturn>, TError>,
   options: ConsumeEventIteratorOptions<T, TReturn, TError>,
 ): () => Promise<void> {

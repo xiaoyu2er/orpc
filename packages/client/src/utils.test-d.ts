@@ -91,13 +91,13 @@ describe('consumeEventIterator', () => {
         expectTypeOf(message).toEqualTypeOf<'message-value'>()
       },
       onError: (error) => {
-        expectTypeOf(error).toEqualTypeOf<unknown>()
+        expectTypeOf(error).toEqualTypeOf<Error>()
       },
       onSuccess: (value) => {
         expectTypeOf(value).toEqualTypeOf<'done-value' | undefined>()
       },
       onFinish: (state) => {
-        expectTypeOf(state).toEqualTypeOf<OnFinishState<'done-value' | undefined, unknown>>()
+        expectTypeOf(state).toEqualTypeOf<OnFinishState<'done-value' | undefined, Error>>()
       },
     })
   })

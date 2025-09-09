@@ -96,3 +96,7 @@ setTimeout(async () => {
   await cancel()
 }, 1000)
 ```
+
+:::info
+This utility accepts both promises and event iterators. Passing a promise directly lets it infer correct error type.
+:::

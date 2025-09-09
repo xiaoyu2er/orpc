@@ -85,8 +85,8 @@ describe('consumeEventIterator', () => {
     })
   })
 
-  it('can infer types from AsyncIteratorObject', () => {
-    void consumeEventIterator({} as AsyncIteratorObject<'message-value', 'done-value'>, {
+  it('can infer types from AsyncIterator', () => {
+    void consumeEventIterator({} as AsyncIterator<'message-value', 'done-value'>, {
       onEvent: (message) => {
         expectTypeOf(message).toEqualTypeOf<'message-value'>()
       },

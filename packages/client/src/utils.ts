@@ -79,7 +79,7 @@ export interface ConsumeEventIteratorOptions<T, TReturn, TError> {
  * @return unsubscribe callback
  */
 export function consumeEventIterator<T, TReturn, TError>(
-  iterator: AsyncIteratorObject<T, TReturn> | ClientPromiseResult<AsyncIteratorObject<T, TReturn>, TError>,
+  iterator: AsyncIterator<T, TReturn> | ClientPromiseResult<AsyncIterator<T, TReturn>, TError>,
   options: ConsumeEventIteratorOptions<T, TReturn, TError>,
 ): () => Promise<void> {
   void (async () => {

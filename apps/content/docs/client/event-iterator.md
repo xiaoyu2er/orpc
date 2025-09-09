@@ -68,3 +68,31 @@ catch (error) {
 ::: info
 Errors thrown by the server can be instances of `ORPCError`.
 :::
+
+## Using `consumeEventIterator`
+
+oRPC provides a utility function `consumeEventIterator` to consume an event iterator with lifecycle callbacks.
+
+```ts
+import { consumeEventIterator } from '@orpc/client'
+
+const cancel = consumeEventIterator(client.streaming(), {
+  onEvent: (event) => {
+    console.log(event.message)
+  },
+  onError: (error) => {
+    console.error(error)
+  },
+  onSuccess: (value) => {
+    console.log(value)
+  },
+  onFinish: (state) => {
+    console.log(state)
+  },
+})
+
+setTimeout(async () => {
+  // Stop the stream after 1 second
+  await cancel()
+}, 1000)
+```

@@ -56,20 +56,20 @@ export function toDurableEventIteratorWebsocket(original: WebSocket): DurableEve
           serializeHibernationId(id) {
             target.serializeAttachment({
               ...target.deserializeAttachment(),
-              hibernationId: id,
+              hi: id,
             })
           },
           deserializeHibernationId() {
-            return target.deserializeAttachment()?.hibernationId
+            return target.deserializeAttachment()?.hi
           },
           serializeTokenPayload(payload) {
             target.serializeAttachment({
               ...target.deserializeAttachment(),
-              tokenPayload: payload,
+              tp: payload,
             })
           },
           deserializeTokenPayload() {
-            const payload = target.deserializeAttachment()?.tokenPayload
+            const payload = target.deserializeAttachment()?.tp
 
             if (!payload) {
               throw new Error('[DurableEventIteratorWebsocket] Token payload not found, please call serialieTokenPayload first')
@@ -81,10 +81,10 @@ export function toDurableEventIteratorWebsocket(original: WebSocket): DurableEve
       }
 
       if (prop === 'serializeAttachment') {
-        const serializeAttachment: WebSocket['serializeAttachment'] = (attachment) => {
+        const serializeAttachment: WebSocket['serializeAttachment'] = (wa) => {
           target.serializeAttachment({
             ...target.deserializeAttachment(),
-            attachment,
+            wa,
           })
         }
 
@@ -93,7 +93,7 @@ export function toDurableEventIteratorWebsocket(original: WebSocket): DurableEve
 
       if (prop === 'deserializeAttachment') {
         const deserializeAttachment: WebSocket['deserializeAttachment'] = () => {
-          return target.deserializeAttachment()?.attachment
+          return target.deserializeAttachment()?.wa
         }
 
         return deserializeAttachment

@@ -23,6 +23,7 @@ it('withEventMeta only proxy when make sense', () => {
   expect(withEventMeta(data, { id: '123' })).not.toBe(data)
 
   expect(withEventMeta(data, {})).toBe(data)
+  expect(withEventMeta(data, { notExists: true } as any)).toBe(data)
   expect(withEventMeta(data, { id: undefined })).toBe(data)
   expect(withEventMeta(data, { comments: [] })).toBe(data)
 })

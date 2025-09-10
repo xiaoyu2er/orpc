@@ -21,9 +21,9 @@ const videos = [
       <div v-for="video in videos" :key="video.id" class="item">
         <div class="video-wrapper">
           <iframe
-            :src="`https://www.youtube.com/embed/${video.id}`"
+            :src="`https://www.youtube.com/embed/${video.id}?rel=0&modestbranding=1`"
             :title="video.title"
-            frameborder="0"
+            loading="lazy"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             referrerpolicy="strict-origin-when-cross-origin"
             allowfullscreen
@@ -48,8 +48,7 @@ const videos = [
 .video-wrapper {
   position: relative;
   width: 100%;
-  height: 0;
-  padding-bottom: 56.25%; /* 16:9 aspect ratio (9/16 = 0.5625) */
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   border-radius: 12px;
 }
@@ -60,7 +59,7 @@ const videos = [
   left: 0;
   width: 100%;
   height: 100%;
-  border-radius: 12px;
+  border: none;
 }
 
 @media (min-width: 640px) {

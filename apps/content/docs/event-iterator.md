@@ -5,7 +5,7 @@ description: Learn how to streaming responses, real-time updates, and server-sen
 
 # Event Iterator (SSE)
 
-oRPC provides built‑in support for streaming responses, real‑time updates, and server-sent events (SSE) without any extra configuration. This functionality is ideal for applications that require live updates—such as AI chat responses, live sports scores, or stock market data.
+oRPC provides built‑in support for streaming responses, real‑time updates, and server-sent events (SSE) without any extra configuration. This functionality is ideal for applications that require live updates, such as AI chat responses, live sports scores, or stock market data.
 
 ## Overview
 

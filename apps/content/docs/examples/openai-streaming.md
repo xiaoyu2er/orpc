@@ -33,6 +33,8 @@ const complete = os
 
 const router = { complete }
 
+// --------------- CLIENT ---------------
+
 const link = new RPCLink({
   url: 'https://example.com/rpc',
 })
@@ -46,4 +48,6 @@ for await (const chunk of stream) {
 }
 ```
 
+::: info
 Learn more about [RPCLink](/docs/client/rpc-link) and [Event Iterator](/docs/client/event-iterator).
+:::

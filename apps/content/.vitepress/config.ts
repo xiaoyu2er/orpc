@@ -69,7 +69,6 @@ export default withMermaid(defineConfig({
     nav: [
       { text: 'Docs', link: '/docs/getting-started', activeMatch: '/docs/(?!openapi/)' },
       { text: 'OpenAPI', link: '/docs/openapi/getting-started', activeMatch: '/docs/openapi/' },
-      { text: 'Examples', link: '/examples/openai-streaming', activeMatch: '/examples/' },
       { text: 'Learn & Contribute', link: '/learn-and-contribute/overview', activeMatch: '/learn-and-contribute/' },
       {
         text: 'About',
@@ -84,6 +83,7 @@ export default withMermaid(defineConfig({
     sidebar: {
       '/docs/': [
         { text: 'Getting Started', link: '/docs/getting-started' },
+        { text: 'Comparison', link: '/docs/comparison' },
         { text: 'Procedure', link: '/docs/procedure' },
         { text: 'Router', link: '/docs/router' },
         { text: 'Middleware', link: '/docs/middleware' },
@@ -95,6 +95,8 @@ export default withMermaid(defineConfig({
         { text: 'Metadata', link: '/docs/metadata' },
         { text: 'RPC Handler', link: '/docs/rpc-handler' },
         { text: 'OpenAPI', link: '/docs/openapi/getting-started' },
+        { text: 'Ecosystem', link: '/docs/ecosystem' },
+        { text: 'Playgrounds', link: '/docs/playgrounds' },
         {
           text: 'Contract First',
           collapsed: true,
@@ -199,6 +201,13 @@ export default withMermaid(defineConfig({
           ],
         },
         {
+          text: 'Examples',
+          collapsed: true,
+          items: [
+            { text: 'OpenAI Streaming', link: '/docs/examples/openai-streaming' },
+          ],
+        },
+        {
           text: 'Best Practices',
           collapsed: true,
           items: [
@@ -228,15 +237,6 @@ export default withMermaid(defineConfig({
           collapsed: true,
           items: [
             { text: 'Migrating from tRPC', link: '/docs/migrations/from-trpc' },
-          ],
-        },
-        {
-          text: 'Others',
-          collapsed: true,
-          items: [
-            { text: 'Playgrounds', link: '/docs/playgrounds' },
-            { text: 'Comparison', link: '/docs/comparison' },
-            { text: 'Ecosystem', link: '/docs/ecosystem' },
           ],
         },
       ],
@@ -283,9 +283,6 @@ export default withMermaid(defineConfig({
             { text: 'Redirect Response', link: '/docs/openapi/advanced/redirect-response' },
           ],
         },
-      ],
-      '/examples/': [
-        { text: 'OpenAI Streaming', link: '/examples/openai-streaming' },
       ],
       '/blog/': [
         { text: 'V1 Announcement', link: '/blog/v1-announcement' },

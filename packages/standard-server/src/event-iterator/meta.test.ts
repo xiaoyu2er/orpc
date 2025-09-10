@@ -15,3 +15,14 @@ it('get/withEventMeta', () => {
   expect(() => withEventMeta(data, { retry: -1 })).toThrow('Event\'s retry must be a integer and >= 0')
   expect(() => withEventMeta(data, { comments: ['hi\n'] })).toThrow('Event\'s comment must not contain a newline character')
 })
+
+it('withEventMeta only proxy when make sense', () => {
+  const data = { value: 123, meta: undefined }
+
+  expect(withEventMeta(data, { id: '123', retry: 10000, comments: ['hello', 'world'] })).not.toBe(data)
+  expect(withEventMeta(data, { id: '123' })).not.toBe(data)
+
+  expect(withEventMeta(data, {})).toBe(data)
+  expect(withEventMeta(data, { id: undefined })).toBe(data)
+  expect(withEventMeta(data, { comments: [] })).toBe(data)
+})

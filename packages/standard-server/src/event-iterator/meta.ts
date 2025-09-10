@@ -7,6 +7,14 @@ const EVENT_SOURCE_META_SYMBOL = Symbol('ORPC_EVENT_SOURCE_META')
 export type EventMeta = Partial<Pick<EventMessage, 'retry' | 'id' | 'comments'>>
 
 export function withEventMeta<T extends object>(container: T, meta: EventMeta): T {
+  if (
+    meta.id === undefined
+    && meta.retry === undefined
+    && (meta.comments === undefined || meta.comments.length === 0)
+  ) {
+    return container
+  }
+
   if (meta.id !== undefined) {
     assertEventId(meta.id)
   }

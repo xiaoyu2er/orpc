@@ -203,6 +203,7 @@ export default withMermaid(defineConfig({
           collapsed: true,
           items: [
             { text: 'Dedupe Middleware', link: '/docs/best-practices/dedupe-middleware' },
+            { text: 'Monorepo Setup', link: '/docs/best-practices/monorepo-setup' },
             { text: 'No Throw Literal', link: '/docs/best-practices/no-throw-literal' },
             { text: 'Optimize SSR', link: '/docs/best-practices/optimize-ssr' },
           ],

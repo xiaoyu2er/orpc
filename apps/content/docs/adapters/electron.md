@@ -13,7 +13,6 @@ Listen for a port sent from the renderer, then upgrade it:
 
 ```ts
 import { RPCHandler } from '@orpc/server/message-port'
-import { router } from './router'
 
 const handler = new RPCHandler(router)
 

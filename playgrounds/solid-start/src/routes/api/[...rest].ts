@@ -1,6 +1,6 @@
 import type { APIEvent } from '@solidjs/start/server'
 import { OpenAPIHandler } from '@orpc/openapi/fetch'
-import { router } from '~/router'
+import { router } from '~/routers'
 import { ZodToJsonSchemaConverter } from '@orpc/zod/zod4'
 import { experimental_SmartCoercionPlugin as SmartCoercionPlugin } from '@orpc/json-schema'
 import { onError } from '@orpc/server'

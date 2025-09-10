@@ -1,4 +1,4 @@
-import { router } from '@/router'
+import { router } from '@/routers'
 import { OpenAPIHandler } from '@orpc/openapi/fetch'
 import { onError } from '@orpc/server'
 import { ZodToJsonSchemaConverter } from '@orpc/zod/zod4'

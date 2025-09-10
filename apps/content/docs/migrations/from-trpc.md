@@ -239,7 +239,7 @@ The main router structure is similar between tRPC and oRPC, except in oRPC you d
 
 ::: code-group
 
-```ts [orpc/router/index.ts]
+```ts [orpc/routers/index.ts]
 import { planetRouter } from './planet'
 
 export const appRouter = {
@@ -247,7 +247,7 @@ export const appRouter = {
 }
 ```
 
-```ts [trpc/router/index.ts]
+```ts [trpc/routers/index.ts]
 import { planetRouter } from './planet'
 
 export const appRouter = createTRPCRouter({

@@ -1,5 +1,5 @@
 import { RPCHandler } from '@orpc/server/fetch'
-import { router } from '../../../router'
+import { router } from '../../../routers'
 import { onError } from '@orpc/server'
 import type { RequestHandler } from '@sveltejs/kit'
 import '../../../polyfill'

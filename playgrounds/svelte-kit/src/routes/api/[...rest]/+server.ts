@@ -1,5 +1,5 @@
 import { OpenAPIHandler } from '@orpc/openapi/fetch'
-import { router } from '../../../router'
+import { router } from '../../../routers'
 import { onError } from '@orpc/server'
 import type { RequestHandler } from '@sveltejs/kit'
 import { ZodToJsonSchemaConverter } from '@orpc/zod/zod4'

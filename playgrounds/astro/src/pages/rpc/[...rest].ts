@@ -3,7 +3,7 @@ import type { APIRoute } from 'astro'
 import { onError } from '@orpc/server'
 import { BatchHandlerPlugin } from '@orpc/server/plugins'
 import { RPCHandler } from '@orpc/server/fetch'
-import { router } from '../../router'
+import { router } from '../../routers'
 
 const handler = new RPCHandler(router, {
   interceptors: [

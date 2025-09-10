@@ -1,4 +1,4 @@
-import type { router } from '../.../../../background/router'
+import type { router } from '../.../../../background/routers'
 import type { RouterClient } from '@orpc/server'
 import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/message-port'

@@ -10,7 +10,7 @@ export function withEventMeta<T extends object>(container: T, meta: EventMeta): 
   if (
     meta.id === undefined
     && meta.retry === undefined
-    && (meta.comments === undefined || meta.comments.length === 0)
+    && !meta.comments?.length
   ) {
     return container
   }

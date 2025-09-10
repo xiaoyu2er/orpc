@@ -20,7 +20,9 @@ it('withEventMeta only proxy when make sense', () => {
   const data = { value: 123, meta: undefined }
 
   expect(withEventMeta(data, { id: '123', retry: 10000, comments: ['hello', 'world'] })).not.toBe(data)
-  expect(withEventMeta(data, { id: '123' })).not.toBe(data)
+  expect(withEventMeta(data, { id: '' })).not.toBe(data)
+  expect(withEventMeta(data, { retry: 0 })).not.toBe(data)
+  expect(withEventMeta(data, { comments: [''] })).not.toBe(data)
 
   expect(withEventMeta(data, {})).toBe(data)
   expect(withEventMeta(data, { notExists: true } as any)).toBe(data)

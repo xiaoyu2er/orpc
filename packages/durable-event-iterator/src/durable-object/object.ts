@@ -88,7 +88,6 @@ export class DurableEventIteratorObject<
     const { '0': client, '1': server } = new WebSocketPair()
 
     this.ctx.acceptWebSocket(server)
-
     toDurableEventIteratorWebsocket(server)['~orpc'].serializeTokenPayload(payload)
 
     return new Response(null, {
@@ -97,11 +96,23 @@ export class DurableEventIteratorObject<
     })
   }
 
-  override async webSocketMessage(websocket: WebSocket, message: string | ArrayBuffer): Promise<void> {
+  /**
+   * Internally used to handle WebSocket messages
+   *
+   * @info This method
+   */
+  override async webSocketMessage(websocket_: WebSocket, message: string | ArrayBuffer): Promise<void> {
+    const websocket = toDurableEventIteratorWebsocket(websocket_)
+
+    websocket['~orpc'].closeIfExpired()
+    if (websocket.readyState !== WebSocket.OPEN) {
+      return
+    }
+
     await this['~orpc'].handler.message(websocket, message, {
       context: {
         object: this,
-        websocket: toDurableEventIteratorWebsocket(websocket),
+        websocket,
       },
     })
   }

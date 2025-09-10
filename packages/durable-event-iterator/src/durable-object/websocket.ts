@@ -21,16 +21,23 @@ export interface DurableEventIteratorWebsocketInternal {
   /**
    * Serialize the token payload usually when client connected
    *
-   * @warning this method should be called only once when client connected
+   * @warning this method should be called when client established connection
    */
   serializeTokenPayload(payload: TokenPayload): void
 
   /**
    * Deserialize the payload attached when client connected
    *
-   * @warning this method assumes that the payload is already set when client connected
+   * @warning this method assumes that the token payload is already set when client established connection
    */
   deserializeTokenPayload(): TokenPayload
+
+  /**
+   * Close the websocket connection if expired
+   *
+   * @warning this method assumes that the token payload is already set when client established connection
+   */
+  closeIfExpired(): void
 }
 
 export interface DurableEventIteratorWebsocket extends WebSocket {
@@ -42,48 +49,59 @@ export interface DurableEventIteratorWebsocket extends WebSocket {
 
 /**
  * Create a Durable Event Iterator WebSocket from a regular WebSocket
+ *
+ * @info The websocket automatically closes if expired before sending data
  */
 export function toDurableEventIteratorWebsocket(original: WebSocket): DurableEventIteratorWebsocket {
   if ('~orpc' in original) {
     return original as DurableEventIteratorWebsocket
   }
 
+  const internal: DurableEventIteratorWebsocketInternal = {
+    original,
+    serializeHibernationId(id) {
+      original.serializeAttachment({
+        ...original.deserializeAttachment(),
+        hi: id,
+      })
+    },
+    deserializeHibernationId() {
+      return original.deserializeAttachment()?.hi
+    },
+    serializeTokenPayload(payload) {
+      original.serializeAttachment({
+        ...original.deserializeAttachment(),
+        tp: payload,
+      })
+    },
+    deserializeTokenPayload() {
+      const payload = original.deserializeAttachment()?.tp
+
+      if (!payload) {
+        throw new Error('[DurableEventIteratorWebsocket] Token payload not found, please call serialieTokenPayload first')
+      }
+
+      return payload
+    },
+    closeIfExpired() {
+      const payload = internal.deserializeTokenPayload()
+
+      if (payload.exp < Date.now() / 1000) {
+        original.close()
+      }
+    },
+  }
+
   const proxy = new Proxy(original, {
-    get(target, prop, receiver) {
+    get(_, prop, receiver) {
       if (prop === '~orpc') {
-        return {
-          original: target,
-          serializeHibernationId(id) {
-            target.serializeAttachment({
-              ...target.deserializeAttachment(),
-              hi: id,
-            })
-          },
-          deserializeHibernationId() {
-            return target.deserializeAttachment()?.hi
-          },
-          serializeTokenPayload(payload) {
-            target.serializeAttachment({
-              ...target.deserializeAttachment(),
-              tp: payload,
-            })
-          },
-          deserializeTokenPayload() {
-            const payload = target.deserializeAttachment()?.tp
-
-            if (!payload) {
-              throw new Error('[DurableEventIteratorWebsocket] Token payload not found, please call serialieTokenPayload first')
-            }
-
-            return payload
-          },
-        } satisfies DurableEventIteratorWebsocketInternal
+        return internal
       }
 
       if (prop === 'serializeAttachment') {
         const serializeAttachment: WebSocket['serializeAttachment'] = (wa) => {
-          target.serializeAttachment({
-            ...target.deserializeAttachment(),
+          original.serializeAttachment({
+            ...original.deserializeAttachment(),
             wa,
           })
         }
@@ -93,24 +111,33 @@ export function toDurableEventIteratorWebsocket(original: WebSocket): DurableEve
 
       if (prop === 'deserializeAttachment') {
         const deserializeAttachment: WebSocket['deserializeAttachment'] = () => {
-          return target.deserializeAttachment()?.wa
+          return original.deserializeAttachment()?.wa
         }
 
         return deserializeAttachment
       }
 
-      const value = Reflect.get(target, prop, receiver)
+      if (prop === 'send') {
+        const send: WebSocket['send'] = (data) => {
+          internal.closeIfExpired()
+          return original.send(data)
+        }
+
+        return send
+      }
+
+      const value = Reflect.get(original, prop, receiver)
 
       if (typeof value === 'function') {
-        return value.bind(target)
+        return value.bind(original)
       }
 
       return value
     },
-    has(target, p) {
-      return p === '~orpc' || Reflect.has(target, p)
+    has(_, p) {
+      return p === '~orpc' || Reflect.has(original, p)
     },
   })
 
-  return proxy as any
+  return proxy as DurableEventIteratorWebsocket
 }

@@ -58,7 +58,9 @@ features:
 ---
 
 <script setup>
+import VideoTestimonials from './.vitepress/theme/components/VideoTestimonials.vue'
 import FullSponsors from './.vitepress/theme/components/FullSponsors.vue'
 </script>
 
+<VideoTestimonials />
 <FullSponsors />

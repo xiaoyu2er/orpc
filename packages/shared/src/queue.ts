@@ -86,9 +86,8 @@ export class AsyncIdQueue<T> {
   close({ id, reason }: AsyncIdQueueCloseOptions = {}): void {
     if (id === undefined) {
       this.waiters.forEach((pendingPulls, id) => {
-        pendingPulls.forEach(([, reject]) => {
-          reject(reason ?? new AbortError(`[AsyncIdQueue] Queue[${id}] was closed or aborted while waiting for pulling.`))
-        })
+        const error = reason ?? new AbortError(`[AsyncIdQueue] Queue[${id}] was closed or aborted while waiting for pulling.`)
+        pendingPulls.forEach(([, reject]) => reject(error))
       })
 
       this.waiters.clear()
@@ -97,9 +96,8 @@ export class AsyncIdQueue<T> {
       return
     }
 
-    this.waiters.get(id)?.forEach(([, reject]) => {
-      reject(reason ?? new AbortError(`[AsyncIdQueue] Queue[${id}] was closed or aborted while waiting for pulling.`))
-    })
+    const error = reason ?? new AbortError(`[AsyncIdQueue] Queue[${id}] was closed or aborted while waiting for pulling.`)
+    this.waiters.get(id)?.forEach(([, reject]) => reject(error))
 
     this.waiters.delete(id)
     this.openIds.delete(id)

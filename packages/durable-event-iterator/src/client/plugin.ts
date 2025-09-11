@@ -8,7 +8,7 @@ import type { durableEventIteratorContract } from './contract'
 import { createORPCClient } from '@orpc/client'
 import { ClientRetryPlugin } from '@orpc/client/plugins'
 import { RPCLink } from '@orpc/client/websocket'
-import { toArray, value } from '@orpc/shared'
+import { AsyncIteratorClass, toArray, value } from '@orpc/shared'
 import { WebSocket as ReconnectableWebSocket } from 'partysocket'
 import { DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_KEY, DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_VALUE, DURABLE_EVENT_ITERATOR_TOKEN_PARAM } from '../consts'
 import { createClientDurableEventIterator } from './event-iterator'
@@ -59,13 +59,21 @@ export class DurableEventIteratorLinkPlugin<T extends ClientContext> implements 
         return output
       }
 
+      options?.signal?.throwIfAborted()
+
       const token = output as string
       const url = new URL(await value(this.url))
       url.searchParams.append(DURABLE_EVENT_ITERATOR_TOKEN_PARAM, token)
 
+      const websocket = new ReconnectableWebSocket(url.toString())
+
+      options?.signal?.addEventListener('abort', () => {
+        websocket.close()
+      })
+
       const durableLink = new RPCLink<ClientRetryPluginContext>({
         ...this.linkOptions,
-        websocket: new ReconnectableWebSocket(url.toString()),
+        websocket,
         plugins: [
           ...toArray(this.linkOptions.plugins),
           new ClientRetryPlugin(),
@@ -80,6 +88,17 @@ export class DurableEventIteratorLinkPlugin<T extends ClientContext> implements 
         },
       })
 
+      const cancelableIterator = new AsyncIteratorClass(
+        () => iterator.next(),
+        async () => {
+          /**
+           * Durable iterator design for long-lived connections
+           * so if user trying to abort the iterator, we should close entire connection
+           */
+          websocket.close()
+        },
+      )
+
       const link: ClientLink<object> = {
         call(path, input, options) {
           return durableClient.call({
@@ -89,7 +108,7 @@ export class DurableEventIteratorLinkPlugin<T extends ClientContext> implements 
         },
       }
 
-      const durableIterator = createClientDurableEventIterator(iterator, link, {
+      const durableIterator = createClientDurableEventIterator(cancelableIterator, link, {
         token,
       })
 

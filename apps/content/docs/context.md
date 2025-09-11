@@ -59,7 +59,7 @@ export default function fetch(request: Request) {
 
 ## Execution context
 
-Execution context is computed during the process lifecycle—usually via [middleware](/docs/middleware). It can be used independently or combined with initial context.
+Execution context is computed during the process lifecycle, usually via [middleware](/docs/middleware). It can be used independently or combined with initial context.
 
 ```ts twoslash
 import { os } from '@orpc/server'

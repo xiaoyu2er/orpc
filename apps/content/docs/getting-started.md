@@ -7,7 +7,7 @@ description: Quick guide to oRPC
 
 oRPC (OpenAPI Remote Procedure Call) combines RPC (Remote Procedure Call) with OpenAPI, allowing you to define and call remote (or local) procedures through a type-safe API while adhering to the OpenAPI specification.
 
-oRPC simplifies RPC service definition, making it easy to build scalable applications—from simple scripts to complex microservices.
+oRPC simplifies RPC service definition, making it easy to build scalable applications, from simple scripts to complex microservices.
 
 This guide covers the basics: defining procedures, handling errors, and integrating with popular frameworks.
 

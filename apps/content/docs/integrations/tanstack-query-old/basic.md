@@ -83,7 +83,7 @@ mutation.mutate({ name: 'Earth' })
 Use `.key` to generate a `QueryKey` or `MutationKey`. This is useful for tasks such as revalidating queries, checking mutation status, etc.
 
 :::info
-The `.key` accepts partial deep input—there’s no need to supply full input.
+The `.key` accepts partial deep input, there's no need to supply full input.
 :::
 
 ```ts

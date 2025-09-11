@@ -5,7 +5,7 @@ description: Call your oRPC procedures in the same environment as your server li
 
 # Server-Side Clients
 
-Call your [procedures](/docs/procedure) in the same environment as your server—no proxies required like native functions.
+Call your [procedures](/docs/procedure) in the same environment as your server, no proxies required like native functions.
 
 ## Calling Procedures
 

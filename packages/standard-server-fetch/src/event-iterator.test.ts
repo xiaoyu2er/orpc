@@ -154,9 +154,7 @@ describe('toEventIterator', () => {
     const stream = new ReadableStream<string>({
       async pull(controller) {
         controller.enqueue('event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n')
-        controller.enqueue('event: message\ndata: {"order": 2}\nid: id-2\n\n')
-        controller.enqueue(': ping\n\n')
-        controller.enqueue('event: unknown\ndata: {"order": 3}\nid: id-3\nretry: 30000')
+        await new Promise(resolve => setTimeout(resolve, 25))
         controller.close()
       },
     }).pipeThrough(new TextEncoderStream())
@@ -172,36 +170,17 @@ describe('toEventIterator', () => {
       return true
     })
 
-    await generator.return(undefined)
-
-    await vi.waitFor(() => expect(stream.getReader().closed).resolves.toBe(undefined))
-
-    expect(startSpanSpy).toHaveBeenCalledTimes(1)
-    expect(runInSpanContextSpy).toHaveBeenCalledTimes(2)
-  })
-
-  it('should throw if .return() while waiting for .next()', async () => {
-    const stream = new ReadableStream<string>({
-      async pull(controller) {
-        await new Promise(resolve => setTimeout(resolve, 25))
-        controller.enqueue('event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n')
-        controller.close()
-      },
-    }).pipeThrough(new TextEncoderStream())
-
-    const generator = toEventIterator(stream)
-    expect(generator).toSatisfy(isAsyncIteratorObject)
-
-    const promise = expect(generator.next()).rejects.toBeInstanceOf(shared.AbortError)
-
+    // should throw if .return is called while waiting for .next()
+    const nextPromise = expect(generator.next()).rejects.toBeInstanceOf(shared.AbortError)
     await new Promise(resolve => setTimeout(resolve, 0))
+
     await generator.return(undefined)
-    await promise
+    await nextPromise
 
     await vi.waitFor(() => expect(stream.getReader().closed).resolves.toBe(undefined))
 
     expect(startSpanSpy).toHaveBeenCalledTimes(1)
-    expect(runInSpanContextSpy).toHaveBeenCalledTimes(2)
+    expect(runInSpanContextSpy).toHaveBeenCalledTimes(3)
   })
 
   it('error while reading', async () => {

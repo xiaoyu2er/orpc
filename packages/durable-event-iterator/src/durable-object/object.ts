@@ -6,6 +6,7 @@ import type {
 } from '../object'
 import type { DurableEventIteratorObjectRouterContext } from './handler'
 import type { DurableEventIteratorObjectState } from './object-state'
+import type { EventResumeStorageOptions } from './resume-storage'
 import { encodeHibernationRPCEvent, HibernationPlugin } from '@orpc/server/hibernation'
 import { RPCHandler } from '@orpc/server/websocket'
 import { toArray } from '@orpc/shared'
@@ -14,26 +15,32 @@ import { DURABLE_EVENT_ITERATOR_TOKEN_PARAM } from '../consts'
 import { parseToken } from '../schemas'
 import { durableEventIteratorRouter } from './handler'
 import { createDurableEventIteratorObjectState } from './object-state'
+import { EventResumeStorage } from './resume-storage'
 import { toDurableEventIteratorWebsocket } from './websocket'
+
+export interface DurableEventIteratorObjectOptions
+  extends StandardRPCHandlerOptions<DurableEventIteratorObjectRouterContext>,
+  EventResumeStorageOptions {
+}
 
 export interface PublishEventOptions {
   /**
-   * Specific websockets to send the event to.
+   * Restrict the event to a specific set of websockets.
    *
-   * @default this.ctx.getWebSockets()
+   * Use this when security is important — only the listed websockets
+   * will ever receive the event. Newly connected websockets are not
+   * included unless explicitly added here.
    */
   targets?: WebSocket[]
 
   /**
-   * Websockets to exclude from receiving the event.
+   * Exclude certain websockets from receiving the event.
    *
-   * @default []
+   * Use this when broadcasting widely but skipping a few clients
+   * (e.g., the sender). Newly connected websockets may still receive
+   * the event if not listed here, so this is less strict than `targets`.
    */
-  skip?: WebSocket[]
-}
-
-export interface DurableEventIteratorObjectOptions
-  extends StandardRPCHandlerOptions<DurableEventIteratorObjectRouterContext> {
+  exclude?: WebSocket[]
 }
 
 export interface DurableEventIteratorObjectDef<
@@ -41,6 +48,7 @@ export interface DurableEventIteratorObjectDef<
   TTokenAtt extends TokenAtt,
 > extends IDurableEventIteratorObjectDef<TEventPayload, TTokenAtt> {
   handler: RPCHandler<DurableEventIteratorObjectRouterContext>
+  resumeStorage: EventResumeStorage<TEventPayload>
   options: DurableEventIteratorObjectOptions
 }
 
@@ -62,6 +70,8 @@ export class DurableEventIteratorObject<
 
     this.ctx = createDurableEventIteratorObjectState(ctx)
 
+    const resumeStorage = new EventResumeStorage<TEventPayload>(ctx, options)
+
     const handler = new RPCHandler(durableEventIteratorRouter, {
       ...options,
       plugins: [
@@ -71,8 +81,9 @@ export class DurableEventIteratorObject<
     })
 
     this['~orpc'] = {
-      handler,
       options,
+      resumeStorage,
+      handler,
     }
   }
 
@@ -112,8 +123,10 @@ export class DurableEventIteratorObject<
 
     await this['~orpc'].handler.message(websocket, message, {
       context: {
-        object: this,
         websocket,
+        object: this,
+        resumeStorage: this['~orpc'].resumeStorage,
+        options: this['~orpc'].options,
       },
     })
   }
@@ -126,17 +139,19 @@ export class DurableEventIteratorObject<
    * Publish an event to clients
    */
   publishEvent(payload: TEventPayload, options: PublishEventOptions = {}): void {
-    const targets = options.targets ?? this.ctx.getWebSockets()
-    const skip = options.skip?.map(ws => toDurableEventIteratorWebsocket(ws))
+    const targets = options.targets?.map(ws => toDurableEventIteratorWebsocket(ws))
+    const exclude = options.exclude?.map(ws => toDurableEventIteratorWebsocket(ws))
 
-    for (const ws of targets) {
-      const durableWs = toDurableEventIteratorWebsocket(ws)
+    this['~orpc'].resumeStorage.store(payload, { targets, exclude })
 
-      if (skip?.some(excluded => excluded['~orpc'].original === durableWs['~orpc'].original)) {
+    const fallbackTargets = targets ?? this.ctx.getWebSockets().map(ws => toDurableEventIteratorWebsocket(ws))
+
+    for (const ws of fallbackTargets) {
+      if (exclude?.some(excluded => excluded['~orpc'].original === ws['~orpc'].original)) {
         continue
       }
 
-      const hibernationId = durableWs['~orpc'].deserializeHibernationId()
+      const hibernationId = ws['~orpc'].deserializeHibernationId()
 
       // Maybe the connection not finished the subscription process yet
       if (typeof hibernationId !== 'string') {

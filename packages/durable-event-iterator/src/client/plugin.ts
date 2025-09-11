@@ -9,6 +9,7 @@ import { createORPCClient } from '@orpc/client'
 import { ClientRetryPlugin } from '@orpc/client/plugins'
 import { RPCLink } from '@orpc/client/websocket'
 import { toArray, value } from '@orpc/shared'
+import { WebSocket as ReconnectableWebSocket } from 'partysocket'
 import { DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_KEY, DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_VALUE, DURABLE_EVENT_ITERATOR_TOKEN_PARAM } from '../consts'
 import { createClientDurableEventIterator } from './event-iterator'
 
@@ -64,7 +65,7 @@ export class DurableEventIteratorLinkPlugin<T extends ClientContext> implements 
 
       const durableLink = new RPCLink<ClientRetryPluginContext>({
         ...this.linkOptions,
-        websocket: new WebSocket(url.toString()),
+        websocket: new ReconnectableWebSocket(url.toString()),
         plugins: [
           ...toArray(this.linkOptions.plugins),
           new ClientRetryPlugin(),

@@ -1,5 +1,5 @@
 import type { SetSpanErrorOptions } from '@orpc/shared'
-import { AsyncIteratorClass, isTypescriptObject, parseEmptyableJSON, runInSpanContext, setSpanError, startSpan, stringifyJSON } from '@orpc/shared'
+import { AbortError, AsyncIteratorClass, isTypescriptObject, parseEmptyableJSON, runInSpanContext, setSpanError, startSpan, stringifyJSON } from '@orpc/shared'
 import { encodeEventMessage, ErrorEvent, EventDecoderStream, getEventMeta, withEventMeta } from '@orpc/standard-server'
 
 export interface ToEventIteratorOptions extends SetSpanErrorOptions {}
@@ -14,6 +14,7 @@ export function toEventIterator(
 
   const reader = eventStream?.getReader()
   let span: ReturnType<typeof startSpan> | undefined
+  let isCancelled = false
 
   return new AsyncIteratorClass(async () => {
     span ??= startSpan('consume_event_iterator_stream')
@@ -26,7 +27,23 @@ export function toEventIterator(
 
         const { done, value } = await runInSpanContext(span, () => reader.read())
 
+        /**
+         * Handle stream completion scenarios:
+         *
+         * 1. If the reader is cancelled while waiting for the next value,
+         *    reader.read() will resolve as { done: true, value: undefined }.
+         *    However, this behavior is unreliable and we should only resolve
+         *    a value when the sender explicitly indicates completion.
+         *
+         * 2. The only implicit behavior we allow is when the sender successfully
+         *    closes the stream without sending a 'done' event - in this case,
+         *    we resolve with { done: true, value: undefined }.
+         */
         if (done) {
+          if (isCancelled) {
+            throw new AbortError('Stream was cancelled')
+          }
+
           return { done: true, value: undefined }
         }
 
@@ -82,6 +99,7 @@ export function toEventIterator(
   }, async (reason) => {
     try {
       if (reason !== 'next') {
+        isCancelled = true
         span?.addEvent('cancelled')
       }
 

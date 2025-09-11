@@ -1,3 +1,5 @@
+import { AbortError } from './error'
+
 export interface AsyncIdQueueCloseOptions {
   id?: string
   reason?: unknown
@@ -85,7 +87,7 @@ export class AsyncIdQueue<T> {
     if (id === undefined) {
       this.waiters.forEach((pendingPulls, id) => {
         pendingPulls.forEach(([, reject]) => {
-          reject(reason ?? new Error(`[AsyncIdQueue] Queue[${id}] was closed or aborted while waiting for pulling.`))
+          reject(reason ?? new AbortError(`[AsyncIdQueue] Queue[${id}] was closed or aborted while waiting for pulling.`))
         })
       })
 
@@ -96,7 +98,7 @@ export class AsyncIdQueue<T> {
     }
 
     this.waiters.get(id)?.forEach(([, reject]) => {
-      reject(reason ?? new Error(`[AsyncIdQueue] Queue[${id}] was closed or aborted while waiting for pulling.`))
+      reject(reason ?? new AbortError(`[AsyncIdQueue] Queue[${id}] was closed or aborted while waiting for pulling.`))
     })
 
     this.waiters.delete(id)

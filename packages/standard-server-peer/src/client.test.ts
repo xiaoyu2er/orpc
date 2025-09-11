@@ -1,4 +1,4 @@
-import { isAsyncIteratorObject } from '@orpc/shared'
+import { AbortError, isAsyncIteratorObject } from '@orpc/shared'
 import { getEventMeta, withEventMeta } from '@orpc/standard-server'
 import { ClientPeer } from './client'
 import { decodeRequestMessage, encodeResponseMessage, MessageType } from './codec'
@@ -428,7 +428,12 @@ describe('clientPeer', () => {
         return true
       })
 
+      // should throw if .return is called while waiting for .next()
+      const nextPromise = expect(iterator.next()).rejects.toBeInstanceOf(AbortError)
+      await new Promise(resolve => setTimeout(resolve, 1))
+
       expect(await iterator.return?.(undefined)).toEqual({ done: true, value: undefined })
+      await nextPromise
       expect(await iterator.next()).toEqual({ done: true, value: undefined })
 
       expect(send).toHaveBeenCalledTimes(2)

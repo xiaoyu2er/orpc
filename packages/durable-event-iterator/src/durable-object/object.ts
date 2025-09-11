@@ -4,14 +4,14 @@ import type {
   DurableEventIteratorObjectDef as IDurableEventIteratorObjectDef,
   TokenAtt,
 } from '../object'
-import type { TokenPayload } from '../schemas'
 import type { DurableEventIteratorObjectRouterContext } from './handler'
 import type { DurableEventIteratorObjectState } from './object-state'
 import { encodeHibernationRPCEvent, HibernationPlugin } from '@orpc/server/hibernation'
 import { RPCHandler } from '@orpc/server/websocket'
 import { toArray } from '@orpc/shared'
 import { DurableObject } from 'cloudflare:workers'
-import { DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY } from './consts'
+import { DURABLE_EVENT_ITERATOR_TOKEN_PARAM } from '../consts'
+import { parseToken } from '../schemas'
 import { durableEventIteratorRouter } from './handler'
 import { createDurableEventIteratorObjectState } from './object-state'
 import { toDurableEventIteratorWebsocket } from './websocket'
@@ -83,7 +83,8 @@ export class DurableEventIteratorObject<
    */
   override async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url)
-    const payload = JSON.parse(url.searchParams.get(DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY)!) as TokenPayload
+    const token = url.searchParams.getAll(DURABLE_EVENT_ITERATOR_TOKEN_PARAM).at(-1)
+    const payload = parseToken(token)
 
     const { '0': client, '1': server } = new WebSocketPair()
 

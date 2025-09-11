@@ -1,10 +1,11 @@
 import { getSignedValue, sign, unsign } from '@orpc/server/helpers'
 import { parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
 import * as v from 'valibot'
+import { DurableEventIteratorError } from './error'
 
 export type TokenPayload = v.InferOutput<typeof TokenPayloadSchema>
 
-export const TokenPayloadSchema = v.object({
+const TokenPayloadSchema = v.object({
   id: v.pipe(v.string(), v.description('Unique identifier per client')),
   chn: v.pipe(v.string(), v.description('Channel name')),
   att: v.pipe(v.optional(v.any()), v.description('Attachment')),
@@ -48,7 +49,12 @@ export async function verifyToken(secret: string, token: string): Promise<TokenP
  *
  * @throws if invalid format
  */
-export function parseToken(token: string): TokenPayload {
-  const payload = parseEmptyableJSON(getSignedValue(token))
-  return v.parse(TokenPayloadSchema, payload)
+export function parseToken(token: string | null | undefined): TokenPayload {
+  try {
+    const payload = parseEmptyableJSON(getSignedValue(token))
+    return v.parse(TokenPayloadSchema, payload)
+  }
+  catch (error) {
+    throw new DurableEventIteratorError('Invalid token payload', { cause: error })
+  }
 }

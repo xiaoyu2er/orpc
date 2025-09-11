@@ -1,10 +1,9 @@
 import type { Interceptor } from '@orpc/shared'
 import type { DurableEventIteratorObject } from '.'
 import type { TokenPayload } from '../schemas'
-import { intercept, stringifyJSON, toArray } from '@orpc/shared'
+import { intercept, toArray } from '@orpc/shared'
 import { DURABLE_EVENT_ITERATOR_TOKEN_PARAM } from '../consts'
 import { verifyToken } from '../schemas'
-import { DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY } from './consts'
 
 export interface UpgradeDurableEventIteratorRequestOptions {
   signingKey: string
@@ -51,12 +50,7 @@ export async function upgradeDurableEventIteratorRequest(
       const namespace = options.namespace as DurableObjectNamespace<DurableEventIteratorObject<any, any, any>>
       const id = namespace.idFromName(payload.chn)
       const stub = namespace.get(id)
-
-      const upgradeUrl = new URL(url.origin + url.pathname)
-
-      upgradeUrl.searchParams.set(DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY, stringifyJSON(payload))
-
-      return stub.fetch(upgradeUrl, request)
+      return stub.fetch(request)
     },
   )
 }

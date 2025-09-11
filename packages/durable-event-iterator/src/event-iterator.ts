@@ -4,6 +4,7 @@ import type { ClientDurableEventIterator } from './client'
 import type { DurableEventIteratorObject, InferDurableEventIteratorObjectRPC } from './object'
 import { AsyncIteratorClass, resolveMaybeOptionalOptions } from '@orpc/shared'
 import { createClientDurableEventIterator } from './client'
+import { DurableEventIteratorError } from './error'
 import { signToken } from './schemas'
 
 export type DurableEventIteratorOptions<
@@ -98,13 +99,13 @@ export class DurableEventIterator<
       })
 
       const iterator = new AsyncIteratorClass<any>(
-        () => Promise.reject(new Error('[DurableEventIteratorServer] cannot be iterated directly.')),
-        () => Promise.reject(new Error('[DurableEventIteratorServer] cannot be cleaned up directly.')),
+        () => Promise.reject(new DurableEventIteratorError('Cannot be iterated directly.')),
+        () => Promise.reject(new DurableEventIteratorError('Cannot be cleaned up directly.')),
       )
 
       const link: ClientLink<object> = {
         call() {
-          throw new Error('[DurableEventIteratorServer] cannot call methods directly.')
+          throw new DurableEventIteratorError('Cannot call methods directly.')
         },
       }
 

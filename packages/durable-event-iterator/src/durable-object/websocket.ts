@@ -1,4 +1,5 @@
 import type { TokenPayload } from '../schemas'
+import { DurableEventIteratorError } from '../error'
 
 export interface DurableEventIteratorWebsocketInternal {
   /**
@@ -78,7 +79,7 @@ export function toDurableEventIteratorWebsocket(original: WebSocket): DurableEve
       const payload = original.deserializeAttachment()?.tp
 
       if (!payload) {
-        throw new Error('[DurableEventIteratorWebsocket] Token payload not found, please call serialieTokenPayload first')
+        throw new DurableEventIteratorError('Token payload not found, please call serializeTokenPayload first')
       }
 
       return payload

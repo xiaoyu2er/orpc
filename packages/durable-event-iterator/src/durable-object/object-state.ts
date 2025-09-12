@@ -7,7 +7,7 @@ export interface DurableEventIteratorObjectState extends DurableObjectState {
 
 export function createDurableEventIteratorObjectState(ctx: DurableObjectState): DurableEventIteratorObjectState {
   const proxy = new Proxy(ctx, {
-    get(target, prop, receiver) {
+    get(target, prop) {
       if (prop === 'getWebSockets') {
         const getWebSockets: DurableObjectState['getWebSockets'] = (...args) => {
           return ctx.getWebSockets(...args).map(ws => toDurableEventIteratorWebsocket(ws))
@@ -15,13 +15,13 @@ export function createDurableEventIteratorObjectState(ctx: DurableObjectState): 
         return getWebSockets
       }
 
-      const value = Reflect.get(target, prop, receiver)
+      const v = Reflect.get(target, prop)
 
-      if (typeof value === 'function') {
-        return value.bind(target)
+      if (typeof v === 'function') {
+        return v.bind(target)
       }
 
-      return value
+      return v
     },
   })
 

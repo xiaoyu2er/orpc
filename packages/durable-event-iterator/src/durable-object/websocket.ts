@@ -94,7 +94,7 @@ export function toDurableEventIteratorWebsocket(original: WebSocket): DurableEve
   }
 
   const proxy = new Proxy(original, {
-    get(_, prop, receiver) {
+    get(_, prop) {
       if (prop === '~orpc') {
         return internal
       }
@@ -127,13 +127,13 @@ export function toDurableEventIteratorWebsocket(original: WebSocket): DurableEve
         return send
       }
 
-      const value = Reflect.get(original, prop, receiver)
+      const v = Reflect.get(original, prop)
 
-      if (typeof value === 'function') {
-        return value.bind(original)
+      if (typeof v === 'function') {
+        return v.bind(original)
       }
 
-      return value
+      return v
     },
     has(_, p) {
       return p === '~orpc' || Reflect.has(original, p)

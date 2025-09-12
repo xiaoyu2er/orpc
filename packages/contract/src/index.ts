@@ -19,4 +19,5 @@ export * from './types'
 
 export { ORPCError } from '@orpc/client'
 export type { HTTPMethod, HTTPPath } from '@orpc/client'
+export { AsyncIteratorClass } from '@orpc/shared'
 export type { Registry, ThrowableError } from '@orpc/shared'

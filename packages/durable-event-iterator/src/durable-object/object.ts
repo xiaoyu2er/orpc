@@ -121,6 +121,7 @@ export class DurableEventIteratorObject<
       return
     }
 
+    // `websocket` auto close if expired on every send
     await this['~orpc'].handler.message(websocket, message, {
       context: {
         websocket,

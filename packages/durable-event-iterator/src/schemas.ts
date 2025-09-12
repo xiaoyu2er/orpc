@@ -8,7 +8,7 @@ export type TokenPayload = v.InferOutput<typeof TokenPayloadSchema>
 const TokenPayloadSchema = v.object({
   id: v.pipe(v.string(), v.description('Unique identifier per client')),
   chn: v.pipe(v.string(), v.description('Channel name')),
-  att: v.pipe(v.optional(v.any()), v.description('Attachment')),
+  att: v.pipe(v.optional(v.unknown()), v.description('Attachment')),
   rpc: v.pipe(v.optional(v.array(v.string())), v.readonly(), v.description('Allowed remote methods')),
   exp: v.pipe(v.number(), v.description('Expiration time in seconds')),
 })

@@ -2,7 +2,6 @@ import type { StandardRPCHandlerOptions } from '@orpc/server/standard'
 import type {
   DurableEventIteratorObject as IDurableEventIteratorObject,
   DurableEventIteratorObjectDef as IDurableEventIteratorObjectDef,
-  TokenAtt,
 } from '../object'
 import type { DurableEventIteratorObjectRouterContext } from './handler'
 import type { DurableEventIteratorObjectState } from './object-state'
@@ -45,8 +44,7 @@ export interface PublishEventOptions {
 
 export interface DurableEventIteratorObjectDef<
   TEventPayload extends object,
-  TTokenAtt extends TokenAtt,
-> extends IDurableEventIteratorObjectDef<TEventPayload, TTokenAtt> {
+> extends IDurableEventIteratorObjectDef<TEventPayload> {
   handler: RPCHandler<DurableEventIteratorObjectRouterContext>
   resumeStorage: EventResumeStorage<TEventPayload>
   options: DurableEventIteratorObjectOptions
@@ -54,10 +52,9 @@ export interface DurableEventIteratorObjectDef<
 
 export class DurableEventIteratorObject<
   TEventPayload extends object,
-  TTokenAttachment extends TokenAtt = TokenAtt,
   TEnv = unknown,
-> extends DurableObject<TEnv> implements IDurableEventIteratorObject<TEventPayload, TTokenAttachment> {
-  '~orpc': DurableEventIteratorObjectDef<TEventPayload, TTokenAttachment>
+> extends DurableObject<TEnv> implements IDurableEventIteratorObject<TEventPayload> {
+  '~orpc': DurableEventIteratorObjectDef<TEventPayload>
 
   protected override ctx: DurableEventIteratorObjectState
 

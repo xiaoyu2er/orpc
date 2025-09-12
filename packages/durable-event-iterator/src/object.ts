@@ -5,21 +5,18 @@ export type TokenAtt = JsonValue | undefined
 
 export interface DurableEventIteratorObjectDef<
   TEventPayload extends object,
-  TTokenAtt extends TokenAtt,
 > {
   eventPayload?: { type: TEventPayload }
-  tokenAtt?: { type: TTokenAtt }
 }
 
 export interface DurableEventIteratorObject<
   TEventPayload extends object,
-  TTokenAtt extends TokenAtt,
 > {
-  '~orpc'?: DurableEventIteratorObjectDef<TEventPayload, TTokenAtt>
+  '~orpc'?: DurableEventIteratorObjectDef<TEventPayload>
 }
 
 export type InferDurableEventIteratorObjectRPC<
-  T extends DurableEventIteratorObject<any, any>,
+  T extends DurableEventIteratorObject<any>,
 > = Exclude<{
   [K in keyof T]: T[K] extends ((...args: any[]) => NestedClient<object>)
     ? K

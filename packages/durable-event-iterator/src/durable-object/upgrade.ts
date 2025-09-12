@@ -47,7 +47,7 @@ export async function upgradeDurableEventIteratorRequest(
     toArray(options.interceptors),
     { payload },
     async ({ payload }) => {
-      const namespace = options.namespace as DurableObjectNamespace<DurableEventIteratorObject<any, any, any>>
+      const namespace = options.namespace as DurableObjectNamespace<DurableEventIteratorObject<any, any>>
       const id = namespace.idFromName(payload.chn)
       const stub = namespace.get(id)
       return stub.fetch(request)

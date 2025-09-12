@@ -21,9 +21,9 @@ export type ClientDurableEventIteratorRpc<T extends NestedClient<object>>
       }
 
 export type ClientDurableEventIterator<
-  T extends DurableEventIteratorObject<any, any>,
+  T extends DurableEventIteratorObject<any>,
   RPC extends InferDurableEventIteratorObjectRPC<T>,
-> = AsyncIteratorClass<T extends DurableEventIteratorObject<infer TPayload, any> ? TPayload : never> & {
+> = AsyncIteratorClass<T extends DurableEventIteratorObject<infer TPayload> ? TPayload : never> & {
   [K in RPC]: T[K] extends (...args: any[]) => (infer R extends NestedClient<object>)
     ? ClientDurableEventIteratorRpc<R>
     : never
@@ -38,7 +38,7 @@ export interface CreateClientDurableEventIteratorOptions {
 }
 
 export function createClientDurableEventIterator<
-  T extends DurableEventIteratorObject<any, any>,
+  T extends DurableEventIteratorObject<any>,
   RPC extends InferDurableEventIteratorObjectRPC<T>,
 >(
   iterator: AsyncIteratorClass<T>,

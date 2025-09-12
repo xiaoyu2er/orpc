@@ -7,10 +7,10 @@ import { createClientDurableEventIterator } from './client'
 import { DurableEventIteratorError } from './error'
 import { signToken } from './schemas'
 
-export type DurableEventIteratorOptions<
-  T extends DurableEventIteratorObject<any, any>,
+export interface DurableEventIteratorOptions<
+  T extends DurableEventIteratorObject<any>,
   RPC extends InferDurableEventIteratorObjectRPC<T>,
-> = {
+> {
   /**
    * Unique identifier for the client connection.
    * Used to distinguish between different client instances.
@@ -28,6 +28,11 @@ export type DurableEventIteratorOptions<
   tokenTTLSeconds?: number
 
   /**
+   * Token's attachment
+   */
+  att?: unknown
+
+  /**
    * The methods that are allowed to be called remotely.
    *
    * @warning Please use .rpc method to set this field in case ts complains about value you pass
@@ -35,24 +40,10 @@ export type DurableEventIteratorOptions<
    * @default []
    */
   rpc?: readonly RPC[]
-} & (
-    T extends DurableEventIteratorObject<any, infer U>
-      ? undefined extends U ? {
-        /**
-         * Token's attachment
-         */
-        att?: U
-      } : {
-        /**
-         * Token's attachment
-         */
-        att: U
-      }
-      : never
-)
+}
 
 export class DurableEventIterator<
-  T extends DurableEventIteratorObject<any, any>,
+  T extends DurableEventIteratorObject<any>,
   RPC extends InferDurableEventIteratorObjectRPC<T> = never,
 > implements PromiseLike<ClientDurableEventIterator<T, RPC>> {
   private readonly options: DurableEventIteratorOptions<T, RPC>

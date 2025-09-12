@@ -16,12 +16,9 @@ export function createDurableEventIteratorObjectState(ctx: DurableObjectState): 
       }
 
       const v = Reflect.get(target, prop)
-
-      if (typeof v === 'function') {
-        return v.bind(target)
-      }
-
-      return v
+      return typeof v === 'function'
+        ? v.bind(target) // Require .bind itself for calling
+        : v
     },
   })
 

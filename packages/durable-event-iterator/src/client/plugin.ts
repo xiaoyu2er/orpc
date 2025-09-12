@@ -4,6 +4,7 @@ import type { StandardLinkOptions, StandardLinkPlugin } from '@orpc/client/stand
 import type { RPCLinkOptions } from '@orpc/client/websocket'
 import type { ContractRouterClient } from '@orpc/contract'
 import type { Promisable, Value } from '@orpc/shared'
+import type { TokenPayload } from '../schemas'
 import type { durableEventIteratorContract } from './contract'
 import { createORPCClient } from '@orpc/client'
 import { ClientRetryPlugin } from '@orpc/client/plugins'
@@ -11,6 +12,8 @@ import { RPCLink } from '@orpc/client/websocket'
 import { AsyncIteratorClass, toArray, value } from '@orpc/shared'
 import { WebSocket as ReconnectableWebSocket } from 'partysocket'
 import { DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_KEY, DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_VALUE, DURABLE_EVENT_ITERATOR_TOKEN_PARAM } from '../consts'
+import { DurableEventIteratorError } from '../error'
+import { parseToken } from '../schemas'
 import { createClientDurableEventIterator } from './event-iterator'
 
 export interface DurableEventIteratorLinkPluginContext {
@@ -47,7 +50,7 @@ export class DurableEventIteratorLinkPlugin<T extends ClientContext> implements 
     options.interceptors.push(async (options) => {
       const pluginContext: DurableEventIteratorLinkPluginContext = {}
 
-      const output = await options.next({
+      const next = () => options.next({
         ...options,
         context: {
           [this.CONTEXT_SYMBOL]: pluginContext,
@@ -55,47 +58,61 @@ export class DurableEventIteratorLinkPlugin<T extends ClientContext> implements 
         },
       })
 
+      const output = await next()
+
       if (!pluginContext.isDurableEventIteratorResponse) {
         return output
       }
 
       options?.signal?.throwIfAborted()
 
-      const token = output as string
-      const url = new URL(await value(this.url))
-      url.searchParams.append(DURABLE_EVENT_ITERATOR_TOKEN_PARAM, token)
+      let tokenAndPayload = this.validateToken(output, options.path)
+      const websocket = new ReconnectableWebSocket(async () => {
+        const notRoundedNowInSeconds = Date.now() / 1000
 
-      const websocket = new ReconnectableWebSocket(url.toString())
+        if (tokenAndPayload.payload.exp - notRoundedNowInSeconds <= 0) {
+          const output = await next()
+          tokenAndPayload = this.validateToken(output, options.path)
+        }
 
-      options?.signal?.addEventListener('abort', () => {
+        const url = new URL(await value(this.url))
+        url.searchParams.append(DURABLE_EVENT_ITERATOR_TOKEN_PARAM, tokenAndPayload.token)
+        return url.toString()
+      })
+
+      const durableClient: ContractRouterClient<typeof durableEventIteratorContract, ClientRetryPluginContext>
+        = createORPCClient(new RPCLink<ClientRetryPluginContext>({
+          ...this.linkOptions,
+          websocket,
+          plugins: [
+            ...toArray(this.linkOptions.plugins),
+            new ClientRetryPlugin(),
+          ],
+        }))
+
+      const closeConnection = () => {
         websocket.close()
-      })
+      }
 
-      const durableLink = new RPCLink<ClientRetryPluginContext>({
-        ...this.linkOptions,
-        websocket,
-        plugins: [
-          ...toArray(this.linkOptions.plugins),
-          new ClientRetryPlugin(),
-        ],
-      })
+      options?.signal?.addEventListener('abort', closeConnection)
 
-      const durableClient: ContractRouterClient<typeof durableEventIteratorContract, ClientRetryPluginContext> = createORPCClient(durableLink)
-
-      const iterator = await durableClient.subscribe(undefined, {
+      const iterator_ = await durableClient.subscribe(undefined, {
         context: {
           retry: Number.POSITIVE_INFINITY,
         },
       })
-
       const cancelableIterator = new AsyncIteratorClass(
-        () => iterator.next(),
+        () => iterator_.next(),
         async () => {
           /**
            * Durable iterator design for long-lived connections
            * so if user trying to abort the iterator, we should close entire connection
            */
-          websocket.close()
+          closeConnection()
+          /**
+           * prevent memory leak in case signal is reused for another request
+           */
+          options.signal?.removeEventListener('abort', closeConnection)
         },
       )
 
@@ -108,9 +125,14 @@ export class DurableEventIteratorLinkPlugin<T extends ClientContext> implements 
         },
       }
 
-      const durableIterator = createClientDurableEventIterator(cancelableIterator, link, {
-        token,
-      })
+      const durableIterator = createClientDurableEventIterator(
+        cancelableIterator,
+        link,
+        {
+          // should be a function because token and payload can change over time
+          token: () => tokenAndPayload.token,
+        },
+      )
 
       return durableIterator
     })
@@ -128,5 +150,18 @@ export class DurableEventIteratorLinkPlugin<T extends ClientContext> implements 
 
       return response
     })
+  }
+
+  private validateToken(token: unknown, path: readonly string[]): { token: string, payload: TokenPayload } {
+    if (typeof token !== 'string') {
+      throw new DurableEventIteratorError(`Expected valid token for procedure ${path.join('.')}`)
+    }
+
+    try {
+      return { token, payload: parseToken(token) }
+    }
+    catch (error) {
+      throw new DurableEventIteratorError(`Expected valid token for procedure ${path.join('.')}`, { cause: error })
+    }
   }
 }

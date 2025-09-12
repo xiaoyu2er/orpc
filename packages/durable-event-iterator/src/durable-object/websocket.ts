@@ -128,12 +128,9 @@ export function toDurableEventIteratorWebsocket(original: WebSocket): DurableEve
       }
 
       const v = Reflect.get(original, prop)
-
-      if (typeof v === 'function') {
-        return v.bind(original)
-      }
-
-      return v
+      return typeof v === 'function'
+        ? v.bind(original) // Require .bind itself for calling
+        : v
     },
     has(_, p) {
       return p === '~orpc' || Reflect.has(original, p)

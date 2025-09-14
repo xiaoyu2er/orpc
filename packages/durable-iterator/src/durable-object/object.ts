@@ -1,24 +1,24 @@
 import type { StandardRPCHandlerOptions } from '@orpc/server/standard'
 import type {
-  DurableEventIteratorObject as IDurableEventIteratorObject,
-  DurableEventIteratorObjectDef as IDurableEventIteratorObjectDef,
+  DurableIteratorObject as IDurableIteratorObject,
+  DurableIteratorObjectDef as IDurableIteratorObjectDef,
 } from '../object'
-import type { DurableEventIteratorObjectRouterContext } from './handler'
-import type { DurableEventIteratorObjectState } from './object-state'
+import type { DurableIteratorObjectRouterContext } from './handler'
+import type { DurableIteratorObjectState } from './object-state'
 import type { EventResumeStorageOptions } from './resume-storage'
 import { encodeHibernationRPCEvent, HibernationPlugin } from '@orpc/server/hibernation'
 import { RPCHandler } from '@orpc/server/websocket'
 import { toArray } from '@orpc/shared'
 import { DurableObject } from 'cloudflare:workers'
-import { DURABLE_EVENT_ITERATOR_TOKEN_PARAM } from '../consts'
+import { DURABLE_ITERATOR_TOKEN_PARAM } from '../consts'
 import { parseToken } from '../schemas'
-import { durableEventIteratorRouter } from './handler'
-import { createDurableEventIteratorObjectState } from './object-state'
+import { DurableIteratorRouter } from './handler'
+import { createDurableIteratorObjectState } from './object-state'
 import { EventResumeStorage } from './resume-storage'
-import { toDurableEventIteratorWebsocket } from './websocket'
+import { toDurableIteratorWebsocket } from './websocket'
 
-export interface DurableEventIteratorObjectOptions
-  extends StandardRPCHandlerOptions<DurableEventIteratorObjectRouterContext>,
+export interface DurableIteratorObjectOptions
+  extends StandardRPCHandlerOptions<DurableIteratorObjectRouterContext>,
   EventResumeStorageOptions {
 }
 
@@ -42,34 +42,34 @@ export interface PublishEventOptions {
   exclude?: WebSocket[]
 }
 
-export interface DurableEventIteratorObjectDef<
+export interface DurableIteratorObjectDef<
   TEventPayload extends object,
-> extends IDurableEventIteratorObjectDef<TEventPayload> {
-  handler: RPCHandler<DurableEventIteratorObjectRouterContext>
+> extends IDurableIteratorObjectDef<TEventPayload> {
+  handler: RPCHandler<DurableIteratorObjectRouterContext>
   resumeStorage: EventResumeStorage<TEventPayload>
-  options: DurableEventIteratorObjectOptions
+  options: DurableIteratorObjectOptions
 }
 
-export class DurableEventIteratorObject<
+export class DurableIteratorObject<
   TEventPayload extends object,
   TEnv = unknown,
-> extends DurableObject<TEnv> implements IDurableEventIteratorObject<TEventPayload> {
-  '~orpc': DurableEventIteratorObjectDef<TEventPayload>
+> extends DurableObject<TEnv> implements IDurableIteratorObject<TEventPayload> {
+  '~orpc': DurableIteratorObjectDef<TEventPayload>
 
-  protected override ctx: DurableEventIteratorObjectState
+  protected override ctx: DurableIteratorObjectState
 
   constructor(
     ctx: DurableObjectState,
     env: TEnv,
-    options: DurableEventIteratorObjectOptions = {},
+    options: DurableIteratorObjectOptions = {},
   ) {
     super(ctx, env)
 
-    this.ctx = createDurableEventIteratorObjectState(ctx)
+    this.ctx = createDurableIteratorObjectState(ctx)
 
     const resumeStorage = new EventResumeStorage<TEventPayload>(ctx, options)
 
-    const handler = new RPCHandler(durableEventIteratorRouter, {
+    const handler = new RPCHandler(DurableIteratorRouter, {
       ...options,
       plugins: [
         ...toArray(options.plugins),
@@ -91,13 +91,13 @@ export class DurableEventIteratorObject<
    */
   override async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url)
-    const token = url.searchParams.getAll(DURABLE_EVENT_ITERATOR_TOKEN_PARAM).at(-1)
+    const token = url.searchParams.getAll(DURABLE_ITERATOR_TOKEN_PARAM).at(-1)
     const payload = parseToken(token)
 
     const { '0': client, '1': server } = new WebSocketPair()
 
     this.ctx.acceptWebSocket(server)
-    toDurableEventIteratorWebsocket(server)['~orpc'].serializeTokenPayload(payload)
+    toDurableIteratorWebsocket(server)['~orpc'].serializeTokenPayload(payload)
 
     return new Response(null, {
       status: 101,
@@ -111,7 +111,7 @@ export class DurableEventIteratorObject<
    * @info This method
    */
   override async webSocketMessage(websocket_: WebSocket, message: string | ArrayBuffer): Promise<void> {
-    const websocket = toDurableEventIteratorWebsocket(websocket_)
+    const websocket = toDurableIteratorWebsocket(websocket_)
 
     websocket['~orpc'].closeIfExpired()
     if (websocket.readyState !== WebSocket.OPEN) {
@@ -137,12 +137,12 @@ export class DurableEventIteratorObject<
    * Publish an event to clients
    */
   publishEvent(payload: TEventPayload, options: PublishEventOptions = {}): void {
-    const targets = options.targets?.map(ws => toDurableEventIteratorWebsocket(ws))
-    const exclude = options.exclude?.map(ws => toDurableEventIteratorWebsocket(ws))
+    const targets = options.targets?.map(ws => toDurableIteratorWebsocket(ws))
+    const exclude = options.exclude?.map(ws => toDurableIteratorWebsocket(ws))
 
     this['~orpc'].resumeStorage.store(payload, { targets, exclude })
 
-    const fallbackTargets = targets ?? this.ctx.getWebSockets().map(ws => toDurableEventIteratorWebsocket(ws))
+    const fallbackTargets = targets ?? this.ctx.getWebSockets().map(ws => toDurableIteratorWebsocket(ws))
 
     for (const ws of fallbackTargets) {
       if (exclude?.some(excluded => excluded['~orpc'].original === ws['~orpc'].original)) {

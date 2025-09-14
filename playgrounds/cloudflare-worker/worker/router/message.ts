@@ -1,10 +1,10 @@
-import { DurableEventIterator } from '@orpc/experimental-durable-event-iterator'
+import { DurableIterator } from '@orpc/experimental-durable-iterator'
 import { pub } from '../orpc'
 import * as z from 'zod'
 import type { ChatRoom } from '../dos/chat-room'
 
 export const onMessage = pub.handler(({ context }) => {
-  return new DurableEventIterator<ChatRoom>('some-room', 'key', {
+  return new DurableIterator<ChatRoom>('some-room', 'key', {
     tokenTTLSeconds: 60 * 60 * 24, // 24 hours
     att: { some: 'attachment' },
   }).rpc('publishMessageRPC')

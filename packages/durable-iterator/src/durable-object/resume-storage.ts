@@ -1,5 +1,5 @@
 import type { StandardRPCJsonSerializerOptions } from '@orpc/client/standard'
-import type { DurableEventIteratorWebsocket } from './websocket'
+import type { DurableIteratorWebsocket } from './websocket'
 import { StandardRPCJsonSerializer } from '@orpc/client/standard'
 import { getEventMeta, withEventMeta } from '@orpc/server'
 import { parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
@@ -25,9 +25,9 @@ export interface EventResumeStorageOptions extends StandardRPCJsonSerializerOpti
 
 export interface ResumeEventFilter {
   /** Only websockets that are in this list will receive the event */
-  targets?: DurableEventIteratorWebsocket[]
+  targets?: DurableIteratorWebsocket[]
   /** Websockets that are in this list will not receive the event */
-  exclude?: DurableEventIteratorWebsocket[]
+  exclude?: DurableIteratorWebsocket[]
 }
 
 export class EventResumeStorage<TEventPayload extends object> {
@@ -110,7 +110,7 @@ export class EventResumeStorage<TEventPayload extends object> {
    * Get events after lastEventId for a specific websocket
    */
   get(
-    websocket: DurableEventIteratorWebsocket,
+    websocket: DurableIteratorWebsocket,
     lastEventId: string,
   ): TEventPayload[] {
     if (!this.isEnabled) {

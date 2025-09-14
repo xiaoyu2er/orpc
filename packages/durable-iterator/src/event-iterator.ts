@@ -1,15 +1,15 @@
 import type { ClientLink } from '@orpc/client'
 import type { MaybeOptionalOptions } from '@orpc/shared'
-import type { ClientDurableEventIterator } from './client'
-import type { DurableEventIteratorObject, InferDurableEventIteratorObjectRPC } from './object'
+import type { ClientDurableIterator } from './client'
+import type { DurableIteratorObject, InferDurableIteratorObjectRPC } from './object'
 import { AsyncIteratorClass, resolveMaybeOptionalOptions } from '@orpc/shared'
-import { createClientDurableEventIterator } from './client'
-import { DurableEventIteratorError } from './error'
+import { createClientDurableIterator } from './client'
+import { DurableIteratorError } from './error'
 import { signToken } from './schemas'
 
-export interface DurableEventIteratorOptions<
-  T extends DurableEventIteratorObject<any>,
-  RPC extends InferDurableEventIteratorObjectRPC<T>,
+export interface DurableIteratorOptions<
+  T extends DurableIteratorObject<any>,
+  RPC extends InferDurableIteratorObjectRPC<T>,
 > {
   /**
    * Unique identifier for the client connection.
@@ -42,11 +42,11 @@ export interface DurableEventIteratorOptions<
   rpc?: readonly RPC[]
 }
 
-export class DurableEventIterator<
-  T extends DurableEventIteratorObject<any>,
-  RPC extends InferDurableEventIteratorObjectRPC<T> = never,
-> implements PromiseLike<ClientDurableEventIterator<T, RPC>> {
-  private readonly options: DurableEventIteratorOptions<T, RPC>
+export class DurableIterator<
+  T extends DurableIteratorObject<any>,
+  RPC extends InferDurableIteratorObjectRPC<T> = never,
+> implements PromiseLike<ClientDurableIterator<T, RPC>> {
+  private readonly options: DurableIteratorOptions<T, RPC>
 
   /**
    * @param chn - The channel name.
@@ -56,7 +56,7 @@ export class DurableEventIterator<
   constructor(
     private readonly chn: string,
     private readonly signingKey: string,
-    ...rest: MaybeOptionalOptions<DurableEventIteratorOptions<T, RPC>>
+    ...rest: MaybeOptionalOptions<DurableIteratorOptions<T, RPC>>
   ) {
     this.options = resolveMaybeOptionalOptions(rest)
   }
@@ -64,15 +64,15 @@ export class DurableEventIterator<
   /**
    * List of methods that are allowed to be called remotely.
    */
-  rpc<U extends InferDurableEventIteratorObjectRPC<T>>(...rpc: U[]): Omit<DurableEventIterator<T, U>, 'rpc'> {
-    return new DurableEventIterator<T, U>(this.chn, this.signingKey, {
+  rpc<U extends InferDurableIteratorObjectRPC<T>>(...rpc: U[]): Omit<DurableIterator<T, U>, 'rpc'> {
+    return new DurableIterator<T, U>(this.chn, this.signingKey, {
       ...this.options,
       rpc,
     })
   }
 
-  then<TResult1 = ClientDurableEventIterator<T, RPC>, TResult2 = never>(
-    onfulfilled?: ((value: ClientDurableEventIterator<T, RPC>) => TResult1 | PromiseLike<TResult1>) | null | undefined,
+  then<TResult1 = ClientDurableIterator<T, RPC>, TResult2 = never>(
+    onfulfilled?: ((value: ClientDurableIterator<T, RPC>) => TResult1 | PromiseLike<TResult1>) | null | undefined,
     onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null | undefined,
   ): PromiseLike<TResult1 | TResult2> {
     return (async () => {
@@ -89,21 +89,21 @@ export class DurableEventIterator<
       })
 
       const iterator = new AsyncIteratorClass<any>(
-        () => Promise.reject(new DurableEventIteratorError('Cannot be iterated directly.')),
-        () => Promise.reject(new DurableEventIteratorError('Cannot be cleaned up directly.')),
+        () => Promise.reject(new DurableIteratorError('Cannot be iterated directly.')),
+        () => Promise.reject(new DurableIteratorError('Cannot be cleaned up directly.')),
       )
 
       const link: ClientLink<object> = {
         call() {
-          throw new DurableEventIteratorError('Cannot call methods directly.')
+          throw new DurableIteratorError('Cannot call methods directly.')
         },
       }
 
-      const durableIterator = createClientDurableEventIterator(iterator, link, {
+      const durableIterator = createClientDurableIterator(iterator, link, {
         token,
       })
 
-      return durableIterator as ClientDurableEventIterator<T, RPC>
+      return durableIterator as ClientDurableIterator<T, RPC>
     })().then(onfulfilled, onrejected)
   }
 }

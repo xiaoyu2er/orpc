@@ -3,20 +3,20 @@ import type { AsyncIteratorClass, JsonValue } from '@orpc/shared'
 
 export type TokenAtt = JsonValue | undefined
 
-export interface DurableEventIteratorObjectDef<
+export interface DurableIteratorObjectDef<
   TEventPayload extends object,
 > {
   eventPayload?: { type: TEventPayload }
 }
 
-export interface DurableEventIteratorObject<
+export interface DurableIteratorObject<
   TEventPayload extends object,
 > {
-  '~orpc'?: DurableEventIteratorObjectDef<TEventPayload>
+  '~orpc'?: DurableIteratorObjectDef<TEventPayload>
 }
 
-export type InferDurableEventIteratorObjectRPC<
-  T extends DurableEventIteratorObject<any>,
+export type InferDurableIteratorObjectRPC<
+  T extends DurableIteratorObject<any>,
 > = Exclude<{
   [K in keyof T]: T[K] extends ((...args: any[]) => NestedClient<object>)
     ? K

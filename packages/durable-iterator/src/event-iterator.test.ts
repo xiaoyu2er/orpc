@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { getClientDurableEventIteratorToken } from './client'
-import { DurableEventIterator } from './event-iterator'
+import { getClientDurableIteratorToken } from './client'
+import { DurableIterator } from './event-iterator'
 import { verifyToken } from './schemas'
 
-describe('durableEventIterator', () => {
+describe('durableIterator', () => {
   const testChannel = 'test-channel'
   const testSigningKey = 'test-signing-key-32-chars-long-123'
 
@@ -12,24 +12,24 @@ describe('durableEventIterator', () => {
       att: { userId: 'user123' },
     }
 
-    const iterator = new DurableEventIterator(testChannel, testSigningKey, options) as any
+    const iterator = new DurableIterator(testChannel, testSigningKey, options) as any
     const rpcIterator = iterator.rpc('getUser', 'sendMessage')
 
-    expect(rpcIterator).toBeInstanceOf(DurableEventIterator)
+    expect(rpcIterator).toBeInstanceOf(DurableIterator)
     expect(rpcIterator).not.toBe(iterator) // Should be a new instance
   })
 
-  describe('.then: ClientDurableEventIterator', () => {
+  describe('.then: ClientDurableIterator', () => {
     it('token & throw when interacting with client iterator', async () => {
       const date = new Date()
       const options = {
         att: { userId: 'user123' },
         rpc: ['getUser', 'sendMessage'] as any,
       }
-      const iterator = new DurableEventIterator(testChannel, testSigningKey, options) as any
+      const iterator = new DurableIterator(testChannel, testSigningKey, options) as any
       const clientIterator = await iterator
 
-      const token = getClientDurableEventIteratorToken(clientIterator)
+      const token = getClientDurableIteratorToken(clientIterator)
       expect(token).toBeDefined()
       const payload = await verifyToken(testSigningKey, token!)
 
@@ -49,9 +49,9 @@ describe('durableEventIterator', () => {
         tokenTTLSeconds: 3600, // 1 hour
       }
 
-      const iterator = new DurableEventIterator(testChannel, testSigningKey, options) as any
+      const iterator = new DurableIterator(testChannel, testSigningKey, options) as any
       const clientIterator = await iterator
-      const token = getClientDurableEventIteratorToken(clientIterator)
+      const token = getClientDurableIteratorToken(clientIterator)
       const payload = await verifyToken(testSigningKey, token!)
 
       expect(payload?.exp).toEqual(Math.floor(date.getTime() / 1000) + 3600)

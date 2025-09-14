@@ -4,9 +4,9 @@ import { StandardRPCHandler } from '@orpc/server/standard'
 import { isAsyncIteratorObject } from '@orpc/shared'
 import { decodeRequestMessage, encodeResponseMessage, MessageType } from '@orpc/standard-server-peer'
 import { WebSocket as ReconnectableWebSocket } from 'partysocket'
-import { DurableEventIterator } from '../event-iterator'
-import { DurableEventIteratorHandlerPlugin } from '../plugin'
-import { DurableEventIteratorLinkPlugin } from './plugin'
+import { DurableIterator } from '../event-iterator'
+import { DurableIteratorHandlerPlugin } from '../plugin'
+import { DurableIteratorLinkPlugin } from './plugin'
 
 vi.mock('partysocket', () => {
   return {
@@ -22,17 +22,17 @@ beforeEach(() => {
   vi.resetAllMocks()
 })
 
-describe('durableEventIteratorLinkPlugin', async () => {
+describe('durableIteratorLinkPlugin', async () => {
   const interceptor = vi.fn(({ next }) => next())
 
   const handler = new StandardRPCHandler({
-    durableIterator: os.handler(() => new DurableEventIterator<any, any>('some-room', {
+    durableIterator: os.handler(() => new DurableIterator<any, any>('some-room', {
       signingKey: 'key',
     }).rpc('getUser', 'sendMessage')),
     regularResponse: os.handler(() => 'regular response'),
   }, {
     plugins: [
-      new DurableEventIteratorHandlerPlugin(),
+      new DurableIteratorHandlerPlugin(),
     ],
   })
 
@@ -50,7 +50,7 @@ describe('durableEventIteratorLinkPlugin', async () => {
     url: 'http://localhost',
     clientInterceptors: [interceptor],
     plugins: [
-      new DurableEventIteratorLinkPlugin({
+      new DurableIteratorLinkPlugin({
         url: 'ws://localhost',
       }),
     ],
@@ -67,7 +67,7 @@ describe('durableEventIteratorLinkPlugin', async () => {
   it('should throw error if plugin context is corrupted', async () => {
     interceptor.mockImplementationOnce(({ next, ...options }) => next({ ...options, context: {} }))
 
-    await expect(link.call(['regularResponse'], {}, { context: {} })).rejects.toThrow('[DurableEventIteratorLinkPlugin] Plugin context has been corrupted or modified by another plugin or interceptor')
+    await expect(link.call(['regularResponse'], {}, { context: {} })).rejects.toThrow('[DurableIteratorLinkPlugin] Plugin context has been corrupted or modified by another plugin or interceptor')
   })
 
   describe('resolve an client durable event iterator', () => {

@@ -1,6 +1,6 @@
 import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
-import { DurableEventIteratorLinkPlugin } from '@orpc/experimental-durable-event-iterator/client'
+import { DurableIteratorLinkPlugin } from '@orpc/experimental-durable-iterator/client'
 import type { RouterClient } from '@orpc/server'
 import { createTanstackQueryUtils } from '@orpc/tanstack-query'
 import type { router } from '../../worker/router'
@@ -8,7 +8,7 @@ import type { router } from '../../worker/router'
 const link = new RPCLink({
   url: `${window.location.origin}/rpc`,
   plugins: [
-    new DurableEventIteratorLinkPlugin({
+    new DurableIteratorLinkPlugin({
       url: `${window.location.origin}/chat-room`,
     }),
   ],

@@ -1,18 +1,18 @@
 import { os } from '@orpc/server'
 import { StandardRPCHandler } from '@orpc/server/standard'
-import { getClientDurableEventIteratorToken } from './client'
-import { DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_KEY, DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_VALUE } from './consts'
-import { DurableEventIterator } from './event-iterator'
-import { DurableEventIteratorHandlerPlugin } from './plugin'
+import { getClientDurableIteratorToken } from './client'
+import { DURABLE_ITERATOR_PLUGIN_HEADER_KEY, DURABLE_ITERATOR_PLUGIN_HEADER_VALUE } from './consts'
+import { DurableIterator } from './event-iterator'
+import { DurableIteratorHandlerPlugin } from './plugin'
 
 beforeEach(() => {
   vi.resetAllMocks()
 })
 
-describe('durableEventIteratorHandlerPlugin', async () => {
+describe('durableIteratorHandlerPlugin', async () => {
   const interceptor = vi.fn(({ next }) => next())
 
-  const durableIterator = await new DurableEventIterator('some-room', {
+  const durableIterator = await new DurableIterator('some-room', {
     signingKey: 'key',
   })
 
@@ -21,7 +21,7 @@ describe('durableEventIteratorHandlerPlugin', async () => {
     regularResponse: os.handler(() => 'regular response'),
   }, {
     plugins: [
-      new DurableEventIteratorHandlerPlugin(),
+      new DurableIteratorHandlerPlugin(),
     ],
     interceptors: [
       interceptor,
@@ -40,8 +40,8 @@ describe('durableEventIteratorHandlerPlugin', async () => {
     })
 
     expect(response!.status).toBe(200)
-    expect(response!.headers[DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_KEY]).toBe(DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_VALUE)
-    const token = getClientDurableEventIteratorToken(durableIterator)
+    expect(response!.headers[DURABLE_ITERATOR_PLUGIN_HEADER_KEY]).toBe(DURABLE_ITERATOR_PLUGIN_HEADER_VALUE)
+    const token = getClientDurableIteratorToken(durableIterator)
     expect(token).toBeTypeOf('string')
     expect(response!.body).toEqual({ json: token })
   })
@@ -58,7 +58,7 @@ describe('durableEventIteratorHandlerPlugin', async () => {
     })
 
     expect(response!.status).toBe(200)
-    expect(response!.headers[DURABLE_EVENT_ITERATOR_PLUGIN_HEADER_KEY]).toBeUndefined()
+    expect(response!.headers[DURABLE_ITERATOR_PLUGIN_HEADER_KEY]).toBeUndefined()
     expect(response!.body).toEqual({ json: 'regular response' })
   })
 

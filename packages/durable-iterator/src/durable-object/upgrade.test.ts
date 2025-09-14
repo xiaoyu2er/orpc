@@ -1,10 +1,10 @@
 import { SignJWT } from 'jose'
-import { DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY } from './consts'
-import { upgradeDurableEventIteratorRequest } from './upgrade'
+import { DURABLE_ITERATOR_TOKEN_PAYLOAD_KEY } from './consts'
+import { upgradeDurableIteratorRequest } from './upgrade'
 
-describe('upgradeDurableEventIteratorRequest', () => {
+describe('upgradeDurableIteratorRequest', () => {
   it('reject non-websocket upgrade', async () => {
-    const response = await upgradeDurableEventIteratorRequest(
+    const response = await upgradeDurableIteratorRequest(
       new Request('https://example.com'),
       {
         namespace: {} as any,
@@ -16,7 +16,7 @@ describe('upgradeDurableEventIteratorRequest', () => {
   })
 
   it('rejects missing token', async () => {
-    const response = await upgradeDurableEventIteratorRequest(
+    const response = await upgradeDurableIteratorRequest(
       new Request('https://example.com', {
         headers: { upgrade: 'websocket' },
       }),
@@ -30,7 +30,7 @@ describe('upgradeDurableEventIteratorRequest', () => {
   })
 
   it('rejects invalid token', async () => {
-    const response = await upgradeDurableEventIteratorRequest(
+    const response = await upgradeDurableIteratorRequest(
       new Request('https://example.com?token=invalid-token', {
         headers: { upgrade: 'websocket' },
       }),
@@ -49,7 +49,7 @@ describe('upgradeDurableEventIteratorRequest', () => {
       .setIssuedAt()
       .setExpirationTime(new Date(Date.now() + 1000 * 1000))
       .sign(new TextEncoder().encode('test-sign'))
-    const response = await upgradeDurableEventIteratorRequest(
+    const response = await upgradeDurableIteratorRequest(
       new Request(`https://example.com?token=${jwt}`, {
         headers: { upgrade: 'websocket' },
       }),
@@ -82,7 +82,7 @@ describe('upgradeDurableEventIteratorRequest', () => {
       .setExpirationTime(date)
       .sign(new TextEncoder().encode('test-sign'))
 
-    const response = await upgradeDurableEventIteratorRequest(
+    const response = await upgradeDurableIteratorRequest(
       new Request(`https://example.com?token=${jwt}`, {
         headers: { upgrade: 'websocket' },
       }),
@@ -100,7 +100,7 @@ describe('upgradeDurableEventIteratorRequest', () => {
     const requestUrl = new URL(stub.fetch.mock.calls[0][0])
     const requestHeaders = stub.fetch.mock.calls[0][1].headers
 
-    expect(JSON.parse(requestUrl.searchParams.get(DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY)!)).toEqual({
+    expect(JSON.parse(requestUrl.searchParams.get(DURABLE_ITERATOR_TOKEN_PAYLOAD_KEY)!)).toEqual({
       chn: 'test-channel',
       rpc: ['someMethod'],
       att: { some: 'attachment' },

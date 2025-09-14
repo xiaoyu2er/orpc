@@ -1,35 +1,35 @@
 import type { Client, ClientLink, NestedClient, ThrowableError } from '@orpc/client'
 import type { ClientRetryPluginContext } from '@orpc/client/plugins'
 import type { AsyncIteratorClass, Value } from '@orpc/shared'
-import type { DurableEventIteratorObject, InferDurableEventIteratorObjectRPC } from '../object'
+import type { DurableIteratorObject, InferDurableIteratorObjectRPC } from '../object'
 import { createORPCClient } from '@orpc/client'
 import { isAsyncIteratorObject, value } from '@orpc/shared'
 import { parseToken } from '../schemas'
 
-const CLIENT_DURABLE_EVENT_ITERATOR_TOKEN_SYMBOL = Symbol('ORPC_CLIENT_DURABLE_EVENT_ITERATOR_TOKEN')
+const CLIENT_DURABLE_ITERATOR_TOKEN_SYMBOL = Symbol('ORPC_CLIENT_DURABLE_ITERATOR_TOKEN')
 
-export interface ClientDurableEventIteratorRpcContext extends ClientRetryPluginContext {
+export interface ClientDurableIteratorRpcContext extends ClientRetryPluginContext {
 }
 
-export type ClientDurableEventIteratorRpc<T extends NestedClient<object>>
+export type ClientDurableIteratorRpc<T extends NestedClient<object>>
   = T extends Client<any, infer UInput, infer UOutput, any>
-    ? Client<ClientDurableEventIteratorRpcContext, UInput, UOutput, ThrowableError>
+    ? Client<ClientDurableIteratorRpcContext, UInput, UOutput, ThrowableError>
     : {
         [K in keyof T]: T[K] extends NestedClient<object>
-          ? ClientDurableEventIteratorRpc<T[K]>
+          ? ClientDurableIteratorRpc<T[K]>
           : never
       }
 
-export type ClientDurableEventIterator<
-  T extends DurableEventIteratorObject<any>,
-  RPC extends InferDurableEventIteratorObjectRPC<T>,
-> = AsyncIteratorClass<T extends DurableEventIteratorObject<infer TPayload> ? TPayload : never> & {
+export type ClientDurableIterator<
+  T extends DurableIteratorObject<any>,
+  RPC extends InferDurableIteratorObjectRPC<T>,
+> = AsyncIteratorClass<T extends DurableIteratorObject<infer TPayload> ? TPayload : never> & {
   [K in RPC]: T[K] extends (...args: any[]) => (infer R extends NestedClient<object>)
-    ? ClientDurableEventIteratorRpc<R>
+    ? ClientDurableIteratorRpc<R>
     : never
 }
 
-export interface CreateClientDurableEventIteratorOptions {
+export interface CreateClientDurableIteratorOptions {
   /**
    * The token used to authenticate the client.
    * Can be function for dynamic token.
@@ -37,19 +37,19 @@ export interface CreateClientDurableEventIteratorOptions {
   token: Value<string>
 }
 
-export function createClientDurableEventIterator<
-  T extends DurableEventIteratorObject<any>,
-  RPC extends InferDurableEventIteratorObjectRPC<T>,
+export function createClientDurableIterator<
+  T extends DurableIteratorObject<any>,
+  RPC extends InferDurableIteratorObjectRPC<T>,
 >(
   iterator: AsyncIteratorClass<T>,
   link: ClientLink<object>,
-  options: CreateClientDurableEventIteratorOptions,
-): ClientDurableEventIterator<T, RPC> {
+  options: CreateClientDurableIteratorOptions,
+): ClientDurableIterator<T, RPC> {
   const proxy = new Proxy(iterator, {
     get(target, prop) {
       const { rpc: allowMethods } = parseToken(value(options.token))
 
-      if (prop === CLIENT_DURABLE_EVENT_ITERATOR_TOKEN_SYMBOL) {
+      if (prop === CLIENT_DURABLE_ITERATOR_TOKEN_SYMBOL) {
         return options.token
       }
 
@@ -70,10 +70,10 @@ export function createClientDurableEventIterator<
 /**
  * If return a token if the client is a Client Durable Event Iterator.
  */
-export function getClientDurableEventIteratorToken(
+export function getClientDurableIteratorToken(
   client: unknown,
 ): string | undefined {
   if (isAsyncIteratorObject(client)) {
-    return Reflect.get(client, CLIENT_DURABLE_EVENT_ITERATOR_TOKEN_SYMBOL) as string | undefined
+    return Reflect.get(client, CLIENT_DURABLE_ITERATOR_TOKEN_SYMBOL) as string | undefined
   }
 }

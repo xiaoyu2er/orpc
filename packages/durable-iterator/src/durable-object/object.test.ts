@@ -1,7 +1,7 @@
 import { encodeRequestMessage, MessageType } from '@orpc/standard-server-peer'
 import { createCloudflareWebsocket, createDurableObjectState } from '../../tests/shared'
-import { DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY } from './consts'
-import { DurableEventIteratorObject } from './object'
+import { DURABLE_ITERATOR_TOKEN_PAYLOAD_KEY } from './consts'
+import { DurableIteratorObject } from './object'
 
 vi.mock('cloudflare:workers', () => ({
   DurableObject: class {
@@ -48,10 +48,10 @@ afterAll(() => {
   ; (globalThis as any).__rest = undefined
 })
 
-describe('durableEventIteratorObject', () => {
+describe('durableIteratorObject', () => {
   it('upgrade websocket connection', async () => {
     const ctx = createDurableObjectState()
-    const object = new DurableEventIteratorObject(ctx, {})
+    const object = new DurableIteratorObject(ctx, {})
 
     const tokenPayload = {
       att: { some: 'attachment' },
@@ -62,7 +62,7 @@ describe('durableEventIteratorObject', () => {
     }
 
     const url = new URL('https://example.com')
-    url.searchParams.set(DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY, JSON.stringify(tokenPayload))
+    url.searchParams.set(DURABLE_ITERATOR_TOKEN_PAYLOAD_KEY, JSON.stringify(tokenPayload))
 
     const response = await object.fetch(new Request(url))
 
@@ -75,13 +75,13 @@ describe('durableEventIteratorObject', () => {
     expect((response as any).__init.status).toBe(101)
     expect((response as any).__init.webSocket).toBe(client)
     expect(server.deserializeAttachment()).toEqual({
-      [DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY]: tokenPayload,
+      [DURABLE_ITERATOR_TOKEN_PAYLOAD_KEY]: tokenPayload,
     })
   })
 
   it('webSocketMessage', async () => {
     const ctx = createDurableObjectState()
-    const object = new DurableEventIteratorObject(ctx, {})
+    const object = new DurableIteratorObject(ctx, {})
     const currentWebsocket = createCloudflareWebsocket()
 
     const request = await encodeRequestMessage('123', MessageType.REQUEST, {
@@ -99,7 +99,7 @@ describe('durableEventIteratorObject', () => {
 
   it('webSocketClose', async () => {
     const ctx = createDurableObjectState()
-    const object = new DurableEventIteratorObject(ctx, {})
+    const object = new DurableIteratorObject(ctx, {})
     const currentWebsocket = createCloudflareWebsocket()
     object.webSocketClose(currentWebsocket, 1, 'reason', true)
   })

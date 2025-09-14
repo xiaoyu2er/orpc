@@ -1,12 +1,12 @@
-import type { DurableEventIteratorTokenPayload } from '../schemas'
+import type { DurableIteratorTokenPayload } from '../schemas'
 import { AsyncIteratorClass, isAsyncIteratorObject } from '@orpc/shared'
 import { SignJWT } from 'jose'
-import { createClientDurableEventIterator } from './event-iterator'
+import { createClientDurableIterator } from './event-iterator'
 
-describe('createClientDurableEventIterator', async () => {
+describe('createClientDurableIterator', async () => {
   const signingKey = new TextEncoder().encode('some-secret-key')
 
-  const tokenPayload: Omit<DurableEventIteratorTokenPayload, 'iat' | 'exp'> = {
+  const tokenPayload: Omit<DurableIteratorTokenPayload, 'iat' | 'exp'> = {
     chn: 'some-channel',
     rpc: ['method1', 'method2'],
     att: { some: 'claims' },
@@ -22,7 +22,7 @@ describe('createClientDurableEventIterator', async () => {
   const cleanup = vi.fn(() => Promise.resolve())
   const call = vi.fn(() => Promise.resolve('__call__'))
 
-  const iterator = createClientDurableEventIterator(new AsyncIteratorClass<any>(next, cleanup), {
+  const iterator = createClientDurableIterator(new AsyncIteratorClass<any>(next, cleanup), {
     call,
   }, {
     token,

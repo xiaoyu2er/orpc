@@ -1,7 +1,7 @@
 import { getSignedValue, sign, unsign } from '@orpc/server/helpers'
 import { parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
 import * as v from 'valibot'
-import { DurableEventIteratorError } from './error'
+import { DurableIteratorError } from './error'
 
 export type TokenPayload = v.InferOutput<typeof TokenPayloadSchema>
 
@@ -54,6 +54,6 @@ export function parseToken(token: string | null | undefined): TokenPayload {
     return v.parse(TokenPayloadSchema, payload)
   }
   catch (error) {
-    throw new DurableEventIteratorError('Invalid token payload', { cause: error })
+    throw new DurableIteratorError('Invalid token payload', { cause: error })
   }
 }

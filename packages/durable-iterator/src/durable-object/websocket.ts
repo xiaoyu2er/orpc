@@ -1,7 +1,7 @@
 import type { TokenPayload } from '../schemas'
-import { DurableEventIteratorError } from '../error'
+import { DurableIteratorError } from '../error'
 
-export interface DurableEventIteratorWebsocketInternal {
+export interface DurableIteratorWebsocketInternal {
   /**
    * Access the original websocket instance
    *
@@ -41,11 +41,11 @@ export interface DurableEventIteratorWebsocketInternal {
   closeIfExpired(): void
 }
 
-export interface DurableEventIteratorWebsocket extends WebSocket {
+export interface DurableIteratorWebsocket extends WebSocket {
   /**
    * Durable Event Iterator internal apis
    */
-  ['~orpc']: DurableEventIteratorWebsocketInternal
+  ['~orpc']: DurableIteratorWebsocketInternal
 }
 
 /**
@@ -53,12 +53,12 @@ export interface DurableEventIteratorWebsocket extends WebSocket {
  *
  * @info The websocket automatically closes if expired before sending data
  */
-export function toDurableEventIteratorWebsocket(original: WebSocket): DurableEventIteratorWebsocket {
+export function toDurableIteratorWebsocket(original: WebSocket): DurableIteratorWebsocket {
   if ('~orpc' in original) {
-    return original as DurableEventIteratorWebsocket
+    return original as DurableIteratorWebsocket
   }
 
-  const internal: DurableEventIteratorWebsocketInternal = {
+  const internal: DurableIteratorWebsocketInternal = {
     original,
     serializeHibernationId(id) {
       original.serializeAttachment({
@@ -79,7 +79,7 @@ export function toDurableEventIteratorWebsocket(original: WebSocket): DurableEve
       const payload = original.deserializeAttachment()?.tp
 
       if (!payload) {
-        throw new DurableEventIteratorError('Token payload not found, please call serializeTokenPayload first')
+        throw new DurableIteratorError('Token payload not found, please call serializeTokenPayload first')
       }
 
       return payload
@@ -137,5 +137,5 @@ export function toDurableEventIteratorWebsocket(original: WebSocket): DurableEve
     },
   })
 
-  return proxy as DurableEventIteratorWebsocket
+  return proxy as DurableIteratorWebsocket
 }

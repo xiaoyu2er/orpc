@@ -1,11 +1,11 @@
 import type { Interceptor } from '@orpc/shared'
-import type { DurableEventIteratorObject } from '.'
+import type { DurableIteratorObject } from '.'
 import type { TokenPayload } from '../schemas'
 import { intercept, toArray } from '@orpc/shared'
-import { DURABLE_EVENT_ITERATOR_TOKEN_PARAM } from '../consts'
+import { DURABLE_ITERATOR_TOKEN_PARAM } from '../consts'
 import { verifyToken } from '../schemas'
 
-export interface UpgradeDurableEventIteratorRequestOptions {
+export interface UpgradeDurableIteratorRequestOptions {
   signingKey: string
   namespace: DurableObjectNamespace<any>
   interceptors?: Interceptor<{ payload: TokenPayload }, Promise<Response>>[]
@@ -16,9 +16,9 @@ export interface UpgradeDurableEventIteratorRequestOptions {
  *
  * @info Verify token before forwarding to durable object to prevent DDoS attacks
  */
-export async function upgradeDurableEventIteratorRequest(
+export async function upgradeDurableIteratorRequest(
   request: Request,
-  options: UpgradeDurableEventIteratorRequestOptions,
+  options: UpgradeDurableIteratorRequestOptions,
 ): Promise<Response> {
   if (request.headers.get('upgrade') !== 'websocket') {
     return new Response('Expected WebSocket upgrade', {
@@ -27,7 +27,7 @@ export async function upgradeDurableEventIteratorRequest(
   }
 
   const url = new URL(request.url)
-  const token = url.searchParams.getAll(DURABLE_EVENT_ITERATOR_TOKEN_PARAM).at(-1)
+  const token = url.searchParams.getAll(DURABLE_ITERATOR_TOKEN_PARAM).at(-1)
 
   if (!token) {
     return new Response('Token is required', {
@@ -47,7 +47,7 @@ export async function upgradeDurableEventIteratorRequest(
     toArray(options.interceptors),
     { payload },
     async ({ payload }) => {
-      const namespace = options.namespace as DurableObjectNamespace<DurableEventIteratorObject<any, any>>
+      const namespace = options.namespace as DurableObjectNamespace<DurableIteratorObject<any, any>>
       const id = namespace.idFromName(payload.chn)
       const stub = namespace.get(id)
       return stub.fetch(request)

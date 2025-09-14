@@ -1,12 +1,12 @@
 import { call, createProcedureClient } from '@orpc/server'
 import { HibernationEventIterator } from '@orpc/server/hibernation'
 import { createCloudflareWebsocket, createDurableObjectState } from '../../tests/shared'
-import { DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY, DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY } from './consts'
-import { DurableEventIteratorObjectEventStorage } from './event-storage'
-import { durableEventIteratorRouter } from './handler'
-import { DurableEventIteratorObjectWebsocketManager } from './websocket-manager'
+import { DURABLE_ITERATOR_HIBERNATION_ID_KEY, DURABLE_ITERATOR_TOKEN_PAYLOAD_KEY } from './consts'
+import { DurableIteratorObjectEventStorage } from './event-storage'
+import { DurableIteratorRouter } from './handler'
+import { DurableIteratorObjectWebsocketManager } from './websocket-manager'
 
-describe('durableEventIteratorRouter', async () => {
+describe('durableIteratorRouter', async () => {
   const date = 144434837
 
   const tokenPayload = {
@@ -21,16 +21,16 @@ describe('durableEventIteratorRouter', async () => {
     it('without last event id', async () => {
       const ctx = createDurableObjectState()
       const currentWebsocket = createCloudflareWebsocket()
-      const eventStorage = new DurableEventIteratorObjectEventStorage(ctx)
-      const websocketManager = new DurableEventIteratorObjectWebsocketManager(ctx, eventStorage)
+      const eventStorage = new DurableIteratorObjectEventStorage(ctx)
+      const websocketManager = new DurableIteratorObjectWebsocketManager(ctx, eventStorage)
       const serializeInternalAttachmentSpy = vi.spyOn(websocketManager, 'serializeInternalAttachment')
       const sendEventsAfterSpy = vi.spyOn(websocketManager, 'sendEventsAfter')
 
       websocketManager.serializeInternalAttachment(currentWebsocket, {
-        [DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY]: tokenPayload,
+        [DURABLE_ITERATOR_TOKEN_PAYLOAD_KEY]: tokenPayload,
       })
 
-      const output = await call(durableEventIteratorRouter.subscribe, undefined, {
+      const output = await call(DurableIteratorRouter.subscribe, undefined, {
         context: {
           object: {} as any,
           currentWebsocket,
@@ -43,7 +43,7 @@ describe('durableEventIteratorRouter', async () => {
       output.hibernationCallback?.('123')
 
       expect(serializeInternalAttachmentSpy).toHaveBeenCalledWith(currentWebsocket, {
-        [DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY]: '123',
+        [DURABLE_ITERATOR_HIBERNATION_ID_KEY]: '123',
       })
 
       expect(sendEventsAfterSpy).toHaveBeenCalledWith(
@@ -56,16 +56,16 @@ describe('durableEventIteratorRouter', async () => {
     it('with last event id', async () => {
       const ctx = createDurableObjectState()
       const currentWebsocket = createCloudflareWebsocket()
-      const eventStorage = new DurableEventIteratorObjectEventStorage(ctx)
-      const websocketManager = new DurableEventIteratorObjectWebsocketManager(ctx, eventStorage)
+      const eventStorage = new DurableIteratorObjectEventStorage(ctx)
+      const websocketManager = new DurableIteratorObjectWebsocketManager(ctx, eventStorage)
       const serializeInternalAttachmentSpy = vi.spyOn(websocketManager, 'serializeInternalAttachment')
       const sendEventsAfterSpy = vi.spyOn(websocketManager, 'sendEventsAfter')
 
       websocketManager.serializeInternalAttachment(currentWebsocket, {
-        [DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY]: tokenPayload,
+        [DURABLE_ITERATOR_TOKEN_PAYLOAD_KEY]: tokenPayload,
       })
 
-      const client = createProcedureClient(durableEventIteratorRouter.subscribe, {
+      const client = createProcedureClient(DurableIteratorRouter.subscribe, {
         context: {
           object: {} as any,
           currentWebsocket,
@@ -80,7 +80,7 @@ describe('durableEventIteratorRouter', async () => {
       output.hibernationCallback?.('123')
 
       expect(serializeInternalAttachmentSpy).toHaveBeenCalledWith(currentWebsocket, {
-        [DURABLE_EVENT_ITERATOR_HIBERNATION_ID_KEY]: '123',
+        [DURABLE_ITERATOR_HIBERNATION_ID_KEY]: '123',
       })
 
       expect(sendEventsAfterSpy).toHaveBeenCalledWith(
@@ -95,14 +95,14 @@ describe('durableEventIteratorRouter', async () => {
     it('reject if method is not allowed', async () => {
       const ctx = createDurableObjectState()
       const currentWebsocket = createCloudflareWebsocket()
-      const eventStorage = new DurableEventIteratorObjectEventStorage(ctx)
-      const websocketManager = new DurableEventIteratorObjectWebsocketManager(ctx, eventStorage)
+      const eventStorage = new DurableIteratorObjectEventStorage(ctx)
+      const websocketManager = new DurableIteratorObjectWebsocketManager(ctx, eventStorage)
 
       websocketManager.serializeInternalAttachment(currentWebsocket, {
-        [DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY]: tokenPayload,
+        [DURABLE_ITERATOR_TOKEN_PAYLOAD_KEY]: tokenPayload,
       })
 
-      await expect(call(durableEventIteratorRouter.call, {
+      await expect(call(DurableIteratorRouter.call, {
         input: 'some-input',
         path: ['notAllowedMethod'],
       }, {
@@ -117,18 +117,18 @@ describe('durableEventIteratorRouter', async () => {
     it('single client', async () => {
       const ctx = createDurableObjectState()
       const currentWebsocket = createCloudflareWebsocket()
-      const eventStorage = new DurableEventIteratorObjectEventStorage(ctx)
-      const websocketManager = new DurableEventIteratorObjectWebsocketManager(ctx, eventStorage)
+      const eventStorage = new DurableIteratorObjectEventStorage(ctx)
+      const websocketManager = new DurableIteratorObjectWebsocketManager(ctx, eventStorage)
 
       websocketManager.serializeInternalAttachment(currentWebsocket, {
-        [DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY]: tokenPayload,
+        [DURABLE_ITERATOR_TOKEN_PAYLOAD_KEY]: tokenPayload,
       })
 
       const object = {
         someMethod: vi.fn(() => vi.fn(() => 'some-output')),
       }
 
-      const client = createProcedureClient(durableEventIteratorRouter.call, {
+      const client = createProcedureClient(DurableIteratorRouter.call, {
         context: {
           object: object as any,
           currentWebsocket,
@@ -149,11 +149,11 @@ describe('durableEventIteratorRouter', async () => {
     it('nested client', async () => {
       const ctx = createDurableObjectState()
       const currentWebsocket = createCloudflareWebsocket()
-      const eventStorage = new DurableEventIteratorObjectEventStorage(ctx)
-      const websocketManager = new DurableEventIteratorObjectWebsocketManager(ctx, eventStorage)
+      const eventStorage = new DurableIteratorObjectEventStorage(ctx)
+      const websocketManager = new DurableIteratorObjectWebsocketManager(ctx, eventStorage)
 
       websocketManager.serializeInternalAttachment(currentWebsocket, {
-        [DURABLE_EVENT_ITERATOR_TOKEN_PAYLOAD_KEY]: tokenPayload,
+        [DURABLE_ITERATOR_TOKEN_PAYLOAD_KEY]: tokenPayload,
       })
 
       const object = {
@@ -162,7 +162,7 @@ describe('durableEventIteratorRouter', async () => {
         })),
       }
 
-      const client = createProcedureClient(durableEventIteratorRouter.call, {
+      const client = createProcedureClient(DurableIteratorRouter.call, {
         context: {
           object: object as any,
           currentWebsocket,

@@ -36,6 +36,9 @@ export class RequestValidationPlugin<T extends ClientContext> implements Standar
         const result = await inputSchema['~standard'].validate(input)
 
         if (result.issues) {
+          /**
+           * This error should be same as server side when input validation fails.
+           */
           throw new ORPCError('BAD_REQUEST', {
             message: 'Input validation failed',
             data: {

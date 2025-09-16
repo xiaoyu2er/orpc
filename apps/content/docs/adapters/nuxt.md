@@ -5,7 +5,7 @@ description: Use oRPC inside an Nuxt.js project
 
 # Nuxt.js Adapter
 
-[Nuxt.js](https://nuxtjs.org/) is a popular Vue.js framework for building server-side applications. For more details, see the [HTTP Adapter](/docs/adapters/http) guide.
+[Nuxt.js](https://nuxt.com/) is a popular Vue.js framework for building server-side applications. For more details, see the [HTTP Adapter](/docs/adapters/http) guide.
 
 ## Server
 

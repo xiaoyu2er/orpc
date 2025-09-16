@@ -1,4 +1,4 @@
-import { OpenAPIHandler } from '@orpc/openapi/node'
+import { OpenAPIHandler } from '@orpc/openapi/fetch'
 import { onError } from '@orpc/server'
 import { ZodToJsonSchemaConverter } from '@orpc/zod/zod4'
 import { experimental_SmartCoercionPlugin as SmartCoercionPlugin } from '@orpc/json-schema'
@@ -63,18 +63,20 @@ const openAPIHandler = new OpenAPIHandler(router, {
 })
 
 export default defineEventHandler(async (event) => {
+  const request = toWebRequest(event)
+
   const authorization = getHeader(event, 'authorization')
   const context = authorization
     ? { user: { id: 'test', name: 'John Doe', email: 'john@doe.com' } }
     : {}
 
-  const { matched } = await openAPIHandler.handle(event.node.req, event.node.res, {
+  const { response } = await openAPIHandler.handle(request, {
     prefix: '/api',
     context,
   })
 
-  if (matched) {
-    return
+  if (response) {
+    return response
   }
 
   setResponseStatus(event, 404, 'Not Found')

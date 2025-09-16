@@ -1,5 +1,5 @@
 import { onError } from '@orpc/server'
-import { RPCHandler } from '@orpc/server/node'
+import { RPCHandler } from '@orpc/server/fetch'
 import { router } from '~/server/routers'
 
 const rpcHandler = new RPCHandler(router, {
@@ -11,15 +11,17 @@ const rpcHandler = new RPCHandler(router, {
 })
 
 export default defineEventHandler(async (event) => {
+  const request = toWebRequest(event)
+
   const context = { user: { id: 'test', name: 'John Doe', email: 'john@doe.com' } }
 
-  const { matched } = await rpcHandler.handle(event.node.req, event.node.res, {
+  const { response } = await rpcHandler.handle(request, {
     prefix: '/rpc',
     context,
   })
 
-  if (matched) {
-    return
+  if (response) {
+    return response
   }
 
   setResponseStatus(event, 404, 'Not Found')

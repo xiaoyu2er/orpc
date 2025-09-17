@@ -78,9 +78,11 @@ export class DurableIteratorLinkPlugin<T extends ClientContext> implements Stand
       let tokenAndPayload = this.validateToken(output, options.path)
       const websocket = new ReconnectableWebSocket(async () => {
         const notRoundedNowInSeconds = Date.now() / 1000
-        const enabled = value(this.shouldRefreshTokenOnExpire, tokenAndPayload.payload, options)
 
-        if (enabled && tokenAndPayload.payload.exp - notRoundedNowInSeconds <= 0) {
+        if (
+          tokenAndPayload.payload.exp - notRoundedNowInSeconds <= 0
+          && value(this.shouldRefreshTokenOnExpire, tokenAndPayload.payload, options)
+        ) {
           const output = await next()
           tokenAndPayload = this.validateToken(output, options.path)
         }

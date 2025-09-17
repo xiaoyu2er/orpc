@@ -4,11 +4,8 @@ import type { DurableIteratorObjectState } from './object-state'
 import { DurableObject } from 'cloudflare:workers'
 import { DurableIteratorObjectHandler } from './handler'
 
-export class DurableIteratorObject<
-  TEventPayload extends object,
-  TEnv = unknown,
-> extends DurableObject<TEnv> implements IDurableIteratorObject<TEventPayload> {
-  '~orpc': DurableIteratorObjectHandler<TEventPayload>
+export class DurableIteratorObject<T extends object, TEnv = unknown> extends DurableObject<TEnv> implements IDurableIteratorObject<T> {
+  '~orpc': DurableIteratorObjectHandler<T>
 
   /**
    * Proxied, ensure you don't accidentally change internal state
@@ -28,7 +25,7 @@ export class DurableIteratorObject<
   /**
    * Publish an event to clients
    */
-  publishEvent(payload: TEventPayload, options: PublishEventOptions = {}): void {
+  publishEvent(payload: T, options: PublishEventOptions = {}): void {
     return this['~orpc'].publishEvent(payload, options)
   }
 

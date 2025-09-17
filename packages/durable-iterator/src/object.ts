@@ -1,18 +1,12 @@
 import type { NestedClient } from '@orpc/client'
-import type { AsyncIteratorClass, JsonValue } from '@orpc/shared'
+import type { AsyncIteratorClass } from '@orpc/shared'
 
-export type TokenAtt = JsonValue | undefined
-
-export interface DurableIteratorObjectDef<
-  TEventPayload extends object,
-> {
-  '~eventPayloadType'?: { type: TEventPayload }
+export interface DurableIteratorObjectDef<T extends object> {
+  '~eventPayloadType'?: { type: T }
 }
 
-export interface DurableIteratorObject<
-  TEventPayload extends object,
-> {
-  '~orpc'?: DurableIteratorObjectDef<TEventPayload>
+export interface DurableIteratorObject<T extends object> {
+  '~orpc'?: DurableIteratorObjectDef<T>
 }
 
 export type InferDurableIteratorObjectRPC<

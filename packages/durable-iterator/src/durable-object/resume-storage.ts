@@ -29,7 +29,7 @@ export interface ResumeEventFilter {
   exclude?: DurableIteratorWebsocket[]
 }
 
-export class EventResumeStorage<TEventPayload extends object> {
+export class EventResumeStorage<T extends object> {
   private readonly serializer: StandardRPCJsonSerializer
   private readonly retentionSeconds: number
   private readonly schemaPrefix: string
@@ -58,9 +58,9 @@ export class EventResumeStorage<TEventPayload extends object> {
    * @returns The updated meta of the stored payload
    */
   store(
-    payload: TEventPayload,
+    payload: T,
     resumeFilter: ResumeEventFilter,
-  ): TEventPayload {
+  ): T {
     if (!this.isEnabled) {
       return payload
     }
@@ -111,7 +111,7 @@ export class EventResumeStorage<TEventPayload extends object> {
   get(
     websocket: DurableIteratorWebsocket,
     lastEventId: string,
-  ): TEventPayload[] {
+  ): T[] {
     if (!this.isEnabled) {
       return []
     }
@@ -185,23 +185,23 @@ export class EventResumeStorage<TEventPayload extends object> {
     `, this.retentionSeconds)
   }
 
-  private serializeEventPayload(payload: TEventPayload): string {
+  private serializeEventPayload(payload: T): string {
     const eventMeta = getEventMeta(payload)
     const [json, meta] = this.serializer.serialize({ payload, meta: eventMeta })
     return stringifyJSON({ json, meta })
   }
 
-  private deserializeEventPayload(payload: string): TEventPayload {
+  private deserializeEventPayload(payload: string): T {
     const { json, meta } = JSON.parse(payload)
     const { payload: deserializedPayload, meta: eventMeta } = this.serializer.deserialize(json, meta) as {
-      payload: TEventPayload
+      payload: T
       meta: ReturnType<typeof getEventMeta>
     }
 
     return eventMeta ? withEventMeta(deserializedPayload, eventMeta) : deserializedPayload
   }
 
-  private withEventId(payload: TEventPayload, id: string): TEventPayload {
+  private withEventId(payload: T, id: string): T {
     return withEventMeta(payload, {
       ...getEventMeta(payload),
       id,

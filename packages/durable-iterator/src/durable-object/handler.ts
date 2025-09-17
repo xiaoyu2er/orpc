@@ -95,11 +95,12 @@ export interface DurableIteratorObjectHandlerOptions extends StandardRPCHandlerO
 }
 
 export class DurableIteratorObjectHandler<
-  TEventPayload extends object,
-> implements DurableIteratorObjectDef<TEventPayload> {
-  '~eventPayloadType'?: { type: TEventPayload } // Helps DurableIteratorObjectDef infer the type
+  T extends object,
+> implements DurableIteratorObjectDef<T> {
+  '~eventPayloadType'?: { type: T } // Helps DurableIteratorObjectDef infer the type
+
   private readonly handler: RPCHandler<DurableIteratorObjectRouterContext>
-  private readonly resumeStorage: EventResumeStorage<TEventPayload>
+  private readonly resumeStorage: EventResumeStorage<T>
 
   /**
    * Proxied, ensure you don't accidentally change internal state
@@ -113,7 +114,7 @@ export class DurableIteratorObjectHandler<
   ) {
     this.ctx = createDurableIteratorObjectState(ctx)
 
-    this.resumeStorage = new EventResumeStorage<TEventPayload>(ctx, options)
+    this.resumeStorage = new EventResumeStorage<T>(ctx, options)
 
     this.handler = new RPCHandler(router, {
       ...options,
@@ -127,7 +128,7 @@ export class DurableIteratorObjectHandler<
   /**
    * Publish an event to a set of clients.
    */
-  publishEvent(payload: TEventPayload, options: PublishEventOptions = {}): void {
+  publishEvent(payload: T, options: PublishEventOptions = {}): void {
     const targets = options.targets?.map(ws => toDurableIteratorWebsocket(ws))
     const exclude = options.exclude?.map(ws => toDurableIteratorWebsocket(ws))
 

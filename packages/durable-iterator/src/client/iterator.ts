@@ -47,10 +47,11 @@ export function createClientDurableIterator<
 ): ClientDurableIterator<T, RPC> {
   const proxy = new Proxy(iterator, {
     get(target, prop) {
-      const { rpc: allowMethods } = parseDurableIteratorToken(options.token())
+      const token = options.token()
+      const { rpc: allowMethods } = parseDurableIteratorToken(token)
 
       if (prop === CLIENT_DURABLE_ITERATOR_TOKEN_SYMBOL) {
-        return options.token
+        return token
       }
 
       if (typeof prop === 'string' && allowMethods?.includes(prop)) {

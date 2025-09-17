@@ -24,14 +24,14 @@ export interface DurableIteratorLinkPluginOptions<T extends ClientContext> exten
   /**
    * The WebSocket URL to connect to the Durable Event Iterator Object.
    */
-  url: Value<Promisable<string | URL>>
+  url: Value<Promisable<string | URL>, [tokenPayload: DurableIteratorTokenPayload, options: StandardLinkInterceptorOptions<T>]>
 
   /**
    * Determine whether to automatically refresh the token when it is expired.
    *
    * @default false
    */
-  shouldRefreshTokenOnExpire?: Value<boolean, [tokenPayload: DurableIteratorTokenPayload, options: StandardLinkInterceptorOptions<T>]>
+  shouldRefreshTokenOnExpire?: Value<Promisable<boolean>, [tokenPayload: DurableIteratorTokenPayload, options: StandardLinkInterceptorOptions<T>]>
 }
 
 /**
@@ -79,15 +79,15 @@ export class DurableIteratorLinkPlugin<T extends ClientContext> implements Stand
       const websocket = new ReconnectableWebSocket(async () => {
         const notRoundedNowInSeconds = Date.now() / 1000
 
-        if (
-          tokenAndPayload.payload.exp - notRoundedNowInSeconds <= 0
-          && value(this.shouldRefreshTokenOnExpire, tokenAndPayload.payload, options)
-        ) {
-          const output = await next()
-          tokenAndPayload = this.validateToken(output, options.path)
+        if (tokenAndPayload.payload.exp - notRoundedNowInSeconds <= 0) {
+          const enabled = await value(this.shouldRefreshTokenOnExpire, tokenAndPayload.payload, options)
+          if (enabled) {
+            const output = await next()
+            tokenAndPayload = this.validateToken(output, options.path)
+          }
         }
 
-        const url = new URL(await value(this.url))
+        const url = new URL(await value(this.url, tokenAndPayload.payload, options))
         url.searchParams.append(DURABLE_ITERATOR_TOKEN_PARAM, tokenAndPayload.token)
         return url.toString()
       })

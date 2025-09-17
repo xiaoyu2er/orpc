@@ -1,16 +1,25 @@
 import type { Client } from '@orpc/client'
 import type { EncodeHibernationRPCEventOptions } from '@orpc/server/hibernation'
+import type { StandardRPCHandlerOptions } from '@orpc/server/standard'
 import type { DurableObject } from 'cloudflare:workers'
-import type { EventResumeStorage } from './resume-storage'
+import type { DurableIteratorObjectDef } from '../object'
+import type { DurableIteratorObjectState } from './object-state'
+import type { EventResumeStorageOptions } from './resume-storage'
 import type { DurableIteratorWebsocket } from './websocket'
 import { implement, ORPCError } from '@orpc/server'
-import { encodeHibernationRPCEvent, HibernationEventIterator } from '@orpc/server/hibernation'
-import { get } from '@orpc/shared'
+import { encodeHibernationRPCEvent, HibernationEventIterator, HibernationPlugin } from '@orpc/server/hibernation'
+import { RPCHandler } from '@orpc/server/websocket'
+import { get, toArray } from '@orpc/shared'
 import { DurableIteratorContract } from '../client/contract'
+import { DURABLE_ITERATOR_TOKEN_PARAM } from '../consts'
+import { parseToken } from '../schemas'
+import { createDurableIteratorObjectState } from './object-state'
+import { EventResumeStorage } from './resume-storage'
+import { toDurableIteratorWebsocket } from './websocket'
 
 const os = implement(DurableIteratorContract)
 
-export interface DurableIteratorObjectRouterContext {
+type DurableIteratorObjectRouterContext = {
   object: DurableObject<any>
   resumeStorage: EventResumeStorage<any>
   websocket: DurableIteratorWebsocket
@@ -19,7 +28,7 @@ export interface DurableIteratorObjectRouterContext {
 
 const base = os.$context<DurableIteratorObjectRouterContext>()
 
-export const DurableIteratorRouter = base.router({
+const router = base.router({
   subscribe: base.subscribe.handler(({ context, lastEventId }) => {
     return new HibernationEventIterator<any>((hibernationId) => {
       context.websocket['~orpc'].serializeHibernationId(hibernationId)
@@ -54,3 +63,135 @@ export const DurableIteratorRouter = base.router({
     return client(input.input, { signal, lastEventId })
   }),
 })
+
+export interface PublishEventOptions {
+  /**
+   * Restrict the event to a specific set of websockets.
+   *
+   * Use this when security is important — only the listed websockets
+   * will ever receive the event. Newly connected websockets are not
+   * included unless explicitly added here.
+   */
+  targets?: WebSocket[]
+
+  /**
+   * Exclude certain websockets from receiving the event.
+   *
+   * Use this when broadcasting widely but skipping a few clients
+   * (e.g., the sender). Newly connected websockets may still receive
+   * the event if not listed here, so this is less strict than `targets`.
+   */
+  exclude?: WebSocket[]
+}
+
+export interface DurableIteratorObjectHandlerOptions extends StandardRPCHandlerOptions<DurableIteratorObjectRouterContext>, EventResumeStorageOptions {
+}
+
+export class DurableIteratorObjectHandler<
+  TEventPayload extends object,
+> implements DurableIteratorObjectDef<TEventPayload> {
+  '~eventPayloadType'?: { type: TEventPayload } // Helps DurableIteratorObjectDef infer the type
+  private readonly handler: RPCHandler<DurableIteratorObjectRouterContext>
+  private readonly resumeStorage: EventResumeStorage<TEventPayload>
+
+  ctx: DurableIteratorObjectState
+
+  constructor(
+    ctx: DurableObjectState,
+    private readonly object: DurableObject<any>,
+    private readonly options: DurableIteratorObjectHandlerOptions = {},
+  ) {
+    this.ctx = createDurableIteratorObjectState(ctx)
+
+    this.resumeStorage = new EventResumeStorage<TEventPayload>(ctx, options)
+
+    this.handler = new RPCHandler(router, {
+      ...options,
+      plugins: [
+        ...toArray(options.plugins),
+        new HibernationPlugin(),
+      ],
+    })
+  }
+
+  /**
+   * Publish an event to a set of clients.
+   */
+  publishEvent(payload: TEventPayload, options: PublishEventOptions = {}): void {
+    const targets = options.targets?.map(ws => toDurableIteratorWebsocket(ws))
+    const exclude = options.exclude?.map(ws => toDurableIteratorWebsocket(ws))
+
+    this.resumeStorage.store(payload, { targets, exclude })
+
+    const excludeIds = exclude?.map(ws => ws['~orpc'].deserializeTokenPayload().id)
+    const fallbackTargets = targets ?? this.ctx.getWebSockets().map(ws => toDurableIteratorWebsocket(ws))
+
+    for (const ws of fallbackTargets) {
+      if (excludeIds?.includes(ws['~orpc'].deserializeTokenPayload().id)) {
+        continue
+      }
+
+      const hibernationId = ws['~orpc'].deserializeHibernationId()
+
+      // Maybe the connection not finished the subscription process yet
+      if (typeof hibernationId !== 'string') {
+        continue
+      }
+
+      ws.send(encodeHibernationRPCEvent(hibernationId, payload, this.options))
+    }
+  }
+
+  /**
+   * This method is called when a HTTP request is received for upgrading to a WebSocket connection.
+   * Should mapping with corresponding `fetch` inside durable object
+   *
+   * @warning No verification is done here, you should verify the token payload before calling this method.
+   */
+  async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url)
+    const token = url.searchParams.getAll(DURABLE_ITERATOR_TOKEN_PARAM).at(-1)
+    const payload = parseToken(token)
+
+    const { '0': client, '1': server } = new WebSocketPair()
+
+    this.ctx.acceptWebSocket(server)
+    toDurableIteratorWebsocket(server)['~orpc'].serializeTokenPayload(payload)
+
+    return new Response(null, {
+      status: 101,
+      webSocket: client,
+    })
+  }
+
+  /**
+   * This method is called when a WebSocket message is received.
+   * Should mapping with corresponding `webSocketMessage` inside durable object
+   */
+  async webSocketMessage(websocket_: WebSocket, message: string | ArrayBuffer): Promise<void> {
+    const websocket = toDurableIteratorWebsocket(websocket_)
+
+    websocket['~orpc'].closeIfExpired()
+    if (websocket.readyState !== WebSocket.OPEN) {
+      return
+    }
+
+    // `websocket` auto close if expired on every send
+    await this.handler.message(websocket, message, {
+      context: {
+        websocket,
+        object: this.object,
+        resumeStorage: this.resumeStorage,
+        options: this.options,
+      },
+    })
+  }
+
+  /**
+   * This method is called when a WebSocket connection is closed.
+   * Should mapping with corresponding `webSocketClose` inside durable object
+   */
+  webSocketClose(websocket: WebSocket, _code: number, _reason: string, _wasClean: boolean): void | Promise<void> {
+    this.handler.close(websocket)
+  }
+}

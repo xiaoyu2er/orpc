@@ -9,8 +9,7 @@ export interface EventResumeStorageOptions extends StandardRPCJsonSerializerOpti
    * The number of seconds to retain events for resume capability.
    * Used for replaying missed events when clients reconnect.
    *
-   * @info Set to 0 to disable resume functionality.
-   * @default 300 (5 minutes)
+   * @default 0 (disabled)
    */
   resumeRetentionSeconds?: number
 
@@ -18,7 +17,7 @@ export interface EventResumeStorageOptions extends StandardRPCJsonSerializerOpti
    * Prefix for the resume storage table schema.
    * This is used to avoid naming conflicts with other tables in the same Durable Object.
    *
-   * @default 'orpc:resume:'
+   * @default 'orpc:durable-iterator:resume:'
    */
   resumeTablePrefix?: string
 }
@@ -43,8 +42,8 @@ export class EventResumeStorage<TEventPayload extends object> {
     private readonly durableState: DurableObjectState,
     options: EventResumeStorageOptions = {},
   ) {
-    this.retentionSeconds = options.resumeRetentionSeconds ?? 60 * 5 // 5 minutes
-    this.schemaPrefix = options.resumeTablePrefix ?? 'orpc:resume:'
+    this.retentionSeconds = options.resumeRetentionSeconds ?? 0 // disabled
+    this.schemaPrefix = options.resumeTablePrefix ?? 'orpc:durable-iterator:resume:'
     this.serializer = new StandardRPCJsonSerializer(options)
 
     if (this.isEnabled) {

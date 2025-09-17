@@ -6,7 +6,7 @@ export type TokenAtt = JsonValue | undefined
 export interface DurableIteratorObjectDef<
   TEventPayload extends object,
 > {
-  eventPayload?: { type: TEventPayload }
+  '~eventPayloadType'?: { type: TEventPayload }
 }
 
 export interface DurableIteratorObject<

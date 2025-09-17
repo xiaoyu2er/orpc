@@ -1,163 +1,64 @@
-import type { StandardRPCHandlerOptions } from '@orpc/server/standard'
-import type {
-  DurableIteratorObject as IDurableIteratorObject,
-  DurableIteratorObjectDef as IDurableIteratorObjectDef,
-} from '../object'
-import type { DurableIteratorObjectRouterContext } from './handler'
+import type { DurableIteratorObject as IDurableIteratorObject } from '../object'
+import type { DurableIteratorObjectHandlerOptions, PublishEventOptions } from './handler'
 import type { DurableIteratorObjectState } from './object-state'
-import type { EventResumeStorageOptions } from './resume-storage'
-import { encodeHibernationRPCEvent, HibernationPlugin } from '@orpc/server/hibernation'
-import { RPCHandler } from '@orpc/server/websocket'
-import { toArray } from '@orpc/shared'
 import { DurableObject } from 'cloudflare:workers'
-import { DURABLE_ITERATOR_TOKEN_PARAM } from '../consts'
-import { parseToken } from '../schemas'
-import { DurableIteratorRouter } from './handler'
-import { createDurableIteratorObjectState } from './object-state'
-import { EventResumeStorage } from './resume-storage'
-import { toDurableIteratorWebsocket } from './websocket'
-
-export interface DurableIteratorObjectOptions
-  extends StandardRPCHandlerOptions<DurableIteratorObjectRouterContext>,
-  EventResumeStorageOptions {
-}
-
-export interface PublishEventOptions {
-  /**
-   * Restrict the event to a specific set of websockets.
-   *
-   * Use this when security is important — only the listed websockets
-   * will ever receive the event. Newly connected websockets are not
-   * included unless explicitly added here.
-   */
-  targets?: WebSocket[]
-
-  /**
-   * Exclude certain websockets from receiving the event.
-   *
-   * Use this when broadcasting widely but skipping a few clients
-   * (e.g., the sender). Newly connected websockets may still receive
-   * the event if not listed here, so this is less strict than `targets`.
-   */
-  exclude?: WebSocket[]
-}
-
-export interface DurableIteratorObjectDef<
-  TEventPayload extends object,
-> extends IDurableIteratorObjectDef<TEventPayload> {
-  handler: RPCHandler<DurableIteratorObjectRouterContext>
-  resumeStorage: EventResumeStorage<TEventPayload>
-  options: DurableIteratorObjectOptions
-}
+import { DurableIteratorObjectHandler } from './handler'
 
 export class DurableIteratorObject<
   TEventPayload extends object,
   TEnv = unknown,
 > extends DurableObject<TEnv> implements IDurableIteratorObject<TEventPayload> {
-  '~orpc': DurableIteratorObjectDef<TEventPayload>
+  '~orpc': DurableIteratorObjectHandler<TEventPayload>
 
+  /**
+   * Proxied `.getWebSockets` method, ensure you don't accidentally change internal websocket attachments
+   */
   protected override ctx: DurableIteratorObjectState
 
   constructor(
     ctx: DurableObjectState,
     env: TEnv,
-    options: DurableIteratorObjectOptions = {},
+    options: DurableIteratorObjectHandlerOptions = {},
   ) {
     super(ctx, env)
-
-    this.ctx = createDurableIteratorObjectState(ctx)
-
-    const resumeStorage = new EventResumeStorage<TEventPayload>(ctx, options)
-
-    const handler = new RPCHandler(DurableIteratorRouter, {
-      ...options,
-      plugins: [
-        ...toArray(options.plugins),
-        new HibernationPlugin(),
-      ],
-    })
-
-    this['~orpc'] = {
-      options,
-      resumeStorage,
-      handler,
-    }
-  }
-
-  /**
-   * Internally used to upgrade the WebSocket connection
-   *
-   * @warning No verification is done here, you should verify the token payload before calling this method.
-   */
-  override async fetch(request: Request): Promise<Response> {
-    const url = new URL(request.url)
-    const token = url.searchParams.getAll(DURABLE_ITERATOR_TOKEN_PARAM).at(-1)
-    const payload = parseToken(token)
-
-    const { '0': client, '1': server } = new WebSocketPair()
-
-    this.ctx.acceptWebSocket(server)
-    toDurableIteratorWebsocket(server)['~orpc'].serializeTokenPayload(payload)
-
-    return new Response(null, {
-      status: 101,
-      webSocket: client,
-    })
-  }
-
-  /**
-   * Internally used to handle WebSocket messages
-   *
-   * @info This method
-   */
-  override async webSocketMessage(websocket_: WebSocket, message: string | ArrayBuffer): Promise<void> {
-    const websocket = toDurableIteratorWebsocket(websocket_)
-
-    websocket['~orpc'].closeIfExpired()
-    if (websocket.readyState !== WebSocket.OPEN) {
-      return
-    }
-
-    // `websocket` auto close if expired on every send
-    await this['~orpc'].handler.message(websocket, message, {
-      context: {
-        websocket,
-        object: this,
-        resumeStorage: this['~orpc'].resumeStorage,
-        options: this['~orpc'].options,
-      },
-    })
-  }
-
-  override webSocketClose(websocket: WebSocket, _code: number, _reason: string, _wasClean: boolean): void | Promise<void> {
-    this['~orpc'].handler.close(websocket)
+    this['~orpc'] = new DurableIteratorObjectHandler(ctx, this, options)
+    this.ctx = this['~orpc'].ctx
   }
 
   /**
    * Publish an event to clients
    */
   publishEvent(payload: TEventPayload, options: PublishEventOptions = {}): void {
-    const targets = options.targets?.map(ws => toDurableIteratorWebsocket(ws))
-    const exclude = options.exclude?.map(ws => toDurableIteratorWebsocket(ws))
+    return this['~orpc'].publishEvent(payload, options)
+  }
 
-    this['~orpc'].resumeStorage.store(payload, { targets, exclude })
+  /**
+   * Upgrades websocket connection
+   *
+   * @info You can safety intercept non-upgrade requests
+   * @warning No verification is done here, you should verify the token payload before calling this method.
+   */
+  override fetch(request: Request): Promise<Response> {
+    return this['~orpc'].fetch(request)
+  }
 
-    const excludeIds = exclude?.map(ws => ws['~orpc'].deserializeTokenPayload().id)
-    const fallbackTargets = targets ?? this.ctx.getWebSockets().map(ws => toDurableIteratorWebsocket(ws))
+  /**
+   * Handle WebSocket messages
+   *
+   * @warning Use `toDurableIteratorWebsocket` to proxy the WebSocket when interacting
+   *          to avoid accidentally modifying internal attachments.
+   */
+  override webSocketMessage(websocket: WebSocket, message: string | ArrayBuffer): Promise<void> {
+    return this['~orpc'].webSocketMessage(websocket, message)
+  }
 
-    for (const ws of fallbackTargets) {
-      if (excludeIds?.includes(ws['~orpc'].deserializeTokenPayload().id)) {
-        continue
-      }
-
-      const hibernationId = ws['~orpc'].deserializeHibernationId()
-
-      // Maybe the connection not finished the subscription process yet
-      if (typeof hibernationId !== 'string') {
-        continue
-      }
-
-      ws.send(encodeHibernationRPCEvent(hibernationId, payload, this['~orpc'].options))
-    }
+  /**
+   * Handle WebSocket close event
+   *
+   * @warning Use `toDurableIteratorWebsocket` to proxy the WebSocket when interacting
+   *          to avoid accidentally modifying internal attachments.
+   */
+  override webSocketClose(websocket: WebSocket, code: number, reason: string, wasClean: boolean): void | Promise<void> {
+    return this['~orpc'].webSocketClose(websocket, code, reason, wasClean)
   }
 }

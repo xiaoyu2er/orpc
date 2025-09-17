@@ -1,6 +1,6 @@
 import type { ClientContext, ClientLink } from '@orpc/client'
 import type { ClientRetryPluginContext } from '@orpc/client/plugins'
-import type { StandardLinkOptions, StandardLinkPlugin } from '@orpc/client/standard'
+import type { StandardLinkInterceptorOptions, StandardLinkOptions, StandardLinkPlugin } from '@orpc/client/standard'
 import type { RPCLinkOptions } from '@orpc/client/websocket'
 import type { ContractRouterClient } from '@orpc/contract'
 import type { Promisable, Value } from '@orpc/shared'
@@ -20,11 +20,18 @@ export interface DurableIteratorLinkPluginContext {
   isDurableIteratorResponse?: boolean
 }
 
-export interface DurableIteratorLinkPluginOptions extends Omit<RPCLinkOptions<object>, 'websocket'> {
+export interface DurableIteratorLinkPluginOptions<T extends ClientContext> extends Omit<RPCLinkOptions<object>, 'websocket'> {
   /**
    * The WebSocket URL to connect to the Durable Event Iterator Object.
    */
   url: Value<Promisable<string | URL>>
+
+  /**
+   * Determine whether to automatically refresh the token when it is expired.
+   *
+   * @default false
+   */
+  shouldRefreshTokenOnExpire?: Value<boolean, [tokenPayload: TokenPayload, options: StandardLinkInterceptorOptions<T>]>
 }
 
 /**
@@ -35,11 +42,13 @@ export class DurableIteratorLinkPlugin<T extends ClientContext> implements Stand
 
   order = 2_100_000 // make sure execute before the batch plugin and after client retry plugin
 
-  private readonly url: DurableIteratorLinkPluginOptions['url']
+  private readonly url: DurableIteratorLinkPluginOptions<T>['url']
+  private readonly shouldRefreshTokenOnExpire: Exclude<DurableIteratorLinkPluginOptions<T>['shouldRefreshTokenOnExpire'], undefined>
   private readonly linkOptions: Omit<RPCLinkOptions<object>, 'websocket'>
 
-  constructor({ url, ...options }: DurableIteratorLinkPluginOptions) {
+  constructor({ url, shouldRefreshTokenOnExpire, ...options }: DurableIteratorLinkPluginOptions<T>) {
     this.url = url
+    this.shouldRefreshTokenOnExpire = shouldRefreshTokenOnExpire ?? false
     this.linkOptions = options
   }
 
@@ -69,8 +78,9 @@ export class DurableIteratorLinkPlugin<T extends ClientContext> implements Stand
       let tokenAndPayload = this.validateToken(output, options.path)
       const websocket = new ReconnectableWebSocket(async () => {
         const notRoundedNowInSeconds = Date.now() / 1000
+        const enabled = value(this.shouldRefreshTokenOnExpire, tokenAndPayload.payload, options)
 
-        if (tokenAndPayload.payload.exp - notRoundedNowInSeconds <= 0) {
+        if (enabled && tokenAndPayload.payload.exp - notRoundedNowInSeconds <= 0) {
           const output = await next()
           tokenAndPayload = this.validateToken(output, options.path)
         }

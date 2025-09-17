@@ -10,6 +10,7 @@ const link = new RPCLink({
   plugins: [
     new DurableIteratorLinkPlugin({
       url: `${window.location.origin}/chat-room`,
+      shouldRefreshTokenOnExpire: true,
     }),
   ],
 })

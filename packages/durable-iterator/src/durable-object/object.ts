@@ -11,7 +11,7 @@ export class DurableIteratorObject<
   '~orpc': DurableIteratorObjectHandler<TEventPayload>
 
   /**
-   * Proxied `.getWebSockets` method, ensure you don't accidentally change internal websocket attachments
+   * Proxied, ensure you don't accidentally change internal state
    */
   protected override ctx: DurableIteratorObjectState
 
@@ -46,7 +46,7 @@ export class DurableIteratorObject<
    * Handle WebSocket messages
    *
    * @warning Use `toDurableIteratorWebsocket` to proxy the WebSocket when interacting
-   *          to avoid accidentally modifying internal attachments.
+   *          to avoid accidentally modifying internal state.
    */
   override webSocketMessage(websocket: WebSocket, message: string | ArrayBuffer): Promise<void> {
     return this['~orpc'].webSocketMessage(websocket, message)
@@ -56,7 +56,7 @@ export class DurableIteratorObject<
    * Handle WebSocket close event
    *
    * @warning Use `toDurableIteratorWebsocket` to proxy the WebSocket when interacting
-   *          to avoid accidentally modifying internal attachments.
+   *          to avoid accidentally modifying internal state.
    */
   override webSocketClose(websocket: WebSocket, code: number, reason: string, wasClean: boolean): void | Promise<void> {
     return this['~orpc'].webSocketClose(websocket, code, reason, wasClean)

@@ -86,6 +86,7 @@ export interface PublishEventOptions {
 export interface DurableIteratorObjectHandlerOptions extends StandardRPCHandlerOptions<DurableIteratorObjectRouterContext>, EventResumeStorageOptions {
   /**
    * Called after a client successfully subscribes to the main iterator.
+   * You can start sending events to the client here.
    *
    * @param websocket Corresponding WebSocket connection.
    * @param lastEventId Can be `undefined` if this is the first connection (not a resumed session).
@@ -100,6 +101,9 @@ export class DurableIteratorObjectHandler<
   private readonly handler: RPCHandler<DurableIteratorObjectRouterContext>
   private readonly resumeStorage: EventResumeStorage<TEventPayload>
 
+  /**
+   * Proxied, ensure you don't accidentally change internal state
+   */
   ctx: DurableIteratorObjectState
 
   constructor(

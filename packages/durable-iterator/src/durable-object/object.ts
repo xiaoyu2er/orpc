@@ -142,10 +142,11 @@ export class DurableIteratorObject<
 
     this['~orpc'].resumeStorage.store(payload, { targets, exclude })
 
+    const excludeIds = exclude?.map(ws => ws['~orpc'].deserializeTokenPayload().id)
     const fallbackTargets = targets ?? this.ctx.getWebSockets().map(ws => toDurableIteratorWebsocket(ws))
 
     for (const ws of fallbackTargets) {
-      if (exclude?.some(excluded => excluded['~orpc'].original === ws['~orpc'].original)) {
+      if (excludeIds?.includes(ws['~orpc'].deserializeTokenPayload().id)) {
         continue
       }
 

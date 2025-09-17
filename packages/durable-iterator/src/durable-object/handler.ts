@@ -132,7 +132,8 @@ export class DurableIteratorObjectHandler<
     const targets = options.targets?.map(ws => toDurableIteratorWebsocket(ws))
     const exclude = options.exclude?.map(ws => toDurableIteratorWebsocket(ws))
 
-    this.resumeStorage.store(payload, { targets, exclude })
+    // update payload metadata
+    payload = this.resumeStorage.store(payload, { targets, exclude })
 
     const excludeIds = exclude?.map(ws => ws['~orpc'].deserializeTokenPayload().id)
     const fallbackTargets = targets ?? this.ctx.getWebSockets().map(ws => toDurableIteratorWebsocket(ws))

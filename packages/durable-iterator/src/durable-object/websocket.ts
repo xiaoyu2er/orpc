@@ -120,8 +120,9 @@ export function toDurableIteratorWebsocket(original: WebSocket): DurableIterator
 
       if (prop === 'send') {
         const send: WebSocket['send'] = (data) => {
-          internal.closeIfExpired()
-          return original.send(data)
+          const result = original.send(data)
+          internal.closeIfExpired() // should close after send to avoid send after close error
+          return result
         }
 
         return send

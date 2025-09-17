@@ -123,7 +123,7 @@ export class EventResumeStorage<T extends object> {
      * so we cast to TEXT for safe resume ID comparison.
      */
     const resumeQuery = this.durableState.storage.sql.exec(`
-      SELECT CAST(id AS TEXT) as id, payload, targets, exclusions
+      SELECT CAST(id AS TEXT) as id, payload, target_ids, exclusion_ids
       FROM "${this.schemaPrefix}events"
       WHERE id > ?
       ORDER BY id ASC
@@ -132,8 +132,8 @@ export class EventResumeStorage<T extends object> {
     return resumeQuery
       .toArray()
       .filter((resumeRecord: Record<string, any>) => {
-        const resumeTargetIds = parseEmptyableJSON(resumeRecord.targets) as string[] | undefined
-        const resumeExclusionIds = parseEmptyableJSON(resumeRecord.exclusions) as string[] | undefined
+        const resumeTargetIds = parseEmptyableJSON(resumeRecord.target_ids) as string[] | undefined
+        const resumeExclusionIds = parseEmptyableJSON(resumeRecord.exclusion_ids) as string[] | undefined
 
         if (resumeTargetIds && !resumeTargetIds.includes(websocketId)) {
           return false

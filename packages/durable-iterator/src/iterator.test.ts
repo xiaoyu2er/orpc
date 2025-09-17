@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { getClientDurableIteratorToken } from './client'
-import { DurableIterator } from './event-iterator'
-import { verifyToken } from './schemas'
+import { DurableIterator } from './iterator'
+import { verifyDurableIteratorToken } from './schemas'
 
 describe('durableIterator', () => {
   const testChannel = 'test-channel'
@@ -31,7 +31,7 @@ describe('durableIterator', () => {
 
       const token = getClientDurableIteratorToken(clientIterator)
       expect(token).toBeDefined()
-      const payload = await verifyToken(testSigningKey, token!)
+      const payload = await verifyDurableIteratorToken(testSigningKey, token!)
 
       expect(payload?.chn).toBe(testChannel)
       expect(payload?.att).toEqual({ userId: 'user123' })
@@ -52,7 +52,7 @@ describe('durableIterator', () => {
       const iterator = new DurableIterator(testChannel, testSigningKey, options) as any
       const clientIterator = await iterator
       const token = getClientDurableIteratorToken(clientIterator)
-      const payload = await verifyToken(testSigningKey, token!)
+      const payload = await verifyDurableIteratorToken(testSigningKey, token!)
 
       expect(payload?.exp).toEqual(Math.floor(date.getTime() / 1000) + 3600)
     })

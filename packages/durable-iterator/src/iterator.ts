@@ -5,7 +5,7 @@ import type { DurableIteratorObject, InferDurableIteratorObjectRPC } from './obj
 import { AsyncIteratorClass, resolveMaybeOptionalOptions } from '@orpc/shared'
 import { createClientDurableIterator } from './client'
 import { DurableIteratorError } from './error'
-import { signToken } from './schemas'
+import { signDurableIteratorToken } from './schemas'
 
 export interface DurableIteratorOptions<
   T extends DurableIteratorObject<any>,
@@ -80,7 +80,7 @@ export class DurableIterator<
 
       const nowInSeconds = Math.floor(Date.now() / 1000)
 
-      const token = await signToken(this.signingKey, {
+      const token = await signDurableIteratorToken(this.signingKey, {
         id: this.options.id ?? crypto.randomUUID(),
         chn: this.chn,
         att: this.options.att,
@@ -100,7 +100,7 @@ export class DurableIterator<
       }
 
       const durableIterator = createClientDurableIterator(iterator, link, {
-        token,
+        token: () => token,
       })
 
       return durableIterator as ClientDurableIterator<T, RPC>

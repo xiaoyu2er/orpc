@@ -2,6 +2,7 @@ import type { Context, Router } from '@orpc/server'
 import type { StandardHandlerOptions, StandardHandlerPlugin } from '@orpc/server/standard'
 import { getClientDurableIteratorToken } from './client'
 import { DURABLE_ITERATOR_PLUGIN_HEADER_KEY, DURABLE_ITERATOR_PLUGIN_HEADER_VALUE } from './consts'
+import { DurableIteratorError } from './error'
 
 export interface DurableIteratorHandlerPluginContext {
   isClientDurableIteratorOutput?: boolean
@@ -52,7 +53,7 @@ export class DurableIteratorHandlerPlugin<T extends Context> implements Standard
       const pluginContext = options.context[this.CONTEXT_SYMBOL] as DurableIteratorHandlerPluginContext | undefined
 
       if (!pluginContext) {
-        throw new TypeError('[DurableIteratorHandlerPlugin] Plugin context has been corrupted or modified by another plugin or interceptor')
+        throw new DurableIteratorError('Plugin context has been corrupted or modified by another plugin or interceptor')
       }
 
       const output = await options.next()

@@ -1,4 +1,4 @@
-import type { TokenPayload } from '../schemas'
+import type { DurableIteratorTokenPayload } from '../schemas'
 import { DurableIteratorError } from '../error'
 
 export interface DurableIteratorWebsocketInternal {
@@ -24,14 +24,14 @@ export interface DurableIteratorWebsocketInternal {
    *
    * @warning this method should be called when client established connection
    */
-  serializeTokenPayload(payload: TokenPayload): void
+  serializeTokenPayload(payload: DurableIteratorTokenPayload): void
 
   /**
    * Deserialize the payload attached when client connected
    *
    * @warning this method assumes that the token payload is already set when client established connection
    */
-  deserializeTokenPayload(): TokenPayload
+  deserializeTokenPayload(): DurableIteratorTokenPayload
 
   /**
    * Close the websocket connection if expired

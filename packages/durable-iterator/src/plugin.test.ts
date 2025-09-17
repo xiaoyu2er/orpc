@@ -2,7 +2,7 @@ import { os } from '@orpc/server'
 import { StandardRPCHandler } from '@orpc/server/standard'
 import { getClientDurableIteratorToken } from './client'
 import { DURABLE_ITERATOR_PLUGIN_HEADER_KEY, DURABLE_ITERATOR_PLUGIN_HEADER_VALUE } from './consts'
-import { DurableIterator } from './event-iterator'
+import { DurableIterator } from './iterator'
 import { DurableIteratorHandlerPlugin } from './plugin'
 
 beforeEach(() => {

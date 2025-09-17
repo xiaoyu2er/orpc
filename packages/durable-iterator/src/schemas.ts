@@ -3,9 +3,9 @@ import { parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
 import * as v from 'valibot'
 import { DurableIteratorError } from './error'
 
-export type TokenPayload = v.InferOutput<typeof TokenPayloadSchema>
+export type DurableIteratorTokenPayload = v.InferOutput<typeof DurableIteratorTokenPayloadSchema>
 
-const TokenPayloadSchema = v.object({
+const DurableIteratorTokenPayloadSchema = v.object({
   id: v.pipe(v.string(), v.description('Unique identifier per client')),
   chn: v.pipe(v.string(), v.description('Channel name')),
   att: v.pipe(v.optional(v.unknown()), v.description('Attachment')),
@@ -16,18 +16,18 @@ const TokenPayloadSchema = v.object({
 /**
  * Signs and encodes a token payload.
  */
-export function signToken(secret: string, payload: TokenPayload): Promise<string> {
+export function signDurableIteratorToken(secret: string, payload: DurableIteratorTokenPayload): Promise<string> {
   return sign(stringifyJSON(payload), secret)
 }
 
 /**
  * Verifies a token and returns the payload if valid.
  */
-export async function verifyToken(secret: string, token: string): Promise<TokenPayload | undefined> {
+export async function verifyDurableIteratorToken(secret: string, token: string): Promise<DurableIteratorTokenPayload | undefined> {
   try {
     const payload = parseEmptyableJSON(await unsign(token, secret))
 
-    if (!v.is(TokenPayloadSchema, payload)) {
+    if (!v.is(DurableIteratorTokenPayloadSchema, payload)) {
       return undefined
     }
 
@@ -48,10 +48,10 @@ export async function verifyToken(secret: string, token: string): Promise<TokenP
  *
  * @throws if invalid format
  */
-export function parseToken(token: string | null | undefined): TokenPayload {
+export function parseDurableIteratorToken(token: string | null | undefined): DurableIteratorTokenPayload {
   try {
     const payload = parseEmptyableJSON(getSignedValue(token))
-    return v.parse(TokenPayloadSchema, payload)
+    return v.parse(DurableIteratorTokenPayloadSchema, payload)
   }
   catch (error) {
     throw new DurableIteratorError('Invalid token payload', { cause: error })

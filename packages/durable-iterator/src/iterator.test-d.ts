@@ -1,7 +1,7 @@
 import type { Client } from '@orpc/client'
 import type { ClientDurableIterator } from './client'
 import type { DurableIteratorObject } from './object'
-import { DurableIterator } from './event-iterator'
+import { DurableIterator } from './iterator'
 
 describe('DurableIteratorOptions', () => {
   it('optional att if it undefinable', () => {

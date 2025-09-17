@@ -1,7 +1,7 @@
 import type { DurableIteratorTokenPayload } from '../schemas'
 import { AsyncIteratorClass, isAsyncIteratorObject } from '@orpc/shared'
 import { SignJWT } from 'jose'
-import { createClientDurableIterator } from './event-iterator'
+import { createClientDurableIterator } from './iterator'
 
 describe('createClientDurableIterator', async () => {
   const signingKey = new TextEncoder().encode('some-secret-key')

@@ -1,10 +1,10 @@
 import type { Client, ClientLink, NestedClient, ThrowableError } from '@orpc/client'
 import type { ClientRetryPluginContext } from '@orpc/client/plugins'
-import type { AsyncIteratorClass, Value } from '@orpc/shared'
+import type { AsyncIteratorClass } from '@orpc/shared'
 import type { DurableIteratorObject, InferDurableIteratorObjectRPC } from '../object'
 import { createORPCClient } from '@orpc/client'
-import { isAsyncIteratorObject, value } from '@orpc/shared'
-import { parseToken } from '../schemas'
+import { isAsyncIteratorObject } from '@orpc/shared'
+import { parseDurableIteratorToken } from '../schemas'
 
 const CLIENT_DURABLE_ITERATOR_TOKEN_SYMBOL = Symbol('ORPC_CLIENT_DURABLE_ITERATOR_TOKEN')
 
@@ -32,9 +32,9 @@ export type ClientDurableIterator<
 export interface CreateClientDurableIteratorOptions {
   /**
    * The token used to authenticate the client.
-   * Can be function for dynamic token.
+   * this is a function because the token is lazy, and dynamic-able
    */
-  token: Value<string>
+  token: () => string
 }
 
 export function createClientDurableIterator<
@@ -47,7 +47,7 @@ export function createClientDurableIterator<
 ): ClientDurableIterator<T, RPC> {
   const proxy = new Proxy(iterator, {
     get(target, prop) {
-      const { rpc: allowMethods } = parseToken(value(options.token))
+      const { rpc: allowMethods } = parseDurableIteratorToken(options.token())
 
       if (prop === CLIENT_DURABLE_ITERATOR_TOKEN_SYMBOL) {
         return options.token

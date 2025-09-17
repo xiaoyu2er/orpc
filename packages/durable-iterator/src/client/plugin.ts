@@ -4,8 +4,8 @@ import type { StandardLinkInterceptorOptions, StandardLinkOptions, StandardLinkP
 import type { RPCLinkOptions } from '@orpc/client/websocket'
 import type { ContractRouterClient } from '@orpc/contract'
 import type { Promisable, Value } from '@orpc/shared'
-import type { TokenPayload } from '../schemas'
-import type { DurableIteratorContract } from './contract'
+import type { DurableIteratorTokenPayload } from '../schemas'
+import type { durableIteratorContract } from './contract'
 import { createORPCClient } from '@orpc/client'
 import { ClientRetryPlugin } from '@orpc/client/plugins'
 import { RPCLink } from '@orpc/client/websocket'
@@ -13,8 +13,8 @@ import { AsyncIteratorClass, toArray, value } from '@orpc/shared'
 import { WebSocket as ReconnectableWebSocket } from 'partysocket'
 import { DURABLE_ITERATOR_PLUGIN_HEADER_KEY, DURABLE_ITERATOR_PLUGIN_HEADER_VALUE, DURABLE_ITERATOR_TOKEN_PARAM } from '../consts'
 import { DurableIteratorError } from '../error'
-import { parseToken } from '../schemas'
-import { createClientDurableIterator } from './event-iterator'
+import { parseDurableIteratorToken } from '../schemas'
+import { createClientDurableIterator } from './iterator'
 
 export interface DurableIteratorLinkPluginContext {
   isDurableIteratorResponse?: boolean
@@ -31,7 +31,7 @@ export interface DurableIteratorLinkPluginOptions<T extends ClientContext> exten
    *
    * @default false
    */
-  shouldRefreshTokenOnExpire?: Value<boolean, [tokenPayload: TokenPayload, options: StandardLinkInterceptorOptions<T>]>
+  shouldRefreshTokenOnExpire?: Value<boolean, [tokenPayload: DurableIteratorTokenPayload, options: StandardLinkInterceptorOptions<T>]>
 }
 
 /**
@@ -90,7 +90,7 @@ export class DurableIteratorLinkPlugin<T extends ClientContext> implements Stand
         return url.toString()
       })
 
-      const durableClient: ContractRouterClient<typeof DurableIteratorContract, ClientRetryPluginContext>
+      const durableClient: ContractRouterClient<typeof durableIteratorContract, ClientRetryPluginContext>
         = createORPCClient(new RPCLink<ClientRetryPluginContext>({
           ...this.linkOptions,
           websocket,
@@ -140,7 +140,6 @@ export class DurableIteratorLinkPlugin<T extends ClientContext> implements Stand
         cancelableIterator,
         link,
         {
-          // should be a function because token and payload can change over time
           token: () => tokenAndPayload.token,
         },
       )
@@ -152,7 +151,7 @@ export class DurableIteratorLinkPlugin<T extends ClientContext> implements Stand
       const pluginContext = options.context[this.CONTEXT_SYMBOL] as DurableIteratorLinkPluginContext | undefined
 
       if (!pluginContext) {
-        throw new TypeError('[DurableIteratorLinkPlugin] Plugin context has been corrupted or modified by another plugin or interceptor')
+        throw new DurableIteratorError('Plugin context has been corrupted or modified by another plugin or interceptor')
       }
 
       const response = await options.next()
@@ -163,13 +162,13 @@ export class DurableIteratorLinkPlugin<T extends ClientContext> implements Stand
     })
   }
 
-  private validateToken(token: unknown, path: readonly string[]): { token: string, payload: TokenPayload } {
+  private validateToken(token: unknown, path: readonly string[]): { token: string, payload: DurableIteratorTokenPayload } {
     if (typeof token !== 'string') {
       throw new DurableIteratorError(`Expected valid token for procedure ${path.join('.')}`)
     }
 
     try {
-      return { token, payload: parseToken(token) }
+      return { token, payload: parseDurableIteratorToken(token) }
     }
     catch (error) {
       throw new DurableIteratorError(`Expected valid token for procedure ${path.join('.')}`, { cause: error })

@@ -1,2 +1,2 @@
-export * from './event-iterator'
+export * from './iterator'
 export * from './plugin'

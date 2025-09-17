@@ -9,14 +9,14 @@ import { implement, ORPCError } from '@orpc/server'
 import { encodeHibernationRPCEvent, HibernationEventIterator, HibernationPlugin } from '@orpc/server/hibernation'
 import { RPCHandler } from '@orpc/server/websocket'
 import { get, toArray } from '@orpc/shared'
-import { DurableIteratorContract } from '../client/contract'
+import { durableIteratorContract } from '../client/contract'
 import { DURABLE_ITERATOR_TOKEN_PARAM } from '../consts'
-import { parseToken } from '../schemas'
+import { parseDurableIteratorToken } from '../schemas'
 import { createDurableIteratorObjectState } from './object-state'
 import { EventResumeStorage } from './resume-storage'
 import { toDurableIteratorWebsocket } from './websocket'
 
-const os = implement(DurableIteratorContract)
+const os = implement(durableIteratorContract)
 
 type DurableIteratorObjectRouterContext = {
   object: DurableObject<any>
@@ -161,7 +161,7 @@ export class DurableIteratorObjectHandler<
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url)
     const token = url.searchParams.getAll(DURABLE_ITERATOR_TOKEN_PARAM).at(-1)
-    const payload = parseToken(token)
+    const payload = parseDurableIteratorToken(token)
 
     const { '0': client, '1': server } = new WebSocketPair()
 

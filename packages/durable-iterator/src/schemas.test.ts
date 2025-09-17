@@ -1,54 +1,54 @@
-import type { TokenPayload } from './schemas'
+import type { DurableIteratorTokenPayload } from './schemas'
 import { sign } from '@orpc/server/helpers'
 import { describe, expect, it } from 'vitest'
-import { parseToken, signToken, verifyToken } from './schemas'
+import { parseDurableIteratorToken, signDurableIteratorToken, verifyDurableIteratorToken } from './schemas'
 
 describe('signToken', () => {
   it('should sign a token payload and return a string', async () => {
-    const payload: TokenPayload = {
+    const payload: DurableIteratorTokenPayload = {
       id: 'client-123',
       chn: 'test-channel',
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 3600,
     }
 
-    const token = await signToken('secret-key', payload)
+    const token = await signDurableIteratorToken('secret-key', payload)
 
     expect(typeof token).toBe('string')
     expect(token.length).toBeGreaterThan(0)
   })
 
   it('should produce different tokens for different payloads', async () => {
-    const payload1: TokenPayload = {
+    const payload1: DurableIteratorTokenPayload = {
       id: 'client-1',
       chn: 'channel-1',
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 3600,
     }
 
-    const payload2: TokenPayload = {
+    const payload2: DurableIteratorTokenPayload = {
       id: 'client-2',
       chn: 'channel-2',
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 3600,
     }
 
-    const token1 = await signToken('secret-key', payload1)
-    const token2 = await signToken('secret-key', payload2)
+    const token1 = await signDurableIteratorToken('secret-key', payload1)
+    const token2 = await signDurableIteratorToken('secret-key', payload2)
 
     expect(token1).not.toBe(token2)
   })
 
   it('should produce different tokens for different secrets', async () => {
-    const payload: TokenPayload = {
+    const payload: DurableIteratorTokenPayload = {
       id: 'client-123',
       chn: 'test-channel',
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 3600,
     }
 
-    const token1 = await signToken('secret-1', payload)
-    const token2 = await signToken('secret-2', payload)
+    const token1 = await signDurableIteratorToken('secret-1', payload)
+    const token2 = await signDurableIteratorToken('secret-2', payload)
 
     expect(token1).not.toBe(token2)
   })
@@ -56,7 +56,7 @@ describe('signToken', () => {
 
 describe('verifyToken', () => {
   it('should verify a valid token and return the payload', async () => {
-    const payload: TokenPayload = {
+    const payload: DurableIteratorTokenPayload = {
       id: 'client-123',
       chn: 'test-channel',
       att: { userId: 'user-456' },
@@ -65,43 +65,43 @@ describe('verifyToken', () => {
       exp: Math.floor(Date.now() / 1000) + 3600,
     }
 
-    const token = await signToken('secret-key', payload)
-    const verifiedPayload = await verifyToken('secret-key', token)
+    const token = await signDurableIteratorToken('secret-key', payload)
+    const verifiedPayload = await verifyDurableIteratorToken('secret-key', token)
 
     expect(verifiedPayload).toEqual(payload)
   })
 
   it('should return undefined for an expired token', async () => {
-    const payload: TokenPayload = {
+    const payload: DurableIteratorTokenPayload = {
       id: 'client-123',
       chn: 'test-channel',
       iat: Math.floor(Date.now() / 1000) - 7200, // 2 hours ago
       exp: Math.floor(Date.now() / 1000) - 3600, // 1 hour ago (expired)
     }
 
-    const token = await signToken('secret-key', payload)
-    const verifiedPayload = await verifyToken('secret-key', token)
+    const token = await signDurableIteratorToken('secret-key', payload)
+    const verifiedPayload = await verifyDurableIteratorToken('secret-key', token)
 
     expect(verifiedPayload).toBeUndefined()
   })
 
   it('should return undefined for a token with wrong secret', async () => {
-    const payload: TokenPayload = {
+    const payload: DurableIteratorTokenPayload = {
       id: 'client-123',
       chn: 'test-channel',
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 3600,
     }
 
-    const token = await signToken('secret-key', payload)
-    const verifiedPayload = await verifyToken('wrong-secret', token)
+    const token = await signDurableIteratorToken('secret-key', payload)
+    const verifiedPayload = await verifyDurableIteratorToken('wrong-secret', token)
 
     expect(verifiedPayload).toBeUndefined()
   })
 
   it('should return undefined for an invalid token format', async () => {
     const invalidToken = 'invalid-token-format'
-    const verifiedPayload = await verifyToken('secret-key', invalidToken)
+    const verifiedPayload = await verifyDurableIteratorToken('secret-key', invalidToken)
 
     expect(verifiedPayload).toBeUndefined()
   })
@@ -116,32 +116,32 @@ describe('verifyToken', () => {
     }
 
     // We need to bypass type checking to create an invalid token
-    const token = await signToken('secret-key', invalidPayload as any)
-    const verifiedPayload = await verifyToken('secret-key', token)
+    const token = await signDurableIteratorToken('secret-key', invalidPayload as any)
+    const verifiedPayload = await verifyDurableIteratorToken('secret-key', token)
 
     expect(verifiedPayload).toBeUndefined()
   })
 
   it('should handle edge case where exp equals current time', async () => {
     const currentTime = Math.floor(Date.now() / 1000)
-    const payload: TokenPayload = {
+    const payload: DurableIteratorTokenPayload = {
       id: 'client-123',
       chn: 'test-channel',
       iat: currentTime,
       exp: currentTime, // expires exactly now
     }
 
-    const token = await signToken('secret-key', payload)
+    const token = await signDurableIteratorToken('secret-key', payload)
 
     // Since exp < Date.now() / 1000, it should be considered expired
-    const verifiedPayload = await verifyToken('secret-key', token)
+    const verifiedPayload = await verifyDurableIteratorToken('secret-key', token)
     expect(verifiedPayload).toBeUndefined()
   })
 
   it('should handle token with malformed JSON', async () => {
     // Create a token that will have malformed JSON when parsed
     const malformedToken = await sign('invalid-json', 'secret-key')
-    const verifiedPayload = await verifyToken('secret-key', malformedToken)
+    const verifiedPayload = await verifyDurableIteratorToken('secret-key', malformedToken)
 
     expect(verifiedPayload).toBeUndefined()
   })
@@ -149,7 +149,7 @@ describe('verifyToken', () => {
 
 describe('parseToken', () => {
   it('should parse a valid token and return the payload', async () => {
-    const payload: TokenPayload = {
+    const payload: DurableIteratorTokenPayload = {
       id: 'client-123',
       chn: 'test-channel',
       att: { userId: 'user-456' },
@@ -158,22 +158,22 @@ describe('parseToken', () => {
       exp: Math.floor(Date.now() / 1000) + 3600,
     }
 
-    const token = await signToken('secret-key', payload)
-    const parsedPayload = parseToken(token)
+    const token = await signDurableIteratorToken('secret-key', payload)
+    const parsedPayload = parseDurableIteratorToken(token)
 
     expect(parsedPayload).toEqual(payload)
   })
 
   it('should parse an expired token (does not check expiration)', async () => {
-    const payload: TokenPayload = {
+    const payload: DurableIteratorTokenPayload = {
       id: 'client-123',
       chn: 'test-channel',
       iat: Math.floor(Date.now() / 1000) - 7200,
       exp: Math.floor(Date.now() / 1000) - 3600, // expired
     }
 
-    const token = await signToken('secret-key', payload)
-    const parsedPayload = parseToken(token)
+    const token = await signDurableIteratorToken('secret-key', payload)
+    const parsedPayload = parseDurableIteratorToken(token)
 
     // parseToken should return the payload even if expired
     expect(parsedPayload).toEqual(payload)
@@ -182,7 +182,7 @@ describe('parseToken', () => {
   it('should throw error for invalid token format', () => {
     const invalidToken = 'invalid-token-format'
 
-    expect(() => parseToken(invalidToken)).toThrow()
+    expect(() => parseDurableIteratorToken(invalidToken)).toThrow()
   })
 
   it('should throw error for token with invalid payload structure', async () => {
@@ -194,15 +194,15 @@ describe('parseToken', () => {
       exp: Math.floor(Date.now() / 1000) + 3600,
     }
 
-    const token = await signToken('secret-key', invalidPayload as any)
+    const token = await signDurableIteratorToken('secret-key', invalidPayload as any)
 
-    expect(() => parseToken(token)).toThrow()
+    expect(() => parseDurableIteratorToken(token)).toThrow()
   })
 
   it('should throw error for token with malformed JSON', () => {
     const malformedToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.invalid-json.signature'
 
-    expect(() => parseToken(malformedToken)).toThrow()
+    expect(() => parseDurableIteratorToken(malformedToken)).toThrow()
   })
 
   it('should handle token with missing required fields', async () => {
@@ -211,15 +211,15 @@ describe('parseToken', () => {
       // missing required fields
     }
 
-    const token = await signToken('secret-key', incompletePayload as any)
+    const token = await signDurableIteratorToken('secret-key', incompletePayload as any)
 
-    expect(() => parseToken(token)).toThrow()
+    expect(() => parseDurableIteratorToken(token)).toThrow()
   })
 })
 
 describe('integration tests', () => {
   it('should handle complete sign -> verify -> parse flow', async () => {
-    const originalPayload: TokenPayload = {
+    const originalPayload: DurableIteratorTokenPayload = {
       id: 'client-123',
       chn: 'test-channel',
       att: { userId: 'user-456', role: 'admin' },
@@ -229,14 +229,14 @@ describe('integration tests', () => {
     }
 
     // Sign the token
-    const token = await signToken('secret-key', originalPayload)
+    const token = await signDurableIteratorToken('secret-key', originalPayload)
 
     // Verify the token
-    const verifiedPayload = await verifyToken('secret-key', token)
+    const verifiedPayload = await verifyDurableIteratorToken('secret-key', token)
     expect(verifiedPayload).toEqual(originalPayload)
 
     // Parse the token (without verification)
-    const parsedPayload = parseToken(token)
+    const parsedPayload = parseDurableIteratorToken(token)
     expect(parsedPayload).toEqual(originalPayload)
   })
 
@@ -260,7 +260,7 @@ describe('integration tests', () => {
       },
     }
 
-    const payload: TokenPayload = {
+    const payload: DurableIteratorTokenPayload = {
       id: 'client-123',
       chn: 'test-channel',
       att: complexAttachment,
@@ -268,8 +268,8 @@ describe('integration tests', () => {
       exp: Math.floor(Date.now() / 1000) + 3600,
     }
 
-    const token = await signToken('secret-key', payload)
-    const verifiedPayload = await verifyToken('secret-key', token)
+    const token = await signDurableIteratorToken('secret-key', payload)
+    const verifiedPayload = await verifyDurableIteratorToken('secret-key', token)
 
     expect(verifiedPayload).toEqual(payload)
     expect(verifiedPayload?.att).toEqual(complexAttachment)

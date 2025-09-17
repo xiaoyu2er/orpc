@@ -4,7 +4,7 @@ import { StandardRPCHandler } from '@orpc/server/standard'
 import { isAsyncIteratorObject } from '@orpc/shared'
 import { decodeRequestMessage, encodeResponseMessage, MessageType } from '@orpc/standard-server-peer'
 import { WebSocket as ReconnectableWebSocket } from 'partysocket'
-import { DurableIterator } from '../event-iterator'
+import { DurableIterator } from '../iterator'
 import { DurableIteratorHandlerPlugin } from '../plugin'
 import { DurableIteratorLinkPlugin } from './plugin'
 

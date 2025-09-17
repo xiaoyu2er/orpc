@@ -1,14 +1,14 @@
 import type { Interceptor } from '@orpc/shared'
 import type { DurableIteratorObject } from '.'
-import type { TokenPayload } from '../schemas'
+import type { DurableIteratorTokenPayload } from '../schemas'
 import { intercept, toArray } from '@orpc/shared'
 import { DURABLE_ITERATOR_TOKEN_PARAM } from '../consts'
-import { verifyToken } from '../schemas'
+import { verifyDurableIteratorToken } from '../schemas'
 
 export interface UpgradeDurableIteratorRequestOptions {
   signingKey: string
   namespace: DurableObjectNamespace<any>
-  interceptors?: Interceptor<{ payload: TokenPayload }, Promise<Response>>[]
+  interceptors?: Interceptor<{ payload: DurableIteratorTokenPayload }, Promise<Response>>[]
 }
 
 /**
@@ -35,7 +35,7 @@ export async function upgradeDurableIteratorRequest(
     })
   }
 
-  const payload = await verifyToken(options.signingKey, token)
+  const payload = await verifyDurableIteratorToken(options.signingKey, token)
 
   if (!payload) {
     return new Response('Invalid Token', {

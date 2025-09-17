@@ -110,6 +110,7 @@ export class DurableIteratorLinkPlugin<T extends ClientContext> implements Stand
         context: {
           retry: Number.POSITIVE_INFINITY,
         },
+        lastEventId: options.lastEventId, // we can use user provided lastEventId for initial connection
       })
       const cancelableIterator = new AsyncIteratorClass(
         () => iterator_.next(),

@@ -1,5 +1,4 @@
 import type { Client } from '@orpc/client'
-import type { EncodeHibernationRPCEventOptions } from '@orpc/server/hibernation'
 import type { StandardRPCHandlerOptions } from '@orpc/server/standard'
 import type { DurableObject } from 'cloudflare:workers'
 import type { DurableIteratorObjectDef } from '../object'
@@ -23,7 +22,7 @@ type DurableIteratorObjectRouterContext = {
   object: DurableObject<any>
   resumeStorage: EventResumeStorage<any>
   websocket: DurableIteratorWebsocket
-  options: EncodeHibernationRPCEventOptions
+  options: DurableIteratorObjectHandlerOptions
 }
 
 const base = os.$context<DurableIteratorObjectRouterContext>()
@@ -33,16 +32,16 @@ const router = base.router({
     return new HibernationEventIterator<any>((hibernationId) => {
       context.websocket['~orpc'].serializeHibernationId(hibernationId)
 
-      if (typeof lastEventId !== 'string') {
-        return
+      if (typeof lastEventId === 'string') {
+        const resumePayloads = context.resumeStorage.get(context.websocket, lastEventId)
+        for (const payload of resumePayloads) {
+          context.websocket.send(
+            encodeHibernationRPCEvent(hibernationId, payload, context.options),
+          )
+        }
       }
 
-      const resumePayloads = context.resumeStorage.get(context.websocket, lastEventId)
-      for (const payload of resumePayloads) {
-        context.websocket.send(
-          encodeHibernationRPCEvent(hibernationId, payload, context.options),
-        )
-      }
+      context.options.onSubscribed?.(context.websocket, lastEventId)
     })
   }),
 
@@ -85,6 +84,13 @@ export interface PublishEventOptions {
 }
 
 export interface DurableIteratorObjectHandlerOptions extends StandardRPCHandlerOptions<DurableIteratorObjectRouterContext>, EventResumeStorageOptions {
+  /**
+   * Called after a client successfully subscribes to the main iterator.
+   *
+   * @param websocket Corresponding WebSocket connection.
+   * @param lastEventId Can be `undefined` if this is the first connection (not a resumed session).
+   */
+  onSubscribed?: (websocket: DurableIteratorWebsocket, lastEventId: string | undefined) => void
 }
 
 export class DurableIteratorObjectHandler<

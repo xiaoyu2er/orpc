@@ -9,6 +9,7 @@ import { DurableIteratorError } from '../error'
 import { DurableIterator } from '../iterator'
 import { DurableIteratorHandlerPlugin } from '../plugin'
 import { parseDurableIteratorToken } from '../schemas'
+import { getClientDurableIteratorToken } from './iterator'
 import { DurableIteratorLinkPlugin } from './plugin'
 
 vi.mock('partysocket', () => {
@@ -167,13 +168,17 @@ describe('durableIteratorLinkPlugin', async () => {
       const urlProvider = vi.mocked(ReconnectableWebSocket).mock.calls[0]![0] as any
 
       const url1 = await urlProvider()
+      const token1 = getClientDurableIteratorToken(output)
+      expect(token1).toBeTypeOf('string')
       expect(durableIteratorHandler).toHaveBeenCalledTimes(1)
+
       expect(await urlProvider()).toEqual(url1)
+      expect(getClientDurableIteratorToken(output)).toEqual(token1)
       expect(durableIteratorHandler).toHaveBeenCalledTimes(1) // not expired yet
 
       await sleep(1000)
-      const url2 = await urlProvider()
-      expect(url1).not.toEqual(url2)
+      expect(await urlProvider()).not.toEqual(url1)
+      expect(getClientDurableIteratorToken(output)).not.toEqual(token1)
       expect(durableIteratorHandler).toHaveBeenCalledTimes(2)
 
       expect(shouldRefreshTokenOnExpire).toHaveBeenCalledTimes(1)

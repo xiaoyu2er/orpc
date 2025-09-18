@@ -4,6 +4,7 @@ import { StandardRPCHandler } from '@orpc/server/standard'
 import { isAsyncIteratorObject } from '@orpc/shared'
 import { decodeRequestMessage, encodeResponseMessage, MessageType } from '@orpc/standard-server-peer'
 import { WebSocket as ReconnectableWebSocket } from 'partysocket'
+import { DurableIteratorError } from '../error'
 import { DurableIterator } from '../iterator'
 import { DurableIteratorHandlerPlugin } from '../plugin'
 import { DurableIteratorLinkPlugin } from './plugin'
@@ -26,9 +27,7 @@ describe('durableIteratorLinkPlugin', async () => {
   const interceptor = vi.fn(({ next }) => next())
 
   const handler = new StandardRPCHandler({
-    durableIterator: os.handler(() => new DurableIterator<any, any>('some-room', {
-      signingKey: 'key',
-    }).rpc('getUser', 'sendMessage')),
+    durableIterator: os.handler(() => new DurableIterator<any, any>('some-room', 'signing-key').rpc('getUser', 'sendMessage')),
     regularResponse: os.handler(() => 'regular response'),
   }, {
     plugins: [
@@ -67,11 +66,13 @@ describe('durableIteratorLinkPlugin', async () => {
   it('should throw error if plugin context is corrupted', async () => {
     interceptor.mockImplementationOnce(({ next, ...options }) => next({ ...options, context: {} }))
 
-    await expect(link.call(['regularResponse'], {}, { context: {} })).rejects.toThrow('[DurableIteratorLinkPlugin] Plugin context has been corrupted or modified by another plugin or interceptor')
+    await expect(link.call(['regularResponse'], {}, { context: {} })).rejects.toThrow(
+      new DurableIteratorError('Plugin context has been corrupted or modified by another plugin or interceptor'),
+    )
   })
 
-  describe('resolve an client durable event iterator', () => {
-    it('event iterator', async () => {
+  describe('durable iterator', () => {
+    it('works', async () => {
       const outputPromise = link.call(['durableIterator'], {}, { context: {} }) as any
 
       await vi.waitFor(async () => {

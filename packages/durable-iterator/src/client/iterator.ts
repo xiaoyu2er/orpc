@@ -34,7 +34,7 @@ export interface CreateClientDurableIteratorOptions {
    * The token used to authenticate the client.
    * this is a function because the token is lazy, and dynamic-able
    */
-  token: () => string
+  getToken: () => string
 }
 
 export function createClientDurableIterator<
@@ -47,7 +47,7 @@ export function createClientDurableIterator<
 ): ClientDurableIterator<T, RPC> {
   const proxy = new Proxy(iterator, {
     get(target, prop) {
-      const token = options.token()
+      const token = options.getToken()
       const { rpc: allowMethods } = parseDurableIteratorToken(token)
 
       if (prop === CLIENT_DURABLE_ITERATOR_TOKEN_SYMBOL) {

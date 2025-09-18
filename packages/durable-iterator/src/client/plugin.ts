@@ -4,8 +4,8 @@ import type { StandardLinkInterceptorOptions, StandardLinkOptions, StandardLinkP
 import type { RPCLinkOptions } from '@orpc/client/websocket'
 import type { ContractRouterClient } from '@orpc/contract'
 import type { Promisable, Value } from '@orpc/shared'
+import type { durableIteratorContract } from '../contract'
 import type { DurableIteratorTokenPayload } from '../schemas'
-import type { durableIteratorContract } from './contract'
 import { createORPCClient } from '@orpc/client'
 import { ClientRetryPlugin } from '@orpc/client/plugins'
 import { RPCLink } from '@orpc/client/websocket'
@@ -142,7 +142,7 @@ export class DurableIteratorLinkPlugin<T extends ClientContext> implements Stand
         cancelableIterator,
         link,
         {
-          token: () => tokenAndPayload.token,
+          getToken: () => tokenAndPayload.token,
         },
       )
 

@@ -3,7 +3,7 @@ import { sign } from '@orpc/server/helpers'
 import { describe, expect, it } from 'vitest'
 import { parseDurableIteratorToken, signDurableIteratorToken, verifyDurableIteratorToken } from './schemas'
 
-describe('signToken', () => {
+describe('signDurableIteratorToken', () => {
   it('should sign a token payload and return a string', async () => {
     const payload: DurableIteratorTokenPayload = {
       id: 'client-123',
@@ -54,7 +54,7 @@ describe('signToken', () => {
   })
 })
 
-describe('verifyToken', () => {
+describe('verifyDurableIteratorToken', () => {
   it('should verify a valid token and return the payload', async () => {
     const payload: DurableIteratorTokenPayload = {
       id: 'client-123',
@@ -147,7 +147,7 @@ describe('verifyToken', () => {
   })
 })
 
-describe('parseToken', () => {
+describe('parseDurableIteratorToken', () => {
   it('should parse a valid token and return the payload', async () => {
     const payload: DurableIteratorTokenPayload = {
       id: 'client-123',

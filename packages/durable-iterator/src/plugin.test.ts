@@ -12,9 +12,7 @@ beforeEach(() => {
 describe('durableIteratorHandlerPlugin', async () => {
   const interceptor = vi.fn(({ next }) => next())
 
-  const durableIterator = await new DurableIterator('some-room', {
-    signingKey: 'key',
-  })
+  const durableIterator = await new DurableIterator('some-room', 'signing-key')
 
   const handler = new StandardRPCHandler({
     durableIterator: os.handler(() => durableIterator),

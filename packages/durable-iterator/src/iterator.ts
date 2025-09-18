@@ -101,7 +101,7 @@ export class DurableIterator<
       }
 
       const durableIterator = createClientDurableIterator(iterator, link, {
-        token: () => token,
+        getToken: () => token,
       })
 
       return durableIterator as ClientDurableIterator<T, RPC>

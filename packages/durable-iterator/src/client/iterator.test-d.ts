@@ -4,8 +4,8 @@ import type { DurableIteratorObject } from '../object'
 import type { ClientDurableIterator, ClientDurableIteratorRpcContext } from './iterator'
 
 it('ClientDurableIterator', () => {
-  interface SomeObject extends DurableIteratorObject<{ v: string }, { token: string }> {
-    sendMessage: (ws: WebSocket) => Client<object, string, string, Error>
+  interface SomeObject extends DurableIteratorObject<{ v: string }> {
+    sendMessage: (ws: WebSocket) => Client<object, string, string, 'any-error'>
   }
 
   type ClientIterator = ClientDurableIterator<SomeObject, 'sendMessage'>

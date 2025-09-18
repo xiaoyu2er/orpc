@@ -29,7 +29,7 @@ beforeEach(() => {
 
 describe('durableIteratorLinkPlugin', async () => {
   const interceptor = vi.fn(({ next }) => next())
-  const durableIteratorHandler = vi.fn(() => new DurableIterator<any, any>('some-room', 'signing-key').rpc('getUser', 'sendMessage'))
+  const durableIteratorHandler = vi.fn(() => new DurableIterator<any, any>('some-room', { signingKey: 'signing-key' }).rpc('getUser', 'sendMessage'))
   const shouldRefreshTokenOnExpire = vi.fn(() => false)
 
   const handler = new StandardRPCHandler({
@@ -138,7 +138,8 @@ describe('durableIteratorLinkPlugin', async () => {
     it('works', async () => {
       shouldRefreshTokenOnExpire.mockImplementation(() => true)
       durableIteratorHandler.mockImplementation(
-        () => new DurableIterator<any, any>('some-room', 'signing-key', {
+        () => new DurableIterator<any, any>('some-room', {
+          signingKey: 'signing-key',
           tokenTTLSeconds: 1,
         }) as any,
       )
@@ -191,7 +192,8 @@ describe('durableIteratorLinkPlugin', async () => {
     it('not refresh if shouldRefreshTokenOnExpire returns false', async () => {
       shouldRefreshTokenOnExpire.mockImplementation(() => false)
       durableIteratorHandler.mockImplementation(
-        () => new DurableIterator<any, any>('some-room', 'signing-key', {
+        () => new DurableIterator<any, any>('some-room', {
+          signingKey: 'signing-key',
           tokenTTLSeconds: 1,
         }) as any,
       )
@@ -240,7 +242,8 @@ describe('durableIteratorLinkPlugin', async () => {
     it('if refresh token is invalid', async () => {
       shouldRefreshTokenOnExpire.mockImplementation(() => true)
       durableIteratorHandler.mockImplementationOnce(
-        () => new DurableIterator<any, any>('some-room', 'signing-key', {
+        () => new DurableIterator<any, any>('some-room', {
+          signingKey: 'signing-key',
           tokenTTLSeconds: 1,
         }) as any,
       )
@@ -291,7 +294,7 @@ describe('durableIteratorLinkPlugin', async () => {
     durableIteratorHandler.mockImplementationOnce(
       () => {
         controller.abort() // abort during fetch token before connection is established
-        return new DurableIterator<any, any>('some-room', 'signing-key') as any
+        return new DurableIterator<any, any>('some-room', { signingKey: 'signing-key' }) as any
       },
     )
 

@@ -1,5 +1,6 @@
 import { SignJWT } from 'jose'
-import { DURABLE_ITERATOR_TOKEN_PAYLOAD_KEY } from './consts'
+import { DURABLE_ITERATOR_TOKEN_PARAM } from '../consts'
+import { parseDurableIteratorToken, signDurableIteratorToken } from '../schemas'
 import { upgradeDurableIteratorRequest } from './upgrade'
 
 describe('upgradeDurableIteratorRequest', () => {
@@ -72,23 +73,25 @@ describe('upgradeDurableIteratorRequest', () => {
 
     const date = 1244444444444
 
-    const jwt = await new SignJWT({
+    const token = await signDurableIteratorToken('signing-key', {
       chn: 'test-channel',
       rpc: ['someMethod'],
       att: { some: 'attachment' },
+      id: 'test-id',
+      iat: date,
+      exp: date + 1000,
     })
-      .setProtectedHeader({ alg: 'HS256' })
-      .setIssuedAt(date)
-      .setExpirationTime(date)
-      .sign(new TextEncoder().encode('test-sign'))
+
+    const url = new URL('https://example.com')
+    url.searchParams.set(DURABLE_ITERATOR_TOKEN_PARAM, token)
 
     const response = await upgradeDurableIteratorRequest(
-      new Request(`https://example.com?token=${jwt}`, {
+      new Request(url, {
         headers: { upgrade: 'websocket' },
       }),
       {
         namespace: namespace as any,
-        signingKey: 'test-sign',
+        signingKey: 'signing-key',
       },
     )
 
@@ -97,15 +100,16 @@ describe('upgradeDurableIteratorRequest', () => {
     expect(namespace.idFromName).toHaveBeenCalledWith('test-channel')
     expect(namespace.get).toHaveBeenCalledWith(namespace.idFromName.mock.results[0]!.value)
     const stub = namespace.get.mock.results[0]!.value
-    const requestUrl = new URL(stub.fetch.mock.calls[0][0])
-    const requestHeaders = stub.fetch.mock.calls[0][1].headers
+    const requestUrl = new URL(stub.fetch.mock.calls[0][0].url)
+    const requestHeaders = stub.fetch.mock.calls[0][0].headers
 
-    expect(JSON.parse(requestUrl.searchParams.get(DURABLE_ITERATOR_TOKEN_PAYLOAD_KEY)!)).toEqual({
+    expect(parseDurableIteratorToken(requestUrl.searchParams.get(DURABLE_ITERATOR_TOKEN_PARAM)!)).toEqual({
       chn: 'test-channel',
       rpc: ['someMethod'],
       att: { some: 'attachment' },
+      id: 'test-id',
       iat: date,
-      exp: date,
+      exp: date + 1000,
     })
 
     expect(requestHeaders.get('upgrade')).toBe('websocket')

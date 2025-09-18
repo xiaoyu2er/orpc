@@ -6,8 +6,19 @@ import { DURABLE_ITERATOR_TOKEN_PARAM } from '../consts'
 import { verifyDurableIteratorToken } from '../schemas'
 
 export interface UpgradeDurableIteratorRequestOptions {
+  /**
+   * The signing key used to verify the token
+   */
   signingKey: string
+
+  /**
+   * The durable object namespace
+   */
   namespace: DurableObjectNamespace<any>
+
+  /**
+   * intercept upgrade process
+   */
   interceptors?: Interceptor<{ payload: DurableIteratorTokenPayload }, Promise<Response>>[]
 }
 

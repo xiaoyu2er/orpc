@@ -10,9 +10,10 @@ describe('durableIterator', () => {
   it('rpc: should return new instance with rpc methods specified', () => {
     const options = {
       att: { userId: 'user123' },
+      signingKey: testSigningKey,
     }
 
-    const iterator = new DurableIterator(testChannel, testSigningKey, options) as any
+    const iterator = new DurableIterator(testChannel, options) as any
     const rpcIterator = iterator.rpc('getUser', 'sendMessage')
 
     expect(rpcIterator).toBeInstanceOf(DurableIterator)
@@ -25,8 +26,9 @@ describe('durableIterator', () => {
       const options = {
         att: { userId: 'user123' },
         rpc: ['getUser', 'sendMessage'] as any,
+        signingKey: testSigningKey,
       }
-      const iterator = new DurableIterator(testChannel, testSigningKey, options) as any
+      const iterator = new DurableIterator(testChannel, options) as any
       const clientIterator = await iterator
 
       const token = getClientDurableIteratorToken(clientIterator)
@@ -47,9 +49,10 @@ describe('durableIterator', () => {
       const date = new Date()
       const options = {
         tokenTTLSeconds: 3600, // 1 hour
+        signingKey: testSigningKey,
       }
 
-      const iterator = new DurableIterator(testChannel, testSigningKey, options) as any
+      const iterator = new DurableIterator(testChannel, options) as any
       const clientIterator = await iterator
       const token = getClientDurableIteratorToken(clientIterator)
       const payload = await verifyDurableIteratorToken(testSigningKey, token!)

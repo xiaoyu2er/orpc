@@ -1,8 +1,7 @@
 import type { ClientLink } from '@orpc/client'
-import type { MaybeOptionalOptions } from '@orpc/shared'
 import type { ClientDurableIterator } from './client'
 import type { DurableIteratorObject, InferDurableIteratorObjectRPC } from './object'
-import { AsyncIteratorClass, resolveMaybeOptionalOptions } from '@orpc/shared'
+import { AsyncIteratorClass } from '@orpc/shared'
 import { createClientDurableIterator } from './client'
 import { DurableIteratorError } from './error'
 import { signDurableIteratorToken } from './schemas'
@@ -11,6 +10,11 @@ export interface DurableIteratorOptions<
   T extends DurableIteratorObject<any>,
   RPC extends InferDurableIteratorObjectRPC<T>,
 > {
+  /**
+   * The  signing key used to sign the token
+   */
+  signingKey: string
+
   /**
    * Unique identifier for the client connection.
    * Used to distinguish between different client instances.
@@ -46,26 +50,17 @@ export class DurableIterator<
   T extends DurableIteratorObject<any>,
   RPC extends InferDurableIteratorObjectRPC<T> = never,
 > implements PromiseLike<ClientDurableIterator<T, RPC>> {
-  private readonly options: DurableIteratorOptions<T, RPC>
-
-  /**
-   * @param chn - The channel name.
-   * @param signingKey - The signing key for the token.
-   * @param rest - options.
-   */
   constructor(
     private readonly chn: string,
-    private readonly signingKey: string,
-    ...rest: MaybeOptionalOptions<DurableIteratorOptions<T, RPC>>
+    private readonly options: DurableIteratorOptions<T, RPC>,
   ) {
-    this.options = resolveMaybeOptionalOptions(rest)
   }
 
   /**
    * List of methods that are allowed to be called remotely.
    */
   rpc<U extends InferDurableIteratorObjectRPC<T>>(...rpc: U[]): Omit<DurableIterator<T, U>, 'rpc'> {
-    return new DurableIterator<T, U>(this.chn, this.signingKey, {
+    return new DurableIterator<T, U>(this.chn, {
       ...this.options,
       rpc,
     })
@@ -80,7 +75,7 @@ export class DurableIterator<
 
       const nowInSeconds = Math.floor(Date.now() / 1000)
 
-      const token = await signDurableIteratorToken(this.signingKey, {
+      const token = await signDurableIteratorToken(this.options.signingKey, {
         id: this.options.id ?? crypto.randomUUID(),
         chn: this.chn,
         att: this.options.att,

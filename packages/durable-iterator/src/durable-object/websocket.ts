@@ -93,6 +93,23 @@ export function toDurableIteratorWebsocket(original: WebSocket): DurableIterator
     },
   }
 
+  const serializeAttachment: WebSocket['serializeAttachment'] = (wa) => {
+    original.serializeAttachment({
+      ...original.deserializeAttachment(),
+      wa,
+    })
+  }
+
+  const deserializeAttachment: WebSocket['deserializeAttachment'] = () => {
+    return original.deserializeAttachment()?.wa
+  }
+
+  const send: WebSocket['send'] = (data) => {
+    const result = original.send(data)
+    internal.closeIfExpired() // should close after send to avoid send after close error
+    return result
+  }
+
   const proxy = new Proxy(original, {
     get(_, prop) {
       if (prop === '~orpc') {
@@ -100,31 +117,14 @@ export function toDurableIteratorWebsocket(original: WebSocket): DurableIterator
       }
 
       if (prop === 'serializeAttachment') {
-        const serializeAttachment: WebSocket['serializeAttachment'] = (wa) => {
-          original.serializeAttachment({
-            ...original.deserializeAttachment(),
-            wa,
-          })
-        }
-
         return serializeAttachment
       }
 
       if (prop === 'deserializeAttachment') {
-        const deserializeAttachment: WebSocket['deserializeAttachment'] = () => {
-          return original.deserializeAttachment()?.wa
-        }
-
         return deserializeAttachment
       }
 
       if (prop === 'send') {
-        const send: WebSocket['send'] = (data) => {
-          const result = original.send(data)
-          internal.closeIfExpired() // should close after send to avoid send after close error
-          return result
-        }
-
         return send
       }
 

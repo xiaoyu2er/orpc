@@ -27,7 +27,9 @@ export function createCloudflareWebsocket(): any {
   let attachment: any = null
 
   return {
+    readyState: 1,
     send: vi.fn(),
+    close: vi.fn(),
     serializeAttachment: vi.fn((newAttachment) => { attachment = newAttachment }),
     deserializeAttachment: vi.fn(() => attachment),
   }

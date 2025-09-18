@@ -10,6 +10,7 @@ const DurableIteratorTokenPayloadSchema = v.object({
   chn: v.pipe(v.string(), v.description('Channel name')),
   att: v.pipe(v.optional(v.unknown()), v.description('Attachment')),
   rpc: v.pipe(v.optional(v.array(v.string())), v.readonly(), v.description('Allowed remote methods')),
+  iat: v.pipe(v.number(), v.description('Issued at time in seconds')),
   exp: v.pipe(v.number(), v.description('Expiration time in seconds')),
 })
 

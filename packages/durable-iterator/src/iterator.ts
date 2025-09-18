@@ -85,6 +85,7 @@ export class DurableIterator<
         chn: this.chn,
         att: this.options.att,
         rpc: this.options.rpc,
+        iat: nowInSeconds,
         exp: nowInSeconds + tokenTTLSeconds,
       })
 

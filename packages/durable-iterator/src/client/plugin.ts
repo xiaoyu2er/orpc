@@ -9,7 +9,7 @@ import type { DurableIteratorTokenPayload } from '../schemas'
 import { createORPCClient } from '@orpc/client'
 import { ClientRetryPlugin } from '@orpc/client/plugins'
 import { RPCLink } from '@orpc/client/websocket'
-import { AsyncIteratorClass, toArray, value } from '@orpc/shared'
+import { AsyncIteratorClass, fallback, toArray, value } from '@orpc/shared'
 import { WebSocket as ReconnectableWebSocket } from 'partysocket'
 import { DURABLE_ITERATOR_PLUGIN_HEADER_KEY, DURABLE_ITERATOR_PLUGIN_HEADER_VALUE, DURABLE_ITERATOR_TOKEN_PARAM } from '../consts'
 import { DurableIteratorError } from '../error'
@@ -48,7 +48,7 @@ export class DurableIteratorLinkPlugin<T extends ClientContext> implements Stand
 
   constructor({ url, shouldRefreshTokenOnExpire, ...options }: DurableIteratorLinkPluginOptions<T>) {
     this.url = url
-    this.shouldRefreshTokenOnExpire = shouldRefreshTokenOnExpire ?? false
+    this.shouldRefreshTokenOnExpire = fallback(shouldRefreshTokenOnExpire, false)
     this.linkOptions = options
   }
 
@@ -73,6 +73,10 @@ export class DurableIteratorLinkPlugin<T extends ClientContext> implements Stand
         return output
       }
 
+      /**
+       * Estimate a websocket connection take time, and `abort` is not fire if signal already aborted
+       * So we should throw if signal already aborted here
+       */
       options?.signal?.throwIfAborted()
 
       let tokenAndPayload = this.validateToken(output, options.path)
@@ -106,7 +110,7 @@ export class DurableIteratorLinkPlugin<T extends ClientContext> implements Stand
         websocket.close()
       }
 
-      options?.signal?.addEventListener('abort', closeConnection)
+      options?.signal?.addEventListener('abort', closeConnection, { once: true })
 
       const iterator_ = await durableClient.subscribe(undefined, {
         context: {
@@ -123,7 +127,7 @@ export class DurableIteratorLinkPlugin<T extends ClientContext> implements Stand
            */
           closeConnection()
           /**
-           * prevent memory leak in case signal is reused for another request
+           * prevent memory leak in case signal is reused for another purpose
            */
           options.signal?.removeEventListener('abort', closeConnection)
         },

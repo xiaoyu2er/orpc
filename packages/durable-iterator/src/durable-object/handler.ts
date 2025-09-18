@@ -1,5 +1,5 @@
 import type { Client } from '@orpc/client'
-import type { StandardRPCHandlerOptions } from '@orpc/server/standard'
+import type { RPCHandlerOptions } from '@orpc/server/websocket'
 import type { DurableObject } from 'cloudflare:workers'
 import type { DurableIteratorObjectDef } from '../object'
 import type { DurableIteratorObjectState } from './object-state'
@@ -83,7 +83,7 @@ export interface PublishEventOptions {
   exclude?: WebSocket[]
 }
 
-export interface DurableIteratorObjectHandlerOptions extends StandardRPCHandlerOptions<DurableIteratorObjectRouterContext>, EventResumeStorageOptions {
+export interface DurableIteratorObjectHandlerOptions extends RPCHandlerOptions<DurableIteratorObjectRouterContext>, EventResumeStorageOptions {
   /**
    * Called after a client successfully subscribes to the main iterator.
    * You can start sending events to the client here.

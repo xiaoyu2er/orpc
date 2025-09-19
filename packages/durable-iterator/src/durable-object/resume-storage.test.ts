@@ -99,4 +99,30 @@ describe('eventStreamStorage', () => {
     expect(storage.get(ws2, '0')).toEqual([payload4])
     expect(storage.get(ws3, '0')).toEqual([payload2])
   })
+
+  it('support custom json serializer', async () => {
+    class Person {
+      constructor(public name: string) {}
+    }
+
+    const ctx = createDurableObjectState()
+    const storage = new EventResumeStorage(ctx, {
+      resumeRetentionSeconds: 1,
+      customJsonSerializers: [
+        {
+          type: 1000,
+          condition: v => v instanceof Person,
+          serialize: v => ({ name: v.name }),
+          deserialize: ({ name }) => new Person(name),
+        },
+      ],
+    })
+
+    const ws = toDurableIteratorWebsocket(createCloudflareWebsocket())
+    ws['~orpc'].serializeTokenPayload({ id: 'ws-1' } as any)
+
+    storage.store(new Person('__name__'), {})
+    const payload = storage.get(ws, '0')[0]
+    expect(payload).toEqual(new Person('__name__'))
+  })
 })

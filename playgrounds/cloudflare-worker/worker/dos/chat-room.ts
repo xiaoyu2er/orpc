@@ -1,5 +1,5 @@
 import { DurableIteratorObject } from '@orpc/experimental-durable-iterator/durable-object'
-import { os } from '@orpc/server'
+import { onError, os } from '@orpc/server'
 import * as z from 'zod'
 
 export class ChatRoom extends DurableIteratorObject<{ message: string }> {
@@ -9,6 +9,9 @@ export class ChatRoom extends DurableIteratorObject<{ message: string }> {
   ) {
     super(ctx, env, {
       resumeRetentionSeconds: 60 * 2, // 2 minutes
+      interceptors: [
+        onError(e => console.error(e)), // log error thrown from rpc calls
+      ],
     })
   }
 

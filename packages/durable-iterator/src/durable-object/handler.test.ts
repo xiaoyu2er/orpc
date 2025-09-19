@@ -1,183 +1,143 @@
-import { call, createProcedureClient } from '@orpc/server'
-import { HibernationEventIterator } from '@orpc/server/hibernation'
+import type { DurableIteratorTokenPayload } from '../schemas'
 import { createCloudflareWebsocket, createDurableObjectState } from '../../tests/shared'
-import { DURABLE_ITERATOR_HIBERNATION_ID_KEY, DURABLE_ITERATOR_TOKEN_PAYLOAD_KEY } from './consts'
-import { DurableIteratorObjectEventStorage } from './event-storage'
-import { DurableIteratorRouter } from './handler'
-import { DurableIteratorObjectWebsocketManager } from './websocket-manager'
+import { DurableIteratorObjectHandler } from './handler'
+import { toDurableIteratorWebsocket } from './websocket'
 
-describe('durableIteratorRouter', async () => {
-  const date = 144434837
+beforeAll(() => {
+  (globalThis as any).WebSocketPair = vi.fn(() => ({
+    0: createCloudflareWebsocket(),
+    1: createCloudflareWebsocket(),
+  }))
 
-  const tokenPayload = {
-    att: { some: 'attachment' },
-    iat: date,
-    exp: date + 1000,
-    chn: 'test-channel',
-    rpc: ['someMethod'],
+  const globalResponse = globalThis.Response
+
+  ;(globalThis as any).Response = class extends globalResponse {
+    readonly __init: any
+
+    constructor(input: any, init?: any) {
+      super(input, {
+        ...init,
+        status: 200, // avoid invalid status error
+      })
+
+      this.__init = init
+    }
   }
 
-  describe('subscribe', async () => {
-    it('without last event id', async () => {
-      const ctx = createDurableObjectState()
-      const currentWebsocket = createCloudflareWebsocket()
-      const eventStorage = new DurableIteratorObjectEventStorage(ctx)
-      const websocketManager = new DurableIteratorObjectWebsocketManager(ctx, eventStorage)
-      const serializeInternalAttachmentSpy = vi.spyOn(websocketManager, 'serializeInternalAttachment')
-      const sendEventsAfterSpy = vi.spyOn(websocketManager, 'sendEventsAfter')
+  afterAll(() => {
+    ; (globalThis as any).WebSocketPair = undefined
+    ; (globalThis as any).Response = globalResponse
+  })
+})
 
-      websocketManager.serializeInternalAttachment(currentWebsocket, {
-        [DURABLE_ITERATOR_TOKEN_PAYLOAD_KEY]: tokenPayload,
-      })
+beforeEach(() => {
+  vi.clearAllMocks()
+})
 
-      const output = await call(DurableIteratorRouter.subscribe, undefined, {
-        context: {
-          object: {} as any,
-          currentWebsocket,
-          websocketManager,
-        },
-      }) as HibernationEventIterator<any>
+describe('durableIteratorObjectHandler', async () => {
+  const ctx = createDurableObjectState()
+  const object = {
+    method: vi.fn(),
+  }
+  const interceptor = vi.fn(({ next }) => next())
 
-      expect(output).toBeInstanceOf(HibernationEventIterator)
-
-      output.hibernationCallback?.('123')
-
-      expect(serializeInternalAttachmentSpy).toHaveBeenCalledWith(currentWebsocket, {
-        [DURABLE_ITERATOR_HIBERNATION_ID_KEY]: '123',
-      })
-
-      expect(sendEventsAfterSpy).toHaveBeenCalledWith(
-        currentWebsocket,
-        '123',
-        new Date((date - 1) * 1000),
-      )
-    })
-
-    it('with last event id', async () => {
-      const ctx = createDurableObjectState()
-      const currentWebsocket = createCloudflareWebsocket()
-      const eventStorage = new DurableIteratorObjectEventStorage(ctx)
-      const websocketManager = new DurableIteratorObjectWebsocketManager(ctx, eventStorage)
-      const serializeInternalAttachmentSpy = vi.spyOn(websocketManager, 'serializeInternalAttachment')
-      const sendEventsAfterSpy = vi.spyOn(websocketManager, 'sendEventsAfter')
-
-      websocketManager.serializeInternalAttachment(currentWebsocket, {
-        [DURABLE_ITERATOR_TOKEN_PAYLOAD_KEY]: tokenPayload,
-      })
-
-      const client = createProcedureClient(DurableIteratorRouter.subscribe, {
-        context: {
-          object: {} as any,
-          currentWebsocket,
-          websocketManager,
-        },
-      })
-
-      const output = await client(undefined, { lastEventId: '3' }) as HibernationEventIterator<any>
-
-      expect(output).toBeInstanceOf(HibernationEventIterator)
-
-      output.hibernationCallback?.('123')
-
-      expect(serializeInternalAttachmentSpy).toHaveBeenCalledWith(currentWebsocket, {
-        [DURABLE_ITERATOR_HIBERNATION_ID_KEY]: '123',
-      })
-
-      expect(sendEventsAfterSpy).toHaveBeenCalledWith(
-        currentWebsocket,
-        '123',
-        '3',
-      )
-    })
+  const handler = new DurableIteratorObjectHandler(ctx, object, {
+    interceptors: [interceptor],
   })
 
-  describe('call', async () => {
-    it('reject if method is not allowed', async () => {
-      const ctx = createDurableObjectState()
-      const currentWebsocket = createCloudflareWebsocket()
-      const eventStorage = new DurableIteratorObjectEventStorage(ctx)
-      const websocketManager = new DurableIteratorObjectWebsocketManager(ctx, eventStorage)
+  const resumeStoreStoreSpy = vi.spyOn((handler as any).resumeStorage, 'store')
+  const resumeStoreGetSpy = vi.spyOn((handler as any).resumeStorage, 'get')
 
-      websocketManager.serializeInternalAttachment(currentWebsocket, {
-        [DURABLE_ITERATOR_TOKEN_PAYLOAD_KEY]: tokenPayload,
-      })
+  const baseTokenPayload: DurableIteratorTokenPayload = {
+    chn: 'channel',
+    id: 'id',
+    exp: Math.floor(Date.now() / 1000) + 3600,
+    iat: Math.floor(Date.now() / 1000),
+    att: 'att',
+    rpc: ['method'],
+  }
 
-      await expect(call(DurableIteratorRouter.call, {
-        input: 'some-input',
-        path: ['notAllowedMethod'],
-      }, {
-        context: {
-          object: {} as any,
-          currentWebsocket,
-          websocketManager,
-        },
-      })).rejects.toThrow('Method "notAllowedMethod" is not allowed.')
+  it('auto close expired websockets on init', async () => {
+    const wsNormal = createCloudflareWebsocket()
+    toDurableIteratorWebsocket(wsNormal)['~orpc'].serializeTokenPayload(baseTokenPayload)
+    const wsExpired = createCloudflareWebsocket()
+    toDurableIteratorWebsocket(wsExpired)['~orpc'].serializeTokenPayload({ ...baseTokenPayload, exp: Math.floor(Date.now() / 1000) - 3600 })
+
+    ctx.getWebSockets.mockReturnValue([wsNormal, wsExpired])
+    void new DurableIteratorObjectHandler(ctx, object)
+
+    expect(wsNormal.close).toHaveBeenCalledTimes(0)
+    expect(wsExpired.close).toHaveBeenCalledTimes(1)
+  })
+
+  describe('publishEvent', () => {
+    const ws1 = toDurableIteratorWebsocket(createCloudflareWebsocket())
+    ws1['~orpc'].serializeTokenPayload({ ...baseTokenPayload, id: 'ws-1' })
+    ws1['~orpc'].serializeHibernationId('1')
+
+    const ws2 = toDurableIteratorWebsocket(createCloudflareWebsocket())
+    ws2['~orpc'].serializeTokenPayload({ ...baseTokenPayload, id: 'ws-2' })
+    ws2['~orpc'].serializeHibernationId('1')
+
+    it('works', async () => {
+      const wsMissingHibernationId = toDurableIteratorWebsocket(createCloudflareWebsocket())
+      wsMissingHibernationId['~orpc'].serializeTokenPayload({ ...baseTokenPayload, id: 'wsMissingHibernationId' })
+
+      ctx.getWebSockets.mockReturnValue([ws1, ws2, wsMissingHibernationId])
+
+      resumeStoreStoreSpy.mockReturnValue({ order: '__fromResumeStore__' })
+      handler.publishEvent({ order: 1 })
+
+      expect(ws1['~orpc'].original.send).toHaveBeenCalledTimes(1)
+      expect(ws2['~orpc'].original.send).toHaveBeenCalledTimes(1)
+      expect(wsMissingHibernationId['~orpc'].original.send).toHaveBeenCalledTimes(0)
+
+      expect(resumeStoreStoreSpy).toHaveBeenCalledTimes(1)
+      expect(resumeStoreStoreSpy).toHaveBeenCalledWith({ order: 1 }, {})
+
+      // send result from resume store
+      expect((ws1 as any)['~orpc'].original.send.mock.calls[0][0]).toContain(JSON.stringify({ order: '__fromResumeStore__' }))
+      expect((ws2 as any)['~orpc'].original.send.mock.calls[0][0]).toContain(JSON.stringify({ order: '__fromResumeStore__' }))
     })
 
-    it('single client', async () => {
-      const ctx = createDurableObjectState()
-      const currentWebsocket = createCloudflareWebsocket()
-      const eventStorage = new DurableIteratorObjectEventStorage(ctx)
-      const websocketManager = new DurableIteratorObjectWebsocketManager(ctx, eventStorage)
+    it('targets, exclude options', async () => {
+      ctx.getWebSockets.mockReturnValue([ws1, ws2])
 
-      websocketManager.serializeInternalAttachment(currentWebsocket, {
-        [DURABLE_ITERATOR_TOKEN_PAYLOAD_KEY]: tokenPayload,
-      })
+      handler.publishEvent({ order: 1 }, { targets: [ws1] })
 
-      const object = {
-        someMethod: vi.fn(() => vi.fn(() => 'some-output')),
-      }
+      expect(ws1['~orpc'].original.send).toHaveBeenCalledTimes(1)
+      expect(ws2['~orpc'].original.send).toHaveBeenCalledTimes(0)
+      expect(resumeStoreStoreSpy).toHaveBeenCalledTimes(1)
+      expect(resumeStoreStoreSpy).toHaveBeenCalledWith({ order: 1 }, { targets: [ws1] })
 
-      const client = createProcedureClient(DurableIteratorRouter.call, {
-        context: {
-          object: object as any,
-          currentWebsocket,
-          websocketManager,
-        },
-      })
+      vi.clearAllMocks()
+      handler.publishEvent({ order: 2 }, { exclude: [ws1] })
 
-      const signal = new AbortController().signal
-      const lastEventId = '3'
-      const output = await client({ input: 'some-input', path: ['someMethod'] }, { signal, lastEventId })
+      expect(ws1['~orpc'].original.send).toHaveBeenCalledTimes(0)
+      expect(ws2['~orpc'].original.send).toHaveBeenCalledTimes(1)
+      expect(resumeStoreStoreSpy).toHaveBeenCalledTimes(1)
+      expect(resumeStoreStoreSpy).toHaveBeenCalledWith({ order: 2 }, { exclude: [ws1] })
 
-      expect(output).toBe('some-output')
-      expect(object.someMethod).toHaveBeenCalledWith(currentWebsocket)
-      const someMethodClient = object.someMethod.mock.results[0]!.value
-      expect(someMethodClient).toBeCalledWith('some-input', { signal, lastEventId })
+      vi.clearAllMocks()
+      handler.publishEvent({ order: 3 }, { targets: [ws1], exclude: [ws2] })
+
+      expect(ws1['~orpc'].original.send).toHaveBeenCalledTimes(1)
+      expect(ws2['~orpc'].original.send).toHaveBeenCalledTimes(0)
+      expect(resumeStoreStoreSpy).toHaveBeenCalledTimes(1)
+      expect(resumeStoreStoreSpy).toHaveBeenCalledWith({ order: 3 }, { targets: [ws1], exclude: [ws2] })
     })
 
-    it('nested client', async () => {
-      const ctx = createDurableObjectState()
-      const currentWebsocket = createCloudflareWebsocket()
-      const eventStorage = new DurableIteratorObjectEventStorage(ctx)
-      const websocketManager = new DurableIteratorObjectWebsocketManager(ctx, eventStorage)
+    it('ignore sending errors', async () => {
+      ctx.getWebSockets.mockReturnValue([ws1, ws2])
 
-      websocketManager.serializeInternalAttachment(currentWebsocket, {
-        [DURABLE_ITERATOR_TOKEN_PAYLOAD_KEY]: tokenPayload,
+      vi.mocked(ws1['~orpc'].original.send).mockImplementationOnce(() => {
+        throw new Error('error')
       })
 
-      const object = {
-        someMethod: vi.fn(() => ({
-          nested: vi.fn(() => 'some-output'),
-        })),
-      }
+      handler.publishEvent({ order: 1 })
 
-      const client = createProcedureClient(DurableIteratorRouter.call, {
-        context: {
-          object: object as any,
-          currentWebsocket,
-          websocketManager,
-        },
-      })
-
-      const signal = new AbortController().signal
-      const lastEventId = '3'
-      const output = await client({ input: 'some-input', path: ['someMethod', 'nested'] }, { signal, lastEventId })
-
-      expect(output).toBe('some-output')
-      expect(object.someMethod).toHaveBeenCalledWith(currentWebsocket)
-      const someMethodClient = object.someMethod.mock.results[0]!.value.nested
-      expect(someMethodClient).toBeCalledWith('some-input', { signal, lastEventId })
+      expect(ws1['~orpc'].original.send).toHaveBeenCalledTimes(1)
+      expect(ws2['~orpc'].original.send).toHaveBeenCalledTimes(1)
     })
   })
 })

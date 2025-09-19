@@ -34,10 +34,16 @@ const router = base.router({
 
       if (typeof lastEventId === 'string') {
         const resumePayloads = context.resumeStorage.get(context.websocket, lastEventId)
-        for (const payload of resumePayloads) {
-          context.websocket.send(
-            encodeHibernationRPCEvent(hibernationId, payload, context.options),
-          )
+
+        try {
+          for (const payload of resumePayloads) {
+            context.websocket.send(
+              encodeHibernationRPCEvent(hibernationId, payload, context.options),
+            )
+          }
+        }
+        catch {
+          // ignore sending errors (probably already closed or expired)
         }
       }
 
@@ -125,7 +131,8 @@ export class DurableIteratorObjectHandler<
     })
 
     /**
-     * Optional, but this's a good place to do it as soon as they expire.
+     * Optional, but this is a good place to close expired websockets
+     * since it happens before anything else is processed.
      */
     this.ctx.getWebSockets().forEach(ws => ws['~orpc'].closeIfExpired())
   }

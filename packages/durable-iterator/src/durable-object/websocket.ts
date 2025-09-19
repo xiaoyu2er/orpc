@@ -88,7 +88,7 @@ export function toDurableIteratorWebsocket(original: WebSocket): DurableIterator
       const payload = internal.deserializeTokenPayload()
 
       if (payload.exp < Date.now() / 1000) {
-        original.close()
+        original.close(1008, 'Token expired')
       }
     },
   }

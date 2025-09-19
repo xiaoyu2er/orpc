@@ -16,6 +16,14 @@ export interface DurableIteratorOptions<
   signingKey: string
 
   /**
+   * Time to live for the token in seconds.
+   * After expiration, the token will no longer be valid.
+   *
+   * @default 24 hours (60 * 60 * 24)
+   */
+  tokenTTLSeconds?: number
+
+  /**
    * Unique identifier for the client connection.
    * Used to distinguish between different client instances.
    *
@@ -24,12 +32,9 @@ export interface DurableIteratorOptions<
   id?: string
 
   /**
-   * Time to live for the token in seconds.
-   * After expiration, the token will no longer be valid.
-   *
-   * @default 24 hours (60 * 60 * 24)
+   * Tags to attach to the token.
    */
-  tokenTTLSeconds?: number
+  tags?: readonly string[]
 
   /**
    * Token's attachment
@@ -78,6 +83,7 @@ export class DurableIterator<
       const token = await signDurableIteratorToken(this.options.signingKey, {
         id: this.options.id ?? crypto.randomUUID(),
         chn: this.chn,
+        tags: this.options.tags,
         att: this.options.att,
         rpc: this.options.rpc,
         iat: nowInSeconds,

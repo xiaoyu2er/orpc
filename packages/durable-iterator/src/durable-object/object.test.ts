@@ -1,5 +1,7 @@
 import type { DurableIteratorTokenPayload } from '../schemas'
 import { createCloudflareWebsocket, createDurableObjectState } from '../../tests/shared'
+import { DURABLE_ITERATOR_TOKEN_PARAM } from '../consts'
+import { signDurableIteratorToken } from '../schemas'
 import { DurableIteratorObject } from './object'
 import { toDurableIteratorWebsocket } from './websocket'
 
@@ -55,14 +57,15 @@ describe('class DurableIteratorObject & DurableIteratorObjectHandler', async () 
   const resumeStoreStoreSpy = vi.spyOn((object['~orpc'] as any).resumeStorage, 'store')
   const resumeStoreGetSpy = vi.spyOn((object['~orpc'] as any).resumeStorage, 'get')
 
-  const baseTokenPayload: DurableIteratorTokenPayload = {
+  const baseTokenPayload = {
     chn: 'channel',
     id: 'id',
+    tags: ['tag'],
     exp: Math.floor(Date.now() / 1000) + 3600,
     iat: Math.floor(Date.now() / 1000),
     att: 'att',
     rpc: ['method'],
-  }
+  } satisfies DurableIteratorTokenPayload
 
   it('auto close expired websockets on init', async () => {
     const wsNormal = createCloudflareWebsocket()
@@ -145,6 +148,49 @@ describe('class DurableIteratorObject & DurableIteratorObjectHandler', async () 
 
       expect(ws1['~orpc'].original.send).toHaveBeenCalledTimes(1)
       expect(ws2['~orpc'].original.send).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('upgrade websocket connection', async () => {
+    it('with tags', async () => {
+      const token = await signDurableIteratorToken('secret-key', baseTokenPayload)
+
+      const url = new URL('https://example.com')
+      url.searchParams.set(DURABLE_ITERATOR_TOKEN_PARAM, token)
+
+      const response = await object.fetch(new Request(url))
+
+      expect((globalThis as any).WebSocketPair).toHaveBeenCalledTimes(1)
+      const { 0: client, 1: server } = (globalThis as any).WebSocketPair.mock.results[0].value
+      expect(ctx.acceptWebSocket).toHaveBeenCalledTimes(1)
+      expect(ctx.acceptWebSocket).toHaveBeenCalledWith(server, [...baseTokenPayload.tags])
+
+      expect(response).instanceOf(Response)
+      expect((response as any).__init.status).toBe(101)
+      expect((response as any).__init.webSocket).toBe(client)
+
+      expect(toDurableIteratorWebsocket(server)['~orpc'].deserializeTokenPayload()).toEqual(baseTokenPayload)
+    })
+
+    it('without tags', async () => {
+      const payload = { ...baseTokenPayload, tags: undefined }
+      const token = await signDurableIteratorToken('secret-key', payload)
+
+      const url = new URL('https://example.com')
+      url.searchParams.set(DURABLE_ITERATOR_TOKEN_PARAM, token)
+
+      const response = await object.fetch(new Request(url))
+
+      expect((globalThis as any).WebSocketPair).toHaveBeenCalledTimes(1)
+      const { 0: client, 1: server } = (globalThis as any).WebSocketPair.mock.results[0].value
+      expect(ctx.acceptWebSocket).toHaveBeenCalledTimes(1)
+      expect(ctx.acceptWebSocket).toHaveBeenCalledWith(server)
+
+      expect(response).instanceOf(Response)
+      expect((response as any).__init.status).toBe(101)
+      expect((response as any).__init.webSocket).toBe(client)
+
+      expect(toDurableIteratorWebsocket(server)['~orpc'].deserializeTokenPayload()).toEqual(payload)
     })
   })
 })

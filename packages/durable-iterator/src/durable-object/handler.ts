@@ -186,7 +186,13 @@ export class DurableIteratorObjectHandler<
 
     const { '0': client, '1': server } = new WebSocketPair()
 
-    this.ctx.acceptWebSocket(server)
+    if (payload.tags) {
+      this.ctx.acceptWebSocket(server, [...payload.tags])
+    }
+    else {
+      this.ctx.acceptWebSocket(server)
+    }
+
     toDurableIteratorWebsocket(server)['~orpc'].serializeTokenPayload(payload)
 
     return new Response(null, {

@@ -26,6 +26,7 @@ describe('durableIterator', () => {
       const options = {
         att: { userId: 'user123' },
         rpc: ['getUser', 'sendMessage'] as any,
+        tags: ['tag1', 'tag2'],
         signingKey: testSigningKey,
       }
       const iterator = new DurableIterator(testChannel, options) as any
@@ -36,6 +37,7 @@ describe('durableIterator', () => {
       const payload = await verifyDurableIteratorToken(testSigningKey, token!)
 
       expect(payload?.chn).toBe(testChannel)
+      expect(payload?.tags).toEqual(['tag1', 'tag2'])
       expect(payload?.att).toEqual({ userId: 'user123' })
       expect(payload?.rpc).toEqual(['getUser', 'sendMessage'])
       expect(payload?.iat).toEqual(Math.floor(date.getTime() / 1000))

@@ -59,7 +59,7 @@ describe('toDurableIteratorWebsocket', () => {
     proxied.send('data')
     expect(ws.send).toHaveBeenCalledTimes(1)
     expect(ws.close).toHaveBeenCalledTimes(1)
-    expect(ws.close).toHaveBeenCalledAfter(ws.send)
+    expect(ws.close).toHaveBeenCalledBefore(ws.send)
   })
 
   it('not proxy again if already proxied', () => {

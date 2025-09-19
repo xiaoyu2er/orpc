@@ -150,7 +150,14 @@ export class DurableIteratorObjectHandler<
         continue
       }
 
-      ws.send(encodeHibernationRPCEvent(hibernationId, payload, this.options))
+      const data = encodeHibernationRPCEvent(hibernationId, payload, this.options)
+
+      try {
+        ws.send(data)
+      }
+      catch {
+        // ignore sending errors (probably already closed or expired)
+      }
     }
   }
 

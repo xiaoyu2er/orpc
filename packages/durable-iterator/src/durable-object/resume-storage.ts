@@ -2,7 +2,7 @@ import type { StandardRPCJsonSerializerOptions } from '@orpc/client/standard'
 import type { DurableIteratorWebsocket } from './websocket'
 import { StandardRPCJsonSerializer } from '@orpc/client/standard'
 import { getEventMeta, withEventMeta } from '@orpc/server'
-import { parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
+import { fallback, parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
 
 export interface EventResumeStorageOptions extends StandardRPCJsonSerializerOptions {
   /**
@@ -42,8 +42,8 @@ export class EventResumeStorage<T extends object> {
     private readonly durableState: DurableObjectState,
     options: EventResumeStorageOptions = {},
   ) {
-    this.retentionSeconds = options.resumeRetentionSeconds ?? 0 // disabled
-    this.schemaPrefix = options.resumeTablePrefix ?? 'orpc:durable-iterator:resume:'
+    this.retentionSeconds = fallback(options.resumeRetentionSeconds, 0) // disabled by default
+    this.schemaPrefix = fallback(options.resumeTablePrefix, 'orpc:durable-iterator:resume:')
     this.serializer = new StandardRPCJsonSerializer(options)
 
     if (this.isEnabled) {
@@ -115,6 +115,8 @@ export class EventResumeStorage<T extends object> {
     if (!this.isEnabled) {
       return []
     }
+
+    this.cleanupExpiredEvents()
 
     const websocketId = websocket['~orpc'].deserializeTokenPayload().id
 

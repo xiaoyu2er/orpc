@@ -109,7 +109,7 @@ export class DurableIteratorObjectHandler<
   private readonly resumeStorage: EventResumeStorage<T>
 
   /**
-   * Proxied, ensure you don't accidentally change internal state
+   * Proxied, ensure you don't accidentally change internal state, and auto close if expired websockets before .send is called
    */
   ctx: DurableIteratorObjectState
 

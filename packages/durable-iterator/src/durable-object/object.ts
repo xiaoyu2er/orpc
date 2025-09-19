@@ -8,7 +8,7 @@ export class DurableIteratorObject<T extends object, TEnv = unknown> extends Dur
   '~orpc': DurableIteratorObjectHandler<T>
 
   /**
-   * Proxied, ensure you don't accidentally change internal state
+   * Proxied, ensure you don't accidentally change internal state, and auto close if expired websockets before .send is called
    */
   protected override ctx: DurableIteratorObjectState
 
@@ -43,7 +43,7 @@ export class DurableIteratorObject<T extends object, TEnv = unknown> extends Dur
    * Handle WebSocket messages
    *
    * @warning Use `toDurableIteratorWebsocket` to proxy the WebSocket when interacting
-   *          to avoid accidentally modifying internal state.
+   *          to avoid accidentally modifying internal state, and auto close if expired before .send is called
    */
   override webSocketMessage(websocket: WebSocket, message: string | ArrayBuffer): Promise<void> {
     return this['~orpc'].webSocketMessage(websocket, message)
@@ -53,7 +53,7 @@ export class DurableIteratorObject<T extends object, TEnv = unknown> extends Dur
    * Handle WebSocket close event
    *
    * @warning Use `toDurableIteratorWebsocket` to proxy the WebSocket when interacting
-   *          to avoid accidentally modifying internal state.
+   *          to avoid accidentally modifying internal state, and auto close if expired before .send is called
    */
   override webSocketClose(websocket: WebSocket, code: number, reason: string, wasClean: boolean): void | Promise<void> {
     return this['~orpc'].webSocketClose(websocket, code, reason, wasClean)

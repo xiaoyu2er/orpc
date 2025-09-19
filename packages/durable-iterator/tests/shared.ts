@@ -19,7 +19,9 @@ export function createDurableObjectState(): any {
         },
       },
     },
+    waitUntil: vi.fn(),
     acceptWebSocket: vi.fn(),
+    getWebSockets: vi.fn(() => []),
   }
 }
 

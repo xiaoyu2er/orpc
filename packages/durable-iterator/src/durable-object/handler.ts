@@ -12,7 +12,7 @@ import { get, toArray } from '@orpc/shared'
 import { DURABLE_ITERATOR_TOKEN_PARAM } from '../consts'
 import { durableIteratorContract } from '../contract'
 import { parseDurableIteratorToken } from '../schemas'
-import { createDurableIteratorObjectState } from './object-state'
+import { toDurableIteratorObjectState } from './object-state'
 import { EventResumeStorage } from './resume-storage'
 import { toDurableIteratorWebsocket } from './websocket'
 
@@ -112,7 +112,7 @@ export class DurableIteratorObjectHandler<
     private readonly object: DurableObject<any>,
     private readonly options: DurableIteratorObjectHandlerOptions = {},
   ) {
-    this.ctx = createDurableIteratorObjectState(ctx)
+    this.ctx = toDurableIteratorObjectState(ctx)
 
     this.resumeStorage = new EventResumeStorage<T>(ctx, options)
 
@@ -123,6 +123,11 @@ export class DurableIteratorObjectHandler<
         new HibernationPlugin(),
       ],
     })
+
+    /**
+     * Optional, but this's a good place to do it as soon as they expire.
+     */
+    this.ctx.getWebSockets().forEach(ws => ws['~orpc'].closeIfExpired())
   }
 
   /**

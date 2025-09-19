@@ -5,7 +5,7 @@ export interface DurableIteratorWebsocketInternal {
   /**
    * Access the original websocket instance
    *
-   * @warning Be careful when using original because it can break the Durable Event Iterator functionality
+   * @warning Be careful when using original because you can accidentally modifying internal state.
    */
   original: WebSocket
 

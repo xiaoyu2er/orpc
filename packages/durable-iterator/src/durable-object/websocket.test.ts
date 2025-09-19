@@ -63,6 +63,7 @@ describe('toDurableIteratorWebsocket', () => {
   })
 
   it('not proxy again if already proxied', () => {
+    expect(toDurableIteratorWebsocket(ws)).toBe(proxied)
     expect(toDurableIteratorWebsocket(proxied)).toBe(proxied)
   })
 })

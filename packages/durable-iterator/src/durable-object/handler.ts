@@ -228,7 +228,15 @@ export class DurableIteratorObjectHandler<
    * This method is called when a WebSocket connection is closed.
    * Should mapping with corresponding `webSocketClose` inside durable object
    */
-  webSocketClose(websocket: WebSocket, _code: number, _reason: string, _wasClean: boolean): void | Promise<void> {
-    this.handler.close(websocket)
+  webSocketClose(ws_: WebSocket, _code: number, _reason: string, _wasClean: boolean): void | Promise<void> {
+    const ws = toDurableIteratorWebsocket(ws_)
+    /**
+     * Since `webSocketMessage` operates on DurableIteratorWebSocket,
+     * we must also use DurableIteratorWebSocket to guarantee reference equality.
+     * The WebSocket adapter relies on this reference consistency.
+     *
+     * @info toDurableIteratorWebsocket will ensure the same input WebSocket always maps to the same DurableIteratorWebSocket
+     */
+    this.handler.close(ws)
   }
 }

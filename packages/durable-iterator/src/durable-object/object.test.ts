@@ -1,4 +1,7 @@
 import type { DurableIteratorTokenPayload } from '../schemas'
+import { os } from '@orpc/server'
+import { sleep } from '@orpc/shared'
+import { encodeRequestMessage, encodeResponseMessage, MessageType } from '@orpc/standard-server-peer'
 import { createCloudflareWebsocket, createDurableObjectState } from '../../tests/shared'
 import { DURABLE_ITERATOR_TOKEN_PARAM } from '../consts'
 import { signDurableIteratorToken } from '../schemas'
@@ -48,11 +51,8 @@ beforeEach(() => {
 describe('class DurableIteratorObject & DurableIteratorObjectHandler', async () => {
   const ctx = createDurableObjectState()
   const env = {}
-  const interceptor = vi.fn(({ next }) => next())
 
-  const object = new DurableIteratorObject(ctx, env, {
-    interceptors: [interceptor],
-  })
+  const object = new DurableIteratorObject(ctx, env)
 
   const resumeStoreStoreSpy = vi.spyOn((object['~orpc'] as any).resumeStorage, 'store')
   const resumeStoreGetSpy = vi.spyOn((object['~orpc'] as any).resumeStorage, 'get')
@@ -192,5 +192,162 @@ describe('class DurableIteratorObject & DurableIteratorObjectHandler', async () 
 
       expect(toDurableIteratorWebsocket(server)['~orpc'].deserializeTokenPayload()).toEqual(payload)
     })
+  })
+
+  describe('rpc', () => {
+    const singleClientHandler = vi.fn(async () => '__singleClientHandlerOutput__')
+    const singleClient = vi.fn(() => os.handler(singleClientHandler).callable())
+
+    const nestedClientHandler = vi.fn(async () => '__nestedClientHandlerOutput__')
+    const nestedClient = vi.fn(() => ({ nested: { nested: os.handler(nestedClientHandler).callable() } }))
+
+    class TestObject extends DurableIteratorObject<object> {
+      signalClient = singleClient
+      nestedClient = nestedClient
+    }
+    const interceptor = vi.fn(({ next }) => next())
+    const object = new TestObject(ctx, env, { interceptors: [interceptor] })
+
+    const ws1 = toDurableIteratorWebsocket(createCloudflareWebsocket())
+    ws1['~orpc'].serializeTokenPayload({ ...baseTokenPayload, id: 'ws1', rpc: ['signalClient'] })
+    const ws2 = toDurableIteratorWebsocket(createCloudflareWebsocket())
+    ws2['~orpc'].serializeTokenPayload({ ...baseTokenPayload, id: 'ws2', rpc: ['nestedClient'] })
+
+    it('work with single client', async () => {
+      await object.webSocketMessage(ws1, await encodeRequestMessage('id1', MessageType.REQUEST, {
+        url: new URL('http://localhost/call'),
+        body: { json: { path: ['signalClient'], input: '__input__' } },
+        headers: { 'last-event-id': '__lastEventId__' },
+        method: 'POST',
+      }))
+
+      await vi.waitFor(async () => {
+        expect(ws1['~orpc'].original.send).toHaveBeenCalledTimes(1)
+        expect(ws1['~orpc'].original.send).toHaveBeenCalledWith(await encodeResponseMessage('id1', MessageType.RESPONSE, {
+          body: { json: '__singleClientHandlerOutput__' },
+          headers: {},
+          status: 200,
+        }))
+      })
+
+      expect(singleClient).toHaveBeenCalledTimes(1)
+      expect(singleClient).toHaveBeenCalledWith(ws1)
+
+      expect(singleClientHandler).toHaveBeenCalledTimes(1)
+      expect(singleClientHandler).toHaveBeenCalledWith(expect.objectContaining({
+        input: '__input__',
+        signal: expect.any(AbortSignal),
+        lastEventId: '__lastEventId__',
+      }))
+      expect(interceptor).toHaveBeenCalledTimes(1)
+    })
+
+    it('work with nested client', async () => {
+      await object.webSocketMessage(ws2, await encodeRequestMessage('id1', MessageType.REQUEST, {
+        url: new URL('http://localhost/call'),
+        body: { json: { path: ['nestedClient', 'nested', 'nested'], input: '__input__' } },
+        headers: { 'last-event-id': '__lastEventId__' },
+        method: 'POST',
+      }))
+
+      await vi.waitFor(async () => {
+        expect(ws2['~orpc'].original.send).toHaveBeenCalledTimes(1)
+        expect(ws2['~orpc'].original.send).toHaveBeenCalledWith(await encodeResponseMessage('id1', MessageType.RESPONSE, {
+          body: { json: '__nestedClientHandlerOutput__' },
+          headers: {},
+          status: 200,
+        }))
+      })
+
+      expect(nestedClient).toHaveBeenCalledTimes(1)
+      expect(nestedClient).toHaveBeenCalledWith(ws2)
+
+      expect(nestedClientHandler).toHaveBeenCalledTimes(1)
+      expect(nestedClientHandler).toHaveBeenCalledWith(expect.objectContaining({
+        input: '__input__',
+        signal: expect.any(AbortSignal),
+        lastEventId: '__lastEventId__',
+      }))
+      expect(interceptor).toHaveBeenCalledTimes(1)
+    })
+
+    it('require have required permissions to call', async () => {
+      await object.webSocketMessage(ws2, await encodeRequestMessage('id1', MessageType.REQUEST, {
+        url: new URL('http://localhost/call'),
+        body: { json: { path: ['signalClient'], input: '__input__' } },
+        headers: {},
+        method: 'POST',
+      }))
+
+      await vi.waitFor(async () => {
+        expect(ws2['~orpc'].original.send).toHaveBeenCalledTimes(1)
+        expect(ws2['~orpc'].original.send).toHaveBeenCalledWith(expect.toSatisfy((s: string) => {
+          return s.includes('"code":"FORBIDDEN"')
+        }))
+      })
+
+      expect(singleClient).toHaveBeenCalledTimes(0)
+      expect(singleClientHandler).toHaveBeenCalledTimes(0)
+      expect(interceptor).toHaveBeenCalledTimes(1)
+    })
+
+    it('throw on not found corresponding client', async () => {
+      await object.webSocketMessage(ws1, await encodeRequestMessage('id1', MessageType.REQUEST, {
+        url: new URL('http://localhost/call'),
+        body: { json: { path: ['signalClient', 'notFound'], input: '__input__' } },
+        headers: {},
+        method: 'POST',
+      }))
+
+      await vi.waitFor(async () => {
+        expect(ws1['~orpc'].original.send).toHaveBeenCalledTimes(1)
+        expect(ws1['~orpc'].original.send).toHaveBeenCalledWith(expect.toSatisfy((s: string) => {
+          return s.includes('"code":"INTERNAL_SERVER_ERROR"')
+        }))
+      })
+
+      expect(singleClient).toHaveBeenCalledTimes(1)
+      expect(singleClientHandler).toHaveBeenCalledTimes(0)
+      expect(interceptor).toHaveBeenCalledTimes(1)
+    })
+
+    it('websocket message/close use the same reference - abort signal if websocket close', async () => {
+      singleClientHandler.mockImplementationOnce(async () => {
+        await sleep(1000)
+        return '__output__'
+      })
+
+      const promise = object.webSocketMessage(ws1, await encodeRequestMessage('id1', MessageType.REQUEST, {
+        url: new URL('http://localhost/call'),
+        body: { json: { path: ['signalClient'], input: '__input__' } },
+        headers: {},
+        method: 'POST',
+      }))
+
+      await sleep(100)
+      expect(singleClientHandler).toHaveBeenCalledTimes(1)
+      const signal = (singleClientHandler as any).mock.calls[0][0].signal
+      expect(signal).instanceOf(AbortSignal)
+      expect(signal.aborted).toBe(false)
+
+      // use original here to check if the websocket can reference the same reference or not?
+      await object.webSocketClose(ws1['~orpc'].original, 1000, 'closed', true)
+      await sleep(100)
+      expect(signal.aborted).toBe(true)
+
+      await promise
+      expect(ws1['~orpc'].original.send).toHaveBeenCalledTimes(0) // closed so not send anymore
+    })
+  })
+
+  it('auto close if expired on every websocket message arrive', async () => {
+    const ws1 = toDurableIteratorWebsocket(createCloudflareWebsocket())
+    ws1['~orpc'].serializeTokenPayload({ ...baseTokenPayload, exp: -1 })
+    vi.mocked(ws1['~orpc'].original.close).mockImplementationOnce(() => {
+      (ws1 as any).readyState = WebSocket.CLOSING
+    })
+
+    await object.webSocketMessage(ws1, 'message')
+    expect(ws1['~orpc'].original.close).toHaveBeenCalledTimes(1)
   })
 })

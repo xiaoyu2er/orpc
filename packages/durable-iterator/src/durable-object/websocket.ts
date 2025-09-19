@@ -48,6 +48,8 @@ export interface DurableIteratorWebsocket extends WebSocket {
   ['~orpc']: DurableIteratorWebsocketInternal
 }
 
+const websocketReferencesCache = new WeakMap<WebSocket, DurableIteratorWebsocket>()
+
 /**
  * Create a Durable Event Iterator WebSocket from a regular WebSocket
  *
@@ -56,6 +58,15 @@ export interface DurableIteratorWebsocket extends WebSocket {
 export function toDurableIteratorWebsocket(original: WebSocket): DurableIteratorWebsocket {
   if ('~orpc' in original) {
     return original as DurableIteratorWebsocket
+  }
+
+  /**
+   * The WebSocket adapter relies on reference equality, so we must ensure that
+   * the same WebSocket always maps to the same DurableIteratorWebSocket.
+   */
+  const cached = websocketReferencesCache.get(original)
+  if (cached) {
+    return cached
   }
 
   const internal: DurableIteratorWebsocketInternal = {
@@ -137,5 +148,6 @@ export function toDurableIteratorWebsocket(original: WebSocket): DurableIterator
     },
   })
 
+  websocketReferencesCache.set(original, proxy as DurableIteratorWebsocket)
   return proxy as DurableIteratorWebsocket
 }

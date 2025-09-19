@@ -79,7 +79,7 @@ describe('durableIteratorLinkPlugin', async () => {
   })
 
   it('should resolve durable iterator', async () => {
-    const outputPromise = link.call(['durableIterator'], {}, { context: {} }) as any
+    const outputPromise = link.call(['durableIterator'], {}, { context: {}, lastEventId: '__initialEventId__' }) as any
 
     await vi.waitFor(async () => {
       expect(ReconnectableWebSocket).toHaveBeenCalledOnce()
@@ -90,7 +90,10 @@ describe('durableIteratorLinkPlugin', async () => {
       expect(parseDurableIteratorToken(url.searchParams.get(DURABLE_ITERATOR_TOKEN_PARAM)!)).toBeTypeOf('object')
 
       const ws = vi.mocked(ReconnectableWebSocket).mock.results[0]!.value
-      const [id] = await decodeRequestMessage(ws.send.mock.calls[0][0])
+      const [id, ,payload] = await decodeRequestMessage(ws.send.mock.calls[0][0])
+
+      // make sure it use user-provided lastEventId for initial lastEventId
+      expect((payload as any).headers['last-event-id']).toBe('__initialEventId__')
 
       const [, onMessage] = vi.mocked(ws.addEventListener).mock.calls.find(([event]: any[]) => event === 'message') as any
 

@@ -6,7 +6,6 @@ import { parseDurableIteratorToken, signDurableIteratorToken, verifyDurableItera
 describe('signDurableIteratorToken', () => {
   it('should sign a token payload and return a string', async () => {
     const payload: DurableIteratorTokenPayload = {
-      id: 'client-123',
       chn: 'test-channel',
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 3600,
@@ -20,14 +19,12 @@ describe('signDurableIteratorToken', () => {
 
   it('should produce different tokens for different payloads', async () => {
     const payload1: DurableIteratorTokenPayload = {
-      id: 'client-1',
       chn: 'channel-1',
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 3600,
     }
 
     const payload2: DurableIteratorTokenPayload = {
-      id: 'client-2',
       chn: 'channel-2',
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 3600,
@@ -41,7 +38,6 @@ describe('signDurableIteratorToken', () => {
 
   it('should produce different tokens for different secrets', async () => {
     const payload: DurableIteratorTokenPayload = {
-      id: 'client-123',
       chn: 'test-channel',
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 3600,
@@ -57,7 +53,6 @@ describe('signDurableIteratorToken', () => {
 describe('verifyDurableIteratorToken', () => {
   it('should verify a valid token and return the payload', async () => {
     const payload: DurableIteratorTokenPayload = {
-      id: 'client-123',
       chn: 'test-channel',
       att: { userId: 'user-456' },
       rpc: ['getUser', 'sendMessage'],
@@ -73,7 +68,6 @@ describe('verifyDurableIteratorToken', () => {
 
   it('should return undefined for an expired token', async () => {
     const payload: DurableIteratorTokenPayload = {
-      id: 'client-123',
       chn: 'test-channel',
       iat: Math.floor(Date.now() / 1000) - 7200, // 2 hours ago
       exp: Math.floor(Date.now() / 1000) - 3600, // 1 hour ago (expired)
@@ -87,7 +81,6 @@ describe('verifyDurableIteratorToken', () => {
 
   it('should return undefined for a token with wrong secret', async () => {
     const payload: DurableIteratorTokenPayload = {
-      id: 'client-123',
       chn: 'test-channel',
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 3600,
@@ -125,7 +118,6 @@ describe('verifyDurableIteratorToken', () => {
   it('should handle edge case where exp equals current time', async () => {
     const currentTime = Math.floor(Date.now() / 1000)
     const payload: DurableIteratorTokenPayload = {
-      id: 'client-123',
       chn: 'test-channel',
       iat: currentTime,
       exp: currentTime, // expires exactly now
@@ -150,7 +142,6 @@ describe('verifyDurableIteratorToken', () => {
 describe('parseDurableIteratorToken', () => {
   it('should parse a valid token and return the payload', async () => {
     const payload: DurableIteratorTokenPayload = {
-      id: 'client-123',
       chn: 'test-channel',
       att: { userId: 'user-456' },
       rpc: ['getUser', 'sendMessage'],
@@ -166,7 +157,6 @@ describe('parseDurableIteratorToken', () => {
 
   it('should parse an expired token (does not check expiration)', async () => {
     const payload: DurableIteratorTokenPayload = {
-      id: 'client-123',
       chn: 'test-channel',
       iat: Math.floor(Date.now() / 1000) - 7200,
       exp: Math.floor(Date.now() / 1000) - 3600, // expired
@@ -220,7 +210,6 @@ describe('parseDurableIteratorToken', () => {
 describe('integration tests', () => {
   it('should handle complete sign -> verify -> parse flow', async () => {
     const originalPayload: DurableIteratorTokenPayload = {
-      id: 'client-123',
       chn: 'test-channel',
       att: { userId: 'user-456', role: 'admin' },
       rpc: ['getUser', 'sendMessage', 'deleteMessage'],
@@ -261,7 +250,6 @@ describe('integration tests', () => {
     }
 
     const payload: DurableIteratorTokenPayload = {
-      id: 'client-123',
       chn: 'test-channel',
       att: complexAttachment,
       iat: Math.floor(Date.now() / 1000),

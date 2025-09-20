@@ -1,6 +1,5 @@
-import { SignJWT } from 'jose'
-import { DURABLE_ITERATOR_TOKEN_PARAM } from '../consts'
-import { parseDurableIteratorToken, signDurableIteratorToken } from '../schemas'
+import { DURABLE_ITERATOR_ID_PARAM, DURABLE_ITERATOR_TOKEN_PARAM } from '../consts'
+import { signDurableIteratorToken } from '../schemas'
 import { upgradeDurableIteratorRequest } from './upgrade'
 
 describe('upgradeDurableIteratorRequest', () => {
@@ -16,9 +15,37 @@ describe('upgradeDurableIteratorRequest', () => {
     expect(response.status).toBe(426)
   })
 
-  it('rejects missing token', async () => {
+  it('rejects missing client id', async () => {
+    const token = await signDurableIteratorToken('signing-key', {
+      chn: 'test-channel',
+      rpc: ['someMethod'],
+      att: { some: 'attachment' },
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 1000,
+    })
+
+    const url = new URL('https://example.com')
+    url.searchParams.set(DURABLE_ITERATOR_TOKEN_PARAM, token)
+
     const response = await upgradeDurableIteratorRequest(
-      new Request('https://example.com', {
+      new Request(url, {
+        headers: { upgrade: 'websocket' },
+      }),
+      {
+        namespace: {} as any,
+        signingKey: 'test-sign',
+      },
+    )
+
+    expect(response.status).toBe(401)
+  })
+
+  it('rejects missing token', async () => {
+    const url = new URL('https://example.com')
+    url.searchParams.set(DURABLE_ITERATOR_ID_PARAM, 'client-id')
+
+    const response = await upgradeDurableIteratorRequest(
+      new Request(url, {
         headers: { upgrade: 'websocket' },
       }),
       {
@@ -31,8 +58,12 @@ describe('upgradeDurableIteratorRequest', () => {
   })
 
   it('rejects invalid token', async () => {
+    const url = new URL('https://example.com')
+    url.searchParams.set(DURABLE_ITERATOR_TOKEN_PARAM, 'invalid')
+    url.searchParams.set(DURABLE_ITERATOR_ID_PARAM, 'client-id')
+
     const response = await upgradeDurableIteratorRequest(
-      new Request('https://example.com?token=invalid-token', {
+      new Request(url, {
         headers: { upgrade: 'websocket' },
       }),
       {
@@ -45,13 +76,13 @@ describe('upgradeDurableIteratorRequest', () => {
   })
 
   it('rejects invalid payload', async () => {
-    const jwt = await new SignJWT({ invalid: true })
-      .setProtectedHeader({ alg: 'HS256' })
-      .setIssuedAt()
-      .setExpirationTime(new Date(Date.now() + 1000 * 1000))
-      .sign(new TextEncoder().encode('test-sign'))
+    const invalidToken = await signDurableIteratorToken('test-sign', {} as any)
+    const url = new URL('https://example.com')
+    url.searchParams.set(DURABLE_ITERATOR_TOKEN_PARAM, invalidToken)
+    url.searchParams.set(DURABLE_ITERATOR_ID_PARAM, 'client-id')
+
     const response = await upgradeDurableIteratorRequest(
-      new Request(`https://example.com?token=${jwt}`, {
+      new Request(url, {
         headers: { upgrade: 'websocket' },
       }),
       {
@@ -71,24 +102,23 @@ describe('upgradeDurableIteratorRequest', () => {
       })),
     }
 
-    const date = 1244444444444
-
     const token = await signDurableIteratorToken('signing-key', {
       chn: 'test-channel',
       rpc: ['someMethod'],
       att: { some: 'attachment' },
-      id: 'test-id',
-      iat: date,
-      exp: date + 1000,
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 1000,
     })
 
     const url = new URL('https://example.com')
     url.searchParams.set(DURABLE_ITERATOR_TOKEN_PARAM, token)
+    url.searchParams.set(DURABLE_ITERATOR_ID_PARAM, 'test-id')
 
+    const request = new Request(url, {
+      headers: { upgrade: 'websocket' },
+    })
     const response = await upgradeDurableIteratorRequest(
-      new Request(url, {
-        headers: { upgrade: 'websocket' },
-      }),
+      request,
       {
         namespace: namespace as any,
         signingKey: 'signing-key',
@@ -99,19 +129,9 @@ describe('upgradeDurableIteratorRequest', () => {
 
     expect(namespace.idFromName).toHaveBeenCalledWith('test-channel')
     expect(namespace.get).toHaveBeenCalledWith(namespace.idFromName.mock.results[0]!.value)
+
     const stub = namespace.get.mock.results[0]!.value
-    const requestUrl = new URL(stub.fetch.mock.calls[0][0].url)
-    const requestHeaders = stub.fetch.mock.calls[0][0].headers
-
-    expect(parseDurableIteratorToken(requestUrl.searchParams.get(DURABLE_ITERATOR_TOKEN_PARAM)!)).toEqual({
-      chn: 'test-channel',
-      rpc: ['someMethod'],
-      att: { some: 'attachment' },
-      id: 'test-id',
-      iat: date,
-      exp: date + 1000,
-    })
-
-    expect(requestHeaders.get('upgrade')).toBe('websocket')
+    expect(stub.fetch).toHaveBeenCalledOnce()
+    expect(stub.fetch).toHaveBeenCalledWith(request)
   })
 })

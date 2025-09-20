@@ -30,7 +30,7 @@ describe('eventStreamStorage', () => {
     const ctx = createDurableObjectState()
     const storage = new EventResumeStorage(ctx, { resumeRetentionSeconds: 1 })
     const ws = toDurableIteratorWebsocket(createCloudflareWebsocket())
-    ws['~orpc'].serializeTokenPayload({ id: 'ws-id' } as any)
+    ws['~orpc'].serializeId('ws-id')
 
     const payload1 = storage.store(withEventMeta({ order: 1 }, { id: 'some-id', retry: 238 }), {})
     expect(payload1).toEqual({ order: 1 })
@@ -84,11 +84,11 @@ describe('eventStreamStorage', () => {
     const storage = new EventResumeStorage(ctx, { resumeRetentionSeconds: 1 })
 
     const ws1 = toDurableIteratorWebsocket(createCloudflareWebsocket())
-    ws1['~orpc'].serializeTokenPayload({ id: 'ws-1' } as any)
+    ws1['~orpc'].serializeId('ws-1')
     const ws2 = toDurableIteratorWebsocket(createCloudflareWebsocket())
-    ws2['~orpc'].serializeTokenPayload({ id: 'ws-2' } as any)
+    ws2['~orpc'].serializeId('ws-2')
     const ws3 = toDurableIteratorWebsocket(createCloudflareWebsocket())
-    ws3['~orpc'].serializeTokenPayload({ id: 'ws-3' } as any)
+    ws3['~orpc'].serializeId('ws-3')
 
     const payload1 = storage.store({ order: 1 }, { targets: [ws1] })
     const payload2 = storage.store({ order: 2 }, { exclude: [ws2] })
@@ -119,7 +119,7 @@ describe('eventStreamStorage', () => {
     })
 
     const ws = toDurableIteratorWebsocket(createCloudflareWebsocket())
-    ws['~orpc'].serializeTokenPayload({ id: 'ws-1' } as any)
+    ws['~orpc'].serializeId('ws-1')
 
     storage.store(new Person('__name__'), {})
     const payload = storage.get(ws, '0')[0]

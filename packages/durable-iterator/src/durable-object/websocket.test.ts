@@ -36,13 +36,19 @@ describe('toDurableIteratorWebsocket', () => {
     expect(proxied.deserializeAttachment()).toEqual({ v: 1 })
     expect(ws.deserializeAttachment()).toEqual({ hi: 'some-id', wa: { v: 1 } })
 
-    // throw if serializeTokenPayload is not called before deserialize
+    expect(() => proxied['~orpc'].deserializeId()).toThrow(
+      new DurableIteratorError('ID not found, please call serializeId first'),
+    )
+    proxied['~orpc'].serializeId('some-id')
+    expect(proxied['~orpc'].deserializeId()).toEqual('some-id')
+    expect(ws.deserializeAttachment()).toEqual({ hi: 'some-id', wa: { v: 1 }, id: 'some-id' })
+
     expect(() => proxied['~orpc'].deserializeTokenPayload()).toThrow(
       new DurableIteratorError('Token payload not found, please call serializeTokenPayload first'),
     )
-    proxied['~orpc'].serializeTokenPayload({ id: 'some-id', exp: 398398 })
-    expect(proxied['~orpc'].deserializeTokenPayload()).toEqual({ id: 'some-id', exp: 398398 })
-    expect(ws.deserializeAttachment()).toEqual({ tp: { id: 'some-id', exp: 398398 }, hi: 'some-id', wa: { v: 1 } })
+    proxied['~orpc'].serializeTokenPayload({ exp: 398398 })
+    expect(proxied['~orpc'].deserializeTokenPayload()).toEqual({ exp: 398398 })
+    expect(ws.deserializeAttachment()).toEqual({ tp: { exp: 398398 }, hi: 'some-id', wa: { v: 1 }, id: 'some-id' })
   })
 
   it('proxied and auto close if expired on send', async () => {

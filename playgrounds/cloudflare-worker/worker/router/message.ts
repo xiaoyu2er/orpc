@@ -6,6 +6,7 @@ import type { ChatRoom } from '../dos/chat-room'
 export const onMessage = pub.handler(({ context }) => {
   return new DurableIterator<ChatRoom>('some-room', {
     signingKey: 'key',
+    tags: ['tag1', 'tag2'],
     tokenTTLSeconds: 60 * 60 * 24, // 24 hours
     att: { some: 'attachment' },
   }).rpc('publishMessageRPC')

@@ -24,19 +24,6 @@ export interface DurableIteratorOptions<
   tokenTTLSeconds?: number
 
   /**
-   * Unique identifier for the client connection.
-   * Used to distinguish between different client instances.
-   *
-   * @default crypto.randomUUID()
-   */
-  id?: string
-
-  /**
-   * Tags to attach to the token.
-   */
-  tags?: readonly string[]
-
-  /**
    * Token's attachment
    */
   att?: unknown
@@ -81,9 +68,7 @@ export class DurableIterator<
       const nowInSeconds = Math.floor(Date.now() / 1000)
 
       const token = await signDurableIteratorToken(this.options.signingKey, {
-        id: this.options.id ?? crypto.randomUUID(),
         chn: this.chn,
-        tags: this.options.tags,
         att: this.options.att,
         rpc: this.options.rpc,
         iat: nowInSeconds,

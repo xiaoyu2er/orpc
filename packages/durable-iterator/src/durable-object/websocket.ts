@@ -10,19 +10,23 @@ export interface DurableIteratorWebsocketInternal {
   original: WebSocket
 
   /**
-   * Serialize the hibernation id used for publishing events to the client
+   * Serialize the websocket id
+   *
+   * @warning this method should be called when client established connection
    */
-  serializeHibernationId(id: string): void
+  serializeId(id: string): void
 
   /**
-   * Deserialize the hibernation id used for publishing events to the client
+   * Deserialize the websocket id
+   *
+   * @warning this method assumes that the id is already set when client established connection
    */
-  deserializeHibernationId(): string | undefined
+  deserializeId(): string
 
   /**
    * Serialize the token payload usually when client connected
    *
-   * @warning this method should be called when client established connection
+   * @warning this method should be called when client established connection or when token payload is updated
    */
   serializeTokenPayload(payload: DurableIteratorTokenPayload): void
 
@@ -32,6 +36,16 @@ export interface DurableIteratorWebsocketInternal {
    * @warning this method assumes that the token payload is already set when client established connection
    */
   deserializeTokenPayload(): DurableIteratorTokenPayload
+
+  /**
+   * Serialize the hibernation id used for publishing events to the client
+   */
+  serializeHibernationId(id: string): void
+
+  /**
+   * Deserialize the hibernation id used for publishing events to the client
+   */
+  deserializeHibernationId(): string | undefined
 
   /**
    * Close the websocket connection if expired
@@ -71,14 +85,20 @@ export function toDurableIteratorWebsocket(original: WebSocket): DurableIterator
 
   const internal: DurableIteratorWebsocketInternal = {
     original,
-    serializeHibernationId(id) {
+    serializeId(id) {
       original.serializeAttachment({
         ...original.deserializeAttachment(),
-        hi: id,
+        id,
       })
     },
-    deserializeHibernationId() {
-      return original.deserializeAttachment()?.hi
+    deserializeId() {
+      const id = original.deserializeAttachment()?.id
+
+      if (!id) {
+        throw new DurableIteratorError('ID not found, please call serializeId first')
+      }
+
+      return id
     },
     serializeTokenPayload(payload) {
       original.serializeAttachment({
@@ -94,6 +114,15 @@ export function toDurableIteratorWebsocket(original: WebSocket): DurableIterator
       }
 
       return payload
+    },
+    serializeHibernationId(id) {
+      original.serializeAttachment({
+        ...original.deserializeAttachment(),
+        hi: id,
+      })
+    },
+    deserializeHibernationId() {
+      return original.deserializeAttachment()?.hi
     },
     closeIfExpired() {
       const payload = internal.deserializeTokenPayload()

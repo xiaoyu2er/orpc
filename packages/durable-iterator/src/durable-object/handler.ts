@@ -9,9 +9,9 @@ import { implement, ORPCError } from '@orpc/server'
 import { encodeHibernationRPCEvent, HibernationEventIterator, HibernationPlugin } from '@orpc/server/hibernation'
 import { RPCHandler } from '@orpc/server/websocket'
 import { get, toArray } from '@orpc/shared'
-import { DURABLE_ITERATOR_TOKEN_PARAM } from '../consts'
+import { DURABLE_ITERATOR_ID_PARAM, DURABLE_ITERATOR_TOKEN_PARAM } from '../consts'
 import { durableIteratorContract } from '../contract'
-import { parseDurableIteratorToken } from '../schemas'
+import { verifyDurableIteratorToken } from '../schemas'
 import { toDurableIteratorObjectState } from './object-state'
 import { EventResumeStorage } from './resume-storage'
 import { toDurableIteratorWebsocket } from './websocket'
@@ -28,6 +28,15 @@ type DurableIteratorObjectRouterContext = {
 const base = os.$context<DurableIteratorObjectRouterContext>()
 
 const router = base.router({
+  replaceToken: base.replaceToken.handler(async ({ context, input }) => {
+    const payload = await verifyDurableIteratorToken(context.options.signingKey, input.token)
+
+    if (!payload) {
+      throw new ORPCError('UNAUTHORIZED', { message: 'Invalid Token' })
+    }
+
+    context.websocket['~orpc'].serializeTokenPayload(payload)
+  }),
   subscribe: base.subscribe.handler(({ context, lastEventId }) => {
     return new HibernationEventIterator<any>((hibernationId) => {
       context.websocket['~orpc'].serializeHibernationId(hibernationId)
@@ -91,6 +100,11 @@ export interface PublishEventOptions {
 
 export interface DurableIteratorObjectHandlerOptions extends RPCHandlerOptions<DurableIteratorObjectRouterContext>, EventResumeStorageOptions {
   /**
+   * The signing key to use verify the token.
+   */
+  signingKey: string
+
+  /**
    * Called after a client successfully subscribes to the main iterator.
    * You can start sending events to the client here.
    *
@@ -116,7 +130,7 @@ export class DurableIteratorObjectHandler<
   constructor(
     ctx: DurableObjectState,
     private readonly object: DurableObject<any>,
-    private readonly options: DurableIteratorObjectHandlerOptions = {},
+    private readonly options: DurableIteratorObjectHandlerOptions,
   ) {
     this.ctx = toDurableIteratorObjectState(ctx)
 
@@ -147,11 +161,11 @@ export class DurableIteratorObjectHandler<
     // update payload metadata
     payload = this.resumeStorage.store(payload, { targets, exclude })
 
-    const excludeIds = exclude?.map(ws => ws['~orpc'].deserializeTokenPayload().id)
+    const excludeIds = exclude?.map(ws => ws['~orpc'].deserializeId())
     const fallbackTargets = targets ?? this.ctx.getWebSockets().map(ws => toDurableIteratorWebsocket(ws))
 
     for (const ws of fallbackTargets) {
-      if (excludeIds?.includes(ws['~orpc'].deserializeTokenPayload().id)) {
+      if (excludeIds?.includes(ws['~orpc'].deserializeId())) {
         continue
       }
 
@@ -176,23 +190,30 @@ export class DurableIteratorObjectHandler<
   /**
    * This method is called when a HTTP request is received for upgrading to a WebSocket connection.
    * Should mapping with corresponding `fetch` inside durable object
-   *
-   * @warning No verification is done here, you should verify the token payload before calling this method.
    */
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url)
     const token = url.searchParams.getAll(DURABLE_ITERATOR_TOKEN_PARAM).at(-1)
-    const payload = parseDurableIteratorToken(token)
+    const id = url.searchParams.getAll(DURABLE_ITERATOR_ID_PARAM).at(-1)
+
+    if (typeof id !== 'string') {
+      return new Response('ID is required', { status: 401 })
+    }
+
+    if (typeof token !== 'string') {
+      return new Response('Token is required', { status: 401 })
+    }
+
+    const payload = await verifyDurableIteratorToken(this.options.signingKey, token)
+
+    if (!payload) {
+      return new Response('Invalid Token', { status: 401 })
+    }
 
     const { '0': client, '1': server } = new WebSocketPair()
 
-    if (payload.tags) {
-      this.ctx.acceptWebSocket(server, [...payload.tags])
-    }
-    else {
-      this.ctx.acceptWebSocket(server)
-    }
-
+    this.ctx.acceptWebSocket(server)
+    toDurableIteratorWebsocket(server)['~orpc'].serializeId(id)
     toDurableIteratorWebsocket(server)['~orpc'].serializeTokenPayload(payload)
 
     return new Response(null, {

@@ -9,9 +9,9 @@ import type { DurableIteratorTokenPayload } from '../schemas'
 import { createORPCClient } from '@orpc/client'
 import { ClientRetryPlugin } from '@orpc/client/plugins'
 import { RPCLink } from '@orpc/client/websocket'
-import { AsyncIteratorClass, fallback, toArray, value } from '@orpc/shared'
+import { AsyncIteratorClass, fallback, retry, toArray, value } from '@orpc/shared'
 import { WebSocket as ReconnectableWebSocket } from 'partysocket'
-import { DURABLE_ITERATOR_PLUGIN_HEADER_KEY, DURABLE_ITERATOR_PLUGIN_HEADER_VALUE, DURABLE_ITERATOR_TOKEN_PARAM } from '../consts'
+import { DURABLE_ITERATOR_ID_PARAM, DURABLE_ITERATOR_PLUGIN_HEADER_KEY, DURABLE_ITERATOR_PLUGIN_HEADER_VALUE, DURABLE_ITERATOR_TOKEN_PARAM } from '../consts'
 import { DurableIteratorError } from '../error'
 import { parseDurableIteratorToken } from '../schemas'
 import { createClientDurableIterator } from './iterator'
@@ -27,11 +27,30 @@ export interface DurableIteratorLinkPluginOptions<T extends ClientContext> exten
   url: Value<Promisable<string | URL>, [tokenPayload: DurableIteratorTokenPayload, options: StandardLinkInterceptorOptions<T>]>
 
   /**
-   * Determine whether to automatically refresh the token when it is expired.
+   * Generates a unique, unguessable websocket identifier.
    *
-   * @default false
+   * This ID is attached to the WebSocket connection so the server can
+   * recognize the same client across reconnects. It is called **once per client**
+   *
+   * @remarks
+   * - Use a strong random generator to avoid collisions or predictable IDs.
+   *
+   * @default (() => `${crypto.randomUUID()}-${crypto.randomUUID()}`)
    */
-  shouldRefreshTokenOnExpire?: Value<Promisable<boolean>, [tokenPayload: DurableIteratorTokenPayload, options: StandardLinkInterceptorOptions<T>]>
+  createId?: (tokenPayload: DurableIteratorTokenPayload, options: StandardLinkInterceptorOptions<T>) => Promisable<string>
+
+  /**
+   * Refresh the token this many seconds before it expires.
+   *
+   * @remarks
+   * - Pick a value larger than the expected token refresh time, network latency, and retry on failure
+   *   to ensure a seamless refresh without reconnecting the WebSocket.
+   * - 300 seconds (5 minutes) is typically enough; 600 seconds (10 minutes) is safer
+   * - Use a infinite value to disable refreshing
+   *
+   * @default NaN (disabled)
+   */
+  refreshTokenBeforeExpireInSeconds?: Value<Promisable<number>, [tokenPayload: DurableIteratorTokenPayload, options: StandardLinkInterceptorOptions<T>]>
 }
 
 /**
@@ -43,12 +62,14 @@ export class DurableIteratorLinkPlugin<T extends ClientContext> implements Stand
   order = 2_100_000 // make sure execute before the batch plugin and after client retry plugin
 
   private readonly url: DurableIteratorLinkPluginOptions<T>['url']
-  private readonly shouldRefreshTokenOnExpire: Exclude<DurableIteratorLinkPluginOptions<T>['shouldRefreshTokenOnExpire'], undefined>
+  private readonly generateClientId: Exclude<DurableIteratorLinkPluginOptions<T>['createId'], undefined>
+  private readonly refreshTokenBeforeExpireInSeconds: Exclude<DurableIteratorLinkPluginOptions<T>['refreshTokenBeforeExpireInSeconds'], undefined>
   private readonly linkOptions: Omit<RPCLinkOptions<object>, 'websocket'>
 
-  constructor({ url, shouldRefreshTokenOnExpire, ...options }: DurableIteratorLinkPluginOptions<T>) {
+  constructor({ url, refreshTokenBeforeExpireInSeconds, ...options }: DurableIteratorLinkPluginOptions<T>) {
     this.url = url
-    this.shouldRefreshTokenOnExpire = fallback(shouldRefreshTokenOnExpire, false)
+    this.generateClientId = fallback(options.createId, () => `${crypto.randomUUID()}-${crypto.randomUUID()}`)
+    this.refreshTokenBeforeExpireInSeconds = fallback(refreshTokenBeforeExpireInSeconds, Number.NaN)
     this.linkOptions = options
   }
 
@@ -79,19 +100,13 @@ export class DurableIteratorLinkPlugin<T extends ClientContext> implements Stand
        */
       options?.signal?.throwIfAborted()
 
+      let isFinished = false // use this for cleanup logic
+
       let tokenAndPayload = this.validateToken(output, options.path)
+      const id = await this.generateClientId(tokenAndPayload.payload, options)
       const websocket = new ReconnectableWebSocket(async () => {
-        const notRoundedNowInSeconds = Date.now() / 1000
-
-        if (tokenAndPayload.payload.exp - notRoundedNowInSeconds <= 0) {
-          const enabled = await value(this.shouldRefreshTokenOnExpire, tokenAndPayload.payload, options)
-          if (enabled) {
-            const output = await next()
-            tokenAndPayload = this.validateToken(output, options.path)
-          }
-        }
-
         const url = new URL(await value(this.url, tokenAndPayload.payload, options))
+        url.searchParams.append(DURABLE_ITERATOR_ID_PARAM, id)
         url.searchParams.append(DURABLE_ITERATOR_TOKEN_PARAM, tokenAndPayload.token)
         return url.toString()
       })
@@ -106,7 +121,50 @@ export class DurableIteratorLinkPlugin<T extends ClientContext> implements Stand
           ],
         }))
 
+      let refreshTokenBeforeExpireTimeoutId: ReturnType<typeof setTimeout> | undefined
+      const refreshTokenBeforeExpire = async () => {
+        const beforeSeconds = await value(this.refreshTokenBeforeExpireInSeconds, tokenAndPayload.payload, options)
+
+        // stop refreshing if already finished
+        if (isFinished || !Number.isFinite(beforeSeconds)) {
+          return
+        }
+
+        const nowInSeconds = Math.floor(Date.now() / 1000)
+
+        refreshTokenBeforeExpireTimeoutId = setTimeout(async () => {
+          // retry until success or is finished
+          await retry({ times: Number.POSITIVE_INFINITY, delay: 2000 }, async (exit) => {
+            try {
+              const output = await next()
+              tokenAndPayload = this.validateToken(output, options.path)
+            }
+            catch (err) {
+              if (isFinished) {
+                exit(err)
+              }
+
+              throw err
+            }
+          })
+
+          await refreshTokenBeforeExpire() // recursively call
+
+          /**
+           * Actively set a new token before the current one expires (avoid re-establishing the connection when the token expires)
+           *
+           * This call can fail, and it is not required for the next
+           * `refreshTokenBeforeExpire` cycle. It should therefore be
+           * executed as the last step.
+           */
+          await durableClient.replaceToken({ token: tokenAndPayload.token })
+        }, (tokenAndPayload.payload.exp - nowInSeconds - beforeSeconds) * 1000)
+      }
+      refreshTokenBeforeExpire()
+
       const closeConnection = () => {
+        isFinished = true
+        clearTimeout(refreshTokenBeforeExpireTimeoutId)
         websocket.close()
       }
 

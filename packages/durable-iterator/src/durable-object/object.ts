@@ -2,6 +2,7 @@ import type { DurableIteratorObject as IDurableIteratorObject } from '../object'
 import type { DurableIteratorObjectHandlerOptions, PublishEventOptions } from './handler'
 import type { DurableIteratorObjectState } from './object-state'
 import { DurableObject } from 'cloudflare:workers'
+import { DurableIteratorError } from '../error'
 import { DurableIteratorObjectHandler } from './handler'
 
 export class DurableIteratorObject<T extends object, TEnv = unknown> extends DurableObject<TEnv> implements IDurableIteratorObject<T> {
@@ -15,8 +16,20 @@ export class DurableIteratorObject<T extends object, TEnv = unknown> extends Dur
   constructor(
     ctx: DurableObjectState,
     env: TEnv,
-    options: DurableIteratorObjectHandlerOptions = {},
+    options: DurableIteratorObjectHandlerOptions,
   ) {
+    /**
+     * By default, Durable Object constructors only receive `ctx` and `env`.
+     * To access the 3rd `options` argument, it must be explicitly passed in.
+     */
+    if (!options) {
+      throw new DurableIteratorError(`
+        Missing options (3rd argument) for DurableIteratorObject.
+        When extending DurableIteratorObject, you must define your own constructor
+        and call super(ctx, env, options).
+      `)
+    }
+
     super(ctx, env)
     this['~orpc'] = new DurableIteratorObjectHandler(ctx, this, options)
     this.ctx = this['~orpc'].ctx

@@ -6,10 +6,15 @@ import { fallback, parseEmptyableJSON, stringifyJSON } from '@orpc/shared'
 
 export interface EventResumeStorageOptions extends StandardRPCJsonSerializerOptions {
   /**
-   * The number of seconds to retain events for resume capability.
-   * Used for replaying missed events when clients reconnect.
+   * How long (in seconds) to retain events for reconnection replay.
    *
-   * @default 0 (disabled)
+   * When a client reconnects, stored events within this window can be replayed
+   * to ensure no data is lost. Outside this window, missed events are dropped.
+   *
+   * @remarks
+   * - Use infinite values to disable
+   *
+   * @default NaN (disabled)
    */
   resumeRetentionSeconds?: number
 
@@ -35,14 +40,14 @@ export class EventResumeStorage<T extends object> {
   private readonly schemaPrefix: string
 
   get isEnabled(): boolean {
-    return this.retentionSeconds > 0
+    return Number.isFinite(this.retentionSeconds) && this.retentionSeconds > 0
   }
 
   constructor(
     private readonly durableState: DurableObjectState,
     options: EventResumeStorageOptions = {},
   ) {
-    this.retentionSeconds = fallback(options.resumeRetentionSeconds, 0) // disabled by default
+    this.retentionSeconds = fallback(options.resumeRetentionSeconds, Number.NaN) // disabled by default
     this.schemaPrefix = fallback(options.resumeTablePrefix, 'orpc:durable-iterator:resume:')
     this.serializer = new StandardRPCJsonSerializer(options)
 
@@ -69,10 +74,10 @@ export class EventResumeStorage<T extends object> {
 
     const serializedEvent = this.serializeEventPayload(payload)
     const targetIds = resumeFilter.targets?.map(
-      ws => ws['~orpc'].deserializeTokenPayload().id,
+      ws => ws['~orpc'].deserializeId(),
     )
     const excludeIds = resumeFilter.exclude?.map(
-      ws => ws['~orpc'].deserializeTokenPayload().id,
+      ws => ws['~orpc'].deserializeId(),
     )
 
     const insertEvent = () => {
@@ -118,7 +123,7 @@ export class EventResumeStorage<T extends object> {
 
     this.cleanupExpiredEvents()
 
-    const websocketId = websocket['~orpc'].deserializeTokenPayload().id
+    const websocketId = websocket['~orpc'].deserializeId()
 
     /**
      * SQLite INTEGER can exceed JavaScript's safe integer range,

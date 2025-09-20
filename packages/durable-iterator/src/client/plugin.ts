@@ -137,7 +137,14 @@ export class DurableIteratorLinkPlugin<T extends ClientContext> implements Stand
           await retry({ times: Number.POSITIVE_INFINITY, delay: 2000 }, async (exit) => {
             try {
               const output = await next()
-              tokenAndPayload = this.validateToken(output, options.path)
+              const newTokenAndPayload = this.validateToken(output, options.path)
+
+              if (newTokenAndPayload.payload.chn !== tokenAndPayload.payload.chn) {
+                exit(new DurableIteratorError('Refreshed token must have the same channel with the original token'))
+              }
+              else {
+                tokenAndPayload = newTokenAndPayload
+              }
             }
             catch (err) {
               if (isFinished) {

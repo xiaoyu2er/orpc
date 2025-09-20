@@ -38,7 +38,7 @@ const router = base.router({
     const old = context.websocket['~orpc'].deserializeTokenPayload()
 
     if (payload.chn !== old.chn) {
-      throw new ORPCError('UNAUTHORIZED', { message: 'Channel Mismatch' })
+      throw new ORPCError('UNAUTHORIZED', { message: 'Updated token must have the same channel with the original token' })
     }
 
     context.websocket['~orpc'].serializeTokenPayload(payload)

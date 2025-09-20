@@ -1,5 +1,5 @@
 import type { RouterClient } from '@orpc/server'
-import type { router } from '../router'
+import type { router } from '../routers'
 import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/websocket'
 import { createTanstackQueryUtils } from '@orpc/tanstack-query'

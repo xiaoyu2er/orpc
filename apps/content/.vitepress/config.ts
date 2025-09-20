@@ -69,12 +69,11 @@ export default withMermaid(defineConfig({
     nav: [
       { text: 'Docs', link: '/docs/getting-started', activeMatch: '/docs/(?!openapi/)' },
       { text: 'OpenAPI', link: '/docs/openapi/getting-started', activeMatch: '/docs/openapi/' },
-      { text: 'Examples', link: '/examples/openai-streaming', activeMatch: '/examples/' },
+      { text: 'Blog', link: '/blog/v1-announcement', activeMatch: '/blog/' },
       { text: 'Learn & Contribute', link: '/learn-and-contribute/overview', activeMatch: '/learn-and-contribute/' },
       {
         text: 'About',
         items: [
-          { text: 'Blog', link: '/blog/v1-announcement' },
           { text: 'Discussions', link: 'https://github.com/unnoq/orpc/discussions' },
           { text: 'Sponsor', link: 'https://github.com/sponsors/unnoq' },
           { text: 'Releases', link: 'https://github.com/unnoq/orpc/releases' },
@@ -84,6 +83,7 @@ export default withMermaid(defineConfig({
     sidebar: {
       '/docs/': [
         { text: 'Getting Started', link: '/docs/getting-started' },
+        { text: 'Comparison', link: '/docs/comparison' },
         { text: 'Procedure', link: '/docs/procedure' },
         { text: 'Router', link: '/docs/router' },
         { text: 'Middleware', link: '/docs/middleware' },
@@ -95,6 +95,8 @@ export default withMermaid(defineConfig({
         { text: 'Metadata', link: '/docs/metadata' },
         { text: 'RPC Handler', link: '/docs/rpc-handler' },
         { text: 'OpenAPI', link: '/docs/openapi/getting-started' },
+        { text: 'Ecosystem', link: '/docs/ecosystem' },
+        { text: 'Playgrounds', link: '/docs/playgrounds' },
         {
           text: 'Contract First',
           collapsed: true,
@@ -127,6 +129,7 @@ export default withMermaid(defineConfig({
             { text: 'Solid Start', link: '/docs/adapters/solid-start' },
             { text: 'Svelte Kit', link: '/docs/adapters/svelte-kit' },
             { text: 'Tanstack Start', link: '/docs/adapters/tanstack-start' },
+            { text: 'Web Workers', link: '/docs/adapters/web-workers' },
             { text: 'Worker Threads', link: '/docs/adapters/worker-threads' },
           ],
         },
@@ -137,6 +140,7 @@ export default withMermaid(defineConfig({
             { text: 'CORS', link: '/docs/plugins/cors' },
             { text: 'Request Headers', link: '/docs/plugins/request-headers' },
             { text: 'Response Headers', link: '/docs/plugins/response-headers' },
+            { text: 'Request Validation', link: '/docs/plugins/request-validation' },
             { text: 'Response Validation', link: '/docs/plugins/response-validation' },
             { text: 'Hibernation', link: '/docs/plugins/hibernation' },
             { text: 'Dedupe Requests', link: '/docs/plugins/dedupe-requests' },
@@ -199,10 +203,18 @@ export default withMermaid(defineConfig({
           ],
         },
         {
+          text: 'Examples',
+          collapsed: true,
+          items: [
+            { text: 'OpenAI Streaming', link: '/docs/examples/openai-streaming' },
+          ],
+        },
+        {
           text: 'Best Practices',
           collapsed: true,
           items: [
             { text: 'Dedupe Middleware', link: '/docs/best-practices/dedupe-middleware' },
+            { text: 'Monorepo Setup', link: '/docs/best-practices/monorepo-setup' },
             { text: 'No Throw Literal', link: '/docs/best-practices/no-throw-literal' },
             { text: 'Optimize SSR', link: '/docs/best-practices/optimize-ssr' },
           ],
@@ -227,15 +239,6 @@ export default withMermaid(defineConfig({
           collapsed: true,
           items: [
             { text: 'Migrating from tRPC', link: '/docs/migrations/from-trpc' },
-          ],
-        },
-        {
-          text: 'Others',
-          collapsed: true,
-          items: [
-            { text: 'Playgrounds', link: '/docs/playgrounds' },
-            { text: 'Comparison', link: '/docs/comparison' },
-            { text: 'Ecosystem', link: '/docs/ecosystem' },
           ],
         },
       ],
@@ -282,9 +285,6 @@ export default withMermaid(defineConfig({
             { text: 'Redirect Response', link: '/docs/openapi/advanced/redirect-response' },
           ],
         },
-      ],
-      '/examples/': [
-        { text: 'OpenAI Streaming', link: '/examples/openai-streaming' },
       ],
       '/blog/': [
         { text: 'V1 Announcement', link: '/blog/v1-announcement' },

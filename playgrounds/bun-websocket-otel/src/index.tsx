@@ -2,7 +2,7 @@ import './instrumentation'
 
 import { serve } from 'bun'
 import index from './index.html'
-import { router } from './router'
+import { router } from './routers'
 import { RPCHandler } from '@orpc/server/bun-ws'
 import { OTEL_TRACE_EXPORTER_URL } from './consts'
 import { trace } from '@opentelemetry/api'

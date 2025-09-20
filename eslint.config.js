@@ -81,6 +81,8 @@ export default antfu({
     'no-var': 'off',
     'vars-on-top': 'off',
     'unicorn/prefer-type-error': 'off',
+    'antfu/no-import-node-modules-by-path': 'off',
+    'no-restricted-globals': 'off',
   },
 }, {
   files: ['apps/content/examples/**'],

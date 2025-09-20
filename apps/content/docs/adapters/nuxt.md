@@ -5,7 +5,7 @@ description: Use oRPC inside an Nuxt.js project
 
 # Nuxt.js Adapter
 
-[Nuxt.js](https://nuxtjs.org/) is a popular Vue.js framework for building server-side applications. It built on top of [Nitro](https://nitro.build/) server a lightweight, high-performance Node.js runtime. For more details, see the [HTTP Adapter](/docs/adapters/http) guide.
+[Nuxt.js](https://nuxt.com/) is a popular Vue.js framework for building server-side applications. For more details, see the [HTTP Adapter](/docs/adapters/http) guide.
 
 ## Server
 
@@ -14,22 +14,20 @@ You set up an oRPC server inside Nuxt using its [Server Routes](https://nuxt.com
 ::: code-group
 
 ```ts [server/routes/rpc/[...].ts]
-import { RPCHandler } from '@orpc/server/node'
+import { RPCHandler } from '@orpc/server/fetch'
 
 const handler = new RPCHandler(router)
 
 export default defineEventHandler(async (event) => {
-  const { matched } = await handler.handle(
-    event.node.req,
-    event.node.res,
-    {
-      prefix: '/rpc',
-      context: {}, // Provide initial context if needed
-    }
-  )
+  const request = toWebRequest(event)
 
-  if (matched) {
-    return
+  const { response } = await handler.handle(request, {
+    prefix: '/rpc',
+    context: {}, // Provide initial context if needed
+  })
+
+  if (response) {
+    return response
   }
 
   setResponseStatus(event, 404, 'Not Found')

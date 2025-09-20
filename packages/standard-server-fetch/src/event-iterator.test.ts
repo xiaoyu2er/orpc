@@ -154,9 +154,7 @@ describe('toEventIterator', () => {
     const stream = new ReadableStream<string>({
       async pull(controller) {
         controller.enqueue('event: message\ndata: {"order": 1}\nid: id-1\nretry: 10000\n\n')
-        controller.enqueue('event: message\ndata: {"order": 2}\nid: id-2\n\n')
-        controller.enqueue(': ping\n\n')
-        controller.enqueue('event: unknown\ndata: {"order": 3}\nid: id-3\nretry: 30000')
+        await new Promise(resolve => setTimeout(resolve, 25))
         controller.close()
       },
     }).pipeThrough(new TextEncoderStream())
@@ -172,12 +170,17 @@ describe('toEventIterator', () => {
       return true
     })
 
+    // should throw if .return is called while waiting for .next()
+    const nextPromise = expect(generator.next()).rejects.toBeInstanceOf(shared.AbortError)
+    await new Promise(resolve => setTimeout(resolve, 0))
+
     await generator.return(undefined)
+    await nextPromise
 
     await vi.waitFor(() => expect(stream.getReader().closed).resolves.toBe(undefined))
 
     expect(startSpanSpy).toHaveBeenCalledTimes(1)
-    expect(runInSpanContextSpy).toHaveBeenCalledTimes(2)
+    expect(runInSpanContextSpy).toHaveBeenCalledTimes(3)
   })
 
   it('error while reading', async () => {

@@ -1,4 +1,4 @@
-import { router } from '~/router/index'
+import { router } from '~/routers'
 import { createRouterClient } from '@orpc/server'
 import type { RouterClient } from '@orpc/server'
 import { createORPCClient } from '@orpc/client'

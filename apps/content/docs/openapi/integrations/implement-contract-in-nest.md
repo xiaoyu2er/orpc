@@ -8,7 +8,8 @@ description: Seamlessly implement oRPC contracts in your NestJS projects.
 This guide explains how to easily implement [oRPC contract](/docs/contract-first/define-contract) within your [NestJS](https://nestjs.com/) application using `@orpc/nest`.
 
 ::: warning
-This feature is currently experimental and may be subject to breaking changes.
+This feature is experimental and may undergo breaking changes.
+We highly recommend using it with the NestJS Express Platform, as oRPC currently does not work well with Fastify (see [issue #992](https://github.com/unnoq/orpc/issues/992)).
 :::
 
 ## Installation
@@ -157,7 +158,7 @@ export class PlanetController {
   }
 
   /**
-   * Implement entire a contract
+   * Implement entire contract
    */
   @Implement(contract.planet)
   planet() {

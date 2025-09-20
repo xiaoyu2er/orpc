@@ -28,11 +28,17 @@ type DurableIteratorObjectRouterContext = {
 const base = os.$context<DurableIteratorObjectRouterContext>()
 
 const router = base.router({
-  replaceToken: base.replaceToken.handler(async ({ context, input }) => {
+  updateToken: base.updateToken.handler(async ({ context, input }) => {
     const payload = await verifyDurableIteratorToken(context.options.signingKey, input.token)
 
     if (!payload) {
       throw new ORPCError('UNAUTHORIZED', { message: 'Invalid Token' })
+    }
+
+    const old = context.websocket['~orpc'].deserializeTokenPayload()
+
+    if (payload.chn !== old.chn) {
+      throw new ORPCError('UNAUTHORIZED', { message: 'Channel Mismatch' })
     }
 
     context.websocket['~orpc'].serializeTokenPayload(payload)

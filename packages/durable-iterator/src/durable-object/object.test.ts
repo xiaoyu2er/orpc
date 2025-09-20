@@ -51,8 +51,9 @@ beforeEach(() => {
 describe('class DurableIteratorObject & DurableIteratorObjectHandler', async () => {
   const ctx = createDurableObjectState()
   const env = {}
+  const onSubscribed = vi.fn()
 
-  const object = new DurableIteratorObject(ctx, env, { signingKey: 'secret' })
+  const object = new DurableIteratorObject(ctx, env, { signingKey: 'secret', onSubscribed })
 
   const resumeStoreStoreSpy = vi.spyOn((object['~orpc'] as any).resumeStorage, 'store')
   const resumeStoreGetSpy = vi.spyOn((object['~orpc'] as any).resumeStorage, 'get')
@@ -219,6 +220,128 @@ describe('class DurableIteratorObject & DurableIteratorObjectHandler', async () 
     })
   })
 
+  it('auto close if expired on every websocket message arrive', async () => {
+    const ws1 = toDurableIteratorWebsocket(createCloudflareWebsocket())
+    ws1['~orpc'].serializeTokenPayload({ ...baseTokenPayload, exp: -1 })
+    vi.mocked(ws1['~orpc'].original.close).mockImplementationOnce(() => {
+      (ws1 as any).readyState = WebSocket.CLOSING
+    })
+
+    await object.webSocketMessage(ws1, 'message')
+    expect(ws1['~orpc'].original.close).toHaveBeenCalledTimes(1)
+  })
+
+  describe('update token', () => {
+    const ws1 = toDurableIteratorWebsocket(createCloudflareWebsocket())
+    ws1['~orpc'].serializeTokenPayload({ ...baseTokenPayload, rpc: ['signalClient'] })
+
+    it('works', async () => {
+      const payload1 = { ...baseTokenPayload, rpc: ['rpc-1'] }
+      const token1 = await signDurableIteratorToken('secret', payload1)
+
+      await object.webSocketMessage(ws1, await encodeRequestMessage('id1', MessageType.REQUEST, {
+        url: new URL('http://localhost/updateToken'),
+        body: { json: { token: token1 } },
+        headers: { },
+        method: 'POST',
+      }))
+
+      expect(ws1['~orpc'].original.send).toHaveBeenCalledWith(expect.toSatisfy((s: string) => {
+        return !s.includes('"code"') // code only exists in reject message
+      }))
+      expect(ws1['~orpc'].deserializeTokenPayload()).toEqual(payload1)
+      expect((ws1 as any)['~orpc'].original.serializeAttachment).toHaveBeenCalledTimes(1)
+    })
+
+    it('reject if invalid token', async () => {
+      const token = 'invalid'
+      await object.webSocketMessage(ws1, await encodeRequestMessage('id1', MessageType.REQUEST, {
+        url: new URL('http://localhost/updateToken'),
+        body: { json: { token } },
+        headers: { },
+        method: 'POST',
+      }))
+
+      expect(ws1['~orpc'].original.send).toHaveBeenCalledWith(expect.toSatisfy((s: string) => {
+        return s.includes('"code":"UNAUTHORIZED"')
+      }))
+      expect((ws1 as any)['~orpc'].original.serializeAttachment).toHaveBeenCalledTimes(0)
+    })
+
+    it('reject if mismatched channel', async () => {
+      const payload = { ...baseTokenPayload, chn: 'a-different-one' }
+      const token = await signDurableIteratorToken('secret', payload)
+
+      await object.webSocketMessage(ws1, await encodeRequestMessage('id1', MessageType.REQUEST, {
+        url: new URL('http://localhost/updateToken'),
+        body: { json: { token } },
+        headers: {},
+        method: 'POST',
+      }))
+
+      expect(ws1['~orpc'].original.send).toHaveBeenCalledWith(expect.toSatisfy((s: string) => {
+        return s.includes('"code":"UNAUTHORIZED"')
+      }))
+      expect((ws1 as any)['~orpc'].original.serializeAttachment).toHaveBeenCalledTimes(0)
+    })
+  })
+
+  describe('subscribe', () => {
+    const event1 = { order: 1 }
+    const event2 = { order: 2 }
+
+    const ws1 = toDurableIteratorWebsocket(createCloudflareWebsocket())
+    ws1['~orpc'].serializeTokenPayload({ ...baseTokenPayload, rpc: ['signalClient'] })
+
+    it('works and resume events', async () => {
+      resumeStoreGetSpy.mockReturnValue([event1, event2])
+
+      await object.webSocketMessage(ws1, await encodeRequestMessage('id1', MessageType.REQUEST, {
+        url: new URL('http://localhost/subscribe'),
+        body: {},
+        headers: { 'last-event-id': '1' },
+        method: 'POST',
+      }))
+
+      expect(ws1['~orpc'].original.send).toHaveBeenCalledTimes(3) // 1 for response, 2 for events
+
+      expect(ws1['~orpc'].original.send).toHaveBeenNthCalledWith(2, expect.toSatisfy((s: string) => {
+        return s.includes('"order":1')
+      }))
+      expect(ws1['~orpc'].original.send).toHaveBeenNthCalledWith(3, expect.toSatisfy((s: string) => {
+        return s.includes('"order":2')
+      }))
+
+      expect(resumeStoreGetSpy).toHaveBeenCalledTimes(1)
+      expect(resumeStoreGetSpy).toHaveBeenCalledWith(ws1, '1')
+    })
+
+    it('ignore resume sending errors', async () => {
+      resumeStoreGetSpy.mockReturnValue([event1, event2])
+
+      let time = 0
+      vi.mocked(ws1['~orpc'].original.send).mockImplementation(() => {
+        time++
+        if (time >= 2) {
+          throw new Error('error')
+        }
+      })
+
+      await object.webSocketMessage(ws1, await encodeRequestMessage('id1', MessageType.REQUEST, {
+        url: new URL('http://localhost/subscribe'),
+        body: {},
+        headers: { 'last-event-id': '1' },
+        method: 'POST',
+      }))
+
+      expect(ws1['~orpc'].original.send).toHaveBeenCalledTimes(2) // 1 for response, 1 for events (step when error occurs)
+
+      // resumeStoreGetSpy is called -> error from .send is ignored
+      expect(resumeStoreGetSpy).toHaveBeenCalledTimes(1)
+      expect(resumeStoreGetSpy).toHaveBeenCalledWith(ws1, '1')
+    })
+  })
+
   describe('rpc', () => {
     const singleClientHandler = vi.fn(async () => '__singleClientHandlerOutput__')
     const singleClient = vi.fn(() => os.handler(singleClientHandler).callable())
@@ -363,16 +486,5 @@ describe('class DurableIteratorObject & DurableIteratorObjectHandler', async () 
       await promise
       expect(ws1['~orpc'].original.send).toHaveBeenCalledTimes(0) // closed so not send anymore
     })
-  })
-
-  it('auto close if expired on every websocket message arrive', async () => {
-    const ws1 = toDurableIteratorWebsocket(createCloudflareWebsocket())
-    ws1['~orpc'].serializeTokenPayload({ ...baseTokenPayload, exp: -1 })
-    vi.mocked(ws1['~orpc'].original.close).mockImplementationOnce(() => {
-      (ws1 as any).readyState = WebSocket.CLOSING
-    })
-
-    await object.webSocketMessage(ws1, 'message')
-    expect(ws1['~orpc'].original.close).toHaveBeenCalledTimes(1)
   })
 })

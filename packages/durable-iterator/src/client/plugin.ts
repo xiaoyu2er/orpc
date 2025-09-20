@@ -157,7 +157,7 @@ export class DurableIteratorLinkPlugin<T extends ClientContext> implements Stand
            * `refreshTokenBeforeExpire` cycle. It should therefore be
            * executed as the last step.
            */
-          await durableClient.replaceToken({ token: tokenAndPayload.token })
+          await durableClient.updateToken({ token: tokenAndPayload.token })
         }, (tokenAndPayload.payload.exp - nowInSeconds - beforeSeconds) * 1000)
       }
       refreshTokenBeforeExpire()

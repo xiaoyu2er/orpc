@@ -64,6 +64,7 @@ describe('class DurableIteratorObject & DurableIteratorObjectHandler', async () 
     iat: Math.floor(Date.now() / 1000),
     att: 'att',
     rpc: ['method'],
+    tags: ['tag1', 'tag2'],
   } satisfies DurableIteratorTokenPayload
 
   it('throw if not passed 3rd argument', () => {
@@ -158,8 +159,30 @@ describe('class DurableIteratorObject & DurableIteratorObjectHandler', async () 
   })
 
   describe('upgrade websocket connection', async () => {
-    it('works', async () => {
+    it('with tags', async () => {
       const token = await signDurableIteratorToken('secret', baseTokenPayload)
+
+      const url = new URL('https://example.com')
+      url.searchParams.set(DURABLE_ITERATOR_TOKEN_PARAM, token)
+      url.searchParams.set(DURABLE_ITERATOR_ID_PARAM, 'some-id')
+
+      const response = await object.fetch(new Request(url))
+
+      expect((globalThis as any).WebSocketPair).toHaveBeenCalledTimes(1)
+      const { 0: client, 1: server } = (globalThis as any).WebSocketPair.mock.results[0].value
+      expect(ctx.acceptWebSocket).toHaveBeenCalledTimes(1)
+      expect(ctx.acceptWebSocket).toHaveBeenCalledWith(server, ['tag1', 'tag2'])
+
+      expect(response).instanceOf(Response)
+      expect((response as any).__init.status).toBe(101)
+      expect((response as any).__init.webSocket).toBe(client)
+
+      expect(toDurableIteratorWebsocket(server)['~orpc'].deserializeTokenPayload()).toEqual(baseTokenPayload)
+    })
+
+    it('without tags', async () => {
+      const payload = { ...baseTokenPayload, tags: undefined }
+      const token = await signDurableIteratorToken('secret', payload)
 
       const url = new URL('https://example.com')
       url.searchParams.set(DURABLE_ITERATOR_TOKEN_PARAM, token)
@@ -176,7 +199,7 @@ describe('class DurableIteratorObject & DurableIteratorObjectHandler', async () 
       expect((response as any).__init.status).toBe(101)
       expect((response as any).__init.webSocket).toBe(client)
 
-      expect(toDurableIteratorWebsocket(server)['~orpc'].deserializeTokenPayload()).toEqual(baseTokenPayload)
+      expect(toDurableIteratorWebsocket(server)['~orpc'].deserializeTokenPayload()).toEqual(payload)
     })
 
     it('reject if missing id', async () => {
@@ -270,6 +293,23 @@ describe('class DurableIteratorObject & DurableIteratorObjectHandler', async () 
 
     it('reject if mismatched channel', async () => {
       const payload = { ...baseTokenPayload, chn: 'a-different-one' }
+      const token = await signDurableIteratorToken('secret', payload)
+
+      await object.webSocketMessage(ws1, await encodeRequestMessage('id1', MessageType.REQUEST, {
+        url: new URL('http://localhost/updateToken'),
+        body: { json: { token } },
+        headers: {},
+        method: 'POST',
+      }))
+
+      expect(ws1['~orpc'].original.send).toHaveBeenCalledWith(expect.toSatisfy((s: string) => {
+        return s.includes('"code":"UNAUTHORIZED"')
+      }))
+      expect((ws1 as any)['~orpc'].original.serializeAttachment).toHaveBeenCalledTimes(0)
+    })
+
+    it('reject if mismatched tags', async () => {
+      const payload = { ...baseTokenPayload, tags: ['a-different-one'] }
       const token = await signDurableIteratorToken('secret', payload)
 
       await object.webSocketMessage(ws1, await encodeRequestMessage('id1', MessageType.REQUEST, {

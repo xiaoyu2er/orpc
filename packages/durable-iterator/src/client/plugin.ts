@@ -9,7 +9,7 @@ import type { DurableIteratorTokenPayload } from '../schemas'
 import { createORPCClient } from '@orpc/client'
 import { ClientRetryPlugin } from '@orpc/client/plugins'
 import { RPCLink } from '@orpc/client/websocket'
-import { AsyncIteratorClass, fallback, retry, toArray, value } from '@orpc/shared'
+import { AsyncIteratorClass, fallback, retry, stringifyJSON, toArray, value } from '@orpc/shared'
 import { WebSocket as ReconnectableWebSocket } from 'partysocket'
 import { DURABLE_ITERATOR_ID_PARAM, DURABLE_ITERATOR_PLUGIN_HEADER_KEY, DURABLE_ITERATOR_PLUGIN_HEADER_VALUE, DURABLE_ITERATOR_TOKEN_PARAM } from '../consts'
 import { DurableIteratorError } from '../error'
@@ -141,6 +141,9 @@ export class DurableIteratorLinkPlugin<T extends ClientContext> implements Stand
 
               if (newTokenAndPayload.payload.chn !== tokenAndPayload.payload.chn) {
                 exit(new DurableIteratorError('Refreshed token must have the same channel with the original token'))
+              }
+              else if (stringifyJSON(newTokenAndPayload.payload.tags) !== stringifyJSON(tokenAndPayload.payload.tags)) {
+                exit(new DurableIteratorError('Refreshed token must have the exact same tags with the original token'))
               }
               else {
                 tokenAndPayload = newTokenAndPayload

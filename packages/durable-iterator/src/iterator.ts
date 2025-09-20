@@ -24,6 +24,11 @@ export interface DurableIteratorOptions<
   tokenTTLSeconds?: number
 
   /**
+   * Tags to attach to the token.
+   */
+  tags?: readonly string[]
+
+  /**
    * Token's attachment
    */
   att?: unknown
@@ -69,6 +74,7 @@ export class DurableIterator<
 
       const token = await signDurableIteratorToken(this.options.signingKey, {
         chn: this.chn,
+        tags: this.options.tags,
         att: this.options.att,
         rpc: this.options.rpc,
         iat: nowInSeconds,

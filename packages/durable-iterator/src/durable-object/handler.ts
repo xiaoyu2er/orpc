@@ -8,7 +8,7 @@ import type { DurableIteratorWebsocket } from './websocket'
 import { implement, ORPCError } from '@orpc/server'
 import { encodeHibernationRPCEvent, HibernationEventIterator, HibernationPlugin } from '@orpc/server/hibernation'
 import { RPCHandler } from '@orpc/server/websocket'
-import { get, toArray } from '@orpc/shared'
+import { get, stringifyJSON, toArray } from '@orpc/shared'
 import { DURABLE_ITERATOR_ID_PARAM, DURABLE_ITERATOR_TOKEN_PARAM } from '../consts'
 import { durableIteratorContract } from '../contract'
 import { verifyDurableIteratorToken } from '../schemas'
@@ -39,6 +39,10 @@ const router = base.router({
 
     if (payload.chn !== old.chn) {
       throw new ORPCError('UNAUTHORIZED', { message: 'Updated token must have the same channel with the original token' })
+    }
+
+    if (stringifyJSON(payload.tags) !== stringifyJSON(old.tags)) {
+      throw new ORPCError('UNAUTHORIZED', { message: 'Updated token must have the exact same tags with the original token' })
     }
 
     context.websocket['~orpc'].serializeTokenPayload(payload)
@@ -218,7 +222,13 @@ export class DurableIteratorObjectHandler<
 
     const { '0': client, '1': server } = new WebSocketPair()
 
-    this.ctx.acceptWebSocket(server)
+    if (payload.tags) {
+      this.ctx.acceptWebSocket(server, [...payload.tags])
+    }
+    else {
+      this.ctx.acceptWebSocket(server)
+    }
+
     toDurableIteratorWebsocket(server)['~orpc'].serializeId(id)
     toDurableIteratorWebsocket(server)['~orpc'].serializeTokenPayload(payload)
 

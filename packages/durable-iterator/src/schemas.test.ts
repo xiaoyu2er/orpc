@@ -211,6 +211,7 @@ describe('integration tests', () => {
   it('should handle complete sign -> verify -> parse flow', async () => {
     const originalPayload: DurableIteratorTokenPayload = {
       chn: 'test-channel',
+      tags: ['tag1', 'tag2'],
       att: { userId: 'user-456', role: 'admin' },
       rpc: ['getUser', 'sendMessage', 'deleteMessage'],
       iat: Math.floor(Date.now() / 1000),

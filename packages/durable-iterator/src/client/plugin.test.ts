@@ -29,7 +29,9 @@ beforeEach(() => {
 
 describe('durableIteratorLinkPlugin', async () => {
   const interceptor = vi.fn(({ next }) => next())
-  const durableIteratorHandler = vi.fn(() => new DurableIterator<any, any>('some-room', { signingKey: 'signing-key' }).rpc('getUser', 'sendMessage'))
+  const durableIteratorHandler = vi.fn(
+    () => new DurableIterator<any, any>('some-room', { signingKey: 'signing-key', tags: ['tag'] }).rpc('getUser', 'sendMessage'),
+  )
   const refreshTokenBeforeExpireInSeconds = vi.fn(() => Number.NaN)
 
   const handler = new StandardRPCHandler({
@@ -367,6 +369,63 @@ describe('durableIteratorLinkPlugin', async () => {
       expect(unhandledRejectionHandler).toHaveBeenCalledTimes(1)
       expect(unhandledRejectionHandler.mock.calls[0]![0]).toEqual(
         new DurableIteratorError(`Refreshed token must have the same channel with the original token`),
+      )
+
+      await output.return() // cleanup
+    })
+
+    it('reject if refresh token tags mismatch', async () => {
+      refreshTokenBeforeExpireInSeconds.mockImplementation(() => 9)
+      durableIteratorHandler.mockImplementationOnce(
+        () => new DurableIterator<any, any>('some-room', {
+          tags: ['tag'],
+          signingKey: 'signing-key',
+          tokenTTLSeconds: 10,
+        }) as any,
+      )
+
+      const outputPromise = link.call(['durableIterator'], {}, { context: {} }) as any
+
+      await vi.waitFor(async () => {
+        expect(ReconnectableWebSocket).toHaveBeenCalledOnce()
+
+        const ws = vi.mocked(ReconnectableWebSocket).mock.results[0]!.value
+        const [id] = await decodeRequestMessage(ws.send.mock.calls[0][0])
+
+        const [, onMessage] = vi.mocked(ws.addEventListener).mock.calls.find(([event]: any[]) => event === 'message') as any
+
+        onMessage({
+          data: await encodeResponseMessage(id, MessageType.RESPONSE, {
+            body: (async function* () { }()),
+            status: 200,
+            headers: {},
+          }),
+        })
+      })
+
+      const output = await outputPromise
+      expect(output).toSatisfy(isAsyncIteratorObject)
+
+      durableIteratorHandler.mockImplementationOnce(
+        () => new DurableIterator<any, any>('some-room', {
+          tags: ['tag1', 'tag2'],
+          signingKey: 'signing-key',
+          tokenTTLSeconds: 10,
+        }) as any,
+      )
+
+      const unhandledRejectionHandler = vi.fn()
+      process.on('unhandledRejection', unhandledRejectionHandler)
+      afterEach(() => {
+        process.off('unhandledRejection', unhandledRejectionHandler)
+      })
+
+      await sleep(2000)
+      expect(unhandledRejectionHandler).toHaveBeenCalledTimes(1)
+      expect(unhandledRejectionHandler.mock.calls[0]![0]).toEqual(
+        new DurableIteratorError(
+          `Refreshed token must have the exact same tags with the original token`,
+        ),
       )
 
       await output.return() // cleanup

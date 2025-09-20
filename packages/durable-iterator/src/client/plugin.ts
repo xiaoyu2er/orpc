@@ -62,13 +62,13 @@ export class DurableIteratorLinkPlugin<T extends ClientContext> implements Stand
   order = 2_100_000 // make sure execute before the batch plugin and after client retry plugin
 
   private readonly url: DurableIteratorLinkPluginOptions<T>['url']
-  private readonly generateClientId: Exclude<DurableIteratorLinkPluginOptions<T>['createId'], undefined>
+  private readonly createId: Exclude<DurableIteratorLinkPluginOptions<T>['createId'], undefined>
   private readonly refreshTokenBeforeExpireInSeconds: Exclude<DurableIteratorLinkPluginOptions<T>['refreshTokenBeforeExpireInSeconds'], undefined>
   private readonly linkOptions: Omit<RPCLinkOptions<object>, 'websocket'>
 
   constructor({ url, refreshTokenBeforeExpireInSeconds, ...options }: DurableIteratorLinkPluginOptions<T>) {
     this.url = url
-    this.generateClientId = fallback(options.createId, () => `${crypto.randomUUID()}-${crypto.randomUUID()}`)
+    this.createId = fallback(options.createId, () => `${crypto.randomUUID()}-${crypto.randomUUID()}`)
     this.refreshTokenBeforeExpireInSeconds = fallback(refreshTokenBeforeExpireInSeconds, Number.NaN)
     this.linkOptions = options
   }
@@ -103,7 +103,7 @@ export class DurableIteratorLinkPlugin<T extends ClientContext> implements Stand
       let isFinished = false // use this for cleanup logic
 
       let tokenAndPayload = this.validateToken(output, options.path)
-      const id = await this.generateClientId(tokenAndPayload.payload, options)
+      const id = await this.createId(tokenAndPayload.payload, options)
       const websocket = new ReconnectableWebSocket(async () => {
         const url = new URL(await value(this.url, tokenAndPayload.payload, options))
         url.searchParams.append(DURABLE_ITERATOR_ID_PARAM, id)

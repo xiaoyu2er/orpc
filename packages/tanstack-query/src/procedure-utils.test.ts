@@ -1,17 +1,11 @@
-import { QueryClient, skipToken, experimental_streamedQuery as streamedQuery } from '@tanstack/query-core'
+import { QueryClient, skipToken } from '@tanstack/query-core'
 import * as KeyModule from './key'
 import * as LiveQuery from './live-query'
 import { createProcedureUtils } from './procedure-utils'
+import * as streamQueryModule from './stream-query'
 import { OPERATION_CONTEXT_SYMBOL } from './types'
 
-vi.mock('@tanstack/query-core', async (origin) => {
-  const original = await origin() as any
-
-  return {
-    ...original,
-    experimental_streamedQuery: vi.fn(original.experimental_streamedQuery),
-  }
-})
+const streamedQuerySpy = vi.spyOn(streamQueryModule, 'experimental_serializableStreamedQuery')
 
 const liveQuerySpy = vi.spyOn(LiveQuery, 'experimental_liveQuery')
 
@@ -111,11 +105,10 @@ describe('createProcedureUtils', () => {
         },
       })
 
-      expect(options.queryFn).toBe(vi.mocked(streamedQuery).mock.results[0]!.value)
-      expect(streamedQuery).toHaveBeenCalledTimes(1)
-      expect(streamedQuery).toHaveBeenCalledWith({
+      expect(options.queryFn).toBe(vi.mocked(streamedQuerySpy).mock.results[0]!.value)
+      expect(streamedQuerySpy).toHaveBeenCalledTimes(1)
+      expect(streamedQuerySpy).toHaveBeenCalledWith(expect.any(Function), {
         refetchMode: 'replace',
-        queryFn: expect.any(Function),
       })
 
       client.mockImplementationOnce(async function* (input) {
@@ -342,7 +335,7 @@ describe('createProcedureUtils', () => {
     expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'mutation' })
 
     client.mockResolvedValueOnce('__output__')
-    await expect(options.mutationFn!('__input__')).resolves.toEqual('__output__')
+    await expect(options.mutationFn!('__input__', {} as any)).resolves.toEqual('__output__')
     expect(client).toHaveBeenCalledTimes(1)
     expect(client).toBeCalledWith('__input__', { context: {
       batch: '__batch__',

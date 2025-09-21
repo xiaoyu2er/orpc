@@ -2,7 +2,6 @@ import type { ClientContext } from '@orpc/client'
 import type { PartialDeep, SetOptional } from '@orpc/shared'
 import type {
   DataTag,
-  experimental_streamedQuery,
   InfiniteData,
   InfiniteQueryObserverOptions,
   MutationObserverOptions,
@@ -11,18 +10,17 @@ import type {
   QueryObserverOptions,
   SkipToken,
 } from '@tanstack/query-core'
+import type { experimental_SerializableStreamedQueryOptions as SerializableStreamedQueryOptions } from './stream-query'
 
 export type experimental_StreamedQueryOutput<TOutput> = TOutput extends AsyncIterable<infer U> ? U[] : never
 export type experimental_LiveQueryOutput<TOutput> = TOutput extends AsyncIterable<infer U> ? U : never
-
-type experimental_StreamedQueryOptions = Omit<Parameters<typeof experimental_streamedQuery>[0], 'queryFn'>
 
 export type OperationType = 'query' | 'streamed' | 'live' | 'infinite' | 'mutation'
 
 export type OperationKeyOptions<TType extends OperationType, TInput> = {
   type?: TType
   input?: TType extends 'mutation' ? never : PartialDeep<TInput>
-  fnOptions?: TType extends 'streamed' ? experimental_StreamedQueryOptions : never
+  fnOptions?: TType extends 'streamed' ? SerializableStreamedQueryOptions : never
 }
 
 export type OperationKey<TType extends OperationType, TInput> = [path: readonly string[], options: OperationKeyOptions<TType, TInput>]
@@ -55,11 +53,11 @@ export interface QueryOptionsBase<TOutput, TError> {
 
 export type experimental_StreamedKeyOptions<TInput>
   = & QueryKeyOptions<TInput>
-    & { queryFnOptions?: experimental_StreamedQueryOptions }
+    & { queryFnOptions?: SerializableStreamedQueryOptions }
 
 export type experimental_StreamedOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData>
   = & QueryOptionsIn<TClientContext, TInput, TOutput, TError, TSelectData>
-    & { queryFnOptions?: experimental_StreamedQueryOptions }
+    & { queryFnOptions?: SerializableStreamedQueryOptions }
 
 export interface experimental_StreamedOptionsBase<TOutput, TError> extends QueryOptionsBase<TOutput, TError> {
 }

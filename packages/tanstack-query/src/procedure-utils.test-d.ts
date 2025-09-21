@@ -730,7 +730,7 @@ describe('ProcedureUtils', () => {
       optionalUtils.mutationOptions({
         onMutate: variables => ({ customContext: true }),
         onSuccess: (data, variables, context) => {
-          expectTypeOf(context.customContext).toEqualTypeOf<boolean>()
+          expectTypeOf(context?.customContext).toEqualTypeOf<boolean | undefined>()
         },
         onError: (e, variables, context) => {
           expectTypeOf(context?.customContext).toEqualTypeOf<boolean | undefined>()

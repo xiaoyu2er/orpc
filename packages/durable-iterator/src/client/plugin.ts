@@ -133,21 +133,11 @@ export class DurableIteratorLinkPlugin<T extends ClientContext> implements Stand
         const nowInSeconds = Math.floor(Date.now() / 1000)
 
         refreshTokenBeforeExpireTimeoutId = setTimeout(async () => {
-          // retry until success or is finished
-          await retry({ times: Number.POSITIVE_INFINITY, delay: 2000 }, async (exit) => {
+          // retry until success or finished
+          const newTokenAndPayload = await retry({ times: Number.POSITIVE_INFINITY, delay: 2000 }, async (exit) => {
             try {
               const output = await next()
-              const newTokenAndPayload = this.validateToken(output, options.path)
-
-              if (newTokenAndPayload.payload.chn !== tokenAndPayload.payload.chn) {
-                exit(new DurableIteratorError('Refreshed token must have the same channel with the original token'))
-              }
-              else if (stringifyJSON(newTokenAndPayload.payload.tags) !== stringifyJSON(tokenAndPayload.payload.tags)) {
-                exit(new DurableIteratorError('Refreshed token must have the exact same tags with the original token'))
-              }
-              else {
-                tokenAndPayload = newTokenAndPayload
-              }
+              return this.validateToken(output, options.path)
             }
             catch (err) {
               if (isFinished) {
@@ -158,16 +148,31 @@ export class DurableIteratorLinkPlugin<T extends ClientContext> implements Stand
             }
           })
 
+          const canProactivelyUpdateToken
+            = newTokenAndPayload.payload.chn === tokenAndPayload.payload.chn
+              && stringifyJSON(newTokenAndPayload.payload.tags) === stringifyJSON(tokenAndPayload.payload.tags)
+
+          tokenAndPayload = newTokenAndPayload
           await refreshTokenBeforeExpire() // recursively call
 
           /**
-           * Actively set a new token before the current one expires (avoid re-establishing the connection when the token expires)
-           *
-           * This call can fail, and it is not required for the next
-           * `refreshTokenBeforeExpire` cycle. It should therefore be
-           * executed as the last step.
+           * The next refresh cycle doesn't depend on the logic below,
+           * so we place it last to avoid interfering with recursion.
            */
-          await durableClient.updateToken({ token: tokenAndPayload.token })
+          if (canProactivelyUpdateToken) {
+            /**
+             * Proactively update the token before expiration
+             * to avoid reconnecting when the old token expires.
+             */
+            await durableClient.updateToken({ token: tokenAndPayload.token })
+          }
+          else {
+            /**
+             * Proactive update requires the same channel and tags.
+             * If they differ, we must reconnect instead to make new token effective.
+             */
+            websocket.reconnect()
+          }
         }, (tokenAndPayload.payload.exp - nowInSeconds - beforeSeconds) * 1000)
       }
       refreshTokenBeforeExpire()

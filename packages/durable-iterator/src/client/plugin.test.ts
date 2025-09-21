@@ -19,6 +19,7 @@ vi.mock('partysocket', () => {
       addEventListener: vi.fn(),
       send: vi.fn(),
       close: vi.fn(),
+      reconnect: vi.fn(),
     })),
   }
 })
@@ -324,7 +325,7 @@ describe('durableIteratorLinkPlugin', async () => {
       )
     })
 
-    it('reject if refresh token channel mismatch', async () => {
+    it('reconnect if refresh token channel mismatch', async () => {
       refreshTokenBeforeExpireInSeconds.mockImplementation(() => 9)
       durableIteratorHandler.mockImplementationOnce(
         () => new DurableIterator<any, any>('some-room', {
@@ -359,22 +360,15 @@ describe('durableIteratorLinkPlugin', async () => {
         new DurableIterator<any, any>('a-different-channel', { signingKey: 'signing-key' }).rpc('getUser', 'sendMessage') as any,
       )
 
-      const unhandledRejectionHandler = vi.fn()
-      process.on('unhandledRejection', unhandledRejectionHandler)
-      afterEach(() => {
-        process.off('unhandledRejection', unhandledRejectionHandler)
-      })
-
-      await sleep(2000)
-      expect(unhandledRejectionHandler).toHaveBeenCalledTimes(1)
-      expect(unhandledRejectionHandler.mock.calls[0]![0]).toEqual(
-        new DurableIteratorError(`Refreshed token must have the same channel with the original token`),
-      )
+      await sleep(1000)
+      const ws = vi.mocked(ReconnectableWebSocket).mock.results[0]!.value
+      expect(ws.reconnect).toHaveBeenCalledTimes(1)
+      expect(await (ReconnectableWebSocket as any).mock.calls[0]![0]()).toContain('a-different-channel')
 
       await output.return() // cleanup
     })
 
-    it('reject if refresh token tags mismatch', async () => {
+    it('reconnect if refresh token tags mismatch', async () => {
       refreshTokenBeforeExpireInSeconds.mockImplementation(() => 9)
       durableIteratorHandler.mockImplementationOnce(
         () => new DurableIterator<any, any>('some-room', {
@@ -408,25 +402,16 @@ describe('durableIteratorLinkPlugin', async () => {
 
       durableIteratorHandler.mockImplementationOnce(
         () => new DurableIterator<any, any>('some-room', {
-          tags: ['tag1', 'tag2'],
+          tags: ['a-different-tag'],
           signingKey: 'signing-key',
           tokenTTLSeconds: 10,
         }) as any,
       )
 
-      const unhandledRejectionHandler = vi.fn()
-      process.on('unhandledRejection', unhandledRejectionHandler)
-      afterEach(() => {
-        process.off('unhandledRejection', unhandledRejectionHandler)
-      })
-
-      await sleep(2000)
-      expect(unhandledRejectionHandler).toHaveBeenCalledTimes(1)
-      expect(unhandledRejectionHandler.mock.calls[0]![0]).toEqual(
-        new DurableIteratorError(
-          `Refreshed token must have the exact same tags with the original token`,
-        ),
-      )
+      await sleep(1000)
+      const ws = vi.mocked(ReconnectableWebSocket).mock.results[0]!.value
+      expect(ws.reconnect).toHaveBeenCalledTimes(1)
+      expect(await (ReconnectableWebSocket as any).mock.calls[0]![0]()).toContain('a-different-tag')
 
       await output.return() // cleanup
     })

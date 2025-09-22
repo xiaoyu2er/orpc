@@ -17,6 +17,11 @@ export interface UpgradeDurableIteratorRequestOptions {
   namespace: DurableObjectNamespace<any>
 
   /**
+   * The options to use when getting the durable object stub
+   */
+  namespaceGetOptions?: DurableObjectNamespaceGetDurableObjectOptions
+
+  /**
    * intercept upgrade process
    */
   interceptors?: Interceptor<{ payload: DurableIteratorTokenPayload }, Promise<Response>>[]
@@ -61,7 +66,7 @@ export async function upgradeDurableIteratorRequest(
     async ({ payload }) => {
       const namespace = options.namespace as DurableObjectNamespace<DurableIteratorObject<any, any>>
       const id = namespace.idFromName(payload.chn)
-      const stub = namespace.get(id)
+      const stub = namespace.get(id, options.namespaceGetOptions)
       return stub.fetch(request)
     },
   )

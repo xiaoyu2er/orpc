@@ -1,6 +1,6 @@
 import type { ClientContext } from '@orpc/client'
 import type { SetOptional } from '@orpc/shared'
-import type { experimental_streamedQuery, QueryFunctionContext, QueryKey, SkipToken, UseInfiniteQueryOptions, UseMutationOptions, UseQueryOptions } from '@tanstack/react-query'
+import type { QueryFunctionContext, QueryKey, SkipToken, UseInfiniteQueryOptions, UseMutationOptions, UseQueryOptions } from '@tanstack/react-query'
 
 export type QueryOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData>
   = & (undefined extends TInput ? { input?: TInput | SkipToken } : { input: TInput | SkipToken })
@@ -13,17 +13,6 @@ export interface QueryOptionsBase<TOutput, TError> {
   throwOnError?(error: TError): boolean // Help TQ infer TError
   retryDelay?: (count: number, error: TError) => number // Help TQ infer TError (suspense hooks)
   enabled?: boolean
-}
-
-type experimental_StreamedQueryOptions = Omit<Parameters<typeof experimental_streamedQuery>[0], 'queryFn'>
-
-export type experimental_InferStreamedOutput<TOutput> = TOutput extends AsyncIterable<infer U> ? U[] : never
-
-export type experimental_StreamedOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData>
-  = & QueryOptionsIn<TClientContext, TInput, TOutput, TError, TSelectData>
-    & { queryFnOptions?: experimental_StreamedQueryOptions }
-
-export interface experimental_StreamedOptionsBase<TOutput, TError> extends QueryOptionsBase<TOutput, TError> {
 }
 
 export type InfiniteOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData, TPageParam>

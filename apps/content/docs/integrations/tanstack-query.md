@@ -97,7 +97,9 @@ const query = useQuery(orpc.planet.find.queryOptions({
 
 ## Streamed Query Options
 
-Use `.streamedOptions` to configure queries for [Event Iterator](/docs/event-iterator). This is built on [TanStack Query streamedQuery](https://tanstack.com/query/latest/docs/reference/streamedQuery) and works with hooks like `useQuery`, `useSuspenseQuery`, or `prefetchQuery`.
+Use `.streamedOptions` to configure queries for [Event Iterator](/docs/event-iterator). Data is an array of events, and each new event is appended to the end of the array as it arrives.
+
+Works with hooks like `useQuery`, `useSuspenseQuery`, or `prefetchQuery`.
 
 ```ts
 const query = useQuery(orpc.streamed.experimental_streamedOptions({
@@ -114,7 +116,9 @@ const query = useQuery(orpc.streamed.experimental_streamedOptions({
 
 ## Live Query Options
 
-Use `.liveOptions` to configure live queries for [Event Iterator](/docs/event-iterator). Unlike `.streamedOptions` which accumulates chunks, live queries replace the entire result with each new chunk received. Works with hooks like `useQuery`, `useSuspenseQuery`, or `prefetchQuery`.
+Use `.liveOptions` to configure live queries for [Event Iterator](/docs/event-iterator). Data is always the latest event, replacing the previous value whenever a new one arrives.
+
+Works with hooks like `useQuery`, `useSuspenseQuery`, or `prefetchQuery`.
 
 ```ts
 const query = useQuery(orpc.live.experimental_liveOptions({

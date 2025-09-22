@@ -2,8 +2,8 @@ import { isDefinedError } from '@orpc/client'
 import { ORPCError } from '@orpc/contract'
 import { createInfiniteQuery, createMutation, createQuery, skipToken } from '@tanstack/svelte-query'
 import { get } from 'svelte/store'
-import { pingHandler, streamedHandler } from '../../server/tests/shared'
-import { orpc, queryClient, streamedOrpc } from './shared'
+import { pingHandler } from '../../server/tests/shared'
+import { orpc, queryClient } from './shared'
 
 beforeEach(() => {
   queryClient.clear()
@@ -61,59 +61,6 @@ it('case: with createQuery and skipToken', { todo: true }, async () => {
 
   expect(get(query).status).toEqual('pending')
   expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(0)
-})
-
-it('case: with streamed/createQuery', { todo: true }, async () => {
-  const query = createQuery(streamedOrpc.streamed.experimental_streamedOptions({
-    input: { input: 2 },
-    queryFnOptions: {
-      refetchMode: 'append',
-    },
-  }), queryClient)
-
-  expect(queryClient.isFetching({ queryKey: streamedOrpc.key() })).toEqual(1)
-  expect(queryClient.isFetching({ queryKey: streamedOrpc.streamed.key() })).toEqual(1)
-  expect(queryClient.isFetching({ queryKey: streamedOrpc.streamed.key({ input: { input: 2 } }) })).toEqual(1)
-  expect(queryClient.isFetching({ queryKey: streamedOrpc.streamed.key({ input: { input: 2 }, type: 'streamed' }) })).toEqual(1)
-
-  expect(queryClient.isFetching({ queryKey: streamedOrpc.streamed.key({ input: { input: 234 }, type: 'query' }) })).toEqual(0)
-  expect(queryClient.isFetching({ queryKey: streamedOrpc.streamed.key({ input: { input: 2 }, type: 'infinite' }) })).toEqual(0)
-  expect(queryClient.isFetching({ queryKey: streamedOrpc.key({ type: 'infinite' }) })).toEqual(0)
-
-  await vi.waitFor(() => expect(get(query).data).toEqual([{ output: '0' }, { output: '1' }]))
-
-  expect(
-    queryClient.getQueryData(streamedOrpc.streamed.key({
-      input: { input: 2 },
-      type: 'streamed',
-      fnOptions: { refetchMode: 'append' },
-    })),
-  ).toEqual([{ output: '0' }, { output: '1' }])
-
-  // make sure refetch mode works
-  get(query).refetch()
-  await vi.waitFor(() => expect(get(query).data).toEqual([{ output: '0' }, { output: '1' }, { output: '0' }, { output: '1' }]))
-
-  streamedHandler.mockRejectedValueOnce(new ORPCError('OVERRIDE'))
-  get(query).refetch()
-
-  await vi.waitFor(() => {
-    expect((get(query) as any).error).toBeInstanceOf(ORPCError)
-    expect((get(query) as any).error).toSatisfy(isDefinedError)
-    expect((get(query) as any).error.code).toEqual('OVERRIDE')
-  })
-})
-
-it('case: with streamed/createQuery and skipToken', { todo: true }, async () => {
-  const query = createQuery(streamedOrpc.streamed.experimental_streamedOptions({ input: skipToken }), queryClient)
-
-  expect(get(query).status).toEqual('pending')
-  expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(0)
-
-  await new Promise(resolve => setTimeout(resolve, 10))
-
-  expect(queryClient.isFetching({ queryKey: orpc.key() })).toEqual(0)
-  expect(get(query).status).toEqual('pending')
 })
 
 it('case: with createInfiniteQuery', { todo: true }, async () => {

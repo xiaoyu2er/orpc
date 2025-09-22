@@ -1,4 +1,4 @@
-import type { InfiniteData } from '@tanstack/react-query'
+import type { InfiniteData } from '@tanstack/solid-query'
 import { isDefinedError } from '@orpc/client'
 import { useInfiniteQuery, useMutation, useQueries, useQuery } from '@tanstack/solid-query'
 import { orpc as client } from '../../client/tests/shared'

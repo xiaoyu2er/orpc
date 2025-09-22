@@ -17,12 +17,11 @@ import type {
   experimental_StreamedOptionsIn as StreamedOptionsIn,
 } from './types'
 import { isAsyncIteratorObject } from '@orpc/shared'
-import { experimental_streamedQuery, skipToken } from '@tanstack/query-core'
+import { skipToken } from '@tanstack/query-core'
 import { generateOperationKey } from './key'
 import { experimental_liveQuery } from './live-query'
-import {
-  OPERATION_CONTEXT_SYMBOL,
-} from './types'
+import { experimental_serializableStreamedQuery } from './stream-query'
+import { OPERATION_CONTEXT_SYMBOL } from './types'
 
 export interface ProcedureUtils<TClientContext extends ClientContext, TInput, TOutput, TError> {
   /**
@@ -200,8 +199,8 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
       const queryKey = utils.experimental_streamedKey(optionsIn)
 
       return {
-        queryFn: experimental_streamedQuery({
-          queryFn: async ({ signal }) => {
+        queryFn: experimental_serializableStreamedQuery(
+          async ({ signal }) => {
             if (optionsIn.input === skipToken) {
               throw new Error('queryFn should not be called with skipToken used as input')
             }
@@ -223,8 +222,8 @@ export function createProcedureUtils<TClientContext extends ClientContext, TInpu
 
             return output
           },
-          ...optionsIn.queryFnOptions,
-        }),
+          optionsIn.queryFnOptions,
+        ),
         ...optionsIn.input === skipToken ? { enabled: false } : {},
         ...optionsIn,
         queryKey,

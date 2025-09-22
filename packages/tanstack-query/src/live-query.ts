@@ -16,7 +16,7 @@ export function experimental_liveQuery<
 
     for await (const chunk of stream) {
       if (context.signal.aborted) {
-        break
+        throw context.signal.reason
       }
 
       last = { chunk }

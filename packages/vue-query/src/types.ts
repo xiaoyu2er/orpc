@@ -1,6 +1,6 @@
 import type { ClientContext } from '@orpc/client'
 import type { AnyFunction } from '@orpc/shared'
-import type { experimental_streamedQuery, InfiniteQueryObserverOptions, MutationObserverOptions, QueryFunctionContext, QueryKey, QueryObserverOptions, SkipToken } from '@tanstack/vue-query'
+import type { InfiniteQueryObserverOptions, MutationObserverOptions, QueryFunctionContext, QueryKey, QueryObserverOptions, SkipToken } from '@tanstack/vue-query'
 import type { ComputedRef, MaybeRef, MaybeRefOrGetter } from 'vue'
 
 /**
@@ -34,17 +34,6 @@ export interface QueryOptionsBase<TOutput, TError> {
   throwOnError?(error: TError): boolean // Help TQ infer TError
   retryDelay?: (count: number, error: TError) => number // Help TQ infer TError (suspense hooks)
   enabled: ComputedRef<boolean | undefined>
-}
-
-type experimental_StreamedQueryOptions = Omit<Parameters<typeof experimental_streamedQuery>[0], 'queryFn'>
-
-export type experimental_InferStreamedOutput<TOutput> = TOutput extends AsyncIterable<infer U> ? U[] : never
-
-export type experimental_StreamedOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData>
-  = & QueryOptionsIn<TClientContext, TInput, TOutput, TError, TSelectData>
-    & { queryFnOptions?: experimental_StreamedQueryOptions }
-
-export interface experimental_StreamedOptionsBase<TOutput, TError> extends QueryOptionsBase<TOutput, TError> {
 }
 
 export type InfiniteOptionsIn<TClientContext extends ClientContext, TInput, TOutput, TError, TSelectData, TPageParam>

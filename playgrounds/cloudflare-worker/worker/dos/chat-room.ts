@@ -14,6 +14,9 @@ export class ChatRoom extends DurableIteratorObject<{ message: string }> {
       interceptors: [
         onError(e => console.error(e)), // log error thrown from rpc calls
       ],
+      onSubscribed: (websocket, lastEventId) => {
+        console.log(`Websocket Ready id=${websocket['~orpc'].deserializeId()}`)
+      },
     })
   }
 
@@ -21,7 +24,9 @@ export class ChatRoom extends DurableIteratorObject<{ message: string }> {
     return os
       .input(z.object({ message: z.string() }))
       .handler(({ input }) => {
-        this.publishEvent(input)
+        this.publishEvent(input, {
+          // exclude: [ws], // exclude sender
+        })
       })
       .callable()
   }

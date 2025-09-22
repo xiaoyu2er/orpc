@@ -29,13 +29,16 @@ for await (const event of iterator) {
 
 ## Stopping the Stream Manually
 
-Call `.return()` on the iterator to gracefully end the stream.
+You can rely on `signal` or `.return` to stop the iterator.
 
 ```ts
-const iterator = await client.streaming()
+const controller = new AbortController()
+const iterator = await client.streaming(undefined, { signal: controller.signal })
 
+// Stop the stream after 1 second
 setTimeout(async () => {
-  // Stop the stream after 1 second
+  controller.abort()
+  // or
   await iterator.return()
 }, 1000)
 

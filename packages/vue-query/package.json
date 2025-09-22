@@ -38,7 +38,7 @@
   },
   "peerDependencies": {
     "@orpc/client": "workspace:*",
-    "@tanstack/vue-query": ">=5.89.0",
+    "@tanstack/vue-query": ">=5.80.2",
     "vue": ">=3.3.0"
   },
   "dependencies": {

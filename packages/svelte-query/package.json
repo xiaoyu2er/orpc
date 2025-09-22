@@ -38,7 +38,7 @@
   },
   "peerDependencies": {
     "@orpc/client": "workspace:*",
-    "@tanstack/svelte-query": ">=5.89.0",
+    "@tanstack/svelte-query": ">=5.80.2",
     "svelte": ">=4.2.0"
   },
   "dependencies": {

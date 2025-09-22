@@ -30,6 +30,7 @@ describe('eventStreamStorage', () => {
     const ctx = createDurableObjectState()
     const storage = new EventResumeStorage(ctx, { resumeRetentionSeconds: 1 })
     const ws = toDurableIteratorWebsocket(createCloudflareWebsocket())
+    ws['~orpc'].serializeTokenPayload({} as any)
     ws['~orpc'].serializeId('ws-id')
 
     const payload1 = storage.store(withEventMeta({ order: 1 }, { id: 'some-id', retry: 238 }), {})
@@ -79,24 +80,30 @@ describe('eventStreamStorage', () => {
     expect(ctx.storage.sql.exec('SELECT count(*) as count FROM "orpc:durable-iterator:resume:events"').one().count).toEqual(1)
   })
 
-  it('get targets, exclude options', async () => {
+  it('get tags, targets, exclude options', async () => {
     const ctx = createDurableObjectState()
     const storage = new EventResumeStorage(ctx, { resumeRetentionSeconds: 1 })
 
     const ws1 = toDurableIteratorWebsocket(createCloudflareWebsocket())
+    ws1['~orpc'].serializeTokenPayload({ tags: ['tag-1', 'tag-2'] } as any)
     ws1['~orpc'].serializeId('ws-1')
     const ws2 = toDurableIteratorWebsocket(createCloudflareWebsocket())
+    ws2['~orpc'].serializeTokenPayload({ tags: ['tag-2'] } as any)
     ws2['~orpc'].serializeId('ws-2')
     const ws3 = toDurableIteratorWebsocket(createCloudflareWebsocket())
+    ws3['~orpc'].serializeTokenPayload({ } as any)
     ws3['~orpc'].serializeId('ws-3')
 
     const payload1 = storage.store({ order: 1 }, { targets: [ws1] })
     const payload2 = storage.store({ order: 2 }, { exclude: [ws2] })
     const payload3 = storage.store({ order: 3 }, { targets: [ws1, ws2], exclude: [ws2, ws3] })
     const payload4 = storage.store({ order: 4 }, { exclude: [ws1, ws3] })
+    const payload5 = storage.store({ order: 5 }, { tags: ['tag-1', 'tag-2'], exclude: [ws2] })
+    const payload6 = storage.store({ order: 6 }, { tags: ['tag-2'] })
+    const payload7 = storage.store({ order: 7 }, { tags: ['tag-3'], targets: [ws3] })
 
-    expect(storage.get(ws1, '0')).toEqual([payload1, payload2, payload3])
-    expect(storage.get(ws2, '0')).toEqual([payload4])
+    expect(storage.get(ws1, '0')).toEqual([payload1, payload2, payload3, payload5, payload6])
+    expect(storage.get(ws2, '0')).toEqual([payload4, payload6])
     expect(storage.get(ws3, '0')).toEqual([payload2])
   })
 
@@ -119,6 +126,7 @@ describe('eventStreamStorage', () => {
     })
 
     const ws = toDurableIteratorWebsocket(createCloudflareWebsocket())
+    ws['~orpc'].serializeTokenPayload({} as any)
     ws['~orpc'].serializeId('ws-1')
 
     storage.store(new Person('__name__'), {})

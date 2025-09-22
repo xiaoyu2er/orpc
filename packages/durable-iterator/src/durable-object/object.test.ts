@@ -92,8 +92,13 @@ describe('class DurableIteratorObject & DurableIteratorObjectHandler', async () 
 
     const ws2 = toDurableIteratorWebsocket(createCloudflareWebsocket())
     ws2['~orpc'].serializeId('ws-2')
-    ws2['~orpc'].serializeTokenPayload(baseTokenPayload)
+    ws2['~orpc'].serializeTokenPayload({ ...baseTokenPayload, tags: ['tag2'] })
     ws2['~orpc'].serializeHibernationId('1')
+
+    const ws3 = toDurableIteratorWebsocket(createCloudflareWebsocket())
+    ws3['~orpc'].serializeId('ws-3')
+    ws3['~orpc'].serializeTokenPayload({ ...baseTokenPayload, tags: undefined })
+    ws3['~orpc'].serializeHibernationId('1')
 
     it('works', async () => {
       const wsMissingHibernationId = toDurableIteratorWebsocket(createCloudflareWebsocket())
@@ -117,31 +122,83 @@ describe('class DurableIteratorObject & DurableIteratorObjectHandler', async () 
       expect((ws2 as any)['~orpc'].original.send.mock.calls[0][0]).toContain(JSON.stringify({ order: '__fromResumeStore__' }))
     })
 
-    it('targets, exclude options', async () => {
-      ctx.getWebSockets.mockReturnValue([ws1, ws2])
+    it('tags, targets, exclude options', async () => {
+      ctx.getWebSockets.mockImplementation((tag: string | undefined) => {
+        const wss = [ws1, ws2, ws3]
+        if (tag === undefined) {
+          return wss
+        }
+        return wss.filter(ws => ws['~orpc'].deserializeTokenPayload().tags?.includes(tag))
+      })
 
       object.publishEvent({ order: 1 }, { targets: [ws1] })
-
       expect(ws1['~orpc'].original.send).toHaveBeenCalledTimes(1)
       expect(ws2['~orpc'].original.send).toHaveBeenCalledTimes(0)
+      expect(ws3['~orpc'].original.send).toHaveBeenCalledTimes(0)
       expect(resumeStoreStoreSpy).toHaveBeenCalledTimes(1)
       expect(resumeStoreStoreSpy).toHaveBeenCalledWith({ order: 1 }, { targets: [ws1] })
 
       vi.clearAllMocks()
       object.publishEvent({ order: 2 }, { exclude: [ws1] })
-
       expect(ws1['~orpc'].original.send).toHaveBeenCalledTimes(0)
       expect(ws2['~orpc'].original.send).toHaveBeenCalledTimes(1)
+      expect(ws3['~orpc'].original.send).toHaveBeenCalledTimes(1)
       expect(resumeStoreStoreSpy).toHaveBeenCalledTimes(1)
       expect(resumeStoreStoreSpy).toHaveBeenCalledWith({ order: 2 }, { exclude: [ws1] })
 
       vi.clearAllMocks()
       object.publishEvent({ order: 3 }, { targets: [ws1], exclude: [ws2] })
-
       expect(ws1['~orpc'].original.send).toHaveBeenCalledTimes(1)
       expect(ws2['~orpc'].original.send).toHaveBeenCalledTimes(0)
+      expect(ws3['~orpc'].original.send).toHaveBeenCalledTimes(0)
       expect(resumeStoreStoreSpy).toHaveBeenCalledTimes(1)
       expect(resumeStoreStoreSpy).toHaveBeenCalledWith({ order: 3 }, { targets: [ws1], exclude: [ws2] })
+
+      vi.clearAllMocks()
+      object.publishEvent({ order: 4 }, { tags: ['tag1'] })
+      expect(ws1['~orpc'].original.send).toHaveBeenCalledTimes(1)
+      expect(ws2['~orpc'].original.send).toHaveBeenCalledTimes(0)
+      expect(ws3['~orpc'].original.send).toHaveBeenCalledTimes(0)
+      expect(resumeStoreStoreSpy).toHaveBeenCalledWith({ order: 4 }, { tags: ['tag1'] })
+
+      vi.clearAllMocks()
+      object.publishEvent({ order: 5 }, { tags: ['tag2'] })
+      expect(ws1['~orpc'].original.send).toHaveBeenCalledTimes(1)
+      expect(ws2['~orpc'].original.send).toHaveBeenCalledTimes(1)
+      expect(ws3['~orpc'].original.send).toHaveBeenCalledTimes(0)
+      expect(resumeStoreStoreSpy).toHaveBeenCalledWith({ order: 5 }, { tags: ['tag2'] })
+
+      vi.clearAllMocks()
+      object.publishEvent({ order: 6 }, { tags: ['tag2'], exclude: [ws1] })
+      expect(ws1['~orpc'].original.send).toHaveBeenCalledTimes(0)
+      expect(ws2['~orpc'].original.send).toHaveBeenCalledTimes(1)
+      expect(ws3['~orpc'].original.send).toHaveBeenCalledTimes(0)
+      expect(resumeStoreStoreSpy).toHaveBeenCalledWith({ order: 6 }, { tags: ['tag2'], exclude: [ws1] })
+
+      vi.clearAllMocks()
+      object.publishEvent({ order: 6 }, { tags: ['tag2'], targets: [ws1] })
+      expect(ws1['~orpc'].original.send).toHaveBeenCalledTimes(1)
+      expect(ws2['~orpc'].original.send).toHaveBeenCalledTimes(0)
+      expect(ws3['~orpc'].original.send).toHaveBeenCalledTimes(0)
+      expect(resumeStoreStoreSpy).toHaveBeenCalledWith({ order: 6 }, { tags: ['tag2'], targets: [ws1] })
+
+      vi.clearAllMocks()
+      const targets = vi.fn(ws => ws === ws1)
+      object.publishEvent({ order: 6 }, { tags: ['tag2'], targets })
+      expect(ws1['~orpc'].original.send).toHaveBeenCalledTimes(1)
+      expect(ws2['~orpc'].original.send).toHaveBeenCalledTimes(0)
+      expect(ws3['~orpc'].original.send).toHaveBeenCalledTimes(0)
+      expect(resumeStoreStoreSpy).toHaveBeenCalledWith({ order: 6 }, { tags: ['tag2'], targets: [ws1] })
+      expect(targets).toHaveBeenCalledTimes(2)
+
+      vi.clearAllMocks()
+      const exclude = vi.fn(ws => true)
+      object.publishEvent({ order: 6 }, { tags: ['tag2'], exclude })
+      expect(ws1['~orpc'].original.send).toHaveBeenCalledTimes(0)
+      expect(ws2['~orpc'].original.send).toHaveBeenCalledTimes(0)
+      expect(ws3['~orpc'].original.send).toHaveBeenCalledTimes(0)
+      expect(resumeStoreStoreSpy).toHaveBeenCalledWith({ order: 6 }, { tags: ['tag2'], exclude: [ws1, ws2] })
+      expect(exclude).toHaveBeenCalledTimes(2)
     })
 
     it('ignore sending errors', async () => {

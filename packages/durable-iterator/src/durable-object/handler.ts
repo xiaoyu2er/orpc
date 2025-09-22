@@ -90,22 +90,31 @@ const router = base.router({
 
 export interface PublishEventOptions {
   /**
+   * Deliver the event only to websockets that have the specified tags.
+   */
+  tags?: readonly string[]
+
+  /**
    * Restrict the event to a specific set of websockets.
+   *
+   * Accept a list of websockets or a filter function.
    *
    * Use this when security is important — only the listed websockets
    * will ever receive the event. Newly connected websockets are not
    * included unless explicitly added here.
    */
-  targets?: WebSocket[]
+  targets?: readonly WebSocket[] | ((ws: DurableIteratorWebsocket) => boolean)
 
   /**
    * Exclude certain websockets from receiving the event.
+   *
+   * Accept a list of websockets or a filter function.
    *
    * Use this when broadcasting widely but skipping a few clients
    * (e.g., the sender). Newly connected websockets may still receive
    * the event if not listed here, so this is less strict than `targets`.
    */
-  exclude?: WebSocket[]
+  exclude?: readonly WebSocket[] | ((ws: DurableIteratorWebsocket) => boolean)
 }
 
 export interface DurableIteratorObjectHandlerOptions extends RPCHandlerOptions<DurableIteratorObjectRouterContext>, EventResumeStorageOptions {
@@ -165,17 +174,62 @@ export class DurableIteratorObjectHandler<
    * Publish an event to a set of clients.
    */
   publishEvent(payload: T, options: PublishEventOptions = {}): void {
-    const targets = options.targets?.map(ws => toDurableIteratorWebsocket(ws))
-    const exclude = options.exclude?.map(ws => toDurableIteratorWebsocket(ws))
+    let targets = Array.isArray(options.targets)
+      ? (options.targets as readonly WebSocket[]).map(toDurableIteratorWebsocket)
+      : undefined
+
+    const websocketsFilteredByTags = (() => {
+      if (targets) {
+        if (!options.tags) {
+          return targets
+        }
+
+        return targets.filter(
+          ws => ws['~orpc'].deserializeTokenPayload().tags?.some(tag => options.tags?.includes(tag)),
+        )
+      }
+
+      if (options.tags) {
+        const websockets = options.tags
+          .map(tag => this.ctx.getWebSockets(tag))
+          .flat()
+
+        const uniqueWebsockets = websockets.filter((ws, index) => {
+          const id = ws['~orpc'].deserializeId()
+          return websockets.findIndex(ws => ws['~orpc'].deserializeId() === id) === index
+        })
+
+        return uniqueWebsockets
+      }
+      else {
+        return this.ctx.getWebSockets()
+      }
+    })()
+
+    if (typeof options.targets === 'function') {
+      targets = websocketsFilteredByTags.filter(options.targets)
+    }
+
+    const exclude = Array.isArray(options.exclude)
+      ? (options.exclude as readonly WebSocket[]).map(toDurableIteratorWebsocket)
+      : typeof options.exclude === 'function'
+        ? websocketsFilteredByTags.filter(options.exclude)
+        : undefined
 
     // update payload metadata
-    payload = this.resumeStorage.store(payload, { targets, exclude })
+    payload = this.resumeStorage.store(payload, { tags: options.tags, targets, exclude })
 
+    const targetIds = targets?.map(ws => ws['~orpc'].deserializeId())
     const excludeIds = exclude?.map(ws => ws['~orpc'].deserializeId())
-    const fallbackTargets = targets ?? this.ctx.getWebSockets().map(ws => toDurableIteratorWebsocket(ws))
 
-    for (const ws of fallbackTargets) {
-      if (excludeIds?.includes(ws['~orpc'].deserializeId())) {
+    for (const ws of websocketsFilteredByTags) {
+      const wsId = ws['~orpc'].deserializeId()
+
+      if (targetIds && !targetIds.includes(wsId)) {
+        continue
+      }
+
+      if (excludeIds?.includes(wsId)) {
         continue
       }
 

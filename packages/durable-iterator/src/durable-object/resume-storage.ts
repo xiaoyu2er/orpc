@@ -28,10 +28,12 @@ export interface EventResumeStorageOptions extends StandardRPCJsonSerializerOpti
 }
 
 export interface ResumeEventFilter {
+  /** Only websockets with these tags will receive the event */
+  tags?: readonly string[]
   /** Only websockets that are in this list will receive the event */
-  targets?: DurableIteratorWebsocket[]
+  targets?: readonly DurableIteratorWebsocket[]
   /** Websockets that are in this list will not receive the event */
-  exclude?: DurableIteratorWebsocket[]
+  exclude?: readonly DurableIteratorWebsocket[]
 }
 
 export class EventResumeStorage<T extends object> {
@@ -86,8 +88,9 @@ export class EventResumeStorage<T extends object> {
        * so we cast to TEXT for safe ID handling in resume operations.
        */
       const insertResult = this.durableState.storage.sql.exec(
-        `INSERT INTO "${this.schemaPrefix}events" (payload, target_ids, exclusion_ids) VALUES (?, ?, ?) RETURNING CAST(id AS TEXT) as id`,
+        `INSERT INTO "${this.schemaPrefix}events" (payload, tags, target_ids, exclusion_ids) VALUES (?, ?, ?, ?) RETURNING CAST(id AS TEXT) as id`,
         serializedEvent,
+        stringifyJSON(resumeFilter.tags),
         stringifyJSON(targetIds),
         stringifyJSON(excludeIds),
       )
@@ -123,6 +126,7 @@ export class EventResumeStorage<T extends object> {
 
     this.cleanupExpiredEvents()
 
+    const websocketTags = websocket['~orpc'].deserializeTokenPayload().tags
     const websocketId = websocket['~orpc'].deserializeId()
 
     /**
@@ -130,7 +134,7 @@ export class EventResumeStorage<T extends object> {
      * so we cast to TEXT for safe resume ID comparison.
      */
     const resumeQuery = this.durableState.storage.sql.exec(`
-      SELECT CAST(id AS TEXT) as id, payload, target_ids, exclusion_ids
+      SELECT CAST(id AS TEXT) as id, payload, tags, target_ids, exclusion_ids
       FROM "${this.schemaPrefix}events"
       WHERE id > ?
       ORDER BY id ASC
@@ -139,6 +143,12 @@ export class EventResumeStorage<T extends object> {
     return resumeQuery
       .toArray()
       .filter((resumeRecord: Record<string, any>) => {
+        const tags = parseEmptyableJSON(resumeRecord.tags) as string[] | undefined
+
+        if (tags && !tags.some(tag => websocketTags?.includes(tag))) {
+          return false
+        }
+
         const resumeTargetIds = parseEmptyableJSON(resumeRecord.target_ids) as string[] | undefined
         const resumeExclusionIds = parseEmptyableJSON(resumeRecord.exclusion_ids) as string[] | undefined
 
@@ -163,6 +173,7 @@ export class EventResumeStorage<T extends object> {
       CREATE TABLE IF NOT EXISTS "${this.schemaPrefix}events" (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         payload TEXT NOT NULL,
+        tags TEXT,
         target_ids TEXT,
         exclusion_ids TEXT,
         stored_at INTEGER NOT NULL DEFAULT (unixepoch())

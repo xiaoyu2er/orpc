@@ -5,7 +5,7 @@ import * as z from 'zod'
 
 export class ChatRoom extends DurableIteratorObject<{ message: string }> {
   constructor(
-    ctx: DurableObjectState,
+    ctx: DurableObjectState<Cloudflare.Env>,
     env: Env,
   ) {
     super(ctx, env, {

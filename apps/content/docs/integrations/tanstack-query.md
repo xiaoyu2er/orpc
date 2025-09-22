@@ -97,7 +97,7 @@ const query = useQuery(orpc.planet.find.queryOptions({
 
 ## Streamed Query Options
 
-Use `.streamedOptions` to configure queries for [Event Iterator](/docs/event-iterator). This is built on [TanStack Query streamedQuery](https://tanstack.com/query/latest/docs/reference/streamedQuery) and works with hooks like `useQuery`, `useSuspenseQuery`, or `prefetchQuery`.
+Use `.streamedOptions` to configure queries for [Event Iterator](/docs/event-iterator). Works with hooks like `useQuery`, `useSuspenseQuery`, or `prefetchQuery`.
 
 ```ts
 const query = useQuery(orpc.streamed.experimental_streamedOptions({

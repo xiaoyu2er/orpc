@@ -56,6 +56,8 @@ export class ClientRetryPlugin<T extends ClientRetryPluginContext> implements St
   private readonly defaultShouldRetry: Exclude<ClientRetryPluginContext['shouldRetry'], undefined>
   private readonly defaultOnRetry: ClientRetryPluginContext['onRetry']
 
+  order = 1_800_000
+
   constructor(options: ClientRetryPluginOptions = {}) {
     this.defaultRetry = options.default?.retry ?? 0
     this.defaultRetryDelay = options.default?.retryDelay ?? (o => o.lastEventRetry ?? 2000)

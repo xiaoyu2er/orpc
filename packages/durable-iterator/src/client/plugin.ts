@@ -59,7 +59,10 @@ export interface DurableIteratorLinkPluginOptions<T extends ClientContext> exten
 export class DurableIteratorLinkPlugin<T extends ClientContext> implements StandardLinkPlugin<T> {
   readonly CONTEXT_SYMBOL = Symbol('ORPC_DURABLE_ITERATOR_LINK_PLUGIN_CONTEXT')
 
-  order = 2_100_000 // make sure execute before the batch plugin and after client retry plugin
+  /**
+   * run before (modify result after) retry plugin because it can break the special iterator
+   */
+  order = 1_500_000
 
   private readonly url: DurableIteratorLinkPluginOptions<T>['url']
   private readonly createId: Exclude<DurableIteratorLinkPluginOptions<T>['createId'], undefined>

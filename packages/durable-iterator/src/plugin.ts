@@ -14,7 +14,10 @@ export interface DurableIteratorHandlerPluginContext {
 export class DurableIteratorHandlerPlugin<T extends Context> implements StandardHandlerPlugin<T> {
   readonly CONTEXT_SYMBOL = Symbol('ORPC_DURABLE_ITERATOR_HANDLER_PLUGIN_CONTEXT')
 
-  order = 2_100_000 // make sure execute after the batch plugin
+  /**
+   * make sure run after batch plugin
+   */
+  order = 1_500_000
 
   init(options: StandardHandlerOptions<T>, _router: Router<any, T>): void {
     options.interceptors ??= []

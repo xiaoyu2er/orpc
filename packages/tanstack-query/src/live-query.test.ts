@@ -56,7 +56,7 @@ describe('liveQuery', async () => {
       queryKey: ['live-query'],
       signal: controller.signal,
       client: queryClient,
-    } as any)).resolves.toEqual(1)
+    } as any)).rejects.toSatisfy(err => err === controller.signal.reason)
 
     await vi.waitFor(() => {
       expect(queryClient.getQueryData(['live-query'])).toEqual(1)

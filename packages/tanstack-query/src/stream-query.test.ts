@@ -243,7 +243,7 @@ describe('streamedQuery', () => {
       queryKey: ['abort-test'],
       signal: controller.signal,
       client: queryClient,
-    } as any)).resolves.toEqual(['chunk1'])
+    } as any)).rejects.toSatisfy(err => err === controller.signal.reason)
 
     await vi.waitFor(() => {
       expect(queryClient.getQueryData(['abort-test'])).toEqual(['chunk1'])
@@ -284,7 +284,7 @@ describe('streamedQuery', () => {
       queryKey: ['abort-replace-test'],
       signal: controller.signal,
       client: queryClient,
-    } as any)).resolves.toEqual(['initial1', 'initial2'])
+    } as any)).rejects.toSatisfy(err => err === controller.signal.reason)
 
     await new Promise(resolve => setTimeout(resolve, 25))
     controller.abort()

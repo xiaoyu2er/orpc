@@ -59,7 +59,7 @@ export function experimental_serializableStreamedQuery<
 
     for await (const chunk of stream) {
       if (context.signal.aborted) {
-        break
+        throw context.signal.reason
       }
 
       // don't append to the cache directly when replace-refetching
@@ -75,13 +75,13 @@ export function experimental_serializableStreamedQuery<
     }
 
     // finalize result: replace-refetching needs to write to the cache
-    if (isRefetch && refetchMode === 'replace' && !context.signal.aborted) {
+    if (isRefetch && refetchMode === 'replace') {
       context.client.setQueryData<Array<TQueryFnData>>(context.queryKey, result)
     }
 
     // this is additional, in case nothing is fetched
     const currentResult = context.client.getQueryData(context.queryKey)
-    if (currentResult === undefined) {
+    if (!Array.isArray(currentResult)) {
       return result
     }
 

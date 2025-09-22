@@ -31,22 +31,6 @@ const query = useQuery(orpc.planet.find.queryOptions({
 }))
 ```
 
-## Streamed Query Options Utility
-
-Use `.streamedOptions` to configure queries for [Event Iterator](/docs/event-iterator), which is built on top of [streamedQuery](https://tanstack.com/query/latest/docs/reference/streamedQuery). Use it with hooks like `useQuery`, `useSuspenseQuery`, or `prefetchQuery`.
-
-```ts
-const query = useQuery(orpc.streamed.experimental_streamedOptions({
-  input: { id: 123 }, // Specify input if needed
-  context: { cache: true }, // Provide client context if needed
-  queryFnOptions: { // Specify streamedQuery options if needed
-    refetchMode: 'reset',
-    maxChunks: 3,
-  }
-  // additional options...
-}))
-```
-
 ## Infinite Query Options Utility
 
 Use `.infiniteOptions` to configure infinite queries. Use it with hooks like `useInfiniteQuery`, `useSuspenseInfiniteQuery`, or `prefetchInfiniteQuery`.

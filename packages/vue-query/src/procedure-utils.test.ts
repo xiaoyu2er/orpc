@@ -1,5 +1,5 @@
 import * as Key from '@orpc/tanstack-query'
-import { experimental_streamedQuery, skipToken } from '@tanstack/vue-query'
+import { skipToken } from '@tanstack/vue-query'
 import { computed, ref } from 'vue'
 import { queryClient } from '../tests/shared'
 import { createProcedureUtils } from './procedure-utils'
@@ -81,115 +81,6 @@ describe('createProcedureUtils', () => {
       expect(generateOperationKeySpy).toHaveBeenNthCalledWith(2, ['ping'], { type: 'query', input: { search: '__search__' } })
 
       await expect(options.queryFn!({ signal } as any)).resolves.toEqual('__output__')
-      expect(client).toHaveBeenCalledTimes(1)
-      expect(client).toBeCalledWith({ search: '__search__' }, { signal, context: { batch: '__batch__' } })
-    })
-  })
-
-  describe('.streamedOptions', async () => {
-    it('without skipToken', async () => {
-      client.mockImplementationOnce(async function* (input) {
-        yield '__1__'
-        yield '__2__'
-        return '__3__'
-      })
-
-      const options = utils.experimental_streamedOptions({
-        input: computed(() => ({ search: ref('__search__') })),
-        context: { batch: '__batch__' },
-        queryFnOptions: {
-          refetchMode: 'replace',
-        },
-      })
-
-      expect(options.enabled.value).toBe(undefined)
-
-      expect(options.queryKey.value).toBe(generateOperationKeySpy.mock.results[0]!.value)
-      expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
-      expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], {
-        type: 'streamed',
-        input: { search: '__search__' },
-        fnOptions: {
-          refetchMode: 'replace',
-        },
-      })
-
-      expect(options.queryFn).toBe(vi.mocked(experimental_streamedQuery).mock.results[0]!.value)
-      expect(experimental_streamedQuery).toHaveBeenCalledTimes(1)
-      expect(experimental_streamedQuery).toHaveBeenCalledWith(expect.objectContaining({
-        refetchMode: 'replace',
-        queryFn: expect.any(Function),
-      }))
-
-      await expect(options.queryFn!({ signal, client: queryClient, queryKey: options.queryKey } as any)).resolves.toEqual(['__1__', '__2__'])
-      expect(queryClient.getQueryData(options.queryKey)).toEqual(['__1__', '__2__'])
-
-      expect(client).toHaveBeenCalledTimes(1)
-      expect(client).toBeCalledWith({ search: '__search__' }, { signal, context: { batch: '__batch__' } })
-    })
-
-    it('with skipToken', async () => {
-      const options = utils.experimental_streamedOptions({ input: skipToken, context: { batch: '__batch__' } })
-
-      expect(options.enabled.value).toBe(false)
-
-      expect(options.queryKey.value).toBe(generateOperationKeySpy.mock.results[0]!.value)
-      expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
-      expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'streamed', input: skipToken })
-
-      await expect(options.queryFn!({ signal, client: queryClient, queryKey: options.queryKey } as any)).rejects.toThrow('queryFn should not be called with skipToken used as input')
-      expect(client).toHaveBeenCalledTimes(0)
-    })
-
-    it('with ref', async () => {
-      client.mockImplementationOnce(async function* (input) {
-        yield '__1__'
-        yield '__2__'
-        return '__3__'
-      })
-
-      const input = ref<any>(skipToken)
-
-      const options = utils.experimental_streamedOptions({
-        input,
-        context: { batch: '__batch__' },
-      })
-
-      expect(options.enabled.value).toBe(false)
-
-      expect(options.queryKey.value).toBe(generateOperationKeySpy.mock.results[0]!.value)
-      expect(generateOperationKeySpy).toHaveBeenCalledTimes(1)
-      expect(generateOperationKeySpy).toHaveBeenCalledWith(['ping'], { type: 'streamed', input: skipToken })
-
-      await expect(options.queryFn!({ signal, client: queryClient } as any)).rejects.toThrow('queryFn should not be called with skipToken used as input')
-      expect(client).toHaveBeenCalledTimes(0)
-
-      input.value = computed(() => ({ search: ref('__search__') }))
-
-      expect(options.enabled.value).toBe(undefined)
-
-      expect(options.queryKey.value).toBe(generateOperationKeySpy.mock.results[1]!.value)
-      expect(generateOperationKeySpy).toHaveBeenCalledTimes(2)
-      expect(generateOperationKeySpy).toHaveBeenNthCalledWith(2, ['ping'], { type: 'streamed', input: { search: '__search__' } })
-
-      expect(options.queryFn).toBe(vi.mocked(experimental_streamedQuery).mock.results[0]!.value)
-      expect(experimental_streamedQuery).toHaveBeenCalledTimes(1)
-      expect(experimental_streamedQuery).toHaveBeenCalledWith(expect.objectContaining({
-        queryFn: expect.any(Function),
-      }))
-
-      await expect(options.queryFn!({ signal, client: queryClient, queryKey: options.queryKey } as any)).resolves.toEqual(['__1__', '__2__'])
-      expect(queryClient.getQueryData(options.queryKey)).toEqual(['__1__', '__2__'])
-
-      expect(client).toHaveBeenCalledTimes(1)
-      expect(client).toBeCalledWith({ search: '__search__' }, { signal, context: { batch: '__batch__' } })
-    })
-
-    it('with unsupported output', async () => {
-      client.mockResolvedValueOnce('__1__')
-      const options = utils.experimental_streamedOptions({ input: { search: '__search__' }, context: { batch: '__batch__' } })
-
-      await expect(options.queryFn!({ signal, client: queryClient } as any)).rejects.toThrow('streamedQuery requires an event iterator output')
       expect(client).toHaveBeenCalledTimes(1)
       expect(client).toBeCalledWith({ search: '__search__' }, { signal, context: { batch: '__batch__' } })
     })

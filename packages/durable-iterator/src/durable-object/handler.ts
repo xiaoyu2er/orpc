@@ -19,7 +19,7 @@ import { toDurableIteratorWebsocket } from './websocket'
 const os = implement(durableIteratorContract)
 
 type DurableIteratorObjectRouterContext = {
-  object: DurableObject<any>
+  object: DurableObject<any, any>
   resumeStorage: EventResumeStorage<any>
   websocket: DurableIteratorWebsocket
   options: DurableIteratorObjectHandlerOptions
@@ -135,6 +135,7 @@ export interface DurableIteratorObjectHandlerOptions extends RPCHandlerOptions<D
 
 export class DurableIteratorObjectHandler<
   T extends object,
+  TProps,
 > implements DurableIteratorObjectDef<T> {
   '~eventPayloadType'?: { type: T } // Helps DurableIteratorObjectDef infer the type
 
@@ -144,11 +145,11 @@ export class DurableIteratorObjectHandler<
   /**
    * Proxied, ensure you don't accidentally change internal state, and auto close if expired websockets before .send is called
    */
-  ctx: DurableIteratorObjectState
+  ctx: DurableIteratorObjectState<TProps>
 
   constructor(
-    ctx: DurableObjectState,
-    private readonly object: DurableObject<any>,
+    ctx: DurableObjectState<TProps>,
+    private readonly object: DurableObject<any, TProps>,
     private readonly options: DurableIteratorObjectHandlerOptions,
   ) {
     this.ctx = toDurableIteratorObjectState(ctx)

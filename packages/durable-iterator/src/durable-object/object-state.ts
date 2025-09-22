@@ -10,7 +10,7 @@ export interface DurableIteratorObjectStateInternal {
   original: DurableObjectState
 }
 
-export interface DurableIteratorObjectState extends DurableObjectState {
+export interface DurableIteratorObjectState<TProps> extends DurableObjectState<TProps> {
   /**
    * DurableIteratorObjectState internal apis
    */
@@ -23,9 +23,9 @@ export interface DurableIteratorObjectState extends DurableObjectState {
   'getWebSockets'(...args: Parameters<DurableObjectState['getWebSockets']>): DurableIteratorWebsocket[]
 }
 
-export function toDurableIteratorObjectState(original: DurableObjectState): DurableIteratorObjectState {
+export function toDurableIteratorObjectState<TProps>(original: DurableObjectState<TProps>): DurableIteratorObjectState<TProps> {
   if ('~orpc' in original) {
-    return original as DurableIteratorObjectState
+    return original as DurableIteratorObjectState<TProps>
   }
 
   const internal: DurableIteratorObjectStateInternal = {

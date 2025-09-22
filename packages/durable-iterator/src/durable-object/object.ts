@@ -5,16 +5,17 @@ import { DurableObject } from 'cloudflare:workers'
 import { DurableIteratorError } from '../error'
 import { DurableIteratorObjectHandler } from './handler'
 
-export class DurableIteratorObject<T extends object, TEnv = unknown> extends DurableObject<TEnv> implements IDurableIteratorObject<T> {
-  '~orpc': DurableIteratorObjectHandler<T>
+// eslint-disable-next-line ts/no-empty-object-type -- TProps = {} is default behavior of DurableObject
+export class DurableIteratorObject<T extends object, TEnv = Cloudflare.Env, TProps = {}> extends DurableObject<TEnv, TProps> implements IDurableIteratorObject<T> {
+  '~orpc': DurableIteratorObjectHandler<T, TProps>
 
   /**
    * Proxied, ensure you don't accidentally change internal state, and auto close if expired websockets before .send is called
    */
-  protected override ctx: DurableIteratorObjectState
+  protected override ctx: DurableIteratorObjectState<TProps>
 
   constructor(
-    ctx: DurableObjectState,
+    ctx: DurableObjectState<TProps>,
     env: TEnv,
     options: DurableIteratorObjectHandlerOptions,
   ) {
@@ -31,7 +32,7 @@ export class DurableIteratorObject<T extends object, TEnv = unknown> extends Dur
     }
 
     super(ctx, env)
-    this['~orpc'] = new DurableIteratorObjectHandler(ctx, this, options)
+    this['~orpc'] = new DurableIteratorObjectHandler<T, TProps>(ctx, this, options)
     this.ctx = this['~orpc'].ctx
   }
 

@@ -321,8 +321,6 @@ importers:
         specifier: ^22.15.30
         version: 22.17.0
 
-  packages/durable-iterator: {}
-
   packages/hey-api:
     dependencies:
       '@orpc/client':

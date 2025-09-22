@@ -16,6 +16,8 @@ export interface experimental_SerializableStreamedQueryOptions {
   /**
    * Limits the number of data chunks stored in the query result.
    * Older chunks are removed when the limit is reached.
+   *
+   * @default Number.POSITIVE_INFINITY (unlimited)
    */
   maxChunks?: number
 }
@@ -32,10 +34,10 @@ export function experimental_serializableStreamedQuery<
   queryFn: (
     context: QueryFunctionContext<TQueryKey>,
   ) => Promisable<AsyncIterable<TQueryFnData>>,
-  { refetchMode = 'reset', maxChunks }: experimental_SerializableStreamedQueryOptions = {},
+  { refetchMode = 'reset', maxChunks = Number.POSITIVE_INFINITY }: experimental_SerializableStreamedQueryOptions = {},
 ): QueryFunction<Array<TQueryFnData>, TQueryKey> {
   /**
-   * below code is copy from old `streamedQuery`: https://github.com/TanStack/query/blob/9973e0f1d82acd6ccf5a49d9a0b5e7e401fc5489/packages/query-core/src/streamedQuery.ts#L19
+   * below code is inspired from old `streamedQuery`: https://github.com/TanStack/query/blob/9973e0f1d82acd6ccf5a49d9a0b5e7e401fc5489/packages/query-core/src/streamedQuery.ts#L19
    */
   return async (context) => {
     const query = context.client
@@ -77,11 +79,17 @@ export function experimental_serializableStreamedQuery<
       context.client.setQueryData<Array<TQueryFnData>>(context.queryKey, result)
     }
 
-    return context.client.getQueryData(context.queryKey)!
+    // this is additional, in case nothing is fetched
+    const currentResult = context.client.getQueryData(context.queryKey)
+    if (currentResult === undefined) {
+      return result
+    }
+
+    return currentResult as Array<TQueryFnData>
   }
 }
 
-function addToEnd<T>(items: Array<T>, item: T, max = 0): Array<T> {
+function addToEnd<T>(items: Array<T>, item: T, max: number): Array<T> {
   const newItems = [...items, item]
-  return max && newItems.length > max ? newItems.slice(1) : newItems
+  return newItems.length > max ? newItems.slice(newItems.length - max) : newItems
 }

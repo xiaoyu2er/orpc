@@ -122,7 +122,7 @@ describe('upgradeDurableIteratorRequest', () => {
       {
         namespace: namespace as any,
         signingKey: 'signing-key',
-        namespaceGetOptions: { test: 'test' },
+        namespaceGetOptions: { locationHint: 'something' } as any,
       },
     )
 

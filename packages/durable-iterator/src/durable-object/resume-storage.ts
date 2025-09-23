@@ -24,7 +24,7 @@ export interface EventResumeStorageOptions extends StandardRPCJsonSerializerOpti
    *
    * @default 'orpc:durable-iterator:resume:'
    */
-  resumeTablePrefix?: string
+  resumeSchemaPrefix?: string
 }
 
 export interface ResumeEventFilter {
@@ -50,7 +50,7 @@ export class EventResumeStorage<T extends object> {
     options: EventResumeStorageOptions = {},
   ) {
     this.retentionSeconds = fallback(options.resumeRetentionSeconds, Number.NaN) // disabled by default
-    this.schemaPrefix = fallback(options.resumeTablePrefix, 'orpc:durable-iterator:resume:')
+    this.schemaPrefix = fallback(options.resumeSchemaPrefix, 'orpc:durable-iterator:resume:')
     this.serializer = new StandardRPCJsonSerializer(options)
 
     if (this.isEnabled) {

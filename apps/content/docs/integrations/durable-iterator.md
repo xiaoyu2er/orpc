@@ -149,7 +149,7 @@ export class YourDurableObject extends DurableIteratorObject<{ message: string }
 This feature controls event IDs automatically, so custom event IDs will be ignored:
 
 ```ts
-import { withEventMeta } from '@orpc/durable-iterator'
+import { withEventMeta } from '@orpc/experimental-durable-iterator'
 
 this.publishEvent(withEventMeta({ message: 'Hello, world!' }, { id: 'this-will-not-take-effect' }))
 ```

@@ -1,7 +1,7 @@
 import type { Promisable, Value } from '@orpc/shared'
 import type { StandardLinkInterceptorOptions, StandardLinkOptions, StandardLinkPlugin } from '../adapters/standard'
 import type { ClientContext } from '../types'
-import { AsyncIteratorClass, isAsyncIteratorObject, value } from '@orpc/shared'
+import { AsyncIteratorClass, isAsyncIteratorObject, overlayProxy, value } from '@orpc/shared'
 import { getEventMeta } from '@orpc/standard-server'
 
 export interface ClientRetryPluginAttemptOptions<T extends ClientContext> extends StandardLinkInterceptorOptions<T> {
@@ -55,6 +55,8 @@ export class ClientRetryPlugin<T extends ClientRetryPluginContext> implements St
   private readonly defaultRetryDelay: Exclude<ClientRetryPluginContext['retryDelay'], undefined>
   private readonly defaultShouldRetry: Exclude<ClientRetryPluginContext['shouldRetry'], undefined>
   private readonly defaultOnRetry: ClientRetryPluginContext['onRetry']
+
+  order = 1_800_000
 
   constructor(options: ClientRetryPluginOptions = {}) {
     this.defaultRetry = options.default?.retry ?? 0
@@ -148,7 +150,7 @@ export class ClientRetryPlugin<T extends ClientRetryPluginContext> implements St
       let current = output
       let isIteratorAborted = false
 
-      return new AsyncIteratorClass(
+      return overlayProxy(() => current, new AsyncIteratorClass(
         async () => {
           while (true) {
             try {
@@ -191,7 +193,7 @@ export class ClientRetryPlugin<T extends ClientRetryPluginContext> implements St
             await current.return?.()
           }
         },
-      )
+      ))
     })
   }
 }

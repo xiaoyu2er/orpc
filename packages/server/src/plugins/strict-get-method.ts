@@ -24,6 +24,9 @@ const STRICT_GET_METHOD_PLUGIN_IS_GET_METHOD_CONTEXT_SYMBOL = Symbol('STRICT_GET
 export class StrictGetMethodPlugin<T extends Context> implements StandardHandlerPlugin<T> {
   private readonly error: Exclude<StrictGetMethodPluginOptions['error'], undefined>
 
+  /**
+   * make sure execute before batch plugin to get real method
+   */
   order = 7_000_000
 
   constructor(options: StrictGetMethodPluginOptions = {}) {

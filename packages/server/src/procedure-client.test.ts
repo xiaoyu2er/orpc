@@ -1,11 +1,14 @@
 import { ORPCError } from '@orpc/client'
 import { validateORPCError } from '@orpc/contract'
+import * as Shared from '@orpc/shared'
 import { HibernationEventIterator } from '@orpc/standard-server'
 import * as z from 'zod'
 import { createORPCErrorConstructorMap } from './error'
 import { isLazy, lazy, unlazy } from './lazy'
 import { Procedure } from './procedure'
 import { createProcedureClient } from './procedure-client'
+
+const overlayProxySpy = vi.spyOn(Shared, 'overlayProxy')
 
 vi.mock('@orpc/contract', async origin => ({
   ...await origin(),
@@ -560,11 +563,33 @@ describe.each(procedureCases)('createProcedureClient - case %s', async (_, proce
     expect((handler as any).mock.calls[3][0].context.postMid1).toBe(7)
   })
 
+  it('works with async iterator', async () => {
+    const client = createProcedureClient(unvalidatedProcedure)
+    const rootIterator = (async function* () {
+      yield { order: 1 }
+      return { order: 2 }
+    }())
+    ;(rootIterator as any)[Symbol.for('TEST')] = 'test'
+
+    handler.mockResolvedValueOnce(rootIterator as any)
+    const iterator = await client({ val: '123' }) as any
+
+    expect((iterator as any)[Symbol.for('TEST')]).toBe('test')
+    expect(await iterator.next()).toEqual({ done: false, value: { order: 1 } })
+    expect(await iterator.next()).toEqual({ done: true, value: { order: 2 } })
+
+    expect(overlayProxySpy).toHaveBeenCalledTimes(1)
+    expect(overlayProxySpy).toHaveBeenCalledWith(rootIterator, expect.any(Shared.AsyncIteratorClass))
+    expect(iterator).toBe(overlayProxySpy.mock.results[0]?.value)
+  })
+
   it('not modify HibernationEventIterator', async () => {
     const client = createProcedureClient(unvalidatedProcedure)
     const iterator = new HibernationEventIterator(() => {})
     handler.mockResolvedValueOnce(iterator as any)
     await expect(client({ val: '123' })).resolves.toBe(iterator)
+
+    expect(overlayProxySpy).not.toBeCalled()
   })
 })
 

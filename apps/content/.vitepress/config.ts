@@ -180,7 +180,7 @@ export default withMermaid(defineConfig({
           collapsed: true,
           items: [
             { text: 'AI SDK', link: '/docs/integrations/ai-sdk' },
-            { text: 'Durable Event Iterator', link: '/docs/integrations/durable-event-iterator' },
+            { text: 'Durable Iterator', link: '/docs/integrations/durable-iterator' },
             { text: 'Hey API', link: '/docs/integrations/hey-api' },
             { text: 'OpenTelemetry', link: '/docs/integrations/opentelemetry' },
             { text: 'Pinia Colada', link: '/docs/integrations/pinia-colada' },

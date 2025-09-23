@@ -1,5 +1,6 @@
 import type { RouterClient } from '../../../server/src/router-client'
 import type { ClientRetryPluginContext } from './retry'
+import * as Shared from '@orpc/shared'
 import { getEventMeta, withEventMeta } from '@orpc/standard-server'
 import { RPCHandler } from '../../../server/src/adapters/fetch/rpc-handler'
 import { os } from '../../../server/src/builder'
@@ -7,6 +8,8 @@ import { RPCLink } from '../adapters/fetch'
 import { createORPCClient } from '../client'
 import { ORPCError } from '../error'
 import { ClientRetryPlugin } from './retry'
+
+const overlayProxySpy = vi.spyOn(Shared, 'overlayProxy')
 
 interface ORPCClientContext extends ClientRetryPluginContext {
 
@@ -201,6 +204,7 @@ describe('clientRetryPlugin', () => {
       await expect(iterator.next()).rejects.toThrow('Internal server error')
 
       expect(handlerFn).toHaveBeenCalledTimes(1)
+      expect(overlayProxySpy).toHaveBeenCalledTimes(1)
     })
 
     it('should retry', async () => {
@@ -213,6 +217,9 @@ describe('clientRetryPlugin', () => {
       await expect(iterator.next()).rejects.toThrow('Internal server error')
 
       expect(handlerFn).toHaveBeenCalledTimes(4)
+      expect(overlayProxySpy).toHaveBeenCalledTimes(5) // handler 4, plugin 1
+      expect(overlayProxySpy).toHaveBeenNthCalledWith(2, expect.any(Function), expect.any(Shared.AsyncIteratorClass))
+      expect(iterator).toBe(overlayProxySpy.mock.results[1]?.value)
     })
 
     it('should not retry if success', async () => {

@@ -7,7 +7,7 @@ import type { Lazyable } from './lazy'
 import type { AnyProcedure, Procedure, ProcedureHandlerOptions } from './procedure'
 import { mapEventIterator, ORPCError } from '@orpc/client'
 import { validateORPCError, ValidationError } from '@orpc/contract'
-import { asyncIteratorWithSpan, intercept, isAsyncIteratorObject, resolveMaybeOptionalOptions, runWithSpan, toArray, value } from '@orpc/shared'
+import { asyncIteratorWithSpan, intercept, isAsyncIteratorObject, overlayProxy, resolveMaybeOptionalOptions, runWithSpan, toArray, value } from '@orpc/shared'
 import { HibernationEventIterator } from '@orpc/standard-server'
 import { mergeCurrentContext } from './context'
 import { createORPCErrorConstructorMap } from './error'
@@ -144,7 +144,7 @@ export function createProcedureClient<
          * If remove this return, can be breaking change
          * because AsyncIteratorClass convert `.throw` to `.return` (rarely used)
          */
-        return mapEventIterator(
+        return overlayProxy(output, mapEventIterator(
           asyncIteratorWithSpan(
             { name: 'consume_event_iterator_output', signal: callerOptions?.signal },
             output,
@@ -153,7 +153,7 @@ export function createProcedureClient<
             value: v => v,
             error: e => validateError(e),
           },
-        ) as typeof output
+        )) as typeof output
       }
 
       return output

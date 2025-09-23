@@ -35,7 +35,7 @@ export interface DurableIteratorLinkPluginOptions<T extends ClientContext> exten
    * @remarks
    * - Use a strong random generator to avoid collisions or predictable IDs.
    *
-   * @default (() => `${crypto.randomUUID()}-${crypto.randomUUID()}`)
+   * @default (() => crypto.randomUUID())
    */
   createId?: (tokenPayload: DurableIteratorTokenPayload, options: StandardLinkInterceptorOptions<T>) => Promisable<string>
 
@@ -71,7 +71,7 @@ export class DurableIteratorLinkPlugin<T extends ClientContext> implements Stand
 
   constructor({ url, refreshTokenBeforeExpireInSeconds, ...options }: DurableIteratorLinkPluginOptions<T>) {
     this.url = url
-    this.createId = fallback(options.createId, () => `${crypto.randomUUID()}-${crypto.randomUUID()}`)
+    this.createId = fallback(options.createId, () => crypto.randomUUID())
     this.refreshTokenBeforeExpireInSeconds = fallback(refreshTokenBeforeExpireInSeconds, Number.NaN)
     this.linkOptions = options
   }

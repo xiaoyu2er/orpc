@@ -129,7 +129,7 @@ describe('upgradeDurableIteratorRequest', () => {
     expect(await response.text()).toEqual('WebSocket Upgrade Successful')
 
     expect(namespace.idFromName).toHaveBeenCalledWith('test-channel')
-    expect(namespace.get).toHaveBeenCalledWith(namespace.idFromName.mock.results[0]!.value, { test: 'test' })
+    expect(namespace.get).toHaveBeenCalledWith(namespace.idFromName.mock.results[0]!.value, { locationHint: 'something' })
 
     const stub = namespace.get.mock.results[0]!.value
     expect(stub.fetch).toHaveBeenCalledOnce()

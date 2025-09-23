@@ -210,6 +210,9 @@ const link = new RPCLink({
   plugins: [
     new DurableEventIteratorLinkPlugin({
       url: 'ws://localhost:3000/chat-room',
+      interceptors: [
+        onError(e => console.error(e)), // log error thrown from rpc calls
+      ],
     }),
   ],
 })
@@ -350,6 +353,15 @@ const echoResponse = await iterator.routerClient.echo({ text: 'Hello' })
 console.log(echoResponse) // "Echo: Hello"
 ```
 
+::: info
+[Retry Plugin](/docs/plugins/client-retry) is enabled for all RPC methods. Configure retry attempts using the context:
+
+```ts
+await iterator.singleClient({ message: 'Hello, world!' }, { context: { retry: 3 } })
+```
+
+:::
+
 ## Contract First
 
 This integration supports [Contract First](/docs/contract-first/define-contract). Define an interface that extends `DurableIteratorObject`:
@@ -369,4 +381,48 @@ export interface ChatRoom extends DurableIteratorObject<{ message: string }> {
 export const contract = {
   onMessage: oc.output(type<ClientDurableEventIterator<ChatRoom, 'publishMessage'>>()),
 }
+```
+
+## Advanced
+
+Durable Iterator is built on top of the [Hibernation Plugin](/docs/plugins/hibernation), essentially providing an oRPC instance within another oRPC. This architecture gives you access to the full oRPC ecosystem, including interceptors and plugins for both server and client sides.
+
+### Server-Side Customization
+
+```ts
+export class YourDurableObject extends DurableIteratorObject<{ message: string }> {
+  constructor(
+    ctx: DurableObjectState,
+    env: Env,
+  ) {
+    super(ctx, env, {
+      signingKey: 'secret-key',
+      customJsonSerializers: [], // Custom JSON serializers
+      interceptors: [], // Handler interceptors
+      plugins: [], // Handler plugins
+    })
+  }
+}
+```
+
+### Client-Side Customization
+
+```ts
+declare module '@orpc/experimental-durable-iterator/client' {
+  interface ClientDurableIteratorRpcContext {
+    // Custom client context
+  }
+}
+
+const link = new RPCLink({
+  url: 'http://localhost:3000/rpc',
+  plugins: [
+    new DurableEventIteratorLinkPlugin({
+      url: 'ws://localhost:3000/chat-room',
+      customJsonSerializers: [], // Custom JSON serializers
+      interceptors: [], // Link interceptors
+      plugins: [], // Link plugins
+    }),
+  ],
+})
 ```

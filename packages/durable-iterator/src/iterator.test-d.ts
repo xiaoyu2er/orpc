@@ -21,7 +21,7 @@ describe('DurableIteratorOptions', () => {
       .rpc('invalid')
   })
 
-  it('resolve correct client durable event iterator type', async () => {
+  it('resolve correct client durable iterator type', async () => {
     interface TestObject extends DurableIteratorObject<{ v: string }> {
       rpc: () => Client<object, string, string, Error>
     }

@@ -65,7 +65,7 @@ describe('durableIteratorLinkPlugin', async () => {
     ],
   })
 
-  it('should do nothing if not a durable event iterator response', async () => {
+  it('should do nothing if not a durable iterator response', async () => {
     const output = await link.call(['regularResponse'], {}, {
       context: {},
     })

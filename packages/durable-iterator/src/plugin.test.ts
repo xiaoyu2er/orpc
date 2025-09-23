@@ -26,7 +26,7 @@ describe('durableIteratorHandlerPlugin', async () => {
     ],
   })
 
-  it('should add plugin header when output is a client durable event iterator', async () => {
+  it('should add plugin header when output is a client durable iterator', async () => {
     const { response } = await handler.handle({
       url: new URL('http://localhost/durableIterator'),
       method: 'POST',
@@ -44,7 +44,7 @@ describe('durableIteratorHandlerPlugin', async () => {
     expect(response!.body).toEqual({ json: token })
   })
 
-  it('should not add plugin header when output is not a durable event iterator', async () => {
+  it('should not add plugin header when output is not a durable iterator', async () => {
     const { response } = await handler.handle({
       url: new URL('http://localhost/regularResponse'),
       method: 'POST',

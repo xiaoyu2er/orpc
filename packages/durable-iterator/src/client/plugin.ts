@@ -22,7 +22,7 @@ export interface DurableIteratorLinkPluginContext {
 
 export interface DurableIteratorLinkPluginOptions<T extends ClientContext> extends Omit<RPCLinkOptions<object>, 'websocket'> {
   /**
-   * The WebSocket URL to connect to the Durable Event Iterator Object.
+   * The WebSocket URL to connect to the Durable Iterator Object.
    */
   url: Value<Promisable<string | URL>, [tokenPayload: DurableIteratorTokenPayload, options: StandardLinkInterceptorOptions<T>]>
 
@@ -54,7 +54,7 @@ export interface DurableIteratorLinkPluginOptions<T extends ClientContext> exten
 }
 
 /**
- * @see {@link https://orpc.unnoq.com/docs/integrations/durable-event-iterator Durable Event Iterator Integration}
+ * @see {@link https://orpc.unnoq.com/docs/integrations/durable-iterator Durable Iterator Integration}
  */
 export class DurableIteratorLinkPlugin<T extends ClientContext> implements StandardLinkPlugin<T> {
   readonly CONTEXT_SYMBOL = Symbol('ORPC_DURABLE_ITERATOR_LINK_PLUGIN_CONTEXT')

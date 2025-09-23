@@ -69,7 +69,7 @@ export function createClientDurableIterator<
 }
 
 /**
- * If return a token if the client is a Client Durable Event Iterator.
+ * If return a token if the client is a Client Durable Iterator.
  */
 export function getClientDurableIteratorToken(
   client: unknown,

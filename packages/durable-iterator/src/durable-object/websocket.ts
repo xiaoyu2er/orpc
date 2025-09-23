@@ -57,7 +57,7 @@ export interface DurableIteratorWebsocketInternal {
 
 export interface DurableIteratorWebsocket extends WebSocket {
   /**
-   * Durable Event Iterator internal apis
+   * Durable Event internal apis
    */
   ['~orpc']: DurableIteratorWebsocketInternal
 }
@@ -65,7 +65,7 @@ export interface DurableIteratorWebsocket extends WebSocket {
 const websocketReferencesCache = new WeakMap<WebSocket, DurableIteratorWebsocket>()
 
 /**
- * Create a Durable Event Iterator WebSocket from a regular WebSocket
+ * Create a Durable Iterator WebSocket from a regular WebSocket
  *
  * @info The websocket automatically closes if expired before sending data
  */

@@ -8,7 +8,6 @@ beforeEach(() => {
 
 describe('createClientDurableIterator', async () => {
   const token = await signDurableIteratorToken('some-secret-key', {
-    id: 'some-id',
     chn: 'some-channel',
     rpc: ['method1', 'method2'],
     att: { some: 'claims' },
@@ -61,7 +60,6 @@ describe('createClientDurableIterator', async () => {
     expect(getClientDurableIteratorToken(iterator)).toEqual(token)
 
     const token2 = await signDurableIteratorToken('some-secret-key', {
-      id: 'id-2',
       chn: 'channel-2',
       rpc: ['method2'],
       att: { some: 'claims' },

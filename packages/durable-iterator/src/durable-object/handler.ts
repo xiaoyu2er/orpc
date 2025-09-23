@@ -181,11 +181,16 @@ export class DurableIteratorObjectHandler<
 
     const websocketsFilteredByTags = (() => {
       if (targets) {
+        const uniqueTargets = targets.filter((ws, index) => {
+          const id = ws['~orpc'].deserializeId()
+          return targets?.findIndex(ws => ws['~orpc'].deserializeId() === id) === index
+        })
+
         if (!options.tags) {
-          return targets
+          return uniqueTargets
         }
 
-        return targets.filter(
+        return uniqueTargets.filter(
           ws => ws['~orpc'].deserializeTokenPayload().tags?.some(tag => options.tags?.includes(tag)),
         )
       }

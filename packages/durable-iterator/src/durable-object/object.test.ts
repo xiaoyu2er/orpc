@@ -199,6 +199,22 @@ describe('class DurableIteratorObject & DurableIteratorObjectHandler', async () 
       expect(ws3['~orpc'].original.send).toHaveBeenCalledTimes(0)
       expect(resumeStoreStoreSpy).toHaveBeenCalledWith({ order: 6 }, { tags: ['tag2'], exclude: [ws1, ws2] })
       expect(exclude).toHaveBeenCalledTimes(2)
+
+      // unique before send
+      vi.clearAllMocks()
+      object.publishEvent({ order: 7 }, { tags: ['tag1', 'tag1', 'tag2', 'tag2', 'tag3', 'tag3'] })
+      expect(ws1['~orpc'].original.send).toHaveBeenCalledTimes(1)
+      expect(ws2['~orpc'].original.send).toHaveBeenCalledTimes(1)
+      expect(ws3['~orpc'].original.send).toHaveBeenCalledTimes(0)
+      expect(resumeStoreStoreSpy).toHaveBeenCalledWith({ order: 7 }, { tags: ['tag1', 'tag1', 'tag2', 'tag2', 'tag3', 'tag3'] })
+
+      // unique before send
+      vi.clearAllMocks()
+      object.publishEvent({ order: 8 }, { tags: ['tag1', 'tag1', 'tag2', 'tag2', 'tag3', 'tag3'], targets: [ws1, ws1, ws2, ws2, ws3, ws3], exclude: [ws2] })
+      expect(ws1['~orpc'].original.send).toHaveBeenCalledTimes(1)
+      expect(ws2['~orpc'].original.send).toHaveBeenCalledTimes(0)
+      expect(ws3['~orpc'].original.send).toHaveBeenCalledTimes(0)
+      expect(resumeStoreStoreSpy).toHaveBeenCalledWith({ order: 8 }, { tags: ['tag1', 'tag1', 'tag2', 'tag2', 'tag3', 'tag3'], targets: [ws1, ws1, ws2, ws2, ws3, ws3], exclude: [ws2] })
     })
 
     it('ignore sending errors', async () => {

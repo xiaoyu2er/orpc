@@ -107,6 +107,26 @@ export default {
 export { ChatRoom }
 ```
 
+### Publish Events
+
+Use `publishEvent` to send events to connected clients. Three filtering options are available:
+
+- **`tags`**: Send events only to clients with matching tags
+- **`targets`**: Send events to specific clients (accepts array or filter callback)
+- **`exclude`**: Exclude specific clients from receiving events (accepts array or filter callback)
+
+```ts
+this.publishEvent({ message: 'Hello, world!' }, {
+  tags: ['tag1', 'tag2'],
+  targets: ws => ws['~orpc'].deserializeTokenPayload().att.role === 'admin',
+  exclude: [senderWs],
+})
+```
+
+::: info
+When using [Resume Events After Connection Loss](#resume-events-after-connection-loss) feature, prefer `tags` or `targets` filtering over `exclude` for security. Since clients control their own identity, `exclude` should only be used for UI convenience, not security enforcement.
+:::
+
 ### Resume Events After Connection Loss
 
 Event resumption is disabled by default. Enable it by configuring `resumeRetentionSeconds` to specify how long events are persisted for recovery:
@@ -126,7 +146,7 @@ export class YourDurableObject extends DurableIteratorObject<{ message: string }
 ```
 
 ::: warning
-This feature takes controls event IDs, so custom event IDs will be ignored:
+This feature controls event IDs automatically, so custom event IDs will be ignored:
 
 ```ts
 import { withEventMeta } from '@orpc/durable-iterator'
@@ -161,7 +181,7 @@ export const router = {
       const id = context.env.CHAT_ROOM.idFromName('some-room')
       const stub = context.env.CHAT_ROOM.get(id)
 
-      await stub.publishMessage(input)
+      await stub.publishEvent(input)
     }),
 }
 ```
@@ -259,7 +279,7 @@ Unlike [Cloudflare Durable Objects RPC](https://developers.cloudflare.com/durabl
 import { DurableIteratorWebsocket } from '@orpc/experimental-durable-iterator/durable-object'
 
 export class ChatRoom extends DurableIteratorObject<{ message: string }> {
-  publicMessage(ws: DurableIteratorWebsocket) {
+  singleClient(ws: DurableIteratorWebsocket) {
     return base
       .input(z.object({ message: z.string() }))
       .handler(({ input, context }) => {
@@ -272,10 +292,7 @@ export class ChatRoom extends DurableIteratorObject<{ message: string }> {
       .callable()
   }
 
-  /**
-   * Nested Client
-   */
-  router(ws: DurableIteratorWebsocket) {
+  routerClient(ws: DurableIteratorWebsocket) {
     return {
       ping: base.handler(() => 'pong').callable(),
       echo: base
@@ -298,7 +315,7 @@ export const onMessage = base.handler(({ context }) => {
     att: { // Attach additional data to token
       userId: 'user-123',
     },
-  }).rpc('publishMessage', 'router') // Allowed methods
+  }).rpc('singleClient', 'routerClient') // Allowed methods
 })
 ```
 
@@ -323,13 +340,13 @@ for await (const { message } of iterator) {
 }
 
 // Call RPC methods
-await iterator.publishMessage({ message: 'Hello, world!' })
+await iterator.singleClient({ message: 'Hello, world!' })
 
 // Call nested router methods
-const response = await iterator.router.ping()
+const response = await iterator.routerClient.ping()
 console.log(response) // "pong"
 
-const echoResponse = await iterator.router.echo({ text: 'Hello' })
+const echoResponse = await iterator.routerClient.echo({ text: 'Hello' })
 console.log(echoResponse) // "Echo: Hello"
 ```
 

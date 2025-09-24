@@ -51,6 +51,13 @@ export interface DurableIteratorLinkPluginOptions<T extends ClientContext> exten
    * @default NaN (disabled)
    */
   refreshTokenBeforeExpireInSeconds?: Value<Promisable<number>, [tokenPayload: DurableIteratorTokenPayload, options: StandardLinkInterceptorOptions<T>]>
+
+  /**
+   * Minimum delay between token refresh attempts.
+   *
+   * @default 2 (seconds)
+   */
+  refreshTokenDelayInSeconds?: Value<Promisable<number>, [tokenPayload: DurableIteratorTokenPayload, options: StandardLinkInterceptorOptions<T>]>
 }
 
 /**
@@ -67,12 +74,14 @@ export class DurableIteratorLinkPlugin<T extends ClientContext> implements Stand
   private readonly url: DurableIteratorLinkPluginOptions<T>['url']
   private readonly createId: Exclude<DurableIteratorLinkPluginOptions<T>['createId'], undefined>
   private readonly refreshTokenBeforeExpireInSeconds: Exclude<DurableIteratorLinkPluginOptions<T>['refreshTokenBeforeExpireInSeconds'], undefined>
+  private readonly refreshTokenDelayInSeconds: Exclude<DurableIteratorLinkPluginOptions<T>['refreshTokenDelayInSeconds'], undefined>
   private readonly linkOptions: Omit<RPCLinkOptions<object>, 'websocket'>
 
-  constructor({ url, refreshTokenBeforeExpireInSeconds, ...options }: DurableIteratorLinkPluginOptions<T>) {
+  constructor({ url, refreshTokenBeforeExpireInSeconds, refreshTokenDelayInSeconds, ...options }: DurableIteratorLinkPluginOptions<T>) {
     this.url = url
     this.createId = fallback(options.createId, () => crypto.randomUUID())
     this.refreshTokenBeforeExpireInSeconds = fallback(refreshTokenBeforeExpireInSeconds, Number.NaN)
+    this.refreshTokenDelayInSeconds = fallback(refreshTokenDelayInSeconds, 2)
     this.linkOptions = options
   }
 
@@ -127,56 +136,61 @@ export class DurableIteratorLinkPlugin<T extends ClientContext> implements Stand
       let refreshTokenBeforeExpireTimeoutId: ReturnType<typeof setTimeout> | undefined
       const refreshTokenBeforeExpire = async () => {
         const beforeSeconds = await value(this.refreshTokenBeforeExpireInSeconds, tokenAndPayload.payload, options)
+        const delayMilliseconds = await value(this.refreshTokenDelayInSeconds, tokenAndPayload.payload, options) * 1000
 
         // stop refreshing if already finished
         if (isFinished || !Number.isFinite(beforeSeconds)) {
           return
         }
 
-        const nowInSeconds = Math.floor(Date.now() / 1000)
-
-        refreshTokenBeforeExpireTimeoutId = setTimeout(async () => {
+        refreshTokenBeforeExpireTimeoutId = setTimeout(
+          async () => {
           // retry until success or finished
-          const newTokenAndPayload = await retry({ times: Number.POSITIVE_INFINITY, delay: 2000 }, async (exit) => {
-            try {
-              const output = await next()
-              return this.validateToken(output, options.path)
-            }
-            catch (err) {
-              if (isFinished) {
-                exit(err)
+            const newTokenAndPayload = await retry({ times: Number.POSITIVE_INFINITY, delay: delayMilliseconds }, async (exit) => {
+              try {
+                const output = await next()
+                return this.validateToken(output, options.path)
               }
+              catch (err) {
+                if (isFinished) {
+                  exit(err)
+                }
 
-              throw err
-            }
-          })
+                throw err
+              }
+            })
 
-          const canProactivelyUpdateToken
-            = newTokenAndPayload.payload.chn === tokenAndPayload.payload.chn
-              && stringifyJSON(newTokenAndPayload.payload.tags) === stringifyJSON(tokenAndPayload.payload.tags)
+            const canProactivelyUpdateToken
+              = newTokenAndPayload.payload.chn === tokenAndPayload.payload.chn
+                && stringifyJSON(newTokenAndPayload.payload.tags) === stringifyJSON(tokenAndPayload.payload.tags)
 
-          tokenAndPayload = newTokenAndPayload
-          await refreshTokenBeforeExpire() // recursively call
+            tokenAndPayload = newTokenAndPayload
+            await refreshTokenBeforeExpire() // recursively call
 
-          /**
-           * The next refresh cycle doesn't depend on the logic below,
-           * so we place it last to avoid interfering with recursion.
-           */
-          if (canProactivelyUpdateToken) {
+            /**
+             * The next refresh cycle doesn't depend on the logic below,
+             * so we place it last to avoid interfering with recursion.
+             */
+            if (canProactivelyUpdateToken) {
             /**
              * Proactively update the token before expiration
              * to avoid reconnecting when the old token expires.
              */
-            await durableClient.updateToken({ token: tokenAndPayload.token })
-          }
-          else {
+              await durableClient.updateToken({ token: tokenAndPayload.token })
+            }
+            else {
             /**
              * Proactive update requires the same channel and tags.
              * If they differ, we must reconnect instead to make new token effective.
              */
-            websocket.reconnect()
-          }
-        }, (tokenAndPayload.payload.exp - nowInSeconds - beforeSeconds) * 1000)
+              websocket.reconnect()
+            }
+          },
+          Math.max(
+            refreshTokenBeforeExpireTimeoutId === undefined ? 0 : delayMilliseconds,
+            (tokenAndPayload.payload.exp - Math.floor(Date.now() / 1000) - beforeSeconds) * 1000,
+          ),
+        )
       }
       refreshTokenBeforeExpire()
 

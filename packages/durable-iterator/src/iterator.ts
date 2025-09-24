@@ -37,8 +37,6 @@ export interface DurableIteratorOptions<
    * The methods that are allowed to be called remotely.
    *
    * @warning Please use .rpc method to set this field in case ts complains about value you pass
-   *
-   * @default []
    */
   rpc?: readonly RPC[]
 }

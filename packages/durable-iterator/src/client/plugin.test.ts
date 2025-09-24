@@ -34,6 +34,7 @@ describe('durableIteratorLinkPlugin', async () => {
     () => new DurableIterator<any, any>('some-room', { signingKey: 'signing-key', tags: ['tag'] }).rpc('getUser', 'sendMessage'),
   )
   const refreshTokenBeforeExpireInSeconds = vi.fn(() => Number.NaN)
+  const refreshTokenDelayInSeconds = vi.fn(() => 2)
 
   const handler = new StandardRPCHandler({
     durableIterator: os.handler(durableIteratorHandler),
@@ -61,6 +62,7 @@ describe('durableIteratorLinkPlugin', async () => {
       new DurableIteratorLinkPlugin({
         url: 'ws://localhost',
         refreshTokenBeforeExpireInSeconds,
+        refreshTokenDelayInSeconds,
       }),
     ],
   })
@@ -144,7 +146,7 @@ describe('durableIteratorLinkPlugin', async () => {
 
   describe('refresh expired token', () => {
     it('works', async () => {
-      refreshTokenBeforeExpireInSeconds.mockImplementation(() => 8)
+      refreshTokenBeforeExpireInSeconds.mockImplementation(() => 9)
       durableIteratorHandler.mockImplementation(
         () => new DurableIterator<any, any>('some-room', {
           signingKey: 'signing-key',
@@ -183,19 +185,36 @@ describe('durableIteratorLinkPlugin', async () => {
       expect(token1).toBeTypeOf('string')
       expect(durableIteratorHandler).toHaveBeenCalledTimes(1)
 
-      await sleep(1000)
+      await sleep(500)
       expect(await urlProvider()).toEqual(url1)
       expect(getClientDurableIteratorToken(output)).toEqual(token1)
       expect(durableIteratorHandler).toHaveBeenCalledTimes(1) // not expired yet
 
-      await sleep(1000)
-      expect(await urlProvider()).not.toEqual(url1)
-      expect(getClientDurableIteratorToken(output)).not.toEqual(token1)
+      await sleep(500)
+      const url2 = await urlProvider()
+      expect(url2).not.toEqual(url1)
+      const token2 = getClientDurableIteratorToken(output)
+      expect(token2).not.toEqual(token1)
       expect(durableIteratorHandler).toHaveBeenCalledTimes(2)
       expect(ws.send).toHaveBeenCalledTimes(1) // send set token request to durable iterator
 
-      expect(refreshTokenBeforeExpireInSeconds).toHaveBeenCalledTimes(2)
+      await sleep(2000) // wait next retry + refreshTokenDelayInSeconds delay
+      const url3 = await urlProvider()
+      expect(url3).not.toEqual(url1)
+      expect(url3).not.toEqual(url2)
+      const token3 = getClientDurableIteratorToken(output)
+      expect(token3).not.toEqual(token1)
+      expect(token3).not.toEqual(token2)
+      expect(durableIteratorHandler).toHaveBeenCalledTimes(3)
+      expect(ws.send).toHaveBeenCalledTimes(2) // send set token request to durable iterator
+
+      expect(refreshTokenBeforeExpireInSeconds).toHaveBeenCalledTimes(3)
       expect(refreshTokenBeforeExpireInSeconds).toHaveBeenCalledWith(
+        parseDurableIteratorToken(new URL(url1).searchParams.get(DURABLE_ITERATOR_TOKEN_PARAM)!),
+        expect.objectContaining({ path: ['durableIterator'] }),
+      )
+      expect(refreshTokenDelayInSeconds).toHaveBeenCalledTimes(3)
+      expect(refreshTokenDelayInSeconds).toHaveBeenCalledWith(
         parseDurableIteratorToken(new URL(url1).searchParams.get(DURABLE_ITERATOR_TOKEN_PARAM)!),
         expect.objectContaining({ path: ['durableIterator'] }),
       )

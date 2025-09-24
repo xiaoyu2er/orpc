@@ -12,7 +12,7 @@ description: Use oRPC inside a React Native project
 React Native includes a [Fetch API](https://reactnative.dev/docs/network), so you can use oRPC out of the box.
 
 ::: warning
-However, the Fetch API in React Native has limitations. oRPC features like `File`, `Blob`, and `AsyncIteratorObject` aren't supported. Follow [Support Stream #27741](https://github.com/facebook/react-native/issues/27741) for updates.
+However, the Fetch API in React Native has limitations. oRPC features like [File/Blob](/docs/file-upload-download), and [Event Iterator](/docs/event-iterator) aren't supported. Follow [Support Stream #27741](https://github.com/facebook/react-native/issues/27741) for updates.
 :::
 
 ::: tip
@@ -34,3 +34,26 @@ const link = new RPCLink({
 ::: info
 The `link` can be any supported oRPC link, such as [RPCLink](/docs/client/rpc-link), [OpenAPILink](/docs/openapi/client/openapi-link), or another custom link.
 :::
+
+### `expo/fetch`
+
+If you're using [Expo](https://expo.dev/), you can use the [`expo/fetch`](https://docs.expo.dev/versions/latest/sdk/expo/#expofetch-api) to expand support for [Event Iterator](/docs/event-iterator).
+
+```ts
+export const link = new RPCLink({
+  url: `http://localhost:3000/rpc`,
+  async fetch(request, init) {
+    const { fetch } = await import('expo/fetch')
+
+    const resp = await fetch(request.url, {
+      body: await request.blob(),
+      headers: request.headers,
+      method: request.method,
+      signal: request.signal,
+      ...init,
+    })
+
+    return resp
+  },
+})
+```

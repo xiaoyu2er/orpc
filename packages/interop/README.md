@@ -20,6 +20,9 @@
   <a href="https://discord.gg/TXEbwRBvQn">
     <img alt="Discord" src="https://img.shields.io/discord/1308966753044398161?color=7389D8&label&logo=discord&logoColor=ffffff" />
   </a>
+  <a href="https://deepwiki.com/unnoq/orpc">
+    <img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki">
+  </a>
 </div>
 
 <h3 align="center">Typesafe APIs Made Simple 🪄</h3>

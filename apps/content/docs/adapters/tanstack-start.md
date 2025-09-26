@@ -55,7 +55,7 @@ Use `createIsomorphicFn` to configure the RPC link with environment-specific set
 ```ts
 import { RPCLink } from '@orpc/client/fetch'
 import { createIsomorphicFn } from '@tanstack/react-start'
-import { getHeaders } from '@tanstack/react-start/server'
+import { getRequestHeaders } from '@tanstack/react-start/server'
 
 const getClientLink = createIsomorphicFn()
   .client(() => new RPCLink({
@@ -63,7 +63,7 @@ const getClientLink = createIsomorphicFn()
   }))
   .server(() => new RPCLink({
     url: 'http://localhost:3000/api/rpc',
-    headers: () => getHeaders(),
+    headers: () => getRequestHeaders(),
   }))
 ```
 
@@ -82,7 +82,7 @@ import { createRouterClient } from '@orpc/server'
 import type { RouterClient } from '@orpc/server'
 import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
-import { getHeaders } from '@tanstack/react-start/server'
+import { getRequestHeaders } from '@tanstack/react-start/server'
 import { createIsomorphicFn } from '@tanstack/react-start'
 
 const getORPCClient = createIsomorphicFn()
@@ -95,7 +95,7 @@ const getORPCClient = createIsomorphicFn()
      * For per-request context, use middleware context or pass a function as the initial context.
      */
     context: async () => ({
-      headers: getHeaders(), // provide headers if initial context required
+      headers: getRequestHeaders(), // provide headers if initial context required
     }),
   }))
   .client((): RouterClient<typeof router> => {

@@ -198,6 +198,22 @@ const handler = new RPCHandler(router, {
 })
 ```
 
+::: warning CORS Policy
+The `DurableIteratorHandlerPlugin` adds an `x-orpc-durable-iterator` header to responses, indicating that the response contains a durable iterator. For cross-origin requests, you must configure CORS to expose this header to clients.
+
+```ts
+const handler = new RPCHandler(router, {
+  plugins: [
+    new CORSPlugin({
+      exposeHeaders: ['x-orpc-durable-iterator'], // [!code highlight]
+    }),
+    new DurableIteratorHandlerPlugin(),
+  ],
+})
+```
+
+:::
+
 ## Client Side
 
 On the client side, simply configure the plugin. Usage is identical to [Event Iterator](/docs/client/event-iterator). The `url` in `DurableIteratorLinkPlugin` points to your Durable Object upgrade endpoint:
